@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.9 2004-01-13 17:28:02 aschn Exp $
+* $Id: stdprocs.e,v 1.10 2004-06-03 22:40:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -36,7 +36,7 @@ defproc askyesno
    return substr(YES_CHAR || NO_CHAR, winmessagebox( arg(3),
                                                      prompt,
                                                      16388) - 5,
-                                                     1 )  -- YESNO + MOVEABLE
+                                                     1)  -- YESNO + MOVEABLE
 
 ; Does an atol of its argument, then a word reversal and returns the result.
 defproc atol_swap(num)
@@ -110,87 +110,10 @@ compile else
 compile endif
    return 'LPT1'
 
-;  Returns DOS version number, multiplied by 100 so we can treat
-;  it as an integer string.  That is, DOS 3.2 is reported as "320".
-;  Needed by DEFPROC SUBDIR.
-
-defproc dos_version()
-      verbuf = copies(\0,8)
-      res= dynalink32( 'DOSCALLS',          /* dynamic link library name */
-                       '#348',              /* ordinal for DOS32QuerySysInfo */
-                       atol(11)         ||  -- Start index (Major version number)
-                       atol(12)         ||  -- End index (Minor version number)
-                       address(verbuf)  ||  -- buffer
-                       atol(8),2 )          -- Buffer length
-;     major = ltoa(leftstr(verbuf,4),10)
-;     minor = ltoa(rightstr(verbuf,4),10)
-      return 100*ltoa(leftstr(verbuf,4),10) + ltoa(rightstr(verbuf,4),10)
-
 ; Moved defproc ec_position_on_error to LINCMDS.E
 ; Moved defproc einsert_line to ENTER.E
 ; Moved defproc enter_common(action) to ENTER.E
-
-;  Erasetemp erases a file quietly (no "File not found" message) on both DOS
-;  and OS/2.  Thanks to Larry Margolis.  Returns 0 if successful erase, or
-;  the error code (if on DOS) which will usually be 2 for 'file not found'.
-defproc erasetemp(filename)
-   asciiz = filename\0
-   return dynalink32( 'DOSCALLS',          /* dynamic link library name */
-                      '#259',               /* ordinal value for DOSDELETE */
-                      address(asciiz) )
-
-defproc find_token(var startcol, var endcol)  -- find a token around the cursor.
-   if arg(3)='' then
-      token_separators = ' ~`!%^&*()-+=][{}|\:;?/><,''"'\t
-   else
-      token_separators = arg(3)
-   endif
-   if arg(4)='' then
-      diads = '-> ++ -- << >> <= >= && || += -= *= /= %= ª= &= |= :: /* */'
-   else
-      diads = arg(4)
-   endif
-   getline line
-   len = length(line)
-   if .col>len | pos(substr(line, .col, 1), ' '\t) then
-      return  -- Past end of line, or over whitespace
-   endif
-   endcol = verify(line, token_separators, 'M', .col)
-   if endcol = .col then  -- On an operator.
-      startcol = endcol
-      if wordpos(substr(line, startcol, 2), diads) then
-         endcol = endcol + 1  -- On first character
-      elseif .col > 1 then
-         if wordpos(substr(line, endcol-1, 2), diads) then
-            startcol = startcol - 1  -- -- On last character
-         endif
-      endif
-      return 2
-   endif
-   if endcol then
-      endcol = endcol - 1
-   else
-      endcol = len
-   endif
-   startcol = verify(reverse(line), token_separators, 'M', len - .col + 1)
-   if startcol then
-      startcol = len - startcol + 2
-   else
-      startcol = 1
-   endif
-   return 1
-
-; Note on a speed trick:  The following routine is used to both verify that
-; an external program exists, and to get its path.  After that first search,
-; the exact path location of the routine is known; it can be remembered so that
-; all future calls can supply the exact location to avoid the path search.
-; See SUBDIR for an example of its use.
-
-defproc find_routine(utility)  -- Split from SUBDIR
-   parse arg util opts         -- take first word, so can pass options too.
-   findfile fully_qualified,util,'PATH','P'
-   if rc then return -1 endif
-   return fully_qualified opts
+; Moved defproc enter_common(action) to ENTER.E
 
 defproc fixup_cursor()
 compile if DYNAMIC_CURSOR_STYLE
@@ -267,43 +190,7 @@ defproc joinlines()
       join
    endif
 
-compile if WANT_LAN_SUPPORT
-defproc lock
-   file=.filename\0
-   newhandle='????'
-   actiontaken=atol(1)   -- File exists
-   result = dynalink32( 'DOSCALLS',
-                        '#273',                     /* dos32open          */
-                        address(file)         ||
-                        address(newhandle)    ||
-                        address(actiontaken)  ||
-                        atol(0)    ||       -- file size
-                        atol(0)    ||       -- file attribute
-                        atol(17)   ||       -- open flag; open if exists, else create
-                        atol(146)  ||       -- openmode; deny Read/Write
-                        atol(0), 2 )
-   if result then
-;     'quit'  /* quit since the file could not be locked */
-      messageNwait('DOSOPEN' ERROR__MSG result NOT_LOCKED__MSG)
-      return result
-   endif
-   if newhandle = \0\0\0\0 then  -- Handle of 0 - bad news
-      newhandle2=\255\255\255\255
-      result = dynalink32( 'DOSCALLS',
-                           '#260',                     /* Dos32DupHandle     */
-                           newhandle ||
-                           address( newhandle2 ), 2)
-      call dynalink32( 'DOSCALLS',    -- Free the original handle
-                       '#257',                    -- dos32close
-                       newhandle, 2 )
-      if result then
-         messageNwait('DosDupHandle' ERROR__MSG result NOT_LOCKED__MSG)
-         return result
-      endif
-      newhandle = newhandle2
-   endif
-   .lockhandle=ltoa(newhandle,10)
-compile endif
+; Moved file defs to FILE.E.
 
 defproc max(a,b)  -- Support as many arguments as E3 will allow.
    maximum=a
@@ -311,88 +198,6 @@ defproc max(a,b)  -- Support as many arguments as E3 will allow.
       if maximum<arg(i) then maximum=arg(i); endif
    end
    return maximum
-
-compile if BACKUP_PATH <> ''
-;  Procedure to pick a filename for backup purposes, like STDPROCS.E$.
-defproc MakeBakName
-   name = arg(1)
-   if name = '' then   /* if no arg given, default to current filename */
-      name = .filename
-   endif
-   -- Change name as little as possible, but enough to identify it as
-   -- a noncritical file.  Replace the last character with '$'.
-   ext = filetype(name)
-   if length(ext)=3 then
-      ext = substr(ext,1,2)'$'
-   else
-      ext = ext'$'
-   endif
-   -- We still use MakeTempName() for its handling of host names.
-   bakname = MakeTempName(name)
-   i=lastpos('\',bakname)       -- but with a different directory
-   if i then
-      bakname = substr(bakname,i+1)
-   endif
-   parse value bakname with fname'.'.
- compile if BACKUP_PATH = '='
-   bakname = fname'.'ext
-   i=lastpos('\',name)       -- Use original file's directory
-   if i then
-      bakname = substr(name,1,i) || bakname
-   endif
- compile else
-   bakname = BACKUP_PATH || fname'.'ext
- compile endif
-   return bakname
-compile endif
-
-
-;  Procedure to pick a temporary filename like ORIGNAME.$$1.
-;  First argument is the filename, 2nd is the fileid.  Both are optional,
-;  default to the current filename and fileid if absent.
-;  Revised by BTTUCKER to catch all cases and work with E3EMUL.
-defproc MakeTempName
-   universal vAUTOSAVE_PATH
-   TempName  = arg(1)
-   extension = arg(2)
-   if TempName = '' then   /* if no arg given, default to current filename */
-      TempName = .filename
-   endif
-   if TempName = '' then
-      TempName = '$'       /* new file? o.k. then $  */
-   else /* We want only PC file name, VM filename, or MVS firstname          */
-        /* These next statements will strip everything else off...           */
-     p = lastpos('\',TempName)                      /* PC filename with path */
-     if p then TempName=substr(TempName,p+1) endif
-     p = pos('.',TempName)                          /* PC or MVS filename    */
-     if p then TempName=substr(TempName,1,p-1) endif
-     p = pos(' ',TempName)                          /* VM filename (or HPFS) */
-     if p then TempName=substr(TempName,1,p-1) endif
-     p = pos(':',TempName)                          /* VM or MVS filename    */
-     if p then TempName=substr(TempName,p+1) endif
-     p = pos("'",TempName)                          /* MVS filename          */
-     if p then TempName=substr(TempName,p+1) endif
-     if length(tempname)>8 then tempname=substr(tempname,1,8); endif  /* HPFS names */
-   endif
-
-   -- TempName might still be blank, as for '.Unnamed file'.
-   if TempName='' then TempName='$'; endif
-
-   TempName = vAUTOSAVE_PATH || TempName
-   if extension='' then            /* default is current fileid              */
-      getfileid extension
-   endif
-   /* In EPM we can have the same filename in multiple edit windows without
-    * knowing it, because different edit windows are actually separate
-    * instances of the editor.  So try to make the tempname unique by
-    * combining the window handle with the fileid.  Combine two middle
-    * digits of the window handle with the last digit of the fileid.
-    */
-   extension = substr(getpminfo(EPMINFO_EDITCLIENT),2,2) || extension
-   if length(extension)>3 then     /* could be >one digit, or something else */
-      extension=substr(extension,2,3)
-   endif
-   return TempName'.'extension
 
 defproc message
    getfileid fileid
@@ -413,96 +218,15 @@ defproc messageNwait
    activatefile zzfileid
 
 defproc min(a,b)  -- Support as many arguments as E3 will allow.
-   minimum=a
-   do i=2 to arg()
-      if minimum>arg(i) then minimum=arg(i); endif
+   minimum = a
+   do i = 2 to arg()
+      if minimum > arg(i) then minimum = arg(i); endif
    end
    return minimum
 
 ; Moved defproc my_c_enter to ENTER.E
 ; Moved defproc my_enter to ENTER.E
-
-;  A common routine to parse an argument string containing a mix of
-;  options and DOS file specs.  The DOS file specs can contain an "=" for the
-;  path or the fileid, which will be replaced by the corresponding part of the
-;  previous file (initially, the current filename).
-defproc parse_file_n_opts(argstr)
-   prev_filename = .filename
-   output = ''
-   do while argstr<>''
-      parse value argstr with filename rest
-      if leftstr(filename,1)='"' then
-         parse value argstr with '"' filename '"' argstr
-         filename = '"'filename'"'
-      else
-         argstr = rest
-      endif
-      if substr(filename,1,1)<>'/' then
-         call parse_filename(filename,prev_filename)
-         prev_filename = filename
-      endif
-      output = output filename
-   end
-   return substr(output,2)
-
-;  A common routine to parse a DOS file name.  Optional second argument
-;  gives source for = when used for path or fileid.  RC is 0 if successful, or
-;  position of "=" in first arg if no second arg given but was needed.
-defproc parse_filename(var filename)
-   if leftstr(filename,1)='"' & rightstr(filename,1)='"' then
-      return 0
-   endif
-   sourcefile = strip(arg(2))
-   if sourcefile='' | sourcefile=GetUnnamedFilename() then return pos('=',filename) endif
-
-   if filename='=' then filename=sourcefile; return 0; endif
-
-   lastsep = lastpos('\',sourcefile)
-   if not lastsep & substr(sourcefile,2,1) = ':' then lastsep=2; endif
-
-   /* E doesn't handle the = prefix if it's on the first file given on      */
-   /* the E command line.  This replaces = with path of current file.  LAM  */
-   if substr(filename,1,1) = '=' & lastsep then
-      if substr(filename,2,1) = '.' & not pos('\', filename) then filename='='filename endif
-      filename=substr(sourcefile,1,lastsep) || substr(filename,2)
-   endif
-
-   /* Also accept '=' after the pathspec, like 'c:\bat\=', */
-   /* or c:\bat\=.bat or c:\doc\new.=                      */
-   p = pos('=',filename)
-   if p > 1 then
-      sourcefileid=substr(sourcefile,max(lastsep+1,1))
-      parse value sourcefileid with sourcefilename '.' sourcefileext
-      lastsep2 = lastpos('\',filename)
-      if not lastsep2 & substr(filename,2,1) = ':' then lastsep2=2; endif
-      dot1=pos('.',filename,max(lastsep2,1))
-      firstpart=substr(filename,1,p-1)
-      if dot1 then
-         if dot1<p then  -- filename.=
-            filename= firstpart || sourcefileext
-         else            -- =.ext
-            filename= firstpart || sourcefilename || substr(filename,dot1)
-         endif
-      else            -- d:\path\         ||        filename.ext
-         filename= firstpart || sourcefileid
-      endif -- dot1
-   endif -- p > 1
-   return 0
-
-;  This proc is called by DEFC EDIT.
-;  Does *not* assume all options are specified before filenames.
-defproc parse_leading_options(var rest,var options)
-   options=''
-   loop
-      parse value rest with wrd more
-      if substr(wrd,1,1)='/' then
-         options = options wrd
-         rest = more
-      else
-         leave
-      endif
-   endloop
-
+; Moved parse defs to EDIT.E
 
 ; PBEGIN_MARK: this procedure moves the cursor to the first character of the
 ; mark area.  If the mark area is not in the active file, the marked file is
@@ -523,26 +247,26 @@ defproc pbegin_mark
 ; of the word on the right.  If the line is empty the cursor doesn't move.
 defproc pbegin_word
    getline line,.line
-   if  substr(line,.col,1)=' ' then
-      p=verify(line,' ')       /* 1st case: the cursor on a space */
-      if p>=.col then
-         .col=p
+   if substr( line, .col, 1) = ' ' then
+      p = verify( line, ' ')     /* 1st case: the cursor on a space */
+      if p >= .col then
+         .col = p
       else
          if p then
-            q=p
+            q = p
             loop
-               p=verify(line,' ','M',p)
-               if not p or p>.col then leave endif
-               p=verify(line,' ','',p)
-               if not p or p>.col then leave endif
-               q=p
+               p = verify( line, ' ', 'M', p)
+               if not p or p >. col then leave endif
+               p = verify( line, ' ', '', p)
+               if not p or p > .col then leave endif
+               q = p
             endloop
-            .col=q
+            .col = q
          endif
       endif
    else
-      if .col<>1 then          /* 2nd case: not on a space */
-         .col=lastpos(' ',line,.col)+1
+      if .col <> 1 then          /* 2nd case: not on a space */
+         .col = lastpos( ' ', line, .col) + 1
       endif
    endif
 
@@ -552,11 +276,11 @@ defproc pbegin_word
 ; block in the destination block.  The source block is fill with spaces.
 ;   option=0 saves the marked block in temp file
 ;   option=1 reflow temp file text and copies it to marked area
-defproc pblock_reflow(option,var spc,var tempofid)
+defproc pblock_reflow( option, var spc, var tempofid)
    call checkmark()
    if not option then
       usedmk=marktype()
-      getmark  firstline1,lastline1,firstcol1,lastcol1,fileid1
+      getmark firstline1, lastline1, firstcol1, lastcol1, fileid1
       /* move the source mark to a temporary file */
       'xcom e /c .tempo'
       if rc<>sayerror('New file') then
@@ -568,11 +292,11 @@ defproc pblock_reflow(option,var spc,var tempofid)
       activatefile tempofid
       call pcopy_mark()
       activatefile fileid1
-      call pset_mark(firstline1,lastline1,firstcol1,lastcol1,usedmk,fileid1)
-      if usedmk='LINE' then
+      call pset_mark( firstline1, lastline1, firstcol1, lastcol1, usedmk, fileid1)
+      if usedmk = 'LINE' then
          begin_line
       endif
-      spc=usedmk firstline1 lastline1 firstcol1 lastcol1 fileid1
+      spc = usedmk firstline1 lastline1 firstcol1 lastcol1 fileid1
       return 0
    else
       getfileid startfid
@@ -582,7 +306,7 @@ defproc pblock_reflow(option,var spc,var tempofid)
          rc=0
          activatefile tempofid
          if rc then return rc; endif
-         .modify=0
+         .modify = 0
          'xcom q'
          activatefile startfid
          return 1
@@ -593,49 +317,53 @@ defproc pblock_reflow(option,var spc,var tempofid)
       if rc then return rc; endif
       activatefile startfid
       parse value spc with usedmk firstline1 lastline1 firstcol1 lastcol1 fileid1
-      getmark  firstline2,lastline2,firstcol2,lastcol2,fileid2
+      getmark firstline2, lastline2, firstcol2, lastcol2, fileid2
       /* fill source with space */
-      if usedmk='LINE' then
+      if usedmk = 'LINE' then
          for i = firstline1 to lastline1
-            replaceline '',i,fileid2
+            replaceline '', i, fileid2
          endfor
       else
-         call pset_mark(firstline1,lastline1,firstcol1,lastcol1,usedmk,fileid1)
+         call pset_mark( firstline1, lastline1, firstcol1, lastcol1, usedmk, fileid1)
          call pfill_mark(' ')
       endif
-      call pset_mark(firstline2,lastline2,firstcol2,lastcol2,'BLOCK',fileid2)
+      call pset_mark( firstline2, lastline2, firstcol2, lastcol2, 'BLOCK', fileid2)
       delete_mark
       /* let's reflow in the hidden file */
       activatefile tempofid
-      width = lastcol2+1-firstcol2
-      height = lastline2+1-firstline2
-      'xcom ma 1 'width
+      width = lastcol2 + 1 - firstcol2
+      height = lastline2 + 1 - firstline2
+      --'xcom ma 1 'width
+      .margins = ' 1 'width
       unmark; mark_line; bottom; mark_line
       reflow
       nbl = .last
       /* go back to the destination */
       activatefile fileid2
       if nbl > height then
-         fix = nbl-height
-         getline line,lastline2
+         fix = nbl - height
+         getline line, lastline2
          for i = 1 to fix
-            insertline line,lastline2+1
+            insertline line, lastline2 + 1
          endfor
       elseif nbl < height then
-         fix=0
-         for i = nbl+1 to height
-            insertline '',tempofid.last+1,tempofid
+         fix = 0
+         for i = nbl + 1 to height
+            insertline '', tempofid.last + 1, tempofid
          endfor
          nbl=height
       else
          fix=0
       endif
-      call pset_mark(1,nbl,1,width,'BLOCK',tempofid)
-      firstline2; .col=firstcol2; copy_mark; unmark
-      call pset_mark(firstline2,lastline2+fix,firstcol2,lastcol2,'BLOCK',fileid2)
+      call pset_mark( 1, nbl, 1, width, 'BLOCK', tempofid)
+      firstline2
+      .col = firstcol2
+      copy_mark
+      unmark
+      call pset_mark( firstline2, lastline2+fix, firstcol2, lastcol2, 'BLOCK', fileid2)
       /* release tempo */
       activatefile tempofid
-      .modify=0
+      .modify = 0
       'xcom q'
       activatefile fileid2
       sayerror 1
@@ -645,31 +373,29 @@ defproc pblock_reflow(option,var spc,var tempofid)
 ; PCENTER_MARK: center the strings between the block marks
 defproc pcenter_mark
    if  marktype() = 'BLOCK' then
-      getmark  firstline,lastline,firstcol,lastcol,fileid
+      getmark firstline, lastline, firstcol, lastcol, fileid
    elseif marktype() = 'LINE' then
-      getmark  firstline,lastline,firstcol,lastcol,fileid
-      parse value pmargins() with  firstcol lastcol .
+      getmark firstline,lastline, firstcol, lastcol, fileid
+      parse value pmargins() with firstcol lastcol .
    elseif marktype() = '' then
       getfileid fileid
-      parse value pmargins() with  firstcol lastcol .
-      firstline=.line;lastline=.line
+      parse value pmargins() with firstcol lastcol .
+      firstline = .line; lastline = .line
    else
       sayerror CHAR_INVALID__MSG
       stop
    endif
-   sz = lastcol+1-firstcol
+   sz = lastcol + 1 - firstcol
    for i=firstline to lastline
-      getline line,i,fileid
-      inblock=strip(substr(line,firstcol,sz))
-      if inblock='' then iterate endif
-      replaceline strip(overlay(center(inblock, sz), line, firstcol),'T'), i, fileid
+      getline line, i, fileid
+      inblock = strip(substr( line, firstcol, sz))
+      if inblock = '' then iterate endif
+      replaceline strip(overlay( center( inblock, sz), line, firstcol), 'T'), i, fileid
    endfor
-
 
 
 compile if 0    -- The following two routines are unused; why waste space??  LAM
 ; PDISPLAY_MARGINS: put the margins mark on the current line
-
 defproc pdisplay_margins()
    i=insert_state()
    if i then insert_toggle endif
@@ -684,7 +410,6 @@ defproc pdisplay_margins()
 
 
 ; PDISPLAY_TABS: put the tab stops on the current line
-
 defproc pdisplay_tabs()
    i=insert_state()
    if i then insert_toggle endif
@@ -754,7 +479,8 @@ defproc pend_word
    endif
 
 
-defproc pfile_exists /* Check if file already exists in ring */
+; Check if file already exists in ring
+defproc pfile_exists
    if substr(arg(1),2,1)=':'  then
       /* parse off drive specifier and try again */
       getfileid zzfileid,substr(arg(1),3)
@@ -763,10 +489,10 @@ defproc pfile_exists /* Check if file already exists in ring */
    endif
    return zzfileid<>''
 
+; Find first blank line after the current one.  Make that the new current
+; line.  If no such line is found before the end of file, don't change the
+; current line.
 defproc pfind_blank_line
-   -- Find first blank line after the current one.  Make that the new current
-   -- line.  If no such line is found before the end of file, don't change the
-   -- current line.
    for i = .line+1 to .last
       getline line,i
       -- Ver 3.11:  Modified to respect GML tags:  stop at first blank line
@@ -787,7 +513,6 @@ defproc pfirst_nonblank
 
 
 ; PLOWERCASE: force to lowercase the marked area
-
 defproc plowercase
    call checkmark()
    /* invoke pinit_extract, pextract_string, pput_string_back to do the job */
@@ -805,7 +530,6 @@ defproc plowercase
 
 
 ; PMARGINS: return the current margins setting. (Uses pcommon_tab_margin)
-
 defproc pmargins
    return .margins
 
@@ -1024,18 +748,6 @@ defproc splitlines()
    endif
 
 
-; Note on a speed trick:  subdir_present is initialized to null at start-up.
-; This causes defproc subdir(), the first time it's called, to execute a
-; FINDFILE (by way of find_routine) to search the path for the subdir program.
-; (See DEFC HELP for another example of findfile.)
-; After that first search the exact path location of subdir is known; it's
-; remembered in the universal variable subdir_present.  All future calls supply
-; the exact location (as in "C:\UTIL\SUBDIR.COM") to avoid the path search.
-
-defproc subdir
-   quietshell 'dir /b /s /a:-D' arg(1)
-
-
 defproc swapwords(num)
    return substr(num,3,2) || substr(num,1,2)
 
@@ -1045,6 +757,9 @@ defproc swapwords(num)
 -- this from their own code must save & restore the mark themselves
 -- if that's desired.
 defproc text_reflow
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Reflow\Next'
+   ReflowNext = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if .line then
       getline line
       if line<>'' then  -- If currently on a blank line, don't reflow.
@@ -1060,18 +775,18 @@ defproc text_reflow
          mark_line
          reflow
 
-compile if REFLOW_LIKE_PE   /* position on next paragraph (like PE) */
-         down                       /* Thanks to Doug Short. */
-         for i=.line+1 to .last
-            getline line,i
-            if line<>'' then i; leave; endif
-         endfor
-compile else
-         /* or like old E */
-         getmark firstline,lastline
-         firstline
-         .cursory=oldcursory;.cursorx=oldcursorx; oldline;.col=oldcol
-compile endif
+         if ReflowNext then   /* position on next paragraph (like PE) */
+            down                       /* Thanks to Doug Short. */
+            for i=.line+1 to .last
+               getline line,i
+               if line<>'' then i; leave; endif
+            endfor
+         else
+            /* or like old E */
+            getmark firstline,lastline
+            firstline
+            .cursory=oldcursory;.cursorx=oldcursorx; oldline;.col=oldcol
+         endif
          unmark
       endif
    endif
@@ -1091,20 +806,4 @@ defproc trunc(num)
    parse value num with whole'.'.
    return whole
 
-compile if WANT_LAN_SUPPORT
-defproc unlock(fileid)
-   if fileid.lockhandle = 0 then
-      sayerror fileid.filename NOT_LOCKED__MSG
-      return 1
-   endif
-   result = dynalink32('DOSCALLS',    -- Free the original handle
-                       '#257',                    -- dos32close
-                       atol(fileid.lockhandle), 2)
-   if result then
-      sayerror 'DOSCLOSE' ERROR_NUMBER__MSG result
-   else
-      fileid.lockhandle = 0
-   endif
-   return result
-compile endif
 
