@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.21 2004-07-04 21:57:44 aschn Exp $
+* $Id: stdcnf.e,v 1.22 2004-07-09 13:33:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1150,6 +1150,11 @@ compile endif
 -- (String Area Size = 64k max).
 compile if not defined(LINK_MENU)
    LINK_MENU = 1
+compile endif
+
+-- Filename defining the standard keyset using defkeys edit_keys.
+compile if not defined(STDKEYS_NAME)
+   STDKEYS_NAME = 'STDKEYS'  -- filename without extension '.e'
 compile endif
 
 -------------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.28 2004-07-04 22:12:11 aschn Exp $
+* $Id: epm.e,v 1.29 2004-07-09 13:33:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -91,7 +91,7 @@ compile endif  -- not VANILLA
 include        'modify.e'      -- New defmodify event processor.
 
 include        'keys.e'        -- Definitions for key combinations
-include        'stdkeys.e'     -- Standard key combinations
+include        STDKEYS_NAME'.e'  -- Key bindings
 
 compile if    WANT_BRACKET_MATCHING
    include     'assist.e'      -- Find matching identifier
