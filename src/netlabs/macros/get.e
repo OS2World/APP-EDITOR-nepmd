@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: get.e,v 1.3 2002-08-18 20:30:31 aschn Exp $
+* $Id: get.e,v 1.4 2004-06-03 21:54:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -50,32 +50,35 @@ compile endif  -- not defined(SMALL)
 defc get=
    universal default_edit_options
    get_file = strip(arg(1))
-   if get_file='' then sayerror NO_FILENAME__MSG 'GET'; stop endif
-   if pos(argsep,get_file) then
-      sayerror INVALID_OPTION__MSG
-      stop
+   if get_file = '' then
+      sayerror NO_FILENAME__MSG 'GET'
+      return
    endif
-   call parse_filename(get_file,.filename)
+   if pos( argsep, get_file) then
+      sayerror INVALID_OPTION__MSG
+      return
+   endif
+   call parse_filename( get_file, .filename)
    getfileid fileid
-   s_last=.last
+   s_last = .last
    display -1
-   'e /q /d' get_file
-   editrc=rc
+   'xcom e /q /d' get_file
+   editrc = rc
    getfileid gfileid
    if editrc = -282 | not .last then   -- -282 = sayerror('New file')
-      'q'
+      'xcom q'
       display 1
       if editrc = -282 then
          sayerror FILE_NOT_FOUND__MSG':  'get_file
       else
          sayerror FILE_IS_EMPTY__MSG':  'get_file
       endif
-      stop
+      return
    endif
-   if editrc & editrc<>-278 then  -- -278  sayerror('Lines truncated') then
+   if editrc & editrc <> -278 then  -- -278  sayerror('Lines truncated') then
       display 1
       sayerror editrc
-      stop
+      return
    endif
    call psave_mark(save_mark)
 compile if WANT_BOOKMARKS
@@ -87,25 +90,25 @@ compile endif
    top
    mark_line
    bottom
-   if rightstr(textline(.last), 1) = \26 then  -- Ends with EOF?
+   if rightstr( textline(.last), 1) = \26 then  -- Ends with EOF?
       getline line
-      replaceline leftstr(line, length(line)-1)
+      replaceline leftstr( line, length(line) - 1)
       .modify = 0
    endif
    mark_line
    activatefile fileid
-   rc=0
+   rc = 0
    copy_mark
-   copy_rc=rc           -- Test for memory too full for copy_mark.
+   copy_rc = rc           -- Test for memory too full for copy_mark.
    activatefile gfileid
-   'q'
+   'xcom q'
    parse value save_mark with s_firstline s_lastline s_firstcol s_lastcol s_mkfileid s_mt
-   if fileid=s_mkfileid then           -- May have to move the mark.
-      diff=fileid.last-s_last          -- (Adjustment for difference in size)
-      if fileid.line<s_firstline then s_firstline=s_firstline+diff; endif
-      if fileid.line<s_lastline then s_lastline=s_lastline+diff; endif
+   if fileid = s_mkfileid then           -- May have to move the mark.
+      diff = fileid.last - s_last        -- (Adjustment for difference in size)
+      if fileid.line < s_firstline then s_firstline = s_firstline + diff; endif
+      if fileid.line < s_lastline  then s_lastline  = s_lastline  + diff; endif
    endif
-   call prestore_mark(s_firstline s_lastline s_firstcol s_lastcol s_mkfileid s_mt)
+   call prestore_mark( s_firstline s_lastline s_firstcol s_lastcol s_mkfileid s_mt)
    activatefile fileid
    if get_file_attrib // 2 then
       call attribute_on(1)  -- Colors flag
@@ -122,3 +125,5 @@ compile endif
    endif
 ;  refresh
 ;  call repaint_window()
+
+
