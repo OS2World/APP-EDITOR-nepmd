@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.7 2002-09-18 18:57:16 cla Exp $
+# $Id: makefile,v 1.8 2002-09-19 10:48:22 cla Exp $
 #
 # ===========================================================================
 #
@@ -20,6 +20,9 @@
 # General Public License for more details.
 #
 # ***************************************************************************
+
+# --- set EPMPATH to use sourcefiles only  in this directory
+EPMPATH=.
 
 # --- select between creating a separate NLS DLL
 
@@ -116,9 +119,6 @@ buildnls: $(BINBINDIR)\rec$(NLS).nls
 
 testcase: $(CMPDIR)\tc.ex
 
-test:
-  etpm epm.e /V $(TMP)\epm.ex
-
 dep:
    makedep $(BINDIR) $(DEPENDFILE)
 
@@ -127,10 +127,6 @@ dep:
 !if [@dir $(DEPENDFILE) >NUL 2>&1 || makedep $(BINDIR) $(DEPENDFILE)]
 !endif
 !include $(DEPENDFILE)
-
-# --- extend suffix list
-
-.SUFFIXES: .ex
 
 # --- copy executable to netlabs directory below binary directory
 
@@ -144,10 +140,8 @@ $(BINDIR)\recomp.exe: $(BINDIR)\recomp.obj $(OBJS) $(DEF) $(RES) $(LIBS) $(PMPRI
 $(BINDIR)\rec$(NLS).res: rec$(NLS).rc $(NLSPATH)\nls$(NLS).rch $(NLSPATH)\recomp\rec$(NLS).rch recomp.rc recomp.rch recomp.dlg recomp.men $(CMPDIR)\recomp.ex
 
 $(CMPDIR)\recomp.ex: recomp.e
-     etpm recomp.e $(CMPDIR)\recomp.ex
 
 $(CMPDIR)\tc.ex: tc.e
-     etpm tc.e $(CMPDIR)\tc.ex
 
 # --- copy executable to netlabs directory below binary directory
 
@@ -156,7 +150,7 @@ $(BINBINDIR)\rec$(NLS).nls: $(BINDIR)\rec$(NLS).nls ..\..\nls\nlseng.rch
 
 # --- build resource dll
 
-$(BINDIR)\rec$(NLS).nls: $(BINDIR)\rec$(NLS).obj $(OBJS) $(OBJS1) $(DEF) $(RES)
+$(BINDIR)\rec$(NLS).nls: $(BINDIR)\rec$(NLS).obj $(OBJS) $(OBJS1) $(DEF) $(RES) $(CMPDIR)\recomp.ex
 
 # --- keep the implicit DLL rule happy: make obj name identical to dll name
 
