@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.6 2002-08-24 15:12:48 cla Exp $
+* $Id: test.c,v 1.7 2002-09-05 13:31:54 cla Exp $
 *
 * ===========================================================================
 *
@@ -106,7 +106,7 @@ do
                   PSZ            apszParms[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 
          // determine messsage file
-         rc = GetInstValue( NEPMD_VALUETAG_MESSAGE, szMessageFile, sizeof( szMessageFile));
+         rc = QueryInstValue( NEPMD_VALUETAG_MESSAGE, szMessageFile, sizeof( szMessageFile));
          if (rc != NO_ERROR)
             {
             printf( "error: cannot determine location of nepmdeng.tmf !\n"); 
@@ -121,12 +121,12 @@ do
       } // testcase TMF
 
    // =========================================================================
-   // testcase for GetInstValue
+   // testcase for QueryInstValue
    // =========================================================================
 
 
 #define GETVALUE(t) \
-      rc = GetInstValue( t, szValue, sizeof( szValue));\
+      rc = QueryInstValue( t, szValue, sizeof( szValue));\
       DPRINTF(( "%u: value for \"%s\" is: %s\n\n", rc, t, szValue));
 
    if (!(strcmp( pszTestcase, "INSTVAL")))

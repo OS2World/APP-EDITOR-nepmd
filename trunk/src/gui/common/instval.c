@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.5 2002-09-05 13:23:56 cla Exp $
+* $Id: instval.c,v 1.6 2002-09-05 13:31:52 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,7 +36,7 @@
 
 // -----------------------------------------------------------------------------
 
-APIRET GetInstValue( PSZ pszValueTag, PSZ pszBuffer, ULONG ulBuflen)
+APIRET QueryInstValue( PSZ pszValueTag, PSZ pszBuffer, ULONG ulBuflen)
 
 {
          APIRET         rc = NO_ERROR;

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.31 2002-09-05 13:23:56 cla Exp $
+* $Id: nepmdlib.c,v 1.32 2002-09-05 13:31:52 cla Exp $
 *
 * ===========================================================================
 *
@@ -310,20 +310,6 @@ return FileExists( pszFileName);
 }
 
 
-// ------------------------------------------------------------------------------
-
-APIRET EXPENTRY NepmdGetInstValue( PSZ pszFileTag, PSZ pszBuffer, ULONG ulBuflen)
-{
-         APIRET         rc = NO_ERROR;
-
-// init return value first
-if (pszBuffer)
-   memset( pszBuffer, 0, ulBuflen);
-
-rc = GetInstValue( pszFileTag, pszBuffer, ulBuflen);
-
-return _getRexxError( rc, pszBuffer, ulBuflen);
-}
 
 // ------------------------------------------------------------------------------
 
@@ -527,7 +513,7 @@ do
    _executeEPMCommand( hwndClient, "xcom e /c %s", NEPMD_FILENAME_LIBINFO);
 
    // determine messsage file
-   rc = GetInstValue( NEPMD_INSTVALUE_MESSAGE, szMessageFile, sizeof( szMessageFile));
+   rc = QueryInstValue( NEPMD_INSTVALUE_MESSAGE, szMessageFile, sizeof( szMessageFile));
    if (rc != NO_ERROR)
       {
       sprintf( szErrorMsg,
@@ -594,9 +580,9 @@ do
    LOADSTRING( "STR_INFO_NOTINSTALLED", szNotInstalled);
 
    // get main config values
-   rc = GetInstValue( NEPMD_INSTVALUE_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
-   GetInstValue( NEPMD_INSTVALUE_LANGUAGE, szLanguage, sizeof( szLanguage));
-   GetInstValue( NEPMD_INSTVALUE_INIT, szNepmdInitfile, sizeof( szNepmdInitfile));
+   rc = QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
+   QueryInstValue( NEPMD_INSTVALUE_LANGUAGE, szLanguage, sizeof( szLanguage));
+   QueryInstValue( NEPMD_INSTVALUE_INIT, szNepmdInitfile, sizeof( szNepmdInitfile));
 
    // select defaults if some values not available
    if (rc != NO_ERROR)
@@ -1073,6 +1059,20 @@ return _getRexxError( rc, pszBuffer, ulBuflen);
 
 }
 
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdQueryInstValue( PSZ pszFileTag, PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+
+// init return value first
+if (pszBuffer)
+   memset( pszBuffer, 0, ulBuflen);
+
+rc = QueryInstValue( pszFileTag, pszBuffer, ulBuflen);
+
+return _getRexxError( rc, pszBuffer, ulBuflen);
+}
 // ------------------------------------------------------------------------------
 
 APIRET EXPENTRY NepmdReadStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszBuffer, ULONG ulBuflen)
