@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: makeactn.e,v 1.2 2002-07-22 19:00:56 cla Exp $
+* $Id: makeactn.e,v 1.3 2003-07-06 15:27:13 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -230,7 +230,8 @@ defc mk_bringfile
       endif
       -- set bookmarks
       for i = 1 to build_error_num
-         do_array 3, Errors_array_id, i, Error_parms
+         --do_array 3, Errors_array_id, i, Error_parms
+         rc = get_array_value( Errors_array_id, i, Error_parms )
 --       parse value Error_parms  with FileName''LineNum''ColumnNum''ErrorMsg''ShellLine
          parse value Error_parms  with FileName''LineNum''ColumnNum''foo
          if FileName = myFileName then
@@ -263,7 +264,8 @@ defc MK_build
    do_array 1, Build_array_id, "Build environments"
    -- look if there is an entry for the given index
    display -2
-   do_array 3, Build_array_id, index, buildargs
+   --do_array 3, Build_array_id, index, buildargs
+   rc = get_array_value( Build_array_id, index, buildargs )
    display 2
    if buildargs='' then
       -- if not do as if it was found (in both cases we'll save it after using it)
@@ -287,7 +289,8 @@ defc MK_build
 
   -- Check if there is an active shell for this build env
   display -2
-  do_array 3, EPM_Utility_array_ID, 'Shell_f'build_shellid, shell_fileid
+  --do_array 3, EPM_Utility_array_ID, 'Shell_f'build_shellid, shell_fileid
+  rc = get_array_value( EPM_Utility_array_ID, 'Shell_f'build_shellid, shell_fileid )
   rc = 0
   activatefile shell_fileid
   display 2
@@ -302,7 +305,8 @@ defc MK_build
    'shell_write' build_shellid build_drive
    'shell_write' build_shellid ' cd ' build_dir
    -- save the shell line in which the build begins
-   do_array 3, EPM_Utility_array_ID, 'Shell_f'build_shellid, build_shell_fileid
+   --do_array 3, EPM_Utility_array_ID, 'Shell_f'build_shellid, build_shell_fileid
+   rc = get_array_value( EPM_Utility_array_ID, 'Shell_f'build_shellid, build_shell_fileid )
    build_start_line = build_shell_fileid.last
    -- actually start the build
    'shell_write' build_shellid build_command
@@ -348,7 +352,8 @@ defc MK_view_error
       return
    endif
    -- get the environment informations
-   do_array 3, Build_array_id, index, buildargs
+   --do_array 3, Build_array_id, index, buildargs
+   rc = get_array_value( Build_array_id, index, buildargs )
    parse value buildargs with build_drive''build_dir''build_shellid''build_command''build_cur_err''build_start_line''build_number''build_error_num
    myerror_num = 0
    ------------------------------------------------------------
@@ -361,7 +366,8 @@ defc MK_view_error
    if Errors_array_id=-1 then
       do_array 1, Errors_array_id, 'Errors_'index
       build_error_num   = 0
-      do_array 3, EPM_Utility_array_id, 'Shell_f'build_shellid, build_shell_fileid
+      --do_array 3, EPM_Utility_array_id, 'Shell_f'build_shellid, build_shell_fileid
+      rc = get_array_value( EPM_Utility_array_id, 'Shell_f'build_shellid, build_shell_fileid )
       for line = build_start_line to build_shell_fileid.last
          getline errorline, line, build_shell_fileid
          if isadefproc( 'mk_parse_errline' ) then
@@ -384,7 +390,8 @@ defc MK_view_error
    else
       -- browse the array of errors to find our line
       for i = 1 to build_error_num
-         do_array 3, Errors_array_id, i, Error_parms
+         --do_array 3, Errors_array_id, i, Error_parms
+         rc = get_array_value( Errors_array_id, i, Error_parms )
          parse value Error_parms with FileName''LineNum''ColumnNum''error_level''ErrorMsg''ShellLine
          if ShellLine=myline then
                myerror_num = i
@@ -401,7 +408,8 @@ defc MK_view_error
       -- The cursor was not on an error line, so display the first error
       --  get MyFileName myerrornum and myerrormsg
       myerror_num = 1
-      do_array 3, Errors_array_id,  myerror_num, Error_parms
+      --do_array 3, Errors_array_id,  myerror_num, Error_parms
+      rc = get_array_value( Errors_array_id,  myerror_num, Error_parms )
       parse value Error_parms with myFileName''myLineNum''myColumnNum'' ''myErrorMsg''ShellLine
    endif
 
@@ -435,13 +443,15 @@ defc MK_next_err
       sayerror 'MK_Build and MK_View_Error must be called before MK_Next_Err.'
       return
    endif
-   do_array 3, Build_array_id, index, buildargs
+   --do_array 3, Build_array_id, index, buildargs
+   rc = get_array_value( Build_array_id, index, buildargs )
    parse value buildargs with build_drive''build_dir''build_shellid''build_command''build_cur_err''build_start_line''build_number''build_error_num
    do forever
       build_cur_err = build_cur_err + 1
       Errors_array_name = 'Errors_'index
       do_array 6, Errors_array_id, Errors_array_name
-      do_array 3, Errors_array_id, build_cur_err, error_parms
+      --do_array 3, Errors_array_id, build_cur_err, error_parms
+      rc = get_array_value( Errors_array_id, build_cur_err, error_parms )
       parse value error_parms with FileName''line''column''error_level''Error_msg''ShellLine
       if min_level = '' | error_parms = '' then
          leave
@@ -481,13 +491,15 @@ defc MK_prev_err
       sayerror 'MK_Build and MK_View_Error must be called before MK_Prev_Err.'
       return
    endif
-   do_array 3, Build_array_id, index, buildargs
+   --do_array 3, Build_array_id, index, buildargs
+   rc = get_array_value( Build_array_id, index, buildargs )
    parse value buildargs with build_drive''build_dir''build_shellid''build_command''build_cur_err''build_start_line''build_number''build_error_num
    do forever
       build_cur_err = build_cur_err - 1
       Errors_array_name = 'Errors_'index
       do_array 6, Errors_array_id, Errors_array_name
-      do_array 3, Errors_array_id, build_cur_err, error_parms
+      --do_array 3, Errors_array_id, build_cur_err, error_parms
+      rc = get_array_value( Errors_array_id, build_cur_err, error_parms )
       parse value error_parms with FileName''line''column''error_level''Error_msg''ShellLine
       if min_level = '' | error_parms = '' then
          leave
@@ -527,11 +539,13 @@ defc MK_cur_descr
       sayerror 'MK_Build and MK_View_Error must be called before MK_Cur_Descr.'
       return
    endif
-   do_array 3, Build_array_id, index, buildargs
+   --do_array 3, Build_array_id, index, buildargs
+   rc = get_array_value( Build_array_id, index, buildargs )
    parse value buildargs with build_drive''build_dir''build_shellid''build_command''build_cur_err''build_start_line''build_number''build_error_num
    Errors_array_name = 'Errors_'index
    do_array 6, Errors_array_id, Errors_array_name
-   do_array 3, Errors_array_id, build_cur_err, error_parms
+   --do_array 3, Errors_array_id, build_cur_err, error_parms
+   rc = get_array_value( Errors_array_id, build_cur_err, error_parms )
    if error_parms<>'' then
       parse value error_parms with FileName''line''column''error_level''Error_msg''ShellLine
       'mk_bringfile' FileName build_drive build_dir build_number build_error_num Errors_array_id index

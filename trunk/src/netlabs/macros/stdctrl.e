@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.10 2002-10-06 23:41:46 aschn Exp $
+* $Id: stdctrl.e,v 1.11 2003-07-06 15:27:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -760,7 +760,8 @@ compile if WANT_APPLICATION_INI_FILE
    parse value stylestuff with fontname '.' fontsize '.' fontsel '.' fg '.' bg
    getmark fstline, lstline, fstcol, lstcol, mkfileid
    if get_array_value(EPM_utility_array_ID, 'sn.'stylename, styleindex) then  -- See if we have an index
-      do_array 3, EPM_utility_array_ID, 'si.0', styleindex          -- Get the
+      --do_array 3, EPM_utility_array_ID, 'si.0', styleindex          -- Get the
+      rc = get_array_value( EPM_utility_array_ID, 'si.0', styleindex )          -- Get the
       styleindex = styleindex + 1                                 --   next index
       do_array 2, EPM_utility_array_ID, 'si.0', styleindex          -- Save next index
       do_array 2, EPM_utility_array_ID, 'si.'styleindex, stylename  -- Save index.name
@@ -959,9 +960,11 @@ compile if defined(COMPILING_FOR_ULTIMAIL)
             replace_it = 1
             if class=14 then  -- STYLE_CLASS
                query_attribute class, val2, IsPush, offst1, fstcol, fstline, fileid
-               do_array 3, EPM_utility_array_ID, 'si.'val, stylename -- Get the style name
+               --do_array 3, EPM_utility_array_ID, 'si.'val, stylename -- Get the style name
+               rc = get_array_value( EPM_utility_array_ID, 'si.'val, stylename )  -- Get the style name
                is_color1 = wordpos(stylename, "black blue red pink green cyan yellow white darkgray darkblue darkred darkpink darkgreen darkcyan brown palegray")
-               do_array 3, EPM_utility_array_ID, 'si.'val2, stylename -- "
+               --do_array 3, EPM_utility_array_ID, 'si.'val2, stylename -- "
+               rc = get_array_value( EPM_utility_array_ID, 'si.'val2, stylename )  -- "
                is_color2 = wordpos(stylename, "black blue red pink green cyan yellow white darkgray darkblue darkred darkpink darkgreen darkcyan brown palegray")
                if (is_color1 & not is_color2) | (is_color2 & not is_color1) then
                   replace_it = 0
@@ -3278,7 +3281,8 @@ defc menuinit_3
 --------------------------------------------- Menu id 3 -- Bookmarks --------------------
 defc menuinit_305
       universal EPM_utility_array_ID
-      do_array 3, EPM_utility_array_ID, 'bmi.0', bmcount          -- Index says how many bookmarks there are
+      --do_array 3, EPM_utility_array_ID, 'bmi.0', bmcount          -- Index says how many bookmarks there are
+      rc = get_array_value( EPM_utility_array_ID, 'bmi.0', bmcount )          -- Index says how many bookmarks there are
       SetMenuAttribute( 306, 16384, not (browse() | .readonly))  -- Set
       SetMenuAttribute( 308, 16384, bmcount>0)   -- List
       SetMenuAttribute( 311, 16384, bmcount>0)   -- Next

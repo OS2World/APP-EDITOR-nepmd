@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.10 2002-11-02 22:46:16 aschn Exp $
+* $Id: load.e,v 1.11 2003-07-06 15:27:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -60,7 +60,6 @@ compile endif
    .autosave = vDEFAULT_AUTOSAVE
 
    Filename = .filename
-   call NepmdInitMode( Filename )
 
    if not .visible then  -- process following only if file is visible
       return             -- to avoid showing i.e. 'actlist' and '.HELPFILE' files

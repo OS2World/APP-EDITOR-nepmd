@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.25 2002-12-09 21:06:33 aschn Exp $
+* $Id: mode.e,v 1.26 2003-07-06 15:27:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,27 +35,6 @@ compile endif
 */
 
 ; ---------------------------------------------------------------------------
-; Creates the array var 'mode.'fid so that it can be queried later.
-; This proc is called by defload in EDIT.E
-defproc NepmdInitMode
-   universal EPM_utility_array_ID
-   Filename = arg(1)
-   if Filename = '' then
-      Filename = .filename
-   endif
-
-   -- Sets 'mode.'fid = '' because an array var must be set
-   -- to any value before querying it.
-   -- If NepmdGetMode will find an empty 'mode.'fid, then it will
-   -- determine the mode from EA or get the default mode.
-   getfileid fid, filename
-   InitMode = ''
-   -- arg(2) and arg(4) of do_array must be vars!
-   do_array 2, EPM_utility_array_ID, 'mode.'fid, InitMode
-
-   return
-
-; ---------------------------------------------------------------------------
 ; Returns the current mode.
 ; Get mode from array var 'mode.'fid.
 ; If mode not set: get mode from EA 'EPM.MODE'.
@@ -71,10 +50,9 @@ defproc NepmdGetMode
    getfileid save_fid
 
    -- Get CurMode for Filename by querying an array var
-   -- The array var 'mode.'fid was initially set by NepmdInitMode
    getfileid fid, Filename
    -- arg(2) and arg(4) of do_array must be vars!
-   do_array 3, EPM_utility_array_ID, 'mode.'fid, CurMode
+   rc = get_array_value( EPM_utility_array_ID, 'mode.'fid, CurMode )
    -- Save this value as SavedMode
    SavedMode = CurMode
 
