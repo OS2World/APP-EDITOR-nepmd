@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.5 2002-09-20 19:38:00 aschn Exp $
+* $Id: mode.e,v 1.6 2002-09-23 17:31:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -253,6 +253,8 @@ defproc NepmdGetDefaultMode()
 
    defaultmode = ''
    if 0 then
+   elseif leftstr( translate(name), 8 ) = 'EPMKWDS.' then
+      defaultmode = 'EPMKWDS'
    elseif leftstr( translate(filename), 14 ) = '.COMMAND_SHELL' then
       defaultmode = 'SHELL'
    elseif wordpos( translate(basename), 'READ README' ) > 0 or wordpos( ext, 'TXT DOC' ) > 0 then
@@ -333,7 +335,8 @@ defproc NepmdSelectMode()
       ModeList = ' -reset-'
    endif
    ModeList = ModeList || ' TXT REXX CMD E C MAKE IPF HTML TEX CONFIGSYS' ||
-              ' NETREXX JAVA ADA BASIC PHP RC PASCAL PERL POSTSCRIPT INI BOOKMASTER PL/I FORTRAN'
+              ' NETREXX JAVA ADA BASIC PHP RC PASCAL PERL POSTSCRIPT INI' ||
+              ' BOOKMASTER PL/I FORTRAN SHELL EPMKWDS'
 
    --sayerror 'EPM.MODE = 'CurMode
    Title = 'Select an edit mode'
@@ -420,13 +423,16 @@ defc hili
          endif
          if 0 then
 
-         elseif leftstr( translate(name), 8 ) = 'EPMKWDS.' then -- ensure EPMKWDS files itselves
-            color_file = name                                   -- are highlighted correctly
-/*
+         -- ensure EPMKWDS files itselves are highlighted correctly
+         --elseif leftstr( translate(name), 8 ) = 'EPMKWDS.' then
+         elseif CurMode = 'EPMKWDS' then
+;            color_file = name
+            color_file = .filename
+/**/
             if hili_switch = 1 then  -- If hilighting is switched on, then re-read the hilighting defs.
                hili_switch = 2       -- This is useful when editing and testing a hilighting file itself.
             endif                    -- Alternative: re-read hilighting defs after EPMKWDS.* file is saved.
-*/
+/**/
          elseif CurMode = 'SHELL' then
             color_file = 'EPMKWDS.SHELL'
          elseif CurMode = 'CONFIGSYS' then
