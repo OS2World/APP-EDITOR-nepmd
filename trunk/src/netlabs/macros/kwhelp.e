@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.13 2002-11-03 16:13:37 aschn Exp $
+* $Id: kwhelp.e,v 1.14 2003-05-14 16:55:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -148,32 +148,39 @@ defproc pHelp_C_identifier
       /* resolve environment vars in line */
       line = NepmdResolveEnvVars( line )  -- defined in EDIT.E
 
+      -- parse line
+      parse value line with cmd arg1 arg2
+
       /* search the file, if the command is a view */
-      if (translate( word( line, 1)) = 'VIEW') then
+      if (translate(cmd) = 'VIEW') then
 
          /* second word is the file */
-         ViewFileName =  word( line, 2)
-         ViewFile     = ViewFileName;
+         ViewFileList =  arg1
+         rest = ViewFileList
+         CheckedFileList = ''
+         do while rest <> ''
 
-         /* if the given name is an environment var, */
-         /* replace with first filename of the list  */
-         EnvValue = get_env( ViewFileName)
-         if (EnvValue <> '') then
-            parse value EnvValue with ViewFile'+'
-         endif
+            parse value rest with ViewFile'+'rest section
 
-         /* append extension, if not given */
-         parse value ViewFile with CheckFile'+'
-         if (pos( '.', CheckFile) = 0) then
-            CheckFile = CheckFile'.inf';
-         endif
+            -- EnvVars are already resolved at this point!
 
-         /* search the file */
-         findfile fullname, CheckFile, 'BOOKSHELF'
-         if rc then
-            sayerror 'INF file' ViewFile 'could not be found'
-            line = ''
-         endif
+            if (pos( '.', ViewFile) = 0) then
+               ViewFile = ViewFile'.inf';
+            endif
+
+            /* search the file */
+            findfile fullname, ViewFile, 'BOOKSHELF'
+            if rc then
+               sayerror 'INF file' ViewFile 'could not be found'
+            else
+               CheckedFileList = CheckedFileList''ViewFile'+'
+            endif
+
+         enddo  -- while rest <> ''
+
+         -- re-build the line with a file list containing only found files
+         CheckedFileList = strip( CheckedFileList, 'B', '+' )
+         line = cmd' 'CheckedFileList' 'arg2
 
       endif
 
@@ -181,11 +188,11 @@ defproc pHelp_C_identifier
          /* Execute keyword help command */
          if upcase(word(line,1))='VIEW' then
 compile if defined(NEPMD_KEYWORD_HELP_COMMAND)
-            line = NEPMD_KEYWORD_HELP_COMMAND''delword( line, 1, 1 )
+            line = NEPMD_KEYWORD_HELP_COMMAND' 'delword( line, 1, 1 )
 compile endif
             -- resolve *all* EnvVars
             -- (the 'dos' or 'os2' command apparently resolves only the first)
-            line = NepmdResolveEnvVars( line )
+            --line = NepmdResolveEnvVars( line )  -- duplicated line
             sayerror 'Invoking "'line'"'
          endif
          'dos' line  -- execute the command
