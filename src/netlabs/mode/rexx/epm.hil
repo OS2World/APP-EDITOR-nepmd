@@ -1,0 +1,104 @@
+; ***************************** Module Header ******************************\
+;
+; Module Name: epm.hil
+;
+; Definitons of the Netlabs EPM Distribution Project
+; for the syntax highlighting of the EPM mode "REXX"
+;
+; Copyright (c) Netlabs EPM Distribution Project 2003
+;
+; $Id: epm.hil,v 1.1 2003-12-12 19:22:50 aschn Exp $
+;
+; ===========================================================================
+;
+; This file is part of the Netlabs EPM Distribution package and is free
+; software.  You can redistribute it and/or modify it under the terms of the
+; GNU General Public License as published by the Free Software
+; Foundation, in version 2 as it comes in the "COPYING" file of the
+; Netlabs EPM Distribution.  This library is distributed in the hope that it
+; will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
+;
+; **************************************************************************/
+
+; --- EPM REXX ---
+; From %NEPMD_ROOTDIR%\epmbbs\samples\rexx\epmrexx.doc
+
+[MACRO]
+; --- E ToolKit fields
+autosave.0
+autosave.1
+col.0
+col.1
+cursorx.0
+cursorx.1
+cursory.0
+cursory.1
+dragcolor.0
+dragcolor.1
+dragstyle.0
+dragstyle.1
+eaarea.0
+eaarea.1
+filename.0
+filename.1
+fontheight.0
+fontheight.1
+fontwidth.0
+fontwidth.1
+last.0
+last.1
+lockhandle.0
+lockhandle.1
+line.0
+line.1
+markcolor.0
+markcolor.1
+modify.0
+modify.1
+mousex.0
+mousex.1
+mousey.0
+mousey.1
+textcolor.0
+textcolor.1
+userstring.0
+userstring.1
+visible.0
+visible.1
+windowheight.0
+windowheight.1
+windowwidth.0
+windowwidth.1
+windowx.0
+windowx.1
+windowy.0
+windowy.1
+font.0
+font.1
+; --- E ToolKit REXX pseudo fields
+getmarktype.0
+getmarktype.1
+getmark.0
+getmark.1
+getmark.2
+getmark.3
+getmark.4
+getmark.5
+getline.0
+getline.1
+insertstate.0
+insertstate.1
+version.0
+version.1
+version.2
+
+[FUNCTION]
+; --- E ToolKit REXX functions
+EtkDeleteText
+EtkInsertText
+EtkReplaceText
+EtkSetFileField
+EtkProcessEditKey
+
