@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: initconfig.e,v 1.1 2002-09-19 13:03:39 cla Exp $
+* $Id: initconfig.e,v 1.2 2003-08-30 15:23:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -63,7 +63,7 @@ and display the result within the status area.
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
 
-defc NepmdInitConfig, InitConfig =
+defc NepmdInitConfig
 
  rc = NepmdInitConfig( 0);
 
