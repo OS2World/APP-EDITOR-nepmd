@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pkeys.e,v 1.4 2002-10-17 19:50:26 aschn Exp $
+* $Id: pkeys.e,v 1.5 2004-06-03 21:45:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,9 +24,9 @@
 /* specific Pascal syntax structures.                   */
 
 const
-compile if not defined(P_SYNTAX_INDENT)
-   P_SYNTAX_INDENT = SYNTAX_INDENT
-compile endif
+;compile if not defined(P_SYNTAX_INDENT)
+;   P_SYNTAX_INDENT = SYNTAX_INDENT
+;compile endif
 compile if not defined(TERMINATE_COMMENTS)
    TERMINATE_COMMENTS = 0
 compile endif
@@ -118,6 +118,25 @@ def c_x=       /* Force expansion if we don't have it turned on automatic */
       call pas_second_expansion()
    endif
 
+; ---------------------------------------------------------------------------
+defproc GetPIndent
+   universal indent
+compile if defined(P_SYNTAX_INDENT)
+   ind = P_SYNTAX_INDENT  -- this const has priority, it is normally undefined
+compile else
+   ind = indent  -- will be changed at defselect for every mode, if defined
+compile endif
+   if ind = '' | ind = 0 then
+compile if defined(SYNTAX_INDENT)
+      ind = SYNTAX_INDENT
+compile endif
+   endif
+   if ind = '' | ind = 0 then
+      ind = 3
+   endif
+   return ind
+
+
 defproc pas_first_expansion
    retc=1
    if .line then
@@ -174,7 +193,7 @@ compile else
          insertline substr(wrd,1,length(wrd)-6)'until  ;',.line+1
 compile endif
          call einsert_line()
-         .col=.col+P_SYNTAX_INDENT
+         .col=.col+GetPIndent()
       elseif wrd='CASE' then
          replaceline w' of'
 compile if WANT_END_COMMENTED
@@ -212,22 +231,22 @@ defproc pas_second_expansion
                .col=length(a)+4
             else
                call einsert_line()
-               .col=.col+P_SYNTAX_INDENT
+               .col=.col+GetPIndent()
             endif
          endif
       elseif a='BEGIN' or firstword='BEGIN' or firstword='CASE' or firstword='REPEAT' then  /* firstword or last word begin?*/
 ;        if firstword='BEGIN' then
 ;           replaceline  wrd rest
-;           insert;.col=P_SYNTAX_INDENT+1
+;           insert;.col=GetPIndent()+1
 ;        else
             call einsert_line()
-            .col=.col+P_SYNTAX_INDENT
+            .col=.col+GetPIndent()
 ;        endif
       elseif firstword='VAR' or firstword='CONST' or firstword='TYPE' or firstword='LABEL' then
          if substr(line,1,2)<>'  ' or substr(line,1,3)='   ' then
             getline line2
-            replaceline substr('',1,P_SYNTAX_INDENT)||wrd rest  -- <indent> spaces
-            call einsert_line();.col=.col+P_SYNTAX_INDENT
+            replaceline substr('',1,GetPIndent())||wrd rest  -- <indent> spaces
+            call einsert_line();.col=.col+GetPIndent()
          else
             call einsert_line()
          endif
