@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comment.e,v 1.4 2004-02-01 21:03:27 aschn Exp $
+* $Id: comment.e,v 1.5 2004-07-01 11:35:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -73,12 +73,13 @@ defproc CommentMarkedLines
    psave_pos(saved_pos)
    saved_modify = .modify
    getmark firstline, lastline, firstcol, lastcol, fid
+   getfileid curfid
    mt = marktype()
 ;   sayerror 'firstline = 'firstline', lastline = 'lastline', firstcol = 'firstcol', lastcol = 'lastcol', l_last = 'length(textline(lastline))
 
    first = firstline  -- use these for further processing
    last  = lastline   -- and *line and *col for mark restore
-   if mt = '' then
+   if curfid <> fid | mt = '' then  -- check if current file is marked
       sayerror 'No area marked'
       return
    elseif firstline = lastline & lastcol = 0 then  -- a mark action was started, but no char is marked
