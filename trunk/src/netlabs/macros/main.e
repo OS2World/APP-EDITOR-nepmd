@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.8 2002-10-16 05:18:26 aschn Exp $
+* $Id: main.e,v 1.9 2002-10-18 13:11:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -102,7 +102,7 @@ compile endif
       sayerror 'Configuration repository could not be initialized, rc='rc;
    endif
 
-;   sayerror 'DEFMAIN: nepmd_hini = 'nepmd_hini
+   -- sayerror 'DEFMAIN: nepmd_hini = 'nepmd_hini
 
 compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH) or DELAY_SAVEPATH_CHECK
    call check_savepath()
@@ -242,4 +242,6 @@ compile if WANT_PROFILE
  compile endif
 compile endif
 
+   -- automatically link .ex files from myepm\autolink
+   call NepmdAutoLink()
 
