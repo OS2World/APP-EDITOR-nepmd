@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.30 2004-09-12 15:10:25 aschn Exp $
+* $Id: epm.e,v 1.31 2004-11-30 21:34:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -153,7 +153,7 @@ include        'alt_1.e'       -- Load filename under cursor with Alt+1
 
 include        'caseword.e'    -- Change case of word/identifier under cursor
 
-include        'xchgline.e'    -- Exchange lines and chars
+include        'swaptext.e'    -- Swap lines and chars
 
 include        'tabsspaces.e'  -- Tabs2Spaces and Spaces2Tabs (without bugs)
 
