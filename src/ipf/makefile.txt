@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.16 2002-06-11 16:25:37 cla Exp $
+.. $Id: makefile.txt,v 1.17 2002-06-12 09:14:12 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -117,7 +117,7 @@ The following pseudotargets are available:
 = remove the *compile* and binary (both *debug* and *release*) directories
 
 .. .............................................................................
-.3 ipf\makefile
+.3 src\ipf\makefile
 .. .............................................................................
 .an IDPNL_TARGETS_IPF
 .
@@ -148,7 +148,7 @@ The following makefile pseudotargets are available for the makefile within the
     *nmake clean* within the project working directory (root of the development tree).
 
 .. .............................................................................
-.3 rexx\makefile
+.3 src\rexx\makefile
 .. .............................................................................
 .an IDPNL_TARGETS_REXX
 .
@@ -167,7 +167,7 @@ The following makefile pseudotargets are available for the makefile within the
     *nmake clean* within the project working directory (root of the development tree).
 
 .. .............................................................................
-.3 netlabs\makefile
+.3 src\netlabs\makefile
 .. .............................................................................
 .an IDPNL_TARGETS_NETLABS
 .
@@ -192,7 +192,7 @@ The following makefile pseudotargets are available for the makefile within the
     *nmake clean* within the project working directory (root of the development tree).
 
 .. .............................................................................
-.3 wis\makefile
+.3 src\wis\makefile
 .. .............................................................................
 .an IDPNL_TARGETS_WIS
 .
