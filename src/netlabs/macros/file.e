@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.2 2004-07-02 09:57:38 aschn Exp $
+* $Id: file.e,v 1.3 2004-07-03 08:29:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -348,26 +348,26 @@ compile endif
       .filename = GetUnnamedFileName()
    endif
 
-   if fatsrc <> 0 then  -- following not required if file was reloaded
-      'ResetDateTimeModified'
-      'RefreshInfoLine MODIFIED FILE'
-
-      -- Explicitely redetermine mode (file contents may have changed).
-      -- Must be delayed with 'postme'.
-      -- Otherwise a MessageBox (defined in ETK) will pop up when
-      --    -  the window should be closed and
-      --    -  there is a modified file in the ring and
-      --    -  the file was saved.
-      -- The file *was* saved but the MessageBox says that there has
-      -- occured an error saving the file.
-      'postme ResetMode 'OldMode
-   endif
-
    if src = 0 then
+      if fatsrc <> 0 then  -- this is not required if file was reloaded
+         'ResetDateTimeModified'
+         'RefreshInfoLine MODIFIED FILE'
+
+         -- Explicitely redetermine mode (file contents may have changed).
+         -- Must be delayed with 'postme'.
+         -- Otherwise a MessageBox (defined in ETK) will pop up when
+         --    -  the window should be closed and
+         --    -  there is a modified file in the ring and
+         --    -  the file was saved.
+         -- The file *was* saved but the MessageBox says that there has
+         -- occured an error saving the file.
+         'postme ResetMode 'OldMode
+      endif
+
       'postme AddToHistory SAVE' .filename
    endif
-
-   return src
+   rc = src
+   return
 
 ; ---------------------------------------------------------------------------
 ; Change the submitted long (maybe full) filename into a FAT name and save
