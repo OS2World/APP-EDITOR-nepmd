@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.13 2005-03-27 15:06:19 aschn Exp $
+* $Id: linkcmds.e,v 1.14 2005-03-27 15:27:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -891,7 +891,7 @@ defc RecompileNew
    endif
    sayerror Text' - see "'LogFile'"'
    if fRestartEpm = 1 then
-      WriteLog( LogFile, '         'BaseName' - restarted')
+      WriteLog( LogFile, '         epm - restarted')
    endif
    WriteLog( LogFile, Text)
    if cWarning > 0 then
