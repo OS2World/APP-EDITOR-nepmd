@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.13 2002-06-10 11:57:19 cla Exp $
+# $Id: nepmd.wis,v 1.14 2002-06-10 12:14:49 cla Exp $
 #
 # ===========================================================================
 #
@@ -32,6 +32,7 @@
 <PCK INDEX=1
      PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Base Application\1\0\0"
      TARGET="$(WARPIN_DEFAULTAPPSPATH)\EPM"
+     REQUIRES="OS/2 Netlabs\WarpIN\Base\0\9\18"
      SELECT
      NODESELECT
      TITLE="Base Application"
