@@ -1,13 +1,13 @@
 .. ***************************** Module Header *******************************
 ..
-.. Module Name: title.inc
+.. Module Name: titleeng.inc
 ..
 .. include file defining major variables for sources for INF files
 .. Requires HyperText/2 package to compile
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: titleeng.inc,v 1.2 2002-10-31 13:19:45 cla Exp $
+.. $Id: titleeng.inc,v 1.3 2002-10-31 18:06:40 cla Exp $
 ..
 .. ===========================================================================
 ..
