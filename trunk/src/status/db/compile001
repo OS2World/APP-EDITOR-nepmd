@@ -1,11 +1,8 @@
-CATEGORY: compile
+CATEGORY: Compile
 TITLE: Recompile EPM
 PRIO: 1
 STATUS: coding
 FILES: 
-UPDATED: $Id: compile001,v 1.1 2002-07-17 15:56:14 cla Exp $
+UPDATED: $Id: compile001,v 1.2 2002-09-09 14:25:41 cla Exp $
 
-Look for unsaved files. Compile epm.e. Close all edit rings. Restore all edit rings.             
-
-Todo:
-- call external RECOMP utility
+Call external RECOMP utility for recomp support
