@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.2 2002-08-10 15:33:08 cla Exp $
+* $Id: nepmd.h,v 1.3 2002-08-10 19:23:32 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,6 +40,7 @@
 
 // define external env vars available in epm.env
 
+#define ENV_NEPMD_LANGUAGE         "NEPMD_LANGUAGE"
 #define ENV_NEPMD_PATH             "NEPMD_ROOTDIR"
 
 #endif // NEPMD_H
