@@ -16,7 +16,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: create.cmd,v 1.7 2002-04-21 13:15:57 cla Exp $
+: $Id: create.cmd,v 1.8 2002-04-22 14:44:29 cla Exp $
 :
 : ===========================================================================
 :
@@ -58,11 +58,12 @@
 
 : defining packages - package IDs must comply to the WarpIn Script !
 
-: --- package 1: application
+: --- package 1: application with Netlabs distribution extensions
+
 
  SET BASE=1 -r -c%UNZIPPEDDIR%\epmapp * 1 -r -c%UNZIPPEDDIR%\epmdll * 1 -r -c%UNZIPPEDDIR%\epmhlp * 1 -r -c%UNZIPPEDDIR%\epmbk *
  SET BMP=1 -r -c%UNZIPPEDDIR%\epmbmps *
- SET NEPMD_BOOK=1 book\nepmd.inf
+ SET NEPMD_BASE=1 -r -ccompile netlabs\install\* 1 -r -ccompile netlabs\book\*
 
 : --- package 2: macros
 
@@ -76,18 +77,14 @@
  SET SAMPLES=3 -r -c%UNZIPPEDDIR%\epmdde * 3 -r -c%UNZIPPEDDIR%\epmrex *  3 -r -c%UNZIPPEDDIR%\epmcsamp *
  SET ATTR=3 -r -c%UNZIPPEDDIR%\epmatr *
 
-: --- package 4: Netlabs distribution extensions
+: --- package 4: Speech Support
 
- SET NEPMD=4 -r -ccompile netlabs\*
-
-: --- package 5: Speech Support
-
- SET SPEECH=5 -r -c%UNZIPPEDDIR%\epmspch *
+ SET SPEECH=4 -r -c%UNZIPPEDDIR%\epmspch *
 
 : --- build and start WPI
 
  ECHO - creating %WPIFILE%
- wic %WPIFILE% -a %BASE% %NEPMD% %SPEECH% %EBOOKE% %ATTR% %BMP% %MYASSIST% %MACROS%  %SAMPLES% %VMEXEC% -s %SCRIPTFILE% >%LOGFILE% 2>&1
+ wic %WPIFILE% -a %BASE% %BMP% %NEPMD_BASE%   %MACROS% %EBOOKE% %MYASSIST% %VMEXEC%   %SAMPLES% %ATTR%   %SPEECH% -s %SCRIPTFILE% >%LOGFILE% 2>&1
  IF ERRORLEVEL 1 (DEL %WPIFILE% & TYPE %LOGFILE%)
 
 :end
