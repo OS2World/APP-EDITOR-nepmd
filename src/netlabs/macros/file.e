@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.1 2004-06-03 22:07:38 aschn Exp $
+* $Id: file.e,v 1.2 2004-07-02 09:57:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,6 +22,10 @@
 ; File commands and procedures.
 ; Moved from STDCMDS.E, STDPROCS.E.
 ; See also: SLNOHOST.E/SAVELOAD.E/E3EMUL.E.
+
+; Contains defmodify. Therefore it should not be linked, because any
+; occurance of defmodify in a linked module would replace all other
+; so-far-defined defmodify event defs.
 
 ; ---------------------------------------------------------------------------
 ; Called after MB2 dclick on titlebar and Enter.
@@ -134,9 +138,59 @@ defc rename
 defc s, save=
    universal save_with_tabs, default_save_options
    universal nepmd_hini
+   save_as = 0
    name = arg(1)
    call parse_leading_options( name, options)
    options = default_save_options options
+
+   -- Open file dialog (Save as) if filename = .Untitled
+   IsTempFile = leftstr( .filename, 1) = '.'
+   if name = '' | IsTempFile then
+      name = .filename
+      if IsTempFile then
+         result = saveas_dlg( name, type)
+         if result <> 0 then
+            return result
+         endif
+         'name' name
+         if not rc then
+            name = .filename
+            save_as = 1
+         endif
+      endif
+   else
+      call parse_filename( name, .filename)
+   endif
+
+   -- Handle special NEPMD dirs: don't overwrite files of the NETLABS or EPMBBS tree
+   fn = name
+   NepmdRootDir = NepmdScanEnv('NEPMD_ROOTDIR')
+   parse value NepmdRootDir with 'ERROR:'rc
+   if rc = '' then
+      if abbrev( upcase(fn), upcase(NepmdRootDir)) then
+         p1 = length(NepmdRootDir)
+         p2 = pos( '\', fn, p1 + 2)
+         next = substr( fn, p1 + 2, max( p2 - p1 - 2, 0))
+         if wordpos( upcase(next), 'NETLABS EPMBBS') then
+            newname = substr( fn, 1, p1)'\myepm'substr( fn, p2)
+            sayerror 'Better use the MYEPM tree for your own files'
+            oldname = .filename
+            .filename = newname               -- saveas_dlg starts with .filename
+            result = saveas_dlg( name, type)  -- saveas_dlg will set both vars
+            if result <> 0 then
+               .filename = oldname
+               return result
+            endif
+            'name' name
+            if not rc then
+               name = .filename
+               save_as = 1
+            endif
+         endif
+      endif
+   else
+      sayerror 'Environment var NEPMD_ROOTDIR not set'
+   endif
 
    -- Check for .readonly field
    if name = '' & (browse() | .readonly) then
@@ -154,24 +208,6 @@ defc s, save=
       sayerror READ_ONLY__MSG
       rc = -5  -- Access denied
       return
-   endif
-
-   -- Open file dialog (Save as) if filename = .Untitled
-   save_as = 0
-   IsTempFile = leftstr( .filename, 1) = '.'
-   if name = '' | IsTempFile then
-      name = .filename
-      if IsTempFile then
-         result = saveas_dlg( name, type)
-         if result then return result; endif
-         'name' name
-         if not rc then
-            name = .filename
-            save_as = 1
-         endif
-      endif
-   else
-      call parse_filename( name, .filename)
    endif
 
    -- Try to unlock file if it is locked (only successfully if locked by the current EPM window)
@@ -213,10 +249,11 @@ compile endif
       options = '/t' options
    endif
 
-   display -2  -- suppress critical errors
+   display -2  -- suppress non-critical errors
    src = savefile( name, options)
    display 2
 
+   fatsrc = ''
    if src = -285 then  -- ERROR_WRITING_FILE_RC  (E Toolkit)
       -- Why are standard rc values not supported?
       -- 206 ERROR_FILENAME_EXCED_RANGE  File name or extension is greater than 8.3 characters.
@@ -224,98 +261,50 @@ compile endif
       -- save longname to A: gives src = -285
       --sayerror 0  -- suppress first error message from savefile above
 
-      -- Compared to the 'save' cmd, which returns only -285 or 0,
-      -- defproc lock returns the (more usable) rc of DosOpen.
-      dosopenrc = lock('W')
+      if substr( name, 2, 1) = ':' then
+         FSys = QueryFileSys( substr( name, 1, 2))
+         if FSys = 'FAT' then
+            fatsrc = SaveFat( name, options)
+            src = fatsrc
+         endif
+      endif
 
-      if dosopenrc = 206 then  -- 206 = ERROR_FILENAME_EXCED_RANGE
-         -- Check if saving a long name on a FAT drive has failed
-         fullname = name  -- hints: '=' must already be resolved, fullname may miss the path
-         -- strip '"'...'"'
-         len = length(fullname)
-         if substr( fullname, 1, 1) = '"' & substr( fullname, len, 1) = '"' then
-            fullname = substr( fullname, 2, len - 2)
-         endif
-         -- build 8.3 name
-         p1 = lastpos( '\', fullname)
-         if p1 then
-            pathbsl = substr( fullname, 1, p1)   -- path with trailing '\'
-         else
-            pathbsl = ''
-         endif
-         longname = substr( fullname, p1 + 1)    -- long name without pathbsl
-         p2 = lastpos( '.', longname )
-         if p2 > 0 then
-            base = substr( longname, 1, p2 - 1)  -- null if leading '.' (to respect 8.3)
-            pext = substr( longname, p2)         -- extension with leading '.' or filename with leading '.'
-         else
-            base = longname
-            pext = ''
-         endif
-         if length(base) > 8 then
-            base = substr( base, 1, 8)
-         endif
-         if length(pext) > 4 then
-            pext = substr( pext, 1, 4)
-         endif
-         -- convert periods
-         base = translate( base, '_', '.')
-         shortname = pathbsl''base''pext
-         -- convert spaces
-         shortname = translate( shortname, '_', ' ')
-         -- todo: convert other chars
-         --call NepmdPmPrintf( 'defc save: src = 'src', shortname = |'shortname'|')
-         -- try again to write the file
-         src = savefile( shortname, options)
-         if not src then
-            sayerror 0  -- delete message
-            -- todo?: better use EPM functions here to update also .eaarea
-            --call delete_ea('.LONGNAME')
-            --'add_ea .LONGNAME' longname
-            longnamerc = NepmdWriteStringEa( shortname, '.LONGNAME', longname)
-            if longnamerc then
-               sayerror 'EA ".LONGNAME" not written to file "'shortname'"'
-            else
-               -- This doesn't handle the save <newfilename> cmd correctly.
-               -- Instead of just writing <newfilename> the current file will be replaced.
-               .filename = shortname
-               -- Quick & dirty...            <------------------------ Todo
-/**/
-               'xcom quit'
-               'e 'shortname
-               call AddToHistory( 'SAVE', .filename)
-/**/
-               sayerror SAVED_TO__MSG '"'shortname'". EA ".LONGNAME" set to "'longname'".'
-               -- ...to avoid msg "File was altered by another"
-               return src
+      if fatsrc <> 0 then
+         -- Compared to the 'save' cmd, which returns only -285 or 0,
+         -- defproc lock returns the (more usable) rc of DosOpen.
+         dosopenrc = lock('W')
+         if dosopenrc = 0 then
+            'unlock'
+         elseif dosopenrc = 206 then  -- 206 = ERROR_FILENAME_EXCED_RANGE
+            call message( 'Filename exceeds range')
+            if fatsrc = '' then    -- UNC name?
+               fatsrc = SaveFat( name, options)
+               src = fatsrc
             endif
-         endif
-
-      elseif dosopenrc = 32 then
-         call message( ACCESS_DENIED__MSG '-' MAYBE_LOCKED__MSG) -- Maybe someone locked it.
-         return -5
-      elseif dosopenrc = 3 then
-         call message( 'Path not found')
-         return -5
-      elseif dosopenrc = 15 then
-         call message( 'Drive is not valid')
-         return -5
-      elseif dosopenrc = 123 then
-         call message( 'Illegal character')
-         return -5
-      elseif dosopenrc = 26 then
-         call message( 'Unknown media type')
-         return -5
-      elseif dosopenrc = 108 then
-         call message( 'Drive locked')
-         return -5
-      elseif dosopenrc <> 0 then
-         call message( 'DosOpen returned rc = 'dosopenrc)
-         return -5
-
-      else
-         'unlock'
-      endif  -- dosopenrc
+            return -5
+         elseif dosopenrc = 32 then
+            call message( ACCESS_DENIED__MSG '-' MAYBE_LOCKED__MSG) -- Maybe someone locked it.
+            return -5
+         elseif dosopenrc = 3 then
+            call message( 'Path not found')
+            return -5
+         elseif dosopenrc = 15 then
+            call message( 'Drive is not valid')
+            return -5
+         elseif dosopenrc = 123 then
+            call message( 'Illegal character')
+            return -5
+         elseif dosopenrc = 26 then
+            call message( 'Unknown media type')
+            return -5
+         elseif dosopenrc = 108 then
+            call message( 'Drive locked')
+            return -5
+         else
+            call message( 'DosOpen returned rc = 'dosopenrc)
+            return -5
+         endif  -- dosopenrc
+      endif  -- fatsrc
 
    endif  -- src = -285
 
@@ -330,7 +319,10 @@ compile if INCLUDE_BMS_SUPPORT
    endif
 compile endif
    if not src & not isoption(options,'q') then
-      call message(SAVED_TO__MSG name)
+      -- Don't overwrite message from FatSave
+      if fatsrc = '' then
+         call message(SAVED_TO__MSG name)
+      endif
    elseif src=-5 | src=-285 then  --  -5 = 'Access denied'; -285 = 'Error writing file'
       if qfilemode( name, attrib) then      -- Error from DosQFileMode
          call message(src)    -- ? Don't know why got Access denied.
@@ -349,10 +341,6 @@ compile endif
          endif
       endif
       rc = src  -- reset, since qfilemode() changed the RC.
-   elseif src=-345 then
-      call winmessagebox( 'Demo Version',
-                          sayerrortext(-345)\10\10'File too large to be saved.' ,
-                          MB_CANCEL + MB_CRITICAL + MB_MOVEABLE)
    elseif src < 0 then        -- If RC > 0 assume from host save; and
       call message(src)       -- assume host routine gave error msg.
    endif
@@ -360,23 +348,111 @@ compile endif
       .filename = GetUnnamedFileName()
    endif
 
-   'ResetDateTimeModified'
-   'RefreshInfoLine MODIFIED FILE'
+   if fatsrc <> 0 then  -- following not required if file was reloaded
+      'ResetDateTimeModified'
+      'RefreshInfoLine MODIFIED FILE'
 
-   -- Explicitely redetermine mode (file contents may have changed).
-   -- Must be delayed with 'postme'.
-   -- Otherwise a MessageBox (defined in ETK) will pop up when
-   --    -  the window should be closed and
-   --    -  there is a modified file in the ring and
-   --    -  the file was saved.
-   -- The file *was* saved but the MessageBox says that there has
-   -- occured an error saving the file.
-   'postme ResetMode 'OldMode
-
-   if src = 0 then
-      call AddToHistory( 'SAVE', .filename)
+      -- Explicitely redetermine mode (file contents may have changed).
+      -- Must be delayed with 'postme'.
+      -- Otherwise a MessageBox (defined in ETK) will pop up when
+      --    -  the window should be closed and
+      --    -  there is a modified file in the ring and
+      --    -  the file was saved.
+      -- The file *was* saved but the MessageBox says that there has
+      -- occured an error saving the file.
+      'postme ResetMode 'OldMode
    endif
 
+   if src = 0 then
+      'postme AddToHistory SAVE' .filename
+   endif
+
+   return src
+
+; ---------------------------------------------------------------------------
+; Change the submitted long (maybe full) filename into a FAT name and save
+; current file. Write .LONGNAME EA.
+defproc SaveFat( name, options)
+   fullname = name  -- hints: '=' must already be resolved, fullname may miss the path
+   -- strip '"'...'"'
+   len = length(fullname)
+   if substr( fullname, 1, 1) = '"' & substr( fullname, len, 1) = '"' then
+      fullname = substr( fullname, 2, len - 2)
+   endif
+   -- build 8.3 name
+   p1 = lastpos( '\', fullname)
+   if p1 then
+      pathbsl = substr( fullname, 1, p1)   -- path with trailing '\'
+   else
+      pathbsl = ''
+   endif
+   longname = substr( fullname, p1 + 1)    -- long name without pathbsl
+   p2 = lastpos( '.', longname )
+   if p2 > 1 then
+      base = substr( longname, 1, p2 - 1)  -- at least 1 char
+      ext = substr( longname, p2 + 1)      -- extension without leading '.'
+   else
+      base = longname
+      ext = ''
+   endif
+   if length(base) > 8 then
+      base = substr( base, 1, 8)
+   endif
+   if length(ext) > 3 then
+      ext = substr( ext, 1, 3)
+   endif
+   if ext > '' then
+      base_ext = base'.'ext
+   else
+      base_ext = base
+   endif
+   -- convert invalid FAT chars
+   invalidchars = '.+,"/\[]:|<>=;'
+   replacechars = '_!!!!!!!!!!!!!'
+   base_ext = translate( base_ext, replacechars, invalidchars)
+   shortname = pathbsl''base_ext
+   -- convert spaces, also in path
+   shortname = translate( shortname, '_', ' ')
+   --call NepmdPmPrintf( 'defc save: src = 'src', shortname = |'shortname'|')
+   -- try again to write the file                       <----------------------- doesn't check if file already exists
+   src = savefile( shortname, options)
+   if not src then
+      sayerror 0  -- delete message
+      -- todo?: better use EPM functions here to update also .eaarea
+      call delete_ea('.LONGNAME')
+      'add_ea .LONGNAME' longname
+      longnamerc = NepmdWriteStringEa( shortname, '.LONGNAME', longname)
+      if longnamerc then
+         sayerror 'EA ".LONGNAME" not written to file "'shortname'"'
+      else
+         -- This doesn't handle the save <newfilename> cmd correctly.
+         -- Instead of just writing <newfilename> the current file will be replaced.
+         .filename = shortname
+
+         -- Bug in .fileinfo, after saving a long name on a FAT drive?
+         cur_filedatehex = ltoa(substr(.fileinfo, 9, 4), 16)
+         -- sayerror 'DateTime from .fileinfo = 'filedatehex2datetime(cur_filedatehex)
+         -- shows then 2026-02-04 12:43:28
+         --if cur_filedatehex = '656e5c44' then   -- has sometimes other wrong values, so omit this check
+         if cur_filedatehex <> get_filedatehex( shortname) then
+            -- Quick & dirty...
+            getfileid oldfid
+            saved_rc = rc
+            'e /d 'shortname
+            if rc = 0 then
+               getfileid newfid
+               activatefile oldfid
+               .modify = 0
+               'xcom quit'
+               activatefile newfid
+            endif
+            rc = saved_rc
+            -- ...to avoid msg "File was altered by another"
+         endif
+
+         sayerror SAVED_TO__MSG '"'shortname'". EA ".LONGNAME" set to "'longname'".'
+      endif
+   endif
    return src
 
 ; ---------------------------------------------------------------------------
@@ -424,17 +500,19 @@ defc SaveAll
 ; ---------------------------------------------------------------------------
 defc q, quit=
    universal firstloadedfid
-   universal nepmd_hini
+
    if not .visible then
       'xcom quit'
       return
    endif
 
+   IsATempFile = (substr( .filename, 1, 1) = '.')
+   IsAShell    = (substr( .filename, 1, 15) = '.command_shell_')
    getfileid quitfileid
 
 compile if TRASH_TEMP_FILES
-   if substr( .filename, 1, 1) = "." then     -- a temporary file
-      .modify = 0                             -- so no "Are you sure?"
+   if IsATempFile then     -- a temporary file
+      .modify = 0          -- so no "Are you sure?"
    endif
 compile endif
 
@@ -443,11 +521,6 @@ compile if SPELL_SUPPORT
       'dynaspell'                  -- toggle it off.
    endif
 compile endif
-
-   IsAShell = 0
-   if leftstr( .filename, 15) = ".command_shell_" then
-      IsAShell = 1
-   endif
    if IsAShell then
       .modify = 0                             -- so no "Are you sure?"
       'shell_kill'
@@ -475,10 +548,8 @@ compile endif
 
    call RingWriteFileNumber()
 
-   KeyPath = '\NEPMD\User\AutoRestore\Ring\SaveLast'
-   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Enabled & not IsAShell then
-      call RingWriteFilePosition()
+   if not IsATempFile then
+      call RingAutoWriteFilePosition()
    endif
 
 ; ---------------------------------------------------------------------------
@@ -526,7 +597,8 @@ compile endif
       'unlock'
    endif
    AskIfExists = (arg(1) <> 0)-- new optional arg, 0 => no EXIST_OVERLAY__MSG, used by def f2 if SMARTSAVE
-   if not saveas_dlg( name, type, AskIfExists) then
+   result = saveas_dlg( name, type, AskIfExists)
+   if result = 0 then
       if leftstr( name, 1) = '"' & rightstr( name, 1) = '"' then
          name = substr( name, 2, length(name) - 2)
       endif
@@ -583,16 +655,18 @@ defproc saveas_dlg( var name, var type)
 ; Return codes:  0 = OK; 1 = memory problem; 2 = bad string; 3 = couldn't load control from DLL
    if res = 2 then      -- File dialog didn't like the .filename;
       name = copies( \0, 255)  -- try again with no file name
-      call dynalink32( ERES2_DLL,                -- library name
-                       'ERESSaveas',              -- function name
-                       gethwndc(EPMINFO_EDITCLIENT)  ||
-                       gethwndc(APP_HANDLE)          ||
-                       address(name)                 ||
-                       address(type))
+      res =  dynalink32( ERES2_DLL,                -- library name
+                         'ERESSaveas',              -- function name
+                         gethwndc(EPMINFO_EDITCLIENT)  ||
+                         gethwndc(APP_HANDLE)          ||
+                         address(name)                 ||
+                         address(type))
    endif
    parse value name with name \0
    parse value type with type \0
-   if name = '' then return -275; endif  -- sayerror('Missing filename')
+   if name = '' then
+      return -275  -- sayerror('Missing filename')
+   endif
    if exist(name) & AskIfExists then
       if 1 <> winmessagebox( SAVE_AS__MSG,
                              name\10\10           ||
@@ -608,6 +682,7 @@ defproc saveas_dlg( var name, var type)
    if .readonly then
       .readonly = 0
    endif
+   return res
 
 ; ---------------------------------------------------------------------------
 /*
@@ -667,7 +742,7 @@ compile if WPS_SUPPORT
 compile endif
 
 ; ---------------------------------------------------------------------------
-; Syntax: filedlg cmd filemask title
+; Syntax: filedlg ["title"] [cmd [filemask [flags]]]
 ; Open a standard WinFileDlg and execute cmd filename
 defc filedlg
    if getpminfo(EPMINFO_EDITFRAME) then
@@ -676,10 +751,25 @@ defc filedlg
       handle = EPMINFO_EDITCLIENT
    endif
 
-   parse arg cmd filemask title
+   parse arg '"'title'"' rest
+   if title = '' then
+      parse arg rest
+      title = 'Open'
+   endif
+   parse value rest with cmd filemask flags
+   if cmd = '' then
+      cmd = 'e'
+   endif
+   if filemask = '' then
+      filemask = '*'
+   endif
+   if flags = '' then
+      flags = 257
+   endif
 
-   size  = 328       -- size of FILEDLG struct
-   flags = 257
+   size  = 328  -- size of FILEDLG struct
+   flags = 257  -- FDS_CENTER + FDS_OPEN_DIALOG
+                -- FDS_MODELESS doesn't work
    /*
    #define FDS_CENTER            0x00000001L /*    1 Center within owner wnd   */
    #define FDS_CUSTOM            0x00000002L /*    2 Use custom user template  */
