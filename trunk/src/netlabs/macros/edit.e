@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.12 2002-11-13 15:45:40 aschn Exp $
+* $Id: edit.e,v 1.13 2003-08-31 22:54:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -25,6 +25,15 @@
 defproc NepmdResolveEnvVars( Spec )
    startp = 1
    do forever
+      -- We don't use parse here, because if only 1 % char is present, it will
+      -- assign all the rest to EnvVar:
+      --    parse value rest with next'%'EnvVar'%'rest
+      --    if rest = '' then
+      --       Spec = Spec''next''Get_Env(EnvVar)
+      --       leave
+      --    else
+      --       Spec = Spec''next''Get_Env(EnvVar)''rest
+      --    endif
       p1 = pos( '%', Spec, startp )
       if p1 = 0 then
          leave
@@ -76,6 +85,7 @@ defproc NepmdLoadFile( Spec, Options )
       endif
 
       --sayerror 'Spec = 'Spec', Filename = 'Filename
+      --call NepmdPmPrintf( 'edit -> NepmdLoadFile: Spec = 'Spec', Filename = 'Filename)
 
       -- Remove REXX EA's if extension is found in RexxEaExtensions.
       -- Use the extension here instead of the mode to avoid determining the
@@ -129,8 +139,10 @@ compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') & not SMALL
    universal fto                -- Need this passed to loadfile...
 compile endif
    universal nepmd_hini
+   universal CurEditCmd
 
    call NepmdResetHiliteModeList()
+   CurEditCmd = 'EDIT'  -- initialize CurEditCmd for restore pos
 
    rest=strip(arg(1))
 
@@ -167,6 +179,7 @@ compile endif
             parse value rest with (ch) p (ch) rest
             cmd = cmd || ch || p
          enddo
+         CurEditCmd = cmd  -- set universal var to determine later in LOAD.E if pos shall be restored from EA
          cmd
       elseif ch='/' then       -- Option
          parse value rest with opt rest
