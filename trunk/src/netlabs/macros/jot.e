@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: jot.e,v 1.2 2002-07-22 19:00:41 cla Exp $
+* $Id: jot.e,v 1.3 2002-08-18 20:34:32 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -98,7 +98,6 @@ defc jot
       inifile = queryprofile(0, appname, 'EPMIniPath')
       jotfile = leftstr(inifile, lastpos('\', inifile)) || 'jot.not'
       if leftstr(jotfile,1)='\' then  -- relative to boot drive
-compile if EVERSION >= 6
          drivenum = 1234
          call dynalink32('DOSCALLS',          -- dynamic link library name
                          '#348',              -- ordinal for DOS32QuerySysInfo
@@ -107,20 +106,6 @@ compile if EVERSION >= 6
                          address(drivenum)||  -- buffer
                          atol(4),2)           -- Buffer length
          jotfile = chr(96+ltoa(drivenum, 10))':'jotfile
-compile else
-         globalseg = 12
-         localseg = 12
-
-         call dynalink('DOSCALLS',             -- dynamic link library name
-                       '#8',                   -- ordinal value for DosGetInfoSeg
-                       selector(globalseg) ||  -- string selector
-                       offset(globalseg)   ||  -- string offset
-                       selector(localseg)  ||  -- string selector
-                       offset(localseg) )      -- string offset
-
-         globalseg=itoa(globalseg,10)
-         jotfile = chr(96+itoa(peek(globalseg,36,2), 10))':'jotfile
-compile endif
       endif
    endif
 
@@ -131,11 +116,7 @@ compile endif
       jotfile = jotfile\0
       rest = rest\13\10\0
       call windowmessage(1,  getpminfo(EPMINFO_EDITCLIENT),
-compile if EVERSION >= 5.60
                          5495,               -- EPM_EDIT_LOGERROR
-compile else
-                         5452,               -- EPM_EDIT_LOGERROR
-compile endif
                          ltoa(offset(jotfile) || selector(jotfile), 10),
                          ltoa(offset(rest) || selector(rest), 10) )
    elseif button = \2 then   -- Change file

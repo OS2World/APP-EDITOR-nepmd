@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: maketags.e,v 1.2 2002-07-22 19:01:00 cla Exp $
+* $Id: maketags.e,v 1.3 2002-08-18 20:39:28 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -19,30 +19,28 @@
 *
 ****************************************************************************/
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately
- define INCLUDING_FILE = 'MAKETAGS.E'
+define INCLUDING_FILE = 'MAKETAGS.E'
 const
    tryinclude 'MYCNF.E'        -- the user's configuration customizations.
 
  compile if not defined(SITE_CONFIG)
-    const SITE_CONFIG = 'SITECNF.E'
+   const SITE_CONFIG = 'SITECNF.E'
  compile endif
  compile if SITE_CONFIG
-    tryinclude SITE_CONFIG
+   tryinclude SITE_CONFIG
  compile endif
 
 const
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
-include NLS_LANGUAGE'.e'
-include 'stdconst.e'
- compile if EVERSION >= 6
+   include NLS_LANGUAGE'.e'
+   include 'stdconst.e'
    EA_comment 'This defines the MAKETAGS command; it is intended to be executed directly.'
- compile endif
 compile endif
 
 compile if not defined(SHOW_EACH_PROCEDURE)
-const SHOW_EACH_PROCEDURE = 0
+   const SHOW_EACH_PROCEDURE = 0
 compile endif
 
 compile if not defined(TRACE_TIMES)
@@ -168,7 +166,6 @@ compile endif
          namez    = filename\0    -- ASCIIZ
          resultbuf = copies(\0, 300)  -- Might need to allocate a buffer if < EPM 5.60
          attribute = 1         -- Want to see normal & read-only file entries
-compile if EVERSION >= 6  -- EPM32:  32-bit version
          searchcnt = atol(1)   -- Search count; we're only asking for 1 file at a time here.
          dirhandle = \xff\xff\xff\xff  -- Ask system to assign us a handle
          result=dynalink32('DOSCALLS',             -- dynamic link library name
@@ -180,19 +177,6 @@ compile if EVERSION >= 6  -- EPM32:  32-bit version
                            atol(length(resultbuf)) ||
                            address(searchcnt)  ||  -- Pointer to the count; system updates
                            atol(1), 2)             -- File info level 1 requested
-compile else
-         searchcnt = atoi(1)   -- Search count; we're only asking for 1 file at a time here.
-         dirhandle = \xff\xff  -- Ask system to assign us a handle
-         result=dynalink('DOSCALLS',             -- dynamic link library name
-                         '#64',                  -- ordinal value for DOSFINDFIRST
-                         address(namez)      ||  -- Filename we're looking for
-                         address(dirhandle)  ||  -- Pointer to the handle
-                         atoi(attribute)     ||  -- Attribute value describing desired files
-                         address(resultbuf)  ||  -- string address
-                         atoi(length(resultbuf)) ||
-                         address(searchcnt)  ||  -- Pointer to the count; system updates
-                         atol(0))               -- reserved
-compile endif -- EVERSION >= 6
 
          if result then
                 if result = 2   then msg = 'FILE NOT FOUND'
@@ -210,13 +194,8 @@ compile endif -- EVERSION >= 6
             status=1
             leave
          endif
-compile if EVERSION >= 6  -- EPM32:  32-bit version
          filename = wild_prefix || substr(resultbuf, 30, asc(substr(resultbuf, 29, 1)))
          filedate = ltoa(substr(resultbuf, 13, 4), 16)
-compile else
-         filename = wild_prefix || substr(resultbuf, 24, asc(substr(resultbuf, 23, 1)))
-         filedate = ltoa(substr(resultbuf, 9, 4), 16)
-compile endif -- EVERSION >= 6
       else
          wildcards = 0
          filedate = get_file_date(filename)
@@ -254,7 +233,7 @@ compile if TRACE_TIMES
             parse value gettime(1) with now';' .    /* Discard Hour24. */
             'setmessageline' now '-' verb "'"filename"'..."
          endif
-compile endif 
+compile endif
          display -8
          sayerror verb "'"filename"'..."
          display 8
@@ -281,44 +260,24 @@ compile endif
          if not wildcards then
             leave
          endif
-compile if EVERSION >= 6  -- EPM32:  32-bit version
          result=dynalink32('DOSCALLS',             -- dynamic link library name
                           '#265',                 -- ordinal value for DOS32FINDNEXT
                           dirhandle           ||  -- Directory handle, returned by DosFindFirst(2)
                           address(resultbuf)  ||  -- address of result buffer
                           atol(length(resultbuf)) ||
                           address(searchcnt), 2)  -- Pointer to the count; system updates
-compile else
-         result=dynalink('DOSCALLS',             -- dynamic link library name
-                         '#65',                  -- ordinal value for DOSFINDNEXT
-                         dirhandle           ||  -- Directory handle, returned by DosFindFirst(2)
-                         address(resultbuf)  ||  -- address of result buffer
-                         atoi(length(resultbuf)) ||
-                         address(searchcnt) )    -- Pointer to the count; system updates
-compile endif -- EVERSION >= 6
          if result then
-compile if EVERSION >= 6  -- EPM32:  32-bit version
             call dynalink32('DOSCALLS',             -- dynamic link library name
                             '#263',                 -- ordinal value for DOS32FINDCLOSE
                             dirhandle)              -- Directory handle, returned by DosFindFirst(2)
-compile else
-            call dynalink('DOSCALLS',             -- dynamic link library name
-                          '#63',                  -- ordinal value for DOSFINDCLOSE
-                          dirhandle)              -- Directory handle, returned by DosFindFirst(2)
-compile endif -- EVERSION >= 6
             if result<>18 then
                sayerror 'Unexpected error' result 'from DosFindNext'
                status=1
             endif
             leave
          endif
-compile if EVERSION >= 6  -- EPM32:  32-bit version
          filename = wild_prefix || substr(resultbuf, 30, asc(substr(resultbuf, 29, 1)))
          filedate = ltoa(substr(resultbuf, 13, 4), 16)
-compile else
-         filename = wild_prefix || substr(resultbuf, 24, asc(substr(resultbuf, 23, 1)))
-         filedate = ltoa(substr(resultbuf, 9, 4), 16)
-compile endif -- EVERSION >= 6
       endloop
       if status then
          leave

@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fevshmnu.e,v 1.2 2002-07-22 19:00:25 cla Exp $
+* $Id: fevshmnu.e,v 1.3 2002-08-18 20:29:19 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -106,12 +106,8 @@ compile endif
        buildmenuitem menuname, 1, 141, COMMANDLINE_MENU__MSG\9 || CTRL_KEY__MSG'+I', 'commandline'COMMANDLINE_MENUP__MSG,   0, mpfrom2short(HP_COMMAND_CMD, 0)
 compile if WANT_EPM_SHELL = 1
        buildmenuitem menuname, 1, 65535, HALT_COMMAND_MENU__MSG, '', 0, mpfrom2short(HP_COMMAND_HALT, 0)
- compile if EPM32 & not POWERPC
        buildmenuitem menuname, 1, 142, WRITE_SHELL_MENU__MSG,        'shell_write'WRITE_SHELL_MENUP__MSG, 0, mpfrom2short(HP_COMMAND_WRITE, 16384)
        buildmenuitem menuname, 1, 143, SHELL_BREAK_MENU__MSG,        'shell_break'SHELL_BREAK_MENUP__MSG,  32769, mpfrom2short(HP_COMMAND_BREAK, 16384)
- compile else
-       buildmenuitem menuname, 1, 142, WRITE_SHELL_MENU__MSG,        'shell_write'WRITE_SHELL_MENUP__MSG, 32769, mpfrom2short(HP_COMMAND_WRITE, 16384)
- compile endif
 compile else
        buildmenuitem menuname, 1, 65535, HALT_COMMAND_MENU__MSG, '', 32769, mpfrom2short(HP_COMMAND_HALT, 0)
 compile endif
@@ -255,18 +251,10 @@ compile if WANT_BOOKMARKS
 compile endif
 compile if WANT_TAGS
      buildmenuitem menuname, 3, 320, TAGS_MENU__MSG,   TAGS_MENUP__MSG, 17+64, mpfrom2short(HP_SEARCH_TAGS, 0)
- compile if EPM32
        buildmenuitem menuname, 3, 321, TAGSDLG_MENU__MSG\9, 'poptagsdlg'TAGSDLG_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_TAGS, 0)
        buildmenuitem menuname, 3, 322, \0,                  '',               4, 0
- compile endif
        buildmenuitem menuname, 3, 323, FIND_TAG_MENU__MSG\9 || SHIFT_KEY__MSG'+F6',  'findtag'FIND_TAG_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_TAGS, 0)
        buildmenuitem menuname, 3, 324, FIND_TAG2_MENU__MSG\9 || SHIFT_KEY__MSG'+F7', 'findtag *'FIND_TAG2_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_TAGS, 0)
- compile if not EPM32
-       buildmenuitem menuname, 3, 325, \0,                  '',               4, 0
-       buildmenuitem menuname, 3, 326, TAGFILE_NAME_MENU__MSG\9 || SHIFT_KEY__MSG'+F8',  'tagsfile'TAGFILE_NAME_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_TAGS, 0)
-       buildmenuitem menuname, 3, 327, \0,                  '',               4, 0
-       buildmenuitem menuname, 3, 328, MAKE_TAGS_MENU__MSG\9 || SHIFT_KEY__MSG'+F9',  'maketags *'MAKE_TAGS_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_TAGS, 0)
- compile endif
        buildmenuitem menuname, 3, 329, \0,                               '',          4, 0
        buildmenuitem menuname, 3, 330, SCAN_TAGS_MENU__MSG,  'tagscan'SCAN_TAGS_MENUP__MSG, 32769, mpfrom2short(HP_SEARCH_TAGS, 0)
 compile endif
@@ -435,11 +423,7 @@ compile if WANT_BOOKMARKS
    'cascade_menu 310 314'  -- Bookmarks cascade; default is Next Bookmark
 compile endif
 compile if WANT_TAGS
- compile if EPM32
    'cascade_menu 320 321'  -- Tags cascade; default is Tags Dialog
- compile else
-   'cascade_menu 320 323'  -- Tags cascade; default is Find Current Procedure
- compile endif
 compile endif
 compile if SUPPORT_USERS_GUIDE
    'cascade_menu 620'
@@ -499,10 +483,8 @@ compile endif
    buildacceltable activeaccel, 'paste' DEFAULT_PASTE, AF_VIRTUALKEY+AF_SHIFT,   VK_INSERT, 1215  -- s+Insert
    buildacceltable activeaccel, 'paste' ALTERNATE_PASTE, AF_VIRTUALKEY+AF_SHIFT+AF_CONTROL,   VK_INSERT, 1221  -- c+s+Insert
    buildacceltable activeaccel, 'dokey F9',  AF_VIRTUALKEY,                VK_F9, 1216  -- F9
-  compile if EVERSION >= 5.50
    buildacceltable activeaccel, 'dokey c+Y', AF_CHAR+AF_CONTROL,              89, 1217  -- c+Y
    buildacceltable activeaccel, 'dokey c+Y', AF_CHAR+AF_CONTROL,             121, 1218  -- c+y
-  compile endif
    buildacceltable activeaccel, 'select_all',AF_CHAR+AF_CONTROL,              47, 1219  -- c+/
    buildacceltable activeaccel, 'DUPMARK U', AF_CHAR+AF_CONTROL,              92, 1220  -- c+\
 
@@ -670,13 +652,7 @@ defc menuinit_2                  ------------- Menu id 2 -- Edit ---------------
    endif
    SetMenuAttribute( 210, 16384, on)      -- Copy to clipboard
    SetMenuAttribute( 220, 16384, on)      -- Cut
- compile if EVERSION >= '6.03'
    paste = clipcheck(format) & (format=1024) & not (browse() | .readonly)
- compile elseif EPM32
-   paste = clipcheck(format) & (format=1024) & browse()=0
- compile else
-   paste = clipcheck(format) & (format=256) & browse()=0
- compile endif  -- EPM32
    SetMenuAttribute( 230, 16384, paste)
    SetMenuAttribute( 240, 16384, on)      -- Delete mark
    SetMenuAttribute( 251, 16384, on)      -- Unmark (Deselect all)
@@ -700,13 +676,7 @@ defc menuinit_200                ------------- Menu id 200 -- Undo -------------
 
 
 defc menuinit_230                ------------- Menu id 230 -- Paste ---------------------
-compile if EVERSION >= '6.03'
    paste = clipcheck(format) & (format=1024) & not (browse() | .readonly)
-compile elseif EPM32
-   paste = clipcheck(format) & (format=1024) & browse()=0
-compile else
-   paste = clipcheck(format) & (format=256) & browse()=0
-compile endif  -- EPM32
    SetMenuAttribute( 231, 16384, paste)
    SetMenuAttribute( 232, 16384, paste)
    SetMenuAttribute( 233, 16384, paste)
@@ -755,11 +725,7 @@ compile if WANT_BOOKMARKS
 defc menuinit_310                ------------- Menu id 310 -- Bookmarks --------------------
       universal EPM_utility_array_ID
       do_array 3, EPM_utility_array_ID, 'bmi.0', bmcount          -- Index says how many bookmarks there are
- compile if EVERSION >= '6.03'
       SetMenuAttribute( 311, 16384, not(browse() | .readonly))  -- Set
- compile else
-      SetMenuAttribute( 311, 16384, browse()=0)  -- Set
- compile endif
       SetMenuAttribute( 312, 16384, bmcount>0)   -- List
       SetMenuAttribute( 314, 16384, bmcount>0)   -- Next
       SetMenuAttribute( 315, 16384, bmcount>0)   -- Prev

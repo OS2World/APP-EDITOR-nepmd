@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.2 2002-07-22 19:00:49 cla Exp $
+* $Id: load.e,v 1.3 2002-08-18 20:36:19 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -80,11 +80,8 @@ defload
 compile if WANT_EBOOKIE = 'DYNALINK'
    universal bkm_avail
 compile endif
-compile if EPM
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE, load_var
- compile if EVERSION >= '5.50'
    universal default_font
- compile endif
  compile if WANT_LONGNAMES='SWITCH'
    universal SHOW_LONGNAMES
  compile endif
@@ -94,9 +91,6 @@ compile if EPM
    .tabs     = vDEFAULT_TABS
    .margins  = vDEFAULT_MARGINS
    .autosave = vDEFAULT_AUTOSAVE
- compile if EVERSION < 5.21
-   .statusline=STATUS_TEMPLATE
- compile endif
  compile if WANT_LONGNAMES
   compile if WANT_LONGNAMES='SWITCH'
    if SHOW_LONGNAMES then
@@ -110,18 +104,11 @@ compile if EPM
    endif
   compile endif
  compile endif
-compile else
-   .tabs     = DEFAULT_TABS
-   .margins  = DEFAULT_MARGINS
-   .autosave = DEFAULT_AUTOSAVE
-compile endif
    load_ext = filetype()
    keys edit_keys    -- defaults for non-special filetypes
-compile if EVERSION >= '5.50'
    if .font < 2 then    -- If being called from a NAME, and font was set, don't change it.
       .font = default_font
    endif
-compile endif
 compile if WANT_BOOKMARKS
    if .levelofattributesupport < 2 then  -- If not already set (e.g., NAME does a DEFLOAD)
       'loadattributes'
@@ -136,42 +123,42 @@ compile if WANT_EBOOKIE
    endif
  compile endif
 compile endif  -- WANT_EBOOKIE
-compile if ADA_KEYWORD_HIGHLIGHTING and EPM32
+compile if    ADA_KEYWORD_HIGHLIGHTING
    if wordpos(load_ext, 'ADA ADB ADS') & .visible then
       'toggle_parse 1 epmkwds.Ada'
    endif
 compile endif
-compile if C_KEYWORD_HIGHLIGHTING and EPM32 and not (C_SYNTAX_ASSIST and ALTERNATE_KEYSETS)
+compile if    C_KEYWORD_HIGHLIGHTING AND not (C_SYNTAX_ASSIST AND ALTERNATE_KEYSETS)
    if wordpos(load_ext, 'C H SQC CPP HPP CXX HXX SQX') & .visible then
       'toggle_parse 1 epmkwds.c'
    endif
 compile endif
-compile if E_KEYWORD_HIGHLIGHTING and EPM32 and not (E_SYNTAX_ASSIST and ALTERNATE_KEYSETS)
+compile if    E_KEYWORD_HIGHLIGHTING AND not (E_SYNTAX_ASSIST AND ALTERNATE_KEYSETS)
    if load_ext='E' & .visible then
       'toggle_parse 1 epmkwds.e'
    endif
 compile endif
-compile if FORTRAN_KEYWORD_HIGHLIGHTING and EPM32
+compile if    FORTRAN_KEYWORD_HIGHLIGHTING
    if wordpos(load_ext, 'FOR FORTRAN F90') & .visible then
       'toggle_parse 1 epmkwds.F90'
    endif
 compile endif
-compile if HTML_KEYWORD_HIGHLIGHTING and EPM32
+compile if    HTML_KEYWORD_HIGHLIGHTING
    if wordpos(load_ext, 'HTM HTML') & .visible then
       'toggle_parse 1 epmkwds.HTM'
    endif
 compile endif
-compile if IPF_KEYWORD_HIGHLIGHTING and EPM32
+compile if    IPF_KEYWORD_HIGHLIGHTING
    if load_ext = 'IPF' & .visible then
       'toggle_parse 1 epmkwds.IPF'
    endif
 compile endif
-compile if JAVA_KEYWORD_HIGHLIGHTING and EPM32 and not (C_SYNTAX_ASSIST and ALTERNATE_KEYSETS)
+compile if    JAVA_KEYWORD_HIGHLIGHTING AND not (C_SYNTAX_ASSIST AND ALTERNATE_KEYSETS)
    if wordpos(load_ext, 'JAV JAVA') & .visible then
       'toggle_parse 1 epmkwds.jav'
    endif
 compile endif
-compile if PERL_KEYWORD_HIGHLIGHTING and EPM32
+compile if    PERL_KEYWORD_HIGHLIGHTING
    if wordpos(load_ext, 'PL PRL PERL') & .visible then
       'toggle_parse 1 epmkwds.PL'
    elseif load_ext = 'CMD' & .visible then
@@ -185,7 +172,7 @@ compile if PERL_KEYWORD_HIGHLIGHTING and EPM32
       endif
    endif
 compile endif
-compile if REXX_KEYWORD_HIGHLIGHTING and EPM32 and not (REXX_SYNTAX_ASSIST and ALTERNATE_KEYSETS)
+compile if    REXX_KEYWORD_HIGHLIGHTING AND not (REXX_SYNTAX_ASSIST AND ALTERNATE_KEYSETS)
    if wordpos(load_ext, 'BAT CMD ERX EXC EXEC XEDIT REX REXX VRX') & .visible then
       if load_ext = 'CMD' & .last then
          line = upcase(textline(1))
@@ -197,12 +184,12 @@ compile if REXX_KEYWORD_HIGHLIGHTING and EPM32 and not (REXX_SYNTAX_ASSIST and A
       endif
    endif
 compile endif
-compile if RC_KEYWORD_HIGHLIGHTING and EPM32
+compile if    RC_KEYWORD_HIGHLIGHTING
    if load_ext='RC' & .visible then
       'toggle_parse 1 epmkwds.rc'
    endif
 compile endif
-compile if SCRIPT_KEYWORD_HIGHLIGHTING and EPM32
+compile if    SCRIPT_KEYWORD_HIGHLIGHTING
  compile if defined(my_SCRIPT_FILE_TYPE)
    if wordpos(load_ext, 'SCR SCT SCRIPT IPF' my_SCRIPT_FILE_TYPE)>0 & .visible then
  compile else
@@ -211,7 +198,7 @@ compile if SCRIPT_KEYWORD_HIGHLIGHTING and EPM32
       'toggle_parse 1 epmkwds.scr'
    endif
 compile endif
-compile if TEX_KEYWORD_HIGHLIGHTING and EPM32
+compile if    TEX_KEYWORD_HIGHLIGHTING
  compile if defined(TEX_FILETYPES)
    if wordpos(load_ext, TEX_FILETYPES)>0 & .visible then
  compile else
@@ -220,7 +207,7 @@ compile if TEX_KEYWORD_HIGHLIGHTING and EPM32
       'toggle_parse 1 epmkwds.TEX'
    endif
 compile endif
-compile if MAKE_KEYWORD_HIGHLIGHTING and EPM32
+compile if    MAKE_KEYWORD_HIGHLIGHTING
    if (upcase(rightstr(.filename,8))='MAKEFILE' | load_ext='MAK') & .visible then
       'toggle_parse 1 epmkwds.mak'
    endif

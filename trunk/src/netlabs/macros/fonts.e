@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fonts.e,v 1.2 2002-07-22 19:00:28 cla Exp $
+* $Id: fonts.e,v 1.3 2002-08-18 20:29:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -111,11 +111,7 @@ defc add_font_attrib
       query_attribute class, font, IsPush, offst, col, line
    endif
    parse value queryfont(font) with fontname '.' fontsize '.' fontattrib
-compile if EVERSION >= '6.01b'
    if fontattrib bitand attrib then
-compile else
-   if fontattrib%attrib - 2*(fontattrib%(attrib*2)) then
-compile endif
       if class & line=firstline & col=firstcol then
          offst2 = offst
          attribute_action FIND_MATCH_ATTR_SUBOP, class, offst2, col, line
@@ -134,11 +130,7 @@ compile endif
                   query_attribute class, font, IsPush, offst, col, line
                endif
                parse value queryfont(font) with fontname '.' fontsize '.' fontattrib
-compile if EVERSION >= '6.01b'
                if not (fontattrib bitand attrib) then  -- Already off?
-compile else
-               if not (fontattrib%attrib - 2*(fontattrib%(attrib*2))) then -- Already off?
-compile endif
                   return                                            -- then all done.
                endif
             endif
