@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: nepmd.lst,v 1.5 2002-08-05 15:17:35 cla Exp $
+: $Id: nepmd.lst,v 1.6 2002-08-10 13:41:04 cla Exp $
 :
 : ===========================================================================
 :
@@ -30,6 +30,7 @@ APP              1 %UNZIPPEDDIR%\epmapp   *
 HLP              1 %UNZIPPEDDIR%\epmhlp   *
 BK               1 %UNZIPPEDDIR%\epmbk    *
 BMP              1 %UNZIPPEDDIR%\epmbmps  *
+NEPMD_EPMCALL    1 %BINDIR_NAME%\epmcall  netlabs\bin\*
 NEPMD_INSTALL    1 %CMPDIR_NAME%          netlabs\install\*
 NEPMD_BOOK       1 %CMPDIR_NAME%          netlabs\book\*
 NEPMD_EX         1 %CMPDIR_NAME%          netlabs\ex\*
@@ -42,7 +43,7 @@ MACROSAMPLES     2 %UNZIPPEDDIR%\epmsmp    *
 EBOOKE           2 %UNZIPPEDDIR%\ebooke    *
 MYASSIST         2 %UNZIPPEDDIR%\epmasi    *
 VMEXEC           2 %UNZIPPEDDIR%\lampdq    *
-NEPMD_RECOMP     2 %BINDIR_NAME%           netlabs\bin\*
+NEPMD_RECOMP     2 %BINDIR_NAME%\recomp    netlabs\bin\*
 NEPMD_MACROS     2 %CMPDIR_NAME%           netlabs\macros\*
 
 : --- package 3: Programming Samples

@@ -8,9 +8,13 @@
 #     - binary directory  $(BINDIR) (either debnug or release)
 #  - extending the PATH to the bin subdirectory for helper programs
 #
+#  if a package subdirectory (PKGDIR) is specified, also the
+#  directory
+#     $(BINDIR)\$(PKGDIR)\netlabs\bin is created
+#
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: project.in,v 1.5 2002-07-23 11:53:34 cla Exp $
+# $Id: project.in,v 1.6 2002-08-10 13:41:03 cla Exp $
 #
 # ===========================================================================
 #
@@ -64,14 +68,23 @@ CMPEXDIR=$(CMPDSTDIR)\ex
 !endif
 
 # - create netlabs tree in binary directory
+#   taking care of subdirectory per package
 
-BINDSTDIR=$(BINDIR)\netlabs
+!ifdef PKGDIR
+BINPKGDIR=$(BINDIR)\$(PKGDIR)
+!if [@md $(BINPKGDIR) 2> NUL]
+!endif
+
+BINDSTDIR=$(BINPKGDIR)\netlabs
 !if [@md $(BINDSTDIR) 2> NUL]
 !endif
 
 BINBINDIR=$(BINDSTDIR)\bin
 !if [@md $(BINBINDIR) 2> NUL]
 !endif
+
+!endif
+
 
 
 # --- extend path for executables to make helper programs available
