@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: list.php,v 1.7 2002-07-21 16:10:30 cla Exp $
+* $Id: list.php,v 1.8 2002-07-21 22:45:12 cla Exp $
 *
 * ===========================================================================
 *
@@ -27,9 +27,16 @@
 <html>
 <body text="#000000" bgcolor=#FFFFFF link=#CC6633 vlink=#993300 alink=#6666CC>
 
+
+<?
+// check for any commit file
+$commit = filedb_querycommitstatus( "db");
+$commit_color = filedb_getstatuscolor( $commit);
+?>
+
 <table cellspacing=1 cellpadding=2 border=0>
   <tr>
-    <th align=center>
+    <th>
        #
     </th>
     <th align=left>
@@ -41,8 +48,11 @@
     <th align=left>
        title
     </th>
-    <th align=left>
+    <th>
        status
+    </th>
+    <th>
+       <font color=<?=$commit_color?>>CVS</font>
     </th>
     <th align=left>
        last modified
@@ -79,6 +89,12 @@ for ($i = 0; $i < count( $aaentry);$i++)
    list( , $modified)  = each( $aentry);
    list( , $details)   = each( $aentry);
 
+   // check if commit file exists
+   if (file_exists( filedb_getcommitfile( $entryfile)))
+      $cvsstat = "<font color=".filedb_getstatuscolor( "COMMIT").">commit</font>";
+   else
+      $cvsstat = "<font color=".filedb_getstatuscolor( "CURRENT").">current</font>";
+
    // display entry
    echo "<tr>";
    echo "<td align=right bgcolor=".$bgcolor.">";
@@ -93,8 +109,11 @@ for ($i = 0; $i < count( $aaentry);$i++)
    echo "<td bgcolor=".$bgcolor.">";
    echo "<a href=\"details.php?file=".$entryfile."\" target=\"DetailsWindow\">".$title."</a>";
    echo "</td>";
-   echo "<td bgcolor=".$bgcolor.">";
+   echo "<td bgcolor=".$bgcolor." align=center>";
    echo $status;
+   echo "</td>";
+   echo "<td bgcolor=".$bgcolor." align=center>";
+   echo $cvsstat;
    echo "</td>";
    echo "<td bgcolor=".$bgcolor.">";
    echo $modified;
