@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.4 2002-08-10 13:04:49 cla Exp $
+* $Id: epmcall.c,v 1.5 2002-08-10 15:33:08 cla Exp $
 *
 * ===========================================================================
 *
@@ -119,9 +119,12 @@ return pszResult;
 }
 
 // -----------------------------------------------------------------------------
+
 APIRET GetExtendedEnvironment( PSZ envv[], PSZ pszEnvFile, PSZ *ppszNewEnv)
 {
          APIRET         rc  = NO_ERROR;
+
+         CHAR           szInstallVar[ _MAX_PATH + 30];
 
          PSZ           *ppszEnv;
          PSZ            pszVar;
@@ -149,6 +152,19 @@ do
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
+
+   // -------- set internal var(s) first
+
+   // get NEPMD install directory first
+   memset( szInstallVar, 0, sizeof( szInstallVar));
+   sprintf( szInstallVar, "%s=", ENV_NEPMD_PATH);
+   PrfQueryProfileString( HINI_USER,
+                          NEPMD_INI_APPNAME,
+                          NEPMD_INI_KEYNAME_PATH,
+                          NULL,
+                          _EOS(szInstallVar),
+                          _EOSSIZE( szInstallVar));
+   putenv( szInstallVar);
 
    // check file
    if (FileExists( pszEnvFile))
