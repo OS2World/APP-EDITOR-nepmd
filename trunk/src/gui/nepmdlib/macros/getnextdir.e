@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextdir.e,v 1.6 2002-08-27 12:21:25 cla Exp $
+* $Id: getnextdir.e,v 1.7 2002-09-05 21:57:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -67,6 +67,16 @@ The following code searches all subdirectories within the directory C:\OS2:
     messagenwait( 'Dir found:' Dirname);
  end;
 .fo on
+
+@@NepmdGetNextDir@REMARKS
+The search handle created by *NepmdGetNextDir* is automatically closed
+if the search is repeated until no more entries are available.
+
+.at fc=red
+If a search for files is interrupted for any reason before receiving 
+the error code 18 (ERROR__NO__MORE__FILES), it is required to close
+the search handle by a call to [.IDPNL_EFUNC_NEPMDGETNEXTCLOSE].
+.at
 
 @@NepmdGetNextDir@RETURNS
 NepmdGetNextDir returns either
