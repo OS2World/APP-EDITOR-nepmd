@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: job.c,v 1.4 2002-06-09 17:31:40 cla Exp $
+* $Id: job.c,v 1.5 2002-06-09 21:52:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -297,7 +297,7 @@ do
    // execute program
    sprintf( szCommand, "%s /V %s %s > %s 2>&1",
                        pwd->szCompilerExecutable,
-                       pwd->szSourceFile,
+                       (pwd->fTestUseErrorSource) ? TEST_ALTSOURCENAME : pwd->szSourceFile,
                        pwd->szTargetFile,
                        pwd->szLogFile);
 

@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: client.c,v 1.2 2002-06-04 20:06:34 cla Exp $
+* $Id: client.c,v 1.3 2002-06-09 21:52:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -30,9 +30,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-// disable debug messages for this module
-#undef DEBUG
 
 #include "common.h"
 #include "macros.h"
@@ -225,6 +222,10 @@ switch (msg)
             pwd->cd.fShowCompileLog = !pwd->cd.fShowCompileLog;
             break;
 
+         case IDMEN_TEST_ALTSOURCE:
+            pwd->fTestUseErrorSource = !pwd->fTestUseErrorSource;
+            break;
+
          }
       return (MRESULT) 0;
       break;
@@ -257,11 +258,14 @@ switch (msg)
       ENABLEMENUITEM( hwndMenu, IDMEN_SETTINGS_SHOW_COMPILELOG, fEnableMenu);
       ENABLEMENUITEM( hwndMenu, IDMEN_HELP_PARMS,               fEnableMenu);
       ENABLEMENUITEM( hwndMenu, IDMEN_HELP_INFO,                fEnableMenu);
+      ENABLEMENUITEM( hwndMenu, IDMEN_TEST_ALTSOURCE,           fEnableMenu);
 
       // maintain menu checkmarks
       SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_DISCARD_UNSAVED, pwd->cd.fDiscardUnsaved);
       SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_RELOAD_FILES,    pwd->cd.fReloadFiles);
       SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_SHOW_COMPILELOG, pwd->cd.fShowCompileLog);
+      SETMENUCHECKVALUE( hwndMenu, IDMEN_TEST_ALTSOURCE,           pwd->fTestUseErrorSource);
+
       }
       break;
 
@@ -297,8 +301,6 @@ switch (msg)
       ENABLEWINDOW( hwnd, IDTXT_CLOSE_EPMWINDOWS, pwd->fLastConnected);
       ENABLEWINDOW( hwnd, IDTXT_SAVE_FILELISTS,   pwd->fLastConnected);
       ENABLEWINDOW( hwnd, IDTXT_RELOAD_FILES,     (pwd->cd.fReloadFiles && pwd->fLastConnected));
-
-      DPRINTF(( "CLIENT: update stats with %u\n", (pwd->ulJobStatus)));
 
       switch (pwd->ulJobStatus)
          {

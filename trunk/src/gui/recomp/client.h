@@ -6,14 +6,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: client.h,v 1.1 2002-06-03 22:27:06 cla Exp $
+* $Id: client.h,v 1.2 2002-06-09 21:52:45 cla Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -77,6 +77,9 @@ typedef struct _WINDOWDATA
          PSZ           *appszFiles[ MAX_EPM_CLIENTS];
          ULONG          aulFileCount[ MAX_EPM_CLIENTS];
          ULONG          ulFileListIndex;
+
+         // cars used for testing purposes only
+         BOOL           fTestUseErrorSource;
 
    } WINDOWDATA, *PWINDOWDATA;
 
