@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.3 2002-08-10 19:23:32 cla Exp $
+* $Id: nepmd.h,v 1.4 2002-08-13 16:57:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -42,6 +42,7 @@
 
 #define ENV_NEPMD_LANGUAGE         "NEPMD_LANGUAGE"
 #define ENV_NEPMD_PATH             "NEPMD_ROOTDIR"
+#define ENV_NEPMD_ENVFILE          "NEPMD_ENVFILE"
 
 #endif // NEPMD_H
 
