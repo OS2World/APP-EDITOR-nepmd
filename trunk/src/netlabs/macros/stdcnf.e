@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.20 2004-07-03 23:07:13 aschn Exp $
+* $Id: stdcnf.e,v 1.21 2004-07-04 21:57:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -953,7 +953,7 @@ compile endif
 -- Support for a TAGS file (EPM 5.60 or above, only).
 compile if not defined(WANT_TAGS)
    --WANT_TAGS = 0  -- changed by aschn
-   WANT_TAGS = 'DYNALINK'
+   WANT_TAGS = 'DYNALINK'  -- defc maketags will link TAGS.E
 compile endif
 
 -- Unmark after doing a move mark?
@@ -2026,7 +2026,9 @@ compile if MOUSE_SUPPORT
    'linkverify popup'  -- saves 4.2k in stringtable area
 compile endif
 
-   'linkverify dict'      -- select language for dictionaries
+compile if WANT_KEYWORD_HELP = 'LINK'
+   'linkverify kwhelp'      -- Keyword help. Standard is WANT_KEYWORD_HELP = 'DYNALINK'
+compile endif
 
    -- Set universal vars. Doing this with a definit in MODEEXEC.E comes too
    -- late.
@@ -2034,7 +2036,7 @@ compile endif
 
 -----------------  End of DEFINIT  ------------------------------------------
 
-; -------- Define commands here for the dynalink/defmain feature --------
+; -------- Define commands here for the dynalink feature --------------------
 ; That avoids a link or even an include.
 
 compile if SPELL_SUPPORT = 'DYNALINK'
@@ -2047,34 +2049,40 @@ define
 ;   *** Error - SPELL_SUPPORT = 'DYNALINK' not valid for E3.
 ; compile endif
 
-defc syn = link_exec(LEX_EX, 'SYN', arg(1))
+defc syn       = link_exec( LEX_EX, 'SYN', arg(1))
 
-defc proof = link_exec(LEX_EX, 'PROOF', arg(1))
+defc proof     = link_exec( LEX_EX, 'PROOF', arg(1))
 
-defc proofword, verify = link_exec(LEX_EX, 'VERIFY', arg(1))
+defc proofword, verify = link_exec( LEX_EX, 'VERIFY', arg(1))
 
 ; compile if EPM
-defc dict = link_exec(LEX_EX, 'DICT', arg(1))
-defc dynaspell = link_exec(LEX_EX, 'DYNASPELL', arg(1))
+defc dict      = link_exec( LEX_EX, 'DICT', arg(1))
+defc dynaspell = link_exec( LEX_EX, 'DYNASPELL', arg(1))
 ; compile endif
 compile endif       -- Spell_Support
 
 compile if WANT_EBOOKIE = 'DYNALINK'
-defc bookie = link_exec('bkeys', 'bookie', arg(1))
+defc bookie = link_exec( 'bkeys', 'bookie', arg(1))
 compile endif
 
 compile if WANT_TREE = 'DYNALINK'
-defc tree_dir = link_exec('tree', 'tree_dir', arg(1))
-defc treesort = link_exec('tree', 'treesort', arg(1))
+defc tree_dir = link_exec( 'tree', 'tree_dir', arg(1))
+defc treesort = link_exec( 'tree', 'treesort', arg(1))
 compile endif
 
 compile if WANT_TAGS = 'DYNALINK'
-defc findtag  = link_exec('tags', 'findtag',  arg(1))
-defc tagsfile = link_exec('tags', 'tagsfile', arg(1))
-defc tagscan  = link_exec('tags', 'tagscan',  arg(1))
-defc poptagsdlg  = link_exec('tags', 'poptagsdlg',  arg(1))
-defc maketags  = link_exec('maketags', 'maketags',  arg(1))
+defc findtag     = link_exec( 'tags', 'findtag',  arg(1))
+defc tagsfile    = link_exec( 'tags', 'tagsfile', arg(1))
+defc tagscan     = link_exec( 'tags', 'tagscan',  arg(1))
+defc poptagsdlg  = link_exec( 'tags', 'poptagsdlg',  arg(1))
+defc maketags    = link_exec( 'maketags', 'maketags',  arg(1))
 compile endif       -- TAGs
+
+compile if WANT_KEYWORD_HELP = 'DYNALINK'
+defc viewword = link_exec( 'kwhelp', 'viewword', arg(1))
+compile endif
+
+defc DictLang = link_exec( 'dict', 'DictLang', arg(1))      -- select language for dictionaries
 
 -- 4.10A:  Move the compile-if here from above, simpler.
 ;compile if EVERSION >= '4.0' & EVERSION < 5
