@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.3 2002-08-21 11:53:12 aschn Exp $
+* $Id: tags.e,v 1.4 2003-09-01 05:33:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,9 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+compile if KEEP_TAGS_FILE_LOADED
+   *** Bug in EPM 6.x: You must set KEEP_TAGS_FILE_LOADED = 0
+compile endif
 ;
 ; This module is a general purpose engine for providing searching and
 ; completion for tagged function names.
@@ -1091,4 +1094,7 @@ defc tagscan
    endif
    parse value proc_name with procname ' (' linenum ')'
    linenum; .col = 1
-   '/'procname
+   --'/'procname
+   -- don't use the user's search options
+   'xcom l '\1''procname
+
