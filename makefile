@@ -8,7 +8,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.8 2002-04-19 09:55:52 cla Exp $
+# $Id: makefile,v 1.9 2002-04-19 10:27:46 cla Exp $
 #
 # ===========================================================================
 #
@@ -121,7 +121,7 @@ CHECK: PREPARE
 CLEAN:
   @echo cleanin up $(BINDIR)
   -@DEL $(INFDIR)\*  $(CMPDIR)\*  *.wpi /N >NUL 2>&1
-  -@RD  $(INFDIR) $(DISTDIR) $(CMPDIR)     >NUL 2>&1
+  -@RD  $(INFDIR) $(DSTDIR) $(CMPDIR)     >NUL 2>&1
 
 # ---- generate INF
 
