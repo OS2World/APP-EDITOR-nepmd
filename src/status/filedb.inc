@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: filedb.inc,v 1.5 2002-07-22 10:35:30 cla Exp $
+* $Id: filedb.inc,v 1.6 2002-07-22 14:09:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -166,10 +166,24 @@ return $result;
 function filedb_sortstatus( $aa, $ab)
 {   
 $index = 4;
-$a = $aa[ $index];
-$b = $ab[ $index];
+$as = trim( $aa[ $index]);
+$bs = trim( $ab[ $index]);
 
-return strcmp( strtoupper( $a), strtoupper( $b));
+// check for equal status already here
+if ($as == $bs)
+   return 0;
+
+// read index file and search status keywords
+// NOTE: the lines contain CRLF, so we need to append 
+//       CRLF to the keywords when searching
+$astatus = file( "status.lst");
+$a = array_search( $as."\r\n", $astatus);
+$b = array_search( $bs."\r\n", $astatus);
+
+if ($a == $b)
+   $result = 0;
+else
+   $result = ($a > $b) ? 1 : -1;
 
 return $result;
 }
