@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.22 2004-07-02 10:40:57 aschn Exp $
+* $Id: stdctrl.e,v 1.23 2004-07-02 13:00:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1517,6 +1517,11 @@ defc versioncheck_file =
 ; Used by NepmdInfo.
 defproc GetEVersion
    return EVERSION
+
+; Allow other (maybe linked) packages to query the version of NEPMD.
+; Used by NepmdInfo.
+defproc GetNepmdVersion
+   return NEPMD
 
 defproc find_epm_exec =
    pib = 1234
