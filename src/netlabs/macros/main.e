@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.21 2004-02-22 20:40:15 aschn Exp $
+* $Id: main.e,v 1.22 2004-02-28 15:32:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -243,6 +243,7 @@ compile endif
       -- Example: 'HookAdd main default_search_options +faet'
       -- Note   : Hooks are only able to process commands, not procedures.
       'HookExecute main'
+      'HookExecuteOnce mainonce'
    endif
 
 ; --- Process PROFILE.ERX ---------------------------------------------------
