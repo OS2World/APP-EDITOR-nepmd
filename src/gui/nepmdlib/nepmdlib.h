@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.h,v 1.4 2002-09-03 13:31:56 cla Exp $
+* $Id: nepmdlib.h,v 1.5 2002-09-04 10:16:21 cla Exp $
 *
 * ===========================================================================
 *
@@ -31,9 +31,9 @@
 #define NEPMDLIB_STR_LOADEDBY     "Loaded from: "
 
 // tag definitions for NepmdAlarm
-#define NEPMD_ALARMSTYLE_ALARM         "ALARM"
-#define NEPMD_ALARMSTYLE_ERROR         "ERROR"
 #define NEPMD_ALARMSTYLE_WARNING       "WARNING"
+#define NEPMD_ALARMSTYLE_NOTE          "NOTE"
+#define NEPMD_ALARMSTYLE_ERROR         "ERROR"
 
 // tag definitons for NepmdQueryPathInfo
 #define NEPMD_PATHINFO_CTIME           "CTIME"
