@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.11 2002-09-23 14:35:30 cla Exp $
+* $Id: kwhelp.e,v 1.12 2002-10-19 14:39:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -144,6 +144,9 @@ defproc pHelp_C_identifier
          endif
          line = leftstr(line, i-1)||identifier||substr(line, i+1)
       endloop
+
+      /* resolve environment vars in line */
+      line = NepmdResolveEnvVars( line )  -- defined in EDIT.E
 
       /* search the file, if the command is a view */
       if (translate( word( line, 1)) = 'VIEW') then
