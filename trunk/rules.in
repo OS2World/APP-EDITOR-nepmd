@@ -1,6 +1,6 @@
 # ***************************** Module Header *******************************
 #
-# Module Name: rules.in - external version V1.08
+# Module Name: rules.in - external version V1.09
 #
 # generic include file to setup compiler and linker flags and some
 # specific implicit rules - See description below !
@@ -28,7 +28,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: rules.in,v 1.7 2002-07-05 12:33:32 cla Exp $
+# $Id: rules.in,v 1.8 2002-07-05 12:56:59 cla Exp $
 #
 # ===========================================================================
 #
@@ -77,12 +77,14 @@
 # They can also be used for explicit commands:
 #
 #   CC               - name of the compiler executable
+#   SC               - name of the SOM precompiler
 #   LL               - name of the linker executable
 #   CLIB             - name of the code library manager executable
 #   ILIB             - name of the import library manager executable
 #   RC               - name of the resource compiler executable
 #
 #   C_FLAGS          - compiler flags according to the DEBUG setting
+#   SC_FLAGS         - SPM precompiler flags
 #   L_FLAGS          - linker flags according to the DEBUG setting
 #   RC_FLAGS         - resource compiler flags according to the DEBUG setting
 #   PMPRINTF         - PMPrintf object file for DEBUG mode or empty
@@ -122,7 +124,6 @@
 
 # --- extend include path if source dir is given
 !ifdef SRCDIR
-INCLUDE=$(INCLUDE);$(SRCDIR);
 !endif
 
 # --- determine dll extension
@@ -158,6 +159,10 @@ CMPDIR=$(BASEDIR)\$(CMPDIR_NAME)
 !if [@md $(CMPDIR) 2> NUL]
 !endif
 
+# always include compile directory in include path
+INCLUDE=$(INCLUDE);$(CMPDIR);
+
+
 # --- cleanup list for directories created here for main makefile
 #     This macro should be used in the main makefile of a project only
 #     in order to cleanup temporary directories. Extend this macro in
@@ -170,8 +175,10 @@ DIRSTOCLEAN=$(BINDIR) $(CMPDIR)
 # common options
 CC=icc
 RC=rc
+SC=sc
 C_FLAGS_BASE=-q -c -Ss+ -Sp1
 L_FLAGS_BASE=/A:4 /E /NOI /NOE /NOL /NOLOGO /MAP
+SC_FLAGS=-maddstar -S128000 -C128000 -mnoint -v
 
 !ifdef CPPLOCAL
 # - VAC3 -
@@ -240,10 +247,61 @@ PMPRINTF=
 
 
 # --- suffix list
-.SUFFIXES: .exe .obj .c .obj .lib .dll .lst .def .rc .res $(DLLEXT)
+.SUFFIXES: .exe .obj .c .obj .idl .ih .lib .dll .lst .def .rc .res $(DLLEXT)
 
 # --- implicit rules
 
+# - SOM precompiler rules
+
+!ifdef SRCDIR
+
+{$(SRCDIR)}.idl.c:
+    $(SC) $(SC_FLAGS) -s "c" $(SRCDIR)\$(@B).idl
+    @touch $(@B).c
+
+{$(SRCDIR)}.idl.ih:
+    $(SC) $(SC_FLAGS) -s "ih" $(SRCDIR)\$(@B).idl
+
+{$(SRCDIR)}.idl.h:
+    $(SC) $(SC_FLAGS) -s "h" $(SRCDIR)\$(@B).idl
+
+{$(SRCDIR)}.idl.def:
+    $(SC) $(SC_FLAGS) -s "def" $(SRCDIR)\$(@B).idl
+
+{$(SRCDIR)}.idl{$(CMPDIR)}.ih:
+    $(SC) $(SC_FLAGS) -s "ih" -d $(CMPDIR) $(SRCDIR)\$(@B).idl
+
+{$(SRCDIR)}.idl{$(CMPDIR)}.h:
+    $(SC) $(SC_FLAGS) -s "h" -d $(CMPDIR) $(SRCDIR)\$(@B).idl
+
+{$(SRCDIR)}.idl{$(CMPDIR)}.def:
+    $(SC) $(SC_FLAGS) -s "def" -d $(CMPDIR) $(SRCDIR)\$(@B).idl
+
+!else
+
+.idl.c:
+    $(SC) $(SC_FLAGS) -s "c" $(@B).idl
+    @touch $(@B).c
+
+.idl.ih:
+    $(SC) $(SC_FLAGS) -s "ih" $(@B).idl
+
+.idl.h:
+    $(SC) $(SC_FLAGS) -s "h" $(@B).idl
+
+.idl.def:
+    $(SC) $(SC_FLAGS) -s "def" $(@B).idl
+
+.idl{$(CMPDIR)}.ih:
+    $(SC) $(SC_FLAGS) -s "ih" -d $(CMPDIR) $(@B).idl
+
+.idl{$(CMPDIR)}.h:
+    $(SC) $(SC_FLAGS) -s "h" -d $(CMPDIR) $(@B).idl
+
+.idl{$(CMPDIR)}.def:
+    $(SC) $(SC_FLAGS) -s "def" -d $(CMPDIR) $(@B).idl
+
+!endif
 
 # - source to object rules
 
@@ -314,7 +372,7 @@ $(DEF)
    lxlite $*.exe
 !endif
 
-# - library creatin and listing rules
+# - library creation and listing rules
 
 !ifdef IMPLIB
 {$(BINDIR)}.dll{$(BINDIR)}.lib:
