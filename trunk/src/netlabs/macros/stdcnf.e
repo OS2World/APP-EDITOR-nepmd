@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.12 2003-08-30 20:20:34 aschn Exp $
+* $Id: stdcnf.e,v 1.13 2003-08-31 20:28:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -232,6 +232,7 @@ compile if HOST_SUPPORT = 'PDQ'
 -- Lewis' DOS.E.  If you include DOS.E in MYSTUFF.E, then set the following
 -- constant to 1.
  compile if not defined(HAVE_DOS)
+; obsolete
    HAVE_DOS = 0
  compile endif
 
@@ -597,6 +598,7 @@ compile endif
 
 -- Optionally include Ralph Yozzo's RETRIEVE command.
 compile if not defined(WANT_RETRIEVE)
+; obsolete
    WANT_RETRIEVE = 0
 compile endif
 
