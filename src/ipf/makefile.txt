@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.12 2002-06-10 13:37:07 cla Exp $
+.. $Id: makefile.txt,v 1.13 2002-06-10 14:28:44 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -292,6 +292,22 @@ As toolkit one of the following is required:
 - *OS/2 Warp 3 Developers Toolkit*
 - *OS/2 Warp 4 Developers Toolkit*
 - *OS/2 Warp 4.5 Developers Toolkit*
+
+.. .............................................................................
+.3 EPM Macro Compiler
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_ETPM
+.
+The *EPM Macro Compiler* is required to compile the *RECOMP* macro.
+
+[=NOTE]
+.ul compact
+- You can download the program file *etpm.exe* as part of the *EPM base application*
+  package zip file (no other files of this package are required)
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=epmapp The Hobbes File Archive]
+.
+    (search "epmapp" at hobbes.nmsu.edu)
+- *etpm.exe* must be accessible by the PATH statement
 
 .. .............................................................................
 .3 PKUNZIP2
