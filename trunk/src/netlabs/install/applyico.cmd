@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.3 2002-04-22 15:58:11 cla Exp $
+* $Id: applyico.cmd,v 1.4 2002-08-10 13:38:36 cla Exp $
 *
 * ===========================================================================
 *
@@ -67,7 +67,7 @@
  /* set  EPM program objects */
  rc = SysSetObjectData( '<NEPMD_EXECUTE>', 'ICONFILE='CallDir'\ico\nepmd.ico;');
  rc = SysSetObjectData( '<WP_EPM>',,
-                        'ICONFILE='CallDir'\ico\epm4.ico;EXENAME='BaseDir'\BIN\EPM.EXE');
+                        'ICONFILE='CallDir'\ico\epm4.ico;');
 
  EXIT( 0);
 
