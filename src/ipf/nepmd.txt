@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.6 2002-04-18 17:01:36 cla Exp $
+.. $Id: nepmd.txt,v 1.7 2002-04-18 17:18:29 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -131,7 +131,7 @@ features in *EPM* 6 compared to *EPM* 5
 .. -----------------------------------------------------------------------------
 .
 The sources for to build the [=TITLE] are freely available under the 
-*GNU General Public License* within a *CVS* archiv on
+[.IDPNL_LEGAL_GPL GNU General Public License] within a *CVS* archiv on
 the *OS/2 Netlabs Open Source Archive* server.
 
 To access them you either can
@@ -212,6 +212,8 @@ You are allowed to freely use and distribute the [=TITLE] as long as
 - no fee is charged for the program other than for cost of media;
 - the complete package is distributed unmodified.
 
+Further the restrictions of the [.IDPNL_LEGAL_GPL GNU General Public License] apply.
+
 .. -----------------------------------------------------------------------------
 .3 Disclaimer
 .. -----------------------------------------------------------------------------
@@ -221,7 +223,7 @@ You are allowed to freely use and distribute the [=TITLE] as long as
 Since this program is free, it is supplied with no warranty, either expressed
 or implied.
 
-I disclaim all warranties for any damages, including, but not limited to,
+We disclaim all warranties for any damages, including, but not limited to,
 incidental or consequential damage caused directly or indirectly by this
 software.
 
@@ -242,6 +244,7 @@ and bases on the *EPM* developed by the IBM T. J. Watson Research Center.
 
 See the [.IDPNL_CREDITS_GENERAL credits section] for more contributors to the
 distribution.
+
 
 .. =============================================================================
 .2 The EPMBBS distribution
@@ -1667,4 +1670,19 @@ The levels are:
 = Displays all E-Macro commands before posting them to the edit window
 - WORDS
 = Displays all the words that are recognized by the engine
+
+.. =============================================================================
+.2 Appendix: GNU General Public License
+.. =============================================================================
+.an IDPNL_LEGAL_GPL
+.
+All sources and programs of the [=TITLE] that are 
+.ul compact
+- not part of the [.IDPNL_EPMBBS EPMBBS distribution]  and
+- provided with the distribution or within the *Netlabs Open Source Archive* called *NEPMD*
+.el
+are provided under the *GNU General Public License*:
+.fo off
+.include COPYING
+.fo on
 
