@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: common.h,v 1.6 2002-08-10 13:04:16 cla Exp $
+* $Id: common.h,v 1.7 2002-08-16 22:18:07 cla Exp $
 *
 * ===========================================================================
 *
@@ -78,10 +78,6 @@
 
 /* ----------- Symbols used in common.h and recomp.e ----------- */
 /*                        KEEP IN SYNC !                         */
-
-/* EPM DDE support seems not to zero terminate the result string */
-/* Therefore we append a with special end-of-data-byte           */
-#define END_OF_DATA_CHAR ''
 
 /* Delimter character for the file list    */
 #define FILE_DELIMITER   '|'

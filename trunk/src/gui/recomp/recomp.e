@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.e,v 1.3 2002-06-10 14:30:51 cla Exp $
+* $Id: recomp.e,v 1.4 2002-08-16 22:18:08 cla Exp $
 *
 * ===========================================================================
 *
@@ -27,10 +27,6 @@ const
 
 /* ----------- Symbols used in common.h and recomp.e ----------- */
 /*                        KEEP IN SYNC !                         */
-
-/* EPM DDE support seems not to zero terminate the result string */
-/* Therefore we append a with special end-of-data-byte           */
-END_OF_DATA_CHAR = '';
 
 /* Delimter character for the file list    */
 FILE_DELIMITER = '|';
@@ -90,8 +86,8 @@ defproc recomp_send_data( DdeItem, DdeData)
 /* for simplicity we always save and restore it     */
 psave_pos( save_pos);
 
-/* post data with special end-of-data character */
-DdeData = DdeData''END_OF_DATA_CHAR;
+/* append zero byte do data */
+DdeData = DdeData''atoi( 0);
 windowmessage(1,  getpminfo( 5 ), -- EPMINFO_EDITCLIENT
               5478,    -- EPM_EDIT_DDE_POST_MSG
               ltoa( offset( DdeItem) || selector( DdeItem), 10),
