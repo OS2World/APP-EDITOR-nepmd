@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neprgeng.txt,v 1.3 2002-10-31 18:08:45 cla Exp $
+.. $Id: neprgeng.txt,v 1.4 2002-11-02 17:04:27 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -136,6 +136,354 @@ overhead.
 .
 The following keys are used by the [=TITLE]:
 
+.. =============================================================================
+.2 Appendix: EPM Syntax highlighting support
+.. =============================================================================
+.an IDPNL_HILITE
+.
+[=TOPICS]
+.su V30
+
+.. -----------------------------------------------------------------------------
+.3 Appendix: standard E toolkit syntax highlighting files
+.. -----------------------------------------------------------------------------
+.an IDPNL_HILITE_FILES
+.
+This section descibes the format of the files that *EPM* uses to support syntax
+highliting. This method is used with the *EPM* of the
+[.IDPNL_EPMBBS EPMBBS distribution] and the *EPM* shipped with *OS/2 Warp*.
+
+As this old scheme has certain disadvantages, the [=TITLE] implements a new
+method to define keywords to be highlighted, and under the cover creates the
+hilite definition files described here. For downwards compatibility,
+the old scheme can still be used, provided that for a given file no *EPM mode*
+is defined.
+
+The syntax highlighting files are searched along the *EPMPATH* and are
+named *epmkwds.***. Moreover, the files must be #known# by the code in
+*EPM.EX*, since the names are hardcoded in the macro source file *load.e*.
+
+[=NOTE]
+.ul compact
+- the [=TITLE] will soon provide a superior configuration mechanism
+  for syntax highliting in a forthcoming, which will allow easier
+  configuration. It will provide a new method for the definition of
+  keywords to be highlighted and the colors to be used for this.
+- the new method will be able to still use the old style of definition
+  files, as long as definitions of the newstyle do not exist for a given
+  file type.
+
+.. -----------------------------------------------------------------------------
+.3 format of the EPM syntax highlighting file
+.. -----------------------------------------------------------------------------
+.an IDPNL_HILITE_FORMAT
+.
+The following rules apply to the format of the syntax highlighting files
+of the *EPM*:
+
+[=TOPICS]
+.su 1 H50
+
+.. .............................................................................
+.4 special comment character
+.. .............................................................................
+.an IDPNL_HILITE_COMMENTCHAR
+.
+The first character of the first line is the "special" character.
+If it appears at the beginning of a line after, it is
+either followed by a space and marks then a comment, or
+by any other character and is then a section name.
+
+_*Example:*_
+.fo off
+@ this fist line defines the 'at' character as being
+@ the comment char
+@
+@ Below follows the first section:
+@
+@KEYWORDS
+.fo on
+
+.. .............................................................................
+.4 section DELIM
+.. .............................................................................
+.an IDPNL_HILITE_DELIM
+.
+The format in this section is:
+.fo off
+"start string" "end string" "bg color" "fg color" "escape character" "column"
+.fo on
+
+The definitions in this section are mostly used to define syntax highlighting
+for comments and quoted literal definitions.
+
+The following rules apply to definitions within this section:
+.ul compact
+- What's between the 'start' and 'end' delimiters is set to the 'color' color.
+- If no 'end' is specified, the whole line after any 'start' string is colored.
+- If an 'Escape' character appears just before a 'end' string, it won't be
+  considered an end delimiter.
+- If an 'Escape' character appears just before a 'start' string, it won't
+  be considered a start delimiter.
+- An 'Escape' character can be escaped by another 'Escape' character
+- If the column field is present, a start delimiter will be valid only
+  if it starts on this column
+- If the end delimiter is not on the same line as the start, no color changes
+  will be done.
+- The special character can be used as a placeholder, eg if you want a column
+  but no escape character
+
+_*Examples:*_
+
+The following entries specify that all literals enclosed in single
+or double quotes are displayed in green on default backgound, where
+the backslash is the escape character (line in the C language syntax):
+
+.fo off
+@DELIM
+@
+@ Start   Color Color  End     Escape
+@ string  bg    fg     string  character
+  "        -1      2   "       \
+  '        -1      2   '       \
+.fo on
+
+The following entries specify that all C and C++ style comments
+are displayed in blue on default backgound. Note that C style
+comments are not higlighted when they are spanning mutliple lines,
+since the syntax hilghlighting of *EPM* does not support this:
+
+.fo off
+@DELIM
+@
+@ Start   Color Color  End     Escape
+@ string  bg    fg     string  character
+  /**       -1      1   **/
+  //       -1      1
+.fo on
+
+.. .............................................................................
+.4 section DELIMI
+.. .............................................................................
+.an IDPNL_HILITE_DELIMI
+.
+This section contains identical definitions to the
+[.IDPNL_HILITE_DELIM section DELIM], but they are treated case
+insensitive.
+
+[=NOTE]
+.ul compact
+- specifiying an escape character seems not to work properly in this section *DELIMI*.
+  Define entries requiring an escape character in the secion [.IDPNL_HILITE_DELIM DELIM]
+  instead!
+
+.. .............................................................................
+.4 section KEYWORDS
+.. .............................................................................
+.an IDPNL_HILITE_KEYWORDS
+.
+The format in this section is:
+.fo off
+"start string" "end string" "bg color" "fg color" "escape character" "column"
+.fo on
+
+The definitions in this section define keywords to be highlighted.
+
+They must include only characters specified in the CHARSET section, case sensitive.
+
+_*Example:*_
+
+The following entries specify some keywords to be displayed in magenta
+on default backgound. For that the keywords must match in case.
+.fo off
+@KEYWORDS
+@ ---- C pre-processor keywords
+##define   -1 5
+##elif     -1 5
+##else     -1 5
+##endif    -1 5
+##include  -1 5
+##if       -1 5
+##ifdef    -1 5
+##ifndef   -1 5
+##pragma   -1 5
+##undef    -1 5
+.fo on
+
+.. .............................................................................
+.4 section INSENSITIVE
+.. .............................................................................
+.an IDPNL_HILITE_INSENSITIVE
+.
+This section contains identical definitions to the
+[.IDPNL_HILITE_KEYWORDS section KEYWORDS], but they are treated case
+insensitive.
+
+.. .............................................................................
+.4 section CHARSET
+.. .............................................................................
+.an IDPNL_HILITE_CHARSET
+.
+The format in this section is:
+.fo off
+"string"
+.fo on
+
+The only definition in this section is a string containing
+all the characters that may be used in the keywords defined
+in the sections [.IDPNL_HILITE_KEYWORDS KEYWORDS] and
+[.IDPNL_HILITE_INSENSITIVE INSENSITIVE].
+
+_*Example:*_
+
+The following entry specify all characters that may be used in keywords
+specified in the sections [.IDPNL_HILITE_KEYWORDS KEYWORDS] and
+[.IDPNL_HILITE_INSENSITIVE INSENSITIVE]:
+.fo off
+@CHARSET
+abcdefghijklmnopqrstuvwxyz__##ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+.fo on
+
+.. .............................................................................
+.4 section SPECIAL
+.. .............................................................................
+.an IDPNL_HILITE_SPECIAL
+.
+The format in this section is:
+.fo off
+"name" "fg color" "bg color"
+.fo on
+
+The definitions in this section define keywords to be highlighted, just as
+definitions in the section [.IDPNL_HILITE_KEYWORDS KEYWORDS].
+
+In contrast to the *KEYWORDS* section the keywords specified here
+can include any character.
+
+_*Example:*_
+
+The following entries specify special strings for the *C* language
+syntax highlighting to be displayed in light red on default backgound:
+.fo off
+@SPECIAL
+@
+{  -1  12
+}  -1  12
+;  -1  12
+,  -1  12
+?  -1  12
+:  -1  12
+.fo on
+
+.. .............................................................................
+.4 section SPECIALI
+.. .............................................................................
+.an IDPNL_HILITE_SPECIALI
+.
+This section contains identical definitions to the
+[.IDPNL_HILITE_SPECIAL section SPECIAL], but they are treated case
+insensitive.
+
+.. .............................................................................
+.4 section BREAKCHAR
+.. .............................................................................
+.an IDPNL_HILITE_BREAKCHAR
+.
+The format in this section is:
+.fo off
+"character" "fg color" "bg color"
+.fo on
+
+The characters specified in the entries of this section are considered as
+a space when keywords in the sections [.IDPNL_HILITE_KEYWORDS KEYWORDS]
+or [.IDPNL_HILITE_INSENSITIVE INSENSITIVE] are looked for. If
+colors are specified, a break at the beginning of a keyword will have its
+own color, else it will have the same color as the keyword.
+
+_*Example:*_
+
+The following entries specify some break characters for the *Tex* language
+syntax highlighting to be displayed in the color of the keyword being used
+with, except for the last break character, this is always displayed in red on
+default backgound:
+.fo off
+@BREAK
+\
+$
+[
+{ -1  4
+.fo on
+
+.. .............................................................................
+.4 section ENDCHAR
+.. .............................................................................
+.an IDPNL_HILITE_ENDCHAR
+.
+The format in this section is:
+.fo off
+"character" "fg color" "bg color"
+.fo on
+
+The characters specified in the entries of this section are considered as
+a space when keywords in [.IDPNL_HILITE_KEYWORDS KEYWORDS]
+or [.IDPNL_HILITE_INSENSITIVE INSENSITIVE] are looked for.  If
+colors are specified, an end char at the end of a keyword will have its
+own color, else it will have the same color as the keyword.
+
+An end character at the end of a keyword in [.IDPNL_HILITE_KEYWORDS KEYWORDS] or
+[.IDPNL_HILITE_INSENSITIVE INSENSITIVE] is hilited with its own color.
+
+_*Example:*_
+
+The following entry specifies an end character for the *Tex* language
+syntax highlighting to be displayed always displayed in red on
+default backgound:
+.fo off
+@ENDCHAR
+} -1  4
+.fo on
+
+.. .............................................................................
+.4 color definitions
+.. .............................................................................
+.an IDPNL_HILITE_COLORS
+.
+The background and foreground color values apply to the folowing scheme
+.pl compact bold break=none tsize=6
+- -1
+= transparent / default background or foreground color
+-  0
+= black
+-  1
+= blue
+-  2
+= green
+-  3
+= cyan
+-  4
+= red
+-  5
+= magenta
+-  6
+= brown
+-  7
+= palegrey
+-  8
+= dark grey
+-  9
+= light blue
+-  10
+= light green
+-  11
+= light cyan
+-  12
+= light red
+-  13
+= light magenta
+-  14
+= yellow
+-  15
+= white
 
 .. =============================================================================
 .2 E Language functions of the [=DOCTITLE]
