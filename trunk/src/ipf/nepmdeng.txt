@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmdeng.txt,v 1.1 2002-09-21 14:27:36 cla Exp $
+.. $Id: nepmdeng.txt,v 1.2 2002-09-22 12:30:45 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -26,16 +26,17 @@
 .ti [=DOCTITLE]
 .hi 234
 
-.SET CATEGORY_INSTALL=Installation related functions
 .SET CATEGORY_CONFIG=Configuration related functions
+.SET CATEGORY_DIVERSE=Diverse
 .SET CATEGORY_EAS=Extended Attribute functions
+.SET CATEGORY_EPMWINDOW=EPM Window related functions
 .SET CATEGORY_FILE= File related functions
+.SET CATEGORY_INSTALL=Installation related functions
 .SET CATEGORY_INTERACT=User Interaction related functions
+.SET CATEGORY_MODE=EPM mode related functions
 .SET CATEGORY_NLS=National Language Support related functions
 .SET CATEGORY_PROCESS=Process related functions
 .SET CATEGORY_SYSTEM=System related functions
-.SET CATEGORY_EPMWINDOW=EPM Window related functions
-.SET CATEGORY_DIVERSE=Diverse
 
 .. #############################################################################
 .1 [=DOCTITLE]
