@@ -23,7 +23,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rmwpi.cmd,v 1.4 2002-06-12 14:20:45 cla Exp $
+* $Id: rmwpi.cmd,v 1.5 2002-08-13 16:13:36 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.4 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.5 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -247,6 +247,14 @@ RemoveApp: PROCEDURE EXPOSE (GlobalVars)
 
     PARSE VAR AppId ThisVendor'\'ThisPackage'\'ThisComponent'\'.
     SAY '- removing' ThisPackage '-' ThisComponent
+
+    /* check for deinstall programs */
+    PARSE VALUE SysIni( IniFile, AppId, 'DeExecuteResolved') WITH DeinstCall'00'x;
+    IF (DeinstCall \= 'ERROR:') THEN
+    DO
+       SAY '  - deinstall program executed:' DeinstCall;
+       'CALL' DeinstCall;
+    END;
 
     /* remove files */
     PARSE VALUE SysIni( IniFile, AppId, 'TargetPath') WITH InstallPath'00'x;
