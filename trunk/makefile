@@ -8,7 +8,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.12 2002-04-20 14:07:37 cla Exp $
+# $Id: makefile,v 1.13 2002-04-24 15:16:04 cla Exp $
 #
 # ===========================================================================
 #
@@ -170,6 +170,6 @@ $(CMPDIR)\$(WPIFILE): PREPARE INF src\wis\$(SCRIPTFILE) bin\create.cmd $(CMPDIR)
 
 # ---- create makefile help INF
 
-bin\makefile.inf: src\ipf\makefile.txt
+bin\makefile.inf: src\ipf\makefile.txt src\ipf\*.inc
   htext /N src\ipf\makefile.txt compile\makefile.ipf bin\makefile.inf
 
