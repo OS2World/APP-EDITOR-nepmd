@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.28 2002-10-11 15:12:58 cla Exp $
+* $Id: test.c,v 1.29 2002-10-14 17:49:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -304,7 +304,26 @@ do
       else
          printf( "mode for %s is %s\n", pszFilename, pmi->pszModeName);
 
-      } // testcase QUERYHILIGHTFILE
+      } // testcase QUERYMODE
+
+   // =========================================================================
+   // testcase for retrieving the mode list
+   // =========================================================================
+
+
+   if (!(strcmp( pszTestcase, "QUERYMODELIST")))
+
+      {
+               CHAR           szModeList[ _MAX_PATH];
+
+
+      rc = QueryFileModeList( szModeList, sizeof( szModeList));
+      if (rc != NO_ERROR)
+         printf( "mode list cannot be determined (rc=%u)\n", rc);
+      else
+         printf( "mode list is:\n%s\n", szModeList);
+
+      } // testcase QUERYMODELIST
 
    // =========================================================================
    // testcase for creating a memory mapped file
