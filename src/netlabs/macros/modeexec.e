@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.3 2004-09-12 15:10:26 aschn Exp $
+* $Id: modeexec.e,v 1.4 2004-11-30 21:36:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -68,7 +68,6 @@
 ;         <set_cmd>         <args>
 ;
 ;         SetStreamMode     0 | 1
-;         SetCuaMarking     0 | 1
 ;         SetInsertMode     0 | 1
 ;         SetHighlight      0 | 1
 ;         SetTabs           <number> or <list of numbers>
@@ -118,7 +117,7 @@ defc InitFileSettings
 ;define
    SelectSettingsList = 'SetToolbar SetExpand SetMatchtab SetTabkey' ||
                         ' SetEditOptions SetSaveOptions SetSearchOptions' ||
-                        ' SetStreamMode SetCuaMarking SetInsertMode' ||
+                        ' SetStreamMode SetInsertMode' ||
                         ' SetTextFont SetTextColor SetMarkColor SetIndent'
    LoadSettingsList   = 'SetHighlight SetMargins SetTabs' ||
                         ' SetKeys SetDynaSpell'
@@ -944,43 +943,6 @@ defc SetStreamMode
    endif
    if not loadstate then
       'refreshinfoline STREAMMODE'
-   endif
-
-; ---------------------------------------------------------------------------
-defc SetCuaMarking
-   universal loadstate
-   universal cua_marking_switch
-   universal default_cua_marking_switch
-   arg1 = upcase(arg(1))
-   if arg1 = '' | arg1 = 'DEFAULT' then
-      on = default_cua_marking_switch
-   elseif wordpos( arg1, '0 OFF') then
-      on = 0
-   else
-      on = 1
-   endif
-   -- Set universal var and process setting
-   cua_marking_switch = on
-   'togglecontrol 25' cua_marking_switch
-   call MH_set_mouse()
-/*
-   -- Update Edit menu (better disable menu items, done by menuinit)
-   deletemenu defaultmenu, GetAVar('mid_edit'), 0, 1           -- Delete the edit menu
-   call add_edit_menu(defaultmenu)
-   -- maybe_show_menu() does a refresh and closes the menu, so that the
-   -- MIA_NODISMISS attribute has no effect anymore.
-   call maybe_show_menu()
-*/
-   -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'cuamarking.'fid) <> arg(1) then
-      call SetAVar( 'cuamarking.'fid, arg(1))
-      if not wordpos( upcase('SetCuaMarking'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetCuaMarking')
-      endif
-   endif
-   if not loadstate then
-      'refreshinfoline MARKINGMODE'
    endif
 
 ; ---------------------------------------------------------------------------

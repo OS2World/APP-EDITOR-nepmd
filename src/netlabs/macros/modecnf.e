@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modecnf.e,v 1.2 2004-06-29 22:44:10 aschn Exp $
+* $Id: modecnf.e,v 1.3 2004-11-30 21:36:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -59,7 +59,6 @@ following both lines and press Alt+= or Alt+0
 ;         <set_cmd>         <args>
 ;
 ;         SetStreamMode     0 | 1
-;         SetCuaMarking     0 | 1
 ;         SetInsertMode     0 | 1
 ;         SetHighlight      0 | 1
 ;         SetTabs           <number> or <list of numbers>
