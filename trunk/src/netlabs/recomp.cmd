@@ -8,14 +8,16 @@
 *
 * PREREQUISITES:
 *   - ETPM must reside along the PATH
-*   - either ..\..\debug\recomp.exe or ..\..\release\recomp.exe 
+*   - either ..\..\debug\recomp.exe or ..\..\release\recomp.exe
 *     must be built before, if no compiler setup is loaded
-*     the debug version is being preferred over the release version, if both 
+*     the debug version is being preferred over the release version, if both
 *     are available
+*   - if a compiler's environment is available, and recomp.exe cannot be
+*     found, this batch will build it prior to calling it
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.cmd,v 1.1 2002-08-12 09:06:02 cla Exp $
+* $Id: recomp.cmd,v 1.2 2002-08-12 09:07:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -64,7 +66,7 @@
  CheckFile = DebugDir'\'ExecName;
  IF (FileExist( CheckFile)) THEN
     ExecRecomp = CheckFile;
-    
+
   /* rebuild recomp.exe if not available */
  IF (ExecRecomp \= '') THEN
     fFound = TRUE;
