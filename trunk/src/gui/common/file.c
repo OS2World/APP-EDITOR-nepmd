@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: file.c,v 1.2 2002-06-04 22:35:25 cla Exp $
+* $Id: file.c,v 1.3 2002-08-14 12:14:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -194,9 +194,8 @@ do
 
    // check for executable
    rc = DosSearchPath( SEARCH_IGNORENETERRS  |
-                       SEARCH_ENVIRONMENT    |
                        SEARCH_CUR_DIRECTORY,
-                       pszEnvName,
+                       getenv( pszEnvName),
                        pszName,
                        pszBuffer,
                        ulBuflen);
