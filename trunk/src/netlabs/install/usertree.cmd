@@ -5,12 +5,12 @@
 * Helper batch for to create all directories of the personal subdirectory
 * tree (a WarpIn package cannot include empty directories)
 *
-* This program is intended to be called only during installation of the
-* Netlabs EPM Distribution.
+* This program is intended to be called by NLSETUP.EXE only during
+* installation of the Netlabs EPM Distribution.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: usertree.cmd,v 1.1 2002-04-19 10:26:07 cla Exp $
+* $Id: usertree.cmd,v 1.2 2002-04-19 14:48:25 cla Exp $
 *
 * ===========================================================================
 *
