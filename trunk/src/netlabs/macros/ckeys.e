@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.7 2004-07-02 10:52:49 aschn Exp $
+* $Id: ckeys.e,v 1.8 2004-07-09 13:35:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -182,6 +182,7 @@ compile else  -- ASSIST_TRIGGER
 compile endif -- ASSIST_TRIGGER
    endif
 
+
 def '{'
    keyin '{}'
    left
@@ -194,6 +195,30 @@ def '['
    keyin '[]'
    left
 
+def '}'
+   -- check if line is blank, before typing }
+   LineIsBlank = (verify( textline(.line), ' '\t) = 0)
+   if LineIsBlank then
+      l = 0
+      PrevIndent = 0
+      do l = 1 to 100 -- upper limit
+         getline line0, .line - l             -- line0 = line before {
+         p0 = max( 1, verify( line0, ' '\t))  -- p0     = pos of first non-blank in line 0
+         if length(line0) > p0 - 1 then  -- if not a blank line
+            PrevIndent = p0 - 1
+            -- check if last non-empty line is a {
+            if substr( line0, p0, 1) = '{' then
+               NewIndent = PrevIndent
+            else
+               NewIndent = PrevIndent - GetCIndent()
+            endif
+            leave
+         endif
+      enddo
+      .col = max( 1, NewIndent + 1)  -- unindent
+   endif
+   -- type } and highlight matching {
+   'balance }'
 
 /* Taken out, interferes with some people's c_enter. */
 ;def c_enter=   /* I like Ctrl-Enter to finish the comment field also. */
