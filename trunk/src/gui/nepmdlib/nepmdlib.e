@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.29 2002-09-06 14:36:28 cla Exp $
+* $Id: nepmdlib.e,v 1.30 2002-09-13 21:55:48 cla Exp $
 *
 * ===========================================================================
 *
@@ -120,6 +120,8 @@ defmain 'NepmdVersion';
 /* ------------------------------------------------------------- */
 
 include 'alarm.e'
+include 'closeconfig.e'
+include 'deleteconfigvalue.e'
 include 'deleterexxea.e'
 include 'deletestringea.e'
 include 'direxists.e'
@@ -132,6 +134,8 @@ include 'getnextfile.e'
 include 'gettextmessage.e'
 include 'info.e'
 include 'libversion.e'
+include 'openconfig.e'
+include 'queryconfigvalue.e'
 include 'queryfullname.e'
 include 'queryinstvalue.e'
 include 'querypathinfo.e'
@@ -142,7 +146,5 @@ include 'readstringea.e'
 include 'scanenv.e'
 include 'searchpath.e'
 include 'setframewindowpos.e'
+include 'writeconfigvalue.e'
 include 'writestringea.e'
-
-
-
