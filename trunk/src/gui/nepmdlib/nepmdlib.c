@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.13 2002-08-23 15:32:02 cla Exp $
+* $Id: nepmdlib.c,v 1.14 2002-08-24 15:19:11 cla Exp $
 *
 * ===========================================================================
 *
@@ -23,6 +23,7 @@
 ****************************************************************************/
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -41,6 +42,71 @@
 #include "instval.c"
 #include "eas.h"
 #include "tmf.h"
+
+// ------------------------------------------------------------------------------
+
+static APIRET _executeEPMCommand( HWND hwndClient, PSZ pszCommand, ...)
+{
+         APIRET         rc = NO_ERROR;
+         CHAR           szFullCommand[ 512];
+         va_list        arg_ptr;
+
+// send command to EPM
+va_start (arg_ptr, pszCommand);
+vsprintf( szFullCommand, pszCommand, arg_ptr);
+rc = EtkExecuteCommand( hwndClient, szFullCommand);
+va_end (arg_ptr);
+return rc;
+}
+
+// ------------------------------------------------------------------------------
+
+static APIRET _insertMessage( HWND hwndClient, PSZ pszFilename, PSZ pszMessageName, ...)
+{
+         APIRET         rc = NO_ERROR;
+         PSZ            pszMessage = NULL;
+         va_list        arg_ptr;
+
+         ULONG          ulBuflen = 8192;
+         ULONG          ulMessageLen;
+
+do
+   {
+   // check parms
+   if ((!hwndClient)      ||
+       (!pszFilename)  ||
+       (!pszMessageName))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // get memory
+   pszMessage = malloc( ulBuflen);
+   if (!pszMessage)
+      {
+      rc = ERROR_NOT_ENOUGH_MEMORY;
+      break;
+      }
+   memset( pszMessage, 0, ulBuflen);
+
+   va_start (arg_ptr, pszMessageName);
+   rc = TmfGetMessage( (PSZ*)arg_ptr, 9, pszMessage, ulBuflen,
+                       pszMessageName, pszFilename, &ulMessageLen);
+   va_end (arg_ptr);
+   if (rc != NO_ERROR)
+      sprintf( pszMessage, "\n\n>>> INTERNAL ERROR: message %s could not be retrieved, rc=%u\n\n",
+               pszMessageName, rc);
+
+   // insert result
+   rc = EtkInsertTextBuffer( hwndClient, 0, strlen( pszMessage), pszMessage, 0x100);
+
+   } while (FALSE);
+
+// cleanup
+if (pszMessage) free( pszMessage);
+return rc;
+}
 
 // ------------------------------------------------------------------------------
 
@@ -64,6 +130,7 @@ if (rc != NO_ERROR)
          strcpy( pszBuffer, szErrorValue);
       }
    }
+
 return rc;
 }
 
@@ -98,7 +165,7 @@ return rc;
 
 // ------------------------------------------------------------------------------
 
-APIRET EXPENTRY NepmdGetInstValue( PSZ pszFileTag, PSZ pszBuffer, ULONG ulBuflen) 
+APIRET EXPENTRY NepmdGetInstValue( PSZ pszFileTag, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
 
@@ -287,6 +354,89 @@ do
    } while (FALSE);
 
 return _getRexxError( rc, pszBuffer, ulBuflen);
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdInfo( HWND hwndClient)
+{
+         APIRET         rc = NO_ERROR;
+         CHAR           szMessageFile[ _MAX_PATH];
+
+
+do
+   {
+   // determine messsage file
+   rc = NepmdGetInstValue( NEPMD_VALUETAG_MESSAGE, szMessageFile, sizeof( szMessageFile));
+   if (rc != NO_ERROR)
+      break;
+
+   // open new file in ring and disable autosave
+   _executeEPMCommand( hwndClient, "xcom e /c %s", NEPMD_FILENAME_LIBINFO);
+
+   // insert message in reverse order !
+
+   // ------------------------------------------------------------------------
+   // ---  library information  
+   {
+            PPIB           ppib;
+            PTIB           ptib;
+   
+            CHAR           szModule[ _MAX_PATH];
+            CHAR           szExecutable[ _MAX_PATH];
+
+   // get path and name of this DLL
+   rc = GetModuleName( szModule, sizeof( szModule));
+   if (rc != NO_ERROR)
+      break;
+
+   // get pathname of process executable
+   DosGetInfoBlocks( &ptib,&ppib);
+   DosQueryModuleName( ppib->pib_hmte, sizeof( szExecutable), szExecutable);
+
+
+   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_LIB",
+                   szModule, NEPMDLIB_VERSION, szExecutable);
+   }
+
+   // ------------------------------------------------------------------------
+   // ---  dynamic configuration
+   {
+         CHAR           szNepmdRootdir[ _MAX_PATH];
+         CHAR           szLanguage[ 10];
+         CHAR           szNepmdInitfile[ _MAX_PATH];
+
+         PSZ            pszMainEnvFile = getenv( ENV_NEPMD_MAINENVFILE);
+         PSZ            pszUserEnvFile = getenv( ENV_NEPMD_USERENVFILE);
+static   PSZ            pszNotAvailable = "N/A";
+
+   // get main config values
+   rc = NepmdGetInstValue( NEPMD_VALUETAG_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
+   NepmdGetInstValue( NEPMD_VALUETAG_LANGUAGE, szLanguage, sizeof( szLanguage));
+   NepmdGetInstValue(NEPMD_VALUETAG_INIT, szNepmdInitfile, sizeof( szNepmdInitfile));
+
+   // select defaults if some values not available
+   if (rc != NO_ERROR)
+      strcpy( szNepmdRootdir, pszNotAvailable);
+   if (!pszMainEnvFile) pszMainEnvFile = pszNotAvailable;
+   if (!pszUserEnvFile) pszUserEnvFile = pszNotAvailable;
+
+   // insert the result
+   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_DYNCFG",
+                   szNepmdRootdir, szLanguage, szNepmdInitfile, szMessageFile,
+                   pszMainEnvFile, pszUserEnvFile);
+
+   }
+
+   // ------------------------------------------------------------------------
+   // --- header
+   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_HEADER");
+
+
+   } while (FALSE);
+
+return rc;
+
 }
 
 // ------------------------------------------------------------------------------
