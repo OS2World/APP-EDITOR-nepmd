@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.4 2004-09-12 15:49:33 aschn Exp $
+* $Id: keys.e,v 1.5 2004-11-30 21:23:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,12 +22,6 @@
 ; Definitions for the 'enter_keys' keyset. Turned all key defs into defcs
 ; to make keys configurable.
 
-; Make that configurable for testing or emergency cases:
-compile if not defined(OLD_ACCEL_KEY_DEFS)
-const
-   OLD_ACCEL_KEY_DEFS = 0
-compile endif
-
 definit
    universal blockreflowflag
    blockreflowflag = 0
@@ -41,216 +35,6 @@ compile if defined(ECO_MENU__MSG)  -- For ECO support
    call AddOnceAVar( 'usedmenuaccelerators', 'I')
 compile endif
 
-compile if OLD_ACCEL_KEY_DEFS   -- following is disabled ####################
-; ---------------------------------------------------------------------------
-defc ProcessOtherKeys
-   k = lastkey()
-
-   -- hexch can also be determined with the 'testkeys' keyset. It can be
-   -- activated with the 'testkeys' command. Every combination with Ctrl or
-   -- Alt will be shown as, e.g. key = x'1622' = """
-   hexch = rightstr( itoa( leftstr( k, 1)\0, 16), 2, 0) ||
-           rightstr( itoa( substr( k, 2, 1)\0, 16), 2, 0)
-   hexch = lowcase(hexch)
-   -- Better get flags for Ctrl, Alt, Sh additionally
-
-   if     hexch = '1a22' then  -- Alt+Ins
-      'ExecuteKeyCmd a_ins'
-   elseif hexch = '1b22' then  -- Alt+Del
-      'ExecuteKeyCmd a_del'
-   elseif hexch = '1422' then  -- Alt+Home
-      'ExecuteKeyCmd a_home'
-   elseif hexch = '1322' then  -- Alt+End
-      'ExecuteKeyCmd a_end'
-   elseif hexch = '1122' then  -- Alt+PgUp
-      'ExecuteKeyCmd a_pgup'
-   elseif hexch = '1222' then  -- Alt+PgDn
-      'ExecuteKeyCmd a_pgdn'
-   elseif hexch = '1622' then  -- Alt+Up
-      'ExecuteKeyCmd a_up'
-   elseif hexch = '1822' then  -- Alt+Down
-      'ExecuteKeyCmd a_down'
-   elseif hexch = '1522' then  -- Alt+Left
-      'ExecuteKeyCmd a_left'
-   elseif hexch = '1722' then  -- Alt+Right
-      'ExecuteKeyCmd a_right'
-;    -- The following Alt key defs don't work, because the non-Alt versions
-;    -- have the same hexch. Additionally, the VK_ flags have to be determined
-;    -- to make it work (but these combinations are unused).
-;    elseif hexch = '2b20' then  -- Alt++
-;       'ExecuteKeyCmd a_plus'
-;    elseif hexch = '2a20' then  -- Alt+*  (german keyboards: * = Shift++)
-;       'ExecuteKeyCmd a_asterisk'
-;    elseif hexch = '3d20' then  -- Alt+=  (german keyboards: = = Shift++)
-;       'ExecuteKeyCmd a_equal'
-;    elseif hexch = '2f20' then  -- Alt+/  (german keyboards: / = Shift+7)
-;       'ExecuteKeyCmd a_slash'
-;    elseif hexch = '5c20' then  -- Alt+\
-;       'ExecuteKeyCmd a_backslash'
-;    elseif hexch = '3e20' then  -- Alt+>  (german keyboards: > = Shift+<)
-;       'ExecuteKeyCmd a_greater'
-;    elseif hexch = '3c20' then  -- Alt+<
-;       'ExecuteKeyCmd a_less'
-
-   elseif hexch = '1a12' then  -- Ctrl+Ins
-      'ExecuteKeyCmd c_ins'
-   elseif hexch = '1b12' then  -- Ctrl+Del
-      'ExecuteKeyCmd c_del'
-   elseif hexch = '1412' then  -- Ctrl+Home
-      'ExecuteKeyCmd c_home'
-   elseif hexch = '1312' then  -- Ctrl+End
-      'ExecuteKeyCmd c_end'
-   elseif hexch = '1612' then  -- Ctrl+Up
-      'ExecuteKeyCmd c_up'
-   elseif hexch = '1812' then  -- Ctrl+Down
-      'ExecuteKeyCmd c_down'
-   elseif hexch = '1512' then  -- Ctrl+Left
-      'ExecuteKeyCmd c_left'
-   elseif hexch = '1712' then  -- Ctrl+Right
-      'ExecuteKeyCmd c_right'
-   elseif hexch = '2b10' then  -- Ctrl++
-      'ExecuteKeyCmd c_plus'
-   elseif hexch = '2a10' then  -- Ctrl+*  (german keyboards: * = Shift++)
-      'ExecuteKeyCmd c_asterisk'
-   elseif hexch = '3d10' then  -- Ctrl+=  (german keyboards: = = Shift++)
-      'ExecuteKeyCmd c_equal'
-   elseif hexch = '2f10' then  -- Ctrl+/  (german keyboards: / = Shift+7)
-      'ExecuteKeyCmd c_slash'
-   elseif hexch = '5c10' then  -- Ctrl+\
-      'ExecuteKeyCmd c_backslash'
-   elseif hexch = '3e10' then  -- Ctrl+>  (german keyboards: > = Shift+<)
-      'ExecuteKeyCmd c_greater'
-   elseif hexch = '3c10' then  -- Ctrl+<
-      'ExecuteKeyCmd c_less'
-   -- F-keys not definable this way
-
-   else
-      call process_key(k)
-   endif
-
-; ---------------------------------------------------------------------------
-; Execute a command if defined. Handles Shift and non-Shift key combinations.
-; Syntax for these defcs: Key_<my_add_key>. The s_ prefix must occur as last
-; prefix. arg(1) must be <my_add_key>, but without the s_ prefix. Example:
-; 'ExecuteKeyCmd a_left' will execute the command 'Key_a_left', or
-; 'Key_a_s_left', if the Shift key was additionally pressed. If these
-; commands are not defined, nothing will be executed.
-defc ExecuteKeyCmd
-   -- Don't alter .modify if last key is repeated.
-   -- BTW: This could be a useful extension for all key defs.
-   saved_modify = .modify
-   k = lastkey()
-   lk = lastkey(1)
-   if lk = k then
-      AlterModify = 0
-   else
-      AlterModify = 1
-   endif
-   Processed = 0
-
-   Key = arg(1)
-   lp = lastpos( '_', Key)
-   rest = substr( Key, 1, lp)
-   last = substr( Key, lp + 1)
-   ShiftKey = rest's_'last
-   --sayerror 'ShiftKey = 'ShiftKey
-
-   if shifted() then
-      if isadefc('Key_'ShiftKey) then
-         'Key_'ShiftKey
-         Processed = 1
-      endif
-   else
-      if isadefc('Key_'Key) then
-         'Key_'Key
-         Processed = 1
-      endif
-   endif
-
-   if AlterModify = 0 and Processed then
-      .modify = saved_modify
-   else
-      if .modify > saved_modify then
-         .modify = saved_modify + 1
-      endif
-   endif
-
-; ---------------------------------------------------------------------------
-; Defined menu accels have priority to definitions provided by a keyset
-; or by the automatically assigned defs by the PM menu. Therefore they are
-; used here to recreate the keyset definition with the dokey command.
-; Moved from STDCTRL.E.
-defc loadaccel
-   universal activeaccel
-   universal nepmd_hini
-   universal cua_menu_accel
-
-   activeaccel = 'defaccel'  -- name for accelerator table
-   i = 1000                 -- let ids start at 1001
-
-   -- Re-enable some (not definable via def) key bindings
-   i = i + 1
-   buildacceltable activeaccel, 'dokey s+f1',  AF_VIRTUALKEY + AF_SHIFT, VK_F1, i  -- Sh+F1
-   i = i + 1
-   buildacceltable activeaccel, 'dokey s+f9',  AF_VIRTUALKEY + AF_SHIFT, VK_F9, i  -- Sh+F9
-   i = i + 1
-   buildacceltable activeaccel, 'Alt_enter 1', AF_VIRTUALKEY + AF_ALT, VK_NEWLINE, i    -- Alt+Enter
-   i = i + 1
-   buildacceltable activeaccel, 'Alt_enter 2', AF_VIRTUALKEY + AF_ALT, VK_ENTER, i      -- Alt+PadEnter
-   i = i + 1
-   buildacceltable activeaccel, 'Alt_enter 3', AF_VIRTUALKEY + AF_SHIFT, VK_NEWLINE, i  -- Shift+Enter
-   i = i + 1
-   buildacceltable activeaccel, 'Alt_enter 4', AF_VIRTUALKEY + AF_SHIFT, VK_ENTER, i    -- Shift+PadEnter
-
-   -- Don't want Alt or AltGr switch to menu (PM-defined key F10 does the same)
-   KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey'
-   Blocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Blocked = 1 then
-      i = i + 1
-      buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALT, i  -- Alt
-   endif
-   KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockRightAltKey'
-   Blocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Blocked = 1 then
-      i = i + 1
-      buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALTGRAF, i  -- AltGr
-   endif
-
-   -- Block action bar accelerator keys
-   -- The PM menu automatically assigns Alt+<actionbar_key> bindings to
-   -- open the main actionbar, if key mnemonics defined. This would
-   -- overwrite the definitions, provided by the keyset. Even when these
-   -- bindings are blocked, one can add Sh or Ctrl to access the menu
-   -- directly (or use F10, followed bey Left or Right).
-   if not cua_menu_accel then
-      UsedMenuAccelerators = GetAVar('usedmenuaccelerators')
-      do w = 1 to words( UsedMenuAccelerators)
-         char = word( UsedMenuAccelerators, w)
-         do u = 1 to 2
-            if u = 1 then
-               char = upcase(char)  -- capslocked key, shifted combination isn't affected
-            else
-               char = lowcase(char)
-            endif
-            key = asc(char)
-            i = i + 1
-            buildacceltable activeaccel, 'dokey a+'lowcase(char), AF_CHAR + AF_ALT, key, i
-         enddo
-      enddo
-   endif
-
-   -- Save the last used id in an array var
-   call SetAVar( 'lastkeyaccelid', i)
-   --dprintf( 'KEYS', 'lastkeyaccelid = 'i)
-
-   if isadefproc('build_menu_accelerators') then
-      call build_menu_accelerators(activeaccel)  -- moved to menu-specific file
-   endif
-
-   activateacceltable activeaccel
-   return
-
-compile else  -- new accel key defs #########################################
 ; ---------------------------------------------------------------------------
 defc ProcessOtherKeys
    k = lastkey()
@@ -278,7 +62,7 @@ compile if not defined(CharList)
 compile endif
    -- NO_DEF_CHAR_LIST = no key defs for Alt+<name> and Ctrl+<name> exist
 compile if not defined(NO_DEF_CHAR_LIST)
-   NO_DEF_CHAR_LIST = '* + < > ( ) [ ] # , . ! ? " ^ % $ & ï ` '' ~ | @'
+   NO_DEF_CHAR_LIST = '* + < > ( ) [ ] # , . ! ? " ^ % $ & ï ` ' ' ~ | @'
 compile endif
 
    -- VIRTUAL_LIST = virtual keys, for those every combination should be
@@ -293,10 +77,11 @@ compile if not defined(VIRTUAL_LIST)
    VIRTUAL_LIST  = VIRTUAL_LIST  || ' F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12'
    VIRTUAL_IDS   = VIRTUAL_IDS   || ' 32 33 34 35 36 37 38 39 40 41  42  43'
    VIRTUAL_NAMES = VIRTUAL_NAMES || ' F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12'
+   -- more: SPACE, ENTER, PADENTER
 compile endif
    -- PM_LIST    = don't overwrite <key>, because they are standard PM keys
 compile if not defined(PM_LIST)
-   PM_LIST       = 'F1'
+   PM_LIST       = 'F1 F10'
 compile endif
    -- PM_ALT_LIST = don't overwrite Alt+<key>, because they are standard PM keys
 compile if not defined(PM_ALT_LIST)
@@ -337,7 +122,6 @@ defc Key_a_tab = 'sayerror a_tab'  -- not definable
 defc Key_a_esc = 'sayerror a_esc'  -- not definable
 defc Key_a_f10 = 'sayerror a_f10'
 */
-
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E.
@@ -492,64 +276,6 @@ defproc DefineLetterAccels
          buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, ukey, i  -- Ctrl+Alt+Sh+<key> (uppercase)
       endif
 
-
-/***
-      do u = 1 to 2
-         if u = 1 then
-            char = upcase(char)  -- capslocked key, shifted combination isn't affected
-         else
-            char = lowcase(char)
-         endif
-         key = asc(char)
-         name = char
-
-         if isadefc('Key_c_'name) then
-            cmd = 'Key_c_'name
-         else
-            cmd = 'dokey c+'name
-         endif
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL, key, i                -- Ctrl+<key>
-/*
-         if isadefc('Key_c_s_'name) then
-            cmd = 'Key_c_s_'name
-            i = i + 1
-            buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, key, i  -- Ctrl+Sh+<key>
-         endif
-*/
-
-         if not OmitAltAccel then  -- if not (cua_meu_accel and found in UsedMenuAccelerators)
-            if isadefc('Key_a_'name) then
-               cmd = 'Key_a_'name
-            else
-               cmd = 'dokey a+'name
-            endif
-            i = i + 1
-            buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT, key, i             -- Alt+<key>
-         endif
-/*
-         if isadefc('Key_a_s_'name) then
-            cmd = 'Key_a_s_'name
-            i = i + 1
-            buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT + AF_SHIFT, key, i  -- Alt+Sh+<key>
-         endif
-*/
-
-         if isadefc('Key_c_a_'name) then
-            cmd = 'Key_c_a_'name
-            i = i + 1
-            buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT, key, i             -- Ctrl+Alt+<key>
-         endif
-/*
-         if isadefc('Key_c_a_s_'name) then
-            cmd = 'Key_c_a_s_'name
-            i = i + 1
-            buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, key, i  -- Ctrl+Alt+Sh+<key>
-         endif
-*/
-      enddo
-***/
-
    enddo
    -- Save the last used id in an array var
    call SetAVar( 'lastkeyaccelid', i)
@@ -689,8 +415,6 @@ defproc DefineVirtualAccels
    call SetAVar( 'lastkeyaccelid', i)
    return
 
-compile endif  -- OLD_ACCEL_KEY_DEFS ########################################
-
 ; ---------------------------------------------------------------------------
 defc deleteaccel
    universal activeaccel
@@ -712,6 +436,7 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 defc dokey
+   --sayerror 'dokey: k = 'arg(1)
    executekey resolve_key(arg(1))
 
 ; ---------------------------------------------------------------------------
@@ -803,6 +528,7 @@ defproc resolve_key(k)
 ; ---------------------------------------------------------------------------
 defproc process_key(k)
    universal CUA_marking_switch
+   --sayerror 'process_key: k = 'k
    if length(k) = 1 & k <> \0 then
       i_s = insert_state()
       if CUA_marking_switch then
@@ -868,15 +594,27 @@ defproc updownkey(down_flag)
 define CHARG_MARK = 'CHARG'
 
 defproc extend_mark( startline, startcol, forward)
-;compile if WANT_CUA_MARKING = 'SWITCH'
-;  universal CUA_marking_switch
-;  if not CUA_marking_switch then return; endif
-;compile endif
+   universal cua_marking_switch
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Mark\ShiftMarkExtends'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    getfileid curfileid
    getmarkg firstline, lastline, firstcol, lastcol, markfileid
    if markfileid <> curfileid then
       unmark
+   elseif cua_marking_switch then
+      -- keep mark and extend it (any unshifted key caused unmark before)
+   elseif on then
+      -- keep mark and extend it
+   else
+      if (startline = firstline & startcol = firstcol) |
+         (startline = lastline & startcol = lastcol) then
+         -- keep mark if cursor was at start or end of mark
+      else
+         unmark
+      endif
    endif
+
    if not marktype() then
       call pset_mark( startline, .line, startcol, .col, CHARG_MARK, curfileid)
       return
@@ -2027,7 +1765,7 @@ compile endif
 defc DefaultPaste
    universal nepmd_hini
    universal CUA_marking_switch
-   KeyPath = '\NEPMD\User\Mouse\Mark\DefaultPaste'
+   KeyPath = '\NEPMD\User\Mark\DefaultPaste'
    next = substr( upcase(NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
    if next = 'L' then
       style = 'L'
@@ -2044,7 +1782,7 @@ defc DefaultPaste
 defc AlternatePaste
    universal nepmd_hini
    universal CUA_marking_switch
-   KeyPath = '\NEPMD\User\Mouse\Mark\DefaultPaste'
+   KeyPath = '\NEPMD\User\Mark\DefaultPaste'
    next = substr( upcase(NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
    if next = 'L' then
       altstyle = 'C'
