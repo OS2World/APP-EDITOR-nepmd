@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.9 2003-09-01 05:47:49 aschn Exp $
+* $Id: locate.e,v 1.10 2004-02-22 19:18:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,25 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+Todo:
+-  Make the use of Ralph Yozzo's grep possible
+*/
+
+; Undocumented:
+; display -8 ==> messages go only to the msg line, not to the msg box.
+; display 8  ==> reenables messages from a previous display -8
+; The rest is documented in epmtech.inf.
+
+const
+compile if not defined(NEPMD_SCROLL_AFTER_LOCATE)  --<-------------------------------------------- Todo
+   -- Amount of lines to scroll:
+   -- 0   ==> try to prevent scrolling (standard)
+   -- > 0 ==> scroll from top
+   -- < 0 ==> scroll from bottom
+   NEPMD_SCROLL_AFTER_LOCATE = 0
+compile endif
 
 definit
    universal search_len
@@ -74,6 +93,7 @@ compile endif
          return
       endif
       parse value args with (delim)searchstring(delim)replacestring(delim)user_options
+      user_options = strip( user_options, 'T', delim)
 
       -- Build searchoptions. Just append evrything, the last option wins.
       -- The code below cleans up the options.
@@ -147,6 +167,19 @@ compile endif
 defproc highlight_match(search_len)
    if not rc then  -- if found; rc was set from last 'c'|'l'|repeat_find
       col = getpminfo(EPMINFO_SEARCHPOS)
+      --------------------------------------------------------------------------------------- Todo: make that optional
+compile if NEPMD_SCROLL_AFTER_LOCATE
+      -- begin scroll line on window
+      oldline = .line
+      AmountOfLines = NEPMD_SCROLL_AFTER_LOCATE
+      if NEPMD_SCROLL_AFTER_LOCATE > 0 then
+         .cursory = min( AmountOfLines, .windowheight)          -- AmountOfLines from top
+      else
+         .cursory = max( 1, .windowheight - AmountOfLines + 1)  -- AmountOfLines from bottom
+      endif
+      .line = oldline
+      -- end scroll line on window
+compile endif
       circleit LOCATE_CIRCLE_STYLE,
          .line,
          col,
@@ -156,6 +189,12 @@ defproc highlight_match(search_len)
 ;     refresh
    endif
    return
+
+; ---------------------------------------------------------------------------
+; Used to be called with 'postme'.
+defc highlightmatch
+   search_len = arg(1)
+   call highlight_match(search_len)
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
@@ -264,10 +303,11 @@ defc globalfind, gfind, globallocate, glocate, gl
       display 8
       if rc = 0 then  -- if found
          refresh
-      endif
-      call highlight_match(search_len)
+      --endif
+         --call highlight_match(search_len)
+         'postme highlightmatch 'search_len
       -- Flickers most of the times instead of letting the highlight circle stay
-      if rc = 0 then
+      --if rc = 0 then
          display -8
          if fileid = StartFileID then
             sayerror "String only found in this file"
@@ -321,15 +361,17 @@ defc ToggleSearchDirection
    parse value oldsearch with . c_or_l search
    if search <> '' then  -- if search is set
       delim = leftstr( search, 1)
-      -- Get searchcmd, searchstring and searchoptions
-      parse value oldsearch with searchcmd (delim)searchstring(delim)searchoptions(delim)
-      if searchoptions = '' then
+      -- Get searchcmd, searchstring, replacestring and searchoptions
+      if upcase(C_or_l) = 'C' then
+         parse value oldsearch with searchcmd (delim)searchstring(delim)replacestring(delim)searchoptions
+      else
          parse value oldsearch with searchcmd (delim)searchstring(delim)searchoptions
       endif
       searchcmd = strip(searchcmd)
       if searchcmd = '' then
          searchcmd = 'xcom l'
       endif
+      searchoptions = strip( searchoptions, 'T', delim)
    else  -- if no search cmd was executed before, set this to make setsearch happy
       searchcmd     = 'xcom l'
       delim         = \1
@@ -356,18 +398,22 @@ defc ToggleSearchDirection
 
    -- Append +F or -R
    if Minuspos > Pluspos then  -- in searchoptions: the last option wins
-      searchoptions=searchoptions'+F'
-      sayerror 'Changed search direction to: foreward'
+      searchoptions = searchoptions'+F'
+      sayerror 'Changed search direction to: forewards'
    else
-      searchoptions=searchoptions'-R'
-      sayerror 'Changed search direction to: back'
+      searchoptions = searchoptions'-R'
+      sayerror 'Changed search direction to: backwards'
    endif
 
    -- Set search
-   newsearch = searchcmd' 'delim''searchstring''delim''searchoptions''delim
+   if upcase(c_or_l) = 'C' then
+      newsearch = searchcmd' 'delim''searchstring''delim''replacestring''delim''searchoptions
+   else
+      newsearch = searchcmd' 'delim''searchstring''delim''searchoptions
+   endif
    setsearch newsearch  -- setsearch requires a space after searchcmd, because it prooves if searchcmd is valid
 
-         --call NepmdPmPrintf( 'asc(delim) = 'asc(delim)', oldsearch = |'oldsearch'|, newsearch = |'newsearch'|')
+   --call NepmdPmPrintf( 'asc(delim) = 'asc(delim)', oldsearch = |'oldsearch'|, newsearch = |'newsearch'|')
    return
 
 ; ---------------------------------------------------------------------------
@@ -456,6 +502,8 @@ compile endif
       display 8
       if rc = 0 then
          change_count = change_count + 1
+         'ResetDateTimeModified'
+         'RefreshInfoLine MODIFIED'
 compile if SETSTAY='?'
          if stay then
 compile endif
@@ -582,6 +630,7 @@ compile endif
 ;    sayerror 'String changed in' change_count files
 ;    display 8
 ;    return
+
 ; ---------------------------------------------------------------------------
 ; From EPMSMP\GREP.E
 ; Call an external GREP utility and display the results in an EPM file.
@@ -600,18 +649,43 @@ defc scan, grep =
    endif
 */
 ; Todo:
-; Replace an relative filespec with a full one to make Alt+1 work then
+; Replace an relative filespec with a full one to make Alt+1 work than
+; or save the current dir of grep somewhere in the temp file.
+;
+; Syntax:
+;    grep [grepoptions] string filespec
+;
+; If no grepoptions where specified, the defaultgrepopt are submitted to grep.
+;
+; Requires GNU grep. Doesn't work with Ralph Yozzo's grep anymore.
+;
 defc scan, grep =
+   -- Options:
+   --    -i  case insensitive
+   --    -n  show line numbers
+   defaultgrepopt = '-in'
 ;   CurDir = directory()
 ;   -- change to path of current file
 ;   call directory( .filename'\..' )
    display -8
+   arg1 = arg(1)
+   -- parse options
+   grepargs = arg1
+   grepopt  = ''
+   do i = 1 to words(arg1)
+      next = word( arg1, i)
+      if substr( next, 1, 1) = '-' then
+         grepopt  = grepopt' 'next
+         grepargs = delword( grepargs, 1, 1)
+      endif
+   enddo
+   grepopt = strip(grepopt)
+   if grepopt = '' then
+      grepopt = defaultgrepopt
+   endif
    sayerror 'Scanning files...'
    -- Changed to support only Gnu grep.
-   -- Options:
-   --    -i  case insensitive
-   --    -n  show line numbers
-   call redirect('grep','-in' arg(1))
+   call redirect('grep',grepopt grepargs)
 ;   call directory( CurDir )
    if .last=0 then
       'q'
