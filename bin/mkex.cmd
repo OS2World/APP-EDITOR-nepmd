@@ -6,12 +6,9 @@
 *
 * Script for to create the NEPMD version of EPM.EX
 *
-* As a precaution EPMPATH is set to the macros directory only in order not
-* to use any of source files from other directories
-*
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkex.cmd,v 1.2 2002-08-26 11:37:46 cla Exp $
+* $Id: mkex.cmd,v 1.3 2002-09-16 13:42:51 cla Exp $
 *
 * ===========================================================================
 *
