@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.21 2002-10-21 11:54:37 cla Exp $
+* $Id: mode.e,v 1.22 2002-10-21 12:05:21 cla Exp $
 *
 * ===========================================================================
 *
@@ -74,16 +74,17 @@ defproc NepmdResetMode()
    parse arg OldMode
    OldMode = strip(OldMode)
 
-   -- Set 'mode.'fid to an empty string to make NepmdGetMode re-determining
-   -- the current mode
-   getfileid fid
-   ResetMode = ''
-   do_array 2, EPM_utility_array_ID, 'mode.'fid, ResetMode
-
    -- Get current mode
    CurMode = NepmdGetMode()
 
    if CurMode <> OldMode then
+
+      -- Set 'mode.'fid to an empty string to make NepmdGetMode re-determining
+      -- the current mode
+      getfileid fid
+      ResetMode = ''
+      do_array 2, EPM_utility_array_ID, 'mode.'fid, ResetMode
+
       -- Process all mode dependent settings
       call NepmdProcessMode(CurMode)
    endif
