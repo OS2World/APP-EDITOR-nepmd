@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddelog.c,v 1.7 2002-08-14 12:25:05 cla Exp $
+* $Id: ddelog.c,v 1.8 2002-09-18 14:56:07 cla Exp $
 *
 * ===========================================================================
 *
@@ -60,6 +60,8 @@ static   PSZ            pszDdeTopicEditCommand = "EDIT_COMMAND";
 
 typedef struct _ERRORINFO
    {
+         BOOL           fErrorFound;
+         CHAR           szLogFile[ _MAX_PATH];
          CHAR           szErrorFile[ _MAX_PATH];
          ULONG          ulLine;
          ULONG          ulCol;
@@ -205,16 +207,9 @@ switch (msg)
       // set error code anyway - will be reset if files can be loaded
       plld->rc = ERROR_INVALID_FUNCTION;
 
-      // load EPM with the log file, but call macro separately
+      // load EPM with the log file, but call sayerror separately
       // (otherwise it will not work if only one file loaded)
-      sprintf( szArgs, "\"%s\"", plld->ei.szErrorFile);
-      sprintf( _EOS( szArgs),
-               " 'MC ;link %s;recomp SETPOS %u %u %u %u;'",
-               plld->pszMacroFile,
-               plld->ei.ulLine,
-               plld->ei.ulCol,
-               plld->ei.ulCol,
-               plld->ei.ulCol + 1);
+      sprintf( szArgs, "\"%s\"", plld->ei.szLogFile);
       DPRINTF(( "DDELOG: start EPM with: %s\n", szArgs));
 
       // connect to that instance
@@ -253,14 +248,30 @@ switch (msg)
          break;
          }
 
-      // execute macro to set error message separately, so that we can
-      // use all kinds of quotes !
-      sprintf( szArgs, "sayerror %s", plld->ei.szErrorMsg);
-      if (!_logExecuteEPMCommand( hwnd, plld->hwndServer, szArgs))
+      if (plld->ei.fErrorFound)
          {
-         WinAlarm( HWND_DESKTOP, WA_ERROR);
-         ABORT_LOADING;
+         // load EPM with the errant file
+         // (otherwise it will not work if only one file loaded)
+//       sprintf( szArgs,
+//                "EDIT \"%s\"",
+//                plld->ei.szErrorFile);
+
+         sprintf( szArgs,
+                  "MC ;EDIT %s;link %s;recomp SETPOS %u %u %u %u;",
+                  plld->ei.szErrorFile,
+                  plld->pszMacroFile,
+                  plld->ei.ulLine,
+                  plld->ei.ulCol,
+                  plld->ei.ulCol,
+                  plld->ei.ulCol + 1);
+         if (!_logExecuteEPMCommand( hwnd, plld->hwndServer, szArgs))
+            {
+            WinAlarm( HWND_DESKTOP, WA_ERROR);
+            ABORT_LOADING;
+            }
          }
+      else
+         ABORT_LOADING;;
 
       break;
 
@@ -365,6 +376,7 @@ do
 
    // init values
    memset( pei, 0, sizeof( ERRORINFO));
+   strcpy( pei->szLogFile, pszLogFile);
 
    // open logfile for read
    pfile = fopen( pszLogFile, "r");
@@ -448,7 +460,9 @@ do
 
    // all info received ? if not, load logfile itsef
    // because compile was successful
-   if (!fDataComplete)
+   if (fDataComplete)
+      pei->fErrorFound =TRUE;
+   else
       {
       // no error info found
       // setup everything to load the compile log with a success message
@@ -554,4 +568,4 @@ do
 return rc;
 
 }
-  
+
