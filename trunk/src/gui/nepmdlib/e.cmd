@@ -15,7 +15,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: e.cmd,v 1.4 2002-08-23 15:30:22 cla Exp $
+: $Id: e.cmd,v 1.5 2002-08-24 19:57:06 cla Exp $
 :
 : ===========================================================================
 :
@@ -34,5 +34,5 @@
  SET EPMPATH=%EPMPATH%;macros;..\..\..\compile\base\netlabs\ex;
  SET NEPMD_TMFTESTFILE=nepmdlib.tmf
 
- start epm /M *.e *.c
+ start epm /M *.e *.c ..\..\nls\netlabs\bin\nepmdeng.tmf
 
