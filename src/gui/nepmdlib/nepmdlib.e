@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.13 2002-08-25 14:35:14 cla Exp $
+* $Id: nepmdlib.e,v 1.14 2002-08-28 13:07:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -74,8 +74,9 @@ defproc checkliberror (LibFile, rc) =
 
  /* complain if library not available */
  if (rc > 2147483647) then
-    call winmessagebox( ERRMSG_ERROR_TITLE, ERRMSG_CANNOT_LOAD, ERRMSG_BOXSTYLE);
-    return -1;
+    /* call  winmessagebox( ERRMSG_ERROR_TITLE, ERRMSG_CANNOT_LOAD, ERRMSG_BOXSTYLE); */
+    sayerror ERRMSG_CANNOT_LOAD;
+    stop;
  endif
 
  /* allow easy debugging - release DLL instantly */
@@ -102,6 +103,7 @@ include 'deleterexxea.e'
 include 'deletestringea.e'
 include 'errormsgbox.e'
 include 'getinstvalue.e'
+include 'getnextclose.e'
 include 'getnextdir.e'
 include 'getnextfile.e'
 include 'gettextmessage.e'
