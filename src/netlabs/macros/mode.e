@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.22 2002-10-21 12:05:21 cla Exp $
+* $Id: mode.e,v 1.23 2002-10-21 12:48:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -68,7 +68,6 @@ defproc NepmdGetMode()
 ; Resets and redetermines current mode.
 ; Called by defc s,save.
 ; arg(1) = OldMode
-; NepmdProcessMode is called here only if CurMode has changed from OldMode
 defproc NepmdResetMode()
    universal EPM_utility_array_ID
    parse arg OldMode
@@ -77,6 +76,8 @@ defproc NepmdResetMode()
    -- Get current mode
    CurMode = NepmdGetMode()
 
+   -- does it differ from old mode ?
+   -- if not, skip
    if CurMode <> OldMode then
 
       -- Set 'mode.'fid to an empty string to make NepmdGetMode re-determining
@@ -142,7 +143,7 @@ defproc NepmdInitMode
 ; the array var 'mode.'fid. This is called by commands that have mode dependent
 ; setting: hili, refreshstatusline
 ;
-; arg1 = (NewMode|0|OFF|RESET|-RESET-|DEFAULT)
+; arg1 = (NewMode|0|OFF|RESET|-RESET-|DEFAULT|-DEFAULT-)
 ;         NewMode can be any mode.
 ; If no arg specified, then a listbox is opened for selecting a mode.
 defc mode
@@ -156,7 +157,7 @@ defc mode
       NewMode = upcase( NepmdSelectMode())
    endif
 
-   if wordpos( NewMode, '-RESET- RESET 0 OFF DEFAULT' ) > 0 then
+   if wordpos( NewMode, '-RESET- RESET 0 OFF DEFAULT -DEFAULT-' ) > 0 then
 
       -- Delete the EA 'EPM.MODE' immediately
       rc = NepmdDeleteStringEa( .filename, 'EPM.MODE' )
@@ -224,11 +225,7 @@ compile if NEPMD_SPECIAL_STATUSLINE
 compile endif
 
    -- Highlighting
-   if (CurMode = 'OFF') then
-     call NepmdActivateHighlight( 'OFF')
-   else
-     call NepmdActivateHighlight( 'ON', CurMode, HiliteCheckFlag)
-   endif
+   call NepmdActivateHighlight( 'ON', CurMode, HiliteCheckFlag)
 
    -- Key set, tabs, margins
    -- Moved from EKEYS.E, REXXKEYS.E, CKEYS.E, PKEYS.E
