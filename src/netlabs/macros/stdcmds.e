@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.4 2002-09-02 22:14:49 aschn Exp $
+* $Id: stdcmds.e,v 1.5 2002-09-10 23:53:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,6 +21,11 @@
 ;
 ; STDCMDS.E            Alphabetized by command name.
 ;
+
+const
+compile if not defined(NEPMD_SPECIAL_STATUSLINE)
+   NEPMD_SPECIAL_STATUSLINE = 0
+compile endif
 
 defc alter =
    parse value upcase(arg(1)) with c1 c2 cnt .
@@ -842,6 +847,10 @@ defc margins,ma=
    else
       'commandline margins' .margins   -- Note the new .margins field
    endif
+compile if NEPMD_SPECIAL_STATUSLINE
+   'refreshstatusline'               --  Update status line text and color, see STATUSLINE.E
+compile endif
+
 
 defc matchtab=
    universal matchtab_on
@@ -1517,6 +1526,9 @@ defc tabs=
       -- Note the new .tabs field; each file has its own tabs.
       'commandline Tabs' .tabs
    endif
+compile if NEPMD_SPECIAL_STATUSLINE
+   'refreshstatusline'               --  Update status line text and color, see STATUSLINE.E
+compile endif
 
 defc timestamp =
 compile if WANT_DBCS_SUPPORT
