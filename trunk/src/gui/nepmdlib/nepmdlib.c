@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.1 2002-08-19 18:18:02 cla Exp $
+* $Id: nepmdlib.c,v 1.2 2002-08-20 12:06:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -35,6 +35,7 @@
 #include <EDLL.h>
 
 #include "nepmdlib.h"
+#include "eas.h"
 
 // ------------------------------------------------------------------------------
 
@@ -136,5 +137,19 @@ do
 
 return rc;
 
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdReadStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszBuffer, PULONG pulBuflen)
+{
+return ReadStringEa( pszFileName, pszEaName, pszBuffer, pulBuflen);
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdWriteStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszEaValue)
+{
+return WriteStringEa( pszFileName, pszEaName, pszEaValue);
 }
 
