@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.h,v 1.2 2002-09-24 21:38:17 cla Exp $
+* $Id: mmf.h,v 1.3 2002-09-24 22:08:42 cla Exp $
 *
 * ===========================================================================
 *
@@ -29,9 +29,13 @@
 /* flags for MmfAlloc parm ulOpenFlags                                       */
 /* NOTE: for all except MMF_ACCESS_READWRITE, only write by others is denied */
 /*       otherwise both read and write by others is denied                   */
+
 #define MMF_ACCESS_READONLY     0x00000000
 #define MMF_ACCESS_WRITEONLY    0x00000001
 #define MMF_ACCESS_READWRITE    0x00000002
+
+#define MMF_OPENMODE_OPENFILE   0x00000000
+#define MMF_OPENMODE_RESETFILE  0x00010000
 
 /* some sizes for usage with MmfAlloc parameter ulMaxSize */
 #define MMF_MAXSIZE_KB             1024
