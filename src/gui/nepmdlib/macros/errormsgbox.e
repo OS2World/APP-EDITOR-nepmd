@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: errormsgbox.e,v 1.5 2002-08-25 19:58:15 cla Exp $
+* $Id: errormsgbox.e,v 1.6 2002-08-27 12:21:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,6 +25,8 @@
 /*
 @@NepmdErrorMsgBox@PROTOTYPE
 rc = NepmdErrorMsgBox( BoxMessage, BoxTitle);
+
+@@NepmdErrorMsgBox@CATEGORY@INTERACT
 
 @@NepmdErrorMsgBox@SYNTAX
 This function pops up an error messagebox.

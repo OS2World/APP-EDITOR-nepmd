@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.5 2002-08-25 19:58:16 cla Exp $
+* $Id: info.e,v 1.6 2002-08-27 12:21:26 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,12 +26,16 @@
 @@NepmdInfo@PROTOTYPE
 rc = NepmdInfo();
 
+@@NepmdInfo@CATEGORY@CONFIG
+
 @@NepmdInfo@SYNTAX
 This function creates a virtual file named *.NEPMD__INFO*
-and writes runtime information about
+within the file ring of the active EPM window
+and writes runtime information into it like for example about
 .ul compact
 - the *NEPMD* modules loaded and config files used
 - the loaded *EPM* modules
+.el
 
 @@NepmdInfo@RETURNS
 NepmdInfo returns an OS/2 error code.

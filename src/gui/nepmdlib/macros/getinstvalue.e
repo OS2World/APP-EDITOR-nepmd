@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getinstvalue.e,v 1.5 2002-08-25 19:58:15 cla Exp $
+* $Id: getinstvalue.e,v 1.6 2002-08-27 12:21:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,6 +25,8 @@
 /*
 @@NepmdGetInstValue@PROTOTYPE
 InstValue = NepmdGetInstValue( ValueTag);
+
+@@NepmdGetInstValue@CATEGORY@CONFIG
 
 @@NepmdGetInstValue@SYNTAX
 This function queries installation related values
