@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.6 2002-10-21 12:46:41 cla Exp $
+# $Id: makefile,v 1.7 2004-07-03 10:40:37 aschn Exp $
 #
 # ===========================================================================
 #
@@ -37,6 +37,8 @@ PMPRINTF=1
 # include main definitions
 BASEDIR=..\..\..
 !include $(BASEDIR)\rules.in
+# overwrite possible empty PMPRINTF to make it available even for !ifndef DEBUG
+PMPRINTF=$(BINDIR)\printf.obj
 
 # --- some file definitions for this makefile
 
