@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.51 2002-10-07 21:40:18 cla Exp $
+* $Id: nepmdlib.c,v 1.52 2002-10-08 14:57:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -48,6 +48,19 @@
 #include "module.h"
 #include "tmf.h"
 #include "mode.h"
+
+// debug output on func entry and exit
+#define DEBUG_NOMESSAGE_ENTEREXIT 1
+
+#if DEBUG_NOMESSAGE_ENTEREXIT
+#undef FUNCENTER
+#undef FUNCEXIT
+#undef FUNCEXITRC
+#define FUNCENTER
+#define FUNCEXIT
+#define FUNCEXITRC
+#endif
+
 
 // some useful macros
 #define EPMINSERTTEXT(t)          EtkInsertTextBuffer( hwndClient, 0, strlen( t), t, 0x100);
@@ -291,6 +304,8 @@ APIRET EXPENTRY NepmdActivateHighlight( HWND hwndClient, PSZ pszActivateFlag, PS
          CHAR           szHilightFile[ _MAX_PATH];
          BOOL           fReload = 1;
 
+FUNCENTER;
+
 do
    {
    // check parms
@@ -355,6 +370,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return rc;
 }
 
@@ -362,6 +378,7 @@ return rc;
 
 BOOL EXPENTRY NepmdAlarm( PSZ pszAlarmStyle)
 {
+         APIRET         rc = NO_ERROR;
          BOOL           fResult = FALSE;
          ULONG          ulAlarmStyle = WA_NOTE;
          ULONG          i;
@@ -372,6 +389,8 @@ static   PSZ            apszAlarmStyle[] = { NEPMD_ALARMSTYLE_WARNING,
                                              NEPMD_ALARMSTYLE_ERROR};
 #define  ALARM_COUNTS  (sizeof( apszAlarmStyle) / sizeof( PSZ))
 
+
+FUNCENTER;
 
 // use default if no style specified
 if ((!pszAlarmStyle) || (!*pszAlarmStyle))
@@ -387,6 +406,7 @@ for (i = 0; i < ALARM_COUNTS; i++)
       }
    }
 
+FUNCEXITRC;
 return fResult;
 }
 
@@ -396,7 +416,10 @@ APIRET EXPENTRY NepmdCloseConfig( HCONFIG hconfig)
 {
          APIRET         rc = NO_ERROR;
 
-return CloseConfig( hconfig);
+FUNCENTER;
+rc = CloseConfig( hconfig);
+FUNCEXITRC;
+return rc;
 }
 
 // ------------------------------------------------------------------------------
@@ -405,6 +428,9 @@ APIRET EXPENTRY NepmdDeleteConfigValue( HCONFIG hconfig, PSZ pszRegPath)
 {
          APIRET         rc = NO_ERROR;
          BOOL           fImplicitOpen = FALSE;
+
+FUNCENTER;
+
 do
    {
    // implicit open if handle is zero
@@ -423,6 +449,7 @@ do
 
 // cleanup
 if (fImplicitOpen) CloseConfig( hconfig);
+FUNCEXITRC;
 return rc;
 }
 
@@ -430,14 +457,22 @@ return rc;
 
 APIRET EXPENTRY NepmdDirExists( PSZ pszDirName)
 {
-return DirExists( pszDirName);
+         APIRET         rc = NO_ERROR;
+FUNCENTER;
+rc = DirExists( pszDirName);
+FUNCEXITRC;
+return rc;
 }
 
 // ------------------------------------------------------------------------------
 
 APIRET EXPENTRY NepmdFileDelete( PSZ pszFileName)
 {
-return DosDelete( pszFileName);
+         APIRET         rc = NO_ERROR;
+FUNCENTER;
+rc = DosDelete( pszFileName);
+FUNCEXITRC;
+return rc;
 }
 
 // ------------------------------------------------------------------------------
@@ -445,6 +480,8 @@ return DosDelete( pszFileName);
 APIRET EXPENTRY NepmdErrorMsgBox( HWND hwndClient, PSZ pszMessage, PSZ pszTitle)
 {
          APIRET         rc = NO_ERROR;
+
+FUNCENTER;
 
 do
    {
@@ -466,6 +503,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return rc;
 }
 
@@ -473,14 +511,22 @@ return rc;
 
 APIRET EXPENTRY NepmdFileExists( PSZ pszFileName)
 {
-return FileExists( pszFileName);
+         APIRET         rc = NO_ERROR;
+FUNCENTER;
+rc = FileExists( pszFileName);
+FUNCEXITRC;
+return rc;
 }
 
 // ------------------------------------------------------------------------------
 
 APIRET EXPENTRY NepmdGetNextClose( HDIR hdir)
 {
-return DosFindClose( hdir);
+         APIRET         rc = NO_ERROR;
+FUNCENTER;
+rc = DosFindClose( hdir);
+FUNCEXITRC;
+return rc;
 }
 
 // ------------------------------------------------------------------------------
@@ -490,6 +536,9 @@ APIRET EXPENTRY NepmdGetNextConfigKey( HCONFIG hconfig, PSZ pszRegPath, PSZ pszP
 {
          APIRET         rc = NO_ERROR;
          BOOL           fImplicitOpen = FALSE;
+
+FUNCENTER;
+
 do
    {
    // implicit open if handle is zero
@@ -508,6 +557,7 @@ do
 
 // cleanup
 if (fImplicitOpen) CloseConfig( hconfig);
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -577,23 +627,30 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
 // ------------------------------------------------------------------------------
 
 APIRET EXPENTRY NepmdGetNextFile( PSZ pszFileMask, PSZ pszHandle, PSZ pszBuffer, ULONG ulBuflen)
-
 {
-return _getNextEntry( NEPMD_NEXTTYPE_FILE, pszFileMask, pszHandle, pszBuffer, ulBuflen);
+         APIRET         rc = NO_ERROR;
+FUNCENTER;
+rc = _getNextEntry( NEPMD_NEXTTYPE_FILE, pszFileMask, pszHandle, pszBuffer, ulBuflen);
+FUNCEXITRC;
+return rc;
 }
 
 // ------------------------------------------------------------------------------
 
 APIRET EXPENTRY NepmdGetNextDir( PSZ pszDirMask, PSZ pszHandle, PSZ pszBuffer, ULONG ulBuflen)
-
 {
-return _getNextEntry( NEPMD_NEXTTYPE_DIR, pszDirMask, pszHandle, pszBuffer, ulBuflen);
+         APIRET         rc = NO_ERROR;
+FUNCENTER;
+rc = _getNextEntry( NEPMD_NEXTTYPE_DIR, pszDirMask, pszHandle, pszBuffer, ulBuflen);
+FUNCEXITRC;
+return rc;
 }
 
 // ------------------------------------------------------------------------------
@@ -612,7 +669,7 @@ APIRET EXPENTRY NepmdGetTextMessage( PSZ pszFilename, PSZ pszMessageName, PSZ ps
          ULONG          ulParmCount;
          ULONG          ulMessageLen;
 
-
+FUNCENTER;
 
 do
    {
@@ -661,6 +718,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -670,6 +728,8 @@ APIRET EXPENTRY NepmdLibVersion( PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
          PSZ            pszResult = NEPMDLIB_VERSION;
+
+FUNCENTER;
 
 do
    {
@@ -696,6 +756,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -707,6 +768,8 @@ APIRET EXPENTRY NepmdOpenConfig( PSZ pszBuffer, ULONG ulBuflen)
          HCONFIG        hconfig;
 
          CHAR           szResult[ 20];
+
+FUNCENTER;
 
 do
    {
@@ -739,6 +802,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -754,6 +818,8 @@ APIRET EXPENTRY NepmdQueryDefaultMode( PSZ pszFilename, PSZ pszBuffer, ULONG ulB
          CHAR           szResult[ 20];
          PMODEINFO      pmi = malloc( 1024);
 
+FUNCENTER;
+
 do
    {
    // init return value first
@@ -768,7 +834,7 @@ do
       break;
       }
 
-   // 
+   //
    pmi = malloc( MODEINFO_LEN);
    if (!pmi)
       {
@@ -793,6 +859,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -804,6 +871,7 @@ APIRET EXPENTRY NepmdInfo( HWND hwndClient)
          CHAR           szMessageFile[ _MAX_PATH];
          CHAR           szErrorMsg[ 128];
 
+FUNCENTER;
 
 do
    {
@@ -911,6 +979,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return rc;
 }
 
@@ -925,6 +994,9 @@ APIRET EXPENTRY NepmdInitConfig( HCONFIG hconfig)
 
          CHAR           szFilename[ _MAX_PATH];
          PSZ            pszDefaultsFile = NULL;
+
+FUNCENTER;
+
 do
    {
    // implicit open if handle is zero
@@ -961,6 +1033,7 @@ do
 
 // cleanup
 if (fImplicitOpen) CloseConfig( hconfig);
+FUNCEXITRC;
 return rc;
 }
 
@@ -990,6 +1063,8 @@ static   PSZ            apszInfoTag[] = { NEPMD_PATHINFO_CTIME,  // 0
 #define  STYLE_COUNTS  (sizeof( apszInfoTag) / sizeof( PSZ))
 
 static   PSZ            pszTimestampMask = "%u/%02u/%02u %2u:%02u:%02u";
+
+FUNCENTER;
 
 do
    {
@@ -1103,6 +1178,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -1130,6 +1206,8 @@ static   PSZ            apszInfoTag[] = { NEPMD_PROCESSINFO_PID,      // 0
                                           NEPMD_PROCESSINFO_PARMS,    // 3
                                           ""};
 #define  STYLE_COUNTS  (sizeof( apszInfoTag) / sizeof( PSZ))
+
+FUNCENTER;
 
 do
    {
@@ -1210,6 +1288,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -1219,12 +1298,15 @@ APIRET EXPENTRY NepmdQueryStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszBuffe
 {
          APIRET         rc = NO_ERROR;
 
+FUNCENTER;
+
 // init return value first
 if (pszBuffer)
    memset( pszBuffer, 0, ulBuflen);
 
 rc = QueryStringEa( pszFileName, pszEaName, pszBuffer, &ulBuflen);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -1266,6 +1348,8 @@ static   PSZ            apszInfoTag[] = { NEPMD_SYSINFO_MAXPATH,       //  0
                                           NEPMD_SYSINFO_PRINTSCREEN,   // 15
                                           ""};
 #define  STYLE_COUNTS  (sizeof( apszInfoTag) / sizeof( PSZ))
+
+FUNCENTER;
 
 do
    {
@@ -1392,6 +1476,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -1402,6 +1487,8 @@ APIRET EXPENTRY NepmdQueryWindowPos( HWND hwnd,  PSZ pszBuffer, ULONG ulBuflen)
          APIRET         rc = NO_ERROR;
          SWP            swp;
          CHAR           szResult[ 64];
+
+FUNCENTER;
 
 do
    {
@@ -1438,6 +1525,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -1448,6 +1536,9 @@ APIRET EXPENTRY NepmdQueryConfigValue( HCONFIG hconfig, PSZ pszRegPath,
 {
          APIRET         rc = NO_ERROR;
          BOOL           fImplicitOpen = FALSE;
+
+FUNCENTER;
+
 do
    {
    // implicit open if handle is zero
@@ -1466,6 +1557,7 @@ do
 
 // cleanup
 if (fImplicitOpen) CloseConfig( hconfig);
+FUNCEXITRC;
 return rc;
 }
 
@@ -1474,6 +1566,8 @@ return rc;
 APIRET EXPENTRY NepmdQueryFullname( PSZ pszFilename, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
+
+FUNCENTER;
 
 do
    {
@@ -1494,6 +1588,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -1503,12 +1598,15 @@ APIRET EXPENTRY NepmdQueryInstValue( PSZ pszFileTag, PSZ pszBuffer, ULONG ulBufl
 {
          APIRET         rc = NO_ERROR;
 
+FUNCENTER;
+
 // init return value first
 if (pszBuffer)
    memset( pszBuffer, 0, ulBuflen);
 
 rc = QueryInstValue( pszFileTag, pszBuffer, ulBuflen);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -1518,6 +1616,8 @@ APIRET EXPENTRY NepmdScanEnv( PSZ pszEnvName, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
          PSZ            pszResult;
+
+FUNCENTER;
 
 do
    {
@@ -1551,6 +1651,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -1560,6 +1661,8 @@ APIRET EXPENTRY NepmdSearchPath( PSZ pszFilename, PSZ pszEnvVarName, PSZ pszBuff
 {
 
          APIRET         rc = NO_ERROR;
+
+FUNCENTER;
 
 do
    {
@@ -1589,6 +1692,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -1598,6 +1702,8 @@ APIRET EXPENTRY NepmdSetFrameWindowPos(  HWND hwndFrame, ULONG x, ULONG y, ULONG
 {
 
          APIRET         rc = NO_ERROR;
+
+FUNCENTER;
 
 do
    {
@@ -1615,6 +1721,7 @@ do
 
    } while (FALSE);
 
+FUNCEXITRC;
 return rc;
 }
 
@@ -1624,6 +1731,9 @@ APIRET EXPENTRY NepmdWriteConfigValue( HCONFIG hconfig, PSZ pszRegPath, PSZ pszR
 {
          APIRET         rc = NO_ERROR;
          BOOL           fImplicitOpen = FALSE;
+
+FUNCENTER;
+
 do
    {
    // implicit open if handle is zero
@@ -1642,6 +1752,7 @@ do
 
 // cleanup
 if (fImplicitOpen) CloseConfig( hconfig);
+FUNCEXITRC;
 return rc;
 }
 
@@ -1649,6 +1760,11 @@ return rc;
 
 APIRET EXPENTRY NepmdWriteStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszEaValue)
 {
-return WriteStringEa( pszFileName, pszEaName, pszEaValue);
+         APIRET         rc = NO_ERROR;
+
+FUNCENTER;
+rc = WriteStringEa( pszFileName, pszEaName, pszEaValue);
+FUNCEXITRC;
+return rc;
 }
 
