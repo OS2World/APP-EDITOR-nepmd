@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.6 2002-09-23 17:31:19 aschn Exp $
+* $Id: mode.e,v 1.7 2002-10-03 13:39:42 cla Exp $
 *
 * ===========================================================================
 *
@@ -257,8 +257,6 @@ defproc NepmdGetDefaultMode()
       defaultmode = 'EPMKWDS'
    elseif leftstr( translate(filename), 14 ) = '.COMMAND_SHELL' then
       defaultmode = 'SHELL'
-   elseif wordpos( translate(basename), 'READ README' ) > 0 or wordpos( ext, 'TXT DOC' ) > 0 then
-      defaultmode = 'TXT'
    elseif translate(basename) = 'CONFIG' or ext = 'SYS' then
       defaultmode = 'CONFIGSYS'
    elseif wordpos( ext, 'C H SQC CPP HPP CXX HXX' ) then
@@ -297,6 +295,8 @@ defproc NepmdGetDefaultMode()
       defaultmode = 'RC'
    elseif ext = 'RXP' then
       defaultmode = 'RXP'
+   elseif wordpos( translate(basename), 'READ README' ) > 0 or wordpos( ext, 'TXT DOC' ) > 0 then
+      defaultmode = 'TXT'
  compile if defined(my_SCRIPT_FILE_TYPE)
    elseif wordpos( ext, 'SCR SCT SCRIPT' my_SCRIPT_FILE_TYPE ) then
  compile else
