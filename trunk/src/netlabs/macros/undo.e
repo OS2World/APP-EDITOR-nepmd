@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: undo.e,v 1.1 2002-10-06 23:30:11 aschn Exp $
+* $Id: undo.e,v 1.2 2003-08-31 20:53:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -140,7 +140,9 @@ def $undo_key =
       else
          --call beep(800, 500)
       endif
+      display -8
       sayerror 'Now at state' presentstate 'of' neweststate
+      display 8
       return
    endif
    -- Need to get new state information
@@ -150,7 +152,9 @@ def $undo_key =
    presentstate = neweststate - 1
    undoaction 7, presentstate
    current_undo_state = presentstate oldeststate neweststate
+   display -8
    sayerror 'Initialized:  at state' presentstate 'of' neweststate
+   display 8
    return
 
 def $redo_key =
@@ -162,10 +166,14 @@ def $redo_key =
          presentstate = presentstate + 1
          undoaction 7, presentstate
          current_undo_state = presentstate oldeststate neweststate
+         display -8
          sayerror 'Now at state' presentstate 'of' neweststate
+         display 8
          return
       endif
+      display -8
       sayerror 'Already at state' presentstate 'of' neweststate
+      display 8
    endif
    --call beep(800, 500)
    return
