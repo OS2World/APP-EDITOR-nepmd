@@ -1,9 +1,9 @@
 CATEGORY: Formatting
 TITLE: binary edit support
-PRIO: 1
+PRIO: 2
 STATUS: coding
-FILES: binedit.erx binedit.e 
-UPDATED: $Id: format003,v 1.1 2002-07-17 15:56:15 cla Exp $
+FILES: binedit.erx binedit.e
+UPDATED: $Id: format003,v 1.2 2002-09-18 20:23:25 cla Exp $
 
 Mode for editing binary files
 
