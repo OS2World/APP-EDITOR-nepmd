@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.11 2004-03-07 08:40:18 aschn Exp $
+* $Id: locate.e,v 1.12 2004-06-03 22:42:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,7 +21,7 @@
 
 /*
 Todo:
--  Make the use of Ralph Yozzo's grep possible
+- Make the use of Ralph Yozzo's grep possible
 */
 
 ; Undocumented:
@@ -29,45 +29,52 @@ Todo:
 ; display 8  ==> reenables messages from a previous display -8
 ; The rest is documented in epmtech.inf.
 
-const
-compile if not defined(NEPMD_SCROLL_AFTER_LOCATE)  --<-------------------------------------------- Todo
-   -- Amount of lines to scroll:
-   -- 0   ==> try to prevent scrolling (standard)
-   -- > 0 ==> scroll from top
-   -- < 0 ==> scroll from bottom
-   NEPMD_SCROLL_AFTER_LOCATE = 0
-compile endif
-
 definit
    universal search_len
    search_len = 5     -- Initialize to anything, to prevent possible "Invalid number argument"
 
 ; ---------------------------------------------------------------------------
+; Standard commands that don't change rc (are there more?):
+;    'locate', 'edit'
+; This is fixed in NEPMD.
+; Therefore 'locate' now calls the proc locate, that sets rc correctly.
+; The standard commands 'quit', 'save', 'name',... do change rc.
 ; Moved from STDCMDS.E
-defc l, locate =  /* Note:  this DEFC also gets executed by the slash ('/') command. */
+; Note:  this DEFC also gets executed by the slash ('/') command.
+defc l, locate =
+   call locate( arg(1))
+
+; We define a proc here, in order to be able to check the rc. In EPM some
+; non-internal commands won't set the standard rc anymore. But when called
+; from a proc, rc is set correctly. As a result the command 'locate' will
+; set rc now as well, because it calls the proc and doesn't change rc.
+defproc locate
    universal default_search_options
    universal search_len
-   /* Insert default_search_options just before supplied options (if any)    */
-   /* so the supplied options will take precedence.                          */
-   args = strip( arg(1), 'L' )
-   delim = substr( args, 1, 1 )
-   p = pos( delim, args, 2 )
+   parse arg args
+   args = strip( args, 'L')
+   -- Insert default_search_options just before supplied options (if any)
+   -- so the supplied options will take precedence.
+   delim = substr( args, 1, 1)
+   p = pos( delim, args, 2)
    user_options = ''
    if p then
-      user_options = substr( args, p + 1 )
-      args = substr( args, 1, p - 1 )
+      user_options = substr( args, p + 1)
+      args = substr( args, 1, p - 1)
    endif
    if marktype() then
-      all=''
+      all = ''
    else           -- No mark, so override if default is M.
-      all='A'
+      all = 'A'
    endif
    search_len = length(args) - 1   /***** added for hilite *****/
    args = args''delim''default_search_options''all''user_options
    display -8
    'xcom l 'args
+   lrc = rc
    display 8
    call highlight_match(search_len)
+   rc = lrc
    return
 
 ; ---------------------------------------------------------------------------
@@ -165,33 +172,36 @@ compile endif
 ; Moved from STDPROCS.E
 ; Highlight a "hit" after a Locate command or Repeat_find operation
 defproc highlight_match(search_len)
+   universal nepmd_hini
    if not rc then  -- if found; rc was set from last 'c'|'l'|repeat_find
       col = getpminfo(EPMINFO_SEARCHPOS)
-      --------------------------------------------------------------------------------------- Todo: make that optional
-compile if NEPMD_SCROLL_AFTER_LOCATE
-      -- begin scroll line on window
+   KeyPath = '\NEPMD\User\Scroll\AfterLocate'
+   IniValue = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   AmountOfLines = 0
+   if isnum(IniValue) then
+      AmountOfLines = IniValue
+   endif
+   if AmountOfLines <> 0 then
       oldline = .line
-      AmountOfLines = NEPMD_SCROLL_AFTER_LOCATE
       if AmountOfLines > 0 then
          .cursory = min( AmountOfLines, .windowheight)          -- AmountOfLines from top
       elseif AmountOfLines < 0 then
          .cursory = max( 1, .windowheight + AmountOfLines + 1)  -- AmountOfLines from bottom
       endif
       .line = oldline
-      -- end scroll line on window
-compile endif
-      circleit LOCATE_CIRCLE_STYLE,
-         .line,
-         col,
-         col + getpminfo(EPMINFO_LSLENGTH) - 1,
-         LOCATE_CIRCLE_COLOR1,
-         LOCATE_CIRCLE_COLOR2
+   endif
+   circleit LOCATE_CIRCLE_STYLE,
+      .line,
+      col,
+      col + getpminfo(EPMINFO_LSLENGTH) - 1,
+      LOCATE_CIRCLE_COLOR1,
+      LOCATE_CIRCLE_COLOR2
 ;     refresh
    endif
    return
 
 ; ---------------------------------------------------------------------------
-; Used to be called with 'postme'.
+; Callable with 'postme'. Required for GlobalFind.
 defc highlightmatch
    search_len = arg(1)
    call highlight_match(search_len)
@@ -219,18 +229,18 @@ defc searchdlg
 
    parse value upcase(arg(1)) with uparg .
 
-   if uparg='C' then
+   if uparg = 'C' then
       'c'                             /* repeat last change */
-   elseif uparg='F' then
+   elseif uparg = 'F' then
       display -8
       repeat_find
       display 8
       call highlight_match(search_len)
    else  -- The application will free the buffer allocated by this macro !!!
-      call windowmessage(0,  getpminfo(APP_HANDLE),
-                         5128,               -- EPM_POPCHANGEDLG
-                         0,
-                         put_in_buffer(default_search_options))
+      call windowmessage( 0,  getpminfo(APP_HANDLE),
+                          5128,               -- EPM_POPCHANGEDLG
+                          0,
+                          put_in_buffer(default_search_options))
    endif
    return
 
@@ -592,6 +602,7 @@ defc scan, grep =
    display 8
    return
 
+; Todo: move
 defproc redirect(cmd)
    universal vTEMP_PATH
    outfile=vTEMP_PATH || substr(cmd'_______',1,8) || '.out'
@@ -665,5 +676,129 @@ def c_f=
    repeat_find       /* find next */
    display 8
    call highlight_match(search_len)
+
+; ---------------------------------------------------------------------------
+; Moved from MOUSE.E
+; Find identifier under cursor -- if arg(1) > 0: -- under pointer.
+defc findword
+   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
+   if arg(1) then
+      'MH_gotoposition'
+   endif
+   call psave_pos(savedpos)
+   if find_token(startcol, endcol) then
+      -- find_token returns first and last col of the found string. Therefore
+      -- search shall start from 1 col behind.
+      .col = endcol + 1
+      -- The standard cmd 'locate' won't set standard rc. The standard 'locate'
+      -- always returns rc = ''.
+      -- Standard commands that don't change rc (are there more?):
+      --    'locate', 'edit'
+      -- This is fixed in NEPMD.
+      -- The standard commands 'quit', 'save', 'name',... do change rc.
+      -- Therefore 'locate' now calls the proc locate, that sets rc correctly.
+      -- rc is the rc from 'xcom locate'.
+      -- (rc is a universal var, that doesn't need the universal definition.)
+      'l '\1 || substr(textline(.line), startcol, (endcol-startcol)+1)
+      -- As an alternative, we could use the proc here as well:
+      --call locate( \1 || substr(textline(.line), startcol, (endcol-startcol)+1))
+      lrc = rc
+   endif
+   --sayerror 'defc findword: lrc = 'lrc
+   if lrc <> 0 then  -- if not found
+      call prestore_pos(savedpos)
+   endif
+
+; ---------------------------------------------------------------------------
+; Moved from STDPROCS.E
+defproc find_token(var startcol, var endcol)  -- find a token around the cursor.
+   if arg(3)='' then
+      token_separators = ' ~`!%^&*()-+=][{}|\:;?/><,''"'\t
+   else
+      token_separators = arg(3)
+   endif
+   if arg(4)='' then
+      diads = '-> ++ -- << >> <= >= && || += -= *= /= %= ª= &= |= :: /* */'
+   else
+      diads = arg(4)
+   endif
+   getline line
+   len = length(line)
+   if .col>len | pos(substr(line, .col, 1), ' '\t) then
+      return  -- Past end of line, or over whitespace
+   endif
+   endcol = verify(line, token_separators, 'M', .col)
+   if endcol = .col then  -- On an operator.
+      startcol = endcol
+      if wordpos(substr(line, startcol, 2), diads) then
+         endcol = endcol + 1  -- On first character
+      elseif .col > 1 then
+         if wordpos(substr(line, endcol-1, 2), diads) then
+            startcol = startcol - 1  -- -- On last character
+         endif
+      endif
+      return 2
+   endif
+   if endcol then
+      endcol = endcol - 1
+   else
+      endcol = len
+   endif
+   startcol = verify(reverse(line), token_separators, 'M', len - .col + 1)
+   if startcol then
+      startcol = len - startcol + 2
+   else
+      startcol = 1
+   endif
+   return 1
+
+; ---------------------------------------------------------------------------
+defc ScrollAfterLocate
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Scroll\AfterLocate'
+   -- if executed with a num as arg
+   if arg(1) <> '' & isnum(arg(1)) then
+      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, arg(1))
+      return
+   endif
+   -- else open entrybox
+   Title   = 'Configure line position on screen after locate'
+   Text    = 'Enter number of lines from top or bottom.'
+   IniValue = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   If IniValue = 0 | IniValue = '' then
+      DefaultButton = 3
+   elseif IniValue < 0 then
+      DefaultButton = 2
+   else
+      DefaultButton = 1
+   endif
+   -- strip + or -
+   IniValue = translate( IniValue, '  ', '+-')
+   IniValue = strip(IniValue)
+   parse value entrybox( Title,
+                         '/# from ~top/# from ~bottom/~Center/C~ancel',  -- max. 4 buttons
+                         IniValue,
+                         '',
+                         260,
+                         atoi(DefaultButton)  ||
+                         atoi(0000)           ||  -- help id
+                         gethwndc(APP_HANDLE) ||
+                         Text) with Button 2 NewValue \0
+   -- strip + or -
+   NewValue = translate( NewValue, '  ', '+-')
+   NewValue = strip(NewValue)
+   parse value NewValue with NewValue .
+   if Button = \1 then
+      'ScrollAfterLocate' NewValue
+      return
+   elseif Button = \2 then
+      'ScrollAfterLocate -'NewValue
+      return
+   elseif Button = \3 then
+      'ScrollAfterLocate 0'
+      return
+   elseif Button = \4 then
+      return
+   endif
 
 
