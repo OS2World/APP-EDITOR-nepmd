@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryconfigvalue.e,v 1.1 2002-09-13 21:55:05 cla Exp $
+* $Id: queryconfigvalue.e,v 1.2 2002-09-15 14:58:36 cla Exp $
 *
 * ===========================================================================
 *
@@ -50,8 +50,42 @@ configuration is to be read.
 - the configuration value  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
 
+@@NepmdQueryConfigValue@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdQueryConfigValue*
+  - or
+- *QueryConfigValue*
+
+
+Executing this command will
+read the configuration value with the pathname
+.sl compact
+- *\NEPMD\Test\Nepmdlib\TestKey*
+.el
+from the configuration repository of the [=TILE]
+and display the result within the status area.
+
 @@
 */
+
+/* ------------------------------------------------------------- */
+/*   allow editor command to call function                       */
+/* ------------------------------------------------------------- */
+
+defc NepmdQueryConfigValue, QueryConfigValue =
+
+ ConfigValue = NepmdQueryConfigValue( 0, NEPMD_TEST_CONFIGPATH);
+ parse value ConfigValue with 'ERROR:'rc;
+ if (rc > '') then
+    sayerror 'config value could not be retrieved, rc='rc;
+    return;
+ endif
+
+ sayerror 'config value "'NEPMD_TEST_CONFIGPATH'" contains:' ConfigValue;
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryConfigValue                              */
@@ -67,6 +101,11 @@ configuration is to be read.
 /* ------------------------------------------------------------- */
 
 defproc NepmdQueryConfigValue( Handle, ConfPath) =
+
+ /* use zero as handle if none specified */
+ if (strip( Handle) = '') then
+    Handle = 0;
+ endif
 
  BufLen      = NEPMD_MAXLEN_ESTRING;
  ConfValue   = copies( atoi( 0), BufLen);

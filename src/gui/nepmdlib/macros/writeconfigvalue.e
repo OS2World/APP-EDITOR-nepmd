@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writeconfigvalue.e,v 1.1 2002-09-13 21:55:05 cla Exp $
+* $Id: writeconfigvalue.e,v 1.2 2002-09-15 14:58:36 cla Exp $
 *
 * ===========================================================================
 *
@@ -51,8 +51,44 @@ configuration path.
 @@NepmdWriteConfigValue@RETURNS
 *NepmdWriteConfigValue* returns an OS/2 error code or zero for no error.
 
+@@NepmdWriteConfigValue@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdWriteConfigValue*
+  - or
+- *WriteConfigValue*
+
+
+Executing this command will write the string
+.sl compact
+- *This is a test value for the Nepmd**Config** APIs !*
+.el
+as the the configuration value with the pathname
+.sl compact
+- *\NEPMD\Test\Nepmdlib\TestKey*
+.el
+to the configuration repository of the [=TILE]
+and display the result within the status area.
+
 @@
 */
+
+/* ------------------------------------------------------------- */
+/*   allow editor command to call function                       */
+/* ------------------------------------------------------------- */
+
+defc NepmdWriteConfigValue, WriteConfigValue =
+
+ rc = NepmdWriteConfigValue( 0, NEPMD_TEST_CONFIGPATH, NEPMD_TEST_CONFIGVALUE);
+ if (rc > 0) then
+    sayerror 'config value not written, rc='rc;
+    return;
+ endif
+
+ sayerror 'config value "'NEPMD_TEST_CONFIGPATH'" successfully written!';
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdWriteConfigValue                              */
@@ -67,6 +103,11 @@ configuration path.
 /* ------------------------------------------------------------- */
 
 defproc NepmdWriteConfigValue( Handle, ConfPath, ConfValue) =
+
+ /* use zero as handle if none specified */
+ if (strip( Handle) = '') then
+    Handle = 0;
+ endif
 
  /* prepare parameters for C routine */
  ConfPath  = ConfPath''atoi( 0);
