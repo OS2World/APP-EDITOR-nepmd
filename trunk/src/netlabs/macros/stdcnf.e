@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.22 2004-07-09 13:33:23 aschn Exp $
+* $Id: stdcnf.e,v 1.23 2004-11-30 21:16:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -710,6 +710,7 @@ compile endif
 -- off.  The default is 0, meaning that the standard EPM settings are in effect.
 compile if not defined(WANT_CUA_MARKING)
 ; obsolete (new)
+; Kept just for compatibility, 'SWITCH' is active forever.
    --WANT_CUA_MARKING = 0  -- changed by aschn
    WANT_CUA_MARKING = 'SWITCH'
    -- 'SWITCH' activates MY_CUA_MARKING_SWITCH, default is: 0
@@ -1201,9 +1202,7 @@ compile endif
 compile if WANT_EPM_SHELL
    universal shell_index
 compile endif
-compile if WANT_CUA_MARKING = 'SWITCH'
    universal CUA_marking_switch
-compile endif
 ;compile endif
 ;compile if EVERSION < '4.12'
 ;   universal autosave
