@@ -7,7 +7,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.1 2002-09-19 12:49:51 cla Exp $
+; $Id: defaults.dat,v 1.2 2002-09-19 14:15:44 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -22,6 +22,10 @@
 ;
 ; **************************************************************************/
 
+; this key for NEPMDLIB Testcases - don't remove
+"\NEPMD\Test\Nepmdlib\TestKey" = "This is a default value"
+
+; these keys are junk only
 "\NEPMD\Testcase\MyContainer\MyKey" = "This is my value"
 "\NEPMD\Testcase\MyContainer\MyKey2"="This is another value"
 
