@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.8 2004-06-03 22:43:34 aschn Exp $
+* $Id: assist.e,v 1.9 2004-06-29 20:53:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,10 +21,10 @@
 
 /*
 Todo:
--  Make 'compile if' etc. for E work.
+-  Make 'compile if' etc. for E work. <- already present
 -  E and REXX additions don't work as expected.
 -  Fix bug for LaTeX: \begin {...} is not recognized.
--  Don't search in comments. Therefore the mode and it's defined comment
+-  Don't search in comments and literals. Therefore the mode and it's defined comment
    chars has to be respected (much work).
 -  Define a list of strings or egrep strings for every mode
    (redefine almost everything).
@@ -120,9 +120,8 @@ compile if not defined(LOCATE_CIRCLE_COLOR2)
    LOCATE_CIRCLE_COLOR2 = 16777218
 compile endif
 
-def c_leftbracket, c_rightbracket = call passist()
-def c_8 = call passist()  -- added for german keyboards
-defc passist = call passist()
+defc passist
+   call passist()
 
 ; ---------------------------------------------------------------------------
 ; id           = found word under cursor (or beneath the cursor in some cases)
@@ -343,7 +342,7 @@ compile endif
          force_search = 0
       -- end of //PM additions for TeX files
 -- end addition for TeX
-/**/
+
       ---- E conditions: if, else, elseif, endif --------------------------------------------------
       elseif CurMode = 'E' then
          if wordpos( lowcase(id), 'if endif else elseif') then
@@ -408,7 +407,6 @@ compile endif
             -- set force_search flag for else or elseif
             force_search = 0
          endif
-/**/
 
       else
          sayerror NOT_BALANCEABLE__MSG
@@ -424,12 +422,12 @@ compile endif
    if force_search then
       -- search begin of condition
       setsearch 'xcom l /'search'/x'case||direction
- compile if defined(HIGHLIGHT_COLOR)
-      circleit LOCATE_CIRCLE_STYLE, .line, startcol, endcol, LOCATE_CIRCLE_COLOR1, LOCATE_CIRCLE_COLOR2
- compile endif
+      'postme circleit' .line startcol endcol
    else
       --'L '\1 || search\1'x'case||direction
       'xcom l '\1 || search\1'x'case||direction
+      --'postme circleit' .line startcol endcol  -- this one should not be highlighted
+      -- designed for function_name(...)  <-- function_name is highlighted, not the ( and ).
    endif
 
    loop
@@ -458,7 +456,6 @@ compile endif
    .lineg = newline
    right; left        -- scroll_to_cursor
 
-
 ; ---------------------------------------------------------------------------
 ; Commented out: currently the def's from balance.e work better
 /*
@@ -476,7 +473,7 @@ defproc NepmdDefineBalanceChar(char)
    call psave_pos(saved_pos)
    left
    sayerror 0  -- reset messageline
-   display -8  -- diable saving messages for the messagebox
+   display -8  -- disable saving messages for the messagebox
    call passist()
    call passist()
    display 8   -- enable saving messages for the messagebox
