@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sampactn.e,v 1.2 2002-07-22 19:01:42 cla Exp $
+* $Id: sampactn.e,v 1.3 2002-08-21 11:52:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -174,11 +174,7 @@ defc a_Time
       else
 ;compile if WANT_DBCS_SUPPORT  -- We're not including MYCNF.E...
         if countryinfo then    -- Instead, see if countryinfo has been set.
- compile if EPM32
          time_sep = substr(countryinfo,24,1)
- compile else
-         time_sep = substr(countryinfo,18,1)
- compile endif
         else
          time_sep = ':'
         endif
