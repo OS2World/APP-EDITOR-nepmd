@@ -5,7 +5,7 @@ Comment - DEFAULT LIGHTBLUE
 
 Literal - DEFAULT GREEN
 ==========================
-"is a literal"
+"this is a literal"
 
 macros - DEFAULT LIGHTRED
 ============================

@@ -8,7 +8,7 @@ Comment - YELLOW BLACK
 
 Literal - DEFAULT GREEN
 ==========================
-"is a literal"   'is a literal'
+"this is a literal"   'this is a literal'
 
 special characters - DEFAULT LIGHTRED
 =====================================

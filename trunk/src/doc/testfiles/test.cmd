@@ -6,7 +6,7 @@ Comment - YELLOW BLACK
 
 Literal - DEFAULT GREEN
 ==========================
-"is a literal"
+"this is a literal"
 
 character - DEFAULT LIGHTGREEN
 ============================
