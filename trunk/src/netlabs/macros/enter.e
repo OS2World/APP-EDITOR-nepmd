@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: enter.e,v 1.1 2002-09-08 16:13:49 aschn Exp $
+* $Id: enter.e,v 1.2 2002-09-20 19:38:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -31,7 +31,7 @@
 const
 compile if not defined(NEPMD_STREAM_INDENTED)
    -- This activates the defs for WANT_STREAM_INDENTED too
-   NEPMD_STREAM_INDENTED = 0
+   NEPMD_STREAM_INDENTED = 1
 compile endif
 
 compile if NEPMD_STREAM_INDENTED and WANT_STREAM_MODE <> 0

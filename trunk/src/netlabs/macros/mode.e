@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.4 2002-09-11 12:42:18 cla Exp $
+* $Id: mode.e,v 1.5 2002-09-20 19:38:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -25,16 +25,16 @@
 
 const
 compile if not defined(NEPMD_MODE)
-   NEPMD_MODE = 0
+   NEPMD_MODE = 1
 compile endif
 compile if not defined(NEPMD_RESTORE_MODE_FROM_EA)
    NEPMD_RESTORE_MODE_FROM_EA = 0
 compile endif
 compile if not defined(NEPMD_HILI)
-   NEPMD_HILI = 0
+   NEPMD_HILI = 1
 compile endif
 compile if not defined(NEPMD_SPECIAL_STATUSLINE)
-   NEPMD_SPECIAL_STATUSLINE = 0
+   NEPMD_SPECIAL_STATUSLINE = 1
 compile endif
 
 

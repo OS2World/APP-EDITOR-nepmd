@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: statline.e,v 1.1 2002-09-10 23:47:25 aschn Exp $
+* $Id: statline.e,v 1.2 2002-09-20 19:37:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,10 +21,10 @@
 
 const
 compile if not defined(NEPMD_SPECIAL_STATUSLINE)
-   NEPMD_SPECIAL_STATUSLINE = 0
+   NEPMD_SPECIAL_STATUSLINE = 1
 compile endif
 compile if not defined(NEPMD_MODE)
-   NEPMD_MODE = 0
+   NEPMD_MODE = 1
 compile endif
 compile if not defined(NEPMD_MODIFIED_STATUSCOLOR)
    NEPMD_MODIFIED_STATUSCOLOR = LIGHT_GREYB + MAGENTA
@@ -36,7 +36,7 @@ definit
 compile endif
 const
 compile if not defined(NEPMD_STATUSLINE_SEP)
-   NEPMD_STATUSLINE_SEP = '³'
+   NEPMD_STATUSLINE_SEP = ' ú '
 compile endif
 
 
