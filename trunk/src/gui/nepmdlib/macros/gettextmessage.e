@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.7 2002-08-23 15:32:57 cla Exp $
+* $Id: gettextmessage.e,v 1.8 2002-08-23 15:35:00 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,70 +28,70 @@
 
 defc NepmdGetTextMessage, GetTextMessage
 
-  /* determine message name or use default */
-  if ( words( arg( 1)) = 0) then
-     Messagename = 'TESTMESSAGE';
-  else
-     Messagename = word( arg( 1), 1);
-  endif
+ /* determine message name or use default */
+ if ( words( arg( 1)) = 0) then
+    Messagename = 'TESTMESSAGE';
+ else
+    Messagename = word( arg( 1), 1);
+ endif
 
-  /* determine TMF name  */
-  Envvar = 'NEPMD_TMFTESTFILE';
-  Testfile = get_env( Envvar);
-  if (length( Testfile) = 0) then
-     sayerror 'error: cannot test NepmdGetTextMessage, envvar' Envvar 'not set!';
-     return;
-  endif
+ /* determine TMF name  */
+ Envvar = 'NEPMD_TMFTESTFILE';
+ Testfile = get_env( Envvar);
+ if (length( Testfile) = 0) then
+    sayerror 'error: cannot test NepmdGetTextMessage, envvar' Envvar 'not set!';
+    return;
+ endif
 
-  /* fetch message - NOTE: word 1 is already message name ! */
-  ParmCount = words( arg( 1));
-  Parm1     = word( arg( 1),  2);
-  Parm2     = word( arg( 1),  3);
-  Parm3     = word( arg( 1),  4);
-  Parm4     = word( arg( 1),  5);
-  Parm5     = word( arg( 1),  6);
-  Parm6     = word( arg( 1),  7);
-  Parm7     = word( arg( 1),  8);
-  Parm8     = word( arg( 1),  9);
-  Parm9     = word( arg( 1), 10);
-  if (ParmCount < 2) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename);
-  elseif (ParmCount = 2) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                        Parm1);
-  elseif (ParmCount = 3) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                        Parm1, Parm2);
-  elseif (ParmCount = 4) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                        Parm1, Parm2, Parm3);
-  elseif (ParmCount = 5) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                        Parm1, Parm2, Parm3, Parm4);
-  elseif (ParmCount = 6) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                        Parm1, Parm2, Parm3, Parm4, Parm5);
-  elseif (ParmCount = 7) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                        Parm1, Parm2, Parm3, Parm4, Parm5, Parm6);
-  elseif (ParmCount = 8) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                        Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7);
-  elseif (ParmCount = 9) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                        Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7, Parm8);
-  else
-     MessageText = NepmdGetTextMessage( Testfile, Messagename,
-                                        Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7, Parm8, Parm9);
-  endif
+ /* fetch message - NOTE: word 1 is already message name ! */
+ ParmCount = words( arg( 1));
+ Parm1     = word( arg( 1),  2);
+ Parm2     = word( arg( 1),  3);
+ Parm3     = word( arg( 1),  4);
+ Parm4     = word( arg( 1),  5);
+ Parm5     = word( arg( 1),  6);
+ Parm6     = word( arg( 1),  7);
+ Parm7     = word( arg( 1),  8);
+ Parm8     = word( arg( 1),  9);
+ Parm9     = word( arg( 1), 10);
+ if (ParmCount < 2) then
+    MessageText = NepmdGetTextMessage( Testfile, Messagename);
+ elseif (ParmCount = 2) then
+    MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                       Parm1);
+ elseif (ParmCount = 3) then
+    MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                       Parm1, Parm2);
+ elseif (ParmCount = 4) then
+    MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                       Parm1, Parm2, Parm3);
+ elseif (ParmCount = 5) then
+    MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                       Parm1, Parm2, Parm3, Parm4);
+ elseif (ParmCount = 6) then
+    MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                       Parm1, Parm2, Parm3, Parm4, Parm5);
+ elseif (ParmCount = 7) then
+    MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                       Parm1, Parm2, Parm3, Parm4, Parm5, Parm6);
+ elseif (ParmCount = 8) then
+    MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                       Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7);
+ elseif (ParmCount = 9) then
+    MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                       Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7, Parm8);
+ else
+    MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                       Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7, Parm8, Parm9);
+ endif
 
-  parse value MessageText with 'ERROR:'rc;
-  if (rc > '') then
-     sayerror 'error: message' Messagename 'could not be retrieved, rc='rc;
-     return;
-  endif
+ parse value MessageText with 'ERROR:'rc;
+ if (rc > '') then
+    sayerror 'error: message' Messagename 'could not be retrieved, rc='rc;
+    return;
+ endif
 
-  sayerror 'message is: "'MessageText'"';
+ sayerror 'message is: "'MessageText'"';
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetTextMessage                                */

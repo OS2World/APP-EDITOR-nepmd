@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.4 2002-08-23 12:36:17 cla Exp $
+* $Id: getnextfile.e,v 1.5 2002-08-23 15:35:00 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,23 +28,23 @@
 
 defc NepmdGetNextFile, GetNextFile =
 
-  Handle   = 0;  /* always create a new handle ! */
-  Filemask = arg( 1);
+ Handle   = 0;  /* always create a new handle ! */
+ Filemask = arg( 1);
 
-  /* with the following call we would pass over full  */
-  /* path, so that would get returned a full path !   */
-  /* FileMask = NepmdQueryFullName( FileMask); */
+ /* with the following call we would pass over full  */
+ /* path, so that would get returned a full path !   */
+ /* FileMask = NepmdQueryFullName( FileMask); */
 
-  /* search all files */
-  do while (1)
-     Fullname = NepmdGetNextFile(  FileMask, address( Handle));
-     parse value Fullname with 'ERROR:'rc;
-     if (rc > '') then
-        leave;
-     endif
+ /* search all files */
+ do while (1)
+    Fullname = NepmdGetNextFile(  FileMask, address( Handle));
+    parse value Fullname with 'ERROR:'rc;
+    if (rc > '') then
+       leave;
+    endif
 
-     messagenwait( 'File found:' Fullname);
-  end;
+    messagenwait( 'File found:' Fullname);
+ end;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetNextFile                                   */

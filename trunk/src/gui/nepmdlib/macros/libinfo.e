@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libinfo.e,v 1.2 2002-08-20 14:57:49 cla Exp $
+* $Id: libinfo.e,v 1.3 2002-08-23 15:35:00 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,7 +28,7 @@
 
 defc NepmdLibInfo =
 
-  rc = NepmdLibInfo();
+ rc = NepmdLibInfo();
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdLibInfo                                       */
