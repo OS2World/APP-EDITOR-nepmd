@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.29 2002-09-04 15:39:13 cla Exp $
+* $Id: nepmdlib.c,v 1.30 2002-09-04 22:40:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -650,7 +650,8 @@ static   PSZ            apszInfoTag[] = { NEPMD_PATHINFO_CTIME,  // 0
                                           NEPMD_PATHINFO_MTIME,  // 1
                                           NEPMD_PATHINFO_ATIME,  // 2
                                           NEPMD_PATHINFO_SIZE,   // 3
-                                          NEPMD_PATHINFO_ATTR};  // 4
+                                          NEPMD_PATHINFO_ATTR,   // 4
+                                          ""};
 #define  STYLE_COUNTS  (sizeof( apszInfoTag) / sizeof( PSZ))
 
 static   PSZ            pszTimestampMask = "%u/%02u/%02u %2u:%02u:%02u";
@@ -676,6 +677,7 @@ do
       {
       if (!stricmp( apszInfoTag[ i], pszInfoTag))
          {
+         DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
          ulInfoStyle = i;         
          fTagFound = TRUE;
          break;
@@ -787,7 +789,8 @@ APIRET EXPENTRY NepmdQueryProcessInfo( PSZ pszInfoTag, PSZ pszBuffer, ULONG ulBu
 static   PSZ            apszInfoTag[] = { NEPMD_PROCESSINFO_PID,      // 0
                                           NEPMD_PROCESSINFO_PPID,     // 1
                                           NEPMD_PROCESSINFO_PROGRAM,  // 2
-                                          NEPMD_PROCESSINFO_PARMS};   // 3
+                                          NEPMD_PROCESSINFO_PARMS,    // 3
+                                          ""};
 #define  STYLE_COUNTS  (sizeof( apszInfoTag) / sizeof( PSZ))
 
 do
@@ -810,6 +813,7 @@ do
       {
       if (!stricmp( apszInfoTag[ i], pszInfoTag))
          {
+         DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
          ulInfoStyle = i;         
          fTagFound = TRUE;
          break;
@@ -872,7 +876,173 @@ return _getRexxError( rc, pszBuffer, ulBuflen);
 
 }
 
+// ------------------------------------------------------------------------------
 
+APIRET EXPENTRY NepmdQuerySysInfo( PSZ pszInfoTag, PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         ULONG          i;
+         ULONG          ulValue;
+         ULONG          aulValue[ 10];
+
+         ULONG          ulInfoStyle;
+         BOOL           fTagFound = FALSE;
+
+         CHAR           szInfo[ _MAX_PATH];
+
+         PPIB           ppib;
+         PTIB           ptib;
+static   PSZ            pszValueMask = "%u";
+
+
+// don't modify order of this array
+static   PSZ            apszInfoTag[] = { NEPMD_SYSINFO_MAXPATH,       //  0
+                                          NEPMD_SYSINFO_BOOTDRIVE,     //  1
+                                          NEPMD_SYSINFO_OS2VERSION,    //  2
+                                          NEPMD_SYSINFO_MAXCOMPONENT,  //  3
+                                          NEPMD_SYSINFO_SWAPBUTTON,    //  4
+                                          NEPMD_SYSINFO_ALARM,         //  5
+                                          NEPMD_SYSINFO_CXSCREEN,      //  6
+                                          NEPMD_SYSINFO_CYSCREEN,      //  7
+                                          NEPMD_SYSINFO_CXFULLSCREEN,  //  8
+                                          NEPMD_SYSINFO_CYFULLSCREEN,  //  9
+                                          NEPMD_SYSINFO_DEBUG,         // 10
+                                          NEPMD_SYSINFO_CMOUSEBUTTONS, // 11
+                                          NEPMD_SYSINFO_POINTERLEVEL,  // 12
+                                          NEPMD_SYSINFO_CURSORLEVEL,   // 13
+                                          NEPMD_SYSINFO_MOUSEPRESENT,  // 14
+                                          NEPMD_SYSINFO_PRINTSCREEN,   // 15
+                                          ""};
+#define  STYLE_COUNTS  (sizeof( apszInfoTag) / sizeof( PSZ))
+
+do
+   {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
+   // check parms
+   if ((!pszInfoTag)  ||
+       (!*pszInfoTag) ||
+       (!pszBuffer))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // check the tag
+   for (i = 0; i < STYLE_COUNTS; i++)
+      {
+      if (!stricmp( apszInfoTag[ i], pszInfoTag))
+         {
+         DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
+         ulInfoStyle = i;         
+         fTagFound = TRUE;
+         break;
+         }
+      }
+   if (!fTagFound)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // determine info to return
+   // -- make sure that the array apszInfoTag matches the numbers used here !!! ---
+   // PIB
+   switch (ulInfoStyle)
+      {
+      case 0: // NEPMD_SYSINFO_MAXPATH
+         DosQuerySysInfo( QSV_MAX_PATH_LENGTH, QSV_MAX_PATH_LENGTH, &ulValue, sizeof( ulValue));
+         sprintf( szInfo, pszValueMask, ulValue);
+         break;
+
+      case 1: // NEPMD_SYSINFO_BOOTDRIVE
+         DosQuerySysInfo( QSV_BOOT_DRIVE, QSV_BOOT_DRIVE, &ulValue, sizeof( ulValue));
+         sprintf( szInfo, "%c:", (CHAR) ulValue + 'A' - 1);
+         break;
+
+      case 2: // NEPMD_SYSINFO_OS2VERSION
+         DosQuerySysInfo( QSV_VERSION_MAJOR, QSV_VERSION_MINOR, &aulValue, sizeof( ulValue) * 2);
+         sprintf( szInfo, "%u.%u", aulValue[ 0], aulValue[ 1]);
+         break;
+
+      case 3: // NEPMD_SYSINFO_MAXCOMPONENT
+         DosQuerySysInfo( QSV_MAX_COMP_LENGTH, QSV_MAX_COMP_LENGTH, &ulValue, sizeof( ulValue));
+         sprintf( szInfo, pszValueMask, ulValue);
+         break;
+
+      case 4: // NEPMD_SYSINFO_SWAPBUTTON
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_SWAPBUTTON));
+         break;
+
+      case 5: // NEPMD_SYSINFO_ALARM
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_ALARM));
+         break;
+
+      case 6: // NEPMD_SYSINFO_CXSCREEN
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_CXSCREEN));
+         break;
+
+      case 7: // NEPMD_SYSINFO_CYSCREEN
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_CYSCREEN));
+         break;
+
+      case 8: // NEPMD_SYSINFO_CXFULLSCREEN
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_CXFULLSCREEN));
+         break;
+
+      case 9: // NEPMD_SYSINFO_CYFULLSCREEN
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_CYFULLSCREEN));
+         break;
+
+      case 10: // NEPMD_SYSINFO_DEBUG
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_DEBUG));
+         break;
+
+      case 11: // NEPMD_SYSINFO_CMOUSEBUTTONS
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_CMOUSEBUTTONS));
+         break;
+
+      case 12: // NEPMD_SYSINFO_POINTERLEVEL
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_POINTERLEVEL));
+         break;
+
+      case 13: // NEPMD_SYSINFO_CURSORLEVEL
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_CURSORLEVEL));
+         break;
+
+      case 14: // NEPMD_SYSINFO_MOUSEPRESENT
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_MOUSEPRESENT));
+         break;
+
+      case 15: // NEPMD_SYSINFO_PRINTSCREEN
+         sprintf( szInfo, pszValueMask, WinQuerySysValue( HWND_DESKTOP, SV_PRINTSCREEN));
+         break;
+
+      default:
+         rc = ERROR_INVALID_PARAMETER;
+         break;
+      }
+   if (rc != NO_ERROR)
+      break;
+
+   // check result buffer (use pszInfo here !)
+   if (strlen( szInfo) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszBuffer, szInfo);
+
+
+   } while (FALSE);
+
+return _getRexxError( rc, pszBuffer, ulBuflen);
+
+}
 
 // ------------------------------------------------------------------------------
 

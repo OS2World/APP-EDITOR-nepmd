@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.h,v 1.7 2002-09-04 15:39:13 cla Exp $
+* $Id: nepmdlib.h,v 1.8 2002-09-04 22:40:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -48,6 +48,24 @@
 #define NEPMD_PROCESSINFO_PPID         "PPID"
 #define NEPMD_PROCESSINFO_PROGRAM      "PROGRAM"
 #define NEPMD_PROCESSINFO_PARMS        "PARMS"
+
+// tag definitions for NepmdQuerySysInfo
+#define NEPMD_SYSINFO_MAXPATH          "MAXPATH"
+#define NEPMD_SYSINFO_BOOTDRIVE        "BOOTDRIVE"
+#define NEPMD_SYSINFO_OS2VERSION       "OS2VERSION"
+#define NEPMD_SYSINFO_MAXCOMPONENT     "MAXCOMPONENT"
+#define NEPMD_SYSINFO_SWAPBUTTON       "SWAPBUTTON"
+#define NEPMD_SYSINFO_ALARM            "ALARM"
+#define NEPMD_SYSINFO_CXSCREEN         "CXSCREEN"
+#define NEPMD_SYSINFO_CYSCREEN         "CYSCREEN"
+#define NEPMD_SYSINFO_CXFULLSCREEN     "CXFULLSCREEN"
+#define NEPMD_SYSINFO_CYFULLSCREEN     "CYFULLSCREEN"
+#define NEPMD_SYSINFO_DEBUG            "DEBUG"
+#define NEPMD_SYSINFO_CMOUSEBUTTONS    "CMOUSEBUTTONS"
+#define NEPMD_SYSINFO_POINTERLEVEL     "POINTERLEVEL"
+#define NEPMD_SYSINFO_CURSORLEVEL      "CURSORLEVEL"
+#define NEPMD_SYSINFO_MOUSEPRESENT     "MOUSEPRESENT"
+#define NEPMD_SYSINFO_PRINTSCREEN      "PRINTSCREEN"
 
 #endif // NEPMDLIB_H
 
