@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.11 2002-09-21 19:55:53 aschn Exp $
+* $Id: epm.e,v 1.12 2002-10-06 23:43:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -87,6 +87,10 @@ compile endif
 
 include        'stdprocs.e'    -- Standard functions and procedures.
 
+include        'epm_ea.e'
+include        'locate.e'
+include        'toolbar.e'
+
 include        'markfilt.e'    -- Procedures for filtering a block, line or char. mark.
 include        'charops.e'     -- Mark operations for character marks.
 
@@ -112,6 +116,22 @@ include        'get.e'
 
 include        'enter.e'       -- New enter defs, moved from STDPROCS.E and STDKEYS.E
 
+include        'undo.e'
+
+include        'alt_1.e'
+
+include        'caseword.e'
+
+include        'xchgline.e'
+
+include        'setconfig.e'
+
+include        'revert.e'
+
+;include        'balance.e'
+
+;include        'comment.e'
+
 compile if WANT_DRAW
   compile if (WANT_DRAW='F6' | WANT_DRAW=F6)
    include     'drawkey.e'     -- If you still want F6=Draw in linking version.
@@ -131,6 +151,7 @@ tryinclude     'linkcmds.e'    -- Useful new commands for the linking version.
 include        'stdctrl.e'     -- PM controls for EPM.
 
 include        'statline.e'    -- New statusline defs, defc setstatusline moved from STDCTRL.E
+include        'titletext.e'
 
 compile if INCLUDE_MENU_SUPPORT & INCLUDE_STD_MENUS
  compile if defined(STD_MENU_NAME)
