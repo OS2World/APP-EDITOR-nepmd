@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution project 2002
 #
-# $Id: nepmd.wis,v 1.4 2002-04-16 21:23:20 cla Exp $
+# $Id: nepmd.wis,v 1.5 2002-04-16 21:51:29 cla Exp $
 #
 # ===========================================================================
 #
@@ -125,18 +125,44 @@ Select "Next" to continue.
 Select "Cancel" to abort installation.</TEXT>
 </PAGE>
 
-<!--  ------------------------------ page 3: show package container --------------------------->
-<!-- The TYPE=CONTAINER will list the packages which can be installed. -->
-<PAGE INDEX=3 TYPE=CONTAINER>
+<!--  ------------------------------ page 3: Warpin restriction page ------------------------->
+<PAGE INDEX=3 TYPE=TEXT>
 <NEXTBUTTON TARGET=4>~Next</NEXTBUTTON>
+<TEXT>
+IMPORTANT: the following restrictions apply to WarpIn V0.9.18 and may apply to newer versios as well:
+
+Installation:
+       If you deselect all packages via the menu item "Selection" - "Deselect all", also the package "Base Application" is deselected, what should not be possible. The files installed will not work, if the package "Base Application" is not installed.
+
+       Changing the installation path does not change ot for all components. Don't change the installation path or make sure that you use the same installation path for all components, otherwise the installed version will not properly work.
+
+Deinstallation:
+       Deinstallation from within this WarpIn package does not work. Start WarpIn without a WPI package file in order to deinstall this package instead.
+
+       Deinstall all packages separately without the package "Base Application", otherwise you will get errors. If you get errors, close the error report and remove the remaining database entries manually.
+
+       WarpIn will warn you, if you attempt to install any packages of this distribution but the package "Base Application", because you may not deinstall any packages, if the main package is not also selected for deinstallation. Nevertheless WarpIn will warn you only about up to a maximum of two dependad packages, although you may have selected more than two packages depending on the main package.
+
+       When removing database entries, WarpIn will only let you remove the last selected entry. If you want to remove several entries at a time, you will have to repeat the step for each package.
+
+
+Select "Next" to continue.
+Select "Cancel" to abort installation.
+</TEXT>
+</PAGE>
+
+<!--  ------------------------------ page 4: show package container --------------------------->
+<!-- The TYPE=CONTAINER will list the packages which can be installed. -->
+<PAGE INDEX=4 TYPE=CONTAINER>
+<NEXTBUTTON TARGET=5>~Next</NEXTBUTTON>
 <TEXT>
 On this page, you may deselect the package if it is already installed
 or change the package's target path. </TEXT>
 </PAGE>
 
-<!--  ------------------------------ page 4: configure Warpin behaviour ----------------------->
+<!--  ------------------------------ page 5: configure Warpin behaviour ----------------------->
 <!-- The TYPE=CONFIGURE will change config.sys -->
-<PAGE INDEX=4 TYPE=CONFIGURE>
+<PAGE INDEX=5 TYPE=CONFIGURE>
 <TEXT>
 Select configuration options:</TEXT>
 <NEXTBUTTON TARGET=0>~Next</NEXTBUTTON>
