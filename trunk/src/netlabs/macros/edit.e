@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.14 2004-01-17 22:22:50 aschn Exp $
+* $Id: edit.e,v 1.15 2004-02-22 18:55:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,12 +19,17 @@
 *
 ****************************************************************************/
 
+/*
+Todo:
+-  Make disabling of RestorePosFromEa possible *before* calling 'edit'.
+*/
+
 ; ---------------------------------------------------------------------------
 ; Todo: move
 ; Todo: resolve '=' as well
 ; Resolves environment variables in a string
 ; Returns converted string
-defproc NepmdResolveEnvVars( Spec)
+defproc NepmdResolveEnvVars( Spec )
    startp = 1
    do forever
       -- We don't use parse here, because if only 1 % char is present, it will
@@ -36,46 +41,69 @@ defproc NepmdResolveEnvVars( Spec)
       --    else
       --       Spec = Spec''next''Get_Env(EnvVar)''rest
       --    endif
-      p1 = pos( '%', Spec, startp)
+      p1 = pos( '%', Spec, startp )
       if p1 = 0 then
          leave
       endif
       startp = p1 + 1
-      p2 = pos( '%', Spec, startp)
+      p2 = pos( '%', Spec, startp )
       if p2 = 0 then
          leave
       else
          startp = p2 + 1
-         Spec = substr( Spec, 1, p1 - 1) ||
-                Get_Env( substr( Spec, p1 + 1, p2 - p1 - 1)) ||
-                substr( Spec, p2 + 1)
+         Spec = substr( Spec, 1, p1 - 1 ) ||
+                Get_Env( substr( Spec, p1 + 1, p2 - p1 - 1 ) ) ||
+                substr( Spec, p2 + 1 )
       endif
       --sayerror 'arg(1) = 'arg(1)', p1 = 'p1', p2 = 'p2', resolved spec = 'Spec
    enddo  -- forever
    return Spec
 
 ; ---------------------------------------------------------------------------
+; Todo: move
+; Syntax: ring <cmd>
+; Executes a cmd on all files of the ring.
+defc ring
+   if arg(1) = '' then
+      sayerror 'Specify a command to be executed on all files in the ring.'
+      return
+   endif
+   display -3
+   getfileid startfid
+   do i = 1 to filesinring()  -- omit hidden files
+      arg(1)
+      nextfile
+      getfileid fid
+      if fid = startfid then
+         leave
+      endif
+   enddo
+   'postme activatefile' startfid
+   display 3
+   return
+
+; ---------------------------------------------------------------------------
 ; Load files from a filespec, remove REXX EAs before loading
-defproc NepmdLoadFile( Spec, Options)
+defproc NepmdLoadFile( Spec, Options )
    universal filestoload
    universal filestoloadmax  -- still used for 'xcom e'
    filestoload        = 0
    filestoloadmax     = 0
    RexxEaExtensions = 'CMD ERX'
 
-   Spec = strip( Spec, 'B', '"')
-   ContainsWildcard = (pos( '*', Spec) + pos( '?', Spec) > 0);
+   Spec = strip( Spec, 'B', '"' )
+   ContainsWildcard = (pos( '*', Spec ) + pos( '?', Spec ) > 0);
 
    -- Resolve wildcards in Spec to delete REXX EAs for every REXX file
    ProcessOnce = 0
    Handle = 0
    do forever
-      if not .visible then
-         leave
-      endif
+       if not .visible then
+          leave
+       endif
       if (ContainsWildcard) then
          -- if Spec contains wildcards then find Filenames
-         Filename = NepmdGetNextFile( Spec, address( Handle))
+         Filename = NepmdGetNextFile( Spec, address( Handle) )
          parse value Filename with 'ERROR:'rc
          if rc > '' then
             leave
@@ -100,18 +128,18 @@ defproc NepmdLoadFile( Spec, Options)
       -- Note: The use of array vars containing the fileid to become file-specific
       -- does only work properly at or after defload. Therefore the mode should be
       -- determined at defload.
-      p1 = lastpos( '.', Filename)
+      p1 = lastpos( '.', Filename )
       if p1 > 1 then
-         ext = translate( substr( Filename, p1 + 1))
-         if wordpos( ext, RexxEaExtensions) then
+         ext = translate( substr( Filename, p1 + 1 ) )
+         if wordpos( ext, RexxEaExtensions ) then
             --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
-            call NepmdDeleteRexxEa( Filename)
+            call NepmdDeleteRexxEa( Filename )
          endif
       endif
 
-      -- NepmdGetMode doesn't work here well.
-      -- It slows loading down and causes msg -260: "Unvalid fileid"
-      --Filemode = NepmdGetMode( Filename)
+      -- NepmdGetMode doesn't work here, because it tries to write the 'mode.'fid
+      -- array var. At this time the file is not loaded, so the fileid is not set.
+      -- But calling NepmdQueryDefaultMode(Filename) would work.
 
       if ProcessOnce = 1 then
          leave
@@ -121,7 +149,7 @@ defproc NepmdLoadFile( Spec, Options)
    -- load the file
    -- add "..." here to enable loading file names with spaces and
    -- use Spec instead of FileName to keep the loading of host files unchanged
-   loadrc = loadfile( '"'Spec'"', Options)
+   loadrc = loadfile( '"'Spec'"', Options )
 
    return loadrc
 
@@ -259,8 +287,8 @@ compile endif
          endif
 
          -- resolve environment variables
-         if pos( '%', filespec) then
-            filespec = NepmdResolveEnvVars( filespec)
+         if pos( '%', filespec ) then
+            filespec = NepmdResolveEnvVars( filespec )
          endif
 
          --sayerror 'EDIT.E before call loadfile(filespec,options): filespec = 'filespec
@@ -350,7 +378,8 @@ compile endif
       if firstloadedfid = startfid then
          -- If previous topmost file should be loaded again as first loaded file,
          -- check if file was altered by another application.
-         -- Note: required, because no defselect, no defload will be triggered than.
+         -- Note: Required, because no defselect, no defload will be triggered than.
+         --       This enables a check for altered-on-disk.
          'ResetDateTimeModified'
          'RefreshInfoLine MODIFIED'
       endif
@@ -427,4 +456,195 @@ defc ep, epath=
 defc op, opath, openpath=
    "open 'ep "arg(1)"'"
 
+; ---------------------------------------------------------------------------
+; Edit binary files in EPM.
+; linebreak after 64 chars
+;    Program object:
+;       Name      : EPM Bin
+;       Parameters: 'binedit %*'
+defc be, binedit
+   universal default_save_options
+   -- Change default options for save command to simply save a bin file
+   -- with F2. Therefore this command should be used in a separate EPM
+   -- window only.
+   default_save_options = '/ne /ns /nt'
+   'e /t /64 /bin "'arg(1)'"'    -- options should go before filename
+                                 -- /64 doesn't work if run from a program object.
+   if insert_state() then
+      -- switch to overwrite mode
+      insert_toggle
+   endif
+   'HookAdd load tabs 1'
+   'HookAdd load tabkey on'
+   'HookAdd load matchtab off'
+   'HookAdd load mode bin'
+
+; ---------------------------------------------------------------------------
+; linebreak at lineend chars
+defc ble, binlineedit
+   universal default_save_options
+   -- Change default options for save command to simply save a bin file
+   -- with F2. Therefore this command should be used in a separate EPM
+   -- window only.
+   default_save_options = '/ne /ns /nt'
+   'e /t /bin "'arg(1)'"'        -- options should go before filename
+   if insert_state() then
+      -- switch to overwrite mode
+      insert_toggle
+   endif
+   'HookAdd load tabs 1'
+   'HookAdd load tabkey on'
+   'HookAdd load matchtab off'
+   'HookAdd load mode bin'
+
+; ---------------------------------------------------------------------------
+; linebreak at maxmargin
+defc bme, binmaxedit
+   universal default_save_options
+   -- Change default options for save command to simply save a bin file
+   -- with F2. Therefore this command should be used in a separate EPM
+   -- window only.
+   default_save_options = '/ne /ns /nt'
+   'e /t /1599 /bin "'arg(1)'"'  -- options should go before filename
+   if insert_state() then
+      -- switch to overwrite mode
+      insert_toggle
+   endif
+   'HookAdd load tabs 1'
+   'HookAdd load tabkey on'
+   'HookAdd load matchtab off'
+   'HookAdd load mode bin'
+
+; ---------------------------------------------------------------------------
+; Finds EPM macro files <basename>.e in Dir of arg(1) and EPMMACROPATH.
+; Opens listbox to select one file if multiple found.
+; <basename> is parsed from arg(1), so arg(1) may have any extension.
+; For association with *.ex (type: EX file) and *.e:
+;    Program object:
+;       Name      : EPM Edit macro file
+;       Parameters: /r 'editmacrofile %*'
+; From command line:
+;    start epm /r 'editmacrofile <basename>'
+; Todo?: handle UNC (\\server\resource) names
+defc EditMacroFile
+
+   PathName = 'EPMMACROPATH'
+   SearchInDirOfFile = 1
+
+   File = strip(arg(1))
+   if File = '' then return; endif
+   -- Remove ".."
+   len = length(File)
+   if substr( File, 1, 1) = '"' & substr( File, len, 1) = '"' then
+      File = substr( File, 2, len - 2)
+   endif
+   if File = '' then return; endif
+
+
+   -- Get full pathname if exists
+   next = NepmdQueryFullName(File)
+   parse value next with 'ERROR:'rc
+   if rc = '' then
+       File = next
+   endif
+
+   -- Build MacroFileName
+   lp1 = lastpos( '\', File)
+   Name = substr( File, lp1 + 1)
+   Dir = substr( File, 1, max( 0, lp1 - 1))
+   lp2 = lastpos( '.', Name)
+   if lp2 = 0 | lp2 = 1 then
+      BaseName = Name
+   else
+      BaseName = substr( Name, 1, max(lp2 - 1, 0))
+   endif
+   MacroFileName = BaseName'.e'
+
+   Found = 0
+   FoundOnlyInDirOfFile = 0
+   MacroFileList = ''
+   LastMacroFile = ''
+   Len = 0
+
+   -- Search MacroFile in dir of File first
+   if SearchInDirOfFile = 1 then
+      MacroFile = Dir'\'MacroFileName
+      if NepmdFileExists(MacroFile) then
+         Found = Found + 1
+         Len = max( Len, length(MacroFile))
+         FoundOnlyInDirOfFile = 1
+         MacroFileList = MacroFileList''\1''MacroFile
+         LastMacroFile = MacroFile
+      endif
+   endif
+
+   -- Get value of PathName
+   Path = Get_Env(PathName)
+   rest = Path
+   -- Search in all parts of Path
+   do while rest <> ''
+      parse value rest with NextPath';'rest
+      -- Search in NextPath
+      MacroFile = NextPath'\'MacroFileName
+      if NepmdFileExists(MacroFile) then
+         if upcase(MacroFile) = upcase(LastMacroFile) then
+            FoundOnlyInDirOfFile = 0
+            iterate
+         endif
+         Found = Found + 1
+         Len = max( Len, length(MacroFile))
+         MacroFileList = MacroFileList''\1''MacroFile
+         LastMacroFile = MacroFile
+      endif
+   enddo
+
+   if Found = 0 then
+      'postme sayerror "'MacroFileName'" not found in directory of "'Name'" or in 'PathName
+   elseif Found = 1 then
+      -- Use postme here to delay the msg until all other msgs are processed.
+      -- Otherwise the last msg would be 'Link completed, module # ?' if a new window
+      -- is opened. But sometimes it doesn't work though.
+      if FoundOnlyInDirOfFile = 1 then
+         'postme sayerror Found macro file "'MacroFileName'" only in directory of "'Name'"'
+      else
+         'postme sayerror Found 1 macro file "'MacroFileName'" in 'PathName
+      endif
+      parse value MacroFileList with \1''select
+      'e' select
+   else
+      -- Multiple files found, open listbox
+      Title = 'Select macro file 'MacroFileName
+         -- Text to appear in 1 line below the title, above the list
+         -- Only 1 line (no \13 or \n) allowed in Text, but \9 is recognized.
+      if FoundOnlyInDirOfFile = 1 then
+         Text = 'Multiple macro files found in directory of "'Name'" and 'PathName'.'
+      else
+         Text = 'Multiple macro files found in 'PathName'.'
+      endif
+      TextZ = '  'Text\0    -- add 2 spaces for proper left alignment of text and zero termination
+      ItemList = MacroFileList             -- first char is separator
+      ButtonList = '/~Edit/~Open/~Cancel'  -- first char is separator, first button is selected
+      Selection = 1                        -- selected item of ItemList
+      Height = min( Found, 12)             -- make the list max. 12 lines high
+      Width  = max( Len, 50)               -- make the list min. 50 ??? wide
+      refresh  -- Add everytime a refresh before opening a listbox.
+               -- Otherwise sometimes only a part of it is shown.
+      select = listbox( Title,
+                        ItemList,
+                        ButtonList,        -- buttons
+                        5, 5,              -- Top, Left,
+                        Height, Width,     -- Height, Width,
+                        gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(0) ||
+                        TextZ )
+      parse value select with button 2 select \0  -- get button and (select = selected item)
+      select = strip( select, 'B', \1)  -- sometimes the returned value for Cancel is \1
+      if select = '' then               -- Cancel ==> no item is returned
+         return
+      elseif button = \1 then           -- Button1
+         'e' select
+      elseif button = \2 then           -- Button2
+         'o' select
+      endif
+   endif
+   return
 
