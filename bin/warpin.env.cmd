@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: warpin.env.cmd,v 1.1 2002-04-21 13:15:24 cla Exp $
+* $Id: warpin.env.cmd,v 1.2 2002-05-02 14:35:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -42,6 +42,11 @@
     /* extend environment */
     '@SET PATH='WarpInPath';';
     '@SET BEGINLIBPATH='WarpInPath';';
+
+   /* execute command if given */
+   PARSE ARG Parms;
+   IF (STRIP( Parms) \= '') THEN
+      '@' Parms;
 
  END;
 
