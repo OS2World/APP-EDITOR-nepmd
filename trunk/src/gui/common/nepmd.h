@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.5 2002-08-14 19:12:20 cla Exp $
+* $Id: nepmd.h,v 1.6 2002-08-22 15:04:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,12 +34,25 @@
 // define filename extensions
 #define NEPMD_FILENAMEEXT_ENV          ".env"
 
+// tag definitions for GetInstValue
+#define NEPMD_VALUETAG_ROOTDIR         "ROOTDIR"
+#define NEPMD_VALUETAG_LANGUAGE        "LANGUAGE"
+#define NEPMD_VALUETAG_INIT            "INIT"
+#define NEPMD_VALUETAG_MESSAGES        "MESSAGE"
+
 // path definitions relative to NEPMD install dir
 // NOTE: last word of symbol names are taken from the
 //       names of the macros used in makefiles where applicable ;-)
 
 #define NEPMD_SUBPATH_BINBINDIR    "netlabs\\bin"
 #define NEPMD_SUBPATH_MYBINDIR     "myepm\\bin"
+
+// file path and name definitions used by NepmdGetInstFilename
+
+#define NEPMD_SUBPATH_INIFILE      NEPMD_SUBPATH_MYBINDIR
+#define NEPMD_FILENAME_INIFILE     "nepmd.ini"
+#define NEPMD_SUBPATH_INIFILE      NEPMD_SUBPATH_MYBINDIR
+#define NEPMD_FILENAME_INIFILE     "nepmd.ini"
 
 
 // define external env vars available in epm.env
