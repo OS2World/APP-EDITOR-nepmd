@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.2 2002-09-21 20:40:20 aschn Exp $
+* $Id: edit.e,v 1.3 2002-10-06 23:15:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,7 +18,23 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+/*
+const
+compile if not defined(REMOVE_EA_EXTENSIONS)
+   REMOVE_EA_EXTENSIONS = 'CMD REX REXX'
+compile endif
+*/
 
+defc GetDeleteRexxEa
+   universal nepmd_hini
+   ConfValue = NepmdQueryConfigValue( nepmd_hini, '\NEPMD\User\RexxEa\Delete' )
+   sayerror 'DeleteRexxEa = 'ConfValue
+
+
+
+
+
+; -----------------------------------------------------------------------------
 defproc NepmdResolveEnvVars
    Spec = arg(1)
    startp = 1
@@ -38,10 +54,37 @@ defproc NepmdResolveEnvVars
                 substr( Spec, p2 + 1 )
       endif
       --sayerror 'arg(1) = 'arg(1)', p1 = 'p1', p2 = 'p2', resolved spec = 'Spec
-   enddo
+   enddo  -- forever
    return Spec
 
+; -----------------------------------------------------------------------------
+; Spec may contain wildcards
+; All REXX EA's are deleted (if present) if the extension matches
+defproc NepmdDeleteRexxEaFileSpec
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\RexxEa\Extensions'
+   RexxEaExtensions = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+   Spec = arg(1)
+   Spec = strip( Spec, 'B', '"' )
+   do forever
+      Filename = NepmdGetNextFile( Spec, address(0) )
+      parse value Filename with 'ERROR:'rc
+      if rc > 0 then
+         leave
+      endif
+      p1 = lastpos( '.', Filename )
+      if p1 > 1 then
+         ext = translate( substr( Filename, p1 + 1 ) )
+         if wordpos( ext, RexxEaExtensions ) then
+            --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
+            'NepmdDeleteRexxEa 'Filename
+         endif
+      endif
+   enddo  -- forever
+   return
 
+
+; -----------------------------------------------------------------------------
 ; Moved from STDCMDS.E
 /* This DEFC EDIT eventually calls the built-in edit command, by calling      */
 /* loadfile(), but does additional processing for messy-desk windowing (moves */
@@ -71,6 +114,7 @@ defc e,ed,edit,epm=
 compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') & not SMALL
    universal fto                -- Need this passed to loadfile...
 compile endif
+   universal nepmd_hini
 
    rest=strip(arg(1))
 
@@ -169,6 +213,14 @@ compile endif
          -- resolve environment variables
          if pos( '%', file ) then
             file = NepmdResolveEnvVars( file )
+         endif
+
+         --sayerror 'EDIT.E before call loadfile(file,options): file = 'file
+
+         -- resolve wildcards in filespec 'file' and delete REXX EA's for certain extensions
+         RexxEaDelete = NepmdQueryConfigValue( nepmd_hini, '\NEPMD\User\RexxEa\Delete' )
+         if RexxEaDelete = 1 then
+            call NepmdDeleteRexxEaFileSpec( file )
          endif
 
 compile if USE_APPEND  -- Support for DOS 3.3's APPEND, thanks to Ken Kahn.
