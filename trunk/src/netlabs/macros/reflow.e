@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflow.e,v 1.3 2002-08-19 23:48:36 aschn Exp $
+* $Id: reflow.e,v 1.4 2002-09-06 13:46:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -105,12 +105,18 @@ defc reflow =
    endif
    save_width = par_width  -- Save original units
    if par_width='' then
-      swp1 = copies(\0, 36)
+      swpFrame     = copies(\0, 36)
+      swpScrollbar = copies(\0, 36)
       call dynalink32( 'PMWIN',
                        '#837',
                        gethwndc(EPMINFO_EDITCLIENT)  ||
-                       address(swp1) )
-      par_width = ltoa(substr(swp1,9,4),10)
+                       address(swpFrame))
+      call dynalink32( 'PMWIN',
+                       '#837',
+                       gethwndc(EPMINFO_EDITORVSCROLL)  ||
+                       address(swpScrollbar))
+
+      par_width = ltoa(substr(swpFrame,9,4),10) - ltoa(substr(swpScrollbar,9,4),10);
 ;     sayerror 'width =' par_width 'pels'
    elseif isnum(par_width) then
       -- nop
