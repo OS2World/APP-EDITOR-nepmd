@@ -1,3 +1,33 @@
+; ***************************** Module Header ******************************\
+;
+; Module Name: actions.lst
+;
+; This list is read by
+;    -  the toolbar functions to generate a list of actions for UCMENUS in
+;       the hidden file called .actlist.
+;    -  the RecompileAll command, as well as the exfiles.lst.
+; For own toolbar command additions, copy actions.lst to your MYEPM\EX
+; directory and append your exfile names.
+;
+; Blank lines or lines starting with ; are ignored.
+;
+; Copyright (c) Netlabs EPM Distribution Project 2004
+;
+; $Id: actions.lst,v 1.2 2004-07-02 09:18:35 aschn Exp $
+;
+; ===========================================================================
+;
+; This file is part of the Netlabs EPM Distribution package and is free
+; software.  You can redistribute it and/or modify it under the terms of the
+; GNU General Public License as published by the Free Software
+; Foundation, in version 2 as it comes in the "COPYING" file of the
+; Netlabs EPM Distribution.  This library is distributed in the hope that it
+; will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
+;
+; **************************************************************************/
+
 commands
 reflow
 jot
@@ -8,3 +38,4 @@ tagsactn
 makeactn
 groups
 fonts
+
