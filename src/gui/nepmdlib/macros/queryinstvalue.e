@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryinstvalue.e,v 1.7 2002-09-21 13:58:54 cla Exp $
+* $Id: queryinstvalue.e,v 1.8 2002-10-31 14:40:35 cla Exp $
 *
 * ===========================================================================
 *
@@ -51,9 +51,12 @@ The following keywords are supported:
 - MESSAGE
 = returns the fully qualified pathname of the message file of
   the [=TITLE].
-- INF
-= returns the fully qualified pathname of the online help 
-  information file of the [=TITLE] (nepmd**.inf).
+- USRGUIDE
+= returns the fully qualified pathname of the user guide
+  information file of the [=TITLE] (neusr**.inf).
+- PRGGUIDE
+= returns the fully qualified pathname of the programming guide
+  information file of the [=TITLE] (neusr**.inf).
 - HELP
 = returns the fully qualified pathname of the online help file of
   the [=TITLE] (nepmd**.hlp).
@@ -98,7 +101,8 @@ defc NepmdQueryInstValue, QueryInstValue
  insertline helperNepmdQueryInstValue( 'LANGUAGE');
  insertline helperNepmdQueryInstValue( 'INIT');
  insertline helperNepmdQueryInstValue( 'MESSAGE');
- insertline helperNepmdQueryInstValue( 'INF');
+ insertline helperNepmdQueryInstValue( 'USRGUIDE');
+ insertline helperNepmdQueryInstValue( 'PRGGUIDE');
  insertline helperNepmdQueryInstValue( 'HELP');
  .modify = 0;
 
