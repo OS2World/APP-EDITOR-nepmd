@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.7 2002-06-10 13:34:21 cla Exp $
+# $Id: configure.in,v 1.8 2002-07-21 15:43:51 cla Exp $
 #
 # ===========================================================================
 #
@@ -50,7 +50,7 @@ BASEURL=ftp://ftp.leo.org/pub/comp/os/os2/leo/editors
 #   must exist (that is not tested for !)
 
 !ifndef ZIPSRCDIR
-ZIPSRCDIR=zip
+ZIPSRCDIR=$(CMPDIR)\zip
 !endif
 
 # directory where to put unpacked files
@@ -62,7 +62,7 @@ ZIPSRCDIR=zip
 #   build programs yet
 
 !ifndef UNZIPPEDDIR
-UNZIPPEDDIR=epm.packages
+UNZIPPEDDIR=$(CMPDIR)\epm.packages
 !endif
 
 
