@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.12 2002-10-31 14:31:21 cla Exp $
+* $Id: instval.c,v 1.13 2002-10-31 14:40:35 cla Exp $
 *
 * ===========================================================================
 *
@@ -170,8 +170,7 @@ do
       sprintf( szValue, szTmp, szNepmdLanguage);
       }
 
-   else if ((!stricmp( pszValueTag, NEPMD_INSTVALUE_INF)) ||
-            (!stricmp( pszValueTag, NEPMD_INSTVALUE_USRGUIDE)))
+   else if (!stricmp( pszValueTag, NEPMD_INSTVALUE_USRGUIDE))
       {
       // determine name of message file
       if (fRunningInDevTree)

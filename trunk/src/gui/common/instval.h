@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.h,v 1.7 2002-10-31 14:31:22 cla Exp $
+* $Id: instval.h,v 1.8 2002-10-31 14:40:35 cla Exp $
 *
 * ===========================================================================
 *
@@ -30,7 +30,6 @@
 #define NEPMD_INSTVALUE_INIT            "INIT"
 #define NEPMD_INSTVALUE_MESSAGE         "MESSAGE"
 #define NEPMD_INSTVALUE_HELP            "HELP"
-#define NEPMD_INSTVALUE_INF             "INF"
 #define NEPMD_INSTVALUE_USRGUIDE        "USRGUIDE"
 #define NEPMD_INSTVALUE_PRGGUIDE        "PRGGUIDE"
 
