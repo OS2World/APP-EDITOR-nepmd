@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdconst.e,v 1.3 2002-09-01 14:35:17 aschn Exp $
+* $Id: stdconst.e,v 1.4 2003-08-31 20:11:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -413,3 +413,32 @@ compile endif
 compile if not defined(IBM_IUO)
    IBM_IUO = 0  -- Omit stuff that uses IBM Internal Use Only routines.
 compile endif
+
+
+; PM menu stuff
+
+; Menu item styles (see PM2.INF and PMWIN.H)
+   MIS_TEXT            =     1  -- 0x0001   -- only required if MIS <> 0
+   MIS_BITMAP          =     2  -- 0x0002
+   MIS_SEPARATOR       =     4  -- 0x0004
+   MIS_OWNERDRAW       =     8  -- 0x0008
+   MIS_SUBMENU         =    16  -- 0x0010
+   MIS_MULTMENU        =    32  -- 0x0020   <-- multiple choice, unused, because not required?
+   MIS_SYCOMMAND       =    64  -- 0x0040
+   MIS_HELP            =   128  -- 0x0080
+   MIS_STATIC          =   256  -- 0x0100
+   MIS_BUTTONSEPARATOR =   512  -- 0x0200
+   MIS_BREAK           =  1024  -- 0x0400
+   MIS_BREAKSEPARATOR  =  2048  -- 0x0800
+   MIS_GROUP           =  4096  -- 0x1000
+   MIS_SINGLE          =  8192  -- 0x2000   <-- no multiple choice, unused, because not required?
+   --                    16384  -- 0x4000   -- unused
+   MIS_ENDPULLRIGHT    = 32768  -- 0x8000   <-- ENDPULLRIGHT is an own creation, only required for builtmenuitem?
+
+; Menu item attributes (see PM2.INF and PMWIN.H)
+   MIA_NODISMISS       =    32  -- 0x0020
+   MIA_FRAMED          =  4096  -- 0x1000
+   MIA_CHECKED         =  8192  -- 0x2000
+   MIA_DISABLED        = 16384  -- 0x4000
+   MIA_HILITED         = 32768  -- 0x8000
+
