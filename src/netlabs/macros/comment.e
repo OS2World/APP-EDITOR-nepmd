@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comment.e,v 1.3 2003-08-31 20:47:36 aschn Exp $
+* $Id: comment.e,v 1.4 2004-02-01 21:03:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -50,8 +50,7 @@ defc ucom, uncomment
 ;    replaceline '--- New line added at bottom ---'
 
 ; ---------------------------------------------------------------------------
-; arg(1) = file mode or single line comment char
-;          If omitted, file mode will be determined.
+; arg(1) = single line comment char(s)
 ; arg(2) = ('U'|'C')  U: uncomment, C: comment (default)
 ; Comment:
 ;    -  Every marked line or line with marked chars will be commented-out.
@@ -90,10 +89,8 @@ defproc CommentMarkedLines
       last = last - 1
    endif
 
-   mode = upcase(arg(1))
-   if mode = '' then
-      mode = NepmdGetMode()
-   endif
+   mode = NepmdGetMode()
+
    if abbrev( 'U', upcase(arg(2))) then
       action = 'UNCOMMENT'
    else
@@ -123,6 +120,8 @@ defproc CommentMarkedLines
 
       MLCPreferred = 1
 
+      Case         = 1  -- default is case-sensitive
+
    -- SLC?         : single line comment char(s), ? = 1...3
    -- SCL?Col      : column for the SLC, 0 means: allowed at every column, not used here
    -- SCL?AddSpace : (0|1) shall a space be added/removed after the SLC
@@ -130,12 +129,13 @@ defproc CommentMarkedLines
    -- MLC?Start    : multi line comment char(s), ? = 1...2, start string
    -- MLC?End      : multi line comment char(s), ? = 1...2, end string
    -- MLCPreferred : (1|2) used MLC?, only for action = 'COMMENT'
+   -- Case         : (0|1) for uncomment only: respect case when locating SLC string in line
 
-   if         mode = arg(1) then  -- if a single line comment char was submitted as arg(1)
+   if arg(1) > '' then  -- if a single line comment char was submitted as arg(1)
       SLC1         = arg(1)
-      SLC1AddSpace = 0
+      SLC1AddSpace = (rightstr( arg(1), 1) == ' ')  -- add a space if none was specified
 
-   elseif     mode = 'C' | mode = 'JAVA' mode = 'RC' then ------------- C JAVA RC
+   elseif     mode = 'C' | mode = 'JAVA' | mode = 'RC' then ----------- C JAVA RC
       SLC1         = '//'
       MLC1Start    = '/*'
       MLC1End      = '*/'
@@ -153,10 +153,12 @@ defproc CommentMarkedLines
       SLCPreferred = 1
       MLC1Start    = '/*'
       MLC1End      = '*/'
+      Case         = 0  -- not required
 
-   elseif     mode = 'REXX' then -------------------------------------- REXX
+   elseif     mode = 'REXX' | mode = 'CSS' then ----------------------- REXX CSS
       MLC1Start    = '/*'
       MLC1End      = '*/'
+      Case         = 0  -- not required
 
    elseif     mode = 'CMD' then --------------------------------------- CMD
       SLC1         = ': '
@@ -169,19 +171,23 @@ defproc CommentMarkedLines
 ;     SLC3Col      = 1
       SLC3AddSpace = 0
       SLCPreferred = 1
+      Case         = 0
 
    elseif     mode = 'CONFIGSYS' then --------------------------------- CONFIGSYS
       SLC1         = 'REM '
 ;     SLC1Col      = 1
       SLC1AddSpace = 0
+      Case         = 0
 
    elseif     mode = 'INI' | mode = 'OBJGEN' then --------------------- INI OBJGEN
       SLC1         = ';'
 ;     SLC1Col      = 1
+      Case         = 0
 
    elseif     mode = 'IPF' | mode = 'SCRIPT' then --------------------- IPF SCRIPT
       SLC1         = '.*'
 ;     SLC1Col      = 1
+      Case         = 0  -- not required
 
    elseif     mode = 'PASCAL' then ------------------------------------ PASCAL
       SLC1         = '//'
@@ -190,11 +196,13 @@ defproc CommentMarkedLines
       MLC2Start    = '{'
       MLC2End      = '}'
       MLCPreferred = 1
+      Case         = 0  -- not required
 
    elseif     mode = 'PERL' then -------------------------------------- PERL
       SLC1         = '#'  -- looks like a space thereafter is not required
       MLC1Start    = '/*'
       MLC1End      = '*/'
+      Case         = 0  -- not required
 
    elseif     mode = 'ADA' then --------------------------------------- ADA
       SLC1         = '--'
@@ -213,9 +221,10 @@ defproc CommentMarkedLines
       MLC1Start    = '\iffalse'
       MLC1End      = '\fi'
 
-   elseif     mode = 'HTML' then -------------------------------------- HTML
+   elseif     mode = 'HTML' | mode = 'WARPIN' then -------------------- HTML WARPIN
       MLC1Start    = '<!--'
       MLC1End      = '-->'
+      Case         = 0  -- not required
 
    elseif     mode = 'PHP' then --------------------------------------- PHP
       SLC1         = '//'
@@ -225,7 +234,7 @@ defproc CommentMarkedLines
       MLC1End      = '-->'
       MLC2Start    = '/*'
       MLC2End      = '*/'
-      SLCPreferred = 2
+      MLCPreferred = 2
 
    elseif     mode = 'BASIC' then ------------------------------------- BASIC
       SLC1         = "'"
@@ -234,6 +243,7 @@ defproc CommentMarkedLines
 ;     SLC2Col      = 1
       SLC2AddSpace = 0
       SLCPreferred = 1
+      Case         = 0
 
    endif
 
@@ -273,9 +283,9 @@ compile endif
          if SLCAddSpace then SLC = SLC' '; endif
          do l = first to last
             .line = l
-            oldline = textline(.line)
-            newline = SLC''oldline
-            replaceline newline
+            Oldline = textline(.line)
+            Newline = SLC''Oldline
+            replaceline Newline
             .modify = saved_modify + 1
          enddo
 
@@ -329,11 +339,20 @@ compile if COMMENT_ADD_SPACE = 1 or COMMENT_ADD_SPACE = 0
 compile endif
          do l = first to last
             .line = l
-            oldline = textline(.line)
-            if leftstr( oldline, lenSpace) <> SLCSpace then
+            Oldline = textline(.line)
+            if Case = 0 then
+               CaseOldline  = upcase(Oldline)
+               CaseSLCSpace = upcase(SLCSpace)
+               CaseSLC      = upcase(SLC)
+            else
+               CaseOldline  = Oldline
+               CaseSLCSpace = SLCSpace
+               CaseSLC      = SLC
+            endif
+            if leftstr( CaseOldline, lenSpace) <> CaseSLCSpace then
                -- Try SLC without space.
-               if leftstr( oldline, len) = SLC then
-                  if oldline <> SLC then
+               if leftstr( CaseOldline, len) = CaseSLC then
+                  if CaseOldline <> CaseSLC then
                      -- Reset it only if this is not a blank commented line
                      SLCAddSpace = 0
                   endif
@@ -353,15 +372,22 @@ compile endif
          -- At this point we are sure, that every line is commented.
          do l = first to last
             .line = l
-            oldline = textline(.line)
-            if oldline = SLC then  -- for commented blank lines missing the space
-               newline = ''
-            elseif length(oldline) > len then
-               newline = substr( oldline, len + 1)
+            Oldline = textline(.line)
+            if Case = 0 then
+               CaseOldline  = upcase(Oldline)
+               CaseSLC      = upcase(SLC)
             else
-               newline = ''
+               CaseOldline  = Oldline
+               CaseSLC      = SLC
             endif
-            replaceline newline
+            if CaseOldline = CaseSLC then  -- for commented blank lines missing the space
+               Newline = ''
+            elseif length(Oldline) > len then
+               Newline = substr( Oldline, len + 1)
+            else
+               Newline = ''
+            endif
+            replaceline Newline
             .modify = saved_modify + 1
          enddo  -- l
          SLCProcessed = 1
