@@ -16,7 +16,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: create.cmd,v 1.9 2002-06-03 18:09:38 cla Exp $
+: $Id: create.cmd,v 1.10 2002-06-10 15:41:42 cla Exp $
 :
 : ===========================================================================
 :
@@ -67,7 +67,7 @@
 
  SET BASE=1 -r -c%UNZIPPEDDIR%\epmapp * 1 -r -c%UNZIPPEDDIR%\epmdll * 1 -r -c%UNZIPPEDDIR%\epmhlp * 1 -r -c%UNZIPPEDDIR%\epmbk *
  SET BMP=1 -r -c%UNZIPPEDDIR%\epmbmps *
- SET NEPMD_BASE=1 -r -ccompile netlabs\install\* 1 -r -ccompile netlabs\book\* 1 -r -c%BINDIR% netlabs\bin\*
+ SET NEPMD_BASE=1 -r -ccompile netlabs\install\* 1 -r -ccompile netlabs\book\*
 
 : --- package 2: macros
 
@@ -75,6 +75,7 @@
  SET EBOOKE=2 -r -c%UNZIPPEDDIR%\ebooke *
  SET MYASSIST=2 -r -c%UNZIPPEDDIR%\epmasi *
  SET VMEXEC=2 -r -c%UNZIPPEDDIR%\lampdq *
+ SET NEPMD_RECOMP=2 -r -c%BINDIR% netlabs\bin\*
 
 : --- package 3: Programming Samples
 
@@ -88,7 +89,7 @@
 : --- build and start WPI
 
  ECHO - creating %WPIFILE%
- wic %WPIFILE% -a %BASE% %BMP% %NEPMD_BASE%   %MACROS% %EBOOKE% %MYASSIST% %VMEXEC%   %SAMPLES% %ATTR%   %SPEECH% -s %SCRIPTFILE% >%LOGFILE% 2>&1
+ wic %WPIFILE% -a %BASE% %BMP% %NEPMD_BASE% %MACROS% %NEPMD_RECOMP% %EBOOKE% %MYASSIST% %VMEXEC%   %SAMPLES% %ATTR%   %SPEECH% -s %SCRIPTFILE% >%LOGFILE% 2>&1
  IF ERRORLEVEL 1 (DEL %WPIFILE% & TYPE %LOGFILE%)
 
 :end
