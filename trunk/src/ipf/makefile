@@ -9,7 +9,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.1 2002-06-03 18:13:58 cla Exp $
+# $Id: makefile,v 1.2 2002-06-06 11:39:16 cla Exp $
 #
 # ===========================================================================
 #
@@ -51,6 +51,9 @@ NEPMDINF: $(CMPINFDIR)\nepmd.inf
 
 HELP: HELPINF
   @start view $(BASEDIR)\bin\makefile.inf "Making"
+
+NEPMD: NEPMDINF
+  @start view $(CMPINFDIR)\nepmd.inf "Netlabs"
 
 
 CLEAN:
