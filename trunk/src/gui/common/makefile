@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.3 2002-06-04 22:19:56 cla Exp $
+# $Id: makefile,v 1.4 2002-06-06 11:57:05 cla Exp $
 #
 # ===========================================================================
 #
@@ -29,6 +29,8 @@ OBJS=\
  $(BINDIR)\pmres.obj\
  $(BINDIR)\process.obj \
  $(PMPRINTF)
+
+MT=1
 
 # include main definitions
 BASEDIR=..\..\..
