@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.5 2002-08-10 15:33:08 cla Exp $
+* $Id: epmcall.c,v 1.6 2002-08-10 19:23:33 cla Exp $
 *
 * ===========================================================================
 *
@@ -123,8 +123,10 @@ return pszResult;
 APIRET GetExtendedEnvironment( PSZ envv[], PSZ pszEnvFile, PSZ *ppszNewEnv)
 {
          APIRET         rc  = NO_ERROR;
+         ULONG          i;
 
          CHAR           szInstallVar[ _MAX_PATH + 30];
+         PSZ            apszVar[ 2]; // increase size of array of more vars required !!!
 
          PSZ           *ppszEnv;
          PSZ            pszVar;
@@ -145,6 +147,9 @@ static   PSZ            pszDelimiters = "\r\n";
 
 do
    {
+   // init vars
+   memset( apszVar, 0, sizeof( apszVar));
+
    // check parms
    if ((!pszEnvFile) ||
        (!envv))
@@ -153,9 +158,10 @@ do
       break;
       }
 
-   // -------- set internal var(s) first
+   // -------- set internal var(s) first, use a different buffer for each
+   //          as putvar only passes a pointer to the environment list !!!
 
-   // get NEPMD install directory first
+   // --- > set environment variable for NEPMD install directory
    memset( szInstallVar, 0, sizeof( szInstallVar));
    sprintf( szInstallVar, "%s=", ENV_NEPMD_PATH);
    PrfQueryProfileString( HINI_USER,
@@ -164,7 +170,20 @@ do
                           NULL,
                           _EOS(szInstallVar),
                           _EOSSIZE( szInstallVar));
-   putenv( szInstallVar);
+   apszVar[ 0] = strdup( szInstallVar);
+   putenv( apszVar[ 0]);
+
+   // --- > set environment variable for NEPMD language
+   memset( szInstallVar, 0, sizeof( szInstallVar));
+   sprintf( szInstallVar, "%s=", ENV_NEPMD_LANGUAGE);
+   PrfQueryProfileString( HINI_USER,
+                          NEPMD_INI_APPNAME,
+                          NEPMD_INI_KEYNAME_LANGUAGE,
+                          NULL,
+                          _EOS(szInstallVar),
+                          _EOSSIZE( szInstallVar));
+   apszVar[ 1] = strdup( szInstallVar);
+   putenv( apszVar[ 1]);
 
    // check file
    if (FileExists( pszEnvFile))
@@ -281,6 +300,10 @@ if (rc)
 // cleanup
 if (hfile) DosClose( hfile);
 if (pszData) free( pszData);
+for (i = 0; i < (sizeof( apszVar) / sizeof( PSZ)); i++)
+   {
+   if (apszVar[ i]) free( apszVar[ i]);
+   }
 return rc;
 }
 
