@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: _move.cmd,v 1.1 2002-04-15 16:37:51 ktk Exp $
+* $Id: _move.cmd,v 1.2 2002-04-15 22:01:55 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,7 +28,9 @@
 
  /* remove drive from target specification */
  /* and execute move command               */
- PARSE VAR Target .':'Target;
+ IF (POS( ':', Target) > 0) THEN
+    PARSE VAR Target .':'Target;
+
  '@MOVE' Source Target;
  EXIT( rc);
 
