@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: autolink.e,v 1.2 2002-10-17 21:41:39 cla Exp $
+* $Id: autolink.e,v 1.3 2002-10-18 13:12:39 cla Exp $
 *
 * ===========================================================================
 *
@@ -21,9 +21,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
-defmain
-   'autolink'
 
 defc autolink =
    call NepmdAutolink();
@@ -52,7 +49,7 @@ defproc NepmdAutolink() =
         leave;
      endif
 
-     'linkverify' Filename;
+     'link' Filename;
   end;
   rc = 0;  -- no error from here
 
