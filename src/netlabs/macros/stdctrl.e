@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.12 2003-08-31 18:54:39 aschn Exp $
+* $Id: stdctrl.e,v 1.13 2003-08-31 21:14:32 aschn Exp $
 *
 * ===========================================================================
 *
@@ -555,10 +555,17 @@ compile if WANT_NODISMISS_MENUS & INCLUDE_STD_MENUS & not defined(STD_MENU_NAME)
 compile endif  -- WANT_NODISMISS_MENUS & INCLUDE_STD_MENUS
 
 defc load_dt_bitmap
-   call windowmessage(0, getpminfo(EPMINFO_EDITCLIENT),
-                      5499,            -- EPM_EDIT_SETDTBITMAPFROMFILE
-                      put_in_buffer(arg(1)),
-                      0)
+   universal bm_filename
+   BmpFile = arg(1)
+   if pos( ':\', BmpFile) & exist(BmpFile) then  -- if fully qualified and valid
+      call windowmessage(0, getpminfo(EPMINFO_EDITCLIENT),
+                         5499,            -- EPM_EDIT_SETDTBITMAPFROMFILE
+                         put_in_buffer(BmpFile),
+                         0)
+   else
+      bm_filename = ''
+      sayerror 'Filename for background bitmap not valid (must be fully qualified and 31 chars max)'
+   endif
 
 defc drop_bitmap
    universal bm_filename
@@ -3274,8 +3281,11 @@ defc menuinit_3
       universal lastchangeargs
       getsearch strng
       parse value strng with . c .       -- blank, 'c', or 'l'
-      SetMenuAttribute( 302, 16384, c<>'')  -- Find Next OK if not blank
-      SetMenuAttribute( 303, 16384, lastchangeargs<>'')  -- Change Next only if 'c'
+      SetMenuAttribute( 302, 16384, c<>'')               -- Find next OK if not blank
+      SetMenuAttribute( 303, 16384, lastchangeargs<>'')  -- Change next only if 'c'
+      SetMenuAttribute( 350, 16384, c<>'')               -- Global find next OK if not blank
+      SetMenuAttribute( 351, 16384, lastchangeargs<>'')  -- Global change next only if 'c'
+      SetMenuAttribute( 352, 16384, c<>'')               -- Toggle direction OK if not blank
 
  compile if WANT_BOOKMARKS
 --------------------------------------------- Menu id 3 -- Bookmarks --------------------
@@ -3643,8 +3653,12 @@ compile endif -- INCLUDE_MENU_SUPPORT & INCLUDE_STD_MENUS
    buildacceltable activeaccel, 'Alt_enter 4', AF_VIRTUALKEY+AF_SHIFT,  VK_ENTER, 1083  -- Shift+PadEnter
 
 compile if defined(BLOCK_ALT_KEY)
-   buildacceltable activeaccel, 'beep 2000 50', AF_VIRTUALKEY+AF_LONEKEY, VK_ALT, 1020
-   buildacceltable activeaccel, 'beep 2000 50', AF_VIRTUALKEY+AF_LONEKEY, VK_ALTGRAF, 1021
+   -- don't want Alt or AltGr switch to menu (PM-defined key F10 does the same)
+;  buildacceltable activeaccel, 'beep 2000 50', AF_VIRTUALKEY+AF_LONEKEY, VK_ALT, 1020
+;  buildacceltable activeaccel, 'beep 2000 50', AF_VIRTUALKEY+AF_LONEKEY, VK_ALTGRAF, 1021
+   -- who wants beeps instead?
+   buildacceltable activeaccel, '', AF_VIRTUALKEY+AF_LONEKEY, VK_ALT, 1020
+   buildacceltable activeaccel, '', AF_VIRTUALKEY+AF_LONEKEY, VK_ALTGRAF, 1021
 compile endif
 
    activateacceltable activeaccel
