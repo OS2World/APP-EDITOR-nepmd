@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.4 2002-09-13 16:59:26 cla Exp $
+* $Id: libreg.c,v 1.5 2002-09-13 17:03:28 cla Exp $
 *
 * ===========================================================================
 *
@@ -375,7 +375,10 @@ do
 
    // list is not empty, path may not be further removed
    if (fStopRemovePath) 
+      {
+      DPRINTF(( "LIBREG: abort path deletion at %s\n", pszPath));
       rc = ERROR_DIR_NOT_EMPTY;
+      }
 
    } while (FALSE);
 
