@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.5 2004-07-02 11:29:57 aschn Exp $
+* $Id: epmshell.e,v 1.6 2005-01-28 21:39:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -299,9 +299,30 @@ defc NowCanReadShell
       readbuf = copies( ' ', MAXCOL)
       retval = SUE_readln( ShellHandle, readbuf, bytesmoved);
       readbuf = leftstr( readbuf, bytesmoved)
-      if readbuf = \13 then iterate           -- ignore CR
-      elseif leftstr( readbuf, 1) = \10 then  -- LF is lineend
-         insertline substr( readbuf, 2), shellfid.last + 1, shellfid
+      if readbuf = \13
+         then iterate           -- ignore CR
+      endif
+
+      -- SUE_readln doesn't handle LF as line end, received from the app.
+      -- It won't initiate a NowCanReadShell at Unix line ends.
+      -- Therefore it must be parsed here again.
+      rest = readbuf
+      do while leftstr( rest, 1) = \10  -- LF is lineend
+         rest = substr( rest, 2)
+         p = pos( \10, rest)
+         if p > 0 then
+            next = substr( rest, 1, p - 1)
+            rest = substr( rest, p)
+         else
+            next = rest
+            rest = ''
+         endif
+         insertline next, shellfid.last+1, shellfid
+      enddo
+      readbuf = rest
+
+      if leftstr( readbuf, 1) = \10 then  -- LF is lineend
+         insertline substr( readbuf, 2), shellfid.last+1, shellfid
       else
          getline oldline, shellfid.last, shellfid
          if length(oldline) + length(readbuf) > MAXCOL then
