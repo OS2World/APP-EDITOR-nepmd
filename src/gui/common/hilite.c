@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.14 2002-10-08 22:07:01 cla Exp $
+* $Id: hilite.c,v 1.15 2002-10-09 13:28:41 cla Exp $
 *
 * ===========================================================================
 *
@@ -50,7 +50,7 @@
 #define DEBUG_DUMPARRAYDETAILS 0
 
 // debug output on func entry and exit
-#define DEBUG_NOMESSAGE_ENTEREXIT 0
+#define DEBUG_NOMESSAGE_ENTEREXIT 1
 
 #if DEBUG_NOMESSAGE_ENTEREXIT
 #undef FUNCENTER
@@ -314,11 +314,6 @@ do
 //       DPRINTF(( "HILITE: %u [%u] bytes (%u entries) (re)allocated for file list at 0x%08x\n",
 //                ulListSize, _msize( pszTmp), ulListSize / _MAX_PATH, pszTmp));
          pszEntry = pszFileList + (ulFileCount * _MAX_PATH);
-
-#ifdef DEBUG
-_dumpMMF();
-printf( "copy entry at entry at %p: %s\n", pszEntry, szFile);
-#endif
          strcpy( pszEntry, szFile);
          strlwr( pszEntry );
          ulFileCount++;
@@ -947,7 +942,7 @@ do
       do
          {
          // open the file
-         DPRINTF(( "HILITE: process file %s\n", pszSourceFile));
+//       DPRINTF(( "HILITE: process file %s\n", pszSourceFile));
          pfile = fopen( pszSourceFile, "r");
          szCurrentSection[ 0] = 0;
          pszCurrentSectionColors = 0;
@@ -1197,7 +1192,7 @@ do
                          (pszCurrentEndChar    - pszSectionEndChar)    +
                          (strlen( szCharset) + 32);
 
-   DPRINTF(( "HILITE: assembling %u bytes to hilite file: %s\n", ulHiliteContentsLen, szKeywordFile));
+// DPRINTF(( "HILITE: assembling %u bytes to hilite file: %s\n", ulHiliteContentsLen, szKeywordFile));
 
    rc = MmfAlloc( (PVOID*)&pszHiliteContents,
                   szKeywordFile,
