@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.4 2004-06-03 23:12:34 aschn Exp $
+* $Id: filelist.e,v 1.5 2004-07-02 09:27:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,8 +23,10 @@ Todo:
 - defproc RingAddToHistory doesn't work for wildcards in filespec; why?
 */
 
-; FileNumber is saved in an array var 'filenumber.'fid to show 'File # of ##'
-; FileList is saved in NEPMD.INI to restore a ring
+; -  Numbering files in the ring to provide the 'File # of ##' or '#/##' field
+;    for the titletext or statusbar
+; -  Save and restore a ring to/from NEPMD.INI
+; -  History definitions to track commands or files from EDIT, LOAD and SAVE
 
 const
 ; Keep only this amount of rings in NEPMD.INI:
@@ -39,10 +41,11 @@ compile if not defined(NEPMD_DEBUG_WRITE_FILE_NUMBER)
 compile endif
 
 ; ---------------------------------------------------------------------------
-; RingWriteFilePosition is called by 'quit' and NepmdAfterload.
-defproc RingWriteFilePosition
+; RingAutoWriteFilePosition is called by 'quit' and 'Afterload'.
+defproc RingAutoWriteFilePosition
    universal nepmd_hini
    universal RingWriteFilePositionDisabled
+   universal RingWriteFilePositionMaxFilesReached  -- used only here
 
    -- Don't overwite old ring if Disabled flag set (e.g. by RestoreRing)
    if RingWriteFilePositionDisabled = 1 then return; endif
@@ -51,6 +54,40 @@ defproc RingWriteFilePosition
    IsUnnamed = (.filename = GetUnnamedFileName())
    if filesinring() = 1 & IsUnnamed then return; endif
 
+   -- Check if Enabled
+   KeyPath = '\NEPMD\User\AutoRestore\Ring\SaveLast'
+   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Enabled <> 1 then return; endif
+
+   -- Handle upper limit for amount of files to save in ini
+   KeyPath = '\NEPMD\User\AutoRestore\Ring\MaxFiles'
+   MaxFiles = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if not isnum(MaxFiles) then
+      MaxFiles = 30
+   endif
+   if filesinring() > MaxFiles then
+      -- Check if MaxFiles was already reached before for this edit window
+      -- to suppress the msg for following files
+      if RingWriteFilePositionMaxFilesReached <> 1 then
+         -- Give that msg only once
+         sayerror 'Number of files in ring exceeds max = 'MaxFiles'.' ||
+                  ' Ring not saved.'
+         RingWriteFilePositionMaxFilesReached = 1
+      endif
+      return
+   else
+      RingWriteFilePositionMaxFilesReached = 0
+   endif
+
+   call RingWriteFilePosition()
+   return
+
+; ---------------------------------------------------------------------------
+; RingWriteFilePosition is called RingAutoWiteFilePosition and by defc
+; RingWriteFilePosition, used by the menuitem 'Save as last ring'.
+defproc RingWriteFilePosition
+   universal nepmd_hini
+
    KeyPath = '\NEPMD\User\AutoRestore\Ring\MaxRings'
    MaxRings = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if not isnum(MaxRings) then
@@ -58,18 +95,6 @@ defproc RingWriteFilePosition
    endif
    -- Handle MaxRings = 0
    if MaxRings = 0 then return; endif
-
-   KeyPath = '\NEPMD\User\AutoRestore\Ring\MaxFiles'
-   MaxFiles = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if not isnum(MaxFiles) then
-      MaxFiles = 30
-   endif
-   -- Handle upper limit for amount of files to save in ini
-   if filesinring() > MaxFiles then
-      sayerror 'Number of files in ring exceeds max = 'MaxFiles'.' ||
-               ' Ring not saved.'
-      return
-   endif
 
    -- Get EPM EFrame window handle
    hwnd = '0x'ltoa( gethwndc(6), 16)   -- EPMINFO_EDITFRAME
@@ -122,9 +147,6 @@ defproc RingWriteFilePosition
       -- end workaround
       rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\hwnd', hwnd)
    endif
-compile if NEPMD_DEBUG_RESTORE_RING and NEPMD_DEBUG
-   call NepmdPmPrintf( 'RWFP: FoundRing = 'FoundRing', ThisNumber = 'ThisNumber)
-compile endif
 
    ---- Delete old 'File'i and 'Posn'i --------------------------------------
    do i = 1 to 1000  -- just an upper limit to prevent looping forever
@@ -151,19 +173,19 @@ compile endif
          rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\File'j, .filename )
          rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Posn'j, .line .col .cursorx .cursory )
       endif
-compile if NEPMD_DEBUG_RESTORE_RING and NEPMD_DEBUG
-      call NepmdPmPrintf( 'RWFP: .filename = '.filename', i = 'i'/'MaxFiles',' ||
-                          ' j = 'j', filesinring() = 'MaxFiles', IsUnnamed = 'IsUnnamed)
-compile endif
       next_file
       getfileid fid
       if fid = firstfid then leave; endif
+;;      if fid = startfid then leave; endif
    enddo
 
    ---- Write 'Entries' (ammount of 'File'j and 'Posn'j) --------------------
    rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', j )
 
-   activatefile startfid
+   -- Check if file to be activated is still in ring
+   if wordpos( ValidateFileid(startfid), '1 2') then
+      activatefile startfid
+   endif
    return
 
 ; ---------------------------------------------------------------------------
@@ -212,9 +234,12 @@ defc RestoreRing
    KeyPath = '\NEPMD\User\SavedRings\'LastNumber
    LastEntries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries' )
 
-   IsUnnamed = (.filename = GetUnnamedFileName())
+   IsEmptyFileOnly = (.filename = GetUnnamedFileName() & filesinring() = 1 & .modify = 0)
+   emptyfid = ''
+   if IsEmptyFileOnly then
+      getfileid emptyfid
+   endif
    do j = 1 to LastEntries
-      -- Delete all keys
       filename = NepmdQueryConfigValue( nepmd_hini, KeyPath'\File'j )
       savedpos = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Posn'j )
       OpenNewWindow = 0
@@ -222,7 +247,7 @@ defc RestoreRing
 /*
       if j = 1 then
          OpenNewWindow = 1
-         if (filesinring() = 1) & IsUnnamed then
+         if IsEmptyFileOnly then
             OpenNewWindow = 0
          endif
       endif
@@ -233,21 +258,25 @@ compile if NEPMD_DEBUG_RESTORE_RING and NEPMD_DEBUG
 compile endif
 -- Problems here:
          "o 'restorering "LastNumber"'"
+         return
       else
--- CurEditCmd doesn't work?
-         CurEditCmd = 'RESTOREPOS'
 compile if NEPMD_DEBUG_RESTORE_RING and NEPMD_DEBUG
          call NepmdPmPrintf( 'RESTORERING: j = 'j', e "'filename'"'||" 'restorepos "savedpos"'")
 compile endif
-         'e "'filename'"'
-         'restorepos 'savedpos
-         --call prestore_pos( savedpos)
+         if pos( ' ', filename) then
+            filename = '"'filename'"'
+         endif
+         CurEditCmd = 'RESTOREPOS'
+         'e 'filename
+         if rc = 0 then
+            getfileid lastfid
+            'restorepos 'savedpos
+         endif
       endif
    enddo
 
    RingWriteFilePositionDisabled = ''
    RestorePosDisabled = ''
-   CurEditCmd = ''
 
 ; ---------------------------------------------------------------------------
 ; Delete all 'SavedRings' entries in NEPMD.INI
@@ -329,9 +358,7 @@ defproc RingAddToHistory
    --MaxLength = 65536
    MaxLength = 1599  -- apparently
    MaxItems  = 200
-   -- In E we must use the char function to specify an hex code.
-   -- The REXX string '01'x is not supported.
-   Delim = chr('01')  -- '00' doesn't work for NepmdWriteConfigValue
+   Delim = \1  -- \0 doesn't work for NepmdWriteConfigValue
 
    ListName = upcase( arg(1))
    if ListName = '' then
@@ -383,7 +410,7 @@ defproc RingAddToHistory
 
 ; ---------------------------------------------------------------------------
 ; Called by edit and save.
-defproc AddToHistory
+defproc AddToHistory( Listname, NewItem)
    universal nepmd_hini  -- often forgotten
 
    KeyPath = '\NEPMD\User\History'
@@ -395,15 +422,9 @@ defproc AddToHistory
    --MaxLength = 65536
    MaxLength = 1599
    MaxItems  = 200
-   -- In E we must use the char function to specify an hex code.
-   -- The REXX string '01'x is not supported.
-   Delim = chr('01')  -- '00' doesn't work for NepmdWriteConfigValue
+   Delim = \1
 
-   ListName = upcase( arg(1))
-   NewItem  = arg(2)
-   if ListName = '' | NewItem = '' then
-      return
-   endif
+   ListName = upcase( Listname)
 
    if ListName = 'LOAD' then
       KeyPath = '\NEPMD\User\History\Load'
@@ -447,11 +468,16 @@ defproc AddToHistory
    return
 
 ; ---------------------------------------------------------------------------
+; For use with postme.
+defc AddToHistory
+   parse arg ListName NewItem
+   call AddToHistory( ListName, NewItem)
+
+; ---------------------------------------------------------------------------
 defc History
    universal nepmd_hini  -- often forgotten
 
-   -- In E we must use the char function to specify an hex code. The REXX string '01'x is not supported.
-   Delim = chr('01')  -- '00' doesn't work for NepmdWriteConfigValue
+   Delim = \1
 
    ListName = strip( upcase( arg(1)))
    if ListName = '' then
@@ -569,6 +595,18 @@ compile endif
 defproc RingWriteFileNumber
    universal firstinringfid
    universal EPM_utility_array_ID
+   universal nepmd_hini
+
+   -- Process only, when a <file> field is present
+   KeyPath = '\NEPMD\User\InfoLine\TitleFields'
+   TitleFields = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if pos( '<file>', TitleFields) = 0 then
+      KeyPath = '\NEPMD\User\InfoLine\TitleFields'
+      StatusFields = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+      if pos( '<file>', StatusFields) = 0 then
+         return
+      endif
+   endif
 
    getfileid startfid
 compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
@@ -616,7 +654,11 @@ compile endif
       FileNumber = FileNumber + 1
       -- arg(2) and arg(4) of do_array must be vars!
       do_array 2, EPM_utility_array_ID, 'filenumber.'fid, FileNumber
-      'RefreshInfoLine FILELIST'
+      'RefreshInfoLine FILELIST'  -- Critical? If this would be processed only on defselect, the field for
+                                  -- a file, selected by the internal ask-before-quit-if-modified routine
+                                  -- is not updated, when it gets selected.
+                                  -- (But the ring can be updated before the ring_more dialog is opened.)
+                                  -- Maybe refreshing the ring should be processed on the next defselect.
       nextfile
    enddo
    activatefile startfid
@@ -627,7 +669,7 @@ defc RingWriteFileNumber
    call RingWriteFileNumber()
 
 ; ---------------------------------------------------------------------------
-; Called by defproc GetInfoRuleValue('FILE').
+; Called by defproc GetInfoFieldValue('FILE').
 ; WriteFileNumber caused suddenly a wrong start file. Fortunately Calling
 ; WriteFileNumber is not required anymore. This is done by AfterLoad for the
 ; whole ring.
