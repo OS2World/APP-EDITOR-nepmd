@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.5 2002-09-06 19:24:20 aschn Exp $
+* $Id: kwhelp.e,v 1.6 2002-09-06 22:33:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -56,13 +56,13 @@ compile if not defined('KEYWORD_HELP_COMMAND')
    --KEYWORD_HELP_COMMAND = 'start newview'  -- optional value for MYCNF.E
    KEYWORD_HELP_COMMAND = 'view'  -- default
 compile endif
-compile if not defined(WANT_HELPNDXSHELF)
+compile if not defined(NEPMD_HELPNDXSHELF)
    -- Replace the EnvVar HELPNDX with the new EnvVar HELPNDXSHELF,
    -- simular to BOOKSHELF. *.ndx files are searched in the path list
    -- specified by HELNDXSHELF, so there will be no need anymore to
    -- edit the HELPNDX EnvVar when a new *.ndx file should be added.
    -- If HELPNDXSHELF is not set, then HELPNDX will be used.
-   WANT_HELPNDXSHELF = 1
+   NEPMD_HELPNDXSHELF = 1
 compile endif
 
 
@@ -202,25 +202,19 @@ defproc pGet_Identifier(var id, startcol, endcol, ft)
 defproc pBuild_Helpfile(ft)
    universal helpindex_id, savetype
    rc = 0
+   HelpNdxShelfMode = 0
 
-compile if WANT_HELPNDXSHELF
+compile if NEPMD_HELPNDXSHELF
    HelpNdxShelf = Get_Env('HELPNDXSHELF')
-   --sayerror 'HelpNdxShelf = 'HelpNdxShelf -- for testing
    HelpList = ''
-   if HelpNdxShelf = '' then
+   if HelpNdxShelf <> '' then
+      -- If EnvVar HELPNDXSHELF is set then use it instead of HELPNDX
       -- If EnvVar HELPNDXSHELF is not set then run standard procedure
-compile endif -- WANT_HELPNDXSHELF
-      HelpList = Get_Env('HELPNDX')
-      if HelpList='' then
-         compile if defined(KEYWORD_HELP_INDEX_FILE)
-                       HelpList = KEYWORD_HELP_INDEX_FILE
-         compile else
-                       HelpList = 'epmkwhlp.ndx'
-         compile endif
-      endif
-      SaveList = HelpList
-compile if WANT_HELPNDXSHELF
+      HelpNdxShelfMode = 1
    else
+   endif
+   --sayerror 'HelpNdxShelf = 'HelpNdxShelf', HelpNdxShelfMode = 'HelpNdxShelfMode  -- for testing
+   if HelpNdxShelfMode then
       -- If EnvVar HELPNDXSHELF is set then find *.ndx in all pathes
       rest = helpndxshelf
       do while rest <> ''
@@ -247,29 +241,46 @@ compile if WANT_HELPNDXSHELF
          enddo
          --sayerror 'HelpDir = 'HelpDir', HelpList = 'HelpList -- for testing
       enddo
-   endif -- HelpNdxShelf = ''
-compile endif -- WANT_HELPNDXSHELF
+   else
+compile endif -- NEPMD_HELPNDXSHELF
+      HelpList = Get_Env('HELPNDX')
+      if HelpList='' then
+         compile if defined(KEYWORD_HELP_INDEX_FILE)
+                       HelpList = KEYWORD_HELP_INDEX_FILE
+         compile else
+                       HelpList = 'epmkwhlp.ndx'
+         compile endif
+      endif
+      SaveList = HelpList
+compile if NEPMD_HELPNDXSHELF
+   endif -- HelpNdxShelfMode
+compile endif -- NEPMD_HELPNDXSHELF
+   --sayerror 'HelpList = 'HelpList -- for testing
 
    do while HelpList<>''
 
-compile if WANT_HELPNDXSHELF
-      parse value HelpList with DestFilename '+' HelpList
-compile else
-      parse value HelpList with HelpIndex '+' HelpList
-      /* look for the help index file in current dir, EPMPATH, DPATH, and EPM.EXE's dir: */
-      findfile destfilename, helpindex, '','D'
+compile if NEPMD_HELPNDXSHELF
+      if HelpNdxShelfMode then
+         parse value HelpList with DestFilename '+' HelpList
+      else
+compile endif -- NEPMD_HELPNDXSHELF
+         parse value HelpList with HelpIndex '+' HelpList
+         /* look for the help index file in current dir, EPMPATH, DPATH, and EPM.EXE's dir: */
+         findfile destfilename, helpindex, '','D'
 
-      if rc then
-         /* If that fails, try the standard path. */
-         findfile destfilename, helpindex, 'PATH'
          if rc then
-            sayerror  'Help index 'helpindex' not found'
-            rc = 0
-            /* return -- changed this so that error is informational, not severe */
-            destfilename = ''
+            /* If that fails, try the standard path. */
+            findfile destfilename, helpindex, 'PATH'
+            if rc then
+               sayerror 'Help index 'helpindex' not found'
+               rc = 0
+               /* return -- changed this so that error is informational, not severe */
+               destfilename = ''
+            endif
          endif
-      endif
-compile endif -- WANT_HELPNDXSHELF
+compile if NEPMD_HELPNDXSHELF
+      endif  -- HelpNdxShelfMode
+compile endif -- NEPMD_HELPNDXSHELF
 
       if destfilename <> '' then
          if pos(' ',destfilename) then
