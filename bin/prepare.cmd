@@ -15,7 +15,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.9 2002-04-18 16:07:50 cla Exp $
+: $Id: prepare.cmd,v 1.10 2002-04-18 16:31:29 cla Exp $
 :
 : ===========================================================================
 :
@@ -50,7 +50,6 @@
 : ---------- check for package files from LEO
 
  MD %ZIPSRCDIR%   >NUL 2>&1
- MD %UNZIPPEDDIR% >NUL 2>&1
 
  SET CHECK=epm603.zip
  IF NOT EXIST %ZIPSRCDIR%\%CHECK% wget -P %ZIPSRCDIR% %WGETOPTS% %BASEURL%/%CHECK%
@@ -73,6 +72,9 @@
 :unpack
 
  IF EXIST %LOGFILE%  DEL %LOGFILE%                                             >NUL 2>&1
+
+ IF EXIST %UNZIPPEDDIR% CALL KD %UNZIPPEDDIR%                                  >NUL 2>&1
+ MD %UNZIPPEDDIR% >NUL 2>&1
 
 : --- unpack package zip files
  ECHO - unpack EPM 6.03 packages
