@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.h,v 1.5 2002-09-04 10:16:21 cla Exp $
+* $Id: nepmdlib.h,v 1.6 2002-09-04 10:18:04 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,6 +34,7 @@
 #define NEPMD_ALARMSTYLE_WARNING       "WARNING"
 #define NEPMD_ALARMSTYLE_NOTE          "NOTE"
 #define NEPMD_ALARMSTYLE_ERROR         "ERROR"
+
 
 // tag definitons for NepmdQueryPathInfo
 #define NEPMD_PATHINFO_CTIME           "CTIME"
