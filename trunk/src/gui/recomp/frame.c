@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: frame.c,v 1.6 2002-08-15 10:38:24 cla Exp $
+* $Id: frame.c,v 1.7 2002-08-24 20:07:40 cla Exp $
 *
 * ===========================================================================
 *
@@ -425,7 +425,7 @@ do
       }
 
    // get extended environment - ignore any error
-   GetExtendedEPMEnvironment( envp, &wd.pszEpmEnv);
+   GetExtendedEPMEnvironment( envp, &wd.pszEpmEnv, NULL, 0);
 
    // load language specific DLL
    wd.hmodResource = _loadNlsModule();
