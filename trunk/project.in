@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: project.in,v 1.8 2002-08-19 18:02:45 cla Exp $
+# $Id: project.in,v 1.9 2002-08-21 14:02:29 cla Exp $
 #
 # ===========================================================================
 #
@@ -116,6 +116,7 @@ PATH=$(BASEDIR)\bin;$(PATH)
 #     trigger the rebuild of the WPI package in src\wis\makefile
 
 SRCCOPY_FLAGFILE=$(CMPDIR)\srccopy.txt
+NLSCOPY_FLAGFILE=$(CMPDIR)\nlscopy.txt
 
 WPIDEPLIST=\
  $(SRCCOPY_FLAGFILE) \
