@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writestringea.e,v 1.10 2002-09-07 13:19:47 cla Exp $
+* $Id: writestringea.e,v 1.11 2002-09-08 18:43:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -57,9 +57,16 @@ executing:
 - *WriteStringEa*
    [.IDPNL_EFUNC_NEPMDWRITESTRINGEA_PARM_FILENAME filename]
 
+
 Executing this command will
-write the string *This is a test value for the NepmdWriteStringEa API !*
-as an extended string attribute with the name *NEPMD.__TestStringEa* 
+write the string
+.sl compact
+- *This is a test value for the NepmdWriteStringEa API !*
+.el
+as an extended string attribute with the name
+.sl compact
+- *NEPMD.__TestStringEa* 
+.el
 to the specified file
 and display the result within the status area.
 

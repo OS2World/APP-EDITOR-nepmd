@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deletestringea.e,v 1.9 2002-09-07 13:19:43 cla Exp $
+* $Id: deletestringea.e,v 1.10 2002-09-08 18:43:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -63,9 +63,14 @@ executing:
   - or
 - *DeleteStringEa* [.IDPNL_EFUNC_NEPMDDELETESTRINGEA_PARM_FILENAME filename]
 
+
 Executing this command will
 remove the specified extended attribute 
-with the name *NEPMD.__TestStringEa* from the specified file
+with the name
+.sl compact
+- *NEPMD.__TestStringEa*
+.el
+from the specified file
 and display the result within the status area.
 
 _*Example:*_
