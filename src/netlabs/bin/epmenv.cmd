@@ -26,7 +26,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.cmd,v 1.2 2002-11-17 17:43:12 aschn Exp $
+* $Id: epmenv.cmd,v 1.3 2003-12-12 16:31:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -93,7 +93,7 @@
 
  IniAppName     = 'NEPMD';
  IniKeyPath     = 'Path';
- IniKeyLanguage = 'Path';
+ IniKeyLanguage = 'Language';
 
  NepmdSubdir    = 'netlabs\bin';
  UserSubdir     = 'myepm\bin';
@@ -116,41 +116,53 @@
     IF (RIGHT( CurrentDir, 1) = '\') THEN
        PARSE VAR CurrentDir CurrentDir'\';
 
-    /* load main environment */
-    fUseEpmEnv = (TRANSLATE( CallName) = TRANSLATE( EpmEnvFile));
-    MainEnvFile = SearchEnvFile( CallDir'\'CallName''EnvExt,,
-                                 InstallPath'\'NepmdSubdir'\'CallName''EnvExt,,
-                                 InstallPath'\'NepmdSubdir'\'EpmEnvFile''EnvExt);
+    /* check if extended environment was already extended */
+    MainEnvFile = VALUE('NEPMD_MAINENVFILE', , env);
+    UserEnvFile = VALUE('NEPMD_USERENVFILE', , env);
+    IF (MainEnvFile = '' & UserEnvFile = '') THEN
+    DO
+       /* load main environment */
+       /*fUseEpmEnv = (TRANSLATE( CallName) = TRANSLATE( EpmEnvFile));  Unused */
+       MainEnvFile = SearchEnvFile( CallDir'\'CallName''EnvExt,,
+                                    InstallPath'\'NepmdSubdir'\'CallName''EnvExt,,
+                                    InstallPath'\'NepmdSubdir'\'EpmEnvFile''EnvExt);
 
-    /* load user environment file */
-    fUseEpmEnv = (TRANSLATE( CallName) = TRANSLATE( EpmEnvFile));
-    UserEnvFile = SearchEnvFile( CurrentDir'\'CallName''EnvExt,,
-                                 InstallPath'\'UserSubdir'\'CallName''EnvExt,,
-                                 InstallPath'\'UserSubdir'\'EpmEnvFile''EnvExt);
+       /* load user environment file */
+       /*fUseEpmEnv = (TRANSLATE( CallName) = TRANSLATE( EpmEnvFile));  Unused */
+       UserEnvFile = SearchEnvFile( CurrentDir'\'CallName''EnvExt,,
+                                    InstallPath'\'UserSubdir'\'CallName''EnvExt,,
+                                    InstallPath'\'UserSubdir'\'EpmEnvFile''EnvExt);
 
-    /* don't load same file twice */
-    IF (MainEnvFile \= UserEnvFile) THEN
-       UserEnvFile = '';
+       /* don't load same file twice */
+       IF (TRANSLATE(MainEnvFile) = TRANSLATE(UserEnvFile)) THEN
+          UserEnvFile = '';
 
-    /* set the automatic variables */
-    rc = VALUE( 'NEPMD_ROOTDIR',     InstallPath, env);
-    rc = VALUE( 'NEPMD_LANGUAGE',    InstallLanguage, env);
-    rc = VALUE( 'NEPMD_MAINENVFILE', MainEnvFile, env);
-    rc = VALUE( 'NEPMD_USERENVFILE', UserEnvFile, env);
+       /* set the automatic variables */
+       rc = VALUE( 'NEPMD_ROOTDIR',     InstallPath, env);
+       rc = VALUE( 'NEPMD_LANGUAGE',    InstallLanguage, env);
+       rc = VALUE( 'NEPMD_MAINENVFILE', MainEnvFile, env);
+       rc = VALUE( 'NEPMD_USERENVFILE', UserEnvFile, env);
 
 
-    IF (MainEnvFile \= '') THEN
-       rc = LoadEnvFile( 'main', MainEnvFile);
-    IF (UserEnvFile \= '') THEN
-       rc = LoadEnvFile( 'user', UserEnvFile);
+       IF (MainEnvFile \= '') THEN
+          rc = LoadEnvFile( 'main', MainEnvFile);
+       IF (UserEnvFile \= '') THEN
+          rc = LoadEnvFile( 'user', UserEnvFile);
 
+    END
+    ELSE
+    DO
+       /* skip environment extension if already extended */
+       SAY "Skip environment extension, already set with:";
+       SAY MainEnvFile", "UserEnvFile".";
+    END;
  END;
 
  EXIT( rc);
 
 /* ------------------------------------------------------------------------- */
 HALT:
- SAY 'Abbruch durch Benutzer.';
+ SAY 'Interrupted by user.';
  EXIT(ERROR.GEN_FAILURE);
 
 /* ------------------------------------------------------------------------- */
