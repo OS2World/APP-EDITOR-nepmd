@@ -9,7 +9,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.7 2002-09-21 14:28:58 cla Exp $
+# $Id: makefile,v 1.8 2002-10-31 13:19:57 cla Exp $
 #
 # ===========================================================================
 #
@@ -42,8 +42,8 @@ FILESTOCLEAN= \
  $(CMPDIR)\functions_.txt \
  $(CMPDIR)\functions.log \
  $(CMPDIR)\makefile.ipf \
- $(CMPDIR)\nepmd$(NLS).ipf \
- $(CMPINFDIR)\nepmd$(NLS).inf
+ $(CMPDIR)\neusr$(NLS).ipf \
+ $(CMPINFDIR)\neusr$(NLS).inf
 
 
 INCLUDE=$(INCLUDE);bmp;
@@ -64,17 +64,22 @@ NEPMDPANEL=$(PANEL)
 
 # --- pseudotargets ****************
 
-ALL: HELPINF NEPMDINF
+ALL: HELPINF NEUSRINF
 
 HELPINF: $(BASEDIR)\bin\makefile.inf
 
-NEPMDINF: $(CMPINFDIR)\nepmd$(NLS).inf
+NEUSRINF: $(CMPINFDIR)\neusr$(NLS).inf
+
+NEPRGINF: $(CMPINFDIR)\neprg$(NLS).inf
 
 HELP: HELPINF
   @start view $(BASEDIR)\bin\makefile.inf $(MAKEPANEL)
 
-NEPMD: NEPMDINF
-  @start view $(CMPINFDIR)\nepmd$(NLS).inf $(NEPMDPANEL)
+NEUSR: NEUSRINF
+  @start view $(CMPINFDIR)\neusr$(NLS).inf $(NEPMDPANEL)
+
+NEPRG: NEPRGINF
+  @start view $(CMPINFDIR)\neprg$(NLS).inf $(NEPMDPANEL)
 
 
 CLEAN:
@@ -86,11 +91,16 @@ CLEAN:
 $(BASEDIR)\bin\makefile.inf: makefile.txt *.inc
   htext /N makefile.txt $(BASEDIR)\compile\makefile.ipf $(BASEDIR)\bin\makefile.inf
 
-# ---- generate project documentation INF
+# ---- generate programming guide INF
 
-$(CMPINFDIR)\nepmd$(NLS).inf: nepmd$(NLS).txt title$(NLS).inc bmp\* $(CMPDIR)\functions.txt
-   htext /N nepmd$(NLS).txt $(CMPDIR)\nepmd$(NLS).ipf $(CMPINFDIR)\nepmd$(NLS).inf
+$(CMPINFDIR)\neprg$(NLS).inf: neprg$(NLS).txt title$(NLS).inc bmp\* $(CMPDIR)\functions.txt
+   htext /N neprg$(NLS).txt $(CMPDIR)\neprg$(NLS).ipf $(CMPINFDIR)\neprg$(NLS).inf
 
 $(CMPDIR)\functions.txt: ..\gui\nepmdlib\nepmdlib.e ..\gui\nepmdlib\macros\*
    esrcscan $(ESRCPATH)\nepmdlib.e $(ESRCPATH) $(CMPDIR) $(LIMITPATH)
+
+# ---- generate user guide INF
+
+$(CMPINFDIR)\neusr$(NLS).inf: neusr$(NLS).txt title$(NLS).inc bmp\*
+   htext /N neusr$(NLS).txt $(CMPDIR)\neusr$(NLS).ipf $(CMPINFDIR)\neusr$(NLS).inf
 
