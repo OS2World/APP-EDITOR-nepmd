@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: activatehighlight.e,v 1.5 2002-10-08 22:05:45 cla Exp $
+* $Id: activatehighlight.e,v 1.6 2002-10-20 12:17:02 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdActivateHighlight@PROTOTYPE
-rc = NepmdActivateHighlight( ActivateFlag, EpmMode);
+rc = NepmdActivateHighlight( ActivateFlag, EpmMode, HiliteOptions);
 
 @@NepmdActivateHighlight@CATEGORY@MODE
 
@@ -33,7 +33,7 @@ This function activates or deactivates the syntax highlighting for
 the loaded file.
 
 @@NepmdActivateHighlight@PARM@ActivateFlag
-This parameter optional specifies wether the syntax highlighting should be
+This parameter specifies wether the syntax highlighting should be
 activated or deactivated,
 
 Specifiy one of the following values:
@@ -44,7 +44,17 @@ Specifiy one of the following values:
 = activate syntax highlighting
 
 @@NepmdActivateHighlight@PARM@EpmMode
-This parameter specifies the current
+This optional parameter specifies the mode to be used. If no mode
+is specified, the mode of the current file is used.
+
+@@NepmdActivateHighlight@PARM@HiliteOptions
+This optional parameter specifies options.
+
+Specifiy one of the following values:
+.pl compact tsize=5
+- *N*
+= don't check the internal *EPM* highlight file for being outdated.
+  The file is nevertheless newly generated, if it does not yet exist
 
 @@NepmdActivateHighlight@RETURNS
 *NepmdActivateHighlight* returns an OS/2 error code or zero for no error.
@@ -101,14 +111,17 @@ defc NepmdActivateHighlight, ActivateHighlight =
 /* procedure: NepmdActivateHighlight                             */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
-/*    rc = NepmdActivateHighlight( x, y, cx, cy, style);         */
+/*    rc = NepmdActivateHighlight( ActivateFlag,                 */
+/*                                 Mode,                         */
+/*                                 HiliteOptions)                */
 /*                                                               */
 /*   windowId is one of the EPMINFO_* values of stdconst.e       */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdActivateHighlight(  HWND hwndClient,    */
 /*                                           PSZ pszActivateFlag,*/
-/*                                           PSZ pszEpmMode);    */
+/*                                           PSZ pszEpmMode,     */
+/*                                           PSZ pszOptions);    */
 /* ------------------------------------------------------------- */
 
 defproc NepmdActivateHighlight( ActivateFlag)
@@ -118,10 +131,12 @@ defproc NepmdActivateHighlight( ActivateFlag)
  if (EpmMode = '') then
     EpmMode = NepmdGetMode();
  endif
+ HiliteOptions = arg( 3);
 
  /* prepare parameters for C routine */
  ActivateFlag  = ActivateFlag''atoi( 0);
  EpmMode       = EpmMode''atoi( 0);
+ HiliteOptions = HiliteOptions''atoi( 0);
 
  /* call C routine */
  LibFile = helperNepmdGetlibfile();
@@ -129,7 +144,8 @@ defproc NepmdActivateHighlight( ActivateFlag)
                   "NepmdActivateHighlight",
                   gethwndc( EPMINFO_EDITCLIENT) ||
                   address( ActivateFlag)        ||
-                  address( EpmMode));
+                  address( EpmMode)             ||
+                  address( HiliteOptions));
 
  helperNepmdCheckliberror( LibFile, rc);
 
