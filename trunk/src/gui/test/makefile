@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.2 2002-08-22 09:02:41 cla Exp $
+# $Id: makefile,v 1.3 2002-08-22 09:45:45 cla Exp $
 #
 # ===========================================================================
 #
@@ -42,12 +42,20 @@ FILESTOCLEAN=$(DEPENDFILE) \
 
 INCLUDE=..\common;$(CMPDIR);$(INCLUDE)
 
+# --- set tesffile
+
+NEPMD_TMFTESTFILE=..\nepmdlib\nepmdlib.tmf
+
+
 # --- general pseudo targets
 
 all: exe
 
 run: all
-   @(SET NEPMD_TMFTESTFILE=..\nepmdlib\nepmdlib.tmf & $(BINDIR)\test.exe)
+   @(SET NEPMD_TMFTESTFILE=$(NEPMD_TMFTESTFILE) & $(BINDIR)\test.exe)
+
+reset:
+   eautil /s $(NEPMD_TMFTESTFILE) NUL
 
 clean:
    @echo cleaning up files ...
