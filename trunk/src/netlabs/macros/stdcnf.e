@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.13 2003-08-31 20:28:56 aschn Exp $
+* $Id: stdcnf.e,v 1.14 2003-09-01 06:40:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -203,13 +203,18 @@ compile endif
 --   'SRPI' uses SLSRPI.E, part of the LaMail package.
 --   ''     loads no host-file support at all.
 compile if not defined(HOST_SUPPORT)
- compile if not SMALL
+ compile if defined(SMALL)
+  compile if not SMALL
    --HOST_SUPPORT = 'STD'  -- changed by aschn
    -- Changed HOST_SUPPORT to W4's and eCS's default, because otherwise files from
    -- drive H: are not loaded properly and can't be saved.
    -- Note: if you want to activate it in your MYCNF.E, then also specify HOSTDRIVE!
    -- The default value is: HOSTDRIVE = H:
    HOST_SUPPORT = ''
+  compile else
+   -- Do not change this!!  Only the previous one.
+   HOST_SUPPORT = ''
+  compile endif
  compile else
    -- Do not change this!!  Only the previous one.
    HOST_SUPPORT = ''
