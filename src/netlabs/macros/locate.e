@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.8 2003-09-01 05:06:02 aschn Exp $
+* $Id: locate.e,v 1.9 2003-09-01 05:47:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -61,6 +61,7 @@ compile endif
    universal search_len
 
    call psave_pos(savepos)
+   args = strip( arg(1), 'L')
    -- Insert default_search_options just before supplied options (if any)
    -- so the supplied options will take precedence.
    if args <> '' then         -- If args not blank, set lastchangeargs.
