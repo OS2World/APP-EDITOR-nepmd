@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.4 2002-10-06 23:36:35 aschn Exp $
+* $Id: mouse.e,v 1.5 2002-10-15 22:26:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -653,12 +653,12 @@ defc MH_dblclick
 
 compile endif  -- WANT_CUA_MARKING
 
-defc MH_double  -- Used to be just 'dupmark U', but now overloaded in a DIR listing:
+defc MH_double -- take care for doubleclicks on URLs
    universal nepmd_hini
    KeyPath = "\NEPMD\User\Mouse\Url\MB1_DClick"
    MB1DClickStartsBrowser = NepmdQueryConfigValue( nepmd_hini, KeyPath )
    KeyPath = "\NEPMD\User\Mouse\Url\Browser"
-   Browser = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+   BrowserExecutable = NepmdQueryConfigValue( nepmd_hini, KeyPath )
    UrlStrings = 'http:// ftp:// www. https:// mailto:'
    Url = ''
 compile if WANT_TREE
@@ -672,6 +672,7 @@ compile endif
          -- if word under cursor contains an url then start netscape
          call psave_pos(saved_pos)
          call psave_mark(saved_mark)
+
          -- go to mouse position to ensure getting URL at mouse pointer and not at cursor
          'MH_gotoposition'
          cursorcol = .col
@@ -682,14 +683,26 @@ compile endif
          call prestore_pos(saved_pos)
          if cursorcol >= firstcol and cursorcol <= lastcol then -- if cursor in mark
 
+            -- locate URL in double-clicked word
             do u = 1 to words( UrlStrings )
-               p1 = pos( word( UrlStrings, u ), Spec )
+               UrlString = word( UrlStrings, u )
+               p1 = pos( UrlString, Spec )
                if p1 > 0 then
-                  Url = substr( Spec, p1 )
+
+                  -- get URL
+                  Url = substr( Spec, p1)
+
+                  -- add default protocol identifier
+                  if (pos( ':', Url) = 0) then
+                     Url = 'http://'Url
+                  endif
+
                   leave
                endif
             enddo
 
+
+            -- if no URL found, automatically process special URLs
             if Url = '' then
                filename = .filename
                p1 = lastpos( '\', filename )
@@ -712,47 +725,61 @@ compile endif
                endif
             endif
 
-            if Url <> '' then
-               --sayerror 'Url = 'Url
-               seplist = '" '||"' "||'( ) { } [ ] < > , !'
-               do i = 1 to words( seplist ) --while Found = 0
-                  sep = word( seplist, i )
-                  --Url = strip( Url, 'T', sep )
-                  parse value Url with tmp1 (sep) tmp2 (sep)
-                  --sayerror 'Url = 'Url', sep = 'sep', tmp1 = 'tmp1', tmp2 = 'tmp2
-                  do u = 1 to words( UrlStrings )
-                     p3 = pos( word( UrlStrings, u ), tmp1 )
-                     if p3 > 0 then
-                        Url = substr( tmp1, p3 )
-                        iterate
-                     endif
-                  enddo
-                  do u = 1 to words( UrlStrings )
-                     p4 = pos( word( UrlStrings, u ), tmp2 )
-                     if p4 > 0 then
-                        Url = substr( tmp2, p4 )
-                     endif
-                  enddo
-               enddo
-               if upcase(Browser) = 'DEFAULT' | Browser = '' then
-                  next = queryprofile( HINI_USERPROFILE, 'WPURLDEFAULTSETTINGS', 'DefaultBrowserExe')
-                  if next <> '' then
-                     Browser = next
-                  else
-                     Browser = 'netscape'
-                  endif
-               endif
-               sayerror 'Invoking 'Browser' with 'Url
-               'os2 /c /min start /f 'Browser' "'Url'"'
+            -- if no URL until here, quit
+            if Url = '' then
+               unmark
+               'ClearSharBuff'
+               stop
+            endif
+
+            -- cut off special separators from URL
+            SeparatorList = '"'||"'"||')]]>,;!';
+            ReplaceList   =  copies( ' ', length( SeparatorList))
+            Url = word( translate( Url, ReplaceList, SeparatorList),  1)
+
+            -- select default browser or use netscape as default
+            if upcase(BrowserExecutable) = 'DEFAULT' then
+               BrowserExecutable = queryprofile( HINI_USERPROFILE, 'WPURLDEFAULTSETTINGS', 'DefaultBrowserExe')
+               NamePos           = lastpos( '\', BrowserExecutable) + 1
+               ExtPos            = pos( '.', BrowserExecutable, NamePos) 
+               PathPos           = pos( '\', BrowserExecutable)
+
+               BrowserName       = substr( BrowserExecutable, NamePos, ExtPos - NamePos)
+               BrowserPath       = substr( BrowserExecutable, 1, NamePos - 2)
+
+            elseif BrowserExecutable = '' then
+               BrowserExecutable = 'netscape'
+               BrowserName       = 'Netscape'
+               BrowserPath       = ''
+            endif
+
+            -- save current directory
+            if BrowserPath <> '' then
+               CurrentDirectory  = directory()
+               call directory( BrowserPath)
+            endif
+
+            sayerror 'Invoking' BrowserName 'with:' Url
+            'os2 /min /c start /f' BrowserExecutable' "'Url'"'
+
+            -- Teststrings here:
+            -- http://www.os2.org
+            -- ftp://ftp.netlabs.org,www.netlabs.org,ftp://ftp.os2.org
+            -- (ftp://ftp.netlabs.org)
+            -- ####ftp://ftp.netlabs.org)###)
+            -- ftp://ftp.netlabs.org
+            -- www.netlabs.org
+            -- mailto:C.Langanke@Teamos2.de
+
+            -- restore current directory
+            if Browserpath <> '' then
+               call directory( CurrentDirectory)
             endif
 
          endif -- cursorcol > firstcol and cursorcol < lastcol then
+
       endif  -- MB1DClickStartsBrowser = 1
 
-      if Url = '' then
-         unmark
-         'ClearSharBuff'
-      endif
 
    endif
 
