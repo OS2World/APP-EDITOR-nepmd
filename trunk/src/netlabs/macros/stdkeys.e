@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.3 2002-09-01 14:36:53 aschn Exp $
+* $Id: stdkeys.e,v 1.4 2002-09-08 16:14:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -672,15 +672,8 @@ compile if WANT_SHIFT_MARKING
    call end_shift(startline, startcol, shift_flag, 1)
 compile endif
 
-compile if ENHANCED_ENTER_KEYS & C_ENTER_ACTION <> ''  -- define each key separately
-; Nothing - defined below along with ENTER
-compile else
-def c_enter, c_pad_enter=     -- 4.10:  new key for enhanced keyboard
-   call my_c_enter()
- compile if    SHOW_MODIFY_METHOD
-   call show_modify()
- compile endif
-compile endif
+; Moved to ENTER.E
+;def c_enter, c_pad_enter=
 
 def c_f=
 compile if defined(HIGHLIGHT_COLOR)
@@ -997,94 +990,17 @@ def s_end =
    call extend_mark(startline, startcol, 1)
 compile endif
 
-compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''  -- define each key separately
-def enter =
-   universal enterkey
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   call shell_enter_routine(enterkey)
- compile else
-   call enter_common(enterkey)
- compile endif
-def a_enter =
-   universal a_enterkey
-   call enter_common(a_enterkey)
-def c_enter =
-   universal c_enterkey
-   call enter_common(c_enterkey)
-def s_enter =
-   universal s_enterkey
-   call enter_common(s_enterkey)
-def padenter =
-   universal padenterkey
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   call shell_enter_routine(padenterkey)
- compile else
-   call enter_common(padenterkey)
- compile endif
-def a_padenter =
-   universal a_padenterkey
-   call enter_common(a_padenterkey)
-def c_padenter =
-   universal c_padenterkey
-   call enter_common(c_padenterkey)
-def s_padenter =
-   universal s_padenterkey
-   call enter_common(s_padenterkey)
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-defproc shell_enter_routine(xxx_enterkey)
-   if leftstr(.filename, 15) = ".command_shell_" then
-      shellnum=substr(.filename,16)
-      getline line
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      x = pos('>',line)
-  compile else
-      x = pos(']',line)
-  compile endif
-      text = substr(line,x+1)
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      if leftstr(line,5)='epm: ' & x & shellnum /*& text<>''*/ then
-  compile else
-      if leftstr(line,6)='[epm: ' & x & shellnum /*& text<>''*/ then
-  compile endif
-         if .line=.last then .col=x+1; erase_end_line; endif
-         'shell_write' shellnum text
-      else
-         call enter_common(xxx_enterkey)
-      endif
-   else
-      call enter_common(xxx_enterkey)
-   endif
- compile endif  -- EPM_SHELL
-
-compile else
-def enter, pad_enter, a_enter, a_pad_enter, s_enter, s_padenter=
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   if leftstr(.filename, 15) = ".command_shell_" then
-      shellnum=substr(.filename,16)
-      getline line
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      x = pos('>',line)
-  compile else
-      x = pos(']',line)
-  compile endif
-      text = substr(line,x+1)
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      if leftstr(line,5)='epm: ' & x & shellnum /*& text<>''*/ then
-  compile else
-      if leftstr(line,6)='[epm: ' & x & shellnum /*& text<>''*/ then
-  compile endif
-         if .line=.last then .col=x+1; erase_end_line; endif
-         'shell_write' shellnum text
-      else
-         call my_enter()
-      endif
-   else
- compile endif
-      call my_enter()
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   endif
- compile endif
-compile endif  -- ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
+; Moved to ENTER.E
+;def enter =
+;def a_enter =
+;def c_enter =
+;def s_enter =
+;def padenter =
+;def a_padenter =
+;def c_padenter =
+;def s_padenter =
+;defproc shell_enter_routine(xxx_enterkey)
+;def enter, pad_enter, a_enter, a_pad_enter, s_enter, s_padenter=
 
 compile if not defined(NO_ESCAPE)
    const NO_ESCAPE = 0
