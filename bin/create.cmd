@@ -16,7 +16,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: create.cmd,v 1.1 2002-04-15 16:37:51 ktk Exp $
+: $Id: create.cmd,v 1.2 2002-04-16 21:21:00 cla Exp $
 :
 : ===========================================================================
 :
@@ -54,8 +54,9 @@
 
 : --- package 1: application
 
- SET BASE=1 -r -c%UNZIPPEDDIR%\epmapp * 1 -r -c%UNZIPPEDDIR%\epmdll * 1 -r -c%UNZIPPEDDIR%\epmhlp * 1 -r -c%UNZIPPEDDIR%\epmbk * 1 book\nepmd.inf
+ SET BASE=1 -r -c%UNZIPPEDDIR%\epmapp * 1 -r -c%UNZIPPEDDIR%\epmdll * 1 -r -c%UNZIPPEDDIR%\epmhlp * 1 -r -c%UNZIPPEDDIR%\epmbk *
  SET BMP=1 -r -c%UNZIPPEDDIR%\epmbmps *
+ SET NEPMD_BOOK=1 book\nepmd.inf
 
 : --- package 2: macros
 
@@ -64,18 +65,23 @@
  SET MYASSIST=2 -r -c%UNZIPPEDDIR%\epmasi *
  SET VMEXEC=2 -r -c%UNZIPPEDDIR%\lampdq *
 
-: --- package 3: Speech Support
+: --- package 3: Programming Samples
 
- SET SPEECH=3 -r -c%UNZIPPEDDIR%\epmspch *
+ SET SAMPLES=3 -r -c%UNZIPPEDDIR%\epmdde * 3 -r -c%UNZIPPEDDIR%\epmrex *  3 -r -c%UNZIPPEDDIR%\epmcsamp *
+ SET ATTR=3 -r -c%UNZIPPEDDIR%\epmatr *
 
-: --- package 4: Programming Samples
+: --- package 4: Netlabs distribution extensions
 
- SET SAMPLES=4 -r -c%UNZIPPEDDIR%\epmdde * 4 -r -c%UNZIPPEDDIR%\epmrex *  4 -r -c%UNZIPPEDDIR%\epmcsamp *
- SET ATTR=4 -r -c%UNZIPPEDDIR%\epmatr *
+ SET NEPMD_BOOK=4 netlabs\book\nepmd.inf
 
-: build and start WPI
+: --- package 5: Speech Support
+
+ SET SPEECH=5 -r -c%UNZIPPEDDIR%\epmspch *
+
+: --- build and start WPI
+
  ECHO - creating %WPIFILE%
- wic %WPIFILE% -a %BASE% %NEPMD% %SPEECH% %EBOOKE% %ATTR% %BMP% %MYASSIST% %MACROS%  %SAMPLES% %VMEXEC% -s %SCRIPTFILE% >%LOGFILE% 2>&1
+ wic %WPIFILE% -a %BASE% %NEPMD_BOOK% %SPEECH% %EBOOKE% %ATTR% %BMP% %MYASSIST% %MACROS%  %SAMPLES% %VMEXEC% -s %SCRIPTFILE% >%LOGFILE% 2>&1
  IF ERRORLEVEL 1 (DEL %WPIFILE% & TYPE %LOGFILE%)
 
 :end
