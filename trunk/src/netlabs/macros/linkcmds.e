@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.12 2005-03-13 10:13:34 aschn Exp $
+* $Id: linkcmds.e,v 1.13 2005-03-27 15:06:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -501,8 +501,18 @@ defc RecompileAll
 defc RecompileNew
    universal nepmd_hini
 
-   parse value getdate(1) with today';' .  -- Discard MonthNum
-   parse value gettime(1) with now';' .    -- Discard Hour24
+   -- Following E files are tryincluded. When the user has added one of these
+   -- since last check, that one is not listed in
+   -- \NEPMD\User\ExFiles\<basename>\EFiles. Therefore it has to be checked
+   -- additionally.
+   -- Optional E files for every E file listed in a .LST file:
+   OptEFiles    = 'mycnf.e;'SITE_CONFIG';'
+   -- Optional E files tryincluded in EPM.E only:
+   OptEpmEFiles =  'mymain.e;myload.e;myselect.e;mykeys.e;mystuff.e;mykeyset.e;'
+
+   parse value getdatetime() with Hour24 Minutes Seconds . Day MonthNum Year0 Year1 .
+   Date = rightstr(Year0 + 256*Year1, 4, 0)'-'rightstr(monthnum, 2, 0)'-'rightstr(Day, 2, 0)
+   Time = rightstr(hour24, 2)':'rightstr(Minutes,2,'0')':'rightstr(Seconds,2,'0')
 
    'RingCheckModify'
 
@@ -536,7 +546,7 @@ defc RecompileNew
       enddo
    enddo
 
-   AppendEpm = 0
+   fPrependEpm = 0
    BaseNames = ''  -- ';'-separated list with basenames
    rest = ListFiles
    do while rest <> ''
@@ -568,7 +578,7 @@ defc RecompileNew
          endif
          -- Ignore epm (this time)
          if upcase( BaseName) = 'EPM' then
-            AppendEpm = 1
+            fPrependEpm = 1
          -- Append ExFile to list
          elseif pos( upcase(BaseName)';', upcase(BaseNames)';') = 0 then
             BaseNames = BaseNames''BaseName';'
@@ -579,9 +589,11 @@ defc RecompileNew
       .modify = 0
       'xcom q'
    enddo
-   -- Append 'epm;' ('epm' must be the last entry, if present, because it will restart EPM)
-   if AppendEpm = 1 then
-      BaseNames = BaseNames'epm;'  -- ';'-separated list with basenames
+   -- Append 'epm;'
+   -- 'epm;' should be the first entry, because it will restart EPM and
+   -- unlinking/linking of other .EX files can be avoided then.
+   if fPrependEpm = 1 then
+      BaseNames = 'epm;'BaseNames  -- ';'-separated list with basenames
    endif
    NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
    AutolinkDir  = NepmdRootDir'\myepm\autolink'  -- search in myepm\autolink first
@@ -592,7 +604,7 @@ defc RecompileNew
       call EraseTemp( LogFile)
    endif
    -- Writing ListFiles to LogFile in the part above would make EPM crash.
-   WriteLog( LogFile, 'RecompileNew started at' now 'on' today'.')
+   WriteLog( LogFile, 'RecompileNew started at' Date Time'.')
    WriteLog( LogFile, 'Checking base names listed in 'ListFiles)
 
    fRestartEpm  = 0
@@ -689,6 +701,24 @@ defc RecompileNew
             fCompExFile = 1
          else
 
+            -- Append optional E files (user may have added them since last check)
+            orest = OptEFiles
+            do while orest <> ''
+               parse value orest with next';'orest
+               if pos( ';'upcase( next)';', ';'upcase( OldEFiles)) = 0 then
+                  OldEFiles = OldEFiles''next';'
+               endif
+            enddo
+            if upcase( BaseName) = 'EPM' then
+               orest = OptEpmEFiles
+               do while orest <> ''
+                  parse value orest with next';'orest
+                  if pos( ';'upcase( next)';', ';'upcase( OldEFiles)) = 0 then
+                     OldEFiles = OldEFiles''next';'
+                  endif
+               enddo
+            endif
+
             erest = OldEFiles
             trest = OldEFileTimes
             do while erest <> ''
@@ -709,6 +739,8 @@ defc RecompileNew
                      fCompExFile = 1
                      WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" newer then last check')
                      --leave  -- don't leave to enable further warnings
+                  elseif (OldEFileTime = '') & (pos( ';'upcase( EFile)';', ';'upcase( OptEFiles)) > 0) then
+                     --WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" is an optional file and probably not included')
                   elseif EFileTime <> OldEFileTime then
                      fCompExFile = 1
                      WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" newer or older compared to last check of this .E file')
@@ -826,14 +858,16 @@ defc RecompileNew
          endif
          if upcase( BaseName) = 'EPM' then
             fRestartEpm = 1
-         elseif linked( BaseName) then
-            'unlink' BaseName
-            'link' BaseName
-            WriteLog( LogFile, '         'BaseName' - relinked .EX file')
-            cRelink = cRelink + 1
-            if upcase( rightstr( BaseName, 4)) = 'MENU' & length( BaseName) > 4 then
-               'ChangeMenu' BaseName
-               WriteLog( LogFile, '         'BaseName' - reloaded menu')
+         elseif fRestartEpm = 0 then
+            if linked( BaseName) then
+               'unlink' BaseName
+               'link' BaseName
+               WriteLog( LogFile, '         'BaseName' - relinked .EX file')
+               cRelink = cRelink + 1
+               if upcase( rightstr( BaseName, 4)) = 'MENU' & length( BaseName) > 4 then
+                  'ChangeMenu' BaseName
+                  WriteLog( LogFile, '         'BaseName' - reloaded menu')
+               endif
             endif
          endif
       endif
@@ -850,7 +884,11 @@ defc RecompileNew
       endif
 
    enddo
-   Text = cRecompile 'files recompiled and' cDelete 'files deleted, therefrom' cRelink' files relinked,' cWarning 'warnings'
+   if fRestartEpm = 1 then
+      Text = cRecompile 'files recompiled and' cDelete 'files deleted,' cWarning 'warnings, restart'
+   else
+      Text = cRecompile 'files recompiled and' cDelete 'files deleted, therefrom' cRelink' files relinked,' cWarning 'warnings'
+   endif
    sayerror Text' - see "'LogFile'"'
    if fRestartEpm = 1 then
       WriteLog( LogFile, '         'BaseName' - restarted')
@@ -869,11 +907,11 @@ defc RecompileNew
             activatefile fid
          endif
       endif
-      'e 'LogFile
+      'postme e 'LogFile
    endif
    quietshell 'del' CompileDir'\* /n & rmdir' CompileDir  -- must come before restart
    if fRestartEpm = 1 then
-      'postme Restart'
+      'postme postme Restart'
    endif
 
 ; ---------------------------------------------------------------------------
