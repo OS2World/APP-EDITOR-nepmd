@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querydefaultmode.e,v 1.3 2002-10-14 17:45:32 cla Exp $
+* $Id: querydefaultmode.e,v 1.4 2002-10-15 20:40:48 cla Exp $
 *
 * ===========================================================================
 *
@@ -39,7 +39,7 @@ the default *EPM* mode is to be determined.
 *NepmdQueryDefaultMode* returns either
 .ul compact
 - the name of the default *EPM* mode  or
-- *UNKNOWN*, if no mode could be determined  or
+- *TEXT*, if no mode could be determined  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
 
 @@NepmdQueryDefaultMode@TESTCASE
@@ -118,7 +118,7 @@ defproc NepmdQueryDefaultMode( Filename ) =
 
  /* reserved value, if no mode found */
  if (rc == 3) then
-    DefaultMode = "UNKNOWN";
+    DefaultMode = "TEXT";
  else
     helperNepmdCheckliberror( LibFile, rc);
     DefaultMode = makerexxstring( DefaultMode);
