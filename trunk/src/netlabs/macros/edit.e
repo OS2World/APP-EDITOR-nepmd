@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.20 2004-09-12 15:03:09 aschn Exp $
+* $Id: edit.e,v 1.21 2005-03-06 08:04:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -837,7 +837,6 @@ defproc parse_filename2( var wrd, sourcefile)
       -- path'=.'ext  ==> path''sbase'.'ext
       -- path'\=.'ext ==> path''sbase'.'ext
       if rightstr( wrd, 2) = '.=' then
-         sayerror 'lwrd = 'lwrd', sext = 'sext
          wrd = lwrd''sext
       elseif leftstr( wrd, 2) = '=.' then
          wrd = sbase''rwrd
@@ -865,7 +864,8 @@ defproc parse_filename2( var wrd, sourcefile)
 
 ; ---------------------------------------------------------------------------
 ; This proc is called by defc app, append, put and defc save.
-; Does *not* assume all options are specified before filenames.
+; Wrong: [Does *not* assume all options are specified before filenames.]
+; Options must be specified before filename.
 defproc parse_leading_options( var rest,var options)
    options = ''
    loop
