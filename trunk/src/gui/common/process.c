@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: process.c,v 1.1 2002-06-03 22:19:58 cla Exp $
+* $Id: process.c,v 1.2 2002-08-14 12:16:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -33,6 +33,7 @@
 #undef DEBUG
 
 #include "process.h"
+#include "epmenv.h"
 #include "macros.h"
 
 // ---------------------------------------------------------------------
@@ -41,9 +42,10 @@
 #define QUEUENAMEBASE "\\QUEUES\\%s\\"
 
 
-APIRET ExecVioCommandSession( PSZ pszAppName, PSZ pszCommand, BOOL fVisible)
+APIRET ExecVioCommandSession(  PSZ pszEnv, PSZ pszAppName, PSZ pszCommand, BOOL fVisible)
 {
          APIRET         rc;
+
          PSZ            pszComspec = getenv( "COMSPEC");
 
          STARTDATA      startdata;
@@ -103,6 +105,7 @@ do
    startdata.SessionType = (fVisible) ? SSF_TYPE_WINDOWABLEVIO : SSF_TYPE_PM;
    startdata.Related     = SSF_RELATED_CHILD;
    startdata.TermQ       = szTermQueueName;
+   startdata.Environment = pszEnv;
    rc = DosStartSession( &startdata, &ulSession, &pid);
 
    // wait for the program to terminate
@@ -135,6 +138,49 @@ do
 return rc;
 
 }
+
+// ---------------------------------------------------------------------
+
+APIRET StartPmSession( PSZ pszProgram, PSZ pszParms, PSZ pszTitle, PSZ pszEnv, BOOL fForeground, ULONG ulControlStyle)
+{
+         APIRET         rc;
+
+         STARTDATA      startdata;
+         PID            pid;
+         ULONG          ulSession;
+
+do
+   {
+   // check parameters
+   if ((!pszProgram) ||
+       (!pszParms))
+
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // start the session
+   // all other fields are defaults by zeroes
+   memset( &startdata, 0, sizeof( startdata));
+   startdata.Length      = sizeof( startdata);
+   startdata.PgmTitle    = pszTitle;
+   startdata.PgmName     = pszProgram;
+   startdata.PgmInputs   = pszParms;
+   startdata.FgBg        = (fForeground) ? SSF_FGBG_FORE : SSF_FGBG_BACK;
+   startdata.InheritOpt  = SSF_INHERTOPT_PARENT;
+   startdata.SessionType = SSF_TYPE_PM;
+   startdata.Related     = SSF_RELATED_INDEPENDENT;
+   startdata.PgmControl  = ulControlStyle;
+   startdata.Environment = pszEnv;
+   rc = DosStartSession( &startdata, &ulSession, &pid);
+
+   } while (FALSE);
+
+return rc;
+
+}
+
 
 // ############ unused code starts ####################################
 
@@ -232,47 +278,6 @@ do
 if (hfRead)  DosClose( hfRead);
 if (hfWrite) DosClose( hfWrite);
 return rc;
-}
-
-// ---------------------------------------------------------------------
-
-APIRET StartPmSession( PSZ pszProgram, PSZ pszParms, PSZ pszTitle, BOOL fForeground, ULONG ulControlStyle)
-{
-         APIRET         rc;
-
-         STARTDATA      startdata;
-         PID            pid;
-         ULONG          ulSession;
-
-do
-   {
-   // check parameters
-   if ((!pszProgram) ||
-       (!pszParms))
-
-      {
-      rc = ERROR_INVALID_PARAMETER;
-      break;
-      }
-
-   // start the session
-   // all other fields are defaults by zeroes
-   memset( &startdata, 0, sizeof( startdata));
-   startdata.Length      = sizeof( startdata);
-   startdata.PgmTitle    = pszTitle;
-   startdata.PgmName     = pszProgram;
-   startdata.PgmInputs   = pszParms;
-   startdata.FgBg        = (fForeground) ? SSF_FGBG_FORE : SSF_FGBG_BACK;
-   startdata.InheritOpt  = SSF_INHERTOPT_PARENT;
-   startdata.SessionType = SSF_TYPE_PM;
-   startdata.Related     = SSF_RELATED_INDEPENDENT;
-   startdata.PgmControl  = ulControlStyle;
-   rc = DosStartSession( &startdata, &ulSession, &pid);
-
-   } while (FALSE);
-
-return rc;
-
 }
 
 #endif
