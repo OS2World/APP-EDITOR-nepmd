@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryprocessinfo.e,v 1.3 2002-09-06 10:01:16 cla Exp $
+* $Id: queryprocessinfo.e,v 1.4 2002-09-06 14:36:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -57,11 +57,7 @@ NepmdQueryProcessInfo returns either
 
 defc NepmdQueryProcessInfo, QueryProcessInfo
 
- 'xcom e /c .TEST_NEPMDQUERYPROCESSINFO';
- insertline '';
- insertline 'NepmdQueryProcessInfo';
- insertline '---------------------';
- insertline '';
+ helperNepmdCreateDumpfile( 'NepmdQueryProcessInfo', '');
  insertline helperNepmdQueryProcessInfoValue( 'PID');
  insertline helperNepmdQueryProcessInfoValue( 'PPID');
  insertline helperNepmdQueryProcessInfoValue( 'PROGRAM');

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.28 2002-09-06 10:01:13 cla Exp $
+* $Id: nepmdlib.e,v 1.29 2002-09-06 14:36:28 cla Exp $
 *
 * ===========================================================================
 *
@@ -69,6 +69,7 @@ universal app_hini;
 
  return LibFile;
 
+/* --------------------------------- */
 
 defproc helperNepmdCheckliberror (LibFile, rc) =
 
@@ -85,6 +86,25 @@ defproc helperNepmdCheckliberror (LibFile, rc) =
     rcx = dynafree( LibFile);
  endif
 
+ return;
+
+/* --------------------------------- */
+
+defproc helperNepmdCreateDumpfile (FunctionName, Parms) =
+
+ TestcaseTitle = FunctionName':' Parms;
+ Separator     = copies( '-', length( TestcaseTitle));  
+
+ 'xcom e /c .TEST_'translate( FunctionName);
+ .autosave = 0;
+ insertline '';
+ insertline TestcaseTitle;
+ insertline Separator;
+ insertline '';
+
+ return;
+
+/* --------------------------------- */
 
 defproc makerexxstring( asciizstring)
   return substr( asciizstring, 1, pos( atoi(0), asciizstring) - 1);

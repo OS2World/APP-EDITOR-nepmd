@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextdir.e,v 1.9 2002-09-06 10:01:14 cla Exp $
+* $Id: getnextdir.e,v 1.10 2002-09-06 14:36:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -95,13 +95,21 @@ defc NepmdGetNextDir, GetNextDir =
 
  Handle   = 0;  /* always create a new handle ! */
  AddressOfHandle = address( Handle);
- DirMask = NepmdQueryFullname( arg( 1));
 
- 'xcom e /c .TEST_NEPMDGETNEXTDIR';
- TestTitle = 'NepmdGetNextDir:' DirMask;
- insertline '';
- insertline TestTitle
- insertline copies( '-', length( TestTitle));
+ DirMask = arg( 1);
+ if (DirMask = '') then
+    sayerror 'error: no dir mask specified !';
+ endif
+
+ DirMask = NepmdQueryFullname( arg( 1));
+ parse value DirMask with 'ERROR:'rc;
+ if (rc > '') then
+    sayerror 'error: invalid filemask specified !';
+    return;
+ endif
+
+ /* create virtual file */
+ helperNepmdCreateDumpfile( 'NepmdGetNextDir', DirMask);
 
  /* search all files */
  do while (1)
