@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.19 2004-02-22 15:16:57 aschn Exp $
+* $Id: epm.e,v 1.20 2004-02-22 15:47:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -106,6 +106,10 @@ include        'locate.e'      -- Find and replace definitions
 
 include        'markfilt.e'    -- Procedures for filtering a block, line or char. mark.
 include        'charops.e'     -- Mark operations for character marks.
+
+compile if WANT_TEXT_PROCS
+   include 'textproc.e'
+compile endif
 
 compile if HOST_SUPPORT = 'STD'
    include     'saveload.e'    -- Save/load routines with host support
