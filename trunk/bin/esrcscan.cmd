@@ -49,7 +49,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.1 2002-08-25 18:15:54 cla Exp $
+* $Id: esrcscan.cmd,v 1.2 2002-08-25 19:57:08 cla Exp $
 *
 * ===========================================================================
 *
@@ -132,7 +132,7 @@
  DataType._List     = '';
 
  DocComment.        = '';
- DocComment._ValidKeys = 'SYNTAX PARM RETURNS REMARKS';
+ DocComment._ValidKeys = 'PROTOTYPE SYNTAX PARM EXAMPLE RETURNS REMARKS';
  DocComment._FunctionList = '';
 
  MissingComment.    = ''
@@ -639,15 +639,23 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
           ParmHeader = '*'ThisParm'*'CrLf||,
                        '.'CrLf||,
                        '.lm 4'CrLf||,
-                       DocComment.ThisFunction.ThisKey.ThisParm''CrLf||,
-                       '.lm';
+                       DocComment.ThisFunction.ThisKey.ThisParm||,
+                       '.lm 1'CrLf||,
+                       ''CrLf;
           DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''ParmHeader;
        END;
        rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'PARM',    'Parameters');
     END;
 
     rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'RETURNS', 'Returns');
-    rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'REMARKS', 'Remarks');
+
+    ThisKey = 'EXAMPLE';
+    IF (DocComment.ThisFunction.ThisKey \= '') THEN
+       rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'EXAMPLE', 'Example Code');
+
+    ThisKey = 'REMARKS';
+    IF (DocComment.ThisFunction.ThisKey \= '') THEN
+       rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'REMARKS', 'Remarks');
 
  END;
 
@@ -746,14 +754,9 @@ ReadCommentDocs: PROCEDURE EXPOSE (GlobalVars)
 
        /* if there is a name given, maintain subsection list */
        IF (ThisName \= '') THEN
-       DO
           /* add subsection name */
           IF (WORDPOS( ThisName, DocComment.ThisFunction.ThisKey._Namelist) = 0) THEN
-          DO
              DocComment.ThisFunction.ThisKey._Namelist = DocComment.ThisFunction.ThisKey._Namelist ThisName;
-          END;
-
-       END;
 
        /* store the info */
        NextLine = LINEIN( File);
