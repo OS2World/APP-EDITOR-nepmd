@@ -1,0 +1,11 @@
+CATEGORY: Locate/Select:
+TITLE: Enhance error parsing
+PRIO: 2
+STATUS: started
+FILES: tex.e (??? more ?)
+UPDATED: $Id: ls003,v 1.1 2002-07-17 15:56:17 cla Exp $
+
+generic error parser
+- define general defs for all languages
+- support more compilers
+- switch to file and error pos for all compilers

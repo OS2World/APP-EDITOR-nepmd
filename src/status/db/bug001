@@ -1,0 +1,12 @@
+CATEGORY: bug
+TITLE: EA's > 32 k
+PRIO: 1
+STATUS: coding
+FILES: saveload.e slnohost.e e3emul.e
+UPDATED: $Id: bug001,v 1.1 2002-07-17 15:56:13 cla Exp $
+
+Loading a file with EA's > 32 k kills EPM. Since this is almost fixed with FP12, 
+it still happens sometimes, but everytime a beep is generated
+
+Workaround:
+- Strip REXX EA's before loading a REXX file

@@ -1,0 +1,9 @@
+CATEGORY: Formatting
+TITLE: Enhance Enter processing
+PRIO: 1
+STATUS: coding
+FILES: enhenter.e
+UPDATED: $Id: format005,v 1.1 2002-07-17 15:56:16 cla Exp $
+
+Move the enter defs to a new file. Several enhancements and fixes.                    
+

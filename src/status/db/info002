@@ -1,0 +1,8 @@
+CATEGORY: EPM info
+TITLE: Auto-reload
+PRIO: 1
+STATUS: coding
+FILES: titletext.e
+UPDATED: $Id: info002,v 1.1 2002-07-17 15:56:17 cla Exp $
+
+Define files that will be reloaded autmatically if file is altered on disk

@@ -1,0 +1,12 @@
+CATEGORY: Formatting
+TITLE: Indent after word wrap
+PRIO: 1
+STATUS: coding
+FILES: enhenter.e
+UPDATED: $Id: format006,v 1.1 2002-07-17 15:56:16 cla Exp $
+
+An automatic word wrap after Enter will keep the indent.                                         
+
+Todo:
+- keep the indent also in lists, when line starts with a bullet char
+- take over the indent from the last non-empty line, not from the last line

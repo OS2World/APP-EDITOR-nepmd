@@ -1,0 +1,8 @@
+CATEGORY: compile
+TITLE: Relink
+PRIO: 1
+STATUS: coding
+FILES: 
+UPDATED: $Id: compile002,v 1.1 2002-07-17 15:56:14 cla Exp $
+
+Save, compile, unlink, relink the current file 

@@ -1,0 +1,10 @@
+CATEGORY: misc
+TITLE: Enhance scrolllock handling
+PRIO: 1
+STATUS: open
+FILES: *
+UPDATED: $Id: misc003,v 1.1 2002-07-17 15:56:18 cla Exp $
+
+Todo:
+- Disable vscroll
+- Enable hscroll also in normal mode

@@ -1,0 +1,8 @@
+CATEGORY: Tagging
+TITLE: enhance tag support
+PRIO: 1
+STATUS: coding
+FILES: tags.e
+UPDATED: $Id: tag001,v 1.1 2002-07-17 15:56:18 cla Exp $
+
+Support more edit modes for creating and searching tags
