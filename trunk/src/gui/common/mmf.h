@@ -8,14 +8,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.h,v 1.1 2002-09-24 16:47:57 cla Exp $
+* $Id: mmf.h,v 1.2 2002-09-24 21:38:17 cla Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -33,7 +33,12 @@
 #define MMF_ACCESS_WRITEONLY    0x00000001
 #define MMF_ACCESS_READWRITE    0x00000002
 
-typedef LHANDLE HMMF, *PHMMF;
+/* some sizes for usage with MmfAlloc parameter ulMaxSize */
+#define MMF_MAXSIZE_KB             1024
+#define MMF_MAXSIZE_MB          1048576
+
+/* special NULL filename for MmfAlloc parameter pszFilename */
+#define MMF_FILE_INMEMORY       NULL
 
 /* prototypes */
 APIRET MmfAlloc( PVOID *ppvdata, PSZ pszFilename, ULONG ulOpenFlags, ULONG ulMaxSize);
