@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.13 2004-02-22 16:05:38 aschn Exp $
+# $Id: makefile,v 1.14 2004-02-22 21:27:58 aschn Exp $
 #
 # ===========================================================================
 #
@@ -56,13 +56,19 @@ $(CMPEXDIR)\draw.ex\
 $(CMPEXDIR)\epmcomp.ex\
 $(CMPEXDIR)\epmlex.ex\
 $(CMPEXDIR)\fonts.ex\
+$(CMPEXDIR)\ftpload.ex\
+$(CMPEXDIR)\ftpsave.ex\
 $(CMPEXDIR)\get.ex\
 $(CMPEXDIR)\help.ex\
 $(CMPEXDIR)\kwhelp.ex\
 $(CMPEXDIR)\maketags.ex\
+$(CMPEXDIR)\next_win.ex\
 $(CMPEXDIR)\put.ex\
+$(CMPEXDIR)\showu.ex\
 $(CMPEXDIR)\tags.ex\
+$(CMPEXDIR)\testkeys.ex\
 $(CMPEXDIR)\treeit.ex
+$(CMPEXDIR)\wordproc.ex
 
 
 # --- list for toolbar modules
