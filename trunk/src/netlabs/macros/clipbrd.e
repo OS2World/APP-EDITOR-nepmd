@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: clipbrd.e,v 1.6 2004-06-03 21:50:56 aschn Exp $
+* $Id: clipbrd.e,v 1.7 2004-11-30 21:14:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -224,10 +224,7 @@ defc cut
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
 defc paste
-compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-compile endif
-   arg1 = upcase(arg(1))
+   arg1 = upcase( arg(1))
    if .readonly then
       sayerror READ_ONLY__MSG
       return
@@ -236,7 +233,7 @@ compile endif
       sayerror BROWSE_IS__MSG ON__MSG
       return
    endif
-   if not .line & (arg1='C' | arg1='B') then
+   if not .line & (arg1 = 'C' | arg1 = 'B') then
       if .last then  -- Can't paste into line 0
          sayerror -281  -- "Source destination conflict"
          return
@@ -257,155 +254,143 @@ compile endif
 --  the original flag passed in as mp1.  The caller may choose to free
 --  the buffer during this command.    if zero is passed as arg(1), an error
 --  was encountered.  An error message should be displayed at this point.
-   mark=upcase(arg(1))
-   if mark<>'C' and  mark<>'B' then
-      mark='L'
+   mark = upcase( arg(1))
+   if mark <> 'C' and  mark <> 'B' then
+      mark = 'L'
    endif
-   call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),
-                      5442,               -- EPM_EDIT_CLIPBOARDPASTE
-                      asc(mark), 0)
+   call windowmessage( 0,  getpminfo(EPMINFO_EDITCLIENT),
+                       5442,               -- EPM_EDIT_CLIPBOARDPASTE
+                       asc(mark), 0)
 
 defc processclipboardpaste
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
- compile endif
-
+   universal cua_marking_switch
    parse arg result mark .
    if not result then
       sayerror CLIPBOARD_ERROR__MSG
       return
    endif
 
-   if mark=67 | mark=66 then  -- asc('C') | asc('B')
- compile if REFLOW_AFTER_PASTE
-   start_line = .line
-   start_linetext = textline(.line)
-   start_col = .col + 1
- compile endif
-      poke result, 8, chr(68-mark)              -- 'C'->1; 'B'->2; mark as a character or block buffer
- compile if WANT_CUA_MARKING
-      if mark=67 &
-  compile if WANT_CUA_MARKING = 'SWITCH'
-         CUA_marking_switch &
-  compile endif
-         marktype()
+   if mark = 67 | mark = 66 then  -- asc('C') | asc('B')
+compile if REFLOW_AFTER_PASTE
+      start_line = .line
+      start_linetext = textline(.line)
+      start_col = .col + 1
+compile endif
+      poke result, 8, chr( 68 - mark)  -- 'C'->1; 'B'->2; mark as a character or block buffer
+      if mark = 67 & cua_marking_switch & marktype()  -- if char mark and CUA
       then
          getmark x, x, x, x, mark_fid
          getfileid cur_fid
-         if mark_fid=cur_fid then
+         if mark_fid = cur_fid then
             call pbegin_mark()
-            call pdelete_mark()
+            call pdelete_mark()  -- paste clip replaces previous mark in CUA mode
          else
             unmark
             sayerror MARKED_OTHER__MSG
          endif
-         'ClearSharBuff'       /* Remove content in EPM shared text buffer */
+         'ClearSharBuff'         -- Remove content in EPM shared text buffer
       endif
- compile endif
+
       call psave_mark(savemark)                        -- Save the user's mark
-      call GetBuffCommon(result, NOTHING_TO_PASTE__MSG, chr(mark))
+      call GetBuffCommon( result, NOTHING_TO_PASTE__MSG, chr(mark))
       -- Two cases join here, in the middle of this IF statement.
       call prestore_mark(savemark)                     -- Restore the user's mark
    else
       oldsize = .last
- compile if REFLOW_AFTER_PASTE
+compile if REFLOW_AFTER_PASTE
       start_line = .line + 1
       start_linetext = textline(.line)
       start_col = 1
- compile endif
-      call buffer(GETBUF2, result, 1, 0,
-                  CR_TERMINATOR_LDFLAG + LF_TERMINATOR_LDFLAG + CRLF_TERMINATOR_LDFLAG +
-                  CRCRLF_TERMINATOR_LDFLAG + NEW_BITS_LDFLAG + FORCE_TERMINATOR_LDFLAG)
-      if textline(.line+.last-oldsize)=='' then
-         deleteline .line+.last-oldsize
+compile endif
+      call buffer( GETBUF2, result, 1, 0,
+                   CR_TERMINATOR_LDFLAG + LF_TERMINATOR_LDFLAG + CRLF_TERMINATOR_LDFLAG +
+                   CRCRLF_TERMINATOR_LDFLAG + NEW_BITS_LDFLAG + FORCE_TERMINATOR_LDFLAG)
+      if textline( .line + .last - oldsize) == '' then
+         deleteline .line + .last - oldsize
       endif
-      '+'(.last-oldsize)
+      '+'(.last - oldsize)
    endif
 compile if REFLOW_AFTER_PASTE
    parse value .margins with . rm .
    if rm < MAXMARGIN then
  compile if REFLOW_AFTER_PASTE = 'WIDER' | REFLOW_AFTER_PASTE = 'PROMPT_IF_WIDE'
-    must_reflow = FALSE
-    do i=start_line to .line
-      if length(textline(i))>rm then
-         must_reflow = TRUE
-         leave
-      endif
-    enddo
-    if must_reflow then
-  compile if REFLOW_AFTER_PASTE = 'PROMPT_IF_WIDE'
-     refresh
-   compile if defined(ULTIMAIL_DLG_TITLE)
-     if MBID_YES=winmessagebox(ULTIMAIL_DLG_TITLE,
-   compile else
-     if MBID_YES=winmessagebox('',
-   compile endif
-                               WIDE_PASTE__MSG,
-                               MB_YESNO + MB_QUERY + MB_DEFBUTTON2 + MB_MOVEABLE)
-     then
-  compile endif
- compile endif
-      call psave_mark(savemark)        -- Save the user's mark
-;     call psave_pos(savepos)          -- We should now be at the end of the insertion.
-      to_end = .last - .line           -- Remember how far from end, because # lines
-                                       -- from start will change as we reflow.
-      insert_attribute 13, 0, 2, 0, start_col, start_line  -- Place a bookmark on the char. after the pasted text
-      cur_line = start_line
-      stopit = 0
-      do forever
-         unmark
-         cur_line                      -- Go to first pasted line
-         do while textline(.line)=''   -- Skip blank lines
-            if .line=.last then stopit=1; leave; endif
-            down
-         enddo
-         if stopit then leave; endif   -- If no non-blank, nothing to do.
-         mark_line
-         cur_line = .line
-         call pfind_blank_line()
-         if .line<>cur_line then       -- Stop at line before next blank line
-            up
-         else                          -- No blank lines?  Go to bottom.
-            bottom
-         endif
-         if start_linetext='' then  -- Pasted onto a blank line?
-            if .last-.line < to_end then
-               if .last - to_end < cur_line then
-                  leave
-               endif
-               .line = .last - to_end
-            endif
-         endif
-         mark_line
-         reflow
-         getmark firstmarkline, lastmarkline
-         if lastmarkline = .last | .last - lastmarkline <= to_end then
+      must_reflow = FALSE
+      do i = start_line to .line
+         if length( textline(i)) > rm then
+            must_reflow = TRUE
             leave
-         else
-            cur_line = lastmarkline + 1
          endif
       enddo
-      class = 13  -- BOOKMARK_CLASS
-      col=start_col; line=start_line; offst=0
-      attribute_action 1, class, offst, col, line  -- 1=FIND NEXT ATTR
-      if class=13 then
-         query_attribute class, val, IsPush, offst, col, line
-         line; .col=col
-         attribute_action 16, class, offst, col, line -- 16=Delete attribute
-      endif
-      call prestore_mark(savemark)                     -- Restore the user's mark
- compile if REFLOW_AFTER_PASTE = 'WIDER' | REFLOW_AFTER_PASTE = 'PROMPT_IF_WIDE'
+      if must_reflow then
   compile if REFLOW_AFTER_PASTE = 'PROMPT_IF_WIDE'
-     endif -- MBID_YES
+         refresh
+         if MBID_YES = winmessagebox( 'Reflow after paste',  -- title
+                                      WIDE_PASTE__MSG,
+                                      MB_YESNO + MB_QUERY + MB_DEFBUTTON2 + MB_MOVEABLE)
+         then
   compile endif
-    endif  -- must_reflow
+ compile endif
+            call psave_mark(savemark)        -- Save the user's mark
+;           call psave_pos(savepos)          -- We should now be at the end of the insertion.
+            to_end = .last - .line           -- Remember how far from end, because # lines
+                                             -- from start will change as we reflow.
+            insert_attribute 13, 0, 2, 0, start_col, start_line  -- Place a bookmark on the char. after the pasted text
+            cur_line = start_line
+            stopit = 0
+            do forever
+               unmark
+               cur_line                      -- Go to first pasted line
+               do while textline(.line) = '' -- Skip blank lines
+                  if .line = .last then stopit = 1; leave; endif
+                  down
+               enddo
+               if stopit then leave; endif   -- If no non-blank, nothing to do.
+               mark_line
+               cur_line = .line
+               call pfind_blank_line()
+               if .line <> cur_line then     -- Stop at line before next blank line
+                  up
+               else                          -- No blank lines?  Go to bottom.
+                  bottom
+               endif
+               if start_linetext = '' then   -- Pasted onto a blank line?
+                  if .last - .line < to_end then
+                     if .last - to_end < cur_line then
+                        leave
+                     endif
+                     .line = .last - to_end
+                  endif
+               endif
+               mark_line
+               reflow
+               getmark firstmarkline, lastmarkline
+               if lastmarkline = .last | .last - lastmarkline <= to_end then
+                  leave
+               else
+                  cur_line = lastmarkline + 1
+               endif
+            enddo
+            class = 13  -- BOOKMARK_CLASS
+            col = start_col; line = start_line; offst = 0
+            attribute_action 1, class, offst, col, line  -- 1 = FIND NEXT ATTR
+            if class = 13 then
+               query_attribute class, val, IsPush, offst, col, line
+               line; .col = col
+               attribute_action 16, class, offst, col, line -- 16 = Delete attribute
+            endif
+            call prestore_mark(savemark)                     -- Restore the user's mark
+compile if REFLOW_AFTER_PASTE = 'WIDER' | REFLOW_AFTER_PASTE = 'PROMPT_IF_WIDE'
+  compile if REFLOW_AFTER_PASTE = 'PROMPT_IF_WIDE'
+         endif -- MBID_YES
+  compile endif
+      endif  -- must_reflow
  compile endif
    endif  -- rm < MAXMARGIN
 compile endif  -- REFLOW_AFTER_PASTE
 
-   call dynalink32('DOSCALLS',        /* dynamic link library name         */
-                   '#304',             /* DosFreeSeg                        */
-                   ltoa(atoi(0) || atoi(result), 10))
+   call dynalink32( 'DOSCALLS',        -- dynamic link library name
+                    '#304',            -- DosFreeSeg
+                    ltoa( atoi(0) || atoi(result), 10))
 
 compile if WANT_DM_BUFFER
 definit
@@ -512,9 +497,7 @@ compile endif  -- WANT_DM_BUFFER
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
 defproc GetBuffCommon(bufhndl, errormsg)
-compile if WANT_CUA_MARKING = 'SWITCH'
    universal CUA_marking_switch
-compile endif
    markt = buffer(MARKTYPEBUF, bufhndl)
    getfileid activefid                  -- get current files file id
    if not markt & arg(3)<>'O' then      -- MARKT=0 ==> line mark (simple case)
@@ -594,22 +577,14 @@ compile endif
    'xcom q'                             -- quit it
    activatefile activefid               -- activate destination file
    call pend_mark()
-;  sayerror 'length_last='length_last'; .col='.col'; cl1, cl2 =' cl1 cl2
    if length_last then  -- Move right by 'executekey right', to handle stream mode.
- compile if WANT_CUA_MARKING = 'SWITCH'
       save_CUA = CUA_marking_switch
       CUA_marking_switch = 0
- compile endif
- compile if WANT_CUA_MARKING  -- Turn off CUA marking, so moving right won't unmark.
+      -- Turn off CUA marking, so moving right won't unmark.
       'togglecontrol 25 0'
- compile endif
       executekey right           -- This is all we really want to do...
- compile if WANT_CUA_MARKING = 'SWITCH'
       CUA_marking_switch = save_CUA
       'togglecontrol 25' CUA_marking_switch
- compile elseif WANT_CUA_MARKING
-      'togglecontrol 25 1'
- compile endif
    endif
    call verify_buffer_size(bufhndl, noflines)
 
