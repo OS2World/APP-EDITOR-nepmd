@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libversion.e,v 1.1 2002-08-20 14:56:57 cla Exp $
+* $Id: libversion.e,v 1.2 2002-08-21 13:56:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -59,5 +59,5 @@ defproc NepmdLibVersion() =
 
  checkliberror( LibFile, rc);
 
- return LibVersion;
+ return makerexxstring( LibVersion);
 

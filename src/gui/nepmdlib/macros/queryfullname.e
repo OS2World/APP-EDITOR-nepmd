@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryfullname.e,v 1.3 2002-08-20 18:45:51 cla Exp $
+* $Id: queryfullname.e,v 1.4 2002-08-21 13:56:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -61,5 +61,5 @@ defproc NepmdQueryFullname( Filename) =
 
  checkliberror( LibFile, rc);
 
- return FullName;
+ return makerexxstring( FullName);
 
