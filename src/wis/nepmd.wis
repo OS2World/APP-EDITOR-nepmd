@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.26 2002-08-13 15:38:27 cla Exp $
+# $Id: nepmd.wis,v 1.27 2002-08-13 16:57:56 cla Exp $
 #
 # ===========================================================================
 #
@@ -59,7 +59,7 @@
      SELECT
      TITLE="%PCK_2_TITLE%"
 
-     CREATEOBJECT="WPProgram|%TITLE_NEPMD_RECOMP%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=$(1)\NETLABS\BIN\RECOMP.EXE;OBJECTID=<NEPMD_RECOMP>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_RECOMP%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=$(1)\NETLABS\BIN\RECOMP.EXE;PARAMETERS=$(1)\MYEPM\EX;OBJECTID=<NEPMD_RECOMP>;"
      ><TINCLUDE name="..\nls\wis\desc2%NLS%.xml"/></PCK>
 
 <PCK INDEX=3
