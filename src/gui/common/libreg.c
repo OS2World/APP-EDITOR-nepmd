@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.1 2002-09-12 15:23:36 cla Exp $
+* $Id: libreg.c,v 1.2 2002-09-12 22:25:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -45,6 +45,30 @@ static   PSZ            pszAppRegContainer = "RegContainer";
 
 #define  SETLASTERROR(rc) WinSetErrorInfo( MAKEERRORID( SEVERITY_ERROR, PMERR_DOS_ERROR), SEI_DOSERROR, (USHORT) rc)
 
+#define PATHENTRYLEN(p)       _queryEntrySize( hini, pszAppRegContainer, p)
+#define KEYENTRYLEN(p)        _queryEntrySize( hini, pszAppRegKeys, p)
+
+#define QUERYPATHENTRY(p,b,s) PrfQueryProfileString(  hini, pszAppRegContainer, p, NULL, b, s)
+#define QUERYKEYENTRY(p,b,s)  PrfQueryProfileString(  hini, pszAppRegKeys, p, NULL, b, s)
+
+#define WRITEPATHENTRY(p,v)   PrfWriteProfileString(  hini, pszAppRegContainer, p, v)
+#define WRITEKEYENTRY(p,v)    PrfWriteProfileString(  hini, pszAppRegKeys, p, v)
+
+#define DELETEPATH(p)         WRITEPATHENTRY( p, NULL)
+#define DELETEKEY(p)          WRITEKEYENTRY(  p, NULL)
+
+#define PATHEXISTS(p)   (PATHENTRYLEN( p) > 0)
+#define KEYEXISTS(p)    (KEYENTRYLEN( p)  > 0)
+
+#define OPENPROFILE    hini = _openLibProfile(); \
+                       if (!hini)                \
+                          {                      \
+                          rc = LASTERROR;        \
+                          break;                 \
+                          }
+
+#define CLOSEPROFILE   PrfCloseProfile( hini)
+                    
 // -----------------------------------------------------------------------------
 
 // runtime alike helper, searching word in space delimited list
@@ -79,6 +103,16 @@ static char *_strword( const char *str, const char *word)
       }
 
 return p;
+}
+
+// -----------------------------------------------------------------------------
+
+static ULONG _queryEntrySize( HINI hini, PSZ pszAppName, PSZ pszValuePath)
+{
+         ULONG          ulDataLen = 0;
+
+PrfQueryProfileSize( hini, pszAppName, pszValuePath, &ulDataLen);
+return ulDataLen;
 }
 
 // -----------------------------------------------------------------------------
@@ -134,10 +168,11 @@ do
 
 
    // check if value exists already
-   if ((!PrfQueryProfileSize( hini, pszAppRegContainer, pszPath, &ulDataLen)) || (!ulDataLen))
+   ulDataLen = PATHENTRYLEN( pszPath);
+   if (!ulDataLen)
       {
       // completely new container list: just add our key
-      if (!PrfWriteProfileString( hini, pszAppRegContainer, pszPath, pszKey))
+      if (!WRITEPATHENTRY( pszPath, pszKey))
          rc = LASTERROR;
       break;
       }
@@ -151,7 +186,7 @@ do
       break;
       }
    memset( pszList, 0, ulDataLen);
-   if (!PrfQueryProfileString(  hini, pszAppRegContainer, pszPath, NULL, pszList, ulDataLen))
+   if (!QUERYPATHENTRY( pszPath, pszList, ulDataLen))
       {
       rc = LASTERROR;
       break;
@@ -165,7 +200,7 @@ do
    // add key to list and write back
    strcat( pszList, " ");
    strcat( pszList, pszKey);
-   if (!PrfWriteProfileString( hini, pszAppRegContainer, pszPath, pszList))
+   if (!WRITEPATHENTRY( pszPath, pszList))
       rc = LASTERROR;
 
    } while (FALSE);
@@ -180,12 +215,11 @@ return rc;
 static APIRET _createRegPath( HINI hini, PSZ pszValuePath)
 {
          APIRET         rc = NO_ERROR;
-         PSZ            pszCopy = strdup( pszValuePath);
-         PSZ            pszPath = strdup( pszValuePath);
+         PSZ            pszCopy     = strdup( pszValuePath);
+         PSZ            pszPath     = strdup( pszValuePath);
          PSZ            pszLastPath = strdup( pszValuePath);
 
          PSZ            p;
-         ULONG          ulDataLen;
 
 do
    {
@@ -203,11 +237,6 @@ do
    *pszLastPath = 0;
    while (p)
       {
-//    // does container def exist ?
-//    ulDataLen = 0;
-//    if ((!PrfQueryProfileSize( hini, pszAppRegContainer, pszPath, &ulDataLen)) || (!ulDataLen))
-//       PrfWriteProfileString( hini, pszAppRegContainer, pszPath, "");
-
       // add current basename to list of previous path
       // this will automatically create container lists if not yet existant
       if (*pszLastPath)
@@ -251,12 +280,7 @@ do
       }
 
    // open profile
-   hini = _openLibProfile();
-   if (!hini)
-      {
-      rc = LASTERROR;
-      break;
-      }
+   OPENPROFILE;
 
    // create path if not exist
    rc = _createRegPath( hini, pszValuePath);
@@ -264,7 +288,7 @@ do
       break;
 
    // create entry
-   if (!PrfWriteProfileString( hini, pszAppRegKeys, pszValuePath, pszValue))
+   if (!WRITEKEYENTRY( pszValuePath, pszValue))
       {
       rc = LASTERROR;
       break;
@@ -273,9 +297,8 @@ do
 
    } while (FALSE);
 
-
 // cleanup
-if (hini) PrfCloseProfile( hini);
+CLOSEPROFILE;
 return rc;
 
 }
@@ -300,15 +323,10 @@ do
       }
 
    // open profile
-   hini = _openLibProfile();
-   if (!hini)
-      {
-      rc = LASTERROR;
-      break;
-      }
+   OPENPROFILE;
 
    // read entry
-   if (!PrfQueryProfileString( hini, pszAppRegKeys, pszValuePath, NULL, pszBuffer, ulBuflen))
+   if (!QUERYKEYENTRY( pszValuePath, pszBuffer, ulBuflen))
       {
       rc = LASTERROR;
       break;
@@ -316,9 +334,47 @@ do
 
    } while (FALSE);
 
-
 // cleanup
-if (hini) PrfCloseProfile( hini);
+CLOSEPROFILE;
 return rc;
 
-}
+}  
+
+// -----------------------------------------------------------------------------
+
+APIRET DeleteConfigValue( PSZ pszValuePath)
+
+{
+         APIRET         rc = NO_ERROR;
+         HINI           hini = NULLHANDLE;
+
+do
+   {
+   // check parms
+   if (!_isPathValid( pszValuePath))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // open profile
+   OPENPROFILE;
+
+   // if key not exist: error
+   if (!KEYEXISTS( pszValuePath))
+      {
+      rc = ERROR_PATH_NOT_FOUND;
+      break;
+      }
+
+   // delete key
+   DELETE( pszValuePath);
+
+   } while (FALSE);
+
+// cleanup
+CLOSEPROFILE;
+return rc;
+
+}  
+
