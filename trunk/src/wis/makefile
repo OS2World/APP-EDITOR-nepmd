@@ -17,7 +17,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.5 2002-06-10 22:04:54 cla Exp $
+# $Id: makefile,v 1.6 2002-06-11 14:15:13 cla Exp $
 #
 # ===========================================================================
 #
@@ -80,6 +80,10 @@ ALL: PREPARE CREATE
 
 INST: ALL
   warpin.env start warpin $(BINDIR)\$(WPIFILE)
+
+REMOVE: $(CMPDIR)\$(SCRIPTFILE)
+  rmwpi $(CMPDIR)\$(SCRIPTFILE)
+
 
 # ---
 

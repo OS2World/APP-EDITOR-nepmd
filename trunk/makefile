@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.20 2002-06-11 10:03:24 cla Exp $
+# $Id: makefile,v 1.21 2002-06-11 14:15:13 cla Exp $
 #
 # ===========================================================================
 #
@@ -93,7 +93,7 @@ INST: ALL
   @$(MAKE) QUIET ARG=INST MODULE=wis CALLED=1
 
 REMOVE:
-  @remove
+  @$(MAKE) QUIET ARG=REMOVE MODULE=wis CALLED=1
 
 CLEAN:
   @echo cleaning up directories ...
