@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.10 2002-08-23 13:48:11 cla Exp $
+* $Id: nepmdlib.e,v 1.11 2002-08-23 15:32:02 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,9 +28,10 @@
 
 const
  DEBUG                   = 1;
+ NEPMD_MAXLEN_ESTRING    = 1600;
 
- INI_APPNAME             = 'NEPMD';
- INI_KEY_PATH            = 'Path';
+ NEPMD_INI_APPNAME       = 'NEPMD';
+ NEPMD_INI_KEY_PATH      = 'Path';
 
  NEPMD_LIBRARY_BASENAME  = 'nepmdlib';
  NEPMD_SUBPATH_BINDLLDIR = 'netlabs\dll';
@@ -58,7 +59,7 @@ universal app_hini;
  LibFile =  NEPMD_LIBRARY_BASENAME;
 
  /* check if DLL is available in NEPMD subdirectory */
- InstallPath = queryprofile( , INI_APPNAME, INI_KEY_PATH);
+ InstallPath = queryprofile( , NEPMD_INI_APPNAME, NEPMD_INI_KEY_PATH);
  if (InstallPath <> '') then
     CheckFile = InstallPath'\'NEPMD_SUBPATH_BINDLLDIR'\'NEPMD_LIBRARY_BASENAME'.dll';
     if exist( CheckFile) then
@@ -107,5 +108,6 @@ include 'gettextmessage.e'
 include 'libinfo.e'
 include 'libversion.e'
 include 'queryfullname.e'
+include 'readstringea.e'
 include 'writestringea.e'
 
