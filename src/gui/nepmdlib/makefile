@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.2 2002-08-20 12:05:24 cla Exp $
+# $Id: makefile,v 1.3 2002-08-21 12:15:05 cla Exp $
 #
 # ===========================================================================
 #
@@ -32,6 +32,7 @@ DEF=nepmdlib.def
 MT=1
 LXLITE=1
 LIBS=$(BINDIR)\common.lib
+PMPRINTF=1
 
 # include main definitions
 BASEDIR=..\..\..
@@ -84,5 +85,5 @@ $(BINDLLDIR)\nepmdlib.dll: $(BINDIR)\nepmdlib.dll
 
 # --- build program
 
-$(BINDIR)\nepmdlib.dll: $(BINDIR)\nepmdlib.obj $(OBJS) $(DEF) $(RES)
+$(BINDIR)\nepmdlib.dll: $(BINDIR)\nepmdlib.obj $(OBJS) $(DEF) $(RES) $(LIBS) $(PMPRINTF)
 
