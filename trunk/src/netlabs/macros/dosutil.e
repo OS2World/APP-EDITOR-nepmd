@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.5 2004-01-17 22:22:50 aschn Exp $
+* $Id: dosutil.e,v 1.6 2004-06-03 21:57:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,7 +23,7 @@
 ;
 
 -- Date and time --------------------------------------------------------------
-compile if not small
+; Note: FileDateTime procs can be found in FILE.E.
 
 defc qd,qdate=
    parse value getdate(1) with today';' .  /* Discard MonthNum. */
@@ -36,13 +36,12 @@ defc qt,qtime=
 
 
 defproc getdatetime
-   datetime=substr('',1,20)
+   datetime = substr( '', 1, 20)
    call dynalink32( 'DOSCALLS',          -- dynamic link library name
-                    '#230',               -- ordinal value for Dos32GetDateTime
+                    '#230',              -- ordinal value for Dos32GetDateTime
                     address(datetime), 2 )
    return dec_to_string(datetime)
    --> Hour24 Minutes Seconds Hund Day MonthNum Year0 Year1 TZ0 TZ1 WeekdayNum
-
 
 defproc getdate
 compile if WANT_DBCS_SUPPORT
@@ -50,30 +49,28 @@ compile if WANT_DBCS_SUPPORT
 compile endif
    parse value getdatetime() with . . . . Day MonthNum Year0 Year1 . . WeekdayNum .
    Year = Year0 + 256*Year1
-   Month=strip(substr(MONTH_LIST, MonthNum*MONTH_SIZE-MONTH_SIZE+1, MONTH_SIZE))
-   Weekday = strip(substr(WEEKDAY_LIST, (WeekdayNum//256)*WEEKDAY_SIZE+1, WEEKDAY_SIZE))
+   Month=strip(substr( MONTH_LIST, MonthNum*MONTH_SIZE - MONTH_SIZE + 1, MONTH_SIZE))
+   Weekday = strip(substr( WEEKDAY_LIST, (WeekdayNum//256)*WEEKDAY_SIZE + 1, WEEKDAY_SIZE))
 compile if WANT_DBCS_SUPPORT
-   if arg(1) & substr(countryinfo,9,1)=\1 then  -- 0=mm/dd/yy, 1=dd/mm/yy, 2=yy/mm/dd
+   if arg(1) & substr( countryinfo, 9, 1) = \1 then  -- 0=mm/dd/yy, 1=dd/mm/yy, 2=yy/mm/dd
       return WeekDay Day Month Year';'MonthNum
    endif
 compile endif
    return WeekDay Month Day',' Year';'MonthNum
-
-
 
 defproc gettime
 compile if WANT_DBCS_SUPPORT
    universal countryinfo
 compile endif
    parse value getdatetime() with Hour24 Minutes Seconds Hund .
-   AmPm=AM__MSG; Hour=Hour24
-   if Hour>=12 then
-      Hour=Hour-12; AmPm=PM__MSG
+   AmPm = AM__MSG; Hour = Hour24
+   if Hour >= 12 then
+      Hour = Hour - 12; AmPm = PM__MSG
    endif
    if not Hour then Hour=12 endif
-   Hund=rightstr(Hund,2,'0')
-   Minutes=rightstr(Minutes,2,'0')
-   Seconds=rightstr(Seconds,2,'0')
+   Hund = rightstr(Hund,2,'0')
+   Minutes = rightstr(Minutes,2,'0')
+   Seconds = rightstr(Seconds,2,'0')
 compile if WANT_DBCS_SUPPORT
    if arg(1) then
       time_sep = substr(countryinfo,24,1)
@@ -81,30 +78,6 @@ compile if WANT_DBCS_SUPPORT
    endif
 compile endif
    return Hour':'Minutes':'Seconds AmPm';'Hour24':'Hund
-
-compile endif
--------------------------------------------------------------------------------
-
-;  Ver. 3.10:  Tells if a file exists.  DOS part from Ken Kahn.
-;  Ver. 3.11a:  Use a temporary DTA for the FindFirst call.
-DefProc Exist(FileName)
-   cflag=qfilemode(filename, attrib)
-   Return Cflag=0  -- if Carry flag=0, file exists; return 1.
-
-defproc qfilemode(filename, var attrib)
-   if leftstr(filename,1)='"' & rightstr(filename,1)='"' then
-      filename=substr(filename,2,length(filename)-2)
-   endif
-   FileName = FileName\0
-   attrib=copies(\0, 24)  -- allocate 24 bytes for a FileStatus3 structure
-   res = dynalink32('DOSCALLS',            -- dynamic link library name
-                   '#223',                -- ordinal value for Dos32QueryPathInfo
-                   address(filename)  ||  -- Pointer to path name
-                   atol(1)            ||  -- PathInfoLevel 1
-                   address(attrib)    ||  -- Pointer to info buffer
-                   atol(24), 2)           -- Buffer Size
-   attrib = ltoa(rightstr(attrib,4),10)
-   return res
 
 ; Ver. 3.10:  New routine by Ken Kahn.
 ; Ver. 3.11:  Support added for /E option of append.  This will also now work
@@ -129,29 +102,29 @@ defproc Append_Path(FileName)
  *            - Otherwise the path name (path\) will be returned.     *
  *                                                                    *
  **********************************************************************/
-   return search_path_ptr(Get_Env('DPATH',1), FileName)  -- If OS/2 protect mode, then use DPATH
+   return search_path_ptr( Get_Env( 'DPATH',1), FileName)  -- If OS/2 protect mode, then use DPATH
 compile endif  -- USE_APPEND
 
 compile if USE_APPEND | WANT_SEARCH_PATH
 ; Ver. 3.12 - split off from Append_Path so can be called by other routines.
-defproc search_path(AppendPath, FileName)
-   do while AppendPath<>''
+defproc search_path( AppendPath, FileName)
+   do while AppendPath <> ''
       parse value AppendPath with TryDir ';' AppendPath
-      if check_path_piece(trydir, filename) then
+      if check_path_piece( trydir, filename) then
          return trydir
       endif
    enddo
 ;  return ''
 
-defproc search_path_ptr(AppendPathPtr, FileName)
+defproc search_path_ptr( AppendPathPtr, FileName)
    parse value AppendPathPtr with env_seg env_ofs .
    if env_ofs = '' then return; endif
    trydir = ''
    do forever
-      ch = peek(env_seg,env_ofs,1)
+      ch = peek(env_seg, env_ofs, 1)
       env_ofs = env_ofs + 1
-      if ch=';' | ch = \0 then
-         if check_path_piece(trydir, filename) then
+      if ch = ';' | ch = \0 then
+         if check_path_piece( trydir, filename) then
             return trydir
          endif
          if ch = \0 then return; endif
@@ -161,10 +134,10 @@ defproc search_path_ptr(AppendPathPtr, FileName)
       endif
    enddo
 
-defproc check_path_piece(var trydir, filename)
-   if trydir='' then return; endif
-   lastch=rightstr(TryDir,1)
-   if lastch<>'\' & lastch<>':' then
+defproc check_path_piece( var trydir, filename)
+   if trydir = '' then return; endif
+   lastch = rightstr( TryDir, 1)
+   if lastch <> '\' & lastch <> ':' then
       TryDir = TryDir||'\'
    endif
    if exist(TryDir||FileName) then
@@ -172,21 +145,54 @@ defproc check_path_piece(var trydir, filename)
    endif
 compile endif  -- USE_APPEND
 
-compile if USE_APPEND | WANT_GET_ENV
-defproc get_env(varname)=  -- Optional arg(2) is flag to return pointer to value instead of the value itself.
+; Optional arg(2) is flag to return pointer to value instead of the value itself.
+defproc get_env(varname)
    varname = upcase(varname)\0
    result_ptr = 1234                -- 4-byte place to put a far pointer
-   rc = dynalink32('DOSCALLS',        -- rc 0 (false) if found
-                  '#227',             -- Ordinal for DOS32ScanEnv
-                  address(varname)    ||
-                  address(result_ptr),2)
+   rc = dynalink32( 'DOSCALLS',        -- rc 0 (false) if found
+                    '#227',            -- Ordinal for DOS32ScanEnv
+                    address(varname)    ||
+                    address(result_ptr), 2)
    if not rc then
       if arg(2) then
-         return itoa(rightstr(result_ptr,2),10) itoa(leftstr(result_ptr,2),10)
+         return itoa( rightstr( result_ptr, 2), 10) itoa( leftstr( result_ptr, 2), 10)
       endif
       return peekz(result_ptr)
    endif
-compile endif  -- USE_APPEND
+
+; ---------------------------------------------------------------------------
+; Todo: resolve '=' as well
+; Resolves environment variables in a string
+; Returns converted string
+defproc NepmdResolveEnvVars(Spec)
+   startp = 1
+   do forever
+      -- We don't use parse here, because if only 1 % char is present, it will
+      -- assign all the rest to EnvVar:
+      --    parse value rest with next'%'EnvVar'%'rest
+      --    if rest = '' then
+      --       Spec = Spec''next''Get_Env(EnvVar)
+      --       leave
+      --    else
+      --       Spec = Spec''next''Get_Env(EnvVar)''rest
+      --    endif
+      p1 = pos( '%', Spec, startp)
+      if p1 = 0 then
+         leave
+      endif
+      startp = p1 + 1
+      p2 = pos( '%', Spec, startp)
+      if p2 = 0 then
+         leave
+      else
+         startp = p2 + 1
+         Spec = substr( Spec, 1, p1 - 1) ||
+                Get_Env( substr( Spec, p1 + 1, p2 - p1 - 1)) ||
+                substr( Spec, p2 + 1)
+      endif
+      --sayerror 'arg(1) = 'arg(1)', p1 = 'p1', p2 = 'p2', resolved spec = 'Spec
+   enddo  -- forever
+   return Spec
 
 /***
 defc testap=                     /* for testing:  testap <filename> */
@@ -194,21 +200,12 @@ defc testap=                     /* for testing:  testap <filename> */
    if res then sayerror res else sayerror 'none' endif
 ***/
 
-defproc dosmove(oldfile, newfile)
-   oldfile = oldfile\0
-   newfile = newfile\0
-   return dynalink32('DOSCALLS',          /* dynamic link library name */
-                     '#271',              /* Dos32Move - move a file   */
-                     address(oldfile)||
-                     address(newfile), 2)
 -------------------------------------------------------------------------------
-compile if not small
-
 /* Useful if you want the cursor keys to act differently with ScrollLock on. */
 defproc scroll_lock
    /* fix this later -- odd means toggled */
    ks = getkeystate(VK_SCRLLOCK)
-   return (ks==KS_DOWNTOGGLE or ks==KS_UPTOGGLE)   -- any toggled
+   return (ks == KS_DOWNTOGGLE or ks == KS_UPTOGGLE)   -- any toggled
 
 /*** Test command.
 defc sltest
@@ -255,16 +252,16 @@ defproc beep   -- Version 4.02
       pitch   = 900  -- 900 Hz for 500 milliseconds sounds like a DOS beep.
       duration= 500
    endif
-   call dynalink32( 'DOSCALLS',       -- dynamic link library name
-                    '#286',            -- ordinal value for Dos32Beep
-                    atol(pitch) ||     -- Hertz (25H-7FFFH)
-                    atol(duration),2)  -- Length of sound  in ms
+   call dynalink32( 'DOSCALLS',         -- dynamic link library name
+                    '#286',             -- ordinal value for Dos32Beep
+                    atol(pitch) ||      -- Hertz (25H-7FFFH)
+                    atol(duration), 2)  -- Length of sound  in ms
    return
 
 /*** demo command:
 defc testbeep=
    parse value arg(1) with pitch duration
-   call beep(pitch,duration)
+   call beep( pitch, duration)
 ***/
 
 -- New for EPM ----------------------------------------------------------------
@@ -272,7 +269,7 @@ defc testbeep=
 ;  output to a file.
 defc dir =
    parse arg fspec
-   call parse_filename(fspec,.filename)
+   call parse_filename( fspec, .filename)
    dos_command('dir' fspec)
    sayerror ALT_1_LOAD__MSG
    'postme monofont'
@@ -296,13 +293,13 @@ defc dpath = dos_command('dpath')
 
 defc os2
    -- Create a OS/2 windowed cmd prompt & execute a command in it.
-   command=arg(1)
-   if command='' then    -- prompt user for command
-      command=entrybox(ENTER_CMD__MSG)
-      if command='' then return; endif
+   command = arg(1)
+   if command = '' then    -- prompt user for command
+      command = entrybox(ENTER_CMD__MSG)
+      if command = '' then return; endif
    endif
    'start /win 'command
-   if rc=1 then
+   if rc = 1 then
       sayerror sayerrortext(-274) command
    endif
 
@@ -314,15 +311,18 @@ compile if RING_OPTIONAL
       'ring_toggle'
    endif
 compile endif
-; Used to always do:  arg(1) '>'
-; but "set foo" is different than "set foo " (trailing space), so now we
-; only insert the space if the argument ends with a number and so could
-; be confused with redirection of a file handle.
-      if pos(rightstr(arg(1), 1), '0123456789') then
-         quietshell 'dos' arg(1) '>'vTEMP_FILENAME '2>&1'
-      else
-         quietshell 'dos' arg(1)'>'vTEMP_FILENAME '2>&1'
-      endif
+   -- Used to always do:  arg(1) '>'
+/*
+   -- but "set foo" is different than "set foo " (trailing space), so now we
+   -- only insert the space if the argument ends with a number and so could
+   -- be confused with redirection of a file handle.
+   if pos( rightstr( arg(1), 1), '0123456789') then
+      quietshell 'dos' arg(1) '>'vTEMP_FILENAME '2>&1'
+   else
+      quietshell 'dos' arg(1)'>'vTEMP_FILENAME '2>&1'
+   endif
+*/
+   quietshell 'dos' arg(1) '1>'vTEMP_FILENAME '2>&1'
 
    'e' argsep'D' argsep'Q' vTEMP_FILENAME
    if not rc then .filename = '.DOS' arg(1); endif
@@ -330,11 +330,11 @@ compile endif
 
 defc del, erase =
    earg = arg(1)
-   if parse_filename(earg, .filename) then
+   if parse_filename( earg, .filename) then
       sayerror -263  --  'Invalid argument'
       return 1
    endif
-   If verify(earg,'*?','M') then  -- Contains wildcards
+   If verify( earg, '*?', 'M') then  -- Contains wildcards
       quietshell 'del' earg          -- must shell out
    else                           -- No wildcards?
       rc = erasetemp(earg)           -- erase via direct DOS call; less overhead.
@@ -342,37 +342,89 @@ defc del, erase =
    if rc then
       sayerror 'RC =' rc
    endif
-compile endif          -- Not SMALL
 
 ; ---------------------------------------------------------------------------
-; arg(1) = drive, e.g.: X:
-; Returns e.g.: HPFS | CDFS | JFS | FAT
-defproc QueryFileSys(Drive)
-   dev_name = Drive\0
-   ordinal = 0
-   infobuf=substr( '', 1, 255)
-   infobuflen = atol( length(infobuf))
-   FSAinfolevel = 1
-   rc = dynalink32( 'DOSCALLS',             -- dynamic link library name
-                    '#277',                 -- ordinal value for Dos32QueryFSAttach
-                    address(dev_name)  ||   -- device name
-                    atol(ordinal)      ||   --
-                    atol(FSAinfolevel) ||   -- info level requested
-                    address(infobuf)   ||   -- string offset
-                    address(infobuflen), 2) -- length of buffer
+; unused
+; Get the number of the current codepage
+; From: EBOOKE\BKEYS.E
+defproc QueryCodepage
+  codepage = '????'
+  datalen = '????'
+  rc = dynalink32( 'DOSCALLS',            -- dynamic link library name
+                   '#291',                -- ordinal value for DOS32QueryCP
+                   atol(4)            ||  -- length of code page list
+                   offset(codepage)   ||  -- string offset
+                   selector(codepage) ||  -- string selector
+                   offset(datalen)    ||  -- string offset
+                   selector(datalen) ,2)  -- string selector
    if rc then
       return 'ERROR:'rc
    else
-      -- For FSAinfolevel 1:
-      iType = itoa( substr( infobuf, 1, 2), 10)
-           -- 1=resident char. dev.; 2=pseudochar dev.; 3=local drive; 4=remote drive
-      cbName = itoa( substr( infobuf, 3, 2), 10)
-      cbFSDName = itoa( substr( infobuf, 5, 2), 10)
-      cbFSAData = itoa( substr( infobuf, 7, 2), 10)
-      parse value substr( infobuf, 9) with szName \0 szFSDName \0 rgFSAData
-      rgFSAData = leftstr( rgFSAData, cbFSAData)
-      --insertline 'dev='dev_name 'iType=' iType 'cbName='cbName 'cbFSDName='cbFSDName 'cbFSAData='cbFSAData, .last+1
-      --insertline '      szName="'szName'" szFSDName="'szfsdname'" rgFSAData="'rgFSAData'"', .last+1
-      return szFSDName
+      codepage_no = strip(ltoa( codepage, 10))
+      return codepage_no
    endif
+
+; ---------------------------------------------------------------------------
+; As of EPM 5.18, this command supports use of the DOS or OS/2 ATTRIB command,
+; so non-IBM users can also use the LIST command.  Note that installing SUBDIR
+; (DOS) or FILEFIND (OS/2) is still preferred, since it's not necessary to
+; "clean up" their output.  Also, ATTRIB before DOS 3.? doesn't support the /S
+; option we need to search subdirectories.
+; Moved from STDCMDS.E.
+defc list, findfile, filefind=
+   universal vTEMP_FILENAME
+   /* If I say "list c:\util" I mean the whole util directory.  But we */
+   /* have to tell SubDir that explicitly by appending "\*.*".         */
+   spec = arg(1)
+   call parse_filename( spec, .filename)
+   src = subdir( spec' >'vTEMP_FILENAME)  -- Moved /Q option to defproc subdir
+
+   'e' argsep'd' argsep'q' vTEMP_FILENAME
+   call erasetemp(vTEMP_FILENAME)
+   if .last then
+      .filename = '.DIR 'spec
+      if .last <= 2 & substr( textline(.last), 1, 8) = 'SYS0002:' then
+         'xcom q'
+         sayerror FILE_NOT_FOUND__MSG
+      endif
+   else
+      'xcom q'
+      sayerror FILE_NOT_FOUND__MSG
+   endif
+
+; ---------------------------------------------------------------------------
+; Moved from STDPROCS.E.
+defproc subdir
+   quietshell 'dir /b /s /a:-D' arg(1)
+
+; ---------------------------------------------------------------------------
+; Note on a speed trick:  The following routine is used to both verify that
+; an external program exists, and to get its path.  After that first search,
+; the exact path location of the routine is known; it can be remembered so that
+; all future calls can supply the exact location to avoid the path search.
+; See SUBDIR for an example of its use.
+; Moved from STDPROCS.E.
+defproc find_routine(utility)  -- Split from SUBDIR
+   parse arg util opts         -- take first word, so can pass options too.
+   findfile fully_qualified,util,'PATH','P'
+   if rc then return -1 endif
+   return fully_qualified opts
+
+; ---------------------------------------------------------------------------
+; Returns DOS version number, multiplied by 100 so we can treat
+; it as an integer string.  That is, DOS 3.2 is reported as "320".
+; Needed by DEFPROC SUBDIR.
+; Moved from STDCTRLS.E
+defproc dos_version()
+      verbuf = copies(\0,8)
+      res= dynalink32( 'DOSCALLS',          /* dynamic link library name */
+                       '#348',              /* ordinal for DOS32QuerySysInfo */
+                       atol(11)         ||  -- Start index (Major version number)
+                       atol(12)         ||  -- End index (Minor version number)
+                       address(verbuf)  ||  -- buffer
+                       atol(8),2 )          -- Buffer length
+;     major = ltoa(leftstr(verbuf,4),10)
+;     minor = ltoa(rightstr(verbuf,4),10)
+      return 100*ltoa(leftstr(verbuf,4),10) + ltoa(rightstr(verbuf,4),10)
+
 
