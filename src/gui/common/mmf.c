@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.c,v 1.5 2002-10-08 16:25:32 cla Exp $
+* $Id: mmf.c,v 1.6 2002-10-08 22:07:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -134,13 +134,17 @@ if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
             ULONG          ulFilePtr = 0;
             ULONG          ulMemPos;
 
+   DPRINTF(( "MMF: HANDLER: catching exception\n"));
+
    pmmfe = _locate( EXCEPTION_ADDR);
+   DPRINTF(( "MMF: HANDLER: examining address 0x%08x\n", EXCEPTION_ADDR));
    if(!pmmfe)
       {
+      DPRINTF(( "MMF: HANDLER: exit - not my memory\n"));
       return XCPT_CONTINUE_SEARCH;
       }
 
-   // determine page adress
+   // determine page address
    pvPage = (PVOID)(p1->ExceptionInfo[ 1] & PAG_MASK);
 
    // query flags of affected page
@@ -183,9 +187,11 @@ if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
       rc = DosSetMem( pvPage, PAG_SIZE, PAG_COMMIT | PAG_READ | PAG_WRITE);
       if (rc != NO_ERROR)
          {
-         DPRINTF(( "MMF: HANDLER: cannot commit memory for file: %s, rc=%u\n", pmmfe->szFile, rc));
+         DPRINTF(( "MMF: HANDLER: cannot commit memory at 0x%08x for file: %s, rc=%u\n", pvPage, pmmfe->szFile, rc));
          return XCPT_CONTINUE_SEARCH;
          }
+      else
+         DPRINTF(( "MMF: HANDLER: commit memory at 0x%08x for file: %s\n", pvPage, pmmfe->szFile));
 
       // read data from file if it is a file area
       if (pmmfe->hfile)
@@ -220,7 +226,8 @@ if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
          } // if (pmmfe->hfile)
 
       // set page to read access (PAG_COMMIT already set at this point !)
-      DosSetMem( pvPage, PAG_SIZE, PAG_READ);
+      rc = DosSetMem( pvPage, PAG_SIZE, PAG_READ);
+      DPRINTF(( "MMF: HANDLER: set memory at 0x%08x to read for file: %s\n", pvPage, pmmfe->szFile));
 
 
       } // if (!(ulFlag & PAG_COMMIT))
@@ -235,9 +242,11 @@ if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
       rc = DosSetMem( pvPage, PAG_SIZE, PAG_READ | PAG_WRITE);
       if (rc != NO_ERROR)
          {
-         DPRINTF(( "MMF: HANDLER: cannot set memory at 0x%08x to readwrite for file: %s, rc=%u\n", ulMemPos, pmmfe->szFile, rc));
+         DPRINTF(( "MMF: HANDLER: cannot set memory at 0x%08x to readwrite for file: %s, rc=%u\n", pvPage, pmmfe->szFile, rc));
          return XCPT_CONTINUE_SEARCH;
          }
+      else
+         DPRINTF(( "MMF: HANDLER: set memory at 0x%08x to readwrite for file: %s\n", pvPage, pmmfe->szFile));
       } // if (EXCEPTION_TYPE == XCPT_WRITE_ACCESS)
 
    // if necessary, extend current file size to end of new page
