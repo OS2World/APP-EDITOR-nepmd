@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextconfigkey.e,v 1.1 2002-09-16 21:38:23 cla Exp $
+* $Id: getnextconfigkey.e,v 1.2 2002-09-16 21:39:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -69,7 +69,7 @@ executing:
 .sl
 - *NepmdGetNextConfigKey*
   - or
-- *GetNextDir*
+- *GetNextConfigKey*
 
 Executing this command will
 open up a virtual file and
