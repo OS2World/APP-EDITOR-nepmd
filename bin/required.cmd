@@ -10,7 +10,7 @@ EXTPROC CHECKPRG
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: required.cmd,v 1.2 2002-06-10 14:09:27 cla Exp $
+: $Id: required.cmd,v 1.3 2002-09-03 10:04:20 cla Exp $
 :
 : ===========================================================================
 :
@@ -37,4 +37,4 @@ ENV:PATH  WGET.EXE      WGet Utility
 ENV:PATH  HTEXT.CMD     HyperText/2 Preprocessor
 ENV:PATH  REXX2EXE.EXE  REXX2EXE Compiler
 ENV:PATH  FASTDEP.EXE   Fast Dependency Scanner
-
+ENV:PATH  LXLITE.EXE    Executable Packer
