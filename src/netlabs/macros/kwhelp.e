@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.2 2002-07-22 19:00:43 cla Exp $
+* $Id: kwhelp.e,v 1.3 2002-08-18 20:35:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -201,11 +201,9 @@ defproc pBuild_Helpfile(ft)
       endif
 
       if destfilename <> '' then
-compile if EVERSION >='5.50'
          if pos(' ',destfilename) then
             destfilename = '"'destfilename'"'
          endif
-compile endif
          if helpindex_id then
             bottom
             last = .last

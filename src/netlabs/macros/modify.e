@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modify.e,v 1.2 2002-07-22 19:01:14 cla Exp $
+* $Id: modify.e,v 1.3 2002-08-18 20:39:01 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -62,88 +62,25 @@
 compile if SHOW_MODIFY_METHOD = 'COLOR'
 
 defmodify
- compile if EPM
    universal  appname, app_hini
- compile else
-   universal comsfileid
- compile endif
  compile if WPS_SUPPORT
    universal wpshell_handle
  compile endif
 
    getfileid fileid
    if .autosave and .modify>=.autosave then
- compile if EPM
       if leftstr(.filename,1,1) <> '.' | .filename = UNNAMED_FILE_NAME then
-  compile if EVERSION >= '5.50'
          sayerror AUTOSAVING__MSG
-  compile else
-         sayatbox(AUTOSAVING__MSG)
-  compile endif
- compile else
-      if fileid <> comsfileid & substr(.filename,1,1) <> '.' then
- compile endif
- compile if EVERSION >= '5.50'
          'xcom save "'MakeTempName()'"'
- compile else
-         'xcom save 'MakeTempName()
- compile endif
          .modify=1                  /* Reraise the modify flag. */
- compile if EVERSION >= '5.50'
          sayerror 0
- compile endif
       endif
    endif
- compile if EVERSION < 5
-   fids = fileidfromanchorblock(.anchorblock)  -- Get list of fileids
-   do while fids <> ''
-      parse value fids with fileid fids
-      if .modify then
-         fileid.markcolor  = MODIFIED_MARKCOLOR
-         fileid.windowcolor= MODIFIED_WINDOWCOLOR
-      else -- if .modify==0 then
-         fileid.markcolor  = MARKCOLOR
-         fileid.windowcolor= WINDOWCOLOR
-      endif
-   end  -- do while
- compile else                   -- EPM
-   if .modify then
-      .markcolor= MODIFIED_MARKCOLOR
-      .textcolor= MODIFIED_WINDOWCOLOR
-   else -- if .modify==0 then
-compile if WANT_APPLICATION_INI_FILE
-      mc = MARKCOLOR
-      tc = TEXTCOLOR
- compile if WPS_SUPPORT
-      if wpshell_handle then
-; Key 4
-         tc = peekz(peek32(wpshell_handle, 16, 4))
-; Key 5
-         mc = peekz(peek32(wpshell_handle, 20, 4))
-      else
- compile endif
-      tempstr= queryprofile( app_hini, appname, INI_STUFF)
-      if tempstr<>'' & tempstr<>1 then
-         parse value tempstr with tc mc .
-      endif
- compile if WPS_SUPPORT
-      endif  -- wpshell_handle
- compile endif
-      .markcolor= mc
-      .textcolor= tc
-compile else
-      .markcolor= MARKCOLOR
-      .textcolor= TEXTCOLOR
-compile endif
-   endif
-   refresh
-   repaint_window()
- compile endif
+
 compile endif -- COLOR
 
 
 compile if SHOW_MODIFY_METHOD = 'TITLE'
- compile if EVERSION >= 5
 const
    -- This is what we'll append to the file title.
   compile if not defined(SHOW_MODIFY_TEXT)   -- If user didn't define in MYCNF:
@@ -154,49 +91,13 @@ defmodify
    if .autosave and .modify>=.autosave then
       getfileid fileid
       if leftstr(.filename,1,1) <> '.' | .filename = UNNAMED_FILE_NAME then
-  compile if EVERSION >= '5.50'
          sayerror AUTOSAVING__MSG
-  compile else
-         sayatbox(AUTOSAVING__MSG)
-  compile endif
-  compile if EVERSION >= '5.50'
          'xcom save "'MakeTempName()'"'
-  compile else
-         'xcom save 'MakeTempName()
-  compile endif
          .modify=1                  /* Reraise the modify flag. */
-  compile if EVERSION >= '5.50'
           sayerror 0
-  compile elseif EPM
-         refresh
-         call repaint_window()
-  compile endif
       endif
    endif
    settitletext(.filename) -- This procedure adds the SHOW_MODIFY_TEXT.
- compile else   -- Not EPM
-   -- When the file is modified, change the color of the filename.
-defmodify
-   universal comsfileid
-   if .autosave and .modify>=.autosave then
-      getfileid fileid
-      if fileid <> comsfileid & substr(.filename,1,1) <> '.' then
-         'xcom save 'MakeTempName()
-         .modify=1                  /* Reraise the modify flag. */
-      endif
-   endif
-   fids = fileidfromanchorblock(.anchorblock)  -- Get list of fileids
-   do while fids <> ''
-      parse value fids with fileid fids
-      if .modify then
-         fileid.filenamecolor= MODIFIED_FILENAMECOLOR
-         fileid.monofilenamecolor= MODIFIED_MONOFILENAMECOLOR
-      else -- if .modify==0 then
-         fileid.filenamecolor= FILENAMECOLOR
-         fileid.monofilenamecolor= MONOFILENAMECOLOR
-      endif
-   end  -- do while
- compile endif  -- not EPM
 compile endif  -- title
 
 
@@ -224,33 +125,13 @@ compile endif  -- statuscolor
 
 compile if SHOW_MODIFY_METHOD = ''  -- No change in display, just do AUTOSAVE.
 defmodify
- compile if not EPM
-   universal comsfileid
- compile endif
    if .autosave and .modify>=.autosave then
       getfileid fileid
- compile if EPM
       if leftstr(.filename,1,1) <> '.' | .filename = UNNAMED_FILE_NAME then
-  compile if EVERSION >= '5.50'
          sayerror AUTOSAVING__MSG
-  compile else
-         sayatbox(AUTOSAVING__MSG)
-  compile endif
- compile else
-      if fileid <> comsfileid & substr(.filename,1,1) <> '.' then
- compile endif
-  compile if EVERSION >= '5.50'
          'xcom save "'MakeTempName()'"'
-  compile else
-         'xcom save 'MakeTempName()
-  compile endif
          .modify=1                  /* Reraise the modify flag. */
- compile if EVERSION >= '5.50'
           sayerror 0
- compile elseif EPM
-         refresh
-         call repaint_window()
- compile endif
       endif
    endif
 compile endif  -- No display change.

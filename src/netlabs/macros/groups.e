@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.2 2002-07-22 19:00:34 cla Exp $
+* $Id: groups.e,v 1.3 2002-08-18 20:33:38 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -28,23 +28,23 @@
 ; end and save it as a MAKEGRP.CMD in the PATH.
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
- include 'stdconst.e'            -- (needed for MB_ constants)
- define INCLUDING_FILE = 'GROUPS.E'
+include 'stdconst.e'            -- (needed for MB_ constants)
+define INCLUDING_FILE = 'GROUPS.E'
 const
    tryinclude 'MYCNF.E'        -- The user's configuration customizations.
 
  compile if not defined(SITE_CONFIG)
-    const SITE_CONFIG = 'SITECNF.E'
+   const SITE_CONFIG = 'SITECNF.E'
  compile endif
  compile if SITE_CONFIG
-    tryinclude SITE_CONFIG
+   tryinclude SITE_CONFIG
  compile endif
 
 const
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
-include NLS_LANGUAGE'.e'          -- Needed for UNNAMED_FILE_NAME
+   include NLS_LANGUAGE'.e'          -- Needed for UNNAMED_FILE_NAME
 
 defmain
    ''arg(1)
@@ -200,7 +200,6 @@ defc loadgroup =
       endif
       if button=\2 then -- User asked for a list
          bufhndl = buffer(CREATEBUF, 'groups', MAXBUFSIZE, 1 )  -- Create a private buffer
-compile if EPM32
          retlen = \0\0\0\0
          l = dynalink32('PMSHAPI',
                         '#115',               -- PRF32QUERYPROFILESTRING
@@ -211,17 +210,6 @@ compile if EPM32
                         atoi(0) || atoi(bufhndl)  ||  -- pointer to returned string buffer
                         atol(65535)       ||       -- max length of returned string
                         address(retlen), 2)         -- length of returned string
-compile else
-         l =  dynalink( 'PMSHAPI',
-                        'PRFQUERYPROFILESTRING',
-                        atol_swap(app_hini) ||  -- HINI_PROFILE
-                        atol(0)             ||  -- Application name is NULL; returns all apps
-                        atol(0)             ||  -- Key name is NULL; returns all keys
-                        atol(0)             ||  -- Default return string is NULL
-                        address(inidata)    ||  -- pointer to returned string buffer
-                        atoi(bufhndl) || atoi(0)  ||  -- pointer to returned string buffer
-                        atol_swap(65535), 2)        -- max length of returned string
-compile endif
          poke bufhndl, 65535, \0
          if not l then sayerror 'Nothing in .INI file???'; return; endif
          getfileid startfid
@@ -256,17 +244,9 @@ compile endif
          endif
 
          if listbox_buffer_from_file(startfid, bufhndl, noflines, usedsize) then return; endif
-compile if EPM32
          parse value listbox('Select group name', \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
-compile else
-         parse value listbox('Select group name', \0 || atoi(usedsize) || atoi(bufhndl) || atoi(32),
-compile endif
                                    '/~Load/~Delete.../'Cancel__MSG, 1, 35, min(noflines,12), 0,   -- Buttons, row, col, height, width
-  compile if EVERSION >= 5.60
                                    gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(0000)) with button 2 group_name \0
-  compile else
-                                   atoi(1) || atoi(1) || atoi(0000) || gethwndc(APP_HANDLE)) with button 2 group_name \0
-  compile endif
          call buffer(FREEBUF, bufhndl)
          if button=\2 then -- 'Delete' selected
             if MBID_OK <> winmessagebox(GROUPS__MSG, GR_DELETE_PROMPT\10 group_name, MB_OKCANCEL + MB_QUERY + MB_MOVEABLE) then

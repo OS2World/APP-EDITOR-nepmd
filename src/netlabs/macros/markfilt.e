@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: markfilt.e,v 1.2 2002-07-22 19:01:03 cla Exp $
+* $Id: markfilt.e,v 1.3 2002-08-18 20:37:28 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -42,13 +42,9 @@ defproc pextract_string(var string)
    universal zzline_ptr,zzline,zzfirstline,zzlastline,zzfirstcol,zzlastcol, zzfileid,zzleftchr,zzrightchr
 
    /* return value: 0 if ok ,1 if last line, -1 if blank line */
-compile if EPM
    if zzline_ptr = zzlastline | (zzline_ptr=(zzlastline-1) & not zzlastcol) then
       return 1
    endif
-compile else
-   if zzline_ptr = zzlastline then return 1; endif
-compile endif
    zzline_ptr = zzline_ptr + 1
    getline zzline,zzline_ptr,zzfileid
    if marktype() = 'LINE' then

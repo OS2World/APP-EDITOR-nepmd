@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.2 2002-07-22 19:00:46 cla Exp $
+* $Id: linkcmds.e,v 1.3 2002-08-18 20:35:49 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -25,10 +25,10 @@ const
    tryinclude 'MYCNF.E'
 
  compile if not defined(SITE_CONFIG)
-    const SITE_CONFIG = 'SITECNF.E'
+const SITE_CONFIG = 'SITECNF.E'
  compile endif
  compile if SITE_CONFIG
-    tryinclude SITE_CONFIG
+   tryinclude SITE_CONFIG
  compile endif
 
 const
@@ -38,7 +38,7 @@ const
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
- include NLS_LANGUAGE'.e'
+   include NLS_LANGUAGE'.e'
 compile endif
 
 ;  Link <modulename>          Example:  link draw
@@ -48,10 +48,6 @@ defc link
    link arg(1)
    if RC>=0 then
       sayerror LINK_COMPLETED__MSG RC
-compile if EVERSION < 5.20    -- EPM now does the sayerror internally
-   else
-      sayerror rc
-compile endif
    endif
 
 
@@ -87,20 +83,11 @@ defc relink
          if rc then return; endif
       endif
    endif
- compile if EVERSION < 5
-   'et' modulename
- compile else
    'etpm' modulename  -- This is the macro ETPM command.
- compile endif
    if rc then return; endif
    unlink modulename
    if RC & (RC <> -310) then sayerror RC; return; endif  -- -310 = "Unlink:  unknown module"
    link modulename
- compile if EVERSION < 5.20    -- EPM now does the sayerror internally
-   if RC<0 then
-      sayerror rc
-   endif
- compile endif
 compile endif  -- WANT_ET_COMMAND
 
 
@@ -144,11 +131,7 @@ defc linkverify
          if not rc then module = module1; endif
          RC=-290
       endif
-compile if EPM
       call winmessagebox(UNABLE_TO_LINK__MSG module, sayerrortext(rc), 16416)  -- OK + ICON_EXCLAMATION + MB+MOVEABLE
-compile else
-      messageNwait(UNABLE_TO_LINK__MSG module"."  PRESS_A_KEY__MSG)
-compile endif
    endif
 
 ; Routine to link a .ex file, then execute a command in that file.

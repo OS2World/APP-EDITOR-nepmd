@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: get.e,v 1.2 2002-07-22 19:00:31 cla Exp $
+* $Id: get.e,v 1.3 2002-08-18 20:30:31 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -21,36 +21,30 @@
 ;  For linking version, GET can be an external module.
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled.
- define INCLUDING_FILE = 'GET.E'
+define INCLUDING_FILE = 'GET.E'
 const
    tryinclude 'MYCNF.E'        -- the user's configuration customizations.
 
  compile if not defined(SITE_CONFIG)
-    const SITE_CONFIG = 'SITECNF.E'
+   const SITE_CONFIG = 'SITECNF.E'
  compile endif
  compile if SITE_CONFIG
-    tryinclude SITE_CONFIG
+   tryinclude SITE_CONFIG
  compile endif
 
 const
- compile if EVERSION >= 5
-  compile if not defined(WANT_BOOKMARKS)
+ compile if not defined(WANT_BOOKMARKS)
    WANT_BOOKMARKS = 'LINK'
-  compile endif
- compile else
-   WANT_BOOKMARKS = 0
  compile endif
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
-include NLS_LANGUAGE'.e'
+   include NLS_LANGUAGE'.e'
 
 defmain     -- External modules always start execution at DEFMAIN.
    'get' arg(1)
 
- compile if EVERSION >= 6
    EA_comment 'This defines the GET command; it can be linked, or executed directly.'
- compile endif
 compile endif  -- not defined(SMALL)
 
 defc get=
@@ -64,19 +58,13 @@ defc get=
    call parse_filename(get_file,.filename)
    getfileid fileid
    s_last=.last
-compile if EVERSION < 5
-   'e /q /h /d' default_edit_options get_file
-compile else
    display -1
    'e /q /d' get_file
-compile endif
    editrc=rc
    getfileid gfileid
    if editrc = -282 | not .last then   -- -282 = sayerror('New file')
       'q'
-compile if EVERSION > 5
       display 1
-compile endif
       if editrc = -282 then
          sayerror FILE_NOT_FOUND__MSG':  'get_file
       else
@@ -85,9 +73,7 @@ compile endif
       stop
    endif
    if editrc & editrc<>-278 then  -- -278  sayerror('Lines truncated') then
-compile if EVERSION > 5
       display 1
-compile endif
       sayerror editrc
       stop
    endif
@@ -97,9 +83,7 @@ compile if WANT_BOOKMARKS
       'loadattributes'
    endif
 compile endif
-compile if EVERSION > 5
    get_file_attrib = .levelofattributesupport
-compile endif
    top
    mark_line
    bottom
@@ -123,38 +107,18 @@ compile endif
    endif
    call prestore_mark(s_firstline s_lastline s_firstcol s_lastcol s_mkfileid s_mt)
    activatefile fileid
-compile if EVERSION > 5
    if get_file_attrib // 2 then
       call attribute_on(1)  -- Colors flag
    endif
- compile if EVERSION >= 5.50  -- GPI has font support
-  compile if EVERSION >= '6.01b'
    if get_file_attrib bitand 4 then
-  compile else
-   if get_file_attrib % 4 - 2 * (get_file_attrib % 8) then
-  compile endif
       call attribute_on(4)  -- Mixed fonts flag
    endif
- compile endif
-  compile if EVERSION >= '6.01b'
    if get_file_attrib bitand 8 then
-  compile else
-   if get_file_attrib % 8 - 2 * (get_file_attrib % 16) then
-  compile endif
       call attribute_on(8)  -- "Save attributes" flag
    endif
    display 1
-compile endif
    if copy_rc then
       sayerror NOT_2_COPIES__MSG get_file
-compile if EVERSION < 5
-   else
-      call message(1)
-compile endif
    endif
-compile if EVERSION < 5
-   call select_edit_keys()
-compile else
 ;  refresh
 ;  call repaint_window()
-compile endif

@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: math.e,v 1.2 2002-07-22 19:01:06 cla Exp $
+* $Id: math.e,v 1.3 2002-08-18 20:37:56 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -23,18 +23,9 @@
 ;  Linking version for EOS2:  The bulk of the old MATH.E routines are
 ;  placed in another file MATHLIB.E, which is linked only when needed.
 ;
-define math_link = not (INCLUDE_MATHLIB or E3 or EXTRA_EX or EVERSION >= '6.00c')
+define math_link = 0
 
 defc add=
- compile if MATH_LINK
-   --- For linking version:  make sure the base routines are linked in.
-   link 'mathlib'
-   if RC<0 then
-      sayerror UNABLE_TO_LINK__MSG 'MathLib'
-      return
-   endif
- compile endif
- compile if not E3
    if marktype()=='' then
       'xcom L /[0-9]/g'      -- find first number
       if rc then
@@ -63,13 +54,8 @@ defc add=
          sayerror MARK_OFF_SCREEN2__MSG
          return
       endif
- compile else  -- else *is* E3
-   call checkmark()
- compile endif
-   call column_math('+')
- compile if not E3
-  endif
- compile endif
+      call column_math('+')
+   endif
 
 defc math=
    call mathcommon(arg(1),'')
@@ -82,51 +68,22 @@ defc mathx=
 
 defc mult=
    call checkmark()
- compile if MATH_LINK
-   --- For linking version:  make sure the base routines are linked in.
-   link 'mathlib'
-   if RC<0 then
-      sayerror UNABLE_TO_LINK__MSG 'MathLib'
-      return
-   endif
- compile endif
    call column_math('*')
 
 defproc mathcommon(input,suffix)
- compile if MATH_LINK
-   --- For linking version:  make sure the base routines are linked in.
-   link 'mathlib'
-   if RC<0 then
-      sayerror UNABLE_TO_LINK__MSG 'MathLib'
-      return
-   endif
- compile endif
    if evalinput(result,input,suffix) then
       call experror();stop
    else
-compile if EVERSION < 5
-      setcommand 'math'suffix input'= 'result
-compile else
       sayerror 'math'suffix input'= 'result  -- no setcommand in epm
-compile endif
    endif
 
-compile if not E3  -- Probably not enough space if we can't link ...
- compile if DECIMAL = ','
+compile if DECIMAL = ','
    define thou_sep = '.'
- compile else
+compile else
    define thou_sep = ','
- compile endif
+compile endif
 
 defc mathin  -- Like MATH command, but keys in the result
- compile if MATH_LINK
-   --- For linking version:  make sure the base routines are linked in.
-   link 'mathlib'
-   if rc<0 then
-      sayerror UNABLE_TO_LINK__MSG 'MathLib'
-      return
-   endif
- compile endif
    if word(arg(1), 1) = thou_sep then
       parse value arg(1) with sep input
    else
@@ -160,25 +117,15 @@ defc mathin  -- Like MATH command, but keys in the result
    keyin result
 
 defc mathxin  -- Like MATHX command, but keys in the result
- compile if MATH_LINK
-   --- For linking version:  make sure the base routines are linked in.
-   link 'mathlib'
-   if rc<0 then
-      sayerror UNABLE_TO_LINK__MSG 'MathLib'
-      return
-   endif
- compile endif
    input = arg(1)
    if evalinput(result, input, 'x') then
       call experror(); stop
    endif
    sayerror 'mathx' input'= 'result  -- no setcommand in epm
    keyin '0x'rightstr(substr(result, 2), 8, 0)
-compile endif -- not E3
 
 ;  The rest is the same as MATHLIB.E.  Must be compiled into base if we're
 ;  not running the linking version of EOS2 (unless INCLUDE_MATHLIB set).
-compile if not MATH_LINK
 
 defproc column_math
    getmark firstline,lastline,firstcol,lastcol,fileid
@@ -188,9 +135,7 @@ defproc column_math
 ;  else
 ;    result=1
 ;  endif
-compile if not E3
    decimal_flag = 0
-compile endif
 
    call pinit_extract()
    loop
@@ -201,11 +146,7 @@ compile endif
          -- to have a perfectly-fitting block mark around the numbers.
          -- jbl 12/20/88 bug fix:  line might start with minus sign or decimal.
          -- LAM: The Parse was using only the first number on each line.
-compile if E3
-         startnum = verify(line,'0123456789-','M')
-compile else
          startnum = verify(line,'0123456789-'DECIMAL,'M')
-compile endif
          if startnum then
 ;           parse value substr(line,startnum) with line .
             line = substr(line,startnum)
@@ -214,11 +155,9 @@ compile endif
             call experror()
          else
             if arg(1)='+' then
-compile if not E3
                if pos('.',tempresult) then
                   decimal_flag = max(length(tempresult)-pos('.',tempresult), decimal_flag)
                endif
-compile endif
                result=result+tempresult
             else
                result=result*tempresult
@@ -226,7 +165,6 @@ compile endif
          endif
       endif
    endloop
-compile if not E3
    if decimal_flag then  -- LAM:  Merge in CHC changes
       if pos('.',result) then   -- there's a decimal but the final zero is gone
          result = result || copies(0, decimal_flag - (length(result)-pos('.',result)))
@@ -238,9 +176,7 @@ compile if not E3
    -- by the last digit of last line.  The old way lined up by the first digit
    -- which was seldom desirable:
    --insertline substr('',1,firstcol-1)result,lastline+1,fileid
-compile endif
    res_len = length(result)
-compile if not E3
    p = pos(DECIMAL,result)
    if p then
       q = pos(DECIMAL,line)
@@ -250,11 +186,8 @@ compile if not E3
          lpad = startnum+length(line)-p
       endif
    else
-compile endif
       lpad = startnum+length(line)-res_len-1
-compile if not E3
    endif
-compile endif
 
    -- jbl 12/11/88:  make it work with or without a marked area.
    lpad = max(lpad + firstcol -1, 0)
@@ -276,12 +209,7 @@ compile endif
       endif
    endif
    if not verify(substr(line,lpad+1,res_len),' ') & lastline<.last then
-compile if not E3
       replaceline overlay(result,line,lpad+1), lastline+1
-compile else                                       -- No overlay() in E3
-      replaceline substr(line,1,lpad) || result || substr(line,lpad+res_len+1),
-                  lastline+1
-compile endif
    else
       pad = substr(' ',1,lpad)
       insertline pad || result,lastline+1,fileid
@@ -432,25 +360,17 @@ defproc next_sym
    call skip_spaces()
    if i>length(input) then sym='$';return '' endif
    sym=substr(input,i,1)
-compile if EVERSION >= 4            -- OS/2 version - real numbers
    if pos(sym,'Oo\xX0123456789+-/%*()'DECIMAL) then
-compile else                        -- DOS version - integers only
-   if pos(sym,'Oo\xX0123456789+-/%*()') then
-compile endif
       if isnum(sym) then
-compile if EVERSION >= 4            -- OS/2 version
          j=verify(input,'0123456789'DECIMAL,'',i)
-compile else                        -- DOS version
-         j=verify(input,'0123456789','',i)
-compile endif
          if not j then j=length(input)+1 endif
          sym=substr(input,i,j-i)
-compile if 0 -- DECIMAL <> '.'  -- work in progress...
+ compile if 0 -- DECIMAL <> '.'  -- work in progress...
          i = pos(DECIMAL, sym)
          if i then
             sym = overlay('.', sym, i)
          endif
-compile endif  -- DECIMAL <> '.'
+ compile endif  -- DECIMAL <> '.'
          i=j
       elseif upcase(sym)='X' then
          j=verify(input,'0123456789ABCDEFabcdef','',i+1)
@@ -523,4 +443,3 @@ defproc unary_exp
       call experror();stop
    endif
 
-compile endif -- not MATH_LINK
