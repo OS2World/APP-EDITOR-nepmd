@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.4 2002-08-22 15:47:18 cla Exp $
+# $Id: makefile,v 1.5 2002-09-12 15:25:43 cla Exp $
 #
 # ===========================================================================
 #
@@ -51,14 +51,15 @@ NEPMD_TMFTESTFILE=..\nepmdlib\nepmdlib.tmf
 
 all: exe
 
-run: all instval
-
 # --- pseudo targets for testcases
+
+run: all
+  $(BINDIR)\test.exe $(ARG)
 
 tmf:
    @(SET NEPMD_TMFTESTFILE=$(NEPMD_TMFTESTFILE) & $(BINDIR)\test.exe tmf)
 
-instval:
+instval: all
    $(BINDIR)\test.exe instval
 
 reset:
