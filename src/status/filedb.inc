@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: filedb.inc,v 1.4 2002-07-21 22:39:27 cla Exp $
+* $Id: filedb.inc,v 1.5 2002-07-22 10:35:30 cla Exp $
 *
 * ===========================================================================
 *
@@ -122,9 +122,76 @@ return $commit;
 
 // --------------------------------------------------------------------
 
+function filedb_sorttitle( $aa, $ab)
+{   
+$index = 2;
+$a = $aa[ $index];
+$b = $ab[ $index];
+
+return strcmp( strtoupper( $a), strtoupper( $b));
+
+return $result;
+}
+
+// --------------------------------------------------------------------
+
+function filedb_sortcategory( $aa, $ab)
+{   
+$index = 1;
+$a = $aa[ $index];
+$b = $ab[ $index];
+
+return strcmp( strtoupper( $a), strtoupper( $b));
+
+return $result;
+}
+
+// --------------------------------------------------------------------
+
+function filedb_sortprio( $aa, $ab)
+{   
+$index = 3;
+$a = $aa[ $index];
+$b = $ab[ $index];
+
+if ($a == $b)
+   $result = 0;
+else
+   $result = ($a > $b) ? 1 : -1;
+return $result;
+}
+
+// --------------------------------------------------------------------
+
+function filedb_sortstatus( $aa, $ab)
+{   
+$index = 4;
+$a = $aa[ $index];
+$b = $ab[ $index];
+
+return strcmp( strtoupper( $a), strtoupper( $b));
+
+return $result;
+}
+
+// --------------------------------------------------------------------
+
+function filedb_sortmodified( $aa, $ab)
+{   
+$index = 7;
+$a = $aa[ $index];
+$b = $ab[ $index];
+
+// reverse order !
+return strcmp( strtoupper( $b), strtoupper( $a));
+
+return $result;
+}
+
+// --------------------------------------------------------------------
+
 function filedb_getcommitfile( $file)
 {
-
 return $file.".commit";
 }
 
