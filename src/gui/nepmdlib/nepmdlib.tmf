@@ -1,0 +1,32 @@
+; ***************************** Module Header ******************************\
+;
+; Module Name:
+;
+; Copyright (c) Netlabs EPM Distribution Project 2002
+;
+; Test TMF file
+;
+; $Id: nepmdlib.tmf,v 1.1 2002-08-20 20:02:59 cla Exp $
+;
+; ===========================================================================
+;
+; This file is part of the Netlabs EPM Distribution package and is free
+; software.  You can redistribute it and/or modify it under the terms of the
+; GNU General Public License as published by the Free Software
+; Foundation, in version 2 as it comes in the "COPYING" file of the
+; Netlabs EPM Distribution.  This library is distributed in the hope that it
+; will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
+;
+; **************************************************************************/
+
+<--TESTMESSAGE-->: This is a test message from nepmdlib.tmf !
+
+<--TESTVAL1-->: This is testvalue 1
+<--TESTVAL2-->: This is testvalue 2 with a newline
+
+<--TESTVAL3-->: How about this value 3
+
+<--INSERTTEST-->: This is parm 1: %1 This is parm2: %2 this is parm 3: %3
+
