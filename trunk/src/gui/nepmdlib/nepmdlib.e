@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.5 2002-08-20 20:04:10 cla Exp $
+* $Id: nepmdlib.e,v 1.6 2002-08-21 13:53:28 cla Exp $
 *
 * ===========================================================================
 *
@@ -44,7 +44,7 @@ const
 
 
 /* ------------------------------------------------------------- */
-/*   generic routine for library file handling                   */
+/*   generic routine for library file and string handling        */
 /* ------------------------------------------------------------- */
 
 defproc getlibfile =
@@ -78,6 +78,9 @@ defproc checkliberror (LibFile, rc) =
     /* use different rc  - don't overwrite rc from dynalink32 call */
     rcx = dynafree( LibFile);
  endif
+
+defproc makerexxstring( asciizstring)
+  return substr( asciizstring, 1, pos( atoi(0), asciizstring) - 1);
 
 /* ------------------------------------------------------------- */
 /*   allow to auto-process command on load of routine            */
