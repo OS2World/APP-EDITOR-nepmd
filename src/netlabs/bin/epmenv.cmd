@@ -26,7 +26,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.cmd,v 1.1 2002-08-16 14:36:28 cla Exp $
+* $Id: epmenv.cmd,v 1.2 2002-11-17 17:43:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -40,8 +40,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
-
 
  SIGNAL ON HALT
 
@@ -75,6 +73,9 @@
  GlobalVars = 'Title CmdName CrLf env TRUE FALSE Redirection ERROR.';
  SAY;
 
+ CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
+ CALL SysLoadFuncs;
+
  /* eventually show help */
  ARG Parm .
  IF (POS('?', Parm) > 0) THEN
@@ -83,7 +84,7 @@
     EXIT(ERROR.INVALID_PARAMETER);
  END;
 
- /* dafault values */
+ /* default values */
  GlobalVars = GlobalVars '';
  rc = ERROR.NO_ERROR;
 
@@ -183,7 +184,7 @@ GetCalldir: PROCEDURE
 PARSE SOURCE . . CallName
  CallDir = FILESPEC('Drive', CallName)||FILESPEC('Path', CallName);
  RETURN(LEFT(CallDir, LENGTH(CallDir) - 1));
-     
+
 /* ========================================================================= */
 GetCallName: PROCEDURE
 PARSE SOURCE . . CallName
@@ -228,7 +229,7 @@ LoadEnvFile: PROCEDURE EXPOSE (GlobalVars)
     /* get varname and value */
     PARSE VAR ThisLine EnvVar'='EnvValue;
     EnvVar = TRANSLATE( STRIP( EnvVar));
-    
+
     /* replace variables in value */
     vStart = POS( '%', EnvValue);
     DO WHILE (vStart > 0)
