@@ -1,9 +1,9 @@
 CATEGORY: Toolbar
-TITLE: hange toolbar according to the mode            
+TITLE: Change toolbar according to the mode
 PRIO: 3
 STATUS: open
 FILES: 
-UPDATED: $Id: toolbar002,v 1.1 2002-07-17 15:56:18 cla Exp $
+UPDATED: $Id: toolbar002,v 1.2 2002-07-19 08:50:43 cla Exp $
 
 General toolbar definitions needed. Define more toolbar items. Generic mechanism 
 is easy to implement.
