@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.22 2002-09-24 22:09:09 cla Exp $
+* $Id: test.c,v 1.23 2002-09-25 14:41:04 cla Exp $
 *
 * ===========================================================================
 *
@@ -240,7 +240,8 @@ do
                break;
 
             printf( "- %s\n", szValue);
-            } while (  TRUE);
+
+            } while (TRUE);
 
          if (rc == ERROR_NO_MORE_FILES)
             rc = NO_ERROR;
