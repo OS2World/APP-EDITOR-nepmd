@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: dict.e,v 1.2 2004-07-02 08:03:01 aschn Exp $
+* $Id: dict.e,v 1.3 2004-07-02 13:49:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -61,6 +61,7 @@ defc DictLang
 
    Select       = ''
    SearchOption = 'C'
+   Container    = ''
    do forever
       Container = NepmdGetNextConfigKey( nepmd_hini, KeyPath'\Language', Container, SearchOption)
       parse value Container with 'ERROR:'ret
