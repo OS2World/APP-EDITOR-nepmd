@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alarm.e,v 1.1 2002-09-02 20:08:25 cla Exp $
+* $Id: alarm.e,v 1.2 2002-09-03 12:25:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,7 +26,7 @@
 @@NepmdAlarm@PROTOTYPE
 fResult = NepmdAlarm( AlarmStyle);
 
-@@NepmdAlarm@CATEGORY@DIALOG
+@@NepmdAlarm@CATEGORY@INTERACT
 
 @@NepmdAlarm@SYNTAX
 This function generates an alarm according to the style specified.
