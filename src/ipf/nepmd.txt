@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.9 2002-04-20 14:09:17 cla Exp $
+.. $Id: nepmd.txt,v 1.10 2002-06-07 13:45:04 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -130,7 +130,7 @@ features in *EPM* 6 compared to *EPM* 5
 .. -----------------------------------------------------------------------------
 .
 The sources for to build the [=TITLE] are freely available under the
-[.IDPNL_LEGAL_GPL GNU General Public License] within a *CVS* archiv on
+[.IDPNL_LEGAL_GPL GNU General Public License] within a *CVS* archive on
 the *OS/2 Netlabs Open Source Archive* server.
 
 To access them you either can
@@ -241,7 +241,7 @@ of liability.
 .at
 
 .. -----------------------------------------------------------------------------
-.3 The author
+.3 The authors
 .. -----------------------------------------------------------------------------
 .an IDPNL_LEGAL_AUTHOR
 .
@@ -298,7 +298,7 @@ This package contains the application core files.
 .an IDPNL_EPMBBS_COMP_EPMDLL
 .
 This package contains the dynamic link libraries of the *E Toolkit* used by *EPM*
-(and useable  by other applications making use of the *E Toolkit*).
+(and useable by other applications making use of the *E Toolkit*).
 
 [=NOTE]
 .ul compact
@@ -607,6 +607,7 @@ Files of the [=TITLE] reside in the following directories:
 .fo off
 <install dir>
 ÀÄ[=DISTDIR]
+  ÃÄbin         **.exe       program files
   ÃÄbook        **.inf       this helpfile
   ÃÄbmp         **.bmp       bitmaps
   ÃÄex          **.ex        macro compiled binaries
@@ -629,6 +630,37 @@ placed into the following directory tree:
   ÃÄkeywords    epmkwds.**   keyword files for syntax highlighting
   ÀÄmacros      **.e         macros
 .fo on
+
+.. -----------------------------------------------------------------------------
+.3 extended recompilation support
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_RECOMP
+.
+[=TITLE] comes with a utility to greatly support and ease the recompilation
+of *EPM*.
+
+When recompiling *EPM* manually, you would call its macro compiler
+after having setup the *EPMPATH* variable according the original and your additional
+macro source files, and that several times until possible errors are solved.
+After that you would close all open *EPM* windows and open a new one in order to 
+check if all works as expected.
+
+The *RECOMP* utility coming with [=TITLE], automates a lot of these steps to your
+convenience. It works as follows:
+.ul compact
+- saves file lists of currently open *EPM* windows (optional)
+- switches to unsaved files and aborts to let you save or discard them (optional)
+- compiles *EPM*
+- in case of success:
+  - closes all open *EPM* windows
+  - reloads all previously open *EPM* windows using the savesd filelists,
+    restoring window and cursor positions (optional)
+- in case of a compile error:
+..- loads the errant file, places the cursor to the error location and displays the error message
+..  of the *EPM* macro compiler
+  - loads the compile log (optional)
+
+Using the reload function makes the work much easier especialy when developing macros for *EPM*.
 
 .. -----------------------------------------------------------------------------
 .3 extended keyword hilighting
@@ -809,8 +841,10 @@ The following persons (in alphabetic order) assembled and contributed extensions
 =
 .ul compact
   - distribution concept
+  - setup of the *Netlabs Open Source Archive* for the [.IDPNL_WHAT_NED]
   - this online INF file
   - *WarpIn* installation packaging
+  - recompilation GUI utility *RECOMP*
 ..- extended syntax highlighting support
 ..
 - *Andreas Schnellbacher* <Andreas.Schnellbacher@web.de>
