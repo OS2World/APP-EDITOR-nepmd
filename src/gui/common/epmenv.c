@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.3 2002-08-14 19:14:37 cla Exp $
+* $Id: epmenv.c,v 1.4 2002-08-15 10:06:21 cla Exp $
 *
 * ===========================================================================
 *
@@ -94,21 +94,32 @@ do
       fNepmdPathFound = TRUE;
       }
 
-   // ----- check for first env file loaded
+   // ----- check for main env file loaded
 
    do
       {
-      // <nepmd_rootdir>\netlabs\<exename>.env
-      sprintf( szMainEnvFile, pszNepmdExecDirMask, szNepmdPath, szBasename);
+      // <executable_path>\<exename>.env
+      sprintf( szMainEnvFile, "%s\\%s"NEPMD_FILENAMEEXT_ENV, szExecutablePath, szBasename);
       DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
       if (fFound = FileExists( szMainEnvFile))
          break;
 
-      // <nepmd_rootdir>\netlabs\epm.env
-      sprintf( szMainEnvFile, pszNepmdExecDirMask, szNepmdPath, "epm");
-      DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
-      if (fFound = FileExists( szMainEnvFile))
-         break;
+      if (fNepmdPathFound)
+         {
+         // <nepmd_rootdir>\netlabs\<exename>.env
+         sprintf( szMainEnvFile, pszNepmdExecDirMask, szNepmdPath, szBasename);
+         DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
+         if (fFound = FileExists( szMainEnvFile))
+            break;
+   
+         // <nepmd_rootdir>\netlabs\epm.env
+         sprintf( szMainEnvFile, pszNepmdExecDirMask, szNepmdPath, "epm");
+         DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
+         if (fFound = FileExists( szMainEnvFile))
+            break;
+         }
+      else
+         DPRINTF(( "EPMENV: NEPMD not installed, skip main env file\n"));
 
       } while (FALSE);
 
@@ -116,27 +127,32 @@ do
    if (!fFound)
       szMainEnvFile[ 0] = 0;
 
-   // ----- check for second env file loaded
+   // ----- check for user env file loaded
 
    do
       {
-      // <exename>.env in <currentdir>
+      // <currentdir>\<exename>.env
       sprintf( szUserEnvFile, "%s"NEPMD_FILENAMEEXT_ENV, szBasename);
       DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
       if (fFound = FileExists( szUserEnvFile))
          break;
 
-      // <nepmd_rootdir>\myepm\<exename>.env
-      sprintf( szUserEnvFile, pszMyEpmExecDirMask, szNepmdPath, szBasename);
-      DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
-      if (fFound = FileExists( szUserEnvFile))
-         break;
-
-      // <nepmd_rootdir>\myepm\epm.env
-      sprintf( szUserEnvFile, pszMyEpmExecDirMask, szNepmdPath, "epm");
-      DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
-      if (fFound = FileExists( szUserEnvFile))
-         break;
+      if (fNepmdPathFound)
+         {
+         // <nepmd_rootdir>\myepm\<exename>.env
+         sprintf( szUserEnvFile, pszMyEpmExecDirMask, szNepmdPath, szBasename);
+         DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
+         if (fFound = FileExists( szUserEnvFile))
+            break;
+   
+         // <nepmd_rootdir>\myepm\epm.env
+         sprintf( szUserEnvFile, pszMyEpmExecDirMask, szNepmdPath, "epm");
+         DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
+         if (fFound = FileExists( szUserEnvFile))
+            break;
+         }
+      else
+         DPRINTF(( "EPMENV: NEPMD not installed, skip user env file\n"));
 
       } while (FALSE);
 

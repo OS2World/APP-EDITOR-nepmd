@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.18 2002-08-15 08:41:32 cla Exp $
+.. $Id: nepmd.txt,v 1.19 2002-08-15 10:06:21 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -724,15 +724,21 @@ is loaded
 
 .pl compact tsize=3 bold underline
 - the main environment file
-= this environment file is only searched within the *netlabs\bin* directory.
-  It is either a file with the name
+= this environment file is
 .ul
-  - of the executable and extension *.env* (if existing)
+  - first searched within the directory and the name of the calling executable
+.at fc=darkgray
+.
+     *<executable__directory>\<exename>.env*
+.at
+  - or within the *netlabs\bin* directory, being a file with the name
+.ul
+    - of the executable and extension *.env* (if existing)
 .at fc=darkgray
 .
      *netlabs\bin\<exename>.env*
 .at
-  - or otherwise *epm.env* (if existing)
+    - or otherwise *epm.env* (if existing)
 .at fc=darkgray
 .
      *netlabs\bin\epm.env*
