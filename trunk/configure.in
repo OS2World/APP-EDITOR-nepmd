@@ -8,7 +8,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.4 2002-04-18 17:01:35 cla Exp $
+# $Id: configure.in,v 1.5 2002-04-20 14:41:22 cla Exp $
 #
 # ===========================================================================
 #
@@ -37,10 +37,11 @@ BASEURL=ftp://ftp.leo.org/pub/comp/os/os2/leo/editors
 !endif
 
 # a directory of your choice either empty or already holding
-# epm603.zip and epm603b.zip. If files are not present, thay
-# are downloaded from LEO ( %BASEURL%)
-# - directory may not exist, but at least directory above
-#   must exist (not tested!)
+# the ZIP files of the EPMBBS package (epm603.zip and epm603b.zip).
+# If files are not present, they are downloaded from LEO
+# from the base URL - see setting BASEURL above
+# - the directory may not exist, but at least directory above
+#   must exist (that is not tested for !)
 
 !ifndef ZIPSRCDIR
 ZIPSRCDIR=zip
@@ -48,9 +49,9 @@ ZIPSRCDIR=zip
 
 # directory where to put unpacked files
 # - directory may not exist, but at least directory above
-#   must exist (not tested!)
-# - Make sure the directory is empty before executing prepare.cmd
-#   (not tested !)
+#   must exist (that is not tested for !)
+# - the contents of that directory (if any) is completely deleted
+#   before unpacking the EPMBBS package files
 # - names including blanks are not supported by all
 #   build programs yet
 
