@@ -35,7 +35,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: parseenv.cmd,v 1.3 2002-08-01 13:24:09 cla Exp $
+* $Id: parseenv.cmd,v 1.4 2002-08-06 20:15:47 cla Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +54,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.3 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.4 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -268,7 +268,7 @@
 
 /* ------------------------------------------------------------------------- */
 HALT:
- SAY 'Abbruch durch Benutzer.';
+ SAY 'Interrupted by user';
  EXIT(ERROR.GEN_FAILURE);
 
 /* ------------------------------------------------------------------------- */
