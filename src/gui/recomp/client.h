@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: client.h,v 1.2 2002-06-09 21:52:45 cla Exp $
+* $Id: client.h,v 1.3 2002-08-14 12:22:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,6 +40,10 @@ typedef struct _WINDOWDATA
          CONFIGDATA     cd;
          APIRET         rc;
 
+         // extended enviroment
+         PSZ            pszEpmEnv;
+
+         // main program control data
          BOOL           fAutoStart;
          BOOL           fSkipLog;
          HMODULE        hmodResource;
