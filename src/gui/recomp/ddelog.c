@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddelog.c,v 1.2 2002-06-08 23:48:31 cla Exp $
+* $Id: ddelog.c,v 1.3 2002-06-09 15:35:13 cla Exp $
 *
 * ===========================================================================
 *
@@ -45,7 +45,6 @@
 #include "client.h"
 #include "file.h"
 
-
 // -----------------------------------------------------------------------------
 
 static   PSZ            pszDdeAppname          = "EPM";
@@ -56,19 +55,53 @@ static   PSZ            pszDdeTopicEditCommand = "EDIT_COMMAND";
 
 // -----------------------------------------------------------------------------
 
+// struct for error info
+
+typedef struct _ERRORINFO
+   {
+         CHAR           szErrorFile[ _MAX_PATH];
+         ULONG          ulLine;
+         ULONG          ulCol;
+         CHAR           szErrorMsg[ 128];
+   } ERRORINFO, *PERRORINFO;
+
 // structure for data of object window
 
 typedef struct _LOADLOGDATA
     {
-         PSZ            pszMacroFile;                // provided by caller of ReloadFilelist for setting curpos
          PSZ            pszLogFile;                  // provided by caller
-         CHAR           szCurPos[ 32];               // extracted by LoadErrantFile()
+         PSZ            pszMacroFile;                // provided by caller
+         ERRORINFO      ei;                          // extraced by _extractErrorInfo()
          APIRET         rc;                          // for returning a reason code to ReloadFilelist
          HWND           hwndServer;
          HWND           ahwndServer[ MAX_EPM_CLIENTS];
          ULONG          ulServerCount;
 
     } LOADLOGDATA, *PLOADLOGDATA;
+
+// ----------------------------------------------------------------------
+
+static PSZ _stripblanks( PSZ string)
+{
+ PSZ p = string;
+ if (p != NULL)
+    {
+    while ((*p != 0) && (*p <= 32))
+       { p++;}
+    strcpy( string, p);
+    }
+ if (*p != 0)
+    {
+    p += strlen(p) - 1;
+    while ((*p <= 32) && (p >= string))
+       {
+       *p = 0;
+       p--;
+       }
+    }
+
+return string;
+}
 
 // ---------------------------------------------------------------------
 
@@ -167,7 +200,14 @@ switch (msg)
 
       // load EPM with the log file, but call macro separately
       // (otherwise it will not work if only one file loaded)
-      sprintf( szCommand, "start /F EPM \"%s\"", plld->pszLogFile);
+      sprintf( szCommand, "start /F EPM \"%s\"", plld->ei.szErrorFile);
+      sprintf( &szCommand[ strlen( szCommand)] ,
+               " 'MC ;link %s;recomp SETPOS %u %u %u %u;'",
+               plld->pszMacroFile,
+               plld->ei.ulLine,
+               plld->ei.ulCol,
+               plld->ei.ulCol,
+               plld->ei.ulCol + 1);
       DPRINTF(( "DDELOG: start EPM with: %s\n", szCommand));
 
       // connect to that instance
@@ -205,10 +245,14 @@ switch (msg)
          break;
          }
 
-      // execute macro separately. This triggers also end of processing
-      sprintf( szCommand, "MC ;link %s;recomp SETPOS %s;", plld->pszMacroFile, plld->szCurPos);
+      // execute macro to set error message separately, so that we can
+      // use all kinds of quotes !
+      sprintf( szCommand, "sayerror %s", plld->ei.szErrorMsg);
       if (!_logExecuteEPMCommand( hwnd, plld->hwndServer, szCommand))
+         {
+         WinAlarm( HWND_DESKTOP, WA_ERROR);
          ABORT_LOADING;
+         }
 
       break;
 
@@ -223,10 +267,6 @@ switch (msg)
       if ((!strcmp( pDdeInit->pszAppName, pszDdeAppname)) &&
           (!strcmp( pDdeInit->pszTopic,   pszDdeTopicEdit)))
          {
-
-         // save server handle - first connected is the one we need
-         plld->hwndServer = plld->ahwndServer[ 0];
-
          // also save list for later cleanup
          plld->ahwndServer[ plld->ulServerCount] = hwndServer;
          plld->ulServerCount++;
@@ -234,6 +274,9 @@ switch (msg)
 #if DEBUG_DDE_MESSAGES
          DPRINTF(( "DDELOG: INITIATE acknowledged by %08x\n", hwndServer));
 #endif
+
+         // save server handle - first connected is the one we need
+         plld->hwndServer = plld->ahwndServer[ 0];
          }
       }
       break;
@@ -263,6 +306,130 @@ return WinDefWindowProc( hwnd, msg, mp1, mp2);
 
 // -----------------------------------------------------------------------------
 
+static APIRET _extractErrorInfo( PSZ pszLogFile, PERRORINFO pei)
+{
+         APIRET         rc = NO_ERROR;
+         FILE          *pfile = NULL;
+         ULONG          i;
+
+         CHAR           szLine[ 128];
+
+         BOOL           fErrorOccurred = FALSE;
+         BOOL           fErrorMsgMessageRead = FALSE;
+         BOOL           fDataComplete = FALSE;
+
+static   PSZ            pszValidLineToken = ETPMLOG_VALIDLINETOKEN;
+         ULONG          ulValidLineTokenLen = strlen( pszValidLineToken);
+static   PSZ            pszFilenameToken = ETPMLOG_FILENAMETOKEN;
+         ULONG          ulFilenameTokenLen = strlen( pszFilenameToken);
+static   PSZ            pszLineToken = ETPMLOG_LINETOKEN;
+         ULONG          ulLineTokenLen = strlen( pszLineToken);
+static   PSZ            pszColToken = ETPMLOG_COLTOKEN;
+         ULONG          ulColTokenLen = strlen( pszColToken);
+
+do
+   {
+   // check parms
+   if ((!pszLogFile)   ||
+       (!*pszLogFile)  ||
+       (!pei))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // init values
+   memset( pei, 0, sizeof( ERRORINFO));
+
+   // open logfile for read
+   pfile = fopen( pszLogFile, "r");
+   if (!pfile)
+      {
+      rc = ERROR_OPEN_FAILED;
+      break;
+      }
+
+   // read first three lines - no further content checking
+   for (i = 0; i < ETPMLOG_HEADERLINECOUNT; i++)
+      {
+      // header lines must be readable
+      if (!fgets( szLine, sizeof( szLine), pfile))
+         {
+         fErrorOccurred = TRUE;
+         break;
+         }
+      }
+
+   // header lines not there ? error !
+   if (fErrorOccurred)
+      {
+      rc = ERROR_INVALID_DATA;
+      break;
+      }
+
+   while (fgets( szLine, sizeof( szLine), pfile))
+      {
+      // remoe nerline char
+      szLine[ strlen( szLine) - 1] = 0;
+
+      // skip empty lines
+      if (szLine[ 0] == 0)
+         continue;
+
+      // proceed to error message here
+      if (!fErrorMsgMessageRead)
+         {
+         // skip valid lines reporting included files
+         if (!strncmp( szLine, pszValidLineToken, ulValidLineTokenLen))
+            continue;
+         else
+            {
+            // take first non-valid line as error message
+            sprintf( pei->szErrorMsg, "%s: %s", __APPNAME__, szLine);
+            fErrorMsgMessageRead = TRUE;
+            }
+         }
+
+      // check for error information here
+      if (!strncmp( szLine, pszFilenameToken, ulFilenameTokenLen))
+         {
+         // copy filename and remove trailing blanks
+         strcpy( pei->szErrorFile, &szLine[ ulFilenameTokenLen]);
+         _stripblanks( pei->szErrorFile);
+         }
+      else if (!strncmp( szLine, pszLineToken, ulLineTokenLen))
+         // store errant line
+         pei->ulLine = atol( &szLine[ ulLineTokenLen]);
+      else if (!strncmp( szLine, pszColToken, ulColTokenLen))
+         {
+         // store column of error and break here - everything complete
+         pei->ulCol = atol( &szLine[ ulColTokenLen]);
+         fDataComplete = TRUE;
+         break;
+         }
+
+      }  // while (fgets( szLine, sizeof( szLine), pfile))
+
+   // all info received ? if not, load logfile itsef
+   // because compile was successful
+   if (!fDataComplete)
+      {
+      strcpy( pei->szErrorFile, pszLogFile);
+      pei->ulLine = 1;
+      pei->ulCol = 1;
+      sprintf( pei->szErrorMsg, "%s: compile successful", __APPNAME__);
+      break;
+      }
+
+   } while (FALSE);
+
+// cleaunp
+if (pfile) fclose( pfile);
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
 APIRET LoadErrantFileFromLog( HWND hwnd, PSZ pszLogFile, PSZ pszMacroFile)
 {
          APIRET         rc = NO_ERROR;
@@ -287,20 +454,18 @@ do
    // check parms
    if ((!hwnd)         ||
        (!pszLogFile)   ||
-       (!*pszLogFile)  ||
-       (!pszMacroFile) ||
-       (!*pszMacroFile ))
+       (!*pszLogFile))
       {
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
 
-   // now create object window for handling the start of EPM instance
-   // hand over a copy of the filelist string getting tokenized
-   lld.pszMacroFile = pszMacroFile;
+   // setup required information
    lld.pszLogFile   = pszLogFile;
-   strcpy( lld.szCurPos, "2 2 2 3");
-// sprintf( lld.szCurPos, "%u %u %u %u", ulCurX, ulCurX, ulCurX, ulCurX + 1);
+   lld.pszMacroFile = pszMacroFile;
+   rc = _extractErrorInfo( pszLogFile, &lld.ei);
+   if (rc != NO_ERROR)
+      break;
 
    // create object window to send request here
    if (!WinRegisterClass( CURRENTHAB, pszObjectWindowClass,
@@ -345,6 +510,7 @@ do
    rc = lld.rc;
 
    } while (FALSE);
+
 
 return rc;
 
