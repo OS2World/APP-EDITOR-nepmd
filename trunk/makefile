@@ -8,7 +8,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.11 2002-04-19 14:56:41 cla Exp $
+# $Id: makefile,v 1.12 2002-04-20 14:07:37 cla Exp $
 #
 # ===========================================================================
 #
@@ -32,7 +32,7 @@ WPIFILE=$(STEM)$(VERSION).wpi
 # --- common definitions
 
 .SUFFIXES: .src .ipf .inf .ipp .hlp .exe .log
-INCLUDE=$(INCLUDE);src\ipf;
+INCLUDE=$(INCLUDE);src\ipf;src\ipf\bmp;
 
 !IFDEF NDEBUG
 !UNDEF DEBUG
@@ -95,8 +95,8 @@ LFLAGS_PM=$(LFLAGS_PM) /CO
 
 # --- pseudotargets ****************
 
-DEFAULT:
-   @TYPE makefile.txt
+HELP: bin\makefile.inf
+  @start view bin\makefile.inf "Making"
 
 # ---
 
@@ -142,7 +142,7 @@ CLEAN:
 
 # ---- generate INF
 
-$(INFDIR)\nepmd.inf: src\ipf\nepmd.txt src\ipf\*.inc src\bmp\*
+$(INFDIR)\nepmd.inf: src\ipf\nepmd.txt src\ipf\*.inc src\ipf\bmp\*
    HTEXT /N src\ipf\nepmd.txt $(CMPDIR)\nepmd.ipf $(INFDIR)\nepmd.inf
 
 
@@ -168,4 +168,8 @@ $(EXCDIR)\nlsetup.exe: src\rexx\nlsetup.cmd
 $(CMPDIR)\$(WPIFILE): PREPARE INF src\wis\$(SCRIPTFILE) bin\create.cmd $(CMPDIR)\srccopy.txt
    bin\create $(CMPDIR)\create.log src\wis\$(SCRIPTFILE) $(CMPDIR)\$(WPIFILE) $(UNZIPPEDDIR)
 
+# ---- create makefile help INF
+
+bin\makefile.inf: src\ipf\makefile.txt
+  htext /N src\ipf\makefile.txt compile\makefile.ipf bin\makefile.inf
 
