@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.2 2002-08-20 12:06:16 cla Exp $
+* $Id: nepmdlib.c,v 1.3 2002-08-20 14:52:24 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,8 +34,15 @@
 #define OS2VERSION 20
 #include <EDLL.h>
 
+#include "macros.h"
 #include "nepmdlib.h"
 #include "eas.h"
+
+// undocumented function
+APIRET APIENTRY DosQueryModFromEIP (HMODULE *phModule, ULONG *pulObjectNumber,
+                                    ULONG ulBufferLength, PCHAR pchBuffer,
+                                    ULONG *pulOffset, PVOID pvAddress);
+
 
 // ------------------------------------------------------------------------------
 
@@ -68,36 +75,19 @@ return rc;
 
 // ------------------------------------------------------------------------------
 
-APIRET EXPENTRY NepmdLibInfo( PSZ pszToken, PSZ pszBuffer, ULONG ulBuflen)
+APIRET EXPENTRY NepmdLibVersion( PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
-         PSZ            pszResult = "ERROR:";
-
-static   PSZ            pszTokenVersion  = "VERSION";
-static   PSZ            pszTokenCompiled = "COMPILED";
+         PSZ            pszResult = NEPMDLIB_VERSION;
 
 do
    {
    // check parms
-   if ((!pszToken) ||
-       (!pszBuffer))
+   if (!pszBuffer)
       {
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
-   strupr( pszToken);
-
-   // select info to be returned
-
-   // -- handle VERSION
-   if (strstr( pszTokenVersion, pszToken) == pszTokenVersion)
-      pszResult = NEPMDLIB_VERSION;
-
-   else
-
-   // -- handle COMPILED
-   if (strstr( pszTokenCompiled, pszToken) == pszTokenCompiled)
-      pszResult = __DATE__;
 
    // check result buffer
    if (strlen( pszResult) + 1 > ulBuflen)
@@ -112,6 +102,62 @@ do
    } while (FALSE);
 
 return rc;
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdLibInfo( HWND hwndClient)
+{
+         APIRET         rc = NO_ERROR;
+
+         PPIB           ppib;
+         PTIB           ptib;
+
+         HMODULE        hmod;
+         ULONG          ulOffset;
+         ULONG          ulObjectNumber;
+         CHAR           szModuleName[ _MAX_PATH];
+         PSZ            pszBaseName;
+
+         CHAR           szMessage[ 512];
+
+do
+   {
+printf( "called\n");
+
+   // get path and name of this DLL
+   DosQueryModFromEIP( &hmod, &ulObjectNumber,
+                       sizeof( szModuleName), szModuleName,
+                       &ulOffset, (PVOID) NepmdLibInfo);
+   DosQueryModuleName( hmod, sizeof( szModuleName), szModuleName);
+   pszBaseName = strrchr( szModuleName, '\\');
+   *pszBaseName++ = 0;
+
+   // append name of this DLL
+   sprintf(       szMessage,  NEPMDLIB_STR_FILENAME   "%s\n", pszBaseName);
+   sprintf( _EOS( szMessage), NEPMDLIB_STR_LOADEDFROM "%s\n", szModuleName);
+
+   // details
+   strcat( szMessage, NEPMDLIB_STR_VERSION NEPMDLIB_VERSION "  of " __DATE__"\n");
+
+   // append modulename
+   strcat( szMessage, NEPMDLIB_STR_LOADEDBY);
+   DosGetInfoBlocks( &ptib,&ppib);
+   DosQueryModuleName( ppib->pib_hmte, _EOSSIZE( szMessage), _EOS( szMessage));
+   strcat( szMessage, "\n");
+
+   // show box
+   rc = WinMessageBox( HWND_DESKTOP,
+                       hwndClient,
+                       szMessage,
+                       NEPMDLIB_STR_TITLE,
+                       0L,
+                       MB_OK | MB_MOVEABLE | MB_INFORMATION);
+
+   } while (FALSE);
+
+return rc;
+
 }
 
 // ------------------------------------------------------------------------------
