@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.5 2002-08-19 18:02:46 cla Exp $
+# $Id: makefile,v 1.6 2002-09-09 09:00:18 cla Exp $
 #
 # ===========================================================================
 #
@@ -25,7 +25,7 @@
 # --- extend EPMPATH and search macro sources in subdirectory
 #     (MACRODIR used by project.in)
 MACRODIR=macros
-EPMPATH=$(MACRODIR);$(EPMPATH)
+EPMPATH=$(MACRODIR)
 
 # --- include main definitions
 
