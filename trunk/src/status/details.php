@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: details.php,v 1.8 2002-07-21 18:28:51 cla Exp $
+* $Id: details.php,v 1.9 2002-07-21 22:44:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,7 @@ else
    // read database
    $aentry = filedb_read( $file);
    }
-   
+
 list( , $file)      = each( $aentry);
 list( , $category)  = each( $aentry);
 list( , $title)     = each( $aentry);
@@ -51,11 +51,17 @@ list( , $updated)   = each( $aentry);
 list( , $modified)  = each( $aentry);
 list( , $details)   = each( $aentry);
 
+$commentfile = filedb_getcommitfile( $file);
+if (file_exists( $commentfile))
+   $gifbdcolor= filedb_getstatuscolor( "COMMIT");
+else
+   $gifbdcolor= filedb_getstatuscolor( "CURRENT");
+
 echo "<table width=90% border=0 cellpadding=1 cellspacing=1>";
 echo "<tr>";
 echo "<td bgcolor=#dddddd width=100%>";
 echo $title;
-echo "</td><td align=right bgcolor=#dddddd>";
+echo "</td><td align=right bgcolor=".$gifbdcolor.">";
 echo "<a href=\"edit.php?file=".$file."\"><img src=\"edit.gif\" border=0></a>";
 echo "</td>";
 echo "</tr>";
