@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.13 2002-09-19 16:11:31 cla Exp $
+* $Id: esrcscan.cmd,v 1.14 2002-10-03 18:30:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -627,6 +627,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
 
  FunctionsFile = OutDir'\functions.txt';
  rcx = SysFileDelete( FunctionsFile);
+ rcx = LINEOUT( FunctionsFile, '');
 
  LogFile = OutDir'\functions.log';
  rcx = SysFileDelete( LogFile);
