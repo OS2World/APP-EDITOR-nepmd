@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.9 2002-08-22 12:38:08 cla Exp $
+* $Id: nepmdlib.c,v 1.10 2002-08-22 15:51:36 cla Exp $
 *
 * ===========================================================================
 *
@@ -37,13 +37,10 @@
 #include "macros.h"
 #include "nepmdlib.h"
 #include "file.h"
+#include "module.h"
+#include "instval.c"
 #include "eas.h"
 #include "tmf.h"
-
-// undocumented function
-APIRET APIENTRY DosQueryModFromEIP (HMODULE *phModule, ULONG *pulObjectNumber,
-                                    ULONG ulBufferLength, PCHAR pchBuffer,
-                                    ULONG *pulOffset, PVOID pvAddress);
 
 
 // ------------------------------------------------------------------------------
@@ -73,6 +70,13 @@ do
 
 return rc;
 
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdGetInstValue( PSZ pszFileTag, PSZ pszBuffer, ULONG ulBuflen) 
+{
+return GetInstValue( pszFileTag, pszBuffer, ulBuflen);
 }
 
 // ------------------------------------------------------------------------------
@@ -258,9 +262,6 @@ APIRET EXPENTRY NepmdLibInfo( HWND hwndClient)
          PPIB           ppib;
          PTIB           ptib;
 
-         HMODULE        hmod;
-         ULONG          ulOffset;
-         ULONG          ulObjectNumber;
          CHAR           szModuleName[ _MAX_PATH];
          PSZ            pszBaseName;
 
@@ -270,10 +271,9 @@ do
    {
 
    // get path and name of this DLL
-   DosQueryModFromEIP( &hmod, &ulObjectNumber,
-                       sizeof( szModuleName), szModuleName,
-                       &ulOffset, (PVOID) NepmdLibInfo);
-   DosQueryModuleName( hmod, sizeof( szModuleName), szModuleName);
+   rc = GetModuleName( szModuleName, sizeof( szModuleName));
+   if (rc != NO_ERROR)
+      break;
    pszBaseName = strrchr( szModuleName, '\\');
    *pszBaseName++ = 0;
 
