@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.11 2002-09-13 12:52:47 cla Exp $
+* $Id: test.c,v 1.12 2002-09-13 17:09:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -156,7 +156,7 @@ do
             PSZ               pszPath;
             PSZ               pszValue;
             CHAR              szValue[ _MAX_PATH];
-            PSZ               pszFormat = "%s  ->  \"%s\"\n";
+            PSZ               pszFormat = "%s  ->  \"%s\"\n\n";
 
 #define PROCESSVALUE(p,v)                                         \
       pszPath  = p;                                               \
@@ -180,14 +180,15 @@ do
          // write a ney key to all existant path
          PROCESSVALUE( "\\NEPMD\\Testcases\\MyContainer\\AdditionalKey",  "Additional value");
 
-         // write a new key in the middle of an existand path
-         PROCESSVALUE( "\\NEPMD\\Testcases\\AdditionalCase",  "Additional value 2");
+         // write a new key in the middle of an existant path, name includes a space
+         PROCESSVALUE( "\\NEPMD\\Testcases\\Additional Case",  "Additional value 2");
 
-         // write a new key to be deleted
-         pszPath = "\\NEPMD\\Testcases\\ContainerToDelete\\SubContainerToDelete\\KeyToDelete";
+         // write a new key to be deleted, name includes a space
+         pszPath = "\\NEPMD\\Testcases\\ContainerToDelete\\SubContainerToDelete\\Key To Delete";
          PROCESSVALUE( pszPath, "Value to be deleted");
          rc = DeleteConfigValue( pszPath);
          printf( "Key deleted, rc=%u\n", rc);
+
 
          } while (FALSE);
 
