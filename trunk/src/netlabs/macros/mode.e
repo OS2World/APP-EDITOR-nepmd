@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.24 2002-11-02 22:46:17 aschn Exp $
+* $Id: mode.e,v 1.25 2002-12-09 21:06:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,6 +24,15 @@ const
 compile if not defined(NEPMD_SPECIAL_STATUSLINE)
    NEPMD_SPECIAL_STATUSLINE = 1
 compile endif
+compile if not defined(NEPMD_WANT_HIGHLIGHTING)
+   NEPMD_WANT_HIGHLIGHTING = 1
+compile endif
+compile if not defined(NEPMD_WANT_MODE_DETERMINATION)
+   NEPMD_WANT_MODE_DETERMINATION = 1
+compile endif
+/* Testcase:
+   open %NEPMD_ROOTDIR%\netlabs\macros\*.e
+*/
 
 ; ---------------------------------------------------------------------------
 ; Creates the array var 'mode.'fid so that it can be queried later.
@@ -76,13 +85,29 @@ defproc NepmdGetMode
    endif
 
    if CurMode = '' then
-      -- Get default mode
-      CurMode = NepmdQueryDefaultMode(Filename)
-      parse value CurMode with 'ERROR:'rc
-      if rc > '' then
-         sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc
-         CurMode = ''
-      endif
+      -- if it's a temp filename starting with '.'
+      IsATempFile = (leftstr( Filename, 1 ) = '.')
+      -- set DefaultMode here to not have NepmdQueryDefaultMode go trough
+      -- all ini files in the mode dirs
+      CurMode = 'TEXT' -- general default mode
+      if not IsATempFile then
+compile if NEPMD_WANT_MODE_DETERMINATION
+         -- Get default mode
+         if isadefproc('NepmdQueryDefaultMode') then
+            DefaultMode = NepmdQueryDefaultMode(Filename)
+         else
+            DefaultMode = 'TEXT'
+         endif
+         parse value DefaultMode with 'ERROR:'rc
+         if rc > '' then
+            sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc
+         else
+            CurMode = DefaultMode
+         endif
+compile else
+         CurMode = 'E'  -- Test
+compile endif
+      endif  -- not IsATempFile
    endif
 
    -- Update array var 'mode.'fid if CurMode has changed
@@ -149,6 +174,22 @@ defproc NepmdResetMode
       call NepmdProcessMode(CurMode)
    endif
 
+   return
+
+; Define a command to call it with 'postme' from defc s,save
+; Otherwise a MessageBox (defined in ETK) will pop up when
+;    -  the window should be closed and
+;    -  there is a modified file in the ring and
+;    -  the file was saved.
+; The file *was* saved but the MessageBox says that there has
+; occured an error saving the file.
+; Another possibility could be to disable every internal switching
+; of files in the ring. Especially selecting files from the 'ring_more'
+; ListBox temporarily will not update the Statusline. It was
+; only updated after the ListBox was closed.
+defc ResetMode, NepmdResetMode
+   OldMode = arg(1)
+   call NepmdResetMode(OldMode)
    return
 
 ; ---------------------------------------------------------------------------
@@ -241,6 +282,7 @@ defproc NepmdProcessMode
 
    CurMode = arg(1)
    HiliteCheckFlag = arg( 2)
+;   HiliteCheckFlag = 'N'  -- Test
 
    if not .visible then
       return
@@ -258,7 +300,11 @@ compile if NEPMD_SPECIAL_STATUSLINE
 compile endif
 
    -- Highlighting
-   call NepmdActivateHighlight( 'ON', CurMode, HiliteCheckFlag)
+compile if NEPMD_WANT_HIGHLIGHTING
+   if isadefproc('NepmdActivateHighlight') then
+      call NepmdActivateHighlight( 'ON', CurMode, HiliteCheckFlag)
+   endif
+compile endif
 
    -- Key set, tabs, margins
    -- Moved from EKEYS.E, REXXKEYS.E, CKEYS.E, PKEYS.E
