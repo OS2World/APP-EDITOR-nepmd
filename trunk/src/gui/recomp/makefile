@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.1 2002-06-03 22:31:29 cla Exp $
+# $Id: makefile,v 1.2 2002-06-04 21:57:16 cla Exp $
 #
 # ===========================================================================
 #
@@ -55,7 +55,7 @@ MT=1
 
 NLSSUPPORTED=deu
 
-# --- select to compress release binaries 
+# --- select to compress release binaries
 
 LXLITE=1
 LIBS=$(BINDIR)\common.lib
@@ -66,7 +66,7 @@ BASEDIR=..\..\..
 
 # --- some file definitions for this makefile
 
-DEPENDFILE=$(BASEDIR)\compile\recomp.dep
+DEPENDFILE=$(CMPDIR)\recomp.dep
 DEPENDPATH=.
 NLSPATH=..\..\nls
 
@@ -78,7 +78,8 @@ FILESTOCLEAN=$(DEPENDFILE) \
  $(CMPDIR)\rec*.res \
  $(CMPDIR)\recomp.ex \
  $(BINBINDIR)\recomp.exe \
- $(BINBINDIR)\rec*.nls
+ $(BINBINDIR)\rec*.nls \
+ $(CMPDIR)\tc.ex
 
 INCLUDE=..\common;$(CMPDIR);$(INCLUDE)
 
