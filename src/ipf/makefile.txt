@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.8 2002-06-04 23:28:56 cla Exp $
+.. $Id: makefile.txt,v 1.9 2002-06-06 11:47:11 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -70,9 +70,6 @@ working directory (root of the development tree):
 = show this INF file (if outdated, this compiles the INF before). This calls the
   makefile within the *src\ipf* directory with the target *help*.
 .
-- nmake clean
-= remove the *compile* and binary (both *debug* and *release*) directories
-.
 - nmake all
 = build all modules and thus the complete package (**)
 .
@@ -86,8 +83,17 @@ working directory (root of the development tree):
 - nmake inst
 = like *nmake all*, but also starts the WPI file (**)
 .
+- nmake gui
+= build GUI components only
+- nmake rungui
+= build and run selected GUI components
+.
 - nmake show
 = build NEPMD INF and show it
+.
+- nmake clean
+= remove the *compile* and binary (both *debug* and *release*) directories
+.
 
 [=NOTE]
 .ul compact
@@ -111,6 +117,8 @@ The following makefile targets are available for the makefile within the
 = build and show this INF file (if outdated, this compiles the INF before). This is used
   by the [.IDPNL_TARGETS_MAIN main makefile] in order to bring up help if called with no
   target specified
+- nmake nepmd
+= build and show the project documentation INF
 .
 - nmake helpinf
 = build this makefile in the *bin* subdirectory !
