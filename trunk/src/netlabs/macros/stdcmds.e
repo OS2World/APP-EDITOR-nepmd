@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.17 2004-02-01 19:11:24 aschn Exp $
+* $Id: stdcmds.e,v 1.18 2004-02-22 19:50:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,14 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+Todo:
+-  Shells: how to make the titlebar and statusline recognize that it's not modified?
+-  Replace NEPMD_RESTORE_POS_FROM_EA and NEPMD_RESTORE_RING with ini keys.
+-  'Save as' changes the mode and afterwards the cursor jumps to 0   <-- Not seen anymore
+*/
+
 ;
 ; STDCMDS.E            Alphabetized by command name.
 ;
@@ -27,6 +35,11 @@ compile if not defined(NEPMD_RESTORE_POS_FROM_EA)  --<--------------------------
    -- used by defc s,save
    NEPMD_RESTORE_POS_FROM_EA = 0
 compile endif
+compile if not defined(NEPMD_RESTORE_RING)         --<------------------------------- Todo
+   -- used by defc q,quit
+   NEPMD_RESTORE_RING = 0
+compile endif
+
 
 defc alter =
    parse value upcase(arg(1)) with c1 c2 cnt .
@@ -489,23 +502,23 @@ defc lowercase=
 ; It typed them into the command line.  In EPM have to do this in the macros.
 ; Changed: made rightmargin and/or parmargin values optional.
 ; Syntax:
-;    ma [leftmargin [rightmargin] [parmargin]]
+;    ma [[leftmargin] rightmargin [parmargin]]
 defc margins,ma=
    arg1 = strip( arg(1))
    if arg1 <> '' then                   -- If user gives an argument he's setting,
       parse value arg1 with leftm rightm parm
-      if parm = '' then
-         parm = leftm
+      if rightm = '' then  -- if only 1 arg specified
+         rightm = arg1
+         leftm  = 1
       endif
-      if rightm = '' then
-         rightm = MAXMARGIN
+      if parm = '' then    -- if parmargin not specified
+         parm = leftm
       endif
       'xcom margins' leftm rightm parm  -- pass it to the old internal margins command.
    else
       'commandline margins' .margins    -- Open commandline with current values
    endif
    'refreshinfoline MARGINS'            -- Update statusline if margins displayed
-
 
 defc matchtab=
    universal matchtab_on
@@ -608,7 +621,7 @@ defc newwindow=
       endif
    endif
    if fn <> '' then
-      call psave_pos(saved_pos)
+      call psave_pos( saved_pos )
       "open" fn "'postme restorepos "saved_pos"'"
    else
       'open' fn
@@ -856,6 +869,10 @@ defc qs,quietshell,quiet_shell=
 
 defc q,quit=
    universal firstloadedfid
+   if not .visible then
+      'xcom quit'
+      return
+   endif
    -- Ver. 4.11c: If we're trying to quit the shell window, kill the process.
  compile if SHELL_USAGE                                                           -- remove?
    if .filename = ".SHELL" then                                                   -- remove?
@@ -918,7 +935,9 @@ compile endif
       then firstloadedfid = ''
    endif
    call RingWriteFileNumber()
-;   call RingWriteFilePosition()
+compile if NEPMD_RESTORE_RING  --<------------------------------------------------------------ Todo
+   call RingWriteFilePosition()
+compile endif
 
 
 defc rc=
@@ -986,14 +1005,14 @@ defc s,save=
       return
    endif
    save_as = 0
-   if (name = '' | name = GetUnnamedFileName()) then
+   if name='' | name = GetUnnamedFileName() then
       name = .filename
       if .filename = GetUnnamedFileName() then
-         result = saveas_dlg( name, type)
+         result = saveas_dlg(name, type)
          if result then return result; endif
          'name' name
          if not rc then
-            name = .filename
+            name=.filename
             save_as = 1
          endif
       endif
@@ -1135,10 +1154,10 @@ compile endif
       call message(src)       -- assume host routine gave error msg.
    endif
    if src & save_as then
-      .filename=GetUnnamedFileName()
-compile if SHOW_MODIFY_METHOD = 'TITLE'                 -- remove?
-      call settitletext(.filename)                       -- remove?
-compile endif                                           -- remove?
+      .filename = GetUnnamedFileName()
+;compile if SHOW_MODIFY_METHOD = 'TITLE'                 -- remove?
+;      call settitletext(.filename)                      -- remove?
+;compile endif                                           -- remove?
    endif
 ;compile if    WANT_LAN_SUPPORT                          -- remove?
 ;   if locked & not arg(1) then call lock(); endif       -- remove?
