@@ -8,7 +8,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.9 2002-04-19 10:27:46 cla Exp $
+# $Id: makefile,v 1.10 2002-04-19 12:44:11 cla Exp $
 #
 # ===========================================================================
 #
@@ -110,7 +110,12 @@ INF: $(INFDIR)\nepmd.inf
 
 PREPARE: $(UNZIPPEDDIR)\prepare.log
 
-CREATE: $(CMPDIR)\$(WPIFILE)
+CREATE: CHECKSRC SRCCOPY $(CMPDIR)\$(WPIFILE)
+
+CHECKSRC:
+   @bin\_srccopy CHECK $(CMPDIR)\srccopy.txt src\netlabs
+
+SRCCOPY: $(CMPDIR)\srccopy.txt
 
 CHECK: PREPARE
    @ECHO Checking prepared files for errors during unpack:
@@ -119,15 +124,19 @@ CHECK: PREPARE
    -@dir $(UNZIPPEDDIR) /s | grep " 0           0"
 
 CLEAN:
-  @echo cleanin up $(BINDIR)
-  -@DEL $(INFDIR)\*  $(CMPDIR)\*  *.wpi /N >NUL 2>&1
-  -@RD  $(INFDIR) $(DSTDIR) $(CMPDIR)     >NUL 2>&1
+  @echo cleanin up
+  -@bin\kd $(CMPDIR)\*
 
 # ---- generate INF
 
 $(INFDIR)\nepmd.inf: src\ipf\nepmd.txt src\ipf\*.inc src\bmp\*
    HTEXT /N src\ipf\nepmd.txt $(CMPDIR)\nepmd.ipf $(INFDIR)\nepmd.inf
 
+
+# ---- check if sources from srcdir are updated
+
+$(CMPDIR)\srccopy.txt:
+   bin\_srccopy COPY $(CMPDIR)\srccopy.txt src\netlabs $(DSTDIR)
 
 # ---- unpack and maintain the original zip packages
 #      may require internet connection, see env.cmd
@@ -138,6 +147,7 @@ $(UNZIPPEDDIR)\prepare.log: bin\prepare.cmd
 
 # ---- create WPI package
 
-$(CMPDIR)\$(WPIFILE): PREPARE INF src\wis\$(SCRIPTFILE) bin\create.cmd
+$(CMPDIR)\$(WPIFILE): PREPARE INF src\wis\$(SCRIPTFILE) bin\create.cmd $(CMPDIR)\srccopy.txt
    bin\create $(CMPDIR)\create.log src\wis\$(SCRIPTFILE) $(CMPDIR)\$(WPIFILE) $(UNZIPPEDDIR)
+
 
