@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.6 2002-08-23 12:36:17 cla Exp $
+* $Id: gettextmessage.e,v 1.7 2002-08-23 15:32:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -119,7 +119,7 @@ defc NepmdGetTextMessage, GetTextMessage
 
 defproc NepmdGetTextMessage( Filename, Messagename) =
 
- BufLen      = 1600;      /* maximum possible length !!! */
+ BufLen      = NEPMD_MAXLEN_ESTRING;
  TextMessage = copies( atoi( 0), BufLen);
 
  /* prepare parameters for C routine */
