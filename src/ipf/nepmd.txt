@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.16 2002-08-14 15:18:35 cla Exp $
+.. $Id: nepmd.txt,v 1.17 2002-08-14 19:25:30 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -670,12 +670,13 @@ placed into the following directory tree:
 .fo off
 <install dir>
 ÀÄ[=USERDIR]
-  ÃÄbar         **.bar       toolbar files
-  ÃÄbmp         **.bmp       bitmaps
-  ÃÄex          **.ex        macro compiled binaries
-  ÃÄkeywords    epmkwds.**   keyword files for syntax highlighting
-  ÀÄmacros      **.e         macros
-  ÀÄndx         **.ndx       help index files
+  ÃÄbar         **.bar       user toolbar files
+  ÃÄbin         **.bin       user .env files
+  ÃÄbmp         **.bmp       user bitmaps
+  ÃÄex          **.ex        user macro compiled binaries
+  ÃÄkeywords    epmkwds.**   user keyword files for syntax highlighting
+  ÀÄmacros      **.e         user macros
+  ÀÄndx         **.ndx       user help index files
 .fo on
 
 .. -----------------------------------------------------------------------------
