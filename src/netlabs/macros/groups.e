@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.6 2004-02-22 16:12:18 aschn Exp $
+* $Id: groups.e,v 1.7 2004-02-28 15:36:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -122,9 +122,6 @@ compile endif
 defc savegroup =
    universal app_hini
    getfileid startfid
-   -- Select next file, so that previous selected file will be the last one reloaded
-   next_file
-   getfileid firstfid
    do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       if .filename = GetUnnamedFilename() then
          if .last <> 1 or textline(1) <> '' then
@@ -134,9 +131,8 @@ defc savegroup =
          endif
       endif
       next_file
-      getfileid curfile
-      if curfile = firstfid then
-         activatefile startfid
+      getfileid curfid
+      if curfid = startfid then
          leave
       endif
    enddo  -- Loop through all files in ring
@@ -157,21 +153,30 @@ defc savegroup =
       endif
    endif
 
+   -- Select next file, so that previous selected file will be the last one reloaded
+   next_file
+   getfileid firstfid
+   -- Write all FILEi and POSNi to EPM.INI
    do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
+      call NepmdPmPrintf( '.filename = '.filename)
       call setprofile(app_hini, group_name, 'FILE'i, .filename)
       call setprofile(app_hini, group_name, 'POSN'i, .line .col .cursorx .cursory)
       next_file
-      getfileid curfile
-      if curfile = startfid then leave; endif
+      getfileid curfid
+      if curfid = firstfid then
+         leave
+      endif
    enddo  -- Loop through all files in ring
-   call setprofile(app_hini, group_name, 'ENTRIES', i)
+   activatefile startfid
 
+   -- Remove the rest
    if (tempstr <> '') & (tempstr > i) then
       do j = i + 1 to tempstr
          call setprofile(app_hini, group_name, 'FILE'j, '')
          call setprofile(app_hini, group_name, 'POSN'j, '')
       enddo
    endif
+
 compile if INCLUDE_DESKTOP_SUPPORT -- Ask whether to include on Desktop?
    if MBID_YES = winmessagebox( 'Save Group',
                                 'Add a program object to the OS/2 desktop for this group?',
@@ -214,7 +219,7 @@ compile endif  -- INCLUDE_DESKTOP_SUPPORT
 
 defc loadgroup =
    universal app_hini
-   getfileid startfid
+   universal CurEditCmd
    group_name = arg(1)
    if (group_name = '') | (group_name = '?') then
       if group_name = '' then
@@ -239,7 +244,6 @@ defc loadgroup =
                          address(retlen), 2)         -- length of returned string
          poke bufhndl, 65535, \0
          if not l then sayerror 'Nothing in .INI file???'; return; endif
-         getfileid startfid
          'xcom e /c /q tempfile'
          if rc <> -282 then  -- sayerror('New file')
             sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
@@ -310,7 +314,7 @@ compile if NEPMD_DEBUG_LOADGROUP and NEPMD_DEBUG
       getfileid curfid
       next_file
       getfileid firstfid
-      do f = 1 to filesinring(1)
+      do f = 1 to filesinring()
          call NepmdPmPrintf( 'LOADGROUP:         file 'f' in ring: '.filename)
          next_file
          getfileid fid
@@ -326,13 +330,12 @@ compile endif
          'xcom e /n'
       else
          'e "'this_file'"'
+         CurEditCmd = 'RESTOREPOS'  -- must follow the 'edit' cmd
       endif
       if not rc | rc = sayerror('Lines truncated') then
          call prestore_pos(queryprofile(app_hini, group_name, 'POSN'i))
       endif
    enddo
-   activatefile startfid
-   nextfile
 
 defc listgroups =
    universal app_hini
