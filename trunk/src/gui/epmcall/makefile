@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.6 2002-08-10 14:13:51 cla Exp $
+# $Id: makefile,v 1.7 2002-08-10 19:23:17 cla Exp $
 #
 # ===========================================================================
 #
@@ -33,7 +33,7 @@ BASEDIR=..\..\..
 
 # --- some file definitions for this makefile
 
-DEPENDFILE=$(CMPDIR)\recomp.dep
+DEPENDFILE=$(CMPDIR)\epmcall.dep
 NLSPATH=..\..\nls
 
 FILESTOCLEAN=$(DEPENDFILE) \
