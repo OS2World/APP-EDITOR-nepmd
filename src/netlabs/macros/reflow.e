@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflow.e,v 1.2 2002-08-19 23:33:48 aschn Exp $
+* $Id: reflow.e,v 1.3 2002-08-19 23:48:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -100,8 +100,7 @@ defc reflow =
                             '',
                             200,
                             atoi(1) || atoi(32101) || gethwndc(APP_HANDLE) ||
-                            'Enter a width; leave blank to reflow to window.' ) ||
-         with button 2 par_width \0
+                            'Enter a width; leave blank to reflow to window.' ) with button 2 par_width \0
       if button<>\1 then return; endif
    endif
    save_width = par_width  -- Save original units
