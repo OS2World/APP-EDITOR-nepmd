@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.11 2002-11-05 18:03:09 aschn Exp $
+.. $Id: neusreng.txt,v 1.12 2002-11-05 20:26:25 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -436,7 +436,7 @@ See the following section for more details:
 .su V30 1
 
 .. -----------------------------------------------------------------------------
-.3 The mode mechanism
+.3 EPM mode determination
 .. -----------------------------------------------------------------------------
 .an IDPNL_MODE_OVERVIEW
 .
@@ -467,7 +467,7 @@ order
 .
 .
   Some extensions are handled in a special case:
-.pl break=none
+.pl break=none bold tsize=4
   - **.CMD
 .ul compact
     - the mode *REXX* is set for REXX scripts
@@ -630,7 +630,7 @@ This will start the [.IDPNL_INSTADDITIONS_RECOMP recompile GUI utility]
 allowing you to quickly recompile the *EPM*.
 
 .. -----------------------------------------------------------------------------
-.3 How can I set fonts and colors the easiest way ?
+.3 How can I set fonts and colors easily ?
 .. -----------------------------------------------------------------------------
 .an IDPNL_HOW_SETFONTS
 .
@@ -638,7 +638,7 @@ Open your font and color palette objects and drop a font or a color on one of
 *EPM*'s control areas.
 .
 .
-Proposed fonts and colors:
+We recommned the following fonts and colors:
 .pl bold
 - Edit window
 = font: 12.System VIO (16x8) or larger or System Monospaced
@@ -661,16 +661,20 @@ When you're done, save your settings: *Options -> Save options*.
 .. -----------------------------------------------------------------------------
 .an IDPNL_HOW_PRINTHILITED
 .
-Using System VIO while keyword highlighting is activated, will produce
-one page per line and will let the speaker beep almost continously.
+In order to print out a given file in colour (using keyword highlighting),
+there may be a problem, if *System VIO* is used as the font withinthe edit window.
+As a result, a whole page will be printed out per line of the text and
+the PC loudspeaker will beep once for every line.
 
-.pl bold break=none
-- Workaround:
-= Mark all (*Ctrl+/* or *Ctrl+A*), activate the style dialog
-(*CTRL+Y*) and select a Courier Postscript font instead before printing.
-Or: Change the default font temporarily with the font palette or the settings
-dialog.
-.el
+In order to workaround that problem, perform the following steps:
+.ol compact
+- Mark all text (*Ctrl+/* or *Ctrl+A*)
+- activate the style dialog (*CTRL+Y*)
+- select a scalable *Courier* font (not the bitmap version)
+- print the file
+
+As an alternative, you can vhange the default font temporarily with the font
+palette or the settings dialog.
 
 .. -----------------------------------------------------------------------------
 .3 How can I load/save files from/to drive H: ?
@@ -678,37 +682,38 @@ dialog.
 .an IDPNL_HOW_DRIVEH
 .
 If you have problems with files on drive H:, you have probably switched on
-*host support*. The default host drive is H: then. With the [=TITLE] host support
-is switched off by default.
-.
-.
+*host support*. This feature by default uses drive H: to map
+the files accessed from the host and leaves to unpredictable results when
+laoding files from drive H: (e.g. file cannot be saved).
+
+With the [=TITLE] host support is switched off by default.
+
 Reset following constant in your *myepm\mycnf.e* file:
-.pl compact bold
+.sl compact bold
 - HOST__SUPPORT = ''
-.el
+
 If you need host support (you probably don't if you have never heard of it),
 you may set i.e.:
-.pl compact bold
+.sl compact bold
 - HOST__SUPPORT = 'STD'
 - HOSTDRIVE = 'X:'
-.el
 
 .. -----------------------------------------------------------------------------
 .3 How can I change the standard help viewer for the keyword help mechanism ?
 .. -----------------------------------------------------------------------------
 .an IDPNL_HOW_SETVIEW
 .
-If you want to use *newview.exe* instead of *view.exe*, it is recommended to replace
-*?:\os2\view.exe*. That will change the help viewer globally. But problems are
-expected by this, because *view.exe* starts asynchronously while *newview.exe*
-does not.
-.
-.
-If you have problems replacing *view.exe*, you can set a configuration constant
-(but this may be changed in furure versions):
-.
-.
-*NEPMD__KEYWORD__HELP__COMMAND* = 'start newview'  (default: 'view')
+If you want to use *newview.exe* instead of *view.exe*, the author recommends
+to replace *?:\os2\view.exe* with *newview.exe*. This is not a good idea due
+to several reasons:
+.ul compact
+- *OS/2* or *eComStation* fixpaks may replace this file again
+- *view.exe* starts asynchronously, while *newview.exe* does not
+
+In order to set *newview.exe* as the defualt help viewer for the
+*EPM* keyword help, set the following configuration constant
+.sl compact bold
+- *NEPMD__KEYWORD__HELP__COMMAND* = 'start newview'
 
 .. =============================================================================
 .2 Limitations
@@ -722,21 +727,9 @@ The following limitations apply to the current version of [=TITLE]:
   that are installed in directories ?:\OS2\APPS and ?:\OS2\APPS\DLL. If they
   are not installed, use the installation program of your operating system
   to install them and reapply the current fixpack.
-.
-.
-  Users who already have extended the PATH and LIBPATH for their own *EPM*
-  macros/executables should remove these additional entries when problems
-  occur. Make sure that a set of together-belonging *epm.exe*, *etk?603.dll*
-  and possibly *epmmri.dll* will be found. This *epm.exe* must be found after the
-  [.IDPNL_INSTADDITIONS_DYNCFG_LOADER].
-.
-.
-  Using the *EPMBBS* executables instead is possible, but not really supported. Also
-  the use of the (quite buggy) WPS class *Epm* is not recommended (but probably
-  working). We plan to replace the WPS class functionallity with a new
-  settings GUI in a future version.
-.
-- Users of *OS/2 Warp 3* currently cannot use this package, as
+- Using the (quite buggy) Workplace Shell Class *Epm* is not yet supported,
+  but probably working.
+- users of *OS/2 Warp 3* currently cannot use this package, as
   this version of *OS/2* comes with the outdated *EPM* v5.51.
   As a workaround, before installing [=TITLE], you can
   - _manually remove_ the old *EPM* v5.51 files from your system (backup recommended)  and
@@ -1672,6 +1665,8 @@ The following additions are included:
 .ul compact
 - File menu
   - Revert
+.
+    (Reload file from disk after throwing away all changes, ask if modified)
   - Open folder
 .
     (Open the WPS folder where the current file is located.)
@@ -1680,9 +1675,6 @@ The following additions are included:
     - Icon flowed view
     - Tree view
     - Details view
-  - Revert
-.
-    (Reload file from disk after throwing away all changes, ask if modified)
 - Edit menu
   - (No changes, the stack commands are just activated)
 - Search menu
@@ -2284,13 +2276,13 @@ features being additionally implemented by the [=TITLE].
 
 Until there exists a GUI to configure these keys, some commands are used
 to change the behaviour, which will work on-the-fly, without recompiling EPM.E!
-.pl tsize=3 bold
-- DragAlwaysMarks 0|1 (default: 1)
+.pl tsize=3
+- *DragAlwaysMarks 0|1* (default: 1)
 = When set to 1, every mouse drag will start a new mark, even if
   a mark already exists. This avoids the message 'Text is already marked...'
 .
   (Replaces constant DRAG__ALWAYS__MARKS)
-- MouseStyle 1|2 (default: 1)
+- *MouseStyle 1|2* (default: 1)
 = defines the mark behaviour of mouse button 1 and 3:
 .ul compact
   - *1*  MouseButton 1: block mark, MouseButton 3: char mark
@@ -2298,9 +2290,9 @@ to change the behaviour, which will work on-the-fly, without recompiling EPM.E!
 .el
 .
   (Replaces constant MOUSE__STYLE)
-- MouseMarkWorkaround 0|1 (default: 1)
+- *MouseMarkWorkaround 0|1* (default: 1)
 = enables the workaround for the mark bug
-- HomeRespectIndent 0|1 (default:1)
+- *HomeRespectIndent 0|1* (default:1)
 = enables the Home key to respect the indent of the current line
 
 .. =============================================================================
