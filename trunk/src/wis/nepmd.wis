@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.17 2002-07-23 11:56:27 cla Exp $
+# $Id: nepmd.wis,v 1.18 2002-07-23 11:59:24 cla Exp $
 #
 # ===========================================================================
 #
@@ -138,11 +138,9 @@ Installation:
        Changing the installation path does not change ot for all components. Don't change the installation path or make sure that you use the same installation path for all components, otherwise the installed version will not properly work.
 
 Deinstallation:
-       Deinstallation from within this WarpIn package does not work. Start WarpIn without a WPI package file in order to deinstall this package instead.
-
        Don't deinstall packages of this distribution without deinstalling also the package "Base Application", otherwise you will get errors. If you have done that nevertheless, close the error report and remove the remaining database entries manually.
 
-       WarpIn will warn you, if you attempt to deinstall any packages of this distribution but the package "Base Application", because you may not deinstall any packages, if the base package is not also selected for deinstallation. Nevertheless WarpIn will warn you only about up to a maximum of two dependad packages, although you may have selected more than two packages depending on the main package.
+       WarpIn will warn you, if you attempt to deinstall any packages of this distribution but the package "Base Application", because all other packages require the base package being installed. Nevertheless WarpIn will warn you only about up to a maximum of two dependent packages, although you may have selected more than two packages depending on the main package.
 
        When removing database entries, WarpIn will only let you remove the last selected entry. If you want to remove several entries at a time, you will have to repeat the step for each package.
 
