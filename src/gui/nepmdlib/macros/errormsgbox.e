@@ -1,13 +1,13 @@
 /****************************** Module Header *******************************
 *
-* Module Name: queryfullname.e
+* Module Name: errormsgbox.e
 *
 * .e wrapper routine to access the NEPMD library DLL.
 * include of nepmdlib.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: errormsgbox.e,v 1.1 2002-08-20 12:07:13 cla Exp $
+* $Id: errormsgbox.e,v 1.2 2002-08-20 14:55:54 cla Exp $
 *
 * ===========================================================================
 *
