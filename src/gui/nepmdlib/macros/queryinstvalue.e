@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryinstvalue.e,v 1.5 2002-09-08 22:48:37 cla Exp $
+* $Id: queryinstvalue.e,v 1.6 2002-09-21 13:32:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,7 +26,7 @@
 @@NepmdQueryInstValue@PROTOTYPE
 InstValue = NepmdQueryInstValue( ValueTag);
 
-@@NepmdQueryInstValue@CATEGORY@CONFIG
+@@NepmdQueryInstValue@CATEGORY@INSTALL
 
 @@NepmdQueryInstValue@SYNTAX
 This function queries installation related values
