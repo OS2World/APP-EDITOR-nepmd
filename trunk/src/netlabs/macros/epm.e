@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.14 2002-10-18 13:11:51 cla Exp $
+* $Id: epm.e,v 1.15 2002-11-03 00:11:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -57,9 +57,9 @@ compile if not VANILLA
    tryinclude  'mymain.e'      -- Optional user additions to DEFMAIN.
 compile endif  -- not VANILLA
 
+include        'mode.e'        -- Mode definitions
+include        'edit.e'        -- Edit command
 include        'load.e'        -- Default defload must come before other defloads.
-
-include        'mode.e'        -- New mode definitions
 
 include        'select.e'
 compile if not VANILLA
@@ -76,7 +76,8 @@ include        'modify.e'      -- New defmodify event processor.
 include        'stdkeys.e'     -- Standard key definitions.
 
 compile if    WANT_BRACKET_MATCHING
-   include     'assist.e'
+   include     'assist.e'      -- Find matching identifier
+   include     'balance.e'     -- Highlight matching identifier while typing
 compile endif
 
 compile if MOUSE_SUPPORT = 1
@@ -87,14 +88,12 @@ compile endif
 
 include        'stdprocs.e'    -- Standard functions and procedures.
 
-include        'epm_ea.e'
-include        'locate.e'
-include        'toolbar.e'
+include        'epm_ea.e'      -- Font attributes
+
+include        'locate.e'      -- Find and replace definitions
 
 include        'markfilt.e'    -- Procedures for filtering a block, line or char. mark.
 include        'charops.e'     -- Mark operations for character marks.
-
-include        'edit.e'        -- Edit commands and procedures, moved from STDCMDS.E and STDPROCS.E
 
 compile if HOST_SUPPORT = 'STD'
    include     'saveload.e'    -- Save/load routines with host support
@@ -112,25 +111,25 @@ compile endif
 
 include        'stdcmds.e'     -- Standard commands (DEFC's).
                                -- (Edit cmd uses variables defined in host routines.)
-include        'get.e'
+include        'get.e'         -- Insert the contents of another file into current
 
-include        'enter.e'       -- New enter defs, moved from STDPROCS.E and STDKEYS.E
+include        'enter.e'       -- Enter definitions
 
-include        'undo.e'
+include        'undo.e'        -- Undo definitions
 
-include        'alt_1.e'
+include        'alt_1.e'       -- Load filename under cursor with Alt+1
 
-include        'caseword.e'
+include        'caseword.e'    -- Change case of word/identifier under cursor
 
-include        'xchgline.e'
+include        'xchgline.e'    -- Exchange lines and chars
 
-include        'setconfig.e'
+include        'setconfig.e'   -- Temporary definitions to change NEPMD.INI
 
-include        'revert.e'
+include        'revert.e'      -- Throw away changes and reload file from disk
 
-include        'wps.e'
+include        'wps.e'         -- WPS definitions (open folder)
 
-;include        'comment.e'
+;include        'comment.e'     -- Comment and uncomment marked lines
 
 compile if WANT_DRAW
   compile if (WANT_DRAW='F6' | WANT_DRAW=F6)
@@ -143,16 +142,16 @@ compile if WANT_ALL
 compile endif
 
 compile if WANT_TREE = 1
-   include     'tree.e'
+   include     'tree.e'        -- Tree command
 compile endif
 
 tryinclude     'linkcmds.e'    -- Useful new commands for the linking version.
+include        'autolink.e'    -- Link all .ex files found in myepm\autolink
 
 include        'stdctrl.e'     -- PM controls for EPM.
-
-include        'statline.e'    -- New statusline defs, defc setstatusline moved from STDCTRL.E
-include        'titletext.e'
-include        'autolink.e'
+include        'statline.e'    -- Statusline definitions
+include        'titletext.e'   -- Titletext definitions
+include        'toolbar.e'     -- Toolbar definitions
 
 compile if INCLUDE_MENU_SUPPORT & INCLUDE_STD_MENUS
  compile if defined(STD_MENU_NAME)
@@ -166,10 +165,10 @@ compile if INCLUDE_MENU_SUPPORT & INCLUDE_STD_MENUS
 compile endif  -- INCLUDE_MENU_SUPPORT & INCLUDE_STD_MENUS
 tryinclude     'clipbrd.e'     -- Clipboard interface and mark <--> buffer routines
 compile if WANT_BOOKMARKS = 1
-   include     'bookmark.e'
+   include     'bookmark.e'    -- Set and find bookmarks
 compile endif
 compile if WANT_TAGS = 1
-   include     'tags.e'
+   include     'tags.e'        -- Build tag list to find functions in files
 compile endif
 
 -- Put all new includes after this line (preferably in MYSTUFF.E). -------------
@@ -205,21 +204,21 @@ compile if SORT_TYPE
 compile endif
 
 compile if WANT_EPM_SHELL
-   include     'epmshell.e'
+   include     'epmshell.e'    -- EPM shell
 compile endif
 
 compile if WANT_KEYWORD_HELP
-   include     'kwhelp.e'
+   include     'kwhelp.e'      -- Keyword help, opens .inf file with word under cursor
 compile endif
 
 compile if WANT_REXX
-   include     'callrexx.e'
+   include     'callrexx.e'    -- REXX support
 compile endif
 
 -- Put all new includes above this line. --------------------------------------
 
 compile if SPELL_SUPPORT = 1
-   include     'epmlex.e'
+   include     'epmlex.e'      -- Spell checking
 compile endif
 
 -- Put the programming keys last.  Any keys redefined above will stay in
