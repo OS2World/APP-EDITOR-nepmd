@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.15 2002-10-14 17:55:14 cla Exp $
+* $Id: mode.e,v 1.16 2002-10-15 22:25:47 cla Exp $
 *
 * ===========================================================================
 *
@@ -184,7 +184,11 @@ defproc NepmdProcessMode()
 compile if NEPMD_SPECIAL_STATUSLINE
    'refreshstatusline'
 compile endif
-   call NepmdActivateHighlight( 'ON', CurMode)
+   if (CurMode = 'OFF') then
+     call NepmdActivateHighlight( 'OFF')
+   else
+     call NepmdActivateHighlight( 'ON', CurMode)
+   endif
 
    return
 
