@@ -1,11 +1,14 @@
 @ECHO OFF
 : ***************************** Module Header ******************************\
 :
-: Module Name:
+: Module Name: readme.cmd
+:
+: launches makefile.inf.
+: Alternate topic may be passed as parameter
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: readme.cmd,v 1.3 2002-06-11 11:08:24 cla Exp $
+: $Id: readme.cmd,v 1.4 2002-06-11 11:09:16 cla Exp $
 :
 : ===========================================================================
 :
