@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.8 2002-09-21 17:47:38 aschn Exp $
+* $Id: stdctrl.e,v 1.9 2002-09-30 18:10:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -3811,6 +3811,9 @@ defc new
 defc viewword  -- arg(1) is name of .inf file
    if find_token(startcol, endcol) then
       InfFile = arg(1)
+      -- resolve OS/2 environment vars
+      InfFile = NepmdResolveEnvVars(InfFile)
+      --sayerror 'InfFile = 'arg(1)', InfFile with EnvVars resolved = 'InfFile
       -- specifying the extension is optional
       if upcase( rightstr( InfFile, 4 ) ) <> '.INF' then
          InfFile = InfFile'.inf'
@@ -3820,7 +3823,7 @@ defc viewword  -- arg(1) is name of .inf file
          sayerror FILE_NOT_FOUND__MSG '"'InfFile'"'
          return
       endif
-      'view' arg(1) substr(textline(.line), startcol, (endcol-startcol)+1)
+      'view' InfFile substr(textline(.line), startcol, (endcol-startcol)+1)
    endif
 ;compile endif
 
