@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.18 2004-01-13 17:27:59 aschn Exp $
+* $Id: main.e,v 1.19 2004-01-17 08:03:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -171,12 +171,14 @@ compile if DEBUG_MAIN
 compile endif
 
 ; --- E automatically created an empty file when it started. ----------------
-; --- If user specified file(s) to edit, get rid of the empty file. ---------
-   -- get fileid after processing of doscmdline
+;     If user specified file(s) to edit, get rid of the empty file.
+   -- Get fileid after processing of doscmdline.
    getfileid newfileid
    do i = 1 to 1  -- use a loop here to make 'leave' omit the rest
-      -- get fileid of automatically created empty file, before doscmdline
-;;;      getfileid emptyfileid, UNNAMED_FILE_NAME
+
+      -- Get fileid of a unnamed file in ring. This could be the automatically
+      -- created empty file or a previously loaded unnamed file, the user may
+      -- have already deleted or modified.
       getfileid emptyfileid, unnamedfilename
       if emptyfileid = '' then           -- User deleted it?
          leave
@@ -184,20 +186,28 @@ compile endif
       if emptyfileid.modify then         -- User changed it?
          leave
       endif
-      if newfileid = emptyfileid then    -- Check if others in ring.
+
+      -- Check if other files in ring.
+      if newfileid = emptyfileid then
          nextfile
          getfileid newfileid
          prevfile
       endif
-      if newfileid <> emptyfileid then
-         activatefile emptyfileid
-         'xcom q'
-         activatefile newfileid
-         --call select_edit_keys()  -- obsolete
-      else
-         -- Process mode settings for automatically created empty file
-         call NepmdProcessMode()
+      -- At this point: if other files in ring, then newfileid <> emptyfileid.
+
+      -- For the automatically created empty file no defload event is triggered.
+      -- Load a new empty file, for that the deload event will process.
+      if newfileid = emptyfileid then
+         'xcom e /n'
+         getfileid newfileid
       endif
+
+      -- Get rid of the automatically created empty file
+      activatefile emptyfileid
+      'xcom q'
+      activatefile newfileid
+      --call select_edit_keys()  -- obsolete
+
    enddo  -- i = 1 to 1
 
 ; --- Process Hook ----------------------------------------------------------
@@ -240,4 +250,7 @@ compile if DEBUG_MAIN
       messageNwait('DEFMAIN: after SHOWWINDOW')
 compile endif
    endif
+
+defc NepmdProcessMode
+   call NepmdProcessMode()
 
