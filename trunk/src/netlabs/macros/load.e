@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.12 2003-08-31 23:19:04 aschn Exp $
+* $Id: load.e,v 1.13 2003-08-31 23:22:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -42,6 +42,7 @@ compile if not defined(NO_RESTORE_POS_WORDS)
 compile endif
 compile if not defined(NO_RESTORE_POS_START_STRINGS)
    NO_RESTORE_POS_START_STRINGS = '/'                                   -- no pos restore if a cmd word starts with these strings
+                                                                        -- (that handles the '/<search_string>' cmd correctly)
 compile endif
 
 defload
@@ -125,10 +126,8 @@ compile if NEPMD_RESTORE_POS_FROM_EA
       --    Usually CurEditCmd is set to doscmdline (MAIN.E), but file
       --    loading with DDE doesn't use the 'edit' cmd.
       -- 3) ACDATASEEKER uses the <filename> '<line_no>' syntax.
-      NoRestorePosWords = 'L LOCATE / C CHANGE GOTO SETPOS RESTOREPOS'  -- no pos restore for these cmds
-      NoRestorePosStartStrings = '/'                                    -- no pos restore if a cmd word starts with these strings
-                                                                        -- (that handles the '/<search_string>' cmd correctly)
       -- This doesn't handle mc cmds yet.
+
       -- check number (positions cursor on line)
       if isnum( CurEditCmd ) then
          RestorePosFlag = 0
