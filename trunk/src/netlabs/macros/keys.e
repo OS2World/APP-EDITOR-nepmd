@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.2 2004-07-03 18:18:04 aschn Exp $
+* $Id: keys.e,v 1.3 2004-07-09 13:44:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,13 +22,30 @@
 ; Definitions for the 'enter_keys' keyset. Turned all key defs into defcs
 ; to make keys configurable.
 
+; Make that configurable for testing or emergency cases:
+compile if not defined(OLD_ACCEL_KEY_DEFS)
+const
+   OLD_ACCEL_KEY_DEFS = 0
+compile endif
+
 definit
    universal blockreflowflag
    blockreflowflag = 0
+compile if defined(ACTIONS_ACCEL__L)  -- For CUSTEPM support
+   call AddOnceAVar( 'usedmenuaccelerators', 'A')
+compile endif
+compile if defined(TEX_BAR__MSG)  -- For TFE or EPMTeX support
+   call AddOnceAVar( 'usedmenuaccelerators', 'T')
+compile endif
+compile if defined(ECO_MENU__MSG)  -- For ECO support
+   call AddOnceAVar( 'usedmenuaccelerators', 'I')
+compile endif
 
+compile if OLD_ACCEL_KEY_DEFS   -- following is disabled ####################
 ; ---------------------------------------------------------------------------
 defc ProcessOtherKeys
    k = lastkey()
+
    -- hexch can also be determined with the 'testkeys' keyset. It can be
    -- activated with the 'testkeys' command. Every combination with Ctrl or
    -- Alt will be shown as, e.g. key = x'1622' = """
@@ -105,7 +122,6 @@ defc ProcessOtherKeys
       'ExecuteKeyCmd c_greater'
    elseif hexch = '3c10' then  -- Ctrl+<
       'ExecuteKeyCmd c_less'
-
    -- F-keys not definable this way
 
    else
@@ -159,10 +175,635 @@ defc ExecuteKeyCmd
       endif
    endif
 
+; ---------------------------------------------------------------------------
+; Defined menu accels have priority to definitions provided by a keyset
+; or by the automatically assigned defs by the PM menu. Therefore they are
+; used here to recreate the keyset definition with the dokey command.
+; Moved from STDCTRL.E.
+defc loadaccel
+   universal activeaccel
+   universal nepmd_hini
+   universal cua_menu_accel
 
+   activeaccel = 'defaccel'  -- name for accelerator table
+   i = 1000                 -- let ids start at 1001
+
+   -- Re-enable some (not definable via def) key bindings
+   i = i + 1
+   buildacceltable activeaccel, 'dokey s+f1',  AF_VIRTUALKEY + AF_SHIFT, VK_F1, i  -- Sh+F1
+   i = i + 1
+   buildacceltable activeaccel, 'dokey s+f9',  AF_VIRTUALKEY + AF_SHIFT, VK_F9, i  -- Sh+F9
+   i = i + 1
+   buildacceltable activeaccel, 'Alt_enter 1', AF_VIRTUALKEY + AF_ALT, VK_NEWLINE, i    -- Alt+Enter
+   i = i + 1
+   buildacceltable activeaccel, 'Alt_enter 2', AF_VIRTUALKEY + AF_ALT, VK_ENTER, i      -- Alt+PadEnter
+   i = i + 1
+   buildacceltable activeaccel, 'Alt_enter 3', AF_VIRTUALKEY + AF_SHIFT, VK_NEWLINE, i  -- Shift+Enter
+   i = i + 1
+   buildacceltable activeaccel, 'Alt_enter 4', AF_VIRTUALKEY + AF_SHIFT, VK_ENTER, i    -- Shift+PadEnter
+
+   -- Don't want Alt or AltGr switch to menu (PM-defined key F10 does the same)
+   KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey'
+   Blocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Blocked = 1 then
+      i = i + 1
+      buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALT, i  -- Alt
+   endif
+   KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockRightAltKey'
+   Blocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Blocked = 1 then
+      i = i + 1
+      buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALTGRAF, i  -- AltGr
+   endif
+
+   -- Block action bar accelerator keys
+   -- The PM menu automatically assigns Alt+<actionbar_key> bindings to
+   -- open the main actionbar, if key mnemonics defined. This would
+   -- overwrite the definitions, provided by the keyset. Even when these
+   -- bindings are blocked, one can add Sh or Ctrl to access the menu
+   -- directly (or use F10, followed bey Left or Right).
+   if not cua_menu_accel then
+      UsedMenuAccelerators = GetAVar('usedmenuaccelerators')
+      do w = 1 to words( UsedMenuAccelerators)
+         char = word( UsedMenuAccelerators, w)
+         do u = 1 to 2
+            if u = 1 then
+               char = upcase(char)  -- capslocked key, shifted combination isn't affected
+            else
+               char = lowcase(char)
+            endif
+            key = asc(char)
+            i = i + 1
+            buildacceltable activeaccel, 'dokey a+'lowcase(char), AF_CHAR + AF_ALT, key, i
+         enddo
+      enddo
+   endif
+
+   -- Save the last used id in an array var
+   call SetAVar( 'lastkeyaccelid', i)
+   --dprintf( 'KEYS', 'lastkeyaccelid = 'i)
+
+   if isadefproc('build_menu_accelerators') then
+      call build_menu_accelerators(activeaccel)  -- moved to menu-specific file
+   endif
+
+   activateacceltable activeaccel
+   return
+
+compile else  -- new accel key defs #########################################
+; ---------------------------------------------------------------------------
+defc ProcessOtherKeys
+   k = lastkey()
+   call process_key(k)
+
+; ---------------------------------------------------------------------------
+; defines can be changed/extended (but iterations aren't possible).
+; This should be moved to STDCNF.E or STDCONST.E to make it overwritable
+; in user's MYCNF.E.
+define
+   -- LETTER_LIST = keys, for those no <key> and no Sh+<key> should be
+   -- defined, handle Capslock
+compile if not defined(LETTER_LIST)
+   -- Keep the amount of letters in both lists equal!
+   UPPERCASE_LETTER_LIST = 'A B C D E F G H I J K L M N O P Q R S T U V W X Y Z'
+   LOWERCASE_LETTER_LIST = 'a b c d e f g h i j k l m n o p q r s t u v w x y z'
+compile endif
+
+   -- CHAR_LIST = keys, for those no <key> and no Sh+<key> should be defined
+compile if not defined(CharList)
+   CHAR_LIST  = '0 1 2 3 4 5 6 7 8 9 /     \         =     -     +    *'
+   CHAR_NAMES = '0 1 2 3 4 5 6 7 8 9 SLASH BACKSLASH EQUAL MINUS PLUS ASTERIX'
+   CHAR_LIST  = CHAR_LIST  || ' <    >'
+   CHAR_NAMES = CHAR_NAMES || ' LESS GREATER'
+compile endif
+   -- NO_DEF_CHAR_LIST = no key defs for Alt+<name> and Ctrl+<name> exist
+compile if not defined(NO_DEF_CHAR_LIST)
+   NO_DEF_CHAR_LIST = '* + < > ( ) [ ] # , . ! ? " ^ % $ & ï ` '' ~ | @'
+compile endif
+
+   -- VIRTUAL_LIST = virtual keys, for those every combination should be
+   -- defined, see pmwin.h.
+compile if not defined(VIRTUAL_LIST)
+   VIRTUAL_LIST  = 'BACKSPACE TAB ESC PAGEUP PAGEDOWN END HOME'
+   VIRTUAL_IDS   = '5         6   15  17     18       19  20'
+   VIRTUAL_NAMES = 'BACKSPACE TAB ESC PGUP   PGDN     END HOME'
+   VIRTUAL_LIST  = VIRTUAL_LIST  || ' LEFT UP RIGHT DOWN INSERT DELETE'
+   VIRTUAL_IDS   = VIRTUAL_IDS   || ' 21   22 23    24   26     27'
+   VIRTUAL_NAMES = VIRTUAL_NAMES || ' LEFT UP RIGHT DOWN INS    DEL'
+   VIRTUAL_LIST  = VIRTUAL_LIST  || ' F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12'
+   VIRTUAL_IDS   = VIRTUAL_IDS   || ' 32 33 34 35 36 37 38 39 40 41  42  43'
+   VIRTUAL_NAMES = VIRTUAL_NAMES || ' F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12'
+compile endif
+   -- PM_LIST    = don't overwrite <key>, because they are standard PM keys
+compile if not defined(PM_LIST)
+   PM_LIST       = 'F1'
+compile endif
+   -- PM_ALT_LIST = don't overwrite Alt+<key>, because they are standard PM keys
+compile if not defined(PM_ALT_LIST)
+   PM_ALT_LIST    = 'SPACE TAB ESC F4 F5 F6 F7 F8 F9 F10 F11'
+compile endif
+
+/*
+   view pm5.inf "Virtual Key Definitions"
+   o f:\dev\toolkt45\h\pmwin.h 'mc ;xcom l /Virtual key values/t ;postme centerline'
+*/
+/*
+-- Test
+defc Key_c_a_A = 'sayerror c_a_A'
+defc Key_c_a_s_A = 'sayerror c_a_s_A'
+
+defc Key_c_b = 'sayerror c_b'
+defc Key_c_s_b = 'sayerror c_s_b'
+defc Key_a_b = 'sayerror a_b'
+defc Key_a_s_b = 'sayerror a_s_b'
+defc Key_c_a_b = 'sayerror c_a_b'
+defc Key_c_a_s_b = 'sayerror c_a_s_b'
+
+defc Key_c_plus = 'sayerror c_+'
+defc Key_c_s_plus = 'sayerror c_s_+'
+defc Key_a_plus = 'sayerror a_+'
+defc Key_a_s_plus = 'sayerror a_s_+'
+defc Key_c_a_plus = 'sayerror c_a_+'
+defc Key_c_a_s_plus = 'sayerror c_a_s_+'
+
+defc Key_c_end = 'sayerror c_end'
+defc Key_c_s_end = 'sayerror c_s_end'
+defc Key_a_end = 'sayerror a_end'
+defc Key_a_s_end = 'sayerror a_s_end'
+defc Key_c_a_end = 'sayerror c_a_end'
+defc Key_c_a_s_end = 'sayerror c_a_s_end'
+
+defc Key_a_tab = 'sayerror a_tab'  -- not definable
+defc Key_a_esc = 'sayerror a_esc'  -- not definable
+defc Key_a_f10 = 'sayerror a_f10'
+*/
+
+
+; ---------------------------------------------------------------------------
+; Moved from STDCTRL.E.
+; Defined menu accels have priority to definitions provided by a keyset
+; or by the automatically assigned defs by the PM menu. Therefore they are
+; used here to recreate the keyset definition with the dokey command.
+; Now there are all possible key combinations with Ctrl, Alt and Sh
+; definable. If a defc Key_* exists, then this definition will be preferred
+; to a def *.
+; First it should be tried, if a specific key is definable via def. This can
+; be checked easily, because allowed defs are highlighted. A def definition
+; def <prefix><key> will also define the shifted variant, that can be
+; overwritten with a defc Key_<prefix>s_<key> definition.
+;
+; Syntax for defc Key_* (order for prefixes is c_a_s_):
+;    Key_<key>
+;    Key_s_<key>
+;    Key_c_<key>
+;    Key_c_s_<key>
+;    Key_a_<key>
+;    Key_a_s_<key>
+;    Key_c_a_<key>
+;    Key_c_a_s_<key>
+; <key> may be any letter (see const LETTER_LIST), any char name (see const
+; CHAR_NAMES) or any virtual key (see const VIRTUAL_NAMES).
+defc loadaccel
+   universal activeaccel
+   universal nepmd_hini
+   universal cua_menu_accel
+
+   activeaccel = 'defaccel'  -- name for accelerator table
+   i = 1000                  -- let ids start at 1001
+
+   i = i + 1
+   buildacceltable activeaccel, 'Alt_enter 1', AF_VIRTUALKEY + AF_ALT, VK_NEWLINE, i    -- Alt+Enter
+   i = i + 1
+   buildacceltable activeaccel, 'Alt_enter 2', AF_VIRTUALKEY + AF_ALT, VK_ENTER, i      -- Alt+PadEnter
+   i = i + 1
+   buildacceltable activeaccel, 'Alt_enter 3', AF_VIRTUALKEY + AF_SHIFT, VK_NEWLINE, i  -- Shift+Enter
+   i = i + 1
+   buildacceltable activeaccel, 'Alt_enter 4', AF_VIRTUALKEY + AF_SHIFT, VK_ENTER, i    -- Shift+PadEnter
+
+   -- Save the last used id in an array var
+   call SetAVar( 'lastkeyaccelid', i)
+
+   call DefineLetterAccels()
+   call DefineCharAccels()
+   call DefineVirtualAccels()
+
+   -- Get the last used id from an array var
+   i = GetAVar( 'lastkeyaccelid')
+
+   -- Don't want Alt or AltGr switch to menu (PM-defined key F10 does the same)
+   KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey'
+   Blocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Blocked = 1 then
+      i = i + 1
+      buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALT, i  -- Alt
+   endif
+   KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockRightAltKey'
+   Blocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Blocked = 1 then
+      i = i + 1
+      buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALTGRAF, i  -- AltGr
+   endif
+
+   -- Save the last used id in an array var
+   call SetAVar( 'lastkeyaccelid', i)
+   --dprintf( 'KEYS', 'lastkeyaccelid = 'i)
+
+   activateacceltable activeaccel
+   return
+
+; ---------------------------------------------------------------------------
+; Letters. Upper- and lowercase codes must be defined to make a keybinding
+; work, even when Capslock is active.
+; The uppercase variant is defined the same as the lowercase, if no
+; defc Key_*s_<key> exists. The uppercase unshifted variant is required for
+; the case when capsloack is active. The lowercase shifted variant is not
+; required, because Sh will deactivate capslock.
+defproc DefineLetterAccels
+   universal activeaccel
+   universal cua_menu_accel
+   -- Get the last used id from an array var
+   i = GetAVar( 'lastkeyaccelid')
+   UsedMenuAccelerators = GetAVar('usedmenuaccelerators')
+   List = UPPERCASE_LETTER_LIST
+   do w = 1 to words( List)
+      cmd = ''
+      char = word( UPPERCASE_LETTER_LIST, w)
+      -- lowercase is not used here, because it would only work for Ascii letters
+      ukey = asc(word( UPPERCASE_LETTER_LIST, w))
+      lkey = asc(word( LOWERCASE_LETTER_LIST, w))
+      name = char
+      OmitAltAccel = 0
+      if cua_menu_accel then
+         if wordpos( char, upcase(UsedMenuAccelerators)) then
+            OmitAltAccel = 1
+         endif
+      endif
+
+      if isadefc('Key_c_'name) then
+         cmd = 'Key_c_'name
+      else
+         cmd = 'dokey c+'name
+      endif
+      i = i + 1
+      buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL, lkey, i  -- Ctrl+<key> (lowercase)
+      i = i + 1
+      buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL, ukey, i  -- Ctrl+<key> (uppercase)
+      if isadefc('Key_c_s_'name) then
+         cmd = 'Key_c_s_'name
+      endif
+;      i = i + 1
+;      buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, lkey, i  -- Ctrl+Sh+<key> (lowercase)
+      i = i + 1
+      buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, ukey, i  -- Ctrl+Sh+<key> (uppercase)
+
+      if isadefc('Key_a_'name) then
+         cmd = 'Key_a_'name
+      else
+         cmd = 'dokey a+'name
+      endif
+      if not OmitAltAccel then  -- if not (cua_meu_accel and found in UsedMenuAccelerators)
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT, lkey, i  -- Alt+<key> (lowercase)
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT, ukey, i  -- Alt+<key> (uppercase)
+      endif
+      if isadefc('Key_a_s_'name) then
+         cmd = 'Key_a_s_'name
+      endif
+;      i = i + 1
+;      buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT + AF_SHIFT, lkey, i  -- Alt+Sh+<key> (lowercase)
+      i = i + 1
+      buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT + AF_SHIFT, ukey, i  -- Alt+Sh+<key> (uppercase)
+
+      if isadefc('Key_c_a_'name) then
+         cmd = 'Key_c_a_'name
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT, lkey, i  -- Ctrl+Alt+<key> (lowercase)
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT, ukey, i  -- Ctrl+Alt+<key> (uppercase)
+      endif
+      if isadefc('Key_c_a_s_'name) then
+         cmd = 'Key_c_a_s_'name
+      endif
+      if cmd <> '' then
+;         i = i + 1
+;         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, lkey, i  -- Ctrl+Alt+Sh+<key> (lowercase)
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, ukey, i  -- Ctrl+Alt+Sh+<key> (uppercase)
+      endif
+
+
+/***
+      do u = 1 to 2
+         if u = 1 then
+            char = upcase(char)  -- capslocked key, shifted combination isn't affected
+         else
+            char = lowcase(char)
+         endif
+         key = asc(char)
+         name = char
+
+         if isadefc('Key_c_'name) then
+            cmd = 'Key_c_'name
+         else
+            cmd = 'dokey c+'name
+         endif
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL, key, i                -- Ctrl+<key>
+/*
+         if isadefc('Key_c_s_'name) then
+            cmd = 'Key_c_s_'name
+            i = i + 1
+            buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, key, i  -- Ctrl+Sh+<key>
+         endif
+*/
+
+         if not OmitAltAccel then  -- if not (cua_meu_accel and found in UsedMenuAccelerators)
+            if isadefc('Key_a_'name) then
+               cmd = 'Key_a_'name
+            else
+               cmd = 'dokey a+'name
+            endif
+            i = i + 1
+            buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT, key, i             -- Alt+<key>
+         endif
+/*
+         if isadefc('Key_a_s_'name) then
+            cmd = 'Key_a_s_'name
+            i = i + 1
+            buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT + AF_SHIFT, key, i  -- Alt+Sh+<key>
+         endif
+*/
+
+         if isadefc('Key_c_a_'name) then
+            cmd = 'Key_c_a_'name
+            i = i + 1
+            buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT, key, i             -- Ctrl+Alt+<key>
+         endif
+/*
+         if isadefc('Key_c_a_s_'name) then
+            cmd = 'Key_c_a_s_'name
+            i = i + 1
+            buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, key, i  -- Ctrl+Alt+Sh+<key>
+         endif
+*/
+      enddo
+***/
+
+   enddo
+   -- Save the last used id in an array var
+   call SetAVar( 'lastkeyaccelid', i)
+   return i
+
+; ---------------------------------------------------------------------------
+; Chars, for that no upper/lowercase variants exist.
+defproc DefineCharAccels
+   universal activeaccel
+   -- Get the last used id from an array var
+   i = GetAVar( 'lastkeyaccelid')
+   List = CHAR_LIST
+   do w = 1 to words( List)
+      char = word( List, w)
+      key  = asc(char)
+      name = word( CHAR_NAMES, w)
+      DefExists = (wordpos( char, NO_DEF_CHAR_LIST) = 0)
+
+      cmd = ''
+      if isadefc('Key_c_'name) then
+         cmd = 'Key_c_'name
+      elseif DefExists then
+         cmd = 'dokey c+'name
+      endif
+      if cmd <> '' then
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL, key, i             -- Ctrl+<key>
+      endif
+      if isadefc('Key_c_s_'name) then
+         cmd = 'Key_c_s_'name
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, key, i  -- Ctrl+Sh+<key>
+      endif
+
+      cmd = ''
+      if isadefc('Key_a_'name) then
+         cmd = 'Key_a_'name
+      elseif DefExists then
+         cmd = 'dokey a+'name
+      endif
+      if cmd <> '' then
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT, key, i             -- Alt+<key>
+      endif
+      if isadefc('Key_a_s_'name) then
+         cmd = 'Key_a_s_'name
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT + AF_SHIFT, key, i  -- Alt+Sh+<key>
+      endif
+
+      if isadefc('Key_c_a_'name) then
+         cmd = 'Key_c_a_'name
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT, key, i             -- Ctrl+Alt+<key>
+      endif
+      if isadefc('Key_c_a_s_'name) then
+         cmd = 'Key_c_a_s_'name
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, key, i  -- Ctrl+Alt+Sh+<key>
+      endif
+
+   enddo
+   -- Save the last used id in an array var
+   call SetAVar( 'lastkeyaccelid', i)
+   return
+
+; ---------------------------------------------------------------------------
+; Virtual keys like F1, Insert, Up.
+defproc DefineVirtualAccels
+   universal activeaccel
+   -- Get the last used id from an array var
+   i = GetAVar( 'lastkeyaccelid')
+   List = VIRTUAL_LIST
+   do w = 1 to words( List)
+      char = word( List, w)
+      id   = word( VIRTUAL_IDS, w)
+      name = word( VIRTUAL_NAMES, w)
+
+      if not wordpos( char, PM_LIST) then
+         if isadefc('Key_'name) then
+            cmd = 'Key_'name
+         else
+            cmd = 'dokey 'name
+         endif
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_VIRTUALKEY, id, i          -- <key>
+      endif
+      if isadefc('Key_s_'name) then
+         cmd = 'Key_s_'name
+      else
+         cmd = 'dokey s+'name
+      endif
+      i = i + 1
+      buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_SHIFT, id, i  -- Sh+<key>
+
+      if isadefc('Key_c_'name) then
+         cmd = 'Key_c_'name
+      else
+         cmd = 'dokey c+'name
+      endif
+      i = i + 1
+      buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_CONTROL, id, i                -- Ctrl+<key>
+      if isadefc('Key_c_s_'name) then
+         cmd = 'Key_c_s_'name
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_CONTROL + AF_SHIFT, id, i  -- Ctrl+Sh+<key>
+      endif
+
+      if not wordpos( char, PM_ALT_LIST) then
+         if isadefc('Key_a_'name) then
+            cmd = 'Key_a_'name
+         else
+            cmd = 'dokey a+'name
+         endif
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_ALT, id, i             -- Alt+<key>
+      endif
+      if isadefc('Key_a_s_'name) then
+         cmd = 'Key_a_s_'name
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_ALT + AF_SHIFT, id, i  -- Alt+Sh+<key>
+      endif
+
+      if isadefc('Key_c_a_'name) then
+         cmd = 'Key_c_a_'name
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_CONTROL + AF_ALT, id, i             -- Ctrl+Alt+<key>
+      endif
+      if isadefc('Key_c_a_s_'name) then
+         cmd = 'Key_c_a_s_'name
+         i = i + 1
+         buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_CONTROL + AF_ALT + AF_SHIFT, id, i  -- Ctrl+Alt+Sh+<key>
+      endif
+
+   enddo
+   -- Save the last used id in an array var
+   call SetAVar( 'lastkeyaccelid', i)
+   return
+
+compile endif  -- OLD_ACCEL_KEY_DEFS ########################################
+
+; ---------------------------------------------------------------------------
+defc deleteaccel
+   universal activeaccel
+   if arg(1) = '' then
+      curaccel = activeaccel
+   else
+      curaccel = arg(1)
+   endif
+   deleteaccel curaccel
+
+; ---------------------------------------------------------------------------
+defc alt_enter =
+compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''  -- define each key separately
+   universal a_enterkey, a_padenterkey, s_enterkey, s_padenterkey
+   call enter_common( substr( a_enterkey||a_padenterkey||s_enterkey||s_padenterkey, arg(1), 1))
+compile else
+   executekey enter
+compile endif
+
+; ---------------------------------------------------------------------------
+defc dokey
+   executekey resolve_key(arg(1))
+
+; ---------------------------------------------------------------------------
+defc executekey
+   executekey arg(1)
+
+; ---------------------------------------------------------------------------
+defc keyin
+   keyin arg(1)
+
+; ---------------------------------------------------------------------------
+; In E3 and EOS2, we can use a_X to enter the value of any key.  In EPM,
+; we can't, so the following routine is used by KEY and LOOPKEY to convert
+; from an ASCII key name to the internal value.  It handles shift or alt +
+; any letter, or a function key (optionally, with any shift prefix).  LAM
+
+; suffix for virtual keys
+;    hex dec
+;    02  2   without prefix
+;    0a  10  Sh
+;    12  18  Ctrl
+;    22  34  Alt
+;
+; suffix for letters
+;    hex dec
+;    10  16  Ctrl
+;    20  32  Alt
+;
+defproc resolve_key(k)
+   ku = upcase(k)
+
+   -- Get prefix
+   C_Prefix = 0
+   A_Prefix = 0
+   S_Prefix = 0
+   done = 0
+   rest = ku
+   do while (done = 0 & length(ku) > 2)
+      p = pos( leftstr( ku, 1), 'CAS')
+      if p & pos( substr( ku, 2, 1), '_-+') then
+         ku = substr( ku, 3)
+         if p = 1 then
+            C_Prefix = 1
+         elseif p = 2 then
+            A_Prefix = 1
+         elseif p = 3 then
+            S_Prefix = 1
+         endif
+      else
+         done = 1
+      endif
+   enddo
+   suffix = ''
+
+   wv = wordpos( ku, VIRTUAL_NAMES)
+   wc = wordpos( ku, CHAR_NAMES)
+   --dprintf( 'resolve_key', 'k = 'k', ku = 'ku', Ctrl = 'C_Prefix', Alt = 'A_Prefix', Sh = 'S_Prefix', Virtual = 'wv', Char = 'wc)
+   if wv then
+      if C_Prefix then
+         suffix = \18
+      elseif A_Prefix then
+         suffix = \34
+      elseif S_Prefix then
+         suffix = \10
+      else
+         suffix = \2
+      endif
+      k = chr(word( VIRTUAL_IDS, wv))''suffix
+   elseif wc then
+      if C_Prefix then
+         suffix = \16
+         k = word( CHAR_LIST, wc)''suffix
+      elseif A_Prefix then
+         suffix = \32
+         k = word( CHAR_LIST, wc)''suffix
+      endif
+   else
+      if C_Prefix then
+         suffix = \16
+         k = lowcase(ku)''suffix  -- letters must be lowercase for executekey
+      elseif A_Prefix then
+         suffix = \32
+         k = lowcase(ku)''suffix  -- letters must be lowercase for executekey
+      endif
+   endif
+
+   return k
+
+; ---------------------------------------------------------------------------
 defproc process_key(k)
    universal CUA_marking_switch
-   if length(k)=1 & k<>\0 then
+   if length(k) = 1 & k <> \0 then
       i_s = insert_state()
       if CUA_marking_switch then
          had_mark = process_mark_like_cua()
@@ -180,9 +821,9 @@ defproc process_key(k)
 
 defproc process_mark_like_cua()
    if marktype() then
-      getmark firstline,lastline,firstcol,lastcol,markfileid
+      getmark firstline, lastline, firstcol, lastcol, markfileid
       getfileid fileid
-      if fileid<>markfileid then
+      if fileid <> markfileid then
          sayerror MARKED_OTHER__MSG
          unmark
       elseif not check_mark_on_screen() then
@@ -192,7 +833,7 @@ defproc process_mark_like_cua()
 ;compile if WANT_DM_BUFFER
          'Copy2DMBuff'     -- see clipbrd.e for details
 ;compile endif  -- WANT_DM_BUFFER
-         firstline; .col=firstcol
+         firstline; .col = firstcol
          undoaction 1, junk                -- Create a new state
          call pdelete_mark()
          'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
@@ -1042,25 +1683,10 @@ defc EditFileDlg
 defc UndoLine
    undo
 
-
 defc NextFile
    nextfile
 
-/*
-def home =
-   universal CUA_marking_switch
-   if CUA_marking_switch then
-      unmark
-   endif
-   begin_line
-
-def s_home =
-   startline = .line; startcol = .col
-   begin_line
-   call extend_mark(startline, startcol, 0)
-*/
-
-defc BeginLineOrText
+defc BeginLineOrText  -- Home
    universal nepmd_hini
    universal CUA_marking_switch
    if CUA_marking_switch then
@@ -1080,7 +1706,7 @@ defc BeginLineOrText
       begin_line
    endif
 
-defc MarkBeginLineOrText
+defc MarkBeginLineOrText  -- Sh+Home
    universal nepmd_hini
    startline = .line; startcol = .col
    KeyPath = '\NEPMD\User\Keys\Home\ToggleBeginLineText'
