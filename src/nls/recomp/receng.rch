@@ -47,6 +47,7 @@
 #define IDT_IDSTR_INVALID_PARM                   "Invalid parameter %s specified. Program aborted."
 #define IDT_IDSTR_START_NOT_SPECIFIED            "Parameter /%s not specified with /%s. Program aborted.";
 #define IDT_IDSTR_COMPILE_SUCCESSFUL             "recompile successful"
+#define IDT_IDSTR_COMPILE_ABORTED                "recompile aborted"
 #define IDT_IDSTR_HELP_HEAD                      __APPNAME__ " " __VERSION__                     NEWLINE \
                                                  "commandline parameters"                        NEWLINE \
                                                                                                  NEWLINE \

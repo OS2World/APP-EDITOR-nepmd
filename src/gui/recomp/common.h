@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: common.h,v 1.3 2002-06-09 21:52:45 cla Exp $
+* $Id: common.h,v 1.4 2002-06-09 22:01:48 cla Exp $
 *
 * ===========================================================================
 *
@@ -75,6 +75,7 @@
 #define ETPMLOG_FILENAMETOKEN          "filename="
 #define ETPMLOG_LINETOKEN              "line="
 #define ETPMLOG_COLTOKEN               "col="
+#define ETPMLOG_NOTFOUNDTOKEN          "Unable to open input file:"
 
 /* ----------- Symbols used in common.h and recomp.e ----------- */
 /*                        KEEP IN SYNC !                         */
