@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.1 2002-06-03 18:13:58 cla Exp $
+# $Id: makefile,v 1.2 2002-08-12 13:18:51 cla Exp $
 #
 # ===========================================================================
 #
@@ -32,9 +32,18 @@ FILESTOCLEAN= \
  $(CMPINSTDIR)\nlsetup.exe \
  $(CMPDIR)\nlsetup.log
 
+# --- private extension of suffix list
+.SUFFIXES: .cmd
+
+# --- private rule
+
+.cmd{$(CMPINSTDIR)}.exe:
+   rexx2exe $(@B).cmd $(CMPINSTDIR)\$(@B).exe /P > $(CMPDIR)\$(@B).log
+
+
 # --- pseudotargets
 
-ALL: NLSETUP
+ALL: NLSETUP NLDEINST
 
 # ---
 
@@ -46,8 +55,11 @@ CLEAN:
 
 NLSETUP: $(CMPINSTDIR)\nlsetup.exe
 
-# ---- create EXE version or frame REXX batchfile
+NLDEINST: $(CMPINSTDIR)\nldeinst.exe
 
-$(CMPINSTDIR)\nlsetup.exe: $(BASEDIR)\src\rexx\nlsetup.cmd
-   rexx2exe $(BASEDIR)\src\rexx\nlsetup.cmd $(CMPINSTDIR)\nlsetup.exe /P > $(CMPDIR)\nlsetup.log
+# ---- create EXE versions of frame REXX batchfiles
+
+$(CMPINSTDIR)\nlsetup.exe: nlsetup.cmd
+
+$(CMPINSTDIR)\nldeinst.exe: nldeinst.cmd
 
