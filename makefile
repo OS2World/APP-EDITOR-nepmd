@@ -8,7 +8,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution project 2002
 #
-# $Id: makefile,v 1.2 2002-04-16 15:24:49 cla Exp $
+# $Id: makefile,v 1.3 2002-04-16 15:30:19 cla Exp $
 #
 # ===========================================================================
 #
@@ -110,7 +110,7 @@ CREATE: $(CMPDIR)\$(WPIFILE)
 
 CHECK: PREPARE
    @ECHO Checking prepared files for errors during unpack:
-   -@grep SYS0 $(UNZIPPEDDIR)*.log
+   -@grep SYS....: $(UNZIPPEDDIR)\prepare.log
    @ECHO Checking prepared files for zero byte files:
    -@dir $(UNZIPPEDDIR) /s | grep " 0           0"
 
