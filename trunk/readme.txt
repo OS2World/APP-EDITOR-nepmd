@@ -1,4 +1,4 @@
-; $Id: readme.txt,v 1.1 2002-04-15 16:37:50 ktk Exp $ 
+; $Id: readme.txt,v 1.2 2002-04-16 15:31:20 cla Exp $
 
 Netlabs EPM Distribution package readme
 =======================================
@@ -34,6 +34,8 @@ Requirements:
 
 - HyperText/2 preprocessor for to compile the online help file
   see http://hobbes.nmsu.edu/cgi-bin/h-search?key=htext
+
+- grep utility in PATH
 
 
 Proceed as follows
