@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.12 2002-10-17 17:13:14 aschn Exp $
+* $Id: stdmenu.e,v 1.13 2002-10-17 22:30:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -72,16 +72,16 @@ compile endif
       buildmenuitem menuname, 2, 203, \0,                          '',                 4, 0
       buildmenuitem menuname, 2, 204, RENAME_MENU__MSG\9'F7',   'rename'RENAME_MENUP__MSG,0, mpfrom2short(HP_FILE_NAME, 0)
       buildmenuitem menuname, 2, 212, 'Revert',                 'revert'\1'Reload file from disk, ask if modified',0, 0
-      buildmenuitem menuname, 2, 220, 'Open folder',            ''\1, 17+64, 0
+      buildmenuitem menuname, 2, 220, 'Open folder',            ''\1'Open WPS folder where the current file is located', 17+64, 0
          -- How to make the following submenu item the default for the 'Open folder' item (as for the Help -> View ... menu items)?
          buildmenuitem menuname, 2, 221, 'Default view',        'OpenFolder OPEN=DEFAULT'\1, 0, 0
          buildmenuitem menuname, 2, 222, \0,                    '',                          4, 0
          -- Note: Don't specify the OpenFolder arg too long. There exists a restriction to the length of that parameter for buildmenuitem!
          -- ToDo: use XWP's 'Reset to WPS's default view' feature to minimize stored EA's (and use a sub-sub-menu for setting the default view)
-         buildmenuitem menuname, 2, 223, 'Icon view',           'OpenFolder DEFAULTVIEW=ICON;ICONVIEW=NORMAL;OPEN=ICON'\1, 0, 0
-         buildmenuitem menuname, 2, 224, 'Icon flowed view',    'OpenFolder DEFAULTVIEW=ICON;ICONVIEW=FLOWED,MINI;OPEN=ICON'\1, 0, 0
-         buildmenuitem menuname, 2, 225, 'Tree view',           'OpenFolder DEFAULTVIEW=TREE;TREEVIEW=MINI;SHOWALLINTREEVIEW=YES;OPEN=TREE'\1, 0, 0
-         buildmenuitem menuname, 2, 226, 'Details view',        'OpenFolder DEFAULTVIEW=DETAILS;OPEN=DETAILS'\1, 32768+1, 0
+         buildmenuitem menuname, 2, 223, 'Icon view',           'OpenFolder ICONVIEW=NORMAL;OPEN=ICON'\1, 0, 0
+         buildmenuitem menuname, 2, 224, 'Icon flowed view',    'OpenFolder ICONVIEW=FLOWED,MINI;OPEN=ICON'\1, 0, 0
+         buildmenuitem menuname, 2, 225, 'Tree view',           'OpenFolder TREEVIEW=MINI;SHOWALLINTREEVIEW=YES;OPEN=TREE'\1, 0, 0
+         buildmenuitem menuname, 2, 226, 'Details view',        'OpenFolder OPEN=DETAILS'\1, 32768+1, 0
       buildmenuitem menuname, 2, 205, \0,                          '',                 4, 0
       buildmenuitem menuname, 2, 206, SAVE_MENU__MSG\9'F2',     'SAVE'SAVE_MENUP__MSG,             0, mpfrom2short(HP_FILE_SAVE, 0)
       buildmenuitem menuname, 2, 208, SAVEAS_MENU__MSG,         'SAVEAS_DLG'SAVEAS_MENUP__MSG, 0, mpfrom2short(HP_FILE_SAVEAS, 0)
@@ -245,9 +245,9 @@ defproc add_search_menu(menuname)
       buildmenuitem menuname, 3, 301, \0,                           '',            4, 0
       buildmenuitem menuname, 3, 302, FIND_NEXT_MENU__MSG\9 || CTRL_KEY__MSG'+F',   'SEARCHDLG F'FIND_NEXT_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_FIND, 0)
       buildmenuitem menuname, 3, 303, CHANGE_NEXT_MENU__MSG\9 || CTRL_KEY__MSG'+C', 'SEARCHDLG C'CHANGE_NEXT_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_CHANGE, 0)
-      buildmenuitem menuname, 3, 350, 'Global find next'\9 || CTRL_KEY__MSG'+V',    'globalfind', 0, 0
-      buildmenuitem menuname, 3, 351, 'Global change next',                         'globalchange', 0, 0
-      buildmenuitem menuname, 3, 352, 'Toggle direction'\9 || CTRL_KEY__MSG'+-',    'ToggleSearchDirection', 0, 0
+      buildmenuitem menuname, 3, 350, 'Global find next'\9 || CTRL_KEY__MSG'+V',    'globalfind'\1'Repeat previous Locate command for all files in the ring', 0, 0
+      buildmenuitem menuname, 3, 351, 'Global change next',                         'globalchange'\1'Repeat previous Change command for all files in the ring', 0, 0
+      buildmenuitem menuname, 3, 352, 'Toggle direction'\9 || CTRL_KEY__MSG'+-',    'ToggleSearchDirection'\1'Toggle back/forward for current locate/change command', 0, 0
 compile if WANT_BOOKMARKS
       buildmenuitem menuname, 3, 304, \0,                           '',            4, 0
       buildmenuitem menuname, 3, 305, BOOKMARKS_MENU__MSG,   BOOKMARKS_MENUP__MSG, 17, mpfrom2short(HP_SEARCH_BOOKMARKS, 0)
