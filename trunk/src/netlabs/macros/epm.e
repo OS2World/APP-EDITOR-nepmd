@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.23 2004-02-22 20:36:17 aschn Exp $
+* $Id: epm.e,v 1.24 2004-06-04 00:33:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -66,8 +66,6 @@ compile if not VANILLA
    tryinclude  'mymain.e'      -- Optional user additions to DEFMAIN.
 compile endif  -- not VANILLA
 
-include        'mode.e'        -- Mode definitions
-include        'edit.e'        -- Edit command
 include        'load.e'        -- Default defload must come before other defloads.
 compile if not VANILLA
    tryinclude  'myload.e'      -- Optional user additions to DEFLOAD. Use your own
@@ -100,6 +98,7 @@ compile endif
 
 compile if MOUSE_SUPPORT = 1
    include     'mouse.e'       -- Mouse definition, only for EPM.
+   include     'popup.e'       -- Popup menu.
 compile else
    defc processmouse = sayerror 'Mouse support missing.'
 compile endif
@@ -114,7 +113,7 @@ include        'markfilt.e'    -- Procedures for filtering a block, line or char
 include        'charops.e'     -- Mark operations for character marks.
 
 compile if WANT_TEXT_PROCS
-   include 'textproc.e'
+   include     'textproc.e'
 compile endif
 
 compile if HOST_SUPPORT = 'STD'
@@ -130,12 +129,18 @@ compile elseif HOST_SUPPORT = 'SRPI'
 compile else
    include     'slnohost.e'    -- ... without host support
 compile endif
+include        'edit.e'        -- Edit commands, must come after E3EMUL.E if activated.
+include        'mode.e'        -- Mode definitions
+include        'modecnf.e'     -- Mode dependent settings
 
 include        'stdcmds.e'     -- Standard commands (DEFC's).
                                -- (Edit cmd uses variables defined in host routines.)
+include        'file.e'        -- File definitions
+
 include        'hooks.e'       -- Hook cmds
 
 include        'get.e'         -- Insert the contents of another file into current
+include        'put.e'         -- Append the contents of current file to another
 
 include        'enter.e'       -- Enter definitions
 
@@ -147,13 +152,13 @@ include        'caseword.e'    -- Change case of word/identifier under cursor
 
 include        'xchgline.e'    -- Exchange lines and chars
 
-include        'setconfig.e'   -- Temporary definitions to change NEPMD.INI
-
 include        'revert.e'      -- Throw away changes and reload file from disk
 
 include        'wps.e'         -- WPS definitions (open folder)
 
 include        'comment.e'     -- Comment and uncomment marked lines
+
+include        'wrap.e'        -- Wrap and unwrap lines
 
 compile if WANT_DRAW
   compile if (WANT_DRAW='F6' | WANT_DRAW=F6)
@@ -169,24 +174,33 @@ compile if WANT_TREE = 1
    include     'tree.e'        -- Tree command
 compile endif
 
-tryinclude     'linkcmds.e'    -- Useful new commands for the linking version.
+include        'linkcmds.e'    -- Useful new commands for the linking version.
 include        'autolink.e'    -- Link all .ex files found in myepm\autolink
 
 include        'stdctrl.e'     -- PM controls for EPM.
+
+include        'config.e'      -- Ini definitions
+include        'setconfig.e'   -- Temporary definitions to change NEPMD.INI
+
 include        'infoline.e'    -- Statusline and Titletext definitions
-include        'filelist.e'    -- Save/restore ring and enable 'File 3 of 28' tag
+
+include        'filelist.e'    -- Save/restore ring and provide 'File 3 of 28' field
+
 include        'toolbar.e'     -- Toolbar definitions
 
-compile if INCLUDE_MENU_SUPPORT & INCLUDE_STD_MENUS
- compile if defined(STD_MENU_NAME)
+include        'menu.e'        -- Common menu definitions
+compile if not LINK_MENU       -- New standard is to link a menu file in order to save space in EPM.EX
+ compile if defined(STD_MENU_NAME) & STD_MENU_NAME <> ''
   compile if STD_MENU_NAME = 'STDMENU.E'
-   *** Error:  Leave STD_MENU_NAME undefined to use the original menu layout (STDMENU.E).
-  compile endif
+    *** Error:  Leave STD_MENU_NAME undefined to use the original menu layout (STDMENU.E).
+  compile else
    include     STD_MENU_NAME   -- Action bar menus for EPM.
+  compile endif
  compile else
-   include     'stdmenu.e'     -- Action bar menus for EPM.
+   include     'stdmenu.e'     -- File/Edit/Search/Options/Command/Help menu
  compile endif
-compile endif  -- INCLUDE_MENU_SUPPORT & INCLUDE_STD_MENUS
+compile endif  -- not LINK_MENU
+
 tryinclude     'clipbrd.e'     -- Clipboard interface and mark <--> buffer routines
 compile if WANT_BOOKMARKS = 1
    include     'bookmark.e'    -- Set and find bookmarks
@@ -226,6 +240,11 @@ compile endif
 
 compile if WANT_EPM_SHELL
    include     'epmshell.e'    -- EPM shell
+;   tryinclude  'shellkram.e'   -- Joerg Tiemann's Shellkram
+compile endif
+
+compile if WANT_KEYWORD_HELP = 1
+   include     'kwhelp.e'      -- Keyword help.
 compile endif
 
 compile if WANT_REXX
@@ -233,6 +252,7 @@ compile if WANT_REXX
 compile endif
 
 -- Put all new includes above this line. --------------------------------------
+-- (The following files define additional keysets)
 
 compile if SPELL_SUPPORT = 1
    include     'epmlex.e'      -- Spell checking
