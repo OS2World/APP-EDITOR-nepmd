@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.3 2002-08-21 20:30:31 cla Exp $
+* $Id: test.c,v 1.4 2002-08-22 09:11:31 cla Exp $
 *
 * ===========================================================================
 *
@@ -60,7 +60,7 @@ static         PSZ            pszMessageName = "TESTMESSAGE";
                ULONG          ulMessageLen;
 
                CHAR           szBuffer[ 512];
-               PSZ            apszParms[] = { "*1st parm*", "*2nd parm*", "*3rd parm*"};
+               PSZ            apszParms[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 
       if (!pszFilename)
          {
@@ -68,7 +68,7 @@ static         PSZ            pszMessageName = "TESTMESSAGE";
          rc = ERROR_ENVVAR_NOT_FOUND;
          break;
          }
-      GETMESSAGE( "INSERTTEST", apszParms, 3);
+      GETMESSAGE( "INSERTTEST", apszParms, 9);
       GETMESSAGE( "TESTMESSAGE", NULL, 0);
       GETMESSAGE( "TESTVAL1", NULL, 0);
       GETMESSAGE( "TESTVAL2", NULL, 0);
