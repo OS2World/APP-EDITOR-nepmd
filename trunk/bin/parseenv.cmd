@@ -5,12 +5,26 @@
  *                       [VAR=VALUE [VAR=VALUE [...]]]
  *
  *    This program writes a copy of the sourcefile replaces environment
- *    variables in a (copy of a) text file. Additional vars can be specified 
+ *    variables in a (copy of a) text file. Additional vars can be specified
  *    as symbols as commandline parameters.
  *
- *    NOTE: 
- *       - values may not include spaces and may not be enclosed in 
- *         single/double quotes.
+ *    The XML Tag <cinclude name="filename"/> includes a C-headerfile and
+ *    loads defined symbols. Note that
+ *        - the filename may include envvars to distinct between different
+ *          files for e.g. different languages
+ *        - only #defines from within these files are interpreted.
+ *        - #ifdef #else #endif are not supported, but ignored
+ *        - no C style comments are supported like: /* comment */
+ *        - C++ style comments are supported like: // comment
+ *          but are not skipped when being used within strings (should be)
+ *        - no symbols can be used within the #define values yet
+ *        - strings may include \r \n and \t
+ *
+ *    The XML Tag <tinclude name="filename"/> includes textfiles as part of
+ *    the wis script. Note that
+ *        - the filename may include envvars to distinct between different
+ *          files for e.g. different languages
+ *
  */
 /* The first comment is used as online help text */
 /****************************** Module Header *******************************
@@ -21,7 +35,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: parseenv.cmd,v 1.2 2002-06-12 09:54:31 cla Exp $
+* $Id: parseenv.cmd,v 1.3 2002-08-01 13:24:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +54,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.2 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.3 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -80,8 +94,10 @@
  END;
 
  /* default values */
- GlobalVars = GlobalVars '';
- rc = ERROR.NO_ERROR;
+ GlobalVars = GlobalVars 'fDebug fVerbose';
+ fDebug     = FALSE;
+ fVerbose   = FALSE;
+ rc         = ERROR.NO_ERROR;
 
  SourceFile = '';
  TargetFile = '';
@@ -167,14 +183,86 @@
     END;
 
     /* now copy contents */
+    Linecount = 0;
     DO WHILE (LINES( SourceFile))
        ThisLine = LINEIN( SourceFile);
-       rcx = LINEOUT( TargetFile, ParseLine( ThisLine));
+       Linecount = Linecount + 1;
+
+       /* check for include files */
+       CheckLine = TRANSLATE( ThisLine);
+       SELECT
+          WHEN (POS( '<CINCLUDE', CheckLine) > 0) THEN Tag = 'CINCLUDE';
+          WHEN (POS( '<TINCLUDE', CheckLine) > 0) THEN Tag = 'TINCLUDE';
+          OTHERWISE Tag = '';
+       END;
+
+       IF (Tag \= '') THEN
+       DO
+          tPos = POS( '<'Tag, CheckLine);
+          NewLineStart = LEFT( ThisLine, tPos - 1);
+          NewLineEnd   = '';
+          TagLine = SUBSTR( ThisLine, tPos);
+
+          /* search end of tag */
+          ePos = POS( '>', ThisLine, tPos);
+          IF (ePos > 0) THEN
+          DO
+             NewLineEnd = SUBSTR( ThisLine, ePos + 1);
+             TagLine = TagLine LEFT( ThisLine, ePos);
+          END;
+
+          DO WHILE (ePos = 0)
+             ThisLine = LINEIN( SourceFile);
+             Linecount = Linecount + 1;
+
+             ePos = POS( '>', ThisLine, tPos);
+             IF (ePos > 0) THEN
+             DO
+                NewLineEnd = SUBSTR( ThisLine, ePos + 1);
+                TagLine = TagLine LEFT( ThisLine, ePos);
+             END;
+             ELSE
+                TagLine = ThisLine;
+          END;
+
+          PARSE VAR TagLine '"'IncludeFile'"';
+          IncludeFile = ParseLine( IncludeFile);
+          IF (STREAM( IncludeFile, 'C', 'OPEN READ') \= 'READY:') THEN
+          DO
+             SAY SourceFile'('Linecount') : error: cannot open include file' IncludeFile '.'
+             rc = ERROR.INVALID_DATA;
+             LEAVE;
+          END;
+
+          SELECT
+             WHEN (Tag = 'CINCLUDE') THEN
+             DO
+                rcx = ProcessCIncludeFile( IncludeFile);
+                ThisLine = NewLineStart''NewLineEnd;
+             END;
+
+             WHEN (Tag = 'TINCLUDE') THEN
+             DO
+                Content = ProcessScriptIncludeFile( IncludeFile);
+                ThisLine = NewLineStart''Content''NewLineEnd;
+             END;
+
+             OTHERWISE NOP;
+          END;
+
+       END;
+
+       NewLine =  ParseLine( ThisLine);
+       rcx = LINEOUT( TargetFile, NewLine);
     END;
     rcx = STREAM( SourceFile, 'C', 'CLOSE');
     rcx = STREAM( TargetFile, 'C', 'CLOSE');
 
  END;
+
+ /* cleanup target file on error */
+ IF ((rc \= ERROR.NO_ERROR) & (TargetFile \= '')) THEN
+    rcx = SysFileDelete( TargetFile);
 
  EXIT( rc);
 
@@ -243,4 +331,205 @@ ParseLine: PROCEDURE EXPOSE env
  ThisLineCopy = ThisLineCopy||SUBSTR(ThisLine, CurrentPos);
 
  RETURN(ThisLineCopy);
+
+/* ========================================================================= */
+StrReplace: PROCEDURE
+ PARSE ARG StrSearch, StrReplace, Str;
+
+ StrPos = POS( StrSearch, Str);
+ DO WHILE (StrPos > 0)
+    Str = DELSTR(  Str, StrPos, LENGTH( StrSearch));
+    Str = INSERT(  StrReplace, Str, StrPos);
+
+    StrPos = POS( StrSearch, Str);
+ END;
+
+ RETURN( Str);
+
+/* ========================================================================= */
+ReplaceSpecialChars: PROCEDURE
+ PARSE ARG Str;
+
+ Str = StrReplace( '\n', '0a'x, Str);
+ Str = StrReplace( '\r', '0d'x, Str);
+ Str = StrReplace( '\t', '09'x, Str);
+
+ RETURN( Str);
+
+
+/* ========================================================================= */
+ProcessCIncludeFile: PROCEDURE EXPOSE (GlobalVars)
+ PARSE ARG File;
+
+ ErrorMsg = '';
+ rc = ERROR.NO_ERROR;
+
+
+ Linecount = 0;
+ DefinePending = FALSE;
+
+ Linecount = 0;
+ VarName   = '';
+ VarValue  = '';
+
+ IF (fVerbose) THEN
+    SAY '- processing C include file' File
+ DO UNTIL (TRUE)
+
+    DO WHILE (LINES( File))
+       ThisLine = LINEIN( File);
+       Linecount = Linecount + 1;
+
+       /* strip comments */
+       CommentPos = POS('//', ThisLine);
+       IF (CommentPos > 0) THEN
+          ThisLine = LEFT( ThisLine, CommentPos - 1);
+
+
+       /* search for #defines */
+       Tag = TRANSLATE( WORD( ThisLine, 1));
+       SELECT
+          WHEN (Tag = '#DEFINE') THEN
+          DO
+             /* store old value first */
+             IF (VarName \= '') THEN
+             DO
+                VarValue = ReplaceSpecialChars( VarValue);
+                rcx = VALUE( VarName, VarValue, env);
+                IF (fDebug) THEN
+                   SAY '1 storing' VarName '->' VarValue;
+             END;
+
+             /* read new value */
+             fNextLine = FALSE;
+             VarValue = '';
+             IF (RIGHT( STRIP( ThisLine), 1) = '\') THEN
+             DO
+                ThisLine = STRIP( ThisLine);
+                ThisLine = LEFT( ThisLine, LENGTH( ThisLine) - 1);
+                fNextLine = TRUE;
+             END;
+
+             PARSE VAR ThisLine . VarName ThisLine;
+             DO WHILE (TRUE)
+
+                /* store this value */
+                VarAddValue = STRIP( ThisLine);
+                VarAddValue = STRIP( VarAddValue);
+                IF (LEFT( VarAddValue, 1) = '"') THEN
+                   PARSE VAR VarAddValue '"'VarAddValue'"';
+                VarValue = VarValue''VarAddValue;
+
+                /* scan nextline */
+                IF (fNextLine) THEN
+                DO
+                   ThisLine = LINEIN( File);
+                   Linecount = Linecount + 1;
+                   fNextLine = FALSE;
+                   IF (RIGHT( STRIP( ThisLine), 1) = '\') THEN
+                   DO
+                      PARSE VAR ThisLine ThisLine'\'.;
+                      fNextLine = TRUE;
+                   END;
+                END;
+                ELSE
+                   LEAVE;
+             END;
+
+             DefinePending = TRUE;
+          END;
+
+          WHEN ((LEFT( Tag, 1) = '#') | (Tage = '')) THEN
+          DO
+             IF (VarName \= '') THEN
+             DO
+                VarValue = ReplaceSpecialChars( VarValue);
+                rcx = VALUE( VarName, VarValue, env);
+                IF (fDebug) THEN
+                   SAY '2 storing' VarName '->' VarValue;
+             END;
+             DefinePending = FALSE;
+          END;
+
+
+          OTHERWISE NOP;
+       END;
+
+    END;
+
+    /* store any pending var */
+    IF ((DefinePending) & (VarName \= '')) THEN
+    DO
+       VarValue = ReplaceSpecialChars( VarValue);
+       rcx = VALUE( VarName, VarValue, env);
+       IF (fDebug) THEN
+          SAY 'storing' VarName '->' VarValue;
+    END;
+
+    rcx = STREAM( File, 'C', 'CLOSE');
+ END;
+
+ RETURN( STRIP( rc ErrorMsg));
+
+/* ========================================================================= */
+ProcessScriptIncludeFile: PROCEDURE EXPOSE (GlobalVars)
+ PARSE ARG File;
+
+ ErrorMsg = '';
+ rc = ERROR.NO_ERROR;
+
+ fCommentPending = FALSE;
+ CommentStart = '<!--';
+ CommentEnd   = '-->';
+
+ Content = '';
+
+ IF (fVerbose) THEN
+    SAY '- processing script includefile' File
+ DO UNTIL (TRUE)
+
+    DO WHILE (LINES( File))
+       ThisLine = LINEIN( File);
+
+       IF (fCommentPending) THEN
+       DO
+          /* check for end of comment */
+          tPos = POS( CommentEnd, ThisLine);
+          IF (tPos > 0) THEN
+          DO
+
+             fCommentPending = FALSE;
+             ThisLine = SUBSTR( ThisLine, tPos + LENGTH( CommentEnd));
+             IF (STRIP( ThisLine) = '') THEN
+                ITERATE;
+          END;
+          ELSE
+             /* skip lines while comment is pending */
+             ITERATE;
+       END;
+       ELSE
+       DO
+          /* check for start of comment */
+          tPos = POS( CommentStart, ThisLine);
+          IF (tPos > 0) THEN
+          DO
+             fCommentPending = TRUE;
+             ThisLine = LEFT( ThisLine, tPos - 1);
+             IF (STRIP( ThisLine) = '') THEN
+                ITERATE;
+          END;
+       END;
+
+       /* save as content */
+       IF (Content = '') THEN
+          Content = ThisLine;
+       ELSE
+          Content = Content''CrLf''ThisLine;
+
+    END;
+
+    rcx = STREAM( File, 'C', 'CLOSE');
+ END;
+
+ RETURN( Content);
 
