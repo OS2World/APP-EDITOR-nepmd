@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.6 2002-11-02 20:25:14 cla Exp $
+.. $Id: neusreng.txt,v 1.7 2002-11-02 21:19:46 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -1387,10 +1387,11 @@ by the user. In order to do so,
 .ol
 - create the directory *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<?>*,
   where *<?>* is the name of the *EPM* mode
-- create the file [.IDPNL_FORMAT_CUSTOMINI] to extend the per-mode definition.
-  This will extend settings defined in [.IDPNL_FORMAT_DEFAULTINI]
-- create files [.IDPNL_FORMAT_MYEPMHIL] to add new keyword definitions for the
-  *EPM* mode, but take care that you use a filename (with the filename
+- if required, create the file [.IDPNL_FORMAT_CUSTOMINI] to extend the
+  per-mode definition. This will extend settings defined in
+  [.IDPNL_FORMAT_DEFAULTINI]
+- if required, create files [.IDPNL_FORMAT_MYEPMHIL] to add new keyword definitions
+  for the *EPM* mode, but take care that you use a filename (with the filename
   extension .hil) that does not yet exist within the directory
   *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode\<?>*
 
@@ -1539,9 +1540,9 @@ are attached to *EPM* modes.
 
 You can easily extend the definitions for syntax highlighting
 on a per-mode basis or create a completely new EPM mode for a
-new filetype.
+new filetype, if required.
 
-See the following section for details:
+See the following section for more details:
 .ul compact
 - [.IDPNL_MODE]
 
@@ -1760,14 +1761,15 @@ The following settings are defined here:
 .su H50
 
 .at fc=red
-It is recommended to _*NOT*_
+If you intend to extend the definitions for an existing mode,
+it is recommended to _*NOT*_
 .at
 .ul compact
 - modify the file *netlabs\mode\<?>\default.ini*
-- create the file *myepm\mode\<?>\default.ini* (would hide this file !)
+- create the file *myepm\mode\<?>\default.ini* (would hide the above file !)
+.el
 
-Instead create [.IDPNL_FORMAT_CUSTOMINI] to extend and modify definitions on
-a per-mode basis !
+In this case create the file [.IDPNL_FORMAT_CUSTOMINI] instead.
 
 .. .............................................................................
 .4 mode settings
@@ -1836,6 +1838,11 @@ extensions to a given mode, where *<?>* is the name of the *EPM* mode.
 The following settings may be defined here:
 .su H50
 
+.at fc=red
+If you intend to create a completely new mode definition,
+you need to create the file *myepm\mode\<?>\default.ini* instead.
+.at
+
 .. .............................................................................
 .4 mode setting extensions
 .. .............................................................................
@@ -1878,9 +1885,78 @@ NEWSYMBOL    = DEFAULT GREEN
 .
 The files *netlabs\mode\<?>\**.hil* provide NEPMD definitions
 for keywords to be highlighted. All files with the filename extension
-*.hil* in a mode directory are used for the syntax highlighting, given
+*.hil* in this mode directory are used for the syntax highlighting, given
 that in the *myepm\mode\<?>* directory no file with the same name
 exists, hiding the same file in the *netlabs\mode\<?>* directory.
+
+See also the
+.su H50
+
+.. .............................................................................
+.4 format of hil files
+.. .............................................................................
+.an IDPNL_FORMAT_NETLABSHIL_DETAILS
+.
+The format of the highlighting files of the [=TITLE]
+resembles somewhat to those of textmode initialisation
+files, although it is not compatible in all aspects.
+The following rules apply:
+.ul compact
+- comment character is the semicolon *;* but only if it is placed in the
+  first column of a line
+- all sections must have the name of valid keyword type symbols, being defined in
+  the section *[[SYMBOLS]]* within the files
+  - [.IDPNL_FORMAT_GLOBALINI]  and/or
+  - [.IDPNL_FORMAT_DEFAULTINI] and/or
+  - [.IDPNL_FORMAT_CUSTOMINI]
+.el
+  where the last definition wins ! The color is then determined by the
+  keyword type symbol.
+
+Within any section keywords are not defined by *name=value* definitions (like in
+text ini files), but by one the following sequences:
+.pl tsize=3 bold
+- keyword
+= simple keyword definition
+- start__string end__string [[escape__character]] [[start__position]]
+= definition to define a string of variable length, being delimited by th given start
+  and end string. Optionally
+.ul compact
+  - an escape character can be specified, which allows
+    to use the end character within the string withount ending the hilite -
+    this makes sense only if the end string is only a single character long.
+  - a start position, which defines the column at which the string to be hilghlited
+    must start at. Thi si smostly be used for comments which need to start at the
+    very first column.
+.el
+.
+  [=NOTE]
+.ul compact
+  - *end__string* and *escape__character* may have the value *NONE:* to allow
+    definition of *start__position* without using an end string and/or an escape
+    character.
+  - *end__string* may have the value *<space>* to automatically hilite until the
+    end of a line. Unfortunately this does not work when ####TODO
+
+
+The following keyword type symbols are treated specially:
+.pl compact bold tsize=3
+- COMMENT LITERAL
+= the entries in the sections for these type are always treated as a delited string
+- SPECIAL OPERATOR
+= the entries of this section are always treated as SPECIAL characters
+.
+  (refer to the NEPMD Programming Guide - EPM Syntax highlighting support)
+- BREAKCHAR ENDCHAR
+= the entries in the sections for these types should be one character long only and
+  are always treated as break characters and end characters
+.
+  (refer to the NEPMD Programming Guide - EPM Syntax highlighting support)
+
+[=NOTE]
+.ul compact
+- you may append any defined keyword type symbol name to any definition in order
+  to override the color for one entry
 
 .. -----------------------------------------------------------------------------
 .3 myepm\mode\<?>\**.hil
@@ -1889,7 +1965,18 @@ exists, hiding the same file in the *netlabs\mode\<?>* directory.
 .
 The file *myepm\mode\<?>\**.hil* contain user-defined keywords to be highlighted.
 All files with the filename extension *.hil* in a mode directory are used
-for the syntax highlighting,
+for the syntax highlighting, Note that a file in the *myepm\mode\<?>* directory
+hides a file with the same name in the *netlabs\mode\<?>* directory
+
+See also the
+.su H50
+
+.. .............................................................................
+.4 format of hil files
+.. .............................................................................
+.an IDPNL_FORMAT_MYEPMHIL_DETAILS
+.
+.mi IDPNL_FORMAT_NETLABSHIL_DETAILS
 
 .. =============================================================================
 .2 Appendix: EPM Quick Reference
