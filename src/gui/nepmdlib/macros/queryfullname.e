@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryfullname.e,v 1.4 2002-08-21 13:56:27 cla Exp $
+* $Id: queryfullname.e,v 1.5 2002-08-23 12:36:17 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,7 +28,16 @@
 
 defc NepmdQueryFullname, QueryFullname =
 
-  sayerror 'fullname of "'arg( 1)'" is:' NepmdQueryFullname( arg( 1));
+  Filename = arg( 1);
+  Fullname = NepmdQueryFullname( Filename);
+
+  parse value Fullname with 'ERROR:'rc;
+  if (rc > '') then
+     sayerror 'fullname of "'Filename'" could not be retrieved, rc='rc;
+     return
+  endif
+
+  sayerror 'fullname of "'Filename'" is:' Fullname;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryFullname                                 */

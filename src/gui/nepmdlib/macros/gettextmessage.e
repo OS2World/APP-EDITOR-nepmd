@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.5 2002-08-22 09:18:38 cla Exp $
+* $Id: gettextmessage.e,v 1.6 2002-08-23 12:36:17 cla Exp $
 *
 * ===========================================================================
 *
@@ -85,11 +85,13 @@ defc NepmdGetTextMessage, GetTextMessage
                                         Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7, Parm8, Parm9);
   endif
 
-  if (MessageText = '') then
-     sayerror 'error: message' Messagename 'could not be retrieved!';
-  else
-     sayerror 'message is: "'MessageText'"';
+  parse value MessageText with 'ERROR:'rc;
+  if (rc > '') then
+     sayerror 'error: message' Messagename 'could not be retrieved, rc='rc;
+     return;
   endif
+
+  sayerror 'message is: "'MessageText'"';
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetTextMessage                                */
@@ -117,7 +119,7 @@ defc NepmdGetTextMessage, GetTextMessage
 
 defproc NepmdGetTextMessage( Filename, Messagename) =
 
- BufLen      = 10242048;
+ BufLen      = 1600;      /* maximum possible length !!! */
  TextMessage = copies( atoi( 0), BufLen);
 
  /* prepare parameters for C routine */

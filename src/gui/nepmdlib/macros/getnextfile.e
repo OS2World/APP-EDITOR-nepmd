@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.3 2002-08-22 12:36:26 cla Exp $
+* $Id: getnextfile.e,v 1.4 2002-08-23 12:36:17 cla Exp $
 *
 * ===========================================================================
 *
@@ -38,11 +38,12 @@ defc NepmdGetNextFile, GetNextFile =
   /* search all files */
   do while (1)
      Fullname = NepmdGetNextFile(  FileMask, address( Handle));
-     if (length( Fullname) > 0) then
-        messagenwait( 'File found:' Fullname);
-     else
+     parse value Fullname with 'ERROR:'rc;
+     if (rc > '') then
         leave;
      endif
+
+     messagenwait( 'File found:' Fullname);
   end;
 
 /* ------------------------------------------------------------- */
