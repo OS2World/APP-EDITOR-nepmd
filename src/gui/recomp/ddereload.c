@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddereload.c,v 1.5 2002-06-09 17:06:34 cla Exp $
+* $Id: ddereload.c,v 1.6 2002-08-14 12:25:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -46,6 +46,7 @@
 #include "pmres.h"
 #include "job.h"
 #include "file.h"
+#include "process.h"
 
 
 // -----------------------------------------------------------------------------
@@ -203,7 +204,7 @@ static MRESULT EXPENTRY DdeReloadWindowProc( HWND hwnd, ULONG msg, MPARAM mp1, M
          CHAR           szFilename[ _MAX_PATH];
          CHAR           szCurPos[ 32];
 
-         CHAR           szCommand[ _MAX_PATH + 64];
+         CHAR           szArgs[ _MAX_PATH + 64];
 
 switch (msg)
    {
@@ -237,8 +238,8 @@ switch (msg)
       // load EPM with first file, but call macro separately
       // (otherwise it will not work if only one file loaded)
       prd->ulFilesLoaded = 1;
-      sprintf( szCommand, "start /F EPM \"%s\"", szFilename);
-      DPRINTF(( "DDERELOAD: start EPM with: %s\n", szCommand));
+      sprintf( szArgs, "\"%s\"", szFilename);
+      DPRINTF(( "DDERELOAD: start EPM with: %s\n", szArgs));
 
       // connect to that instance
       for (ulTries = 0; ulTries < RELOAD_MAXTRIES; ulTries++)
@@ -248,7 +249,7 @@ switch (msg)
 
          // start EPM
          DPRINTF(( "DDERELOAD: starting EPM instance - %u of %u tries\n", ulTries + 1, RELOAD_MAXTRIES));
-         system( szCommand);
+         StartPmSession( "EPM.EXE", szArgs, NULL, NULL, TRUE, 0);
          DosSleep( RELOAD_WAITPERIOD);
 
          // connect to it
@@ -278,8 +279,8 @@ switch (msg)
       // execute macro separately. This triggers also load of next file
       DPRINTF(( "DDERELOAD: list %u, file %u: %s (%s)\n", prd->ulListIndex + 1,
                 prd->ulFilesLoaded, szFilename, szCurPos));
-      sprintf( szCommand, "MC ;link %s;recomp SETPOS %s;", prd->pszMacroFile, szCurPos);
-      if (!_reloadExecuteEPMCommand( hwnd, prd->hwndServer, szCommand))
+      sprintf( szArgs, "MC ;link %s;recomp SETPOS %s;", prd->pszMacroFile, szCurPos);
+      if (!_reloadExecuteEPMCommand( hwnd, prd->hwndServer, szArgs))
          ABORT_LOADING;
 
       break;
@@ -309,8 +310,8 @@ switch (msg)
       // load next file and take care for position
       DPRINTF(( "DDERELOAD: list %u, file %u: %s (%s)\n", prd->ulListIndex + 1,
                 prd->ulFilesLoaded, szFilename, szCurPos));
-      sprintf( szCommand, "MC ;EDIT \"%s\";link %s;recomp SETPOS %s;", szFilename, prd->pszMacroFile, szCurPos);
-      if (!_reloadExecuteEPMCommand( hwnd, prd->hwndServer, szCommand))
+      sprintf( szArgs, "MC ;EDIT \"%s\";link %s;recomp SETPOS %s;", szFilename, prd->pszMacroFile, szCurPos);
+      if (!_reloadExecuteEPMCommand( hwnd, prd->hwndServer, szArgs))
          {
          WinAlarm( HWND_DESKTOP, WA_ERROR);
          ABORT_LOADING;
