@@ -17,7 +17,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stripeversion.cmd,v 1.1 2002-08-06 20:16:05 cla Exp $
+* $Id: stripeversion.cmd,v 1.2 2002-08-06 20:39:07 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,7 +36,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.1 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.2 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -372,13 +372,17 @@ VersionCheck: PROCEDURE EXPOSE (GlobalVars);
  IF (fCheckVersion) THEN
  DO
     IF (fDebug) THEN
-       SAY '#### version check:' Expression;
+       CALL CHAROUT, '#### version check:' Expression;
 
     /* replace all brackets */
     Expression = TRANSLATE( Expression, '  ', '()');
 
     /* replace NOT keywords for evaluation */
     PARSE VALUE ReplaceWord( 'NOT', '\', TRANSLATE( Expression)) WITH fFound Expression;
+
+    INTERPRET( 'fResult ='Expression);
+    IF (fDebug) THEN
+       SAY ' result='fResult;
 
  END;
 
