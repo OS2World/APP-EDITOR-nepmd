@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.13 2002-09-20 14:37:19 cla Exp $
+* $Id: epmcall.c,v 1.14 2002-09-20 15:06:58 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,8 +34,10 @@
 #include "macros.h"
 #include "file.h"
 #include "epmenv.h"
+#include "instval.h"
 
 #define QUEUENAMEBASE "\\QUEUES\\EPMCALL\\"
+#define LOADSTRING(m,t)           GetMessage( NULL, 0, t, sizeof( t), m, &ulMessageLen)
 
 // -----------------------------------------------------------------------------
 
@@ -88,7 +90,16 @@ do
    rc = GetExtendedEPMEnvironment( envv, &pszEnv, szExecutable, sizeof( szExecutable));
    if ((rc == ERROR_FILE_NOT_FOUND) && (!strlen( szExecutable)))
       {
+         ULONG          ulMessageLen;
+         CHAR           szMessage[ 1024];
 
+      rc = LOADSTRING( "ERROR_EPM_NOT_FOUND", szMessage);
+      if (rc != NO_ERROR)
+         sprintf( szMessage,
+                  "Fatal error: cannot determine NEPMD message file, rc=%u\n\n",
+                  rc);
+
+      SHOWFATALERROR( HWND_DESKTOP, szMessage);
       }
 
    // concatenate parms
