@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: hooks.e,v 1.3 2004-06-03 22:46:01 aschn Exp $
+* $Id: hooks.e,v 1.4 2005-03-14 22:24:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -102,6 +102,42 @@ defc HookAdd
       imax = imax + 1
       do_array 2, EPM_utility_array_ID, prefix''HookName'.'imax, Cmd   -- add entry
       do_array 2, EPM_utility_array_ID, prefix''HookName'.0', imax     -- update imax
+   endif
+   return
+
+; ---------------------------------------------------------------------------
+; Change an entry, if its first word is in the list, otherwise append it.
+; Syntax: HookChange <HookName> <Cmd>
+defc HookChange
+   universal EPM_utility_array_ID
+   prefix = 'hook.'
+   parse arg HookName Cmd
+   parse value Cmd with CmdName CmdArgs
+   HookName = strip( lowcase(HookName))
+   Cmd      = strip( Cmd)
+   CmdName  = strip( CmdName)
+   CmdArgs  = strip( CmdArgs)
+   if Cmd <> '' then  -- don't increase imax if no Cmd
+      Append = 1
+      if get_array_value( EPM_utility_array_ID, prefix''HookName'.0', imax) then  -- if imax not set
+         imax = 0
+      else
+         do i = 1 to imax
+            if not get_array_value( EPM_utility_array_ID, prefix''HookName'.'i, next) then  -- if next set
+               parse value next with first rest
+               if upcase( first) = upcase( CmdName) then
+                  do_array 2, EPM_utility_array_ID, prefix''HookName'.'i, Cmd  -- change entry
+                  Append = 0
+                  leave
+               endif
+            endif
+         enddo
+      endif
+      if Append then
+         imax = imax + 1
+         do_array 2, EPM_utility_array_ID, prefix''HookName'.'imax, Cmd  -- add entry
+         do_array 2, EPM_utility_array_ID, prefix''HookName'.0', imax    -- update imax
+      endif
    endif
    return
 
