@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pmprintf.e,v 1.3 2004-07-03 10:45:33 aschn Exp $
+* $Id: pmprintf.e,v 1.4 2004-07-03 13:00:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,6 +22,47 @@
 *
 ****************************************************************************/
 
+/*
+@@NepmdPmPrintf@PROTOTYPE
+NepmdPmPrintf( Message);
+
+@@NepmdPmPrintf@CATEGORY@INTERACT
+
+@@NepmdPmPrintf@SYNTAX
+This function pipes a message to an external PmPrintf utility.
+
+@@NepmdPmPrintf@PARM@Message
+Message can be any string in quotes or doublequotes.
+
+@@NepmdPmPrintf@RETURNS
+*NepmdPmPrintf* returns nothing and doesn't change rc.
+
+@@NepmdPmPrintf@REMARKS
+The processing is much faster than the sayerror statement and works even on
+EPM startup. A large amount of NepmdPmPrintf calls will slow down processing
+or even crash EPM.
+
+If you don't have a PmPrintf utility, download it from Dennis Bareis' site:
+.sl compact
+- [http://www.labyrinth.net.au/~dbareis/freeos2.htm]
+
+@@NepmdPmPrintf@TESTCASE
+You can test this function from the *EPM* commandline by
+starting a PmPrintf utility with
+.sl
+- start pmprintf
+and executing:
+.sl
+- *NepmdPmPrintf* [.IDPNL_EFUNC_NEPMDPMPRINTF_PARM_ENVNAME This is my message.]
+  - or
+- *PmPrintf* [.IDPNL_EFUNC_NEPMDPMPRINTF_PARM_ENVNAME This is my message.]
+
+Executing this command will
+generate a line with the text #This is my message.# in the window of a
+PmPrintf utility.
+
+@@
+*/
 
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
@@ -46,7 +87,7 @@ compile endif
 /* procedure: NepmdPmPrintf                                      */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
-/*    rc = NepmdPmPrintf( Text);                                 */
+/*    NepmdPmPrintf( Text);                                      */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdPmPrintf( PSZ pszText);                 */
@@ -55,7 +96,7 @@ compile endif
 defproc NepmdPmPrintf( Text) =
 
  /* prepare parameters for C routine */
- Text = Text''atoi( 0);
+ Text = Text\0;
 
  /* call C routine */
  LibFile = helperNepmdGetlibfile();
@@ -63,7 +104,7 @@ defproc NepmdPmPrintf( Text) =
                    "NepmdPmPrintf",
                    address( Text));
 
- helperNepmdCheckliberror( LibFile, ret);
+ helperNepmdCheckliberror( LibFile, ret);  -- not required anymore
 
  return;
 
