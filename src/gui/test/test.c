@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.5 2002-08-22 15:47:37 cla Exp $
+* $Id: test.c,v 1.6 2002-08-24 15:12:48 cla Exp $
 *
 * ===========================================================================
 *
@@ -70,17 +70,17 @@ do
    if (!(strcmp( pszTestcase, "TMF")))
 
       {
+               CHAR           szBuffer[ 512];
+               ULONG          ulMessageLen;
 
    
-      // testcase for TMF function
+      // testcase for TMF function of nepmdlib.tmf
       do
          {
    static         PSZ            pszEnvVar = "NEPMD_TMFTESTFILE";
    static         PSZ            pszMessageName = "TESTMESSAGE";
                   PSZ            pszFilename = getenv( pszEnvVar);
-                  ULONG          ulMessageLen;
    
-                  CHAR           szBuffer[ 512];
                   PSZ            apszParms[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
    
          if (!pszFilename)
@@ -94,7 +94,28 @@ do
          GETMESSAGE( "TESTVAL1", NULL, 0);
          GETMESSAGE( "TESTVAL2", NULL, 0);
          GETMESSAGE( "TESTVAL3", NULL, 0);
-   
+
+
+         } while (FALSE);
+
+      // testcase for TMF function of nepmdeng.tmf
+      do
+         {
+                  CHAR           szMessageFile[ _MAX_PATH];
+                  PSZ            pszFilename = szMessageFile; // keep macro happy
+                  PSZ            apszParms[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+
+         // determine messsage file
+         rc = GetInstValue( NEPMD_VALUETAG_MESSAGE, szMessageFile, sizeof( szMessageFile));
+         if (rc != NO_ERROR)
+            {
+            printf( "error: cannot determine location of nepmdeng.tmf !\n"); 
+            break;
+            }
+
+         GETMESSAGE( "MSG_INFO_HEADER", NULL, 0);
+         GETMESSAGE( "MSG_INFO_BODY_LIB", apszParms, 9); 
+
          } while (FALSE);
    
       } // testcase TMF
