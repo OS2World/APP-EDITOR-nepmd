@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: testkeys.e,v 1.2 2004-06-29 22:16:35 aschn Exp $
+* $Id: testkeys.e,v 1.3 2004-07-09 14:06:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -36,6 +36,7 @@ defc testkeys
       sayerror 'Already in testkeys mode.  Command ignored.'
       return
    endif
+   'deleteaccel'
    test_starting_keyset = upcase(.keyset)
    keys testkeys
    sayerror 'Press Esc or End key twice to exit.'
@@ -66,6 +67,7 @@ def otherkeys =
             .keyset = test_starting_keyset
             call beep(900,100)
             sayerror 'Back to keyset' .keyset
+            'loadaccel'
             return
          endif
          msg = 'Press again to exit testkeys.'
