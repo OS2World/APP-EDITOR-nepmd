@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.11 2002-10-16 18:31:23 aschn Exp $
+* $Id: stdmenu.e,v 1.12 2002-10-17 17:13:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -245,6 +245,9 @@ defproc add_search_menu(menuname)
       buildmenuitem menuname, 3, 301, \0,                           '',            4, 0
       buildmenuitem menuname, 3, 302, FIND_NEXT_MENU__MSG\9 || CTRL_KEY__MSG'+F',   'SEARCHDLG F'FIND_NEXT_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_FIND, 0)
       buildmenuitem menuname, 3, 303, CHANGE_NEXT_MENU__MSG\9 || CTRL_KEY__MSG'+C', 'SEARCHDLG C'CHANGE_NEXT_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_CHANGE, 0)
+      buildmenuitem menuname, 3, 350, 'Global find next'\9 || CTRL_KEY__MSG'+V',    'globalfind', 0, 0
+      buildmenuitem menuname, 3, 351, 'Global change next',                         'globalchange', 0, 0
+      buildmenuitem menuname, 3, 352, 'Toggle direction'\9 || CTRL_KEY__MSG'+-',    'ToggleSearchDirection', 0, 0
 compile if WANT_BOOKMARKS
       buildmenuitem menuname, 3, 304, \0,                           '',            4, 0
       buildmenuitem menuname, 3, 305, BOOKMARKS_MENU__MSG,   BOOKMARKS_MENUP__MSG, 17, mpfrom2short(HP_SEARCH_BOOKMARKS, 0)
