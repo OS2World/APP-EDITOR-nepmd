@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pkeys.e,v 1.5 2004-06-03 21:45:29 aschn Exp $
+* $Id: pkeys.e,v 1.6 2004-11-30 21:05:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,11 +41,7 @@ compile endif
 ;  with the rest of the keyset function.  (what a concept!)
 -- Moved defload to MODE.E
 
-compile if    WANT_CUA_MARKING
- defkeys pas_keys clear
-compile else
- defkeys pas_keys
-compile endif
+defkeys pas_keys
 
 def space=
    universal expand_on

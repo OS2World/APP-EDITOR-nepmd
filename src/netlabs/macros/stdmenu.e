@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.22 2004-07-04 22:24:40 aschn Exp $
+* $Id: stdmenu.e,v 1.23 2004-11-30 21:05:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,7 +23,7 @@
 Not removed consts (compared to NEWMENU.E):
 - WANT_DYNAMIC_PROMPTS,
   ALLOW_PROMPTING_AT_TOP, BLOCK_ACTIONBAR_ACCELERATORS, WANT_STACK_CMDS,
-  RING_OPTIONAL, WANT_STREAM_MODE, WANT_CUA_MARKING, WANT_BOOKMARKS, WANT_TAGS
+  RING_OPTIONAL, WANT_STREAM_MODE, WANT_BOOKMARKS, WANT_TAGS
   WANT_EPM_SHELL, WANT_TOOLBAR, SPELL_SUPPORT, ENHANCED_PRINT_SUPPORT,
   WANT_DM_BUFFER, WANT_APPLICATION_INI_FILE, SUPPORT_BOOK_ICON
 Menu ids are still hard-coded.
@@ -79,9 +79,6 @@ const
  compile endif
  compile if not defined(WANT_STREAM_MODE)
    WANT_STREAM_MODE = 'SWITCH'
- compile endif
- compile if not defined(WANT_CUA_MARKING)
-   WANT_CUA_MARKING = 'SWITCH'
  compile endif
  compile if not defined(WANT_BOOKMARKS)
    WANT_BOOKMARKS = 1
@@ -442,10 +439,9 @@ compile elseif WANT_STREAM_MODE = 'SWITCH'
    ENTER__ATTRIB  = 0
    MARK__ATTRIB   = 0
    STREAM__ATTRIB = 32769
-compile elseif WANT_CUA_MARKING = 'SWITCH'
+compile else
    ENTER__ATTRIB  = 0
    MARK__ATTRIB   = 32769
-compile else
    NEED_PREFERENCES = 0  -- If none of the above, we don't need this after all
 compile endif
    TOGGLEINFO = 'toggleframe 32'
@@ -501,9 +497,7 @@ compile endif
 compile if WANT_APPLICATION_INI_FILE
          buildmenuitem menuname, 4, 440, CONFIG_MENU__MSG,         'configdlg'CONFIG_MENUP__MSG,  0, mpfrom2short(HP_OPTIONS_CONFIG, 0)
 compile endif
-compile if WANT_CUA_MARKING = 'SWITCH'
          buildmenuitem menuname, 4, 441, ADVANCEDMARK_MENU__MSG,     'CUA_MARK_toggle'ADVANCEDMARK_MENUP__MSG, MARK__ATTRIB, mpfrom2short(HP_OPTIONS_CUATOGGLE, NODISMISS)
-compile endif
 compile if WANT_STREAM_MODE = 'SWITCH'
          buildmenuitem menuname, 4, 442, STREAMMODE_MENU__MSG,  'stream_toggle'STREAMMODE_MENUP__MSG,  STREAM__ATTRIB, mpfrom2short(HP_OPTIONS_STREAM, NODISMISS)
 compile endif
@@ -717,15 +711,10 @@ defc menuinit_4
   compile endif
  compile endif  -- SPELL_SUPPORT
 
- compile if WANT_CUA_MARKING = 'SWITCH' | WANT_STREAM_MODE = 'SWITCH' | RING_OPTIONAL | WANT_STACK_CMDS = 'SWITCH'
 --------------------------------------------- Menu id 400 -- Options / Preferences -------
 defc menuinit_400
-  compile if WANT_STACK_CMDS = 'SWITCH'
    universal stack_cmds
-  compile endif
-  compile if WANT_CUA_MARKING = 'SWITCH'
    universal CUA_marking_switch
-  compile endif
   compile if WANT_STREAM_MODE = 'SWITCH'
    universal stream_mode
   compile endif
@@ -735,9 +724,7 @@ defc menuinit_400
   compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
    universal CUA_MENU_ACCEL
   compile endif
-  compile if WANT_CUA_MARKING = 'SWITCH'
       SetMenuAttribute( 441, 8192, CUA_marking_switch)
-  compile endif
   compile if WANT_STREAM_MODE = 'SWITCH'
       SetMenuAttribute( 442, 8192, not stream_mode)
   compile endif
@@ -750,7 +737,6 @@ defc menuinit_400
   compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
     SetMenuAttribute( 446, 8192, not CUA_MENU_ACCEL)
   compile endif
- compile endif  -- WANT_CUA_MARKING, WANT_STREAM_MODE, RING_OPTIONAL, WANT_STACK_CMDS
 
 --------------------------------------------- Menu id 425 -- Options / Frame controls  ---
 defc menuinit_425
@@ -1141,16 +1127,14 @@ compile if WANT_NODISMISS_MENUS
 compile endif  -- WANT_NODISMISS_MENUS
 
 
-compile if WANT_CUA_MARKING = 'SWITCH'
 defc CUA_mark_toggle
    universal CUA_marking_switch
    CUA_marking_switch = not CUA_marking_switch
    'togglecontrol 25' CUA_marking_switch
- compile if WANT_NODISMISS_MENUS
+compile if WANT_NODISMISS_MENUS
    SetMenuAttribute( 441, 8192, CUA_marking_switch)
- compile endif  -- WANT_NODISMISS_MENUS
+compile endif  -- WANT_NODISMISS_MENUS
    call MH_set_mouse()
-compile endif
 
 compile if WANT_STREAM_MODE = 'SWITCH'
 defc stream_toggle
