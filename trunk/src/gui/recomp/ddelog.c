@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddelog.c,v 1.3 2002-06-09 15:35:13 cla Exp $
+* $Id: ddelog.c,v 1.4 2002-06-09 17:08:03 cla Exp $
 *
 * ===========================================================================
 *
@@ -72,6 +72,7 @@ typedef struct _LOADLOGDATA
          PSZ            pszLogFile;                  // provided by caller
          PSZ            pszMacroFile;                // provided by caller
          ERRORINFO      ei;                          // extraced by _extractErrorInfo()
+         BOOL           fSecondTry;
          APIRET         rc;                          // for returning a reason code to ReloadFilelist
          HWND           hwndServer;
          HWND           ahwndServer[ MAX_EPM_CLIENTS];
@@ -109,6 +110,9 @@ static BOOL _logConnectedToEPM( HWND hwnd)
 {
          PLOADLOGDATA    plld = (PLOADLOGDATA) WinQueryWindowULong( hwnd, QWL_USER);
 
+#if DEBUG_DDE_MESSAGES
+   DPRINTF(( "DDELOG: check connected server: %u\n", plld->ulServerCount));
+#endif
 return (plld->ulServerCount > 0);
 }
 
@@ -161,6 +165,8 @@ do
    // send command
 #if DEBUG_DDE_MESSAGES
    DPRINTF(( "DDELOG: execute command on server %08x: %s\n", hwndServer, pszCommand));
+#else
+   DPRINTF(( "DDELOG: execute command: %s\n", pszCommand));
 #endif
    fResult = WinDdePostMsg( hwndServer, hwnd, WM_DDE_EXECUTE, pDdeStruct, TRUE);
 
@@ -241,6 +247,7 @@ switch (msg)
       if (!_logConnectedToEPM( hwnd))
          {
          // no EPM connected, bail out
+         WinAlarm( HWND_DESKTOP, WA_ERROR);
          ABORT_LOADING;
          break;
          }
@@ -292,6 +299,20 @@ switch (msg)
       DPRINTF(( "DDELOG: ACK from server %08x, status is: 0x%04x\n", hwndServer,  pdde->fsStatus));
 #endif
       DosFreeMem( pdde);
+
+      if (!plld->fSecondTry)
+         {
+         // send command a second time after waiting a while
+         DosSleep( RELOAD_WAITPERIOD);
+         sprintf( szCommand, "sayerror %s", plld->ei.szErrorMsg);
+         if (!_logExecuteEPMCommand( hwnd, plld->hwndServer, szCommand))
+            {
+            WinAlarm( HWND_DESKTOP, WA_ERROR);
+            ABORT_LOADING;
+            }
+         else
+            plld->fSecondTry = TRUE;
+         }
 
       // we are done
       ABORT_LOADING;
