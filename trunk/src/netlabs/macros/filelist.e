@@ -1,37 +1,10 @@
-; new
-/*
-Changed:
--  Important: Enable write of filelist only after (used NepmdAfterLoad
-   therefore) all files are loaded by Recompile.
-
-Todo:
-?  Make RestoreRing overwrite old hwnd key to not overwrite another ring.
-   Disadvantage: the sequence of saved rings will get changed.
--  DelSavedRings sometimes doesn''t work
--  Change MaxSavedRings and RESTORE_RING to ini keys
--  NepmdPmPrintf
-
-; ok Bug:
-;
-; When first loaded file with the lowest file id (or file number) is active:
-;    File -> New      (defc new)
-; or
-;    File -> Revert   (defc revert)
-; Error message: Ungltige Dateikennung
-;
-; Apparently this occures only if the replaced file has the lowest FileNumber.
-;
-; ->    universal firstloadedfid
-;       must be set to '' on 'quit'?
-
-*/
 /****************************** Module Header *******************************
 *
 * Module Name: filelist.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.1 2004-01-17 22:22:51 aschn Exp $
+* $Id: filelist.e,v 1.2 2004-02-22 20:10:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -46,179 +19,52 @@ Todo:
 *
 ****************************************************************************/
 
-; MAIN.E
-; LOAD.E
-; STDCMDS.E: defc quit
-; STATLINE.E
+/*
+Todo:
+-  Change MaxSavedRing and MaxFilesInRing to ini keys
+*/
 
 ; FileNumber is saved in an array var 'filenumber.'fid to show 'File # of ##'
 ; FileList is saved in NEPMD.INI to restore a ring
 
 const
+; Keep only this amount of rings in NEPMD.INI:
 compile if not defined(MaxSavedRings)
-   MaxSavedRings = 3
+   MaxSavedRings = 3          --<---------------------------------------------- Todo
 compile endif
-compile if not defined(RESTORE_RING)
-; switch save/restore of edit ring on/off
-   RESTORE_RING = 1
+; If more files in ring, then ring won't get saved:
+compile if not defined(MaxFilesInRing)
+   MaxFilesInRing = 30        --<---------------------------------------------- Todo
 compile endif
-; ----- for testing -----
-; Todo: delete all entries of SavedRings\r\ properly, even if one of
-; the range doesn't exist.
-compile if not defined(DefmainPrepareSavedRing)
-   DefmainPrepareSavedRing = 1                              --<------------- ???
+compile if not defined(NEPMD_DEBUG)
+   NEPMD_DEBUG = 0  -- General debug const
 compile endif
-compile if not defined(DefmainRingWriteFileNumber)
-   DebugRingWriteFileNumber = 0
+compile if not defined(NEPMD_DEBUG_RESTORE_RING)
+   NEPMD_DEBUG_RESTORE_RING = 0
 compile endif
-compile if not defined(DebugRestoreRings)
-   DebugRestoreRings = 0
+compile if not defined(NEPMD_DEBUG_WRITE_FILE_NUMBER)
+   NEPMD_DEBUG_WRITE_FILE_NUMBER = 0
 compile endif
-
-; ---------------------------------------------------------------------
-; FileListDefmain is called by defmain
-; Prepares the next file list by increasing LastNumber by 1 and
-; deleting all File and Posn entries for this file list.
-defproc FileListDefmain
-/**/
-compile if DefmainPrepareSavedRing
-   universal nepmd_hini
-
-   -- Set LastNumber (increase it by 1) and delete old entries
-   --sayerror 'happ = 'getpminfo(APP_HANDLE)          -- unique handle per process
-   --sayerror 'hwnd = 'getpminfo(EPMINFO_EDITCLIENT)  -- unique handle per EPM window
-   --sayerror 'happ = 'getpminfo(APP_HANDLE)', hwnd = 'getpminfo(EPMINFO_EDITCLIENT)
--- Todo: associate this ring with hwnd to make SetFilePosition at defload choose
--- the correct ring, even if more windows are opened.
-
-   if MaxSavedRings = 0 then
-      return
-   endif
-
-   KeyPath = '\NEPMD\User\SavedRings\LastNumber'
-   LastNumber = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   parse value LastNumber with 'ERROR:'rc
-   if rc > '' then
-      ThisNumber = 1
-   -- Todo: handle MaxSavedRings = 0
-   elseif LastNumber = '' or LastNumber = MaxSavedRings then
-      ThisNumber = 1
-   else
-      ThisNumber = LastNumber + 1
-   endif
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, ThisNumber )
-
-   -- Save frame window handle
-   KeyPath = '\NEPMD\User\SavedRings\'ThisNumber'\hwnd'
-   hwnd = '0x'ltoa( gethwndc(6), 16)   -- EPMINFO_EDITFRAME
-   --sayerror 'defmain: hwnd = 'hwnd
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, hwnd )
-
-   -- Delete old frame window handle, if already in INI
-   do r = 1 to MaxSavedRings
-      KeyPath = '\NEPMD\User\SavedRings\'r
-      next = NepmdQueryConfigValue( nepmd_hini, KeyPath'\hwnd')
-      parse value next with 'ERROR:'rc
-      if rc > '' then
-         iterate
-      endif
-      if next = hwnd then
-         -- delete all keys for this handle, because files for one ring are
-         -- added to this Keypath, identified by hwnd only.
-         Entries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries' )
-         do i = 1 to Entries
-            -- Delete all keys
-            rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\File'i )
-            rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Posn'i )
-         enddo
-      endif
-   enddo
-
-   -- Save last amount of entries
-   KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
-   Entries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries' )
-   do i = 1 to Entries
-      -- Delete all keys
-      rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\File'i )
-      rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Posn'i )
-   enddo
-   -- begin workaround
-   rc = setprofile( nepmd_hini, 'RegContainer', KeyPath, '')
-   -- end workaround
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', 0 )
-compile endif
-/**/
-   return
-
-; ---------------------------------------------------------------------
-; WriteFilePosition is called by FileListDefload/defload
-; Bug: When position is also restored by Recomp, then WriteFilePosition
-;      writes '1 1 1 2' as POSNx.
-; Bug: If many files are loaded into the ring with one 'edit' call,
-;      then the ini entry is not written properly.
-;      Sometimes 'DelSavedRings' can't remove 'RegContainer' ->
-;      'NEPMD\User\SavedRings\'i keys than.
-; Better: after all file loading is done, loop through the ring and
-;         write all at once.
-;         => Don't call WriteFilePosition (RingWriteFilePosition is
-;            fast enough if no more defloads are to be processed).
-;         => FileListDefmain can be dropped.
-defproc WriteFilePosition
-/**/
-   universal nepmd_hini
-
-   if leftstr( .filename, 1 ) = '.' then
-      return
-   endif
-
-   if MaxSavedRings = 0 then
-      return
-   endif
-
-   hwnd = '0x'ltoa( gethwndc(6), 16)   -- EPMINFO_EDITFRAME
-
-   do r = 1 to MaxSavedRings
-      -- search hwnd in '\NEPMD\User\SavedRings\'r'\hwnd'
-      KeyPath = '\NEPMD\User\SavedRings\'r
-      next = NepmdQueryConfigValue( nepmd_hini, KeyPath'\hwnd')
-      parse value next with 'ERROR:'rc
-      if rc > '' then
-         iterate
-      endif
-      if next = hwnd then
-         -- Get last amount of entries
-         LastEntries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries' )
-         i = LastEntries + 1
-         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\File'i, .filename )
-         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Posn'i, .line .col .cursorx .cursory )
-         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', i )
-         leave
-      endif
-   enddo
-
-/**/
-/*
-;   KeyPath = '\NEPMD\User\SavedRings\LastNumber'
-;   ThisNumber = NepmdQueryConfigValue( nepmd_hini, KeyPath )
-   -- Todo: handle ThisNumber = ''
-   KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
-   -- Get last amount of entries
-   LastEntries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries' )
-   i = LastEntries + 1
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\File'i, .filename )
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Posn'i, .line .col .cursorx .cursory )
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', i )
-*/
-   return
-
 
 ; ---------------------------------------------------------------------------
 ; RingWriteFilePosition is called by 'quit' and NepmdAfterload.
 defproc RingWriteFilePosition
    universal nepmd_hini
+   universal firstloadedfid
+   universal RingWriteFilePositionDisabled
+
+   -- Don't overwite old ring if Disabled flag set (e.g. by RestoreRing)
+   if RingWriteFilePositionDisabled = 1 then return; endif
+
+   -- Don't overwite old ring if only .Untitled in ring
+   IsUnnamed = (.filename = GetUnnamedFileName())
+   if filesinring() = 1 & IsUnnamed then return; endif
 
    -- Handle MaxSavedRings = 0
    if MaxSavedRings = 0 then return; endif
+
+   -- Handle upper limit for amount of files to save in ini
+   if filesinring() > MaxFilesInRing then return; endif
 
    -- Get EPM EFrame window handle
    hwnd = '0x'ltoa( gethwndc(6), 16)   -- EPMINFO_EDITFRAME
@@ -240,85 +86,62 @@ defproc RingWriteFilePosition
          leave
       endif
    enddo
-   if FoundRing = 0 then
-      -- If ring not found: get ThisNumber and write as 'LastNumber'
+   if FoundRing = 0 then  -- if current hwnd not found
+      ---- Get ThisNumber ---------------------------------------------------
       KeyPath = '\NEPMD\User\SavedRings\LastNumber'
       LastNumber = NepmdQueryConfigValue( nepmd_hini, KeyPath)
       parse value LastNumber with 'ERROR:'rc
-      if rc > '' then
+      if rc > '' then  -- if error
          ThisNumber = 1
-      elseif LastNumber = '' or LastNumber = MaxSavedRings then
+      elseif LastNumber = '' or LastNumber = MaxSavedRings then  -- if no value or MaxSavedRings reached
          ThisNumber = 1
       else
-         ThisNumber = LastNumber + 1
+         -- Check if LastNumber has 0 Entries
+         KeyPath = '\NEPMD\User\SavedRings\'LastNumber
+         next = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries' )
+         if next = 0 then  -- if Entries for LastNumber = 0
+            -- Replace LastNumber
+            ThisNumber = LastNumber
+         else
+            -- Iterate number
+            ThisNumber = LastNumber + 1
+         endif
       endif
+      ---- Write LastNumber -------------------------------------------------
+      KeyPath = '\NEPMD\User\SavedRings\LastNumber'
       rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, ThisNumber )
-      -- If ring not found: set KeyPath and write hwnd
+      ---- Set KeyPath and write hwnd ---------------------------------------
       KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
+      -- begin workaround
+      rc = setprofile( nepmd_hini, 'RegContainer', KeyPath, '')
+      -- end workaround
       rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\hwnd', hwnd)
    endif
-compile if DebugRestoreRings
-   call NepmdPmPrintf( 'FoundRing = 'FoundRing', ThisNumber = 'ThisNumber )
+compile if NEPMD_DEBUG_RESTORE_RING and NEPMD_DEBUG
+   call NepmdPmPrintf( 'RWFP: FoundRing = 'FoundRing', ThisNumber = 'ThisNumber )
 compile endif
 
    ---- Delete old 'File'i and 'Posn'i --------------------------------------
-   i = 0
-   do forever
-      i = i + 1
-      rc1 = NepmdQueryConfigValue( nepmd_hini, KeyPath'\File'i )
-compile if DebugRestoreRings
-      if i = 1 then
-         LastEntries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries' )
-         call NepmdPmPrintf( 'Delete ring: LastEntries = 'LastEntries' ------------------' )
-      endif
-compile endif
-      if rc1 > '' then  -- if entry or error
-         parse value rc1 with 'ERROR:'rc
-         if rc > '' then  -- if error
-            rc1 = ''
-         else
-            rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\File'i )
-         endif
-      endif
-      rc2 = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Posn'i )
-      if rc2 > '' then  -- if entry or error
-         parse value rc1 with 'ERROR:'rc
-         if rc > '' then  -- if error
-            rc2 = ''
-         else
-            rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Posn'i )
-         endif
-      endif
-compile if DebugRestoreRings
-      call NepmdPmPrintf( 'Delete ring: i = 'i', rc1 = 'rc1', rc2 = 'rc2 )
-compile endif
-      if (rc1 = '' and rc2 = '') then
-         leave
-      endif
-      if i = 100 then  -- upper limit
+   do i = 1 to 1000  -- just an upper limit to prevent looping forever
+      rc1 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\File'i )
+      rc2 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Posn'i )
+      if (rc1 <> 0 & rc2 <> 0) then
          leave
       endif
    enddo
 
-   ---- Delete old 'Entries' ------------------------------------------------
-   rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Entries' )
-   -- begin workaround
-   KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
-   rc = setprofile( nepmd_hini, 'RegContainer', KeyPath, '')
-   -- end workaround
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', 0 )
-
    ---- Write new 'File'i and 'Posn'i ---------------------------------------
    getfileid startfid
+compile if 0
+   activatefile firstloadedfid
+compile else
+   next_file  -- Select next file to make current file topmost after restore
+compile endif
+   getfileid firstfid
    j = 0
    -- Loop through all files in ring
-   MaxFiles = filesinring()
-   --do i = 1 to filesinring()  -- Provide an upper limit; prevent looping forever
-   do i = 1 to MaxFiles  -- Provide an upper limit; prevent looping forever
+   do i = 1 to filesinring()  -- Provide an upper limit; prevent looping forever
       -- Skip Unnamed files
-      --    the following gives forever false because it gets expanded too late:
-      --if not .filename = GetUnnamedFileName() then
-      --    make an assignment first:
       IsUnnamed = (.filename = GetUnnamedFileName())
       if not IsUnnamed then
          -- Write 'File'j and 'Posn'j for every file
@@ -326,24 +149,29 @@ compile endif
          rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\File'j, .filename )
          rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Posn'j, .line .col .cursorx .cursory )
       endif
-compile if DebugRestoreRings
-      call NepmdPmPrintf( 'i = 'i', j = 'j', filesinring() = 'MaxFiles', IsUnnamed = 'IsUnnamed)
+compile if NEPMD_DEBUG_RESTORE_RING and NEPMD_DEBUG
+      call NepmdPmPrintf( 'RWFP: .filename = '.filename', i = 'i'/'MaxFiles', j = 'j', filesinring() = 'MaxFiles', IsUnnamed = 'IsUnnamed)
 compile endif
       next_file
-      getfileid curfid
-      if curfid = startfid then leave; endif
+      getfileid fid
+      if fid = firstfid then leave; endif
    enddo
-   activatefile startfid
 
    ---- Write 'Entries' (ammount of 'File'j and 'Posn'j) --------------------
    rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', j )
 
+   activatefile startfid
    return
 
 ; ---------------------------------------------------------------------------
 defc RestoreRing
    universal nepmd_hini
    universal CurEditCmd
+   universal RestorePosDisabled
+   universal RingWriteFilePositionDisabled
+
+   RestorePosDisabled = 1
+   RingWriteFilePositionDisabled = 1
    LastNumber = arg(1)
    if LastNumber = '' then
       KeyPath = '\NEPMD\User\SavedRings\LastNumber'
@@ -370,6 +198,8 @@ defc RestoreRing
    -- Get last amount of entries
    KeyPath = '\NEPMD\User\SavedRings\'LastNumber
    LastEntries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries' )
+
+   IsUnnamed = (.filename = GetUnnamedFileName())
    do j = 1 to LastEntries
       -- Delete all keys
       filename = NepmdQueryConfigValue( nepmd_hini, KeyPath'\File'j )
@@ -377,86 +207,65 @@ defc RestoreRing
       OpenNewWindow = 0
       if j = 1 then
          OpenNewWindow = 1
-         if filesinring() = 1 then
-            if .filename = '.Untitled' or '.Ohne Namen' then
-               OpenNewWindow = 0
-            endif
+         if (filesinring() = 1) & IsUnnamed then
+            OpenNewWindow = 0
          endif
       endif
       if OpenNewWindow = 1 then
-         call NepmdPmPrintf(  "j = "j", o 'restorering "LastNumber"'")
+compile if NEPMD_DEBUG_RESTORE_RING and NEPMD_DEBUG
+         call NepmdPmPrintf(  "RESTORERING: j = "j", o 'restorering "LastNumber"'")
+compile endif
 -- Problems here:
          "o 'restorering "LastNumber"'"
-         --"xcom e /n 'restorering "LastNumber"'"
       else
 -- CurEditCmd doesn't work?
          CurEditCmd = 'RESTOREPOS'
-         call NepmdPmPrintf( 'j = 'j', e "'filename'"'||" 'restorepos "savedpos"'")
+compile if NEPMD_DEBUG_RESTORE_RING and NEPMD_DEBUG
+         call NepmdPmPrintf( 'RESTORERING: j = 'j', e "'filename'"'||" 'restorepos "savedpos"'")
+compile endif
          'e "'filename'"'
          'restorepos 'savedpos
       endif
    enddo
+
+   RingWriteFilePositionDisabled = ''
+   RestorePosDisabled = ''
    CurEditCmd = ''
 
 ; ---------------------------------------------------------------------------
 ; Delete all 'SavedRings' entries in NEPMD.INI
-; Used to clean NEPMD.INI, sometimes must be interrupted by Ctrl+Break
+; Used to clean NEPMD.INI for testing only.
 defc DelSavedRings
-/**/
+   universal nepmd_hini
+
    KeyPath = '\NEPMD\User\SavedRings'
-   keyword = 'LastNumber'
-   next = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'keyword )
-   --sayerror 'Delete: 'KeyPath'\'keyword', rc = 'next
-   KeyList1 = 'hwnd Entries'
-   KeyList2 = 'File Posn'
-   --r = 0
-   --do r = 1 to MaxSavedRings
-   --do forever
-   do r = 1 to 1000
-      --r = r + 1
-      KeyPath = '\NEPMD\User\SavedRings\'r
-      Entries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries' )
-      parse value Entries with 'ERROR:'rc
-      if rc > '' then
+   next = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\LastNumber' )
+
+   do r = 1 to 100  -- just an upper limit to prevent looping forever
+      rc1 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\Entries' )
+      rc2 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\hwnd' )
+      if (rc1 <> 0) & (rc2 <> 0) then
          leave
       endif
-      --do i = 1 to Entries
-      --i = 0
-      --do forever
-      do i = 1 to 1000
-         --i = i + 1
-         rcf = 0
-         do w = 1 to words( KeyList2)
-            keyword = word( KeyList2, w)
-            next = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'keyword''i )
-            parse value next with 'ERROR:'rc
-            if rc > '' then
-               rcf = rcf + 1
-            endif
-            --sayerror 'Delete: 'KeyPath'\'keyword', rc = 'next
-         enddo
-         if rcf = words( KeyList2) then
+      do i = 1 to 1000  -- just an upper limit to prevent looping forever
+         rc1 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\File'i )
+         rc2 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\Posn'i )
+         if (rc1 <> 0 & rc2 <> 0) then
             leave
          endif
-      enddo
-      do w = 1 to words( KeyList1)
-         keyword = word( KeyList1, w)
-         next = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'keyword )
-         --sayerror 'Delete: 'KeyPath'\'keyword', rc = 'next
-      enddo
-   enddo
-/**/
-   return
+      enddo  -- i
+
+      -- begin workaround
+      rc = setprofile( nepmd_hini, 'RegContainer', KeyPath'\'r, '')
+      -- end workaround
+   enddo  -- r
+
+   -- begin workaround
+   rc = setprofile( nepmd_hini, 'RegContainer', KeyPath, '')
+   -- end workaround
 
 ; ---------------------------------------------------------------------------
-; WriteFileNumber is called by
-;    LOAD.E: defload (EPM bug, like every defload definition:
-;                     must be called here to work everytime,
-;                     a standard defload won't work)
-;                     -> better call it in SLNOHOST.E: defproc loadfile?
-;                        No, loadfile may load multiple files!
--- WriteFileNumber is called by FileListDefload/defload  <-- No, not anymore,
--- maybe get called by building the titletext at every defload?
+; WriteFileNumber is called by LOAD.E: defload.
 defproc WriteFileNumber
    universal firstinringfid  -- first file in ring, set by edit
    universal EPM_utility_array_ID
@@ -469,7 +278,7 @@ defproc WriteFileNumber
    -- This fid is not valid, if RingWriteFileNumber was not called,
    -- e.g. if EPM starts with an unnamed file.
    if rc = -260 then  -- Invalid fileid
-compile if DebugRingWriteFileNumber = 1
+compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
       call NepmdPmPrintf( '### WriteFNumber: firstinringfid not valid, set to: '.filename)
 compile endif
       firstinringfid = startfid
@@ -480,7 +289,7 @@ compile endif
       -- arg(2) and arg(4) of do_array must be vars!
       FileNumber = i
       do_array 2, EPM_utility_array_ID, 'filenumber.'fid, FileNumber
-compile if DebugRingWriteFileNumber = 1
+compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
       call NepmdPmPrintf( '*** WriteFNumber: i = 'i', FileNumber = 'i', FileName = 'fid.filename)
 compile endif
       nextfile
@@ -507,7 +316,7 @@ defproc RingWriteFileNumber
    universal EPM_utility_array_ID
 
    getfileid startfid
-compile if DebugRingWriteFileNumber = 1
+compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
    call NepmdPmPrintf( '*** RingWFNumber: startfile = 'startfid.filename)
 compile endif
 
@@ -517,7 +326,7 @@ compile endif
 
    if rc = -260 then  -- Invalid fileid
       -- if firstinringfid is not in ring anymore
-compile if DebugRingWriteFileNumber = 1
+compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
       call NepmdPmPrintf( '### RingWFNumber: startfid not found in ring, redetermining lowest file number.')
 compile endif
       -- redetermine first loaded file (file with lowest FileNumber)
@@ -527,7 +336,7 @@ compile endif
          getfileid fid
          numrc = get_array_value( EPM_utility_array_ID, 'filenumber.'fid, next )
          --next = GetFileNumber()  -- doesn't work if firstinringfid not set
-compile if DebugRingWriteFileNumber = 1
+compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
          call NepmdPmPrintf( '*** RingWFNumber: i = 'i', FileNumber = 'next', FileName = '.filename)
 compile endif
          if next <= LowestFileNumber & next <> '' then
@@ -540,7 +349,7 @@ compile endif
       firstinringfid = lowestnumfid
    endif
 
-compile if DebugRingWriteFileNumber = 1
+compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
    call NepmdPmPrintf( '*** RingWFNumber: firstinringfid = 'firstinringfid.filename)
 compile endif
 
@@ -558,12 +367,6 @@ compile endif
    activatefile startfid
    return
 
-/*
-; ---------------------------------------------------------------------------
-defc RingWriteFileNumber
-   call RingWriteFileNumber()
-*/
-
 ; ---------------------------------------------------------------------------
 ; called by defproc GetInfoRuleValue('FILE')
 defproc GetFileNumber
@@ -571,10 +374,7 @@ defproc GetFileNumber
    FileNumber = ''
 
    -- Get FileNumber for Filename by querying an array var
-   --getfileid fid, Filename
    getfileid fid
-   -- arg(2) and arg(4) of do_array must be vars!
-   --do_array 3, EPM_utility_array_ID, 'filenumber.'fid, FileNumber
    rc = get_array_value( EPM_utility_array_ID, 'filenumber.'fid, FileNumber )
    if FileNumber = '' then
 ;      sayerror .filename': No FileNumber set.'
