@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.c,v 1.1 2002-09-24 16:47:57 cla Exp $
+* $Id: mmf.c,v 1.2 2002-09-24 21:38:17 cla Exp $
 *
 * ===========================================================================
 *
@@ -38,8 +38,6 @@ todo: encapsulate init
 #include "mmf.h"
 #include "file.h"
 
-#define DEBUG_PRINTF_ALL_ACTIONS 1
-
 // Internal structures and constants
 #define PAG_SIZE    4096
 #define PAG_MASK    0xFFFFF000
@@ -47,21 +45,22 @@ todo: encapsulate init
 typedef struct _MMFENTRY
   {
          ULONG          ulFlags;
-         CHAR           szFile[ _MAX_PATH];
          HFILE          hfile;
          PVOID          pvData;
          ULONG          ulSize;
-         ULONG          ulFileSize;
          ULONG          ulCurrentSize;
+#ifdef DEBUG
+         CHAR           szFile[ _MAX_PATH];
+#endif
   } MMFENTRY, *PMMFENTRY;
 
-#define MMF_MAX         32
+#define MMF_MAX         256
 #define MMF_USEDENTRY   0x10000000  /* internal flag to mark a used entry */
 
 // global data
+static   EXCEPTIONREGISTRATIONRECORD errh;
 static   MMFENTRY       ammfentry[ MMF_MAX];
 static   BOOL           fInitialized = FALSE;
-static   EXCEPTIONREGISTRATIONRECORD errh;
 
 // some macros to ensure initialization
 #define CHECKINIT                 \
@@ -108,19 +107,19 @@ return 0;
 
 // -----------------------------------------------------------------------------
 
-#define TRACE {printf("%s(%d) - %d\n", __FILE__,__LINE__,rc);}
+#define EXCEPTION_NUM   p1->ExceptionNum
+#define EXCEPTION_TYPE  p1->ExceptionInfo[ 0]
 
-
-static ULONG APIENTRY _pageFaultHandler( PEXCEPTIONREPORTRECORD p1, PEXCEPTIONREGISTRATIONRECORD p2,
+static ULONG APIENTRY _pageFaultHandler( PEXCEPTIONREPORTRECORD p1,
+                                         PEXCEPTIONREGISTRATIONRECORD p2,
                                          PCONTEXTRECORD p3, PVOID  pv)
 {
-
-if ((p1->ExceptionNum == XCPT_ACCESS_VIOLATION)      &&
-    (( p1->ExceptionInfo[ 0] == XCPT_WRITE_ACCESS) ||
-     (p1->ExceptionInfo[ 0] == XCPT_READ_ACCESS)))
+if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
+    ((EXCEPTION_TYPE == XCPT_WRITE_ACCESS) ||
+     (EXCEPTION_TYPE == XCPT_READ_ACCESS)))
    {
             PMMFENTRY      pmmfe  = 0;
-            PVOID          pPage  = 0;
+            PVOID          pvPage  = 0;
             APIRET         rc     = NO_ERROR;
             ULONG          ulFlag = 0;
             ULONG          ulSize = PAG_SIZE;
@@ -135,17 +134,20 @@ if ((p1->ExceptionNum == XCPT_ACCESS_VIOLATION)      &&
       return XCPT_CONTINUE_SEARCH;
       }
 
-   pPage = (PVOID)(p1->ExceptionInfo[ 1] & PAG_MASK);
+   // determine page adress
+   pvPage = (PVOID)(p1->ExceptionInfo[ 1] & PAG_MASK);
 
-   // Query affected page flags
-   rc = DosQueryMem( pPage, &ulSize, &ulFlag);
+   // query flags of affected page
+   rc = DosQueryMem( pvPage, &ulSize, &ulFlag);
    if (rc != NO_ERROR)
       {
       DPRINTF(( "MMF: HANDLER: cannot query memory flags for file: %s, rc=%u\n", pmmfe->szFile, rc));
       return XCPT_CONTINUE_SEARCH;
       }
 
-   //
+   // determine position in memory regarded to the base pointer
+   ulMemPos = (PSZ) pvPage - (PSZ) pmmfe->pvData;
+
    // There can be three cases:
    //
    //  1. We trying to read page              - always OK, commit it
@@ -153,92 +155,88 @@ if ((p1->ExceptionNum == XCPT_ACCESS_VIOLATION)      &&
    //  3. We trying to write uncommitted page - OK if READ/WRITE mode
    //                                           but we need to commit it.
 
-   // we don't care for readonly access here, sinde if the allocated memory is opened
-   // with MMF_ACCESS_READONLY, it cannot be modified anyway. So there is no need to
-   // cause an exception violation here
-#if 0
+   // ------------------------------------------------------
+
    // filter out case 2
 
-   if ((p1->ExceptionInfo[ 0] == XCPT_WRITE_ACCESS) &&
-       ((pmmfe->ulFlags & ~MMF_USEDENTRY) == MMF_ACCESS_READONLY))
-      {
-      DPRINTF(( "MMF: HANDLER: denied write access according to allocation flags for file: %s\n", pmmfe->szFile));
-      return XCPT_CONTINUE_SEARCH;
-      }
-#endif
+   // we don't care for readonly access here, since if the allocated memory is opened
+   // with MMF_ACCESS_READONLY, it cannot be modified anyway. So there is no need to
+   // cause an exception violation here
 
-   // if page not committed, commit it and mark as readonly
-   if(!(ulFlag & PAG_COMMIT))
+// if ((p1->ExceptionInfo[ 0] == XCPT_WRITE_ACCESS) &&
+//     ((pmmfe->ulFlags & ~MMF_USEDENTRY) == MMF_ACCESS_READONLY))
+//    {
+//    DPRINTF(( "MMF: HANDLER: denied write access according to allocation flags for file: %s\n", pmmfe->szFile));
+//    return XCPT_CONTINUE_SEARCH;
+//    }
+
+   // if page is not committed, commit it and mark as readonly
+   if (!(ulFlag & PAG_COMMIT))
       {
       // set commit status for this page temporarily
-      rc = DosSetMem( pPage, PAG_SIZE, PAG_COMMIT | PAG_READ | PAG_WRITE);
+      rc = DosSetMem( pvPage, PAG_SIZE, PAG_COMMIT | PAG_READ | PAG_WRITE);
       if (rc != NO_ERROR)
          {
          DPRINTF(( "MMF: HANDLER: cannot commit memory for file: %s, rc=%u\n", pmmfe->szFile, rc));
          return XCPT_CONTINUE_SEARCH;
          }
 
-      // if memory is not beyond current file size, read from file
-      ulMemPos = (PSZ) pPage - (PSZ) pmmfe->pvData;
-      if (ulMemPos < pmmfe->ulCurrentSize)
+      // read data from file if it is a file area
+      if (pmmfe->hfile)
          {
-         // set file position
-         rc = DosSetFilePtr( pmmfe->hfile,
-                             ulMemPos,
-                             FILE_BEGIN,
-                             &ulFilePtr);
-         if (rc != NO_ERROR)
+         // if memory is not beyond current file size, read from file
+         if (ulMemPos < pmmfe->ulCurrentSize)
             {
-            DPRINTF(( "MMF: HANDLER: cannot set file position 0x%08x for file: %s, rc=%u\n", ulMemPos, pmmfe->szFile, rc));
-            return XCPT_CONTINUE_SEARCH;
-            }
-   
-         // read page from disk
-         rc = DosRead( pmmfe->hfile,
-                       pPage,
-                       PAG_SIZE,
-                       &ulFilePtr);
-         if (rc != NO_ERROR)
-            {
-            DPRINTF(( "MMF: HANDLER: cannot read file position 0x%08x from file: %s, rc=%u\n", ulFilePtr, pmmfe->szFile, rc));
-            return XCPT_CONTINUE_SEARCH;
-            }
+            // set file position
+            rc = DosSetFilePtr( pmmfe->hfile,
+                                ulMemPos,
+                                FILE_BEGIN,
+                                &ulFilePtr);
+            if (rc != NO_ERROR)
+               {
+               DPRINTF(( "MMF: HANDLER: cannot set file position 0x%08x for file: %s, rc=%u\n", ulMemPos, pmmfe->szFile, rc));
+               return XCPT_CONTINUE_SEARCH;
+               }
 
-#if DEBUG_PRINTF_ALL_ACTIONS
-         DPRINTF(( "MMF: HANDLER: read page 0x%08x from file: %s\n", ulMemPos, pmmfe->szFile));
-#endif
-         }
-      else
-         {
-         // extend current file size to end of new page
-         pmmfe->ulCurrentSize = ulMemPos + PAG_SIZE;
-#if DEBUG_PRINTF_ALL_ACTIONS
-         DPRINTF(( "MMF: HANDLER: extended file size to 0x%08x for file: %s\n", pmmfe->ulCurrentSize, pmmfe->szFile));
-#endif
-         }
+            // read page from disk
+            rc = DosRead( pmmfe->hfile,
+                          pvPage,
+                          PAG_SIZE,
+                          &ulFilePtr);
+            if (rc != NO_ERROR)
+               {
+               DPRINTF(( "MMF: HANDLER: cannot read file position 0x%08x from file: %s, rc=%u\n", ulFilePtr, pmmfe->szFile, rc));
+               return XCPT_CONTINUE_SEARCH;
+               }
 
-      rc = DosSetMem( pPage, PAG_SIZE, PAG_READ);
-      if (rc != NO_ERROR)
-         {
-         DPRINTF(( "MMF: HANDLER: cannot reset memory at 0x%08x to readonly for file: %s, rc=%u\n", ulMemPos, pmmfe->szFile, rc));
-         return XCPT_CONTINUE_SEARCH;
-         }
-      }
+            } // if (ulMemPos < pmmfe->ulCurrentSize)
 
-   // if page already committed, and accessed for writing - mark them writable
-   if (p1->ExceptionInfo[ 0] == XCPT_WRITE_ACCESS)
+         } // if (pmmfe->hfile)
+
+      // set page to read access (PAG_COMMIT already set at this point !)
+      DosSetMem( pvPage, PAG_SIZE, PAG_READ);
+
+
+      } // if (!(ulFlag & PAG_COMMIT))
+
+   // if we had a violation on write access
+   //  -> mark the page writable, so that we will update that
+   //     part of the file later
+   //  -> PAG_COMMIT already set at this point !
+   if (EXCEPTION_TYPE == XCPT_WRITE_ACCESS)
       {
-      ulMemPos = (PSZ) pPage - (PSZ) pmmfe->pvData;
-      rc = DosSetMem( pPage, PAG_SIZE, PAG_READ | PAG_WRITE);
+      ulMemPos = (PSZ) pvPage - (PSZ) pmmfe->pvData;
+      rc = DosSetMem( pvPage, PAG_SIZE, PAG_READ | PAG_WRITE);
       if (rc != NO_ERROR)
          {
          DPRINTF(( "MMF: HANDLER: cannot set memory at 0x%08x to readwrite for file: %s, rc=%u\n", ulMemPos, pmmfe->szFile, rc));
          return XCPT_CONTINUE_SEARCH;
          }
-#if DEBUG_PRINTF_ALL_ACTIONS
-      DPRINTF(( "MMF: HANDLER: set write access for page 0x%08x for file: %s\n", ulMemPos, pmmfe->szFile));
-#endif
-      }
+      } // if (EXCEPTION_TYPE == XCPT_WRITE_ACCESS)
+
+   // if necessary, extend current file size to end of new page
+   if (ulMemPos > pmmfe->ulCurrentSize)
+      pmmfe->ulCurrentSize = ulMemPos + PAG_SIZE;
 
    return XCPT_CONTINUE_EXECUTION;
    }
@@ -292,7 +290,7 @@ APIRET MmfAlloc( PVOID *ppvdata, PSZ pszFilename, ULONG ulOpenFlags, ULONG ulMax
 
          ULONG          ulAction;
          ULONG          fsOpenMode;
-         
+
          HFILE          hfile = NULLHANDLE;
          ULONG          ulCurrentSize = 0;
          PVOID          pvData = NULL;
@@ -302,8 +300,6 @@ do
    {
    // check parms
    if ((!ppvdata)       ||
-       (!pszFilename)  ||
-       (!*pszFilename) ||
        (ulOpenFlags > MMF_ACCESS_READWRITE))
       {
       rc = ERROR_INVALID_PARAMETER;
@@ -313,43 +309,50 @@ do
    // init if necessary
    CHECKINIT;
 
-
-   // check file size first, it may not be larger than requested memory
-   ulCurrentSize = QueryFileSize( pszFilename);
-   if (ulMaxSize  < ulCurrentSize)
+   // locate free entry in table
+   pmmfe = _locateFree();
+   if(!pmmfe)
       {
-      rc = ERROR_BUFFER_OVERFLOW;
+      rc = ERROR_TOO_MANY_OPEN_FILES;
       break;
       }
 
-    // locate free entry in table
-    pmmfe = _locateFree();
-    if(!pmmfe)
-       {
-       rc = ERROR_TOO_MANY_OPEN_FILES;
-       break;
-       }
 
-   // adapte access flages
-   switch (ulOpenFlags)
+   // use a link to a file
+   if ((pszFilename) && (*pszFilename))
       {
-      default:
-      case MMF_ACCESS_READONLY:  fsOpenMode = OPEN_ACCESS_READONLY  | OPEN_SHARE_DENYWRITE;     break;
-      case MMF_ACCESS_WRITEONLY: fsOpenMode = OPEN_ACCESS_WRITEONLY | OPEN_SHARE_DENYWRITE;     break;
-      case MMF_ACCESS_READWRITE: fsOpenMode = OPEN_ACCESS_READWRITE | OPEN_SHARE_DENYREADWRITE; break;
-      }
+      // check file size first, it may not be larger than requested memory
+      ulCurrentSize = QueryFileSize( pszFilename);
+      if (ulMaxSize  < ulCurrentSize)
+         {
+         rc = ERROR_BUFFER_OVERFLOW;
+         break;
+         }
 
-   // open file
-   rc = DosOpen( pszFilename,
-                 &hfile,
-                 &ulAction,
-                 0L,
-                 FILE_ARCHIVED | FILE_NORMAL,
-                 OPEN_ACTION_CREATE_IF_NEW | OPEN_ACTION_OPEN_IF_EXISTS,
-                 OPEN_FLAGS_NOINHERIT | OPEN_FLAGS_FAIL_ON_ERROR | fsOpenMode,
-                 NULL);
-   if (rc != NO_ERROR)
-      return rc;
+      // adapte access flages
+      switch (ulOpenFlags)
+         {
+         default:
+         case MMF_ACCESS_READONLY:  fsOpenMode = OPEN_ACCESS_READONLY  | OPEN_SHARE_DENYWRITE;     break;
+         case MMF_ACCESS_WRITEONLY: fsOpenMode = OPEN_ACCESS_WRITEONLY | OPEN_SHARE_DENYWRITE;     break;
+         case MMF_ACCESS_READWRITE: fsOpenMode = OPEN_ACCESS_READWRITE | OPEN_SHARE_DENYREADWRITE; break;
+         }
+
+      // open file
+      rc = DosOpen( pszFilename,
+                    &hfile,
+                    &ulAction,
+                    0L,
+                    FILE_ARCHIVED | FILE_NORMAL,
+                    OPEN_ACTION_CREATE_IF_NEW | OPEN_ACTION_OPEN_IF_EXISTS,
+                    OPEN_FLAGS_NOINHERIT | OPEN_FLAGS_FAIL_ON_ERROR | fsOpenMode,
+                    NULL);
+      if (rc != NO_ERROR)
+         return rc;
+
+
+      } // if ((pszFilename) && (*pszFilename))
+
 
    // allocate memory for the file
    rc = DosAllocMem( &pvData, ulMaxSize, PAG_READ | PAG_WRITE);
@@ -361,10 +364,14 @@ do
    pmmfe->hfile         = hfile;
    pmmfe->pvData        = pvData;
    pmmfe->ulSize        = ulMaxSize;
-   pmmfe->ulFileSize    = ulCurrentSize;
    pmmfe->ulCurrentSize = ulCurrentSize;
-   DosQueryPathInfo( pszFilename, FIL_QUERYFULLNAME, pmmfe->szFile, sizeof( pmmfe->szFile));
+
    *ppvdata = pvData;
+
+#ifdef DEBUG
+   if (pszFilename)
+      DosQueryPathInfo( pszFilename, FIL_QUERYFULLNAME, pmmfe->szFile, sizeof( pmmfe->szFile));
+#endif
 
 
    } while (FALSE);
@@ -451,6 +458,13 @@ do
       break;
       }
 
+   // don't allow update if it is not a file area at all
+   if (!(pmmfe->hfile))
+      {
+      rc = ERROR_INVALID_HANDLE;
+      break;
+      }
+
    // don't allow update if readonly access
    if ((pmmfe->ulFlags & ~MMF_USEDENTRY) == MMF_ACCESS_READONLY)
       {
@@ -459,7 +473,7 @@ do
       }
 
    // locate all regions which needs update, and actually update them
-   for (pbArea = (PBYTE) pmmfe->pvData; ulPos < pmmfe->ulCurrentSize; ulPos += PAG_SIZE, pbArea += PAG_SIZE)   
+   for (pbArea = (PBYTE) pmmfe->pvData; ulPos < pmmfe->ulCurrentSize; ulPos += PAG_SIZE, pbArea += PAG_SIZE)
       {
       rc = DosQueryMem(pbArea, &ulSize, &ulFlag);
       if (rc != NO_ERROR)
@@ -519,7 +533,7 @@ do
 
 return rc;
 }
-           
+
 // -----------------------------------------------------------------------------
 
 APIRET MmfSetSize( PVOID pvData, ULONG ulNewSize)
@@ -553,7 +567,7 @@ do
 
 return rc;
 }
-           
+
 // -----------------------------------------------------------------------------
 
 APIRET MmfQuerySize( PVOID pvData, PULONG pulSize)
