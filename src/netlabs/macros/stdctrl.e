@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.21 2004-06-03 22:37:17 aschn Exp $
+* $Id: stdctrl.e,v 1.22 2004-07-02 10:40:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -649,7 +649,7 @@ compile endif
      -- insert font attribute within marked area only!
 
       themarktype = marktype()
-      if not themarktype then             /* check if mark exists              */
+      if not FileIsMarked() then          /* check if mark exists              */
          sayerror NO_MARK__MSG
          return                           /* if mark doesn't exist, return     */
       endif
@@ -906,11 +906,11 @@ defc setavar
    args = strip( arg(1))
    parse value args with varname varvalue
    rc = SetAVar( varname, varvalue)
-   sayerror 'rc = 'rc
 
+; Append varvalue as additional word to varname.
 defproc AddAVar( varname, varvalue)
    oldvalue = GetAVar(varname)
-   newvalue = oldvalue' 'varvalue
+   newvalue = oldvalue' 'strip( varvalue)  -- verify, there's a space between
    newvalue = strip(newvalue)
    call SetAVar( varname, newvalue)
    return rc
@@ -918,9 +918,20 @@ defproc AddAVar( varname, varvalue)
 defc addavar
    args = strip( arg(1))
    parse value args with varname varvalue
-   rc = AppendAVar( varname, varvalue)
-   sayerror 'rc = 'rc
+   rc = AddAVar( varname, varvalue)
 
+; Check for every word if already present; add if not present; else nothing.
+defproc AddOnceAVar( varname, varvalue)
+   oldvalue = GetAVar(varname)
+   newvalue = oldvalue
+   do w = 1 to words( varvalue)
+      wrd = word( varvalue, w)
+      if not wordpos( wrd, oldvalue) then
+         nevalue = newvalue' 'wrd  -- verify, there's a space between
+      endif
+   enddo
+   call SetAVar( varname, newvalue)
+   return rc
 
 defproc Insert_Attribute_Pair( attribute, val, fstline, lstline, fstcol, lstcol, fileid)
    universal EPM_utility_array_ID
@@ -1203,7 +1214,7 @@ defc messagebox  -- The application will free the buffer allocated by this macro
 ; unused (with WPS anyway)
 defc processdragdrop
    parse arg cmdid hwnd
-call NepmdPmPrintf('PROCESSDRAGDROP: cmdid = 'cmdid', hwnd = 'hwnd)
+;call NepmdPmPrintf('PROCESSDRAGDROP: cmdid = 'cmdid', hwnd = 'hwnd)
 ;  hwnd = atol_swap(hwnd)
 
    if cmdid = 10 then
@@ -1494,11 +1505,18 @@ defc versioncheck_file =
    LoadVersionString(buff, modname, ERES_DLL)
    insertline ERES_DLL'.DLL' buff '('modname')', .last+1
    /*
+   LoadVersionString(buff, modname, 'ETKUCMS')
+   insertline 'ETKUCMS.DLL' buff '('modname')', .last+1
    LoadVersionString(buff, modname, 'EPMMRI')
    insertline 'EPMMRI.DLL' buff '('modname')', .last+1
    */
    .modify = 0
    if browse_mode then call browse(1); endif
+
+; Allow other (maybe linked) packages to query the macro version of EPM.E.
+; Used by NepmdInfo.
+defproc GetEVersion
+   return EVERSION
 
 defproc find_epm_exec =
    pib = 1234
@@ -1539,6 +1557,7 @@ defc loadaccel
    activeaccel = 'defaccel'
                        -- Help key
 ;; buildacceltable activeaccel, 'helpmenu 4000', AF_VIRTUALKEY, VK_F1, 1000
+   -- doesn't work:
    buildacceltable activeaccel, 'dokey s+F1', AF_VIRTUALKEY+AF_SHIFT, VK_F1, 1000
 
    call build_menu_accelerators(activeaccel)  -- Moved to menu-specific file
