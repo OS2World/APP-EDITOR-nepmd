@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.8 2002-09-07 18:04:40 aschn Exp $
+* $Id: kwhelp.e,v 1.9 2002-09-21 16:51:18 cla Exp $
 *
 * ===========================================================================
 *
@@ -138,7 +138,11 @@ defproc pHelp_C_identifier
    display 2
 
    if rc then
-      sayerror 'Unable to find an entry for 'identifier' in 'helpindex_id.userstring'.'
+      if (helpindex_id) then
+         sayerror 'Unable to find an entry for "'identifier'" in:' helpindex_id.userstring
+      else
+         sayerror 'no matching indexfile found for "'identifier'"'
+      endif
    else
       parse value substr(textline(.line), .col) with ',' line ')'
       /* Substitute all occurrances of '~' with the original identifier */
@@ -203,71 +207,78 @@ defproc pGet_Identifier(var id, startcol, endcol, ft)
 defproc pBuild_Helpfile(ft)
    universal helpindex_id, savetype
    rc = 0
-   HelpNdxShelfMode = 0
 
-compile if NEPMD_HELPNDXSHELF
+   -- search all files on shelf first, put list into ShelfList
    HelpNdxShelf = Get_Env('HELPNDXSHELF')
-   HelpList = ''
+   ShelfList = ''
+
    if HelpNdxShelf <> '' then
-      -- If EnvVar HELPNDXSHELF is set then use it instead of HELPNDX
-      -- If EnvVar HELPNDXSHELF is not set then run standard procedure
-      HelpNdxShelfMode = 1
-   else
-   endif
-   --sayerror 'HelpNdxShelf = 'HelpNdxShelf', HelpNdxShelfMode = 'HelpNdxShelfMode  -- for testing
-   if HelpNdxShelfMode then
+
       -- If EnvVar HELPNDXSHELF is set then find *.ndx in all pathes
-      rest = helpndxshelf
-      do while rest <> ''
+      SearchShelf = HelpNdxShelf
+
+      do while SearchShelf <> ''
+
          -- Get single HelpDir from HelpNdxShelf
-         parse value rest with HelpDir';'rest
-         -- Set Filemask to directory of single HelpDir followed by '\*.ndx'
-         Filemask = NepmdQueryFullname( strip( HelpDir, 'T', '\' ))||'\*.ndx'
-         Handle = 0  /** always create a new handle ! **/
+         parse value SearchShelf with NdxDir';'SearchShelf
+
+         -- search all ndx files in this directory of the Ndx shelf path
+         Filemask = NepmdQueryFullname( NdxDir)'\*.ndx'
+         Handle = 0  /* always create a new handle ! */
          do forever
             Filename = NepmdGetNextFile(  FileMask, address(Handle) )
             parse value Filename with 'ERROR:'rc
             if (rc > '') then
                leave
             endif
-            -- Add it to HelpList. Use a syntax that the standard code
-            -- for finding and parsing a helpfile can be used.
-            -- Any item in the HelpList is a full filename at this point,
-            -- so that it should be found by findfile, too.
-            if HelpList <> '' then
-               HelpList = HelpList||'+'||Filename
-            else
-               HelpList = Filename
+
+            -- add filename only to HelpList, if not already in
+            Filename = substr( Filename, lastpos( '\', Filename) + 1)
+            if (pos( Filename, ShelfList) = 0) then
+               ShelfList = ShelfList'+'Filename;
             endif
          enddo
-         --sayerror 'HelpDir = 'HelpDir', HelpList = 'HelpList -- for testing
-      enddo
-   else
-compile endif -- NEPMD_HELPNDXSHELF
-      HelpList = Get_Env('HELPNDX')
-      if HelpList='' then
-         compile if defined(KEYWORD_HELP_INDEX_FILE)
-                       HelpList = KEYWORD_HELP_INDEX_FILE
-         compile else
-                       HelpList = 'epmkwhlp.ndx'
-         compile endif
-      endif
-      SaveList = HelpList
-compile if NEPMD_HELPNDXSHELF
-   endif -- HelpNdxShelfMode
-compile endif -- NEPMD_HELPNDXSHELF
-   --sayerror 'HelpList = 'HelpList -- for testing
+
+      enddo -- do while SearchShelf <> ''
+
+
+   endif -- if HelpNdxShelf <> '' then
+
+   -- now prepend given help list to previous searchlist
+   HelpList = Get_Env('HELPNDX')''ShelfList;
+   if HelpList='' then
+      compile if defined(KEYWORD_HELP_INDEX_FILE)
+                    HelpList = KEYWORD_HELP_INDEX_FILE
+      compile else
+                    HelpList = 'epmkwhlp.ndx'
+      compile endif
+   endif
+
+   -- strip off leading plus char
+   if (substr( HelpList, 1, 1) = '+') then
+      HelpList = substr( HelpList, 2);
+   endif
+
+   SaveList = HelpList
 
    do while HelpList<>''
 
-compile if NEPMD_HELPNDXSHELF
-      if HelpNdxShelfMode then
-         parse value HelpList with DestFilename '+' HelpList
-      else
-compile endif -- NEPMD_HELPNDXSHELF
-         parse value HelpList with HelpIndex '+' HelpList
-         /* look for the help index file in current dir, EPMPATH, DPATH, and EPM.EXE's dir: */
-         findfile destfilename, helpindex, '','D'
+         /* parse thru all entries within the help list */
+         parse value HelpList with HelpIndex'+'HelpList
+
+         /* skip empty entries, they may show up due to a double plus character */
+         if (HelpIndex = '') then
+            iterate
+         endif
+
+         /* look for the help index file in HELPNDXPATH first */
+         findfile destfilename, helpindex, 'HELPNDXSHELF'
+
+         if rc then
+            /* if that fails, look for the help index file in current */
+            /* dir, EPMPATH, DPATH, and EPM.EXE's dir:                */
+            findfile destfilename, helpindex, '','D'
+         endif
 
          if rc then
             /* If that fails, try the standard path. */
@@ -279,18 +290,13 @@ compile endif -- NEPMD_HELPNDXSHELF
                destfilename = ''
             endif
          endif
-compile if NEPMD_HELPNDXSHELF
-      endif  -- HelpNdxShelfMode
-compile endif -- NEPMD_HELPNDXSHELF
 
       if destfilename <> '' then
-         if pos(' ',destfilename) then
-            destfilename = '"'destfilename'"'
-         endif
          if helpindex_id then
             bottom
             last = .last
-            'get' destfilename
+            'get "'destfilename'"'
+            .modify = 0
             line = upcase(textline(last+1))
 
             if word(line,1)='EXTENSIONS:' & wordpos(ft, line) then  --<--------------------------------- Todo
@@ -312,7 +318,9 @@ compile endif -- NEPMD_HELPNDXSHELF
 
          else       /* Need to add first .NDX file to the editor ring */
             'xcom e /d' destfilename
+            .modify = 0
             if rc = 0 then
+               'n .HELPFILE' -- make sure we don't use the name of the first file
                line = upcase(textline(1))
                if word(line,1)='EXTENSIONS:' & (wordpos(ft, line) | wordpos('*', line)) then  --<--------------------------------- Todo
                   /* only read in 'relevant' files */
@@ -320,6 +328,7 @@ compile endif -- NEPMD_HELPNDXSHELF
                   .visible = 0
                else
                   /* This helpfile is not relevant to the file being edited, so remove it */
+                  .modify = 0
                   'quit'
                endif
             else
@@ -331,8 +340,9 @@ compile endif -- NEPMD_HELPNDXSHELF
    enddo
 
    if helpindex_id then            /* If helpfile is already built ... */
-      helpindex_id.userstring = savelist
+      helpindex_id.userstring = SaveList
    endif
    savetype = ft
+
    return rc
 
