@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: details.php,v 1.3 2002-07-18 19:27:09 cla Exp $
+* $Id: details.php,v 1.4 2002-07-18 21:59:02 cla Exp $
 *
 * ===========================================================================
 *
@@ -33,12 +33,14 @@ if ($file != "")
    {
    // read database
    $aentry = filedb_read( $file);
+
    list( , $entryfile) = each( $aentry);
    list( , $category)  = each( $aentry);
    list( , $title)     = each( $aentry);
    list( , $prio)      = each( $aentry);
    list( , $status)    = each( $aentry);
    list( , $filelist)  = each( $aentry);
+   list( , $updated)   = each( $aentry);
    list( , $modified)  = each( $aentry);
    list( , $details)   = each( $aentry);
 
@@ -46,7 +48,7 @@ if ($file != "")
    echo "<table width=70% border=0>";
    echo "<tr>";
    echo "<td bgcolor=#dddddd><font size=+1><b>".$title."</b></font></td>";
-   echo "<td width=50 align=right bgcolor=#dddddd><img src=\"edit.gif\"></td>";
+   echo "<td width=50 align=right bgcolor=#dddddd><a href=\"edit.php?file=".$file."\"><img src=\"edit.gif\" border=0></a></td>";
    echo "</tr>";
    echo "</table>";
    echo "<table width=70% border=0>";
@@ -61,6 +63,10 @@ if ($file != "")
    echo "<td>".$prio."</b></td>";
    echo "<td>".$status."</b></td>";
    echo "<td>".$modified."</b></td>";
+   echo "</tr>";
+   echo "<tr>";
+   echo "<td bgcolor=#dddddd >files:</td>";
+   echo "<td bgcolor=#dddddd colspan=3>".$filelist."</b></td>";
    echo "</tr>";
    echo "</table>";
 
