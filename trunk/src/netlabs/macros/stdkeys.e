@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.10 2003-05-14 16:21:34 aschn Exp $
+* $Id: stdkeys.e,v 1.11 2003-09-01 05:06:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,13 +21,7 @@
 
 definit
    universal blockreflowflag
-compile if defined(HIGHLIGHT_COLOR)
-   universal search_len
-compile endif
    blockreflowflag=0
-compile if defined(HIGHLIGHT_COLOR)
-   search_len = 5     -- Initialize to anything, to prevent possible "Invalid number argument"
-compile endif
 
 compile if    WANT_CUA_MARKING
 defkeys edit_keys new clear
@@ -673,18 +667,8 @@ compile if WANT_SHIFT_MARKING
    call end_shift(startline, startcol, shift_flag, 1)
 compile endif
 
-; Moved to ENTER.E
-;def c_enter, c_pad_enter=
-
-def c_f=
-compile if defined(HIGHLIGHT_COLOR)
-   universal search_len
-compile endif
-   sayerror 0
-   repeat_find       /* find next */
-compile if defined(HIGHLIGHT_COLOR)
-   call highlight_match(search_len)
-compile endif
+; Moved def c_enter, c_pad_enter= to ENTER.E
+; Moved def c_f to LOCATE.E
 
 def c_f1=
    call psave_mark(save_mark)
