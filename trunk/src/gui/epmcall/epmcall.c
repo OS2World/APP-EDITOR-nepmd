@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.14 2002-09-20 15:06:58 cla Exp $
+* $Id: epmcall.c,v 1.15 2002-09-20 15:22:33 cla Exp $
 *
 * ===========================================================================
 *
@@ -93,7 +93,7 @@ do
          ULONG          ulMessageLen;
          CHAR           szMessage[ 1024];
 
-      rc = LOADSTRING( "ERROR_EPM_NOT_FOUND", szMessage);
+      rc = LOADSTRING( "ERR_EPM_NOT_FOUND", szMessage);
       if (rc != NO_ERROR)
          sprintf( szMessage,
                   "Fatal error: cannot determine NEPMD message file, rc=%u\n\n",
