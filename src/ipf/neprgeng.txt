@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neprgeng.txt,v 1.5 2002-11-03 19:28:34 cla Exp $
+.. $Id: neprgeng.txt,v 1.6 2002-11-04 16:10:11 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -129,12 +129,24 @@ implicitely. As soon as you perform more than one action in a row, the
 (re)open and close operations, which would waste much time by huge disk I/O
 overhead.
 
-.. .. -----------------------------------------------------------------------------
-.. .3 overview of keys used by the [=DOCTITLE]
-.. .. -----------------------------------------------------------------------------
-.. .an IDPNL_REGISTRY_KEYLIST
-.. .
-.. The following keys are used by the [=TITLE]:
+.. -----------------------------------------------------------------------------
+.3 default keys used by the [=DOCTITLE]
+.. -----------------------------------------------------------------------------
+.an IDPNL_REGISTRY_KEYLIST
+.
+The [=TITLE] comes with some following defaults for registry keys. The textfile
+shown here is uses when the [=TITLE] initializes for the very first time, making
+the defaults available to the runtime.
+
+.at fc=red
+[=NOTE]
+- this file may *not be modified* under any circumstances. Any changes
+  may lead to unpredictable results !
+.at
+
+.fo off
+.textinclude ..\netlabs\bin\defaults.dat
+.fo on
 
 .. =============================================================================
 .2 EPM Syntax highlighting support
