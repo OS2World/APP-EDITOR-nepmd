@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.20 2004-07-09 14:26:57 aschn Exp $
+# $Id: makefile,v 1.21 2004-11-30 22:06:39 aschn Exp $
 #
 # ===========================================================================
 #
@@ -73,10 +73,12 @@ $(CMPEXDIR)\popup.ex\
 $(CMPEXDIR)\recode.ex\
 $(CMPEXDIR)\reflowmail.ex\
 $(CMPEXDIR)\showu.ex\
+$(CMPEXDIR)\singlespace.ex\
 $(CMPEXDIR)\stdmenu.ex\
 $(CMPEXDIR)\tags.ex\
 $(CMPEXDIR)\testkeys.ex\
 $(CMPEXDIR)\treeit.ex\
+$(CMPEXDIR)\unhtml.ex\
 $(CMPEXDIR)\wordproc.ex\
 
 
