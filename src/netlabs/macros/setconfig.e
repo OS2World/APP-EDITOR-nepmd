@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setconfig.e,v 1.3 2002-11-03 15:16:29 aschn Exp $
+* $Id: setconfig.e,v 1.4 2002-11-04 18:04:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -80,4 +80,33 @@ defc HomeRespectIndent
    endif
    return rc
 
+; -------------------------------------------------------------------
+; Reset settings for fonts, colors, options to default NEPMD settings
+
+defc NepmdDefaultControls
+   universal appname, app_hini
+   if appname = '' then
+      appname = 'EPM'
+   endif
+   -- set REXX profile (bit 12) and stream mode (bit 10) = ON
+   inikey  = 'OPTFLAGS'
+   inidata = '1 1 1 1 1 1 0 0 1 1 1 1 1 0 1 1 0 '\0
+   call setprofile(app_hini, appname, inikey, inidata)
+   -- set colors
+   -- doesn't do nothing!
+   -- how to change colors?
+   inikey  = 'DTCOLOR'
+   inidata = '07'\0
+   call setprofile(app_hini, appname, inikey, inidata)
+   -- set fonts - this works well
+   inikey  = 'FONT'
+   inidata = 'System VIO.DD120WW0HH0BB.0'\0
+   call setprofile(app_hini, appname, inikey, inidata)
+   inikey  = 'MSGFONT'
+   inidata = 'System VIO.DD120WW0HH0BB.0'\0
+   call setprofile(app_hini, appname, inikey, inidata)
+   inikey  = 'STATFONT'
+   inidata = '10.System Proportional Non-ISO'\0
+   call setprofile(app_hini, appname, inikey, inidata)
+   return
 
