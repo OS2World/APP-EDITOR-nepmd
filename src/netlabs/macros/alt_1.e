@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.6 2004-07-02 10:55:56 aschn Exp $
+* $Id: alt_1.e,v 1.7 2004-07-12 19:54:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -484,8 +484,10 @@ compile endif  -- HOST_SUPPORT
       if substr( line, 1, 2) = '\\' | substr( line, 2, 2) = ':\' then  -- full qualified
          parse value substr( line, 3) with next':'LineNumber':'rest
          FileName = substr( line, 1, 2 + length(next))
+         FileName = translate( FileName, '\', '/')
       else
          parse value line with FileMask':'LineNumber':'rest
+         FileMask = translate( FileMask, '\', '/')
          saved_dir = directory()
          call directory( CurDir)
          -- find file in CurDir or resolve relative path
