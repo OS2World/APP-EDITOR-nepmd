@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.9 2002-10-03 21:52:24 cla Exp $
+* $Id: mode.e,v 1.10 2002-10-06 23:38:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,23 +24,23 @@
 ; - Use settings from Ini.
 
 const
-compile if not defined(NEPMD_MODE)
-   NEPMD_MODE = 1
-compile endif
+;compile if not defined(NEPMD_MODE)
+;   NEPMD_MODE = 1
+;compile endif
 compile if not defined(NEPMD_RESTORE_MODE_FROM_EA)
    NEPMD_RESTORE_MODE_FROM_EA = 0
 compile endif
-compile if not defined(NEPMD_HILI)
-   NEPMD_HILI = 1
-compile endif
+;compile if not defined(NEPMD_HILI)
+;   NEPMD_HILI = 1
+;compile endif
 compile if not defined(NEPMD_SPECIAL_STATUSLINE)
    NEPMD_SPECIAL_STATUSLINE = 1
 compile endif
 
 
-compile if NEPMD_MODE
+;compile if NEPMD_MODE
 
------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Returns the current mode.
 defproc NepmdGetMode()
    universal EPM_utility_array_ID
@@ -67,12 +67,12 @@ compile endif
    endif
    activatefile save_fid
 
-   do_array 2, EPM_utility_array_ID, 'mode.'fid, CurMode
+;   do_array 2, EPM_utility_array_ID, 'mode.'fid, CurMode
 
    return CurMode
 
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; This command uses the NEPMDLIB EA functions to change the EA 'EPM.MODE'
 ; immediately if NEPMD_RESTORE_MODE_FROM_EA = 1.
 ;
@@ -89,10 +89,38 @@ compile endif
 ; arg1 = (NewMode|0|OFF|RESET|-RESET-|DEFLOAD)
 ;         NewMode can be any mode.
 ; If no arg specified, then a listbox is opened for selecting a mode.
+;
+; Todo:
+;    o  Replace 'mode DEFLOAD' call with a proc call
+;    o  Let 'mode' call this proc.
+;    o  Suggestion:
+;       LOAD.E:
+;          defload                   to get, save and process the mode on every file loading
+;                                       calls NepmdInitMode
+;                                       calls NepmdProcessMode
+;       MODE.E:
+;          defproc NepmdInitMode     to get the mode on defload without querying the array var
+;                                       calls NepmdSaveMode
+;          defproc NepmdSaveMode     to save the mode in an array var 'mode.'fid
+;          defproc NepmdWriteModeEa  to save the mode in the EA 'EPM.MODE'
+;          defproc NepmdGetMode      to query the mode from EA or array var (done)
+;          defc mode                 to change the mode and save it in the EA
+;                                       calls NepmdGetMode
+;                                       calls NepmdSaveMode
+;                                       calls NepmdWriteModeEa
+;                                       calls NepmdProcessMode
+;          defproc NepmdProcessMode  to process all mode-dependent actions
+;
+defproc NepmdInitMode
+   -- This proc is called by defload in LOAD.E
+   --   temporary:
+   'mode DEFLOAD'
+   CurMode = NepmdGetMode()
+   return CurMode
+
 defc mode
    universal EPM_utility_array_ID
    UpdateEA = 1
-   UpdateStatusLine = 1
    parse arg NewMode
    NewMode = upcase(NewMode)
    NewMode = strip(NewMode)
@@ -101,6 +129,20 @@ defc mode
       -- Ask user to set a mode
       NewMode = NepmdSelectMode()
       NewMode = upcase(NewMode)
+
+   elseif NewMode = 'DEFLOAD' then
+      -- This is called by defload
+      NewMode = ''
+compile if NEPMD_RESTORE_MODE_FROM_EA
+      -- Get the mode from EA 'EPM.MODE'
+      NewMode = get_EAT_ASCII_value('EPM.MODE')
+compile endif
+      if NewMode = '' then
+         -- Get the default mode
+         NewMode = NepmdGetDefaultMode(.filename)
+      endif
+      -- The EPM EA area was already set on load, so EA doesn't need to be rewritten
+      UpdateEA = 0
    endif
 
    if wordpos( NewMode, '-RESET- RESET 0 OFF' ) > 0 then
@@ -135,22 +177,31 @@ compile if NEPMD_RESTORE_MODE_FROM_EA
          'add_ea EPM.MODE' CurMode
       endif
 compile endif
-
-      -- put mode dependent settings here:
-compile if NEPMD_SPECIAL_STATUSLINE
-      if UpdateStatusLine then
-         'refreshstatusline' -- needs current mode, gets it from array var 'mode.'fid
-      endif
-compile endif
-compile if NEPMD_HILI
-      'hili'                 -- needs current mode, gets it from array var 'mode.'fid
-compile endif
-
+      call NepmdProcessMode( CurMode )
    endif  -- if NewMode <> ''
    return
 
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
+defproc NepmdProcessMode()
+   CurMode = arg(1)
+   if CurMode = '' then
+      CurMode = NepmdGetMode()
+   endif
+
+   -- put mode dependent settings here:
+compile if NEPMD_SPECIAL_STATUSLINE
+   'refreshstatusline'
+compile endif
+;compile if NEPMD_HILI
+;   'hili'
+   call NepmdActivateHighlight( 'ON', CurMode )
+;compile endif
+
+   return
+
+
+; ---------------------------------------------------------------------------
 ; Returns the default mode according to the
 ; - EA '.TYPE'  (Todo)
 ; - extension
@@ -348,10 +399,10 @@ defproc NepmdSelectMode()
    --sayerror 'defproc selectmode(): select = |'select'|'
    return select
 
-compile endif -- NEPMD_MODE
+;compile endif -- NEPMD_MODE
 
 
-compile if NEPMD_HILI
+;compile if NEPMD_HILI
 
 ; ---------------------------------------------------------------------
 ; Chooses the keyword highlighting file.
@@ -494,5 +545,5 @@ compile endif
    endif  -- .visible
    return
 
-compile endif  -- NEPMD_HILI
+;compile endif  -- NEPMD_HILI
 
