@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: autolink.e,v 1.1 2002-10-17 21:27:20 cla Exp $
+* $Id: autolink.e,v 1.2 2002-10-17 21:41:39 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,6 +26,9 @@ defmain
    'autolink'
 
 defc autolink =
+   call NepmdAutolink();
+
+defproc NepmdAutolink() =
 
   /* determine autolink directory */
   InstallDir = NepmdQueryInstValue( 'ROOTDIR');
