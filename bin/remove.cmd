@@ -15,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: remove.cmd,v 1.2 2002-04-20 15:13:51 cla Exp $
+* $Id: remove.cmd,v 1.3 2002-06-11 09:58:50 cla Exp $
 *
 * ===========================================================================
 *
@@ -55,6 +55,9 @@
  /* defaults */
  rc = ERROR.NO_ERROR;
  ZeroByte = '0'x;
+
+ Remove.  = '';
+ Remove.0 = 0;
 
  DO UNTIL (1)
     /* search Warpin executable */
@@ -118,25 +121,18 @@
        PARSE VAR ThisId '"'ThisId'"'
        IF (ThisId = '') THEN ITERATE;
 
+       /* strip of dynamic version number */
+       PARSE VAR ThisId ThisVendor'\'ThisPackage'\'ThisComponent'\'.
+       ThisId = ThisVendor'\'ThisPackage'\'ThisComponent;
+
        DO n = 1 TO IniFile.0
 
-          /* query all apps */
+          /* query all apps and remove matching ones */
           Apps = SysIni( 'C:\os2\install\warpin\DATBAS_C.INI', 'ALL:', 'Apps.');
           DO a = 1 TO Apps.0
              IF (POS( ThisId, Apps.a) = 1) THEN
              DO
-                /* destroy WPS objects */
-                ObjectIdList = SysIni( IniFile.n, Apps.a, 'WPSObjectDone');
-                IF (ObjectIdList \= 'ERROR:') THEN
-                DO WHILE (ObjectIdList \= '')
-                   PARSE VAR ObjectIdList ThisObjectId(ZeroByte)ObjectIdList;
-                   rcx = SysDestroyObject( ThisObjectId);
-                END;
-
-                /* delete ini entry */
-                PARSE VAR ThisId ThisVendor'\'ThisPackage'\'ThisComponent'\'.
-                SAY '- removing' ThisPackage '-' ThisComponent
-                rcx = SysIni( IniFile.n, Apps.a, 'DELETE:');
+                rc = RemoveApp( IniFile.n, Apps.a);
                 LEAVE;
              END;
           END;
@@ -158,4 +154,68 @@ FileExist: PROCEDURE
  PARSE ARG FileName
 
  RETURN(STREAM(Filename, 'C', 'QUERY EXISTS') > '');
+
+/* ========================================================================= */
+RemoveEmptyDirectories: PROCEDURE EXPOSE (GlobalVars)
+ PARSE ARG Dir;
+
+ /* get all subdirectories */
+ rc = SysFileTree( Dir'\*', 'Dir.', 'DOS');
+
+ /* kill anything moving ... ;-) */
+ DO d = Dir.0 TO 1 BY -1
+    rc = SysRmDir( Dir.d);
+ END;
+
+ rc = SysRmDir( Dir);
+
+ /* do not return any error */
+ RETURN( 0);
+
+/* ========================================================================= */
+RemoveApp: PROCEDURE EXPOSE (GlobalVars)
+ PARSE ARG IniFile, AppId;
+
+ ZeroByte  = '00'x;
+
+ FileCount   = 0;
+ Objectcount = 0;
+
+ DO UNTIL (1)
+
+    PARSE VAR AppId ThisVendor'\'ThisPackage'\'ThisComponent'\'.
+    SAY '- removing' ThisPackage '-' ThisComponent
+
+    /* remove files */
+    PARSE VALUE SysIni( IniFile, AppId, 'TargetPath') WITH InstallPath'00'x;
+    FileList = SysIni( IniFile, AppId, 'Files');
+    DO WHILE (FileList \= '')
+       NameLen = POS( ZeroByte, FileList);
+       ThisFile = LEFT( FileList, NameLen - 1);
+       FileList = SUBSTR( FileList, NameLen + 14);
+       FileCount = FileCount + 1;
+       rcx = SysFileDelete( InstallPath'\'ThisFile);
+    END;
+    IF (FileCount > 0) THEN
+       SAY '  -' FileCount 'file(s) removed'
+
+    /* remove empty directories */
+    rcx = RemoveEmptyDirectories( InstallPath);
+
+    /* destroy WPS objects of application */
+    ObjectIdList = SysIni( IniFile, AppId, 'WPSObjectDone');
+    IF (ObjectIdList \= 'ERROR:') THEN
+    DO WHILE (ObjectIdList \= '')
+       PARSE VAR ObjectIdList ThisObjectId(ZeroByte)ObjectIdList;
+       ObjectCount = ObjectCount + 1;
+       rcx = SysDestroyObject( ThisObjectId);
+    END;
+    IF (ObjectCount > 0 ) THEN
+       SAY '  -' ObjectCount 'WPS object(s) destroyed'
+   
+    /* delete ini entry */
+    rcx = SysIni( IniFile, AppId, 'DELETE:');
+ END;
+
+ RETURN( rc);
 
