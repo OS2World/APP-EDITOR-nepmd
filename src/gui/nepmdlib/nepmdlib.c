@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.37 2002-09-12 20:12:27 cla Exp $
+* $Id: nepmdlib.c,v 1.38 2002-09-13 21:55:47 cla Exp $
 *
 * ===========================================================================
 *
@@ -42,6 +42,7 @@
 #include "instval.c"
 #include "eas.h"
 #include "tmf.h"
+#include "libreg.c"
 
 // some useful macros
 #define EPMINSERTTEXT(t)          EtkInsertTextBuffer( hwndClient, 0, strlen( t), t, 0x100);
@@ -275,6 +276,22 @@ return fResult;
 
 // ------------------------------------------------------------------------------
 
+APIRET EXPENTRY NepmdCloseConfig( HCONFIG hconfig)
+{
+         APIRET         rc = NO_ERROR;
+
+return CloseConfig( hconfig);
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdDeleteConfigValue( HCONFIG hconfig, PSZ pszRegPath)
+{
+return DeleteConfigValue( hconfig, pszRegPath);
+}
+
+// ------------------------------------------------------------------------------
+
 APIRET EXPENTRY NepmdDirExists( PSZ pszDirName)
 {
 return DirExists( pszDirName);
@@ -314,7 +331,6 @@ do
    } while (FALSE);
 
 return rc;
-
 }
 
 // ------------------------------------------------------------------------------
@@ -323,8 +339,6 @@ APIRET EXPENTRY NepmdFileExists( PSZ pszFileName)
 {
 return FileExists( pszFileName);
 }
-
-
 
 // ------------------------------------------------------------------------------
 
@@ -474,7 +488,6 @@ do
    } while (FALSE);
 
 return _getRexxError( rc, pszBuffer, ulBuflen);
-
 }
 
 // ------------------------------------------------------------------------------
@@ -506,6 +519,55 @@ do
 
    // hand over result
    strcpy( pszBuffer, pszResult);
+
+   } while (FALSE);
+
+return _getRexxError( rc, pszBuffer, ulBuflen);
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdOpenConfig( PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         CHAR           szInifile[ _MAX_PATH];
+         HCONFIG        hconfig;
+
+         CHAR           szResult[ 20];
+
+do
+   {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
+   // check parms
+   if (!pszBuffer)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // determine name of INI
+   rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szInifile, sizeof( szInifile));
+   if (rc = NO_ERROR)
+      break;
+
+   // open profile
+   rc = OpenConfig( &hconfig, szInifile);
+   if (rc != NO_ERROR)
+      break;
+
+   // convert handle to string
+   sprintf( szResult, "%u", hconfig);
+   if (strlen( szResult) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszBuffer, szResult);
 
    } while (FALSE);
 
@@ -628,7 +690,6 @@ do
    } while (FALSE);
 
 return rc;
-
 }
 
 // ------------------------------------------------------------------------------
@@ -771,7 +832,6 @@ do
    } while (FALSE);
 
 return _getRexxError( rc, pszBuffer, ulBuflen);
-
 }
 
 // ------------------------------------------------------------------------------
@@ -879,7 +939,6 @@ do
    } while (FALSE);
 
 return _getRexxError( rc, pszBuffer, ulBuflen);
-
 }
 
 // ------------------------------------------------------------------------------
@@ -1047,7 +1106,6 @@ do
    } while (FALSE);
 
 return _getRexxError( rc, pszBuffer, ulBuflen);
-
 }
 
 // ------------------------------------------------------------------------------
@@ -1094,9 +1152,15 @@ do
    } while (FALSE);
 
 return _getRexxError( rc, pszBuffer, ulBuflen);
-
 }
 
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdQueryConfigValue( HCONFIG hconfig, PSZ pszRegPath,
+                                       PSZ pszBuffer, ULONG ulBuflen)
+{
+return QueryConfigValue( hconfig, pszRegPath, pszBuffer, ulBuflen);
+}
 
 // ------------------------------------------------------------------------------
 
@@ -1124,7 +1188,6 @@ do
    } while (FALSE);
 
 return _getRexxError( rc, pszBuffer, ulBuflen);
-
 }
 
 // ------------------------------------------------------------------------------
@@ -1154,7 +1217,6 @@ if (pszBuffer)
 rc = ReadStringEa( pszFileName, pszEaName, pszBuffer, &ulBuflen);
 
 return _getRexxError( rc, pszBuffer, ulBuflen);
-
 }
 
 // ------------------------------------------------------------------------------
@@ -1197,7 +1259,6 @@ do
    } while (FALSE);
 
 return _getRexxError( rc, pszBuffer, ulBuflen);
-
 }
 
 // ------------------------------------------------------------------------------
@@ -1264,6 +1325,12 @@ do
 return rc;
 }
 
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdWriteConfigValue( HCONFIG hconfig, PSZ pszRegPath, PSZ pszRegValue)
+{
+return WriteConfigValue( hconfig, pszRegPath, pszRegValue);
+}
 
 // ------------------------------------------------------------------------------
 
