@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.32 2002-09-05 13:31:52 cla Exp $
+* $Id: nepmdlib.c,v 1.33 2002-09-05 16:09:34 cla Exp $
 *
 * ===========================================================================
 *
@@ -1029,6 +1029,54 @@ do
 return _getRexxError( rc, pszBuffer, ulBuflen);
 
 }
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdQueryWindowPos( HWND hwnd,  PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         SWP            swp;
+         CHAR           szResult[ 64];
+
+do
+   {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
+   // check parms
+   if (!WinIsWindow( CURRENTHAB, hwnd))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // get window pos
+   if (!WinQueryWindowPos( hwnd, &swp))
+      {
+      rc = LASTERROR;
+      break;
+      }
+
+   // create result of SWP
+   sprintf( szResult, "%u %u %u %u", swp.x, swp.y, swp.cx, swp.cy);
+
+   // check result buffer
+   if (strlen( szResult) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszBuffer, szResult);
+
+   } while (FALSE);
+
+return _getRexxError( rc, pszBuffer, ulBuflen);
+
+}
+
 
 // ------------------------------------------------------------------------------
 

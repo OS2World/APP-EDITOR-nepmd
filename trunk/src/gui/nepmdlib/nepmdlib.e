@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.25 2002-09-05 13:31:53 cla Exp $
+* $Id: nepmdlib.e,v 1.26 2002-09-05 16:09:34 cla Exp $
 *
 * ===========================================================================
 *
@@ -117,6 +117,7 @@ include 'queryinstvalue.e'
 include 'querypathinfo.e'
 include 'queryprocessinfo.e'
 include 'querysysinfo.e'
+include 'querywindowpos.e'
 include 'readstringea.e'
 include 'scanenv.e'
 include 'searchpath.e'
