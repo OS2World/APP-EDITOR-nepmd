@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.php,v 1.3 2002-07-19 15:30:58 cla Exp $
+* $Id: edit.php,v 1.4 2002-07-19 15:36:42 cla Exp $
 *
 * ===========================================================================
 *
@@ -70,7 +70,7 @@ if ($file != "")
    list( , $details)   = each( $aentry);
 
    echo "<form action=\"update.php\" name=\"EditDbFile\" method=\"post\" enctype=\"text/plain\">";
-   echo "<table width=70% border=0>";
+   echo "<table width=90% border=0>";
    echo "<input name=file type=hidden value=\"".$file."\">";
 
    echo "<tr><td align=right valign=center bgcolor=#dddddd>";
