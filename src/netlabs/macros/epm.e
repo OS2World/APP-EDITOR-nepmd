@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.9 2002-09-19 16:05:52 aschn Exp $
+* $Id: epm.e,v 1.10 2002-09-19 18:19:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -27,9 +27,6 @@ const SMALL = 0                -- SMALL says to assume no host support i.e.
 include        'stdconst.e'
 
 include        'colors.e'      -- Mnemonic color names & default colors defined here.
-
-;definit
-;'linkverify     nepmdlib.ex'   -- Link the NEPMD library. Open a MessageBox if .ex or .dll not found.
 
 const                          -- (added because many users omit from MYCNF.)
 tryinclude     'mycnf.e'       -- User configuration goes here.
