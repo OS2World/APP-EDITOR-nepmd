@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: update.php,v 1.1 2002-07-18 22:02:00 cla Exp $
+* $Id: update.php,v 1.2 2002-07-19 14:11:59 cla Exp $
 *
 * ===========================================================================
 *
@@ -22,25 +22,47 @@
 *************************************************************************/ ?>
 
 <? include( "filedb.inc") ?>
+<html>
+<body text="#000000" bgcolor=#FFFFFF link=#CC6633 vlink=#993300 alink=#6666CC>
+
 
 <?
 
-// read file contents
-$hfile = fopen( $file, "w");
+// save file
+$file = $_POST[ "file"];
+if ($file != "")
+   {
+   // read file contents
+   $hfile = fopen( $file, "w");
 
-// write data
-fputs( $hfile, "CATEGORY: ".$category."\r\n");
-fputs( $hfile, "TITLE: ".stripslashes( trim( $title))."\r\n");
-fputs( $hfile, "PRIO: ".$prio."\r\n");
-fputs( $hfile, "STATUS: ".$status."\r\n");
-fputs( $hfile, "FILES: ".stripslashes( trim( $filelist))."\r\n");
-fputs( $hfile, "UPDATED: ".trim( $updated)."\r\n");
-fputs( $hfile, "\r\n");
-fputs( $hfile, stripslashes( $details));
-fclose( $hfile);
+   // write data
+   fputs( $hfile, "CATEGORY: ".$_POST[ "category"]."\r\n");
+   fputs( $hfile, "TITLE: ".stripslashes( trim( $_POST[ "title"]))."\r\n");
+   fputs( $hfile, "PRIO: ".$_POST[ "prio"]."\r\n");
+   fputs( $hfile, "STATUS: ".$_POST[ "status"]."\r\n");
+   fputs( $hfile, "FILES: ".stripslashes( trim( $_POST[ "filelist"]))."\r\n");
+   fputs( $hfile, "UPDATED: ".trim( $_POST[ "updated"])."\r\n");
+   fputs( $hfile, "\r\n");
+   fputs( $hfile, stripslashes( $_POST[ "details"]));
+   fclose( $hfile);
+
+   // update
+   echo "Data was saved successfully !<p>";
+
+   // autoload details window again
+   echo "<meta http-equiv=\"refresh\" content=\"0; URL=details.php?file=".$file."\">";
+
+   // refresh list window
+   echo "<script type=\"text/javascript\"><!-- \n parent.ListWindow.location.reload();\n--></script>";
+
+   }
+else
+   {
+   echo "Internal error: could not save data !<br>";
+   }
 
 ?>
-<p>
-Data was saved successfully !
 
+
+</body>
 </html>
