@@ -3,11 +3,11 @@
 * Module Name: nepmdlib.c
 *
 * Routines of the NEPMD library DLL.
-* Coutnerpart to this DLL is nepmdlib.e/.ex.
+* Counterpart to this DLL is nepmdlib.e/.ex.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.56 2002-10-20 21:51:18 cla Exp $
+* $Id: nepmdlib.c,v 1.57 2004-07-02 12:11:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -145,12 +145,17 @@ static VOID _insertModuleStamp( BOOL fEpmModule, HWND hwndClient, PSZ pszFilenam
          APIRET         rc = NO_ERROR;
          HAB            hab = WinQueryAnchorBlock( HWND_DESKTOP);
          HMODULE        hmodule = NULLHANDLE;
-         CHAR           szModuleName[ _MAX_PATH];
-         CHAR           szVersionStamp[ 32];
+         CHAR           szModuleName[ _MAX_PATH] = "";
+         CHAR           szVersionStamp[ 256] = "";
 
-         CHAR           szFullname[ _MAX_PATH];
+         CHAR           szFullname[ _MAX_PATH] = "";
          FILESTATUS3    fs3;
-         CHAR           szFilestamp[ 32];
+         CHAR           szFilestamp[ 256] = "";
+
+         BOOL           fEPMBBS = 0;
+         BOOL           fnotloaded = 0;
+         CHAR           szStringres[ 256] = "";
+         UCHAR          LoadError[ 256];          // Area for Load failure information
 
 do
    {
@@ -160,13 +165,67 @@ do
        (!pszModuleName))
       break;
 
-   // query module handles for DLLs only (when a name is specified)
    strupr( pszModuleName);
+
+   // differ EPMBBS from Warp 4+ NLS version
+   // EPMBBS version of ETKE603.DLL contains string table
+   rc = DosQueryModuleHandle( "ETKE603.DLL", &hmodule);
+   if (rc != NO_ERROR)
+      {
+      // this module must be loaded at this time, so we don't really have to use DosLoadModule
+      rc = DosLoadModule( LoadError, sizeof(LoadError), pszModuleName, &hmodule);
+      }
+   if (rc == NO_ERROR)
+      {
+      // string table #54 is ".Untitled" (either in EPMMRI.DLL or ETKE603.DLL)
+      rc = WinLoadString( hab, hmodule, 54, sizeof( szStringres), szStringres);
+      if (rc != NO_ERROR)
+         fEPMBBS = 1;
+      //rc = DosFreeModule( hmodule);
+      }
+   //DPRINTF(( "Untitled from ETKE603.DLL = \"%s\"\n", szStringres));
+   hmodule = NULLHANDLE;
+
+   // don't try to check EPMMRI.DLL for EPMBBS version
+   if (strstr( pszModuleName, "EPMMRI.DLL"))
+      {
+      if (fEPMBBS)
+         {
+         DPRINTF(( "%s not printed, because EPMBBS version\n", pszModuleName));
+         // insert result
+         _insertMessage( hwndClient, pszFilename, pszMessageName,
+                         "(EPMBBS version)", "", "", "");
+         break;
+         }
+      }
+
+   // query module handles for DLLs only (when a name is specified)
    if (strstr( pszModuleName, ".DLL"))
-      DosQueryModuleHandle( pszModuleName, &hmodule);
+      {
+      rc = DosQueryModuleHandle( pszModuleName, &hmodule);
+      if (rc != NO_ERROR)
+         {
+         // ERROR_MOD_NOT_FOUND
+         // don't process NEPMDLIB.DLL here (not in LIBPATH)
+         if (strstr( pszModuleName, "NEPMDLIB.DLL"))
+            {
+            }
+         else
+            {
+            // some DLLs are not loaded, load module, if not already
+            DPRINTF(( "%s not loaded, rc = %u, trying with DosLoadModule\n", pszModuleName, rc));
+            rc = DosLoadModule( LoadError, sizeof(LoadError), pszModuleName, &hmodule);
+            if (rc != NO_ERROR)
+               {
+               DPRINTF(( "%s can't be loaded, rc = %u\n", pszModuleName, rc));
+               break;
+               }
+            }
+         }
+      }
 
    // for EPM modules load version string
-   strcpy( szVersionStamp, "");
+   //strcpy( szVersionStamp, "");
    if (fEpmModule)
       {
       if (WinLoadString( hab, hmodule, 65535, sizeof( szFilestamp), szFilestamp))
@@ -189,9 +248,12 @@ do
       else
          DosQueryModuleHandle( pszModuleName, &hmodule);
       }
+   // returns sometimes handle of NEPMDLIB.DLL for EPM.EXE (loader)
+   // workaround: use E command instead for the loader
+   //DPRINTF(( "%s: handle: %u\n", pszModuleName, hmodule));
 
    rc = DosQueryModuleName( hmodule, sizeof( szFullname), szFullname);
-   if (rc == ERROR_INVALID_HANDLE)
+   if ((rc == ERROR_INVALID_HANDLE) && (strstr( pszModuleName, "NEPMDLIB.DLL")))
       {
       // determine fullname from ini
       QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, szFullname, sizeof( szFullname));
@@ -206,7 +268,7 @@ do
    if (rc != NO_ERROR)
       break;
 
-   DPRINTF(( "\n%s: handle: %u, fullname: %s\n", pszModuleName, hmodule, szFullname));
+   DPRINTF(( "%s: handle: %u, fullname: %s\n", pszModuleName, hmodule, szFullname));
    // FILESTATUS3
    sprintf( szFilestamp, "%u/%02u/%02u %2u:%02u:%02u",
             fs3.fdateLastWrite.year + 1980,
@@ -812,7 +874,7 @@ APIRET EXPENTRY NepmdPmPrintf( PSZ pszText)
 
 FUNCENTER;
 
-#ifdef DEBUG
+//#ifdef DEBUG
 
 do
    {
@@ -827,7 +889,7 @@ do
 
    } while (FALSE);
 
-#endif
+//#endif
 
 FUNCEXITRC;
 return rc;
@@ -904,8 +966,9 @@ FUNCENTER;
 do
    {
 
-   // open new file in ring and disable autosave
+   // open new file in ring /*and disable autosave*/
    _executeEPMCommand( hwndClient, "xcom e /c %s", NEPMD_FILENAME_LIBINFO);
+   _executeEPMCommand( hwndClient, "0");
 
    // determine messsage file
    rc = QueryInstValue( NEPMD_INSTVALUE_MESSAGE, szMessageFile, sizeof( szMessageFile));
@@ -918,34 +981,31 @@ do
       break;
       }
 
-   // insert message in reverse order !
+   // lines are inserted after the current (but EPM's insertline inserts before the current)
 
    // ------------------------------------------------------------------------
-   // ---  library information
-   {
-         PSZ            pszModuleMask = "STR_INFO_NEPMDMODULESTAMP";
-         PSZ            pszLoaderExecutable = getenv( ENV_NEPMD_LOADEREXECUTABLE);
-
-
-   if (pszLoaderExecutable)
-      INSERT_NEPMD_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, pszLoaderExecutable);
-   INSERT_NEPMD_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "NEPMDLIB.DLL");
-   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_MODULES_NEPMD");
-   }
+   // --- header
+   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_HEADER");
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
 
    // ------------------------------------------------------------------------
-   // --- EPM module information
+   // ---  versions
    {
-         PSZ            pszModuleMask = "STR_INFO_EPMMODULESTAMP";
+         CHAR           szEditorVersion[ 32];
 
-   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "ETKC603.DLL");
-   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "ETKR603.DLL");
-   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "ETKE603.DLL");
-   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "EPM.EXE");
-   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_MODULES_EPM");
+   // query ETK DLL version (gives only "6.03")
+   //EtkVersion( szEditorVersion);
+
+   // insert the result
+   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_VERSIONS");
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   _executeEPMCommand( hwndClient, "InsertEditorVersion");  // E command required
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   _executeEPMCommand( hwndClient, "InsertMacrosVersion");  // E command required
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   _insertMessage( hwndClient, szMessageFile, "STR_INFO_NEPMDLIBVERSION", NEPMDLIB_VERSION);
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
    }
-
-
 
    // ------------------------------------------------------------------------
    // ---  dynamic configuration
@@ -998,11 +1058,55 @@ do
                    szNepmdRootdir, pszLoaderExecutable, pszEpmExecutable,
                    szLanguage, szNepmdInitfile, szMessageFile,
                    pszMainEnvFile, pszUserEnvFile);
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
    }
 
+
    // ------------------------------------------------------------------------
-   // --- header
-   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_HEADER");
+   // --- EPM module information
+   {
+         PSZ            pszModuleMask = "STR_INFO_EPMMODULESTAMP";
+
+   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_MODULES_EPM");
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "EPM.EXE");
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "ETKE603.DLL");
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "ETKR603.DLL");
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "ETKC603.DLL");
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "ETKUCMS.DLL");
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "EPMMRI.DLL");
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   }
+
+
+   // ------------------------------------------------------------------------
+   // ---  library information
+   {
+         PSZ            pszModuleMask = "STR_INFO_NEPMDMODULESTAMP";
+         PSZ            pszLoaderExecutable = getenv( ENV_NEPMD_LOADEREXECUTABLE);
+
+   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_MODULES_NEPMD");
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   if (pszLoaderExecutable)
+      {
+      // shows sometimes the NEPMDLIB line twice instead of the loader
+      //INSERT_NEPMD_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, pszLoaderExecutable);
+      // workaround: use E command
+      _executeEPMCommand( hwndClient, "InsertLoaderVersion");
+      _executeEPMCommand( hwndClient, "mc /bot/-1");
+      }
+
+   // NEPMDLIB.DLL not in LIBPATH, path must be prepended
+   INSERT_NEPMD_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "NEPMDLIB.DLL");
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   _executeEPMCommand( hwndClient, "InsertExVersions");  // E command required
+   _executeEPMCommand( hwndClient, "bot");
+   }
 
 
    } while (FALSE);
@@ -1115,7 +1219,7 @@ do
       {
       if (!stricmp( apszInfoTag[ i], pszInfoTag))
          {
-         DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
+         //DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
          ulInfoStyle = i;
          fTagFound = TRUE;
          break;
@@ -1257,7 +1361,7 @@ do
       {
       if (!stricmp( apszInfoTag[ i], pszInfoTag))
          {
-         DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
+         //DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
          ulInfoStyle = i;
          fTagFound = TRUE;
          break;
@@ -1399,7 +1503,7 @@ do
       {
       if (!stricmp( apszInfoTag[ i], pszInfoTag))
          {
-         DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
+         //DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
          ulInfoStyle = i;
          fTagFound = TRUE;
          break;
