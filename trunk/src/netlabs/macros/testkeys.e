@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: testkeys.e,v 1.1 2004-02-22 21:24:26 aschn Exp $
+* $Id: testkeys.e,v 1.2 2004-06-29 22:16:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -25,20 +25,25 @@
 
 ; By Larry Margolis
 
+; Switch to the 'testkeys' keyset, when the 'testkeys' command is executed.
+; TESTKEYS.E must be separately compiled.
+defmain
+   'testkeys'
+
 defc testkeys
-   universal TEST_STARTING_KEYSET
+   universal test_starting_keyset
    if .keyset = 'TEST_KEYS' then
       sayerror 'Already in testkeys mode.  Command ignored.'
       return
    endif
-   TEST_starting_keyset = upcase(.keyset)
+   test_starting_keyset = upcase(.keyset)
    keys testkeys
    sayerror 'Press Esc or End key twice to exit.'
 
 defkeys testkeys new clear
 
 def otherkeys =
-   universal TEST_STARTING_KEYSET
+   universal test_starting_keyset
    k = lastkey()
    msg = ''
    if length(k)=1 then
@@ -58,7 +63,7 @@ def otherkeys =
       endif
       if k=\x13\x02 | k=\x0f\x02 then    -- Esc or End
          if lastkey(1) = k then
-            .keyset = TEST_STARTING_KEYSET
+            .keyset = test_starting_keyset
             call beep(900,100)
             sayerror 'Back to keyset' .keyset
             return
@@ -66,6 +71,9 @@ def otherkeys =
          msg = 'Press again to exit testkeys.'
       endif
    endif
+   parse value lastkey(2) with flags 3 repeat 4 scancode 5 charcode 7 vk_code 9
+   ch = ch '['c2x(lastkey(2))']'
+   msg = msg 'flg('itoa(flags,16)') rep('c2x(repeat)') scan('c2x(scancode)') chr('itoa(charcode, 16)') vk('itoa(vk_code, 16)')'
 compile if 1         -- 1 if you want to
    keys edit_keys    -- switch to the starting keyset,
    executekey k      -- execute the pressed key,
