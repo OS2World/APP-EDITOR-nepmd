@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.7 2002-08-13 15:48:04 cla Exp $
+* $Id: epmcall.c,v 1.8 2002-08-13 16:38:59 cla Exp $
 *
 * ===========================================================================
 *
@@ -185,7 +185,7 @@ APIRET GetExtendedEnvironment( PSZ envv[], PSZ pszEnvFile, PSZ *ppszNewEnv)
          ULONG          i;
 
          CHAR           szInstallVar[ _MAX_PATH + 30];
-         PSZ            apszVar[ 2]; // increase size of array of more vars required !!!
+         PSZ            apszVar[ 3]; // increase size of array of more vars required !!!
 
          PSZ           *ppszEnv;
          PSZ            pszVar;
@@ -213,10 +213,22 @@ do
    memset( apszVar, 0, sizeof( apszVar));
 
    // check parms
-   if ((!pszEnvFile) ||
+   if ((!ppszNewEnv) ||
+       (!pszEnvFile) ||
        (!envv))
       {
       rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // default to make no changes
+   *ppszNewEnv = NULL;
+
+   // if extended environment is already set, don't touch
+   pszValue = getenv( ENV_NEPMD_ENVFILE);
+   if (pszValue)
+      {
+      DPRINTF(( "skip environment extension, already set with: %s\n", pszValue));
       break;
       }
 
@@ -285,6 +297,14 @@ do
                           _EOSSIZE( szInstallVar));
    apszVar[ 1] = strdup( szInstallVar);
    ADDVAR( apszVar[ 1]);
+
+   // --- > set environment variable  for env file
+   memset( szInstallVar, 0, sizeof( szInstallVar));
+   sprintf( szInstallVar, "%s=%s", ENV_NEPMD_ENVFILE, pszEnvFile);
+   apszVar[ 2] = strdup( szInstallVar);
+   ADDVAR( apszVar[ 2]);
+
+   // ------- ------------------------------------------
 
    // check file
    if (FileExists( pszEnvFile))
@@ -416,7 +436,9 @@ APIRET SearchEPMExecutable( PSZ pszExecutable, ULONG ulBuflen)
          PSZ            pszCopy = NULL;
          PSZ            pszDir;
          CHAR           szExecutable[ _MAX_PATH];
+
          CHAR           szThisModule[ _MAX_PATH];
+         CHAR           szNepmdModule[ _MAX_PATH];
 
 do
    {
@@ -439,6 +461,17 @@ do
    DosGetInfoBlocks( &ptib,&ppib);
    DosQueryModuleName( ppib->pib_hmte, sizeof( szThisModule), szThisModule);
 
+   // get name of EPM.EXE in NEPMD path
+   memset( szNepmdModule, 0, sizeof( szNepmdModule));
+   PrfQueryProfileString( HINI_USER,
+                          NEPMD_INI_APPNAME,
+                          NEPMD_INI_KEYNAME_PATH,
+                          NULL,
+                          szNepmdModule,
+                          sizeof( szNepmdModule));
+   strcat( szNepmdModule, "\\"NEPMD_SUBPATH_BINBINDIR"\\epm.exe");
+   strupr( szNepmdModule);
+
    // create copy to allow modification
    pszCopy = strdup( pszPath);
    if (!pszCopy)
@@ -457,11 +490,12 @@ do
       strcat( szExecutable, "epm.exe");
       strupr( szExecutable);
 
-      // process only modules not being the current one
-      if (strcmp( szExecutable, szThisModule))
+      // process only modules not being the current one or of NEPMD
+      if ((strcmp( szExecutable, szThisModule)) &&
+          (strcmp( szExecutable, szNepmdModule)))
          {
          // does executable exist ?
-         // DRINTF(( "EPMCALL: searching %s\n", szExecutable));
+//       DPRINTF(( "EPMCALL: searching %s\n", szExecutable));
          if (FileExists( szExecutable))
             {
             fFound = TRUE;
