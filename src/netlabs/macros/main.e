@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.20 2004-01-17 22:22:53 aschn Exp $
+* $Id: main.e,v 1.21 2004-02-22 20:40:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,22 +19,25 @@
 *
 ****************************************************************************/
 
+/*
+Todo:
+-  Replace NEPMD_RESTORE_LAST_RING with an ini key
+*/
+
 -------- Begin debug stuff --------
 const
 compile if not defined(NEPMD_DEBUG)
-   NEPMD_DEBUG = 0  -- Don't change this, it's a general debug const, that
-                    -- disables all other NEPMD_*_DEBUG consts if = 0.
-                    -- For activation of any NEPMD_*_DEBUG it has to be set
-                    -- to 1 in MYCNF.E.
+   NEPMD_DEBUG = 0  -- General debug const
 compile endif
-compile if not defined(NEPMD_DEFMAIN_DEBUG)
- compile if NEPMD_DEBUG
-   NEPMD_DEFMAIN_DEBUG = 1  -- Configure this.
- compile else
-   NEPMD_DEFMAIN_DEBUG = 0  -- Don't change this.
- compile endif
+compile if not defined(NEPMD_DEBUG_DEFMAIN)
+   NEPMD_DEBUG_DEFMAIN = 0
 compile endif
-
+compile if not defined(NEPMD_DEBUG_DEFMAIN_EMPTY_FILE)
+   NEPMD_DEBUG_DEFMAIN_EMPTY_FILE = 0
+compile endif
+compile if not defined(NEPMD_DEBUG_AFTERLOAD)
+   NEPMD_DEBUG_AFTERLOAD = 0
+compile endif
 -- Standard defmain debugging
 define
    DEBUG_MAIN = 0
@@ -54,22 +57,22 @@ compile if not defined(NEPMD_RESTORE_LAST_RING)
 compile endif
 
 ; ---------------------------------------------------------------------------
-;  -  definit and defmain are processed whenever the .ex file is linked.
+;  -  DEFINIT and DEFMAIN are processed whenever the .ex file is linked.
 ;     For the main .ex file this is equivalent to 'for every new opened EPM
-;     window'. For other linked packages defmain is only executed, if
-;     the package is called by the command/defmain trick: If a command
+;     window'. For other linked packages DEFMAIN is only executed, if
+;     the package is called by the command/DEFMAIN trick: If a command
 ;     is executed, also .ex files are searched. If an .ex file with the
-;     same basename as the command exists, then defmain of this package
+;     same basename as the command exists, then DEFMAIN of this package
 ;     will be executed.
-;  -  defmain is processed after all definits are completed. That makes it
-;     possible to process something in defmain being ensured that all
-;     definit actions (e.g. set default values) are finished.
-;  -  defmain is not processed, if EPM.EXE is started with option /r.
+;  -  DEFMAIN is processed after all DEFINITs are completed. That makes it
+;     possible to process something in DEFMAIN being ensured that all
+;     DEFINIT actions (e.g. set default values) are finished.
+;  -  DEFMAIN is not processed, if EPM.EXE is started with option /r.
 ;     /r opens first a new EPM thread, but if an EPM window is already
 ;     present, all args will be passed to that window.
-;  -  Only 1 defmain is allowed per .ex file.
-;  -  Every .ex file defines it's own definit, defmain and defexit.
-;  -  defexit is not processed for the main .ex file. For other linked
+;  -  Only 1 DEFMAIN is allowed per .ex file.
+;  -  Every .ex file defines it's own DEFINIT, DEFMAIN and DEFEXIT.
+;  -  DEFEXIT is not processed for the main .ex file. For other linked
 ;     .ex files it is processed on unlink (e.g. to switch a keyset back or
 ;     to remove a submenu).
 defmain    /* defmain should be used to parse the command line arguments */
@@ -80,6 +83,8 @@ compile endif
    universal nepmd_hini
    universal app_hini
    universal unnamedfilename
+   universal defmainprocessed
+   universal defloadprocessed
 
    should_showwindow = 1  -- Lets cmdline commands inhibit the SHOWWINDOW.
 
@@ -152,6 +157,7 @@ compile endif
 ;     all occurences of the UNNAMED_FILE_NAME const with a query of the
 ;     universal var or of the proc GetUnnamedFilename().
    unnamedfilename = .filename
+   getfileid unnamedfid
 
 ; --- Host support ----------------------------------------------------------
 compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH) or DELAY_SAVEPATH_CHECK
@@ -166,8 +172,8 @@ compile if SUPPORT_USER_EXITS
 compile endif
 
 ; --- Execute the doscmdline (edit command) ---------------------------------
-compile if NEPMD_DEFMAIN_DEBUG
-   call NepmdPmPrintf( 'MAIN.E: defmain: doscmdline = 'doscmdline )
+compile if NEPMD_DEBUG_DEFMAIN and NEPMD_DEBUG
+   call NepmdPmPrintf( 'DEFMAIN: doscmdline = 'doscmdline )
 compile endif
 compile if NEPMD_RESTORE_LAST_RING
    if arg(1) = '' then
@@ -185,47 +191,59 @@ compile endif
 ; --- E automatically created an empty file when it started. ----------------
 ;     If user specified file(s) to edit, get rid of the empty file.
    -- Get fileid after processing of doscmdline.
-   getfileid newfileid
-   do i = 1 to 1  -- use a loop here to make 'leave' omit the rest
+   getfileid newfid
 
-      -- Get fileid of a unnamed file in ring. This could be the automatically
-      -- created empty file or a previously loaded unnamed file, the user may
-      -- have already deleted or modified.
-      getfileid emptyfileid, unnamedfilename
-      if emptyfileid = '' then           -- User deleted it?
+   do f = 1 to filesinring()  -- exclude hidden files
+compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
+      call NepmdPmPrintf( 'DEFMAIN: file 'f' of 'filesinring()' in ring: '.filename)
+compile endif
+      getfileid fid
+      if fid = unnamedfid then
+         -- Check if other files in ring
+         next_file
+         getfileid otherfid
+         if otherfid = unnamedfid then  -- no other file in ring
+            -- For the automatically created empty file no defload event is triggered.
+            -- Load a new empty file, for that the defload event will process.
+compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
+            call NepmdPmPrintf( 'DEFMAIN: load a new empty file...')
+compile endif
+            'xcom e /n'
+            getfileid newfid
+compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
+            call NepmdPmPrintf( 'DEFMAIN: now filesinring = 'filesinring())
+compile endif
+         endif
+         -- Get rid of the automatically created empty file
+compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
+         call NepmdPmPrintf( 'DEFMAIN: quit internally loaded empty file...')
+compile endif
+         activatefile unnamedfid
+         'xcom q'
+compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
+         call NepmdPmPrintf( 'DEFMAIN: now filesinring = 'filesinring())
+compile endif
          leave
       endif
-      if emptyfileid.modify then         -- User changed it?
-         leave
-      endif
+      next_file
+   enddo
 
-      -- Check if other files in ring.
-      if newfileid = emptyfileid then
-         nextfile
-         getfileid newfileid
-         prevfile
-      endif
-      -- At this point: if other files in ring, then newfileid <> emptyfileid.
+   activatefile newfid
 
-      -- For the automatically created empty file no defload event is triggered.
-      -- Load a new empty file, for that the deload event will process.
-      if newfileid = emptyfileid then
-         'xcom e /n'
-         getfileid newfileid
-      endif
-
-      -- Get rid of the automatically created empty file
-      activatefile emptyfileid
-      'xcom q'
-      activatefile newfileid
-      --call select_edit_keys()  -- obsolete
-
-   enddo  -- i = 1 to 1
+; --- Automatically link .ex files from myepm\autolink ----------------------
+   call NepmdAutoLink()
 
 ; --- Process Hook ----------------------------------------------------------
-if isadefproc('HookExecute') then
-   call HookExecute('MAIN')
-endif
+   if isadefc('HookExecute') then
+      -- The 'main' hook is a comfortable way to overwrite or add some
+      -- general settings, set by definit or defmain. It enables
+      -- configurations by other linked .ex files without the use of
+      -- PROFILE.ERX.
+      -- Example: 'HookAdd main default_save_options /ns /ne /nt'
+      -- Example: 'HookAdd main default_search_options +faet'
+      -- Note   : Hooks are only able to process commands, not procedures.
+      'HookExecute main'
+   endif
 
 ; --- Process PROFILE.ERX ---------------------------------------------------
 compile if WANT_PROFILE
@@ -244,11 +262,19 @@ compile if WANT_PROFILE
  compile endif
 compile endif
 
-; --- Automatically link .ex files from myepm\autolink ----------------------
-   call NepmdAutoLink()
-
-; --- Prepare new file list -------------------------------------------------
-   call FileListDefmain()  -- todo: remove this and handle it by defload
+; --- Call AfterLoad ---------------------------------------------------
+   -- Sometimes DEFLOAD is triggered before all DEFMAIN stuff is processed.
+   defmainprocessed = 1
+   if defloadprocessed = 1 then -- if all DEFLOADs are already processed
+compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
+      call NepmdPmPrintf( 'DEFMAIN: Calling AfterLoad...')
+compile endif
+      'postme AfterLoad'
+   else
+compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
+      call NepmdPmPrintf( 'DEFMAIN: AfterLoad not called, because defloadprocessed <> 1.')
+compile endif
+   endif
 
 ; --- Show menu and window --------------------------------------------------
    -- this moved to the end of defmain
