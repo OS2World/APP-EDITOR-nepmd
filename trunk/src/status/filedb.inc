@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: filedb.inc,v 1.2 2002-07-18 22:00:36 cla Exp $
+* $Id: filedb.inc,v 1.3 2002-07-19 15:16:30 cla Exp $
 *
 * ===========================================================================
 *
@@ -70,6 +70,27 @@ while (!feof( $hfile))
 fclose( $hfile);
 
 return array( $file, $category, $title, $prio, $status, $filelist, $updated, $modified, $details);
+}
+
+
+function filedb_queryentries( $dbdir)
+{
+// read database
+$dir = dir( $dbdir);
+while ($entry = $dir->read())
+   {
+   if (!is_dir( $entry))
+      {
+      // read file contents
+      $entryfile = $dbdir."/".$entry;
+
+      $aentry = filedb_read( $entryfile);
+
+      $aaentry[] = $aentry;
+      }
+   }
+
+return $aaentry;
 }
 
 ?>
