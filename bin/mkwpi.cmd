@@ -20,7 +20,7 @@
  *      - The name value is ignored (may not be unique). It is recommended
  *        though to use a meaningful name in order to logically separate
  *        different filesets from each other.
- *      - the package id must be numeric and must match the corresponding 
+ *      - the package id must be numeric and must match the corresponding
  *        package id in the WarpIn script file
  *      - directory names and filemasks may contain blanks
  *      - The symbols defined as parameters are exported as environment
@@ -35,7 +35,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkwpi.cmd,v 1.3 2002-07-31 14:39:49 cla Exp $
+* $Id: mkwpi.cmd,v 1.4 2002-09-17 13:29:08 cla Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +54,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.3 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.4 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -200,7 +200,7 @@
           Pkg.ThisId.0 = 0;
        END;
 
-       p                       = Pkg.ThisId.0 + 1; 
+       p                       = Pkg.ThisId.0 + 1;
        Pkg.ThisId.p._FileMask  = ThisFileMask;
        Pkg.ThisId.p._Directory = ThisDirectory;
        Pkg.ThisId.0            = p;
@@ -214,25 +214,31 @@
     /* --- extend environment */
     'CALL WARPIN.ENV';
 
+    /* start writing parameters to a temporary response file */
+    ResponseFile = SysTempFilename( VALUE( 'TMP',,env)'\mkwpi.???');
+    rcx = LINEOUT( ResponseFile, '-s' WisScript);
+    rcx = LINEOUT( ResponseFile, '-a');
+
     /* - collecting parameters */
-    WicPkgList = '';
     DO WHILE (Pkg._List \= '')
        PARSE VAR Pkg._List ThisId Pkg._List;
        DO p = 1 TO Pkg.ThisId.0
           ThisParms = ThisId '-r -c'Pkg.ThisId.p._Directory Pkg.ThisId.p._FileMask;
           IF (fVerbose) THEN
              SAY ThisParms;
-          WicPkgList = WicPkgList ThisParms;
+          rc = LINEOUT( ResponseFile, ThisParms);
        END;
     END;
+    rcx = STREAM( ResponseFile, 'C', 'CLOSE');
 
     /* calling wpi compiler */
     rcx = SysFileDelete( WpiFile);
     rcx = SysFileDelete( LogFile);
-    WicCommand = 'wic' WpiFile '-a' WicPkgList '-s' WisScript '>>' LogFile '2>&1';
+    WicCommand = 'wic' WpiFile '@'ResponseFile '>>' LogFile '2>&1';
     rc = LINEOUT( LogFile, WicCommand);
     rc = LINEOUT( LogFile);
     'CALL' WicCommand;
+    rcx = SysFileDelete( ResponseFile);
 
  END;
 
