@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddereload.c,v 1.3 2002-06-08 23:48:57 cla Exp $
+* $Id: ddereload.c,v 1.4 2002-06-09 15:30:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -315,7 +315,10 @@ switch (msg)
                 prd->ulFilesLoaded, szFilename, szCurPos));
       sprintf( szCommand, "MC ;EDIT \"%s\";link %s;recomp SETPOS %s;", szFilename, prd->pszMacroFile, szCurPos);
       if (!_reloadExecuteEPMCommand( hwnd, prd->hwndServer, szCommand))
+         {
+         WinAlarm( HWND_DESKTOP, WA_ERROR);
          ABORT_LOADING;
+         }
 
       break;
 
