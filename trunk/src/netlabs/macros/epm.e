@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.17 2003-08-31 20:46:28 aschn Exp $
+* $Id: epm.e,v 1.18 2004-01-17 22:22:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -163,8 +163,8 @@ tryinclude     'linkcmds.e'    -- Useful new commands for the linking version.
 include        'autolink.e'    -- Link all .ex files found in myepm\autolink
 
 include        'stdctrl.e'     -- PM controls for EPM.
-include        'statline.e'    -- Statusline definitions
-include        'titletext.e'   -- Titletext definitions
+include        'infoline.e'    -- Statusline and Titletext definitions
+include        'filelist.e'    -- Save/restore ring and enable 'File 3 of 28' tag
 include        'toolbar.e'     -- Toolbar definitions
 
 compile if INCLUDE_MENU_SUPPORT & INCLUDE_STD_MENUS
@@ -283,3 +283,4 @@ compile if LINK_HOST_SUPPORT
    compiler_msg Don't forget to recompile your host support if appropriate.
  compile endif
 compile endif
+

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.28 2003-08-31 22:25:07 aschn Exp $
+* $Id: mode.e,v 1.29 2004-01-17 22:22:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,11 +19,7 @@
 *
 ****************************************************************************/
 
-; Todo:
 const
-compile if not defined(NEPMD_SPECIAL_STATUSLINE)
-   NEPMD_SPECIAL_STATUSLINE = 1
-compile endif
 compile if not defined(NEPMD_WANT_HIGHLIGHTING)
    NEPMD_WANT_HIGHLIGHTING = 1  -- for testing
 compile endif
@@ -181,7 +177,7 @@ defc resetmode
 ; This command uses the NEPMDLIB EA functions to change the EA 'EPM.MODE'
 ; immediately if NEPMD_RESTORE_MODE_FROM_EA = 1.
 ;
-; With the E functions only the EA area is changed. The EA's would only be saved
+; With the E functions only the EA area is changed. The EAs would only be saved
 ; when the file is saved.
 ;
 ; Both are used here: The NEPMDLIB functions to keep the EA after quitting and the
@@ -260,6 +256,8 @@ defproc NepmdProcessMode
    -- load_var is a marker that stores if tabs or margins were already set
    -- by the EA's EPM.TABS or EPM.MARGINS
    universal load_var
+   -- filestoload holds the number of files waiting to get loaded
+   universal filestoload
 
    CurMode = arg(1)
    HiliteCheckFlag = arg( 2)
@@ -274,12 +272,6 @@ defproc NepmdProcessMode
    endif
    -------- put mode dependent settings here: ------
 
-   -- Statusline
-   -- refresh the mode tag on statusline
-compile if NEPMD_SPECIAL_STATUSLINE
-   'refreshstatusline'
-compile endif
-
    -- Highlighting
 compile if NEPMD_WANT_HIGHLIGHTING
    if isadefproc('NepmdActivateHighlight') then
@@ -289,11 +281,17 @@ compile endif
 
    -- Key set, tabs, margins
    -- Moved from EKEYS.E, REXXKEYS.E, CKEYS.E, PKEYS.E
-   TabsSetFromEa    = (load_var // 2)      -- 1 would be on if tabs set from EA EPM.TABS
-   MarginsSetFromEa = (load_var bitand 2)  -- 2 would be on if tabs set from EA EPM.MARGINS
-   if CurMode = 'OFF' then
+   if isnum(load_var) then
+      TabsSetFromEa    = (load_var // 2)      -- 1 would be on if tabs set from EA EPM.TABS
+      MarginsSetFromEa = (load_var bitand 2)  -- 2 would be on if tabs set from EA EPM.MARGINS
+   else
+      -- If file is loaded internally, then no defload is triggered and load_var will be unset.
+      -- (This is fixed now, so every file load triggers a defload event.)
+      TabsSetFromEa    = 0
+      MarginsSetFromEa = 0
+   endif
 
-   elseif CurMode = 'E' then          ---- E ----
+   if CurMode = 'E' then              ---- E ----
       keys E_keys
 compile if E_TABS <> 0
       if not TabsSetFromEa then
@@ -358,6 +356,16 @@ compile if P_MARGINS <> 0
       endif
 compile endif
 
+   else
+      keys edit_keys
+
+   endif
+
+   -- Statusline
+   -- refresh the mode tag on statusline
+   if filestoload < 1 then
+      -- don't process this on defload, because it's already executed there
+      'RefreshInfoLine MODE'
    endif
 
    return
@@ -404,7 +412,9 @@ defproc NepmdSelectMode()
 
    -- check result
    parse value select with \1 select \0
-   select = strip( select, 'B', \1 ) -- sometimes the returned value for cancel is \1
+   if hex2dec( c2x(select)) < 33 then  -- sometimes the returned value for cancel is a hex char
+      select = ''
+   endif
    if ((select = DefMode) | (select = '-DEFAULT-')) then
       select = 'OFF'
    end
