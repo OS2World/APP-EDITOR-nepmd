@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.4 2002-10-17 17:09:38 aschn Exp $
+* $Id: locate.e,v 1.5 2002-10-20 14:16:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -492,4 +492,22 @@ defproc redirect(cmd)
    call erasetemp(outfile)
    return
 
+; ---------------------------------------------------------------------------
+defc findmark
+   call psave_pos(saved_pos)
+   if marktype() = '' then  -- text marked?
+     'markword'
+   endif
+   -- Get active mark coordinates and fileid
+   getmark  first_line, last_line, first_col, last_col, mark_fileid
+   if last_line <> first_line then
+      last_line = first_line
+      endline
+      last_col = .col
+   endif
+   searchstring = substr( textline( first_line ), first_col, last_col - first_col + 1 )
+   call prestore_pos(saved_pos)
+   if searchstring <> '' then
+      'l 'searchstring''
+   endif
 
