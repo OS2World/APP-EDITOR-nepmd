@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.23 2002-09-25 14:41:04 cla Exp $
+* $Id: test.c,v 1.24 2002-10-01 14:36:28 cla Exp $
 *
 * ===========================================================================
 *
@@ -267,12 +267,17 @@ do
       {
                CHAR           szHiliteFile[ _MAX_PATH];
                PSZ            pszEpmMode = "C";
+               BOOL           fReload;
 
-      rc = QueryHilightFile( "C", szHiliteFile, sizeof( szHiliteFile));
+      if (argc > 2) pszEpmMode = argv[ 2];
+
+      // a debug message in this api already displays the returned filename
+      // so no printf needed here
+      rc = QueryHilightFile( pszEpmMode, &fReload, szHiliteFile, sizeof( szHiliteFile));
       if (rc != NO_ERROR)
          printf( "hilite file for mode %s could not be determined, rc=%u\n", pszEpmMode, rc);
       else
-         printf( "hilite file for mode %s is: %s\n", pszEpmMode, szHiliteFile);
+         printf( "hilite file needs %sto be reloaded.\n", (fReload) ? "" : "not ");
 
       } // testcase QUERYHILIGHTFILE
 
