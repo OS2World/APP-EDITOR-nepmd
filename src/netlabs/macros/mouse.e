@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.5 2002-10-15 22:26:37 cla Exp $
+* $Id: mouse.e,v 1.6 2002-10-16 20:57:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -725,58 +725,60 @@ compile endif
                endif
             endif
 
-            -- if no URL until here, quit
-            if Url = '' then
-               unmark
-               'ClearSharBuff'
-               stop
-            endif
+            -- if URL until here, process it
+            if Url <> '' then
+               -- cut off special separators from URL
+               SeparatorList = '"'||"'"||')]]>,;!';
+               ReplaceList   =  copies( ' ', length( SeparatorList))
+               Url = word( translate( Url, ReplaceList, SeparatorList),  1)
 
-            -- cut off special separators from URL
-            SeparatorList = '"'||"'"||')]]>,;!';
-            ReplaceList   =  copies( ' ', length( SeparatorList))
-            Url = word( translate( Url, ReplaceList, SeparatorList),  1)
+               -- select default browser or use netscape as default
+               if upcase(BrowserExecutable) = 'DEFAULT' then
+                  BrowserExecutable = queryprofile( HINI_USERPROFILE, 'WPURLDEFAULTSETTINGS', 'DefaultBrowserExe')
+                  NamePos           = lastpos( '\', BrowserExecutable) + 1
+                  ExtPos            = pos( '.', BrowserExecutable, NamePos)
+                  PathPos           = pos( '\', BrowserExecutable)
 
-            -- select default browser or use netscape as default
-            if upcase(BrowserExecutable) = 'DEFAULT' then
-               BrowserExecutable = queryprofile( HINI_USERPROFILE, 'WPURLDEFAULTSETTINGS', 'DefaultBrowserExe')
-               NamePos           = lastpos( '\', BrowserExecutable) + 1
-               ExtPos            = pos( '.', BrowserExecutable, NamePos) 
-               PathPos           = pos( '\', BrowserExecutable)
+                  BrowserName       = substr( BrowserExecutable, NamePos, ExtPos - NamePos)
+                  BrowserPath       = substr( BrowserExecutable, 1, NamePos - 2)
 
-               BrowserName       = substr( BrowserExecutable, NamePos, ExtPos - NamePos)
-               BrowserPath       = substr( BrowserExecutable, 1, NamePos - 2)
+               elseif BrowserExecutable = '' then
+                  BrowserExecutable = 'netscape'
+                  BrowserName       = 'Netscape'
+                  BrowserPath       = ''
+               endif
 
-            elseif BrowserExecutable = '' then
-               BrowserExecutable = 'netscape'
-               BrowserName       = 'Netscape'
-               BrowserPath       = ''
-            endif
+               -- save current directory
+               if BrowserPath <> '' then
+                  CurrentDirectory  = directory()
+                  call directory( BrowserPath)
+               endif
 
-            -- save current directory
-            if BrowserPath <> '' then
-               CurrentDirectory  = directory()
-               call directory( BrowserPath)
-            endif
+               sayerror 'Invoking' BrowserName 'with:' Url
+               'os2 /min /c start /f' BrowserExecutable' "'Url'"'
 
-            sayerror 'Invoking' BrowserName 'with:' Url
-            'os2 /min /c start /f' BrowserExecutable' "'Url'"'
+               -- Teststrings here:
+               -- http://www.os2.org
+               -- ftp://ftp.netlabs.org,www.netlabs.org,ftp://ftp.os2.org
+               -- (ftp://ftp.netlabs.org)
+               -- ####ftp://ftp.netlabs.org)###)
+               -- ftp://ftp.netlabs.org
+               -- www.netlabs.org
+               -- mailto:C.Langanke@Teamos2.de
 
-            -- Teststrings here:
-            -- http://www.os2.org
-            -- ftp://ftp.netlabs.org,www.netlabs.org,ftp://ftp.os2.org
-            -- (ftp://ftp.netlabs.org)
-            -- ####ftp://ftp.netlabs.org)###)
-            -- ftp://ftp.netlabs.org
-            -- www.netlabs.org
-            -- mailto:C.Langanke@Teamos2.de
+               -- restore current directory
+               if Browserpath <> '' then
+                  call directory( CurrentDirectory)
+               endif
+            endif  -- Url = ''
 
-            -- restore current directory
-            if Browserpath <> '' then
-               call directory( CurrentDirectory)
-            endif
+         endif  -- cursorcol > firstcol and cursorcol < lastcol
 
-         endif -- cursorcol > firstcol and cursorcol < lastcol then
+         -- if no URL found, process the normal definition
+         if Url = '' then
+            unmark
+            'ClearSharBuff'
+         endif
 
       endif  -- MB1DClickStartsBrowser = 1
 
