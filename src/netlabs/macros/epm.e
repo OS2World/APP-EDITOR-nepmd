@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.22 2004-02-22 20:02:52 aschn Exp $
+* $Id: epm.e,v 1.23 2004-02-22 20:36:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -70,8 +70,14 @@ include        'mode.e'        -- Mode definitions
 include        'edit.e'        -- Edit command
 include        'load.e'        -- Default defload must come before other defloads.
 compile if not VANILLA
-   tryinclude  'myload.e'      -- Optional user additions to DEFLOAD.
+   tryinclude  'myload.e'      -- Optional user additions to DEFLOAD. Use your own
+                               -- DEFLOADs only here to make them work properly!
+                               -- Note: DEFLOAD should not be used in an externally
+                               --       linked .ex file, as done by many packages!
+                               -- As an alternative you may want to use the new 'load'
+                               -- hook, see HOOKS.E.
 compile endif  -- not VANILLA
+include        'afterload.e'   -- Afterload's DEFLOAD must come after other DEFLOADs.
 
 include        'select.e'
 compile if not VANILLA
