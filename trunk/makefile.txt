@@ -7,7 +7,8 @@ make all     - build complete package (*)
 make inst    - build complete package and start WPI (*)
 
 make nepmd   - build NEPMD extensions
-make srccopy - copy some NEPMD files directly from CVS tree part to compile directory
+make srccopy - copy some NEPMD files directly from CVS tree part
+               to compile directory
 make show    - build NEPMD INF and show it
 
 make prepare - only downloads EPMBBS zip files from leo and unpacks (*)
