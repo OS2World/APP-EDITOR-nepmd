@@ -11,7 +11,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkex.cmd,v 1.3 2002-08-15 14:55:09 cla Exp $
+* $Id: mkex.cmd,v 1.4 2002-08-15 15:20:03 cla Exp $
 *
 * ===========================================================================
 *
@@ -27,7 +27,10 @@
 ****************************************************************************/
 
  '@ECHO OFF';
+ env = 'OS2ENVIRONMENT';
  rcx = SETLOCAL();
+ call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+ call SysLoadFuncs
 
  /* set include path for macro compiler */
  'SET EPMPATH=macros';
@@ -46,7 +49,46 @@
 
  TargetFile = SourceFile'x';
 
+ /* create tempfile */
+ TmpFile = SysTempFilename( VALUE('TMP',,env)'\mkex.???');
+
  /* call compiler */
- 'etpm' SourceFile TargetDir'\'TargetFile;
+ 'etpm' SourceFile TargetDir'\'TargetFile '>' TmpFile;
+
+ IF (rc \= 0) THEN
+    rcx = ShowEtpmError( TmpFile);
 
  EXIT (rc);
+
+/* ========================================================================= */
+/* This routine is applicable only for non-verbose output !!! */
+ShowEtpmError: PROCEDURE
+ PARSE ARG Filename;
+
+ /* skip header */
+ DO WHILE (LINES( FileName) > 0)
+    ThisLine = LINEIN( FileName);
+    IF (ThisLine = ' compiling ...') THEN
+       LEAVE;
+ END;
+
+ /* read error info */
+ ErrorMessage = LINEIN( FileName);
+ Dummy        = LINEIN( FileName);
+ Dummy        = LINEIN( FileName);
+ FileInfo     = LINEIN( FileName);
+ LineInfo     = LINEIN( FileName);
+ ColInfo      = LINEIN( FileName);
+
+ /* close and remove file */
+ rcx = STREAM( Filename, 'C', 'CLOSE');
+ rcx = SysFileDelete( Filename);
+
+ /* display error information */
+ PARSE VAR FileInfo .'='File' ';
+ PARSE VAR LineInfo .'= 'Line' ';
+ PARSE VAR ColInfo  .'= 'Col;
+ SAY File'('Line':'Col'):' ErrorMessage;
+
+ RETURN( 0);
+
