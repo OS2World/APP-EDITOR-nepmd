@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.14 2002-09-20 13:45:57 cla Exp $
+* $Id: epmenv.c,v 1.15 2002-09-20 18:11:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -588,15 +588,19 @@ do
    // default to make no changes
    *ppszNewEnv = NULL;
 
-   // search EPM executable in anyway
+   // search loader executable and EPM executable
+   szEpmExecutable[ 0] = 0;
+   szLoaderExecutable[ 0] = 0;
    rc = _searchEpmExecutable( szEpmExecutable,    sizeof( szEpmExecutable),
                               szLoaderExecutable, sizeof(  szLoaderExecutable));
-   if (rc != NO_ERROR)
-      break;
 
    // hand over name of executable, if buffer supplied
    if (pszBuffer)
       {
+      // if executable is requested, react on error
+      if (rc != NO_ERROR)
+         break;
+
       if (strlen( szEpmExecutable) + 1 > ulBuflen)
          {
          rc = ERROR_BUFFER_OVERFLOW;
