@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: title.inc,v 1.3 2002-04-18 08:57:26 cla Exp $
+.. $Id: title.inc,v 1.4 2002-04-18 14:06:56 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -23,6 +23,9 @@
 .. ***************************************************************************
 
 .set DOCTITLE=Netlabs EPM Distribution
+.set DISTDIR=netlabs
+.set USERDIR=myepm
+
 .set TOPICS=Select one of the following topics:
 
 .set YEAR=2002
