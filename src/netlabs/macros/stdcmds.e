@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.8 2002-09-21 19:54:31 aschn Exp $
+* $Id: stdcmds.e,v 1.9 2002-10-06 23:39:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,8 @@
 
 const
 compile if not defined(NEPMD_SPECIAL_STATUSLINE)
-   NEPMD_SPECIAL_STATUSLINE = 0
+   -- used by defc margins,ma and defc tabs
+   NEPMD_SPECIAL_STATUSLINE = 1
 compile endif
 
 defc alter =
@@ -176,65 +177,8 @@ defc browse =
    endif
 
 
-defc c,change=
-   universal lastchangeargs, default_search_options
-compile if SETSTAY='?'
-   universal stay
-compile endif
-compile if defined(HIGHLIGHT_COLOR)
-   universal search_len
-compile endif
+; Moved defc c,change to LOCATE.E
 
-compile if SETSTAY
-   call psave_pos(savepos)
-compile endif
-   /* Insert default_search_options just before supplied options (if any)    */
-   /* so the supplied options will take precedence.                          */
-   args=strip(arg(1),'L')  /* Delimiter = 1st char, ignoring leading spaces. */
-   user_options=''
-   if args<>'' then        /* If args blank, use lastchangeargs. */
-      if default_search_options='' then
-         lastchangeargs=args
-      else
-         delim=substr(args,1,1)
-         p=pos(delim,args,2)   /* find last delimiter of 2 or 3 */
-         if p then
-compile if defined(HIGHLIGHT_COLOR)
-            search_len=p-2
-compile endif
-            p=pos(delim,args,p+1)   /* find last delimiter of 2 or 3 */
-            if p>0 then
-               user_options=substr(args,p+1)
-               args=substr(args,1,p-1)
-            endif
-         else
-            sayerror NO_REP__MSG
-         endif
-         if marktype() then
-            all=''
-         else           -- No mark, so override if default is M.
-            all='A'
-         endif
-         lastchangeargs=args || delim || default_search_options || all || user_options
-      endif
-   endif
-   if verify(upcase(user_options),'M','M') then
-      call checkmark()
-      /* Put this line back in if you want the M choice to force */
-      /* the cursor to the start of the mark.                    */
-;;;   call pbegin_mark()  /* mark specified - make sure at top of mark */
-   endif
-   'xcom c 'lastchangeargs
-
-compile if SETSTAY='?'
-   if stay then
-compile endif
-compile if SETSTAY
-      call prestore_pos(savepos)
-compile endif
-compile if SETSTAY='?'
-   endif
-compile endif
 
 defc cd=
    rc=0
@@ -494,40 +438,8 @@ defc key=
    sayerror 0
 
 
-defc l, locate =  /* Note:  this DEFC also gets executed by the slash ('/') command. */
-   universal default_search_options
-compile if defined(HIGHLIGHT_COLOR)
-   universal search_len
-compile endif
-   /* Insert default_search_options just before supplied options (if any)    */
-   /* so the supplied options will take precedence.                          */
-   args=strip(arg(1),'L')
-compile if not defined(HIGHLIGHT_COLOR)
-   if default_search_options<>'' then
-compile endif
-      delim=substr(args,1,1)
-      p=pos(delim,args,2)
-      user_options=''
-      if p then
-         user_options=substr(args,p+1)
-         args=substr(args,1,p-1)
-      endif
-      if marktype() then
-         all=''
-      else           -- No mark, so override if default is M.
-         all='A'
-      endif
-compile if defined(HIGHLIGHT_COLOR)
-      search_len=length(args)-1   /***** added for hilite *****/
-compile endif
-      args=args|| delim || default_search_options || all || user_options
-compile if not defined(HIGHLIGHT_COLOR)
-   endif
-compile endif
-   'xcom l 'args
-compile if defined(HIGHLIGHT_COLOR)
-   call highlight_match(search_len)
-compile endif
+; Moved defc l, locate to LOCATE.E
+
 
 ; As of EPM 5.18, this command supports use of the DOS or OS/2 ATTRIB command,
 ; so non-IBM users can also use the LIST command.  Note that installing SUBDIR
@@ -1145,6 +1057,7 @@ compile endif
 ;compile if    WANT_LAN_SUPPORT                          -- remove?
 ;   if locked & not arg(1) then call lock(); endif       -- remove?
 ;compile endif                                           -- remove?
+   'maketitletext'
    return src
 
 defc select_all =
