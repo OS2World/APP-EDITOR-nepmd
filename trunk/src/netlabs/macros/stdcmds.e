@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.11 2002-10-20 14:18:13 aschn Exp $
+* $Id: stdcmds.e,v 1.12 2002-12-09 21:09:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -641,9 +641,7 @@ defc newwindow=
    'quit'
 
 defc restorepos
-   parse arg saved_pos
-   saved_pos = strip(saved_pos)
-   sayerror 'defc restorepos: saved_pos = 'saved_pos
+   saved_pos = strip( arg(1) )
    if saved_pos <> '' then
       call prestore_pos(saved_pos)
    endif
@@ -1091,7 +1089,15 @@ compile if WANT_DATETIME_IN_TITLE
 compile endif
 
    -- explicitely redetermine mode (file contents may have changed)
-   call NepmdResetMode(OldMode)
+   --call NepmdResetMode(OldMode)
+   -- Must be delayed it with 'postme'.
+   -- Otherwise a MessageBox (defined in ETK) will pop up when
+   --    -  the window should be closed and
+   --    -  there is a modified file in the ring and
+   --    -  the file was saved.
+   -- The file *was* saved but the MessageBox says that there has
+   -- occured an error saving the file.
+   'postme ResetMode 'OldMode
 
    return src
 
