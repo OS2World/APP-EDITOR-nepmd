@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.4 2004-01-13 17:27:58 aschn Exp $
+* $Id: groups.e,v 1.5 2004-01-17 07:56:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -44,7 +44,7 @@ const
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
-;   include NLS_LANGUAGE'.e'          -- Needed for UNNAMED_FILE_NAME
+   include NLS_LANGUAGE'.e'
 
 defmain
    ''arg(1)
