@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.7 2002-09-11 12:33:40 cla Exp $
+# $Id: makefile,v 1.8 2002-09-16 13:48:36 cla Exp $
 #
 # ===========================================================================
 #
@@ -26,6 +26,10 @@
 #     (MACRODIR used by project.in)
 MACRODIR=macros
 EPMPATH=$(MACRODIR)
+
+# --- set DPATH to nothing in order to prevent to include
+#     any my*.e files
+DPATH=;
 
 # --- include main definitions
 
