@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleterexxea.e,v 1.7 2002-08-27 12:21:24 cla Exp $
+* $Id: deleterexxea.e,v 1.8 2002-08-28 21:04:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdDeleteRexxEa@PROTOTYPE
-Fullname = NepmdDeleteRexxEa( Filename);
+rc = NepmdDeleteRexxEa( Filename);
 
 @@NepmdDeleteRexxEa@CATEGORY@EAS
 

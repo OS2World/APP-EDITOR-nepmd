@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writestringea.e,v 1.6 2002-08-27 12:21:26 cla Exp $
+* $Id: writestringea.e,v 1.7 2002-08-28 21:04:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdWriteStringEa@PROTOTYPE
-EaValue = NepmdWriteStringEa( Filename, EaName, EaValue);
+rc = NepmdWriteStringEa( Filename, EaName, EaValue);
 
 @@NepmdWriteStringEa@CATEGORY@EAS
 
@@ -37,7 +37,7 @@ This parameter specifies the name of the file, to which
 the specified REXX EAs is to be written.
 
 @@NepmdWriteStringEa@PARM@EaName
-This parameter specifies the name of the extended 
+This parameter specifies the name of the extended
 attribute to be written.
 
 @@NepmdWriteStringEa@PARM@EaValue

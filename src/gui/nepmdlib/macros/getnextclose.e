@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextclose.e,v 1.1 2002-08-28 13:05:24 cla Exp $
+* $Id: getnextclose.e,v 1.2 2002-08-28 21:04:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdGetNextClose@PROTOTYPE
-Filename = NepmdGetNextClose( Handle);
+rc = NepmdGetNextClose( Handle);
 
 @@NepmdGetNextClose@CATEGORY@FILE
 

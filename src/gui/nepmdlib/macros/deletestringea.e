@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deletestringea.e,v 1.5 2002-08-27 12:21:25 cla Exp $
+* $Id: deletestringea.e,v 1.6 2002-08-28 21:04:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdDeleteStringEa@PROTOTYPE
-Fullname = NepmdDeleteStringEa( Filename, EaName);
+rc = NepmdDeleteStringEa( Filename, EaName);
 
 @@NepmdDeleteStringEa@CATEGORY@EAS
 
@@ -37,7 +37,7 @@ This parameter specifies the name of the file, from which
 the specified REXX EAs is to be deleted.
 
 @@NepmdDeleteStringEa@PARM@EaName
-This parameter specifies the name of the extended 
+This parameter specifies the name of the extended
 attribute to be deleted.
 
 @@NepmdDeleteStringEa@RETURNS
@@ -69,7 +69,7 @@ defc NepmdDeleteStringEa, DeleteStringEa =
 /*    Fullname = NepmdDeleteStringEa( Filename, EaName);         */
 /* ------------------------------------------------------------- */
 
-defproc NepmdDeleteStringEa( Filename, EaName ) = 
+defproc NepmdDeleteStringEa( Filename, EaName ) =
 
  /* prepare parameters for C routine */
  Filename   = Filename''atoi( 0);
