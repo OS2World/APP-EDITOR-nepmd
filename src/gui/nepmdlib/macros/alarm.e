@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alarm.e,v 1.2 2002-09-03 12:25:56 cla Exp $
+* $Id: alarm.e,v 1.3 2002-09-06 10:01:13 cla Exp $
 *
 * ===========================================================================
 *
@@ -85,12 +85,12 @@ defproc NepmdAlarm( AlarmStyle) =
  AlarmStyle = AlarmStyle''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  fResult = dynalink32( LibFile,
                        "NepmdAlarm",
                        address( AlarmStyle));
 
- checkliberror( LibFile, fResult);
+ helperNepmdCheckliberror( LibFile, fResult);
 
  return fResult;
 

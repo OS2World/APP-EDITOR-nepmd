@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: filedelete.e,v 1.2 2002-09-02 15:00:50 cla Exp $
+* $Id: filedelete.e,v 1.3 2002-09-06 10:01:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -81,12 +81,12 @@ defproc NepmdFileDelete( Filename) =
  Filename   = Filename''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdFileDelete",
                   address( Filename));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return rc;
 

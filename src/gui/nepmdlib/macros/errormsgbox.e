@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: errormsgbox.e,v 1.7 2002-08-28 21:16:25 cla Exp $
+* $Id: errormsgbox.e,v 1.8 2002-09-06 10:01:13 cla Exp $
 *
 * ===========================================================================
 *
@@ -72,14 +72,14 @@ defproc NepmdErrorMsgBox( BoxMessage, BoxTitle) =
  BoxTitle   = Boxtitle''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdErrorMsgBox",
                   gethwndc( EPMINFO_EDITCLIENT) ||
                   address( BoxMessage)          ||
                   address( BoxTitle));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return rc;
 

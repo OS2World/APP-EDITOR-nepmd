@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querysysinfo.e,v 1.3 2002-09-05 13:23:19 cla Exp $
+* $Id: querysysinfo.e,v 1.4 2002-09-06 10:01:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -149,14 +149,14 @@ defproc NepmdQuerySysInfo( ValueTag) =
  ValueTag = ValueTag''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdQuerySysInfo",
                   address( ValueTag)         ||
                   address( SysValue)         ||
                   atol( Buflen));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( SysValue);
 

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writestringea.e,v 1.8 2002-08-28 21:16:25 cla Exp $
+* $Id: writestringea.e,v 1.9 2002-09-06 10:01:17 cla Exp $
 *
 * ===========================================================================
 *
@@ -86,14 +86,14 @@ defproc NepmdWriteStringEa( Filename, EaName, EaValue) =
  EaValue    = EaValue''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdWriteStringEa",
                   address( Filename)            ||
                   address( EaName)              ||
                   address( EaValue));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return rc;
 

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.7 2002-08-28 21:16:25 cla Exp $
+* $Id: info.e,v 1.8 2002-09-06 10:01:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -80,12 +80,12 @@ defproc NepmdInfo =
  activatefile startfid;
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdInfo",
                   gethwndc( EPMINFO_EDITCLIENT));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  /* make id discardable */
  .modify = 0;

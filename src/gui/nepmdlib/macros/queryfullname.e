@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryfullname.e,v 1.9 2002-08-27 12:21:26 cla Exp $
+* $Id: queryfullname.e,v 1.10 2002-09-06 10:01:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -91,14 +91,14 @@ defproc NepmdQueryFullname( Filename) =
  Filename   = Filename''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdQueryFullname",
                   address( Filename)            ||
                   address( Fullname)            ||
                   atol( Buflen));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( FullName);
 

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: scanenv.e,v 1.1 2002-09-03 12:26:06 cla Exp $
+* $Id: scanenv.e,v 1.2 2002-09-06 10:01:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -84,14 +84,14 @@ defproc NepmdScanEnv( EnvName ) =
  EnvName = TRANSLATE( EnvName);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdScanEnv",
                   address( EnvName)         ||
                   address( EnvValue)        ||
                   atol( Buflen));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( EnvValue);
 

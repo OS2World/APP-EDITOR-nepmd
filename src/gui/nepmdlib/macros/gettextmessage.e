@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.12 2002-08-29 14:49:12 cla Exp $
+* $Id: gettextmessage.e,v 1.13 2002-09-06 10:01:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -198,7 +198,7 @@ defproc NepmdGetTextMessage( Filename, Messagename) =
  VarParmList = Addr1 || Addr2 || Addr3 || Addr4 || Addr5 || Addr6 || Addr7 || Addr8 || Addr9;
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdGetTextMessage",
                   address( Filename)            ||
@@ -207,7 +207,7 @@ defproc NepmdGetTextMessage( Filename, Messagename) =
                   atol( Buflen)                 ||
                   VarParmList);
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( TextMessage);
 

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryinstvalue.e,v 1.1 2002-09-05 16:41:02 cla Exp $
+* $Id: queryinstvalue.e,v 1.2 2002-09-06 10:01:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -113,14 +113,14 @@ defproc NepmdQueryInstValue( ValueTag) =
  ValueTag = ValueTag''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdQueryInstValue",
                   address( ValueTag)          ||
                   address( InstValue)         ||
                   atol( Buflen));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( InstValue);
 

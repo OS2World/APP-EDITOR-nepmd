@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.5 2002-09-05 13:23:19 cla Exp $
+* $Id: querypathinfo.e,v 1.6 2002-09-06 10:01:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -115,7 +115,7 @@ defproc NepmdQueryPathInfo( Pathname, ValueTag) =
  ValueTag  = ValueTag''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdQueryPathInfo",
                   address( Pathname)         ||
@@ -123,7 +123,7 @@ defproc NepmdQueryPathInfo( Pathname, ValueTag) =
                   address( InfoValue)        ||
                   atol( Buflen));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( InfoValue);
 

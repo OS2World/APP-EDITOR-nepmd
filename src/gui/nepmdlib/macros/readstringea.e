@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: readstringea.e,v 1.3 2002-08-27 12:21:26 cla Exp $
+* $Id: readstringea.e,v 1.4 2002-09-06 10:01:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -90,7 +90,7 @@ defproc NepmdReadStringEa( Filename, EaName ) =
  EaName     = EaName''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdReadStringEa",
                   address( Filename)            ||
@@ -98,7 +98,7 @@ defproc NepmdReadStringEa( Filename, EaName ) =
                   address( TextMessage)         ||
                   atol( Buflen));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( TextMessage);
 
