@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: client.c,v 1.4 2002-06-10 10:32:55 cla Exp $
+* $Id: client.c,v 1.5 2002-06-10 11:27:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -206,6 +206,10 @@ switch (msg)
 
          case IDMEN_HELP_PARMS:
             ShowHelp( hwnd, pwd->hmodResource);
+            break;
+
+         case IDMEN_HELP_NEPMDINF:
+            system( HELP_LAUNCH_NEPMDINF);
             break;
 
          case IDMEN_SETTINGS_DISCARD_UNSAVED:

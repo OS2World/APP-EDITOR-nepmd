@@ -27,6 +27,7 @@
 #define IDT_IDMEN_SETTINGS_SHOW_COMPILELOG       "~Logdatei der šbersetzung anzeigen"
 #define IDT_IDMEN_HELP                           "~Hilfe"
 #define IDT_IDMEN_HELP_PARMS                     "Kommandozeilen~parameter..."
+#define IDT_IDMEN_HELP_NEPMDINF                  "~NEPMD Referenz laden..."
 #define IDT_IDMEN_HELP_INFO                      "~Produktinformation..."
 
 
