@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.26 2004-07-12 19:49:54 aschn Exp $
+* $Id: main.e,v 1.27 2004-09-12 15:10:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -96,9 +96,10 @@ defmain
    universal app_hini
    universal unnamedfilename
    universal defmainprocessed
-   universal defloadprocessed
+   universal loadstate
    universal firstloadedfid  -- first file for the 'xcom e /n' cmd
    universal firstinringfid  -- first file in the ring
+   loadstate = 0
 
 ;  Get args and make it a parameter for the edit cmd ------------------------
    doscmdline = 'e 'arg(1) /* Can do special processing of DOS command line.*/
@@ -132,7 +133,10 @@ compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVE
    call check_savepath()
 compile endif
 
-;  Process 'init' Hook ------------------------------------------------------
+;  Automatically link .ex files from myepm\autolink -------------------------
+   call NepmdAutoLink()
+
+;  Process 'init' hook ------------------------------------------------------
    -- The 'init' hook is a comfortable way to overwrite or add some
    -- general settings as an extension to NepmdInitConfig or initconfig.
    -- It can be used for configurations by other linked .ex files without
@@ -148,9 +152,6 @@ compile if SUPPORT_USER_EXITS
       call defmain_exit(doscmdline)
    endif
 compile endif
-
-;  Automatically link .ex files from myepm\autolink -------------------------
-   call NepmdAutoLink()
 
 ;  Process PROFILE.ERX ------------------------------------------------------
    -- Changed: profile.erx is now processed before any file is loaded. In
@@ -226,18 +227,6 @@ compile endif
    call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
    -- see also: STDCNF.E for menu
    call showwindow('ON')
-
-;  Call AfterLoad -----------------------------------------------------------
-   -- Sometimes DEFLOAD is triggered before all DEFMAIN stuff is processed.
-   defmainprocessed = 1
-compile if NEPMD_WANT_AFTERLOAD
-   if defloadprocessed = 1 then -- if all DEFLOADs from first edit command already processed
-      dprintf( 'AFTERLOAD', 'Calling AfterLoad from DEFMAIN...')
-      'postme AfterLoad'
-   else
-      dprintf( 'AFTERLOAD', 'AfterLoad not called from DEFMAIN, because defloadprocessed <> 1.')
-   endif
-compile endif
 
 ;  Check used version of EPM.EX ---------------------------------------------
    'CheckEpmExTimeStamp'

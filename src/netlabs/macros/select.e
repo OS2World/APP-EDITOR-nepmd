@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.6 2004-06-03 23:13:30 aschn Exp $
+* $Id: select.e,v 1.7 2004-09-12 15:10:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -56,21 +56,24 @@ defproc select_edit_keys()
 ; ---------------------------------------------------------------------------
 defselect
    universal lastselectedfid
-   universal defloadactive
+   universal loadstate
    getfileid fid
-;   call NepmdPmPrintf('DEFSELECT: defloadactive = 'defloadactive)
-   if defloadactive <> 1 then  -- better let afterload do the config and refresh stuff
-      if fid = lastselectedfid then
-;         call NepmdPmPrintf('DEFSELECT: (fid = lastselectedfid) not executing ProcessSelect -- '.filename)
-      else
-;         call NepmdPmPrintf('DEFSELECT: executing ProcessSelect -- '.filename', lastselected: ('lastselectedfid') 'lastselectedfid.filename)
-         'ProcessSelect'
-         lastselectedfid = fid  -- avoid repeating this by afterload for this file
-      endif
+   dprintf('SELECT', 'DEFSELECT for '.filename', loadstate = 'loadstate)
+   if loadstate = 1 then  -- if a defload was processed before
+      loadstate = 2
+      'AfterLoad'  -- executes multiple ring commands that sometimes leave the wrong file on top
+      'postme activatefile' fid  -- postme required, but doesn't work in some rare cases
+      loadstate = 0
+   endif
+   if fid = lastselectedfid then
+      -- nop, ProcessSelect was already executed for this file
+   else
+      'ProcessSelect'
+      lastselectedfid = fid
    endif
 
 ; ---------------------------------------------------------------------------
-; Executed by AfterLoad and/or defselect
+; Executed by defselect
 defc ProcessSelect
    universal tab_key
    universal stream_mode
@@ -85,9 +88,7 @@ compile if WANT_EBOOKIE = 'DYNALINK'
    universal bkm_avail
 compile endif
 
-compile if NEPMD_DEBUG_SELECT and NEPMD_DEBUG
-   call NepmdPmPrintf( 'DEFSELECT: '.filename)
-compile endif
+   dprintf( 'SELECT', 'PROCESSSELECT for '.filename)
 
    -- moved the SetMenuAttribute stuff for command shell windows to STDCTRL.E, defc menuinit_0
 
@@ -142,11 +143,4 @@ compile endif
    'HookExecuteOnce selectonce'  -- user additions, deleted after execution
    'HookExecute afterselect'     -- usually contains ProcessRefreshInfoLine
 
-/*
-   if tab_key            = '' then sayerror 'tab_key undefined'           ; endif;
-   if stream_mode        = '' then sayerror 'stream_mode undefined'       ; endif;
-   if expand_on          = '' then sayerror 'expand_on undefined'         ; endif;
-   if matchtab_on        = '' then sayerror 'matchtab_on undefined'       ; endif;
-   if cua_marking_switch = '' then sayerror 'cua_marking_switch undefined'; endif;
-*/
 

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.2 2004-07-09 13:40:10 aschn Exp $
+* $Id: modeexec.e,v 1.3 2004-09-12 15:10:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -147,7 +147,7 @@ defc ResetFileSettings
 ; (defc Mode and ResetMode call ResetFileSettings when the mode has changed.)
 defc ProcessLoadSettings
    universal nepmd_hini
-   universal defloadactive
+   universal loadstate
    universal SelectSettingsList
    universal LoadSettingsList
 
@@ -163,7 +163,7 @@ defc ProcessLoadSettings
       Mode = NepmdGetMode()  -- Doesn't work properly during file loading, because current file
                              -- has probably changed? Therefore Mode is submitted as arg.
    endif
-   if defloadactive then
+   if loadstate then
       HiliteCheckFlag = NepmdGetHiliteCheckFlag(Mode)
    else
       HiliteCheckFlag = ''
@@ -191,14 +191,16 @@ defc ProcessLoadSettings
    do i = 1 to imax
       Cmd = GetAVar(prefix''HookName'.'i)
       parse value Cmd with wrd SettingsValue
-;         call NepmdPmPrintf('MODE: 'Cmd' -- '.filename)
       Cmd  -- execute command
    enddo
 
-   if defloadactive then
+   if loadstate then
       -- Activate keyword highlighting, if not already done by load_<mode> hook
       next = GetAVar('highlight.'fid)  -- get file setting
       if next = '' | next = 'DEFAULT' then
+         -- Bug in NepmdActivateHighlight:
+         -- Execution suppresses defselect after defload, if EPM is already
+         -- open and a new file is added to the ring.
          call NepmdActivateHighlight( default_on, Mode, HiliteCheckFlag)
       endif
    else
@@ -216,7 +218,7 @@ defc ProcessLoadSettings
    -- Maybe the load and load_once hook should here be executed as well?
 
    -- Refresh the mode field on statusline
-   if not defloadactive then
+   if not loadstate then
       -- don't process this on defload, because it's already executed there
       'RefreshInfoLine MODE'
    endif
@@ -322,7 +324,7 @@ definit
 defc ModeExecute, ModeExec
    universal SelectSettingsList
    universal LoadSettingsList
-   universal defloadactive
+   universal loadstate
    parse value arg(1) with Mode Cmd Args
    Mode = strip(Mode)
    Cmd  = strip(Cmd)
@@ -352,7 +354,7 @@ defc ModeExecute, ModeExec
       sayerror 'ModeExecute: "'Cmd Args'" is an invalid setting.'
       return
    endif
-   if not defloadactive then
+   if not loadstate then
       'RingRefreshSetting' arg(1)
    endif
    -- Save a list of used modes to be able to delete all settings
@@ -489,7 +491,7 @@ defc RingDumpSettings
 ; REFRESHDEFAULT <new_default_value>.
 defc SetHighlight
    universal nepmd_hini
-   universal defloadactive
+   universal loadstate
    SettingName  = 'highlight'
    KeyPath = '\NEPMD\User\KeywordHighlighting' -- for default value if arg1 = 'DEFAULT' or empty
 
@@ -517,7 +519,7 @@ defc SetHighlight
 
    -- Process setting
    Mode = NepmdGetMode()
-   if defloadactive then
+   if loadstate then
       CheckFlag = NepmdGetHiliteCheckFlag(Mode)
    else
       CheckFlag = ''
@@ -535,7 +537,7 @@ defc SetHighlight
 ; changing the default value. In that case use the parameter
 ; REFRESHDEFAULT <new_default_value>.
 defc SetMargins  -- defc margins exist
-   universal defloadactive
+   universal loadstate
    -- load_var is a marker that stores if tabs or margins were already set
    -- by the EA's EPM.TABS or EPM.MARGINS. Every loaded file reuses it,
    -- therefore it can only be used at defload.
@@ -564,14 +566,14 @@ defc SetMargins  -- defc margins exist
    endif
 
    if arg1 = 'DEFAULT' | arg1 = 0 then
-      if defloadactive & SetFromEa then
+      if loadstate & SetFromEa then
          arg1 = .margins
       else
          'margins' 0  -- reset, maybe delete EPM.MARGINS
          arg1 = 'DEFAULT'
       endif
    elseif SetFromEa = 0 then  -- Overwrite only if not already set from EA
-      if defloadactive | RefreshDefault then
+      if loadstate | RefreshDefault then
          .margins = arg1
       else  -- User has executed this command
          'margins' arg1  -- set EPM.MARGINS
@@ -586,7 +588,7 @@ defc SetMargins  -- defc margins exist
       call SetAVar( SettingName'.'fid, arg1)
    endif
    -- Refresh titletext or statusline
-   if (not defloadactive) & (not RefreshDefault) then  -- not at afterload and not for RefreshDefault
+   if (not loadstate) & (not RefreshDefault) then  -- not at afterload and not for RefreshDefault
       'refreshinfoline' InfolineName
    endif
 
@@ -595,7 +597,7 @@ defc SetMargins  -- defc margins exist
 ; changing the default value. In that case use the parameter
 ; REFRESHDEFAULT <new_default_value>.
 defc SetTabs  -- defc tabs exist
-   universal defloadactive
+   universal loadstate
    -- load_var is a marker that stores if tabs or margins were already set
    -- by the EA's EPM.TABS or EPM.MARGINS. Every loaded file reuses it,
    -- therefore it can only be used at defload.
@@ -623,14 +625,14 @@ defc SetTabs  -- defc tabs exist
    endif
 
    if arg1 = 'DEFAULT' | arg1 = 0 then
-      if defloadactive & SetFromEa then
+      if loadstate & SetFromEa then
          arg1 = .tabs
       else
          'tabs' 0  -- reset, maybe delete EPM.TABS
          arg1 = 'DEFAULT'
       endif
    elseif not SetFromEa then  -- Overwrite only if not already set from EA
-      if defloadactive | RefreshDefault then
+      if loadstate | RefreshDefault then
          .tabs = arg1
       else  -- User has executed this command
          'tabs' arg1  -- set EPM.MARGINS
@@ -645,33 +647,50 @@ defc SetTabs  -- defc tabs exist
       call SetAVar( SettingName'.'fid, arg1)
    endif
    -- Refresh titletext or statusline
-   if (not defloadactive) & (not RefreshDefault) then  -- not at afterload and not for RefreshDefault
+   if (not loadstate) & (not RefreshDefault) then  -- not at afterload and not for RefreshDefault
       'refreshinfoline' InfolineName
    endif
 
 ; ---------------------------------------------------------------------------
 ; Execute this only at defload.
 ; Therefore we don't need to handle dynaspell here.
+; Separately compiled packages can define a 'Set<mode>Keys' command, that
+; will be executed if it exists.
 defc SetKeys
-   universal defloadactive
+   universal loadstate
    arg1 = upcase(arg(1))
    if upcase(arg(1)) = 'DEFAULT' then
       .keyset = 'EDIT_KEYS'
       arg1 = 'DEFAULT'
    else
       .keyset = arg1
+      -- if rc = -321 then  -- CANNOT_FIND_KEYSET
    endif
+   -- Bug in EPM's keyset handling:
+   -- .keyset = '<new_keyset>' works only, if <new_keyset> was defined in
+   -- the same .EX file, from where the keyset should be changed.
+   -- Therefore (as a workaround) switch temporarily to the externally
+   -- defined keyset in order to make it known for 'SetKeys':
+   --
+   -- definit  -- required for a separately compiled package
+   --    saved_keys = .keyset
+   --    .keyset = '<new_keyset>'
+   --    .keyset = saved_keys
+   --
+   -- Note: An .EX file, that defines a keyset, can't be unlinked, when this
+   -- keyset is in use.
+
    -- Save the value in an array var, to determine 'DEFAULT' state later
    getfileid fid
    call SetAVar( 'keys.'fid, arg1)
-   if not defloadactive then
+   if not loadstate then
       'refreshinfoline KEYS'
    endif
 
 ; ---------------------------------------------------------------------------
 ; Execute this only at defload.
 defc SetDynaSpell  -- defc dynaspell exists and is used here
-   universal defloadactive
+   universal loadstate
    arg1 = upcase(arg(1))
    if arg1 = '' | arg1 = 'DEFAULT' then
       on = 0
@@ -687,7 +706,7 @@ defc SetDynaSpell  -- defc dynaspell exists and is used here
    -- Save the value in an array var, to determine 'DEFAULT' state later
    getfileid fid
    call SetAVar( 'dynaspell.'fid, arg(1))
-   if not defloadactive then
+   if not loadstate then
       'refreshinfoline KEYS'
    endif
 
@@ -727,7 +746,7 @@ defc SetToolbar
 
 ; ---------------------------------------------------------------------------
 defc SetExpand  -- defc expand exists
-   universal defloadactive
+   universal loadstate
    universal expand_on
    universal nepmd_hini
    arg1 = upcase(arg(1))
@@ -749,7 +768,7 @@ defc SetExpand  -- defc expand exists
          call AddAVar( 'lastusedsettings', ' SetExpand')
       endif
    endif
-   if not defloadactive then
+   if not loadstate then
       'refreshinfoline EXPAND'
    endif
 
@@ -775,7 +794,7 @@ defc SetIndent
 
 ; ---------------------------------------------------------------------------
 defc SetMatchTab  -- defc matchtab exists
-   universal defloadactive
+   universal loadstate
    universal matchtab_on
    universal nepmd_hini
    arg1 = upcase(arg(1))
@@ -797,7 +816,7 @@ defc SetMatchTab  -- defc matchtab exists
          call AddAVar( 'lastusedsettings', ' SetMatchTab')
       endif
    endif
-   if not defloadactive then
+   if not loadstate then
       'refreshinfoline MATCHTAB'
    endif
 
@@ -874,7 +893,7 @@ defc SetSearchOptions
 
 ; ---------------------------------------------------------------------------
 defc SetTabKey  -- defc tabkey exists
-   universal defloadactive
+   universal loadstate
    universal tab_key
    universal default_tab_key
    arg1 = upcase(arg(1))
@@ -895,13 +914,13 @@ defc SetTabKey  -- defc tabkey exists
          call AddAVar( 'lastusedsettings', ' SetTabKey')
       endif
    endif
-   if not defloadactive then
+   if not loadstate then
       'refreshinfoline TABKEY'
    endif
 
 ; ---------------------------------------------------------------------------
 defc SetStreamMode
-   universal defloadactive
+   universal loadstate
    universal stream_mode
    universal default_stream_mode
    arg1 = upcase(arg(1))
@@ -923,13 +942,13 @@ defc SetStreamMode
          call AddAVar( 'lastusedsettings', ' SetStreamMode')
       endif
    endif
-   if not defloadactive then
+   if not loadstate then
       'refreshinfoline STREAMMODE'
    endif
 
 ; ---------------------------------------------------------------------------
 defc SetCuaMarking
-   universal defloadactive
+   universal loadstate
    universal cua_marking_switch
    universal default_cua_marking_switch
    arg1 = upcase(arg(1))
@@ -960,7 +979,7 @@ defc SetCuaMarking
          call AddAVar( 'lastusedsettings', ' SetCuaMarking')
       endif
    endif
-   if not defloadactive then
+   if not loadstate then
       'refreshinfoline MARKINGMODE'
    endif
 

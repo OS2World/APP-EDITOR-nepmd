@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.29 2004-07-09 13:33:22 aschn Exp $
+* $Id: epm.e,v 1.30 2004-09-12 15:10:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -76,9 +76,9 @@ compile if not VANILLA
                                -- As an alternative you may want to use the new 'load'
                                -- hook, see HOOKS.E.
 compile endif  -- not VANILLA
-include        'afterload.e'   -- Afterload's DEFLOAD must come after other DEFLOADs.
 
 include        'select.e'
+include        'afterload.e'
 compile if not VANILLA
  compile if defined(SITE_SELECT)
   compile if SITE_SELECT
