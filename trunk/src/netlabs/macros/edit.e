@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.19 2004-07-04 22:06:44 aschn Exp $
+* $Id: edit.e,v 1.20 2004-09-12 15:03:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -361,7 +361,7 @@ compile endif
       messageNwait(MULTIPLE_ERRORS__MSG)
    endif
 
-   dprintf( 'EDIT', 'first_file_loaded = ['first_file_loaded'], ['first_file_loaded.filename']')
+   dprintf( 'EDIT', 'arg(1) = ['arg(1)'], first_file_loaded = ['first_file_loaded'], ['first_file_loaded.filename']')
    -- If 1 or more files are loaded by the current edit cmd (or if loadfile has returned rc = 0):
    if first_file_loaded <> '' then
 
