@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.4 2002-08-23 14:08:48 cla Exp $
+* $Id: instval.c,v 1.5 2002-09-05 13:23:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -108,7 +108,7 @@ do
 
    // --------------------------------------
 
-   if (!stricmp( pszValueTag, NEPMD_VALUETAG_ROOTDIR))
+   if (!stricmp( pszValueTag, NEPMD_INSTVALUE_ROOTDIR))
       {
       if (!fNepmdInstalled)
          {
@@ -120,11 +120,11 @@ do
       strcpy( szValue, szNepmdPath);
       }
 
-   else if (!stricmp( pszValueTag, NEPMD_VALUETAG_LANGUAGE))
+   else if (!stricmp( pszValueTag, NEPMD_INSTVALUE_LANGUAGE))
       // determine installation language
       strcpy( szValue, szNepmdLanguage);
 
-   else if (!stricmp( pszValueTag, NEPMD_VALUETAG_INIT))
+   else if (!stricmp( pszValueTag, NEPMD_INSTVALUE_INIT))
       {
       // determine name of initialization file
       if (fRunningInDevTree)
@@ -135,7 +135,7 @@ do
          sprintf( szValue, pszFreePathMask, szModulePath, pszUserIniFile);
       }
 
-   else if (!stricmp( pszValueTag, NEPMD_VALUETAG_MESSAGE))
+   else if (!stricmp( pszValueTag, NEPMD_INSTVALUE_MESSAGE))
       {
       // determine name of message file
       if (fRunningInDevTree)

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.30 2002-09-04 22:40:44 cla Exp $
+* $Id: nepmdlib.c,v 1.31 2002-09-05 13:23:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -527,7 +527,7 @@ do
    _executeEPMCommand( hwndClient, "xcom e /c %s", NEPMD_FILENAME_LIBINFO);
 
    // determine messsage file
-   rc = GetInstValue( NEPMD_VALUETAG_MESSAGE, szMessageFile, sizeof( szMessageFile));
+   rc = GetInstValue( NEPMD_INSTVALUE_MESSAGE, szMessageFile, sizeof( szMessageFile));
    if (rc != NO_ERROR)
       {
       sprintf( szErrorMsg,
@@ -594,9 +594,9 @@ do
    LOADSTRING( "STR_INFO_NOTINSTALLED", szNotInstalled);
 
    // get main config values
-   rc = GetInstValue( NEPMD_VALUETAG_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
-   GetInstValue( NEPMD_VALUETAG_LANGUAGE, szLanguage, sizeof( szLanguage));
-   GetInstValue( NEPMD_VALUETAG_INIT, szNepmdInitfile, sizeof( szNepmdInitfile));
+   rc = GetInstValue( NEPMD_INSTVALUE_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
+   GetInstValue( NEPMD_INSTVALUE_LANGUAGE, szLanguage, sizeof( szLanguage));
+   GetInstValue( NEPMD_INSTVALUE_INIT, szNepmdInitfile, sizeof( szNepmdInitfile));
 
    // select defaults if some values not available
    if (rc != NO_ERROR)
