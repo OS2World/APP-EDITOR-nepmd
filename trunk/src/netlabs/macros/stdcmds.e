@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.16 2004-01-17 22:22:55 aschn Exp $
+* $Id: stdcmds.e,v 1.17 2004-02-01 19:11:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -485,14 +485,24 @@ defc loopkey=
 defc lowercase=
    call plowercase()
 
-;  In EOS2 you could query the margins by typing "margins" with no argument.
-;  It typed them into the command line.  In EPM have to do this in the macros.
-;
+; In EOS2 you could query the margins by typing "margins" with no argument.
+; It typed them into the command line.  In EPM have to do this in the macros.
+; Changed: made rightmargin and/or parmargin values optional.
+; Syntax:
+;    ma [leftmargin [rightmargin] [parmargin]]
 defc margins,ma=
-   if arg(1)<>'' then         -- if user gives an argument he's setting,
-      'xcom margins' arg(1)   -- pass it to the old internal margins command.
+   arg1 = strip( arg(1))
+   if arg1 <> '' then                   -- If user gives an argument he's setting,
+      parse value arg1 with leftm rightm parm
+      if parm = '' then
+         parm = leftm
+      endif
+      if rightm = '' then
+         rightm = MAXMARGIN
+      endif
+      'xcom margins' leftm rightm parm  -- pass it to the old internal margins command.
    else
-      'commandline margins' .margins   -- Note the new .margins field
+      'commandline margins' .margins    -- Open commandline with current values
    endif
    'refreshinfoline MARGINS'            -- Update statusline if margins displayed
 
