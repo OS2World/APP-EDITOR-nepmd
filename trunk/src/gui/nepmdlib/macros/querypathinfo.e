@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.3 2002-09-04 10:18:05 cla Exp $
+* $Id: querypathinfo.e,v 1.4 2002-09-04 15:38:22 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdQueryPathInfo@PROTOTYPE
-InstValue = NepmdQueryPathInfo( Pathname, ValueTag);
+InfoValue = NepmdQueryPathInfo( Pathname, ValueTag);
 
 @@NepmdQueryPathInfo@CATEGORY@FILE
 
@@ -36,7 +36,7 @@ from the [=TITLE].
 This parameter specifies the pathname of the file or directory, of
 which a path information value is requested.
 
-@@NepmdQueryPathInfo@PARM@InfoTag
+@@NepmdQueryPathInfo@PARM@ValueTag
 This parameter specifies a keyword determining the
 path information value to be returned.
 
@@ -64,52 +64,53 @@ NepmdQueryPathInfo returns either
 
 defc NepmdQueryPathInfo, QueryPathInfo
 
- parse value arg( 1) with PathName InfoTag;
+ parse value arg( 1) with PathName ValueTag;
 
- if (InfoTag = '') then
-    sayerror 'error: no info tag specified !';
+ if (ValueTag = '') then
+    sayerror 'error: no value tag specified !';
     return;
  endif
 
- InstValue = NepmdQueryPathInfo( PathName, InfoTag);
- parse value InstValue with 'ERROR:'rc;
+ InfoValue = NepmdQueryPathInfo( PathName, ValueTag);
+ parse value InfoValue with 'ERROR:'rc;
  if (rc > '') then
-    sayerror 'error: could not retrieve value for "'InfoTag'", rc='rc;
+    sayerror 'error: could not retrieve value for "'ValueTag'", rc='rc;
     return;
  endif
 
- sayerror 'value for "'InfoTag'" of "'PathName'" is: "'InstValue'"';
+ sayerror 'value for "'ValueTag'" of "'PathName'" is: "'InfoValue'"';
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryPathInfo                                 */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
-/*    InfoValue = NepmdQueryPathInfo( PathName, InfoTag);        */
+/*    InfoValue = NepmdQueryPathInfo( PathName, ValueTag);       */
 /*                                                               */
-/*  See valig tags in src\gui\common\nepmd.h : NEPMD_PATHINFO_*  */
+/*  See valig tags in src\gui\nepmdlib\nepmdlib.h:               */
+/*      NEPMD_PATHINFO_*                                         */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdQueryPathInfo( PSZ pszPathname,         */
-/*                                      PSZ pszTagName,          */
+/*                                      PSZ pszInfoTag,          */
 /*                                      PSZ pszBuffer,           */
 /*                                      ULONG ulBuflen)          */
 /* ------------------------------------------------------------- */
 
-defproc NepmdQueryPathInfo( Pathname, InfoTag) =
+defproc NepmdQueryPathInfo( Pathname, ValueTag) =
 
  BufLen    = 260;
  InfoValue = copies( atoi( 0), BufLen);
 
  /* prepare parameters for C routine */
  Pathname = Pathname''atoi( 0);
- InfoTag  = InfoTag''atoi( 0);
+ ValueTag  = ValueTag''atoi( 0);
 
  /* call C routine */
  LibFile = getlibfile();
  rc = dynalink32( LibFile,
                   "NepmdQueryPathInfo",
                   address( Pathname)         ||
-                  address( InfoTag)          ||
+                  address( ValueTag)         ||
                   address( InfoValue)        ||
                   atol( Buflen));
 
