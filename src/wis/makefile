@@ -17,7 +17,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.8 2002-07-31 14:40:48 cla Exp $
+# $Id: makefile,v 1.9 2002-08-01 13:25:25 cla Exp $
 #
 # ===========================================================================
 #
@@ -43,12 +43,23 @@
 BASEDIR=..\..
 !include $(BASEDIR)\rules.in
 
+# --- list of available source for separate WPI modules per language
+
+NLSSUPPORTED=eng
+
+!ifndef NLS
+NLS=eng
+!endif
+
 # --- read special makefile configuration
 
 !include $(BASEDIR)\configure.in
 SCRIPTFILE=$(STEM).wis
+NLSSCRIPTFILE=$(CMPDIR)\$(STEM)_$(NLS).wis
 LISTFILE=$(STEM).lst
-WPIFILE=$(STEM)$(VERSION).wpi
+WPIFILE=$(STEM)$(VERSION)_$(NLS).wpi
+WPILOGFILE=$(BINDIR_NAME)\mkwpi_$(NLS).log
+NLSINCLUDE=..\nls\wis
 
 # --- extend path for creating WPI file from basedir
 
@@ -67,7 +78,8 @@ FILESTOCLEAN=\
 
 WISPARMS= \
  ID_VERSION_NEPMD=$(ID_VERSION_NEPMD) \
- ID_VERSION_REQ_WARPIN=$(ID_VERSION_REQ_WARPIN)
+ ID_VERSION_REQ_WARPIN=$(ID_VERSION_REQ_WARPIN) \
+ NLS=$(NLS)
 
 CREATEPARMS=\
  UNZIPPEDDIR=$(UNZIPPEDDIR)\
@@ -111,11 +123,12 @@ $(UNZIPPEDDIR)\prepare.log: prepare.cmd
 
 # ---- create WPI package
 
-$(BINDIR)\$(WPIFILE): PREPARE $(CMPDIR)\$(SCRIPTFILE) $(WPIDEPLIST) $(LISTFILE)
+$(BINDIR)\$(WPIFILE): PREPARE $(NLSSCRIPTFILE) $(WPIDEPLIST) $(LISTFILE)
    @CD $(BASEDIR)
-   mkwpi src\wis\$(LISTFILE) $(BINDIR_NAME)\mkwpi.log $(CMPDIR_NAME)\$(SCRIPTFILE) $(BINDIR_NAME)\$(WPIFILE) $(CREATEPARMS)
+   mkwpi src\wis\$(LISTFILE) $(WPILOGFILE) src\wis\$(NLSSCRIPTFILE) $(BINDIR_NAME)\$(WPIFILE) $(CREATEPARMS)
+   @cd $(MAKEDIR)
 
 # --- create customized WarpIn script file
-$(CMPDIR)\$(SCRIPTFILE): $(SCRIPTFILE)
-   parseenv $(SCRIPTFILE) $(CMPDIR)\$(SCRIPTFILE) $(WISPARMS)
+$(NLSSCRIPTFILE): $(SCRIPTFILE) $(NLSINCLUDE)\nepmd$(NLS).h $(NLSINCLUDE)\page?$(NLS).xml
+   parseenv $(SCRIPTFILE) $(NLSSCRIPTFILE) $(WISPARMS)
 
