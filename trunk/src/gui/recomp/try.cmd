@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: try.cmd,v 1.2 2002-06-10 09:26:53 cla Exp $
+* $Id: try.cmd,v 1.3 2002-06-10 10:38:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -43,7 +43,7 @@
  /* ####################### maintain testcases here ####################### */
 
  Testcase.0  = '*.c *.h *.cmd *.rc*';  /* some few rings with some more files */
- Testcase.1  = 'todo done';            /* one ring with few files */
+ Testcase.1  = 'tc.*';                 /* one ring with few files */
  Testcase.2  = 'client.* dde.*' ,      /* lot of rings with few files */
                'ddereload.* ddeutil.* frame.* job.*' ,
                'dde.* process.* recomp.* ';
