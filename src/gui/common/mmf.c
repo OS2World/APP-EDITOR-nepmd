@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.c,v 1.9 2002-10-10 20:32:59 cla Exp $
+* $Id: mmf.c,v 1.10 2002-10-10 20:43:39 cla Exp $
 *
 * ===========================================================================
 *
@@ -55,7 +55,7 @@ todo: encapsulate init
 #endif
 
 // internal MMF defines
-#define MMF_MAXTHREADS     16
+#define MMF_MAXTHREADS     128
 #define MMF_MAXFILES       64
 #define MMF_USEDENTRY      0x10000000  /* internal flag to mark a used entry */
 
@@ -178,7 +178,7 @@ for (i = 0; i < MMF_MAXTHREADS; i++)
    {
    pmmf = apmmf[ i];
    if ((pmmf)                         &&
-       (pmmf->pid == ppib->pib_ulpid) && 
+       (pmmf->pid == ppib->pib_ulpid) &&
        (pmmf->tid == ptib->tib_ptib2->tib2_ultid))
       {
       pmmfResult = pmmf;
@@ -225,7 +225,7 @@ for (i = 0; i < MMF_MAXTHREADS; i++)
          rc = DosSetExceptionHandler( &pmmfNew->errh);
          if (rc != NO_ERROR)
             break;
-      
+
          // we are done
          break;
          }
@@ -472,7 +472,7 @@ static VOID _freeMMF( PMMF pmmf)
 
 if (pmmf)
    {
-   
+
    for (i = 0; i < MMF_MAXFILES; i++)
       {
       if(pmmf->ammfentry[ i].ulFlags & MMF_USEDENTRY)
