@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: bookmark.e,v 1.7 2003-05-14 16:30:49 aschn Exp $
+* $Id: bookmark.e,v 1.8 2004-02-01 19:00:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -580,12 +580,12 @@ defc loadattributes
    val = get_EAT_ASCII_value('EPM.TABS')
    if val<>'' then
       .tabs = val
-      load_var = load_var + 1  -- Flag that Tabs were set via EA
+      load_var = load_var + 1  -- Flag that tabs were set via EA
    endif
    val = get_EAT_ASCII_value('EPM.MARGINS')
    if val<>'' then
       .margins = val
-      load_var = load_var + 2  -- Flag that Tabs were set via EA
+      load_var = load_var + 2  -- Flag that margins were set via EA
    endif
    if find_ea('EPM.STYLES', ea_seg, ea_ofs, ea_ptr1, ea_ptr2, ea_len, ea_entrylen, ea_valuelen) then
       val = peek(ea_seg, ea_ptr2,min(ea_valuelen,8))
