@@ -4,12 +4,12 @@
 : Module Name: prepare.cmd logfile baseurl zip_srcdir unzipped_dir
 :
 : Script for to
-:    - download the EPM packages from www.leo.org
+:    - download the EPM packages from hobbes.nmsu.edu or LEO
 :    - and to create the package source directories
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.8 2002-08-15 13:21:54 cla Exp $
+: $Id: prepare.cmd,v 1.9 2004-12-25 11:01:00 aschn Exp $
 :
 : ===========================================================================
 :
@@ -29,6 +29,14 @@
  SET UNZ=CALL _UNPACK
  SET MOV=CALL _MOVE
 
+: - ZIP files from Hobbes
+ SET EPM603B_ZIP=epm603b.zip
+ SET EPM603BUPD_ZIP=epm603bupd.zip
+: - ZIP files from LEO
+: SET EPM603B_ZIP=epm603.zip
+: SET EPM603BUPD_ZIP=epm603b.zip
+: ---- Delete epm603b.zip by hand, before changing the FTP server! ----
+
 : - set DEBUG=echo to display package names during unpack
  SET DEBUG=echo
  SET DEBUG=rem
@@ -46,15 +54,15 @@
 
 :parmok
 
-: ----- check for package files from LEO
+: ----- check for package files from Hobbes
 
  MD %ZIPSRCDIR%   >NUL 2>&1
 
- SET CHECK=epm603.zip
+ SET CHECK=%EPM603B_ZIP%
  IF NOT EXIST %ZIPSRCDIR%\%CHECK% wget -P %ZIPSRCDIR% %WGETOPTS% %BASEURL%/%CHECK%
  IF ERRORLEVEL 1 GOTO geterror
 
- SET CHECK=epm603b.zip
+ SET CHECK=%EPM603BUPD_ZIP%
  IF NOT EXIST %ZIPSRCDIR%\%CHECK% wget -P %ZIPSRCDIR% %WGETOPTS% %BASEURL%/%CHECK%
  IF ERRORLEVEL 1 GOTO geterror
 
@@ -82,8 +90,8 @@
  IF EXIST %LOGFILE%  DEL %LOGFILE%                                             >NUL 2>&1
 
 : --- unpack package zip files
- ECHO - unpack EPM 6.03 packages
- %UNZ% %ZIPSRCDIR%\epm603               %UNZIPPEDDIR%                          >>%LOGFILE% 2>&1
+ ECHO - unpack EPM 6.03b packages
+ %UNZ% %ZIPSRCDIR%\%EPM603B_ZIP%        %UNZIPPEDDIR%                          >>%LOGFILE% 2>&1
  %CHECKERROR%
 
 : --- unpack main application package and distribute to subdirectories
@@ -237,7 +245,7 @@
 : --- apply update
 
  ECHO - unpack EPM 6.03b update files
- unzip -o  %ZIPSRCDIR%\epm603b -d %UNZIPPEDDIR%\update                         >>%LOGFILE% 2>&1
+ unzip -o  %ZIPSRCDIR%\%EPM603BUPD_ZIP% -d %UNZIPPEDDIR%\update                >>%LOGFILE% 2>&1
  %CHECKERROR%
 
  ECHO - apply update
