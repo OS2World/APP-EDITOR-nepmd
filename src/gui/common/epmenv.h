@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.h,v 1.1 2002-08-13 21:04:34 cla Exp $
+* $Id: epmenv.h,v 1.2 2002-08-14 12:10:21 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,7 +25,7 @@
 #ifndef EPMENV_H
 #define EPMENV_H
 
-APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv);
+APIRET GetExtendedEPMEnvironment( PSZ envp[], PSZ *ppszNewEnv);
 
 #endif // EPMENV_H
 
