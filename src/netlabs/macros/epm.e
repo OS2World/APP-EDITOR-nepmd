@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.13 2002-10-16 18:27:45 aschn Exp $
+* $Id: epm.e,v 1.14 2002-10-18 13:11:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -152,6 +152,7 @@ include        'stdctrl.e'     -- PM controls for EPM.
 
 include        'statline.e'    -- New statusline defs, defc setstatusline moved from STDCTRL.E
 include        'titletext.e'
+include        'autolink.e'
 
 compile if INCLUDE_MENU_SUPPORT & INCLUDE_STD_MENUS
  compile if defined(STD_MENU_NAME)
