@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.5 2002-11-02 17:03:33 cla Exp $
+.. $Id: neusreng.txt,v 1.6 2002-11-02 20:25:14 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -902,34 +902,6 @@ placed into the following directory tree:
 .fo on
 
 .. -----------------------------------------------------------------------------
-.3 new filetype determination
-.. -----------------------------------------------------------------------------
-.an IDPNL_INSTADDITIONS_EPMMODE
-.
-The [=TITLE] comes with a new scheme to identify file types for a given
-filename, where the filename extensions and/or basenames of files are attributes
-of the new *EPM* mode. In order to extend the list of filename extensions
-and/or basenames to be a supported by a given mode, the user can extend and/or modify
-the mode definitions.
-
-See the following section for details:
-.ul compact
-- [.IDPNL_MODE]
-
-.. -----------------------------------------------------------------------------
-.3 extended keyword hilighting
-.. -----------------------------------------------------------------------------
-.an IDPNL_INSTADDITIONS_EPMKWDS
-.
-The [=TITLE] comes with a completely new scheme to specify keywords to be
-highlighted for a given file type. This bases on the new *EPM* mode
-scheme and the way that a given mode can be defined and/or extended.
-
-See the following section for details:
-.ul compact
-- [.IDPNL_MODE]
-
-.. -----------------------------------------------------------------------------
 .3 extended recompilation support
 .. -----------------------------------------------------------------------------
 .an IDPNL_INSTADDITIONS_RECOMP
@@ -1012,7 +984,7 @@ is shipped with with the distribution, but nevertheless included here
 .. -----------------------------------------------------------------------------
 .3 EPM window enhancements
 .. -----------------------------------------------------------------------------
-.an IDPNL_INSTADDITIONS_NEWFRAME
+.an IDPNL_USEADDITIONS_NEWFRAME
 .
 The *EPM* frame window and the following controls controls related to it have been
 extended:
@@ -1021,7 +993,7 @@ extended:
 .. .............................................................................
 .4 extended statusline
 .. .............................................................................
-.an IDPNL_INSTADDITIONS_NEWFRAME_STATUSLINE
+.an IDPNL_USEADDITIONS_NEWFRAME_STATUSLINE
 .
 The statusline is extended by showing
 .ul compact
@@ -1040,7 +1012,7 @@ of the information included in the statusline.
 .. .............................................................................
 .4 extended titletext
 .. .............................................................................
-.an IDPNL_INSTADDITIONS_NEWFRAME_TITLETEXT
+.an IDPNL_USEADDITIONS_NEWFRAME_TITLETEXT
 .
 The text in the titlebar is extended by showing
 .ul compact
@@ -1056,7 +1028,7 @@ The text in the titlebar is extended by showing
 .. .............................................................................
 .4 message log
 .. .............................................................................
-.an IDPNL_INSTADDITIONS_NEWFRAME_MESSAGELOG
+.an IDPNL_USEADDITIONS_NEWFRAME_MESSAGELOG
 .
 Many unimportant messages are not anylonger written to the
 message log, so the message log gets easier to read.
@@ -1068,7 +1040,7 @@ onto the message line or by the command *messagebox*.
 .. .............................................................................
 .4 menu
 .. .............................................................................
-.an IDPNL_INSTADDITIONS_NEWFRAME_MENU
+.an IDPNL_USEADDITIONS_NEWFRAME_MENU
 .
 [=NOTE]
 .ul compact
@@ -1123,7 +1095,7 @@ The following additions are included:
 .. .............................................................................
 .4 key accelerators
 .. .............................................................................
-.an IDPNL_INSTADDITIONS_NEWFRAME_KEYS
+.an IDPNL_USEADDITIONS_NEWFRAME_KEYS
 .
 The following additional key kombinations are implemented in the [=TITLE]:
 
@@ -1182,9 +1154,9 @@ The following additional key kombinations are implemented in the [=TITLE]:
   (Usable for reading texts)
 
 .. .............................................................................
-.4 mosue handling
+.4 mouse handling
 .. .............................................................................
-.an IDPNL_INSTADDITIONS_NEWFRAME_MOUSE
+.an IDPNL_USEADDITIONS_NEWFRAME_MOUSE
 .
 The following mouse handlers are implemented in the [=TITLE]:
 .pl tsize=15 break=none
@@ -1205,7 +1177,7 @@ The following mouse handlers are implemented in the [=TITLE]:
 .. .............................................................................
 .4 workaround for mark bug
 .. .............................................................................
-.an IDPNL_INSTADDITIONS_NEWFRAME_MARKBUG
+.an IDPNL_USEADDITIONS_NEWFRAME_MARKBUG
 .
 The E Toolkit causes a bug occurring when you want to mark a
 highlighted word or block, especially when the mark ends at
@@ -1241,6 +1213,35 @@ the matching char is searched and highlighted if found.
   Petr Mikulik. Extensions for other modes will follow.
 - Petr's PMCSTeX package shows also how to extend the reflow and tagscan
   definitions for the TeX mode. That will be integrated in further versions.
+
+.. -----------------------------------------------------------------------------
+.3 new filetype determination
+.. -----------------------------------------------------------------------------
+.an IDPNL_INSTADDITIONS_EPMMODE
+.
+The [=TITLE] comes with a new scheme to identify file types for a given
+filename, where the filename extensions and/or basenames of files are attributes
+of the new *EPM* mode. In order to extend the list of filename extensions
+and/or basenames to be a supported by a given mode, the user can extend and/or modify
+the mode definitions.
+
+See the following section for details:
+.ul compact
+- [.IDPNL_MODE]
+
+.. -----------------------------------------------------------------------------
+.3 extended keyword hilighting
+.. -----------------------------------------------------------------------------
+.an IDPNL_INSTADDITIONS_EPMKWDS
+.
+The [=TITLE] comes with a completely new scheme to specify keywords to be
+highlighted for a given file type. This bases on the new *EPM* mode
+scheme and the way that a given mode can be defined and/or extended.
+
+See the following section for details:
+.ul compact
+- [.IDPNL_MODE]
+
 
 .. =============================================================================
 .2 EPM mode
@@ -1871,7 +1872,7 @@ NEWSYMBOL    = DEFAULT GREEN
 .fo on
 
 .. -----------------------------------------------------------------------------
-.3 netlabs\mode\<?>\xxxxx.hil
+.3 netlabs\mode\<?>\**.hil
 .. -----------------------------------------------------------------------------
 .an IDPNL_FORMAT_NETLABSHIL
 .
@@ -1882,7 +1883,7 @@ that in the *myepm\mode\<?>* directory no file with the same name
 exists, hiding the same file in the *netlabs\mode\<?>* directory.
 
 .. -----------------------------------------------------------------------------
-.3 myepm\mode\<?>\xxxxx.hil
+.3 myepm\mode\<?>\**.hil
 .. -----------------------------------------------------------------------------
 .an IDPNL_FORMAT_MYEPMHIL
 .
