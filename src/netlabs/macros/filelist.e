@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.5 2004-07-02 09:27:27 aschn Exp $
+* $Id: filelist.e,v 1.6 2005-01-16 12:44:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -83,7 +83,7 @@ defproc RingAutoWriteFilePosition
    return
 
 ; ---------------------------------------------------------------------------
-; RingWriteFilePosition is called RingAutoWiteFilePosition and by defc
+; RingWriteFilePosition is called by RingAutoWiteFilePosition and by defc
 ; RingWriteFilePosition, used by the menuitem 'Save as last ring'.
 defproc RingWriteFilePosition
    universal nepmd_hini
@@ -372,6 +372,9 @@ defproc RingAddToHistory
    History = NepmdQueryConfigValue( nepmd_hini, KeyPath)
 
    getfileid startfid
+   -- Select next file to make current file the first in list
+   next_file
+   getfileid firstfid
    -- Loop through all files in ring
    do f = 1 to filesinring()  -- Provide an upper limit; prevent looping forever
       NewItem = .filename
@@ -401,7 +404,7 @@ defproc RingAddToHistory
       endif  -- not Ignore
       next_file
       getfileid fid
-      if fid = startfid then leave; endif
+      if fid = firstfid then leave; endif
    enddo  -- f = 1 to filesinring()
    activatefile startfid  -- required
 
