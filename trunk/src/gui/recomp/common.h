@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: common.h,v 1.5 2002-06-10 11:27:57 cla Exp $
+* $Id: common.h,v 1.6 2002-08-10 13:04:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,11 +28,12 @@
 #include <malloc.h>
 #endif
 
+#include "nepmd.h"
+
 #define __APPNAME__                    "RECOMP"
 #define __PROGSTEM__                   "recomp"
 #define __VERSION__                    "V1.00"
 #define __YEAR__                       "2002"
-#define __HOMEPAGE__                   "http://nepmd.netlabs.org"
 
 // define parameters
 #define PARM_START             "Start"
@@ -47,10 +48,6 @@
 
 // control compilation
 #define SUPPORT_LOCAL_COMPILE          0
-
-// language selection of NEPMD project from OS2.INI
-#define NEPMD_INI_APPNAME              "NEPMD"
-#define NEPMD_INI_KEYNAME_LANGUAGE     "Language"
 
 #define NLSMODULE_LANGUAGEMASK         "rec%s.nls"
 
