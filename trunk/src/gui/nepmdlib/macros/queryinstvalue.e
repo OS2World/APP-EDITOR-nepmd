@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryinstvalue.e,v 1.4 2002-09-07 13:19:45 cla Exp $
+* $Id: queryinstvalue.e,v 1.5 2002-09-08 22:48:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -35,14 +35,6 @@ from the [=TITLE].
 @@NepmdQueryInstValue@PARM@ValueTag
 This parameter specifies a keyword determining the
 installation value to be returned.
-
-If the installation directory cannot be determined, pathnames
-of course cannot point to a subdirectory of the NEPMD directory
-tree, but rather specify filenames from within the directory where
-the calling executable is called from - this way all values
-except for *ROOT* can be used even if not the complete [=TITLE]
-is installed.
-
 The following keywords are supported:
 .pl bold
 - ROOTDIR
@@ -59,6 +51,13 @@ The following keywords are supported:
 - MESSAGE
 = returns the fully qualified pathname of the message file of
   the [=TITLE].
+
+If the installation directory cannot be determined, pathnames
+of course cannot point to a subdirectory of the NEPMD directory
+tree, but rather specify filenames from within the directory where
+the calling executable is called from - this way all values
+except for *ROOT* can be used even if not the complete [=TITLE]
+is installed.
 
 @@NepmdQueryInstValue@RETURNS
 *NepmdQueryInstValue* returns either

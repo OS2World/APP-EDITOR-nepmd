@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.9 2002-09-07 13:28:12 cla Exp $
+* $Id: querypathinfo.e,v 1.10 2002-09-08 22:48:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -39,7 +39,6 @@ which a path information value is requested.
 @@NepmdQueryPathInfo@PARM@ValueTag
 This parameter specifies a keyword determining the
 path information value to be returned.
-
 The following keywords are supported:
 .pl bold
 - ATIME
@@ -54,6 +53,7 @@ The following keywords are supported:
 = returns the size of the extended attributes attached to the file
 - ATTR
 = returns the file attributes
+.el
 
 @@NepmdQueryPathInfo@RETURNS
 *NepmdQueryPathInfo* returns either
