@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.9 2002-11-03 23:14:55 cla Exp $
+.. $Id: neusreng.txt,v 1.10 2002-11-03 23:19:11 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -1438,6 +1438,22 @@ a registry, the configuration repository supports a hierarchical namespace.
 
 See the *NEPMD Programming Reference* for more technical details when using it
 in your own macro source code.
+
+.. -----------------------------------------------------------------------------
+.3 autolink feature for EPM extensions
+.. -----------------------------------------------------------------------------
+.an IDPNL_INSTADDITIONS_AUTOLINK
+.
+*EPM* extension modules (**.ex) that need to be linked on startup of the editor
+can be placed into the directory
+.sl compact
+- *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\autolink*
+.el
+in order to link them automatically.
+
+This relieves the end user form either adding the module to a link list
+within the [.IDPNL_USAGE_CONFIGURE_REXXPRF] or to [.IDPNL_USAGE_CONFIGURE_MYCNF]
+just for to link an *EPM* extension at startup.
 
 .. -----------------------------------------------------------------------------
 .3 Readme text files matrix
