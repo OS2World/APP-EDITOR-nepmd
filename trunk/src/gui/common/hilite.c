@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.1 2002-09-22 13:20:04 cla Exp $
+* $Id: hilite.c,v 1.2 2002-09-22 22:24:28 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,13 +34,80 @@
 #include "nepmd.h"
 #include "hilite.h"
 
+#ifdef DEBUG
+static   PSZ            pszEnvVar = "";
+static   PSZ            pszEnvValue = "";
+
+#define CHECKENV(v)                              \
+{                                                \
+pszEnvVar = v;                                   \
+pszEnvValue = getenv( pszEnvVar);                \
+printf( "envvar %s: %s\n",                       \
+        pszEnvVar,                               \
+        (pszEnvValue) ? pszEnvValue : "<null>"); \
+}
+
+#else
+#define CHECKENV(v)
+#endif
+
+// -----------------------------------------------------------------------------
+static APIRET _assembleKeywordFile(  PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         CHAR           szSourceName[ _MAX_PATH];
+         CHAR           szDefaultFile[ _MAX_PATH];
+
+do
+   {
+   // search default path first
+   CHECKENV( "EPMKEYWORDPATH");
+   sprintf( szSourceName, "%s\\default.ini", pszEpmMode);
+   rc = DosSearchPath( SEARCH_IGNORENETERRS  |
+                          SEARCH_ENVIRONMENT |
+                          SEARCH_CUR_DIRECTORY,
+                      "EPMKEYWORDPATH",
+                      szSourceName,
+                      szDefaultFile,
+                      sizeof( szDefaultFile));
+   if (rc != NO_ERROR)
+      break;
+
+rc = 1;
+   } while (FALSE);
+
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+static APIRET _searchOldKeywordFile(  PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBuflen)
+{
+
+         APIRET         rc = NO_ERROR;
+         CHAR           szSourceName[ 32];
+
+// old way: search the epmkwds file on EPMPATH
+CHECKENV( "EPMPATH");
+sprintf( szSourceName, "epmkwds.%s", pszEpmMode);
+rc =   DosSearchPath( SEARCH_IGNORENETERRS  |
+                         SEARCH_ENVIRONMENT |
+                         SEARCH_CUR_DIRECTORY,
+                      "EPMPATH",
+                      szSourceName,
+                      pszBuffer,
+                      ulBuflen);
+return rc;
+}
+
+
+
 // -----------------------------------------------------------------------------
 
 APIRET QueryHilightFile( PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
-         CHAR           szSourcePath[ _MAX_PATH];
          CHAR           szValue[ _MAX_PATH];
+         CHAR           szDefaultsFile[ _MAX_PATH];
 
 
 do
@@ -58,17 +125,15 @@ do
       break;
       }
 
-   // dummy implementation: search the epmkwds file on EPMPATH
-   sprintf( szSourcePath, "epmkwds.%s", pszEpmMode);
-   rc = DosSearchPath( SEARCH_IGNORENETERRS |
-                          SEARCH_ENVIRONMENT |
-                          SEARCH_CUR_DIRECTORY,
-                       "EPMPATH",
-                       szSourcePath,
-                       szValue, 
-                       sizeof( szValue));
+   // search mode files
+   rc = _assembleKeywordFile( pszEpmMode, szValue, sizeof( szValue)); 
    if (rc != NO_ERROR)
-      break;
+      {
+      // if no mode infos available; conventional search
+      rc = _searchOldKeywordFile( pszEpmMode, szValue, sizeof( szValue));
+      if (rc != NO_ERROR)
+         break;
+      }
 
    // check result buffer
    if (strlen( szValue) + 1 > ulBuflen)
