@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.8 2002-10-19 12:20:32 aschn Exp $
+* $Id: stdkeys.e,v 1.9 2002-11-03 15:14:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -939,7 +939,7 @@ compile if WANT_CUA_MARKING
 compile endif
 compile if RESPECT_SCROLL_LOCK
    if scroll_lock() then
-      executekey s_f5  -- vcenter cursor
+;      executekey s_f5  -- vcenter cursor
       executekey s_f4  -- act like scroll up
    else
 compile endif
@@ -1548,7 +1548,7 @@ compile if WANT_CUA_MARKING
 compile endif
 compile if RESPECT_SCROLL_LOCK
    if scroll_lock() then
-      executekey s_f5  -- vcenter cursor
+;      executekey s_f5  -- vcenter cursor
       executekey s_f3  -- act like scroll down
    else
 compile endif
