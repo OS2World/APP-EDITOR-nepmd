@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.1 2002-08-19 18:18:03 cla Exp $
+* $Id: nepmdlib.e,v 1.2 2002-08-20 12:05:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -81,124 +81,10 @@ defproc checkliberror (LibFile, rc) =
 defmain 'NepmdVersion';
 
 /* ------------------------------------------------------------- */
-/*   allow editor command to call functions                      */
+/*   include functions                                           */
 /* ------------------------------------------------------------- */
 
-defc NepmdVersion =
-
-  sayerror 'NEPMDLIB Version' NepmdLibInfo( 'VERSION');
-
-defc NepmdErrorMsgBox, ErrorMsgBox =
-
-  rcx = NepmdErrorMsgBox( arg( 1), 'Netlabs EPM Distribution');
-
-defc NepmdQueryFullname, QueryFullname =
-
-  sayerror 'fullname of "'arg( 1)'" is:' NepmdQueryFullname( arg( 1));
-
-
-/* ============================================================= */
-/*   procedures to call DLL routine                              */
-/* ============================================================= */
-
-/* ------------------------------------------------------------- */
-/* procedure: NepmdLibInfo                                       */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    data = NepmdLibInfo( '<token>');                           */
-/*                                                               */
-/*  Valid tokens are:                                            */
-/*     'VERSION'  - returns version number ('1.23')              */
-/*     'COMPILED' - returns compiledate ('dd mmm yyyy')          */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdLibInfo( PSZ pszFilename,               */
-/*                                PSZ pszBuffer,                 */
-/*                                PSZ pszBuflen)                 */
-/*                                                               */
-/* ------------------------------------------------------------- */
-
-defproc NepmdLibInfo( Token) =
-
- BufLen   = 260;
- LibInfo  = copies( atoi( 0), BufLen);
-
- /* prepare parameters for C routine */
- Token    = Token''atoi( 0);
-
- /* call C routine */
- LibFile = getlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdLibInfo",
-                  address( Token)   ||
-                  address( LibInfo) ||
-                  atol( Buflen));
-
- checkliberror( LibFile, rc);
-
- return LibInfo;
-
-
-/* ------------------------------------------------------------- */
-/* procedure: NepmdQueryFullname                                 */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    Fullname = QueryFullname( filename);                       */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdQueryFullname( PSZ pszFilename,         */
-/*                                      PSZ pszBuffer,           */
-/*                                      PSZ pszBuflen)           */
-/*                                                               */
-/* ------------------------------------------------------------- */
-
-defproc NepmdQueryFullname( Filename) =
-
- BufLen   = 260;
- FullName = copies( atoi( 0), BufLen);
-
- /* prepare parameters for C routine */
- Filename   = Filename''atoi( 0);
-
- /* call C routine */
- LibFile = getlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdQueryFullname",
-                  address( Filename)            ||
-                  address( Fullname)            ||
-                  atol( Buflen));
-
- checkliberror( LibFile, rc);
-
- return FullName;
-
-/* ------------------------------------------------------------- */
-/* procedure: NepmdErrorMsgBox                                   */
-/* ------------------------------------------------------------- */
-/* .e Syntax:                                                    */
-/*    rc = ErrorMsgBox( message, title);                         */
-/* ------------------------------------------------------------- */
-/* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdErrorMsgBox( HWND hwndClient,           */
-/*                                    PSZ pszMessage,            */
-/*                                    PSZ pszTitle)              */
-/* ------------------------------------------------------------- */
-
-defproc NepmdErrorMsgBox( BoxMessage, Boxtitle) =
-
- /* prepare parameters for C routine */
- BoxMessage = BoxMessage''atoi( 0);
- BoxTitle   = Boxtitle''atoi( 0);
-
- /* call C routine */
- LibFile = getlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdErrorMsgBox",
-                  gethwndc( EPMINFO_EDITCLIENT) ||
-                  address( BoxMessage)          ||
-                  address( BoxTitle));
-
- checkliberror( LibFile, rc);
-
- return rc;
+include 'errormsgbox.e'
+include 'libinfo.e'
+include 'queryfullname.e'
 
