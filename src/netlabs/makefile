@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.11 2002-10-18 13:13:07 cla Exp $
+# $Id: makefile,v 1.12 2003-09-01 06:40:15 aschn Exp $
 #
 # ===========================================================================
 #
@@ -50,6 +50,7 @@ FILESTOCLEAN=\
 # --- list for standalone modules
 EMODULELIST=\
 $(CMPEXDIR)\epm.ex \
+$(CMPEXDIR)\bookmark.ex\
 $(CMPEXDIR)\box.ex\
 $(CMPEXDIR)\draw.ex\
 $(CMPEXDIR)\epmcomp.ex\

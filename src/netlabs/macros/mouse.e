@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.10 2003-08-31 18:09:20 aschn Exp $
+* $Id: mouse.e,v 1.11 2003-09-01 06:40:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,13 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+; Link of MOUSE.E not possible anymore, maybe since v. 6.03.
+compile if defined(MOUSE_SUPPORT)
+ compile if MOUSE_SUPPORT = 'LINK'
+   *** MOUSE.E can not be linked anymore. Set MOUSE_SUPPORT = 1.
+ compile endif
+compile endif
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
 include 'stdconst.e'

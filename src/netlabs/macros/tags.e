@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.4 2003-09-01 05:33:34 aschn Exp $
+* $Id: tags.e,v 1.5 2003-09-01 06:40:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,8 +18,10 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-compile if KEEP_TAGS_FILE_LOADED
+compile if defined(KEEP_TAGS_FILE_LOADED)
+ compile if KEEP_TAGS_FILE_LOADED
    *** Bug in EPM 6.x: You must set KEEP_TAGS_FILE_LOADED = 0
+ compile endif
 compile endif
 ;
 ; This module is a general purpose engine for providing searching and
