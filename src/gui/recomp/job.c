@@ -7,14 +7,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: job.c,v 1.2 2002-06-04 22:38:53 cla Exp $
+* $Id: job.c,v 1.3 2002-06-08 23:40:48 cla Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -378,10 +378,11 @@ do
 
    DPRINTF(( "JOB: LOG: end loading, rc=%u\n", rc));
 
-   // we do not need to notify
-   // but take care for the memory of phwndNotify below !
 
    } while (FALSE);
+
+// tell that we are done
+UPDATE_JOB_STATUS;
 
 DPRINTF(( "JOB: LOG: thread ends\n"));
 
@@ -466,7 +467,7 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
 
          // check for source file
          // - use fullname of sourcefile to determine target directory
-         else if (FileInPath( "EPMPATH", pwd->szSourceFile, 
+         else if (FileInPath( "EPMPATH", pwd->szSourceFile,
                   szSourcePath, sizeof( szSourcePath)) != NO_ERROR)
             {
             ShowNlsError( hwnd, pwd->hmodResource, pszAppName,
@@ -766,8 +767,9 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
 
       // ------------------------------------------------
 
-      case JOB_STATUS_DONE:
+      case JOB_ACTION_FINISH:
          DPRINTF(( "JOB: FINISH\n"));
+         pwd->ulJobStatus = JOB_STATUS_DONE;
 
 #ifdef DEBUG_EX
          {
@@ -783,20 +785,30 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
             if (pwd->fCompileSuccessful)
                {
                if ((pwd->fCompiled) && (pwd->cd.fShowCompileLog))
-                  {
-                  sprintf( szCommand, "start /F EPM %s", pwd->szLogFile);
-                  system( szCommand);
-                  }
+                  _startThread( hwnd, &LogThread, &pwd->tidLog);
+               else
+                  UPDATE_JOB_STATUS;
                }
             else
-               {
-               // _startThread( hwnd, &LogThread, &pwd->tidLog);
-               sprintf( szCommand, "start /F EPM %s", pwd->szLogFile);
-               system( szCommand);
-               }
+               _startThread( hwnd, &LogThread, &pwd->tidLog);
+
+            // let thread update job status
+            break;
             }
+         else
+            UPDATE_JOB_STATUS;
+
+         break;
+
+      // ------------------------------------------------
+
+      case JOB_STATUS_DONE:
+         DPRINTF(( "JOB: DONE\n"));
+
 
          // wait for threads to finish
+         // warning: all threads not terminated until here
+         // block the recomp GUI thread here, so the PM !!!
          _waitForThreads( pwd);
 
          // cleanup
@@ -805,7 +817,7 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
          // close job - this resets job machine and GUI
          WinPostMsg( hwnd, WM_USER_JOBDONE, 0, 0);
 
-         DPRINTF(( "JOB: DONE\n"));
+         DPRINTF(( "JOB: ENDED\n"));
          break;
 
       } // end switch (msg)

@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: job.h,v 1.2 2002-06-04 20:06:34 cla Exp $
+* $Id: job.h,v 1.3 2002-06-08 23:40:50 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,7 +28,7 @@
 #define WM_USER_UPDATE_JOBMACHINE    (WM_USER + 0x2000)
 #define UPDATE_JOB_STATUS            WinPostMsg( hwnd, WM_USER_UPDATE_JOBMACHINE, 0, 0)
 #define UPDATE_JOB_STATUS_DATA(h, p) WinPostMsg( hwnd, WM_USER_UPDATE_JOBMACHINE, MPFROMLONG(h), MPFROMP(p))
-#define ABORT_JOB                    { pwd->ulJobStatus = JOB_STATUS_DONE; UPDATE_JOB_STATUS;}
+#define ABORT_JOB                    { pwd->ulJobStatus = JOB_ACTION_FINISH; UPDATE_JOB_STATUS;}
 
 
 // job status
@@ -38,6 +38,7 @@
 #define JOB_ACTION_RECOMPILE_EPM             3
 #define JOB_ACTION_CLOSE_EPMWINDOWS          4
 #define JOB_ACTION_RELOAD_FILES              5
+#define JOB_ACTION_FINISH                    6
 
 #define JOB_STATUS_INITIALIZING            100
 #define JOB_STATUS_LINKING_MACRO           101
