@@ -7,15 +7,9 @@
 :    - download the EPM packages from www.leo.org
 :    - and to create the package source directories
 :
-: Called from src\wis\makefile either with
-:   make all          or
-:   make prepare
-:
-: See readme.txt for requirements !
-:
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.1 2002-06-12 09:08:04 cla Exp $
+: $Id: prepare.cmd,v 1.2 2002-06-12 09:12:45 cla Exp $
 :
 : ===========================================================================
 :
