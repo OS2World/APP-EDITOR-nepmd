@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.6 2003-09-01 03:03:58 aschn Exp $
+* $Id: locate.e,v 1.7 2003-09-01 03:19:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -288,59 +288,65 @@ defc globalfind, gfind, globallocate, glocate, gl
 ; Changed:
 ;    Toggles the search direction (options +F or -R) without any
 ;    following locate action.
+;    Doesn't produce an error msg anymore if oldsearch = empty.
 def c_minus = 'ToggleSearchDirection'
 
 defc ToggleSearchDirection
-   getsearch oldsearch
-   -- get delimiter
-   parse value oldsearch with . c_or_l search
-   delim = leftstr(search,1)
-   -- get searchoptions
-   parse value oldsearch with searchcmd (delim) searchstring (delim) searchoptions (delim)
-   if searchoptions = '' then
-      parse value oldsearch with searchcmd (delim) searchstring (delim) searchoptions
-   endif
-   --sayerror 'searchstring = <'searchstring'>, searchoptions = <'searchoptions'>'
+;   universal default_search_options
 
-   Minuspos = lastpos( '-', searchoptions )
-   Pluspos = lastpos( '+', searchoptions )
-   -- remove + and - from searchoptions
-   if Minuspos > 0 then
-      searchoptions = delstr( searchoptions, Minuspos, 1 )
+   -- Get search
+   getsearch oldsearch
+   -- Get delimiter
+   parse value oldsearch with . c_or_l search
+   if search <> '' then  -- if search is set
+      delim = leftstr( search, 1)
+      -- Get searchcmd, searchstring and searchoptions
+      parse value oldsearch with searchcmd (delim)searchstring(delim)searchoptions(delim)
+      if searchoptions = '' then
+         parse value oldsearch with searchcmd (delim)searchstring(delim)searchoptions
+      endif
+      searchcmd = strip(searchcmd)
+      if searchcmd = '' then
+         searchcmd = 'xcom l'
+      endif
+   else  -- if no search cmd was executed before, set this to make setsearch happy
+      searchcmd     = 'xcom l'
+      delim         = \1
+      searchstring  = ''
+;      searchoptions = default_search_options
+      searchoptions = ''
    endif
-   if Pluspos > 0 then
-      searchoptions = delstr( searchoptions, Pluspos, 1 )
-   endif
-   -- exchange + and -
-   if Minuspos > Pluspos then
-      searchoptions=searchoptions'+'
+         --call NepmdPmPrintf( 'cmd = |'searchcmd'|, string = |'searchstring'|, options = |'searchoptions'|, delim = |'delim'|')
+
+   searchoptions = upcase(searchoptions)
+   Minuspos = lastpos( '-', searchoptions)
+   Pluspos  = lastpos( '+', searchoptions)
+
+   -- Remove every ( |+|-|F|R) from searchoptions
+   --    Note: translate doesn't allow '' as 4th parameter (pad).
+   rest = searchoptions
+   searchoptions = ''
+   do while rest <> ''
+      parse value rest with next 2 rest  -- parse 1 char
+      if verify( next, ' +-FR', 'N') then  -- if no match
+         searchoptions = searchoptions''next
+      endif
+   enddo
+
+   -- Append +F or -R
+   if Minuspos > Pluspos then  -- in searchoptions: the last option wins
+      searchoptions=searchoptions'+F'
       sayerror 'Changed search direction to: foreward'
    else
-      searchoptions=searchoptions'-'
+      searchoptions=searchoptions'-R'
       sayerror 'Changed search direction to: back'
    endif
 
-   Rpos = lastpos( 'R', translate(searchoptions) )
-   Fpos = lastpos( 'F', translate(searchoptions) )
-   -- remove F and R from searchoptions
-   if Rpos > 0 then
-      searchoptions = delstr( searchoptions, Rpos, 1 )
-   endif
-   if Fpos > 0 then
-      searchoptions = delstr( searchoptions, Fpos, 1 )
-   endif
-   -- exchange R and F
-   if Rpos > Fpos then
-      searchoptions=searchoptions'F'
-   else
-      searchoptions=searchoptions'R'
-   endif
-
+   -- Set search
    newsearch = searchcmd' 'delim''searchstring''delim''searchoptions''delim
-   setsearch newsearch
+   setsearch newsearch  -- setsearch requires a space after searchcmd, because it prooves if searchcmd is valid
 
-   --sayerror 'OLD: <'oldsearch'> NEW: <'newsearch'> oldminuspos='minuspos' oldRpos='Rpos
-   --OLD: <xcom l aCAcD> NEW: <xcom l aCAcD-R> oldminuspos=0 oldRpos=0
+         --call NepmdPmPrintf( 'asc(delim) = 'asc(delim)', oldsearch = |'oldsearch'|, newsearch = |'newsearch'|')
    return
 
 ; ---------------------------------------------------------------------------
