@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.14 2002-10-31 14:34:56 cla Exp $
+* $Id: stdmenu.e,v 1.15 2002-10-31 14:54:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -459,12 +459,15 @@ compile else
 compile endif
 -- Todo: replace all strings and add consts for menu styles ------------------------------------------------------
       buildmenuitem menuname, HELP_MENU_ID, 609, 'NEPMD runtime information', 'nepmdinfo', 0, 0
-      buildmenuitem menuname, HELP_MENU_ID, 610, \0,           '',                        4, 0
-      buildmenuitem menuname, HELP_MENU_ID, 640, 'View NEPMD Online Help', ''\1, 17+64, 0
+      buildmenuitem menuname, HELP_MENU_ID, 640, 'View NEPMD Users Guide', ''\1, 17+64, 0
          -- start is used here to resolve environment var
          buildmenuitem menuname, HELP_MENU_ID, 641, 'View NEPMD User Guide', 'start view neusr%NEPMD_LANGUAGE% netlabs'\1, 0, 0
-         buildmenuitem menuname, HELP_MENU_ID, 641, 'View NEPMD Programming Guide', 'start view neprg%NEPMD_LANGUAGE% netlabs'\1, 0, 0
-         buildmenuitem menuname, HELP_MENU_ID, 642, 'Current word', 'viewword nepmd%NEPMD_LANGUAGE%'\1, 32768+1, 0
+         buildmenuitem menuname, HELP_MENU_ID, 642, 'Current word', 'viewword neusr%NEPMD_LANGUAGE%'\1, 32768+1, 0
+      buildmenuitem menuname, HELP_MENU_ID, 650, 'View NEPMD Programming Guide', ''\1, 17+64, 0
+         -- start is used here to resolve environment var
+         buildmenuitem menuname, HELP_MENU_ID, 651, 'View NEPMD Programming Guide', 'start view neprg%NEPMD_LANGUAGE% netlabs'\1, 0, 0
+         buildmenuitem menuname, HELP_MENU_ID, 652, 'Current word', 'viewword neprg%NEPMD_LANGUAGE%'\1, 32768+1, 0
+      buildmenuitem menuname, HELP_MENU_ID, 610, \0,           '',                        4, 0
 compile if SUPPORT_USERS_GUIDE
       buildmenuitem menuname, HELP_MENU_ID, 620, USERS_GUIDE_MENU__MSG,   USERS_GUIDE_MENUP__MSG, 17+64, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
          buildmenuitem menuname, HELP_MENU_ID, 621, VIEW_USERS_MENU__MSG,  'view epmusers'VIEW_USERS_MENUP__MSG, 0, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
@@ -491,7 +494,8 @@ defproc maybe_show_menu
 defproc showmenu_activemenu()
    universal activemenu
    showmenu activemenu  -- show the updated EPM menu
-   'postme cascade_menu 640'  -- NEPMD Online Help
+   'postme cascade_menu 640'  -- NEPMD User Guide
+   'postme cascade_menu 650'  -- NEPMD Programming Guide
 compile if SUPPORT_USERS_GUIDE
    'postme cascade_menu 620'
 compile endif
