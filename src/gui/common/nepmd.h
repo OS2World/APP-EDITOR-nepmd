@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.6 2002-08-22 15:04:37 cla Exp $
+* $Id: nepmd.h,v 1.7 2002-08-22 15:46:22 cla Exp $
 *
 * ===========================================================================
 *
@@ -38,7 +38,7 @@
 #define NEPMD_VALUETAG_ROOTDIR         "ROOTDIR"
 #define NEPMD_VALUETAG_LANGUAGE        "LANGUAGE"
 #define NEPMD_VALUETAG_INIT            "INIT"
-#define NEPMD_VALUETAG_MESSAGES        "MESSAGE"
+#define NEPMD_VALUETAG_MESSAGE         "MESSAGE"
 
 // path definitions relative to NEPMD install dir
 // NOTE: last word of symbol names are taken from the
@@ -51,8 +51,8 @@
 
 #define NEPMD_SUBPATH_INIFILE      NEPMD_SUBPATH_MYBINDIR
 #define NEPMD_FILENAME_INIFILE     "nepmd.ini"
-#define NEPMD_SUBPATH_INIFILE      NEPMD_SUBPATH_MYBINDIR
-#define NEPMD_FILENAME_INIFILE     "nepmd.ini"
+#define NEPMD_SUBPATH_MESSAGEFILE  NEPMD_SUBPATH_BINBINDIR
+#define NEPMD_FILENAME_MESSAGEFILE "nepmd%s.tmf"
 
 
 // define external env vars available in epm.env
