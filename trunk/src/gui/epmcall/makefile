@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.10 2002-08-14 12:52:32 cla Exp $
+# $Id: makefile,v 1.11 2002-08-21 12:15:05 cla Exp $
 #
 # ===========================================================================
 #
@@ -30,6 +30,7 @@ RES=$(BINDIR)\epmcall.res
 LXLITE=1
 LIBS=$(BINDIR)\common.lib
 MT=1
+PMPRINTF=1
 
 # include main definitions
 BASEDIR=..\..\..
@@ -88,5 +89,5 @@ $(BINBINDIR)\epm.env: epmcall.env
 
 # --- build program
 
-$(BINDIR)\epmcall.exe: $(BINDIR)\epmcall.obj $(OBJS) $(DEF) $(RES)
+$(BINDIR)\epmcall.exe: $(BINDIR)\epmcall.obj $(OBJS) $(DEF) $(RES) $(LIBS) $(PMPRINTF)
 
