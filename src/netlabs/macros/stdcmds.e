@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.9 2002-10-06 23:39:47 aschn Exp $
+* $Id: stdcmds.e,v 1.10 2002-10-19 15:46:26 cla Exp $
 *
 * ===========================================================================
 *
@@ -1058,6 +1058,10 @@ compile endif
 ;   if locked & not arg(1) then call lock(); endif       -- remove?
 ;compile endif                                           -- remove?
    'maketitletext'
+
+   -- explicitely redetermine mode (file contents may have changed)
+   call NepmdResetMode( )
+
    return src
 
 defc select_all =
