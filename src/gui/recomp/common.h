@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: common.h,v 1.2 2002-06-09 15:29:46 cla Exp $
+* $Id: common.h,v 1.3 2002-06-09 21:52:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -59,6 +59,7 @@
 #define EPM_SOURCENAME                 "epm.e"
 #define EPM_TARGETNAME                 "epm.ex"
 #define EPM_COMPILELOG                 __PROGSTEM__".log"
+#define TEST_ALTSOURCENAME             "epm_error.e"
 
 #define MAX_EPM_CLIENTS                64
 
