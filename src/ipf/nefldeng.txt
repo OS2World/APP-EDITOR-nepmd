@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nefldeng.txt,v 1.1 2002-11-04 22:50:21 cla Exp $
+.. $Id: nefldeng.txt,v 1.2 2002-11-04 23:24:07 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -77,7 +77,7 @@ information about *EPM* and the [=TITLE] and its extensions.
 .an IDPNL_ICON_NEPMDPRGGUIDE
 .res 103
 .
-This icon launches the *[=PRGTITLE]*, containing 
+This icon launches the *[=PRGTITLE]*, containing
 additional information about the [=TITLE], concerning
 the extensions applied to the *EPM executable.
 
@@ -102,7 +102,7 @@ See also the *[=USRTITLE]* for more details.
 .res 105
 .
 This icon represents the *myepm* directory
-below the installation directory of the [=TITLE]. 
+below the installation directory of the [=TITLE].
 All user extensions are intended to be placed within this
 directory
 
@@ -189,15 +189,19 @@ This icon launches the *EPM* REXX macro Readme
 .
 This icon launches the *EPM* Speech Support.
 
+A shadow of this icon is created within the
+*System Startup* folder, so that it is automatically started
+on system startup.
+
 .. =============================================================================
 .2 Help for System Startup shadow
 .. =============================================================================
 .an IDPNL_ICON_STARTSHADOW
 .res 113
 .
-This icon is a shadow of the System Startup folder.
+This icon is a shadow of the *System Startup* folder.
 
 It is intended to give you quick access to the Startup folder
 where the installation program of the [=TITLE] creates a shadow
 of the icon for to start the [.IDPNL_ICON_SPEECH  *EPM* Speech Support].
-       
+
