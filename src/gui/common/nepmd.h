@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.1 2002-08-10 13:03:21 cla Exp $
+* $Id: nepmd.h,v 1.2 2002-08-10 15:33:08 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,6 +36,11 @@
 //       names of the macros used in makefiles ;-)
 
 #define NEPMD_SUBPATH_BINBINDIR    "netlabs\\bin"
+
+
+// define external env vars available in epm.env
+
+#define ENV_NEPMD_PATH             "NEPMD_ROOTDIR"
 
 #endif // NEPMD_H
 
