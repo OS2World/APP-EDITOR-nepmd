@@ -2,6 +2,8 @@
 *
 * Module Name: dyncfg.cmd
 *
+* Syntax: dyncfg [DEINSTALL]
+*
 * Helper batch for to copy netlabs\bin\epm.exe to a directory along
 * the PATH. Preferred is ?:\OS2, as this comes before ?:\OS2\APPS,
 * where the original EPM is mostly installed.
@@ -16,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.1 2002-08-11 00:43:16 cla Exp $
+* $Id: dyncfg.cmd,v 1.2 2002-08-12 12:59:00 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,14 +38,33 @@
  TRUE  = (1 = 1);
  FALSE = (0 = 1);
  Redirection = '>NUL 2>&1';
+ GlobalVars = 'env TRUE FALSE Redirection';
 
  call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
  call SysLoadFuncs;
 
  /* defaults */
  rc = 0;
+ EaName = 'NEPMD.Loader';
 
  DO UNTIL (TRUE)
+
+    /* get OS2 directory name */
+    PARSE VALUE TRANSLATE( VALUE('PATH',,env)) WITH '\OS2;' -2 BootDrive +2;
+    OS2Dir = TRANSLATE( BootDrive'\OS2');
+    CheckFile = OS2Dir'\EPM.EXE';
+
+    /* check parm */
+    ARG Parm .;
+    IF (Parm = 'DEINSTALL') THEN
+    DO
+       /* delete EPM.EXE in ?:\os2 if it is ours */
+       IF (IsNepmdExecutable( CheckFile)) THEN
+       DO
+          rc = SysFileDelete( CheckFile);
+          LEAVE;
+       END;
+    END;
 
     /* get the base directory of the NEPMD installation */
     InstallPath = SysIni(, 'NEPMD', 'Path');
@@ -65,22 +86,12 @@
        LEAVE;
     END;
    
-    /* get OS2 diretcory name */
-    PARSE VALUE TRANSLATE( VALUE('PATH',,env)) WITH '\OS2;' -2 BootDrive +2;
-    OS2Dir = TRANSLATE( BootDrive'\OS2');
-   
-    /* if EPM.EXE resides in this directory, we may have a problem */
-    CheckFile = OS2Dir'\EPM.EXE';
-    IF (FileExist( CheckFile)) THEN
+    /* don't touch any EPM.EXE not being ours here */
+    IF (\IsNepmdExecutable( CheckFile)) THEN
     DO
-       /* is it our executable ? */
-       rc = SysGetEa( CheckFile, 'NEPMD.Loader', LoaderTag);
-       IF ((rc \= 0) | (LoaderTag = '')) THEN /* NO_ERROR */
-       DO
-          SAY 'error: ' OS2Dir'\epm.exe is not of NEPMD, cannot continue.';
-          rc = 5; /* ERROR_ACCESS_DENIED */
-          LEAVE;
-       END;
+       SAY 'error: ' CheckFile 'is not of NEPMD, cannot continue.';
+       rc = 5; /* ERROR_ACCESS_DENIED */
+       LEAVE;
     END;
    
     /* determine original EPM.EXE along the path */
@@ -129,7 +140,7 @@
        LoaderInfo = '1';
        EaLen = REVERSE( RIGHT( D2C( LENGTH( LoaderInfo)), 2, D2C(0)));
        EaValue = 'FDFF'x''EaLen''LoaderInfo;
-       rcx = SysPutEa( CheckFile, 'NEPMD.Loader', EaValue);
+       rcx = SysPutEa( CheckFile, NepmdEaName, EaValue);
    
     END;
  END;
@@ -144,4 +155,24 @@ FileExist: PROCEDURE
  PARSE ARG FileName
 
  RETURN(STREAM(Filename, 'C', 'QUERY EXISTS') > '');
+
+/* ========================================================================= */
+IsNepmdExecutable: PROCEDURE EXPOSE (GlobalVars)
+ PARSE ARG CheckFile;
+
+ fFound = FALSE;
+
+ DO UNTIL (TRUE)
+
+    /* if EPM.EXE resides in this directory, we may have a problem */
+    IF (FileExist( CheckFile)) THEN
+    DO
+       /* is it our executable ? */
+       rc = SysGetEa( CheckFile, NepmdEaName, LoaderTag);
+       IF ((rc = 0) & (LoaderTag \= '')) THEN
+          fFound = 1;
+    END;
+ END;
+
+ RETURN( fFound);
 
