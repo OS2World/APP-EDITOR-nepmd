@@ -10,11 +10,11 @@
 /* The first comment is used as online help text */
 /****************************** Module Header *******************************
 *
-* Module Name: kd.cmd
+* Module Name: lt.cmd
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: lt.cmd,v 1.1 2002-06-12 14:19:23 cla Exp $
+* $Id: lt.cmd,v 1.2 2002-08-01 19:36:32 cla Exp $
 *
 * ===========================================================================
 *
