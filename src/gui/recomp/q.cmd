@@ -8,7 +8,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: q.cmd,v 1.2 2002-06-09 21:44:00 cla Exp $
+: $Id: q.cmd,v 1.3 2002-08-20 19:54:04 cla Exp $
 :
 : ===========================================================================
 :
@@ -22,6 +22,8 @@
 : General Public License for more details.
 :
 : **************************************************************************/
+ SETLOCAL
+ SET EPMPATH=%EPMPATH%;..\..\netlabs\macros;
 
  call make
  if not errorlevel 1 start ..\..\..\debug\recomp %TMP% %1 %2 %3 %4 %5 %6 %7 %8 %9
