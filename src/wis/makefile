@@ -17,7 +17,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.1 2002-06-03 18:13:58 cla Exp $
+# $Id: makefile,v 1.2 2002-06-10 13:35:40 cla Exp $
 #
 # ===========================================================================
 #
@@ -56,6 +56,13 @@ FILESTOCLEAN=\
  $(CMPDIR)\prepare.log \
  $(BINDIR)\create.log
 
+
+# --- parameters for to patch into the WarpIn script
+
+WISPARMS= \
+ ID_VERSION_NEPMD=$(ID_VERSION_NEPMD) \
+ ID_VERSION_REQ_WARPIN=$(ID_VERSION_REQ_WARPIN)
+
 # --- pseudotargets
 
 ALL: PREPARE CREATE
@@ -89,7 +96,11 @@ $(UNZIPPEDDIR)\prepare.log: $(BASEDIR)\bin\prepare.cmd
 
 # ---- create WPI package
 
-$(BINDIR)\$(WPIFILE): PREPARE $(SCRIPTFILE) $(BASEDIR)\bin\create.cmd $(WPIDEPLIST)
+$(BINDIR)\$(WPIFILE): PREPARE $(CMPDIR)\$(SCRIPTFILE) $(BASEDIR)\bin\create.cmd $(WPIDEPLIST)
    @CD $(BASEDIR)
-   bin\create $(BINDIR_NAME)\create.log src\wis\$(SCRIPTFILE) $(BINDIR_NAME)\$(WPIFILE) $(UNZIPPEDDIR)
+   bin\create $(BINDIR_NAME)\create.log $(CMPDIR_NAME)\$(SCRIPTFILE) $(BINDIR_NAME)\$(WPIFILE) $(UNZIPPEDDIR)
+
+# --- create customized WarpIn script file
+$(CMPDIR)\$(SCRIPTFILE): $(SCRIPTFILE) $(BASEDIR)\bin\create.cmd
+   parseenv $(SCRIPTFILE) $(CMPDIR)\$(SCRIPTFILE) $(WISPARMS)
 

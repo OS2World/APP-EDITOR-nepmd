@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.14 2002-06-10 12:14:49 cla Exp $
+# $Id: nepmd.wis,v 1.15 2002-06-10 13:35:40 cla Exp $
 #
 # ===========================================================================
 #
@@ -30,9 +30,9 @@
 <HEAD>
 
 <PCK INDEX=1
-     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Base Application\1\0\0"
+     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Base Application\%ID_VERSION_NEPMD%"
      TARGET="$(WARPIN_DEFAULTAPPSPATH)\EPM"
-     REQUIRES="OS/2 Netlabs\WarpIN\Base\0\9\18"
+     REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
      SELECT
      NODESELECT
      TITLE="Base Application"
@@ -48,7 +48,7 @@
      >This package installs the base application files.</PCK>
 
 <PCK INDEX=2
-     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\EPM Macros\1\0\0"
+     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\EPM Macros\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
@@ -56,7 +56,7 @@
      >This package installs the EPM macros.</PCK>
 
 <PCK INDEX=3
-     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Programming samples\1\0\0"
+     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Programming samples\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
@@ -70,7 +70,7 @@
      >This package installs the programming samples.</PCK>
 
 <PCK INDEX=4
-     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Speech Support\1\0\0"
+     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Speech Support\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      TITLE="Speech Support"
