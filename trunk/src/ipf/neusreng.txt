@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.4 2002-10-31 18:20:22 cla Exp $
+.. $Id: neusreng.txt,v 1.5 2002-11-02 17:03:33 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -71,13 +71,12 @@ These packages already include the following:
 - the macro compiler (not being shipped with *OS/2 Warp 4* or *eComStation*)
 - programming samples for
   - programming macros in REXX and C
-  - interacting with EPM via DDE
+  - interacting with *EPM* via DDE
   - using the E Toolkit in order to implement one or more MLE's
     (Enhanced Multi-line Edit Controls) in own applications
 
-In addition to that the [=TITLE] adds [.IDPNL_ADDITIONS various features]
+In addition to that the [=TITLE] adds [.IDPNL_INSTADDITIONS various features]
 out of contributed macros and add-on programs.
-
 
 .. -----------------------------------------------------------------------------
 .3 What is EPM ?
@@ -281,7 +280,7 @@ This package contains the application core files.
   run *EPM*.
 - While all files reside in one directory within this package,
   within the installation provided by [=TITLE] these files are distributed
-  over several directories below the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin]
+  over several directories below the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory bin]
 
 .. .............................................................................
 .4 epmdll.zip - base application dll package
@@ -299,7 +298,7 @@ This package contains the dynamic link libraries of the *E Toolkit* used by *EPM
   intended to be installed in the same directory as the
   [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] package,
   within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\dll]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory bin\dll]
 
 .. .............................................................................
 .4 epmhlp.zip - base application help package
@@ -315,7 +314,7 @@ the standard *EPM*.
   intended to be installed in the same directory as the
   [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] package,
   within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory help]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory help]
 
 .. .............................................................................
 .4 epmbk.zip - Guide and Reference package
@@ -335,7 +334,7 @@ This package contains the online help files
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory book]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory book]
 
 .. .............................................................................
 .4 epmspch.zip - speech support package
@@ -350,7 +349,7 @@ with the *VoiceType* package coming with *OS/2 Warp 4* and higher or *eComstatio
 - While all files reside in one directory within this package,
   within the installation provided by [=TITLE] these files are distributed into
   and over several directories below the
-  [.IDPNL_ADDITIONS_DIRTREE subdirectories dll and bin]
+  [.IDPNL_INSTADDITIONS_DIRTREE subdirectories dll and bin]
 
 .. .............................................................................
 .4 epmbmps.zip - bitmap source package
@@ -363,7 +362,7 @@ with the *VoiceType* package coming with *OS/2 Warp 4* and higher or *eComStatio
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\bmp]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory bin\bmp]
 
 .. .............................................................................
 .4 epmmac.zip - macro source package
@@ -376,7 +375,7 @@ the REXX configuration part of *EPM* (EPM.EX).
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory bin\macros]
 
 .. .............................................................................
 .4 epmmac2.zip - additional macro source package
@@ -388,7 +387,7 @@ This package contains sources for some additional sources.
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory bin\macros]
 
 .. .............................................................................
 .4 epmsmp.zip - macro sample source package
@@ -400,7 +399,7 @@ This package contains sample sources for macros.
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros\samples]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory bin\macros\samples]
 
 .. .............................................................................
 .4 epmatr.zip - Attribute support marco source package
@@ -412,7 +411,7 @@ This package contains the source for an outdated attribute support for *EPM*.
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros\attr]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory bin\macros\attr]
 - This package is not integrated in the [=TITLE] extensions. In order to use
   it you have to integrate it into your *EPM* configuration and recompile
   your *EPM* configuration.
@@ -434,7 +433,7 @@ It contains tag support for
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros\ebooke]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory bin\macros\ebooke]
 - This package is not integrated in the [=TITLE] extensions. In order to use
   it you have to integrate it into your *EPM* configuration and recompile
   your *EPM* configuration.
@@ -450,7 +449,7 @@ which is freely configurable.
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros\myassist]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory bin\macros\myassist]
 - This package is not integrated in the [=TITLE] extensions. In order to use
   it you have to integrate it into your *EPM* configuration and recompile
   your *EPM* configuration.
@@ -466,7 +465,7 @@ commands on VM hosts.
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros\lampdq]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory bin\macros\lampdq]
 - This package is not integrated in the [=TITLE] extensions. In order to use
   it you have to integrate it into your *EPM* configuration and recompile
   your *EPM* configuration.
@@ -476,7 +475,7 @@ commands on VM hosts.
 .. .............................................................................
 .an IDPNL_EPMBBS_COMP_EPMCSAMP
 .
-This package contains C sample code for to write EPM macros in the C programming
+This package contains C sample code for to write *EPM* macros in the C programming
 language. Moreover this sample uses the E Toolkit, which allow the usage of *EPM*
 functionality within other applications. For the latter only the
 *runtime of the E Toolkit* is required, this is already included
@@ -487,7 +486,7 @@ with the [.IDPNL_EPMBBS EPMBBS distribution].
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory samples\c]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory samples\c]
 
 .. .............................................................................
 .4 epmdde.zip - C sample source package - DDE interface
@@ -500,7 +499,7 @@ This interface is e.g. used by the *Workframe/2* package.
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory samples\dde]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory samples\dde]
 
 .. .............................................................................
 .4 epmrex.zip - REXX sample source package - external REXX support
@@ -529,7 +528,7 @@ they possibly execute much faster, as true *REXX* is more flexible for most purp
 [=NOTE]
 .ul compact
 - Within the installation provided by [=TITLE] these files are placed in
-  the [.IDPNL_ADDITIONS_DIRTREE subdirectory samples\rexx]
+  the [.IDPNL_INSTADDITIONS_DIRTREE subdirectory samples\rexx]
 
 .. -----------------------------------------------------------------------------
 .3 Where to obtain
@@ -547,9 +546,9 @@ available on FTP servers in the Internet like:
   (file by file in the directory /pub/os2/apps/editors/epm)
 
 .. =============================================================================
-.2 Additions of the [=DOCTITLE]
+.2 The [=DOCTITLE] Installation
 .. =============================================================================
-.an IDPNL_ADDITIONS
+.an IDPNL_INSTADDITIONS
 .
 [=TOPICS]
 .su V30 1
@@ -557,7 +556,7 @@ available on FTP servers in the Internet like:
 .. -----------------------------------------------------------------------------
 .3 dynamic EPM configuration
 .. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_DYNCFG
+.an IDPNL_INSTADDITIONS_DYNCFG
 .
 The [=TITLE] provides you with a dynamic configuration for *EPM*, which makes
 any changes to your *CONFIG.SYS* obsolete.
@@ -568,10 +567,10 @@ any changes to your *CONFIG.SYS* obsolete.
 .. .............................................................................
 .4 benefits of the dynamic configuration
 .. .............................................................................
-.an IDPNL_ADDITIONS_DYNCFG_BENEFITS
+.an IDPNL_INSTADDITIONS_DYNCFG_BENEFITS
 .
 We thought a lot about this approach of a dynamic configuration and how to implement
-it best. We decided to copy one binary file, namely the [.IDPNL_ADDITIONS_DYNCFG_LOADER],
+it best. We decided to copy one binary file, namely the [.IDPNL_INSTADDITIONS_DYNCFG_LOADER],
 to your system directory (directory *\os2* on your boot drive) to accomplish this.
 Considering, that it normally would be a bad behaviour to clutter the system directory
 with non-system files, like this is well known from the windowze platforms, we
@@ -590,7 +589,7 @@ nevertheless think that in this case the benefit outweighs this drawback by far:
 .. .............................................................................
 .4 EPM loader executable
 .. .............................................................................
-.an IDPNL_ADDITIONS_DYNCFG_LOADER
+.an IDPNL_INSTADDITIONS_DYNCFG_LOADER
 .in EPM loader executable
 .in epmenv.cmd
 .
@@ -606,10 +605,10 @@ When EPM.EXE is either loaded from command line or by double-clicking the
 *Enhanced Editor* icon within the *Workplace Shell*, this loader is launched
 instead of the true *EPM* and does the following:
 .ul compact
-- a special [.IDPNL_ADDITIONS_DYNCFG_ENVFILES environment settings file]
+- a special [.IDPNL_INSTADDITIONS_DYNCFG_ENVFILES environment settings file]
   is loaded. It holds the complete changes required for the standard environment
-  that are required to run all of the [.IDPNL_ADDITIONS], this is in particular
-  the case for the support of the [.IDPNL_ADDITIONS_DIRTREE].
+  that are required to run all of the [.IDPNL_INSTADDITIONS], this is in particular
+  the case for the support of the [.IDPNL_INSTADDITIONS_DIRTREE].
 - the true *EPM* executable is searched along the path (of course skipping
   the *EPM loader executable* itself during the search) and launched with
   the extended environment and the parameters supplied to the loader executable
@@ -618,14 +617,14 @@ instead of the true *EPM* and does the following:
 .. .............................................................................
 .4 extended environment
 .. .............................................................................
-.an IDPNL_ADDITIONS_DYNCFG_EXTENV
+.an IDPNL_INSTADDITIONS_DYNCFG_EXTENV
 .
-All GUI utilities of the [=TITLE], and especially the [.IDPNL_ADDITIONS_DYNCFG_LOADER]
-load the extended environment defined by the [.IDPNL_ADDITIONS_DYNCFG_ENVFILES]
+All GUI utilities of the [=TITLE], and especially the [.IDPNL_INSTADDITIONS_DYNCFG_LOADER]
+load the extended environment defined by the [.IDPNL_INSTADDITIONS_DYNCFG_ENVFILES]
 coming with the [=TITLE].
 
-The extended environment supports in particular the [.IDPNL_ADDITIONS_DIRTREE] of
-the [=TITLE] and further functionality by [.IDPNL_ADDITIONS_DYNCFG_NEWVARS] (being
+The extended environment supports in particular the [.IDPNL_INSTADDITIONS_DIRTREE] of
+the [=TITLE] and further functionality by [.IDPNL_INSTADDITIONS_DYNCFG_NEWVARS] (being
 only available within the extended environment, of course).
 
 [=NOTE]
@@ -635,7 +634,7 @@ only available within the extended environment, of course).
     in a shell window of *EPM* or OS/2/eComStaion windows or fullscreens launched
     from within the loaded *EPM* instance
   - also loaded by GUI utilities of the [=TITLE], like the
-    [.IDPNL_ADDITIONS_RECOMP recompilation utility RECOMP],
+    [.IDPNL_INSTADDITIONS_RECOMP recompilation utility RECOMP],
     so that all source files of the [=TITLE] can be found during recompilation.
 - in order to have the extended environment also available for other processes
   you can execute *epmenv.cmd* (being part of the [=TITLE]) within an OS/2 or eCS
@@ -650,7 +649,7 @@ only available within the extended environment, of course).
 .. .............................................................................
 .4 environment files
 .. .............................................................................
-.an IDPNL_ADDITIONS_DYNCFG_ENVFILES
+.an IDPNL_INSTADDITIONS_DYNCFG_ENVFILES
 .
 Environment files define extensions to the environment, have the filename
 extension *.env* and concerning their contents they resemble somewhat to
@@ -673,7 +672,7 @@ There are two kinds of environment files, wich are loaded one
 after the other in the following order:
 .pl compact tsize=3
 - base or main environment files
-= The [=TITLE] comes with one main [.IDPNL_ADDITIONS_DYNCFG_ENVFILES_EPMENV]
+= The [=TITLE] comes with one main [.IDPNL_INSTADDITIONS_DYNCFG_ENVFILES_EPMENV]
   named *netlabs\bin\epm.env* below its installation directory
   [=NOTE]
 .ul compact
@@ -681,7 +680,7 @@ after the other in the following order:
   - if this file is missing, the extensions of the [=TITLE] will not work properly
 .el
 .
-  (see also [.IDPNL_ADDITIONS_DIRTREE_NEPMD]).
+  (see also [.IDPNL_INSTADDITIONS_DIRTREE_NEPMD]).
 .
 - user environment files
 = these files do not exist by default and may be created by the user, defining
@@ -689,14 +688,14 @@ after the other in the following order:
   These files are never overwritten when reinstalling the [=TITLE] or deleted
   when the [=TITLE] is deinstalled.
 .
-  (see also [.IDPNL_ADDITIONS_DIRTREE_USER]).
+  (see also [.IDPNL_INSTADDITIONS_DIRTREE_USER]).
 
 .. .............................................................................
 .5 epm.env
 .. .............................................................................
-.an IDPNL_ADDITIONS_DYNCFG_ENVFILES_EPMENV
+.an IDPNL_INSTADDITIONS_DYNCFG_ENVFILES_EPMENV
 .
-The [=TITLE] comes with the following [.IDPNL_ADDITIONS_DYNCFG_ENVFILES main environment file],
+The [=TITLE] comes with the following [.IDPNL_INSTADDITIONS_DYNCFG_ENVFILES main environment file],
 defining all required extensions for the environment to make all additions work properly.
 
 Note that you should not modify this file, but create your own personal environment file
@@ -709,14 +708,14 @@ in the directory *myepm\bin* with the same name, which is loaded after this main
 .. .............................................................................
 .4 search order for environment files
 .. .............................................................................
-.an IDPNL_ADDITIONS_DYNCFG_SEARCHORDER
+.an IDPNL_INSTADDITIONS_DYNCFG_SEARCHORDER
 .in __todo: link to recomp
 .
-Two [.IDPNL_ADDITIONS_DYNCFG_ENVFILES] are loaded
+Two [.IDPNL_INSTADDITIONS_DYNCFG_ENVFILES] are loaded
 when the environment has to be extended for launch of *EPM* or a GUI
 utility of the [=TITLE]. In some of the below cases the name of the executable is
 taken as the name of a searched environment file (still with extension *.env*),
-this would always be *epm* when the EPM is launched, and for example *recomp*,
+this would always be *epm* when the *EPM* is launched, and for example *recomp*,
 if the recompilation utility *recomp.exe* is called.
 
 
@@ -772,9 +771,9 @@ is loaded
 .. .............................................................................
 .4 new NEPMD environment variables
 .. .............................................................................
-.an IDPNL_ADDITIONS_DYNCFG_NEWVARS
+.an IDPNL_INSTADDITIONS_DYNCFG_NEWVARS
 .
-The following environment variables are defined only in the [.IDPNL_ADDITIONS_DYNCFG_EXTENV]
+The following environment variables are defined only in the [.IDPNL_INSTADDITIONS_DYNCFG_EXTENV]
 ot the [=TITLE]:
 
 _*environment variables defined by the environment file loader code:*_
@@ -786,7 +785,7 @@ _*environment variables defined by the environment file loader code:*_
 .
   (currently only *eng* for english)
 - NEPMD__LOADEREXECUTABLE
-= full pathname of the [.IDPNL_ADDITIONS_DYNCFG_LOADER]
+= full pathname of the [.IDPNL_INSTADDITIONS_DYNCFG_LOADER]
 - NEPMD__EPMEXECUTABLE
 = full pathname of the original *EPM* executable
 - NEPMD__MAINENVFILE
@@ -816,7 +815,7 @@ _*environment variables defined in netlabs\bin\epm.env:*_
 .. -----------------------------------------------------------------------------
 .3 extended directory structure
 .. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_DIRTREE
+.an IDPNL_INSTADDITIONS_DIRTREE
 .
 To allow clear disctinct between files provided by the [=TITLE] and user files,
 all files are separated in dedicated directories:
@@ -836,7 +835,7 @@ all files are separated in dedicated directories:
 .. .............................................................................
 .4 directory structure for the EPMBBS files
 .. .............................................................................
-.an IDPNL_ADDITIONS_DIRTREE_EPMBBS
+.an IDPNL_INSTADDITIONS_DIRTREE_EPMBBS
 .
 Files of the [.IDPNL_EPMBBS EPMBBS distribution] reside in the following directories:
 .fo off
@@ -868,7 +867,7 @@ Files of the [.IDPNL_EPMBBS EPMBBS distribution] reside in the following directo
 .. .............................................................................
 .4 directory structure for extensions of the Netlabs EPM Distribution
 .. .............................................................................
-.an IDPNL_ADDITIONS_DIRTREE_NEPMD
+.an IDPNL_INSTADDITIONS_DIRTREE_NEPMD
 .
 Files of the [=TITLE] reside in the following directories:
 .fo off
@@ -878,55 +877,62 @@ Files of the [=TITLE] reside in the following directories:
   ÃÄbook        **.inf       this helpfile
   ÃÄbmp         **.bmp       bitmaps
   ÃÄex          **.ex        macro compiled binaries
-  ÃÄkeywords    epmkwds.**   keyword files for syntax highlighting
+  ÃÄmode        **           files defining EPM modes
   ÀÄmacros      **.e         macros
 .fo on
 
 .. .............................................................................
 .4 directory structure for personal extensions
 .. .............................................................................
-.an IDPNL_ADDITIONS_DIRTREE_USER
+.an IDPNL_INSTADDITIONS_DIRTREE_USER
 .
 Files for [.IDPNL_USAGE_CONFIGURE personal configuration extensions] are to be
 placed into the following directory tree:
 .fo off
 <install dir>
 ÀÄ[=USERDIR]
-  ÃÄautolink    **.ex        user binaries for automatic load on EPM start
+  ÃÄautolink    **.ex        user binaries for automatic load on *EPM* start
   ÃÄbar         **.bar       user toolbar files
   ÃÄbin         **.bin       user .env files
   ÃÄbmp         **.bmp       user bitmaps
   ÃÄex          **.ex        user binaries for dynamic load
-  ÃÄkeywords    epmkwds.**   user keyword files for syntax highlighting
+  ÃÄmode        **           files defining EPM modes
   ÀÄmacros      **.e         user macros
   ÀÄndx         **.ndx       user help index files
 .fo on
 
 .. -----------------------------------------------------------------------------
+.3 new filetype determination
+.. -----------------------------------------------------------------------------
+.an IDPNL_INSTADDITIONS_EPMMODE
+.
+The [=TITLE] comes with a new scheme to identify file types for a given
+filename, where the filename extensions and/or basenames of files are attributes
+of the new *EPM* mode. In order to extend the list of filename extensions
+and/or basenames to be a supported by a given mode, the user can extend and/or modify
+the mode definitions.
+
+See the following section for details:
+.ul compact
+- [.IDPNL_MODE]
+
+.. -----------------------------------------------------------------------------
 .3 extended keyword hilighting
 .. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_EPMKWDS
+.an IDPNL_INSTADDITIONS_EPMKWDS
 .
-<to be edited>
+The [=TITLE] comes with a completely new scheme to specify keywords to be
+highlighted for a given file type. This bases on the new *EPM* mode
+scheme and the way that a given mode can be defined and/or extended.
 
-.. -----------------------------------------------------------------------------
-.3 extended assistant support
-.. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_MYASSIST
-.
-<to be edited>
-
-.. -----------------------------------------------------------------------------
-.3 Tex Support
-.. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_TEX
-.
-<to be edited>
+See the following section for details:
+.ul compact
+- [.IDPNL_MODE]
 
 .. -----------------------------------------------------------------------------
 .3 extended recompilation support
 .. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_RECOMP
+.an IDPNL_INSTADDITIONS_RECOMP
 .in RECOMP
 .
 Althouth one of the major goals of [=TITLE] is to make any recompilations of
@@ -956,16 +962,9 @@ convenience. It works as follows:
 Using the reload function makes the work much easier especially when developing macros for *EPM*.
 
 .. -----------------------------------------------------------------------------
-.3 reworked E macros
-.. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_NEWMACROS
-.
-<to be edited>
-
-.. -----------------------------------------------------------------------------
 .3 extended configuration repository
 .. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_REGISTRY
+.an IDPNL_INSTADDITIONS_REGISTRY
 .
 The [=TITLE] provides an extended configuration repository, which
 overcomes the limitation of *OS/2* or *eComStation* initialization files,
@@ -978,7 +977,7 @@ in your own macro source code.
 .. -----------------------------------------------------------------------------
 .3 Readme text files matrix
 .. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_README
+.an IDPNL_INSTADDITIONS_README
 .
 The following files of the original [.IDPNL_WHAT_EPM EPM package]
 have not been included in the distribution, but have been either
@@ -1003,10 +1002,415 @@ is shipped with with the distribution, but nevertheless included here
 = section [.IDPNL_QREF]
 
 .. =============================================================================
+.2 The [=DOCTITLE] Editor Additions
+.. =============================================================================
+.an IDPNL_USEADDITIONS
+.
+[=TOPICS]
+.su V30 1
+
+.. -----------------------------------------------------------------------------
+.3 EPM window enhancements
+.. -----------------------------------------------------------------------------
+.an IDPNL_INSTADDITIONS_NEWFRAME
+.
+The *EPM* frame window and the following controls controls related to it have been
+extended:
+.su H50
+
+.. .............................................................................
+.4 extended statusline
+.. .............................................................................
+.an IDPNL_INSTADDITIONS_NEWFRAME_STATUSLINE
+.
+The statusline is extended by showing
+.ul compact
+-  the hex/ASCII value of the charactor under the cursor
+-  the current margin settings
+-  the tabs setting
+-  the [.IDPNL_INSTADDITIONS_MODE]
+
+The tag *Modified* was removed, as replacement the
+colors of the statusline and the contents of the titlebar
+reflect the save status of a given file.
+
+Future releases of the [=TITLE] will allow the free configuration
+of the information included in the statusline.
+
+.. .............................................................................
+.4 extended titletext
+.. .............................................................................
+.an IDPNL_INSTADDITIONS_NEWFRAME_TITLETEXT
+.
+The text in the titlebar is extended by showing
+.ul compact
+- the full filename and *(date - time)* if the file was not modified
+- the full filename and *(Modified)* if the file was modified
+- the filename only if the file is a temporary file starting with a '.'
+- the file was altered by another application meanwhile
+  - the loaded file is checked for background modification
+   - every time when a file is slected within an edit ring
+   - when the user clicks into the edit window while *EPM*
+     was not active (did not have input focus)
+
+.. .............................................................................
+.4 message log
+.. .............................................................................
+.an IDPNL_INSTADDITIONS_NEWFRAME_MESSAGELOG
+.
+Many unimportant messages are not anylonger written to the
+message log, so the message log gets easier to read.
+Nevertheless all messages are still being displayed in the messageline.
+
+The message log can be displayed by a double-click
+onto the message line or by the command *messagebox*.
+
+.. .............................................................................
+.4 menu
+.. .............................................................................
+.an IDPNL_INSTADDITIONS_NEWFRAME_MENU
+.
+[=NOTE]
+.ul compact
+- The [=TITLE] implements changes only to the standard menu *STD*.
+  If you configure to use the *OVSH* or *FEVSH* menus, then
+  none of the extensions of the [=TITLE] are available
+- many hint texts normally being displayed in the message line
+  per menu item are not yet included
+
+The following additions are included:
+.ul compact
+- File menu
+  - Revert
+  - Open folder
+    - Default view
+    - Icon view
+    - Icon flowed view
+    - Tree view
+    - Details view
+  - Revert
+    - Reload file from disk after throwing away all changes
+.
+      (asks if modified)
+  - Open folder
+   Open the WPS folder where the current file is located.
+- Edit menu
+  - (No changes, the stack commands are just activated)
+- Search menu
+  - Global find next
+.
+    (Search next occurance in all files of the edit ring)
+  - Global change next
+.
+    (Change next occurance in all files of the edit ring)
+  - Toggle direction
+    (Changes search direction)
+- Command menu
+  - Recompile EPM.E...
+.
+    (Opens RECOMPILE.EXE for recompiling the EPM macros)
+- Help menu
+  - NEPMD runtime information
+.
+    (Lists some internal settings and pathes usefull for a bug report)
+  - View NEPMD Users Guide
+    - View NEPMD Users Guide
+    - Current word
+  - View NEPMD Programming Guide
+    - View NEPMD Programming Guide
+    - Current word
+
+.. .............................................................................
+.4 key accelerators
+.. .............................................................................
+.an IDPNL_INSTADDITIONS_NEWFRAME_KEYS
+.
+The following additional key kombinations are implemented in the [=TITLE]:
+
+.pl compact tsize=20 break=none bold
+- Ctrl+A
+= select all text
+.
+(same as Ctrl+/)
+- Ctrl+V
+= Global find next
+- Ctrl+-
+= toggle search direction
+- ALT+Sh+Up
+= move line at cursor up
+.
+(useful after duplicating a line with Ctrl+K)
+- ALT+Sh+Down
+= Move line at cursor down
+.
+(useful after duplicating a line with Ctrl+K)
+- ALT+Sh+Left
+= Move char at cursor left
+(to correct spelling errors)
+- ALT+Sh+Right
+= Move char at cursor right
+.
+(to correct spelling errors)
+- Ctrl+F1
+= extended toggle case
+.
+(lower -> mixed -> upper -> lower)
+- Home
+= toggle cursor position
+.
+(first word -> col 1 -> first word)
+- Enter
+= Keep indent in stream mode
+(also works with tab chars)
+- Alt+1
+= works with output from GNU grep
+- Ctrl+PgUp
+= Undo: scroll to last changes
+.
+(hint: keep Ctrl pressed!)
+- Ctrl+PgDown
+= Undo: scroll to next changes
+.
+(hint: keep Ctrl pressed!)
+- Ctrl+8
+= passist
+(find matching identifier, added for german keyboards)
+- ScrollLock
+= scrolling is changed to center the cursor vertically and vertivally
+  scroll the text under the cursor. Horizontal scroll is not activated.
+.
+  (Usable for reading texts)
+
+.. .............................................................................
+.4 mosue handling
+.. .............................................................................
+.an IDPNL_INSTADDITIONS_NEWFRAME_MOUSE
+.
+The following mouse handlers are implemented in the [=TITLE]:
+.pl tsize=15 break=none
+- *mouse action*
+= *executed*
+- MB2 click on messageline
+- executes *tagscan* command
+.
+  Shows a listbox with tags (function names) for the current file.
+  On doubleclick on an item the cursor jumps to that tag in the file.
+- MB2 click on statusline
+- open up the standard *EPM* settings dialog
+- MB1 doubleclick on URL
+- open system default web browser with URL
+.
+  (available for all loaded files !)
+
+.. .............................................................................
+.4 workaround for mark bug
+.. .............................................................................
+.an IDPNL_INSTADDITIONS_NEWFRAME_MARKBUG
+.
+The E Toolkit causes a bug occurring when you want to mark a
+highlighted word or block, especially when the mark ends at
+at the end of a line. There it was nearly impossible to get the last
+character of the line marked with the mouse and extended marking
+activated.
+
+As a workaround, everytime when the mouse marking begins, the highlighting
+is switched temporarily off. The disadvantage of this is, that the last
+cursor position after marking will get lost, if the window is scrolled by the
+mark operation. In order to avoid a jump back to the begin of the marked
+area, the end of the marked text is centered vertically after the mark
+operation.
+
+
+.. -----------------------------------------------------------------------------
+.3 bracket matching/passist
+.. -----------------------------------------------------------------------------
+.an IDPNL_INSTADDITIONS_NEWMATCH
+.
+While typing one of the bracket characters
+.fo off
+  () {} []
+.fo on
+.
+the matching char is searched and highlighted if found.
+
+[=NOTE]
+.ul compact
+- this mechanism uses the passist function, not the defs from balance.e.
+  This procedure (moving the cursor to the matching identifier) is
+  extended to work with TeX conditions and environments, based on code from
+  Petr Mikulik. Extensions for other modes will follow.
+- Petr's PMCSTeX package shows also how to extend the reflow and tagscan
+  definitions for the TeX mode. That will be integrated in further versions.
+
+.. =============================================================================
+.2 EPM mode
+.. =============================================================================
+.an IDPNL_MODE
+.
+[=TOPICS]
+.su V30 1
+
+.. -----------------------------------------------------------------------------
+.3 Overview
+.. -----------------------------------------------------------------------------
+.an IDPNL_MODE_OVERVIEW
+.
+The [=TITLE] Team has introduced the advanced mode
+mechanism to replace the former filetype determination by searching
+the filename extension in hardcoded lists.
+.
+..The OS/2 filetype attribute is also used in some special cases, where the
+..type name is not language specific.
+.. For future releases support for XWorkplace's extended associations is planned.
+
+The following attributes are currently attached to the *EPM* mode:
+.ul compact
+- the filename extensions and/or basenames of the files that a given mode
+  is to be used for
+- syntax highlighting definitions
+
+
+The *EPM* mode for a file is determined at load of the file in the following
+order
+.ul compact
+- if the mode has been previously set by the new *mode* command manually,
+  this mode is used
+.. - if some of the recognized OS/2 filetype attributes are set for the loaded file,
+..   the mode is set according to a table.
+.
+.
+- if the file name and/or extension matches the attributes of any of the
+  configurated modes, then the mode is set.
+.
+  Some extensions are handled in a special case
+  - **.CMD:
+    - the mode *REXX* is set for REXX scripts
+    - the mode is recognized for EXTPROC scripts, if the name
+      of the external command processor matches any of the
+      configurated *EPM* modes
+    - otherwise the mode is set to *CMD*
+  - **.INI: The mode *INI* is set for text ini files only, as *EPM* does not
+    make sense to edit OS/2 binary INI files.
+  - Otherwise: The mode is set to TEXT.
+
+.. -----------------------------------------------------------------------------
+.3 mode command
+.. -----------------------------------------------------------------------------
+.an IDPNL_MODE_CMD
+.
+The mode can be changed manually with the MODE command in order
+to override the default mode being determined by *EPM*.
+For that execute the command:
+.fo off
+   mode [[#new__mode#]]
+.fo on
+
+The optional #new__mode# parameter string is not case-sensitive.
+If no parameter is specified, then a dialog allows to either
+choose a new mode or reset to the default mode again.
+
+A newly selected mode will be saved as the extended file attribute EPM.MODE
+or deletes this attribute, if the mode is to be reset to default.
+
+[=NOTE]
+.ul compact
+- this change is done immediately and not only when the file is saved
+- this does not work if the file is stored on readonly storage media
+  as e.g. CD-ROM
+
+You can easily check wether a given file already has the mode
+previously set manually. If so, at the top of the mode dialog
+the string
+.sl compact.
+- Selected mode: <mode>
+
+is being displayed, otherwise
+.sl compact
+- Default mode: <mode>
+
+shows that no mode has been set manually before.
+
+If a mode has been set manually before, this setting can
+be removed with the last item in the list *-DEFAULT-* or
+by calling *mode 0*.
+
+After the mode is determined or reset, all mode attributes
+attached to a given movde are activated. Until now the only
+attributes are extended keyword highlighting and selecting
+a keyset. In addition to that the statusline is updated with the
+name of the newly activated mode.
+
+.. -----------------------------------------------------------------------------
+.3 predefined EPM modes
+.. -----------------------------------------------------------------------------
+.an IDPNL_MODE_PREDEFINED
+.
+The [=TITLE] comes with a set of mode definitions that
+can be found in the following subdirectories within the
+installation path:
+.sl compact
+- *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode*
+
+In this directory you find also the file [.IDPNL_FORMAT_GLOBALINI], defining
+global default settings being used by all modes.
+
+Below this directory, you find directories per mode, e.g.
+for the mode *C* the following directories exist:
+.sl compact
+- *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode\c*
+
+The following files define the settings per mode, these files are provided
+by the [=TITLE] and should not be modified, if they exist.
+.ul compact
+- [.IDPNL_FORMAT_DEFAULTINI]
+- [.IDPNL_FORMAT_NETLABSHIL]
+
+[=NOTE]
+.ul compact
+- it is highly recommended to not
+  - modify files provided with the [=TITLE] in order to extend a predefined
+    *EPM* mode. See the following section for details:
+    - [.IDPNL_MODE_EXTEND]
+  - create files for a new *EPM* mode in the
+    *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode* directory tree.
+    See the following section for details:
+    - [.IDPNL_MODE_NEW]
+
+.. -----------------------------------------------------------------------------
+.3 extend predefined EPM modes
+.. -----------------------------------------------------------------------------
+.an IDPNL_MODE_EXTEND
+.
+*EPM* modes coming with the [=TITLE] can easily be extended
+by the user. In order to do so,
+.ol
+- create the directory *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<?>*,
+  where *<?>* is the name of the *EPM* mode
+- create the file [.IDPNL_FORMAT_CUSTOMINI] to extend the per-mode definition.
+  This will extend settings defined in [.IDPNL_FORMAT_DEFAULTINI]
+- create files [.IDPNL_FORMAT_MYEPMHIL] to add new keyword definitions for the
+  *EPM* mode, but take care that you use a filename (with the filename
+  extension .hil) that does not yet exist within the directory
+  *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode\<?>*
+
+.. -----------------------------------------------------------------------------
+.3 create new user-defined modes
+.. -----------------------------------------------------------------------------
+.an IDPNL_MODE_NEW
+.
+if you intend to create an own *EPM* mode,
+.ol
+- create the directory *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<?>*,
+  where *<?>* is the name of the *EPM* mode
+- create the file [.IDPNL_FORMAT_DEFAULTINI] to define the basic settings
+  for your mode
+- create files [.IDPNL_FORMAT_MYEPMHIL] to add keyword definitions for the
+  new *EPM* mode.
+
+.. =============================================================================
 .2 Using the [=DOCTITLE]
 .. =============================================================================
 .an IDPNL_USAGE
-.
 .
 [=TOPICS]
 .su V30 1
@@ -1069,7 +1473,7 @@ This icon starts the *Programming Guide* of the [=TITLE].
 .. .............................................................................
 .an IDPNL_USAGE_WPSFOLDER_RECOMP
 .
-This icon starts the [.IDPNL_ADDITIONS_RECOMP recompilation GUI utility RECOMP]
+This icon starts the [.IDPNL_INSTADDITIONS_RECOMP recompilation GUI utility RECOMP]
 provided by the [=TITLE] to allow you quick and easy recompilation.
 
 [=NOTE]
@@ -1084,9 +1488,9 @@ provided by the [=TITLE] to allow you quick and easy recompilation.
 .
 This folder contains the following icons to aid in the development of *EPM* extensions:
 .ul compact
-- Programmers Guide to the EPM Toolkit
-- EPM C macro Readme
-- EPM REXX macro Readme
+- Programmers Guide to the *E Toolkit*
+- *EPM* C macro Readme
+- *EPM* REXX macro Readme
 
 [=NOTE]
 .ul compact
@@ -1123,15 +1527,31 @@ to contol *EPM* windows.
 [=TOPICS]
 .su V30
 .ul compact
-- <to be added more>
 
 .. -----------------------------------------------------------------------------
 .3 How can I add keyword definitions for syntax highlighting ?
 .. -----------------------------------------------------------------------------
 .an IDPNL_HOW_ADD_KEYWORDS
 .
-- <to be edited>
+Within [=TITLE] keyword definitions for syntax highlighting
+are attached to *EPM* modes.
 
+You can easily extend the definitions for syntax highlighting
+on a per-mode basis or create a completely new EPM mode for a
+new filetype.
+
+See the following section for details:
+.ul compact
+- [.IDPNL_MODE]
+
+.. -----------------------------------------------------------------------------
+.3 How can I recompile the EPM ?
+.. -----------------------------------------------------------------------------
+.an IDPNL_HOW_RECOMPILE
+.
+Within the [=TITLE] folder execute the icon *Recompile EPM*.
+This will start the [.IDPNL_INSTADDITIONS_RECOMP recompile GUI utility]
+allowing you to quickly recompile the *EPM*.
 
 .. =============================================================================
 .2 Limitations
@@ -1147,9 +1567,9 @@ The following limitations apply to the current version of [=TITLE]:
   to install them and reapply the current fixpack.
 .
 - Users of *OS/2 Warp 3* currently cannot use this package, as
-  this version of *OS/2* comes with the outdated EPM v5.51.
+  this version of *OS/2* comes with the outdated *EPM* v5.51.
   As a workaround, before installing [=TITLE], you can
-  - _manually remove_ the old EPM v5.51 files from your system (backup recommended)  and
+  - _manually remove_ the old *EPM* v5.51 files from your system (backup recommended)  and
   - install the packages
 .ul compact
      - [.IDPNL_EPMBBS_COMP_EPMAPP]
@@ -1162,7 +1582,7 @@ The following limitations apply to the current version of [=TITLE]:
 .el
 .
   In a forthcoming version [=TITLE] will address that problem and offer
-  to replace an EPM v5.51 with the base EPM application of the
+  to replace an *EPM* v5.51 with the base *EPM* application of the
   *EPM BBS distribution* for *OS/2 Warp 3* users.
 
 .. =============================================================================
@@ -1228,9 +1648,9 @@ The following persons (in alphabetic order) assembled and contributed extensions
   - this online INF file
   - *WarpIn* installation packaging
     - National Language Support concept
-  - [.IDPNL_ADDITIONS_RECOMP recompilation GUI utility RECOMP]
-  - [.IDPNL_ADDITIONS_DYNCFG]
-     - [.IDPNL_ADDITIONS_DYNCFG_LOADER]
+  - [.IDPNL_INSTADDITIONS_RECOMP recompilation GUI utility RECOMP]
+  - [.IDPNL_INSTADDITIONS_DYNCFG]
+     - [.IDPNL_INSTADDITIONS_DYNCFG_LOADER]
   - many functions of an external dynamic link library *NEPMDLIB*, containing  many of
     the [.IDPNL_EFUNC E Language functions] of the [=TITLE]
 ..- extended syntax highlighting support
@@ -1240,10 +1660,235 @@ The following persons (in alphabetic order) assembled and contributed extensions
 .ul compact
   - distribution concept
   - shipped .e sourcefiles
-     - major [.IDPNL_ADDITIONS_NEWMACROS rework] compared to the versions of the *EPMBBS* package
+     - major [.IDPNL_INSTADDITIONS_NEWMACROS rework] compared to the versions of the *EPMBBS* package
      - National Language Support concept
 ..- additional macros (e.g. for Tex)
 ..
+
+.. =============================================================================
+.2 Appendix: Configuration file formats
+.. =============================================================================
+.an IDPNL_FORMAT
+.
+[=TOPICS]
+.su V30 1
+
+.. -----------------------------------------------------------------------------
+.3 netlabs\mode\global.ini
+.. -----------------------------------------------------------------------------
+.an IDPNL_FORMAT_GLOBALINI
+.
+The file *netlabs\mode\global.ini* defines some symbols
+used for all modes. The following settings are defined here:
+.su H50
+
+.at fc=red
+It is recommended to _*NOT*_
+.at
+.ul compact
+- modify the file *netlabs\mode\global.ini*
+- create the file *myepm\mode\global.ini* (would hide this file !)
+
+Instead create [.IDPNL_FORMAT_CUSTOMINI] to extend and modify definitions on
+a per-mode basis !
+
+.. .............................................................................
+.4 color names
+.. .............................................................................
+.an IDPNL_FORMAT_GLOBALINI_COLORNAMES
+.
+In the section *[[COLORS]]* names for all 16 supported colors are defined
+and the vcalue internally used by *EPM* is associated to it.
+Additionally, the two symbols specify to use the default color of *EPM*,
+mostly used for defining a transparent background:
+.fo off
+[[COLORS]]
+TRANSPARENT  = -1
+DEFAULT      = -1
+BLACK        =  0
+BLUE         =  1
+GREEN        =  2
+CYAN         =  3
+RED          =  4
+MAGENTA      =  5
+BROWN        =  6
+PALEGREY     =  7
+DARKGREY     =  8
+LIGHTBLUE    =  9
+LIGHTGREEN   =  10
+LIGHTCYAN    =  11
+LIGHTRED     =  12
+LIGHTMAGENTA =  13
+YELLOW       =  14
+WHITE        =  15
+.fo on
+
+.. .............................................................................
+.4 keyword type symbols
+.. .............................................................................
+.an IDPNL_FORMAT_GLOBALINI_KEYWORDSYMBOLS
+.
+In the section *[[SYMBOLS]]* standard keyword types are defined that are being
+used in most *EPM* modes. Default background and foreground colors are assigned to
+these symbols:
+.fo off
+[[SYMBOLS]]
+COMMENT      = DEFAULT BLUE
+LITERAL      = DEFAULT GREEN
+SPECIAL      = DEFAULT RED
+OPERATOR     = DEFAULT BLACK
+DIRECTIVE    = DEFAULT MAGENTA
+FUNCTION     = DEFAULT MAGENTA
+KEYWORD      = DEFAULT MAGENTA
+OPTION       = DEFAULT MAGENTA
+MACRO        = DEFAULT RED
+SYMBOL       = DEFAULT MAGENTA
+GLOBALVAR    = DEFAULT RED
+BREAKCHAR    = DEFAULT DEFAULT
+ENDCHAR      = DEFAULT DEFAULT
+.fo on
+
+.. -----------------------------------------------------------------------------
+.3 netlabs\mode\<?>\default.ini
+.. -----------------------------------------------------------------------------
+.an IDPNL_FORMAT_DEFAULTINI
+.
+The file *netlabs\mode\<?>\default.ini* defines settings
+used for a given mode, where *<?>* is the name of the *EPM* mode.
+The following settings are defined here:
+.su H50
+
+.at fc=red
+It is recommended to _*NOT*_
+.at
+.ul compact
+- modify the file *netlabs\mode\<?>\default.ini*
+- create the file *myepm\mode\<?>\default.ini* (would hide this file !)
+
+Instead create [.IDPNL_FORMAT_CUSTOMINI] to extend and modify definitions on
+a per-mode basis !
+
+.. .............................................................................
+.4 mode settings
+.. .............................................................................
+.an IDPNL_FORMAT_DEFAULTINI_GLOBAL
+.
+In the section *[[GLOBAL]]* the following settings can be defined:
+.pl tsize=3 bold
+- CHARSET
+= (mandantory) defines the characters being allowed in keywords
+- CASESENSITIVE
+= (mandantory) defines wether keywords should be treated case sensitive or not.
+  Note that in opposite to the original keword highlighting scheme of *EPM* you
+  cannot mix case-sensitive and case-insensitive keywords.
+- DEFEXTENSIONS
+= (optional) defines a list of filename extensions (without the period) for that the
+  mode should be used. Make sure that the same filename extension is not used
+  within several mode definitions, as the first one wins.
+- DEFNAMES
+= (optional) defines a list of basenames (that is a filename without extension and
+  without the period) for that the mode should be used. Make sure that the same
+  basename is not used within several mode definitions, as the first one wins.
+
+[=NOTE]
+.ul compact
+- either *DEFEXTENSIONS* or *DEFNAMES* must be specified, otherwise a given mode
+  definition will never be used !
+- in order to support syntax highlighting for an external command processor,
+  specifiy the executable name of the processor without filename extension
+  within the *DEFEXTENSIONS* setting (e.g. *OBJGEN* for objgen.cmd)
+
+_*Example for the mode MAKE*_:
+.fo off
+[GLOBAL]
+CHARSET=abcdefghijklmnopqrstuvwxyz!.ABCDEFGHIJKLMNOPQRSTUVWXYZ
+CASESENSITIVE=0
+DEFEXTENSIONS=MAK IN
+DEFNAMES=makefile GNUmakefile
+.fo on
+
+.. .............................................................................
+.4 keyword type symbols
+.. .............................................................................
+.an IDPNL_FORMAT_DEFAULTINI_SYMBOLS
+.
+In the section *[[SYMBOLS]]* standard keyword types can be overriddden
+or new ones can be defined.
+
+_*Example for the mode CONFIGSYS*_ (adding new mode specific symbols):
+.fo off
+[[SYMBOLS]]
+DRIVER       = DEFAULT BROWN
+EXECUTE      = DEFAULT CYAN
+ENVVARS      = DEFAULT GREEN
+DOSKEYWORDS  = DEFAULT MAGENTA
+OS2KEYWORDS  = DEFAULT RED
+.fo on
+
+.. -----------------------------------------------------------------------------
+.3 myepm\mode\<?>\custom.ini
+.. -----------------------------------------------------------------------------
+.an IDPNL_FORMAT_CUSTOMINI
+.
+The file *myepm\mode\<?>\custom.ini* defines user-defined
+extensions to a given mode, where *<?>* is the name of the *EPM* mode.
+The following settings may be defined here:
+.su H50
+
+.. .............................................................................
+.4 mode setting extensions
+.. .............................................................................
+.an IDPNL_FORMAT_CUSTOMINI_GLOBAL
+.
+In the section *[[GLOBAL]]* the following settings can be defined:
+.pl tsize=3 bold
+- CHARSET
+= overrides the definition of the characters being allowed in keywords
+- CASESENSITIVE
+= ovverrides wether keywords should be treated case sensitive or not.
+- ADD__DEFEXTENSIONS
+= defines additions to the list of filename extensions (without the period)
+  for that the mode should be used. Make sure that the same filename extension
+  is not used within several mode definitions, as the first one wins.
+- ADD__DEFNAMES
+= defines additions to the list of basenames (that is a filename without
+  extension and without the period) for that the mode should be used. Make
+  sure that the same basename is not used within several mode definitions,
+  as the first one wins.
+
+.. .............................................................................
+.4 keyword type symbols
+.. .............................................................................
+.an IDPNL_FORMAT_CUSTOMINI_KEYWORDSYMBOLS
+.
+In the section *[[SYMBOLS]]* standard keyword types can be overriddden
+or new ones can be defined.
+
+_*Example:*_
+.fo off
+[[SYMBOLS]]
+NEWSYMBOL    = DEFAULT GREEN
+.fo on
+
+.. -----------------------------------------------------------------------------
+.3 netlabs\mode\<?>\xxxxx.hil
+.. -----------------------------------------------------------------------------
+.an IDPNL_FORMAT_NETLABSHIL
+.
+The files *netlabs\mode\<?>\**.hil* provide NEPMD definitions
+for keywords to be highlighted. All files with the filename extension
+*.hil* in a mode directory are used for the syntax highlighting, given
+that in the *myepm\mode\<?>* directory no file with the same name
+exists, hiding the same file in the *netlabs\mode\<?>* directory.
+
+.. -----------------------------------------------------------------------------
+.3 myepm\mode\<?>\xxxxx.hil
+.. -----------------------------------------------------------------------------
+.an IDPNL_FORMAT_MYEPMHIL
+.
+The file *myepm\mode\<?>\**.hil* contain user-defined keywords to be highlighted.
+All files with the filename extension *.hil* in a mode directory are used
+for the syntax highlighting,
 
 .. =============================================================================
 .2 Appendix: EPM Quick Reference
@@ -1258,7 +1903,7 @@ The following persons (in alphabetic order) assembled and contributed extensions
 .. -----------------------------------------------------------------------------
 .an IDPNL_QREF_FNKEYS
 .
-[=NOTE] Keys marked with (**) are defined by Presentation Manager through EPM.
+[=NOTE] Keys marked with (**) are defined by Presentation Manager through *EPM*.
 
 .pl break=none bold compact
 - Key
@@ -1652,8 +2297,8 @@ _*How to exit the Enhanced Editor*_
 = Opens an OS/2 command window and executes [[command]] in it.
 - PROFILE [[ON | OFF]]
 = If set ON, a PROFILE.ERX is searched for along
-  the EPMPATH and PATH whenever a new edit window is opened.
-  If found, it will be called and given the EPM command line
+  the *EPMPATH* and *PATH* whenever a new edit window is opened.
+  If found, it will be called and given the *EPM* command line
   arguments. See the section on Rexx for details on writing a
   profile. The setting will be saved by Options / Save Options.
 
@@ -1738,30 +2383,30 @@ The Enhanced Editor can drag text as either an:
 - Entire file
 - Selected area of text. (line, block, character)
 .
-  (Text can be dragged from EPM by directly manipulating the selected area.)
+  (Text can be dragged from *EPM* by directly manipulating the selected area.)
 
 The Enhanced Editor can accept drops of text on any of three landing strips:
 .ul compact
 - Titlebar
   - Text
 .
-     EPM will create a new file containing either a file or partial text selection.
+    *EPM* will create a new file containing either a file or partial text selection.
   - Code
 .
-    If code in the form of an EPM macro **.EX or EPM REXX macro
-    **.ERX is dropped on the titlebar, EPM will implicitly link and run the macro.
+    If code in the form of an *EPM* macro **.EX or *EPM* REXX macro
+    **.ERX is dropped on the titlebar, *EPM* will implicitly link and run the macro.
 - Client Window (text entry area)
    - Text
 .
-     EPM will import the dropped text into the current file.
+     *EPM* will import the dropped text into the current file.
    - Code
 .
-     If code in the form of an EPM macro **.EX or EPM REXX macro
-     **.ERX is dropped on the titlebar, EPM will link the macro.
-- EPM icon (when EPM is started with the /i option)
+     If code in the form of an *EPM* macro **.EX or *EPM* REXX macro
+     **.ERX is dropped on the titlebar, *EPM* will link the macro.
+- *EPM* icon (when *EPM* is started with the /i option)
   - Text
 .
-     EPM/G will open up a new window containing the dropped text object.
+     *EPM* /G will open up a new window containing the dropped text object.
 
 .. -----------------------------------------------------------------------------
 .3 Writing Macros in REXX
@@ -1786,7 +2431,7 @@ and then selecting Options / Save Options.
 
 _*Extracting Specific Information*_
 .
-Internal EPM variables are extractable into REXX using the extract command.
+Internal *EPM* variables are extractable into REXX using the extract command.
 For example, "extract /getline" would set the REXX variable "getline.0"
 to 1 (the number of variables returned) and "getline.1" to the contents
 of the current line.
@@ -1799,18 +2444,18 @@ The fields that are extractable are:
 "windowwidth", "windowx", "windowy", "font", "getmarktype",
 "getmark", "getline"
 
-_*Using the EPM/REXX functions*_
+_*Using the EPM REXX functions*_
 .
 Line-oriented functions
 
-The EPM functions that are available from REXX are a subset of the
+The *EPM* functions that are available from REXX are a subset of the
 EPM programming language functions.
 
 _*Examples:*_
 .fo off
 /**
  ** Name        EPMTEST.ERX
- ** Function    A Rexx Macro for  EPM
+ ** Function    A Rexx Macro for EPM
  **/
 parse arg args
 Call etkdeletetext         /** delete current line in current file **/
@@ -1874,10 +2519,10 @@ _*Creating Menus*_
 'showmenu default'
 .fo on
 
-Additional information about programming the EPM editor is available
+Additional information about programming the *EPM* editor is available
 in the samples of the [=TILE]. This package includes the latest
-version of EPM, the ETPM macro compiler, E macro source, EPM
-User's Guide, EPM Macro Programmer's Technical Reference, and
+version of *EPM*, the ETPM macro compiler, E macro source, *EPM*
+User's Guide, *EPM* Macro Programmer's Technical Reference, and
 various sample E and Rexx macros.
 
 .. -----------------------------------------------------------------------------
@@ -1885,20 +2530,20 @@ various sample E and Rexx macros.
 .. -----------------------------------------------------------------------------
 .an IDPNL_QREF_WFRAME
 .
-To configure IBM WorkFrame/2 (WorkFrame) to use the EPM...
+To configure IBM WorkFrame/2 (WorkFrame) to use the *EPM*...
 .ol
 -  Click on 'Editor' from the 'Configure' pull-down menu. The
   'Configure Editor' window will appear.
-- Change the editor name to EPM.EXE. This assumes that the EPM
+- Change the editor name to EPM.EXE. This assumes that the *EPM*
   editor is in a path specified by the PATH environment variable.
   If the editor is not on the PATH, you must fully qualify the name.
 - In the 'Invocation string' field, type:
 .sl compact
 -              /w %a %z
 .el
-  The /w switch tells the EPM editor to enable its WorkFrame
+  The /w switch tells the *EPM* editor to enable its WorkFrame
   support. The substitution variables (%a %z) tell the WorkFrame
-  to pass all selected files (not just the first file) to EPM.
+  to pass all selected files (not just the first file) to *EPM*.
   Replacement variables are specified in invocation parameters.
   The replacement variable is a symbol that consists of a percent
   sign (%) followed by a character.
@@ -1911,7 +2556,7 @@ To configure IBM WorkFrame/2 (WorkFrame) to use the EPM...
   the 'Save Profile' option from the 'Save Settings' entry on the
   'File' pulldown.
 
-To make use of the WorkFrame support in EPM, do the following:
+To make use of the WorkFrame support in *EPM*, do the following:
 .ol
 - In a monitor window that contains error messages that resulted from
   a compilation error, double-click on the message that you are
@@ -1920,9 +2565,9 @@ To make use of the WorkFrame support in EPM, do the following:
   file name, the line number and possibly the column number of the
   error. The WorkFrame will then start an editor session with that
   file and via a Dynamic Data Exchange (DDE) interface it will
-  communicate the information to EPM/EE. The editor will then scroll
+  communicate the information to *EPM*/EE. The editor will then scroll
   to the correct line number and possibly column number.
-- Using the 'Compiler' pulldown that will appear only when EPM/EE is
+- Using the 'Compiler' pulldown that will appear only when *EPM*/EE is
   invoked this way, you can move between errors using the 'Next Error'
   and 'Previous Error' items.
 - Select 'Describe Error' under the 'Compiler' pulldown in order to
@@ -1975,7 +2620,7 @@ To make use of the WorkFrame support in EPM, do the following:
 .an IDPNL_SPCHREF_USING
 .
 EPM Speech Support Manager allows you to have dictation in any
-application using EPM windows or the E-MLE. It works with the
+application using *EPM* windows or the E-MLE. It works with the
 IBM Personal Dictation System, and uses the power of the E
 Toolkit rather than the IPDS Dictation window.
 
@@ -2118,351 +2763,6 @@ The levels are:
 = Displays all the words that are recognized by the engine
 
 .. =============================================================================
-.2 Appendix: EPM Syntax highlighting support
-.. =============================================================================
-.an IDPNL_HILITE
-.
-[=TOPICS]
-.su V30
-
-.. -----------------------------------------------------------------------------
-.3 syntax highlighting files
-.. -----------------------------------------------------------------------------
-.an IDPNL_HILITE_FILES
-.
-This section descibes the format of the files that *EPM* uses to support syntax
-highliting. This method is used with the *EPM* of the
-[.IDPNL_EPMBBS EPMBBS distribution]. and the *EPM* shipped with *OS/2 Warp*
-and *eComStation*, so it is documented here in case that you want to extend one
-of the existing syntax highlighting files or provide a completely new one.
-
-The snytax highlighting files are searched along the *EPMPATH* and are
-named *epmkwds.***. Moreover, the files must be #known# by the code in
-*EPM.EX*, since the names are hardcoded in the macro source file *load.e*.
-
-[=NOTE]
-.ul compact
-- the [=TITLE] will soon provide a superior configuration mechanism
-  for syntax highliting in a forthcoming, which will allow easier
-  configuration. It will provide a new method for the definition of
-  keywords to be highlighted and the colors to be used for this.
-- the new method will be able to still use the old style of definition
-  files, as long as definitions of the newstyle do not exist for a given
-  file type.
-
-.. -----------------------------------------------------------------------------
-.3 format of the EPM syntax highlighting file
-.. -----------------------------------------------------------------------------
-.an IDPNL_HILITE_FORMAT
-.
-The following rules apply to the format of the syntax highlighting files
-of the *EPM*:
-
-[=TOPICS]
-.su 1 H50
-
-.. .............................................................................
-.4 special comment character
-.. .............................................................................
-.an IDPNL_HILITE_COMMENTCHAR
-.
-The first character of the first line is the "special" character.
-If it appears at the beginning of a line after, it is
-either followed by a space and marks then a comment, or
-by any other character and is then a section name.
-
-_*Example:*_
-.fo off
-@ this fist line defines the 'at' character as being
-@ the comment char
-@
-@ Below follows the first section:
-@
-@KEYWORDS
-.fo on
-
-.. .............................................................................
-.4 section DELIM
-.. .............................................................................
-.an IDPNL_HILITE_DELIM
-.
-The format in this section is:
-.fo off
-"start string" "end string" "bg color" "fg color" "escape character" "column"
-.fo on
-
-The definitions in this section are mostly used to define syntax highlighting
-for comments and quoted literal definitions.
-
-The following rules apply to definitions within this section:
-.ul compact
-- What's between the 'start' and 'end' delimiters is set to the 'color' color.
-- If no 'end' is specified, the whole line after any 'start' string is colored.
-- If an 'Escape' character appears just before a 'end' string, it won't be
-  considered an end delimiter.
-- If an 'Escape' character appears just before a 'start' string, it won't
-  be considered a start delimiter.
-- An 'Escape' character can be escaped by another 'Escape' character
-- If the column field is present, a start delimiter will be valid only
-  if it starts on this column
-- If the end delimiter is not on the same line as the start, no color changes
-  will be done.
-- The special character can be used as a placeholder, eg if you want a column
-  but no escape character
-
-_*Examples:*_
-
-The following entries specify that all literals enclosed in single
-or double quotes are displayed in green on default backgound, where
-the backslash is the escape character (line in the C language syntax):
-
-.fo off
-@DELIM
-@
-@ Start   Color Color  End     Escape
-@ string  bg    fg     string  character
-  "        -1      2   "       \
-  '        -1      2   '       \
-.fo on
-
-The following entries specify that all C and C++ style comments
-are displayed in blue on default backgound. Note that C style
-comments are not higlighted when they are spanning mutliple lines,
-since the syntax hilghlighting of *EPM* does not support this:
-
-.fo off
-@DELIM
-@
-@ Start   Color Color  End     Escape
-@ string  bg    fg     string  character
-  /**       -1      1   **/
-  //       -1      1
-.fo on
-
-.. .............................................................................
-.4 section DELIMI
-.. .............................................................................
-.an IDPNL_HILITE_DELIMI
-.
-This section contains identical definitions to the
-[.IDPNL_HILITE_DELIM section DELIM], but they are treated case
-insensitive.
-
-[=NOTE]
-.ul compact
-- specifiying an escape character seems not to work properly in this section *DELIMI*.
-  Define entries requiring an escape character in the secion [.IDPNL_HILITE_DELIM DELIM]
-  instead!
-
-.. .............................................................................
-.4 section KEYWORDS
-.. .............................................................................
-.an IDPNL_HILITE_KEYWORDS
-.
-The format in this section is:
-.fo off
-"start string" "end string" "bg color" "fg color" "escape character" "column"
-.fo on
-
-The definitions in this section define keywords to be highlighted.
-
-They must include only characters specified in the CHARSET section, case sensitive.
-
-_*Example:*_
-
-The following entries specify some keywords to be displayed in magenta
-on default backgound. For that the keywords must match in case.
-.fo off
-@KEYWORDS
-@ ---- C pre-processor keywords
-##define   -1 5
-##elif     -1 5
-##else     -1 5
-##endif    -1 5
-##include  -1 5
-##if       -1 5
-##ifdef    -1 5
-##ifndef   -1 5
-##pragma   -1 5
-##undef    -1 5
-.fo on
-
-.. .............................................................................
-.4 section INSENSITIVE
-.. .............................................................................
-.an IDPNL_HILITE_INSENSITIVE
-.
-This section contains identical definitions to the
-[.IDPNL_HILITE_KEYWORDS section KEYWORDS], but they are treated case
-insensitive.
-
-.. .............................................................................
-.4 section CHARSET
-.. .............................................................................
-.an IDPNL_HILITE_CHARSET
-.
-The format in this section is:
-.fo off
-"string"
-.fo on
-
-The only definition in this section is a string containing
-all the characters that may be used in the keywords defined
-in the sections [.IDPNL_HILITE_KEYWORDS KEYWORDS] and
-[.IDPNL_HILITE_INSENSITIVE INSENSITIVE].
-
-_*Example:*_
-
-The following entry specify all characters that may be used in keywords
-specified in the sections [.IDPNL_HILITE_KEYWORDS KEYWORDS] and
-[.IDPNL_HILITE_INSENSITIVE INSENSITIVE]:
-.fo off
-@CHARSET
-abcdefghijklmnopqrstuvwxyz__##ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
-.fo on
-
-.. .............................................................................
-.4 section SPECIAL
-.. .............................................................................
-.an IDPNL_HILITE_SPECIAL
-.
-The format in this section is:
-.fo off
-"name" "fg color" "bg color"
-.fo on
-
-The definitions in this section define keywords to be highlighted, just as
-definitions in the section [.IDPNL_HILITE_KEYWORDS KEYWORDS].
-
-In contrast to the *KEYWORDS* section the keywords specified here
-can include any character.
-
-_*Example:*_
-
-The following entries specify special strings for the *C* language
-syntax highlighting to be displayed in light red on default backgound:
-.fo off
-@SPECIAL
-@
-{  -1  12
-}  -1  12
-;  -1  12
-,  -1  12
-?  -1  12
-:  -1  12
-.fo on
-
-.. .............................................................................
-.4 section SPECIALI
-.. .............................................................................
-.an IDPNL_HILITE_SPECIALI
-.
-This section contains identical definitions to the
-[.IDPNL_HILITE_SPECIAL section SPECIAL], but they are treated case
-insensitive.
-
-.. .............................................................................
-.4 section BREAKCHAR
-.. .............................................................................
-.an IDPNL_HILITE_BREAKCHAR
-.
-The format in this section is:
-.fo off
-"character" "fg color" "bg color"
-.fo on
-
-The characters specified in the entries of this section are considered as
-a space when keywords in the sections [.IDPNL_HILITE_KEYWORDS KEYWORDS]
-or [.IDPNL_HILITE_INSENSITIVE INSENSITIVE] are looked for. If
-colors are specified, a break at the beginning of a keyword will have its
-own color, else it will have the same color as the keyword.
-
-_*Example:*_
-
-The following entries specify some break characters for the *Tex* language
-syntax highlighting to be displayed in the color of the keyword being used
-with, except for the last break character, this is always displayed in red on
-default backgound:
-.fo off
-@BREAK
-\
-$
-[
-{ -1  4
-.fo on
-
-.. .............................................................................
-.4 section ENDCHAR
-.. .............................................................................
-.an IDPNL_HILITE_ENDCHAR
-.
-The format in this section is:
-.fo off
-"character" "fg color" "bg color"
-.fo on
-
-The characters specified in the entries of this section are considered as
-a space when keywords in [.IDPNL_HILITE_KEYWORDS KEYWORDS]
-or [.IDPNL_HILITE_INSENSITIVE INSENSITIVE] are looked for.  If
-colors are specified, an end char at the end of a keyword will have its
-own color, else it will have the same color as the keyword.
-
-An end character at the end of a keyword in [.IDPNL_HILITE_KEYWORDS KEYWORDS] or
-[.IDPNL_HILITE_INSENSITIVE INSENSITIVE] is hilited with its own color.
-
-_*Example:*_
-
-The following entry specifies an end character for the *Tex* language
-syntax highlighting to be displayed always displayed in red on
-default backgound:
-.fo off
-@ENDCHAR
-} -1  4
-.fo on
-
-.. .............................................................................
-.4 color definitions
-.. .............................................................................
-.an IDPNL_HILITE_COLORS
-.
-The background and foreground color values apply to the folowing scheme
-.pl compact bold break=none tsize=6
-- -1
-= transparent / default background or foreground color
--  0
-= black
--  1
-= blue
--  2
-= green
--  3
-= cyan
--  4
-= red
--  5
-= magenta
--  6
-= brown
--  7
-= palegrey
--  8
-= dark grey
--  9
-= light blue
--  10
-= light green
--  11
-= light cyan
--  12
-= light red
--  13
-= light magenta
--  14
-= yellow
--  15
-= white
-
-.. =============================================================================
 .2 Appendix: GNU General Public License
 .. =============================================================================
 .an IDPNL_LEGAL_GPL
@@ -2476,4 +2776,169 @@ are provided under the *GNU General Public License*:
 .fo off
 .include COPYING
 .fo on
+
+
+.. =============================================================================
+.2 TODO
+.. =============================================================================
+.an IDPNL_TODO
+
+.. -----------------------------------------------------------------------------
+.3 reworked E macros
+.. -----------------------------------------------------------------------------
+.an IDPNL_INSTADDITIONS_NEWMACROS
+.
+
+_*Clean-up of the code*_
+
+The E code from *EPMBBS* is prepared to compile with every version of the
+E Toolkit macro compiler. Therefore the code contains many compiler
+directives like
+
+.fo off
+   compile if EVERSION > 6
+      ...
+   compile elseif EVERSION > 5
+      ...
+   compile else
+      ...
+   compile endif
+.fo on
+
+Because of the historical growth, some sections are not readable anymore.
+We decided to remove every obsolete code, that is not designed for
+EPM 6.03b. If you want to clean-up your own code, see the beginning of
+STDCONST.E for the meaning of the constants.
+
+Some files have a quite unhandy size to find code therein. Especially
+the std**.e files are unsorted. This is probably caused by the limits of
+ancient E/EPM versions.
+
+We decided to start creating smaller files, where the code concerning
+with similar themes is collected. See locate.e for an example. The file
+stdctrl.e could be reduced from 5600 to 4000 lines (yet to do).
+
+_*new filetype determination with EPM mode*_
+
+Within the [=TITLE] the filetype is determined with the new
+[.IDPNL_INSTADDITIONS_MODE] scheme. This replaces the mechanism within the
+*EPMBBS* version that checks for nothing else then the filename extension.
+Moreover, the list of recognized filename extensions was hardocded there,
+so in order to extend such a list the change of the *E* source code and a
+recompile of the *EPM* was necessary, which has now become obsolete.
+
+
+_*File loading*_
+
+When a file is loaded with extended file attributes attached to it being larger than
+32 in standard *EPM*, it will trap. Against some announcements, this is not fixed for
+all cases.
+
+As this trap occurrs mostly with larger REXX scripts, the [=TITLE] provides a
+workaround for this inconvenience: the REXX related attributes are deleted
+before the file gets loaded.
+
+
+
+_*Configuration constants*_
+
+It is planned to replace all configuration constants with configurable
+NEPMD registry keys, stored in NEPMD.INI. Currently only just a few of
+them are replaced. They will be configurable by a GUI tool, that will
+also replace the old settings dialog.
+
+In the meantime nearly all of the EPMBBS constants were still used. But
+we changed the default values for many of them to get an usable *EPM*
+even without creating an own MYCNF.E configuration file.
+
+
+_*Changed default values for configuration constants*_
+.. explanation missing
+
+In STDCNF.E the default values are defined. Without creating a MYCNF.E
+file to change the default values, the *EPM* has appeared really poor.
+Many of it's great features are switched off by default. So following
+default values have changed to make it nearly superflously to create
+a MYCNF.E:
+.fo off
+Constant                   Old default value   Changed default value
+--------------------------------------------------------------------
+REFLOW__LIKE__PE             0                   1
+SMARTFILE                  0                   1
+SMARTSAVE                  0                   1
+WANT__SEARCH__PATH           0                   1
+WANT__ALL                   0                   1
+WANT__EPM__SHELL             0                   1
+WANT__LONGNAMES             0                   1
+WANT__STACK__CMDS            0                   'SWITCH'
+   MY__STACK__CMDS           (undefined)         1
+WANT__CUA__MARKING           0                   'SWITCH'
+   MY__CUA__MARKING__SWITCH   (undefined)         0
+WANT__DM__BUFFER             0                   1
+WANT__STREAM__MODE           0                   'SWITCH'
+   MY__STREAM__MODE          (undefined)         1
+WANT__STREAM__INDENTED       0                   1
+ENHANCED__ENTER__KEYS        0                   1
+SUPPORT__BOOK__ICON          1                   0
+WANT__BRACKET__MATCHING      0                   1
+WANT__KEYWORD__HELP          0                   1
+WANT__PROFILE               0                   'SWITCH'
+   MY__WANT__PROFILE         (undefined)         1
+TOGGLE__ESCAPE              0                   1
+WANT__TAGS                  0                   1
+SUPPORT__USERS__GUIDE        0                   1
+SUPPORT__TECHREF            0                   1
+SUPPORT__USER__EXITS         0                   1
+LOCATE__CIRCLE__STYLE        1                   5
+LOCATE__CIRCLE__COLOR1       16777220            16777231
+LOCATE__CIRCLE__COLOR1       16777218            16777216
+RESPECT__SCROLL__LOCK        0                   1
+REXX__SYNTAX__ASSIST         0                   1
+.fo on
+
+The MY__** constants are used to initialize the corresponding
+constants, when they are set to 'SWITCH'. Then global variables
+are used to switch the behaviour on-the-fly.
+
+
+_*Replaced configuration constants*_
+
+Obsolete constants for versions prior to 6.03b are removed. They are
+commented out in STDCNF.E.
+
+Currently some constants are replaced by NEPMD registry keys:
+.fo off
+Obsolete constant   Registry key in NEPMD.INI           Default value
+---------------------------------------------------------------------
+DRAG__ALWAYS__MARKS   \NEPMD\Mouse\Mark\DragAlwaysMarks   1
+MOUSE__STYLE         \NEPMD\Mouse\Mark\MouseStyle        1
+.fo on
+
+Until there exists a GUI to configure these keys, some commands are used
+to change the behaviour:
+.fo off
+Command           Possible args
+-------------------------------
+DragAlwaysMarks   0|1
+MouseStyle        1|2
+.fo on
+
+This works on-the-fly, without recompiling EPM.E!
+
+.pl tsize=3
+- DragAlwaysMarks
+= Every mouse drag will start a new mark, even if a mark already exists.
+  This avoids the message 'Text is already marked...'
+- MouseStyle
+= 1 ==> MouseButton 1: block mark, MouseButtons 3: char mark
+.
+  2 ==> MouseButton 3: block mark, MouseButtons 1: char mark
+.
+  MouseButton 2: line mark
+
+
+.. Further subsections:
+..   Highlighting
+..   Keyword help
+..   Autolink
 
