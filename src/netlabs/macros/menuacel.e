@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: menuacel.e,v 1.3 2002-08-18 20:38:32 aschn Exp $
+* $Id: menuacel.e,v 1.4 2002-12-09 20:52:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,7 +30,8 @@ compile if WANT_STACK_CMDS = 'SWITCH'
  compile if defined(my_STACK_CMDS)
    stack_cmds = my_STACK_CMDS
  compile else
-   stack_cmds = 0
+   --stack_cmds = 0  -- changed by aschn
+   stack_cmds = 1
  compile endif
  compile if WANT_APPLICATION_INI_FILE
   compile if WPS_SUPPORT
