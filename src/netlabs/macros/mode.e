@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.7 2002-10-03 13:39:42 cla Exp $
+* $Id: mode.e,v 1.8 2002-10-03 14:11:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -50,7 +50,7 @@ defproc NepmdGetMode()
    endif
    getfileid save_fid
    -- Get CurMode for filename
-   -- (The array var 'mode.'fid is set by defc mode in LOAD.E)
+   -- (The array var 'mode.'fid is set by previous calls to this routine, see below)
    getfileid fid, filename
    do_array 3, EPM_utility_array_ID, 'mode.'fid, CurMode
    -- CurMode should be set at this point. If not, get mode from EA or default mode:
@@ -66,6 +66,9 @@ compile endif
       CurMode = NepmdGetDefaultMode(filename)
    endif
    activatefile save_fid
+
+   do_array 2, EPM_utility_array_ID, 'mode.'fid, CurMode
+
    return CurMode
 
 
@@ -98,22 +101,6 @@ defc mode
       -- Ask user to set a mode
       NewMode = NepmdSelectMode()
       NewMode = upcase(NewMode)
-
-   elseif NewMode = 'DEFLOAD' then
-      -- This is called by defload
-      NewMode = ''
-compile if NEPMD_RESTORE_MODE_FROM_EA
-      -- Get the mode from EA 'EPM.MODE'
-      NewMode = get_EAT_ASCII_value('EPM.MODE')
-compile endif
-      if NewMode = '' then
-         -- Get the default mode
-         NewMode = NepmdGetDefaultMode(.filename)
-      endif
-      -- The EPM EA area was already set on load, so EA doesn't need to be rewritten
-      UpdateEA = 0
-      -- The StatusLine will be refreshed on select, so StatusLine doesn't need to be refreshed
-      UpdateStatusLine = 0
    endif
 
    if wordpos( NewMode, '-RESET- RESET 0 OFF' ) > 0 then
