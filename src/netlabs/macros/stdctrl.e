@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.19 2004-02-28 15:30:06 aschn Exp $
+* $Id: stdctrl.e,v 1.20 2004-03-07 08:38:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2764,7 +2764,7 @@ defproc saveas_dlg(var name, var type)
    else
       name = leftstr(.filename,255,\0)
    endif
-   AskIfExists = (arg(3) = 0)  -- optional 3rd arg, 0: no EXIST_OVERLAY__MSG, used by def f2 if SMARTSAVE
+   AskIfExists = (arg(3) <> 0)  -- optional 3rd arg, 0: no EXIST_OVERLAY__MSG, used by def f2 if SMARTSAVE
 
    res = dynalink32( ERES2_DLL,                -- library name
                      'ERESSaveas',              -- function name
