@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.28 2002-09-04 10:18:04 cla Exp $
+* $Id: nepmdlib.c,v 1.29 2002-09-04 15:39:13 cla Exp $
 *
 * ===========================================================================
 *
@@ -765,6 +765,113 @@ do
 return _getRexxError( rc, pszBuffer, ulBuflen);
 
 }
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdQueryProcessInfo( PSZ pszInfoTag, PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         ULONG          i;
+
+         ULONG          ulInfoStyle;
+         BOOL           fTagFound = FALSE;
+
+         CHAR           szInfo[ _MAX_PATH];
+         PSZ            pszInfo = szInfo;
+
+         PPIB           ppib;
+         PTIB           ptib;
+
+
+// don't modify order of this array
+static   PSZ            apszInfoTag[] = { NEPMD_PROCESSINFO_PID,      // 0
+                                          NEPMD_PROCESSINFO_PPID,     // 1
+                                          NEPMD_PROCESSINFO_PROGRAM,  // 2
+                                          NEPMD_PROCESSINFO_PARMS};   // 3
+#define  STYLE_COUNTS  (sizeof( apszInfoTag) / sizeof( PSZ))
+
+do
+   {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
+   // check parms
+   if ((!pszInfoTag)  ||
+       (!*pszInfoTag) ||
+       (!pszBuffer))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // check the tag
+   for (i = 0; i < STYLE_COUNTS; i++)
+      {
+      if (!stricmp( apszInfoTag[ i], pszInfoTag))
+         {
+         ulInfoStyle = i;         
+         fTagFound = TRUE;
+         break;
+         }
+      }
+   if (!fTagFound)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // determine process info
+   DosGetInfoBlocks( &ptib,&ppib);
+
+   // determine info to return
+   // -- make sure that the array apszInfoTag matches the numbers used here !!! ---
+   // PIB
+   switch (ulInfoStyle)
+      {
+      case 0: // NEPMD_PROCESSINFO_PID
+         sprintf( szInfo, "%u", ppib->pib_ulpid);
+         break;
+
+      case 1: // NEPMD_PROCESSINFO_PPID
+         sprintf( szInfo, "%u", ppib->pib_ulppid);
+         break;
+
+      case 2: // NEPMD_PROCESSINFO_PROGRAM
+         rc = DosQueryModuleName( ppib->pib_hmte, sizeof( szInfo), szInfo);
+         break;
+
+      case 3: // NEPMD_PROCESSINFO_NEPMD_PROCESSINFO_PARMS
+         // use pointer to parameters directly, so that the size of
+         // szInfo does not cause an unnecessary limit
+         if (ppib->pib_pchcmd)
+            pszInfo = NEXTSTR( ppib->pib_pchcmd);
+         break;
+
+      default:
+         rc = ERROR_INVALID_PARAMETER;
+         break;
+      }
+   if (rc != NO_ERROR)
+      break;
+
+   // check result buffer (use pszInfo here !)
+   if (strlen( pszInfo) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszBuffer, pszInfo);
+
+
+   } while (FALSE);
+
+return _getRexxError( rc, pszBuffer, ulBuflen);
+
+}
+
 
 
 // ------------------------------------------------------------------------------
