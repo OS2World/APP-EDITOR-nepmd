@@ -1,0 +1,334 @@
+; ***************************** Module Header ******************************\
+;
+; Module Name: pascal.hil
+;
+; Definitons of the Netlabs EPM Distribution Project
+; for the syntax highlighting of the EPM mode "PASCAL"
+;
+; Copyright (c) Netlabs EPM Distribution Project 2003
+;
+; $Id: pascal.hil,v 1.1 2003-12-12 18:02:00 aschn Exp $
+;
+; ===========================================================================
+;
+; This file is part of the Netlabs EPM Distribution package and is free
+; software.  You can redistribute it and/or modify it under the terms of the
+; GNU General Public License as published by the Free Software
+; Foundation, in version 2 as it comes in the "COPYING" file of the
+; Netlabs EPM Distribution.  This library is distributed in the hope that it
+; will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
+;
+; **************************************************************************/
+
+[COMMENT]
+; Start   End     Escape    StartPos
+; string  string  character
+  (*      *)
+  {       }
+  //
+
+[LITERAL]
+; Start   End     Escape
+; string  string  character
+  '       '
+
+[SPECIAL]
+ (
+ )
+ ;
+
+[OPERATOR]
+ @
+ .
+ =
+ *
+ +
+ -
+ /
+ [
+ ]
+ #
+ <
+ >
+ :
+ ^
+ ,
+ &
+
+[DIRECTIVE]
+; ---- Local directives
+$A
+$ALIGN
+$ASMMODE
+$B
+$BOOLEVAL
+$C
+$ASSERTIONS
+$DEFINE
+$ELSE
+$ENDIF
+$ERROR
+$F
+$FATAL
+$GOTO
+$H
+$LONGSTRINGS
+$HINT
+$HINTS
+$IF
+$IFDEF
+$IFNDEF
+$IFOPT
+$INFO
+$INLINE
+$I
+$IOCHECKS
+$I
+$INCLUDE
+$I
+$INCLUDE
+$I386_XXX
+$L
+$LINK
+$LINKLIB
+$M
+$TYPEINFO
+$MACRO
+$MAXFPUREGISTERS
+$MESSAGE
+$MMX
+$NOTE
+$NOTES
+$OUTPUT_FORMAT
+$P
+$OPENSTRINGS
+$PACKENUM
+$PACKRECORDS
+$Q
+$OVERFLOWCHECKS
+$R
+$RANGECHECKS
+$SATURATION
+$SMARTLINK
+$STATIC
+$STOP
+$T
+$TYPEDADDRESS
+$UNDEF
+$V
+$VARSTRINGCHECKS
+$WAIT
+$WARNING
+$WARNINGS
+$X
+$EXTENDEDSYNTAX
+; ---- Global directives
+$APPTYPE
+$D
+$DEBUGINFO
+$DESCRIPTION
+$E
+$G
+$INCLUDEPATH
+$L
+$LOCALSYMBOLS
+$LIBRARYPATH
+$M
+$MEMORY
+$MODE
+$N
+$O
+$OBJECTPATH
+$S
+$UNITPATH
+$W
+$STACKFRAMES
+$Y
+$REFERENCEINFO
+
+[KEYWORD]
+; ---- Free Pascal manual: list of reserved words
+absolute
+abstract
+and
+array
+as
+asm
+assembler
+begin
+break
+case
+cdecl
+class
+const
+constructor
+continue
+destructor
+dispose
+div
+do
+downto
+else
+end
+except
+exit
+export
+exports
+external
+fail
+false
+far
+file
+finally
+for
+forward
+function
+goto
+if
+implementation
+in
+index
+inherited
+initialization
+inline
+interface
+interrupt
+is
+label
+library
+mod
+name
+near
+new
+nil
+not
+object
+of
+on
+operator
+or
+otherwise
+packed
+popstack
+private
+procedure
+program
+property
+protected
+public
+raise
+record
+repeat
+self
+set
+shl
+shr
+stdcall
+string
+then
+to
+true
+try
+type
+unit
+until
+uses
+var
+virtual
+while
+with
+xor
+; ---- Virtual Pascal manual: additional reserved words
+finalization
+threadvar
+; ---- Virtual Pascal manual: additional lexical elements
+published
+nodefault
+far16
+orgname
+resident
+at
+override
+pascal
+stored
+default
+dynamic
+message
+; ---- other 1
+boolean
+byte
+char
+comp
+double
+extended
+integer
+longint
+real
+segment
+shortint
+single
+word
+; ---- other 2
+abs
+arctan
+chr
+cos
+;dispose
+eof
+eoln
+exp
+get
+ln
+;new
+odd
+ord
+pack
+page
+pred
+put
+readln
+read
+reset
+rewrite
+round
+sin
+sqrt
+succ
+trunc
+unpack
+writeln
+write
+; ---- other 3
+lstring
+sqr
+; ---- from FTE Pascal mode file
+out
+resourcestring
+dispinterface
+automated
+contains
+dispid
+implements
+overload
+package
+readonly
+register
+reintroduce
+requires
+safecall
+writeonly
+cardinal
+smallint
+int64
+longword
+bytebool
+wordbool
+longbool
+real48
+currency
+shortstring
+ansistring
+widestring
+
