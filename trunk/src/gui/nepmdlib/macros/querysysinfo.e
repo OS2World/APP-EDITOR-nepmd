@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querysysinfo.e,v 1.5 2002-09-06 14:36:30 cla Exp $
+* $Id: querysysinfo.e,v 1.6 2002-09-07 13:19:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -83,10 +83,23 @@ NepmdQuerySysInfo queries selected values from the *DosQuerySysInfo*
 and *WinQuerySysValue* APIs.
 
 @@NepmdQuerySysInfo@RETURNS
-NepmdQuerySysInfo returns either
+*NepmdQuerySysInfo* returns either
 .ul compact
 - the system value  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@NepmdQuerySysInfo@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdQuerySysInfo*
+  - or
+- *QuerySysInfo*
+
+Executing this command will
+open up a virtual file and
+write all [.IDPNL_EFUNC_NEPMDQUERYSYSVALUE_PARM_VALUETAG supported system values]
+into it.
 
 @@
 */
@@ -115,8 +128,9 @@ defc NepmdQuerySysInfo, QuerySysInfo
  insertline helperNepmdQuerySysInfoValue( 'CURSORLEVEL');
  insertline helperNepmdQuerySysInfoValue( 'MOUSEPRESENT');
  insertline helperNepmdQuerySysInfoValue( 'PRINTSCREEN');
-
  .modify = 0;
+ 
+ return;
 
 defproc helperNepmdQuerySysInfoValue( ValueTag) =
   return leftstr( ValueTag, 15) ':' NepmdQuerySysInfo( ValueTag);

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextclose.e,v 1.4 2002-09-06 10:01:14 cla Exp $
+* $Id: getnextclose.e,v 1.5 2002-09-07 13:19:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -52,7 +52,29 @@ the cleanup code must close the open handle by a call to *NepmdGetNextClose*.
 .at
 
 @@NepmdGetNextClose@RETURNS
-NepmdGetNextClose returns an OS/2 error code or zero for no error.
+*NepmdGetNextClose* returns an OS/2 error code or zero for no error.
+
+@@NepmdGetNextClose@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdGetNextClose* [.IDPNL_EFUNC_NEPMDGETNEXTCLOSE_PARM_HANDLE handle]
+  - or
+- *GetNextClose* [.IDPNL_EFUNC_NEPMDGETNEXTCLOSE_PARM_HANDLE handle]
+
+Executing this command will
+delete the specified handle
+and display the result within the status area.
+
+Because of that only a previous call to the functions [.IDPNL_EFUNC_NEPMDGETNEXTFILE] 
+or [.IDPNL_EFUNC_NEPMDGETNEXTDIR] can leave an open handle for you to test, and
+the related testcases will not do so, you will not truly be able to test a successful
+call to this function by this testcase.
+
+_*Example:*_
+.fo off
+  GetNextClose 5
+.fo on
 
 @@
 */
@@ -72,6 +94,8 @@ defc NepmdGetNextClose, GetNextClose =
  endif
 
  sayerror 'Handle'  Handle '  was closed successfully.';
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetNextClose                                  */

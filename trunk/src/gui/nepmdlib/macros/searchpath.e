@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: searchpath.e,v 1.2 2002-09-06 10:01:16 cla Exp $
+* $Id: searchpath.e,v 1.3 2002-09-07 13:19:47 cla Exp $
 *
 * ===========================================================================
 *
@@ -45,10 +45,33 @@ When this parameter is not specified, the file is searched along the path
 specified bye the environment variable *PATH*.
 
 @@NepmdSearchPath@RETURNS
-NepmdSearchPath returns either
+*NepmdSearchPath* returns either
 .ul compact
 - the full qualified filename  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@NepmdSearchPath@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdSearchPath*
+   [.IDPNL_EFUNC_NEPMDSEARCHPATH_PARM_FILENAME filename]
+   [[ [.IDPNL_EFUNC_NEPMDSEARCHPATH_PARM_ENVVAR envvar] ]]
+  - or
+- *SearchPath*
+   [.IDPNL_EFUNC_NEPMDSEARCHPATH_PARM_FILENAME filename]
+   [[ [.IDPNL_EFUNC_NEPMDSEARCHPATH_PARM_ENVVAR envvar] ]]
+
+Executing this command will
+search the specified file in the path given by the content of the specified environment variable
+(default is *PATH*, if not specified !)
+and display the result within the status area.
+
+_*Examples:*_
+.fo off
+ SearchPath epm.exe
+ SearchPath cmdref.inf BOOKSHELF
+.fo on
 
 @@
 */
@@ -72,10 +95,12 @@ defc NepmdSearchPath, SearchPath =
  parse value Fullname with 'ERROR:'rc;
  if (rc > '') then
     sayerror '"'Filename'" could not be found on "'EnvVarName'", rc='rc;
-    return
+    return;
  endif
 
  sayerror 'Location of "'Filename'" on "'EnvVarName'" is:' Fullname;
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdSearchPath                                    */

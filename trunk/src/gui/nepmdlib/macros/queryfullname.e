@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryfullname.e,v 1.10 2002-09-06 10:01:15 cla Exp $
+* $Id: queryfullname.e,v 1.11 2002-09-07 13:19:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -29,14 +29,24 @@ Fullname = NepmdQueryFullname( Filename);
 @@NepmdQueryFullname@CATEGORY@FILE
 
 @@NepmdQueryFullname@SYNTAX
-This function queries the fullname of the specified filename.
+This function queries the fullname of the specified filename. It 
+does not check, wether a file or directory really exists, for that use
+the functions [.IDPNL_EFUNC_NEPMDFILEEXISTS] or [.IDPNL_EFUNC_NEPMDDIREXISTS].
 
 @@NepmdQueryFullname@PARM@Filename
-This parameter specifies the filename, it may include wildcards
-only within the filename part, these are returned within the result.
+This parameter specifies the file or directory name. it may include
+.ul compact
+- absolute or relative pathname specifications
+- wildcards, but only within the filename part,
+  they are returned within the result.
+
+It is not necessary to specify a name of a file, which exists
+or of which all directories of the path specification exist.
+The only requirement ist that the resulting file or directory entry
+#could# exist in the resulting directory, that means it must be valid.
 
 @@NepmdQueryFullname@RETURNS
-NepmdQueryFullname returns either
+*NepmdQueryFullname* returns either
 .ul compact
 - the full qualified filename  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
@@ -47,6 +57,24 @@ return the full name of any directory or filename, even if it does
 not exist. It is especially useful where relative path specifications
 are to be translated into absolute pathnames or to prove that they are
 valid.
+
+@@NepmdQueryFullname@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdQueryFullname* [.IDPNL_EFUNC_NEPMDQUERYFULLNAME_PARM_FILENAME filename] 
+  - or
+- *QueryFullname* [.IDPNL_EFUNC_NEPMDQUERYFULLNAME_PARM_FILENAME filename]
+
+Executing this command will
+return the fully qualified pathname specification for the given filename
+and display the result within the status area.
+
+_*Examples:*_
+.fo off
+ QueryFullname myscript.txt
+ QueryFullname ..\*.cmd
+.fo on
 
 @@
 */
@@ -64,10 +92,12 @@ defc NepmdQueryFullname, QueryFullname =
  parse value Fullname with 'ERROR:'rc;
  if (rc > '') then
     sayerror 'fullname of "'Filename'" could not be retrieved, rc='rc;
-    return
+    return;
  endif
 
  sayerror 'fullname of "'Filename'" is:' Fullname;
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryFullname                                 */

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.8 2002-09-06 10:01:15 cla Exp $
+* $Id: info.e,v 1.9 2002-09-07 13:19:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -38,11 +38,25 @@ and writes runtime information into it like for example about
 .el
 
 @@NepmdInfo@RETURNS
-NepmdInfo returns an OS/2 error code or zero for no error.
+*NepmdInfo* returns an OS/2 error code or zero for no error.
 
 @@NepmdInfo@REMARKS
 Note that any existing file in the ring named *.NEPMD__INFO*
 is dscarded before the current file is being created.
+
+@@NepmdInfo@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdInfo*
+
+Executing this command will
+open up a virtual file and
+write all information related to *EPM* and the [=TITLE] into it.
+
+The contents of this file may be useful when reporting the
+configuration of your system and the installation of your
+[=TITLE] to the project team in order to allow us to help you.
 
 @@
 */
@@ -54,6 +68,8 @@ is dscarded before the current file is being created.
 defc NepmdInfo =
 
  rc = NepmdInfo();
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdInfo                                          */

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writestringea.e,v 1.9 2002-09-06 10:01:17 cla Exp $
+* $Id: writestringea.e,v 1.10 2002-09-07 13:19:47 cla Exp $
 *
 * ===========================================================================
 *
@@ -45,7 +45,28 @@ This parameter specifies the string to be written as
 the value of the specified extended attribute.
 
 @@NepmdWriteStringEa@RETURNS
-NepmdWriteStringEa returns an OS/2 error code or zero for no error.
+*NepmdWriteStringEa* returns an OS/2 error code or zero for no error.
+
+@@NepmdWriteStringEa@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdWriteStringEa* 
+   [.IDPNL_EFUNC_NEPMDWRITESTRINGEA_PARM_FILENAME filename]
+  - or
+- *WriteStringEa*
+   [.IDPNL_EFUNC_NEPMDWRITESTRINGEA_PARM_FILENAME filename]
+
+Executing this command will
+write the string *This is a test value for the NepmdWriteStringEa API !*
+as an extended string attribute with the name *NEPMD.__TestStringEa* 
+to the specified file
+and display the result within the status area.
+
+_*Example:*_
+.fo off
+  WriteStringEa d:\myscript.txt
+.fo on
 
 @@
 */
@@ -64,6 +85,8 @@ defc NepmdWriteStringEa, WriteStringEa =
  endif
 
  sayerror 'Extended attribute "'NEPMD_TEST_EANAME'" written to:' Filename;
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdWriteStringEa                                 */

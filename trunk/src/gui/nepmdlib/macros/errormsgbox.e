@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: errormsgbox.e,v 1.8 2002-09-06 10:01:13 cla Exp $
+* $Id: errormsgbox.e,v 1.9 2002-09-07 13:19:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,21 @@ This parameter specifies the title to be
 displayed in the message box.
 
 @@NepmdErrorMsgBox@RETURNS
-NepmdErrorMsgBox returns an OS/2 error code or zero for no error.
+*NepmdErrorMsgBox* returns an OS/2 error code or zero for no error.
+
+@@NepmdErrorMsgBox@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdErrorMsgBox*
+  [.IDPNL_EFUNC_NEPMDERRORMSGBOX_PARM_BOXMESSAGE message] 
+  - or
+- *ErrorMsgBox*
+  [.IDPNL_EFUNC_NEPMDERRORMSGBOX_PARM_BOXMESSAGE message] 
+
+Executing this command will
+open up a message box with the title [=TITLE] and the 
+specified message text.
 
 @@
 */
@@ -52,6 +66,8 @@ NepmdErrorMsgBox returns an OS/2 error code or zero for no error.
 defc NepmdErrorMsgBox, ErrorMsgBox =
 
  rcx = NepmdErrorMsgBox( arg( 1), 'Netlabs EPM Distribution');
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdErrorMsgBox                                   */

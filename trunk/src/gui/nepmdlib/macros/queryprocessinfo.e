@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryprocessinfo.e,v 1.4 2002-09-06 14:36:29 cla Exp $
+* $Id: queryprocessinfo.e,v 1.5 2002-09-07 13:19:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -47,10 +47,23 @@ The following keywords are supported:
 = returns the commandline parameters for the current process
 
 @@NepmdQueryProcessInfo@RETURNS
-NepmdQueryProcessInfo returns either
+*NepmdQueryProcessInfo* returns either
 .ul compact
 - the information value  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@NepmdQueryProcessInfo@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdQueryProcessInfo*
+  - or
+- *QueryProcessInfo*
+
+Executing this command will
+open up a virtual file and
+write all [.IDPNL_EFUNC_NEPMDQUERYPROCESSINFO_PARM_VALUETAG supported process values]
+into it.
 
 @@
 */
@@ -62,8 +75,9 @@ defc NepmdQueryProcessInfo, QueryProcessInfo
  insertline helperNepmdQueryProcessInfoValue( 'PPID');
  insertline helperNepmdQueryProcessInfoValue( 'PROGRAM');
  insertline helperNepmdQueryProcessInfoValue( 'PARMS');
-
  .modify = 0;
+
+ return;
 
 defproc helperNepmdQueryProcessInfoValue( ValueTag) =
   return leftstr( ValueTag, 15) ':' NepmdQueryProcessInfo( ValueTag);

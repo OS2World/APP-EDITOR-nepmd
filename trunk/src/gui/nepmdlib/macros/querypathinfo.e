@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.7 2002-09-06 14:36:29 cla Exp $
+* $Id: querypathinfo.e,v 1.8 2002-09-07 13:19:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -54,10 +54,23 @@ The following keywords are supported:
 = returns the file attributes
 
 @@NepmdQueryPathInfo@RETURNS
-NepmdQueryPathInfo returns either
+*NepmdQueryPathInfo* returns either
 .ul compact
 - the information value  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@NepmdQueryPathInfo@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdQueryPathInfo* [.IDPNL_EFUNC_NEPMDQUERYPATHINFO_PARM_PATHNAME pathname]
+  - or
+- *QueryPathInfo* [.IDPNL_EFUNC_NEPMDQUERYPATHINFO_PARM_PATHNAME pathname]
+
+Executing this command will
+open up a virtual file and
+write all [.IDPNL_EFUNC_NEPMDQUERYPATHINFO_PARM_VALUETAG supported path info values]
+about the specified file or directory into it.
 
 @@
 */
@@ -81,10 +94,10 @@ defc NepmdQueryPathInfo, QueryPathInfo
  insertline helperNepmdQueryPathInfoValue( PathName, 'ATTR');
  .modify = 0;
 
+ return;
+
 defproc helperNepmdQueryPathInfoValue( Pathname, ValueTag) =
   return leftstr( ValueTag, 5) ':' NepmdQueryPathInfo( PathName, ValueTag);
-
-
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryPathInfo                                 */

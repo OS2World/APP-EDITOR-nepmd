@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libversion.e,v 1.6 2002-09-06 10:01:15 cla Exp $
+* $Id: libversion.e,v 1.7 2002-09-07 13:19:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -33,8 +33,18 @@ This function queries the version of the installed runtime library
 of the [=TITLE].
 
 @@NepmdLibVersion@RETURNS
-NepmdLibVersion returns the version number of the runtime library
+*NepmdLibVersion* returns the version number of the runtime library
 of the [=TITLE].
+
+@@NepmdLibVersion@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdLibVersion*
+
+Executing this command will
+display the version number of the runtime library of the [=TITLE]
+within the status area.
 
 @@
 */
@@ -46,6 +56,8 @@ of the [=TITLE].
 defc NepmdLibVersion =
 
  sayerror 'NEPMDLIB Version' NepmdLibVersion();
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdLibVersion                                    */

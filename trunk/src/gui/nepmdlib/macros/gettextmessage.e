@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.13 2002-09-06 10:01:15 cla Exp $
+* $Id: gettextmessage.e,v 1.14 2002-09-07 13:19:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -69,12 +69,33 @@ the resulting message would be:
 
 Drive A: ist not ready, please insert a diskette and press any key!
 
-
 @@NepmdGetTextMessage@RETURNS
-NepmdGetTextMessage returns either
+*NepmdGetTextMessage* returns either
 .ul compact
 - the textmessage with the supplied parameters inserted  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@NepmdGetTextMessage@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdGetTextMessage*
+    [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_MESSAGENAME messagename] 
+    [[ [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_PARAMETERS parameters] ]]
+  - or
+- *GetTextMessage*
+    [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_MESSAGENAME messagename] 
+    [[ [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_PARAMETERS parameters] ]]
+
+Executing this command will
+display the specified message from the file pointed to by the environment variable
+*NEPMD__TMFTESTFILE*, insert the specified parameters
+and display the result within the status area.
+
+_*Example:*_
+.fo off
+  GetTextMessage INSERTTEST parm1 parm2 parm3
+.fo on
 
 @@
 */
@@ -149,6 +170,8 @@ defc NepmdGetTextMessage, GetTextMessage
  endif
 
  sayerror 'message is: "'MessageText'"';
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetTextMessage                                */

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deletestringea.e,v 1.8 2002-09-06 10:01:13 cla Exp $
+* $Id: deletestringea.e,v 1.9 2002-09-07 13:19:43 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,8 +40,38 @@ the specified REXX EAs is to be deleted.
 This parameter specifies the name of the extended
 attribute to be deleted.
 
+@@NepmdDeleteStringEa@REMARKS
+[=NOTE]
+.ul compact
+- using this function will have an effect only if the specified
+  file has the specified extended attribute.
+- no error is returned if the specified file exists, but does not have
+  the specified extended attribute
+.at fc=red
+- the specified extended attribute is always deleted from the specified file,
+  even if it is *not* holding an extended attribute being of type string!
+.at
+
 @@NepmdDeleteStringEa@RETURNS
-NepmdDeleteStringEa returns an OS/2 error code or zero for no error.
+*NepmdDeleteStringEa* returns an OS/2 error code or zero for no error.
+
+@@NepmdDeleteStringEa@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdDeleteStringEa* [.IDPNL_EFUNC_NEPMDDELETESTRINGEA_PARM_FILENAME filename]
+  - or
+- *DeleteStringEa* [.IDPNL_EFUNC_NEPMDDELETESTRINGEA_PARM_FILENAME filename]
+
+Executing this command will
+remove the specified extended attribute 
+with the name *NEPMD.__TestStringEa* from the specified file
+and display the result within the status area.
+
+_*Example:*_
+.fo off
+  DeleteStringEa d:\myscript.txt
+.fo on
 
 @@
 */
@@ -61,6 +91,8 @@ defc NepmdDeleteStringEa, DeleteStringEa =
  endif
 
  sayerror 'Extended attribute "'NEPMD_TEST_EANAME'" deleted from:' Filename;
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdDeleteStringEa                                */

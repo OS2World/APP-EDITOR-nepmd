@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextdir.e,v 1.10 2002-09-06 14:36:29 cla Exp $
+* $Id: getnextdir.e,v 1.11 2002-09-07 13:19:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -73,16 +73,33 @@ The search handle created by *NepmdGetNextDir* is automatically closed
 if the search is repeated until no more entries are available.
 
 .at fc=red
-If a search for files is interrupted for any reason before receiving 
+If a search for files is interrupted for any reason before receiving
 the error code 18 (ERROR__NO__MORE__FILES), it is required to close
 the search handle by a call to [.IDPNL_EFUNC_NEPMDGETNEXTCLOSE].
 .at
 
 @@NepmdGetNextDir@RETURNS
-NepmdGetNextDir returns either
+*NepmdGetNextDir* returns either
 .ul compact
 - the next directory returned by the directory seach  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@NepmdGetNextDir@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdGetNextDir* [.IDPNL_EFUNC_NEPMDGETNEXTDIR_PARM_DIRMASK dirmask]
+  - or
+- *GetNextDir* [.IDPNL_EFUNC_NEPMDGETNEXTDIR_PARM_DIRMASK dirmask]
+
+Executing this command will
+open up a virtual file and
+write all found directories into it.
+
+_*Example:*_
+.fo off
+  GetNextDir c:\os2\**
+.fo on
 
 @@
 */
@@ -122,6 +139,8 @@ defc NepmdGetNextDir, GetNextDir =
     insertline( Dirname);
  end;
  .modify = 0;
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetNextDir                                    */

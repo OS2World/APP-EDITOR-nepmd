@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setframewindowpos.e,v 1.2 2002-09-06 10:01:17 cla Exp $
+* $Id: setframewindowpos.e,v 1.3 2002-09-07 13:19:47 cla Exp $
 *
 * ===========================================================================
 *
@@ -76,7 +76,24 @@ If *flags* has not been specified, the window is both sized and moved,
 as if *3* had been specified for flags.
 
 @@NepmdSetFrameWindowPos@RETURNS
-NepmdSetFrameWindowPos returns an OS/2 error code or zero for no error.
+*NepmdSetFrameWindowPos* returns an OS/2 error code or zero for no error.
+
+@@NepmdSetFrameWindowPos@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdSetFrameWindowPos* [.IDPNL_EFUNC_NEPMDSETFRAMEWINDOWPOS_PARM x y cx cy flags]
+  - or
+- *SetFrameWindowPos* [.IDPNL_EFUNC_NEPMDSETFRAMEWINDOWPOS_PARM x y cx cy flags]
+
+Executing this command will
+set the window position of the *EPM* frame window
+and display the result within the status area.
+
+_*Example:*_
+.fo off
+   SetFrameWindowPos 100 100 800 800 3
+.fo on
 
 @@
 */
@@ -90,17 +107,19 @@ defc NepmdSetFrameWindowPos, SetFrameWindowPos
  parse value arg( 1) with x y cx cy flags;
  if (cy = '') then
     sayerror 'no complete window position specified!';
-    return
+    return;
  endif
 
  rc = NepmdSetFrameWindowPos( x, y, cx, cy, flags);
 
  if (rc > 0) then
     sayerror 'window pos of frame cannot be modified, rc='rc;
-    return
+    return;
  endif
 
  sayerror 'window pos of frame modified successfully.';
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdSetFrameWindowPos                             */

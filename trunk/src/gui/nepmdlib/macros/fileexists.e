@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fileexists.e,v 1.5 2002-09-06 10:01:14 cla Exp $
+* $Id: fileexists.e,v 1.6 2002-09-07 13:19:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -35,7 +35,7 @@ This function queries wether a file exists
 This parameter specifies the name of the file to be checked.
 
 @@NepmdFileExists@RETURNS
-NepmdFileExists returns either
+*NepmdFileExists* returns either
 .ul compact
 - *0* (zero), if the file does not exist  or
 - *1* , if the file exists
@@ -45,6 +45,23 @@ NepmdFileExists returns either
 
 For downwards compatibility the old function is still provided,
 but calls *NepmdFileExists*.
+
+@@NepmdFileExists@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdFileExists* [.IDPNL_EFUNC_NEPMDFILEEXISTS_PARM_FILENAME filename]
+  - or
+- *FileExists* [.IDPNL_EFUNC_NEPMDFILEEXISTS_PARM_FILENAME filename]
+
+Executing this command will
+check, wether the specified file exists or not,
+and display the result within the status area.
+
+_*Example:*_
+.fo off
+  FileExists c:\os2\cmd.exe
+.fo on
 
 @@
 */
@@ -66,6 +83,8 @@ defc NepmdFileExists, FileExists =
  endif
 
  sayerror 'file "'Filename'"' StrResult 'exist';
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdFileExists                                    */
