@@ -17,7 +17,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.4 2002-06-10 22:03:39 cla Exp $
+# $Id: makefile,v 1.5 2002-06-10 22:04:54 cla Exp $
 #
 # ===========================================================================
 #
@@ -57,6 +57,7 @@ PATH=bin;$(PATH)
 # --- definitions for this makefile
 
 FILESTOCLEAN=\
+ $(CMPDIR)\$(SCRIPTFILE) \
  $(BINDIR)\$(WPIFILE) \
  $(CMPDIR)\prepare.log \
  $(BINDIR)\create.log
