@@ -9,7 +9,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.4 2002-08-26 20:32:23 cla Exp $
+# $Id: makefile,v 1.5 2002-08-27 12:19:53 cla Exp $
 #
 # ===========================================================================
 #
@@ -47,6 +47,14 @@ ESRCPATH=..\gui\nepmdlib
 LIMITPATH=$(ESRCPATH);$(ESRCPATH)\macros;
 EPMPATH=$(LIMITPATH);%EPMPATH%
 
+!ifndef PANEL
+MAKEPANEL="Making"
+NEPMDPANEL="Netlabs"
+!else
+MAKEPANEL=$(PANEL)
+NEPMDPANEL=$(PANEL)
+!endif
+
 # --- pseudotargets ****************
 
 ALL: HELPINF NEPMDINF
@@ -56,10 +64,10 @@ HELPINF: $(BASEDIR)\bin\makefile.inf
 NEPMDINF: $(CMPINFDIR)\nepmd.inf
 
 HELP: HELPINF
-  @start view $(BASEDIR)\bin\makefile.inf "Making"
+  @start view $(BASEDIR)\bin\makefile.inf $(MAKEPANEL)
 
 NEPMD: NEPMDINF
-  @start view $(CMPINFDIR)\nepmd.inf "Netlabs"
+  @start view $(CMPINFDIR)\nepmd.inf $(NEPMDPANEL)
 
 
 CLEAN:
