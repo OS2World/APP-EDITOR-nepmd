@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tree.e,v 1.3 2002-08-21 11:53:59 aschn Exp $
+* $Id: tree.e,v 1.4 2004-06-03 22:08:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -363,7 +363,9 @@ compile endif
                endif
                file_size = rightstr(file_size, 10)
                out_line = date'  'time file_size rightstr(ea_size,10)'  'attr_string'  'filename
-               insertline out_line, out_fid.last + 1, out_fid
+               if not skip then
+                  insertline out_line, out_fid.last + 1, out_fid
+               endif
             endif  -- dir_only
             result=dynalink32('DOSCALLS',             -- dynamic link library name
                               '#265',                 -- ordinal value for DOS32FINDNEXT
