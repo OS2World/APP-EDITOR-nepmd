@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.5 2004-02-22 20:20:47 aschn Exp $
+* $Id: select.e,v 1.6 2004-06-03 23:13:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -53,7 +53,30 @@ compile endif
 defproc select_edit_keys()
    /* Dummy proc for compatibility.  Select_edit_keys() isn't used any more.*/
 
+; ---------------------------------------------------------------------------
 defselect
+   universal lastselectedfid
+   universal defloadactive
+   getfileid fid
+;   call NepmdPmPrintf('DEFSELECT: defloadactive = 'defloadactive)
+   if defloadactive <> 1 then  -- better let afterload do the config and refresh stuff
+      if fid = lastselectedfid then
+;         call NepmdPmPrintf('DEFSELECT: (fid = lastselectedfid) not executing ProcessSelect -- '.filename)
+      else
+;         call NepmdPmPrintf('DEFSELECT: executing ProcessSelect -- '.filename', lastselected: ('lastselectedfid') 'lastselectedfid.filename)
+         'ProcessSelect'
+         lastselectedfid = fid  -- avoid repeating this by afterload for this file
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+; Executed by AfterLoad and/or defselect
+defc ProcessSelect
+   universal tab_key
+   universal stream_mode
+   universal expand_on
+   universal matchtab_on
+   universal cua_marking_switch
 compile if LOCAL_MOUSE_SUPPORT
    universal LMousePrefix
    universal EPM_utility_array_ID
@@ -100,12 +123,30 @@ compile if WANT_EBOOKIE
  compile endif
 compile endif  -- WANT_EBOOKIE
 
-; --- Change to dir of current file -----------------------------------------
-Filename = .filename
+;  Change to dir of current file --------------------------------------------
+   Filename = .filename
 compile if NEPMD_USE_DIRECTORY_OF_CURRENT_FILE
    if pos( ':\', Filename) then
       call directory('\')
       call directory(Filename'\..')
    endif
 compile endif
+
+;  Process hooks ------------------------------------------------------------
+   -- Use the 'select' hook for settings, you want to change on every
+   -- defselect event. That should be only stuff, that don't stick with the
+   -- file. If your stuff sticks, better use the 'load' hook to avoid loss
+   -- of performance and stability.
+   'HookExecute select'          -- usually contains ProcessSelectSettings,
+                                 -- to be used for user additions as well
+   'HookExecuteOnce selectonce'  -- user additions, deleted after execution
+   'HookExecute afterselect'     -- usually contains ProcessRefreshInfoLine
+
+/*
+   if tab_key            = '' then sayerror 'tab_key undefined'           ; endif;
+   if stream_mode        = '' then sayerror 'stream_mode undefined'       ; endif;
+   if expand_on          = '' then sayerror 'expand_on undefined'         ; endif;
+   if matchtab_on        = '' then sayerror 'matchtab_on undefined'       ; endif;
+   if cua_marking_switch = '' then sayerror 'cua_marking_switch undefined'; endif;
+*/
 
