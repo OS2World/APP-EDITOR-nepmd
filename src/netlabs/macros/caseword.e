@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: caseword.e,v 1.2 2003-08-31 18:15:06 aschn Exp $
+* $Id: caseword.e,v 1.3 2004-02-01 15:56:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -65,6 +65,7 @@ defc caseword
    -- find_token may return nothing, so we have to init the vars first
    startcol = 0
    endcol   = 0
+   -- find_token won't take '.' and '_' as word boundaries
    call find_token( startcol, endcol)
    --sayerror '1: startcol = 'startcol', endcol = 'endcol
    -- If nothing found by find_token, then nothing is returned
@@ -85,16 +86,16 @@ defc caseword
    rline = substr( line, endcol + 1)
    --sayerror '3: |'lline'|'wrd'|'rline'|'
 
-   if verify( wrd, LOWERCHARS, 'M') = 0 then  -- no lowercase  -> lowercase
+   if verify( wrd, LOWERCHARS, 'M') = 0 then      -- no lowercase  -> lowercase
 -- XXXX -> xxxx
       newwrd = translate( wrd, LOWERCHARS, UPPERCHARS)
-   elseif verify( wrd, LOWERCHARS) = 0 then   -- all lowercase -> Capitalize
+   elseif verify( wrd, UPPERCHARS, 'M') = 0 then  -- no uppercase  -> Capitalize
 -- xxxx -> Xxxx
       newwrd = translate( substr( wrd, 1, 1), UPPERCHARS, LOWERCHARS)          -- first letter
       if length(wrd) > 1 then
          newwrd = newwrd''translate( substr( wrd, 2), LOWERCHARS, UPPERCHARS)  -- append rest
       endif
-   else                                       -- mixed case    -> UPPERCASE
+   else                                           -- mixed case    -> UPPERCASE
 -- xxXx -> XXXX
       newwrd = translate( wrd, UPPERCHARS, LOWERCHARS)
    endif
