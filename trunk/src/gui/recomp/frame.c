@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: frame.c,v 1.3 2002-06-09 21:40:59 cla Exp $
+* $Id: frame.c,v 1.4 2002-06-10 11:54:18 cla Exp $
 *
 * ===========================================================================
 *
@@ -475,7 +475,6 @@ do
       }
 
    // determine some values for EPM compilation
-   strcpy( wd.szSourceFile, EPM_SOURCENAME);
    strcpy( wd.szTargetDir, (pszTargetDirectory) ? pszTargetDirectory : "");
 
    // process dialog
