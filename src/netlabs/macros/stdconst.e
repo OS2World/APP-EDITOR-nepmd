@@ -4,20 +4,26 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdconst.e,v 1.2 2002-07-22 19:02:17 cla Exp $
+* $Id: stdconst.e,v 1.3 2002-09-01 14:35:17 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 * General Public License for more details.
 *
 ****************************************************************************/
+
+; ---------------------------------------------------------------------------
+; Commented out obsolete lines by a ';' (rather then deleting them) to enable
+; searching for obsolete consts.
+; ---------------------------------------------------------------------------
+
 const
    TRUE  = 1
    FALSE = 0
@@ -29,31 +35,31 @@ const
    EPM32   = EVERSION >= 6
    POWERPC = EVERSION >= 7
 
-compile if EPM & EVERSION < '5.20'
-*** The current macros don't support your extremely backlevel version of EPM.
-compile endif
+;compile if EPM & EVERSION < '5.20'
+;*** The current macros don't support your extremely backlevel version of EPM.
+;compile endif
 
-compile if EVERSION < '4.10'    -- for E3 or OS/2 family version
-   DOS_INT  = 33        /* 21 hex */
-   GET_DATE = 42*256    /* The AX values for specific functions. */
-   GET_TIME = 44*256    /* High byte AH = 2A and 2C hex.         */
-   DOS_GET_VERSION = 48*256  /* high byte = 30 hex */
-   DOS_UNLINK = 65*256  /* High byte = 41 hex */
-compile endif
+;compile if EVERSION < '4.10'    -- for E3 or OS/2 family version
+;   DOS_INT  = 33        /* 21 hex */
+;   GET_DATE = 42*256    /* The AX values for specific functions. */
+;   GET_TIME = 44*256    /* High byte AH = 2A and 2C hex.         */
+;   DOS_GET_VERSION = 48*256  /* high byte = 30 hex */
+;   DOS_UNLINK = 65*256  /* High byte = 41 hex */
+;compile endif
 
    MAXINT = 32767            /* Don't change */
 
 compile if not defined(MAXCOL)  -- Predefined constant starting in 5.60
- compile if EVERSION < '5.53'
-   MAXCOL = 255
- compile else
+; compile if EVERSION < '5.53'
+;   MAXCOL = 255
+; compile else
    MAXCOL = 1600  -- saveas_dlg
- compile endif
+; compile endif
 compile endif
 
    MAXMARGIN = MAXCOL - 1
 
-compile if EVERSION > 5
+;compile if EVERSION > 5
 
    SYSTEM_POINTER    =  1    /* default mouse pointer  (arrow)  */
    TEXT_POINTER      =  2    /* text entry pointer              */
@@ -116,17 +122,17 @@ compile if EVERSION > 5
    INI_S_PADENTERKEY = 'S+PADENTER'
    INI_STACKCMDS     = 'STACK'
    INI_CUAACCEL      = 'CUA_ACCEL'
- compile if EVERSION >= 5.60
+; compile if EVERSION >= 5.60
    INI_STATUSFONT    = 'STATFONT'
    INI_MESSAGEFONT   = 'MSGFONT'
    INI_BITMAP        = 'DTBITMAP'
- compile endif
- compile if EVERSION >= 6
+; compile endif
+; compile if EVERSION >= 6
    INI_UCMENU_APP    = 'UCMenu_Templates'
    INI_TAGSFILES     = 'TagsFiles'
    INI_DEF_TOOLBAR   = 'DEFTOOLBAR'
    INI_OPT2FLAGS     = 'OPT2FLAGS'  -- Addenda to OPTFLAGS for new 32-bit version's config
- compile endif
+; compile endif
 
    VK_BUTTON1   =  1
    VK_BUTTON2   =  2
@@ -244,14 +250,14 @@ compile if EVERSION > 5
    EPMINFO_RINGICONS         = 20  -- EFRAMEF_RINGBUTTONS = 4
    EPMINFO_FILEICON          = 22  -- EFRAMEF_FILEWND = 64
    EPMINFO_EXTRAWINDOWPOS    = 23  -- EFRAMEF_INFOONTOP = 32
- compile if EVERSION >= '5.60'
+; compile if EVERSION >= '5.60'
    EPMINFO_EDITSTATUSHWND    = 27
    EPMINFO_EDITMSGHWND       = 28
- compile endif
+; compile endif
    EPMINFO_LSLENGTH          = 29
    EPMINFO_SEARCHPOS         = 30
 
- compile if EVERSION >= '5.53'
+; compile if EVERSION >= '5.53'
    EFRAMEF_STATUSWND      = 1    -- EPMINFO_EDITSTATUSAREA = 7
    EFRAMEF_MESSAGEWND     = 2    -- EPMINFO_EDITORMSGAREA = 8
    EFRAMEF_RINGBUTTONS    = 4    -- EPMINFO_RINGICONS = 20
@@ -266,72 +272,72 @@ compile if EVERSION > 5
   compile if not defined(APP_HANDLE)
    APP_HANDLE = EPMINFO_OWNERFRAME  -- 5.53 sends application messages to owner frame
   compile endif
- compile else
-   APP_HANDLE = EPMINFO_OWNERCLIENT -- earlier versions sent them to owner client.
- compile endif  -- EVERSION >= '5.53'
+; compile else
+;   APP_HANDLE = EPMINFO_OWNERCLIENT -- earlier versions sent them to owner client.
+; compile endif  -- EVERSION >= '5.53'
 
- compile if EVERSION < '5.20'
-   E_DLL     = 'E'
-   ERES_DLL  = 'ERES'
-   EUTIL_DLL = 'EUTIL'
-   LEXAM_DLL = 'PCLEXAM'
- compile elseif EVERSION='5.20'   -- As of 5.20, we have version-specific DLLs
-   E_DLL     = 'ETKE520'
-   ERES_DLL  = 'ETKR520'
-;  EUTIL_DLL = 'ETKE520'          -- Also, no more EUTIL.
-   LEXAM_DLL = 'ETKL1'
- compile elseif EVERSION='5.21'
-   E_DLL     = 'ETKE521'
-   ERES_DLL  = 'ETKR521'
-   LEXAM_DLL = 'ETKL1'
- compile elseif EVERSION='5.50'
-   E_DLL     = 'ETKE550'
-   ERES_DLL  = 'ETKR550'
- compile elseif EVERSION='5.51' | EVERSION='5.51a'
-  compile if not defined(E_DLL)
-   E_DLL     = 'ETKE551'
-  compile endif
-  compile if not defined(ERES_DLL)
-   ERES_DLL  = 'ETKR551'
-  compile endif
- compile elseif EVERSION='5.52'
-  compile if not defined(E_DLL)
-   E_DLL     = 'ETKE552'
-  compile endif
-  compile if not defined(ERES_DLL)
-   ERES_DLL  = 'ETKR552'
-  compile endif
- compile elseif EVERSION='5.60' | EVERSION='5.60a' | EVERSION='5.60c'
-   E_DLL     = 'ETKE560'
-   ERES_DLL  = 'ETKR560'
- compile elseif EVERSION='6.00' | EVERSION='6.00a' | EVERSION='6.00b' | EVERSION='6.00c'
-  compile if not defined(E_DLL)
-   E_DLL     = 'ETKE600'
-  compile endif
-  compile if not defined(ERES_DLL)
-   ERES_DLL  = 'ETKR600'
-  compile endif
- compile elseif EVERSION='6.01' | EVERSION = '6.01a' | EVERSION = '6.01b' | EVERSION = '6.01c'
-  compile if not defined(E_DLL)
-   E_DLL     = 'ETKE601'
-  compile endif
-  compile if not defined(ERES_DLL)
-   ERES_DLL  = 'ETKC601'
-  compile endif
-  compile if not defined(ERES2_DLL)
-   ERES2_DLL  = 'ETKR601'
-  compile endif
- compile elseif EVERSION='6.02'
-  compile if not defined(E_DLL)
-   E_DLL     = 'ETKE602'
-  compile endif
-  compile if not defined(ERES_DLL)
-   ERES_DLL  = 'ETKC602'
-  compile endif
-  compile if not defined(ERES2_DLL)
-   ERES2_DLL  = 'ETKR602'
-  compile endif
- compile elseif EVERSION='6.03' or EVERSION='6.03a' or EVERSION='6.03b'
+; compile if EVERSION < '5.20'
+;   E_DLL     = 'E'
+;   ERES_DLL  = 'ERES'
+;   EUTIL_DLL = 'EUTIL'
+;   LEXAM_DLL = 'PCLEXAM'
+; compile elseif EVERSION='5.20'   -- As of 5.20, we have version-specific DLLs
+;   E_DLL     = 'ETKE520'
+;   ERES_DLL  = 'ETKR520'
+;;  EUTIL_DLL = 'ETKE520'          -- Also, no more EUTIL.
+;   LEXAM_DLL = 'ETKL1'
+; compile elseif EVERSION='5.21'
+;   E_DLL     = 'ETKE521'
+;   ERES_DLL  = 'ETKR521'
+;   LEXAM_DLL = 'ETKL1'
+; compile elseif EVERSION='5.50'
+;   E_DLL     = 'ETKE550'
+;   ERES_DLL  = 'ETKR550'
+; compile elseif EVERSION='5.51' | EVERSION='5.51a'
+;  compile if not defined(E_DLL)
+;   E_DLL     = 'ETKE551'
+;  compile endif
+;  compile if not defined(ERES_DLL)
+;   ERES_DLL  = 'ETKR551'
+;  compile endif
+; compile elseif EVERSION='5.52'
+;  compile if not defined(E_DLL)
+;   E_DLL     = 'ETKE552'
+;  compile endif
+;  compile if not defined(ERES_DLL)
+;   ERES_DLL  = 'ETKR552'
+;  compile endif
+; compile elseif EVERSION='5.60' | EVERSION='5.60a' | EVERSION='5.60c'
+;   E_DLL     = 'ETKE560'
+;   ERES_DLL  = 'ETKR560'
+; compile elseif EVERSION='6.00' | EVERSION='6.00a' | EVERSION='6.00b' | EVERSION='6.00c'
+;  compile if not defined(E_DLL)
+;   E_DLL     = 'ETKE600'
+;  compile endif
+;  compile if not defined(ERES_DLL)
+;   ERES_DLL  = 'ETKR600'
+;  compile endif
+; compile elseif EVERSION='6.01' | EVERSION = '6.01a' | EVERSION = '6.01b' | EVERSION = '6.01c'
+;  compile if not defined(E_DLL)
+;   E_DLL     = 'ETKE601'
+;  compile endif
+;  compile if not defined(ERES_DLL)
+;   ERES_DLL  = 'ETKC601'
+;  compile endif
+;  compile if not defined(ERES2_DLL)
+;   ERES2_DLL  = 'ETKR601'
+;  compile endif
+; compile elseif EVERSION='6.02'
+;  compile if not defined(E_DLL)
+;   E_DLL     = 'ETKE602'
+;  compile endif
+;  compile if not defined(ERES_DLL)
+;   ERES_DLL  = 'ETKC602'
+;  compile endif
+;  compile if not defined(ERES2_DLL)
+;   ERES2_DLL  = 'ETKR602'
+;  compile endif
+; compile elseif EVERSION='6.03' or EVERSION='6.03a' or EVERSION='6.03b'
   compile if not defined(E_DLL)
    E_DLL     = 'ETKE603'
   compile endif
@@ -341,14 +347,15 @@ compile if EVERSION > 5
   compile if not defined(ERES2_DLL)
    ERES2_DLL  = 'ETKR603'
   compile endif
- compile else
-*** Error:  unrecognized EPM version; don't know what level of DLLs to use.
- compile endif  -- EVERSION < '5.20'
+; compile else
+;*** Error:  unrecognized EPM version; don't know what level of DLLs to use.
+; compile endif  -- EVERSION < '5.20'
 
  compile if not defined(EUTIL_DLL)  -- Not used by any current E_MACROS;
    EUTIL_DLL = E_DLL                -- define in case any user macros refer to it.
  compile endif
  compile if not defined(LEXAM_DLL)
+   -- EPM 6.03b uses oslexam.dll. Apparently it doesn't matter what is defined here.
    LEXAM_DLL = 'LEXAM'
  compile endif
  compile if not defined(ERES2_DLL)  -- ERES2 is the real ETKRnnn.DLL;
@@ -367,9 +374,9 @@ compile if EVERSION > 5
 
    HELP_MENU_ID = 6  -- To avoid hardcoding it, but the value shouldn't be changed,
                      -- to avoid breaking code written before the constant was added.
-compile endif  -- EVERSION > 5
+;compile endif  -- EVERSION > 5
 
-compile if EVERSION >= '4.10'    -- Following are for BUFFER opcode.
+;compile if EVERSION >= '4.10'    -- Following are for BUFFER opcode.
    CREATEBUF   =0
    OPENBUF     =1
    FREEBUF     =2
@@ -377,17 +384,17 @@ compile if EVERSION >= '4.10'    -- Following are for BUFFER opcode.
    PUTBUF      =4
    MAXSIZEBUF  =5
    USEDSIZEBUF =6
- compile if EVERSION > 5
+; compile if EVERSION > 5
    PUTMARKBUF  =7
    GETMARKBUF  =8             -- Currently not implemented
    MARKTYPEBUF =9
    STARTCOLBUF =10
    ENDCOLBUF   =11
    CLEARBUF    =12
-  compile if EVERSION >= '5.50'
+;  compile if EVERSION >= '5.50'
    GETBUF2     =13            -- Like GETBUF, but handles CRLF differently (for PASTE)
-  compile endif  -- EVERSION >= '5.50'
- compile endif  -- EVERSION > 5
+;  compile endif  -- EVERSION >= '5.50'
+; compile endif  -- EVERSION > 5
 
    MAXBUFSIZE  = 65535-32     -- don't really need this, will default to max
 
@@ -399,7 +406,7 @@ compile if EVERSION >= '4.10'    -- Following are for BUFFER opcode.
    FINALNULL     =  32
    LF_IS_NEWLINE =  64
    NOHEADER      = 256
-compile endif  -- EVERSION >= '4.10'
+;compile endif  -- EVERSION >= '4.10'
 
    HEXCHARS = '0123456789ABCDEFabcdef'
 
