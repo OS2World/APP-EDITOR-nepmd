@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.14 2003-05-14 16:55:52 aschn Exp $
+* $Id: kwhelp.e,v 1.15 2003-08-31 22:35:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -47,7 +47,8 @@ compile if not defined(FORTRAN_TYPES)
    FORTRAN_TYPES = 'FXC F F77 F90 FOR FORTRAN'  --<---------------------------------------------------- Todo
 compile endif
 compile if not defined(GENERAL_NOCASE_TYPES)
-   GENERAL_NOCASE_TYPES = 'CMD SYS BAT'         --<---------------------------------------------------- Todo
+;   GENERAL_NOCASE_TYPES = 'CMD SYS BAT'         --<---------------------------------------------------- Todo
+   GENERAL_NOCASE_TYPES = 'CMD SYS BAT E'         --<---------------------------------------------------- Todo
 compile endif
 compile if not defined('NEPMD_KEYWORD_HELP_COMMAND')
    -- Following is an OS/2 command that can replace the 'view' call.
@@ -164,6 +165,14 @@ defproc pHelp_C_identifier
 
             -- EnvVars are already resolved at this point!
 
+            -- check if ViewFile specifies an EnvVar (e.g. PMREF)
+            next = Get_Env(ViewFile)
+            if next <> '' then
+               -- if found, add next to rest and re-parse it
+               rest = next'+'rest
+               iterate
+            endif
+
             if (pos( '.', ViewFile) = 0) then
                ViewFile = ViewFile'.inf';
             endif
@@ -190,12 +199,16 @@ defproc pHelp_C_identifier
 compile if defined(NEPMD_KEYWORD_HELP_COMMAND)
             line = NEPMD_KEYWORD_HELP_COMMAND' 'delword( line, 1, 1 )
 compile endif
-            -- resolve *all* EnvVars
-            -- (the 'dos' or 'os2' command apparently resolves only the first)
-            --line = NepmdResolveEnvVars( line )  -- duplicated line
-            sayerror 'Invoking "'line'"'
          endif
-         'dos' line  -- execute the command
+         if wordpos( upcase( word( line, 1)), 'START QS QUIETSHELL DOS OS2') then
+            -- Omit the 'dos' or 'start' command if specified in .ndx file or
+            -- as an alternative VIEW command.
+            cmd = line
+         else
+            cmd = 'start /f' line
+         endif
+         sayerror 'Invoking "'cmd'"'
+         cmd  -- execute the command
       endif
 
    endif
