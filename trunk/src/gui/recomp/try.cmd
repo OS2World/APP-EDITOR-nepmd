@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: try.cmd,v 1.3 2002-06-10 10:38:37 cla Exp $
+* $Id: try.cmd,v 1.4 2002-08-14 12:19:28 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,8 +36,6 @@
  call SysLoadFuncs
 
  /* determine some directories */
- EpmSource = SysSearchPath( 'EPMPATH', 'epm.e');
- EpmSourcePath = LEFT( EpmSource, LASTPOS( '\', EpmSource) - 1);
  TmpDir = VALUE('TMP',,env);
 
  /* ####################### maintain testcases here ####################### */
@@ -45,9 +43,8 @@
  Testcase.0  = '*.c *.h *.cmd *.rc*';  /* some few rings with some more files */
  Testcase.1  = 'tc.*';                 /* one ring with few files */
  Testcase.2  = 'client.* dde.*' ,      /* lot of rings with few files */
-               'ddereload.* ddeutil.* frame.* job.*' ,
-               'dde.* process.* recomp.* ';
- Testcase.3  = EpmSourcePath'\*.e';    /* load EPM source files */
+               'ddereload.* frame.* job.*' ,
+               'dde.* recomp.* ';
 
  /* ####################################################################### */
 
