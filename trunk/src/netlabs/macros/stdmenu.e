@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.5 2002-09-02 22:08:31 aschn Exp $
+* $Id: stdmenu.e,v 1.6 2002-09-16 19:48:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -187,7 +187,9 @@ compile else
       buildmenuitem menuname, 8, 803, ADJUST_MARK_MENU__MSG,   'DUPMARK A'ADJUST_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_ADJUST, 0)
 compile endif
       buildmenuitem menuname, 8, 804, \0,                       '',          4, 0
-      buildmenuitem menuname, 8, 828, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
+;      buildmenuitem menuname, 8, 828, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
+; added Ctrl+A
+      buildmenuitem menuname, 8, 828, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/ | 'CTRL_KEY__MSG'+A',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
 compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'U' & EDIT_ACCEL__L<>'U' & SEARCH_ACCEL__L<>'U' & OPTIONS_ACCEL__L<>'U' & COMMAND_ACCEL__L<>'U' & HELP_ACCEL__L<>'U' & $maybe_ring_accel 'U' & $maybe_actions_accel 'U')
       buildmenuitem menuname, 8, 805, UNMARK_MARK_MENU__MSG\9 || ALT_KEY__MSG'+U',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
