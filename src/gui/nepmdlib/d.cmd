@@ -11,10 +11,13 @@
 :     instead the true EPM.EXE must be first in path, otherwise
 :     the debugger is not able to detect load occurrence of
 :     NEPMDLIB.DLL
+:   - in order to make sure that NEPMDLIB.DLL of wour working tree
+:     is used, delete/move/rename an existing NEPMDLIB.DLL from within
+:     an active NEPMD installation
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: d.cmd,v 1.1 2002-08-21 21:37:13 cla Exp $
+: $Id: d.cmd,v 1.2 2002-09-19 13:49:36 cla Exp $
 :
 : ===========================================================================
 :
