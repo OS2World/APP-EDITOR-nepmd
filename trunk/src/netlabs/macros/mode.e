@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.20 2002-10-20 14:18:12 aschn Exp $
+* $Id: mode.e,v 1.21 2002-10-21 11:54:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -96,6 +96,7 @@ defproc NepmdResetMode()
 ; This proc is called by defload in LOAD.E
 defproc NepmdInitMode
    universal EPM_utility_array_ID
+   HiliteCheckFlag = arg( 1)
 
    -- Get the mode from EA 'EPM.MODE'
    NewMode = get_EAT_ASCII_value('EPM.MODE')
@@ -117,7 +118,7 @@ defproc NepmdInitMode
 
    -- Process all mode dependent settings
    if NewMode <> '' then
-      call NepmdProcessMode( NewMode )
+      call NepmdProcessMode( NewMode, HiliteCheckFlag)
    endif  -- if NewMode <> ''
 
    return NewMode
@@ -206,7 +207,10 @@ defproc NepmdProcessMode()
    -- load_var is a marker that stores if tabs or margins were already set
    -- by the EA's EPM.TABS or EPM.MARGINS
    universal load_var
+
    CurMode = arg(1)
+   HiliteCheckFlag = arg( 2)
+
    if CurMode = '' then
       CurMode = NepmdGetMode()
    endif
@@ -222,7 +226,7 @@ compile endif
    if (CurMode = 'OFF') then
      call NepmdActivateHighlight( 'OFF')
    else
-     call NepmdActivateHighlight( 'ON', CurMode)
+     call NepmdActivateHighlight( 'ON', CurMode, HiliteCheckFlag)
    endif
 
    -- Key set, tabs, margins
