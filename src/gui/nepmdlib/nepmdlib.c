@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.4 2002-08-20 20:04:10 cla Exp $
+* $Id: nepmdlib.c,v 1.5 2002-08-21 13:52:48 cla Exp $
 *
 * ===========================================================================
 *
@@ -87,7 +87,6 @@ APIRET EXPENTRY NepmdGetTextMessage( PSZ pszFilename, PSZ pszMessageName,
          PSZ            apszParms[ 7];
          ULONG          ulParmCount;
          ULONG          ulMessageLen;
-         PSZ            apszTest[] = {NULL};
 
 do
    {
@@ -122,7 +121,7 @@ do
 
 
    printf( "call with %u parms, buflen: %u\n ", ulParmCount, ulBuflen);
-   rc = TmfGetMessage( apszTest, 0, pszBuffer, ulBuflen,
+   rc = TmfGetMessage( NULL, 0, pszBuffer, ulBuflen,
                        pszMessageName, pszFilename, &ulMessageLen);
    printf( "rc=%u, result: %s\n", rc, pszBuffer);
 
