@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.1 2002-10-06 23:30:58 aschn Exp $
+* $Id: toolbar.e,v 1.2 2004-06-03 21:58:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,35 +30,34 @@
 ;     the actlist file is generated.
 ;     John Ponzo 8/93
 ;     Optimized by LAM
-
 defc load_actions
    universal ActionsList_FileID
 
-;Keep track of the active file
+   -- Keep track of the active file
    getfileid ActiveFileID
 
-;See if the actlist file is already loaded, if not load it
-;; getfileid ActionsList_FileID, 'actlist'
+   -- See if the actlist file is already loaded, if not load it
+;; getfileid ActionsList_FileID, '.actlist'
 
    if ActionsList_FileID <> '' then  -- Make sure it's still loaded.
       rc = 0
       display -2
       activatefile ActionsList_FileID
       display 2
-      if rc=-260 then ActionsList_FileID = ''; endif
+      if rc = -260 then ActionsList_FileID = ''; endif
    endif
 
    if ActionsList_FileID == '' then  -- Must create
-      'xcom e /c actlist'
-      if rc<>-282 then  -- sayerror('New file')
+      'xcom e /c .actlist'
+      if rc <> -282 then  -- sayerror('New file')
          sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
          return
       endif
       getfileid ActionsList_FileID
       .visible = 0
 
-;load the actions.lst file which contain the names of all the EX modules
-;that have UCMENU actions defined.
+      -- Load the actions.lst file which contain the names of all the EX modules
+      -- that have UCMENU actions defined.
       getfileid ActionsEXModuleList_FileID, 'actions.lst'
 
       if ActionsEXModuleList_FileID == '' then
@@ -68,7 +67,7 @@ defc load_actions
             deleteline 1
             .modify = 0
          else
-            'e' destfilename
+            'xcom e' destfilename
             if rc then
                sayerror ERROR__MSG rc '"'destfilename'"' sayerrortext(rc)
                return
@@ -80,42 +79,66 @@ defc load_actions
       else
          quit_list = 0
       endif
-;load all the EX Modules in actlist.lst, and call EX modules
-;actionlist defc.
+      -- Load all the EX Modules in actlist.lst, and call EX modules
+      -- actionlist defc.
       for i = 1 to ActionsEXModuleList_FileID.last
          getline  exmodule, i, ActionsEXModuleList_FileID
          not_linked = linked(exmodule) < 0
          if not_linked then
             link exmodule
-            if rc<0 then
+            linkrc = rc
+            if rc < 0 then
                sayerror 'Load_Actions:  'sayerrortext(rc) '-' exmodule
                not_linked = 0  -- Don't try to unlink it.
             endif
          endif
          exmodule'_actionlist'
          if not_linked then
-            'unlink' exmodule
+            -- unlink needs full pathname if .ex file not in current path.
+            -- Todo: extend defc unlink that it searches .ex file first in EPMPATH.
+            -- Note: The syntax for findfile, described in epmtech.inf, is wrong.
+            --       It must be called:
+            --       FINDFILE destfilename , filename [, environment_path_variable, (P|D)]
+            if substr( exmodule, 2, 2) = ':\' & exist(exmodule) then  -- if full pathname
+               fullpathexmodule = exmodule
+            else
+               lp1 = lastpos( '\', exmodule)
+               exname = substr( exmodule, lp1 + 1)
+               lp2 = lastpos( '.', exname)
+               if lp2 > 0 then
+                  exbase = substr( exname, 1, lp2 - 1)
+                  exext = substr( exname, lp2 + 1)
+               else
+                  exname = exname'.ex'
+               endif
+               findfile fullpathexmodule, exname, '', 'D'
+            endif
+            'unlink' fullpathexmodule
+            unlinkrc = rc
          endif
       endfor
       if quit_list then
          activatefile ActionsEXModuleList_FileID
-         'quit'
+         'xcom quit'
       endif
    endif  -- ActionsList_FileID == ''
 
-;if called with a parameter send EFRAME_ACTIONSLIST message to the frame
-;of the edit window. mp1 is a buffer containing all of the actions loaded
-;in the hidden file actlist.
-   if arg(1)  then
+   -- If called with a parameter send EFRAME_ACTIONSLIST message to the frame
+   -- of the edit window. mp1 is a buffer containing all of the actions loaded
+   -- in the hidden file actlist.
+   if arg(1) then
       activatefile ActionsList_FileID
       buflen = filesize() + .last + 1
       bufhandle = buffer(CREATEBUF, '', buflen, 1)
-      if not bufhandle then sayerror 'CREATEBUF' ERROR_NUMBER__MSG RC; return; endif
-      call buffer(PUTBUF, bufhandle, 1, ActionsList_FileID.last, NOHEADER+FINALNULL+APPENDCR)
+      if not bufhandle then
+         sayerror 'CREATEBUF' ERROR_NUMBER__MSG RC
+         return
+      endif
+      call buffer( PUTBUF, bufhandle, 1, ActionsList_FileID.last, NOHEADER + FINALNULL + APPENDCR)
       if word(arg(1),1) <> 'ITEMCHANGED' then
-         windowmessage(0, getpminfo(EPMINFO_EDITFRAME), 5913, bufhandle, arg(1))
+         windowmessage( 0, getpminfo(EPMINFO_EDITFRAME), 5913, bufhandle, arg(1))
       else
-         windowmessage(0, getpminfo(EPMINFO_EDITFRAME), 5918, bufhandle, subword(arg(1),2))
+         windowmessage( 0, getpminfo(EPMINFO_EDITFRAME), 5918, bufhandle, subword( arg(1), 2))
       endif
    endif
    activatefile ActiveFileID
@@ -127,16 +150,15 @@ defc load_actions
 ;     and the second parameter being an action sub-op.
 ;     If the action (Which is a Defc) is not defined the actions list
 ;     is generated in order to try resolving the defc.
-
 defc ExecuteAction
    universal ActionsList_FileID
    parse arg DefcModule DefcName DefcParameter
 ;sayerror 'executeaction: "'arg(1)'"'
 
-   if DefcName='*' then
+   if DefcName = '*' then
       DefcParameter
    else
-      if defcmodule<>'*' then
+      if defcmodule <> '*' then
          if linked(defcmodule) < 0 then
             link defcmodule
          endif
@@ -170,19 +192,19 @@ defproc list_toolbars(list_title, list_prompt, help_panel, msgid)
    if not l then sayerror NO_TOOLBARS__MSG; return; endif
    getfileid startfid
    'xcom e /c /q tempfile'
-   if rc<>-282 then  -- sayerror('New file')
+   if rc <> -282 then  -- sayerror('New file')
       sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
       return
    endif
    .autosave = 0
    browse_mode = browse()     -- query current state
    if browse_mode then call browse(0); endif
-   do while inidata<>''
+   do while inidata <> ''
       parse value inidata with menuname \0 inidata
       insertline menuname, .last+1
    enddo
    if browse_mode then call browse(1); endif  -- restore browse state
-   if listbox_buffer_from_file(startfid, bufhndl, noflines, usedsize) then return; endif
+   if listbox_buffer_from_file( startfid, bufhndl, noflines, usedsize) then return; endif
    parse value listbox( list_title,
                         \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                         '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
@@ -193,8 +215,8 @@ defproc list_toolbars(list_title, list_prompt, help_panel, msgid)
                         gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(help_panel) ||
                         list_prompt) with button 2 menuname \0
    call buffer(FREEBUF, bufhndl)
-   if button<>\1 then return; endif
-   call windowmessage(0, getpminfo(EPMINFO_EDITFRAME), msgid, app_hini, put_in_buffer(menuname))
+   if button <> \1 then return; endif
+   call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME), msgid, app_hini, put_in_buffer(menuname))
    if msgid = 5916 then
       toolbar_loaded = menuname
    endif
@@ -205,6 +227,7 @@ defc delete_toolbar
 compile endif  -- 0 ---------------------------------------------------------
 
 ; ---------------------------------------------------------------------------
+; Save current toolbar in EPM.INI.
 defc save_toolbar
    universal app_hini, appname
    universal toolbar_loaded
@@ -226,6 +249,7 @@ defc save_toolbar
    toolbar_loaded = menuname
 
 ; ---------------------------------------------------------------------------
+; Activate built-in toolbar.
 defc loaddefaulttoolbar
    universal activeucmenu, toolbar_loaded
    if activeucmenu = 'Toolbar' then  -- Already used, delete it to be safe.
@@ -300,7 +324,7 @@ defc loaddefaulttoolbar
    toolbar_loaded = \1
 
 ; ---------------------------------------------------------------------------
-; What is this command for? It is not called by anything.
+; Delete a toolbar.
 defc deletetemplate
    universal app_hini
    parse arg template_name
@@ -313,22 +337,7 @@ defc deletetemplate
                       put_in_buffer(template_name))
 
 ; ---------------------------------------------------------------------------
-compile if INCLUDE_STD_MENUS
-defc toggle_toolbar
-   universal toolbar_loaded
-  compile if WANT_NODISMISS_MENUS & not defined(STD_MENU_NAME)
-   fon = queryframecontrol(EFRAMEF_TOOLBAR)  -- Query now, since toggling is asynch.
-  compile endif  -- WANT_NODISMISS_MENUS
-   'toggleframe' EFRAMEF_TOOLBAR
-  compile if WANT_NODISMISS_MENUS & not defined(STD_MENU_NAME)
-   SetMenuAttribute( 430, 8192, fon)
-  compile endif  -- WANT_NODISMISS_MENUS
-   if not toolbar_loaded then
-      'default_toolbar'
-   endif
-compile endif  -- INCLUDE_STD_MENUS
-
-; ---------------------------------------------------------------------------
+; Activate default toolbar from EPM.INI.
 defc default_toolbar
    universal app_hini, appname, toolbar_loaded
 compile if WPS_SUPPORT
