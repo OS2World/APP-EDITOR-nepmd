@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.11 2002-11-04 14:44:09 aschn Exp $
+* $Id: edit.e,v 1.12 2002-11-13 15:45:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -154,7 +154,7 @@ compile endif
       if substr(rest,1,1)=',' then rest=strip(substr(rest,2),'L'); endif
       ch=substr(rest,1,1)
 compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') & not SMALL
- compile if (MVS or E3MVS) and not HOST_LT_REQUIRED  -- (MVS filespecs can start with '.)
+ compile if MVS and not HOST_LT_REQUIRED  -- (MVS filespecs can start with '.)
       if 0 then                         -- No-op
  compile else
       if ch="'" then                    -- Command
@@ -190,7 +190,7 @@ compile if HOST_SUPPORT & not SMALL
          p3=pos('"',rest); if not p3 then p3=p; endif
          p4=pos("'",rest); if not p4 then p4=p; endif
  compile if HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL'
-  compile if MVS or E3MVS
+  compile if MVS
          p4=p     -- Can't use single quote for commands if allowing MVS files
   compile endif
          p5=pos('[',rest); if not p5 then p5=p; endif  -- Allow for [FTO]
