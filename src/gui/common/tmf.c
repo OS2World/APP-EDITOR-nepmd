@@ -34,6 +34,7 @@
 // internal prototypes
 APIRET _TmfCompileMsgTable( PSZ pszMessageFile, PBYTE * ppbTableData);
 APIRET _TmfGetTimeStamp( PFILESTATUS3 pfs3, PSZ pszBuffer, ULONG ulBufferlen);
+static PSZ _TmfExpandParms( PSZ pszStr, PSZ *apszParms, ULONG ulParmCount);
 
 // ------------------------------------------------------------------------------
 
@@ -61,6 +62,8 @@ APIRET TmfGetMessage
          ULONG          ulAction;
          ULONG          ulBytesToRead;
          ULONG          ulBytesRead;
+
+         PSZ            pszExpanded = NULL;
 
 do
    {
@@ -181,9 +184,23 @@ do
    *pcbMsg = ulBytesRead;
    *(pbBuffer + ulBytesRead) = 0;
 
+   // expand parms
+   pszExpanded = _TmfExpandParms( pbBuffer, pTable, cTable);
+   if (pszExpanded)
+      {
+      if (strlen( pszExpanded) + 1 > cbBuffer)
+         {
+         rc = ERROR_BUFFER_OVERFLOW;
+         break;
+         }
+      else
+         strcpy( pbBuffer, pszExpanded);
+      }
+
    } while (FALSE);
 
 // cleanup
+if (pszExpanded) free( pszExpanded);
 if (hfile) DosClose( hfile);
 if (pbTableData) free( pbTableData);
 return rc;
@@ -525,5 +542,98 @@ do
    } while (FALSE);
 
 return rc;
+}
+
+// -----------------------------------------------------------------------------
+
+static PSZ _TmfExpandParms( PSZ pszStr, PSZ *apszParms, ULONG ulParmCount)
+{
+         PSZ      pszResult = NULL;
+
+         PSZ      pszNewValue;
+
+         PSZ      pszStartPos;
+         PSZ      pszVarNum;
+
+         ULONG    ulNameLen = 1;
+         PSZ      pszVarValue;
+         CHAR     szVarName[] = "?";
+         ULONG    ulParmIndex;
+
+         PSZ      pszNewResult;
+         ULONG    ulNewResultLen;
+
+static   CHAR     chDelimiter = '%';
+
+         ULONG    ulSkipValue = 0;
+
+do
+   {
+   // check parms
+   if (!pszStr)
+      break;
+
+   // create a copy
+   pszResult = strdup( pszStr);
+   if (!pszResult)
+      break;
+
+   // if no parms to replace, don't expand
+   if (!ulParmCount)
+      break;
+
+   // maintain the copy
+   pszStartPos = strchr( pszResult + ulSkipValue, chDelimiter);
+   while (pszStartPos)
+      {
+      // find index
+      pszVarNum = pszStartPos + 1;
+
+      // check which parm is meant
+      szVarName[ 0] = *pszVarNum;
+      ulParmIndex = atol( szVarName);
+      if ((ulParmIndex) && (ulParmIndex <= ulParmCount))
+         {
+
+         // first of all, elimintate the variable
+         strcpy( pszStartPos, pszVarNum + 1);
+   
+         // get value
+         pszVarValue = apszParms[ ulParmIndex - 1];
+         if (pszVarValue)
+            {
+            // embedd new value
+            pszNewResult = malloc( strlen( pszResult) + 1 + strlen( pszVarValue));
+            if (pszNewResult)
+               {
+               strcpy( pszNewResult, pszResult);
+               strcpy( pszNewResult + (pszStartPos - pszResult), pszVarValue);
+               strcat( pszNewResult, pszStartPos);
+               free( pszResult);
+               pszResult = pszNewResult;
+               }
+            else
+               {
+               // kick any result, as we are out of memory
+               free( pszResult);
+               pszResult = NULL;
+               break;
+               }
+            }
+         }
+      else
+         // skip this percent sign, as it is not replaced
+         ulSkipValue = pszStartPos - pszResult + 1;
+
+      // next var please
+      pszStartPos = strchr( pszResult + ulSkipValue, chDelimiter);
+      }
+
+
+   } while (FALSE);
+
+
+// no cleanup - caller must free memory !
+return pszResult;
 }
 
