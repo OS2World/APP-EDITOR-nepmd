@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.10 2002-06-07 13:45:04 cla Exp $
+.. $Id: nepmd.txt,v 1.11 2002-06-10 11:26:33 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -635,6 +635,7 @@ placed into the following directory tree:
 .3 extended recompilation support
 .. -----------------------------------------------------------------------------
 .an IDPNL_ADDITIONS_RECOMP
+.in RECOMP
 .
 [=TITLE] comes with a utility to greatly support and ease the recompilation
 of *EPM*.
@@ -653,7 +654,7 @@ convenience. It works as follows:
 - compiles *EPM*
 - in case of success:
   - closes all open *EPM* windows
-  - reloads all previously open *EPM* windows using the savesd filelists,
+  - reloads all previously open *EPM* windows using the saved filelists,
     restoring window and cursor positions (optional)
 - in case of a compile error:
 ..- loads the errant file, places the cursor to the error location and displays the error message
