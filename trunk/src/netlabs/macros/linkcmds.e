@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.9 2004-09-12 15:47:37 aschn Exp $
+* $Id: linkcmds.e,v 1.10 2004-12-31 00:51:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -76,8 +76,11 @@ defc link
 ; Syntax: unlink [<path>]<modulename>[.ex]        Example:  unlink draw
 ; A simple front end to the unlink statement to allow command-line invocation.
 ; The standard unlink statement doesn't search in EPMPATH and DPATH like the
-; link statement does. This is added here.
+; link statement does. This is added here. ExFile is searched in
+; .;%EPMPATH%;%DPATH% until the linked file is found.
 defc unlink
+   FullPathName = ''
+   unlinkrc     = ''
    ExFile = arg(1)
    p1 = lastpos( '\', ExFile)
    ExFileName = substr( ExFile, p1 + 1)
@@ -85,18 +88,58 @@ defc unlink
    if p2 = 0 then
       ExFile = ExFile'.ex'
    endif
-   findfile FullPathName, ExFile, '', 'D'  -- search in .;%EPMPATH;%DPATH%
-   if rc then                -- if not found
-      FullPathName = arg(1)  -- try to unlink arg(1)
+   if substr( ExFile, 2, 2) =  ':\' or substr( ExFile, 1, 2) =  '\\' then
+      FullPathName = ExFile
    endif
-   unlink FullPathName
-   if rc then
-      if rc = -310 then
+
+   if FullPathName = '' then
+      -- search ExFile in whole PathList, until linkedrc > 0
+      PathList = '.;'Get_Env('EPMPATH')';'Get_Env('DPATH')';'
+      rest = PathList
+      do while rest <> ''
+         parse value rest with Path';'rest
+         if Path = '' then
+            iterate
+         endif
+         if rightstr( Path, 2, 2) = ':\' then  -- if root dir
+            Path = strip( Path, 'T', '\')
+         endif
+         next = Path'\'ExFile
+         if Exist( next) then
+            -- Bug in linked: strips path forever, checks name only
+            linkedrc = linked( next)
+            --sayerror 'linked: rc = 'linkedrc' for 'next
+            if linkedrc >= 0 then
+               display -2  -- Turn non-critical messages off, we give our own message.
+               unlink next
+               display 2
+               if rc = 0 then
+                  unlinkrc = rc
+                  FullPathName = next
+                  leave
+               endif
+            endif
+         endif
+      enddo
+   endif
+
+   if FullPathName = '' then
+      FullPathName = arg(1)  -- try to unlink arg(1) if not found until here
+   endif
+
+   if unlinkrc = '' then  -- if not already tried to unlink
+      display -2  -- Turn non-critical messages off, we give our own message.
+      unlink FullPathName
+      unlinkrc = rc
+      display 2
+   endif
+   if unlinkrc then
+      if unlinkrc = -310 then
          sayerror 'Module "'arg(1)'" not unlinked, unknown module'
-      elseif rc = -302 then
+      elseif unlinkrc = -302 then
          sayerror 'Module "'arg(1)'" not unlinked, defined keyset in use (better restart EPM)'
       else
-         sayerror 'Module "'arg(1)'" not unlinked, rc = 'rc
+         sayerror 'Module "'arg(1)'" not unlinked, rc = 'unlinkrc
       endif
    endif
 
@@ -127,9 +170,7 @@ defc relink
       endif
    endif
 
-   'etpm' modulename  -- This is the macro ETPM command.
-   if rc then return; endif
-
+   -- check if basename of module was linked before
    lp1 = lastpos( '\', modulename)
    name = substr( modulename, lp1 + 1)
    lp2 = lastpos( '.', name)
@@ -138,13 +179,21 @@ defc relink
    else
       basename = name
    endif
+   linkedrc = linked(basename)
+
+   'etpm' modulename  -- This is the macro ETPM command.
+   if rc then return; endif
 
    -- Unlink and link module if linked
-   waslinkedrc = linked(basename)
-   if waslinkedrc >= 0 then  -- if linked
+   if linkedrc >= 0 then  -- if linked
       'unlink' basename   -- 'unlink' gets full pathname now
       if rc = 0 then
          'link' basename
+         -- refresh menu if module is linked and defines a menu
+         if rc >= 0 & upcase( rightstr( basename, 4)) = 'MENU' &
+            length( basename) > 4 then
+            'ChangeMenu' basename
+         endif
       endif
    endif
 
@@ -344,6 +393,13 @@ defc RingCheckModify
 
 ; ---------------------------------------------------------------------------
 ; Recompile all files, whose names found in .lst files in EPMEXPATH.
+;
+; Maybe to be changed: compile only those files, whose (.EX files exist) names
+; are listed in ex\*.lst and whose E files found in myepm\macros.
+; Define a new command RecompileReallyAll to replace the current RecompileAll.
+;
+; Maybe another command: RecompileNew, checks filestamps and compiles
+; everything, for that the E source files have changed.
 defc RecompileAll
 
    'RingCheckModify'
