@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.18 2004-07-01 11:31:50 aschn Exp $
+* $Id: edit.e,v 1.19 2004-07-04 22:06:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -300,6 +300,8 @@ compile endif
 
          rc = NepmdLoadFile( filespec, options)
 
+; Todo: rewrite that horrible message stuff:
+
          if rc = -3 then        -- sayerror('Path not found')
             bad_paths = bad_paths', 'filespec
          elseif rc = -2 then    -- sayerror('File not found')
@@ -353,8 +355,8 @@ compile endif
    if truncated then $SAYERR LINES_TRUNCATED__MSG':' substr(truncated,2); endif
    if access_denied then $SAYERR ACCESS_DENIED__MSG':' substr(access_denied,2); endif
    if invalid_drive then $SAYERR INVALID_DRIVE__MSG':' substr(invalid_drive,2); endif
-   if error_reading then $SAYERR ERROR_OPENING__MSG':' substr(error_reading,2); endif
-   if error_opening then $SAYERR ERROR_READING__MSG':' substr(error_opening,2); endif
+   if error_reading then $SAYERR ERROR_READING__MSG':' substr(error_reading,2); endif  -- __MSGs were
+   if error_opening then $SAYERR ERROR_OPENING__MSG':' substr(error_opening,2); endif  -- exchanged
    if multiple_errors then
       messageNwait(MULTIPLE_ERRORS__MSG)
    endif
