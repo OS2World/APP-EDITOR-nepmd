@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.6 2002-08-21 12:15:05 cla Exp $
+# $Id: makefile,v 1.7 2002-09-18 18:57:16 cla Exp $
 #
 # ===========================================================================
 #
@@ -48,6 +48,7 @@ OBJS=\
 DEF=recomp.def
 RES=$(BINDIR)\receng.res
 MT=1
+PMPRINTF=1
 
 !endif
 
@@ -60,7 +61,6 @@ NLSSUPPORTED=deu
 PKGDIR=recomp
 LXLITE=1
 LIBS=$(BINDIR)\common.lib
-PMPRINTF=1
 
 # include main definitions
 BASEDIR=..\..\..
