@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querydefaultmode.e,v 1.2 2002-10-08 12:33:53 cla Exp $
+* $Id: querydefaultmode.e,v 1.3 2002-10-14 17:45:32 cla Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +54,7 @@ executing:
 
 
 Executing this command will
-detemrine the default mode of the
+determine the default mode of the
 the specified file.
 
 _*Example:*_
@@ -78,7 +78,6 @@ defc NepmdQueryDefaultMode, QueryDefaultMode =
  endif
 
  DefaultMode = NepmdQueryDefaultMode( Filename);
- sayerror( 'mode is' DefaultMode);
  parse value DefaultMode with 'ERROR:'rc;
  if (rc > '') then
     sayerror 'default EPM mode could not be determined, rc='rc;
@@ -121,7 +120,7 @@ defproc NepmdQueryDefaultMode( Filename ) =
  if (rc == 3) then
     DefaultMode = "UNKNOWN";
  else
-    helperNepmdCheckliberror( DefaultMode, rc);
+    helperNepmdCheckliberror( LibFile, rc);
     DefaultMode = makerexxstring( DefaultMode);
  endif
 
