@@ -1,9 +1,9 @@
 /*
  *      KD.CMD - V1.0 C.Langanke for Netlabs EPM Distribution Project 2002
  *
- *      Syntax: kd directory
+ *      Syntax: kd dir [dir [...]]
  *
- *    This program kills a directory tree. 
+ *    This program kills directory trees. 
  *    Names including blanks are not supported !
  */
 /* The first comment is used as online help text */
@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kd.cmd,v 1.2 2002-04-18 17:01:36 cla Exp $
+* $Id: kd.cmd,v 1.3 2002-04-19 19:29:42 cla Exp $
 *
 * ===========================================================================
 *
@@ -58,7 +58,6 @@
  ERROR.ENVVAR_NOT_FOUND   = 203;
 
  GlobalVars = 'Title CmdName CrLf env TRUE FALSE Redirection ERROR.';
- SAY;
 
  /* eventually show help */
  ARG Parm .
@@ -79,39 +78,32 @@
  DO UNTIL (TRUE)
 
     /* get parm */
-    PARSE ARG Dir;
+    PARSE ARG DirList;
 
-    /* get all subdirectories */
-    rc = SysFileTree( Dir'\*', 'Dir.', 'DOS');
-    IF (rc \= 0) THEN
-    DO
-       SAY CmdName': error in SysFileTree, rc='rc;
-       LEAVE;
-    END;
-
-    /* kill anything moving ... ;-) */
-    DO d = Dir.0 TO 1 BY -1
-       rc = SysFileTree( Dir.d'\*', 'File.', 'FO');
-       DO f = 1 TO File.0
-          rc = SysFileDelete( File.f);
-          IF (rc \= ERROR.NO_ERROR) THEN
-             SAY 'Warning: cannot delete file:' File.f;
+    DO WHILE (DirList \= '')
+       PARSE VAR DirList Dir DirList;
+       rc = SysFileTree( Dir, 'Dir.', 'DO');
+       IF (rc \= 0) THEN
+       DO
+          SAY CmdName': error in SysFileTree, rc='rc;
+          LEAVE;
        END;
-       rc = SysRmDir( Dir.d);
-       IF (rc \= ERROR.NO_ERROR) THEN
-          SAY 'Warning: cannot delete direcory:' Dir.d;
-    END;
+       IF (Dir.0 \= 1) THEN
+       DO
+          SAY 'Warning: cannot find' Dir;
+          LEAVE;
+       END;
+       Dir = Dir.1;
 
-    rc = SysFileTree( Dir'\*', 'File.', 'FO');
-    DO f = 1 TO File.0
-       rc = SysFileDelete( File.f);
-       IF (rc \= ERROR.NO_ERROR) THEN
-          SAY 'Warning: cannot delete file:' File.f;
+       /* get all subdirectories */
+       rc = SysFileTree( Dir'\*', 'Dir.', 'DOS');
+   
+       /* kill anything moving ... ;-) */
+       DO d = Dir.0 TO 1 BY -1
+          rc = RemoveDirectory( Dir.d);
+       END;
+       rc = RemoveDirectory( Dir);
     END;
-    rc = SysRmDir( Dir);
-    IF (rc \= ERROR.NO_ERROR) THEN
-       SAY 'Warning: cannot delete direcory:' Dir;
-
 
     rc = ERROR.NO_ERROR;
 
@@ -127,6 +119,7 @@ HALT:
 ShowHelp: PROCEDURE EXPOSE (GlobalVars)
 
  /* show title */
+ SAY;
  SAY Title;
  SAY;
 
@@ -148,4 +141,26 @@ ShowHelp: PROCEDURE EXPOSE (GlobalVars)
  rc = LINEOUT(Thisfile);
 
  RETURN('');
+
+/* ------------------------------------------------------------------------- */
+RemoveDirectory: PROCEDURE EXPOSE (GlobalVars)
+PARSE ARG Dir;
+
+ /* remove attributes from files - does not work with option 'O' :-( */
+ rc = SysFileTree( Dir'\*', 'File.', 'F',, '-----');
+ 
+ /* remove files */
+ rc = SysFileTree( Dir'\*', 'File.', 'FO');
+ DO f = 1 TO File.0
+    rc = SysFileDelete( File.f);
+    IF (rc \= ERROR.NO_ERROR) THEN
+       SAY 'Warning: cannot delete file:' File.f;
+ END;
+
+ /* remove directory */
+ rc = SysRmDir( Dir);
+ IF (rc \= ERROR.NO_ERROR) THEN
+    SAY 'Warning: cannot delete direcory:' Dir;
+
+ RETURN( rc);
 
