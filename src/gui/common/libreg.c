@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.12 2002-09-19 13:49:05 cla Exp $
+* $Id: libreg.c,v 1.13 2002-09-19 14:18:20 cla Exp $
 *
 * ===========================================================================
 *
@@ -47,9 +47,11 @@ static   PSZ            pszAppRegContainer = "RegContainer";
 
 #define PATHENTRYLEN(p)       _queryEntrySize( hconfig, pszAppRegContainer, p)
 #define KEYENTRYLEN(p)        _queryEntrySize( hconfig, pszAppRegKeys, p)
+#define DEFKEYENTRYLEN(p)     _queryEntrySize( hconfig, pszAppRegDefaults, p)
 
-#define QUERYPATHENTRY(p,b,s) _queryDataEntry(  hconfig, pszAppRegContainer, p, b, s)
-#define QUERYKEYENTRY(p,b,s)  PrfQueryProfileString(  hconfig, pszAppRegKeys, p, NULL, b, s)
+#define QUERYPATHENTRY(p,b,s)   _queryDataEntry(  hconfig, pszAppRegContainer, p, b, s)
+#define QUERYKEYENTRY(p,b,s)    PrfQueryProfileString(  hconfig, pszAppRegKeys, p, NULL, b, s)
+#define QUERYDEFKEYENTRY(p,b,s) PrfQueryProfileString(  hconfig, pszAppRegDefaults, p, NULL, b, s)
 
 #define WRITEPATHENTRY(p,v,l) PrfWriteProfileData(  hconfig, pszAppRegContainer, p, v, l)
 #define WRITEKEYENTRY(p,v)    PrfWriteProfileString(  hconfig, pszAppRegKeys, p, v)
@@ -59,8 +61,9 @@ static   PSZ            pszAppRegContainer = "RegContainer";
 
 #define PATHEXISTS(p)   (PATHENTRYLEN( p) > 0)
 #define KEYEXISTS(p)    (KEYENTRYLEN( p)  > 0)
+#define DEFKEYEXISTS(p) (DEFKEYENTRYLEN( p)  > 0)
 
-// global variables and macros for ensuring exclusive access across 
+// global variables and macros for ensuring exclusive access across
 // thread and process boundaries
 static   PSZ              pszMutexSemName = "\\SEM32\\NEPMD\\CONFIGURATION\\ACCESS";
 
@@ -711,9 +714,12 @@ do
 // DPRINTF(( "LIBREG: read: %s\n", pszValuePath));
    if (!QUERYKEYENTRY( pszValuePath, pszBuffer, ulBuflen))
       {
-      rc = LASTERROR;
-//    DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
-      break;
+      if (!QUERYDEFKEYENTRY( pszValuePath, pszBuffer, ulBuflen))
+         {
+         rc = LASTERROR;
+//       DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
+         break;
+         }
       }
 // DPRINTF(( "LIBREG: --> %s\n", pszBuffer));
 
