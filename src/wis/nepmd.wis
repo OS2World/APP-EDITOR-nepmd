@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.19 2002-07-31 14:42:37 cla Exp $
+# $Id: nepmd.wis,v 1.20 2002-08-01 13:26:59 cla Exp $
 #
 # ===========================================================================
 #
@@ -26,6 +26,8 @@
 # ***************************************************************************
 -->
 
+<CINCLUDE name="..\nls\wis\nepmd%NLS%.h"/>
+
 <WARPIN>
 <HEAD>
 
@@ -35,63 +37,49 @@
      REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
      SELECT
      NODESELECT
-     TITLE="Base Application Support"
+     TITLE="%PCK_1_TITLE%"
      EXECUTE="$(1)\netlabs\install\nlsetup.exe"
 
-     CREATEOBJECT="WPFolder|EPM v6.03b|<WP_APPSFOLDER>|ICONVIEWPOS=22 41 65 34;CCVIEW=NO;OPEN=DEFAULT;OPEN=DEFAULT;OBJECTID=<NEPMD_FOLDER>;"
-     CREATEOBJECT="WPProgram|EPM v6.03b|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=$(1)\BIN\EPM.EXE;OBJECTID=<NEPMD_EXECUTE>;"
-     CREATEOBJECT="WPProgram|EPM Technical Reference|<NEPMD_FOLDER>|;PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\EPMTECH.INF;OBJECTID=<NEPMD_VIEW_EPMTECH>;"
-     CREATEOBJECT="WPProgram|EPM Users Guide|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\EPMUSERS.INF;OBJECTID=<NEPMD_VIEW_EPMUSERS>;"
-     CREATEOBJECT="WPProgram|OS/2 Netlabs^EPM Distribution|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPMD.INF Netlabs;ICONFILE=$(1)\NETLABS\INSTALL\ICO\HELP.ICO;OBJECTID=<NEPMD_VIEW_NEPMD>;"
-
-     >This package installs the support files for the base EPM application being installed on your system.
-
-     This is a set of files of the EPMBBS package to run EPM with the basic extensions of the Netlabs EPM distribution.
-
-     NOTE: 
-     This package does not include the EPM itself. The EPM and the E Toolkit runtime DLLs must be installed with the installation program of your OS/2 Warp or eComStation! 
-     You have to ensure yourself that EPM is installed, as a WarpIn package currently cannot test something and then deny installation, if the test fails!</PCK>
+     CREATEOBJECT="WPFolder|%TITLE_NEPMD_FOLDER%|<WP_APPSFOLDER>|ICONVIEWPOS=22 41 65 34;CCVIEW=NO;OPEN=DEFAULT;OPEN=DEFAULT;OBJECTID=<NEPMD_FOLDER>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_EXECUTE%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=EPM.EXE;OBJECTID=<NEPMD_EXECUTE>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_EPMTECH%|<NEPMD_FOLDER>|;PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\EPMTECH.INF;OBJECTID=<NEPMD_VIEW_EPMTECH>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_EPMUSERS%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\EPMUSERS.INF;OBJECTID=<NEPMD_VIEW_EPMUSERS>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_NEPMD%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPMD.INF Netlabs;ICONFILE=$(1)\NETLABS\INSTALL\ICO\HELP.ICO;OBJECTID=<NEPMD_VIEW_NEPMD>;"
+     ><TINCLUDE name="..\nls\wis\desc1%NLS%.xml"/></PCK>
 
 <PCK INDEX=2
      PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Recompilation package\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
-     TITLE="Recompilation package"
-     CREATEOBJECT="WPProgram|Recompile EPM|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=$(1)\NETLABS\BIN\RECOMP.EXE;OBJECTID=<NEPMD_RECOMP>;"
-     >This package installs files required for to recompile the EPM.
+     TITLE="%PCK_2_TITLE%"
 
-     It contains the macros coming with the original EPM plus additional macro sources and utilities from the Netlabs EPM distribution.
-
-     Note that with the Netlabs EPM Distribution it normally should not be necessary to recompile the EPM.</PCK>
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_RECOMP%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=$(1)\NETLABS\BIN\RECOMP.EXE;OBJECTID=<NEPMD_RECOMP>;"
+     ><TINCLUDE name="..\nls\wis\desc2%NLS%.xml"/></PCK>
 
 <PCK INDEX=3
      PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Programming samples\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
-     TITLE="Programming samples"
+     TITLE="%PCK_3_TITLE%"
 
-     CREATEOBJECT="WPFolder|EPM Programming Samples|<NEPMD_FOLDER>|CCVIEW=NO;OBJECTID=<NEPMD_SAMPLES_FOLDER>;"
-     CREATEOBJECT="WPProgram|Programmers Guide to the EPM Toolkit|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\SAMPLES\C\ETKE.INF;OBJECTID=<NEPMD_VIEW_EPMTK>;"
-     CREATEOBJECT="WPProgram|EPM C macro Readme|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=E.EXE;PARAMETERS=$(1)\SAMPLES\C\READ.ME;OBJECTID=<NEPMD_VIEW_EPMCM_README>;"
-     CREATEOBJECT="WPProgram|EPM REXX macro Readme|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=E.EXE;PARAMETERS=$(1)\SAMPLES\REXX\EPMREXX.DOC;OBJECTID=<NEPMD_VIEW_EPMRM_README>;"
-
-     >This package installs the programming samples and the EPM Toolkit.
-
-     They are required only if you intend to create own programs using EPM functionality using the EPM Toolkit, want to control EPM windows via DDE or create EPM macros using the C programming language.</PCK>
+     CREATEOBJECT="WPFolder|%TITLE_NEPMD_NEPMD_SAMPLES_FOLDER%|<NEPMD_FOLDER>|CCVIEW=NO;OBJECTID=<NEPMD_SAMPLES_FOLDER>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_VIEW_EPMTK%|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\SAMPLES\C\ETKE.INF;OBJECTID=<NEPMD_VIEW_EPMTK>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_VIEW_EPMCM_README%|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=E.EXE;PARAMETERS=$(1)\SAMPLES\C\READ.ME;OBJECTID=<NEPMD_VIEW_EPMCM_README>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_VIEW_EPMRM_README%|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=E.EXE;PARAMETERS=$(1)\SAMPLES\REXX\EPMREXX.DOC;OBJECTID=<NEPMD_VIEW_EPMRM_README>;"
+     ><TINCLUDE name="..\nls\wis\desc3%NLS%.xml"/></PCK>
 
 <PCK INDEX=4
      PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Speech Support\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
-     TITLE="Speech Support"
+     TITLE="%PCK_4_TITLE%"
 
-     CREATEOBJECT="WPProgram|Start EPM Speech Support|<NEPMD_FOLDER>|PROGTYPE=WINDOWABLEVIO;NINIMIZED=YES;EXENAME=$(1)\BIN\EPMSPCH.EXE;OBJECTID=<NEPMD_SPEECH>;"
-     CREATEOBJECT="WPShadow|Start EPM Speech Support|<WP_START>|SHADOWID=<NEPMD_SPEECH>;OBJECTID=<NEPMD_SPEECH_SHADOW>;"
-     CREATEOBJECT="WPShadow|Startup Folder Shadow|<NEPMD_FOLDER>|SHADOWID=<WP_START>;OBJECTID=<NEPMD_WPSTART_SHADOW>;"
-
-     >This package installs the speech support for EPM. This makes sense only if you also have installed VoiceType support coming with OS/2 Warp 4 and above.</PCK>
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_SPEECH%|<NEPMD_FOLDER>|PROGTYPE=WINDOWABLEVIO;NINIMIZED=YES;EXENAME=$(1)\BIN\EPMSPCH.EXE;OBJECTID=<NEPMD_SPEECH>;"
+     CREATEOBJECT="WPShadow|%TITLE_NEPMD_NEPMD_SPEECH_SHADOW%|<WP_START>|SHADOWID=<NEPMD_SPEECH>;OBJECTID=<NEPMD_SPEECH_SHADOW>;"
+     CREATEOBJECT="WPShadow|%TITLE_NEPMD_NEPMD_WPSTART_SHADOW%|<NEPMD_FOLDER>|SHADOWID=<WP_START>;OBJECTID=<NEPMD_WPSTART_SHADOW>;"
+     ><TINCLUDE name="..\nls\wis\desc4%NLS%.xml"/></PCK>
 
 
 <!-- ============================== packet 99 not yet used ==================================
@@ -103,13 +91,8 @@
       PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\EPMBBS Base Application\%ID_VERSION_NEPMD%"
       TARGET="$(1)"
       REQUIRES="1"
-      TITLE="EPMBBS Base Application"
-
-      >This package installs the EPM base application for users of OS/2 Warp 3 and EPM V5.51.
-
-      NOTE:
-      This should not be installed by users of OS/2 Warp 4 or eComStation. They should
-      instead install the much newer EPM V6.03b coming with their operating system.</PCK>
+      TITLE="%PCK_99_TITLE%"
+     > TINCLUDE name="..\nls\wis\desc99%NLS%.xml"/></PCK>
 
      ============================== packet 99 not yet used ==================================            -->
 
@@ -119,81 +102,34 @@
 
 <!--  ------------------------------ page 1: introductory page -------------------------------->
 <PAGE INDEX=1 TYPE=TEXT>
-<NEXTBUTTON TARGET=2>~Next</NEXTBUTTON>
-<TEXT>
-Welcome to the Netlabs EPM Distribution Package by
-OS/2 Netlabs (http://www.netlabs.org)
-
-This package installs support files for the Enhanced Editor (EPM) including macro and REXX support, additional macros, extended syntax hilighting support, extended recompile support and many more.
-
-Note:
-     Installed files of EPM coming with OS/2 Warp 4 or eComStation are not removed!
-
-     Either the EPM V6.03b coming with your OS/2 Warp 4 or eComStation or the EPM BBS package must be installed, otherwise this package is useless!
-     
-     This package is incompatible to and currently cannot be used with the outdated EPM V5.51 of OS/2 Warp 3. This may be adressed in a forthcoming version, allowing to also install the V6.03b base application in such cases.
-
-Select "Next" to continue.
-Select "Cancel" to abort installation.</TEXT>
+<NEXTBUTTON TARGET=2>%BUTTON_NEXT%</NEXTBUTTON>
+<TEXT><TINCLUDE name="..\nls\wis\page1%NLS%.xml"></TEXT>
 </PAGE>
 
 <!--  ------------------------------ page 2: credits pages ----------------------------------->
 <PAGE INDEX=2 TYPE=TEXT>
-<NEXTBUTTON TARGET=3>~Next</NEXTBUTTON>
-<TEXT>
-The EPM v6.03b Installation Package by OS/2 Netlabs consists of files from
-
-- epm603.zip and epm603b.zip from www.leo.org
-     EPM was developed by IBM T. J.Watson Research Center
-- additional macros
-- additional syntax highlighting support
-- this WarpIn package for easy and smooth installation
-
-This package was compiled by the Netlabs distribution project team, see the online help for more information about the project team and contributors to the project.
-
-See the online help for more information about the project team and contributors to the project and further credits.
-
-Select "Next" to continue.
-Select "Cancel" to abort installation.</TEXT>
+<NEXTBUTTON TARGET=3>%BUTTON_NEXT%</NEXTBUTTON>
+<TEXT><TINCLUDE name="..\nls\wis\page2%NLS%.xml"></TEXT>
 </PAGE>
 
 <!--  ------------------------------ page 3: Warpin restriction page ------------------------->
 <PAGE INDEX=3 TYPE=TEXT>
-<NEXTBUTTON TARGET=4>~Next</NEXTBUTTON>
-<TEXT>
-IMPORTANT: the following restrictions apply to WarpIn V0.9.19 and may apply to newer versions as well:
-
-Installation:
-       Changing the installation path does not change ot for all components. Don't change the installation path or make sure that you use the same installation path for all components, otherwise the installed version will not properly work.
-
-Deinstallation:
-       Don't deinstall packages of this distribution without deinstalling also the package "Base Application", otherwise you will get errors. If you have done that nevertheless, close the error report and remove the remaining database entries manually.
-
-       WarpIn will warn you, if you attempt to deinstall any packages of this distribution but the package "Base Application", because all other packages require the base package being installed. Nevertheless WarpIn will warn you only about up to a maximum of two dependent packages, although you may have selected more than two packages depending on the main package.
-
-       When removing database entries, WarpIn will only let you remove the last selected entry. If you want to remove several entries at a time, you will have to repeat the step for each package.
-
-
-Select "Next" to continue.
-Select "Cancel" to abort installation.
-</TEXT>
+<NEXTBUTTON TARGET=4>%BUTTON_NEXT%</NEXTBUTTON>
+<TEXT><TINCLUDE name="..\nls\wis\page3%NLS%.xml"></TEXT>
 </PAGE>
 
 <!--  ------------------------------ page 4: show package container --------------------------->
 <!-- The TYPE=CONTAINER will list the packages which can be installed. -->
 <PAGE INDEX=4 TYPE=CONTAINER>
-<NEXTBUTTON TARGET=5>~Next</NEXTBUTTON>
-<TEXT>
-On this page, you may deselect the package if it is already installed
-or change the package's target path. </TEXT>
+<NEXTBUTTON TARGET=5>%BUTTON_NEXT%</NEXTBUTTON>
+<TEXT><TINCLUDE name="..\nls\wis\page4%NLS%.xml"></TEXT>
 </PAGE>
 
 <!--  ------------------------------ page 5: configure Warpin behaviour ----------------------->
 <!-- The TYPE=CONFIGURE will change config.sys -->
 <PAGE INDEX=5 TYPE=CONFIGURE>
-<TEXT>
-Select configuration options:</TEXT>
-<NEXTBUTTON TARGET=0>~Next</NEXTBUTTON>
+<NEXTBUTTON TARGET=0>%BUTTON_NEXT%</NEXTBUTTON>
+<TEXT><TINCLUDE name="..\nls\wis\page5%NLS%.xml"></TEXT>
 </PAGE>
 
 </BODY>
