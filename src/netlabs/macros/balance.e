@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: balance.e,v 1.1 2002-11-03 00:09:45 aschn Exp $
+* $Id: balance.e,v 1.2 2004-06-29 20:51:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -72,30 +72,42 @@ compile if not defined(WANT_BALANCE_BEEP)
   -- 0 ==> no beep
 compile endif
 
---AS-- Ende
 
 ;; Define matching keys ----------------------
- def ')'=
-   call balance("parenthesis",    "(", ")", 550)
-
- def ']'=
-   call balance("square bracket", "[", "]", 660)
-
- def '}'=
-   call balance("curly bracket",  "{", "}", 880)
-
-/*
- def '>'=
-   call balance("angle bracket",  "<", ">", 770)
-*/
-
 -- Doesn't work for environments or $...$
 -- def '\begin'=
 --   call balance("\begin{...}",         "\begin", "\end", 660)
 ;; -------------------------------------------
 
-defproc balance (type, open_char, close_char, fail_beep_Hz)
+; ---------------------------------------------------------------------------
+; Defined as defc to use it for keys.
+; arg(1) = char to typein. Dropped beep.
+defc balance
+   parse arg char
+   if char = ')' then
+      type = 'parenthesis'
+      matchchar = '('
+   elseif char = ']' then
+      type = 'square bracket'
+      matchchar = '['
+   elseif char = '}' then
+      type = 'curly bracket'
+      matchchar = '{'
+   elseif char = '>' then
+      type = 'angle bracket'
+      matchchar = '<'
+   else
+      sayerror 'balance: unknown char' char
+   endif
+   call balance( type, matchchar, char)
 
+; ---------------------------------------------------------------------------
+defproc balance( type, open_char, close_char)
+
+   fail_beep_Hz = arg(4)      -- Made this optional
+   if fail_beep_Hz = '' then
+      fail_beep_Hz = 550
+   endif
    keyin close_char
    refresh                    -- Get closing character on screen to start
 
