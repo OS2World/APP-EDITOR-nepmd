@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.13 2002-09-07 13:19:44 cla Exp $
+* $Id: getnextfile.e,v 1.14 2002-09-08 22:34:36 cla Exp $
 *
 * ===========================================================================
 *
@@ -82,12 +82,6 @@ the search handle by a call to [.IDPNL_EFUNC_NEPMDGETNEXTCLOSE].
 
 @@NepmdGetNextFile@RETURNS
 *NepmdGetNextFile* returns either
-.ul compact
-- the next directory returned by the directory seach  or
-- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
-
-@@NepmdGetNextFile@RETURNS
-NepmdGetNextFile returns either
 .ul compact
 - the next directory returned by the directory seach  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
