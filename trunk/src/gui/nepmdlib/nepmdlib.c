@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.6 2002-08-21 21:38:25 cla Exp $
+* $Id: nepmdlib.c,v 1.7 2002-08-21 21:40:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -76,7 +76,7 @@ return rc;
 
 // ------------------------------------------------------------------------------
 
-#define SETPARM(i,p) if (p) apszParms[ i] = p; else break; ulParmCount++;
+#define SETPARM(i,p) if (p) apszParms[ i] = p; ulParmCount++;
 
 APIRET EXPENTRY NepmdGetTextMessage( PSZ pszFilename, PSZ pszMessageName,
                                      PSZ pszBuffer, ULONG ulBuflen,
@@ -86,7 +86,7 @@ APIRET EXPENTRY NepmdGetTextMessage( PSZ pszFilename, PSZ pszMessageName,
 {
          APIRET         rc = NO_ERROR;
          ULONG          i;
-         PSZ            apszParms[ 8];
+         PSZ            apszParms[ 9];
          ULONG          ulParmCount;
          ULONG          ulMessageLen;
 
@@ -108,24 +108,20 @@ do
       apszParms[ i] = "";
       }
 
-   do
-      {
-      SETPARM(0, pszParm1);
-      SETPARM(1, pszParm2);
-      SETPARM(2, pszParm3);
-      SETPARM(3, pszParm4);
-      SETPARM(4, pszParm5);
-      SETPARM(5, pszParm6);
-      SETPARM(6, pszParm7);
-      SETPARM(7, pszParm8);
-      SETPARM(8, pszParm9);
-      } while (FALSE);
+   // hand over all parms up but those being NULL
+   SETPARM(0, pszParm1);
+   SETPARM(1, pszParm2);
+   SETPARM(2, pszParm3);
+   SETPARM(3, pszParm4);
+   SETPARM(4, pszParm5);
+   SETPARM(5, pszParm6);
+   SETPARM(6, pszParm7);
+   SETPARM(7, pszParm8);
+   SETPARM(8, pszParm9);
 
-   printf( "call with %u parms, buflen: %u\n ", ulParmCount, ulBuflen);
+   // get the message
    rc = TmfGetMessage( apszParms, 9, pszBuffer, ulBuflen,
                        pszMessageName, pszFilename, &ulMessageLen);
-   printf( "rc=%u, result: %s\n", rc, pszBuffer);
-
 
    } while (FALSE);
 
