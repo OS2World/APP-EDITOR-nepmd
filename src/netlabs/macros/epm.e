@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.5 2002-09-08 16:15:43 aschn Exp $
+* $Id: epm.e,v 1.6 2002-09-11 00:15:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -58,6 +58,8 @@ compile endif  -- not VANILLA
 
 include        'load.e'        -- Default defload must come before other defloads.
 
+include        'mode.e'        -- New mode definitions
+
 include        'select.e'
 compile if not VANILLA
  compile if defined(SITE_SELECT)
@@ -102,7 +104,7 @@ compile else
 compile endif
 
 include        'stdcmds.e'     -- Standard commands (DEFC's).
-                            -- (Edit cmd uses variables defined in host routines.)
+                               -- (Edit cmd uses variables defined in host routines.)
 include        'get.e'
 
 include        'enter.e'       -- New enter defs, moved from STDPROCS.E and STDKEYS.E
@@ -122,7 +124,11 @@ compile if WANT_TREE = 1
 compile endif
 
 tryinclude     'linkcmds.e'    -- Useful new commands for the linking version.
+
 include        'stdctrl.e'     -- PM controls for EPM.
+
+include        'statline.e'    -- New statusline defs, defc setstatusline moved from STDCTRL.E
+
 compile if INCLUDE_MENU_SUPPORT & INCLUDE_STD_MENUS
  compile if defined(STD_MENU_NAME)
   compile if STD_MENU_NAME = 'STDMENU.E'
