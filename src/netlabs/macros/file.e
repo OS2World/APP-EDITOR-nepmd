@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.3 2004-07-03 08:29:37 aschn Exp $
+* $Id: file.e,v 1.4 2004-11-30 21:24:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -135,35 +135,46 @@ defc rename
    endif
 
 ; ---------------------------------------------------------------------------
+; Save                    save
+; Save (for a tempfile)   open Save-as dialog
+; Save <filename>         save, keep old filename loaded
+; Name <filename>, Save   save, change to new filename
 defc s, save=
    universal save_with_tabs, default_save_options
    universal nepmd_hini
    save_as = 0
-   name = arg(1)
-   call parse_leading_options( name, options)
-   options = default_save_options options
+   SpecifiedName = arg(1)
+   Name = SpecifiedName
+   call parse_leading_options( Name, Options)  -- gets and sets Name and Options
+   Options = default_save_options Options
 
    -- Open file dialog (Save as) if filename = .Untitled
    IsTempFile = leftstr( .filename, 1) = '.'
-   if name = '' | IsTempFile then
-      name = .filename
+   if SpecifiedName = '' & IsTempFile then
+      Name = .filename
       if IsTempFile then
-         result = saveas_dlg( name, type)
+         result = saveas_dlg( Name, Type)  -- gets and sets Name (and sets Type)
          if result <> 0 then
             return result
          endif
-         'name' name
+         SpecifiedName = Name
+         'name' Name
          if not rc then
-            name = .filename
+            Name = .filename
             save_as = 1
          endif
       endif
+   endif
+
+   -- Set name if not already or resolve it if specified
+   if Name = '' then
+      Name = .filename
    else
-      call parse_filename( name, .filename)
+      call parse_filename( Name, .filename)  -- gets .filename and sets Name
    endif
 
    -- Handle special NEPMD dirs: don't overwrite files of the NETLABS or EPMBBS tree
-   fn = name
+   fn = Name
    NepmdRootDir = NepmdScanEnv('NEPMD_ROOTDIR')
    parse value NepmdRootDir with 'ERROR:'rc
    if rc = '' then
@@ -176,14 +187,15 @@ defc s, save=
             sayerror 'Better use the MYEPM tree for your own files'
             oldname = .filename
             .filename = newname               -- saveas_dlg starts with .filename
-            result = saveas_dlg( name, type)  -- saveas_dlg will set both vars
+            result = saveas_dlg( Name, Type)  -- saveas_dlg will set both vars
             if result <> 0 then
                .filename = oldname
                return result
             endif
-            'name' name
+            SpecifiedName = Name
+            'name' Name
             if not rc then
-               name = .filename
+               Name = .filename
                save_as = 1
             endif
          endif
@@ -193,7 +205,7 @@ defc s, save=
    endif
 
    -- Check for .readonly field
-   if name = '' & (browse() | .readonly) then
+   if SpecifiedName = '' & (browse() | .readonly) then
       if .readonly then
          sayerror READ_ONLY__MSG
       else
@@ -218,17 +230,19 @@ defc s, save=
    -- Get mode before saving
    OldMode = NepmdGetMode()
 
+   -- Call presave_exit hooks
 compile if SUPPORT_USER_EXITS
    if isadefproc('presave_exit') then
-      call presave_exit(name, options, save_as)
+      call presave_exit( Name, options, save_as)
    endif
 compile endif
 compile if INCLUDE_BMS_SUPPORT
    if isadefproc('BMS_presave_exit') then
-      call BMS_presave_exit(name, options, save_as)
+      call BMS_presave_exit( Name, options, save_as)
    endif
 compile endif
 
+   -- Handle EAs
 compile if WANT_BOOKMARKS
    if .levelofattributesupport bitand 8 then
       'saveattributes'
@@ -242,6 +256,7 @@ compile endif
       call delete_ea('EPM.POS')  -- that affects only .eaarea, EA is written on file writing
       'add_ea EPM.POS' save_pos  -- that affects only .eaarea, EA is written on file writing
    endif
+
    -- 4.10:  Saving with tab compression is built in now.  No need for
    -- the make-do proc savefilewithtabs().
    -- 4.10 new feature:  if save_with_tabs is true, always specify /t.
@@ -249,10 +264,12 @@ compile endif
       options = '/t' options
    endif
 
+   -- Do the save
    display -2  -- suppress non-critical errors
-   src = savefile( name, options)
+   src = savefile( Name, Options)
    display 2
 
+   -- Save failed: Handle filenames on FAT drives or give a better error msg.
    fatsrc = ''
    if src = -285 then  -- ERROR_WRITING_FILE_RC  (E Toolkit)
       -- Why are standard rc values not supported?
@@ -261,14 +278,17 @@ compile endif
       -- save longname to A: gives src = -285
       --sayerror 0  -- suppress first error message from savefile above
 
-      if substr( name, 2, 1) = ':' then
-         FSys = QueryFileSys( substr( name, 1, 2))
+      if substr( Name, 2, 1) = ':' then
+         FSys = QueryFileSys( substr( Name, 1, 2))
          if FSys = 'FAT' then
-            fatsrc = SaveFat( name, options)
+            fatsrc = SaveFat( Name, Options)
             src = fatsrc
          endif
       endif
 
+      -- If standard Save failed (and for FAT drives: SaveFat failed as well)
+      -- Note: standard Save won't try to replace illegal chars and set
+      -- .LONGNAME instead, like SaveFat does.
       if fatsrc <> 0 then
          -- Compared to the 'save' cmd, which returns only -285 or 0,
          -- defproc lock returns the (more usable) rc of DosOpen.
@@ -278,7 +298,7 @@ compile endif
          elseif dosopenrc = 206 then  -- 206 = ERROR_FILENAME_EXCED_RANGE
             call message( 'Filename exceeds range')
             if fatsrc = '' then    -- UNC name?
-               fatsrc = SaveFat( name, options)
+               fatsrc = SaveFat( Name, Options)
                src = fatsrc
             endif
             return -5
@@ -308,6 +328,7 @@ compile endif
 
    endif  -- src = -285
 
+   -- Call postsave_exit hooks
 compile if SUPPORT_USER_EXITS
    if isadefproc('postsave_exit') then
       call postsave_exit(name, options, save_as, src)
@@ -318,23 +339,26 @@ compile if INCLUDE_BMS_SUPPORT
       call BMS_postsave_exit(name, options, save_as, src)
    endif
 compile endif
-   if not src & not isoption(options,'q') then
+
+   if not src & not isoption( Options, 'q') then
+      -- Give success msg
       -- Don't overwrite message from FatSave
       if fatsrc = '' then
-         call message(SAVED_TO__MSG name)
+         call message(SAVED_TO__MSG Name)
       endif
    elseif src=-5 | src=-285 then  --  -5 = 'Access denied'; -285 = 'Error writing file'
-      if qfilemode( name, attrib) then      -- Error from DosQFileMode
+      -- Give an improved error msg
+      if qfilemode( Name, Attrib) then      -- Error from DosQFileMode
          call message(src)    -- ? Don't know why got Access denied.
       else                    -- File exists:
-         -- why not get all attribs at once to give a usable message?
-         if attrib bitand 16 then
+         -- why not parse all attribs at once to give a usable message?
+         if Attrib bitand 16 then
             call message(ACCESS_DENIED__MSG '-' IS_A_SUBDIR__MSG)  -- It's a subdirectory
-         elseif attrib // 2 then                    -- x'01' is on
+         elseif Attrib // 2 then                    -- x'01' is on
             call message(ACCESS_DENIED__MSG '-' READ_ONLY__MSG)    -- It's read/only
-         elseif attrib bitand 4 then
+         elseif Attrib bitand 4 then
             call message(ACCESS_DENIED__MSG '-' IS_SYSTEM__MSG)    -- It's a system file
-         elseif attrib bitand 2 then
+         elseif Attrib bitand 2 then
             call message(ACCESS_DENIED__MSG '-' IS_HIDDEN__MSG)    -- It's a hidden file
          else                                -- None of the above?
             call message(ACCESS_DENIED__MSG '-' MAYBE_LOCKED__MSG) -- Maybe someone locked it.
@@ -344,12 +368,15 @@ compile endif
    elseif src < 0 then        -- If RC > 0 assume from host save; and
       call message(src)       -- assume host routine gave error msg.
    endif
+
+   -- Revert to .Unnamed if no success and if Name comes from a Save-as dialog
    if src & save_as then
       .filename = GetUnnamedFileName()
    endif
 
+   -- On successs: refresh InfoLines, re-determine mode and add to Save history
    if src = 0 then
-      if fatsrc <> 0 then  -- this is not required if file was reloaded
+      if fatsrc <> 0 then  -- this is not required if file was reloaded by FatSave
          'ResetDateTimeModified'
          'RefreshInfoLine MODIFIED FILE'
 
