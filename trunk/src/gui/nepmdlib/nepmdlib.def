@@ -6,7 +6,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: nepmdlib.def,v 1.32 2002-10-07 21:40:18 cla Exp $
+; $Id: nepmdlib.def,v 1.33 2002-10-14 17:51:23 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -35,7 +35,7 @@ EXPORTS
  NepmdCloseConfig
  NepmdDeleteConfigValue
 ;NepmdDeleteRexxEa    -- not required, the E call uses NepmdWriteStringEa
-;NepmdDeleteStringEa  -- not required, the E call uses NepmdWriteStringEa 
+;NepmdDeleteStringEa  -- not required, the E call uses NepmdWriteStringEa
  NepmdDirExists
  NepmdErrorMsgBox
  NepmdFileDelete
@@ -53,6 +53,7 @@ EXPORTS
  NepmdQueryDefaultMode
  NepmdQueryFullname
  NepmdQueryInstValue
+ NepmdQueryModeList
  NepmdQueryPathInfo
  NepmdQueryProcessInfo
  NepmdQueryStringEa

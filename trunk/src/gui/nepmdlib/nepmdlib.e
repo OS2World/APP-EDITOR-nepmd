@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.36 2002-10-07 21:40:19 cla Exp $
+* $Id: nepmdlib.e,v 1.37 2002-10-14 17:51:23 cla Exp $
 *
 * ===========================================================================
 *
@@ -144,6 +144,7 @@ include 'queryconfigvalue.e'
 include 'querydefaultmode.e'
 include 'queryfullname.e'
 include 'queryinstvalue.e'
+include 'querymodelist.e'
 include 'querypathinfo.e'
 include 'queryprocessinfo.e'
 include 'querystringea.e'
