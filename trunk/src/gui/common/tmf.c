@@ -137,6 +137,9 @@ do
       pszEntry += strlen( pszMessageName) + 1;
       }
 
+   if (rc != NO_ERROR)
+      break;
+
    // isolate entry
    pszEndOfEntry = strchr( pszEntry, '\n');
    if (pszEndOfEntry)
