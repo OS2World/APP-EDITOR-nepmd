@@ -7,7 +7,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.8 2004-07-02 13:55:05 aschn Exp $
+; $Id: defaults.dat,v 1.9 2004-11-30 21:51:15 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -44,14 +44,16 @@
 ; \250
 "\NEPMD\User\InfoLine\Sep" = " ú "
 
-; Mouse
-"\NEPMD\User\Mouse\Mark\DragAlwaysMarks" = "1"
+; Mark
+"\NEPMD\User\Mark\DefaultPaste" = "C"
+"\NEPMD\User\Mark\ShiftMarkExtends" = "0"
+"\NEPMD\User\Mark\DragAlwaysMarks" = "1"
 ;    MouseStyle =  1: MB1 = block marking, MB3 = char marking, MB2 = line marking
 ;    MouseStyle <> 1: MB3 = block marking, MB1 = char marking, MB2 = line marking
-"\NEPMD\User\Mouse\Mark\MouseStyle" = "2"
-"\NEPMD\User\Mouse\Mark\DefaultPaste" = "C"
-"\NEPMD\User\Mouse\Mark\Workaround" = "1"
+"\NEPMD\User\Mark\MouseStyle" = "2"
 
+; Mouse (subject to change)
+"\NEPMD\User\Mouse\Mark\Workaround" = "1"
 "\NEPMD\User\Mouse\Url\MB1_DClick" = "1"
 "\NEPMD\User\Mouse\Url\Browser" = "DEFAULT"
 
