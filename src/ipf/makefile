@@ -9,7 +9,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.12 2002-11-04 22:50:06 cla Exp $
+# $Id: makefile,v 1.13 2002-11-05 20:27:29 cla Exp $
 #
 # ===========================================================================
 #
@@ -43,8 +43,11 @@ FILESTOCLEAN= \
  $(CMPDIR)\functions.log \
  $(CMPDIR)\makefile.ipf \
  $(CMPDIR)\neusr$(NLS).ipf \
- $(CMPINFDIR)\neusr$(NLS).inf
-
+ $(CMPINFDIR)\neusr$(NLS).inf \
+ $(CMPDIR)\neprg$(NLS).ipf \
+ $(CMPINFDIR)\neprg$(NLS).inf \
+ $(CMPDIR)\nefld$(NLS).ipf \
+ $(CMPHLPDIR)\nefld$(NLS).hlp
 
 INCLUDE=$(INCLUDE);bmp;
 
