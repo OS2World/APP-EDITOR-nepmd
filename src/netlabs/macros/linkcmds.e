@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.4 2003-08-31 19:46:41 aschn Exp $
+* $Id: linkcmds.e,v 1.5 2003-12-14 17:30:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -75,7 +75,7 @@ defc relink
    if modulename='' then                           -- If no name given,
       p = lastpos('.', .filename)
       if upcase(substr(.filename,p))<>'.E' then
-         sayerror 'Not a .E file'
+         sayerror 'Not an .E file'
          return
       endif
       modulename = substr(.filename, 1, p-1)       -- use current file.
@@ -103,31 +103,62 @@ defc relink
    link basename
 
 
+; Syntax: etpm e_file [ex_file]
+;
+; etpm = =   compiles current file to an .ex file in the same dir
 defc et,etpm=
    universal vTEMP_PATH,vTEMP_FILENAME
 
-   infile=arg(1); if infile='' then infile=MAINFILE endif
-
-   lp1 = lastpos( '\', infile)
-   name = substr( infile, lp1 + 1)
-   lp2 = lastpos( '.', name)
-   if lp2 > 1 then
-      basename = substr( name, 1, lp2 - 1)
+   rest = strip( arg(1))
+   if leftstr( rest, 1) = '"' then
+      parse value rest with '"'InFile'"' rest
    else
-      basename = name
+      parse value rest with InFile rest
+   endif
+   if leftstr( rest, 1) = '"' then
+      parse value rest with '"'ExFile'"' .
+   else
+      parse value rest with ExFile .
+   endif
+   if InFile = '' then
+      InFile = MAINFILE
+   elseif pos( '=', InFile) > 0 then
+      call parse_filename( InFile, .filename)
+   endif
+   if pos( '=', ExFile) > 0 then
+      call parse_filename( ExFile, .filename)
+      lp = lastpos( '.', ExFile)
+      if lp > 0 then
+         if translate( substr( ExFile, lp + 1)) = 'E' then
+            ExFile = substr( ExFile, 1, lp - 1)'.ex'
+         else
+            ExFile = ExFile'.ex'
+         endif
+      endif
+   endif
+
+   lp1 = lastpos( '\', InFile)
+   Name = substr( InFile, lp1 + 1)
+   lp2 = lastpos( '.', Name)
+   if lp2 > 1 then
+      BaseName = substr( Name, 1, lp2 - 1)
+   else
+      BaseName = Name
    endif
    NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
    NextDir = NepmdRootDir'\myepm\autolink'  -- search in myepm\autolink first
-   if exist( NextDir'\'basename'.ex') then
+   if exist( NextDir'\'BaseName'.ex') then
       DestDir = NextDir
    else
       DestDir = NepmdRootDir'\myepm\ex'     -- myepm\ex
    endif
-   ExFile = DestDir'\'basename'.ex'
+   If ExFile = '' then
+      ExFile = DestDir'\'BaseName'.ex'
+   endif
 
-   tempfile=vTEMP_PATH'ETPM'substr( ltoa( gethwnd(EPMINFO_EDITCLIENT), 16), 1, 4)'.TMP'
+   TempFile=vTEMP_PATH'ETPM'substr( ltoa( gethwnd(EPMINFO_EDITCLIENT), 16), 1, 4)'.TMP'
 
-   Params = infile ExFile' /e 'tempfile
+   Params = InFile ExFile' /e 'TempFile
 
  compile if defined(ETPM_CMD)  -- let user specify fully-qualified name
    EtpmCmd = ETPM_CMD
@@ -144,17 +175,23 @@ defc et,etpm=
 
 ;   call directory('\')
 ;   call directory(CurDir)
-   if rc=-2 then sayerror CANT_FIND_PROG__MSG EtpmCmd; stop; endif
-   if rc=41 then sayerror 'ETPM.EXE' CANT_OPEN_TEMP__MSG '"'tempfile'"'; stop; endif
+   if rc=-2 then
+      sayerror CANT_FIND_PROG__MSG EtpmCmd
+      stop
+   endif
+   if rc=41 then
+      sayerror 'ETPM.EXE' CANT_OPEN_TEMP__MSG '"'TempFile'"'
+      stop
+   endif
    if rc then
       saverc = rc
-      call ec_position_on_error(tempfile)
+      call ec_position_on_error(TempFile)
       rc = saverc
    else
       refresh
       sayerror COMP_COMPLETED__MSG
    endif
-   call erasetemp(tempfile) -- 4.11:  added to erase the temp file.
+   call erasetemp(TempFile) -- 4.11:  added to erase the temp file.
 
 
 defproc ec_position_on_error(tempfile)   /* load file containing error */
