@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.dlg,v 1.2 2002-06-10 10:32:56 cla Exp $
+* $Id: recomp.dlg,v 1.3 2002-09-18 14:54:50 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,7 +28,7 @@
 DLGTEMPLATE IDRES_FRAME LOADONCALL MOVEABLE DISCARDABLE
 BEGIN
     DIALOG  IDT_IDRES_FRAME, IDRES_FRAME, 0, 0, 160, 105, NOT FS_DLGBORDER | WS_VISIBLE,
-            FCF_DLGBORDER | FCF_SYSMENU | FCF_TITLEBAR | FCF_MINBUTTON | FCF_MINMAX | FCF_ICON | FCF_TASKLIST
+            FCF_DLGBORDER | FCF_SYSMENU | FCF_TITLEBAR | FCF_MINBUTTON | FCF_MINMAX | FCF_ICON | FCF_TASKLIST | FCF_ACCELTABLE
             PRESPARAMS PP_FONTNAMESIZE, NORMAL_ITEM_FONT
     BEGIN
         GROUPBOX        IDT_IDGRP_RECOMPILE,          IDGRP_RECOMPILE,        5,  23, 150,  70
