@@ -1,5 +1,4 @@
-: $Id: fmake.cmd,v 1.1 2002-04-15 16:37:52 ktk Exp $ 
+: $Id: fmake.cmd,v 1.2 2002-06-03 18:12:05 cla Exp $
 
 @ECHO OFF
- cd ..\..
- make show
+ make help

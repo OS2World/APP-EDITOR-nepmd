@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.4 2002-04-24 15:16:05 cla Exp $
+.. $Id: makefile.txt,v 1.5 2002-06-03 18:12:05 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -37,7 +37,8 @@
 .. =============================================================================
 .1 Making of [=DOCTITLE]
 .. =============================================================================
-
+.an IDPNL_OVERVIEW
+.
 .at font='20.Tms Rmn' fc=darkgray italic bold
 .bitmap src\bmp\nllogo.bmp center
 .ce present the Making of
@@ -49,10 +50,184 @@
 .su 1
 
 .. -----------------------------------------------------------------------------
+.2 makefile pseudotargets
+.. -----------------------------------------------------------------------------
+.an IDPNL_TARGETS
+.
+[=TOPICS]
+.su V30
+
+.. .............................................................................
+.3 main makefile
+.. .............................................................................
+.an IDPNL_TARGETS_MAIN
+.
+The following makefile targets are available for the main makefile within the project
+working directory (root of the development tree):
+.pl bold compact break=none tsize=20
+- nmake
+= show this INF file (if outdated, this compiles the INF before). This calls the
+  makefile within the *src\ipf* directory with the target *help*.
+.
+- nmake clean
+= remove the *compile* and binary (both *debug* and *release*) directories
+.
+- nmake all
+= build all modules and thus the complete package (**)
+.
+  This is achieved ba calling all makefiles below the *src* subdirectory, of which
+  the subdirectories are listed in the macro *MODULELIST*
+.
+  This results in the *WarpIn* WPI package file created
+  either in the *debug* or *release* directory, depending on the value of 
+  the *DEBUG* environment variable (**)
+.
+- nmake inst
+= like *nmake all*, but also starts the WPI file (**)
+.
+- nmake show
+= build NEPMD INF and show it
+
+[=NOTE]
+.ul compact
+- edit configure.in to your needs before executing nmake
+- targets marked with (**) require a working internet connection
+  for to download the EPM packages, if they are not available within the directory
+  specified by the macro *ZIPSRCDIR* in the file *configure.in*.
+
+.. .............................................................................
+.3 ipf\makefile
+.. .............................................................................
+.an IDPNL_TARGETS_IPF
+.
+The following makefile targets are available for the makefile within the
+*src\ipf* subdirectory:
+.pl bold compact break=none tsize=20
+- nmake [[all]]
+= build both the makefile INF and the project documentation INF, but show none
+.
+- nmake help
+= build and show this INF file (if outdated, this compiles the INF before). This is used
+  by the [.IDPNL_TARGETS_MAIN main makefile] in order to bring up help if called with no
+  target specified
+.
+- nmake helpinf
+= build this makefile in the *bin* subdirectory !
+- nmake nepmdinf
+= build the project documentation INF in the *compile\netlabs\book directory*
+.
+- nmake clean
+= remove the files created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+.
+ [=NOTE]
+.ul compact
+  - directories are not removed by this pseudotarget. For a complete cleanup, call
+    *nmake clean* within the project working directory (root of the development tree).
+
+.. .............................................................................
+.3 rexx\makefile
+.. .............................................................................
+.an IDPNL_TARGETS_REXX
+.
+The following makefile targets are available for the makefile within the
+*src\rexx* subdirectory:
+.pl bold compact break=none tsize=20
+- nmake [[all]]
+= create NLSETUP.EXE in the *compile\netlabs\install directory*  
+.
+- nmake clean
+= remove the file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+.
+ [=NOTE]
+.ul compact
+  - directories are not removed by this pseudotarget. For a complete cleanup, call
+    *nmake clean* within the project working directory (root of the development tree).
+
+.. .............................................................................
+.3 netlabs\makefile
+.. .............................................................................
+.an IDPNL_TARGETS_NETLABS
+.
+The following makefile targets are available for the makefile within the
+*src\netlabs* subdirectory:
+.pl bold compact break=none tsize=20
+- nmake [[all]]
+= copy all modified files below the *src\netlabs* directory to the *compile\netlabs* directory
+.
+- nmake checksrc
+= check only if some files have been modified. If not, the flag file *compile\srccopy.txt*
+  is created, otherwise it is deleted.
+- nmake srccopy
+= copy modified files anyway
+.
+- nmake clean
+= remove the flag file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+.
+ [=NOTE]
+.ul compact
+  - directories are not removed by this pseudotarget. For a complete cleanup, call
+    *nmake clean* within the project working directory (root of the development tree).
+
+.. .............................................................................
+.3 wis\makefile
+.. .............................................................................
+.an IDPNL_TARGETS_WIS
+.
+.at hi
+[=NOTE]
+.ul compact
+- This makefile has to be called last, as it it relies on the files created and 
+  copied by the other makefiles from within the *src* directory tree to the
+  temporary *compile* and *debug* or *release* subdirectories.
+  In order to make sure that everyhing is processed in the correct order, process
+  the main makefile by executing
+.sl compact
+  -  nmake all
+.el
+ in the project working root directory instead.
+.at
+
+The following makefile targets are available for the makefile within the
+*src\wis* subdirectory:
+.pl bold compact break=none tsize=20
+- nmake [[all]]
+= downloads and unpacks files from leo and build complete package.
+  This results in the *WarpIn* WPI package file created
+  either in the *debug* or *release* directory, depending on the value of 
+  the *DEBUG* environment variable (**)
+.
+- nmake inst
+= like *nmake all*, but also starts the WPI file (**)
+.
+- nmake prepare
+= only downloads EPMBBS zip files from leo and unpacks (**)
+- nmake check
+= check prepared files for
+.ul compact
+  - SYSxxxx errors during unpack
+  - zero byte files, making WIC trap (thanks god !).
+    pkunzip2 does not unpack properly sometimes (zero byte files)
+.el
+.
+- nmake clean
+= remove the flag file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+.
+ [=NOTE]
+.ul compact
+  - directories are not removed by this pseudotarget. For a complete cleanup, call
+    *nmake clean* within the project working directory (root of the development tree).
+
+[=NOTE]
+.ul compact
+- edit configure.in to your needs before executing nmake
+- targets marked with (**) require a working internet connection
+  for to download the EPM packages, if they are not available within the directory
+  specified by the macro *ZIPSRCDIR* in the file *configure.in*.
+
+
+.. -----------------------------------------------------------------------------
 .2 Requirements
 .. -----------------------------------------------------------------------------
-.an IDPNL_REQUIREMENTS
-.
 The following is required for making [=TITLE]:
 .ul
 - *WarpIn* installed (minimum: 0.9.18)
@@ -81,14 +256,14 @@ The following is required for making [=TITLE]:
        proxy__user=*proxy__userid*
        proxy__passwd=*proxy__password*
 .fo on
-.. - as compiler either
-.. either
-.. .ul compact
-..   - *IBM CSet /2* (debugger seems not to cope with the debug version...)
-..   - *IBM VAC 3.08* (much better debugger)
-.. .el
-.. .
-..   NOTE: compiler is automatically recognized by makefile
+ - as compiler either
+.ul compact
+   - *IBM CSet /2* (debugger seems not to cope with the debug version...)
+   - *IBM VAC 3.08* (much better debugger)
+.el
+.
+  [=NOTE]
+  - the compiler used is automatically recognized by the makefile
 - either
 .ul compact
   - *OS/2 Warp 3 Developers Toolkit*
@@ -137,18 +312,26 @@ The following directories currently exist in the CVS development tree
 ÀÄwis          WarpIn script
 .fo on
 
-The following _temporary_ directory tree is created when building the *WarpIn* package:
+The following _temporary_ directory trees are created when building the *WarpIn* package:
 .fo off
 <working dir>
-ÀÄ[=DISTDIR]      directory packed into the WarpIn package
-  ÃÄbook       subdirectory for the NEPMD INF file
-  ÀÄinstall       holding copies of files of src\[=DISTDIR]
-    ÀÄico         or compiled binaries
+ÃÄcompile      holds temporary files being the same for debug or
+³  ³           release version
+³  ÀÄ[=DISTDIR]   directory tree to be packed into the WarpIn package
+³    ÀÄinstall holding copies of files of src\[=DISTDIR]
+³      ÀÄico   or compiled binaries
+³
+ÀÄ<binary dir> the name of this directory is either *debug* or *release*
+   ³           Among others it holds the resulting WarpIn package file.
+   ÀÄ[=DISTDIR]   directory tree to be packed into the WarpIn package
+     ÀÄbin     holding copies of selected executables being compiled to
+               <binary dir>
 .fo on
 
 [=NOTE]
 .ul compact
-- the temporary directory tree can be cleaned up (deleted) with *nmake clean*
+- the temporary directory trees can be completely cleaned up (deleted) with
+  executing *nmake clean* in the working root directory.
 
 .. -----------------------------------------------------------------------------
 .2 configuring the makefile
@@ -218,53 +401,6 @@ _*values to be configured by maintainer only*_
     accordingly.
 .at
 .el
-
-.. -----------------------------------------------------------------------------
-.2 makefile targets
-.. -----------------------------------------------------------------------------
-.an IDPNL_TARGETS
-.
-The following makefile targets are available:
-.pl bold compact break=none tsize=20
-- nmake
-= show this INF file (if outdated, compiles the INF before)
-.
-- nmake clean
-= remove the *compile* directory
-.
-- nmake all
-= build complete package (**)
-.
-  This results in the *WarpIn* WPI package file
-  in the *compile* directory (**)
-.
-- nmake inst
-= like *nmake all*, but also starts the WPI file (**)
-- nmake nepmd
-= build NEPMD extensions including the INF file
-.
-- nmake show
-= build NEPMD INF and show it
-- nmake inf
-= build NEPMD INF
-- nmake srccopy
-= copy some NEPMD files directly from CVS tree part to compile directory
-.
-- nmake prepare
-= only downloads EPMBBS zip files from leo and unpacks (**)
-- nmake check
-= check prepared files for
-.ul compact
-  - SYSxxxx errors during unpack
-  - zero byte files, making WIC trap (thanks god !).
-    pkunzip2 does not unpack properly sometimes (zero byte files)
-.el
-
-[=NOTE]
-.ul compact
-- edit configure.in to your needs before executing nmake
-- targets marked with (**) require a working intenet connection
-  for to download the EPM packages, if not already done
 
 .include guide.inc
 
