@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: client.c,v 1.9 2002-09-21 14:28:58 cla Exp $
+* $Id: client.c,v 1.10 2002-10-31 14:34:55 cla Exp $
 *
 * ===========================================================================
 *
@@ -125,7 +125,8 @@ MRESULT EXPENTRY ClientWindowProc( HWND hwnd, ULONG msg, MPARAM mp1, MPARAM mp2)
 static   HPOINTER       hptrIcon = NULLHANDLE;
 static   HWND           hwndMenu = NULLHANDLE;
 static   BOOL           fDump = 0; // for debug purposes only
-static   PSZ            pszInfFile = NULL;
+static   PSZ            pszUsrInfFile = NULL;
+static   PSZ            pszPrgInfFile = NULL;
 
 switch (msg)
    {
@@ -152,10 +153,19 @@ switch (msg)
       ENABLEWINDOW( hwnd, IDPBS_CANCEL, FALSE);
 
       // check for help file
-      rc = QueryInstValue( "INF", szInfFile, sizeof( szInfFile));
+      rc = QueryInstValue( "USRGUIDE", szInfFile, sizeof( szInfFile));
       if (rc == NO_ERROR)
-         pszInfFile = strdup( szInfFile);
+         {
+         pszUsrInfFile = strdup( szInfFile);
+         printf( "usr file is: %s\n", szInfFile);
+         }
 
+      rc = QueryInstValue( "PRGGUIDE", szInfFile, sizeof( szInfFile));
+      if (rc == NO_ERROR)
+         {
+         pszPrgInfFile = strdup( szInfFile);
+         printf( "usr file is: %s\n", szInfFile);
+         }
       // init
       pwd->ulLastStatus = -1;
       UPDATE_STATS;
@@ -218,13 +228,18 @@ switch (msg)
             ShowHelp( hwnd, pwd->hmodResource);
             break;
 
-         case IDMEN_HELP_NEPMDINF:
+         case IDMEN_HELP_NEPMDUSRINF:
+         case IDMEN_HELP_NEPMDPRGINF:
             {
                      CHAR           szHelpArgs[ _MAX_PATH];
 
-            if (pszInfFile)
+            if (pszUsrInfFile)
                {
-               sprintf( szHelpArgs, "%s %s", pszInfFile, HELP_ENTRYPANEL);
+               sprintf( szHelpArgs, "%s %s", 
+                        (SHORT1FROMMP( mp1) == IDMEN_HELP_NEPMDUSRINF) ? 
+                            pszUsrInfFile :
+                            pszPrgInfFile,
+                         HELP_ENTRYPANEL);
                StartPmSession( HELP_EXEC, szHelpArgs, NULL, NULL, TRUE, 0);
                }
             }
@@ -284,8 +299,9 @@ switch (msg)
       ENABLEMENUITEM( hwndMenu, IDMEN_HELP_INFO,                fEnableMenu);
       ENABLEMENUITEM( hwndMenu, IDMEN_TEST_ALTSOURCE,           fEnableMenu);
 
-      // enable meu item for NEMD.INF only if INF is available
-      ENABLEMENUITEM( hwndMenu, IDMEN_HELP_NEPMDINF,            (FileExists( pszInfFile)));
+      // enable menus for INF files only if exist
+      ENABLEMENUITEM( hwndMenu, IDMEN_HELP_NEPMDUSRINF, (FileExists( pszUsrInfFile)));
+      ENABLEMENUITEM( hwndMenu, IDMEN_HELP_NEPMDPRGINF, (FileExists( pszPrgInfFile)));
 
       // maintain menu checkmarks
       SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_DISCARD_UNSAVED, pwd->cd.fDiscardUnsaved);
@@ -303,7 +319,8 @@ switch (msg)
       // free resources
       if (hptrIcon) WinDestroyPointer( hptrIcon);
       if (hwndMenu) WinDestroyWindow( hwndMenu);
-      if (pszInfFile) free( pszInfFile);
+      if (pszUsrInfFile) free( pszUsrInfFile);
+      if (pszPrgInfFile) free( pszPrgInfFile);
       break;
 
    // ---------------------------------------------------------------
