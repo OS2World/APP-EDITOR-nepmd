@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: makedep.cmd,v 1.1 2002-06-04 22:15:38 cla Exp $
+* $Id: makedep.cmd,v 1.2 2002-06-04 22:17:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,5 +25,5 @@
 
  PARSE ARG OutDir DepFileName;
 
- 'fastdep -o' OutDir '-d' DepFileName '-e' DIRECTORY() '-a- *.c'
+ '@fastdep -o' OutDir '-d' DepFileName '-e' DIRECTORY() '-a- *.c'
 
