@@ -16,7 +16,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: create.cmd,v 1.3 2002-04-18 17:01:36 cla Exp $
+: $Id: create.cmd,v 1.4 2002-04-19 09:57:35 cla Exp $
 :
 : ===========================================================================
 :
@@ -72,7 +72,7 @@
 
 : --- package 4: Netlabs distribution extensions
 
- SET NEPMD_BOOK=4 netlabs\book\nepmd.inf
+ SET NEPMD=4 compile\netlabs\* src\netlabs\*
 
 : --- package 5: Speech Support
 
@@ -81,7 +81,7 @@
 : --- build and start WPI
 
  ECHO - creating %WPIFILE%
- wic %WPIFILE% -a %BASE% %NEPMD_BOOK% %SPEECH% %EBOOKE% %ATTR% %BMP% %MYASSIST% %MACROS%  %SAMPLES% %VMEXEC% -s %SCRIPTFILE% >%LOGFILE% 2>&1
+ wic %WPIFILE% -a %BASE% %NEPMD% %SPEECH% %EBOOKE% %ATTR% %BMP% %MYASSIST% %MACROS%  %SAMPLES% %VMEXEC% -s %SCRIPTFILE% >%LOGFILE% 2>&1
  IF ERRORLEVEL 1 (DEL %WPIFILE% & TYPE %LOGFILE%)
 
 :end
