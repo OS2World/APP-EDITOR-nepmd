@@ -16,7 +16,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: create.cmd,v 1.6 2002-04-19 12:41:16 cla Exp $
+: $Id: create.cmd,v 1.7 2002-04-21 13:15:57 cla Exp $
 :
 : ===========================================================================
 :
@@ -32,6 +32,7 @@
 : ***************************************************************************
 
  SETLOCAL
+ SET PATH=bin;%PATH%
 
  SET FILES=*
 
@@ -47,6 +48,11 @@
  GOTO end
 
 :parmok
+
+: access WarpIn environment
+ CALL WARPIN.ENV
+ IF ERRORLEVEL 1 GOTO end
+
 : delete old one, modifying an existing archive is not yet supported by WarpIn
  IF EXIST %WPIFILE% DEL %WPIFILE%
 
