@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.22 2002-10-20 12:13:03 cla Exp $
+* $Id: hilite.c,v 1.23 2002-10-21 11:47:40 cla Exp $
 *
 * ===========================================================================
 *
@@ -585,7 +585,7 @@ printf( "%u entries\n\n", i);
 // #############################################################################
 
 
-static APIRET _assembleKeywordFile( PSZ pszEpmMode, PBOOL pfReload, PSZ pszBuffer, ULONG ulBuflen)
+static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfReload, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
          ULONG          i;
@@ -734,6 +734,48 @@ do
    *pfReload = TRUE;
    memset( pszBuffer, 0, ulBuflen);
 
+   // -----------------------------------------------
+
+   // get the name and date of the temporary file
+
+   // init some vars
+   pszModeCopy = strdup( pszEpmMode);
+   strupr( pszModeCopy);
+
+   // get keywordfile
+   strupr( pszEpmMode);
+
+   // no keyword file yet, create a new one
+   // for that create subdirectory below TMP
+   sprintf( szKeywordFile, SEARCHMASK_MODEDIR,  pszTmpDir);
+   rc = CreatePath( szKeywordFile);
+   if ((rc != NO_ERROR) && (rc != ERROR_ACCESS_DENIED))
+      break;
+   sprintf( _EOS( szKeywordFile), "\\%s", pszEpmMode);
+   strlwr( szKeywordFile);
+
+   // -----------------------------------------------
+
+   // --- hand over filename already here
+
+   // check result buffer
+   if (strlen( szKeywordFile) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszBuffer, szKeywordFile);
+
+
+   // if no uptdate check, return filename if file exists
+   if ((ulOptions && HILITE_NOOUTDATECHECK) &&
+       (FileExists( szKeywordFile)))
+      break;
+
+   // -----------------------------------------------
+
    // initialize support for memory mapped files
 
    rc = MmfInitialize( &hmmf, 16);
@@ -851,40 +893,6 @@ do
       // next entry
       ppszEntry++;
       }
-
-   // -----------------------------------------------
-
-   // get the name and date of the temporary file
-
-   // init some vars
-   pszModeCopy = strdup( pszEpmMode);
-   strupr( pszModeCopy);
-
-   // get keywordfile
-   strupr( pszEpmMode);
-
-   // no keyword file yet, create a new one
-   // for that create subdirectory below TMP
-   sprintf( szKeywordFile, SEARCHMASK_MODEDIR,  pszTmpDir);
-   rc = CreatePath( szKeywordFile);
-   if ((rc != NO_ERROR) && (rc != ERROR_ACCESS_DENIED))
-      break;
-   sprintf( _EOS( szKeywordFile), "\\%s", pszEpmMode);
-   strlwr( szKeywordFile);
-
-   // -----------------------------------------------
-
-   // --- hand over filename already here
-
-   // check result buffer
-   if (strlen( szKeywordFile) + 1 > ulBuflen)
-      {
-      rc = ERROR_BUFFER_OVERFLOW;
-      break;
-      }
-
-   // hand over result
-   strcpy( pszBuffer, szKeywordFile);
 
    // -----------------------------------------------
 
@@ -1404,7 +1412,7 @@ do
 printf ("### HILITE: %s: options: %08x\n", pszEpmMode, ulOptions);
 
    // search mode files
-   rc = _assembleKeywordFile( pszEpmMode, pfReload, szValue, sizeof( szValue));
+   rc = _assembleKeywordFile( pszEpmMode, ulOptions, pfReload, szValue, sizeof( szValue));
    if (rc != NO_ERROR)
       {
       // if no mode infos available; conventional search
