@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2004
 ;
-; $Id: exfiles.lst,v 1.1 2004-07-02 09:10:24 aschn Exp $
+; $Id: exfiles.lst,v 1.2 2004-07-03 08:31:16 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -37,6 +37,7 @@ ftpload
 ftpsave
 ;get
 help
+indentblock
 kwhelp
 maketags
 newmenu
