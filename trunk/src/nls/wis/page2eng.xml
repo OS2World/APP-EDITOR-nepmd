@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: page2eng.xml,v 1.2 2002-08-01 13:29:17 cla Exp $
+# $Id: page2eng.xml,v 1.3 2002-11-03 19:30:34 cla Exp $
 #
 # ===========================================================================
 #
@@ -27,10 +27,11 @@ The EPM v6.03b Installation Package by OS/2 Netlabs consists of files from
 - epm603.zip and epm603b.zip from www.leo.org
      EPM was developed by IBM T. J.Watson Research Center
 - additional macros
-- additional syntax highlighting support
+- lots of additional features like
+     extended syntax highlighting support
 - this WarpIn package for easy and smooth installation
 
-This package was compiled by the Netlabs distribution project team, see the online help for more information about the project team and contributors to the project.
+This package was compiled by the Netlabs EPM Distribution Project Team, see the online help and nepmd.netlabs.org for more information about the project team and contributors to the project.
 
 See the online help for more information about the project team and contributors to the project and further credits.
 
