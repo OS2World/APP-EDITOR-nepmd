@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.3 2002-08-21 12:15:05 cla Exp $
+# $Id: makefile,v 1.4 2002-08-21 13:51:19 cla Exp $
 #
 # ===========================================================================
 #
@@ -83,7 +83,10 @@ dep:
 $(BINDLLDIR)\nepmdlib.dll: $(BINDIR)\nepmdlib.dll
      @COPY $(BINDIR)\nepmdlib.dll $(BINDLLDIR)\nepmdlib.dll >NUL
 
-# --- build program
+# --- build dll
 
 $(BINDIR)\nepmdlib.dll: $(BINDIR)\nepmdlib.obj $(OBJS) $(DEF) $(RES) $(LIBS) $(PMPRINTF)
+
+# --- build EX file
+$(CMPEXDIR)\nepmdlib.ex: nepmdlib.e macros\*
 
