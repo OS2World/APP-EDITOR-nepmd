@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: wrap.e,v 1.1 2004-02-29 22:47:55 aschn Exp $
+* $Id: wrap.e,v 1.2 2004-03-13 00:51:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -46,7 +46,7 @@
 compile if not defined(SMALL)
 const
 include 'stdconst.e'
-include 'mycnf.e'
+tryinclude 'mycnf.e'
 compile endif
 compile if not defined(NEPMD_WRAP_METHOD)
    NEPMD_WRAP_METHOD = 'SOFT'  -- SOFT | KEEPINDENT  <------------------------ Todo
