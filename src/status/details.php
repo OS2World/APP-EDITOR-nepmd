@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: details.php,v 1.6 2002-07-19 15:04:22 cla Exp $
+* $Id: details.php,v 1.7 2002-07-19 15:18:06 cla Exp $
 *
 * ===========================================================================
 *
@@ -29,59 +29,64 @@
 <?
 // load file
 $file = $_GET[ "file"];
-if ($file != "")
+if ($file == "")
+   {
+   $aaentry = filedb_queryentries( "db");
+   $aentry = $aaentry[ 1];
+
+   }
+else
    {
    // read database
    $aentry = filedb_read( $file);
-
-   list( , $entryfile) = each( $aentry);
-   list( , $category)  = each( $aentry);
-   list( , $title)     = each( $aentry);
-   list( , $prio)      = each( $aentry);
-   list( , $status)    = each( $aentry);
-   list( , $filelist)  = each( $aentry);
-   list( , $updated)   = each( $aentry);
-   list( , $modified)  = each( $aentry);
-   list( , $details)   = each( $aentry);
-
-   echo "<table width=90% border=0 cellpadding=1 cellspacing=1>";
-   echo "<tr>";
-   echo "<td bgcolor=#dddddd width=100%>";
-   echo $title;
-   echo "</td><td align=right bgcolor=#dddddd>";
-   echo "<a href=\"edit.php?file=".$file."\"><img src=\"edit.gif\" border=0></a>";
-   echo "</td>";
-   echo "</tr>";
-   echo "</table>";
-   echo "<table width=90% border=0 cellpadding=1 cellspacing=1>";
-   echo "<tr>";
-   echo "<td width=10% bgcolor=#dddddd ><font size=-1>category</td>";
-   echo "<td width=03% bgcolor=#dddddd ><font size=-1>prio</td>";
-   echo "<td width=10% bgcolor=#dddddd ><font size=-1>status</td>";
-   echo "<td width=18% bgcolor=#dddddd ><font size=-1>last modified</td>";
-   echo "<td width=07% bgcolor=#dddddd ><font size=-1>file</td>";
-   echo "<td width=57% bgcolor=#dddddd ><font size=-1>affected files</td>";
-   echo "</tr>";
-   echo "<tr>";
-   echo "<td valign=top><font size=-1>".$category."</font></td>";
-   echo "<td valign=top align=center><font size=-1>".$prio."</font></td>";
-   echo "<td valign=top><font size=-1>".$status."</font></td>";
-   echo "<td valign=top><font size=-1>".$modified."</font></td>";
-   echo "<td valign=top><font size=-1>".basename($file)."</font></td>";
-   echo "<td valign=top><font size=-1>";
-   if (strlen( trim( $filelist)) == 0)
-      echo "- none -";
-   else
-      echo $filelist;
-   echo "</font></td>";
-   echo "</tr>";
-   echo "</table>";
-
-   echo "<font size=+1><xmp>";
-   echo $details;
-   echo "</xmp></font>";
-
    }
+   
+list( , $entryfile) = each( $aentry);
+list( , $category)  = each( $aentry);
+list( , $title)     = each( $aentry);
+list( , $prio)      = each( $aentry);
+list( , $status)    = each( $aentry);
+list( , $filelist)  = each( $aentry);
+list( , $updated)   = each( $aentry);
+list( , $modified)  = each( $aentry);
+list( , $details)   = each( $aentry);
+
+echo "<table width=90% border=0 cellpadding=1 cellspacing=1>";
+echo "<tr>";
+echo "<td bgcolor=#dddddd width=100%>";
+echo $title;
+echo "</td><td align=right bgcolor=#dddddd>";
+echo "<a href=\"edit.php?file=".$file."\"><img src=\"edit.gif\" border=0></a>";
+echo "</td>";
+echo "</tr>";
+echo "</table>";
+echo "<table width=90% border=0 cellpadding=1 cellspacing=1>";
+echo "<tr>";
+echo "<td width=10% bgcolor=#dddddd ><font size=-1>category</td>";
+echo "<td width=03% bgcolor=#dddddd ><font size=-1>prio</td>";
+echo "<td width=10% bgcolor=#dddddd ><font size=-1>status</td>";
+echo "<td width=18% bgcolor=#dddddd ><font size=-1>last modified</td>";
+echo "<td width=07% bgcolor=#dddddd ><font size=-1>file</td>";
+echo "<td width=57% bgcolor=#dddddd ><font size=-1>affected files</td>";
+echo "</tr>";
+echo "<tr>";
+echo "<td valign=top><font size=-1>".$category."</font></td>";
+echo "<td valign=top align=center><font size=-1>".$prio."</font></td>";
+echo "<td valign=top><font size=-1>".$status."</font></td>";
+echo "<td valign=top><font size=-1>".$modified."</font></td>";
+echo "<td valign=top><font size=-1>".basename($file)."</font></td>";
+echo "<td valign=top><font size=-1>";
+if (strlen( trim( $filelist)) == 0)
+   echo "- none -";
+else
+   echo $filelist;
+echo "</font></td>";
+echo "</tr>";
+echo "</table>";
+
+echo "<font size=+1><xmp>";
+echo $details;
+echo "</xmp></font>";
 
 ?>
 </body>
