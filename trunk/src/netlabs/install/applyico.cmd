@@ -2,17 +2,18 @@
 *
 * Module Name: applyico.cmd
 *
-* Helper batch for to attach operating system dependant icons to the folders
-* of the Netlabs EPM Distribution, as WarpIn can currently not determine
-* the operatin system vewrsion (Warp3 / Warp 4 / eComStation) during
-* installation.
+* Helper batch for to attach
+*  - operating system dependant icons to the folders of the Netlabs EPM
+*    Distribution, as WarpIn can currently not determine the operatin system
+*    version (Warp3 / Warp 4 / eComStation) during installation.
+*  - a new icon to all EPM icons in the system
 *
 * This program is intended to be called by NLSETUP.EXE only during
 * installation of the Netlabs EPM Distribution.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.1 2002-04-19 23:02:40 cla Exp $
+* $Id: applyico.cmd,v 1.2 2002-04-19 23:05:24 cla Exp $
 *
 * ===========================================================================
 *
