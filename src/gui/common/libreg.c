@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.7 2002-09-13 19:34:23 cla Exp $
+* $Id: libreg.c,v 1.8 2002-09-13 19:45:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -108,6 +108,32 @@ do
 return pszResult;
 }
 
+// -----------------------------------------------------------------------------
+
+static PSZ _searchInsertPosInStrList( PSZ pszzStr, PSZ pszSearch)
+{
+         PSZ            pszResult = NULL;
+do
+   {
+   // quit on empty string
+   if ((!pszzStr) || (!pszSearch))
+      break;
+
+   // search string in zz string list
+   pszResult = pszzStr;
+   while (*pszResult)
+      {
+      if (stricmp( pszResult, pszSearch) > 0)
+         break;
+
+      pszResult = NEXTSTR( pszResult);
+      }
+
+   } while (FALSE);
+
+return pszResult;
+}
+
 #ifdef UNSUSED
 // -----------------------------------------------------------------------------
 // runtime alike helper, searching word in space delimited list
@@ -185,7 +211,9 @@ static APIRET _addKeyToContainerList( HCONFIG hconfig, PSZ pszPath, PSZ pszKey)
          BOOL           fNewKey = FALSE;
          ULONG          ulDataLen;
          PSZ            pszList = NULL;
+
          PSZ            pszEntry;
+         ULONG          ulRemainLen;
 
 do
    {
@@ -242,11 +270,11 @@ do
    if (*pszEntry)
       break;
 
-   // add key to list and write back
-   pszEntry = _getEndOfStrList( pszList);
+   // insert key to list and write back
+   pszEntry = _searchInsertPosInStrList( pszList, pszKey);
+   ulRemainLen = _getEndOfStrList( pszEntry) - pszEntry + 1;
+   memmove( pszEntry + strlen( pszKey) + 1, pszEntry, ulRemainLen);
    strcpy( pszEntry, pszKey);
-   pszEntry = NEXTSTR( pszEntry);
-   *pszEntry = 0;
 
    if (!WRITEPATHENTRY( pszPath, pszList, ulDataLen))
       rc = LASTERROR;
