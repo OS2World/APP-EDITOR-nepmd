@@ -6,14 +6,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: client.c,v 1.5 2002-06-10 11:27:57 cla Exp $
+* $Id: client.c,v 1.6 2002-09-02 09:36:23 cla Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -39,6 +39,8 @@
 #include "job.h"
 #include "dde.h"
 #include "frame.h"
+#include "instval.h"
+#include "file.h"
 
 // ---------------------------------------------------------------------
 
@@ -123,6 +125,7 @@ MRESULT EXPENTRY ClientWindowProc( HWND hwnd, ULONG msg, MPARAM mp1, MPARAM mp2)
 static   HPOINTER       hptrIcon = NULLHANDLE;
 static   HWND           hwndMenu = NULLHANDLE;
 static   BOOL           fDump = 0; // for debug purposes only
+static   PSZ            pszHelpFile = NULL;
 
 switch (msg)
    {
@@ -132,6 +135,8 @@ switch (msg)
    case WM_INITDLG:
       {
                MENUITEM       mi;
+               CHAR           szNepmdRootdir[ _MAX_PATH];
+               CHAR           szHelpFile[ _MAX_PATH];
 
       // store parameter and initialize
       WinSetWindowULong( hwnd, QWL_USER, (ULONG) mp2);
@@ -145,6 +150,14 @@ switch (msg)
 
       // init controls
       ENABLEWINDOW( hwnd, IDPBS_CANCEL, FALSE);
+
+      // check for help file
+      rc = GetInstValue( NEPMD_VALUETAG_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
+      if (rc  == NO_ERROR)
+         {
+         sprintf( szHelpFile, "%s\\%s\\%s", szNepmdRootdir, NEPMD_SUBPATH_CMPINFDIR, HELP_NEPMDINF);
+         pszHelpFile = strdup( szHelpFile);
+         }
 
       // init
       pwd->ulLastStatus = -1;
@@ -209,7 +222,15 @@ switch (msg)
             break;
 
          case IDMEN_HELP_NEPMDINF:
-            system( HELP_LAUNCH_NEPMDINF);
+            {
+                     CHAR           szHelpArgs[ _MAX_PATH];
+
+            if (pszHelpFile)
+               {
+               sprintf( szHelpArgs, "%s %s", pszHelpFile, HELP_ENTRYPANEL);
+               StartPmSession( HELP_EXEC, szHelpArgs, NULL, NULL, TRUE, 0);
+               }
+            }
             break;
 
          case IDMEN_SETTINGS_DISCARD_UNSAVED:
@@ -266,6 +287,9 @@ switch (msg)
       ENABLEMENUITEM( hwndMenu, IDMEN_HELP_INFO,                fEnableMenu);
       ENABLEMENUITEM( hwndMenu, IDMEN_TEST_ALTSOURCE,           fEnableMenu);
 
+      // enable meu item for NEMD.INF only if INF is available
+      ENABLEMENUITEM( hwndMenu, IDMEN_HELP_NEPMDINF,            (FileExists( pszHelpFile)));
+
       // maintain menu checkmarks
       SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_DISCARD_UNSAVED, pwd->cd.fDiscardUnsaved);
       SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_RELOAD_FILES,    pwd->cd.fReloadFiles);
@@ -282,6 +306,7 @@ switch (msg)
       // free resources
       if (hptrIcon) WinDestroyPointer( hptrIcon);
       if (hwndMenu) WinDestroyWindow( hwndMenu);
+      if (pszHelpFile) free( pszHelpFile);
       break;
 
    // ---------------------------------------------------------------
@@ -362,7 +387,7 @@ switch (msg)
          SHOWWINDOW( hwnd, ulBulletId, TRUE);
 
          // boldprint current item
-         // -  reset font of items twice, some 
+         // -  reset font of items twice, some
          //    items did not change  otherwise
          SETFONT( ulActiveId, pszBoldFont);
          SETFONT( ulActiveId, pszBoldFont);
@@ -386,7 +411,7 @@ switch (msg)
       UPDATE_STATS;  // update GUI controls
 
       // reset font of items separately
-      // -  reset font of items twice, some 
+      // -  reset font of items twice, some
       //    items did not change  otherwise
       WinPostMsg( hwnd, WM_USER_RESETITEMFONT, 0, 0);
       WinPostMsg( hwnd, WM_USER_RESETITEMFONT, 0, 0);
