@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: page2eng.xml,v 1.4 2002-11-04 13:39:12 cla Exp $
+# $Id: page2eng.xml,v 1.5 2002-11-04 20:55:20 cla Exp $
 #
 # ===========================================================================
 #
@@ -22,7 +22,8 @@
 #
 # ***************************************************************************
 -->
-The EPM v6.03b Installation Package by www.netlabs.org consists of files from
+The EPM v6.03b Installation Package by www.netlabs.org
+consists of files from
 
 - epm603.zip and epm603b.zip from www.leo.org
      EPM was developed by IBM T. J.Watson Research Center
