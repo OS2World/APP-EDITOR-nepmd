@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.8 2002-10-19 14:00:31 aschn Exp $
+* $Id: load.e,v 1.9 2002-10-21 11:55:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -100,12 +100,6 @@ compile if NEPMD_RESTORE_POS_FROM_EA
          call prestore_pos( save_pos )
       endif
 compile endif
-
-      -- activate syntax highlighting, ignore errors here
-;      call NepmdActivateHighlight( 'ON', NepmdGetMode());
-;      'mode DEFLOAD'
-      CurMode = NepmdInitMode()
-      call NepmdProcessMode(CurMode)
 
    endif  -- .visible
 
