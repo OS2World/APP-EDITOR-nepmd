@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.5 2002-09-13 17:03:28 cla Exp $
+* $Id: libreg.c,v 1.6 2002-09-13 17:28:42 cla Exp $
 *
 * ===========================================================================
 *
@@ -45,14 +45,14 @@ static   PSZ            pszAppRegContainer = "RegContainer";
 
 #define  SETLASTERROR(rc) WinSetErrorInfo( MAKEERRORID( SEVERITY_ERROR, PMERR_DOS_ERROR), SEI_DOSERROR, (USHORT) rc)
 
-#define PATHENTRYLEN(p)       _queryEntrySize( hini, pszAppRegContainer, p)
-#define KEYENTRYLEN(p)        _queryEntrySize( hini, pszAppRegKeys, p)
+#define PATHENTRYLEN(p)       _queryEntrySize( hconfig, pszAppRegContainer, p)
+#define KEYENTRYLEN(p)        _queryEntrySize( hconfig, pszAppRegKeys, p)
 
-#define QUERYPATHENTRY(p,b,s) _queryDataEntry(  hini, pszAppRegContainer, p, b, s)
-#define QUERYKEYENTRY(p,b,s)  PrfQueryProfileString(  hini, pszAppRegKeys, p, NULL, b, s)
+#define QUERYPATHENTRY(p,b,s) _queryDataEntry(  hconfig, pszAppRegContainer, p, b, s)
+#define QUERYKEYENTRY(p,b,s)  PrfQueryProfileString(  hconfig, pszAppRegKeys, p, NULL, b, s)
 
-#define WRITEPATHENTRY(p,v,l) PrfWriteProfileData(  hini, pszAppRegContainer, p, v, l)
-#define WRITEKEYENTRY(p,v)    PrfWriteProfileString(  hini, pszAppRegKeys, p, v)
+#define WRITEPATHENTRY(p,v,l) PrfWriteProfileData(  hconfig, pszAppRegContainer, p, v, l)
+#define WRITEKEYENTRY(p,v)    PrfWriteProfileString(  hconfig, pszAppRegKeys, p, v)
 
 #define DELETEPATH(p)         WRITEPATHENTRY( p, NULL)
 #define DELETEKEY(p)          WRITEKEYENTRY(  p, NULL)
@@ -60,15 +60,7 @@ static   PSZ            pszAppRegContainer = "RegContainer";
 #define PATHEXISTS(p)   (PATHENTRYLEN( p) > 0)
 #define KEYEXISTS(p)    (KEYENTRYLEN( p)  > 0)
 
-#define OPENPROFILE    hini = _openLibProfile(); \
-                       if (!hini)                \
-                          {                      \
-                          rc = LASTERROR;        \
-                          break;                 \
-                          }
 
-#define CLOSEPROFILE   PrfCloseProfile( hini)
-                    
 // -----------------------------------------------------------------------------
 
 static PSZ _getEndOfStrList( PSZ pszzStr)
@@ -156,22 +148,22 @@ return p;
 
 // -----------------------------------------------------------------------------
 
-static ULONG _queryEntrySize( HINI hini, PSZ pszAppName, PSZ pszValuePath)
+static ULONG _queryEntrySize( HCONFIG hconfig, PSZ pszAppName, PSZ pszValuePath)
 {
          ULONG          ulDataLen = 0;
 
-PrfQueryProfileSize( hini, pszAppName, pszValuePath, &ulDataLen);
+PrfQueryProfileSize( hconfig, pszAppName, pszValuePath, &ulDataLen);
 return ulDataLen;
 }
 
 // -----------------------------------------------------------------------------
 
-static ULONG _queryDataEntry( HINI hini, PSZ pszAppName, PSZ pszValuePath, PSZ pszBuffer, ULONG ulBuflen)
+static ULONG _queryDataEntry( HCONFIG hconfig, PSZ pszAppName, PSZ pszValuePath, PSZ pszBuffer, ULONG ulBuflen)
 {
          ULONG          ulDataLen = 0;
 
 ulDataLen = ulBuflen;
-if (PrfQueryProfileData(  hini, pszAppName, pszValuePath, pszBuffer, &ulDataLen))
+if (PrfQueryProfileData(  hconfig, pszAppName, pszValuePath, pszBuffer, &ulDataLen))
    return ulDataLen;
 else
    return 0;
@@ -188,29 +180,7 @@ return ((pszValuePath != NULL)                &&
 
 // -----------------------------------------------------------------------------
 
-static HINI _openLibProfile( VOID)
-{
-         HINI           hini = NULLHANDLE;
-         APIRET         rc = NO_ERROR;
-         CHAR           szInifile[ _MAX_PATH];
-do
-   {
-   // determine name of INI
-   rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szInifile, sizeof( szInifile));
-   if (rc = NO_ERROR)
-      break;
-
-   // open profile
-   hini = PrfOpenProfile( CURRENTHAB, szInifile);
-
-   } while (FALSE);
-
-return hini;
-}
-
-// -----------------------------------------------------------------------------
-
-static APIRET _addKeyToContainerList( HINI hini, PSZ pszPath, PSZ pszKey)
+static APIRET _addKeyToContainerList( HCONFIG hconfig, PSZ pszPath, PSZ pszKey)
 {
          APIRET         rc = NO_ERROR;
          BOOL           fNewKey = FALSE;
@@ -252,7 +222,7 @@ do
       // copy key with appended second zero byte
       strcpy( pszList, pszKey);
       pszEntry = NEXTSTR( pszList);
-      *pszEntry = 0; 
+      *pszEntry = 0;
 
       // completely new container list
       if (!WRITEPATHENTRY( pszPath, pszKey, ulDataLen))
@@ -291,7 +261,7 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-static APIRET _removeKeyFromContainerList( HINI hini, PSZ pszPath, PSZ pszKey)
+static APIRET _removeKeyFromContainerList( HCONFIG hconfig, PSZ pszPath, PSZ pszKey)
 {
          APIRET         rc = NO_ERROR;
          ULONG          ulDataLen;
@@ -357,7 +327,7 @@ do
       // last word: just copy two zero bytes
       memcpy( pszEntry, pszNextEntry - 1, 2);
 
-   // is list empty ? 
+   // is list empty ?
    ulDataLen = _getEndOfStrList( pszList) - pszList;
    if (ulDataLen)
       // no, stop deleting further
@@ -374,7 +344,7 @@ do
       }
 
    // list is not empty, path may not be further removed
-   if (fStopRemovePath) 
+   if (fStopRemovePath)
       {
       DPRINTF(( "LIBREG: abort path deletion at %s\n", pszPath));
       rc = ERROR_DIR_NOT_EMPTY;
@@ -389,7 +359,7 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-static APIRET _createRegPath( HINI hini, PSZ pszValuePath)
+static APIRET _createRegPath( HCONFIG hconfig, PSZ pszValuePath)
 {
          APIRET         rc = NO_ERROR;
          PSZ            pszCopy     = strdup( pszValuePath);
@@ -417,7 +387,7 @@ do
       // add current basename to list of previous path
       // this will automatically create container lists if not yet existant
       if (*pszLastPath)
-         rc = _addKeyToContainerList( hini, pszLastPath, p);
+         rc = _addKeyToContainerList( hconfig, pszLastPath, p);
       strcpy( pszLastPath, pszPath);
 
       // next one
@@ -440,7 +410,7 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-static APIRET _removeRegPath( HINI hini, PSZ pszValuePath)
+static APIRET _removeRegPath( HCONFIG hconfig, PSZ pszValuePath)
 {
          APIRET         rc = NO_ERROR;
          PSZ            pszCopy     = strdup( pszValuePath);
@@ -466,7 +436,7 @@ do
       // add current basename to list of previous path
       if (p != pszCopy)
          {
-         rc = _removeKeyFromContainerList( hini, pszCopy, p + 1);
+         rc = _removeKeyFromContainerList( hconfig, pszCopy, p + 1);
          if (rc != NO_ERROR)
             break;
          }
@@ -484,11 +454,54 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-APIRET WriteConfigValue( PSZ pszValuePath, PSZ pszValue)
+APIRET OpenConfig( PHCONFIG phconfig)
+{
+         APIRET         rc = NO_ERROR;
+         CHAR           szInifile[ _MAX_PATH];
+
+do
+   {
+   // check parms
+   if (!phconfig)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // determine name of INI
+   rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szInifile, sizeof( szInifile));
+   if (rc = NO_ERROR)
+      break;
+
+   // open profile
+   *phconfig = PrfOpenProfile( CURRENTHAB, szInifile);
+   if (!*phconfig)
+      {
+      rc = LASTERROR;
+      break;
+      }
+
+   } while (FALSE);
+
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
+APIRET CloseConfig( HCONFIG hconfig)
+{
+         APIRET         rc = NO_ERROR;
+if (!PrfCloseProfile( hconfig))
+   rc = LASTERROR;
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
+APIRET WriteConfigValue( HCONFIG hconfig, PSZ pszValuePath, PSZ pszValue)
 
 {
          APIRET         rc = NO_ERROR;
-         HINI           hini = NULLHANDLE;
 
 do
    {
@@ -500,12 +513,10 @@ do
       break;
       }
 
-   // open profile
-   OPENPROFILE;
 
    // create path if not exist
    DPRINTF(( "LIBREG: create path: %s\n", pszValuePath));
-   rc = _createRegPath( hini, pszValuePath);
+   rc = _createRegPath( hconfig, pszValuePath);
    if (rc != NO_ERROR)
       {
       DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
@@ -524,19 +535,16 @@ do
 
    } while (FALSE);
 
-// cleanup
-CLOSEPROFILE;
 return rc;
 
 }
 
 // -----------------------------------------------------------------------------
 
-APIRET QueryConfigValue( PSZ pszValuePath, PSZ pszBuffer, ULONG ulBuflen)
+APIRET QueryConfigValue( HCONFIG hconfig, PSZ pszValuePath, PSZ pszBuffer, ULONG ulBuflen)
 
 {
          APIRET         rc = NO_ERROR;
-         HINI           hini = NULLHANDLE;
 
 do
    {
@@ -548,9 +556,6 @@ do
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
-
-   // open profile
-   OPENPROFILE;
 
    // read entry
    DPRINTF(( "LIBREG: read: %s\n", pszValuePath));
@@ -564,19 +569,16 @@ do
 
    } while (FALSE);
 
-// cleanup
-CLOSEPROFILE;
 return rc;
 
-}  
+}
 
 // -----------------------------------------------------------------------------
 
-APIRET DeleteConfigValue( PSZ pszValuePath)
+APIRET DeleteConfigValue( HCONFIG hconfig, PSZ pszValuePath)
 
 {
          APIRET         rc = NO_ERROR;
-         HINI           hini = NULLHANDLE;
 
 do
    {
@@ -586,9 +588,6 @@ do
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
-
-   // open profile
-   OPENPROFILE;
 
    // if key not exist: error
    DPRINTF(( "LIBREG: delete key: %s\n", pszValuePath));
@@ -604,14 +603,12 @@ do
 
    // remove path as far as possible - ignore errors
    DPRINTF(( "LIBREG: delete path: %s\n", pszValuePath));
-   _removeRegPath( hini, pszValuePath);
+   _removeRegPath( hconfig, pszValuePath);
 
 
    } while (FALSE);
 
-// cleanup
-CLOSEPROFILE;
 return rc;
 
-}  
+}
 
