@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddelog.c,v 1.4 2002-06-09 17:08:03 cla Exp $
+* $Id: ddelog.c,v 1.5 2002-06-09 17:31:40 cla Exp $
 *
 * ===========================================================================
 *
@@ -327,13 +327,14 @@ return WinDefWindowProc( hwnd, msg, mp1, mp2);
 
 // -----------------------------------------------------------------------------
 
-static APIRET _extractErrorInfo( PSZ pszLogFile, PERRORINFO pei)
+static APIRET _extractErrorInfo( HMODULE hmodResource, PSZ pszLogFile, PERRORINFO pei)
 {
          APIRET         rc = NO_ERROR;
          FILE          *pfile = NULL;
          ULONG          i;
 
          CHAR           szLine[ 128];
+         CHAR           szMsgSuccess[ 64];
 
          BOOL           fErrorOccurred = FALSE;
          BOOL           fErrorMsgMessageRead = FALSE;
@@ -435,10 +436,13 @@ do
    // because compile was successful
    if (!fDataComplete)
       {
+      // no error info found
+      // setup everything to load the compile log with a success message
       strcpy( pei->szErrorFile, pszLogFile);
       pei->ulLine = 1;
       pei->ulCol = 1;
-      sprintf( pei->szErrorMsg, "%s: compile successful", __APPNAME__);
+      WinLoadString( CURRENTHAB, hmodResource,  IDSTR_COMPILE_SUCCESSFUL, sizeof( szMsgSuccess), szMsgSuccess);
+      sprintf( pei->szErrorMsg, "%s: %s", __APPNAME__, szMsgSuccess);
       break;
       }
 
@@ -451,7 +455,7 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-APIRET LoadErrantFileFromLog( HWND hwnd, PSZ pszLogFile, PSZ pszMacroFile)
+APIRET LoadErrantFileFromLog( HWND hwnd, HMODULE hmodResource, PSZ pszLogFile, PSZ pszMacroFile)
 {
          APIRET         rc = NO_ERROR;
          ULONG          i,s;
@@ -484,7 +488,7 @@ do
    // setup required information
    lld.pszLogFile   = pszLogFile;
    lld.pszMacroFile = pszMacroFile;
-   rc = _extractErrorInfo( pszLogFile, &lld.ei);
+   rc = _extractErrorInfo( hmodResource, pszLogFile, &lld.ei);
    if (rc != NO_ERROR)
       break;
 

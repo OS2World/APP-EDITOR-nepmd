@@ -47,6 +47,7 @@
                                                  "Bitte ÅberprÅfen Sie die fehlerhafte Datei, um den Fehler zu berichtigen."
 #define IDT_IDSTR_INVALID_PARM                   "UngÅltiger Parameter %s angegeben, das Programm wurde abgebrochen."
 #define IDT_IDSTR_START_NOT_SPECIFIED            "Parameter /%s nicht angegeben mit /%s. Programm abgebrochen.";
+#define IDT_IDSTR_COMPILE_SUCCESSFUL             "öbersetzung erfolgreich"
 #define IDT_IDSTR_HELP_HEAD                      __APPNAME__ " " __VERSION__                     NEWLINE \
                                                  "Kommandozeilenparameter"                       NEWLINE \
                                                                                                  NEWLINE \

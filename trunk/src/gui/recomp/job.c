@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: job.c,v 1.3 2002-06-08 23:40:48 cla Exp $
+* $Id: job.c,v 1.4 2002-06-09 17:31:40 cla Exp $
 *
 * ===========================================================================
 *
@@ -374,7 +374,7 @@ do
 
    DPRINTF(( "JOB: LOG: start loading\n"));
 
-   rc = LoadErrantFileFromLog( hwnd, pwd->szLogFile, pwd->szMacroFile);
+   rc = LoadErrantFileFromLog( hwnd, pwd->hmodResource, pwd->szLogFile, pwd->szMacroFile);
 
    DPRINTF(( "JOB: LOG: end loading, rc=%u\n", rc));
 

@@ -6,14 +6,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.rch,v 1.1 2002-06-03 22:28:06 cla Exp $
+* $Id: recomp.rch,v 1.2 2002-06-09 17:31:41 cla Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -78,10 +78,11 @@
 #define IDSTR_COMPILE_ERROR                0x4005
 #define IDSTR_INVALID_PARM                 0x4006
 #define IDSTR_START_NOT_SPECIFIED          0x4007
-#define IDSTR_HELP_HEAD                    0x4008
-#define IDSTR_HELP_1                       0x4009
-#define IDSTR_HELP_2                       0x400A
-#define IDSTR_HELP_TAIL                    0x400B
+#define IDSTR_COMPILE_SUCCESSFUL           0x4008
+#define IDSTR_HELP_HEAD                    0x4009
+#define IDSTR_HELP_1                       0x400A
+#define IDSTR_HELP_2                       0x400B
+#define IDSTR_HELP_TAIL                    0x400C
 
 #endif // RECOMP_RCH
 
