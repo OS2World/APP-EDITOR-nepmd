@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.13 2002-09-19 14:18:20 cla Exp $
+* $Id: libreg.c,v 1.14 2002-09-23 20:36:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -980,46 +980,51 @@ do
 
    if (pszDefaultsFilename)
       {
-      // open file and read line by line
-      pfile = fopen( pszDefaultsFilename, "r");
-      if (!pfile)
+      if (!DEFKEYENTRYLEN( NULL))
          {
-         rc = ERROR_OPEN_FAILED;
-         break;
-         }
-   
-      while (!feof( pfile))
-         {
-         // read line and skip empty lines
-         fgets( szLine, sizeof( szLine), pfile);
-         _stripblanks( szLine);
-         if (szLine[ 0] == 0)
-            continue;
-         if (szLine[ 0] == ';')
-            continue;
-
-         // check for delimter
-         pszDelimiter = strchr( szLine, '=');
-         if (!pszDelimiter)
-            continue;
-   
-         // prepare fields and write them to the ini file
-         *pszDelimiter = 0;
-         pszPath  = _stripquotes( _stripblanks( szLine));
-         pszValue = _stripquotes( _stripblanks( pszDelimiter + 1));
-   
-         if (!PrfWriteProfileString( hconfig, pszAppRegDefaults, pszPath, pszValue))
+         // open file and read line by line
+         pfile = fopen( pszDefaultsFilename, "r");
+         if (!pfile)
             {
-            rc = LASTERROR;
+            rc = ERROR_OPEN_FAILED;
             break;
             }
-
-         } // while (!feof( pfile))
-
-      if (rc != NO_ERROR)
-         break;
+      
+         while (!feof( pfile))
+            {
+            // read line and skip empty lines
+            fgets( szLine, sizeof( szLine), pfile);
+            _stripblanks( szLine);
+            if (szLine[ 0] == 0)
+               continue;
+            if (szLine[ 0] == ';')
+               continue;
+   
+            // check for delimter
+            pszDelimiter = strchr( szLine, '=');
+            if (!pszDelimiter)
+               continue;
+      
+            // prepare fields and write them to the ini file
+            *pszDelimiter = 0;
+            pszPath  = _stripquotes( _stripblanks( szLine));
+            pszValue = _stripquotes( _stripblanks( pszDelimiter + 1));
+      
+            if (!PrfWriteProfileString( hconfig, pszAppRegDefaults, pszPath, pszValue))
+               {
+               rc = LASTERROR;
+               break;
+               }
+   
+            } // while (!feof( pfile))
+   
+         if (rc != NO_ERROR)
+            break;
+   
+         } 
 
       } // if (pszDefaultsFilename)
+
 
    } while (FALSE);
 
