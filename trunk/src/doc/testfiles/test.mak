@@ -19,7 +19,7 @@ NMAKE directives - DEFAULT MAGENTA
 =================================
 !ELSE !ENDIF !IFDEF
 
-NMAKE pseudotargets - DEFAULT RED ###
+NMAKE pseudotargets - DEFAULT RED
 =====================================
 .IGNORE .PRECIOUS .SILENT .SUFFIXES
 
