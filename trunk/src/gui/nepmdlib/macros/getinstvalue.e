@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getinstvalue.e,v 1.4 2002-08-23 15:34:59 cla Exp $
+* $Id: getinstvalue.e,v 1.5 2002-08-25 19:58:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -21,6 +21,51 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+@@NepmdGetInstValue@PROTOTYPE
+InstValue = NepmdGetInstValue( ValueTag);
+
+@@NepmdGetInstValue@SYNTAX
+This function queries installation related values
+from the [=TITLE].
+
+@@NepmdGetInstValue@PARM@ValueTag
+This parameter specifies a keyword determining the
+installation value to be returned.
+
+If the installation directory cannot be determined, pathnames
+of course cannot point to a subdirectory of the NEPMD directory
+tree, but rather specify filenames from within the directory where
+the calling executable is called from - this way all values
+except for *ROOT* can be used even if not the complete [=TITLE]
+is installed.
+
+The following keywords are supported:
+.pl bold
+- ROOTDIR
+= returns the installation directory of the [=TITLE]. If the
+  installation directory cannot be determined, an error is returned.
+- LANGUAGE
+= returns the language selected by the installation of the [=TITLE].
+.
+  If the installation directory cannot be determined, *eng* for the
+  english language is returned.
+- INIT
+= returns the fully qualified pathname of the initialization file of
+  the [=TITLE].
+- MESSAGE
+= returns the fully qualified pathname of the message file of
+  the [=TITLE].
+
+@@NepmdGetInstValue@RETURNS
+NepmdGetInstValue returns either
+.ul compact
+- the installation value  or
+- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@
+*/
 
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */

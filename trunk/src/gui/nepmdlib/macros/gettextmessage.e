@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.8 2002-08-23 15:35:00 cla Exp $
+* $Id: gettextmessage.e,v 1.9 2002-08-25 19:58:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -21,6 +21,34 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+@@NepmdGetTextMessage@PROTOTYPE
+TextMessage = NepmdGetTextMessage( Filename, Messagename [, parm1, [...]]);
+
+@@NepmdGetTextMessage@SYNTAX
+This function queries messages from a specified text message file.
+
+@@NepmdGetTextMessage@PARM@Filename
+This parameter specifies the filename of the text message file. Note that
+this is not an OS/2 message file, but a text file with a certain format.
+
+@@NepmdGetTextMessage@PARM@Messagename
+This parameter specifies the name of the message to be searched within
+the specified text message file.
+
+@@NepmdGetTextMessage@PARM@Parameters
+Up to nine optional parameters can be specified to be inserted into 
+the text message.
+
+@@NepmdGetTextMessage@RETURNS
+NepmdGetTextMessage returns either
+.ul compact
+- the textmessage with the supplied parameters inserted  or
+- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@
+*/
 
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */

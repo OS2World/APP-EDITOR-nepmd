@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleterexxea.e,v 1.5 2002-08-23 15:34:59 cla Exp $
+* $Id: deleterexxea.e,v 1.6 2002-08-25 19:58:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -21,6 +21,25 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+@@NepmdDeleteRexxEa@PROTOTYPE
+Fullname = NepmdDeleteRexxEa( Filename);
+
+@@NepmdDeleteRexxEa@SYNTAX
+This function deletes REXX related extended attributes
+from the specified file.
+
+@@NepmdDeleteRexxEa@PARM@Filename
+This parameter specifies the name of the file, from which
+the REXX EAs are to be deleted.
+
+@@NepmdDeleteRexxEa@RETURNS
+NepmdDeleteRexxEa returns an OS/2 error code.
+
+@@
+*/
+
 
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
