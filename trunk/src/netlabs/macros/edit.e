@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.6 2002-10-18 15:41:06 cla Exp $
+* $Id: edit.e,v 1.7 2002-10-18 15:42:30 cla Exp $
 *
 * ===========================================================================
 *
@@ -216,7 +216,7 @@ compile if USE_APPEND  -- Support for DOS 3.3's APPEND, thanks to Ken Kahn.
          endif
 compile endif
 
-         call locadfile(file,options)
+         call loadfile(file,options)
 
          if rc=-3 then        -- sayerror('Path not found')
             bad_paths=bad_paths', 'file
