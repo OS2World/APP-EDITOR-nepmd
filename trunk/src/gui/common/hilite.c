@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.27 2004-08-01 13:32:53 aschn Exp $
+* $Id: hilite.c,v 1.28 2004-09-12 13:34:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -602,6 +602,7 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfRel
          PSZ            pszSymbol;
          PSZ           *ppszSymbolValue;
          CHAR           szValue[ _MAX_PATH];
+         CHAR           szCustomValue[ _MAX_PATH];
          PSZ            pszModeCopy = NULL;
 
          // ----------------------------------
@@ -630,6 +631,7 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfRel
          BOOL           fCustomLoaded = FALSE;
 
          CHAR           szCustomCharset[ _MAX_PATH];
+         CHAR           szCustomAddCharset[ _MAX_PATH];
 
          // ----------------------------------
 
@@ -809,12 +811,9 @@ do
       break;
 
       QUERYINITVALUE( hinitDefault, pszGlobalSection, "CHARSET",        szCharset);
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, "DEFEXTENSIONS",  szDefExtensions, "");
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, "DEFNAMES",       szDefNames, "");
+      QUERYINITVALUE( hinitDefault, pszGlobalSection, "CASESENSITIVE",  szValue);
+   // comment char for tmp EPM kwds file (yet undocumented)
    QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, "COMMENTCHAR",    szCommentChar, STR_KWDSCOMMENT);
-
-   QUERYINITVALUE( hinitDefault, pszGlobalSection, "CASESENSITIVE",  szValue);
-   fCaseSensitive = atol( szValue);
 
    // - read customs of the mode - optional - so ignore errors here
    rc = _openInitFile( &hinitCustom, pszEnvnameEpmModepath, SEARCHMASK_CUSTOMINI, pszEpmMode,
@@ -825,15 +824,25 @@ do
       fCustomLoaded = TRUE;
 
       // read optional values - other values are read in mode.c !
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, "ADD_CHARSET",        szCustomCharset, "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, "CASESENSITIVE",   szCustomValue, "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, "CHARSET",         szCustomCharset, "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, "ADD_CHARSET",     szCustomAddCharset, "");
+
+      // replace settings from DEFAULT.INI, if present
+      if (strlen( szCustomCharset))
+         strcpy( szCharset, szCustomCharset);
+      if (strlen( szCustomValue))
+         strcpy( szValue, szCustomValue);
 
       // append these settings to the ones already read
-      if (strlen( szCustomCharset))
-         strcat( szCharset, szCustomCharset);
+      if (strlen( szCustomAddCharset))
+         strcat( szCharset, szCustomAddCharset);
       }
 
    else
       rc = NO_ERROR;
+
+   fCaseSensitive = atol( szValue);
 
    // -----------------------------------------------
 
