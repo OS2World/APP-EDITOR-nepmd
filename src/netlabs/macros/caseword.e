@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: caseword.e,v 1.1 2002-10-06 23:27:02 aschn Exp $
+* $Id: caseword.e,v 1.2 2003-08-31 18:15:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -28,19 +28,16 @@
 
 /**********************************************************************/
 /* CASEWRD.E - Rotate Case of word pointed at by cursor between       */
-/*             UPPER, Mixed, and lower.                               */
+/*             lower, Mixed and UPPER.                                */
 /*                                                                    */
-/* Words that are all uppercase  -> Cap1                              */
-/* Words that are all lowercase  -> Upper                             */
-/* Words that are all mixed case -> Lower                             */
+/* Words that are all lowercase  -> Cap1                              */
+/* Words that are all uppercase  -> Lower                             */
+/* Words that are all mixed case -> Upper                             */
 /*                                                                    */
 /* Thus, repeated invocations will give a rotation from               */
-/*   upper -> cap1 -> lower -> upper -> etc.                          */
+/*   upper -> lower -> cap1 -> upper -> etc.                          */
 /*                                                                    */
-/* Note that only the first alphabetic string in the word is tested   */
-/* for case, although the case of the entire word is changed.         */
-/*                                                                    */
-/* Written by B. Thompson 6 Aug 1987                                  */
+/* Original written by B. Thompson 6 Aug 1987                         */
 /*                                                                    */
 /**********************************************************************/
 
@@ -50,68 +47,63 @@
 ;    o  support for german umlauts
 ;    o  changed toggle order
 ;    o  restore position afterwards
+;    o  made UPPERCHARS and LOWERCHARS definable in MYCNF.E
 
+define
+compile if not defined(UPPERCHARS)
+   UPPERCHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZéôö'
+compile endif
+compile if not defined(LOWERCHARS)
+   LOWERCHARS = 'abcdefghijklmnopqrstuvwxyzÑîÅ'
+compile endif
 
 --def c_f10=
 def c_f1 = 'caseword'
 
 defc caseword
-   call psave_mark(save_mark)
    call psave_pos(save_pos)
-
-   call find_token(startcol, endcol)
+   -- find_token may return nothing, so we have to init the vars first
+   startcol = 0
+   endcol   = 0
+   call find_token( startcol, endcol)
    --sayerror '1: startcol = 'startcol', endcol = 'endcol
-   -- If nothing found by find_token, then startcol = 0 and endcol = 4 is returned.
-   if startcol = 0 and .col > 1 then
+   -- If nothing found by find_token, then nothing is returned
+   if startcol = 0 & .col > 1 then
       -- Inspect tokens left from cursor
       .col = .col - 1
-      call find_token(startcol, endcol)
+      call find_token( startcol, endcol)
       --sayerror '2: startcol = 'startcol', endcol = 'endcol
    endif
    if startcol = 0 then
+      call prestore_pos(save_pos)
       return
    endif
 
-   getfileid fid
-   call pset_mark( .line, .line, startcol, endcol, 'BLOCK', fid )
-
-   /* Get word pointed to by cursor*/
    getline line, .line
-   getmark first_line, last_line, first_col, last_col
-   word_len = last_col - first_col + 1
-   wrd = substr(line,first_col,word_len)
-   upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZéôö'
-   lower = 'abcdefghijklmnopqrstuvwxyzÑîÅ'
-   first = verify(wrd,upper||lower,'M')  /* First alphabetic            */
-   if first < 1 then
-      first = 1
-   endif
-   wrd = substr(wrd,first)
-   last  = verify(wrd,upper||lower) - 1  /* Last alphabetic             */
-   if last < 1 then
-      last = word_len - first + 1
---    last = 1
-   endif
-   wrd = substr(wrd,1,last)              /* Alphabetic word             */
+   lline = substr( line, 1, startcol - 1)
+   wrd   = substr( line, startcol, endcol - startcol + 1)
+   rline = substr( line, endcol + 1)
+   --sayerror '3: |'lline'|'wrd'|'rline'|'
 
--- xxXx -> xxxx
--- xxxx -> XXXX
--- XXXX -> Xxxx
-   if verify(wrd,lower, 'M') = 0 then    /* Any uppercase               */
-      call plowercase()                  /* -> lowercase                */
-      --sayerror '-> Lower'
-   elseif verify(wrd,lower) = 0 then     /* All uppercase               */
-      call plowercase()                  /* -> Capitalise               */
-      .cursorx = first_col + first - 1
-      mark_block
-      call puppercase()
-      --sayerror '-> Mixed'
-   else                                  /* All lowercase               */
-      call puppercase()                  /* -> uppercase                */
-      --sayerror '-> Upper'
+   if verify( wrd, LOWERCHARS, 'M') = 0 then  -- no lowercase  -> lowercase
+-- XXXX -> xxxx
+      newwrd = translate( wrd, LOWERCHARS, UPPERCHARS)
+   elseif verify( wrd, LOWERCHARS) = 0 then   -- all lowercase -> Capitalize
+-- xxxx -> Xxxx
+      newwrd = translate( substr( wrd, 1, 1), UPPERCHARS, LOWERCHARS)          -- first letter
+      if length(wrd) > 1 then
+         newwrd = newwrd''translate( substr( wrd, 2), LOWERCHARS, UPPERCHARS)  -- append rest
+      endif
+   else                                       -- mixed case    -> UPPERCASE
+-- xxXx -> XXXX
+      newwrd = translate( wrd, UPPERCHARS, LOWERCHARS)
+   endif
+
+   -- Replace line only if anything has changed to not increase .modify otherwise
+   if newwrd <> wrd then
+      replaceline lline''newwrd''rline
    endif
 
    call prestore_pos(save_pos)
-   call prestore_mark(save_mark)
    return
 
