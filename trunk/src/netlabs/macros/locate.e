@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.1 2002-10-06 23:22:35 aschn Exp $
+* $Id: locate.e,v 1.2 2002-10-16 05:20:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -51,9 +51,9 @@ compile endif
 compile if not defined(HIGHLIGHT_COLOR)
    endif
 compile endif
-   --display -4
+   display -8
    'xcom l 'args
-   --display 4
+   display 8
 compile if defined(HIGHLIGHT_COLOR)
    call highlight_match(search_len)
 compile endif
@@ -109,9 +109,9 @@ compile endif
       /* the cursor to the start of the mark.                    */
 ;;;   call pbegin_mark()  /* mark specified - make sure at top of mark */
    endif
-   --display -4
+   display -8
    'xcom c 'lastchangeargs
-   --display 4
+   display 8
 
 compile if SETSTAY='?'
    if stay then
@@ -236,29 +236,31 @@ defc globalfind, gfind, globallocate, glocate, gl
          bottom
          endline
       endif
+      display -8
       repeat_find
       if rc = 1 then
          refresh
       endif
+      display 8
       call highlight_match(search_len)
       -- Flickers most of the times instead of letting the highlight circle stay
       if rc=0 then
-         --display -4
+         display -8
          if fileid=StartFileID then
             sayerror "String only found in this file"
          else
             sayerror 0
          endif
-         --display 4
+         display 8
          leave
       else
          -- no match in file - restore file location
          call prestore_pos(save_pos)
       endif
       if fileid=StartFileID then
-         --display -4
+         display -8
          sayerror "String not found in any file of the ring"
-         --display 4
+         display 8
          leave
       endif
    endloop
@@ -401,7 +403,9 @@ compile endif
       else
          0
       endif
+      display -8
       'xcom c' change_args
+      display 8
       if rc=0 then
          change_count = change_count + 1
 compile if SETSTAY='?'
@@ -428,7 +432,9 @@ compile endif
    else
       files = 'files.'
    endif
+   display -8
    sayerror 'String changed in' change_count files
+   display 8
    return
 
 ; ---------------------------------------------------------------------------
@@ -448,19 +454,27 @@ defc scan, grep =
       sayerror 'No hits.'
    endif
 */
+; Todo:
+; Replace an relative filespec with a full one to make Alt+1 work then
 defc scan, grep =
+;   CurDir = directory()
+;   -- change to path of current file
+;   call directory( .filename'\..' )
+   display -8
    sayerror 'Scanning files...'
    -- Changed to support only Gnu grep.
    -- Options:
    --    -i  case insensitive
    --    -n  show line numbers
    call redirect('grep','-in' arg(1))
+;   call directory( CurDir )
    if .last=0 then
       'q'
       sayerror 'No hits.'
    else
-      sayerror ''
+      sayerror 0
    endif
+   display 8
    return
 
 defproc redirect(cmd)
