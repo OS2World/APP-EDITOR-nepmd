@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.15 2002-11-03 00:11:11 aschn Exp $
+* $Id: epm.e,v 1.16 2003-08-30 22:03:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -39,6 +39,8 @@ compile if SITE_CONFIG               -- If SITE_CONFIG file was not set to null,
 compile endif
 
 include        'stdcnf.e'      -- Standard configuration; shouldn't be modified.
+                               -- Set consts if not already set, DEFINIT: set universal vars
+                               -- and link separately compiled packages if their consts = 'LINK'
 
 include        'menuhelp.h'
 
@@ -47,7 +49,14 @@ compile if WANT_DBCS_SUPPORT
    include     'epmdbcs.e'
 compile endif
 
+compile if not LINK_NEPMDLIB
+   include     'nepmdlib.e'    -- NEPMD library procedures
+compile endif
+
 include        'main.e'        -- This contains the DEFMAIN for the main .ex file
+                               -- Parse EPM's args, submit them to the EDIT command,
+                               -- read settings from EPM.INI (INITCONFIG command),
+                               -- process PROFILE.ERX
 compile if not VANILLA
  compile if defined(SITE_MAIN)
   compile if SITE_MAIN
@@ -60,6 +69,9 @@ compile endif  -- not VANILLA
 include        'mode.e'        -- Mode definitions
 include        'edit.e'        -- Edit command
 include        'load.e'        -- Default defload must come before other defloads.
+compile if not VANILLA
+   tryinclude  'myload.e'      -- Optional user additions to DEFLOAD.
+compile endif  -- not VANILLA
 
 include        'select.e'
 compile if not VANILLA
@@ -111,6 +123,8 @@ compile endif
 
 include        'stdcmds.e'     -- Standard commands (DEFC's).
                                -- (Edit cmd uses variables defined in host routines.)
+include        'hooks.e'       -- Hook cmds
+
 include        'get.e'         -- Insert the contents of another file into current
 
 include        'enter.e'       -- Enter definitions
@@ -129,7 +143,7 @@ include        'revert.e'      -- Throw away changes and reload file from disk
 
 include        'wps.e'         -- WPS definitions (open folder)
 
-;include        'comment.e'     -- Comment and uncomment marked lines
+include        'comment.e'     -- Comment and uncomment marked lines
 
 compile if WANT_DRAW
   compile if (WANT_DRAW='F6' | WANT_DRAW=F6)
@@ -169,6 +183,7 @@ compile if WANT_BOOKMARKS = 1
 compile endif
 compile if WANT_TAGS = 1
    include     'tags.e'        -- Build tag list to find functions in files
+   include     'maketags.e'    -- Build tag list to find functions in files
 compile endif
 
 -- Put all new includes after this line (preferably in MYSTUFF.E). -------------
