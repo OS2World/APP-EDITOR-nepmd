@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nldeinst.cmd,v 1.1 2002-08-12 13:17:50 cla Exp $
+* $Id: nldeinst.cmd,v 1.2 2002-08-13 15:39:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,8 +34,14 @@
 
  /* make sure we are called on purpose */
  ARG Parm .;
+
+/* this code deactivated due to an error in WarpIn 0.9.20:
+   a DEEXECUTE call to a program including parameters writes
+   a corrupt ini to the WarpIn Database, making all Warpin
+   instances crash !
  IF (Parm \= 'NEPMD') THEN
     ShowError( 'Netlabs EPM Distribution Installation', 'Error: not called by Warpin Package !');
+*/
 
  /* make calldir the current directory */
  PARSE Source . . CallName;
