@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.6 2002-10-06 23:35:23 aschn Exp $
+* $Id: stdkeys.e,v 1.7 2002-10-09 18:47:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -939,7 +939,8 @@ compile if WANT_CUA_MARKING
 compile endif
 compile if RESPECT_SCROLL_LOCK
    if scroll_lock() then
-      executekey s_F4  -- Scroll down
+      executekey s_f5  -- vcenter cursor
+      executekey s_f4  -- act like scroll up
    else
 compile endif
 compile if WANT_STREAM_MODE
@@ -1156,11 +1157,14 @@ compile endif
 compile if WANT_STREAM_MODE = 'SWITCH'
    universal stream_mode
 compile endif
+/*
+-- Don't like hscroll
 compile if RESPECT_SCROLL_LOCK
    if scroll_lock() then
       executekey s_F1  -- Scroll left
    else
 compile endif
+*/
 compile if WANT_STREAM_MODE = 'SWITCH'
       if .line>1 & .col=1 & stream_mode then up; end_line; else left; endif
 compile elseif WANT_STREAM_MODE
@@ -1168,9 +1172,12 @@ compile elseif WANT_STREAM_MODE
 compile else
       left
 compile endif
+/*
+-- Don't like hscroll
 compile if RESPECT_SCROLL_LOCK
    endif
 compile endif
+*/
 compile if WANT_CUA_MARKING
  compile if WANT_CUA_MARKING = 'SWITCH'
    if CUA_marking_switch then
@@ -1249,11 +1256,14 @@ compile if WANT_CUA_MARKING
    endif
  compile endif
 compile endif
+/*
+-- Don't like hscroll
 compile if RESPECT_SCROLL_LOCK
    if scroll_lock() then
       executekey s_F2  -- Scroll right
    else
 compile endif
+*/
 compile if WANT_STREAM_MODE
       if .line then l=length(textline(.line)); else l=.col; endif
  compile if WANT_STREAM_MODE = 'SWITCH'
@@ -1273,9 +1283,12 @@ compile if WANT_STREAM_MODE
 compile else
       right
 compile endif
+/*
+-- Don't like hscroll
 compile if RESPECT_SCROLL_LOCK
    endif
 compile endif
+*/
 
 compile if    WANT_SHIFT_MARKING
 def s_right =
@@ -1534,7 +1547,8 @@ compile if WANT_CUA_MARKING
 compile endif
 compile if RESPECT_SCROLL_LOCK
    if scroll_lock() then
-      executekey s_F3  -- Scroll up
+      executekey s_f5  -- vcenter cursor
+      executekey s_f3  -- act like scroll down
    else
 compile endif
 compile if WANT_STREAM_MODE
