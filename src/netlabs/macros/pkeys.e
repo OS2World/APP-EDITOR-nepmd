@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pkeys.e,v 1.3 2002-08-20 05:22:58 aschn Exp $
+* $Id: pkeys.e,v 1.4 2002-10-17 19:50:26 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -39,23 +39,7 @@ compile endif
 ;  kept together in the macros (ET will concatenate all the DEFLOADs the
 ;  same way it does DEFINITs), we can put the DEFLOAD here where it belongs,
 ;  with the rest of the keyset function.  (what a concept!)
-;
-defload
-   universal load_ext
-   universal load_var
-   if load_ext='PAS' or load_ext='PASCAL' then
-      keys   Pas_keys
-compile if P_TABS <> 0
-      if not (load_var // 2) then  -- 1 would be on if tabs set from EA EPM.TABS
-         'tabs' P_TABS
-      endif
-compile endif
-compile if P_MARGINS <> 0
-      if not (load_var bitand 2) then  -- 2 would be on if tabs set from EA EPM.MARGINS
-         'ma'   P_MARGINS
-      endif
-compile endif
-   endif
+-- Moved defload to MODE.E
 
 compile if    WANT_CUA_MARKING
  defkeys pas_keys clear
@@ -138,10 +122,17 @@ defproc pas_first_expansion
    retc=1
    if .line then
       getline line
-      line=strip(line,'T')
-      w=line
-      wrd=upcase(w)
-      if wrd='FOR' then
+      line = strip( line, 'T' )
+      w = line
+      wrd = upcase(w)
+
+      -- Skip expansion when cursor is not at line end
+      line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
+      lw = strip( line_l, 'T' )
+      if w <> lw then
+         retc = 0
+
+      elseif wrd = 'FOR' then
          replaceline w' :=  to  do begin'
 compile if WANT_END_COMMENTED
          insertline substr(wrd,1,length(wrd)-3)'end; {endfor}',.line+1

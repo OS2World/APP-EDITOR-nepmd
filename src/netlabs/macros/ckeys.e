@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.4 2002-08-20 05:24:00 aschn Exp $
+* $Id: ckeys.e,v 1.5 2002-10-17 19:50:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -45,12 +45,6 @@ compile endif
 compile if not defined(TERMINATE_COMMENTS)
    TERMINATE_COMMENTS = 0
 compile endif
-compile if not defined(C_KEYWORD_HIGHLIGHTING)
-   C_KEYWORD_HIGHLIGHTING = 0
-compile endif
-compile if not defined(JAVA_KEYWORD_HIGHLIGHTING)
-   JAVA_KEYWORD_HIGHLIGHTING = 0
-compile endif
 compile if not defined(WANT_END_COMMENTED)
  compile if defined(WANT_END_BRACE_COMMENTED)
    WANT_END_COMMENTED = WANT_END_BRACE_COMMENTED
@@ -66,55 +60,21 @@ compile if not defined(C_SYNTAX_INDENT)
    C_SYNTAX_INDENT = SYNTAX_INDENT
 compile endif
 
-compile if not defined(C_EXTENSIONS)  -- Keep in sync with TAGS.E
-   C_EXTENSIONS = 'C H SQC'
-compile endif
+;compile if not defined(C_EXTENSIONS)  -- Keep in sync with TAGS.E
+;   C_EXTENSIONS = 'C H SQC'
+;compile endif
 
 compile if not defined(CPP_EXTENSIONS)  -- Keep in sync with TAGS.E
    CPP_EXTENSIONS = 'CPP HPP CXX HXX SQX JAV JAVA'
 compile endif
+
 
 ;  Keyset selection is now done once at file load time, not every time
 ;  the file is selected.  And because the DEFLOAD procedures don't have to be
 ;  kept together in the macros (ET will concatenate all the DEFLOADs the
 ;  same way it does DEFINITs), we can put the DEFLOAD here where it belongs,
 ;  with the rest of the keyset function.  (what a concept!)
-;
-defload
-   universal load_ext
-   universal load_var
-   if wordpos(load_ext, C_EXTENSIONS CPP_EXTENSIONS) then
-;                                               C++                                         Data Base Manager
-      keys   C_keys
-compile if C_TABS <> 0
-      if not (load_var // 2) then  -- 1 would be on if tabs set from EA EPM.TABS
-         'tabs' C_TABS
-      endif
-compile endif
-compile if C_MARGINS <> 0
-      if not (load_var bitand 2) then  -- 2 would be on if tabs set from EA EPM.MARGINS
-         'ma'   C_MARGINS
-      endif
-compile endif
-compile if (C_KEYWORD_HIGHLIGHTING | JAVA_KEYWORD_HIGHLIGHTING)
- compile if INCLUDE_WORKFRAME_SUPPORT
-    if not (.levelofattributesupport bitand 16) &
-       .visible then
- compile else
-    if .visible then
- compile endif
-       if substr(load_ext, 1, 3)='JAV' then
- compile if JAVA_KEYWORD_HIGHLIGHTING
-          'toggle_parse 1 epmkwds.jav'
- compile endif
-       else
- compile if C_KEYWORD_HIGHLIGHTING
-          'toggle_parse 1 epmkwds.c'
- compile endif
-       endif
-    endif
-compile endif
-   endif
+-- Moved defload to MODE.E
 
 compile if    WANT_CUA_MARKING
 defkeys c_keys clear
@@ -221,7 +181,7 @@ compile else
 compile endif
 
 defproc c_first_expansion
-   retc=1
+   retc = 1
    if .line then
       getline line
       line=strip(line,'T')
@@ -229,15 +189,22 @@ defproc c_first_expansion
       wrd=upcase(w)
       ws = substr(line, 1, max(verify(line, ' '\9)-1,0))
 compile if JAVA_SYNTAX_ASSIST
-      java = substr(filetype(), 1, 3) = 'JAV'
+      java = (NepmdGetMode() = 'JAVA')
 compile endif -- JAVA_SYNTAX_ASSIST
 compile if CPP_SYNTAX_ASSIST
-      cpp = wordpos(filetype(), CPP_EXTENSIONS)
+      cpp = (NepmdGetMode() = 'C') and (wordpos(filetype(), CPP_EXTENSIONS))
 compile endif -- CPP_SYNTAX_ASSIST
 compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
       ws2 = ws || substr('', 1, C_SYNTAX_INDENT)
 compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
-      if wrd='FOR' then
+
+      -- Skip expansion when cursor is not at line end
+      line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
+      lw = strip( line_l, 'T' )
+      if w <> lw then
+         retc = 0
+
+      elseif wrd='FOR' then
 compile if WANT_BRACE_BELOW_STATEMENT
          replaceline w' (; ; )'
  compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
@@ -407,12 +374,16 @@ defproc c_second_expansion
       else
          next_is_brace = 0
       endif
-      parse value line with wrd rest
+      --parse value line with wrd rest
+      -- Set wrd only to text left from the cursor
+      line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
+      parse value line_l with wrd rest
+
       i=verify(wrd,'({:;','M',1)-1
       if i<=0 then i=length(wrd) endif
       firstword=upcase(substr(wrd,1,i))
 compile if CPP_SYNTAX_ASSIST
-      cpp = wordpos(filetype(), CPP_EXTENSIONS)
+      cpp = (NepmdGetMode() = 'C') and (wordpos(filetype(), CPP_EXTENSIONS))
 compile endif -- CPP_SYNTAX_ASSIST
       if firstword='FOR' then
          /* do tabs to fields of C for statement */

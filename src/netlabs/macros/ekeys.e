@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ekeys.e,v 1.4 2002-09-02 22:11:39 aschn Exp $
+* $Id: ekeys.e,v 1.5 2002-10-17 19:50:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,9 +30,6 @@ compile endif
 compile if not defined(TERMINATE_COMMENTS)
    TERMINATE_COMMENTS = 0
 compile endif
-compile if not defined(E_KEYWORD_HIGHLIGHTING)
-   E_KEYWORD_HIGHLIGHTING = 0
-compile endif
 
 
 ;  Keyset selection is now done once at file load time, not every time
@@ -40,28 +37,7 @@ compile endif
 ;  kept together in the macros (ET will concatenate all the DEFLOADs the
 ;  same way it does DEFINITs), we can put the DEFLOAD here where it belongs,
 ;  with the rest of the keyset function.  (what a concept!)
-
-defload
-   universal load_ext
-   universal load_var
-   if load_ext='E' then
-      keys   E_keys
-compile if E_TABS <> 0
-      if not (load_var // 2) then  -- 1 would be on if tabs set from EA EPM.TABS
-         'tabs' E_TABS
-      endif
-compile endif
-compile if E_MARGINS <> 0
-      if not (load_var bitand 2) then  -- 2 would be on if tabs set from EA EPM.MARGINS
-      'ma'   E_MARGINS
-      endif
-compile endif
-compile if E_KEYWORD_HIGHLIGHTING
-      if .visible then
-         'toggle_parse 1 epmkwds.e'
-      endif
-compile endif
-   endif
+-- Moved defload to MODE.E
 
 compile if    WANT_CUA_MARKING
 defkeys e_keys clear
@@ -142,18 +118,25 @@ def c_x=       /* Force expansion if we don't have it turned on automatic */
 
 defproc e_first_expansion
    /*  up;down */
-   retc=1
+   retc = 1
    if .line then
       getline line
-      line=strip(line,'T')
-      w=line
-      wrd=upcase(w)
-      if wrd='FOR' then
+      line = strip( line, 'T' )
+      w = line
+      wrd = upcase(w)
+
+      -- Skip expansion when cursor is not at line end
+      line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
+      lw = strip( line_l, 'T' )
+      if w <> lw then
+         retc = 0
+
+      elseif wrd='FOR' then
          replaceline w' =  to'
          insertline substr(wrd,1,length(wrd)-3)'endfor',.line+1
          if not insert_state() then
             insert_toggle
-            call fixup_cursor()  -- added aschn
+            call fixup_cursor()
          endif
          keyin ' '
       elseif wrd='IF' then
@@ -202,7 +185,11 @@ defproc e_second_expansion
    retc=1
    if .line then
       getline line
-      parse value line with wrd rest
+      --parse value line with wrd rest
+      -- Set wrd only to text left from the cursor
+      line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
+      parse value line_l with wrd rest
+
       firstword=upcase(wrd)
       if firstword='FOR' then
          /* do tabs to fields of pascal for statement */
