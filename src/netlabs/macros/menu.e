@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: menu.e,v 1.1 2004-06-03 22:11:40 aschn Exp $
+* $Id: menu.e,v 1.2 2004-07-02 11:11:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -74,7 +74,7 @@ compile endif  -- WANT_DM_BUFFER
    elseif mt = 'D2' then  -- special for drag/drop; only deletes mark w/o touching buffers
       call pdelete_mark()
    elseif mt = 'P' then    -- Print marked area
-      call checkmark()     -- verify there is a marked area,
+      call checkmark()     -- verify there is a marked area in the current file, else stop,
 ;compile if ENHANCED_PRINT_SUPPORT  -- DUPMARK P is only called if no enhanced print support
 ;      printer = get_printer()
 ;      if printer<>'' then 'print' printer; endif
@@ -114,13 +114,21 @@ defexit
    defaultmenu = ''
 
 ; ---------------------------------------------------------------------------
+; List of available menus. Can be extended with
+;    call AddAVar( 'menulist', ' mymenu')
+; or
+;    'AddAVar menulist mymenu'
+definit
+   call SetAVar( 'menulist', ' newmenu stdmenu fevshmnu ovshmenu')  -- starts with the delimitter
+
+; ---------------------------------------------------------------------------
 ; Syntax: ChangeMenu [<newmenuname>[.e]]
 ; If no arg specified, a listbox for menu selection containing all items from
 ; MenuList is opened.
 defc ChangeMenu
    universal defaultmenu
    universal nepmd_hini
-   MenuList = ' newmenu stdmenu fevshmnu ovshmenu'  -- starts with the delimitter
+   MenuList = GetAVar('menulist')
    KeyPath = '\NEPMD\User\Menu\Name'
    CurMenu = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if CurMenu = '' then
@@ -138,7 +146,7 @@ defc ChangeMenu
    if NewMenu = '' then
       Selection = wordpos( upcase(CurMenu), upcase(MenuList))
       Text = 'Current menu: 'CurMenu
-      Title = 'Menu selection:'
+      Title = 'Menu selection'
 
       refresh
       select = listbox( Title,
@@ -319,15 +327,28 @@ defc processmenuinit
       return
    endif
    menuid = arg(1)
+
    -- Add possible exensions for defc 'menuinit_'name first
 compile if not VANILLA
+
  compile if defined(SITE_MENUINIT)
   compile if SITE_MENUINIT
    include SITE_MENUINIT
   compile endif
  compile endif
    tryinclude 'mymnuini.e'  -- For user-supplied additions to this routine.
+
+   -- Process hook: add user-defined menuinits
+   -- Not really required. The user can add his hooks to a list and it will
+   -- then be called automatically:
+   -- call AddAVar( 'definedsubmenus', <mysubmenuid_name>).
+   -- This will execute: 'menuinit_'<mysubmenuid>, if defined.
+   if isadefc('HookExecute') then
+      'HookExecute menuinit'
+   endif
+
 compile endif
+
    -- Try to find a defc 'menuinit_'name
    if isadefproc('ExecuteMenuInits') then
       ret = ExecuteMenuInits(menuid)
@@ -335,6 +356,7 @@ compile endif
          return
       endif
    endif
+
    -- Try to find a defc 'menuinit_'menuid
    if isadefc('menuinit_'menuid) then
 ;  tmp = 'menuinit_'menuid
@@ -351,7 +373,7 @@ compile endif
 defproc ExecuteMenuInits( menuid)
    -- Query the list of all used names to build the 'menuinit_'name commands.
    -- This list must be extended for every 'menuinit_'name defc.
-   items = GetAVar('definedmenuinits')
+   items = GetAVar('definedsubmenus')
    ret = 1
    do w = 1 to words(items)
       wrd = word( items, w)
@@ -467,7 +489,7 @@ defproc GetUniqueMid
 ; or: help panel #, 9100,... (see MENUHELP.H)
 ;
 ; Note:
-; bulidsubmenu and buildmenuitem allow for its last arg (MIA) to specify
+; buildsubmenu and buildmenuitem allow for its last arg (MIA) to specify
 ; not only the MIA, but also the help panel #.
 ; Apparently this doesn't work with 6.03b. Selecting an menu item and
 ; pressing F1 won't open the help file viewer. NewView would even make EPM
