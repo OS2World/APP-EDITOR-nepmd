@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: popup.e,v 1.2 2004-06-29 22:48:01 aschn Exp $
+* $Id: popup.e,v 1.3 2004-07-02 08:03:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -20,6 +20,41 @@
 ****************************************************************************/
 
 ; Popup menu defs, moved from MOUSE.E.
+
+
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately
+define INCLUDING_FILE = 'POPUP.E'
+const
+   tryinclude 'MYCNF.E'        -- the user's configuration customizations.
+
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
+ compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+const
+ compile if not defined(WANT_TEXT_PROCS)
+   WANT_TEXT_PROCS = 1
+ compile endif
+ compile if not defined(CHECK_FOR_LEXAM)
+   CHECK_FOR_LEXAM = 0
+ compile endif
+ compile if not defined(VANILLA)
+   VANILLA = 0
+ compile endif
+
+const
+ compile if not defined(NLS_LANGUAGE)
+   NLS_LANGUAGE = 'ENGLISH'
+ compile endif
+   include NLS_LANGUAGE'.e'
+   include 'stdconst.e'
+   include 'menuhelp.h'
+   EA_comment 'This defines the popup menu.'
+
+compile endif
 
 const
    FILL_MARK_MENU__MSG = 'Fill mark'
