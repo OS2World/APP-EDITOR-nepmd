@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.11 2002-09-25 21:17:15 cla Exp $
+* $Id: hilite.c,v 1.12 2002-10-01 14:32:01 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,12 +40,45 @@
 #include "instval.h"
 #include "file.h"
 #include "mmf.h"
+#include "eas.h"
+
+// --- define to allow color value names in HIL files
+#define ALLOW_COLOR_VALUES 1
+
+// --- defines for detailed debug messages
+
+#define DEBUG_DUMPARRAYDETAILS 0
+
+// ----- values for control files for creating hilite files -------------
 
 // definitions for file format for *.hil
-#define CHAR_COMMENT          ';'
+#define CHAR_HILCOMMENT      ';'
 #define CHAR_SECTION_START   '['
 #define CHAR_SECTION_END     ']'
 
+#define STR_KWDSCOMMENT      "þ"
+
+// global string vars
+static   PSZ            pszEnvnameEpmKeywordpath = "EPMKEYWORDPATH";
+static   PSZ            pszEnvnameEpmPath        = "EPMPATH";
+
+static   PSZ            pszGlobalSection  = "GLOBAL";
+static   PSZ            pszColorsSection  =  "COLORS";
+static   PSZ            pszSymbolsSection = "SYMBOLS";
+
+static   PSZ            pszFileInfoListEaName = "NEPMD.FileListInfo";
+
+static   PSZ            pszKeywordNone    = "NONE:";
+
+// defines for strings used only once
+#define SEARCHMASK_HILITEFILES "%s\\%s\\*.hil"
+#define SEARCHMASK_TARGETFILES "%s.???"
+#define SEARCHMASK_MODEDIR     "%s\\nepmd\\mode"
+#define SEARCHMASK_GLOBALINI   "global.ini"
+#define SEARCHMASK_DEFAULTINI  "%s\\default.ini"
+#define SEARCHMASK_EPMKWDS     "epmkwds.%s"
+
+// ----------------------------------------------------------------------
 
 // some useful macros
 #define ALLOCATEMEMORYFILE(p,s)                      \
@@ -55,6 +88,9 @@ if (rc != NO_ERROR)                                  \
 
 #define FREEMEMORYFILE(p)   MmfFree( p)
 
+#define QUERYOPTINITVALUE(h,s,k,t,d) \
+InitQueryProfileString( h, s, k, d, t, sizeof( t));
+
 #define QUERYINITVALUE(h,s,k,t)                             \
 if (!InitQueryProfileString( h, s, k, NULL, t, sizeof( t))) \
    {                                                        \
@@ -63,13 +99,25 @@ if (!InitQueryProfileString( h, s, k, NULL, t, sizeof( t))) \
    }
 #define QUERYINITVALUESIZE(h,s,k) _queryInitValueSize( h, s, k)
 
-// structure vor an array of values
+// ----------------------------------------------------------------------
+
+#ifdef DEBUG
+#if DEBUG_DUMPARRAYDETAILS
+#define DUMPINITVALUEARRAY(p) _dumpInitValueArray(p)
+#define DPRINTF_ARRAY(p) DPRINTF(p)
+#else
+#define DUMPINITVALUEARRAY(p)
+#define DPRINTF_ARRAY(p)
+#endif
+#endif
+
+// structure for an array of values
+// used by _maintainInitValueArray and _dumpInitValueArray
 typedef struct _VALUEARRAY
      {
          ULONG          ulCount;
          ULONG          ulArraySize;
          PSZ            apszValue[ 1];
-
      } VALUEARRAY, *PVALUEARRAY;
 
 // ----------------------------------------------------------------------
@@ -82,14 +130,16 @@ static PSZ _stripblanks( PSZ string)
     while ((*p != 0) && (*p <= 32))
        { p++;}
     strcpy( string, p);
-    }
- if (*p != 0)
-    {
-    p += strlen(p) - 1;
-    while ((*p <= 32) && (p >= string))
+
+    p = string;
+    if (*p != 0)
        {
-       *p = 0;
-       p--;
+       p += strlen(p) - 1;
+       while ((*p <= 32) && (p >= string))
+          {
+          *p = 0;
+          p--;
+          }
        }
     }
 
@@ -119,7 +169,8 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-static APIRET _openInitFile( PHINIT phinit, PSZ pszSearchPathName, PSZ pszSearchMask, PSZ pszEpmMode)
+static APIRET _openInitFile( PHINIT phinit, PSZ pszSearchPathName, PSZ pszSearchMask, PSZ pszEpmMode,
+                             PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
          CHAR           szFile[ _MAX_PATH];
@@ -135,41 +186,18 @@ do
    if (rc != NO_ERROR)
       break;
 
-   } while (FALSE);
-
-return rc;
-}
-
-// -----------------------------------------------------------------------------
-
-static APIRET _openConfig( PHCONFIG phconfig)
-{
-         APIRET         rc = NO_ERROR;
-         CHAR           szInifile[ _MAX_PATH];
-         HCONFIG        hconfig;
-
-do
-   {
-   // check parm
-   if (!phconfig)
+   // hand over filename
+   if (pszBuffer)
       {
-      rc = ERROR_INVALID_PARAMETER;
-      break;
+      if (strlen( szFile) + 1 > ulBuflen)
+         {
+         rc = ERROR_BUFFER_OVERFLOW;
+         break;
+         }
+      strcpy( pszBuffer, szFile);
+      strlwr( pszBuffer);
       }
 
-   // determine name of INI
-   rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szInifile, sizeof( szInifile));
-   if (rc != NO_ERROR)
-      break;
-
-   // open profile
-   rc = OpenConfig( &hconfig, szInifile);
-   if (rc != NO_ERROR)
-      break;
-
-   // hand over result
-   *phconfig = hconfig;
-
    } while (FALSE);
 
 return rc;
@@ -177,26 +205,12 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-static APIRET _queryInitValueSize( HCONFIG hconfig, PSZ pszSection, PSZ pszKey)
+static APIRET _queryInitValueSize( HINIT hinit, PSZ pszSection, PSZ pszKey)
 {
          ULONG          ulDataLen = 0;
 
-InitQueryProfileSize( hconfig, pszSection, pszKey, &ulDataLen);
+InitQueryProfileSize( hinit, pszSection, pszKey, &ulDataLen);
 return ulDataLen;
-}
-
-// -----------------------------------------------------------------------------
-
-static APIRET _scanFilePath( PSZ pszSearchPath, PULONG pulFileCount,  PSZ pszBuffer,PULONG pulBuflen, PSZ pszSearchMask, ...)
-{
-         APIRET         rc = NO_ERROR;
-         PSZ            pszPath;
-do
-   {
-
-   } while (FALSE);
-
-return rc;
 }
 
 // -----------------------------------------------------------------------------
@@ -244,7 +258,7 @@ do
       }
 
    // create a strdup of the path, so that we can tokenize it
-   pszKeywordPath = getenv( "EPMKEYWORDPATH");
+   pszKeywordPath = getenv( pszEnvnameEpmKeywordpath);
    if (!pszKeywordPath)
       {
       rc = ERROR_ENVVAR_NOT_FOUND;
@@ -266,7 +280,7 @@ do
    while (pszKeywordDir)
       {
       // seatch all hilite files in that directory
-      sprintf( szSearchMask, "%s\\%s\\*.hil", pszKeywordDir, pszEpmMode);
+      sprintf( szSearchMask, SEARCHMASK_HILITEFILES, pszKeywordDir, pszEpmMode);
 
       // store a filenames
       hdir = HDIR_CREATE;
@@ -288,6 +302,7 @@ do
 //                ulListSize, _msize( pszTmp), ulListSize / _MAX_PATH, pszTmp));
          pszEntry = pszFileList + (ulFileCount * _MAX_PATH);
          strcpy( pszEntry, szFile);
+         strlwr( pszEntry );
          ulFileCount++;
          ulTotalSize += QueryFileSize( szFile);
 
@@ -369,8 +384,8 @@ do
    // read the key list
    QUERYINITVALUE( hinit, pszSection, NULL, szKeyList);
 
-// if (pva)
-//    DPRINTF(( "\nmaintaining symbols array at 0x%08x:\n", pva));
+   if (pva)
+      DPRINTF_ARRAY(( "\nmaintaining symbols array at 0x%08x:\n", pva));
 
    // count items and its size
    ulBuflen = sizeof( VALUEARRAY);
@@ -423,10 +438,10 @@ do
       while (*pszKey)
          {
          // can entry be found in old array ? if yes, mark it as deleted
-         ppszOldAnchor = bsearch( &pszKey, pva->apszValue, pva->ulCount, sizeof( PSZ), _compareValue);
+         ppszOldAnchor = (PVOID)lfind( (PSZ)&pszKey, (PSZ)pva->apszValue, (PUINT)&pva->ulCount, sizeof( PSZ), _compareValue);
          if (ppszOldAnchor)
             {
-//          DPRINTF(( "HILITE: delete entry %s\n", *ppszOldAnchor));
+            DPRINTF_ARRAY(( "HILITE: delete entry %s\n", *ppszOldAnchor));
             **ppszOldAnchor = 0;
             }
 
@@ -451,21 +466,21 @@ do
             continue;
             }
 
-//       DPRINTF(( "HILITE: transfer entry 0x%08x / 0x%08x: %s - %s\n",
-//                 pszOldEntry, NEXTSTR( pszOldEntry),
-//                 pszOldEntry, NEXTSTR( pszOldEntry)));
+         DPRINTF_ARRAY(( "HILITE: transfer entry 0x%08x / 0x%08x: %s - %s\n",
+                         pszOldEntry, NEXTSTR( pszOldEntry),
+                         pszOldEntry, NEXTSTR( pszOldEntry)));
 
          *ppszAnchor = pszEntry;
          strcpy( pszEntry, pszOldEntry);
 
-//       DPRINTF(( "HILITE:      new entry 0x%08x / 0x%08x: %s - ",
-//                 pszEntry, NEXTSTR( pszEntry), pszEntry));
+         DPRINTF_ARRAY(( "HILITE:      new entry 0x%08x / 0x%08x: %s - ",
+                         pszEntry, NEXTSTR( pszEntry), pszEntry));
 
          pszEntry = NEXTSTR( pszEntry);
          pszOldEntry = NEXTSTR( pszOldEntry);
 
          strcpy( pszEntry, pszOldEntry);
-//       DPRINTF(( "%s\n", pszEntry));
+         DPRINTF_ARRAY(( "%s\n", pszEntry));
 
          pszEntry = NEXTSTR( pszEntry);
          }
@@ -481,13 +496,13 @@ do
 
       strcpy( pszEntry, pszKey);
       QUERYINITVALUE( hinit, pszSection, pszKey, szKeyValue);
-//    DPRINTF(( "HILITE: add entry %s - %s\n", pszEntry, szKeyValue));
+      DPRINTF_ARRAY(( "HILITE: add entry %s - %s\n", pszEntry, szKeyValue));
       pszEntry = NEXTSTR( pszEntry);
 
       strcpy( pszEntry, szKeyValue);
       pszEntry = NEXTSTR( pszEntry);
 
-//    DPRINTF(( "HILITE: array: store %s=%s\n", pszKey, szKeyValue));
+      DPRINTF_ARRAY(( "HILITE: array: store %s=%s\n", pszKey, szKeyValue));
 
       // next key
       ppszAnchor++;
@@ -556,7 +571,7 @@ printf( "%u entries\n\n", i);
 // #############################################################################
 
 
-static APIRET _assembleKeywordFile(  PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBuflen)
+static APIRET _assembleKeywordFile( PSZ pszEpmMode, PBOOL pfReload, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
          ULONG          i;
@@ -569,28 +584,27 @@ static APIRET _assembleKeywordFile(  PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBufl
          PSZ           *ppszSymbolValue;
          CHAR           szValue[ _MAX_PATH];
          PSZ            pszModeCopy = NULL;
-         PSZ            pszKeywordPath = getenv( "EPMKEYWORDPATH");
 
          // ----------------------------------
 
          HINIT          hinitGlobals = NULLHANDLE;
+         CHAR           szInitGlobalFilename[ _MAX_PATH];
 
-static   PSZ            pszColorsSection = "COLORS";
-static   PSZ            pszSymbolsSection = "SYMBOLS";
          PVALUEARRAY    pvaColors = NULL;
          PVALUEARRAY    pvaSymbols = NULL;
 
          // ----------------------------------
 
          HINIT          hinitDefault = NULLHANDLE;
-static   PSZ            pszGlobalSection = "GLOBAL";
+         CHAR           szInitDefaultFilename[ _MAX_PATH];
+
          CHAR           szCharset[ _MAX_PATH];
          CHAR           szDefExtensions[ _MAX_PATH];
+         CHAR           szDefNames[ _MAX_PATH];
+         CHAR           szCommentChar[ 20];
          BOOL           fCaseSensitive = FALSE;
 
          // ----------------------------------
-
-         HCONFIG        hconfig = NULLHANDLE;
 
          CHAR           szKeywordFile[ _MAX_PATH];
          ULONG          ulKeywordFileDate;
@@ -602,21 +616,29 @@ static   PSZ            pszGlobalSection = "GLOBAL";
          ULONG          ulFileCount;
          ULONG          ulTotalSize;
 
+         PSZ            pszOldFileInfoList = NULL;
+
+         PSZ            pszFileInfoList = NULL;
+         ULONG          ulInfoListSize  = 0;
+static   PSZ            pszFileInfoMask = "%s %u %u\n";
+
          // ----------------------------------
 
          PSZ            pszSectionDelimiter = NULL;
+         PSZ            pszSectionDelimiteri = NULL;
          PSZ            pszSectionKeywords  = NULL;
          PSZ            pszSectionSpecial   = NULL;
          PSZ            pszSectionBreakChar = NULL;
          PSZ            pszSectionEndChar   = NULL;
 
          PSZ            pszCurrentDelimiter;
+         PSZ            pszCurrentDelimiteri;
          PSZ            pszCurrentKeywords;
          PSZ            pszCurrentSpecial;
          PSZ            pszCurrentBreakChar;
          PSZ            pszCurrentEndChar;
 
-static   PSZ            pszHeaderMask = "þ%s\r\n";  // take 'þ' character as comment in generated epmkwds files
+static   PSZ            pszHeaderMask = "\r\n%s%s\r\n";
 
          // ----------------------------------
          ULONG          ulCurrentFile;
@@ -624,6 +646,7 @@ static   PSZ            pszHeaderMask = "þ%s\r\n";  // take 'þ' character as com
          FILE          *pfile = NULL;
          ULONG          ulLineCount;
          CHAR           szLine[ 1024];
+         BOOL           fSectionStart;
          PSZ            pszLine;
          CHAR           szCurrentSection[ 64];
          PSZ            pszCurrentSectionColors;
@@ -646,6 +669,12 @@ static   PSZ            pszHeaderMask = "þ%s\r\n";  // take 'þ' character as com
          PSZ            pszStartStr;
          PSZ            pszStopStr;
          PSZ            pszBreakStr;
+         PSZ            pszStartPos;
+         PSZ            pszSymbolValue;
+         PSZ            pszColorValue1;
+         PSZ            pszColorValue2;
+         PSZ            pszInvalid;
+         ULONG          ulSelectIndex;
 
          ULONG          ulThisSectionIndex;
 
@@ -657,24 +686,35 @@ static   PSZ            pszHeaderMask = "þ%s\r\n";  // take 'þ' character as com
 
 do
    {
-   if (!pszKeywordPath)
-      {
-      rc = ERROR_ENVVAR_NOT_FOUND;
-      break;
-      }
-   if ((!pszEpmMode) ||
-       (!*pszEpmMode))
+   // check parms
+   if ((!pszEpmMode)  ||
+       (!*pszEpmMode) ||
+       (!pfReload)    ||
+       (!pszBuffer))
       {
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
+
+   // check env
+   pszTmpDir = getenv( "TMP");
+   if (!pszTmpDir)
+      {
+      rc = ERROR_ENVVAR_NOT_FOUND;
+      break;
+      }
+
+   // init target vars
+   *pfReload = TRUE;
+   memset( pszBuffer, 0, ulBuflen);
 
    // -----------------------------------------------
 
    // search and load values from INI files
 
    // - read global values
-   rc = _openInitFile( &hinitGlobals, "EPMKEYWORDPATH", "global.ini", NULL);
+   rc = _openInitFile( &hinitGlobals, pszEnvnameEpmKeywordpath, SEARCHMASK_GLOBALINI, NULL,
+                       szInitGlobalFilename, sizeof( szInitGlobalFilename));
    if (rc != NO_ERROR)
       break;
 
@@ -683,23 +723,27 @@ do
 
 
    // - read defaults of the mode
-   rc = _openInitFile( &hinitDefault, "EPMKEYWORDPATH", "%s\\default.ini", pszEpmMode);
+   rc = _openInitFile( &hinitDefault, pszEnvnameEpmKeywordpath, SEARCHMASK_DEFAULTINI, pszEpmMode,
+                       szInitDefaultFilename, sizeof( szInitDefaultFilename));
    if (rc != NO_ERROR)
       break;
 
-   QUERYINITVALUE( hinitDefault, pszGlobalSection, "CHARSET",       szCharset);
-   QUERYINITVALUE( hinitDefault, pszGlobalSection, "DEFEXTENSIONS", szDefExtensions);
-   QUERYINITVALUE( hinitDefault, pszGlobalSection, "CASESENSITIVE", szValue);
+      QUERYINITVALUE( hinitDefault, pszGlobalSection, "CHARSET",        szCharset);
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, "DEFEXTENSIONS",  szDefExtensions, "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, "DEFNAMES",       szDefNames, "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, "COMMENTCHAR",    szCommentChar, STR_KWDSCOMMENT);
+
+   QUERYINITVALUE( hinitDefault, pszGlobalSection, "CASESENSITIVE",  szValue);
    fCaseSensitive = atol( szValue);
 
    // -----------------------------------------------
 
-// _dumpInitValueArray( pvaSymbols);
+   DUMPINITVALUEARRAY( pvaSymbols);
 
    // add/replace with symbols from <mode>\global.ini
    pvaSymbols = _maintainInitValueArray( hinitDefault, pszSymbolsSection, pvaSymbols);
 
-// _dumpInitValueArray( pvaSymbols);
+   DUMPINITVALUEARRAY( pvaSymbols);
 
    // -----------------------------------------------
 
@@ -757,27 +801,19 @@ do
    pszModeCopy = strdup( pszEpmMode);
    strupr( pszModeCopy);
 
-   // open up repository
-   rc = _openConfig( &hconfig);
-   if (rc != NO_ERROR)
-      break;
-
    // get keywordfile
    strupr( pszEpmMode);
-   pszTmpDir = getenv( "TMP");
-   if (!pszTmpDir)
-      {
-      rc = ERROR_ENVVAR_NOT_FOUND;
-      break;
-      }
+
    // no keyword file yet, create a new one
    // for that create subdirectory below TMP
-   sprintf( szKeywordFile, "%s\\nepmd\\mode",  pszTmpDir);
+   sprintf( szKeywordFile, SEARCHMASK_MODEDIR,  pszTmpDir);
    rc = CreatePath( szKeywordFile);
    if ((rc != NO_ERROR) && (rc != ERROR_ACCESS_DENIED))
       break;
    sprintf( _EOS( szKeywordFile), "\\%s", pszEpmMode);
    strlwr( szKeywordFile);
+
+   // -----------------------------------------------
 
    // --- hand over filename already here
 
@@ -791,6 +827,7 @@ do
    // hand over result
    strcpy( pszBuffer, szKeywordFile);
 
+   // -----------------------------------------------
 
    // check for the file date - if not exists, will return -1,
    // then reset to zero to force a rebuild
@@ -798,28 +835,82 @@ do
    if (ulKeywordFileDate == - 1)
       ulKeywordFileDate  = 0;
 
-   // -----------------------------------------------
-
    // get the list of files
    ulFileCount = 0;
    rc = _getDefFileList( pszEpmMode, ulKeywordFileDate, &pszFileList, &ulFileCount, &ulTotalSize, &fOutdated);
    if (rc != NO_ERROR)
       break;
 
-   // if result file is not outdated, return with no error
+   // if result file is not outdated, check the file list
    if (!fOutdated)
-      break;
+      {
+      // check if file has an EA containing the old filelist
+      rc = QueryStringEa( szKeywordFile, pszFileInfoListEaName, NULL, &ulInfoListSize);
+      if (rc == ERROR_BUFFER_OVERFLOW)
+         {
+         pszOldFileInfoList = malloc( ulInfoListSize);
+         if (!pszOldFileInfoList)
+            {
+            rc = ERROR_NOT_ENOUGH_MEMORY;
+            break;
+            }
+         rc = QueryStringEa( szKeywordFile, pszFileInfoListEaName, pszOldFileInfoList, &ulInfoListSize);
+         if (rc != NO_ERROR)
+            break;
+         }
+      else
+         // EA not found, just proceed !
+         rc = NO_ERROR;
+      }
+
+   // generate info list
+   ulInfoListSize = ulFileCount * (_MAX_PATH + 32);
+   ALLOCATEMEMORYFILE( pszFileInfoList, ulInfoListSize);
+
+   // first of all add info of init files to file list
+   pszSourceFile = szInitGlobalFilename;
+   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+   pszSourceFile = szInitDefaultFilename;
+   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+
+   // loop thru all files
+   for (ulCurrentFile = 0, pszSourceFile = pszFileList;
+           ulCurrentFile < ulFileCount;
+           ulCurrentFile++, pszSourceFile += _MAX_PATH)
+      {
+      // add file to the info list
+      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+      }
+
+   // now check the file list, if old one is present
+   // if it is equal (including timestamps !)
+   // break with no error
+   if (pszOldFileInfoList)
+      {
+      if (!strcmp( pszOldFileInfoList, pszFileInfoList))
+         {
+         DPRINTF(( "HILITE: file has not changed!\n"
+                   "files used for last generation:\n"
+                   "-------------------------------\n"
+                   "%s\n", pszOldFileInfoList));
+
+         *pfReload = FALSE;
+         break;
+         }
+      }
 
    // -----------------------------------------------
 
    // open up in-memory files for the six sections
    ALLOCATEMEMORYFILE( pszSectionDelimiter, ulTotalSize);
+   ALLOCATEMEMORYFILE( pszSectionDelimiteri, ulTotalSize);
    ALLOCATEMEMORYFILE( pszSectionKeywords,  ulTotalSize * 2);
    ALLOCATEMEMORYFILE( pszSectionSpecial,   ulTotalSize);
    ALLOCATEMEMORYFILE( pszSectionBreakChar, ulTotalSize);
    ALLOCATEMEMORYFILE( pszSectionEndChar,   ulTotalSize);
 
    pszCurrentDelimiter = pszSectionDelimiter;
+   pszCurrentDelimiteri = pszSectionDelimiteri;
    pszCurrentKeywords  = pszSectionKeywords;
    pszCurrentSpecial   = pszSectionSpecial;
    pszCurrentBreakChar = pszSectionBreakChar;
@@ -830,7 +921,7 @@ do
    // loop thru all files
    for (ulCurrentFile = 0, pszSourceFile = pszFileList;
            ulCurrentFile < ulFileCount;
-           ulCurrentFile++, pszFileList += _MAX_PATH)
+           ulCurrentFile++, pszSourceFile += _MAX_PATH)
       {
 
       do
@@ -848,12 +939,16 @@ do
             // read line
             if (!fgets( szLine, sizeof( szLine),pfile))
                break;
+            pszLine = szLine;
             ulLineCount++;
 
             // skip comments - the comment char must be on the first column !
-            if ((*pszLine == CHAR_COMMENT) ||
+            if ((*pszLine == CHAR_HILCOMMENT) ||
                 (*pszLine == 0))
                continue;
+
+            // check for section start before stipping blanks !
+            fSectionStart = (*pszLine == CHAR_SECTION_START);
 
             // skip leading blanks anyway (also trailing newline)
             _stripblanks( pszLine);
@@ -863,7 +958,7 @@ do
                continue;
 
             // handle new section
-            if (*pszLine == CHAR_SECTION_START)
+            if (fSectionStart)
                {
                strcpy( pszLine, pszLine + 1);
                p = strchr( pszLine, CHAR_SECTION_END);
@@ -901,56 +996,112 @@ do
                continue;
 
             // tokenize line
-            pszStartStr = strtok( pszLine, " ");
-            pszStopStr  = strtok( NULL,    " ");
-            pszBreakStr = strtok( NULL,    " ");
-            p           = strtok( NULL,    " ");
-            if (p)
-               {
-               DPRINTF(( "HILITE: - error: skipping invalid line %u\n", ulLineCount));
-               continue;
-               }
+            pszStartStr    = NULL;
+            pszStopStr     = NULL;
+            pszBreakStr    = NULL;
+            pszStartPos    = NULL;
 
-            // change section index for this section to comment
-            // if stopstr is given and is no color symbol
-            fEntryColors = FALSE;
-            strcpy( szEntryColors, pszCurrentSectionColors);
-            if ((pszStopStr) &&
-                (ulSectionIndex != SECTION_COMMENT) &&
-                (ulSectionIndex != SECTION_LITERAL))
+            pszSymbolValue = NULL;
+            pszColorValue1 = NULL;
+            pszColorValue2 = NULL;
+            pszInvalid     = NULL;
+
+            pszStartStr = strtok( pszLine, " ");
+            pszLine     = strtok( NULL, " ");
+            while (pszLine)
                {
                do
                   {
-                  // replace symbol with color value
-                  p = _queryInitValue( pvaSymbols, pszStopStr);
+
+                  // ------------------------------------
+                  // check if keyword is a symbol
+                  p = _queryInitValue( pvaSymbols, pszLine);
                   if (p)
                      {
-                     strcpy( szEntryColors, p);
-                     fEntryColors = TRUE;
+                     if ((!pszSymbolValue) &&
+                         (!pszColorValue1) &&
+                         (!pszColorValue2))
+                        pszSymbolValue = p;
+                     else
+                        pszInvalid = pszLine;
+
                      break;
                      }
 
-                  // replace two color names with color values
-                  if (!pszBreakStr) // we need two color names
-                     break;
-                  p = _queryInitValue( pvaColors, pszStopStr);
-                  if (p)
-                     sprintf( szEntryColors, "%s ", p);
-                  else
-                     break;
-                  p = _queryInitValue( pvaColors, pszBreakStr);
+                  // ------------------------------------
+
+                  // check if keyword is a color
+                  p = _queryInitValue( pvaColors, pszLine);
                   if (p)
                      {
-                     strcat( szEntryColors, p);
-                     fEntryColors = TRUE;
+#if ALLOW_COLOR_VALUES
+                     if ((!pszColorValue1) && (!pszSymbolValue))
+                        pszColorValue1 = p;
+                     else if ((!pszColorValue2)  && (!pszSymbolValue))
+                        pszColorValue2 = p;
+                     else
+                        pszInvalid = pszLine;
+#else
+                     pszInvalid = pszLine;
+#endif
+                     break;
                      }
+
+                  // ------------------------------------
+
+                  // use comment char if special keyword is specified
+                  if (!strcmp( pszKeywordNone, pszLine))
+                     pszLine = szCommentChar;
+
+                  // store all other values
+                  if (!pszStopStr)
+                     pszStopStr = pszLine;
+                  else if (!pszBreakStr)
+                     pszBreakStr = pszLine;
+                  else if (!pszStartPos)
+                     pszStartPos = pszLine;
                   else
-                     strcpy( szEntryColors, pszCurrentSectionColors); // reset here
+                     pszInvalid = pszLine;
+
                   } while (FALSE);
+
+               if (pszInvalid)
+                  break;
+
+               // next one
+               pszLine = strtok( NULL, " ");
                }
 
+            // still linvalid line ?
+            if (pszInvalid)
+               {
+               DPRINTF(( "HILITE: error: skipping invalid line %u, ivalid token %s\n", ulLineCount, pszInvalid));
+               continue;
+               }
+
+
+            // check for color to be used
+            fEntryColors = FALSE;
+            if (pszSymbolValue)
+               {
+               strcpy( szEntryColors, pszSymbolValue);
+               fEntryColors = TRUE;
+               }
+            else if ((pszColorValue1) && (pszColorValue2))
+               {
+               sprintf( szEntryColors, "%s %s", pszColorValue1, pszColorValue2);
+               fEntryColors = TRUE;
+               }
+            else
+               strcpy( szEntryColors, pszCurrentSectionColors);
+
+            // if a stop character is still available, make it a DELIM/DELIMI entry
+            ulSelectIndex = ulSectionIndex;
+            if (pszStopStr)
+               ulSelectIndex = SECTION_COMMENT;
+
             // handle different sections
-            switch (ulSectionIndex)
+            switch (ulSelectIndex)
                {
                case SECTION_DEFAULT:
                   sprintf( pszCurrentKeywords, "%s %s\r\n", pszStartStr, szEntryColors);
@@ -959,15 +1110,25 @@ do
 
                case SECTION_COMMENT:
                case SECTION_LITERAL:
-                  sprintf( pszCurrentDelimiter, "%s %s",
+                  // if break string is specified, a definition will not work in the
+                  // DELIMI section, but only in the DELIM section ! maybe bug in EPM ?
+                  p = ((pszBreakStr) || (fCaseSensitive)) ?
+                         pszCurrentDelimiter : pszCurrentDelimiteri;
+
+                  sprintf( p, "%s %s",
                            pszStartStr, szEntryColors);
                   if (pszStopStr)
-                     sprintf( _EOS( pszCurrentDelimiter), " %s", pszStopStr);
+                     sprintf( _EOS( p), " %s", pszStopStr);
                   if (pszBreakStr)
-                     sprintf( _EOS( pszCurrentDelimiter), " %s", pszBreakStr);
-                  strcat( pszCurrentDelimiter, "\r\n");
-                  pszCurrentDelimiter = _EOS( pszCurrentDelimiter);
-                  pszCurrentKeywords = _EOS( pszCurrentKeywords);
+                     sprintf( _EOS( p), " %s", pszBreakStr);
+                  if (pszStartPos)
+                     sprintf( _EOS( p), " %s", pszStartPos);
+                  strcat( p, "\r\n");
+
+                  if ((pszBreakStr) || (fCaseSensitive))
+                     pszCurrentDelimiter = _EOS( pszCurrentDelimiter);
+                  else
+                     pszCurrentDelimiteri = _EOS( pszCurrentDelimiteri);
                   break;
 
                case SECTION_SPECIAL:
@@ -1006,17 +1167,17 @@ do
 
    // -----------------------------------------------
 
-   DPRINTF(( "HILITE: - assembling hilite file: %s\n", szKeywordFile));
 
    // determine the length
-   ulHiliteContentsLen = (pszCurrentDelimiter - pszSectionDelimiter) +
-                         (pszCurrentKeywords  - pszSectionKeywords)  +
-                         (pszCurrentSpecial   - pszSectionSpecial)   +
-                         (pszCurrentBreakChar - pszSectionBreakChar) +
-                         (pszCurrentEndChar   - pszSectionEndChar)   +
+   ulHiliteContentsLen = (pszCurrentDelimiter  - pszSectionDelimiter)  +
+                         (pszCurrentDelimiteri - pszSectionDelimiteri) +
+                         (pszCurrentKeywords   - pszSectionKeywords)   +
+                         (pszCurrentSpecial    - pszSectionSpecial)    +
+                         (pszCurrentBreakChar  - pszSectionBreakChar)  +
+                         (pszCurrentEndChar    - pszSectionEndChar)    +
                          (strlen( szCharset) + 32);
 
-   DPRINTF(( "- total len of all hilite data is: %u\n", ulHiliteContentsLen));
+   DPRINTF(( "HILITE: assembling %u bytes to hilite file: %s\n", ulHiliteContentsLen, szKeywordFile));
 
    rc = MmfAlloc( (PVOID*)&pszHiliteContents,
                   szKeywordFile,
@@ -1029,10 +1190,13 @@ do
 // DPRINTF(( "- allocated buffer at 0x%08x, len %u, end address 0x%08x\n",
 //           pszHiliteContents, ulHiliteContentsLen, pszHiliteContents + ulHiliteContentsLen));
 
+   // write one line with the comment char only
    pszCurrent = pszHiliteContents;
+   sprintf( pszCurrent, "%s\r\n", szCommentChar);
+   pszCurrent = _EOS( pszCurrent);
 
    // first of all write CHARSET
-   sprintf( pszCurrent, pszHeaderMask, "CHARSET");
+   sprintf( pszCurrent, pszHeaderMask, szCommentChar, "CHARSET");
 // DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
    pszCurrent = _EOS( pszCurrent);
    sprintf( pszCurrent, "%s\r\n", szCharset);
@@ -1041,16 +1205,25 @@ do
    // add all sections, if something in it
    if (pszCurrentDelimiter - pszSectionDelimiter)
       {
-      sprintf( pszCurrent, pszHeaderMask, (fCaseSensitive) ? "DELIM"    : "DELIMI");
+      sprintf( pszCurrent, pszHeaderMask, szCommentChar, "DELIM");
 //    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionDelimiter);
       pszCurrent = _EOS( pszCurrent);
       }
 
+   if (pszCurrentDelimiteri - pszSectionDelimiteri)
+      {
+      sprintf( pszCurrent, pszHeaderMask, szCommentChar, "DELIMI");
+//    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
+      pszCurrent = _EOS( pszCurrent);
+      strcpy( pszCurrent, pszSectionDelimiteri);
+      pszCurrent = _EOS( pszCurrent);
+      }
+
    if (pszCurrentKeywords  - pszSectionKeywords)
       {
-      sprintf( pszCurrent, pszHeaderMask, (fCaseSensitive) ? "KEYWORDS" : "INSENSITIVE");
+      sprintf( pszCurrent, pszHeaderMask, szCommentChar, (fCaseSensitive) ? "KEYWORDS" : "INSENSITIVE");
 //    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionKeywords);
@@ -1059,7 +1232,7 @@ do
 
    if (pszCurrentSpecial   - pszSectionSpecial)
       {
-      sprintf( pszCurrent,  pszHeaderMask, (fCaseSensitive) ? "SPECIAL"  : "SPECIALI");
+      sprintf( pszCurrent,  pszHeaderMask, szCommentChar, (fCaseSensitive) ? "SPECIAL"  : "SPECIALI");
 //    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionSpecial);
@@ -1068,7 +1241,7 @@ do
 
    if (pszCurrentBreakChar - pszSectionBreakChar)
       {
-      sprintf( pszCurrent,  pszHeaderMask, "BREAK");
+      sprintf( pszCurrent,  pszHeaderMask, szCommentChar, "BREAK");
 //    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionBreakChar);
@@ -1077,7 +1250,7 @@ do
 
    if (pszCurrentEndChar   - pszSectionEndChar)
       {
-      sprintf( pszCurrent,  pszHeaderMask, "ENDCHAR");
+      sprintf( pszCurrent,  pszHeaderMask, szCommentChar, "ENDCHAR");
 //    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionEndChar);
@@ -1094,6 +1267,17 @@ do
 // DPRINTF(( "-  update file, rc=%u\n", rc));
 
 
+   // close target file first so that we can write the EA
+   FREEMEMORYFILE( pszHiliteContents);
+   pszHiliteContents = NULL;
+
+   // add file infolist as extended attribute
+   rc = WriteStringEa( szKeywordFile, pszFileInfoListEaName, pszFileInfoList);
+   DPRINTF(( "\n"
+             "HILITE: used files for generation:\n"
+             "----------------------------------\n"
+             "%s\n", pszFileInfoList));
+
    } while (FALSE);
 
 // cleanup
@@ -1101,8 +1285,10 @@ do
 if (pvaColors)           free( pvaColors);
 if (pvaSymbols)          free( pvaSymbols);
 if (pszModeCopy)         free( pszModeCopy);
+if (pszOldFileInfoList)  free( pszOldFileInfoList);
 
 if (pszFileList)         FREEMEMORYFILE( pszFileList);
+if (pszFileInfoList)     FREEMEMORYFILE( pszFileInfoList);
 if (pszSectionDelimiter) FREEMEMORYFILE( pszSectionDelimiter);
 if (pszSectionKeywords)  FREEMEMORYFILE( pszSectionKeywords);
 if (pszSectionSpecial)   FREEMEMORYFILE( pszSectionSpecial);
@@ -1110,7 +1296,6 @@ if (pszSectionBreakChar) FREEMEMORYFILE( pszSectionBreakChar);
 if (pszSectionEndChar)   FREEMEMORYFILE( pszSectionEndChar);
 if (pszHiliteContents)   FREEMEMORYFILE( pszHiliteContents);
 
-if (hconfig) CloseConfig( hconfig);
 if (hinitDefault) InitCloseProfile( hinitDefault, FALSE);
 if (hinitGlobals) InitCloseProfile( hinitGlobals, FALSE);
 return rc;
@@ -1118,7 +1303,7 @@ return rc;
 
 // #############################################################################
 
-APIRET QueryHilightFile( PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBuflen)
+APIRET QueryHilightFile( PSZ pszEpmMode, PBOOL pfReload, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
          CHAR           szValue[ _MAX_PATH];
@@ -1134,6 +1319,7 @@ do
    // check parms
    if ((!pszEpmMode)   ||
        (!*pszEpmMode)  ||
+       (!pfReload)     ||
        (!pszBuffer))
       {
       rc = ERROR_INVALID_PARAMETER;
@@ -1141,13 +1327,15 @@ do
       }
 
    // search mode files
-   rc = _assembleKeywordFile( pszEpmMode, szValue, sizeof( szValue));
+   rc = _assembleKeywordFile( pszEpmMode, pfReload, szValue, sizeof( szValue));
    if (rc != NO_ERROR)
       {
       // if no mode infos available; conventional search
-      rc = _searchFile( "EPMPATH", szValue, sizeof( szValue), "epmkwds.%s", pszEpmMode);
+      rc = _searchFile( pszEnvnameEpmPath, szValue, sizeof( szValue), SEARCHMASK_EPMKWDS, pszEpmMode);
       if (rc != NO_ERROR)
          break;
+      // always do not reload this one (default EPM behaviour)
+      *pfReload = FALSE;
       }
 
    // check result buffer
@@ -1160,6 +1348,7 @@ do
    // hand over result
    strcpy( pszBuffer, szValue);
 
+   DPRINTF(( "HILITE: hilight file for mode \"%s\" is: %s\n", (pszEpmMode) ? pszEpmMode : "(null)", pszBuffer));
    } while (FALSE);
 
 return rc;
