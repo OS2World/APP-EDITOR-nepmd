@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2003
 *
-* $Id: epmchgpal.cmd,v 1.3 2003-12-12 20:26:04 aschn Exp $
+* $Id: epmchgpal.cmd,v 1.4 2005-04-03 21:05:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -627,8 +627,14 @@ FindLibPath:
    DllName = arg(1)
    DllFullName = ''
    BootDrive = GetBootDrive()
-   LibPathDirs = GetIniValue( BootDrive'\config.sys', '', 'LIBPATH')
-   rest = LibPathDirs
+   LibpathDirs = GetIniValue( BootDrive'\config.sys', '', 'LIBPATH')
+   BeginLibpathDirs = value( 'BEGINLIBPATH', , env)
+   EndLibpathDirs   = value( 'ENDLIBPATH', , env)
+   if BeginLibpathDirs > '' then
+      LibpathDirs = strip( BeginLibpathDirs, 'T', ';')';'LibpathDirs
+   if EndLibpathDirs > '' then
+      LibpathDirs = strip( LibpathDirs, 'T', ';')';'EndLibpathDirs
+   rest = LibpathDirs
    do while rest <> ''
       parse value rest with Dir';'rest
       next = stream( Dir'\'DllName, 'C', 'QUERY EXISTS')
