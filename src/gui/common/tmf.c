@@ -52,6 +52,7 @@ APIRET TmfGetMessage
          APIRET         rc = NO_ERROR;
          CHAR           szMessageFile[ _MAX_PATH];
          PBYTE          pbTableData = NULL;
+         BOOL           fFound = FALSE;
          PSZ            pszEntry;
          PSZ            pszEndOfEntry;
          ULONG          ulMessagePos;
@@ -115,14 +116,26 @@ do
       break;
 
    // search the name
-   pszEntry = strstr( pbTableData, pszMessageName);
-   if (!pszEntry)
+   pszEntry = pbTableData;
+   while (!fFound)
       {
-      rc = ERROR_MR_MID_NOT_FOUND;
-      break;
-      }
-   else
+      // search string
+      pszEntry = strstr( pszEntry, pszMessageName);
+      if (!pszEntry)
+         {
+         rc = ERROR_MR_MID_NOT_FOUND;
+         break;
+         }
+
+      // check that it really is the name
+      if (((pszEntry == pbTableData) ||
+           (*(pszEntry - 1) == '\n'))   &&
+           (*(pszEntry + strlen( pszMessageName)) == ' '))
+         fFound = TRUE;
+
+      // proceed to the entry data
       pszEntry += strlen( pszMessageName) + 1;
+      }
 
    // isolate entry
    pszEndOfEntry = strchr( pszEntry, '\n');
