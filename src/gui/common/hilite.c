@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.23 2002-10-21 11:47:40 cla Exp $
+* $Id: hilite.c,v 1.24 2002-10-24 15:20:53 cla Exp $
 *
 * ===========================================================================
 *
@@ -772,7 +772,10 @@ do
    // if no uptdate check, return filename if file exists
    if ((ulOptions && HILITE_NOOUTDATECHECK) &&
        (FileExists( szKeywordFile)))
+      {
+      rc = NO_ERROR;
       break;
+      }
 
    // -----------------------------------------------
 
