@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.8 2002-08-29 10:01:57 cla Exp $
+* $Id: esrcscan.cmd,v 1.9 2002-08-29 14:47:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -570,7 +570,7 @@ IPFLength: PROCEDURE
  RETURN Len - IpfLen;
 
 /* ========================================================================= */
-WriteSection: PROCEDURE EXPOSE (GlobalVars)
+WriteSection: PROCEDURE EXPOSE (GlobalVars) LogFile
  PARSE ARG FunctionsFile, ThisFunction, ThisId, ThisKey, ThisName, ThisSubtitle, Dimensions;
 
  CrLf = "0d0a"x;
@@ -584,13 +584,13 @@ WriteSection: PROCEDURE EXPOSE (GlobalVars)
  DO
     Level = 4;
     Panel = DocComment.ThisFunction.ThisKey;
-    PanelId = ThisId'_'ThisKey;
+    PanelId = TRANSLATE( ThisId'_'ThisKey);
  END;
  ELSE
  DO
     Level = 5;
     Panel = DocComment.ThisFunction.ThisKey.ThisName;
-    PanelId = ThisId'_'ThisKey'_'ThisName;
+    PanelId = TRANSLATE( ThisId'_'ThisKey'_'ThisName);
  END;
 
  IF (Panel \= '') THEN
@@ -604,9 +604,10 @@ WriteSection: PROCEDURE EXPOSE (GlobalVars)
                                   '.. .hide'CrLf||,
                                   '.');
     rcx = LINEOUT( FunctionsFile, Panel);
+    rcx = LINEOUT( Logfile, '[.'PanelId']');
  END;
  ELSE
-    SAY '  warning:' ThisFunction '-' ThisKey  'not set';
+    SAY '  warning:' ThisFunction '-' ThisKey ThisName 'not set';
  RETURN( 0);
 
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
@@ -623,6 +624,13 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
 
  FunctionsFile = OutDir'\functions.txt';
  rcx = SysFileDelete( FunctionsFile);
+
+ LogFile = OutDir'\functions.log';
+ rcx = SysFileDelete( LogFile);
+ rcx = LINEOUT( Logfile, '');
+ rcx = LINEOUT( Logfile, CMDNAME 'at' DATE('E') TIME());
+ rcx = LINEOUT( Logfile, COPIES( '-', 70));
+ rcx = LINEOUT( Logfile, '');
 
  /* ***** write function overview, sorted by categories ***************** */
 
@@ -652,11 +660,15 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
  Category._List = SortWordsInString( Category._List);
 
  /* sort functions in categories */
+ rcx = LINEOUT( Logfile, 'Categories found:');
+ rcx = LINEOUT( Logfile, '-----------------');
  WorkList = Category._List 'DIVERSE';
  DO WHILE (WorkList \= '')
     PARSE VAR WorkList ThisCategory WorkList;
     Category.ThisCategory = SortWordsInString( Category.ThisCategory);
+    rcx = LINEOUT( Logfile, '-' ThisCategory':' Category.ThisCategory);
  END;
+ rcx = LINEOUT( Logfile, '');
 
  /* create lists of categories to include - include DIVERSE only */
  /* if at least function is not categorized properly */
@@ -694,6 +706,10 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
 
     IF (fVerbose) THEN
        SAY '- processing' ThisFunction;
+    rcx = LINEOUT( Logfile, '');
+    rcx = LINEOUT( Logfile, ThisFunction);
+    rcx = LINEOUT( Logfile, COPIES( '-', LENGTH( ThisFunction)));
+
     ThisId = 'IDPNL_EFUNC_'TRANSLATE( ThisFunction);
     rcx = LINEOUT( FunctionsFile, Separator''CrLf||,
                                   '.3' ThisFunction''CrLf||,
@@ -795,7 +811,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
        DO WHILE (ParmList \= '')
           PARSE VAR ParmList ThisParm ParmList;
 
-          rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'PARM', ThisParm , 'Parameter' ThisParm, '0 0 100 50');
+          rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'PARM', ThisParm, 'Parameter' ThisParm, '0 0 100 50');
        END;
     END;
 
@@ -869,6 +885,10 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
     PARSE VAR  MissingFuncs ThisFunction MissingFuncs ;
     SAY MsgType  'missing any comment for:' ThisFunction;
  END;
+
+ /* close files */
+ rcx = STREAM( FunctionsFile, 'C', 'CLOSE');
+ rcx = STREAM( LogFile, 'C', 'CLOSE');
 
  /* tell about error*/
  IF ((fCommentError) & (MissingComment.0 > 0)) THEN
