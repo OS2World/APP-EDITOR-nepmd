@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: menu.e,v 1.3 2004-07-04 22:23:01 aschn Exp $
+* $Id: menu.e,v 1.4 2004-07-12 19:51:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -115,11 +115,11 @@ defexit
 
 ; ---------------------------------------------------------------------------
 ; List of available menus. Can be extended with
-;    call AddAVar( 'menulist', ' mymenu')
+;    call AddAVar( 'menulist', 'mymenu')
 ; or
 ;    'AddAVar menulist mymenu'
 definit
-   call SetAVar( 'menulist', ' newmenu stdmenu fevshmnu ovshmenu')  -- starts with the delimitter
+   call SetAVar( 'menulist', 'newmenu stdmenu fevshmnu ovshmenu')
 
 ; ---------------------------------------------------------------------------
 ; Syntax: ChangeMenu [<newmenuname>[.e]]
@@ -128,7 +128,7 @@ definit
 defc ChangeMenu
    universal defaultmenu
    universal nepmd_hini
-   MenuList = GetAVar('menulist')
+   MenuList = ' 'strip(GetAVar('menulist'))  -- ensure that list starts with a space as separator
    KeyPath = '\NEPMD\User\Menu\Name'
    CurMenu = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if CurMenu = '' then
