@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.7 2003-09-01 03:19:59 aschn Exp $
+* $Id: locate.e,v 1.8 2003-09-01 05:06:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,125 +19,142 @@
 *
 ****************************************************************************/
 
+definit
+   universal search_len
+   search_len = 5     -- Initialize to anything, to prevent possible "Invalid number argument"
+
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
 defc l, locate =  /* Note:  this DEFC also gets executed by the slash ('/') command. */
    universal default_search_options
-compile if defined(HIGHLIGHT_COLOR)
    universal search_len
-compile endif
    /* Insert default_search_options just before supplied options (if any)    */
    /* so the supplied options will take precedence.                          */
-   args=strip(arg(1),'L')
-compile if not defined(HIGHLIGHT_COLOR)
-   if default_search_options<>'' then
-compile endif
-      delim=substr(args,1,1)
-      p=pos(delim,args,2)
-      user_options=''
-      if p then
-         user_options=substr(args,p+1)
-         args=substr(args,1,p-1)
-      endif
-      if marktype() then
-         all=''
-      else           -- No mark, so override if default is M.
-         all='A'
-      endif
-compile if defined(HIGHLIGHT_COLOR)
-      search_len=length(args)-1   /***** added for hilite *****/
-compile endif
-      args=args|| delim || default_search_options || all || user_options
-compile if not defined(HIGHLIGHT_COLOR)
+   args = strip( arg(1), 'L' )
+   delim = substr( args, 1, 1 )
+   p = pos( delim, args, 2 )
+   user_options = ''
+   if p then
+      user_options = substr( args, p + 1 )
+      args = substr( args, 1, p - 1 )
    endif
-compile endif
+   if marktype() then
+      all=''
+   else           -- No mark, so override if default is M.
+      all='A'
+   endif
+   search_len = length(args) - 1   /***** added for hilite *****/
+   args = args''delim''default_search_options''all''user_options
    display -8
    'xcom l 'args
    display 8
-compile if defined(HIGHLIGHT_COLOR)
    call highlight_match(search_len)
-compile endif
    return
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
-defc c,change=
-   universal lastchangeargs, default_search_options
-compile if SETSTAY='?'
+defc c, change =
+   universal lastchangeargs, default_search_options  -- better use NEPMD.INI to make them global for all EPM threads
+compile if SETSTAY = '?'
    universal stay
 compile endif
-compile if defined(HIGHLIGHT_COLOR)
    universal search_len
-compile endif
 
-compile if SETSTAY
    call psave_pos(savepos)
-compile endif
-   /* Insert default_search_options just before supplied options (if any)    */
-   /* so the supplied options will take precedence.                          */
-   args=strip(arg(1),'L')  /* Delimiter = 1st char, ignoring leading spaces. */
-   user_options=''
-   if args<>'' then        /* If args blank, use lastchangeargs. */
-      if default_search_options='' then
-         lastchangeargs=args
+   -- Insert default_search_options just before supplied options (if any)
+   -- so the supplied options will take precedence.
+   if args <> '' then         -- If args not blank, set lastchangeargs.
+      delim = substr( args, 1, 1)  -- get 1st delimiter
+      p2 = pos( delim, args, 2)    -- check 2nd delimiter of 2 or 3
+      if p2 then
+         search_len = p2 - 2       -- for highlighting = length(searchstring)
       else
-         delim=substr(args,1,1)
-         p=pos(delim,args,2)   /* find last delimiter of 2 or 3 */
-         if p then
-compile if defined(HIGHLIGHT_COLOR)
-            search_len=p-2
-compile endif
-            p=pos(delim,args,p+1)   /* find last delimiter of 2 or 3 */
-            if p>0 then
-               user_options=substr(args,p+1)
-               args=substr(args,1,p-1)
-            endif
-         else
-            sayerror NO_REP__MSG
-         endif
-         if marktype() then
-            all=''
-         else           -- No mark, so override if default is M.
-            all='A'
-         endif
-         lastchangeargs=args || delim || default_search_options || all || user_options
+         sayerror NO_REP__MSG
+         return
       endif
+      parse value args with (delim)searchstring(delim)replacestring(delim)user_options
+
+      -- Build searchoptions. Just append evrything, the last option wins.
+      -- The code below cleans up the options.
+      searchoptions = translate(default_search_options''user_options)
+      if not marktype() then                -- if no text marked
+         searchoptions = searchoptions'A'   -- override a possible 'M' option
+      endif
+
+      -- Remove multiple and excluding options and spaces
+      ExcludeList = '+- FR BT AM EC GXW'    -- for every word in this list: every char excludes each other
+      -- Other options: '* K ^ N D'
+      rest = searchoptions
+      searchoptions = ''
+      do while rest <> ''
+         parse value rest with next 2 rest  -- parse 1 char of rest
+         -- Remove all spaces
+         if next = ' ' then
+            iterate
+         elseif pos( next, rest) = 0 then   -- if not found in rest
+            -- Find excluding options
+            ExcludeWrd = ''
+            do w = 1 to words(ExcludeList)
+               wrd = word( ExcludeList, w)
+               if pos( next, wrd) then
+                  ExcludeWrd = wrd          -- ExcludeWrd = word of ExcludeList where next belongs to
+                  leave
+               endif
+            enddo
+            if not verify( rest, ExcludeWrd, 'M') then  -- if rest doesn't contain chars of ExcludeWrd
+               searchoptions = searchoptions''next      -- append next
+            endif
+         endif
+      enddo
+;         call NepmdPmPrintf( 'strings = |'searchstring'|'replacestring'|, options = |'searchoptions'|, delim = |'delim'|')
+      lastchangeargs = delim''searchstring''delim''replacestring''delim''searchoptions
    endif
-   if verify(upcase(user_options),'M','M') then
-      call checkmark()
-      /* Put this line back in if you want the M choice to force */
-      /* the cursor to the start of the mark.                    */
-;;;   call pbegin_mark()  /* mark specified - make sure at top of mark */
-   endif
+
+;     /* Put this lines back in if you want the M choice to force */
+;     /* the cursor to the start of the mark.                    */
+;    if verify( upcase(user_options), 'M', 'M' ) then
+;       call checkmark()  -- ??? returns (0|1)
+;       call pbegin_mark()  /* mark specified - make sure at top of mark */
+;    endif
+
    display -8
+   -- Execute the change command with args from arg(1); if empty, with args from
+   -- the last change command. default_search_options are added.
    'xcom c 'lastchangeargs
    display 8
 
-compile if SETSTAY='?'
-   if stay then
+   if rc = 0 then  -- if found
+      -- Restore pos after change command if (SETSTAY = '?' & stay = 1) or SETSTAY = 1
+compile if SETSTAY = '?'
+      if stay then
 compile endif
 compile if SETSTAY
+         call prestore_pos(savepos)
+compile endif
+compile if SETSTAY = '?'
+      endif
+compile endif
+   else            -- if not found
       call prestore_pos(savepos)
-compile endif
-compile if SETSTAY='?'
    endif
-compile endif
+
    return
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDPROCS.E
 ; Highlight a "hit" after a Locate command or Repeat_find operation
-compile if defined(HIGHLIGHT_COLOR)
 defproc highlight_match(search_len)
-   if not rc then
+   if not rc then  -- if found; rc was set from last 'c'|'l'|repeat_find
       col = getpminfo(EPMINFO_SEARCHPOS)
-      circleit LOCATE_CIRCLE_STYLE, .line, col,
-         col+getpminfo(EPMINFO_LSLENGTH)-1,
-         LOCATE_CIRCLE_COLOR1, LOCATE_CIRCLE_COLOR2
+      circleit LOCATE_CIRCLE_STYLE,
+         .line,
+         col,
+         col + getpminfo(EPMINFO_LSLENGTH) - 1,
+         LOCATE_CIRCLE_COLOR1,
+         LOCATE_CIRCLE_COLOR2
 ;     refresh
    endif
    return
-compile endif
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
@@ -165,10 +182,10 @@ defc searchdlg
    if uparg='C' then
       'c'                             /* repeat last change */
    elseif uparg='F' then
+      display -8
       repeat_find
-compile if defined(HIGHLIGHT_COLOR)
+      display 8
       call highlight_match(search_len)
-compile endif
    else  -- The application will free the buffer allocated by this macro !!!
       call windowmessage(0,  getpminfo(APP_HANDLE),
                          5128,               -- EPM_POPCHANGEDLG
@@ -191,19 +208,19 @@ def c_v = 'GlobalFind'
 defc globalfind, gfind, globallocate, glocate, gl
    universal search_len
    -- Remember our current file so we don't search forever.
-   -- (Sometimes doesn't works.)
+   -- (Sometimes doesn't work.)
    getfileid StartFileID
 
    -- get current search direction
    getsearch cursearch
    parse value cursearch with . c_or_l search
-   delim = leftstr(search,1)
-   parse value cursearch with searchcmd (delim) searchstring (delim) searchoptions (delim)
+   delim = leftstr( search, 1 )
+   parse value cursearch with searchcmd (delim)searchstring(delim)searchoptions(delim)
    if searchoptions = '' then
-      parse value cursearch with searchcmd (delim) searchstring (delim) searchoptions
+      parse value cursearch with searchcmd (delim)searchstring(delim)searchoptions
    endif
    Minuspos = lastpos( '-', searchoptions )
-   Pluspos = lastpos( '+', searchoptions )
+   Pluspos  = lastpos( '+', searchoptions )
    if Minuspos > Pluspos then
       Foreward = 0
    else
@@ -211,12 +228,15 @@ defc globalfind, gfind, globallocate, glocate, gl
    endif
 
    -- First repeat-find in current file in case we don't have to move.
+   display -8
    repeat_find
+   display 8
    call highlight_match(search_len)
-   if rc=0 then
-      stop
+   if rc = 0 then  -- if found
+      --stop  -- better use return
+      return
    endif
-   fileid=StartFileID
+   fileid = StartFileID
    loop
       if Foreward = 1 then
          nextfile
@@ -240,15 +260,15 @@ defc globalfind, gfind, globallocate, glocate, gl
       endif
       display -8
       repeat_find
-      if rc = 1 then
+      display 8
+      if rc = 0 then  -- if found
          refresh
       endif
-      display 8
       call highlight_match(search_len)
       -- Flickers most of the times instead of letting the highlight circle stay
-      if rc=0 then
+      if rc = 0 then
          display -8
-         if fileid=StartFileID then
+         if fileid = StartFileID then
             sayerror "String only found in this file"
          else
             sayerror 0
@@ -259,7 +279,7 @@ defc globalfind, gfind, globallocate, glocate, gl
          -- no match in file - restore file location
          call prestore_pos(save_pos)
       endif
-      if fileid=StartFileID then
+      if fileid = StartFileID then
          display -8
          sayerror "String not found in any file of the ring"
          display 8
@@ -351,46 +371,63 @@ defc ToggleSearchDirection
 
 ; ---------------------------------------------------------------------------
 ; From EPMSMP\GLOBCHNG.E
-defc globchng, globalchange, gchange, gc
+defc globchng, globalchange, gchange, gc  -------------------------- old version follows therafter
+;                                --<-------------------------------  todo: rewrite
    universal lastchangeargs, default_search_options
-compile if SETSTAY='?'
+compile if SETSTAY = '?'
    universal stay
 compile endif
 
    /* Insert default_search_options just before supplied options (if any)    */
    /* so the supplied options will take precedence.                          */
-   user_options=''
-   change_args=strip(arg(1),'L')  /* Delimiter = 1st char, ignoring leading spaces. */
-   delim=substr(change_args,1,1)
-   p=pos(delim, change_args, 2)   /* find last delimiter of 2 or 3 */
+   user_options = ''
+   change_args = strip( arg(1), 'L' )  /* Delimiter = 1st char, ignoring leading spaces. */
+---- set args = lastchangeargs if no delim
+   if strip(change_args) = '' then
+      change_args = lastchangeargs
+   endif
+----
+   delim = substr( change_args, 1, 1 )
+   p = pos( delim, change_args, 2 )   /* find last delimiter of 2 or 3 */
    if p then
-      p=pos(delim, change_args, p+1)   /* find last delimiter of 2 or 3 */
-      if p>0 then
-         user_options=substr(change_args, p+1)
-         change_args=substr(change_args,1,p-1)
+      p = pos( delim, change_args, p + 1 )   /* find last delimiter of 2 or 3 */
+      if p > 0 then
+         user_options = substr( change_args, p + 1 )
+         change_args = substr(change_args, 1, p - 1 )
       endif
+----
+      search_len = p - 2
+----
    else
+----      sayerror '--test-- delim = |'delim'|, change_args = |'change_args'|, p = |'p'|'; stop
       sayerror NO_REP__MSG
       return
    endif
-   if verify(upcase(default_search_options),'M','M') then
+   if verify( upcase(default_search_options), 'M', 'M' ) then
       user_options = 'A'user_options
    endif
-   change_args=change_args || delim || default_search_options || user_options
+   change_args = change_args''delim''default_search_options''user_options
    backwards = 0
-   p1 = lastpos('-', default_search_options || user_options)
+   p1 = lastpos( '-', default_search_options''user_options )
    if p1 then
-      if p1 > lastpos('+', default_search_options || user_options) then
+      if p1 > lastpos( '+', default_search_options''user_options ) then
          backwards = 1
       endif
    endif
    rev = 0  -- changed to rev, because reverse is a statement
-   p1 = lastpos('R', upcase(default_search_options || user_options))
+   p1 = lastpos( 'R', upcase(default_search_options''user_options) )
    if p1 then
-      if p1 > lastpos('F', upcase(default_search_options || user_options)) then
+      if p1 > lastpos( 'F', upcase(default_search_options''user_options) ) then
          rev = 1
       endif
    endif
+----
+   p1 = pos('*', default_search_options''user_options)
+   if p1 = 0 then
+      change_args = change_args'*'
+   endif
+----
+
 
    /* Remember our current file so we don't search forever.  */
    getfileid StartFileID
@@ -416,7 +453,7 @@ compile endif
       display -8
       'xcom c' change_args
       display 8
-      if rc=0 then
+      if rc = 0 then
          change_count = change_count + 1
 compile if SETSTAY='?'
          if stay then
@@ -433,7 +470,7 @@ compile endif
       endif
       nextfile
       getfileid fileid
-      if fileid=StartFileID then
+      if fileid = StartFileID then
          leave
       endif
    endloop
@@ -447,6 +484,103 @@ compile endif
    display 8
    return
 
+; ; ---------------------------------------------------------------------------
+; ; From EPMSMP\GLOBCHNG.E
+; defc globchng, globalchange, gchange, gc
+;    universal lastchangeargs, default_search_options
+; compile if SETSTAY='?'
+;    universal stay
+; compile endif
+;
+;    /* Insert default_search_options just before supplied options (if any)    */
+;    /* so the supplied options will take precedence.                          */
+;    user_options=''
+;    change_args=strip(arg(1),'L')  /* Delimiter = 1st char, ignoring leading spaces. */
+;    delim=substr(change_args,1,1)
+;    p=pos(delim, change_args, 2)   /* find last delimiter of 2 or 3 */
+;    if p then
+;       p=pos(delim, change_args, p+1)   /* find last delimiter of 2 or 3 */
+;       if p>0 then
+;          user_options=substr(change_args, p+1)
+;          change_args=substr(change_args,1,p-1)
+;       endif
+;    else
+;       sayerror NO_REP__MSG
+;       return
+;    endif
+;    if verify(upcase(default_search_options),'M','M') then
+;       user_options = 'A'user_options
+;    endif
+;    change_args=change_args || delim || default_search_options || user_options
+;    backwards = 0
+;    p1 = lastpos('-', default_search_options || user_options)
+;    if p1 then
+;       if p1 > lastpos('+', default_search_options || user_options) then
+;          backwards = 1
+;       endif
+;    endif
+;    rev = 0  -- changed to rev, because reverse is a statement
+;    p1 = lastpos('R', upcase(default_search_options || user_options))
+;    if p1 then
+;       if p1 > lastpos('F', upcase(default_search_options || user_options)) then
+;          rev = 1
+;       endif
+;    endif
+;
+;    /* Remember our current file so we don't search forever.  */
+;    getfileid StartFileID
+;    change_count = 0
+;
+;    loop
+;       /* Include this refresh if you like to see each file as it's */
+;       /* searched.  Causes too much screen flashing for my taste,  */
+; ;;       refresh
+;
+;       /* Start from top of file, save current posn in case no match. */
+;       call psave_pos(save_pos)
+;       if backwards then
+;          bottom
+;          if rev then
+;             end_line
+;          else
+;             begin_line
+;          endif
+;       else
+;          0
+;       endif
+;       display -8
+;       'xcom c' change_args
+;       display 8
+;       if rc=0 then
+;          change_count = change_count + 1
+; compile if SETSTAY='?'
+;          if stay then
+; compile endif
+; compile if SETSTAY
+;             call prestore_pos(save_pos)
+; compile endif
+; compile if SETSTAY='?'
+;          endif
+; compile endif
+;       else
+;          /* no match in file - restore file location */
+;          call prestore_pos(save_pos)
+;       endif
+;       nextfile
+;       getfileid fileid
+;       if fileid=StartFileID then
+;          leave
+;       endif
+;    endloop
+;    if change_count = 1 then
+;       files = 'file.'
+;    else
+;       files = 'files.'
+;    endif
+;    display -8
+;    sayerror 'String changed in' change_count files
+;    display 8
+;    return
 ; ---------------------------------------------------------------------------
 ; From EPMSMP\GREP.E
 ; Call an external GREP utility and display the results in an EPM file.
@@ -550,5 +684,15 @@ defc GfcCurrentFile
    endif
    'start /f gfc 'GfcParams
    return
+
+; ---------------------------------------------------------------------------
+; Moved from STDKEYS.E
+def c_f=
+   universal search_len
+   sayerror 0
+   display -8
+   repeat_find       /* find next */
+   display 8
+   call highlight_match(search_len)
 
 
