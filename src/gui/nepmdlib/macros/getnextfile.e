@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.1 2002-08-22 12:13:38 cla Exp $
+* $Id: getnextfile.e,v 1.2 2002-08-22 12:20:01 cla Exp $
 *
 * ===========================================================================
 *
@@ -50,7 +50,7 @@ defc NepmdGetNextFile, GetNextFile =
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
 /*    Handle   = 0;                                              */
-/*    Filename = NepmdGetNextFile( Filemask, Handle);            */
+/*    Filename = NepmdGetNextFile( Filemask, adress(Handle));    */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdGetNextFile( PSZ   pszFilemask,         */
