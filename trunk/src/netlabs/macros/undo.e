@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: undo.e,v 1.3 2004-06-03 21:56:07 aschn Exp $
+* $Id: undo.e,v 1.4 2004-06-29 20:50:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -79,7 +79,6 @@ defc undo = undo
 ; From EPMSMP\UNDOREDO.E
 ; Changed:
 ;    o  beep disabled
-;    o  new keys defined
 
 /* The following code defines a couple of keys that let you step backwards
 and forwards through the undo states.  For the sake of example, I've
@@ -102,39 +101,13 @@ to stop recording changes on keystrokes, and it's not clear how you'd
 figure out when to turn it back on.
                                          by:  Larry Margolis  */
 
-define
-;   undo_key = 'c_U'  -- (Ctrl+U normally pops the Undo dialog)
-;   redo_key = 'c_R'  -- (Ctrl+R normally starts recording keystrokes)
-   undo_key = 'c_pgup'
-   redo_key = 'c_pgdn'
-
-;STDKEYS.E:
-;def c_pgup=
-;compile if WANT_SHIFT_MARKING
-;   call begin_shift(startline, startcol, shift_flag)
-;compile endif
-;   .cursory=1
-;compile if WANT_SHIFT_MARKING
-;   call end_shift(startline, startcol, shift_flag, 0)
-;compile endif
-;
-;def c_pgdn=
-;compile if WANT_SHIFT_MARKING
-;   call begin_shift(startline, startcol, shift_flag)
-;compile endif
-;   .cursory=.windowheight
-;compile if WANT_SHIFT_MARKING
-;   call end_shift(startline, startcol, shift_flag, 1)
-;compile endif
-
-
-def $undo_key =
-   'undo1'
-
 defc undo1 =
    universal current_undo_state
+   universal undo1_key
+   universal redo1_key
+   undo1_key = lastkey()  -- save current key
    lk = lastkey(1)
-   if lk = $undo_key | lk = $redo_key then  -- last key was undo or redo
+   if lk = undo1_key | lk = redo1_key then  -- last key was undo or redo
       parse value current_undo_state with presentstate oldeststate neweststate
       if presentstate > oldeststate then
          presentstate = presentstate - 1
@@ -160,13 +133,13 @@ defc undo1 =
    display 8
    return
 
-def $redo_key =
-   'redo1'
-
 defc redo1 =
    universal current_undo_state
+   universal undo1_key
+   universal redo1_key
+   redo1_key = lastkey()  -- save current key
    lk = lastkey(1)
-   if lk = $undo_key | lk = $redo_key then  -- last key was undo or redo
+   if lk = undo1_key | lk = redo1_key then  -- last key was undo or redo
       parse value current_undo_state with presentstate oldeststate neweststate
       if presentstate < neweststate then
          presentstate = presentstate + 1
