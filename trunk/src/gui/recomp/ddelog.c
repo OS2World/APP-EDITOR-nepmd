@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddelog.c,v 1.5 2002-06-09 17:31:40 cla Exp $
+* $Id: ddelog.c,v 1.6 2002-06-09 22:01:48 cla Exp $
 *
 * ===========================================================================
 *
@@ -348,6 +348,8 @@ static   PSZ            pszLineToken = ETPMLOG_LINETOKEN;
          ULONG          ulLineTokenLen = strlen( pszLineToken);
 static   PSZ            pszColToken = ETPMLOG_COLTOKEN;
          ULONG          ulColTokenLen = strlen( pszColToken);
+static   PSZ            pszNotFoundToken = ETPMLOG_NOTFOUNDTOKEN;
+         ULONG          ulNotFoundTokenLen = strlen( pszNotFoundToken);
 
 do
    {
@@ -426,6 +428,17 @@ do
          {
          // store column of error and break here - everything complete
          pei->ulCol = atol( &szLine[ ulColTokenLen]);
+         fDataComplete = TRUE;
+         break;
+         }
+      else if (!strncmp( szLine, pszNotFoundToken, ulNotFoundTokenLen))
+         {
+         // setup everything to load the compile log with an abort message
+         strcpy( pei->szErrorFile, pszLogFile);
+         pei->ulLine = 1;
+         pei->ulCol = 1;
+         WinLoadString( CURRENTHAB, hmodResource,  IDSTR_COMPILE_ABORTED, sizeof( szMsgSuccess), szMsgSuccess);
+         sprintf( pei->szErrorMsg, "%s: %s", __APPNAME__, szMsgSuccess);
          fDataComplete = TRUE;
          break;
          }

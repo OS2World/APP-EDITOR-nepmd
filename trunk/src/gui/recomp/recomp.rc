@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.rc,v 1.2 2002-06-09 17:31:40 cla Exp $
+* $Id: recomp.rc,v 1.3 2002-06-09 22:01:48 cla Exp $
 *
 * ===========================================================================
 *
@@ -55,6 +55,7 @@ BEGIN
     IDSTR_INVALID_PARM                           IDT_IDSTR_INVALID_PARM
     IDSTR_START_NOT_SPECIFIED                    IDT_IDSTR_START_NOT_SPECIFIED
     IDSTR_COMPILE_SUCCESSFUL                     IDT_IDSTR_COMPILE_SUCCESSFUL
+    IDSTR_COMPILE_ABORTED                        IDT_IDSTR_COMPILE_ABORTED
     IDSTR_HELP_HEAD                              IDT_IDSTR_HELP_HEAD
     IDSTR_HELP_1                                 IDT_IDSTR_HELP_1
     IDSTR_HELP_2                                 IDT_IDSTR_HELP_2
