@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.19 2004-07-02 08:13:16 aschn Exp $
+* $Id: stdcnf.e,v 1.20 2004-07-03 23:07:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1583,10 +1583,11 @@ compile endif
 ; compile endif
 ;compile endif
 
-compile if TOGGLE_ESCAPE
+;compile if TOGGLE_ESCAPE
    --escape_key = 0  -- changed by aschn
+   -- Now forever enabled
    escape_key = 1
-compile endif
+;compile endif
 ;compile if TOGGLE_TAB
 ; will be overwritten later
    tab_key = 0
