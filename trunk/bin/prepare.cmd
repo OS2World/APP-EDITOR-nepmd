@@ -15,7 +15,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.3 2002-04-16 15:13:23 cla Exp $
+: $Id: prepare.cmd,v 1.4 2002-04-16 15:15:53 cla Exp $
 :
 : ===========================================================================
 :
@@ -82,22 +82,22 @@
  SET TARGET=%UNZIPPEDDIR%\EPMAPP
  %UNZ% %UNZIPPEDDIR%\epmapp             %UNZIPPEDDIR%\EPMAPP\BIN               >>%LOGFILE% 2>&1
 
- DEL %TARGET%\BIN\README.EPM                                                   >NUL 2>&1
- DEL %TARGET%\BIN\TTITALIC.BMP                                                 >NUL 2>&1
- DEL %TARGET%\BIN\EPMHELP.QHL                                                  >NUL 2>&1
+ DEL %TARGET%\BIN\README.EPM                                                   >>%LOGFILE% 2>&1
+ DEL %TARGET%\BIN\TTITALIC.BMP                                                 >>%LOGFILE% 2>&1
+ DEL %TARGET%\BIN\EPMHELP.QHL                                                  >>%LOGFILE% 2>&1
 
- MD %TARGET%\BIN\BMP                                                           >NUL 2>&1
- %MOV% %TARGET%\BIN\*.BMP %TARGET%\BIN\BMP                                     >NUL 2>&1
+ MD %TARGET%\BIN\BMP                                                           >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.BMP %TARGET%\BIN\BMP                                     >>%LOGFILE% 2>&1
 
- MD %TARGET%\BIN\KEYWORDS                                                      >NUL 2>&1
- %MOV% %TARGET%\BIN\EPMKWDS.* %TARGET%\BIN\KEYWORDS                            >NUL 2>&1
+ MD %TARGET%\BIN\KEYWORDS                                                      >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\EPMKWDS.* %TARGET%\BIN\KEYWORDS                            >>%LOGFILE% 2>&1
 
- MD %TARGET%\BIN\EX                                                            >NUL 2>&1
- %MOV% %TARGET%\BIN\*.EX        %TARGET%\BIN\EX                                >NUL 2>&1
- %MOV% %TARGET%\BIN\ACTIONS.LST %TARGET%\BIN\EX                                >NUL 2>&1
+ MD %TARGET%\BIN\EX                                                            >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.EX        %TARGET%\BIN\EX                                >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\ACTIONS.LST %TARGET%\BIN\EX                                >>%LOGFILE% 2>&1
 
- MD %TARGET%\BIN\BAR                                                           >NUL 2>&1
- %MOV% %TARGET%\BIN\*.BAR %TARGET%\BIN\BAR                                     >NUL 2>&1
+ MD %TARGET%\BIN\BAR                                                           >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.BAR %TARGET%\BIN\BAR                                     >>%LOGFILE% 2>&1
 
 : --- unpack further main application package components
 
@@ -110,23 +110,23 @@
 
  SET TARGET=%UNZIPPEDDIR%\EPMSPCH
  %UNZ% %UNZIPPEDDIR%\epmspch   %TARGET%\BIN                                    >>%LOGFILE% 2>&1
- DEL %TARGET%\BIN\README.TXT                                                   >NUL 2>&1
+ DEL %TARGET%\BIN\README.TXT                                                   >>%LOGFILE% 2>&1
 
- MD %TARGET%\DLL                                                               >NUL 2>&1
- %MOV% %TARGET%\BIN\*.DLL %TARGET%\DLL                                         >NUL 2>&1
+ MD %TARGET%\DLL                                                               >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.DLL %TARGET%\DLL                                         >>%LOGFILE% 2>&1
 
- MD %TARGET%\BIN\MACROS                                                        >NUL 2>&1
- %MOV% %TARGET%\BIN\*.E   %TARGET%\BIN\MACROS                                  >NUL 2>&1
+ MD %TARGET%\BIN\MACROS                                                        >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.E   %TARGET%\BIN\MACROS                                  >>%LOGFILE% 2>&1
 
- DEL %TARGET%\BIN\*.551
- MD %TARGET%\BIN\EX                                                            >NUL 2>&1
- %MOV% %TARGET%\BIN\*.603 %TARGET%\BIN\EX\*.EX                                 >NUL 2>&1
+ DEL %TARGET%\BIN\*.551                                                        >>%LOGFILE% 2>&1
+ MD %TARGET%\BIN\EX                                                            >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.603 %TARGET%\BIN\EX\*.EX                                 >>%LOGFILE% 2>&1
 
- MD %TARGET%\BIN\BMP                                                           >NUL 2>&1
- %MOV% %TARGET%\BIN\*.BMP %TARGET%\BIN\BMP                                     >NUL 2>&1
+ MD %TARGET%\BIN\BMP                                                           >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.BMP %TARGET%\BIN\BMP                                     >>%LOGFILE% 2>&1
 
- MD %TARGET%\BIN\NDX                                                           >NUL 2>&1
- %MOV% %TARGET%\BIN\*.NDX %TARGET%\BIN\NDX                                     >NUL 2>&1
+ MD %TARGET%\BIN\NDX                                                           >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.NDX %TARGET%\BIN\NDX                                     >>%LOGFILE% 2>&1
 
 : --- unpack macro packages and distribute to subdirectories
 
