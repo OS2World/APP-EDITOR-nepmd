@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.10 2002-09-12 15:25:08 cla Exp $
+# $Id: makefile,v 1.11 2002-09-22 13:20:16 cla Exp $
 #
 # ===========================================================================
 #
@@ -32,7 +32,8 @@ OBJS= \
  $(BINDIR)\tmf.obj\
  $(BINDIR)\instval.obj\
  $(BINDIR)\module.obj\
- $(BINDIR)\libreg.obj
+ $(BINDIR)\libreg.obj\
+ $(BINDIR)\hilite.obj
 
 MT=1
 
