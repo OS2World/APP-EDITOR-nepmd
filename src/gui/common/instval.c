@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.7 2002-09-20 13:45:57 cla Exp $
+* $Id: instval.c,v 1.8 2002-09-20 14:49:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -33,6 +33,7 @@
 #include "macros.h"
 #include "nepmd.h"
 #include "module.h"
+#include "tmf.h"
 #include "instval.h"
 
 // -----------------------------------------------------------------------------
@@ -171,6 +172,42 @@ do
    } while (FALSE);
 
 return rc;
+}
 
+// -----------------------------------------------------------------------------
+
+APIRET GetTextMessage
+         (
+         PCHAR     *pTable,
+         ULONG      cTable,
+         PBYTE      pbBuffer,
+         ULONG      cbBuffer,
+         PSZ        pszMessageName,
+         PULONG     pcbMsg
+         )
+{
+         APIRET         rc = NO_ERROR;
+static   BOOL           fInitialized = FALSE;
+static   CHAR           szMessageFile[ _MAX_PATH];
+
+
+do
+   {
+   // get name of messagefile once
+   if (!fInitialized)
+      {
+      // query messagefile
+      rc = QueryInstValue( NEPMD_INSTVALUE_MESSAGE, szMessageFile, sizeof( szMessageFile));
+      if (rc != NO_ERROR)
+         break;
+      fInitialized = TRUE;
+      }
+
+   // make call to fetch message 
+   rc = TmfGetMessage( pTable, cTable, pbBuffer, cbBuffer, pszMessageName, szMessageFile, pcbMsg); 
+
+   } while (FALSE);
+
+return rc;
 }
 
