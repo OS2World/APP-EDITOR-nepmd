@@ -8,7 +8,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: qq.cmd,v 1.2 2002-10-01 14:36:39 cla Exp $
+: $Id: qq.cmd,v 1.3 2002-10-18 19:06:56 cla Exp $
 :
 : ===========================================================================
 :
@@ -23,6 +23,6 @@
 :
 : **************************************************************************/
  call env.cmd
-:SET EPMKEYWORDPATH=o:\NEPMD\myepm\keywords;o:\NEPMD\netlabs\keywords;o:\NEPMD\epmbbs\keywords;
+:SET EPMMODEPATH=o:\NEPMD\myepm\mode;o:\NEPMD\netlabs\mode;
  call make
  if not errorlevel 1 ..\..\..\debug\test.exe %TESTCASE% %1 %2 %3 %4 %5

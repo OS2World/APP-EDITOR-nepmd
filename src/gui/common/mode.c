@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.c,v 1.5 2002-10-18 16:12:57 cla Exp $
+* $Id: mode.c,v 1.6 2002-10-18 19:06:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -39,8 +39,8 @@
 #include "file.h"
 
 // global string vars
-static   PSZ            pszEnvnameEpmKeywordpath = "EPMKEYWORDPATH";
-static   PSZ            pszGlobalSection  = "GLOBAL";
+static   PSZ            pszEnvnameEpmModepath = "EPMMODEPATH";
+static   PSZ            pszGlobalSection      = "GLOBAL";
 
 // defines for strings used only once
 #define SEARCHMASK_MODEDIR     "%s\\*"
@@ -357,7 +357,7 @@ do
    memset( pmi, 0, ulBuflen);
 
    // search default.ini
-   rc = _searchFile( pszEnvnameEpmKeywordpath, szIniFile, sizeof( szIniFile),
+   rc = _searchFile( pszEnvnameEpmModepath, szIniFile, sizeof( szIniFile),
                      SEARCHMASK_DEFAULTINI, pszMode);
    if (rc != NO_ERROR)
       break;
@@ -372,7 +372,7 @@ do
    InitCloseProfile( hinit, FALSE);
 
    // now read custom details - ignore all errors, since that all is optional
-   if (_searchFile( pszEnvnameEpmKeywordpath, szIniFile,
+   if (_searchFile( pszEnvnameEpmModepath, szIniFile,
                     sizeof( szIniFile), SEARCHMASK_CUSTOMINI,  pszMode) == NO_ERROR)
       {
       if (InitOpenProfile( szIniFile, &hinit, INIT_OPEN_READONLY, 0, NULL) == NO_ERROR)
@@ -550,7 +550,7 @@ do
       // search default file just to make sure that mode definition exists !
       if (pszExtMode)
          {
-         rc = _searchFile( pszEnvnameEpmKeywordpath, szIniFile,
+         rc = _searchFile( pszEnvnameEpmModepath, szIniFile,
                           sizeof( szIniFile), SEARCHMASK_DEFAULTINI,
                           pszExtMode);
          if (rc != NO_ERROR)
@@ -569,7 +569,7 @@ do
    if (!pszExtMode)
       {
       // create a strdup of the path, so that we can tokenize it
-      pszKeywordPath = getenv( pszEnvnameEpmKeywordpath);
+      pszKeywordPath = getenv( pszEnvnameEpmModepath);
       if (!pszKeywordPath)
          {
          rc = ERROR_ENVVAR_NOT_FOUND;
