@@ -36,7 +36,7 @@
  *           @@<funcname>@PARM@<parm_name>
  *           @@<funcname>@RETURNS
  *           @@<funcname>@REMARKS
- *        where parm_type is one of "in out inout".
+ *           @@<funcname>@TESTCASE
  *
  *        Each section is started with the keyword at column one in a line and
  *        ended by the next section or a simple @@ at column 1 in a following line.
@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.9 2002-08-29 14:47:37 cla Exp $
+* $Id: esrcscan.cmd,v 1.10 2002-09-07 13:17:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -134,7 +134,7 @@
  DataType._List     = '';
 
  DocComment.        = '';
- DocComment._ValidKeys = 'PROTOTYPE CATEGORY SYNTAX PARM EXAMPLE RETURNS REMARKS';
+ DocComment._ValidKeys = 'PROTOTYPE CATEGORY SYNTAX PARM EXAMPLE RETURNS REMARKS TESTCASE';
  DocComment._FunctionList = '';
 
  MissingComment.    = ''
@@ -825,12 +825,17 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
     IF (DocComment.ThisFunction.ThisKey \= '') THEN
        rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'EXAMPLE', '', 'Example Code');
 
-
-    /* ---------------------- optional remakrs panel ----------------------- */
+    /* ---------------------- optional remarks panel ----------------------- */
 
     ThisKey = 'REMARKS';
     IF (DocComment.ThisFunction.ThisKey \= '') THEN
        rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'REMARKS', '', 'Remarks');
+
+    /* ---------------------- optional remarks panel ----------------------- */
+
+    ThisKey = 'TESTCASE';
+    IF (DocComment.ThisFunction.ThisKey \= '') THEN
+       rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'TESTCASE', '', 'Testcase');
 
     /* ---------------------- related panel, where appropriate ------------- */
 
