@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: details.php,v 1.4 2002-07-18 21:59:02 cla Exp $
+* $Id: details.php,v 1.5 2002-07-19 14:07:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -27,8 +27,8 @@
 <body text="#000000" bgcolor=#FFFFFF link=#CC6633 vlink=#993300 alink=#6666CC>
 
 <?
-
 // load file
+$file = $_GET[ "file"];
 if ($file != "")
    {
    // read database
@@ -44,29 +44,36 @@ if ($file != "")
    list( , $modified)  = each( $aentry);
    list( , $details)   = each( $aentry);
 
-   echo "<br>";
-   echo "<table width=70% border=0>";
+   echo "<table width=90% border=0 cellpadding=1 cellspacing=1>";
    echo "<tr>";
-   echo "<td bgcolor=#dddddd><font size=+1><b>".$title."</b></font></td>";
-   echo "<td width=50 align=right bgcolor=#dddddd><a href=\"edit.php?file=".$file."\"><img src=\"edit.gif\" border=0></a></td>";
+   echo "<td bgcolor=#dddddd>";
+   echo $title;
+   echo "</td><td bgcolor=#dddddd width=50>";
+   echo "<a href=\"edit.php?file=".$file."\"><img src=\"edit.gif\" border=0></a>";
+   echo "</td>";
    echo "</tr>";
    echo "</table>";
-   echo "<table width=70% border=0>";
+   echo "<table width=90% border=0 cellpadding=1 cellspacing=1>";
    echo "<tr>";
-   echo "<td width=25% bgcolor=#dddddd >category</td>";
-   echo "<td width=10% bgcolor=#dddddd >prio</td>";
-   echo "<td width=15% bgcolor=#dddddd >status</td>";
-   echo "<td width=50% bgcolor=#dddddd >last modified</td>";
+   echo "<td width=10% bgcolor=#dddddd ><font size=-1>category</td>";
+   echo "<td width=03% bgcolor=#dddddd ><font size=-1>prio</td>";
+   echo "<td width=10% bgcolor=#dddddd ><font size=-1>status</td>";
+   echo "<td width=18% bgcolor=#dddddd ><font size=-1>last modified</td>";
+   echo "<td width=07% bgcolor=#dddddd ><font size=-1>file</td>";
+   echo "<td width=57% bgcolor=#dddddd ><font size=-1>affected files</td>";
    echo "</tr>";
    echo "<tr>";
-   echo "<td>".$category."</b></td>";
-   echo "<td>".$prio."</b></td>";
-   echo "<td>".$status."</b></td>";
-   echo "<td>".$modified."</b></td>";
-   echo "</tr>";
-   echo "<tr>";
-   echo "<td bgcolor=#dddddd >files:</td>";
-   echo "<td bgcolor=#dddddd colspan=3>".$filelist."</b></td>";
+   echo "<td valign=top><font size=-1>".$category."</font></td>";
+   echo "<td valign=top align=center><font size=-1>".$prio."</font></td>";
+   echo "<td valign=top><font size=-1>".$status."</font></td>";
+   echo "<td valign=top><font size=-1>".$modified."</font></td>";
+   echo "<td valign=top><font size=-1>".basename($file)."</font></td>";
+   echo "<td valign=top><font size=-1>";
+   if (strlen( trim( $filelist)) == 0)
+      echo "- none -";
+   else
+      echo $filelist;
+   echo "</font></td>";
    echo "</tr>";
    echo "</table>";
 
@@ -77,4 +84,5 @@ if ($file != "")
    }
 
 ?>
+</body>
 </html>
