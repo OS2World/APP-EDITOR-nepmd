@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.9 2002-10-21 11:55:38 cla Exp $
+* $Id: load.e,v 1.10 2002-11-02 22:46:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -59,8 +59,20 @@ compile endif
    .margins  = vDEFAULT_MARGINS
    .autosave = vDEFAULT_AUTOSAVE
 
-   if .visible then  -- process following only if file is visible
-                     -- to avoid showing i.e. 'actlist' and '.HELPFILE' files
+   Filename = .filename
+   call NepmdInitMode( Filename )
+
+   if not .visible then  -- process following only if file is visible
+      return             -- to avoid showing i.e. 'actlist' and '.HELPFILE' files
+   endif
+
+   Filemode = NepmdGetMode( Filename )
+   CheckFlag = NepmdGetHiliteCheckFlag( Filemode )
+
+   -- Process all mode dependent settings
+   if Filemode <> '' then
+      call NepmdProcessMode( Filemode, CheckFlag)
+   endif  -- if Filemode <> ''
 
 compile if WANT_LONGNAMES
  compile if WANT_LONGNAMES='SWITCH'
@@ -101,9 +113,7 @@ compile if NEPMD_RESTORE_POS_FROM_EA
       endif
 compile endif
 
-   endif  -- .visible
 
--- this is a leftover ov the old code to activate syntax highlighting
 compile if INCLUDE_BMS_SUPPORT
      if isadefproc('BMS_defload_exit') then
         call BMS_defload_exit()
@@ -122,4 +132,6 @@ compile endif
          'rx' defload_profile_name arg(1)
       endif
    endif
+
 -- sayerror 'DEFLOAD occurred for file '.filename'.'  -- for testing
+
