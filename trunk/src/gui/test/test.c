@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.14 2002-09-13 19:35:57 cla Exp $
+* $Id: test.c,v 1.15 2002-09-13 19:45:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -185,8 +185,8 @@ do
             break;
 
          // write complete new kyes
-         PROCESSVALUE( "\\NEPMD\\Testcases\\MyContainer\\MyKey",       "My first value is this !");
          PROCESSVALUE( "\\NEPMD\\Testcases\\My2ndContainer\\MyKey",    "My second value is this !");
+         PROCESSVALUE( "\\NEPMD\\Testcases\\MyContainer\\MyKey",       "My first value is this !");
          PROCESSVALUE( "\\NEPMD\\Testcases\\My3rdContainer\\My3rdKey", "My third value is this !");
          PROCESSVALUE( "\\NEPMD\\Testcases2\\2ndcase",                 "this is a different case");
 
