@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fileexists.e,v 1.3 2002-09-02 14:59:27 cla Exp $
+* $Id: fileexists.e,v 1.4 2002-09-02 19:48:23 cla Exp $
 *
 * ===========================================================================
 *
@@ -74,7 +74,7 @@ defc NepmdFileExists, FileExists =
 /*    fResult = NepmdFileExists( filename);                      */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdFileExists( PSZ pszFilename);           */
+/*  BOOL EXPENTRY NepmdFileExists( PSZ pszFilename);             */
 /*                                                               */
 /* ------------------------------------------------------------- */
 

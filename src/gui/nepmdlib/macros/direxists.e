@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: direxists.e,v 1.2 2002-09-02 14:59:26 cla Exp $
+* $Id: direxists.e,v 1.3 2002-09-02 19:48:23 cla Exp $
 *
 * ===========================================================================
 *
@@ -68,7 +68,7 @@ defc NepmdDirExists, DirExists =
 /*    fResult = NepmdDirExists( filename);                       */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdDirExists( PSZ pszDirname);             */
+/*  BOOL EXPENTRY NepmdDirExists( PSZ pszDirname);               */
 /*                                                               */
 /* ------------------------------------------------------------- */
 
