@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: text.hil,v 1.1 2002-10-18 18:36:44 cla Exp $
+; $Id: text.hil,v 1.2 2003-12-12 18:54:44 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -25,6 +25,42 @@
 ;
 ; **************************************************************************/
 
+; Start   End     Escape     Start
+; string  string  character  position
+[QUOTE1]
+>         NONE:   NONE:       1
+[QUOTE2]
+>>        NONE:   NONE:       1
+[QUOTE3]
+>>>       NONE:   NONE:       1
+[QUOTE4]
+>>>>      NONE:   NONE:       1
+[QUOTE5]
+>>>>>     NONE:   NONE:       1
+[QUOTE6]
+>>>>>>    NONE:   NONE:       1
+; Bug in EPM's hiliting:
+; Only the last 2 levels are hilited, not mattering which char follows.
+; For all lower levels: the char after the last '>' must be a space or
+; a number, otherwise no hiliting.
+
+[URL]
+; Start   End     Escape     Start
+; string  string  character  position
+  http://   NONE:
+  https://  NONE:
+  ftp://    NONE:
+  mailto:   NONE:
+  www.      NONE:
+  ftp.      NONE:
+
+[KEYWORD]
+; Start   End     Escape     Start
+; string  string  character  position
+  <         >
+  [         ]
+  {         }
+
 [SPECIAL]
  #
  -
@@ -33,20 +69,9 @@
  *
 
 [LITERAL]
-; Start   End     Escape
-; string  string  character
-  "          "
-  '          '
-  (          )
-
-[KEYWORD]
-; Start   End     Escape
-; string  string  character
-  <          >
-  [          ]
-  {          }
-  http://   NONE:
-  https://  NONE:
-  ftp://    NONE:
-  mailto:   NONE:
+; Start   End     Escape     Start
+; string  string  character  position
+  '         '
+  "         "
+  (         )
 
