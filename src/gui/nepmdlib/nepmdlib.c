@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.54 2002-10-14 17:51:23 cla Exp $
+* $Id: nepmdlib.c,v 1.55 2002-10-20 12:16:10 cla Exp $
 *
 * ===========================================================================
 *
@@ -297,12 +297,14 @@ return rc;
 
 // ##############################################################################
 
-APIRET EXPENTRY NepmdActivateHighlight( HWND hwndClient, PSZ pszActivateFlag, PSZ pszEpmMode)
+APIRET EXPENTRY NepmdActivateHighlight( HWND hwndClient, PSZ pszActivateFlag,
+                                        PSZ pszEpmMode, PSZ pszOptions)
 {
          APIRET         rc = NO_ERROR;
-         BOOL           fValidFlag = FALSE;
          CHAR           szHilightFile[ _MAX_PATH];
-         BOOL           fReload = 1;
+
+         BOOL           fReload   = 1;
+         ULONG          ulOptions = 0;
 
 FUNCENTER;
 
@@ -316,42 +318,36 @@ do
       break;
       }
 
-   // check activate status
-   if ((pszActivateFlag) && (*pszActivateFlag))
-      {
-      // check / translate strings
-
-      if (!strcmp( "0",    pszActivateFlag))
-         fValidFlag = 1;
-
-      else if (!stricmp( "1",  pszActivateFlag))
-         fValidFlag = 1;
-
-      else if (!strcmp( "OFF", pszActivateFlag))
-         {
-         pszActivateFlag = "0";
-         fValidFlag = 1;
-         }
-
-      else if (!stricmp( "ON", pszActivateFlag))
-         {
-         pszActivateFlag = "1";
-         fValidFlag = 1;
-         }
-
-      if (!fValidFlag)
-         {
-         rc = ERROR_INVALID_PARAMETER;
-         break;
-         }
-      }
-   else
+   // set defaults
+   if ((!pszOptions) || (!*pszOptions))
+      pszOptions = "";
+   if ((!pszActivateFlag) || (!*pszActivateFlag))
       pszActivateFlag = "1";
+
+   // handle options
+   strupr( pszOptions);
+   if (strchr( pszOptions, 'N'))
+      ulOptions |= HILITE_NOOUTDATECHECK;
+
+   // handle activate strings
+   if (!strcmp( "0",    pszActivateFlag))
+      {}
+   else if (!strcmp( "1",  pszActivateFlag))
+      {}
+   else if (!stricmp( "OFF", pszActivateFlag))
+      pszActivateFlag = "0";
+   else if (!stricmp( "ON", pszActivateFlag))
+      pszActivateFlag = "1";
+   else
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
 
    if (*pszActivateFlag == '1')
       {
       // query / create hilite file
-      rc = QueryHilightFile( pszEpmMode, &fReload, szHilightFile, sizeof( szHilightFile));
+      rc = QueryHilightFile( pszEpmMode, ulOptions, &fReload, szHilightFile, sizeof( szHilightFile));
       if (rc != NO_ERROR)
          break;
 //    DPRINTF(( "NEPMDLIB: hilite file is %s\n", szHilightFile));
