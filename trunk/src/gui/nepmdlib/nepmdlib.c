@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.26 2002-09-03 13:31:55 cla Exp $
+* $Id: nepmdlib.c,v 1.27 2002-09-04 10:16:21 cla Exp $
 *
 * ===========================================================================
 *
@@ -234,8 +234,12 @@ BOOL EXPENTRY NepmdAlarm( PSZ pszAlarmStyle)
          ULONG          ulAlarmStyle = WA_NOTE;
          ULONG          i;
 
-static   PSZ            apszAlarmStyle[] = { "WARNING", "NOTE", "ERROR"};
+// don't modify order of this array
+static   PSZ            apszAlarmStyle[] = { NEPMD_ALARMSTYLE_WARNING,
+                                             NEPMD_ALARMSTYLE_NOTE
+                                             NEPMD_ALARMSTYLE_ERROR};
 #define  ALARM_COUNTS  (sizeof( apszAlarmStyle) / sizeof( PSZ))
+
 
 // use default if no style specified
 if ((!pszAlarmStyle) || (!*pszAlarmStyle))
@@ -631,7 +635,25 @@ return rc;
 APIRET EXPENTRY NepmdQueryPathInfo( PSZ pszPathname, PSZ pszInfoTag, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
+         ULONG          i;
+
+         ULONG          ulInfoStyle;
+         BOOL           fTagFound = FALSE;
+
          FILESTATUS     fs3;
+         CHAR           szInfo[ _MAX_PATH];
+         ULONG          ulAttr;
+
+
+// don't modify order of this array
+static   PSZ            apszInfoTag[] = { NEPMD_PATHINFO_CTIME,  // 0
+                                          NEPMD_PATHINFO_MTIME,  // 1
+                                          NEPMD_PATHINFO_ATIME,  // 2
+                                          NEPMD_PATHINFO_SIZE,   // 3
+                                          NEPMD_PATHINFO_ATTR};  // 4
+#define  STYLE_COUNTS  (sizeof( apszInfoTag) / sizeof( PSZ))
+
+static   PSZ            pszTimestampMask = "%u/%02u/%02u %2u:%02u:%02u";
 
 do
    {
@@ -641,7 +663,25 @@ do
 
    // check parms
    if ((!pszPathname) ||
+       (!pszInfoTag)  ||
+       (!*pszInfoTag) ||
        (!pszBuffer))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // check the tag
+   for (i = 0; i < STYLE_COUNTS; i++)
+      {
+      if (!stricmp( apszInfoTag[ i], pszInfoTag))
+         {
+         ulInfoStyle = i;         
+         fTagFound = TRUE;
+         break;
+         }
+      }
+   if (!fTagFound)
       {
       rc = ERROR_INVALID_PARAMETER;
       break;
@@ -650,8 +690,75 @@ do
    // query fullname
    memset( &fs3, 0, sizeof( fs3));
    rc = DosQueryPathInfo( pszPathname, FIL_STANDARD, &fs3, sizeof( fs3));
+   if (rc != NO_ERROR)
+      break;
 
-   strcpy( pszBuffer, "bla bla");
+   // determine info to return
+   // -- make sure that the array apszInfoTag matches the numbers used here !!! ---
+   // FILESTATUS3
+   switch (ulInfoStyle)
+      {
+      case 0: // NEPMD_PATHINFO_CTIME
+         sprintf( szInfo, pszTimestampMask,
+                  fs3.fdateCreation.year + 1980,
+                  fs3.fdateCreation.month,
+                  fs3.fdateCreation.day,
+                  fs3.ftimeCreation.hours,
+                  fs3.ftimeCreation.minutes,
+                  fs3.ftimeCreation.twosecs * 2);
+         break;
+
+      case 1: // NEPMD_PATHINFO_MTIME
+         sprintf( szInfo, pszTimestampMask,
+                  fs3.fdateLastWrite.year + 1980,
+                  fs3.fdateLastWrite.month,
+                  fs3.fdateLastWrite.day,
+                  fs3.ftimeLastWrite.hours,
+                  fs3.ftimeLastWrite.minutes,
+                  fs3.ftimeLastWrite.twosecs * 2);
+         break;
+
+      case 2: // NEPMD_PATHINFO_ATIME
+         sprintf( szInfo, pszTimestampMask,
+                  fs3.fdateLastAccess.year + 1980,
+                  fs3.fdateLastAccess.month,
+                  fs3.fdateLastAccess.day,
+                  fs3.ftimeLastAccess.hours,
+                  fs3.ftimeLastAccess.minutes,
+                  fs3.ftimeLastAccess.twosecs * 2);
+         break;
+
+      case 3: // NEPMD_PATHINFO_SIZE
+         sprintf( szInfo, "%u", fs3.cbFile);
+         break;
+
+      case 4: // NEPMD_PATHINFO_ATTR
+         ulAttr = fs3.attrFile;
+         sprintf( szInfo, "%s%s%s%s%s",
+                  (ulAttr & FILE_ARCHIVED)  ? "A" : "-",
+                  (ulAttr & FILE_DIRECTORY) ? "D" : "-",
+                  (ulAttr & FILE_SYSTEM)    ? "S" : "-",
+                  (ulAttr & FILE_HIDDEN)    ? "H" : "-",
+                  (ulAttr & FILE_READONLY)  ? "R" : "-");
+         break;
+
+      default:
+         rc = ERROR_INVALID_PARAMETER;
+         break;
+      }
+   if (rc != NO_ERROR)
+      break;
+
+   // check result buffer
+   if (strlen( szInfo) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszBuffer, szInfo);
+
 
    } while (FALSE);
 
