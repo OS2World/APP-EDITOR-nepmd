@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: indentblock.e,v 1.2 2004-07-03 08:30:14 aschn Exp $
+* $Id: indentblock.e,v 1.3 2004-07-09 13:37:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -87,7 +87,7 @@ defc indentblock
          endif
          getline line, l
          -- Ignore blank lines
-         if strip(line) = '' then
+         if verify( textline(.line), ' '\t) = 0 then
             iterate
          endif
          .line = l
