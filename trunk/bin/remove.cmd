@@ -2,11 +2,10 @@
 *
 * Module Name: remove.cmd
 *
-* Batch for to remove
+* Batch for to quickly remove an installed Netlabs EPM Distribution from the
+* WarpIn database.
 *
-* This program is intended to be used for testing purposes only.
-* It removes the package information of the Netlabs EPM Distribution package
-* from the WarpIn Database.
+*       THIS PROGRAM IS INTENDED TO BE USED FOR TESTING PURPOSES ONLY.
 *
 * NOTE: No files will be deinstalled, no configuration is being
 * restored/removed, but all WPS objects are destroyed.
@@ -16,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: remove.cmd,v 1.1 2002-04-20 13:40:03 cla Exp $
+* $Id: remove.cmd,v 1.2 2002-04-20 15:13:51 cla Exp $
 *
 * ===========================================================================
 *
