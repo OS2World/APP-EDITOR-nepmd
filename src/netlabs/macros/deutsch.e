@@ -1,3 +1,28 @@
+/****************************** Module Header *******************************
+*
+* Module Name: deutsch.e
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: deutsch.e,v 1.2 2002-08-09 17:20:04 aschn Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
+compile if EVERSION > '5.51'
+   compiler_msg deutsch.e: This version is only for EPM versions up to 5.51.
+   compiler_msg It will be completed with the constants from english.e in the future.
+ *** Error! Set in your mycnf.e: NLS_LANGUAGE = 'ENGLISH' (or comment it out)
+compile endif
 ; This file defines the various text constants as English strings.
 ; The comments (after the '--' are examples of how the string is used, and need not
 ; be translated.  For example,
