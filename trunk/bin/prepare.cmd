@@ -15,7 +15,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.5 2002-04-16 15:20:50 cla Exp $
+: $Id: prepare.cmd,v 1.6 2002-04-16 15:39:57 cla Exp $
 :
 : ===========================================================================
 :
@@ -151,7 +151,7 @@
 
 : --- cleanup here
 
- DEL %UNZIPPEDDIR%\* /N                                                        >>%LOGFILE% 2>&1
+ DEL %UNZIPPEDDIR%\*.ZIP /N                                                    >>%LOGFILE% 2>&1
 
 : --- apply update
 
@@ -162,10 +162,18 @@
  replace %UNZIPPEDDIR%\update\* %UNZIPPEDDIR% /U /S                            >%UNZIPPEDDIR%\update.log 2>&1
 
 
-: --- save logfile and remove R/O atttributes
+: --- remove R/O atttributes
 
- COPY %LOGFILE% %UNZIPPEDDIR%                                                  >NUL 2>&1
  ATTRIB -r %UNZIPPEDDIR%\* /S
+
+: --- now check for errors in logfile
+:
+:grep SYS....: %LOGFILE%
+:IF ERRORLEVEL 1 GOTO end
+:
+:ECHO.
+:ECHO errors occurred. Press Ctrl-Break to abort or any other key to continue...
+:PAUSE > NUL
 
 :end
 
