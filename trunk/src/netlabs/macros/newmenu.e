@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.5 2004-07-13 21:18:38 aschn Exp $
+* $Id: newmenu.e,v 1.6 2004-11-30 21:38:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -183,8 +183,8 @@ definit
    call SetAVar( 'mids', '')        -- reset list of used mids
 
    call SetAVar( 'mid_file'   , 2)
-   call SetAVar( 'mid_edit'   , 8)
-   call SetAVar( 'mid_tools'  , GetUniqueMid())  -- first available mid is 51 (50 is used)
+   call SetAVar( 'mid_mark'   , 8)
+   call SetAVar( 'mid_edit'  , GetUniqueMid())  -- first available mid is 51 (50 is used)
    call SetAVar( 'mid_search' , 3)
    call SetAVar( 'mid_view'   , 5)
    call SetAVar( 'mid_options', 4)
@@ -198,17 +198,17 @@ definit
    -- activated.
    -- Maybe someone has already defined something here at definit,
    -- so better add it to the array var if not already.
-   call AddOnceAVar( 'usedmenuaccelerators', 'F E T S V O R H')
+   call AddOnceAVar( 'usedmenuaccelerators', 'F M E S V O R H')
 
    -- Define a list of names for which 'menuinit_'name defcs are defined.
    -- Keep this list in sync with the 'menuinit_'name defcs!
    -- (Otherwise 'processmenuinit' will never execute that defc.)
-   call SetAVar( 'definedsubmenus', 'file edit search tools view options run project help' ||
-                                    ' fileproperties mark cursor bookmarks' ||
+   call SetAVar( 'definedsubmenus', 'file mark edit search view options run project help' ||
+                                    ' fileproperties markpos cursorpos bookmarks' ||
                                     ' mainsettings framecontrols editoptions saveoptions searchoptions' ||
                                     ' recordkeys openfolder treecommands reflowsettings autorestore' ||
                                     ' accelsettings marginsandtabs readonlyandlock menubarsandcolors' ||
-                                    ' macros mouseandcursor impermanentoptions')
+                                    ' macros markingsettings impermanentoptions')
 
    KeyPath = '\NEPMD\User\Menu\NoDismiss'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
@@ -247,8 +247,8 @@ defc loaddefaultmenu
    endif
 
    call add_file_menu(menuname)      -- id = 2
+   call add_mark_menu(menuname)      -- id = 7
    call add_edit_menu(menuname)      -- id = 8
-   call add_tools_menu(menuname)     -- id = 7
    call add_search_menu(menuname)    -- id = 3
    call add_view_menu(menuname)      -- id = 5
    call add_options_menu(menuname)   -- id = 4
@@ -339,17 +339,17 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'List edit history...'\9 || CTRL_KEY__MSG'+F9',                       -- List edit history...
+   buildmenuitem menuname, mid, i, 'List edit history...'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F9',      -- List edit history...
                                    'history edit' ||
                                    \1'Open a list box with previous edit cmds',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'List loaded files...'\9 || CTRL_KEY__MSG'+F10',                      -- List loaded files...
+   buildmenuitem menuname, mid, i, 'List loaded files...'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F10',     -- List loaded files...
                                    'history load' ||
                                    \1'Open a list box with previous loaded files',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'List saved files...'\9 || CTRL_KEY__MSG'+F11',                       -- List saved files...
+   buildmenuitem menuname, mid, i, 'List saved files...'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F11',      -- List saved files...
                                    'history save' ||
                                    \1'Open a list box with previous saved files',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -411,11 +411,6 @@ defproc add_file_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
                                    MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_advancedmarking', i);
-   buildmenuitem menuname, mid, i, 'Advanced marking',                                                   -- Advanced marking
-                                   'toggle_cua_mark' ||
-                                   \1'',
-                                   MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_streammode', i);
    buildmenuitem menuname, mid, i, 'Stream mode',                                                        -- Stream mode
                                    'toggle_stream' ||
@@ -441,11 +436,27 @@ defproc add_file_menu(menuname)
                                    'toggle_matchtab' ||
                                    \1'',
                                    MIS_TEXT, nodismiss
+   if nodismiss > 0 then
+      endsubmenu = 0
+   else
+      endsubmenu = MIS_ENDSUBMENU
+   endif  -- nodismiss > 0
    i = i + 1; call SetAVar( 'mid_autospellcheck', i);
    buildmenuitem menuname, mid, i, DYNASPELL_MENU__MSG,                                                  -- Auto-spellcheck
                                    'toggle_dynaspell' ||
                                    DYNASPELL_MENUP__MSG,
-                                   MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_OPTIONS_DYNASPELL, nodismiss)
+                                   MIS_TEXT + endsubmenu, mpfrom2short(HP_OPTIONS_DYNASPELL, nodismiss)
+   if nodismiss > 0 then
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Close menu',
+                                   '' ||
+                                   \1,
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   endif  -- nodismiss > 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -512,7 +523,7 @@ defproc add_file_menu(menuname)
    return
 
 
-; -------------------------------------------------------------------------------------- Edit -------------------------
+; -------------------------------------------------------------------------------------- Mark -------------------------
 
 define  -- Prepare for some conditional tests
    maybe_ring_accel = "' ' <"  -- Will be true for any letter
@@ -523,38 +534,19 @@ compile else
 compile endif
 
 /*
-Edit
+Mark
    ---------------------------
      Mark                    >       Chars, Lines, Block, Word, Identifier, Sentence, Paragraph, Function block
    ---------------------------
 */
-defproc add_edit_menu(menuname)
+defproc add_mark_menu(menuname)
    universal CUA_marking_switch
 
-   mid = GetAVar('mid_edit')
+   mid = GetAVar('mid_mark')
    i = mid'00'
-   buildsubmenu  menuname, mid, EDIT_BAR__MSG,                                                     -- Edit ------------
-                                EDIT_BARP__MSG,
-                                0, mpfrom2short(HP_EDIT, 0)  -- MIS must be 0 for submenu
-   i = i + 1; call SetAVar( 'mid_undoline', i);
-   buildmenuitem menuname, mid, i, UNDO_MENU__MSG\9 || ALT_KEY__MSG'+'BACKSPACE_KEY__MSG' | F9',   -- Undo line
-                                   'undo 1' ||
-                                   UNDO_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_EDIT_UNDO, 0)
-   i = i + 1; call SetAVar( 'mid_undo', i);
-   buildmenuitem menuname, mid, i, UNDO_REDO_MENU__MSG\9 || CTRL_KEY__MSG'+U',                     -- Undo...
-                                   'undodlg' ||
-                                   UNDO_REDO_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_EDIT_UNDOREDO, 0)
-   i = i + 1; call SetAVar( 'mid_recovermarkdelete', i);
-   buildmenuitem menuname, mid, i, RECOVER_MARK_MENU__MSG,                                         -- Recover mark delete
-                                   'GetDMBuff' ||
-                                   RECOVER_MARK_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_EDIT_RECOVER, 0)
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
+   buildsubmenu  menuname, mid, '~Mark',                                                           -- Mark -----------
+                                \1'Menus related to basic mark operations',
+                                0, 0  -- MIS must be 0 for submenu
    i = i + 1; call SetAVar( 'mid_copy', i);
    buildmenuitem menuname, mid, i, CLIP_COPY_MENU__MSG\9 || CTRL_KEY__MSG'+'INSERT_KEY__MSG ,      -- Copy
                                    'Copy2Clip' ||
@@ -617,7 +609,7 @@ defproc add_edit_menu(menuname)
                                    SELECT_ALL_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_SELECTALL, 0)
    i = i + 1; call SetAVar( 'mid_unmark', i);
-   buildmenuitem menuname, mid, i, UNMARK_MARK_MENU__MSG,                                          -- Unmark
+   buildmenuitem menuname, mid, i, UNMARK_MARK_MENU__MSG\9 || ALT_KEY__MSG'+U | 'CTRL_KEY__MSG'+\ | 'CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+A',  -- Unmark
                                    'DUPMARK U' ||
                                    UNMARK_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_UNMARK, 0)
@@ -640,9 +632,13 @@ defproc add_edit_menu(menuname)
    return
 
 
-; -------------------------------------------------------------------------------------- Tools ------------------------
+; -------------------------------------------------------------------------------------- Edit -------------------------
 /*
-Tools
+Edit
+   ---------------------------
+     Undo line
+     Undo...
+     Recover mark delete
    ---------------------------
      Spell check            >
    ---------------------------
@@ -674,20 +670,40 @@ Tools
      Insert comment block
    ---------------------------
 */
-defproc add_tools_menu(menuname)
+defproc add_edit_menu(menuname)
 compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
 compile endif
-   mid = GetAVar('mid_tools')
+
+   mid = GetAVar('mid_edit')
    i = mid'00'
-   buildsubmenu  menuname, mid, '~Tools',                                                          -- Tools -----------
+   buildsubmenu  menuname, mid, '~Edit',                                                           -- Edit -----------
                                 \1'Menus related to extended edit features',
                                 0, 0  -- MIS must be 0 for submenu
+   i = i + 1; call SetAVar( 'mid_undoline', i);
+   buildmenuitem menuname, mid, i, UNDO_MENU__MSG\9 || ALT_KEY__MSG'+'BACKSPACE_KEY__MSG' | F9',   -- Undo line
+                                   'undo 1' ||
+                                   UNDO_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_EDIT_UNDO, 0)
+   i = i + 1; call SetAVar( 'mid_undo', i);
+   buildmenuitem menuname, mid, i, UNDO_REDO_MENU__MSG\9 || CTRL_KEY__MSG'+U',                     -- Undo...
+                                   'undodlg' ||
+                                   UNDO_REDO_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_EDIT_UNDOREDO, 0)
+   i = i + 1; call SetAVar( 'mid_recovermarkdelete', i);
+   buildmenuitem menuname, mid, i, RECOVER_MARK_MENU__MSG,                                         -- Recover mark delete
+                                   'GetDMBuff' ||
+                                   RECOVER_MARK_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_EDIT_RECOVER, 0)
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
 compile if CHECK_FOR_LEXAM
    if LEXAM_is_available then
 compile endif
    i = i + 1; call SetAVar( 'mid_spellcheck', i);
-   buildmenuitem menuname, mid, i, 'Spellcheck',                                                   -- Spellcheck   >
+   buildmenuitem menuname, mid, i, 'S~pellcheck',                                                  -- Spellcheck   >
                                    \1'',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
@@ -736,8 +752,8 @@ compile endif
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_recordkeys', i);
-   buildmenuitem menuname, mid, i, '~Record keys',                                                 -- Record keys   >
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Key ~recorder',                                                 -- Key recorder   >
                                    '' ||
                                    \1'Record and playback keys',
                                    MIS_TEXT + MIS_SUBMENU, 0
@@ -781,19 +797,18 @@ compile endif
                                    \1'Split lines, enter colum',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Split line'\9 || ALT_KEY__MSG'+S',                                   -- Split...
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Split line'\9 || ALT_KEY__MSG'+S',                                   -- Split line
                                    'dokey a_s' ||
                                    \1'Split current line at cursor, keep indent',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Join line'\9 || ALT_KEY__MSG'+J',                                   -- Split...
+   buildmenuitem menuname, mid, i, '~Join line'\9 || ALT_KEY__MSG'+J',                                   -- Join line
                                    'dokey a_j' ||
                                    \1'Join current line with next line, respect right margin',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Wordproc',                                                           -- Wordproc
-                                   'wordproc' ||
-                                   \1'Rejoin lines to prepare for export to a word processor',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1; call SetAVar( 'mid_reflow', i);
    buildmenuitem menuname, mid, i, 'Re~flow',                                                       -- Reflow   >
@@ -806,8 +821,8 @@ compile endif
                                    \1'Reformat mark or paragraph to fit the current margins',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Lines to margins...',                                                -- Par to margins
-                                   'commandline flow 1 73 1' ||
+   buildmenuitem menuname, mid, i, 'Lines to margins...',                                                -- Lines to margins...
+                                   'commandline flow 1 79 1' ||
                                    \1'Reformat lines from cursor to par end, enter margins',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -815,7 +830,7 @@ compile endif
                                    'reflow' ||
                                    \1'Reformat paragraph to fit the current window',
                                    MIS_TEXT, 0
-   i = i + 1;
+   i = i + 1; call SetAVar( 'mid_reflowblock', i);
    buildmenuitem menuname, mid, i, 'Block'\9 || ALT_KEY__MSG'+R',                                        -- Block
                                    'dokey a_r' ||
                                    \1'Mark lines or block first, then mark new block size',
@@ -826,9 +841,18 @@ compile endif
                                    \1'Reformat all to fit the current margins',
                                    MIS_TEXT, 0
    i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
    buildmenuitem menuname, mid, i, 'Mail (all)',                                                         -- Mail (all)
                                    'reflowmail' ||
                                    \1'Reformat current mail (beta, correct indents by hand)',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Wordproc (all)',                                                     -- Wordproc (all)
+                                   'wordproc' ||
+                                   \1'Rejoin lines to prepare for export to a word processor',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1; call SetAVar( 'mid_moreformatting', i);
    buildmenuitem menuname, mid, i, '~More formatting',                                             -- More formatting   >
@@ -851,10 +875,19 @@ compile endif
                                    \1'Remove HTML tags from current file',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Remove ~doublespaces',                                               -- Remove doublespaces
+   buildmenuitem menuname, mid, i, '~Singlespace',                                                       -- Singlespace
                                    'singlespace' ||
                                    \1'Remove duplicated line ends',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Reco~de...',                                                   -- Recode...
+                                   'recode' ||
+                                   \1'Change codepage of current file and reload it, keep filedate',
+                                   MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -874,26 +907,27 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Indent lines/block'\9 || ALT_KEY__MSG'+I',                     -- Indent lines/block
+   buildmenuitem menuname, mid, i, '~Indent lines/block'\9 || ALT_KEY__MSG'+I',                    -- Indent lines/block
                                    'indentblock' ||
                                    \1'Indent marked lines or block starting at cursor 1 level',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Unindent lines/block'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+I',  -- Unindent lines/block
+   buildmenuitem menuname, mid, i, 'U~nindent lines/block'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+I',  -- Unindent lines/block
                                    'indentblock U' ||
                                    \1'Unindent marked lines or block starting at cursor 1 level',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Shift left'\9 || CTRL_KEY__MSG'+F7',                           -- Shift left
+   buildmenuitem menuname, mid, i, 'Shift ~left'\9 || CTRL_KEY__MSG'+F7',                          -- Shift left
                                    'key 1 c_f7' ||
                                    'Shift marked text left 1 character',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Shift right'\9 || CTRL_KEY__MSG'+F8',                          -- Shift right
+   buildmenuitem menuname, mid, i, '~Shift right'\9 || CTRL_KEY__MSG'+F8',                         -- Shift right
                                    'key 1 c_f8' ||
                                    'Shift marked text right 1 character',
                                    MIS_TEXT, 0
    return
+
 
 ; -------------------------------------------------------------------------------------- Search -----------------------
 defproc add_search_menu(menuname)
@@ -950,11 +984,13 @@ defproc add_search_menu(menuname)
                                    'findmark' ||
                                    \1'Find marked string else word under cursor',
                                    MIS_TEXT, 0
+/*
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Show search args',                                             -- ShowSearchArgs
                                    'ShowSearch' ||
                                    \1'Show last find/change args',
                                    MIS_TEXT, 0
+*/
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Find b~racket'\9 || CTRL_KEY__MSG'+[ | 'CTRL_KEY__MSG'+8',     -- Find bracket
                                    'passist' ||
@@ -964,7 +1000,7 @@ defproc add_search_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_mark', i);
+   i = i + 1; call SetAVar( 'mid_markpos', i);
    buildmenuitem menuname, mid, i, 'Mar~k',                                                        -- Mark   >
                                    \1'Save and restore a marked area',
                                    MIS_TEXT + MIS_SUBMENU, 0
@@ -984,11 +1020,11 @@ defproc add_search_menu(menuname)
                                    POP_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_POPMARK, MIA_DISABLED)
    i = i + 1; call SetAVar( 'mid_swapmark', i);
-   buildmenuitem menuname, mid, i, SWAP_MARK_MENU__MSG\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+=',          -- Swap mark
+   buildmenuitem menuname, mid, i, SWAP_MARK_MENU__MSG\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+= | 'CTRL_KEY__MSG'+'SHIFT_KEY__MSG'++',  -- Swap mark
                                    'swapmark' ||
                                    SWAP_MARK_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_EDIT_SWAPMARK, MIA_DISABLED)
-   i = i + 1; call SetAVar( 'mid_cursor', i);
+   i = i + 1; call SetAVar( 'mid_cursorpos', i);
    buildmenuitem menuname, mid, i, 'C~ursor',                                                      -- Cursor   >
                                    \1'Save and restore cursor position',
                                    MIS_TEXT + MIS_SUBMENU, 0
@@ -1008,7 +1044,7 @@ defproc add_search_menu(menuname)
                                    POP_CURSOR_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_POPPOS, MIA_DISABLED)
    i = i + 1; call SetAVar( 'mid_swapcursor', i);
-   buildmenuitem menuname, mid, i, SWAP_CURSOR_MENU__MSG\9 || CTRL_KEY__MSG'+=',                         -- Swap cursor
+   buildmenuitem menuname, mid, i, SWAP_CURSOR_MENU__MSG\9 || CTRL_KEY__MSG'+= | 'CTRL_KEY__MSG'+0' ,                         -- Swap cursor
                                    'swappos' ||
                                    SWAP_CURSOR_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_EDIT_SWAPPOS, MIA_DISABLED)
@@ -1099,6 +1135,7 @@ defproc add_search_menu(menuname)
                                    MIS_TEXT, 0
    return
 
+
 ; -------------------------------------------------------------------------------------- View -------------------------
 defproc add_view_menu(menuname)
    universal ring_enabled
@@ -1182,7 +1219,7 @@ defproc add_view_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Switch to next window'\9 || CTRL_KEY__MSG'+F12',              -- Switch to next window
+   buildmenuitem menuname, mid, i, '~Switch to next window'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F12',   -- Switch to next window
                                    'next_win' ||
                                    \1'Activate the next EPM window',
                                    MIS_TEXT, 0
@@ -1493,11 +1530,6 @@ compile endif
 ;                                   'configdlg' ||
 ;                                   CONFIG_MENUP__MSG,
 ;                                   MIS_TEXT, mpfrom2short(HP_OPTIONS_CONFIG, 0)
-   i = i + 1; call SetAVar( 'mid_defaultadvancedmarking', i);
-   buildmenuitem menuname, mid, i, 'Default advanced marking'IMP,                                        -- Default advanced marking (i)
-                                   'toggle_default_cua_mark' ||
-                                   ADVANCEDMARK_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_OPTIONS_CUATOGGLE, nodismiss)
    i = i + 1; call SetAVar( 'mid_defaultstreammode', i);
    buildmenuitem menuname, mid, i, 'Default stream mode'IMP,                                             -- Default stream mode (i)
                                    'toggle_default_stream' ||
@@ -1517,7 +1549,48 @@ compile endif
    buildmenuitem menuname, mid, i, RINGENABLED_MENU__MSG'!'IMP,                                          -- Ring enabled! (i)
                                    'ring_toggle' ||
                                    RINGENABLED_MENUP__MSG,
-                                   MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_OPTIONS_RINGENABLE, 0)
+                                   MIS_TEXT, mpfrom2short(HP_OPTIONS_RINGENABLE, 0)
+   i = i + 1; call SetAVar( 'mid_keepcursoronscreen', i);
+   buildmenuitem menuname, mid, i, 'Keep cursor on screen',                                              -- Keep cursor on screen
+                                   'toggle_keep_cursor_on_screen' ||
+                                   \1'Synchronize cursor''s vertical pos. with screen',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_scrollafterlocate', i); call SetAVar( 'mtxt_scrollafterlocate', 'Scroll after locate []...');
+   buildmenuitem menuname, mid, i, GetAVar('mtxt_scrollafterloacate'),                                   -- Scroll after locate []...
+                                   'SetScrollAfterLocate' ||
+                                   \1'View found string at a special v-pos.',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+
+   i = i + 1; call SetAVar( 'mid_markingsettings', i);
+   buildmenuitem menuname, mid, i, 'Marking settings',                                             -- Marking settings  >
+                                   \1'',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_advancedmarking', i);
+   buildmenuitem menuname, mid, i, 'Advanced marking'IMP,                                                -- Default advanced marking (i)
+                                   'toggle_cua_mark' ||
+                                   ADVANCEDMARK_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_OPTIONS_CUATOGGLE, nodismiss)
+   i = i + 1; call SetAVar( 'mid_defaultpaste', i); call SetAVar( 'mtxt_defaultpaste', 'Default paste: []');
+   buildmenuitem menuname, mid, i, GetAVar('mtxt_defaultpaste'),                                         -- Default paste: [char]
+                                   'toggle_default_paste' ||
+                                   \1'Style for Sh+Ins/Alt+MB1, add Ctrl/Sh for alt. paste',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_shiftmarkextends', i);
+   buildmenuitem menuname, mid, i, 'Sh-mark always extends mark',                                        -- Sh-mark always extends mark
+                                   'toggle_shift_mark_extends' ||
+                                   \1'Extend mark always or just at boundaries',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_mousestyle', i); call SetAVar( 'mtxt_mousestyle', 'Default mouse mark: []');
+   buildmenuitem menuname, mid, i, GetAVar('mtxt_mousestyle'),                                           -- Default mouse mark: [char]
+                                   'toggle_mousestyle' ||
+                                   \1'Mark style for MB1, use Ctrl+MB1 or MB3 for alt. mark',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_dragalwaysmarks', i);
+   buildmenuitem menuname, mid, i, 'Drag always marks',                                                  -- Drag always marks
+                                   'toggle_drag_always_marks' ||
+                                   \1'Every drag starts a new mark (avoid the ''Text already marked'' msg)',
+                                   MIS_TEXT + MIS_ENDSUBMENU, nodismiss
+
    i = i + 1; call SetAVar( 'mid_marginsandtabs', i);
    buildmenuitem menuname, mid, i, 'Margins and tabs settings',                                    -- Margins and tabs settings  >
                                    'Default margins and tabs',
@@ -1548,6 +1621,8 @@ compile endif
                                    \1'Show a circle for every tab char',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
 
+; Change this to Key settings?
+; Add Home key etc. here?
    i = i + 1; call SetAVar( 'mid_accelsettings', i);
    buildmenuitem menuname, mid, i, 'Accelerator keys settings',                                    -- Accelerator keys settings  >
                                    \1'Configure Alt key combinations to execute menu items',
@@ -1555,54 +1630,18 @@ compile endif
    i = i + 1; call SetAVar( 'mid_blockactionbaraccelerators', i);
    buildmenuitem menuname, mid, i, 'Block action bar accels'IMP,                                         -- Block action bar accels (i)
                                    'accel_toggle' ||
-                                   \1'Keep Alt+<key>s for mark operations (Alt+Sh works for menu)',
+                                   \1'Keep Alt+<key>s for mark operations (Ctrl+Alt works for menu)',
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_CUAACCEL, nodismiss)
    i = i + 1; call SetAVar( 'mid_blockleftaltkey', i);
    buildmenuitem menuname, mid, i, 'Block left Alt key',                                                 -- Block left Alt key
                                    'toggle_block_left_alt_key' ||
-                                   \1'Prevent left Alt from going to menu (use F10)',
+                                   \1'Prevent left Alt from entering menu (use F10)',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_blockrightaltkey', i);
    buildmenuitem menuname, mid, i, 'Block right Alt key',                                                -- Block right Alt key
                                    'toggle_block_right_alt_key' ||
-                                   \1'Prevent right Alt from going to menu (use F10)',
+                                   \1'Prevent right Alt from entering menu (use F10)',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
-
-   i = i + 1; call SetAVar( 'mid_mouseandcursor', i);
-   buildmenuitem menuname, mid, i, 'Mouse and cursor settings',                                    -- Mouse and cursor settings  >
-                                   \1'',
-                                   MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1; call SetAVar( 'mid_mousestyle', i); call SetAVar( 'mtxt_mousestyle', 'Default mouse mark: []');
-   buildmenuitem menuname, mid, i, GetAVar('mtxt_mousestyle'),                                           -- Default mouse mark: [char]
-                                   'toggle_mousestyle' ||
-                                   \1'Mark style for MB1, use Ctrl+MB1 or MB3 for alt. mark',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_defaultpaste', i); call SetAVar( 'mtxt_defaultpaste', 'Default paste: []');
-   buildmenuitem menuname, mid, i, GetAVar('mtxt_defaultpaste'),                                         -- Default paste: [char]
-                                   'toggle_default_paste' ||
-                                   \1'Paste style for Sh+Ins or Alt+MB1, add Sh for alt. paste',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_dragalwaysmarks', i);
-   buildmenuitem menuname, mid, i, 'Drag always marks',                                                  -- Drag always marks
-                                   'toggle_drag_always_marks' ||
-                                   \1'Every drag starts a new mark (avoid the ''Text already marked'' msg)',
-                                   MIS_TEXT, nodismiss
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_keepcursoronscreen', i);
-   buildmenuitem menuname, mid, i, 'Keep cursor on screen',                                              -- Keep cursor on screen
-                                   'toggle_keep_cursor_on_screen' ||
-                                   \1'Synchronize cursor''s vertical pos. with screen',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_scrollafterlocate', i); call SetAVar( 'mtxt_scrollafterlocate', 'Scroll after locate []...');
-   buildmenuitem menuname, mid, i, GetAVar('mtxt_scrollafterloacate'),                                   -- Scroll after locate []...
-                                   'SetScrollAfterLocate' ||
-                                   \1'View found string at a special v-pos.',
-                                   MIS_TEXT + MIS_ENDSUBMENU, 0
-
-
 /*
    i = i + 1; call SetAVar( 'mid_modesettings', i);
    buildmenuitem menuname, mid, i, 'Mode settings...',                                             -- Mode settings...
@@ -1912,6 +1951,17 @@ compile endif
                                    'rx open %NEPMD_ROOTDIR%\myepm\bin\nepmd.ini' ||
                                    \1,
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
+   if nodismiss > 0 then
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Close menu',
+                                   '' ||
+                                   \1,
+                                   MIS_TEXT, 0
+   endif  -- nodismiss > 0
    m = mid'00'
    --sayerror 'Options menu: last item # = 'i', max = 'mid'99.'
    if (i - m) > 99 then
@@ -2251,7 +2301,6 @@ defc menuinit_file
 
 --------------------------------------------- Menu id x -- File properties --------------
 defc menuinit_fileproperties
-   universal cua_marking_switch
    universal stream_mode
    universal expand_on
    universal tab_key
@@ -2268,7 +2317,6 @@ compile if CHECK_FOR_LEXAM
 compile endif
    SetMenuAttribute( GetAVar('mid_readonly'),            MIA_CHECKED, not .readonly)
    SetMenuAttribute( GetAVar('mid_locked'),              MIA_CHECKED, not .lockhandle)
-   SetMenuAttribute( GetAVar('mid_advancedmarking'),     MIA_CHECKED, cua_marking_switch)
    SetMenuAttribute( GetAVar('mid_streammode'),          MIA_CHECKED, not stream_mode)
    SetMenuAttribute( GetAVar('mid_syntaxexpansion'),     MIA_CHECKED, not expand_on)
    SetMenuAttribute( GetAVar('mid_keywordhighlighting'), MIA_CHECKED, not GetHighlight())
@@ -2289,16 +2337,10 @@ compile endif
    parse value GetAVar('mtxt_margins') with next'['x']'rest
    SetMenuText( GetAVar('mid_margins'), next'['new']'rest)
 
---------------------------------------------- Menu id 8 -- Edit -------------------------
-defc menuinit_edit
+--------------------------------------------- Menu id ? -- Mark -------------------------
+defc menuinit_mark
    universal DMbuf_handle
    universal CUA_marking_switch
-   SetMenuAttribute( GetAVar('mid_recovermarkdelete'), MIA_DISABLED, DMbuf_handle)
-   SetMenuAttribute( GetAVar('mid_undoline'),    MIA_DISABLED, isadirtyline())
-   undoaction 1, presentstate         -- Do to fix range, not for value.
-   undoaction 6, staterange           -- query range
-   parse value staterange with oldeststate neweststate .
-   SetMenuAttribute( GetAVar('mid_undo'),        MIA_DISABLED, oldeststate <> neweststate )  -- Set to 1 if different
    paste = clipcheck(format) & (format = 1024) & not (browse() | .readonly)
    SetMenuAttribute( GetAVar('mid_paste'),       MIA_DISABLED, paste)
    SetMenuAttribute( GetAVar('mid_pastelines'),  MIA_DISABLED, paste)
@@ -2307,7 +2349,7 @@ defc menuinit_edit
    buf_flag = 0
    if not on then                                     -- Only check buffer if no mark
       bufhndl = buffer( OPENBUF, EPMSHAREDBUFFER)
-      if bufhndl then                                 -- If the buffer exists, check the
+      if bufhndl then                                -- If the buffer exists, check the
          buf_flag = itoa( peek( bufhndl, 2, 2), 10)  -- amount of used space in buffer
          call buffer( FREEBUF, bufhndl)              -- then free it.
       endif
@@ -2330,19 +2372,27 @@ defc menuinit_edit
    call update_paste_menu_text()
    call update_mark_menu_text()
 
---------------------------------------------- Menu id 5 -- View -------------------------
-defc menuinit_view
-   SetMenuAttribute( GetAVar('mid_softwrap'), MIA_CHECKED, GetWrapped() = 0)
-   SetMenuAttribute( GetAVar('mid_nextview'), MIA_DISABLED, .currentview_of_file <> .nextview_of_file)
-   SetMenuAttribute( GetAVar('mid_listring'), MIA_DISABLED, filesinring() > 1)
-
---------------------------------------------- Menu id 7 -- Tools -----------------------
-defc menuinit_tools
+--------------------------------------------- Menu id 8 -- Edit -------------------------
+defc menuinit_edit
+   universal DMbuf_handle
+   SetMenuAttribute( GetAVar('mid_recovermarkdelete'), MIA_DISABLED, DMbuf_handle)
+   SetMenuAttribute( GetAVar('mid_undoline'),    MIA_DISABLED, isadirtyline())
+   undoaction 1, presentstate         -- Do to fix range, not for value.
+   undoaction 6, staterange           -- query range
+   parse value staterange with oldeststate neweststate .
+   SetMenuAttribute( GetAVar('mid_undo'),        MIA_DISABLED, oldeststate <> neweststate)  -- Set to 1 if different
    if FileIsMarked() then
       SetMenuText( GetAVar('mid_reflowpartomargins'), 'Mark to margins'\9 || ALT_KEY__MSG'+P')
    else
       SetMenuText( GetAVar('mid_reflowpartomargins'), 'Par to margins'\9 || ALT_KEY__MSG'+P')
    endif
+   SetMenuAttribute( GetAVar('mid_reflowblock'), MIA_DISABLED, FileIsMarked())
+
+--------------------------------------------- Menu id 5 -- View -------------------------
+defc menuinit_view
+   SetMenuAttribute( GetAVar('mid_softwrap'), MIA_CHECKED, GetWrapped() = 0)
+   SetMenuAttribute( GetAVar('mid_nextview'), MIA_DISABLED, .currentview_of_file <> .nextview_of_file)
+   SetMenuAttribute( GetAVar('mid_listring'), MIA_DISABLED, filesinring() > 1)
 
 --------------------------------------------- Menu id x -- Record keys -----------------
 defc menuinit_recordkeys
@@ -2376,7 +2426,7 @@ defc menuinit_search
    endif
 
 --------------------------------------------- Item id 309 -- Mark -----------------------
-defc menuinit_mark
+defc menuinit_markpos
    universal mark_stack
    on = FileIsMarked()
    SetMenuAttribute( GetAVar('mid_gotomark'),      MIA_DISABLED, on)
@@ -2385,7 +2435,7 @@ defc menuinit_mark
    SetMenuAttribute( GetAVar('mid_swapmark'),      MIA_DISABLED, on & mark_stack <> '')
 
 --------------------------------------------- Item id 314 -- Cursor ---------------------
-defc menuinit_cursor
+defc menuinit_cursorpos
    universal position_stack
    SetMenuAttribute( GetAVar('mid_restorecursor'), MIA_DISABLED, position_stack <> '')
    SetMenuAttribute( GetAVar('mid_swapcursor'),    MIA_DISABLED, position_stack <> '')
@@ -2419,18 +2469,27 @@ defc menuinit_mainsettings
    universal ring_enabled
    universal nepmd_hini
    universal default_stream_mode
-   universal default_cua_marking_switch
-
-   SetMenuAttribute( GetAVar('mid_defaultadvancedmarking'),     MIA_CHECKED, default_cua_marking_switch)
 
    SetMenuAttribute( GetAVar('mid_defaultstreammode'),          MIA_CHECKED, not default_stream_mode)
+
    KeyPath = '\NEPMD\User\SyntaxExpansion'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_defaultsyntaxexpansion'),     MIA_CHECKED, not on)
+
    KeyPath = '\NEPMD\User\KeywordHighlighting'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_defaultkeywordhighlighting'), MIA_CHECKED, not on)
+
    SetMenuAttribute( GetAVar('mid_ringenabled'),                MIA_CHECKED, not ring_enabled)
+
+   KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_keepcursoronscreen'),         MIA_CHECKED, not on)
+
+   KeyPath = '\NEPMD\User\Scroll\AfterLocate'
+   new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   parse value GetAVar('mtxt_scrollafterlocate') with next'['x']'rest
+   SetMenuText( GetAVar('mid_scrollafterlocate'), next'['new']'rest)
 
 --------------------------------------------- Menu id x -- Options / Margins and tabs settings
 defc menuinit_marginsandtabs
@@ -2473,14 +2532,21 @@ defc menuinit_accelsettings
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_blockrightaltkey'),           MIA_CHECKED, not on)
 
---------------------------------------------- Menu id x -- Options / Mouse and cursor settings
-defc menuinit_mouseandcursor
+--------------------------------------------- Menu id x -- Options / Marking settings
+defc menuinit_markingsettings
    universal nepmd_hini
    universal cua_marking_switch
 
-   KeyPath = '\NEPMD\User\Mouse\Mark\MouseStyle'
+   SetMenuAttribute( GetAVar('mid_advancedmarking'),    MIA_CHECKED, cua_marking_switch)
+
+   KeyPath = '\NEPMD\User\Mark\ShiftMarkExtends'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_shiftmarkextends'),   MIA_CHECKED, not (on & not cua_marking_switch))
+   SetMenuAttribute( GetAVar('mid_shiftmarkextends'),   MIA_DISABLED, not cua_marking_switch)
+
+   KeyPath = '\NEPMD\User\Mark\MouseStyle'
    style = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if style <> 1 | cua_marking_switch then
+   if (style <> 1 | cua_marking_switch) then
       style = 2
    endif
    new = word( 'block char', style)
@@ -2488,7 +2554,7 @@ defc menuinit_mouseandcursor
    SetMenuText( GetAVar('mid_mousestyle'), next'['new']'rest)
    SetMenuAttribute( GetAVar('mid_mousestyle'),         MIA_DISABLED, not cua_marking_switch)
 
-   KeyPath = '\NEPMD\User\Mouse\Mark\DefaultPaste'
+   KeyPath = '\NEPMD\User\Mark\DefaultPaste'
    next = substr( upcase(NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
    if next = 'L' then
       new = 'line'
@@ -2500,19 +2566,10 @@ defc menuinit_mouseandcursor
    parse value GetAVar('mtxt_defaultpaste') with next'['x']'rest
    SetMenuText( GetAVar('mid_defaultpaste'), next'['new']'rest)
 
-   KeyPath = '\NEPMD\User\Mouse\Mark\DragAlwaysMarks'
+   KeyPath = '\NEPMD\User\Mark\DragAlwaysMarks'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_dragalwaysmarks'),    MIA_CHECKED, not (on | cua_marking_switch))
    SetMenuAttribute( GetAVar('mid_dragalwaysmarks'),    MIA_DISABLED, not cua_marking_switch)
-
-   KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_keepcursoronscreen'), MIA_CHECKED, not on)
-
-   KeyPath = '\NEPMD\User\Scroll\AfterLocate'
-   new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   parse value GetAVar('mtxt_scrollafterlocate') with next'['x']'rest
-   SetMenuText( GetAVar('mid_scrollafterlocate'), next'['new']'rest)
 
 --------------------------------------------- Menu id x -- Options / Readonly and lock settings
 defc menuinit_readonlyandlock
@@ -3024,10 +3081,34 @@ defc toggle_default_expand
    endif
 
 ; ---------------------------------------------------------------------------
+; Flags: impermanent|savable|permanent, universal, epm.ini, refreshcurrent
+defc toggle_cua_mark, cua_mark_toggle
+   universal cua_marking_switch
+   universal menuloaded
+   universal defaultmenu
+   universal saveoptions_auto
+   universal app_hini
+   universal appname
+
+   cua_marking_switch = not cua_marking_switch
+   'togglecontrol 25' cua_marking_switch
+   call MH_set_mouse()
+   'RefreshInfoLine MARKINGMODE'
+   if menuloaded then
+      if saveoptions_auto then
+         old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+         new = subword( old, 1, 7)' 'cua_marking_switch' 'subword( old, 9)\0
+         call setprofile( app_hini, appname, INI_OPTFLAGS, new)
+      endif
+      -- Set nmenu attributes and text for the case MIA_NODISMISS attribute is on
+      'menuinit_markingsettings'
+   endif
+
+; ---------------------------------------------------------------------------
 ; Flags: permanent, nepmd.ini
 defc toggle_mousestyle
    universal nepmd_hini
-   KeyPath = '\NEPMD\User\Mouse\Mark\MouseStyle'
+   KeyPath = '\NEPMD\User\Mark\MouseStyle'
    style = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if style = 1 then  -- toggle
       style = 2
@@ -3045,7 +3126,7 @@ defc toggle_mousestyle
 ; Flags: permanent, nepmd.ini
 defc toggle_default_paste
    universal nepmd_hini
-   KeyPath = '\NEPMD\User\Mouse\Mark\DefaultPaste'
+   KeyPath = '\NEPMD\User\Mark\DefaultPaste'
    next = substr( upcase(NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
    if next = 'L' then      -- toggle L -> C
       style = 'C'
@@ -3067,9 +3148,19 @@ defc toggle_default_paste
 
 ; ---------------------------------------------------------------------------
 ; Flags: permanent, nepmd.ini
+defc toggle_shift_mark_extends
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Mark\ShiftMarkExtends'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   SetMenuAttribute( GetAVar('mid_shiftmarkextends'), MIA_CHECKED, not on)
+
+; ---------------------------------------------------------------------------
+; Flags: permanent, nepmd.ini
 defc toggle_drag_always_marks
    universal nepmd_hini
-   KeyPath = '\NEPMD\User\Mouse\Mark\DragAlwaysMarks'
+   KeyPath = '\NEPMD\User\Mark\DragAlwaysMarks'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
@@ -3290,45 +3381,6 @@ defc toggle_nodismiss
    'loaddefaultmenu'
    call showmenu_activemenu()
 
-; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, universal, epm.ini, refreshcurrent
-defc toggle_default_cua_mark
-   universal default_cua_marking_switch
-   universal cua_marking_switch
-   universal menuloaded
-   universal defaultmenu
-   universal saveoptions_auto
-   universal app_hini
-   universal appname
-
-   default_cua_marking_switch = not default_cua_marking_switch
-   -- Change stream_mode for current file if it's default
-   getfileid fid
-   next = GetAVar('cuamarking.'fid)  -- query file setting
-   if next = 'DEFAULT' | next = '' then  -- unset if streammode was not changed by any modeexecute
-      cua_marking_switch = default_cua_marking_switch
-      'togglecontrol 25' cua_marking_switch
-      call MH_set_mouse()
-/*
-      -- Update Edit menu (better disable menu items)
-      deletemenu defaultmenu, GetAVar('mid_edit'), 0, 1           -- Delete the edit menu
-      call add_edit_menu(defaultmenu)
-      -- maybe_show_menu() does a refresh and closes the menu, so that the
-      -- MIA_NODISMISS attribute has no effect anymore.
-      call maybe_show_menu()
-*/
-      'RefreshInfoLine MARKINGMODE'
-   endif
-   if menuloaded then
-      -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
-      SetMenuAttribute( GetAVar('mid_defaultadvancedmarking'), MIA_CHECKED, default_cua_marking_switch)
-      if saveoptions_auto then
-         old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-         new = subword( old, 1, 7)' 'default_cua_marking_switch' 'subword( old, 9)\0
-         call setprofile( app_hini, appname, INI_OPTFLAGS, new)
-      endif
-   endif
-
 /*
 see also: STDCTRL.E: defc initconfig
 
@@ -3362,30 +3414,6 @@ OPT2FLAGS:
     1   I-beam pointer     arrow pointer       1 = (vEPM_POINTER=2)
     2   underline cursor   bar cursor          1 = (cursordimensions = '-128.3 -128.-64')
 */
-
-
-; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, universal, epm.ini, refreshcurrent
-defc toggle_cua_mark, cua_mark_toggle
-   universal cua_marking_switch
-   universal defaultmenu
-   universal menuloaded
-   cua_marking_switch = not cua_marking_switch
-   'SetCuaMarking' cua_marking_switch
-;   'togglecontrol 25' cua_marking_switch
-;   call MH_set_mouse()
-/*
-   -- Update Edit menu (better disable menu items)
-   deletemenu defaultmenu, GetAVar('mid_edit'), 0, 1           -- Delete the edit menu
-   call add_edit_menu(defaultmenu)
-   -- maybe_show_menu() does a refresh and closes the menu, so that the
-   -- MIA_NODISMISS attribute has no effect anymore.
-   call maybe_show_menu()
-*/
-   if menuloaded then
-      -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
-      SetMenuAttribute( GetAVar('mid_advancedmarking'), MIA_CHECKED, CUA_marking_switch)
-   endif
 
 ; ---------------------------------------------------------------------------
 ; Flags: file, mode, impermanent, universal, fieldvar, arrayvar
@@ -3835,7 +3863,7 @@ defproc build_menu_accelerators(activeaccel)
 ;   universal stack_cmds
    universal nepmd_hini
 
-   KeyPath = "\NEPMD\User\Mouse\Mark\DefaultPaste"
+   KeyPath = "\NEPMD\User\Mark\DefaultPaste"
    DefaultPaste = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if DefaultPaste = 'C' then
       AlternatePaste = 'L'
@@ -3967,6 +3995,9 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 ; Update the menu text for items affected by CUA_menu_Accel = 0|1.
+; Todo: provide a generic macro, that removes the Alt+<key> string only,
+; instead of repeating the whole accel key string. The Alt+<key> binding
+; should be the first string after \9 and maybe before ' | ', when added.
 defproc update_mark_menu_text
    universal cua_marking_switch
    universal cua_menu_accel
@@ -4012,7 +4043,9 @@ defproc update_mark_menu_text
    Key      = 'U'
    midname  = 'mid_unmark'
    if wordpos( Key, UsedMenuAccelerators) = 0 then
-      MenuText = MenuText\9 || ALT_KEY__MSG'+'Key
+      MenuText = MenuText\9 || ALT_KEY__MSG'+'Key' | 'CTRL_KEY__MSG'+\ | 'CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+A'
+   else
+      MenuText = MenuText\9 || CTRL_KEY__MSG'+\ | 'CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+A'
    endif
    SetMenuText( GetAVar(midname), MenuText)
 
@@ -4030,7 +4063,7 @@ defproc update_mark_menu_text
 ; Update the menu text for items affected by default paste = C|B|L
 defproc update_paste_menu_text
    universal nepmd_hini
-   KeyPath = "\NEPMD\User\Mouse\Mark\DefaultPaste"
+   KeyPath = "\NEPMD\User\Mark\DefaultPaste"
    DefaultPaste = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if DefaultPaste = 'C' then
       AlternatePaste = 'L'
