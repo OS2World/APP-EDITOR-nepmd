@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.23 2004-02-29 17:23:23 aschn Exp $
+* $Id: main.e,v 1.24 2004-06-03 22:32:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,11 +18,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
-/*
-Todo:
--  Replace NEPMD_RESTORE_LAST_RING with an ini key
-*/
 
 -------- Begin debug stuff --------
 const
@@ -38,22 +33,40 @@ compile endif
 compile if not defined(NEPMD_DEBUG_AFTERLOAD)
    NEPMD_DEBUG_AFTERLOAD = 0
 compile endif
--- Standard defmain debugging
-define
-   DEBUG_MAIN = 0
+
+defproc debugmain
+compile if NEPMD_DEBUG then
+   type = upcase(arg(1))
+ compile if NEPMD_DEBUG_DEFMAIN then
+   if type = 'DEFMAIN' then
+      call NepmdPmPrintf( type': 'arg(2))
+   endif
+ compile endif
+ compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE then
+   if type = 'DEFMAIN_EMPTY_FILE' then
+      call NepmdPmPrintf( type': 'arg(2))
+   endif
+ compile endif
+ compile if NEPMD_DEBUG_AFTERLOAD then
+   if type = 'AFTERLOAD' then
+      call NepmdPmPrintf( type': 'arg(2))
+   endif
+ compile endif
+compile endif  -- NEPMD_DEBUG
+   return
 
 ; Bug: Every sayerror seems to be executed 2 times (according to the
-;      MessageBox, but fortunately defmain not.
-;      (can be verified with NepmdPmPrintf)
+;      MessageBox), but fortunately defmain is not (can be verified with
+;      NepmdPmPrintf).
 ;      Workaround: use the 'refresh' statement before every 'sayerror'.
 ; ->   Better use NepmdPmPrintf and PmPrintf.exe for fast and save
 ;      processing of messages.
 -------- End debug stuff --------
 
 const
--- Restore last ring if EPM is started without args: Set this to 1.
-compile if not defined(NEPMD_RESTORE_LAST_RING)
-   NEPMD_RESTORE_LAST_RING = 0  -- todo: make this a ini var
+; Added for testing:
+compile if not defined(NEPMD_WANT_AFTERLOAD)
+   NEPMD_WANT_AFTERLOAD = 1
 compile endif
 
 ; ---------------------------------------------------------------------------
@@ -73,12 +86,12 @@ compile endif
 ;  -  Only 1 DEFMAIN is allowed per .ex file.
 ;  -  Every .ex file defines it's own DEFINIT, DEFMAIN and DEFEXIT.
 ;  -  DEFEXIT is not processed for the main .ex file. For other linked
-;     .ex files it is processed on unlink (e.g. to switch a keyset back or
-;     to remove a submenu).
-defmain    /* defmain should be used to parse the command line arguments */
-compile if WANT_PROFILE='SWITCH'
-   universal REXX_PROFILE
-compile endif
+;     .ex files it is processed on unlink (may be used to switch a keyset
+;     back or to remove a submenu).
+;  -  DEFMAIN should be used to parse the command line arguments of the
+;     current .EX file. For EPM.EX this is handled by MAIN.E.
+defmain
+   universal rexx_profile
    universal should_showwindow
    universal nepmd_hini
    universal app_hini
@@ -88,217 +101,182 @@ compile endif
    universal firstloadedfid  -- first file for the 'xcom e /n' cmd
    universal firstinringfid  -- first file in the ring
 
-   should_showwindow = 1  -- Lets cmdline commands inhibit the SHOWWINDOW.
 
-; --- Get args and make it a parameter for the edit cmd ---------------------
+
+;  Get args and make it a parameter for the edit cmd ------------------------
    doscmdline = 'e 'arg(1) /* Can do special processing of DOS command line.*/
 
-compile if DEBUG_MAIN
-   messageNwait('DEFMAIN: arg(1)="'arg(1)'"')
-compile endif
+   debugmain('DEFMAIN' 'arg(1) = "'arg(1)'"')
 
-; -------- 1) Process standard EPM.INI settings --------
-compile if WANT_APPLICATION_INI_FILE  -- we should remove this
-
-; --- Check EPM.INI -> EPM -> DTBITMAP for a valid entry --------------------
-   -- The SLE of the settings dialog truncates the bitmap filename after
-   -- 32 chars. Additionally, the truncated string is at pos 32 replaced with
-   -- a hex char. As a result, MAIN.E will be processed only up to the point,
-   -- where the not existing bitmap should be set.
-   bgbitmap = queryprofile( app_hini, 'EPM', 'DTBITMAP')
-   bgbitmap = strip( bgbitmap, 'T', \0)
-   -- Set to \0 if bitmap doesn't exist
-   if not exist(bgbitmap) then
-      call setprofile( app_hini, 'EPM', 'DTBITMAP', \0)
-   endif
-
-; --- Check if anything of interest is in OS2.INI ---------------------------
-; --- and get settings from EPM.INI -----------------------------------------
-   'initconfig'
-
- compile if DEBUG_MAIN
-   messageNwait('DEFMAIN: after INITCONFIG')
- compile endif
-
-compile endif  -- WANT_APPLICATION_INI_FILE
-
-; -------- 2) Process NEPMD.INI settings --------
-compile if LINK_NEPMDLIB = 'DEFMAIN'
+;  Link NEPMDLIB.EX if not already linked in DEFINIT ------------------------
+compile if LINK_NEPMDLIB = 'DEFMAIN'  -- default is to link NepmdLib at DEFINIT
    if not isadefproc('NepmdOpenConfig') then
-; --- Link the NEPMD library. Open a MessageBox if .ex file not found. ------
+      -- Link the NEPMD library. Open a MessageBox if .ex file not found.
       'linkverify nepmdlib.ex'
    endif
 compile endif
 
-; --- Open NEPMD.INI and save the returned handle ---------------------------
-; --- to the universal var 'nepmd_hini' -------------------------------------
+compile if LINK_NEPMDLIB <> 'DEFINIT'  -- default is to link NepmdLib at DEFINIT
+   if isadefproc('NepmdQueryConfigValue') then
+      KeyPath = '\NEPMD\User\Menu\Name'
+      CurMenu = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   endif
+;  Open NEPMD.INI and save the returned handle ------------------------------
    nepmd_hini = NepmdOpenConfig()
    parse value nepmd_hini with 'ERROR:'rc;
    if (rc > 0) then
       sayerror 'Configuration repository could not be opened, rc='rc;
    endif
 
-; --- Process NEPMD.INI initialisation --------------------------------------
+;  Process NEPMD.INI initialization -----------------------------------------
    -- Write default values from nepmd\netlabs\bin\defaults.dat to NEPMD.INI,
    -- application 'RegDefaults', if 'RegDefaults' was not found
-   rc = NepmdInitConfig( nepmd_hini )
+   rc = NepmdInitConfig(nepmd_hini)
    parse value rc with 'ERROR:'rc;
    if (rc > 0) then
       sayerror 'Configuration repository could not be initialized, rc='rc;
    endif
 
-; --- Get the .Untitled filename, defined in the DLLs, NLS-dependent. -------
-;     For the language-specific versions of the EPM binaries (W4+) all
-;     resources moved to epmmri.dll. The .Untitled name is stringtable item
-;     54.
-;     For the Larry Margolis version epmmri.dll doesn't exist. The .Untitled
-;     name is located in etke603.dll as resource, stringtable item 54.
-;     This filename is NLS-dependent and hard-coded in the E Toolkit DLLs,
-;     while the filename coming from the 'edit' command queries the constant.
-;     To keep both names in synch, we take the name from the DLL and replace
-;     all occurences of the UNNAMED_FILE_NAME const with a query of the
-;     universal var or of the proc GetUnnamedFilename().
+;  Link the menu ------------------------------------------------------------
+   if isadefproc('NepmdQueryConfigValue') then
+      KeyPath = '\NEPMD\User\Menu\Name'
+      CurMenu = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   endif
+compile endif
+
+;  Process settings from EPM.INI --------------------------------------------
+   -- This should be processed after NepmdInitConfig, because now there are
+   -- values from NEPMD.INI queried as well.
+   'initconfig'
+
+;  Get the .Untitled filename, defined in the DLLs, NLS-dependent. ----------
+   -- For the language-specific versions of the EPM binaries (W4+) all
+   -- resources moved to epmmri.dll. The .Untitled name is stringtable item
+   -- 54.
+   -- For the Larry Margolis version epmmri.dll doesn't exist. The .Untitled
+   -- name is located in etke603.dll as resource, stringtable item 54.
+   -- This filename is NLS-dependent and hard-coded in the E Toolkit DLLs,
+   -- while the filename coming from the 'edit' command queries the constant.
+   -- To keep both names in synch, we take the name from the DLL and replace
+   -- all occurences of the UNNAMED_FILE_NAME const with a query of the
+   -- universal var or of the proc GetUnnamedFilename().
    unnamedfilename = .filename
    getfileid unnamedfid
 
-; --- Host support ----------------------------------------------------------
+;  Host support -------------------------------------------------------------
 compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH) or DELAY_SAVEPATH_CHECK
    call check_savepath()
 compile endif
 
-; --- Execute a user procedure if defined -----------------------------------
+;  Process 'init' Hook ------------------------------------------------------
+   -- The 'init' hook is a comfortable way to overwrite or add some
+   -- general settings as an extension to NepmdInitConfig or initconfig.
+   -- It can be used for configurations by other linked .ex files without
+   -- the use of PROFILE.ERX.
+   -- Example: 'HookAdd init default_save_options /ns /ne /nt'
+   -- Example: 'HookAdd init default_search_options +faet'
+   -- Note   : Hooks are only able to process commands, not procedures.
+   'HookExecute init'
+
+;  Execute a user procedure if defined --------------------------------------
 compile if SUPPORT_USER_EXITS
    if isadefproc('defmain_exit') then
       call defmain_exit(doscmdline)
    endif
 compile endif
 
-; --- Execute the doscmdline (edit command) ---------------------------------
-compile if NEPMD_DEBUG_DEFMAIN and NEPMD_DEBUG
-   call NepmdPmPrintf( 'DEFMAIN: doscmdline = 'doscmdline )
-compile endif
-compile if NEPMD_RESTORE_LAST_RING
-   if arg(1) = '' then
+;  Execute the doscmdline (edit command) ------------------------------------
+   debugmain( 'DEFMAIN', 'doscmdline = 'doscmdline)
+   -- Restore last edit ring if started without args
+   KeyPath = '\NEPMD\User\AutoRestore\Ring\LoadLast'
+   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if (arg(1) = '' & Enabled) then
       'restorering'
    else
       doscmdline
    endif
-compile else
-   doscmdline
-compile endif
-compile if DEBUG_MAIN
-   messageNwait('DEFMAIN: after DOSCMDLINE')
-compile endif
 
-; --- E automatically created an empty file when it started. ----------------
-;     If user specified file(s) to edit, get rid of the empty file.
+;  Quit automatically loaded empty file -------------------------------------
+   -- E automatically created an empty file when it started.
+   -- If user specified file(s) to edit, get rid of the empty file.
    -- Get fileid after processing of doscmdline.
    getfileid newfid
-
    do f = 1 to filesinring()  -- exclude hidden files
-compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
-      call NepmdPmPrintf( 'DEFMAIN: file 'f' of 'filesinring()' in ring: '.filename)
-compile endif
+      debugmain( 'DEFMAIN_EMPTY_FILE', 'file 'f' of 'filesinring()' in ring: '.filename)
       getfileid fid
       if fid = unnamedfid then
          -- Check if other files in ring
          next_file
          getfileid otherfid
          if otherfid = unnamedfid then  -- no other file in ring
-            -- For the automatically created empty file no defload event is triggered.
-            -- Load a new empty file, for that the defload event will process.
-compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
-            call NepmdPmPrintf( 'DEFMAIN: load a new empty file...')
-compile endif
+            -- For the automatically created empty file no defload event is
+            -- triggered.
+            -- Load a new empty file, for that the defload event will
+            -- process.
+            debugmain( 'DEFMAIN_EMPTY_FILE', 'load a new empty file...')
             'xcom e /n'
             getfileid newfid
             -- Set the universal vars to make afterload happy.
             -- At this point they are initialized to unnamedfid.
             firstloadedfid = newfid
-            firstinringfid = newfid -- first file in the ring
-compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
-            call NepmdPmPrintf( 'DEFMAIN: now filesinring = 'filesinring())
-compile endif
+            firstinringfid = newfid  -- first file in the ring
+            debugmain( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
          endif
          -- Get rid of the automatically created empty file
-compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
-         call NepmdPmPrintf( 'DEFMAIN: quit internally loaded empty file... unnamedfid = 'unnamedfid)
-compile endif
+         debugmain( 'DEFMAIN_EMPTY_FILE', 'quit internally loaded empty file... unnamedfid = 'unnamedfid)
          activatefile unnamedfid
          'xcom q'
-compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
-         call NepmdPmPrintf( 'DEFMAIN: now filesinring = 'filesinring())
-compile endif
+         debugmain( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
          leave
       endif
       next_file
    enddo
-
-compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
-   call NepmdPmPrintf( 'DEFMAIN: activating newfid = 'newfid', filename = 'newfid.filename)
-compile endif
+   debugmain( 'DEFMAIN_EMPTY_FILE', 'activating newfid = 'newfid', filename = 'newfid.filename)
    activatefile newfid
 
-; --- Automatically link .ex files from myepm\autolink ----------------------
+;  Automatically link .ex files from myepm\autolink -------------------------
    call NepmdAutoLink()
 
-; --- Process Hook ----------------------------------------------------------
-   if isadefc('HookExecute') then
-      -- The 'main' hook is a comfortable way to overwrite or add some
-      -- general settings, set by definit or defmain. It enables
-      -- configurations by other linked .ex files without the use of
-      -- PROFILE.ERX.
-      -- Example: 'HookAdd main default_save_options /ns /ne /nt'
-      -- Example: 'HookAdd main default_search_options +faet'
-      -- Note   : Hooks are only able to process commands, not procedures.
-      'HookExecute main'
-      'HookExecuteOnce mainonce'
-   endif
+;  Process 'main' Hook ------------------------------------------------------
+   -- The 'main' hook is a comfortable way to overwrite or add some
+   -- general settings, set by definit or defmain. It enables
+   -- configurations by other linked .ex files without the use of
+   -- PROFILE.ERX.
+   -- Example: 'HookAdd main default_save_options /ns /ne /nt'
+   -- Example: 'HookAdd main default_search_options +faet'
+   -- Note   : Hooks are only able to process commands, not procedures.
+   'HookExecute main'
 
-; --- Process PROFILE.ERX ---------------------------------------------------
-compile if WANT_PROFILE
- compile if WANT_PROFILE='SWITCH'
-   if REXX_PROFILE then
- compile endif
+;  Process PROFILE.ERX ------------------------------------------------------
+   if rexx_profile then
       profile = 'profile.erx'
-      -- REXX_PROFILE is now searched in .;%PATH%;%EPMPATH% instead of .;%EPMPATH%;%PATH%
-      findfile profile1, profile, 'PATH'
-      if rc then findfile profile1, profile, EPATH; endif
-      if not rc then
+      -- REXX profile is not searched anymore. It must be placed in
+      -- NEPMD\myepm\bin with the name PROFILE.ERX now.
+      profile1 = Get_Env('NEPMD_ROOTDIR')'\myepm\bin\'profile
+      if exist(profile1) then
+;      -- REXX_PROFILE is now searched in .;%PATH%;%EPMPATH% instead of .;%EPMPATH%;%PATH%
+;      findfile profile1, profile, 'PATH'
+;      if rc then findfile profile1, profile, EPATH; endif
+;      if not rc then
          'rx' profile1 arg(1)
       endif
- compile if WANT_PROFILE='SWITCH'
    endif
- compile endif
-compile endif
 
-; --- Call AfterLoad ---------------------------------------------------
+;  Show menu and window -----------------------------------------------------
+   call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
+   -- see also: STDCNF.E for menu
+   call showwindow('ON')
+
+;  Call AfterLoad -----------------------------------------------------------
    -- Sometimes DEFLOAD is triggered before all DEFMAIN stuff is processed.
    defmainprocessed = 1
-   if defloadprocessed = 1 then -- if all DEFLOADs are already processed
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf( 'DEFMAIN: Calling AfterLoad...')
-compile endif
+compile if NEPMD_WANT_AFTERLOAD
+   if defloadprocessed = 1 then -- if all DEFLOADs from first edit command already processed
+      debugmain( 'AFTERLOAD', 'Calling AfterLoad from DEFMAIN...')
       'postme AfterLoad'
    else
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf( 'DEFMAIN: AfterLoad not called, because defloadprocessed <> 1.')
-compile endif
+      debugmain( 'AFTERLOAD', 'AfterLoad not called from DEFMAIN, because defloadprocessed <> 1.')
    endif
+compile endif
 
-; --- Show menu and window --------------------------------------------------
-   -- this moved to the end of defmain
-compile if INCLUDE_MENU_SUPPORT /*& not DELAY_MENU_CREATION*/
-   call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
- compile if DEBUG_MAIN
-   messageNwait('DEFMAIN: after SHOWMENU')
- compile endif
-compile endif
-   if should_showwindow then  -- should_showwindow = 1
-   -- see also: STDCNF.E for menu
-      call showwindow('ON')
-compile if DEBUG_MAIN
-      messageNwait('DEFMAIN: after SHOWWINDOW')
-compile endif
-   endif
 
