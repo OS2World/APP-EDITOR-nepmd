@@ -2,7 +2,7 @@ CATEGORY: Feature
 TITLE: Let Ctrl-A select all text within file
 PRIO: 1
 STATUS: open
-FILES: 
-UPDATED: 
+FILES:
+UPDATED: $Id: edit003,v 1.2 2002-09-09 15:50:08 cla Exp $
 
 Ctrl-A should mark all text within the file
