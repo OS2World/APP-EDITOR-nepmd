@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.11 2003-09-01 05:06:03 aschn Exp $
+* $Id: stdkeys.e,v 1.12 2003-09-01 05:26:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1029,7 +1029,8 @@ compile if SMARTSAVE
    else
 ;      'commandline Save '
       sayerror 'No changes.  Press Enter to Save anyway.'
-      'saveas_dlg'  -- better show file selector
+      'saveas_dlg 0'  -- better show file selector
+                      -- new optional arg, 0 => no EXIST_OVERLAY__MSG
    endif
 compile else
    'Save'
