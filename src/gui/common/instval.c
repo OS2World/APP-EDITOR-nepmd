@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.8 2002-09-20 14:49:56 cla Exp $
+* $Id: instval.c,v 1.9 2002-09-20 15:04:36 cla Exp $
 *
 * ===========================================================================
 *
@@ -176,7 +176,7 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-APIRET GetTextMessage
+APIRET GetMessage
          (
          PCHAR     *pTable,
          ULONG      cTable,
@@ -203,8 +203,8 @@ do
       fInitialized = TRUE;
       }
 
-   // make call to fetch message 
-   rc = TmfGetMessage( pTable, cTable, pbBuffer, cbBuffer, pszMessageName, szMessageFile, pcbMsg); 
+   // make call to fetch message
+   rc = TmfGetMessage( pTable, cTable, pbBuffer, cbBuffer, pszMessageName, szMessageFile, pcbMsg);
 
    } while (FALSE);
 
