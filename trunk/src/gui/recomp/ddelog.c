@@ -6,14 +6,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddelog.c,v 1.1 2002-06-03 22:27:05 cla Exp $
+* $Id: ddelog.c,v 1.2 2002-06-08 23:48:31 cla Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -148,7 +148,6 @@ static MRESULT EXPENTRY DdeLogWindowProc( HWND hwnd, ULONG msg, MPARAM mp1, MPAR
 
          CHAR           szCommand[ _MAX_PATH + 64];
 
-DPRINTF(( "DDELOG: msg %u / 0x%04x\n", msg, msg));
 switch (msg)
    {
 
@@ -159,14 +158,14 @@ switch (msg)
       if (!WinSetWindowPtr( hwnd, QWL_USER, plld))
          {
          plld->rc = LASTERROR;
-         WinPostMsg( hwnd, WM_QUIT, 0, 0);
+         ABORT_LOADING;
          break;
          }
 
-      // set error code anyway - will be reset if all files could be loaded
+      // set error code anyway - will be reset if files can be loaded
       plld->rc = ERROR_INVALID_FUNCTION;
 
-      // load EPM with the log file, but call macro separately 
+      // load EPM with the log file, but call macro separately
       // (otherwise it will not work if only one file loaded)
       sprintf( szCommand, "start /F EPM \"%s\"", plld->pszLogFile);
       DPRINTF(( "DDELOG: start EPM with: %s\n", szCommand));
@@ -180,7 +179,7 @@ switch (msg)
          // start EPM
          DPRINTF(( "DDELOG: starting EPM instance - %u of %u tries\n", ulTries + 1, RELOAD_MAXTRIES));
          system( szCommand);
-         DosSleep( RELOAD_WAITPERIOD * 5);
+         DosSleep( RELOAD_WAITPERIOD);
 
          // connect to it
          for (i = 0; i < RELOAD_MAXTWAITPERTRY; i++)
@@ -202,7 +201,7 @@ switch (msg)
       if (!_logConnectedToEPM( hwnd))
          {
          // no EPM connected, bail out
-         WinPostMsg( hwnd, WM_QUIT, 0, 0);
+         ABORT_LOADING;
          break;
          }
 
@@ -225,12 +224,12 @@ switch (msg)
           (!strcmp( pDdeInit->pszTopic,   pszDdeTopicEdit)))
          {
 
-//       // save server handle - last connected is the one we need 
-//       plld->hwndServer = hwndServer;
-//
-//       // also save list
-//       plld->ahwndServer[ plld->ulServerCount] = hwndServer;
-//       plld->ulServerCount++;
+         // save server handle - first connected is the one we need
+         plld->hwndServer = plld->ahwndServer[ 0];
+
+         // also save list for later cleanup
+         plld->ahwndServer[ plld->ulServerCount] = hwndServer;
+         plld->ulServerCount++;
 
 #if DEBUG_DDE_MESSAGES
          DPRINTF(( "DDELOG: INITIATE acknowledged by %08x\n", hwndServer));
@@ -259,7 +258,6 @@ switch (msg)
 
    } // end switch (msg)
 
-DPRINTF(( "DDELOG: msg defproc\n", msg, msg));
 return WinDefWindowProc( hwnd, msg, mp1, mp2);
 }
 
@@ -268,7 +266,7 @@ return WinDefWindowProc( hwnd, msg, mp1, mp2);
 APIRET LoadErrantFileFromLog( HWND hwnd, PSZ pszLogFile, PSZ pszMacroFile)
 {
          APIRET         rc = NO_ERROR;
-         ULONG          i;
+         ULONG          i,s;
 
          HAB            hab = CURRENTHAB;
          QMSG           qmsg;
@@ -331,13 +329,17 @@ do
    while (WinGetMsg( hab, &qmsg, NULLHANDLE, 0, 0))
         WinDispatchMsg ( hab, &qmsg);
 
-   // destroy window and take care for proper disconnection
-   WinDestroyWindow( hwndObject);
-
-   for (i = 0; i < lld.ulServerCount; i++)
+   // disconnect from any server connected before
+   for (s = 0; s < lld.ulServerCount; s++)
       {
-      WinDdePostMsg( lld.ahwndServer[ i], hwndObject, WM_DDE_TERMINATE, NULL, 0);
+#if DEBUG_DDE_MESSAGES
+      DPRINTF(( "DDELOG: terminate connection to server %08x\n", lld.ahwndServer[ s]));
+#endif
+      WinDdePostMsg( lld.ahwndServer[ s], hwndObject, WM_DDE_TERMINATE, NULL, 0);
       }
+
+   // destroy window
+   WinDestroyWindow( hwndObject);
 
    // return rc value determined by window code
    rc = lld.rc;
@@ -347,4 +349,4 @@ do
 return rc;
 
 }
-  
+
