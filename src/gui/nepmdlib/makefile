@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.5 2002-09-01 18:48:57 cla Exp $
+# $Id: makefile,v 1.6 2002-10-21 12:46:41 cla Exp $
 #
 # ===========================================================================
 #
@@ -71,6 +71,9 @@ rel:
 dep:
    makedep $(BINDIR) $(DEPENDFILE)
 
+ship: dll ex
+   _shipfile $(BINDLLDIR)\nepmdlib.dll netlabs\dll
+   _shipfile $(CMPEXDIR)\nepmdlib.ex   netlabs\ex
 
 # --- include dependencies - create dependency file if not present
 
