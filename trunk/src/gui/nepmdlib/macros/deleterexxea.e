@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleterexxea.e,v 1.6 2002-08-25 19:58:15 cla Exp $
+* $Id: deleterexxea.e,v 1.7 2002-08-27 12:21:24 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,6 +25,8 @@
 /*
 @@NepmdDeleteRexxEa@PROTOTYPE
 Fullname = NepmdDeleteRexxEa( Filename);
+
+@@NepmdDeleteRexxEa@CATEGORY@EAS
 
 @@NepmdDeleteRexxEa@SYNTAX
 This function deletes REXX related extended attributes

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deletestringea.e,v 1.4 2002-08-25 19:58:15 cla Exp $
+* $Id: deletestringea.e,v 1.5 2002-08-27 12:21:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,6 +25,8 @@
 /*
 @@NepmdDeleteStringEa@PROTOTYPE
 Fullname = NepmdDeleteStringEa( Filename, EaName);
+
+@@NepmdDeleteStringEa@CATEGORY@EAS
 
 @@NepmdDeleteStringEa@SYNTAX
 This function deletes the specified extended attribute

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.10 2002-08-26 20:32:00 cla Exp $
+* $Id: gettextmessage.e,v 1.11 2002-08-27 12:21:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,8 +26,10 @@
 @@NepmdGetTextMessage@PROTOTYPE
 TextMessage = NepmdGetTextMessage( Filename, Messagename);
 
+@@NepmdGetTextMessage@CATEGORY@NLS
+
 @@NepmdGetTextMessage@SYNTAX
-This function queries messages from a specified text message file. Up to 
+This function queries messages from a specified text message file. Up to
 [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_PARAMETERS nine optional parameters]
 can be specified to be inserted into the message.
 

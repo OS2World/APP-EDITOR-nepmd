@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writestringea.e,v 1.5 2002-08-25 19:58:17 cla Exp $
+* $Id: writestringea.e,v 1.6 2002-08-27 12:21:26 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,6 +25,8 @@
 /*
 @@NepmdWriteStringEa@PROTOTYPE
 EaValue = NepmdWriteStringEa( Filename, EaName, EaValue);
+
+@@NepmdWriteStringEa@CATEGORY@EAS
 
 @@NepmdWriteStringEa@SYNTAX
 This function writes the specified string as value for the specified

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libversion.e,v 1.4 2002-08-25 19:58:16 cla Exp $
+* $Id: libversion.e,v 1.5 2002-08-27 12:21:26 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,8 +26,10 @@
 @@NepmdLibVersion@PROTOTYPE
 Version = NepmdLibVersion();
 
+@@NepmdLibVersion@CATEGORY@CONFIG
+
 @@NepmdLibVersion@SYNTAX
-This function queries the version of the installed runtime library 
+This function queries the version of the installed runtime library
 of the [=TITLE].
 
 @@NepmdLibVersion@RETURNS

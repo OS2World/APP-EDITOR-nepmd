@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextdir.e,v 1.5 2002-08-26 20:31:59 cla Exp $
+* $Id: getnextdir.e,v 1.6 2002-08-27 12:21:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,21 +26,23 @@
 @@NepmdGetNextDir@PROTOTYPE
 Filename = NepmdGetNextDir( DirMask, AddressOfHandle);
 
+@@NepmdGetNextDir@CATEGORY@FILE
+
 @@NepmdGetNextDir@SYNTAX
 This function implements an easy directory lookup
-for subdirectories with one function. For that it
-needs to be called in a loop.
+for subdirectories with one function. For that it needs to be
+[.IDPNL_EFUNC_NEPMDGETNEXTDIR_EXAMPLE called in a loop].
 
 @@NepmdGetNextDir@PARM@DirMask
 This parameter specifies the directories to be searched
 and may contain wildcards.
 
 @@NepmdGetNextDir@PARM@AddressOfHandle
-This parameter specifies the address of a search handle, 
-it can be determined with the *adress()* function like
+This parameter specifies the address of a search handle,
+it can be determined with the *address()* function like
 .fo off
  Handle = 0;
- AddressOfHandle = adress( Handle);
+ AddressOfHandle = address( Handle);
 .fo on
 
 Note that on the first call to NepmdGetNextDir() the value
@@ -50,11 +52,12 @@ of the variable holding the handle must be set to zero.
 The following code searches all subdirectories within the directory C:\OS2:
 .fo off
  Handle  = 0;  /** always create a new handle ! **/
+ AddressOfHandle = address( Handle);
  DirMask = 'C:\OS2\**';
 
  /** search all files **/
  do while (1)
-    Dirname = NepmdGetNextDir(  DirMask, address( Handle));
+    Dirname = NepmdGetNextDir(  DirMask, AddressOfHandle);
     parse value Dirname with 'ERROR:'rc;
     if (rc > '') then
        leave;
@@ -81,6 +84,7 @@ NepmdGetNextDir returns either
 defc NepmdGetNextDir, GetNextDir =
 
  Handle   = 0;  /* always create a new handle ! */
+ AddressOfHandle = address( Handle);
  DirMask = arg( 1);
 
  /* with the following call we would pass over full  */
@@ -89,7 +93,7 @@ defc NepmdGetNextDir, GetNextDir =
 
  /* search all files */
  do while (1)
-    Dirname = NepmdGetNextDir(  DirMask, address( Handle));
+    Dirname = NepmdGetNextDir(  DirMask, AddressOfHandle);
     parse value Dirname with 'ERROR:'rc;
     if (rc > '') then
        leave;
@@ -103,7 +107,7 @@ defc NepmdGetNextDir, GetNextDir =
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
 /*    Handle   = 0;                                              */
-/*    Filename = NepmdGetNextDir( DirMask, adress(Handle));      */
+/*    Filename = NepmdGetNextDir( DirMask, address(Handle));      */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdGetNextDir( PSZ   pszDirMask,           */

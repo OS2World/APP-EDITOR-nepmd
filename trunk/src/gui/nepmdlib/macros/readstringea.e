@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: readstringea.e,v 1.2 2002-08-25 19:58:17 cla Exp $
+* $Id: readstringea.e,v 1.3 2002-08-27 12:21:26 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,6 +25,8 @@
 /*
 @@NepmdReadStringEa@PROTOTYPE
 EaValue = NepmdReadStringEa( Filename, EaName);
+
+@@NepmdReadStringEa@CATEGORY@EAS
 
 @@NepmdReadStringEa@SYNTAX
 This function reads the specified string extended attribute

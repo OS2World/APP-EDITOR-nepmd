@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.7 2002-08-26 20:31:59 cla Exp $
+* $Id: getnextfile.e,v 1.8 2002-08-27 12:21:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,10 +26,12 @@
 @@NepmdGetNextFile@PROTOTYPE
 Filename = NepmdGetNextFile( FileMask, AddressOfHandle);
 
+@@NepmdGetNextFile@CATEGORY@FILE
+
 @@NepmdGetNextFile@SYNTAX
 This function implements an easy directory lookup
-for files with one function. For that it needs to be called in 
-a loop.
+for files with one function. For that it needs to be
+[.IDPNL_EFUNC_NEPMDGETNEXTFILE_EXAMPLE called in a loop].
 
 @@NepmdGetNextFile@PARM@FileMask
 This parameter specifies the files to be searched
@@ -37,24 +39,26 @@ and may contain wildcards.
 
 @@NepmdGetNextFile@PARM@AddressOfHandle
 This parameter specifies the address of a search handle,
-it can be determined with the *adress()* function like
+it can be determined with the *address()* function like
 .fo off
- Handle = 0;
- AddressOfHandle = adress( Handle);
+ Handle  = 0;
+ AddressOfHandle = address( Handle);
 .fo on
 
 Note that on the first call to NepmdGetNextFile() the value
-of the variable holding the handle must be set to zero.
+of the variable holding the handle must be set to zero
+in order initiate a new search.
 
 @@NepmdGetNextFile@EXAMPLE
 The following code searches all files within the directory C:\OS2:
 .fo off
  Handle  = 0;  /** always create a new handle ! **/
+ AddressOfHandle = address( Handle);
  FileMask = 'C:\OS2\**';
 
  /** search all files **/
  do while (1)
-    Filename = NepmdGetNextFile(  FileMask, address( Handle));
+    Filename = NepmdGetNextFile(  FileMask, AddressOfHandle);
     parse value Filename with 'ERROR:'rc;
     if (rc > '') then
        leave;
@@ -81,6 +85,7 @@ NepmdGetNextFile returns either
 defc NepmdGetNextFile, GetNextFile =
 
  Handle   = 0;  /* always create a new handle ! */
+ AddressOfHandle = address( Handle);
  Filemask = arg( 1);
 
  /* with the following call we would pass over full  */
@@ -89,7 +94,7 @@ defc NepmdGetNextFile, GetNextFile =
 
  /* search all files */
  do while (1)
-    Filename = NepmdGetNextFile(  FileMask, address( Handle));
+    Filename = NepmdGetNextFile(  FileMask, AddressOfHandle);
     parse value Filename with 'ERROR:'rc;
     if (rc > '') then
        leave;
@@ -103,7 +108,7 @@ defc NepmdGetNextFile, GetNextFile =
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
 /*    Handle   = 0;                                              */
-/*    Filename = NepmdGetNextFile( Filemask, adress(Handle));    */
+/*    Filename = NepmdGetNextFile( Filemask, address(Handle));    */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdGetNextFile( PSZ   pszFilemask,         */
