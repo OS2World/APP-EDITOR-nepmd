@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: init.c,v 1.1 2002-09-23 15:56:18 cla Exp $
+* $Id: init.c,v 1.2 2002-10-01 14:23:02 cla Exp $
 *
 * ===========================================================================
 *
@@ -94,14 +94,16 @@ static PSZ _stripblanks( PSZ string)
     while ((*p != 0) && (*p <= 32))
        { p++;}
     strcpy( string, p);
-    }
- if (*p != 0)
-    {
-    p += strlen(p) - 1;
-    while ((*p <= 32) && (p >= string))
+
+    p = string;
+    if (*p != 0)
        {
-       *p = 0;
-       p--;
+       p += strlen(p) - 1;
+       while ((*p <= 32) && (p >= string))
+          {
+          *p = 0;
+          p--;
+          }
        }
     }
 
@@ -1098,7 +1100,7 @@ do
    // report result
    if (pszResult)
       {
-      memcpy( pszBuffer, pkey->pszKeyValue, ulBuflen);
+      memcpy( pszBuffer, pszResult, ulBuflen);
       ulValueLen = strlen( pszBuffer) + 1;
       }
 

@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.15 2002-09-24 09:00:20 cla Exp $
+* $Id: libreg.c,v 1.16 2002-10-01 14:23:03 cla Exp $
 *
 * ===========================================================================
 *
@@ -81,6 +81,7 @@ static PSZ _stripblanks( PSZ string)
        { p++;}
     strcpy( string, p);
 
+    p = string;
     if (*p != 0)
        {
        p += strlen(p) - 1;
@@ -91,7 +92,6 @@ static PSZ _stripblanks( PSZ string)
           }
        }
     }
-
 
 return string;
 }
