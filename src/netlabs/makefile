@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.6 2002-09-09 09:00:18 cla Exp $
+# $Id: makefile,v 1.7 2002-09-11 12:33:40 cla Exp $
 #
 # ===========================================================================
 #
@@ -91,4 +91,7 @@ SRCCOPY: $(SRCCOPY_FLAGFILE)
 
 $(SRCCOPY_FLAGFILE):
    _srccopy COPY $(SRCCOPY_FLAGFILE) $(BASEDIR)\src\netlabs $(CMPDSTDIR)
+
+
+$(CMPEXDIR)\epm.ex: macros\*
 
