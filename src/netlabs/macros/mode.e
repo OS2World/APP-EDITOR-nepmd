@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.8 2002-10-03 14:11:25 cla Exp $
+* $Id: mode.e,v 1.9 2002-10-03 21:52:24 cla Exp $
 *
 * ===========================================================================
 *
@@ -280,6 +280,8 @@ defproc NepmdGetDefaultMode()
       defaultmode = 'PHP'
    elseif ext='RC' then
       defaultmode = 'RC'
+   elseif ext='DEF' then
+      defaultmode = 'DEF'
    elseif ext = 'RXP' then
       defaultmode = 'RXP'
    elseif wordpos( translate(basename), 'READ README' ) > 0 or wordpos( ext, 'TXT DOC' ) > 0 then
