@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.c,v 1.2 2002-09-24 21:38:17 cla Exp $
+* $Id: mmf.c,v 1.3 2002-09-24 22:08:42 cla Exp $
 *
 * ===========================================================================
 *
@@ -54,8 +54,12 @@ typedef struct _MMFENTRY
 #endif
   } MMFENTRY, *PMMFENTRY;
 
-#define MMF_MAX         256
-#define MMF_USEDENTRY   0x10000000  /* internal flag to mark a used entry */
+// internal MMF defines
+#define MMF_MAX            256
+#define MMF_USEDENTRY      0x10000000  /* internal flag to mark a used entry */
+
+#define MMF_MASK_ACCESS    0x0000FFFF
+#define MMF_MASK_OPENMODE  0xFFFF0000
 
 // global data
 static   EXCEPTIONREGISTRATIONRECORD errh;
@@ -289,6 +293,7 @@ APIRET MmfAlloc( PVOID *ppvdata, PSZ pszFilename, ULONG ulOpenFlags, ULONG ulMax
          APIRET         rc = NO_ERROR;
 
          ULONG          ulAction;
+         ULONG          fsOpenFlags;
          ULONG          fsOpenMode;
 
          HFILE          hfile = NULLHANDLE;
@@ -299,12 +304,33 @@ APIRET MmfAlloc( PVOID *ppvdata, PSZ pszFilename, ULONG ulOpenFlags, ULONG ulMax
 do
    {
    // check parms
-   if ((!ppvdata)       ||
-       (ulOpenFlags > MMF_ACCESS_READWRITE))
+   if ((!ppvdata) ||
+       (!ulMaxSize))
       {
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
+
+   // adapt open mode and open flags
+   switch (ulOpenFlags & MMF_MASK_ACCESS)
+      {
+      case MMF_ACCESS_READONLY:  fsOpenMode = OPEN_ACCESS_READONLY  | OPEN_SHARE_DENYWRITE;     break;
+      case MMF_ACCESS_WRITEONLY: fsOpenMode = OPEN_ACCESS_WRITEONLY | OPEN_SHARE_DENYWRITE;     break;
+      case MMF_ACCESS_READWRITE: fsOpenMode = OPEN_ACCESS_READWRITE | OPEN_SHARE_DENYREADWRITE; break;
+      }
+
+   switch (ulOpenFlags & MMF_MASK_OPENMODE)
+      {
+      case MMF_OPENMODE_OPENFILE:  fsOpenFlags = OPEN_ACTION_OPEN_IF_EXISTS;    break;
+      case MMF_OPENMODE_RESETFILE: fsOpenFlags = OPEN_ACTION_REPLACE_IF_EXISTS; break;
+
+      default: 
+         rc = ERROR_INVALID_PARAMETER;
+         break;
+      }
+   if (rc != NO_ERROR)
+      break;
+
 
    // init if necessary
    CHECKINIT;
@@ -329,27 +355,17 @@ do
          break;
          }
 
-      // adapte access flages
-      switch (ulOpenFlags)
-         {
-         default:
-         case MMF_ACCESS_READONLY:  fsOpenMode = OPEN_ACCESS_READONLY  | OPEN_SHARE_DENYWRITE;     break;
-         case MMF_ACCESS_WRITEONLY: fsOpenMode = OPEN_ACCESS_WRITEONLY | OPEN_SHARE_DENYWRITE;     break;
-         case MMF_ACCESS_READWRITE: fsOpenMode = OPEN_ACCESS_READWRITE | OPEN_SHARE_DENYREADWRITE; break;
-         }
-
       // open file
       rc = DosOpen( pszFilename,
                     &hfile,
                     &ulAction,
                     0L,
                     FILE_ARCHIVED | FILE_NORMAL,
-                    OPEN_ACTION_CREATE_IF_NEW | OPEN_ACTION_OPEN_IF_EXISTS,
+                    OPEN_ACTION_CREATE_IF_NEW | fsOpenFlags,
                     OPEN_FLAGS_NOINHERIT | OPEN_FLAGS_FAIL_ON_ERROR | fsOpenMode,
                     NULL);
       if (rc != NO_ERROR)
          return rc;
-
 
       } // if ((pszFilename) && (*pszFilename))
 
