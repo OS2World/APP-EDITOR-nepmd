@@ -2,7 +2,7 @@
 *
 * Module Name: setinit.cmd
 *
-*   Syntax:  setinit
+*   Syntax:  setinit [<dir>|DELETE:]
 *
 *   This program sets initialization data to NEPMD.INI, just as if
 *   NEPMD was installed in the DEBUG directory. This way all programs
@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setinit.cmd,v 1.1 2002-08-10 12:34:06 cla Exp $
+* $Id: setinit.cmd,v 1.2 2002-08-22 15:40:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -43,7 +43,20 @@
  PARSE SOURCE . . CallName;
  CallDir = LEFT( CallName, LASTPOS( '\', CallName) - 1);
  BaseDir = LEFT( CallDir,  LASTPOS( '\', CallDir)  - 1);
- InstDir = BaseDir'\debug';
+
+ /* other directory specified ? */
+ PARSE ARG Parm .;
+ SELECT
+    WHEN (POS( TRANSLATE( Parm), 'DELETE:') = 1) THEN
+       InstDir = 'DELETE:';
+
+    WHEN (Parm \= '') THEN
+       InstDir = Parm;
+
+    OTHERWISE
+       InstDir = BaseDir'\debug';
+ END;
+
 
  /* display the vaule just set */
  rc = SysIni(, IniApp, IniKeyPath, InstDir);
