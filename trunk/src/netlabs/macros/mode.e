@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.11 2002-10-07 21:00:17 cla Exp $
+* $Id: mode.e,v 1.12 2002-10-07 21:43:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -55,7 +55,7 @@ compile if NEPMD_RESTORE_MODE_FROM_EA
 compile endif
    if CurMode = '' then
       -- Get default mode:
-      CurMode = NepmdGetDefaultMode(filename)
+      CurMode = NepmdQueryDefaultMode(filename)
    endif
    activatefile save_fid
 
@@ -131,7 +131,7 @@ compile if NEPMD_RESTORE_MODE_FROM_EA
 compile endif
       if NewMode = '' then
          -- Get the default mode
-         NewMode = NepmdGetDefaultMode(.filename)
+         NewMode =  NepmdQueryDefaultMode(.filename)
       endif
       -- The EPM EA area was already set on load, so EA doesn't need to be rewritten
       UpdateEA = 0
@@ -148,7 +148,7 @@ compile if NEPMD_RESTORE_MODE_FROM_EA
       call delete_ea('EPM.MODE')
 compile endif
       -- Get the default mode
-      NewMode = NepmdGetDefaultMode(.filename)
+      NewMode =  NepmdQueryDefaultMode(.filename)
       -- After resetting the EA it shouldn't be rewritten
       UpdateEA = 0
    endif
@@ -188,171 +188,6 @@ compile endif
    call NepmdActivateHighlight( 'ON', CurMode )
 
    return
-
-
-; ---------------------------------------------------------------------------
-; Returns the default mode according to the
-; - EA '.TYPE'  (Todo)
-; - extension
-; - first non-empty line .
-; Called by 'mode DEFLOAD' if EA 'EPM.MODE' doesn't exist.
-; Called by 'mode' after EA 'EPM.MODE' was just reset.
-defproc NepmdGetDefaultMode()
-
-   universal tex_file_types  -- defined in tex.e
-
-   parse arg filename
-   if filename = '' then
-      filename = .filename
-   endif
-
-   -- get the extension
-   lastbspos = lastpos( '\', filename )
-   name = substr( filename, lastbspos +1 )
-   lastpointpos = lastpos( '.', name )
-   ext = ''
-   basename = name
-   if lastpointpos = 0 then
-   elseif lastpointpos = length(name) then
-      ext = ''
-      basename = substr( name, 1, lastpointpos - 1 )
-   elseif lastpointpos < length(name) then
-      ext = substr( name, lastpointpos + 1 )
-      ext = translate(ext)
-      ---- Begin: added for .e.out files ----
-      forelastpointpos = lastpos( '.', leftstr( name, lastpointpos - 1 ) )
-      if ext = 'OUT' and forelastpointpos > 1 then
-         --sayerror 'name = 'name', ext = 'ext', forelastpointpos = 'forelastpointpos
-         ext = substr( name, forelastpointpos + 1, lastpointpos - forelastpointpos - 1 )
-         ext = translate(ext)
-         --sayerror '    ext = 'ext', lastpointpos = 'lastpointpos
-      endif
-      ---- End: added for .e.out files ----
-      basename = substr( name, 1, lastpointpos - 1 )
-   endif
-   --sayerror 'basename = |'basename'|, ext = |'ext'|'
-
-; Todo:
-   -- get the .TYPE EA
-
-; Todo: place this externally
-; Todo: not only for extensions
-   -- Read the first line(s) for special extensions
-   if wordpos( ext, 'CMD BAT EXC EXEC XEDIT ERX REX REXX VRX RXX R X XH LOG' ) then
-      i = 0
-      first_line = ''
-      first_two_chars = ''
-      first_line_nonempty = ''
-      tfirst_line_nonempty = ''
-      first_char_nonempty = ''
-      ExtProc = ''
-      RexxComment = ''
-      do forever
-         if first_line_nonempty <> '' then leave; endif
-         if .last <= i then leave; endif
-         i = i + 1
-         next = textline(i)
-         tnext =  strip( translate(next) )
-         if i = 1 then
-            first_line = textline(i)
-            first_two_chars = leftstr( first_line, 2 )
-            if first_two_chars = '/'||'*' then
-               RexxComment = 1
-               leave
-            endif
-         endif
-         w1 = word( tnext, 1 )
-         w2 = word( tnext, 2 )
-         if tnext = '' then
-            iterate
-         elseif first_char_nonempty = '' then
-            first_char_nonempty = leftstr( w1, 1 )
-         endif
-         if wordpos( w1, 'REM @REM : ::' ) = 1 then iterate; endif
-         if (w1 = '@ECHO' or w1 = 'ECHO') and w2 = 'OFF' then iterate; endif
-         first_line_nonempty = next
-         tfirst_line_nonempty = tnext
-         if w1 = 'EXTPROC' or w1 = '@EXTPROC' then
-            ExtProc = w2
-         endif
-      enddo
-   endif
-
-   defaultmode = ''
-   if 0 then
-   elseif leftstr( translate(name), 8 ) = 'EPMKWDS.' then
-      defaultmode = 'EPMKWDS'
-   elseif leftstr( translate(filename), 14 ) = '.COMMAND_SHELL' then
-      defaultmode = 'SHELL'
-   elseif translate(basename) = 'CONFIG' or ext = 'SYS' then
-      defaultmode = 'CONFIGSYS'
-   elseif wordpos( ext, 'C H SQC CPP HPP CXX HXX' ) then
-      defaultmode= 'C'
-   elseif wordpos( ext, 'CMD BAT EXC EXEC XEDIT ERX REX REXX VRX RXX R X XH' ) then
-      if RexxComment then
-         defaultmode = 'REXX'
-      elseif wordpos( ext, 'X XH' ) then
-         defaultmode = 'REXX'
-      elseif pos( 'PERL', ExtProc ) then
-         defaultmode = 'PERL'
-      else
-         defaultmode = 'CMD'
-      endif
-   elseif ext = 'E' then
-      defaultmode = 'E'
-   elseif wordpos( ext, 'INI CNF CFG' ) then
-      defaultmode = 'INI'
-   elseif wordpos( ext, 'HTM HTML' ) then
-      defaultmode = 'HTML'
-   elseif wordpos( ext, 'FOR FORTRAN F90' ) then
-      defaultmode = 'FORTRAN'
-   elseif ext = 'IPF' then
-      defaultmode = 'IPF'
-   elseif wordpos( ext, 'JAVA JAV' ) then
-      defaultmode = 'JAVA'
-   elseif translate( leftstr( name, 8 ) ) = 'MAKEFILE' or ext = 'MAK' or ext = 'IN' then
-      defaultmode = 'MAKE'
-   elseif wordpos( ext, 'PAS PASCAL' ) then
-      defaultmode = 'PASCAL'
-   elseif wordpos( ext, 'PL PRL PERL' ) then
-      defaultmode = 'PERL'
-   elseif ext='PHP' then
-      defaultmode = 'PHP'
-   elseif ext='RC' then
-      defaultmode = 'RC'
-   elseif ext='DEF' then
-      defaultmode = 'DEF'
-   elseif ext = 'RXP' then
-      defaultmode = 'RXP'
-   elseif wordpos( translate(basename), 'READ README' ) > 0 or wordpos( ext, 'TXT DOC' ) > 0 then
-      defaultmode = 'TXT'
- compile if defined(my_SCRIPT_FILE_TYPE)
-   elseif wordpos( ext, 'SCR SCT SCRIPT' my_SCRIPT_FILE_TYPE ) then
- compile else
-   elseif wordpos( ext, 'SCR SCT SCRIPT' ) then
- compile endif
-      defaultmode = 'SCRIPT'
-   elseif ext = 'LOG' then
-      if subword( tfirst_line_nonempty, 1, 2 ) = 'THIS IS' and pos( 'TEX', word( tfirst_line_nonempty, 3 ) ) then
-         defaultmode = 'TEX'
-      elseif subword( first_line_nonempty, 1, 6 ) = "The 'E' Language Translator for OS/2." then
-         defaultmode = 'E'
-      endif
-   elseif wordpos( ext, tex_file_types ) then
-      defaultmode = 'TEX'
-   endif
-   -- other files
-   if defaultmode = '' then
-      if first_char_nonempty = '#' then
-         defaultmode = 'MAKE'
-      elseif first_char_nonempty = ';' then
-         defaultmode = 'INI'
-      else
-         defaultmode = 'UNKNOWN'
-      endif
-   endif
-   return defaultmode
-
 
 ; ---------------------------------------------------------------------
 ; Opens a listbox to select a mode.
