@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: activatehighlight.e,v 1.8 2003-08-30 16:00:58 aschn Exp $
+* $Id: activatehighlight.e,v 1.9 2004-08-01 13:32:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -114,6 +114,7 @@ defc NepmdActivateHighlight, ActivateHighlight =
 
 compile endif
 
+/****************************
 /* ------------------------------------------------------------- */
 /* procedure: NepmdActivateHighlight                             */
 /* ------------------------------------------------------------- */
@@ -157,4 +158,51 @@ defproc NepmdActivateHighlight( ActivateFlag)
  helperNepmdCheckliberror( LibFile, rc);
 
  return rc;
+****************************/
+
+/* ------------------------------------------------------------- */
+/* procedure: NepmdActivateHighlight                             */
+/* ------------------------------------------------------------- */
+/* .e Syntax:                                                    */
+/*    rc = NepmdActivateHighlight( ActivateFlag,                 */
+/*                                 Mode,                         */
+/*                                 HiliteOptions)                */
+/*                                                               */
+/* ------------------------------------------------------------- */
+/* C prototype:                                                  */
+/*  APIRET EXPENTRY NepmdQueryHighlightArgs( PSZ pszActivateFlag,*/
+/*                                           PSZ pszEpmMode,     */
+/*                                           PSZ pszOptions,     */
+/*                                           PSZ pszBuffer,      */
+/*                                           ULONG ulBuflen);    */
+/* ------------------------------------------------------------- */
+defproc NepmdActivateHighlight( ActivateFlag)
+
+   -- get mode of current file, if not specified
+   EpmMode = arg( 2)
+   if (EpmMode = '') then
+      EpmMode = NepmdGetMode()
+   endif
+   HiliteOptions = arg( 3)
+   ActivateFlag  = ActivateFlag\0
+   EpmMode       = EpmMode\0
+   HiliteOptions = HiliteOptions\0
+   BufLen        = NEPMD_MAXLEN_ESTRING
+   HighlightArgs = copies( \0, BufLen)
+
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    'NepmdQueryHighlightArgs',
+                    address( ActivateFlag)        ||
+                    address( EpmMode)             ||
+                    address( HiliteOptions)       ||
+                    address( HighlightArgs)       ||
+                    atol( BufLen))
+
+   call helperNepmdCheckliberror( LibFile, rc)
+   if not rc then
+      HighlightArgs = makerexxstring( HighlightArgs)
+      'toggle_parse' HighlightArgs
+   endif
+   return rc
 

@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.26 2004-07-03 10:38:21 aschn Exp $
+* $Id: hilite.c,v 1.27 2004-08-01 13:32:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1419,7 +1419,13 @@ do
 
    // search mode files
    rc = _assembleKeywordFile( pszEpmMode, ulOptions, pfReload, szValue, sizeof( szValue));
-   if (rc != NO_ERROR)
+   if (rc == NO_ERROR)
+      {
+      // disable reload if HighlightFlag <> 0
+      if (ulOptions)
+         *pfReload = FALSE;
+      }
+   else
       {
       // if no mode infos available; conventional search
       rc = _searchFile( pszEnvnameEpmPath, szValue, sizeof( szValue), SEARCHMASK_EPMKWDS, pszEpmMode);

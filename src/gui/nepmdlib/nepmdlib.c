@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.59 2004-07-03 12:11:53 aschn Exp $
+* $Id: nepmdlib.c,v 1.60 2004-08-01 13:32:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -358,6 +358,8 @@ return rc;
 }
 
 // ##############################################################################
+// Unused, currently replaced by NepmdQueryHighlightArgs, because defselect is
+// suppressed, if an EPM command is executed at this time
 
 APIRET EXPENTRY NepmdActivateHighlight( HWND hwndClient, PSZ pszActivateFlag,
                                         PSZ pszEpmMode, PSZ pszOptions)
@@ -420,18 +422,115 @@ do
    else
       szHilightFile[ 0] = 0;
 
-   // send command
-   _executeEPMCommand( hwndClient, "toggle_parse %s %s", pszActivateFlag, szHilightFile);
-
-   // resend with toggle_parse 2 for reload
+   // send command with toggle_parse 2 for reload
+   // issue: reload works for the first EPM window only, because other
+   //        windows don't get notified about the HilightFile update
+   //        -> maybe fix this in defc toggle_parse:
+   //           save timestamp in array var for 'kwfile.'fid as well?
    if ((*pszActivateFlag == '1') && (fReload))
       pszActivateFlag = "2";
+
+// Bug: Calling _executeEPMCommand as well as ETKExecuteCommand at this time
+//      suppresses the defselect after defload, if EPM is already open and a
+//      new file is added to the ring.
+//      The defselect after all defloads is triggered correctly, if a new
+//      window is opened.
+
    _executeEPMCommand( hwndClient, "toggle_parse %s %s", pszActivateFlag, szHilightFile);
 
    } while (FALSE);
 
 FUNCEXITRC;
 return rc;
+}
+
+// ------------------------------------------------------------------------------
+// Like NepmdActivateHighlight, but returns the args for toggle_parse instead
+// of executing it
+
+APIRET EXPENTRY NepmdQueryHighlightArgs( PSZ pszActivateFlag, PSZ pszEpmMode,
+                                         PSZ pszOptions,
+                                         PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         CHAR           szHilightFile[ _MAX_PATH];
+         CHAR           szResult[ _MAX_PATH + 2];
+
+         BOOL           fReload   = 1;
+         ULONG          ulOptions = 0;
+
+FUNCENTER;
+
+do
+   {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
+   // check parms
+   if ((!pszEpmMode) ||
+       (!*pszEpmMode))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // set defaults
+   if ((!pszOptions) || (!*pszOptions))
+      pszOptions = "";
+   if ((!pszActivateFlag) || (!*pszActivateFlag))
+      pszActivateFlag = "1";
+
+   // handle options
+   strupr( pszOptions);
+   if (strchr( pszOptions, 'N'))
+      ulOptions |= HILITE_NOOUTDATECHECK;
+
+   // handle activate strings
+   if (!strcmp( "0",    pszActivateFlag))
+      {}
+   else if (!strcmp( "1",  pszActivateFlag))
+      {}
+   else if (!stricmp( "OFF", pszActivateFlag))
+      pszActivateFlag = "0";
+   else if (!stricmp( "ON", pszActivateFlag))
+      pszActivateFlag = "1";
+   else
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // 2nd param for toggle_parse
+   if (*pszActivateFlag == '1')
+      {
+      // query / create hilite file
+      rc = QueryHilightFile( pszEpmMode, ulOptions, &fReload, szHilightFile, sizeof( szHilightFile));
+      if (rc != NO_ERROR)
+         break;
+      }
+   else
+      szHilightFile[ 0] = 0;
+
+   // 1st param for toggle_parse
+   if ((*pszActivateFlag == '1') && (fReload))
+      pszActivateFlag = "2";
+
+   // convert handle to string and add 2nd param
+   sprintf( szResult, "%s %s", pszActivateFlag, szHilightFile);
+   if (strlen( szResult) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszBuffer, szResult);
+
+   } while (FALSE);
+
+FUNCEXITRC;
+return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
 // ------------------------------------------------------------------------------
