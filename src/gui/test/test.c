@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.12 2002-09-13 17:09:49 cla Exp $
+* $Id: test.c,v 1.13 2002-09-13 17:29:26 cla Exp $
 *
 * ===========================================================================
 *
@@ -152,7 +152,7 @@ do
    if (!(strcmp( pszTestcase, "CONFIGVALUE")))
 
       {
-
+            HCONFIG           hconfig = NULLHANDLE;
             PSZ               pszPath;
             PSZ               pszValue;
             CHAR              szValue[ _MAX_PATH];
@@ -161,17 +161,24 @@ do
 #define PROCESSVALUE(p,v)                                         \
       pszPath  = p;                                               \
       pszValue = v;                                               \
-      rc = WriteConfigValue(p,v);                                 \
+      rc = WriteConfigValue( hconfig, p,v);                       \
       if (rc)                                                     \
          break;                                                   \
-      rc = QueryConfigValue( pszPath, szValue, sizeof( szValue)); \
+      rc = QueryConfigValue( hconfig, pszPath, szValue, sizeof( szValue)); \
       if (rc)                                                     \
          break;                                                   \
       printf( pszFormat, pszPath, szValue);
 
       // write and read all keys
       do
-         { // write complete new ekyes
+         {
+         // open profile
+         rc = OpenConfig( &hconfig);
+         printf( "open configurarion: rc=%u, handle=0x%x\n\n", rc, hconfig);
+         if (rc != NO_ERROR)
+            break;
+
+         // write complete new kyes
          PROCESSVALUE( "\\NEPMD\\Testcases\\MyContainer\\MyKey",       "My first value is this !");
          PROCESSVALUE( "\\NEPMD\\Testcases\\My2ndContainer\\MyKey",    "My second value is this !");
          PROCESSVALUE( "\\NEPMD\\Testcases\\My3rdContainer\\My3rdKey", "My third value is this !");
@@ -186,7 +193,7 @@ do
          // write a new key to be deleted, name includes a space
          pszPath = "\\NEPMD\\Testcases\\ContainerToDelete\\SubContainerToDelete\\Key To Delete";
          PROCESSVALUE( pszPath, "Value to be deleted");
-         rc = DeleteConfigValue( pszPath);
+         rc = DeleteConfigValue( hconfig, pszPath);
          printf( "Key deleted, rc=%u\n", rc);
 
 
@@ -194,6 +201,10 @@ do
 
       if (rc)
          printf( "\n\nerror: cannot write value for: %s\n", pszPath);
+
+      // cleanup
+      if (hconfig)
+         CloseConfig( hconfig);
 
       } // testcase CONFIGVALUE
 
