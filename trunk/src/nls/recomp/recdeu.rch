@@ -44,7 +44,7 @@
                                                  "Sie den Vorgang oder wÑhlen Sie im EinstellungsmenÅ "
                                                  "die Funktion zum Verwerfen von ungesicherten Dateien aus."
 #define IDT_IDSTR_COMPILE_ERROR                  "Die öbersetzung des EPM war nicht erfolgreich. " \
-                                                 "Bitte ÅberprÅfen Sie das Fehlerlog, um den Fehler zu berichtigen."
+                                                 "Bitte ÅberprÅfen Sie die fehlerhafte Datei, um den Fehler zu berichtigen."
 #define IDT_IDSTR_INVALID_PARM                   "UngÅltiger Parameter %s angegeben, das Programm wurde abgebrochen."
 #define IDT_IDSTR_START_NOT_SPECIFIED            "Parameter /%s nicht angegeben mit /%s. Programm abgebrochen.";
 #define IDT_IDSTR_HELP_HEAD                      __APPNAME__ " " __VERSION__                     NEWLINE \
