@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.9 2002-09-15 14:16:18 cla Exp $
+* $Id: libreg.c,v 1.10 2002-09-15 15:39:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -37,12 +37,11 @@
 #include "nepmd.h"
 #include "libreg.h"
 
-// some globals
+// global variables and macros for reading/writing entries
+// and container lists
 static   PSZ            pszPathSeparator   = "\\";      // only one character, although it is a string !!!
 static   PSZ            pszAppRegKeys      = "RegKeys";
 static   PSZ            pszAppRegContainer = "RegContainer";
-
-#define  SETLASTERROR(rc) WinSetErrorInfo( MAKEERRORID( SEVERITY_ERROR, PMERR_DOS_ERROR), SEI_DOSERROR, (USHORT) rc)
 
 #define PATHENTRYLEN(p)       _queryEntrySize( hconfig, pszAppRegContainer, p)
 #define KEYENTRYLEN(p)        _queryEntrySize( hconfig, pszAppRegKeys, p)
@@ -59,6 +58,48 @@ static   PSZ            pszAppRegContainer = "RegContainer";
 #define PATHEXISTS(p)   (PATHENTRYLEN( p) > 0)
 #define KEYEXISTS(p)    (KEYENTRYLEN( p)  > 0)
 
+// global variables and macros for ensuring exclusive access across 
+// thread and process boundaries
+static   PSZ              pszMutexSemName = "\\SEM32\\NEPMD\\CONFIGURATION\\ACCESS";
+
+#define REQUESTACCESS(ph) _getExclusiveAccess( ph)
+#define RELEASEACCESS(h)  _releaseExclusiveAccess( h)
+
+// -----------------------------------------------------------------------------
+
+static APIRET _getExclusiveAccess( PHMTX phmtxAccess)
+{
+         APIRET         rc = NO_ERROR;
+do
+   {
+   // create semaphore
+   rc = DosCreateMutexSem( pszMutexSemName, phmtxAccess, 0L, FALSE);
+   if (rc != NO_ERROR)
+      {
+      // get handle to update sem
+      rc = DosOpenMutexSem( pszMutexSemName, phmtxAccess);
+      if (rc != NO_ERROR)
+         break;
+      }
+
+   // get exclusive access to action profile list
+   rc = DosRequestMutexSem( *phmtxAccess, 1000);
+   if (rc != NO_ERROR)
+      break;
+
+   } while (FALSE);
+
+DPRINTF(( "LIBREG: request exclusive access: %u\n", rc));
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
+static APIRET _releaseExclusiveAccess( HMTX hmtxAccess)
+{
+DPRINTF(( "LIBREG: release exclusive access\n"));
+return DosCloseMutexSem( hmtxAccess);
+}
 
 // -----------------------------------------------------------------------------
 
@@ -554,6 +595,7 @@ APIRET WriteConfigValue( HCONFIG hconfig, PSZ pszValuePath, PSZ pszValue)
 
 {
          APIRET         rc = NO_ERROR;
+         HMTX           hmtxAccess = NULLHANDLE;
 
 do
    {
@@ -565,6 +607,10 @@ do
       break;
       }
 
+   // obtain exclusive access
+   rc = REQUESTACCESS( &hmtxAccess);
+   if (rc != NO_ERROR)
+      break;
 
    // create path if not exist
    DPRINTF(( "LIBREG: create path: %s\n", pszValuePath));
@@ -587,8 +633,9 @@ do
 
    } while (FALSE);
 
+// cleanup
+if (hmtxAccess) RELEASEACCESS( hmtxAccess);
 return rc;
-
 }
 
 // -----------------------------------------------------------------------------
@@ -597,6 +644,7 @@ APIRET QueryConfigValue( HCONFIG hconfig, PSZ pszValuePath, PSZ pszBuffer, ULONG
 
 {
          APIRET         rc = NO_ERROR;
+         HMTX           hmtxAccess = NULLHANDLE;
 
 do
    {
@@ -608,6 +656,11 @@ do
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
+
+   // obtain exclusive access
+   rc = REQUESTACCESS( &hmtxAccess);
+   if (rc != NO_ERROR)
+      break;
 
    // read entry
    DPRINTF(( "LIBREG: read: %s\n", pszValuePath));
@@ -621,8 +674,9 @@ do
 
    } while (FALSE);
 
+// cleanup
+if (hmtxAccess) RELEASEACCESS( hmtxAccess);
 return rc;
-
 }
 
 // -----------------------------------------------------------------------------
@@ -631,6 +685,7 @@ APIRET DeleteConfigValue( HCONFIG hconfig, PSZ pszValuePath)
 
 {
          APIRET         rc = NO_ERROR;
+         HMTX           hmtxAccess = NULLHANDLE;
 
 do
    {
@@ -640,6 +695,11 @@ do
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
+
+   // obtain exclusive access
+   rc = REQUESTACCESS( &hmtxAccess);
+   if (rc != NO_ERROR)
+      break;
 
    // if key not exist: error
    DPRINTF(( "LIBREG: delete key: %s\n", pszValuePath));
@@ -660,7 +720,8 @@ do
 
    } while (FALSE);
 
+// cleanup
+if (hmtxAccess) RELEASEACCESS( hmtxAccess);
 return rc;
-
 }
 
