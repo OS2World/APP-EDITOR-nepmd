@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.4 2002-10-16 05:15:27 aschn Exp $
+* $Id: assist.e,v 1.5 2002-11-03 00:08:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -336,6 +336,8 @@ compile endif
 
 
 ; ---------------------------------------------------------------------------
+; Commented out: currently the def's from balance.e work better
+/*
 ; Balance:
 ; While typing an opening or closing expression the corresponding expression
 ; is seached and highlighted.
@@ -364,19 +366,18 @@ def '('=
 def ')'=
    NepmdDefineBalanceChar(')')
 
- def '['=
+def '['=
    NepmdDefineBalanceChar('[')
 
- def ']'=
+def ']'=
    NepmdDefineBalanceChar(']')
 
- def '{'=
+def '{'=
    NepmdDefineBalanceChar('{')
 
- def '}'=
+def '}'=
    NepmdDefineBalanceChar('}')
 
-/*
 def '<'=
    NepmdDefineBalanceChar('<')
 
