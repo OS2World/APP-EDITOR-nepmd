@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.2 2002-08-22 12:20:01 cla Exp $
+* $Id: getnextfile.e,v 1.3 2002-08-22 12:36:26 cla Exp $
 *
 * ===========================================================================
 *
@@ -46,7 +46,7 @@ defc NepmdGetNextFile, GetNextFile =
   end;
 
 /* ------------------------------------------------------------- */
-/* procedure: NepmdQueryFullname                                 */
+/* procedure: NepmdGetNextFile                                   */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
 /*    Handle   = 0;                                              */
