@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.17 2004-02-22 16:02:28 aschn Exp $
+* $Id: kwhelp.e,v 1.18 2004-06-03 21:52:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -76,11 +76,10 @@ compile if not defined(NEPMD_KEYWORD_HELP_COMMAND)
    NEPMD_KEYWORD_HELP_COMMAND = 'view'  -- default
 compile endif
 
+; ---------------------------------------------------------------------------
 defc kwhelp = call pHelp_C_identifier()
 
-/***********************************************/
-/* pHelp_C_identifier()                        */
-/***********************************************/
+; ---------------------------------------------------------------------------
 defproc pHelp_C_identifier
    universal savetype, helpindex_id
    ft = filetype()    --<---------------------------------------------------- Todo
@@ -235,9 +234,7 @@ compile endif
    activatefile CurrentFile
    call prestore_pos(savedpos)
 
-/***********************************************/
-/* pGet_Identifier()                           */
-/***********************************************/
+; ---------------------------------------------------------------------------
 defproc pGet_Identifier(var id, startcol, endcol, ft)
 
    getline line
@@ -270,9 +267,7 @@ defproc pGet_Identifier(var id, startcol, endcol, ft)
    endif
    id = substr(line, startcol, (endcol-startcol)+1)
 
-/***********************************************/
-/* pBuild_Helpfile()                           */
-/***********************************************/
+; ---------------------------------------------------------------------------
 defproc pBuild_Helpfile(ft)
    universal helpindex_id, savetype
    rc = 0
@@ -367,6 +362,8 @@ defproc pBuild_Helpfile(ft)
          if helpindex_id then
             bottom
             last = .last
+            -- If 'get' uses 'e' and 'q' instead of 'xcom e' and 'xcom q':
+            -- For certain .ndx files 'get' returns rc = 4868.
             'get "'destfilename'"'
             .modify = 0
             line = upcase(textline(last+1))
@@ -391,8 +388,11 @@ defproc pBuild_Helpfile(ft)
          else       /* Need to add first .NDX file to the editor ring */
             'xcom e /d' destfilename
             .modify = 0
+            .autosave = 0
             if rc = 0 then
-               'n .HELPFILE' -- make sure we don't use the name of the first file
+               --'n .HELPFILE' -- make sure we don't use the name of the first file
+               -- 'n' or 'xcom n' will give <path>\.HELPFILE, better use .filename:
+               .filename = '.HELPFILE'
                line = upcase(textline(1))
                if word(line,1)='EXTENSIONS:' & (wordpos(ft, line) | wordpos('*', line)) then  --<--------------------------------- Todo
                   /* only read in 'relevant' files */
@@ -418,4 +418,24 @@ defproc pBuild_Helpfile(ft)
    savetype = ft
 
    return rc
+
+; ---------------------------------------------------------------------------
+defc viewword  -- arg(1) is name of .inf file
+   if find_token( startcol, endcol) then
+      InfFile = arg(1)
+      -- resolve OS/2 environment vars
+      InfFile = NepmdResolveEnvVars(InfFile)
+      --sayerror 'InfFile = 'arg(1)', InfFile with EnvVars resolved = 'InfFile
+      -- specifying the extension is optional
+      if upcase( rightstr( InfFile, 4)) <> '.INF' then
+         InfFile = InfFile'.inf'
+      endif
+      findfile fully_qualified, InfFile, 'BOOKSHELF'
+      if rc then
+         sayerror FILE_NOT_FOUND__MSG '"'InfFile'"'
+         return
+      endif
+      'view' InfFile substr(textline(.line), startcol, (endcol-startcol)+1)
+   endif
+
 
