@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.11 2002-08-15 14:59:58 cla Exp $
+* $Id: epmcall.c,v 1.12 2002-08-24 17:52:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -39,119 +39,6 @@
 
 // -----------------------------------------------------------------------------
 
-APIRET SearchEPMExecutable( PSZ pszExecutable, ULONG ulBuflen)
-{
-         APIRET         rc  = NO_ERROR;
-         PPIB           ppib;
-         PTIB           ptib;
-         ULONG          ulBootDrive;
-
-
-         BOOL           fFound = FALSE;
-         PSZ            pszPath = getenv( "PATH");
-         PSZ            pszCopy = NULL;
-         PSZ            pszDir;
-         CHAR           szExecutable[ _MAX_PATH];
-
-         CHAR           szThisModule[ _MAX_PATH];
-         CHAR           szNepmdModule[ _MAX_PATH];
-         CHAR           szInstalledModule[ _MAX_PATH];
-
-do
-   {
-   // check parms
-   if ((!pszExecutable) ||
-       (!ulBuflen))
-      {
-      rc = ERROR_INVALID_PARAMETER;
-      break;
-      }
-
-   // check env
-   if (!pszPath)
-      {
-      rc = ERROR_ENVVAR_NOT_FOUND;
-      break;
-      }
-
-   // get name of own module
-   DosGetInfoBlocks( &ptib,&ppib);
-   DosQueryModuleName( ppib->pib_hmte, sizeof( szThisModule), szThisModule);
-
-   // get name of EPM.EXE in NEPMD path
-   memset( szNepmdModule, 0, sizeof( szNepmdModule));
-   PrfQueryProfileString( HINI_USER,
-                          NEPMD_INI_APPNAME,
-                          NEPMD_INI_KEYNAME_PATH,
-                          NULL,
-                          szNepmdModule,
-                          sizeof( szNepmdModule));
-   strcat( szNepmdModule, "\\"NEPMD_SUBPATH_BINBINDIR"\\epm.exe");
-   strupr( szNepmdModule);
-
-   // get name of epm.exe in OS/2 directory
-   // this is used by installed NEPMD
-   DosQuerySysInfo( QSV_BOOT_DRIVE, QSV_BOOT_DRIVE, &ulBootDrive, sizeof( ULONG));
-   sprintf( szInstalledModule, "%c:\\OS2\\EPM.EXE", (CHAR) ulBootDrive + 'A' - 1);
-
-   // create copy to allow modification
-   pszCopy = strdup( pszPath);
-   if (!pszCopy)
-      {
-      rc = ERROR_NOT_ENOUGH_MEMORY;
-      break;
-      }
-
-   pszDir = strtok( pszCopy, ";");
-   while (pszDir)
-      {
-      // create fullname for entry to check
-      strcpy( szExecutable, pszDir);
-      if (*(pszDir + strlen( pszDir) - 1) != '\\')
-         strcat( szExecutable, "\\");
-      strcat( szExecutable, "epm.exe");
-      strupr( szExecutable);
-
-      // process only modules not being the current one or of NEPMD
-      if ((strcmp( szExecutable, szThisModule)) &&
-          (strcmp( szExecutable, szNepmdModule)) &&
-          (strcmp( szExecutable, szInstalledModule)))
-         {
-         // does executable exist ?
-//       DPRINTF(( "EPMCALL: searching %s\n", szExecutable));
-         if (FileExists( szExecutable))
-            {
-            fFound = TRUE;
-            break;
-            }
-         }
-
-      // next please
-      pszDir = strtok( NULL, ";");
-      }
-   if (!fFound)
-      {
-      rc = ERROR_FILE_NOT_FOUND;
-      break;
-      }
-
-   // hand over result
-   if (strlen( szExecutable) + 1 > ulBuflen)
-      {
-      rc= ERROR_BUFFER_OVERFLOW;
-      break;
-      }
-   strcpy( pszExecutable, szExecutable);
-
-   } while (FALSE);
-
-// cleanup
-if (pszCopy) free( pszCopy);
-return rc;
-}
-
-// -----------------------------------------------------------------------------
-
 APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
 {
          APIRET         rc  = NO_ERROR;
@@ -163,7 +50,7 @@ APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
          STARTDATA      startdata;
 
 
-         CHAR           szProgramName[ _MAX_PATH];
+         CHAR           szExecutable[ _MAX_PATH];
          CHAR           szProgramArgs[ _MAX_PATH * 4];
          CHAR           szEnv[ _MAX_PATH * 4];
 
@@ -196,13 +83,8 @@ do
      break;
 
 
-   // search true EPM along the path
-   rc = SearchEPMExecutable( szProgramName, sizeof( szProgramName));
-   if (rc != NO_ERROR)
-      break;
-
    // get extended environment
-   GetExtendedEPMEnvironment( envv, &pszEnv);
+   GetExtendedEPMEnvironment( envv, &pszEnv, szExecutable, sizeof( szExecutable));
 
    // concatenate parms
    szProgramArgs[ 0] = 0;
@@ -226,7 +108,7 @@ do
    startdata.InheritOpt  = SSF_INHERTOPT_PARENT;
    startdata.SessionType = SSF_TYPE_PM;
    startdata.FgBg        = SSF_FGBG_FORE;
-   startdata.PgmName     = szProgramName;
+   startdata.PgmName     = szExecutable;
    startdata.PgmInputs   = szProgramArgs;
    startdata.TermQ       = szTermQueueName;
    startdata.Environment = pszEnv;
