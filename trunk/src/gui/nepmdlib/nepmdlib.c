@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.33 2002-09-05 16:09:34 cla Exp $
+* $Id: nepmdlib.c,v 1.34 2002-09-05 16:41:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -1217,6 +1217,33 @@ do
 
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdSetFrameWindowPos(  HWND hwndFrame, ULONG x, ULONG y, ULONG cx, ULONG cy, ULONG flags) 
+{
+
+         APIRET         rc = NO_ERROR;
+
+do
+   {
+
+   // check parms
+   if (!WinIsWindow( CURRENTHAB, hwndFrame))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // set window pos
+   if (!WinSetWindowPos( hwndFrame, HWND_TOP, x, y, cx, cy, flags))
+      rc = LASTERROR;
+
+   } while (FALSE);
+
+return rc;
+}
+
 
 // ------------------------------------------------------------------------------
 
