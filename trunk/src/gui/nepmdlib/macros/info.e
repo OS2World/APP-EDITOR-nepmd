@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.2 2002-08-24 15:17:28 cla Exp $
+* $Id: info.e,v 1.3 2002-08-24 19:58:03 cla Exp $
 *
 * ===========================================================================
 *
@@ -42,6 +42,18 @@ defc NepmdInfo =
 
 defproc NepmdInfo =
 
+ /* discard previously loaded info file from ring */
+ getfileid startfid;
+ MaxFiles = filesinring( 3);
+ do i = 1 to MaxFiles
+    if (.filename = '.NEPMD_INFO') then
+       .modify = 0;
+       'QUIT'
+    endif;
+    next_file;
+ enddo;
+ activatefile startfid;
+
  /* call C routine */
  LibFile = getlibfile();
  rc = dynalink32( LibFile,
@@ -50,6 +62,7 @@ defproc NepmdInfo =
 
  checkliberror( LibFile, rc);
 
+ /* make id discardable */
  .modify = 0;
 
  return rc;
