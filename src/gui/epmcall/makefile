@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.1 2002-08-07 17:15:51 cla Exp $
+# $Id: makefile,v 1.2 2002-08-07 22:09:22 cla Exp $
 #
 # ===========================================================================
 #
@@ -76,5 +76,9 @@ $(BINBINDIR)\epmcall.exe: $(BINDIR)\epmcall.exe
 
 # --- build program
 
-$(BINDIR)\epmcall.exe: $(BINDIR)\epmcall.obj $(OBJS) $(DEF)
+$(BINDIR)\epmcall.exe: $(BINDIR)\epmcall.obj $(OBJS) $(DEF) $(BINDIR)\epm_env.cmd
+
+# ---- copy env batch
+$(BINDIR)\epm_env.cmd: epm_env.cmd
+     copy epm_env.cmd $(BINDIR)\ >NUL
 
