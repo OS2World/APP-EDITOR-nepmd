@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.12 2003-09-01 05:26:46 aschn Exp $
+* $Id: stdkeys.e,v 1.13 2004-02-22 21:04:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -691,6 +691,9 @@ def c_f5=
 
 def c_f6=
    call pend_word()
+
+def c_f12
+   'next_win'
 
 def c_g='ring_more'
 
