@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.21 2002-09-02 14:59:54 cla Exp $
+* $Id: nepmdlib.c,v 1.22 2002-09-02 20:09:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -226,13 +226,40 @@ if (rc != NO_ERROR)
 return rc;
 }
 
+// ##############################################################################
+
+BOOL EXPENTRY NepmdAlarm( PSZ pszAlarmStyle)
+{
+         BOOL           fResult = FALSE;
+         ULONG          ulAlarmStyle = WA_NOTE;
+         ULONG          i;
+
+static   PSZ            apszAlarmStyle[] = { "WARNING", "NOTE", "ERROR"};
+#define  ALARM_COUNTS  (sizeof( apszAlarmStyle) / sizeof( PSZ))
+
+// use default if no style specified
+if ((!pszAlarmStyle) || (!*pszAlarmStyle))
+   pszAlarmStyle = apszAlarmStyle[ WA_NOTE];
+
+// generate alarm
+for (i = 0; i < ALARM_COUNTS; i++)
+   {
+   if (!stricmp( apszAlarmStyle[ i], pszAlarmStyle))
+      {
+      fResult = WinAlarm( HWND_DESKTOP, i);
+      break;
+      }
+   }
+
+return fResult;
+}
+
 // ------------------------------------------------------------------------------
 
 APIRET EXPENTRY NepmdDirExists( PSZ pszDirName)
 {
 return DirExists( pszDirName);
 }
-
 
 // ------------------------------------------------------------------------------
 
@@ -650,4 +677,4 @@ APIRET EXPENTRY NepmdWriteStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszEaVal
 {
 return WriteStringEa( pszFileName, pszEaName, pszEaValue);
 }
-
+  
