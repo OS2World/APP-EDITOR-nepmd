@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.10 2002-09-19 18:19:13 aschn Exp $
+* $Id: epm.e,v 1.11 2002-09-21 19:55:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -89,6 +89,8 @@ include        'stdprocs.e'    -- Standard functions and procedures.
 
 include        'markfilt.e'    -- Procedures for filtering a block, line or char. mark.
 include        'charops.e'     -- Mark operations for character marks.
+
+include        'edit.e'        -- Edit commands and procedures, moved from STDCMDS.E and STDPROCS.E
 
 compile if HOST_SUPPORT = 'STD'
    include     'saveload.e'    -- Save/load routines with host support
