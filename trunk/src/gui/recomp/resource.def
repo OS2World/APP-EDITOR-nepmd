@@ -1,0 +1,31 @@
+; ***************************** Module Header ******************************\
+;
+; Module Name: resource.def
+;
+; This is the module definition file for the language modules (*.nls).
+;
+; NOTE:
+;  - this file may not specify a library name, as the dll has a different
+;    name for each NLS version
+;
+; Copyright (c) Netlabs EPM Distribution Project 2002
+;
+; $Id: resource.def,v 1.1 2002-06-03 22:31:42 cla Exp $
+;
+; ===========================================================================
+;
+; This file is part of the Netlabs EPM Distribution package and is free
+; software.  You can redistribute it and/or modify it under the terms of the
+; GNU General Public License as published by the Free Software
+; Foundation, in version 2 as it comes in the "COPYING" file of the 
+; Netlabs EPM Distribution.  This library is distributed in the hope that it
+; will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
+;
+; **************************************************************************/
+
+LIBRARY
+DESCRIPTION '@#NETLABS:1.00.1006#@RECOMP - NLS library for NEPMD recompilation tool for EPM v6 - Copyright OS/2 Netlabs 2002'
+PROTMODE
+
