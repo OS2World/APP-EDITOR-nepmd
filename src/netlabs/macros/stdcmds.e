@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.3 2002-09-01 14:38:03 aschn Exp $
+* $Id: stdcmds.e,v 1.4 2002-09-02 22:14:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -320,17 +320,17 @@ defc dolines=
 ; it.
 define SAYERR = 'sayerror'  -- EPM:  Message box shows all SAYERRORs
 
-compile if LINK_HOST_SUPPORT & (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL')
- compile if not defined(MVS)
-    MVS = 0
- compile endif
- compile if not defined(E3MVS)
-    E3MVS = 0
- compile endif
- compile if not defined(HOST_LT_REQUIRED)
-    HOST_LT_REQUIRED = 0
- compile endif
-compile endif
+;compile if LINK_HOST_SUPPORT & (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL')
+; compile if not defined(MVS)
+;    MVS = 0
+; compile endif
+; compile if not defined(E3MVS)
+;    E3MVS = 0
+; compile endif
+; compile if not defined(HOST_LT_REQUIRED)
+;    HOST_LT_REQUIRED = 0
+; compile endif
+;compile endif
 
 compile if not defined(WANT_TRUNCATED_WARNING)
 const WANT_TRUNCATED_WARNING = 0
@@ -899,9 +899,6 @@ compile endif  -- WANT_LONGNAMES
 compile if SHOW_MODIFY_METHOD = 'TITLE'
       call settitletext(.filename)
 compile endif
-compile if MENU_LIMIT
-      call updateringmenu()
-compile endif
       call dosmove(autosave_name, MakeTempName())  -- Rename the autosave file
       call select_edit_keys()
 compile if SUPPORT_USER_EXITS
@@ -1250,13 +1247,6 @@ compile endif
 ;   if .lockhandle then call unlock(quitfileid); endif    -- remove?
 ;compile endif                                            -- remove?
    call quitfile()
-compile if MENU_LIMIT                                                                      -- remove?
-   getfileid fileid                                                                        -- remove?
-   if fileid <> quitfileid then    -- temp workaround - fileid not null if no more files;  -- remove?
-                                   -- breaks updateringmenu.                               -- remove?
-   call updateringmenu()                                                                   -- remove?
-   endif                                                                                   -- remove?
-compile endif                                                                              -- remove?
 
 defc rc=
    arg(1)
@@ -1403,9 +1393,6 @@ compile endif
       .filename=UNNAMED_FILE_NAME
  compile if SHOW_MODIFY_METHOD = 'TITLE'                 -- remove?
       call settitletext(.filename)                       -- remove?
- compile endif                                           -- remove?
- compile if MENU_LIMIT                                   -- remove?
-      call updateringmenu()                              -- remove?
  compile endif                                           -- remove?
    endif
 ;compile if    WANT_LAN_SUPPORT                          -- remove?

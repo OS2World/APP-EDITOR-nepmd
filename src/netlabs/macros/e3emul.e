@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: e3emul.e,v 1.3 2002-08-09 19:43:02 aschn Exp $
+* $Id: e3emul.e,v 1.4 2002-09-02 22:12:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -62,9 +62,6 @@ const
  compile endif
  compile if not defined(WANT_DBCS_SUPPORT)
    WANT_DBCS_SUPPORT = 0
- compile endif
- compile if not defined(LINK_HOST_SUPPORT)
-   LINK_HOST_SUPPORT = 0
  compile endif
  compile if not defined(DELAY_SAVEPATH_CHECK)
    DELAY_SAVEPATH_CHECK = 0
@@ -1695,27 +1692,13 @@ defproc HLLAPI_call(EHLLAPI_function_number,
                 var EHLLAPI_host_PS_position)   -- Host presentation space posn.
                                                 -- (on return, RC)
    rc = 0        -- Prepare for missing DLL library
- compile if EPM32
    result=dynalink('ACS3EHAP',                  -- dynamic link library name
                    'HLLAPI',                    -- HLLAPI direct call
                     Thunk(address(EHLLAPI_function_number))    ||
                     Thunk(ofs_EHLLAPI_data_string              || sel_EHLLAPI_data_string)  ||
                     Thunk(address(EHLLAPI_data_string_length)) ||
                     Thunk(address(EHLLAPI_host_PS_position)) )
- compile else
-   result=dynalink('ACS3EHAP',                  -- dynamic link library name
-                   'HLLAPI',                    -- HLLAPI direct call
-                   address(EHLLAPI_function_number)     ||
-                   sel_EHLLAPI_data_string              ||
-                   ofs_EHLLAPI_data_string              ||
-                   address(EHLLAPI_data_string_length)  ||
-                   address(EHLLAPI_host_PS_position))
- compile endif
- compile if EPM
    if rc then sayerror ERROR__MSG rc FROM_HLLAPI__MSG '-' sayerrortext(rc); stop; endif
- compile else
-   if rc then sayerror ERROR__MSG rc FROM_HLLAPI__MSG; stop; endif
- compile endif
    return itoa(EHLLAPI_host_PS_position, 10)
 
 ; A simpler EHLLAPI interface - just pass a function number and data string.

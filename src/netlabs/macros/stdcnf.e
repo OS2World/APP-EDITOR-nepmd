@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.3 2002-09-01 14:34:18 aschn Exp $
+* $Id: stdcnf.e,v 1.4 2002-09-02 22:04:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -811,7 +811,7 @@ compile endif
 
 -- Define the default PASTE action for Shift+Ins.  Can be '' (for Paste Lines),
 -- 'B' (for Paste Block), or 'C' (for standard PM character mark).
-compile if not defined(DEFAULT_PASTE) & EPM
+compile if not defined(DEFAULT_PASTE)
    DEFAULT_PASTE = 'C'
 compile endif
 
@@ -1542,13 +1542,13 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
    do_array 2, EPM_utility_array_ID, 'si.0', zero     -- Set Style Index 0 to "no entries."
 ;compile endif  -- EVERSION >= 5
 
-compile if EXTRA_EX
- compile if defined(my_EXTRA_EX_NAME)
-   'linkverify' my_EXTRA_EX_NAME
- compile else
-   'linkverify EXTRA'
- compile endif
-compile endif
+;compile if EXTRA_EX
+; compile if defined(my_EXTRA_EX_NAME)
+;   'linkverify' my_EXTRA_EX_NAME
+; compile else
+;   'linkverify EXTRA'
+; compile endif
+;compile endif
 
 ;compile if EVERSION >= 5
 ; compile if EVERSION >= '5.20'
@@ -1755,21 +1755,21 @@ compile endif
 ; repaint_window()
 ;compile endif  -- not EPM
 
-compile if LINK_HOST_SUPPORT
- compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
-   'linkverify E3EMUL'
- compile elseif HOST_SUPPORT = 'SRPI'
-   'linkverify SLSRPI'
- compile else
-   *** Error - LINK_HOST_SUPPORT not supported for your HOST_SUPPORT method.
- compile endif
-compile endif
+;compile if LINK_HOST_SUPPORT
+; compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
+;   'linkverify E3EMUL'
+; compile elseif HOST_SUPPORT = 'SRPI'
+;   'linkverify SLSRPI'
+; compile else
+;   *** Error - LINK_HOST_SUPPORT not supported for your HOST_SUPPORT method.
+; compile endif
+;compile endif
 
-compile if MOUSE_SUPPORT = 'LINK' & EPM & not EXTRA_EX
+compile if MOUSE_SUPPORT = 'LINK'
    'linkverify MOUSE'
 compile endif
 
-compile if WANT_BOOKMARKS = 'LINK' & not EXTRA_EX
+compile if WANT_BOOKMARKS = 'LINK'
    'linkverify BOOKMARK'
 compile endif       -- Bookmarks
 

@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.3 2002-08-20 05:22:28 aschn Exp $
+* $Id: rexxkeys.e,v 1.4 2002-09-02 22:09:41 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -78,9 +78,7 @@ compile endif
 compile if REXX_MARGINS <> 0
          if not (load_var bitand 2) then  -- 2 would be on if tabs set from EA EPM.MARGINS
          'ma'   REXX_MARGINS
-  compile if EPM
          endif
-  compile endif
 compile endif
       endif
 compile if REXX_KEYWORD_HIGHLIGHTING
