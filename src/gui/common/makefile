@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.7 2002-08-20 20:01:49 cla Exp $
+# $Id: makefile,v 1.8 2002-08-21 12:13:58 cla Exp $
 #
 # ===========================================================================
 #
@@ -21,7 +21,7 @@
 #
 # ***************************************************************************
 
-OBJS= $(PMPRINTF) \
+OBJS= \
  $(BINDIR)\common.obj\
  $(BINDIR)\ddeutil.obj\
  $(BINDIR)\eas.obj\
