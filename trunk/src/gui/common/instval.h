@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.h,v 1.3 2002-09-12 15:24:25 cla Exp $
+* $Id: instval.h,v 1.4 2002-09-20 13:45:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,6 +24,17 @@
 #ifndef INSTVAL_H
 #define INSTVAL_H
 
+// tag definitions for GetInstValue
+#define NEPMD_INSTVALUE_ROOTDIR         "ROOTDIR"
+#define NEPMD_INSTVALUE_LANGUAGE        "LANGUAGE"
+#define NEPMD_INSTVALUE_INIT            "INIT"
+#define NEPMD_INSTVALUE_MESSAGE         "MESSAGE"
+
+// define external env variable for testing of
+// NEPMD utilities in working directory tree
+#define ENV_NEPMD_DEVPATH          "NEPMD_DEVROOTDIR"
+
+// prototypes
 APIRET QueryInstValue( PSZ pszValueTagTag, PSZ pszBuffer, ULONG ulBuflen);
 
 #endif // INSTVAL_H
