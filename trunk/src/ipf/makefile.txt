@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.25 2002-10-03 19:38:40 cla Exp $
+.. $Id: makefile.txt,v 1.26 2002-11-04 13:39:11 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -464,7 +464,7 @@ For creating dependency files the FastDep utility is used.
 
 [=NOTE]
 .ul
-- You can download *FastDep* from the *OS/2 Netlabs Archive* of the *XWorkplace* project.
+- You can download *FastDep* from the *XWorkplace* project being hosted on the *Netlabs Archive Server*.
 - *fastdep.exe* must be accessible by the PATH statement
 
 .. .............................................................................
