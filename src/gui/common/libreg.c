@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.10 2002-09-15 15:39:19 cla Exp $
+* $Id: libreg.c,v 1.11 2002-09-16 21:37:53 cla Exp $
 *
 * ===========================================================================
 *
@@ -89,7 +89,7 @@ do
 
    } while (FALSE);
 
-DPRINTF(( "LIBREG: request exclusive access: %u\n", rc));
+// DPRINTF(( "LIBREG: request exclusive access: %u\n", rc));
 return rc;
 }
 
@@ -97,7 +97,7 @@ return rc;
 
 static APIRET _releaseExclusiveAccess( HMTX hmtxAccess)
 {
-DPRINTF(( "LIBREG: release exclusive access\n"));
+// DPRINTF(( "LIBREG: release exclusive access\n"));
 return DosCloseMutexSem( hmtxAccess);
 }
 
@@ -154,7 +154,7 @@ do
          // since the searched entry cannot come after that
          if (lResult > 0)
             {
-            DPRINTF(( "LIBREG: skip search: %s %s: %i\n", pszResult, pszSearch, lResult));
+//          DPRINTF(( "LIBREG: skip search: %s %s: %i\n", pszResult, pszSearch, lResult));
             pszResult = pszResult + strlen( pszResult);
             break;
             }
@@ -169,7 +169,7 @@ do
          // Greater than 0    string1 greater than string2. 
 
          lResult = stricmp( pszResult, pszSearch);
-         DPRINTF(( "LIBREG: diff: %s %s: %i\n", pszResult, pszSearch, lResult));
+//       DPRINTF(( "LIBREG: diff: %s %s: %i\n", pszResult, pszSearch, lResult));
 
          // only if strings are equal, compare also case sensitive
          // - this places uppercase before lowercase
@@ -379,7 +379,6 @@ do
       break;
       }
 
-
    // check if value exists already
    ulDataLen = PATHENTRYLEN( pszPath);
    if (!ulDataLen)
@@ -443,7 +442,7 @@ do
    // list is not empty, path may not be further removed
    if (fStopRemovePath)
       {
-      DPRINTF(( "LIBREG: abort path deletion at %s\n", pszPath));
+//    DPRINTF(( "LIBREG: abort path deletion at %s\n", pszPath));
       rc = ERROR_DIR_NOT_EMPTY;
       }
 
@@ -613,20 +612,20 @@ do
       break;
 
    // create path if not exist
-   DPRINTF(( "LIBREG: create path: %s\n", pszValuePath));
+// DPRINTF(( "LIBREG: create path: %s\n", pszValuePath));
    rc = _createRegPath( hconfig, pszValuePath);
    if (rc != NO_ERROR)
       {
-      DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
+//    DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
       break;
       }
 
    // create key
-   DPRINTF(( "LIBREG: create key: %s\n", pszValuePath));
+// DPRINTF(( "LIBREG: create key: %s\n", pszValuePath));
    if (!WRITEKEYENTRY( pszValuePath, pszValue))
       {
       rc = LASTERROR;
-      DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
+//    DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
       break;
       }
 
@@ -663,14 +662,14 @@ do
       break;
 
    // read entry
-   DPRINTF(( "LIBREG: read: %s\n", pszValuePath));
+// DPRINTF(( "LIBREG: read: %s\n", pszValuePath));
    if (!QUERYKEYENTRY( pszValuePath, pszBuffer, ulBuflen))
       {
       rc = LASTERROR;
-      DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
+//    DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
       break;
       }
-   DPRINTF(( "LIBREG: --> %s\n", pszBuffer));
+// DPRINTF(( "LIBREG: --> %s\n", pszBuffer));
 
    } while (FALSE);
 
@@ -702,11 +701,11 @@ do
       break;
 
    // if key not exist: error
-   DPRINTF(( "LIBREG: delete key: %s\n", pszValuePath));
+// DPRINTF(( "LIBREG: delete key: %s\n", pszValuePath));
    if (!KEYEXISTS( pszValuePath))
       {
       rc = ERROR_PATH_NOT_FOUND;
-      DPRINTF(( "LIBREG: error: %u\n", rc));
+//    DPRINTF(( "LIBREG: error: %u\n", rc));
       break;
       }
 
@@ -714,7 +713,7 @@ do
    DELETEKEY( pszValuePath);
 
    // remove path as far as possible - ignore errors
-   DPRINTF(( "LIBREG: delete path: %s\n", pszValuePath));
+// DPRINTF(( "LIBREG: delete path: %s\n", pszValuePath));
    _removeRegPath( hconfig, pszValuePath);
 
 
@@ -724,4 +723,164 @@ do
 if (hmtxAccess) RELEASEACCESS( hmtxAccess);
 return rc;
 }
+
+// -----------------------------------------------------------------------------
+
+APIRET GetNextConfigKey( HCONFIG hconfig, PSZ pszValuePath, PSZ pszPreviousKey,
+                         PSZ pszOptions, PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         BOOL           fFound = FALSE;
+         HMTX           hmtxAccess = NULLHANDLE;
+
+         ULONG          ulDataLen;
+         PSZ            pszList = NULL;
+         PSZ            pszEntry;
+
+         // default search options
+         PSZ            pszSearchOptions;
+         BOOL           fSearchContainer = TRUE;
+         BOOL           fSearchKeys      = TRUE;
+         ULONG          ulPathEntryLen;
+         ULONG          ulKeyEntryLen;
+         CHAR           szTestEntry[ _MAX_PATH];
+
+do
+   {
+   // check parms
+   if (!_isPathValid( pszValuePath))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   if ((!pszBuffer)   ||
+       (!ulBuflen))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // check options
+   if (pszOptions)
+      {
+      pszSearchOptions = strdup( pszOptions);
+      if (!pszSearchOptions)
+         {
+         rc = ERROR_NOT_ENOUGH_MEMORY;
+         break;
+         }
+      strupr( pszSearchOptions);
+
+      fSearchContainer = FALSE;
+      fSearchKeys      = FALSE;
+      if (strchr( pszSearchOptions, 'B'))
+         {
+         fSearchContainer = TRUE;
+         fSearchKeys      = TRUE;
+         }
+
+      if (strchr( pszSearchOptions, 'K'))
+         fSearchKeys      = TRUE;
+
+      if (strchr( pszSearchOptions, 'C'))
+         fSearchContainer = TRUE;
+
+      free( pszSearchOptions);
+      }
+
+   // obtain exclusive access
+   rc = REQUESTACCESS( &hmtxAccess);
+   if (rc != NO_ERROR)
+      break;
+
+   // check if value exists already
+   ulDataLen = PATHENTRYLEN( pszValuePath);
+   if (!ulDataLen)
+      {
+      // nothin to delete
+      rc = ERROR_PATH_NOT_FOUND;
+      break;
+      }
+
+   // get current container list
+   // apend a byte for the double zero byte - this will not be stored !
+   pszList = malloc( ulDataLen + 1);
+   if (!pszList)
+      {
+      rc = ERROR_NOT_ENOUGH_MEMORY;
+      break;
+      }
+   memset( pszList, 0, ulDataLen + 1);
+   if (!QUERYPATHENTRY( pszValuePath, pszList, ulDataLen))
+      {
+      rc = LASTERROR;
+      break;
+      }
+
+   pszEntry = pszPreviousKey;
+   while (!fFound)
+      {
+      if ((!pszEntry) ||
+          (!*pszEntry))
+         // return first entry here
+         pszEntry = pszList;
+      else
+         {
+         // search previous key
+         pszEntry = _searchStrInStrList( pszList, pszEntry);
+         if (!pszEntry)
+            {
+            // previous key not found (this may not happen...)
+            rc = ERROR_PATH_NOT_FOUND;
+            break;
+            }
+         else
+            {
+            // just go to next entry
+            pszEntry = NEXTSTR( pszEntry);
+            if (!*pszEntry)
+               {
+               // nothing more left
+               rc = ERROR_NO_MORE_FILES;
+               break;
+               }
+            }
+         }
+
+      // found value matching the requested type ?
+      fFound = TRUE;
+      sprintf( szTestEntry, "%s\\%s", pszValuePath, pszEntry);
+      ulPathEntryLen = PATHENTRYLEN( szTestEntry);
+      ulKeyEntryLen  = KEYENTRYLEN(  szTestEntry);
+      if ((!fSearchContainer) && (ulPathEntryLen) && (!ulKeyEntryLen))
+         // pure container found, but not allowed
+         fFound = FALSE;
+      else if ((!fSearchKeys) && (!ulPathEntryLen) && (ulKeyEntryLen))
+         // pure key found, but not allowed
+         fFound = FALSE;
+
+      } // while (!fFound)
+
+   if (rc != NO_ERROR)
+      break;
+
+   // check result buffer
+   if (strlen( pszEntry) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszBuffer, pszEntry);
+
+   } while (FALSE);
+
+// cleanup
+if (pszList) free( pszList);
+if (hmtxAccess) RELEASEACCESS( hmtxAccess);
+return rc;
+}
+
 
