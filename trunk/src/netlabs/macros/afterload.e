@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: afterload.e,v 1.7 2004-06-03 22:35:08 aschn Exp $
+* $Id: afterload.e,v 1.8 2004-07-02 10:46:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,26 +21,13 @@
 
 ; This file is included after LOAD.E and MYLOAD.E.
 
-const
-compile if not defined(NEPMD_DEBUG)
-   NEPMD_DEBUG = 0  -- General debug const
-compile endif
-compile if not defined(NEPMD_DEBUG_AFTERLOAD)
-   NEPMD_DEBUG_AFTERLOAD = 0
-compile endif
-
-; Added for testing:
-compile if not defined(NEPMD_WANT_AFTERLOAD)
-   NEPMD_WANT_AFTERLOAD = 1
-compile endif
-
-
 defload
    universal filestoload       -- amount of files from the last edit cmd
    universal firstloadedfid    -- first loaded file from the last edit cmd
    universal defmainprocessed  -- the first defmain sets this to 1
    universal defloadprocessed  -- the first defload sets this to 1
    universal enableafterload   -- set by defload, reset by afterloadcheck
+   universal fileslastloaded   -- amount of files since last AfterLoadActivate
 ;  Call AfterLoad -----------------------------------------------------------
    -- filestoload is set by edit -> NepmdLoadFile
    if filestoload = '' then
@@ -56,6 +43,11 @@ defload
       -- macros, called by afterload, sometimes leave the wrong file on top.
       getfileid firstloadedfid
    endif
+
+   if fileslastloaded = '' then
+      fileslastloaded = 0
+   endif
+   fileslastloaded = fileslastloaded + 1
 /*
    getfileid fid
    if fid = firstloadedfid then
@@ -71,22 +63,14 @@ defload
       -- all DEFLOADs of the current edit cmd are processed
       defloadprocessed = 1  -- used in defmain
    endif
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-   call NepmdPmPrintf( 'DEFLOAD: filestoload = 'filestoload', firstloaded = 'firstloadedfid' = 'firstloadedfid.filename)
-compile endif
-compile if NEPMD_WANT_AFTERLOAD
+   dprintf( 'AFTERLOAD', 'DEFLOAD: filestoload = 'filestoload', firstloaded = 'firstloadedfid' = 'firstloadedfid.filename)
    if (filestoload < 1) & (defmainprocessed = 1) then
- compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf( 'DEFLOAD: Calling AfterLoadCheck...')
- compile endif
+      dprintf( 'AFTERLOAD', 'DEFLOAD: Calling AfterLoadCheck...')
       enableafterload = 1
       'postme AfterLoadCheck'  -- delayed, to not interfere with file loading
    else
- compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf( 'DEFLOAD: AfterLoadCheck not called, filestoload = 'filestoload', defmainprocessed = 'defmainprocessed)
- compile endif
+      dprintf( 'AFTERLOAD', 'DEFLOAD: AfterLoadCheck not called, filestoload = 'filestoload', defmainprocessed = 'defmainprocessed)
    endif
-compile endif
 
 ; ---------------------------------------------------------------------------
 ; Called by defload, not by defmain.
@@ -103,39 +87,28 @@ compile endif
 defc AfterLoadCheck
    universal enableafterload  -- set by defload, reset by afterloadcheck
    if enableafterload then
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf( 'AFTERLOADCHECK: '.filename', AfterLoad executed')
-compile endif
+      dprintf( 'AFTERLOAD', 'AFTERLOADCHECK: '.filename', AfterLoad executed')
       'AfterLoad'
       enableafterload = 0
    else
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf( 'AFTERLOADCHECK: '.filename', this file was loaded before the last AfterLoad was executed')
-compile endif
+      dprintf( 'AFTERLOAD', 'AFTERLOADCHECK: '.filename', this file was loaded before the last AfterLoad was executed')
    endif
 
 ; ---------------------------------------------------------------------------
 ; This cmd is called once after all files were loaded.
 defc AfterLoad
-   universal nepmd_hini
    universal CurEditCmd
    universal firstloadedfid   -- first loaded file from the last edit cmd
    universal filestoloadmax   -- set in NepmdLoadFile, only used for 'xcom e' and for RingAddToHistory
    universal activatefid      -- used in AfterLoad and AfterLoadActivateFile
    universal defloadactive    -- set by defload, reset by AfterLoad
    universal lastselectedfid  -- set by AfterLoad and defselect
+   universal fileslastloaded  -- since last AfterLoadActivate
 compile if EPM_POINTER = 'SWITCH'
    universal vEPM_POINTER
 compile endif
 
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-   call NepmdPmPrintf( 'AFTERLOAD: '.filename', CurEditCmd = 'CurEditCmd', filestoloadmax = 'filestoloadmax)
-compile endif
---   call NepmdPmPrintf( 'AFTERLOAD: '.filename', CurEditCmd = 'CurEditCmd', filestoloadmax = 'filestoloadmax)
-
-   display -2  -- required, because firstloadedfid.filename activates
-               -- firstloadedfid temporarily, which causes the message
-               -- "Invalid fileid", if deleted from the ring.
+   dprintf( 'AFTERLOAD', .filename', CurEditCmd = 'CurEditCmd', filestoloadmax = 'filestoloadmax)
 
 ;  Write number for all files in the ring to an array var -------------------
    -- see FILELIST.E
@@ -149,69 +122,37 @@ compile endif
    endif
 
 ;  Write position and name of all files in the ring to NEPMD.INI ------------
-   KeyPath = '\NEPMD\User\AutoRestore\Ring\SaveLast'
-   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Enabled then
-      -- Don't process if files loaded by Recompile or 'groups loadgroup'
-      if wordpos( CurEditCmd, 'SETPOS LOADGROUP') = 0 then
-         -- see FILELIST.E
-         -- must not execute 'postme activatefile' at this point
-         call RingWriteFilePosition()
-      endif
+   -- Don't process if files loaded by Recompile or 'groups loadgroup'
+   if wordpos( CurEditCmd, 'SETPOS LOADGROUP') = 0 then
+      -- see FILELIST.E
+      -- must not execute 'postme activatefile' at this point
+      call RingAutoWriteFilePosition()
    endif
 
-;  Activate first loaded file of the current edit command -------------------
-   if (.filename = GetUnnamedFileName() & filestoloadmax <= 1) then
-      -- nop
-      -- This happens, if a new empty file is loaded with 'xcom e'. Than no
-      -- 'edit' cmd is called.
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf( "AFTERLOAD: current file is ".filename", filestoloadmax = "filestoloadmax)
-compile endif
-   elseif firstloadedfid.filename = '' then
-      -- nop
-      -- This happens, if the file was already quit.
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf( "AFTERLOAD: firstloadedfid = "firstloadedfid" was quit")
-compile endif
-   elseif firstloadedfid <> '' then
-      -- Activate first loaded file from the current edit cmd.
-      -- This works only here properly and only when action is posted.
-      -- Disabled activatefile in edit.
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf( 'AFTERLOAD: activatefile posted, firstloadedfile = 'firstloadedfid.filename', fid = 'firstloadedfid)
-compile endif
-      -- Save last to activate fid in a universal var, because firstloadedfid is
-      -- used by many other defs.
-      activatefid = firstloadedfid
-      'postme afterloadactivatefile' activatefid  -- 'postme' required in some rare cases
-   endif
-
-   display 2
+   activatefid = firstloadedfid
+   'postme AfterloadActivateFile' activatefid  -- 'postme' required in some rare cases
 
 ;  Process hooks ------------------------------------------------------------
    'HookExecute afterload'          -- no need for 'postme' here?
    'HookExecuteOnce afterloadonce'  -- no need for 'postme' here?
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-   call NepmdPmPrintf( 'AFTERLOAD: HookExecute afterload, afterloadonce')
-compile endif
+   dprintf( 'AFTERLOAD', 'HookExecute afterload, afterloadonce')
 
 ;  Process defselect definitions --------------------------------------------
    -- Sometimes defselect is not executed for the first file. To ensure,
-   -- that the settings will be processed, it is executed here as well.
+   -- that the settings will be processed, it is executed here as well and
+   -- disabled for that file this only time to not repeat it if defselect
+   -- tries to do that.
    getfileid fid
    if lastselectedfid = fid then
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf('AFTERLOAD: (fid = lastselectedfid) not executing ProcessSelectRefreshInfoline -- '.filename)
-compile endif
+      dprintf( 'AFTERLOAD', '(fid = lastselectedfid) not executing ProcessSelectRefreshInfoline -- '.filename)
    else
       -- Change mode or file specific settings, that don't stick with the file
       -- and refresh infolines.
       -- (No Set* defc will perform an infoline refresh here, because defloadactive = 1.)
       'ProcessSelect'
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf('AFTERLOAD: executing ProcessSelectRefreshInfoline -- '.filename', lastselected: ('lastselectedfid') 'lastselectedfid.filename)
-compile endif
+      display -2  -- avoid msg 'Invalid fileid', when lastselectedfid = ''
+      dprintf( 'AFTERLOAD', 'executing ProcessSelectRefreshInfoline -- '.filename', lastselected: ('lastselectedfid') 'lastselectedfid.filename)
+      display 2
       lastselectedfid = fid  -- avoid repeating this by defselect for this file
    endif
 
@@ -227,26 +168,98 @@ compile endif
 
 ;  Reset universal vars, set by edit and NepmdLoadFile ----------------------
    defloadactive = 0
-   filestoloadmax = ''
+   --filestoloadmax = ''
+   -- Must be reset here, not only by AfterloadActivateFile
    firstloadedfid = ''
+   filestoloadmax = ''
 
    return
 
 ; ---------------------------------------------------------------------------
 ; Used by afterload
-defc afterloadactivatefile
+; Resets CurEditCmd (only set by Edit, not by xcom Edit)
+defc AfterloadActivateFile
+   universal filestoloadmax
    universal activatefid
-   fid = arg(1)
-   -- Check if this posted activatefile is the last
-   if fid <> activatefid then
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-      call NepmdPmPrintf( 'AFTERLOADACTIVATEFILE: not called, fid = 'fid', last activatefid = 'activatefid)
-compile endif
-      return
+   universal CurEditCmd
+   universal fileslastloaded
+   if fileslastloaded = '' then
+      fileslastloaded = 0
    endif
-compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
-   call NepmdPmPrintf( 'AFTERLOADACTIVATEFILE: activating firstloadedfile = 'fid.filename)
-compile endif
-   activatefile fid  -- fid must be a var or a fid
+
+   argfid = arg(1)   -- file to activate
+   getfileid curfid  -- currently on top
+
+   -- For 'xcom edit' CurEditCmd is empty.
+   -- Just for debugging, before it will be reset.
+   display -2
+   dprintf( 'RESTORE_POS', 'AfterloadActivateFile: CureditCmd = 'CurEditCmd', curfile ('curfid') 'curfid.filename)
+   display 2
+
+   SubmittedIsNotInRing = 0  -- quit in the meantime?
+   SubmittedIsHidden    = 0  -- hidden file?
+   SubmittedIsNotLast   = 0  -- other file loaded in the meantime?
+   OtherActivated       = 0  -- another file activated during file loading?
+   AlreadyOnTop         = 0  -- already activated?
+
+   display -2
+   dprintf( 'AFTERLOAD_ACTIVATE', 'filestoloadmax  = 'filestoloadmax)
+   dprintf( 'AFTERLOAD_ACTIVATE', 'fileslastloaded = 'fileslastloaded)
+   dprintf( 'AFTERLOAD_ACTIVATE', 'curfid          = ('curfid') 'curfid.filename)
+   dprintf( 'AFTERLOAD_ACTIVATE', 'arg(1)          = ('argfid') 'argfid.filename)
+   dprintf( 'AFTERLOAD_ACTIVATE', 'activatefid     = ('activatefid') 'activatefid.filename)
+   display 2
+
+   -- Check if argfid is still valid.
+   if ValidateFileid(argfid) = 0 then
+      SubmittedIsNotInRing = 1
+   elseif ValidateFileid(argfid) = 4 then
+      SubmittedIsHidden = 1
+   endif
+   -- Check if argfid is the last to be activated. activatefid will be set
+   -- immediately by Afterload, while this check processes in the posted part.
+   if argfid <> activatefid then
+      SubmittedIsNotLast = 1
+   endif
+   -- Check if argfid > curfid. Maybe another file was activated in the
+   -- meantime. Important, when 'activatefile' is followed by 'edit' in a
+   -- macro, before afterload was processed.
+   -- Assume, that activatefile was only processed, when 1 new file was
+   -- loaded. Therefore the amount of loaded files since last
+   -- AfterloadActivateFile is counted.
+   if curfid < argfid & fileslastloaded = 1 then
+      OtherActivated = 1
+   endif
+   -- Check if argfid is already on top. No need to activate it.
+   if curfid = argfid then
+      AlreadyOnTop = 1
+   endif
+
+   display -2
+   if SubmittedIsNotInRing = 1 then
+      dprintf( 'AFTERLOAD_ACTIVATE', '1: not executed, not in ring, fid = ('argfid')')
+   endif
+   if SubmittedIsHidden = 1 then
+      dprintf( 'AFTERLOAD_ACTIVATE', '2: not executed, hidden, fid = ('argfid')')
+   endif
+   if SubmittedIsNotLast = 1 then
+      dprintf( 'AFTERLOAD_ACTIVATE', '3: not executed, fid = ('argfid'), last activatefid = 'activatefid)
+   endif
+   if OtherActivated = 1 then
+      dprintf( 'AFTERLOAD_ACTIVATE', '4: not executed, other activated, curfid = 'curfid', activatefid = ('argfid')')
+   endif
+   display 2
+
+   if (SubmittedIsNotInRing = 0) & (SubmittedIsHidden = 0) & (SubmittedIsNotLast = 0) &
+      (OtherActivated = 0) then
+      dprintf( 'AFTERLOAD_ACTIVATE', 'activating file ('argfid') 'argfid.filename)
+
+      activatefile argfid  -- argfid must be a var or a fid
+
+      -- Reset universal var for next Edit cmd (but Xcom Edit won't set it)
+      CurEditCmd = ''
+      fileslastloaded = 0
+
+   endif
 
 
