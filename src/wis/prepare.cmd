@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.6 2002-08-10 15:22:37 cla Exp $
+: $Id: prepare.cmd,v 1.7 2002-08-12 12:14:33 cla Exp $
 :
 : ===========================================================================
 :
@@ -107,31 +107,31 @@
  DEL %TARGET%\EPMBBS\BIN\TTITALIC.BMP                                          >>%LOGFILE% 2>&1
  %CHECKERROR%
 
- MD %TARGET%\BIN\BMP                                                           >>%LOGFILE% 2>&1
+ MD %TARGET%\BMP                                                               >>%LOGFILE% 2>&1
  %CHECKERROR%
- %MOV% %TARGET%\BIN\*.BMP %TARGET%\BIN\BMP                                     >>%LOGFILE% 2>&1
- %CHECKERROR%
-
- MD %TARGET%\BIN\KEYWORDS                                                      >>%LOGFILE% 2>&1
- %CHECKERROR%
- %MOV% %TARGET%\BIN\EPMKWDS.* %TARGET%\BIN\KEYWORDS                            >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.BMP %TARGET%\BMP                                         >>%LOGFILE% 2>&1
  %CHECKERROR%
 
- MD %TARGET%\BIN\EX                                                            >>%LOGFILE% 2>&1
+ MD %TARGET%\KEYWORDS                                                          >>%LOGFILE% 2>&1
  %CHECKERROR%
- %MOV% %TARGET%\BIN\*.EX        %TARGET%\BIN\EX                                >>%LOGFILE% 2>&1
- %CHECKERROR%
- %MOV% %TARGET%\BIN\ACTIONS.LST %TARGET%\BIN\EX                                >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\EPMKWDS.* %TARGET%\KEYWORDS                                >>%LOGFILE% 2>&1
  %CHECKERROR%
 
- MD %TARGET%\BIN\BAR                                                           >>%LOGFILE% 2>&1
+ MD %TARGET%\EX                                                                >>%LOGFILE% 2>&1
  %CHECKERROR%
- %MOV% %TARGET%\BIN\*.BAR %TARGET%\BIN\BAR                                     >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.EX        %TARGET%\EX                                    >>%LOGFILE% 2>&1
+ %CHECKERROR%
+ %MOV% %TARGET%\BIN\ACTIONS.LST %TARGET%\EX                                    >>%LOGFILE% 2>&1
  %CHECKERROR%
 
- MD %TARGET%\BIN\NDX                                                           >>%LOGFILE% 2>&1
+ MD %TARGET%\BAR                                                               >>%LOGFILE% 2>&1
  %CHECKERROR%
- %MOV% %TARGET%\BIN\*.NDX %TARGET%\BIN\NDX                                     >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.BAR %TARGET%\BAR                                         >>%LOGFILE% 2>&1
+ %CHECKERROR%
+
+ MD %TARGET%\NDX                                                               >>%LOGFILE% 2>&1
+ %CHECKERROR%
+ %MOV% %TARGET%\BIN\*.NDX %TARGET%\NDX                                         >>%LOGFILE% 2>&1
  %CHECKERROR%
 
 : --- unpack further main application package components
@@ -161,7 +161,7 @@
  %CHECKERROR%
 
  %DEBUG% -- EPMBMPS
- %UNZ% %UNZIPPEDDIR%\epmbmps %UNZIPPEDDIR%\EPMBMPS\EPMBBS\BIN\BMP              >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmbmps %UNZIPPEDDIR%\EPMBMPS\EPMBBS\BMP                  >>%LOGFILE% 2>&1
  %CHECKERROR%
 
 : --- unpack speech support package and distribute to subdirectories
@@ -179,41 +179,41 @@
  %MOV% %TARGET%\BIN\*.DLL %TARGET%\DLL                                         >>%LOGFILE% 2>&1
  %CHECKERROR%
 
- MD %TARGET%\BIN\MACROS                                                        >>%LOGFILE% 2>&1
+ MD %TARGET%\MACROS                                                            >>%LOGFILE% 2>&1
  %CHECKERROR%
- %MOV% %TARGET%\BIN\*.E   %TARGET%\BIN\MACROS                                  >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.E   %TARGET%\MACROS                                      >>%LOGFILE% 2>&1
  %CHECKERROR%
 
  DEL %TARGET%\BIN\*.551                                                        >>%LOGFILE% 2>&1
  %CHECKERROR%
- MD %TARGET%\BIN\EX                                                            >>%LOGFILE% 2>&1
+ MD %TARGET%\EX                                                                >>%LOGFILE% 2>&1
  %CHECKERROR%
- %MOV% %TARGET%\BIN\*.603 %TARGET%\BIN\EX\*.EX                                 >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.603 %TARGET%\EX\*.EX                                     >>%LOGFILE% 2>&1
  %CHECKERROR%
 
- MD %TARGET%\BIN\BMP                                                           >>%LOGFILE% 2>&1
+ MD %TARGET%\BMP                                                               >>%LOGFILE% 2>&1
  %CHECKERROR%
- %MOV% %TARGET%\BIN\*.BMP %TARGET%\BIN\BMP                                     >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.BMP %TARGET%\BMP                                         >>%LOGFILE% 2>&1
  %CHECKERROR%
 
 : --- unpack macro packages and distribute to subdirectories
 
  %DEBUG% -- macros
- %UNZ% %UNZIPPEDDIR%\epmmac  %UNZIPPEDDIR%\EPMMAC\EPMBBS\BIN\MACROS            >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmmac  %UNZIPPEDDIR%\EPMMAC\EPMBBS\MACROS                >>%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\epmmac2 %UNZIPPEDDIR%\EPMMAC2\EPMBBS\BIN\MACROS           >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmmac2 %UNZIPPEDDIR%\EPMMAC2\EPMBBS\MACROS               >>%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\epmsmp  %UNZIPPEDDIR%\EPMSMP\EPMBBS\BIN\MACROS\SAMPLES    >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmsmp  %UNZIPPEDDIR%\EPMSMP\EPMBBS\MACROS\SAMPLES        >>%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\epmatr   %UNZIPPEDDIR%\EPMATR\EPMBBS\BIN\MACROS\ATTR      >%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmatr   %UNZIPPEDDIR%\EPMATR\EPMBBS\MACROS\ATTR          >>%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\epmasi  %UNZIPPEDDIR%\EPMASI\EPMBBS\BIN\MACROS\MYASSIST   >%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmasi  %UNZIPPEDDIR%\EPMASI\EPMBBS\MACROS\MYASSIST       >>%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\lampdq  %UNZIPPEDDIR%\LAMPDQ\EPMBBS\BIN\MACROS\LAMPDQ     >%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\lampdq  %UNZIPPEDDIR%\LAMPDQ\EPMBBS\MACROS\LAMPDQ         >>%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\ebooke  %UNZIPPEDDIR%\EBOOKE\EPMBBS\BIN\MACROS\EBOOKE     >%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\ebooke  %UNZIPPEDDIR%\EBOOKE\EPMBBS\MACROS\EBOOKE         >>%LOGFILE% 2>&1
  %CHECKERROR%
- DEL %UNZIPPEDDIR%\EBOOKE\EPMBBS\BIN\MACROS\EBOOKE\READ.ME
+ DEL %UNZIPPEDDIR%\EBOOKE\EPMBBS\MACROS\EBOOKE\READ.ME
  %CHECKERROR%
 
 : --- unpack sample packages and distribute to subdirectories
