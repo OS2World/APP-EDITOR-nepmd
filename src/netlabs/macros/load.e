@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.18 2004-06-03 22:41:41 aschn Exp $
+* $Id: load.e,v 1.19 2004-07-02 10:16:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -44,14 +44,33 @@ Todo:
 ;  empty file, if EPM was started without a filename. But that is already
 ;  fixed, since in MAIN.E that file is replaced by a 'xcom e /n' loaded file,
 ;  for that the defload event is triggered.
+;  Additionally, every 'Name' command, e.g. executed by 'SaveAs', processes
+;  defload again.
 ;
 ;  IMPORTANT:
 ;  defload should not be used by externally compiled packages, because it
 ;  will not be processed reliable. Use the defload hook instead! Many package
 ;  writers use to workaround this problem with calling the defload stuff at
-;  every defload again. This will work in most cases, but the performance and
-;  stability will decrease enourmously.
+;  every defselect again. This will work in most cases, but the performance
+;  and stability will decrease enourmously.
 ;  (Much work's waiting to fix all that packages...)
+;
+;  Often used (huge overhead and nevertheless not working properly):
+;     defload
+;        <external stuff>
+;     defselect  -- required if linked
+;        <same external stuff>
+;
+;  NEPMD:
+;     defc <external_cmd>
+;        <external stuff>
+;     definit
+;        'HookAdd load <external_cmd>'
+;
+;  Additionally, even this it probably not really required anymore, because
+;  the ModeExecute command provides a useful interface.
+;
+;  Many other hooks exist, e.g. for adding a submenu beside the helpmenu.
 
 const
 compile if not defined(NEPMD_USE_DIRECTORY_OF_CURRENT_FILE)  --<----------------------- Todo
@@ -86,6 +105,7 @@ compile endif
    defloadactive = 1  -- This universal var can be used to check if there occuered
                       -- a defload event after the last afterload was processed.
    Filename = .filename
+   getfileid fid
 
 ;  Set .readonly from file attributes ---------------------------------------
    'ReadonlyFromAttrib'
@@ -131,37 +151,10 @@ compile endif
 ;  Set mode -----------------------------------------------------------------
    Mode = NepmdGetMode(Filename)
 
-;  Set array vars for file-specific settings
-/*
-mode
-   call SetAVar( 'highlight.'fid, arg(1))
-   call SetAVar( 'margins.'fid, arg(1))
-   call SetAVar( 'tabs.'fid, arg(1))
-   call SetAVar( 'textcolor.'fid, arg(1))
-   call SetAVar( 'markcolor.'fid, arg(1))
-   call SetAVar( 'keys.'fid, arg(1))
-   call SetAVar( 'dynaspell.'fid, arg(1))
-
-      call SetAVar( 'toolbar.'fid, arg(1))
-      call SetAVar( 'expand.'fid, arg(1))
-      call SetAVar( 'matchtab.'fid, arg(1))
-      call SetAVar( 'editoptions.'fid, arg(1))
-      call SetAVar( 'saveoptions.'fid, arg(1))
-      call SetAVar( 'searchoptions.'fid, arg(1))
-      call SetAVar( 'tabkey.'fid, arg(1))
-      call SetAVar( 'streammode.'fid, arg(1))
-      call SetAVar( 'cuamarking.'fid, arg(1))
-      call SetAVar( 'insertmode.'fid, arg(1))
-      call SetAVar( 'textfont.'fid, arg(1))
-
-
-*/
-
 ;  Process all mode dependent settings for defload --------------------------
-;     it's important to process them near the end of defload,
-;     otherwise EPM may crash if a huge number of files is loaded
+   -- It's important to process them near the end of defload, otherwise EPM
+   -- may crash if a huge number of files is loaded (still valid?).
    -- The load_<mode> hook is executed here.
-   getfileid fid
    -- Args not required anymore since the code of HookExecute load_<mode>
    -- was copied into ProcessLoadSettings instead executing the command.
    'ProcessLoadSettings' Mode fid
@@ -183,6 +176,7 @@ compile if INCLUDE_BMS_SUPPORT
 compile endif
 
 ;  Process REXX defload profile  --------------------------------------------
+;  -- Better avoid this.
    if defload_profile_name then
       if not verify(defload_profile_name, ':\', 'M') then  -- Not fully qualified?  Search for it...
          findfile profile1, defload_profile_name, EPATH
