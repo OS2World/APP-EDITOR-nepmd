@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.8 2003-07-06 15:27:14 aschn Exp $
+* $Id: mouse.e,v 1.9 2003-07-06 16:38:32 aschn Exp $
 *
 * ===========================================================================
 *
@@ -710,7 +710,7 @@ compile endif
             -- if URL found until here, process it
             if Url <> '' then
                -- cut off special separators from URL
-               SeparatorList = '"'||"'"||')]]>,;!';
+               SeparatorList = '"'||"'"||')}]>,;!';
                ReplaceList   =  copies( ' ', length( SeparatorList))
                Url = word( translate( Url, ReplaceList, SeparatorList),  1)
 
