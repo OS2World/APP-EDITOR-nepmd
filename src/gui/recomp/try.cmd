@@ -1,77 +1,133 @@
-@ECHO OFF
-: ***************************** Module Header ******************************\
-:
-: Module Name: try.cmd
-:
-: Batch file for testing purposes:
-: This program loads several files into one or more EPM windows (file rings)
-: in order to ease testing of the reload function.
-:
-: Copyright (c) Netlabs EPM Distribution Project 2002
-:
-: $Id: try.cmd,v 1.1 2002-06-03 22:30:16 cla Exp $
-:
-: ===========================================================================
-:
-: This file is part of the Netlabs EPM Distribution package and is free
-: software.  You can redistribute it and/or modify it under the terms of the
-: GNU General Public License as published by the Free Software
-: Foundation, in version 2 as it comes in the "COPYING" file of the
-: Netlabs EPM Distribution.  This library is distributed in the hope that it
-: will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-: of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-: General Public License for more details.
-:
-: **************************************************************************/
- SETLOCAL
+/****************************** Module Header *******************************
+*
+* Module Name: try.cmd
+*
+* Batch file for testing purposes:
+* This program loads several files into one or more EPM windows (file rings)
+* in order to ease testing of the reload function.
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: try.cmd,v 1.2 2002-06-10 09:26:53 cla Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
 
-:ok
- DEL %TMP%\*.C2T          >NUL 2>&1
- DEL %TMP%\$RECOMP$.CMD   >NUL 2>&1
+ env          = 'OS2ENVIRONMENT';
+ TRUE         = (1 = 1);
+ FALSE        = (0 = 1);
+ CrLf         = '0d0a'x;
+ Redirection  = '> NUL 2>&1';
+ '@ECHO OFF'
 
-: load program
- call q
 
-: load one of several testcases
+ /* load rexxutils */
+ call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+ call SysLoadFuncs
 
- IF NOT .%1 == . GOTO %1
+ /* determine some directories */
+ EpmSource = SysSearchPath( 'EPMPATH', 'epm.e');
+ EpmSourcePath = LEFT( EpmSource, LASTPOS( '\', EpmSource) - 1);
+ TmpDir = VALUE('TMP',,env);
 
- start epm *.c
- DOSSLEEP 2 >NUL
- start epm *.h
- DOSSLEEP 2 >NUL
- start epm *.cmd
- DOSSLEEP 2 >NUL
- start epm *.rc*
- GOTO end
+ /* ####################### maintain testcases here ####################### */
 
-:1
- start epm todo
- DOSSLEEP 2 >NUL
- start epm done
- GOTO end
+ Testcase.0  = '*.c *.h *.cmd *.rc*';  /* some few rings with some more files */
+ Testcase.1  = 'todo done';            /* one ring with few files */
+ Testcase.2  = 'client.* dde.*' ,      /* lot of rings with few files */
+               'ddereload.* ddeutil.* frame.* job.*' ,
+               'dde.* process.* recomp.* ';
+ Testcase.3  = EpmSourcePath'\*.e';    /* load EPM source files */
 
-:2
- start epm client.*
- DOSSLEEP 2 >NUL
- start epm dde.*
- DOSSLEEP 2 >NUL
- start epm ddereload.*
- DOSSLEEP 2 >NUL
- start epm ddeutil.*
- DOSSLEEP 2 >NUL
- start epm file.*
- DOSSLEEP 2 >NUL
- start epm frame.*
- DOSSLEEP 2 >NUL
- start epm job.*
- DOSSLEEP 2 >NUL
- start epm pmres.*
- DOSSLEEP 2 >NUL
- start epm printf.*
- DOSSLEEP 2 >NUL
- start epm process.*
- DOSSLEEP 2 >NUL
- start epm recomp.*
+ /* ####################################################################### */
 
-:end
+ /* defaults */
+ rc = 0;
+ SleepBetweenLoads = 2;
+ TmpFilesToDelete = TmpDir'\*.C2T';
+
+ DO UNTIL (TRUE)
+    /* delete temporary files from previous tests */
+    DO WHILE (TmpFilesToDelete \= '')
+       PARSE VAR TmpFilesToDelete ThisFiles TmpFilesToDelete;
+       rcx = DeleteFiles( ThisFiles);
+    END;
+
+    /* display all testcase definitions when help is requested */
+    PARSE ARG Parm .;
+    IF (POS( '?', Parm) > 0) THEN
+    DO
+       SAY 'Testcases:';
+       i = 0;
+       DO WHILE (SYMBOL( 'Testcase.'i) = 'VAR')
+          SAY i':' Testcase.i;
+          i = i + 1;
+       END;
+
+       LEAVE;
+    END;
+
+    /* check parm for testcase number */
+    IF (DATATYPE( Parm) \= 'NUM') THEN
+       Parm = '1';
+
+    IF (SYMBOL( 'Testcase.'Parm) = 'LIT') THEN
+    DO
+       SAY 'specified testcase is not defined.';
+       rc = 87;
+       LEAVE;
+    END;
+
+    /* start testcase */
+    SAY 'loading testcase' Parm':'
+    rc = LoadFiles( Testcase.Parm);
+
+    /* load program */
+    'call q'
+
+ END;
+
+ EXIT( rc);
+
+/* ========================================================================= */
+DeleteFiles: PROCEDURE
+ PARSE ARG Filemask;
+
+ File.0 = 0;
+ rc = SysFileTree( Filemask, 'File.', 'FO');
+ DO i = 1 TO File.0
+    rcx = SysFileDelete( File.i);
+ END;
+ RETURN( rc);
+
+/* ========================================================================= */
+LoadFiles: PROCEDURE EXPOSE SleepBetweenLoads;
+ PARSE ARG FileList;
+
+ /* defaults */
+ rc = 0;
+ RingNo = 1;
+
+ DO WHILE (FileList \= '')
+    /* load this ring */
+    PARSE VAR FileList ThisFilemask FileList;
+    SAY '> ring' RingNo':' ThisFilemask;
+    'start EPM' ThisFilemask;
+
+    /* wait a while, then next please */
+    rcx = SysSleep( SleepBetweenLoads);
+    RingNo = RingNo + 1;
+ END;
+
+ RETURN( rc);
+
