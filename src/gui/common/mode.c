@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.c,v 1.3 2002-10-11 15:58:06 cla Exp $
+* $Id: mode.c,v 1.4 2002-10-14 17:47:10 cla Exp $
 *
 * ===========================================================================
 *
@@ -37,9 +37,6 @@
 #include "mode.h"
 #include "init.h"
 #include "file.h"
-
-// some characters
-#define CHAR_MODEDELIMITER 'þ'
 
 // global string vars
 static   PSZ            pszEnvnameEpmKeywordpath = "EPMKEYWORDPATH";
@@ -126,6 +123,27 @@ return string;
 }
 
 // #############################################################################
+
+static APIRET _searchFile( PSZ pszSearchPathName, PSZ pszBuffer, ULONG ulBuflen, PSZ pszSearchMask, ...)
+{
+         APIRET         rc = NO_ERROR;
+         CHAR           szSourceName[ _MAX_PATH];
+         va_list        arg_ptr;
+
+va_start (arg_ptr, pszSearchMask);
+vsprintf( szSourceName, pszSearchMask, arg_ptr);
+rc = DosSearchPath( SEARCH_IGNORENETERRS  |
+                       SEARCH_ENVIRONMENT |
+                       SEARCH_CUR_DIRECTORY,
+                   pszSearchPathName,
+                   szSourceName,
+                   pszBuffer,
+                   ulBuflen);
+return rc;
+
+}
+
+// -----------------------------------------------------------------------------
 
 static BOOL _checkSpecialFile( PSZ pszFilename, PBYTE pbSig, ULONG ulSigLen)
 {
@@ -249,39 +267,16 @@ if (pfile) fclose( pfile);
 return fIsSpecialFile;
 }
 
+
 // -----------------------------------------------------------------------------
 
-static APIRET _scanModes( PSZ pszFilename, PSZ pszBasename, PSZ pszExtension,
-                          PMODEINFO pmi, ULONG ulBuflen)
+static APIRET _getModeSettings( PSZ pszMode, PMODEINFO pmi, ULONG ulBuflen)
 {
+
          APIRET         rc = NO_ERROR;
          PSZ            p;
-         PSZ            pszMode;
-         PSZ            pszModeFile;
-
-         HDIR           hdir = NULLHANDLE;
-
-         PSZ            pszRexxSig = "/*";
-         ULONG          ulIniSig = -1;
-
-         PSZ            pszNameMode = NULL;
-         PSZ            pszExtMode = NULL;
-         CHAR           szNameModeFile[ _MAX_PATH];
-         CHAR           szExtModeFile[ _MAX_PATH];
-         CHAR           szCustomFile[ _MAX_PATH];
-
-         PSZ            pszKeywordPath = NULL;
-         PSZ            pszKeywordDir;
-
-         CHAR           szSearchMask[ _MAX_PATH];
-         CHAR           szDir[ _MAX_PATH];
-         PSZ            pszDirName;
-
-         CHAR           szModeList[ _MAX_PATH];
-         CHAR           szModeTag[ 64];
-
-         CHAR           szFile[ _MAX_PATH];
          HINIT          hinit = NULLHANDLE;
+         CHAR           szIniFile[ _MAX_PATH];
 
          CHAR           szDefExtensions[ _MAX_PATH];
          CHAR           szDefNames[ _MAX_PATH];
@@ -295,229 +290,46 @@ static APIRET _scanModes( PSZ pszFilename, PSZ pszBasename, PSZ pszExtension,
 
 do
    {
-   // check parm
-   if ((!pszBasename)  ||
-       (!pszExtension) ||
-       (!pmi))
-      {
-      rc = ERROR_INVALID_PARAMETER;
+   // search default.ini
+   rc = _searchFile( pszEnvnameEpmKeywordpath, szIniFile, sizeof( szIniFile),
+                     SEARCHMASK_DEFAULTINI, pszMode);
+   if (rc != NO_ERROR)
       break;
-      }
 
-   // init vars
-   sprintf( szModeList, "%c", CHAR_MODEDELIMITER);
-
-   // -----------------------------------------------------
-
-   if (pszExtension)
-      {
-      // check for .CMD files
-      if (!strcmp( pszExtension, "CMD"))
-         {
-         if (_checkSpecialFile( pszFilename, pszRexxSig, strlen( pszRexxSig)))
-            pszExtMode = strdup( "REXX");
-         else if (_checkExtprocScript( pszFilename, szDir, sizeof( szDir)))
-            pszExtMode = strdup( szDir);
-         }
-
-      // check for .INI files
-      if (!strcmp( pszExtension, "INI"))
-         {
-         // dont act on true OS/2 INI Files !
-         if (_checkSpecialFile( pszFilename, (PBYTE)&ulIniSig, sizeof( ulIniSig)))
-            rc = ERROR_PATH_NOT_FOUND;
-         else
-            pszExtMode = strdup( "INI");
-         }
-
-      // search default file
-      if (pszExtMode)
-         {
-         sprintf( szSearchMask, SEARCHMASK_DEFAULTINI, pszExtMode);
-         rc = DosSearchPath( SEARCH_IGNORENETERRS  |
-                                SEARCH_ENVIRONMENT |
-                                SEARCH_CUR_DIRECTORY,
-                            pszEnvnameEpmKeywordpath,
-                            szSearchMask,
-                            szExtModeFile,
-                            sizeof( szExtModeFile));
-         if (rc != NO_ERROR)
-            {
-            rc = NO_ERROR;
-            free( pszExtMode);
-            pszExtMode = NULL;
-            }
-
-         }
-
-      } // if (pszExtension)
-
-   // -----------------------------------------------------
-
-   if (!pszExtMode)
-      {
-      // create a strdup of the path, so that we can tokenize it
-      pszKeywordPath = getenv( pszEnvnameEpmKeywordpath);
-      if (!pszKeywordPath)
-         {
-         rc = ERROR_ENVVAR_NOT_FOUND;
-         break;
-         }
-
-      pszKeywordPath = strdup( pszKeywordPath);
-      if (!pszKeywordPath)
-         {
-         rc = ERROR_NOT_ENOUGH_MEMORY;
-         break;
-         }
-
-      // go through all keyword directories
-      pszKeywordDir = strtok( pszKeywordPath, ";");
-      while (pszKeywordDir)
-         {
-         // seatch all directories in that directory
-         sprintf( szSearchMask, SEARCHMASK_MODEDIR, pszKeywordDir);
-
-         // store a filenames
-         hdir = HDIR_CREATE;
-
-         while (rc == NO_ERROR)
-            {
-            // search it
-            rc = GetNextDir( szSearchMask, &hdir,
-                              szDir, sizeof( szDir));
-            if (rc != NO_ERROR)
-               break;
-
-            // did we use that mode already ?
-            pszDirName = Filespec( szDir, FILESPEC_NAME);
-            strupr( pszDirName);
-            sprintf( szModeTag, "%c%s%c", CHAR_MODEDELIMITER, pszDirName, CHAR_MODEDELIMITER);
-            if (!strstr( szModeList, szModeTag))
-               {
-               // new mode found, first of all check for default.ini
-               sprintf( szFile, SEARCHMASK_DEFAULTINI, szDir);
-               rc = InitOpenProfile( szFile, &hinit, INIT_OPEN_READONLY, 0, NULL);
-               if (rc == NO_ERROR)
-                  {
-                  // new mode found, first of all add to the list
-                  sprintf( _EOS( szModeList), "%s%c", pszDirName, CHAR_MODEDELIMITER);
-
-                  // query names and extensions
-                  QUERYOPTINITVALUE( hinit, pszGlobalSection, "DEFEXTENSIONS",  szDefExtensions, "");
-                  QUERYOPTINITVALUE( hinit, pszGlobalSection, "DEFNAMES",       szDefNames, "");
-                  strupr( szDefExtensions);
-                  strupr( szDefNames);
-
-                  // check extension and name
-                  if ((!pszExtMode) &&
-                      (pszExtension) &&
-                      (*pszExtension) &&
-                      (strlen( szDefExtensions)) &&
-                      (strwrd( szDefExtensions, pszExtension)))
-                     {
-                     pszExtMode = strdup( pszDirName);
-                     strcpy( szExtModeFile, szFile);
-                     }
-
-                  if ((!pszNameMode) &&
-                      (pszBasename) &&
-                      (*pszBasename) &&
-                      (strlen( szDefNames)) &&
-                      (strwrd( szDefNames, pszBasename)))
-                     {
-                     pszNameMode = strdup( pszDirName);
-                     strcpy( szNameModeFile, szFile);
-                     }
-
-                  // close profile again
-                  InitCloseProfile( hinit, FALSE);
-                  }
-               else
-                  rc = NO_ERROR;
-
-               }  // if (!strstr( szModeList, szModeTag))
-
-           // extension mode found ? then break here
-           if (pszExtMode)
-              break;
-
-
-            } // while (rc == NO_ERROR)
-
-         DosFindClose( hdir);
-
-         // handle special errors
-         if (rc = ERROR_NO_MORE_FILES)
-            rc = NO_ERROR;
-
-         // next please
-         pszKeywordDir = strtok( NULL, ";");
-         }
-
-      } // if (!pszExtMode)
-
-   // -----------------------------------------------------
-
-   // prefer extmode over
-   pszMode = NULL;
-   if (pszNameMode)
-      {
-      pszMode = pszNameMode;
-      pszModeFile = szNameModeFile;
-      }
-   if (pszExtMode)
-      {
-      pszMode = pszExtMode;
-      pszModeFile = szExtModeFile;
-      }
-
-   // break if no mode found
-   if (!pszMode)
-      {
-      rc = ERROR_PATH_NOT_FOUND;
+   // read the values from it
+   rc = InitOpenProfile( szIniFile, &hinit, INIT_OPEN_READONLY, 0, NULL);
+   if (rc != NO_ERROR)
       break;
-      }
-
-   // reread details
-   InitOpenProfile( pszModeFile, &hinit, INIT_OPEN_READONLY, 0, NULL);
    QUERYOPTINITVALUE( hinit, pszGlobalSection, "DEFEXTENSIONS",  szDefExtensions, "");
    QUERYOPTINITVALUE( hinit, pszGlobalSection, "DEFNAMES",       szDefNames, "");
    QUERYOPTINITVALUE( hinit, pszGlobalSection, "CASESENSITIVE",  szCaseSensitive, "");
    InitCloseProfile( hinit, FALSE);
 
-#ifdef APPEND_CUSTOM_DETAILS
-   // now read custom details
-   sprintf( szSearchMask, SEARCHMASK_CUSTOMINI, pszExtMode);
-   rc = DosSearchPath( SEARCH_IGNORENETERRS  |
-                          SEARCH_ENVIRONMENT |
-                          SEARCH_CUR_DIRECTORY,
-                      pszEnvnameEpmKeywordpath,
-                      szSearchMask,
-                      szCustomFile,
-                      sizeof( szCustomFile));
-   if (rc != NO_ERROR)
+   // now read custom details - ignore all errors, since that all is optional 
+   if (_searchFile( pszEnvnameEpmKeywordpath, szIniFile, 
+                    sizeof( szIniFile), SEARCHMASK_CUSTOMINI,  pszMode) == NO_ERROR)
       {
-      InitOpenProfile( szCustomFile, &hinit, INIT_OPEN_READONLY, 0, NULL);
-      QUERYOPTINITVALUE( hinit, pszGlobalSection, "ADD_DEFEXTENSIONS", szCustomDefExtensions, "");
-      QUERYOPTINITVALUE( hinit, pszGlobalSection, "ADD_DEFNAMES",      szCustomDefNames, "");
-      InitCloseProfile( hinit, FALSE);
-      if (strlen( szCustomDefExtensions))
+      if (InitOpenProfile( szIniFile, &hinit, INIT_OPEN_READONLY, 0, NULL) == NO_ERROR)
          {
-         strcat( szDefExtensions, " ");
-         strcat( szDefExtensions, szCustomDefExtensions);
-         }
-
-      if (strlen( szCustomDefNames))
-         {
-         strcat( szDefNames, " ");
-         strcat( szDefNames, szCustomDefNames);
+         // read values here
+         QUERYOPTINITVALUE( hinit, pszGlobalSection, "ADD_DEFEXTENSIONS", szCustomDefExtensions, "");
+         QUERYOPTINITVALUE( hinit, pszGlobalSection, "ADD_DEFNAMES",      szCustomDefNames, "");
+         InitCloseProfile( hinit, FALSE);
+         if (strlen( szCustomDefExtensions))
+            {
+            strcat( szDefExtensions, " ");
+            strcat( szDefExtensions, szCustomDefExtensions);
+            }
+   
+         if (strlen( szCustomDefNames))
+            {
+            strcat( szDefNames, " ");
+            strcat( szDefNames, szCustomDefNames);
+            }
          }
       }
 
-#endif
-
-   // make all names uppercase
+   // make all values uppercase
    strupr( szDefExtensions);
    strupr( szDefNames);
 
@@ -558,9 +370,264 @@ do
    if (ulCaseSensitive)
       pmi->ulModeFlags |= MODEINFO_CASESENSITIVE;
 
+
    } while (FALSE);
 
 // cleanup
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
+#define SCANMODE_MODEINFO 0
+#define SCANMODE_MODELIST 1
+
+#define _getModeInfo(fn,bn,ex,b,s)   _scanModes( SCANMODE_MODEINFO, fn, bn, ex, (PSZ)b, s)
+#define _getModeList(b,s)            _scanModes( SCANMODE_MODELIST, NULL, NULL, NULL, b, s)
+
+static APIRET _scanModes( ULONG ulReturnType,
+                          PSZ pszFilename, PSZ pszBasename, PSZ pszExtension,
+                          PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+
+         PMODEINFO      pmi;
+         BOOL           fTmpDataAllocated = FALSE;
+
+         PSZ            pszMode;
+         PSZ            pszModeFile;
+
+         HDIR           hdir = NULLHANDLE;
+
+         PSZ            pszRexxSig = "/*";
+         ULONG          ulIniSig = -1;
+
+         PSZ            pszNameMode = NULL;
+         PSZ            pszExtMode = NULL;
+
+         PSZ            pszKeywordPath = NULL;
+         PSZ            pszKeywordDir;
+
+         CHAR           szSearchMask[ _MAX_PATH];
+         CHAR           szDir[ _MAX_PATH];
+         CHAR           szIniFile[ _MAX_PATH];
+         PSZ            pszDirName;
+
+         CHAR           szModeList[ _MAX_PATH];
+         CHAR           szModeTag[ 64];
+
+do
+   {
+
+   // init vars
+   szModeList[ 0] = 0;
+
+   // check parms
+   if (!pszBuffer)
+       {
+       rc = ERROR_INVALID_PARAMETER;
+       break;
+       }
+
+   // check which return value is requested
+   switch (ulReturnType)
+      {
+      case SCANMODE_MODEINFO:
+         if ((!pszFilename) ||
+              ((!pszBasename) && (!pszExtension)))
+            {
+            rc = ERROR_INVALID_PARAMETER;
+            break;
+            }
+         pmi = (PMODEINFO) pszBuffer;
+         break;
+
+      case SCANMODE_MODELIST:
+         // allocate temporary PMI buffer
+         ulBuflen = 512;
+         pmi = malloc( ulBuflen);
+         if (!pmi)
+            {
+            rc = ERROR_NOT_ENOUGH_MEMORY;
+            break;
+            }
+         memset( pmi, 0, ulBuflen);
+         fTmpDataAllocated = TRUE;
+         break;
+
+      } // switch (ulReturnType)
+
+   // -----------------------------------------------------
+
+   if ((ulReturnType == SCANMODE_MODEINFO) && 
+       (pszExtension) && (pszFilename))
+      {
+      // check for .CMD files
+      if (!strcmp( pszExtension, "CMD"))
+         {
+         if (_checkSpecialFile( pszFilename, pszRexxSig, strlen( pszRexxSig)))
+            pszExtMode = strdup( "REXX");
+         else if (_checkExtprocScript( pszFilename, szDir, sizeof( szDir)))
+            pszExtMode = strdup( szDir);
+         }
+
+      // check for .INI files
+      if (!strcmp( pszExtension, "INI"))
+         {
+         // dont act on true OS/2 INI Files !
+         if (_checkSpecialFile( pszFilename, (PBYTE)&ulIniSig, sizeof( ulIniSig)))
+            rc = ERROR_PATH_NOT_FOUND;
+         else
+            pszExtMode = strdup( "INI");
+         }
+
+      // search default file just to make sure that mode definition exists !
+      if (pszExtMode)
+         {
+         rc = _searchFile( pszEnvnameEpmKeywordpath, szIniFile, 
+                          sizeof( szIniFile), SEARCHMASK_DEFAULTINI,
+                          pszExtMode);
+         if (rc != NO_ERROR)
+            {
+            rc = NO_ERROR;
+            free( pszExtMode);
+            pszExtMode = NULL;
+            }
+
+         }
+
+      } // if (pszExtension)
+
+   // -----------------------------------------------------
+
+   if (!pszExtMode)
+      {
+      // create a strdup of the path, so that we can tokenize it
+      pszKeywordPath = getenv( pszEnvnameEpmKeywordpath);
+      if (!pszKeywordPath)
+         {
+         rc = ERROR_ENVVAR_NOT_FOUND;
+         break;
+         }
+
+      pszKeywordPath = strdup( pszKeywordPath);
+      if (!pszKeywordPath)
+         {
+         rc = ERROR_NOT_ENOUGH_MEMORY;
+         break;
+         }
+
+      // go through all keyword directories
+      pszKeywordDir = strtok( pszKeywordPath, ";");
+      while (pszKeywordDir)
+         {
+         // search all directories in that directory
+         sprintf( szSearchMask, SEARCHMASK_MODEDIR, pszKeywordDir);
+
+         // store a filenames
+         hdir = HDIR_CREATE;
+
+         while (rc == NO_ERROR)
+            {
+            // search it
+            rc = GetNextDir( szSearchMask, &hdir,
+                              szDir, sizeof( szDir));
+            if (rc != NO_ERROR)
+               break;
+
+            // did we use that mode already ?
+            pszDirName = Filespec( szDir, FILESPEC_NAME);
+            strupr( pszDirName);
+            if (!strwrd( szModeList, pszDirName))
+               {
+               // new mode found, read settings
+               rc = _getModeSettings( pszDirName, pmi, ulBuflen);
+               if (rc == NO_ERROR)
+                  {
+                  // new mode found, first of all add to the list
+                  strcat( szModeList, " ");
+                  strcat( szModeList, pszDirName);
+
+                  // check extension and name
+                  if ((!pszExtMode) &&
+                      (pszExtension) &&
+                      (*pszExtension) &&
+                      (pmi->pszDefExtensions) &&
+                      (*pmi->pszDefExtensions) &&
+                      (strwrd( pmi->pszDefExtensions, pszExtension)))
+                     pszExtMode = strdup( pszDirName);
+
+                  if ((!pszNameMode) &&
+                      (pszBasename) &&
+                      (*pszBasename) &&
+                      (pmi->pszDefNames) &&
+                      (*pmi->pszDefNames) &&
+                      (strwrd( pmi->pszDefNames, pszBasename)))
+                     pszNameMode = strdup( pszDirName);
+
+                  }
+               else
+                  rc = NO_ERROR;
+
+               }  // if (!strstr( szModeList, szModeTag))
+
+           // extension mode found ? then break here
+           if (pszExtMode)
+              break;
+
+
+            } // while (rc == NO_ERROR)
+
+         DosFindClose( hdir);
+
+         // handle special errors
+         if (rc = ERROR_NO_MORE_FILES)
+            rc = NO_ERROR;
+
+         // next please
+         pszKeywordDir = strtok( NULL, ";");
+         }
+
+      } // if (!pszExtMode)
+
+   // -----------------------------------------------------
+
+   // if mode list was requested, quit here
+   if (ulReturnType == SCANMODE_MODELIST)
+      {
+      if (strlen( szModeList) + 1 > ulBuflen)
+         {
+         rc = ERROR_BUFFER_OVERFLOW;
+         break;
+         }
+
+      // hand over result
+      strcpy( pszBuffer, szModeList);
+      break;
+      }
+
+   // prefer extmode over
+   pszMode = NULL;
+   if (pszNameMode)
+      pszMode = pszNameMode;
+   if (pszExtMode)
+      pszMode = pszExtMode;
+
+   // break if no mode found
+   if (!pszMode)
+      {
+      rc = ERROR_PATH_NOT_FOUND;
+      break;
+      }
+
+   // reread mode details
+   rc = _getModeSettings( pszMode, pmi, ulBuflen);
+
+
+   } while (FALSE);
+
+// cleanup
+if ((pmi) && (fTmpDataAllocated)) free( pmi);
 if (pszKeywordPath) free( pszKeywordPath);
 if (pszNameMode)    free( pszNameMode);
 if (pszExtMode)     free( pszExtMode);
@@ -621,12 +688,42 @@ do
    strupr( pszExtension);
 
    // search mode
-   rc = _scanModes( pszFilename, pszBasename, pszExtension, pmi, ulBuflen);
+   rc = _getModeInfo( pszFilename, pszBasename, pszExtension,
+                      pmi, ulBuflen);
 
    } while (FALSE);
 
 // cleanup
 if (pszBasename)  free( pszBasename);
+
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
+APIRET QueryFileModeList( PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         PSZ            p;
+
+do
+   {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
+   // check parms
+   if (!pszBuffer)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // get mode list
+   rc = _getModeList( pszBuffer, ulBuflen);
+
+   } while (FALSE);
+
 
 return rc;
 }
