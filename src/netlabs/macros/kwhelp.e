@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.7 2002-09-07 18:00:13 aschn Exp $
+* $Id: kwhelp.e,v 1.8 2002-09-07 18:04:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -49,7 +49,7 @@ compile endif
 compile if not defined(GENERAL_NOCASE_TYPES)
    GENERAL_NOCASE_TYPES = 'CMD SYS BAT'         --<---------------------------------------------------- Todo
 compile endif
-compile if not defined('KEYWORD_HELP_COMMAND')
+compile if not defined('NEPMD_KEYWORD_HELP_COMMAND')
    -- Following is an OS/2 command that can replace the 'view' call.
    -- Specifying a path or extension is optional. It is invoked by
    -- cmd.exe.
@@ -152,8 +152,8 @@ defproc pHelp_C_identifier
 
       /* Execute keyword help command */
       if upcase(word(line,1))='VIEW' then
-compile if defined(KEYWORD_HELP_COMMAND)
-         line = KEYWORD_HELP_COMMAND''delword( line, 1, 1 )
+compile if defined(NEPMD_KEYWORD_HELP_COMMAND)
+         line = NEPMD_KEYWORD_HELP_COMMAND''delword( line, 1, 1 )
 compile endif
          sayerror 'Invoking "'line'"'
       endif
