@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: details.php,v 1.9 2002-07-21 22:44:14 cla Exp $
+* $Id: details.php,v 1.10 2002-09-09 15:36:00 cla Exp $
 *
 * ===========================================================================
 *
@@ -63,6 +63,9 @@ echo "<td bgcolor=#dddddd width=100%>";
 echo $title;
 echo "</td><td align=right bgcolor=".$gifbdcolor.">";
 echo "<a href=\"edit.php?file=".$file."\"><img src=\"edit.gif\" border=0></a>";
+echo "</td>";
+echo "</td><td align=right bgcolor=#dddddd>";
+echo "<a href=\"new.php?file=".$file."\"><img src=\"edit.gif\" border=0></a>";
 echo "</td>";
 echo "</tr>";
 echo "</table>";
