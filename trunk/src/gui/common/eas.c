@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: eas.c,v 1.1 2002-06-03 22:19:57 cla Exp $
+* $Id: eas.c,v 1.2 2002-08-23 08:28:17 cla Exp $
 *
 * ===========================================================================
 *
@@ -56,9 +56,10 @@ APIRET WriteStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszEaValue)
 do
    {
    // check parameters
-   if ((!pszFileName) ||
-       (!pszEaName)   ||
-       (!*pszEaName)  ||
+   if ((!pszFileName)  ||
+       (!*pszFileName) ||
+       (!pszEaName)    ||
+       (!*pszEaName)   ||
        (!pszEaValue))
       {
       rc = ERROR_INVALID_PARAMETER;
@@ -160,9 +161,10 @@ APIRET ReadStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszBuffer, PULONG pulBu
 do
    {
    // check parameters
-   if ((!pszFileName) ||
-       (!pszEaName)   ||
-       (!*pszEaName)  ||
+   if ((!pszFileName)  ||
+       (!*pszFileName) ||
+       (!pszEaName)    ||
+       (!*pszEaName)   ||
        (!pulBuflen))
       {
       rc = ERROR_INVALID_PARAMETER;
