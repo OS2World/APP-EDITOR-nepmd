@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.14 2002-08-28 13:07:25 cla Exp $
+* $Id: nepmdlib.e,v 1.15 2002-09-02 12:18:40 cla Exp $
 *
 * ===========================================================================
 *
@@ -101,6 +101,7 @@ defmain 'NepmdVersion';
 
 include 'deleterexxea.e'
 include 'deletestringea.e'
+include 'direxists.e'
 include 'errormsgbox.e'
 include 'getinstvalue.e'
 include 'getnextclose.e'

@@ -6,7 +6,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: nepmdlib.def,v 1.10 2002-08-28 13:07:25 cla Exp $
+; $Id: nepmdlib.def,v 1.11 2002-09-02 12:18:40 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -28,6 +28,7 @@ HEAPSIZE  16384
 STACKSIZE 16384
 
 EXPORTS
+ NepmdDirExists
  NepmdErrorMsgBox
  NepmdGetInstValue
  NepmdGetNextClose

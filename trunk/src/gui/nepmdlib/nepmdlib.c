@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.18 2002-08-28 21:17:32 cla Exp $
+* $Id: nepmdlib.c,v 1.19 2002-09-02 12:18:39 cla Exp $
 *
 * ===========================================================================
 *
@@ -224,6 +224,13 @@ if (rc != NO_ERROR)
    }
 
 return rc;
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdDirExists( PSZ pszDirName)
+{
+return DirExists( pszDirName);
 }
 
 // ------------------------------------------------------------------------------
