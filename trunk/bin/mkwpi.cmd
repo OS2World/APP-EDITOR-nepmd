@@ -35,7 +35,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkwpi.cmd,v 1.2 2002-06-12 09:54:31 cla Exp $
+* $Id: mkwpi.cmd,v 1.3 2002-07-31 14:39:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +54,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.2 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.3 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -166,8 +166,8 @@
        /* skip comments and empty lines */
        FirstWord = TRANSLATE( WORD( ThisLine, 1));
        IF (FirstWord = '') THEN ITERATE;
-       IF (WORDPOS( FirstWord, 'EXTPROC :') > 0) THEN ITERATE;
-
+       IF (WORDPOS( FirstWord, 'EXTPROC') > 0) THEN ITERATE;
+       IF (LEFT( FirstWord, 1) = ':') THEN ITERATE;
 
        /* check package information */
        ThisLine = ParseLine( ThisLine);
