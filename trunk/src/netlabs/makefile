@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.8 2002-09-16 13:48:36 cla Exp $
+# $Id: makefile,v 1.9 2002-09-16 16:28:52 aschn Exp $
 #
 # ===========================================================================
 #
@@ -59,6 +59,7 @@ $(CMPEXDIR)\get.ex\
 $(CMPEXDIR)\help.ex\
 $(CMPEXDIR)\maketags.ex\
 $(CMPEXDIR)\put.ex\
+$(CMPEXDIR)\tags.ex\
 $(CMPEXDIR)\treeit.ex
 
 
