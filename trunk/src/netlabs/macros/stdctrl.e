@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.13 2003-08-31 21:14:32 aschn Exp $
+* $Id: stdctrl.e,v 1.14 2003-09-01 05:20:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2716,7 +2716,8 @@ compile if WANT_LAN_SUPPORT
       return
    endif
 compile endif
-   if not saveas_dlg(name, type) then
+   AskIfExists = (arg(1) <> 0)-- new optional arg, 0 => no EXIST_OVERLAY__MSG, used by def f2 if SMARTSAVE
+   if not saveas_dlg(name, type, AskIfExists) then
       if leftstr(name,1)='"' & rightstr(name,1)='"' then
          name=substr(name,2,length(name)-2)
       endif
@@ -2760,6 +2761,8 @@ defproc saveas_dlg(var name, var type)
    else
       name = leftstr(.filename,255,\0)
    endif
+   AskIfExists = (arg(3) = 0)  -- optional 3rd arg, 0: no EXIST_OVERLAY__MSG, used by def f2 if SMARTSAVE
+
    res= dynalink32( ERES2_DLL,                -- library name
                     'ERESSaveas',              -- function name
                     gethwndc(EPMINFO_EDITCLIENT)  ||
@@ -2779,7 +2782,7 @@ defproc saveas_dlg(var name, var type)
    parse value name with name \0
    parse value type with type \0
    if name='' then return -275; endif  -- sayerror('Missing filename')
-   if exist(name) then
+   if exist(name) & AskIfExists then
       if 1<>winmessagebox( SAVE_AS__MSG,
                            name\10\10||EXISTS_OVERLAY__MSG,
                            16417) then -- OKCANCEL + CUANWARNING + MOVEABLE
