@@ -1,0 +1,81 @@
+# ***************************** Module Header *******************************
+#
+# Module Name: project.in
+#
+# project specific file to be included by the file rules.in to
+#  - create additional directories below the
+#     - compile directory $(CMPDIR)
+#     - binary directory  $(BINDIR) (either debnug or release)
+#  - extending the PATH to the bin subdirectory for helper programs
+#
+# Copyright (c) Netlabs EPM Distribution Project 2002
+#
+# $Id: project.in,v 1.1 2002-06-03 18:06:37 cla Exp $
+#
+# ===========================================================================
+#
+# This file is part of the Netlabs EPM Distribution package and is free
+# software.  You can redistribute it and/or modify it under the terms of the
+# GNU General Public License as published by the Free Software
+# Foundation, in version 2 as it comes in the "COPYING" file of the
+# Netlabs EPM Distribution.  This library is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# ***************************************************************************
+
+# --- check for required base macros
+
+!ifndef CMPDIR
+!error in project.in: CMPDIR must be set in your makfile before including this file.
+!endif
+
+!ifndef BINDIR
+!error in project.in: BINDIR must be set in your makfile before including this file.
+!endif
+
+# ---- create additionally required directories
+#      NOTE: They do not need special cleanup, as they are deleted
+#      as subdirectories of CMPDIR and BINDIR in main makefile, so the macro
+#      DIRSTOCLEAN needs not to be extended
+
+# - create netlabs tree in compile directory
+
+CMPDSTDIR=$(CMPDIR)\netlabs
+!if [@md $(CMPDSTDIR) 2> NUL]
+!endif
+
+CMPINFDIR=$(CMPDSTDIR)\book
+!if [@md $(CMPINFDIR) 2> NUL]
+!endif
+
+CMPINSTDIR=$(CMPDSTDIR)\install
+!if [@md $(CMPINSTDIR) 2> NUL]
+!endif
+
+# - create netlabs tree in binary directory
+
+BINDSTDIR=$(BINDIR)\netlabs
+!if [@md $(BINDSTDIR) 2> NUL]
+!endif
+
+BINBINDIR=$(BINDSTDIR)\bin
+!if [@md $(BINBINDIR) 2> NUL]
+!endif
+
+
+# --- extend path for executables to make helper programs available
+
+PATH=$(BASEDIR)\bin;$(PATH)
+
+# --- define list of files that are created by various makefiles and should
+#     trigger the rebuild of the WPI package in src\wis\makefile
+
+SRCCOPY_FLAGFILE=$(CMPDIR)\srccopy.txt
+
+WPIDEPLIST=\
+ $(SRCCOPY_FLAGFILE) \
+ $(CMPINFDIR)\* \
+ $(CMPINSTDIR)\*
+

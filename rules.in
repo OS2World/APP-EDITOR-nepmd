@@ -1,0 +1,275 @@
+# ***************************** Module Header *******************************
+#
+# Module Name: rules.in
+#
+# generic (!) include file to setup compiler and linker flags and some
+# specific implicit rules - See description below !
+#
+# This creates the compile and either debug or release directory
+# automatically, where files created by the defined rules are put.
+#
+# --- IMPORTANT --- IMPORTANT --- IMPORTANT --- IMPORTANT --- IMPORTANT ---
+#
+# Create a file named project.in within the same directory in order to
+# make project specific extensions like additional diectories and macro
+# extensions or replacements. DO NOT MODIFY THIS FILE FOR SUCH PURPOSES!
+#
+# Provided rules allow only one EXE or DLL to be linked per makefile
+# in one call. Use a different set of pseudotargets within the calling
+# makefile in order to distinct between the creation of one or more
+# executables or one or more DLLs and let the makefile call itself several
+# times in order to create one executable or DLL with each call.
+#
+# --- IMPORTANT --- IMPORTANT --- IMPORTANT --- IMPORTANT --- IMPORTANT ---
+#
+# Automatically supported compilers:
+#   - IBM C Set/2
+#   - IBM Visual Age C++ V3 (may also run with IBM Visual Age C++ V4)
+#
+# Copyright (c) Netlabs EPM Distribution Project 2002
+#
+# $Id: rules.in,v 1.1 2002-06-03 18:06:53 cla Exp $
+#
+# ===========================================================================
+#
+#
+# This file sets up rules for
+#   .c.obj    - c in current or srcdir, obj in bindir
+#   .rc.res     rc in current or srcdir, res in cmpdir
+#   .obj.dll  - obj and dll in bindir
+#   .obj.exe  - obj and exe in bindir
+#   .obj.lib  - obj and lib in bindir (either code libs or imp libs)
+#
+# Specify the following values by the calling makefile
+#
+# MANDANTORY:
+# -----------
+#  BASEDIR  -  relative path specification to this file from the calling makefile
+#              (e.g. BASEDIR=..\..)
+#
+# OPTIONAL:
+# ---------
+#  DEBUG    -  compile debug binaries                                  default: non-debug binaries
+#  SRCDIR   -  subdirectory for c sourcefiles                          default: empty
+#              (INCLUDE will be extended with this)
+#  OBJS     -  more objects to be linked  (include in dependency list) default: empty
+#  OBJS1    -  more objects to be linked  (include in dependency list) default: empty
+#  OBJS2    -  more objects to be linked  (include in dependency list) default: empty
+#  LIBS     -  own libs to be linked (include in dependency list !)    default: empty
+#  EXTLIBS  -  external libs (don not include in dependency list!)     default: empty
+#  DEF      -  definition file (include in dependency list !)          default: no def file
+#  RES      -  resource file (include in dependency list !)            default: file with name of exe/dll
+#  DLLEXT   -  use another filename extension instead of .dll          default: use '.dll'
+#
+#  MT       -  compile with multithread support                        default: single-thread
+#  OPTIMIZE -  define this to have optimized non-debug binaries        default: no otpimization
+#  LXLITE   -  define this to compress non-debug binaries              default: no compression
+#  IMPLIB   -  build import libs                                       default: build code libs
+#
+# ===========================================================================
+#
+# This file is part of the Netlabs EPM Distribution package and is free
+# software.  You can redistribute it and/or modify it under the terms of the
+# GNU General Public License as published by the Free Software
+# Foundation, in version 2 as it comes in the "COPYING" file of the
+# Netlabs EPM Distribution.  This library is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# ***************************************************************************
+
+!ifndef BASEDIR
+!error in rules.in: BASEDIR must be set in your makfile before including this file.
+!endif
+
+# --- extend include path if source dir is given
+!ifdef SRCDIR
+INCLUDE=$(INCLUDE);$(SRCDIR);
+!endif
+
+# --- determine dll extension
+!ifndef DLLEXT
+DLLEXT=.dll
+!endif
+
+# --- determine current debug option
+!ifdef NDEBUG
+!undef DEBUG
+!endif
+
+# --- determine compress option
+!ifdef DEBUG
+!undef LXLITE
+!endif
+
+# --- create compile directory depending on debug option
+!ifdef DEBUG
+BINDIR_NAME=debug
+DEBUG_STATUS=active
+!else
+BINDIR_NAME=release
+DEBUG_STATUS=inactive
+!endif
+BINDIR=$(BASEDIR)\$(BINDIR_NAME)
+!if [@md $(BINDIR) 2> NUL]
+!endif
+
+CMPDIR_NAME=compile
+CMPDIR=$(BASEDIR)\$(CMPDIR_NAME)
+!if [@md $(CMPDIR) 2> NUL]
+!endif
+
+# --- cleanup list for directories created here for main makefile
+#     This macro should be used in the main makefile of a project only
+#     in order to cleanup temporary directories. Extend this macro in 
+#     the file project.in when creating additional directories, that should
+#     also be cleaned up
+DIRSTOCLEAN=$(BINDIR) $(CMPDIR)
+
+# --- define compiler and toolkit specific options
+
+# common options
+CC=icc
+RC=rc
+C_FLAGS=-q -c -Ss+ -Sp1 -W3
+L_FLAGS=/A:4 /E /NOI /NOE /NOL /NOLOGO /MAP
+
+!ifdef CPPLOCAL
+# - VAC3 -
+CODELIB=ilib
+IMPLIB=ilib
+LL=ilink
+C_FLAGS=$(C_FLAGS) -Wcnd-
+L_FLAGS=/NOFREE $(L_FLAGS)
+!else
+# - IBM C/Set2 -
+CODELIB=lib
+IMPLIB=implib
+LL=link386
+L_FLAGS=/BATCH $(L_FLAGS)
+!endif
+
+# --- define executable specific options
+EXE_L_FLAGS=/BASE:0X10000
+DLL_L_FLAGS=/BASE:0X120000
+!ifdef DLL
+C_FLAGS=$(C_FLAGS) -Ge-
+!endif
+
+# --- define optimize option
+!ifdef OPTIMIZE
+C_FLAGS=$(C_FLAGS) -O+
+!else
+C_FLAGS=$(C_FLAGS) -O-
+!endif
+
+# --- define threading option
+!ifdef MT
+C_FLAGS= $(C_FLAGS) -Gm+
+!endif
+
+# --- define debug options
+!ifdef DEBUG
+C_FLAGS=$(C_FLAGS) -Tm -Ti+ -DDEBUG
+L_FLAGS=$(L_FLAGS) /CO
+RCFLAGS=-DDEBUG
+PMPRINTF=$(BINDIR)\printf.obj
+!else
+C_FLAGS=$(C_FLAGS) -Ti- -DNDEBUG
+RCFLAGS=
+PMPRINTF=
+!endif
+
+# --- suffix list
+.SUFFIXES: .exe .obj .c .obj .lib .dll .lst .def .rc .res $(DLLEXT)
+
+# --- implicit rules
+
+
+# - source roules
+
+!ifdef SRCDIR
+
+{$(SRCDIR)}.c{$(BINDIR)}.obj:
+   $(CC) $(C_FLAGS) -Fo$*.obj $(SRCDIR)\$(@B).c
+
+{$(SRCDIR)}.rc{$(CMPDIR)}.res:
+   $(RC) -r $(SRCDIR)\$(@B).rc $*.res
+
+!else
+
+.c{$(BINDIR)}.obj:
+   $(CC) $(C_FLAGS) -Fo$*.obj $(@B).c
+
+{$(SRCDIR)}.rc{$(CMPDIR)}.res:
+   $(RC) -r $(@B).rc $*.res
+!endif
+
+# - object rules
+
+{$(BINDIR)}.obj{$(BINDIR)}$(DLLEXT):
+   echo @<<link.tmp
+$* +
+$(OBJS) +
+$(OBJS1) +
+$(OBJS2)
+$*$(DLLEXT)
+$*.map
+$(EXTLIBS) $(LIBS)
+$(DEF)
+<<
+   -4 $(LL) $(L_FLAGS) $(DLL_L_FLAGS) @link.tmp
+!ifdef RES
+   if exist $(RES) rc $(RES) $*$(DLLEXT)
+!else
+   if exist $(CMPDIR)\$(@B).res rc $(CMPDIR)\$(@B).res $*$(DLLEXT)
+!endif
+!ifdef LXLITE
+   lxlite $*$(DLLEXT)
+!endif
+
+{$(BINDIR)}.obj{$(BINDIR)}.exe:
+   echo @<<link.tmp
+$* +
+$(OBJS) +
+$(OBJS1) +
+$(OBJS2)
+$*.exe
+$*.map
+$(EXTLIBS) $(LIBS)
+$(DEF)
+<<
+   -4 $(LL) $(L_FLAGS) $(EXE_L_FLAGS) @link.tmp
+!ifdef RES
+   if exist $(RES) rc $(RES) $*.exe
+!else
+   if exist $(CMPDIR)\$(@B).res rc $(CMPDIR)\$(@B).res $*.exe
+!endif
+!ifdef LXLITE
+   lxlite $*.exe
+!endif
+
+# - library rules
+
+!ifdef IMPLIB
+{$(CMPDIR)}.dll{$(CMPDIR)}.lib:
+    $(IMPLIB) /NOLOGO $*.lib $*.dll
+!else
+{$(CMPDIR)}.obj{$(CMPDIR)}.lib:
+    !$(CODELIB) $@ -+$?;
+    @if exist $*.bak del $*.bak
+!endif
+
+{$(BINDIR)}.lib{$(BINDIR)}.lst:
+   $(CODELIB) /NOLOGO $*,$*.lst;
+
+# --- if file project.in exists, call this to create
+#     additional project specific directories and extend macros etc.
+
+PROJECTFILE=$(BASEDIR)\project.in
+!if [@dir $(PROJECTFILE) >NUL 2>&1]
+!else
+!include $(PROJECTFILE)
+!endif
+
