@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.9 2002-09-20 15:04:36 cla Exp $
+* $Id: instval.c,v 1.10 2002-09-21 13:58:53 cla Exp $
 *
 * ===========================================================================
 *
@@ -60,6 +60,8 @@ static   PSZ            pszNepmdBinDir = NEPMD_SUBPATH_BINBINDIR;
 
 static   PSZ            pszUserIniFile = NEPMD_FILENAME_INIFILE;
 static   PSZ            pszMessageFile = NEPMD_FILENAME_MESSAGEFILE;
+static   PSZ            pszInfFile     = NEPMD_FILENAME_INFFILE;
+static   PSZ            pszHelpFile    = NEPMD_FILENAME_HELPFILE;
 
 static   PSZ            pszInstPathMask = "%s\\%s\\%s";
 static   PSZ            pszFreePathMask = "%s\\%s";
@@ -146,6 +148,34 @@ do
          sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdBinDir, pszMessageFile);
       else
          sprintf( szTmp, pszFreePathMask, szModulePath, pszMessageFile);
+
+      // pass in language identifier
+      sprintf( szValue, szTmp, szNepmdLanguage);
+      }
+
+   else if (!stricmp( pszValueTag, NEPMD_INSTVALUE_INF))
+      {
+      // determine name of message file
+      if (fRunningInDevTree)
+         sprintf( szTmp, pszInstPathMask, pszDevTreePath, NEPMD_DEVPATH_INFFILE, pszInfFile);
+      else if (fNepmdInstalled)
+         sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdBinDir, pszInfFile);
+      else
+         sprintf( szTmp, pszFreePathMask, szModulePath, pszInfFile);
+
+      // pass in language identifier
+      sprintf( szValue, szTmp, szNepmdLanguage);
+      }
+
+   else if (!stricmp( pszValueTag, NEPMD_INSTVALUE_HELP))
+      {
+      // determine name of message file
+      if (fRunningInDevTree)
+         sprintf( szTmp, pszInstPathMask, pszDevTreePath, NEPMD_DEVPATH_HELPFILE, pszHelpFile);
+      else if (fNepmdInstalled)
+         sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdBinDir, pszHelpFile);
+      else
+         sprintf( szTmp, pszFreePathMask, szModulePath, pszHelpFile);
 
       // pass in language identifier
       sprintf( szValue, szTmp, szNepmdLanguage);

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryinstvalue.e,v 1.6 2002-09-21 13:32:16 cla Exp $
+* $Id: queryinstvalue.e,v 1.7 2002-09-21 13:58:54 cla Exp $
 *
 * ===========================================================================
 *
@@ -51,6 +51,12 @@ The following keywords are supported:
 - MESSAGE
 = returns the fully qualified pathname of the message file of
   the [=TITLE].
+- INF
+= returns the fully qualified pathname of the online help 
+  information file of the [=TITLE] (nepmd**.inf).
+- HELP
+= returns the fully qualified pathname of the online help file of
+  the [=TITLE] (nepmd**.hlp).
 
 If the installation directory cannot be determined, pathnames
 of course cannot point to a subdirectory of the NEPMD directory
@@ -92,6 +98,8 @@ defc NepmdQueryInstValue, QueryInstValue
  insertline helperNepmdQueryInstValue( 'LANGUAGE');
  insertline helperNepmdQueryInstValue( 'INIT');
  insertline helperNepmdQueryInstValue( 'MESSAGE');
+ insertline helperNepmdQueryInstValue( 'INF');
+ insertline helperNepmdQueryInstValue( 'HELP');
  .modify = 0;
 
  return;

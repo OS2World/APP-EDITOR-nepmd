@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.15 2002-09-20 13:45:57 cla Exp $
+* $Id: nepmd.h,v 1.16 2002-09-21 13:58:53 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,6 +40,7 @@
 
 #define NEPMD_SUBPATH_BINBINDIR    "netlabs\\bin"
 #define NEPMD_SUBPATH_CMPINFDIR    "netlabs\\book"
+#define NEPMD_SUBPATH_CMPHLPDIR    "netlabs\\help"
 #define NEPMD_SUBPATH_MYBINDIR     "myepm\\bin"
 
 // file path and name definitions used by NepmdGetInstFilename
@@ -51,6 +52,14 @@
 #define NEPMD_SUBPATH_MESSAGEFILE  NEPMD_SUBPATH_BINBINDIR
 #define NEPMD_DEVPATH_MESSAGEFILE  "src\\nls\\netlabs\\bin"
 #define NEPMD_FILENAME_MESSAGEFILE "nepmd%s.tmf"
+
+#define NEPMD_SUBPATH_INFFILE      NEPMD_SUBPATH_CMPINFDIR
+#define NEPMD_DEVPATH_INFFILE      "compile\\base\\"NEPMD_SUBPATH_CMPINFDIR
+#define NEPMD_FILENAME_INFFILE     "nepmd%s.inf"
+
+#define NEPMD_SUBPATH_HELPFILE     NEPMD_SUBPATH_CMPINFDIR
+#define NEPMD_DEVPATH_HELPFILE     "compile\\base\\"NEPMD_SUBPATH_CMPHLPDIR
+#define NEPMD_FILENAME_HELPFILE    "nepmd%s.hlp"
 
 // filename used by NepmdInitconfig
 #define NEPMD_SUBPATH_DEFAULTSFILE  NEPMD_SUBPATH_BINBINDIR
