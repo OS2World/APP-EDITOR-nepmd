@@ -8,7 +8,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution project 2002
 #
-# $Id: makefile,v 1.4 2002-04-16 21:19:40 cla Exp $
+# $Id: makefile,v 1.5 2002-04-18 08:27:22 cla Exp $
 #
 # ===========================================================================
 #
@@ -31,7 +31,7 @@ WPIFILE=$(STEM)$(VERSION).wpi
 
 # --- common definitions
 
-.SUFFIXES: .src .ipf .inf .ipp .hlp *.exe .log
+.SUFFIXES: .src .ipf .inf .ipp .hlp .exe .log
 INCLUDE=$(INCLUDE);src\ipf;
 
 !IFDEF NDEBUG
