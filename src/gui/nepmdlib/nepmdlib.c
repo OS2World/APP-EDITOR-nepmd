@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.55 2002-10-20 12:16:10 cla Exp $
+* $Id: nepmdlib.c,v 1.56 2002-10-20 21:51:18 cla Exp $
 *
 * ===========================================================================
 *
@@ -803,6 +803,36 @@ do
 FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdPmPrintf( PSZ pszText)
+{
+         APIRET         rc = NO_ERROR;
+
+FUNCENTER;
+
+#ifdef DEBUG
+
+do
+   {
+   // check parms
+   if (!pszText)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   printf( "pmprintf  %s\n", pszText);
+
+   } while (FALSE);
+
+#endif
+
+FUNCEXITRC;
+return rc;
+}
+
 
 // ------------------------------------------------------------------------------
 

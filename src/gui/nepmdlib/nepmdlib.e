@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.37 2002-10-14 17:51:23 cla Exp $
+* $Id: nepmdlib.e,v 1.38 2002-10-20 21:51:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -140,6 +140,7 @@ include 'info.e'
 include 'initconfig.e'
 include 'libversion.e'
 include 'openconfig.e'
+include 'pmprintf.e'
 include 'queryconfigvalue.e'
 include 'querydefaultmode.e'
 include 'queryfullname.e'
