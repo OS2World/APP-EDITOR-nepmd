@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.11 2003-07-06 15:27:12 aschn Exp $
+* $Id: load.e,v 1.12 2003-08-31 23:19:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,9 +35,14 @@
 ;  1993/01/07:  put the result of filetype() in a universal so others needn't call it.
 const
 compile if not defined(NEPMD_RESTORE_POS_FROM_EA)
-   NEPMD_RESTORE_POS_FROM_EA = 0
+   NEPMD_RESTORE_POS_FROM_EA = 1
 compile endif
-
+compile if not defined(NO_RESTORE_POS_WORDS)
+   NO_RESTORE_POS_WORDS = 'L LOCATE / C CHANGE GOTO SETPOS RESTOREPOS'  -- no pos restore for these cmds
+compile endif
+compile if not defined(NO_RESTORE_POS_START_STRINGS)
+   NO_RESTORE_POS_START_STRINGS = '/'                                   -- no pos restore if a cmd word starts with these strings
+compile endif
 
 defload
    universal load_ext
@@ -50,6 +55,10 @@ compile endif
 compile if WANT_LONGNAMES='SWITCH'
    universal SHOW_LONGNAMES
 compile endif
+   universal CurEditCmd
+compile if EPM_POINTER = 'SWITCH'
+   universal vEPM_POINTER
+compile endif
 
    load_var = 0
    load_ext = filetype()
@@ -59,11 +68,11 @@ compile endif
    .margins  = vDEFAULT_MARGINS
    .autosave = vDEFAULT_AUTOSAVE
 
-   Filename = .filename
-
    if not .visible then  -- process following only if file is visible
       return             -- to avoid showing i.e. 'actlist' and '.HELPFILE' files
    endif
+
+   Filename = .filename
 
    Filemode = NepmdGetMode( Filename )
    CheckFlag = NepmdGetHiliteCheckFlag( Filemode )
@@ -106,12 +115,72 @@ compile if WANT_EBOOKIE
 compile endif  -- WANT_EBOOKIE
 
 compile if NEPMD_RESTORE_POS_FROM_EA
-      save_pos = get_EAT_ASCII_value('EPM.POS')
-      if save_pos <> '' then
-         call prestore_pos( save_pos )
+      RestorePosFlag = 1
+      -- Only restore pos if doscmdline/CurEditCmd doesn't position the cursor itself.
+      -- CurEditCmd is set by defc e,ed,edit,epm in EDIT.E or defc recomp in RECOMP.E.
+      -- 1) PMSEEK uses the <filename> 'L <string_to_search>' syntax.
+      -- 2) defc Recompile in src\gui\recompile\recomp.e
+      --    If CurEditCmd was set to 'SETPOS', then the pos will not be
+      --    restored from EA 'EPM.POS' at defload (LOAD.E).
+      --    Usually CurEditCmd is set to doscmdline (MAIN.E), but file
+      --    loading with DDE doesn't use the 'edit' cmd.
+      -- 3) ACDATASEEKER uses the <filename> '<line_no>' syntax.
+      NoRestorePosWords = 'L LOCATE / C CHANGE GOTO SETPOS RESTOREPOS'  -- no pos restore for these cmds
+      NoRestorePosStartStrings = '/'                                    -- no pos restore if a cmd word starts with these strings
+                                                                        -- (that handles the '/<search_string>' cmd correctly)
+      -- This doesn't handle mc cmds yet.
+      -- check number (positions cursor on line)
+      if isnum( CurEditCmd ) then
+         RestorePosFlag = 0
       endif
+      -- check NoRestorePosWords
+      if RestorePosFlag = 1 then
+         do w = 1 to words( NO_RESTORE_POS_WORDS)
+            CurWord = word( NO_RESTORE_POS_WORDS, w)
+            if wordpos( translate(CurWord), translate(CurEditCmd)) > 0 then
+               RestorePosFlag = 0
+               leave
+            endif
+         enddo
+      endif
+      -- check NoRestorePosStartStrings if RestorePosFlag = 1
+      if RestorePosFlag = 1 then
+         do w = 1 to words( NO_RESTORE_POS_START_STRINGS)
+            CurWord = word( NO_RESTORE_POS_START_STRINGS, w)
+            if abbrev( translate(CurEditCmd), translate(CurWord) ) > 0 then
+               RestorePosFlag = 0
+               leave
+            endif
+         enddo
+      endif
+      -- restore pos if RestorePosFlag = 1
+      if RestorePosFlag = 1 then
+         save_pos = get_EAT_ASCII_value('EPM.POS')
+         if save_pos <> '' then
+            -- the size of the EFrame may have changed since last pos save,
+            -- so respect .windowwith/.windowheight as max values for .cursorx/.cursory
+            parse value save_pos with col line cursorx cursory .
+            save_pos = col min( line, .last) min( cursorx, .windowwidth) min( cursory, .windowheight)
+            call prestore_pos( save_pos )
+         endif
+      endif
+compile endif  -- NEPMD_RESTORE_POS_FROM_EA
+
+   -- set EPM pointer from standard arrow to text pointer
+   -- bug fix (hopefully): even standard EPM doesn't show everytime the correct
+   --                      pointer after a new edit window was opened
+   -- defined in defc initconfig, STDCTRL.E
+compile if EPM_POINTER = 'SWITCH'
+   mouse_setpointer vEPM_POINTER
+compile else
+   mouse_setpointer EPM_POINTER
 compile endif
 
+
+; --- Process Hook ----------------------------------------------------------
+if isadefproc('HookExecute') then
+   call HookExecute('LOAD')
+endif
 
 compile if INCLUDE_BMS_SUPPORT
      if isadefproc('BMS_defload_exit') then
@@ -131,6 +200,4 @@ compile endif
          'rx' defload_profile_name arg(1)
       endif
    endif
-
--- sayerror 'DEFLOAD occurred for file '.filename'.'  -- for testing
 
