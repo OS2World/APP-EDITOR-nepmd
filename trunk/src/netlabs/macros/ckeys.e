@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.2 2002-07-22 18:59:11 cla Exp $
+* $Id: ckeys.e,v 1.3 2002-08-09 19:43:38 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -74,8 +74,6 @@ compile if not defined(CPP_EXTENSIONS)  -- Keep in sync with TAGS.E
    CPP_EXTENSIONS = 'CPP HPP CXX HXX SQX JAV JAVA'
 compile endif
 
-compile if INCLUDING_FILE <> 'EXTRA.E'  -- Following only gets defined in the base
-compile if EVERSION >= '4.12'
 ;  Keyset selection is now done once at file load time, not every time
 ;  the file is selected.  And because the DEFLOAD procedures don't have to be
 ;  kept together in the macros (ET will concatenate all the DEFLOADs the
@@ -84,74 +82,47 @@ compile if EVERSION >= '4.12'
 ;
 defload
    universal load_ext
-compile if EPM
    universal load_var
-compile endif
-compile if EVERSION >= '5.50'
    if wordpos(load_ext, C_EXTENSIONS CPP_EXTENSIONS) then
-compile else
 ;                                               C++                                         Data Base Manager
-   if load_ext='C' or load_ext='H' or load_ext='CPP' or load_ext='HPP' or load_ext='CXX' or load_ext='SQC' then
-compile endif
       keys   C_keys
  compile if C_TABS <> 0
-  compile if EPM
       if not (load_var // 2) then  -- 1 would be on if tabs set from EA EPM.TABS
-  compile endif
-      'tabs' C_TABS
-  compile if EPM
+         'tabs' C_TABS
       endif
-  compile endif
  compile endif
  compile if C_MARGINS <> 0
-  compile if EPM
-   compile if EVERSION >= '6.01b'
       if not (load_var bitand 2) then  -- 2 would be on if tabs set from EA EPM.MARGINS
-   compile else
-      if not (load_var%2 - 2*(load_var%4)) then  -- 2 would be on if tabs set from EA EPM.MARGINS
-   compile endif
-  compile endif
-      'ma'   C_MARGINS
-  compile if EPM
+         'ma'   C_MARGINS
       endif
-  compile endif
  compile endif
- compile if (C_KEYWORD_HIGHLIGHTING | JAVA_KEYWORD_HIGHLIGHTING) and EPM32
-  compile if EVERSION >= '5.50' & INCLUDE_WORKFRAME_SUPPORT
-   compile if EVERSION >= '6.01b'
+ compile if (C_KEYWORD_HIGHLIGHTING | JAVA_KEYWORD_HIGHLIGHTING)
+  compile if INCLUDE_WORKFRAME_SUPPORT
     if not (.levelofattributesupport bitand 16) &
-   compile else
-    if not (.levelofattributesupport%16 - 2*(.levelofattributesupport%32)) &
-   compile endif
        .visible then
   compile else
     if .visible then
   compile endif
        if substr(load_ext, 1, 3)='JAV' then
-  compile if JAVA_KEYWORD_HIGHLIGHTING and EPM32
+  compile if JAVA_KEYWORD_HIGHLIGHTING
           'toggle_parse 1 epmkwds.jav'
   compile endif
        else
-  compile if C_KEYWORD_HIGHLIGHTING and EPM32
+  compile if C_KEYWORD_HIGHLIGHTING
           'toggle_parse 1 epmkwds.c'
   compile endif
        endif
     endif
  compile endif
    endif
-compile endif
 
-compile if WANT_CUA_MARKING & EPM
+compile if    WANT_CUA_MARKING
  defkeys c_keys clear
 compile else
  defkeys c_keys
 compile endif
 
-compile if EVERSION >= 5
 def space=
-compile else
-def ' '=
-compile endif
    universal expand_on
    if expand_on then
       if  not c_first_expansion() then
@@ -160,9 +131,7 @@ compile endif
    else
       keyin ' '
    endif
- compile if EVERSION >= '5.20'
    undoaction 1, junk                -- Create a new state
- compile endif
 
 compile if ASSIST_TRIGGER = 'ENTER'
 def enter=
@@ -177,18 +146,8 @@ def c_enter=
 compile endif
    universal expand_on
 
-compile if EVERSION >= 5
    if expand_on then
-compile else
-   if expand_on & not command_state() then
-compile endif
-compile if EVERSION <= '4.12'
-      if c_second_expansion() then
-         call maybe_autosave()
-      else
-compile else
       if not c_second_expansion() then
-compile endif
 compile if ASSIST_TRIGGER = 'ENTER'
  compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
          call enter_common(enterkey)
@@ -233,9 +192,7 @@ def c_x=       /* Force expansion if we don't have it turned on automatic */
    if not c_first_expansion() then
       call c_second_expansion()
    endif
-compile endif  -- EXTRA
 
-compile if not EXTRA_EX or INCLUDING_FILE = 'EXTRA.E'  -- Following gets defined in EXTRA.EX if it's being used
 define
  compile if WANT_END_COMMENTED = '//'
    END_CATCH  = ' // endcatch'
@@ -265,11 +222,7 @@ define
 
 defproc c_first_expansion
    retc=1
-compile if EVERSION >= 5
    if .line then
-compile else
-   if .line and (not command_state()) then
-compile endif
       getline line
       line=strip(line,'T')
       w=line
@@ -279,11 +232,7 @@ compile if JAVA_SYNTAX_ASSIST
       java = substr(filetype(), 1, 3) = 'JAV'
 compile endif -- JAVA_SYNTAX_ASSIST
 compile if CPP_SYNTAX_ASSIST
- compile if EVERSION >= '5.50'
       cpp = wordpos(filetype(), CPP_EXTENSIONS)
- compile else
-      cpp = pos(' 'filetype()' ', ' 'CPP_EXTENSIONS' ')
- compile endif
 compile endif -- CPP_SYNTAX_ASSIST
 compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
       ws2 = ws || substr('', 1, C_SYNTAX_INDENT)
@@ -303,9 +252,7 @@ compile else
          insertline ws'}'END_FOR, .line+1
 compile endif -- WANT_BRACE_BELOW_STATEMENT
          if not insert_state() then insert_toggle
-compile if EVERSION >= '5.50'
              call fixup_cursor()
-compile endif
          endif
          .col=.col+2
       elseif wrd='IF' then
@@ -332,9 +279,7 @@ compile else
          insertline ws'}'END_IF, .line+2
 compile endif -- WANT_BRACE_BELOW_STATEMENT
          if not insert_state() then insert_toggle
-compile if EVERSION >= '5.50'
          call fixup_cursor()
-compile endif
          endif
          .col=.col+2
       elseif wrd='WHILE' then
@@ -352,9 +297,7 @@ compile else
          insertline ws'}'END_WHILE, .line+1
 compile endif -- WANT_BRACE_BELOW_STATEMENT
          if not insert_state() then insert_toggle
-compile if EVERSION >= '5.50'
              call fixup_cursor()
-compile endif
          endif
          .col=.col+2
       elseif wrd='DO' then
@@ -388,9 +331,7 @@ compile else
          insertline ws'}'END_SWITCH, .line+1
 compile endif -- WANT_BRACE_BELOW_STATEMENT
          if not insert_state() then insert_toggle
-compile if EVERSION >= '5.50'
              call fixup_cursor()
-compile endif
          endif
          .col=.col+2    /* move cursor between parentheses of switch ()*/
       elseif wrd='MAIN' then
@@ -435,9 +376,7 @@ compile if CPP_SYNTAX_ASSIST
          insertline ws'}'END_CATCH, .line+1
  compile endif -- WANT_BRACE_BELOW_STATEMENT
          if not insert_state() then insert_toggle
- compile if EVERSION >= '5.50'
              call fixup_cursor()
- compile endif
          endif
          .col=.col+3
 compile endif -- CPP_SYNTAX_ASSIST
@@ -445,9 +384,7 @@ compile if JAVA_SYNTAX_ASSIST
       elseif wrd='PRINTLN(' & java then
          replaceline ws'System.out.println( );'
          if not insert_state() then insert_toggle
- compile if EVERSION >= '5.50'
              call fixup_cursor()
- compile endif
          endif
          tab_word
 compile endif -- JAVA_SYNTAX_ASSIST
@@ -475,11 +412,7 @@ defproc c_second_expansion
       if i<=0 then i=length(wrd) endif
       firstword=upcase(substr(wrd,1,i))
 compile if CPP_SYNTAX_ASSIST
- compile if EVERSION >= '5.50'
       cpp = wordpos(filetype(), CPP_EXTENSIONS)
- compile else
-      cpp = pos(' 'filetype()' ', ' 'CPP_EXTENSIONS' ')
- compile endif
 compile endif -- CPP_SYNTAX_ASSIST
       if firstword='FOR' then
          /* do tabs to fields of C for statement */
@@ -576,9 +509,7 @@ compile if CPP_SYNTAX_ASSIST
          if cp then
             .col=cp+2
             if not insert_state() then insert_toggle
- compile if EVERSION >= '5.50'
                 call fixup_cursor()
- compile endif
             endif
          else
             if not brace and next_is_brace then down; endif
@@ -596,20 +527,12 @@ compile endif -- CPP_SYNTAX_ASSIST
 ;        endif
       elseif firstword='MAIN' then
          call enter_main_heading()
-compile if EPM
  compile if CPP_SYNTAX_ASSIST
       elseif (wordpos(firstword, 'DO IF ELSE WHILE') |
               (cpp & wordpos(firstword, 'TRY'))) then
  compile else
       elseif wordpos(firstword, 'DO IF ELSE WHILE') then
  compile endif -- CPP_SYNTAX_ASSIST
-compile else
- compile if CPP_SYNTAX_ASSIST
-      elseif pos(' 'firstword' ', ' DO IF ELSE WHILE ') | (cpp & firstword='TRY') then
- compile else
-      elseif pos(' 'firstword' ', ' DO IF ELSE WHILE ') then
- compile endif -- CPP_SYNTAX_ASSIST
-compile endif
          if not brace and next_is_brace then down; endif
          call einsert_line()
          .col=.col+C_SYNTAX_INDENT
@@ -659,4 +582,3 @@ compile else                           -- Use shorter ANSII notation
    mainline+2
 compile endif
 
-compile endif  -- EXTRA

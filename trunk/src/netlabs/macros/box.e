@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: box.e,v 1.2 2002-07-22 18:58:57 cla Exp $
+* $Id: box.e,v 1.3 2002-08-09 19:44:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,9 +34,7 @@ tryinclude 'MYCNF.E'
   const NLS_LANGUAGE = 'ENGLISH'
  compile endif
 include NLS_LANGUAGE'.e'
- compile if EVERSION >= 6
    EA_comment 'This defines the BOX command; it can be linked or executed directly.'
- compile endif
 compile endif
 
 defmain     -- External modules always start execution at DEFMAIN.
@@ -49,9 +47,6 @@ defc box=  /* give height width style */
    msg =  BOX_ARGS__MSG
    if not length(uparg) then
       sayerror msg
-compile if EVERSION < 5        -- If not EPM
-      cursor_command; begin_line;erase_end_line;keyin 'Box '
-compile endif
       stop
    endif
    if marktype()<>'BLOCK' then
@@ -70,9 +65,6 @@ compile endif
       endif
       if not flg and verify(uparg,"123456BCPAERS") then
          sayerror msg
-compile if EVERSION < 5        -- If not EPM
-         cursor_command; begin_line;erase_end_line;keyin 'Box '
-compile endif
          stop
       endif
       call psave_pos(save_pos)

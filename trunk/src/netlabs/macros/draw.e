@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: draw.e,v 1.2 2002-07-22 18:59:32 cla Exp $
+* $Id: draw.e,v 1.3 2002-08-09 19:49:34 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -48,14 +48,14 @@ memory.
 ******************************************************************************/
 
 compile if not defined(SMALL)  -- If being externally compiled...
- define INCLUDING_FILE = 'DRAW.E'
+   define INCLUDING_FILE = 'DRAW.E'
 const
    tryinclude 'MYCNF.E'
  compile if not defined(SITE_CONFIG)
-    const SITE_CONFIG = 'SITECNF.E'
+   const SITE_CONFIG = 'SITECNF.E'
  compile endif
  compile if SITE_CONFIG
-    tryinclude SITE_CONFIG
+   tryinclude SITE_CONFIG
  compile endif
 const
  compile if not defined(WANT_DBCS_SUPPORT)
@@ -64,30 +64,19 @@ const
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
- include NLS_LANGUAGE'.e'
+   include NLS_LANGUAGE'.e'
 ;include 'stdconst.e'     -- Don't waste time including just to define MAXCOL...
- compile if EVERSION >= 6
    EA_comment 'This defines the DRAW command; it can be linked or executed directly.'
- compile endif
-compile endif
+compile endif  -- not defined(SMALL)
 
 compile if not defined(MAXCOL)  -- Predefined constant starting in 5.60
    const MAXCOL = 255           -- If it's *not* predefined, we know it's 255.
 compile endif
 
-compile if EVERSION < 4       -- For EOS2, Removed to DRAWKEY.E, to make this
- compile if WANT_DRAW <> 1    -- separately compilable.
-def F6=
-   cursor_command
-   'draw'
- compile endif
-
-compile else
 
 defmain     --  We want to start executing as soon as we're linked.
    'draw' arg(1)
 
-compile endif  -- EVERSION < 4
 
 defc draw
    universal boxtab1,boxtab2,boxtab3,boxtab4
@@ -95,30 +84,23 @@ defc draw
 compile if WANT_DBCS_SUPPORT
    universal ondbcs
 compile endif
-compile if EVERSION >= 5
    universal draw_starting_keyset
- compile if EVERSION >= '5.21'
    universal cursor_mode
- compile endif
    if .keyset = 'DRAW_KEYS' then
       sayerror ALREADY_DRAWING__MSG
       return
    endif
-compile endif
 
    style=upcase(substr(arg(1),1,1))
    if not length(style) or verify(style,"123456B/") then
 compile if WANT_DBCS_SUPPORT
-   if ondbcs then
-      sayerror DRAW_ARGS_DBCS__MSG
-   else
+      if ondbcs then
+         sayerror DRAW_ARGS_DBCS__MSG
+      else
 compile endif
-      sayerror DRAW_ARGS__MSG
+         sayerror DRAW_ARGS__MSG
 compile if WANT_DBCS_SUPPORT
-   endif
-compile endif
-compile if EVERSION < 5
-      setcommand 'Draw',6,1
+      endif
 compile endif
       return
    endif
@@ -134,11 +116,7 @@ compile if WANT_DBCS_SUPPORT
    endif
 compile endif
    if style='/' then
-compile if EVERSION > 5
       drawchars=copies(substr(arg(1),2,1),11)
-compile else
-      drawchars=substr('',1,11,substr(arg(1),2,1)) /* 11 copies of 2nd char */
-compile endif
    elseif style='B' then
       drawchars=substr('',1,11)
    else
@@ -151,52 +129,18 @@ compile endif
    boxtab3=g1||ga||g4||g3||g7||g8||gb
    boxtab4=g9||ga||g5||g6||g7||g8||gb
 
-compile if EVERSION < 5
-   if command_state() then cursor_data endif
-compile endif
    istate=insert_state();
-   if istate then insert_toggle
-compile if EVERSION >= '5.50'
+   if istate then
+      insert_toggle
       call fixup_cursor()
-compile endif
    endif
 
-compile if EVERSION < 5
-   sayerror DRAW_PROMPT__MSG
-   loop
-      k=getkey()
-      /* Insert key toggles drawing; if insert is on, simply do the key. */
-      if insert_state() then executekey k; iterate; endif
-      if k=left then
-         draw_left()
-      elseif k=right then
-         draw_right()
-      elseif k=up then
-         draw_up()
-      elseif k=down then
-         draw_down()
-      /* Allow a few other keys for minor editing. */
-      elseif k=backspace or k=' ' or k=home or k=end or k=del or k=ins then
-         executekey k
-      else /* All other keys simply exit draw. */
-         leave
-      endif
-   endloop
-   if istate<>insert_state() then insert_toggle
-compile if EVERSION >= '5.50'
-      call fixup_cursor()
-compile endif
-   endif
-   sayerror DRAW_ENDED__MSG
-compile else
    -- EPM:  The old DRAW used a getkey() loop.  We don't have getkey() in EPM.
    -- The new way:  define a clear keyset of only the active keys.
    draw_starting_keyset = upcase(.keyset)
    keys draw_keys
- compile if EVERSION >= '5.21'
    cursor_mode = querycontrol(26)
    'togglecontrol 26 0'
- compile endif
 
 -- Make it a BASE CLEAR keyset so the only keys that do anything are
 -- the ones we explicitly define.  Without the CLEAR, the standard ASCII keys
@@ -230,9 +174,7 @@ def backspace  =
    rubout
 def ins        =
    insert_toggle
-compile if EVERSION >= '5.50'
-    call fixup_cursor()
-compile endif
+   call fixup_cursor()
 def space      =
    keyin ' '
 def home       =
@@ -250,24 +192,19 @@ def del        =
 -- keys (like Esc) as exits and simply ignore all others.
 def otherkeys, F3 =   -- or def Esc
    universal draw_starting_keyset
- compile if EVERSION >= '5.21'
    universal cursor_mode
- compile endif
    -- Whatever other key the user pressed, remember it so we can execute it.
    k = lastkey()
    -- Just in case the user doesn't have a select_edit_keys(), return to
    -- the standard keyset to make sure we don't get stuck in draw_keys.
    keys edit_keys
    .keyset = draw_starting_keyset -- Return to whatever keyset had been there.
- compile if EVERSION >= '5.21'
    'togglecontrol 26' cursor_mode
- compile endif
    -- Execute the key the user pressed when he quit drawing.
    sayerror DRAW_ENDED__MSG
    if k<>esc & k<>c_I & k<>F3 then executekey k; endif   -- But assume Esc was just to stop DRAW.
 
 -- End of EPM mods. ----------------------------------------------------------
-compile endif
 
 defproc get_char
    universal linepos,colpos,target

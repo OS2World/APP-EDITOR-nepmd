@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: drawkey.e,v 1.2 2002-07-22 18:59:34 cla Exp $
+* $Id: drawkey.e,v 1.3 2002-08-09 19:49:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -25,10 +25,6 @@ def F6=
 compile if WANT_DBCS_SUPPORT
    universal ondbcs
 compile endif
-compile if EVERSION < 5
-   cursor_command
-   'draw'
-compile else
  compile if WANT_DBCS_SUPPORT
    if ondbcs then
       sayerror DRAW_ARGS_DBCS__MSG
@@ -39,4 +35,3 @@ compile else
    endif
  compile endif
    'commandline draw '
-compile endif
