@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.15 2002-08-24 20:00:20 cla Exp $
+* $Id: nepmdlib.c,v 1.16 2002-08-25 14:35:10 cla Exp $
 *
 * ===========================================================================
 *
@@ -44,9 +44,15 @@
 #include "tmf.h"
 
 // some useful macros
-#define EPMINSERTTEXT(t)     EtkInsertTextBuffer( hwndClient, 0, strlen( t), t, 0x100);
-#define LOADSTRING(m,t)      TmfGetMessage( NULL, 0, t, sizeof( t), m, szMessageFile, &ulMessageLen)
-#define STRING_INTERNALERROR "\n\n>>> INTERNAL ERROR:"
+#define EPMINSERTTEXT(t)          EtkInsertTextBuffer( hwndClient, 0, strlen( t), t, 0x100);
+#define LOADSTRING(m,t)           TmfGetMessage( NULL, 0, t, sizeof( t), m, szMessageFile, &ulMessageLen)
+#define STRING_INTERNALERROR      "\n\n>>> INTERNAL ERROR:"
+#define EPMMODULEVERSION(m,t)     _queryModuleStamp( m, t, sizeof( t))
+
+#define INSERT_EPM_MODULEVERSION( h, f, m, mod) _insertModuleStamp( TRUE, h, f, m, mod)
+#define INSERT_NEPMD_MODULEVERSION( h, f, m, mod) _insertModuleStamp( FALSE, h, f, m, mod)
+
+
 
 // ------------------------------------------------------------------------------
 
@@ -111,6 +117,87 @@ do
 // cleanup
 if (pszMessage) free( pszMessage);
 return rc;
+}
+
+// ------------------------------------------------------------------------------
+
+static VOID _insertModuleStamp( BOOL fEpmModule, HWND hwndClient, PSZ pszFilename, PSZ pszMessageName,  PSZ pszModuleName)
+{
+         HAB            hab = WinQueryAnchorBlock( HWND_DESKTOP);
+         HMODULE        hmodule = NULLHANDLE;
+         CHAR           szModuleName[ _MAX_PATH];
+         CHAR           szVersionStamp[ 32];
+
+         CHAR           szFullname[ _MAX_PATH];
+         FILESTATUS3    fs3;
+         CHAR           szFilestamp[ 32];
+
+do
+   {
+   // check parms
+   if ((!pszFilename)    ||
+       (!pszMessageName) ||
+       (!pszModuleName))
+      break;
+
+   // query module handles for DLLs only (when a name is specified)
+   strupr( pszModuleName);
+   if (strstr( pszModuleName, ".DLL"))
+      DosQueryModuleHandle( pszModuleName, &hmodule);
+
+   if (fEpmModule)
+      {
+      // load version string
+      if (!WinLoadString( hab, hmodule, 65535, sizeof( szVersionStamp), szVersionStamp))
+         break;
+      }
+   else
+      {
+      strcpy( szVersionStamp, "");
+      }
+
+   // get filestamp from filesystem
+   if (!hmodule)
+      {
+      if (fEpmModule)
+         {
+                  PPIB           ppib;
+                  PTIB           ptib;
+
+         // now get handle also for EPM.EXE 
+         DosGetInfoBlocks( &ptib,&ppib);
+         hmodule = ppib->pib_hmte;
+         }
+      else
+         DosQueryModuleHandle( pszModuleName, &hmodule);
+      }
+
+   DosQueryModuleName( hmodule, sizeof( szFullname), szFullname);
+   DosQueryPathInfo( szFullname, FIL_STANDARD, &fs3, sizeof( fs3));
+   DPRINTF(( "\n%s: handle: %u, fullname: %s\n", pszModuleName, hmodule, szFullname));
+   // FILESTATUS3
+   sprintf( szFilestamp, "%u/%02u/%02u %2u:%02u:%02u", 
+            fs3.fdateLastWrite.year + 1980,
+            fs3.fdateLastWrite.month,
+            fs3.fdateLastWrite.day,
+            fs3.ftimeLastWrite.hours,
+            fs3.ftimeLastWrite.minutes,
+            fs3.ftimeLastWrite.twosecs * 2);
+
+
+   // cut off name from fullname to obtain directory
+   strcpy( strrchr( szFullname, '\\'), "");
+
+   // take left aligned modulename from fullname (works in all cases!)
+   sprintf( szModuleName, "%-12s", &szFullname[ strlen( szFullname) + 1]);
+
+   // insert result
+   _insertMessage( hwndClient, pszFilename, pszMessageName,
+                   szModuleName, szFilestamp, szVersionStamp, szFullname);
+
+   } while (FALSE);
+
+return;
 }
 
 // ------------------------------------------------------------------------------
@@ -392,19 +479,29 @@ do
    // ------------------------------------------------------------------------
    // ---  library information  
    {
-            PPIB           ppib;
-            PTIB           ptib;
-   
-            CHAR           szModule[ _MAX_PATH];
+         PSZ            pszModuleMask = "STR_INFO_NEPMDMODULESTAMP";
+         PSZ            pszLoaderExecutable = getenv( ENV_NEPMD_LOADEREXECUTABLE);
 
-   // get path and name of this DLL
-   rc = GetModuleName( szModule, sizeof( szModule));
-   if (rc != NO_ERROR)
-      break;
 
-   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_LIB",
-                   szModule, NEPMDLIB_VERSION, __DATE__);
+   if (pszLoaderExecutable)
+      INSERT_NEPMD_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, pszLoaderExecutable);
+   INSERT_NEPMD_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "NEPMDLIB.DLL");
+   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_MODULES_NEPMD");
    }
+
+   // ------------------------------------------------------------------------
+   // --- EPM module information
+   {
+         PSZ            pszModuleMask = "STR_INFO_EPMMODULESTAMP";
+
+   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "ETKC603.DLL");
+   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "ETKR603.DLL");
+   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "ETKE603.DLL");
+   INSERT_EPM_MODULEVERSION( hwndClient, szMessageFile, pszModuleMask, "EPM.EXE");
+   _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_MODULES_EPM");
+   }
+
+
 
    // ------------------------------------------------------------------------
    // ---  dynamic configuration
@@ -463,57 +560,6 @@ do
    // --- header
    _insertMessage( hwndClient, szMessageFile, "MSG_INFO_HEADER");
 
-
-   } while (FALSE);
-
-return rc;
-
-}
-
-// ------------------------------------------------------------------------------
-
-APIRET EXPENTRY NepmdLibInfo( HWND hwndClient)
-{
-         APIRET         rc = NO_ERROR;
-
-         PPIB           ppib;
-         PTIB           ptib;
-
-         CHAR           szModuleName[ _MAX_PATH];
-         PSZ            pszBaseName;
-
-         CHAR           szMessage[ 512];
-
-do
-   {
-
-   // get path and name of this DLL
-   rc = GetModuleName( szModuleName, sizeof( szModuleName));
-   if (rc != NO_ERROR)
-      break;
-   pszBaseName = strrchr( szModuleName, '\\');
-   *pszBaseName++ = 0;
-
-   // append name of this DLL
-   sprintf(       szMessage,  NEPMDLIB_STR_FILENAME   "%s\n", pszBaseName);
-   sprintf( _EOS( szMessage), NEPMDLIB_STR_LOADEDFROM "%s\n", szModuleName);
-
-   // details
-   strcat( szMessage, NEPMDLIB_STR_VERSION NEPMDLIB_VERSION "  of " __DATE__"\n");
-
-   // append modulename
-   strcat( szMessage, NEPMDLIB_STR_LOADEDBY);
-   DosGetInfoBlocks( &ptib,&ppib);
-   DosQueryModuleName( ppib->pib_hmte, _EOSSIZE( szMessage), _EOS( szMessage));
-   strcat( szMessage, "\n");
-
-   // show box
-   rc = WinMessageBox( HWND_DESKTOP,
-                       hwndClient,
-                       szMessage,
-                       NEPMDLIB_STR_TITLE,
-                       0L,
-                       MB_OK | MB_MOVEABLE | MB_INFORMATION);
 
    } while (FALSE);
 
