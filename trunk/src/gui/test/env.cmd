@@ -8,7 +8,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: env.cmd,v 1.1 2002-09-24 16:52:54 cla Exp $
+: $Id: env.cmd,v 1.2 2002-09-25 11:44:27 cla Exp $
 :
 : ===========================================================================
 :
@@ -24,4 +24,5 @@
 : **************************************************************************/
 
  SET TESTCASE=MMF
-
+ SET TESTCASE=CONFIGVALUE
+ SET TESTCASE=QUERYHILIGHTFILE
