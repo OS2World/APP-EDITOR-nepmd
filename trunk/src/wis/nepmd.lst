@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: nepmd.lst,v 1.7 2002-08-10 14:15:05 cla Exp $
+: $Id: nepmd.lst,v 1.8 2002-08-10 15:22:36 cla Exp $
 :
 : ===========================================================================
 :
@@ -26,35 +26,35 @@
 
 : --- package 1: application with Netlabs distribution extensions
 
-APP              1 %UNZIPPEDDIR%\epmapp   *
-HLP              1 %UNZIPPEDDIR%\epmhlp   *
-BK               1 %UNZIPPEDDIR%\epmbk    *
-BMP              1 %UNZIPPEDDIR%\epmbmps  *
-NEPMD_EPMCALL    1 %BINDIR_NAME%\epmcall  netlabs\bin\*
-NEPMD_EPMCALLCFG 1 %CMPDIR_NAME%\base     netlabs\bin\*
-NEPMD_INSTALL    1 %CMPDIR_NAME%\base     netlabs\install\*
-NEPMD_BOOK       1 %CMPDIR_NAME%\base     netlabs\book\*
-NEPMD_EX         1 %CMPDIR_NAME%\base     netlabs\ex\*
+APP              1 %UNZIPPEDDIR%\epmapp          epmbbs\*
+HLP              1 %UNZIPPEDDIR%\epmhlp          epmbbs\*
+BK               1 %UNZIPPEDDIR%\epmbk           epmbbs\*
+BMP              1 %UNZIPPEDDIR%\epmbmps         epmbbs\*
+NEPMD_EPMCALL    1 %BINDIR_NAME%\epmcall         netlabs\bin\*
+NEPMD_EPMCALLCFG 1 %CMPDIR_NAME%\base            netlabs\bin\*
+NEPMD_INSTALL    1 %CMPDIR_NAME%\base            netlabs\install\*
+NEPMD_BOOK       1 %CMPDIR_NAME%\base            netlabs\book\*
+NEPMD_EX         1 %CMPDIR_NAME%\base            netlabs\ex\*
 
-: --- package 2: macros
+: --- package 2: macros                          
 
-MACROS           2 %UNZIPPEDDIR%\epmmac    *
-MACROS2          2 %UNZIPPEDDIR%\epmmac2   *
-MACROSAMPLES     2 %UNZIPPEDDIR%\epmsmp    *
-EBOOKE           2 %UNZIPPEDDIR%\ebooke    *
-MYASSIST         2 %UNZIPPEDDIR%\epmasi    *
-VMEXEC           2 %UNZIPPEDDIR%\lampdq    *
-NEPMD_RECOMP     2 %BINDIR_NAME%\recomp    netlabs\bin\*
-NEPMD_MACROS     2 %CMPDIR_NAME%\base      netlabs\macros\*
+MACROS           2 %UNZIPPEDDIR%\epmmac          epmbbs\*
+MACROS2          2 %UNZIPPEDDIR%\epmmac2         epmbbs\*
+MACROSAMPLES     2 %UNZIPPEDDIR%\epmsmp          epmbbs\*
+EBOOKE           2 %UNZIPPEDDIR%\ebooke          epmbbs\*
+MYASSIST         2 %UNZIPPEDDIR%\epmasi          epmbbs\*
+VMEXEC           2 %UNZIPPEDDIR%\lampdq          epmbbs\*
+NEPMD_RECOMP     2 %BINDIR_NAME%\recomp          netlabs\bin\*
+NEPMD_MACROS     2 %CMPDIR_NAME%\base            netlabs\macros\*
 
-: --- package 3: Programming Samples
+: --- package 3: Programming Samples             
 
-DDESAMPLE        3 %UNZIPPEDDIR%\epmdde    *
-REXXSAMPLE       3 %UNZIPPEDDIR%\epmrex    *
-CSAMPLE          3 %UNZIPPEDDIR%\epmcsamp  *
-ATTR             3 %UNZIPPEDDIR%\epmatr    *
+DDESAMPLE        3 %UNZIPPEDDIR%\epmdde          epmbbs\*
+REXXSAMPLE       3 %UNZIPPEDDIR%\epmrex          epmbbs\*
+CSAMPLE          3 %UNZIPPEDDIR%\epmcsamp        epmbbs\*
+ATTR             3 %UNZIPPEDDIR%\epmatr          epmbbs\*
 
-: --- package 4: Speech Support
+: --- package 4: Speech Support                  
 
-SPEECH           4 %UNZIPPEDDIR%\epmspch   *
+SPEECH           4 %UNZIPPEDDIR%\epmspch         epmbbs\*
 

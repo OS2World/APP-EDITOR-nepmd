@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.12 2002-08-01 13:50:48 cla Exp $
+.. $Id: nepmd.txt,v 1.13 2002-08-10 15:22:33 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -575,27 +575,28 @@ all files are separated in dedicated directories:
 Files of the [.IDPNL_EPMBBS EPMBBS distribution] reside in the following directories:
 .fo off
 <install dir>
-ÃÄbin           **.exe **.ico of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch]
-³ ÃÄbar         **.bar       of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp]
-³ ÃÄbmp         **.bmp       of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch] [.IDPNL_EPMBBS_COMP_EPMBMPS epmbmps]
-³ ÃÄex          **.ex        of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch]
-³ ÃÄkeywords    epmkwds.**   of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp]
-³ ÃÄmacros      **.e         of: [.IDPNL_EPMBBS_COMP_EPMMAC epmmac] [.IDPNL_EPMBBS_COMP_EPMMAC2 epmmac2] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch]
-³ ³ ÃÄattr      **.e         of: [.IDPNL_EPMBBS_COMP_EPMATR epmatr]
-³ ³ ÃÄebooke    **           of: [.IDPNL_EPMBBS_COMP_EBOOKE ebooke]
-³ ³ ÃÄlampdq    **           of: [.IDPNL_EPMBBS_COMP_LAMPDQ lampdq]
-³ ³ ÃÄmyassist  **           of: [.IDPNL_EPMBBS_COMP_EPMASI epmasi]
-³ ³ ÀÄsamples   **.e         of: [.IDPNL_EPMBBS_COMP_EPMSMP epmsmp]
-³ ÀÄÄÄndx       **.ndx       of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp]
-ÃÄbook          **.inf       of: [.IDPNL_EPMBBS_COMP_EPMBK epmbk]
-ÃÄdll           **.dll       of: [.IDPNL_EPMBBS_COMP_EPMDLL epmdll]
-ÃÄhelp          **.hlp       of: [.IDPNL_EPMBBS_COMP_EPMHLP epmhlp]
-ÀÄsamples
-  ÃÄc           **           of: [.IDPNL_EPMBBS_COMP_EPMCSAMP epmcsamp]
-  ³ ÃÄinclude   **.h         of: [.IDPNL_EPMBBS_COMP_EPMCSAMP epmcsamp]
-  ³ ÀÄsrc       **           of: [.IDPNL_EPMBBS_COMP_EPMCSAMP epmcsamp]
-  ÃÄÄÄdde       **           of: [.IDPNL_EPMBBS_COMP_EPMDDE epmdde]
-  ÀÄÄÄrexx      **           of: [.IDPNL_EPMBBS_COMP_EPMREXX epmrexx]
+ÀÄepmbbs
+  ÃÄbin           **.exe **.ico of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch]
+  ³ ÃÄbar         **.bar       of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp]
+  ³ ÃÄbmp         **.bmp       of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch] [.IDPNL_EPMBBS_COMP_EPMBMPS epmbmps]
+  ³ ÃÄex          **.ex        of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch]
+  ³ ÃÄkeywords    epmkwds.**   of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp]
+  ³ ÃÄmacros      **.e         of: [.IDPNL_EPMBBS_COMP_EPMMAC epmmac] [.IDPNL_EPMBBS_COMP_EPMMAC2 epmmac2] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch]
+  ³ ³ ÃÄattr      **.e         of: [.IDPNL_EPMBBS_COMP_EPMATR epmatr]
+  ³ ³ ÃÄebooke    **           of: [.IDPNL_EPMBBS_COMP_EBOOKE ebooke]
+  ³ ³ ÃÄlampdq    **           of: [.IDPNL_EPMBBS_COMP_LAMPDQ lampdq]
+  ³ ³ ÃÄmyassist  **           of: [.IDPNL_EPMBBS_COMP_EPMASI epmasi]
+  ³ ³ ÀÄsamples   **.e         of: [.IDPNL_EPMBBS_COMP_EPMSMP epmsmp]
+  ³ ÀÄÄÄndx       **.ndx       of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp]
+  ÃÄbook          **.inf       of: [.IDPNL_EPMBBS_COMP_EPMBK epmbk]
+  ÃÄdll           **.dll       of: [.IDPNL_EPMBBS_COMP_EPMDLL epmdll]
+  ÃÄhelp          **.hlp       of: [.IDPNL_EPMBBS_COMP_EPMHLP epmhlp]
+  ÀÄsamples
+    ÃÄc           **           of: [.IDPNL_EPMBBS_COMP_EPMCSAMP epmcsamp]
+    ³ ÃÄinclude   **.h         of: [.IDPNL_EPMBBS_COMP_EPMCSAMP epmcsamp]
+    ³ ÀÄsrc       **           of: [.IDPNL_EPMBBS_COMP_EPMCSAMP epmcsamp]
+    ÃÄÄÄdde       **           of: [.IDPNL_EPMBBS_COMP_EPMDDE epmdde]
+    ÀÄÄÄrexx      **           of: [.IDPNL_EPMBBS_COMP_EPMREXX epmrexx]
 .fo on
 
 .. .............................................................................

@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: epmbase.lst,v 1.1 2002-08-05 15:17:33 cla Exp $
+: $Id: epmbase.lst,v 1.2 2002-08-10 15:22:35 cla Exp $
 :
 : ===========================================================================
 :
@@ -26,7 +26,7 @@
 
 : --- package 99: EPM base
 :     later used for  Warp3 packages requiring complete update to EPM V6.03b
-BASE_APP        99 %UNZIPPEDDIR%\epmapp.base   *
-BASE_DLL        99 %UNZIPPEDDIR%\epmdll        *
-BASE_HLP        99 %UNZIPPEDDIR%\epmhlp.base   *
+BASE_APP        99 %UNZIPPEDDIR%\epmapp.base     epmbbs\*
+BASE_DLL        99 %UNZIPPEDDIR%\epmdll          epmbbs\*
+BASE_HLP        99 %UNZIPPEDDIR%\epmhlp.base     epmbbs\*
 
