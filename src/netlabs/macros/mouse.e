@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.3 2002-08-19 22:54:11 aschn Exp $
+* $Id: mouse.e,v 1.4 2002-10-06 23:36:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -77,9 +77,9 @@ compile endif
 compile if not defined(TOP_OF_FILE_VALID)
    TOP_OF_FILE_VALID = 1       -- Can be '0', '1', or 'STREAM' (dependant on STREAM_MODE)
 compile endif
-compile if not defined(DRAG_ALWAYS_MARKS)
-   DRAG_ALWAYS_MARKS = 0
-compile endif
+;compile if not defined(DRAG_ALWAYS_MARKS)
+;   DRAG_ALWAYS_MARKS = 0
+;compile endif
 compile if not defined(WANT_MMEDIA)
    WANT_MMEDIA = 0
 compile endif
@@ -98,6 +98,23 @@ compile endif
 
 compile if (EPM_POINTER < 1 | EPM_POINTER > 14) & EPM_POINTER <> 'SWITCH'
  *** Invalid value for EPM_POINTER - must be 1 - 14
+compile endif
+
+; Todo:
+;compile if not defined(WANT_DCLICK_ON_URL_START_BROWSER)
+;   WANT_DCLICK_ON_URL_START_BROWSER = 1
+; compile if not defined(URL_BROWSER_EXE)
+;   --URL_BROWSER_EXE = 'netscape'
+;   URL_BROWSER_EXE = 'DEFAULT'
+;   -- (?) make this configurable by menu items: Netscape/Mozilla/Opera/wget/PMDownloadCenter/AutoWget
+;   -- (?) use default browser from os2.ini
+; compile endif
+;compile endif --WANT_DCLICK_ON_URL_START_BROWSER
+compile if not defined(WANT_DATETIME_IN_TITLE)
+   WANT_DATETIME_IN_TITLE = 1
+compile endif
+compile if not defined(NEPMD_SPECIAL_STATUSLINE)
+   NEPMD_SPECIAL_STATUSLINE = 1
 compile endif
 
 const
@@ -190,6 +207,21 @@ defc processmouse
    universal LMousePrefix
    universal WindowHadFocus
    parse arg WindowHadFocus arg1
+
+   -- 'processmouse' is called at every mouse action
+   if not WindowHadFocus then
+compile if WANT_DATETIME_IN_TITLE
+      -- 'checkifupdated' is defined in DATETIME.E
+      'postme checkifupdated'
+compile endif
+/*
+compile if NEPMD_SPECIAL_STATUSLINE
+      -- 'refreshstatusline' is defined in statusline.e
+      'postme refreshstatusline'
+compile endif
+*/
+   endif
+
    if LMousePrefix<>BlankMouseHandler"." then
       OldRc = rc
 compile if LOCAL_MOUSE_SUPPORT
@@ -335,6 +367,10 @@ compile endif
 compile if WANT_STREAM_MODE = 'SWITCH'
    universal stream_mode
 compile endif
+   universal nepmd_hini
+   KeyPath = "\NEPMD\User\Mouse\Mark\DragAlwaysMarks"
+   DragAlwaysMarks = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+
 compile if 0
    mt = upcase(arg(1))
    if marktype() then
@@ -345,10 +381,15 @@ compile if 0
          return
       endif
    endif
-compile elseif WANT_CUA_MARKING = 1 | DRAG_ALWAYS_MARKS
+;compile elseif WANT_CUA_MARKING = 1 | DRAG_ALWAYS_MARKS
+compile elseif WANT_CUA_MARKING = 1
    unmark
    'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
 compile else
+   if DragAlwaysMarks = 1 then
+      unmark
+      'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
+   endif
  compile if WANT_CUA_MARKING = 'SWITCH'
    if CUA_marking_switch then
       unmark
@@ -399,7 +440,69 @@ compile endif
 compile if WANT_STREAM_MODE = 'SWITCH'
    universal stream_mode
 compile endif
+
+; \NEPMD\User\Mouse\Mark\Workaround
+   -- Advantage   : With keyword-highlighting on it is nearly impossible
+   --               to mark the last char in a line with the mouse.
+   --               This workaround fixes it.
+   -- Disadvantage: The command 'toggle_parse' scrolls the window
+   --               from the end of mark to the cursor after processing
+   --               the mark.
+   --               This is an unusual behaviour and could confuse
+   --               the user.
+   --               Therefore: cursor goes to end of mark and cursor is vcentered.
+   universal EPM_utility_array_ID
+   universal nepmd_hini
+   KeyPath = "\NEPMD\User\Mouse\Mark\Workaround"
+   Workaround = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+   if Workaround = 1 then
+      -- Query keyword highlighting state (windowmessage returns 0 or 2)
+      -- from defc qparse (commented out) in STDCTRL.E:
+      saved_toggle = windowmessage(1,  getpminfo(EPMINFO_EDITFRAME),
+                                   5505,          -- EPM_EDIT_KW_QUERYPARSE
+                                   0,
+                                   0)
+
+      -- Get current keyword highlighting file if highlighting is on.
+      --   (Uses an array var, set before by 'toggle_parse'.)
+      --   ('toggle_parse' from STDCTRL.E was altered too:
+      --   Now it stores the kwfilename in an array.)
+      -- Switch keyword highlighting off it is on.
+      if saved_toggle <> 0 then
+         --refresh
+         --call psave_pos(saved_pos)
+         --saved_windowx = .windowx
+         --saved_windowy = .windowy
+         --saved_cursorx = .cursorx
+         saved_cursory = .cursory
+         --saved_line = .line
+         --saved_col = .col
+         --sayerror '.line = '.line', .col = '.col', .cursorx = '.cursorx', .cursory = '.cursory', .windowx = '.windowx', .windowy = '.windowy
+         getfileid fid
+         -- Get keyword highlighting file for this file
+         -- (The array var 'kwfile.'fid is set by defc toggle_parse in STDCTRL.E)
+         do_array 3, EPM_utility_array_ID, 'kwfile.'fid, kwfilename  --AS--
+         'toggle_parse' 0
+      endif
+
+      --sayerror 'Toggle state before is: 'saved_toggle', kwfilename is: ' kwfilename
+   endif  -- Workaround = 1
+
    ml = MouseLineColOff(endingline, endingcol, MouseOff, 1, arg(1));
+
+   if Workaround = 1 then
+      -- Switch keyword highlighting on if was on
+      if saved_toggle <> 0 then
+         -- from defc toggle_parse in STDCTRL.E:
+         call windowmessage(0,  getpminfo(EPMINFO_EDITFRAME),
+                            5502,               -- EPM_EDIT_TOGGLEPARSE
+                            1,
+                            put_in_buffer(fid kwfilename))
+
+         --'toggle_parse' 1 kwfilename
+      endif
+   endif  -- Workaround = 1
+
 compile if WANT_STREAM_MODE
  compile if WANT_STREAM_MODE = 'SWITCH'
    if stream_mode & ml > .last then
@@ -450,6 +553,32 @@ compile endif
 ;  refresh                                          ???
    call register_mousehandler(1, 'ENDDRAG', ' ')
    call register_mousehandler(1, 'CANCELDRAG', ' ')
+
+;compile if WANT_WORKAROUND_FOR_MARK_AT_LINEEND
+   if Workaround = 1 then
+ compile if KEEP_CURSOR_ON_SCREEN
+      if saved_toggle <> 0 then
+         if saved_cursory < 1 or saved_cursory > .windowheight then
+            --call prestore_pos(saved_pos)
+            --.windowx = saved_windowx
+            --.windowy = saved_windowy
+            -- go to end of mark and vcenter cursor
+            call pend_mark()
+            --.lineg = saved_line-- - saved_cursory
+            --.col = saved_col
+            --refresh
+            --.cursorx = saved_cursorx
+            --.cursory = saved_cursory
+            right
+            oldline=.line
+            .cursory=.windowheight%2
+            oldline
+         endif
+      endif
+   endif  -- Workaround = 1
+ compile endif
+;compile endif
+
 
 defc MH_cancel_mark
 compile if EPM_POINTER = 'SWITCH'
@@ -525,6 +654,13 @@ defc MH_dblclick
 compile endif  -- WANT_CUA_MARKING
 
 defc MH_double  -- Used to be just 'dupmark U', but now overloaded in a DIR listing:
+   universal nepmd_hini
+   KeyPath = "\NEPMD\User\Mouse\Url\MB1_DClick"
+   MB1DClickStartsBrowser = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+   KeyPath = "\NEPMD\User\Mouse\Url\Browser"
+   Browser = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+   UrlStrings = 'http:// ftp:// www. https:// mailto:'
+   Url = ''
 compile if WANT_TREE
    if upcase(subword(.filename,1,2)) = '.DOS DIR' | .filename = '.tree' then
 compile else
@@ -532,8 +668,92 @@ compile else
 compile endif
       executekey a_1  -- For simplicity, assume user hasn't redefined this key:
    else
-      unmark
-      'ClearSharBuff'
+      if MB1DClickStartsBrowser = 1 then
+         -- if word under cursor contains an url then start netscape
+         call psave_pos(saved_pos)
+         call psave_mark(saved_mark)
+         -- go to mouse position to ensure getting URL at mouse pointer and not at cursor
+         'MH_gotoposition'
+         cursorcol = .col
+         call pmark_word()
+         getmark firstline, lastline, firstcol, lastcol, fileid
+         Spec = substr( textline( firstline ), firstcol, lastcol - firstcol + 1 )
+         call prestore_mark(saved_mark)
+         call prestore_pos(saved_pos)
+         if cursorcol >= firstcol and cursorcol <= lastcol then -- if cursor in mark
+
+            do u = 1 to words( UrlStrings )
+               p1 = pos( word( UrlStrings, u ), Spec )
+               if p1 > 0 then
+                  Url = substr( Spec, p1 )
+                  leave
+               endif
+            enddo
+
+            if Url = '' then
+               filename = .filename
+               p1 = lastpos( '\', filename )
+               fname = substr( filename, p1 + 1 )
+               if translate( leftstr( fname, 6 ) ) = 'FILES.' then
+                  Url = 'ftp://ftp.dante.de/tex-archive/'Spec
+                  p2 = lastpos( '/', Url )
+                  Parent = substr( Url, 1, p2 )
+                  Url = Parent
+               endif
+               if translate( leftstr( Spec, 6 ) ) = 'DANTE:' or
+                  translate( leftstr( Spec, 5 ) ) = 'CTAN:' then
+                  Url = substr( Spec, 7 )  -- <--- ToDo
+                  Url = strip( Url, 'L' )
+                  Url = strip( Url, 'L', '/' )
+                  Url = 'ftp://ftp.dante.de/tex-archive/'Url
+                  p2 = lastpos( '/', Url )
+                  Parent = substr( Url, 1, p2 )
+                  Url = Parent
+               endif
+            endif
+
+            if Url <> '' then
+               --sayerror 'Url = 'Url
+               seplist = '" '||"' "||'( ) { } [ ] < > , !'
+               do i = 1 to words( seplist ) --while Found = 0
+                  sep = word( seplist, i )
+                  --Url = strip( Url, 'T', sep )
+                  parse value Url with tmp1 (sep) tmp2 (sep)
+                  --sayerror 'Url = 'Url', sep = 'sep', tmp1 = 'tmp1', tmp2 = 'tmp2
+                  do u = 1 to words( UrlStrings )
+                     p3 = pos( word( UrlStrings, u ), tmp1 )
+                     if p3 > 0 then
+                        Url = substr( tmp1, p3 )
+                        iterate
+                     endif
+                  enddo
+                  do u = 1 to words( UrlStrings )
+                     p4 = pos( word( UrlStrings, u ), tmp2 )
+                     if p4 > 0 then
+                        Url = substr( tmp2, p4 )
+                     endif
+                  enddo
+               enddo
+               if upcase(Browser) = 'DEFAULT' | Browser = '' then
+                  next = queryprofile( HINI_USERPROFILE, 'WPURLDEFAULTSETTINGS', 'DefaultBrowserExe')
+                  if next <> '' then
+                     Browser = next
+                  else
+                     Browser = 'netscape'
+                  endif
+               endif
+               sayerror 'Invoking 'Browser' with 'Url
+               'os2 /c /min start /f 'Browser' "'Url'"'
+            endif
+
+         endif -- cursorcol > firstcol and cursorcol < lastcol then
+      endif  -- MB1DClickStartsBrowser = 1
+
+      if Url = '' then
+         unmark
+         'ClearSharBuff'
+      endif
+
    endif
 
 defc MH_shiftclick
@@ -588,7 +808,12 @@ defc mouse_init
 compile if EPM_POINTER = 'SWITCH'
    universal vEPM_POINTER
 compile endif  -- EPM_POINTER = 'SWITCH'
-   universal EPM_utility_array_ID, MouseStyle
+;   universal EPM_utility_array_ID, MouseStyle
+   universal EPM_utility_array_ID
+   universal nepmd_hini
+   KeyPath = "\NEPMD\User\Mouse\Mark\MouseStyle"
+   MouseStyle = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+
 compile if WANT_MMEDIA
    universal mmedia_font
    mmedia_font = registerfont('Multimedia Icons', 0, 0)
@@ -645,7 +870,12 @@ compile if WANT_CUA_MARKING = 'SWITCH'
    call MH_set_Mouse(msgid)
 
 defproc MH_set_mouse
-   universal CUA_marking_switch, MouseStyle
+;   universal CUA_marking_switch, MouseStyle
+   universal CUA_marking_switch
+   universal nepmd_hini
+   KeyPath = "\NEPMD\User\Mouse\Mark\MouseStyle"
+   MouseStyle = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+
    msgid = arg(1)
    if msgid='' then
       res =  atol(dynalink32( 'PMWIN',
@@ -1129,11 +1359,15 @@ defc cascade_popupmenu
 defc StatWndMouseCmd
    if arg(1)='1 SECONDCLK 0' then
       'versioncheck'
+   elseif arg(1)='CONTEXTMENU' then
+      'configdlg'
    endif
 
 defc MsgWndMouseCmd
    if arg(1)='1 SECONDCLK 0' then
       'messagebox'
+   elseif arg(1)='CONTEXTMENU' then
+      'tagscan'
    endif
 
 compile if EPM_POINTER = 'SWITCH'
