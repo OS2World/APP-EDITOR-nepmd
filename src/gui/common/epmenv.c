@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.5 2002-08-19 17:37:03 cla Exp $
+* $Id: epmenv.c,v 1.6 2002-08-24 17:50:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,6 +34,121 @@
 #include "macros.h"
 #include "file.h"
 #include "nepmd.h"
+
+// -----------------------------------------------------------------------------
+
+static APIRET _searchEPMExecutable( PSZ pszExecutable, ULONG ulBuflen)
+{
+         APIRET         rc  = NO_ERROR;
+         PPIB           ppib;
+         PTIB           ptib;
+         ULONG          ulBootDrive;
+
+
+         BOOL           fFound = FALSE;
+         PSZ            pszPath = getenv( "PATH");
+         PSZ            pszCopy = NULL;
+         PSZ            pszDir;
+         CHAR           szExecutable[ _MAX_PATH];
+
+         CHAR           szThisModule[ _MAX_PATH];
+         CHAR           szNepmdModule[ _MAX_PATH];
+         CHAR           szInstalledModule[ _MAX_PATH];
+
+do
+   {
+   // check parms
+   if ((!pszExecutable) ||
+       (!ulBuflen))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // check env
+   if (!pszPath)
+      {
+      rc = ERROR_ENVVAR_NOT_FOUND;
+      break;
+      }
+
+   // get name of own module
+   DosGetInfoBlocks( &ptib,&ppib);
+   DosQueryModuleName( ppib->pib_hmte, sizeof( szThisModule), szThisModule);
+
+   // get name of EPM.EXE in NEPMD path
+   memset( szNepmdModule, 0, sizeof( szNepmdModule));
+   PrfQueryProfileString( HINI_USER,
+                          NEPMD_INI_APPNAME,
+                          NEPMD_INI_KEYNAME_PATH,
+                          NULL,
+                          szNepmdModule,
+                          sizeof( szNepmdModule));
+   strcat( szNepmdModule, "\\"NEPMD_SUBPATH_BINBINDIR"\\epm.exe");
+   strupr( szNepmdModule);
+
+   // get name of epm.exe in OS/2 directory
+   // this is used by installed NEPMD
+   DosQuerySysInfo( QSV_BOOT_DRIVE, QSV_BOOT_DRIVE, &ulBootDrive, sizeof( ULONG));
+   sprintf( szInstalledModule, "%c:\\OS2\\EPM.EXE", (CHAR) ulBootDrive + 'A' - 1);
+
+   // create copy to allow modification
+   pszCopy = strdup( pszPath);
+   if (!pszCopy)
+      {
+      rc = ERROR_NOT_ENOUGH_MEMORY;
+      break;
+      }
+
+   pszDir = strtok( pszCopy, ";");
+   while (pszDir)
+      {
+      // create fullname for entry to check
+      strcpy( szExecutable, pszDir);
+      if (*(pszDir + strlen( pszDir) - 1) != '\\')
+         strcat( szExecutable, "\\");
+      strcat( szExecutable, "epm.exe");
+      strupr( szExecutable);
+
+      // process only modules not being the current one or of NEPMD
+      if ((strcmp( szExecutable, szThisModule)) &&
+          (strcmp( szExecutable, szNepmdModule)) &&
+          (strcmp( szExecutable, szInstalledModule)))
+         {
+         // does executable exist ?
+//       DPRINTF(( "EPMCALL: searching %s\n", szExecutable));
+         if (FileExists( szExecutable))
+            {
+            fFound = TRUE;
+            break;
+            }
+         }
+
+      // next please
+      pszDir = strtok( NULL, ";");
+      }
+   if (!fFound)
+      {
+      rc = ERROR_FILE_NOT_FOUND;
+      break;
+      }
+
+   // hand over result
+   if (strlen( szExecutable) + 1 > ulBuflen)
+      {
+      rc= ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+   strcpy( pszExecutable, szExecutable);
+
+   } while (FALSE);
+
+// cleanup
+if (pszCopy) free( pszCopy);
+return rc;
+}
+
+
 
 // -----------------------------------------------------------------------------
 
@@ -430,16 +545,17 @@ return rc;
 
 //      #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 
-APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv)
+APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc  = NO_ERROR;
          ULONG          i;
 
          CHAR           szMainEnvFile[ _MAX_PATH];
          CHAR           szUserEnvFile[ _MAX_PATH];
+         CHAR           szExecutable[ _MAX_PATH];
 
          CHAR           szInstallVar[ _MAX_PATH + 30];
-         PSZ            apszVar[ 4]; // increase size of array of more vars required !!!
+         PSZ            apszVar[ 5]; // increase size of array of more vars required !!!
 
          PSZ           *ppszEnv;
          PSZ            pszVar;
@@ -478,10 +594,26 @@ do
       }
 
    // search environment file
-  rc = _searchNepmdEnvironmentFiles( szMainEnvFile, sizeof( szMainEnvFile),
-                                     szUserEnvFile,  sizeof( szUserEnvFile));
+   rc = _searchNepmdEnvironmentFiles( szMainEnvFile, sizeof( szMainEnvFile),
+                                      szUserEnvFile,  sizeof( szUserEnvFile));
    if (rc != NO_ERROR)
       break;
+
+   // search EPM executable
+   rc = _searchEPMExecutable( szExecutable, sizeof( szExecutable));
+   if (rc != NO_ERROR)
+      break;
+
+   // hand over name of executable, if buffer supplied
+   if (pszBuffer)
+      {
+      if (strlen( szExecutable) + 1 > ulBuflen)
+         {
+         rc = ERROR_BUFFER_OVERFLOW;
+         break;
+         }
+      strcpy( pszBuffer, szExecutable);
+      }
 
    // ------- get name list ----------------------------
 
@@ -558,6 +690,11 @@ do
    sprintf( szInstallVar, "%s=%s", ENV_NEPMD_USERENVFILE, szUserEnvFile);
    apszVar[ 3] = strdup( szInstallVar);
    ADDVAR( apszVar[ 3]);
+
+   memset( szInstallVar, 0, sizeof( szInstallVar));
+   sprintf( szInstallVar, "%s=%s", ENV_NEPMD_EPMEXECUTABLE, szExecutable);
+   apszVar[ 4] = strdup( szInstallVar);
+   ADDVAR( apszVar[ 4]);
 
    // ------- ------------------------------------------
 

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.h,v 1.2 2002-08-14 12:10:21 cla Exp $
+* $Id: epmenv.h,v 1.3 2002-08-24 17:50:47 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,7 +25,10 @@
 #ifndef EPMENV_H
 #define EPMENV_H
 
-APIRET GetExtendedEPMEnvironment( PSZ envp[], PSZ *ppszNewEnv);
+// pszBuffer is optional and receives the name
+// of the original EPM executable
+APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv,
+                                  PSZ pszBuffer, ULONG ulBuflen);
 
 #endif // EPMENV_H
 
