@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.11 2002-06-10 11:26:33 cla Exp $
+.. $Id: nepmd.txt,v 1.12 2002-08-01 13:50:48 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -772,17 +772,30 @@ This icon starts the *EPM*.
 .
 The following limitations apply to the current version of [=TITLE]:
 .ul
-- The [=TITLE] always removes files of the *EPM* / *Enhanced Editor*
-  coming with *OS/2 Warp 3* or *OS/2 Warp 4* that are installed in
-  directories ?:\OS2\APPS and ?:\OS2\APPS\DLL.
+- For users of the operating systems *OS/2 Warp 4* or *eComStation*,
+  the [=TITLE] always requires the files of the *EPM* / *Enhanced Editor*
+  that are installed in directories ?:\OS2\APPS and ?:\OS2\APPS\DLL. If they 
+  are not installed, use the installation program of your operating system
+  to install them and reapply the current fixpack.
 .
+- Users of *OS/2 Warp 3* currently cannot use this package, as
+  this version of *OS/2* comes with the outdated EPM v5.51.
+  As a workaround, before installing [=TITLE], you can 
+  - _manually remove_ the old EPM v5.51 files from your system (backup recommended)  and
+  - install the packages
+.ul compact
+     - [.IDPNL_EPMBBS_COMP_EPMAPP]
+     - [.IDPNL_EPMBBS_COMP_EPMDLL]
+     - [.IDPNL_EPMBBS_COMP_EPMHLP]
+.el
 .
-.at fc=darkgray
-  NOT YET IMPLEMENTED:
+     of the [.IDPNL_EPMBBS EPM BBS distribution] according to its readme file in a
+     directory of your choice.
+.el
 .
-  A backup of all removed files is created within the installation path
-  of [=TITLE] in the subdirectory *backup*
-.at
+  In a forthcoming version [=TITLE] will address that problem and offer
+  to replace an EPM v5.51 with the base EPM application of the  
+  *EPM BBS distribution* for *OS/2 Warp 3* users.
 
 .. =============================================================================
 .2 Revision history
