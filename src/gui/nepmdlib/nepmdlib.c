@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.49 2002-10-01 14:34:19 cla Exp $
+* $Id: nepmdlib.c,v 1.50 2002-10-07 18:36:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -338,13 +338,18 @@ do
       rc = QueryHilightFile( pszEpmMode, &fReload, szHilightFile, sizeof( szHilightFile));
       if (rc != NO_ERROR)
          break;
-      if (fReload)
-         *pszActivateFlag = '2';
+//    if (fReload)
+//       *pszActivateFlag = "2";
       }
    else
       szHilightFile[ 0] = 0;
 
    // send command
+   _executeEPMCommand( hwndClient, "toggle_parse %s %s", pszActivateFlag, szHilightFile);
+
+   // resend with toggle_parse 2 for reload
+   if ((*pszActivateFlag == '1') && (fReload))
+      pszActivateFlag = "2";
    _executeEPMCommand( hwndClient, "toggle_parse %s %s", pszActivateFlag, szHilightFile);
 
    } while (FALSE);
