@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.6 2002-09-16 19:48:04 aschn Exp $
+* $Id: stdmenu.e,v 1.7 2002-09-21 20:20:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -422,19 +422,22 @@ compile if 0
 compile else
       buildmenuitem menuname, HELP_MENU_ID, 608, HELP_PROD_MENU__MSG, 'IBMmsg'HELP_PROD_MENUP__MSG, 0, mpfrom2short(HP_HELP_PROD, 0)
 compile endif
-compile if SUPPORT_USERS_GUIDE | SUPPORT_TECHREF
+-- Todo: replace all strings and add consts for menu styles ------------------------------------------------------
+      buildmenuitem menuname, HELP_MENU_ID, 609, 'NEPMD runtime information', 'nepmdinfo', 0, 0
       buildmenuitem menuname, HELP_MENU_ID, 610, \0,           '',                        4, 0
- compile if SUPPORT_USERS_GUIDE
+      buildmenuitem menuname, HELP_MENU_ID, 640, 'View NEPMD Online Help', ''\1, 17+64, 0
+         buildmenuitem menuname, HELP_MENU_ID, 641, 'View NEPMD Online Help', 'view nepmd'\1, 0, 0
+         buildmenuitem menuname, HELP_MENU_ID, 642, 'Current word', 'viewword nepmd'\1, 32768+1, 0
+compile if SUPPORT_USERS_GUIDE
       buildmenuitem menuname, HELP_MENU_ID, 620, USERS_GUIDE_MENU__MSG,   USERS_GUIDE_MENUP__MSG, 17+64, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
          buildmenuitem menuname, HELP_MENU_ID, 621, VIEW_USERS_MENU__MSG,  'view epmusers'VIEW_USERS_MENUP__MSG, 0, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
          buildmenuitem menuname, HELP_MENU_ID, 622, VIEW_IN_USERS_MENU__MSG,  'viewword epmusers'VIEW_IN_USERS_MENUP__MSG, 0, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
          buildmenuitem menuname, HELP_MENU_ID, 623, VIEW_USERS_SUMMARY_MENU__MSG,  'view epmusers Summary'VIEW_USERS_SUMMARY_MENUP__MSG, 32768+1, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
- compile endif
- compile if SUPPORT_TECHREF
+compile endif
+compile if SUPPORT_TECHREF
       buildmenuitem menuname, HELP_MENU_ID, 630, TECHREF_MENU__MSG,   TECHREF_MENUP__MSG, 17+64, mpfrom2short(HP_HELP_TECHREF, 0)
          buildmenuitem menuname, HELP_MENU_ID, 631, VIEW_TECHREF_MENU__MSG,  'view epmtech'VIEW_TECHREF_MENUP__MSG, 0, mpfrom2short(HP_HELP_TECHREF, 0)
          buildmenuitem menuname, HELP_MENU_ID, 632, VIEW_IN_TECHREF_MENU__MSG,  'viewword epmtech'VIEW_IN_TECHREF_MENUP__MSG, 32768+1, mpfrom2short(HP_HELP_TECHREF, 0)
- compile endif
 compile endif
 
 defproc readd_help_menu
@@ -451,6 +454,7 @@ defproc maybe_show_menu
 defproc showmenu_activemenu()
    universal activemenu
    showmenu activemenu  -- show the updated EPM menu
+   'postme cascade_menu 640'  -- NEPMD Online Help
 compile if SUPPORT_USERS_GUIDE
    'postme cascade_menu 620'
 compile endif
