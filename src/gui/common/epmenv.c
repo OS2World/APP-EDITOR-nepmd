@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.17 2003-12-30 21:24:10 cla Exp $
+* $Id: epmenv.c,v 1.18 2005-04-03 20:07:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -173,6 +173,42 @@ return rc;
 }
 
 // -----------------------------------------------------------------------------
+// Added to get the loader before the environment was extended.
+static APIRET _searchLoaderExecutable( PSZ pszLoaderExecutable, ULONG ulLoaderBuflen)
+{
+         APIRET         rc  = NO_ERROR;
+         PPIB           ppib;
+         PTIB           ptib;
+
+         CHAR           szThisModule[ _MAX_PATH];
+
+do
+   {
+   // check parms
+   if ((!pszLoaderExecutable) ||
+       (!ulLoaderBuflen))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // get name of own module
+   DosGetInfoBlocks( &ptib,&ppib);
+   DosQueryModuleName( ppib->pib_hmte, sizeof( szThisModule), szThisModule);
+
+   if (strlen( szThisModule) + 1 > ulLoaderBuflen)
+      {
+      rc= ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+   strcpy( pszLoaderExecutable, szThisModule);
+
+   } while (FALSE);
+
+return rc;
+}
+
+// -----------------------------------------------------------------------------
 
 static APIRET _searchNepmdEnvironmentFiles( PSZ pszMainEnvFile, ULONG ulMainBuflen,
                                             PSZ pszUserEnvFile, ULONG ulUserBuflen)
@@ -321,7 +357,6 @@ do
 return rc;
 }
 
-
 // -----------------------------------------------------------------------------
 
 static PSZ _expandEnvVar( PSZ pszStr)
@@ -449,13 +484,13 @@ while (*p)
 if (fFound)
    {
    // move whole block and thus eliminate old entry
-// DPRINTF(( "EPMENV: var moved: %s ", pszEntry));
+// DPRINTF(( "EPMENV: var moved: %s\n", pszEntry));
    memcpy( p, p + ulNameLen + 1, pszCurrent - p);
    pszCurrent -= ulNameLen + 1;
    }
 else
    {
-// DPRINTF(( "EPMENV: var added: %s ", pszEntry));
+// DPRINTF(( "EPMENV: var added: %s\n", pszEntry));
    }
 
 // copy current name to the end
@@ -569,11 +604,13 @@ APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv, PSZ pszBuffer, UL
          APIRET         rc  = NO_ERROR;
          ULONG          i;
 
+         BOOL           fEnvAlreadySet = 0;
          CHAR           szMainEnvFile[ _MAX_PATH];
          CHAR           szUserEnvFile[ _MAX_PATH];
 
          CHAR           szEpmExecutable[ _MAX_PATH];
          CHAR           szLoaderExecutable[ _MAX_PATH];
+         CHAR           *pszPathVar;
 
          CHAR           szInstallVar[ _MAX_PATH + 30];
          PSZ            apszVar[ 6]; // increase size of array of more vars required !!!
@@ -604,11 +641,156 @@ do
    // default to make no changes
    *ppszNewEnv = NULL;
 
-   // search loader executable and EPM executable
+#if 1
+   // get loader executable (current file)
+   szLoaderExecutable[ 0] = 0;
+   rc = _searchLoaderExecutable( szLoaderExecutable, sizeof(  szLoaderExecutable));
+#endif
+
+   // check if extended environment is already set
+   pszValue = getenv( ENV_NEPMD_USERENVFILE);
+   if ((!pszValue) || (!*pszValue))
+      pszValue = getenv( ENV_NEPMD_MAINENVFILE);
+   if ((pszValue) && (*pszValue))
+      {
+      DPRINTF(( "EPMENV: skip environment extension, already set with: %s\n", pszValue));
+      fEnvAlreadySet = 1;
+      // can't break here, because now pszBuffer is set to EpmExecutable later
+      //break;
+      }
+
+   if (fEnvAlreadySet == 0)
+      {
+      // ------- ------------------------------------------
+
+      // search environment file - ignore errors !
+      _searchNepmdEnvironmentFiles( szMainEnvFile, sizeof( szMainEnvFile),
+                                    szUserEnvFile,  sizeof( szUserEnvFile));
+
+      // ------- get name list ----------------------------
+
+      // get size of envnames provided
+      // for simplicity use env size as we add vars anyway
+
+      ppszEnv = envv;
+      ulEnvSize = 0;
+      while (*ppszEnv)
+         {
+         ulEnvSize += strlen( *ppszEnv) + 1;
+         ppszEnv++;
+         }
+      ulEnvSize += 1;
+
+      // get memory for name list
+      pszEnvNameList = malloc( ulEnvSize);
+      if (!pszEnvNameList)
+         {
+         rc = ERROR_NOT_ENOUGH_MEMORY;
+         break;
+         }
+      memset( pszEnvNameList , 0x0, ulEnvSize);
+
+      ppszEnv = envv;
+      pszName = pszEnvNameList;
+      while (*ppszEnv)
+         {
+         // copy var
+         pszName = _copyname( pszEnvNameList, pszName, *ppszEnv);
+
+         // copy next var
+         ppszEnv++;
+         }
+
+      // ------- ------------------------------------------
+
+
+      // -------- set internal var(s) first, use a different buffer for each
+      //          as putvar only passes a pointer to the environment list !!!
+
+      // --- > set environment variable for NEPMD install directory
+      memset( szInstallVar, 0, sizeof( szInstallVar));
+      sprintf( szInstallVar, "%s=", ENV_NEPMD_PATH);
+      rc = QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
+      if (rc == NO_ERROR)
+         {
+         apszVar[ 0] = strdup( szInstallVar);
+         ADDVAR( apszVar[ 0]);
+         }
+      else
+         // don't report error from here
+         rc = NO_ERROR;
+
+      // --- > set environment variable for NEPMD language
+      memset( szInstallVar, 0, sizeof( szInstallVar));
+      sprintf( szInstallVar, "%s=", ENV_NEPMD_LANGUAGE);
+      QueryInstValue( NEPMD_INSTVALUE_LANGUAGE, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
+      apszVar[ 1] = strdup( szInstallVar);
+      ADDVAR( apszVar[ 1]);
+
+      // --- > set environment variables for env files
+      if (strlen( szMainEnvFile))
+         {
+         memset( szInstallVar, 0, sizeof( szInstallVar));
+         sprintf( szInstallVar, "%s=%s", ENV_NEPMD_MAINENVFILE, szMainEnvFile);
+         apszVar[ 2] = strdup( szInstallVar);
+         ADDVAR( apszVar[ 2]);
+         }
+
+      if (strlen( szMainEnvFile))
+         {
+         memset( szInstallVar, 0, sizeof( szInstallVar));
+         sprintf( szInstallVar, "%s=%s", ENV_NEPMD_USERENVFILE, szUserEnvFile);
+         apszVar[ 3] = strdup( szInstallVar);
+         ADDVAR( apszVar[ 3]);
+         }
+
+      // search EpmExecutable after the environment is expanded
+
+#if 1
+      // --- > set environment variable for EPM loader
+      memset( szInstallVar, 0, sizeof( szInstallVar));
+      sprintf( szInstallVar, "%s=%s", ENV_NEPMD_LOADEREXECUTABLE, szLoaderExecutable);
+      apszVar[ 5] = strdup( szInstallVar);
+      ADDVAR( apszVar[ 5]);
+#endif
+
+      // ------- ------------------------------------------
+
+      // read env files
+      if (strlen( szMainEnvFile)) _readEnvFile( szMainEnvFile, &ulEnvSize, &pszName, pszEnvNameList);
+      if (strlen( szUserEnvFile)) _readEnvFile( szUserEnvFile, &ulEnvSize, &pszName, pszEnvNameList);
+
+      // get memory with updated env size
+   // DPRINTF(( "estimated new size is: %u\n", ulEnvSize));
+      pszEnv = malloc( ulEnvSize);
+      if (!pszEnv)
+         {
+         rc = ERROR_NOT_ENOUGH_MEMORY;
+         break;
+         }
+      memset( pszEnv, 0x0, ulEnvSize);
+
+      // read env into memory block
+      pszName = pszEnvNameList;
+      pszVar = pszEnv;
+      while (*pszName)
+         {
+         // copy var
+         sprintf( pszVar, "%s=%s",  pszName, getenv( pszName));
+
+         // copy next var
+         pszVar = NEXTSTR( pszVar);
+         pszName = NEXTSTR( pszName);
+         }
+
+      }  // fEnvAlreadySet == 0
+
+   // search EPM executable after PATH was extended
+   // the loader executable is here not required
    szEpmExecutable[ 0] = 0;
    szLoaderExecutable[ 0] = 0;
    rc = _searchEpmExecutable( szEpmExecutable,    sizeof( szEpmExecutable),
-                              szLoaderExecutable, sizeof(  szLoaderExecutable));
+                              szLoaderExecutable, sizeof( szLoaderExecutable));
 
    // hand over name of executable, if buffer supplied
    if (pszBuffer)
@@ -622,148 +804,54 @@ do
          rc = ERROR_BUFFER_OVERFLOW;
          break;
          }
-      DPRINTF(( "found executable: %s\n", szEpmExecutable));
+      DPRINTF(( "Found executable: %s\n", szEpmExecutable));
       strcpy( pszBuffer, szEpmExecutable);
       }
 
-   // check if extended environment is already set
-   pszValue = getenv( ENV_NEPMD_USERENVFILE);
-   if ((!pszValue) || (!*pszValue))
-      pszValue = getenv( ENV_NEPMD_MAINENVFILE);
-   if ((pszValue) && (*pszValue))
+   // set the next vars after _searchEPMExecutable was called
+   if (fEnvAlreadySet == 0)
       {
-      DPRINTF(( "EPMENV: skip environment extension, already set with: %s\n", pszValue));
-      break;
-      }
 
-   // ------- ------------------------------------------
-
-   // search environment file - ignore errors !
-   _searchNepmdEnvironmentFiles( szMainEnvFile, sizeof( szMainEnvFile),
-                                 szUserEnvFile,  sizeof( szUserEnvFile));
-
-   // ------- get name list ----------------------------
-
-   // get size of envnames provided
-   // for simplicity use env size as we add vars anyway
-
-   ppszEnv = envv;
-   ulEnvSize = 0;
-   while (*ppszEnv)
-      {
-      ulEnvSize += strlen( *ppszEnv) + 1;
-      ppszEnv++;
-      }
-   ulEnvSize += 1;
-
-   // get memory for name list
-   pszEnvNameList = malloc( ulEnvSize);
-   if (!pszEnvNameList)
-      {
-      rc = ERROR_NOT_ENOUGH_MEMORY;
-      break;
-      }
-   memset( pszEnvNameList , 0x0, ulEnvSize);
-
-   ppszEnv = envv;
-   pszName = pszEnvNameList;
-   while (*ppszEnv)
-      {
-      // copy var
-      pszName = _copyname( pszEnvNameList, pszName, *ppszEnv);
-
-      // copy next var
-      ppszEnv++;
-      }
-
-   // ------- ------------------------------------------
-
-
-   // -------- set internal var(s) first, use a different buffer for each
-   //          as putvar only passes a pointer to the environment list !!!
-
-   // --- > set environment variable for NEPMD install directory
-   memset( szInstallVar, 0, sizeof( szInstallVar));
-   sprintf( szInstallVar, "%s=", ENV_NEPMD_PATH);
-   rc = QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
-   if (rc == NO_ERROR)
-      {
-      apszVar[ 0] = strdup( szInstallVar);
-      ADDVAR( apszVar[ 0]);
-      }
-   else
-      // don't report error from here
-      rc = NO_ERROR;
-
-   // --- > set environment variable for NEPMD language
-   memset( szInstallVar, 0, sizeof( szInstallVar));
-   sprintf( szInstallVar, "%s=", ENV_NEPMD_LANGUAGE);
-   QueryInstValue( NEPMD_INSTVALUE_LANGUAGE, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
-   apszVar[ 1] = strdup( szInstallVar);
-   ADDVAR( apszVar[ 1]);
-
-   // --- > set environment variables  for env files
-   if (strlen( szMainEnvFile))
-      {
+      // set NEPMD_EPMEXECUTABLE
       memset( szInstallVar, 0, sizeof( szInstallVar));
-      sprintf( szInstallVar, "%s=%s", ENV_NEPMD_MAINENVFILE, szMainEnvFile);
-      apszVar[ 2] = strdup( szInstallVar);
-      ADDVAR( apszVar[ 2]);
-      }
+      sprintf( szInstallVar, "%s=%s", ENV_NEPMD_EPMEXECUTABLE, szEpmExecutable);
+      apszVar[ 4] = strdup( szInstallVar);
+      DPRINTF(( "EPMENV: %s\n", apszVar[ 4]));
+      ADDVAR( apszVar[ 4]);
 
-   if (strlen( szMainEnvFile))
-      {
+#if 0
+      // set NEPMD_LOADEREXECUTABLE
+      // this can be set before the evironment extension as well
       memset( szInstallVar, 0, sizeof( szInstallVar));
-      sprintf( szInstallVar, "%s=%s", ENV_NEPMD_USERENVFILE, szUserEnvFile);
-      apszVar[ 3] = strdup( szInstallVar);
-      ADDVAR( apszVar[ 3]);
-      }
+      sprintf( szInstallVar, "%s=%s", ENV_NEPMD_LOADEREXECUTABLE, szLoaderExecutable);
+      apszVar[ 5] = strdup( szInstallVar);
+      DPRINTF(( "EPMENV: %s\n", apszVar[ 5]));
+      // ADDVAR doesn't work here, although DPRINTF shows, that apszVar[ 5] has the right value
+      // why?
+      ADDVAR( apszVar[ 5]);
+#endif
 
-   memset( szInstallVar, 0, sizeof( szInstallVar));
-   sprintf( szInstallVar, "%s=%s", ENV_NEPMD_EPMEXECUTABLE, szEpmExecutable);
-   apszVar[ 4] = strdup( szInstallVar);
-   ADDVAR( apszVar[ 4]);
+      // extend LIBPATH
+      pszPathVar = getenv( "BEGINLIBPATH");
+      if (pszPathVar != NULL)
+         {
+         DosSetExtLIBPATH( pszPathVar, BEGIN_LIBPATH);
+         }
+      pszPathVar = getenv( "ENDLIBPATH");
+      if (pszPathVar != NULL)
+         {
+         DosSetExtLIBPATH( pszPathVar, END_LIBPATH);
+         }
 
-   memset( szInstallVar, 0, sizeof( szInstallVar));
-   sprintf( szInstallVar, "%s=%s", ENV_NEPMD_LOADEREXECUTABLE, szLoaderExecutable);
-   apszVar[ 5] = strdup( szInstallVar);
-   ADDVAR( apszVar[ 5]);
+      // close name list
+      *pszName = 0;
 
-   // ------- ------------------------------------------
+      *pszVar = 0;
 
-   // read env files
-   if (strlen( szMainEnvFile)) _readEnvFile( szMainEnvFile, &ulEnvSize, &pszName, pszEnvNameList);
-   if (strlen( szUserEnvFile)) _readEnvFile( szUserEnvFile, &ulEnvSize, &pszName, pszEnvNameList);
+      // hand over result
+      *ppszNewEnv = pszEnv;
 
-   // close name list
-   *pszName = 0;
-
-   // get memory with updated env size
-// DPRINTF(( "estimated new size is: %u\n", ulEnvSize));
-   pszEnv = malloc( ulEnvSize);
-   if (!pszEnv)
-      {
-      rc = ERROR_NOT_ENOUGH_MEMORY;
-      break;
-      }
-   memset( pszEnv, 0x0, ulEnvSize);
-
-   // read env into memory block
-   pszName = pszEnvNameList;
-   pszVar = pszEnv;
-   while (*pszName)
-      {
-      // copy var
-      sprintf( pszVar, "%s=%s",  pszName, getenv( pszName));
-
-      // copy next var
-      pszVar = NEXTSTR( pszVar);
-      pszName = NEXTSTR( pszName);
-      }
-   *pszVar = 0;
-
-   // hand over result
-   *ppszNewEnv = pszEnv;
+      }  // fEnvAlreadySet == 0
 
    } while (FALSE);
 
@@ -771,6 +859,7 @@ do
 // cleanup on error
 if (rc)
    if (pszEnv) free( pszEnv);
+   if (pszPathVar) free( pszPathVar);
 if (pszEnvNameList) free( pszEnvNameList);
 // cleanup
 for (i = 0; i < (sizeof( apszVar) / sizeof( PSZ)); i++)
