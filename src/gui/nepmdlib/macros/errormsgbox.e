@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: errormsgbox.e,v 1.9 2002-09-07 13:19:44 cla Exp $
+* $Id: errormsgbox.e,v 1.10 2002-09-19 11:43:50 cla Exp $
 *
 * ===========================================================================
 *
@@ -47,13 +47,13 @@ You can test this function from the *EPM* commandline by
 executing:
 .sl
 - *NepmdErrorMsgBox*
-  [.IDPNL_EFUNC_NEPMDERRORMSGBOX_PARM_BOXMESSAGE message] 
+  [.IDPNL_EFUNC_NEPMDERRORMSGBOX_PARM_BOXMESSAGE message]
   - or
 - *ErrorMsgBox*
-  [.IDPNL_EFUNC_NEPMDERRORMSGBOX_PARM_BOXMESSAGE message] 
+  [.IDPNL_EFUNC_NEPMDERRORMSGBOX_PARM_BOXMESSAGE message]
 
 Executing this command will
-open up a message box with the title [=TITLE] and the 
+open up a message box with the title [=TITLE] and the
 specified message text.
 
 @@
@@ -65,7 +65,12 @@ specified message text.
 
 defc NepmdErrorMsgBox, ErrorMsgBox =
 
- rcx = NepmdErrorMsgBox( arg( 1), 'Netlabs EPM Distribution');
+ ErrorText = arg( 1);
+ if (ErrorText = '') then
+    ErrorText = 'This is an error message box!';
+ endif
+
+ rcx = NepmdErrorMsgBox( ErrorText, 'Netlabs EPM Distribution');
 
  return;
 

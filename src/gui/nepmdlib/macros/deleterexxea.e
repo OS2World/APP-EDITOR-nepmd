@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleterexxea.e,v 1.10 2002-09-07 13:19:43 cla Exp $
+* $Id: deleterexxea.e,v 1.11 2002-09-19 11:43:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -74,19 +74,24 @@ _*Example:*_
 
 defc NepmdDeleteRexxEa, DeleteRexxEa =
 
- /* error handling for first EA only */
- rc = NepmdWriteStringEa( arg( 1), 'REXX.METACONTROL', '');
+ Filename = arg( 1);
+ if (Filename = '') then
+    sayerror 'error: no filename specified.';
+    return;
+ endif
 
+ /* error handling for first EA only */
+ rc = NepmdWriteStringEa( Filename, 'REXX.METACONTROL', '');
  if (rc > 0) then
     sayerror 'REXX Eas not deleted, rc='rc;
     return;
  endif
 
  /* delete all others as well, discard result codes here */
- rcx = NepmdWriteStringEa( arg( 1), 'REXX.PROGRAMDATA', '');
- rcx = NepmdWriteStringEa( arg( 1), 'REXX.LITERALPOOL', '');
- rcx = NepmdWriteStringEa( arg( 1), 'REXX.TOKENSIMAGE', '');
- rcx = NepmdWriteStringEa( arg( 1), 'REXX.VARIABLEBUF', '');
+ rcx = NepmdWriteStringEa( Filename, 'REXX.PROGRAMDATA', '');
+ rcx = NepmdWriteStringEa( Filename, 'REXX.LITERALPOOL', '');
+ rcx = NepmdWriteStringEa( Filename, 'REXX.TOKENSIMAGE', '');
+ rcx = NepmdWriteStringEa( Filename, 'REXX.VARIABLEBUF', '');
 
  sayerror 'REXX Eas deleted';
 

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryfullname.e,v 1.11 2002-09-07 13:19:45 cla Exp $
+* $Id: queryfullname.e,v 1.12 2002-09-19 11:43:50 cla Exp $
 *
 * ===========================================================================
 *
@@ -87,6 +87,11 @@ _*Examples:*_
 defc NepmdQueryFullname, QueryFullname =
 
  Filename = arg( 1);
+ if (Filename = '') then
+    sayerror 'error: no filename specified.';
+    return;
+ endif
+
  Fullname = NepmdQueryFullname( Filename);
 
  parse value Fullname with 'ERROR:'rc;

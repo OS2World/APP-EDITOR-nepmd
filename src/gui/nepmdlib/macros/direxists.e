@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: direxists.e,v 1.5 2002-09-07 13:19:43 cla Exp $
+* $Id: direxists.e,v 1.6 2002-09-19 11:43:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -68,8 +68,12 @@ _*Example:*_
 defc NepmdDirExists, DirExists =
 
  Dirname = arg( 1);
- fResult = NepmdDirExists( Dirname);
+ if (Dirname = '') then
+    sayerror 'error: no filename specified.';
+    return;
+ endif
 
+ fResult = NepmdDirExists( Dirname);
  if (fResult) then
     StrResult = 'does';
  else

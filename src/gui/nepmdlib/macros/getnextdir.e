@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextdir.e,v 1.11 2002-09-07 13:19:44 cla Exp $
+* $Id: getnextdir.e,v 1.12 2002-09-19 11:43:50 cla Exp $
 *
 * ===========================================================================
 *
@@ -116,6 +116,7 @@ defc NepmdGetNextDir, GetNextDir =
  DirMask = arg( 1);
  if (DirMask = '') then
     sayerror 'error: no dir mask specified !';
+    return;
  endif
 
  DirMask = NepmdQueryFullname( arg( 1));
