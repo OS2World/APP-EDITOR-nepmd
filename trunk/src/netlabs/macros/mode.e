@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.27 2003-07-06 16:28:24 aschn Exp $
+* $Id: mode.e,v 1.28 2003-08-31 22:25:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -25,12 +25,12 @@ compile if not defined(NEPMD_SPECIAL_STATUSLINE)
    NEPMD_SPECIAL_STATUSLINE = 1
 compile endif
 compile if not defined(NEPMD_WANT_HIGHLIGHTING)
-   NEPMD_WANT_HIGHLIGHTING = 1
+   NEPMD_WANT_HIGHLIGHTING = 1  -- for testing
 compile endif
 compile if not defined(NEPMD_WANT_MODE_DETERMINATION)
-   NEPMD_WANT_MODE_DETERMINATION = 1
+   NEPMD_WANT_MODE_DETERMINATION = 1  -- for testing
 compile endif
-/* Testcase:
+/* Testcase (press Alt+= or Alt+0 on the next line):
    open %NEPMD_ROOTDIR%\netlabs\macros\*.e
 */
 
@@ -69,7 +69,10 @@ defproc NepmdGetMode
       -- set DefaultMode here to not have NepmdQueryDefaultMode go trough
       -- all ini files in the mode dirs
       CurMode = 'TEXT' -- general default mode
-      if not IsATempFile or IsAShellFile then
+      -- call NepmdQueryDefaultMode only
+      --    -  if filename doesn't start with a '.' or
+      --    -  if file is a command shell
+      if (not IsATempFile) or IsAShellFile then
 compile if NEPMD_WANT_MODE_DETERMINATION
          -- Get default mode
          if isadefproc('NepmdQueryDefaultMode') then
@@ -84,7 +87,7 @@ compile if NEPMD_WANT_MODE_DETERMINATION
             CurMode = DefaultMode
          endif
 compile else
-         CurMode = 'E'  -- Test
+         CurMode = 'E'  -- for testing
 compile endif
       endif  -- not IsATempFile
    endif
@@ -166,7 +169,7 @@ defproc NepmdResetMode
 ; of files in the ring. Especially selecting files from the 'ring_more'
 ; ListBox temporarily will not update the Statusline. It was
 ; only updated after the ListBox was closed.
-defc ResetMode, NepmdResetMode
+defc resetmode
    OldMode = arg(1)
    call NepmdResetMode(OldMode)
    return
@@ -251,7 +254,6 @@ defc mode
 
    return
 
-
 ; ---------------------------------------------------------------------------
 ; Processes all mode specific settings
 defproc NepmdProcessMode
@@ -295,12 +297,12 @@ compile endif
       keys E_keys
 compile if E_TABS <> 0
       if not TabsSetFromEa then
-         'tabs' E_TABS
+         .tabs = E_TABS
       endif
 compile endif
 compile if E_MARGINS <> 0
       if not MarginsSetFromEa then
-         'ma'   E_MARGINS
+         .margins = E_MARGINS
       endif
 compile endif
 
@@ -308,12 +310,12 @@ compile endif
       keys REXX_keys
 compile if REXX_TABS <> 0
       if not TabsSetFromEa then
-         'tabs' REXX_TABS
+         .tabs = REXX_TABS
       endif
 compile endif
 compile if REXX_MARGINS <> 0
       if not MarginsSetFromEa then
-         'ma'   REXX_MARGINS
+         .margins = REXX_MARGINS
       endif
 compile endif
 
@@ -321,12 +323,12 @@ compile endif
       keys C_keys
 compile if C_TABS <> 0
       if not TabsSetFromEa then
-         'tabs' C_TABS
+         .tabs = C_TABS
       endif
 compile endif
 compile if C_MARGINS <> 0
       if not MarginsSetFromEa then
-         'ma'   C_MARGINS
+         .margins = C_MARGINS
       endif
 compile endif
 
@@ -334,12 +336,12 @@ compile endif
       keys C_keys
 compile if C_TABS <> 0
       if not TabsSetFromEa then
-         'tabs' C_TABS
+         .tabs = C_TABS
       endif
 compile endif
 compile if C_MARGINS <> 0
       if not MarginsSetFromEa then
-         'ma'   C_MARGINS
+         .margins = C_MARGINS
       endif
 compile endif
 
@@ -347,12 +349,12 @@ compile endif
       keys Pas_keys
 compile if P_TABS <> 0
       if not TabsSetFromEa then
-         'tabs' P_TABS
+         .tabs = P_TABS
       endif
 compile endif
 compile if P_MARGINS <> 0
       if not MarginsSetFromEa then
-         'ma'   P_MARGINS
+         .margins = P_MARGINS
       endif
 compile endif
 
@@ -385,7 +387,6 @@ defproc NepmdSelectMode()
       stop;
    endif
    ModeList = ModeList '-DEFAULT-'
-
 
    -- determine default selection
    Selection = wordpos( SelectedMode, ModeList);
