@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: undo.e,v 1.2 2003-08-31 20:53:26 aschn Exp $
+* $Id: undo.e,v 1.3 2004-06-03 21:56:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -129,6 +129,9 @@ define
 
 
 def $undo_key =
+   'undo1'
+
+defc undo1 =
    universal current_undo_state
    lk = lastkey(1)
    if lk = $undo_key | lk = $redo_key then  -- last key was undo or redo
@@ -158,6 +161,9 @@ def $undo_key =
    return
 
 def $redo_key =
+   'redo1'
+
+defc redo1 =
    universal current_undo_state
    lk = lastkey(1)
    if lk = $undo_key | lk = $redo_key then  -- last key was undo or redo
