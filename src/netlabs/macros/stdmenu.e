@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.17 2003-08-31 19:46:42 aschn Exp $
+* $Id: stdmenu.e,v 1.18 2003-08-31 20:04:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -499,22 +499,30 @@ defproc maybe_show_menu
       call showmenu_activemenu()  -- show the updated EPM menu
    endif
 
+
 defproc showmenu_activemenu()
+   -- Better use the optional executed-as-default submenu id here,
+   -- to have that submenu item checked automatically.
+   -- Otherwise the 1st submenu item is executed, but MIA_CHECKED
+   -- is missing.
    universal activemenu
    showmenu activemenu  -- show the updated EPM menu
-   'postme cascade_menu 640'  -- NEPMD User Guide
-   'postme cascade_menu 650'  -- NEPMD Programming Guide
+   'postme cascade_menu 220 221'  -- File -> Open Folder
+   'postme cascade_menu 640 641'  -- Help -> NEPMD User Guide
+   'postme cascade_menu 650 651'  -- Help -> NEPMD Programming Guide
 compile if SUPPORT_USERS_GUIDE
-   'postme cascade_menu 620'
+   'postme cascade_menu 620 621'  -- Help -> View User's Guide
 compile endif
 compile if SUPPORT_TECHREF
-   'postme cascade_menu 630'
+   'postme cascade_menu 630 631'  -- Help -> View Technical Reference
 compile endif
+   -- CUSTEPM package
 compile if defined(CUSTEPM_DEFAULT_SCREEN)
    'postme cascade_menu' 3700 (CUSTEPM_DEFAULT_SCREEN + 3700)
 compile elseif defined(HAVE_CUSTEPM)
    'postme cascade_menu' 3700
 compile endif
+
 
 defproc build_menu_accelerators(activeaccel)
 compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
