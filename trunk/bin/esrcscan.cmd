@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.5 2002-08-27 12:24:29 cla Exp $
+* $Id: esrcscan.cmd,v 1.6 2002-08-28 13:59:30 cla Exp $
 *
 * ===========================================================================
 *
@@ -624,7 +624,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
  FunctionsFile = OutDir'\functions.txt';
  rcx = SysFileDelete( FunctionsFile);
 
- /* ********************** write function overview ********************** */
+ /* ***** write function overview, sorted by categories ***************** */
 
  /* prepare sort of cateogories */
  Category.      = '';
@@ -682,12 +682,15 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
  END;
  rcx = LINEOUT( FunctionsFile, '');
 
- /* ********************** write function pages ************************* */
+ /* ********************** write function sub pages ********************* */
+
 
 
  WorkList = SortWordsInString( DocComment._FunctionList);
  DO WHILE (WorkList \= '')
     PARSE VAR WorkList ThisFunction WorkList;
+
+    /* ---------------------- navigation panel ----------------------------- */
 
     IF (fVerbose) THEN
        SAY '- processing' ThisFunction;
@@ -702,6 +705,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
                                   '.su V30 breaks 1'CrLf||,
                                   '');
 
+    /* ---------------------- syntax panel --------------------------------- */
 
     /* add prototype to syntax section */
     ThisKey = 'PROTOTYPE';
@@ -746,6 +750,8 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
 
     rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'SYNTAX', '', 'Syntax');
 
+    /* ---------------------- parameters panel ----------------------------- */
+
     /* write parameter overview panel */
     ThisKey = 'PARM';
     IF (DocComment.ThisFunction.ThisKey._Namelist \= '') THEN
@@ -778,6 +784,8 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
        rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'PARM', '', 'Parameters');
     END;
 
+    /* ---------------------- per parameter panel -------------------------- */
+
     /* write one subsection per parameter */
     ThisKey = 'PARM';
     IF (DocComment.ThisFunction.ThisKey._Namelist \= '') THEN
@@ -791,16 +799,46 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
        END;
     END;
 
+    /* ---------------------- returns panel -------------------------------- */
 
     rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'RETURNS', '', 'Returns', '0 0 100 50');
+
+    /* ---------------------- optional examples panel ---------------------- */
 
     ThisKey = 'EXAMPLE';
     IF (DocComment.ThisFunction.ThisKey \= '') THEN
        rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'EXAMPLE', '', 'Example Code');
 
+
+    /* ---------------------- optional remakrs panel ----------------------- */
+
     ThisKey = 'REMARKS';
     IF (DocComment.ThisFunction.ThisKey \= '') THEN
        rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'REMARKS', '', 'Remarks');
+
+    /* ---------------------- related panel, where appropriate ------------- */
+
+    ThisKey      = 'CATEGORY';
+    ThisCategory = WORD( DocComment.ThisFunction.ThisKey._NameList, 1);
+    IF ((ThisCategory \= 'DIVERSE') & (WORDS( Category.ThisCategory) > 1)) THEN
+    DO
+       /* remove this function from linklist */
+       wPos = WORDPOS( ThisFunction, Category.ThisCategory);
+       LinkList = DELWORD( Category.ThisCategory, wPos, 1);
+
+       /* assemble new subpanel panel */
+       ThisKey = 'RELATED';
+       DocComment.ThisFunction.ThisKey = '*Related Functions*'CrLf||,
+                                         '.ul compact';
+       DO WHILE (LinkList \= '')
+          PARSE VAR LinkList ThisLink LinkList;
+          LinkId = 'IDPNL_EFUNC_'TRANSLATE( ThisLink);
+          DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''CrLf||,
+                                            '- [.'LinkId']';
+       END;
+       
+       rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'RELATED', '', 'Related functions', '40 0 60 100');
+    END;
 
  END;
 
