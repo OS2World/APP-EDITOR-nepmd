@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.6 2002-10-03 13:09:59 cla Exp $
+* $Id: load.e,v 1.7 2002-10-06 23:37:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -96,9 +96,11 @@ compile if NEPMD_RESTORE_POS_FROM_EA
    endif
 compile endif
 
--- activate syntax highlighting, ignore errors here
-NepmdActivateHighlight( 'ON', NepmdGetMode());
-
+   -- activate syntax highlighting, ignore errors here
+;   NepmdActivateHighlight( 'ON', NepmdGetMode());
+;   'mode DEFLOAD'
+   CurMode = NepmdInitMode()
+   call NepmdProcessMode(CurMode)
 
 -- this is a leftover ov the old code to activate syntax highlighting
 compile if INCLUDE_BMS_SUPPORT
