@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: xchgline.e,v 1.1 2002-10-06 23:28:13 aschn Exp $
+* $Id: xchgline.e,v 1.2 2004-06-29 20:36:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,160 +19,61 @@
 *
 ****************************************************************************/
 
-; Define some keys for line exchanging (vertical up/down)
-;                  and char exchanging (horizontal left right)
-;
-; Current defs:
-;    Sh+Alt+Up     move line up
-;    Sh+Alt+Down   move line down
-;    Sh+Alt+Left   move char left
-;    Sh+Alt+Right  move char right
-;
-; Todo:
-;    Make keys configurable
-
-; ---- From STDKEYS.E ----
-; defkeys edit_keys new clear
-;
-; def otherkeys =
-;    k = lastkey()
-;    call process_key(k)
-; ------------------------
-
-; See EPMSMP\TESTKEYS.E for defining keys with defc otherkeys and
-; 'togglecontrol 26 0'
-
-
-; Overwrite def otherkeys from STDKEYS.E here:
-def otherkeys
-
-   k = lastkey()
-   if length(k)=1 then
-      ch = 'chr('asc(k)')'
-   else
-      ch = "x'"rightstr(itoa(leftstr(k,1)\0,16),2,0) || rightstr(itoa(substr(k,2,1)\0,16),2,0)"'"
+defc MoveLineUp
+   getline line
+   deleteline
+   insertline line, max( .line - 1, 1)
+   up
+   if .line > 1 then
+      up
    endif
+   return
 
-   saved_modify = .modify
-   lk = lastkey(1)
-   if lk = k then
-      AlterModify = 0
+defc MoveLineDown
+   col = .col
+   getline line
+   deleteline
+   insertline line, .line + 1
+   down
+   .col = col
+   return
+
+defc MoveCharLeft
+   if not insert_state() then
+      -- switch to insert mode
+      insert_toggle
+      overwrite = 1
    else
-      AlterModify = 1
+      overwrite = 0
    endif
-   --sayerror '.modify = '.modify', AlterModify = 'AlterModify', lk = 'lk', k = 'k
+   getline line
+   char = substr(line,.col,1)
+   deletechar
+   executekey left
+   keyin char
+   executekey left
+   if overwrite then
+      insert_toggle
+   endif
+   return
 
-   if  ch = "x'1622'" and shifted() then
---    sayerror 'Shift+Alt+Up'
-      call movelineup()
-      if AlterModify = 0 then
-         .modify = saved_modify
-      else
-         .modify = saved_modify + 1
-      endif
-
-   elseif ch = "x'1822'" and shifted() then
---    sayerror 'Shift+Alt+Down'
-      call movelinedown()
-      if AlterModify = 0 then
-         .modify = saved_modify
-      else
-         .modify = saved_modify + 1
-      endif
-
-   elseif ch = "x'1522'" and shifted() then
---    sayerror 'Shift+Alt+Left'
-      call movecharleft()
-      if AlterModify = 0 then
-         .modify = saved_modify
-      else
-         .modify = saved_modify + 1
-      endif
-
-   elseif ch = "x'1722'" and shifted() then
---    sayerror 'Shift+Alt+Right'
-      call movecharright()
-      if AlterModify = 0 then
-         .modify = saved_modify
-      else
-         .modify = saved_modify + 1
-      endif
-
+defc MoveCharRight
+   if not insert_state() then
+      -- switch to insert mode
+      insert_toggle
+      overwrite = 1
    else
-      call process_key(k)
+      overwrite = 0
    endif
-
-defproc movelineup
-  getline line
-  if .line = .last then
-    deleteline
-    insertline line
-    up
-  elseif .line < 2 then
-    deleteline
-    insertline line
-    up
-  else
-    deleteline
-    up
-    insertline line
-    up
-  endif
-  return
-
-defproc movelinedown
-  col = .col
-  getline line
-  deleteline
-  if .line = .last then
-    call einsert_line() -- add an empty new line after current
-    insertline line
-    deleteline          -- delete new line
-    down                -- scroll to the buttom
-  else
-    down
-    insertline line
-    up
-  endif
-  .col = col
-  return
-
-defproc movecharleft
-  if not insert_state() then
-     -- switch to insert mode
-     insert_toggle
-     overwrite = 1
-  else
-     overwrite = 0
-  endif
-  getline line
-  char = substr(line,.col,1)
-  deletechar
-  executekey left
-  keyin char
-  executekey left
-  if overwrite then
-     insert_toggle
-  endif
-  return
-
-defproc movecharright
-  if not insert_state() then
-     -- switch to insert mode
-     insert_toggle
-     overwrite = 1
-  else
-     overwrite = 0
-  endif
-  getline line
-  char = substr(line,.col,1)
-  deletechar
-  executekey right
-  keyin char
-  executekey left
-  if overwrite then
-     insert_toggle
-  endif
-  return
+   getline line
+   char = substr(line,.col,1)
+   deletechar
+   executekey right
+   keyin char
+   executekey left
+   if overwrite then
+      insert_toggle
+   endif
+   return
 
 
