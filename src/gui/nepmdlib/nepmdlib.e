@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.2 2002-08-20 12:05:49 cla Exp $
+* $Id: nepmdlib.e,v 1.3 2002-08-20 12:34:04 cla Exp $
 *
 * ===========================================================================
 *
@@ -27,16 +27,21 @@
 /* ------------------------------------------------------------- */
 
 const
- DEBUG                  = 1;
+ DEBUG                   = 1;
 
- INI_APPNAME            = 'NEPMD';
- INI_KEY_PATH           = 'Path';
+ INI_APPNAME             = 'NEPMD';
+ INI_KEY_PATH            = 'Path';
 
  NEPMD_LIBRARY_BASENAME  = 'nepmdlib';
  NEPMD_SUBPATH_BINDLLDIR = 'netlabs\dll';
  ERRMSG_CANNOT_LOAD      = 'error: cannot load NEPMD library file!';
 
  EPMINFO_EDITCLIENT      = 5; /* avoid include of stdconst.e */
+
+
+ NEPMD_TEST_EANAME       = 'NEPMD._TestStringEa';
+ NEPMD_TEST_EAVALUE      = 'This is a test value for the NepmdWriteStringEa API !';
+
 
 /* ------------------------------------------------------------- */
 /*   generic routine for library file handling                   */
@@ -84,7 +89,10 @@ defmain 'NepmdVersion';
 /*   include functions                                           */
 /* ------------------------------------------------------------- */
 
+include 'deleterexxea.e'
+include 'deletestringea.e'
 include 'errormsgbox.e'
 include 'libinfo.e'
 include 'queryfullname.e'
+include 'writestringea.e'
 
