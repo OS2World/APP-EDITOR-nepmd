@@ -3,7 +3,7 @@ Name: Christian Langanke
 email: C.Langanke@Teamos2.de
 URL: http://nepmd.netlabs.org
 
-The Netlabs EPM Distribution Project launches it's website
+The Netlabs EPM Distribution Project launches its website
 
 The new project of netlabs.org, named the Netlabs EPM Distribution (NEPMD), hast just launched its new website at http://nepmd.netlabs.org
 
