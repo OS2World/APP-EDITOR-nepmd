@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.8 2004-02-29 17:12:02 aschn Exp $
+* $Id: groups.e,v 1.9 2004-06-03 23:15:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -159,21 +159,22 @@ defc savegroup =
    -- Write all FILEi and POSNi to EPM.INI
    do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       call NepmdPmPrintf( '.filename = '.filename)
-      call setprofile(app_hini, group_name, 'FILE'i, .filename)
-      call setprofile(app_hini, group_name, 'POSN'i, .line .col .cursorx .cursory)
+      call setprofile( app_hini, group_name, 'FILE'i, .filename)
+      call setprofile( app_hini, group_name, 'POSN'i, .line .col .cursorx .cursory)
       next_file
       getfileid curfid
       if curfid = firstfid then
          leave
       endif
    enddo  -- Loop through all files in ring
+   call setprofile( app_hini, group_name, 'ENTRIES', i)
    activatefile startfid
 
    -- Remove the rest
    if (tempstr <> '') & (tempstr > i) then
       do j = i + 1 to tempstr
-         call setprofile(app_hini, group_name, 'FILE'j, '')
-         call setprofile(app_hini, group_name, 'POSN'j, '')
+         call setprofile( app_hini, group_name, 'FILE'j, '')
+         call setprofile( app_hini, group_name, 'POSN'j, '')
       enddo
    endif
 
@@ -307,7 +308,7 @@ defc loadgroup =
       display -8
       sayerror 'Loading file' i 'of' howmany
       display 8
-      this_file = queryprofile(app_hini, group_name, 'FILE'i)
+      this_file = queryprofile( app_hini, group_name, 'FILE'i)
 compile if NEPMD_DEBUG_LOADGROUP and NEPMD_DEBUG
       call NepmdPmPrintf( 'LOADGROUP: file 'i': 'this_file)
       call NepmdPmPrintf( 'LOADGROUP:         FilesInRing = 'filesinring())
@@ -340,10 +341,10 @@ compile endif
 defc listgroups =
    universal app_hini
    groups = ''
-   applications = queryprofile(app_hini, '', '')
+   applications = queryprofile( app_hini, '', '')
    do while applications <> ''
       parse value applications with app \0 applications
-      group_entries =  queryprofile(app_hini, app, 'ENTRIES')
+      group_entries =  queryprofile( app_hini, app, 'ENTRIES')
       if group_entries <> '' then
          groups = groups app
       endif
@@ -353,10 +354,11 @@ defc listgroups =
 defc killgroup =
    universal app_hini
    parse arg group
-   group_entries =  queryprofile(app_hini, group, 'ENTRIES')
+   group_entries =  queryprofile( app_hini, group, 'ENTRIES')
    if group_entries = '' then  -- Make sure we don't delete something important!
       sayerror 'Not a group.'
       return
    endif
-   call setprofile(app_hini, group, '', '')  -- Delete the entire application
+   call setprofile( app_hini, group, '', '')  -- Delete the entire application
+
 
