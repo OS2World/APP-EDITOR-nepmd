@@ -5,13 +5,13 @@
 * Syntax: mkex target_dir
 *
 * Script for to create the NEPMD version of EPM.EX
-* 
+*
 * As a precaution EPMPATH is set to the macros directory only in order not
 * to use any of source files from other directories
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkex.cmd,v 1.1 2002-07-23 11:40:48 cla Exp $
+* $Id: mkex.cmd,v 1.2 2002-07-23 11:54:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,6 +26,7 @@
 *
 ****************************************************************************/
 
+ '@ECHO OFF';
  rcx = SETLOCAL();
 
  /* set include path for macro compiler */
