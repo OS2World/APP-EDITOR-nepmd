@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: project.in,v 1.10 2002-09-19 10:47:23 cla Exp $
+# $Id: project.in,v 1.11 2002-09-19 14:20:22 cla Exp $
 #
 # ===========================================================================
 #
@@ -126,6 +126,7 @@ NLSCOPY_FLAGFILE=$(CMPDIR)\nlscopy.txt
 
 WPIDEPLIST=\
  $(SRCCOPY_FLAGFILE) \
+ $(NLSCOPY_FLAGFILE) \
  $(CMPDIR)\base\netlabs\bin\* \
  $(CMPDIR)\base\netlabs\book\* \
  $(CMPDIR)\base\netlabs\ex\* \
