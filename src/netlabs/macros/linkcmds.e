@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.11 2005-03-05 21:15:16 aschn Exp $
+* $Id: linkcmds.e,v 1.12 2005-03-13 10:13:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -209,7 +209,7 @@ defc relink
 ; Doesn't use the /v option.
 ; Doesn't respect options from the commandline, like /v or /e <logfile>.
 defc et,etpm=
-   universal vTEMP_PATH
+;   universal vTEMP_PATH
    --universal vTEMP_FILENAME
 
    rest = strip( arg(1))
@@ -262,7 +262,8 @@ defc et,etpm=
       ExFile = DestDir'\'BaseName'.ex'
    endif
 
-   TempFile = vTEMP_PATH'ETPM'substr( ltoa( gethwnd(EPMINFO_EDITCLIENT), 16), 1, 4)'.TMP'
+;   TempFile = vTEMP_PATH'ETPM'substr( ltoa( gethwnd(EPMINFO_EDITCLIENT), 16), 1, 4)'.TMP'
+   TempFile = DestDir'\'BaseName'.log'
 
    Params = '/v 'InFile ExFile' /e 'TempFile
 
@@ -297,7 +298,7 @@ defc et,etpm=
       refresh
       sayerror COMP_COMPLETED__MSG
    endif
-   call erasetemp(TempFile) -- 4.11:  added to erase the temp file.
+;   call erasetemp(TempFile) -- 4.11:  added to erase the temp file.
 
 ; ---------------------------------------------------------------------------
 ; Load file containing error, called by etpm.
