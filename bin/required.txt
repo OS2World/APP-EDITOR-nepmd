@@ -1,2 +1,6 @@
-Execute "readme Requirements" to obtain further information about programs
-required for building the Netlabs EPM Distribution package.
+  Execute
+
+     readme Requirements
+
+  within the working root directory to obtain further information about
+  programs required for building the Netlabs EPM Distribution package.
