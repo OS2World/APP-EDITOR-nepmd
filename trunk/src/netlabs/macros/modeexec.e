@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.6 2005-03-13 10:15:11 aschn Exp $
+* $Id: modeexec.e,v 1.7 2005-03-14 22:36:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -28,10 +28,6 @@
 ;    'ModeExecute <mode> Set*' commands )
 ;
 ; 3. File settings (configurable via File properties menu, highest priority)
-if 0 = 1 then
-   sayerror 'moin'
-else
-endif
 ;
 ; The settings of 2. and 3. are saved in array vars. It is determined, if a
 ; setting has to be executed at defload or defselect using lists. After the
@@ -351,14 +347,14 @@ defc ModeExecute, ModeExec
    if wordpos( upcase(Cmd), upcase(SelectSettingsList)) then
       -- These settings don't stick with the current file.
       -- Execute them during afterload and at/or defselect.
-      'HookAdd select_'lowcase(Mode) Cmd Args
+      'HookChange select_'lowcase(Mode) Cmd Args
       -- Save a list of used defselect settings for every mode
       call AddAVar('usedsettings_'lowcase(Mode), Cmd)
    elseif wordpos( upcase(Cmd), upcase(LoadSettingsList)) then
       -- These settings stick with the current file and don't need additional
       -- handling at defselect.
       -- Execute them at defload only.
-      'HookAdd load_'lowcase(Mode) Cmd Args
+      'HookChange load_'lowcase(Mode) Cmd Args
    else
       sayerror 'ModeExecute: "'Cmd Args'" is an invalid setting.'
       return
@@ -380,6 +376,8 @@ defc ModeExecute, ModeExec
 ;    -  a modeexecuterefresh command, if executed by hand, after file is loaded.
 ; The command must have the name of the array var plus 'Set' prepended.
 defc RingRefreshSetting
+   universal StatusFieldFlags
+   universal TitleFieldFlags
    parse value arg(1) with Mode Cmd Args
    Mode = upcase(Mode)
    parse value lowcase(Cmd) with 'set' SettingName  -- Strip leading 'set'
@@ -404,6 +402,8 @@ defc RingRefreshSetting
       endif
    enddo
    'postme activatefile' startfid  -- postme required for some Cmds, e.g. SetHighlight
+   'postme RefreshInfoLine' StatusFieldFlags TitleFieldFlags  --refresh all
+   -- Little bug: InsertMode is not refreshed here.
    'postme display' 3
    return
 
@@ -651,7 +651,7 @@ defc SetTabs  -- defc tabs exist
       if loadstate | RefreshDefault | (ModeSettingsApplied <> 1) then
          .tabs = arg1
       else  -- User has executed this command
-         'tabs' arg1  -- set EPM.MARGINS
+         'tabs' arg1  -- set EPM.TABS
       endif
    else
       --call NepmdPmPrintf( 'Tabs not set: '.filename)
