@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.4 2004-06-03 23:36:50 aschn Exp $
+* $Id: alt_1.e,v 1.5 2004-06-29 20:55:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -116,11 +116,12 @@ const                             -- These are Alt-1.e -specific constants.
    C_INCLUDE    = 1            -- 1 means search <filename> along INCLUDE path
   compile endif
 
-define
-   QUOTED_DIR_STRING ='"'DIRECTORYOF_STRING'"'
+; Not used anymore
+;define
+;   QUOTED_DIR_STRING ='"'DIRECTORYOF_STRING'"'
 
 
-def a_1=
+defc a_1
    universal host_LT                    -- Used with LAMPDQ.E
 compile if HOST_SUPPORT='EMUL' or HOST_SUPPORT='SRPI'
    universal hostdrive
@@ -569,7 +570,7 @@ compile endif  -- HOST_SUPPORT
    StartCol = 0
    EndCol   = 0
                                                          -- todo: support spaces in filenames and pathes
-   SeparatorList = '"'||"'"||'(){}[]<>,;|+ '\9'#'
+   SeparatorList = '"'||"'"||'(){}[]<>,;|+ '\9'#='
    call find_token( StartCol, EndCol, SeparatorList, '')
 
    WordFound = (StartCol <> 0 & EndCol >= StartCol)
