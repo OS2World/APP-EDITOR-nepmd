@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.14 2002-06-11 10:24:47 cla Exp $
+.. $Id: makefile.txt,v 1.15 2002-06-11 15:41:22 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -75,7 +75,7 @@ the project working directory (root of the development tree).
 
 The following pseudotargets are available:
 .pl bold compact break=none tsize=20
-- nmake
+- nmake [[help]]
 = show this INF file (if outdated, this compiles the INF before). This calls the
   makefile within the *src\ipf* directory with the target *help*.
 .
@@ -92,18 +92,16 @@ The following pseudotargets are available:
 - nmake inst
 = like *nmake all*, but also starts the WPI file (**)
 - nmake remove
-= quickly deinstalls all packages of [=TITLE] without the GUI. This is intended for
-  testing purposes only !
+= quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIn* GUI. 
+  This is intended for testing purposes only !
 .
-  The quick deinstallation
+  [=NOTE]
 .ul compact
-  - removes all files, WPS objects and empty directories below the installation
-    directory for each package
-  - uses the package IDs from the *WarpIn* package script 
-    in *src\wis*, but without the revision numbers of the IDs. So deinstall will 
-    work, if you have modified the revision numbers between last install and 
-    deinstall, but not, if you have modified the vendor, application or package 
-    names.
+  - the revision numbers from the *WarpIn* script are ignored, but
+    the vendor name, package name and component name must match exactly
+  - all files and WPS objects are removed
+  - no *INI* entries or *CONFIG.SYS* entries are removed
+  - no dependencies are checked!
 .
 - nmake gui
 = build GUI components only
@@ -198,18 +196,20 @@ The following makefile pseudotargets are available for the makefile within the
 .. .............................................................................
 .an IDPNL_TARGETS_WIS
 .
-.at hi
-[=NOTE]
-.ul compact
-- This makefile has to be called last, as it it relies on the files created and 
-  copied by the other makefiles from within the *src* directory tree to the
-  temporary *compile* and *debug* or *release* subdirectories.
-  In order to make sure that everyhing is processed in the correct order, process
-  the main makefile by executing
+.at fc=red
+This makefile cannot be called directly, instead it can only be processed by calling
+the main makefile by executing
 .sl compact
-  -  nmake all
-.el
- in the project working root directory instead.
+-  *nmake all*
+
+in the project working root directory instead.
+.
+This ensures that all other makefiles from within the *src* directory are called
+before and with that all required files are available for building the WPI package.
+
+Nevertheless the pseudotargets provided by *[=.IDPNL_TARGETS_WIS]* are described here,
+for testing purposes you may still call the makefile directly by specifying the symbol
+*CALLED=1*.
 .at
 
 The following makefile pseudotargets are available for the makefile within the
@@ -223,6 +223,11 @@ The following makefile pseudotargets are available for the makefile within the
 .
 - nmake inst
 = like *nmake all*, but also starts the WPI file (**)
+- nmake remove
+= quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIn* GUI. 
+  This is intended for testing purposes only !
+.
+  See pseudotarget *remove* of the [.IDPNL_TARGETS_MAIN] for further details.
 .
 - nmake prepare
 = only downloads EPMBBS zip files from leo and unpacks (**)
