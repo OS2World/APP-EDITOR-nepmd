@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddereload.c,v 1.1 2002-06-03 22:27:05 cla Exp $
+* $Id: ddereload.c,v 1.2 2002-06-04 22:38:52 cla Exp $
 *
 * ===========================================================================
 *
@@ -144,8 +144,8 @@ return fResult;
 // ---------------------------------------------------------------------
 // in: <filename>|<curpos>
 
-BOOL _extractFileDescription( PSZ pszFileList, PSZ pszBufFilename, ULONG ulBuflenFilename,
-                              PSZ pszBufCurPos, ULONG ulBuflenCurPos)
+static BOOL _extractFileDescription( PSZ pszFileList, PSZ pszBufFilename, ULONG ulBuflenFilename,
+                                     PSZ pszBufCurPos, ULONG ulBuflenCurPos)
 {
          BOOL           fResult = FALSE;
          PSZ            pszCurPos;
