@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.9 2002-09-16 16:28:52 aschn Exp $
+# $Id: makefile,v 1.10 2002-10-17 21:26:58 cla Exp $
 #
 # ===========================================================================
 #
@@ -60,7 +60,8 @@ $(CMPEXDIR)\help.ex\
 $(CMPEXDIR)\maketags.ex\
 $(CMPEXDIR)\put.ex\
 $(CMPEXDIR)\tags.ex\
-$(CMPEXDIR)\treeit.ex
+$(CMPEXDIR)\treeit.ex\
+$(CMPEXDIR)\autolink.ex
 
 
 # --- list for toolbar modules
