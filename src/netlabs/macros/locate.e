@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.3 2002-10-17 16:48:04 aschn Exp $
+* $Id: locate.e,v 1.4 2002-10-17 17:09:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -288,7 +288,9 @@ defc globalfind, gfind, globallocate, glocate, gl
 ; Changed:
 ;    Toggles the search direction (options +F or -R) without any
 ;    following locate action.
-def c_minus =
+def c_minus = 'ToggleSearchDirection'
+
+defc ToggleSearchDirection
    getsearch oldsearch
    -- get delimiter
    parse value oldsearch with . c_or_l search
