@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: afterload.e,v 1.4 2004-02-29 17:23:23 aschn Exp $
+* $Id: afterload.e,v 1.5 2004-03-19 15:05:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -76,6 +76,9 @@ defc AfterLoad
    universal CurEditCmd
    universal firstloadedfid
    universal filestoloadmax  -- set in NepmdLoadFile, only used for 'xcom e'.
+compile if EPM_POINTER = 'SWITCH'
+   universal vEPM_POINTER
+compile else
 
 compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
    call NepmdPmPrintf( 'AFTERLOAD: '.filename', CurEditCmd = 'CurEditCmd', filestoloadmax = 'filestoloadmax)
@@ -139,9 +142,9 @@ compile endif
 ;                          correct pointer after a new edit window was opened
 ;     defined in defc initconfig, STDCTRL.E
 compile if EPM_POINTER = 'SWITCH'
-   mouse_setpointer vEPM_POINTER
+   'postme setmousepointer 'vEPM_POINTER
 compile else
-   mouse_setpointer EPM_POINTER
+   'postme setmousepointer 'EPM_POINTER
 compile endif
 
 ; --- Reset universal vars, set by edit and NepmdLoadFile -------------------
@@ -150,6 +153,7 @@ compile endif
    return
 
 ; Todo: move
+; Not used anymore by afterload
 defc activatefile
    if arg(1) <> '' then
       fid = arg(1)
