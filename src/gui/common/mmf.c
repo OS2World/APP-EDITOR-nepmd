@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.c,v 1.7 2002-10-09 13:29:27 cla Exp $
+* $Id: mmf.c,v 1.8 2002-10-09 15:13:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,11 +40,18 @@ todo: encapsulate init
 
 // --- defines for detailed debug messages
 #define DEBUG_DUMPHANDLERACTIONS 0
+#define DEBUG_DUMPALLOCACTIONS   0
 
 #if DEBUG_DUMPHANDLERACTIONS
 #define DPRINTF_HANDLERACTION(p)  DPRINTF(p)
 #else
 #define DPRINTF_HANDLERACTION(p)
+#endif
+
+#if DEBUG_DUMPALLOCACTIONS
+#define DPRINTF_ALLOCACTION(p)  DPRINTF(p)
+#else
+#define DPRINTF_ALLOCACTION(p)
 #endif
 
 
@@ -129,7 +136,7 @@ static ULONG APIENTRY _pageFaultHandler( PEXCEPTIONREPORTRECORD p1,
                                          PEXCEPTIONREGISTRATIONRECORD p2,
                                          PCONTEXTRECORD p3, PVOID  pv)
 {
-DPRINTF_HANDLERACTION(( "MMF: HANDLER: called\n"));
+DPRINTF_HANDLERACTION(( "MMF: HANDLER: called on address 0x%08x\n", EXCEPTION_ADDR));
 
 if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
     ((EXCEPTION_TYPE == XCPT_WRITE_ACCESS) ||
@@ -432,7 +439,7 @@ do
    rc = DosAllocMem( &pvData, ulMaxSize, PAG_READ | PAG_WRITE);
    if (rc != NO_ERROR)
       break;
-// DPRINTF(( "MMF: ALLOCATE 0x%08p (0x%08p)\n", pvData, ulMaxSize));
+   DPRINTF_ALLOCACTION(( "MMF: ALLOCATE 0x%08p (0x%08p)\n", pvData, ulMaxSize));
 
    // setup handle data
    pmmfe->ulFlags       = ulOpenFlags | MMF_USEDENTRY;
@@ -491,7 +498,7 @@ do
    if (pmmfe->pvData)
       {
       rc = DosFreeMem( pmmfe->pvData);
-//    DPRINTF(( "MMF: FREE 0x%08p (0x%08p) rc=%u\n", pmmfe->pvData,  pmmfe->ulSize, rc));
+      DPRINTF_ALLOCACTION(( "MMF: FREE 0x%08p (0x%08p) rc=%u\n", pmmfe->pvData,  pmmfe->ulSize, rc));
       }
    memset( pmmfe, 0, sizeof( MMFENTRY));
 
