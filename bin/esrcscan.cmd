@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.15 2002-10-03 19:10:27 cla Exp $
+* $Id: esrcscan.cmd,v 1.16 2004-07-03 12:20:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -691,7 +691,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
  WorkList = Category._List;
  ThisCategory = 'DIVERSE';
  IF (Category.ThisCategory \= '') THEN
-    WorkList = WorkList 'DIVERSE'; 
+    WorkList = WorkList 'DIVERSE';
 
  /* build up lists for each category */
  DO WHILE (WorkList \= '')
@@ -750,6 +750,11 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
        /* scan prototype and insert links */
        Prototype = DocComment.ThisFunction.ThisKey;
        PARSE VAR Prototype ResultPart'='FunctionPart;
+       IF FunctionPart = '' THEN
+       DO
+          ResultPart = ''
+          FunctionPart = Prototype
+       END
        PARSE VAR FunctionPart FunctionName'('FunctionParms')';
 
        /* insert link for function result */
@@ -770,7 +775,10 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
           NewFunctionParms = SUBSTR( NewFunctionParms, 2);
 
        /* reassemble prototype */
-       Prototype = ResultPart '='FunctionName'('NewFunctionParms');';
+       IF ResultPart = '' THEN
+          Prototype = FunctionName'('NewFunctionParms');';
+       ELSE
+          Prototype = ResultPart '='FunctionName'('NewFunctionParms');';
 
 
        /* add result to syntax section */
@@ -874,7 +882,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
                                             '- [.'LinkId']';
        END;
        DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''CrLf;
-       
+
        rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'RELATED', '', 'Related functions', '40 0 60 100');
     END;
 
