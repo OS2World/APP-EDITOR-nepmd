@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: afterload.e,v 1.8 2004-07-02 10:46:43 aschn Exp $
+* $Id: afterload.e,v 1.9 2004-07-12 19:40:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,19 +22,21 @@
 ; This file is included after LOAD.E and MYLOAD.E.
 
 defload
-   universal filestoload       -- amount of files from the last edit cmd
+;;   universal filestoload       -- amount of files from the last edit cmd
    universal firstloadedfid    -- first loaded file from the last edit cmd
    universal defmainprocessed  -- the first defmain sets this to 1
    universal defloadprocessed  -- the first defload sets this to 1
    universal enableafterload   -- set by defload, reset by afterloadcheck
    universal fileslastloaded   -- amount of files since last AfterLoadActivate
+
 ;  Call AfterLoad -----------------------------------------------------------
-   -- filestoload is set by edit -> NepmdLoadFile
-   if filestoload = '' then
-      -- This happens, if a new empty file is loaded with 'xcom e'. Then no
-      -- 'edit' cmd is called.
-      filestoload = 0
-   endif
+
+;;   -- filestoload is set by edit -> NepmdLoadFile
+;;   if filestoload = '' then
+;;      -- This happens, if a new empty file is loaded with 'xcom e'. Then no
+;;      -- 'edit' cmd is called.
+;;      filestoload = 0
+;;   endif
 
    if firstloadedfid = '' & .visible then
       -- This happens, if a file is loaded with 'xcom e'. Then no 'edit' cmd
@@ -54,17 +56,10 @@ defload
       call WriteFileNumber()
    endif
 */
-   filestoload = filestoload - 1
-   -- Call NepmdAfterLoad only if this loaded file is the last or the only
-   -- file to load and if DEFMAIN is already processed. (Sometimes DEFLOAD
-   -- is triggered before all DEFMAIN stuff is processed. DEFMAIN itself
-   -- calls NepmdAfterLoad if not already called by DEFLOAD.)
-   if (filestoload < 1) then
-      -- all DEFLOADs of the current edit cmd are processed
-      defloadprocessed = 1  -- used in defmain
-   endif
-   dprintf( 'AFTERLOAD', 'DEFLOAD: filestoload = 'filestoload', firstloaded = 'firstloadedfid' = 'firstloadedfid.filename)
-   if (filestoload < 1) & (defmainprocessed = 1) then
+;;   filestoload = filestoload - 1
+;;   dprintf( 'AFTERLOAD', 'DEFLOAD: filestoload = 'filestoload', firstloaded = 'firstloadedfid' = 'firstloadedfid.filename)
+;;   if (filestoload < 1) & (defmainprocessed = 1) then
+   if (defmainprocessed = 1) then
       dprintf( 'AFTERLOAD', 'DEFLOAD: Calling AfterLoadCheck...')
       enableafterload = 1
       'postme AfterLoadCheck'  -- delayed, to not interfere with file loading
@@ -104,11 +99,19 @@ defc AfterLoad
    universal defloadactive    -- set by defload, reset by AfterLoad
    universal lastselectedfid  -- set by AfterLoad and defselect
    universal fileslastloaded  -- since last AfterLoadActivate
+   universal defloadprocessed
 compile if EPM_POINTER = 'SWITCH'
    universal vEPM_POINTER
 compile endif
 
    dprintf( 'AFTERLOAD', .filename', CurEditCmd = 'CurEditCmd', filestoloadmax = 'filestoloadmax)
+
+   -- Call NepmdAfterLoad only if this loaded file is the last or the only
+   -- file to load and if DEFMAIN is already processed. (Sometimes DEFLOAD
+   -- is triggered before all DEFMAIN stuff is processed. DEFMAIN itself
+   -- calls NepmdAfterLoad if not already called by DEFLOAD.)
+   -- all DEFLOADs of the current edit cmd are processed
+   defloadprocessed = 1  -- used in defmain
 
 ;  Write number for all files in the ring to an array var -------------------
    -- see FILELIST.E
