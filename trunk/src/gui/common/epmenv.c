@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.7 2002-08-24 18:29:33 cla Exp $
+* $Id: epmenv.c,v 1.8 2002-09-02 08:36:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -588,9 +588,9 @@ do
 
    // if extended environment is already set, don't touch
    pszValue = getenv( ENV_NEPMD_USERENVFILE);
-   if (!pszValue)
+   if ((pszValue) && (*pszValue))
       pszValue = getenv( ENV_NEPMD_MAINENVFILE);
-   if (pszValue)
+   if ((pszValue) && (*pszValue))
       {
       DPRINTF(( "EPMENV: skip environment extension, already set with: %s\n", pszValue));
       break;
