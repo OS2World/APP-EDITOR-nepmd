@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.19 2002-09-23 15:57:41 cla Exp $
+* $Id: test.c,v 1.20 2002-09-24 16:49:20 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,6 +36,7 @@
 #include "instval.h"
 #include "libreg.h"
 #include "hilite.h"
+#include "mmf.h"
 
 // -----------------------------------------------------------------------------
 
@@ -273,6 +274,77 @@ do
          printf( "hilite file for mode %s is: %s\n", pszEpmMode, szHiliteFile);
 
       } // testcase QUERYHILIGHTFILE
+
+   // =========================================================================
+   // testcase for creating a memory mapped file
+   // =========================================================================
+
+   if (!(strcmp( pszTestcase, "MMF")))
+
+      {
+               CHAR           szFile[ _MAX_PATH];
+               PSZ            pszContents = NULL;
+               ULONG          ulValue;
+
+      // allocate test file
+      sprintf( szFile, "%s\\mmftest.txt", getenv( "TMP"));
+      rc = MmfAlloc( (PVOID*) &pszContents, szFile, MMF_ACCESS_READWRITE, 16384);
+      if (rc != NO_ERROR)
+         {
+         printf( " error: cannot allocate memory mapped file %s, rc=%u\n", szFile, rc);
+         break;
+         }
+
+      // access memory (this normally would generate an access violation)
+      strcpy( pszContents, "here we are\n");
+
+      // set the size
+      rc = MmfSetSize( pszContents, strlen( pszContents));
+      if (rc != NO_ERROR)
+         {
+         printf( " error: cannot set size of: %s\n", szFile);
+         break;
+         }
+      // update the file
+      rc = MmfUpdate( pszContents);
+      if (rc != NO_ERROR)
+         {
+         printf( " error: cannot update: %s\n", szFile);
+         break;
+         }
+
+      // free memory and file again
+      rc = MmfFree( pszContents);
+      if (rc != NO_ERROR)
+         {
+         printf( " error: cannot free memory for: %s\n", szFile);
+         break;
+         }
+
+      // open up config.sys
+      DosQuerySysInfo( QSV_BOOT_DRIVE, QSV_BOOT_DRIVE, &ulValue,  sizeof( ulValue));
+      sprintf( szFile, "%c:\\config.sys", (CHAR) ulValue + 'A' - 1);
+      rc = MmfAlloc( (PVOID*) &pszContents, szFile, MMF_ACCESS_READONLY, 1024*1024);
+      if (rc != NO_ERROR)
+         {
+         printf( " error: cannot allocate memory mapped file %s, rc=%u\n", szFile, rc);
+         break;
+         }
+      printf( "contents of %s\n"
+              "-------------------------------------------\n"
+              "%s\n"
+              "-------------------------------------------\n",
+              szFile, pszContents);
+
+      // free memory and file again
+      rc = MmfFree( pszContents);
+      if (rc != NO_ERROR)
+         {
+         printf( " error: cannot free memory for: %s\n", szFile);
+         break;
+         }
+
+      } // testcase MMF
 
 
    } while (FALSE);
