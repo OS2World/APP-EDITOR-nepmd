@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm_ea.e,v 1.3 2002-08-09 19:34:21 aschn Exp $
+* $Id: epm_ea.e,v 1.4 2002-09-01 14:26:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -205,34 +205,12 @@ defc type =
 
 ; Dependencies:  find_ea(), delete_ea(), add_ea
 defc subject =
-compile if EPATH = 'LAMPATH'
-   universal inboxpath
-   parse value .userstring with '(' spid ')'
-   if spid='' then
-compile endif -- EPATH = 'LAMPATH'
       subj = ''
-compile if EPATH = 'LAMPATH'
-   else
-      subj = find_subj()
-   endif
-compile endif -- EPATH = 'LAMPATH'
    found = find_ea('.SUBJECT', ea_seg, ea_ofs, ea_ptr1, ea_ptr2, ea_len, ea_entrylen, ea_valuelen)
    if arg(1)='' then
       max_len = MAXCOL - length(SUBJECT_IS__MSG) - length(CHANGE_QUERY__MSG) - 5
       if not found | ea_valuelen=0 then
-compile if EPATH = 'LAMPATH'
-         if subj='' | upcase(subj)='NO SUBJECT' then
-compile endif -- EPATH = 'LAMPATH'
-            answer = winmessagebox(SUBJ_TITLE__MSG, NO_SUBJECT__MSG, 16388) -- YESNO + MOVEABLE
-compile if EPATH = 'LAMPATH'
-         else
-            newsubj = subj
-            if length(subj)>max_len then
-               newsubj = leftstr(subj, max_len-3)'...'
-            endif
-            answer = winmessagebox(SUBJ_TITLE__MSG, SUBJECT_IS__MSG\13 newsubj\13\13||CHANGE_QUERY__MSG, 16388) -- YESNO + MOVEABLE
-         endif
-compile endif -- EPATH = 'LAMPATH'
+         answer = winmessagebox(SUBJ_TITLE__MSG, NO_SUBJECT__MSG, 16388) -- YESNO + MOVEABLE
       elseif peek(ea_seg, ea_ptr2, 2)=EAT_ASCII then
          subj = peek(ea_seg, ea_ptr2+4, min(ltoa(peek(ea_seg, ea_ptr2+2, 2)\0\0, 10), MAXCOL))
          newsubj = subj
@@ -258,64 +236,5 @@ compile endif -- EPATH = 'LAMPATH'
       if newsubj & (button=\1) then
          if found then call delete_ea('.SUBJECT'); endif
          'add_ea .SUBJECT' newsubj
-compile if EPATH = 'LAMPATH'
-         if spid<>'' then
-            if not .modify then 'save /q'; endif  -- If file not modified, save new EA, otherwise, let user save it.
-            i = lastpos('\',spid)
-            if not i then                -- Unexpected error
-               sayerror 'Bad spoolid.'
-               return
-            endif
-            getfileid startid
-            path = upcase(leftstr(spid,i-1))
-            if path=inboxpath then
-               indxname = path'\inbox.ndx'
-            else
-               indxname = path'.ndx'
-            endif
-            display -2
-            success = lock_index(indxname)
-            display 2
-            if not success then
-               sayerror 'Failed to lock index file.'
-               return
-            endif
-            if rc=sayerror('New file') or rc=sayerror('Lines truncated') or (not rc & not .last) then
-               call free_index()
-               return
-            endif
-            getfileid fid
-            if rc then
-               if startid<>fid then call free_index(); endif
-               return
-            endif
-            getsearch oldsearch
-            call psave_mark(savemark)
-            0
-            call pset_mark(1, .last, 28, 44, 'BLOCK', fid)
-            parse value substr(spid,i+1) with filename '.' filetype
-            display -2
-            'xcom l /'leftstr(filename,8) leftstr(filetype,8)'/cm'
-            lrc = rc
-            display 2
-            call prestore_mark(savemark)
-            setsearch oldsearch
-            retval = ''
-            if not lrc then
-               getline line
-               subjstart = pos('', line, 84)
-               subjend = pos('', line, subjstart+1)
-               if subjstart & subjend then
-                  line = insertstr(newsubj, delstr(line, subjstart+1, subjend-subjstart-1), subjstart)
-                  replaceline line, .line
-                  call fn2spoolid(startid.filename, spoolid)
-                  call LAM_SPOOL_CMD(5505, spoolid, line)   -- x1581; LAM VIEWED
-                  sayerror 'Subject updated in index file.'
-               endif
-            endif
-            call free_index()
-            activatefile startid
-         endif  -- spid<>''
-compile endif -- EPATH = 'LAMPATH'
       endif  -- newsubj
    endif  -- answer = 'YES'
