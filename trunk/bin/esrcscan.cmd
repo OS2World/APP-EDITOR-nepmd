@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.7 2002-08-28 21:05:33 cla Exp $
+* $Id: esrcscan.cmd,v 1.8 2002-08-29 10:01:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -836,6 +836,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
           DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''CrLf||,
                                             '- [.'LinkId']';
        END;
+       DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''CrLf;
        
        rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'RELATED', '', 'Related functions', '40 0 60 100');
     END;
