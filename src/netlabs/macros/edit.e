@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.17 2004-06-03 23:07:18 aschn Exp $
+* $Id: edit.e,v 1.18 2004-07-01 11:31:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -69,7 +69,7 @@ defproc NepmdLoadFile( Spec, Options)
       endif
 
       --sayerror 'Spec = 'Spec', Filename = 'Filename
-      --call NepmdPmPrintf( 'edit -> NepmdLoadFile: Spec = 'Spec', Filename = 'Filename)
+      dprintf( 'EDIT', 'NepmdLoadFile: Spec = 'Spec', Filename = 'Filename)
 
       -- Remove REXX EAs if extension is found in RexxEaExtensions.
       -- Use the extension here instead of the mode to avoid determining the
@@ -172,7 +172,14 @@ compile endif
 
    getfileid startfid  -- save fid of topmost file before current edit cmd
    call NepmdResetHiliteModeList()
-   CurEditCmd = 'EDIT'  -- initialize CurEditCmd for restore pos
+   -- Set current edit cmd to let other commands differ between several ways
+   -- of file loading.
+   -- Other commands, that execute 'Edit', can set this universal var before
+   -- and then it will not be overwritten by 'Edit'. Afterload will reset it.
+   -- This is currently used for RestorePos and RingWriteFilePosition.
+   if CurEditCmd = '' then
+      CurEditCmd = 'EDIT'
+   endif
 
    args = strip(arg(1))
 
@@ -352,7 +359,7 @@ compile endif
       messageNwait(MULTIPLE_ERRORS__MSG)
    endif
 
-   --call NepmdPmPrintf( 'edit: first_file_loaded = ['first_file_loaded'], ['first_file_loaded.filename']')
+   dprintf( 'EDIT', 'first_file_loaded = ['first_file_loaded'], ['first_file_loaded.filename']')
    -- If 1 or more files are loaded by the current edit cmd (or if loadfile has returned rc = 0):
    if first_file_loaded <> '' then
 
@@ -571,7 +578,8 @@ defc OpenBinDlg
    cmd      = 'be'
    filemask = '*.exe;*.dll'
    title    = 'Select a binary file'
-   "o 'filedlg "cmd" "filemask" "title"'"
+   title    = '"'title'"'  -- filedlg exspects title in "..."
+   "o 'filedlg "title" "cmd" "filemask"'"
 
 ; ---------------------------------------------------------------------------
 ; Finds EPM macro files <basename>.e in Dir of arg(1) and EPMMACROPATH.
