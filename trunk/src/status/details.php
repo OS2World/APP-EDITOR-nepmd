@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: details.php,v 1.5 2002-07-19 14:07:16 cla Exp $
+* $Id: details.php,v 1.6 2002-07-19 15:04:22 cla Exp $
 *
 * ===========================================================================
 *
@@ -46,9 +46,9 @@ if ($file != "")
 
    echo "<table width=90% border=0 cellpadding=1 cellspacing=1>";
    echo "<tr>";
-   echo "<td bgcolor=#dddddd>";
+   echo "<td bgcolor=#dddddd width=100%>";
    echo $title;
-   echo "</td><td bgcolor=#dddddd width=50>";
+   echo "</td><td align=right bgcolor=#dddddd>";
    echo "<a href=\"edit.php?file=".$file."\"><img src=\"edit.gif\" border=0></a>";
    echo "</td>";
    echo "</tr>";

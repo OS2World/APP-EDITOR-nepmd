@@ -1,9 +1,9 @@
-CATEGORY: bug
-TITLE: EA's > 32 k
+CATEGORY: Bug
+TITLE: EA's > 32 Kb
 PRIO: 1
 STATUS: coding
 FILES: saveload.e slnohost.e e3emul.e
-UPDATED: $Id: bug001,v 1.1 2002-07-17 15:56:13 cla Exp $
+UPDATED: $Id: bug001,v 1.2 2002-07-19 15:04:23 cla Exp $
 
 Loading a file with EA's > 32 k kills EPM. Since this is almost fixed with FP12, 
 it still happens sometimes, but everytime a beep is generated
