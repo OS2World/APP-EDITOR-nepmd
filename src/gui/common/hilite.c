@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.4 2002-09-23 19:28:40 cla Exp $
+* $Id: hilite.c,v 1.5 2002-09-24 16:54:26 cla Exp $
 *
 * ===========================================================================
 *
@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
+#include <search.h>
 
 #include "macros.h"
 #include "nepmd.h"
@@ -57,23 +59,36 @@ typedef struct _VALUEARRAY
 
 // -----------------------------------------------------------------------------
 
-static APIRET _openInitFile( PHINIT phinit, PSZ pszSearchPathName, PSZ pszSearchMask, PSZ pszEpmMode)
+static APIRET _searchFile( PSZ pszSearchPathName, PSZ pszBuffer, ULONG ulBuflen, PSZ pszSearchMask, ...)
 {
          APIRET         rc = NO_ERROR;
          CHAR           szSourceName[ _MAX_PATH];
+         va_list        arg_ptr;
+
+va_start (arg_ptr, pszSearchMask);
+vsprintf( szSourceName, pszSearchMask, arg_ptr);
+rc = DosSearchPath( SEARCH_IGNORENETERRS  |
+                       SEARCH_ENVIRONMENT |
+                       SEARCH_CUR_DIRECTORY,
+                   pszSearchPathName,
+                   szSourceName,
+                   pszBuffer,
+                   ulBuflen);
+return rc;
+
+}
+
+// -----------------------------------------------------------------------------
+
+static APIRET _openInitFile( PHINIT phinit, PSZ pszSearchPathName, PSZ pszSearchMask, PSZ pszEpmMode)
+{
+         APIRET         rc = NO_ERROR;
          CHAR           szFile[ _MAX_PATH];
 
 do
    {
-   // read defaults file first - this must exist and includ emandantory values
-   sprintf( szSourceName, pszSearchMask, pszEpmMode);
-   rc = DosSearchPath( SEARCH_IGNORENETERRS  |
-                          SEARCH_ENVIRONMENT |
-                          SEARCH_CUR_DIRECTORY,
-                      pszSearchPathName,
-                      szSourceName,
-                      szFile,
-                      sizeof( szFile));
+   // search init filefile
+   rc = _searchFile(  pszSearchPathName, szFile, sizeof( szFile), pszSearchMask,  pszEpmMode);
    if (rc != NO_ERROR)
       break;
 
@@ -129,6 +144,127 @@ static APIRET _queryInitValueSize( HCONFIG hconfig, PSZ pszSection, PSZ pszKey)
 
 InitQueryProfileSize( hconfig, pszSection, pszKey, &ulDataLen);
 return ulDataLen;
+}
+
+// -----------------------------------------------------------------------------
+
+int _compareFilename( const void *pszKeyElement, const void *pszEntry)
+{
+pszKeyElement = (PVOID) Filespec( (PSZ) pszKeyElement, FILESPEC_NAME);
+pszEntry      = (PVOID) Filespec( (PSZ) pszEntry, FILESPEC_NAME);
+return stricmp( pszKeyElement, pszEntry);
+}
+
+static APIRET _getDefFileList( PSZ pszEpmMode, PSZ *ppszFileList, PULONG pulFileCount, PULONG pulTotalSize)
+{
+
+         APIRET         rc = NO_ERROR;
+         PSZ            pszTmp;
+
+         PSZ            pszFileList = NULL;
+         ULONG          ulFileCount = 0;
+         ULONG          ulTotalSize = 0;
+
+         PSZ            pszKeywordPath = NULL;
+         PSZ            pszKeywordDir;
+
+         CHAR           szSearchMask[ _MAX_PATH];
+         CHAR           szFile[ _MAX_PATH];
+         HDIR           hdir;
+         PSZ            pszEntry;
+
+do
+   {
+   // check parm
+   if ((!pszEpmMode)   ||
+       (!*pszEpmMode)  ||
+       (!ppszFileList) ||
+       (!pulFileCount) ||
+       (!pulTotalSize))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // create a strdup of the path, so that we can tokenize it
+   pszKeywordPath = getenv( "EPMKEYWORDPATH"); 
+   if (!pszKeywordPath)
+      {
+      rc = ERROR_ENVVAR_NOT_FOUND;
+      break;
+      }
+   pszKeywordPath = strdup( pszKeywordPath);
+   if (!pszKeywordPath)
+      {
+      rc = ERROR_NOT_ENOUGH_MEMORY;
+      break;
+      }
+
+   // go through all keyword directories
+   pszKeywordDir = strtok( pszKeywordPath, ";");
+   while (pszKeywordDir)
+      {
+      // seatch all hilite files in that directory
+      sprintf( szSearchMask, "%s\\%s\\*.hil", pszKeywordDir, pszEpmMode);
+
+      // store a filenames
+      hdir = HDIR_CREATE;
+   
+      while (rc == NO_ERROR)
+         {
+         // search it 
+         rc = GetNextFile( szSearchMask, &hdir,
+                           szFile, sizeof( szFile));
+         if (rc != NO_ERROR)
+            break;
+
+         // check if file is already in
+         pszEntry = lfind( szFile, pszFileList, (PUINT) &ulFileCount, _MAX_PATH, _compareFilename);
+         if (pszEntry)
+            continue;
+
+         // store the file
+         pszTmp = realloc( pszFileList, (ulFileCount + 1) * _MAX_PATH);
+         if (!pszTmp)
+            {
+            rc = ERROR_NOT_ENOUGH_MEMORY;
+            break;
+            }
+         pszFileList = pszTmp;
+         strcpy( pszFileList + (ulFileCount * _MAX_PATH), szFile);
+         ulFileCount++;
+         ulTotalSize += QueryFileSize( szFile);
+
+         }
+      DosFindClose( hdir);
+
+      // handle special errors
+      if (rc == ERROR_NOT_ENOUGH_MEMORY)
+         break;
+      else if (rc = ERROR_NO_MORE_FILES)
+         rc = NO_ERROR;
+
+      // next please
+      pszKeywordDir = strtok( NULL, ";");
+      }
+
+   if (rc != NO_ERROR)
+      break;
+
+   // hand over result
+   *ppszFileList = pszFileList;
+   *pulFileCount = ulFileCount;
+   *pulTotalSize = ulTotalSize;
+
+   } while (FALSE);
+
+// cleanup
+if (rc)
+   {
+   if (pszFileList) free( pszFileList);
+   }
+if (pszKeywordPath) free( pszKeywordPath);
+return rc;
 }
 
 // -----------------------------------------------------------------------------
@@ -262,6 +398,11 @@ static   PSZ            pszKeywordPathMask = "\\NEPMD\\Hilite\\%s\\TempFile";
          CHAR           szKeywordFile[ _MAX_PATH]; 
          ULONG          ulKeywordFileDate = -1;
 
+         // ----------------------------------
+
+         PSZ            pszFileList = NULL;
+         ULONG          ulFileCount;
+         ULONG          ulTotalSize;
 
 do
    {
@@ -390,38 +531,42 @@ do
 
    // -----------------------------------------------
 
+   // get the list of files
+   rc = _getDefFileList( pszEpmMode, &pszFileList, &ulFileCount, &ulTotalSize);
+      if (rc != NO_ERROR)
+         break;
+
+// #######
+#ifdef DEBUG   
+   {
+   PSZ pszEntry;
+   ULONG i;
+   
+   printf( "files:\n");
+   for (i = 0, pszEntry = pszFileList; i < ulFileCount; i++, pszEntry += _MAX_PATH)
+      {
+      printf( "-> %s\n", pszEntry);
+      }
+   printf( "%u files, total size is: %u\n", ulFileCount, ulTotalSize);
+   }
+#endif
+// #######
+
+
 
 
 rc = 1;
    } while (FALSE);
 
 // cleanup 
-if (pvaColors)  free( pvaColors);
-if (pvaSymbols) free( pvaSymbols);
+if (pszFileList) free( pszFileList);
+if (pvaColors)   free( pvaColors);
+if (pvaSymbols)  free( pvaSymbols);
 if (pszModeCopy) free( pszModeCopy);
 
 if (hconfig) CloseConfig( hconfig);
 if (hinitDefault) InitCloseProfile( hinitDefault, FALSE);
 if (hinitGlobals) InitCloseProfile( hinitGlobals, FALSE);
-return rc;
-}
-
-// -----------------------------------------------------------------------------
-static APIRET _searchOldKeywordFile(  PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBuflen)
-{
-
-         APIRET         rc = NO_ERROR;
-         CHAR           szSourceName[ 32];
-
-// old way: search the epmkwds file on EPMPATH
-sprintf( szSourceName, "epmkwds.%s", pszEpmMode);
-rc =   DosSearchPath( SEARCH_IGNORENETERRS  |
-                         SEARCH_ENVIRONMENT |
-                         SEARCH_CUR_DIRECTORY,
-                      "EPMPATH",
-                      szSourceName,
-                      pszBuffer,
-                      ulBuflen);
 return rc;
 }
 
@@ -454,7 +599,7 @@ do
    if (rc != NO_ERROR)
       {
       // if no mode infos available; conventional search
-      rc = _searchOldKeywordFile( pszEpmMode, szValue, sizeof( szValue));
+      rc = _searchFile( "EPMPATH", szValue, sizeof( szValue), "epmkwds.%s", pszEpmMode);
       if (rc != NO_ERROR)
          break;
       }
