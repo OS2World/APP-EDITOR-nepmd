@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.6 2002-09-21 19:47:23 aschn Exp $
+* $Id: stdprocs.e,v 1.7 2002-10-06 23:39:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -245,15 +245,7 @@ compile else
 compile endif
    cursor_dimensions cursorw, cursorh
 
-; Highlight a "hit" after a Locate command or Repeat_find operation
-compile if defined(HIGHLIGHT_COLOR)
-defproc highlight_match(search_len)
-   if not rc then
-      col = getpminfo(EPMINFO_SEARCHPOS)
-      circleit LOCATE_CIRCLE_STYLE, .line, col, col+getpminfo(EPMINFO_LSLENGTH)-1, LOCATE_CIRCLE_COLOR1, LOCATE_CIRCLE_COLOR2
-;     refresh
-   endif
-compile endif
+; Moved defproc highlight_match(search_len) to LOCATE.E
 
 ; Returns true if parameter given is a number.
 ; Leading and trailing spaces are ignored.
