@@ -1,10 +1,12 @@
 <? /*************************** Module Header *******************************
 *
-* Module Name:
+* Module Name: details.php
+*
+* script to display details of a status entry
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: details.php,v 1.1 2002-07-17 15:55:43 cla Exp $
+* $Id: details.php,v 1.2 2002-07-17 16:03:05 cla Exp $
 *
 * ===========================================================================
 *

@@ -1,10 +1,12 @@
 <? /*************************** Module Header *******************************
 *
-* Module Name:
+* Module Name: list.php
+*
+* Script to create a status list out of the db\* files
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: list.php,v 1.1 2002-07-17 15:55:44 cla Exp $
+* $Id: list.php,v 1.2 2002-07-17 16:03:05 cla Exp $
 *
 * ===========================================================================
 *
