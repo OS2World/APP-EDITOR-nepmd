@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.12 2002-10-19 14:39:48 aschn Exp $
+* $Id: kwhelp.e,v 1.13 2002-11-03 16:13:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -183,6 +183,9 @@ defproc pHelp_C_identifier
 compile if defined(NEPMD_KEYWORD_HELP_COMMAND)
             line = NEPMD_KEYWORD_HELP_COMMAND''delword( line, 1, 1 )
 compile endif
+            -- resolve *all* EnvVars
+            -- (the 'dos' or 'os2' command apparently resolves only the first)
+            line = NepmdResolveEnvVars( line )
             sayerror 'Invoking "'line'"'
          endif
          'dos' line  -- execute the command
@@ -293,33 +296,33 @@ defproc pBuild_Helpfile(ft)
 
    do while HelpList<>''
 
-         /* parse thru all entries within the help list */
-         parse value HelpList with HelpIndex'+'HelpList
+      /* parse thru all entries within the help list */
+      parse value HelpList with HelpIndex'+'HelpList
 
-         /* skip empty entries, they may show up due to a double plus character */
-         if (HelpIndex = '') then
-            iterate
-         endif
+      /* skip empty entries, they may show up due to a double plus character */
+      if (HelpIndex = '') then
+         iterate
+      endif
 
-         /* look for the help index file in HELPNDXPATH first */
-         findfile destfilename, helpindex, 'HELPNDXSHELF'
+      /* look for the help index file in HELPNDXPATH first */
+      findfile destfilename, helpindex, 'HELPNDXSHELF'
 
+      if rc then
+         /* if that fails, look for the help index file in current */
+         /* dir, EPMPATH, DPATH, and EPM.EXE's dir:                */
+         findfile destfilename, helpindex, '','D'
+      endif
+
+      if rc then
+         /* If that fails, try the standard path. */
+         findfile destfilename, helpindex, 'PATH'
          if rc then
-            /* if that fails, look for the help index file in current */
-            /* dir, EPMPATH, DPATH, and EPM.EXE's dir:                */
-            findfile destfilename, helpindex, '','D'
+            sayerror 'Help index 'helpindex' not found'
+            rc = 0
+            /* return -- changed this so that error is informational, not severe */
+            destfilename = ''
          endif
-
-         if rc then
-            /* If that fails, try the standard path. */
-            findfile destfilename, helpindex, 'PATH'
-            if rc then
-               sayerror 'Help index 'helpindex' not found'
-               rc = 0
-               /* return -- changed this so that error is informational, not severe */
-               destfilename = ''
-            endif
-         endif
+      endif
 
       if destfilename <> '' then
          if helpindex_id then
