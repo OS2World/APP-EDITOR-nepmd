@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.5 2004-06-29 20:55:24 aschn Exp $
+* $Id: alt_1.e,v 1.6 2004-07-02 10:55:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,14 +21,7 @@
 
 /*
 Todo:
--  compile if ...
--  replace (not redefine) the standard a_1
--  use find_token
-      StartCol = 0
-      EndCol   = 0
-      SeparatorList = '''"(){}[]<>,;! '\9;
-      call find_token( StartCol, EndCol, SeparatorList, '')
--  check filename for grep
+- RY's grep doesn't find line
 */
 
 --          (Alt-1.e should be renamed alt_1.e for CD-ROM...)
@@ -462,11 +455,11 @@ compile if HOST_SUPPORT
    -- End of TJR's INDEX file modifications.
 compile endif  -- HOST_SUPPORT
 
-; ----------------------------------------------------------------------------- .Output from GNU grep
 /******************************************************************************/
 /***       GREP support                                                     ***/
 /******************************************************************************/
 
+; ----------------------------------------------------------------------------- .Output from Gnu grep
 /*
    -- 8/10/88:  Handle GREP output like "File #0==> CKEYSEL.E <==".
    parse value line with "==>" filename "<=="
@@ -476,26 +469,49 @@ compile endif  -- HOST_SUPPORT
    endif
 */
    -- Handle Gnu GREP output like  full_specified_filename:lineno:text
-   if substr( .filename, 1, 17) = '.Output from grep' then            -- GNU grep
+   if substr( .filename, 1, 21) = '.Output from Gnu grep' then            -- GNU grep
+      -- New: get current dir from line 1
+      parse value textline(1) with 'Current directory = 'CurDir
+/*
       FileName = ''
       parse value line with DriveLetter':'Rest
       if length(DriveLetter) = 1 then
          parse value Rest with FileName':'LineNumber':'Rest
          FileName = DriveLetter':'FileName
       endif
+*/
+
+      if substr( line, 1, 2) = '\\' | substr( line, 2, 2) = ':\' then  -- full qualified
+         parse value substr( line, 3) with next':'LineNumber':'rest
+         FileName = substr( line, 1, 2 + length(next))
+      else
+         parse value line with FileMask':'LineNumber':'rest
+         saved_dir = directory()
+         call directory( CurDir)
+         -- find file in CurDir or resolve relative path
+         handle = 0
+         do i = 1 to 1 -- find only first
+            CheckFile = NepmdGetNextFile( FileMask, address(handle))
+            parse value CheckFile with 'ERROR:'rc
+            if rc = '' then
+               FileName = CheckFile
+            endif
+         enddo
+         call directory( saved_dir)
+      endif
+
       if FileName then
          "e "FileName" '"LineNumber"'"
          return
       endif
    endif
 
-; The rest is not used anymore:
-/*
+; ----------------------------------------------------------------------------- .Output from grep
    -- 11/03/88: Open file specified by GREP and move to current line!  TJR
    -- Use the name ".grep" as the signature, so I can load multiple grep lists.
    -- See GREP.E.  jbl.
-   if substr(.filename,1,5)=".grep" |                            -- TJR's GREP
-      substr(.filename,1,17)=".Output from grep" then            -- LAM's GREP
+   if substr( .filename, 1, 5) = ".grep" |                            -- TJR's GREP
+      substr( .filename, 1, 17) = ".Output from grep" then            -- LAM's GREP
          getsearch oldsearch
        call psave_pos(save_pos)
        'xcom l .   File #. -'          /* Find previous file           */
@@ -504,10 +520,11 @@ compile endif  -- HOST_SUPPORT
           sayerror 'No files found!'
           return
        else
-          getline newline
+          --getline newline
           call prestore_pos(save_pos)
-          parse value newline with "==> " filename " <=="
-          call a1load(filename,AltOnePathVar,1)
+          --parse value newline with "==> " filename " <=="
+          parse value line with "==> " filename " <=="
+          call a1load( filename, AltOnePathVar, 1)
 ;;compile if 1                                                -- LAM:  I use /L
 ;  Now supports both; if line starts with a number, assume /L; if not, do search.
           parse value orig_line with num ')'
@@ -516,7 +533,7 @@ compile endif  -- HOST_SUPPORT
           endif
           parse value num with num ':' col
           if isnum(num) then
-             .cursory=.windowheight%2
+             .cursory = .windowheight%2
              num
              if isnum(col) then .col = col; endif
              return
@@ -526,7 +543,7 @@ compile endif  -- HOST_SUPPORT
           if  tempstr = ''  then
              'l ž'orig_line'žeaf+'          /* ALT-158 is the search delim */
              if rc then
-                 sayerror substr(line, 1, 60)'. . . Not Found!'
+                 sayerror substr( line, 1, 60)'. . . Not Found!'
              endif
           endif
           return
@@ -534,7 +551,6 @@ compile endif  -- HOST_SUPPORT
        endif
    endif
    -- End of TJRs 11/03/88 Modifications!
-*/
 
 ; ----------------------------------------------------------------------------- .Output from gsee
    if substr(.filename,1,17)=".Output from gsee" then            -- LAM's GSEE
