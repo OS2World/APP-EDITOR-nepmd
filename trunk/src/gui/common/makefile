@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.5 2002-06-09 22:11:52 cla Exp $
+# $Id: makefile,v 1.6 2002-08-13 21:04:34 cla Exp $
 #
 # ===========================================================================
 #
@@ -27,8 +27,8 @@ OBJS= $(PMPRINTF) \
  $(BINDIR)\eas.obj\
  $(BINDIR)\file.obj\
  $(BINDIR)\pmres.obj\
- $(BINDIR)\process.obj
-
+ $(BINDIR)\process.obj\
+ $(BINDIR)\epmenv.obj
 MT=1
 
 # include main definitions
