@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.6 2002-09-10 23:51:28 aschn Exp $
+* $Id: stdctrl.e,v 1.7 2002-09-16 16:54:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -3488,9 +3488,6 @@ defc ring_toggle
    call add_view_menu(defaultmenu)
    call maybe_show_menu()
   compile endif
-; compile if WANT_NODISMISS_MENUS & EVERSION < 5.60
-;  SetMenuAttribute( 443, 8192, not ring_enabled)  -- We're rebuilding this menu; give it up.
-; compile endif  -- WANT_NODISMISS_MENUS
  compile endif  -- INCLUDE_STD_MENUS
 compile endif
 
@@ -3511,9 +3508,6 @@ defc stack_toggle
    call add_selected_menu(defaultmenu)
    call maybe_show_menu()
   compile endif
-; compile if WANT_NODISMISS_MENUS & EVERSION < 5.60
-;  SetMenuAttribute( 445, 8192, not stack_cmds)
-; compile endif  -- WANT_NODISMISS_MENUS
  compile endif  -- INCLUDE_STD_MENUS
 compile endif
 
@@ -3910,7 +3904,7 @@ defc processbeginscroll
    universal beginscroll_x, beginscroll_y;
    beginscroll_x = .cursorx;
    beginscroll_y = .cursory;
-compile endif  -- KEEP_CURSOR_ON_SCREEN & EVERSION >= 5.60
+compile endif  -- KEEP_CURSOR_ON_SCREEN
 
 defc setpresparam
    universal statfont, msgfont

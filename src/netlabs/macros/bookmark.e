@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: bookmark.e,v 1.4 2002-09-02 22:04:09 aschn Exp $
+* $Id: bookmark.e,v 1.5 2002-09-16 16:56:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -308,7 +308,7 @@ defc end_dde =
                       5501,                                -- EPM_EDIT_ENDWFDDE
                       0,
                       0)
-compile endif  -- EVERSION >= '5.50' & INCLUDE_WORKFRAME_SUPPORT
+compile endif  -- INCLUDE_WORKFRAME_SUPPORT
 
 defc setmarkp  -- Following uses a new dialog, so no NLS xlation
    markname = entrybox(SETMARK_PROMPT__MSG, '/'Setp__MSG'/'Cancel__MSG,\0,'',200)

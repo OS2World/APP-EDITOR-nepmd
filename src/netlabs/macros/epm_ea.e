@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm_ea.e,v 1.4 2002-09-01 14:26:57 aschn Exp $
+* $Id: epm_ea.e,v 1.5 2002-09-16 16:55:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -190,11 +190,7 @@ defc type =
    endif
    if answer=6 then
       parse value listbox(TYPE_TITLE__MSG, TYPE_LIST__MSG, '/'SET__MSG'/'CANCEL__MSG'/'HELP__MSG, 0, 0, 0, 0,
- compile if EVERSION >= 5.60
                           gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6040) ||
- compile else
-                          atoi(1) || atoi(1) || atoi(6040) || gethwndc(APP_HANDLE) ||
- compile endif
                           SELECT_TYPE__MSG) with button 2 newtype \0
       if newtype & (button=\1) then
          if found then call delete_ea('.TYPE'); endif
