@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.10 2002-11-03 23:19:11 cla Exp $
+.. $Id: neusreng.txt,v 1.11 2002-11-05 18:03:09 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -61,8 +61,8 @@ For this distribution, the following files have been taken from the
 .elist
 server:
 .ul compact
-- *epm603.zip* for the main package  and
-- *epm603b.zip* for the 6.03b update
+- *epm603.zip* for the main 6.03b package (31-MAY-1996)  and
+- *epm603b.zip* for the 6.03b update (8-JUL-1996)
 .elist
 These packages already include the following:
 .ul compact
@@ -436,7 +436,7 @@ See the following section for more details:
 .su V30 1
 
 .. -----------------------------------------------------------------------------
-.3 Overview
+.3 The mode mechanism
 .. -----------------------------------------------------------------------------
 .an IDPNL_MODE_OVERVIEW
 .
@@ -462,20 +462,25 @@ order
 .. - if some of the recognized OS/2 filetype attributes are set for the loaded file,
 ..   the mode is set according to a table.
 .
-.
 - if the file name and/or extension matches the attributes of any of the
   configurated modes, then the mode is set.
 .
-  Some extensions are handled in a special case
-  - **.CMD:
+.
+  Some extensions are handled in a special case:
+.pl break=none
+  - **.CMD
+.ul compact
     - the mode *REXX* is set for REXX scripts
     - the mode is recognized for EXTPROC scripts, if the name
       of the external command processor matches any of the
       configurated *EPM* modes
     - otherwise the mode is set to *CMD*
-  - **.INI: The mode *INI* is set for text ini files only, as *EPM* does not
+.el
+  - **.INI
+  = The mode *INI* is set for text ini files only, as *EPM* does not
     make sense to edit OS/2 binary INI files.
-  - Otherwise: The mode is set to TEXT.
+.el
+- Otherwise: The mode is set to TEXT.
 
 .. -----------------------------------------------------------------------------
 .3 mode command
@@ -624,6 +629,87 @@ Within the [=TITLE] folder execute the icon *Recompile EPM*.
 This will start the [.IDPNL_INSTADDITIONS_RECOMP recompile GUI utility]
 allowing you to quickly recompile the *EPM*.
 
+.. -----------------------------------------------------------------------------
+.3 How can I set fonts and colors the easiest way ?
+.. -----------------------------------------------------------------------------
+.an IDPNL_HOW_SETFONTS
+.
+Open your font and color palette objects and drop a font or a color on one of
+*EPM*'s control areas.
+.
+.
+Proposed fonts and colors:
+.pl bold
+- Edit window
+= font: 12.System VIO (16x8) or larger or System Monospaced
+.
+  color: black on white (default) or black on light gray
+- Statusline
+= font: 10.Helv
+.
+  color: red on white (default)
+- Messageline
+= font: 10.System Proportional Non-ISO
+.
+  color: black on light gray
+.el
+.
+When you're done, save your settings: *Options -> Save options*.
+
+.. -----------------------------------------------------------------------------
+.3 How can I print keyword highlighted files with colors ?
+.. -----------------------------------------------------------------------------
+.an IDPNL_HOW_PRINTHILITED
+.
+Using System VIO while keyword highlighting is activated, will produce
+one page per line and will let the speaker beep almost continously.
+
+.pl bold break=none
+- Workaround:
+= Mark all (*Ctrl+/* or *Ctrl+A*), activate the style dialog
+(*CTRL+Y*) and select a Courier Postscript font instead before printing.
+Or: Change the default font temporarily with the font palette or the settings
+dialog.
+.el
+
+.. -----------------------------------------------------------------------------
+.3 How can I load/save files from/to drive H: ?
+.. -----------------------------------------------------------------------------
+.an IDPNL_HOW_DRIVEH
+.
+If you have problems with files on drive H:, you have probably switched on
+*host support*. The default host drive is H: then. With the [=TITLE] host support
+is switched off by default.
+.
+.
+Reset following constant in your *myepm\mycnf.e* file:
+.pl compact bold
+- HOST__SUPPORT = ''
+.el
+If you need host support (you probably don't if you have never heard of it),
+you may set i.e.:
+.pl compact bold
+- HOST__SUPPORT = 'STD'
+- HOSTDRIVE = 'X:'
+.el
+
+.. -----------------------------------------------------------------------------
+.3 How can I change the standard help viewer for the keyword help mechanism ?
+.. -----------------------------------------------------------------------------
+.an IDPNL_HOW_SETVIEW
+.
+If you want to use *newview.exe* instead of *view.exe*, it is recommended to replace
+*?:\os2\view.exe*. That will change the help viewer globally. But problems are
+expected by this, because *view.exe* starts asynchronously while *newview.exe*
+does not.
+.
+.
+If you have problems replacing *view.exe*, you can set a configuration constant
+(but this may be changed in furure versions):
+.
+.
+*NEPMD__KEYWORD__HELP__COMMAND* = 'start newview'  (default: 'view')
+
 .. =============================================================================
 .2 Limitations
 .. =============================================================================
@@ -636,6 +722,19 @@ The following limitations apply to the current version of [=TITLE]:
   that are installed in directories ?:\OS2\APPS and ?:\OS2\APPS\DLL. If they
   are not installed, use the installation program of your operating system
   to install them and reapply the current fixpack.
+.
+.
+  Users who already have extended the PATH and LIBPATH for their own *EPM*
+  macros/executables should remove these additional entries when problems
+  occur. Make sure that a set of together-belonging *epm.exe*, *etk?603.dll*
+  and possibly *epmmri.dll* will be found. This *epm.exe* must be found after the
+  [.IDPNL_INSTADDITIONS_DYNCFG_LOADER].
+.
+.
+  Using the *EPMBBS* executables instead is possible, but not really supported. Also
+  the use of the (quite buggy) WPS class *Epm* is not recommended (but probably
+  working). We plan to replace the WPS class functionallity with a new
+  settings GUI in a future version.
 .
 - Users of *OS/2 Warp 3* currently cannot use this package, as
   this version of *OS/2* comes with the outdated *EPM* v5.51.
@@ -655,6 +754,16 @@ The following limitations apply to the current version of [=TITLE]:
   In a forthcoming version [=TITLE] will address that problem and offer
   to replace an *EPM* v5.51 with the base *EPM* application of the
   *EPM BBS distribution* for *OS/2 Warp 3* users.
+.
+- The processing of *profile.erx* can not be switched off in this version.
+  The checkbox in *EPM's* standard settings notebook has no effect anymore.
+  This workaround was necessary because of timing problems during file loading
+  in combination with special settings in EPM.INI.
+.
+.
+  If you don't want to use your *profile.erx*, you have to rename it or copy it
+  somewhere outside PATH and EPMPATH.
+.
 
 .. =============================================================================
 .2 Revision history
@@ -733,7 +842,7 @@ The following persons (in alphabetic order) assembled and contributed extensions
   - shipped .e sourcefiles
      - major [.IDPNL_INSTADDITIONS_NEWMACROS rework] compared to the versions of the *EPMBBS* package
      - National Language Support concept
-..- additional macros (e.g. for Tex)
+..- additional macros (e.g. for TeX)
 ..
 
 .. =============================================================================
@@ -1345,7 +1454,7 @@ Files of the [.IDPNL_EPMBBS EPMBBS distribution] reside in the following directo
   ³ ÃÄlampdq      **           of: [.IDPNL_EPMBBS_COMP_LAMPDQ lampdq]
   ³ ÃÄmyassist    **           of: [.IDPNL_EPMBBS_COMP_EPMASI epmasi]
   ³ ÀÄsamples     **.e         of: [.IDPNL_EPMBBS_COMP_EPMSMP epmsmp]
-  ÀÄÄÄndx         **.ndx       of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp]
+  ÃÄndx           **.ndx       of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp]
   ÃÄbook          **.inf       of: [.IDPNL_EPMBBS_COMP_EPMBK epmbk]
   ÃÄdll           **.dll       of: [.IDPNL_EPMBBS_COMP_EPMDLL epmdll]
   ÃÄhelp          **.hlp       of: [.IDPNL_EPMBBS_COMP_EPMHLP epmhlp]
@@ -1390,7 +1499,7 @@ placed into the following directory tree:
   ÃÄbmp         **.bmp       user bitmaps
   ÃÄex          **.ex        user binaries for dynamic load
   ÃÄmode        **           files defining EPM modes
-  ÀÄmacros      **.e         user macros
+  ÃÄmacros      **.e         user macros
   ÀÄndx         **.ndx       user help index files
 .fo on
 
@@ -1509,7 +1618,7 @@ The statusline is extended by showing
 -  the hex/ASCII value of the charactor under the cursor
 -  the current margin settings
 -  the tabs setting
--  the [.IDPNL_INSTADDITIONS_MODE]
+-  the [.IDPNL_MODE]
 
 The tag *Modified* was removed, as replacement the
 colors of the statusline and the contents of the titlebar
@@ -1564,17 +1673,16 @@ The following additions are included:
 - File menu
   - Revert
   - Open folder
+.
+    (Open the WPS folder where the current file is located.)
     - Default view
     - Icon view
     - Icon flowed view
     - Tree view
     - Details view
   - Revert
-    - Reload file from disk after throwing away all changes
 .
-      (asks if modified)
-  - Open folder
-   Open the WPS folder where the current file is located.
+    (Reload file from disk after throwing away all changes, ask if modified)
 - Edit menu
   - (No changes, the stack commands are just activated)
 - Search menu
@@ -1657,8 +1765,8 @@ The following additional key kombinations are implemented in the [=TITLE]:
 = passist
 (find matching identifier, added for german keyboards)
 - ScrollLock
-= scrolling is changed to center the cursor vertically and vertivally
-  scroll the text under the cursor. Horizontal scroll is not activated.
+= scrolling is changed to vertically scroll the text under the cursor.
+  Horizontal scroll is not activated.
 .
   (Usable for reading texts)
 
@@ -1668,18 +1776,18 @@ The following additional key kombinations are implemented in the [=TITLE]:
 .an IDPNL_USEADDITIONS_NEWFRAME_MOUSE
 .
 The following mouse handlers are implemented in the [=TITLE]:
-.pl tsize=15 break=none
+.pl tsize=35 break=none
 - *mouse action*
 = *executed*
 - MB2 click on messageline
-- executes *tagscan* command
+= executes *tagscan* command
 .
   Shows a listbox with tags (function names) for the current file.
   On doubleclick on an item the cursor jumps to that tag in the file.
 - MB2 click on statusline
-- open up the standard *EPM* settings dialog
+= open up the standard *EPM* settings dialog
 - MB1 doubleclick on URL
-- open system default web browser with URL
+= open system default web browser with URL
 .
   (available for all loaded files !)
 
@@ -1707,21 +1815,23 @@ operation.
 .. -----------------------------------------------------------------------------
 .an IDPNL_INSTADDITIONS_NEWMATCH
 .
-While typing one of the bracket characters
+While typing one of the closing bracket characters
 .fo off
-  () {} []
+  ) } ]]
 .fo on
 .
 the matching char is searched and highlighted if found.
 
 [=NOTE]
 .ul compact
-- this mechanism uses the passist function, not the defs from balance.e.
-  This procedure (moving the cursor to the matching identifier) is
+- this mechanism still uses the defs from *balance.e*, not the passist function.
+- The *passist* procedure (moving the cursor to the matching identifier) is
   extended to work with TeX conditions and environments, based on code from
   Petr Mikulik. Extensions for other modes will follow.
 - Petr's PMCSTeX package shows also how to extend the reflow and tagscan
   definitions for the TeX mode. That will be integrated in further versions.
+- You can use the keys *Strg+[[*, *Strg+]]* and *Strg+8* (new) to execute the
+  very useful *passist* procedure.
 
 .. -----------------------------------------------------------------------------
 .3 new filetype determination
@@ -2094,9 +2204,14 @@ following steps:
 - create the file *myepm\macros\mycnf.e* and include any of the desired
   [.IDPNL_CONFIG_CONSTANTS configuration constants].
 - modify it to your needs
-- launch the [.IDPNL_INSTADDITIONS_RECOMP recompilation utility RECOMP] from the
+- don't forget to insert the keyword
+.at hilite
+  const
+.at
+  before the first configuration constant
+- launch the [.IDPNL_INSTADDITIONS_RECOMP recompilation utility RECOMP] from
   [.IDPNL_USAGE_WPSFOLDER]
-- reompile *EPM*
+- recompile *EPM*
 
 .. -----------------------------------------------------------------------------
 .3 reworked configuration constants
@@ -2137,7 +2252,7 @@ SUPPORT__BOOK__ICON          1            0
 WANT__BRACKET__MATCHING      0            1
 WANT__KEYWORD__HELP          0            1
 WANT__PROFILE               0            'SWITCH'
-   MY__WANT__PROFILE         (undefined)  1
+   MY__REXX__PROFILE         (undefined)  1
 TOGGLE__ESCAPE              0            1
 WANT__TAGS                  0            1
 SUPPORT__USERS__GUIDE        0            1
@@ -2148,6 +2263,7 @@ LOCATE__CIRCLE__COLOR1       16777220     16777231
 LOCATE__CIRCLE__COLOR1       16777218     16777216
 RESPECT__SCROLL__LOCK        0            1
 REXX__SYNTAX__ASSIST         0            1
+HOST__SUPPORT               'STD'        ''
 .fo on
 
 The MY__** constants are used to initialize the corresponding
@@ -2169,23 +2285,23 @@ features being additionally implemented by the [=TITLE].
 Until there exists a GUI to configure these keys, some commands are used
 to change the behaviour, which will work on-the-fly, without recompiling EPM.E!
 .pl tsize=3 bold
-- DragAlwaysMarks 0|1
+- DragAlwaysMarks 0|1 (default: 1)
 = When set to 1, every mouse drag will start a new mark, even if
   a mark already exists. This avoids the message 'Text is already marked...'
 .
   (Replaces constant DRAG__ALWAYS__MARKS)
-- MouseStyle 1|2
-= defines the mark behaviour of mouse buztton 1 and 3:
+- MouseStyle 1|2 (default: 1)
+= defines the mark behaviour of mouse button 1 and 3:
 .ul compact
-  - *1*  MouseButton 1: block mark, MouseButtons 3: char mark
-  - *2*  MouseButton 3: block mark, MouseButtons 1: char mark
+  - *1*  MouseButton 1: block mark, MouseButton 3: char mark
+  - *2*  MouseButton 3: block mark, MouseButton 1: char mark
 .el
 .
   (Replaces constant MOUSE__STYLE)
-- MouseMarkWorkaround 0|1
+- MouseMarkWorkaround 0|1 (default: 1)
 = enables the workaround for the mark bug
-- HomeRespectIndent 0|1
-= enables if the Home key respectes the indent of the previous line
+- HomeRespectIndent 0|1 (default:1)
+= enables the Home key to respect the indent of the current line
 
 .. =============================================================================
 .2 Appendix: EPM Quick Reference
