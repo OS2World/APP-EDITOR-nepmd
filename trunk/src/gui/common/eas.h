@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: eas.h,v 1.1 2002-06-03 22:19:57 cla Exp $
+* $Id: eas.h,v 1.2 2002-09-19 11:31:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -43,7 +43,7 @@ typedef struct _EASVST
 
 // prototypes
 APIRET WriteStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszEaValue);
-APIRET ReadStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszBuffer, PULONG ulBuflen);
+APIRET QueryStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszBuffer, PULONG ulBuflen);
 
 #endif // EAS_H
 

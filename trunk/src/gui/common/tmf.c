@@ -289,7 +289,7 @@ do
 
    // determine saved timestamp
    ulStampLength = sizeof( szFileStampOld);
-   rc = ReadStringEa( pszMessageFile, EA_TIMESTAMP, szFileStampOld, &ulStampLength);
+   rc = QueryStringEa( pszMessageFile, EA_TIMESTAMP, szFileStampOld, &ulStampLength);
 
    // compare timestamps
    if ((rc == NO_ERROR)                                     &&
@@ -302,7 +302,7 @@ do
          {
          // get ea length of table
          ulTableDataLength = 0;
-         rc = ReadStringEa( pszMessageFile, EA_MSGTABLE, NULL, &ulTableDataLength);
+         rc = QueryStringEa( pszMessageFile, EA_MSGTABLE, NULL, &ulTableDataLength);
          if (rc != ERROR_BUFFER_OVERFLOW)
             break;
 
@@ -314,7 +314,7 @@ do
             }
 
          // read table
-         rc = ReadStringEa( pszMessageFile, EA_MSGTABLE, pbTableData, &ulTableDataLength);
+         rc = QueryStringEa( pszMessageFile, EA_MSGTABLE, pbTableData, &ulTableDataLength);
 
          } while (FALSE);
 

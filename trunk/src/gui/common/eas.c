@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: eas.c,v 1.2 2002-08-23 08:28:17 cla Exp $
+* $Id: eas.c,v 1.3 2002-09-19 11:31:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -138,7 +138,7 @@ return rc;
 
 // ------------------------------------------------------------------------------
 
-APIRET ReadStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszBuffer, PULONG pulBuflen)
+APIRET QueryStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszBuffer, PULONG pulBuflen)
 {
 
          APIRET         rc     = NO_ERROR;
