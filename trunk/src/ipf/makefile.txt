@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.22 2002-08-29 14:50:22 cla Exp $
+.. $Id: makefile.txt,v 1.23 2002-09-03 10:04:20 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -338,6 +338,7 @@ The *EPM Macro Compiler* is required to compile the *RECOMP* macro.
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=epmapp The Hobbes File Archive]
 .
     (search "epmapp" at hobbes.nmsu.edu)
+.
 - *etpm.exe* must be accessible by the PATH statement
 
 .. .............................................................................
@@ -358,7 +359,7 @@ Network or Internet Access Kit installed.
 .
 UNZIP is required in order to unpack certain parts of the EPMBBS packages,
 as it supports the "deflated" method used for some text files, this is not supported by
-PKUNZIP2.
+[.IDPNL_REQUIREMENTS_PKUNZIP2].
 
 [=NOTE]
 .ul
@@ -460,6 +461,23 @@ For checking unpacked EPM files the *grep* utility is used.
 .
   This version has the advantage that it does not require the *EMX* runtime.
 - *grep.exe* must be accessible by the PATH statement
+
+.. .............................................................................
+.3 LXLITE
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_LXLITE
+.
+For packing the executables of the [=TITLE], the *lxlite* utility is used.
+
+[=NOTE]
+.ul
+- the *lxlite* utility is only required if you build the release version of the 
+  [=TITLE] executables, which is the default. In order to build the debug versions
+  instead, either
+.ul compact
+  - specify *DEBUG=1* as parameter to *nmmake* or
+  - set the environment variable *DEBUG=1* before calling *nmake*
+- *lxlite.exe* must be accessible by the PATH statement
 
 .. -----------------------------------------------------------------------------
 .2 CVS development tree overview
