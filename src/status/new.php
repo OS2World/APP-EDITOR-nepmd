@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: new.php,v 1.3 2002-09-09 15:54:35 cla Exp $
+* $Id: new.php,v 1.4 2002-09-09 16:03:21 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,10 @@ if ($file != "")
    $prio     = "1";
    $status   = "open";
    $filelist = "";
-   $updated  = "\$Id: new.php,v 1.3 2002-09-09 15:54:35 cla Exp $";
+
+   $updated  = "\$";     // two lines here, so that CVS will not touch it
+   $updated  = $updated."Id: \$";
+
    $modified = "";
    $details  = "- please add details here";
 
