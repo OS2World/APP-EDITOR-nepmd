@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libversion.e,v 1.2 2002-08-21 13:56:27 cla Exp $
+* $Id: libversion.e,v 1.3 2002-08-23 15:35:00 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,7 +28,7 @@
 
 defc NepmdLibVersion =
 
-  sayerror 'NEPMDLIB Version' NepmdLibVersion();
+ sayerror 'NEPMDLIB Version' NepmdLibVersion();
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdLibVersion                                    */

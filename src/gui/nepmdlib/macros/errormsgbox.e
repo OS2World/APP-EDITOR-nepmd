@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: errormsgbox.e,v 1.3 2002-08-20 18:45:51 cla Exp $
+* $Id: errormsgbox.e,v 1.4 2002-08-23 15:34:59 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,7 +28,7 @@
 
 defc NepmdErrorMsgBox, ErrorMsgBox =
 
-  rcx = NepmdErrorMsgBox( arg( 1), 'Netlabs EPM Distribution');
+ rcx = NepmdErrorMsgBox( arg( 1), 'Netlabs EPM Distribution');
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdErrorMsgBox                                   */
