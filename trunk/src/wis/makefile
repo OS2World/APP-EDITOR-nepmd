@@ -17,7 +17,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.11 2002-11-05 20:29:13 cla Exp $
+# $Id: makefile,v 1.12 2004-07-02 11:46:31 aschn Exp $
 #
 # ===========================================================================
 #
@@ -132,6 +132,9 @@ $(UNZIPPEDDIR)\prepare.log: prepare.cmd
 # ---- create WPI package
 
 $(BINDIR)\$(WPIFILE): PREPARE $(NLSSCRIPTFILE) $(WPIDEPLIST) $(WPILISTFILE)
+!ifdef TOUCH
+   touchrel $(CMPDIR) $(BINDIR)
+!endif
    @CD $(BASEDIR)
    mkwpi src\wis\$(WPILISTFILE) $(WPILOGFILE) src\wis\$(NLSSCRIPTFILE) $(BINDIR_NAME)\$(WPIFILE) $(CREATEPARMS)
    @cd $(MAKEDIR)
@@ -139,9 +142,9 @@ $(BINDIR)\$(WPIFILE): PREPARE $(NLSSCRIPTFILE) $(WPIDEPLIST) $(WPILISTFILE)
 # ---- create WPP package
 
 $(BINDIR)\$(WPPFILE): PREPARE epmbase.wis $(WPPLISTFILE)
-!ifdef TOUCH
-   touchrel $(CMPDIR) $(BINDIR)
-!endif
+#!ifdef TOUCH
+#   touchrel $(CMPDIR) $(BINDIR)
+#!endif
    @CD $(BASEDIR)
    mkwpi src\wis\$(WPPLISTFILE) $(WPPLOGFILE) src\wis\epmbase.wis $(BINDIR_NAME)\$(WPPFILE) $(CREATEPARMS)
    @cd $(MAKEDIR)
