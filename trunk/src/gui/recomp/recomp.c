@@ -6,14 +6,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.c,v 1.1 2002-06-03 22:27:05 cla Exp $
+* $Id: recomp.c,v 1.2 2002-08-14 12:23:26 cla Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -38,7 +38,7 @@
 
 // -----------------------------------------------------------------------------
 
-INT main ( INT argc, PSZ  argv[])
+INT main ( INT argc, PSZ  argv[], PSZ envp[])
 {
 
          APIRET         rc  = NO_ERROR;
@@ -64,7 +64,7 @@ do
       }
 
    // execute frame window
-   rc = ExecuteFrame( hab, argc, argv);
+   rc = ExecuteFrame( hab, argc, argv, envp);
 
    } while (FALSE);
 
