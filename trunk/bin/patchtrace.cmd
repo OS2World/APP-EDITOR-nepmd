@@ -19,7 +19,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: patchtrace.cmd,v 1.1 2002-10-22 16:19:57 cla Exp $
+* $Id: patchtrace.cmd,v 1.2 2002-11-01 13:45:58 cla Exp $
 *
 * ===========================================================================
 *
@@ -38,7 +38,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.1 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.2 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -209,7 +209,7 @@ ProcessFile: PROCEDURE EXPOSE (GlobalVars)
           DO
              IF (CurrentSymbol \= '') THEN
              DO
-                TraceLine = 'call NepmdPmPrintf( "'CurrentSymbol' <-")';
+                TraceLine = 'if isadefproc("NepmdPmPrintf") then call NepmdPmPrintf( "'CurrentSymbol' <-"); endif';
                 rcx = LINEOUT( TargetFile, TraceLine);
                 CurrentSymbol = '';
              END;
@@ -230,7 +230,7 @@ ProcessFile: PROCEDURE EXPOSE (GlobalVars)
                 LEAVE;
              END;
 
-             TraceLine = 'call NepmdPmPrintf( "'CurrentSymbol' ->")';
+             TraceLine = 'if isadefproc("NepmdPmPrintf") then call NepmdPmPrintf( "'CurrentSymbol' ->"); endif';
              rcx = LINEOUT( TargetFile, TraceLine);
           END;
 
@@ -244,7 +244,7 @@ ProcessFile: PROCEDURE EXPOSE (GlobalVars)
     /* close unfinished trace */
     IF (CurrentSymbol \= '') THEN
     DO
-       TraceLine = 'call NepmdPmPrintf( "'CurrentSymbol' <-")';
+       TraceLine = 'if isadefproc("NepmdPmPrintf") then call NepmdPmPrintf( "'CurrentSymbol' <-"); endif';
        rcx = LINEOUT( TargetFile, TraceLine);
        CurrentSymbol = '';
     END;
