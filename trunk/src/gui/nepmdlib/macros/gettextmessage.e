@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.3 2002-08-21 21:38:25 cla Exp $
+* $Id: gettextmessage.e,v 1.4 2002-08-21 22:08:11 cla Exp $
 *
 * ===========================================================================
 *
@@ -43,20 +43,46 @@ defc NepmdGetTextMessage, GetTextMessage
      return;
   endif
 
-  /* fetch message - support only up to three vars here */
-  /* NOTE: word 1 is already message name ! */
+  /* fetch message - NOTE: word 1 is already message name ! */
   ParmCount = words( arg( 1));
-  Parm1     = word( arg( 1), 2);
-  Parm2     = word( arg( 1), 3);
-  Parm3     = word( arg( 1), 4);
+  Parm1     = word( arg( 1),  2);
+  Parm2     = word( arg( 1),  3);
+  Parm3     = word( arg( 1),  4);
+  Parm4     = word( arg( 1),  5);
+  Parm5     = word( arg( 1),  6);
+  Parm6     = word( arg( 1),  7);
+  Parm7     = word( arg( 1),  8);
+  Parm8     = word( arg( 1),  9);
+  Parm9     = word( arg( 1), 10);
   if (ParmCount < 2) then
      MessageText = NepmdGetTextMessage( Testfile, Messagename);
   elseif (ParmCount = 2) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename, Parm1);
+     MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                        Parm1);
   elseif (ParmCount = 3) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename, Parm1, Parm2);
+     MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                        Parm1, Parm2);
   elseif (ParmCount = 4) then
-     MessageText = NepmdGetTextMessage( Testfile, Messagename, Parm1, Parm2, Parm3);
+     MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                        Parm1, Parm2, Parm3);
+  elseif (ParmCount = 5) then
+     MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                        Parm1, Parm2, Parm3, Parm4);
+  elseif (ParmCount = 6) then
+     MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                        Parm1, Parm2, Parm3, Parm4, Parm5);
+  elseif (ParmCount = 7) then
+     MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                        Parm1, Parm2, Parm3, Parm4, Parm5, Parm6);
+  elseif (ParmCount = 8) then
+     MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                        Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7);
+  elseif (ParmCount = 9) then
+     MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                        Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7, Parm8);
+  else
+     MessageText = NepmdGetTextMessage( Testfile, Messagename,
+                                        Parm1, Parm2, Parm3, Parm4, Parm5, Parm6, Parm7, Parm8, Parm9);
   endif
 
   if (MessageText = '') then
@@ -91,26 +117,25 @@ defc NepmdGetTextMessage, GetTextMessage
 
 defproc NepmdGetTextMessage( Filename, Messagename) =
 
- BufLen      = 1024;
+ BufLen      = 10242048;
  TextMessage = copies( atoi( 0), BufLen);
 
  /* prepare parameters for C routine */
  Filename    = Filename''atoi( 0);
  Messagename = Messagename''atoi( 0);
 
- /* assemble variable parm list */
- /* we need to sezup vars for each parm, as arg() */
- /* returns the same address for all values :-(   */
- Parm1 = arg(  3)''atoi( 0);  if (arg() >  2) then Addr1 = address( Parm1); else Addr1 = atol( 0); endif
- Parm2 = arg(  4)''atoi( 0);  if (arg() =  4) then Addr2 = address( Parm2); else Addr2 = atol( 0); endif
- Parm3 = arg(  5)''atoi( 0);  if (arg() =  5) then Addr3 = address( Parm3); else Addr3 = atol( 0); endif
- Parm4 = arg(  6)''atoi( 0);  if (arg() =  6) then Addr4 = address( Parm4); else Addr4 = atol( 0); endif
- Parm5 = arg(  7)''atoi( 0);  if (arg() =  7) then Addr5 = address( Parm5); else Addr5 = atol( 0); endif
- Parm6 = arg(  8)''atoi( 0);  if (arg() =  8) then Addr6 = address( Parm6); else Addr6 = atol( 0); endif
- Parm7 = arg(  9)''atoi( 0);  if (arg() =  9) then Addr7 = address( Parm7); else Addr7 = atol( 0); endif
- Parm8 = arg( 10)''atoi( 0);  if (arg() = 10) then Addr8 = address( Parm8); else Addr8 = atol( 0); endif
- Parm9 = arg( 11)''atoi( 0);  if (arg() = 11) then Addr9 = address( Parm9); else Addr9 = atol( 0); endif
-
+ /* prepare all parms as ASSCIZ string and assemble variable parm list */
+ /* NOTE: we need to setup vars for each parm, as arg() */
+ /*       returns the same address for all values :-((  */
+ Parm1 = arg(  3)''atoi( 0);  if (arg() >=  3) then Addr1 = address( Parm1); else Addr1 = atol( 0); endif
+ Parm2 = arg(  4)''atoi( 0);  if (arg() >=  4) then Addr2 = address( Parm2); else Addr2 = atol( 0); endif
+ Parm3 = arg(  5)''atoi( 0);  if (arg() >=  5) then Addr3 = address( Parm3); else Addr3 = atol( 0); endif
+ Parm4 = arg(  6)''atoi( 0);  if (arg() >=  6) then Addr4 = address( Parm4); else Addr4 = atol( 0); endif
+ Parm5 = arg(  7)''atoi( 0);  if (arg() >=  7) then Addr5 = address( Parm5); else Addr5 = atol( 0); endif
+ Parm6 = arg(  8)''atoi( 0);  if (arg() >=  8) then Addr6 = address( Parm6); else Addr6 = atol( 0); endif
+ Parm7 = arg(  9)''atoi( 0);  if (arg() >=  9) then Addr7 = address( Parm7); else Addr7 = atol( 0); endif
+ Parm8 = arg( 10)''atoi( 0);  if (arg() >= 10) then Addr8 = address( Parm8); else Addr8 = atol( 0); endif
+ Parm9 = arg( 11)''atoi( 0);  if (arg() >= 11) then Addr9 = address( Parm9); else Addr9 = atol( 0); endif
  VarParmList = Addr1 || Addr2 || Addr3 || Addr4 || Addr5 || Addr6 || Addr7 || Addr8 || Addr9;
 
  /* call C routine */
