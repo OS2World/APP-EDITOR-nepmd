@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.7 2002-10-09 18:47:45 aschn Exp $
+* $Id: stdkeys.e,v 1.8 2002-10-19 12:20:32 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1043,8 +1043,9 @@ compile if SMARTSAVE
    if .modify then           -- Modified since last Save?
       'Save'                 --   Yes - save it
    else
-      'commandline Save '
+;      'commandline Save '
       sayerror 'No changes.  Press Enter to Save anyway.'
+      'saveas_dlg'  -- better show file selector
    endif
 compile else
    'Save'
