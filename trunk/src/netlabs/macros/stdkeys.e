@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.19 2004-11-30 21:19:11 aschn Exp $
+* $Id: stdkeys.e,v 1.20 2005-01-30 22:53:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -203,6 +203,7 @@ def s_f6          'FindTag'             -- Find procedure under cursor via tags 
 def s_f7          'FindTag *'           -- Open entrybox to enter a procedure to find via tags file
 def s_f8          'TagsFile'            -- Open entrybox to select a tags file
 def s_f9          'MakeTags *'          -- Open entrybox to enter list of files to scan for to create a tags file
+defc Key_c_s_t    'TagScan'             -- Open a list box with tags of the current file
 
 ; ---- Undo ----
 def c_u           'UndoDlg'             -- Open Undo dialog
