@@ -1,0 +1,203 @@
+.. ***************************** Module Header *******************************
+..
+.. Module Name: nefldeng.txt
+..
+.. source file for the folder HLP file
+.. Requires HyperText/2 package to compile
+..
+.. Copyright (c) Netlabs EPM Distribution Project 2002
+..
+.. $Id: nefldeng.txt,v 1.1 2002-11-04 22:50:21 cla Exp $
+..
+.. ===========================================================================
+..
+.. This file is part of the Netlabs EPM Distribution package and is free
+.. software.  You can redistribute it and/or modify it under the terms of the
+.. GNU General Public License as published by the Free Software
+.. Foundation, in version 2 as it comes in the "COPYING" file of the
+.. Netlabs EPM Distribution.  This library is distributed in the hope that it
+.. will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+.. of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.. General Public License for more details.
+..
+.. ***************************************************************************
+
+.include titleeng.inc
+.ti [=FLDTITLE]
+.hi 234
+
+.. #############################################################################
+.1 [=FLDTITLE]
+.. #############################################################################
+.an IDPNL_MAIN
+.at font='20.Tms Rmn' fc=darkgray italic bold
+.bitmap nllogo.bmp center
+.ce present the
+.at font='24.Tms Rmn' fc=red bold italic
+.ce [=DOCTITLE]
+.at
+
+[=TOPICS]
+.su 1
+
+.. =============================================================================
+.2 Help for [=DOCTITLE]
+.. =============================================================================
+.an IDPNL_ICON_FOLDER
+.res 100
+.
+This icon represents the folder of the [=TITLE].
+
+See the *[=USRTITLE]* within that folder for more details.
+
+.. =============================================================================
+.2 Help for EPM v6.03b
+.. =============================================================================
+.an IDPNL_ICON_EPM
+.res 101
+.
+This icon launches the *EPM* with the additions of the
+[=TITLE]. For this you can also use the standard icon
+*Enhanced Editor*, they are identical in function.
+
+See the *[=USRTITLE]* for more details.
+
+.. =============================================================================
+.2 Help for [=USRTITLE]
+.. =============================================================================
+.an IDPNL_ICON_NEPMDUSRGUIDE
+.res 102
+.
+This icon launches the *[=USRTITLE]*, giving you detailed
+information about *EPM* and the [=TITLE] and its extensions.
+
+.. =============================================================================
+.2 Help for [=PRGTITLE]
+.. =============================================================================
+.an IDPNL_ICON_NEPMDPRGGUIDE
+.res 103
+.
+This icon launches the *[=PRGTITLE]*, containing 
+additional information about the [=TITLE], concerning
+the extensions applied to the *EPM executable.
+
+See also the *[=USRTITLE]* for more details.
+
+.. =============================================================================
+.2 Help for Recompile EPM
+.. =============================================================================
+.an IDPNL_ICON_RECOMPILE
+.res 104
+.
+This icon launches the Recompile utility of
+the [=TITLE]. Using this program the recompilation of the
+*EPM* executable is a piece of cake.
+
+See also the *[=USRTITLE]* for more details.
+
+.. =============================================================================
+.2 Help for myepm
+.. =============================================================================
+.an IDPNL_ICON_MYEPM
+.res 105
+.
+This icon represents the *myepm* directory
+below the installation directory of the [=TITLE]. 
+All user extensions are intended to be placed within this
+directory
+
+See also the *[=USRTITLE]*,
+.ul compact
+- Appendix: The [=TITLE] Installation
+.el
+for more details about the *extended directory structure*.
+
+.. =============================================================================
+.2 Help for EPM Users Guide
+.. =============================================================================
+.an IDPNL_ICON_EPMUSRGUIDE
+.res 106
+.
+This icon launches the *EPM* Users Guide.
+
+[=NOTE]
+.ul compact
+- due to extensions introduced by the [=TITLE],
+  some of the information provided in this online document
+  may be outdated.
+
+See the *[=USRTITLE]* for more details about the extensions
+implemented by the [=TITLE].
+
+.. =============================================================================
+.2 Help for EPM Technical Reference
+.. =============================================================================
+.an IDPNL_ICON_EPMTECGUIDE
+.res 107
+.
+This icon launches the *EPM* Technical Reference
+
+[=NOTE]
+.ul compact
+- due to extensions introduced by the [=TITLE],
+  some of the information provided in this online document
+  may be outdated.
+
+See the *[=USRTITLE]* and the *[=PRGTITLE]*
+for more details about the extensions
+implemented by the [=TITLE].
+
+.. =============================================================================
+.2 Help for EPM programming samples
+.. =============================================================================
+.an IDPNL_ICON_SAMPLES_FOLDER
+.res 108
+.
+This icon represents the sample folder of the [=TITLE].
+
+It contains icons for the sample source of the *EPMBBS* release.
+
+.. =============================================================================
+.2 Help for Programmers Guide to the EPM Toolkit
+.. =============================================================================
+.an IDPNL_ICON_ETKGUIDE
+.res 109
+.
+This icon launches the Programmers Guide to the *EPM Toolkit*.
+
+.. =============================================================================
+.2 Help for EPM C macro Readme
+.. =============================================================================
+.an IDPNL_ICON_CMACREADME
+.res 110
+.
+This icon launches the *EPM* C macro Readme
+
+.. =============================================================================
+.2 Help for EPM REXX macro Readme
+.. =============================================================================
+.an IDPNL_ICON_RMACREADME
+.res 111
+.
+This icon launches the *EPM* REXX macro Readme
+
+.. =============================================================================
+.2 Help for Start EPM Speech Support
+.. =============================================================================
+.an IDPNL_ICON_SPEECH
+.res 112
+.
+This icon launches the *EPM* Speech Support.
+
+.. =============================================================================
+.2 Help for System Startup shadow
+.. =============================================================================
+.an IDPNL_ICON_STARTSHADOW
+.res 113
+.
+This icon is a shadow of the System Startup folder.
+
+It is intended to give you quick access to the Startup folder
+where the installation program of the [=TITLE] creates a shadow
+of the icon for to start the [.IDPNL_ICON_SPEECH  *EPM* Speech Support].
+       
