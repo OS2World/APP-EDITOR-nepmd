@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.2 2002-06-12 09:12:45 cla Exp $
+: $Id: prepare.cmd,v 1.3 2002-06-12 14:18:04 cla Exp $
 :
 : ===========================================================================
 :
@@ -207,6 +207,12 @@
 
 : --- remove R/O atttributes on all files
 
+ ECHO - remove R/O attributes
  ATTRIB -r %UNZIPPEDDIR%\* /S
+
+: --- make all files lowercase names
+
+ ECHO - lowercase names od directories files
+ LT %UNZIPPEDDIR%
 
 :end
