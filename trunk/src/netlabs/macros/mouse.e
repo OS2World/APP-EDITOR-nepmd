@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.6 2002-10-16 20:57:21 aschn Exp $
+* $Id: mouse.e,v 1.7 2002-10-20 14:18:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -101,20 +101,8 @@ compile if (EPM_POINTER < 1 | EPM_POINTER > 14) & EPM_POINTER <> 'SWITCH'
 compile endif
 
 ; Todo:
-;compile if not defined(WANT_DCLICK_ON_URL_START_BROWSER)
-;   WANT_DCLICK_ON_URL_START_BROWSER = 1
-; compile if not defined(URL_BROWSER_EXE)
-;   --URL_BROWSER_EXE = 'netscape'
-;   URL_BROWSER_EXE = 'DEFAULT'
-;   -- (?) make this configurable by menu items: Netscape/Mozilla/Opera/wget/PMDownloadCenter/AutoWget
-;   -- (?) use default browser from os2.ini
-; compile endif
-;compile endif --WANT_DCLICK_ON_URL_START_BROWSER
 compile if not defined(WANT_DATETIME_IN_TITLE)
    WANT_DATETIME_IN_TITLE = 1
-compile endif
-compile if not defined(NEPMD_SPECIAL_STATUSLINE)
-   NEPMD_SPECIAL_STATUSLINE = 1
 compile endif
 
 const
@@ -211,15 +199,10 @@ defc processmouse
    -- 'processmouse' is called at every mouse action
    if not WindowHadFocus then
 compile if WANT_DATETIME_IN_TITLE
-      -- 'checkifupdated' is defined in DATETIME.E
-      'postme checkifupdated'
+      -- CheckIfUpdated is defined in TITLETEXT.E
+      --'postme checkifupdated'
+      call CheckIfUpdated()
 compile endif
-/*
-compile if NEPMD_SPECIAL_STATUSLINE
-      -- 'refreshstatusline' is defined in statusline.e
-      'postme refreshstatusline'
-compile endif
-*/
    endif
 
    if LMousePrefix<>BlankMouseHandler"." then
@@ -554,7 +537,6 @@ compile endif
    call register_mousehandler(1, 'ENDDRAG', ' ')
    call register_mousehandler(1, 'CANCELDRAG', ' ')
 
-;compile if WANT_WORKAROUND_FOR_MARK_AT_LINEEND
    if Workaround = 1 then
  compile if KEEP_CURSOR_ON_SCREEN
       if saved_toggle <> 0 then
@@ -575,9 +557,8 @@ compile endif
             oldline
          endif
       endif
-   endif  -- Workaround = 1
  compile endif
-;compile endif
+   endif  -- Workaround = 1
 
 
 defc MH_cancel_mark
@@ -725,7 +706,7 @@ compile endif
                endif
             endif
 
-            -- if URL until here, process it
+            -- if URL found until here, process it
             if Url <> '' then
                -- cut off special separators from URL
                SeparatorList = '"'||"'"||')]]>,;!';
@@ -770,20 +751,19 @@ compile endif
                if Browserpath <> '' then
                   call directory( CurrentDirectory)
                endif
-            endif  -- Url = ''
+            endif  -- Url <> ''
 
          endif  -- cursorcol > firstcol and cursorcol < lastcol
 
-         -- if no URL found, process the normal definition
-         if Url = '' then
-            unmark
-            'ClearSharBuff'
-         endif
-
       endif  -- MB1DClickStartsBrowser = 1
 
+      -- if no URL found, process the normal definition
+      if MB1DClickStartsBrowser <> 1 or Url = '' then
+         unmark
+         'ClearSharBuff'
+      endif
 
-   endif
+   endif  -- filename = (.DOS DIR | .tree)
 
 defc MH_shiftclick
    if marktype() then

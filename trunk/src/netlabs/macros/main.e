@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.9 2002-10-18 13:11:51 cla Exp $
+* $Id: main.e,v 1.10 2002-10-20 14:18:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -124,7 +124,8 @@ compile endif
 
    /* E automatically created an empty file when it started.              */
    /* If user specified file(s) to edit, get rid of the empty file.       */
-do i=1 to 1                                                   --<-----------------------------------------
+
+do i=1 to 1  -- use a loop here to make 'leave' omit the rest
    getfileid emptyfileid, UNNAMED_FILE_NAME
    if emptyfileid='' then             -- User deleted it?
       leave
@@ -144,24 +145,6 @@ do i=1 to 1                                                   --<---------------
       call select_edit_keys()
    endif
 end
-
-compile if    CURSOR_ON_COMMAND
-   cursor_command   --<------------------------------------------------------------------- ???
-compile endif
-
-compile if INCLUDE_MENU_SUPPORT /*& not DELAY_MENU_CREATION*/
-   call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
- compile if DEBUG_MAIN
-   messageNwait('DEFMAIN: after SHOWMENU')
- compile endif
-compile endif
-   if should_showwindow then  -- should_showwindow = 1
-   -- see also: STDCNF.E for menu
-      call showwindow('ON')
-compile if DEBUG_MAIN
-      messageNwait('DEFMAIN: after SHOWWINDOW')
-compile endif
-   endif
 
    -- Set default options here to avoid loading of PROFILE.ERX
    -- Note: They can be overwritten with the 'universal' commands in PROFILE.ERX.
@@ -244,4 +227,20 @@ compile endif
 
    -- automatically link .ex files from myepm\autolink
    call NepmdAutoLink()
+
+   -- show menu and window
+   -- this moved to the end of defmain
+compile if INCLUDE_MENU_SUPPORT /*& not DELAY_MENU_CREATION*/
+   call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
+ compile if DEBUG_MAIN
+   messageNwait('DEFMAIN: after SHOWMENU')
+ compile endif
+compile endif
+   if should_showwindow then  -- should_showwindow = 1
+   -- see also: STDCNF.E for menu
+      call showwindow('ON')
+compile if DEBUG_MAIN
+      messageNwait('DEFMAIN: after SHOWWINDOW')
+compile endif
+   endif
 

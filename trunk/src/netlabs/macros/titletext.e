@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: titletext.e,v 1.5 2002-10-19 16:43:39 aschn Exp $
+* $Id: titletext.e,v 1.6 2002-10-20 14:18:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -27,7 +27,9 @@ compile endif
    NEPMD_FLAG_NO_DATETIME        = 'NEPMD2'
    NEPMD_FLAG_MODIFIED           = 'NEPMD3'
 
-defc maketitletext
+; ---------------------------------------------------------------------------
+; Called on defload and defmodify
+defproc MakeTitletext
    -- don't act on invisible files
    if .visible = 0 then
       return
@@ -35,23 +37,31 @@ defc maketitletext
 
    filename = .filename
    if .modify = 0 then
+      ---- if not modified and filename is a temp file (starts with '.') ----
       if leftstr( filename, 1 ) = '.' then
+
          --.titletext = filename
          next = 'ERROR:'NEPMD_FLAG_NO_DATETIME
+      ---- if not modified and filename is not a temp file ----
       else
          next = get_filedatehex( filename )
       endif
+   ---- if modified ----
    else
       --.titletext = filename'   (Modified)'
       next = 'ERROR:'NEPMD_FLAG_MODIFIED
    endif
-   call refreshtitletext(next)
+   call RefreshTitletext(next)
    return
 
+; ---------------------------------------------------------------------------
+; Called by defproc MakeTitletext and defc RefreshTitletext
+; Sets the titletext according to it's arg.
+; arg is either a datetime string or a rc value in the form 'ERROR:'rc
+;
 ; Todo:
-;    o  use templates for the .titletext definitions
-;    o  use the NEPMD style of returning an rc > 0: (ERROR:rc)
-defproc refreshtitletext(next)
+;    use templates for the .titletext definitions
+defproc RefreshTitletext(next)
 
    -- don't act on invisible files
    if .visible = 0 then
@@ -110,38 +120,33 @@ defproc refreshtitletext(next)
    endif  -- rc > ''
    return
 
+; ---------------------------------------------------------------------------
 compile if WANT_DATETIME_IN_TITLE
 defload
-   universal last_defload_fileid
-   getfileid fid
-   last_defload_fileid = fid
-   'maketitletext' -- Better without postme, to let the ring list show datetime
-                   -- strings even if no defselect has occurred for every file before.
+   call MakeTitletext() -- Better without postme, to let the ring list show datetime
+                        -- strings even if no defselect has occurred for every file before.
 
 defmodify
-   'maketitletext'
+   call MakeTitletext()
 
 defselect
-   universal last_defload_fileid
-   getfileid fid
-   if fid = last_defload_fileid then
-   else
-      last_defload_fileid = ''
-      -- do it only if the last loaded/selected file was not this file
-      'postme checkifupdated'
-   endif
+   --'postme checkifupdated'
+   call CheckIfUpdated()
+
+; CheckIfUpdated is also called by defc processmouse; if not WindowHadFocus
 compile endif
 
+; ---------------------------------------------------------------------------
 ; Compares .fileinfo with current return string from DosQueryFileInfo
 ; .fileinfo = string from DosQueryFileInfo, set at every file loading.
-; Calls 'refreshtitletext' with following arg:
+; Calls RefreshTitletext with following arg:
 ;    if modified or if filename starts with '.':
 ;       a special flag
 ;    if not modified:
 ;       the error code or the hex string returned from
 ;       DosQueryFileInfo/get_filedatehex.
 ; Called by defselect and defc processmouse; if not WindowHadFocus
-defc checkifupdated
+defproc CheckIfUpdated
 
    -- don't act on invisible files
    if .visible = 0 then
@@ -150,15 +155,16 @@ defc checkifupdated
 
    filename = .filename
    if leftstr( filename, 1 ) = '.' then
-      -- if temp file
+      ---- if temp file and not modified ----
       if .modify = 0 then
          ret = 'ERROR:'NEPMD_FLAG_NO_DATETIME              -- titletext = filename
+      ---- if temp file and modified ----
       else
          ret = 'ERROR:'NEPMD_FLAG_MODIFIED                 -- titletext = filename'   (Modified)'
       endif
 
+   ---- if not a temp file ----
    else
-      -- if not a temp file
       cur_filedatehex = ltoa(substr(.fileinfo, 9, 4), 16)
       next = get_filedatehex(filename)
       parse value next with 'ERROR:'rc
@@ -175,7 +181,6 @@ defc checkifupdated
             -- if file on disk has the same datetime as file when loaded
             if .modify = 0 then
                ret = next  -- update titletext with new datetime (why?) --> .modify could be changed!
-               --ret = -1    -- skip updating
             else
                ret = 'ERROR:'NEPMD_FLAG_MODIFIED           -- .titletext = filename'   (Modified)'
             endif
@@ -185,12 +190,11 @@ defc checkifupdated
 
    endif
 
-   if ret <> -1 then
-      call refreshtitletext(ret)
-   endif
+   call RefreshTitletext(ret)
 
    return
 
+; ---------------------------------------------------------------------------
 defproc get_filedatehex(filename)
    pathname = filename\0
    resultbuf = copies(\0,30)
@@ -203,6 +207,7 @@ defproc get_filedatehex(filename)
    --return ltoa(substr(resultbuf, 9, 4), 16)
    filedatehex = ltoa(substr(resultbuf, 9, 4), 16)
    if result = 0 then
+      -- the return value can be compared with ltoa(substr(.fileinfo, 9, 4), 16)
       ret = filedatehex
    else
       ret = 'ERROR:'result
@@ -210,7 +215,8 @@ defproc get_filedatehex(filename)
    --sayerror 'get_filedatehex: ret = 'ret
    return ret
 
-
+; ---------------------------------------------------------------------------
+; Todo: use NLS settings from OS2.INI
 defproc filedatehex2datetime(hexstr)
    -- add leading zero if length < 8
    hexstr = rightstr( hexstr, 8, 0 )

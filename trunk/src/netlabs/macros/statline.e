@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: statline.e,v 1.4 2002-10-19 16:59:49 aschn Exp $
+* $Id: statline.e,v 1.5 2002-10-20 14:18:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -122,6 +122,8 @@ compile endif
 
 ; ---------------------------------------------------------------------
 compile if NEPMD_SPECIAL_STATUSLINE
+; on defload: refreshstatusline is called by NepmdProcessMode
+
 defmodify
    'refreshstatusline'                      -- Update status line text and color
 
@@ -130,8 +132,8 @@ defselect
 compile endif
 
 ; refreshstatusline is also called from:
-; - defc mode        MODE.E
-; - defc setconfig   STDCTRL.E
-; - defc ma,margins  STDCMDS.E
-; - defc tabs        STDCMDS.E
+; - defproc NepmdProcessMode  MODE.E
+; - defc setconfig            STDCTRL.E
+; - defc ma,margins           STDCMDS.E
+; - defc tabs                 STDCMDS.E
 
