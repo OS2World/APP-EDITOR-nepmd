@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.12 2002-11-05 20:26:25 cla Exp $
+.. $Id: neusreng.txt,v 1.13 2002-11-05 21:08:27 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -336,6 +336,16 @@ This folder contains the following icons to aid in the development of *EPM* exte
 .ul compact
 - You need to install the *Programming samples*
   of the [=TITLE] in order to have this icon within the the NEPMD folder
+
+.. .............................................................................
+.4 myepm
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_MYEPMSHADOW
+.
+This shadow object represents the 
+*[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]* directory below the installation
+directory of the [=TITLE], where the user
+stores the files for extending the [.IDPNL_CONFIG configuration of EPM].
 
 .. .............................................................................
 .4 Start EPM Speech Support
