@@ -1,5 +1,5 @@
 /*
- *      RECOMP.CMD - V2.0 C.Langanke for Netlabs EPM Distribution Project 2002
+ *      RECOMP.CMD - V1.0 C.Langanke for Netlabs EPM Distribution Project 2002
  *
  *      Syntax: recomp.cmd
  *
@@ -19,7 +19,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.cmd,v 1.1 2002-04-18 16:11:10 cla Exp $
+* $Id: recomp.cmd,v 1.2 2002-04-18 16:13:17 cla Exp $
 *
 * ===========================================================================
 *
