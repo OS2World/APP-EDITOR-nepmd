@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.6 2004-11-30 21:38:12 aschn Exp $
+* $Id: newmenu.e,v 1.7 2005-01-30 22:53:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1114,7 +1114,7 @@ defproc add_search_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, SCAN_TAGS_MENU__MSG,                                                  -- Scan current file...
+   buildmenuitem menuname, mid, i, SCAN_TAGS_MENU__MSG\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+T',                                                  -- Scan current file...
                                    'tagscan' ||
                                    SCAN_TAGS_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_SEARCH_TAGS, 0)
