@@ -23,7 +23,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rmwpi.cmd,v 1.5 2002-08-13 16:13:36 cla Exp $
+* $Id: rmwpi.cmd,v 1.6 2002-08-16 22:35:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.5 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.6 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -238,7 +238,7 @@ RemoveEmptyDirectories: PROCEDURE EXPOSE (GlobalVars)
 RemoveApp: PROCEDURE EXPOSE (GlobalVars)
  PARSE ARG IniFile, AppId;
 
- ZeroByte  = '00'x;
+ ZeroByte  = '0'x;
 
  FileCount   = 0;
  Objectcount = 0;
@@ -254,6 +254,16 @@ RemoveApp: PROCEDURE EXPOSE (GlobalVars)
     DO
        SAY '  - deinstall program executed:' DeinstCall;
        'CALL' DeinstCall;
+    END;
+
+    /* remove profile entries */
+    PARSE VALUE SysIni( IniFile, AppId, 'WritePrfDone') WITH PrfList;
+    IF (PrfList \= 'ERROR:') THEN
+    DO WHILE (PrfList \= '')
+       PARSE VAR PrfList ThisPrfEntry(ZeroByte)PrfList;
+       PARSE VAR ThisPrfEntry ThisIni'\'ThisApp'\'ThisKey;
+       SAY '  - removed profile entry:' ThisIni '-' ThisApp '-' ThisKey;
+       rcx = SysIni( ThisIni, ThisApp, ThisKey, 'DELETE:');
     END;
 
     /* remove files */
