@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: callrexx.e,v 1.3 2002-08-09 19:44:32 aschn Exp $
+* $Id: callrexx.e,v 1.4 2004-06-04 00:08:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,12 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+/*
+Todo:
+- Part 2 contains defprocs, defined as defcs to use them in REXX.
+  Move them to where they belong to.
+*/
+
 /*
  * Name        CallRexx
  *
@@ -33,34 +39,35 @@
  */
 
 const
-   RXCOMMAND       = '0'
-   RXSUBROUTINE    = '1'          -- Program called as Subroutine
-   RXFUNCTION      = '2'
-   RXFUNC_DYNALINK = '1'          -- Function Available in DLL
-   RXFUNC_CALLENTRY ='2'          -- Registered as mem entry pt.
+   RXCOMMAND        = '0'
+   RXSUBROUTINE     = '1'          -- Program called as Subroutine
+   RXFUNCTION       = '2'
+   RXFUNC_DYNALINK  = '1'          -- Function Available in DLL
+   RXFUNC_CALLENTRY = '2'          -- Registered as mem entry pt.
 
 compile if not defined(ERES_DLL)  -- Being compiled separately?  (For debug use...)
    include 'STDCONST.E'
    include 'ENGLISH.E'
 compile endif
 
+; ---------------------------------------------------------------------------
 defc epmrexx,rx=
-   parse value arg(1) with  macro getall
-   if macro='' then
+   parse value arg(1) with macro getall
+   if macro = '' then
       sayerror RX_PROMPT__MSG
       return
    endif
-   call parse_filename(macro, .filename)
-   if not pos('.',substr(macro,lastpos('\',macro)+1)) then
-      macro=macro||'.erx'   /* add the default extention */
+   call parse_filename( macro, .filename)
+   if not pos( '.', substr( macro, lastpos( '\', macro) + 1)) then
+      macro = macro'.erx'   /* add the default extention */
    endif
               /* Try to register the subcommand interface */
-   rc= rexxsubcomregister()
+   rc = rexxsubcomregister()
    if rc then
       sayerror RX_SUBCOM_FAIL__MSG rc
       return
    endif
-   rc= rexxfunctionregister()
+   rc = rexxfunctionregister()
    if rc then
       sayerror RX_FUNC_FAIL__MSG rc
       return
@@ -81,12 +88,14 @@ defc epmrexx,rx=
 ;  len = length(string) + length(functionname) + length(envname) + 2 + 8
 ;  string_ofs = 0
    func_ofs = 8  -- length(string)
-   env_ofs = func_ofs + length(functionname)
-   rc_ofs = env_ofs + 4
-   res_ofs = rc_ofs + 4  -- return code is a long
+   env_ofs  = func_ofs + length(functionname)
+   rc_ofs   = env_ofs + 4
+   res_ofs  = rc_ofs + 4  -- return code is a long
    parm_ofs = res_ofs + 8
-   len = parm_ofs + length(getall)
-   bufhndl  = substr(atol(dynalink32(E_DLL, 'mymalloc', atol(len), 2)), 3, 2)
+   len      = parm_ofs + length(getall)
+   bufhndl  = substr( atol( dynalink32( E_DLL,
+                                        'mymalloc',
+                                        atol(len), 2)), 3, 2)
    bufhndla =  ltoa(bufhndl\0\0, 10)
    r = -270 * (bufhndla = 0)
 
@@ -97,57 +106,59 @@ defc epmrexx,rx=
    poke bufhndla, env_ofs, 'EPM'\0
    poke bufhndla, parm_ofs, getall
 
-   result=dynalink32('REXX',                   -- dynamic link library name
-                     '#1',   -- 'RexxStart',   -- Rexx input function
-                     atol(1)                || -- Num of args passed to rexx
-                     \0\0                   || -- offset of Arglist
-                     bufhndl                || -- selector of "
-                     atoi(func_ofs)         || -- offset of program name
-                     bufhndl                || -- selector of "
-                     atol(0)                || -- Loc of rexx proc in memory
-                     atoi(env_ofs)          || -- offset of env.
-                     bufhndl                || -- sel. ASCIIZ initial environment.
-                     atol(RXCOMMAND )       || -- type (command,subrtn,funct)
-                     atol(0)                || -- SysExit env. names &  codes
-                     atoi(rc_ofs)           || -- offset Ret code from if numeric
-                     bufhndl                || -- sel. Ret code from if numeric
-                     atoi(res_ofs)          || -- offset Retvalue from the rexx proc
-                     bufhndl)                  -- selector of "
+   result = dynalink32( 'REXX',                   -- dynamic link library name
+                        '#1',   -- 'RexxStart',   -- Rexx input function
+                        atol(1)                || -- Num of args passed to rexx
+                        \0\0                   || -- offset of Arglist
+                        bufhndl                || -- selector of "
+                        atoi(func_ofs)         || -- offset of program name
+                        bufhndl                || -- selector of "
+                        atol(0)                || -- Loc of rexx proc in memory
+                        atoi(env_ofs)          || -- offset of env.
+                        bufhndl                || -- sel. ASCIIZ initial environment.
+                        atol(RXCOMMAND)        || -- type (command,subrtn,funct)
+                        atol(0)                || -- SysExit env. names &  codes
+                        atoi(rc_ofs)           || -- offset Ret code from if numeric
+                        bufhndl                || -- sel. Ret code from if numeric
+                        atoi(res_ofs)          || -- offset Retvalue from the rexx proc
+                        bufhndl)                  -- selector of "
 
 ;  .autoshell = saveautoshell
-   rc= rexxsubcomdrop()
+   rc = rexxsubcomdrop()
       if rc then
          sayerror RX_SUBCOM_FAIL__MSG rc
 ;;       return
       endif
    if result then
       rc = result
-      if result=-3 | result=65533 then
+      if result = -3 | result = 65533 then
          result = result':  'FILE_NOT_FOUND__MSG '('macro')'
       endif
       sayerror 'Rexx:  'ERROR__MSG result
    else
-      rc = ltoa(peek(bufhndla, rc_ofs, 4) ,10)  -- Set universal RC for use by callers.
+      rc = ltoa( peek( bufhndla, rc_ofs, 4), 10)  -- Set universal RC for use by callers.
    endif
 /* debug info...
-   rcresult = peek(bufhndla,rc_ofs,2)
-   resultstring = peek(bufhndla,res_ofs,8)
-   peekseg=itoa(substr( resultstring ,7 ,2),10)
-   peekoff=itoa(substr( resultstring ,5 ,2),10)
-   peeklen=ltoa(substr( resultstring ,1 ,4),10)
+   rcresult = peek( bufhndla, rc_ofs, 2)
+   resultstring = peek( bufhndla, res_ofs, 8)
+   peekseg = itoa( substr( resultstring, 7, 2), 10)
+   peekoff = itoa( substr( resultstring, 5, 2), 10)
+   peeklen = ltoa( substr( resultstring, 1, 4), 10)
    sayerror 'result='result'; Input <'||getall||'>  and the result from REXX is <'|| peek(peekseg,peekoff,peeklen)||'>; rc='rc
 */
-   call dynalink32(E_DLL,         -- dynamic link library name
-                   'myfree',                   -- DosFreeSeg
-                   atoi(0) ||  -- add an offset to make the selector an address
-                   bufhndl)
+   call dynalink32( E_DLL,         -- dynamic link library name
+                    'myfree',                   -- DosFreeSeg
+                    atoi(0) ||  -- add an offset to make the selector an address
+                    bufhndl)
 
-defc rxme =  -- Invoke current file as a Rexx macro, passing it the arguments specified (if any).
+; ---------------------------------------------------------------------------
+; Invoke current file as a Rexx macro, passing it the arguments specified (if any).
+defc rxme =
    if .modify then
-      result = winmessagebox("RxMe", MODIFIED_PROMPT__MSG, MB_YESNOCANCEL + MB_ICONQUESTION + MB_MOVEABLE)
-      if result=MBID_YES then
+      result = winmessagebox( "RxMe", MODIFIED_PROMPT__MSG, MB_YESNOCANCEL + MB_ICONQUESTION + MB_MOVEABLE)
+      if result = MBID_YES then
          'save'
-      elseif result=MBID_NO then
+      elseif result = MBID_NO then
          -- nop
       else
          return
@@ -161,129 +172,142 @@ defc rxme =  -- Invoke current file as a Rexx macro, passing it the arguments sp
 
    'rx' .filename arg(1)
 
-/*
- *    Register the EPM subcommand DLL.
- *    Store the EPM window handle in the Rexx subcommand user area.
- */
+; ---------------------------------------------------------------------------
+; Register the EPM subcommand DLL.
+; Store the EPM window handle in the Rexx subcommand user area.
 defproc rexxsubcomregister()
    pib = 1234
    tid = 1234
 
-   call dynalink32('DOSCALLS',      /* dynamic link library name       */
-                   '#312',           /* ordinal value for DOS32GETINFOBLOCKS */
-                   address(tid) ||
-                   address(pib), 2)
+   call dynalink32( 'DOSCALLS',      /* dynamic link library name       */
+                    '#312',           /* ordinal value for DOS32GETINFOBLOCKS */
+                    address(tid) ||
+                    address(pib), 2)
 
-   pid = peek32(ltoa(pib, 10), 0, 4)
+   pid = peek32( ltoa( pib, 10), 0, 4)
 
-   SubcomName='EPM'\0
-   SubcomDLL =ERES_DLL\0
-   SubcomProc='ERESREXX'\0
-   UserArea  =atol(getpminfo(EPMINFO_EDITCLIENT)) || pid
+   SubcomName = 'EPM'\0
+   SubcomDLL  = ERES_DLL\0
+   SubcomProc = 'ERESREXX'\0
+   UserArea   = atol(getpminfo(EPMINFO_EDITCLIENT)) || pid
 
-   result=dynalink32('REXXAPI',
-                     '#6',        -- 'RexxRegisterSubcomDll',
-                     address(SubcomName) ||
-                     address(SubcomDll)  ||
-                     address(SubcomProc) ||
-                     address(UserArea)   ||
-                     atol(0))
-
-   if result & result<>10 then  -- 10 = RXSUBCOM_DUP; registration was successful.
-      result=dynalink32('REXXAPI',
-                        '#9',       -- 'RexxDeregisterSubcom',
-                         address(SubcomName) ||
-                         address(SubcomDll) )
-      if result & result<>30 then   -- 30 = RXSUBCOM_NOTREG
-         return result
-      endif
-
-      result=dynalink32('REXXAPI',
-                        '#6', -- 'RexxRegisterSubcomDll',
+   result = dynalink32( 'REXXAPI',
+                        '#6',        -- 'RexxRegisterSubcomDll',
                         address(SubcomName) ||
                         address(SubcomDll)  ||
                         address(SubcomProc) ||
                         address(UserArea)   ||
                         atol(0))
-      if result=10 then  result=0; endif  -- 10 = RXSUBCOM_DUP; registration was successful.
+
+   if result & result <> 10 then  -- 10 = RXSUBCOM_DUP; registration was successful.
+      result = dynalink32( 'REXXAPI',
+                           '#9',       -- 'RexxDeregisterSubcom',
+                            address(SubcomName) ||
+                            address(SubcomDll))
+      if result & result <> 30 then   -- 30 = RXSUBCOM_NOTREG
+         return result
+      endif
+
+      result = dynalink32( 'REXXAPI',
+                           '#6', -- 'RexxRegisterSubcomDll',
+                           address(SubcomName) ||
+                           address(SubcomDll)  ||
+                           address(SubcomProc) ||
+                           address(UserArea)   ||
+                           atol(0))
+      if result = 10 then  -- 10 = RXSUBCOM_DUP; registration was successful.
+         result=0
+      endif
       return result
    endif
-return 0
+   return 0
 
+; ---------------------------------------------------------------------------
 defproc rexxsubcomdrop()
-   scbname='EPM'\0
-   scbdll_name=ERES_DLL\0
-   result=dynalink32('REXXAPI',
-                     'RexxDeregisterSubcom',
-                      address(scbname)   ||
-                      address(scbdll_name) )
+   scbname     = 'EPM'\0
+   scbdll_name = ERES_DLL\0
+   result = dynalink32( 'REXXAPI',
+                        'RexxDeregisterSubcom',
+                         address(scbname)   ||
+                         address(scbdll_name))
    return result
 
-/*
- *    Call the PIPEDLL dynamic link library.
- *    This function will start a window and allows
- *    interaction with the standard input and standard output of EPM.
- */
+; ---------------------------------------------------------------------------
+; Call the PIPEDLL dynamic link library.
+; This function will start a window and allows
+; interaction with the standard input and standard output of EPM.
 defc rxshell=
-   if arg(1)='' then
-      string='PMMORE.EXE'\0
+   if arg(1) = '' then
+      string = 'PMMORE.EXE'\0
    else
-      string=arg(1)\0
+      string = arg(1)\0
    endif
-   result=dynalink32(ERES_DLL,                  /* dynamic link library name       */
-                     'PipeStartExecution',      /* input function                  */
-                     address(string) )          /* command to execute              */
+   result = dynalink32( ERES_DLL,                  /* dynamic link library name       */
+                        'PipeStartExecution',      /* input function                  */
+                        address(string))           /* command to execute              */
 
 
-/*
- *    Register the EPM functions.
- */
+; ---------------------------------------------------------------------------
+; Register the EPM functions.
 defproc rexxfunctionregister()
-   functionname='all'\0
-   result=dynalink32(ERES_DLL,                 /* dynamic link library name  */
-                    'EtkRexxFunctionRegister',  /* Rexx input function        */
-                    address(functionname))
+   functionname = 'all'\0
+   result = dynalink32( ERES_DLL,                 /* dynamic link library name  */
+                        'EtkRexxFunctionRegister',  /* Rexx input function        */
+                        address(functionname))
    if result then
-       call messagenwait(ERES_DLL': ETKREXXFUNCTIONREGISTER: rc='result);
+       call messagenwait( ERES_DLL': ETKREXXFUNCTIONREGISTER: rc='result);
    endif
    return result
 
+
+; ---------------------------------------------------------------------------
+;                                 PART 2
+; ---------------------------------------------------------------------------
+;       Define some procedures as commands to make them usable in REXX
+; ---------------------------------------------------------------------------
 defc buildsubmenu
    parse arg menuname submenuid submenutext attrib helppanel e_command
    buildsubmenu menuname, submenuid, submenutext, e_command, attrib, helppanel
 
+; ---------------------------------------------------------------------------
 defc buildmenuitem
    parse arg menuname submenuid menuitemid submenutext attrib helppanel e_command
-   buildmenuitem menuname,submenuid,menuitemid,submenutext,e_command,attrib,helppanel
+   buildmenuitem menuname, submenuid, menuitemid, submenutext, e_command, attrib, helppanel
 
+; ---------------------------------------------------------------------------
 defc showmenu
    universal activemenu, defaultmenu
    activemenu = arg(1)
-   if activemenu=defaultmenu then
+   if activemenu = defaultmenu then
       call showmenu_activemenu()  -- This handles the posting of cascademenu cmds, if necessary.
    else
       showmenu activemenu         -- Just show the updated EPM menu
    endif
 
+; ---------------------------------------------------------------------------
 defc deletemenu
    parse arg menuname submenuid menuitemid itemonly
    deletemenu menuname, submenuid, menuitemid, itemonly
 
+; ---------------------------------------------------------------------------
 defc showlist
-   if arg(1)<>'' then
-      return listbox('List',arg(1));
+   if arg(1) <> '' then
+      return listbox( 'List', arg(1))
    endif
 
+; ---------------------------------------------------------------------------
 defc sayerror = sayerror arg(1)
 
+; ---------------------------------------------------------------------------
 defc buildaccel
    universal activeaccel
    parse arg table flags key index command
-   if table='*' then
+   if table = '*' then
       table = activeaccel
    endif
    buildacceltable table, command, flags, key, index
 
+; ---------------------------------------------------------------------------
 defc activateaccel
    universal activeaccel
    parse arg newtable .
@@ -292,13 +316,16 @@ defc activateaccel
    endif
    activateacceltable activeaccel
 
+; ---------------------------------------------------------------------------
 defc register_mouse
    parse arg which button action shifts command
-   call register_mousehandler(which, button action shifts, command)
+   call register_mousehandler( which, button action shifts, command)
 
+; ---------------------------------------------------------------------------
 defc display
    display arg(1)
 
+; ---------------------------------------------------------------------------
 defc universal
    universal default_search_options, default_edit_options, default_save_options
    universal defload_profile_name
@@ -320,15 +347,16 @@ defc universal
       sayerror -263  -- Invalid argument
    endif
 
+; ---------------------------------------------------------------------------
 defc Insert_attr_val_Pair
    parse arg class attr_val fstline lstline fstcol lstcol fid
-   if attr_val='' | (fstline<>'' & lstcol='') then
+   if attr_val = '' | (fstline <> '' & lstcol = '') then
       sayerror -263  -- Invalid argument
       return
    endif
    mt = marktype()
-   if fstline='' then  -- assume mark
-      if mt='' then
+   if fstline = '' then  -- assume mark
+      if mt = '' then
          sayerror NO_MARK__MSG
          return
       endif
@@ -336,41 +364,61 @@ defc Insert_attr_val_Pair
    else
       mt = 'CHAR'
    endif
-   if fid='' then   -- default to current file
+   if fid = '' then   -- default to current file
       getfileid fid
    endif
-   if leftstr(mt,5)='BLOCK' then
+   if leftstr( mt, 5) = 'BLOCK' then
       do i = fstline to lstline
-         Insert_Attribute_Pair(class, attr_val, i, i, fstcol, lstcol, fid)
+         Insert_Attribute_Pair( class, attr_val, i, i, fstcol, lstcol, fid)
       enddo
    else
-      if mt='LINE' then
+      if mt = 'LINE' then
          getline line, lstline, mkfileid
-         lstcol=length(line)
+         lstcol = length(line)
       endif
-      Insert_Attribute_Pair(class, attr_val, fstline, lstline, fstcol, lstcol, fid)
+      Insert_Attribute_Pair( class, attr_val, fstline, lstline, fstcol, lstcol, fid)
    endif
 
+; ---------------------------------------------------------------------------
 defc Insert_attribute
    parse arg class attr_val IsPush offst col line fid junk
-   if offst='' | junk<>'' then
+   if offst = '' | junk <> '' then
       sayerror -263  -- Invalid argument
       return
    endif
-   if fid='' then   -- default to current file
+   if fid = '' then   -- default to current file
       getfileid fid
-      if line='' then   -- default to current file
+      if line = '' then   -- default to current file
          line = .line
-         if col='' then   -- default to current file
+         if col = '' then   -- default to current file
             col = .col
          endif
       endif
    endif
    insert_attribute class, attr_val, IsPush, offst, col, line, fid
 
+; ---------------------------------------------------------------------------
 defc attribute_on
    if isnum(arg(1)) then
       call attribute_on(arg(1))
    else
       sayerror -263  -- Invalid argument
    endif
+
+; ---------------------------------------------------------------------------
+defc saveuserstring
+   universal saveduserstring
+   saveduserstring = .userstring
+
+defc restoreuserstring
+   universal saveduserstring
+   .userstring = saveduserstring
+
+defc field2userstring
+   universal EPM_utility_array_id
+   fieldname = arg(1)
+   getfileid fid
+   rc = get_array_value( EPM_utility_array_ID, fieldname'.'fid, CurValue)
+   .userstring = CurValue
+
+
