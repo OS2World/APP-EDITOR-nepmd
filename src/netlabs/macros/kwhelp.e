@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.19 2004-06-04 00:47:19 aschn Exp $
+* $Id: kwhelp.e,v 1.20 2004-06-04 07:31:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -55,6 +55,11 @@ const
  compile if SITE_CONFIG
    tryinclude SITE_CONFIG
  compile endif
+
+ compile if not defined(NLS_LANGUAGE)
+  const NLS_LANGUAGE = 'ENGLISH'
+ compile endif
+include NLS_LANGUAGE'.e'
 
 defmain
    'kwhelp'
