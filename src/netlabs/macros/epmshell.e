@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.3 2002-08-09 19:35:33 aschn Exp $
+* $Id: epmshell.e,v 1.4 2003-07-06 15:27:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -94,8 +94,10 @@ defc shell_kill   -- destroys a shell object
       sayerror NOT_IN_SHELL__MSG
       return
    endif
-   do_array 3, EPM_utility_array_ID, 'Shell_f'shellnum, shellfid
-   do_array 3, EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle
+   --do_array 3, EPM_utility_array_ID, 'Shell_f'shellnum, shellfid
+   rc = get_array_value( EPM_utility_array_ID, 'Shell_f'shellnum, shellfid )
+   --do_array 3, EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle
+   rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle )
    null=''
    if shellhandle<>'' then
       retval = SUE_free(ShellHandle);
@@ -130,7 +132,8 @@ defc Shell_Write
       sayerror NOT_IN_SHELL__MSG
       return
    endif
-   do_array 3, EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle
+   --do_array 3, EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle
+   rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle )
    if shellhandle<>'' then
       if text='' then
          shell_title = strip(WRITE_SHELL_MENU__MSG, 'T', '.')  -- '~Write to shell...'
@@ -236,8 +239,10 @@ defc NowCanReadShell
       sayerror 'NowCanReadShell:  'INVALID_ARG__MSG '"'arg(1)'"'
       return
    endif
-   do_array 3, EPM_utility_array_ID, 'Shell_f'shellnum, shellfid
-   do_array 3, EPM_utility_array_ID, 'Shell_h'shellnum, shellhandle
+   --do_array 3, EPM_utility_array_ID, 'Shell_f'shellnum, shellfid
+   rc = get_array_value( EPM_utility_array_ID, 'Shell_f'shellnum, shellfid )
+   --do_array 3, EPM_utility_array_ID, 'Shell_h'shellnum, shellhandle
+   rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellhandle )
    bytesmoved = 1;
    while bytesmoved do
       readbuf = copies(' ',MAXCOL)
@@ -317,8 +322,10 @@ defc shell_break  -- Sends a Break to a shell object
       sayerror NOT_IN_SHELL__MSG
       return
    endif
-   do_array 3, EPM_utility_array_ID, 'Shell_f'shellnum, shellfid
-   do_array 3, EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle
+   --do_array 3, EPM_utility_array_ID, 'Shell_f'shellnum, shellfid
+   rc = get_array_value( EPM_utility_array_ID, 'Shell_f'shellnum, shellfid )
+   --do_array 3, EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle
+   rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle )
    if shellhandle<>'' then
       retval = SUE_break(ShellHandle);
       if retval then sayerror ERROR_NUMBER__MSG retval; endif

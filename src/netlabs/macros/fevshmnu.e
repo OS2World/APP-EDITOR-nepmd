@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fevshmnu.e,v 1.6 2002-09-16 19:49:13 aschn Exp $
+* $Id: fevshmnu.e,v 1.7 2003-07-06 15:27:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -697,7 +697,8 @@ defc menuinit_300               ------------- Menu id 300 -- Search ------------
 compile if WANT_BOOKMARKS
 defc menuinit_310                ------------- Menu id 310 -- Bookmarks --------------------
    universal EPM_utility_array_ID
-   do_array 3, EPM_utility_array_ID, 'bmi.0', bmcount          -- Index says how many bookmarks there are
+   --do_array 3, EPM_utility_array_ID, 'bmi.0', bmcount          -- Index says how many bookmarks there are
+   rc = get_array_value( EPM_utility_array_ID, 'bmi.0', bmcount )          -- Index says how many bookmarks there are
    SetMenuAttribute( 311, 16384, not(browse() | .readonly))  -- Set
    SetMenuAttribute( 312, 16384, bmcount>0)   -- List
    SetMenuAttribute( 314, 16384, bmcount>0)   -- Next

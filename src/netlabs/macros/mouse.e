@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.7 2002-10-20 14:18:12 aschn Exp $
+* $Id: mouse.e,v 1.8 2003-07-06 15:27:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -464,7 +464,8 @@ compile endif
          getfileid fid
          -- Get keyword highlighting file for this file
          -- (The array var 'kwfile.'fid is set by defc toggle_parse in STDCTRL.E)
-         do_array 3, EPM_utility_array_ID, 'kwfile.'fid, kwfilename  --AS--
+         do_array 3, EPM_utility_array_ID, 'kwfile.'fid, kwfilename
+         rc = get_array_value( EPM_utility_array_ID, 'kwfile.'fid, kwfilename )
          'toggle_parse' 0
       endif
 
