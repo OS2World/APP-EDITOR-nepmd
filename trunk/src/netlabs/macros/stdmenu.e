@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.7 2002-09-21 20:20:18 aschn Exp $
+* $Id: stdmenu.e,v 1.8 2002-09-21 20:51:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -143,7 +143,7 @@ compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
 compile endif
 
    buildsubmenu  menuname, 8, EDIT_BAR__MSG, ''EDIT_BARP__MSG, 0 , mpfrom2short(HP_EDIT, 0)
-      buildmenuitem menuname, 8, 816, UNDO_MENU__MSG\9 || ALT_KEY__MSG'+'BACKSPACE_KEY__MSG,   'UNDO 1'UNDO_MENUP__MSG,    0, mpfrom2short(HP_EDIT_UNDO, 0)
+      buildmenuitem menuname, 8, 816, UNDO_MENU__MSG\9 || ALT_KEY__MSG'+'BACKSPACE_KEY__MSG' | F9',   'UNDO 1'UNDO_MENUP__MSG,    0, mpfrom2short(HP_EDIT_UNDO, 0)
       buildmenuitem menuname, 8, 818, UNDO_REDO_MENU__MSG\9 || CTRL_KEY__MSG'+U', 'undodlg'UNDO_REDO_MENUP__MSG,      0, mpfrom2short(HP_EDIT_UNDOREDO, 0)
 compile if WANT_DM_BUFFER
       buildmenuitem menuname, 8, 817, RECOVER_MARK_MENU__MSG,        'GetDMBuff'RECOVER_MARK_MENUP__MSG,    0, mpfrom2short(HP_EDIT_RECOVER, 0)
@@ -404,6 +404,22 @@ compile if WANT_EPM_SHELL = 1
 ;     buildmenuitem menuname, 1, 104, KILL_SHELL_MENU__MSG,         'shell_kill'KILL_SHELL_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_KILL, 16384)
       buildmenuitem menuname, 1, 104, SHELL_BREAK_MENU__MSG,        'shell_break'SHELL_BREAK_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_BREAK, 16384)
 compile endif
+      buildmenuitem menuname, 1, 110, \0,                      '',            4, 0
+-- Todo: replace all strings and add consts for menu styles ------------------------------------------------------
+      buildmenuitem menuname, 1, 111, 'Edit PROFILE.ERX'         , 'ep profile.erx path'\1, 0, 0  -- <----------- Todo: adapt to real search path
+      buildmenuitem menuname, 1, 112, 'Edit MYCNF.E'             , 'ep mycnf.e epmpath'\1 , 0, 0
+;      buildmenuitem menuname, 1, 113, "Edit user's EPM.ENV"      , 'e %NEPMD_USERENVFILE%'\1    , 0, 0
+      buildmenuitem menuname, 1, 113, "Edit user's EPM.ENV"      , 'e %NEPMD_ROOTDIR%\myepm\bin\epm.env'\1    , 0, 0
+      buildmenuitem menuname, 1, 114, 'Open EPM.INI'             , 'start /c /min open %BOOTDRIVE%\os2\epm.ini'\1    , 0, 0  -- <-------- Todo: replace 'open' call and %BBOTDRIVE%, get EPM.INI from OS2.INI
+      buildmenuitem menuname, 1, 115, 'Open NEPMD.INI'           , 'start /c /min open %NEPMD_ROOTDIR%\myepm\bin\nepmd.ini'\1    , 0, 0  -- <-------- Todo: replace 'open' call
+      buildmenuitem menuname, 1, 116, 'Open NETLABS\MACROS\*.E'  , 'o %NEPMD_ROOTDIR%\netlabs\macros\*.e'\1    , 0, 0
+      buildmenuitem menuname, 1, 117, 'Open MYEPM\MACROS\*.E'    , 'o %NEPMD_ROOTDIR%\myepm\macros\*.e'\1    , 0, 0
+      buildmenuitem menuname, 1, 120, \0,                      '',            4, 0
+      buildmenuitem menuname, 1, 121, 'Open NEPMD programs folder', 'start /c /min open "<NEPMD_FOLDER>"'\1, 0, 0  -- <-------- Todo: replace 'open' call
+      buildmenuitem menuname, 1, 122, 'Open NEPMD root folder'   , 'start /c /min open %NEPMD_ROOTDIR%'\1, 0, 0  -- <-------- Todo: replace 'open' call
+      buildmenuitem menuname, 1, 123, 'Open folder of EPM.EXE'   , 'start /c /min open %NEPMD_EPMEXECUTABLE%\..'\1, 0, 0  -- <-------- Todo: replace 'open' call
+      buildmenuitem menuname, 1, 130, \0,                      '',            4, 0
+      buildmenuitem menuname, 1, 131, 'Recompile EPM.E' , 'start %NEPMD_ROOTDIR%\netlabs\bin\recomp.exe %NEPMD_ROOTDIR%\myepm\ex /START /NOLOG', 0, 0
    return
 
 defproc add_help_menu(menuname)
