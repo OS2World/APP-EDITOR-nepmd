@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.21 2002-08-28 19:39:32 cla Exp $
+.. $Id: makefile.txt,v 1.22 2002-08-29 14:50:22 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -755,7 +755,7 @@ of the following:
 - the type name of the comment (like [.IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX],
   [.IDPNL_APPENDIX_DOCCOMMENTS_PARM], .etc.)
 - if it is a link to a dedicated parameter section, an additional underscore
-  plus the _case sentitve_ name of the parameter
+  plus the name of the parameter un uppercase characters
 
 The following examples show you how to write a link in [.IDPNL_REQUIREMENTS_HTEXT] syntax, 
 but without specifying a link text (so these examples would display the title of the linked
@@ -768,7 +768,7 @@ beween the anchorname (sparated by a space character) and the closing square bra
 = links syntax panel of function NepmdQueryFullname
 - [[.IDPNL__EFUNC__NEPMDDELETESTRINGEA__PARM]]
 = links parameter overview panel of function NepmdDeleteStringEa
-- [[.IDPNL__EFUNC__NEPMDERRORMSGBOX__PARM__BoxMessage]]
+- [[.IDPNL__EFUNC__NEPMDERRORMSGBOX__PARM__BOXMESSAGE]]
 = links panel for parameter BoxMessage of function NepmdErrorMsgBox
 - [[.IDPNL__EFUNC__NEPMDGETINSTVALUE__RETURNS]]
 = links results panel of function NepmdGetInstValue
