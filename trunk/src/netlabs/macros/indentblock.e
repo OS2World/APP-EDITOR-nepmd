@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: indentblock.e,v 1.1 2004-07-01 12:12:28 aschn Exp $
+* $Id: indentblock.e,v 1.2 2004-07-03 08:30:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -20,6 +20,8 @@
 ****************************************************************************/
 
 compile if not defined(SMALL) then
+define INCLUDING_FILE = 'INDENTBLOCK.E'
+
 defmain
    'indentblock 'arg(1)
 compile endif
@@ -43,8 +45,11 @@ defc indentblock
    --getmark firstLine, lastLine, firstCol, lastCol, fId
    --sayerror firstLine',' lastLine',' firstCol',' lastCol',' mt
    mt = strip( mt, 't', 'G')
-   if curfid <> fid | mt = '' then  -- check if current file is marked
+   if mt = '' then  -- check if any file is marked
       WasMarked = 0
+   elseif mt <> '' & curfid <> fid then  -- check if another file in ring is marked
+      WasMarked = 0
+      unmark
    elseif mt = 'LINE' or mt = 'BLOCK' then
       WasMarked = 1
    elseif mt = 'CHAR' then
@@ -153,6 +158,9 @@ defc indentblock
       setmark firstLine, lastLine, firstCol, lastCol, mt, fId
    endif
 
-   .modify = savedmodify + 1
+   if .modify > savedmodify then
+      .modify = savedmodify + 1
+   endif
    .autosave = savedautosave
+
 
