@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.4 2002-09-04 15:38:22 cla Exp $
+* $Id: querypathinfo.e,v 1.5 2002-09-05 13:23:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -64,21 +64,30 @@ NepmdQueryPathInfo returns either
 
 defc NepmdQueryPathInfo, QueryPathInfo
 
- parse value arg( 1) with PathName ValueTag;
+ PathName = arg( 1);
 
- if (ValueTag = '') then
-    sayerror 'error: no value tag specified !';
+ if (PathName = '') then
+    sayerror 'error: no pathname specified !';
     return;
  endif
 
- InfoValue = NepmdQueryPathInfo( PathName, ValueTag);
- parse value InfoValue with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'error: could not retrieve value for "'ValueTag'", rc='rc;
-    return;
- endif
+ 'xcom e /c .TEST_NEPMDQUERYPATHINFO';
+ TestTitle = 'NepmdQueryPathInfo:' NepmdQueryFullname( PathName);
+ insertline '';
+ insertline TestTitle
+ insertline copies( '-', length( TestTitle));
+ insertline '';
+ insertline helperNepmdQueryPathInfoValue( PathName, 'ATIME');
+ insertline helperNepmdQueryPathInfoValue( PathName, 'MTIME');
+ insertline helperNepmdQueryPathInfoValue( PathName, 'CTIME');
+ insertline helperNepmdQueryPathInfoValue( PathName, 'SIZE');
+ insertline helperNepmdQueryPathInfoValue( PathName, 'ATTR');
+ .modify = 0;
 
- sayerror 'value for "'ValueTag'" of "'PathName'" is: "'InfoValue'"';
+defproc helperNepmdQueryPathInfoValue( Pathname, ValueTag) =
+  return leftstr( ValueTag, 5) ':' NepmdQueryPathInfo( PathName, ValueTag);
+
+
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryPathInfo                                 */

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getinstvalue.e,v 1.6 2002-08-27 12:21:25 cla Exp $
+* $Id: getinstvalue.e,v 1.7 2002-09-05 13:23:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -75,21 +75,20 @@ NepmdGetInstValue returns either
 
 defc NepmdGetInstValue, GetInstValue
 
- ValueTag = arg( 1);
+ 'xcom e /c .TEST_NEPMDGETINSTVALUE';
+ insertline '';
+ insertline 'NepmdGetInstValue';
+ insertline '-----------------';
+ insertline '';
+ insertline helperNepmdGetInstValue( 'ROOTDIR');
+ insertline helperNepmdGetInstValue( 'LANGUAGE');
+ insertline helperNepmdGetInstValue( 'INIT');
+ insertline helperNepmdGetInstValue( 'MESSAGE');
 
- if (ValueTag = '') then
-    sayerror 'error: no value tag specified !';
-    return;
- endif
+ .modify = 0;
 
- InstValue = NepmdGetInstValue( ValueTag);
- parse value InstValue with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'error: could not retrieve value for "'ValueTag'", rc='rc;
-    return;
- endif
-
- sayerror 'value for "'ValueTag'" is:' InstValue;
+defproc helperNepmdGetInstValue( ValueTag) =
+  return leftstr( ValueTag, 8) ':' NepmdGetInstValue( ValueTag);
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetInstValue                                  */
@@ -97,7 +96,7 @@ defc NepmdGetInstValue, GetInstValue
 /* .e Syntax:                                                    */
 /*    InstValue = NepmdGetInstValue( ValueTag);                  */
 /*                                                               */
-/*  See valig tags in src\gui\common\nepmd.h : NEPMD_VALUETAG_*  */
+/*  See valig tags in src\gui\common\nepmd.h : NEPMD_INSTVALUE_* */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdGetInstValue( PSZ pszTagName,           */
