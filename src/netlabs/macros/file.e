@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.4 2004-11-30 21:24:11 aschn Exp $
+* $Id: file.e,v 1.5 2005-03-06 08:00:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -794,9 +794,9 @@ defc filedlg
       flags = 257
    endif
 
-   size  = 328  -- size of FILEDLG struct
-   flags = 257  -- FDS_CENTER + FDS_OPEN_DIALOG
-                -- FDS_MODELESS doesn't work
+   size  = 328    -- size of FILEDLG struct
+   --flags = 257  -- FDS_CENTER + FDS_OPEN_DIALOG
+                  -- FDS_MODELESS doesn't work
    /*
    #define FDS_CENTER            0x00000001L /*    1 Center within owner wnd   */
    #define FDS_CUSTOM            0x00000002L /*    2 Use custom user template  */
