@@ -3,12 +3,10 @@
 * Module Name: makedep.cmd
 *
 * Batch for to create a dependency file using FASTDEP.EXE
-* This additional program s required in order to  automatically excluding the
-* pathname of all files within the current directory
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: makedep.cmd,v 1.2 2002-06-04 22:17:45 cla Exp $
+* $Id: makedep.cmd,v 1.3 2002-06-04 22:29:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,5 +23,5 @@
 
  PARSE ARG OutDir DepFileName;
 
- '@fastdep -o' OutDir '-d' DepFileName '-e' DIRECTORY() '-a- *.c'
+ '@fastdep -o' OutDir '-d' DepFileName '-a- *.c *.rc'
 
