@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.17 2002-10-10 20:33:57 cla Exp $
+* $Id: hilite.c,v 1.18 2002-10-11 15:12:58 cla Exp $
 *
 * ===========================================================================
 *
@@ -731,7 +731,7 @@ do
 
    // initialize support for memory mapped files
 
-   rc = MmfInitialize( &hmmf);
+   rc = MmfInitialize( &hmmf, 16);
    if (rc != NO_ERROR)
       break;
 

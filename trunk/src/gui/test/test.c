@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.27 2002-10-10 20:33:57 cla Exp $
+* $Id: test.c,v 1.28 2002-10-11 15:12:58 cla Exp $
 *
 * ===========================================================================
 *
@@ -327,7 +327,7 @@ do
          // ----------  create in-memory only file --------------
 
          printf( "- initialize support for memory mapped files\n");
-         rc = MmfInitialize( &hmmf);
+         rc = MmfInitialize( &hmmf, 4);
          if (rc != NO_ERROR)
             {
             printf( " error: cannot initialize MMF support, rc=%u\n", rc);
