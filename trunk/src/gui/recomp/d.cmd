@@ -12,7 +12,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: d.cmd,v 1.1 2002-06-03 22:30:15 cla Exp $
+: $Id: d.cmd,v 1.2 2002-06-08 22:22:13 cla Exp $
 :
 : ===========================================================================
 :
@@ -34,5 +34,5 @@
  IF .%CPPLOCAL% == . SET DEBUGGER=ipmd
 
  call make
- if not errorlevel 1 start %DEBUGGER% ..\..\debug\recomp.exe %TMP% %1 %2 %3 %4 %5 %6 %7 %8 %9
+ if not errorlevel 1 start %DEBUGGER% ..\..\..\debug\recomp.exe %TMP% %1 %2 %3 %4 %5 %6 %7 %8 %9
 
