@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmlex.e,v 1.4 2002-10-07 00:27:28 aschn Exp $
+* $Id: epmlex.e,v 1.5 2004-02-22 13:36:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -102,11 +102,13 @@ compile if not defined(PROOF_CIRCLE_STYLE)
 compile endif
 compile if not defined(PROOF_CIRCLE_COLOR1)
    --PROOF_CIRCLE_COLOR1 = 16777220
-   PROOF_CIRCLE_COLOR1 = 14        --         gives bright yellow circles
+   --PROOF_CIRCLE_COLOR1 = 14      --         gives bright yellow circles
+   PROOF_CIRCLE_COLOR1 = 13        --         gives magenta circles, see COLORS.E
 compile endif
 compile if not defined(PROOF_CIRCLE_COLOR2)
    --PROOF_CIRCLE_COLOR2 = 16777218
-   PROOF_CIRCLE_COLOR2 = 14        --         gives bright yellow circles
+   --PROOF_CIRCLE_COLOR2 = 14      --         gives bright yellow circles
+   PROOF_CIRCLE_COLOR2 = 13        --         gives magenta circles, see COLORS.E
 compile endif
 compile if not defined(DYNASPELL_BEEP)
    DYNASPELL_BEEP = 'ALARM'
