@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: debug.e,v 1.1 2004-06-29 22:41:23 aschn Exp $
+* $Id: debug.e,v 1.2 2004-07-04 21:46:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -49,6 +49,9 @@ compile endif
 compile if not defined(NEPMD_DEBUG_RESTORE_POS)
    NEPMD_DEBUG_RESTORE_POS = 0
 compile endif
+compile if not defined(NEPMD_DEBUG_TAGS)
+   NEPMD_DEBUG_TAGS = 0
+compile endif
 
 ; ---------------------------------------------------------------------------
 ; Syntax: dprintf( <type>, <message>)
@@ -85,6 +88,10 @@ compile if NEPMD_DEBUG then
       endif
    elseif type = 'RESTORE_POS' then
       if NEPMD_DEBUG_RESTORE_POS then
+         WriteMsg = 1
+      endif
+   elseif type = 'TAGS' then
+      if NEPMD_DEBUG_TAGS then
          WriteMsg = 1
       endif
    else  -- type is undefined
