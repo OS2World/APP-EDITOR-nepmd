@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.10 2002-08-22 15:51:36 cla Exp $
+* $Id: nepmdlib.c,v 1.11 2002-08-23 08:31:23 cla Exp $
 *
 * ===========================================================================
 *
@@ -42,6 +42,30 @@
 #include "eas.h"
 #include "tmf.h"
 
+// ------------------------------------------------------------------------------
+
+static APIRET _getRexxError( APIRET rc, PSZ pszBuffer, ULONG ulBuflen)
+{
+static   CHAR           szErrorTag[] = "ERROR:";
+         CHAR           szErrorValue[ 20];
+
+// act on error only
+if (rc != NO_ERROR)
+   {
+   // we can act only if buffer is large enough
+   if (ulBuflen >= sizeof( szErrorTag))
+      {
+      // assemble error tag with reason code
+      sprintf( szErrorValue, "ERROR:%u", rc);
+      if (strlen( szErrorValue) + 1 > ulBuflen)
+         // copy only error tag
+         strcpy( pszBuffer, szErrorTag);
+      else
+         strcpy( pszBuffer, szErrorValue);
+      }
+   }
+return rc;
+}
 
 // ------------------------------------------------------------------------------
 
@@ -76,7 +100,11 @@ return rc;
 
 APIRET EXPENTRY NepmdGetInstValue( PSZ pszFileTag, PSZ pszBuffer, ULONG ulBuflen) 
 {
-return GetInstValue( pszFileTag, pszBuffer, ulBuflen);
+         APIRET         rc = NO_ERROR;
+
+rc = GetInstValue( pszFileTag, pszBuffer, ulBuflen);
+
+return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
 // ------------------------------------------------------------------------------
