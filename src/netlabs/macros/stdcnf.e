@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.5 2002-09-20 19:40:22 aschn Exp $
+* $Id: stdcnf.e,v 1.6 2002-10-07 00:28:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -974,13 +974,19 @@ compile if not defined(DELAY_SAVEPATH_CHECK)
 compile endif
 
 compile if not defined(LOCATE_CIRCLE_STYLE)
-   LOCATE_CIRCLE_STYLE = 1
+   --LOCATE_CIRCLE_STYLE = 1
+   LOCATE_CIRCLE_STYLE = 5         -- (1)     filled oval
 compile endif
 compile if not defined(LOCATE_CIRCLE_COLOR1)
-   LOCATE_CIRCLE_COLOR1 = 16777220
+   --LOCATE_CIRCLE_COLOR1 = 16777220
+   LOCATE_CIRCLE_COLOR1 = 16777231 -- (16777220) complementary
 compile endif
 compile if not defined(LOCATE_CIRCLE_COLOR2)
-   LOCATE_CIRCLE_COLOR2 = 16777218
+   --LOCATE_CIRCLE_COLOR2 = 16777218
+   LOCATE_CIRCLE_COLOR2 = 16777216 -- (16777218) complementary
+compile endif
+compile if not defined(HIGHLIGHT_COLOR)
+   HIGHLIGHT_COLOR = 14            --         This must be set to enable circle colors
 compile endif
 
 -- Include support for toolbar (EPM 6.00+ only)
