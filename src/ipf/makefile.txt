@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.3 2002-04-21 13:41:46 cla Exp $
+.. $Id: makefile.txt,v 1.4 2002-04-24 15:16:05 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -265,4 +265,6 @@ The following makefile targets are available:
 - edit configure.in to your needs before executing nmake
 - targets marked with (**) require a working intenet connection
   for to download the EPM packages, if not already done
+
+.include guide.inc
 
