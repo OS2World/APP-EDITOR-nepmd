@@ -17,7 +17,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.9 2002-08-01 13:25:25 cla Exp $
+# $Id: makefile,v 1.10 2002-08-05 15:17:34 cla Exp $
 #
 # ===========================================================================
 #
@@ -56,9 +56,17 @@ NLS=eng
 !include $(BASEDIR)\configure.in
 SCRIPTFILE=$(STEM).wis
 NLSSCRIPTFILE=$(CMPDIR)\$(STEM)_$(NLS).wis
-LISTFILE=$(STEM).lst
-WPIFILE=$(STEM)$(VERSION)_$(NLS).wpi
-WPILOGFILE=$(BINDIR_NAME)\mkwpi_$(NLS).log
+
+WPISTEM=$(STEM)$(VERSION)_$(NLS)
+WPIFILE=$(WPISTEM).wpi
+WPILOGFILE=$(BINDIR_NAME)\$(WPISTEM).log
+WPILISTFILE=$(STEM).lst
+
+WPPSTEM=$(STEM)_epmbase
+WPPFILE=$(WPPSTEM).wpp
+WPPLOGFILE=$(BINDIR_NAME)\$(WPPSTEM).log
+WPPLISTFILE=epmbase.lst
+
 NLSINCLUDE=..\nls\wis
 
 # --- extend path for creating WPI file from basedir
@@ -101,7 +109,7 @@ REMOVE: $(CMPDIR)\$(SCRIPTFILE)
 
 PREPARE: $(UNZIPPEDDIR)\prepare.log
 
-CREATE:  $(BINDIR)\$(WPIFILE)
+CREATE:  $(BINDIR)\$(WPIFILE) $(BINDIR)\$(WPPFILE)
 
 CLEAN:
    @echo cleaning up files ...
@@ -123,12 +131,19 @@ $(UNZIPPEDDIR)\prepare.log: prepare.cmd
 
 # ---- create WPI package
 
-$(BINDIR)\$(WPIFILE): PREPARE $(NLSSCRIPTFILE) $(WPIDEPLIST) $(LISTFILE)
+$(BINDIR)\$(WPIFILE): PREPARE $(NLSSCRIPTFILE) $(WPIDEPLIST) $(WPILISTFILE)
    @CD $(BASEDIR)
-   mkwpi src\wis\$(LISTFILE) $(WPILOGFILE) src\wis\$(NLSSCRIPTFILE) $(BINDIR_NAME)\$(WPIFILE) $(CREATEPARMS)
+   mkwpi src\wis\$(WPILISTFILE) $(WPILOGFILE) src\wis\$(NLSSCRIPTFILE) $(BINDIR_NAME)\$(WPIFILE) $(CREATEPARMS)
+   @cd $(MAKEDIR)
+
+# ---- create WPP package
+
+$(BINDIR)\$(WPPFILE): PREPARE epmbase.wis $(WPPLISTFILE)
+   @CD $(BASEDIR)
+   mkwpi src\wis\$(WPPLISTFILE) $(WPPLOGFILE) src\wis\epmbase.wis $(BINDIR_NAME)\$(WPPFILE) $(CREATEPARMS)
    @cd $(MAKEDIR)
 
 # --- create customized WarpIn script file
-$(NLSSCRIPTFILE): $(SCRIPTFILE) $(NLSINCLUDE)\nepmd$(NLS).h $(NLSINCLUDE)\page?$(NLS).xml
+$(NLSSCRIPTFILE): $(SCRIPTFILE) $(NLSINCLUDE)\nepmd$(NLS).h $(NLSINCLUDE)\page*$(NLS).xml $(NLSINCLUDE)\desc*$(NLS).xml
    parseenv $(SCRIPTFILE) $(NLSSCRIPTFILE) $(WISPARMS)
 

@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.20 2002-08-01 13:26:59 cla Exp $
+# $Id: nepmd.wis,v 1.21 2002-08-05 15:17:35 cla Exp $
 #
 # ===========================================================================
 #
@@ -81,20 +81,13 @@
      CREATEOBJECT="WPShadow|%TITLE_NEPMD_NEPMD_WPSTART_SHADOW%|<NEPMD_FOLDER>|SHADOWID=<WP_START>;OBJECTID=<NEPMD_WPSTART_SHADOW>;"
      ><TINCLUDE name="..\nls\wis\desc4%NLS%.xml"/></PCK>
 
-
-<!-- ============================== packet 99 not yet used ==================================
-
---- complete next line by adding the open bracket for the PCK tag and remove these two lines
---- first char is removed as tags are scanned for also in comments... (???)
-
- PCK INDEX=99
-      PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\EPMBBS Base Application\%ID_VERSION_NEPMD%"
-      TARGET="$(1)"
-      REQUIRES="1"
-      TITLE="%PCK_99_TITLE%"
-     > TINCLUDE name="..\nls\wis\desc99%NLS%.xml"/></PCK>
-
-     ============================== packet 99 not yet used ==================================            -->
+<PCK INDEX=99
+     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Base Application\%ID_VERSION_NEPMD%"
+     TARGET="$(1)"
+     REQUIRES="1"
+     EXTERNAL="nepmd_epmbase.wpp"
+     TITLE="%PCK_99_TITLE%"
+     ><TINCLUDE name="..\nls\wis\desc99%NLS%.xml"/></PCK>
 
 </HEAD>
 

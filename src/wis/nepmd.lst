@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: nepmd.lst,v 1.4 2002-07-31 14:42:37 cla Exp $
+: $Id: nepmd.lst,v 1.5 2002-08-05 15:17:35 cla Exp $
 :
 : ===========================================================================
 :
@@ -55,10 +55,4 @@ ATTR             3 %UNZIPPEDDIR%\epmatr    *
 : --- package 4: Speech Support
 
 SPEECH           4 %UNZIPPEDDIR%\epmspch   *
-
-: --- package 99: EPM base
-:     later used for  Warp3 packages requiring complete update to EPM V6.03b
-:BASE_APP        99 %UNZIPPEDDIR%\epmapp.base   *
-:BASE_DLL        99 %UNZIPPEDDIR%\epmdll        *
-:BASE_HLP        99 %UNZIPPEDDIR%\epmhlp.base   *
 
