@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.7 2004-07-02 09:07:57 aschn Exp $
+* $Id: linkcmds.e,v 1.8 2004-07-12 19:56:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -572,5 +572,10 @@ defproc link_exec( ex_file, cmd_name)
    else
       sayerror UNABLE_TO_EXECUTE__MSG cmd_name
    endif
+
+; ---------------------------------------------------------------------------
+defc linkexec
+   parse arg ex_file cmd_name
+   call link_exec( ex_file, cmd_name)
 
 
