@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.2 2002-08-14 12:11:45 cla Exp $
+* $Id: epmenv.c,v 1.3 2002-08-14 19:14:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -37,98 +37,138 @@
 
 // -----------------------------------------------------------------------------
 
-static APIRET _searchNepmdEnvironmentFile( PSZ pszEnvfile, ULONG ulBuflen)
+static APIRET _searchNepmdEnvironmentFiles( PSZ pszMainEnvFile, ULONG ulMainBuflen,
+                                            PSZ pszUserEnvFile, ULONG ulUserBuflen)
 {
          APIRET         rc  = NO_ERROR;
          BOOL           fFound = FALSE;
          PPIB           ppib;
          PTIB           ptib;
 
-         CHAR           szExecutable[ _MAX_PATH];
+         CHAR           szExecutablePath[ _MAX_PATH];
          CHAR           szBasename[ _MAX_PATH];
-
-         CHAR           szFilePath[ _MAX_PATH];
+         CHAR           szNepmdPath[ _MAX_PATH];
          ULONG          ulDataLen;
+         BOOL           fNepmdPathFound = FALSE;
+         CHAR           szCurrentPath[ _MAX_PATH];
 
-         CHAR           szEnvfile[ _MAX_PATH];
+         CHAR           szMainEnvFile[ _MAX_PATH];
+         CHAR           szUserEnvFile[ _MAX_PATH];
 
-static  PSZ            pszNepmdExecDirMask = "%s\\"NEPMD_SUBPATH_BINBINDIR"\\%s";
+static  PSZ            pszNepmdExecDirMask = "%s\\"NEPMD_SUBPATH_BINBINDIR"\\%s"NEPMD_FILENAMEEXT_ENV;
+static  PSZ            pszMyEpmExecDirMask = "%s\\"NEPMD_SUBPATH_MYBINDIR"\\%s"NEPMD_FILENAMEEXT_ENV;
 
 do
    {
    // check parms
-   if ((!pszEnvfile) ||
-       (!ulBuflen))
+   if ((!pszMainEnvFile) ||
+       (!pszUserEnvFile) ||
+       (!ulMainBuflen)   ||
+       (!ulUserBuflen))
       {
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
 
 
-   // get own filename to isolate exe name
+   // get own filename to isolate basename of executable
    DosGetInfoBlocks( &ptib,&ppib);
-   DosQueryModuleName( ppib->pib_hmte, sizeof( szExecutable), szExecutable);
-   strcpy( szBasename, strrchr( szExecutable, '\\')  + 1);
-   strcpy( strrchr( szBasename, '.'), ".env");
+   DosQueryModuleName( ppib->pib_hmte, sizeof( szExecutablePath), szExecutablePath);
+   strcpy( szBasename, strrchr( szExecutablePath, '\\')  + 1);
+   strcpy( strrchr( szBasename, '.'), "");
 
    // isolate path of executabe
-   strcpy( strrchr( szExecutable, '\\'), "");
+   strcpy( strrchr( szExecutablePath, '\\'), "");
 
    // get NEPMD install directory
    ulDataLen = PrfQueryProfileString( HINI_USER,
                                       NEPMD_INI_APPNAME,
                                       NEPMD_INI_KEYNAME_PATH,
                                       NULL,
-                                      szFilePath,
-                                      sizeof( szFilePath));
-
+                                      szNepmdPath,
+                                      sizeof( szNepmdPath));
    if (ulDataLen)
       {
       // handle also non-zero-terminated strings
-      szFilePath[ ulDataLen] = 0;
+      szNepmdPath[ ulDataLen] = 0;
+      fNepmdPathFound = TRUE;
       }
 
-   // ----- try <nepmd_rotodir>\netlabs\bin\<exename>.env
+   // ----- check for first env file loaded
 
-   if (ulDataLen)
+   do
       {
-      // determine complete filename
-      sprintf( szEnvfile, pszNepmdExecDirMask, szFilePath, szBasename);
-      fFound = (FileExists( szEnvfile));
-      }
+      // <nepmd_rootdir>\netlabs\<exename>.env
+      sprintf( szMainEnvFile, pszNepmdExecDirMask, szNepmdPath, szBasename);
+      DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
+      if (fFound = FileExists( szMainEnvFile))
+         break;
 
-   // ----- try <nepmd_rotodir>\netlabs\bin\epm.env
+      // <nepmd_rootdir>\netlabs\epm.env
+      sprintf( szMainEnvFile, pszNepmdExecDirMask, szNepmdPath, "epm");
+      DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
+      if (fFound = FileExists( szMainEnvFile))
+         break;
 
+      } while (FALSE);
+
+   // delete filename if not found
    if (!fFound)
-      {
-      sprintf( szEnvfile, pszNepmdExecDirMask, szFilePath, "epm.env");
-      fFound = (FileExists( szEnvfile));
-      }
+      szMainEnvFile[ 0] = 0;
 
-   // try <execdir>\<exename>.env
-   if (!fFound)
+   // ----- check for second env file loaded
+
+   do
       {
-      // nothing stored or no config found in install tree - use path of executable
-      sprintf( szEnvfile, "%s\\%s", szExecutable, szBasename);
-      fFound = (FileExists( szEnvfile));
-      }
+      // <exename>.env in <currentdir>
+      sprintf( szUserEnvFile, "%s"NEPMD_FILENAMEEXT_ENV, szBasename);
+      DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
+      if (fFound = FileExists( szUserEnvFile))
+         break;
+
+      // <nepmd_rootdir>\myepm\<exename>.env
+      sprintf( szUserEnvFile, pszMyEpmExecDirMask, szNepmdPath, szBasename);
+      DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
+      if (fFound = FileExists( szUserEnvFile))
+         break;
+
+      // <nepmd_rootdir>\myepm\epm.env
+      sprintf( szUserEnvFile, pszMyEpmExecDirMask, szNepmdPath, "epm");
+      DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
+      if (fFound = FileExists( szUserEnvFile))
+         break;
+
+      } while (FALSE);
+
+
+   // delete filename if not found
+   if (!fFound)
+      szUserEnvFile[ 0] = 0;
 
    // error if not found
-   if (!fFound)
+   if ((!strlen( szMainEnvFile)) && (!strlen( szUserEnvFile)))
       {
       rc = ERROR_FILE_NOT_FOUND;
       break;
       }
 
-
    // hand over result
-   if (strlen( szEnvfile) + 1 > ulBuflen)
+   if (strlen( szMainEnvFile) + 1 > ulMainBuflen)
       {
       rc = ERROR_BUFFER_OVERFLOW;
       break;
       }
-   strcpy( pszEnvfile, szEnvfile);
-   DPRINTF(( "EPMENV: envfile is %s\n", szEnvfile));
+   if (strlen( szUserEnvFile) + 1 > ulUserBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+
+   strcpy( pszMainEnvFile, szMainEnvFile);
+   strcpy( pszUserEnvFile, szUserEnvFile);
+   DPRINTF(( "EPMENV: main envfile is: %s\n", strlen( pszMainEnvFile) ? pszMainEnvFile : "<none>"));
+   DPRINTF(( "EPMENV: user envfile is: %s\n", strlen( pszUserEnvFile) ? pszUserEnvFile : "<none>"));
 
    } while (FALSE);
 
@@ -273,30 +313,20 @@ strcpy( pszCurrent, szName);
 return NEXTSTR( pszCurrent);
 }
 
+//      #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+
 #define ADDVAR(e) {ulEnvSize += strlen( e) + 1; \
                    pszName = _copyname( pszEnvNameList, pszName, e); \
                    putenv( e);}
+#define ADDVARX(e) {*pulEnvSize += strlen( e) + 1; \
+                   *ppszName = _copyname( pszEnvNameList, *ppszName, e); \
+                   putenv( e);}
 
-//      ------------------------------------------
 
-APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv)
+static APIRET _readEnvFile( PSZ szEnvFile, PULONG pulEnvSize, PSZ *ppszName, PSZ pszEnvNameList)
 {
          APIRET         rc  = NO_ERROR;
          ULONG          i;
-
-         CHAR           szEnvFile[ _MAX_PATH];
-
-         CHAR           szInstallVar[ _MAX_PATH + 30];
-         PSZ            apszVar[ 3]; // increase size of array of more vars required !!!
-
-         PSZ           *ppszEnv;
-         PSZ            pszVar;
-         PSZ            pszName;
-         PSZ            pszValue;
-
-         ULONG          ulEnvSize;
-         PSZ            pszEnvNameList = NULL;
-         PSZ            pszEnv = NULL;
 
          FILESTATUS3    fs3;
          ULONG          ulFileSize;
@@ -308,6 +338,102 @@ APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv)
          PSZ            pszLine;
          PSZ            pszNewLine;
 static   PSZ            pszDelimiters = "\r\n";
+
+do
+   {
+   // get memory
+   rc = DosQueryPathInfo( szEnvFile, FIL_STANDARD, &fs3, sizeof( fs3));
+   if (rc != NO_ERROR)
+      break;
+   ulFileSize = fs3.cbFile;
+   pszData = malloc( ulFileSize + 1);
+   if (!pszData)
+      {
+      rc = ERROR_NOT_ENOUGH_MEMORY;
+      break;
+      }
+   memset( pszData, 0, ulFileSize + 1);
+
+
+   // read file
+   rc = DosOpen( szEnvFile, &hfile, &ulAction, 0, 0,
+                 OPEN_ACTION_FAIL_IF_NEW | OPEN_ACTION_OPEN_IF_EXISTS,
+                 OPEN_ACCESS_READONLY | OPEN_SHARE_DENYWRITE,
+                 NULL);
+   if (rc != NO_ERROR)
+      break;
+
+   rc = DosRead( hfile, pszData, ulFileSize, &ulBytesRead);
+   if (rc != NO_ERROR)
+      break;
+   if (ulFileSize != ulBytesRead)
+      {
+      rc = ERROR_READ_FAULT;
+      break;
+      }
+
+   // go through all lines
+   pszLine = strtok( pszData, pszDelimiters);
+   while (pszLine)
+      {
+      do
+         {
+         // skip line without equal sign: no env set here
+         if (!strchr( pszLine, '='))
+            break;
+
+         // skip comment lines
+         if (*pszLine == ':')
+            break;
+
+         // add line to env
+         pszNewLine = _expandEnvVar( pszLine);
+         if (pszNewLine)
+            {
+            DPRINTF(( "EPMENV: added: %s\n", pszNewLine));
+            ADDVARX( pszNewLine);
+            }
+         else
+            DPRINTF(( "EPMENV: ERROR: cannot expand \"%s\"\n", pszLine));
+
+         } while (FALSE);
+
+
+      // next please
+      pszLine = strtok( NULL, pszDelimiters);
+      }
+
+   } while (FALSE);
+
+
+// cleanup
+if (hfile) DosClose( hfile);
+if (pszData) free( pszData);
+return rc;
+}
+
+//      #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+
+APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv)
+{
+         APIRET         rc  = NO_ERROR;
+         ULONG          i;
+
+         CHAR           szMainEnvFile[ _MAX_PATH];
+         CHAR           szUserEnvFile[ _MAX_PATH];
+
+         CHAR           szInstallVar[ _MAX_PATH + 30];
+         PSZ            apszVar[ 4]; // increase size of array of more vars required !!!
+
+         PSZ           *ppszEnv;
+         PSZ            pszVar;
+         PSZ            pszName;
+         PSZ            pszValue;
+
+         ULONG          ulEnvSize;
+         PSZ            pszEnvNameList = NULL;
+         PSZ            pszEnv = NULL;
+
 
 do
    {
@@ -326,8 +452,9 @@ do
    *ppszNewEnv = NULL;
 
    // if extended environment is already set, don't touch
-   pszValue = getenv( ENV_NEPMD_ENVFILE);
-   DPRINTF(( "EPMENV: testing environment extension: %s=%s\n", ENV_NEPMD_ENVFILE, pszValue));
+   pszValue = getenv( ENV_NEPMD_USERENVFILE);
+   if (!pszValue)
+      pszValue = getenv( ENV_NEPMD_MAINENVFILE);
    if (pszValue)
       {
       DPRINTF(( "EPMENV: skip environment extension, already set with: %s\n", pszValue));
@@ -335,7 +462,8 @@ do
       }
 
    // search environment file
-  rc = _searchNepmdEnvironmentFile( szEnvFile, sizeof( szEnvFile));
+  rc = _searchNepmdEnvironmentFiles( szMainEnvFile, sizeof( szMainEnvFile),
+                                     szUserEnvFile,  sizeof( szUserEnvFile));
    if (rc != NO_ERROR)
       break;
 
@@ -404,80 +532,22 @@ do
    apszVar[ 1] = strdup( szInstallVar);
    ADDVAR( apszVar[ 1]);
 
-   // --- > set environment variable  for env file
+   // --- > set environment variables  for env files
    memset( szInstallVar, 0, sizeof( szInstallVar));
-   sprintf( szInstallVar, "%s=%s", ENV_NEPMD_ENVFILE, szEnvFile);
+   sprintf( szInstallVar, "%s=%s", ENV_NEPMD_MAINENVFILE, szMainEnvFile);
    apszVar[ 2] = strdup( szInstallVar);
    ADDVAR( apszVar[ 2]);
 
+   memset( szInstallVar, 0, sizeof( szInstallVar));
+   sprintf( szInstallVar, "%s=%s", ENV_NEPMD_USERENVFILE, szUserEnvFile);
+   apszVar[ 3] = strdup( szInstallVar);
+   ADDVAR( apszVar[ 3]);
+
    // ------- ------------------------------------------
 
-   // check file
-   if (FileExists( szEnvFile))
-      {
-      // get memory
-      rc = DosQueryPathInfo( szEnvFile, FIL_STANDARD, &fs3, sizeof( fs3));
-      if (rc != NO_ERROR)
-         break;
-      ulFileSize = fs3.cbFile;
-      pszData = malloc( ulFileSize + 1);
-      if (!pszData)
-         {
-         rc = ERROR_NOT_ENOUGH_MEMORY;
-         break;
-         }
-      memset( pszData, 0, ulFileSize + 1);
-
-
-      // read file
-      rc = DosOpen( szEnvFile, &hfile, &ulAction, 0, 0,
-                    OPEN_ACTION_FAIL_IF_NEW | OPEN_ACTION_OPEN_IF_EXISTS,
-                    OPEN_ACCESS_READONLY | OPEN_SHARE_DENYWRITE,
-                    NULL);
-      if (rc != NO_ERROR)
-         break;
-
-      rc = DosRead( hfile, pszData, ulFileSize, &ulBytesRead);
-      if (rc != NO_ERROR)
-         break;
-      if (ulFileSize != ulBytesRead)
-         {
-         rc = ERROR_READ_FAULT;
-         break;
-         }
-
-      // go through all lines
-      pszLine = strtok( pszData, pszDelimiters);
-      while (pszLine)
-         {
-         do
-            {
-            // skip line without equal sign: no env set here
-            if (!strchr( pszLine, '='))
-               break;
-
-            // skip comment lines
-            if (*pszLine == ':')
-               break;
-
-            // add line to env
-            pszNewLine = _expandEnvVar( pszLine);
-            if (pszNewLine)
-               {
-               DPRINTF(( "EPMENV: added: %s\n", pszNewLine));
-               ADDVAR( pszNewLine);
-               }
-            else
-               DPRINTF(( "EPMENV: ERROR: cannot expand \"%s\"\n", pszLine));
-
-            } while (FALSE);
-
-
-         // next please
-         pszLine = strtok( NULL, pszDelimiters);
-         }
-
-      }
+   // read env files
+   if (strlen( szMainEnvFile)) _readEnvFile( szMainEnvFile, &ulEnvSize, &pszName, pszEnvNameList);
+   if (strlen( szUserEnvFile)) _readEnvFile( szUserEnvFile, &ulEnvSize, &pszName, pszEnvNameList);
 
    // close name list
    *pszName = 0;
@@ -517,8 +587,6 @@ if (rc)
    if (pszEnv) free( pszEnv);
 if (pszEnvNameList) free( pszEnvNameList);
 // cleanup
-if (hfile) DosClose( hfile);
-if (pszData) free( pszData);
 for (i = 0; i < (sizeof( apszVar) / sizeof( PSZ)); i++)
    {
    if (apszVar[ i]) free( apszVar[ i]);
