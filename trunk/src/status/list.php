@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: list.php,v 1.5 2002-07-19 14:10:38 cla Exp $
+* $Id: list.php,v 1.6 2002-07-19 15:17:03 cla Exp $
 *
 * ===========================================================================
 *
@@ -51,21 +51,8 @@
 
 
 <?
-// read database
-$dbdir = "db";
-$dir = dir( $dbdir);
-while ($entry = $dir->read())
-   {
-   if (!is_dir( $entry))
-      {
-      // read file contents
-      $entryfile = $dbdir."/".$entry;
-
-      $aentry = filedb_read( $entryfile);
-
-      $aaentry[] = $aentry;
-      }
-   }
+// read filenames
+$aaentry = filedb_queryentries( "db");
 
 // sort here (not yet implemented)
 // ...
