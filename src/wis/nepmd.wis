@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution project 2002
 #
-# $Id: nepmd.wis,v 1.3 2002-04-16 10:06:09 cla Exp $
+# $Id: nepmd.wis,v 1.4 2002-04-16 21:23:20 cla Exp $
 #
 # ===========================================================================
 #
@@ -40,7 +40,6 @@
      CREATEOBJECT="WPProgram|EPM v6.03b|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=$(1)\BIN\EPM.EXE;OBJECTID=<NEPMD_EXECUTE>;"
      CREATEOBJECT="WPProgram|EPM Technical Reference|<NEPMD_FOLDER>|;PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\EPMTECH.INF;OBJECTID=<NEPMD_VIEW_EPMTECH>;"
      CREATEOBJECT="WPProgram|EPM Users Guide|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\EPMUSERS.INF;OBJECTID=<NEPMD_VIEW_EPMUSERS>;"
-     CREATEOBJECT="WPProgram|OS/2 Netlabs^EPM Distribution|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\NEPMD.INF Netlabs;OBJECTID=<NEPMD_VIEW_NEPMD>;"
 
      >This package installs the base application files.</PCK>
 
@@ -67,6 +66,17 @@
      >This package installs the programming samples.</PCK>
 
 <PCK INDEX=4
+     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Netlabs EPM Distribution Extensions\1\0\0"
+     TARGET="$(1)"
+     SELECT
+     REQUIRES="1"
+     TITLE="Netlabs EPM Distribution Extensions"
+
+     CREATEOBJECT="WPProgram|OS/2 Netlabs^EPM Distribution|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPMD.INF Netlabs;OBJECTID=<NEPMD_VIEW_NEPMD>;"
+
+     >This package installs the Netlabs EPM Distribution Extensions for EPM.</PCK>
+
+<PCK INDEX=5
      PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Speech Support\1\0\0"
      TARGET="$(1)"
      REQUIRES="1"
