@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.4 2004-07-04 22:05:38 aschn Exp $
+* $Id: config.e,v 1.5 2004-11-30 21:16:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -461,7 +461,6 @@ defc setconfig
    universal show_longnames
    universal rexx_profile
    universal cua_marking_switch
-   universal default_cua_marking_switch
    universal tab_key
    universal default_tab_key
    universal cua_menu_accel
@@ -602,29 +601,9 @@ compile if not defined(my_CURSORDIMENSIONS)
       'cursor_style' (cursor_shape + 1)
 compile endif
 ------------------------------------------------------
-/*
-      if ChangeFileSettings then
-         if markflg <> cua_marking_switch then
-            'CUA_mark_toggle'
-         endif
-      endif
-*/
--- todo?
-      if markflg <> default_cua_marking_switch then
-         if ChangeFileSettings = 1 then                      -- change current file's setting
-            'CUA_mark_toggle'  -- old definition
-            cua_marking_switch = markflg
-            'postme RefreshInfoline MARKINGMODE'
-         elseif ChangeFileSettings = 'REFRESHDEFAULT' then
-            next = GetAVar('cuamarking.'fid)  -- query file setting
-            if next = 'DEFAULT' | next = '' then  -- unset if tabkey was not changed by any modeexecute
-               'CUA_mark_toggle'
-               'SetCuaMarking' markflg
-               cua_marking_switch = markflg
-               'postme RefreshInfoline MARKINGMODE'
-            endif
-         endif
-         default_cua_marking_switch = markflg
+      if markflg <> cua_marking_switch then
+         'CUA_mark_toggle'
+         'postme RefreshInfoline MARKINGMODE' -- postme required? CUA_mark_toggle sets infoline already!
       endif
 ------------------------------------------------------
 /*
@@ -779,7 +758,6 @@ defc initconfig
    universal statfont, msgfont, bm_filename
    universal default_font
    universal cua_marking_switch
-   universal default_cua_marking_switch
    universal menu_prompt
 compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined(my_SAVEPATH)
    universal savepath
@@ -922,17 +900,12 @@ compile else
 compile endif -- not defined(WANT_BITMAP_BACKGROUND)
       endif
 ------------------------------------------------------------------
-      default_cua_marking_switch = 0
+      cua_marking_switch = 0
       if markflg <> '' then
-         if markflg <> default_cua_marking_switch then
-            if isadefc('toggle_default_cua_mark') then
-               'toggle_default_cua_mark'  -- requires newmenu
-            else
-               'CUA_mark_toggle'  -- old definition
-            endif
+         if markflg <> cua_marking_switch then
+            'CUA_mark_toggle'
          endif
       endif
-      cua_marking_switch = default_cua_marking_switch
 ------------------------------------------------------------------
       default_stream_mode = 1
       if streamflg <> '' then
