@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.30 2002-10-19 14:51:27 cla Exp $
+* $Id: test.c,v 1.31 2002-10-20 12:13:48 cla Exp $
 *
 * ===========================================================================
 *
@@ -274,7 +274,7 @@ do
 
       // a debug message in this api already displays the returned filename
       // so no printf needed here
-      rc = QueryHilightFile( pszEpmMode, &fReload, szHiliteFile, sizeof( szHiliteFile));
+      rc = QueryHilightFile( pszEpmMode, 0, &fReload, szHiliteFile, sizeof( szHiliteFile));
       if (rc != NO_ERROR)
          printf( "hilite file for mode %s could not be determined, rc=%u\n", pszEpmMode, rc);
       else
