@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.2 2002-09-22 22:24:28 cla Exp $
+* $Id: hilite.c,v 1.3 2002-09-23 15:57:01 cla Exp $
 *
 * ===========================================================================
 *
@@ -33,6 +33,10 @@
 #include "macros.h"
 #include "nepmd.h"
 #include "hilite.h"
+#include "libreg.h"
+#include "init.h"
+#include "instval.h"
+#include "file.h"
 
 #ifdef DEBUG
 static   PSZ            pszEnvVar = "";
@@ -52,16 +56,49 @@ printf( "envvar %s: %s\n",                       \
 #endif
 
 // -----------------------------------------------------------------------------
+
 static APIRET _assembleKeywordFile(  PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
-         CHAR           szSourceName[ _MAX_PATH];
+         CHAR           szValue[ _MAX_PATH];
+         PSZ            pszModeCopy = NULL;
+         PSZ            pszKeywordPath = getenv( "EPMKEYWORDPATH");
+
          CHAR           szDefaultFile[ _MAX_PATH];
+         HINIT          hinit = NULLHANDLE;
+         PSZ            pszGlobalSection = "GLOBAL";
+         CHAR           szCharset[ _MAX_PATH];
+         CHAR           szDefExtensions[ _MAX_PATH];
+         BOOL           fCaseSensitive = FALSE;
+
+         CHAR           szInitFile[ _MAX_PATH];
+         HCONFIG        hconfig = NULLHANDLE;
+
+
+         BOOL           fCreateKeywordFile = FALSE;
+static   PSZ            pszKeywordPathMask = "\\NEPMD\\Hilite\\%s\\TempFile";
+         CHAR           szKeywordPath[ _MAX_PATH];
+         CHAR           szKeywordFile[ _MAX_PATH]; 
+         ULONG          ulKeywordFileDate = -1;
+
+         CHAR           szSourceName[ _MAX_PATH];
 
 do
    {
-   // search default path first
-   CHECKENV( "EPMKEYWORDPATH");
+   if (!pszKeywordPath)
+      {
+      rc = ERROR_ENVVAR_NOT_FOUND;
+      break;
+      }
+   if ((!pszEpmMode) ||
+       (!*pszEpmMode))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+   // -----------------------------------------------
+
+   // read defaults file first - this must exist and includ emandantory values
    sprintf( szSourceName, "%s\\default.ini", pszEpmMode);
    rc = DosSearchPath( SEARCH_IGNORENETERRS  |
                           SEARCH_ENVIRONMENT |
@@ -73,9 +110,76 @@ do
    if (rc != NO_ERROR)
       break;
 
+   rc = InitOpenProfile( szDefaultFile, &hinit, INIT_OPEN_READONLY, 0, NULL);
+   if (rc != NO_ERROR)
+      break;
+
+   if (!InitQueryProfileString( hinit, pszGlobalSection, "CHARSET", NULL, szCharset, sizeof( szCharset)))
+      {
+      rc = ERROR_INVALID_DATA;
+      break;
+      }
+
+   if (!InitQueryProfileString( hinit, pszGlobalSection, "DEFEXTENSIONS", NULL, szDefExtensions, sizeof( szDefExtensions)))
+      {
+      rc = ERROR_INVALID_DATA;
+      break;
+      }
+
+   if (!InitQueryProfileString( hinit, pszGlobalSection, "CASESENSITIVE", NULL, szValue, sizeof( szValue)))
+      {
+      rc = ERROR_INVALID_DATA;
+      break;
+      }
+   fCaseSensitive = atol( szValue);
+
+
+
+
+
+   // -----------------------------------------------
+
+   // get the name and date of the temporary file
+
+   // init some vars
+   pszModeCopy = strdup( pszEpmMode);
+   strupr( pszModeCopy);
+
+   // open up repository
+   rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szInitFile, sizeof( szInitFile));
+   if (rc != NO_ERROR)
+      break;
+   rc = OpenConfig( &hconfig, szInitFile);
+   if (rc != NO_ERROR)
+      break;
+
+   // get keywordfile
+   strupr( pszEpmMode);
+   sprintf( szKeywordPath, pszKeywordPathMask, pszModeCopy);
+   rc = QueryConfigValue( hconfig, szKeywordPath, szKeywordFile, sizeof( szKeywordFile));
+   if (rc != NO_ERROR)
+      {
+      // no keyword file yet, create a new one
+      rc = GetTempFilename( szKeywordFile, sizeof( szKeywordFile));
+      if (rc != NO_ERROR)
+         break;
+      }
+
+   // check for the file date - if not exists, will return -1, 
+   // always enforcing a rebuild
+   ulKeywordFileDate = FileDate( szKeywordFile);
+
+   // -----------------------------------------------
+
+
+
 rc = 1;
    } while (FALSE);
 
+// cleanup 
+if (hconfig) CloseConfig( hconfig);
+if (hinit) InitCloseProfile( hinit, FALSE);
+if (pszModeCopy) free( pszModeCopy);
 return rc;
 }
 
@@ -98,8 +202,6 @@ rc =   DosSearchPath( SEARCH_IGNORENETERRS  |
                       ulBuflen);
 return rc;
 }
-
-
 
 // -----------------------------------------------------------------------------
 
