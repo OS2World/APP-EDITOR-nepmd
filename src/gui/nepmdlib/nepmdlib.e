@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.26 2002-09-05 16:09:34 cla Exp $
+* $Id: nepmdlib.e,v 1.27 2002-09-05 16:41:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -41,7 +41,7 @@ const
  ERRMSG_BOXSTYLE         = 16454; -- CANCEL + ICONHAND + MOVEABLE
 
  EPMINFO_EDITCLIENT      = 5; /* avoid include of stdconst.e */
-
+ EPMINFO_EDITFRAME       = 6;
 
  NEPMD_TEST_EANAME       = 'NEPMD._TestStringEa';
  NEPMD_TEST_EAVALUE      = 'This is a test value for the NepmdWriteStringEa API !';
@@ -121,5 +121,8 @@ include 'querywindowpos.e'
 include 'readstringea.e'
 include 'scanenv.e'
 include 'searchpath.e'
+include 'setframewindowpos.e'
 include 'writestringea.e'
+
+
 
