@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.12 2004-01-17 22:22:54 aschn Exp $
+* $Id: mouse.e,v 1.13 2004-02-01 16:24:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -107,7 +107,7 @@ compile if (EPM_POINTER < 1 | EPM_POINTER > 14) & EPM_POINTER <> 'SWITCH'
  *** Invalid value for EPM_POINTER - must be 1 - 14
 compile endif
 
-; Todo:
+; For testing:
 compile if not defined(MOUSE_MARK_SETS_CURSOR)
 -- Move the cursor to the mouse pointer after a mouse mark.
 -- This was necessary, because otherwise it will be almost unpossible to
@@ -641,7 +641,7 @@ defc StartBrowser
    universal nepmd_hini
    KeyPath = "\NEPMD\User\Mouse\Url\Browser"
    BrowserExecutable = NepmdQueryConfigValue( nepmd_hini, KeyPath )
-   UrlStrings = 'http:// ftp:// www. https:// mailto:'
+   UrlStrings = 'http:// ftp:// www. ftp. https:// mailto:'
    arg1 = arg(1)
    Url = ''
    browser_rc = 1  -- default rc; 1: browser not started or no Url
@@ -658,7 +658,7 @@ defc StartBrowser
       -- get word under cursor, separated by any char of SeparatorList
       StartCol = 0
       EndCol   = 0
-      SeparatorList = '"'||"'"||'(){}[]<>,;! '\9;
+      SeparatorList = '"'||"'"||'(){}[]<>,! '\9;
       call find_token( StartCol, EndCol, SeparatorList, '')
       getline line
 
@@ -669,7 +669,7 @@ defc StartBrowser
       if WordFound then  -- if word found
          Spec = substr( line, StartCol, EndCol - StartCol + 1)
 
-         -- strip trailing points
+         -- strip trailing periods
          Spec = strip( Spec, 'T', '.')
 
          -- locate URL in double-clicked word
@@ -683,7 +683,11 @@ defc StartBrowser
 
                -- add default protocol identifier
                if (pos( ':', Url) = 0) then
-                  Url = 'http://'Url
+                  if substr( Url, 1, 4) = 'ftp.' then
+                     Url = 'ftp://'Url
+                  else
+                     Url = 'http://'Url
+                  endif
                endif
 
                leave
@@ -1417,10 +1421,8 @@ defc cascade_popupmenu
 ; 'CHORD'         - Both mouse buttons are pressed together.
 
 defc StatWndMouseCmd
-   -- WindowHadFocus works only for the edit window => check everytime.
    -- 1 CLICK 0 is not defined.
-   'ResetDateTimeModified'
-   'RefreshInfoLine MODIFIED'
+   --call NepmdPmPrintf('StatWndMouseCmd: arg(1) = 'arg(1))
    if arg(1)='1 SECONDCLK 0' then
       'versioncheck'
    elseif arg(1)='CONTEXTMENU' then
@@ -1428,10 +1430,8 @@ defc StatWndMouseCmd
    endif
 
 defc MsgWndMouseCmd
-   -- WindowHadFocus works only for the edit window => check everytime.
    -- 1 CLICK 0 is not defined.
-   'ResetDateTimeModified'
-   'RefreshInfoLine MODIFIED'
+   --call NepmdPmPrintf('MsgWndMouseCmd: arg(1) = 'arg(1))
    if arg(1)='1 SECONDCLK 0' then
       'messagebox'
    elseif arg(1)='CONTEXTMENU' then
