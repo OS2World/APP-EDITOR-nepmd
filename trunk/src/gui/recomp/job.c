@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: job.c,v 1.6 2002-06-10 10:32:56 cla Exp $
+* $Id: job.c,v 1.7 2002-06-10 11:59:55 cla Exp $
 *
 * ===========================================================================
 *
@@ -297,7 +297,7 @@ do
    // execute program
    sprintf( szCommand, "%s /V %s %s > %s 2>&1",
                        pwd->szCompilerExecutable,
-                       (pwd->fTestUseErrorSource) ? TEST_ALTSOURCENAME : pwd->szSourceFile,
+                       pwd->szSourceFile,
                        pwd->szTargetFile,
                        pwd->szLogFile);
 
@@ -455,6 +455,11 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
             break;
             }
 
+         // determine sourcename
+         strcpy( pwd->szSourceFile,
+                 (pwd->fTestUseErrorSource) ? 
+                    TEST_ALTSOURCENAME : EPM_SOURCENAME);
+
          // check for EPM compiler
          if (FileInPath( NULL, pszExenameMacroCompiler,
                          pwd->szCompilerExecutable,
@@ -475,6 +480,16 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
             fExit = TRUE;
             }
 
+         if (fExit)
+            {
+            // don't show compile log
+            pwd->fSkipLog = TRUE;
+
+            // cancel operation
+            ABORT_JOB;
+            break;
+            }
+
          // determine target directory from source path if not given
          if (!strlen( pwd->szTargetDir))
             {
@@ -488,15 +503,6 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
          sprintf( pwd->szTargetFile, "%s\\"EPM_TARGETNAME, pwd->szTargetDir);
          sprintf( pwd->szLogFile,    "%s\\"EPM_COMPILELOG, pwd->szTargetDir);
 
-         if (fExit)
-            {
-            // don't show compile log
-            pwd->fSkipLog = TRUE;
-
-            // cancel operation
-            ABORT_JOB;
-            break;
-            }
 
          _discardFilelists( pwd);
          pwd->fExitProcessing = FALSE;
