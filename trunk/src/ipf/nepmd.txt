@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.15 2002-08-12 12:29:23 cla Exp $
+.. $Id: nepmd.txt,v 1.16 2002-08-14 15:18:35 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -548,6 +548,50 @@ available on FTP servers in the Internet like:
 .su V30 1
 
 .. -----------------------------------------------------------------------------
+.3 dynamic EPM configuration
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_DYNCFG
+.in EPM loader executable
+.in epmenv.cmd
+.
+The [=TITLE] provides you with a dynamic configuration for *EPM*, which makes
+any changes to your *CONFIG.SYS* obsolete. After having installed this package,
+you instantly can use the [=TITLE] extensions with the *EPM* intallation of
+your operating system.
+
+For having no *CONFIG.SYS* changes, a special *EPM loader executable* is
+copyied to your *?:\OS2* directory (where ?: represents your boot drive).
+When EPM.EXE is either loaded from command line or by double-clicking the
+*Enhanced Editor* icon within the *Workplace Shell*, this loader is launched
+instead of the true *EPM* and does the following:
+.ul compact
+- a special environment settings file is loaded. It holds the complete
+  changes required for the standard environment that are required to run all
+  of the [.IDPNL_ADDITIONS], this is in particular the case for the support of
+  the extended [.IDPNL_ADDITIONS_DIRTREE_EPMBBS].
+- the true *EPM* executable is searched along the path (of course skipping
+  the *EPM loader executable* itself during the search) and launched with
+  the extended environment and the parameters supplied to the loader executable
+  before.
+
+[=NOTE]
+.ul compact
+- the modified environment is
+  - available only within the loaded *EPM* instance, so for example 
+    in a shell window of *EPM* or OS/2 windows of fullscreens launched
+    from within the loaded *EPM* instance
+  - also loaded by the [.IDPNL_ADDITIONS_RECOMP recompilation utility RECOMP]
+    so that all source files of the [=TITLE] can be found during recompilation.
+- in order to have the extended environment also available for other processes
+  you can execute *epmenv.cmd* (being part of the [=TITLE]) within an OS/2 
+  window or fullscreen. You may want to copy this script file
+  *netlabs\bin\epmenv.cmd* to a directory along your *PATH*, so that it can
+  easily be called from any of your programs.
+.at hi
+  The installation routine of the [=TITLE] will not do so for you !
+.at
+
+.. -----------------------------------------------------------------------------
 .3 extended directory structure
 .. -----------------------------------------------------------------------------
 .an IDPNL_ADDITIONS_DIRTREE
@@ -635,15 +679,36 @@ placed into the following directory tree:
 .fo on
 
 .. -----------------------------------------------------------------------------
+.3 extended keyword hilighting
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_EPMKWDS
+.
+<to be edited>
+
+.. -----------------------------------------------------------------------------
+.3 extended assistant support
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_MYASSIST
+.
+<to be edited>
+
+.. -----------------------------------------------------------------------------
+.3 Tex Support
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_TEX
+.
+<to be edited>
+
+.. -----------------------------------------------------------------------------
 .3 extended recompilation support
 .. -----------------------------------------------------------------------------
 .an IDPNL_ADDITIONS_RECOMP
 .in RECOMP
 .
-[=TITLE] comes with a utility to greatly support and ease the recompilation
-of *EPM*.
+Althouth one of the major goals of [=TITLE] is to make any recompilations of
+*EPM* obsolete, it comes with a utility to greatly support and ease the recompilation.
 
-When recompiling *EPM* manually, you would call its macro compiler
+Usually, when recompiling *EPM* manually, you would call its macro compiler
 after having setup the *EPMPATH* variable according the original and your additional
 macro source files, and that several times until possible errors are solved.
 After that you would close all open *EPM* windows and open a new one in order to 
@@ -665,27 +730,6 @@ convenience. It works as follows:
   - loads the compile log (optional)
 
 Using the reload function makes the work much easier especialy when developing macros for *EPM*.
-
-.. -----------------------------------------------------------------------------
-.3 extended keyword hilighting
-.. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_EPMKWDS
-.
-<to be edited>
-
-.. -----------------------------------------------------------------------------
-.3 extended assistant support
-.. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_MYASSIST
-.
-<to be edited>
-
-.. -----------------------------------------------------------------------------
-.3 Tex Support
-.. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_TEX
-.
-<to be edited>
 
 .. -----------------------------------------------------------------------------
 .3 Readme text files matrix
