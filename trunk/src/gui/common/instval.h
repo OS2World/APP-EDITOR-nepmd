@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.h,v 1.4 2002-09-20 13:45:57 cla Exp $
+* $Id: instval.h,v 1.5 2002-09-20 14:49:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,6 +36,8 @@
 
 // prototypes
 APIRET QueryInstValue( PSZ pszValueTagTag, PSZ pszBuffer, ULONG ulBuflen);
+APIRET GetMessage( PCHAR *pTable, ULONG cTable, PBYTE pbBuffer, ULONG cbBuffer, 
+                   PSZ pszMessageName, PULONG pcbMsg);
 
 #endif // INSTVAL_H
 
