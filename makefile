@@ -8,7 +8,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution project 2002
 #
-# $Id: makefile,v 1.1 2002-04-15 16:37:50 ktk Exp $
+# $Id: makefile,v 1.2 2002-04-16 15:24:49 cla Exp $
 #
 # ===========================================================================
 #
@@ -104,11 +104,13 @@ INST: ALL
 
 INF: $(INFDIR)\nepmd.inf
 
-PREPARE: $(CMPDIR)\prepare.log
+PREPARE: $(UNZIPPEDDIR)\prepare.log
 
 CREATE: $(CMPDIR)\$(WPIFILE)
 
 CHECK: PREPARE
+   @ECHO Checking prepared files for errors during unpack:
+   -@grep SYS0 $(UNZIPPEDDIR)*.log
    @ECHO Checking prepared files for zero byte files:
    -@dir $(UNZIPPEDDIR) /s | grep " 0           0"
 
@@ -126,8 +128,10 @@ $(INFDIR)\nepmd.inf: src\ipf\nepmd.txt src\ipf\*.inc src\bmp\*
 # ---- unpack and maintain the original zip packages
 #      may require internet connection, see env.cmd
 
-$(CMPDIR)\prepare.log: bin\prepare.cmd
-   bin\prepare $(CMPDIR)\prepare.log $(BASEURL) $(ZIPSRCDIR) $(UNZIPPEDDIR)
+$(UNZIPPEDDIR)\prepare.log: bin\prepare.cmd
+   bin\prepare $(UNZIPPEDDIR)\prepare.log $(BASEURL) $(ZIPSRCDIR) $(UNZIPPEDDIR)
+   -@COPY $(UNZIPPEDDIR)\*.log $(CMPDIR) >NUL 2>&1
+
 # ---- create WPI package
 
 $(CMPDIR)\$(WPIFILE): PREPARE INF src\wis\$(SCRIPTFILE) bin\create.cmd
