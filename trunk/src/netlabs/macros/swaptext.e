@@ -1,10 +1,10 @@
 /****************************** Module Header *******************************
 *
-* Module Name: xchgline.e
+* Module Name: swaptext.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: xchgline.e,v 1.3 2004-07-13 18:27:51 aschn Exp $
+* $Id: swaptext.e,v 1.1 2004-11-30 21:34:05 aschn Exp $
 *
 * ===========================================================================
 *
