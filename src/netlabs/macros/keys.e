@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.1 2004-06-29 22:24:17 aschn Exp $
+* $Id: keys.e,v 1.2 2004-07-03 18:18:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -962,7 +962,7 @@ defc Down
 compile if RESPECT_SCROLL_LOCK
    if scroll_lock() then
 ;      'CenterLine'
-      'ScrollUp'
+      'ScrollDown'
    else
 compile endif
       call updownkey(1)
@@ -1365,7 +1365,7 @@ compile endif
 compile if RESPECT_SCROLL_LOCK
    if scroll_lock() then
 ;      'CenterLine'
-      'ScrollDown'
+      'ScrollUp'
    else
 compile endif
       call updownkey(0)
