@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.5 2002-09-19 13:22:09 aschn Exp $
+* $Id: main.e,v 1.6 2002-09-19 18:26:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -43,6 +43,13 @@ compile if WANT_APPLICATION_INI_FILE
    messageNwait('DEFMAIN: after INITCONFIG')
  compile endif
 compile endif
+
+   -- Following command can't be used before 'initconfig':
+   -- Following can not be linked before 'initconfig' in MAIN.E.
+   -- Otherwise the EPM.INI or parts of it will not be processed
+   -- (i.e. the toolbar will get lost and the fonts will change
+   -- to their default values).
+   'linkverify  nepmdlib.ex'   -- Link the NEPMD library. Open a MessageBox if .ex not found.
 
 compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH) or DELAY_SAVEPATH_CHECK
    call check_savepath()
@@ -120,6 +127,7 @@ compile if DELAY_MENU_CREATION
  compile else
    'main2' arg(1)
  compile endif
+
 
 defc main2  -- Everything after the SHOWWINDOW is a separate command, posted so as not to slow down initial display of window.
    universal appname, app_hini
