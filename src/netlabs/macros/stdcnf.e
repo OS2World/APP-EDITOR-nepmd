@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.6 2002-10-07 00:28:53 aschn Exp $
+* $Id: stdcnf.e,v 1.7 2002-10-17 17:01:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -347,20 +347,23 @@ compile endif
 -- Set this to 1 if you like PE2's method of reflowing a paragraph -- moving
 -- the cursor to the next paragraph.
 compile if not defined(REFLOW_LIKE_PE)
-   REFLOW_LIKE_PE = 0
+   --REFLOW_LIKE_PE = 0
+   REFLOW_LIKE_PE = 1
 compile endif
 
 -- Ver.3.09:  Set this to 1 if you want the FILE key to quit rather than
 -- save the file if the file was not modified.  Has the side effect that
 -- the Name command sets .modify to 1.
 compile if not defined(SMARTFILE)
-   SMARTFILE = 0
+   --SMARTFILE = 0
+   SMARTFILE = 1
 compile endif
 
 -- Set this to 1 if you want the Save key to prompt you if the file was not
 -- modified.  the side effect that
 compile if not defined(SMARTSAVE)
-   SMARTSAVE = 0
+   --SMARTSAVE = 0
+   SMARTSAVE = 1
 compile endif
 
 -- Set this to 1 if you want the QUIT key to let you press the FILE key if the
