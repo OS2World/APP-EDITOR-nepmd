@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neprgeng.txt,v 1.4 2002-11-02 17:04:27 cla Exp $
+.. $Id: neprgeng.txt,v 1.5 2002-11-03 19:28:34 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -39,7 +39,7 @@
 .SET CATEGORY_SYSTEM=System related functions
 
 .. #############################################################################
-.1 [=DOCTITLE]
+.1 [=PRGTITLE]
 .. #############################################################################
 .an IDPNL_MAIN
 .at font='20.Tms Rmn' fc=darkgray italic bold
@@ -129,15 +129,15 @@ implicitely. As soon as you perform more than one action in a row, the
 (re)open and close operations, which would waste much time by huge disk I/O
 overhead.
 
-.. -----------------------------------------------------------------------------
-.3 overview of keys used by the [=DOCTITLE]
-.. -----------------------------------------------------------------------------
-.an IDPNL_REGISTRY_KEYLIST
-.
-The following keys are used by the [=TITLE]:
+.. .. -----------------------------------------------------------------------------
+.. .3 overview of keys used by the [=DOCTITLE]
+.. .. -----------------------------------------------------------------------------
+.. .an IDPNL_REGISTRY_KEYLIST
+.. .
+.. The following keys are used by the [=TITLE]:
 
 .. =============================================================================
-.2 Appendix: EPM Syntax highlighting support
+.2 EPM Syntax highlighting support
 .. =============================================================================
 .an IDPNL_HILITE
 .
@@ -145,7 +145,7 @@ The following keys are used by the [=TITLE]:
 .su V30
 
 .. -----------------------------------------------------------------------------
-.3 Appendix: standard E toolkit syntax highlighting files
+.3 standard E toolkit syntax highlighting files
 .. -----------------------------------------------------------------------------
 .an IDPNL_HILITE_FILES
 .
@@ -486,11 +486,77 @@ The background and foreground color values apply to the folowing scheme
 = white
 
 .. =============================================================================
+.2 [=DOCTITLE] code changes
+.. =============================================================================
+.an IDPNL_REWORKED
+.
+[=TOPICS]
+.su V30
+
+.. -----------------------------------------------------------------------------
+.3 changes to the EPMBBS code
+.. -----------------------------------------------------------------------------
+.an IDPNL_REWORKED_GENERAL
+.
+The first step before implementing new features in the *E* sourcecode
+of the *EPMBBS* version was to cleanup the code. This process has not
+been completed yet, but
+
+See the following sections for details.
+
+.. -----------------------------------------------------------------------------
+.3 remove obsolete code
+.. -----------------------------------------------------------------------------
+.an IDPNL_REWORKED_COMPILEIF
+.
+The E code from *EPMBBS* is prepared to compile with every version of the
+*E Toolkit* macro compiler. Therefore the code contains many compiler
+directives like
+
+.fo off
+   compile if EVERSION > 6
+      ...
+   compile elseif EVERSION > 5
+      ...
+   compile else
+      ...
+   compile endif
+.fo on
+
+Because of the historical growth, some sections are not readable anymore.
+Within the [=TITLE], all code has been removed that is not designed for
+EPM 6.03b. If you want to clean-up your own code, see the beginning of
+STDCONST.E for the meaning of the constants.
+
+.. -----------------------------------------------------------------------------
+.3 maintain small file sizes
+.. -----------------------------------------------------------------------------
+.an IDPNL_REWORKED_SMALLFILES
+.
+Some *E* source files of the *EPMBBS* version have a quite unhandy size to
+find code therein. Especially the std**.e files are unsorted and not easy to read in.
+This is probably caused by the limits of ancient *E*/*EPM* versions.
+
+We decided to start creating smaller files, where the code concerning
+with similar themes is collected. See locate.e for an example. The file
+stdctrl.e could be reduced from 5600 to 4000 lines (yet to do).
+
+.. -----------------------------------------------------------------------------
+.3 replace configuration constants
+.. -----------------------------------------------------------------------------
+.an IDPNL_REWORKED_COSNTANTS
+.
+For future versions of the [=TITLE] it is planned to replace all
+configuration constants with dynamic values, being stored
+within the *extended configuration repository* of the [=TITLE]
+(and making them configurable by a GUI later). This will hopefully
+make all recompilations of *EPM* obsolete.
+
+.. =============================================================================
 .2 E Language functions of the [=DOCTITLE]
 .. =============================================================================
 .an IDPNL_EFUNC
 .
 The following E language functions are provided by the [=TITLE]:
-
 .include ..\..\compile\functions.txt
 

@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.7 2002-11-02 21:19:46 cla Exp $
+.. $Id: neusreng.txt,v 1.8 2002-11-03 19:28:34 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -27,7 +27,7 @@
 .hi 234
 
 .. #############################################################################
-.1 [=DOCTITLE]
+.1 [=USRTITLE]
 .. #############################################################################
 .an IDPNL_MAIN
 .at font='20.Tms Rmn' fc=darkgray italic bold
@@ -75,8 +75,9 @@ These packages already include the following:
   - using the E Toolkit in order to implement one or more MLE's
     (Enhanced Multi-line Edit Controls) in own applications
 
-In addition to that the [=TITLE] adds [.IDPNL_INSTADDITIONS various features]
-out of contributed macros and add-on programs.
+In addition to that the [=TITLE] adds an [.IDPNL_INSTADDITIONS extended
+installation and configuration scheme] and [.IDPNL_USEADDITIONS various
+edit features] out of contributed macros and add-on programs.
 
 .. -----------------------------------------------------------------------------
 .3 What is EPM ?
@@ -165,7 +166,9 @@ Everybody is invited to join the project team or pass suggestions and/or contrib
 .
 The following prerequisites apply to the current version of [=TITLE]:
 .ul
-- The [=TITLE] runs under *OS/2 WARP* Version 3 or later or *eComStation*
+- The [=TITLE] runs under *OS/2 WARP* Version 4 or later or *eComStation*.
+  It also runs under *OS/2 WARP* Version 4 under the prerequisite that the
+  [.IDPNL_EPMBBS the EPMBBS distribution] is already installed
 - The [http://www.xworkplace.org WarpIn for OS/2] sofware installer has to
   be installed on your system in order to install the [=TITLE]
   (when you read this, you likely have *WarpIn* installed ;-)
@@ -191,8 +194,9 @@ The *EPM* was developed by the IBM T. J. Watson Research Center.
 .
 All rights reserved.
 
-Visit also the homepage of
+Visit also the homepages of
 .ul compact
+- [http://nepmd.netlabs.org The Netlabs EPM Distribution]
 - [http://www.netlabs.org The Netlabs]
 
 .. -----------------------------------------------------------------------------
@@ -201,7 +205,8 @@ Visit also the homepage of
 .an IDPNL_LEGAL_LICENSE
 .
 This software package is freeware. It can be used wherever you
-use *OS/2 WARP* Version 3 or later or eComStation.
+use *OS/2 WARP* Version 3 or later or *eComStation*. (For usage
+under OS/" Warp 3 see section [.IDPNL_PREREQUISITES] !)
 
 You are allowed to freely use and distribute the [=TITLE] as long as
 .ul compact
@@ -1518,7 +1523,7 @@ to contol *EPM* windows.
 .. -----------------------------------------------------------------------------
 .an IDPNL_USAGE_CONFIGURE
 .
-<to be edited>
+
 
 
 .. =============================================================================
@@ -1666,6 +1671,7 @@ The following persons (in alphabetic order) assembled and contributed extensions
      - National Language Support concept
 ..- additional macros (e.g. for Tex)
 ..
+
 
 .. =============================================================================
 .2 Appendix: Configuration file formats
@@ -1977,6 +1983,130 @@ See also the
 .an IDPNL_FORMAT_MYEPMHIL_DETAILS
 .
 .mi IDPNL_FORMAT_NETLABSHIL_DETAILS
+
+.. =============================================================================
+.2 Appendix: Standard EPM configuration
+.. =============================================================================
+.an IDPNL_CONFIG
+.
+[=TOPICS]
+.su V30 1
+
+.. -----------------------------------------------------------------------------
+.3 using the mycnf.e scheme
+.. -----------------------------------------------------------------------------
+.an IDPNL_CONFIG_MYCNF
+.
+For future versions of the [=TITLE] it is planned to replace all
+configuration constants with dynamic values, being stored
+within the [.IDPNL_INSTADDITIONS_REGISTRY] and making them
+configurable by a GUI. This will hopefully make all recompilations
+of *EPM* obsolete.
+
+This has not yet been achieved, only a few of the EPMBBS constants have
+been replaced until now, so many of the constants are
+still used. In order to anyway get a more usable *EPM* now without
+creating an own mycnf.e configuration file, some of
+them have been [.IDPNL_CONFIG_CONSTANTS reworked].
+
+If any of the configuration constants have to be overridden, perform the
+following steps:
+.ul compact
+- create the file *myepm\macros\mycnf.e* and include any of the desired
+  [.IDPNL_CONFIG_CONSTANTS configuration constants].
+- modify it to your needs
+- launch the [.IDPNL_INSTADDITIONS_RECOMP recompilation utility RECOMP] from the
+  [.IDPNL_USAGE_WPSFOLDER]
+- reompile *EPM*
+
+.. -----------------------------------------------------------------------------
+.3 reworked configuration constants
+.. -----------------------------------------------------------------------------
+.an IDPNL_CONFIG_CONSTANTS
+.
+In STDCNF.E all standard configuration constants are defined that are being
+used during compilation of *EPM*. Many of the available features
+are disabled by default though within the [.IDPNL_EPMBBS EPMBBS distribution],
+so the [=TITLE] has modified a lot of the configuration values in order to
+activate most of the features. This makes it mostly obsolete to create the
+file *myepm\macros\mycnf.e*, which would be the alternative to override these
+constants:
+
+The [=TITLE] has modified the following constants
+
+.fo off
+Constant                   Old default  Changed default
+                           value        value
+------------------------   -----------  ---------------
+REFLOW__LIKE__PE             0            1
+SMARTFILE                  0            1
+SMARTSAVE                  0            1
+WANT__SEARCH__PATH           0            1
+WANT__ALL                   0            1
+WANT__EPM__SHELL             0            1
+WANT__LONGNAMES             0            1
+WANT__STACK__CMDS            0            'SWITCH'
+   MY__STACK__CMDS           (undefined)  1
+WANT__CUA__MARKING           0            'SWITCH'
+   MY__CUA__MARKING__SWITCH   (undefined)  0
+WANT__DM__BUFFER             0            1
+WANT__STREAM__MODE           0            'SWITCH'
+   MY__STREAM__MODE          (undefined)  1
+WANT__STREAM__INDENTED       0            1
+ENHANCED__ENTER__KEYS        0            1
+SUPPORT__BOOK__ICON          1            0
+WANT__BRACKET__MATCHING      0            1
+WANT__KEYWORD__HELP          0            1
+WANT__PROFILE               0            'SWITCH'
+   MY__WANT__PROFILE         (undefined)  1
+TOGGLE__ESCAPE              0            1
+WANT__TAGS                  0            1
+SUPPORT__USERS__GUIDE        0            1
+SUPPORT__TECHREF            0            1
+SUPPORT__USER__EXITS         0            1
+LOCATE__CIRCLE__STYLE        1            5
+LOCATE__CIRCLE__COLOR1       16777220     16777231
+LOCATE__CIRCLE__COLOR1       16777218     16777216
+RESPECT__SCROLL__LOCK        0            1
+REXX__SYNTAX__ASSIST         0            1
+.fo on
+
+The MY__** constants are used to initialize the corresponding
+constants, when they are set to 'SWITCH'. Then global variables
+are used to switch the behaviour on-the-fly.
+
+.. -----------------------------------------------------------------------------
+.3 replaced configuration constants
+.. -----------------------------------------------------------------------------
+.an IDPNL_CONFIG_REPLACED
+.
+Obsolete constants for versions prior to 6.03b are removed (commented
+out in stdcnf.e).
+
+Currently some constants are replaced by dynamic values stored
+in the [.IDPNL_INSTADDITIONS_REGISTRY], and some new values control
+features being additionally implemented by the [=TITLE].
+
+Until there exists a GUI to configure these keys, some commands are used
+to change the behaviour, which will work on-the-fly, without recompiling EPM.E!
+.pl tsize=3 bold
+- DragAlwaysMarks 0|1
+= When set to 1, every mouse drag will start a new mark, even if
+  a mark already exists. This avoids the message 'Text is already marked...'
+.
+  (Replaces constant DRAG__ALWAYS__MARKS)
+- MouseStyle 1|2
+= defines the mark behaviour of mouse buztton 1 and 3:
+.ul compact
+  - *1*  MouseButton 1: block mark, MouseButtons 3: char mark
+  - *2*  MouseButton 3: block mark, MouseButtons 1: char mark
+.el
+.
+  (Replaces constant MOUSE__STYLE)
+- MouseMarkWorkaround 0|1
+= enables the workaround for the mark bug
+- HomeRespectIndent 0|1
+= enables if the Home key respectes the indent of the previous line
 
 .. =============================================================================
 .2 Appendix: EPM Quick Reference
@@ -2864,169 +2994,4 @@ are provided under the *GNU General Public License*:
 .fo off
 .include COPYING
 .fo on
-
-
-.. =============================================================================
-.2 TODO
-.. =============================================================================
-.an IDPNL_TODO
-
-.. -----------------------------------------------------------------------------
-.3 reworked E macros
-.. -----------------------------------------------------------------------------
-.an IDPNL_INSTADDITIONS_NEWMACROS
-.
-
-_*Clean-up of the code*_
-
-The E code from *EPMBBS* is prepared to compile with every version of the
-E Toolkit macro compiler. Therefore the code contains many compiler
-directives like
-
-.fo off
-   compile if EVERSION > 6
-      ...
-   compile elseif EVERSION > 5
-      ...
-   compile else
-      ...
-   compile endif
-.fo on
-
-Because of the historical growth, some sections are not readable anymore.
-We decided to remove every obsolete code, that is not designed for
-EPM 6.03b. If you want to clean-up your own code, see the beginning of
-STDCONST.E for the meaning of the constants.
-
-Some files have a quite unhandy size to find code therein. Especially
-the std**.e files are unsorted. This is probably caused by the limits of
-ancient E/EPM versions.
-
-We decided to start creating smaller files, where the code concerning
-with similar themes is collected. See locate.e for an example. The file
-stdctrl.e could be reduced from 5600 to 4000 lines (yet to do).
-
-_*new filetype determination with EPM mode*_
-
-Within the [=TITLE] the filetype is determined with the new
-[.IDPNL_INSTADDITIONS_MODE] scheme. This replaces the mechanism within the
-*EPMBBS* version that checks for nothing else then the filename extension.
-Moreover, the list of recognized filename extensions was hardocded there,
-so in order to extend such a list the change of the *E* source code and a
-recompile of the *EPM* was necessary, which has now become obsolete.
-
-
-_*File loading*_
-
-When a file is loaded with extended file attributes attached to it being larger than
-32 in standard *EPM*, it will trap. Against some announcements, this is not fixed for
-all cases.
-
-As this trap occurrs mostly with larger REXX scripts, the [=TITLE] provides a
-workaround for this inconvenience: the REXX related attributes are deleted
-before the file gets loaded.
-
-
-
-_*Configuration constants*_
-
-It is planned to replace all configuration constants with configurable
-NEPMD registry keys, stored in NEPMD.INI. Currently only just a few of
-them are replaced. They will be configurable by a GUI tool, that will
-also replace the old settings dialog.
-
-In the meantime nearly all of the EPMBBS constants were still used. But
-we changed the default values for many of them to get an usable *EPM*
-even without creating an own MYCNF.E configuration file.
-
-
-_*Changed default values for configuration constants*_
-.. explanation missing
-
-In STDCNF.E the default values are defined. Without creating a MYCNF.E
-file to change the default values, the *EPM* has appeared really poor.
-Many of it's great features are switched off by default. So following
-default values have changed to make it nearly superflously to create
-a MYCNF.E:
-.fo off
-Constant                   Old default value   Changed default value
---------------------------------------------------------------------
-REFLOW__LIKE__PE             0                   1
-SMARTFILE                  0                   1
-SMARTSAVE                  0                   1
-WANT__SEARCH__PATH           0                   1
-WANT__ALL                   0                   1
-WANT__EPM__SHELL             0                   1
-WANT__LONGNAMES             0                   1
-WANT__STACK__CMDS            0                   'SWITCH'
-   MY__STACK__CMDS           (undefined)         1
-WANT__CUA__MARKING           0                   'SWITCH'
-   MY__CUA__MARKING__SWITCH   (undefined)         0
-WANT__DM__BUFFER             0                   1
-WANT__STREAM__MODE           0                   'SWITCH'
-   MY__STREAM__MODE          (undefined)         1
-WANT__STREAM__INDENTED       0                   1
-ENHANCED__ENTER__KEYS        0                   1
-SUPPORT__BOOK__ICON          1                   0
-WANT__BRACKET__MATCHING      0                   1
-WANT__KEYWORD__HELP          0                   1
-WANT__PROFILE               0                   'SWITCH'
-   MY__WANT__PROFILE         (undefined)         1
-TOGGLE__ESCAPE              0                   1
-WANT__TAGS                  0                   1
-SUPPORT__USERS__GUIDE        0                   1
-SUPPORT__TECHREF            0                   1
-SUPPORT__USER__EXITS         0                   1
-LOCATE__CIRCLE__STYLE        1                   5
-LOCATE__CIRCLE__COLOR1       16777220            16777231
-LOCATE__CIRCLE__COLOR1       16777218            16777216
-RESPECT__SCROLL__LOCK        0                   1
-REXX__SYNTAX__ASSIST         0                   1
-.fo on
-
-The MY__** constants are used to initialize the corresponding
-constants, when they are set to 'SWITCH'. Then global variables
-are used to switch the behaviour on-the-fly.
-
-
-_*Replaced configuration constants*_
-
-Obsolete constants for versions prior to 6.03b are removed. They are
-commented out in STDCNF.E.
-
-Currently some constants are replaced by NEPMD registry keys:
-.fo off
-Obsolete constant   Registry key in NEPMD.INI           Default value
----------------------------------------------------------------------
-DRAG__ALWAYS__MARKS   \NEPMD\Mouse\Mark\DragAlwaysMarks   1
-MOUSE__STYLE         \NEPMD\Mouse\Mark\MouseStyle        1
-.fo on
-
-Until there exists a GUI to configure these keys, some commands are used
-to change the behaviour:
-.fo off
-Command           Possible args
--------------------------------
-DragAlwaysMarks   0|1
-MouseStyle        1|2
-.fo on
-
-This works on-the-fly, without recompiling EPM.E!
-
-.pl tsize=3
-- DragAlwaysMarks
-= Every mouse drag will start a new mark, even if a mark already exists.
-  This avoids the message 'Text is already marked...'
-- MouseStyle
-= 1 ==> MouseButton 1: block mark, MouseButtons 3: char mark
-.
-  2 ==> MouseButton 3: block mark, MouseButtons 1: char mark
-.
-  MouseButton 2: line mark
-
-
-.. Further subsections:
-..   Highlighting
-..   Keyword help
-..   Autolink
 
