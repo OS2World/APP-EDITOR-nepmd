@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.46 2002-09-22 13:20:52 cla Exp $
+* $Id: nepmdlib.c,v 1.47 2002-09-22 21:43:22 cla Exp $
 *
 * ===========================================================================
 *
@@ -283,8 +283,6 @@ return rc;
 
 // ##############################################################################
 
-// ------------------------------------------------------------------------------
-
 APIRET EXPENTRY NepmdActivateHighlight( HWND hwndClient, PSZ pszActivateFlag, PSZ pszEpmMode)
 {
          APIRET         rc = NO_ERROR;
@@ -340,9 +338,11 @@ do
       if (rc != NO_ERROR)
          break;
       }
+   else
+      szHilightFile[ 0] = 0;
 
    // send command
-   _executeEPMCommand( hwndClient, "toggle_parse %u %s", pszActivateFlag, szHilightFile);
+   _executeEPMCommand( hwndClient, "toggle_parse %s %s", pszActivateFlag, szHilightFile);
 
    } while (FALSE);
 
