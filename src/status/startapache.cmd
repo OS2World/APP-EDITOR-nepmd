@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: startapache.cmd,v 1.5 2003-09-19 10:01:00 cla Exp $
+* $Id: startapache.cmd,v 1.6 2003-09-19 10:10:54 cla Exp $
 *
 * ===========================================================================
 *
@@ -79,7 +79,7 @@
        LEAVE;
 
     /* debug with gfc */
-    /* 'call gfc' ConfigSource ConfigTmp; */
+       'call gfc' ConfigSource ConfigTmp;
 
     /* startup server */
     rcx = DIRECTORY( Apache._Dir);
@@ -151,8 +151,8 @@ SetupConfig: PROCEDURE EXPOSE Apache.;
 
  Strings.5._old = 'AddType application/x-tar .tgz'
  Strings.5._new = Strings.5._old''CrLf||,
-                  'AddType application/x-httpd-php .php .php3 .php4'CrLf||,
-                  'AddType application/x-httpd-php-source .phps';
+                  '    AddType application/x-httpd-php .php .php3 .php4'CrLf||,
+                  '    AddType application/x-httpd-php-source .phps';
 
  Strings.6._old = 'Options Indexes FollowSymLinks MultiViews';
  Strings.6._new = 'Options -Indexes FollowSymLinks MultiViews';
