@@ -1,0 +1,253 @@
+.. ***************************** Module Header *******************************
+..
+.. Module Name: makefile.txt
+..
+.. source file for the INF file providing help for makefile
+.. Requires HyperText/2 package to compile
+..
+.. Unlike the nepmd.inf, the makfile.inf is compiled to the bin subdirectory
+.. and checked in to make it always available right after checking out.
+..
+.. So when updating this file, commit also the changed INF file !!!
+..
+.. Copyright (c) Netlabs EPM Distribution Project 2002
+..
+.. $Id: makefile.txt,v 1.1 2002-04-20 14:44:37 cla Exp $
+..
+.. ===========================================================================
+..
+.. This file is part of the Netlabs EPM Distribution package and is free
+.. software.  You can redistribute it and/or modify it under the terms of the
+.. GNU General Public License as published by the Free Software
+.. Foundation, in version 2 as it comes in the "COPYING" file of the
+.. Netlabs EPM Distribution.  This library is distributed in the hope that it
+.. will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+.. of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.. General Public License for more details.
+..
+.. ***************************************************************************
+
+.include title.inc
+.set TITLE=*[=DOCTITLE]*
+
+.set STDLIST=compact break=fit tsize=20
+
+.ti [=DOCTITLE]
+
+.. =============================================================================
+.1 Making of [=DOCTITLE]
+.. =============================================================================
+
+.at font='20.Tms Rmn' fc=darkgray italic bold
+.bitmap src\bmp\nllogo.bmp center
+.ce present the Making of
+.at font='24.Tms Rmn' fc=red bold italic
+.ce [=DOCTITLE]
+.at
+
+[=TOPICS]
+.su 1
+
+.. -----------------------------------------------------------------------------
+.2 Requirements
+.. -----------------------------------------------------------------------------
+.an IDPNL_REQUIREMENTS
+.
+The following is required for making [=TITLE]:
+.ul
+- *WarpIn* installed (minimum: 0.9.18)
+.
+  *WarpIn* dirrectory reachable by PATH and (BEGIN)LIBPATH statement
+- *pkunzip2* (as part of MPTS)
+  - the shrink method is not supported by newer versions of *Info-Zip*,
+    but required
+- *zip.exe* of *Info-Zip*
+  - required because "deflated" method used for txt files
+    in the update zip file are not supported by pkunzip2 of MPTS
+- *wget* for download of the original zip files, if not present
+.
+  (currently tested with wget v1.7)
+.
+.
+  [=NOTE]
+.ul compact
+   - when sitting behind a firewall, create/modify a wget resource file in order
+     to use an FTP proxy. Insert or add the following entries and replace the
+     bold printed values as required:
+.fo off
+       ftp__proxy=http://*proxyname*:*proxyport*
+       proxy__user=*proxy__userid*
+       proxy__passwd=*proxy__password*
+.fo on
+.el
+.. - as compiler either
+.. either
+.. .ul compact
+..   - *IBM CSet /2* (debugger seems not to cope with the debug version...)
+..   - *IBM VAC 3.08* (much better debugger)
+.. .el
+.. .
+..   NOTE: compiler is automatically recognized by makefile
+- either
+.ul compact
+  - *OS/2 Warp 3 Developers Toolkit*
+  - *OS/2 Warp 4 Developers Toolkit*
+  - *OS/2 Warp 4.5 Developers Toolkit*
+- *HyperText/2* from
+  [http://hobbes.nmsu.edu/cgi-bin/h-search?key=htext The Hobbes File Archive
+  (search "htext" at hobbes.nmsu.edu)]
+- *REXX2EXE* compiler from
+  [http://hobbes.nmsu.edu/cgi-bin/h-search?key=rexx2exe The Hobbes File Archive
+  (search "rexx2exe" at hobbes.nmsu.edu)]
+- *grep* utility reachable by the PATH statement
+
+.. -----------------------------------------------------------------------------
+.2 CVS development tree overview
+.. -----------------------------------------------------------------------------
+.an IDPNL_DEVTREE
+.
+The following directories currently exist in the CVS development tree
+.
+(the *CVS* maintenance directories are not included here):
+.pl compact break=none tsize=15
+.fo off
+<working dir>
+ÃÄheader       GNU header for all used filetypes
+ÃÄipf          HypeText/2 sources for the NEPMD INF files
+³ ÀÄbmp        bitmaps for INF files
+ÃÄ[=DISTDIR]      base directory for sources simoly copied to compile\[=DISTDIR]
+³ ÀÄinstall    installation related files
+³     ÀÄico    NEPMD related icons for installation
+ÃÄrexx         REXX sources being compiled for NEPMD
+ÀÄwis          WarpIn script
+.fo on
+
+The following _temporary_ directory tree is created when building the *WarpIn* package:
+.fo off
+<working dir>
+ÀÄ[=DISTDIR]      directory packed into the WarpIn package
+  ÃÄbook       subdirectory for the NEPMD INF file
+  ÀÄinstall       holding copies of files of src\[=DISTDIR]
+    ÀÄico         or compiled binaries
+.fo on
+
+[=NOTE]
+.ul compact
+- the temporary directory tree can be cleaned up (deleted) with *nmake clean*
+
+.. -----------------------------------------------------------------------------
+.2 configuring the makefile
+.. -----------------------------------------------------------------------------
+.an IDPNL_CONFIGMAKE
+.
+The *makefile* requires several lists values, of which some have to be configured
+before executing *nmake*.
+
+_*values to be configured by everybody*_
+.pl bold
+- BASEURL
+= specifies the location from where the original ZIP files of the EPMBBS
+  package (epm603.zip and epm603b.zip) are to be downloaded from.
+.
+.
+[=NOTE]
+.ul compact
+  - It will generally not be necessary to modify that value !
+  - You can predefine that value also as an environment variable before calling *nmake*
+.el
+- ZIPSRCDIR
+= specifies a directory of your choice either empty or already holding
+  the ZIP files of the EPMBBS package (epm603.zip and epm603b.zip).
+  If files are not present, they are downloaded from LEO
+  from the base URL - see setting BASEURL above.
+.
+.
+[=NOTE]
+.ul compact
+  - the directory may not exist, but at least directory above
+    must exist (that is not tested for !)
+  - if you don't modify the value, the directory *zip* is created within your
+    working directory and used for that purpose
+  - You can predefine that value also as an environment variable before calling *nmake*
+.el
+- UNZIPPEDDIR
+= specifies an empty or non-existant directory of your choice where
+  to put unpacked files
+.
+.
+[=NOTE]
+.ul compact
+  - the directory may not exist, but at least directory above must exist
+    (that is not tested for !)
+  - if you don't modify the value, the directory *epm.packages* is created within your
+    working directory and used for that purpose
+  - the contents of that directory (if any) is completely deleted
+    before unpacking the EPMBBS package files
+  - You can predefine that value also as an environment variable before calling *nmake*
+.el
+
+
+_*values to be configured by maintainer only*_
+.pl bold
+- STEM
+= specifies the id of the project, used within some filenames
+- VERSION
+= specifies the current version, used in the name of the WPI package file
+.
+.
+[=NOTE]
+.ul compact
+.at hi
+  - modifying this version number does not currently automatically modify the
+    version number used within the *WarpIn* script file! These have also to be modified
+    accordingly.
+.at
+.el
+
+.. -----------------------------------------------------------------------------
+.2 makefile targets
+.. -----------------------------------------------------------------------------
+.an IDPNL_TARGETS
+.
+The following makefile targets are available:
+.pl bold compact break=none tsize=20
+- nmake
+= show this INF file (if outdated, compiles the INF before)
+.
+- nmake clean
+= remove the *compile* directory
+.
+- nmake all
+= build complete package (**)
+.
+  This results in the *WarpIn* WPI package file
+  in the *compile* directory (**)
+.
+- nmake inst
+= like *nmake all*, but also starts the WPI file (**)
+- nmake nepmd
+= build NEPMD extensions including the INF file
+.
+- nmake show
+= build NEPMD INF and show it
+- nmake inf
+= build NEPMD INF
+- nmake srccopy
+= copy some NEPMD files directly from CVS tree part to compile directory
+.
+- nmake prepare
+= only downloads EPMBBS zip files from leo and unpacks (**)
+- nmake check
+= check prepared files for
+.ul compact
+  - SYSxxxx errors during unpack
+  - zero byte files, making WIC trap (thanks god !).
+    pkunzip2 does not unpack properly sometimes (zero byte files)
+.el
+
+[=NOTE]
+.ul compact
+- edit configure.in to your needs before executing nmake
+- targets marked with (**) require a working intenet connection
+  for to download the EPM packages, if not already done
+
