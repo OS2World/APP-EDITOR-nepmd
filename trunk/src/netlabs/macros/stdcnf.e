@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.16 2004-02-22 15:47:35 aschn Exp $
+* $Id: stdcnf.e,v 1.17 2004-03-19 14:56:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -801,7 +801,8 @@ compile endif
 
 -- Select which style pointer you prefer.
 compile if EPM & not defined(EPM_POINTER)
-   EPM_POINTER = TEXT_POINTER      -- GPI version gets text pointer
+   --EPM_POINTER = TEXT_POINTER      -- GPI version gets text pointer  -- changed by aschn
+   EPM_POINTER = 'SWITCH'
 compile endif
 
 -- Obsolete const for older EPM versions:
