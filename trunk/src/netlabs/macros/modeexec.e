@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.1 2004-06-29 22:45:36 aschn Exp $
+* $Id: modeexec.e,v 1.2 2004-07-09 13:40:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -577,7 +577,7 @@ defc SetMargins  -- defc margins exist
          'margins' arg1  -- set EPM.MARGINS
       endif
    else
-      call NepmdPmPrintf( 'Margins not set: '.filename)
+      --call NepmdPmPrintf( 'Margins not set: '.filename)
    endif
 
    -- Save the value in an array var, to determine 'DEFAULT' state later
@@ -636,7 +636,7 @@ defc SetTabs  -- defc tabs exist
          'tabs' arg1  -- set EPM.MARGINS
       endif
    else
-      call NepmdPmPrintf( 'Tabs not set: '.filename)
+      --call NepmdPmPrintf( 'Tabs not set: '.filename)
    endif
 
    -- Save the value in an array var, to determine 'DEFAULT' state later
