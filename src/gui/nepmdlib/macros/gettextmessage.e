@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.2 2002-08-21 13:56:17 cla Exp $
+* $Id: gettextmessage.e,v 1.3 2002-08-21 21:38:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -32,7 +32,7 @@ defc NepmdGetTextMessage, GetTextMessage
   if ( words( arg( 1)) = 0) then
      Messagename = 'TESTMESSAGE';
   else
-     Messagename = arg( 1);
+     Messagename = word( arg( 1), 1);
   endif
 
   /* determine TMF name  */
@@ -43,8 +43,22 @@ defc NepmdGetTextMessage, GetTextMessage
      return;
   endif
 
-  /* fetch message */
-  MessageText = NepmdGetTextMessage( Testfile, Messagename);
+  /* fetch message - support only up to three vars here */
+  /* NOTE: word 1 is already message name ! */
+  ParmCount = words( arg( 1));
+  Parm1     = word( arg( 1), 2);
+  Parm2     = word( arg( 1), 3);
+  Parm3     = word( arg( 1), 4);
+  if (ParmCount < 2) then
+     MessageText = NepmdGetTextMessage( Testfile, Messagename);
+  elseif (ParmCount = 2) then
+     MessageText = NepmdGetTextMessage( Testfile, Messagename, Parm1);
+  elseif (ParmCount = 3) then
+     MessageText = NepmdGetTextMessage( Testfile, Messagename, Parm1, Parm2);
+  elseif (ParmCount = 4) then
+     MessageText = NepmdGetTextMessage( Testfile, Messagename, Parm1, Parm2, Parm3);
+  endif
+
   if (MessageText = '') then
      sayerror 'error: message' Messagename 'could not be retrieved!';
   else
@@ -70,7 +84,8 @@ defc NepmdGetTextMessage, GetTextMessage
 /*                                       PSZ pszParm5,           */
 /*                                       PSZ pszParm6,           */
 /*                                       PSZ pszParm7,           */
-/*                                       PSZ pszParm8);          */
+/*                                       PSZ pszParm8,           */
+/*                                       PSZ pszParm9);          */
 /* NOTE: unlike DosGetMessage, this function returns an ASCIIZ ! */
 /* ------------------------------------------------------------- */
 
@@ -83,6 +98,21 @@ defproc NepmdGetTextMessage( Filename, Messagename) =
  Filename    = Filename''atoi( 0);
  Messagename = Messagename''atoi( 0);
 
+ /* assemble variable parm list */
+ /* we need to sezup vars for each parm, as arg() */
+ /* returns the same address for all values :-(   */
+ Parm1 = arg(  3)''atoi( 0);  if (arg() >  2) then Addr1 = address( Parm1); else Addr1 = atol( 0); endif
+ Parm2 = arg(  4)''atoi( 0);  if (arg() =  4) then Addr2 = address( Parm2); else Addr2 = atol( 0); endif
+ Parm3 = arg(  5)''atoi( 0);  if (arg() =  5) then Addr3 = address( Parm3); else Addr3 = atol( 0); endif
+ Parm4 = arg(  6)''atoi( 0);  if (arg() =  6) then Addr4 = address( Parm4); else Addr4 = atol( 0); endif
+ Parm5 = arg(  7)''atoi( 0);  if (arg() =  7) then Addr5 = address( Parm5); else Addr5 = atol( 0); endif
+ Parm6 = arg(  8)''atoi( 0);  if (arg() =  8) then Addr6 = address( Parm6); else Addr6 = atol( 0); endif
+ Parm7 = arg(  9)''atoi( 0);  if (arg() =  9) then Addr7 = address( Parm7); else Addr7 = atol( 0); endif
+ Parm8 = arg( 10)''atoi( 0);  if (arg() = 10) then Addr8 = address( Parm8); else Addr8 = atol( 0); endif
+ Parm9 = arg( 11)''atoi( 0);  if (arg() = 11) then Addr9 = address( Parm9); else Addr9 = atol( 0); endif
+
+ VarParmList = Addr1 || Addr2 || Addr3 || Addr4 || Addr5 || Addr6 || Addr7 || Addr8 || Addr9;
+
  /* call C routine */
  LibFile = getlibfile();
  rc = dynalink32( LibFile,
@@ -90,7 +120,8 @@ defproc NepmdGetTextMessage( Filename, Messagename) =
                   address( Filename)            ||
                   address( Messagename)         ||
                   address( TextMessage)         ||
-                  atol( Buflen));
+                  atol( Buflen)                 ||
+                  VarParmList);
 
  checkliberror( LibFile, rc);
 
