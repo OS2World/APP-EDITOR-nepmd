@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.4 2002-09-02 22:04:46 aschn Exp $
+* $Id: stdcnf.e,v 1.5 2002-09-20 19:40:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -499,7 +499,8 @@ compile endif
 compile if not defined(WANT_SEARCH_PATH)
    -- What a poor default value!
    -- Set WANT_SEARCH_PATH = 1 in MYCNF.E
-   WANT_SEARCH_PATH = 0
+   --WANT_SEARCH_PATH = 0
+   WANT_SEARCH_PATH = 1
 compile endif
 
 -- Ver. 3.12:  Lets you include the routine that gets the value of an
@@ -582,7 +583,8 @@ compile endif
 compile if not defined(WANT_ALL)
    -- What a poor default value!
    -- Set WANT_ALL = 1 in MYCNF.E
-   WANT_ALL = 0
+   --WANT_ALL = 0
+   WANT_ALL = 1
 compile endif
 
 -- Optionally include Ralph Yozzo's RETRIEVE command.
@@ -618,7 +620,8 @@ compile endif
 compile if not defined(WANT_EPM_SHELL)
    -- What a poor default value!
    -- Set WANT_EPM_SHELL = 1 in MYCNF.E
-   WANT_EPM_SHELL = 0
+   --WANT_EPM_SHELL = 0
+   WANT_EPM_SHELL = 1
 compile endif
 
 -- Specify a string to be written whenever a new EPM command shell window
@@ -655,7 +658,8 @@ compile endif
 compile if not defined(WANT_LONGNAMES)
    -- What a poor default value!
    -- Set WANT_LONGNAMES = 1 in MYCNF.E
-   WANT_LONGNAMES = 0
+   --WANT_LONGNAMES = 0
+   WANT_LONGNAMES = 1
 compile endif
 
 -- Adds PUSHMARK, POPMARK, PUSHPOS and POPPOS commands.  For EPM, also adds
@@ -663,7 +667,9 @@ compile endif
 compile if not defined(WANT_STACK_CMDS)
    -- What a poor default value!
    -- Set WANT_STACK_CMDS = 'SWITCH' in MYCNF.E
-   WANT_STACK_CMDS = 0
+   --WANT_STACK_CMDS = 0
+   WANT_STACK_CMDS = 'SWITCH'
+   MY_STACK_CMDS = 1
 compile endif
 
 -- WANT_CUA_MARKING causes the mouse definitions to be limited to the CUA actions,
@@ -674,7 +680,9 @@ compile endif
 -- off.  The default is 0, meaning that the standard EPM settings are in effect.
 compile if not defined(WANT_CUA_MARKING)
    -- Set WANT_CUA_MARKING = 'SWITCH' in MYCNF.E
-   WANT_CUA_MARKING = 0
+   --WANT_CUA_MARKING = 0
+   WANT_CUA_MARKING = 'SWITCH'
+   MY_WANT_CUA_MARKING = 0  -- ????????????????????????????????????????????????????????????????
 compile endif
 
 -- MOUSE_SUPPORT only applies to EPM.  It can should normally be set to 1,
@@ -692,7 +700,8 @@ compile endif
 compile if not defined(WANT_DM_BUFFER)
    -- What a poor default value!
    -- Set WANT_DM_BUFFER = 1 in MYCNF.E
-   WANT_DM_BUFFER = 0
+   --WANT_DM_BUFFER = 0
+   WANT_DM_BUFFER = 1
 compile endif
 
 -- WANT_STREAM_MODE enables stream mode editing, in which we pretend to be a
@@ -702,7 +711,9 @@ compile endif
 compile if not defined(WANT_STREAM_MODE)
    -- What a poor default value!
    -- Set WANT_STREAM = 'SWITCH' in MYCNF.E
-   WANT_STREAM_MODE = 0
+   --WANT_STREAM_MODE = 0
+   WANT_STREAM_MODE = 'SWITCH'
+   MY_WANT_STREAM_MODE = 1
 compile endif
 
 -- WANT_STREAM_INDENTED lets you specify that if the Enter key splits a line,
@@ -710,7 +721,8 @@ compile endif
 compile if not defined(WANT_STREAM_INDENTED)
    -- What a poor default value!
    -- Set WANT_STREAM_INDENTED = 1 in MYCNF.E
-   WANT_STREAM_INDENTED = 0
+   --WANT_STREAM_INDENTED = 0
+   WANT_STREAM_INDENTED = 1
 compile endif
 
 -- ENHANCED_ENTER_KEYS (EPM_only) specifies that the user can configure each
@@ -720,7 +732,8 @@ compile endif
 compile if not defined(ENHANCED_ENTER_KEYS)
    -- What a poor default value!
    -- Set ENHANCED_ENTER_KEYS = 1 in MYCNF.E
-   ENHANCED_ENTER_KEYS = 0
+   --ENHANCED_ENTER_KEYS = 0
+   ENHANCED_ENTER_KEYS = 1
 compile endif
 
 -- RING_OPTIONAL makes it so you can enable or disable having more than one
@@ -743,7 +756,8 @@ compile if not defined(SUPPORT_BOOK_ICON)
 ;compile if EVERSION < '5.50'
    -- Only useful if an EPM object is started with option /i and has the setup string MINWIN=DESKTOP
    -- Set SUPPORT_BOOK_ICON = 0 in MYCNF.E
-   SUPPORT_BOOK_ICON = 1
+   --SUPPORT_BOOK_ICON = 1
+   SUPPORT_BOOK_ICON = 0
 compile endif
 
 -- WANT_DYNAMIC_PROMPTS specifies whether support for dynamic prompting is
@@ -772,7 +786,8 @@ compile endif
 compile if not defined(WANT_BRACKET_MATCHING)
    -- What a poor default value!
    -- Set WANT_BRACKET_MATCHING = 1 in MYCNF.E
-   WANT_BRACKET_MATCHING = 0
+   --WANT_BRACKET_MATCHING = 0
+   WANT_BRACKET_MATCHING = 1
 compile endif
 
 -- For GPI version of EPM, this lets you select an AVIO-style underline cursor instead
@@ -800,7 +815,8 @@ compile endif
 compile if not defined(WANT_KEYWORD_HELP)
    -- What a poor default value!
    -- Set KEYWORD_HELP = 1 in MYCNF.E
-   WANT_KEYWORD_HELP = 0
+   --WANT_KEYWORD_HELP = 0
+   WANT_KEYWORD_HELP = 1
 compile endif
 
 -- By default, in EPM we block the action of action bar mnemonics being
@@ -826,7 +842,9 @@ compile if not defined(WANT_PROFILE)
    -- Set WANT_PROFILE = 'SWITCH' in MYCNF.E
    --    and
    -- Set my_WANT_PROFILE = 1 in MYCNF.E
-   WANT_PROFILE = 0
+   --WANT_PROFILE = 0
+   WANT_PROFILE = 'SWITCH'
+   MY_WANT_PROFILE = 1
 compile endif
 
 compile if WANT_PROFILE & not WANT_REXX
@@ -838,7 +856,8 @@ compile endif
 compile if not defined(TOGGLE_ESCAPE)
    -- What a poor default value!
    -- Set TOGGLE_ESCAPE = 'SWITCH' in MYCNF.E
-   TOGGLE_ESCAPE = 0
+   --TOGGLE_ESCAPE = 0
+   TOGGLE_ESCAPE = 1
 compile endif
 
 -- Toggle Tab key?  Some people want the Tab key to insert a tab, rather than
@@ -899,7 +918,9 @@ compile endif
 compile if not defined(WANT_TAGS)
    -- What a poor default value!
    -- Set WANT_TAGS = 1 in MYCNF.E
-   WANT_TAGS = 0
+   --WANT_TAGS = 0
+   --WANT_TAGS = 'DYNALINK'
+   WANT_TAGS = 1
 compile endif
 
 -- Unmark after doing a move mark?
@@ -922,14 +943,16 @@ compile endif
 compile if not defined(SUPPORT_USERS_GUIDE)
    -- What a poor default value!
    -- Set SUPPORT_USERS_GUIDE = 1 in MYCNF.E
-   SUPPORT_USERS_GUIDE = 0
+   --SUPPORT_USERS_GUIDE = 0
+   SUPPORT_USERS_GUIDE = 1
 compile endif
 
 -- Include support for viewing the EPM Technical Reference in the Help menu.
 compile if not defined(SUPPORT_TECHREF)
    -- What a poor default value!
    -- Set SUPPORT_TECH_REF = 1 in MYCNF.E
-   SUPPORT_TECHREF = 0
+   --SUPPORT_TECHREF = 0
+   SUPPORT_TECHREF = 1
 compile endif
 
 -- Include support for calling user exits in DEFMAIN, SAVE, NAME, and QUIT.
@@ -937,7 +960,8 @@ compile endif
 compile if not defined(SUPPORT_USER_EXITS)
    -- What a poor default value!
    -- Set SUPPORT_USER_EXITS = 1 in MYCNF.E
-   SUPPORT_USER_EXITS = 0
+   --SUPPORT_USER_EXITS = 0
+   SUPPORT_USER_EXITS = 1
 compile endif
 compile if not defined(INCLUDE_BMS_SUPPORT)
    INCLUDE_BMS_SUPPORT = 0
@@ -1001,7 +1025,7 @@ compile endif
 -- are, the configuration information comes from the object and not the .INI
 -- file.  This saves a good amount of startup time.
 compile if not defined(WPS_SUPPORT)
-    WPS_SUPPORT = EPM32
+   WPS_SUPPORT = EPM32
 compile endif
 
 -- Delay the building of the menus?  Gives faster startup for EPM 6.01, where
@@ -1010,18 +1034,18 @@ compile endif
 -- People who use external add-ons that update the menus might prefer to
 -- turn this off, to simplify the addition of those packages.
 compile if not defined(DELAY_MENU_CREATION)
-;;  DELAY_MENU_CREATION = EVERSION >= '6.01'
-    DELAY_MENU_CREATION = 0  -- Traps in PMWIN.DLL; leave off for now.
+;; DELAY_MENU_CREATION = EVERSION >= '6.01'
+   DELAY_MENU_CREATION = 0  -- Traps in PMWIN.DLL; leave off for now.
 compile endif
 
 -- Use the normal-sized or the tiny icons for the built-in toolbar?
 compile if not defined(WANT_TINY_ICONS)
-    WANT_TINY_ICONS = 0
+   WANT_TINY_ICONS = 0
 compile endif
 
 -- Support the Shift+cursor movement for marking?
 compile if not defined(WANT_SHIFT_MARKING)
-    WANT_SHIFT_MARKING = EPM
+   WANT_SHIFT_MARKING = EPM
 compile endif
 
 -- Respect the Scroll lock key?  If set to 1, Shift+F1 - Shift+F4 must not be
@@ -1033,7 +1057,8 @@ compile endif
 compile if not defined(RESPECT_SCROLL_LOCK)
    -- What a poor default value!
    -- Set RESPECT_SCROLL_LOCK = 1 in MYCNF.E
-    RESPECT_SCROLL_LOCK = 0
+   --RESPECT_SCROLL_LOCK = 0
+   RESPECT_SCROLL_LOCK = 1
 compile endif
 
 -- Should word-marking use a character or block mark?
