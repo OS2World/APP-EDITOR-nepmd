@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.6 2004-07-03 22:29:17 aschn Exp $
+* $Id: tags.e,v 1.7 2004-07-04 21:39:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,12 +18,14 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-compile if defined(KEEP_TAGS_FILE_LOADED)
- compile if KEEP_TAGS_FILE_LOADED
-   *** Bug in EPM 6.x: You must set KEEP_TAGS_FILE_LOADED = 0
- compile endif
-compile endif
-;
+
+;def s_f6 'FindTag'     -- Find procedure under cursor via tags file
+;def s_f7 'FindTag *'   -- Open entrybox to enter a procedure to find via tags file
+;def s_f8 'TagsFile'    -- Open entrybox to select a tags file
+;def s_f9 'MakeTags *'  -- Open entrybox to enter list of files to scan for to create a tags file
+; 'TagScan'    is executed by menuitem 'Scan current file...'
+; 'maketags =' is executed by the Tags dialog, when the Refresh button is pressed.
+
 ; This module is a general purpose engine for providing searching and
 ; completion for tagged function names.
 ;
@@ -138,6 +140,7 @@ defc tagsfile
 compile if KEEP_TAGS_FILE_LOADED
    universal tags_fileid
 compile endif
+   dprintf( 'TAGS', 'TAGSFILE: arg(1) = 'arg(1))
 
    orig_name = tags_file
    if arg(1)='' then
@@ -172,6 +175,7 @@ defc tagsfile_perm
 compile if KEEP_TAGS_FILE_LOADED
    universal tags_fileid
 compile endif
+   dprintf( 'TAGS', 'TAGSFILE_PERM')
    orig_name = tags_file
    if arg(1) <>'' then
       tags_file = arg(1)
@@ -190,6 +194,7 @@ compile endif
 
 defproc tags_filename()
    universal tags_file
+   dprintf( 'TAGS', 'TAGS_FILENAME')
    if tags_file='' then
       tags_file=checkini(0, 'TAGSFILE', '')
    endif
@@ -202,9 +207,11 @@ defproc tags_filename()
    return(tags_file)
 
 defc find_tag, findtag
+   universal CurEditCmd
 compile if KEEP_TAGS_FILE_LOADED
    universal tags_fileid
 compile endif
+   dprintf( 'TAGS', 'FIND_TAG: arg(1) = 'arg(1))
    button = ''
    file_type = filetype()
    if arg(1)='' then
@@ -283,21 +290,22 @@ compile endif
          return 1
       endif
       getfileid tags_fileid
+      .visible = 0  -- made it unvisible even if not KEEP_TAGS_FILE_LOADED
 compile if KEEP_TAGS_FILE_LOADED
-      .visible = 0
    endif
 compile endif
    if button=\2 then  -- List (delayed until tags_file was loaded)
       sayerror BUILDING_LIST__MSG
-      'xcom e /c tagslist'
+      'xcom e /c .tagslist'
       if rc<>-282 then  -- -282 = sayerror("New file")
          sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
          return
       endif
+      getfileid lb_fid
       browse_mode = browse()     -- query current state
       if browse_mode then call browse(0); endif
       .autosave = 0
-      getfileid lb_fid
+      .visible = 0
       display -2
       do i=1 to tags_fileid.last
          getline line, i, tags_fileid
@@ -383,15 +391,16 @@ compile endif
       parse_tagline(next_name, next_filename, next_fileline, next_filedate)
       if upcase(name)=upcase(next_name) then
          getfileid tags_fid
-         'xcom e /c temp'
+         'xcom e /c .temp'
          if rc<>-282 then  -- -282 = sayerror("New file")
             'xcom quit'
             return 1
          endif
+         getfileid temp_fid
          browse_mode = browse()     -- query current state
          if browse_mode then call browse(0); endif
-         getfileid temp_fid
          .autosave = 0
+         .visible = 0
          insertline '1. 'filename, 2
          activatefile tags_fid
          i = 2
@@ -451,7 +460,10 @@ compile else
    'xcom quit'  -- quit tags file
 compile endif
 
+   -- Get fileid if filename is already in ring  (filename = filename with proc definition)
    getfileid already_loaded, filename
+   -- Load file; load new view if already in ring
+   CurEditCmd = 'SETPOS'  -- disable RestorePosFromEa
    'e /v' filename
    if rc then
       if rc=-282 then  -- -282 = sayerror("New file")
@@ -462,17 +474,29 @@ compile endif
       endif
       return 1
    endif
-   if tc='e' then
+   if already_loaded <> '' then
+      new_view = .currentview_of_file
+   endif
+   if tc='e' then  -- case-sensitive
       p = pos(proc_name, textline(fileline))
       lp = lastpos(proc_name, textline(fileline))
-   else
+   else            -- not case-sensitive
       p = pos(upcase(proc_name), upcase(textline(fileline)))
       lp = lastpos(upcase(proc_name), upcase(textline(fileline)))
    endif
+   -- dprintf( 'TAGS', 'FINDTAG: .filename = '.filename', already_loaded = 'already_loaded', p = 'p', lp = 'lp', fileline = 'fileline)
    if fileline & p & (p=lp) then
-      .cursory=.windowheight%2
-      fileline
-      .col = p
+      -- If found once in fileline
+      if already_loaded <> '' then
+         sayerror 'File already loaded, starting new view.'
+      endif
+      .cursory=.windowheight%2  -- vcenter line
+      'postme goto 'fileline p
+      --fileline
+      --.col = p
+      if already_loaded <> '' then
+         'postme postme activatefile' new_view  -- added; 2x postme required in most cases
+      endif
       return
    endif
 compile if 0  -- We already checked if the line # was good; the date no longer matters here.
@@ -488,11 +512,13 @@ compile if 0  -- We already checked if the line # was good; the date no longer m
       endif
    endif
 compile endif
+   -- If not found in fileline (file may have been changed) or found multiple times in fileline
    0
    display -8
    sayerror 'Searching for routine.'  /**/
    display 8
    rc=proc_search(proc_name,1,file_type)
+   --sayerror 'Using proc_search for 'proc_name', filename = '.filename
    if rc then
       if already_loaded='' then 'quit' endif
       sayerror proc_name" not found in '"filename"'"long_msg
@@ -500,6 +526,7 @@ compile endif
    endif
    if already_loaded<>'' then
       sayerror 'File already loaded, starting new view.'
+      'postme postme activatefile' new_view  -- added; 2x postme required in most cases
    endif
 
 defproc parse_tagline(var name, var filename, var fileline, var filedate)
@@ -1014,10 +1041,13 @@ defproc TagsFileList(tagsname)
       endif
       activatefile startfid
    endif
-   return leftstr(inifilelist, l)
+   list = leftstr( inifilelist, l)
+   list = strip( list, 'B', \0)  -- required
+   return list
 
 
 defc poptagsdlg
+   dprintf( 'TAGS', 'POPTAGSDLG')
    call windowmessage(0,  getpminfo(APP_HANDLE),
                       5158,               -- EPM_POPCTAGSDLG
                       0,
@@ -1025,6 +1055,7 @@ defc poptagsdlg
 
 defc tagsdlg_make
    universal appname, app_hini
+   dprintf( 'TAGS', 'TAGSDLG_MAKE: arg(1) (tagsfilename maketagsargs) = 'arg(1))
    parse arg tagsfilename maketagsargs
    if maketagsargs='' then sayerror -263; return; endif  -- "Invalid argument"
    call setprofile(app_hini, INI_TAGSFILES, upcase(tagsfilename), maketagsargs)
@@ -1051,7 +1082,7 @@ defc tagscan
    call psave_pos(savepos)
    0
    getfileid sourcefid
-   'xcom e /c tagslist'
+   'xcom e /c .tagslist'
    if rc<>-282 then  -- -282 = sayerror("New file")
       sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
       return
@@ -1060,6 +1091,7 @@ defc tagscan
    browse_mode = browse()     -- query current state
    if browse_mode then call browse(0); endif
    .autosave = 0
+   .visible = 0
    activatefile sourcefid
    proc_name=''
    sayerror 'Searching for procedures...'
