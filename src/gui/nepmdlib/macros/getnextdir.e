@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextdir.e,v 1.7 2002-09-05 21:57:25 cla Exp $
+* $Id: getnextdir.e,v 1.8 2002-09-05 22:07:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -95,11 +95,13 @@ defc NepmdGetNextDir, GetNextDir =
 
  Handle   = 0;  /* always create a new handle ! */
  AddressOfHandle = address( Handle);
- DirMask = arg( 1);
+ DirMask = NepmdQueryFullname( arg( 1));
 
- /* with the following call we would pass over full  */
- /* path, so that would get returned a full path !   */
- /* DirMask = NepmdQueryFullName( DirMask); */
+ 'xcom e /c .TEST_NEPMDGETNEXTDIR';
+ TestTitle = 'NepmdGetNextDir:' DirMask;
+ insertline '';
+ insertline TestTitle
+ insertline copies( '-', length( TestTitle));
 
  /* search all files */
  do while (1)
@@ -109,8 +111,9 @@ defc NepmdGetNextDir, GetNextDir =
        leave;
     endif
 
-    messagenwait( 'Dir found:' Dirname);
+    insertline( Dirname);
  end;
+ .modify = 0;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetNextDir                                    */
