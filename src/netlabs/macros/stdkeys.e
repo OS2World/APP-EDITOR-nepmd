@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.15 2004-06-29 22:27:15 aschn Exp $
+* $Id: stdkeys.e,v 1.16 2004-07-04 22:14:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -56,7 +56,7 @@ def a_e           'EndMark'             -- Go to end of mark
 def a_y           'BeginMark'           -- Go to begin of mark
 
 ; ---- Scroll ----
-def s_f1          'ScrollLeft'          -- Scroll text left (Sh+F1 not definable in EPM)
+def s_f1          'ScrollLeft'          -- Scroll text left
 def s_f2          'ScrollRight'         -- Scroll text right
 def s_f3          'ScrollUp'            -- Scroll text up
 def s_f4          'ScrollDown'          -- Scroll text down
@@ -206,8 +206,7 @@ def f6            'StartDraw'           -- Message about available draw chars an
 def s_f6          'FindTag'             -- Find procedure under cursor via tags file
 def s_f7          'FindTag *'           -- Open entrybox to enter a procedure to find via tags file
 def s_f8          'TagsFile'            -- Open entrybox to select a tags file
-; s_f9 not definable as key def
-;def s_f9         'MakeTags *'          -- Open entrybox to enter list of files to scan for to create a tags file
+def s_f9          'MakeTags *'          -- Open entrybox to enter list of files to scan for to create a tags file
 
 ; ---- Undo ----
 def c_u           'UndoDlg'             -- Open Undo dialog
@@ -285,7 +284,7 @@ define ALL_KEY = 'c_Q'                  -- 'All' search: toggle between .ALL and
 ; Ctrl+= and Ctrl+Sh+=. To make the Shift defc work, the unshifted version
 ; must be defined also with defc Key_*.
 ; As an alternative, it could be defined (overwritten) as accelerator key.
-; The drawback would be, that accelerator key defs doesn't belong to keysets.
+; The drawback would be, that accelerator key defs don't belong to keysets.
 def otherkeys 'ProcessOtherKeys'
 
 
@@ -379,8 +378,9 @@ def otherkeys 'ProcessOtherKeys'
 ;    a_tab        Select next window
 
 ; ---------------------------------------------------------------------------
-; s_f1 doesn't work (neither as key def nor as accelerator key) in EPM. Bug?
-; s_f9 doesn't work as key def in EPM. Bug?
+; s_f1 must be enabled via accelerator key definition.
+; s_f9 must be enabled via accelerator key definition.
+; This is currently made in NEWMENU.E.
 
 ; ---------------------------------------------------------------------------
 ; Additional Shift combinations
