@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.3 2004-02-22 18:58:05 aschn Exp $
+* $Id: alt_1.e,v 1.4 2004-06-03 23:36:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -129,14 +129,42 @@ compile endif
    getline line
    orig_line = line
 
-; ----------------------------------------------------------------------------- shell
-   if leftstr(.filename, 15) = ".command_shell_" then
+; ----------------------------------------------------------------------------- shell or .DOS DIR
+   IsShell = 0
+   IsDir   = 0
+   if leftstr( .filename, 15) = '.command_shell_' then
+      IsShell = 1
+   endif
+   if upcase( leftstr( .filename, 8)) = '.DOS DIR' then
+      IsDir = 1
+   endif
 
+   if IsShell | IsDir then
+/*
+      if substr(line, 13, 1) = ' ' then  -- old format DIR, or not a DIR line
+         flag = substr(line, 1, 1) <> ' ' &
+                (isnum(substr(line, 14, 8)) | substr(line, 14, 8)='<DIR>') &
+                length(line) < 40 &
+                isnum(substr(line, 24, 2) || substr(line, 27, 2) || substr(line, 30, 2)) &
+                substr(line, 26, 1) = substr(line, 29, 1) &
+                pos(substr(line, 26, 1), '/x.-')
+         filename=strip(substr(line,1,8))
+         word2=strip(substr(line,10,3))
+         if word2<>'' then filename=filename'.'word2; endif
+      else                               -- new format DIR, or not a DIR line
+         flag = substr(line, 41, 1) <> ' ' &
+                (isnum(substr(line, 18, 9)) | substr(line, 18, 9)='<DIR>') &
+                isnum(substr(line, 1, 2) || substr(line, 4, 2) || substr(line, 7, 2)) &
+                substr(line, 3, 1) = substr(line, 6, 1) &
+                pos(substr(line, 3, 1), '/x.-')
+         filename=substr(line,41)
+      endif
+*/
       if substr(line, 13, 1) = ' ' then  -- old (i.e. FAT) format DIR, or not a DIR line
-         if substr(line, 27, 1) = ' ' then  -- /V in effect
+         if substr(line, 27, 1) = ' ' then  -- /V in effect  -- fixed aschn
             flag = substr(line, 1, 1) <> ' ' &
-               (isnum(translate(substr(line, 14, 13), '0', ',')) | substr(line, 14, 13)='<DIR>') &
-               length(line) < 40 &
+               (isnum(translate(substr(line, 14, 13), '00', ',.')) | substr(line, 14, 13)='<DIR>') &
+               length(line) < 42 &
                isnum(substr(line, 28, 2) || substr(line, 31, 2) || substr(line, 34, 2)) &
                substr(line, 30, 1) = substr(line, 33, 1) &
                pos(substr(line, 30, 1), '/x.-')
@@ -153,7 +181,7 @@ compile endif
          if word2<>'' then filename=filename'.'word2; endif
 
       else                                      -- new (i.e. HPFS or JFS) format DIR, or not a DIR line
-         if substr(line, 16, 1) = ' ' then      -- /V in effect
+         if substr(line, 15, 1) = ' ' then      -- /V in effect  -- fixed aschn
             flag = substr(line, 44, 1) <> ' ' &
                (isnum(translate(substr(line, 17, 13), '0', ',')) | substr(line, 17, 13)='<DIR>') &
                isnum(substr(line, 1, 2) || substr(line, 4, 2) || substr(line, 7, 2)) &
@@ -170,10 +198,12 @@ compile endif
          endif
       endif
 
+;sayerror 'Flag = 'Flag', Filename = 'Filename
       if flag then
          call psave_pos(save_pos)
          getsearch oldsearch
          display -2
+/*
          'xcom l /'DIRECTORYOF_STRING'/c-'
          dir_rc = rc
          if not rc then
@@ -184,14 +214,46 @@ compile endif
                word3 = strip(substr(word3, 1, lastpos(word3, '\')-1))
             endif
          endif
+*/
+         -- Better determine current dir language-independent:
+         FoundCurDir = 0
+         CheckNext   = 0
+         l = .line
+         do while FoundCurDir = 0
+            -- search upwards
+            l = l - 1
+            if l < 1 then
+               leave
+            endif
+            getline line, l
+            -- Find the next empty line
+            if line = '' then
+               CheckNext = 1  -- Next line contains the current dir
+            elseif CheckNext then
+               -- Todo: Parse also lines with ' Directory of 'dirname (dirname may be *) <----------------
+               p = lastpos( ':\', line)
+               if p > 0 & substr( line, 1, 1) = ' ' then  -- Dir line starts with a space
+                  Dir = strip( substr( line, p -1))
+                  DirBsl = strip( Dir, 'T', '\')'\'  -- Dir with backslash
+                  FoundCurDir = 1
+                  leave
+               else  -- Maybe user added an empty line to dir listing
+                  CheckNext = 0
+               endif
+            endif
+         enddo
          display 2
          setsearch oldsearch
          call prestore_pos(save_pos)
+/*
          if not dir_rc then
             name=word3 ||                            -- Start with the path.
                  leftstr('\',                        -- Append a '\', but only if path
                          '\'<>rightstr(word3,1)) ||  -- doesn't end with one.
                  filename                            -- Finally, the filename
+*/
+         if FoundCurDir then
+            name = DirBsl''filename
 ;           if pos(' ',name) then  -- enquote
             if verify(name, ' =', 'M') then  -- enquote
                name = '"'name'"'
@@ -207,6 +269,7 @@ compile endif
 
    endif  -- leftstr(.filename, 15) = ".command_shell_"
 
+/*
 ; ----------------------------------------------------------------------------- .DOS DIR
    -- jbl 2/14/89:  we now distribute a standard front end for the DIR
    -- command, which redirects the output to a file named ".dos dir <dirname>".
@@ -248,6 +311,7 @@ compile endif
       endif
       return
    endif
+*/
 
 ; ----------------------------------------------------------------------------- .tree
    if .filename = '.tree' then
@@ -491,6 +555,10 @@ compile endif  -- HOST_SUPPORT
    if p > 0 then
       parse value line with next '(' num ')' .
       if verify( num, '0123456789:') = 0 then  -- if number or colon
+         p2 = pos( strip( strip(next), 'b', \9), line)
+         if p2 > 0 then
+            .col = p2
+         endif
          line    = next
          linenum = num
          parse value linenum with linenum ':' col  -- LAM: CSet/2 includes column
@@ -539,12 +607,14 @@ compile if C_INCLUDE
          'q'
          PathVar = 'INCLUDE'
          TryCurFirst = 0
-         call a1load( word2, SearchVar, TryCurFirst)
+         call a1load( Spec, PathVar, TryCurFirst)
       endif
 compile endif
 
       if rc = sayerror('New file') or rc = sayerror('Path not found') then
-         --'q'
+         'q'
+      elseif rc = sayerror('Access denied') then
+         -- nop
       else
          linenum  -- jbl 11/15/88, go to specified linenum if any.
          if col <> '' then
