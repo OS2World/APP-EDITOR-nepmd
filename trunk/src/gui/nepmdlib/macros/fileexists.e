@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fileexists.e,v 1.1 2002-09-02 12:28:33 cla Exp $
+* $Id: fileexists.e,v 1.2 2002-09-02 12:49:08 cla Exp $
 *
 * ===========================================================================
 *
@@ -41,9 +41,9 @@ NepmdFileExists returns either
 - *1* , if the file exists
 
 @@NepmdFileExists@REMARKS
-*NepmdFileExists* replaces the very same function as *Exist*
-of *dosutil.e*. For downwards compatibility *Exists* calls
-*NepmdFileExists*.
+*NepmdFileExists* replaces the function *Exist* of *dosutil.e*.
+For downwards compatibility the function *Exists* is still provided,
+but calls *NepmdFileExists*.
 
 @@
 */
