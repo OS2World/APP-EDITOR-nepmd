@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: client.c,v 1.8 2002-09-05 13:31:54 cla Exp $
+* $Id: client.c,v 1.9 2002-09-21 14:28:58 cla Exp $
 *
 * ===========================================================================
 *
@@ -125,7 +125,7 @@ MRESULT EXPENTRY ClientWindowProc( HWND hwnd, ULONG msg, MPARAM mp1, MPARAM mp2)
 static   HPOINTER       hptrIcon = NULLHANDLE;
 static   HWND           hwndMenu = NULLHANDLE;
 static   BOOL           fDump = 0; // for debug purposes only
-static   PSZ            pszHelpFile = NULL;
+static   PSZ            pszInfFile = NULL;
 
 switch (msg)
    {
@@ -136,7 +136,7 @@ switch (msg)
       {
                MENUITEM       mi;
                CHAR           szNepmdRootdir[ _MAX_PATH];
-               CHAR           szHelpFile[ _MAX_PATH];
+               CHAR           szInfFile[ _MAX_PATH];
 
       // store parameter and initialize
       WinSetWindowULong( hwnd, QWL_USER, (ULONG) mp2);
@@ -152,12 +152,9 @@ switch (msg)
       ENABLEWINDOW( hwnd, IDPBS_CANCEL, FALSE);
 
       // check for help file
-      rc = QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
-      if (rc  == NO_ERROR)
-         {
-         sprintf( szHelpFile, "%s\\%s\\%s", szNepmdRootdir, NEPMD_SUBPATH_CMPINFDIR, HELP_NEPMDINF);
-         pszHelpFile = strdup( szHelpFile);
-         }
+      rc = QueryInstValue( "INF", szInfFile, sizeof( szInfFile));
+      if (rc == NO_ERROR)
+         pszInfFile = strdup( szInfFile);
 
       // init
       pwd->ulLastStatus = -1;
@@ -225,9 +222,9 @@ switch (msg)
             {
                      CHAR           szHelpArgs[ _MAX_PATH];
 
-            if (pszHelpFile)
+            if (pszInfFile)
                {
-               sprintf( szHelpArgs, "%s %s", pszHelpFile, HELP_ENTRYPANEL);
+               sprintf( szHelpArgs, "%s %s", pszInfFile, HELP_ENTRYPANEL);
                StartPmSession( HELP_EXEC, szHelpArgs, NULL, NULL, TRUE, 0);
                }
             }
@@ -288,7 +285,7 @@ switch (msg)
       ENABLEMENUITEM( hwndMenu, IDMEN_TEST_ALTSOURCE,           fEnableMenu);
 
       // enable meu item for NEMD.INF only if INF is available
-      ENABLEMENUITEM( hwndMenu, IDMEN_HELP_NEPMDINF,            (FileExists( pszHelpFile)));
+      ENABLEMENUITEM( hwndMenu, IDMEN_HELP_NEPMDINF,            (FileExists( pszInfFile)));
 
       // maintain menu checkmarks
       SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_DISCARD_UNSAVED, pwd->cd.fDiscardUnsaved);
@@ -306,7 +303,7 @@ switch (msg)
       // free resources
       if (hptrIcon) WinDestroyPointer( hptrIcon);
       if (hwndMenu) WinDestroyWindow( hwndMenu);
-      if (pszHelpFile) free( pszHelpFile);
+      if (pszInfFile) free( pszInfFile);
       break;
 
    // ---------------------------------------------------------------

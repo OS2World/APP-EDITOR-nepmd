@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.10 2002-09-21 13:58:53 cla Exp $
+* $Id: instval.c,v 1.11 2002-09-21 14:28:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -57,6 +57,8 @@ APIRET QueryInstValue( PSZ pszValueTag, PSZ pszBuffer, ULONG ulBuflen)
 
 static   PSZ            pszUserBinDir = NEPMD_SUBPATH_MYBINDIR;
 static   PSZ            pszNepmdBinDir = NEPMD_SUBPATH_BINBINDIR;
+static   PSZ            pszNepmdBookDir = NEPMD_SUBPATH_CMPINFDIR;
+static   PSZ            pszNepmdHelpDir = NEPMD_SUBPATH_CMPHLPDIR;
 
 static   PSZ            pszUserIniFile = NEPMD_FILENAME_INIFILE;
 static   PSZ            pszMessageFile = NEPMD_FILENAME_MESSAGEFILE;
@@ -159,7 +161,7 @@ do
       if (fRunningInDevTree)
          sprintf( szTmp, pszInstPathMask, pszDevTreePath, NEPMD_DEVPATH_INFFILE, pszInfFile);
       else if (fNepmdInstalled)
-         sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdBinDir, pszInfFile);
+         sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdBookDir, pszInfFile);
       else
          sprintf( szTmp, pszFreePathMask, szModulePath, pszInfFile);
 
@@ -173,7 +175,7 @@ do
       if (fRunningInDevTree)
          sprintf( szTmp, pszInstPathMask, pszDevTreePath, NEPMD_DEVPATH_HELPFILE, pszHelpFile);
       else if (fNepmdInstalled)
-         sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdBinDir, pszHelpFile);
+         sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdHelpDir, pszHelpFile);
       else
          sprintf( szTmp, pszFreePathMask, szModulePath, pszHelpFile);
 
