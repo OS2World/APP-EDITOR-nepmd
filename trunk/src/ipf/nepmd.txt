@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.3 2002-04-18 08:57:25 cla Exp $
+.. $Id: nepmd.txt,v 1.4 2002-04-18 14:07:47 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -135,7 +135,6 @@ If you start *EPM*, press F1, select "*EPM* Features", and page down to
 the bottom half of the help text, you'll get a partial list of the new
 features in *EPM* 6 compared to *EPM* 5
 
-
 .. =============================================================================
 .2 Prerequisites
 .. =============================================================================
@@ -223,12 +222,335 @@ See the [.IDPNL_CREDITS_GENERAL credits section] for more contributors to the
 distribution.
 
 .. =============================================================================
+.2 The EPMBBS distribution
+.. =============================================================================
+.an IDPNL_EPMBBS
+.
+.
+[=TOPICS]
+.su V30 1
+
+.. -----------------------------------------------------------------------------
+.3 Where to obtain
+.. -----------------------------------------------------------------------------
+.an IDPNL_EPM_BBS_SOURCE
+.
+The following so-called EPMBBS distribution is 
+available on FTP servers in the Internet like:
+.ul compact
+- [http://www.leo.org Link-Everything-Online (http://www.leo.org)]
+.
+  (in file epm603.zip)  and
+- [http://hobbes.nmsu.edu The Hobbes File Archive (http://hobbes.nmsu.edu)]
+.
+  (file by file in the directory /pub/os2/apps/editors/epm)
+
+.. -----------------------------------------------------------------------------
+.3 component overview
+.. -----------------------------------------------------------------------------
+.an IDPNL_EPM_BBS_COMP
+.
+The original EPM BBS distribution is available in [.IDPNL_WHAT_EPM different forms]
+(either togetehr in a ZIP archive file or file by file in a directory). The packages
+are the following, where at least the first two are required to run *EPM*:
+.su H50
+
+[=NOTE]
+.ul compact
+The package *etpm551.zip* only contains the *EPM* macro compiler for v5.x and
+therefore is not included in this distribution.
+
+.. .............................................................................
+.4 epmapp.zip - base application package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMAPP
+.
+This package contains the application core files.
+
+[=NOTE]
+.ul compact
+- Together with the 
+  [.IDPNL_WHAT_EPMBBS_EPMDLL epmdll] package this is the absolute minimum to
+  run *EPM*.
+- While all files reside in one directory within this package, 
+  within the installation provided by [=TITLE] these files are distributed
+  over several directories below the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin]
+
+.. .............................................................................
+.4 epmdll.zip - base application dll package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMDLL
+.
+This package contains the dynamic link libraries of the *E Toolkit* used by *EPM*
+(and useable  by other applications making use of the *E Toolkit*).
+
+[=NOTE]
+.ul compact
+- Together with the [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package this is the absolute 
+  minimum to run *EPM*.
+- While all files reside in one directory within this package and are 
+  intended to be installed in the same directory as the 
+  [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package, 
+  within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\dll]
+
+.. .............................................................................
+.4 epmhlp.zip - base application help package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMHLP
+.
+This package contains the help files used by diverse macros coming with 
+the standard *EPM.
+
+[=NOTE]
+.ul compact
+- While all files reside in one directory within this package and are 
+  intended to be installed in the same directory as the 
+  [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package, 
+  within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory help]
+
+.. .............................................................................
+.4 epmbk.zip - Guide and Reference package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMBK
+.
+This package contains the online help files
+.pl compact
+- [inf:EPMUSERS.INF] - *EPM Users Guide*
+= containing detailed information about using *EPM*
+- [inf:EPMTECH.INF] - *EPM Technical Reference*
+= containing detailed information about how to configure *EPM*
+  and how to recompile the REXX configuration part (EPM.EX)
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory book]
+
+.. .............................................................................
+.4 epmspch.zip - speech support package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMSPCH
+.
+This package contains the programs and files for Speech Support
+with the *VoiceType* package coming with *OS/2 Warp 4* and higher.
+
+[=NOTE]
+.ul compact
+- While all files reside in one directory within this package, 
+  within the installation provided by [=TITLE] these files are distributed into
+  and over several directories below the
+  [.IDPNL_ADDITIONS_DIRTREE subdirectories dll and bin]
+
+.. .............................................................................
+.4 epmbmps.zip - bitmap source package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMBMPS
+.
+This package contains the bitmaps 
+with the *VoiceType* package coming with *OS/2 Warp 4* and higher.
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\bmp]
+
+.. .............................................................................
+.4 epmmac.zip - macro source package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMMAC
+.
+This package contains the sources required for compiling the 
+the REXX configuration part of *EPM* (EPM.EX).
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros]
+
+.. .............................................................................
+.4 epmmac2.zip - additional macro source package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMMAC2
+.
+This package contains sources for some additional sources.
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros]
+
+.. .............................................................................
+.4 epmsmp.zip - macro sample source package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMSMP
+.
+This package contains sample sources for macros.
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros\samples]
+
+.. .............................................................................
+.4 epmatr.zip - Attribute support marco source package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMATR
+.
+This package contains the source for an outdated attribute support for *EPM*.
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros\attr]
+- This package is not integrated in the [=TITLE] extensions. In order to use
+  it you have to integrate it into your *EPM* configuration and recompile
+  your *EPM* configuration.
+
+.. .............................................................................
+.4 ebooke.zip - Bookmaster tag support marco source package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EBOOKE
+.
+This package contains the source for tag support macro for *EPM*.
+It contains tag support for 
+.ul compact
+- BookMaster version 2 and 3 
+- GML Starter-Set release 3.2 
+- FOILS5 version 5.3 
+- APAFOIL release 2.1 
+- IPF of OS/2 version 1.2 and above. 
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros\ebooke]
+- This package is not integrated in the [=TITLE] extensions. In order to use
+  it you have to integrate it into your *EPM* configuration and recompile
+  your *EPM* configuration.
+
+.. .............................................................................
+.4 epmasi.zip - Syntax assistant macro source package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMASI
+.
+This package contains the source for the Syntax Assistant macro for *EPM*,
+which is freely configurable.
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros\myassist]
+- This package is not integrated in the [=TITLE] extensions. In order to use
+  it you have to integrate it into your *EPM* configuration and recompile
+  your *EPM* configuration.
+
+.. .............................................................................
+.4 lampdq.zip - VM host remote command executor macro source package
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_LAMPDQ
+.
+This package contains the source for a macro allowing you to execute remote
+commands on VM hosts.
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\macros\lampdq]
+- This package is not integrated in the [=TITLE] extensions. In order to use
+  it you have to integrate it into your *EPM* configuration and recompile
+  your *EPM* configuration.
+
+.. .............................................................................
+.4 epmcsamp.zip - C sample source package - E Toolkit
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMCSAMP
+.
+This package contains C sample code for to write EPM macros in the C programming 
+language. Moreover this sample uses the E Toolkit, which allow the usage of *EPM*
+functionality within other applications. For the latter only the
+[.IDPNL_EPMBBS_COMP_EPMAPP runtime of the E Toolkit] coming with this package,
+but also with plain *OS/2 Warp 4*.
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory samples\c]
+
+.. .............................................................................
+.4 epmdde.zip - C sample source package - DDE interface
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMDDE
+.
+This package contains C sample code for to interact with *EPM* via DDE.
+This interface is e.g. used by the *Workframe/2* package.
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory samples\dde]
+
+.. .............................................................................
+.4 epmrexx.zip - REXX sample source package - external REXX support
+.. .............................................................................
+.an IDPNL_EPMBBS_COMP_EPMREXX
+.
+This package contains dample REXX code in order  to demo the external
+REXX support of *EPM*. In opposite to the internal REXX support,
+which requires compilation of macro sources (**.e) to REXX binaries
+(**.EX), REXX macros can also be invoked by the REXX interpreter 
+of *OS/2 Warp*, not requiring precompilation, but possibly resulting 
+in slighly slower execution.
+
+[=NOTE]
+.ul compact
+- Within the installation provided by [=TITLE] these files are placed in
+  the [.IDPNL_ADDITIONS_DIRTREE subdirectory samples\rexx]
+
+.. =============================================================================
 .2 Additions of the [=DOCTITLE]
 .. =============================================================================
 .an IDPNL_ADDITIONS
 .
 [=TOPICS]
 .su V30
+
+.. -----------------------------------------------------------------------------
+.3 extended directory structure
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_DIRTREE
+.
+In order to enable the user to clearly disctinct between files of the
+original [.IDPNL_WHAT_EPM EPM package] and the additions of the [=TITLE],
+the files of these two parts are separated in the directory tree.
+
+Files of the *EPM package* reside in the following main directories:
+.fo off
+<install dir>
+ÃÄÄÄBIN               **.exe **.ico of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch]
+³   ÃÄÄÄBAR           **.bar       of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp]
+³   ÃÄÄÄBMP           **.bmp       of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch] [.IDPNL_EPMBBS_COMP_EPMBMPS epmbmps]
+³   ÃÄÄÄEX            **.ex        of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch]
+³   ÃÄÄÄKEYWORDS      epmkwds.**   of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp]
+³   ÃÄÄÄMACROS        **.e         of: [.IDPNL_EPMBBS_COMP_EPMMAC epmmac] [.IDPNL_EPMBBS_COMP_EPMMAC2 epmmac2] [.IDPNL_EPMBBS_COMP_EPMSPCH epmspch]
+³   ³   ÃÄÄÄATTR      **.e         of: [.IDPNL_EPMBBS_COMP_EPMATR epmatr]
+³   ³   ÃÄÄÄEBOOKE    **           of: [.IDPNL_EPMBBS_COMP_EBOOKE ebooke]
+³   ³   ÃÄÄÄLAMPDQ    **           of: [.IDPNL_EPMBBS_COMP_LAMPDQ lampdq]
+³   ³   ÃÄÄÄMYASSIST  **           of: [.IDPNL_EPMBBS_COMP_EPMASI epmasi]
+³   ³   ÀÄÄÄSAMPLES   **.e         of: [.IDPNL_EPMBBS_COMP_EPMSMP epmsmp]
+³   ÀÄÄÄNDX           **.ndx       of: [.IDPNL_EPMBBS_COMP_EPMAPP epmapp]
+ÃÄÄÄBOOK              **.inf       of: [.IDPNL_EPMBBS_COMP_EPMBK epmbk]
+ÃÄÄÄDLL               **.dll       of: [.IDPNL_EPMBBS_COMP_EPMDLL epmdll]
+ÃÄÄÄHELP              **.hlp       of: [.IDPNL_EPMBBS_COMP_EPMHLP epmhlp]
+ÀÄÄÄSAMPLES
+    ÃÄÄÄC             **           of: [.IDPNL_EPMBBS_COMP_EPMCSAMP epmcsamp]
+    ³   ÃÄÄÄINCLUDE   **.h         of: [.IDPNL_EPMBBS_COMP_EPMCSAMP epmcsamp]
+    ³   ÀÄÄÄSRC       **           of: [.IDPNL_EPMBBS_COMP_EPMCSAMP epmcsamp]
+    ÃÄÄÄDDE           **           of: [.IDPNL_EPMBBS_COMP_EPMDDE epmdde]
+    ÀÄÄÄREXX          **           of: [.IDPNL_EPMBBS_COMP_EPMREXX epmrexx]
+.fo on
+
 
 .. -----------------------------------------------------------------------------
 .3 extended keyword hilighting
