@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.8 2002-08-23 14:08:48 cla Exp $
+* $Id: nepmd.h,v 1.9 2002-08-24 15:12:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -39,6 +39,9 @@
 #define NEPMD_VALUETAG_LANGUAGE        "LANGUAGE"
 #define NEPMD_VALUETAG_INIT            "INIT"
 #define NEPMD_VALUETAG_MESSAGE         "MESSAGE"
+
+// define some filenames for EPM
+#define NEPMD_FILENAME_LIBINFO         ".NEPMD_INFO"
 
 // path definitions relative to NEPMD install dir
 // NOTE: last word of symbol names are taken from the
