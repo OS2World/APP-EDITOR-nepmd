@@ -6,14 +6,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: frame.c,v 1.1 2002-06-03 22:27:05 cla Exp $
+* $Id: frame.c,v 1.2 2002-06-08 22:23:59 cla Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -31,7 +31,7 @@
 #include <string.h>
 
 // disable debug messages for this module
-// #undef DEBUG
+#undef DEBUG
 
 #include "common.h"
 #include "macros.h"
@@ -358,10 +358,10 @@ static HMODULE _loadNlsModule( VOID)
 do
    {
    // read language id
-   ulDataLen = PrfQueryProfileString( HINI_USER, 
+   ulDataLen = PrfQueryProfileString( HINI_USER,
                                       NEPMD_INI_APPNAME,
                                       NEPMD_INI_KEYNAME_LANGUAGE,
-                                      NULL, 
+                                      NULL,
                                       szLanguageId,
                                       sizeof( szLanguageId));
 
