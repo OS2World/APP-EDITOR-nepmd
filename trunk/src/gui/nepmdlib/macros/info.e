@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.14 2004-07-02 12:58:43 aschn Exp $
+* $Id: info.e,v 1.15 2004-07-04 21:45:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -182,6 +182,7 @@ defc InsertExVersions
    AutolinkDir = get_env('NEPMD_ROOTDIR')'\myepm\autolink'
    EpmPath = get_env('EPMPATH')';'
    rest = AutoLinkDir';'EpmPath
+   ExFileList = ''
    do while rest <> ''
       parse value rest with Path';'rest
       if Path = '' then
@@ -204,17 +205,30 @@ defc InsertExVersions
          ret = linked(ExFile)
             -- -307  -- sayerror("Link: file not found")
             -- -308  -- sayerror("Link: invalid filename")
-            -- <0    -- exists but not linked
-         if ret <0 then
+            -- < 0   -- exists but not linked
+         if ret < 0 then
             iterate
          endif
-         lp = lastpos( '\', ExFile)
-         Name = substr( ExFile, lp + 1)
-         Name = substr( Name, 1, max( 12, min( 12, length(Name))))  -- len = 12, keep in sync with NepmdLib
-         Path = substr( ExFile, 1, max( 0, lp - 1))
-         TStamp = NepmdQueryPathInfo( ExFile, 'MTIME')
-         n = n + 1
-         insertline NepmdGetTextMessage( '', MsgName, Name, TStamp, Path), .line + n
+         -- Check if already processed. Maybe Path is multiple times in EpmPath.
+         AlreadyProcessed = 0
+         restlist = upcase(ExFileList)
+         do while restlist <> ''
+            parse value restlist with next';'restlist  -- ; is separator
+            if upcase(ExFile) = next then
+               AlreadyProcessed = 1
+               leave
+            endif
+         enddo
+         if AlreadyProcessed = 0 then
+            ExFileList = ExFileList''ExFile';'  -- ; is separator
+            lp = lastpos( '\', ExFile)
+            Name = substr( ExFile, lp + 1)
+            Name = substr( Name, 1, max( 12, min( 12, length(Name))))  -- len = 12, keep in sync with NepmdLib
+            Path = substr( ExFile, 1, max( 0, lp - 1))
+            TStamp = NepmdQueryPathInfo( ExFile, 'MTIME')
+            n = n + 1
+            insertline NepmdGetTextMessage( '', MsgName, Name, TStamp, Path), .line + n
+         endif
       enddo
    enddo
    return
