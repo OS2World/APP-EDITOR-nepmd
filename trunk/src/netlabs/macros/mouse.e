@@ -4,28 +4,26 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.2 2002-07-22 19:01:19 cla Exp $
+* $Id: mouse.e,v 1.3 2002-08-19 22:54:11 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 * General Public License for more details.
 *
 ****************************************************************************/
-compile if EVERSION < 5
-   *** Error:  This file supports EPM only, not earlier versions of E.
-compile endif
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
-   include 'stdconst.e'
-   include 'colors.e'
- define INCLUDING_FILE = 'MOUSE.E'
+include 'stdconst.e'
+include 'colors.e'
+define INCLUDING_FILE = 'MOUSE.E'
+const
    tryinclude 'MYCNF.E'        -- Include the user's configuration customizations.
 
  compile if not defined(SITE_CONFIG)
@@ -57,25 +55,21 @@ const
  compile if not defined(WANT_CHAR_OPS)
    WANT_CHAR_OPS = 1
  compile endif
- include NLS_LANGUAGE'.e'
-compile endif
+   include NLS_LANGUAGE'.e'
+compile endif  -- not defined(SMALL)
 
 define
- compile if not defined(ALTERNATE_PASTE)
-  compile if DEFAULT_PASTE = ''
+compile if not defined(ALTERNATE_PASTE)
+ compile if DEFAULT_PASTE = ''
    ALTERNATE_PASTE = 'C'
-  compile else
+ compile else
    ALTERNATE_PASTE = ''
-  compile endif
  compile endif
+compile endif
 
 const
 compile if not defined(EPM_POINTER)
- compile if EVERSION < 5.50
-   EPM_POINTER = SYSTEM_POINTER    -- AVIO version gets arrow pointer
- compile else
    EPM_POINTER = TEXT_POINTER      -- GPI version gets text pointer
- compile endif
 compile endif
 compile if not defined(LOCAL_MOUSE_SUPPORT)
    LOCAL_MOUSE_SUPPORT = 0
@@ -111,37 +105,18 @@ const
   TransparentMouseHandler = "TransparentMouseHandler"
 
 define
-compile if EVERSION < 5.50
-   CHARG_MARK =  'CHAR'
-   BLOCKG_MARK = 'BLOCK'
-compile else                -- New mark types
    CHARG_MARK =  'CHARG'
    BLOCKG_MARK = 'BLOCKG'
-compile endif
 
-compile if EVERSION >= 5.20
 defproc prestore_pos2(save_pos)
    parse value save_pos with svline svcol svsx svsy
-   compile if EVERSION >= 5.50
-      .lineg = min(svline, .last);                       -- set .line
-   compile else
-      min(svline, .last);                       -- set .line
-   compile endif
+   .lineg = min(svline, .last);                       -- set .line
    .col = svcol;
    .scrollx = svsx;
-   compile if EVERSION >= 5.50
-      .cursoryg= svsy;
-   compile else
-      .scrolly = svsy;
-   compile endif
+   .cursoryg= svsy;
 
 defproc psave_pos2(var save_pos)
-   compile if EVERSION >= 5.50
-      save_pos=.line .col .scrollx .cursoryg
-   compile else
-      save_pos=.line .col .scrollx .scrolly
-   compile endif
-compile endif
+   save_pos=.line .col .scrollx .cursoryg
 
 defproc MouseLineColOff(var MouseLine, var MouseCol, var MouseOff, minline)
                         -- MIN = 0 for positioning, 1 for marking.
@@ -151,20 +126,12 @@ defproc MouseLineColOff(var MouseLine, var MouseCol, var MouseOff, minline)
    -- saying 5.21, below, but not sure if it will work for that.
    --    it will work for 5.50.
 
-   compile if EVERSION >= 5.21
-      --call messagenwait("xxx1="xxx "yyy1="yyy);
-      map_point 5, xxx, yyy, off, comment;  -- map screen to line
-      --call messagenwait("doc xxx2="xxx "yyy2="yyy);
-   compile else
-      --call messagenwait("xxx1="xxx "yyy1="yyy);
-      map_point 1, xxx, yyy, off, comment;  -- map screen to doc
-      --call messagenwait("doc xxx2="xxx "yyy2="yyy);
-      map_point 2, xxx, yyy, off, comment;  -- map doc to line/col/offset
-      --call messagenwait("line="xxx "col="yyy "off="off);
-   compile endif
+   --call messagenwait("xxx1="xxx "yyy1="yyy);
+   map_point 5, xxx, yyy, off, comment;  -- map screen to line
+   --call messagenwait("doc xxx2="xxx "yyy2="yyy);
    MouseLine = min(max(xxx, minline), .last)
    MouseOff  = off
-compile if EVERSION >= 5.50  -- can go to MAXCOL+1 for GPI-style marking
+   -- EVERSION >= 5.50 can go to MAXCOL+1 for GPI-style marking
    if arg(6) then  -- Flag we want character we're on, not nearest intersection.
       lne = xxx
       col = yyy
@@ -174,9 +141,6 @@ compile if EVERSION >= 5.50  -- can go to MAXCOL+1 for GPI-style marking
       endif             -- Note:  could get col. 0 this way, the but following takes care of that.
    endif
    MouseCol  = min(max(yyy, 1), MAXCOL + (rightstr(arg(5),1)='G' and minline))
-compile else
-   MouseCol  = min(max(yyy, 1), MAXCOL)
-compile endif
    return xxx
 
 defproc SetMouseSet(IsGlobal, NewMSName)
@@ -224,12 +188,8 @@ defc processmouse
    universal EPM_utility_array_ID
    universal GMousePrefix
    universal LMousePrefix
-compile if EVERSION >= '6.03'
    universal WindowHadFocus
    parse arg WindowHadFocus arg1
-compile else
-   arg1 = arg(1)
-compile endif
    if LMousePrefix<>BlankMouseHandler"." then
       OldRc = rc
 compile if LOCAL_MOUSE_SUPPORT
@@ -292,7 +252,7 @@ compile endif
    endif
    do_array 2, EPM_utility_array_ID, MousePrefix||event, mcommand   -- assign
 
-compile if EVERSION >= '6.03' & (CLICK_ONLY_GIVES_FOCUS = 1 | CLICK_ONLY_GIVES_FOCUS = 'ADVANCED')
+compile if    (CLICK_ONLY_GIVES_FOCUS = 1 | CLICK_ONLY_GIVES_FOCUS = 'ADVANCED')
 defc MH_gotoposition2
    universal WindowHadFocus
    if WindowHadFocus then
@@ -330,17 +290,8 @@ compile else
    ml = MouseLineColOff(MouseLine, MouseCol, MouseOff, 1)
  compile endif
 compile endif
-compile if EVERSION >= 5.20
    oldsx = .scrollx;
- compile if EVERSION >= 5.50
    .lineg = MouseLine
- compile else
-   oldsy = .scrolly;
-   MouseLine
- compile endif
-compile else
-   MouseLine
-compile endif
 compile if WANT_STREAM_MODE
  compile if WANT_STREAM_MODE = 'SWITCH'
    if stream_mode & ml > .last then
@@ -373,13 +324,7 @@ compile if WANT_STREAM_MODE
    endif
  compile endif
 compile endif
-compile if EVERSION >= 5.20
    .scrollx = oldsx;
-   compile if EVERSION >= 5.50
-   compile else
-      .scrolly = oldsy;
-   compile endif
-compile endif
 
 defc MH_begin_mark
    universal BeginningLineOfDrag
@@ -487,20 +432,17 @@ compile if WANT_CUA_MARKING
  compile if WANT_CUA_MARKING = 'SWITCH'
    if CUA_marking_switch then
  compile endif
- compile if EVERSION >= '5.50'  -- GPI version allows cursor to be off screen
-   if .cursorx > 0 & .cursorx <= .windowwidth & .cursory > 0 & .cursory <= .windowheight then
- compile endif
-   getmark  firstline,lastline,firstcol,lastcol,fileid
-   if marktype()<>'LINE' then
-      .col=lastcol
-   endif
-   if lastline<>.line then
-      if lastline>.line then '+'lastline-.line; else lastline-.line; endif
-   endif
- compile if EVERSION >= '5.50'
-   endif
- compile endif
-   'MH_gotoposition'
+      -- EVERSION >= '5.50': GPI version allows cursor to be off screen
+      if .cursorx > 0 & .cursorx <= .windowwidth & .cursory > 0 & .cursory <= .windowheight then
+         getmark  firstline,lastline,firstcol,lastcol,fileid
+         if marktype()<>'LINE' then
+            .col=lastcol
+         endif
+         if lastline<>.line then
+            if lastline>.line then '+'lastline-.line; else lastline-.line; endif
+         endif
+      endif
+      'MH_gotoposition'
  compile if WANT_CUA_MARKING = 'SWITCH'
    endif
  compile endif
@@ -554,14 +496,14 @@ defc findword
 
 compile if WANT_CUA_MARKING
 defc MH_singleclick
- compile if EVERSION >= '6.03' & (CLICK_ONLY_GIVES_FOCUS = 1 | CLICK_ONLY_GIVES_FOCUS = 'CUA')
+ compile if    (CLICK_ONLY_GIVES_FOCUS = 1 | CLICK_ONLY_GIVES_FOCUS = 'CUA')
    universal WindowHadFocus
    if WindowHadFocus then
  compile endif
       unmark
       'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
       'MH_gotoposition'
- compile if EVERSION >= '6.03' & (CLICK_ONLY_GIVES_FOCUS = 1 | CLICK_ONLY_GIVES_FOCUS = 'CUA')
+ compile if    (CLICK_ONLY_GIVES_FOCUS = 1 | CLICK_ONLY_GIVES_FOCUS = 'CUA')
    endif
  compile endif
 
@@ -580,7 +522,7 @@ defc MH_dblclick
    endif
    'Copy2SharBuff'       /* Copy mark to shared text buffer */
 
-compile endif
+compile endif  -- WANT_CUA_MARKING
 
 defc MH_double  -- Used to be just 'dupmark U', but now overloaded in a DIR listing:
 compile if WANT_TREE
@@ -633,50 +575,41 @@ definit
 compile if EPM_POINTER = 'SWITCH'
    universal vEPM_POINTER
 compile endif
-compile if EPM32
- compile if EPM_POINTER = 'SWITCH'
-  compile if defined(MY_MOUSE_POINTER)  -- User has a preference for the default pointer
+compile if EPM_POINTER = 'SWITCH'
+ compile if defined(MY_MOUSE_POINTER)  -- User has a preference for the default pointer
    vEPM_POINTER = MY_MOUSE_POINTER
-  compile else
+ compile else
    vEPM_POINTER = TEXT_POINTER      -- GPI version gets text pointer
-  compile endif
  compile endif
+compile endif
    'postme mouse_init'
 
 defc mouse_init
- compile if EPM_POINTER = 'SWITCH'
+compile if EPM_POINTER = 'SWITCH'
    universal vEPM_POINTER
- compile endif
-compile endif  -- EPM32
+compile endif  -- EPM_POINTER = 'SWITCH'
    universal EPM_utility_array_ID, MouseStyle
 compile if WANT_MMEDIA
    universal mmedia_font
    mmedia_font = registerfont('Multimedia Icons', 0, 0)
-compile endif
+compile endif  -- WANT_MMEDIA
 compile if EPM_POINTER = 'SWITCH'
  compile if defined(MY_MOUSE_POINTER)  -- User has a preference for the default pointer
-  compile if not EPM32
-   vEPM_POINTER = MY_MOUSE_POINTER
-  compile endif
-  compile if (EVERSION < 5.50 & MY_MOUSE_POINTER<>SYSTEM_POINTER) | (EVERSION >= 5.50 & MY_MOUSE_POINTER<>TEXT_POINTER)
+  compile if MY_MOUSE_POINTER<>TEXT_POINTER
    mouse_setpointer vEPM_POINTER
   compile endif
- compile elseif EPM32   -- Do nothing; initialized in DEFINIT so INIT_CONFIG can override.
- compile elseif EVERSION < 5.50        -- No user preference?  Use the default for this version of EPM.
-   vEPM_POINTER = SYSTEM_POINTER    -- AVIO version gets arrow pointer
  compile else
-   vEPM_POINTER = TEXT_POINTER      -- GPI version gets text pointer
+  -- EPM32: Do nothing; initialized in DEFINIT so INIT_CONFIG can override.
  compile endif
-compile elseif (EVERSION < 5.21 & EPM_POINTER<>SYSTEM_POINTER) | (EVERSION >= 5.21 & EPM_POINTER<>TEXT_POINTER)
+compile elseif EPM_POINTER<>TEXT_POINTER
    mouse_setpointer EPM_POINTER
-compile endif
+compile endif  -- EPM_POINTER = 'SWITCH'
    -- set initial mousesets
    SetMouseSet(1, "BaseMouseHandlers") -- default global mouseset
 compile if LOCAL_MOUSE_SUPPORT
    SetMouseSet(0, TransparentMouseHandler)  -- default local mouseset is blank.
 compile endif
 compile if SUPPORT_DRAGDROP_FOR_BOTH
- compile if EPM32
    res =  atol(dynalink32( 'PMWIN',
                            '#829',           -- Win32QuerySysValue
                             atol(1) ||       -- HWND_DESKTOP
@@ -699,16 +632,12 @@ compile if SUPPORT_DRAGDROP_FOR_BOTH
    else
       -- Huh?
    endif
- compile else
-   call register_mousehandler(1, '2 BEGINDRAG 0', 'MH_begin_drag_2 0')
-   call register_mousehandler(1, '2 BEGINDRAG 2', 'MH_begin_drag_2 1')
- compile endif
-compile endif
+compile endif  -- SUPPORT_DRAGDROP_FOR_BOTH
 compile if WANT_MMEDIA
    call register_mousehandler(1, '1 SECONDCLK 0', 'MH_MM_dblclick')
 ;compile elseif WANT_SPEECH
 ;   call register_mousehandler(1, '1 SECONDCLK 0', 'SPPopUp')
-compile endif
+compile endif  -- WANT_MMEDIA
 ;compile if WANT_SPEECH
 ;   call register_mousehandler(1, '1 SECONDCLK 2', 'SPPlay')
 ;compile endif
@@ -717,7 +646,6 @@ compile if WANT_CUA_MARKING = 'SWITCH'
 
 defproc MH_set_mouse
    universal CUA_marking_switch, MouseStyle
- compile if EPM32
    msgid = arg(1)
    if msgid='' then
       res =  atol(dynalink32( 'PMWIN',
@@ -728,82 +656,55 @@ defproc MH_set_mouse
 ;     kc_flags = itoa(substr(res,3,2), 10)
       msgid = itoa(substr(res, 1, 2), 10)
    endif
- compile endif
 
-   if CUA_marking_switch then
-compile endif
+   if CUA_marking_switch then  ----------------------------------------
+compile endif  -- WANT_CUA_MARKING = 'SWITCH'
 
       -- 1 == shift, 2 = control, 4 = alt.
 compile if WANT_CUA_MARKING
-   call register_mousehandler(1, '1 CLICK 0',     'MH_singleclick')
-   call register_mousehandler(1, '1 CLICK 1',     'MH_shiftclick')
-   call register_mousehandler(1, '1 CLICK 2',     'MH_singleclick')
-   call register_mousehandler(1, '1 CLICK 3',     'MH_shiftclick')
-   call register_mousehandler(1, '1 CLICK 4',     'MH_singleclick')
-   call register_mousehandler(1, '1 CLICK 5',     'MH_shiftclick')
-   call register_mousehandler(1, '1 CLICK 6',     'MH_singleclick')
-   call register_mousehandler(1, '1 CLICK 7',     'MH_shiftclick')
-compile if not WANT_MMEDIA -- and not WANT_SPEECH
-   call register_mousehandler(1, '1 SECONDCLK 0', 'MH_dblclick')
-compile endif
+      call register_mousehandler(1, '1 CLICK 0',     'MH_singleclick')
+      call register_mousehandler(1, '1 CLICK 1',     'MH_shiftclick')
+      call register_mousehandler(1, '1 CLICK 2',     'MH_singleclick')
+      call register_mousehandler(1, '1 CLICK 3',     'MH_shiftclick')
+      call register_mousehandler(1, '1 CLICK 4',     'MH_singleclick')
+      call register_mousehandler(1, '1 CLICK 5',     'MH_shiftclick')
+      call register_mousehandler(1, '1 CLICK 6',     'MH_singleclick')
+      call register_mousehandler(1, '1 CLICK 7',     'MH_shiftclick')
+ compile if not WANT_MMEDIA -- and not WANT_SPEECH
+      call register_mousehandler(1, '1 SECONDCLK 0', 'MH_dblclick')
+ compile endif
 ;compile if not WANT_SPEECH
-   call register_mousehandler(1, '1 SECONDCLK 2', 'MH_dblclick')
+      call register_mousehandler(1, '1 SECONDCLK 2', 'MH_dblclick')
 ;compile endif
-   call register_mousehandler(1, '1 SECONDCLK 4', 'MH_dblclick')
-   call register_mousehandler(1, '1 SECONDCLK 6', 'MH_dblclick')
- compile if EPM32
-   if msgid <> WM_BUTTON1MOTIONSTART then
- compile endif
-   call register_mousehandler(1, '1 BEGINDRAG 0', 'MH_begin_mark' CHARG_MARK)
-   call register_mousehandler(1, '1 BEGINDRAG 2', 'MH_begin_mark' CHARG_MARK)
- compile if EPM32
-   endif -- msgid <> WM_BUTTON1MOTIONSTART
- compile endif
-   call register_mousehandler(1, '1 BEGINDRAG 1', 'MH_begin_mark' CHARG_MARK)
-   call register_mousehandler(1, '1 BEGINDRAG 3', 'MH_begin_mark' CHARG_MARK)
-   call register_mousehandler(1, '1 BEGINDRAG 4', 'MH_begin_mark' CHARG_MARK)
-   call register_mousehandler(1, '1 BEGINDRAG 5', 'MH_begin_mark' CHARG_MARK)
-   call register_mousehandler(1, '1 BEGINDRAG 6', 'MH_begin_mark' CHARG_MARK)
-   call register_mousehandler(1, '1 BEGINDRAG 7', 'MH_begin_mark' CHARG_MARK)
+      call register_mousehandler(1, '1 SECONDCLK 4', 'MH_dblclick')
+      call register_mousehandler(1, '1 SECONDCLK 6', 'MH_dblclick')
+      if msgid <> WM_BUTTON1MOTIONSTART then
+         call register_mousehandler(1, '1 BEGINDRAG 0', 'MH_begin_mark' CHARG_MARK)
+         call register_mousehandler(1, '1 BEGINDRAG 2', 'MH_begin_mark' CHARG_MARK)
+      endif -- msgid <> WM_BUTTON1MOTIONSTART
+      call register_mousehandler(1, '1 BEGINDRAG 1', 'MH_begin_mark' CHARG_MARK)
+      call register_mousehandler(1, '1 BEGINDRAG 3', 'MH_begin_mark' CHARG_MARK)
+      call register_mousehandler(1, '1 BEGINDRAG 4', 'MH_begin_mark' CHARG_MARK)
+      call register_mousehandler(1, '1 BEGINDRAG 5', 'MH_begin_mark' CHARG_MARK)
+      call register_mousehandler(1, '1 BEGINDRAG 6', 'MH_begin_mark' CHARG_MARK)
+      call register_mousehandler(1, '1 BEGINDRAG 7', 'MH_begin_mark' CHARG_MARK)
 compile endif  -- WANT_CUA_MARKING
 
 compile if WANT_CUA_MARKING = 'SWITCH'
- compile if EPM32
-   if msgid <> WM_BUTTON2MOTIONSTART then
-      call register_mousehandler(1, '2 BEGINDRAG 0', '')  -- Delete the defs
-      call register_mousehandler(1, '2 BEGINDRAG 2', '')
-   endif
- compile else  -- else not EPM32
-  compile if not SUPPORT_DRAGDROP_FOR_BOTH
-      call register_mousehandler(1, '2 BEGINDRAG 0', '')  -- Delete the defs
-   compile if EVERSION >= 5.50
-      call register_mousehandler(1, '2 BEGINDRAG 2', '')
-   compile endif
-  compile endif  -- not SUPPORT_DRAGDROP_FOR_BOTH
- compile endif  -- EPM32
- compile if EPM32
-   if msgid <> WM_BUTTON3MOTIONSTART then
-      call register_mousehandler(1, '3 BEGINDRAG 0', '')  -- Delete the defs
-   endif
- compile else  -- else not EPM32
-      call register_mousehandler(1, '3 BEGINDRAG 0', '')  -- from the other style.
- compile endif  -- EPM32
- compile if EVERSION >= 5.60 & EVERSION < '6.00c'
-      call register_mousehandler(1, '2 CLICK 0',     '')
- compile endif
-      call register_mousehandler(1, '2 SECONDCLK 0', '')
-      call register_mousehandler(1, '2 SECONDCLK 2', '')
-      call register_mousehandler(1, '2 SECONDCLK 1', '')
-   else
- compile if EVERSION < 5.50
-      call register_mousehandler(1, '1 CLICK 2',     '')  -- (ditto)
- compile endif
- compile if not EPM32
-      call register_mousehandler(1, '1 CLICK 4',     '')
- compile endif
+      if msgid <> WM_BUTTON2MOTIONSTART then
+         call register_mousehandler(1, '2 BEGINDRAG 0', '')  -- Delete the defs
+         call register_mousehandler(1, '2 BEGINDRAG 2', '')
+      endif
+      if msgid <> WM_BUTTON3MOTIONSTART then
+         call register_mousehandler(1, '3 BEGINDRAG 0', '')  -- Delete the defs
+      endif
+         call register_mousehandler(1, '2 SECONDCLK 0', '')
+         call register_mousehandler(1, '2 SECONDCLK 2', '')
+         call register_mousehandler(1, '2 SECONDCLK 1', '')
+   else  -- CUA_marking_switch ----------------------------------------
       call register_mousehandler(1, '1 CLICK 6',     '')
 ;compile if not WANT_SPEECH
-     call register_mousehandler(1, '1 SECONDCLK 2', '')
+         call register_mousehandler(1, '1 SECONDCLK 2', '')
 ;compile endif
       call register_mousehandler(1, '1 SECONDCLK 4', '')
       call register_mousehandler(1, '1 SECONDCLK 6', '')
@@ -813,69 +714,47 @@ compile if WANT_CUA_MARKING = 'SWITCH'
       call register_mousehandler(1, '1 BEGINDRAG 5', '')
       call register_mousehandler(1, '1 BEGINDRAG 6', '')
       call register_mousehandler(1, '1 BEGINDRAG 7', '')
-compile endif
+compile endif  -- WANT_CUA_MARKING = 'SWITCH'
 
 compile if WANT_CUA_MARKING = 'SWITCH' or WANT_CUA_MARKING = 0
- compile if EVERSION >= '6.03' & (CLICK_ONLY_GIVES_FOCUS = 1 | CLICK_ONLY_GIVES_FOCUS = 'ADVANCED')
-   call register_mousehandler(1, '1 CLICK 0',     'MH_gotoposition2')
+ compile if    (CLICK_ONLY_GIVES_FOCUS = 1 | CLICK_ONLY_GIVES_FOCUS = 'ADVANCED')
+      call register_mousehandler(1, '1 CLICK 0',     'MH_gotoposition2')
  compile else
-   call register_mousehandler(1, '1 CLICK 0',     'MH_gotoposition')
+      call register_mousehandler(1, '1 CLICK 0',     'MH_gotoposition')
  compile endif
-   call register_mousehandler(1, '1 CLICK 1',     'MH_shiftclick')
-   if MouseStyle = 1 then but_1 = BLOCKG_MARK; c_but_1 = CHARG_MARK
-                     else but_1 = CHARG_MARK;  c_but_1 = BLOCKG_MARK
-   endif
- compile if EPM32
-   if msgid <> WM_BUTTON1MOTIONSTART then
- compile endif
-   call register_mousehandler(1, '1 BEGINDRAG 0', 'MH_begin_mark 'but_1)
-   call register_mousehandler(1, '1 BEGINDRAG 2', 'MH_begin_mark 'c_but_1)
- compile if EPM32
-   endif
- compile endif
- compile if EPM32
-   if msgid <> WM_BUTTON2MOTIONSTART then
-      call register_mousehandler(1, '2 BEGINDRAG 0', 'MH_begin_mark LINE')
-   endif
-   call register_mousehandler(1, '1 CLICK 2',     'ifinmark copy2clip')
-   call register_mousehandler(1, '1 CLICK 3',     'ifinmark cut')
-   call register_mousehandler(1, '1 CLICK 4',     'mc /MH_gotoposition/paste' DEFAULT_PASTE)
-   call register_mousehandler(1, '1 CLICK 5',     'mc /MH_gotoposition/paste' ALTERNATE_PASTE)
- compile elseif EVERSION < 5.50
-   call register_mousehandler(1, '2 BEGINDRAG 0', 'MH_begin_mark LINE')
- compile else
-  compile if not SUPPORT_DRAGDROP_FOR_BOTH
-   call register_mousehandler(1, '2 BEGINDRAG 0', 'MH_begin_drag_2 0')
-   call register_mousehandler(1, '2 BEGINDRAG 2', 'MH_begin_drag_2 1')
-  compile endif  -- not SUPPORT_DRAGDROP_FOR_BOTH
-   call register_mousehandler(1, '1 CLICK 2',     'MH_gotoposition')
- compile endif
- compile if EPM32
-   if msgid <> WM_BUTTON3MOTIONSTART then
- compile endif
-   call register_mousehandler(1, '3 BEGINDRAG 0', 'MH_begin_mark 'c_but_1)
- compile if EPM32
-   endif
- compile endif
+      call register_mousehandler(1, '1 CLICK 1',     'MH_shiftclick')
+      if MouseStyle = 1 then but_1 = BLOCKG_MARK; c_but_1 = CHARG_MARK
+                        else but_1 = CHARG_MARK;  c_but_1 = BLOCKG_MARK
+      endif
+      if msgid <> WM_BUTTON1MOTIONSTART then
+         call register_mousehandler(1, '1 BEGINDRAG 0', 'MH_begin_mark 'but_1)
+         call register_mousehandler(1, '1 BEGINDRAG 2', 'MH_begin_mark 'c_but_1)
+      endif
+      if msgid <> WM_BUTTON2MOTIONSTART then
+         call register_mousehandler(1, '2 BEGINDRAG 0', 'MH_begin_mark LINE')
+      endif
+      call register_mousehandler(1, '1 CLICK 2',     'ifinmark copy2clip')
+      call register_mousehandler(1, '1 CLICK 3',     'ifinmark cut')
+      call register_mousehandler(1, '1 CLICK 4',     'mc /MH_gotoposition/paste' DEFAULT_PASTE)
+      call register_mousehandler(1, '1 CLICK 5',     'mc /MH_gotoposition/paste' ALTERNATE_PASTE)
+      if msgid <> WM_BUTTON3MOTIONSTART then
+         call register_mousehandler(1, '3 BEGINDRAG 0', 'MH_begin_mark 'c_but_1)
+      endif
  compile if not WANT_MMEDIA -- and not WANT_SPEECH
-   call register_mousehandler(1, '1 SECONDCLK 0', 'MH_double')
+      call register_mousehandler(1, '1 SECONDCLK 0', 'MH_double')
  compile endif
- compile if EVERSION >= 5.60 & EVERSION < '6.00c'
-   call register_mousehandler(1, '2 CLICK 0',     'MH_popup')
- compile endif
-   call register_mousehandler(1, '2 SECONDCLK 0', 'markword 1')
-   call register_mousehandler(1, '2 SECONDCLK 2', 'marktoken 1')
-   call register_mousehandler(1, '2 SECONDCLK 1', 'findword 1')
+      call register_mousehandler(1, '2 SECONDCLK 0', 'markword 1')
+      call register_mousehandler(1, '2 SECONDCLK 2', 'marktoken 1')
+      call register_mousehandler(1, '2 SECONDCLK 1', 'findword 1')
  compile if WANT_KEYWORD_HELP -- and not WANT_SPEECH
-   call register_mousehandler(1, '1 SECONDCLK 2', 'kwhelp')
+      call register_mousehandler(1, '1 SECONDCLK 2', 'kwhelp')
  compile endif
-compile endif
+compile endif  -- WANT_CUA_MARKING = 'SWITCH' or WANT_CUA_MARKING = 0
 
 compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
+   endif  -- CUA_marking_switch ---------------------------------------
 compile endif
 
-compile if EVERSION >= '6.00c'
    call register_mousehandler(1, 'CHORD',     'Ring_More')
 
    -- NOP out the default action associated with user's context button
@@ -906,27 +785,17 @@ compile if EVERSION >= '6.00c'
    endif
 
    call register_mousehandler(1, 'CONTEXTMENU',   'MH_popup')
-compile endif
 
-compile if EVERSION >= 5.50
 defc MH_begin_drag_2  -- Determine if a click is within the selected area
- compile if WANT_CUA_MARKING = 'SWITCH'
+compile if WANT_CUA_MARKING = 'SWITCH'
    universal CUA_marking_switch
- compile endif
- compile if EPM32
+compile endif
    parse arg copy_flag buttonup_msg advanced_marking_marktype CUA_marking_marktype
- compile endif
    if mouse_in_mark() then
       call WindowMessage(0,  getpminfo(EPMINFO_EDITCLIENT),
                          5434,               -- EPM_DRAGDROP_DIRECTTEXTMANIP
- compile if EPM32
                          copy_flag,
                          buttonup_msg)
- compile else
-                         arg(1),
-                         0)
- compile endif
- compile if EPM32
       return
    endif
    -- EPM32 doesn't give focus on a MB2 drag, in case it's direct text manipulation.
@@ -937,35 +806,23 @@ defc MH_begin_drag_2  -- Determine if a click is within the selected area
                        atol(1)     ||         -- HWND_DESKTOP
                        gethwndc(EPMINFO_PARENTCLIENT), 2)
    endif
-  compile if WANT_CUA_MARKING = 'SWITCH'
+compile if WANT_CUA_MARKING = 'SWITCH'
    if CUA_marking_switch then  -- If 'SWITCH', we do advanced mark action if CUA switch is off
-  compile endif  -- WANT_CUA_MARKING = 'SWITCH'
-  compile if WANT_CUA_MARKING
+compile endif  -- WANT_CUA_MARKING = 'SWITCH'
+compile if WANT_CUA_MARKING
       if CUA_marking_marktype<>'' then   -- This can be blank
          'MH_begin_mark' CUA_marking_marktype
       endif
-  compile endif
-  compile if WANT_CUA_MARKING = 'SWITCH'
+compile endif
+compile if WANT_CUA_MARKING = 'SWITCH'
    else       -- else, not CUA marking switch - do the standard EPM ('advanced marking') action
-  compile endif  -- WANT_CUA_MARKING = 'SWITCH'
-  compile if WANT_CUA_MARKING <> 1
+compile endif  -- WANT_CUA_MARKING = 'SWITCH'
+compile if WANT_CUA_MARKING <> 1
       'MH_begin_mark' advanced_marking_marktype
-  compile endif
-  compile if WANT_CUA_MARKING = 'SWITCH'
+compile endif
+compile if WANT_CUA_MARKING = 'SWITCH'
    endif
-  compile endif  -- WANT_CUA_MARKING = 'SWITCH'
-
- compile else  -- else not EPM32
-  compile if WANT_CUA_MARKING <> 1      -- If 1, we never do a line mark
-   compile if WANT_CUA_MARKING = 'SWITCH'
-   elseif not CUA_marking_switch then  -- If 'SWITCH', we line mark if CUA switch is off
-   compile else                         -- Else WANT_CUA_MARKING = 0
-   else                                -- so if not drag/drop, we always line mark.
-   compile endif  -- WANT_CUA_MARKING = 'SWITCH'
-      'MH_begin_mark LINE'
-  compile endif  -- WANT_CUA_MARKING <> 1
-   endif
- compile endif  -- EPM32
+compile endif  -- WANT_CUA_MARKING = 'SWITCH'
 
 defproc mouse_in_mark()
    -- First we query the position of the mouse
@@ -975,16 +832,16 @@ defproc mouse_in_mark()
    if mt then
       getfileid curfileid
       getmark markfirstline,marklastline,markfirstcol,marklastcol,markfileid
-      if  (markfileid == curfileid) and
-          (MouseLine >= markfirstline) and (MouseLine <= marklastline) then
+      if (markfileid == curfileid) and
+         (MouseLine >= markfirstline) and (MouseLine <= marklastline) then
 
-          -- assert:  at this point the only case where the text is outside
-          --          the selected area is on a single line char mark and a
-          --          block mark.  Any place else is a valid selection
-          if not ((mt=='C' & (markfirstline=MouseLine & MouseCol < markfirstcol) or (marklastline=MouseLine & MouseCol > marklastcol)) or
-                  (mt=='B' & (MouseCol < markfirstcol or MouseCol > marklastcol)) ) then
-             return 1
-          endif
+         -- assert:  at this point the only case where the text is outside
+         --          the selected area is on a single line char mark and a
+         --          block mark.  Any place else is a valid selection
+         if not ((mt=='C' & (markfirstline=MouseLine & MouseCol < markfirstcol) or (marklastline=MouseLine & MouseCol > marklastcol)) or
+                 (mt=='B' & (MouseCol < markfirstcol or MouseCol > marklastcol)) ) then
+            return 1
+         endif
       endif
    endif
 
@@ -992,7 +849,6 @@ defc ifinmark =
    if mouse_in_mark() then
       ''arg(1)
    endif
-compile endif
 
 compile if WANT_MMEDIA
 defc MH_MM_dblclick
@@ -1022,22 +878,21 @@ defc MH_MM_dblclick
   compile if WANT_CUA_MARKING = 'SWITCH'
    elseif CUA_marking_switch then
   compile else
-   else
+   else  -- class=32
   compile endif
   compile if WANT_CUA_MARKING
       'MH_dblclick'  -- This is the CUA-marking-mode action
   compile endif
   compile if WANT_CUA_MARKING = 'SWITCH'
-   else
+   else  -- class=32
   compile endif
   compile if WANT_CUA_MARKING <> 1
       'MH_Double'    -- This is the normal EPM marking mode action
   compile endif
 ;compile endif  -- WANT_SPEECH
-   endif
+   endif  -- class=32
 compile endif
 
-compile if EVERSION >= 5.60
 const
    FILL_MARK_MENU__MSG = 'Fill mark'
    FILL_MARK_MENUP__MSG = \1'Fill marked region with a character, overlaying current contents.'
@@ -1100,7 +955,7 @@ const
    TOP_LINE_MENUP__MSG = \1'Scroll so line under mouse pointer is at top of window.'
    HP_POPUP_TOP = 0
 
- compile if WANT_TREE
+compile if WANT_TREE
    LOAD_FILE_MENU__MSG = '~Load file'
    SORT_ASCENDING_MENU__MSG = '~Sort ascending'
    SORT_DATE_MENU__MSG = 'Sort by ~date'
@@ -1116,14 +971,14 @@ const
    SORT_ASCENDING_MENUP__MSG = \1'Sort the file or marked lines from smallest to largest'
    SORT_XXXX_MENUP__MSG = \1'Sort the file or marked lines by the indicated attribute'
    SORT_DESCENDING_MENUP__MSG = \1'Sort the file or marked lines from largest to smallest'
- compile endif
+compile endif
 
 
 defc MH_popup
    universal activemenu, previouslyactivemenu
- compile if CHECK_FOR_LEXAM
+compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
- compile endif
+compile endif
    if previouslyactivemenu = '' then
       previouslyactivemenu = activemenu
    endif
@@ -1135,8 +990,8 @@ defc MH_popup
    mt = leftstr(marktype(),1)
    in_mark = mouse_in_mark()  -- Save in a variable so user's include file can test.
 
- compile if INCLUDE_STANDARD_CONTEXT_MENU
-  compile if WANT_TREE
+compile if INCLUDE_STANDARD_CONTEXT_MENU
+ compile if WANT_TREE
    if .filename = '.tree' then
       buildmenuitem menuname, 80, 8000, LOAD_FILE_MENU__MSG\9'Alt+1',   'dokey a_1'LOAD_FILE_MENUP__MSG, 0, 0
       buildmenuitem menuname, 80, 8001, SORT_ASCENDING_MENU__MSG,   ''SORT_ASCENDING_MENUP__MSG, 17, 0
@@ -1156,9 +1011,9 @@ defc MH_popup
       buildmenuitem menuname, 80, 8017, SORT_NAME_MENU__MSG,        'treesort' '/R' 'N'SORT_XXXX_MENUP__MSG, 1, 0
       buildmenuitem menuname, 80, 8018, SORT_EXTENSION_MENU__MSG,   'treesort' '/R' 'EX'SORT_XXXX_MENUP__MSG, 32769, 0
    elseif in_mark then  -- Build Inside-Mark pop-up
-  compile else
+ compile else
    if in_mark then  -- Build Inside-Mark pop-up
-  compile endif
+ compile endif
       gray_if_charmark = 16384*(MT='C')
       buildmenuitem menuname, 80, 8000, UNMARK_MARK_MENU__MSG\9'Alt+U',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)
       buildmenuitem menuname, 80, 8001, DELETE_MARK_MENU__MSG\9'Alt+D',   'DUPMARK D'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
@@ -1182,20 +1037,20 @@ defc MH_popup
       buildmenuitem menuname, 80, 8019, CUT_MENU__MSG\9 || SHIFT_KEY__MSG'+'DELETE_KEY__MSG, 'Cut'CUT_MENUP__MSG,       0, mpfrom2short(HP_EDIT_CUT, 0)
       buildmenuitem menuname, 80, 8020, \0,                               '',          4, 0
       buildmenuitem menuname, 80, 8021, STYLE_MENU__MSG\9'Ctrl+Y',        'fontlist'STYLE_MENUP__MSG,    0, mpfrom2short(HP_OPTIONS_STYLE, 0)
-  compile if CHECK_FOR_LEXAM
+ compile if CHECK_FOR_LEXAM
    if LEXAM_is_available then
-  compile endif
+ compile endif
       buildmenuitem menuname, 80, 8022, \0,                               '',          4, 0
       buildmenuitem menuname, 80, 8023, PROOF_MENU__MSG,           'proof'PROOF_MENUP__MSG,     0, mpfrom2short(HP_OPTIONS_PROOF, 16384*(mt<>'L'))
-  compile if CHECK_FOR_LEXAM
+ compile if CHECK_FOR_LEXAM
    endif
-  compile endif
+ compile endif
       buildmenuitem menuname, 80, 8024, \0,                               '',          4, 0
-  compile if ENHANCED_PRINT_SUPPORT
+ compile if ENHANCED_PRINT_SUPPORT
       buildmenuitem menuname, 80, 8025, PRT_MARK_MENU__MSG'...',          'PRINTDLG M'ENHPRT_MARK_MENUP__MSG,0, mpfrom2short(HP_EDIT_ENHPRINT, 0)
-  compile else
+ compile else
       buildmenuitem menuname, 80, 8025, PRT_MARK_MENU__MSG,               'DUPMARK P'PRT_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_PRINT, 0)
-  compile endif
+ compile endif
    elseif mt<>' ' then  -- Build Outside-Mark pop-up
       'MH_gotoposition'
       buildmenuitem menuname, 80, 8000, COPY_MARK_MENU__MSG\9'Alt+C',     'DUPMARK C'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
@@ -1218,22 +1073,22 @@ defc MH_popup
       buildmenuitem menuname, 80, 8007, CENTER_LINE_MENU__MSG\9'Shift+F5', 'key 1 s+f5'CENTER_LINE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_CENTERLINE, 0)
       buildmenuitem menuname, 80, 8008, TOP_LINE_MENU__MSG,                'newtop'TOP_LINE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_TOP, 0)
       buildmenuitem menuname, 80, 8009, PASTE_C_MENU__MSG,    PASTE_C_MENUP__MSG,   17+64, mpfrom2short(HP_EDIT_PASTEMENU, 0)
-       buildmenuitem menuname, 80, 8010, PASTE_C_MENU__MSG,   'Paste C'PASTE_C_MENUP__MSG,   0, mpfrom2short(HP_EDIT_PASTEC, 0)
-       buildmenuitem menuname, 80, 8011, PASTE_L_MENU__MSG,   'Paste'PASTE_L_MENUP__MSG,     0, mpfrom2short(HP_EDIT_PASTE, 0)
-       buildmenuitem menuname, 80, 8012, PASTE_B_MENU__MSG,   'Paste B'PASTE_B_MENUP__MSG,   32769, mpfrom2short(HP_EDIT_PASTEB, 0)
+      buildmenuitem menuname, 80, 8010, PASTE_C_MENU__MSG,   'Paste C'PASTE_C_MENUP__MSG,   0, mpfrom2short(HP_EDIT_PASTEC, 0)
+      buildmenuitem menuname, 80, 8011, PASTE_L_MENU__MSG,   'Paste'PASTE_L_MENUP__MSG,     0, mpfrom2short(HP_EDIT_PASTE, 0)
+      buildmenuitem menuname, 80, 8012, PASTE_B_MENU__MSG,   'Paste B'PASTE_B_MENUP__MSG,   32769, mpfrom2short(HP_EDIT_PASTEB, 0)
    endif
- compile endif -- INCLUDE_STANDARD_CONTEXT_MENU
- compile if not VANILLA
+compile endif -- INCLUDE_STANDARD_CONTEXT_MENU
+compile if not VANILLA
 tryinclude 'mymsemnu.e'  -- For user-added configuration
- compile endif
+compile endif
    showmenu menuname,1
- compile if DEFAULT_PASTE = 'C'
+compile if DEFAULT_PASTE = 'C'
    'cascade_popupmenu 8009 8010'  -- Paste cascade; default is Paste (character mark)
- compile elseif DEFAULT_PASTE = 'B'
+compile elseif DEFAULT_PASTE = 'B'
    'cascade_popupmenu 8009 8012'  -- Paste cascade; default is Paste Block
- compile else
+compile else
    'cascade_popupmenu 8009 8011'  -- Paste cascade; default is Paste Lines
- compile endif
+compile endif
 
 #define ETK_FID_POPUP          50
 
@@ -1252,21 +1107,12 @@ defc cascade_popupmenu
    then return; endif
    hwnd = substr(menuitem, 9, 4)
 
-compile if EPM32
    call dynalink32('PMWIN',
                    '#874',     -- Win32SetWindowBits
                     hwnd          ||
                     atol(-2)      ||  -- QWL_STYLE
                     atol(64)      ||  -- MS_CONDITIONALCASCADE
                     atol(64) )        -- MS_CONDITIONALCASCADE
-compile else
-   call dynalink('PMWIN',
-                 '#278',     -- WinSetWindowBits
-                  substr(hwnd,3) || leftstr(hwnd,2) ||
-                  atoi(-2)      ||  -- QWL_STYLE
-                  atol_swap(64) ||  -- MS_CONDITIONALCASCADE
-                  atol_swap(64) )   -- MS_CONDITIONALCASCADE
-compile endif
    if defmenuid<>'' then  -- Default menu item
       call windowmessage(1,
                          ltoa(hwnd,10),
@@ -1289,7 +1135,6 @@ defc MsgWndMouseCmd
    if arg(1)='1 SECONDCLK 0' then
       'messagebox'
    endif
-compile endif  -- EVERSION >= 5.60
 
 compile if EPM_POINTER = 'SWITCH'
 defc SetMousePointer
