@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.11 2002-12-09 20:48:18 aschn Exp $
+* $Id: stdcnf.e,v 1.12 2003-08-30 20:20:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -486,7 +486,6 @@ compile if not defined(WANT_TABS)
    WANT_TABS = 1
 compile endif
 
-; disabled by aschn
 ;-- Ver. 3.11d:  This constant lets the user specify where the cursor should
 ;-- be when starting E.  0 means in the file area, 1 means on the command line.
 ;-- (No effect if using EPM.)
@@ -508,9 +507,7 @@ compile endif
 -- automatically.)
 -- Also enables the 'editpath' command.
 compile if not defined(WANT_SEARCH_PATH)
-   -- What a poor default value!
-   -- Set WANT_SEARCH_PATH = 1 in MYCNF.E
-   --WANT_SEARCH_PATH = 0
+   --WANT_SEARCH_PATH = 0  -- changed by aschn
    WANT_SEARCH_PATH = 1
 compile endif
 
@@ -558,7 +555,8 @@ compile endif
 
 -- Adds LOCK and UNLOCK commands.
 compile if not defined(WANT_LAN_SUPPORT)
-   WANT_LAN_SUPPORT = 0
+   --WANT_LAN_SUPPORT = 0  -- changed by aschn
+   WANT_LAN_SUPPORT = 1
 compile endif
 
 -- Include or omit the MATH routines.  Values are '?' meaning do a TRYINCLUDE
@@ -656,7 +654,8 @@ compile endif
 -- Determines if DBCS support should be included in the macros.  Note
 -- that EPM includes internal DBCS support; other versions of E do not.
 compile if not defined(WANT_DBCS_SUPPORT)
-   WANT_DBCS_SUPPORT = 0
+   --WANT_DBCS_SUPPORT = 0  -- changed by aschn
+   WANT_DBCS_SUPPORT = 1
 compile endif
 
 -- When the File Manager copies a file from a HPFS drive to a FAT drive,
@@ -696,6 +695,7 @@ compile endif
 -- support completely.
 compile if not defined(MOUSE_SUPPORT)
    MOUSE_SUPPORT = 1
+;   MOUSE_SUPPORT = 'LINK'
 compile endif
 
 -- WANT_DM_BUFFER specifies whether a "deletemark buffer" is used in EPM.
@@ -753,7 +753,6 @@ compile endif
 compile if not defined(SUPPORT_BOOK_ICON)
 ;compile if EVERSION < '5.50'
    -- Only useful if an EPM object is started with option /i and has the setup string MINWIN=DESKTOP
-   -- Set SUPPORT_BOOK_ICON = 0 in MYCNF.E
    --SUPPORT_BOOK_ICON = 1  -- changed by aschn
    SUPPORT_BOOK_ICON = 0
 compile endif
@@ -771,6 +770,7 @@ compile endif
 -- (EPM only.)  Can be set to 0, 1, or 'LINK'.
 compile if not defined(WANT_BOOKMARKS)
    WANT_BOOKMARKS = 1
+;   WANT_BOOKMARKS = 'LINK'
 compile endif
 
 -- CHECK_FOR_LEXAM specifies whether or not EPM will check for Lexam, and only include
@@ -836,7 +836,6 @@ compile endif
 compile if not defined(WANT_PROFILE)
    --WANT_PROFILE = 0  -- changed by aschn
    WANT_PROFILE = 'SWITCH'
-;   MY_REXX_PROFILE = 1
 compile endif
 
 compile if WANT_PROFILE & not WANT_REXX
@@ -911,8 +910,7 @@ compile endif
 -- Support for a TAGS file (EPM 5.60 or above, only).
 compile if not defined(WANT_TAGS)
    --WANT_TAGS = 0  -- changed by aschn
-   --WANT_TAGS = 'DYNALINK'
-   WANT_TAGS = 1
+   WANT_TAGS = 'DYNALINK'
 compile endif
 
 -- Unmark after doing a move mark?
@@ -969,6 +967,7 @@ compile if not defined(LOCATE_CIRCLE_COLOR1)
    LOCATE_CIRCLE_COLOR1 = 16777231 -- (16777220) complementary
 compile endif
 compile if not defined(LOCATE_CIRCLE_COLOR2)
+   -- for styles 2 and 4 only
    --LOCATE_CIRCLE_COLOR2 = 16777218  -- changed by aschn
    LOCATE_CIRCLE_COLOR2 = 16777216 -- (16777218) complementary
 compile endif
@@ -999,6 +998,7 @@ compile endif
 -- Allow pressing tab in insert mode to insert spaces to next tab stop in
 -- line mode as well as in stream mode.
 compile if not defined(WANT_TAB_INSERTION_TO_SPACE)
+   -- for line mode only
    WANT_TAB_INSERTION_TO_SPACE = 0
 compile endif
 
@@ -1083,7 +1083,13 @@ include NLS_LANGUAGE'.e'
 compile if not defined(DIRECTORYOF_STRING)
    DIRECTORYOF_STRING = DIR_OF__MSG
 compile endif
+
+compile if not defined(LINK_NEPMDLIB)
+   LINK_NEPMDLIB = 1
+compile endif
 -------------------------------------------------------------------------------
+
+; -------- Set universal vars and init misc --------
 
 definit
 universal expand_on, matchtab_on, default_search_options
@@ -1094,6 +1100,7 @@ universal vTEMP_FILENAME, vTEMP_PATH, vAUTOSAVE_PATH
    universal edithwnd, MouseStyle, appname
 ; compile if EVERSION >= '5.20'
    universal app_hini
+   universal nepmd_hini
    universal CurrentHLPFiles
 ; compile endif
 ; compile if EVERSION >= '5.21'
@@ -1607,11 +1614,11 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 ;   sn.       -- Style name
 ;   F         -- File id for Ring_more command; not used as of EPM 5.20
    do_array 1, EPM_utility_array_ID, "array.EPM"   -- Create this array.
-     compile if 0  -- LAM: Delete this feature; nobody used it, and it slowed things down.
+compile if 0  -- LAM: Delete this feature; nobody used it, and it slowed things down.
    one = 1                                          -- (Value is a VAR, so have to kludge it.)
    do_array 2, EPM_utility_array_ID, 'menu.0', one           -- Item 0 says there is one item.
    do_array 2, EPM_utility_array_ID, 'menu.1', defaultmenu   -- Item 1 is the default menu name.
-     compile endif  -- 0
+compile endif  -- 0
    zero = 0                                         -- (Value is a VAR, so have to kludge it.)
    do_array 2, EPM_utility_array_ID, 'bmi.0', zero    -- Index of 0 says there are no bookmarks
    do_array 2, EPM_utility_array_ID, 'si.0', zero     -- Set Style Index 0 to "no entries."
@@ -1694,9 +1701,9 @@ compile if RING_OPTIONAL
 ;  compile endif
    endif
 compile endif  -- RING_OPTIONAL
-compile if not DELAY_MENU_CREATION
+;compile if not DELAY_MENU_CREATION
    include 'menuacel.e'
-compile endif
+;compile endif
 compile if WANT_DYNAMIC_PROMPTS
  compile if defined(my_MENU_PROMPT)
    menu_prompt = my_MENU_PROMPT
@@ -1830,6 +1837,65 @@ compile endif
 ; repaint_window()
 ;compile endif  -- not EPM
 
+
+; -------- 1) Process standard EPM.INI settings --------
+compile if WANT_APPLICATION_INI_FILE  -- we should remove this
+
+; --- Check EPM.INI -> EPM -> DTBITMAP for a valid entry --------------------
+   -- The SLE of the settings dialog truncates the bitmap filename after
+   -- 32 chars. Additionally, the truncated string is at pos 32 replaced with
+   -- a hex char. As a result, MAIN.E will unly be processed until the not
+   -- existing bitmap should be set.
+   bgbitmap = queryprofile( app_hini, 'EPM', 'DTBITMAP')
+   bgbitmap = strip( bgbitmap, 'T', \0)
+   -- Set to \0 if bitmap doesn't exist
+   if not exist(bgbitmap) then
+      call setprofile( app_hini, 'EPM', 'DTBITMAP', \0)
+   endif
+
+; --- Check if anything of interest is in OS2.INI ---------------------------
+; --- and get settings from EPM.INI -----------------------------------------
+   'initconfig'
+
+compile endif  -- WANT_APPLICATION_INI_FILE
+
+
+; -------- 2) Process NEPMD.INI settings --------
+compile if LINK_NEPMDLIB
+if not isadefproc('NepmdOpenConfig') then
+; --- Link the NEPMD library. Open a MessageBox if .ex file not found. ------
+   -- Any linking can not be processed before 'initconfig' in MAIN.E.
+   -- Otherwise the rest of MAIN.E will not be processed and all the
+   -- config stuff is not queried from EPM.INI, but defaults to internal
+   -- values (i.e. the toolbar will get lost and the fonts will change).
+   'linkverify nepmdlib.ex'
+endif
+compile endif
+
+; --- Open NEPMD.INI and set the returned handle ----------------------------
+; --- as the universal var 'nepmd_hini' -------------------------------------
+   nepmd_hini = NepmdOpenConfig()
+   parse value nepmd_hini with 'ERROR:'rc;
+   if (rc > 0) then
+      sayerror 'Configuration repository could not be opened, rc='rc;
+   endif
+
+; --- Process NEPMD.INI initialisation --------------------------------------
+   -- Write default values from nepmd\netlabs\bin\defaults.dat to NEPMD.INI,
+   -- application 'RegDefaults', if 'RegDefaults' was not found
+   rc = NepmdInitConfig( nepmd_hini )
+   parse value rc with 'ERROR:'rc;
+   if (rc > 0) then
+      sayerror 'Configuration repository could not be initialized, rc='rc;
+   endif
+
+
+; -------- Link separately compiled macros if consts = 'LINK' --------
+; If the String Area Size gets too large (limited to 64 KB),
+; it could be useful to link some packages instead to include them in
+; EPM.E. To see the String Area Size in ETPM's log file, ETPM must be
+; called with /v.
+
 ;compile if LINK_HOST_SUPPORT
 ; compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
 ;   'linkverify E3EMUL'
@@ -1850,6 +1916,7 @@ compile endif       -- Bookmarks
 
 compile if WANT_TAGS = 'LINK' /* & not EXTRA_EX */
    'linkverify TAGS'
+   'linkverify MAKETAGS'
 compile endif       -- TAGs
 
 compile if WANT_EBOOKIE = 'LINK'
@@ -1868,9 +1935,14 @@ compile if SPELL_SUPPORT = 'LINK'
 ; compile else
 ;   *** Error - SPELL_SUPPORT = 'LINK' not valid for E3.
 ; compile endif
+compile endif
 
-compile elseif SPELL_SUPPORT = 'DYNALINK'
 -----------------  End of DEFINIT  ------------------------------------------
+
+; -------- Define commands here for the dynalink/defmain feature --------
+; That avoids a link or even an include.
+
+compile if SPELL_SUPPORT = 'DYNALINK'
 define
 ; compile if EPM
    LEX_EX = 'EPMLEX'
@@ -1906,6 +1978,7 @@ defc findtag  = link_exec('tags', 'findtag',  arg(1))
 defc tagsfile = link_exec('tags', 'tagsfile', arg(1))
 defc tagscan  = link_exec('tags', 'tagscan',  arg(1))
 defc poptagsdlg  = link_exec('tags', 'poptagsdlg',  arg(1))
+defc maketags  = link_exec('maketags', 'maketags',  arg(1))
 compile endif       -- TAGs
 
 -- 4.10A:  Move the compile-if here from above, simpler.
