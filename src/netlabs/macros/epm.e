@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.20 2004-02-22 15:47:35 aschn Exp $
+* $Id: epm.e,v 1.21 2004-02-22 16:02:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -224,10 +224,6 @@ compile endif
 
 compile if WANT_EPM_SHELL
    include     'epmshell.e'    -- EPM shell
-compile endif
-
-compile if WANT_KEYWORD_HELP
-   include     'kwhelp.e'      -- Keyword help, opens .inf file with word under cursor
 compile endif
 
 compile if WANT_REXX
