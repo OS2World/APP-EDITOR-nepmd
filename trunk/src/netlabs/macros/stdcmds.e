@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.13 2003-08-31 19:46:42 aschn Exp $
+* $Id: stdcmds.e,v 1.14 2003-08-31 22:00:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,6 +30,10 @@ compile endif
 compile if not defined(WANT_DATETIME_IN_TITLE)
    -- used by defc s,save
    WANT_DATETIME_IN_TITLE = 1
+compile endif
+compile if not defined(NEPMD_RESTORE_POS_FROM_EA)
+   -- used by defc s,save
+   NEPMD_RESTORE_POS_FROM_EA = 0
 compile endif
 
 defc alter =
@@ -300,8 +304,6 @@ compile endif
 
 ; Moved defc et,etpm to LINKCMDS.E
 
--- No EXIT command in EPM.  Do it from the system pull-downs.
-
 
 defc expand=
    universal expand_on
@@ -318,6 +320,7 @@ defc expand=
       sayerror INVALID_ARG__MSG ON_OFF__MSG')'
       stop
    endif
+
 
 defc f,file=
 compile if SUPPORT_USER_EXITS
@@ -604,13 +607,11 @@ defc newwindow=
          fn = '/r' fn
       endif
    endif
-   --'open' fn
    if fn <> '' then
-     line = .line
-     col = .col
-     "open" fn "'postme goto "line" "col"'"
+      call psave_pos(saved_pos)
+      "open" fn "'postme restorepos "saved_pos"'"
    else
-     'open' fn
+      'open' fn
    endif
    'quit'
 
@@ -748,13 +749,22 @@ defc print=  /* Save the users current file to the printer */
    if marktype() then .modify=0; 'xcom q' endif
    sayerror 0    /* clear 'printing' message */
 
-defc processbreak
+defc processbreak  -- executed if Ctrl+Break was pressed
    universal Dictionary_loaded
    call showwindow('ON')             -- Make sure that the window is displayed.
    if dictionary_loaded then
       call drop_dictionary()
    endif
-   sayerror MACRO_HALTED__MSG
+compile if WANT_EPM_SHELL
+   is_shell = ( leftstr(.filename, 15) = ".command_shell_" )
+   if is_shell then
+      'shell_break'
+   else
+compile endif -- WANT_EPM_SHELL
+      sayerror MACRO_HALTED__MSG
+compile if WANT_EPM_SHELL
+   endif
+compile endif -- WANT_EPM_SHELL
 
 compile if WANT_PROFILE='SWITCH'
 defc PROFILE
@@ -867,6 +877,7 @@ compile endif
 
 compile if    WANT_EPM_SHELL
    if leftstr(.filename, 15) = ".command_shell_" then
+      .modify=0                             -- so no "Are you sure?"
       'shell_kill'
       return
    endif
@@ -889,7 +900,7 @@ compile if TRASH_TEMP_FILES
    endif
 compile endif
 
-   getfileid quitfileid      -- Temp workaround
+--   getfileid quitfileid      -- Temp workaround  <-- obsolete
 ;compile if EVERSION > 5
 ;   if marktype() then
 ;      getmark firstline,lastline,firstcol,lastcol,markfileid
@@ -902,6 +913,7 @@ compile endif
 ;   if .lockhandle then call unlock(quitfileid); endif    -- remove?
 ;compile endif                                            -- remove?
    call quitfile()
+
 
 defc rc=
    arg(1)
@@ -951,6 +963,7 @@ defc reflow_all
    enddo
    call prestore_mark(savemark)
    call prestore_pos(savepos)
+
 
 defc s,save=
    universal save_with_tabs, default_save_options
@@ -1005,6 +1018,12 @@ compile if WANT_BOOKMARKS
       'saveattributes'
    endif
 compile endif
+compile if NEPMD_RESTORE_POS_FROM_EA
+   -- Write EPM.POS EA on save
+   call psave_pos(save_pos)   -- get EA value
+   call delete_ea('EPM.POS')  -- that affects only .eaarea, EA is written on file writing
+   'add_ea EPM.POS' save_pos  -- that affects only .eaarea, EA is written on file writing
+compile endif
    -- 4.10:  Saving with tab compression is built in now.  No need for
    -- the make-do proc savefilewithtabs().
    -- 4.10 new feature:  if save_with_tabs is true, always specify /t.
@@ -1012,6 +1031,66 @@ compile endif
       options = '/t' options
    endif
    src=savefile(name,options)
+
+   -- Check if saving a long name on a FAT drive has failed
+   --   call NepmdPmPrintf( 'defc save: src = 'src', name = |'name'|')
+   if src = -285 then  -- ERROR_WRITING_FILE_RC  (E Toolkit)
+      -- Why are standard rc values not supported?
+      -- 206 ERROR_FILENAME_EXCED_RANGE  File name or extension is greater than 8.3 characters.
+      -- 285 ERROR_DUPLICATE_NAME        The name already exists.
+      -- save longname to A: gives src = -285
+      sayerror 0  -- suppress first error message from savefile above
+      fullname = name  -- hints: '=' must already be resolved, fullname may miss the path
+      -- strip '"'...'"'
+      len = length(fullname)
+      if substr( fullname, 1, 1) = '"' & substr( fullname, len, 1) = '"' then
+         fullname = substr( fullname, 2, len - 2)
+      endif
+      -- build 8.3 name
+      p1 = lastpos( '\', fullname)
+      if p1 then
+         pathbsl = substr( fullname, 1, p1)   -- path with trailing '\'
+      else
+         pathbsl = ''
+      endif
+      longname = substr( fullname, p1 + 1)    -- long name without pathbsl
+      p2 = lastpos( '.', longname )
+      if p2 > 0 then
+         base = substr( longname, 1, p2 - 1)  -- null if leading '.' (to respect 8.3)
+         pext = substr( longname, p2)         -- extension with leading '.' or filename with leading '.'
+      else
+         base = longname
+         pext = ''
+      endif
+      if length(base) > 8 then
+         base = substr( base, 1, 8)
+      endif
+      if length(pext) > 4 then
+         pext = substr( pext, 1, 4)
+      endif
+      -- convert points
+      base = translate( base, '_', '.')
+      shortname = pathbsl''base''pext
+      -- convert spaces
+      shortname = translate( shortname, '_', ' ')
+      -- todo: convert other chars
+      --call NepmdPmPrintf( 'defc save: src = 'src', shortname = |'shortname'|')
+      -- try again to write the file
+      src = savefile( shortname, options)
+      if not src then
+         sayerror 0  -- delete message
+         -- todo?: better use EPM functions here to update also .eaarea
+         --call delete_ea('.LONGNAME')
+         --'add_ea .LONGNAME' longname
+         longnamerc = NepmdWriteStringEa( shortname, '.LONGNAME', longname)
+         if longnamerc then
+            sayerror 'EA ".LONGNAME" not written to file "'shortname'"'
+         else
+            sayerror SAVED_TO__MSG '"'shortname'". EA ".LONGNAME" set to "'longname'".'
+         endif
+      endif
+   endif
+
 compile if SUPPORT_USER_EXITS
    if isadefproc('postsave_exit') then
       call postsave_exit(name, options, save_as, src)
@@ -1028,6 +1107,7 @@ compile endif
       if qfilemode(name, attrib) then      -- Error from DosQFileMode
          call message(src)    -- ? Don't know why got Access denied.
       else                    -- File exists:
+---------------------------------------------------------- why not get all attribs at once to give a usable message?
          if attrib bitand 16 then
             call message(ACCESS_DENIED__MSG '-' IS_A_SUBDIR__MSG)  -- It's a subdirectory
          elseif attrib // 2 then                    -- x'01' is on
@@ -1064,7 +1144,7 @@ compile endif
 
    -- explicitely redetermine mode (file contents may have changed)
    --call NepmdResetMode(OldMode)
-   -- Must be delayed it with 'postme'.
+   -- Must be delayed with 'postme'.
    -- Otherwise a MessageBox (defined in ETK) will pop up when
    --    -  the window should be closed and
    --    -  there is a modified file in the ring and
@@ -1074,6 +1154,7 @@ compile endif
    'postme ResetMode 'OldMode
 
    return src
+
 
 defc select_all =
    getfileid fid
@@ -1167,6 +1248,9 @@ defc TABKEY
    else
       sayerror 'TabKey' word(OFF__MSG ON__MSG, TAB_KEY+1)
    endif
+ compile if NEPMD_SPECIAL_STATUSLINE
+   'refreshstatusline'               --  Update status line text and color, see STATUSLINE.E
+ compile endif
 compile endif
 
 defc tabglyph =
