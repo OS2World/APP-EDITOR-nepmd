@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sampactn.e,v 1.3 2002-08-21 11:52:01 aschn Exp $
+* $Id: sampactn.e,v 1.4 2002-10-06 23:33:21 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -327,65 +327,15 @@ defc a_Synonym
 defc a_togl_hilit
    if arg(1) = 'S' then       -- button Selected
       sayerror 0
-      color_file=''
-      ext=filetype()
-      if wordpos(ext, 'ADA ADB ADS') then
-         color_file= 'EPMKWDS.ADA'
-      elseif wordpos(ext, 'C H SQC CPP HPP CXX HXX') then
-         color_file= 'EPMKWDS.C'
-      elseif wordpos(ext, 'CMD BAT EXC EXEC XEDIT ERX REX REXX VRX') then
-         if .last then
-            line = upcase(textline(1))
-         else
-            line = ''
-         endif
-         if word(line,1)='EXTPROC' & pos('PERL', line) then
-            color_file='EPMKWDS.PL'
-         else
-            color_file='EPMKWDS.CMD'
-         endif
-      elseif ext='E' then
-         color_file= 'EPMKWDS.E'
-      elseif wordpos(ext, 'HTM HTML') then
-         color_file= 'EPMKWDS.HTM'
-      elseif wordpos(ext, 'FOR FORTRAN F90') then
-         color_file= 'EPMKWDS.F90'
-      elseif ext='IPF' then
-         color_file= 'EPMKWDS.IPF'
-      elseif ext='JAVA' then
-         color_file= 'EPMKWDS.JAV'
-      elseif (upcase(rightstr(.filename,8))='MAKEFILE' | ext='MAK') then
-         color_file='EPMKWDS.MAK'
-      elseif wordpos(ext, 'PL PRL PERL') then
-         color_file='EPMKWDS.PL'
-      elseif ext='RC' then
-         color_file= 'EPMKWDS.RC'
-      elseif ext='RXP' then
-         color_file= 'EPMKWDS.RXP'
- compile if defined(my_SCRIPT_FILE_TYPE)
-      elseif wordpos(ext, 'SCR SCT SCRIPT' my_SCRIPT_FILE_TYPE) then
- compile else
-      elseif wordpos(ext, 'SCR SCT SCRIPT') then
- compile endif
-         color_file='EPMKWDS.SCR'
- compile if defined(TEX_FILETYPES)
-      elseif wordpos(ext, TEX_FILETYPES) then
- compile else
-      elseif wordpos(ext, 'TEX LATEX STY CLS DTX') then  -- Include TeX styles and LaTeX classes
- compile endif
-         color_file= 'EPMKWDS.TEX'
-      else
-         findfile color_file, 'EPMKWDS.'ext, '', 'D'
-         if rc then
-            sayerror NO_HILIGHT_KNOWN__MSG
-            return
-         endif
-      endif
-      current_toggle = windowmessage(1,  getpminfo(EPMINFO_EDITFRAME),
-                                     5505,          -- EPM_EDIT_KW_QUERYPARSE
-                                     0,
-                                     0)
-      'toggle_parse' (not current_toggle) color_file
+      -- Query keyword highlighting state (windowmessage returns 0, 1 or 2)
+      -- from defc qparse (commented out) in STDCTRL.E:
+      current_hili = windowmessage( 1,  getpminfo(EPMINFO_EDITFRAME),
+                                    5505,          -- EPM_EDIT_KW_QUERYPARSE
+                                    0,
+                                    0)
+      new_hili = (current_hili = 0)
+      -- Toggle keyword highlighting
+      call NepmdActivateHighlight( new_hili, NepmdGetMode() )
    elseif arg(1) = 'I' then   -- button Initialized
       display -8
       sayerror a_Toggle_Hilight_PROMPT
