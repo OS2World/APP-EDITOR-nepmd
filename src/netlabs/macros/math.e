@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: math.e,v 1.3 2002-08-18 20:37:56 aschn Exp $
+* $Id: math.e,v 1.4 2002-11-01 13:45:12 cla Exp $
 *
 * ===========================================================================
 *
@@ -76,6 +76,8 @@ defproc mathcommon(input,suffix)
    else
       sayerror 'math'suffix input'= 'result  -- no setcommand in epm
    endif
+
+   return
 
 compile if DECIMAL = ','
    define thou_sep = '.'
