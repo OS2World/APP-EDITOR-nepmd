@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.23 2002-09-03 10:04:20 cla Exp $
+.. $Id: makefile.txt,v 1.24 2002-09-21 14:28:58 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -28,7 +28,7 @@
 .. ***************************************************************************
 
 .hi 234
-.include title.inc
+.include titleeng.inc
 .set TITLE=*[=DOCTITLE]*
 
 .set STDLIST=compact break=fit tsize=20
@@ -471,7 +471,7 @@ For packing the executables of the [=TITLE], the *lxlite* utility is used.
 
 [=NOTE]
 .ul
-- the *lxlite* utility is only required if you build the release version of the 
+- the *lxlite* utility is only required if you build the release version of the
   [=TITLE] executables, which is the default. In order to build the debug versions
   instead, either
 .ul compact
@@ -676,8 +676,8 @@ The following language identifiers are currently used within the project:
 .. .............................................................................
 .an IDPNL_APPENDIX_DOCCOMMENTS_GENERAL
 .
-All E functions provided by the [=TITLE] should be documented in the 
-E functions reference of the INF file for the release package. 
+All E functions provided by the [=TITLE] should be documented in the
+E functions reference of the INF file for the release package.
 In order to have this task accomplished, the following is required:
 .pl bold tsize=3
 - the information to be put into the panels of the INF file
@@ -688,7 +688,7 @@ In order to have this task accomplished, the following is required:
   generating all of the online help files.
 
 Having said this, once a developer has added the documentation comments to the
-respective source file [.IDPNL_APPENDIX_DOCCOMMENTS_FORMAT in correct format], 
+respective source file [.IDPNL_APPENDIX_DOCCOMMENTS_FORMAT in correct format],
 the information about the function is automatically inlcuded in the functions
 reference.
 
@@ -709,16 +709,16 @@ The following rules apply to documentation comments:
 .ul compact
   - one line specifying the name of the comment. This line must have the following
     information in one word (without spaces included!):
-    - two *@* characters 
+    - two *@* characters
     - the name of the function
     - one *@* character
     - the type name of the comment (like [.IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX],
     [.IDPNL_APPENDIX_DOCCOMMENTS_PARM], .etc.)
 .el
 .
-  For special comment types like [.IDPNL_APPENDIX_DOCCOMMENTS_CATEGORY] and 
+  For special comment types like [.IDPNL_APPENDIX_DOCCOMMENTS_CATEGORY] and
   [.IDPNL_APPENDIX_DOCCOMMENTS_PARM] another *@* character and an additional
-  parameter (here either the category name or the name of the parameter) must 
+  parameter (here either the category name or the name of the parameter) must
   be appended. Please see the descriptions about the comment types in this
   section for details.
 .el
@@ -728,10 +728,10 @@ The following rules apply to documentation comments:
   where this text must apply to the [.IDPNL_REQUIREMENTS_HTEXT] syntax, as this
   preprocessor is used for generation the online help.
   Especially important is to
-  - take care for the characters ** __ ## [[ ]], as 
-    they are escape characters for *HyperText/2* in order to switch bold, 
-    underline and italic print of characters on and off and for to create 
-    hyperlinks. In order to use those characters within the example code, 
+  - take care for the characters ** __ ## [[ ]], as
+    they are escape characters for *HyperText/2* in order to switch bold,
+    underline and italic print of characters on and off and for to create
+    hyperlinks. In order to use those characters within the example code,
     just repeat the character, as each escape character escapes itself.
   - also make sure that no line begins with a dot,
     because that may be interpretet as a HyperText command.
@@ -745,13 +745,13 @@ The following rules apply to documentation comments:
   is followed either by the next one or an [.IDPNL_APPENDIX_DOCCOMMENTS_ENDMARKER].
 
 .. .............................................................................
-.3 linking to sections created by doc comments 
+.3 linking to sections created by doc comments
 .. .............................................................................
 .an IDPNL_APPENDIX_DOCCOMMENTS_LINKAGE
 .
 It may be very useful to link between panels created by documentation
 comments. Wehn doing this, keep in mind that the text included in these
-panels must be compatible to the [.IDPNL_REQUIREMENTS_HTEXT] syntax, 
+panels must be compatible to the [.IDPNL_REQUIREMENTS_HTEXT] syntax,
 so that a link is easily created by the following syntax:
 .fo off
   This is a link to a panel:
@@ -760,7 +760,7 @@ so that a link is easily created by the following syntax:
 .
 where *anchorname* is the name of the anchor being set for a panel
 by the *.ANCHOR* command that has been generated by
-[.IDPNL_APPENDIX_DOCCOMMENTS_GENERAL escansrc.cmd]. 
+[.IDPNL_APPENDIX_DOCCOMMENTS_GENERAL escansrc.cmd].
 The above example would look likethis (here with a dead link though):
 
 This is a link to a panel: [.IDPNL_APPENDIX_DOCCOMMENTS_LINKAGE linktext as much as you want]
@@ -775,9 +775,9 @@ of the following:
 - if it is a link to a dedicated parameter section, an additional underscore
   plus the name of the parameter un uppercase characters
 
-The following examples show you how to write a link in [.IDPNL_REQUIREMENTS_HTEXT] syntax, 
+The following examples show you how to write a link in [.IDPNL_REQUIREMENTS_HTEXT] syntax,
 but without specifying a link text (so these examples would display the title of the linked
-panel instead, which would mostly not be useful in this case). Just include the link text 
+panel instead, which would mostly not be useful in this case). Just include the link text
 beween the anchorname (sparated by a space character) and the closing square bracket:
 .pl tsize=3
 - [[.IDPNL__EFUNC__NEPMDWRITESTRINGEA]]
@@ -817,7 +817,7 @@ non-formatted font into the syntax panel for a given function.
 - The text of this comment should not be longer than one or at least as
   few lines, as possible.
 - Make sure that the names of the parameters match the names specified in the
-  [.IDPNL_APPENDIX_DOCCOMMENTS_PARM] comments for this function, so that 
+  [.IDPNL_APPENDIX_DOCCOMMENTS_PARM] comments for this function, so that
   links can be created!
 
 *Example:*
@@ -839,12 +839,12 @@ ResultValue = MyFunction( Parm1, Parm2, Parm3);
 The syntax comment specifies the text to be displayed in the *Syntax* supanel for
 the specified function.
 
-Please don't take the text in the below example too serious, your explanation for 
+Please don't take the text in the below example too serious, your explanation for
 a function should be much more senseful.
 
 If you have very important remarks to state, you may want to insert these also here,
 but for remarks longer than one sentence you should use the optional
-[.IDPNL_APPENDIX_DOCCOMMENTS_REMARKS] comment and link to that from the text here 
+[.IDPNL_APPENDIX_DOCCOMMENTS_REMARKS] comment and link to that from the text here
 in the *[=.IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX]* comment.
 
 *Example:*
@@ -866,7 +866,7 @@ and requires three parameters.
 .an IDPNL_APPENDIX_DOCCOMMENTS_CATEGORY
 .
 The category comment specifies the category that the specified function
-should be included. 
+should be included.
 
 [=NOTE]
 .ul compact
@@ -906,9 +906,9 @@ of the function.
 [=NOTE]
 .ul compact
 - this comment requires the parameter name appended to the comment name !
-- make sure that it matches identically the parameters in the 
-  [.IDPNL_APPENDIX_DOCCOMMENTS_PROTOTYPE] comment, so that a link from the 
-  prototype to the parameter section is automatically created 
+- make sure that it matches identically the parameters in the
+  [.IDPNL_APPENDIX_DOCCOMMENTS_PROTOTYPE] comment, so that a link from the
+  prototype to the parameter section is automatically created
 
 *Example:*
 .fo off
@@ -961,7 +961,7 @@ information about the function.
 
 @@MyFunction@REMARKS
 For using the function MyFunction() some very specific details
-are important to know: 
+are important to know:
  ...
 @@
 
@@ -980,7 +980,7 @@ snippet for usage of the specified function.
 .ul compact
 - take care for the *HyperText/2* [.IDPNL_APPENDIX_DOCCOMMENTS_FORMAT escape characters]
   and other formatting issues.
-  
+
 
 *Example:*
 .fo off

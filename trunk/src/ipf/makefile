@@ -9,7 +9,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.6 2002-08-29 14:53:25 cla Exp $
+# $Id: makefile,v 1.7 2002-09-21 14:28:58 cla Exp $
 #
 # ===========================================================================
 #
@@ -24,6 +24,11 @@
 #
 # ***************************************************************************
 
+# select english as default language
+!ifndef NLS
+NLS=eng
+!endif
+
 # include main definitions
 BASEDIR=..\..
 
@@ -34,11 +39,11 @@ BASEDIR=..\..
 #           to be available in the bin subdirectory !
 
 FILESTOCLEAN= \
- $(CMPDIR)\functions.txt \
+ $(CMPDIR)\functions_.txt \
  $(CMPDIR)\functions.log \
  $(CMPDIR)\makefile.ipf \
- $(CMPDIR)\nepmd.ipf \
- $(CMPINFDIR)\nepmd.inf
+ $(CMPDIR)\nepmd$(NLS).ipf \
+ $(CMPINFDIR)\nepmd$(NLS).inf
 
 
 INCLUDE=$(INCLUDE);bmp;
@@ -63,13 +68,13 @@ ALL: HELPINF NEPMDINF
 
 HELPINF: $(BASEDIR)\bin\makefile.inf
 
-NEPMDINF: $(CMPINFDIR)\nepmd.inf
+NEPMDINF: $(CMPINFDIR)\nepmd$(NLS).inf
 
 HELP: HELPINF
   @start view $(BASEDIR)\bin\makefile.inf $(MAKEPANEL)
 
 NEPMD: NEPMDINF
-  @start view $(CMPINFDIR)\nepmd.inf $(NEPMDPANEL)
+  @start view $(CMPINFDIR)\nepmd$(NLS).inf $(NEPMDPANEL)
 
 
 CLEAN:
@@ -83,8 +88,8 @@ $(BASEDIR)\bin\makefile.inf: makefile.txt *.inc
 
 # ---- generate project documentation INF
 
-$(CMPINFDIR)\nepmd.inf: nepmd.txt *.inc bmp\* $(CMPDIR)\functions.txt
-   htext /N nepmd.txt $(CMPDIR)\nepmd.ipf $(CMPINFDIR)\nepmd.inf
+$(CMPINFDIR)\nepmd$(NLS).inf: nepmd$(NLS).txt title$(NLS).inc bmp\* $(CMPDIR)\functions.txt
+   htext /N nepmd$(NLS).txt $(CMPDIR)\nepmd$(NLS).ipf $(CMPINFDIR)\nepmd$(NLS).inf
 
 $(CMPDIR)\functions.txt: ..\gui\nepmdlib\nepmdlib.e ..\gui\nepmdlib\macros\*
    esrcscan $(ESRCPATH)\nepmdlib.e $(ESRCPATH) $(CMPDIR) $(LIMITPATH)
