@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.7 2002-08-12 12:14:33 cla Exp $
+: $Id: prepare.cmd,v 1.8 2002-08-15 13:21:54 cla Exp $
 :
 : ===========================================================================
 :
@@ -102,9 +102,9 @@
  %CHECKERROR%
 
  SET TARGET=%UNZIPPEDDIR%\EPMAPP\EPMBBS
- DEL %TARGET%\EPMBBS\BIN\README.EPM                                            >>%LOGFILE% 2>&1
+ DEL %TARGET%\BIN\README.EPM                                                   >>%LOGFILE% 2>&1
  %CHECKERROR%
- DEL %TARGET%\EPMBBS\BIN\TTITALIC.BMP                                          >>%LOGFILE% 2>&1
+ DEL %TARGET%\BIN\TTITALIC.BMP                                                 >>%LOGFILE% 2>&1
  %CHECKERROR%
 
  MD %TARGET%\BMP                                                               >>%LOGFILE% 2>&1
