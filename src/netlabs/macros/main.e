@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.10 2002-10-20 14:18:12 aschn Exp $
+* $Id: main.e,v 1.11 2002-11-04 14:53:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,7 +34,7 @@
 ; without freeing the semaphore). This has happened, if one EPM instance
 ; with parameter /i is started.
 ;
-; So defexit is activated here again.
+; So activate defexit here again?
 ;
 defexit
    universal nepmd_hini
@@ -46,6 +46,45 @@ defexit
    --   sayerror 'Configuration repository closed successfully';
    endif
 /**/
+
+; -------------------------------------------------------------------
+; As a workaround for trapping EPM windows if
+;    o  the filespec contains wildcards
+; and if
+;    o  the REXX profile bit in EPM.INI is 0 or
+; and if
+;    o  the Toolbar is set to the built-in Toolbar (not stored in EPM.INI)
+;       while the Toolbar is activated.
+; This proc switches the REXX profile support on if arg(1) is not 0.
+defproc SetIniProfileBit
+/*
+   Bit  Setting if value = 1
+   -------------------------
+   10   stream mode
+   12   REXX profile on
+*/
+   universal appname, app_hini
+   ON = ( arg(1) <> 0 )  -- default arg is 1
+   if appname = '' then
+      appname = 'EPM'
+   endif
+   inikey = 'OPTFLAGS'
+   inidata=queryprofile(app_hini, appname,inikey)
+   --sayerror 'found inidata = 'inidata  -- sayerror doesn't work here
+   if inidata = '' then
+      inidata = '1 1 1 1 1 1 0 0 1 1 1 0 1 0 1 1 0 '\0
+   endif
+   Bit = 12
+   newinidata = overlay( ON, inidata, 2*Bit - 1 )
+   call setprofile(app_hini, appname, inikey, newinidata)
+   return
+
+; For testing:
+defc setprof
+   call SetIniProfileBit( arg(1) )
+   return
+; ------------------------------------------------------------------
+
 
 define DEBUG_MAIN = 0
 
@@ -69,20 +108,41 @@ compile endif
 
 ;   sayerror 'DEFMAIN!, arg(1) = ['arg(1)']'
 
-
 compile if WANT_APPLICATION_INI_FILE
-   'initconfig'                  -- Check if anything of interest is in OS2.INI
+
+   -- Workaround for trapping EPM windows
+   --    o  As a workaround the REXX profile is processed everytime. We don't care about
+   --       the EPM.INI setting anymore (until the bug will be found).
+   --    o  This works even if no profile was found or if profile support is commented out
+   --       at the end of this file.
+   call SetIniProfileBit(1)
+
+   'initconfig'                  -- Check if anything of interest is in OS2.INI and get settings from EPM.INI
+
  compile if DEBUG_MAIN
    messageNwait('DEFMAIN: after INITCONFIG')
  compile endif
+
 compile endif
 
-   -- Link the NEPMD library. Open a MessageBox if .ex not found.
+   -- Link the NEPMD library. Open a MessageBox if .ex file not found.
    --    o  Any linking can not be processed before 'initconfig' in MAIN.E.
    --       Otherwise the EPM.INI or parts of it will not be processed
    --       (i.e. the toolbar will get lost and the fonts will change
    --       to their default values).
-   'linkverify  nepmdlib.ex'
+   --    o  Sometimes defmain is triggered 2 times, so 'linkverify nepmdlib.ex'
+   --       may cause timing(?) problems then:
+   --       When the buit-in Toolbar is activated and REXX profile is switched
+   --       off in EPM.INI, EPM has trapped after some seconds when the files are
+   --       loaded. This could be duplicated well, when the calling command contains
+   --       wildcards in the filename.
+   --    o  Therefore it is now checked if the contained function
+   --       'NepmdOpenConfig' is already defined.
+   --    o  That doesn't seem to suffice, so the REXX profile is activated
+   --       constantly.
+   if not isadefproc( 'NepmdOpenConfig' ) then  -- if proc not defined
+      'linkverify  nepmdlib.ex'
+   endif
 
    -- Open NEPMD.INI and set the returned handle as the universal var 'nepmd_hini'
    --sayerror 'Open NEPMD.INI'
@@ -209,6 +269,14 @@ end
 ;   'escapekey on'  -- default now
 
    -- process PROFILE.ERX
+;   'profile on'  -- no effect to the bug
+   --    o  When the buit-in Toolbar is activated and REXX profile is switched
+   --       off in EPM.INI, EPM has trapped after some seconds when the files are
+   --       loaded. This could be duplicated well, when the calling command contains
+   --       wildcards in the filename.
+   --    o  As a workaround the REXX profile is processed everytime. We don't care about
+   --       the EPM.INI setting anymore (until the bug will be found).
+   --    o  This works even if no profile was found.
 compile if WANT_PROFILE
  compile if WANT_PROFILE='SWITCH'
    if REXX_PROFILE then
