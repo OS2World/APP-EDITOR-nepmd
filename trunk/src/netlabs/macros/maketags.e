@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: maketags.e,v 1.3 2002-08-18 20:39:28 aschn Exp $
+* $Id: maketags.e,v 1.4 2003-05-14 16:21:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -94,7 +94,7 @@ compile endif
       return
    endif
    if rc=-282 then
-      delete
+      deleteline
    endif
    -- Defer this until after tags file loaded, because TagsFileList might want
    -- to edit the tags file in order to check its EPM.TAGSARGS EA
@@ -217,7 +217,7 @@ compile endif
                else
                   verb = 'Refreshing'
                   while not rc do
-                     delete
+                     deleteline
                      begin_line
                      repeat_find
                   endwhile

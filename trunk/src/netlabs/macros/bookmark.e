@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: bookmark.e,v 1.5 2002-09-16 16:56:01 aschn Exp $
+* $Id: bookmark.e,v 1.6 2003-05-14 16:21:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -498,7 +498,7 @@ defc saveattributes
    if browse_mode then call browse(0); endif
    .autosave = 0
    getfileid attrib_fid
-   delete  -- Delete the empty line
+   deleteline  -- Delete the empty line
 ;; activatefile start_fid
    line=0; col=1; offst=0; found_font = 0
    style_line=0; style_col=0; style_offst=0; style_list=''
@@ -542,7 +542,7 @@ compile endif -- not defined(COMPILING_FOR_ULTIMAIL)
                endif
                .autosave = 0
                getfileid style_fid
-               delete  -- Delete the empty line
+               deleteline  -- Delete the empty line
             endif
             style_list = style_list || chr(val)
 compile if WANT_APPLICATION_INI_FILE
