@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.21 2002-09-24 21:38:46 cla Exp $
+* $Id: test.c,v 1.22 2002-09-24 22:09:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -308,7 +308,9 @@ do
       // allocate test file
       sprintf( szFile, "%s\\mmftest.txt", getenv( "TMP"));
       printf( "- allocate readwrite file: %s\n", szFile);
-      rc = MmfAlloc( (PVOID*) &pszFileContents, szFile, MMF_ACCESS_READWRITE, ulFilesize);
+      rc = MmfAlloc( (PVOID*) &pszFileContents, szFile,
+                     MMF_ACCESS_READWRITE | MMF_OPENMODE_RESETFILE,
+                     ulFilesize);
       if (rc != NO_ERROR)
          {
          printf( " error: cannot allocate memory mapped file %s, rc=%u\n", szFile, rc);
@@ -316,8 +318,9 @@ do
          }
 
       // access memory by copying the contents of the in-memory file
+      // but leave out first 64 bytes
       printf( "- write to file area\n");
-      memcpy( pszFileContents, pszMemory, ulFilesize);
+      memcpy( pszFileContents + 64, pszMemory, ulFilesize - 64);
 
       // query size of memory area
       rc = MmfQuerySize( pszFileContents, &ulCurrentSize);
