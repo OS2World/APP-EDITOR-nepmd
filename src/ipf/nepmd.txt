@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.19 2002-08-15 10:06:21 cla Exp $
+.. $Id: nepmd.txt,v 1.20 2002-08-15 10:31:38 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -551,8 +551,6 @@ available on FTP servers in the Internet like:
 .3 dynamic EPM configuration
 .. -----------------------------------------------------------------------------
 .an IDPNL_ADDITIONS_DYNCFG
-.in EPM loader executable
-.in epmenv.cmd
 .
 The [=TITLE] provides you with a dynamic configuration for *EPM*, which makes
 any changes to your *CONFIG.SYS* obsolete. 
@@ -583,9 +581,11 @@ nevertheless think that in this case the benefit outweighs this drawback by far:
   is required, namely for the *EPM* and othe GUI utilities of the [=TITLE].
 
 .. .............................................................................
-.4 loader executable
+.4 EPM loader executable
 .. .............................................................................
 .an IDPNL_ADDITIONS_DYNCFG_LOADER
+.in EPM loader executable
+.in epmenv.cmd
 .
 For having no *CONFIG.SYS* changes, a special *EPM loader executable* is
 copyied to your *?:\OS2* directory (where ?: represents your boot drive).
@@ -602,7 +602,7 @@ instead of the true *EPM* and does the following:
 - a special [.IDPNL_ADDITIONS_DYNCFG_ENVFILES environment settings file]
   is loaded. It holds the complete changes required for the standard environment 
   that are required to run all of the [.IDPNL_ADDITIONS], this is in particular
-  the case for the support of the [.IDPNL_ADDITIONS_DIRTREE_NEPMD].
+  the case for the support of the [.IDPNL_ADDITIONS_DIRTREE].
 - the true *EPM* executable is searched along the path (of course skipping
   the *EPM loader executable* itself during the search) and launched with
   the extended environment and the parameters supplied to the loader executable
@@ -614,8 +614,8 @@ instead of the true *EPM* and does the following:
 .an IDPNL_ADDITIONS_DYNCFG_EXTENV
 .
 All GUI utilities of the [=TITLE], and especially the [.IDPNL_ADDITIONS_DYNCFG_LOADER]
-for loading the *EPM* load the extended environment defined by the 
-[.IDPNL_ADDITIONS_DYNCFG_ENVFILES] coming with the [=TITLE].
+load the extended environment defined by the [.IDPNL_ADDITIONS_DYNCFG_ENVFILES] 
+coming with the [=TITLE].
 
 The extended environment supports in particular the [.IDPNL_ADDITIONS_DIRTREE] of
 the [=TITLE] and further functionality by [.IDPNL_ADDITIONS_DYNCFG_NEWVARS] (being
@@ -890,6 +890,13 @@ placed into the following directory tree:
   ÀÄmacros      **.e         user macros
   ÀÄndx         **.ndx       user help index files
 .fo on
+                  +
+.. -----------------------------------------------------------------------------
+.3 reworked E macros
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_NEWMACROS
+.
+<to be edited>
 
 .. -----------------------------------------------------------------------------
 .3 extended keyword hilighting
@@ -1118,13 +1125,19 @@ The following persons (in alphabetic order) assembled and contributed extensions
   - setup of the *Netlabs Open Source Archive* for the [.IDPNL_WHAT_NED]
   - this online INF file
   - *WarpIn* installation packaging
-  - recompilation GUI utility *RECOMP*
+    - National Language Support concept
+  - [.IDPNL_ADDITIONS_RECOMP GUI recompilation GUI utility RECOMP]
+  - [.IDPNL_ADDITIONS_DYNCFG]
+     - [.IDPNL_ADDITIONS_DYNCFG_LOADER]
 ..- extended syntax highlighting support
 ..
 - *Andreas Schnellbacher* <Andreas.Schnellbacher@web.de>
 =
 .ul compact
   - distribution concept
+  - shipped .e sourcefiles
+     - major [.IDPNL_ADDITIONS_NEWMACROS rework] compared to the versions of the *EPMBBS* package
+     - National Language Support concept
 ..- additional macros (e.g. for Tex)
 ..
 
