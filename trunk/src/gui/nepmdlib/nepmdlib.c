@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.7 2002-08-21 21:40:49 cla Exp $
+* $Id: nepmdlib.c,v 1.8 2002-08-22 12:14:11 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,6 +36,7 @@
 
 #include "macros.h"
 #include "nepmdlib.h"
+#include "file.h"
 #include "eas.h"
 #include "tmf.h"
 
@@ -76,6 +77,59 @@ return rc;
 
 // ------------------------------------------------------------------------------
 
+APIRET EXPENTRY NepmdGetNextFile( PSZ pszFileMask, PSZ pszHandle,
+                                  PSZ pszBuffer, ULONG ulBuflen)
+
+{
+         APIRET         rc = NO_ERROR;
+         BOOL           fNewHandle = FALSE;
+         HDIR           hdir = 0;
+
+do
+   {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
+   // check parms
+   if ((!pszFileMask)  ||
+       (!pszHandle)    ||
+       (!pszBuffer))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // copy handle if first char not zero
+   // then we assume it is an ASCIIZ string
+   // returned before by us
+   if (*pszHandle != '0')
+      hdir = atol( pszHandle);
+
+   // set to HDIR_CREATE if zero
+   if (!hdir)
+      {
+      hdir = HDIR_CREATE;
+      fNewHandle = TRUE;
+      }
+
+   // get the file
+   rc = GetNextFile( pszFileMask, &hdir, pszBuffer, ulBuflen);
+
+   // copy back handle - hopefully we don't overwrite memory
+   // inside the REXX variable stack...
+   if (fNewHandle)
+      _ltoa( hdir, pszHandle, 10);
+
+   } while (FALSE);
+
+return rc;
+
+}
+
+
+// ------------------------------------------------------------------------------
+
 #define SETPARM(i,p) if (p) apszParms[ i] = p; ulParmCount++;
 
 APIRET EXPENTRY NepmdGetTextMessage( PSZ pszFilename, PSZ pszMessageName,
@@ -92,6 +146,10 @@ APIRET EXPENTRY NepmdGetTextMessage( PSZ pszFilename, PSZ pszMessageName,
 
 do
    {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
    // check parms
    if ((!pszFilename)    ||
        (!pszMessageName) ||
@@ -179,7 +237,6 @@ APIRET EXPENTRY NepmdLibInfo( HWND hwndClient)
 
 do
    {
-printf( "called\n");
 
    // get path and name of this DLL
    DosQueryModFromEIP( &hmod, &ulObjectNumber,
@@ -224,6 +281,10 @@ APIRET EXPENTRY NepmdQueryFullname( PSZ pszFilename, PSZ pszBuffer, ULONG ulBufl
 
 do
    {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
    // check parms
    if ((!pszFilename) ||
        (!pszBuffer))
@@ -245,6 +306,10 @@ return rc;
 
 APIRET EXPENTRY NepmdReadStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszBuffer, PULONG pulBuflen)
 {
+// init return value first
+if ((pszBuffer) && (pulBuflen))
+   memset( pszBuffer, 0, *pulBuflen);
+
 return ReadStringEa( pszFileName, pszEaName, pszBuffer, pulBuflen);
 }
 
