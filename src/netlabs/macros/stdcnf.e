@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.18 2004-06-03 22:31:29 aschn Exp $
+* $Id: stdcnf.e,v 1.19 2004-07-02 08:13:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -800,8 +800,8 @@ compile endif
 -- WANT_BOOKMARKS specifies whether support for bookmarks is included or not.
 -- (EPM only.)  Can be set to 0, 1, or 'LINK'.
 compile if not defined(WANT_BOOKMARKS)
-   WANT_BOOKMARKS = 1
-;   WANT_BOOKMARKS = 'LINK'
+   --WANT_BOOKMARKS = 1  -- changed by aschn
+   WANT_BOOKMARKS = 'LINK'
 compile endif
 
 -- CHECK_FOR_LEXAM specifies whether or not EPM will check for Lexam, and only include
@@ -843,7 +843,7 @@ compile endif
 -- See KWHELP.E for details.  EPM only.
 compile if not defined(WANT_KEYWORD_HELP)
    --WANT_KEYWORD_HELP = 0  -- changed by aschn
-   WANT_KEYWORD_HELP = 1
+   WANT_KEYWORD_HELP = 'DYNALINK'
 compile endif
 
 -- By default, in EPM we block the action of action bar mnemonics being
@@ -1273,10 +1273,38 @@ compile if LINK_NEPMDLIB = 'DEFINIT'  -- LINK_NEPMDLIB = 'DEFINIT' is default
    endif
 compile endif
 
+;  Create array -------------------------------------------------------------
+;  Before this, array vars can't be used. (Therefore: moved this some lines
+;  up.)
+;
+; What was the ring_menu_array_id is now the EPM_utility_array_id, to reflect
+; that it's a general-purpose array.  An array is a file, so it's cheaper to
+; use the same one whenever possible, rather than creating new ones.  We use a
+; prefix to keep indices unique.  Current indices are:
+;   menu.     -- Menu index; commented out
+;   bmi.      -- Bookmark index
+;   bmn.      -- Bookmark name
+;   dspl.     -- Dynamic spellchecking starting keyset
+;   shell_f.  -- Shell fileid
+;   shell_h.  -- Shell handle
+;   si.       -- Style index
+;   sn.       -- Style name
+;   F         -- File id for Ring_more command; not used as of EPM 5.20
+   do_array 1, EPM_utility_array_ID, "array.EPM"   -- Create this array.
+;compile if 0  -- LAM: Delete this feature; nobody used it, and it slowed things down.
+;   one = 1                                          -- (Value is a VAR, so have to kludge it.)
+;   do_array 2, EPM_utility_array_ID, 'menu.0', one           -- Item 0 says there is one item.
+;   do_array 2, EPM_utility_array_ID, 'menu.1', defaultmenu   -- Item 1 is the default menu name.
+;compile endif  -- 0
+   zero = 0                                         -- (Value is a VAR, so have to kludge it.)
+   do_array 2, EPM_utility_array_ID, 'bmi.0', zero    -- Index of 0 says there are no bookmarks
+   do_array 2, EPM_utility_array_ID, 'si.0', zero     -- Set Style Index 0 to "no entries."
+
 ;  Link the menu ------------------------------------------------------------
-; toggleframe and togglecontrol must be defined early in definit or before.
-; Therefore NEWMENU.EX is now linked early in definit.
-; 'initmenu' can't be executed at this time.
+;  toggleframe and togglecontrol must be defined early in definit or before.
+;  Therefore NEWMENU.EX is now linked early in definit. array vars must
+;  already be usable to make the menu's definit work, which is executed
+;  directly after linking.
 compile if LINK_MENU
    if CurMenu = '' then  -- CurMenu is not set if LINK_NEPMDLIB <> 'DEFINIT'
       CurMenu = 'newmenu'
@@ -1677,24 +1705,26 @@ compile endif  -- SPELL_SUPPORT
    shell_index = 0
 ;compile endif
 
-compile if WANT_CUA_MARKING = 'SWITCH'
- compile if defined(my_CUA_marking_switch)
-   cua_marking_switch = my_CUA_marking_switch
-  compile if my_CUA_marking_switch
-   'togglecontrol 25 1'
-  compile endif
- compile else
+;compile if WANT_CUA_MARKING = 'SWITCH'
+; compile if defined(my_CUA_marking_switch)
+;   cua_marking_switch = my_CUA_marking_switch
+;  compile if my_CUA_marking_switch
+;   'togglecontrol 25 1'
+;  compile endif
+; compile else
    cua_marking_switch = 0           -- Default is off, for standard EPM behavior.
- compile endif
-compile elseif WANT_CUA_MARKING = 1
-   'togglecontrol 25 1'
-compile endif
+; compile endif
+;compile elseif WANT_CUA_MARKING = 1
+;   'togglecontrol 25 1'
+;compile endif
 
    bitmap_present = 0
 
-compile if RESPECT_SCROLL_LOCK
+;compile if RESPECT_SCROLL_LOCK
+; We need this e.g. for to use otherkeys.
+; This should probably be moved to KEYS.E.
    'togglecontrol 26 0'  -- Turn off internal support for cursor keys.
-compile endif
+;compile endif
 ;compile endif  -- EPM
 
 ------------ Rest of this file isn't normally changed. ------------------------
@@ -1724,29 +1754,7 @@ compile else
                                  -- unique application under which to to store
                                  -- data in os2.ini.  I.e. EPM (EPMPATH) would be
 compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
-
-; What was the ring_menu_array_id is now the EPM_utility_array_id, to reflect
-; that it's a general-purpose array.  An array is a file, so it's cheaper to
-; use the same one whenever possible, rather than creating new ones.  We use a
-; prefix to keep indices unique.  Current indices are:
-;   menu.     -- Menu index; commented out
-;   bmi.      -- Bookmark index
-;   bmn.      -- Bookmark name
-;   dspl.     -- Dynamic spellchecking starting keyset
-;   shell_f.  -- Shell fileid
-;   shell_h.  -- Shell handle
-;   si.       -- Style index
-;   sn.       -- Style name
-;   F         -- File id for Ring_more command; not used as of EPM 5.20
-   do_array 1, EPM_utility_array_ID, "array.EPM"   -- Create this array.
-compile if 0  -- LAM: Delete this feature; nobody used it, and it slowed things down.
-   one = 1                                          -- (Value is a VAR, so have to kludge it.)
-   do_array 2, EPM_utility_array_ID, 'menu.0', one           -- Item 0 says there is one item.
-   do_array 2, EPM_utility_array_ID, 'menu.1', defaultmenu   -- Item 1 is the default menu name.
-compile endif  -- 0
-   zero = 0                                         -- (Value is a VAR, so have to kludge it.)
-   do_array 2, EPM_utility_array_ID, 'bmi.0', zero    -- Index of 0 says there are no bookmarks
-   do_array 2, EPM_utility_array_ID, 'si.0', zero     -- Set Style Index 0 to "no entries."
+; Moved creation of array to the begin of definit.
 ;compile endif  -- EVERSION >= 5
 
 ;compile if EXTRA_EX
@@ -1793,7 +1801,7 @@ compile if defined(my_FONT)
 compile else
    font = TRUE                         -- default font is large
 compile endif
-compile if RING_OPTIONAL
+;compile if RING_OPTIONAL
  compile if defined(my_RING_ENABLED)
     ring_enabled = my_RING_ENABLED
  compile else
@@ -1822,23 +1830,24 @@ compile if RING_OPTIONAL
 ;  compile if EVERSION < '5.53'
 ;      'togglecontrol 20 0'
 ;  compile else
+; Maybe this can be avoided at this time:
       'toggleframe 4 0'
 ;  compile endif
    endif
-compile endif  -- RING_OPTIONAL
+;compile endif  -- RING_OPTIONAL
 ;compile if not DELAY_MENU_CREATION
 ; MENUACEL.E doesn't exist anymore. It's now part of defc initconfig in
 ; STDCTRL.E
 ;;;   include 'menuacel.e'
 ;compile endif
-compile if WANT_DYNAMIC_PROMPTS
- compile if defined(my_MENU_PROMPT)
-   menu_prompt = my_MENU_PROMPT
- compile else
+;compile if WANT_DYNAMIC_PROMPTS
+; compile if defined(my_MENU_PROMPT)
+;   menu_prompt = my_MENU_PROMPT
+; compile else
 ;  menu_prompt = 0       -- Default is to not have it (at least, internally).
    menu_prompt = 1       -- (Start with it on for now, to get it beta tested.)
- compile endif
-compile endif  -- DYNAMIC_PROMPTS
+; compile endif
+;compile endif  -- DYNAMIC_PROMPTS
 ;compile endif  -- EVERSION >= 5
 
    last_append_file = ''   -- Initialize for DEFC APPEND.
@@ -1986,25 +1995,25 @@ compile endif
 ;compile endif
 
 compile if WANT_BOOKMARKS = 'LINK'
-   'linkverify BOOKMARK'
+   'linkverify bookmark'
 compile endif       -- Bookmarks
 
 compile if WANT_TAGS = 'LINK' /* & not EXTRA_EX */
-   'linkverify TAGS'
-   'linkverify MAKETAGS'
+   'linkverify tags'
+   'linkverify maketags'
 compile endif       -- TAGs
 
 compile if WANT_EBOOKIE = 'LINK'
-   'linkverify BKEYS'
+   'linkverify bkeys'
 compile endif
 
 compile if WANT_TREE = 'LINK'
-   'linkverify TREE'
+   'linkverify tree'
 compile endif
 
 compile if SPELL_SUPPORT = 'LINK'
 ; compile if EPM
-   'linkverify EPMLEX'
+   'linkverify epmlex'
 ; compile elseif EOS2
 ;  'linkverify EOS2LEX'
 ; compile else
@@ -2012,13 +2021,15 @@ compile if SPELL_SUPPORT = 'LINK'
 ; compile endif
 compile endif
 
-; Process menu initialization if defined.
-; This can't be executed at the begin of definit.
-; The menu defs must be linked before togglecontrol and toggleframe are
-; executed.
-if isadefc('initmenu') then
-   'initmenu'
-endif
+compile if MOUSE_SUPPORT
+   'linkverify popup'  -- saves 4.2k in stringtable area
+compile endif
+
+   'linkverify dict'      -- select language for dictionaries
+
+   -- Set universal vars. Doing this with a definit in MODEEXEC.E comes too
+   -- late.
+   'InitFileSettings'
 
 -----------------  End of DEFINIT  ------------------------------------------
 
