@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.2 2004-02-22 20:10:54 aschn Exp $
+* $Id: filelist.e,v 1.3 2004-02-29 17:17:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -50,7 +50,6 @@ compile endif
 ; RingWriteFilePosition is called by 'quit' and NepmdAfterload.
 defproc RingWriteFilePosition
    universal nepmd_hini
-   universal firstloadedfid
    universal RingWriteFilePositionDisabled
 
    -- Don't overwite old ring if Disabled flag set (e.g. by RestoreRing)
@@ -132,11 +131,8 @@ compile endif
 
    ---- Write new 'File'i and 'Posn'i ---------------------------------------
    getfileid startfid
-compile if 0
-   activatefile firstloadedfid
-compile else
-   next_file  -- Select next file to make current file topmost after restore
-compile endif
+   -- Select next file to make current file topmost after restore
+   next_file
    getfileid firstfid
    j = 0
    -- Loop through all files in ring
