@@ -9,6 +9,7 @@
 #define IDT_IDTXT_RECOMPILE_EPM                  "recompile EPM"
 #define IDT_IDTXT_CLOSE_EPMWINDOWS               "close EPM windows"
 #define IDT_IDTXT_RELOAD_FILES                   "reloading files"
+#define IDT_IDTXT_LOADLOG                        "load log file"
 
 #define IDT_IDDLG_INFO                           __APPNAME__ " - Product Information"
 #define IDT_IDTXT_PROGRAMVERSION                 __APPNAME__ " " __VERSION__

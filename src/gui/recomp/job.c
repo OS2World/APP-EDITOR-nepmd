@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: job.c,v 1.5 2002-06-09 21:52:45 cla Exp $
+* $Id: job.c,v 1.6 2002-06-10 10:32:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -767,17 +767,9 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
 
       // ------------------------------------------------
 
-      case JOB_ACTION_FINISH:
-         DPRINTF(( "JOB: FINISH\n"));
-         pwd->ulJobStatus = JOB_STATUS_DONE;
-
-#ifdef DEBUG_EX
-         {
-                  CHAR           szBackupCopy[ _MAX_PATH];
-         sprintf( szBackupCopy, "%s\\recomp.ex", getenv( "TMP"));
-         DosCopy( pwd->szMacroFile, szBackupCopy, DCPY_EXISTING);
-         }
-#endif
+      case JOB_ACTION_LOADLOG:
+         DPRINTF(( "JOB: LOADLOG"));
+         pwd->ulJobStatus = JOB_STATUS_LOADINGLOG;
 
          // show log if desired or if an error occurred
          if (!pwd->fSkipLog)
@@ -797,6 +789,35 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
             }
          else
             UPDATE_JOB_STATUS;
+
+         break;
+
+      // ------------------------------------------------
+
+      case JOB_STATUS_LOADINGLOG:
+         DPRINTF(( "JOB: LOADINGLOG\n"));
+
+         // we are done
+         pwd->ulJobStatus = JOB_ACTION_FINISH;
+         UPDATE_JOB_STATUS;
+         
+         break;
+
+      // ------------------------------------------------
+
+      case JOB_ACTION_FINISH:
+         DPRINTF(( "JOB: FINISH\n"));
+
+#ifdef DEBUG_EX
+         {
+                  CHAR           szBackupCopy[ _MAX_PATH];
+         sprintf( szBackupCopy, "%s\\recomp.ex", getenv( "TMP"));
+         DosCopy( pwd->szMacroFile, szBackupCopy, DCPY_EXISTING);
+         }
+#endif
+
+         pwd->ulJobStatus = JOB_STATUS_DONE;
+         UPDATE_JOB_STATUS;
 
          break;
 

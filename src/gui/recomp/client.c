@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: client.c,v 1.3 2002-06-09 21:52:44 cla Exp $
+* $Id: client.c,v 1.4 2002-06-10 10:32:55 cla Exp $
 *
 * ===========================================================================
 *
@@ -220,6 +220,8 @@ switch (msg)
 
          case IDMEN_SETTINGS_SHOW_COMPILELOG:
             pwd->cd.fShowCompileLog = !pwd->cd.fShowCompileLog;
+            // tun on/off respective bullet
+            ENABLEWINDOW( hwnd, IDTXT_LOADLOG, pwd->cd.fShowCompileLog);
             break;
 
          case IDMEN_TEST_ALTSOURCE:
@@ -301,6 +303,7 @@ switch (msg)
       ENABLEWINDOW( hwnd, IDTXT_CLOSE_EPMWINDOWS, pwd->fLastConnected);
       ENABLEWINDOW( hwnd, IDTXT_SAVE_FILELISTS,   pwd->fLastConnected);
       ENABLEWINDOW( hwnd, IDTXT_RELOAD_FILES,     (pwd->cd.fReloadFiles && pwd->fLastConnected));
+      ENABLEWINDOW( hwnd, IDTXT_LOADLOG,          pwd->cd.fShowCompileLog);
 
       switch (pwd->ulJobStatus)
          {
@@ -330,6 +333,15 @@ switch (msg)
             ulActiveId = IDTXT_RELOAD_FILES;
             break;
 
+         case JOB_STATUS_LOADINGLOG:
+            ulBulletId = IDBLT_LOADLOG;
+            ulActiveId = IDTXT_LOADLOG;
+
+            // turn on text for this bullet in case it is used
+            // despite of the settings (loading faulty file)
+            ENABLEWINDOW( hwnd, IDTXT_LOADLOG, TRUE);
+            break;
+
          }
 
        // turn all bullets off first
@@ -338,6 +350,7 @@ switch (msg)
       SHOWWINDOW( hwnd, IDBLT_RECOMPILE_EPM,    FALSE);
       SHOWWINDOW( hwnd, IDBLT_CLOSE_EPMWINDOWS, FALSE);
       SHOWWINDOW( hwnd, IDBLT_RELOAD_FILES,     FALSE);
+      SHOWWINDOW( hwnd, IDBLT_LOADLOG,          FALSE);
 
       if (pwd->ulJobStatus > JOB_ACTION_INITIALIZE)
          {
@@ -381,12 +394,14 @@ switch (msg)
       break;
 
    // ---------------------------------------------------------------
+
    case WM_USER_RESETITEMFONT:
       SETFONT( IDTXT_PREPARE,          pszNormalFont);
       SETFONT( IDTXT_SAVE_FILELISTS,   pszNormalFont);
       SETFONT( IDTXT_RECOMPILE_EPM,    pszNormalFont);
       SETFONT( IDTXT_CLOSE_EPMWINDOWS, pszNormalFont);
       SETFONT( IDTXT_RELOAD_FILES,     pszNormalFont);
+      SETFONT( IDTXT_LOADLOG,          pszNormalFont);
       break;
 
    } // end switch (msg)
