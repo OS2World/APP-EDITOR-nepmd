@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.12 2002-04-22 14:44:30 cla Exp $
+# $Id: nepmd.wis,v 1.13 2002-06-10 11:57:19 cla Exp $
 #
 # ===========================================================================
 #
@@ -42,6 +42,7 @@
      CREATEOBJECT="WPProgram|EPM Technical Reference|<NEPMD_FOLDER>|;PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\EPMTECH.INF;OBJECTID=<NEPMD_VIEW_EPMTECH>;"
      CREATEOBJECT="WPProgram|EPM Users Guide|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\EPMUSERS.INF;OBJECTID=<NEPMD_VIEW_EPMUSERS>;"
      CREATEOBJECT="WPProgram|OS/2 Netlabs^EPM Distribution|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPMD.INF Netlabs;ICONFILE=$(1)\NETLABS\INSTALL\ICO\HELP.ICO;OBJECTID=<NEPMD_VIEW_NEPMD>;"
+     CREATEOBJECT="WPProgram|Recompile EPM|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=$(1)\NETLABS\BIN\RECOMP.EXE;OBJECTID=<NEPMD_RECOMP>;"
 
      >This package installs the base application files.</PCK>
 
