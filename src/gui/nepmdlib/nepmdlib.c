@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.27 2002-09-04 10:16:21 cla Exp $
+* $Id: nepmdlib.c,v 1.28 2002-09-04 10:18:04 cla Exp $
 *
 * ===========================================================================
 *
@@ -899,5 +899,4 @@ APIRET EXPENTRY NepmdWriteStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszEaVal
 {
 return WriteStringEa( pszFileName, pszEaName, pszEaValue);
 }
-
 

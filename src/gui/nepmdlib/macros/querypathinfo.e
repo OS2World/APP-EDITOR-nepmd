@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.2 2002-09-04 10:16:22 cla Exp $
+* $Id: querypathinfo.e,v 1.3 2002-09-04 10:18:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -64,21 +64,21 @@ NepmdQueryPathInfo returns either
 
 defc NepmdQueryPathInfo, QueryPathInfo
 
- parse value arg( 1) with Filename InfoTag;
+ parse value arg( 1) with PathName InfoTag;
 
  if (InfoTag = '') then
     sayerror 'error: no info tag specified !';
     return;
  endif
 
- InstValue = NepmdQueryPathInfo( Filename, InfoTag);
+ InstValue = NepmdQueryPathInfo( PathName, InfoTag);
  parse value InstValue with 'ERROR:'rc;
  if (rc > '') then
     sayerror 'error: could not retrieve value for "'InfoTag'", rc='rc;
     return;
  endif
 
- sayerror 'value for "'InfoTag'" of "'Filename'" is: "'InstValue'"';
+ sayerror 'value for "'InfoTag'" of "'PathName'" is: "'InstValue'"';
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryPathInfo                                 */
