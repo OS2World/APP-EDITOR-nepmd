@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.48 2002-09-22 22:25:32 cla Exp $
+* $Id: nepmdlib.c,v 1.49 2002-10-01 14:34:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -288,6 +288,7 @@ APIRET EXPENTRY NepmdActivateHighlight( HWND hwndClient, PSZ pszActivateFlag, PS
          APIRET         rc = NO_ERROR;
          BOOL           fValidFlag = FALSE;
          CHAR           szHilightFile[ _MAX_PATH];
+         BOOL           fReload = 1;
 
 do
    {
@@ -334,9 +335,11 @@ do
    if (*pszActivateFlag == '1')
       {
       // query / create hilite file
-      rc = QueryHilightFile( pszEpmMode, szHilightFile, sizeof( szHilightFile));
+      rc = QueryHilightFile( pszEpmMode, &fReload, szHilightFile, sizeof( szHilightFile));
       if (rc != NO_ERROR)
          break;
+      if (fReload)
+         *pszActivateFlag = '2';
       }
    else
       szHilightFile[ 0] = 0;
