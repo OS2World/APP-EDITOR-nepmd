@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: english.e,v 1.2 2002-07-22 18:59:55 cla Exp $
+* $Id: english.e,v 1.3 2002-08-09 19:48:21 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -74,7 +74,6 @@ compile endif
    BOX_ARGS__MSG =        'Args: 1=³ 2=º 3=| 4=Û 5=Ø 6=× B=Spc /Any  P=Pas C=C A=Asm E=Erase R=Reflow S=Scr'
    BOX_MARK_BAD__MSG =    'Marked area is not inside a box'
 
-compile if EVERSION >=4
 ;; Buff.e
    CREATEBUF_HELP__MSG =  ' CREATEBUF  creates EBUF buffer; "CREATEBUF 1" for a private buffer.'
    PUTBUF_HELP__MSG =     ' PUTBUF     puts file, cur. line to end, in buffer.'
@@ -94,9 +93,7 @@ compile if EVERSION >=4
              --      'Buffer overflow?  It accepted only' noflines 'lines.'
    ONLY_ACCEPTED__MSG =   'Buffer overflow?  It accepted only'
    CAN_NOT_OPEN__MSG =    'Unable to open a buffer named'
-compile endif
 
-compile if EVERSION >= 5
 ;; Clipbrd.e
    NO_MARK_NO_BUFF__MSG = 'No marked area, and shared buffer is empty.'
    CLIPBOARD_EMPTY__MSG = 'The clipboard is empty'
@@ -112,15 +109,12 @@ compile if EVERSION >= 5
    RECOVERED__MSG =       'were recovered.'
    TOO_MUCH_FOR_CLIPBD__MSG= 'Too much selected text for clipboard buffer.'
    CLIPBOARD_VIEW_NAME =  '.Clipboard'  -- file name; initial '.' marks it as a temp file
-compile endif
 
 ;; Modify.e
    AUTOSAVING__MSG =      'Autosaving...'
 
-compile if EVERSION >= 5
 ;; Mouse.e
    UNKNOWN_MOUSE_ERROR__MSG = "Unknown error processing mouse event: "
-compile endif
 
 ;; Dosutil.e
    TODAY_IS__MSG =        'Today is'
@@ -178,7 +172,6 @@ compile endif
    FILL__MSG =            'Fill'  -- Title
    NO_CHAR_SUPPORT__MSG = 'Support for character marks was omitted.'
 
-compile if EVERSION >= 4
 ;; Exit.e
    ABOUT_TO_EXIT__MSG =   'About to exit from E. '
 
@@ -191,7 +184,6 @@ compile if EVERSION >= 4
    LINKED_AS__MSG =       'is linked as module #' -- sayerror module' is linked as module # 'result'.'
    UNABLE_TO_LINK__MSG =  'Unable to link:'
    UNABLE_TO_EXECUTE__MSG='Unable to execute command:'
-compile endif
 
 ;; Math.e
    NO_NUMBER__MSG =       "Can't find a number (from cursor position to end of file)"
@@ -219,7 +211,6 @@ compile endif
    CMD_STACK_CLEAR__MSG= 'Command stack cleared.'
    CMD_STACK_EMPTY__MSG= 'Command stack is empty.'
 
-compile if EVERSION >= 5
 ;; Help.e
    HELP_BROWSER__MSG =   'Help Browser'  -- Message box title
    HELP_STATUS__MSG =    ' Valid Keys -> Page Up,Page Down       F3,ESC=Close Help Window'
@@ -229,13 +220,11 @@ compile if EVERSION >= 5
              -- 'Error' err_no 'allocating memory segment; command halted.'
    ALLOC_HALTED__MSG =   'allocating memory segment; command halted.'
    QUICK_REF__MSG =      'Quick Reference'  -- Window title
-compile endif
 
 ;; All.e
    NO_ALL_FILE__MSG =    '.ALL file not in ring.'
    BAD_ALL_LINE__MSG =   'Missing or invalid line number in .ALL file.'
 
-compile if EVERSION >= 4
 ;; Eos2lex.e
    EOS2LEX_PROMPT1__MSG = 'Space=Display the list     Esc=Go on     F3 or F10=Stop'
    SPELLED_OK__MSG =      'word is spelled correctly'
@@ -251,9 +240,7 @@ compile if EVERSION >= 4
    INIT_ERROR__MSG =      'Initialization error.'
                      -- 'Error loading addenda' addenda_filename
    BAD_ADDENDA__MSG =     'Error loading addenda'
-compile endif
 
-compile if EVERSION >= 5
 ;; Shell.e           -- 'Error' rc 'creating shell object.'
    SHELL_ERROR1__MSG =    'creating shell object.'
    SHELL_ERROR2__MSG =    'creating edit file for shell.'
@@ -264,7 +251,6 @@ compile if EVERSION >= 5
                      -- 'shell object' number 'is willing to accept more data...'
    SHELL_OBJECT__MSG =    'shell object'
    SHELL_READY__MSG =     'is willing to accept more data...'
-compile endif
 
 ;; Stdprocs.e
    ARE_YOU_SURE_YN__MSG = '  Are you sure (Y/N)? '  -- Keep spaces
@@ -284,7 +270,6 @@ compile endif
                -- Error <nn> editing temp file:  <error_message>
    BAD_TMP_FILE__MSG =    'editing temp file:'
 
-compile if EVERSION > 5
 ;; Stdctrl.e
    BUTTON_ERROR__MSG =    'button error'
                     -- Button names.  ~ precedes accelerator char; Cancel doesn't get one.
@@ -312,18 +297,14 @@ compile if EVERSION > 5
 
 ; Before 5.21, we didn't have accelerator keys, so we didn't want the Tilde to
 ; appear on the action bar.
-compile if EVERSION < '5.21'
-   TILDE_CHAR = ''
-compile else
    TILDE_CHAR = '~'
-compile endif
 
 ; Lots of fun here.  This is the editor's action bar.  xxx_BAR__MSG means xxx is on the
 ; action bar.  yyy_MENU__MSG means that yyy is on a pull-down or pull-right.  The tildes
 ; precede the accelerator letter; those letters must be unique in each group (pulldown
 ; or pullright).  Followed by a 'P' means it's the dynamic help prompt for that BAR or
 ; MENU item.  Note that each prompt must start with \1.
-   FILE_BAR__MSG =        TILDE_CHAR'File '
+   FILE_BAR__MSG =        '~File '
      NEW_MENU__MSG =        '~New'
      OPEN_MENU__MSG =       '~Open...'
      OPEN_NEW_MENU__MSG =   'Open .~Untitled'
@@ -367,7 +348,7 @@ compile else
      PRT_FILE_MENUP__MSG =   ''
 compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   EDIT_BAR__MSG =        TILDE_CHAR'Edit '
+   EDIT_BAR__MSG =        '~Edit '
      UNDO_MENU__MSG =       'Undo ~line'
      UNDO_REDO_MENU__MSG =  '~Undo...'
      STYLE_MENU__MSG =      'Styl~e...'
@@ -385,9 +366,9 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
      PUSH_MARK_MENU__MSG =  'Save mark'
      POP_MARK_MENU__MSG =   'Restore mark'
      SWAP_MARK_MENU__MSG =  'Swap mark'
-     PUSH_MRK_MENU__MSG =  'Save'
-     POP_MRK_MENU__MSG =   'Restore'
-     SWAP_MRK_MENU__MSG =  'Swap'
+     PUSH_MRK_MENU__MSG =   'Save'
+     POP_MRK_MENU__MSG =    'Restore'
+     SWAP_MRK_MENU__MSG =   'Swap'
      PUSH_CURSOR_MENU__MSG ='Save cursor'
      POP_CURSOR_MENU__MSG = 'Restore cursor'
      SWAP_CURSOR_MENU__MSG= 'Swap cursor'
@@ -451,7 +432,7 @@ compile else
      RECOVER_MARK_MENUP__MSG=''
 compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   SEARCH_BAR__MSG =      TILDE_CHAR'Search '
+   SEARCH_BAR__MSG =      '~Search '
      SEARCH_MENU__MSG =     '~Search...'
      FIND_NEXT_MENU__MSG =  '~Find next'
      CHANGE_NEXT_MENU__MSG= '~Change next'
@@ -520,7 +501,7 @@ compile else
  compile endif -- WANT_TAGS
 compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   OPTIONS_BAR__MSG         = TILDE_CHAR'Options '
+   OPTIONS_BAR__MSG         = '~Options '
      LIST_FILES_MENU__MSG     = '~List ring...'
      FILE_LIST_MENU__MSG      = '~File list...'
      PROOF_MENU__MSG          = '~Proof'
@@ -649,9 +630,9 @@ compile else
      TO_DESKTOP_MENUP__MSG     = ''
 compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   RING_BAR__MSG =        TILDE_CHAR'Ring '
+   RING_BAR__MSG =        '~Ring '
 
-   COMMAND_BAR__MSG =     TILDE_CHAR'Command '
+   COMMAND_BAR__MSG =     '~Command '
      COMMANDLINE_MENU__MSG = '~Command dialog...'
      HALT_COMMAND_MENU__MSG= '~Halt command'
      CREATE_SHELL_MENU__MSG= 'Create command ~shell'
@@ -677,7 +658,7 @@ compile else
      SHELL_BREAK_MENUP__MSG = ''
 compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   HELP_BAR__MSG =        TILDE_CHAR'Help '
+   HELP_BAR__MSG =        '~Help '
      HELP_HELP_MENU__MSG =   '~Using help'  -- was '~Help for help'
      EXT_HELP_MENU__MSG =    '~General help'  -- was '~Extended help...'
      KEYS_HELP_MENU__MSG =   '~Keys help'
@@ -727,7 +708,7 @@ compile else
        VIEW_IN_TECHREF_MENUP__MSG=''
 compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   COMPILER_BAR__MSG =           'Co'TILDE_CHAR'mpiler'
+   COMPILER_BAR__MSG =           'Co~mpiler'
      NEXT_COMPILER_MENU__MSG =     '~Next error'
      PREV_COMPILER_MENU__MSG =     '~Previous error'
      DESCRIBE_COMPILER_MENU__MSG = '~Describe error'
@@ -867,7 +848,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
    DICT_REMAINS__MSG =    'dictionary remains:'
              -- "Nothing found for <bad_word>".  Used in a dialog;
    WORD_NOT_FOUND__MSG =  'Nothing found for'     --  try to keep this short.
-compile endif  -- EVERSION > 5
 
 ;; Stdkeys.e
    MARKED_OTHER__MSG =    "You had a marked area in another file; it has been unmarked."
@@ -900,9 +880,7 @@ compile endif  -- EVERSION > 5
    AUTOSAVE__MSG =        'Autosave'  -- messagebox title
    AUTOSAVE_PROMPT__MSG = 'AUTOSAVE <number>  to set number of changes between saves.  0 = off.'
    BROWSE_IS__MSG =       'Browse mode is' -- on/off
-compile if EVERSION >= '6.03'
    READONLY_IS__MSG =     'Read-only flag is' -- on/off
-compile endif
    NO_REP__MSG =          'No replacement string specified'
    CUR_DIR_IS__MSG =      'Current directory is'
    EX_ALL__MSG =          'Execute all marked lines?'
@@ -942,9 +920,7 @@ compile endif
    IS_SYSTEM__MSG =       'File has "system" attribute set.'
    IS_HIDDEN__MSG =       'File has "hidden" attribute set.'
    MAYBE_LOCKED__MSG =    'File may be locked by another application.'
-compile if EVERSION >= 6
    ONLY_VIEW__MSG =       'This is the only view of the file.'
-compile endif
 
 ;; SLnohost.e
    INVALID_FILENAME__MSG= 'Invalid filename.'
@@ -1032,7 +1008,6 @@ compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
    FILE_TRANSFER_CMD_UNKNOWN='File transfer command unknown:'
 compile endif
 
-compile if EVERSION >=5
 ;; EPM_EA.e
    TYPE_TITLE__MSG =        'Type'  -- Title of a messagebox or listbox for file type
    NO_FILE_TYPE__MSG =      'File has no type.  Would you like to set one?'
@@ -1051,9 +1026,7 @@ compile if EVERSION >=5
 ; Only translate if the .TYPE EA is NLS-specific.  First character is the delimiter between
 ; types; can be any otherwise-unused character.  (It's a '-' here.)
    TYPE_LIST__MSG =         '-Plain Text-OS/2 Command File-DOS Command File-C Code-Pascal Code-BASIC Code-COBOL Code-FORTRAN Code-Assembler Code-'
-compile endif  -- EVERSION >=5
 
-compile if EVERSION >=5
 ;; BOOKMARK.E
    NEED_BM_NAME__MSG =      'Missing bookmark name.'
    NEED_BM_CLASS__MSG =     'Missing bookmark class.'
@@ -1111,7 +1084,6 @@ compile if EVERSION >=5
    ESCAPE_KEY__MSG =    'Esc'
    UP_KEY__MSG =        'Up'
    DOWN_KEY__MSG =      'Down'
-compile endif  -- EVERSION >=5
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;  New stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    MARK_OFF_SCREEN2__MSG =  "You have a marked area off screen."
@@ -1138,7 +1110,6 @@ compile if WANT_TAGS
    BUILDING_LIST__MSG = 'Building list...'  -- Processing message
 compile endif
    LIST__MSG = '~List...'               -- Button
-compile if EVERSION >= '5.60'
    MAKETAGS__MSG = 'Make tags file'
    MAKETAGS_PROMPT__MSG = 'Enter one or more filenames (wildcards OK) or @lists.'
    MAKETAGS_PROCESSING__MSG = 'MAKETAGS in process - parsing source files.'
@@ -1146,7 +1117,6 @@ compile if EVERSION >= '5.60'
    MESSAGELINE_FGCOLOR__MSG = 'Messageline foreground color changed.'
    MESSAGELINE_BGCOLOR__MSG = 'Messageline background color changed.'
    TABGLYPH_IS__MSG = 'TABGLYPH is' -- on/off
-compile endif
 
 compile if WANT_TOOLBAR
 ;  NO_TOOLBARS__MSG =     'No saved toolbars to select from.'

@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmdbcs.e,v 1.2 2002-07-22 19:00:04 cla Exp $
+* $Id: epmdbcs.e,v 1.3 2002-08-09 19:46:42 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -25,7 +25,6 @@ definit
    universal dbcsvec
    universal ondbcs
 
-compile if EPM32
    inp=copies(\0, 8)
    countryinfo=copies(\0, 44)
    ret=\0\0\0\0
@@ -53,28 +52,6 @@ compile if EPM32
                    address(dbcsvec),
                    2)
    ondbcs = leftstr(dbcsvec, 2) <> atoi(0)
-compile else
-   inp=atol(0)
-   countryinfo=copies(\0, 38)
-   ret=\0\0
-   call dynalink('NLS', 'DOSGETCTRYINFO',
-                 atoi(length(countryinfo)) ||
-                 address(inp)      ||
-                 address(countryinfo)      ||
-                 address(ret),
-                 1)
-   country=itoa(substr(countryinfo,1,2),10)
-   codepage=itoa(substr(countryinfo,3,2),10)
-
-   inp=atol(0)
-   dbcsvec=copies(\0, 10)
-   call dynalink('NLS', 'DOSGETDBCSEV',
-                 atoi(length(dbcsvec)) ||
-                 address(inp)          ||
-                 address(dbcsvec),
-                 1)
-   ondbcs = leftstr(dbcsvec, 2) <> atoi(0)
-compile endif  -- EPM32
 
 defproc isdbcs(c)
    universal dbcsvec, ondbcs

@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.2 2002-07-22 18:58:49 cla Exp $
+* $Id: assist.e,v 1.3 2002-08-09 19:45:51 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -80,33 +80,27 @@ const
  compile endif
 include NLS_LANGUAGE'.e'
 
- compile if EVERSION >= 6
    EA_comment 'Linkable bracket-matching routines.'
- compile endif
 compile endif  -- not defined(SMALL)
 
 const GOLD = '(){}[]<>'  -- Parens, braces, brackets & angle brackets.
-compile if EPM & not defined(LOCATE_CIRCLE_STYLE)
+compile if    not defined(LOCATE_CIRCLE_STYLE)
    LOCATE_CIRCLE_STYLE = 1
 compile endif
-compile if EVERSION >= '5.60'
  compile if not defined(LOCATE_CIRCLE_COLOR1)
    LOCATE_CIRCLE_COLOR1 = 16777220
  compile endif
  compile if not defined(LOCATE_CIRCLE_COLOR2)
    LOCATE_CIRCLE_COLOR2 = 16777218
  compile endif
-compile endif
 
 def c_leftbracket, c_rightbracket = call passist()
 
 defproc passist
-compile if EVERSION >= '5.50'
    call psave_pos(savepos)
    case = 'e'
    id = ''
    force_search = 0
-compile endif
    n=1
    c=substr(textline(.line),.col,1)
    if c==' ' & .col > 1 then
@@ -117,11 +111,8 @@ compile endif
    k=pos(c,GOLD)            --  '(){}[]<>'
    if k then
       search = substr(GOLD,(k+1)%2*2-1,2)
-compile if EVERSION >= '5.60'
       incr = 0
-compile endif
    else
-compile if EVERSION >= '5.60'
                      -- Add '.' to default token_separators & remove ':' for GML markup.
       if pos(c, '*/') then
          seps = '/*'
@@ -208,16 +199,12 @@ compile if EVERSION >= '5.60'
          incr = -1             -- offset from match of the char. to compare with 'c' value
          force_search = 0      -- force a search if on an intermediate (like #else).
       else
-compile endif
          sayerror NOT_BALANCEABLE__MSG
          return
-compile if EVERSION >= '5.60'
       endif
-compile endif
    endif
    if k//2 then direction='+F'; else direction='-R'; endif
    if search='[]' then search='\[\]'; endif
-compile if EVERSION >= '5.60'
 ;  if search='()' then search='\(\)'; endif  -- Don't need to escape it if inside brackets...
    if id='' then search='['search']'; endif
    if force_search then
@@ -228,13 +215,9 @@ compile if EVERSION >= '5.60'
    else
       'L '\1 || search\1'x'case||direction
    endif
-compile else
-   'L /['search']/eg'direction
-compile endif
    loop
       repeatfind
       if rc then leave; endif
-compile if EVERSION >= '5.60'
       if id='compile' then
          tab_word
          if lowcase(substr(textline(.line), .col+incr, 1)) = c then n=n+1; else n=n-1; endif
@@ -242,9 +225,6 @@ compile if EVERSION >= '5.60'
       else
          if substr(textline(.line), .col+incr, 1) = c then n=n+1; else n=n-1; endif
       endif
-compile else
-      if substr(textline(.line), .col, 1) = c then n=n+1; else n=n-1; endif
-compile endif
       if n=0 then leave; endif
    endloop
    SETSEARCH search_command -- Restores user's command so Ctrl-F works.
@@ -255,10 +235,8 @@ compile endif
    else
       sayerror 1
    endif
-compile if EVERSION >= '5.50'
    newline = .line; newcol = .col
    call prestore_pos(savepos)
    .col = newcol
    .lineg = newline
    right; left        -- scroll_to_cursor
-compile endif

@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcomp.e,v 1.2 2002-07-22 19:00:01 cla Exp $
+* $Id: epmcomp.e,v 1.3 2002-08-09 19:47:03 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -99,9 +99,6 @@
 
 ; Updated to optionally add Compare and Sync to the action bar, and not use keys.
 
-compile if EVERSION < '6.01a'
-  *** EPMCOMP requires EPM version 6.01a or above.
-compile endif
 
 compile if not defined(EPM)
    include 'stdconst.e'

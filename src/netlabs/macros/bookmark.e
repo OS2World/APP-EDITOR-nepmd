@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: bookmark.e,v 1.2 2002-07-22 18:58:54 cla Exp $
+* $Id: bookmark.e,v 1.3 2002-08-09 19:45:23 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -84,12 +84,10 @@ compile endif
 
 defc bm, setmark
    universal EPM_utility_array_ID
-compile if EVERSION >= '6.03'
    if .readonly then
       sayerror READ_ONLY__MSG
       return
    endif
-compile endif
    if browse() then
       sayerror BROWSE_IS__MSG ON__MSG
       return
@@ -98,15 +96,11 @@ compile endif
    if not line then line=.line; endif
    if not col then col=.col; endif
    if not markname then  -- Following uses a new dialog, so no NLS xlation
-compile if EVERSION >= 5.21
       parse value entrybox(SETMARK__MSG,'/'Set__MSG'/'Setp__MSG'/'Cancel__MSG'/'Help__MSG'/',\0,'',200,
              atoi(1) || atoi(6020) || gethwndc(APP_HANDLE) ||
              SETMARK_PROMPT__MSG) with button 2 markname \0
       if button=\0 | button=\3 then return; endif  -- Esc or Cancel
       perm = asc(button)+2  --> temp is 3; perm is 4
-compile else
-      markname = entrybox(SETMARK_PROMPT__MSG, '/'Set__MSG'/'Cancel__MSG,\0,'',200)
-compile endif
       if not markname then
          sayerror NOTHING_ENTERED__MSG
          return
@@ -158,7 +152,7 @@ compile endif -- NO_DUPLICATE_BOOKMARKS
    bmcount = bmcount fid perm
    do_array 2, EPM_utility_array_ID, 'bmn.'markname, bmcount -- Store the index & fileid under this name
 
-compile if EVERSION >= '5.50' & INCLUDE_WORKFRAME_SUPPORT
+compile if    INCLUDE_WORKFRAME_SUPPORT
 defc compiler_error
    universal EPM_utility_array_ID
    universal defaultmenu, activemenu
@@ -173,7 +167,7 @@ defc compiler_error
    call attribute_on(1)  -- Colors flag
    if perm=16 then
       if not attribute_on(16) then  -- Was attribute 16 off?
- compile if defined(C_KEYWORD_HIGHLIGHTING) and EPM32
+ compile if    defined(C_KEYWORD_HIGHLIGHTING)
   compile if C_KEYWORD_HIGHLIGHTING
          'toggle_parse 0'
   compile endif
@@ -188,9 +182,7 @@ defc compiler_error
              buildmenuitem defaultmenu, 16, 1604, DESCRIBE_COMPILER_MENU__MSG, 'compiler_help'DESCRIBE_COMPILER_MENUP__MSG,     1, 0
              buildmenuitem defaultmenu, 16, 1605, \0,                '',                  4, 0
              buildmenuitem defaultmenu, 16, 1606, CLEAR_ERRORS_MENU__MSG, 'compiler_clear'CLEAR_ERRORS_MENUP__MSG,     1, 0
- compile if EVERSION >= 5.60
              buildmenuitem defaultmenu, 16, 1607, END_DDE_SESSION_MENU__MSG, 'end_dde'END_DDE_SESSION_MENUP__MSG,     1, 0
- compile endif
              buildmenuitem defaultmenu, 16, 1608, REMOVE_COMPILER_MENU__MSG, 'compiler_dropmenu'REMOVE_COMPILER_MENUP__MSG,     1, 0
  compile if INCLUDE_STD_MENUS
          call add_help_menu(defaultmenu, 1)
@@ -221,28 +213,16 @@ defc compiler_help
    call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),   -- Post message to edit client
                       5444,               -- get compiler error messages for this line
                       linenum,
-;compile if POWERPC
-;                     bufhndl )
-;compile else
                       mpfrom2short(bufhndl,0) )
-;compile endif
 
 defc compiler_message
    parse arg numlines bufsize emsgbuffer .
    emsgbufptr = atol(emsgbuffer)
    emsgbufseg = itoa(substr(emsgbufptr,3),10)
    call listbox(DESCRIBE_ERROR__MSG,
-compile if EPM32
                 \0 || atol(bufsize) || emsgbufptr || 7,
-compile else
-                \0 || atoi(bufsize) || substr(emsgbufptr,3,2)  || leftstr(emsgbufptr,2) || 7,
-compile endif -- EPM32
                 '/'DETAILS__MSG'/'Cancel__MSG'/'Help__MSG,0,1,min(numlines,12),0,
-compile if EVERSION >= 5.60
                 gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6090) ||
-compile else
-                atoi(1) || atoi(1) || atoi(6090) || gethwndc(APP_HANDLE) ||
-compile endif
                 SELECT_ERROR__MSG)
    call buffer(FREEBUF, emsgbufseg)
 
@@ -251,11 +231,7 @@ defc compiler_help_add
    hlpfile = upcase(word(arg(1),1))
    if not wordpos(hlpfile, upcase(CurrentHLPFiles)) then
       hwndHelpInst = windowmessage(1,  getpminfo(APP_HANDLE),
-compile if EVERSION >= 5.51  -- was: 5.60
                          5429,      -- EPM_Edit_Query_Help_Instance
-compile else
-                         5139,      -- EPM_QueryHelpInstance
-compile endif
                          0,
                          0)
       if hwndHelpInst==0 then
@@ -327,13 +303,11 @@ defc compiler_dropmenu
    deletemenu defaultmenu, 16, 0, 0
    call maybe_show_menu()
 
- compile if EVERSION >= 5.60
 defc end_dde =
    call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),   -- Post message to edit client
                       5501,                                -- EPM_EDIT_ENDWFDDE
                       0,
                       0)
- compile endif
 compile endif  -- EVERSION >= '5.50' & INCLUDE_WORKFRAME_SUPPORT
 
 defc setmarkp  -- Following uses a new dialog, so no NLS xlation
@@ -383,16 +357,6 @@ defc go, gomark
    sayerror BM_NOT_FOUND__MSG ITS_DELETED__MSG
 
 defc listmark
-compile if EVERSION < 5.21
-   markname = listmark(GOMARK__MSG)
-   if markname<>'' then 'gomark' markname; endif
-
-defc listdeletebm
-   markname = listmark(DELETEMARK__MSG)
-   if markname<>'' then 'deletebm' markname; endif
-
-defproc listmark(button_text)
-compile endif  -- EVERSION < 5.21
    universal EPM_utility_array_ID
    do_array 3, EPM_utility_array_ID, 'bmi.0', bmcount          -- Index says how many bookmarks there are
    if bmcount = 0 then sayerror NO_BOOKMARKS__MSG; return; endif
@@ -439,34 +403,16 @@ compile endif -- SORT_BOOKMARKS
       return
    endif
    if listbox_buffer_from_file(startfid, bufhndl, noflines, usedsize) then return; endif
-compile if EVERSION < 5.21  -- The old way
-   ret = listbox(LIST_BOOKMARKS__MSG,
-                 \0 || atoi(usedsize) || atoi(bufhndl)  || atoi(32),
-                 '/'button_text'/Cancel',1,5,min(noflines,12))
-   call buffer(FREEBUF, bufhndl)
-   return ret
-compile else
    parse value listbox(LIST_BOOKMARKS__MSG,
- compile if 0 -- POWERPC
-                       \0 || atol(usedsize) || atol(bufhndl+32),
- compile elseif EPM32
                        \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
- compile else
-                       \0 || atoi(usedsize) || atoi(bufhndl) || atoi(32),
- compile endif -- EPM32
                        '/'GOMARK__MSG'/'DELETEMARK__MSG'/'Cancel__MSG'/'Help__MSG,1,5,min(noflines,12),0,
- compile if EVERSION >= 5.60
                        gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6030)) with button 2 markname \0
- compile else
-                       atoi(1) || atoi(1) || atoi(6030) || gethwndc(APP_HANDLE)) with button 2 markname \0
- compile endif
    call buffer(FREEBUF, bufhndl)
    if button=\1 then  -- Go to
       'gomark' markname
    elseif button=\2 then
       'deletebm' markname
    endif
-compile endif -- EVERSION < 5.21
 
 defc deletebm
    universal EPM_utility_array_ID
@@ -541,11 +487,7 @@ defc saveattributes
    universal default_font
 
    getfileid start_fid
-compile if EVERSION >= '6.01b'
    compiler_errors_on = (.levelofattributesupport bitand 16) <> 0
-compile else
-   compiler_errors_on = .levelofattributesupport%16 - 2*(.levelofattributesupport%32)
-compile endif
 ;; call psave_pos(savepos)
    'xcom e /c attrib'
    if rc<>-282 then  -- -282 = sayerror("New file")
@@ -574,12 +516,11 @@ compile endif
 ;;       if val>255 then iterate; endif
 compile if not defined(COMPILING_FOR_ULTIMAIL)
          if line=style_line & col=style_col & (offst=style_offst+1 | offst=style_offst+2) then iterate; endif
- compile if EVERSION >= '5.50' & INCLUDE_WORKFRAME_SUPPORT
+ compile if    INCLUDE_WORKFRAME_SUPPORT
          if compiler_errors_on & val=COMPILER_ERROR_COLOR then iterate; endif
  compile endif
 compile endif -- not defined(COMPILING_FOR_ULTIMAIL)
 ;;       if line=style_line & col=style_col & offst=style_offst+2 then iterate; endif
-compile if EVERSION >= 5.50
       elseif class=FONT_CLASS then  -- get font info
 ;;       if val>255 then iterate; endif
 compile if not defined(COMPILING_FOR_ULTIMAIL)
@@ -587,7 +528,6 @@ compile if not defined(COMPILING_FOR_ULTIMAIL)
 compile endif -- not defined(COMPILING_FOR_ULTIMAIL)
          l = l queryfont(val)
          found_font = 1
-compile endif
       elseif class=STYLE_CLASS then  -- get style info
          do_array 3, EPM_utility_array_ID, 'si.'val, stylename -- Get the style name
          style_line=line; style_col=col; style_offst=offst
@@ -614,11 +554,9 @@ compile endif
       endif  -- class=STYLE_CLASS
       insertline class val ispush offst col l, attrib_fid.last+1, attrib_fid
    enddo
-compile if EVERSION >= 5.50
    if found_font & .font <> default_font then
       insertline FONT_CLASS .font 0 0 0 (-1) queryfont(start_fid.font), 1, attrib_fid  -- Insert at beginning.
    endif
-compile endif
    put_result = put_file_as_MVST(attrib_fid, start_fid, 'EPM.ATTRIBUTES')
    if style_list <> '' then
       if not put_result then
@@ -698,7 +636,6 @@ compile endif
                val = bmcount  -- Don't care what the old index was.
             elseif class=COLOR_CLASS then
                need_colors = 1
-compile if EVERSION >= 5.50  -- GPI has font support
             elseif class=FONT_CLASS then
                parse value rest with fontname '.' fontsize '.' fontsel
                if fontsel='' then iterate; endif  -- Bad value; discard it
@@ -708,7 +645,6 @@ compile if EVERSION >= 5.50  -- GPI has font support
                   iterate
                endif
                need_fonts = 1
-compile endif
             elseif class=STYLE_CLASS then  -- Set style info
 compile if WANT_APPLICATION_INI_FILE
                parse value rest with stylename .
@@ -730,7 +666,6 @@ compile endif
             insert_attribute class, val, ispush, 0, col, line
 compile if WANT_APPLICATION_INI_FILE
             if class=STYLE_CLASS then  -- Set style info
- compile if EVERSION >= 5.50  -- GPI has font support
                if fontsel<>'' then
                   fontid=registerfont(fontname, fontsize, fontsel)
                   if fontid<>.font then  -- Only insert font change for style if different from base font.
@@ -738,7 +673,6 @@ compile if WANT_APPLICATION_INI_FILE
                      need_fonts = 1
                   endif
                endif
- compile endif
                if bg<>'' then
                   insert_attribute COLOR_CLASS, bg*16 + fg, ispush, 0, col, line
                   need_colors = 1
@@ -751,11 +685,9 @@ compile endif  -- WANT_APPLICATION_INI_FILE
          if need_colors then
             call attribute_on(1)  -- Colors flag
          endif
-compile if EVERSION >= 5.50  -- GPI has font support
          if need_fonts then
             call attribute_on(4)  -- Mixed fonts flag
          endif
-compile endif
          call attribute_on(8)  -- "Save attributes" flag
       else
          sayerror UNEXPECTED_ATTRIB__MSG
@@ -800,11 +732,9 @@ defproc put_file_as_MVST(source_fid, target_fid, ea_name)
    name_len = length(ea_name)
    value_len = filesize() + 2 * .last + 8  -- Overhead: 2 bytes/rec length, + 2 bytes each EAT_MVST, codepage, numentries, EAT_ASCII
    ea_len_incr = 5 + name_len + value_len  -- Overhead: 1 flags, 1 len(name), 2 len(value), 1 null ASCIIZ terminator
-compile if EPM32
    -- +7 rather than +3 because previous calc didn't consider the length
    --    of the length field.
    ea_len_incr = ((ea_len_incr + 7)%4)*4;  -- round up for long word multiples
-compile endif
    if ea_len_incr>65535 then
       call winmessagebox(LONG_EA_TITLE__MSG, LONG_EA__MSG, 16454) -- MB_CANCEL + MB_MOVEABLE + MB_CUACRITICAL
       return 1
@@ -818,7 +748,6 @@ compile endif
          call winmessagebox(LONG_EA_TITLE__MSG, LONG_EA__MSG, 16454) -- MB_CANCEL + MB_MOVEABLE + MB_CUACRITICAL
          return 1
       endif
-compile if EPM32
       call dynalink32(E_DLL,
                       'myrealloc',
                       ea_long ||
@@ -828,33 +757,20 @@ compile if EPM32
 
       r = 0
 
-compile else
-      r =  dynalink('DOSCALLS',           -- Dynamic link library name
-               '#38',                     -- DosReAllocSeg
-               atoi(ea_old_len+ea_len_incr) ||  -- Number of bytes requested
-               rightstr(ea_long,2) )
-compile endif
       ea_ptr = ea_seg
    else
-compile if EPM32
+/*
+      -- compile if EPM32
       ea_ptr = atol(dynalink32(E_DLL,
                                'mymalloc',
                                atol(ea_len_incr+4), 2))
-
-;compile if not POWERPC
+*/
+      --  compile if not POWERPC
       ea_ptr = ltoa(substr(ea_ptr,3,2)\0\0,10)
-;compile endif
+      --  compile endif
       r = -270 * (ea_ptr = 0)
 
-compile else
-      ea_buffer = "00"                    -- Initialize string pointer.
-      r =  dynalink('DOSCALLS',           -- Dynamic link library name
-               '#34',                     -- DosAllocSeg
-               atoi(ea_len_incr+4)    ||  -- Number of bytes requested
-               address(ea_buffer)     ||
-               atoi(0) )                  -- Share information
-      ea_ptr = itoa(ea_buffer,10)
-compile endif
+      -- compile endif
       ea_ofs = 0
       ea_old_len  = 4           -- Point past length field
    endif
@@ -863,10 +779,8 @@ compile endif
    activatefile target_fid
    poke ea_ptr, ea_ofs, atol(ea_old_len+ea_len_incr)
    ea_ofs = ea_ofs + ea_old_len
-compile if EPM32
    poke ea_ptr, ea_ofs  , atol(ea_len_incr) -- Start of EA:  flag byte
    ea_ofs = ea_ofs + 4;
-compile endif
    poke ea_ptr, ea_ofs  , \0              -- Start of EA:  flag byte
    poke ea_ptr, ea_ofs+1, chr(name_len)
    poke ea_ptr, ea_ofs+2, atoi(value_len)
