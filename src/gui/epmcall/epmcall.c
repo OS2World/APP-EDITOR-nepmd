@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.10 2002-08-13 21:09:27 cla Exp $
+* $Id: epmcall.c,v 1.11 2002-08-15 14:59:58 cla Exp $
 *
 * ===========================================================================
 *
@@ -202,9 +202,7 @@ do
       break;
 
    // get extended environment
-   rc = GetExtendedEPMEnvironment( envv, &pszEnv);
-   if (rc != NO_ERROR)
-      break;
+   GetExtendedEPMEnvironment( envv, &pszEnv);
 
    // concatenate parms
    szProgramArgs[ 0] = 0;
