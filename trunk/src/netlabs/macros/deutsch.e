@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deutsch.e,v 1.3 2002-08-10 14:01:56 aschn Exp $
+* $Id: deutsch.e,v 1.4 2002-08-10 14:49:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -779,13 +779,12 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
      OPENNOAS_MENU__MSG  =  '~ôffnen'
      NEWWIN_MENU__MSG =     '~Neues Fenster...'
      SAMEWIN_MENU__MSG =    'Dieses ~Fenster...'
-     COMMAND_SHELL_MENU__MSG='~Command shell'
+     COMMAND_SHELL_MENU__MSG='~Befehlsshell'
      PRINT_MENU__MSG =      '~Drucken...'
      UNDO__MENU__MSG =      '~énderungen widerrufen'
      SELECT_ALL_MENU__MSG = '~Alles auswÑhlen'
      DESELECT_ALL_MENU__MSG = 'N~ichts auswÑhlen'
 
--- #################################################################################### ab hier: Åbersetzen
 compile if WANT_DYNAMIC_PROMPTS
      OPENAS_MENUP__MSG  =       \1'ôffnen einer Datei oder éndern von Objekteinstellungen'
      NEWWIN_MENUP__MSG =        \1'Ersetzen der aktuelle Datei durch eine leere Datei "'UNNAMED_FILE_NAME'"'
@@ -807,8 +806,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
 ; End of additions for OVSH menus.
 
    NO_PRINTERS__MSG =     '(Keine Drucker)'
-               -- Error <nn> editing temp file:  <error_message>
-   BAD_TMP_FILE__MSG =    'beim Laden der temp. Datei:'
    PRINT__MSG =           'Drucken'  -- Dialog box title
    DRAFT__MSG =           '~Entwurf'  -- Button
    WYSIWYG__MSG =         '~WYSIWYG'  -- Button  (What You See Is What You Get)
@@ -821,7 +818,7 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
    EDITOR_VER__MSG =      "Editorversion" -- nnn
    LAMAIL_VER__MSG =      "LaMailversion" -- nnn
    MACROS_VER__MSG =      "Makroversion" -- nnn
-   COPYRIGHT__MSG =       "(C) Copyright IBM Corporation 1989, 1992"
+   COPYRIGHT__MSG =       "(C) Copyright IBM Corporation 1989, 1993, 1994, 1995, 1996"
    OVERLAPPING_ATTRIBS__MSG = 'öberlagerte Attribute; nichts geÑndert.' /*NLS*/
                             -- Following is followed by pres. parm. name
    UNKNOWN_PRESPARAM__MSG = "Unbekannter Parameter:"     /*NLS*/
@@ -845,6 +842,7 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
    REPLACEMENT__MSG =     'Geben Sie einen Ersatzbegriff ein fÅr'  -- <word>
    PROOF_WORD__MSG =      'Wort prÅfen'  -- Listbox title
    NO_DICT__MSG =         'Wîrterverzeichnis existiert nicht:'  -- dict_filename
+   DICT_PTR__MSG =        'Wechseln der Wîrterverzeichnisse mit der Seite "Pfade" des Einstellung-Notizbuchs.'
    DICTLIST_IS__MSG =     'Wîrterverzeichnisliste ist:'  -- list of file names
              -- 'File not found "'new_name'"; dictionary remains:' old_name
    DICT_REMAINS__MSG =    'Wîrterverzeichnis bleibt:'
@@ -1071,6 +1069,7 @@ compile endif
    MODIFIED_PROMPT__MSG =   'Aktuelle Datei wurde geÑndert.  Sichern?'
    NOT_ON_DISK__MSG =       'existiert nicht auf dem DatentrÑger - Vorgang beendet.'   -- Preceded by:  '"'filename'"'
 
+
 ; The following are used in key names, like 'Ctrl+O', 'Alt+Bkspc', etc.
 ; Note that some are abbreviated to take up less room on the menus.
 
@@ -1085,23 +1084,6 @@ compile endif
    ESCAPE_KEY__MSG =    'Esc'
    UP_KEY__MSG =        'Auf'
    DOWN_KEY__MSG =      'Ab'
-
-compile if WANT_STACK_CMDS
-   STACK_FULL__MSG =        'Stapelspeicher voll.'
-compile endif
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;  New stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;JD added 28.12.92
-;JD MARK_OFF_SCREEN2__MSG =  "You have a marked area off screen."
-   MARK_OFF_SCREEN2__MSG =  "Markierter Bereich liegt au·erhalb des Bildschirms."
-
-compile if EVERSION >= 6
-   ONLY_VIEW__MSG =       'This is the only view of the file.'
-compile endif
-
-compile if EVERSION >= '6.03'
-   READONLY_IS__MSG =     'Read-only flag is' -- on/off
-compile endif
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;  New stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    MARK_OFF_SCREEN2__MSG =  "Markierter Bereich liegt au·erhalb des Bildschirms."
