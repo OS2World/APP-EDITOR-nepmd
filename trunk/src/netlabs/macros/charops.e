@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: charops.e,v 1.3 2002-08-09 19:44:05 aschn Exp $
+* $Id: charops.e,v 1.4 2003-08-31 19:03:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -63,7 +63,51 @@ defproc pcopy_mark
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defproc pdelete_mark
+   if cursor_in_mark() then
+      getmark first_line, last_line, first_col, last_col, mark_fid
+      mark_type = marktype()
+      if mark_type = 'LINE' then
+         --.line = first_line  -- go to begin of mark and keep .col (done automatically)
+      elseif mark_type = 'CHAR' then
+         .line = first_line    -- go to begin of mark
+         .col  = first_col
+      elseif mark_type = 'BLOCK' then
+         .col = first_col      -- go to begin of mark and keep .line
+      endif
+   endif
    delete_mark
+   return
+
+defproc cursor_in_mark
+   rc = 0
+   getmark first_line, last_line, first_col, last_col, mark_fid
+   getfileid cur_fid
+   mark_type = marktype()
+   cur_line = .line
+   cur_col  = .col
+   if mark_fid = cur_fid then
+      if mark_type = 'LINE' then
+         if cur_line >= first_line and cur_line <= last_line then
+            rc = 1
+         endif
+      elseif mark_type = 'CHAR' then
+         if cur_line > first_line and cur_line < last_line then
+            rc = 1
+         elseif cur_line = first_line and cur_col >= first_col then
+            rc = 1
+         elseif cur_line = last_line and cur_col <= first_col then
+            rc = 1
+         endif
+      elseif mark_type = 'BLOCK' then
+         if cur_line >= first_line and cur_line <= last_line then
+            if cur_col >= first_col and cur_col <= last_col then
+               rc = 1
+            endif
+         endif
+      endif
+   endif
+   --sayerror 'Cursor in mark: 'rc
+   return rc
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
