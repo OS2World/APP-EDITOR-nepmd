@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.21 2002-10-18 19:06:56 cla Exp $
+* $Id: hilite.c,v 1.22 2002-10-20 12:13:03 cla Exp $
 *
 * ===========================================================================
 *
@@ -1378,7 +1378,7 @@ return rc;
 
 // #############################################################################
 
-APIRET QueryHilightFile( PSZ pszEpmMode, PBOOL pfReload, PSZ pszBuffer, ULONG ulBuflen)
+APIRET QueryHilightFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfReload, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
          CHAR           szValue[ _MAX_PATH];
@@ -1400,6 +1400,8 @@ do
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
+
+printf ("### HILITE: %s: options: %08x\n", pszEpmMode, ulOptions);
 
    // search mode files
    rc = _assembleKeywordFile( pszEpmMode, pfReload, szValue, sizeof( szValue));
