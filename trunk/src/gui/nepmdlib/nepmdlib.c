@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.17 2002-08-28 13:07:15 cla Exp $
+* $Id: nepmdlib.c,v 1.18 2002-08-28 21:17:32 cla Exp $
 *
 * ===========================================================================
 *
@@ -242,12 +242,13 @@ do
       break;
       }
 
-   rc = WinMessageBox( HWND_DESKTOP,
+   if (WinMessageBox( HWND_DESKTOP,
                        hwndClient,
                        pszMessage,
                        pszTitle,
                        0L,
-                       MB_CANCEL | MB_MOVEABLE | MB_ERROR);
+                       MB_CANCEL | MB_MOVEABLE | MB_ERROR) == MBID_ERROR)
+      rc = LASTERROR;
 
    } while (FALSE);
 
