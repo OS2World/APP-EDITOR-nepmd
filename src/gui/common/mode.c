@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.c,v 1.2 2002-10-07 20:55:43 cla Exp $
+* $Id: mode.c,v 1.3 2002-10-11 15:58:06 cla Exp $
 *
 * ===========================================================================
 *
@@ -48,6 +48,7 @@ static   PSZ            pszGlobalSection  = "GLOBAL";
 // defines for strings used only once
 #define SEARCHMASK_MODEDIR     "%s\\*"
 #define SEARCHMASK_DEFAULTINI  "%s\\default.ini"
+#define SEARCHMASK_CUSTOMINI   "%s\\custom.ini"
 
 // some useful macros
 #define QUERYOPTINITVALUE(h,s,k,t,d) \
@@ -267,6 +268,7 @@ static APIRET _scanModes( PSZ pszFilename, PSZ pszBasename, PSZ pszExtension,
          PSZ            pszExtMode = NULL;
          CHAR           szNameModeFile[ _MAX_PATH];
          CHAR           szExtModeFile[ _MAX_PATH];
+         CHAR           szCustomFile[ _MAX_PATH];
 
          PSZ            pszKeywordPath = NULL;
          PSZ            pszKeywordDir;
@@ -283,6 +285,10 @@ static APIRET _scanModes( PSZ pszFilename, PSZ pszBasename, PSZ pszExtension,
 
          CHAR           szDefExtensions[ _MAX_PATH];
          CHAR           szDefNames[ _MAX_PATH];
+
+         CHAR           szCustomDefExtensions[ _MAX_PATH];
+         CHAR           szCustomDefNames[ _MAX_PATH];
+
          CHAR           szCaseSensitive[ 5];
          ULONG          ulCaseSensitive;
          ULONG          ulInfoSize;
@@ -479,6 +485,39 @@ do
    QUERYOPTINITVALUE( hinit, pszGlobalSection, "DEFNAMES",       szDefNames, "");
    QUERYOPTINITVALUE( hinit, pszGlobalSection, "CASESENSITIVE",  szCaseSensitive, "");
    InitCloseProfile( hinit, FALSE);
+
+#ifdef APPEND_CUSTOM_DETAILS
+   // now read custom details
+   sprintf( szSearchMask, SEARCHMASK_CUSTOMINI, pszExtMode);
+   rc = DosSearchPath( SEARCH_IGNORENETERRS  |
+                          SEARCH_ENVIRONMENT |
+                          SEARCH_CUR_DIRECTORY,
+                      pszEnvnameEpmKeywordpath,
+                      szSearchMask,
+                      szCustomFile,
+                      sizeof( szCustomFile));
+   if (rc != NO_ERROR)
+      {
+      InitOpenProfile( szCustomFile, &hinit, INIT_OPEN_READONLY, 0, NULL);
+      QUERYOPTINITVALUE( hinit, pszGlobalSection, "ADD_DEFEXTENSIONS", szCustomDefExtensions, "");
+      QUERYOPTINITVALUE( hinit, pszGlobalSection, "ADD_DEFNAMES",      szCustomDefNames, "");
+      InitCloseProfile( hinit, FALSE);
+      if (strlen( szCustomDefExtensions))
+         {
+         strcat( szDefExtensions, " ");
+         strcat( szDefExtensions, szCustomDefExtensions);
+         }
+
+      if (strlen( szCustomDefNames))
+         {
+         strcat( szDefNames, " ");
+         strcat( szDefNames, szCustomDefNames);
+         }
+      }
+
+#endif
+
+   // make all names uppercase
    strupr( szDefExtensions);
    strupr( szDefNames);
 
