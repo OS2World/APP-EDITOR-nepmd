@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.14 2002-09-23 20:36:37 cla Exp $
+* $Id: libreg.c,v 1.15 2002-09-24 09:00:20 cla Exp $
 *
 * ===========================================================================
 *
@@ -66,7 +66,7 @@ static   PSZ            pszAppRegContainer = "RegContainer";
 // global variables and macros for ensuring exclusive access across
 // thread and process boundaries
 static   PSZ              pszMutexSemName = "\\SEM32\\NEPMD\\CONFIGURATION\\ACCESS";
-
+#define SEM_ACCESS_TIMEOUT_SLICE  30000
 #define REQUESTACCESS(ph) _getExclusiveAccess( ph)
 #define RELEASEACCESS(h)  _releaseExclusiveAccess( h)
 
@@ -132,7 +132,7 @@ do
       }
 
    // get exclusive access to action profile list
-   rc = DosRequestMutexSem( *phmtxAccess, 1000);
+   rc = DosRequestMutexSem( *phmtxAccess, SEM_ACCESS_TIMEOUT_SLICE);
    if (rc != NO_ERROR)
       break;
 
