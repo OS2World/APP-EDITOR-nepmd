@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.15 2002-06-03 18:12:04 cla Exp $
+# $Id: makefile,v 1.16 2002-06-03 18:19:13 cla Exp $
 #
 # ===========================================================================
 #
@@ -70,7 +70,7 @@ HELP:
   @$(MAKE) $(ARG) HELP MODULE=ipf
   @cd $(MAKEDIR)
 
-SHOW: INF
+SHOW:
   @cd src\ipf
   @$(MAKE) $(ARG) NEPMDINF MODULE=ipf
   @cd $(MAKEDIR)
