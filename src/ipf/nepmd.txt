@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.28 2002-09-04 22:38:15 cla Exp $
+.. $Id: nepmd.txt,v 1.29 2002-09-05 16:08:17 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -29,10 +29,11 @@
 .SET CATEGORY_CONFIG=Configuration related functions
 .SET CATEGORY_EAS=Extended Attribute functions
 .SET CATEGORY_FILE= File related functions
-.SET CATEGORY_INTERACT=User Interaction functions
-.SET CATEGORY_NLS=National Language Support functions
+.SET CATEGORY_INTERACT=User Interaction related functions
+.SET CATEGORY_NLS=National Language Support related functions
 .SET CATEGORY_PROCESS=Process related functions
 .SET CATEGORY_SYSTEM=System related functions
+.SET CATEGORY_EPMWINDOW=EPM Window related functions
 .SET CATEGORY_DIVERSE=Diverse
 
 .. #############################################################################
