@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.17 2002-06-12 09:14:12 cla Exp $
+.. $Id: makefile.txt,v 1.18 2002-06-12 09:19:42 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -63,8 +63,8 @@
 .. .............................................................................
 .an IDPNL_TARGETS_MAIN
 .
-This section describes the makefile pseudotargets are available for the main makefile within 
-the project working directory (root of the development tree).
+This section describes the makefile pseudotargets that are available for the main makefile
+within the project working directory (root of the development tree).
 
 [=NOTE]
 .ul compact
@@ -560,7 +560,7 @@ _*values to be configured by release maintainer only*_
 = specifies the current version and revision as to be used within the *WarpIn* script.
 .
   [=NOTE]
-.ul compact.
+.ul compact
   - Keep in sync with the major and minor version used in *VERSION* !!!
   - This value has to be specified in the *WapIn* package ID style: <major>\<minor>\<revision>
 .el
@@ -569,7 +569,7 @@ _*values to be configured by release maintainer only*_
   be restricted to as a minimum for installation.
 .
   [=NOTE]
-.ul compact.
+.ul compact
   - This value has to be specified in the *WapIn* package ID style: <major>\<minor>\<revision>
 .el
 .
