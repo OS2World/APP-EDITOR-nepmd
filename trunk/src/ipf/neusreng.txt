@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.8 2002-11-03 19:28:34 cla Exp $
+.. $Id: neusreng.txt,v 1.9 2002-11-03 23:14:55 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -247,9 +247,497 @@ and bases on the *EPM* developed by the IBM T. J. Watson Research Center.
 See the [.IDPNL_CREDITS credits section] for more contributors to *EPM* and the
 [=TITLE].
 
+.. =============================================================================
+.2 Using the [=DOCTITLE]
+.. =============================================================================
+.an IDPNL_USAGE
+.
+[=TOPICS]
+.su V30 1
+
+.. -----------------------------------------------------------------------------
+.3 The NEPMD folder
+.. -----------------------------------------------------------------------------
+.an IDPNL_USAGE_WPSFOLDER
+.
+The folder of the [=TITLE] includes the following icons
+(taken that all components have been installed):
+.su H50
+
+.. .............................................................................
+.4 EPM v6.03b
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_EXECUTE
+.
+This icon starts the *EPM*. It is identical in function to the icon *Enhanced Editor*
+that exists in the *Utilities* folder of your *OS/2* or *eComStation* desktop.
+
+.. .............................................................................
+.4 EPM Technical Reference
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_VIEW_EPMTECH
+.
+This icon starts the *EPM* Technical Reference. This book is intended to aid
+in the development of extensions for *EPM* using the *E Language*.
+
+.. .............................................................................
+.4 EPM Users Guide
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_VIEW_EPMUSERS
+.
+This icon starts the *EPM* Users Guide. This book is intended to aid
+users with the configuration and usage of *EPM*.
+
+.. .............................................................................
+.4 Netlabs EPM Distribution User Guide
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_VIEW_NEUSR
+.
+This icon starts the *User Guide* of the [=TITLE],
+this is the INF file that you are just reading.
+
+.. .............................................................................
+.4 Netlabs EPM Distribution Programming Guide
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_VIEW_NEPRG
+.
+This icon starts the *Programming Guide* of the [=TITLE].
+
+[=NOTE]
+.ul compact
+- You need to install the *Recompilation package*
+  of the [=TITLE] in order to have this icon within the the NEPMD folder
+
+.. .............................................................................
+.4 Recompile EPM
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_RECOMP
+.
+This icon starts the [.IDPNL_INSTADDITIONS_RECOMP recompilation GUI utility RECOMP]
+provided by the [=TITLE] to allow you quick and easy recompilation.
+
+[=NOTE]
+.ul compact
+- You need to install the *Recompilation package*
+  of the [=TITLE] in order to have this icon within the the NEPMD folder
+
+.. .............................................................................
+.4 EPM Programming Samples
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_SAMPLES_FOLDER
+.
+This folder contains the following icons to aid in the development of *EPM* extensions:
+.ul compact
+- Programmers Guide to the *E Toolkit*
+- *EPM* C macro Readme
+- *EPM* REXX macro Readme
+
+[=NOTE]
+.ul compact
+- You need to install the *Programming samples*
+  of the [=TITLE] in order to have this icon within the the NEPMD folder
+
+.. .............................................................................
+.4 Start EPM Speech Support
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_SPEECH
+.
+This icon starts the background process enabling support for usage of *VoiceType*
+to contol *EPM* windows.
+
+[=NOTE]
+.ul compact
+- This icon will only work propperly if *VoiceType for OS/2* is installed on your system !
+- You need to install the *Speech Support*
+  of the [=TITLE] in order to have this icon within the the NEPMD folder
+
+.. -----------------------------------------------------------------------------
+.3 autolink EPM extensions
+.. -----------------------------------------------------------------------------
+.an IDPNL_USAGE_CONFIGURE_AUTOLINK
+.
+*EPM* extension modules (**.ex) that need to be linked on startup of the editor
+can be placed into the directory
+.sl compact
+- *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\autolink*
+.el
+in order to link them automatically.
+
+.. -----------------------------------------------------------------------------
+.3 recompile EPM
+.. -----------------------------------------------------------------------------
+.an IDPNL_USAGE_CONFIGURE_MYCNF
+.
+For future versions of the [=TITLE] it is planned to replace all
+configuration constants with dynamic values, being stored
+within the [.IDPNL_INSTADDITIONS_REGISTRY] and making them
+configurable by a GUI. This will hopefully make all recompilations
+of *EPM* obsolete.
+
+Until then it will remain to be a standard configuration technique to modify
+the file *mycnf.e* and recompile *EPM*. For more details see the section
+.ul compact
+- [.IDPNL_CONFIG]
+
+.. -----------------------------------------------------------------------------
+.3 REXX profile
+.. -----------------------------------------------------------------------------
+.an IDPNL_USAGE_CONFIGURE_REXXPRF
+.
+A widely used technique to avoid [.IDPNL_USAGE_CONFIGURE_MYCNF recompilation of EPM]
+is to set some variables of *EPM* within the file *profile.erx*. This is a plain REXX
+script using the *EPM* REXX interface to allow to set configuration constants.
+
+[=NOTE]
+.ul compact
+- for usage with the [=TITLE] the file *profile.erx* is to be placed in the
+  directory *myepm\bin
+
+.. -----------------------------------------------------------------------------
+.3 add definitions for syntax highlighting
+.. -----------------------------------------------------------------------------
+.an IDPNL_USAGE_CONFIGURE_HILITEDEF
+.
+Within [=TITLE] keyword definitions for syntax highlighting
+are attached to *EPM* modes.
+
+You can easily extend the definitions for syntax highlighting
+on a per-mode basis or create a completely new EPM mode for a
+new filetype, if required.
+
+See the following section for more details:
+.ul compact
+- [.IDPNL_MODE]
+
+.. -----------------------------------------------------------------------------
+.3 create/extend an EPM mode
+.. -----------------------------------------------------------------------------
+.an IDPNL_USAGE_CONFIGURE_CREATEMODE
+.
+You can easily create a new *EPM* mode for the [=TITLE] in order
+to specify how to treat a new type of files, or extend a given mode
+to modify the treatment of a filetype. All this is however
+restricted to the attributes currently attached to an *EPM*
+mode, such as syntax highlighting.
+
+Creating a new *EPM* mode or extending an existing one is done
+only by adding self-creaed textfiles to the *myepm\mode* directory tree.
+
+See the following section for more details:
+.ul compact
+- [.IDPNL_MODE]
 
 .. =============================================================================
-.2 The EPMBBS distribution
+.2 The EPM mode
+.. =============================================================================
+.an IDPNL_MODE
+.
+[=TOPICS]
+.su V30 1
+
+.. -----------------------------------------------------------------------------
+.3 Overview
+.. -----------------------------------------------------------------------------
+.an IDPNL_MODE_OVERVIEW
+.
+The [=TITLE] Team has introduced the advanced mode
+mechanism to replace the former filetype determination by searching
+the filename extension in hardcoded lists.
+.
+..The OS/2 filetype attribute is also used in some special cases, where the
+..type name is not language specific.
+.. For future releases support for XWorkplace's extended associations is planned.
+
+The following attributes are currently attached to the *EPM* mode:
+.ul compact
+- the filename extensions and/or basenames of the files that a given mode
+  is to be used for
+- syntax highlighting definitions
+
+The *EPM* mode for a file is determined at load of the file in the following
+order
+.ul compact
+- if the mode has been previously set by the new *mode* command manually,
+  this mode is used
+.. - if some of the recognized OS/2 filetype attributes are set for the loaded file,
+..   the mode is set according to a table.
+.
+.
+- if the file name and/or extension matches the attributes of any of the
+  configurated modes, then the mode is set.
+.
+  Some extensions are handled in a special case
+  - **.CMD:
+    - the mode *REXX* is set for REXX scripts
+    - the mode is recognized for EXTPROC scripts, if the name
+      of the external command processor matches any of the
+      configurated *EPM* modes
+    - otherwise the mode is set to *CMD*
+  - **.INI: The mode *INI* is set for text ini files only, as *EPM* does not
+    make sense to edit OS/2 binary INI files.
+  - Otherwise: The mode is set to TEXT.
+
+.. -----------------------------------------------------------------------------
+.3 mode command
+.. -----------------------------------------------------------------------------
+.an IDPNL_MODE_CMD
+.
+The mode can be changed manually with the MODE command in order
+to override the default mode being determined by *EPM*.
+For that execute the command:
+.fo off
+   mode [[#new__mode#]]
+.fo on
+
+The optional #new__mode# parameter string is not case-sensitive.
+If no parameter is specified, then a dialog allows to either
+choose a new mode or reset to the default mode again.
+
+A newly selected mode will be saved as the extended file attribute EPM.MODE
+or deletes this attribute, if the mode is to be reset to default.
+
+[=NOTE]
+.ul compact
+- this change is done immediately and not only when the file is saved
+- this does not work if the file is stored on readonly storage media
+  as e.g. CD-ROM
+
+You can easily check wether a given file already has the mode
+previously set manually. If so, at the top of the mode dialog
+the string
+.sl compact.
+- Selected mode: <mode>
+
+is being displayed, otherwise
+.sl compact
+- Default mode: <mode>
+
+shows that no mode has been set manually before.
+
+If a mode has been set manually before, this setting can
+be removed with the last item in the list *-DEFAULT-* or
+by calling *mode 0*.
+
+After the mode is determined or reset, all mode attributes
+attached to a given movde are activated. Until now the only
+attributes are extended keyword highlighting and selecting
+a keyset. In addition to that the statusline is updated with the
+name of the newly activated mode.
+
+.. -----------------------------------------------------------------------------
+.3 predefined EPM modes
+.. -----------------------------------------------------------------------------
+.an IDPNL_MODE_PREDEFINED
+.
+The [=TITLE] comes with a set of mode definitions that
+can be found in the following subdirectories within the
+installation path:
+.sl compact
+- *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode*
+
+In this directory you find also the file [.IDPNL_FORMAT_GLOBALINI], defining
+global default settings being used by all modes.
+
+Below this directory, you find directories per mode, e.g.
+for the mode *C* the following directories exist:
+.sl compact
+- *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode\c*
+
+The following files define the settings per mode, these files are provided
+by the [=TITLE] and should not be modified, if they exist.
+.ul compact
+- [.IDPNL_FORMAT_DEFAULTINI]
+- [.IDPNL_FORMAT_NETLABSHIL]
+
+[=NOTE]
+.ul compact
+- it is highly recommended to not
+  - modify files provided with the [=TITLE] in order to extend a predefined
+    *EPM* mode. See the following section for details:
+    - [.IDPNL_MODE_EXTEND]
+  - create files for a new *EPM* mode in the
+    *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode* directory tree.
+    See the following section for details:
+    - [.IDPNL_MODE_NEW]
+
+.. -----------------------------------------------------------------------------
+.3 extend predefined EPM modes
+.. -----------------------------------------------------------------------------
+.an IDPNL_MODE_EXTEND
+.
+*EPM* modes coming with the [=TITLE] can easily be extended
+by the user. In order to do so,
+.ol
+- create the directory *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<?>*,
+  where *<?>* is the name of the *EPM* mode
+- if required, create the file [.IDPNL_FORMAT_CUSTOMINI] to extend the
+  per-mode definition. This will extend settings defined in
+  [.IDPNL_FORMAT_DEFAULTINI]
+- if required, create files [.IDPNL_FORMAT_MYEPMHIL] to add new keyword definitions
+  for the *EPM* mode, but take care that you use a filename (with the filename
+  extension .hil) that does not yet exist within the directory
+  *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode\<?>*
+
+.. -----------------------------------------------------------------------------
+.3 create new user-defined modes
+.. -----------------------------------------------------------------------------
+.an IDPNL_MODE_NEW
+.
+if you intend to create an own *EPM* mode,
+.ol
+- create the directory *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<?>*,
+  where *<?>* is the name of the *EPM* mode
+- create the file [.IDPNL_FORMAT_DEFAULTINI] to define the basic settings
+  for your mode
+- create files [.IDPNL_FORMAT_MYEPMHIL] to add keyword definitions for the
+  new *EPM* mode.
+
+.. =============================================================================
+.2 How can I ... ?
+.. =============================================================================
+.an IDPNL_HOW
+.
+[=TOPICS]
+.su V30
+.ul compact
+
+.. -----------------------------------------------------------------------------
+.3 How can I add definitions for syntax highlighting ?
+.. -----------------------------------------------------------------------------
+.an IDPNL_HOW_HILITEDEF
+.
+.mi IDPNL_USAGE_CONFIGURE_HILITEDEF
+
+.. -----------------------------------------------------------------------------
+.3 How can I create/extend an EPM mode
+.. -----------------------------------------------------------------------------
+.an IDPNL_HOW_CREATEMODE
+.
+.mi IDPNL_USAGE_CONFIGURE_CREATEMODE
+
+.. -----------------------------------------------------------------------------
+.3 How can I recompile the EPM ?
+.. -----------------------------------------------------------------------------
+.an IDPNL_HOW_RECOMPILE
+.
+Within the [=TITLE] folder execute the icon *Recompile EPM*.
+This will start the [.IDPNL_INSTADDITIONS_RECOMP recompile GUI utility]
+allowing you to quickly recompile the *EPM*.
+
+.. =============================================================================
+.2 Limitations
+.. =============================================================================
+.an IDPNL_LIMITATIONS
+.
+The following limitations apply to the current version of [=TITLE]:
+.ul
+- For users of the operating systems *OS/2 Warp 4* or *eComStation*,
+  the [=TITLE] always requires the files of the *EPM* / *Enhanced Editor*
+  that are installed in directories ?:\OS2\APPS and ?:\OS2\APPS\DLL. If they
+  are not installed, use the installation program of your operating system
+  to install them and reapply the current fixpack.
+.
+- Users of *OS/2 Warp 3* currently cannot use this package, as
+  this version of *OS/2* comes with the outdated *EPM* v5.51.
+  As a workaround, before installing [=TITLE], you can
+  - _manually remove_ the old *EPM* v5.51 files from your system (backup recommended)  and
+  - install the packages
+.ul compact
+     - [.IDPNL_EPMBBS_COMP_EPMAPP]
+     - [.IDPNL_EPMBBS_COMP_EPMDLL]
+     - [.IDPNL_EPMBBS_COMP_EPMHLP]
+.el
+.
+     of the [.IDPNL_EPMBBS EPM BBS distribution] according to its readme file in a
+     directory of your choice.
+.el
+.
+  In a forthcoming version [=TITLE] will address that problem and offer
+  to replace an *EPM* v5.51 with the base *EPM* application of the
+  *EPM BBS distribution* for *OS/2 Warp 3* users.
+
+.. =============================================================================
+.2 Revision history
+.. =============================================================================
+.an IDPNL_REVISIONS
+.
+[=TOPICS]
+.su V30
+
+.. -----------------------------------------------------------------------------
+.3 Version 1.00
+.. -----------------------------------------------------------------------------
+.an IDPNL_REVISION_HISTORY_101
+.
+First public release
+
+.. =============================================================================
+.2 Trademarks
+.. =============================================================================
+.an IDPNL_TRADEMARKS
+.
+The following trademarks are used in this online help file:
+.ul compact
+- OS/2 is a trademark of IBM Corporation
+- eComStation is a trademark of Serenity Systems Inc.
+
+.. =============================================================================
+.2 Credits
+.. =============================================================================
+.an IDPNL_CREDITS
+.
+[=TOPICS]
+.su V30
+
+.. -----------------------------------------------------------------------------
+.3 General credits
+.. -----------------------------------------------------------------------------
+.an IDPNL_CREDITS_GENERAL
+.
+Credits go to:
+.ul
+- the team of the IBM T. J. Watson Research Center
+  for the magnificent editor *EPM*
+- all contibutors to the *EPM v6.03b* package release
+  available in the internet
+- Ulrich M”ller, Germany, for development of the sofware installer
+.
+  [http://www.xworkplace.org WarpIn for OS/2]
+
+.. -----------------------------------------------------------------------------
+.3 The [=DOCTITLE] project team and contributors
+.. -----------------------------------------------------------------------------
+.an IDPNL_CREDITS_TEAM
+.
+The following persons (in alphabetic order) assembled and contributed extensions for the current release of the [=TITLE]:
+.pl tsize=1
+- *Christian Langanke* <C.Langanke@Teamos2.de>
+=
+.ul compact
+  - distribution concept
+  - setup of the *Netlabs Open Source Archive* for the [.IDPNL_WHAT_NED]
+  - this online INF file
+  - *WarpIn* installation packaging
+    - National Language Support concept
+  - [.IDPNL_INSTADDITIONS_RECOMP recompilation GUI utility RECOMP]
+  - [.IDPNL_INSTADDITIONS_DYNCFG]
+     - [.IDPNL_INSTADDITIONS_DYNCFG_LOADER]
+  - many functions of an external dynamic link library *NEPMDLIB*, containing  many of
+    the [.IDPNL_EFUNC E Language functions] of the [=TITLE]
+..- extended syntax highlighting support
+..
+- *Andreas Schnellbacher* <Andreas.Schnellbacher@web.de>
+=
+.ul compact
+  - distribution concept
+  - shipped .e sourcefiles
+     - major [.IDPNL_INSTADDITIONS_NEWMACROS rework] compared to the versions of the *EPMBBS* package
+     - National Language Support concept
+..- additional macros (e.g. for Tex)
+..
+
+.. =============================================================================
+.2 Appendix: The EPMBBS distribution
 .. =============================================================================
 .an IDPNL_EPMBBS
 .
@@ -551,7 +1039,7 @@ available on FTP servers in the Internet like:
   (file by file in the directory /pub/os2/apps/editors/epm)
 
 .. =============================================================================
-.2 The [=DOCTITLE] Installation
+.2 Appendix: The [=DOCTITLE] Installation
 .. =============================================================================
 .an IDPNL_INSTADDITIONS
 .
@@ -979,7 +1467,7 @@ is shipped with with the distribution, but nevertheless included here
 = section [.IDPNL_QREF]
 
 .. =============================================================================
-.2 The [=DOCTITLE] Editor Additions
+.2 Appendix: The [=DOCTITLE] Editor Additions
 .. =============================================================================
 .an IDPNL_USEADDITIONS
 .
@@ -1249,432 +1737,7 @@ See the following section for details:
 
 
 .. =============================================================================
-.2 EPM mode
-.. =============================================================================
-.an IDPNL_MODE
-.
-[=TOPICS]
-.su V30 1
-
-.. -----------------------------------------------------------------------------
-.3 Overview
-.. -----------------------------------------------------------------------------
-.an IDPNL_MODE_OVERVIEW
-.
-The [=TITLE] Team has introduced the advanced mode
-mechanism to replace the former filetype determination by searching
-the filename extension in hardcoded lists.
-.
-..The OS/2 filetype attribute is also used in some special cases, where the
-..type name is not language specific.
-.. For future releases support for XWorkplace's extended associations is planned.
-
-The following attributes are currently attached to the *EPM* mode:
-.ul compact
-- the filename extensions and/or basenames of the files that a given mode
-  is to be used for
-- syntax highlighting definitions
-
-
-The *EPM* mode for a file is determined at load of the file in the following
-order
-.ul compact
-- if the mode has been previously set by the new *mode* command manually,
-  this mode is used
-.. - if some of the recognized OS/2 filetype attributes are set for the loaded file,
-..   the mode is set according to a table.
-.
-.
-- if the file name and/or extension matches the attributes of any of the
-  configurated modes, then the mode is set.
-.
-  Some extensions are handled in a special case
-  - **.CMD:
-    - the mode *REXX* is set for REXX scripts
-    - the mode is recognized for EXTPROC scripts, if the name
-      of the external command processor matches any of the
-      configurated *EPM* modes
-    - otherwise the mode is set to *CMD*
-  - **.INI: The mode *INI* is set for text ini files only, as *EPM* does not
-    make sense to edit OS/2 binary INI files.
-  - Otherwise: The mode is set to TEXT.
-
-.. -----------------------------------------------------------------------------
-.3 mode command
-.. -----------------------------------------------------------------------------
-.an IDPNL_MODE_CMD
-.
-The mode can be changed manually with the MODE command in order
-to override the default mode being determined by *EPM*.
-For that execute the command:
-.fo off
-   mode [[#new__mode#]]
-.fo on
-
-The optional #new__mode# parameter string is not case-sensitive.
-If no parameter is specified, then a dialog allows to either
-choose a new mode or reset to the default mode again.
-
-A newly selected mode will be saved as the extended file attribute EPM.MODE
-or deletes this attribute, if the mode is to be reset to default.
-
-[=NOTE]
-.ul compact
-- this change is done immediately and not only when the file is saved
-- this does not work if the file is stored on readonly storage media
-  as e.g. CD-ROM
-
-You can easily check wether a given file already has the mode
-previously set manually. If so, at the top of the mode dialog
-the string
-.sl compact.
-- Selected mode: <mode>
-
-is being displayed, otherwise
-.sl compact
-- Default mode: <mode>
-
-shows that no mode has been set manually before.
-
-If a mode has been set manually before, this setting can
-be removed with the last item in the list *-DEFAULT-* or
-by calling *mode 0*.
-
-After the mode is determined or reset, all mode attributes
-attached to a given movde are activated. Until now the only
-attributes are extended keyword highlighting and selecting
-a keyset. In addition to that the statusline is updated with the
-name of the newly activated mode.
-
-.. -----------------------------------------------------------------------------
-.3 predefined EPM modes
-.. -----------------------------------------------------------------------------
-.an IDPNL_MODE_PREDEFINED
-.
-The [=TITLE] comes with a set of mode definitions that
-can be found in the following subdirectories within the
-installation path:
-.sl compact
-- *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode*
-
-In this directory you find also the file [.IDPNL_FORMAT_GLOBALINI], defining
-global default settings being used by all modes.
-
-Below this directory, you find directories per mode, e.g.
-for the mode *C* the following directories exist:
-.sl compact
-- *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode\c*
-
-The following files define the settings per mode, these files are provided
-by the [=TITLE] and should not be modified, if they exist.
-.ul compact
-- [.IDPNL_FORMAT_DEFAULTINI]
-- [.IDPNL_FORMAT_NETLABSHIL]
-
-[=NOTE]
-.ul compact
-- it is highly recommended to not
-  - modify files provided with the [=TITLE] in order to extend a predefined
-    *EPM* mode. See the following section for details:
-    - [.IDPNL_MODE_EXTEND]
-  - create files for a new *EPM* mode in the
-    *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode* directory tree.
-    See the following section for details:
-    - [.IDPNL_MODE_NEW]
-
-.. -----------------------------------------------------------------------------
-.3 extend predefined EPM modes
-.. -----------------------------------------------------------------------------
-.an IDPNL_MODE_EXTEND
-.
-*EPM* modes coming with the [=TITLE] can easily be extended
-by the user. In order to do so,
-.ol
-- create the directory *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<?>*,
-  where *<?>* is the name of the *EPM* mode
-- if required, create the file [.IDPNL_FORMAT_CUSTOMINI] to extend the
-  per-mode definition. This will extend settings defined in
-  [.IDPNL_FORMAT_DEFAULTINI]
-- if required, create files [.IDPNL_FORMAT_MYEPMHIL] to add new keyword definitions
-  for the *EPM* mode, but take care that you use a filename (with the filename
-  extension .hil) that does not yet exist within the directory
-  *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode\<?>*
-
-.. -----------------------------------------------------------------------------
-.3 create new user-defined modes
-.. -----------------------------------------------------------------------------
-.an IDPNL_MODE_NEW
-.
-if you intend to create an own *EPM* mode,
-.ol
-- create the directory *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<?>*,
-  where *<?>* is the name of the *EPM* mode
-- create the file [.IDPNL_FORMAT_DEFAULTINI] to define the basic settings
-  for your mode
-- create files [.IDPNL_FORMAT_MYEPMHIL] to add keyword definitions for the
-  new *EPM* mode.
-
-.. =============================================================================
-.2 Using the [=DOCTITLE]
-.. =============================================================================
-.an IDPNL_USAGE
-.
-[=TOPICS]
-.su V30 1
-
-.. -----------------------------------------------------------------------------
-.3 The NEPMD folder
-.. -----------------------------------------------------------------------------
-.an IDPNL_USAGE_WPSFOLDER
-.
-The folder of the [=TITLE] includes the following icons
-(taken that all components have been installed):
-.su H50
-
-.. .............................................................................
-.4 EPM v6.03b
-.. .............................................................................
-.an IDPNL_USAGE_WPSFOLDER_EXECUTE
-.
-This icon starts the *EPM*. It is identical in function to the icon *Enhanced Editor*
-that exists in the *Utilities* folder of your *OS/2* or *eComStation* desktop.
-
-.. .............................................................................
-.4 EPM Technical Reference
-.. .............................................................................
-.an IDPNL_USAGE_WPSFOLDER_VIEW_EPMTECH
-.
-This icon starts the *EPM* Technical Reference. This book is intended to aid
-in the development of extensions for *EPM* using the *E Language*.
-
-.. .............................................................................
-.4 EPM Users Guide
-.. .............................................................................
-.an IDPNL_USAGE_WPSFOLDER_VIEW_EPMUSERS
-.
-This icon starts the *EPM* Users Guide. This book is intended to aid
-users with the configuration and usage of *EPM*.
-
-.. .............................................................................
-.4 Netlabs EPM Distribution User Guide
-.. .............................................................................
-.an IDPNL_USAGE_WPSFOLDER_VIEW_NEUSR
-.
-This icon starts the *User Guide* of the [=TITLE],
-this is the INF file that you are just reading.
-
-.. .............................................................................
-.4 Netlabs EPM Distribution Programming Guide
-.. .............................................................................
-.an IDPNL_USAGE_WPSFOLDER_VIEW_NEPRG
-.
-This icon starts the *Programming Guide* of the [=TITLE].
-
-[=NOTE]
-.ul compact
-- You need to install the *Recompilation package*
-  of the [=TITLE] in order to have this icon within the the NEPMD folder
-
-.. .............................................................................
-.4 Recompile EPM
-.. .............................................................................
-.an IDPNL_USAGE_WPSFOLDER_RECOMP
-.
-This icon starts the [.IDPNL_INSTADDITIONS_RECOMP recompilation GUI utility RECOMP]
-provided by the [=TITLE] to allow you quick and easy recompilation.
-
-[=NOTE]
-.ul compact
-- You need to install the *Recompilation package*
-  of the [=TITLE] in order to have this icon within the the NEPMD folder
-
-.. .............................................................................
-.4 EPM Programming Samples
-.. .............................................................................
-.an IDPNL_USAGE_WPSFOLDER_SAMPLES_FOLDER
-.
-This folder contains the following icons to aid in the development of *EPM* extensions:
-.ul compact
-- Programmers Guide to the *E Toolkit*
-- *EPM* C macro Readme
-- *EPM* REXX macro Readme
-
-[=NOTE]
-.ul compact
-- You need to install the *Programming samples*
-  of the [=TITLE] in order to have this icon within the the NEPMD folder
-
-.. .............................................................................
-.4 Start EPM Speech Support
-.. .............................................................................
-.an IDPNL_USAGE_WPSFOLDER_SPEECH
-.
-This icon starts the background process enabling support for usage of *VoiceType*
-to contol *EPM* windows.
-
-[=NOTE]
-.ul compact
-- This icon will only work propperly if *VoiceType for OS/2* is installed on your system !
-- You need to install the *Speech Support*
-  of the [=TITLE] in order to have this icon within the the NEPMD folder
-
-.. -----------------------------------------------------------------------------
-.3 modifying the configuration
-.. -----------------------------------------------------------------------------
-.an IDPNL_USAGE_CONFIGURE
-.
-
-
-
-.. =============================================================================
-.2 How can I ... ?
-.. =============================================================================
-.an IDPNL_HOW
-.
-[=TOPICS]
-.su V30
-.ul compact
-
-.. -----------------------------------------------------------------------------
-.3 How can I add keyword definitions for syntax highlighting ?
-.. -----------------------------------------------------------------------------
-.an IDPNL_HOW_ADD_KEYWORDS
-.
-Within [=TITLE] keyword definitions for syntax highlighting
-are attached to *EPM* modes.
-
-You can easily extend the definitions for syntax highlighting
-on a per-mode basis or create a completely new EPM mode for a
-new filetype, if required.
-
-See the following section for more details:
-.ul compact
-- [.IDPNL_MODE]
-
-.. -----------------------------------------------------------------------------
-.3 How can I recompile the EPM ?
-.. -----------------------------------------------------------------------------
-.an IDPNL_HOW_RECOMPILE
-.
-Within the [=TITLE] folder execute the icon *Recompile EPM*.
-This will start the [.IDPNL_INSTADDITIONS_RECOMP recompile GUI utility]
-allowing you to quickly recompile the *EPM*.
-
-.. =============================================================================
-.2 Limitations
-.. =============================================================================
-.an IDPNL_LIMITATIONS
-.
-The following limitations apply to the current version of [=TITLE]:
-.ul
-- For users of the operating systems *OS/2 Warp 4* or *eComStation*,
-  the [=TITLE] always requires the files of the *EPM* / *Enhanced Editor*
-  that are installed in directories ?:\OS2\APPS and ?:\OS2\APPS\DLL. If they
-  are not installed, use the installation program of your operating system
-  to install them and reapply the current fixpack.
-.
-- Users of *OS/2 Warp 3* currently cannot use this package, as
-  this version of *OS/2* comes with the outdated *EPM* v5.51.
-  As a workaround, before installing [=TITLE], you can
-  - _manually remove_ the old *EPM* v5.51 files from your system (backup recommended)  and
-  - install the packages
-.ul compact
-     - [.IDPNL_EPMBBS_COMP_EPMAPP]
-     - [.IDPNL_EPMBBS_COMP_EPMDLL]
-     - [.IDPNL_EPMBBS_COMP_EPMHLP]
-.el
-.
-     of the [.IDPNL_EPMBBS EPM BBS distribution] according to its readme file in a
-     directory of your choice.
-.el
-.
-  In a forthcoming version [=TITLE] will address that problem and offer
-  to replace an *EPM* v5.51 with the base *EPM* application of the
-  *EPM BBS distribution* for *OS/2 Warp 3* users.
-
-.. =============================================================================
-.2 Revision history
-.. =============================================================================
-.an IDPNL_REVISIONS
-.
-[=TOPICS]
-.su V30
-
-.. -----------------------------------------------------------------------------
-.3 Version 1.00
-.. -----------------------------------------------------------------------------
-.an IDPNL_REVISION_HISTORY_101
-.
-First public release
-
-.. =============================================================================
-.2 Trademarks
-.. =============================================================================
-.an IDPNL_TRADEMARKS
-.
-The following trademarks are used in this online help file:
-.ul compact
-- OS/2 is a trademark of IBM Corporation
-- eComStation is a trademark of Serenity Systems Inc.
-
-.. =============================================================================
-.2 Credits
-.. =============================================================================
-.an IDPNL_CREDITS
-.
-[=TOPICS]
-.su V30
-
-.. -----------------------------------------------------------------------------
-.3 General credits
-.. -----------------------------------------------------------------------------
-.an IDPNL_CREDITS_GENERAL
-.
-Credits go to:
-.ul
-- the team of the IBM T. J. Watson Research Center
-  for the magnificent editor *EPM*
-- all contibutors to the *EPM v6.03b* package release
-  available in the internet
-- Ulrich M”ller, Germany, for development of the sofware installer
-.
-  [http://www.xworkplace.org WarpIn for OS/2]
-
-.. -----------------------------------------------------------------------------
-.3 The [=DOCTITLE] project team and contributors
-.. -----------------------------------------------------------------------------
-.an IDPNL_CREDITS_TEAM
-.
-The following persons (in alphabetic order) assembled and contributed extensions for the current release of the [=TITLE]:
-.pl tsize=1
-- *Christian Langanke* <C.Langanke@Teamos2.de>
-=
-.ul compact
-  - distribution concept
-  - setup of the *Netlabs Open Source Archive* for the [.IDPNL_WHAT_NED]
-  - this online INF file
-  - *WarpIn* installation packaging
-    - National Language Support concept
-  - [.IDPNL_INSTADDITIONS_RECOMP recompilation GUI utility RECOMP]
-  - [.IDPNL_INSTADDITIONS_DYNCFG]
-     - [.IDPNL_INSTADDITIONS_DYNCFG_LOADER]
-  - many functions of an external dynamic link library *NEPMDLIB*, containing  many of
-    the [.IDPNL_EFUNC E Language functions] of the [=TITLE]
-..- extended syntax highlighting support
-..
-- *Andreas Schnellbacher* <Andreas.Schnellbacher@web.de>
-=
-.ul compact
-  - distribution concept
-  - shipped .e sourcefiles
-     - major [.IDPNL_INSTADDITIONS_NEWMACROS rework] compared to the versions of the *EPMBBS* package
-     - National Language Support concept
-..- additional macros (e.g. for Tex)
-..
-
-
-.. =============================================================================
-.2 Appendix: Configuration file formats
+.2 Appendix: [=DOCTITLE] Configuration file formats
 .. =============================================================================
 .an IDPNL_FORMAT
 .
