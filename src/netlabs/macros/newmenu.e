@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.8 2005-03-14 22:43:00 aschn Exp $
+* $Id: newmenu.e,v 1.9 2005-03-31 18:08:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1865,30 +1865,42 @@ compile endif
                                    \1'Compile main macro file and restart all EPM windows',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Recompile EPM.E',                                                    -- Recompile EPM.E
+   buildmenuitem menuname, mid, i, 'Recompile all new macros',                                           -- Recompile all new
+                                   'RecompileNew' ||
+                                   \1'Recompile all new macros and maybe restart EPM',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'More',                                                               -- More   >
+                                   '' ||
+                                   \1'Additional compile and link macros',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Recompile EPM.E',                                                          -- Recompile EPM.E
                                    'RecompileEpm' ||
                                    \1'Compile main macro file and restart current EPM window',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Restart EPM',                                                        -- Restart EPM
+   buildmenuitem menuname, mid, i, 'Restart EPM',                                                              -- Restart EPM
                                    'Restart' ||
-                                   \1'Restart current EPM window',
+                                   \1'Restart current EPM window (DLLs are not reloaded)',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Compile current .E file',                                            -- Compile current .E file
+   buildmenuitem menuname, mid, i, 'Compile current .E file',                                                  -- Compile current .E file
                                    'etpm =' ||
                                    \1'Compile current macro file',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Relink current .E file',                                             -- Relink current .E file
+   buildmenuitem menuname, mid, i, 'Relink current .E file',                                                   -- Relink current .E file
                                    'relink' ||
                                    \1'Compile current macro file and unlink/link if linked before',
-                                   MIS_TEXT, 0
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+/*
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Recompile all',                                                      -- Recompile all
+   buildmenuitem menuname, mid, i, 'Recompile all',                                                            -- Recompile all
                                    'RecompileAll' ||
                                    \1'Recompile all macros and restart EPM',
-                                   MIS_TEXT, 0
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+*/
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
