@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.1 2002-09-21 19:51:08 aschn Exp $
+* $Id: edit.e,v 1.2 2002-09-21 20:40:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,29 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+defproc NepmdResolveEnvVars
+   Spec = arg(1)
+   startp = 1
+   do forever
+      p1 = pos( '%', Spec, startp )
+      if p1 = 0 then
+         leave
+      endif
+      startp = p1 + 1
+      p2 = pos( '%', Spec, startp )
+      if p2 = 0 then
+         leave
+      else
+         startp = p2 + 1
+         Spec = substr( Spec, 1, p1 - 1 ) ||
+                Get_Env( substr( Spec, p1 + 1, p2 - p1 - 1 ) ) ||
+                substr( Spec, p2 + 1 )
+      endif
+      --sayerror 'arg(1) = 'arg(1)', p1 = 'p1', p2 = 'p2', resolved spec = 'Spec
+   enddo
+   return Spec
+
 
 ; Moved from STDCMDS.E
 /* This DEFC EDIT eventually calls the built-in edit command, by calling      */
@@ -141,6 +164,11 @@ compile endif
             if pos(' ', file) then
                file = '"'file'"'
             endif
+         endif
+
+         -- resolve environment variables
+         if pos( '%', file ) then
+            file = NepmdResolveEnvVars( file )
          endif
 
 compile if USE_APPEND  -- Support for DOS 3.3's APPEND, thanks to Ken Kahn.
