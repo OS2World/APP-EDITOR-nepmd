@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.10 2002-10-06 23:38:39 aschn Exp $
+* $Id: mode.e,v 1.11 2002-10-07 21:00:17 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,21 +24,13 @@
 ; - Use settings from Ini.
 
 const
-;compile if not defined(NEPMD_MODE)
-;   NEPMD_MODE = 1
-;compile endif
 compile if not defined(NEPMD_RESTORE_MODE_FROM_EA)
    NEPMD_RESTORE_MODE_FROM_EA = 0
 compile endif
-;compile if not defined(NEPMD_HILI)
-;   NEPMD_HILI = 1
-;compile endif
 compile if not defined(NEPMD_SPECIAL_STATUSLINE)
    NEPMD_SPECIAL_STATUSLINE = 1
 compile endif
 
-
-;compile if NEPMD_MODE
 
 ; ---------------------------------------------------------------------------
 ; Returns the current mode.
@@ -193,10 +185,7 @@ defproc NepmdProcessMode()
 compile if NEPMD_SPECIAL_STATUSLINE
    'refreshstatusline'
 compile endif
-;compile if NEPMD_HILI
-;   'hili'
    call NepmdActivateHighlight( 'ON', CurMode )
-;compile endif
 
    return
 
@@ -398,152 +387,4 @@ defproc NepmdSelectMode()
    select = strip( select, 'B', \1 ) -- sometimes the returned value for cancel is \1
    --sayerror 'defproc selectmode(): select = |'select'|'
    return select
-
-;compile endif -- NEPMD_MODE
-
-
-;compile if NEPMD_HILI
-
-; ---------------------------------------------------------------------
-; Chooses the keyword highlighting file.
-; Switches highlighting on or off.
-; arg1: (ON|OFF|0|1|2|TOGGLE|colorfile|colorfileextension)
-; arg2: optional arg2 for toggle_parse (colorfile|colorfileextension), only when arg1 = (1|ON|2)
-defc hili
-   CurMode = NepmdGetMode()
-   if .visible then
-
-      parse arg arg1 arg2
-      arg1 = strip(arg1)  -- (ON|OFF|0|1|2|TOGGLE|colorfile|colorfileextension)
-      arg2 = strip(arg2)  -- optional arg2 for toggle_parse (colorfile|colorfileextension), only when arg1 = (1|ON|2)
-      --sayerror 'args = <'arg1'><'arg2'>'
-      color_file = ''
-      hili_switch = 1
-      if arg1 = 0 | upcase( arg1 ) = 'OFF' then
-         hili_switch = 0
-      elseif arg1 = 2 then
-         hili_switch = 2
-      elseif upcase(arg1) = 'TOGGLE' then
-         current_toggle = windowmessage( 1,  getpminfo(EPMINFO_EDITFRAME),
-                                         5505,          -- EPM_EDIT_KW_QUERYPARSE
-                                         0,
-                                         0 )
-         hili_switch = not current_toggle
-      endif
-      if wordpos( upcase(arg1), '1 ON 2' ) > 0 then
-         color_file = arg2
-      endif
-      if wordpos( upcase(arg1), '0 OFF 1 ON 2 TOGGLE' ) = 0 then
-         color_file = arg1
-      endif
-      if color_file <> '' and pos( '.', color_file ) = 0 then
-         color_file = 'epmkwds.'color_file
-      endif
-      --sayerror 'hili_switch = <'hili_switch'>, color_file = <'color_file'>'
-
-      if hili_switch = 0 then
-         'toggle_parse' hili_switch
-      elseif color_file <> '' then
-         'toggle_parse' hili_switch color_file
-      else
-         filename = .filename
-         lastbspos = lastpos( '\', filename )
-         name = substr( filename, lastbspos +1 )
-         lastpointpos = lastpos( '.', name )
-         ext = ''
-         basename = name
-         if lastpointpos = 0 then
-         elseif lastpointpos = length(name) then
-            ext = ''
-            basename = substr( name, 1, lastpointpos - 1 )
-         elseif lastpointpos < length(name) then
-            ext = substr( name, lastpointpos + 1 )
-            ext = translate(ext)
-            basename = substr( name, 1, lastpointpos - 1 )
-         endif
-         if 0 then
-
-         -- ensure EPMKWDS files itselves are highlighted correctly
-         --elseif leftstr( translate(name), 8 ) = 'EPMKWDS.' then
-         elseif CurMode = 'EPMKWDS' then
-;            color_file = name
-            color_file = .filename
-/**/
-            if hili_switch = 1 then  -- If hilighting is switched on, then re-read the hilighting defs.
-               hili_switch = 2       -- This is useful when editing and testing a hilighting file itself.
-            endif                    -- Alternative: re-read hilighting defs after EPMKWDS.* file is saved.
-/**/
-         elseif CurMode = 'SHELL' then
-            color_file = 'EPMKWDS.SHELL'
-         elseif CurMode = 'CONFIGSYS' then
-            color_file = 'EPMKWDS.SYS'
-         elseif CurMode = 'C' then
-            color_file= 'EPMKWDS.C'
-         elseif CurMode = 'CMD' then
-            color_file='EPMKWDS.CMD'
-         elseif CurMode = 'REXX' then
-            color_file='EPMKWDS.REX'
-         elseif CurMode = 'PERL' then
-            color_file='EPMKWDS.PL'
-         elseif CurMode = 'E' then
-            color_file= 'EPMKWDS.E'
-         elseif CurMode = 'INI' then
-            color_file= 'EPMKWDS.INI'
-         elseif CurMode = 'HTML' then
-            color_file= 'EPMKWDS.HTM'
-         elseif CurMode = 'FORTRAN' then
-            color_file= 'EPMKWDS.F90'
-         elseif CurMode = 'IPF' then
-            color_file= 'EPMKWDS.IPF'
-         elseif CurMode = 'JAVA' then
-            color_file= 'EPMKWDS.JAV'
-         elseif CurMode = 'MAKE' then
-            color_file='EPMKWDS.MAK'
-         elseif CurMode = 'PASCAL' then
-            color_file='EPMKWDS.PAS'
-         elseif CurMode = 'PERL' then
-            color_file='EPMKWDS.PL'
-         elseif CurMode = 'PHP' then
-            color_file='EPMKWDS.PHP'
-         elseif CurMode = 'RC' then
-            color_file= 'EPMKWDS.RC'
-         elseif CurMode = 'RXP' then
-            color_file= 'EPMKWDS.RXP'
-         elseif CurMode = 'SCRIPT' then
-            color_file='EPMKWDS.SCR'
-         elseif CurMode = 'TEX' then
-            color_file= 'EPMKWDS.TEX'
-         elseif CurMode = 'POSTSCRIPT' then
-            color_file= 'EPMKWDS.PS'
-compile if 1
-         elseif CurMode = 'TXT' then
-            color_file= 'EPMKWDS.TXT'
-compile endif
-         else
-            findfile color_file, 'EPMKWDS.'ext, 'EPMPATH'
-            if rc then
-            -- If no hili file found:
-compile if 0
-               return
-compile else
-               if CurMode = 'UNKNOWN' then
-                  color_file= 'EPMKWDS.TXT'
-               endif
-compile endif
-            endif
-         endif
-         --sayerror '.filename = '.filename', color_file = 'color_file
-         if color_file <> '' then
-            -- check if file truly exists
-            findfile color_file, color_file, 'EPMPATH'
-            if rc == 0 then
-               'toggle_parse' hili_switch color_file
-            endif
-         endif
-      endif  --if hili_switch = 0 elseif colorfile <> '' else
-
-   endif  -- .visible
-   return
-
-;compile endif  -- NEPMD_HILI
 
