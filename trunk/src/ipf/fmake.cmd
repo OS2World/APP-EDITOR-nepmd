@@ -1,4 +1,5 @@
-: $Id: fmake.cmd,v 1.2 2002-06-03 18:12:05 cla Exp $
+: $Id: fmake.cmd,v 1.3 2002-08-15 13:22:23 cla Exp $
 
 @ECHO OFF
- make help
+:make help
+ make NEPMD
