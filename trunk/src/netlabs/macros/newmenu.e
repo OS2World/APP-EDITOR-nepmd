@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.4 2004-07-09 14:10:35 aschn Exp $
+* $Id: newmenu.e,v 1.5 2004-07-13 21:18:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -713,21 +713,31 @@ compile if CHECK_FOR_LEXAM
    endif
 compile endif
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'St~yle...'\9 || CTRL_KEY__MSG'+Y',                             -- Style...
+   buildmenuitem menuname, mid, i, 'Font st~yles',                                                 -- Font styles   >
+                                   '' ||
+                                   \1'Font and color attributes',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'St~yle dialog...'\9 || CTRL_KEY__MSG'+Y',                            -- Style dialog...
                                    'fontlist' ||
                                    STYLE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_STYLE, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Remove all attributes',                                        -- Remove all attributes
-                                   '' ||
-                                   \1'Remove all color and font attributes of current file',
+   buildmenuitem menuname, mid, i, '~Apply style...',                                                    -- Apply style...
+                                   'linkexec stylebut apply_style S' ||
+                                   \1'Select font style to apply on mark or all',
                                    MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Remove attributes around cursor',                                   -- Remove attributes around cursor
+                                   'linkexec stylebut remove_style S' ||
+                                   \1'Remove color and font attributes',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_recordkeys', i);
-   buildmenuitem menuname, mid, i, 'Record keys',                                                  -- Record keys   >
+   buildmenuitem menuname, mid, i, '~Record keys',                                                 -- Record keys   >
                                    '' ||
                                    \1'Record and playback keys',
                                    MIS_TEXT + MIS_SUBMENU, 0
@@ -819,23 +829,43 @@ compile endif
    buildmenuitem menuname, mid, i, 'Mail (all)',                                                         -- Mail (all)
                                    'reflowmail' ||
                                    \1'Reformat current mail (beta, correct indents by hand)',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_moreformatting', i);
+   buildmenuitem menuname, mid, i, '~More formatting',                                             -- More formatting   >
+                                   '' ||
+                                   \1'',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Expand tabs to spaces...',                                          -- Expand tabs to spaces...
+                                   'Tabs2Spaces' ||
+                                   \1'Tabwidth is selectable',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Remove HTML (all)',                                                  -- Remove HTML (all)
-                                   'rx unhtml' ||
+   buildmenuitem menuname, mid, i, '~Compress spaces to tabs...',                                        -- Compress spaces to tabs...
+                                   'Spaces2Tabs' ||
+                                   \1'Tabwidth is selectable; use this instead of "Save /t"',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Remove ~HTML',                                                       -- Remove HTML
+                                   'unhtml' ||
                                    \1'Remove HTML tags from current file',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Remove ~doublespaces',                                               -- Remove doublespaces
+                                   'singlespace' ||
+                                   \1'Remove duplicated line ends',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Comment'\9 || ALT_KEY__MSG'+K',                                -- Comment
+   buildmenuitem menuname, mid, i, '~Comment'\9 || ALT_KEY__MSG'+K',                               -- Comment
                                    'comment' ||
                                    \1'Comment marked lines',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Uncomment'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+K',             -- Uncomment
+   buildmenuitem menuname, mid, i, '~Uncomment'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+K',            -- Uncomment
                                    'uncomment' ||
                                    \1'Remove comment chars for marked lines',
                                    MIS_TEXT, 0
@@ -1367,7 +1397,7 @@ compile endif
                                    'setsearchoptions i',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_searchoptions_^', i)
-   buildmenuitem menuname, mid, i, '~^'\9'excluding search',  -- options ~ and ^ are equal
+   buildmenuitem menuname, mid, i, '~^'\9'excluding search',  -- options ~ and ^ are equivalent
                                    'setsearchoptions ^',
                                    MIS_TEXT, nodismiss
                                                                                                    --------------------------
@@ -2321,11 +2351,11 @@ defc menuinit_recordkeys
                                0,
                                0)
    if recordmode then
-      SetMenuText( GetAVar('mid_startrecording'), 'End recording'\9 || CTRL_KEY__MSG'+R')
-      SetMenuText( GetAVar('mid_playback'),       'End recording & playback'\9 || CTRL_KEY__MSG'+T')
+      SetMenuText( GetAVar('mid_startrecording'), 'End ~recording'\9 || CTRL_KEY__MSG'+R')
+      SetMenuText( GetAVar('mid_playback'),       'End recording & ~playback'\9 || CTRL_KEY__MSG'+T')
    else
-      SetMenuText( GetAVar('mid_startrecording'), 'Start recording'\9 || CTRL_KEY__MSG'+R')
-      SetMenuText( GetAVar('mid_playback'),       'Playback'\9 || CTRL_KEY__MSG'+T')
+      SetMenuText( GetAVar('mid_startrecording'), 'Start ~recording'\9 || CTRL_KEY__MSG'+R')
+      SetMenuText( GetAVar('mid_playback'),       '~Playback'\9 || CTRL_KEY__MSG'+T')
    endif
 
 --------------------------------------------- Menu id 3 -- Search -----------------------
