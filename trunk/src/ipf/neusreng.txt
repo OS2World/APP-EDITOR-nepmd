@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.3 2002-10-31 18:09:21 cla Exp $
+.. $Id: neusreng.txt,v 1.4 2002-10-31 18:20:22 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -131,7 +131,7 @@ features in *EPM* 6 compared to *EPM* 5
 .
 The sources for to build the [=TITLE] are freely available under the
 [.IDPNL_LEGAL_GPL GNU General Public License] within a *CVS* archive on
-the *OS/2 Netlabs Open Source Archive* server.
+the *Netlabs Open Source Archive* server.
 
 To access them you either can
 .pl compact tsize=3
@@ -194,7 +194,7 @@ All rights reserved.
 
 Visit also the homepage of
 .ul compact
-- [http://www.netlabs.org The OS/2 Netlabs]
+- [http://www.netlabs.org The Netlabs]
 
 .. -----------------------------------------------------------------------------
 .3 freeware license
@@ -1045,11 +1045,24 @@ This icon starts the *EPM* Users Guide. This book is intended to aid
 users with the configuration and usage of *EPM*.
 
 .. .............................................................................
-.4 OS/2 Netlabs EPM Distribution
+.4 Netlabs EPM Distribution User Guide
 .. .............................................................................
-.an IDPNL_USAGE_WPSFOLDER_VIEW_NEPMD
+.an IDPNL_USAGE_WPSFOLDER_VIEW_NEUSR
 .
-This icon starts the INF file, that you are just reading.
+This icon starts the *User Guide* of the [=TITLE],
+this is the INF file that you are just reading.
+
+.. .............................................................................
+.4 Netlabs EPM Distribution Programming Guide
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_VIEW_NEPRG
+.
+This icon starts the *Programming Guide* of the [=TITLE].
+
+[=NOTE]
+.ul compact
+- You need to install the *Recompilation package*
+  of the [=TITLE] in order to have this icon within the the NEPMD folder
 
 .. .............................................................................
 .4 Recompile EPM
@@ -1058,6 +1071,11 @@ This icon starts the INF file, that you are just reading.
 .
 This icon starts the [.IDPNL_ADDITIONS_RECOMP recompilation GUI utility RECOMP]
 provided by the [=TITLE] to allow you quick and easy recompilation.
+
+[=NOTE]
+.ul compact
+- You need to install the *Recompilation package*
+  of the [=TITLE] in order to have this icon within the the NEPMD folder
 
 .. .............................................................................
 .4 EPM Programming Samples
@@ -1070,6 +1088,11 @@ This folder contains the following icons to aid in the development of *EPM* exte
 - EPM C macro Readme
 - EPM REXX macro Readme
 
+[=NOTE]
+.ul compact
+- You need to install the *Programming samples*
+  of the [=TITLE] in order to have this icon within the the NEPMD folder
+
 .. .............................................................................
 .4 Start EPM Speech Support
 .. .............................................................................
@@ -1081,6 +1104,8 @@ to contol *EPM* windows.
 [=NOTE]
 .ul compact
 - This icon will only work propperly if *VoiceType for OS/2* is installed on your system !
+- You need to install the *Speech Support*
+  of the [=TITLE] in order to have this icon within the the NEPMD folder
 
 .. -----------------------------------------------------------------------------
 .3 modifying the configuration
