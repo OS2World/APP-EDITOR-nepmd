@@ -21,7 +21,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: parseenv.cmd,v 1.1 2002-06-10 13:32:53 cla Exp $
+* $Id: parseenv.cmd,v 1.2 2002-06-12 09:54:31 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,9 +40,8 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- Id = '$Id: parseenv.cmd,v 1.1 2002-06-10 13:32:53 cla Exp $';
- PARSE VAR Id .',v' Ver .;
- Title     = CmdName 'V'Ver Info;
+ PARSE VALUE "$Revision: 1.2 $" WITH . Version .;
+ Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
  TRUE         = (1 = 1);

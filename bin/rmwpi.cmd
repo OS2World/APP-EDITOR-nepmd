@@ -23,7 +23,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rmwpi.cmd,v 1.1 2002-06-11 14:20:07 cla Exp $
+* $Id: rmwpi.cmd,v 1.2 2002-06-12 09:54:31 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,9 +40,8 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- Id = '$Id: rmwpi.cmd,v 1.1 2002-06-11 14:20:07 cla Exp $';
- PARSE VAR Id .',v' Ver .;
- Title     = CmdName 'V'Ver Info;
+ PARSE VALUE "$Revision: 1.2 $" WITH . Version .;
+ Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
  TRUE         = (1 = 1);
