@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: all.e,v 1.2 2002-07-22 18:58:46 cla Exp $
+* $Id: all.e,v 1.3 2002-08-09 19:32:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -67,9 +67,6 @@ define
 defc all=   /* ALL macro */
    universal allorig,allsrch,default_search_options
    call psave_pos(save_pos)
-compile if EVERSION < 5
-   cursor_data
-compile endif
    if .filename = '.ALL' & arg(1) then
       .filename = '.prev_ALL'
    endif
@@ -114,36 +111,23 @@ compile endif
    endif
 
    0
-compile if EVERSION >= 5
    display -3
-compile endif
    do forever
       .col=1
       'xcom l' allsrch
       if rc=-273 then leave; endif  -- sayerror("String not found")
       getline line
-compile if EVERSION >= '5.17'
       line=rightstr(.line,5) line
-compile else
-      line=substr('    '.line,length(.line)) line
-compile endif
       insertline line,allfile.last+1,allfile
 compile if defined(ALL_HIGHLIGHT_COLOR)
- compile if EVERSION >= '6.02'
       col = getpminfo(EPMINFO_SEARCHPOS) + 6
       len = getpminfo(EPMINFO_LSLENGTH)
- compile else
-      col = .col
-      len = getpminfo(EPMINFO_LSLENGTH)
- compile endif
       Insert_Attribute_Pair(1, ALL_HIGHLIGHT_COLOR, allfile.last, allfile.last, col, col+len-1, allfile)
 compile endif
       if .line=last_line then leave; endif
       '+1'
    end
-compile if EVERSION >= 5
    display 3
-compile endif
    call prestore_pos(save_pos)
    if allfile.last=0 then
       activatefile allfile
@@ -155,20 +139,12 @@ compile endif
    endif
    sayerror 0
    activatefile allfile
-compile if EVERSION < 4
-   call select_edit_keys()
-compile endif
 compile if defined(ALL_HIGHLIGHT_COLOR)
    call attribute_on(1)
 compile endif
    sayerror 0
    .modify=0; top; .col=7
-compile if EVERSION < 5
-   cursor_data
-   XCOM_L allsrch'A'  -- Position cursor under first hit.
-compile else  -- Use PostMe to delay execution until after DEFLOAD sets font
    'postme' XCOM_L allsrch'A'  -- Position cursor under first hit.
-compile endif
 
 compile if not defined(ALL_KEY)
 define ALL_KEY = 'c_Q'
@@ -176,24 +152,12 @@ compile endif
 
 def $ALL_KEY =      -- Shows the .ALL file's current line in the original file
    universal allorig,allsrch
-compile if EVERSION < 5
-   universal messy
-compile endif
    if .filename <> '.ALL' then
       getfileid allfile,'.ALL'
       if allfile='' then
          sayerror NO_ALL_FILE__MSG
       else
-compile if EVERSION < 5
-         if messy then .box = 1; endif
-compile endif
          activatefile allfile
-compile if EVERSION < 5
-         if messy then .box = 2; endif
-compile if EVERSION < 4
-         call select_edit_keys()
-compile endif
-compile endif
                 /* Scroll the .ALL file a la FILEMAN. */
          if .line=.last then
             top
@@ -220,16 +184,7 @@ compile endif
       sayerror BAD_ALL_LINE__MSG
       return
    endif
-compile if EVERSION < 5
-   if messy then .box = 1; endif
-compile endif
    activatefile allorig
-compile if EVERSION < 5
-   if messy then .box = 2; endif
- compile if EVERSION < 4
-   call select_edit_keys()
- compile endif
-compile endif
    .cursory=.windowheight%2     /* Center vertically */
    line
    .col=1

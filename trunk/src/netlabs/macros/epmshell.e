@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.2 2002-07-22 19:00:14 cla Exp $
+* $Id: epmshell.e,v 1.3 2002-08-09 19:35:33 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -42,9 +42,7 @@ compile if WANT_EPM_SHELL='HIDDEN' & not defined(STD_MENU_NAME)
       buildmenuitem defaultmenu, 1, 102, CREATE_SHELL_MENU__MSG,       'shell'CREATE_SHELL_MENUP__MSG,       0, mpfrom2short(HP_COMMAND_SHELL, 0)
       buildmenuitem defaultmenu, 1, 103, WRITE_SHELL_MENU__MSG,        'shell_write'WRITE_SHELL_MENUP__MSG, 0, mpfrom2short(HP_COMMAND_SHELL, 16384)
 ;     buildmenuitem defaultmenu, 1, 104, KILL_SHELL_MENU__MSG,         'shell_kill'KILL_SHELL_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_SHELL, 16384)
- compile if EPM32
       buildmenuitem defaultmenu, 1, 104, SHELL_BREAK_MENU__MSG,        'shell_break'SHELL_BREAK_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_SHELL, 16384)
- compile endif
  compile if RING_OPTIONAL  -- if not ring_enabled then ring_toggle will do the showmenu.
       if activemenu = defaultmenu & ring_enabled then
          call showmenu_activemenu()  -- show the updated EPM menu
@@ -135,9 +133,6 @@ defc Shell_Write
    do_array 3, EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle
    if shellhandle<>'' then
       if text='' then
-compile if EVERSION < 5.21
-         text=entrybox(SHELL_PROMPT__MSG shellnum)
-compile else
          shell_title = strip(WRITE_SHELL_MENU__MSG, 'T', '.')  -- '~Write to shell...'
          tilde = pos('~', shell_title)
          if tilde then
@@ -171,17 +166,9 @@ compile else
                getsearch oldsearch
                0
   compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-   compile if EPM32
                'xcom l /^epm\: .*>:o./x'
-   compile else
-               'xcom l /^epm: .*> *[^ ]/g'
-   compile endif -- EPM32
   compile else  -- else EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
-   compile if EPM32
                'xcom l /^\[epm\: .*\]:o./x'
-   compile else
-               'xcom l /^\[epm: .*\] *[^ ]/g'
-   compile endif -- EPM32
   compile endif -- EPM_SHELL_PROMPT
                do while rc = 0
   compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
@@ -205,19 +192,9 @@ compile else
                endif
                if listbox_buffer_from_file(shell_fileid, bufhndl, noflines, usedsize) then return; endif
                parse value listbox(shell_title,
-  compile if 0 --POWERPC
-                                   \0 || atol(usedsize) || atol(bufhndl+32),
-  compile elseif EPM32
                                    \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
-  compile else
-                                   \0 || atoi(usedsize) || atoi(bufhndl) || atoi(32),
-  compile endif -- EPM32
                                    '/'OK__MSG'/'EDIT__MSG'/'Cancel__MSG, 1, 35, min(noflines,12), 0,
-  compile if EVERSION >= 5.60
                                    gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(0000)) with button 2 text \0
-  compile else
-                                   atoi(1) || atoi(1) || atoi(0000) || gethwndc(APP_HANDLE)) with button 2 text \0
-  compile endif
                call buffer(FREEBUF, bufhndl)
                if button=\2 then -- 'Edit' selected
                   Shell_lastwrite = text
@@ -228,7 +205,6 @@ compile else
             if button<>\1 then return; endif
             leave
          enddo
-compile endif  -- EVERSION < 5.21
       endif  -- text = ''
 ;     if text='' then return; endif
       if text<>'' then Shell_lastwrite = text; endif
@@ -287,34 +263,20 @@ defc NowCanReadShell
 defproc SUE_new(var shell_handle, shellnum)     -- Called from Shell command
    thandle = '????';
 ;; sayerror "address=0x" || ltoa(taddr, 16) || "  hwnd=0x"ltoa(hwnd, 16);
-compile if EPM32
    result  = dynalink32(ERES_DLL,
                        'SUE_new',
                        address(thandle)             ||
                        gethwndc(EPMINFO_EDITCLIENT) ||
                        atol(shellnum) );
-compile else
-   result  = dynalink(ERES_DLL,
-                      'SUE_NEW',
-                      address(thandle) ||
-                      gethwnd(EPMINFO_EDITCLIENT) ||
-                      atol_swap(shellnum) );
-compile endif
    shell_handle = thandle;
    return result;
 
 -------------------------------------------------------------SUE_free--------------------
 defproc SUE_free(var shell_handle)     -- Called from Shell_Kill command
    thandle = shell_handle;
-compile if EPM32
    result  = dynalink32(ERES_DLL,
                        'SUE_free',
                        address(thandle) )
-compile else
-   result  = dynalink(ERES_DLL,
-                      'SUE_FREE',
-                      address(thandle) )
-compile endif
    shell_handle = thandle;
    return result;
 
@@ -322,22 +284,12 @@ compile endif
 defproc SUE_readln(shell_handle, var buffe, var bytesmoved)  -- Called from NowCanReadShell cmd
    bufstring = buffe;  -- just to insure the same amount of space is available
    bm        = "??"
-compile if EPM32
    result  = dynalink32(ERES_DLL,
                         'SUE_readln',
                         shell_handle               ||
                         address(bufstring)         ||
                         atol(length(bufstring))    ||
                         address(bm))
-compile else
-   result  = dynalink(ERES_DLL,
-                      'SUE_READLN',
-                      substr(shell_handle, 3, 2) ||
-                      substr(shell_handle, 1, 2) ||
-                      address(bufstring)         ||
-                      atoi(length(bufstring))    ||
-                      address(bm) );
-compile endif
    bytesmoved = itoa(bm,10);
    buffe     = bufstring;
    return result;
@@ -345,25 +297,15 @@ compile endif
 -------------------------------------------------------------SUE_write-------------------
 defproc SUE_write(shell_handle, buffe, var bytesmoved)   -- Called from Shell_Write command
    bm        = "??"
-compile if EPM32
    result  = dynalink32(ERES_DLL,
                         'SUE_write',
                         shell_handle                     ||
                         address(buffe)                   ||
                         atol(length(buffe))              ||
                         address(bm))
-compile else
-   result  = dynalink(ERES_DLL,
-                      'SUE_WRITE',
-                      substr(shell_handle, 3, 2) || substr(shell_handle, 1, 2) ||
-                      address(buffe) ||
-                      atoi(length(buffe)) ||
-                      address(bm) );
-compile endif
    bytesmoved = itoa(bm, 10);
    return result;
 
-compile if EPM32 & not POWERPC
 -------------------------------------------------------------Shell_Break-----------------
 defc shell_break  -- Sends a Break to a shell object
    universal EPM_utility_array_ID
@@ -387,4 +329,3 @@ defproc SUE_break(shell_handle)
    return dynalink32(ERES_DLL,
                      'SUE_break',
                      shell_handle )
-compile endif
