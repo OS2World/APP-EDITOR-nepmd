@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.2 2002-08-07 22:08:39 cla Exp $
+* $Id: epmcall.c,v 1.3 2002-08-09 16:15:39 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,6 +36,238 @@
 #define QUEUENAMEBASE "\\QUEUES\\EPMCALL\\"
 
 // -----------------------------------------------------------------------------
+PSZ ExpandEnvVar( PSZ pszStr)
+{
+         PSZ      pszResult = NULL;
+
+         PSZ      pszNewValue;
+
+         PSZ      pszStartPos;
+         PSZ      pszEndPos;
+
+         CHAR     szVarName[ 128];
+         ULONG    ulNameLen;
+         PSZ      pszVarValue;
+
+         PSZ      pszNewResult;
+         ULONG    ulNewResultLen;
+
+static   CHAR     chDelimiter = '%';
+
+do
+   {
+   // check parms
+   if (!pszStr)
+      break;
+
+   // create a copy
+   pszResult = strdup( pszStr);
+   if (!pszResult)
+      break;
+
+   // maintain the copy
+   pszStartPos = strchr( pszResult, chDelimiter);
+   while (pszStartPos)
+      {
+      // find end
+      pszEndPos = strchr( pszStartPos + 1, chDelimiter);
+
+      // no end found, cut of to end of string
+      if (!pszEndPos)
+         {
+         *pszStartPos = 0;
+         break;
+         }
+      else
+         {
+         // isolate name
+         ulNameLen = pszEndPos - pszStartPos - 1;
+         memcpy( szVarName, pszStartPos + 1, ulNameLen);
+         szVarName[ ulNameLen] = 0;
+
+
+         // first of all, elimintate the variable
+         strcpy( pszStartPos, pszEndPos + 1);
+
+         // get value
+         pszVarValue = getenv( szVarName);
+         if (pszVarValue)
+            {
+            // embedd new value
+            pszNewResult = malloc( strlen( pszResult) + 1 + strlen( pszVarValue));
+            if (pszNewResult)
+               {
+               strcpy( pszNewResult, pszResult);
+               strcpy( pszNewResult + (pszStartPos - pszResult), pszVarValue);
+               strcat( pszNewResult, pszStartPos);
+               free( pszResult);
+               pszResult = pszNewResult;
+               }
+            }
+
+         }
+
+      // next var please
+      pszStartPos = strchr( pszResult, chDelimiter);
+      }
+
+
+   } while (FALSE);
+
+return pszResult;
+}
+
+// -----------------------------------------------------------------------------
+APIRET GetExtendedEnvironment( PSZ envv[], PSZ pszEnvFile, PSZ *ppszNewEnv)
+{
+         APIRET         rc  = NO_ERROR;
+
+         PSZ           *ppszEnv;
+         PSZ            pszVar;
+
+         ULONG          ulEnvSize;
+         PSZ            pszEnv = NULL;
+
+         FILESTATUS3    fs3;
+         ULONG          ulFileSize;
+         PSZ            pszData = NULL;
+         HFILE          hfile = NULLHANDLE;
+         ULONG          ulAction;
+         ULONG          ulBytesRead;
+
+         PSZ            pszLine;
+         PSZ            pszNewLine;
+static   PSZ            pszDelimiters = "\r\n";
+
+do
+   {
+   // check parms
+   if ((!pszEnvFile) ||
+       (!envv))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // check file
+   if (FileExists( pszEnvFile))
+      {
+      // get memory
+      rc = DosQueryPathInfo( pszEnvFile, FIL_STANDARD, &fs3, sizeof( fs3));
+      if (rc != NO_ERROR)
+         break;
+      ulFileSize = fs3.cbFile;
+      pszData = malloc( ulFileSize + 1);
+      if (!pszData)
+         {
+         rc = ERROR_NOT_ENOUGH_MEMORY;
+         break;
+         }
+      memset( pszData, 0, ulFileSize + 1);
+
+
+      // read file
+      rc = DosOpen( pszEnvFile, &hfile, &ulAction, 0, 0,
+                    OPEN_ACTION_FAIL_IF_NEW | OPEN_ACTION_OPEN_IF_EXISTS,
+                    OPEN_ACCESS_READONLY | OPEN_SHARE_DENYWRITE,
+                    NULL);
+      if (rc != NO_ERROR)
+         break;
+
+      rc = DosRead( hfile, pszData, ulFileSize, &ulBytesRead);
+      if (rc != NO_ERROR)
+         break;
+      if (ulFileSize != ulBytesRead)
+         {
+         rc = ERROR_READ_FAULT;
+         break;
+         }
+
+      // go through all lines
+      pszLine = strtok( pszData, pszDelimiters);
+      while (pszLine)
+         {
+         do
+            {
+            // skip line without equal sign: no env set here
+            if (!strchr( pszLine, '='))
+               break;
+
+            // skip comment lines
+            if (*pszLine == ':')
+               break;
+
+            // add line to env
+            pszNewLine = ExpandEnvVar( pszLine);
+            if (pszNewLine)
+               {
+               putenv( pszNewLine);
+               DPRINTF(( "addenv: \"%s\"\n", pszNewLine));
+               }
+            else
+               DPRINTF(( "ERROR: cannot expand \"%s\"\n", pszLine));
+
+            } while (FALSE);
+
+
+         // next please
+         pszLine = strtok( NULL, pszDelimiters);
+         }
+
+      }
+
+   // get size of env provided
+   ppszEnv = envv;
+   ulEnvSize = 0;
+   while (*ppszEnv)
+      {
+      ulEnvSize += strlen( *ppszEnv) + 1;
+      ppszEnv++;
+      }
+   ulEnvSize += 1;
+
+   // get memory
+   pszEnv = malloc( ulEnvSize);
+   if (!pszEnv)
+      {
+      rc = ERROR_NOT_ENOUGH_MEMORY;
+      break;
+      }
+   memset( pszEnv, 0x0, ulEnvSize);
+
+   // read env into memory block
+   pszVar = pszEnv;
+   ppszEnv = envv;
+   while (*ppszEnv)
+      {
+      // copy var
+      // DPRINTF(( "env: %s\n", *ppszEnv));
+      strcpy( pszVar, *ppszEnv);
+
+      // copy next var
+      pszVar = NEXTSTR( pszVar);
+      ppszEnv++;
+
+      }
+   *pszVar = 0;
+
+   // hand over result
+   *ppszNewEnv = pszEnv;
+
+   } while (FALSE);
+
+
+// cleanup on error
+if (rc)
+   if (pszEnv) free( pszEnv);
+
+// cleanup
+if (hfile) DosClose( hfile);
+if (pszData) free( pszData);
+return rc;
+}
+
+// -----------------------------------------------------------------------------
 
 APIRET SearchEPMExecutable( PSZ pszExecutable, ULONG ulBuflen)
 {
@@ -53,9 +285,13 @@ APIRET SearchEPMExecutable( PSZ pszExecutable, ULONG ulBuflen)
 
 do
    {
-   // get name of own module
-   DosGetInfoBlocks( &ptib,&ppib);
-   DosQueryModuleName( ppib->pib_hmte, sizeof( szThisModule), szThisModule);
+   // check parms
+   if ((!pszExecutable) ||
+       (!ulBuflen))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
 
    // check env
    if (!pszPath)
@@ -63,6 +299,10 @@ do
       rc = ERROR_ENVVAR_NOT_FOUND;
       break;
       }
+
+   // get name of own module
+   DosGetInfoBlocks( &ptib,&ppib);
+   DosQueryModuleName( ppib->pib_hmte, sizeof( szThisModule), szThisModule);
 
    // create copy to allow modification
    pszCopy = strdup( pszPath);
@@ -124,19 +364,19 @@ APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
 {
          APIRET         rc  = NO_ERROR;
          ULONG          i;
+         PSZ            pszEnv = NULL;
 
          PPIB           ppib;
          PTIB           ptib;
 
          PID            pid;
          ULONG          ulSession;
-         STARTDATA      sd;
+         STARTDATA      startdata;
 
-         PSZ            pszComspec = getenv( "COMSPEC");
 
          CHAR           szProgramName[ _MAX_PATH];
          CHAR           szProgramArgs[ _MAX_PATH * 4];
-         CHAR           szBatchName[ _MAX_PATH];
+         CHAR           szEnvName[ _MAX_PATH];
          CHAR           szEnv[ _MAX_PATH * 4];
 
          CHAR           szTermQueueName[ 260 ];
@@ -173,18 +413,17 @@ do
    if (rc != NO_ERROR)
       break;
 
-   // check for env batchfile
-   // get name of own module
+   // get extended environment
    DosGetInfoBlocks( &ptib,&ppib);
-   DosQueryModuleName( ppib->pib_hmte, sizeof( szBatchName), szBatchName);
-   strcpy( strrchr( szBatchName, '\\'), "\\EPM_ENV.CMD");
-   // DPRINTF(( "EPMCALL: batchfile is %s\n", szBatchName));
+   DosQueryModuleName( ppib->pib_hmte, sizeof( szEnvName), szEnvName);
+   strcpy( strrchr( szEnvName, '.'), ".ENV");
+   DPRINTF(( "EPMCALL: envfile is %s\n", szEnvName));
+   rc = GetExtendedEnvironment(  envv, szEnvName,&pszEnv);
+   if (rc != NO_ERROR)
+      break;
 
    // concatenate parms
-   sprintf( szProgramArgs,
-            "/C call %s & start %s ",
-            szBatchName,
-            szProgramName);
+   szProgramArgs[ 0] = 0;
    for (i = 1; i < argc; i++)
       {
                PSZ            pszMask;
@@ -198,21 +437,20 @@ do
       sprintf( _EOS( szProgramArgs), pszMask, argv[ i]);
       }
 
-   // start program
-   memset( &sd, 0, sizeof( sd));
-   sd.Length      = sizeof( sd);
-   sd.Related     = SSF_RELATED_CHILD;
-   sd.FgBg        = SSF_FGBG_FORE;
-   sd.InheritOpt  = SSF_INHERTOPT_PARENT;
-   sd.SessionType = SSF_TYPE_PM;
-   sd.PgmControl  = SSF_CONTROL_INVISIBLE;
-   sd.PgmName     = pszComspec;
-   sd.PgmInputs   = szProgramArgs;
-   sd.TermQ       = szTermQueueName;
+   // start program - fill STARTDATA
+   memset( &startdata, 0, sizeof( startdata));
+   startdata.Length      = sizeof( startdata);
+   startdata.Related     = SSF_RELATED_CHILD;
+   startdata.InheritOpt  = SSF_INHERTOPT_PARENT;
+   startdata.SessionType = SSF_TYPE_PM;
+   startdata.FgBg        = SSF_FGBG_FORE;
+   startdata.PgmName     = szProgramName;
+   startdata.PgmInputs   = szProgramArgs;
+   startdata.TermQ       = szTermQueueName;
+   startdata.Environment = pszEnv;
 
-   DPRINTF(( "call: %s\n   %s\n", sd.PgmName, sd.PgmInputs));
-
-   rc = DosStartSession( &sd, &ulSession, &pid);
+   rc = DosStartSession( &startdata, &ulSession, &pid);
+   DPRINTF(( "call: %s\n   %s\nrc=%u\n", startdata.PgmName, startdata.PgmInputs, rc));
    if ((rc != NO_ERROR) && (rc != ERROR_SMG_START_IN_BACKGROUND))
       break;
 
@@ -233,12 +471,15 @@ do
    // return rc from child
    // BUG: seems to be always NO_ERROR (rc=0)
    rc = presc->codeResult;
+   DPRINTF(( "session result: %u\n", rc));
 
    } while (FALSE);
 
-DPRINTF(( "start session result: %u\n", rc));
+// cleanup
+if (pszEnv) free( pszEnv);
 return rc;
 }
+
 
 // -----------------------------------------------------------------------------
 
