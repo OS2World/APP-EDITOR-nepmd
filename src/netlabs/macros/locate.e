@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.2 2002-10-16 05:20:04 aschn Exp $
+* $Id: locate.e,v 1.3 2002-10-17 16:48:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -184,7 +184,9 @@ compile endif
 /* on ALL the files in the ring.  Very useful when I'm editing several*/
 /* small program modules and I want to find where something's defined.*/
 
-def c_g = 'GlobalFind'
+-- Changed to Ctrl+V, because Ctrl+G is already used for the 'ring_more' command
+
+def c_v = 'GlobalFind'
 
 defc globalfind, gfind, globallocate, glocate, gl
    universal search_len
