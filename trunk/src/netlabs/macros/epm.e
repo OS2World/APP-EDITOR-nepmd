@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.26 2004-06-29 22:56:24 aschn Exp $
+* $Id: epm.e,v 1.27 2004-07-02 08:14:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -100,7 +100,6 @@ compile endif
 
 compile if MOUSE_SUPPORT = 1
    include     'mouse.e'       -- Mouse definition, only for EPM.
-   include     'popup.e'       -- Popup menu.
 compile else
    defc processmouse = sayerror 'Mouse support missing.'
 compile endif
@@ -135,7 +134,7 @@ compile endif
 include        'edit.e'        -- Edit commands, must come after E3EMUL.E if activated.
 include        'mode.e'        -- Mode selection and basic mode defs
 include        'modecnf.e'     -- Definitions for mode dependent settings
-include        'modeexec.e'    -- Executing user-configurable mode dependent settings
+include        'modeexec.e'    -- Definitions for user-configurable mode dependent settings
 
 include        'stdcmds.e'     -- Standard commands (DEFC's).
                                -- (Edit cmd uses variables defined in host routines.)
@@ -208,8 +207,6 @@ compile if not LINK_MENU       -- New standard is to link a menu file in order t
  compile endif
 compile endif  -- not LINK_MENU
 
-include        'dict.e'        -- Select dictionaries
-
 tryinclude     'clipbrd.e'     -- Clipboard interface and mark <--> buffer routines
 compile if WANT_BOOKMARKS = 1
    include     'bookmark.e'    -- Set and find bookmarks
@@ -249,7 +246,6 @@ compile endif
 
 compile if WANT_EPM_SHELL
    include     'epmshell.e'    -- EPM shell
-;   tryinclude  'shellkram.e'   -- Joerg Tiemann's Shellkram
 compile endif
 
 compile if WANT_KEYWORD_HELP = 1
