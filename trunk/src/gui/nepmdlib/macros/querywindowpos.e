@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querywindowpos.e,v 1.4 2002-09-07 13:41:19 cla Exp $
+* $Id: querywindowpos.e,v 1.5 2002-09-08 19:09:07 cla Exp $
 *
 * ===========================================================================
 *
@@ -45,11 +45,6 @@ defined in *stdconst.e*:
 - EPMINFO__EDITORVSCROLL - 9
 - EPMINFO__EDITORHSCROLL - 10
 - EPMINFO__EDITMENUHWND - 17
-
-[=NOTE]
-.ul compact
-- Do not specify other values than these, otherwise the internal function
-  gethwndc() may generate an error message with sayerror
 
 @@NepmdQueryWindowPos@RETURNS
 *NepmdQueryWindowPos* returns either
