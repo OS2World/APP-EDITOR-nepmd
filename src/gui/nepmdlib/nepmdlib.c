@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.24 2002-09-03 10:30:48 cla Exp $
+* $Id: nepmdlib.c,v 1.25 2002-09-03 12:26:23 cla Exp $
 *
 * ===========================================================================
 *
@@ -670,6 +670,50 @@ rc = ReadStringEa( pszFileName, pszEaName, pszBuffer, &ulBuflen);
 return _getRexxError( rc, pszBuffer, ulBuflen);
 
 }
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdScanEnv( PSZ pszEnvName, PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         PSZ            pszResult;
+
+do
+   {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
+   // check parms
+   if ((!pszEnvName)  ||
+       (!*pszEnvName) ||
+       (!pszBuffer))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // query value
+   rc = DosScanEnv( pszEnvName, &pszResult);
+   if (rc != NO_ERROR)
+      break;
+
+   // check result buffer
+   if (strlen( pszResult) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszBuffer, pszResult);
+
+   } while (FALSE);
+
+return _getRexxError( rc, pszBuffer, ulBuflen);
+
+}
+
 // ------------------------------------------------------------------------------
 
 APIRET EXPENTRY NepmdSearchPath( PSZ pszFilename, PSZ pszEnvVarName, PSZ pszBuffer, ULONG ulBuflen)
