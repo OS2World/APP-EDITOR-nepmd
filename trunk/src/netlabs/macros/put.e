@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: put.e,v 1.2 2002-07-22 19:01:33 cla Exp $
+* $Id: put.e,v 1.3 2002-08-19 23:33:00 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -21,23 +21,22 @@
 ;  For linking version, PUT can be an external module.
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately
- define INCLUDING_FILE = 'PUT.E'
+define INCLUDING_FILE = 'PUT.E'
+const
    tryinclude 'MYCNF.E'        -- the user's configuration customizations.
 
  compile if not defined(SITE_CONFIG)
-    const SITE_CONFIG = 'SITECNF.E'
+const SITE_CONFIG = 'SITECNF.E'
  compile endif
  compile if SITE_CONFIG
-    tryinclude SITE_CONFIG
+   tryinclude SITE_CONFIG
  compile endif
 
  compile if not defined(NLS_LANGUAGE)
-  const NLS_LANGUAGE = 'ENGLISH'
+const NLS_LANGUAGE = 'ENGLISH'
  compile endif
-include NLS_LANGUAGE'.e'
- compile if EVERSION >= 6
+   include NLS_LANGUAGE'.e'
    EA_comment 'This defines the PUT command; it can be linked, or executed directly.'
- compile endif
 compile endif
 
 defmain     -- External modules always start execution at DEFMAIN.
@@ -63,12 +62,10 @@ defc app, append, put =
       stop
    endif
    is_console = upcase(app_file)='CON' | upcase(app_file)='CON:'
-compile if EVERSION > 5
    if is_console then
       sayerror NO_CONSOLE__MSG
       return
    endif
-compile endif
    getfileid fileid
    if marktype() then
       had_mark = 1
@@ -112,13 +109,7 @@ compile endif
    error_saving=0
    /* If the app_file was already in memory, don't file it. */
    if is_printer or is_console or not already_in_ring then
-compile if EVERSION < 5
-      if is_console then pause; endif
-compile endif
       'save' options
-compile if EVERSION < 5
-      if is_console then pause; endif
-compile endif
       error_saving=rc
       activatefile tempofid; tempofid.modify=0; 'q'
    endif
@@ -128,12 +119,6 @@ compile endif
    else
       unmark
    endif
-compile if EVERSION < 5
-   if not error_saving then
-      sayerror MARK_APPENDED__MSG app_file
-   endif
-compile else
    refresh
    -- call settitletext(.filename) /* done internally */
    call repaint_window()
-compile endif
