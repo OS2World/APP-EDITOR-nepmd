@@ -1,3 +1,23 @@
+/****************************** Module Header *******************************
+*
+* Module Name: ovshmenu.e
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: ovshmenu.e,v 1.2 2002-07-22 19:01:25 cla Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
 ; This is an example of providing an alternate to STDMENU.E.  The name of the
 ; alternate menu must be defined in MYCNF.E:  STD_MENU_NAME = 'ovshmenu.e'
 ; The alternate menu must provide the following commands, which are called

@@ -1,3 +1,23 @@
+/****************************** Module Header *******************************
+*
+* Module Name: stdcnf.e
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: stdcnf.e,v 1.2 2002-07-22 19:02:13 cla Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
 /* New way to configure E. In response to the requests of many users, we have
    changed things so that it is no longer required that you modify this file
    in order to reconfigure E. An optional MYCNF file is included before this

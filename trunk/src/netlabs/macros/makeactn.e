@@ -1,3 +1,23 @@
+/****************************** Module Header *******************************
+*
+* Module Name: makeactn.e
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: makeactn.e,v 1.2 2002-07-22 19:00:56 cla Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
 ; This is a Toolbar Actions file.  You add a line to your ACTIONS.LST:
 ;    makeactn
 ; to indicate that this should be invoked to build the list of defined

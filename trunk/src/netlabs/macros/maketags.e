@@ -1,3 +1,23 @@
+/****************************** Module Header *******************************
+*
+* Module Name: maketags.e
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: maketags.e,v 1.2 2002-07-22 19:01:00 cla Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately
  define INCLUDING_FILE = 'MAKETAGS.E'
 const
