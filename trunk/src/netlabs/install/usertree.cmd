@@ -10,7 +10,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: usertree.cmd,v 1.6 2002-10-18 19:07:00 cla Exp $
+* $Id: usertree.cmd,v 1.7 2002-11-04 20:57:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -38,17 +38,30 @@
  call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
  call SysLoadFuncs;
 
+ FolderId      = '<NEPMD_FOLDER>';
+ ObjectIdStart = '<NEPMD_';
+ ObjectIdEnd   = '_SHADOW>';
+
+
  /* get the base directory of the NEPMD installation */
  PARSE Source . . CallName;
  CallDir    = LEFT( CallName,   LASTPOS( '\', CallName) - 1);
  NetlabsDir = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1);
  BaseDir    = LEFT( NetlabsDir, LASTPOS( '\', NetlabsDir) - 1);
 
+ /* create MYEPM shadow in NEPMD folder */
+ FullPath = BaseDir'\'UserDirName;
+ rcx = SysMkDir( FullPath);
+ ObjectId = ObjectIdStart''TRANSLATE( UserDirName)''ObjectIdEnd;
+ rcx = SysCreateObject( 'WPShadow', '.', FolderId, 'SHADOWID='FullPath';OBJECTID='ObjectId';', 'U');
+ rcx = SysSetObjectData( FullPath, 'DEFAULTVIEW=TREE;');
+
  /* create directories here - ignore errors */
- rcx = SysMkDir( BaseDir'\'UserDirName);
  DO WHILE (UserDirList \= '')
     PARSE VAR UserDirList ThisDir UserDirList;
-    rcx = SysMkDir( BaseDir'\'UserDirName'\'ThisDir);
+    FullPath = BaseDir'\'UserDirName'\'ThisDir;
+    rcx = SysMkDir( FullPath);
+    rcx = SysSetObjectData( FullPath, 'DEFAULTVIEW=ICON;');
  END;
 
  EXIT( 0);
