@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: startapache.cmd,v 1.6 2003-09-19 10:10:54 cla Exp $
+* $Id: startapache.cmd,v 1.7 2003-09-19 10:11:35 cla Exp $
 *
 * ===========================================================================
 *
@@ -79,7 +79,7 @@
        LEAVE;
 
     /* debug with gfc */
-       'call gfc' ConfigSource ConfigTmp;
+    /* 'call gfc' ConfigSource ConfigTmp; */
 
     /* startup server */
     rcx = DIRECTORY( Apache._Dir);
