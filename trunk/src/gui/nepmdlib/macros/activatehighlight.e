@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: activatehighlight.e,v 1.2 2002-09-22 21:44:12 cla Exp $
+* $Id: activatehighlight.e,v 1.3 2002-09-22 22:23:08 cla Exp $
 *
 * ===========================================================================
 *
@@ -91,7 +91,7 @@ defc NepmdActivateHighlight, ActivateHighlight =
     return;
  endif
 
- sayerror 'syntax highlighting was' NewStatus 'successfully. ('ActivateFlag')';
+ sayerror 'syntax highlighting was' NewStatus 'successfully.';
 
  return;
 
