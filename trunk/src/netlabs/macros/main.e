@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.22 2004-02-28 15:32:56 aschn Exp $
+* $Id: main.e,v 1.23 2004-02-29 17:23:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -85,6 +85,8 @@ compile endif
    universal unnamedfilename
    universal defmainprocessed
    universal defloadprocessed
+   universal firstloadedfid  -- first file for the 'xcom e /n' cmd
+   universal firstinringfid  -- first file in the ring
 
    should_showwindow = 1  -- Lets cmdline commands inhibit the SHOWWINDOW.
 
@@ -210,13 +212,17 @@ compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
 compile endif
             'xcom e /n'
             getfileid newfid
+            -- Set the universal vars to make afterload happy.
+            -- At this point they are initialized to unnamedfid.
+            firstloadedfid = newfid
+            firstinringfid = newfid -- first file in the ring
 compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
             call NepmdPmPrintf( 'DEFMAIN: now filesinring = 'filesinring())
 compile endif
          endif
          -- Get rid of the automatically created empty file
 compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
-         call NepmdPmPrintf( 'DEFMAIN: quit internally loaded empty file...')
+         call NepmdPmPrintf( 'DEFMAIN: quit internally loaded empty file... unnamedfid = 'unnamedfid)
 compile endif
          activatefile unnamedfid
          'xcom q'
@@ -228,6 +234,9 @@ compile endif
       next_file
    enddo
 
+compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE and NEPMD_DEBUG
+   call NepmdPmPrintf( 'DEFMAIN: activating newfid = 'newfid', filename = 'newfid.filename)
+compile endif
    activatefile newfid
 
 ; --- Automatically link .ex files from myepm\autolink ----------------------
