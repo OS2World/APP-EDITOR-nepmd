@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.19 2003-09-01 02:58:52 aschn Exp $
+* $Id: stdmenu.e,v 1.20 2004-02-29 17:04:32 aschn Exp $
 *
 * ===========================================================================
 *
@@ -59,7 +59,7 @@ compile if RING_OPTIONAL
 compile endif
    buildsubmenu menuname, 2, FILE_BAR__MSG, FILE_BARP__MSG, 0 , mpfrom2short(HP_FILE, 0)
       buildmenuitem menuname, 2, 198, NEW_MENU__MSG,            'NEW'NEW_MENUP__MSG,     0, mpfrom2short(HP_FILE_NEW, 0)
-      buildmenuitem menuname, 2, 199, OPEN_NEW_MENU__MSG,       'OPEN'OPEN_NEW_MENUP__MSG,     0, mpfrom2short(HP_FILE_OPEN_NEW, 0)
+      buildmenuitem menuname, 2, 199, OPEN_NEW_MENU__MSG,       "OPEN ''"OPEN_NEW_MENUP__MSG,     0, mpfrom2short(HP_FILE_OPEN_NEW, 0)
       buildmenuitem menuname, 2, 200, OPEN_MENU__MSG\9 || CTRL_KEY__MSG'+O', 'OPENDLG'OPEN_MENUP__MSG,          0, mpfrom2short(HP_FILE_OPEN, 0)
       buildmenuitem menuname, 2, 201, GET_MENU__MSG,            'OPENDLG GET'GET_MENUP__MSG,      0, mpfrom2short(HP_FILE_GET , 0)
 compile if RING_OPTIONAL
