@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.8 2002-09-13 19:45:16 cla Exp $
+* $Id: libreg.c,v 1.9 2002-09-15 14:16:18 cla Exp $
 *
 * ===========================================================================
 *
@@ -84,9 +84,14 @@ return pszResult;
 
 // -----------------------------------------------------------------------------
 
-static PSZ _searchStrInStrList( PSZ pszzStr, PSZ pszSearch)
+#define SEARCH_STRING      0
+#define SEARCH_INSERTPOS   1
+
+static PSZ _searchPosInStrList( PSZ pszzStr, PSZ pszSearch, ULONG ulInsertType)
 {
          PSZ            pszResult = NULL;
+         LONG           lResult;
+
 do
    {
    // quit on empty string
@@ -97,8 +102,44 @@ do
    pszResult = pszzStr;
    while (*pszResult)
       {
-      if (!strcmp( pszResult, pszSearch))
-         break;
+      if (ulInsertType == SEARCH_STRING)
+         {
+         lResult = strcmp( pszResult, pszSearch);
+         // break on equal strings only
+         if (!lResult)
+            break;
+
+         // break if entry is greater than search string anyway
+         // since the searched entry cannot come after that
+         if (lResult > 0)
+            {
+            DPRINTF(( "LIBREG: skip search: %s %s: %i\n", pszResult, pszSearch, lResult));
+            pszResult = pszResult + strlen( pszResult);
+            break;
+            }
+
+         }
+      else if (ulInsertType == SEARCH_INSERTPOS)
+         {
+         // compare strings case insensitive
+         // Value             Meaning 
+         // Less than 0       string1 less than string2 
+         // 0                 string1 identical to string2 
+         // Greater than 0    string1 greater than string2. 
+
+         lResult = stricmp( pszResult, pszSearch);
+         DPRINTF(( "LIBREG: diff: %s %s: %i\n", pszResult, pszSearch, lResult));
+
+         // only if strings are equal, compare also case sensitive
+         // - this places uppercase before lowercase
+         if (!lResult)
+            lResult = strcmp( pszResult, pszSearch);
+
+         // break if string in list comes after search
+         // string - this is the insert position
+         if (lResult > 0)
+            break;
+         }
 
       pszResult = NEXTSTR( pszResult);
       }
@@ -108,30 +149,18 @@ do
 return pszResult;
 }
 
-// -----------------------------------------------------------------------------
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+static PSZ _searchStrInStrList( PSZ pszzStr, PSZ pszSearch)
+{
+return _searchPosInStrList( pszzStr, pszSearch, SEARCH_STRING);
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 static PSZ _searchInsertPosInStrList( PSZ pszzStr, PSZ pszSearch)
 {
-         PSZ            pszResult = NULL;
-do
-   {
-   // quit on empty string
-   if ((!pszzStr) || (!pszSearch))
-      break;
-
-   // search string in zz string list
-   pszResult = pszzStr;
-   while (*pszResult)
-      {
-      if (stricmp( pszResult, pszSearch) > 0)
-         break;
-
-      pszResult = NEXTSTR( pszResult);
-      }
-
-   } while (FALSE);
-
-return pszResult;
+return _searchPosInStrList( pszzStr, pszSearch, SEARCH_INSERTPOS);
 }
 
 #ifdef UNSUSED
