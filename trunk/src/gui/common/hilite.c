@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.10 2002-09-25 14:46:29 cla Exp $
+* $Id: hilite.c,v 1.11 2002-09-25 21:17:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -369,6 +369,9 @@ do
    // read the key list
    QUERYINITVALUE( hinit, pszSection, NULL, szKeyList);
 
+// if (pva)
+//    DPRINTF(( "\nmaintaining symbols array at 0x%08x:\n", pva));
+
    // count items and its size
    ulBuflen = sizeof( VALUEARRAY);
    ulKeyCount = 0;
@@ -419,10 +422,13 @@ do
       pszKey = szKeyList;
       while (*pszKey)
          {
-         // 
+         // can entry be found in old array ? if yes, mark it as deleted
          ppszOldAnchor = bsearch( &pszKey, pva->apszValue, pva->ulCount, sizeof( PSZ), _compareValue);
          if (ppszOldAnchor)
+            {
+//          DPRINTF(( "HILITE: delete entry %s\n", *ppszOldAnchor));
             **ppszOldAnchor = 0;
+            }
 
          // next key
          pszKey = NEXTSTR( pszKey);
@@ -439,15 +445,29 @@ do
          // store entry
          pszOldEntry = *ppszOldAnchor;
          if (!*pszOldEntry)
+            {
+            // skip this entry, it has beeen deleted
+            ppszAnchor--;
             continue;
+            }
+
+//       DPRINTF(( "HILITE: transfer entry 0x%08x / 0x%08x: %s - %s\n",
+//                 pszOldEntry, NEXTSTR( pszOldEntry),
+//                 pszOldEntry, NEXTSTR( pszOldEntry)));
 
          *ppszAnchor = pszEntry;
          strcpy( pszEntry, pszOldEntry);
+
+//       DPRINTF(( "HILITE:      new entry 0x%08x / 0x%08x: %s - ",
+//                 pszEntry, NEXTSTR( pszEntry), pszEntry));
 
          pszEntry = NEXTSTR( pszEntry);
          pszOldEntry = NEXTSTR( pszOldEntry);
 
          strcpy( pszEntry, pszOldEntry);
+//       DPRINTF(( "%s\n", pszEntry));
+
+         pszEntry = NEXTSTR( pszEntry);
          }
       }
 
@@ -460,9 +480,10 @@ do
       *ppszAnchor = pszEntry;
 
       strcpy( pszEntry, pszKey);
+      QUERYINITVALUE( hinit, pszSection, pszKey, szKeyValue);
+//    DPRINTF(( "HILITE: add entry %s - %s\n", pszEntry, szKeyValue));
       pszEntry = NEXTSTR( pszEntry);
 
-      QUERYINITVALUE( hinit, pszSection, pszKey, szKeyValue);
       strcpy( pszEntry, szKeyValue);
       pszEntry = NEXTSTR( pszEntry);
 
@@ -519,14 +540,17 @@ static VOID _dumpInitValueArray( PVALUEARRAY pva)
          PSZ            pszEntry;
          ULONG          i;
 
-printf( "\n\nSymbols from array at 0x%08x:\n", pva);
+printf( "\nSymbols from array at 0x%08x:\n", pva);
 
 for (i = 0; i < pva->ulCount; i++)
    {
    pszEntry =  *ppszEntry;
-   printf( "-> %s %s\n", *ppszEntry, NEXTSTR( *ppszEntry));
+   printf( "-> 0x%08x / 0x%08x: %s %s\n",
+           *ppszEntry, NEXTSTR( *ppszEntry),
+           *ppszEntry, NEXTSTR( *ppszEntry));
    ppszEntry++;
    }
+printf( "%u entries\n\n", i);
 }
 
 // #############################################################################
@@ -654,7 +678,7 @@ do
    if (rc != NO_ERROR)
       break;
 
-   pvaColors = _maintainInitValueArray( hinitGlobals, pszColorsSection, NULL);
+   pvaColors  = _maintainInitValueArray( hinitGlobals, pszColorsSection, NULL);
    pvaSymbols = _maintainInitValueArray( hinitGlobals, pszSymbolsSection, NULL);
 
 
@@ -670,12 +694,12 @@ do
 
    // -----------------------------------------------
 
-   _dumpInitValueArray( pvaSymbols);
+// _dumpInitValueArray( pvaSymbols);
 
    // add/replace with symbols from <mode>\global.ini
-// pvaSymbols = _maintainInitValueArray( hinitDefault, pszSymbolsSection, pvaSymbols);
+   pvaSymbols = _maintainInitValueArray( hinitDefault, pszSymbolsSection, pvaSymbols);
 
-   _dumpInitValueArray( pvaSymbols);
+// _dumpInitValueArray( pvaSymbols);
 
    // -----------------------------------------------
 
