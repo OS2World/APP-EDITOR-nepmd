@@ -1,13 +1,13 @@
 /****************************** Module Header *******************************
 *
-* Module Name: fileexists.e
+* Module Name: filedelete.e
 *
 * .e wrapper routine to access the NEPMD library DLL.
 * include of nepmdlib.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fileexists.e,v 1.3 2002-09-02 14:59:27 cla Exp $
+* $Id: filedelete.e,v 1.1 2002-09-02 14:59:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -23,28 +23,25 @@
 ****************************************************************************/
 
 /*
-@@NepmdFileExists@PROTOTYPE
-fResult = NepmdFileExists( Filename);
+@@NepmdFileDelete@PROTOTYPE
+fResult = NepmdFileDelete( Filename);
 
-@@NepmdFileExists@CATEGORY@FILE
+@@NepmdFileDelete@CATEGORY@FILE
 
-@@NepmdFileExists@SYNTAX
-This function queries wether a file exists
+@@NepmdFileDelete@SYNTAX
+This function deletes a file.
 
-@@NepmdFileExists@PARM@Filename
-This parameter specifies the name of the file to be checked.
+@@NepmdFileDelete@PARM@Filename
+This parameter specifies the name of the file to be deleted.
 
-@@NepmdFileExists@RETURNS
-NepmdFileExists returns either
-.ul compact
-- *0* (zero), if the file does not exist  or
-- *1* , if the file exists
+@@NepmdFileDelete@RETURNS
+NepmdFileDelete returns an OS/2 error code or zero for no error.
 
-@@NepmdFileExists@REMARKS
-*NepmdFileExists* replaces the function *Exist* of *dosutil.e*.
+@@NepmdFileDelete@REMARKS
+*NepmdFileDelete* replaces the function *erasetemp* of *stdprocs.e*.
 
 For downwards compatibility the old function is still provided,
-but calls *NepmdFileExists*.
+but calls *NepmdFileDelete*.
 
 @@
 */
@@ -54,42 +51,42 @@ but calls *NepmdFileExists*.
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
 
-defc NepmdFileExists, FileExists =
+defc NepmdFileDelete, FileDelete =
 
  Filename = arg( 1);
- fResult = NepmdFileExists( Filename);
+ rc = NepmdFileDelete( Filename);
 
- if (fResult) then
-    StrResult = 'does';
+ if (rc = 0) then
+    StrResult = 'been deleted';
  else
-    StrResult = 'does not';
+    StrResult = 'not been deleted, rc='rc;
  endif
 
- sayerror 'file "'Filename'"' StrResult 'exist';
+ sayerror 'file "'Filename'" has' StrResult;
 
 /* ------------------------------------------------------------- */
-/* procedure: NepmdFileExists                                    */
+/* procedure: NepmdFileDelete                                    */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
-/*    fResult = NepmdFileExists( filename);                      */
+/*    rc = NepmdFileDelete( filename);        v                  */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdFileExists( PSZ pszFilename);           */
+/*  APIRET EXPENTRY NepmdFileDelete( PSZ pszFilename);           */
 /*                                                               */
 /* ------------------------------------------------------------- */
 
-defproc NepmdFileExists( Filename) =
+defproc NepmdFileDelete( Filename) =
 
  /* prepare parameters for C routine */
  Filename   = Filename''atoi( 0);
 
  /* call C routine */
  LibFile = getlibfile();
- fResult = dynalink32( LibFile,
-                       "NepmdFileExists",
-                        address( Filename));
+ rc = dynalink32( LibFile,
+                  "NepmdFileDelete",
+                  address( Filename));
 
- checkliberror( LibFile, fResult);
+ checkliberror( LibFile, rc);
 
- return fResult;
+ return rc;
 

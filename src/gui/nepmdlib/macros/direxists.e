@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: direxists.e,v 1.1 2002-09-02 12:18:18 cla Exp $
+* $Id: direxists.e,v 1.2 2002-09-02 14:59:26 cla Exp $
 *
 * ===========================================================================
 *
@@ -32,7 +32,7 @@ fResult = NepmdDirExists( Dirname);
 This function queries wether a directory exists
 
 @@NepmdDirExists@PARM@Dirname
-This parameter specifies the directory name.
+This parameter specifies the name of the directory to be checked.
 
 @@NepmdDirExists@RETURNS
 NepmdDirExists returns either
