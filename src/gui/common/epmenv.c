@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.12 2002-09-19 10:50:42 cla Exp $
+* $Id: epmenv.c,v 1.13 2002-09-19 11:14:55 cla Exp $
 *
 * ===========================================================================
 *
@@ -550,7 +550,6 @@ APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv, PSZ pszBuffer, UL
 {
          APIRET         rc  = NO_ERROR;
          ULONG          i;
-         BOOL           fEnvIsExtended = FALSE;
 
          CHAR           szMainEnvFile[ _MAX_PATH];
          CHAR           szUserEnvFile[ _MAX_PATH];
@@ -587,13 +586,6 @@ do
    // default to make no changes
    *ppszNewEnv = NULL;
 
-   // check if extended environment is already set
-   pszValue = getenv( ENV_NEPMD_USERENVFILE);
-   if ((!pszValue) || (!*pszValue))
-      pszValue = getenv( ENV_NEPMD_MAINENVFILE);
-   if ((pszValue) && (*pszValue))
-      fEnvIsExtended = TRUE;
-
    // search EPM executable in anyway
    rc = _searchEpmExecutable( szEpmExecutable,    sizeof( szEpmExecutable),
                               szLoaderExecutable, sizeof(  szLoaderExecutable));
@@ -612,8 +604,11 @@ do
       strcpy( pszBuffer, szEpmExecutable);
       }
 
-   // bail out here if environment is already extended
-   if (fEnvIsExtended)
+   // check if extended environment is already set
+   pszValue = getenv( ENV_NEPMD_USERENVFILE);
+   if ((!pszValue) || (!*pszValue))
+      pszValue = getenv( ENV_NEPMD_MAINENVFILE);
+   if ((pszValue) && (*pszValue))
       {
       DPRINTF(( "EPMENV: skip environment extension, already set with: %s\n", pszValue));
       break;
