@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.18 2004-02-22 19:50:02 aschn Exp $
+* $Id: stdcmds.e,v 1.19 2004-06-03 22:44:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,27 +19,9 @@
 *
 ****************************************************************************/
 
-/*
-Todo:
--  Shells: how to make the titlebar and statusline recognize that it's not modified?
--  Replace NEPMD_RESTORE_POS_FROM_EA and NEPMD_RESTORE_RING with ini keys.
--  'Save as' changes the mode and afterwards the cursor jumps to 0   <-- Not seen anymore
-*/
-
 ;
 ; STDCMDS.E            Alphabetized by command name.
 ;
-
-const
-compile if not defined(NEPMD_RESTORE_POS_FROM_EA)  --<------------------------------- Todo
-   -- used by defc s,save
-   NEPMD_RESTORE_POS_FROM_EA = 0
-compile endif
-compile if not defined(NEPMD_RESTORE_RING)         --<------------------------------- Todo
-   -- used by defc q,quit
-   NEPMD_RESTORE_RING = 0
-compile endif
-
 
 defc alter =
    parse value upcase(arg(1)) with c1 c2 cnt .
@@ -69,6 +51,7 @@ defc alter =
       sayerror -330 -- 'Invalid third parameter'
    endif
 
+; Moved file defs to FILE.E
 
 defc app, append =            -- With linking, PUT can be an external module.
    'put' arg(1)               -- Collect the names; the module is named PUT.EX.
@@ -80,62 +63,6 @@ defc asc=
       i=substr(line,.col,1)
    endif
    sayerror 'asc 'i'='asc(i)''
-
-
-defc autosave=
-   universal vAUTOSAVE_PATH
-compile if RING_OPTIONAL
-   universal ring_enabled
-compile endif
-   uparg=upcase(arg(1))
-   if uparg=ON__MSG then                  /* If only says AUTOSAVE ON,  */
-compile if DEFAULT_AUTOSAVE > 0
-      .autosave = DEFAULT_AUTOSAVE
-compile else
-      .autosave=10                     /* default is every 10 mods. */
-compile endif
-   elseif uparg=OFF__MSG then
-      .autosave = 0
-   elseif isnum(uparg) then            /* Check whether numeric argument. */
-      .autosave = uparg
-   elseif uparg='DIR' then
-      'dir' vAUTOSAVE_PATH
-   elseif uparg='' then
-      'commandline autosave' .autosave
-   elseif uparg='?' then
-compile if RING_OPTIONAL
-      if ring_enabled then
-compile endif
-compile if 0
-         do forever
-            retvalue=winmessagebox( AUTOSAVE__MSG,
-                                    CURRENT_AUTOSAVE__MSG||.autosave\10||NAME_IS__MSG||MakeTempName()\10\10LIST_DIR__MSG,
-                                    24628)  -- YESNO + MB_INFORMATION + MOVEABLE + HELP
-            if retvalue<>8 then leave; endif    -- MBID_HELP = 8
-            'helpmenu 2045'
-         enddo
-         if 6=retvalue then  -- MBID_YES
-compile else
-         if 6=winmessagebox( AUTOSAVE__MSG,
-                             CURRENT_AUTOSAVE__MSG||.autosave\10||NAME_IS__MSG||MakeTempName()\10\10LIST_DIR__MSG,
-                             16436)  -- YESNO + MB_INFORMATION + MOVEABLE
-            then
-compile endif
-           'dir' vAUTOSAVE_PATH
-         endif
- compile if RING_OPTIONAL
-      else
-         call winmessagebox( AUTOSAVE__MSG,
-                             CURRENT_AUTOSAVE__MSG||.autosave\10||NAME_IS__MSG||MakeTempName()\10\10NO_LIST_DIR__MSG,
-                             16432)  -- OK + MB_INFORMATION + MOVEABLE
-      endif  -- ring_enabled
- compile endif
-         return
-   else
-      sayerror AUTOSAVE_PROMPT__MSG
-      return
-   endif  -- uparg=ON__MSG
-   sayerror CURRENT_AUTOSAVE__MSG||.autosave', 'NAME_IS__MSG||MakeTempName()
 
 ;   autoshell off/on/0/1
 ;
@@ -160,49 +87,7 @@ defc autoshell=
 defc bottom,bot=
    bottom
 
-;  BROWSE -- A simple front end to Ralph Yozzo's browse() function.
-;            It allows the user to type off/on/0/1/?.
-;
-;     BROWSE off/on/0/1
-;
-; specifies whether E should allow text to be altered (normal editing mode)
-; or whether all text is read-only.
-;
-; Issuing BROWSE with '?' or no argument returns the current setting.
-;
-; The function browse() takes an optional argument 0/1.  It always returns
-; the current setting.  So you can query the current setting without changing
-; it by giving no argument.
-;
-defc browse =
-   uparg=upcase(arg(1))
-   if uparg=ON__MSG or uparg=1 then
-      cb = browse(1)
-   elseif uparg=OFF__MSG or uparg='0' then
-      cb = browse(0)
-   elseif uparg='' or uparg='?' then
-      cb = browse()     -- query current state
-      /* jbl 12/30/88:  move msg to this case only, avoid trivial sayerror's.*/
-      sayerror BROWSE_IS__MSG word(OFF__MSG ON__MSG, cb+1)
-   else
-      sayerror INVALID_ARG__MSG ON_OFF__MSG'/?)'
-      stop
-   endif
-
-
 ; Moved defc c,change to LOCATE.E
-
-
-defc cd=
-   rc=0
-   if arg(1)='' then
-      dir= directory()
-   else
-      dir= directory(arg(1))
-   endif
-   if not rc then
-      sayerror CUR_DIR_IS__MSG dir
-   endif
 
 defc center=
    call pcenter_mark()
@@ -212,10 +97,10 @@ defc chr=
    sayerror 'chr 'i'='chr(i)''
 
 defc close=
-   call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),
-                      41,                 -- WM_CLOSE
-                      0,
-                      0)
+   call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
+                       41,                 -- WM_CLOSE
+                       0,
+                       0)
 
 compile if DYNAMIC_CURSOR_STYLE
 defc cursor_style
@@ -234,13 +119,6 @@ defc cursor_style
    endif
    call fixup_cursor()
 compile endif
-
-defc deleteautosavefile
-   if .autosave then               -- Erase the tempfile if autosave is on.
-      TempName = MakeTempName()
-      getfileid tempid, TempName  -- (provided it's not in the ring.)
-      if tempid='' then call erasetemp(TempName); endif
-   endif
 
 ;  This command is the same function that has been attached to
 ;  the key Alt-equal.  Moved here as a separate command to make key
@@ -306,9 +184,7 @@ defc ESCAPEKEY
    endif
 compile endif
 
-
 ; Moved defc et,etpm to LINKCMDS.E
-
 
 defc expand=
    universal expand_on
@@ -325,23 +201,6 @@ defc expand=
       sayerror INVALID_ARG__MSG ON_OFF__MSG')'
       stop
    endif
-
-
-defc f,file=
-compile if SUPPORT_USER_EXITS
-   universal isa_file_cmd
-   isa_file_cmd = 1         -- So user's presave / postsave exits can differentiate...
-compile endif
-   's 'arg(1)
-compile if SUPPORT_USER_EXITS
-   isa_file_cmd = ''
-compile endif
-   if not rc then
-      .modify=0            -- If saved to a different file, turn modify off
-      'q'
-      call select_edit_keys()
-   endif
-
 
 ;  EPM's replacement for Alt-F.  "FILL <character>".
 defc fill=
@@ -365,8 +224,6 @@ defc flow =
       sayerror 'Invalid argument.'
    endif
    .margins = oldmarg
-
--- With linking, GET can be an external module.
 
 defc goto =
    parse arg line col .
@@ -423,47 +280,8 @@ defc key=
    endif
    sayerror 0
 
-
 ; Moved defc l, locate to LOCATE.E
-
-
-; As of EPM 5.18, this command supports use of the DOS or OS/2 ATTRIB command,
-; so non-IBM users can also use the LIST command.  Note that installing SUBDIR
-; (DOS) or FILEFIND (OS/2) is still preferred, since it's not necessary to
-; "clean up" their output.  Also, ATTRIB before DOS 3.? doesn't support the /S
-; option we need to search subdirectories.
-defc list, findfile, filefind=
-   universal vTEMP_FILENAME
-   /* If I say "list c:\util" I mean the whole util directory.  But we */
-   /* have to tell SubDir that explicitly by appending "\*.*".         */
-   spec = arg(1)
-   call parse_filename(spec,.filename)
-   src = subdir(spec' >'vTEMP_FILENAME)  -- Moved /Q option to defproc subdir
-
-   'e' argsep'd' argsep'q' vTEMP_FILENAME
-   call erasetemp(vTEMP_FILENAME)
-   if .last then
-      .filename='.DIR 'spec
-      if .last<=2 & substr(textline(.last),1,8)='SYS0002:' then
-         'xcom q'
-         sayerror FILE_NOT_FOUND__MSG
-      endif
-   else
-      'xcom q'
-      sayerror FILE_NOT_FOUND__MSG
-   endif
-   call select_edit_keys()
-
-compile if WANT_LAN_SUPPORT
-defc lock
-   if arg(1)<>'' then
-      'e 'arg(1)
-      if rc & rc<>-282 then  --sayerror('New file')
-         return 1
-      endif
-   endif
-   call lock()
-compile endif
+; Moved defc list, findfile, filefind to DOSUTIL.E
 
 compile if WANT_LONGNAMES='SWITCH'
 defc longnames
@@ -502,10 +320,52 @@ defc lowercase=
 ; It typed them into the command line.  In EPM have to do this in the macros.
 ; Changed: made rightmargin and/or parmargin values optional.
 ; Syntax:
-;    ma [[leftmargin] rightmargin [parmargin]]
-defc margins,ma=
+;
+;    ma [[<leftmargin>] <rightmargin> [<parmargin>]] [noea] [reflow]
+;
+;    Added the optional arg 'noea' anywhere in the arg list to avoid setting
+;    EPM.MARGINS.
+;    Added the optional arg 'reflow' anywhere in the arg list to enable
+;    the maybe reflow MsgBox.
+defc margins, ma
+   universal app_hini
    arg1 = strip( arg(1))
-   if arg1 <> '' then                   -- If user gives an argument he's setting,
+   arg1 = upcase(arg1)
+   -- if executed without arg
+   if arg1 = '' then
+      'commandline margins' .margins  -- Open commandline with current values
+      return
+   endif
+
+   -- else set margins for current file
+   SetEa = 1
+   DeleteEaOnly = 0
+   wp = wordpos( 'NOEA', arg1)
+   if wp > 0 then
+      arg1 = delword( arg1, wp, 1)
+      SetEa = 0
+   endif
+   if SetEa then
+      if (.readonly | not exist(.filename) | leftstr( .filename, 1) = '.') then
+         SetEa = 0
+      endif
+   endif
+
+   AskReflow = 0
+   wp = wordpos( 'REFLOW', arg1)
+   if wp > 0 then
+      arg1 = delword( arg1, wp, 1)
+      AskReflow = 1
+   endif
+
+   if wordpos( arg1, '0 OFF DEFAULT' ) > 0 then
+      DefaultMargins = queryprofile( app_hini, 'EPM', 'MARGINS')
+      if DefaultMargins = '' then
+         DefaultMargins = '1 1599 1'
+      endif
+      NewMargins = DefaultMargins
+      DeleteEaOnly = 1
+   else
       parse value arg1 with leftm rightm parm
       if rightm = '' then  -- if only 1 arg specified
          rightm = arg1
@@ -514,11 +374,36 @@ defc margins,ma=
       if parm = '' then    -- if parmargin not specified
          parm = leftm
       endif
-      'xcom margins' leftm rightm parm  -- pass it to the old internal margins command.
-   else
-      'commandline margins' .margins    -- Open commandline with current values
+      NewMargins = leftm rightm parm
    endif
-   'refreshinfoline MARGINS'            -- Update statusline if margins displayed
+   'xcom margins' NewMargins  -- pass it to the old internal margins command.
+   'refreshinfoline MARGINS'  -- Update statusline if margins displayed
+
+   if SetEa then
+      -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
+      -- This will write the EA on save-as if the source file was readonly.
+      call delete_ea('EPM.MARGINS')
+      if DeleteEaOnly then
+         -- Delete the EA 'EPM.MARGINS' immediately
+         rc = NepmdDeleteStringEa( .filename, 'EPM.MARGINS')
+         if (rc > 0) then
+            sayerror 'EA "EPM.MARGINS" not deleted, rc = 'rc
+         endif
+      else
+         -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
+         -- This will write the EA on save-as if the source file was readonly.
+         'add_ea EPM.MARGINS' NewMargins
+         -- Set the EA 'EPM.MARGINS' immediately
+         rc = NepmdWriteStringEa( .filename, 'EPM.MARGINS', NewMargins)
+         if (rc > 0) then
+            sayerror 'EA "EPM.MARGINS" not set, rc = 'rc
+         endif
+      endif  -- DeleteEaOnly
+   endif -- SetEa
+
+   if AskReflow then
+      'postme maybe_reflow_all'
+   endif
 
 defc matchtab=
    universal matchtab_on
@@ -545,88 +430,7 @@ defc mc =
       cmd
    enddo
 
-defc n,name
-compile if WANT_LONGNAMES='SWITCH'
-   universal SHOW_LONGNAMES
-compile endif
-   -- Name with no args supplies current name.
-   if arg(1)='' then
-      'commandline Name '.filename
-   else
-      if .lockhandle then
-         sayerror LOCKED__MSG
-         return
-      endif
-      oldname = .filename
-      autosave_name = MakeTempName()
-      call namefile(arg(1))
-      if oldname <> .filename then .modify = .modify+1 endif
-      if get_EAT_ASCII_value('.LONGNAME')<>'' then
-         call delete_ea('.LONGNAME')
-compile if WANT_LONGNAMES
- compile if WANT_LONGNAMES='SWITCH'
-         if SHOW_LONGNAMES then
- compile endif
-            .titletext = ''
- compile if WANT_LONGNAMES='SWITCH'
-         endif
- compile endif
-compile endif  -- WANT_LONGNAMES
-      endif  -- .LONGNAME EA exists
-compile if SHOW_MODIFY_METHOD = 'TITLE'
-      call settitletext(.filename)
-compile endif
-      call dosmove(autosave_name, MakeTempName())  -- Rename the autosave file
-      call select_edit_keys()
-compile if SUPPORT_USER_EXITS
-      if isadefproc('rename_exit') then
-         call rename_exit(oldname, .filename)
-      endif
-compile endif
-compile if INCLUDE_BMS_SUPPORT
-      if isadefproc('BMS_rename_exit') then
-         call BMS_rename_exit(oldname, .filename)
-      endif
-compile endif
-   endif  -- arg(1)=''
-
 defc newtop = l=.line; .cursory=1; l
-
-defc newwindow=
-   if leftstr(.filename, 5)='.DOS ' then
-      fn = "'"substr(.filename, 6)"'"
- compile if WANT_TREE
-   elseif .filename = '.tree' then
-      parse value .titletext with cmd ': ' args
-      fn = "'"cmd args"'"
- compile endif
-   elseif leftstr( .filename, 14 ) = '.command_shell' then
-      shell_dir = directory()
-      fn = "'mc +cd "shell_dir" +shell'"
-   elseif leftstr( .filename, 1 ) = '.' then  -- other temp file
-      fn = ''
-   else
-      if .modify then
-         'save'
-         if rc then
-            sayerror ERROR_SAVING_HALT__MSG
-            return
-         endif
-      endif
-      fn = .filename
-      if fn = GetUnnamedFileName() then
-         fn = ''
-      elseif .readonly then
-         fn = '/r' fn
-      endif
-   endif
-   if fn <> '' then
-      call psave_pos( saved_pos )
-      "open" fn "'postme restorepos "saved_pos"'"
-   else
-      'open' fn
-   endif
-   'quit'
 
 defc restorepos
    saved_pos = strip( arg(1) )
@@ -862,100 +666,14 @@ defc swappos
       return
    endif
    position_stack = fid saveposition'/'position_stack
-compile endif
+compile endif  -- WANT_STACK_CMDS
 
 defc qs,quietshell,quiet_shell=
    quietshell arg(1)
 
-defc q,quit=
-   universal firstloadedfid
-   if not .visible then
-      'xcom quit'
-      return
-   endif
-   -- Ver. 4.11c: If we're trying to quit the shell window, kill the process.
- compile if SHELL_USAGE                                                           -- remove?
-   if .filename = ".SHELL" then                                                   -- remove?
-;     It's important to kill the process before we quit the window, else the
-;     process will churn merrily along without output.  If we're MAKEing a
-;     large C program and quit the editor, it can tie up the session.
-;     Simpler tasks like DIR and FILEFIND don't tie up the session.
-;
-;     Doesn't hurt anything if the process has already been killed.  The
-;     internal shell_kill function will merely beep at you.
-      call shell_kill()                                                           -- remove?
-   endif                                                                          -- remove?
- compile endif                                                                    -- remove?
-
-compile if    SPELL_SUPPORT
-   if .keyset='SPELL_KEYS' then  -- Dynamic spell-checking is on for this file;
-      'dynaspell'                -- toggle it off.
-   endif
-compile endif
-
-compile if    WANT_EPM_SHELL
-   if leftstr(.filename, 15) = ".command_shell_" then
-      .modify=0                             -- so no "Are you sure?"
-      'shell_kill'
-      return
-   endif
-compile endif
-
-compile if SUPPORT_USER_EXITS
-      if isadefproc('quit_exit') then
-         call quit_exit(.filename)
-      endif
-compile endif
-compile if INCLUDE_BMS_SUPPORT
-      if isadefproc('BMS_quit_exit') then
-         call BMS_quit_exit(.filename)
-      endif
-compile endif
-
-compile if TRASH_TEMP_FILES
-   if substr(.filename,1,1) = "." then      -- a temporary file
-      .modify=0                             -- so no "Are you sure?"
-   endif
-compile endif
-
-   getfileid quitfileid
-;compile if EVERSION > 5
-;   if marktype() then
-;      getmark firstline,lastline,firstcol,lastcol,markfileid
-;      if markfileid = quitfileid then
-;         'ClearSharBuff'       -- Remove content of EPM shared text buffer
-;      endif
-;   endif
-;compile endif
-;compile if WANT_LAN_SUPPORT & EVERSION < '5.51'          -- remove?
-;   if .lockhandle then call unlock(quitfileid); endif    -- remove?
-;compile endif                                            -- remove?
-   call quitfile()
-   if firstloadedfid = quitfileid
-      then firstloadedfid = ''
-   endif
-   call RingWriteFileNumber()
-compile if NEPMD_RESTORE_RING  --<------------------------------------------------------------ Todo
-   call RingWriteFilePosition()
-compile endif
-
-
 defc rc=
    arg(1)
    sayerror 'RC='rc''
-
-defc readonly =
-   uparg=upcase(arg(1))
-   if uparg=ON__MSG or uparg=1 then
-      .readonly = 1
-   elseif uparg=OFF__MSG or uparg='0' then
-      .readonly = 0
-   elseif uparg='' or uparg='?' then
-      sayerror READONLY_IS__MSG word(OFF__MSG ON__MSG, .readonly+1)
-   else
-      sayerror INVALID_ARG__MSG ON_OFF__MSG'/?)'
-      stop
-   endif
 
 defc reflow_all
    call psave_mark(savemark)
@@ -989,196 +707,6 @@ defc reflow_all
    call prestore_mark(savemark)
    call prestore_pos(savepos)
 
-
-defc s,save=
-   universal save_with_tabs, default_save_options
-   name=arg(1)
-   call parse_leading_options(name,options)
-   options = default_save_options options
-   if name='' & (browse() | .readonly) then
-      if .readonly then
-         sayerror READ_ONLY__MSG
-      else
-         sayerror BROWSE_IS__MSG ON__MSG
-      endif
-      rc = -5  -- Access denied
-      return
-   endif
-   save_as = 0
-   if name='' | name = GetUnnamedFileName() then
-      name = .filename
-      if .filename = GetUnnamedFileName() then
-         result = saveas_dlg(name, type)
-         if result then return result; endif
-         'name' name
-         if not rc then
-            name=.filename
-            save_as = 1
-         endif
-      endif
-   else
-      call parse_filename(name,.filename)
-   endif
-
-   -- Get mode before saving
-   OldMode = NepmdGetMode()
-
-compile if SUPPORT_USER_EXITS
-   if isadefproc('presave_exit') then
-      call presave_exit(name, options, save_as)
-   endif
-compile endif
-compile if INCLUDE_BMS_SUPPORT
-   if isadefproc('BMS_presave_exit') then
-      call BMS_presave_exit(name, options, save_as)
-   endif
-compile endif
-;compile if WANT_LAN_SUPPORT & EVERSION > '5.51'          -- remove?
-;   locked = .lockhandle                                  -- remove?
-;   if locked & not arg(1) then 'unlock'; endif           -- remove?
-;compile endif                                            -- remove?
-
-compile if WANT_BOOKMARKS
-   if .levelofattributesupport bitand 8 then
-      'saveattributes'
-   endif
-compile endif
-compile if NEPMD_RESTORE_POS_FROM_EA
-   -- Write EPM.POS EA on save
-   call psave_pos(save_pos)   -- get EA value
-   call delete_ea('EPM.POS')  -- that affects only .eaarea, EA is written on file writing
-   'add_ea EPM.POS' save_pos  -- that affects only .eaarea, EA is written on file writing
-compile endif
-   -- 4.10:  Saving with tab compression is built in now.  No need for
-   -- the make-do proc savefilewithtabs().
-   -- 4.10 new feature:  if save_with_tabs is true, always specify /t.
-   if save_with_tabs then
-      options = '/t' options
-   endif
-   src=savefile(name,options)
-
-   -- Check if saving a long name on a FAT drive has failed
-   --   call NepmdPmPrintf( 'defc save: src = 'src', name = |'name'|')
-   if src = -285 then  -- ERROR_WRITING_FILE_RC  (E Toolkit)
-      -- Why are standard rc values not supported?
-      -- 206 ERROR_FILENAME_EXCED_RANGE  File name or extension is greater than 8.3 characters.
-      -- 285 ERROR_DUPLICATE_NAME        The name already exists.
-      -- save longname to A: gives src = -285
-      sayerror 0  -- suppress first error message from savefile above
-      fullname = name  -- hints: '=' must already be resolved, fullname may miss the path
-      -- strip '"'...'"'
-      len = length(fullname)
-      if substr( fullname, 1, 1) = '"' & substr( fullname, len, 1) = '"' then
-         fullname = substr( fullname, 2, len - 2)
-      endif
-      -- build 8.3 name
-      p1 = lastpos( '\', fullname)
-      if p1 then
-         pathbsl = substr( fullname, 1, p1)   -- path with trailing '\'
-      else
-         pathbsl = ''
-      endif
-      longname = substr( fullname, p1 + 1)    -- long name without pathbsl
-      p2 = lastpos( '.', longname )
-      if p2 > 0 then
-         base = substr( longname, 1, p2 - 1)  -- null if leading '.' (to respect 8.3)
-         pext = substr( longname, p2)         -- extension with leading '.' or filename with leading '.'
-      else
-         base = longname
-         pext = ''
-      endif
-      if length(base) > 8 then
-         base = substr( base, 1, 8)
-      endif
-      if length(pext) > 4 then
-         pext = substr( pext, 1, 4)
-      endif
-      -- convert periods
-      base = translate( base, '_', '.')
-      shortname = pathbsl''base''pext
-      -- convert spaces
-      shortname = translate( shortname, '_', ' ')
-      -- todo: convert other chars
-      --call NepmdPmPrintf( 'defc save: src = 'src', shortname = |'shortname'|')
-      -- try again to write the file
-      src = savefile( shortname, options)
-      if not src then
-         sayerror 0  -- delete message
-         -- todo?: better use EPM functions here to update also .eaarea
-         --call delete_ea('.LONGNAME')
-         --'add_ea .LONGNAME' longname
-         longnamerc = NepmdWriteStringEa( shortname, '.LONGNAME', longname)
-         if longnamerc then
-            sayerror 'EA ".LONGNAME" not written to file "'shortname'"'
-         else
-            sayerror SAVED_TO__MSG '"'shortname'". EA ".LONGNAME" set to "'longname'".'
-         endif
-      endif
-   endif
-
-compile if SUPPORT_USER_EXITS
-   if isadefproc('postsave_exit') then
-      call postsave_exit(name, options, save_as, src)
-   endif
-compile endif
-compile if INCLUDE_BMS_SUPPORT
-   if isadefproc('BMS_postsave_exit') then
-      call BMS_postsave_exit(name, options, save_as, src)
-   endif
-compile endif
-   if not src & not isoption(options,'q') then
-      call message(SAVED_TO__MSG name)
-   elseif src=-5 | src=-285 then  --  -5 = 'Access denied'; -285 = 'Error writing file'
-      if qfilemode(name, attrib) then      -- Error from DosQFileMode
-         call message(src)    -- ? Don't know why got Access denied.
-      else                    -- File exists:
----------------------------------------------------------- why not get all attribs at once to give a usable message?
-         if attrib bitand 16 then
-            call message(ACCESS_DENIED__MSG '-' IS_A_SUBDIR__MSG)  -- It's a subdirectory
-         elseif attrib // 2 then                    -- x'01' is on
-            call message(ACCESS_DENIED__MSG '-' READ_ONLY__MSG)    -- It's read/only
-         elseif attrib bitand 4 then
-            call message(ACCESS_DENIED__MSG '-' IS_SYSTEM__MSG)    -- It's a system file
-         elseif attrib bitand 2 then
-            call message(ACCESS_DENIED__MSG '-' IS_HIDDEN__MSG)    -- It's a hidden file
-         else                                -- None of the above?
-            call message(ACCESS_DENIED__MSG '-' MAYBE_LOCKED__MSG) -- Maybe someone locked it.
-         endif
-      endif
-      rc = src  -- reset, since qfilemode() changed the RC.
-   elseif src=-345 then
-      call winmessagebox( 'Demo Version',
-                          sayerrortext(-345)\10\10'File too large to be saved.' ,
-                          MB_CANCEL + MB_CRITICAL + MB_MOVEABLE)
-   elseif src<0 then          -- If RC > 0 assume from host save; and
-      call message(src)       -- assume host routine gave error msg.
-   endif
-   if src & save_as then
-      .filename = GetUnnamedFileName()
-;compile if SHOW_MODIFY_METHOD = 'TITLE'                 -- remove?
-;      call settitletext(.filename)                      -- remove?
-;compile endif                                           -- remove?
-   endif
-;compile if    WANT_LAN_SUPPORT                          -- remove?
-;   if locked & not arg(1) then call lock(); endif       -- remove?
-;compile endif                                           -- remove?
-
-   'RefreshInfoLine FILE'
-
-   -- explicitely redetermine mode (file contents may have changed)
-   --call NepmdResetMode(OldMode)
-   -- Must be delayed with 'postme'.
-   -- Otherwise a MessageBox (defined in ETK) will pop up when
-   --    -  the window should be closed and
-   --    -  there is a modified file in the ring and
-   --    -  the file was saved.
-   -- The file *was* saved but the MessageBox says that there has
-   -- occured an error saving the file.
-   'postme ResetMode 'OldMode
-
-   return src
-
-
 defc select_all =
    getfileid fid
    call pset_mark(1, .last, 1, length(textline(.last)), 'CHAR' , fid)
@@ -1194,60 +722,6 @@ defc stay=
    else sayerror INVALID_ARG__MSG ON_OFF__MSG')'
    endif
 compile endif
-
-; read a file from stdin
-defc stdfile_read
-   input_stream = ''
-   infobuf=leftstr('', 512)
-   length_read = atol(0)
-   do forever
-      rc = dynalink32('DOSCALLS',               -- dynamic link library name
-                      '#281',                   -- ordinal value for Dos32Read
-                      atol(0)               ||  -- File handle 0 = STDIN
-                      address(infobuf)      ||  -- Buffer area
-                      atol(length(infobuf)) ||  -- Buffer area length
-                      address(length_read),2)   -- Bytes read
-      if rc then
-         sayerror 'DosRead' ERROR__MSG rc
-         return
-      endif
-      len = ltoa(length_read, 10)
-      if not len then
-         if input_stream<>'' then
-            insertline input_stream, .last+1
-         endif
-         leave
-      endif
-      fits = (length(input_stream) + len) <= MAXCOL
-      if fits then
-         input_stream = input_stream || leftstr(infobuf, len)
-      else
-         nl = pos(\n, infobuf)
-         if nl & nl < len & (length(input_stream) + len) <= MAXCOL then
-            insertline strip(input_stream || leftstr(infobuf, nl-1), 'T', \r), .last+1
-            input_stream = substr(infobuf, nl+1, len-nl)
-         else
-            l2 = MAXCOL - length(input_stream)
-            insertline strip(input_stream || leftstr(infobuf, l2), 'T', \r), .last+1
-            input_stream = substr(infobuf, l2+1, len-l2)
-         endif
-      endif
-      nl = pos(\n, input_stream)
-      do while nl
-         insertline strip(leftstr(input_stream, nl-1), 'T', \r), .last+1
-         input_stream = substr(input_stream, nl+1)
-         nl = pos(\n, input_stream)
-      enddo
-   enddo
-
-; write a file to stdout
-defc stdfile_write
-   universal vTEMP_FILENAME
-   .filename=vTEMP_FILENAME
-   's'
-   'type '.filename
-   call erasetemp(.filename)
-   'q'
 
 defc strip =
    parse arg firstline lastline .
@@ -1287,17 +761,67 @@ defc tabglyph =
       sayerror INVALID_ARG__MSG ON_OFF__MSG'/?)'
    endif
 
-;  In EOS2 you could query the tabs by typing "tabs" with no argument.
-;  It typed them into the command line.
-;
-defc tabs=
-   if arg(1)<>'' then         -- if user gives an argument to be set,
-      'xcom tabs 'arg(1)      -- pass it to the old internal tabs command.
-   else
-      -- Note the new .tabs field; each file has its own tabs.
-      'commandline Tabs' .tabs
+; In EOS2 you could query the tabs by typing "tabs" with no argument.
+; It typed them into the command line.
+defc tabs
+   universal app_hini
+   arg1 = strip( arg(1))
+   arg1 = upcase(arg1)
+   -- if executed without an arg
+   if arg1 = '' then
+      'commandline tabs' .tabs  -- Open commandline with current values
+      return
    endif
-   'refreshinfoline TABS'     -- Update statusline if tabs displayed
+
+   -- else set tabs for current file
+   SetEa = 1
+   DeleteEaOnly = 0
+   wp = wordpos( 'NOEA', arg1)
+   if wp > 0 then
+      arg1 = strip( delword( arg1, wp, 1))
+      SetEa = 0
+   endif
+   if SetEa then
+      if (.readonly | not exist(.filename) | leftstr( .filename, 1) = '.') then
+         SetEa = 0
+      endif
+   endif
+
+   if wordpos( arg1, '0 OFF DEFAULT' ) > 0 then
+      DefaultTabs = queryprofile( app_hini, 'EPM', 'TABS')
+      if DefaultTabs = '' then
+         DefaultTabs = '8'
+      endif
+      NewTabs = DefaultTabs
+      DeleteEaOnly = 1
+   else
+      NewTabs = arg1
+   endif
+   'xcom tabs' NewTabs     -- pass it to the old internal tabs command.
+   'refreshinfoline TABS'  -- Update statusline if tabs displayed
+
+   if SetEa then
+      -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
+      -- This will write the EA on save-as if the source file was readonly.
+      call delete_ea('EPM.TABS')
+      if DeleteEaOnly then
+         -- Delete the EA 'EPM.TABS' immediately
+         rc = NepmdDeleteStringEa( .filename, 'EPM.TABS')
+         if (rc > 0) then
+            sayerror 'EA "EPM.TABS" not deleted, rc = 'rc
+         endif
+      else
+         -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
+         -- This will write the EA on save-as if the source file was readonly.
+         'add_ea EPM.TABS' NewTabs
+         -- Set the EA 'EPM.TABS' immediately
+         rc = NepmdWriteStringEa( .filename, 'EPM.TABS', NewTabs)
+         if (rc > 0) then
+            sayerror 'EA "EPM.TABS" not set, rc = 'rc
+         endif
+      endif
+   endif
+
 
 defc timestamp =
 compile if WANT_DBCS_SUPPORT
@@ -1316,27 +840,21 @@ compile endif
 defc top=
    top
 
-compile if WANT_LAN_SUPPORT
-defc unlock
-   parse arg file
-   if file='' then
-      getfileid fileid
-   else
-      getfileid fileid,file
-      if fileid=='' then
-         sayerror '"'file'"' DOES_NOT_EXIST__MSG
-         return 1
-      endif
-   endif
-   call unlock(fileid)
-compile endif
-
 defc uppercase=
    call puppercase()
 
 defc ver =
    sayerror EDITOR_VER__MSG ver(0)
 
-defc xcom_quit
-   'xcom q'
+; ---------------------------------------------------------------------------
+defc ActivateHighlighting
+   call NepmdActivateHighlight(arg(1))
+
+; ---------------------------------------------------------------------------
+defc ActivateFile
+   fid = arg(1)
+   if fid <> '' then
+      activatefile fid
+   endif
+
 
