@@ -1,26 +1,10 @@
-/*
-- Removed obsolete parameter from highlight_match. Replaced it by
-  optional parameter line col len, while the old search_len is also
-  recognized and ignored.
-- Save last args for change and find to be able to execute a changenext
-  or findnext in a newly opened window. Locate without args processes now
-  the FindNext, like Change does.
-- Removed B and T from the submitted default_search_options, before
-  SearchDlg is called, because it won't set these CheckBoxes.
-- Added option U for commands, that execute 'locate' or 'change' to locally
-  remove B and T from the prepended default_search_options. Many commands
-  will fail with these options. (They were added later as options for the
-  SearchDlg.)
-- Made the use of Ralph Yozzo's grep possible (Part of CUSTEPM) by renaming
-  grep to ggrep and scan and redirect.
-*/
 /****************************** Module Header *******************************
 *
 * Module Name: locate.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.14 2004-07-02 14:54:20 aschn Exp $
+* $Id: locate.e,v 1.15 2004-07-12 19:52:57 aschn Exp $
 *
 * ===========================================================================
 *
