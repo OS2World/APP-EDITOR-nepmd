@@ -1,0 +1,70 @@
+# ***************************** Module Header *******************************
+#
+# Module Name: configure.in
+#
+# make include file to configure the scripts used by makefile
+# All settings are required, some of them may be predefined
+# as environment variables before calling make.
+#
+# Copyright (c) Netlabs EPM Distribution project 2002
+#
+# $Id: configure.in,v 1.1 2002-04-15 16:37:50 ktk Exp $
+#
+# ===========================================================================
+#
+# This file is part of the Netlabs EPM Distribution package and is free
+# software.  You can redistribute it and/or modify it under the terms of the
+# GNU Library General Public License as published by the Free Software
+# Foundation, in version 2 as it comes in the "COPYING.LIB" file of the WPS
+# Toolkit main distribution.  This library is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# ***************************************************************************
+
+
+# --- modify the following variables to your needs here
+#     or predefine values as environment variable before
+#     executing make
+
+# set base URL for epm603.zip and epm603b.zip
+# There is no other location known to me where these
+# two ZIPs are packed like assumed in prepare.cmd !
+
+!ifndef BASEURL
+BASEURL=ftp://ftp.leo.org/pub/comp/os/os2/leo/editors
+!endif
+
+# a directory of your choice either empty or already holding
+# epm603.zip and epm603b.zip. If files are not present, thay
+# are downloaded from LEO ( %BASEURL%)
+# - directory may not exist, but at least directory above
+#   must exist (not tested!)
+
+!ifndef ZIPSRCDIR
+ZIPSRCDIR=zip
+!endif
+
+# directory where to put unpacked files
+# - directory may not exist, but at least directory above
+#   must exist (not tested!)
+# - Make sure the directory is empty before executing prepare.cmd
+#   (not tested !)
+
+!ifndef UNZIPPEDDIR
+UNZIPPEDDIR=epm.packages
+!endif
+
+
+# --- DON'T MODIFY THE FOLLOWING VALUES
+#     Modification by package maintainer only !!!
+
+# project id
+
+STEM=nepmd
+
+# 3 digit version number included in name of package
+
+VERSION=100
+

@@ -1,0 +1,1220 @@
+; $Id: nepmd.txt,v 1.1 2002-04-15 16:37:52 ktk Exp $ 
+
+.include title.inc
+.ti [=DOCTITLE]
+.hi 234
+
+.. #############################################################################
+.1 [=DOCTITLE]
+.. #############################################################################
+.an IDPNL_MAIN
+.at font='20.Tms Rmn' fc=darkgray italic bold
+.bitmap src\bmp\nllogo.bmp center
+.ce present the
+.at font='24.Tms Rmn' fc=red bold italic
+.ce [=DOCTITLE]
+.at
+
+[=TOPICS]
+.su 1
+
+.. =============================================================================
+.2 Overview
+.. =============================================================================
+.an IDPNL_WHAT
+.
+[=TOPICS]
+.su V30
+
+.. -----------------------------------------------------------------------------
+.3 The [=DOCTITLE]
+.. -----------------------------------------------------------------------------
+.an IDPNL_WHAT_NED
+.
+The [=TITLE] bases on the [.IDPNL_WHAT_EPM EPM V6.03b] package and the update
+to that being available on internet FTP servers. For this distribution, the
+following files have been taken from the
+.sl compact
+- [http://www.leo.org Link-Everything-Online (http://www.leo.org)]
+.elist
+server:
+.ul compact
+- *epm603.zip* for the main package  and
+- *epm603b.zip* for the 6.03b update
+.elist
+
+These packages already include the following:
+.ul compact
+- Speech Support for the *VoiceType* feature in *OS/2 Warp 4*
+- a wide variety of REXX macros
+- the macro compiler (not being shipped with OS/2 Warp 4)
+- programming samples for
+  - programming macros in REXX and C
+  - interacting with EPM via DDE
+  - using the E Toolkit in order to implement one or more MLE's
+    (Enhanced Multi-line Edit Controls) in own applications
+
+In addition to that the [=TITLE] adds the following:
+.ul compact
+- a grahical installation routine, making manual installation and editing of
+  CONFIG.SYS obsolete
+- additional REXX macros
+- extended syntax highlighting keyword files
+
+.. -----------------------------------------------------------------------------
+.3 What is EPM ?
+.. -----------------------------------------------------------------------------
+.an IDPNL_WHAT_EPM
+.
+The following is an adapted excerpt from the file EPMBBS.TXT of the EPM V6.03b
+release, which is available on FTP servers in the Internet like:
+.ul compact
+- [http://www.leo.org Link-Everything-Online (http://www.leo.org)]
+.
+  (in file epm603.zip)  and
+- [http://hobbes.nmsu.edu The Hobbes File Archive (http://hobbes.nmsu.edu)]
+
+
+The *EPM* editor is actually a simple application built on top of a very
+powerful editor toolkit. *EPM* is programmable at a number of levels.
+
+The simplest way to configure *EPM* is from the Options menu; a number
+of features are pre-configured with support for multiple ways of doing
+things and to allow the specific method to be chosen dynamically and saved.
+(E.g., advanced marking mode or the simple CUA-style; Enter keys can be
+configured any one of 6 ways (in line mode), etc.)
+
+The next level is writing Rexx macros. This lets you do some fairly
+powerful things, but to take complete advantage of the editor, you
+have to go to a lower level. E macros are compiled into .ex files,
+which are interpreted at run time.
+
+You can control the macros at two levels. One is by creating a MYCNF.E
+and setting flags in it which controls which of the various features
+we've already written are included in the .ex files; the second is to
+actually write your own macros. The configuration flags are described in
+the User's Guide, see section *Summary *for a summary of the configuration
+constants. You can also select these on *EPM*'s Help menu. The macro
+language is defined and described in the *EPM* Macro Programmer's Technical
+Reference. Also, looking through the existing macros is a good way to
+become familiar with the language - particularly if you have any Rexx
+experience.
+
+Install the programming samples to see samples for the following
+.ul compact
+- starting with *EPM* 6, macros can be written in C as well,
+- *EPM* can also be controlled via DDE (Dynamic Data Exchange); this is how
+  *EPM* interacts with the Workframe/2 product.
+- Users can use the E Toolkit to embed one or more E-MLE's
+  (Enhanced Multi-line Edit Controls) within their own application.
+  See the package ETKBBS for sample E Toolkit programs.
+
+If you start *EPM*, press F1, select "*EPM* Features", and page down to
+the bottom half of the help text, you'll get a partial list of the new
+features in *EPM* 6 compared to *EPM* 5
+
+
+.. =============================================================================
+.2 Prerequisites
+.. =============================================================================
+.an IDPNL_PREREQUISITES
+.
+The following prerequisites apply to the current version of [=TITLE]:
+.ul
+- The [=TITLE] runs under OS/2 WARP Version 3 or later
+
+.. =============================================================================
+.2 Copyright & Co.
+.. =============================================================================
+.an IDPNL_LEGAL
+.
+[=TOPICS]
+.su V30
+
+.. -----------------------------------------------------------------------------
+.3 Copyright
+.. -----------------------------------------------------------------------------
+.an IDPNL_LEGAL_COPYRIGHT
+.
+The [=TITLE]
+.
+was assembled by [.IDPNL_CREDITS_TEAM the distribution project team], [=YEAR].
+
+The *EPM* was developed by the IBM T. J.Watson Research Center.
+.
+All rights reserved.
+
+.. You are welcome to send me your comments/suggestions via internet e-mail.
+.. Note to translators: Please translate the above line like this:
+..   You are welcome to send your comments/suggestions via internet e-mail
+..   in either german or english.
+..
+.. Send your e-mail to: *[=EMAIL]*
+
+Visit also the homepage of
+.ul compact
+- [http://www.netlabs.org the *OS/2 Netlabs*]
+
+.. -----------------------------------------------------------------------------
+.3 freeware license
+.. -----------------------------------------------------------------------------
+.an IDPNL_LEGAL_LICENSE
+.
+This software package is freeware. It can be used wherever you
+use OS/2 WARP Version 3 or later.
+
+You are allowed to freely use and distribute the [=TITLE] as long as
+.ul compact
+- [=TITLE] or its components are not sold as a part of another program package;
+- no fee is charged for the program other than for cost of media;
+- the complete package is distributed unmodified.
+
+.. -----------------------------------------------------------------------------
+.3 Disclaimer
+.. -----------------------------------------------------------------------------
+.an IDPNL_LEGAL_DISCLAIMER
+.
+.at fc=red
+Since this program is free, it is supplied with no warranty, either expressed
+or implied.
+
+I disclaim all warranties for any damages, including, but not limited to,
+incidental or consequential damage caused directly or indirectly by this
+software.
+
+All software is supplied AS IS. You may use the [=TITLE] package only at
+your own risk.
+
+The [=TITLE] must not be used in states that do not allow the above limitation
+of liability.
+.at
+
+.. -----------------------------------------------------------------------------
+.3 The author
+.. -----------------------------------------------------------------------------
+.an IDPNL_LEGAL_AUTHOR
+.
+The [=TITLE] is compiled by [.IDPNL_CREDITS_TEAM the distribution project team]
+and bases on the *EPM* developed by the IBM T. J.Watson Research Center.
+
+See the [.IDPNL_CREDITS_GENERAL credits section] for more contributors to the
+distribution.
+
+.. =============================================================================
+.2 Additions of the [=DOCTITLE]
+.. =============================================================================
+.an IDPNL_ADDITIONS
+.
+[=TOPICS]
+.su V30
+
+.. -----------------------------------------------------------------------------
+.3 extended keyword hilighting
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_EPMKWDS
+.
+<to be edited>
+
+.. -----------------------------------------------------------------------------
+.3 extended assistant support
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_MYASSIST
+.
+<to be edited>
+
+.. -----------------------------------------------------------------------------
+.3 Tex Support
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_TEX
+.
+<to be edited>
+
+.. -----------------------------------------------------------------------------
+.3 Readme text files matrix
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_README
+.
+The following files of the original [.IDPNL_WHAT_EPM EPM package]
+have not been included in the distribution, but have been either
+.ul compact
+- integrated into this online help (in whole or in part)  or
+- renamed
+
+.pl bold compact tsize=5
+- epm603.zip - EPMBBS.TXT
+= section [.IDPNL_WHAT_EPM]
+- epm603.zip - README.TXT
+= deleted
+- epm603.zip - epmapp.zip - README.EPM
+= deleted (some parts are yet to be integrated here)
+- epm603.zip - epmspch.zip - README.TXT
+= section [.IDPNL_SPCHREF]
+
+
+.. =============================================================================
+.2 How can I ... ?
+.. =============================================================================
+.an IDPNL_HOW
+.
+[=TOPICS]
+.su V30
+.ul compact
+- <to be added more>
+
+.. -----------------------------------------------------------------------------
+.3 How can I add keyword definitions for syntax highlighting ?
+.. -----------------------------------------------------------------------------
+.an IDPNL_HOW_ADD_KEYWORDS
+.
+- <to be edited>
+
+
+.. =============================================================================
+.2 EPM Quick Reference
+.. =============================================================================
+.an IDPNL_QREF
+.
+[=TOPICS]
+.su V30
+
+.. -----------------------------------------------------------------------------
+.3 Function Key Definitions
+.. -----------------------------------------------------------------------------
+.an IDPNL_QREF_FNKEYS
+.
+[=NOTE] Keys marked with (**) are defined by Presentation Manager through EPM.
+
+.pl break=none bold compact
+- Key
+= *Description*
+- F1
+= Help (**)
+- F2
+= Save & continue
+- F3
+= Quit without save
+- F4
+= Save and quit
+- F5
+= Open Dialog
+- F6
+= Show draw options
+- F7
+= Change filename
+- F8
+= Edit new file
+- F9
+= Undo current line 
+- F10
+= Activate Menu (**)
+- F11
+= Previous file
+- F12
+= Next file
+.
+- a-F1
+= insert box characters
+- a-F2
+= -- not used --
+- a-F3
+= -- not used --
+- a-F4
+= Close window (**)
+- a-F5
+= Restore Window (**)
+- a-F6
+= -- not used --
+- a-F7
+= Move window (**)
+- a-F8
+= Size window (**)
+- a-F9
+= Minimize window (**)
+- a-F10
+= Maximize window (**)
+- a-F11
+= -- not used --
+- a-F12
+= -- not used --
+.
+- s-F1
+= Scroll left
+- s-F2
+= Scroll right
+- s-F3
+= Scroll up
+- s-F4
+= Scroll down
+- s-F5
+= Center line vertically
+- s-F6
+= -- not used --
+- s-F7
+= -- not used --
+- s-F8
+= -- not used --
+- s-F9
+= -- not used --
+- s-F10
+= -- not used --
+- s-F11
+= -- not used --
+- s-F12
+= -- not used --
+.
+- c-F1
+= Uppercase word    
+- c-F2
+= Lowercase word    
+- c-F3
+= Uppercase selection         
+- c-F4
+= Lowercase selection         
+- c-F5
+= Cursor to beginning of word 
+- c-F6
+= Cursor to end of word       
+- c-F7
+= Shift selection to the right      
+- c-F8
+= Shift selection to the right      
+- c-F9
+= -- not used --
+- c-F10
+= -- not used --
+- c-F11
+= -- not used --
+- c-F12
+= -- not used --
+
+.. -----------------------------------------------------------------------------
+.3 Alt-key Function Summary
+.. -----------------------------------------------------------------------------
+.an IDPNL_QREF_ALTKEYS
+.pl break=none bold compact
+- Key
+= *Description*
+- a-A
+= Adjust selected area, blank old
+- a-B
+= Select Block
+- a-C
+= Copy Selected area to cursor
+- a-D
+= Delete Selected area
+- a-E
+= cursor to End of Selected area
+- a-F
+= Fill Selected Area Dialog
+- a-G
+= -- not used --
+- a-H
+= -- not used --
+- a-I
+= -- not used --
+- a-J
+= Join (with following line)
+- a-K
+= -- not used --
+- a-L
+= Select Line
+- a-M
+= Move selected area
+- a-N
+= keyin file Name at cursor
+- a-O
+= Overlay selected area at cursor
+- a-P
+= reformat following Paragraph
+- a-Q
+= -- not used --
+- a-R
+= Reflow selected area
+- a-S
+= Split line at cursor
+- a-T
+= cenTer Text in selected block, or within margins
+- a-U
+= Unmark selected text
+- a-V
+= -- not used --
+- a-W
+= mark Word
+- a-X
+= -- not used --
+- a-Y
+= cursor to beginning of mark
+- a-Z
+= Select text, character mode
+- a-1
+= Edit file named on current line
+- a-2
+= -- not used --
+- a-3
+= -- not used --
+- a-4
+= -- not used --
+- a-5
+= -- not used --
+- a-6
+= -- not used --
+- a-7
+= -- not used --
+- a-8
+= -- not used --
+- a-9
+= -- not used --
+- a-0
+= Same as a-=
+- a--
+= highlight cursor
+- a-=
+= Execute the current line or the selected set of lines as commands
+- a-/
+= move to next bookmark
+- a-\
+= move to previous bookmark
+
+.. -----------------------------------------------------------------------------
+.3 Ctrl-key Function Summary
+.. -----------------------------------------------------------------------------
+.an IDPNL_QREF_CTRLKEYS
+.pl break=none bold compact
+- Key
+= *Description*
+- c-A
+= -- not used --
+- c-B
+= Bookmark list
+- c-C
+= Change next
+- c-D
+= Delete word
+- c-E
+= Erase to end of line
+- c-F
+= repeat previous Find command
+- c-G
+= list files in rinG
+- c-H
+= -- not used --
+- c-I
+= command dIalog
+- c-J
+= -- not used --
+- c-K
+= duplicate line
+- c-L
+= copy current Line to command line
+- c-M
+= Set Bookmark dialog
+- c-N
+= Next file in ring
+- c-O
+= Open Dialog
+- c-P
+= Previous file in ring
+- c-Q
+= Swap to/from .ALL file
+- c-R
+= Record Keys/ End Record
+- c-S
+= bring up Search dialog
+- c-T
+= Play Keys Back into editor
+- c-U
+= Activate Undo dialog
+- c-V
+= -- not used --
+- c-W
+= -- not used --
+- c-X
+= force syntaX expansion
+- c-Y
+= activate Style dialog
+- c-Z
+= -- not used --
+- c-2
+= Enter NULL character
+- c-3
+= -- not used --
+- c-4
+= -- not used --
+- c-5
+= -- not used --
+- c-6
+= Enter '™' character
+- c-7
+= -- not used --
+- c-8
+= -- not used --
+- c-9
+= Enter '{' character (left brace)
+- c-0
+= Enter '}' character (right brace)
+- c-Enter
+= like enter, no new line (can be reconfigured via Options/Settings)
+- c-Backspace
+= Delete line
+- c-Tab
+= Enter a tab character
+- c-[[
+= Move to matching bracket - [[]], {}, (), <>
+- c-]]
+= Move to matching bracket - [[]], {}, (), <>
+
+.. -----------------------------------------------------------------------------
+.3 Edit and Termination Commands
+.. -----------------------------------------------------------------------------
+.an IDPNL_QREF_CMD_EDITTERM
+.
+
+_*How To Edit Additional Files during an EDIT session:*_
+.pl bold compact
+- OPEN [[d:]][[\path\]]filename.ext
+= will load the file into a separate window
+- EDIT,ED, E [[d:]][[\path\]]filename.ext
+= will load the file into the ring of the current window,
+  if it's not already present in the window.
+
+_*How to exit the Enhanced Editor*_
+.pl bold compact
+- FILE, F command (F4)
+= saves and then removes the file from memory.
+- QUIT,Q command (F3)
+= removes the file from memory without saving. If QUIT is entered after any
+  data has been altered, the "Quitting file" dialog will be presented. Select
+  Discard to quit, Cancel to continue.
+- CLOSE
+= quit all files in window and close window.
+
+.. -----------------------------------------------------------------------------
+.3 Command Summary
+.. -----------------------------------------------------------------------------
+.an IDPNL_QREF_CMD_SUMMARY
+.pl bold
+- Command
+= Syntax
+- [[L]] /pattern/[[c|e]][[m|a]][[-|+]]
+= locate string
+- C    /old/new/[[ c | e ]][[ m | a ]][[ - | + ]]
+= change string
+- NAME, N
+= [[filespec]]
+= renames for next save
+- PRINT
+= print the file
+- SAVE, S  [filespec] [/T]
+= save file
+- PUT filespec
+= saves selected area
+- APPEND [[filespec]]
+= appends selected "  "
+- GET filespec
+= load file
+- FILL chr
+= fills selected area
+- BOX [1|2|C|P|A|E|R]
+= draw boxes
+- KEY ##
+= chr-repeat horizontally
+- LOOPKEY ##
+= chr-repeat vertically
+- LIST, FINDFILE filespec
+= search file in directory
+- MATCHTAB [ON | OFF]
+= set tab matchin on/off
+- EXPAND [ON | OFF]
+= set expand tab on/off
+- MArgins left right new-pgrp
+= set margins
+- TABS ## or  t1 t2...t32
+= set tabs
+- AUTOSAVE  ##
+= sets ## of change before autosave
+- QTIME,QT
+= shows current time
+- QDATE,QD
+= shows current date
+- DRAW  [1][2][3][4][5][6][B][/any char.]
+= draw with grahic characters
+- MATH  expression
+= evaluate mathematical expression
+.sl compact
+  - Operators -,+,**,/,%
+  - Numbers decimal, hex (leading x),
+  - or octal (leading o)
+  - Example:  math 10+xff-o77
+.el
+- MATHX
+= same as math, result shown in hex
+- MATHO
+= same as math, result shown in octal
+- ASC [[char]]
+=  gives Ascii value of char,
+.sl compact
+  - e.g. ASC X = 88.
+  - If no argument specified, uses current text char.
+.el
+- CHR ##
+= shows character corresponding to Ascii ##
+- ADD
+= adds marked column of numbers
+- SORT
+= sorts selected area or all
+- ########
+= goto line ########
+- +[[##]]
+= down ## lines (or EOF)
+- -[[##]]
+= up  ## lines (or TOF)
+- XCOM
+= [[internal command]]
+- [[DOS]] [[command]]
+= Any OS/2 command can be simply typed on the command line.
+  Output must be redirected or it will be lost.
+- OS2 [[command]]
+= Opens an OS/2 command window and executes [[command]] in it.
+- PROFILE [[ON | OFF]]
+= If set ON, a PROFILE.ERX is searched for along
+  the EPMPATH and PATH whenever a new edit window is opened.
+  If found, it will be called and given the EPM command line
+  arguments. See the section on Rexx for details on writing a
+  profile. The setting will be saved by Options / Save Options.
+
+.. -----------------------------------------------------------------------------
+.3 Cursor Movement and Mouse Actions
+.. -----------------------------------------------------------------------------
+.an IDPNL_QREF_CMD_CMM_ACTIONS
+_*Cursor movements*_
+.pl compact bold
+- Up/dn/left/right
+= Moves cursor one position up/down/left/right.
+- Home/End
+= Moves cursor to column 1/end of the current line.
+- Page up/down
+= Displays text above/below current page.
+- Ctrl-Home/End
+= Moves cursor to top/bottom line of file.
+- Tab/Shift-tab
+= Moves cursor to next/previous tab stop.
+- Ctrl-PgUp/PgDn
+= Moves cursor to top/bottom of screen.
+- Ctrl-left/right
+= Moves cursor to beginning of word left/right of cursor.
+
+_*Mouse actions*_
+.pl compact bold
+- Button 1 click
+= Move cursor to mouse.
+- Button 1 click & drag
+= Block select as you drag.
+- Button 2 click & drag
+= Line select as you drag. If inside a selected area,
+  moves selected text; w/ Ctrl, does copy
+- Button 1 + Ctrl key & drag
+= Character selection as you drag.
+- Button 1 double click
+= Unmark
+- Button 2 double click
+= Move cursor to mouse and select the word.
+
+.. -----------------------------------------------------------------------------
+.3 Copying, Moving, and Deleting text
+.. -----------------------------------------------------------------------------
+.an IDPNL_QREF_CMD_CMD_TEXT
+.ol compact
+- Press a Text-Select key (see list below) once at the beginning of the
+  text and again at the end of the text to be copied, moved, or deleted.
+- To copy or move, move the cursor to the desired destination.
+- Press an Operator key (see list below).
+- This is for Advanced Mark Mode; in the base mode, marking works as
+  in all other PM applications. Options / Preferences to switch
+  mark modes.
+
+_*Text-Select Keys*_ (a = Alt Key)
+.pl compact bold tsize=10 break=none
+- a-L
+= line selection for one line or paragraph
+- a-Z
+= character selection for sentences, phrases and characters
+- a-B
+= block mark rectangles a-U : unmarks any area
+- a-W
+= word select (uses block mark)
+- a-C
+= copy selection to cursor
+- a-M
+= move selection to cursor
+- a-D
+= delete selection
+- a-O
+= overlay selection
+- a-A
+= adjust selection (a-O with blank fill of source)
+
+.. -----------------------------------------------------------------------------
+.3 Drag and Drop
+.. -----------------------------------------------------------------------------
+.an IDPNL_QREF_CMD_DRAG_AND_DROP
+.
+The Enhanced Editor can drag text as either an:
+.ul compact
+- Entire file
+- Selected area of text. (line, block, character)
+.
+  (Text can be dragged from EPM by directly manipulating the selected area.)
+
+The Enhanced Editor can accept drops of text on any of three landing strips:
+.ul compact
+- Titlebar
+  - Text
+.
+     EPM will create a new file containing either a file or partial text selection.
+  - Code
+.
+    If code in the form of an EPM macro **.EX or EPM REXX macro
+    **.ERX is dropped on the titlebar, EPM will implicitly link and run the macro.
+- Client Window (text entry area)
+   - Text
+.
+     EPM will import the dropped text into the current file.
+   - Code
+.
+     If code in the form of an EPM macro **.EX or EPM REXX macro
+     **.ERX is dropped on the titlebar, EPM will link the macro.
+- EPM icon (when EPM is started with the /i option)
+  - Text
+.
+     EPM/G will open up a new window containing the dropped text object.
+
+.. -----------------------------------------------------------------------------
+.3 Writing Macros in REXX
+.. -----------------------------------------------------------------------------
+.an IDPNL_QREF_REXX
+.
+
+_*Starting an Enhanced Editor REXX macro*_
+.
+To Start an Enhanced Editor REXX macro use the RX command at the
+Enhanced Editor's command line. For example,
+.sl compact
+- RX EPMTEXT
+.el
+would run the EPMTEXT.ERX macro. A REXX macro PROFILE.ERX can be
+run automatically when a new edit window is opened, by
+entering on the Enhanced Editor's command line:
+.sl compact
+- PROFILE ON
+.el
+and then selecting Options / Save Options.
+
+_*Extracting Specific Information*_
+.
+Internal EPM variables are extractable into REXX using the extract command.
+For example, "extract /getline" would set the REXX variable "getline.0"
+to 1 (the number of variables returned) and "getline.1" to the contents
+of the current line.
+
+The fields that are extractable are:
+.
+"autosave", "col", "cursorx", "cursory", "dragcolor", "dragstyle",
+"filename", "fontheight", "fontwidth", "last", "line", "markcolor",
+"modify", "mousex", "mousey", "textcolor", "userstring", "windowheight",
+"windowwidth", "windowx", "windowy", "font", "getmarktype",
+"getmark", "getline"
+
+_*Using the EPM/REXX functions*_
+.
+Line-oriented functions
+
+The EPM functions that are available from REXX are a subset of the
+EPM programming language functions.
+
+_*Examples:*_
+.fo off
+/**
+ ** Name        EPMTEST.ERX
+ ** Function    A Rexx Macro for  EPM
+ **/
+parse arg args
+Call etkdeletetext         /** delete current line in current file **/
+Call etkdeletetext, 1      /** delete line 1 in current file **/
+Call etkinserttext 'line'  /** insert 'line' before curr line in curr file **/
+Call etkinserttext 'line'  /** insert 'line' before line 1 in current file **/
+Call etkreplacetext 'line'     /** replace current line in current file **/
+Call etkreplacetext 'line', 1  /** replace line 1 in current file **/
+.fo on
+
+_*Setting EPM field functions*_
+.fo off
+/**
+ ** Name        SETFIELD
+ ** Function    A Rexx Macro for EPM to test the setting of fields
+ **/
+call etksetfilefield 'filename'     ,  'newname'
+call etksetfilefield 'userstring'   ,  'new string'
+call etksetfilefield 'autosave'     ,  1
+call etksetfilefield 'xxxx'         ,  1
+.fo on
+where 'xxxx' can be:
+.
+'cursorx', 'cursory', 'dragcolor', 'dragstyle', 'eaarea', 'fontheight',
+'fontwidth', 'last', 'lockhandle', 'line', 'markcolor', 'modify',
+'mousex', 'mousey', 'textcolor', 'visible', 'windowheight', 'windowwidth',
+'windowx', 'windowy', 'font'
+
+_*Key-oriented functions*_
+.fo off
+/**
+ ** Name        KEYTEST
+ ** Function    A Rexx Macro for  EPM to test the keys.
+ **/
+call etkprocesseditkey           "ADJUST__BLOCK"
+call etkprocesseditkey           "BACKTAB"
+          ...
+call etkprocesseditkey           "XXXX"
+.fo on
+where XXXX can be:
+.
+"BEGIN__LINE", "BOTTOM", "CENTER", "COPY__MARK", "DELETE__CHAR",
+"DELETE__LINE", "DELETE__MARK", "ERASE__END__LINE", "INSERT__TOGGLE",
+"JOIN", "MARK__BLOCK", "MARK__BLOCKG", "MARK__CHAR", "MARK__CHARG",
+"MARK__LINE", "MARK__LINEG", "MOVE__MARK", "NEXT__FILE", "OVERLAY__BLOCK",
+"PREVFILE", "REFLOW", "REFRESH", "REPEAT__FIND", "RUBOUT",
+"SHIFT__LEFT", "SHIFT__RIGHT", "SPLIT", "TAB__WORD", "TOP", "UNDO",
+"UNDOACTION", "UNMARK"
+
+_*Creating Menus*_
+.fo off
+/**
+ ** Name        MYMENU
+ ** Function    A Rexx Macro for EPM to add new menus...
+ **/
+'buildsubmenu default 1990 MyRexxMenu  0 0'
+'buildmenuitem default 1990 1991 Directory      0 0 dir'
+'buildmenuitem default 1990 1992 AddSelection   0 0 add'
+'buildmenuitem default 1990 1993 TopofFile      0 0 top'
+'buildmenuitem default 1990 1994 BottomofFile   0 0 bot'
+'showmenu default'
+.fo on
+
+Additional information about programming the EPM editor is available
+in the samples of the [=TILE]. This package includes the latest
+version of EPM, the ETPM macro compiler, E macro source, EPM
+User's Guide, EPM Macro Programmer's Technical Reference, and
+various sample E and Rexx macros.
+
+.. -----------------------------------------------------------------------------
+.3 IBM Workframe/2 for compiling programs
+.. -----------------------------------------------------------------------------
+.an IDPNL_QREF_WFRAME
+.
+To configure IBM WorkFrame/2 (WorkFrame) to use the EPM...
+.ol
+-  Click on 'Editor' from the 'Configure' pull-down menu. The
+  'Configure Editor' window will appear.
+- Change the editor name to EPM.EXE. This assumes that the EPM
+  editor is in a path specified by the PATH environment variable.
+  If the editor is not on the PATH, you must fully qualify the name.
+- In the 'Invocation string' field, type:
+.sl compact
+-              /w %a %z
+.el
+  The /w switch tells the EPM editor to enable its WorkFrame
+  support. The substitution variables (%a %z) tell the WorkFrame
+  to pass all selected files (not just the first file) to EPM.
+  Replacement variables are specified in invocation parameters.
+  The replacement variable is a symbol that consists of a percent
+  sign (%) followed by a character.
+- Click on the 'Send compiler errors' checkbox. This causes the
+  WorkFrame to communicate with the editor whenever compilation
+  errors occur.
+- Click on OK to save the changes and close the window. The changes
+  you made are in effect for the current session only. If you want
+  the changes to be saved for future sessions, you must select
+  the 'Save Profile' option from the 'Save Settings' entry on the
+  'File' pulldown.
+
+To make use of the WorkFrame support in EPM, do the following:
+.ol
+- In a monitor window that contains error messages that resulted from
+  a compilation error, double-click on the message that you are
+  interested in. This will cause the WorkFrame to call the compiler
+  DLL associated with the project to parse the error and return the
+  file name, the line number and possibly the column number of the
+  error. The WorkFrame will then start an editor session with that
+  file and via a Dynamic Data Exchange (DDE) interface it will
+  communicate the information to EPM/EE. The editor will then scroll
+  to the correct line number and possibly column number.
+- Using the 'Compiler' pulldown that will appear only when EPM/EE is
+  invoked this way, you can move between errors using the 'Next Error'
+  and 'Previous Error' items.
+- Select 'Describe Error' under the 'Compiler' pulldown in order to
+  see the errors associated with the current position in the file.
+- On the Describe errors list, you can select the 'Details' pushbutton
+  in order to start the help associated with the compiler and to
+  display an explanation of the error as well as the action(s) needed
+  to recover from the error.
+
+.. -----------------------------------------------------------------------------
+.3 ASCII Reference Chart
+.. -----------------------------------------------------------------------------
+.an IDPNL_QREF_ASCII_CHART
+.fo off
+ To enter an ASCII character, hold Alt key & enter decimal value on num pad
++-----+--------------------------------------------------------------------+
+| DEC | Õ ≥ 0 ≥ 1 ≥ 2 ≥ 3 ≥ 4 ≥ 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| 14| 15|
+|    |HEX | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | A | B | C | D | E | F |
++-----+----+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+|   0 | 0__ |NUL|  |  |  |  |  |  |  |  | HT| LF|  |  | CR|  |  |
+|  16 | 1__ |  |  |  |  |  |  |  |  |  |  |EOF|  |  |  |  |  |
+|  32 | 2__ |   | ! | " | ## | $ | % | & | ' | ( | ) | ** | + | , | - | . | / |
+|  48 | 3__ | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | : | ; | < | = | > | ? |
+|  64 | 4__ | @ | A | B | C | D | E | F | G | H | I | J | K | L | M | N | O |
+|  80 | 5__ | P | Q | R | S | T | U | V | W | X | Y | Z | [ | \ | ] | ^ | __ |
+|  96 | 6__ | ` | a | b | c | d | e | f | g | h | i | j | k | l | m | n | o |
+| 112 | 7__ | p | q | r | s | t | u | v | w | x | y | z | { | | | } | ~ |  |
+| 128 | 8__ | Ä | Å | Ç | É | Ñ | Ö | Ü | á | à | â | ä | ã | å | ç | é | è |
+| 144 | 9__ | ê | ë | í | ì | î | ï | ñ | ó | ò | ô | ö | õ | ú | ù | û | ü |
+| 160 | A__ | † | ° | ¢ | £ | § | • | ¶ | ß | ® | © | ™ | ´ | ¨ | ≠ | Æ | Ø |
+| 176 | B__ | ∞ | ± | ≤ | ≥ | ¥ | µ | ∂ | ∑ | ∏ | π | ∫ | ª | º | Ω | æ | ø |
+| 192 | C__ | ¿ | ¡ | ¬ | √ | ƒ | ≈ | ∆ | « | » | … |   | À | Ã | Õ | Œ | œ |
+| 208 | D__ | – | — | “ | ” | ‘ | ’ | ÷ | ◊ | ÿ | Ÿ | ⁄ | € | ‹ | › | ﬁ | ﬂ |
+| 224 | E__ | ‡ | · | ‚ | „ | ‰ | Â | Ê | Á | Ë | È | Í | Î | Ï | Ì | Ó | Ô |
+| 240 | F__ |  | Ò | Ú | Û | Ù | ı | ˆ | ˜ | ¯ | ˘ | ˙ | ˚ | ¸ | ˝ | ˛ |DEL|
++-----+----+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+.fo on
+
+.. =============================================================================
+.2 EPM Speech Support Manager Quick Reference
+.. =============================================================================
+.an IDPNL_SPCHREF
+.
+[=TOPICS]
+.su V30
+
+.. -----------------------------------------------------------------------------
+.3 Using EpmSpch
+.. -----------------------------------------------------------------------------
+.an IDPNL_SPCHREF_USING
+.
+EPM Speech Support Manager allows you to have dictation in any
+application using EPM windows or the E-MLE. It works with the
+IBM Personal Dictation System, and uses the power of the E
+Toolkit rather than the IPDS Dictation window.
+
+The package can be started from the edit window or from an OS/2 command window.
+It runs in a separate process, and so can be used in different applications,
+even if you close the application that first started the speech connection.
+
+EpmSpch accepts the following options:
+.pl compact bold break=none tsize=20
+- /MIN
+= Start minimized.
+- /CONNECT
+= Tries to start a session with the speech engine.  If no user
+  id, enrollment id or task name is specified, the user
+information dialog will pop up before starting the session.
+- /NOLOG
+= No logging information displayed in the EPMSPCH window.
+- /HWND=
+= The edit window specified is selected and receives the speech focus.
+- /USERID=
+= Speaker ID used for the session.
+- /ENROLLID=
+= Enrollment ID
+- /TASK=
+= Task name (usually STARTUS)
+
+[=NOTE]
+.ul compact
+- The userid, enroll ID, task name and log level are saved in the
+  INI file so you don't need to set them every time.  The window positions
+  and presentation parameters are also saved.
+
+To start from an edit window, link the appropriate .ex file and execute
+the command SpStartDictationSupport. This will start EpmSpch minimized,
+autoconnected, and with the current edit window selected.
+
+.. -----------------------------------------------------------------------------
+.3 Speech Focus
+.. -----------------------------------------------------------------------------
+.an IDPNL_SPCHREF_FOCUS
+.
+Since you can have multiple applications using several edit windows on
+your screen, EpmSpch has to know which one is going to receive the
+recognized words and display them.  This is called the speech focus.  If
+EpmSpch is started from an edit window, that window automatically
+receives the speech focus.  To give the focus to another window, you can
+use the Select option from the EpmSpch menu.  The mouse pointer will
+change to a +, indicating that you can choose which window you want to
+select by clicking on it.
+
+Starting EpmSpch with the /HWND= option is another way to give the focus
+to an edit window.
+
+.. -----------------------------------------------------------------------------
+.3 E Macro Commands
+.. -----------------------------------------------------------------------------
+.an IDPNL_SPCHREF_MACCMDS
+.
+The following commands can be used by any edit window:
+.pl compact bold tsize=5
+- SPStartDictationSupport
+= Starts the dictation support and gives the
+  speech focus to the edit window.
+- SPMikeOn
+= Turns the mike on.
+- SPMikeOff
+= Turns the mike off.
+- SPCorrectWord
+= Corrects the word located at the cursor.
+
+.. -----------------------------------------------------------------------------
+.3 How to configure your toolbar in EPM 6
+.. -----------------------------------------------------------------------------
+.an IDPNL_SPCHREF_BARCFG
+.
+Add the following items to your toolbar:
+.ul compact
+- _*Start and initialize EPM speech manager from EPM*_
+.
+.sl compact
+  - Action
+    - Function: * ** *
+    - Param:  *mc /link epmspch/SPStartDictationSupport*
+  - General
+     - Bmp: *speech.bmp*
+.el
+- _*switch microphone on*_
+.
+.sl compact
+  - Action
+    - Function: * ** *
+    - Param: *SPMikeOn*
+  - General
+    - Bmp: *mikeon.bmp*
+.el
+- _*switch microphone off*_
+.
+.sl compact
+  - Action
+    - Function: * ** *
+    - Param: *SPMikeOff*
+  - General
+     - Bmp: *mikeoff.bmp*
+.el
+
+.. -----------------------------------------------------------------------------
+.3 Correction Context Menu
+.. -----------------------------------------------------------------------------
+.an IDPNL_SPCHREF_CCM
+.
+A double-click on a word with mouse button 1 will bring up the correction
+context menu and automatically replay the word. It allows you to replay
+the word (to recall what you said), perform some formatting commands,
+delete it, or replace it with one of the alternate words which the decode
+found. The maximum number of alternates has been set to 10; this can be
+changed by modifying the MAXNBOFALTERNATES constant in ETKSPCH.E and
+recompiling the macro with ETPM.
+
+If you double-click on a word that was not dictated, the pop-up menu will
+not appear.
+
+.. -----------------------------------------------------------------------------
+.3 Logging Information
+.. -----------------------------------------------------------------------------
+.an IDPNL_SPCHREF_LOG
+.
+EpmSpch has a logging facility. It can display messages in the EpmSpch
+status window. The log level can be set using the Logging menu item.
+(Multiple levels can be active at the same time.)
+
+The levels are:
+.pl compact bold
+- ERRORS
+= Display all error messages (from the speech engine or EpmSpch)
+- MESSAGES
+= Display all status messages (e.g., mike on or mike off)
+- E-MACROS
+= Displays all E-Macro commands before posting them to the edit window
+- WORDS
+= Displays all the words that are recognized by the engine
+
+.. =============================================================================
+.2 Limitations
+.. =============================================================================
+.an IDPNL_LIMITATIONS
+.
+The following limitations apply to the current version of [=TITLE]:
+.ul
+- <to be edited>
+
+.. =============================================================================
+.2 Revision history
+.. =============================================================================
+.an IDPNL_REVISIONS
+.
+[=TOPICS]
+.su V30
+
+.. -----------------------------------------------------------------------------
+.3 Version 1.00
+.. -----------------------------------------------------------------------------
+.an IDPNL_REVISION_HISTORY_101
+.
+First public release
+
+.. =============================================================================
+.2 Trademarks
+.. =============================================================================
+.an IDPNL_TRADEMARKS
+.
+The following trademarks are used in this online help file:
+.ul compact
+- OS/2 is a trademark of IBM Corporation.
+
+.. =============================================================================
+.2 Credits
+.. =============================================================================
+.an IDPNL_CREDITS
+.
+[=TOPICS]
+.su V30
+
+.. -----------------------------------------------------------------------------
+.3 General credits
+.. -----------------------------------------------------------------------------
+.an IDPNL_CREDITS_GENERAL
+.
+Credits go to:
+.ul
+- the team of the IBM T. J.Watson Research Center
+  for the magnificent editor *EPM*
+- all contibutors to the *EPM v6.03b* package release
+  available in the internet
+- Ulrich Mîller, Germany, for development of the sofware installer
+.
+  [http://www.xworkplace.org WarpIn for OS/2]
+
+.. -----------------------------------------------------------------------------
+.3 The Distribution project team and contributors
+.. -----------------------------------------------------------------------------
+.an IDPNL_CREDITS_TEAM
+.
+The following persons (in alphabetic order) assembled and contributed extensions for the current release of the [=TITLE]:
+.pl tsize=1
+- *Christian Langanke* <C.Langanke@Teamos2.de>
+=
+.ul compact
+  - distribution concept
+  - this online INF file
+  - *WarpIn* installation packaging
+..- extended syntax highlighting support
+- *Andreas Schnellbacher* <Andreas.Schnellbacher@web.de>
+=
+.ul compact
+  - distribution concept
+..- additional macros for Tex
+
