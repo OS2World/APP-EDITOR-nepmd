@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.6 2002-08-13 21:04:34 cla Exp $
+# $Id: makefile,v 1.7 2002-08-20 20:01:49 cla Exp $
 #
 # ===========================================================================
 #
@@ -28,7 +28,9 @@ OBJS= $(PMPRINTF) \
  $(BINDIR)\file.obj\
  $(BINDIR)\pmres.obj\
  $(BINDIR)\process.obj\
- $(BINDIR)\epmenv.obj
+ $(BINDIR)\epmenv.obj\
+ $(BINDIR)\tmf.obj
+
 MT=1
 
 # include main definitions
@@ -47,7 +49,7 @@ FILESTOCLEAN=$(DEPENDFILE) \
 
 # --- general pseudo targets
 
-all: lib
+all: lib pmprintf
 
 clean:
    @echo cleaning up files ...
@@ -56,6 +58,8 @@ clean:
 # --- special pseudo targets
 
 lib: $(BINDIR)\common.lst
+
+pmprintf: $(BINDIR)\printf.obj
 
 dep:
    makedep $(BINDIR) $(DEPENDFILE)
