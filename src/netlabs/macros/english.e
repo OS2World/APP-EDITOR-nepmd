@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: english.e,v 1.3 2002-08-09 19:48:21 aschn Exp $
+* $Id: english.e,v 1.4 2002-09-01 14:27:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -539,7 +539,7 @@ compile endif -- WANT_TOOLBAR
        PROMPTING_MENU__MSG      = '~Prompting'
      SAVE_OPTS_MENU__MSG      = 'Save ~options'
      TO_BOOK_MENU__MSG        = '~Book icon'
-     TO_DESKTOP_MENU__MSG     = 'LaMa~il desktop'
+;     TO_DESKTOP_MENU__MSG     = 'LaMa~il desktop'
 
 compile if WANT_DYNAMIC_PROMPTS
  compile if SPELL_SUPPORT & not CHECK_FOR_LEXAM
@@ -586,7 +586,7 @@ compile if WANT_DYNAMIC_PROMPTS
        PROMPTING_MENUP__MSG      = \1'Toggle dynamic menu help on and off'
      SAVE_OPTS_MENUP__MSG      = \1'Makes current modes and frame settings the default'
      TO_BOOK_MENUP__MSG        = \1'Switch to the EPM book icon or desktop'
-     TO_DESKTOP_MENUP__MSG     = \1'Switch to the LaMail desktop window'
+;     TO_DESKTOP_MENUP__MSG     = \1'Switch to the LaMail desktop window'
 compile else
    OPTIONS_BARP__MSG         = ''
      LIST_FILES_MENUP__MSG     = ''
@@ -627,7 +627,7 @@ compile else
        PROMPTING_MENUP__MSG      = ''
      SAVE_OPTS_MENUP__MSG      = ''
      TO_BOOK_MENUP__MSG        = ''
-     TO_DESKTOP_MENUP__MSG     = ''
+;     TO_DESKTOP_MENUP__MSG     = ''
 compile endif  -- WANT_DYNAMIC_PROMPTS
 
    RING_BAR__MSG =        '~Ring '
@@ -816,7 +816,7 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
    NO_QUEUE__MSG =        'has no queue associated with it.'
    EDITOR__MSG =          "EPM Editor - Product Information"
    EDITOR_VER__MSG =      "Editor version" -- nnn
-   LAMAIL_VER__MSG =      "LaMail version" -- nnn
+;   LAMAIL_VER__MSG =      "LaMail version" -- nnn
    MACROS_VER__MSG =      "Macros version" -- nnn
    COPYRIGHT__MSG =       "(C) Copyright IBM Corporation 1989, 1993, 1994, 1995, 1996"
    OVERLAPPING_ATTRIBS__MSG = 'Overlapping attributes; nothing changed.' /*NLS*/

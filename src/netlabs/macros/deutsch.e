@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deutsch.e,v 1.4 2002-08-10 14:49:07 aschn Exp $
+* $Id: deutsch.e,v 1.5 2002-09-01 14:28:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,7 +18,7 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-; This file defines the various text constants as English strings.
+; This file defines the various text constants as German strings.
 ; The comments (after the '--' are examples of how the string is used, and need not
 ; be translated.  For example,
            --      'Got' number 'bytes from a' number'-byte buffer'  number 'lines'
@@ -539,7 +539,7 @@ compile endif -- WANT_TOOLBAR
        PROMPTING_MENU__MSG      = '~MenÅkurzinfo'
      SAVE_OPTS_MENU__MSG      = '~Optionen sichern'
      TO_BOOK_MENU__MSG        = '~Buchsymbol'
-     TO_DESKTOP_MENU__MSG     = 'LaMa~il-ArbeitsoberflÑche'
+;     TO_DESKTOP_MENU__MSG     = 'LaMa~il-ArbeitsoberflÑche'
 
 compile if WANT_DYNAMIC_PROMPTS
  compile if SPELL_SUPPORT & not CHECK_FOR_LEXAM
@@ -586,7 +586,7 @@ compile if WANT_DYNAMIC_PROMPTS
        PROMPTING_MENUP__MSG      = \1'Ein- und Ausschalten der Kurzhilfetexte fÅr die MenÅauswahlmîglichkeiten'
      SAVE_OPTS_MENUP__MSG      = \1'Speichern der aktuellen Fenstereinstellungen als Standardwerte'
      TO_BOOK_MENUP__MSG        = \1'Umschalten zum EPM-Buchsymbol oder zur ArbeitsoberflÑche'
-     TO_DESKTOP_MENUP__MSG     = \1'Umschalten zum LaMail-OberflÑchenfenster'
+;     TO_DESKTOP_MENUP__MSG     = \1'Umschalten zum LaMail-OberflÑchenfenster'
 compile else
    OPTIONS_BARP__MSG         = ''
      LIST_FILES_MENUP__MSG     = ''
@@ -627,7 +627,7 @@ compile else
        PROMPTING_MENUP__MSG      = ''
      SAVE_OPTS_MENUP__MSG      = ''
      TO_BOOK_MENUP__MSG        = ''
-     TO_DESKTOP_MENUP__MSG     = ''
+;     TO_DESKTOP_MENUP__MSG     = ''
 compile endif  -- WANT_DYNAMIC_PROMPTS
 
    RING_BAR__MSG =        '~Umlaufliste '
@@ -635,10 +635,10 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
    COMMAND_BAR__MSG =     '~Befehl '
      COMMANDLINE_MENU__MSG = '~Befehlszeile...'
      HALT_COMMAND_MENU__MSG= 'B~efehl beenden'
-     CREATE_SHELL_MENU__MSG= 'Be~fehlsshell erstellen'
+     CREATE_SHELL_MENU__MSG= 'Befehls~shell erstellen'
      WRITE_SHELL_MENU__MSG = '~In Shell schreiben...'
      KILL_SHELL_MENU__MSG =  'Shell been~den'
-     SHELL_BREAK_MENU__MSG = 'Unterbrechung an Shell senden'
+     SHELL_BREAK_MENU__MSG = '~Unterbrechung an Shell senden'
 
 compile if WANT_DYNAMIC_PROMPTS
    COMMAND_BARP__MSG =     \1'Eingabe oder Beenden eines Befehls',
@@ -666,13 +666,13 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
      HELP_INDEX_MENU__MSG =  'Hilfe~index'
      HELP_BROWSER_MENU__MSG= 'Info-~öberblick'
      HELP_PROD_MENU__MSG=    '~Produktinformation'
-     USERS_GUIDE_MENU__MSG = "~Benutzerhandbuch anzeigen"
+     USERS_GUIDE_MENU__MSG = "~Benutzerhandbuch"
        VIEW_USERS_MENU__MSG =  "~Benutzerhandbuch anzeigen"
-       VIEW_IN_USERS_MENU__MSG="~Aktuelles Wort"
-       VIEW_USERS_SUMMARY_MENU__MSG="~Zusammenfassung"
-     TECHREF_MENU__MSG =     "~Technisches Handbuch anzeigen"
-       VIEW_TECHREF_MENU__MSG =  "~Technisches Handbuch anzeigen"
-       VIEW_IN_TECHREF_MENU__MSG="~Aktuelles Wort"
+       VIEW_IN_USERS_MENU__MSG="~Aktuelles Wort suchen"
+       VIEW_USERS_SUMMARY_MENU__MSG="~Zusammenfassung anzeigen"
+     TECHREF_MENU__MSG =     "~Referenzhandbuch"
+       VIEW_TECHREF_MENU__MSG =  "~Referenzhandbuch anzeigen"
+       VIEW_IN_TECHREF_MENU__MSG="~Aktuelles Wort suchen"
 
 compile if WANT_DYNAMIC_PROMPTS
    HELP_BARP__MSG =         \1'MenÅs fÅr den Zugriff auf Hilfetexte und Copyrightinformationen'
@@ -816,7 +816,7 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
    NO_QUEUE__MSG =        'ist keine Warteschlange zugeordnet.'
    EDITOR__MSG =          "EPM-Editor - Produktinformation"
    EDITOR_VER__MSG =      "Editorversion" -- nnn
-   LAMAIL_VER__MSG =      "LaMailversion" -- nnn
+;   LAMAIL_VER__MSG =      "LaMailversion" -- nnn
    MACROS_VER__MSG =      "Makroversion" -- nnn
    COPYRIGHT__MSG =       "(C) Copyright IBM Corporation 1989, 1993, 1994, 1995, 1996"
    OVERLAPPING_ATTRIBS__MSG = 'öberlagerte Attribute; nichts geÑndert.' /*NLS*/
