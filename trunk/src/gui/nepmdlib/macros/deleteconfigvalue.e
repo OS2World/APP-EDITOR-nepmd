@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleteconfigvalue.e,v 1.1 2002-09-13 21:55:05 cla Exp $
+* $Id: deleteconfigvalue.e,v 1.2 2002-09-15 14:58:36 cla Exp $
 *
 * ===========================================================================
 *
@@ -47,8 +47,41 @@ configuration value is to be deleted.
 @@NepmdDeleteConfigValue@RETURNS
 *NepmdDeleteConfigValue* returns an OS/2 error code or zero for no error.
 
+@@NepmdDeleteConfigValue@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdDeleteConfigValue* 
+  - or
+- *DeleteConfigValue*
+
+
+Executing this command will delete
+the configuration value with the pathname
+.sl compact
+- *\NEPMD\Test\Nepmdlib\TestKey*
+.el
+from the configuration repository of the [=TILE]
+and display the result within the status area.
+
 @@
 */
+/* ------------------------------------------------------------- */
+/*   allow editor command to call function                       */
+/* ------------------------------------------------------------- */
+
+defc NepmdDeleteConfigValue, DeleteConfigValue =
+
+ rc = NepmdDeleteConfigValue( 0, NEPMD_TEST_CONFIGPATH);
+
+ if (rc > 0) then
+    sayerror 'config value not deleted, rc='rc;
+    return;
+ endif
+
+ sayerror 'config value  "'NEPMD_TEST_CONFIGPATH'" successfully deleted!';
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdDeleteConfigValue                             */
@@ -62,6 +95,11 @@ configuration value is to be deleted.
 /* ------------------------------------------------------------- */
 
 defproc NepmdDeleteConfigValue( Handle, ConfPath) =
+
+ /* use zero as handle if none specified */
+ if (strip( Handle) = '') then
+    Handle = 0;
+ endif
 
  /* prepare parameters for C routine */
  ConfPath  = ConfPath''atoi( 0);

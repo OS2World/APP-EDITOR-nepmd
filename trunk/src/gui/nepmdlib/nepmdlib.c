@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.38 2002-09-13 21:55:47 cla Exp $
+* $Id: nepmdlib.c,v 1.39 2002-09-15 14:58:35 cla Exp $
 *
 * ===========================================================================
 *
@@ -242,6 +242,41 @@ if (rc != NO_ERROR)
 return rc;
 }
 
+// ------------------------------------------------------------------------------
+
+static APIRET _openConfig( PHCONFIG phconfig)
+{
+         APIRET         rc = NO_ERROR;
+         CHAR           szInifile[ _MAX_PATH];
+         HCONFIG        hconfig;
+
+do
+   {
+   // check parm
+   if (!phconfig)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // determine name of INI
+   rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szInifile, sizeof( szInifile));
+   if (rc = NO_ERROR)
+      break;
+
+   // open profile
+   rc = OpenConfig( &hconfig, szInifile);
+   if (rc != NO_ERROR)
+      break;
+
+   // hand over result
+   *phconfig = hconfig;
+
+   } while (FALSE);
+
+return rc;
+}
+
 // ##############################################################################
 
 BOOL EXPENTRY NepmdAlarm( PSZ pszAlarmStyle)
@@ -287,7 +322,27 @@ return CloseConfig( hconfig);
 
 APIRET EXPENTRY NepmdDeleteConfigValue( HCONFIG hconfig, PSZ pszRegPath)
 {
-return DeleteConfigValue( hconfig, pszRegPath);
+         APIRET         rc = NO_ERROR;
+         BOOL           fImplicitOpen = FALSE;
+do
+   {
+   // implicit open if handle is zero
+   if (!hconfig)
+      {
+      rc = _openConfig( &hconfig);
+      if (rc != NO_ERROR)
+         break;
+      fImplicitOpen = TRUE;
+      }
+
+   // do the job
+   rc = DeleteConfigValue( hconfig, pszRegPath);
+
+   } while (FALSE);
+
+// cleanup
+if (fImplicitOpen) CloseConfig( hconfig); 
+return rc;
 }
 
 // ------------------------------------------------------------------------------
@@ -530,7 +585,6 @@ return _getRexxError( rc, pszBuffer, ulBuflen);
 APIRET EXPENTRY NepmdOpenConfig( PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
-         CHAR           szInifile[ _MAX_PATH];
          HCONFIG        hconfig;
 
          CHAR           szResult[ 20];
@@ -548,13 +602,8 @@ do
       break;
       }
 
-   // determine name of INI
-   rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szInifile, sizeof( szInifile));
-   if (rc = NO_ERROR)
-      break;
-
-   // open profile
-   rc = OpenConfig( &hconfig, szInifile);
+   // open config
+   rc = _openConfig( &hconfig);
    if (rc != NO_ERROR)
       break;
 
@@ -1159,7 +1208,27 @@ return _getRexxError( rc, pszBuffer, ulBuflen);
 APIRET EXPENTRY NepmdQueryConfigValue( HCONFIG hconfig, PSZ pszRegPath,
                                        PSZ pszBuffer, ULONG ulBuflen)
 {
-return QueryConfigValue( hconfig, pszRegPath, pszBuffer, ulBuflen);
+         APIRET         rc = NO_ERROR;
+         BOOL           fImplicitOpen = FALSE;
+do
+   {
+   // implicit open if handle is zero
+   if (!hconfig)
+      {
+      rc = _openConfig( &hconfig);
+      if (rc != NO_ERROR)
+         break;
+      fImplicitOpen = TRUE;
+      }
+
+   // do the job
+   rc = QueryConfigValue( hconfig, pszRegPath, pszBuffer, ulBuflen);
+
+   } while (FALSE);
+
+// cleanup
+if (fImplicitOpen) CloseConfig( hconfig); 
+return rc;
 }
 
 // ------------------------------------------------------------------------------
@@ -1329,7 +1398,27 @@ return rc;
 
 APIRET EXPENTRY NepmdWriteConfigValue( HCONFIG hconfig, PSZ pszRegPath, PSZ pszRegValue)
 {
-return WriteConfigValue( hconfig, pszRegPath, pszRegValue);
+         APIRET         rc = NO_ERROR;
+         BOOL           fImplicitOpen = FALSE;
+do
+   {
+   // implicit open if handle is zero
+   if (!hconfig)
+      {
+      rc = _openConfig( &hconfig);
+      if (rc != NO_ERROR)
+         break;
+      fImplicitOpen = TRUE;
+      }
+
+   // do the job
+   rc = WriteConfigValue( hconfig, pszRegPath, pszRegValue);
+
+   } while (FALSE);
+
+// cleanup
+if (fImplicitOpen) CloseConfig( hconfig); 
+return rc;
 }
 
 // ------------------------------------------------------------------------------

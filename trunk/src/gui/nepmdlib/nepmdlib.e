@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.30 2002-09-13 21:55:48 cla Exp $
+* $Id: nepmdlib.e,v 1.31 2002-09-15 14:58:35 cla Exp $
 *
 * ===========================================================================
 *
@@ -46,6 +46,8 @@ const
  NEPMD_TEST_EANAME       = 'NEPMD._TestStringEa';
  NEPMD_TEST_EAVALUE      = 'This is a test value for the NepmdWriteStringEa API !';
 
+ NEPMD_TEST_CONFIGPATH   = '\NEPMD\Test\Nepmdlib\TestKey';
+ NEPMD_TEST_CONFIGVALUE  = 'This is a test value for the Nepmd*Config* APIs !';
 
 /* ------------------------------------------------------------- */
 /*   generic routine for library file and string handling        */
