@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.10 2002-06-07 13:55:55 cla Exp $
+.. $Id: makefile.txt,v 1.11 2002-06-10 11:33:47 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -63,8 +63,17 @@
 .. .............................................................................
 .an IDPNL_TARGETS_MAIN
 .
-The following makefile targets are available for the main makefile within the project
-working directory (root of the development tree):
+This section describes the makefile pseudotargets are available for the main makefile within 
+the project working directory (root of the development tree).
+
+[=NOTE]
+.ul compact
+- edit configure.in to your needs before executing nmake
+- targets marked with (**) require a working internet connection
+  for to download the EPM packages, if they are not available within the directory
+  specified by the macro *ZIPSRCDIR* in the file *configure.in*.
+
+The following pseudotargets are available:
 .pl bold compact break=none tsize=20
 - nmake
 = show this INF file (if outdated, this compiles the INF before). This calls the
@@ -88,26 +97,20 @@ working directory (root of the development tree):
 - nmake rungui
 = build and run selected GUI components
 .
+- nmake inf
+= build all INF files of the whole project
 - nmake show
-= build NEPMD INF and show it
+= build NEPMD INF only and show it
 .
 - nmake clean
 = remove the *compile* and binary (both *debug* and *release*) directories
-.
-
-[=NOTE]
-.ul compact
-- edit configure.in to your needs before executing nmake
-- targets marked with (**) require a working internet connection
-  for to download the EPM packages, if they are not available within the directory
-  specified by the macro *ZIPSRCDIR* in the file *configure.in*.
 
 .. .............................................................................
 .3 ipf\makefile
 .. .............................................................................
 .an IDPNL_TARGETS_IPF
 .
-The following makefile targets are available for the makefile within the
+The following makefile pseudotargets are available for the makefile within the
 *src\ipf* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
@@ -138,7 +141,7 @@ The following makefile targets are available for the makefile within the
 .. .............................................................................
 .an IDPNL_TARGETS_REXX
 .
-The following makefile targets are available for the makefile within the
+The following makefile pseudotargets are available for the makefile within the
 *src\rexx* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
@@ -157,7 +160,7 @@ The following makefile targets are available for the makefile within the
 .. .............................................................................
 .an IDPNL_TARGETS_NETLABS
 .
-The following makefile targets are available for the makefile within the
+The following makefile pseudotargets are available for the makefile within the
 *src\netlabs* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
@@ -196,7 +199,7 @@ The following makefile targets are available for the makefile within the
  in the project working root directory instead.
 .at
 
-The following makefile targets are available for the makefile within the
+The following makefile pseudotargets are available for the makefile within the
 *src\wis* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
