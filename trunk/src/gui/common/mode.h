@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.h,v 1.1 2002-10-06 20:42:07 cla Exp $
+* $Id: mode.h,v 1.2 2002-10-14 17:47:10 cla Exp $
 *
 * ===========================================================================
 *
@@ -38,6 +38,7 @@ typedef struct _MODEINFO
 
 // prototypes
 APIRET QueryFileModeInfo( PSZ pszFilename, PMODEINFO pmi, ULONG ulBuflen);
+APIRET QueryFileModeList( PSZ pszBuffer, ULONG ulBuflen);
 
 #endif // MODE_H
 
