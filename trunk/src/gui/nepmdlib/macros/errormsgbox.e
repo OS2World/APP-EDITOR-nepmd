@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: errormsgbox.e,v 1.6 2002-08-27 12:21:25 cla Exp $
+* $Id: errormsgbox.e,v 1.7 2002-08-28 21:16:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,7 @@ This parameter specifies the title to be
 displayed in the message box.
 
 @@NepmdErrorMsgBox@RETURNS
-NepmdErrorMsgBox returns an OS/2 error code.
+NepmdErrorMsgBox returns an OS/2 error code or zero for no error.
 
 @@
 */

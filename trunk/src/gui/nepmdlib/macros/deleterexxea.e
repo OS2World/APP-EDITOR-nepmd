@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleterexxea.e,v 1.8 2002-08-28 21:04:37 cla Exp $
+* $Id: deleterexxea.e,v 1.9 2002-08-28 21:16:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -37,7 +37,7 @@ This parameter specifies the name of the file, from which
 the REXX EAs are to be deleted.
 
 @@NepmdDeleteRexxEa@RETURNS
-NepmdDeleteRexxEa returns an OS/2 error code.
+NepmdDeleteRexxEa returns an OS/2 error code or zero for no error.
 
 @@
 */

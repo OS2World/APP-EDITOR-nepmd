@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextclose.e,v 1.2 2002-08-28 21:04:38 cla Exp $
+* $Id: getnextclose.e,v 1.3 2002-08-28 21:16:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -52,7 +52,7 @@ the cleanup code must close the open handle by a call to *NepmdGetNextClose*.
 .at
 
 @@NepmdGetNextClose@RETURNS
-NepmdGetNextClose returns an OS/2 error code.
+NepmdGetNextClose returns an OS/2 error code or zero for no error.
 
 @@
 */

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deletestringea.e,v 1.6 2002-08-28 21:04:38 cla Exp $
+* $Id: deletestringea.e,v 1.7 2002-08-28 21:16:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -41,7 +41,7 @@ This parameter specifies the name of the extended
 attribute to be deleted.
 
 @@NepmdDeleteStringEa@RETURNS
-NepmdDeleteStringEa returns an OS/2 error code.
+NepmdDeleteStringEa returns an OS/2 error code or zero for no error.
 
 @@
 */
