@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.17 2002-06-03 22:32:37 cla Exp $
+# $Id: makefile,v 1.18 2002-06-06 11:43:43 cla Exp $
 #
 # ===========================================================================
 #
@@ -38,7 +38,8 @@ BASEDIR=.
 #      - keep module wis last in order to have all required
 #        files available !
 
-MODULELIST=ipf rexx netlabs gui\common gui\recomp wis
+GUIMODULELIST=gui\common gui\recomp
+MODULELIST=ipf rexx netlabs $(GUIMODULELIST) wis
 
 # --- generic module target
 
@@ -47,15 +48,22 @@ SPACER=--------------
 STARTMSG=\makefile starts
 ENDMSG=\makefile ends
 
-MODULE:
+VERBOSE:
   @cd src\$(MODULE)
   @echo $(SPACER) $(MODULE)$(STARTMSG) $(SPACER)
   @$(MAKE) /nologo $(ARG) CALLED=1
   @echo $(SPACER) $(MODULE)$(ENDMSG) $(SPACER)
   @echo.
   @cd $(MAKEDIR)
+
+QUIET:
+  @cd src\$(MODULE)
+  @$(MAKE) /nologo $(ARG) CALLED=1
+  @cd $(MAKEDIR)
+
 !else
-MODULE: HELP
+DEFAULT: HELP
+
 !endif
 
 # --- pseudotargets
@@ -63,24 +71,23 @@ MODULE: HELP
 ALL:
   @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL
 
+GUI:
+  @for %%a in ($(GUIMODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL
+
+RUNGUI: GUI
+  @$(MAKE) QUIET ARG=RUN MODULE=gui\recomp CALLED=1
+
 REL:
   @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a NDEBUG=1 ARG=ALL
 
 HELP:
-  @cd src\ipf
-  @$(MAKE) $(ARG) HELP MODULE=ipf
-  @cd $(MAKEDIR)
+  @$(MAKE) QUIET ARG=HELP MODULE=ipf CALLED=1
 
 SHOW:
-  @cd src\ipf
-  @$(MAKE) $(ARG) NEPMDINF MODULE=ipf
-  @cd $(MAKEDIR)
-  @start view $(CMPINFDIR)\nepmd.inf Netlabs
+  @$(MAKE) QUIET ARG=NEPMD MODULE=ipf CALLED=1
 
 INST: ALL
-  @cd src\wis
-  @$(MAKE) $(ARG) INST MODULE=wis CALLED=1
-  @cd $(MAKEDIR)
+  @$(MAKE) QUIET ARG=INST MODULE=wis CALLED=1
 
 CLEAN:
   @echo cleaning up directories ...
