@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.18 2004-07-12 19:55:41 aschn Exp $
+* $Id: stdkeys.e,v 1.19 2004-11-30 21:19:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -46,6 +46,7 @@ def pgdn          'PageDown'            -- Go to next page (Shift marks)
 def c_down        'PushPos'             -- Add current cursor pos. to cursor stack
 def c_up          'PopPos'              -- Go to last pos. of cursor stack
 def c_equal       'SwapPos'             -- Exchange current sursor pos. with last pos. of stack
+def c_0           'SwapPos'             -- Exchange current sursor pos. with last pos. of stack
 def a_minus       'HighlightCursor'     -- Draw a circle around cursor
 def a_e           'EndMark'             -- Go to end of mark
 def a_y           'BeginMark'           -- Go to begin of mark
@@ -65,6 +66,7 @@ def a_z           'MarkChar'            -- Start/end char mark
 def a_w           'MarkWord'            -- Mark current word
 def a_u           'UnMark'              -- Unmark all
 def c_backslash   'UnMark'              -- Unmark all
+defc Key_c_s_a    'UnMark'              -- Unmark all
 def c_a           'Select_All'          -- Mark all
 def c_slash       'Select_All'          -- Mark all
 def s_left        'MarkPrevChar'        -- Mark from cursor to previous char
@@ -145,7 +147,7 @@ def a_n           'TypeFileName'        -- Type the full filename
 def c_2           'TypeNull'            -- Type a null char (\0)
 def c_6           'TypeNot'             -- Type a not char ª (\170)
 def c_9           'TypeOpeningBrace'    -- Type a {
-def c_0           'TypeClosingBrace'    -- Type a }
+;def c_0          'TypeClosingBrace'    -- Type a }
 def c_4           'TypePound'           -- Type a cent char › (\155)
 def c_tab         'TypeTab'             -- Type a tab char (\9)
 
