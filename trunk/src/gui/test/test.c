@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.7 2002-09-05 13:31:54 cla Exp $
+* $Id: test.c,v 1.8 2002-09-12 15:26:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,6 +34,7 @@
 #include "nepmd.h"
 #include "tmf.h"
 #include "instval.h"
+#include "libreg.h"
 
 // -----------------------------------------------------------------------------
 
@@ -106,7 +107,7 @@ do
                   PSZ            apszParms[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 
          // determine messsage file
-         rc = QueryInstValue( NEPMD_VALUETAG_MESSAGE, szMessageFile, sizeof( szMessageFile));
+         rc = QueryInstValue( NEPMD_INSTVALUE_MESSAGE, szMessageFile, sizeof( szMessageFile));
          if (rc != NO_ERROR)
             {
             printf( "error: cannot determine location of nepmdeng.tmf !\n"); 
@@ -135,13 +136,59 @@ do
          PSZ            pszTag;
          CHAR           szValue[ _MAX_PATH];
 
-      GETVALUE( NEPMD_VALUETAG_ROOTDIR);
-      GETVALUE( NEPMD_VALUETAG_LANGUAGE);
+      GETVALUE( NEPMD_INSTVALUE_ROOTDIR);
+      GETVALUE( NEPMD_INSTVALUE_LANGUAGE);
 
-      GETVALUE( NEPMD_VALUETAG_INIT); 
-      GETVALUE( NEPMD_VALUETAG_MESSAGE);
+      GETVALUE( NEPMD_INSTVALUE_INIT); 
+      GETVALUE( NEPMD_INSTVALUE_MESSAGE);
    
       } // testcase INSTVAL
+
+   // =========================================================================
+   // testcase for WriteConfigValue
+   // =========================================================================
+
+
+   if (!(strcmp( pszTestcase, "WRITECONFIGVALUE")))
+
+      {
+
+            PSZ               pszPath;
+            PSZ               pszValue;
+            CHAR              szValue[ _MAX_PATH];
+            PSZ               pszFormat = "%s  ->  \"%s\"\n";
+
+#define PROCESSVALUE(p,v)                                         \
+      pszPath  = p;                                               \
+      pszValue = v;                                               \
+      rc = WriteConfigValue(p,v);                                 \
+      if (rc)                                                     \
+         break;                                                   \
+      rc = QueryConfigValue( pszPath, szValue, sizeof( szValue)); \
+      if (rc)                                                     \
+         break;                                                   \
+      printf( pszFormat, pszPath, szValue);
+
+      // write and read all keys
+      do
+         { // write complete new ekyes
+         PROCESSVALUE( "\\NEPMD\\Testcases\\MyContainer\\MyKey",       "My first value is this !");
+         PROCESSVALUE( "\\NEPMD\\Testcases\\My2ndContainer\\MyKey",    "My second value is this !");
+         PROCESSVALUE( "\\NEPMD\\Testcases\\My3rdContainer\\My3rdKey", "My third value is this !");
+         PROCESSVALUE( "\\NEPMD\\Testcases2\\2ndcase",                 "this is a different case");
+
+         // write a ney key to all existant path
+         PROCESSVALUE( "\\NEPMD\\Testcases\\MyContainer\\AdditionalKey",  "Additional value");
+
+         // write a new key in the middle of an existand path
+         PROCESSVALUE( "\\NEPMD\\Testcases\\AdditionalCase",  "Additional value 2");
+
+         } while (FALSE);
+
+      if (rc)
+         printf( "\n\nerror: cannot write value for: %s\n", pszPath);
+
+      } // testcase WRITECONFIGVALUE
 
 
 
