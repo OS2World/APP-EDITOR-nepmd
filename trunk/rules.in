@@ -1,6 +1,6 @@
 # ***************************** Module Header *******************************
 #
-# Module Name: rules.in
+# Module Name: rules.in - external version V1.06
 #
 # generic (!) include file to setup compiler and linker flags and some
 # specific implicit rules - See description below !
@@ -28,7 +28,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: rules.in,v 1.3 2002-06-09 21:13:14 cla Exp $
+# $Id: rules.in,v 1.4 2002-06-19 10:54:45 cla Exp $
 #
 # ===========================================================================
 #
@@ -132,54 +132,73 @@ DIRSTOCLEAN=$(BINDIR) $(CMPDIR)
 # common options
 CC=icc
 RC=rc
-C_FLAGS=-q -c -Ss+ -Sp1 -W3
-L_FLAGS=/A:4 /E /NOI /NOE /NOL /NOLOGO /MAP
+C_FLAGS_BASE=-q -c -Ss+ -Sp1
+L_FLAGS_BASE=/A:4 /E /NOI /NOE /NOL /NOLOGO /MAP
 
 !ifdef CPPLOCAL
 # - VAC3 -
 CLIB=ilib
 ILIB=ilib
 LL=ilink
-C_FLAGS=$(C_FLAGS) -Wcnd-
-L_FLAGS=/NOFREE $(L_FLAGS)
+C_FLAGS_COMPILER=-W3 -Wcnd-
+L_FLAGS_LINKER= /NOFREE
 !else
 # - IBM C/Set2 -
 CLIB=lib
 ILIB=implib
 LL=link386
-L_FLAGS=/BATCH $(L_FLAGS)
+C_FLAGS_COMPILER=-W3
+L_FLAGS_LINKER=/BATCH
 !endif
 
 # --- define executable specific options
-EXE_L_FLAGS=/BASE:0X10000
-DLL_L_FLAGS=/BASE:0X120000
+EXE_L_FLAGS= /BASE:0X10000
+DLL_L_FLAGS= /BASE:0X120000
 !ifdef DLL
-C_FLAGS=$(C_FLAGS) -Ge-
+C_FLAGS_EXETYPE=-Ge-
 !endif
 
 # --- define optimize option
 !ifdef OPTIMIZE
-C_FLAGS=$(C_FLAGS) -O+
+C_FLAGS_OPT=-O+
 !else
-C_FLAGS=$(C_FLAGS) -O-
+C_FLAGS_OPT=-O-
 !endif
 
 # --- define threading option
 !ifdef MT
-C_FLAGS= $(C_FLAGS) -Gm+
+C_FLAGS_MT=-Gm+
+!else
+C_FLAGS_MT=-Gm-
 !endif
+
+# --- concatenate main options (all without DEBUG options)
+C_FLAGS_MAIN=$(C_FLAGS_BASE) $(C_FLAGS_COMPILER) $(C_FLAGS_EXETYPE) $(C_FLAGS_OPT) $(C_FLAGS_MT)
+L_FLAGS_MAIN=$(L_FLAGS_LINKER) $(L_FLAGS_BASE)
+
+# --- define debug options (always both)
+C_FLAGS_DEBUG=$(C_FLAGS_MAIN) -Tm -Ti+ -DDEBUG
+L_FLAGS_DEBUG=$(L_FLAGS_MAIN) /CO
+RC_FLAGS_DEB=-DDEBUG
+
+C_FLAGS_RELEASE=$(C_FLAGS_MAIN) -Ti- -DNDEBUG
+L_FLAGS_RELEASE=$(L_FLAGS_MAIN)
+RC_FLAGS_RELEASE=-DNDEBUG
 
 # --- define debug options
 !ifdef DEBUG
-C_FLAGS=$(C_FLAGS) -Tm -Ti+ -DDEBUG
-L_FLAGS=$(L_FLAGS) /CO
-RC_FLAGS=-DDEBUG
+C_FLAGS=$(C_FLAGS_DEBUG)
+L_FLAGS=$(L_FLAGS_DEBUG)
+RC_FLAGS=$(RC_FLAGS_DEBUG)
 PMPRINTF=$(BINDIR)\printf.obj
 !else
-C_FLAGS=$(C_FLAGS) -Ti- -DNDEBUG
-RC_FLAGS=
+C_FLAGS=$(C_FLAGS_RELEASE)
+L_FLAGS=$(L_FLAGS_RELEASE)
+RC_FLAGS=$(RC_FLAGS_RELEASE)
 PMPRINTF=
 !endif
+
+
 
 # --- suffix list
 .SUFFIXES: .exe .obj .c .obj .lib .dll .lst .def .rc .res $(DLLEXT)
