@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.43 2002-09-19 13:03:38 cla Exp $
+* $Id: nepmdlib.c,v 1.44 2002-09-19 13:51:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -35,11 +35,12 @@
 #define OS2VERSION 20
 #include <EDLL.h>
 
+#include "nepmd.h"
 #include "macros.h"
 #include "nepmdlib.h"
 #include "file.h"
 #include "module.h"
-#include "instval.c"
+#include "instval.h"
 #include "eas.h"
 #include "tmf.h"
 #include "libreg.h"
@@ -261,7 +262,7 @@ do
 
    // determine name of INI
    rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szInifile, sizeof( szInifile));
-   if (rc = NO_ERROR)
+   if (rc != NO_ERROR)
       break;
 
    // open profile
@@ -341,7 +342,7 @@ do
    } while (FALSE);
 
 // cleanup
-if (fImplicitOpen) CloseConfig( hconfig); 
+if (fImplicitOpen) CloseConfig( hconfig);
 return rc;
 }
 
@@ -426,7 +427,7 @@ do
    } while (FALSE);
 
 // cleanup
-if (fImplicitOpen) CloseConfig( hconfig); 
+if (fImplicitOpen) CloseConfig( hconfig);
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
@@ -775,6 +776,11 @@ APIRET EXPENTRY NepmdInitConfig( HCONFIG hconfig)
 {
          APIRET         rc = NO_ERROR;
          BOOL           fImplicitOpen = FALSE;
+
+         PSZ            pszDevTreePath;
+
+         CHAR           szFilename[ _MAX_PATH];
+         PSZ            pszDefaultsFile = NULL;
 do
    {
    // implicit open if handle is zero
@@ -786,13 +792,32 @@ do
       fImplicitOpen = TRUE;
       }
 
+   // get developer tree rootdir
+   pszDevTreePath = getenv( ENV_NEPMD_DEVPATH);
+   if (pszDevTreePath)
+      {
+      sprintf( szFilename, "%s\\"NEPMD_DEVPATH_DEFAULTSFILE"\\"NEPMD_FILENAME_DEFAULTSFILE, pszDevTreePath);
+      printf( "---> filename is %s\n", szFilename);
+      pszDefaultsFile = szFilename;
+      }
+   else
+      {
+      // determine pathname of NEPMD installation
+      rc = QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, szFilename, sizeof( szFilename));
+      if (rc == NO_ERROR)
+         {
+         strcat( szFilename, "\\"NEPMD_SUBPATH_DEFAULTSFILE"\\"NEPMD_FILENAME_DEFAULTSFILE);
+         pszDefaultsFile = szFilename;
+         }
+      }
+
    // do the job
-   rc = InitConfig( hconfig, NULL);
+   rc = InitConfig( hconfig, pszDefaultsFile);
 
    } while (FALSE);
 
 // cleanup
-if (fImplicitOpen) CloseConfig( hconfig); 
+if (fImplicitOpen) CloseConfig( hconfig);
 return rc;
 }
 
@@ -845,7 +870,7 @@ do
       if (!stricmp( apszInfoTag[ i], pszInfoTag))
          {
          DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
-         ulInfoStyle = i;         
+         ulInfoStyle = i;
          fTagFound = TRUE;
          break;
          }
@@ -984,7 +1009,7 @@ do
       if (!stricmp( apszInfoTag[ i], pszInfoTag))
          {
          DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
-         ulInfoStyle = i;         
+         ulInfoStyle = i;
          fTagFound = TRUE;
          break;
          }
@@ -1120,7 +1145,7 @@ do
       if (!stricmp( apszInfoTag[ i], pszInfoTag))
          {
          DPRINTF(( "NEPMDLIB:%s: tag %s found index %u\n", __FUNCTION__, apszInfoTag[ i], i));
-         ulInfoStyle = i;         
+         ulInfoStyle = i;
          fTagFound = TRUE;
          break;
          }
@@ -1297,7 +1322,7 @@ do
    } while (FALSE);
 
 // cleanup
-if (fImplicitOpen) CloseConfig( hconfig); 
+if (fImplicitOpen) CloseConfig( hconfig);
 return rc;
 }
 
@@ -1426,7 +1451,7 @@ return _getRexxError( rc, pszBuffer, ulBuflen);
 
 // ------------------------------------------------------------------------------
 
-APIRET EXPENTRY NepmdSetFrameWindowPos(  HWND hwndFrame, ULONG x, ULONG y, ULONG cx, ULONG cy, ULONG flags) 
+APIRET EXPENTRY NepmdSetFrameWindowPos(  HWND hwndFrame, ULONG x, ULONG y, ULONG cx, ULONG cy, ULONG flags)
 {
 
          APIRET         rc = NO_ERROR;
@@ -1473,7 +1498,7 @@ do
    } while (FALSE);
 
 // cleanup
-if (fImplicitOpen) CloseConfig( hconfig); 
+if (fImplicitOpen) CloseConfig( hconfig);
 return rc;
 }
 
