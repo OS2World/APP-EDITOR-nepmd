@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.6 2002-09-16 16:54:23 aschn Exp $
+* $Id: stdcmds.e,v 1.7 2002-09-16 21:12:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -346,7 +346,8 @@ compile endif
    rest=strip(arg(1))
 
    if rest='' then   /* 'edit' by itself goes to next file */
-      nextfile
+;      nextfile  -- removed to have 'epm /r' only bring an EPM window to the foreground
+                 -- instead of switching to the next file in the ring.
       return 0
    endif
 
