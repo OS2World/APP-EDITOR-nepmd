@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.2 2002-07-22 19:01:36 cla Exp $
+* $Id: rexxkeys.e,v 1.3 2002-08-20 05:22:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -63,63 +63,40 @@ compile if REXX_SYNTAX_CASE <> 'lower' & REXX_SYNTAX_CASE <> 'Mixed'
    *** Error: REXX_SYNTAX_CASE must be "Lower" or "Mixed"
 compile endif
 
-compile if INCLUDING_FILE <> 'EXTRA.E'  -- Following only gets defined in the base
-compile if EVERSION >= '4.12'
 defload
    universal load_ext
-compile if EPM
    universal load_var
-compile endif
-compile if EVERSION >= '5.50'
    if wordpos(load_ext, REXX_EXTENSIONS) then
-compile else
-   if load_ext='BAT' | load_ext='CMD' | load_ext='EXC' | load_ext='EXEC' | load_ext='XEDIT' | load_ext='ERX' then
-compile endif
       getline line,1
       if substr(line,1,2)='/*' or (line='' & .last = 1) then
          keys   rexx_keys
- compile if REXX_TABS <> 0
-  compile if EPM
+compile if REXX_TABS <> 0
          if not (load_var // 2) then  -- 1 would be on if tabs set from EA EPM.TABS
-  compile endif
-         'tabs' REXX_TABS
-  compile if EPM
+            'tabs' REXX_TABS
          endif
-  compile endif
- compile endif
- compile if REXX_MARGINS <> 0
-  compile if EPM
-   compile if EVERSION >= '6.01b'
+compile endif
+compile if REXX_MARGINS <> 0
          if not (load_var bitand 2) then  -- 2 would be on if tabs set from EA EPM.MARGINS
-   compile else
-         if not (load_var%2 - 2*(load_var%4)) then  -- 2 would be on if tabs set from EA EPM.MARGINS
-   compile endif
-  compile endif
          'ma'   REXX_MARGINS
   compile if EPM
          endif
   compile endif
- compile endif
+compile endif
       endif
- compile if REXX_KEYWORD_HIGHLIGHTING and EPM32
+compile if REXX_KEYWORD_HIGHLIGHTING
       if .visible then
          'toggle_parse 1 epmkwds.cmd'
       endif
- compile endif
+compile endif
    endif
-compile endif
 
-compile if WANT_CUA_MARKING & EPM
- defkeys rexx_keys clear
+compile if    WANT_CUA_MARKING
+defkeys rexx_keys clear
 compile else
- defkeys rexx_keys
+defkeys rexx_keys
 compile endif
 
-compile if EVERSION >= 5
 def space=
-compile else
-def ' '=
-compile endif
    universal expand_on
    if expand_on then
       if not rex_first_expansion() then
@@ -128,9 +105,7 @@ compile endif
    else
       keyin ' '
    endif
- compile if EVERSION >= '5.20'
    undoaction 1, junk                -- Create a new state
- compile endif
 
 compile if ASSIST_TRIGGER = 'ENTER'
 def enter=
@@ -145,18 +120,8 @@ def c_enter=
 compile endif
    universal expand_on
 
-compile if EVERSION >= 5
    if expand_on then
-compile else
-   if expand_on & not command_state() then
-compile endif
-compile if EVERSION >= '4.12'
       if not rex_second_expansion() then
-compile else
-      if rex_second_expansion() then
-         call maybe_autosave()
-      else
-compile endif
 compile if ASSIST_TRIGGER = 'ENTER'
  compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
          call enter_common(enterkey)
@@ -191,16 +156,10 @@ def c_x=       -- Force expansion if we don't have it turned on automatic
    if not rex_first_expansion() then
       call rex_second_expansion()
    endif
-compile endif  -- EXTRA
 
-compile if not EXTRA_EX or INCLUDING_FILE = 'EXTRA.E'  -- Following gets defined in EXTRA.EX if it's being used
 defproc rex_first_expansion            -- Called by space bar
    retc = 0                            -- Default, enter a space
-compile if EVERSION >= 5
    if .line then
-compile else
-   if .line and (not command_state()) then
-compile endif
       w=strip(textline(.line),'T')
       wrd=upcase(w)
 compile if REXX_SYNTAX_FORCE_CASE
@@ -227,9 +186,7 @@ compile else
  compile endif
 compile endif
          if not insert_state() then insert_toggle
-compile if EVERSION >= '5.50'
              call fixup_cursor()
-compile endif
          endif
       elseif wrd='WHEN' Then
 compile if REXX_SYNTAX_CASE = 'lower'
@@ -246,9 +203,7 @@ compile else
  compile endif
 compile endif
          if not insert_state() then insert_toggle
-compile if EVERSION >= '5.50'
              call fixup_cursor()
-compile endif
          endif
       elseif wrd='DO' Then
 compile if REXX_SYNTAX_FORCE_CASE
@@ -374,4 +329,3 @@ compile endif
    Endif
    Return(retc)
 
-compile endif  -- EXTRA
