@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.3 2004-02-22 18:17:41 aschn Exp $
+* $Id: infoline.e,v 1.4 2004-06-03 22:36:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,13 +22,9 @@
 /*
 Todo:
 -  If file was altered by another file, then the old date is shown in title
-   if file was selected by ring_more dialog.
--  Make Sep = NEPMD_STATUSLINE_SEP an IniValue
--  Make DefaultField an IniValue (2x)
--  Determine flags from field defs automatically
+   if file was selected by ring_more dialog.  -> won't (can't) fix.
 -  'file' should not redetermine <datetimemodified> to make 'quit' process
    faster
--  Use NLS settings from OS2.INI for DateTime
 */
 
 const
@@ -40,30 +36,35 @@ definit
    universal vNEPMD_MODIFIED_STATUSCOLOR
    vNEPMD_MODIFIED_STATUSCOLOR = NEPMD_MODIFIED_STATUSCOLOR
 compile endif
-const
-compile if not defined(NEPMD_STATUSLINE_SEP)
-   NEPMD_STATUSLINE_SEP = ' ú '
-compile endif
 
 ; ---------------------------------------------------------------------------
+; Compare args with StatusFieldFlags and TitleFieldFlags. If they match,
+; RefreshStatusLine and/or RefreshTitleText is executed.
 defc RefreshInfoLine
+   universal StatusFieldFlags
+   universal TitleFieldFlags
    if .visible then
       Flags = arg(1)
-      -- Todo: determine flags from field defs automatically
       -- Todo: 'FILE' should not redetermine <datetimemodified> to make 'quit'
       --       process faster
-      StatusLineFlags = GetStatusLineFlags()
-      TitleTextFlags  = GetTitleTextFlags()
+      -- Init list of flags
+      -- Following is only called if the universal vars were empty:
+      if StatusFieldFlags = '' then
+         call GetStatusFields()
+      endif
+      if TitleFieldFlags = '' then
+         call GetTitleFields()
+      endif
       do w = 1 to words(Flags)
          Flag = word( Flags, w)
-         if wordpos( Flag, StatusLineFlags) > 0 then
+         if wordpos( Flag, StatusFieldFlags) > 0 then
             'RefreshStatusLine'
             leave
          endif
       enddo
       do w = 1 to words(Flags)
          Flag = word( Flags, w)
-         if wordpos( Flag, TitleTextFlags) > 0 then
+         if wordpos( Flag, TitleFieldFlags) > 0 then
             'RefreshTitleText'
             leave
          endif
@@ -71,20 +72,10 @@ defc RefreshInfoLine
    endif
 
 ; ---------------------------------------------------------------------------
-defproc GetStatusLineFlags
-   StatusLineFlags = 'MARGINS TABS TABKEY MODE FILE MODIFIED STREAMMODE'
-   return StatusLineFlags
-
-; ---------------------------------------------------------------------------
-defproc GetTitleTextFlags
-   TitleTextFlags  = 'FILE FILELIST MODIFIED ALTERED'
-   return TitleTextFlags
-
-; ---------------------------------------------------------------------------
 ; refreshstatusline refreshes the statusline with the current values.
 ;
 ; This defc is required, if the statusbar template should contain
-; non-standard patterns (without a '%'). Then it doesn't suffice to set the
+; non-standard fields (without a '%'). Then it doesn't suffice to set the
 ; universal var current_status_template or the const STATUS_TEMPLATE.
 ;
 ; Calling refreshstatusline as a defselect theoretically means a little
@@ -96,10 +87,10 @@ defproc GetTitleTextFlags
 ;    When selecting a file from the 'Files in Ring' listbox, the statusbar
 ;    is not refreshed. The refresh is only processed after the listbox
 ;    is closed.
-;    Against this, the internal defined statusbar patterns (all values with a '%')
+;    Against this, the internal defined statusbar fields (all values with a '%')
 ;    are refreshed immediately.
 ;
-; Standard EPM statusline patterns:
+; Standard EPM statusline fields:
 ; %A   Autosave count value (number of changes made to the file since the last
 ;      autosave)
 ; %C   current Column number
@@ -120,55 +111,73 @@ defc RefreshStatusLine
    return
 
 ; ---------------------------------------------------------------------------
+; Determine fields and flags for statusline. Return resolved statusline
+; fields containing only '%' fields or strings.
 defproc GetStatusFields
+   universal nepmd_hini
    universal StatusFieldFlags
-
-   DefaultFields =  "Line <line> of <lines>"    ||
-                    " * Col <col>"              ||
-                    " * '<hex>'x/<dec>"         ||
-                    " * Ma <ma>"                ||
-                    " * Tabs <tabs>, <tabkey>"  ||
-;                   " * <streammode>"           ||
-;                   " * <ins>"                  ||
-                    " * <mode>"                 ||
-;                   " * <datetime>"             ||
-;                   " * <attr>"                 ||
-;                   " * <size> B"               ||
-;                   " * File <file> of <files>" ||
-                    " * <modified>"             ||
-;                   " * <section>"              ||
-                    ""
-   StatusFieldFlags = 'MARGINS TABS TABKEY MODE MODIFIED SECTION'  -- currently unused
+   universal StatusFields
 
    -- Note: The length for the StatusLine string is limitted.
-   KeyPath = ''
-   IniValue = ''
-   if IniValue <> '' then
-      Fields = IniValue
-   else
-      Fields = DefaultFields
+   if StatusFields = '' then
+      KeyPath = '\NEPMD\User\InfoLine\StatusFields'
+      StatusFields = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    endif
-   return ResolveInfoFields(Fields)
+   ResolvedFields = ResolveInfoFields( StatusFields, Flags)
+   -- Add 'MODIFIED' flag for StatusLine to update color
+   if wordpos( 'MODIFIED', Flags) = 0 then
+      Flags = Flags' MODIFIED'
+   endif
+   -- Add 'FILE' flag for StatusLine to update file-specific fields,
+   -- that are not refreshed internally (mode, margins, tabs, ...)
+   -- 'refreshinfoline FILE' is called by defload, save, defselect).
+   if wordpos( 'FILE', Flags) = 0 then
+      Flags = Flags' FILE'
+   endif
+   StatusFieldFlags = Flags
+   return ResolvedFields
 
 ; ---------------------------------------------------------------------------
+; Determine fields and flags for titletext. Return resolved titletext fields.
 defproc GetTitleFields
+   universal nepmd_hini
    universal TitleFieldFlags
+   universal TitleFields
 
-   DefaultFields = "<file>/<files>"        ||
-                   " * <filename>"         ||
-                   " * <datetimemodified>" ||
-                   ""
-
-   Flags = 'FILE ALTERED MODIFIED'  -- currently unused
-
-   KeyPath = ''
-   IniValue = ''
-   if IniValue <> '' then
-      Fields = IniValue
-   else
-      Fields = DefaultFields
+   if TitleFields = '' then
+      KeyPath = '\NEPMD\User\InfoLine\TitleFields'
+      TitleFields = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    endif
-   return ResolveInfoFields(Fields)
+   ResolvedFields = ResolveInfoFields( TitleFields, Flags)
+   TitleFieldFlags = Flags
+   return ResolvedFields
+
+; ---------------------------------------------------------------------------
+; Determine separator for statusline and titletext.
+defproc GetFieldSep
+   universal nepmd_hini
+   universal FieldSep
+
+   if FieldSep = '' then
+      KeyPath = '\NEPMD\User\InfoLine\Sep'
+      FieldSep = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   endif
+   return FieldSep
+
+; ---------------------------------------------------------------------------
+defc ResetStatusFields
+   universal StatusFields
+   StatusFields = ''
+   call GetStatusFields()  -- set universal vars
+
+defc ResetTitleFields
+   universal TitleFields
+   TitleFields = ''
+   call GetTitleFields()  -- set universal vars
+
+defc ResetFieldSep
+   universal FieldSep
+   FieldSep = ''
 
 ; ---------------------------------------------------------------------------
 ; Standard EPM %... patterns may be used here too for compatibility.
@@ -180,8 +189,9 @@ defproc GetTitleFields
 ; To get a '*' char, it must be escaped by another '*': '**' gives '*'
 ; To get a '<' char, it must be escaped by another '<': '<<' gives '<'
 ; To get a '>' char, it must be escaped by another '>': '>>' gives '>'
-defproc ResolveInfoFields(Fields)
+defproc ResolveInfoFields( Fields, var Flags)
 
+   Flags = ''
    -- replace separator chars '*' with '<SEP>'
    startp = 1
    do forever
@@ -226,11 +236,14 @@ defproc ResolveInfoFields(Fields)
             startp = p2 + 2
          else
             -- resolve var '<...>'
-            FValue = GetInfoFieldValue( substr( Fields, p1 + 1, p2 - p1 - 1))
+            FValue = GetInfoFieldValue( substr( Fields, p1 + 1, p2 - p1 - 1), FFlag)
             Fields = substr( Fields, 1, p1 - 1) ||
                      FValue ||
                      substr( Fields, p2 + 1)
-            startp = p1 + length(FValue) + 1
+            if (FFlag <> '' & wordpos( FFlag, Flags) = 0) then
+               Flags  = Flags' 'FFlag
+            endif
+            startp = p1 + length(FValue)
          endif
       endif
    enddo  -- forever
@@ -247,8 +260,26 @@ defproc ResolveInfoFields(Fields)
          leave
       endif
    enddo
+   Flags = strip(Flags)
 
    return Fields
+
+; ---------------------------------------------------------------------------
+; Helper for defproc GetInfoFieldValue.
+; Return .filename with name = .LONGNAME.
+defproc GetFileName
+   universal show_longnames
+   Filename = .filename
+   if leftstr( Filename, 1) <> '.' then  -- if not a temp file
+      if show_longnames then
+         Longname = get_EAT_ASCII_value('.LONGNAME')
+         if Longname <> '' then
+            Filepath = leftstr( Filename, lastpos( '\', Filename))
+            Filename = Filepath || Longname
+         endif
+      endif
+   endif
+   return Filename
 
 ; ---------------------------------------------------------------------------
 ; Helper for defproc GetInfoFieldValue.
@@ -277,22 +308,38 @@ defproc QueryPathInfo
 
 ; ---------------------------------------------------------------------------
 ; Replace info field vars with '%...' or other values
-defproc GetInfoFieldValue(FVar)
+defproc GetInfoFieldValue(FVar, var FFlag)
    universal tab_key
    universal stream_mode
+   universal expand_on
+   universal matchtab_on
+   universal cua_marking_switch
 
    -- Get Sep
-   KeyPath = ''
-   IniValue = ''
-   if IniValue <> '' then
-      Sep = IniValue
-   else
-      Sep = NEPMD_STATUSLINE_SEP  --<-------------------------------------------- IniValue
-   endif
+   Sep = GetFieldSep()
 
    FVar = upcase(FVar)
    FValue = ''
+   FFlag  = ''
+   -- Synonyms:
+   if     FVar = 'MARGINS'  then FVar = 'MA'
+   elseif FVar = 'MOD'      then FVar = 'MODIFIED'
+   elseif FVar = 'LOCK'     then FVar = 'LOCKED'
+   elseif FVar = 'NAME'     then FVar = 'FILENAME'
+   elseif FVar = 'DTMOD'    then FVar = 'DATETIMEMODIFIED'
+   elseif FVar = 'STREAM'   then FVar = 'STREAMMODE'
+   elseif FVar = 'LINEMODE' then FVar = 'STREAMMODE'
+   elseif FVar = 'SYNTAX'   then FVar = 'EXPAND'
+   elseif FVar = 'SYNTAXEXPANSION' then FVar = 'EXPAND'
+   elseif FVar = 'ADVANCEDMARKING' then FVar = 'MARKINGMODE'
+   elseif FVar = 'CUAMARKING'      then FVar = 'MARKINGMODE'
+   elseif FVar = 'KEYSET'          then FVar = 'KEYS'
+   elseif FVar = 'SPELLCHECK'      then FVar = 'DYNASPELL'
+   elseif FVar = 'SPELL'           then FVar = 'DYNASPELL'
+   endif
+
    if     FVar = 'SEP'              then FValue = Sep
+   -- Internal refreshed fields
    elseif FVar = 'LINES'            then FValue = '%S'
    elseif FVar = 'LINE'             then FValue = '%L'
    elseif FVar = 'COL'              then FValue = '%C'
@@ -302,21 +349,47 @@ defproc GetInfoFieldValue(FVar)
    elseif FVar = 'MODIFIED'         then FValue = '%M'
    elseif FVar = 'AUTOSAVE'         then FValue = '%A'
 ;  elseif FVar = ''                 then FValue = '%F'  -- better use filesinring() to customize the text part
+   -- Additional fields
    elseif FVar = 'FILE'             then FValue = GetFileNumber()
+                                         FFlag  = 'FILELIST'
    elseif FVar = 'FILES'            then FValue = filesinring()
+                                         FFlag  = 'FILELIST'
    elseif FVar = 'MODE'             then FValue = NepmdGetMode()
+                                         FFlag  = 'MODE'
    elseif FVar = 'MA'               then FValue = .margins
-   elseif FVar = 'TABKEY'           then FValue = word( 'off on', tab_key + 1 )          -- show 'on' or 'off'
+                                         FFlag  = 'MARGINS'
    elseif FVar = 'TABS'             then FValue = word( .tabs, 1 )                       -- show only 1st tab
-   elseif FVar = 'LOCKED'           then FValue = word( 'L -', (.lockhandle <> 0) + 1 )  -- show 'L' or '-'
-   elseif FVar = 'READONLY'         then FValue = word( '- R', .readonly + 1 )           -- show 'R' or '-'
-   elseif FVar = 'FILENAME'         then FValue = .filename
+                                         FFlag  = 'TABS'
+   elseif FVar = 'TABKEY'           then FValue = word( 'off on', (tab_key = 1) + 1)     -- show 'on' or 'off'
+                                         FFlag  = 'TABKEY'
+   elseif FVar = 'MATCHTAB'         then FValue = word( '- match', (matchtab_on = 1) + 1)  -- show '-' or 'match'
+                                         FFlag  = 'MATCHTAB'
+   elseif FVar = 'LOCKED'           then FValue = word( 'L -', (.lockhandle = 0) + 1)    -- show 'L' or '-'
+                                         FFlag  = 'LOCKED'
+   elseif FVar = 'READONLY'         then FValue = word( '- R', (.readonly = 0) + 1)      -- show 'R' or '-'
+                                         FFlag  = 'READONLY'
+   elseif FVar = 'FILENAME'         then FValue = GetFileName()
+                                         FFlag  = 'FILE'
    elseif FVar = 'DATETIME'         then FValue = QueryPathInfo('MTIME')                 -- show YYYY/MM/DD HH:MM:SS from file on disk
+                                         FFlag  = 'FILE'
    elseif FVar = 'ATTR'             then FValue = QueryPathInfo('ATTR')                  -- show 'ADSHR' or '-----'
+                                         FFlag  = 'FILE'
    elseif FVar = 'SIZE'             then FValue = QueryPathInfo('SIZE')                  -- show size in bytes
+                                         FFlag  = 'FILE'
    elseif FVar = 'EASIZE'           then FValue = QueryPathInfo('EASIZE')                -- show size of EAs in bytes
-   elseif FVar = 'DATETIMEMODIFIED' then FValue = GetDateTimeModified()                  -- shows date - time or modified or other infos
-   elseif FVar = 'STREAMMODE'       then FValue = word( 'L S', stream_mode + 1)          -- show 'S' or 'L'
+                                         FFlag  = 'FILE'
+   elseif FVar = 'DATETIMEMODIFIED' then FValue = GetDateTimeModified()                  -- show date - time or modified or other infos
+                                         FFlag  = 'MODIFIED'
+   elseif FVar = 'STREAMMODE'       then FValue = word( 'L S', (stream_mode = 1) + 1)    -- show 'S' or 'L'
+                                         FFlag  = 'STREAMMODE'
+   elseif FVar = 'EXPAND'           then FValue = word( '- X', (expand_on = 1) + 1)      -- show '-' or 'X'
+                                         FFlag  = 'EXPAND'
+   elseif FVar = 'MARKINGMODE'      then FValue = word( 'Adv CUA', (cua_marking_switch = 1) + 1)  -- show 'CUA' or 'Adv'
+                                         FFlag  = 'MARKINGMODE'
+   elseif FVar = 'KEYS'             then FValue = .keyset                                -- show 'EDIT_KEYS' (default) or 'REXX_KEYS'
+                                         FFlag  = 'KEYS'
+   elseif FVar = 'DYNASPELL'        then FValue = word( '- Spchk', (.keyset = 'SPELL_KEYS') + 1)  -- show '-' or 'Spchk'
+                                         FFlag  = 'KEYS'
 ; not implemented yet:
 ;  elseif FVar = 'SECTION'          then FValue = GetCurSection()                        -- shows current section or function
    endif
@@ -366,25 +439,34 @@ defmodify
       -- if this is the first selected file
       lastselectedfid = fid
    endif
-      ModifiedChanged = 0
-      ret = GetDateTimeModified()
-      -- no need for a refresh if modified state hasn't changed
-      if ((ret <> 'Modified' & .modify > 0) | (ret = 'Modified' & .modify = 0)) then
-         ModifiedChanged = 1
-      endif
-      if ModifiedChanged then
-         'ResetDateTimeModified FORCE'
-         'RefreshInfoLine MODIFIED'
-         'SetStatusLine'  -- update color of statusline
+   ModifiedChanged = 0
+   ret = GetDateTimeModified()  -- get last saved value of array var
+   -- no need for a refresh if modified state hasn't changed
+   if ((ret <> 'Modified' & .modify > 0) | (ret = 'Modified' & .modify = 0)) then
+      ModifiedChanged = 1
+   endif
+   if ModifiedChanged then
+      'ResetDateTimeModified FORCE'
+      'RefreshInfoLine MODIFIED'
+      'SetStatusLine'  -- update color of statusline
     endif
 
 ; ---------------------------------------------------------------------------
-defselect
-   universal lastselectedfid
-   -- workaround for defselect->defmodify
-   getfileid lastselectedfid
+; Executed by ProcessSelect, using the afterselect hook.
+defc ProcessSelectRefreshInfoline
+   if not .visible then
+      return
+   endif
+;   call NepmdPmPrintf('PROCESSSELECTREFRESHINFOLINE: executing refreshinfoline -- '.filename)
    'ResetDateTimeModified'  -- required to check file on disk
-   'RefreshInfoLine TABS TABKEY MODE MARGINS ALTERED FILE SECTION MODIFIED'
+   Flags = 'TABS TABKEY MATCHTAB MODE MARGINS FILE SECTION MODIFIED' ||
+           ' STREAMMODE EXPAND MARKINGMODE KEYS'
+   'RefreshInfoLine' Flags
+
+; ---------------------------------------------------------------------------
+; Add cmd to the afterselect hook.
+definit
+   'HookAdd afterselect ProcessSelectRefreshInfoLine'
 
 ; ---------------------------------------------------------------------------
 ; Moved defproc settitletext() from STDCTRL.E to STATLINE.E
@@ -414,7 +496,13 @@ defproc settitletext()
 
 ; ---------------------------------------------------------------------------
 defc SetTitleText
+   --call NepmdPmPrintf( 'SETTITLETEXT called with' arg(1)', hwnd = 0x'ltoa( gethwndc(6), 16))
    .titletext = arg(1)
+   --refresh  -- Required when altered file was selected with the 'List ring' dialog.
+              -- Otherwise titletext will be updated just on the next (internal) refresh,
+              -- while messageline shows the text 'Altered by another application'
+              -- correctly.
+              -- Disabled, because it slows file loading down.
 
 ; ---------------------------------------------------------------------------
 defc RefreshTitleText
@@ -483,8 +571,7 @@ defproc GetDateTimeModified
                cur_filedatehex = ltoa(substr(.fileinfo, 9, 4), 16)
                if new_filedatehex <> cur_filedatehex then
                   -- if file was altered by another application
-                  msg = 'File was altered by another application'
-                  --DateTime = ''  -- reset datetime in any case  --<------------------ Doesn't work
+                  msg = 'Altered by another application'
                else
                   --DateTime = NlsDateTime(next)
                   DateTime = filedatehex2datetime(next)
@@ -536,41 +623,50 @@ defproc GetDateTimeModified
    return DateTime
 
 ; ---------------------------------------------------------------------------
-defproc get_filedatehex(filename)
-   pathname = filename\0
-   resultbuf = copies(\0,30)
-   result = dynalink32('DOSCALLS',      /* dynamic link library name       */
-                       '#223',           /* ordinal value for DOS32QueryPathInfo  */
-                       address(pathname)         ||  -- pathname to be queried
-                       atol(1)                   ||  -- PathInfoLevel
-                       address(resultbuf)        ||  -- buffer where info is to be returned
-                       atol(length(resultbuf)) )     -- size of buffer
-   filedatehex = ltoa(substr(resultbuf, 9, 4), 16)
-   if result = 0 then
-      -- the return value can be compared with ltoa(substr(.fileinfo, 9, 4), 16)
-      ret = filedatehex
+defc ConfigFrame
+   universal nepmd_hini
+   Type = arg(1)
+   if Type = 'TITLE' then
+      KeyPath = '\NEPMD\User\InfoLine\TitleFields'
+      Title   = 'Enter new string for titletext fields'
+      Text    = 'Put the field names in <...> chars.' ||
+                 ' Specify * as separator.'
+      Cmd     = 'mc /ResetTitleFields/RefreshTitleText'
+   elseif Type = 'STATUS' then
+      KeyPath = '\NEPMD\User\InfoLine\StatusFields'
+      Title = 'Enter new string for statusline fields'
+      Text    = 'Put the field names in <...> chars.' ||
+                 ' Specify * as separator.'
+      Cmd     = 'mc /ResetStatusFields/RefreshStatusLine'
+   elseif Type = 'SEP' then
+      KeyPath = '\NEPMD\User\InfoLine\Sep'
+      Title   = 'Enter new string as separator between fields'
+      Text    = 'Default char is \250.' ||
+                ' Surround it with spaces for a poportional font.'
+      Cmd     = 'mc /ResetFieldSep/RefreshTitleText/RefreshStatusLine'
    else
-      ret = 'ERROR:'result
+      sayerror 'Unknown arg'
+      return
    endif
-   return ret
+   IniValue = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   parse value entrybox( Title,
+                         '/~Set/~Reset/~Cancel/~Help',
+                         IniValue,
+                         400,
+                         260,
+                         atoi(1)              ||
+                         atoi(0000)           ||  -- help id
+                         gethwndc(APP_HANDLE) ||
+                         Text) with Button 2 NewValue \0
+   if Button = \1 then
+      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, NewValue)
+   elseif Button = \2 then
+      rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+   elseif Button = \3 then
+      return
+   endif
+   if not rc then
+      Cmd
+   endif
 
-; ---------------------------------------------------------------------------
-; Todo: use NLS settings from OS2.INI
-defproc filedatehex2datetime(hexstr)
-   -- add leading zero if length < 8
-   hexstr = rightstr( hexstr, 8, 0 )
-
-   date = hex2dec( substr( hexstr, 5, 4 ) )
-   year = date % 512; date = date // 512
-   month = date % 32; day = date // 32 % 1     -- %1 to drop fraction.
-;   date = year+1980'/'rightstr(month,2,0)'/'rightstr(day,2,0)  -- english date  yyyy/mm/dd
-;   date = rightstr(day,2,0)'.'rightstr(month,2,0)'.'year+1980  -- german date   dd.mm.yyyy
-   date = year+1980'-'rightstr(month,2,0)'-'rightstr(day,2,0)  -- ISO date   yyyy-mm-dd
-
-   time = hex2dec( substr( hexstr, 1, 4 ) )
-   hour = time % 2048; time = time // 2048
-   min = time % 32; sec = time // 32 * 2 % 1
-   time = hour':'rightstr(min,2,0)':'rightstr(sec,2,0)  -- german time hh:mm:ss
-
-   return date time
 
