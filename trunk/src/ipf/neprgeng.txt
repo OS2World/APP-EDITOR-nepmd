@@ -1,0 +1,63 @@
+.. ***************************** Module Header *******************************
+..
+.. Module Name: neprgeng.txt
+..
+.. source file for the programmers guide INF file of the
+.. Requires HyperText/2 package to compile
+..
+.. Copyright (c) Netlabs EPM Distribution Project 2002
+..
+.. $Id: neprgeng.txt,v 1.1 2002-10-31 13:19:10 cla Exp $
+..
+.. ===========================================================================
+..
+.. This file is part of the Netlabs EPM Distribution package and is free
+.. software.  You can redistribute it and/or modify it under the terms of the
+.. GNU General Public License as published by the Free Software
+.. Foundation, in version 2 as it comes in the "COPYING" file of the
+.. Netlabs EPM Distribution.  This library is distributed in the hope that it
+.. will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+.. of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.. General Public License for more details.
+..
+.. ***************************************************************************
+
+.include titleeng.inc
+.ti [=PRGTITLE]
+.hi 234
+
+.SET CATEGORY_CONFIG=Configuration related functions
+.SET CATEGORY_DIVERSE=Diverse
+.SET CATEGORY_EAS=Extended Attribute functions
+.SET CATEGORY_EPMWINDOW=EPM Window related functions
+.SET CATEGORY_FILE= File related functions
+.SET CATEGORY_INSTALL=Installation related functions
+.SET CATEGORY_INTERACT=User Interaction related functions
+.SET CATEGORY_MODE=EPM mode related functions
+.SET CATEGORY_NLS=National Language Support related functions
+.SET CATEGORY_PROCESS=Process related functions
+.SET CATEGORY_SYSTEM=System related functions
+
+.. #############################################################################
+.1 [=DOCTITLE]
+.. #############################################################################
+.an IDPNL_MAIN
+.at font='20.Tms Rmn' fc=darkgray italic bold
+.bitmap nllogo.bmp center
+.ce present the
+.at font='24.Tms Rmn' fc=red bold italic
+.ce [=DOCTITLE]
+.at
+
+[=TOPICS]
+.su 1
+
+.. =============================================================================
+.2 E Language functions of the [=DOCTITLE]
+.. =============================================================================
+.an IDPNL_EFUNC
+.
+The following E language functions are provided by the [=TITLE]:
+
+.include ..\..\compile\functions.txt
+
