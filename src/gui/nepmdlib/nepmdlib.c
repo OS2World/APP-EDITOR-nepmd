@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.47 2002-09-22 21:43:22 cla Exp $
+* $Id: nepmdlib.c,v 1.48 2002-09-22 22:25:32 cla Exp $
 *
 * ===========================================================================
 *
@@ -878,7 +878,6 @@ do
    if (pszDevTreePath)
       {
       sprintf( szFilename, "%s\\"NEPMD_DEVPATH_DEFAULTSFILE"\\"NEPMD_FILENAME_DEFAULTSFILE, pszDevTreePath);
-      printf( "---> filename is %s\n", szFilename);
       pszDefaultsFile = szFilename;
       }
    else
