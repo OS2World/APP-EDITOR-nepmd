@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.16 2004-07-04 22:14:14 aschn Exp $
+* $Id: stdkeys.e,v 1.17 2004-07-09 14:05:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,10 +30,8 @@ def c_home        'BeginFile'           -- Go to begin of file (Shift marks)
 def c_end         'EndFile'             -- Go to end of file (Shift marks)
 def c_f5          'BeginWord'           -- Go to first char in current word
 def c_f6          'EndWord'             -- Go to last char in current word
-;def c_left       'PrevWord'            -- Go to previous word (Shift marks)
-;def c_right      'NextWord'            -- Go to next word (Shift marks)
-defc Key_c_left   'PrevWord'            -- Go to previous word (Shift marks)
-defc Key_c_right  'NextWord'            -- Go to next word (Shift marks)
+def c_left        'PrevWord'            -- Go to previous word (Shift marks)
+def c_right       'NextWord'            -- Go to next word (Shift marks)
 
 def left          'PrevChar'            -- Go to previous char (Shift marks)
 def right         'NextChar'            -- Go to next char (Shift marks)
@@ -45,12 +43,9 @@ def pgup          'PageUp'              -- Go to previous page (Shift marks)
 def pgdn          'PageDown'            -- Go to next page (Shift marks)
 ;def c_pgup       'BeginScreen'         -- Go to first line on screen
 ;def c_pgdn       'EndScreen'           -- Go to last line on screen
-;def c_down       'PushPos'             -- Add current cursor pos. to cursor stack
-;def c_up         'PopPos'              -- Go to last pos. of cursor stack
-;def c_equal      'SwapPos'             -- Exchange current sursor pos. with last pos. of stack
-defc Key_c_down   'PushPos'             -- Save current cursor pos. to stack
-defc Key_c_up     'PopPos'              -- Restore last pos. from cursor stack (and remove it from stack)
-defc Key_c_equal  'SwapPos'             -- Exchange current cursor pos. with last pos. from stack
+def c_down        'PushPos'             -- Add current cursor pos. to cursor stack
+def c_up          'PopPos'              -- Go to last pos. of cursor stack
+def c_equal       'SwapPos'             -- Exchange current sursor pos. with last pos. of stack
 def a_minus       'HighlightCursor'     -- Draw a circle around cursor
 def a_e           'EndMark'             -- Go to end of mark
 def a_y           'BeginMark'           -- Go to begin of mark
@@ -69,9 +64,9 @@ def a_l           'MarkLine'            -- Start/end line mark
 def a_z           'MarkChar'            -- Start/end char mark
 def a_w           'MarkWord'            -- Mark current word
 def a_u           'UnMark'              -- Unmark all
-defc Key_c_backslash 'UnMark'           -- Unmark all
+def c_backslash   'UnMark'              -- Unmark all
 def c_a           'Select_All'          -- Mark all
-defc Key_c_slash  'Select_All'          -- Mark all
+def c_slash       'Select_All'          -- Mark all
 def s_left        'MarkPrevChar'        -- Mark from cursor to previous char
 def s_right       'MarkNextChar'        -- Mark from cursor to next char
 def s_up          'MarkUp'              -- Mark from cursor line up
@@ -121,9 +116,8 @@ def c_w           'FindWord'            -- Find current word, separators accordi
 ; ---- Clipboard ----
 def s_del         'Cut'                 -- Copy mark to clipboard and delete
 def s_ins         'DefaultPaste'        -- Default paste (paste as chars, selectable)
-;def c_ins         'Copy2Clip'          -- Defined now as defc Key_c_ins, because the Sh variant is used
+def c_ins         'Copy2Clip'          -- Defined now as defc Key_c_ins, because the Sh variant is used
 defc Key_c_s_ins  'AlternatePaste'      -- Alternate paste (paste as lines, depends on default paste)
-defc Key_c_ins    'Copy2Clip'           -- Copy mark to clipboard
 
 ; ---- Execute ----
 def c_i           'CommandLine'         -- Open Command dialog
@@ -141,9 +135,9 @@ def f5            'OpenDlg'             -- Open File-open dialog (will open file
 def c_O           'OpenDlg'             -- Open File-open dialog (will open file in a new window)
 def f7            'Rename'              -- Open Rename entrybox
 def f8            'EditFileDlg'         -- Open File-edit dialog (will open file in the same window)
-def c_f9          'History edit'        -- Open Edit history listbox
-def c_f10         'History load'        -- Open Load history listbox
-def c_f11         'History save'        -- Open Save history listbox
+defc Key_c_s_f9   'History edit'        -- Open Edit history listbox
+defc Key_c_s_f10  'History load'        -- Open Load history listbox
+defc Key_c_s_f11  'History save'        -- Open Save history listbox
 
 ; ---- Special chars ----
 def a_f1          'TypeFrameChars'      -- Type a list of IBM frame chars (help for the draw and box commands)
@@ -161,7 +155,7 @@ def c_p           'PrevFile'            -- Switch to previous file
 def f12           'NextFile'            -- Switch to next file
 def c_n           'NextFile'            -- Switch to next file
 def a_f12         'NextView'            -- Switch to next view of current file
-def c_f12         'Next_Win'            -- Switch to next EPM window
+defc Key_c_s_f12  'Next_Win'            -- Switch to next EPM window
 def c_g           'Ring_More'           -- Open a dialog to select a file of the ring
 
 ; ---- Reflow ----
@@ -245,20 +239,12 @@ def c_space       'Space'
 def a_1           'a_1'                 -- Load file under cursor
 
 ; ---- Indent ----
-def a_i
-   if shifted() then
-                  'IndentBlock U'       -- Unindent current mark or block 1 indent level
-   else
-                  'IndentBlock'         -- Indent current mark or block 1 indent level
-   endif
+def a_i           'IndentBlock'         -- Indent current mark or block 1 indent level
+defc Key_a_s_i    'IndentBlock U'       -- Unindent current mark or block 1 indent level
 
 ; ---- Comment ----
-def a_k
-   if shifted() then
-                  'uncomment'           -- Uncomment marked lines
-   else
-                  'comment'             -- Comment marked lines
-   endif
+def a_k           'comment'             -- Comment marked lines
+defc Key_a_s_k      'uncomment'           -- Uncomment marked lines
 
 ; ---- Move chars and lines ----
 defc Key_a_s_left 'MoveCharLeft'        -- Move char left
@@ -275,16 +261,6 @@ define DYNASPELL_KEY = 'c_A'            -- Open Proof Word dialog for alternativ
 define ALL_KEY = 'c_Q'                  -- 'All' search: toggle between .ALL and original file
 
 ; ---- OtherKeys ----
-; Add key combinations via lastkey and the key's scancode, if any defined.
-; Internal key processing must be switched off with 'togglecontrol 26 0'
-; to define keys with otherkeys. The defc ProcessOtherKeys enables the
-; Key_* defcs to be processed.
-; If a combination without Shift is defined with def, e.g. def c_equal,
-; then the Key_* defc will not work for the Shift version. c_equal defines
-; Ctrl+= and Ctrl+Sh+=. To make the Shift defc work, the unshifted version
-; must be defined also with defc Key_*.
-; As an alternative, it could be defined (overwritten) as accelerator key.
-; The drawback would be, that accelerator key defs don't belong to keysets.
 def otherkeys 'ProcessOtherKeys'
 
 
@@ -380,58 +356,20 @@ def otherkeys 'ProcessOtherKeys'
 ; ---------------------------------------------------------------------------
 ; s_f1 must be enabled via accelerator key definition.
 ; s_f9 must be enabled via accelerator key definition.
-; This is currently made in NEWMENU.E.
-
-; ---------------------------------------------------------------------------
-; Additional Shift combinations
-; More Shift combinations are definable through the non-shifted definition,
-; while using the following condition:
+; This is made in KEYS.E. (Every key definition is now additionally defined
+; as accelerator key.)
 ;
-;    def anykey
-;       if shifted() then
-;          ...  -- definition for shifted version
-;       else
-;          ...  -- definition for unshifted version
-;       endif
+; Every Sh combination is now definable via a Key_* command. The order of
+; the prefixes must be respected: c_ a_ s_.
+; Example: defc Key_c_a_s_p 'mycommand'  defines Ctrl+Alt+Sh as 'mycommand'.
 ;
-; Another possibility is to use scancodes, like the Key_* defcs do. Note,
-; that every def, for that no Shift variant exists (e.g. def c_left), defines
-; the Shift variant, too (e.g. Ctrl+Sh+Left). Therefore in the upper lines
-; several defs were replaced by defc Key_*s, to be able to define the Shift
-; variants. Accelerator key definitions would overwrite everything, but they
-; don't belong to a keyset.
-
-; ---------------------------------------------------------------------------
-; Available Key_* commands (defined at the beginning of KEYS.E):
+; After changing a Keyset via the keys statement, one has to execute in
+; cases, where a Key_* command has changed (or was added) the following
+; commands to update the accelerator table: 'deleteaccel' and 'loadaccel'.
 ;
-; Key_a_ins       Key_a_s_ins
-; Key_a_del       Key_a_s_del
-; Key_a_home      Key_a_s_home
-; Key_a_end       Key_a_s_end
-; Key_a_pgup      Key_a_s_pgup
-; Key_a_pgdn      Key_a_s_pgdn
-; Key_a_up        Key_a_s_up
-; Key_a_down      Key_a_s_down
-; Key_a_left      Key_a_s_left
-; Key_a_right     Key_a_s_right
-;
-; Key_c_ins       Key_c_s_ins
-; Key_c_del       Key_c_s_del
-; Key_c_home      Key_c_s_home
-; Key_c_end       Key_c_s_end
-; Key_c_pgup      Key_c_s_pgup
-; Key_c_pgdn      Key_c_s_pgdn
-; Key_c_up        Key_c_s_up
-; Key_c_down      Key_c_s_down
-; Key_c_left      Key_c_s_left
-; Key_c_right     Key_c_s_right
-;
-; Key_c_plus      Key_c_s_plus
-; Key_c_asterix   Key_c_s_asterix     (german keyboards: * = Shift++)
-; Key_c_equal     Key_c_s_equal       (german keyboards: = = Shift+0)
-; Key_c_slash     Key_c_s_slash       (german keyboards: / = Shift+7)
-; Key_c_backslash Key_c_s_backslash
-; Key_c_greater   Key_c_s_greater     (german keyboards: > = Shift+<)
-; Key_c_less      Key_c_s_less
+; Non-existing accelerator defs for additional letters can be added by
+; extending UPPERCASE_LETTER_LIST and LOWERCASE_LETTER_LIST.
+; Non-existing accelerator defs for additional chars can be added by
+; extending CHAR_LIST, CHAR_NAMES and NO_DEF_CHAR_LIST.
 
 
