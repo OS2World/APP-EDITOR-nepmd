@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.7 2002-09-16 16:54:44 aschn Exp $
+* $Id: stdctrl.e,v 1.8 2002-09-21 17:47:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -3807,17 +3807,22 @@ defc new
       'xcom quit'
    endif
 
-compile if SUPPORT_USERS_GUIDE | SUPPORT_TECHREF
+;compile if SUPPORT_USERS_GUIDE | SUPPORT_TECHREF
 defc viewword  -- arg(1) is name of .inf file
    if find_token(startcol, endcol) then
-      findfile fully_qualified, arg(1)'.inf', 'BOOKSHELF'
+      InfFile = arg(1)
+      -- specifying the extension is optional
+      if upcase( rightstr( InfFile, 4 ) ) <> '.INF' then
+         InfFile = InfFile'.inf'
+      endif
+      findfile fully_qualified, InfFile, 'BOOKSHELF'
       if rc then
-         sayerror FILE_NOT_FOUND__MSG '"'arg(1)'.inf"'
+         sayerror FILE_NOT_FOUND__MSG '"'InfFile'"'
          return
       endif
       'view' arg(1) substr(textline(.line), startcol, (endcol-startcol)+1)
    endif
-compile endif
+;compile endif
 
 defc cascade_menu
    parse arg menuid defmenuid .
