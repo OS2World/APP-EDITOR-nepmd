@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.27 2002-11-05 20:26:54 cla Exp $
+.. $Id: makefile.txt,v 1.28 2004-12-17 23:41:14 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -357,6 +357,12 @@ As toolkit one of the following is required:
 - *OS/2 Warp 4 Developers Toolkit*
 - *OS/2 Warp 4.5 Developers Toolkit*
 
+[=NOTE]
+.ul compact
+- The 32-bit *rc.exe* (version 5.x) out of *Toolkit 4.5* apparently searches for
+  its message files only in the current directory. Therefore replace it with a
+  prior version, e.g. the one in your ?:\OS2 directory.
+
 .. .............................................................................
 .3 EPM Macro Compiler
 .. .............................................................................
@@ -574,7 +580,7 @@ _*values to be configured by everybody*_
 .pl bold
 - BASEURL
 = specifies the location from where the original ZIP files of the EPMBBS
-  package (epm603.zip and epm603b.zip) are to be downloaded from.
+  package (epm603b.zip and epm603bupd.zip) are to be downloaded from.
 .
 .
 [=NOTE]
@@ -584,7 +590,7 @@ _*values to be configured by everybody*_
 .el
 - ZIPSRCDIR
 = specifies a directory of your choice either empty or already holding
-  the ZIP files of the EPMBBS package (epm603.zip and epm603b.zip).
+  the ZIP files of the EPMBBS package (epm603b.zip and epm603bupd.zip).
   If files are not present, they are downloaded from LEO
   from the base URL - see setting BASEURL above.
 .
