@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: hooks.e,v 1.2 2004-02-28 15:31:44 aschn Exp $
+* $Id: hooks.e,v 1.3 2004-06-03 22:46:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -27,19 +27,61 @@
 ; work properly, but try to avoid it, because it slows processing down.
 ;
 ; One advantage is, that the definition, that adds a command to the hook,
-; need not to know where it will be executed. Just the hook's name must
+; doesn't need to know where it will be executed. Just the hook's name must
 ; be known.
 ;
 ; Hooks are not able to call procedures due to a missing interpret
 ; statement in E.
 ;
+; Thanks to Martin Lafaix, who implemented this stuff first in his (for
+; 5.51 great) package MLEPM.
+;
 ; Following standard hook names currently exist:
+; -  init             executed (once) at defmain, after NepmdInitConfig
+; -  main             executed (once) at the end of defmain
 ; -  load             executed at the end of defload
-; -  main             executed at the end of defmain
-; -  afterload        executed once after all defloads are finished
+;                     (can be used to change file or mode specific settings,
+;                     e.g. margins, tabs, tabkeys, toolbar, font)
+; -  loadonce         executed once at the end of defload
+;                     (like load, but change settings for next defload
+;                     only)
+; -  afterload        executed after all defloads are finished
+; -  afterloadonce    executed once after all defloads are finished
+; -  addmenu          executed by loaddefaultmenu, when the menu is built,
+;                     before the help menu.
+;                     (can be used for user's submenus)
+; -  cascademenu      executed with postme after adding standard cascade
+;                     menu items
+; The *once types are deleted after being executed, so that they get
+; executed 1 time only.
 ;
 ; Other events (definit, defselect, defmodify, defexit) are extendable
 ; properly, so no hooks are required therefore.
+;
+; Note: Settings executed at defload don't require additional refreshs if
+;       field vars for these settings exist. They stick with the file. All
+;       other settings must be refreshed at defselect as well. Use array
+;       vars with the name <settings_name>.<fileid> to get a file specific
+;       array for this setting.
+;       Examples: .margins  --> A field var exists. Once set, it will stick
+;                               with the file (it was already set at defload).
+;                 mode      --> An array var mode.<fileid> exists. Its value
+;                               can be queried with the get_array_value
+;                               proc together with the fileid or easier with
+;                               the NepmdGetMode procedure. Because the mode
+;                               causes (sticky) settings changes at defload
+;                               usually, there's no need to query the mode
+;                               at defselect again, except if it is shown in
+;                               e.g. the statusbar.
+;                 toolbar   --> No array var exists. Create a new array var
+;                               toolbar.<fileid> and use 'HookAdd load' to
+;                               prepare the creation of the array var holding
+;                               the mode or extension specific name of a
+;                               toolbar. The hook will be executed at
+;                               defload and this will save the toolbar name.
+;                               At every defselect the array var must be
+;                               queried and maybe the toolbar has to be
+;                               changed.
 
 ; ---------------------------------------------------------------------------
 ; Adds an entry
@@ -202,7 +244,7 @@ defc HookExecuteFirst
 ; ---------------------------------------------------------------------------
 ; Returns number of entries
 ; Syntax: HookGetNum <HookName>
-defc HookGetNum
+defproc HookGetNum
    universal EPM_utility_array_ID
    prefix = 'hook.'
    parse arg HookName
@@ -212,6 +254,20 @@ defc HookGetNum
       num = imax
    endif
    return num
+
+; ---------------------------------------------------------------------------
+; Returns 1 if number of entries > 0, otherwise 0
+; Syntax: HookIsDefined <HookName>
+defproc HookIsDefined
+   universal EPM_utility_array_ID
+   prefix = 'hook.'
+   parse arg HookName
+   HookName = strip( lowcase(HookName))
+   num = 0
+   if not get_array_value( EPM_utility_array_ID, prefix''HookName'.0', imax) then  -- if imax set
+      num = imax
+   endif
+   return (num > 0)
 
 ; ---------------------------------------------------------------------------
 ; Shows all entries
