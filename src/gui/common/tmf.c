@@ -14,6 +14,10 @@
 #define INCL_ERRORS
 #include "os2.h"
 
+// disable debug messages for this module
+#undef DEBUG
+
+#include "macros.h"
 #include "tmf.h"
 #include "eas.h"
 
@@ -21,8 +25,6 @@
 
 #define EA_TIMESTAMP "TMF.FILEINFO"
 #define EA_MSGTABLE  "TMF.MSGTABLE"
-
-#define NEWLINE "\n"
 
 #define MSG_NAME_START   "\r\n<--"
 #define MSG_NAME_END     "-->:"
@@ -94,11 +96,11 @@ do
       {
       // onlfy filename, search in current dir and DPATH
       rc = DosSearchPath( SEARCH_IGNORENETERRS |
-                          SEARCH_ENVIRONMENT   | 
+                          SEARCH_ENVIRONMENT   |
                           SEARCH_CUR_DIRECTORY,
                           "DPATH",
                           pszFile,
-                          szMessageFile, 
+                          szMessageFile,
                           sizeof( szMessageFile));
       if (rc != NO_ERROR)
          break;
@@ -141,11 +143,19 @@ do
       }
    ulMessageLen = atol( pszEntry);
 
+
+   // report "buffer too small" here, if not at least a zero byte can be appended
+   if (ulMessageLen >= cbBuffer)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
    // determine maximum read len
    ulBytesToRead = min( ulMessageLen, cbBuffer);
 
    // open file and read message
-   rc = DosOpen( pszFile, 
+   rc = DosOpen( pszFile,
                  &hfile,
                  &ulAction,
                  0, 0,
@@ -167,11 +177,9 @@ do
    if (rc != NO_ERROR)
       break;
 
-   // report "buffer too small" here
+   // make message an ASCCIIZ string and report len without zerobyte
    *pcbMsg = ulBytesRead;
-   if (ulBytesToRead < ulMessageLen)
-      rc = ERROR_BUFFER_OVERFLOW;
-
+   *(pbBuffer + ulBytesRead) = 0;
 
    } while (FALSE);
 
@@ -217,6 +225,7 @@ static APIRET _TmfCompileMsgTable
          PSZ            pszCurrentNameStart;
          PSZ            pszCurrentNameEnd;
          PSZ            pszCurrentMessageStart;
+         PSZ            pszCurrentMessageEnd;
          ULONG          ulCurrentMessagePos;
          ULONG          ulCurrentMessageLen;
          PSZ            pszNextNameStart;
@@ -235,7 +244,7 @@ do
    // get length and timestamp of file
    rc = DosQueryPathInfo( pszMessageFile,
                           FIL_STANDARD,
-                          &fs3, 
+                          &fs3,
                           sizeof( fs3));
    if (rc != NO_ERROR)
       break;
@@ -250,7 +259,7 @@ do
    rc = ReadStringEa( pszMessageFile, EA_TIMESTAMP, szFileStampOld, &ulStampLength);
 
    // compare timestamps
-   if ((rc == NO_ERROR)                                     && 
+   if ((rc == NO_ERROR)                                     &&
        (ulStampLength == (strlen( szFileStampCurrent) + 1)) &&
        (!strcmp( szFileStampCurrent, szFileStampOld)))
       {
@@ -259,6 +268,7 @@ do
       do
          {
          // get ea length of table
+         ulTableDataLength = 0;
          rc = ReadStringEa( pszMessageFile, EA_MSGTABLE, NULL, &ulTableDataLength);
          if (rc != ERROR_BUFFER_OVERFLOW)
             break;
@@ -278,12 +288,12 @@ do
       // if no error occurred, we are finished
       if (rc == NO_ERROR)
          {
-         // printf( "tmf: using precompiled table" NEWLINE, 0);
+         DPRINTF(( "TMF: using precompiled table of %s\n", pszMessageFile));
          break;
          }
       }
 
-   // printf( "tmf: recompile table" NEWLINE, 0);
+   DPRINTF(( "TMF: (re)compile table for %s\n", pszMessageFile));
 
    // recompilation needed
    // get memory for file data
@@ -301,10 +311,10 @@ do
       rc = ERROR_NOT_ENOUGH_MEMORY;
       break;
       }
-   *(pbTableData + ulTableDataLength) = 0;
+   memset( pbTableData, 0, ulTableDataLength);
 
    // open file and read it
-   rc = DosOpen( pszMessageFile, 
+   rc = DosOpen( pszMessageFile,
                  &hfileMessageFile,
                  &ulAction,
                  0, 0,
@@ -354,7 +364,7 @@ do
    if (*pszCurrentNameStart != '<')
       {
          pszCurrentNameStart = strstr( pszCurrentNameStart, MSG_NAME_START);
-   
+
       if (!pszCurrentNameStart)
          {
          rc = ERROR_INVALID_DATA;
@@ -383,19 +393,26 @@ do
          break;
 
       // search next name, if none, use end of string
-      pszNextNameStart = strstr( pszCurrentNameEnd, MSG_NAME_START);
-      if (!pszNextNameStart)
-         pszNextNameStart = pszCurrentNameStart + strlen( pszCurrentNameStart);
+      pszCurrentMessageEnd = strstr( pszCurrentNameEnd, MSG_NAME_START);
+      if (!pszCurrentMessageEnd)
+         {
+         pszCurrentMessageEnd = pszCurrentNameStart + strlen( pszCurrentNameStart);
+         pszNextNameStart = NULL;
+
+         // cut off last CRLF
+         if (*(PUSHORT) (pszCurrentMessageEnd - 2) == 0x0a0d)
+            pszCurrentMessageEnd -=2;
+         }
       else
-         pszNextNameStart += strlen( MSG_NAME_START);
+         pszNextNameStart = pszCurrentMessageEnd + strlen( MSG_NAME_START);
 
       // calculate table entry data
       *pszCurrentNameEnd  = 0;
       ulCurrentMessagePos = pszCurrentNameEnd + strlen( MSG_NAME_END) - pbFileData;
-      ulCurrentMessageLen = pszNextNameStart - pbFileData - ulCurrentMessagePos - 1;
+      ulCurrentMessageLen = pszCurrentMessageEnd - pbFileData - ulCurrentMessagePos;
 
       // determine entry
-      sprintf( szEntry, "%s %u %u" NEWLINE, pszCurrentNameStart, ulCurrentMessagePos, ulCurrentMessageLen);
+      sprintf( szEntry, "%s %u %u\n", pszCurrentNameStart, ulCurrentMessagePos, ulCurrentMessageLen);
 
       // need more space ?
       if ((ulTableDataContentsLength + strlen( szEntry) + 1) > ulTableDataLength)
@@ -422,10 +439,19 @@ do
 
       } // while (pszCurrentNameStart)
 
-   // write new timestamp and table
+   // close file, so that we can use DosSetPathInfo to write Eas -
+   // this avoids reset of lastwritestamp when using DosSetFileInfo instead
+   DosClose( hfileMessageFile);
+   hfileMessageFile = NULL;
+
+   // write EAs
    // ### handle 64 kb limit here !!!
    rc = WriteStringEa( pszMessageFile, EA_TIMESTAMP, szFileStampCurrent);
+   if (rc != NO_ERROR)
+      break;
    rc = WriteStringEa( pszMessageFile, EA_MSGTABLE,  pbTableData);
+   if (rc != NO_ERROR)
+      break;
 
 
    // ------------------------------------------------------------------
@@ -500,3 +526,4 @@ do
 
 return rc;
 }
+
