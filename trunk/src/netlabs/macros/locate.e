@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.5 2002-10-20 14:16:17 aschn Exp $
+* $Id: locate.e,v 1.6 2003-09-01 03:03:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -510,4 +510,39 @@ defc findmark
    if searchstring <> '' then
       'l 'searchstring''
    endif
+
+; ---------------------------------------------------------------------------
+; Support for Graphical File Comparison
+; Compares current file with another. File open box of GFC will open.
+; If current file is located in any tree of %NEPMD_ROOTDIR%\netlabs
+; or %NEPMD_ROOTDIR%\myepm, then the current file is compared with
+; the corresponding file of the other tree.
+defc GfcCurrentFile
+   fn = .filename
+   GfcParams = '"'fn'"'
+   NepmdRootDir = NepmdScanEnv('NEPMD_ROOTDIR')
+   parse value NepmdRootDir with 'ERROR:'rc
+   if rc = '' then
+      if abbrev( upcase(fn), upcase(NepmdRootDir)) then
+         p1 = length(NepmdRootDir)
+         p2 = pos( '\', fn, p1 + 2)
+         next = substr( fn, p1 + 2, max( p2 - p1 - 2, 0))
+         if upcase(next) = 'MYEPM' then
+            fn2 = substr( fn, 1, p1)'\netlabs'substr( fn, p2)
+            if NepmdFileExists(fn2) then
+               GfcParams = GfcParams' "'fn2'"'
+            endif
+         elseif upcase(next) = 'NETLABS' then
+            fn2 = substr( fn, 1, p1)'\myepm'substr( fn, p2)
+            if NepmdFileExists(fn2) then
+               GfcParams = GfcParams' "'fn2'"'
+            endif
+         endif
+      endif
+   else
+      sayerror 'Environment var NEPMD_ROOTDIR not set'
+   endif
+   'start /f gfc 'GfcParams
+   return
+
 
