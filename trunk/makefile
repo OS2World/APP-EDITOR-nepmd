@@ -8,7 +8,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.10 2002-04-19 12:44:11 cla Exp $
+# $Id: makefile,v 1.11 2002-04-19 14:56:41 cla Exp $
 #
 # ===========================================================================
 #
@@ -59,6 +59,10 @@ INFDIR=$(DSTDIR)\book
 !if [@md $(INFDIR) 2> NUL]
 !endif
 
+EXCDIR=$(DSTDIR)\install
+!if [@md $(EXCDIR) 2> NUL]
+!endif
+
 # --- set some compiler dependant values
 
 !ifdef CPPLOCAL
@@ -106,16 +110,21 @@ INST: ALL
 
 # ---
 
-INF: $(INFDIR)\nepmd.inf
-
 PREPARE: $(UNZIPPEDDIR)\prepare.log
 
-CREATE: CHECKSRC SRCCOPY $(CMPDIR)\$(WPIFILE)
+CREATE: NEPMD $(CMPDIR)\$(WPIFILE)
+
+NEPMD: CHECKSRC SRCCOPY NLSETUP INF
+
+INF: $(INFDIR)\nepmd.inf
+
+# ---
 
 CHECKSRC:
    @bin\_srccopy CHECK $(CMPDIR)\srccopy.txt src\netlabs
 
 SRCCOPY: $(CMPDIR)\srccopy.txt
+
 
 CHECK: PREPARE
    @ECHO Checking prepared files for errors during unpack:
@@ -123,9 +132,13 @@ CHECK: PREPARE
    @ECHO Checking prepared files for zero byte files:
    -@dir $(UNZIPPEDDIR) /s | grep " 0           0"
 
+NLSETUP: $(EXCDIR)\nlsetup.exe
+
+# ---
+
 CLEAN:
   @echo cleanin up
-  -@bin\kd $(CMPDIR)\*
+  -@bin\kd $(CMPDIR)
 
 # ---- generate INF
 
@@ -144,6 +157,11 @@ $(CMPDIR)\srccopy.txt:
 $(UNZIPPEDDIR)\prepare.log: bin\prepare.cmd
    bin\prepare $(UNZIPPEDDIR)\prepare.log $(BASEURL) $(ZIPSRCDIR) $(UNZIPPEDDIR)
    -@COPY $(UNZIPPEDDIR)\*.log $(CMPDIR) >NUL 2>&1
+
+# ---- create EXE version or frame REXX bacthfile
+
+$(EXCDIR)\nlsetup.exe: src\rexx\nlsetup.cmd
+   rexx2exe src\rexx\nlsetup.cmd $(EXCDIR)\nlsetup.exe /P > $(CMPDIR)\nlsetup.log
 
 # ---- create WPI package
 
