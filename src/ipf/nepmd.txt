@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.29 2002-09-05 16:08:17 cla Exp $
+.. $Id: nepmd.txt,v 1.30 2002-09-12 20:18:43 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -810,12 +810,14 @@ _*environment variables defined in netlabs\bin\epm.env:*_
 = contains the project name (not necessary
 - HELPNDXSHELF
 = bookshelf path for help index files (**.ndx)
+- EPMBINPATH
+= path for all executable binaries (**.exe)
+- EPMEXPATH
+= path for *EPM* executable files (**.ex)
 - EPMBARPATH
 = path for *EPM* toolbar files (**.bar)
 - EPMBMPPATH
 = path for *EPM* bitmap files (**.bmp)
-- EPMEXPATH
-= path for *EPM* executable files (**.ex)
 - EPMKEYWORDPATH
 = path for keyword files for *EPM* syntax highlighting (epmkwds.**)
 - EPMMACROPATH
