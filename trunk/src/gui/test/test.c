@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.4 2002-08-22 09:11:31 cla Exp $
+* $Id: test.c,v 1.5 2002-08-22 15:47:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -31,7 +31,9 @@
 #include <string.h>
 
 #include "macros.h"
+#include "nepmd.h"
 #include "tmf.h"
+#include "instval.h"
 
 // -----------------------------------------------------------------------------
 
@@ -40,43 +42,85 @@ INT main ( INT argc, PSZ  argv[], PSZ  envv[])
 
          APIRET         rc  = NO_ERROR;
          ULONG          i;
+         PSZ            pszTestcase = NULL;
 
 
 do
    {
+   // check the testcase
+   if (argc > 1) pszTestcase = argv[ 1];
+   if (!pszTestcase)
+      {
+      printf( "error: no testcase specified!\n");
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+   strupr( pszTestcase);
+
+
+   // =========================================================================
+   // testcase for TMF function
    // =========================================================================
 
 #define GETMESSAGE(m,t,c) \
-        memset( szBuffer, 0, sizeof( szBuffer)); \
-        rc = TmfGetMessage( t, c, szBuffer, sizeof( szBuffer), m, pszFilename, &ulMessageLen); \
-        DPRINTF(( "%u - %s: ***>%s<***\n\n", rc, m, szBuffer));
+           memset( szBuffer, 0, sizeof( szBuffer)); \
+           rc = TmfGetMessage( t, c, szBuffer, sizeof( szBuffer), m, pszFilename, &ulMessageLen); \
+           DPRINTF(( "%u - %s: ***>%s<***\n\n", rc, m, szBuffer));
 
-   // testcase for TMF function
-   do
+   if (!(strcmp( pszTestcase, "TMF")))
+
       {
-static         PSZ            pszEnvVar = "NEPMD_TMFTESTFILE";
-static         PSZ            pszMessageName = "TESTMESSAGE";
-               PSZ            pszFilename = getenv( pszEnvVar);
-               ULONG          ulMessageLen;
 
-               CHAR           szBuffer[ 512];
-               PSZ            apszParms[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
-
-      if (!pszFilename)
+   
+      // testcase for TMF function
+      do
          {
-         printf( "testcase for TMF skipped, envvar %s not found !\n", pszEnvVar);
-         rc = ERROR_ENVVAR_NOT_FOUND;
-         break;
-         }
-      GETMESSAGE( "INSERTTEST", apszParms, 9);
-      GETMESSAGE( "TESTMESSAGE", NULL, 0);
-      GETMESSAGE( "TESTVAL1", NULL, 0);
-      GETMESSAGE( "TESTVAL2", NULL, 0);
-      GETMESSAGE( "TESTVAL3", NULL, 0);
-
-      } while (FALSE);
+   static         PSZ            pszEnvVar = "NEPMD_TMFTESTFILE";
+   static         PSZ            pszMessageName = "TESTMESSAGE";
+                  PSZ            pszFilename = getenv( pszEnvVar);
+                  ULONG          ulMessageLen;
+   
+                  CHAR           szBuffer[ 512];
+                  PSZ            apszParms[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+   
+         if (!pszFilename)
+            {
+            printf( "testcase for TMF skipped, envvar %s not found !\n", pszEnvVar);
+            rc = ERROR_ENVVAR_NOT_FOUND;
+            break;
+            }
+         GETMESSAGE( "INSERTTEST", apszParms, 9);
+         GETMESSAGE( "TESTMESSAGE", NULL, 0);
+         GETMESSAGE( "TESTVAL1", NULL, 0);
+         GETMESSAGE( "TESTVAL2", NULL, 0);
+         GETMESSAGE( "TESTVAL3", NULL, 0);
+   
+         } while (FALSE);
+   
+      } // testcase TMF
 
    // =========================================================================
+   // testcase for GetInstValue
+   // =========================================================================
+
+
+#define GETVALUE(t) \
+      rc = GetInstValue( t, szValue, sizeof( szValue));\
+      DPRINTF(( "%u: value for \"%s\" is: %s\n\n", rc, t, szValue));
+
+   if (!(strcmp( pszTestcase, "INSTVAL")))
+
+      {
+         PSZ            pszTag;
+         CHAR           szValue[ _MAX_PATH];
+
+      GETVALUE( NEPMD_VALUETAG_ROOTDIR);
+      GETVALUE( NEPMD_VALUETAG_LANGUAGE);
+
+      GETVALUE( NEPMD_VALUETAG_INIT); 
+      GETVALUE( NEPMD_VALUETAG_MESSAGE);
+   
+      } // testcase INSTVAL
 
 
 
