@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writestringea.e,v 1.1 2002-08-20 12:36:53 cla Exp $
+* $Id: writestringea.e,v 1.2 2002-08-20 18:45:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -39,7 +39,7 @@ defc NepmdWriteStringEa, WriteStringEa =
 /* procedure: NepmdWriteStringEa                                 */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
-/*    Fullname = WriteStringEa( Filename, EaName, EaValue);      */
+/*    Fullname = NepmdWriteStringEa( Filename, EaName, EaValue); */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdWriteStringEa( PSZ pszFilename,         */

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: errormsgbox.e,v 1.2 2002-08-20 14:55:54 cla Exp $
+* $Id: errormsgbox.e,v 1.3 2002-08-20 18:45:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,7 +34,7 @@ defc NepmdErrorMsgBox, ErrorMsgBox =
 /* procedure: NepmdErrorMsgBox                                   */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
-/*    rc = ErrorMsgBox( message, title);                         */
+/*    rc = NepmdErrorMsgBox( message, title);                    */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdErrorMsgBox( HWND hwndClient,           */

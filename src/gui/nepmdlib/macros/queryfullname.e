@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryfullname.e,v 1.2 2002-08-20 14:55:12 cla Exp $
+* $Id: queryfullname.e,v 1.3 2002-08-20 18:45:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,7 +34,7 @@ defc NepmdQueryFullname, QueryFullname =
 /* procedure: NepmdQueryFullname                                 */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
-/*    Fullname = QueryFullname( filename);                       */
+/*    Fullname = NepmdQueryFullname( filename);                  */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdQueryFullname( PSZ pszFilename,         */
