@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.11 2002-09-21 14:28:57 cla Exp $
+* $Id: instval.c,v 1.12 2002-10-31 14:31:21 cla Exp $
 *
 * ===========================================================================
 *
@@ -62,7 +62,8 @@ static   PSZ            pszNepmdHelpDir = NEPMD_SUBPATH_CMPHLPDIR;
 
 static   PSZ            pszUserIniFile = NEPMD_FILENAME_INIFILE;
 static   PSZ            pszMessageFile = NEPMD_FILENAME_MESSAGEFILE;
-static   PSZ            pszInfFile     = NEPMD_FILENAME_INFFILE;
+static   PSZ            pszUsrInfFile  = NEPMD_FILENAME_USRINFFILE;
+static   PSZ            pszPrgInfFile  = NEPMD_FILENAME_PRGINFFILE;
 static   PSZ            pszHelpFile    = NEPMD_FILENAME_HELPFILE;
 
 static   PSZ            pszInstPathMask = "%s\\%s\\%s";
@@ -155,20 +156,6 @@ do
       sprintf( szValue, szTmp, szNepmdLanguage);
       }
 
-   else if (!stricmp( pszValueTag, NEPMD_INSTVALUE_INF))
-      {
-      // determine name of message file
-      if (fRunningInDevTree)
-         sprintf( szTmp, pszInstPathMask, pszDevTreePath, NEPMD_DEVPATH_INFFILE, pszInfFile);
-      else if (fNepmdInstalled)
-         sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdBookDir, pszInfFile);
-      else
-         sprintf( szTmp, pszFreePathMask, szModulePath, pszInfFile);
-
-      // pass in language identifier
-      sprintf( szValue, szTmp, szNepmdLanguage);
-      }
-
    else if (!stricmp( pszValueTag, NEPMD_INSTVALUE_HELP))
       {
       // determine name of message file
@@ -178,6 +165,35 @@ do
          sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdHelpDir, pszHelpFile);
       else
          sprintf( szTmp, pszFreePathMask, szModulePath, pszHelpFile);
+
+      // pass in language identifier
+      sprintf( szValue, szTmp, szNepmdLanguage);
+      }
+
+   else if ((!stricmp( pszValueTag, NEPMD_INSTVALUE_INF)) ||
+            (!stricmp( pszValueTag, NEPMD_INSTVALUE_USRGUIDE)))
+      {
+      // determine name of message file
+      if (fRunningInDevTree)
+         sprintf( szTmp, pszInstPathMask, pszDevTreePath, NEPMD_DEVPATH_INFFILE, pszUsrInfFile);
+      else if (fNepmdInstalled)
+         sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdBookDir, pszUsrInfFile);
+      else
+         sprintf( szTmp, pszFreePathMask, szModulePath, pszUsrInfFile);
+
+      // pass in language identifier
+      sprintf( szValue, szTmp, szNepmdLanguage);
+      }
+
+   else if (!stricmp( pszValueTag, NEPMD_INSTVALUE_PRGGUIDE))
+      {
+      // determine name of message file
+      if (fRunningInDevTree)
+         sprintf( szTmp, pszInstPathMask, pszDevTreePath, NEPMD_DEVPATH_INFFILE, pszPrgInfFile);
+      else if (fNepmdInstalled)
+         sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdBookDir, pszPrgInfFile);
+      else
+         sprintf( szTmp, pszFreePathMask, szModulePath, pszPrgInfFile);
 
       // pass in language identifier
       sprintf( szValue, szTmp, szNepmdLanguage);

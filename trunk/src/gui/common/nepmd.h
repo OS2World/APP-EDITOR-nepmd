@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.16 2002-09-21 13:58:53 cla Exp $
+* $Id: nepmd.h,v 1.17 2002-10-31 14:31:22 cla Exp $
 *
 * ===========================================================================
 *
@@ -55,7 +55,8 @@
 
 #define NEPMD_SUBPATH_INFFILE      NEPMD_SUBPATH_CMPINFDIR
 #define NEPMD_DEVPATH_INFFILE      "compile\\base\\"NEPMD_SUBPATH_CMPINFDIR
-#define NEPMD_FILENAME_INFFILE     "nepmd%s.inf"
+#define NEPMD_FILENAME_USRINFFILE  "neusr%s.inf"
+#define NEPMD_FILENAME_PRGINFFILE  "neprg%s.inf"
 
 #define NEPMD_SUBPATH_HELPFILE     NEPMD_SUBPATH_CMPINFDIR
 #define NEPMD_DEVPATH_HELPFILE     "compile\\base\\"NEPMD_SUBPATH_CMPHLPDIR
