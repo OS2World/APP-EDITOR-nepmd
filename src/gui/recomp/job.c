@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: job.c,v 1.1 2002-06-03 22:27:05 cla Exp $
+* $Id: job.c,v 1.2 2002-06-04 22:38:53 cla Exp $
 *
 * ===========================================================================
 *
@@ -67,7 +67,7 @@ typedef TFN *PTFN;
 
 // ---------------------------------------------------------------------
 
-VOID _waitForThread( PTID ptid, PSZ pszType)
+static VOID _waitForThread( PTID ptid, PSZ pszType)
 {
          APIRET         rc = NO_ERROR;
 
@@ -84,7 +84,7 @@ if ((ptid) && (*ptid))
 
 // ---------------------------------------------------------------------
 
-VOID _waitForThreads( PWINDOWDATA pwd)
+static VOID _waitForThreads( PWINDOWDATA pwd)
 {
 do
    {
@@ -103,7 +103,7 @@ return;
 
 // ---------------------------------------------------------------------
 
-APIRET _discardFilelists( PWINDOWDATA pwd)
+static APIRET _discardFilelists( PWINDOWDATA pwd)
 {
          APIRET         rc = NO_ERROR;
          ULONG          i,j;
