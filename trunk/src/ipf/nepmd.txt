@@ -2,12 +2,12 @@
 ..
 .. Module Name: nepmd.txt
 ..
-.. source file for the INF file of the 
+.. source file for the INF file of the
 .. Requires HyperText/2 package to compile
 ..
-.. Copyright (c) Netlabs EPM Distribution project 2002
+.. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.2 2002-04-16 09:59:48 cla Exp $
+.. $Id: nepmd.txt,v 1.3 2002-04-18 08:57:25 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -326,7 +326,7 @@ have not been included in the distribution, but have been either
 - F8
 = Edit new file
 - F9
-= Undo current line 
+= Undo current line
 - F10
 = Activate Menu (**)
 - F11
@@ -385,21 +385,21 @@ have not been included in the distribution, but have been either
 = -- not used --
 .
 - c-F1
-= Uppercase word    
+= Uppercase word
 - c-F2
-= Lowercase word    
+= Lowercase word
 - c-F3
-= Uppercase selection         
+= Uppercase selection
 - c-F4
-= Lowercase selection         
+= Lowercase selection
 - c-F5
-= Cursor to beginning of word 
+= Cursor to beginning of word
 - c-F6
-= Cursor to end of word       
+= Cursor to end of word
 - c-F7
-= Shift selection to the right      
+= Shift selection to the right
 - c-F8
-= Shift selection to the right      
+= Shift selection to the right
 - c-F9
 = -- not used --
 - c-F10

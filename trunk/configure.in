@@ -6,9 +6,9 @@
 # All settings are required, some of them may be predefined
 # as environment variables before calling make.
 #
-# Copyright (c) Netlabs EPM Distribution project 2002
+# Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.1 2002-04-15 16:37:50 ktk Exp $
+# $Id: configure.in,v 1.2 2002-04-18 08:57:25 cla Exp $
 #
 # ===========================================================================
 #
