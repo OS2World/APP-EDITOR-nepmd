@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.17 2004-07-09 14:05:00 aschn Exp $
+* $Id: stdkeys.e,v 1.18 2004-07-12 19:55:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -361,7 +361,8 @@ def otherkeys 'ProcessOtherKeys'
 ;
 ; Every Sh combination is now definable via a Key_* command. The order of
 ; the prefixes must be respected: c_ a_ s_.
-; Example: defc Key_c_a_s_p 'mycommand'  defines Ctrl+Alt+Sh as 'mycommand'.
+; Example: defc Key_c_a_s_p 'mycommand'  defines Ctrl+Alt+Sh+P as
+; 'mycommand'.
 ;
 ; After changing a Keyset via the keys statement, one has to execute in
 ; cases, where a Key_* command has changed (or was added) the following
