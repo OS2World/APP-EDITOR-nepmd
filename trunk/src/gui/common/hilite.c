@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.8 2002-09-25 11:11:28 cla Exp $
+* $Id: hilite.c,v 1.9 2002-09-25 11:44:06 cla Exp $
 *
 * ===========================================================================
 *
@@ -207,7 +207,8 @@ pszEntry      = (PVOID) Filespec( (PSZ) pszEntry, FILESPEC_NAME);
 return stricmp( pszKeyElement, pszEntry);
 }
 
-static APIRET _getDefFileList( PSZ pszEpmMode, PSZ *ppszFileList, PULONG pulFileCount, PULONG pulTotalSize)
+static APIRET _getDefFileList( PSZ pszEpmMode, ULONG ulKeywordFileDate, PSZ *ppszFileList,
+                               PULONG pulFileCount, PULONG pulTotalSize, PBOOL pfOutdated)
 {
 
          APIRET         rc = NO_ERROR;
@@ -217,6 +218,7 @@ static APIRET _getDefFileList( PSZ pszEpmMode, PSZ *ppszFileList, PULONG pulFile
          ULONG          ulListSize;
          ULONG          ulFileCount = 0;
          ULONG          ulTotalSize = 0;
+         BOOL           fOutdated   = FALSE;
 
          PSZ            pszKeywordPath = NULL;
          PSZ            pszKeywordDir;
@@ -233,7 +235,8 @@ do
        (!*pszEpmMode)  ||
        (!ppszFileList) ||
        (!pulFileCount) ||
-       (!pulTotalSize))
+       (!pulTotalSize) ||
+       (!pfOutdated))
       {
       rc = ERROR_INVALID_PARAMETER;
       break;
@@ -287,6 +290,10 @@ do
          ulFileCount++;
          ulTotalSize += QueryFileSize( szFile);
 
+         // check filedate
+         if (FileDate( szFile) > ulKeywordFileDate)
+            fOutdated = TRUE;
+
          }
       DosFindClose( hdir);
 
@@ -307,6 +314,7 @@ do
    *ppszFileList = pszFileList;
    *pulFileCount = ulFileCount;
    *pulTotalSize = ulTotalSize;
+   *pfOutdated   = fOutdated;
 
    } while (FALSE);
 
@@ -440,6 +448,7 @@ static APIRET _assembleKeywordFile(  PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBufl
          APIRET         rc = NO_ERROR;
          ULONG          i;
          PSZ            p;
+         PSZ            pszTmpDir;
 
          PSZ           *ppszEntry;
          PSZ            pszEntry;
@@ -470,12 +479,9 @@ static   PSZ            pszGlobalSection = "GLOBAL";
 
          HCONFIG        hconfig = NULLHANDLE;
 
-
-         BOOL           fCreateKeywordFile = FALSE;
-static   PSZ            pszKeywordPathMask = "\\NEPMD\\Hilite\\%s\\TempFile";
-         CHAR           szKeywordPath[ _MAX_PATH];
          CHAR           szKeywordFile[ _MAX_PATH];
-         ULONG          ulKeywordFileDate = -1;
+         ULONG          ulKeywordFileDate;
+         BOOL           fOutdated = FALSE;
 
          // ----------------------------------
 
@@ -641,26 +647,50 @@ do
 
    // get keywordfile
    strupr( pszEpmMode);
-   sprintf( szKeywordPath, pszKeywordPathMask, pszModeCopy);
-   rc = QueryConfigValue( hconfig, szKeywordPath, szKeywordFile, sizeof( szKeywordFile));
-   if (rc != NO_ERROR)
+   pszTmpDir = getenv( "TMP");
+   if (!pszTmpDir)
       {
-      // no keyword file yet, create a new one
-      rc = GetTempFilename( szKeywordFile, sizeof( szKeywordFile));
-      if (rc != NO_ERROR)
-         break;
+      rc = ERROR_ENVVAR_NOT_FOUND;
+      break;
+      }
+   // no keyword file yet, create a new one
+   // for that create subdirectory below TMP
+   sprintf( szKeywordFile, "%s\\nepmd\\mode",  pszTmpDir);
+   rc = CreatePath( szKeywordFile);
+   if ((rc != NO_ERROR) && (rc != ERROR_ACCESS_DENIED))
+      break;
+   sprintf( _EOS( szKeywordFile), "\\%s", pszEpmMode);
+   strlwr( szKeywordFile);
+
+   // --- hand over filename already here
+
+   // check result buffer
+   if (strlen( szKeywordFile) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
       }
 
+   // hand over result
+   strcpy( pszBuffer, szKeywordFile);
+
+
    // check for the file date - if not exists, will return -1,
-   // always enforcing a rebuild
+   // then reset to zero to force a rebuild
    ulKeywordFileDate = FileDate( szKeywordFile);
+   if (ulKeywordFileDate == - 1)
+      ulKeywordFileDate  = 0;
 
    // -----------------------------------------------
 
    // get the list of files
    ulFileCount = 0;
-   rc = _getDefFileList( pszEpmMode, &pszFileList, &ulFileCount, &ulTotalSize);
+   rc = _getDefFileList( pszEpmMode, ulKeywordFileDate, &pszFileList, &ulFileCount, &ulTotalSize, &fOutdated);
    if (rc != NO_ERROR)
+      break;
+
+   // if result file is not outdated, return with no error
+   if (!fOutdated)
       break;
 
    // -----------------------------------------------
@@ -674,12 +704,12 @@ do
 
    pszCurrentDelimiter = pszSectionDelimiter;
    pszCurrentKeywords  = pszSectionKeywords;
-   pszCurrentSpecial   = pszSectionSpecial; 
+   pszCurrentSpecial   = pszSectionSpecial;
    pszCurrentBreakChar = pszSectionBreakChar;
    pszCurrentEndChar   = pszSectionEndChar;
 
    // -----------------------------------------------
-   
+
    // loop thru all files
    for (ulCurrentFile = 0, pszSourceFile = pszFileList;
            ulCurrentFile < ulFileCount;
@@ -755,7 +785,7 @@ do
 
             // tokenize line
             pszStartStr = strtok( pszLine, " ");
-            pszStopStr  = strtok( NULL,    " "); 
+            pszStopStr  = strtok( NULL,    " ");
             pszBreakStr = strtok( NULL,    " ");
             p           = strtok( NULL,    " ");
             if (p)
@@ -812,8 +842,8 @@ do
 
    DPRINTF(( "HILITE: - assembling hilite file: %s\n", szKeywordFile));
 
-   // determine the length 
-   ulHiliteContentsLen = (pszCurrentDelimiter - pszSectionDelimiter) + 
+   // determine the length
+   ulHiliteContentsLen = (pszCurrentDelimiter - pszSectionDelimiter) +
                          (pszCurrentKeywords  - pszSectionKeywords)  +
                          (pszCurrentSpecial   - pszSectionSpecial)   +
                          (pszCurrentBreakChar - pszSectionBreakChar) +
@@ -821,8 +851,8 @@ do
 
    DPRINTF(( "- total len of all hilite data is: %u\n", ulHiliteContentsLen));
 
-   rc = MmfAlloc( (PVOID*)&pszHiliteContents, 
-                  szKeywordFile, 
+   rc = MmfAlloc( (PVOID*)&pszHiliteContents,
+                  szKeywordFile,
                   MMF_ACCESS_READWRITE |
                   MMF_OPENMODE_RESETFILE,
                   ulHiliteContentsLen + 4096);
@@ -831,7 +861,7 @@ do
 
    DPRINTF(( "- allocated buffer at 0x%08x, len %u, end address 0x%08x\n",
              pszHiliteContents, ulHiliteContentsLen, pszHiliteContents + ulHiliteContentsLen));
-   
+
    pszCurrent = pszHiliteContents;
 
    // add all sections, if something in it
@@ -889,16 +919,6 @@ do
    rc = MmfUpdate( pszHiliteContents);
    DPRINTF(( "-  update file, rc=%u\n", rc));
 
-   // check result buffer
-   if (strlen( szKeywordFile) + 1 > ulBuflen)
-      {
-      rc = ERROR_BUFFER_OVERFLOW;
-      break;
-      }
-
-   // hand over result
-   strcpy( pszBuffer, szKeywordFile);
-
 
    } while (FALSE);
 
@@ -948,7 +968,6 @@ do
 
    // search mode files
    rc = _assembleKeywordFile( pszEpmMode, szValue, sizeof( szValue));
-printf( "_assembleKeywordFile rc=%u, file is %s\n", rc, szValue);
    if (rc != NO_ERROR)
       {
       // if no mode infos available; conventional search
@@ -966,9 +985,10 @@ printf( "_assembleKeywordFile rc=%u, file is %s\n", rc, szValue);
 
    // hand over result
    strcpy( pszBuffer, szValue);
+   DPRINTF(( "HILITE: keywordfile is: %s\n", szValue));
 
    } while (FALSE);
 
 return rc;
 }
-     
+
