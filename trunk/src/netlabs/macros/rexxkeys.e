@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.5 2002-10-17 19:50:27 aschn Exp $
+* $Id: rexxkeys.e,v 1.6 2002-12-09 21:10:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -126,8 +126,14 @@ def c_x=       -- Force expansion if we don't have it turned on automatic
       call rex_second_expansion()
    endif
 
-defproc rex_first_expansion            -- Called by space bar
-   retc = 1                            -- Default, enter a space
+; ---------------------------------------------------------------------------
+; This is the definition for syntax expansion with <space>.
+; If 0 is returned then
+;    a normal <space> is processed,
+; else
+;    the keystroke was aleady processed by this procedure.
+defproc rex_first_expansion
+   retc = 0                            -- Default: don't expanded, enter a space
    if .line then
       getline line
       line = strip( line, 'T' )
@@ -138,11 +144,10 @@ compile if REXX_SYNTAX_FORCE_CASE
       lb=copies(' ', max(1,verify(w,' '))-1)  -- Number of blanks before first word.
 compile endif
 
-      -- Skip expansion when cursor is not at line end
+      -- Skip expansion when cursor is not at line end (spaces not respected)
       line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
       lw = strip( line_l, 'T' )
       if w <> lw then
-         retc = 0
 
       elseif wrd = 'IF' then
 compile if REXX_SYNTAX_CASE = 'lower'
@@ -164,9 +169,13 @@ compile else
          insertline substr(wrd,1,length(wrd)-2)'Else',.line+1
  compile endif
 compile endif
-         if not insert_state() then insert_toggle
-             call fixup_cursor()
+         if not insert_state() then
+            insert_toggle
+            call fixup_cursor()
          endif
+         keyin ' '
+         retc = 1
+
       elseif wrd='WHEN' Then
 compile if REXX_SYNTAX_CASE = 'lower'
  compile if REXX_SYNTAX_FORCE_CASE
@@ -181,10 +190,14 @@ compile else
          replaceline w' Then'
  compile endif
 compile endif
-         if not insert_state() then insert_toggle
-             call fixup_cursor()
+         if not insert_state() then
+            insert_toggle
+            call fixup_cursor()
          endif
-      elseif wrd='DO' Then
+         keyin ' '
+         retc = 1
+
+      elseif wrd='DO' then
 compile if REXX_SYNTAX_FORCE_CASE
  compile if REXX_SYNTAX_CASE = 'lower'
          replaceline lb'do'
@@ -194,9 +207,9 @@ compile if REXX_SYNTAX_FORCE_CASE
 compile endif
 compile if WANT_END_COMMENTED
  compile if REXX_SYNTAX_CASE = 'lower'
-         insertline substr(wrd,1,length(wrd)-2)'end /* do */',.line+1
+         insertline substr(wrd,1,length(wrd)-2)'end /'||'* do *'||'/',.line+1
  compile else
-         insertline substr(wrd,1,length(wrd)-2)'End /* Do */',.line+1
+         insertline substr(wrd,1,length(wrd)-2)'End /'||'* Do *'||'/',.line+1
  compile endif
 compile else
  compile if REXX_SYNTAX_CASE = 'lower'
@@ -205,17 +218,26 @@ compile else
          insertline substr(wrd,1,length(wrd)-2)'End',.line+1
  compile endif
 compile endif
-;        if not insert_state() then insert_toggle endif
-      else
-         retc=0
-      endif
-   else
-      retc=0
-   endif
+         if not insert_state() then
+            insert_toggle
+            call fixup_cursor()
+         endif
+         keyin ' '
+         retc = 1
+
+      endif  -- w <> lw
+   endif  -- .line
    return retc
 
+
+; ---------------------------------------------------------------------------
+; This is the definition for syntax expansion with <enter>.
+; If 0 is returned then
+;    a normal <enter> is processed,
+; else
+;    the keystroke was aleady processed by this procedure.
 defproc rex_second_expansion
-   retc=1                               -- Default, don't insert a line
+   retc = 0                               -- Default:, don't expanded, insert a line
    if .line then
       getline line
 compile if REXX_SYNTAX_FORCE_CASE
@@ -229,19 +251,23 @@ compile endif
 
       c=max(1,verify(line,' '))-1  -- Number of blanks before first word.
 
-      If firstword='SELECT' then
+      if firstword = 'SELECT' then
 compile if REXX_SYNTAX_FORCE_CASE
  compile if REXX_SYNTAX_CASE = 'lower'
-         if origword<>'select' then replaceline overlay('select', textline(.line), c+1); endif
+         if origword<>'select' then
+            replaceline overlay('select', textline(.line), c+1)
+         endif
  compile else
-         if origword<>'Select' then replaceline overlay('Select', textline(.line), c+1); endif
+         if origword<>'Select' then
+            replaceline overlay('Select', textline(.line), c+1)
+         endif
  compile endif
 compile endif
 compile if REXX_SYNTAX_CASE = 'lower'
          insertline substr('',1,c+REXX_SYNTAX_INDENT)'when',.line+1
          insertline substr('',1,c /*+REXX_SYNTAX_INDENT*/)'otherwise',.line+2
  compile if WANT_END_COMMENTED
-         insertline substr('',1,c)'end  /* select */',.line+3
+         insertline substr('',1,c)'end  /'||'* select *'||'/',.line+3
  compile else
          insertline substr('',1,c)'end',.line+3
  compile endif
@@ -249,14 +275,16 @@ compile else
          insertline substr('',1,c+REXX_SYNTAX_INDENT)'When',.line+1
          insertline substr('',1,c /*+REXX_SYNTAX_INDENT*/)'Otherwise',.line+2
  compile if WANT_END_COMMENTED
-         insertline substr('',1,c)'End  /* Select */',.line+3
+         insertline substr('',1,c)'End  /'||'* Select *'||'/',.line+3
  compile else
          insertline substr('',1,c)'End',.line+3
  compile endif
 compile endif
          '+1'                             -- Move to When clause
          .col = c+REXX_SYNTAX_INDENT+5         -- Position the cursor
-      Elseif firstword = 'DO' then
+         retc = 1
+
+      elseif firstword = 'DO' then
 compile if REXX_SYNTAX_FORCE_CASE
  compile if REXX_SYNTAX_CASE = 'lower'
          if origword<>'do' then replaceline overlay('do', textline(.line), c+1); endif
@@ -266,10 +294,24 @@ compile if REXX_SYNTAX_FORCE_CASE
 compile endif
          call einsert_line()
          .col=.col+REXX_SYNTAX_INDENT
-      Elseif Pos('THEN DO',line) > 0 or Pos('ELSE DO',line) > 0 Then
-         p = Pos('ELSE DO',line)  -- Don't be faked out by 'else doc = 5'
+         retc = 1
+
+      elseif firstword = 'IF' then
+compile if REXX_SYNTAX_FORCE_CASE
+ compile if REXX_SYNTAX_CASE = 'lower'
+         if origword<>'if' then replaceline overlay('if', textline(.line), c+1); endif
+ compile else
+         if origword<>'If' then replaceline overlay('If', textline(.line), c+1); endif
+ compile endif
+compile endif
+         call einsert_line()
+         .col=.col+REXX_SYNTAX_INDENT
+         retc = 1
+
+      elseif pos('THEN DO',line) > 0 or pos('ELSE DO',line) > 0 then
+         p = pos('ELSE DO',line)  -- Don't be faked out by 'else doc = 5'
          if not p then
-            p = Pos('THEN DO',line)
+            p = pos('THEN DO',line)
 compile if REXX_SYNTAX_FORCE_CASE
  compile if REXX_SYNTAX_CASE = 'lower'
             s1 = 'then do'
@@ -282,17 +324,21 @@ compile if REXX_SYNTAX_FORCE_CASE
  compile endif
 compile endif
          endif
-         if p & not pos(substr(line, p+7, 1), ' ;') then return 0; endif
+         if p & not pos(substr(line, p+7, 1), ' ;') then
+            return 0
+         endif
 compile if REXX_SYNTAX_FORCE_CASE
-         if substr(textline(.line), p, 7)<>s1 then replaceline overlay(s1, textline(.line), p); endif
+         if substr(textline(.line), p, 7)<>s1 then
+            replaceline overlay(s1, textline(.line), p)
+         endif
 compile endif
          call einsert_line()
          .col=.col+REXX_SYNTAX_INDENT
 compile if WANT_END_COMMENTED
  compile if REXX_SYNTAX_CASE = 'lower'
-         insertline substr('',1,c)'end /* do */',.line+1
+         insertline substr('',1,c)'end /'||'* do *'||'/',.line+1
  compile else
-         insertline substr('',1,c)'End /* Do */',.line+1
+         insertline substr('',1,c)'End /'||'* Do *'||'/',.line+1
  compile endif
 compile else
  compile if REXX_SYNTAX_CASE = 'lower'
@@ -301,18 +347,19 @@ compile else
          insertline substr('',1,c)'End',.line+1
  compile endif
 compile endif
+         retc = 1
+
 compile if TERMINATE_COMMENTS
-      Elseif pos('/*',line) then          -- Annoying to me, as I don't always
-         if not pos('*/',line) then       -- want a comment closed on that line
-            end_line; keyin' */'          -- Enable if you wish by uncommenting
+      elseif pos('/'||'*',line) then        -- Annoying to me, as I don't always
+         if not pos('*'||'/',line) then     -- want a comment closed on that line
+            end_line                        -- Enable if you wish by uncommenting
+            keyin ' *''/'
          endif
          call einsert_line()
+         retc = 1
 compile endif
-      Else
-         retc = 0                         -- Insert a blank line
-      Endif
-   Else
-      retc=0
-   Endif
-   Return(retc)
+
+      endif  -- firstword =
+   endif  -- .line
+   return retc
 
