@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.16 2003-08-30 22:03:42 aschn Exp $
+* $Id: epm.e,v 1.17 2003-08-31 20:46:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -123,7 +123,7 @@ compile endif
 
 include        'stdcmds.e'     -- Standard commands (DEFC's).
                                -- (Edit cmd uses variables defined in host routines.)
-include        'hooks.e'       -- Hook cmds
+tryinclude     'hooks.e'       -- Hook cmds
 
 include        'get.e'         -- Insert the contents of another file into current
 
