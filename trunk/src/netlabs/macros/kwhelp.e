@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.6 2002-09-06 22:33:48 aschn Exp $
+* $Id: kwhelp.e,v 1.7 2002-09-07 18:00:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -44,17 +44,17 @@
 
 const
 compile if not defined(FORTRAN_TYPES)
-   FORTRAN_TYPES = 'FXC F F77 F90 FOR FORTRAN'
+   FORTRAN_TYPES = 'FXC F F77 F90 FOR FORTRAN'  --<---------------------------------------------------- Todo
 compile endif
 compile if not defined(GENERAL_NOCASE_TYPES)
-   GENERAL_NOCASE_TYPES = 'CMD SYS BAT'    --<---------------------------------------------------- Todo
+   GENERAL_NOCASE_TYPES = 'CMD SYS BAT'         --<---------------------------------------------------- Todo
 compile endif
 compile if not defined('KEYWORD_HELP_COMMAND')
-   -- Following is a OS/2 command that can replace the 'view' call
+   -- Following is an OS/2 command that can replace the 'view' call.
    -- Specifying a path or extension is optional. It is invoked by
    -- cmd.exe.
-   --KEYWORD_HELP_COMMAND = 'start newview'  -- optional value for MYCNF.E
-   KEYWORD_HELP_COMMAND = 'view'  -- default
+   --NEPMD_KEYWORD_HELP_COMMAND = 'start newview'  -- optional value for MYCNF.E
+   NEPMD_KEYWORD_HELP_COMMAND = 'view'  -- default
 compile endif
 compile if not defined(NEPMD_HELPNDXSHELF)
    -- Replace the EnvVar HELPNDX with the new EnvVar HELPNDXSHELF,
@@ -168,6 +168,7 @@ compile endif
 defproc pGet_Identifier(var id, startcol, endcol, ft)
 
    getline line
+                                --<--------------------------------------- probably Todo
    if wordpos(ft, FORTRAN_TYPES) then        /* Fortran doesn't need to mess w/ C classes */
       id = substr(line, startcol, (endcol-startcol)+1)
       return
