@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.25 2002-10-06 20:45:58 cla Exp $
+* $Id: test.c,v 1.26 2002-10-07 11:47:11 cla Exp $
 *
 * ===========================================================================
 *
@@ -300,7 +300,7 @@ do
 
       rc = QueryFileModeInfo( pszFilename, pmi, sizeof( abData));
       if (rc != NO_ERROR)
-         printf( "mode for file %s could not be determined, rc=%u\n", pszFilename, rc);
+         printf( "mode for %s is UNKNOWN (rc=%u)\n", pszFilename, rc);
       else
          printf( "mode for %s is %s\n", pszFilename, pmi->pszModeName);
 
