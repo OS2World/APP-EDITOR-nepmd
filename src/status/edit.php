@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.php,v 1.1 2002-07-18 22:02:00 cla Exp $
+* $Id: edit.php,v 1.2 2002-07-19 14:08:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -27,13 +27,23 @@
 <body text="#000000" bgcolor=#FFFFFF link=#CC6633 vlink=#993300 alink=#6666CC>
 
 <?
-function addoptions(  $default, $aoptions)
+function addoptions(  $default, $optionfile)
 {
+// read all options from file
+$aoptions = file( $optionfile);
 
+// search default in options
 $default_upper = strtoupper( trim($default));
 for ($i = 0; $i < count( $aoptions); $i++)
    {
-   $option = $aoptions[ $i];
+   // read entry, ignore empty lines and comments
+   $option = trim( $aoptions[ $i]);
+   if (strlen( $option) == 0)
+      continue;
+   if (strlen( strpos( $option, ":")) > 0)
+      continue;
+
+   // ckeck if option should be selected
    $option_upper = strtoupper( trim( $option));
    $selected = (strcmp( $option_upper, $default_upper) == 0);
    if ($selected)
@@ -44,6 +54,7 @@ for ($i = 0; $i < count( $aoptions); $i++)
 }
 
 // load file
+$file = $_GET[ "file"];
 if ($file != "")
    {
    // read database
@@ -58,60 +69,66 @@ if ($file != "")
    list( , $modified)  = each( $aentry);
    list( , $details)   = each( $aentry);
 
-   echo "<form action=\"update.php\" name=\"EditDbFile\" method=post enctype=\"text/plain\">";
+   echo "<form action=\"update.php\" name=\"EditDbFile\" method=\"post\" enctype=\"text/plain\">";
    echo "<table width=70% border=0>";
    echo "<input name=file type=hidden value=\"".$file."\">";
 
-   echo "<tr><td align=right bgcolor=#dddddd>";
+   echo "<tr><td align=right bgcolor=#dddddd><font size=-1>";
    echo "file:";
-   echo "</td><td bgcolor=#dddddd>";
+   echo "</font></td><td bgcolor=#dddddd><font size=-1>";
    echo $file;
-   echo "</td></tr>";
+   echo "</font></td></tr>";
 
-   echo "<tr><td align=right >";
+   echo "<tr><td align=right><font size=-1>";
    echo "title:";
-   echo "</td><td>";
+   echo "</font></td><td><font size=-1>";
    echo "<input name=title size=70 maxlength=256 value=\"".$title."\">";
-   echo "</td></tr>";
+   echo "</font></td></tr>";
 
-   echo "<tr><td align=right bgcolor=#dddddd>";
+   echo "<tr><td align=right bgcolor=#dddddd><font size=-1>";
    echo "category:";
-   echo "</td><td bgcolor=#dddddd>";
+   echo "</font></td><td bgcolor=#dddddd><font size=-1>";
    echo "<select name=category size=1>";
-   addoptions( $category, array( "Bug", "Compile", "Feature", "File handling", "Formatting", "EPM info", "Locate/Select", "Misc", "Tagging", "Toolbar"));
+   addoptions( $category, "category.lst");
    echo "</select>";
 
    echo " prio: ";
    echo "<select name=prio size=1>";
-   addoptions( $prio, array( "1", "2", "3", "4", "5"));
+   addoptions( $prio, "prio.lst");
    echo "</select>";
 
    echo " status: ";
    echo "<select name=status size=1>";
-   addoptions( $status, array( "open", "started", "coding", "testing", "completed"));
+   addoptions( $status, "status.lst");
    echo "</select>";
-   echo "</td></tr>";
 
-   echo "<input name=filelist type=hidden value=\"".$filelist."\">";
+
+   echo " files: ";
+   echo "<input name=filelist size=60 maxlength=256 value=\"".trim( $filelist)."\">";
+   echo "</font></td></tr>";
+
    echo "<input name=updated type=hidden value=\"".$updated."\">";
 
-   echo "<tr><td valign=top align=right>";
+   echo "<tr><td valign=top align=right><font size=-1>";
    echo "details:";
-   echo "</td><td>";
+   echo "</font></td><td><font size=-1>";
    echo "<textarea name=details rows=6 cols=100>";
    echo $details;
    echo "</textarea>";
-   echo "</td></tr>";
+   echo "</font></td></tr>";
 
    echo "<tr><td>";
-   echo "</td><td>";
+   echo "</td><td><font size=-1>";
+   echo "<input type=submit value=\"Apply\">";
+   echo "&nbsp;";
    echo "<input type=reset value=\"Undo\">";
    echo "&nbsp;";
-   echo "<input type=submit value=\"Save to disk\">";
-   echo "</td></tr>";
+   echo "<input type=button value=\"Cancel\" onClick=\"self.location.href='details.php?file=".$file."'\">";
+   echo "</font></td></tr>";
 
    echo "</table>";
    }
 
 ?>
+</body>
 </html>
