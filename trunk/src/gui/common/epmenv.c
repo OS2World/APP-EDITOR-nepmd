@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.16 2003-03-22 20:22:42 cla Exp $
+* $Id: epmenv.c,v 1.17 2003-12-30 21:24:10 cla Exp $
 *
 * ===========================================================================
 *
@@ -80,6 +80,11 @@ do
    DosGetInfoBlocks( &ptib,&ppib);
    DosQueryModuleName( ppib->pib_hmte, sizeof( szThisModule), szThisModule);
 
+   // get name of epm.exe in OS/2 directory
+   // this is used by installed NEPMD
+   DosQuerySysInfo( QSV_BOOT_DRIVE, QSV_BOOT_DRIVE, &ulBootDrive, sizeof( ULONG));
+   sprintf( szInstalledModule, "%c:\\OS2\\EPM.EXE", (CHAR) ulBootDrive + 'A' - 1);
+
    // get name of EPM.EXE in NEPMD path
    memset( szNepmdModule, 0, sizeof( szNepmdModule));
    rc = QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, szNepmdModule, sizeof( szNepmdModule));
@@ -89,13 +94,15 @@ do
       strupr( szNepmdModule);
       }
    else
+      {
       // don't report error from here
       rc = NO_ERROR;
 
-   // get name of epm.exe in OS/2 directory
-   // this is used by installed NEPMD
-   DosQuerySysInfo( QSV_BOOT_DRIVE, QSV_BOOT_DRIVE, &ulBootDrive, sizeof( ULONG));
-   sprintf( szInstalledModule, "%c:\\OS2\\EPM.EXE", (CHAR) ulBootDrive + 'A' - 1);
+      // copy pathname of installed EPM fullname here in order
+      // not to break the filename comparison scheme below
+      strcpy( szNepmdModule, szInstalledModule);
+
+      }
 
    // create copy to allow modification
    pszCopy = strdup( pszPath);
@@ -113,21 +120,26 @@ do
       if (*(pszDir + strlen( pszDir) - 1) != '\\')
          strcat( szExecutable, "\\");
       strcat( szExecutable, "epm.exe");
+      rc = DosQueryPathInfo( szExecutable, FIL_QUERYFULLNAME, szExecutable, sizeof( szExecutable));
       strupr( szExecutable);
-
-      // process only modules not being the current one or of NEPMD
-      if ((strcmp( szExecutable, szThisModule)) &&
-          (strcmp( szExecutable, szNepmdModule)) &&
-          (strcmp( szExecutable, szInstalledModule)))
+      if (rc == NO_ERROR)
          {
-         // does executable exist ?
-//       DPRINTF(( "EPMCALL: searching %s\n", szExecutable));
+         // file must exist
          if (FileExists( szExecutable))
             {
-            fFound = TRUE;
-            break;
+            // process only modules not being the current one or of NEPMD bin directory
+            if ((strcmp( szExecutable, szThisModule)) &&
+                (strcmp( szExecutable, szNepmdModule)) &&
+                (strcmp( szExecutable, szInstalledModule)))
+               {
+               // executable found
+               fFound = TRUE;
+               break;
+               }
             }
          }
+      else
+         rc = NO_ERROR;
 
       // next please
       pszDir = strtok( NULL, ";");
