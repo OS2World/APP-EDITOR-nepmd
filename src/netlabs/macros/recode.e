@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: recode.e,v 1.1 2004-07-01 12:17:45 aschn Exp $
+* $Id: recode.e,v 1.2 2004-09-12 15:48:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -60,6 +60,8 @@ defc recode
    'dos recode' args filename
    if rc = 0 then
       'revert'
+   elseif rc = -274 then
+      sayerror 'Error, rc = 'rc' (probably Gnu recode not found in PATH)'
    else
       sayerror 'Error from recode: rc = 'rc
    endif
