@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: list.php,v 1.2 2002-07-17 16:03:05 cla Exp $
+* $Id: list.php,v 1.3 2002-07-18 19:27:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -20,6 +20,8 @@
 * General Public License for more details.
 *
 *************************************************************************/ ?>
+
+<? include( "filedb.inc") ?>
 
 <!--$url-minder-ignore$-->
 <html>
@@ -55,37 +57,8 @@ while ($entry = $dir->read())
       {
       // read file contents
       $entryfile = $dbdir."/".$entry;
-      $hfile = fopen( $entryfile, "r");
 
-      // category
-      $line = fgets( $hfile, 80);
-      list( $tag, $category) = explode( ":", $line, 2);
-
-      // title
-      $line = fgets( $hfile, 80);
-      list( $tag, $title) = explode( ":", $line, 2);
-
-      // priority
-      $line = fgets( $hfile, 80);
-      list( $tag, $prio) = explode( ":", $line, 2);
-
-      // status
-      $line = fgets( $hfile, 80);
-      list( $tag, $status) = explode( ":", $line, 2);
-
-      // filelist
-      $line = fgets( $hfile, 80);
-      list( $tag, $filelist) = explode( ":", $line, 2);
-
-      // update info
-      $line = fgets( $hfile, 80);
-      $aline = explode( " ", $line);
-      $modified   = $aline[4]." ".$aline[5]." ".$aline[6];
-
-
-      fclose( $hfile);
-
-      $aentry = array( $entryfile, $category, $title, $prio, $status, $filelist, $modified);
+      $aentry = filedb_read( $entryfile);
 
       $aaentry[] = $aentry;
       }
