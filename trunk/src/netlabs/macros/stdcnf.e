@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.9 2002-10-20 14:18:13 aschn Exp $
+* $Id: stdcnf.e,v 1.10 2002-11-05 18:06:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -210,7 +210,12 @@ compile endif
 --   ''     loads no host-file support at all.
 compile if not defined(HOST_SUPPORT)
  compile if not SMALL
-   HOST_SUPPORT = 'STD'
+   --HOST_SUPPORT = 'STD'
+   -- Changed HOST_SUPPORT to W4's and eCS's default, because otherwise files from
+   -- drive H: are not loaded properly and can't be saved.
+   -- Note: if you want to activate it in your MYCNF.E, then also specify HOSTDRIVE!
+   -- The default value is: HOSTDRIVE = H:
+   HOST_SUPPORT = ''
  compile else
    -- Do not change this!!  Only the previous one.
    HOST_SUPPORT = ''
@@ -845,10 +850,10 @@ compile if not defined(WANT_PROFILE)
    -- What a poor default value!
    -- Set WANT_PROFILE = 'SWITCH' in MYCNF.E
    --    and
-   -- Set my_WANT_PROFILE = 1 in MYCNF.E
+   -- Set my_REXX_PROFILE = 1 in MYCNF.E
    --WANT_PROFILE = 0
    WANT_PROFILE = 'SWITCH'
-   MY_WANT_PROFILE = 1
+   MY_REXX_PROFILE = 1
 compile endif
 
 compile if WANT_PROFILE & not WANT_REXX
