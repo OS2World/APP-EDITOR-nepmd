@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.27 2004-07-02 08:14:17 aschn Exp $
+* $Id: epm.e,v 1.28 2004-07-04 22:12:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -249,7 +249,7 @@ compile if WANT_EPM_SHELL
 compile endif
 
 compile if WANT_KEYWORD_HELP = 1
-   include     'kwhelp.e'      -- Keyword help.
+   include     'kwhelp.e'      -- Keyword help. Standard is WANT_KEYWORD_HELP = 'DYNALINK'
 compile endif
 
 compile if WANT_REXX
