@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: frame.c,v 1.4 2002-06-10 11:54:18 cla Exp $
+* $Id: frame.c,v 1.5 2002-08-14 12:21:40 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,6 +40,7 @@
 #include "frame.h"
 #include "client.h"
 #include "pmres.h"
+#include "epmenv.h"
 
 // ---------------------------------------------------------------------
 
@@ -394,7 +395,7 @@ return hmodResource;
 
 // ---------------------------------------------------------------------
 
-APIRET ExecuteFrame( HAB hab, INT argc, PSZ  argv[])
+APIRET ExecuteFrame( HAB hab, INT argc, PSZ  argv[], PSZ envp[])
 {
          APIRET         rc = NO_ERROR;
 
@@ -422,6 +423,11 @@ do
       wd.cd.fReloadFiles = TRUE;
       wd.cd.fShowCompileLog = TRUE;
       }
+
+   // get extended environment
+   rc = GetExtendedEPMEnvironment( envp, &wd.pszEpmEnv);
+   if (rc != NO_ERROR)
+      break;
 
    // load language specific DLL
    wd.hmodResource = _loadNlsModule();
@@ -465,7 +471,8 @@ do
          rc = DosOpenEventSem( pszSemName, &hevProgramActive);
          if (rc == NO_ERROR)
             rc = DosPostEventSem( hevProgramActive);
-         else
+
+         if (rc != NO_ERROR)
             // show error only of that is not possible
             ShowNlsError( HWND_DESKTOP, wd.hmodResource, __APPNAME__, IDSTR_ALREADY_RUNNING);
          }
