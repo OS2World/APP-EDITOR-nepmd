@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.php,v 1.4 2002-07-19 15:36:42 cla Exp $
+* $Id: edit.php,v 1.5 2002-07-21 22:42:10 cla Exp $
 *
 * ===========================================================================
 *
@@ -69,6 +69,19 @@ if ($file != "")
    list( , $modified)  = each( $aentry);
    list( , $details)   = each( $aentry);
 
+   // read commit comment if exists
+   $comment = "";
+   $commentfile = filedb_getcommitfile( $file);
+   if (file_exists( $commentfile))
+      {
+      $acomment = file( $commentfile);
+      for ($i = 0; $i < count( $acomment); $i++)
+         {
+         $comment .= $acomment[ $i];
+         }
+      }
+
+   // HTML form
    echo "<form action=\"update.php\" name=\"EditDbFile\" method=\"post\" enctype=\"text/plain\">";
    echo "<table width=90% border=0>";
    echo "<input name=file type=hidden value=\"".$file."\">";
@@ -114,6 +127,14 @@ if ($file != "")
    echo "</font></td><td><font size=-1>";
    echo "<textarea name=details rows=6 cols=100>";
    echo $details;
+   echo "</textarea>";
+   echo "</font></td></tr>";
+
+   echo "<tr><td valign=top align=right bgcolor=#dddddd><font size=-1>";
+   echo "commit comment:";
+   echo "</font></td><td bgcolor=#dddddd><font size=-1>";
+   echo "<textarea name=comment rows=2 cols=100>";
+   echo $comment;
    echo "</textarea>";
    echo "</font></td></tr>";
 
