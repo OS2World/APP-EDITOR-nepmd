@@ -1,21 +1,10 @@
-/*
-Changed:
-- Remove hex chars from rc of listbox procedure correctly.
-- Added 2nd optional arg for defc mode: if 0 or 'NOEA', then don't
-  change EA 'EPM.MODE' and don't change EaArea.
-- Suppress the msg when the EPM.MODE EA can't be set for a temp. or
-  readonly file.
-- Replaced defproc NepmdProcessMode with defc ResetFileSettings to handle
-  user-configurable settings for current mode and/or file, not only for
-  defload, but also for afterload/defselect.
-*/
 /****************************** Module Header *******************************
 *
 * Module Name: mode.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.30 2004-06-03 23:10:56 aschn Exp $
+* $Id: mode.e,v 1.31 2004-06-03 23:23:46 aschn Exp $
 *
 * ===========================================================================
 *

@@ -1,17 +1,10 @@
-/*
-- Not separately compilable anymore.
-- Reversible soft wrap and unwrap defs with special handling for CONFIGSYS
-  mode.
-- Hard wrap defs with main options 'KEEPINDENT' or 'SPLIT'.
-- Support for .readonly added.
-*/
 /****************************** Module Header *******************************
 *
 * Module Name: wrap.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wrap.e,v 1.4 2004-06-03 23:21:55 aschn Exp $
+* $Id: wrap.e,v 1.5 2004-06-03 23:22:55 aschn Exp $
 *
 * ===========================================================================
 *
