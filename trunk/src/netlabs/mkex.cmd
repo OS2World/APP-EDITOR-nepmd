@@ -11,7 +11,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkex.cmd,v 1.2 2002-07-23 11:54:27 cla Exp $
+* $Id: mkex.cmd,v 1.3 2002-08-15 14:55:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -33,7 +33,7 @@
  'SET EPMPATH=macros';
 
  /* get parms */
- PARSE ARG TargetDir;
+ PARSE ARG TargetDir SourceFile;
  TargetDir = STRIP( TargetDir);
  IF (TargetDir = '') THEN
  DO
@@ -41,7 +41,12 @@
     EXIT( 87); /* ERROR.INVALID_PARAMETER */
  END;
 
+ IF (SourceFile = '') THEN
+    SourceFile = 'epm.e';
+
+ TargetFile = SourceFile'x';
+
  /* call compiler */
- 'etpm epm.e' TargetDir'\epm.ex';
+ 'etpm' SourceFile TargetDir'\'TargetFile;
 
  EXIT (rc);
