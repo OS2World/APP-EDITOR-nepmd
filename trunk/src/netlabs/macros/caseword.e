@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: caseword.e,v 1.4 2004-06-03 21:49:15 aschn Exp $
+* $Id: caseword.e,v 1.5 2004-06-29 20:47:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -57,10 +57,7 @@ compile if not defined(LOWERCHARS)
    LOWERCHARS = 'abcdefghijklmnopqrstuvwxyzÑîÅ'
 compile endif
 
---def c_f10=
-def c_f1 = 'caseword'
-
-defc caseword
+defc CaseWord
    call psave_pos(save_pos)
    -- find_token may return nothing, so we have to init the vars first
    startcol = 0
