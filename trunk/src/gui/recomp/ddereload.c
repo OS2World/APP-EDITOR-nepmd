@@ -6,14 +6,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddereload.c,v 1.2 2002-06-04 22:38:52 cla Exp $
+* $Id: ddereload.c,v 1.3 2002-06-08 23:48:57 cla Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -215,7 +215,7 @@ switch (msg)
       if (!WinSetWindowPtr( hwnd, QWL_USER, prd))
          {
          prd->rc = LASTERROR;
-         WinPostMsg( hwnd, WM_QUIT, 0, 0);
+         ABORT_LOADING;
          break;
          }
 
@@ -231,7 +231,7 @@ switch (msg)
          {
          // no valid description found
          prd->rc = ERROR_INVALID_DATA;
-         WinPostMsg( hwnd, WM_QUIT, 0, 0);
+         ABORT_LOADING;
          break;
          }
 
@@ -272,7 +272,7 @@ switch (msg)
       if (!_reloadConnectedToEPM( hwnd))
          {
          // no EPM connected, bail out
-         WinPostMsg( hwnd, WM_QUIT, 0, 0);
+         ABORT_LOADING;
          break;
          }
 
@@ -374,7 +374,7 @@ APIRET ReloadFilelist( HWND hwnd, ULONG ulListIndex, PSZ *ppszFileList, ULONG ul
                        PSZ pszMacroFile, BOOL fTerminate, PULONG pulFilesLoaded)
 {
          APIRET         rc = NO_ERROR;
-         ULONG          i;
+         ULONG          i,s;
 
          HAB            hab = CURRENTHAB;
          QMSG           qmsg;
@@ -449,34 +449,40 @@ do
    while (WinGetMsg( hab, &qmsg, NULLHANDLE, 0, 0))
         WinDispatchMsg ( hab, &qmsg);
 
-   // destroy window (takse care for proper disconnection)
-   WinDestroyWindow( hwndObject);
-
+   // save hwnd server here and terminate DDE connection only after
+   // last connection is to be terminated, see also comment on top
+   // of this file
    if (rd.hwndServer)
       {
-      // save hwnd server here and terminate DDE connection only after
-      // last connection is to be terminated, see also comment on top
-      // of this file
+      // initialize handle list when processing first file list
       if (!ulListIndex)
          {
-         // initialize when called for very first filelist
          memset( ahwndServer, 0, sizeof( ahwndServer));
          ulServerCount = 0;
          }
+
       // save handle of last connection
       ahwndServer[ ulServerCount] = rd.hwndServer;
       ulServerCount++;
+
+      // disconnect from any server connected before if termination
+      // is requested from caller this should be the case only when
+      // processing hte last file list
       if (fTerminate)
          {
-         for (i = 0; i < ulServerCount; i++)
+         for (s = 0; s < ulServerCount; s++)
             {
 #if DEBUG_DDE_MESSAGES
-            DPRINTF(( "DDERELOAD: terminate connection to server %08x\n", ahwndServer[ i]));
+            DPRINTF(( "DDERELOAD: terminate connection to server %08x\n", ahwndServer[ s]));
 #endif
-            WinDdePostMsg( ahwndServer[ i], hwnd, WM_DDE_TERMINATE, NULL, 0);
+            WinDdePostMsg( ahwndServer[ s], hwnd, WM_DDE_TERMINATE, NULL, 0);
             }
          }
       }
+
+   // destroy window
+   WinDestroyWindow( hwndObject);
+
 
    // hand over filecount
    if (pulFilesLoaded)
