@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.7 2005-03-13 12:13:58 aschn Exp $
+* $Id: epmshell.e,v 1.8 2005-03-13 14:36:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -172,6 +172,8 @@ defc Shell_Write
    universal ShellHandle
    universal EPM_utility_array_ID
    universal Shell_lastwrite
+; ###### Todo: Save .line and .col for every shell separately ######
+   universal ShellAppWaiting
    parse arg shellnum text
    if not isnum(shellnum) & leftstr( .filename, 15) = '.command_shell_' then
       shellnum = substr( .filename, 16)
@@ -183,7 +185,7 @@ defc Shell_Write
    endif
    rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle)
    if shellhandle <> '' then
-      if text = '' then
+      if text = '' & words( ShellAppWaiting) < 2 then  -- disable this silly box for Return in a waiting shell
          shell_title = strip( WRITE_SHELL_MENU__MSG, 'T', '.')  -- '~Write to shell...'
          tilde = pos( '~', shell_title)
          if tilde then
@@ -191,16 +193,16 @@ defc Shell_Write
          endif
          do forever
             parse value entrybox( shell_title,                  -- Title,
- compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
                                   '/'OK__MSG'/'LIST__MSG'/'Cancel__MSG'/', -- Buttons
- compile else
+compile else
                                   '/'OK__MSG'/'Cancel__MSG'/',  -- Buttons
- compile endif
+compile endif
                                   Shell_lastwrite,              -- entrytext
                                   '', 254,                      -- cols, maxchars
                                   atoi(1) || atoi(0000) || gethwndc(APP_HANDLE) ||
                                   SHELL_PROMPT__MSG shellnum) with button 2 text \0
- compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
             if button=\2 then -- User asked for a list
                getfileid shell_fileid
                call psave_pos(save_pos)
@@ -217,17 +219,17 @@ defc Shell_Write
                display -2
                getsearch oldsearch
                0
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
+ compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
                'xcom l /^epm\: .*>:o./x'
-  compile else  -- else EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
+ compile else  -- else EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
                'xcom l /^\[epm\: .*\]:o./x'
-  compile endif -- EPM_SHELL_PROMPT
+ compile endif -- EPM_SHELL_PROMPT
                do while rc = 0
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
+ compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
                   parse value textline(.line) with '>' cmd
-  compile else
+ compile else
                   parse value textline(.line) with ']' cmd
-  compile endif -- EPM_SHELL_PROMPT
+ compile endif -- EPM_SHELL_PROMPT
                   insertline strip( cmd, 'L'), lb_fid.last + 1, lb_fid
                   repeatfind
                enddo
@@ -256,7 +258,7 @@ defc Shell_Write
                   iterate
                endif
             endif
- compile endif
+compile endif
             if button <> \1 then return; endif
             leave
          enddo
@@ -287,11 +289,14 @@ defc NowCanWriteShell
 ; Right margin setting of current shell is not respected.
 defc NowCanReadShell
    universal EPM_utility_array_ID
+; ###### Todo: Save .line and .col for every shell separately ######
+   universal ShellAppWaiting  -- set to '.line .col' if app is waiting for user input
    parse arg shellnum .
    if not isnum(shellnum) then
       sayerror 'NowCanReadShell:  'INVALID_ARG__MSG '"'arg(1)'"'
       return
    endif
+   lastline = ''
    rc = get_array_value( EPM_utility_array_ID, 'Shell_f'shellnum, shellfid)
    rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellhandle)
    bytesmoved = 1;
@@ -334,12 +339,26 @@ defc NowCanReadShell
          shellfid.line = shellfid.last
          shellfid.col = min( MAXCOL,length(lastline) + 1)
       enddo
-
    endwhile
-; Todo: Save last written pos or add an attribute
-;       in order to accept input by a waiting application directly
-;       in the shell window, not only in the Write to shell dialog.
-;       Determine therefore, if an application is terminated or waiting.
+
+   -- Check if last written line was the EPM prompt
+   -- in order to accept input by a waiting application directly
+   -- in the shell window, not only in the Write to shell dialog.
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
+   p1 = leftstr( lastline, 5) = 'epm: '
+   p2 = rightstr( strip( lastline, 't'), 1) = '>'
+compile else  -- else EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
+   p1 = leftstr( lastline, 6) = '[epm: '
+   p2 = rightstr( strip( lastline, 't'), 1) = ']'
+compile endif -- EPM_SHELL_PROMPT
+   -- set a universal var
+   if p1 > 0 & p2 > 0 then
+      ShellAppWaiting = 0
+;      sayerror 'app terminated'
+   else
+      ShellAppWaiting = shellfid.line shellfid.col
+;      sayerror 'app waiting for input or further output will follow'
+   endif
 
 -------------------------------------------------------------SUE_new---------------------
 ; Called from Shell command
