@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.h,v 1.8 2002-09-04 22:40:45 cla Exp $
+* $Id: nepmdlib.h,v 1.9 2002-09-07 13:28:12 cla Exp $
 *
 * ===========================================================================
 *
@@ -41,6 +41,7 @@
 #define NEPMD_PATHINFO_MTIME           "MTIME"
 #define NEPMD_PATHINFO_ATIME           "ATIME"
 #define NEPMD_PATHINFO_SIZE            "SIZE"
+#define NEPMD_PATHINFO_EASIZE          "EASIZE"
 #define NEPMD_PATHINFO_ATTR            "ATTR"
 
 // tag definitions for NepmdQueryProcessInfo
