@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.2 2002-04-19 23:03:21 cla Exp $
+* $Id: nlsetup.cmd,v 1.3 2002-08-11 00:44:02 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,6 +40,7 @@
  /* call all modules required */
  'CALL USERTREE';
  'CALL APPLYICO';
+ 'CALL DYNCFG';
 
  EXIT( 0);
 
