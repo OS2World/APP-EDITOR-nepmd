@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.9 2002-11-02 22:46:16 aschn Exp $
+* $Id: edit.e,v 1.10 2002-11-03 22:31:47 cla Exp $
 *
 * ===========================================================================
 *
@@ -52,6 +52,7 @@ defproc NepmdLoadFile( Spec, Options )
    RexxEaExtensions = NepmdQueryConfigValue( nepmd_hini, KeyPath )
 
    Spec = strip( Spec, 'B', '"' )
+   ContainsWildcard = (pos( '*', Spec ) + pos( '?', Spec ) > 0);
 
    -- Resolve wildcards in Spec to delete REXX EA's for every REXX file
    SpecProcessed = 0
@@ -62,7 +63,7 @@ defproc NepmdLoadFile( Spec, Options )
          leave
       endif
 
-      if (pos( '*', Spec ) + pos( '?', Spec ) > 0) then
+      if (ContainsWildcard) then
          -- if Spec contains wildcards then find FileNames
          FileName = NepmdGetNextFile( Spec, address( Handle) )
          parse value Filename with 'ERROR:'rc
@@ -89,16 +90,6 @@ defproc NepmdLoadFile( Spec, Options )
             call NepmdDeleteRexxEa( FileName )
          endif
       endif
-
-/*
-      -- Better use loadfile with the original Spec as arg, so
-      -- following is commented out:
-      -- load the file
-      thisloadrc = loadfile( Filename, Options )
-      if thisloadrc <> 0 then  -- if error
-         loadrc = thisloadrc   -- then set loadrc to ensure submitting the (last) error
-      endif
-*/
 
    enddo  -- forever
 
