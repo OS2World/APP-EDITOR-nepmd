@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.5 2003-09-01 06:40:18 aschn Exp $
+* $Id: tags.e,v 1.6 2004-07-03 22:29:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -162,7 +162,7 @@ compile if KEEP_TAGS_FILE_LOADED
       getfileid startfid
       rc = 0
       activatefile tags_fileid
-      if rc=0 then 'quit'; endif
+      if rc=0 then 'xcom quit'; endif
       activatefile startfid
    endif
 compile endif
@@ -182,7 +182,7 @@ compile if KEEP_TAGS_FILE_LOADED
       getfileid startfid
       rc = 0
       activatefile tags_fileid
-      if rc=0 then 'quit'; endif
+      if rc=0 then 'xcom quit'; endif
       activatefile startfid
    endif
 compile endif
@@ -272,10 +272,10 @@ compile if KEEP_TAGS_FILE_LOADED
    endif
    if tags_fileid='' then
 compile endif
-      'e /d ' tags_filename()
+      'xcom e /d ' tags_filename()
       if rc then
          if rc=-282 then  -- -282 = sayerror("New file")
-            'quit'
+            'xcom quit'
             sayerror "Tag file '"tags_filename()"' not found"
          else
             sayerror "Error loading tag file '"tags_filename()"' -" sayerrortext(rc)
@@ -313,7 +313,7 @@ compile endif
 compile if KEEP_TAGS_FILE_LOADED
          activatefile startfid
 compile else
-         'quit'
+         'xcom quit'
 compile endif
          sayerror NO_TAGS__MSG
          return
@@ -332,7 +332,7 @@ compile endif
 compile if KEEP_TAGS_FILE_LOADED
          activatefile startfid
 compile else
-         'quit'
+         'xcom quit'
 compile endif
          return
       endif
@@ -370,7 +370,7 @@ compile endif
 compile if KEEP_TAGS_FILE_LOADED
       activatefile startfid
 compile else
-      'quit'
+      'xcom quit'
 compile endif
       sayerror 'Tag for function "'name'" not found in 'tags_filename()long_msg
       return 1
@@ -439,7 +439,7 @@ compile endif
 compile if KEEP_TAGS_FILE_LOADED
             activatefile startfid
 compile else
-            'quit'  -- quit tags file
+            'xcom quit'  -- quit tags file
 compile endif
             return 1
          endif
@@ -448,7 +448,7 @@ compile endif
 compile if KEEP_TAGS_FILE_LOADED
    activatefile startfid
 compile else
-   'quit'  -- quit tags file
+   'xcom quit'  -- quit tags file
 compile endif
 
    getfileid already_loaded, filename
