@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.9 2002-11-03 15:14:08 aschn Exp $
+* $Id: stdkeys.e,v 1.10 2003-05-14 16:21:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -607,7 +607,7 @@ def c_backspace=
          enddo
       endif -- endif .line=.last and .line=1
    endif -- .levelofattributesupport
-   delete
+   deleteline
    undoaction 1, junk                -- Create a new state
 
 def c_c=
