@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.12 2002-10-06 23:43:23 aschn Exp $
+* $Id: epm.e,v 1.13 2002-10-16 18:27:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -128,7 +128,7 @@ include        'setconfig.e'
 
 include        'revert.e'
 
-;include        'balance.e'
+include        'wps.e'
 
 ;include        'comment.e'
 
