@@ -1,13 +1,13 @@
 /****************************** Module Header *******************************
 *
-* Module Name: readstringea.e
+* Module Name: querystringea.e
 *
 * .e wrapper routine to access the NEPMD library DLL.
 * include of nepmdlib.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: readstringea.e,v 1.6 2002-09-08 18:43:56 cla Exp $
+* $Id: querystringea.e,v 1.1 2002-09-19 11:31:30 cla Exp $
 *
 * ===========================================================================
 *
@@ -23,40 +23,40 @@
 ****************************************************************************/
 
 /*
-@@NepmdReadStringEa@PROTOTYPE
-EaValue = NepmdReadStringEa( Filename, EaName);
+@@NepmdQueryStringEa@PROTOTYPE
+EaValue = NepmdQueryStringEa( Filename, EaName);
 
-@@NepmdReadStringEa@CATEGORY@EAS
+@@NepmdQueryStringEa@CATEGORY@EAS
 
-@@NepmdReadStringEa@SYNTAX
+@@NepmdQueryStringEa@SYNTAX
 This function reads the specified string extended attribute
-from the specified file. Please note that this function can 
+from the specified file. Please note that this function can
 only retrieve string EAs properly, retrieving any other type
 of extended attributes may lead to unpredictable results.
 
-@@NepmdReadStringEa@PARM@Filename
+@@NepmdQueryStringEa@PARM@Filename
 This parameter specifies the name of the file, from which
 the specified REXX EAs is to be read.
 
-@@NepmdReadStringEa@PARM@EaName
-This parameter specifies the name of the extended 
+@@NepmdQueryStringEa@PARM@EaName
+This parameter specifies the name of the extended
 attribute to be read.
 
-@@NepmdReadStringEa@RETURNS
-*NepmdReadStringEa* returns either
+@@NepmdQueryStringEa@RETURNS
+*NepmdQueryStringEa* returns either
 .ul compact
 - the value of the requested extended attribute  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
 
-@@NepmdReadStringEa@TESTCASE
+@@NepmdQueryStringEa@TESTCASE
 You can test this function from the *EPM* commandline by
 executing:
 .sl
-- *NepmdReadStringEa* 
-   [.IDPNL_EFUNC_NEPMDREADSTRINGEA_PARM_FILENAME filename]
+- *NepmdQueryStringEa*
+   [.IDPNL_EFUNC_NEPMDQUERYSTRINGEA_PARM_FILENAME filename]
   - or
-- *ReadStringEa*
-   [.IDPNL_EFUNC_NEPMDREADSTRINGEA_PARM_FILENAME filename]
+- *QueryStringEa*
+   [.IDPNL_EFUNC_NEPMDQUERYSTRINGEA_PARM_FILENAME filename]
 
 
 Executing this command will
@@ -69,7 +69,7 @@ and display the result within the status area.
 
 _*Example:*_
 .fo off
-  ReadStringEa d:\myscript.txt
+  QueryStringEa d:\myscript.txt
 .fo on
 
 @@
@@ -79,10 +79,10 @@ _*Example:*_
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
 
-defc NepmdReadStringEa, ReadStringEa =
+defc NepmdQueryStringEa, QueryStringEa =
 
  Filename =  arg( 1);
- EaValue = NepmdReadStringEa( Filename, NEPMD_TEST_EANAME);
+ EaValue = NepmdQueryStringEa( Filename, NEPMD_TEST_EANAME);
  parse value EaValue with 'ERROR:'rc;
  if (rc > '') then
     sayerror 'Extended attribute could not be retrieved, rc='rc;
@@ -94,19 +94,19 @@ defc NepmdReadStringEa, ReadStringEa =
  return;
 
 /* ------------------------------------------------------------- */
-/* procedure: NepmdReadStringEa                                  */
+/* procedure: NepmdQueryStringEa                                 */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
-/*    Fullname = NepmdReadStringEa( Filename, EaName, EaValue);  */
+/*    Fullname = NepmdQueryStringEa( Filename, EaName, EaValue); */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdReadStringEa( PSZ pszFilename,          */
+/*  APIRET EXPENTRY NepmdQueryStringEa( PSZ pszFilename,         */
 /*                                     PSZ pszEaName,            */
 /*                                     PSZ pszBuffer,            */
 /*                                     ULONG ulBuflen)           */
 /* ------------------------------------------------------------- */
 
-defproc NepmdReadStringEa( Filename, EaName ) = 
+defproc NepmdQueryStringEa( Filename, EaName ) =
 
  BufLen      = NEPMD_MAXLEN_ESTRING;
  TextMessage = copies( atoi( 0), BufLen);
@@ -118,7 +118,7 @@ defproc NepmdReadStringEa( Filename, EaName ) =
  /* call C routine */
  LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
-                  "NepmdReadStringEa",
+                  "NepmdQueryStringEa",
                   address( Filename)            ||
                   address( EaName)              ||
                   address( TextMessage)         ||

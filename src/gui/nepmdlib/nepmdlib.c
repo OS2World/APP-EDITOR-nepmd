@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.41 2002-09-16 22:00:14 cla Exp $
+* $Id: nepmdlib.c,v 1.42 2002-09-19 11:31:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -1020,6 +1020,21 @@ return _getRexxError( rc, pszBuffer, ulBuflen);
 
 // ------------------------------------------------------------------------------
 
+APIRET EXPENTRY NepmdQueryStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+
+// init return value first
+if (pszBuffer)
+   memset( pszBuffer, 0, ulBuflen);
+
+rc = QueryStringEa( pszFileName, pszEaName, pszBuffer, &ulBuflen);
+
+return _getRexxError( rc, pszBuffer, ulBuflen);
+}
+
+// ------------------------------------------------------------------------------
+
 APIRET EXPENTRY NepmdQuerySysInfo( PSZ pszInfoTag, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
@@ -1298,20 +1313,6 @@ if (pszBuffer)
    memset( pszBuffer, 0, ulBuflen);
 
 rc = QueryInstValue( pszFileTag, pszBuffer, ulBuflen);
-
-return _getRexxError( rc, pszBuffer, ulBuflen);
-}
-// ------------------------------------------------------------------------------
-
-APIRET EXPENTRY NepmdReadStringEa( PSZ pszFileName, PSZ pszEaName, PSZ pszBuffer, ULONG ulBuflen)
-{
-         APIRET         rc = NO_ERROR;
-
-// init return value first
-if (pszBuffer)
-   memset( pszBuffer, 0, ulBuflen);
-
-rc = ReadStringEa( pszFileName, pszEaName, pszBuffer, &ulBuflen);
 
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }

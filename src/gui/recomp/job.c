@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: job.c,v 1.8 2002-08-14 12:26:57 cla Exp $
+* $Id: job.c,v 1.9 2002-09-19 11:31:31 cla Exp $
 *
 * ===========================================================================
 *
@@ -310,7 +310,7 @@ do
    // check if EA is there
    // if yes, the old file has not been touched -> compile error
    ulFlagLen = sizeof( szCompileFlag);
-   rc = ReadStringEa( pwd->szTargetFile, pszCompileEaName, szCompileFlag, &ulFlagLen);
+   rc = QueryStringEa( pwd->szTargetFile, pszCompileEaName, szCompileFlag, &ulFlagLen);
    pwd->fCompileSuccessful = (rc == ERROR_INVALID_EA_NAME);
 
    } while (FALSE);
