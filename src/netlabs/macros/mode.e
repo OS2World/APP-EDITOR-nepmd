@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.17 2002-10-17 19:50:26 aschn Exp $
+* $Id: mode.e,v 1.18 2002-10-17 22:26:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -308,7 +308,7 @@ defproc NepmdSelectMode()
                      '/Set/Cancel',                 -- buttons
                      5, 5,                          -- Top, Left,
                      min( words(ModeList),12), 25,  -- Height, Width
-                     gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(6015) ||
+                     gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(0) ||
                      Text\0 )
    refresh
 
