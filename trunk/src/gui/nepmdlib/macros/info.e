@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.1 2002-08-23 15:53:59 cla Exp $
+* $Id: info.e,v 1.2 2002-08-24 15:17:28 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,27 +28,29 @@
 
 defc NepmdInfo =
 
- InfoFile = '.NEPMD_INFO'
+ rc = NepmdInfo();
 
- /* determine messsage file and messages required */
- MessageFile = NepmdGetInstValue( 'MESSAGE');
- parse value MessageFile with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'error: cannot determine NEPMD messagefile, rc='rc;
-    return;
- endif
+/* ------------------------------------------------------------- */
+/* procedure: NepmdInfo                                          */
+/* ------------------------------------------------------------- */
+/* .e Syntax:                                                    */
+/*    rc = NepmdInfo();                                          */
+/* ------------------------------------------------------------- */
+/* C prototype:                                                  */
+/*  APIRET EXPENTRY NepmdInfo( HWND hwndClient);                 */
+/* ------------------------------------------------------------- */
 
- InfoHeader = NepmdGetTextMessage( MessageFile, 'MSG_INFO_HEADER');
- /* InfoBody   = NepmdGetTextMessage( MessageFile, 'MSG_INFO_BODY'); */
- 
- /* edit new file and disable autosave */
- 'xcom e /c 'InfoFile;
- .autosave = 0;
- 
- /* inset data */
- insertline InfoHeader;
+defproc NepmdInfo =
 
- /* let it be easily discardable */
+ /* call C routine */
+ LibFile = getlibfile();
+ rc = dynalink32( LibFile,
+                  "NepmdInfo",
+                  gethwndc( EPMINFO_EDITCLIENT));
+
+ checkliberror( LibFile, rc);
+
  .modify = 0;
- 
+
+ return rc;
 
