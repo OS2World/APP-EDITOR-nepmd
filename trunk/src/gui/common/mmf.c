@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.c,v 1.6 2002-10-08 22:07:44 cla Exp $
+* $Id: mmf.c,v 1.7 2002-10-09 13:29:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -37,6 +37,16 @@ todo: encapsulate init
 #include "macros.h"
 #include "mmf.h"
 #include "file.h"
+
+// --- defines for detailed debug messages
+#define DEBUG_DUMPHANDLERACTIONS 0
+
+#if DEBUG_DUMPHANDLERACTIONS
+#define DPRINTF_HANDLERACTION(p)  DPRINTF(p)
+#else
+#define DPRINTF_HANDLERACTION(p)
+#endif
+
 
 // Internal structures and constants
 #define PAG_SIZE    4096
@@ -119,7 +129,7 @@ static ULONG APIENTRY _pageFaultHandler( PEXCEPTIONREPORTRECORD p1,
                                          PEXCEPTIONREGISTRATIONRECORD p2,
                                          PCONTEXTRECORD p3, PVOID  pv)
 {
-DPRINTF(( "MMF: HANDLER: called\n"));
+DPRINTF_HANDLERACTION(( "MMF: HANDLER: called\n"));
 
 if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
     ((EXCEPTION_TYPE == XCPT_WRITE_ACCESS) ||
@@ -134,10 +144,10 @@ if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
             ULONG          ulFilePtr = 0;
             ULONG          ulMemPos;
 
-   DPRINTF(( "MMF: HANDLER: catching exception\n"));
+   DPRINTF_HANDLERACTION(( "MMF: HANDLER: catching exception\n"));
 
    pmmfe = _locate( EXCEPTION_ADDR);
-   DPRINTF(( "MMF: HANDLER: examining address 0x%08x\n", EXCEPTION_ADDR));
+   DPRINTF_HANDLERACTION(( "MMF: HANDLER: examining address 0x%08x\n", EXCEPTION_ADDR));
    if(!pmmfe)
       {
       DPRINTF(( "MMF: HANDLER: exit - not my memory\n"));
@@ -191,7 +201,7 @@ if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
          return XCPT_CONTINUE_SEARCH;
          }
       else
-         DPRINTF(( "MMF: HANDLER: commit memory at 0x%08x for file: %s\n", pvPage, pmmfe->szFile));
+         DPRINTF_HANDLERACTION(( "MMF: HANDLER: commit memory at 0x%08x for file: %s\n", pvPage, pmmfe->szFile));
 
       // read data from file if it is a file area
       if (pmmfe->hfile)
@@ -227,7 +237,7 @@ if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
 
       // set page to read access (PAG_COMMIT already set at this point !)
       rc = DosSetMem( pvPage, PAG_SIZE, PAG_READ);
-      DPRINTF(( "MMF: HANDLER: set memory at 0x%08x to read for file: %s\n", pvPage, pmmfe->szFile));
+      DPRINTF_HANDLERACTION(( "MMF: HANDLER: set memory at 0x%08x to read for file: %s\n", pvPage, pmmfe->szFile));
 
 
       } // if (!(ulFlag & PAG_COMMIT))
@@ -246,7 +256,7 @@ if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
          return XCPT_CONTINUE_SEARCH;
          }
       else
-         DPRINTF(( "MMF: HANDLER: set memory at 0x%08x to readwrite for file: %s\n", pvPage, pmmfe->szFile));
+         DPRINTF_HANDLERACTION(( "MMF: HANDLER: set memory at 0x%08x to readwrite for file: %s\n", pvPage, pmmfe->szFile));
       } // if (EXCEPTION_TYPE == XCPT_WRITE_ACCESS)
 
    // if necessary, extend current file size to end of new page
@@ -323,7 +333,7 @@ for(i = 0; i < MMF_MAX; i++)
    if (ammfentry[ i].ulFlags & MMF_USEDENTRY)
       {
       pszType = (ammfentry[ i].hfile == NULLHANDLE) ? "<MEMORY>" : ammfentry[ i].szFile;
-      printf( "%u: memory at %p size %u: type: %s\n", 
+      printf( "%u: memory at %p size %u: type: %s\n",
               i, ammfentry[ i].pvData, ammfentry[ i].ulSize, pszType);
       ulCount++;
       }
@@ -372,7 +382,7 @@ do
       case MMF_OPENMODE_OPENFILE:  fsOpenFlags = OPEN_ACTION_OPEN_IF_EXISTS;    break;
       case MMF_OPENMODE_RESETFILE: fsOpenFlags = OPEN_ACTION_REPLACE_IF_EXISTS; break;
 
-      default: 
+      default:
          rc = ERROR_INVALID_PARAMETER;
          break;
       }
@@ -422,7 +432,7 @@ do
    rc = DosAllocMem( &pvData, ulMaxSize, PAG_READ | PAG_WRITE);
    if (rc != NO_ERROR)
       break;
-   DPRINTF(( "MMF: ALLOCATE 0x%08p (0x%08p)\n", pvData, ulMaxSize));
+// DPRINTF(( "MMF: ALLOCATE 0x%08p (0x%08p)\n", pvData, ulMaxSize));
 
    // setup handle data
    pmmfe->ulFlags       = ulOpenFlags | MMF_USEDENTRY;
@@ -481,7 +491,7 @@ do
    if (pmmfe->pvData)
       {
       rc = DosFreeMem( pmmfe->pvData);
-      DPRINTF(( "MMF: FREE 0x%08p (0x%08p) rc=%u\n", pmmfe->pvData,  pmmfe->ulSize, rc));
+//    DPRINTF(( "MMF: FREE 0x%08p (0x%08p) rc=%u\n", pmmfe->pvData,  pmmfe->ulSize, rc));
       }
    memset( pmmfe, 0, sizeof( MMFENTRY));
 
