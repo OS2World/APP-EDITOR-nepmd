@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflow.e,v 1.1 2002-08-09 16:24:52 aschn Exp $
+* $Id: reflow.e,v 1.2 2002-08-19 23:33:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -94,28 +94,24 @@ defc reflow =
    endif
    if par_width='*' then
       'compiler_help_add REFLOW.hlp'  -- Have to make sure help file is loaded, just in case...
-      parse value entrybox('Paragraph width','/'OK__MSG'/'Cancel__MSG'/'Help__MSG'/',last_reflow_width,'',200,
-             atoi(1) || atoi(32101) || gethwndc(APP_HANDLE) ||
-             'Enter a width; leave blank to reflow to window.') with button 2 par_width \0
+      parse value entrybox( 'Paragraph width',
+                            '/'OK__MSG'/'Cancel__MSG'/'Help__MSG'/',
+                            last_reflow_width,
+                            '',
+                            200,
+                            atoi(1) || atoi(32101) || gethwndc(APP_HANDLE) ||
+                            'Enter a width; leave blank to reflow to window.' ) ||
+         with button 2 par_width \0
       if button<>\1 then return; endif
    endif
    save_width = par_width  -- Save original units
    if par_width='' then
-compile if EPM32
       swp1 = copies(\0, 36)
-      call dynalink32('PMWIN',
-                      '#837',
-                      gethwndc(EPMINFO_EDITCLIENT)  ||
-                      address(swp1) )
+      call dynalink32( 'PMWIN',
+                       '#837',
+                       gethwndc(EPMINFO_EDITCLIENT)  ||
+                       address(swp1) )
       par_width = ltoa(substr(swp1,9,4),10)
-compile else
-      swp1 = copies(\0,18)
-      call dynalink('PMWIN',
-                    'WINQUERYWINDOWPOS',
-                     gethwnd(EPMINFO_EDITCLIENT)  ||
-                     address(swp1) )
-      par_width = itoa(substr(swp1,5,2),10)
-compile endif
 ;     sayerror 'width =' par_width 'pels'
    elseif isnum(par_width) then
       -- nop
@@ -129,21 +125,15 @@ compile endif
       endif
       y = upcase(substr(par_width, y))
       out_array = copies(\0, 4)  -- reserve space for 1 long
-compile if EPM32
-      call dynalink32('PMGPI',
-                    '#606', -- Dev32QueryCaps
-                     atol(dynalink32('PMWIN', '#835' /*Win32QueryWindowDC*/, gethwndc(EPMINFO_EDITCLIENT), 2)) ||
-                     atol(8)          ||  -- start = 8 (horizontal resolution)
-                     atol(1)          ||  -- count = 1
-                     address(out_array) )
-compile else
-      call dynalink('PMGPI',
-                    'DEVQUERYCAPS',
-                     atol_swap(dynalink('PMWIN', 'WINQUERYWINDOWDC', gethwnd(EPMINFO_EDITCLIENT), 2)) ||
-                     atol_swap(8)          ||  -- start = 8 (horizontal resolution)
-                     atol_swap(1)          ||  -- count = 1
-                     address(out_array) )
-compile endif
+      call dynalink32( 'PMGPI',
+                       '#606', -- Dev32QueryCaps
+                       atol(dynalink32( 'PMWIN',
+                                        '#835' /*Win32QueryWindowDC*/,
+                                        gethwndc(EPMINFO_EDITCLIENT),
+                                        2) ) ||
+                       atol(8)               ||  -- start = 8 (horizontal resolution)
+                       atol(1)               ||  -- count = 1
+                       address(out_array) )
       h = ltoa(out_array, 10)  -- Horizontal res. in pels / meter
       if abbrev('INCHES', y, 1) then
          par_width = x * h * .0254
@@ -232,6 +222,4 @@ compile endif
    .margins = oldmargins
    .col = start_col
 
-compile if EPM32
 EA_comment 'This defines the REFLOW command; it can be linked or executed directly.  This is also a toolbar "actions" file.'
-compile endif
