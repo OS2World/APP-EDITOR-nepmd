@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.6 2002-08-28 13:59:30 cla Exp $
+* $Id: esrcscan.cmd,v 1.7 2002-08-28 21:05:33 cla Exp $
 *
 * ===========================================================================
 *
@@ -738,7 +738,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
           NewFunctionParms = SUBSTR( NewFunctionParms, 2);
 
        /* reassemble prototype */
-       Prototype = ResultPart '=' FunctionName'('NewFunctionParms');';
+       Prototype = ResultPart '='FunctionName'('NewFunctionParms');';
 
 
        /* add result to syntax section */
