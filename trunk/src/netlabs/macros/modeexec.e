@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.4 2004-11-30 21:36:16 aschn Exp $
+* $Id: modeexec.e,v 1.5 2005-01-16 10:15:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -536,10 +536,13 @@ defc SetHighlight
 ; changing the default value. In that case use the parameter
 ; REFRESHDEFAULT <new_default_value>.
 defc SetMargins  -- defc margins exist
+   -- loadstate stores if tabs or margins were already set by the EA's
+   -- EPM.TABS or EPM.MARGINS. Every loaded file reuses it, therefore it can
+   -- only be used at defload.
    universal loadstate
-   -- load_var is a marker that stores if tabs or margins were already set
-   -- by the EA's EPM.TABS or EPM.MARGINS. Every loaded file reuses it,
-   -- therefore it can only be used at defload.
+   -- 'modesettingsapplied.'fid is reset to 0 by 'ResetFileSettings'
+   getfileid fid
+   ModeSettingsApplied = GetAVar('modesettingsapplied.'fid)
    SettingName  = 'margins'
    InfolineName = 'MARGINS'
 
@@ -572,7 +575,7 @@ defc SetMargins  -- defc margins exist
          arg1 = 'DEFAULT'
       endif
    elseif SetFromEa = 0 then  -- Overwrite only if not already set from EA
-      if loadstate | RefreshDefault then
+      if loadstate | RefreshDefault | (ModeSettingsApplied <> 1) then
          .margins = arg1
       else  -- User has executed this command
          'margins' arg1  -- set EPM.MARGINS
@@ -596,12 +599,16 @@ defc SetMargins  -- defc margins exist
 ; changing the default value. In that case use the parameter
 ; REFRESHDEFAULT <new_default_value>.
 defc SetTabs  -- defc tabs exist
+   -- loadstate stores if tabs or margins were already set by the EA's
+   -- EPM.TABS or EPM.MARGINS. Every loaded file reuses it, therefore it can
+   -- only be used at defload.
    universal loadstate
-   -- load_var is a marker that stores if tabs or margins were already set
-   -- by the EA's EPM.TABS or EPM.MARGINS. Every loaded file reuses it,
-   -- therefore it can only be used at defload.
+   -- 'modesettingsapplied.'fid is reset to 0 by 'ResetFileSettings'
+   getfileid fid
+   ModeSettingsApplied = GetAVar('modesettingsapplied.'fid)
    SettingName  = 'tabs'
    InfolineName = 'TABS'
+
    getfileid fid
    SettingValue = GetAVar( SettingName'.'fid)
    arg1 = upcase(arg(1))
@@ -631,7 +638,7 @@ defc SetTabs  -- defc tabs exist
          arg1 = 'DEFAULT'
       endif
    elseif not SetFromEa then  -- Overwrite only if not already set from EA
-      if loadstate | RefreshDefault then
+      if loadstate | RefreshDefault | (ModeSettingsApplied <> 1) then
          .tabs = arg1
       else  -- User has executed this command
          'tabs' arg1  -- set EPM.MARGINS
