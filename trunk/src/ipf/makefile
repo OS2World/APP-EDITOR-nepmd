@@ -9,7 +9,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.9 2002-10-31 13:30:46 cla Exp $
+# $Id: makefile,v 1.10 2002-10-31 18:07:36 cla Exp $
 #
 # ===========================================================================
 #
@@ -65,6 +65,8 @@ NEPMDPANEL=$(PANEL)
 # --- pseudotargets ****************
 
 ALL: HELPINF NEUSRINF NEPRGINF
+
+VIEWNE: NEUSR NEPRG
 
 HELPINF: $(BASEDIR)\bin\makefile.inf
 
