@@ -1,2 +1,0 @@
-@ECHO OFF
- SET BLA=456

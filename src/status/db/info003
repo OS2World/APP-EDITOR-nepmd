@@ -1,7 +1,0 @@
-CATEGORY: EPM info
-TITLE: Enhance statusline
-PRIO: 1
-STATUS: completed
-FILES: statusline.e stdctrl.e
-UPDATED: $Id: info003,v 1.2 2002-11-03 17:26:17 cla Exp $
-
