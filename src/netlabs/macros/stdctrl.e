@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.4 2002-09-02 22:09:11 aschn Exp $
+* $Id: stdctrl.e,v 1.5 2002-09-08 15:40:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2899,9 +2899,27 @@ defproc winmessagebox(caption, text)
                      atol(0)            ||   -- Window
                      atol(msgtype) )         -- Style
 
-
-define
-   list_col=33                 -- Under 'Ring' on action bar
+/*
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ what's it called: Ring_More                                                ³
+³                                                                            ³
+³ what does it do : This command is called when the More... selection on     ³
+³                   the ring menu is selected.  (Or by the Ring action bar   ³
+³                   item if MENU_LIMIT = 0.)  It generates a listbox         ³
+³                   containing all the filenames, and selects the            ³
+³                   appropriate fileid if a filename is selected.            ³
+³                                                                            ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+*/
+defc Ring_More
+   if filesinring()=1 then
+      sayerror ONLY_FILE__MSG
+      return
+   endif
+   call windowmessage(0,  getpminfo(APP_HANDLE),
+                      5141,               -- EPM_POPRINGDIALOG
+                      0,
+                      0)
 
 defproc mpfrom2short(mphigh, mplow)
    return ltoa( atoi(mplow) || atoi(mphigh), 10 )
@@ -2925,10 +2943,8 @@ defproc gethwnd(w)
                                   /* lower two bytes. (flip words)    */
    return atol_swap(getpminfo(w))
 
-
 defproc gethwndc(w)
    return atol(getpminfo(w))
-
 
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
