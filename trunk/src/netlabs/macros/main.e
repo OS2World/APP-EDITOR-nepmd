@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.13 2002-12-09 21:03:59 aschn Exp $
+* $Id: main.e,v 1.14 2003-06-29 20:23:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -293,4 +293,24 @@ compile if DEBUG_MAIN
       messageNwait('DEFMAIN: after SHOWWINDOW')
 compile endif
    endif
+
+   'postme post_main'
+
+; This command is called with 'postme' at the very end of defmain.
+defc post_main
+
+compile if EPM_POINTER = 'SWITCH'
+   universal vEPM_POINTER
+compile endif
+
+   -- set EPM pointer from standard arrow to text pointer
+   -- bug fix: even standard EPM doesn't show the correct pointer after
+   --          a new edit window was opened
+   -- defined in defc initconfig, STDCTRL.E
+   -- must be delayed with 'postme' to work properly
+compile if EPM_POINTER = 'SWITCH'
+   mouse_setpointer vEPM_POINTER
+compile else
+   mouse_setpointer EPM_POINTER
+compile endif
 
