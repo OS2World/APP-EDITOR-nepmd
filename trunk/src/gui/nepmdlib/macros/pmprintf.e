@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pmprintf.e,v 1.2 2003-08-30 16:01:01 aschn Exp $
+* $Id: pmprintf.e,v 1.3 2004-07-03 10:45:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -59,11 +59,11 @@ defproc NepmdPmPrintf( Text) =
 
  /* call C routine */
  LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdPmPrintf",
-                  address( Text));
+ ret = dynalink32( LibFile,
+                   "NepmdPmPrintf",
+                   address( Text));
 
- helperNepmdCheckliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, ret);
 
- return rc;
+ return;
 
