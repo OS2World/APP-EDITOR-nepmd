@@ -35,7 +35,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkwpi.cmd,v 1.5 2002-09-17 20:52:03 cla Exp $
+* $Id: mkwpi.cmd,v 1.6 2004-12-25 15:11:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +54,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.5 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.6 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -248,7 +248,7 @@
 
 /* ------------------------------------------------------------------------- */
 HALT:
- SAY 'Abbruch durch Benutzer.';
+ SAY 'Interrupted by user.';
  EXIT(ERROR.GEN_FAILURE);
 
 /* ------------------------------------------------------------------------- */
