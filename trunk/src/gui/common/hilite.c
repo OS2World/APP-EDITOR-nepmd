@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.24 2002-10-24 15:20:53 cla Exp $
+* $Id: hilite.c,v 1.25 2002-11-03 19:32:10 cla Exp $
 *
 * ===========================================================================
 *
@@ -122,6 +122,9 @@ if (!InitQueryProfileString( h, s, k, NULL, t, sizeof( t))) \
 #define DUMPINITVALUEARRAY(p)
 #define DPRINTF_ARRAY(p)
 #endif
+#else
+#define DUMPINITVALUEARRAY(p)
+#define DPRINTF_ARRAY(p)
 #endif
 
 // structure for an array of values
@@ -1440,4 +1443,4 @@ printf ("### HILITE: %s: options: %08x\n", pszEpmMode, ulOptions);
 
 return rc;
 }
-
+ 
