@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.11 2002-06-10 11:33:47 cla Exp $
+.. $Id: makefile.txt,v 1.12 2002-06-10 13:37:07 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -457,12 +457,20 @@ The following _temporary_ directory trees are created when building the *WarpIn*
   executing *nmake clean* in the working root directory.
 
 .. -----------------------------------------------------------------------------
-.2 configuring the makefile
+.2 configuring the make process
 .. -----------------------------------------------------------------------------
 .an IDPNL_CONFIGMAKE
 .
-The *makefile* requires several lists values, of which some have to be configured
-before executing *nmake*.
+[=TOPICS]
+.su V30
+
+.. .............................................................................
+.3 general settings in configure.in
+.. .............................................................................
+.an IDPNL_CONFIGMAKE_CONFIGUREIN
+.
+The *src\wis\makefile* requires several lists values, of which some have to be 
+configured before executing *nmake* to build the complete package.
 
 _*values to be configured by everybody*_
 .pl bold
@@ -508,22 +516,29 @@ _*values to be configured by everybody*_
 .el
 
 
-_*values to be configured by maintainer only*_
+_*values to be configured by release maintainer only*_
 .pl bold
 - STEM
 = specifies the id of the project, used within some filenames
 - VERSION
 = specifies the current version, used in the name of the WPI package file
+- ID__VERSION__NEPMD
+= specifies the current version and revision as to be used within the *WarpIn* script.
 .
-.
-[=NOTE]
-.ul compact
-.at hi
-  - modifying this version number does not currently automatically modify the
-    version number used within the *WarpIn* script file! These have also to be modified
-    accordingly.
-.at
+  [=NOTE]
+.ul compact.
+  - Keep in sync with the major and minor version used in *VERSION* !!!
+  - This value has to be specified in the *WapIn* package ID style: <major>\<minor>\<revision>
 .el
+- ID__VERSION__REQ__WARPIN
+= specifies the version and revision of *WarpIn* that the resulting WPI package should
+  be restricted to as a minimum for installation.
+.
+  [=NOTE]
+.ul compact.
+  - This value has to be specified in the *WapIn* package ID style: <major>\<minor>\<revision>
+.el
+.
 
 .include guide.inc
 
