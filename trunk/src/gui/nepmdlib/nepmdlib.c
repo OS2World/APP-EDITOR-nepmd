@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.20 2002-09-02 12:28:55 cla Exp $
+* $Id: nepmdlib.c,v 1.21 2002-09-02 14:59:54 cla Exp $
 *
 * ===========================================================================
 *
@@ -231,6 +231,14 @@ return rc;
 APIRET EXPENTRY NepmdDirExists( PSZ pszDirName)
 {
 return DirExists( pszDirName);
+}
+
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdFileDelete( PSZ pszFileName)
+{
+return DosDelete( pszFileName);
 }
 
 // ------------------------------------------------------------------------------
