@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.12 2002-11-13 15:47:05 aschn Exp $
+* $Id: main.e,v 1.13 2002-12-09 21:03:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,7 +19,7 @@
 *
 ****************************************************************************/
 
-/**/
+/*
 ; Better close NEPMD.INI by the EPM loader or let every Nepmd*Config function
 ; automatically open the NEPMD.INI explicitely if not already done?
 ;
@@ -45,7 +45,12 @@ defexit
    --else
    --   sayerror 'Configuration repository closed successfully';
    endif
-/**/
+*/
+
+compile if not defined(NEPMD_OPTFLAGS_WORKAROUND)
+const
+   NEPMD_OPTFLAGS_WORKAROUND = 1
+compile endif
 
 ; ------------------------------------------------------------------
 define DEBUG_MAIN = 0
@@ -54,9 +59,9 @@ defmain    /* defmain should be used to parse the command line arguments */
 compile if WANT_PROFILE='SWITCH'
    universal REXX_PROFILE
 compile endif
-; ---- begin workaround ----
+compile if NEPMD_OPTFLAGS_WORKAROUND
    universal app_hini
-; ---- end workaround ----
+compile endif
    universal should_showwindow
    universal nepmd_hini
    universal default_search_options, default_edit_options, default_save_options
@@ -75,7 +80,7 @@ compile endif
 
 compile if WANT_APPLICATION_INI_FILE
 
-; ---- begin workaround ----
+ compile if NEPMD_OPTFLAGS_WORKAROUND
    -- With certain settings in EPM.INI the defmain procedure will stop.
    -- Then EPM remains in the background and all settings are reset to
    -- their internal defaults.
@@ -97,12 +102,28 @@ compile if WANT_APPLICATION_INI_FILE
    -- saved as SavedCUAMarking and SavedRexxProfile to reset these
    -- settings to their values from before applying the workaround later.
 /*
+see also: STDCTRL.E: defc initconfig
    Bit              Setting
         for value = 1      for value = 0
    ---  ----------------   -------------------
+    1   statusline on      statusline off
+    2   msgline on         msgline off
+    3   vscrollbar on      vscrollbar off
+    4   hscrollbar on      hscrollbar off
+    5   fileicon on        fileicon off
+    6   rotbuttons on      rotbuttons off
+    7   ?extra on          ?extra off
     8   CUA marking        advanced marking
+    9   menuprompt on      menuprompt off
    10   stream mode        line mode
+   11   longnames on       longnames off
    12   REXX profile on    REXX profile off
+   13   escapekey on       escapekey off
+   14   tabkey on          tabkey off
+   15   bgbitmap on        bgbitmap off
+   16   toolbar on         toolbar off
+   17   dropstyle modif    dropstyle unmodif
+   18   ?extra stuff on    ?extra stuff off
 */
    appname = 'EPM'
    inikey  = 'OPTFLAGS'
@@ -127,7 +148,7 @@ compile if WANT_APPLICATION_INI_FILE
    inidata  = overlay( newvalue, inidata, 2*Bit - 1 )
 
    call setprofile( app_hini, appname, inikey, inidata )
-; ---- end workaround ----
+ compile endif  -- NEPMD_OPTFLAGS_WORKAROUND
 
    'initconfig'                  -- Check if anything of interest is in OS2.INI and get settings from EPM.INI
 
@@ -135,7 +156,7 @@ compile if WANT_APPLICATION_INI_FILE
    messageNwait('DEFMAIN: after INITCONFIG')
  compile endif
 
-compile endif
+compile endif  -- WANT_APPLICATION_INI_FILE
 
    -- Link the NEPMD library. Open a MessageBox if .ex file not found.
    --    o  Any linking can not be processed before 'initconfig' in MAIN.E.
@@ -218,69 +239,8 @@ do i=1 to 1  -- use a loop here to make 'leave' omit the rest
    endif
 end
 
-   -- Set default options here to avoid loading of PROFILE.ERX
-   -- Note: They can be overwritten with the 'universal' commands in PROFILE.ERX.
-
-   -- default_search_options
-   --    internal default: '+ef'
-   --       +  from top to bottom      e  respect case
-   --       -  from bottom to top      c  don't respect case
-   --       f  from left to right      g  grep
-   --       r  from right to left      x  extended grep
-   --       a  in the whole file       w  search for words
-   --       m  in the marked area      ~  negative search
-   default_search_options = '+fac'
-
-   -- default_edit_options
-   --    internal default: '/b /nt /u'
-   --       /b    don't load file from disk if already in ring
-   --       /c    create a new file
-   --       /d    load it from disk, even if already in ring
-   --       /t    don't convert Tab's
-   --       /nt   no tab chars: convert it into spaces
-   --       /u    Unix line end: LF is line end and CR is ignored
-   --       /l    DOS line end: CRLF is line end, CR's and LF's are text
-   --       /64   wrap every line after 64 chars, on saving there will
-   --             be no line end added at the wrap points if none of the
-   --             following *save* options is set: /o /u /l
-   --       /bin  binary mode: all chars are editable, note the difference
-   --             between '/64 /bin' and '/bin /64'
-   --    How to edit binary files?
-   --       'e /t /l /64 /bin mybinary.file'
-   --    Further options:
-   --       /k0 /k /k1 /k2 /v /r /s /n*
-   default_edit_options = '/b /t /l'
-
-   -- default_save_options
-   --    internal default: '/ns /nt /ne'?
-   --       /s    strip trailing spaces
-   --       /ns   don't strip spaces
-   --       /e    append a file end char
-   --       /ne   no file end char
-   --       /t    convert spaces to tab chars
-   --       /nt   don't convert spaces
-   --       /q    quiet
-   --       /o    insert CRLF as line end char
-   --       /l    insert LF as line end char
-   --       /u    Unix line end: insert LF as line end char and don't append a file end char
-   --    How to save binary files?
-   --       's /nt /ns /ne mybinary.file'
-   --       This will only work, if none of /o /l /u is specified.
-   default_save_options = '/s /ne /nt'
-
-   -- tabglyph: show a circle for the tab char
-   call tabglyph(1)  -- or: 'tabglyph 1'
-
-   -- matchtab: tab places the cursor below the start of the next word from the upper line
-   'matchtab off'
-
-   -- expand: syntax expansion
-;   'expand on'  -- default
-
-   -- escapekey: open EPM commandline with Esc and Ctrl+I
-;   'escapekey on'  -- default now
-
-; ---- begin workaround ----
+compile if WANT_APPLICATION_INI_FILE
+ compile if NEPMD_OPTFLAGS_WORKAROUND
    EpmIniChanged = 0
    if SavedRexxProfile = 0 then
       --sayerror 'Switching profile support off as defined in EPM.INI before'
@@ -295,17 +255,10 @@ end
    if EpmIniChanged = 1 then
       'saveoptions'
    endif
-; ---- end workaround ----
+ compile endif  -- NEPMD_OPTFLAGS_WORKAROUND
+compile endif  -- WANT_APPLICATION_INI_FILE
 
    -- process PROFILE.ERX
-;   'profile on'  -- no effect to the bug
-   --    o  When the buit-in Toolbar is activated and REXX profile is switched
-   --       off in EPM.INI, EPM has trapped after some seconds when the files are
-   --       loaded. This could be duplicated well, when the calling command contains
-   --       wildcards in the filename.
-   --    o  As a workaround the REXX profile is processed everytime. We don't care about
-   --       the EPM.INI setting anymore (until the bug will be found).
-   --    o  This works even if no profile was found.
 compile if WANT_PROFILE
  compile if WANT_PROFILE='SWITCH'
    if REXX_PROFILE then
