@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: menu.e,v 1.2 2004-07-02 11:11:56 aschn Exp $
+* $Id: menu.e,v 1.3 2004-07-04 22:23:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -200,18 +200,43 @@ defproc readd_help_menu
    universal defaultmenu, activemenu
    call add_help_menu(defaultmenu)
    call maybe_show_menu()
+   return
+
+; ---------------------------------------------------------------------------
+; Add Help menu.
+defc AddHelpMenu
+   universal defaultmenu
+   if arg(1) = '' then
+      curmenu = defaultmenu
+   else
+      curmenu = arg(1)
+   endif
+   call add_help_menu( curmenu)
 
 ; ---------------------------------------------------------------------------
 defproc delete_help_menu
    universal defaultmenu
    deletemenu defaultmenu 6, 0, 0
+   return
 
 ; ---------------------------------------------------------------------------
+defc DeleteHelpMenu
+   universal defaultmenu
+   deletemenu defaultmenu, 6, 0, 0
+
+; ---------------------------------------------------------------------------
+; Shows menu if activemenu = defaultmenu.
 defproc maybe_show_menu
    universal defaultmenu, activemenu
    if activemenu=defaultmenu then
       call showmenu_activemenu()  -- show the updated EPM menu
    endif
+   return
+
+; ---------------------------------------------------------------------------
+; Show menu if activemenu = defaultmenu.
+defc MaybeShowMenu
+   call maybe_show_menu()
 
 ; ---------------------------------------------------------------------------
 ; Called by defmain.
@@ -225,6 +250,7 @@ defproc showmenu_activemenu()
          'postme HookExecute cascademenu'
       endif
    endif
+   return
 
 ; ---------------------------------------------------------------------------
 /*
@@ -320,7 +346,7 @@ defc processmenuselect
 ; ---------------------------------------------------------------------------
 ; Called when a pulldown or pullright is initialized.
 ; Note: this routine is *not* executed when Command (menuid 1) is
-; selected. Therfore we use menuid = 0 instead.
+; selected. Therefore we use menuid = 0 instead.
 defc processmenuinit
    universal activemenu, defaultmenu
    if activemenu <> defaultmenu then
@@ -435,6 +461,9 @@ defproc SetMenuText( mid, menutext)
 ; Syntax: cascade_menu submenuid [defaultmenuitemid]
 defc cascade_menu
    parse arg menuid defmenuid .
+   if menuid = '' then
+      return
+   endif
    menuitem = copies( \0, 16)  -- 2 bytes ea. pos'n, style, attribute, identity; 4 bytes submenu hwnd, long item
    if not windowmessage( 1,
                          getpminfo(EPMINFO_EDITMENUHWND),
