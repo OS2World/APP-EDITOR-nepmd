@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.9 2002-06-06 11:47:11 cla Exp $
+.. $Id: makefile.txt,v 1.10 2002-06-07 13:55:55 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -242,6 +242,13 @@ The following makefile targets are available for the makefile within the
 The following is required for making [=TITLE]:
 .su V30
 
+[=NOTE]
+.ul compact
+.at hi
+- any makefile processing will check for all required packages
+  to be available and abort if anything is missing on your system!
+.at
+
 .. .............................................................................
 .3 WarpIn
 .. .............................................................................
@@ -251,7 +258,7 @@ The *WarpIn* Installer is used to create the installation package.
 As a minimum version 0.9.18 is required.
 
 [=NOTE]
-.ul compact
+.ul
 - You can download *Warpin* from
   - [http://www.xworkplace.org]
 - makefile processing will extend the environment automatically
@@ -304,7 +311,7 @@ as it supports the "deflated" method used for some text files, this is not suppo
 PKUNZIP2.
 
 [=NOTE]
-.ul compact
+.ul
 - You can download *unzip* from
   - [http://www.info-zip.org Info-ZIP's homepage (www.info-zip.org)]
 - *unzip.exe* must be accessible by the PATH statement
@@ -318,7 +325,7 @@ PKUNZIP2.
 (currently tested with wget v1.7).
 
 [=NOTE]
-.ul compact
+.ul
 - You can download *wget* from 
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=wget The Hobbes File Archive]
 .
@@ -341,12 +348,13 @@ PKUNZIP2.
 For compilation of the online help the preprocessor *HyperText/2* is used.
 
 [=NOTE]
-.ul compact
+.ul
 - You can download *HyperText/2* from 
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=htext The Hobbes File Archive]
 .
     (search "htext" at hobbes.nmsu.edu)
 - install according to the information in htext.inf
+.ul compact
   - *htext.cmd* must be accessible by the PATH statement
   - the bitmap files ***.bmp* must be placed either
     - into the same directory where you put *htext.cmd* to
@@ -364,7 +372,7 @@ For compilation of the online help the preprocessor *HyperText/2* is used.
 For converting a REXX script to an executable the *REXX2EXE* compiler us used.
 
 [=NOTE]
-.ul compact
+.ul
 - You can download *REXX2EXE* from 
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=rexx2exe The Hobbes File Archive]
 .
@@ -379,7 +387,7 @@ For converting a REXX script to an executable the *REXX2EXE* compiler us used.
 For creating dependency files the FastDep utility is used.
 
 [=NOTE]
-.ul compact
+.ul
 - You can download *FastDep* from the *OS/2 Netlabs Archive* of the *XWorkplace* project.
 - *fastdep.exe* must be accessible by the PATH statement
 
@@ -391,13 +399,16 @@ For creating dependency files the FastDep utility is used.
 For checking unpacked EPM files the *grep* utility is used.
 
 [=NOTE]
-.ul compact
+.ul
 - the *grep* utility is only required if you run *src\wis\makefile* with pseudotarget
   *check*. It is not mandandory in order to create the package itself.
 - You can download *Grep v2.0* from 
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=grep20 The Hobbes File Archive]
 .
     (search "grep20" at hobbes.nmsu.edu)
+.el
+.
+  This version has the advantage that it does not require the *EMX* runtime.
 - *grep.exe* must be accessible by the PATH statement
 
 .. -----------------------------------------------------------------------------
