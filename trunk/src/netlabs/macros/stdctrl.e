@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.11 2003-07-06 15:27:15 aschn Exp $
+* $Id: stdctrl.e,v 1.12 2003-08-31 18:54:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -3292,6 +3292,34 @@ defc menuinit_305
 ; Also will need to handle 204 (Name) on File menu if 5.60 & LaMail...
 
 compile endif -- not defined(STD_MENU_NAME)
+
+--------------------------------------------- Menu id 0 -- Command ----------------------
+; This is not called by entering the Command menu if menu id = 1. Changing the menu id
+; to e.g. 0 will make it. Apperently 'processmenuinit' is not executed for menu id = 1.
+; The id must be changed in:
+;    -  STDMENU.E: defproc add_command_menu
+; Since in FEVSHMNU.E the file menu gets the id = 1 and the shell actions are defined
+; as submenuitems of File->Command, following is not important:
+;    -  EPMSHELL.E: defc shell if WANT_EPM_SHELL='HIDDEN' & not defined(STD_MENU_NAME).
+; Unfortunately the command name includes the id. Maybe we'll change this in future.
+defc menuinit_0
+compile if WANT_EPM_SHELL & INCLUDE_STD_MENUS
+   universal shell_index
+   if shell_index then
+      is_shell = leftstr(.filename, 15) = ".command_shell_"
+ compile if not defined(STD_MENU_NAME)
+      SetMenuAttribute( 103, 16384, is_shell)  -- 'shell_write'
+      SetMenuAttribute( 104, 16384, is_shell)  -- 'shell_break'
+ compile elseif STD_MENU_NAME = 'ovshmenu.e'
+      SetMenuAttribute( 152, 16384, is_shell)  -- 'shell_write'
+      SetMenuAttribute( 153, 16384, is_shell)  -- 'shell_break'
+ compile elseif STD_MENU_NAME = 'fevshmnu.e'
+      SetMenuAttribute( 142, 16384, is_shell)  -- 'shell_write'
+      SetMenuAttribute( 143, 16384, is_shell)  -- 'shell_break'
+ compile endif
+   endif  -- shell_index
+compile endif
+
 ; The above is all part of ProcessMenuInit cmd on old versions.  -----------------
 compile endif  -- INCLUDE_MENU_SUPPORT, at defc processmenuinit
 
