@@ -1,9 +1,9 @@
-CATEGORY: Locate/Select:
+CATEGORY: Locate/Select
 TITLE: Enhance keyword help
 PRIO: 1
 STATUS: started
 FILES: kwhelp.e
-UPDATED: $Id: ls002,v 1.1 2002-07-17 15:56:17 cla Exp $
+UPDATED: $Id: ls002,v 1.2 2002-07-19 08:49:04 cla Exp $
 
 Enhanced selecting of .ndx files                  
 - HELPNDXSHELF                                 
