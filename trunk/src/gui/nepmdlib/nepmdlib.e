@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.9 2002-08-22 15:51:43 cla Exp $
+* $Id: nepmdlib.e,v 1.10 2002-08-23 13:48:11 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,7 +34,10 @@ const
 
  NEPMD_LIBRARY_BASENAME  = 'nepmdlib';
  NEPMD_SUBPATH_BINDLLDIR = 'netlabs\dll';
- ERRMSG_CANNOT_LOAD      = 'error: cannot load NEPMD library file!';
+
+ ERRMSG_ERROR_TITLE      = 'Netlabs EPM Distribution';
+ ERRMSG_CANNOT_LOAD      = 'error: cannot load NEPMD library file NEPMDLIB.DLL !';
+ ERRMSG_BOXSTYLE         = 16454; -- CANCEL + ICONHAND + MOVEABLE
 
  EPMINFO_EDITCLIENT      = 5; /* avoid include of stdconst.e */
 
@@ -70,7 +73,8 @@ defproc checkliberror (LibFile, rc) =
 
  /* complain if library not available */
  if (rc > 2147483647) then
-    sayerror ERRMSG_CANNOT_LOAD;
+    call winmessagebox( ERRMSG_ERROR_TITLE, ERRMSG_CANNOT_LOAD, ERRMSG_BOXSTYLE);
+    return -1;
  endif
 
  /* allow easy debugging - release DLL instantly */
@@ -78,6 +82,7 @@ defproc checkliberror (LibFile, rc) =
     /* use different rc  - don't overwrite rc from dynalink32 call */
     rcx = dynafree( LibFile);
  endif
+
 
 defproc makerexxstring( asciizstring)
   return substr( asciizstring, 1, pos( atoi(0), asciizstring) - 1);
