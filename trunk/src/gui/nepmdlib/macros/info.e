@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.9 2002-09-07 13:19:45 cla Exp $
+* $Id: info.e,v 1.10 2002-09-21 08:24:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -83,17 +83,27 @@ defc NepmdInfo =
 
 defproc NepmdInfo =
 
+ NepmdInfoFilename = '.NEPMD_INFO';
+
  /* discard previously loaded info file from ring */
- getfileid startfid;
+ if (.filename = NepmdInfoFilename) then;
+    RestoreStartFid = 0;
+ else;
+    RestoreStartFid = 1;
+    getfileid startfid;
+ endif;
  MaxFiles = filesinring( 3);
  do i = 1 to MaxFiles
-    if (.filename = '.NEPMD_INFO') then
+    if (.filename = NepmdInfoFilename) then
        .modify = 0;
        'QUIT'
     endif;
     next_file;
  enddo;
- activatefile startfid;
+ /* activate start file only if not just quitted */
+ if (RestoreStartFid = 1) then;
+    activatefile startfid;
+ endif;
 
  /* call C routine */
  LibFile = helperNepmdGetlibfile();
