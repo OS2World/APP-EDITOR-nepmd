@@ -11,7 +11,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkex.cmd,v 1.1 2002-08-19 17:47:21 cla Exp $
+* $Id: mkex.cmd,v 1.2 2002-08-26 11:37:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -54,6 +54,9 @@
 
  IF (rc \= 0) THEN
     rcx = ShowEtpmError( TmpFile);
+
+ /* cleanup */
+ rcx = SysFileDelete( TmpFile);
 
  EXIT (rc);
 
