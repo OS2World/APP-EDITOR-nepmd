@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.14 2002-10-03 18:30:15 cla Exp $
+* $Id: esrcscan.cmd,v 1.15 2002-10-03 19:10:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -625,13 +625,25 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
  Separator = '..' COPIES( '-', 60);
  LineBreak = CrLf'.'CrLf;
 
+ /* prepare result file */
  FunctionsFile = OutDir'\functions.txt';
  rcx = SysFileDelete( FunctionsFile);
- rcx = LINEOUT( FunctionsFile, '');
+ IF (LINEOUT( FunctionsFile, '')) THEN
+ DO
+    SAY 'error: cannot write' FunctionsFile;
+    RETURN( ERROR.ACCESS_DENIED);
+ END;
 
+ /* prepare logfile */
  LogFile = OutDir'\functions.log';
  rcx = SysFileDelete( LogFile);
  rcx = LINEOUT( Logfile, '');
+ IF (LINEOUT( Logfile, '')) THEN
+ DO
+    SAY 'error: cannot write' Logfile;
+    RETURN( ERROR.ACCESS_DENIED);
+ END;
+
  rcx = LINEOUT( Logfile, CMDNAME 'at' DATE('E') TIME());
  rcx = LINEOUT( Logfile, COPIES( '-', 70));
  rcx = LINEOUT( Logfile, '');
