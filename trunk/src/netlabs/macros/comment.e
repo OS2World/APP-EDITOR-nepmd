@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comment.e,v 1.1 2003-08-30 22:03:43 aschn Exp $
+* $Id: comment.e,v 1.2 2003-08-30 22:15:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -27,7 +27,7 @@
 ;    0: no, 1: yes,
 ;    any other string: respect the SLC?AddSpace variable, defined below.
 compile if not defined(COMMENT_ADD_SPACE)
-   COMMENT_ADD_SPACE = 'MODE'  (0|1|<anything else>)
+   COMMENT_ADD_SPACE = 'MODE'  -- (0|1|<anything else>)
 compile endif
 
 defc com, comment
