@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pmprintf.e,v 1.4 2004-07-03 13:00:36 aschn Exp $
+* $Id: pmprintf.e,v 1.5 2004-07-03 13:22:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -45,12 +45,19 @@ or even crash EPM.
 If you don't have a PmPrintf utility, download it from Dennis Bareis' site:
 .sl compact
 - [http://www.labyrinth.net.au/~dbareis/freeos2.htm]
+.el
+
+It is recommanded to prepend your message by the current defc or defproc
+or by the macro filename, e.g.:
+.sl
+- PmPrintf( 'MYCOMMAND: Executing mystep, myvar = 'myvar)
 
 @@NepmdPmPrintf@TESTCASE
 You can test this function from the *EPM* commandline by
 starting a PmPrintf utility with
 .sl
 - start pmprintf
+.el
 and executing:
 .sl
 - *NepmdPmPrintf* [.IDPNL_EFUNC_NEPMDPMPRINTF_PARM_ENVNAME This is my message.]
