@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: shellkeys.e,v 1.1 2004-06-29 22:20:22 aschn Exp $
+* $Id: shellkeys.e,v 1.2 2005-03-13 14:36:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -33,24 +33,6 @@
 ; EPM_SHELL_PROMPT = '@prompt epm: $p $g'
 ; WANT_EPM_SHELL = 1
 
-
-defkeys shell_keys overlay  -- we want to keep old key defs
-
-; Moved from ENTER.E:
-
-compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''  -- define each key separately
-
-def enter =
-   universal enterkey
- compile if (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   call shell_enter_routine(enterkey)
- compile endif
-
-def padenter =
-   universal padenterkey
- compile if (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   call shell_enter_routine(padenterkey)
- compile endif
 
 defproc PromptPos
    shellnum = ''
@@ -82,17 +64,57 @@ compile endif
       return 0
    endif
 
+defkeys shell_keys overlay  -- we want to keep old key defs
+
+; Moved from ENTER.E:
+
+compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''  -- define each key separately
+
+def enter =
+   universal enterkey
+ compile if (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
+   call shell_enter_routine(enterkey)
+ compile endif
+
+def padenter =
+   universal padenterkey
+ compile if (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
+   call shell_enter_routine(padenterkey)
+ compile endif
+
 defproc shell_enter_routine(xxx_enterkey)
+; ###### Todo: Save .line and .col for every shell separately ######
+   universal ShellAppWaiting
    if leftstr(.filename, 15) = ".command_shell_" then
       shellnum = substr( .filename, 16)
-      getline line
       if PromptPos() then
+         getline line
          x = PromptPos()
          text = substr( line, x + 1)
          if .line = .last then
             .col = x + 1
             erase_end_line
          endif
+         'shell_write' shellnum text
+      elseif words( ShellAppWaiting) = 2 then
+         parse value ShellAppWaiting with lastl lastc
+         text = ''
+         l = lastl
+         do while l <= .line
+            getline line, l
+            if l = lastl then
+               startc = lastc
+            else
+               startc = 1
+            endif
+            text = text''substr( line, startc)
+            if l = .last then
+               insertline '', .last + 1
+               leave
+            else
+               l = l + 1
+            endif
+         enddo
          'shell_write' shellnum text
       else
          call enter_common(xxx_enterkey)
@@ -103,17 +125,39 @@ defproc shell_enter_routine(xxx_enterkey)
 
 compile else
 
-def enter, pad_enter, a_enter, a_pad_enter, s_enter, s_padenter=
+def enter, pad_enter, a_enter, a_pad_enter, s_enter, s_padenter
+; ###### Todo: Save .line and .col for every shell separately ######
+   universal ShellAppWaiting
    if leftstr( .filename, 15) = '.command_shell_' then
       shellnum = substr( .filename, 16)
-      getline line
       if PromptPos() then
+         getline line
          x = PromptPos()
          text = substr( line, x + 1)
          if .line = .last then
             .col = x + 1
             erase_end_line
          endif
+         'shell_write' shellnum text
+      elseif words( ShellAppWaiting) = 2 then
+         parse value ShellAppWaiting with lastl lastc
+         text = ''
+         l = lastl
+         do while l <= .line
+            getline line, l
+            if l = lastl then
+               startc = lastc
+            else
+               startc = 1
+            endif
+            text = text''substr( line, startc)
+            if l = .last then
+               insertline '', .last + 1
+               leave
+            else
+               l = l + 1
+            endif
+         enddo
          'shell_write' shellnum text
       else
          call my_enter()
