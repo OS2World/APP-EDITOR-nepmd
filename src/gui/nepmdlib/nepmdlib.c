@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.25 2002-09-03 12:26:23 cla Exp $
+* $Id: nepmdlib.c,v 1.26 2002-09-03 13:31:55 cla Exp $
 *
 * ===========================================================================
 *
@@ -625,6 +625,40 @@ do
 return rc;
 
 }
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdQueryPathInfo( PSZ pszPathname, PSZ pszInfoTag, PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         FILESTATUS     fs3;
+
+do
+   {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
+   // check parms
+   if ((!pszPathname) ||
+       (!pszBuffer))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // query fullname
+   memset( &fs3, 0, sizeof( fs3));
+   rc = DosQueryPathInfo( pszPathname, FIL_STANDARD, &fs3, sizeof( fs3));
+
+   strcpy( pszBuffer, "bla bla");
+
+   } while (FALSE);
+
+return _getRexxError( rc, pszBuffer, ulBuflen);
+
+}
+
 
 // ------------------------------------------------------------------------------
 

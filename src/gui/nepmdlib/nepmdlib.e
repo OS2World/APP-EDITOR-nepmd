@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.21 2002-09-03 12:26:24 cla Exp $
+* $Id: nepmdlib.e,v 1.22 2002-09-03 13:31:55 cla Exp $
 *
 * ===========================================================================
 *
@@ -114,9 +114,9 @@ include 'gettextmessage.e'
 include 'info.e'
 include 'libversion.e'
 include 'queryfullname.e'
+include 'querypathinfo.e'
 include 'readstringea.e'
 include 'scanenv.e'
 include 'searchpath.e'
 include 'writestringea.e'
-
 
