@@ -8,7 +8,7 @@
 :    - downloads the EPM packages from www.leo.org
 :    - creates the package source directories
 :
-: Call from makefile either with
+: Called from src\wis\makefile either with
 :   make all          or
 :   make create
 :
@@ -16,7 +16,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: create.cmd,v 1.8 2002-04-22 14:44:29 cla Exp $
+: $Id: create.cmd,v 1.9 2002-06-03 18:09:38 cla Exp $
 :
 : ===========================================================================
 :
@@ -53,6 +53,10 @@
  CALL WARPIN.ENV
  IF ERRORLEVEL 1 GOTO end
 
+: check if debug level active, select tree of appropriate binaries directory
+ SET BINDIR=debug
+ IF .%DEBUG% == . SET BINDIR=release
+
 : delete old one, modifying an existing archive is not yet supported by WarpIn
  IF EXIST %WPIFILE% DEL %WPIFILE%
 
@@ -63,7 +67,7 @@
 
  SET BASE=1 -r -c%UNZIPPEDDIR%\epmapp * 1 -r -c%UNZIPPEDDIR%\epmdll * 1 -r -c%UNZIPPEDDIR%\epmhlp * 1 -r -c%UNZIPPEDDIR%\epmbk *
  SET BMP=1 -r -c%UNZIPPEDDIR%\epmbmps *
- SET NEPMD_BASE=1 -r -ccompile netlabs\install\* 1 -r -ccompile netlabs\book\*
+ SET NEPMD_BASE=1 -r -ccompile netlabs\install\* 1 -r -ccompile netlabs\book\* 1 -r -c%BINDIR% netlabs\bin\*
 
 : --- package 2: macros
 
