@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.7 2002-10-17 17:01:13 aschn Exp $
+* $Id: stdcnf.e,v 1.8 2002-10-17 19:36:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -305,7 +305,8 @@ compile if not defined(E_MARGINS)
 compile endif
 
 compile if not defined(REXX_SYNTAX_ASSIST)
-   REXX_SYNTAX_ASSIST = 0
+   --REXX_SYNTAX_ASSIST = 0
+   REXX_SYNTAX_ASSIST = 1
 compile endif
 compile if not defined(REXX_TABS)
    REXX_TABS    = '3'
