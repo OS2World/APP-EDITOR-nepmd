@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.25 2002-08-29 10:02:41 cla Exp $
+.. $Id: nepmd.txt,v 1.26 2002-08-30 15:10:46 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -73,9 +73,9 @@ server:
 .elist
 These packages already include the following:
 .ul compact
-- Speech Support for the *VoiceType* feature in *OS/2 Warp 4*
-- a wide variety of REXX macros
-- the macro compiler (not being shipped with OS/2 Warp 4)
+- Speech Support for the *VoiceType* feature in *OS/2 Warp 4* or *eComStation*
+- the sources for the REXX part of *EPM*
+- the macro compiler (not being shipped with *OS/2 Warp 4* or *eComStation*)
 - programming samples for
   - programming macros in REXX and C
   - interacting with EPM via DDE
@@ -83,7 +83,7 @@ These packages already include the following:
     (Enhanced Multi-line Edit Controls) in own applications
 
 In addition to that the [=TITLE] adds [.IDPNL_ADDITIONS various features]
-out of contributed macros and external add-ons.
+out of contributed macros and add-on programs.
 
 
 .. -----------------------------------------------------------------------------
@@ -154,7 +154,6 @@ To access them you either can
   - use *readonly* as password or use your personal Netlabs password
 .el
 - use *CVS* in conjunction with the
-.
   *Netlabs Open Source Archive Client* (NOSAC)
 = the latter package will help you a lot if you are not familliar with *CVS*.
   Follow the instructions for easy access to a *Netlabs Open Source Archive*
@@ -174,7 +173,7 @@ Everybody is invited to join the project team or pass suggestions and/or contrib
 .
 The following prerequisites apply to the current version of [=TITLE]:
 .ul
-- The [=TITLE] runs under OS/2 WARP Version 3 or later
+- The [=TITLE] runs under *OS/2 WARP* Version 3 or later or *eComStation*
 - The [http://www.xworkplace.org WarpIn for OS/2] sofware installer has to
   be installed on your system in order to install the [=TITLE]
   (when you read this, you likely have *WarpIn* installed ;-)
@@ -200,13 +199,6 @@ The *EPM* was developed by the IBM T. J. Watson Research Center.
 .
 All rights reserved.
 
-.. You are welcome to send me your comments/suggestions via internet e-mail.
-.. Note to translators: Please translate the above line like this:
-..   You are welcome to send your comments/suggestions via internet e-mail
-..   in either german or english.
-..
-.. Send your e-mail to: *[=EMAIL]*
-
 Visit also the homepage of
 .ul compact
 - [http://www.netlabs.org The OS/2 Netlabs]
@@ -217,7 +209,7 @@ Visit also the homepage of
 .an IDPNL_LEGAL_LICENSE
 .
 This software package is freeware. It can be used wherever you
-use OS/2 WARP Version 3 or later.
+use *OS/2 WARP* Version 3 or later or eComStation.
 
 You are allowed to freely use and distribute the [=TITLE] as long as
 .ul compact
@@ -225,7 +217,7 @@ You are allowed to freely use and distribute the [=TITLE] as long as
 - no fee is charged for the program other than for cost of media;
 - the complete package is distributed unmodified.
 
-Further the restrictions of the [.IDPNL_LEGAL_GPL GNU General Public License] apply.
+Furthermore, the restrictions of the [.IDPNL_LEGAL_GPL GNU General Public License] apply.
 
 .. -----------------------------------------------------------------------------
 .3 Disclaimer
@@ -255,15 +247,14 @@ of liability.
 The [=TITLE] is compiled by [.IDPNL_CREDITS_TEAM the distribution project team]
 and bases on the *EPM* developed by the IBM T. J. Watson Research Center.
 
-See the [.IDPNL_CREDITS_GENERAL credits section] for more contributors to the
-distribution.
+See the [.IDPNL_CREDITS credits section] for more contributors to *EPM* and the
+[=TITLE].
 
 
 .. =============================================================================
 .2 The EPMBBS distribution
 .. =============================================================================
 .an IDPNL_EPMBBS
-.
 .
 [=TOPICS]
 .su V30 1
@@ -280,8 +271,8 @@ are the following, where at least the first two are required to run *EPM*:
 
 [=NOTE]
 .ul compact
-The package *etpm551.zip* only contains the *EPM* macro compiler for v5.x and
-therefore is not included in this distribution.
+- The package *etpm551.zip* only contains the *EPM* macro compiler for v5.x. Therefore it is
+  not enlisted here and its contents is not included in the [=TITLE].
 
 .. .............................................................................
 .4 epmapp.zip - base application package
@@ -340,9 +331,11 @@ the standard *EPM*.
 .
 This package contains the online help files
 .pl compact
-- [inf:EPMUSERS.INF] - *EPM Users Guide*
+.. - [inf:EPMUSERS.INF] - *EPM Users Guide*
+- *EPM Users Guide*
 = containing detailed information about using *EPM*
-- [inf:EPMTECH.INF] - *EPM Technical Reference*
+.. - [inf:EPMTECH.INF] - *EPM Technical Reference*
+- *EPM Technical Reference*
 = containing detailed information about how to configure *EPM*
   and how to recompile the REXX configuration part (EPM.EX)
 
@@ -357,7 +350,7 @@ This package contains the online help files
 .an IDPNL_EPMBBS_COMP_EPMSPCH
 .
 This package contains the programs and files for Speech Support
-with the *VoiceType* package coming with *OS/2 Warp 4* and higher.
+with the *VoiceType* package coming with *OS/2 Warp 4* and higher or *eComstation*.
 
 [=NOTE]
 .ul compact
@@ -372,7 +365,7 @@ with the *VoiceType* package coming with *OS/2 Warp 4* and higher.
 .an IDPNL_EPMBBS_COMP_EPMBMPS
 .
 This package contains the bitmaps
-with the *VoiceType* package coming with *OS/2 Warp 4* and higher.
+with the *VoiceType* package coming with *OS/2 Warp 4* and higher or *eComStation*.
 
 [=NOTE]
 .ul compact
@@ -493,8 +486,10 @@ commands on VM hosts.
 This package contains C sample code for to write EPM macros in the C programming
 language. Moreover this sample uses the E Toolkit, which allow the usage of *EPM*
 functionality within other applications. For the latter only the
-[.IDPNL_EPMBBS_COMP_EPMDLL runtime of the E Toolkit] coming with this package,
-but also with plain *OS/2 Warp 4*.
+*runtime of the E Toolkit* is required, this is already included
+in plain *OS/2 Warp 4* or *eComStation*. Users of *OS/2 Warp 3* need to install
+the version of the [.IDPNL_EPMBBS_COMP_EPMDLL runtime of the E Toolkit] coming 
+with the [.IDPNL_EPMBBS EPMBBS distribution].
 
 [=NOTE]
 .ul compact
@@ -515,16 +510,28 @@ This interface is e.g. used by the *Workframe/2* package.
   the [.IDPNL_ADDITIONS_DIRTREE subdirectory samples\dde]
 
 .. .............................................................................
-.4 epmrexx.zip - REXX sample source package - external REXX support
+.4 epmrex.zip - REXX sample source package - external REXX support
 .. .............................................................................
 .an IDPNL_EPMBBS_COMP_EPMREXX
 .
-This package contains dample REXX code in order  to demo the external
-REXX support of *EPM*. In opposite to the internal REXX support,
-which requires compilation of macro sources (**.e) to REXX binaries
-(**.EX), REXX macros can also be invoked by the REXX interpreter
-of *OS/2 Warp*, not requiring precompilation, but possibly resulting
-in slighly slower execution.
+This package contains dample REXX code in order to demo the external
+REXX support of *EPM*.
+
+In opposite to the internal *REXX* support, which better is called *E Language* 
+support (only *REXX*-alike syntax), true *REXX* scripts can be invoked by a call
+to the *REXX interpreter* of *OS/2 Warp* or *eComStation*, started in a special 
+*REXX* environment with the name *erx* (that is, external *REXX* macros for *EPM*
+are expected to have a filename extension of *.erx* instead of *.cmd* !).
+
+While the real *REXX* scripts have the advantage of that they don't require
+compilation from macro sources (**.e) to REXX binaries (**.EX), they don't
+have direct access to the running *EPM* instance, but instead need to call 
+the *REXX* functions interface implemented in the *E Toolkit runtime* DLLs
+of the *erx* environment.
+
+Moreover, smaller *REXX* scripts may start little slower than internal 
+compiled *E Language* scripts, but very much depending on the task accomplished, 
+they possibly execute much faster, as true *REXX* is more flexible for most purposes.
 
 [=NOTE]
 .ul compact
@@ -632,13 +639,13 @@ only available within the extended environment, of course).
 .ul compact
 - The modified environment is
   - available only within the loaded *EPM* instance, so for example
-    in a shell window of *EPM* or OS/2 windows of fullscreens launched
+    in a shell window of *EPM* or OS/2/eComStaion windows or fullscreens launched
     from within the loaded *EPM* instance
   - also loaded by GUI utilities of the [=TITLE], like the
     [.IDPNL_ADDITIONS_RECOMP recompilation utility RECOMP],
     so that all source files of the [=TITLE] can be found during recompilation.
 - in order to have the extended environment also available for other processes
-  you can execute *epmenv.cmd* (being part of the [=TITLE]) within an OS/2
+  you can execute *epmenv.cmd* (being part of the [=TITLE]) within an OS/2 or eCS
   window or fullscreen. You may want to copy this script file
   *netlabs\bin\epmenv.cmd* of the installation path of the [=TITLE] to
   a directory along your *PATH*, so that it can easily be called from any
@@ -860,7 +867,7 @@ Files of the [.IDPNL_EPMBBS EPMBBS distribution] reside in the following directo
     ³ ÃÄinclude   **.h         of: [.IDPNL_EPMBBS_COMP_EPMCSAMP epmcsamp]
     ³ ÀÄsrc       **           of: [.IDPNL_EPMBBS_COMP_EPMCSAMP epmcsamp]
     ÃÄÄÄdde       **           of: [.IDPNL_EPMBBS_COMP_EPMDDE epmdde]
-    ÀÄÄÄrexx      **           of: [.IDPNL_EPMBBS_COMP_EPMREXX epmrexx]
+    ÀÄÄÄrexx      **           of: [.IDPNL_EPMBBS_COMP_EPMREXX epmrex]
 .fo on
 
 .. .............................................................................
@@ -957,7 +964,7 @@ convenience. It works as follows:
 ..  of the *EPM* macro compiler
   - loads the compile log (optional)
 
-Using the reload function makes the work much easier especialy when developing macros for *EPM*.
+Using the reload function makes the work much easier especially when developing macros for *EPM*.
 
 .. -----------------------------------------------------------------------------
 .3 Readme text files matrix
@@ -1004,15 +1011,67 @@ The folder of the [=TITLE] includes the following icons
 (taken that all components have been installed):
 .su H50
 
-.ul compact
-- <to be added more>
-
 .. .............................................................................
 .4 EPM v6.03b
 .. .............................................................................
 .an IDPNL_USAGE_WPSFOLDER_EXECUTE
 .
-This icon starts the *EPM*.
+This icon starts the *EPM*. It is identical in function to the icon *Enhanced Editor*
+that exists in the *Utilities* folder of your *OS/2* or *eComStation* desktop.
+
+.. .............................................................................
+.4 EPM Technical Reference
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_VIEW_EPMTECH
+.
+This icon starts the *EPM* Technical Reference. This book is intended to aid
+in the development of extensions for *EPM* using the *E Language*.
+
+.. .............................................................................
+.4 EPM Users Guide
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_VIEW_EPMUSERS
+.
+This icon starts the *EPM* Users Guide. This book is intended to aid
+users with the configuration and usage of *EPM*.
+
+.. .............................................................................
+.4 OS/2 Netlabs EPM Distribution
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_VIEW_NEPMD
+.
+This icon starts the INF file, that you are just reading.
+
+.. .............................................................................
+.4 Recompile EPM
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_RECOMP
+.
+This icon starts the [.IDPNL_ADDITIONS_RECOMP recompilation GUI utility RECOMP]
+provided by the [=TITLE] to allow you quick and easy recompilation.
+
+.. .............................................................................
+.4 EPM Programming Samples
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_SAMPLES_FOLDER
+.
+This folder contains the following icons to aid in the development of *EPM* extensions:
+.ul compact
+- Programmers Guide to the EPM Toolkit
+- EPM C macro Readme
+- EPM REXX macro Readme
+
+.. .............................................................................
+.4 Start EPM Speech Support
+.. .............................................................................
+.an IDPNL_USAGE_WPSFOLDER_SPEECH
+.
+This icon starts the background process enabling support for usage of *VoiceType*
+to contol *EPM* windows.
+
+[=NOTE]
+.ul compact
+- This icon will only work propperly if *VoiceType for OS/2* is installed on your system !
 
 .. -----------------------------------------------------------------------------
 .3 modifying the configuration
@@ -1094,7 +1153,8 @@ First public release
 .
 The following trademarks are used in this online help file:
 .ul compact
-- OS/2 is a trademark of IBM Corporation.
+- OS/2 is a trademark of IBM Corporation
+- eComStation is a trademark of Serenity Systems Inc.
 
 .. =============================================================================
 .2 Credits
@@ -1120,7 +1180,7 @@ Credits go to:
   [http://www.xworkplace.org WarpIn for OS/2]
 
 .. -----------------------------------------------------------------------------
-.3 The Distribution project team and contributors
+.3 The [=DOCTITLE] project team and contributors
 .. -----------------------------------------------------------------------------
 .an IDPNL_CREDITS_TEAM
 .
@@ -1134,7 +1194,7 @@ The following persons (in alphabetic order) assembled and contributed extensions
   - this online INF file
   - *WarpIn* installation packaging
     - National Language Support concept
-  - [.IDPNL_ADDITIONS_RECOMP GUI recompilation GUI utility RECOMP]
+  - [.IDPNL_ADDITIONS_RECOMP recompilation GUI utility RECOMP]
   - [.IDPNL_ADDITIONS_DYNCFG]
      - [.IDPNL_ADDITIONS_DYNCFG_LOADER]
 ..- extended syntax highlighting support
