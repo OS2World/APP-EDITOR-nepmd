@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.3 2002-09-01 14:36:02 aschn Exp $
+* $Id: stdprocs.e,v 1.4 2002-09-08 16:15:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -165,101 +165,9 @@ defproc ec_position_on_error(tempfile)   /* load file containing error */
    sayerror msg
 compile endif
 
-defproc einsert_line
-   insert
-   up
-   getline line
-   parse value pmargins() with leftcol . paracol .
-   if line='' or not .line then
-      .col=paracol
-   else
-      call pfirst_nonblank()
-      if .col=paracol then .col=leftcol; endif
-   endif
-   down
-
-compile if ENHANCED_ENTER_KEYS
-defproc enter_common(action)
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
- compile endif
- compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-   if stream_mode then
- compile endif
- compile if WANT_STREAM_MODE
-      if .line then
-  compile if WANT_CUA_MARKING
-   compile if WANT_CUA_MARKING = 'SWITCH'
-         if CUA_marking_switch then
-   compile endif
-            if not process_mark_like_cua() and   -- There was no mark
-               not insert_state() then           -- & we're in replace mode
-               delete_char    -- Delete the character, to emulate replacing the
-            endif             -- marked character with a newline.
-   compile if WANT_CUA_MARKING = 'SWITCH'
-         endif
-   compile endif
-  compile endif  -- WANT_CUA_MARKING
-  compile if WANT_STREAM_INDENTED
-         call splitlines()
-         call pfirst_nonblank()
-         down
-  compile else
-         split
-         .col=1
-         down
-  compile endif -- WANT_STREAM_INDENTED
-      else
-         insert
-         .col=1
-      endif
-      return
- compile endif  -- WANT_STREAM_MODE
- compile if WANT_STREAM_MODE = 'SWITCH'
-   endif
- compile endif
- compile if WANT_STREAM_MODE <> 1
-   is_lastline = .line=.last
-   if is_lastline  & (action=3 | action=5) then  -- 'ADDATEND' | 'DEPENDS+'
-      call einsert_line()
-      down                       -- This keeps the === Bottom === line visible.
-      return
-   endif
-;     'NEXTLINE' 'ADDATEND'                        'DEPENDS'  'DEPENDS+'
-   if action=2 | action=3 | (not insert_state() & (action=4 | action=5)) then
-      down                          -- go to next line
-      begin_line
-      return
-   endif
-   if action=6 then
-      call splitlines()
-      call pfirst_nonblank()
-      down
-;;    refresh
-      return
-   endif
-   if action=7 | action=8 then
-      insert
-      parse value pmargins() with leftcol . paracol .
-      if textline(.line-1)='' or .line=1 or action=8 then
-         .col=paracol
-      else
-         .col=leftcol
-      endif
-      if is_lastline then down; endif  -- This keeps the === Bottom === line visible.
-      return
-   endif
-   if action=9 then
-      insert
-      begin_line
-      if is_lastline then down; endif  -- This keeps the === Bottom === line visible.
-      return
-   endif
-   call einsert_line()           -- insert a line
-   if is_lastline then down; endif  -- This keeps the === Bottom === line visible.
- compile endif  -- WANT_STREAM_MODE <> 1
-compile endif  -- ENHANCED_ENTER_KEYS
+; Moved to ENTER.E:
+;defproc einsert_line
+;defproc enter_common(action)
 
 ;  Erasetemp erases a file quietly (no "File not found" message) on both DOS
 ;  and OS/2.  Thanks to Larry Margolis.  Returns 0 if successful erase, or
