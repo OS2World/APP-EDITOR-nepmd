@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.c,v 1.3 2002-09-24 22:08:42 cla Exp $
+* $Id: mmf.c,v 1.4 2002-09-25 11:10:21 cla Exp $
 *
 * ===========================================================================
 *
@@ -113,6 +113,7 @@ return 0;
 
 #define EXCEPTION_NUM   p1->ExceptionNum
 #define EXCEPTION_TYPE  p1->ExceptionInfo[ 0]
+#define EXCEPTION_ADDR  (PVOID) p1->ExceptionInfo[ 1]
 
 static ULONG APIENTRY _pageFaultHandler( PEXCEPTIONREPORTRECORD p1,
                                          PEXCEPTIONREGISTRATIONRECORD p2,
@@ -131,10 +132,10 @@ if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
             ULONG          ulFilePtr = 0;
             ULONG          ulMemPos;
 
-   pmmfe = _locate( (PVOID) p1->ExceptionInfo[ 1]);
+   pmmfe = _locate( EXCEPTION_ADDR);
    if(!pmmfe)
       {
-      DPRINTF(( "MMF: HANDLER: skipped exception, not my memory\n"));
+      DPRINTF(( "MMF: HANDLER: skipped exception for 0x%08x, not my memory\n", EXCEPTION_ADDR));
       return XCPT_CONTINUE_SEARCH;
       }
 
