@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.1 2002-09-11 00:14:40 aschn Exp $
+* $Id: mode.e,v 1.2 2002-09-11 00:39:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,13 +29,16 @@ compile if not defined(NEPMD_MODE)
 compile endif
 compile if not defined(NEPMD_RESTORE_MODE_FROM_EA)
    NEPMD_RESTORE_MODE_FROM_EA = 0
-compile if NEPMD_MODE
+compile endif
 compile if not defined(NEPMD_HILI)
    NEPMD_HILI = 0
 compile endif
 compile if not defined(NEPMD_SPECIAL_STATUSLINE)
    NEPMD_SPECIAL_STATUSLINE = 0
 compile endif
+
+
+compile if NEPMD_MODE
 
 -----------------------------------------------------------------------
 ; Returns the current mode.
