@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: enter.e,v 1.4 2004-02-22 13:47:48 aschn Exp $
+* $Id: enter.e,v 1.5 2004-06-29 20:45:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,11 +18,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
-/*
-Todo:
--  Move enter code for EPM command shells to SHELLKEYS.E.
-*/
 
 ; Consts concerning with enter:
 ; ENHANCED_ENTER_KEYS = 1
@@ -39,19 +34,7 @@ compile if not defined(NEPMD_STREAM_INDENTED)
    NEPMD_STREAM_INDENTED = 1
 compile endif
 
-/*
-defproc IsACommentedLine
-   ret = 0
-   mode = NepmdGetMode()
-   getline line
-   SLC = ';'
-   if substr( line, 1, length(SLC)) then
-      ret = 1
-   endif
-   return ret
-*/
-
-compile if NEPMD_STREAM_INDENTED and WANT_STREAM_MODE <> 0
+compile if NEPMD_STREAM_INDENTED
 ; ---------------------------------------------------------------------
 ;    This procedure corrrects a bug in standard EPM stream mode
 ; if stream mode is activated and if WANT_STREAM_INDENTED = 1:
@@ -98,10 +81,8 @@ defproc nepmd_stream_indented_split_line
    endif
 compile endif  -- NEPMD_STREAM_INDENTED
 
-
 ; ---------------------------------------------------------------------
 ; Following has moved from STDPROCS.E
-
 defproc einsert_line
    insert
    up
@@ -117,29 +98,20 @@ defproc einsert_line
    endif
    down
 
-compile if ENHANCED_ENTER_KEYS
+; ---------------------------------------------------------------------
 defproc enter_common(action)
- compile if WANT_CUA_MARKING = 'SWITCH'
    universal CUA_marking_switch
- compile endif
- compile if WANT_STREAM_MODE = 'SWITCH'
    universal stream_mode
+
+   -- Definition for stream mode
    if stream_mode then
- compile endif
- compile if WANT_STREAM_MODE
       if .line then
-  compile if WANT_CUA_MARKING
-   compile if WANT_CUA_MARKING = 'SWITCH'
          if CUA_marking_switch then
-   compile endif
             if not process_mark_like_cua() and   -- There was no mark
                not insert_state() then           -- & we're in replace mode
                delete_char    -- Delete the character, to emulate replacing the
             endif             -- marked character with a newline.
-   compile if WANT_CUA_MARKING = 'SWITCH'
          endif
-   compile endif
-  compile endif  -- WANT_CUA_MARKING
   compile if WANT_STREAM_INDENTED or NEPMD_STREAM_INDENTED
    compile if NEPMD_STREAM_INDENTED
          call nepmd_stream_indented_split_line()
@@ -150,50 +122,48 @@ defproc enter_common(action)
    compile endif  -- NEPMD_STREAM_INDENT
   compile else
          split
-         .col=1
+         .col = 1
          down
   compile endif -- WANT_STREAM_INDENTED
       else
          insert
-         .col=1
+         .col = 1
       endif
       return
- compile endif  -- WANT_STREAM_MODE
- compile if WANT_STREAM_MODE = 'SWITCH'
    endif
- compile endif
- compile if WANT_STREAM_MODE <> 1
-   is_lastline = .line=.last
-   if is_lastline  & (action=3 | action=5) then  -- 'ADDATEND' | 'DEPENDS+'
+
+   -- Definition for line mode
+   is_lastline = (.line = .last)
+   if is_lastline  & (action = 3 | action = 5) then  -- 'ADDATEND' | 'DEPENDS+'
       call einsert_line()
       down                       -- This keeps the === Bottom === line visible.
       return
    endif
 ;     'NEXTLINE' 'ADDATEND'                        'DEPENDS'  'DEPENDS+'
-   if action=2 | action=3 | (not insert_state() & (action=4 | action=5)) then
+   if action = 2 | action = 3 | (not insert_state() & (action = 4 | action = 5)) then
       down                          -- go to next line
       begin_line
       return
    endif
-   if action=6 then
+   if action = 6 then
       call splitlines()
       call pfirst_nonblank()
       down
 ;;    refresh
       return
    endif
-   if action=7 | action=8 then
+   if action = 7 | action = 8 then
       insert
       parse value pmargins() with leftcol . paracol .
-      if textline(.line-1)='' or .line=1 or action=8 then
-         .col=paracol
+      if textline(.line - 1) = '' or .line = 1 or action = 8 then
+         .col = paracol
       else
-         .col=leftcol
+         .col = leftcol
       endif
       if is_lastline then down; endif  -- This keeps the === Bottom === line visible.
       return
    endif
-   if action=9 then
+   if action = 9 then
       insert
       begin_line
       if is_lastline then down; endif  -- This keeps the === Bottom === line visible.
@@ -201,315 +171,31 @@ defproc enter_common(action)
    endif
    call einsert_line()           -- insert a line
    if is_lastline then down; endif  -- This keeps the === Bottom === line visible.
- compile endif  -- WANT_STREAM_MODE <> 1
-compile endif  -- ENHANCED_ENTER_KEYS
-
 
 -----------------------------------------------------------------------
-; Following has moved from STDKEYS.E
-
-compile if ENHANCED_ENTER_KEYS & C_ENTER_ACTION <> ''  -- define each key separately
-; Nothing - defined below along with ENTER
-compile else
-def c_enter, c_pad_enter=     -- 4.10:  new key for enhanced keyboard
-   call my_c_enter()
-compile endif
-
-compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''  -- define each key separately
-def enter =
+defc enter =
    universal enterkey
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   call shell_enter_routine(enterkey)
- compile else
    call enter_common(enterkey)
- compile endif
-def a_enter =
+defc a_enter =
    universal a_enterkey
    call enter_common(a_enterkey)
-def c_enter =
+defc c_enter =
    universal c_enterkey
    call enter_common(c_enterkey)
-def s_enter =
+defc s_enter =
    universal s_enterkey
    call enter_common(s_enterkey)
-def padenter =
+defc padenter =
    universal padenterkey
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   call shell_enter_routine(padenterkey)
- compile else
    call enter_common(padenterkey)
- compile endif
-def a_padenter =
+defc a_padenter =
    universal a_padenterkey
    call enter_common(a_padenterkey)
-def c_padenter =
+defc c_padenter =
    universal c_padenterkey
    call enter_common(c_padenterkey)
-def s_padenter =
+defc s_padenter =
    universal s_padenterkey
    call enter_common(s_padenterkey)
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-defproc shell_enter_routine(xxx_enterkey)
-   if leftstr(.filename, 15) = ".command_shell_" then
-      shellnum=substr(.filename,16)
-      getline line
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      x = pos('>',line)
-  compile else
-      x = pos(']',line)
-  compile endif
-      text = substr(line,x+1)
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      if leftstr(line,5)='epm: ' & x & shellnum /*& text<>''*/ then
-  compile else
-      if leftstr(line,6)='[epm: ' & x & shellnum /*& text<>''*/ then
-  compile endif
-         if .line=.last then .col=x+1; erase_end_line; endif
-         'shell_write' shellnum text
-      else
-         call enter_common(xxx_enterkey)
-      endif
-   else
-      call enter_common(xxx_enterkey)
-   endif
- compile endif  -- EPM_SHELL
-
-compile else
-def enter, pad_enter, a_enter, a_pad_enter, s_enter, s_padenter=
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   if leftstr(.filename, 15) = ".command_shell_" then
-      shellnum=substr(.filename,16)
-      getline line
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      x = pos('>',line)
-  compile else
-      x = pos(']',line)
-  compile endif
-      text = substr(line,x+1)
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      if leftstr(line,5)='epm: ' & x & shellnum /*& text<>''*/ then
-  compile else
-      if leftstr(line,6)='[epm: ' & x & shellnum /*& text<>''*/ then
-  compile endif
-         if .line=.last then .col=x+1; erase_end_line; endif
-         'shell_write' shellnum text
-      else
-         call my_enter()
-      endif
-   else
- compile endif
-      call my_enter()
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   endif
- compile endif
-compile endif  -- ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
 
 
-; ---------------------------------------------------------------------
-; Following has moved from STDPROCS.E
-
-; The following two routines (from Larry Margolis) let the
-; user decide what action should be taken when the Enter and Ctrl-Enter
-; keys are pressed.  The possible values for the action constants are
-; defined in STDCNF.
-
-compile if C_ENTER_ACTION & not ENHANCED_ENTER_KEYS  -- If null, don't define - user will supply.
-defproc my_c_enter
- compile if C_ENTER_ACTION = 'ADDATEND' | C_ENTER_ACTION = 'DEPENDS+'
-   if .line = .last then         -- If we're on the last line, then add a line.
-      call einsert_line()
-      down                       -- This keeps the === Bottom === line visible.
-   else
- compile endif
-
- compile if C_ENTER_ACTION = 'DEPENDS' | C_ENTER_ACTION = 'DEPENDS+'
-   if insert_state() then        -- DEPENDS means if insertstate() then ...
- compile endif
-
- compile if C_ENTER_ACTION = 'NEXTLINE' | C_ENTER_ACTION = 'DEPENDS' |
-            C_ENTER_ACTION = 'ADDATEND' | C_ENTER_ACTION = 'DEPENDS+'
-   down                          -- go to next line
-   begin_line
- compile endif
-
- compile if C_ENTER_ACTION = 'DEPENDS' | C_ENTER_ACTION = 'DEPENDS+'
-   else                          -- otherwise ...
- compile endif
-
- compile if C_ENTER_ACTION = 'ADDLINE' | C_ENTER_ACTION = 'DEPENDS' | C_ENTER_ACTION = 'DEPENDS+'
-   call einsert_line()           -- insert a line
- compile endif
-
- compile if C_ENTER_ACTION = 'DEPENDS' | C_ENTER_ACTION='ADDATEND' | C_ENTER_ACTION = 'DEPENDS+'
-   endif
- compile endif
-
- compile if C_ENTER_ACTION = 'DEPENDS+'
-   endif
- compile endif
-
- compile if C_ENTER_ACTION = 'STREAM'
-   call splitlines()
-   call pfirst_nonblank()
-   down
-   refresh
- compile endif
-compile endif
-
-compile if not ENHANCED_ENTER_KEYS & ENTER_ACTION   -- If null, don't define - user will supply.
-defproc my_enter
- compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
- compile endif
-   if 0 then   -- EPM has no command_state()
- compile if WANT_STREAM_MODE = 'SWITCH'
-   elseif stream_mode then
- compile elseif WANT_STREAM_MODE = 1
-   elseif 1 then
- compile endif
- compile if WANT_STREAM_MODE
-      if .line then
-  compile if WANT_STREAM_INDENTED
-         call splitlines()
-         call pfirst_nonblank()
-         down
-  compile else
-         split
-         .col=1
-         down
-  compile endif -- WANT_STREAM_INDENTED
-      else
-         insert
-         .col=1
-      endif
-      return
- compile endif
- compile if WANT_STREAM_MODE <> 1
- compile if ENTER_ACTION = 'ADDATEND' | ENTER_ACTION = 'DEPENDS+'
-   elseif .line = .last then     -- If we're on the last line, then add a line.
-      call einsert_line()
-      down                       -- This keeps the === Bottom === line visible.
- compile endif
-   else
-      compile if ENTER_ACTION = 'DEPENDS' | ENTER_ACTION = 'DEPENDS+'
-      if insert_state() then     -- DEPENDS means if insertstate() then ...
-      compile endif
-
-      compile if ENTER_ACTION = 'ADDLINE' | ENTER_ACTION = 'DEPENDS' | ENTER_ACTION = 'DEPENDS+'
-      call einsert_line()        -- insert a line
-      compile endif
-
-      compile if ENTER_ACTION = 'DEPENDS' | ENTER_ACTION = 'DEPENDS+'
-      else                       -- otherwise ...
-      compile endif
-
-      compile if ENTER_ACTION = 'NEXTLINE' | ENTER_ACTION = 'DEPENDS' |
-                 ENTER_ACTION = 'ADDATEND' | ENTER_ACTION = 'DEPENDS+'
-      down                       -- go to next line
-      begin_line
-      compile endif
-
-      compile if ENTER_ACTION = 'DEPENDS' | ENTER_ACTION = 'DEPENDS+'
-      endif
-      compile endif
-
-      compile if ENTER_ACTION = 'STREAM'
-      if .line then
-         if .col<=length(textline(.line)) then
-            split
-            .col=1
-         else
-            split
-            call pfirst_nonblank()
-         endif
-         down
-      else
-         insert
-         .col=1
-      endif
-      refresh
-      compile endif
- compile endif  -- WANT_STREAM_MODE <> 1
-   endif
-compile endif
-
-/*
-; Todo:
-; -  Move following code to a new file SHELLKEYS.E, simular to CKEYS.E.
-; -  Include SHELLKEYS.E in EPM.E, but undependent on ALTERNATE_KEYSETS
------------------------------------------------------------------------
-; SHELLKEYS.E
-
-; Consts concerning with shell:
-; EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-; WANT_EPM_SHELL = 1
-
-
-defkeys shellkeys new clear
-
-compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''  -- define each key separately
-def enter =
-   universal enterkey
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   call shell_enter_routine(enterkey)
- compile endif
-
-def padenter =
-   universal padenterkey
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   call shell_enter_routine(padenterkey)
- compile endif
-
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-defproc shell_enter_routine(xxx_enterkey)
-   if leftstr(.filename, 15) = ".command_shell_" then
-      shellnum=substr(.filename,16)
-      getline line
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      x = pos('>',line)
-  compile else
-      x = pos(']',line)
-  compile endif
-      text = substr(line,x+1)
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      if leftstr(line,5)='epm: ' & x & shellnum /*& text<>''*/ then
-  compile else
-      if leftstr(line,6)='[epm: ' & x & shellnum /*& text<>''*/ then
-  compile endif
-         if .line=.last then .col=x+1; erase_end_line; endif
-         'shell_write' shellnum text
-      else
-         call enter_common(xxx_enterkey)
-      endif
-   else
-      call enter_common(xxx_enterkey)
-   endif
- compile endif  -- EPM_SHELL
-
-compile else
-def enter, pad_enter, a_enter, a_pad_enter, s_enter, s_padenter=
- compile if WANT_EPM_SHELL & (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   if leftstr(.filename, 15) = ".command_shell_" then
-      shellnum=substr(.filename,16)
-      getline line
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      x = pos('>',line)
-  compile else
-      x = pos(']',line)
-  compile endif
-      text = substr(line,x+1)
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      if leftstr(line,5)='epm: ' & x & shellnum /*& text<>''*/ then
-  compile else
-      if leftstr(line,6)='[epm: ' & x & shellnum /*& text<>''*/ then
-  compile endif
-         if .line=.last then .col=x+1; erase_end_line; endif
-         'shell_write' shellnum text
-      else
-         call my_enter()
-      endif
-   endif
- compile endif
-compile endif  -- ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
-
-*/
