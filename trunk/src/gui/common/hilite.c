@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.19 2002-10-11 15:58:31 cla Exp $
+* $Id: hilite.c,v 1.20 2002-10-14 17:47:41 cla Exp $
 *
 * ===========================================================================
 *
@@ -50,7 +50,7 @@
 #define DEBUG_DUMPARRAYDETAILS 0
 
 // debug output on func entry and exit
-#define DEBUG_NOMESSAGE_ENTEREXIT 0
+#define DEBUG_NOMESSAGE_ENTEREXIT 1
 
 #if DEBUG_NOMESSAGE_ENTEREXIT
 #undef FUNCENTER
@@ -315,10 +315,6 @@ do
 //       DPRINTF(( "HILITE: %u [%u] bytes (%u entries) (re)allocated for file list at 0x%08x\n",
 //                ulListSize, _msize( pszTmp), ulListSize / _MAX_PATH, pszTmp));
          pszEntry = pszFileList + (ulFileCount * _MAX_PATH);
-#ifdef DEBUG
-_dumpMMF( hmmf);
-printf( "copy entry at entry at %p: %s\n", pszEntry, szFile);
-#endif
          strcpy( pszEntry, szFile);
          strlwr( pszEntry );
          ulFileCount++;
