@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fevshmnu.e,v 1.5 2002-09-02 22:11:11 aschn Exp $
+* $Id: fevshmnu.e,v 1.6 2002-09-16 19:49:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -202,7 +202,9 @@ compile else
       buildmenuitem menuname, 2, 240, DELETE_MENU__MSG,   'DUPMARK D'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
 compile endif
       buildmenuitem menuname, 2, 245, \0,                               '',          4, 0
-      buildmenuitem menuname, 2, 250, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
+;      buildmenuitem menuname, 2, 250, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
+; added Ctrl+A
+      buildmenuitem menuname, 2, 250, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/ | 'CTRL_KEY__MSG'+A',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
       buildmenuitem menuname, 2, 251, DESELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+\',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DESELECTALL, 0)
 compile if SPELL_SUPPORT
  compile if CHECK_FOR_LEXAM

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ovshmenu.e,v 1.4 2002-09-02 22:10:19 aschn Exp $
+* $Id: ovshmenu.e,v 1.5 2002-09-16 19:48:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -254,7 +254,9 @@ compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
    accel_len = (3+length(ALT_KEY__MSG))*(not CUA_MENU_ACCEL)
 compile endif
       buildmenuitem menuname, 3, 334, \0,                               '',          4, 0
-      buildmenuitem menuname, 3, 335, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
+;      buildmenuitem menuname, 3, 335, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
+; added Ctrl+A
+      buildmenuitem menuname, 3, 335, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/ | 'CTRL_KEY__MSG'+A',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
 compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'U' & VIEW_ACCEL__L<>'U' & SELECTED_ACCEL__L<>'U' & HELP_ACCEL__L<>'U' & $maybe_ring_accel 'U' & $maybe_actions_accel 'U')
       buildmenuitem menuname, 3, 336, UNMARK_MARK_MENU__MSG\9 || ALT_KEY__MSG'+U',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
