@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: autolink.e,v 1.3 2002-10-18 13:12:39 cla Exp $
+* $Id: autolink.e,v 1.4 2004-07-02 09:23:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -49,7 +49,8 @@ defproc NepmdAutolink() =
         leave;
      endif
 
-     'link' Filename;
+     --'link' Filename;
+     link Filename;  -- message would slow startup down
   end;
   rc = 0;  -- no error from here
 
