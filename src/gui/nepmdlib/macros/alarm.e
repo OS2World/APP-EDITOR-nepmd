@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alarm.e,v 1.3 2002-09-06 10:01:13 cla Exp $
+* $Id: alarm.e,v 1.4 2002-09-07 13:19:43 cla Exp $
 *
 * ===========================================================================
 *
@@ -42,11 +42,27 @@ The following styles are supported:
 - ERROR
 
 @@NepmdAlarm@RETURNS
-NepmdAlarm returns either
+*NepmdAlarm* returns either
 .ul compact
 - *0* (zero), if the alarm was not generated  or
 - *1* , if the alarm was generated.
 
+@@NepmdAlarm@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdAlarm* [.IDPNL_EFUNC_NEPMDALARM_PARM_ALARMSTYLE alarm__style]
+  - or
+- *Alarm* [.IDPNL_EFUNC_NEPMDALARM_PARM_ALARMSTYLE alarm__style]
+
+Executing this command will
+generate the apropriate alarm sound, if the related system setting is set to on,
+and display the result within the status area.
+
+_*Example:*_
+.fo off
+  Alarm ERROR
+.fo on
 
 @@
 */
@@ -65,7 +81,9 @@ defc NepmdAlarm, Alarm =
  else
     StrResult = 'was not';
  endif
- sayerror 'alarm' StrResult 'generated'
+ sayerror 'alarm' StrResult 'generated';
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdAlarm                                         */

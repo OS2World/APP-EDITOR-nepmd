@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleterexxea.e,v 1.9 2002-08-28 21:16:25 cla Exp $
+* $Id: deleterexxea.e,v 1.10 2002-09-07 13:19:43 cla Exp $
 *
 * ===========================================================================
 *
@@ -37,7 +37,32 @@ This parameter specifies the name of the file, from which
 the REXX EAs are to be deleted.
 
 @@NepmdDeleteRexxEa@RETURNS
-NepmdDeleteRexxEa returns an OS/2 error code or zero for no error.
+*NepmdDeleteRexxEa* returns an OS/2 error code or zero for no error.
+
+@@NepmdDeleteRexxEa@REMARKS
+[=NOTE]
+.ul compact
+- using this function will have an effect only if the specified
+  file is a REXX .cmd file and has previously been executed.
+- no error is returned if the specified file exists, but does not have
+  the REXX extended attributes
+
+@@NepmdDeleteRexxEa@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdDeleteRexxEa* [.IDPNL_EFUNC_NEPMDDELETEREXXEA_PARM_FILENAME filename]
+  - or
+- *DeleteRexxEa* [.IDPNL_EFUNC_NEPMDDELETEREXXEA_PARM_FILENAME filename]
+
+Executing this command will
+remove the REXX extended attributes from the specified file
+and display the result within the status area.
+
+_*Example:*_
+.fo off
+  DeleteRexxEa d:\myscript.cmd
+.fo on
 
 @@
 */
@@ -64,4 +89,6 @@ defc NepmdDeleteRexxEa, DeleteRexxEa =
  rcx = NepmdWriteStringEa( arg( 1), 'REXX.VARIABLEBUF', '');
 
  sayerror 'REXX Eas deleted';
+
+ return;
 

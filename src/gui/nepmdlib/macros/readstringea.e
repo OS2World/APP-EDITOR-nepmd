@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: readstringea.e,v 1.4 2002-09-06 10:01:16 cla Exp $
+* $Id: readstringea.e,v 1.5 2002-09-07 13:19:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -43,10 +43,30 @@ This parameter specifies the name of the extended
 attribute to be read.
 
 @@NepmdReadStringEa@RETURNS
-NepmdReadStringEa returns either
+*NepmdReadStringEa* returns either
 .ul compact
 - the value of the requested extended attribute  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@NepmdReadStringEa@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdReadStringEa* 
+   [.IDPNL_EFUNC_NEPMDREADSTRINGEA_PARM_FILENAME filename]
+  - or
+- *ReadStringEa*
+   [.IDPNL_EFUNC_NEPMDREADSTRINGEA_PARM_FILENAME filename]
+
+Executing this command will
+read the extended string attribute with the name *NEPMD.__TestStringEa* from the 
+specified file
+and display the result within the status area.
+
+_*Example:*_
+.fo off
+  ReadStringEa d:\myscript.txt
+.fo on
 
 @@
 */
@@ -66,6 +86,8 @@ defc NepmdReadStringEa, ReadStringEa =
  endif
 
  sayerror 'Extended attribute "'NEPMD_TEST_EANAME'" contains:' EaValue;
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdReadStringEa                                  */

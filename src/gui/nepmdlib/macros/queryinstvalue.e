@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryinstvalue.e,v 1.3 2002-09-06 14:36:29 cla Exp $
+* $Id: queryinstvalue.e,v 1.4 2002-09-07 13:19:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -61,10 +61,23 @@ The following keywords are supported:
   the [=TITLE].
 
 @@NepmdQueryInstValue@RETURNS
-NepmdQueryInstValue returns either
+*NepmdQueryInstValue* returns either
 .ul compact
 - the installation value  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@NepmdQueryInstValue@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdQueryInstValue*
+  - or
+- *QueryInstValue*
+
+Executing this command will
+open up a virtual file and
+write all [.IDPNL_EFUNC_NEPMDQUERYINSTVALUE_PARM_VALUETAG supported installation values]
+into it.
 
 @@
 */
@@ -81,6 +94,8 @@ defc NepmdQueryInstValue, QueryInstValue
  insertline helperNepmdQueryInstValue( 'INIT');
  insertline helperNepmdQueryInstValue( 'MESSAGE');
  .modify = 0;
+
+ return;
 
 defproc helperNepmdQueryInstValue( ValueTag) =
   return leftstr( ValueTag, 8) ':' NepmdQueryInstValue( ValueTag);

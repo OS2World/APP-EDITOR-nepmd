@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: scanenv.e,v 1.2 2002-09-06 10:01:16 cla Exp $
+* $Id: scanenv.e,v 1.3 2002-09-07 13:19:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,10 +36,27 @@ This parameter specifies the name of the environment variable
 of which the value is to be retrieved.
 
 @@NepmdScanEnv@RETURNS
-NepmdScanEnv returns either
+*NepmdScanEnv* returns either
 .ul compact
 - the value of the requested extended attribute  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@NepmdScanEnv@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdScanEnv* [.IDPNL_EFUNC_NEPMDSCANENV_PARM_ENVNAME envname]
+  - or
+- *ScanEnv* [.IDPNL_EFUNC_NEPMDSCANENV_PARM_ENVNAME envname]
+
+Executing this command will
+query the value of the specified environment variable
+and display the result within the status area.
+
+_*Examples:*_
+.fo off
+  ScanEnv PATH
+.fo on
 
 @@
 */
@@ -59,6 +76,8 @@ defc NepmdScanEnv, ScanEnv =
  endif
 
  sayerror 'Value of "'EnvName'" is:' EnvValue;
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdScanEnv                                       */

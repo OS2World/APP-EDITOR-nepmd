@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: filedelete.e,v 1.3 2002-09-06 10:01:14 cla Exp $
+* $Id: filedelete.e,v 1.4 2002-09-07 13:19:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -35,13 +35,30 @@ This function deletes a file.
 This parameter specifies the name of the file to be deleted.
 
 @@NepmdFileDelete@RETURNS
-NepmdFileDelete returns an OS/2 error code or zero for no error.
+*NepmdFileDelete* returns an OS/2 error code or zero for no error.
 
 @@NepmdFileDelete@REMARKS
 *NepmdFileDelete* replaces the function *erasetemp* of *stdprocs.e*.
 
 For downwards compatibility the old function is still provided,
 but calls *NepmdFileDelete*.
+
+@@NepmdFileDelete@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdFileDelete* [.IDPNL_EFUNC_NEPMDFILEDELETE_PARM_FILENAME filename]
+  - or
+- *FileDelete* [.IDPNL_EFUNC_NEPMDFILEDELETE_PARM_FILENAME filename]
+
+Executing this command will
+delete the specified file
+and display the result within the status area.
+
+_*Example:*_
+.fo off
+  FileDelete d:\myscript.txt
+.fo on
 
 @@
 */
@@ -63,6 +80,8 @@ defc NepmdFileDelete, FileDelete =
  endif
 
  sayerror 'file "'Filename'" has' StrResult;
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdFileDelete                                    */

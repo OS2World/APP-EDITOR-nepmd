@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querywindowpos.e,v 1.2 2002-09-06 10:01:16 cla Exp $
+* $Id: querywindowpos.e,v 1.3 2002-09-07 13:19:46 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,15 +36,15 @@ window or one its controls.
 This parameter specifies one of the following values
 defined in *stdconst.e*:
 .ul compact
-- EPMINFO__OWNERCLIENT
-- EPMINFO__OWNERFRAME
-- EPMINFO__PARENTCLIENT
-- EPMINFO__PARENTFRAME
-- EPMINFO__EDITCLIENT
-- EPMINFO__EDITFRAME
-- EPMINFO__EDITORVSCROLL
-- EPMINFO__EDITORHSCROLL
-- EPMINFO__EDITMENUHWND
+- EPMINFO__OWNERCLIENT - 1
+- EPMINFO__OWNERFRAME - 2
+- EPMINFO__PARENTCLIENT - 3
+- EPMINFO__PARENTFRAME - 4
+- EPMINFO__EDITCLIENT - 5
+- EPMINFO__EDITFRAME - 6
+- EPMINFO__EDITORVSCROLL - 9
+- EPMINFO__EDITORHSCROLL - 10
+- EPMINFO__EDITMENUHWND - 17
 
 [=NOTE]
 .ul compact
@@ -52,10 +52,32 @@ defined in *stdconst.e*:
   gethwndc() may generate an error message with sayerror
 
 @@NepmdQueryWindowPos@RETURNS
-NepmdQueryWindowPos returns either
+*NepmdQueryWindowPos* returns either
 .ul compact
 - the windowposition in pixels as a string like *x y cx cy*  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@NepmdQueryWindowPos@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdQueryWindowPos* 
+  [[ [.IDPNL_EFUNC_NEPMDQUERYWINDOWPOS_PARM_WINDOWID windowid] ]] 
+  - or
+- *QueryWindowPos*
+  [[ [.IDPNL_EFUNC_NEPMDQUERYWINDOWPOS_PARM_WINDOWID windowid] ]] 
+   
+
+Executing this command will
+query the window position of the specified *EPM* window or control window
+(*EPM* frame window, if no id specified)
+and display the result within the status area.
+
+_*Example:*_
+.fo off
+  QueryWindowPos
+  QueryWindowPos 5
+.fo on
 
 @@
 */
@@ -76,10 +98,12 @@ defc NepmdQueryWindowPos, QueryWindowPos
  parse value WindowPos with 'ERROR:'rc;
  if (rc > '') then
     sayerror 'window pos of window with id' WindowId 'cannot be determined, rc='rc;
-    return
+    return;
  endif
 
  sayerror 'window pos of window with id' WindowId 'is:' WindowPos;
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryWindowPos                                */

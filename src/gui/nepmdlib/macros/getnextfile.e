@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.12 2002-09-06 14:36:29 cla Exp $
+* $Id: getnextfile.e,v 1.13 2002-09-07 13:19:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -75,16 +75,39 @@ The search handle created by *NepmdGetNextFile* is automatically closed
 if the search is repeated until no more entries are available.
 
 .at fc=red
-If a search for files is interrupted for any reason before receiving 
+If a search for files is interrupted for any reason before receiving
 the error code 18 (ERROR__NO__MORE__FILES), it is required to close
 the search handle by a call to [.IDPNL_EFUNC_NEPMDGETNEXTCLOSE].
 .at
+
+@@NepmdGetNextFile@RETURNS
+*NepmdGetNextFile* returns either
+.ul compact
+- the next directory returned by the directory seach  or
+- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
 
 @@NepmdGetNextFile@RETURNS
 NepmdGetNextFile returns either
 .ul compact
 - the next directory returned by the directory seach  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@NepmdGetNextFile@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdGetNextFile* [.IDPNL_EFUNC_NEPMDGETNEXTFILE_PARM_FILEMASK filemask]
+  - or
+- *GetNextFile* [.IDPNL_EFUNC_NEPMDGETNEXTFILE_PARM_FILEMASK filemask]
+
+Executing this command will
+open up a virtual file and
+write all found files into it.
+
+_*Example:*_
+.fo off
+  GetNextFile c:\os2\**
+.fo on
 
 @@
 */
@@ -124,6 +147,8 @@ defc NepmdGetNextFile, GetNextFile =
     insertline( Filename);
  end;
  .modify = 0;
+
+ return;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetNextFile                                   */
