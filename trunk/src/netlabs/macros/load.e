@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.4 2002-09-11 00:04:10 aschn Exp $
+* $Id: load.e,v 1.5 2002-09-20 19:48:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -38,7 +38,7 @@ compile if not defined(NEPMD_RESTORE_POS_FROM_EA)
    NEPMD_RESTORE_POS_FROM_EA = 0
 compile endif
 compile if not defined(NEPMD_MODE)
-   NEPMD_MODE = 0
+   NEPMD_MODE = 1
 compile endif
 compile if not NEPMD_MODE
  compile if not defined(ADA_KEYWORD_HIGHLIGHTING)
