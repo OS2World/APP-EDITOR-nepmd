@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.6 2004-02-01 20:55:14 aschn Exp $
+* $Id: assist.e,v 1.7 2004-02-22 18:58:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,22 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+Todo:
+-  Make 'compile if' etc. for E work.
+-  E and REXX additions don't work as expected.
+-  Fix bug for LaTeX: \begin {...} is not recognized.
+-  Don't search in comments. Therefore the mode and it's defined comment
+   chars has to be respected (much work).
+-  Define a list of strings or egrep strings for every mode
+   (redefine almost everything).
+-  Optional: if corresponding string is not on screen, just give a msg
+   like in defproc balance. When 'just a msg' is selected, then give the
+   user the possibility to go (with a special key combination) to that
+   pos although (and back again). So we can get rid of BALANCE.E.
+*/
+
 /*****************************************************************************/
 /*  Assist interface for E3      Ralph Yozzo, Larry Margolis                 */
 /*                                                                           */

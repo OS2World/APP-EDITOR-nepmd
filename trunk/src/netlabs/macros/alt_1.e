@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.2 2004-02-01 20:43:38 aschn Exp $
+* $Id: alt_1.e,v 1.3 2004-02-22 18:58:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,18 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+Todo:
+-  compile if ...
+-  replace (not redefine) the standard a_1
+-  use find_token
+      StartCol = 0
+      EndCol   = 0
+      SeparatorList = '''"(){}[]<>,;! '\9;
+      call find_token( StartCol, EndCol, SeparatorList, '')
+-  check filename for grep
+*/
 
 --          (Alt-1.e should be renamed alt_1.e for CD-ROM...)
 -- Alt-One.E   Bells & whistles for the Alt-1 key.   Bryan Lewis  03/08/87
