@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: filedb.inc,v 1.3 2002-07-19 15:16:30 cla Exp $
+* $Id: filedb.inc,v 1.4 2002-07-21 22:39:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -72,6 +72,7 @@ fclose( $hfile);
 return array( $file, $category, $title, $prio, $status, $filelist, $updated, $modified, $details);
 }
 
+// --------------------------------------------------------------------
 
 function filedb_queryentries( $dbdir)
 {
@@ -86,12 +87,56 @@ while ($entry = $dir->read())
 
       $aentry = filedb_read( $entryfile);
 
-      $aaentry[] = $aentry;
+      if ($aentry[ 1] != "")
+         $aaentry[] = $aentry;
       }
    }
 
 return $aaentry;
 }
 
-?>
+// --------------------------------------------------------------------
 
+function filedb_querycommitstatus( $dbdir)
+{
+
+$commit = "CURRENT";
+
+// read database
+$dir = dir( $dbdir);
+while ($entry = $dir->read())
+   {
+   if (!is_dir( $entry))
+      {
+      // read file contents
+      $entryfile = $dbdir."/".$entry;
+
+      // check for commit files
+      if ( substr( $entry, strlen( $entry) - 7) == ".commit")
+         $commit = "COMMIT";
+      }
+   }
+
+return $commit;
+}
+
+// --------------------------------------------------------------------
+
+function filedb_getcommitfile( $file)
+{
+
+return $file.".commit";
+}
+
+// --------------------------------------------------------------------
+
+function filedb_getstatuscolor( $status)
+{
+$status = strtoupper( trim( $status));
+if ($status == "COMMIT")
+   return "#aa0000";
+else
+   return "#007700";
+}
+
+?>
