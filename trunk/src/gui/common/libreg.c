@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.16 2002-10-01 14:23:03 cla Exp $
+* $Id: libreg.c,v 1.17 2002-10-07 19:30:47 cla Exp $
 *
 * ===========================================================================
 *
@@ -38,6 +38,23 @@
 #include "libreg.h"
 #include "file.h"
 
+// enable semaphore handling
+
+#define RESTRICTED_DATAACCESS  0
+
+#if RESTRICTED_DATAACCESS
+// global variables and macros for ensuring exclusive access across
+// thread and process boundaries
+static   PSZ              pszMutexSemName = "\\SEM32\\NEPMD\\CONFIGURATION\\ACCESS";
+#define SEM_ACCESS_TIMEOUT_SLICE  30000
+#define REQUESTACCESS(ph) _getExclusiveAccess( ph)
+#define RELEASEACCESS(h)  _releaseExclusiveAccess( h)
+#else
+#define REQUESTACCESS(ph) NO_ERROR
+#define RELEASEACCESS(h)
+#endif
+
+
 // global variables and macros for reading/writing entries
 // and container lists
 static   PSZ            pszPathSeparator   = "\\";      // only one character, although it is a string !!!
@@ -63,12 +80,6 @@ static   PSZ            pszAppRegContainer = "RegContainer";
 #define KEYEXISTS(p)    (KEYENTRYLEN( p)  > 0)
 #define DEFKEYEXISTS(p) (DEFKEYENTRYLEN( p)  > 0)
 
-// global variables and macros for ensuring exclusive access across
-// thread and process boundaries
-static   PSZ              pszMutexSemName = "\\SEM32\\NEPMD\\CONFIGURATION\\ACCESS";
-#define SEM_ACCESS_TIMEOUT_SLICE  30000
-#define REQUESTACCESS(ph) _getExclusiveAccess( ph)
-#define RELEASEACCESS(h)  _releaseExclusiveAccess( h)
 
 // ----------------------------------------------------------------------
 
@@ -116,6 +127,7 @@ return string;
 
 // -----------------------------------------------------------------------------
 
+#if RESTRICTED_DATAACCESS
 static APIRET _getExclusiveAccess( PHMTX phmtxAccess)
 {
          APIRET         rc = NO_ERROR;
@@ -141,14 +153,17 @@ do
 // DPRINTF(( "LIBREG: request exclusive access: %u\n", rc));
 return rc;
 }
+#endif
 
 // -----------------------------------------------------------------------------
 
+#if RESTRICTED_DATAACCESS
 static APIRET _releaseExclusiveAccess( HMTX hmtxAccess)
 {
 // DPRINTF(( "LIBREG: release exclusive access\n"));
 return DosCloseMutexSem( hmtxAccess);
 }
+#endif
 
 // -----------------------------------------------------------------------------
 
