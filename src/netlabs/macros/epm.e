@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.4 2002-09-08 11:48:54 aschn Exp $
+* $Id: epm.e,v 1.5 2002-09-08 16:15:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -71,6 +71,7 @@ compile endif  -- not VANILLA
 include        'modify.e'      -- New defmodify event processor.
 
 include        'stdkeys.e'     -- Standard key definitions.
+
 compile if    WANT_BRACKET_MATCHING
    include     'assist.e'
 compile endif
@@ -82,6 +83,7 @@ compile else
 compile endif
 
 include        'stdprocs.e'    -- Standard functions and procedures.
+
 include        'markfilt.e'    -- Procedures for filtering a block, line or char. mark.
 include        'charops.e'     -- Mark operations for character marks.
 
@@ -102,6 +104,8 @@ compile endif
 include        'stdcmds.e'     -- Standard commands (DEFC's).
                             -- (Edit cmd uses variables defined in host routines.)
 include        'get.e'
+
+include        'enter.e'       -- New enter defs, moved from STDPROCS.E and STDKEYS.E
 
 compile if WANT_DRAW
   compile if (WANT_DRAW='F6' | WANT_DRAW=F6)
@@ -168,7 +172,6 @@ compile endif
 compile if SORT_TYPE
    include     'sort'SORT_TYPE'.e' -- SORTE, SORTG, SORTF, SORTGW, SORTDLL, SORTDOS.E.
 compile endif
-
 
 compile if WANT_EPM_SHELL
    include     'epmshell.e'
