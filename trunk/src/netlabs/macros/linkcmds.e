@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.8 2004-07-12 19:56:31 aschn Exp $
+* $Id: linkcmds.e,v 1.9 2004-09-12 15:47:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -93,6 +93,8 @@ defc unlink
    if rc then
       if rc = -310 then
          sayerror 'Module "'arg(1)'" not unlinked, unknown module'
+      elseif rc = -302 then
+         sayerror 'Module "'arg(1)'" not unlinked, defined keyset in use (better restart EPM)'
       else
          sayerror 'Module "'arg(1)'" not unlinked, rc = 'rc
       endif
@@ -141,7 +143,9 @@ defc relink
    waslinkedrc = linked(basename)
    if waslinkedrc >= 0 then  -- if linked
       'unlink' basename   -- 'unlink' gets full pathname now
-      'link' basename
+      if rc = 0 then
+         'link' basename
+      endif
    endif
 
 ; ---------------------------------------------------------------------------
