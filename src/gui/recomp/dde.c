@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dde.c,v 1.1 2002-06-03 22:27:05 cla Exp $
+* $Id: dde.c,v 1.2 2002-08-16 22:18:08 cla Exp $
 *
 * ===========================================================================
 *
@@ -236,19 +236,12 @@ switch (msg)
                PSZ            pszItemData;
 
                PSZ            pszData = NULL;
-               PSZ            pszEndByte;
 
       if (pdde->usFormat != DDEFMT_TEXT)
          break;
 
       pszItemName  = ((PSZ) pdde + pdde->offszItemName);
       pszItemData  = ((PSZ) pdde + pdde->offabData);
-
-      // EPM DDE bug: string is not zero terminated
-      // we use a special cha
-      pszEndByte   = strchr( pszItemData, END_OF_DATA_CHAR);
-      if (pszEndByte)
-         *pszEndByte = 0;
 
       // create a copy of the return value
       pszData = strdup( pszItemData);
