@@ -49,7 +49,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.3 2002-08-25 20:06:25 cla Exp $
+* $Id: esrcscan.cmd,v 1.4 2002-08-26 20:33:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -569,21 +569,39 @@ IPFLength: PROCEDURE
 
 /* ========================================================================= */
 WriteSection: PROCEDURE EXPOSE (GlobalVars)
- PARSE ARG FunctionsFile, ThisFunction, ThisId, ThisKey, ThisSubtitle;
+ PARSE ARG FunctionsFile, ThisFunction, ThisId, ThisKey, ThisName, ThisSubtitle, Dimensions;
 
  CrLf = "0d0a"x;
  Separator = '..' COPIES( '.', 60);
+ IF (Dimensions = '') THEN
+    Dimensions = '..';
+ ELSE
+    Dimensions = '.di' Dimensions;
 
- IF (DocComment.ThisFunction.ThisKey \= '') THEN
+ IF (ThisName = '') THEN
+ DO
+    Level = 4;
+    Panel = DocComment.ThisFunction.ThisKey;
+    PanelId = ThisId'_'ThisKey;
+ END;
+ ELSE
+ DO
+    Level = 5;
+    Panel = DocComment.ThisFunction.ThisKey.ThisName;
+    PanelId = ThisId'_'ThisKey'_'ThisName;
+ END;
+
+ IF (Panel \= '') THEN
  DO
     rcx = LINEOUT( FunctionsFile, Separator''CrLf||,
-                                  '.4' ThisFunction '-' ThisSubtitle''CrLf||,
+                                  '.'Level ThisFunction '-' ThisSubtitle''CrLf||,
                                   Separator''CrLf||,
-                                  '.an' ThisId'_'ThisKey''CrLf||,
+                                  Dimensions''CrLf||,
+                                  '.an' PanelId''CrLf||,
                                   '.al' ThisSubtitle''CrLf||,
-                                  '.hide'CrLf||,
+                                  '.. .hide'CrLf||,
                                   '.');
-    rcx = LINEOUT( FunctionsFile, DocComment.ThisFunction.ThisKey);
+    rcx = LINEOUT( FunctionsFile, Panel);
  END;
  ELSE
     SAY '  warning:' ThisFunction '-' ThisKey  'not set';
@@ -621,23 +639,53 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
                                   '.'CrLf||,
                                   '[=TOPICS]'CrLf||,
                                   '.'CrLf||,
-                                  '.su V30 breaks'CrLf||,
+                                  '.su V30 breaks 1'CrLf||,
                                   '');
 
     /* add prototype to syntax section */
     ThisKey = 'PROTOTYPE';
     IF (DocComment.ThisFunction.ThisKey \= '') THEN
     DO
-       AddKey = 'SYNTAX';
-       DocComment.ThisFunction.AddKey = DocComment.ThisFunction.AddKey||,
+       SyntaxKey  = 'SYNTAX';
+       ParmKey    = 'PARM';
+       ReturnsKey = 'RETURNS';
+
+       /* scan prototype and insert links */
+       Prototype = DocComment.ThisFunction.ThisKey;
+       PARSE VAR Prototype ResultPart'='FunctionPart;
+       PARSE VAR FunctionPart FunctionName'('FunctionParms')';
+
+       /* insert link for function result */
+       IF ((ResultPart \= '') & (DocComment.ThisFunction.ReturnsKey \= '')) THEN
+          ResultPart = '[.'ThisId'_RETURNS' ResultPart']';
+
+       /* insert links for known parameters */
+       NewFunctionParms = '';
+       DO WHILE (FunctionParms \= '')
+          PARSE VAR FunctionParms ThisParm','FunctionParms;
+          ThisParm = STRIP( Thisparm);
+          ThisParmId = TRANSLATE( ThisParm);
+          IF (DocComment.ThisFunction.ParmKey.ThisParm \= '') THEN
+             ThisParm = '[.'ThisId'_PARM_'ThisParmId ThisParm']';
+          NewFunctionParms = NewFunctionParms',' ThisParm;
+       END;
+       IF (LEFT( NewFunctionParms, 1) = ',') THEN
+          NewFunctionParms = SUBSTR( NewFunctionParms, 2);
+
+       /* reassemble prototype */
+       Prototype = ResultPart '=' FunctionName'('NewFunctionParms');';
+
+
+       /* add result to syntax section */
+       DocComment.ThisFunction.SyntaxKey = DocComment.ThisFunction.SyntaxKey||,
                                         '.fo off'CrLf||,
-                                        DocComment.ThisFunction.ThisKey''CrLf||,
+                                        Prototype''CrLf||,
                                         '.fo on'CrLf;
     END;
 
-    rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'SYNTAX',  'Syntax');
+    rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'SYNTAX', '', 'Syntax');
 
-    /* write parm section only where aproriate */
+    /* write parameter overview panel */
     ThisKey = 'PARM';
     IF (DocComment.ThisFunction.ThisKey._Namelist \= '') THEN
     DO
@@ -646,6 +694,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
        DO WHILE (ParmList \= '')
           PARSE VAR ParmList ThisParm ParmList;
 
+          /* add parameter to the parameter overview */
           ParmHeader = '*'ThisParm'*'CrLf||,
                        '.'CrLf||,
                        '.lm 4'CrLf||,
@@ -654,18 +703,32 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
                        ''CrLf;
           DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''ParmHeader;
        END;
-       rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'PARM',    'Parameters');
+       rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'PARM', '', 'Parameters');
     END;
 
-    rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'RETURNS', 'Returns');
+    /* write one subsection per parameter */
+    ThisKey = 'PARM';
+    IF (DocComment.ThisFunction.ThisKey._Namelist \= '') THEN
+    DO
+       ParmList = DocComment.ThisFunction.ThisKey._Namelist;
+       DocComment.ThisFunction.ThisKey = '..'CrLf;
+       DO WHILE (ParmList \= '')
+          PARSE VAR ParmList ThisParm ParmList;
+
+          rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'PARM', ThisParm , 'Parameter' ThisParm, '0 0 100 60');
+       END;
+    END;
+
+
+    rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'RETURNS', '', 'Returns');
 
     ThisKey = 'EXAMPLE';
     IF (DocComment.ThisFunction.ThisKey \= '') THEN
-       rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'EXAMPLE', 'Example Code');
+       rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'EXAMPLE', '', 'Example Code');
 
     ThisKey = 'REMARKS';
     IF (DocComment.ThisFunction.ThisKey \= '') THEN
-       rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'REMARKS', 'Remarks');
+       rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'REMARKS', '', 'Remarks');
 
  END;
 
