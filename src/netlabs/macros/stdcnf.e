@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.8 2002-10-17 19:36:47 aschn Exp $
+* $Id: stdcnf.e,v 1.9 2002-10-20 14:18:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -482,12 +482,12 @@ compile if not defined(WANT_TABS)
    WANT_TABS = 1
 compile endif
 
--- Ver. 3.11d:  This constant lets the user specify where the cursor should
--- be when starting E.  0 means in the file area, 1 means on the command line.
--- (No effect if using EPM.)
-compile if not defined(CURSOR_ON_COMMAND)
-   CURSOR_ON_COMMAND = 0
-compile endif
+;-- Ver. 3.11d:  This constant lets the user specify where the cursor should
+;-- be when starting E.  0 means in the file area, 1 means on the command line.
+;-- (No effect if using EPM.)
+;compile if not defined(CURSOR_ON_COMMAND)
+;   CURSOR_ON_COMMAND = 0
+;compile endif
 
 /* specifies whether the process window will be used.*/
 /* a process window allows the editor to view output */
@@ -686,7 +686,7 @@ compile if not defined(WANT_CUA_MARKING)
    -- Set WANT_CUA_MARKING = 'SWITCH' in MYCNF.E
    --WANT_CUA_MARKING = 0
    WANT_CUA_MARKING = 'SWITCH'
-   MY_WANT_CUA_MARKING = 0  -- ????????????????????????????????????????????????????????????????
+   MY_CUA_MARKING_SWITCH = 0
 compile endif
 
 -- MOUSE_SUPPORT only applies to EPM.  It can should normally be set to 1,
@@ -1405,6 +1405,7 @@ compile endif
 ;--    assign the new function_key_texts in the select file.
 ;compile endif  -- EVERSION < 5
 
+; Init universal vars if the corresponding consts are defined to use variables
 compile if WANT_LONGNAMES = 'SWITCH'
  compile if defined(my_SHOW_LONGNAMES)
    SHOW_LONGNAMES = my_SHOW_LONGNAMES
@@ -1422,7 +1423,8 @@ compile if WANT_PROFILE = 'SWITCH'
 compile endif
 
 compile if TOGGLE_ESCAPE
-   ESCAPE_KEY = 0
+   --ESCAPE_KEY = 0
+   ESCAPE_KEY = 1
 compile endif
 compile if TOGGLE_TAB
    TAB_KEY = 0

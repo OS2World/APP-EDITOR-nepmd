@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.10 2002-10-19 15:46:26 cla Exp $
+* $Id: stdcmds.e,v 1.11 2002-10-20 14:18:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -26,6 +26,10 @@ const
 compile if not defined(NEPMD_SPECIAL_STATUSLINE)
    -- used by defc margins,ma and defc tabs
    NEPMD_SPECIAL_STATUSLINE = 1
+compile endif
+compile if not defined(WANT_DATETIME_IN_TITLE)
+   -- used by defc s,save
+   WANT_DATETIME_IN_TITLE = 1
 compile endif
 
 defc alter =
@@ -606,6 +610,11 @@ defc newwindow=
       parse value .titletext with cmd ': ' args
       fn = "'"cmd args"'"
  compile endif
+   elseif leftstr( .filename, 14 ) = '.command_shell' then
+      shell_dir = directory()
+      fn = "'mc +cd "shell_dir" +shell'"
+   elseif leftstr( .filename, 1 ) = '.' then  -- other temp file
+      fn = ''
    else
       if .modify then
          'save'
@@ -621,8 +630,23 @@ defc newwindow=
          fn = '/r' fn
       endif
    endif
-   'open' fn
+   --'open' fn
+   if fn <> '' then
+     line = .line
+     col = .col
+     "open" fn "'postme goto "line" "col"'"
+   else
+     'open' fn
+   endif
    'quit'
+
+defc restorepos
+   parse arg saved_pos
+   saved_pos = strip(saved_pos)
+   sayerror 'defc restorepos: saved_pos = 'saved_pos
+   if saved_pos <> '' then
+      call prestore_pos(saved_pos)
+   endif
 
 defc nextview
    getfileid fid
@@ -985,6 +1009,10 @@ defc s,save=
    else
       call parse_filename(name,.filename)
    endif
+
+   -- Get mode before saving
+   OldMode = NepmdGetMode()
+
 compile if SUPPORT_USER_EXITS
    if isadefproc('presave_exit') then
       call presave_exit(name, options, save_as)
@@ -1050,17 +1078,20 @@ compile endif
    endif
    if src & save_as then
       .filename=UNNAMED_FILE_NAME
- compile if SHOW_MODIFY_METHOD = 'TITLE'                 -- remove?
+compile if SHOW_MODIFY_METHOD = 'TITLE'                 -- remove?
       call settitletext(.filename)                       -- remove?
- compile endif                                           -- remove?
+compile endif                                           -- remove?
    endif
 ;compile if    WANT_LAN_SUPPORT                          -- remove?
 ;   if locked & not arg(1) then call lock(); endif       -- remove?
 ;compile endif                                           -- remove?
-   'maketitletext'
+
+compile if WANT_DATETIME_IN_TITLE
+   call MakeTitletext()
+compile endif
 
    -- explicitely redetermine mode (file contents may have changed)
-   call NepmdResetMode( )
+   call NepmdResetMode(OldMode)
 
    return src
 
