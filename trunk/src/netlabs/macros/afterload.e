@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: afterload.e,v 1.5 2004-03-19 15:05:34 aschn Exp $
+* $Id: afterload.e,v 1.6 2004-03-19 15:08:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -78,7 +78,7 @@ defc AfterLoad
    universal filestoloadmax  -- set in NepmdLoadFile, only used for 'xcom e'.
 compile if EPM_POINTER = 'SWITCH'
    universal vEPM_POINTER
-compile else
+compile endif
 
 compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
    call NepmdPmPrintf( 'AFTERLOAD: '.filename', CurEditCmd = 'CurEditCmd', filestoloadmax = 'filestoloadmax)
