@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryprocessinfo.e,v 1.1 2002-09-04 15:38:45 cla Exp $
+* $Id: queryprocessinfo.e,v 1.2 2002-09-05 13:23:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -57,21 +57,20 @@ NepmdQueryProcessInfo returns either
 
 defc NepmdQueryProcessInfo, QueryProcessInfo
 
- ValueTag = arg( 1);
+ 'xcom e /c .TEST_NEPMDQUERYPROCESSINFO';
+ insertline '';
+ insertline 'NepmdQueryProcessInfo';
+ insertline '---------------------';
+ insertline '';
+ insertline helperNepmdQueryProcessInfoValue( 'PID');
+ insertline helperNepmdQueryProcessInfoValue( 'PPID');
+ insertline helperNepmdQueryProcessInfoValue( 'PROGRAM');
+ insertline helperNepmdQueryProcessInfoValue( 'PARMS');
 
- if (ValueTag = '') then
-    sayerror 'error: no value tag specified !';
-    return;
- endif
+ .modify = 0;
 
- InfoValue = NepmdQueryProcessInfo( ValueTag);
- parse value InfoValue with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'error: could not retrieve value for "'ValueTag'", rc='rc;
-    return;
- endif
-
- sayerror 'value for "'ValueTag'" of current EPM is: "'InfoValue'"';
+defproc helperNepmdQueryProcessInfoValue( ValueTag) =
+  return leftstr( ValueTag, 15) ':' NepmdQueryProcessInfo( ValueTag);
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryProcessInfo                              */

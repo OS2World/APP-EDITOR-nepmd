@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querysysinfo.e,v 1.2 2002-09-05 12:50:31 cla Exp $
+* $Id: querysysinfo.e,v 1.3 2002-09-05 13:23:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -95,23 +95,36 @@ NepmdQuerySysInfo returns either
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
 
+
 defc NepmdQuerySysInfo, QuerySysInfo
 
- ValueTag = arg( 1);
+ 'xcom e /c .TEST_NEPMDQUERYSYSINFO';
+ insertline '';
+ insertline 'NepmdQuerySysInfo';
+ insertline '-----------------';
+ insertline '';
+ insertline helperNepmdQuerySysInfoValue( 'MAXPATH');
+ insertline helperNepmdQuerySysInfoValue( 'MAXCOMPONENT');
+ insertline helperNepmdQuerySysInfoValue( 'BOOTDRIVE');
+ insertline helperNepmdQuerySysInfoValue( 'OS2VERSION');
+ insertline helperNepmdQuerySysInfoValue( 'SWAPBUTTON');
+ insertline helperNepmdQuerySysInfoValue( 'ALARM');
+ insertline helperNepmdQuerySysInfoValue( 'CXSCREEN');
+ insertline helperNepmdQuerySysInfoValue( 'CYSCREEN');
+ insertline helperNepmdQuerySysInfoValue( 'CXFULLSCREEN');
+ insertline helperNepmdQuerySysInfoValue( 'CYFULLSCREEN');
+ insertline helperNepmdQuerySysInfoValue( 'DEBUG');
+ insertline helperNepmdQuerySysInfoValue( 'CMOUSEBUTTONS');
+ insertline helperNepmdQuerySysInfoValue( 'POINTERLEVEL');
+ insertline helperNepmdQuerySysInfoValue( 'CURSORLEVEL');
+ insertline helperNepmdQuerySysInfoValue( 'MOUSEPRESENT');
+ insertline helperNepmdQuerySysInfoValue( 'PRINTSCREEN');
 
- if (ValueTag = '') then
-    sayerror 'error: no value tag specified !';
-    return;
- endif
+ .modify = 0;
 
- SysValue = NepmdQuerySysInfo( ValueTag);
- parse value SysValue with 'ERROR:'rc;
- if (rc > '') then
-    sayerror 'error: could not retrieve value for "'ValueTag'", rc='rc;
-    return;
- endif
+defproc helperNepmdQuerySysInfoValue( ValueTag) =
+  return leftstr( ValueTag, 15) ':' NepmdQuerySysInfo( ValueTag);
 
- sayerror 'value for "'ValueTag'" is:' SysValue;
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQuerySysInfo                                  */
