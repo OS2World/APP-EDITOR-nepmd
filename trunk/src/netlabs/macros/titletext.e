@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: titletext.e,v 1.1 2002-10-06 23:32:09 aschn Exp $
+* $Id: titletext.e,v 1.2 2002-10-16 18:38:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -87,6 +87,7 @@ defproc refreshtitletext(next)
          .titletext = filename
       else
          .titletext = filename'   ('msg')'
+         sayerror filename': 'msg
       endif
 
    else                      -- if DosQueryPathInfo returned a datetime string
