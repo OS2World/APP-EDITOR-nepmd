@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: job.c,v 1.7 2002-06-10 11:59:55 cla Exp $
+* $Id: job.c,v 1.8 2002-08-14 12:26:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -303,7 +303,7 @@ do
 
    DPRINTF(( "JOB: COMPILE: with: %s\n", szCommand));
 
-   ExecVioCommandSession( __APPNAME__, szCommand, FALSE);
+   ExecVioCommandSession( pwd->pszEpmEnv, __APPNAME__, szCommand, FALSE);
 
    DPRINTF(( "JOB: COMPILE: rc is %u\n", rc));
 
@@ -490,6 +490,11 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
             break;
             }
 
+         // show some more details in debug log
+         DPRINTF(( "JOB: macro compiler is: %s\n", pwd->szCompilerExecutable)); 
+         DPRINTF(( "JOB: sourcefile is: %s\n", szSourcePath));
+         DPRINTF(( "JOB: EPMPATH is: %s\n", getenv( "EPMPATH")));
+
          // determine target directory from source path if not given
          if (!strlen( pwd->szTargetDir))
             {
@@ -502,6 +507,7 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
          DPRINTF(( "JOB: target directory is: %s\n", pwd->szTargetDir));
          sprintf( pwd->szTargetFile, "%s\\"EPM_TARGETNAME, pwd->szTargetDir);
          sprintf( pwd->szLogFile,    "%s\\"EPM_COMPILELOG, pwd->szTargetDir);
+
 
 
          _discardFilelists( pwd);
