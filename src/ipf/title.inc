@@ -5,9 +5,9 @@
 .. include file defining major variables for sources for INF files
 .. Requires HyperText/2 package to compile
 ..
-.. Copyright (c) Netlabs EPM Distribution project 2002
+.. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: title.inc,v 1.2 2002-04-16 10:02:02 cla Exp $
+.. $Id: title.inc,v 1.3 2002-04-18 08:57:26 cla Exp $
 ..
 .. ===========================================================================
 ..

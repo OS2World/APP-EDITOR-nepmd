@@ -6,9 +6,9 @@
 #
 # Configure by editing configure.in before executing
 #
-# Copyright (c) Netlabs EPM Distibution project 2002
+# Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.5 2002-04-18 08:27:22 cla Exp $
+# $Id: makefile,v 1.6 2002-04-18 08:57:25 cla Exp $
 #
 # ===========================================================================
 #
