@@ -29,7 +29,9 @@
  *      The .c files must
  *      - have the same name as the header file
  *      - contain sections beginning with the following eyecatchers for each
- *        function (and paramater of function):
+ *        function
+ *           @@<funcname>@PROTOTYPE
+ *           @@<funcname>@CATEGORY@categoryname
  *           @@<funcname>@SYNTAX
  *           @@<funcname>@PARM@<parm_name>
  *           @@<funcname>@RETURNS
@@ -49,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.4 2002-08-26 20:33:09 cla Exp $
+* $Id: esrcscan.cmd,v 1.5 2002-08-27 12:24:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -132,7 +134,7 @@
  DataType._List     = '';
 
  DocComment.        = '';
- DocComment._ValidKeys = 'PROTOTYPE SYNTAX PARM EXAMPLE RETURNS REMARKS';
+ DocComment._ValidKeys = 'PROTOTYPE CATEGORY SYNTAX PARM EXAMPLE RETURNS REMARKS';
  DocComment._FunctionList = '';
 
  MissingComment.    = ''
@@ -354,12 +356,12 @@ IsInList: PROCEDURE
 
 /* ========================================================================= */
 /* simple string sort */
-SortString: PROCEDURE
- PARSE ARG SortString;
+SortWordsInString: PROCEDURE
+ PARSE ARG SortWordsInString;
 
  NewString = '';
- DO WHILE (SortString \= '')
-    PARSE VAR SortString ThisString SortString;
+ DO WHILE (SortWordsInString \= '')
+    PARSE VAR SortWordsInString ThisString SortWordsInString;
 
     NewWordPos = LENGTH( NewString);
     DO i = 1 TO WORDS( NewString)
@@ -622,10 +624,68 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
  FunctionsFile = OutDir'\functions.txt';
  rcx = SysFileDelete( FunctionsFile);
 
+ /* ********************** write function overview ********************** */
+
+ /* prepare sort of cateogories */
+ Category.      = '';
+ Category._List = '';
+ WorkList = DocComment._FunctionList;
+ DO WHILE (WorkList \= '')
+    PARSE VAR WorkList ThisFunction WorkList;
+
+    /* get category of this function */
+    ThisKey      = 'CATEGORY';
+    ThisCategory = WORD( DocComment.ThisFunction.ThisKey._NameList, 1);
+    IF (ThisCategory = '') THEN
+       ThisCategory = 'DIVERSE';
+    ELSE
+    DO
+       IF (WORDPOS( ThisCategory, Category._List) = 0) THEN
+          /* add new category */
+          Category._List        = Category._List ThisCategory;
+    END;
+
+    Category.ThisCategory = Category.ThisCategory ThisFunction;
+ END;
+
+ /* sort categories (excluding DIVERSE) */
+ Category._List = SortWordsInString( Category._List);
+
+ /* sort functions in categories */
+ WorkList = Category._List 'DIVERSE';
+ DO WHILE (WorkList \= '')
+    PARSE VAR WorkList ThisCategory WorkList;
+    Category.ThisCategory = SortWordsInString( Category.ThisCategory);
+ END;
+
+ /* create lists of categories to include - include DIVERSE only */
+ /* if at least function is not categorized properly */
+ WorkList = Category._List;
+ ThisCategory = 'DIVERSE';
+ IF (Category.ThisCategory \= '') THEN
+    WorkList = WorkList 'DIVERSE'; 
+
+ /* build up lists for each category */
+ DO WHILE (WorkList \= '')
+    PARSE VAR WorkList ThisCategory WorkList;
+
+    rcx = LINEOUT( FunctionsFile, '');
+    rcx = LINEOUT( FunctionsFile, '*[=CATEGORY_'ThisCategory']*');
+    rcx = LINEOUT( FunctionsFile, '.ul compact');
+
+    FuncList = Category.ThisCategory;
+    DO WHILE (FuncList \= '')
+    PARSE VAR FuncList ThisFunction FuncList;
+       ThisId = 'IDPNL_EFUNC_'TRANSLATE( ThisFunction);
+       rcx = LINEOUT( FunctionsFile, '- [.'ThisId']');
+    END;
+ END;
+ rcx = LINEOUT( FunctionsFile, '');
+
  /* ********************** write function pages ************************* */
 
 
- WorkList = SortString( DocComment._FunctionList);
+ WorkList = SortWordsInString( DocComment._FunctionList);
  DO WHILE (WorkList \= '')
     PARSE VAR WorkList ThisFunction WorkList;
 
@@ -641,6 +701,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
                                   '.'CrLf||,
                                   '.su V30 breaks 1'CrLf||,
                                   '');
+
 
     /* add prototype to syntax section */
     ThisKey = 'PROTOTYPE';
@@ -695,14 +756,25 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
           PARSE VAR ParmList ThisParm ParmList;
 
           /* add parameter to the parameter overview */
-          ParmHeader = '*'ThisParm'*'CrLf||,
-                       '.'CrLf||,
-                       '.lm 4'CrLf||,
-                       DocComment.ThisFunction.ThisKey.ThisParm||,
-                       '.lm 1'CrLf||,
-                       ''CrLf;
-          DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''ParmHeader;
+          ParmDoc = '*'ThisParm'*'CrLf||,
+                    '.'CrLf||,
+                    '.lm 4'CrLf||,
+                    DocComment.ThisFunction.ThisKey.ThisParm||,
+                    '.lm 1'CrLf||,
+                    ''CrLf;
+          DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''ParmDoc;
        END;
+
+       /* append returns section to the parameter overview */
+       ReturnKey = 'RETURNS';
+       ReturnDoc = '*return value*'CrLf||,
+                    '.'CrLf||,
+                    '.lm 4'CrLf||,
+                    DocComment.ThisFunction.ReturnKey||,
+                    '.lm 1'CrLf||,
+                    ''CrLf;
+       DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''ReturnDoc;
+
        rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'PARM', '', 'Parameters');
     END;
 
@@ -715,12 +787,12 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
        DO WHILE (ParmList \= '')
           PARSE VAR ParmList ThisParm ParmList;
 
-          rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'PARM', ThisParm , 'Parameter' ThisParm, '0 0 100 60');
+          rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'PARM', ThisParm , 'Parameter' ThisParm, '0 0 100 50');
        END;
     END;
 
 
-    rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'RETURNS', '', 'Returns');
+    rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'RETURNS', '', 'Returns', '0 0 100 50');
 
     ThisKey = 'EXAMPLE';
     IF (DocComment.ThisFunction.ThisKey \= '') THEN
@@ -827,9 +899,11 @@ ReadCommentDocs: PROCEDURE EXPOSE (GlobalVars)
 
        /* if there is a name given, maintain subsection list */
        IF (ThisName \= '') THEN
+       DO
           /* add subsection name */
           IF (WORDPOS( ThisName, DocComment.ThisFunction.ThisKey._Namelist) = 0) THEN
              DocComment.ThisFunction.ThisKey._Namelist = DocComment.ThisFunction.ThisKey._Namelist ThisName;
+       END;
 
        /* store the info */
        NextLine = LINEIN( File);
@@ -896,7 +970,7 @@ WriteEPMFiles: PROCEDURE EXPOSE (GlobalVars)
     IF (WORDPOS( ThisStem, StemList) = 0) THEN
        StemList = StemList ThisStem;
  END;
- StemList = SortString( StemList);
+ StemList = SortWordsInString( StemList);
  DO WHILE (StemList \= '')
     PARSE VAR StemList ThisStem StemList;
  rc = LINEOUT( File, '('ThisStem'*, view' BookName '~)');
@@ -910,7 +984,8 @@ WriteEPMFiles: PROCEDURE EXPOSE (GlobalVars)
 
  /* write lines for functions */
  rc = LINEOUT( File, '@ ------------ ' Description ' functions --------------');
- WorkList = SortString( Function._List);
+ WorkList = SortWordsInString( Function._List);
+ WorkList = SortWordsInString( Function._List);
  DO WHILE (WorkList \= '')
     PARSE VAR WorkList ThisFunction WorkList;
     rc = LINEOUT( File, ThisFunction''Tab''BgColor''Tab''FgColor);
