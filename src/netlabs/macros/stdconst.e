@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdconst.e,v 1.4 2003-08-31 20:11:52 aschn Exp $
+* $Id: stdconst.e,v 1.5 2004-06-03 23:19:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -423,17 +423,17 @@ compile endif
    MIS_SEPARATOR       =     4  -- 0x0004
    MIS_OWNERDRAW       =     8  -- 0x0008
    MIS_SUBMENU         =    16  -- 0x0010
-   MIS_MULTMENU        =    32  -- 0x0020   <-- multiple choice, unused, because not required?
-   MIS_SYCOMMAND       =    64  -- 0x0040
+   MIS_MULTMENU        =    32  -- 0x0020   <-- multiple choice
+   MIS_SYSCOMMAND      =    64  -- 0x0040
    MIS_HELP            =   128  -- 0x0080
    MIS_STATIC          =   256  -- 0x0100
    MIS_BUTTONSEPARATOR =   512  -- 0x0200
    MIS_BREAK           =  1024  -- 0x0400
    MIS_BREAKSEPARATOR  =  2048  -- 0x0800
    MIS_GROUP           =  4096  -- 0x1000
-   MIS_SINGLE          =  8192  -- 0x2000   <-- no multiple choice, unused, because not required?
+   MIS_SINGLE          =  8192  -- 0x2000   <-- no multiple choice
    --                    16384  -- 0x4000   -- unused
-   MIS_ENDPULLRIGHT    = 32768  -- 0x8000   <-- ENDPULLRIGHT is an own creation, only required for builtmenuitem?
+   MIS_ENDSUBMENU      = 32768  -- 0x8000   <-- ENDSUBMENU is only required for buildmenuitem, not a PM MIS
 
 ; Menu item attributes (see PM2.INF and PMWIN.H)
    MIA_NODISMISS       =    32  -- 0x0020
