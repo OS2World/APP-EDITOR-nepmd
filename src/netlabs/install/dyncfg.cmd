@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.4 2002-08-15 13:23:27 cla Exp $
+* $Id: dyncfg.cmd,v 1.5 2002-08-16 14:34:55 cla Exp $
 *
 * ===========================================================================
 *
@@ -72,7 +72,6 @@
     END;
 
     /* get the base directory of the NEPMD installation */
-    InstallPath = SysIni(, 'NEPMD', 'Path');
     PARSE VALUE SysIni(, 'NEPMD', 'Path') WITH InstallPath'00'x;
     IF (InstallPath = 'ERROR:') THEN
     DO
