@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: titletext.e,v 1.4 2002-10-19 14:49:38 cla Exp $
+* $Id: titletext.e,v 1.5 2002-10-19 16:43:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -77,7 +77,6 @@ defproc refreshtitletext(next)
          -- following rc's don't come from DosQueryPathInfo
          elseif rc = NEPMD_FLAG_ALTERED_BY_ANOTHER then
                               msg = 'File was altered by another application'
-                              statusmsg = 0
          elseif rc = NEPMD_FLAG_NO_DATETIME then
                               msg = 0
                               statusmsg = 0
@@ -88,17 +87,18 @@ defproc refreshtitletext(next)
                               msg = 'rc = 'rc
          endif
       endif
-      if statusmsg <> 0 then
-         if statusmsg = '' then
-            statusmsg = msg
-            sayerror filename': 'msg
-         endif
+
+      if statusmsg = '' then
+         statusmsg = msg
       endif
+      if statusmsg <> 0 then
+         sayerror filename': 'statusmsg
+      endif
+
       if msg = 0 then
          .titletext = filename
       else
          .titletext = filename'   ('msg')'
-         sayerror filename': 'msg
       endif
 
    else                      -- if DosQueryPathInfo returned a datetime string
