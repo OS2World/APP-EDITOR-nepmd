@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.10 2002-11-03 22:31:47 cla Exp $
+* $Id: edit.e,v 1.11 2002-11-04 14:44:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -47,9 +47,7 @@ defproc NepmdResolveEnvVars( Spec )
 ; Load files from a filespec, remove REXX EA's before loading
 
 defproc NepmdLoadFile( Spec, Options )
-   universal nepmd_hini
-   KeyPath = '\NEPMD\User\RexxEa\Extensions'
-   RexxEaExtensions = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+   RexxEaExtensions = 'CMD ERX'
 
    Spec = strip( Spec, 'B', '"' )
    ContainsWildcard = (pos( '*', Spec ) + pos( '?', Spec ) > 0);
