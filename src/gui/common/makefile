@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.9 2002-08-22 15:03:00 cla Exp $
+# $Id: makefile,v 1.10 2002-09-12 15:25:08 cla Exp $
 #
 # ===========================================================================
 #
@@ -31,7 +31,8 @@ OBJS= \
  $(BINDIR)\epmenv.obj\
  $(BINDIR)\tmf.obj\
  $(BINDIR)\instval.obj\
- $(BINDIR)\module.obj
+ $(BINDIR)\module.obj\
+ $(BINDIR)\libreg.obj
 
 MT=1
 
