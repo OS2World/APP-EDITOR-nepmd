@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.14 2004-06-03 22:45:08 aschn Exp $
+* $Id: stdkeys.e,v 1.15 2004-06-29 22:27:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,1734 +19,419 @@
 *
 ****************************************************************************/
 
-definit
-   universal blockreflowflag
-   blockreflowflag=0
-
-compile if    WANT_CUA_MARKING
+; ---------------------------------------------------------------------------
+; Define the keyset "EDIT_KEYS". All following key defs will belong to this
+; keyset, until the next occurance of defkeys.
+; "EDIT_KEYS" is the standard keyset.
 defkeys edit_keys new clear
 
-def otherkeys =
-   k = lastkey()
-   call process_key(k)
+; ---- Cursor ----
+def c_home        'BeginFile'           -- Go to begin of file (Shift marks)
+def c_end         'EndFile'             -- Go to end of file (Shift marks)
+def c_f5          'BeginWord'           -- Go to first char in current word
+def c_f6          'EndWord'             -- Go to last char in current word
+;def c_left       'PrevWord'            -- Go to previous word (Shift marks)
+;def c_right      'NextWord'            -- Go to next word (Shift marks)
+defc Key_c_left   'PrevWord'            -- Go to previous word (Shift marks)
+defc Key_c_right  'NextWord'            -- Go to next word (Shift marks)
 
-defproc process_key(k)
-compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-compile endif
-   if length(k)=1 & k<>\0 then
-      i_s = insert_state()
-compile if WANT_CUA_MARKING = 'SWITCH'
-      if CUA_marking_switch then
-compile endif
-         had_mark = process_mark_like_cua()
-         if not i_s & had_mark then
-            insert_toggle  -- Turn on insert mode because the key should replace
-         endif             -- the mark, not the character after the mark.
-compile if WANT_CUA_MARKING = 'SWITCH'
-      else
-         had_mark = 0  -- set to 0 so we don't toggle insert state later
-      endif
-compile endif
-      keyin k
-      if not i_s & had_mark then
-         insert_toggle
-      endif
-   endif
+def left          'PrevChar'            -- Go to previous char (Shift marks)
+def right         'NextChar'            -- Go to next char (Shift marks)
+def up            'Up'                  -- Go to previous line (Shift marks)
+def down          'Down'                -- Go to next line (Shift marks)
+def home          'BeginLineOrText'     -- Go to begin of line or text (Shift marks)
+def end           'EndLine'             -- Go to end of line (Shift marks)
+def pgup          'PageUp'              -- Go to previous page (Shift marks)
+def pgdn          'PageDown'            -- Go to next page (Shift marks)
+;def c_pgup       'BeginScreen'         -- Go to first line on screen
+;def c_pgdn       'EndScreen'           -- Go to last line on screen
+;def c_down       'PushPos'             -- Add current cursor pos. to cursor stack
+;def c_up         'PopPos'              -- Go to last pos. of cursor stack
+;def c_equal      'SwapPos'             -- Exchange current sursor pos. with last pos. of stack
+defc Key_c_down   'PushPos'             -- Save current cursor pos. to stack
+defc Key_c_up     'PopPos'              -- Restore last pos. from cursor stack (and remove it from stack)
+defc Key_c_equal  'SwapPos'             -- Exchange current cursor pos. with last pos. from stack
+def a_minus       'HighlightCursor'     -- Draw a circle around cursor
+def a_e           'EndMark'             -- Go to end of mark
+def a_y           'BeginMark'           -- Go to begin of mark
 
-defproc process_mark_like_cua()
-   if marktype() then
-      getmark firstline,lastline,firstcol,lastcol,markfileid
-      getfileid fileid
-      if fileid<>markfileid then
-         sayerror MARKED_OTHER__MSG
-         unmark
-      elseif not check_mark_on_screen() then
-         sayerror MARKED_OFFSCREEN__MSG
-         unmark
-      else
-compile if WANT_DM_BUFFER
-         'Copy2DMBuff'     -- see clipbrd.e for details
-compile endif  -- WANT_DM_BUFFER
-         firstline; .col=firstcol
-         undoaction 1, junk                -- Create a new state
-         call pdelete_mark()
-         'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
-         return 1
-      endif
-   endif
-compile else  -- WANT_CUA_MARKING
-defkeys edit_keys new
-compile endif  -- WANT_CUA_MARKING
+; ---- Scroll ----
+def s_f1          'ScrollLeft'          -- Scroll text left (Sh+F1 not definable in EPM)
+def s_f2          'ScrollRight'         -- Scroll text right
+def s_f3          'ScrollUp'            -- Scroll text up
+def s_f4          'ScrollDown'          -- Scroll text down
+def s_f5          'CenterLine'          -- V-center current line
+;def c_a          'NewTop'              -- Make current line topmost
 
-compile if WANT_SHIFT_MARKING
-defproc shifted
-   ks = getkeystate(VK_SHIFT)
-   return ks<>3 & ks<>4
+; ---- Mark ----
+def a_b           'MarkBlock'           -- Start/end block mark
+def a_l           'MarkLine'            -- Start/end line mark
+def a_z           'MarkChar'            -- Start/end char mark
+def a_w           'MarkWord'            -- Mark current word
+def a_u           'UnMark'              -- Unmark all
+defc Key_c_backslash 'UnMark'           -- Unmark all
+def c_a           'Select_All'          -- Mark all
+defc Key_c_slash  'Select_All'          -- Mark all
+def s_left        'MarkPrevChar'        -- Mark from cursor to previous char
+def s_right       'MarkNextChar'        -- Mark from cursor to next char
+def s_up          'MarkUp'              -- Mark from cursor line up
+def s_down        'MarkDown'            -- Mark from cursor line down
+def s_end         'MarkEndLine'         -- Mark from cursor to end of line
+def s_home        'MarkBeginLineOrText' -- Mark from cursor to begin of line or text
+def s_pgup        'MarkPageUp'          -- Mark from cursor page up
+def s_pgdn        'MarkPageDown'        -- Mark from cursor page down
+;def c_w          'MarkToken'           -- Mark current word, separators according to C syntax
+defc Key_c_s_down 'PushMark'            -- Save current mark to mark stack
+defc Key_c_s_up   'PopMark'             -- Restore last mark from stack (and remove it from stack)
+defc Key_c_s_equal 'SwapMark'           -- Exchange current mark with last mark from stack
+defc Key_c_s_plus 'SwapMark'            -- Exchange current mark with last mark from stack
 
-define CHARG_MARK = 'CHARG'
+; ---- Mark operations ----
+def a_c           'CopyMark'            -- Copy mark
+def a_d           'DeleteMark'          -- Delete mark
+def a_m           'MoveMark'            -- Move mark
+def a_o           'OverlayMark'         -- Copy block
+def a_a           'AdjustMark'          -- Move block
+def a_t           'CenterMark'          -- Center text in mark
+def a_f           'FillMark'            -- Open dialog to specify a char as fill char
+def c_f7          'ShiftLeft'           -- Move text in mark 1 col left
+def c_f8          'ShiftRight'          -- Move text in mark 1 col right
+def c_y           'FontList'            -- Open style dialog to add font attributes to mark
 
-defproc extend_mark(startline, startcol, forward)
-;compile if WANT_CUA_MARKING = 'SWITCH'
-;  universal CUA_marking_switch
-;  if not CUA_marking_switch then return; endif
-;compile endif
-   if marktype()='LINE' | marktype()='BLOCK' then return; endif
-   getfileid curfileid
-   if not marktype() then
-      call pset_mark(startline, .line, startcol, .col, CHARG_MARK, curfileid)
-      return
-   endif
-   getmarkg firstline,lastline,firstcol,lastcol,markfileid
-   if markfileid<>curfileid then  -- If mark was in a different file, treat like no mark was set.
-      call pset_mark(startline, .line, startcol, .col, CHARG_MARK, curfileid)
-      return
-   endif
-   lk = lastkey(0)
-   if (lk=s_up & .line=firstline-1) | (lk=s_down & .line=firstline+1) then
-      if length(textline(firstline)) < .col then
-         firstcol = .col
-      endif
-   endif
-   if startline>firstline | ((startline=firstline) & (startcol > firstcol)) then  -- at end of mark
-      if not forward then
-         if firstline=.line & firstcol=.col then unmark; return; endif
-      endif
-      call pset_mark(firstline, .line, firstcol, .col, CHARG_MARK, curfileid)
-   else                                                         -- at beginning of mark
-      if forward then
-         if lastline=.line & lastcol=.col-1 then unmark; return; endif
-      endif
-      call pset_mark(lastline, .line, lastcol, .col, CHARG_MARK, curfileid)
-   endif
+; ---- Delete ----
+def del           'DeleteChar'          -- Delete current char
+def backspace     'BackSpace'           -- Delete previous char (Shift marks)
+def s_backspace   'BackSpace'           -- Delete previous char (Shift marks)
+def c_backspace   'DeleteLine'          -- Delete current line
+def c_d           'DeleteUntilNextWord' -- Delete from cursor until beginning of next word
+def c_del         'DeleteUntilEndLine'  -- Delete from cursor until end of line
+def c_e           'DeleteUntilEndLine'  -- Delete from cursor until end of line
 
-; c_home, c_end, c_left & c_right do different things if the shift key is depressed.
-; The logic is extracted here mainly due to the complexity of the COMPILE IF's
-defproc begin_shift(var startline, var startcol, var shift_flag)
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
- compile endif
-   shift_flag = shifted()
- compile if WANT_CUA_MARKING = 'SWITCH'
-   if shift_flag or not CUA_marking_switch then
- compile else
-   if shift_flag then
- compile endif
-      startline = .line; startcol = .col
- compile if WANT_CUA_MARKING
+; ---- Duplicate ----
+def c_k           'DuplicateLine'       -- Duplicate a line
+
+; ---- Search ----
+def c_s           'SearchDlg'           -- Open search dialog
+def c_f           'FindNext'            -- Find next
+def c_c           'Change'              -- Change next
+def c_v           'GlobalFind'          -- Find next in all files of the ring
+def c_minus       'ToggleSearchDirection'  -- Toggle search direction
+def c_w           'FindWord'            -- Find current word, separators according to C syntax
+
+; ---- Clipboard ----
+def s_del         'Cut'                 -- Copy mark to clipboard and delete
+def s_ins         'DefaultPaste'        -- Default paste (paste as chars, selectable)
+;def c_ins         'Copy2Clip'          -- Defined now as defc Key_c_ins, because the Sh variant is used
+defc Key_c_s_ins  'AlternatePaste'      -- Alternate paste (paste as lines, depends on default paste)
+defc Key_c_ins    'Copy2Clip'           -- Copy mark to clipboard
+
+; ---- Execute ----
+def c_i           'CommandLine'         -- Open Command dialog
+def esc           'ProcessEscape'       -- Open Command dialog or stop block reflow
+def a_0           'dolines'             -- Execute line under cursor
+def a_equal       'dolines'             -- Execute line under cursor
+def c_l           'CommandDlgLine'      -- Open current line in Command dialog
+
+; ---- File operations ----
+def a_f2          'SaveAs_Dlg'          -- Open the Save-as dialog
+def f2            'SaveOrSaveAs'        -- Save; if unchanged: open Save-as dialog
+def f3            'Quit'                -- Quit file
+def f4            'FileOrQuit'          -- Save and quit file; if unchanged: just quit
+def f5            'OpenDlg'             -- Open File-open dialog (will open file in a new window)
+def c_O           'OpenDlg'             -- Open File-open dialog (will open file in a new window)
+def f7            'Rename'              -- Open Rename entrybox
+def f8            'EditFileDlg'         -- Open File-edit dialog (will open file in the same window)
+def c_f9          'History edit'        -- Open Edit history listbox
+def c_f10         'History load'        -- Open Load history listbox
+def c_f11         'History save'        -- Open Save history listbox
+
+; ---- Special chars ----
+def a_f1          'TypeFrameChars'      -- Type a list of IBM frame chars (help for the draw and box commands)
+def a_n           'TypeFileName'        -- Type the full filename
+def c_2           'TypeNull'            -- Type a null char (\0)
+def c_6           'TypeNot'             -- Type a not char ª (\170)
+def c_9           'TypeOpeningBrace'    -- Type a {
+def c_0           'TypeClosingBrace'    -- Type a }
+def c_4           'TypePound'           -- Type a cent char › (\155)
+def c_tab         'TypeTab'             -- Type a tab char (\9)
+
+; ---- Switch files ----
+def f11           'PrevFile'            -- Switch to previous file
+def c_p           'PrevFile'            -- Switch to previous file
+def f12           'NextFile'            -- Switch to next file
+def c_n           'NextFile'            -- Switch to next file
+def a_f12         'NextView'            -- Switch to next view of current file
+def c_f12         'Next_Win'            -- Switch to next EPM window
+def c_g           'Ring_More'           -- Open a dialog to select a file of the ring
+
+; ---- Reflow ----
+def a_j           'JoinLines'           -- Join current with next line
+def a_s           'SplitLines'          -- Split line at cursor pos., keeping the indent
+def a_p           'ReflowPar'           -- Reflow current paragraph, starting at cursor, using margins
+def a_r           'ReflowBlock'         -- Reflow marked block to a new block size
+
+; ---- Case ----
+;def c_f1         'UppercaseWord'       -- Change word to uppercase
+def c_f1          'CaseWord'            -- Toggle word through mixed, upper and lower cases
+def c_f2          'LowercaseWord'       -- Change word to lowercase
+def c_f3          'UppercaseMark'       -- Change mark to uppercase
+def c_f4          'LowercaseMark'       -- Change mark to lowercase
+
+; ---- Record keys ----
+def c_r           'RecordKeys'          -- Start/stop recording keys
+def c_t           'PlaybackKeys'        -- Stop recording and execute recorded keys
+
+; ---- Bookmarks ----
+def c_b           'ListMark'            -- Open a dialog to select a bookmark
+def c_m           'SetMark'             -- Open a dialog to save position as bookmark
+
+; ---- Help ----
+def c_h           'kwhelp'              -- Lookup current word in a help file
+
+; ---- Syntax Assistant ----
+def a_h           'MyAssist'            -- ASSIST.E: insert code for abbreviations left from cursor
+
+; ---- Bracket matching ----
+def c_leftbracket 'passist'             -- Move cursor on matching bracket or statement
+def c_rightbracket 'passist'            -- Move cursor on matching bracket or statement
+def c_8           'passist'             -- Move cursor on matching bracket or statement
+def ')'           'balance )'           -- Mark matching ( while typing )
+def ']'           'balance ]'           -- Mark matching [ while typing ]
+def '}'           'balance }'           -- Mark matching { while typing }
+
+; ---- Draw ----
+def f6            'StartDraw'           -- Message about available draw chars and Commandline to typein a char, then use cursor chars
+
+; ---- Tags ----
+def s_f6          'FindTag'             -- Find procedure under cursor via tags file
+def s_f7          'FindTag *'           -- Open entrybox to enter a procedure to find via tags file
+def s_f8          'TagsFile'            -- Open entrybox to select a tags file
+; s_f9 not definable as key def
+;def s_f9         'MakeTags *'          -- Open entrybox to enter list of files to scan for to create a tags file
+
+; ---- Undo ----
+def c_u           'UndoDlg'             -- Open Undo dialog
+def f9            'UndoLine'            -- Undo current line
+def a_backspace   'UndoLine'            -- Undo current line
+def c_pgup        'Undo1'               -- Scroll through previous undo states (keep Ctrl pressed to scroll)
+def c_pgdn        'Redo1'               -- Scroll through next undo states (keep Ctrl pressed to scroll)
+
+; ---- Enter ----
+; For Line mode, these keys are configurable via the settings dialog.
+; In Stream mode, all enter defcs behave the same.
+; Redefined by several keysets for programming languages to do 2nd syntax expansion, if activated.
+def enter         'enter'
+def a_enter       'a_enter'
+def c_enter       'c_enter'
+def s_enter       's_enter'
+def padenter      'padenter'
+def a_padenter    'a_padenter'
+def c_padenter    'c_padenter'
+def s_padenter    's_padenter'
+
+; ---- Insert ----
+def ins           'InsertToggle'        -- Toggle between insert and overwrite mode
+
+; ---- Tab ----
+def tab           'Tab'                 -- Insert tab char or spaces
+def s_tab         'BackTab'             -- Go back one tabstop
+
+; ---- Space ----
+; Redefined by several keysets for programming languages to do 1st syntax expansion, if activated.
+def space         'Space'
+def s_space       'Space'
+def c_space       'Space'
+
+; ---- Load file ----
+def a_1           'a_1'                 -- Load file under cursor
+
+; ---- Indent ----
+def a_i
+   if shifted() then
+                  'IndentBlock U'       -- Unindent current mark or block 1 indent level
    else
-      unmark
- compile endif
+                  'IndentBlock'         -- Indent current mark or block 1 indent level
    endif
 
-defproc end_shift(startline, startcol, shift_flag, forward_flag)
-; Let's let this work regardless of which marking mode is active.
- compile if 0 -- WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if shift_flag & CUA_marking_switch then
- compile else
-   if shift_flag then
- compile endif
-      call extend_mark(startline, startcol, forward_flag)
+; ---- Comment ----
+def a_k
+   if shifted() then
+                  'uncomment'           -- Uncomment marked lines
+   else
+                  'comment'             -- Comment marked lines
    endif
-compile endif  -- WANT_SHIFT_MARKING
 
-; Real keys, in alphabetical order.
-; See end of this file for a list of keys unused in standard E.
+; ---- Move chars and lines ----
+defc Key_a_s_left 'MoveCharLeft'        -- Move char left
+defc Key_a_s_right 'MoveCharRight'      -- Move char right
+defc Key_a_s_up   'MoveLineUp'          -- Exchange previous and current line
+defc Key_a_s_down 'MoveLineDown'        -- Exchange next and previous line
 
-def a_0=    /* same as Alt-Equal, for sake of German keyboards */
-   'dolines'
+; ---- Auto-spellcheck ----
+; This key belongs to "SPELL_KEYS". Therefore it is defined here with define.
+define DYNASPELL_KEY = 'c_A'            -- Open Proof Word dialog for alternatives
 
-; We now distribute a standard front end for the DIR command, which redirects
-; the output to a file named ".dos dir <dirspec>".  The third line should be
-; "Directory of <dirname>".  If so, we use it.  If not, we use DIRSPEC from the
-; .filename instead, but note that the latter might contain wildcards.
-define
-   QUOTED_DIR_STRING ='"'DIRECTORYOF_STRING'"'
+; ---- .ALL file ----
+; All should better define its own keyset (todo).
+define ALL_KEY = 'c_Q'                  -- 'All' search: toggle between .ALL and original file
 
+; ---- OtherKeys ----
+; Add key combinations via lastkey and the key's scancode, if any defined.
+; Internal key processing must be switched off with 'togglecontrol 26 0'
+; to define keys with otherkeys. The defc ProcessOtherKeys enables the
+; Key_* defcs to be processed.
+; If a combination without Shift is defined with def, e.g. def c_equal,
+; then the Key_* defc will not work for the Shift version. c_equal defines
+; Ctrl+= and Ctrl+Sh+=. To make the Shift defc work, the unshifted version
+; must be defined also with defc Key_*.
+; As an alternative, it could be defined (overwritten) as accelerator key.
+; The drawback would be, that accelerator key defs doesn't belong to keysets.
+def otherkeys 'ProcessOtherKeys'
+
+
+
+                        -- The rest is documentation --
+
+; ---------------------------------------------------------------------------
+; Following definitions are changed, compared to standard EPM:
+;    c_pgup
+;    c_pgdn
+;    c_a
+;    c_w
+; Following definitions are added, compared to standard EPM:
+;    a_f2
+;    c_f9
+;    c_f10
+;    c_f11
+;    c_f12
+;    a_h
+;    a_i     (Shift)
+;    a_k     (Shift)
+;    a_v
+;    c_v
+;    c_minus
+; (Some others are extended.)
+
+; ---------------------------------------------------------------------------
+; Unused
+;    s_f11
+;    s_f12
+;    a_f3
+;    a_f6
+;    a_g
+;    a_q
+;    a_x
+;    a_2
+;    a_3
+;    a_4
+;    a_5
+;    a_6
+;    a_7
+;    a_8
+;    a_9
+;    c_j
+;    c_q  allkey  (only used for .ALL file)
+;    c_z
+;    c_1
+;    c_3
+;    c_5
+;    c_7
+;    c_8
+;    c_backslash
+;    a_leftbracket
+;    c_leftbracket
+;    a_rightbracket
+;    c_rightbracket
+
+; Note: All char-producing keys can be redefined with a def statement:
+;    def '{'
+
+; ---------------------------------------------------------------------------
+; PM keys. These keys are not definable in EPM. But they could be defined
+; as accelerator keys, using buildacceltable.
 /*
-; Unused, we include ALT_1.E
-def a_1= /* edit filename on current text line */
-   getline line
-compile if WANT_EPM_SHELL
-   if leftstr(.filename, 15) = ".command_shell_" then
-      if substr(line, 13, 1) = ' ' then  -- old format DIR, or not a DIR line
-         flag = substr(line, 1, 1) <> ' ' &
-                (isnum(substr(line, 14, 8)) | substr(line, 14, 8)='<DIR>') &
-                length(line) < 40 &
-                isnum(substr(line, 24, 2) || substr(line, 27, 2) || substr(line, 30, 2)) &
-                substr(line, 26, 1) = substr(line, 29, 1) &
-                pos(substr(line, 26, 1), '/x.-')
-         filename=strip(substr(line,1,8))
-         word2=strip(substr(line,10,3))
-         if word2<>'' then filename=filename'.'word2; endif
-      else                               -- new format DIR, or not a DIR line
-         flag = substr(line, 41, 1) <> ' ' &
-                (isnum(substr(line, 18, 9)) | substr(line, 18, 9)='<DIR>') &
-                isnum(substr(line, 1, 2) || substr(line, 4, 2) || substr(line, 7, 2)) &
-                substr(line, 3, 1) = substr(line, 6, 1) &
-                pos(substr(line, 3, 1), '/x.-')
-         filename=substr(line,41)
-         if substr(line, 39, 1)=' ' & substr(line, 40, 1)<>' ' then  -- OS/2 2.11 is misaligned...
-            filename=substr(line,40)
-         endif
-      endif
-      if flag then
-         call psave_pos(save_pos)
-         getsearch oldsearch
-         display -2
-         'xcom l /'DIRECTORYOF_STRING'/c-'
-         dir_rc = rc
-         if not rc then
-            getline word3
-            parse value word3 with $QUOTED_DIR_STRING word3
-;;          parse value word3 with . . word3 .
-            if verify(word3,'?*','M') then  -- If wildcards - must be 4OS2 or similar shell
-               word3 = substr(word3, 1, lastpos(word3, '\')-1)
-            endif
-            word3 = strip(word3)
-         endif
-         display 2
-         setsearch oldsearch
-         call prestore_pos(save_pos)
-         if not dir_rc then
-            name=word3 ||                            -- Start with the path.
-                 leftstr('\',                        -- Append a '\', but only if path
-                         '\'<>rightstr(word3,1)) ||  -- doesn't end with one.
-                 filename                            -- Finally, the filename
-;           if pos(' ',name) then  -- enquote
-            if verify(name, ' =', 'M') then  -- enquote
-               name = '"'name'"'
-            endif
-            if pos('<DIR>',line) then
-               'dir 'name
-            else
-               'e 'name
-            endif
-            return
-         endif
-      endif
-   endif  -- leftstr(.filename, 15) = ".command_shell_"
-compile endif  -- WANT_EPM_SHELL
-   parse value .filename with word1 word2 word3 .
-   if upcase(word1 word2) = '.DOS DIR' then
-      call psave_pos(save_pos)
-      getsearch oldsearch
-      'xcom l /'DIRECTORYOF_STRING'/c-'
-      if not rc then
-         getline word3
-         parse value word3 with $QUOTED_DIR_STRING word3
-;        parse value word3 with . . word3 .
-         if verify(word3,'?*','M') then  -- If wildcards - must be 4OS2 or similar shell
-            word3 = substr(word3, 1, lastpos(word3, '\')-1)
-         endif
-         word3 = strip(word3)
-      endif
-      setsearch oldsearch
-      call prestore_pos(save_pos)
-      filename=substr(line,41)                 -- Support HPFS.  FAT dir's end at 40
-      if substr(line, 39, 1)=' ' & substr(line, 40, 1)<>' ' then  -- OS/2 2.11 is misaligned...
-         filename=substr(line,40)
-      endif
-      if filename='' then                      -- Must be FAT.
-         filename=strip(substr(line,1,8))
-         word2=strip(substr(line,10,3))
-         if word2<>'' then filename=filename'.'word2; endif
-      endif
-      name=word3 ||                            -- Start with the path.
-           leftstr('\',                        -- Append a '\', but only if path
-                   '\'<>rightstr(word3,1)) ||  -- doesn't end with one.
-           filename                            -- Finally, the filename
-;     if pos(' ',name) then  -- enquote
-      if verify(name, ' =', 'M') then  -- enquote
-         name = '"'name'"'
-      endif
-      if pos('<DIR>',line) then
-         'dir 'name
-      else
-         'e 'name
-      endif
-compile if WANT_TREE
-   elseif .filename = '.tree' then
-      if substr(line,5,1)substr(line,8,1)substr(line,15,1)substr(line,18,1) = '--::' then
-         name = substr(line, 52)
-         if substr(line,31,1)='>' then
-;           if isadefc('tree_dir') then
-               'tree_dir "'name'\*.*"'
-;           else
-;              'dir' name
-;           endif
-         else
-            'e "'name'"'
-         endif
-      endif
-compile endif  -- WANT_TREE
-   else  -- Not a DIR or TREE listing
-      parse value line with w1 rest
-      p=lastpos('(', w1)
- compile if HOST_SUPPORT = 'EMUL' & defined(MVS)
-  compile if MVS
-      if p & rightstr(w1, 1)<>"'" then
-  compile else
-      if p then
-  compile endif
- compile else
-      if p then
- compile endif
-         filename = substr(w1, 1, p-1)
-         parse value substr(w1, p+1) with line ')'
-         parse value line with line ':' col
-         if pos('*', filename) then
-            if YES_CHAR<>askyesno(WILDCARD_WARNING__MSG, '', filename) then
-               return
-            endif
-         endif
-         'e 'filename
-         line
-         if col<>'' then .col = col; endif
-      else
-         if pos('*', line) then
-            if YES_CHAR<>askyesno(WILDCARD_WARNING__MSG, '', line) then
-               return
-            endif
-         endif
-         'e 'line
-      endif  -- p
-   endif  -- upcase(word1 word2) = '.DOS DIR'
+   view epmtech "key definitions"
+   view epmtech keysets
+   view epmtech "e-definable keys"
+   view epmtech buildacceltable
 */
+;    f1           Help
+;    f10          Menu
+;    s_f10        Popup menu
+;    padplus      not definable as key def in EPM
+;    c_padplus    not definable as key def in EPM
+;    c_padstar    not definable as key def in EPM
+;    pad_slash    not definable as key def in EPM
+;    c_padslash   not definable as key def in EPM
+;    pad5         not definable as key def in EPM
+;    c_pad5       not definable as key def in EPM
+;    a_space      System menu
+;    a_f4         Close
+;    a_f5         Restore
+;    a_f6         Toggle focus between main and child window
+;    a_f7         Move
+;    a_f8         Size
+;    a_f9         Minimize
+;    a_f10        Maximize
+;    a_f11        Hide
+;    c_esc        Window list
+;    a_esc        Switch to next window
+;    a_tab        Select next window
+
+; ---------------------------------------------------------------------------
+; s_f1 doesn't work (neither as key def nor as accelerator key) in EPM. Bug?
+; s_f9 doesn't work as key def in EPM. Bug?
+
+; ---------------------------------------------------------------------------
+; Additional Shift combinations
+; More Shift combinations are definable through the non-shifted definition,
+; while using the following condition:
+;
+;    def anykey
+;       if shifted() then
+;          ...  -- definition for shifted version
+;       else
+;          ...  -- definition for unshifted version
+;       endif
+;
+; Another possibility is to use scancodes, like the Key_* defcs do. Note,
+; that every def, for that no Shift variant exists (e.g. def c_left), defines
+; the Shift variant, too (e.g. Ctrl+Sh+Left). Therefore in the upper lines
+; several defs were replaced by defc Key_*s, to be able to define the Shift
+; variants. Accelerator key definitions would overwrite everything, but they
+; don't belong to a keyset.
+
+; ---------------------------------------------------------------------------
+; Available Key_* commands (defined at the beginning of KEYS.E):
+;
+; Key_a_ins       Key_a_s_ins
+; Key_a_del       Key_a_s_del
+; Key_a_home      Key_a_s_home
+; Key_a_end       Key_a_s_end
+; Key_a_pgup      Key_a_s_pgup
+; Key_a_pgdn      Key_a_s_pgdn
+; Key_a_up        Key_a_s_up
+; Key_a_down      Key_a_s_down
+; Key_a_left      Key_a_s_left
+; Key_a_right     Key_a_s_right
+;
+; Key_c_ins       Key_c_s_ins
+; Key_c_del       Key_c_s_del
+; Key_c_home      Key_c_s_home
+; Key_c_end       Key_c_s_end
+; Key_c_pgup      Key_c_s_pgup
+; Key_c_pgdn      Key_c_s_pgdn
+; Key_c_up        Key_c_s_up
+; Key_c_down      Key_c_s_down
+; Key_c_left      Key_c_s_left
+; Key_c_right     Key_c_s_right
+;
+; Key_c_plus      Key_c_s_plus
+; Key_c_asterix   Key_c_s_asterix     (german keyboards: * = Shift++)
+; Key_c_equal     Key_c_s_equal       (german keyboards: = = Shift+0)
+; Key_c_slash     Key_c_s_slash       (german keyboards: / = Shift+7)
+; Key_c_backslash Key_c_s_backslash
+; Key_c_greater   Key_c_s_greater     (german keyboards: > = Shift+<)
+; Key_c_less      Key_c_s_less
 
-def a_a=
-compile if WANT_CHAR_OPS
-   call pcommon_adjust_overlay('A')
-compile else
-   adjustblock
-compile endif
-
-def a_b
-   markblock
-   'Copy2SharBuff'       /* Copy mark to shared text buffer */
-
-def a_c=
-   if marktype() then
-      call pcopy_mark()
-   else                 /* If no mark, look to in Shared Text buffer */
-      'GetSharBuff'     /* see clipbrd.e for details                 */
-   endif
-
-def a_d=
-compile if WANT_DM_BUFFER
-   'Copy2DMBuff'     -- see clipbrd.e for details
-compile endif
-   call pdelete_mark()
-   'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
-
-def a_e=
-   call pend_mark()
-   if substr(marktype(),1,1)<>'L' then
-      right
-   endif
-
-def a_equal=
-   'dolines'   -- Code is a separate command in STDCMDS.E.
-
-def a_f= /* Now accepts key from macro. */
-   call checkmark()
-   call pfill_mark()
-
-def a_f1= keyin 'º Ì É È Ê Í Ë ¼ » ¹ Î ³ Ã Ú À Á Ä Â Ù ¿ ´ Å Û ² ± °'
-
-def a_f7,c_F7=   -- Can't use the old A_F7 in EPM.  PM uses it as an accelerator key.
-   shift_left
-compile if SHIFT_BLOCK_ONLY
-   if marktype()='BLOCK' then  -- code by Bob Langer
-      getmark fl,ll,fc,lc,fid
-      call pset_mark(fl,ll,lc,MAXCOL,'BLOCK',fid)
-      shift_right
-      call pset_mark(fl,ll,fc,lc,'BLOCK',fid)
-   endif
-compile endif
-
-def a_f8,c_F8=   -- Can't use the old A_F8 in EPM.  PM uses it as an accelerator key.
-compile if SHIFT_BLOCK_ONLY
-   if marktype()='BLOCK' then  -- code by Bob Langer
-      getmark fl,ll,fc,lc,fid
-      call pset_mark(fl,ll,lc,MAXCOL,'BLOCK',fid)
-      shift_left
-      call pset_mark(fl,ll,fc,lc,'BLOCK',fid)
-   endif
-compile endif
-   shift_right
-
-/* We can't use a_f10 for previous file any more, PM uses that key. */
-/* I like F11 and F12 to go back and forth.                         */
-def a_f10,F11,c_P=  -- a_F10 is usual E default; F11 for enh. kbd, c_P for EPM.
-   prevfile
-
-; def a_F11 = 'prevview'
-def a_F12 = 'nextview'
-
-def a_j=
-   call joinlines()
-
-def a_l=
-   mark_line
-   'Copy2SharBuff'       /* Copy mark to shared text buffer */
-
-def a_m=call pmove_mark()
-compile if UNMARK_AFTER_MOVE
-   unmark
-   'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
-compile endif
-
-def a_minus =
-   'HighlightCursor'
-
-defc HighlightCursor
-   circleit 5, .line, .col-1, .col+1, 16777220
-
-def a_n=  /* Type the full name of the current file. */
-  keyin .filename
-
-def a_o=
-   if marktype() then
-compile if WANT_CHAR_OPS
-      call pcommon_adjust_overlay('O')
-compile else
-      overlay_block
-compile endif
-   else                 /* If no mark, look to in Shared Text buffer */
-      'GetSharBuff O'   /* see clipbrd.e for details                 */
-   endif
-
-def a_p=
-   /* Protect the user from accidentally reflowing a marked  */
-   /* area not in the current file, and give a good message. */
-   mt = substr(marktype(), 1, 1)
-   if mt='B' or mt='L' then
-      getmark firstline,lastline,firstcol,lastcol,markfileid
-      getfileid fileid
-      if fileid<>markfileid then
-         sayerror CANT_REFLOW__MSG'  'OTHER_FILE_MARKED__MSG
-         return
-      endif
-   endif
-
-   if mt<>' ' then
-      if not check_mark_on_screen() then
-         sayerror MARK_OFF_SCREEN__MSG
-         stop
-      endif
-   endif
-
-   if mt='B' then
-      'box r'
-   elseif mt='C' then
-      sayerror WRONG_MARK__MSG
-   elseif mt='L' then
-      reflow
-   else  -- Standard text reflow split into a separate routine.
-      call text_reflow()
-   endif
-
-definit                         -- Variable is null if alt_R is not active.
-   universal alt_R_active       -- For E3/EOS2, it's 1 if alt_R is active.
-   alt_R_active = ''            -- For EPM, it's set to querycontrol(messageline).
-
-def a_r=
-   universal alt_R_active,tempofid
-   universal alt_R_space
-
-   if alt_R_active<>'' then
-      call pblock_reflow(1,alt_R_space,tempofid)     -- Complete the reflow.
-      'setmessageline '\0
-      'toggleframe 2 'alt_R_active           -- Restore status of messageline.
-      alt_R_active = ''
-      return
-   endif
-   if pblock_reflow(0,alt_R_space,tempofid) then
-      sayerror PBLOCK_ERROR__MSG      /* HurleyJ */
-      return
-   endif
-;  if marktype() <> 'BLOCK' then
-      unmark
-;  endif
-   alt_R_active = queryframecontrol(2)         -- Remember if messageline on or off
-   'toggleframe 2 1'                    -- Force it on
-   'setmessageline' BLOCK_REFLOW__MSG
-
-def a_s=
-   call splitlines()
-
-def a_t = call pcenter_mark()
-
-def a_u=
-   unmark
-   'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
-
-def a_w = call pmark_word()
-
-;  EPM:  Haven't yet figured out a way to do Alt-X=escape.  It used a getkey().
-
-def a_y= call pbegin_mark()
-
-compile if WANT_CHAR_OPS
-def a_z=mark_char
-   'Copy2SharBuff'       /* Copy mark to shared text buffer */
-compile endif
-
-def backspace, s_backspace =
-compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-compile endif
-compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
-compile endif
-compile if WANT_CUA_MARKING
-   if process_mark_like_cua() then return; endif
-compile endif
-compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
-compile endif
-compile if WANT_STREAM_MODE
- compile if WANT_STREAM_MODE = 'SWITCH'
-   if .col=1 & .line>1 & stream_mode then
- compile else
-   if .col=1 & .line>1 then
- compile endif
-      up
-      l=length(textline(.line))
-      join
-      .col=l+1
-   else
-compile endif
-      old_level = .levelofattributesupport
-      if old_level & not (old_level bitand 2) then
-         .levelofattributesupport = .levelofattributesupport + 2
-         .cursoroffset = -300
-      endif
-      -- begin workaround for cursor just behind or at begin of a mark
-      -- For char mark: Move mark left if cursor is on mark begin or end
-      old_col  = .col
-      old_line = .line
-      CorrectMarkBegin = 0
-      CorrectMarkEnd   = 0
-      mt = marktype()
-      if mt = 'CHAR' then
-         getmark first_line, last_line, first_col, last_col, fid
-         if ((old_col > 1) & (first_line = old_line) & (first_line = last_line) & (first_col = old_col)) then
-            -- Cursor is on mark begin and first_line = last_line
-            CorrectMarkBegin = 1
-            CorrectMarkEnd   = 1
-         elseif ((old_col > 1) & (first_line = old_line) & (first_col = old_col)) then
-            -- Cursor is on mark begin
-            CorrectMarkBegin = 1
-         elseif ((old_col > 0) & (last_line = old_line) & (last_col = old_col - 1)) then
-            -- Cursor is 1 col behind mark end
-            CorrectMarkEnd   = 1
-         endif
-         --sayerror first_line', 'last_line', 'first_col', 'last_col', Marktype = 'mt ||
-         --         ', CorrectMarkEnd/Begin = 'CorrectMarkEnd CorrectMarkBegin
-      endif
-      -- end workaround for cursor just behind or at begin of a mark
-      rubout
-      -- begin workaround for cursor just behind or at begin of a mark
-      --mt = wordpos(mt,'LINE CHAR BLOCK CHARG BLOCKG')-1
-      if CorrectMarkBegin then
-         first_col = first_col - 1   -- move first_col left
-      endif
-      if CorrectMarkEnd then
-         last_col  = last_col - 1    -- move last_col left
-      endif
-      if CorrectMarkBegin | CorrectMarkEnd then
-         pset_mark( first_line, last_line, first_col, last_col, mt, fid)
-      endif
-      -- end workaround for cursor just behind or at begin of a mark
-      .levelofattributesupport = old_level
-compile if WANT_STREAM_MODE
-   endif
-compile endif
-
-def c_2 = keyin \0                  -- C_2 enters a null.
-def c_6 = keyin \170                -- C_6 enters a "not" sign
-def c_9 = keyin '{'
-def c_0 = keyin '}'
-def c_4 = keyin '›'                 -- C_4 enters a cents sign
-
-;def c_a= 'newtop'     -- Move current line to top of window.
-def c_a= 'select_all'  -- new
-
-compile if WANT_BOOKMARKS
-def c_B = 'listmark'
-compile endif
-
-def c_backspace=
-   undoaction 1, junk                -- Create a new state
-   if .levelofattributesupport then
-      if (.line==.last and .line<>1) then       -- this is the last line
-         destinationLine=.line-1                -- and there is a previous line to store attributes on
-         getline prevline,DestinationLine
-         DestinationCol=length(prevline)+1      -- start search parameters
-                                                -- destination of attributes
-         findoffset=-300                        -- start at the begin of the attr list
-         findline=.line                         -- of the first char on this line
-         findcolumn=1
-
-         do forever        -- search until no more attr's (since this is last line)
-            FINDCLASS=0          -- 0 is anyclass
-            Attribute_action FIND_NEXT_ATTR_SUBOP, findclass, findoffset, findcolumn, findline
-            if not findclass or (findline<>.line) then  -- No attribute, or not on this line
-               leave
-            endif
-            query_attribute theclass,thevalue, thepush, findoffset, findcolumn, findline   -- push or pop?
-            if not thePush then       -- ..if its a pop attr and ..
-               matchClass=theClass
-               MatchOffset=FindOffset
-               MatchLine=FindLine
-               MatchColumn=FindColumn  -- ..and if its match is not on this line or at the destination
-               Attribute_Action FIND_MATCH_ATTR_SUBOP, MatchClass, MatchOffset, Matchcolumn, MatchLine
-               if ((Matchline==DestinationLine) and (Matchcolumn==destinationcol)) then
-                  -- then there is a cancellation of attributes
-                  Attribute_action Delete_ATTR_SUBOP, theclass, Findoffset, Findcolumn, Findline
-                  Attribute_action Delete_ATTR_SUBOP, Matchclass, Matchoffset, Matchcolumn, Matchline
-               elseif (MatchLine<>.line)  then
-                  -- .. then move attribute to destination (before attributes which have been scanned so its OK.)
-                  -- insert attr at the end of the attr list (offset=0)
-                  Insert_Attribute theclass, thevalue, 0, 0, DestinationCol, DestinationLine
-                  Attribute_action Delete_ATTR_SUBOP, theclass, Findoffset, Findcolumn, Findline
-               endif -- end if attr is on line or at destination
-            endif -- end if found attr is a pop
-         enddo  -- end search for attr's
-      elseif .line < .last then  -- put the attributes after the line since there may not
-                                 -- be a line before this line (as when .line==1)
-         DestinationCol=1
-         DestinationLine=.line+1         -- error point since this puts attr's after last line if .line=.last
-         findoffset=0                    -- cant make it .line-1 cause then present attributes there become
-         findline=.line                  -- after these attributes which is wrong
-         findcolumn=MAXCOL
-
-         do forever
-            FINDCLASS=0
-            Attribute_action FIND_PREV_ATTR_SUBOP, findclass, findoffset, findcolumn, findline
-            if not findclass or (findline<>.line) then  -- No attribute, or not on this line
-               leave
-            endif
-             /* Move Attribute */
-            query_attribute theclass,thevalue, thepush, findoffset, findcolumn, findline
-            -- only move push/pop model attributes (tags are just deleted)
-            if ((thepush==0) or (thepush==1)) then
-               -- move attribute to destination, if cancellation delete both attributes
-               FastMoveAttrToBeg(theclass, thevalue, thepush, DestinationCol, DestinationLine, findcolumn, findline, findoffset)
-               findoffset=findoffset+1  -- since the attr rec was deleted and all attr rec's were shifted to fill the vacancy
-                                        -- and search is exclusive
-            endif
-         enddo
-      endif -- endif .line=.last and .line=1
-   endif -- .levelofattributesupport
-   deleteline
-   undoaction 1, junk                -- Create a new state
-
-def c_c=
-  'c'    -- EPM c_c is used for change next
-
-; Ctrl-D = word delete, thanks to Bill Brantley.
-def c_d =  /* delete from cursor until beginning of next word, UNDOable */
-   getline line
-   begcur=.col
-   lenLine=length(line)
-   if lenLine >= begcur then
-      for i = begcur to lenLine /* delete remainder of word */
-         if substr(Line,i,1)<>' ' then
-            deleteChar
-         else
-            leave
-         endif
-      endfor
-      for j = i to lenLine /* delete delimiters following word */
-         if substr(Line,j,1)==' ' then
-            deleteChar
-         else
-            leave
-         endif
-      endfor
-   endif
-
-compile if    WANT_STACK_CMDS
-def c_down =
-   'pushpos'
-compile endif
-
-def c_e, c_del=erase_end_line  -- Ctrl-Del is the PM way.
-
-compile if WANT_KEYWORD_HELP
-def c_h = 'kwhelp'
-compile endif
-
-def c_end=
- compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-compile endif
-compile if WANT_SHIFT_MARKING
-   call begin_shift(startline, startcol, shift_flag)
-compile endif
-compile if WANT_STREAM_MODE = 'SWITCH'
-   if stream_mode then
-compile endif
-compile if WANT_STREAM_MODE
-      bottom; endline
-compile endif
-compile if WANT_STREAM_MODE = 'SWITCH'
-   else
-compile endif
-compile if WANT_STREAM_MODE <> 1
-      if .line=.last and .line then endline; endif
-      bottom
-compile endif
-compile if WANT_STREAM_MODE = 'SWITCH'
-   endif
-compile endif
-compile if WANT_SHIFT_MARKING
-   call end_shift(startline, startcol, shift_flag, 1)
-compile endif
-
-; Moved def c_enter, c_pad_enter= to ENTER.E
-; Moved def c_f to LOCATE.E
-
-; c_f1 is not definable in EPM.
-def c_f1=
-   call psave_pos(save_pos)
-   call psave_mark(save_mark)
-   call pmark_word()
-   call puppercase()
-   call prestore_mark(save_mark)
-
-def c_f2=
-   call psave_pos(save_pos)
-   call psave_mark(save_mark)
-   call pmark_word()
-   call plowercase()
-   call prestore_mark(save_mark)
-   call prestore_pos(save_pos)
-
-def c_f3= call puppercase()
-
-def c_f4= call plowercase()
-
-def c_f5=
-   call pbegin_word()
-
-def c_f6=
-   call pend_word()
-
-; def c_f7  -- is defined as shift left
-; def c_f8  -- is defined as shift right
-
-def c_f9
-   'history edit'
-
-def c_f10
-   'history load'
-
-def c_f11
-   'history save'
-
-def c_f12
-   'next_win'
-
-def c_g='ring_more'
-
-def c_home=
-compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-compile endif
-compile if WANT_SHIFT_MARKING
-   call begin_shift(startline, startcol, shift_flag)
-compile endif
-compile if WANT_STREAM_MODE = 'SWITCH'
-   if stream_mode then
-compile endif
-compile if WANT_STREAM_MODE
-      top; begin_line
-compile endif
-compile if WANT_STREAM_MODE = 'SWITCH'
-   else
-compile endif
-compile if WANT_STREAM_MODE <> 1
-      if .line=1 then begin_line endif
-      top
-compile endif
-compile if WANT_STREAM_MODE = 'SWITCH'
-   endif
-compile endif
-compile if WANT_SHIFT_MARKING
-   call end_shift(startline, startcol, shift_flag, 0)
-compile endif
-
-def c_k=      -- Duplicate a line
-  getline line
-  insertline line,.line+1
-
-def c_l =
-   if .line then
-      getline line
-      'commandline 'line
-   endif
-
-def c_left=
-compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-compile endif
-compile if WANT_SHIFT_MARKING
-   call begin_shift(startline, startcol, shift_flag)
-compile endif
-compile if WANT_STREAM_MODE
-   if not .line then
-      begin_line
- compile if WANT_STREAM_MODE = 'SWITCH'
-   elseif .line>1 & .col=max(1,verify(textline(.line),' ')) & stream_mode then
- compile else
-   elseif .line>1 & .col=max(1,verify(textline(.line),' ')) then
- compile endif
-      up; end_line
-   endif
-compile endif
-   backtab_word
-compile if WANT_SHIFT_MARKING
-   call end_shift(startline, startcol, shift_flag, 0)
-compile endif
-
-compile if WANT_BOOKMARKS
-def c_m = 'setmark'
-compile else  -- [The following doesn't apply to EPM.]
-; This C-M definition allows external cut-and-paste utilities to
-; feed text into E via the keyboard stream.  Most such utilities end each line
-; of text with ASCII character 13.  This definition is needed because E
-; distinguishes that as a different key (Ctrl-M) than Enter.
-def c_m =
-   insert
-compile endif
-
-def c_pgup=
-compile if WANT_SHIFT_MARKING
-   call begin_shift(startline, startcol, shift_flag)
-compile endif
-   .cursory=1
-compile if WANT_SHIFT_MARKING
-   call end_shift(startline, startcol, shift_flag, 0)
-compile endif
-
-def c_pgdn=
-compile if WANT_SHIFT_MARKING
-   call begin_shift(startline, startcol, shift_flag)
-compile endif
-   .cursory=.windowheight
-compile if WANT_SHIFT_MARKING
-   call end_shift(startline, startcol, shift_flag, 1)
-compile endif
-
-def c_r
-   -- Query to see if we are already in recording
-   if windowmessage(1,  getpminfo(EPMINFO_EDITCLIENT),
-                    5393,
-                    0,
-                    0)
-   then
-      call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),
-                         5392,
-                         0,
-                         0)
-      sayerror REMEMBERED__MSG
-   else
-      sayerror CTRL_R__MSG
-      call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),
-                         5390,
-                         0,
-                         0)
-   endif
-
-def c_right=
-compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-compile endif
-compile if WANT_SHIFT_MARKING
-   call begin_shift(startline, startcol, shift_flag)
-compile endif
-compile if WANT_STREAM_MODE
-   getline line
- compile if WANT_STREAM_MODE = 'SWITCH'
-   if not .line | lastpos(' ',line)<.col & .line<.last & stream_mode then
- compile else
-   if not .line | lastpos(' ',line)<.col & .line<.last then
- compile endif
-      down
-      call pfirst_nonblank()
-   else
-compile endif
-      tab_word
-compile if WANT_STREAM_MODE
-   endif
-compile endif
-compile if WANT_SHIFT_MARKING
-   call end_shift(startline, startcol, shift_flag, 1)
-compile endif
-
--- Pop up Search dialog
-def c_s=
-   'searchdlg'
-
-
-def c_t
-   call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),
-                      5392,
-                      0,
-                      0)
-   call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),
-                      5391,
-                      0,
-                      0)
-
-def c_tab = keyin \9
-
-def c_u = 'undodlg'
-
-compile if    WANT_STACK_CMDS
-def c_up =
-   'poppos'
-compile endif
-
-def c_W=
-   if marktype()<>'' then
-      sayerror -279  -- 'Text already marked'
-      return
-   endif
-   if find_token(startcol, endcol) then
-      getfileid fid
- compile if WORD_MARK_TYPE = 'CHAR'
-      call pset_mark(.line, .line, startcol, endcol, 'CHAR', fid)
- compile else
-      call pset_mark(.line, .line, startcol, endcol, 'BLOCK', fid)
- compile endif
-      'Copy2SharBuff'       /* Copy mark to shared text buffer */
-   endif
-
-def c_Y = 'fontlist'
-
-def del=
-compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-compile endif
-compile if    WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if marktype() & CUA_marking_switch then    -- If there's a mark, then
- compile else
-   if marktype() then    -- If there's a mark, then
- compile endif
-      if process_mark_like_cua() then return; endif
-   endif
-compile endif
-compile if WANT_STREAM_MODE
-   if .line then
-      l=length(textline(.line))
-   else
-      l=.col    -- make the following IF fail
-   endif
- compile if WANT_STREAM_MODE = 'SWITCH'
-   if .col>l & stream_mode then
- compile else
-   if .col>l then
- compile endif
-      join
-      .col=l+1
-   else
-compile endif  -- WANT_STREAM_MODE
-      old_level = .levelofattributesupport
-      if old_level & not (old_level bitand 2) then
-         .levelofattributesupport = .levelofattributesupport + 2
-         .cursoroffset = 0
-      endif
-      delete_char
-      .levelofattributesupport = old_level
-compile if WANT_STREAM_MODE
-   endif
-compile endif
-
-def down=
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-compile if RESPECT_SCROLL_LOCK
-   if scroll_lock() then
-;      executekey s_f5  -- vcenter cursor
-      executekey s_f4  -- act like scroll up
-   else
-compile endif
-compile if WANT_STREAM_MODE
-      call updownkey(1)
-compile else
-      down
-compile endif
-compile if RESPECT_SCROLL_LOCK
-   endif
-compile endif
-
-compile if    WANT_SHIFT_MARKING
-def s_down=
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
- compile endif
-   startline = .line; startcol = .col
- compile if WANT_STREAM_MODE
-   call updownkey(1)
- compile else
-   down
- compile endif
-;compile if WANT_CUA_MARKING = 'SWITCH'
-;  if CUA_marking_switch then
-;compile endif
-   if startline then call extend_mark(startline, startcol, 1); endif
-;compile if WANT_CUA_MARKING = 'SWITCH'
-;  endif
-;compile endif
-compile endif
-
-def end=
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   end_line
-
-compile if    WANT_SHIFT_MARKING
-def s_end =
-   startline = .line; startcol = .col
-   end_line
-   call extend_mark(startline, startcol, 1)
-compile endif
-
-; Moved to ENTER.E
-;def enter =
-;def a_enter =
-;def c_enter =
-;def s_enter =
-;def padenter =
-;def a_padenter =
-;def c_padenter =
-;def s_padenter =
-;defproc shell_enter_routine(xxx_enterkey)
-;def enter, pad_enter, a_enter, a_pad_enter, s_enter, s_padenter=
-
-compile if not defined(NO_ESCAPE)
-   const NO_ESCAPE = 0
-compile endif
-
-compile if NO_ESCAPE  -- Blame CUA  :-(
-def esc=
- compile if TOGGLE_ESCAPE
-   universal ESCAPE_KEY
- compile endif
-compile else
-def esc, C_I=
-compile endif
-   universal alt_R_active
-
-   sayerror 0
-   if alt_R_active<>'' then
-       'setmessageline '\0
-      'toggleframe 2 'alt_R_active         -- Restore status of messageline.
-      alt_R_active = ''
-compile if NO_ESCAPE
- compile if TOGGLE_ESCAPE
-   elseif ESCAPE_KEY then
-      'commandline'
- compile endif
-   endif
-def c_I='commandline'
-compile else
-   else
-      'commandline'
-   endif
-compile endif  -- no Escape
-
-def f1= 'help'
-
-def f2=
-compile if SMARTSAVE
-   if .modify then           -- Modified since last Save?
-      'Save'                 --   Yes - save it
-   else
-;      'commandline Save '
-      sayerror 'No changes.  Press Enter to Save anyway.'
-      'saveas_dlg 0'  -- better show file selector
-                      -- new optional arg, 0 => no EXIST_OVERLAY__MSG
-   endif
-compile else
-   'Save'
-compile endif
-
-def f3= 'quit'
-
-def f4=
-compile if SMARTFILE
-   if .modify then           -- Modified since last Save?
-      'File'                 --   Yes - save it and quit.
-   else
-      'Quit'                 --   No - just quit.
-   endif
-compile else
-   'File'
-compile endif
-
-                    /* keys by EPM */
-def f5, c_O='OPENDLG'
-def f7='rename'
-def f8=
-compile if RING_OPTIONAL
-   universal ring_enabled
-   if not ring_enabled then
-      sayerror NO_RING__MSG
-      return
-   endif
-compile endif
-   'OPENDLG EDIT'
-
-def f9, a_backspace = undo
-
-
-def f10,f12,c_N=   -- F10 is usual E default; F12 for enhanced kbd, c_N for EPM.
-   nextfile
-
-/*
-def home =
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   begin_line
-
-compile if    WANT_SHIFT_MARKING
-def s_home =
-   startline = .line; startcol = .col
-   begin_line
-   call extend_mark(startline, startcol, 0)
-compile endif
-*/
-
-def home =
-   universal nepmd_hini
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   KeyPath = '\NEPMD\User\Keys\Home\ToggleBeginLineText'
-   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Enabled = 1 then
-      -- Go to begin of text.
-      -- If in area before or at begin of text, go to column 1.
-      startline = .line; startcol = .col
-      call pfirst_nonblank()
-      if .line = startline and .col = startcol then
-         begin_line
-      endif
-   else
-      begin_line
-   endif
-
-compile if WANT_SHIFT_MARKING
-def s_home =
-   universal nepmd_hini
-   startline = .line; startcol = .col
-   KeyPath = '\NEPMD\User\Keys\Home\ToggleBeginLineText'
-   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Enabled = 1 then
-      -- Go to begin of text.
-      -- If in area before or at begin of text, go to column 1.
-      startline = .line; startcol = .col
-      call pfirst_nonblank()
-      if .line = startline and .col = startcol then
-         begin_line
-      endif
-   else
-      begin_line
-   endif
-   call extend_mark(startline, startcol, 0)
-compile endif
-
-
-def ins=
-   insert_toggle
-   call fixup_cursor()
-
-def left=
-compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-compile endif
-compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-compile endif
-/*
--- Don't like hscroll
-compile if RESPECT_SCROLL_LOCK
-   if scroll_lock() then
-      executekey s_F1  -- Scroll left
-   else
-compile endif
-*/
-compile if WANT_STREAM_MODE = 'SWITCH'
-      if .line>1 & .col=1 & stream_mode then up; end_line; else left; endif
-compile elseif WANT_STREAM_MODE
-      if .line>1 & .col=1 then up; end_line; else left; endif
-compile else
-      left
-compile endif
-/*
--- Don't like hscroll
-compile if RESPECT_SCROLL_LOCK
-   endif
-compile endif
-*/
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-
-compile if    WANT_SHIFT_MARKING
-def s_left =
-   startline = .line; startcol = .col
-   if .line>1 & .col=1 then up; end_line; else left; endif
-   call extend_mark(startline, startcol, 0)
-compile endif
-
-
-def pgup =
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   page_up
-
-def pgdn =
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   page_down
-
-compile if    WANT_SHIFT_MARKING
-def s_pgup=
- compile if TOP_OF_FILE_VALID = 'STREAM' & WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
- compile endif
-   startline = .line; startcol = .col
-   page_up
-   if .line then call extend_mark(startline, startcol, 0); endif
- compile if TOP_OF_FILE_VALID = 'STREAM' & WANT_STREAM_MODE = 'SWITCH'
-   if not .line & stream_mode then '+1'; endif
- compile elseif not TOP_OF_FILE_VALID
-   if not .line then '+1'; endif
- compile endif
-
-def s_pgdn=
-   startline = .line; startcol = .col
-   page_down
-   if startline then call extend_mark(startline, startcol, 1); endif
-compile endif
-
-def right=
-compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-compile endif
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-/*
--- Don't like hscroll
-compile if RESPECT_SCROLL_LOCK
-   if scroll_lock() then
-      executekey s_F2  -- Scroll right
-   else
-compile endif
-*/
-compile if WANT_STREAM_MODE
-      if .line then l=length(textline(.line)); else l=.col; endif
- compile if WANT_STREAM_MODE = 'SWITCH'
-      if .line<.last & .col>l & stream_mode then
- compile else
-      if .line<.last & .col>l then
- compile endif
-         down; begin_line
- compile if WANT_STREAM_MODE = 'SWITCH'
-      elseif .line=.last & .col>l & stream_mode then   -- nop
- compile else
-      elseif .line=.last & .col>l then  -- nop
- compile endif
-      else
-         right
-      endif
-compile else
-      right
-compile endif
-/*
--- Don't like hscroll
-compile if RESPECT_SCROLL_LOCK
-   endif
-compile endif
-*/
-
-compile if    WANT_SHIFT_MARKING
-def s_right =
-   startline = .line; startcol = .col
-   if .line then l=length(textline(.line)); else l=.col; endif
-   if .line<.last & .col>l then
-      down; begin_line
-   elseif .line<>.last | .col<=l then
-      right
-   endif
-   call extend_mark(startline, startcol, 1)
-compile endif
-
-
-def s_f1= /* scroll left */
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   oldcursorx=.cursorx
-   if .col-.cursorx then
-      .col=.col-.cursorx
-      .cursorx=oldcursorx
-   elseif .cursorx>1 then
-      left
-   endif
-
-def s_f2= /* scroll right */
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   oldcursorx=.cursorx
-   a=.col+.windowwidth-.cursorx+1
-   if a<=MAXCOL then
-      .col=a
-      .cursorx=oldcursorx
-   elseif .col<MAXCOL then
-      right
-   endif
-
-def s_f3= /* scroll up */
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   oldcursory=.cursory
-   if .line-.cursory>-1 then
-      .cursory=1
-      up
-      .cursory=oldcursory
-   elseif .line then
-      up
-   endif
-
-def s_f4= /* scroll down */
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   oldcursory=.cursory
-   if .line -.cursory+.windowheight<.last then
-      .cursory=.windowheight
-      down
-      .cursory=oldcursory
-   elseif .line<.last then
-      down
-   endif
-
-def s_f5= /* center current line */
-   'CenterLine'
-
-defc CenterLine
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   oldline=.line
-   .cursory=.windowheight%2
-   oldline
-
-compile if WANT_TAGS
-def s_f6 = 'findtag'
-def s_f7 = 'findtag *'
-def s_f8 = 'tagsfile'
-def s_f9 = 'maketags *'
-compile endif -- WANT_TAGS
-
-def s_tab=
-   universal matchtab_on
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   if matchtab_on & .line>1 then
-      up
-      backtab_word
-      down
-   else
-      backtab
-   endif
-
-def space, s_space, c_space  /* New in EPM.  Space is a virtual key under PM.*/
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      call process_mark_like_cua()
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-   k=lastkey(1)
-   keyin ' '
-   if k<>' ' then
-      undoaction 1, junk                -- Create a new state
-   endif
-
-def tab=
-compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-compile endif
-   universal matchtab_on
-compile if TOGGLE_TAB
-   universal TAB_KEY
-compile endif
-compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-compile endif
-compile if WANT_DBCS_SUPPORT
-   universal ondbcs
-compile endif
-                  -------Start of logic:
-compile if TOGGLE_TAB
-   if TAB_KEY then
- compile if WANT_CUA_MARKING
-  compile if WANT_CUA_MARKING = 'SWITCH'
-      if CUA_marking_switch then
-  compile endif
-          process_key(\9)
-  compile if WANT_CUA_MARKING = 'SWITCH'
-      else
-  compile endif
- compile endif  -- WANT_CUA_MARKING
-         keyin \9
- compile if WANT_CUA_MARKING = 'SWITCH'
-      endif  -- CUA_marking_switch
- compile endif
-   else  -- TAB_KEY
-compile endif  -- TOGGLE_TAB
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-      if CUA_marking_switch then
- compile endif
-         unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-      endif  -- CUA_marking_switch
- compile endif
-compile endif  -- WANT_CUA_MARKING
-      oldcol=.col
-      if matchtab_on and .line>1 then
-         up
-;;       c=.col  -- Unused ???
-         tab_word
-         if oldcol>=.col then
-            .col=oldcol
-            tab
-         endif
-         down
-      else
-         tab
-      endif
-compile if WANT_STREAM_MODE | WANT_TAB_INSERTION_TO_SPACE
- compile if WANT_STREAM_MODE = 'SWITCH' and not WANT_TAB_INSERTION_TO_SPACE
-      if insertstate() & stream_mode then
- compile else
-      if insertstate() then
- compile endif
-         numspc=.col-oldcol
- compile if WANT_DBCS_SUPPORT
-         if ondbcs then                                           -- If we're on DBCS,
-            if not (matchtab_on and .line>1) then  -- and didn't do a matchtab,
-               if words(.tabs) > 1 then
-                  if not wordpos(.col, .tabs) then                   -- check if on a tab col.
-                     do i=1 to words(.tabs)              -- If we got shifted due to being inside a DBC,
-                        if word(.tabs, i) > oldcol then  -- find the col we *should* be in, and
-                           numspc = word(.tabs, i) - oldcol  -- set numspc according to that.
-                           leave
-                        endif
-                     enddo
-                  endif
-               elseif (.col // .tabs) <> 1 then
-                  numspc = .tabs - (oldcol+.tabs-1) // .tabs
-               endif  -- words(.tabs) > 1
-            endif
-         endif  -- ondbcs
- compile endif  -- WANT_DBCS_SUPPORT
-         if numspc>0 then
-            .col=oldcol
-            keyin substr('',1,numspc)
-         endif
-      endif  -- insertstate()
-compile endif  -- WANT_STREAM_MODE | WANT_TAB_INSERTION_TO_SPACE
-compile if TOGGLE_TAB
-   endif  -- TAB_KEY
-compile endif  -- TOGGLE_TAB
-
-
-def up=
-compile if TOP_OF_FILE_VALID = 'STREAM' & WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-compile endif
-compile if WANT_CUA_MARKING
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
-      unmark
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-compile endif
-compile if RESPECT_SCROLL_LOCK
-   if scroll_lock() then
-;      executekey s_f5  -- vcenter cursor
-      executekey s_f3  -- act like scroll down
-   else
-compile endif
-compile if WANT_STREAM_MODE
-      call updownkey(0)
-compile else
-      up
-compile endif
-compile if RESPECT_SCROLL_LOCK
-   endif
-compile endif
-compile if TOP_OF_FILE_VALID = 'STREAM' & WANT_STREAM_MODE = 'SWITCH'
-   if not .line & stream_mode then '+1'; endif
-compile elseif not TOP_OF_FILE_VALID
-   if not .line then '+1'; endif
-compile endif
-
-compile if    WANT_SHIFT_MARKING
-def s_up=
- compile if TOP_OF_FILE_VALID = 'STREAM' & WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
- compile endif
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
- compile endif
-   startline = .line; startcol = .col
- compile if WANT_STREAM_MODE
-   call updownkey(0)
- compile else
-   up
- compile endif
-;compile if WANT_CUA_MARKING = 'SWITCH'
-;  if CUA_marking_switch then
-;compile endif
-   if .line then call extend_mark(startline, startcol, 0); endif
-;compile if WANT_CUA_MARKING = 'SWITCH'
-;  endif
-;compile endif
- compile if TOP_OF_FILE_VALID = 'STREAM' & WANT_STREAM_MODE = 'SWITCH'
-   if not .line & stream_mode then '+1'; endif
- compile elseif not TOP_OF_FILE_VALID
-   if not .line then '+1'; endif
- compile endif
-compile endif
-
--- Standard PM clipboard functions.
-def s_del = 'cut'
-
-def s_ins =
- compile if WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if CUA_marking_switch then
- compile endif
- compile if WANT_CUA_MARKING
-      call process_mark_like_cua()
- compile endif
- compile if WANT_CUA_MARKING = 'SWITCH'
-   endif
- compile endif
-   'paste' DEFAULT_PASTE
-
-def c_ins = 'copy2clip'
-
-compile if WANT_STREAM_MODE
-defproc updownkey(down_flag)
-   universal save_cursor_column
- compile if WANT_STREAM_MODE = 'SWITCH'
-   universal stream_mode
-   if stream_mode then
- compile endif
-      lk = lastkey(1)
-      updn = pos(leftstr(lk,1),\x18\x16) & pos(substr(lk,2,1),\x02\x0A\x12)   -- VK_DOWN or VK_UP, plain or Shift or Ctrl
-      if not updn then save_cursor_column = .col; endif
- compile if WANT_STREAM_MODE = 'SWITCH'
-   endif
- compile endif
-
-   if down_flag then down; else up; endif
-
- compile if WANT_STREAM_MODE = 'SWITCH'
-   if .line & stream_mode then
- compile else
-   if .line then
- compile endif
-      l = length(textline(.line))
-      if updn & l>=save_cursor_column then
-         .col = save_cursor_column
-      elseif updn | l<.col then
-         end_line
-      endif
-   endif
-compile endif  -- WANT_STREAM_MODE
-
-/* ------ Keys unused in standard E ------------------------------------------
-
-a_2, a_3, a_5, a_6, a_7, a_8, a_9
-
-a_f2, a_f3, a_f4, a_f5, a_f6, a_f9
-
-a_g, a_h, a_i, a_k, a_q, a_v
-
-c_6, c_minus, c_backslash
-
-c_leftbracket, c_rightbracket, (EOS2 only:) a_leftbracket, a_rightbracket
-
-c_f9, c_f10
-
-c_g, c_i, c_j, c_prtsc, c_q, c_u
-
-f5
-
-s_f6, s_f7, s_f8, s_f9, s_f10
-
------  The following is for EOS2 4.10 or above only.  -----
-
-New keys that work on even older unenhanced AT keyboards:
-   c_up, c_down
-   pad5, c_pad5
-   c_padminus, c_padplus, c_padstar
-   c_ins, c_del
-   c_tab, a_tab
-   a_leftbracket, a_rightbracket
-
-On an enhanced keyboard only:
-   f11, f12, and c_,s_,a_
-   pad_enter               is defined the same as enter
-   a_enter and a_padenter are defined the same as enter
-   c_pad_enter             is defined the same as c_enter
-   pad_slash               is defined the same as '/'
-   c_padslash              is defined the same as '/'
-
------  The following is for EPM only.  -----
-  * Since we are using only keys defined by PM (and not looking at
-    scan codes), we no longer have the keys:
-      padplus, c_padplus, c_padstar
-      pad_slash, c_padslash
-      pad5, c_pad5
-   * We gained the new keys:
-    - space, s_space, c_space, and a_space
-         (The space bar is a virtual key to PM, not a character key.  If you
-         want to bind an action to the space key, write  def space=  instead of
-         the old  def ' '= .  The good news is that you get all the shift
-         states of the space bar, although alt_space is preempted by PM.)
-    - c_1 through c_0
-         (So now we have a complete set of alt- and ctrl-digits.)
----------------------------------------------------------------------------- */
 
