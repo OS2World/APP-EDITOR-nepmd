@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.1 2004-06-03 23:28:16 aschn Exp $
+* $Id: config.e,v 1.2 2004-07-01 12:07:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -39,6 +39,19 @@
 ; CHECK_FOR_LEXAM, WPS_SUPPORT, ENTER_ACTION, C_ENTER_ACTION, HOST_SUPPORT
 ; my_CURSORDIMENSIONS, my_SAVEPATH, WANT_BITMAP_BACKGROUND, INITIAL_TOOLBAR,
 ; my_STACK_CMDS, my_CUA_MENU_ACCEL, SUPPORT_USER_EXITS
+
+; Provide some consts, for the case a user really wants to change this:
+const
+compile if not defined(CONFIGDLG_START_WITH_CURRENT_FILE_SETTINGS)
+   -- 0 => start with settings from EPM.INI
+   CONFIGDLG_START_WITH_CURRENT_FILE_SETTINGS = 0     -- previous standard would have been 1
+compile endif
+compile if not defined(CONFIGDLG_CHANGE_FILE_SETTINGS)
+   CONFIGDLG_CHANGE_FILE_SETTINGS = 'REFRESHDEFAULT'  -- previous standard would have been 1
+compile endif
+compile if not defined(CONFIGDLG_ASK_REFLOW)
+   CONFIGDLG_ASK_REFLOW = 0                           -- previous standard would have been 1
+compile endif
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
@@ -130,16 +143,22 @@ compile endif
 
    parse arg hndle page send_default .
 
-send_default = 0  ----------------------------------------------------------------------
-;                  -- This will open the settings dialog with values from EPM.INI, not
-;                  -- from the default file. (Usually send_default is = 2.)
-;                  -- But setconfig (called when the dialog is closed) will compare
-;                  -- these settings with the current file's settings. If different,
-;                  -- the settings for the current file will be changed, what is
-;                  -- probably not intended.
-;                  -- Ok, disabled in defc setconfig the update of current file's
-;                  -- margins and tabs now.
-;                  -- Settings notebook will change only default or global settings now.
+   --------------------------------------------------------------------------
+   -- The following will open the settings dialog with values from EPM.INI,
+   -- not from the current file. (Usually send_default is = 2.)
+   -- But setconfig (called when the dialog is closed) will compare
+   -- these settings with the current file's settings. If different,
+   -- the settings for the current file will be changed, what is
+   -- probably not intended.
+   -- Ok, disabled in defc setconfig the update of current file's
+   -- margins and tabs now.
+   -- Settings notebook will change only default or global settings now.
+compile if CONFIGDLG_START_WITH_CURRENT_FILE_SETTINGS = 0  -- new default
+   send_default = 0
+compile elseif CONFIGDLG_START_WITH_CURRENT_FILE_SETTINGS = 1
+   send_default = 2
+compile endif
+   -- else use submitted flag (normally = 2)
 
    -- Notebook control ----------------------------------------------
 compile if WPS_SUPPORT
@@ -448,14 +467,14 @@ defc setconfig
    universal cua_menu_accel
    universal vEPM_POINTER, cursordimensions
 
-   ChangeFileSettings = 0  -- standard was 1
-   AskReflow = 0
+   ChangeFileSettings = CONFIGDLG_CHANGE_FILE_SETTINGS  -- standard was 1
+   AskReflow          = CONFIGDLG_ASK_REFLOW
 
    parse value arg(1) with configid perm newcmd
 
    if     configid = 1 then
 ------------------------------------------------------
-      if ChangeFileSettings then
+      if ChangeFileSettings = 1 then                      -- change current file's setting
          if .margins <> newcmd then
             .margins = newcmd
             'postme refreshinfoline MARGINS'
@@ -463,8 +482,11 @@ defc setconfig
                'postme maybe_reflow_all'
             endif
          endif
+      elseif ChangeFileSettings = 'REFRESHDEFAULT' then   -- change setting of all files in
+         'RingRefreshSetting DEFAULT SetMargins 'newcmd   -- the ring with default settings
       endif
       vDEFAULT_MARGINS = setini( INI_MARGINS, newcmd, perm)
+      'RefreshInfoLine MARGINS'
 ------------------------------------------------------
 
    elseif configid = 2 then
@@ -473,13 +495,16 @@ defc setconfig
 
    elseif configid = 3 then
 ------------------------------------------------------
-      if ChangeFileSettings then
+      if ChangeFileSettings = 1 then                      -- change current file's setting
          if .tabs <> newcmd then
             .tabs = newcmd
             'postme refreshinfoline TABS'
          endif
+      elseif ChangeFileSettings = 'REFRESHDEFAULT' then   -- change setting of all files in
+         'RingRefreshSetting DEFAULT SetTabs 'newcmd      -- the ring with default settings
       endif
       vDEFAULT_TABS = setini( INI_TABS, newcmd, perm)
+      'RefreshInfoLine TABS'
 ------------------------------------------------------
 
    elseif configid = 4 then
@@ -584,13 +609,22 @@ compile endif
          endif
       endif
 */
+-- todo?
       if markflg <> default_cua_marking_switch then
-         if isadefc('toggle_default_cua_mark') then
-            'toggle_default_cua_mark'  -- requires newmenu
-         elseif ChangeFileSettings then
+         if ChangeFileSettings = 1 then                      -- change current file's setting
             'CUA_mark_toggle'  -- old definition
-            'postme refreshinfoline MARKINGMODE'
+            cua_marking_switch = markflg
+            'postme RefreshInfoline MARKINGMODE'
+         elseif ChangeFileSettings = 'REFRESHDEFAULT' then
+            next = GetAVar('cuamarking.'fid)  -- query file setting
+            if next = 'DEFAULT' | next = '' then  -- unset if tabkey was not changed by any modeexecute
+               'CUA_mark_toggle'
+               'SetCuaMarking' markflg
+               cua_marking_switch = markflg
+               'postme RefreshInfoline MARKINGMODE'
+            endif
          endif
+         default_cua_marking_switch = markflg
       endif
 ------------------------------------------------------
 /*
@@ -600,14 +634,23 @@ compile endif
          endif
       endif
 */
+-- todo?
       if streamflg <> default_stream_mode then
-         if isadefc('toggle_default_stream') then
-            'toggle_default_stream'  -- requires newmenu
-         elseif ChangeFileSettings then
+         if ChangeFileSettings = 1 then                      -- change current file's setting
             'stream_toggle'  -- old definition
-            'postme refreshinfoline STREAMMODE'
+            stream_mode = streamflg
+            'postme RefreshInfoline STREAMMODE'
+         elseif ChangeFileSettings = 'REFRESHDEFAULT' then
+            next = GetAVar('streammode.'fid)  -- query file setting
+            if next = 'DEFAULT' | next = '' then  -- unset if tabkey was not changed by any modeexecute
+               'stream_toggle'
+               stream_mode = streamflg
+               'postme RefreshInfoLine STREAMMODE'
+            endif
          endif
+         default_stream_mode = streamflg
       endif
+
 ------------------------------------------------------
       if longnames <> '' then
          show_longnames = longnames
@@ -634,19 +677,19 @@ compile endif
    elseif configid = 19 then
       on = newcmd
 ------------------------------------------------------
-/*
-      if ChangeFileSettings then
-         tab_key = on
-         'postme refreshinfoline TABKEY'
-      endif
-*/
       if on <> default_tab_key then
-         if isadefc('toggle_default_tabkey') then
-            'toggle_default_tabkey'  -- requires newmenu
-         elseif ChangeFileSettings then
+         if ChangeFileSettings = 1 then                      -- change current file's setting
             tab_key = on -- old definition
-            'postme refreshinfoline TABKEY'
+            'postme RefreshInfoline TABKEY'
+         elseif ChangeFileSettings = 'REFRESHDEFAULT' then
+            getfileid fid
+            next = GetAVar('tabkey.'fid)  -- query file setting
+            if next = 'DEFAULT' | next = '' then  -- unset if tabkey was not changed by any modeexecute
+               tab_key = on
+               'postme RefreshInfoLine TABKEY'
+            endif
          endif
+         default_tab_key = on
       endif
 ------------------------------------------------------
 
@@ -1347,7 +1390,7 @@ defc saveoptions
                     queryframecontrol(4)               || ' ' ||  --  6 Rotate buttons
                     queryframecontrol(32)              || ' ' ||  --  7 Info at top
                     cua_marking_switch                 || ' ' ||  --  8 CUA marking
-                    menu_prompt                        || ' ' ||  --  9 Menu item prompts
+                    menu_prompt                        || ' ' ||  --  9 Menu item hints
                     stream_mode                        || ' ' ||  -- 10 Stream mode
                     rexx_profile                       || ' ' ||  -- 11 REXX profile                fixed 2: exchanged show_longname and rexx_profile
                     show_longnames                     || ' ' ||  -- 12 Show .LONGNAME in titletext
@@ -1448,8 +1491,11 @@ defc DefaultMargins
          parm = leftm
       endif
       NewMargins = leftm rightm parm
+      -- change setting of all files in the ring with default settings
+      'RingRefreshSetting DEFAULT SetMargins 'NewMargins
       vDEFAULT_MARGINS = NewMargins
       call setprofile( app_hini, 'EPM', INI_MARGINS, NewMargins)
+      'RefreshInfoLine MARGINS'
       return
    endif
    -- else open entrybox
@@ -1481,13 +1527,16 @@ defc DefaultMargins
 ; ---------------------------------------------------------------------------
 defc DefaultTabs
    universal app_hini
-   universal vDEFAULT_MARGINS
+   universal vDEFAULT_TABS
    -- if executed with a num as arg
    arg1 = arg(1)
    if arg1 <> '' & isnum(arg1) then
       NewTabs = arg1
+      -- change setting of all files in the ring with default settings
+      'RingRefreshSetting DEFAULT SetTabs 'NewTabs
       vDEFAULT_TABS = NewTabs
       call setprofile( app_hini, 'EPM', INI_TABS, NewTabs)
+      'RefreshInfoLine TABS'
       return
    endif
    -- else open entrybox
@@ -1516,7 +1565,7 @@ defc DefaultTabs
       return
    endif
 
-; Used by File properties menu:                        ---------------------------------------------- Todo -----------------------
+; Used by File properties menu:
 ; ---------------------------------------------------------------------------
 defproc GetHighlight
    on = ( windowmessage( 1,  getpminfo(EPMINFO_EDITFRAME),
