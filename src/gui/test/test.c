@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.29 2002-10-14 17:49:05 cla Exp $
+* $Id: test.c,v 1.30 2002-10-19 14:51:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -278,7 +278,7 @@ do
       if (rc != NO_ERROR)
          printf( "hilite file for mode %s could not be determined, rc=%u\n", pszEpmMode, rc);
       else
-         printf( "hilite file needs %sto be reloaded.\n", (fReload) ? "" : "not ");
+         printf( "hilite file is %s needs (reload %srequired)\n", szHiliteFile, (fReload) ? "" : "not ");
 
       } // testcase QUERYHILIGHTFILE
 
@@ -354,7 +354,7 @@ do
             }
 
          // ----------  create in-memory only file --------------
-   
+
          printf( "- allocate in-memory file\n");
          rc = MmfAlloc( hmmf, (PVOID*) &pszMemory, MMF_FILE_INMEMORY, MMF_ACCESS_READWRITE, ulFilesize);
          if (rc != NO_ERROR)
@@ -362,12 +362,12 @@ do
             printf( " error: cannot allocate in-memory mapped file, rc=%u\n", rc);
             break;
             }
-   
+
          // set memory to all hashmarks
          memset( pszMemory, '#', ulFilesize);
-   
+
          // ----------  write dummy file --------------
-   
+
          // allocate test file
          sprintf( szFile, "%s\\mmftest.txt", getenv( "TMP"));
          printf( "- allocate readwrite file: %s\n", szFile);
@@ -379,12 +379,12 @@ do
             printf( " error: cannot allocate memory mapped file %s, rc=%u\n", szFile, rc);
             break;
             }
-   
+
          // access memory by copying the contents of the in-memory file
          // but leave out first 64 bytes
          printf( "- write to file area\n");
          memcpy( pszFileContents + 64, pszMemory, ulFilesize - 64);
-   
+
          // query size of memory area
          rc = MmfQuerySize( hmmf, pszFileContents, &ulCurrentSize);
          if (rc != NO_ERROR)
@@ -393,7 +393,7 @@ do
             break;
             }
          printf( "- file area size is %u\n", ulCurrentSize);
-   
+
          // update the file
          printf( "- update file\n");
          rc = MmfUpdate( hmmf, pszFileContents);
@@ -402,7 +402,7 @@ do
             printf( " error: cannot update: %s\n", szFile);
             break;
             }
-   
+
          // free memory and file again
          printf( "- free file area\n");
          rc = MmfFree( hmmf, pszFileContents);
@@ -411,7 +411,7 @@ do
             printf( " error: cannot free memory for: %s\n", szFile);
             break;
             }
-   
+
          // free memory or in-memory file
          printf( "- free in-memory file area\n");
          rc = MmfFree( hmmf, pszMemory);
@@ -420,9 +420,9 @@ do
             printf( " error: cannot free memory of in-memory file\n", szFile);
             break;
             }
-   
+
          // ----------  read config sys file --------------
-   
+
          // open up config.sys
          DosQuerySysInfo( QSV_BOOT_DRIVE, QSV_BOOT_DRIVE, &ulValue,  sizeof( ulValue));
          sprintf( szFile, "%c:\\config.sys", (CHAR) ulValue + 'A' - 1);
@@ -433,10 +433,10 @@ do
             printf( " error: cannot allocate memory mapped file %s, rc=%u\n", szFile, rc);
             break;
             }
-   
+
          // display length of config.sys
          printf( "- contents of file is %u bytes long\n", strlen( pszFileContents));
-   
+
          // free memory and file again
          rc = MmfFree( hmmf, pszFileContents);
          if (rc != NO_ERROR)
