@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modify.e,v 1.3 2002-08-18 20:39:01 aschn Exp $
+* $Id: modify.e,v 1.4 2004-01-13 17:27:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -69,7 +69,7 @@ defmodify
 
    getfileid fileid
    if .autosave and .modify>=.autosave then
-      if leftstr(.filename,1,1) <> '.' | .filename = UNNAMED_FILE_NAME then
+      if leftstr(.filename,1,1) <> '.' | .filename = GetUnnamedFilename() then
          sayerror AUTOSAVING__MSG
          'xcom save "'MakeTempName()'"'
          .modify=1                  /* Reraise the modify flag. */
@@ -90,7 +90,7 @@ const
 defmodify
    if .autosave and .modify>=.autosave then
       getfileid fileid
-      if leftstr(.filename,1,1) <> '.' | .filename = UNNAMED_FILE_NAME then
+      if leftstr(.filename,1,1) <> '.' | .filename = GetUnnamedFilename() then
          sayerror AUTOSAVING__MSG
          'xcom save "'MakeTempName()'"'
          .modify=1                  /* Reraise the modify flag. */
@@ -127,7 +127,7 @@ compile if SHOW_MODIFY_METHOD = ''  -- No change in display, just do AUTOSAVE.
 defmodify
    if .autosave and .modify>=.autosave then
       getfileid fileid
-      if leftstr(.filename,1,1) <> '.' | .filename = UNNAMED_FILE_NAME then
+      if leftstr(.filename,1,1) <> '.' | .filename = GetUnnamedFilename() then
          sayerror AUTOSAVING__MSG
          'xcom save "'MakeTempName()'"'
          .modify=1                  /* Reraise the modify flag. */

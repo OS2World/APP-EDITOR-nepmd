@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.14 2003-09-01 05:20:16 aschn Exp $
+* $Id: stdctrl.e,v 1.15 2004-01-13 17:28:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2650,7 +2650,7 @@ defc PROCESSDRAGDROP
    elseif cmdid=1 and hwnd<>getpminfo(EPMINFO_EDITFRAME) and leftstr(.filename,1)<>'.' then
       call PostCmdToEditWindow('e '.filename,hwnd,9,2)  -- Get-able
    elseif cmdid=3 then
-      if .filename=UNNAMED_FILE_NAME then name=''; else name=.filename; endif
+      if .filename=GetUnnamedFilename() then name=''; else name=.filename; endif
       call windowmessage(0,  getpminfo(APP_HANDLE),
                          5386,                   -- EPM_EDIT_NEWFILE
                          put_in_buffer(name,2),  -- share = GETable
@@ -2756,7 +2756,7 @@ compile endif
 
 defproc saveas_dlg(var name, var type)
    type = copies(\0,255)
-   if .filename=UNNAMED_FILE_NAME then
+   if .filename=GetUnnamedFilename() then
       name = type
    else
       name = leftstr(.filename,255,\0)
@@ -3687,7 +3687,7 @@ defc keyin
 
 defc rename
    name = .filename
-   if name=UNNAMED_FILE_NAME then name=''; endif
+   if name=GetUnnamedFilename() then name=''; endif
    parse value entrybox( RENAME__MSG,
                          '',
                          name,

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.8 2003-08-31 19:46:42 aschn Exp $
+* $Id: stdprocs.e,v 1.9 2004-01-13 17:28:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -206,6 +206,13 @@ compile else
  compile endif
 compile endif
    cursor_dimensions cursorw, cursorh
+
+; ---------------------------------------------------------------------------
+; Replace all UNNAMED_FILE_NAME consts with GetUnnamedFileName()
+; The universal var is set in MAIN.E.
+defproc GetUnnamedFileName
+   universal unnamedfilename
+   return unnamedfilename
 
 ; Moved defproc highlight_match(search_len) to LOCATE.E
 
@@ -446,7 +453,7 @@ defproc parse_filename(var filename)
       return 0
    endif
    sourcefile = strip(arg(2))
-   if sourcefile='' | sourcefile=UNNAMED_FILE_NAME then return pos('=',filename) endif
+   if sourcefile='' | sourcefile=GetUnnamedFilename() then return pos('=',filename) endif
 
    if filename='=' then filename=sourcefile; return 0; endif
 

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: clipbrd.e,v 1.4 2003-08-31 22:58:10 aschn Exp $
+* $Id: clipbrd.e,v 1.5 2004-01-13 17:27:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -634,7 +634,7 @@ defc clipview =
    "open 'paste C' 'postme clipview2'"
 
 defc clipview2 =
-   if .filename=UNNAMED_FILE_NAME then
+   if .filename=GetUnnamedFilename() then
       .filename=CLIPBOARD_VIEW_NAME
       .autosave = 0
       .modify = 0

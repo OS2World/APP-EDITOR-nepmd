@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.14 2003-08-31 22:00:26 aschn Exp $
+* $Id: stdcmds.e,v 1.15 2004-01-13 17:28:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -601,7 +601,7 @@ defc newwindow=
          endif
       endif
       fn = .filename
-      if fn=UNNAMED_FILE_NAME then
+      if fn=GetUnnamedFilename() then
          fn=''
       elseif .readonly then
          fn = '/r' fn
@@ -980,9 +980,9 @@ defc s,save=
       return
    endif
    save_as = 0
-   if name='' | name=UNNAMED_FILE_NAME then
+   if name='' | name=GetUnnamedFilename() then
       name=.filename
-      if .filename=UNNAMED_FILE_NAME then
+      if .filename=GetUnnamedFilename() then
          result = saveas_dlg(name, type)
          if result then return result; endif
          'name' name
@@ -1129,7 +1129,7 @@ compile endif
       call message(src)       -- assume host routine gave error msg.
    endif
    if src & save_as then
-      .filename=UNNAMED_FILE_NAME
+      .filename=GetUnnamedFilename()
 compile if SHOW_MODIFY_METHOD = 'TITLE'                 -- remove?
       call settitletext(.filename)                       -- remove?
 compile endif                                           -- remove?

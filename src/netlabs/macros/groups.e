@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.3 2002-08-18 20:33:38 aschn Exp $
+* $Id: groups.e,v 1.4 2004-01-13 17:27:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -44,7 +44,7 @@ const
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
-   include NLS_LANGUAGE'.e'          -- Needed for UNNAMED_FILE_NAME
+;   include NLS_LANGUAGE'.e'          -- Needed for UNNAMED_FILE_NAME
 
 defmain
    ''arg(1)
@@ -111,7 +111,7 @@ defc savegroup =
    universal app_hini
    getfileid startfid
    do i=1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
-      if .filename=UNNAMED_FILE_NAME then
+      if .filename=GetUnnamedFilename() then
          if .last<>1 or textline(1)<>'' then
             activatefile startfid
             sayerror 'An unnamed file exists in the ring; it must have a name to save the ring.'
@@ -274,7 +274,7 @@ defc loadgroup =
       this_file = queryprofile(app_hini, group_name, 'FILE'i)
       if leftstr(this_file, 5)='.DOS ' then
          subword(this_file, 2)  -- execute the command
-      elseif this_file=UNNAMED_FILE_NAME then
+      elseif this_file=GetUnnamedFilename() then
          'xcom e /n'
       else
          'e "'this_file'"'
