@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.16 2002-08-25 14:35:10 cla Exp $
+* $Id: nepmdlib.c,v 1.17 2002-08-28 13:07:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -164,7 +164,7 @@ do
                   PPIB           ppib;
                   PTIB           ptib;
 
-         // now get handle also for EPM.EXE 
+         // now get handle also for EPM.EXE
          DosGetInfoBlocks( &ptib,&ppib);
          hmodule = ppib->pib_hmte;
          }
@@ -176,7 +176,7 @@ do
    DosQueryPathInfo( szFullname, FIL_STANDARD, &fs3, sizeof( fs3));
    DPRINTF(( "\n%s: handle: %u, fullname: %s\n", pszModuleName, hmodule, szFullname));
    // FILESTATUS3
-   sprintf( szFilestamp, "%u/%02u/%02u %2u:%02u:%02u", 
+   sprintf( szFilestamp, "%u/%02u/%02u %2u:%02u:%02u",
             fs3.fdateLastWrite.year + 1980,
             fs3.fdateLastWrite.month,
             fs3.fdateLastWrite.day,
@@ -272,6 +272,14 @@ return _getRexxError( rc, pszBuffer, ulBuflen);
 
 // ------------------------------------------------------------------------------
 
+APIRET EXPENTRY NepmdGetNextClose( HDIR hdir)
+{
+return DosFindClose( hdir);
+}
+
+
+// ------------------------------------------------------------------------------
+
 #define NEPMD_NEXTTYPE_FILE 0
 #define NEPMD_NEXTTYPE_DIR  1
 
@@ -328,10 +336,10 @@ do
 
    }
 
-   // copy back handle - hopefully we don't overwrite memory
+   // copy back handle and append some blanks - hopefully we don't overwrite memory
    // inside the REXX variable stack...
    if ((!rc) && (fNewHandle))
-      _ltoa( hdir, pszHandle, 10);
+      sprintf( pszHandle, "%u   ", hdir);
 
    } while (FALSE);
 
@@ -477,7 +485,7 @@ do
    // insert message in reverse order !
 
    // ------------------------------------------------------------------------
-   // ---  library information  
+   // ---  library information
    {
          PSZ            pszModuleMask = "STR_INFO_NEPMDMODULESTAMP";
          PSZ            pszLoaderExecutable = getenv( ENV_NEPMD_LOADEREXECUTABLE);
