@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.2 2004-07-02 11:21:32 aschn Exp $
+* $Id: newmenu.e,v 1.3 2004-07-04 22:20:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -873,9 +873,9 @@ defproc add_search_menu(menuname)
                                 ''SEARCH_BARP__MSG,
                                 0, mpfrom2short(HP_SEARCH, 0)  -- MIS must be 0 for submenu
    i = i + 1;
-   buildmenuitem menuname, mid, i, SEARCH_MENU__MSG\9 || CTRL_KEY__MSG'+S',                        -- Search...
+   buildmenuitem menuname, mid, i, 'Search dialog...'\9 || CTRL_KEY__MSG'+S',                      -- Search dialog...
                                    'searchdlg' ||
-                                   SEARCH_MENUP__MSG,
+                                   SEARCH_MENUP__MSG' (ignores B and T options)',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_SEARCH, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
@@ -1018,6 +1018,16 @@ defproc add_search_menu(menuname)
    buildmenuitem menuname, mid, i, TAGSDLG_MENU__MSG\9,                                                  -- Tags dialog...
                                    'poptagsdlg' ||
                                    TAGSDLG_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_SEARCH_TAGS, 0)
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Select tags file...'\9 || SHIFT_KEY__MSG'+F8',                       -- Select tags file...
+                                   'tagsfile' ||
+                                   \1'Select a new tags file',
+                                   MIS_TEXT, mpfrom2short(HP_SEARCH_TAGS, 0)
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Refresh tags file...'\9 || SHIFT_KEY__MSG'+F9',                      -- Refresh tags file...
+                                   'maketags *' ||
+                                   \1'Enter file masks for current tags file and rebuild it',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_TAGS, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
@@ -1432,7 +1442,7 @@ compile endif
    -- Returning to the standard menu id:
    i = saved_i
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Default settings dialog...',                                           -- Default settings dialog...
+   buildmenuitem menuname, mid, i, 'Default settings dialog...',                                   -- Default settings dialog...
                                    'configdlg' ||
                                    CONFIG_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_CONFIG, 0)
@@ -3752,11 +3762,15 @@ defc setsearchoptions
 ; used here to recreate the keyset definition with the dokey command.
 defproc build_menu_accelerators(activeaccel)
    universal cua_menu_accel
+   i = 1000
+   -- Re-enable some (not definable via def) key bindings
+   i = i + 1
+   buildacceltable activeaccel, 'dokey s_f1',  AF_VIRTUALKEY + AF_SHIFT, VK_F1, i  -- Sh+F1
+   i = i + 1
+   buildacceltable activeaccel, 'dokey s_f9',  AF_VIRTUALKEY + AF_SHIFT, VK_F9, i  -- Sh+F9
    -- Block action bar accelerator keys
    if not cua_menu_accel then
       UsedMenuAccelerators = GetAVar('usedmenuaccelerators')
-call NepmdPmPrintf( 'NEWMENU: BUILD_MENU_ACCELERATORS (end of INITCONFIG) ['getavar('usedmenuaccelerators')']')
-      i = 1000
       do w = 1 to words( UsedMenuAccelerators)
          char = word( UsedMenuAccelerators, w)
          do u = 1 to 2
@@ -3768,12 +3782,11 @@ call NepmdPmPrintf( 'NEWMENU: BUILD_MENU_ACCELERATORS (end of INITCONFIG) ['geta
             endif
             key = asc(char)
             buildacceltable activeaccel, 'dokey a+'upcase(char), AF_CHAR + AF_ALT, key, i
-            -- save the last used id in an array var
-            call SetAVar( 'lastkeyaccelid', i)
          enddo
       enddo
    endif
-   buildacceltable activeaccel, 'dokey F1',  AF_VIRTUALKEY + AF_HELP, VK_F1, 999  -- F1
+   -- save the last used id in an array var
+   call SetAVar( 'lastkeyaccelid', i)
    return
 
 ; ---------------------------------------------------------------------------
