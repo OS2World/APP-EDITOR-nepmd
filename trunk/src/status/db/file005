@@ -1,12 +1,7 @@
 CATEGORY: file handling
 TITLE: implement smart undo/redo
 PRIO: 1
-STATUS: coding
-FILES: epmsmp\undoredo.e undoredo.e        
-UPDATED: $Id: file005,v 1.1 2002-07-17 15:56:15 cla Exp $
+STATUS: completed
+FILES: epmsmp\undoredo.e undoredo.e
+UPDATED: $Id: file005,v 1.2 2002-11-03 17:26:16 cla Exp $
 
-Change the undo state with Ctrl+PageUp and Ctrl+PageDown
-
-Note:
-- Keep the Ctrl key pressed while undoing/redoing with PageUp and PageDown will 
-  avoid increasing the undo state everytime!
