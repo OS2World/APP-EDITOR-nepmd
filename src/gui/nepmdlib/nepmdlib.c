@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.36 2002-09-07 13:28:12 cla Exp $
+* $Id: nepmdlib.c,v 1.37 2002-09-12 20:12:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -123,6 +123,7 @@ return rc;
 
 static VOID _insertModuleStamp( BOOL fEpmModule, HWND hwndClient, PSZ pszFilename, PSZ pszMessageName,  PSZ pszModuleName)
 {
+         APIRET         rc = NO_ERROR;
          HAB            hab = WinQueryAnchorBlock( HWND_DESKTOP);
          HMODULE        hmodule = NULLHANDLE;
          CHAR           szModuleName[ _MAX_PATH];
@@ -170,8 +171,22 @@ do
          DosQueryModuleHandle( pszModuleName, &hmodule);
       }
 
-   DosQueryModuleName( hmodule, sizeof( szFullname), szFullname);
-   DosQueryPathInfo( szFullname, FIL_STANDARD, &fs3, sizeof( fs3));
+   rc = DosQueryModuleName( hmodule, sizeof( szFullname), szFullname);
+   if (rc == ERROR_INVALID_HANDLE)
+      {
+      // determine fullname from ini
+      QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, szFullname, sizeof( szFullname));
+      strcat( szFullname, "\\NETLABS\\DLL\\NEPMDLIB.DLL");
+      strupr( szFullname);
+      rc = NO_ERROR;
+      }
+   else if (rc != NO_ERROR)
+      break;
+
+   rc = DosQueryPathInfo( szFullname, FIL_STANDARD, &fs3, sizeof( fs3));
+   if (rc != NO_ERROR)
+      break;
+
    DPRINTF(( "\n%s: handle: %u, fullname: %s\n", pszModuleName, hmodule, szFullname));
    // FILESTATUS3
    sprintf( szFilestamp, "%u/%02u/%02u %2u:%02u:%02u",
