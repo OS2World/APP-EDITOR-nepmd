@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.1 2004-06-03 23:29:46 aschn Exp $
+* $Id: reflowmail.e,v 1.2 2004-07-01 11:23:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -488,7 +488,7 @@ compile endif
          -- reset only if a new par, not if a verbatim line
          prevPrevParQuoteLevel = prevParQuoteLevel  -- quote level for prevprev par
          prevParQuoteLevel     = prevQuoteLevel     -- quote level for prev par
-         if marktype() then  -- if marked
+         if FileIsMarked() then  -- if marked
 compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
             call NepmdPmPrintf( 'Line no '.line':  prevLineIsVerbatim = 'prevLineIsVerbatim', noReflow = 'noReflow)
 compile endif
