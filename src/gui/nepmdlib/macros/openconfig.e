@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: openconfig.e,v 1.1 2002-09-13 21:55:05 cla Exp $
+* $Id: openconfig.e,v 1.2 2002-09-16 18:44:04 cla Exp $
 *
 * ===========================================================================
 *
@@ -49,8 +49,86 @@ additional disk I/O.
 - the handle to the opened configuration repository  or
 - the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
 
+@@NepmdOpenConfig@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdOpenConfig* 
+  - or
+- *OpenConfig*
+
+This is identical to the testcase of the [.IDPNL_EFUNC_NEPMDCLOSECONFIG] API.
+
+
+Executing this command will a execute a testcase, which performs
+the access to the configuration repository of the [=TITLE]
+[.IDPNL_REGISTRY_EXPLICITOPEN explicitely opening and closing]
+the repository before / after accessing it.
+
+The testcase performs the following calls
+.ul compact
+- [.IDPNL_EFUNC_NEPMDOPENCONFIG],
+- [.IDPNL_EFUNC_NEPMDWRITECONFIGVALUE],
+- [.IDPNL_EFUNC_NEPMDQUERYCONFIGVALUE],
+- [.IDPNL_EFUNC_NEPMDDELETECONFIGVALUE] and
+- [.IDPNL_EFUNC_NEPMDCLOSECONFIG],
+.el
+and opens up a virtual file, writing the testcase result into it.
+
+If an error occurrs, the error message will be displayed
+result within the status area.
+
 @@
 */
+
+/* ------------------------------------------------------------- */
+/*   allow editor command to call function                       */
+/* ------------------------------------------------------------- */
+
+defc NepmdOpenConfig, OpenConfig =
+
+ TestPath  = '\NEPMD\NepmdLib\Testcase';
+ TestValue = 'This is a testvalue';
+ Hnalde    = 0;
+
+ Handle = NepmdOpenConfig();
+ parse value Handle with 'ERROR:'rc;
+ if (rc > 0) then
+    sayerror 'configuration repository could not be opened, rc='rc;
+    return;
+ endif
+
+ rc = NepmdWriteConfigValue( Handle, TestPath, TestValue);
+ if (rc > 0) then
+    sayerror 'config value "'TestPath'" cout not be written, rc='rc;
+ else
+    QueriedValue  = NepmdQueryConfigValue( Handle, TestPath);
+    if (rc > 0) then
+       sayerror 'value of "'TestPath'" could not be read.';
+    else
+       rc = NepmdDeleteConfigValue( Handle, TestPath);
+       if (rc > 0) then
+          sayerror 'config value  "'TestPath'" could not be deleted.';
+       endif
+    endif
+    rc2 = NepmdCloseConfig( Handle);
+ endif
+
+ if (rc = 0) then
+    helperNepmdCreateDumpfile( 'NepmdOpenConfig/NepmdCloseConfig', '');
+
+    insertline '       handle:' Handle;
+    insertline '      keypath:' TestPath;
+    insertline '     keyvalue:' TestValue;
+    insertline '';
+    insertline 'queried value:' QueriedValue;
+    insertline '';
+    .modify = 0;
+ endif
+
+ return;
+
+
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdOpenConfig                                    */
