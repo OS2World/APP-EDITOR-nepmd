@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.11 2002-09-06 10:01:14 cla Exp $
+* $Id: getnextfile.e,v 1.12 2002-09-06 14:36:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -97,13 +97,21 @@ defc NepmdGetNextFile, GetNextFile =
 
  Handle   = 0;  /* always create a new handle ! */
  AddressOfHandle = address( Handle);
- Filemask = NepmdQueryFullname( arg( 1));
 
- 'xcom e /c .TEST_NEPMDGETNEXTFILE';
- TestTitle = 'NepmdGetNextFile:' Filemask;
- insertline '';
- insertline TestTitle
- insertline copies( '-', length( TestTitle));
+ FileMask = arg( 1);
+ if (FileMask = '') then
+    sayerror 'error: no filename mask specified !';
+ endif
+
+ FileMask = NepmdQueryFullname( FileMask);
+ parse value FileMask with 'ERROR:'rc;
+ if (rc > '') then
+    sayerror 'error: invalid file mask specified !';
+    return;
+ endif
+
+ /* create virtual file */
+ helperNepmdCreateDumpfile( 'NepmdGetNextFile', FileMask);
 
  /* search all files */
  do while (1)
@@ -122,10 +130,10 @@ defc NepmdGetNextFile, GetNextFile =
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
 /*    Handle   = 0;                                              */
-/*    Filename = NepmdGetNextFile( Filemask, address(Handle));    */
+/*    Filename = NepmdGetNextFile( FileMask, address(Handle));   */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdGetNextFile( PSZ   pszFilemask,         */
+/*  APIRET EXPENTRY NepmdGetNextFile( PSZ   pszFileMask,         */
 /*                                    PSZ   pszHandle,           */
 /*                                    PSZ   pszBuffer,           */
 /*                                    ULONG ulBuflen)            */
@@ -146,7 +154,7 @@ defproc NepmdGetNextFile( FileMask, PtrToHandle) =
  LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdGetNextFile",
-                  address( Filemask)            ||
+                  address( FileMask)            ||
                   PtrToHandle                   ||
                   address( Filename)            ||
                   atol( Buflen));

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryinstvalue.e,v 1.2 2002-09-06 10:01:15 cla Exp $
+* $Id: queryinstvalue.e,v 1.3 2002-09-06 14:36:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -75,16 +75,11 @@ NepmdQueryInstValue returns either
 
 defc NepmdQueryInstValue, QueryInstValue
 
- 'xcom e /c .TEST_NEPMDQUERYINSTVALUE';
- insertline '';
- insertline 'NepmdQueryInstValue';
- insertline '-------------------';
- insertline '';
+ helperNepmdCreateDumpfile( 'NepmdQueryInstValue', '');
  insertline helperNepmdQueryInstValue( 'ROOTDIR');
  insertline helperNepmdQueryInstValue( 'LANGUAGE');
  insertline helperNepmdQueryInstValue( 'INIT');
  insertline helperNepmdQueryInstValue( 'MESSAGE');
-
  .modify = 0;
 
 defproc helperNepmdQueryInstValue( ValueTag) =

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querysysinfo.e,v 1.4 2002-09-06 10:01:16 cla Exp $
+* $Id: querysysinfo.e,v 1.5 2002-09-06 14:36:30 cla Exp $
 *
 * ===========================================================================
 *
@@ -98,11 +98,7 @@ NepmdQuerySysInfo returns either
 
 defc NepmdQuerySysInfo, QuerySysInfo
 
- 'xcom e /c .TEST_NEPMDQUERYSYSINFO';
- insertline '';
- insertline 'NepmdQuerySysInfo';
- insertline '-----------------';
- insertline '';
+ helperNepmdCreateDumpfile( 'NepmdQuerySysInfo', '');
  insertline helperNepmdQuerySysInfoValue( 'MAXPATH');
  insertline helperNepmdQuerySysInfoValue( 'MAXCOMPONENT');
  insertline helperNepmdQuerySysInfoValue( 'BOOTDRIVE');

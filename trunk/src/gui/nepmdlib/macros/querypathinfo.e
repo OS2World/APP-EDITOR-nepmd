@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.6 2002-09-06 10:01:15 cla Exp $
+* $Id: querypathinfo.e,v 1.7 2002-09-06 14:36:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -71,12 +71,9 @@ defc NepmdQueryPathInfo, QueryPathInfo
     return;
  endif
 
- 'xcom e /c .TEST_NEPMDQUERYPATHINFO';
- TestTitle = 'NepmdQueryPathInfo:' NepmdQueryFullname( PathName);
- insertline '';
- insertline TestTitle
- insertline copies( '-', length( TestTitle));
- insertline '';
+ /* create virtual file */
+ helperNepmdCreateDumpfile( 'NepmdQueryPathInfo', NepmdQueryFullname( PathName));
+
  insertline helperNepmdQueryPathInfoValue( PathName, 'ATIME');
  insertline helperNepmdQueryPathInfoValue( PathName, 'MTIME');
  insertline helperNepmdQueryPathInfoValue( PathName, 'CTIME');
