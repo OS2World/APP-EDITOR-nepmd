@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.21 2002-08-24 18:31:26 cla Exp $
+.. $Id: nepmd.txt,v 1.22 2002-08-25 18:19:15 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -553,7 +553,7 @@ available on FTP servers in the Internet like:
 .an IDPNL_ADDITIONS_DYNCFG
 .
 The [=TITLE] provides you with a dynamic configuration for *EPM*, which makes
-any changes to your *CONFIG.SYS* obsolete. 
+any changes to your *CONFIG.SYS* obsolete.
 
 [=TOPICS]
 .su 1 H40
@@ -565,7 +565,7 @@ any changes to your *CONFIG.SYS* obsolete.
 .
 We thought a lot about this approach of a dynamic configuration and how to implement
 it best. We decided to copy one binary file, namely the [.IDPNL_ADDITIONS_DYNCFG_LOADER],
-to your system directory (directory *\os2* on your boot drive) to accomplish this. 
+to your system directory (directory *\os2* on your boot drive) to accomplish this.
 Considering, that it normally would be a bad behaviour to clutter the system directory
 with non-system files, like this is well known from the windowze platforms, we
 nevertheless think that in this case the benefit outweighs this drawback by far:
@@ -589,7 +589,7 @@ nevertheless think that in this case the benefit outweighs this drawback by far:
 .
 For having no *CONFIG.SYS* changes, a special *EPM loader executable* is
 copyied to your *?:\OS2* directory (where ?: represents your boot drive).
-It's name is also *epm.exe* and it gets loaded instead of the *EPM* 
+It's name is also *epm.exe* and it gets loaded instead of the *EPM*
 installed on your system, as the real *epm.exe* is installed in ?:\OS2\APPS
 and this directory by default comes after the *?:\OS2* in the PATH statement.
 This approach makes the complete dynamic configuration absolutely transparent
@@ -600,7 +600,7 @@ When EPM.EXE is either loaded from command line or by double-clicking the
 instead of the true *EPM* and does the following:
 .ul compact
 - a special [.IDPNL_ADDITIONS_DYNCFG_ENVFILES environment settings file]
-  is loaded. It holds the complete changes required for the standard environment 
+  is loaded. It holds the complete changes required for the standard environment
   that are required to run all of the [.IDPNL_ADDITIONS], this is in particular
   the case for the support of the [.IDPNL_ADDITIONS_DIRTREE].
 - the true *EPM* executable is searched along the path (of course skipping
@@ -614,7 +614,7 @@ instead of the true *EPM* and does the following:
 .an IDPNL_ADDITIONS_DYNCFG_EXTENV
 .
 All GUI utilities of the [=TITLE], and especially the [.IDPNL_ADDITIONS_DYNCFG_LOADER]
-load the extended environment defined by the [.IDPNL_ADDITIONS_DYNCFG_ENVFILES] 
+load the extended environment defined by the [.IDPNL_ADDITIONS_DYNCFG_ENVFILES]
 coming with the [=TITLE].
 
 The extended environment supports in particular the [.IDPNL_ADDITIONS_DIRTREE] of
@@ -624,17 +624,17 @@ only available within the extended environment, of course).
 [=NOTE]
 .ul compact
 - The modified environment is
-  - available only within the loaded *EPM* instance, so for example 
+  - available only within the loaded *EPM* instance, so for example
     in a shell window of *EPM* or OS/2 windows of fullscreens launched
     from within the loaded *EPM* instance
   - also loaded by GUI utilities of the [=TITLE], like the
     [.IDPNL_ADDITIONS_RECOMP recompilation utility RECOMP],
     so that all source files of the [=TITLE] can be found during recompilation.
 - in order to have the extended environment also available for other processes
-  you can execute *epmenv.cmd* (being part of the [=TITLE]) within an OS/2 
+  you can execute *epmenv.cmd* (being part of the [=TITLE]) within an OS/2
   window or fullscreen. You may want to copy this script file
-  *netlabs\bin\epmenv.cmd* of the installation path of the [=TITLE] to 
-  a directory along your *PATH*, so that it can easily be called from any 
+  *netlabs\bin\epmenv.cmd* of the installation path of the [=TITLE] to
+  a directory along your *PATH*, so that it can easily be called from any
   of your programs.
 .at hi
   The installation routine of the [=TITLE] will not do so for you !
@@ -644,13 +644,13 @@ only available within the extended environment, of course).
 .. .............................................................................
 .an IDPNL_ADDITIONS_DYNCFG_ENVFILES
 .
-Environment files define extensions to the environment, have the filename 
+Environment files define extensions to the environment, have the filename
 extension *.env* and concerning their contents they resemble somewhat to
 batch files:
 .ul compact
 - comment lines start with a colon in the first column
 - empty lines are ignored
-- the lines defining environment variables look like [inf:cmdref.inf SET] statements, just ommitting 
+- the lines defining environment variables look like [inf:cmdref.inf SET] statements, just ommitting
   the *SET* keyword. This allows also to include the value of previously defined environment variables
   into the value of a new definition. The following lines would be valid:
 .sl compact
@@ -708,7 +708,7 @@ in the directory *myepm\bin* with the same name, which is loaded after this main
 .an IDPNL_ADDITIONS_DYNCFG_SEARCHORDER
 .in __todo: link to recomp
 .
-Two [.IDPNL_ADDITIONS_DYNCFG_ENVFILES] are loaded 
+Two [.IDPNL_ADDITIONS_DYNCFG_ENVFILES] are loaded
 when the environment has to be extended for launch of *EPM* or a GUI
 utility of the [=TITLE]. In some of the below cases the name of the executable is
 taken as the name of a searched environment file (still with extension *.env*),
@@ -779,7 +779,7 @@ _*environment variables defined by the environment file loader code:*_
 = installation directory of the [=TITLE]
 - NEPMD__LANGUAGE
 = three letter ISO language identifier for selected language
-. 
+.
   (currently only *eng* for english)
 - NEPMD__LOADEREXECUTABLE
 = full pathname of the [.IDPNL_ADDITIONS_DYNCFG_LOADER]
@@ -935,7 +935,7 @@ Althouth one of the major goals of [=TITLE] is to make any recompilations of
 Usually, when recompiling *EPM* manually, you would call its macro compiler
 after having setup the *EPMPATH* variable according the original and your additional
 macro source files, and that several times until possible errors are solved.
-After that you would close all open *EPM* windows and open a new one in order to 
+After that you would close all open *EPM* windows and open a new one in order to
 check if all works as expected.
 
 The *RECOMP* utility coming with [=TITLE], automates a lot of these steps to your
@@ -1045,13 +1045,13 @@ The following limitations apply to the current version of [=TITLE]:
 .ul
 - For users of the operating systems *OS/2 Warp 4* or *eComStation*,
   the [=TITLE] always requires the files of the *EPM* / *Enhanced Editor*
-  that are installed in directories ?:\OS2\APPS and ?:\OS2\APPS\DLL. If they 
+  that are installed in directories ?:\OS2\APPS and ?:\OS2\APPS\DLL. If they
   are not installed, use the installation program of your operating system
   to install them and reapply the current fixpack.
 .
 - Users of *OS/2 Warp 3* currently cannot use this package, as
   this version of *OS/2* comes with the outdated EPM v5.51.
-  As a workaround, before installing [=TITLE], you can 
+  As a workaround, before installing [=TITLE], you can
   - _manually remove_ the old EPM v5.51 files from your system (backup recommended)  and
   - install the packages
 .ul compact
@@ -1065,7 +1065,7 @@ The following limitations apply to the current version of [=TITLE]:
 .el
 .
   In a forthcoming version [=TITLE] will address that problem and offer
-  to replace an EPM v5.51 with the base EPM application of the  
+  to replace an EPM v5.51 with the base EPM application of the
   *EPM BBS distribution* for *OS/2 Warp 3* users.
 
 .. =============================================================================
@@ -2032,4 +2032,15 @@ are provided under the *GNU General Public License*:
 .fo off
 .include COPYING
 .fo on
+
+.. =============================================================================
+.2 Appendix: E Language functions of the [=DOCTITLE]
+.. =============================================================================
+.an IDPNL_EFUNC
+.
+The following E language functions are provided by the [=TITLE].
+
+[=TOPICS]
+.su 1
+.include ..\..\compile\functions.txt
 

@@ -9,7 +9,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.2 2002-06-06 11:39:16 cla Exp $
+# $Id: makefile,v 1.3 2002-08-25 18:19:15 cla Exp $
 #
 # ===========================================================================
 #
@@ -41,6 +41,12 @@ FILESTOCLEAN= \
 
 INCLUDE=$(INCLUDE);bmp;
 
+# --- some private definitions
+
+ESRCPATH=..\gui\nepmdlib
+LIMITPATH=$(ESRCPATH);$(ESRCPATH)\macros;
+EPMPATH=$(LIMITPATH);%EPMPATH%
+
 # --- pseudotargets ****************
 
 ALL: HELPINF NEPMDINF
@@ -67,6 +73,9 @@ $(BASEDIR)\bin\makefile.inf: makefile.txt *.inc
 
 # ---- generate project documentation INF
 
-$(CMPINFDIR)\nepmd.inf: nepmd.txt *.inc bmp\*
+$(CMPINFDIR)\nepmd.inf: nepmd.txt *.inc bmp\* $(CMPDIR)\functions.txt
    htext /N nepmd.txt $(CMPDIR)\nepmd.ipf $(CMPINFDIR)\nepmd.inf
+
+$(CMPDIR)\functions.txt: ..\gui\nepmdlib\nepmdlib.e ..\gui\nepmdlib\macros\*
+   esrcscan $(ESRCPATH)\nepmdlib.e $(ESRCPATH) $(CMPDIR) $(LIMITPATH) /V
 
