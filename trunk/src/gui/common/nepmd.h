@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.11 2002-08-24 18:29:07 cla Exp $
+* $Id: nepmd.h,v 1.12 2002-09-02 09:36:22 cla Exp $
 *
 * ===========================================================================
 *
@@ -48,6 +48,7 @@
 //       names of the macros used in makefiles where applicable ;-)
 
 #define NEPMD_SUBPATH_BINBINDIR    "netlabs\\bin"
+#define NEPMD_SUBPATH_CMPINFDIR    "netlabs\\book"
 #define NEPMD_SUBPATH_MYBINDIR     "myepm\\bin"
 
 // file path and name definitions used by NepmdGetInstFilename
