@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.4 2002-07-31 14:42:37 cla Exp $
+: $Id: prepare.cmd,v 1.5 2002-08-03 16:39:23 cla Exp $
 :
 : ===========================================================================
 :
@@ -234,7 +234,7 @@
 
 : --- make all files lowercase names
 
- ECHO - lowercase names or directories files
+ ECHO - lowercase names of directories and files
  LT %UNZIPPEDDIR%
 
 :end
