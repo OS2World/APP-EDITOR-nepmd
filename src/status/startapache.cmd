@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: startapache.cmd,v 1.3 2002-09-09 20:58:38 cla Exp $
+* $Id: startapache.cmd,v 1.4 2002-09-19 18:09:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -98,8 +98,11 @@ GetDirName: PROCEDURE
  PARSE ARG Name
 
  /* save environment */
- CurrentDrive = FILESPEC( 'D', DIRECTORY());
- CurrentDir   = DIRECTORY( FILESPEC( 'D', Name));
+ CurrentDrive   = FILESPEC( 'D', DIRECTORY());
+ SpecifiedDrive = FILESPEC( 'D', Name);
+ IF (SpecifiedDrive = '') THEN
+    SpecifiedDrive = CurrentDrive;
+ CurrentDir     = DIRECTORY( SpecifiedDrive);
 
  /* try directory */
  DirFound  = DIRECTORY( Name);

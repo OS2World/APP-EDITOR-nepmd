@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: _srccopy.cmd,v 1.2 2002-07-21 16:23:56 aschn Exp $
+* $Id: _srccopy.cmd,v 1.3 2002-09-19 18:09:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -129,8 +129,11 @@ GetDirName: PROCEDURE
  PARSE ARG Name
 
  /* save environment */
- CurrentDrive = FILESPEC('D', DIRECTORY());
- CurrentDir   = DIRECTORY(FILESPEC('D', Name));
+ CurrentDrive   = FILESPEC( 'D', DIRECTORY());
+ SpecifiedDrive = FILESPEC( 'D', Name);
+ IF (SpecifiedDrive = '') THEN
+    SpecifiedDrive = CurrentDrive;
+ CurrentDir     = DIRECTORY( SpecifiedDrive);
 
  /* try directory */
  DirFound  = DIRECTORY(Name);
