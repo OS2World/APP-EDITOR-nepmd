@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.21 2002-06-11 14:15:13 cla Exp $
+# $Id: makefile,v 1.22 2002-06-12 18:15:29 cla Exp $
 #
 # ===========================================================================
 #
@@ -41,7 +41,9 @@ BASEDIR=.
 GUIMODULELIST=gui\common gui\recomp
 MODULELIST=ipf rexx netlabs $(GUIMODULELIST) wis
 
-# --- generic module target
+# --- default targets
+
+# - generic default target for building a module
 
 !ifdef MODULE
 SPACER=--------------
@@ -62,11 +64,21 @@ QUIET:
   @cd $(MAKEDIR)
 
 !else
-DEFAULT: HELP
 
+# - default target for to set languagwe
+
+!ifdef NLS
+DEFAULT:
+  @setnls $(NLS)
+!else
+
+# - default target for normal operation
+
+DEFAULT: HELP
+!endif
 !endif
 
-# --- pseudotargets
+# --- other pseudotargets
 
 ALL:
   @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL
@@ -98,4 +110,7 @@ REMOVE:
 CLEAN:
   @echo cleaning up directories ...
   @for %%a in ($(DIRSTOCLEAN)) do @kd %%a
+
+NLS:
+ @setnls $(NLS)
 
