@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.15 2003-12-12 17:20:40 aschn Exp $
+* $Id: stdcnf.e,v 1.16 2004-02-22 15:47:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1081,6 +1081,15 @@ compile endif
 -- directory.  Set this if you prefer the current directory.
 compile if not defined(USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG)
    USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG = 0
+compile endif
+
+-- EPM 6-only; uses EGREP searches.
+-- Include procedures for dealing with sentences and paragraphs?
+;compile if EVERSION < 6
+;   WANT_TEXT_PROCS = 0
+;compile elseif not defined(WANT_TEXT_PROCS)
+compile if not defined(WANT_TEXT_PROCS)
+   WANT_TEXT_PROCS = 1
 compile endif
 
 include NLS_LANGUAGE'.e'

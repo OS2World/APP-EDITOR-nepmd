@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.13 2004-02-01 16:24:33 aschn Exp $
+* $Id: mouse.e,v 1.14 2004-02-22 15:47:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,30 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+Todo:
+- move DClick on URL code to alt_1.e
+- what about 'mailto://' recognized by Mozilla mail (just a bug or valid?)
+  ('mailto:' is valid.)
+*/
+
+; The additions are, on the "no mark" pop-up menu, Mark Sentence
+; and Mark Paragraph; on the "inside mark" pop-up, Extend Sentence
+; Mark and Extend Paragraph Mark; and new mouse click actions:
+;   Alt+Double-click button 2 = Mark sentence
+;   Ctrl+Alt+Double-click button 2 = Mark paragraph
+;   Shift+Alt+Double-click button 2 = Extend mark to end of next sentence
+;   Ctrl+Shift+Alt+Double-click button 2 = Extend mark to end of next paragraph
+;
+; (Not all that memorable, but the best I could do with what was free.
+; A 3-button mouse would help here...)
+;
+; It should be trivial for anyone who's done any EPM macro programming to
+; define keys to invoke these functions if they want.
+;
+; Larry Margolis, margoli@ibm.net
+; http://groups.google.com/groups?hl=de&lr=&ie=UTF-8&selm=5957rh%241buc%242%40news-s01.ca.us.ibm.net&rnum=9
 
 ; Link of MOUSE.E not possible anymore, maybe since v. 6.03.
 compile if defined(MOUSE_SUPPORT)
@@ -62,6 +86,15 @@ const
  compile if not defined(WANT_CHAR_OPS)
    WANT_CHAR_OPS = 1
  compile endif
+ compile if not defined(ENHANCED_PRINT_SUPPORT)
+   ENHANCED_PRINT_SUPPORT = 1
+ compile endif
+ compile if not defined(WANT_TREE)
+   WANT_TREE = 'DYNALINK'
+ compile endif
+ compile if not defined(WANT_TEXT_PROCS)
+   WANT_TEXT_PROCS = 1
+ compile endif
    include NLS_LANGUAGE'.e'
 compile endif  -- not defined(SMALL)
 
@@ -85,7 +118,7 @@ compile if not defined(TOP_OF_FILE_VALID)
    TOP_OF_FILE_VALID = 1       -- Can be '0', '1', or 'STREAM' (dependant on STREAM_MODE)
 compile endif
 ;compile if not defined(DRAG_ALWAYS_MARKS)
-;   DRAG_ALWAYS_MARKS = 0
+;   DRAG_ALWAYS_MARKS = 0  -- replaced in NEPMD
 ;compile endif
 compile if not defined(WANT_MMEDIA)
    WANT_MMEDIA = 0
@@ -583,6 +616,28 @@ defc markword
    endif
    call pmark_word()
 
+compile if WANT_TEXT_PROCS
+defc marksentence
+   if arg(1) then
+      'MH_gotoposition'
+      unmark
+   endif
+   call mark_sentence()
+
+defc markparagraph
+   if arg(1) then
+      'MH_gotoposition'
+      unmark
+   endif
+   call mark_paragraph()
+
+defc extendsentence
+   call mark_through_next_sentence()
+
+defc extendparagraph
+   call mark_through_next_paragraph()
+compile endif -- WANT_TEXT_PROCS
+
 defc marktoken
    if arg(1) then
       'MH_gotoposition'
@@ -1038,8 +1093,14 @@ compile if WANT_CUA_MARKING = 'SWITCH' or WANT_CUA_MARKING = 0
       call register_mousehandler(1, '1 SECONDCLK 0', 'MH_double')
  compile endif
       call register_mousehandler(1, '2 SECONDCLK 0', 'markword 1')
-      call register_mousehandler(1, '2 SECONDCLK 2', 'marktoken 1')
-      call register_mousehandler(1, '2 SECONDCLK 1', 'findword 1')
+      call register_mousehandler(1, '2 SECONDCLK 2', 'marktoken 1')     -- Ctrl
+      call register_mousehandler(1, '2 SECONDCLK 1', 'findword 1')      -- Shift
+ compile if WANT_TEXT_PROCS
+      call register_mousehandler(1, '2 SECONDCLK 4', 'marksentence 1')  -- Alt
+      call register_mousehandler(1, '2 SECONDCLK 6', 'markparagraph 1') -- Ctrl+Alt
+      call register_mousehandler(1, '2 SECONDCLK 5', 'extendsentence')  -- Alt+Shift
+      call register_mousehandler(1, '2 SECONDCLK 7', 'extendparagraph') -- Ctrl+Alt+shift
+ compile endif -- WANT_TEXT_PROCS
  compile if WANT_KEYWORD_HELP -- and not WANT_SPEECH
       call register_mousehandler(1, '1 SECONDCLK 2', 'kwhelp')
  compile endif
@@ -1203,6 +1264,20 @@ const
    FIND_TOKEN_MENU__MSG = 'Find identifier'
    FIND_TOKEN_MENUP__MSG = \1'Find the next occurrence of the identifier under the mouse pointer.'
    HP_POPUP_FINDTOKEN = 0
+compile if WANT_TEXT_PROCS
+   MARK_SENTENCE_MENU__MSG = 'Mark sentence'
+   MARK_SENTENCE_MENUP__MSG = \1'Mark sentence around mouse pointer.'
+   HP_POPUP_MARKSENTENCE = 0
+   MARK_PARAGRAPH_MENU__MSG = 'Mark paragraph'
+   MARK_PARAGRAPH_MENUP__MSG = \1'Mark paragraph around mouse pointer.'
+   HP_POPUP_MARKPARAGRAPH = 0
+   EXTEND_SENTENCE_MENU__MSG = 'Extend sentence mark'
+   EXTEND_SENTENCE_MENUP__MSG = \1'Extend character mark through end of next sentence.'
+   HP_POPUP_EXTENDSENTENCE = 0
+   EXTEND_PARAGRAPH_MENU__MSG = 'Extend paragraph mark'
+   EXTEND_PARAGRAPH_MENUP__MSG = \1'Extend character mark through end of next paragraph.'
+   HP_POPUP_EXTENDPARAGRAPH = 0
+compile endif -- WANT_TEXT_PROCS
    UPCASE_MARK_MENU__MSG = 'Uppercase selection'
    UPCASE_MARK_MENUP__MSG = \1'Translate selected text to upper case.'
    HP_POPUP_UPCASEMARK = 0
@@ -1309,6 +1384,7 @@ compile if INCLUDE_STANDARD_CONTEXT_MENU
    if in_mark then  -- Build Inside-Mark pop-up
  compile endif
       gray_if_charmark = 16384*(MT='C')
+      gray_if_notcharmark = 16384 - gray_if_charmark
       buildmenuitem menuname, 80, 8000, UNMARK_MARK_MENU__MSG\9'Alt+U',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)
       buildmenuitem menuname, 80, 8001, DELETE_MARK_MENU__MSG\9'Alt+D',   'DUPMARK D'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
       buildmenuitem menuname, 80, 8002, FILL_MARK_MENU__MSG\9'Alt+F',     'Fill'FILL_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_FILL, 0)
@@ -1317,33 +1393,38 @@ compile if INCLUDE_STANDARD_CONTEXT_MENU
       buildmenuitem menuname, 80, 8005, LOCASE_MARK_MENU__MSG\9'Ctrl+F4', 'key 1 c+f4'LOCASE_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_LOCASEMARK, 0)
       buildmenuitem menuname, 80, 8006, SORT_MARK_MENU__MSG,              'Sort'SORT_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_SORT, gray_if_charmark)
       buildmenuitem menuname, 80, 8007, \0,                               '',          4, 0
-      buildmenuitem menuname, 80, 8008, SHIFT_MENU__MSG,   ''SHIFT_MENUP__MSG, 17, mpfrom2short(HP_POPUP_SHIFT, gray_if_charmark)
+compile if WANT_TEXT_PROCS
+      buildmenuitem menuname, 80, 8008, EXTEND_SENTENCE_MENU__MSG\9,      'EXTENDSENTENCE'EXTEND_SENTENCE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_EXTENDSENTENCE, 0)
+      buildmenuitem menuname, 80, 8009, EXTEND_PARAGRAPH_MENU__MSG\9,     'EXTENDPARAGRAPH'EXTEND_PARAGRAPH_MENUP__MSG, 0, mpfrom2short(HP_POPUP_EXTENDPARAGRAPH, 0)
+      buildmenuitem menuname, 80, 8010, \0,                       '',          4, 0
+compile endif -- WANT_TEXT_PROCS
+      buildmenuitem menuname, 80, 8011, SHIFT_MENU__MSG,   ''SHIFT_MENUP__MSG, 17, mpfrom2short(HP_POPUP_SHIFT, gray_if_charmark)
       nodismiss_gifc = gray_if_charmark + 32  -- 32 = MIA_NODISMISS
-      buildmenuitem menuname, 80, 8009, SHIFTLEFT_MENU__MSG\9'Ctrl+F7',   'key 1 a+F7'SHIFTLEFT_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8010, SHIFTLEFT3_MENU__MSG,             'key 3 a+F7'SHIFTLEFT3_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT3, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8011, SHIFTLEFT8_MENU__MSG,             'key 8 a+F7'SHIFTLEFT8_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT8, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8013, SHIFTRIGHT_MENU__MSG\9'Ctrl+F8',  'key 1 a+F8'SHIFTRIGHT_MENUP__MSG, 2049, mpfrom2short(HP_POPUP_SHIFTRIGHT, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8014, SHIFTRIGHT3_MENU__MSG,            'key 3 a+F8'SHIFTRIGHT3_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTRIGHT3, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8015, SHIFTRIGHT8_MENU__MSG,            'key 8 a+F8'SHIFTRIGHT8_MENUP__MSG, 32769, mpfrom2short(HP_POPUP_SHIFTRIGHT8, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8016, CENTER_MARK_MENU__MSG\9'Alt+T',   'key 1 a+t'CENTER_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_CENTERMARK, gray_if_charmark)
-      buildmenuitem menuname, 80, 8017, \0,                               '',          4, 0
-      buildmenuitem menuname, 80, 8018, CLIP_COPY_MENU__MSG\9 || CTRL_KEY__MSG'+'INSERT_KEY__MSG ,  'Copy2Clip'CLIP_COPY_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPY, 0)
-      buildmenuitem menuname, 80, 8019, CUT_MENU__MSG\9 || SHIFT_KEY__MSG'+'DELETE_KEY__MSG, 'Cut'CUT_MENUP__MSG,       0, mpfrom2short(HP_EDIT_CUT, 0)
-      buildmenuitem menuname, 80, 8020, \0,                               '',          4, 0
-      buildmenuitem menuname, 80, 8021, STYLE_MENU__MSG\9'Ctrl+Y',        'fontlist'STYLE_MENUP__MSG,    0, mpfrom2short(HP_OPTIONS_STYLE, 0)
- compile if CHECK_FOR_LEXAM
-   if LEXAM_is_available then
- compile endif
+      buildmenuitem menuname, 80, 8012, SHIFTLEFT_MENU__MSG\9'Ctrl+F7',   'key 1 a+F7'SHIFTLEFT_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8013, SHIFTLEFT3_MENU__MSG,             'key 3 a+F7'SHIFTLEFT3_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT3, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8014, SHIFTLEFT8_MENU__MSG,             'key 8 a+F7'SHIFTLEFT8_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT8, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8015, SHIFTRIGHT_MENU__MSG\9'Ctrl+F8',  'key 1 a+F8'SHIFTRIGHT_MENUP__MSG, 2049, mpfrom2short(HP_POPUP_SHIFTRIGHT, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8016, SHIFTRIGHT3_MENU__MSG,            'key 3 a+F8'SHIFTRIGHT3_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTRIGHT3, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8017, SHIFTRIGHT8_MENU__MSG,            'key 8 a+F8'SHIFTRIGHT8_MENUP__MSG, 32769, mpfrom2short(HP_POPUP_SHIFTRIGHT8, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8018, CENTER_MARK_MENU__MSG\9'Alt+T',   'key 1 a+t'CENTER_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_CENTERMARK, gray_if_charmark)
+      buildmenuitem menuname, 80, 8019, \0,                               '',          4, 0
+      buildmenuitem menuname, 80, 8020, CLIP_COPY_MENU__MSG\9 || CTRL_KEY__MSG'+'INSERT_KEY__MSG ,  'Copy2Clip'CLIP_COPY_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPY, 0)
+      buildmenuitem menuname, 80, 8021, CUT_MENU__MSG\9 || SHIFT_KEY__MSG'+'DELETE_KEY__MSG, 'Cut'CUT_MENUP__MSG,       0, mpfrom2short(HP_EDIT_CUT, 0)
       buildmenuitem menuname, 80, 8022, \0,                               '',          4, 0
-      buildmenuitem menuname, 80, 8023, PROOF_MENU__MSG,           'proof'PROOF_MENUP__MSG,     0, mpfrom2short(HP_OPTIONS_PROOF, 16384*(mt<>'L'))
- compile if CHECK_FOR_LEXAM
-   endif
- compile endif
+      buildmenuitem menuname, 80, 8023, STYLE_MENU__MSG\9'Ctrl+Y',        'fontlist'STYLE_MENUP__MSG,    0, mpfrom2short(HP_OPTIONS_STYLE, 0)
+  compile if CHECK_FOR_LEXAM
+   if LEXAM_is_available then
+  compile endif
       buildmenuitem menuname, 80, 8024, \0,                               '',          4, 0
+      buildmenuitem menuname, 80, 8025, PROOF_MENU__MSG,           'proof'PROOF_MENUP__MSG,     0, mpfrom2short(HP_OPTIONS_PROOF, 16384*(mt<>'L'))
+  compile if CHECK_FOR_LEXAM
+   endif
+  compile endif
+      buildmenuitem menuname, 80, 8026, \0,                               '',          4, 0
  compile if ENHANCED_PRINT_SUPPORT
-      buildmenuitem menuname, 80, 8025, PRT_MARK_MENU__MSG'...',          'PRINTDLG M'ENHPRT_MARK_MENUP__MSG,0, mpfrom2short(HP_EDIT_ENHPRINT, 0)
- compile else
-      buildmenuitem menuname, 80, 8025, PRT_MARK_MENU__MSG,               'DUPMARK P'PRT_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_PRINT, 0)
+      buildmenuitem menuname, 80, 8027, PRT_MARK_MENU__MSG'...',          'PRINTDLG M'ENHPRT_MARK_MENUP__MSG,0, mpfrom2short(HP_EDIT_ENHPRINT, 0)
+  compile else
+      buildmenuitem menuname, 80, 8027, PRT_MARK_MENU__MSG,               'DUPMARK P'PRT_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_PRINT, 0)
  compile endif
    elseif mt<>' ' then  -- Build Outside-Mark pop-up
       'MH_gotoposition'
@@ -1358,18 +1439,23 @@ compile if INCLUDE_STANDARD_CONTEXT_MENU
       ch = substr(textline(.line), .col, 1)
       gray_if_space = 16384*(ch=' ' | not .line)
       buildmenuitem menuname, 80, 8000, MARK_WORD_MENU__MSG\9'Alt+W',      'MARKWORD'MARK_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKWORD, gray_if_space)
-      buildmenuitem menuname, 80, 8001, MARK_TOKEN_MENU__MSG\9'CtrL+W',    'MARKTOKEN'MARK_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKTOKEN, gray_if_space)
+      buildmenuitem menuname, 80, 8001, MARK_TOKEN_MENU__MSG\9'Ctrl+W',    'MARKTOKEN'MARK_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKTOKEN, gray_if_space)
       buildmenuitem menuname, 80, 8002, FIND_TOKEN_MENU__MSG,              'FINDWORD'FIND_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_FINDTOKEN, gray_if_space)
       buildmenuitem menuname, 80, 8003, \0,                       '',          4, 0
-      buildmenuitem menuname, 80, 8004, UPCASE_WORD_MENU__MSG\9'Ctrl+F1',  'key 1 c+f1'UPCASE_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_UPCASEWORD, gray_if_space)
-      buildmenuitem menuname, 80, 8005, LOCASE_WORD_MENU__MSG\9'Ctrl+F2',  'key 1 c+f2'LOCASE_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_LOCASEWORD, gray_if_space)
+compile if WANT_TEXT_PROCS
+      buildmenuitem menuname, 80, 8004, MARK_SENTENCE_MENU__MSG,           'MARKSENTENCE'MARK_SENTENCE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKSENTENCE, 0)
+      buildmenuitem menuname, 80, 8005, MARK_PARAGRAPH_MENU__MSG,          'MARKPARAGRAPH'MARK_PARAGRAPH_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKPARAGRAPH, 0)
       buildmenuitem menuname, 80, 8006, \0,                       '',          4, 0
-      buildmenuitem menuname, 80, 8007, CENTER_LINE_MENU__MSG\9'Shift+F5', 'key 1 s+f5'CENTER_LINE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_CENTERLINE, 0)
-      buildmenuitem menuname, 80, 8008, TOP_LINE_MENU__MSG,                'newtop'TOP_LINE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_TOP, 0)
-      buildmenuitem menuname, 80, 8009, PASTE_C_MENU__MSG,    PASTE_C_MENUP__MSG,   17+64, mpfrom2short(HP_EDIT_PASTEMENU, 0)
-      buildmenuitem menuname, 80, 8010, PASTE_C_MENU__MSG,   'Paste C'PASTE_C_MENUP__MSG,   0, mpfrom2short(HP_EDIT_PASTEC, 0)
-      buildmenuitem menuname, 80, 8011, PASTE_L_MENU__MSG,   'Paste'PASTE_L_MENUP__MSG,     0, mpfrom2short(HP_EDIT_PASTE, 0)
-      buildmenuitem menuname, 80, 8012, PASTE_B_MENU__MSG,   'Paste B'PASTE_B_MENUP__MSG,   32769, mpfrom2short(HP_EDIT_PASTEB, 0)
+compile endif -- WANT_TEXT_PROCS
+      buildmenuitem menuname, 80, 8007, UPCASE_WORD_MENU__MSG\9'Ctrl+F1',  'key 1 c+f1'UPCASE_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_UPCASEWORD, gray_if_space)
+      buildmenuitem menuname, 80, 8008, LOCASE_WORD_MENU__MSG\9'Ctrl+F2',  'key 1 c+f2'LOCASE_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_LOCASEWORD, gray_if_space)
+      buildmenuitem menuname, 80, 8009, \0,                       '',          4, 0
+      buildmenuitem menuname, 80, 8010, CENTER_LINE_MENU__MSG\9'Shift+F5', 'key 1 s+f5'CENTER_LINE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_CENTERLINE, 0)
+      buildmenuitem menuname, 80, 8011, TOP_LINE_MENU__MSG,                'newtop'TOP_LINE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_TOP, 0)
+      buildmenuitem menuname, 80, 8012, PASTE_C_MENU__MSG,    PASTE_C_MENUP__MSG,   17+64, mpfrom2short(HP_EDIT_PASTEMENU, 0)
+      buildmenuitem menuname, 80, 8013, PASTE_C_MENU__MSG,   'Paste C'PASTE_C_MENUP__MSG,   0, mpfrom2short(HP_EDIT_PASTEC, 0)
+      buildmenuitem menuname, 80, 8014, PASTE_L_MENU__MSG,   'Paste'PASTE_L_MENUP__MSG,     0, mpfrom2short(HP_EDIT_PASTE, 0)
+      buildmenuitem menuname, 80, 8015, PASTE_B_MENU__MSG,   'Paste B'PASTE_B_MENUP__MSG,   32769, mpfrom2short(HP_EDIT_PASTEB, 0)
    endif
 compile endif -- INCLUDE_STANDARD_CONTEXT_MENU
 compile if not VANILLA
@@ -1377,11 +1463,11 @@ tryinclude 'mymsemnu.e'  -- For user-added configuration
 compile endif
    showmenu menuname,1
 compile if DEFAULT_PASTE = 'C'
-   'cascade_popupmenu 8009 8010'  -- Paste cascade; default is Paste (character mark)
+   'cascade_popupmenu 8012 8013'  -- Paste cascade; default is Paste (character mark)
 compile elseif DEFAULT_PASTE = 'B'
-   'cascade_popupmenu 8009 8012'  -- Paste cascade; default is Paste Block
-compile else
-   'cascade_popupmenu 8009 8011'  -- Paste cascade; default is Paste Lines
+   'cascade_popupmenu 8012 8015'  -- Paste cascade; default is Paste Block
+ compile else
+   'cascade_popupmenu 8012 8014'  -- Paste cascade; default is Paste Lines
 compile endif
 
 #define ETK_FID_POPUP          50
