@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.h,v 1.1 2002-09-12 15:23:36 cla Exp $
+* $Id: libreg.h,v 1.2 2002-09-12 22:25:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,6 +26,7 @@
 
 APIRET WriteConfigValue( PSZ pszValuePath, PSZ pszValue);
 APIRET QueryConfigValue( PSZ pszValuePath, PSZ pszBuffer, ULONG ulBuflen);
+APIRET DeleteConfigValue( PSZ pszValuePath);
 
 #endif // LIBREG_H
 
