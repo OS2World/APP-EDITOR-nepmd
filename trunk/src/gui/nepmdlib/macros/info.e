@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.12 2003-08-30 16:01:01 aschn Exp $
+* $Id: info.e,v 1.13 2004-07-02 11:53:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -67,11 +67,9 @@ configuration of your system and the installation of your
 ; We want this command also if included in EPM.E to call it from
 ; the command line or from an menu item.
 
-defc NepmdInfo =
-
- rc = NepmdInfo();
-
- return;
+defc NepmdInfo
+   rc = NepmdInfo()
+   return
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdInfo                                          */
@@ -83,40 +81,133 @@ defc NepmdInfo =
 /*  APIRET EXPENTRY NepmdInfo( HWND hwndClient);                 */
 /* ------------------------------------------------------------- */
 
-defproc NepmdInfo =
+defproc NepmdInfo
+   InfoFilename = '.NEPMD_INFO'
 
- NepmdInfoFilename = '.NEPMD_INFO';
+   -- check if old info file already in ring
+   getfileid oldinfofid, InfoFilename
+   if oldinfofid <> '' then
+      -- discard previously loaded info file from ring
+      getfileid curfid
+      if curfid = oldinfofid then
+         -- quit current file
+         'xcom quit'
+      else
+         -- temporarily switch to old info file and quit it
+         activatefile oldinfofid
+         'xcom quit'
+         activatefile curfid
+      endif
+   endif
 
- /* discard previously loaded info file from ring */
- if (.filename = NepmdInfoFilename) then;
-    RestoreStartFid = 0;
- else;
-    RestoreStartFid = 1;
-    getfileid startfid;
- endif;
- MaxFiles = filesinring(2);  -- 1 (default): .visible files only, 2: include hidden files, 3: not defined
- do i = 1 to MaxFiles        -- prevent looping forever
-    if (.filename = NepmdInfoFilename) then
-       .modify = 0;
-       'QUIT'
-    endif;
-    next_file;
- enddo;
- /* activate start file only if not just quitted */
- if (RestoreStartFid = 1) then;
-    activatefile startfid;
- endif;
+   -- call C routine
+   LibFile = helperNepmdGetlibfile()
+   rc = dynalink32( LibFile,
+                    'NepmdInfo',
+                    gethwndc( EPMINFO_EDITCLIENT))
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- rc = dynalink32( LibFile,
-                  "NepmdInfo",
-                  gethwndc( EPMINFO_EDITCLIENT));
+   helperNepmdCheckliberror( LibFile, rc)
 
- helperNepmdCheckliberror( LibFile, rc);
+   -- make id discardable
+   .modify = 0
 
- /* make id discardable */
- .modify = 0;
+   return rc
 
- return rc;
+/* ------------------------------------------------------------- */
+/*   Helper commands used by the C routine 'NepmdInfo'           */
+/* ------------------------------------------------------------- */
+/*   Some values can only be queried by E commands, so they're   */
+/*   defined here to get executed by the C routine.              */
+/* ------------------------------------------------------------- */
+
+; Insert a line with version of ETK DLLs after the current.
+; Used by nepmdinfo.
+defc InsertEditorVersion
+   MsgName = 'STR_INFO_EDITORVERSION'
+   insertline NepmdGetTextMessage( '', MsgName, ver(0)), .line + 1
+   return
+
+; Insert a line with version of EPM macros after the current.
+; Used by nepmdinfo.
+; The const EVERSION is supplied automatically by the ETPM compiler.
+defc InsertMacrosVersion
+   MsgName = 'STR_INFO_MACROSVERSION'
+   if isadefproc('GetEVersion') then
+      -- In NEPMD, there should exist this proc
+      MacrosVersion = GetEVersion()
+   else
+      -- This should not happen
+      MacrosVersion = EVERSION' (queried from NEPMDLIB.EX)'
+   endif
+   insertline NepmdGetTextMessage( '', MsgName, MacrosVersion), .line + 1
+   return
+
+; Insert a line with path info of EPM.EX after the current
+; Used by nepmdinfo.
+defc InsertLoaderVersion
+   MsgName = 'STR_INFO_NEPMDMODULESTAMP'
+   Loader = get_env('NEPMD_LOADEREXECUTABLE')
+   Loader = NepmdQueryFullName(Loader)
+   lp = lastpos( '\', Loader)
+   Name = substr( Loader, lp + 1)
+   Name = substr( Name, 1, max( 12, min( 12, length(Name))))  -- len = 12, keep in sync with NepmdLib
+   Path = substr( Loader, 1, max( 0, lp - 1))
+   TStamp = NepmdQueryPathInfo( Loader, 'MTIME')
+   n = 1
+   insertline NepmdGetTextMessage( '', MsgName, Name, TStamp, Path), .line + n
+   return
+
+; Insert lines with path info of EPM.EX and other linked .ex files after the current.
+; Used by nepmdinfo.
+defc InsertExVersions
+   MsgName = 'STR_INFO_NEPMDMODULESTAMP'
+   EpmEx = wheredefc('versioncheck')
+   EpmEx = NepmdQueryFullName(EpmEx)
+   lp = lastpos( '\', EpmEx)
+   Name = substr( EpmEx, lp + 1)
+   Name = substr( Name, 1, max( 12, min( 12, length(Name))))  -- len = 12, keep in sync with NepmdLib
+   Path = substr( EpmEx, 1, max( 0, lp - 1))
+   TStamp = NepmdQueryPathInfo( EpmEx, 'MTIME')
+   n = 1
+   insertline NepmdGetTextMessage( '', MsgName, Name, TStamp, Path), .line + n
+   -- find more linked .ex files
+   AutolinkDir = get_env('NEPMD_ROOTDIR')'\myepm\autolink'
+   EpmPath = get_env('EPMPATH')';'
+   rest = AutoLinkDir';'EpmPath
+   do while rest <> ''
+      parse value rest with Path';'rest
+      if Path = '' then
+         iterate
+      endif
+      Handle = 0
+      AddressOfHandle = address(Handle)
+      FileMask = Path'\*.ex'
+      do forever
+         ExFile = NepmdGetNextFile( FileMask, AddressOfHandle)
+         parse value ExFile with 'ERROR:'rc
+         if (rc > '') then
+            leave
+         endif
+         -- ignore EPM.EX
+         ExFile = NepmdQueryFullName(ExFile)
+         if upcase(ExFile) = upcase(EpmEx) then
+            iterate
+         endif
+         ret = linked(ExFile)
+            -- -307  -- sayerror("Link: file not found")
+            -- -308  -- sayerror("Link: invalid filename")
+            -- <0    -- exists but not linked
+         if ret <0 then
+            iterate
+         endif
+         lp = lastpos( '\', ExFile)
+         Name = substr( ExFile, lp + 1)
+         Name = substr( Name, 1, max( 12, min( 12, length(Name))))  -- len = 12, keep in sync with NepmdLib
+         Path = substr( ExFile, 1, max( 0, lp - 1))
+         TStamp = NepmdQueryPathInfo( ExFile, 'MTIME')
+         n = n + 1
+         insertline NepmdGetTextMessage( '', MsgName, Name, TStamp, Path), .line + n
+      enddo
+   enddo
+   return
 
