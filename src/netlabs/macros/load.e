@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.17 2004-02-29 17:15:34 aschn Exp $
+* $Id: load.e,v 1.18 2004-06-03 22:41:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,15 +18,10 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
 /*
 Todo:
--  Make readonly support configurable, allow to edit a readonly file, though
 -  Replace NEPMD_USE_DIRECTORY_OF_CURRENT_FILE with an ini key
--  Replace NEPMD_RESTORE_POS_FROM_EA with an ini key
--  Replace NEPMD_WANT_READONLY with an ini key
 */
-
 ;  LOAD.E                                                Bryan Lewis 1/2/89
 ;
 ;  This event is triggered immediately after a file is loaded.  It will be
@@ -49,13 +44,16 @@ Todo:
 ;  empty file, if EPM was started without a filename. But that is already
 ;  fixed, since in MAIN.E that file is replaced by a 'xcom e /n' loaded file,
 ;  for that the defload event is triggered.
+;
+;  IMPORTANT:
+;  defload should not be used by externally compiled packages, because it
+;  will not be processed reliable. Use the defload hook instead! Many package
+;  writers use to workaround this problem with calling the defload stuff at
+;  every defload again. This will work in most cases, but the performance and
+;  stability will decrease enourmously.
+;  (Much work's waiting to fix all that packages...)
+
 const
-compile if not defined(NEPMD_RESTORE_POS_FROM_EA)  --<--------------------------------- Todo
-   NEPMD_RESTORE_POS_FROM_EA = 1
-compile endif
-compile if not defined(NEPMD_WANT_READONLY)  --<--------------------------------------- Todo
-   NEPMD_WANT_READONLY = 1
-compile endif
 compile if not defined(NEPMD_USE_DIRECTORY_OF_CURRENT_FILE)  --<----------------------- Todo
    NEPMD_USE_DIRECTORY_OF_CURRENT_FILE = 0
 compile endif
@@ -69,14 +67,12 @@ compile if WANT_EBOOKIE = 'DYNALINK'
 compile endif
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE, load_var
    universal default_font
-compile if WANT_LONGNAMES='SWITCH'
-   universal SHOW_LONGNAMES
-compile endif
-   universal CurEditCmd
-   universal RestorePosDisabled
+   universal defloadactive
 
    load_var = 0
-   load_ext = filetype()
+   load_ext = filetype()  -- Extension for the current file. To be used only
+                          -- until the next file gets loaded. Probably not used
+                          -- anymore, because replaced by NepmdGetMode().
    keys edit_keys    -- defaults for non-special filetypes
 
    .tabs     = vDEFAULT_TABS
@@ -87,135 +83,44 @@ compile endif
       return             -- to avoid showing i.e. 'actlist' and '.HELPFILE' files
    endif
 
+   defloadactive = 1  -- This universal var can be used to check if there occuered
+                      -- a defload event after the last afterload was processed.
    Filename = .filename
 
-; --- Set .readonly from file attributes ------------------------------------
-compile if NEPMD_WANT_READONLY
-   -- Get file attributes to set the .readonly field var
-   -- If .readonly is set and = 1, then the %M template pattern for the
-   -- status bar will show 'Read-only' and disables any modification,
-   -- until 'readonly 0' or 'readonly off' is set.
-/*
-   -- 1) using NepmdQueryPathInfo
-   attr = NepmdQueryPathInfo( Filename, 'ATTR')
-   parse value attr with 'ERROR:'rc
-   if rc > '' then  -- file doesn't exist
-      --sayerror 'Attributes for "'Filename'" can''t be obtained, rc = 'rc
-   elseif length(attr) = 5 then
-      .readonly = (substr( attr, 5, 1) = 'R')
-   endif
-*/
-   -- 2) using qfilemode
-   rc = qfilemode( Filename, attrib)  -- DosQFileMode
-   if not rc then   -- file exists
-      .readonly = (attrib // 2)
-   endif
-compile endif  -- NEPMD_WANT_READONLY
+;  Set .readonly from file attributes ---------------------------------------
+   'ReadonlyFromAttrib'
 
-; --- Set .titletext with name = .LONGNAME ----------------------------------
-compile if WANT_LONGNAMES
- compile if WANT_LONGNAMES = 'SWITCH'
-   if SHOW_LONGNAMES then
- compile endif
-      longname = get_EAT_ASCII_value('.LONGNAME')
-      if longname <> '' then
-         filepath = leftstr( Filename, lastpos( '\', Filename))
-         .titletext = filepath || longname
-      endif
- compile if WANT_LONGNAMES = 'SWITCH'
-   endif
- compile endif
-compile endif
-
-; --- Set .font -------------------------------------------------------------
+;  Set .font ----------------------------------------------------------------
    if .font < 2 then    -- If being called from a NAME, and font was set, don't change it.
       .font = default_font
    endif
 
-; --- Restore tabs from EPM.TABS --------------------------------------------
-; --- Restore margins from EPM.MARGINS --------------------------------------
-; --- Restore bookmarks and styles from EPM.ATTRIBUTES ----------------------
+;  Restore tabs from EPM.TABS -----------------------------------------------
+;  Restore margins from EPM.MARGINS -----------------------------------------
+;  Restore bookmarks and styles from EPM.ATTRIBUTES -------------------------
 compile if WANT_BOOKMARKS
    if .levelofattributesupport < 2 then  -- If not already set (e.g., NAME does a DEFLOAD)
       'loadattributes'
    endif
 compile endif
 
-; --- Ebookie support: init bkm ---------------------------------------------
+;  Ebookie support: init bkm ------------------------------------------------
 ;     supports tag languages: BookMaster, GML, FOILS5, APAFOIL, IPF
 ;     see the files in epmbbs\ebookie
 compile if WANT_EBOOKIE
  compile if WANT_EBOOKIE = 'DYNALINK'
    if bkm_avail <> '' then
  compile endif
-      if bkm_defload()<>0 then keys bkm_keys; endif
+      if bkm_defload() <> 0 then keys bkm_keys; endif
  compile if WANT_EBOOKIE = 'DYNALINK'
    endif
  compile endif
 compile endif  -- WANT_EBOOKIE
 
-; --- Restore cursor position from EPM.POS ----------------------------------
-compile if NEPMD_RESTORE_POS_FROM_EA
-   if RestorePosDisabled <> 1 then
-      RestorePosFlag = 1
-      -- Only restore pos if doscmdline/CurEditCmd doesn't position the cursor itself.
-      -- CurEditCmd is set by defc e,ed,edit,epm in EDIT.E or defc recomp in RECOMP.E.
-      -- 1) PMSEEK uses the <filename> 'L <string_to_search>' syntax.
-      -- 2) defc Recompile in src\gui\recompile\recomp.e
-      --    If CurEditCmd was set to 'SETPOS', then the pos will not be
-      --    restored from EA 'EPM.POS' at defload (LOAD.E).
-      --    Usually CurEditCmd is set to doscmdline (MAIN.E), but file
-      --    loading with DDE doesn't use the 'edit' cmd.
-      -- 3) ACDATASEEKER uses the <filename> '<line_no>' syntax.
-                                 -- no pos restore for these cmds
-      NoRestorePosWords        = 'L LOCATE / C CHANGE GOTO SETPOS RESTOREPOS TOP BOT BOTTOM LOADGROUP'
-                                 -- no pos restore if a cmd word starts with these strings
-                                 -- (that handles the '/<search_string>' cmd correctly)
-      NoRestorePosStartStrings = '/'
-      -- Todo:
-      -- 1) This doesn't handle mc cmds yet.
-      -- 2) Disable the check of CurEditCmd if the filespec contains wildcards.
-      --    Otherwise EPM will crash while loading many files (about 130).  --<-- Still happens?
+;  Restore cursor position from EPM.POS -------------------------------------
+   'RestorePosFromEa'
 
-      -- check number (positions cursor on line)
-      if isnum( CurEditCmd ) then
-         RestorePosFlag = 0
-      endif
-      -- check NoRestorePosWords
-      if RestorePosFlag = 1 then
-         do w = 1 to words( NoRestorePosWords )
-            CurWord = word( NoRestorePosWords, w )
-            if wordpos( translate(CurWord), translate(CurEditCmd) ) > 0 then
-               RestorePosFlag = 0
-               leave
-            endif
-         enddo
-      endif
-      -- check NoRestorePosStartStrings if RestorePosFlag = 1
-      if RestorePosFlag = 1 then
-         do w = 1 to words( NoRestorePosStartStrings )
-            CurWord = word( NoRestorePosStartStrings, w )
-            if abbrev( translate(CurEditCmd), translate(CurWord) ) > 0 then
-               RestorePosFlag = 0
-               leave
-            endif
-         enddo
-      endif
-      -- restore pos if RestorePosFlag = 1
-      if RestorePosFlag = 1 then
-         save_pos = get_EAT_ASCII_value('EPM.POS')
-         if save_pos <> '' then
-            -- the size of the EFrame may have changed since last pos save,
-            -- so respect .windowwith/.windowheight as max values for .cursorx/.cursory
-;            parse value save_pos with col line cursorx cursory .
-;            save_pos = col min( line, .last) min( cursorx, .windowwidth) min( cursory, .windowheight)
-            call prestore_pos( save_pos )
-         endif
-      endif
-   endif
-compile endif  -- NEPMD_RESTORE_POS_FROM_EA
-
-; --- Change to dir of current file -----------------------------------------
+;  Change to dir of current file --------------------------------------------
 compile if NEPMD_USE_DIRECTORY_OF_CURRENT_FILE
    if pos( ':\', Filename) then
       call directory('\')
@@ -223,36 +128,61 @@ compile if NEPMD_USE_DIRECTORY_OF_CURRENT_FILE
    endif
 compile endif
 
-; --- Set mode --------------------------------------------------------------
-   Filemode = NepmdGetMode( Filename )
-   CheckFlag = NepmdGetHiliteCheckFlag( Filemode )
+;  Set mode -----------------------------------------------------------------
+   Mode = NepmdGetMode(Filename)
 
-; --- Process all mode dependent settings -----------------------------------
+;  Set array vars for file-specific settings
+/*
+mode
+   call SetAVar( 'highlight.'fid, arg(1))
+   call SetAVar( 'margins.'fid, arg(1))
+   call SetAVar( 'tabs.'fid, arg(1))
+   call SetAVar( 'textcolor.'fid, arg(1))
+   call SetAVar( 'markcolor.'fid, arg(1))
+   call SetAVar( 'keys.'fid, arg(1))
+   call SetAVar( 'dynaspell.'fid, arg(1))
+
+      call SetAVar( 'toolbar.'fid, arg(1))
+      call SetAVar( 'expand.'fid, arg(1))
+      call SetAVar( 'matchtab.'fid, arg(1))
+      call SetAVar( 'editoptions.'fid, arg(1))
+      call SetAVar( 'saveoptions.'fid, arg(1))
+      call SetAVar( 'searchoptions.'fid, arg(1))
+      call SetAVar( 'tabkey.'fid, arg(1))
+      call SetAVar( 'streammode.'fid, arg(1))
+      call SetAVar( 'cuamarking.'fid, arg(1))
+      call SetAVar( 'insertmode.'fid, arg(1))
+      call SetAVar( 'textfont.'fid, arg(1))
+
+
+*/
+
+;  Process all mode dependent settings for defload --------------------------
 ;     it's important to process them near the end of defload,
 ;     otherwise EPM may crash if a huge number of files is loaded
-   if Filemode <> '' then
-      call NepmdProcessMode( Filemode, CheckFlag)
-   endif  -- if Filemode <> ''
+   -- The load_<mode> hook is executed here.
+   getfileid fid
+   -- Args not required anymore since the code of HookExecute load_<mode>
+   -- was copied into ProcessLoadSettings instead executing the command.
+   'ProcessLoadSettings' Mode fid
 
-; --- Process hook ----------------------------------------------------------
-   if isadefc('HookExecute') then
-      -- The 'load' and 'loadonce' hook is a comfortable way to overwrite
-      -- some file properties while a file is loaded. These properties were
-      -- set by defload, e.g.: margins, tabs, keyset, mode.
-      -- Example: 'HookAdd loadonce tabs 2'  -- no postme required anymore!
-      -- Note   : Hooks are only able to process commands, not procedures.
-      'HookExecute load'
-      'HookExecuteOnce loadonce'
-   endif
+;  Process hooks ------------------------------------------------------------
+   -- The 'load' and 'loadonce' hook is a comfortable way to overwrite
+   -- some file properties while a file is loaded. These properties were
+   -- set by defload, e.g.: margins, tabs, keyset, mode.
+   -- Example: 'HookAdd loadonce tabs 2'  -- no postme required anymore!
+   -- Note   : Hooks are only able to process commands, not procedures.
+   'HookExecute load'
+   'HookExecuteOnce loadonce'
 
-; --- CICS BMS (Basic Mapping Services) assembler macros support  -----------
+;  CICS BMS (Basic Mapping Services) assembler macros support  --------------
 compile if INCLUDE_BMS_SUPPORT
    if isadefproc('BMS_defload_exit') then
       call BMS_defload_exit()
    endif
 compile endif
 
-; --- Process REXX defload profile  -----------------------------------------
+;  Process REXX defload profile  --------------------------------------------
    if defload_profile_name then
       if not verify(defload_profile_name, ':\', 'M') then  -- Not fully qualified?  Search for it...
          findfile profile1, defload_profile_name, EPATH
@@ -266,9 +196,9 @@ compile endif
       endif
    endif
 
-; --- Refresh InfoLines -----------------------------------------------------
+;  Refresh InfoLines --------------------------------------------------------
    'refreshinfoline FILE'
 
-; --- Highlight cursor ------------------------------------------------------
-;   'postme ShowCursor'
+; continued in AFTERLOAD.E
+
 
