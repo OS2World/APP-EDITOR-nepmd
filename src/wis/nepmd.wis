@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.31 2002-10-31 13:31:40 cla Exp $
+# $Id: nepmd.wis,v 1.32 2002-11-04 13:39:13 cla Exp $
 #
 # ===========================================================================
 #
@@ -32,10 +32,10 @@
 <HEAD>
 
 <PCK INDEX=1
-     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Base Application Support\%ID_VERSION_NEPMD%"
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Base Application Support\%ID_VERSION_NEPMD%"
      TARGET="$(WARPIN_DEFAULTAPPSPATH)\NEPMD"
      BASE
-     REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
+     REQUIRES="Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
      SELECT
      NODESELECT
      TITLE="%PCK_1_TITLE%"
@@ -53,7 +53,7 @@
      ><TINCLUDE name="..\nls\wis\desc1%NLS%.xml"/></PCK>
 
 <PCK INDEX=2
-     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Recompilation package\%ID_VERSION_NEPMD%"
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Recompilation package\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
@@ -64,7 +64,7 @@
      ><TINCLUDE name="..\nls\wis\desc2%NLS%.xml"/></PCK>
 
 <PCK INDEX=3
-     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Programming samples\%ID_VERSION_NEPMD%"
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Programming samples\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
@@ -77,7 +77,7 @@
      ><TINCLUDE name="..\nls\wis\desc3%NLS%.xml"/></PCK>
 
 <PCK INDEX=4
-     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Speech Support\%ID_VERSION_NEPMD%"
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Speech Support\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      TITLE="%PCK_4_TITLE%"
@@ -88,7 +88,7 @@
      ><TINCLUDE name="..\nls\wis\desc4%NLS%.xml"/></PCK>
 
 <PCK INDEX=99
-     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Base Application\%ID_VERSION_NEPMD%"
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Base Application\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      EXTERNAL="nepmd_epmbase.wpp"
