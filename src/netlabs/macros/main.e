@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.7 2002-10-06 23:37:21 aschn Exp $
+* $Id: main.e,v 1.8 2002-10-16 05:18:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -55,6 +55,7 @@ compile if WANT_PROFILE='SWITCH'
 compile endif
    universal should_showwindow
    universal nepmd_hini
+   universal default_search_options, default_edit_options, default_save_options
    should_showwindow = 1  -- Lets cmdline commands inhibit the SHOWWINDOW.
 
    doscmdline = 'e 'arg(1) /* Can do special processing of DOS command line.*/
@@ -162,6 +163,69 @@ compile if DEBUG_MAIN
 compile endif
    endif
 
+   -- Set default options here to avoid loading of PROFILE.ERX
+   -- Note: They can be overwritten with the 'universal' commands in PROFILE.ERX.
+
+   -- default_search_options
+   --    internal default: '+ef'
+   --       +  from top to bottom      e  respect case
+   --       -  from bottom to top      c  don't respect case
+   --       f  from left to right      g  grep
+   --       r  from right to left      x  extended grep
+   --       a  in the whole file       w  search for words
+   --       m  in the marked area      ~  negative search
+   default_search_options = '+fac'
+
+   -- default_edit_options
+   --    internal default: '/b /nt /u'
+   --       /b    don't load file from disk if already in ring
+   --       /c    create a new file
+   --       /d    load it from disk, even if already in ring
+   --       /t    don't convert Tab's
+   --       /nt   no tab chars: convert it into spaces
+   --       /u    Unix line end: LF is line end and CR is ignored
+   --       /l    DOS line end: CRLF is line end, CR's and LF's are text
+   --       /64   wrap every line after 64 chars, on saving there will
+   --             be no line end added at the wrap points if none of the
+   --             following *save* options is set: /o /u /l
+   --       /bin  binary mode: all chars are editable, note the difference
+   --             between '/64 /bin' and '/bin /64'
+   --    How to edit binary files?
+   --       'e /t /l /64 /bin mybinary.file'
+   --    Further options:
+   --       /k0 /k /k1 /k2 /v /r /s /n*
+   default_edit_options = '/b /t /l'
+
+   -- default_save_options
+   --    internal default: '/ns /nt /ne'?
+   --       /s    strip trailing spaces
+   --       /ns   don't strip spaces
+   --       /e    append a file end char
+   --       /ne   no file end char
+   --       /t    convert spaces to tab chars
+   --       /nt   don't convert spaces
+   --       /q    quiet
+   --       /o    insert CRLF as line end char
+   --       /l    insert LF as line end char
+   --       /u    Unix line end: insert LF as line end char and don't append a file end char
+   --    How to save binary files?
+   --       's /nt /ns /ne mybinary.file'
+   --       This will only work, if none of /o /l /u is specified.
+   default_save_options = '/s /ne /nt'
+
+   -- tabglyph: show a circle for the tab char
+   call tabglyph(1)  -- or: 'tabglyph 1'
+
+   -- matchtab: tab places the cursor below the start of the next word from the upper line
+   'matchtab off'
+
+   -- expand: syntax expansion
+;   'expand on'  -- default
+
+   -- escapekey: open EPM commandline with Esc and Ctrl+I
+;   'escapekey on'  -- default now
+
+   -- process PROFILE.ERX
 compile if WANT_PROFILE
  compile if WANT_PROFILE='SWITCH'
    if REXX_PROFILE then
