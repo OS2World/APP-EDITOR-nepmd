@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: bookmark.e,v 1.3 2002-08-09 19:45:23 aschn Exp $
+* $Id: bookmark.e,v 1.4 2002-09-02 22:04:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -760,17 +760,13 @@ defproc put_file_as_MVST(source_fid, target_fid, ea_name)
       ea_ptr = ea_seg
    else
 /*
-      -- compile if EPM32
       ea_ptr = atol(dynalink32(E_DLL,
                                'mymalloc',
                                atol(ea_len_incr+4), 2))
 */
-      --  compile if not POWERPC
       ea_ptr = ltoa(substr(ea_ptr,3,2)\0\0,10)
-      --  compile endif
       r = -270 * (ea_ptr = 0)
 
-      -- compile endif
       ea_ofs = 0
       ea_old_len  = 4           -- Point past length field
    endif

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: e.e,v 1.4 2002-08-21 11:51:04 aschn Exp $
+* $Id: e.e,v 1.5 2002-09-02 22:12:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,12 +41,6 @@ compile if SITE_CONFIG               -- If SITE_CONFIG file was not set to null,
 compile endif
 
 include        'stdcnf.e'      -- Standard configuration; shouldn't be modified.
-
-compile if MENU_LIMIT & defined(STD_MENU_NAME)
- compile if STD_MENU_NAME<>'FEVSHMNU.E' & STD_MENU_NAME<>'OVSHMENU.E'
-  *** Error:  MENU_LIMIT not supported for other than the standard menus.  Omit MENU_LIMIT or STD_MENU_NAME from MYCNF.E.
- compile endif
-compile endif
 
 include        'menuhelp.H'
 

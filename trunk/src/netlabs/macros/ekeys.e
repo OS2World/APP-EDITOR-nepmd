@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ekeys.e,v 1.3 2002-08-09 19:39:54 aschn Exp $
+* $Id: ekeys.e,v 1.4 2002-09-02 22:11:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -56,7 +56,7 @@ compile if E_MARGINS <> 0
       'ma'   E_MARGINS
       endif
 compile endif
-compile if E_KEYWORD_HIGHLIGHTING and EPM32
+compile if E_KEYWORD_HIGHLIGHTING
       if .visible then
          'toggle_parse 1 epmkwds.e'
       endif

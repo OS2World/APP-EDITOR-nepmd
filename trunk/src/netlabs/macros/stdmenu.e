@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.4 2002-09-01 14:42:09 aschn Exp $
+* $Id: stdmenu.e,v 1.5 2002-09-02 22:08:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -50,9 +50,6 @@ defc loaddefaultmenu
    call add_edit_menu(menuname)
    call add_search_menu(menuname)
    call add_options_menu(menuname)
-compile if MENU_LIMIT
-   call add_ring_menu(menuname)
-compile endif
    call add_command_menu(menuname)
    call add_help_menu(menuname)
 
@@ -126,11 +123,7 @@ compile else
 compile endif
 
 define  -- Prepare for some conditional tests
-compile if MENU_LIMIT
-   maybe_ring_accel = 'RING_ACCEL__L <>'
-compile else
    maybe_ring_accel = "' ' <"  -- Will be true for any letter
-compile endif
 compile if defined(ACTIONS_ACCEL__L)  -- For CUSTEPM support
    maybe_actions_accel = 'ACTIONS_ACCEL__L <>'
 compile else
@@ -313,16 +306,14 @@ compile if CHECK_FOR_LEXAM
 compile endif
 
    buildsubmenu menuname, 4, OPTIONS_BAR__MSG, OPTIONS_BARP__MSG, 0 , mpfrom2short(HP_OPTIONS, 0)
-compile if MENU_LIMIT = 0
- compile if RING_OPTIONAL
+compile if RING_OPTIONAL
    if ring_enabled then
- compile endif
+compile endif
       buildmenuitem menuname, 4, 410, LIST_FILES_MENU__MSG\9 || CTRL_KEY__MSG'+G',     'Ring_More'LIST_FILES_MENUP__MSG,  0 , mpfrom2short(HP_OPTIONS_LIST, 0)
       buildmenuitem menuname, 4, 411, \0,                       '',           4, 0
- compile if RING_OPTIONAL
+compile if RING_OPTIONAL
    endif
- compile endif
-compile endif  -- MENU_LIMIT = 0
+compile endif
 compile if SPELL_SUPPORT
  compile if CHECK_FOR_LEXAM
    if LEXAM_is_available then
@@ -399,17 +390,6 @@ compile if SUPPORT_BOOK_ICON
       buildmenuitem menuname, 4, 420, TO_BOOK_MENU__MSG,        'popbook'TO_BOOK_MENUP__MSG, 0, mpfrom2short(HP_OPTIONS_BOOK, 0)
 compile endif
    return
-
-compile if MENU_LIMIT
-defproc add_ring_menu(menuname)
-   buildsubmenu menuname, 5, RING_BAR__MSG, LIST_FILES_MENUP__MSG, 0 , 0
-   if .titletext=='' then
-      buildmenuitem menuname, 5, 500, .filename, '',0,0
-   else
-      buildmenuitem menuname, 5, 500, .titletext, '',0,0
-   endif
-   return
-compile endif
 
 defproc add_command_menu(menuname)
    buildsubmenu menuname, 1, COMMAND_BAR__MSG, COMMAND_BARP__MSG, 0 , mpfrom2short(HP_COMMAND, 0)
@@ -597,10 +577,6 @@ compile if BLOCK_ACTIONBAR_ACCELERATORS
       buildacceltable activeaccel, 'dokey a+'COMMAND_ACCEL__L, AF_CHAR+AF_ALT, COMMAND_ACCEL__A2, 1010  -- a+c
       buildacceltable activeaccel, 'dokey a+'HELP_ACCEL__L,    AF_CHAR+AF_ALT, HELP_ACCEL__A1   , 1011  -- a+H
       buildacceltable activeaccel, 'dokey a+'HELP_ACCEL__L,    AF_CHAR+AF_ALT, HELP_ACCEL__A2   , 1012  -- a+h
- compile if MENU_LIMIT
-      buildacceltable activeaccel, 'dokey a+'RING_ACCEL__L,    AF_CHAR+AF_ALT, RING_ACCEL__A1   , 1013  -- a+R
-      buildacceltable activeaccel, 'dokey a+'RING_ACCEL__L,    AF_CHAR+AF_ALT, RING_ACCEL__A2   , 1014  -- a+r
- compile endif
  compile if defined(ACTIONS_ACCEL__L)  -- For CUSTEPM support
       buildacceltable activeaccel, 'dokey a+'ACTIONS_ACCEL__L, AF_CHAR+AF_ALT, ACTIONS_ACCEL__A1, 1017  -- a+A
       buildacceltable activeaccel, 'dokey a+'ACTIONS_ACCEL__L, AF_CHAR+AF_ALT, ACTIONS_ACCEL__A2, 1018  -- a+a
@@ -612,11 +588,7 @@ compile endif -- BLOCK_ACTIONBAR_ACCELERATORS
 
 compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
 define  -- Prepare for some conditional tests
- compile if MENU_LIMIT
-   maybe_ring_accel = 'RING_ACCEL__L ='
- compile else
    maybe_ring_accel = "' ' ="  -- Will be false for any letter
- compile endif
  compile if defined(ACTIONS_ACCEL__L)  -- For CUSTEPM support
    maybe_actions_accel = 'ACTIONS_ACCEL__L ='
  compile else

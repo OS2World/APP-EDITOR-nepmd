@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.3 2002-08-18 20:36:44 aschn Exp $
+* $Id: main.e,v 1.4 2002-09-02 22:13:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -80,9 +80,6 @@ do i=1 to 1
    if newfileid<>emptyfileid then
       activatefile emptyfileid
       'xcom q'
-compile if    MENU_LIMIT
-      call updateringmenu()
-compile endif
       activatefile newfileid
       call select_edit_keys()
    endif

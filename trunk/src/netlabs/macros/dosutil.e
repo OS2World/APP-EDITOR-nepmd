@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.3 2002-08-09 19:49:53 aschn Exp $
+* $Id: dosutil.e,v 1.4 2002-09-02 22:13:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -37,15 +37,9 @@ defc qt,qtime=
 
 defproc getdatetime
    datetime=substr('',1,20)
- compile if EPM32
-   call dynalink32('DOSCALLS',          -- dynamic link library name
-                  '#230',               -- ordinal value for Dos32GetDateTime
-                  address(datetime),2)
- compile else
-   call dynalink('DOSCALLS',      /* dynamic link library name       */
-                 '#33',           /* ordinal value for DOSGETDATETIME*/
-                 address(datetime))
- compile endif
+   call dynalink32( 'DOSCALLS',          -- dynamic link library name
+                    '#230',               -- ordinal value for Dos32GetDateTime
+                    address(datetime), 2 )
    return dec_to_string(datetime)
    --> Hour24 Minutes Seconds Hund Day MonthNum Year0 Year1 TZ0 TZ1 WeekdayNum
 
@@ -261,10 +255,10 @@ defproc beep   -- Version 4.02
       pitch   = 900  -- 900 Hz for 500 milliseconds sounds like a DOS beep.
       duration= 500
    endif
-   call dynalink32('DOSCALLS',       -- dynamic link library name
-                  '#286',            -- ordinal value for Dos32Beep
-                  atol(pitch) ||     -- Hertz (25H-7FFFH)
-                  atol(duration),2)  -- Length of sound  in ms
+   call dynalink32( 'DOSCALLS',       -- dynamic link library name
+                    '#286',            -- ordinal value for Dos32Beep
+                    atol(pitch) ||     -- Hertz (25H-7FFFH)
+                    atol(duration),2)  -- Length of sound  in ms
    return
 
 /*** demo command:

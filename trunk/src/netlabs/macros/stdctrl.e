@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.3 2002-09-01 14:37:30 aschn Exp $
+* $Id: stdctrl.e,v 1.4 2002-09-02 22:09:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2870,73 +2870,6 @@ compile endif
 
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-³ what's it called: updateringmenu                                           ³
-³                                                                            ³
-³ what does it do : update ring menu                                         ³
-³                                                                            ³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
-*/
-compile if MENU_LIMIT
-defproc updateringmenu()
-   universal activemenu,defaultmenu
-   universal EPM_utility_array_ID
-
- compile if 0  -- LAM: Delete this feature; nobody used it, and it slowed things down.
-   do_array 3, EPM_utility_array_ID, 'menu.0', menucount     -- Item 0 is count of menus.
-   if menucount=0 then return; endif
- compile endif
-   getfileid fid
-   if fid<>'' then
- compile if 0  -- LAM: Delete this feature; nobody used it, and it slowed things down.
-      showmenu_flag = 0
-      do i=1 to menucount
-         do_array 3, EPM_utility_array_ID, 'menu.'i, menuname   -- Get menuname[i]
-         deletemenu menuname, 5, 0, 1                  -- Delete its ring menu
-         if activemenu=menuname then showmenu_flag = 1; endif
-      end
- compile else
-      deletemenu defaultmenu, 5, 0, 1                  -- Delete its ring menu
- compile endif
-
-      startid = fid
-;;    len = 1  -- Will be length of buffer required.  Init to 1 for null terminator.
-      do menuid = 500 to 500+MENU_LIMIT     -- Prevent looping forever.
-;;       len = len + length(.filename) + 7  -- 7 = 1 sep '/' + max 4 for index + 2 blanks
- compile if 0  -- LAM: Delete this feature; nobody used it, and it slowed things down.
-         do i=1 to menucount
-            do_array 3, EPM_utility_array_ID, 'menu.'i, menuname   -- Get menuname[i]
-            if menuid < 500 + MENU_LIMIT then
-               buildmenuitem menuname, 5, menuid, .filename, 'activatefileid 'fid, 0, 0
-            elseif menuid = 500 + MENU_LIMIT then
-               buildmenuitem menuname, 5, menuid, '~'MORE__MSG'...', 'Ring_More', 0, 0
-            endif
-         end
- compile else
-         if menuid < 500 + MENU_LIMIT then
-            if .titletext=='' then
-               buildmenuitem defaultmenu, 5, menuid, .filename, 'activatefileid 'fid, 0, 0
-            else
-               buildmenuitem defaultmenu, 5, menuid, .titletext, 'activatefileid 'fid, 0, 0
-            endif
-         elseif menuid = 500 + MENU_LIMIT then
-            buildmenuitem defaultmenu, 5, menuid, '~'MORE__MSG'...', 'Ring_More', 0, 0
-            activatefile startid
-            leave
-         endif
- compile endif
-         nextfile
-         getfileid fid
-         if fid=startid then leave; endif
-      enddo
-;;    do_array 2, EPM_utility_array_ID, 'NS', len   -- Item NS is NameSize - size of buffer.
-      if activemenu=defaultmenu  then
-         showmenu activemenu
-      endif
-   endif
-compile endif
-
-/*
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: WinMessageBox                                            ³
 ³                                                                            ³
 ³ what does it do : This routine issues a PM WinMessageBox call, and returns ³
@@ -2967,48 +2900,8 @@ defproc winmessagebox(caption, text)
                      atol(msgtype) )         -- Style
 
 
-/*
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-³ what's it called: activatefileid                                           ³
-³                                                                            ³
-³ what does it do : This command is used when a RING menu item is selected   ³
-³                   it switches view to the file that was just selected.     ³
-³                                                                            ³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
-*/
-compile if MENU_LIMIT
-defc activatefileid
-   fid = arg(1)
-   activatefile fid
-compile endif
-
 define
-compile if MENU_LIMIT
    list_col=33                 -- Under 'Ring' on action bar
-compile else
-   list_col=23                 -- Under 'Options' on action bar
-compile endif
-/*
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-³ what's it called: Ring_More                                                ³
-³                                                                            ³
-³ what does it do : This command is called when the More... selection on     ³
-³                   the ring menu is selected.  (Or by the Ring action bar   ³
-³                   item if MENU_LIMIT = 0.)  It generates a listbox         ³
-³                   containing all the filenames, and selects the            ³
-³                   appropriate fileid if a filename is selected.            ³
-³                                                                            ³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
-*/
-defc Ring_More
-   if filesinring()=1 then
-      sayerror ONLY_FILE__MSG
-      return
-   endif
-   call windowmessage(0,  getpminfo(APP_HANDLE),
-                      5141,               -- EPM_POPRINGDIALOG
-                      0,
-                      0)
 
 defproc mpfrom2short(mphigh, mplow)
    return ltoa( atoi(mplow) || atoi(mphigh), 10 )
