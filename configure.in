@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.9 2002-07-23 11:42:55 cla Exp $
+# $Id: configure.in,v 1.10 2004-12-17 23:36:02 aschn Exp $
 #
 # ===========================================================================
 #
@@ -34,16 +34,17 @@
 #     or predefine values as environment variable before
 #     executing make
 
-# set base URL for epm603.zip and epm603b.zip
+# set base URL for epm603b.zip and epm603bupd.zip
 # There is no other location known to me where these
 # two ZIPs are packed like assumed in prepare.cmd !
 
 !ifndef BASEURL
-BASEURL=ftp://ftp.leo.org/pub/comp/os/os2/leo/editors
+# BASEURL=ftp://ftp.leo.org/pub/comp/os/os2/leo/editors
+BASEURL=ftp://hobbes.nmsu.edu/pub/os2/apps/editors/epm
 !endif
 
 # a directory of your choice either empty or already holding
-# the ZIP files of the EPMBBS package (epm603.zip and epm603b.zip).
+# the ZIP files of the EPMBBS package (epm603b.zip and epm603bupd.zip).
 # If files are not present, they are downloaded from LEO
 # from the base URL - see setting BASEURL above
 # - the directory may not exist, but at least directory above

@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.14 2003-03-19 10:26:10 cla Exp $
+.. $Id: neusreng.txt,v 1.15 2004-12-17 23:36:03 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -61,8 +61,8 @@ For this distribution, the following files have been taken from the
 .elist
 server:
 .ul compact
-- *epm603.zip* for the main 6.03b package (31-MAY-1996)  and
-- *epm603b.zip* for the 6.03b update (8-JUL-1996)
+- *epm603b.zip* for the main 6.03b package (31-MAY-1996)  and
+- *epm603bupd.zip* for the 6.03b update (8-JUL-1996)
 .elist
 These packages already include the following:
 .ul compact
@@ -342,7 +342,7 @@ This folder contains the following icons to aid in the development of *EPM* exte
 .. .............................................................................
 .an IDPNL_USAGE_WPSFOLDER_MYEPMSHADOW
 .
-This shadow object represents the 
+This shadow object represents the
 *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]* directory below the installation
 directory of the [=TITLE], where the user
 stores the files for extending the [.IDPNL_CONFIG configuration of EPM].
@@ -1140,15 +1140,29 @@ they possibly execute much faster, as true *REXX* is more flexible for most purp
 .. -----------------------------------------------------------------------------
 .an IDPNL_EPM_BBS_SOURCE
 .
-The following so-called EPMBBS distribution is
+The following so-called EPMBBS distribution, uploaded by Larry Margolis, is
 available on FTP servers in the Internet like:
 .ul compact
 - [http://www.leo.org Link-Everything-Online (http://www.leo.org)]
 .
-  (in file epm603.zip)  and
+  - in file epm603.zip (rename it to epm603b.zip)  and
 - [http://hobbes.nmsu.edu The Hobbes File Archive (http://hobbes.nmsu.edu)]
 .
-  (file by file in the directory /pub/os2/apps/editors/epm)
+  - file by file in the directory /pub/os2/apps/editors/epm  or
+  - in file epm603b.zip  and
+- [ftp://service.boulder.ibm.com IBM (ftp://service.boulder.ibm.com)]
+.
+  - file by file in the directory /ps/products/os2/fixes/v3.0warp/english-us/epmbbs/
+
+The last EPMBBS distribution (as an update to the more complete version
+by Larry Margolis) is available on FTP servers in the Internet like:
+.ul compact
+- [http://www.leo.org Link-Everything-Online (http://www.leo.org)]
+.
+  - in file epm603b.zip (rename it to epm603bupd.zip)  or
+- [http://hobbes.nmsu.edu The Hobbes File Archive (http://hobbes.nmsu.edu)]
+.
+  - in file epm603bupd.zip
 
 .. =============================================================================
 .2 Appendix: The [=DOCTITLE] Installation
@@ -1579,19 +1593,19 @@ have not been included in the distribution, but have been either
 - renamed
 
 .pl bold compact tsize=5
-- epm603.zip - EPMBBS.TXT
+- epm603b.zip - EPMBBS.TXT
 = section [.IDPNL_WHAT_EPM]
-- epm603.zip - README.TXT
+- epm603b.zip - README.TXT
 = deleted
-- epm603.zip - epmapp.zip - README.EPM
+- epm603b.zip - epmapp.zip - README.EPM
 = deleted (some parts are yet to be integrated here)
-- epm603.zip - epmspch.zip - README.TXT
+- epm603b.zip - epmspch.zip - README.TXT
 = section [.IDPNL_SPCHREF]
 
 The following files of the original [.IDPNL_WHAT_EPM EPM package]
 is shipped with with the distribution, but nevertheless included here
 .pl bold compact tsize=5
-- epm603.zip - epmapp.zip - EMHHELP.QHL
+- epm603b.zip - epmapp.zip - EMHHELP.QHL
 = section [.IDPNL_QREF]
 
 .. =============================================================================
