@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.6 2002-08-10 19:23:33 cla Exp $
+* $Id: epmcall.c,v 1.7 2002-08-13 15:48:04 cla Exp $
 *
 * ===========================================================================
 *
@@ -37,6 +37,7 @@
 #define QUEUENAMEBASE "\\QUEUES\\EPMCALL\\"
 
 // -----------------------------------------------------------------------------
+
 PSZ ExpandEnvVar( PSZ pszStr)
 {
          PSZ      pszResult = NULL;
@@ -104,8 +105,14 @@ do
                free( pszResult);
                pszResult = pszNewResult;
                }
+            else
+               {
+               // kick any result, as we are out of memory
+               free( pszResult);
+               pszResult = NULL;
+               break;
+               }
             }
-
          }
 
       // next var please
@@ -120,6 +127,58 @@ return pszResult;
 
 // -----------------------------------------------------------------------------
 
+PSZ _copyname( PSZ pszBuffer, PSZ pszCurrent, PSZ pszEntry)
+{
+         BOOL           fFound = FALSE;
+         PSZ            p;
+         ULONG          ulNameLen;
+         CHAR           szName[ 128];
+
+if (!pszEntry)
+   return pszCurrent;
+
+// copy name to allow proper check with strcmp
+// (strncmp does not work properly here, finds LIB in LIBPATH etc)
+ulNameLen = strchr( pszEntry, '=') - pszEntry;
+strncpy( szName, pszEntry, ulNameLen);
+szName[ ulNameLen] = 0;
+
+
+// check if name is already included
+p = pszBuffer;
+while (*p)
+   {
+   if (!strcmp( p, szName))
+      {
+      fFound = TRUE;
+      break;
+      }
+   p = NEXTSTR( p);
+   }
+
+if (fFound)
+   {
+   // move whole block and thus eliminate old entry
+// DPRINTF(( "var moved: %s ", pszEntry));
+   memcpy( p, p + ulNameLen + 1, pszCurrent - p);
+   pszCurrent -= ulNameLen + 1;
+   }
+else
+   {
+// DPRINTF(( "var added: %s ", pszEntry));
+   }
+
+// copy current name to the end
+strcpy( pszCurrent, szName);
+return NEXTSTR( pszCurrent);
+}
+
+#define ADDVAR(e) {ulEnvSize += strlen( e) + 1; \
+                   pszName = _copyname( pszEnvNameList, pszName, e); \
+                   putenv( e);}
+
+//      ------------------------------------------
+
 APIRET GetExtendedEnvironment( PSZ envv[], PSZ pszEnvFile, PSZ *ppszNewEnv)
 {
          APIRET         rc  = NO_ERROR;
@@ -130,8 +189,11 @@ APIRET GetExtendedEnvironment( PSZ envv[], PSZ pszEnvFile, PSZ *ppszNewEnv)
 
          PSZ           *ppszEnv;
          PSZ            pszVar;
+         PSZ            pszName;
+         PSZ            pszValue;
 
          ULONG          ulEnvSize;
+         PSZ            pszEnvNameList = NULL;
          PSZ            pszEnv = NULL;
 
          FILESTATUS3    fs3;
@@ -158,6 +220,44 @@ do
       break;
       }
 
+   // ------- get name list ----------------------------
+
+   // get size of envnames provided
+   // for simplicity use env size as we add vars anyway
+
+   ppszEnv = envv;
+   ulEnvSize = 0;
+   while (*ppszEnv)
+      {
+      ulEnvSize += strlen( *ppszEnv) + 1;
+      ppszEnv++;
+      }
+   ulEnvSize += 1;
+// DPRINTF(( "unmodified env size is: %u\n", ulEnvSize));
+
+   // get memory for name list
+   pszEnvNameList = malloc( ulEnvSize);
+   if (!pszEnvNameList)
+      {
+      rc = ERROR_NOT_ENOUGH_MEMORY;
+      break;
+      }
+   memset( pszEnvNameList , 0x0, ulEnvSize);
+
+   ppszEnv = envv;
+   pszName = pszEnvNameList;
+   while (*ppszEnv)
+      {
+      // copy var
+      pszName = _copyname( pszEnvNameList, pszName, *ppszEnv);
+
+      // copy next var
+      ppszEnv++;
+      }
+
+   // ------- ------------------------------------------
+
+
    // -------- set internal var(s) first, use a different buffer for each
    //          as putvar only passes a pointer to the environment list !!!
 
@@ -171,7 +271,8 @@ do
                           _EOS(szInstallVar),
                           _EOSSIZE( szInstallVar));
    apszVar[ 0] = strdup( szInstallVar);
-   putenv( apszVar[ 0]);
+   ADDVAR( apszVar[ 0]);
+
 
    // --- > set environment variable for NEPMD language
    memset( szInstallVar, 0, sizeof( szInstallVar));
@@ -183,7 +284,7 @@ do
                           _EOS(szInstallVar),
                           _EOSSIZE( szInstallVar));
    apszVar[ 1] = strdup( szInstallVar);
-   putenv( apszVar[ 1]);
+   ADDVAR( apszVar[ 1]);
 
    // check file
    if (FileExists( pszEnvFile))
@@ -237,8 +338,8 @@ do
             pszNewLine = ExpandEnvVar( pszLine);
             if (pszNewLine)
                {
-               putenv( pszNewLine);
-               DPRINTF(( "addenv: \"%s\"\n", pszNewLine));
+               DPRINTF(( "env added: %s\n", pszNewLine));
+               ADDVAR( pszNewLine);
                }
             else
                DPRINTF(( "ERROR: cannot expand \"%s\"\n", pszLine));
@@ -252,17 +353,11 @@ do
 
       }
 
-   // get size of env provided
-   ppszEnv = envv;
-   ulEnvSize = 0;
-   while (*ppszEnv)
-      {
-      ulEnvSize += strlen( *ppszEnv) + 1;
-      ppszEnv++;
-      }
-   ulEnvSize += 1;
+   // close name list
+   *pszName = 0;
 
-   // get memory
+   // get memory with updated env size
+// DPRINTF(( "estimated new size is: %u\n", ulEnvSize));
    pszEnv = malloc( ulEnvSize);
    if (!pszEnv)
       {
@@ -272,20 +367,20 @@ do
    memset( pszEnv, 0x0, ulEnvSize);
 
    // read env into memory block
+   pszName = pszEnvNameList;
    pszVar = pszEnv;
-   ppszEnv = envv;
-   while (*ppszEnv)
+   while (*pszName)
       {
       // copy var
-      // DPRINTF(( "env: %s\n", *ppszEnv));
-      strcpy( pszVar, *ppszEnv);
+      sprintf( pszVar, "%s=%s",  pszName, getenv( pszName));
+//    DPRINTF(( "copyenv (%u):%s\n", pszVar - pszEnv, pszVar));
 
       // copy next var
       pszVar = NEXTSTR( pszVar);
-      ppszEnv++;
-
+      pszName = NEXTSTR( pszName);
       }
    *pszVar = 0;
+// DPRINTF(( "used env size is: %u\n", pszVar - pszEnv));
 
    // hand over result
    *ppszNewEnv = pszEnv;
@@ -296,7 +391,7 @@ do
 // cleanup on error
 if (rc)
    if (pszEnv) free( pszEnv);
-
+if (pszEnvNameList) free( pszEnvNameList);
 // cleanup
 if (hfile) DosClose( hfile);
 if (pszData) free( pszData);
@@ -542,9 +637,9 @@ do
 
       // take care for included blanks
       if (strchr( argv[ i], ' '))
-         pszMask = "\"%s\"";
+         pszMask = "\"%s\" ";
       else
-         pszMask = "%s";
+         pszMask = "%s ";
 
       sprintf( _EOS( szProgramArgs), pszMask, argv[ i]);
       }
