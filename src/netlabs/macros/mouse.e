@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.11 2003-09-01 06:40:16 aschn Exp $
+* $Id: mouse.e,v 1.12 2004-01-17 22:22:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -108,9 +108,6 @@ compile if (EPM_POINTER < 1 | EPM_POINTER > 14) & EPM_POINTER <> 'SWITCH'
 compile endif
 
 ; Todo:
-compile if not defined(WANT_DATETIME_IN_TITLE)
-   WANT_DATETIME_IN_TITLE = 1
-compile endif
 compile if not defined(MOUSE_MARK_SETS_CURSOR)
 -- Move the cursor to the mouse pointer after a mouse mark.
 -- This was necessary, because otherwise it will be almost unpossible to
@@ -132,6 +129,8 @@ define
    CHARG_MARK =  'CHARG'
    BLOCKG_MARK = 'BLOCKG'
 
+; The following 2 procs are not used:
+; .lineg and .cursoryg set the line without scrolling.
 defproc prestore_pos2(save_pos)
    parse value save_pos with svline svcol svsx svsy
    .lineg = min(svline, .last);                       -- set .line
@@ -217,11 +216,8 @@ defc processmouse
 
    -- 'processmouse' is called at every mouse action
    if not WindowHadFocus then
-compile if WANT_DATETIME_IN_TITLE
-      -- CheckIfUpdated is defined in TITLETEXT.E
-      --'postme checkifupdated'
-      call CheckIfUpdated()
-compile endif
+      'ResetDateTimeModified'
+      'RefreshInfoLine ALTERED'
    endif
 
    if LMousePrefix<>BlankMouseHandler"." then
@@ -1421,6 +1417,10 @@ defc cascade_popupmenu
 ; 'CHORD'         - Both mouse buttons are pressed together.
 
 defc StatWndMouseCmd
+   -- WindowHadFocus works only for the edit window => check everytime.
+   -- 1 CLICK 0 is not defined.
+   'ResetDateTimeModified'
+   'RefreshInfoLine MODIFIED'
    if arg(1)='1 SECONDCLK 0' then
       'versioncheck'
    elseif arg(1)='CONTEXTMENU' then
@@ -1428,6 +1428,10 @@ defc StatWndMouseCmd
    endif
 
 defc MsgWndMouseCmd
+   -- WindowHadFocus works only for the edit window => check everytime.
+   -- 1 CLICK 0 is not defined.
+   'ResetDateTimeModified'
+   'RefreshInfoLine MODIFIED'
    if arg(1)='1 SECONDCLK 0' then
       'messagebox'
    elseif arg(1)='CONTEXTMENU' then
@@ -1444,3 +1448,4 @@ defc SetMousePointer
       mouse_setpointer vEPM_POINTER
    endif
 compile endif
+

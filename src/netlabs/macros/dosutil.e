@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.4 2002-09-02 22:13:30 aschn Exp $
+* $Id: dosutil.e,v 1.5 2004-01-17 22:22:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -343,3 +343,36 @@ defc del, erase =
       sayerror 'RC =' rc
    endif
 compile endif          -- Not SMALL
+
+; ---------------------------------------------------------------------------
+; arg(1) = drive, e.g.: X:
+; Returns e.g.: HPFS | CDFS | JFS | FAT
+defproc QueryFileSys(Drive)
+   dev_name = Drive\0
+   ordinal = 0
+   infobuf=substr( '', 1, 255)
+   infobuflen = atol( length(infobuf))
+   FSAinfolevel = 1
+   rc = dynalink32( 'DOSCALLS',             -- dynamic link library name
+                    '#277',                 -- ordinal value for Dos32QueryFSAttach
+                    address(dev_name)  ||   -- device name
+                    atol(ordinal)      ||   --
+                    atol(FSAinfolevel) ||   -- info level requested
+                    address(infobuf)   ||   -- string offset
+                    address(infobuflen), 2) -- length of buffer
+   if rc then
+      return 'ERROR:'rc
+   else
+      -- For FSAinfolevel 1:
+      iType = itoa( substr( infobuf, 1, 2), 10)
+           -- 1=resident char. dev.; 2=pseudochar dev.; 3=local drive; 4=remote drive
+      cbName = itoa( substr( infobuf, 3, 2), 10)
+      cbFSDName = itoa( substr( infobuf, 5, 2), 10)
+      cbFSAData = itoa( substr( infobuf, 7, 2), 10)
+      parse value substr( infobuf, 9) with szName \0 szFSDName \0 rgFSAData
+      rgFSAData = leftstr( rgFSAData, cbFSAData)
+      --insertline 'dev='dev_name 'iType=' iType 'cbName='cbName 'cbFSDName='cbFSDName 'cbFSAData='cbFSAData, .last+1
+      --insertline '      szName="'szName'" szFSDName="'szfsdname'" rgFSAData="'rgFSAData'"', .last+1
+      return szFSDName
+   endif
+

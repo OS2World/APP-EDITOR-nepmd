@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.15 2004-01-13 17:28:01 aschn Exp $
+* $Id: stdctrl.e,v 1.16 2004-01-17 22:22:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -62,11 +62,6 @@
 ³ CursorBounce  24 CUA_marking     25 Arrows_Internal    26                  ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
-
-const
-compile if not defined(NEPMD_SPECIAL_STATUSLINE)
-   NEPMD_SPECIAL_STATUSLINE = 0
-compile endif
 
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
@@ -1699,9 +1694,7 @@ defc setconfig
    if     configid= 1 then
       if .margins<>newcmd then
          'postme maybe_reflow_all'
-  compile if NEPMD_SPECIAL_STATUSLINE
-         'postme refreshstatusline'  -- refreshstatusline is defined in STATLINE.E
-  compile endif
+         'postme refreshinfoline MARGINS'
       endif
       .margins=newcmd
       vDEFAULT_MARGINS=setini(INI_MARGINS, .margins, perm)
@@ -1713,9 +1706,7 @@ defc setconfig
    elseif configid= 3 then
       rc=0
       .tabs=newcmd
-  compile if NEPMD_SPECIAL_STATUSLINE
-         'postme refreshstatusline'  -- refreshstatusline is defined in STATLINE.E
-  compile endif
+         'postme refreshinfoline TABS'
       if not rc then
          vDEFAULT_TABS=setini(INI_TABS,newcmd, perm)
       endif
@@ -1870,6 +1861,7 @@ defc setconfig
             'saveoptions OptOnly'
          endif
       endif
+      'postme refreshinfoline TABKEY'
  compile endif
 
    elseif configid=20 then
@@ -2809,23 +2801,7 @@ defproc showwindow
                       upcase(arg(1))<>'OFF', -- 0 if OFF, else 1
                       0)
 
-/*
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-³ what's it called: settitletext                                             ³
-³                                                                            ³
-³ what does it do : set the text in the editors active title bar.            ³
-³                                                                            ³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
-*/
-defproc settitletext()
-   text = arg(1)
-
-compile if SHOW_MODIFY_METHOD = 'TITLE'
-   if .modify then
-      text = text || SHOW_MODIFY_TEXT
-   endif
-compile endif
-   .titletext = text
+; Moved defproc settitle.text from STDCTRL.E to STATLINE.E to INFOLINE.E
 
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
@@ -2870,6 +2846,8 @@ defproc winmessagebox(caption, text)
 ³                                                                            ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
+-- Todo:
+-- Move this to FILELIST.E
 defc Ring_More
    if filesinring()=1 then
       sayerror ONLY_FILE__MSG
@@ -4038,3 +4016,4 @@ defc dynafree =
    if res then
       sayerror ERROR__MSG res
    endif
+

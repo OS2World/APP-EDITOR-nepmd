@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.19 2004-01-17 08:03:09 aschn Exp $
+* $Id: main.e,v 1.20 2004-01-17 22:22:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -42,9 +42,16 @@ define
 ; Bug: Every sayerror seems to be executed 2 times (according to the
 ;      MessageBox, but fortunately defmain not.
 ;      (can be verified with NepmdPmPrintf)
+;      Workaround: use the 'refresh' statement before every 'sayerror'.
 ; ->   Better use NepmdPmPrintf and PmPrintf.exe for fast and save
 ;      processing of messages.
 -------- End debug stuff --------
+
+const
+-- Restore last ring if EPM is started without args: Set this to 1.
+compile if not defined(NEPMD_RESTORE_LAST_RING)
+   NEPMD_RESTORE_LAST_RING = 0  -- todo: make this a ini var
+compile endif
 
 ; ---------------------------------------------------------------------------
 ;  -  definit and defmain are processed whenever the .ex file is linked.
@@ -78,9 +85,6 @@ compile endif
 
 ; --- Get args and make it a parameter for the edit cmd ---------------------
    doscmdline = 'e 'arg(1) /* Can do special processing of DOS command line.*/
-
-;;;   unnamed_name=UNNAMED_FILE_NAME  -- Define the name once to save a few bytes.
-;;;   .filename = unnamed_name      -- Ver. 3.11:  Don't rely on fileid.
 
 compile if DEBUG_MAIN
    messageNwait('DEFMAIN: arg(1)="'arg(1)'"')
@@ -140,9 +144,9 @@ compile endif
 ;     For the language-specific versions of the EPM binaries (W4+) all
 ;     resources moved to epmmri.dll. The .Untitled name is stringtable item
 ;     54.
-;     For the Larry Margolis version epmmri.dll doesn't exist. It is located
-;     in etke603.dll as resource, stringtable item 54.
-;     This filename is NLS-dependent and hard-coded in the E Toolkit DLL's,
+;     For the Larry Margolis version epmmri.dll doesn't exist. The .Untitled
+;     name is located in etke603.dll as resource, stringtable item 54.
+;     This filename is NLS-dependent and hard-coded in the E Toolkit DLLs,
 ;     while the filename coming from the 'edit' command queries the constant.
 ;     To keep both names in synch, we take the name from the DLL and replace
 ;     all occurences of the UNNAMED_FILE_NAME const with a query of the
@@ -165,7 +169,15 @@ compile endif
 compile if NEPMD_DEFMAIN_DEBUG
    call NepmdPmPrintf( 'MAIN.E: defmain: doscmdline = 'doscmdline )
 compile endif
+compile if NEPMD_RESTORE_LAST_RING
+   if arg(1) = '' then
+      'restorering'
+   else
+      doscmdline
+   endif
+compile else
    doscmdline
+compile endif
 compile if DEBUG_MAIN
    messageNwait('DEFMAIN: after DOSCMDLINE')
 compile endif
@@ -235,6 +247,9 @@ compile endif
 ; --- Automatically link .ex files from myepm\autolink ----------------------
    call NepmdAutoLink()
 
+; --- Prepare new file list -------------------------------------------------
+   call FileListDefmain()  -- todo: remove this and handle it by defload
+
 ; --- Show menu and window --------------------------------------------------
    -- this moved to the end of defmain
 compile if INCLUDE_MENU_SUPPORT /*& not DELAY_MENU_CREATION*/
@@ -250,7 +265,4 @@ compile if DEBUG_MAIN
       messageNwait('DEFMAIN: after SHOWWINDOW')
 compile endif
    endif
-
-defc NepmdProcessMode
-   call NepmdProcessMode()
 

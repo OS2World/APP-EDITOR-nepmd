@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.15 2004-01-13 17:28:00 aschn Exp $
+* $Id: stdcmds.e,v 1.16 2004-01-17 22:22:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,15 +23,7 @@
 ;
 
 const
-compile if not defined(NEPMD_SPECIAL_STATUSLINE)
-   -- used by defc margins,ma and defc tabs
-   NEPMD_SPECIAL_STATUSLINE = 1
-compile endif
-compile if not defined(WANT_DATETIME_IN_TITLE)
-   -- used by defc s,save
-   WANT_DATETIME_IN_TITLE = 1
-compile endif
-compile if not defined(NEPMD_RESTORE_POS_FROM_EA)
+compile if not defined(NEPMD_RESTORE_POS_FROM_EA)  --<------------------------------- Todo
    -- used by defc s,save
    NEPMD_RESTORE_POS_FROM_EA = 0
 compile endif
@@ -502,9 +494,7 @@ defc margins,ma=
    else
       'commandline margins' .margins   -- Note the new .margins field
    endif
-compile if NEPMD_SPECIAL_STATUSLINE
-   'refreshstatusline'               --  Update status line text and color, see STATUSLINE.E
-compile endif
+   'refreshinfoline MARGINS'            -- Update statusline if margins displayed
 
 
 defc matchtab=
@@ -601,8 +591,8 @@ defc newwindow=
          endif
       endif
       fn = .filename
-      if fn=GetUnnamedFilename() then
-         fn=''
+      if fn = GetUnnamedFileName() then
+         fn = ''
       elseif .readonly then
          fn = '/r' fn
       endif
@@ -855,6 +845,7 @@ defc qs,quietshell,quiet_shell=
    quietshell arg(1)
 
 defc q,quit=
+   universal firstloadedfid
    -- Ver. 4.11c: If we're trying to quit the shell window, kill the process.
  compile if SHELL_USAGE                                                           -- remove?
    if .filename = ".SHELL" then                                                   -- remove?
@@ -900,7 +891,7 @@ compile if TRASH_TEMP_FILES
    endif
 compile endif
 
---   getfileid quitfileid      -- Temp workaround  <-- obsolete
+   getfileid quitfileid
 ;compile if EVERSION > 5
 ;   if marktype() then
 ;      getmark firstline,lastline,firstcol,lastcol,markfileid
@@ -913,6 +904,11 @@ compile endif
 ;   if .lockhandle then call unlock(quitfileid); endif    -- remove?
 ;compile endif                                            -- remove?
    call quitfile()
+   if firstloadedfid = quitfileid
+      then firstloadedfid = ''
+   endif
+   call RingWriteFileNumber()
+;   call RingWriteFilePosition()
 
 
 defc rc=
@@ -980,14 +976,14 @@ defc s,save=
       return
    endif
    save_as = 0
-   if name='' | name=GetUnnamedFilename() then
-      name=.filename
-      if .filename=GetUnnamedFilename() then
-         result = saveas_dlg(name, type)
+   if (name = '' | name = GetUnnamedFileName()) then
+      name = .filename
+      if .filename = GetUnnamedFileName() then
+         result = saveas_dlg( name, type)
          if result then return result; endif
          'name' name
          if not rc then
-            name=.filename
+            name = .filename
             save_as = 1
          endif
       endif
@@ -1068,7 +1064,7 @@ compile endif
       if length(pext) > 4 then
          pext = substr( pext, 1, 4)
       endif
-      -- convert points
+      -- convert periods
       base = translate( base, '_', '.')
       shortname = pathbsl''base''pext
       -- convert spaces
@@ -1129,7 +1125,7 @@ compile endif
       call message(src)       -- assume host routine gave error msg.
    endif
    if src & save_as then
-      .filename=GetUnnamedFilename()
+      .filename=GetUnnamedFileName()
 compile if SHOW_MODIFY_METHOD = 'TITLE'                 -- remove?
       call settitletext(.filename)                       -- remove?
 compile endif                                           -- remove?
@@ -1138,9 +1134,7 @@ compile endif                                           -- remove?
 ;   if locked & not arg(1) then call lock(); endif       -- remove?
 ;compile endif                                           -- remove?
 
-compile if WANT_DATETIME_IN_TITLE
-   call MakeTitletext()
-compile endif
+   'RefreshInfoLine FILE'
 
    -- explicitely redetermine mode (file contents may have changed)
    --call NepmdResetMode(OldMode)
@@ -1248,9 +1242,7 @@ defc TABKEY
    else
       sayerror 'TabKey' word(OFF__MSG ON__MSG, TAB_KEY+1)
    endif
- compile if NEPMD_SPECIAL_STATUSLINE
-   'refreshstatusline'               --  Update status line text and color, see STATUSLINE.E
- compile endif
+   'refreshinfoline TABKEY'   -- Update statusline if tabkey status displayed
 compile endif
 
 defc tabglyph =
@@ -1276,9 +1268,7 @@ defc tabs=
       -- Note the new .tabs field; each file has its own tabs.
       'commandline Tabs' .tabs
    endif
-compile if NEPMD_SPECIAL_STATUSLINE
-   'refreshstatusline'               --  Update status line text and color, see STATUSLINE.E
-compile endif
+   'refreshinfoline TABS'     -- Update statusline if tabs displayed
 
 defc timestamp =
 compile if WANT_DBCS_SUPPORT

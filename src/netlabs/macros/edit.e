@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.13 2003-08-31 22:54:11 aschn Exp $
+* $Id: edit.e,v 1.14 2004-01-17 22:22:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -20,9 +20,11 @@
 ****************************************************************************/
 
 ; ---------------------------------------------------------------------------
+; Todo: move
+; Todo: resolve '=' as well
 ; Resolves environment variables in a string
 ; Returns converted string
-defproc NepmdResolveEnvVars( Spec )
+defproc NepmdResolveEnvVars( Spec)
    startp = 1
    do forever
       -- We don't use parse here, because if only 1 % char is present, it will
@@ -34,77 +36,92 @@ defproc NepmdResolveEnvVars( Spec )
       --    else
       --       Spec = Spec''next''Get_Env(EnvVar)''rest
       --    endif
-      p1 = pos( '%', Spec, startp )
+      p1 = pos( '%', Spec, startp)
       if p1 = 0 then
          leave
       endif
       startp = p1 + 1
-      p2 = pos( '%', Spec, startp )
+      p2 = pos( '%', Spec, startp)
       if p2 = 0 then
          leave
       else
          startp = p2 + 1
-         Spec = substr( Spec, 1, p1 - 1 ) ||
-                Get_Env( substr( Spec, p1 + 1, p2 - p1 - 1 ) ) ||
-                substr( Spec, p2 + 1 )
+         Spec = substr( Spec, 1, p1 - 1) ||
+                Get_Env( substr( Spec, p1 + 1, p2 - p1 - 1)) ||
+                substr( Spec, p2 + 1)
       endif
       --sayerror 'arg(1) = 'arg(1)', p1 = 'p1', p2 = 'p2', resolved spec = 'Spec
    enddo  -- forever
    return Spec
 
 ; ---------------------------------------------------------------------------
-; Load files from a filespec, remove REXX EA's before loading
-
-defproc NepmdLoadFile( Spec, Options )
+; Load files from a filespec, remove REXX EAs before loading
+defproc NepmdLoadFile( Spec, Options)
+   universal filestoload
+   universal filestoloadmax  -- still used for 'xcom e'
+   filestoload        = 0
+   filestoloadmax     = 0
    RexxEaExtensions = 'CMD ERX'
 
-   Spec = strip( Spec, 'B', '"' )
-   ContainsWildcard = (pos( '*', Spec ) + pos( '?', Spec ) > 0);
+   Spec = strip( Spec, 'B', '"')
+   ContainsWildcard = (pos( '*', Spec) + pos( '?', Spec) > 0);
 
-   -- Resolve wildcards in Spec to delete REXX EA's for every REXX file
-   SpecProcessed = 0
+   -- Resolve wildcards in Spec to delete REXX EAs for every REXX file
+   ProcessOnce = 0
    Handle = 0
    do forever
-
-      if SpecProcessed = 1 then
+      if not .visible then
          leave
       endif
-
       if (ContainsWildcard) then
-         -- if Spec contains wildcards then find FileNames
-         FileName = NepmdGetNextFile( Spec, address( Handle) )
+         -- if Spec contains wildcards then find Filenames
+         Filename = NepmdGetNextFile( Spec, address( Handle))
          parse value Filename with 'ERROR:'rc
-         if rc <> '' then
+         if rc > '' then
             leave
          endif
+         filestoload = filestoload + 1
+         filestoloadmax = filestoload
       else
          -- if Spec doesn't contain wildcards then set Filename to enable the
          -- edit command adding a not existing file to the edit ring
          Filename = Spec
-         SpecProcessed = 1  -- Set a flag to process the loop only once
+         filestoload = 1
+         filestoloadmax = filestoload
+         ProcessOnce = 1
       endif
 
       --sayerror 'Spec = 'Spec', Filename = 'Filename
       --call NepmdPmPrintf( 'edit -> NepmdLoadFile: Spec = 'Spec', Filename = 'Filename)
 
-      -- Remove REXX EA's if extension is found in RexxEaExtensions.
+      -- Remove REXX EAs if extension is found in RexxEaExtensions.
       -- Use the extension here instead of the mode to avoid determining the
       -- mode twice: here and at defload.
-      p1 = lastpos( '.', Filename )
+      -- Note: The use of array vars containing the fileid to become file-specific
+      -- does only work properly at or after defload. Therefore the mode should be
+      -- determined at defload.
+      p1 = lastpos( '.', Filename)
       if p1 > 1 then
-         ext = translate( substr( Filename, p1 + 1 ) )
-         if wordpos( ext, RexxEaExtensions ) then
+         ext = translate( substr( Filename, p1 + 1))
+         if wordpos( ext, RexxEaExtensions) then
             --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
-            call NepmdDeleteRexxEa( FileName )
+            call NepmdDeleteRexxEa( Filename)
          endif
       endif
 
+      -- NepmdGetMode doesn't work here well.
+      -- It slows loading down and causes msg -260: "Unvalid fileid"
+      --Filemode = NepmdGetMode( Filename)
+
+      if ProcessOnce = 1 then
+         leave
+      endif
    enddo  -- forever
 
    -- load the file
    -- add "..." here to enable loading file names with spaces and
    -- use Spec instead of FileName to keep the loading of host files unchanged
-   loadrc = loadfile( '"'Spec'"', Options )
+   loadrc = loadfile( '"'Spec'"', Options)
 
    return loadrc
 
@@ -138,9 +155,11 @@ defc e,ed,edit,epm=
 compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') & not SMALL
    universal fto                -- Need this passed to loadfile...
 compile endif
-   universal nepmd_hini
    universal CurEditCmd
+   universal firstloadedfid  -- first file for this edit cmd
+   universal firstinringfid  -- first file in the ring
 
+   getfileid startfid  -- save fid of topmost file before current edit cmd
    call NepmdResetHiliteModeList()
    CurEditCmd = 'EDIT'  -- initialize CurEditCmd for restore pos
 
@@ -240,12 +259,11 @@ compile endif
          endif
 
          -- resolve environment variables
-         if pos( '%', filespec ) then
-            filespec = NepmdResolveEnvVars( filespec )
+         if pos( '%', filespec) then
+            filespec = NepmdResolveEnvVars( filespec)
          endif
 
          --sayerror 'EDIT.E before call loadfile(filespec,options): filespec = 'filespec
-
 
 compile if USE_APPEND  -- Support for DOS 3.3's APPEND, thanks to Ken Kahn.
          if not(verify(filespec,'\:','M')) then
@@ -255,7 +273,7 @@ compile if USE_APPEND  -- Support for DOS 3.3's APPEND, thanks to Ken Kahn.
         endif
 compile endif
 
-         call NepmdLoadFile(filespec, options)
+         rc = NepmdLoadFile(filespec, options)
 
          if rc=-3 then        -- sayerror('Path not found')
             bad_paths=bad_paths', 'filespec
@@ -264,7 +282,7 @@ compile endif
          elseif rc=-282 then  -- sayerror('New file')
             new_files=new_files', 'filespec
             new_files_loaded=new_files_loaded+1
-         elseif rc=-278 then  --sayerror('Lines truncated')
+         elseif rc=-278 then  --sayerror('Lines truncated') <-- never happens for EPM 6
             getfileid truncid
             do i=1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
                if .modify then leave; endif  -- Need to do this if wildcards were specified.
@@ -281,15 +299,16 @@ compile endif
          elseif rc=-284 then  -- sayerror('Error opening file')
             error_opening=error_opening', 'filespec
          endif  -- rc=-3
-         if first_file_loaded='' then
+;         if first_file_loaded = '' then  -- useless: forever empty at this point
             if rc<>-3   &  -- sayerror('Path not found')
                rc<>-2   &  -- sayerror('File not found')
                rc<>-5   &  -- sayerror('Access denied')
                rc<>-15     -- sayerror('Invalid drive')
                then
+               -- If rc = 0, then set first_file_loaded:
                getfileid first_file_loaded
             endif
-         endif  -- first_file_loaded=''
+;         endif  -- first_file_loaded=''
       endif  -- ch=... (not "cmd")
    enddo  -- while rest<>''
    if files_loaded>1 then  -- If only one file, leave E3's message
@@ -312,8 +331,31 @@ compile endif
    if multiple_errors then
       messageNwait(MULTIPLE_ERRORS__MSG)
    endif
-   if first_file_loaded<>'' then activatefile first_file_loaded; endif
 
+   --call NepmdPmPrintf( 'edit: first_file_loaded = ['first_file_loaded'], ['first_file_loaded.filename']')
+   -- If 1 or more files are loaded by the current edit cmd (or if loadfile has returned rc = 0):
+   if first_file_loaded <> '' then
+
+      -- activatefile is now executed in NepmdAfterLoad with postme.
+      -- This finally works properly. With activatefile here the ring would get messed.
+      --activatefile first_file_loaded
+      -- Set fid for NepmdAfterLoad:
+      firstloadedfid = first_file_loaded
+
+      -- Initialize firstinringfid if not already set:
+      if firstinringfid = '' then
+         firstinringfid = firstloadedfid
+      endif
+
+      if firstloadedfid = startfid then
+         -- If previous topmost file should be loaded again as first loaded file,
+         -- check if file was altered by another application.
+         -- Note: required, because no defselect, no defload will be triggered than.
+         'ResetDateTimeModified'
+         'RefreshInfoLine MODIFIED'
+      endif
+
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
@@ -342,7 +384,6 @@ compile endif
 compile if WPS_SUPPORT
    endif
 compile endif
-
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
@@ -380,7 +421,6 @@ defc ep, epath=
    endif
    'e 'newfile rest
  compile endif
-
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
