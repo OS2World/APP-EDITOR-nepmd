@@ -4,20 +4,34 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.2 2002-07-22 19:02:13 cla Exp $
+* $Id: stdcnf.e,v 1.3 2002-09-01 14:34:18 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+; ---------------------------------------------------------------------------
+; Commented out obsolete lines by a ';' (rather then deleting them) to enable
+; searching for obsolete consts.
+;
+; Added recommended entries for MYCNF.E. Can be found as follows:
+; Place the cursor on the overnext line and press Ctrl+L
+; or Alt+= (english keyboard) or Alt+0 (german keyboard)
+    l /Set.*=.*in MYCNF\.E/g+fae
+; For finding the next line, press Ctrl+F
+; ---------------------------------------------------------------------------
+*/
+
 /* New way to configure E. In response to the requests of many users, we have
    changed things so that it is no longer required that you modify this file
    in order to reconfigure E. An optional MYCNF file is included before this
@@ -65,21 +79,24 @@
 --    HIGH-RESOLUTION = a monochrome or an EGA/VGA with <43 rows.
 -- The minimum top scan line is 0.  (Scan lines are numbered from the top.)
 -- The maximum bottom scan line is 7 in low resolution, 13 or more in high.
+-- (No effect if using EPM.)
 set cursors
   3  7   -- insert -mode cursor size for low -res (EOS2) / color (E3) display
   6  7   -- replace-mode cursor size for low -res (EOS2) / color (E3) display
   6  12  -- insert -mode cursor size for high-res (EOS2) / mono  (E3) display
   11 13  -- replace-mode cursor size for high-res (EOS2) / mono  (E3) display
 
-set insert_state 1      -- (EPM recognizes this one.)
-                        -- Default insert state at startup, 1=on, 0=off
+-- Default insert state at startup, 1=on, 0=off
+-- (EPM recognizes this one.)
+set insert_state 1
 
+
+-- If you want your command stack saved between runs,
+--   enter 1 and a path.  For example:
+--      set coms 1 'C:\EDIT\'
+--   Don't forget the trailing backslash on path!
+-- (No effect if using EPM.)
 set coms  0 ''
-                        -- If you want your command stack saved between runs,
-                        --   enter 1 and a path.  For example:
-                        --      set coms 1 'C:\EDIT\'
-                        --   Don't forget the trailing backslash on path!
-
 
 ; SET EOF 1 means:  When saving a file, append an EOF marker (the end-of-file
 ; character, x'1A').  When loading a file, treat any CR-LF-EOF sequence as the
@@ -91,11 +108,13 @@ set coms  0 ''
 ; a CR-LF-EOF sequence.  (An EOF as the very last byte of a file will still
 ; be discarded when loading.)  This treatment is new in version 4.04.
 ;
-set eof 1                        -- (EPM supports this, also.)
+-- (EPM supports this, also.)
+set eof 1
 
 
 ; Specifies on which row of the screen the initial logo/copyright message
 ; is displayed.  Default is 1, top of screen.  (EOS2 only.)
+-- (No effect if using EPM.)
 set logo 1 ''
 
  . . . . End of sample SET statements. . . .     */
@@ -109,27 +128,29 @@ const
 ;    const EVERSION='5.15'   (if EPM)
 
 compile if not defined(NLS_LANGUAGE)
-  NLS_LANGUAGE = 'ENGLISH'
+   NLS_LANGUAGE = 'ENGLISH'
 compile endif
 
+-- Define a TEMP_PATH as well as a TEMP_FILENAME
+--   Typically put this on a VDISK, like 'D:\e.tmp'.
 compile if not defined(TEMP_FILENAME)
-TEMP_FILENAME= 'e.tmp'
+   TEMP_FILENAME= 'e.tmp'
 compile endif
-                        -- Define a TEMP_PATH as well as a TEMP_FILENAME
-                        --   Typically put this on a VDISK, like 'D:\e.tmp'.
+
+-- Some applications (external sorts)
+--   need to create more than one temp file.
+--   Suggestions:  put on a VDISK.
+--   Typical 'D:\'.  Don't forget last backslash.
 compile if not defined(TEMP_PATH)
-TEMP_PATH=''
+   TEMP_PATH=''
 compile endif
-                        -- Some applications (external sorts)
-                        --   need to create more than one temp file.
-                        --   Suggestions:  put on a VDISK.
-                        --   Typical 'D:\'.  Don't forget last backslash.
+
+-- Allow a separate directory for autosaved files.
+--   Don't put this one on a VDISK.
+--   Don't forget last backslash.
 compile if not defined(AUTOSAVE_PATH)
-AUTOSAVE_PATH=''
+   AUTOSAVE_PATH=''
 compile endif
-                        -- Allow a separate directory for autosaved files.
-                        --   Don't put this one on a VDISK.
-                        --   Don't forget last backslash.
 
 -- Set this to a nonzero number if you wish autosave to be turned on
 -- automatically for all files.  In EPM this is the number of changes to the
@@ -137,15 +158,8 @@ compile endif
 -- You can set this to 0 if you don't want autosave all the time, and turn it
 -- on when desired with the 'autosave' command.
 compile if not defined(DEFAULT_AUTOSAVE)
- compile if E3
-DEFAULT_AUTOSAVE = 0
- compile elseif EVERSION >= '5.20'  -- Full undo means more frequent changes
-DEFAULT_AUTOSAVE = 100
- compile elseif EPM
-DEFAULT_AUTOSAVE = 40
- compile else
-DEFAULT_AUTOSAVE = 20
- compile endif
+   -- Full undo means more frequent changes
+   DEFAULT_AUTOSAVE = 100
 compile endif
 
 -- jbl 1/89 new feature.  Set this to some non-blank directory name if you want
@@ -155,43 +169,34 @@ compile endif
 --    '.\'           for current directory (don't forget the last backslash)
 --    'C:\OLDFILES\' to put them all in one place
 compile if not defined(BACKUP_PATH)
-BACKUP_PATH = ''
+   BACKUP_PATH = ''
 compile endif
 
-
+-- Set help filename
 compile if not defined(HELPFILENAME)
- compile if EVERSION < 5
-  HELPFILENAME='ehelp.hlp'
- compile else
-  HELPFILENAME='epmhelp.qhl'
- compile endif
+   HELPFILENAME='epmhelp.qhl'
 compile endif
-                        -- Set help filename
+
+-- Set environment variable name
 compile if not defined(EPATH)
-  compile if EPM    -- EPM uses a different name, for easier coexistance
-EPATH= 'epmpath'
-  compile else
-EPATH= 'epath'
-  compile endif
+   -- EPM uses a different name, for easier coexistance
+   EPATH= 'epmpath'
 compile endif
-                        -- Set environment variable name
+
+-- Set main file for the ET compilation command
 compile if not defined(MAINFILE)
- compile if EVERSION < 5
-  MAINFILE= 'e.e'
- compile else
-  MAINFILE= 'epm.e'
- compile endif
+   MAINFILE= 'epm.e'
 compile endif
-                        -- Set main file for the ET compilation command
+
+-- Ver. 3.09 - Lets user omit ET command.
 compile if not defined(WANT_ET_COMMAND)
-WANT_ET_COMMAND = 1
+   WANT_ET_COMMAND = 1
 compile endif
-                        -- Ver. 3.09 - Lets user omit ET command.
+
+-- Ver. 3.09 - Lets user omit macro support for character marks.
 compile if not defined(WANT_CHAR_OPS)
-WANT_CHAR_OPS = 1
+   WANT_CHAR_OPS = 1
 compile endif
-                        -- Ver. 3.09 - Lets user omit macro support for
-                        -- character marks.
 
 -- 4.10:  We removed the warning about 'constants must be specified in upper
 -- case'.  No longer necessary.
@@ -207,7 +212,8 @@ compile if not defined(HOST_SUPPORT)
  compile if not SMALL
    HOST_SUPPORT = 'STD'
  compile else
-   HOST_SUPPORT = ''      -- Do not change this!!  Only the previous one.
+   -- Do not change this!!  Only the previous one.
+   HOST_SUPPORT = ''
  compile endif
 compile endif
 
@@ -222,23 +228,19 @@ compile if not defined(LINK_HOST_SUPPORT)
    LINK_HOST_SUPPORT = 0
 compile endif
 
-compile if LINK_HOST_SUPPORT & E3
-   *** Error - LINK_HOST_SUPPORT not permitted for E3.
-compile endif
-
 compile if HOST_SUPPORT = 'PDQ'
 -- The PDQ support uses a subset of the DOS procedures found in Bryan
 -- Lewis' DOS.E.  If you include DOS.E in MYSTUFF.E, then set the following
 -- constant to 1.
  compile if not defined(HAVE_DOS)
-HAVE_DOS = 0
+   HAVE_DOS = 0
  compile endif
 
 -- The PDQ support will optionally poll the host and see if anyone has sent
 -- you a message.  If so, it will pop up a window and display the messages.
 -- To enable this, set the following constant to 1.
  compile if not defined(PDQ_MSG)
-PDQ_MSG = 1
+   PDQ_MSG = 1
  compile endif
 compile endif
 
@@ -258,105 +260,107 @@ compile endif
 -- Right will wrap from line to line.  Setting C_ENTER_ACTION='STREAM' doesn't
 -- affect these other keys.
 compile if not defined(ENTER_ACTION)
-ENTER_ACTION   = 'ADDLINE'
+   ENTER_ACTION   = 'ADDLINE'
 compile endif
 compile if not defined(C_ENTER_ACTION)
-C_ENTER_ACTION = 'NEXTLINE'
+   C_ENTER_ACTION = 'NEXTLINE'
 compile endif
 
 -- These constants specify which syntax-assist modules to include.
-compile if not defined(ALTERNATE_KEYSETS)
-ALTERNATE_KEYSETS = 1
-compile endif
-                        -- Master control for the following 3 and also
-                        -- MYSELECT and MYKEYSET.  If you don't use any of
-                        -- them, it makes SELECT.E much simpler.
 
+-- Master control for the following 3 and also
+-- MYSELECT and MYKEYSET.  If you don't use any of
+-- them, it makes SELECT.E much simpler.
+compile if not defined(ALTERNATE_KEYSETS)
+   ALTERNATE_KEYSETS = 1
+compile endif
+
+-- 1 means to include C assist, 0 means omit it.
 compile if not defined(C_SYNTAX_ASSIST)
-C_SYNTAX_ASSIST = 1
+   C_SYNTAX_ASSIST = 1
 compile endif
-                        -- 1 means to include C assist, 0 means omit it.
+
+-- 1 means to include C++ assist, 0 means omit it.
 compile if not defined(CPP_SYNTAX_ASSIST)
-CPP_SYNTAX_ASSIST = C_SYNTAX_ASSIST
+   CPP_SYNTAX_ASSIST = C_SYNTAX_ASSIST
 compile endif
-                        -- 1 means to include C++ assist, 0 means omit it.
+
 compile if not defined(C_TABS)
-C_TABS    = '3'
+   C_TABS    = '3'
 compile endif
 compile if not defined(C_MARGINS)
-C_MARGINS = 1 MAXMARGIN 1
+   C_MARGINS = 1 MAXMARGIN 1
 compile endif
 
+-- Similarly for E, Rexx and Pascal support.
 compile if not defined(E_SYNTAX_ASSIST)
-E_SYNTAX_ASSIST = 1
+   E_SYNTAX_ASSIST = 1
 compile endif
-                        -- Similarly for E, Rexx and Pascal support.
+
 compile if not defined(E_TABS)
-E_TABS    = '3'
+   E_TABS    = '3'
 compile endif
 compile if not defined(E_MARGINS)
-E_MARGINS = 1 MAXMARGIN 1
+   E_MARGINS = 1 MAXMARGIN 1
 compile endif
 
 compile if not defined(REXX_SYNTAX_ASSIST)
-REXX_SYNTAX_ASSIST = 0
+   REXX_SYNTAX_ASSIST = 0
 compile endif
 compile if not defined(REXX_TABS)
-REXX_TABS    = '3'
+   REXX_TABS    = '3'
 compile endif
 compile if not defined(REXX_MARGINS)
-REXX_MARGINS = 1 MAXMARGIN 1
+   REXX_MARGINS = 1 MAXMARGIN 1
 compile endif
 
 compile if not defined(P_SYNTAX_ASSIST)
-P_SYNTAX_ASSIST = 1
+   P_SYNTAX_ASSIST = 1
 compile endif
 compile if not defined(P_TABS)
-P_TABS    = '3'
+   P_TABS    = '3'
 compile endif
 compile if not defined(P_MARGINS)
-P_MARGINS = 1 MAXMARGIN 1
+   P_MARGINS = 1 MAXMARGIN 1
 compile endif
 
 -- Tab and margin settings for normal (not C/E/PAS) files.
 compile if not defined(DEFAULT_TABS)
-DEFAULT_TABS    = '8'
+   DEFAULT_TABS    = '8'
 compile endif
 compile if not defined(DEFAULT_MARGINS)
-DEFAULT_MARGINS = 1 MAXMARGIN 1
+   DEFAULT_MARGINS = 1 MAXMARGIN 1
 compile endif
-
-
 
 -- This constant tells the compiler which key should trigger the
 -- syntax-assist second expansion.  Choose either ENTER or C_ENTER.
 compile if not defined(ASSIST_TRIGGER)
-ASSIST_TRIGGER = 'ENTER'
+   ASSIST_TRIGGER = 'ENTER'
 compile endif
 
 -- Set this to the desired indentation if using syntax-assist.
 -- Normal values are 2, 3, 8.  Has no effect if not using assist.
 compile if not defined(SYNTAX_INDENT)
-SYNTAX_INDENT = 3
+   SYNTAX_INDENT = 3
 compile endif
 
 -- Set this to 1 if you like PE2's method of reflowing a paragraph -- moving
 -- the cursor to the next paragraph.
 compile if not defined(REFLOW_LIKE_PE)
-REFLOW_LIKE_PE = 0
+   REFLOW_LIKE_PE = 0
 compile endif
 
 -- Ver.3.09:  Set this to 1 if you want the FILE key to quit rather than
 -- save the file if the file was not modified.  Has the side effect that
 -- the Name command sets .modify to 1.
 compile if not defined(SMARTFILE)
-SMARTFILE = 0
+   SMARTFILE = 0
 compile endif
 
 -- Set this to 1 if you want the Save key to prompt you if the file was not
 -- modified.  the side effect that
 compile if not defined(SMARTSAVE)
-SMARTSAVE = 0
+   SMARTSAVE = 0
 compile endif
 
 -- Set this to 1 if you want the QUIT key to let you press the FILE key if the
@@ -365,36 +369,35 @@ compile endif
 -- key is pressed and the file has been modified.  If you want to use a
 -- different FILE key than the default, you still have to define it yourself in
 -- MYKEYS.E.  Also, SMARTQUIT doesn't apply to EPM.
+-- (No effect if using EPM.)
 compile if not defined(SMARTQUIT)
-SMARTQUIT = 0
+   SMARTQUIT = 0
 compile endif
 compile if not defined(FILEKEY)
-FILEKEY   = 'F4'  -- Note:  Must be a string (in quotes).
+   -- Note:  Must be a string (in quotes).
+   FILEKEY   = 'F4'
 compile endif
 
 -- This is used as the decimal point in MATH.E.  Some users might prefer to
 -- use a comma.  Not used in DOS version, which only allows integers.
-compile if EVERSION >= 4            -- OS/2 version - real numbers
- compile if not defined(DECIMAL)
-DECIMAL = '.'
- compile endif
+compile if not defined(DECIMAL)
+   DECIMAL = '.'
 compile endif
 
-compile if not defined(WANT_WINDOWS)
- compile if EVERSION < 5
 -- 3.12:  Window support can be omitted completely, for those wanting a
 --         minimal-sized E.
-WANT_WINDOWS = 1
- compile else
-WANT_WINDOWS = 0      -- Don't change.  No window support in EPM
- compile endif
+-- (No effect if using EPM.)
+compile if not defined(WANT_WINDOWS)
+   -- Don't change.  No window support in EPM
+   WANT_WINDOWS = 0
 compile endif
 
-compile if WANT_WINDOWS
 -- Ver.3.09:  Set this to 1 for Jim Hurley-style windows - zoomed window
 -- in messy mode shows no box and respects window-style.
+-- (No effect if using EPM.)
+compile if WANT_WINDOWS
  compile if not defined(JHwindow)
-JHwindow = 0
+   JHwindow = 0
  compile endif
 compile endif
 
@@ -406,7 +409,7 @@ compile endif
 -- is always available (as an external module) regardless of whether this
 -- constant is 0 or 1.  You should still set this to 'F6' if you want the key.
 compile if not defined(WANT_DRAW)
-WANT_DRAW = 'F6'
+   WANT_DRAW = 'F6'
 compile endif
 
 -- Ver.4.11:  Pick the name of the sort utility you prefer.  Choices are:
@@ -427,19 +430,14 @@ compile endif
 --         Not recommended:  slowest, ignores upper/lower case.  But available
 --         in OS/2 protect mode.
 compile if not defined(SORT_TYPE)
- compile if EVERSION >= '5.60'       -- At long last - an internal sort.
-  SORT_TYPE = 'EPM'
- compile elseif EVERSION >= '4.10'   -- OS/2 only version - use quicksort
-  SORT_TYPE = 'DLL'
- compile else                        -- Use DOS-compatible internal sort
-  SORT_TYPE = 'E'
- compile endif
+   -- At long last - an internal sort.
+   SORT_TYPE = 'EPM'
 compile endif
 
 -- Set this to 0 if you want the marked area left unmarked after the sort.
 compile if SORT_TYPE
  compile if not defined(RESTORE_MARK_AFTER_SORT)
-RESTORE_MARK_AFTER_SORT = 1
+   RESTORE_MARK_AFTER_SORT = 1
  compile endif
 compile endif
 
@@ -453,7 +451,7 @@ compile endif
 
 -- EOS2 4.02:  On OS/2 we'll search the DPATH for text files if this is 1.
 compile if not defined(USE_APPEND)
-USE_APPEND = 0
+   USE_APPEND = 0
 compile endif
 
 -- Ver.3.11:  SETSTAY determines which is to be the current line after a Change
@@ -463,47 +461,45 @@ compile endif
 -- will be added to let the user change this dynamically.  If SETSTAY='?' then
 -- STAY will be initialized in the next section.
 compile if not defined(SETSTAY)
-SETSTAY = 0
+   SETSTAY = 0
 compile endif
 
 -- EOS2:  This constant enables a small DEFEXIT which keeps you in the editor
 -- after you've quit the last file.  See EXIT.E for details.
-compile if EVERSION >= '4.0' & EVERSION < 5
- compile if not defined(ASK_BEFORE_LEAVING)
-ASK_BEFORE_LEAVING = 0
- compile endif
+-- (No effect if using EPM.)
+compile if not defined(ASK_BEFORE_LEAVING)
+   -- Not supported in EPM: Let this undefined!
+   --ASK_BEFORE_LEAVING = 0
 compile endif
 
 -- Ver. 3.11d:  This constant lets the E3 user omit the SaveFileWithTabs
 -- routine in STDPROCS.E.
 compile if not defined(WANT_TABS)
-WANT_TABS = 1
+   WANT_TABS = 1
 compile endif
 
 -- Ver. 3.11d:  This constant lets the user specify where the cursor should
 -- be when starting E.  0 means in the file area, 1 means on the command line.
 -- (No effect if using EPM.)
 compile if not defined(CURSOR_ON_COMMAND)
-CURSOR_ON_COMMAND = 0
+   CURSOR_ON_COMMAND = 0
 compile endif
 
-compile if EVERSION >= '4.11' & EVERSION < 5   -- new in EOS2
- compile if not defined(SHELL_USAGE)
-SHELL_USAGE = 1
-                         /* specifies whether the process window will be used.*/
-                         /* a process window allows the editor to view output */
-                         /* directed to the standard output device (stdout)   */
-                         /* as if it were directed into an editor file        */
- compile endif
-compile else
-SHELL_USAGE = 0
-compile endif
+/* specifies whether the process window will be used.*/
+/* a process window allows the editor to view output */
+/* directed to the standard output device (stdout)   */
+/* as if it were directed into an editor file        */
+-- (No effect if using EPM.)
+   SHELL_USAGE = 0
 
 -- Ver. 3.12:  Lets you include the routine that searches a path for a file
 -- even if USE_APPEND = 0.  (If USE_APPEND = 1, this routine will be included
 -- automatically.)
+-- Also enables the 'editpath' command.
 compile if not defined(WANT_SEARCH_PATH)
-WANT_SEARCH_PATH = 0
+   -- What a poor default value!
+   -- Set WANT_SEARCH_PATH = 1 in MYCNF.E
+   WANT_SEARCH_PATH = 0
 compile endif
 
 -- Ver. 3.12:  Lets you include the routine that gets the value of an
@@ -511,25 +507,18 @@ compile endif
 -- routine will be included automatically.)
 -- Ver. 4.12:  The default is 1 rather than 0; OS/2 users have more room.
 compile if not defined(WANT_GET_ENV)
-  compile if E3
-WANT_GET_ENV = 0
-  compile else
-WANT_GET_ENV = 1
-  compile endif
+   WANT_GET_ENV = 1
 compile endif
 
-compile if EPM & EVERSION < '5.21'   -- status line configuration
- compile if not defined(STATUS_TEMPLATE)
-  compile if EPATH = 'LAMPATH'
-   STATUS_TEMPLATE=   'Line %l of %s   Column %c  %i   %m   %f   LaMail 2.0'
-  compile else
-   STATUS_TEMPLATE=   'Line %l of %s   Column %c  %i   %m   %f   EPM 'EVERSION
-  compile endif
+-- status line configuration
+-- Standard EPM >= 5.21: undefined
+-- Now handled as arg(1) of 'setstatuscolor' by sending a windowmessage
+compile if not defined(STATUS_TEMPLATE)
+   --STATUS_TEMPLATE=   'Line %l of %s   Column %c  %i   %m   %f   EPM 'EVERSION
    -- Template for status line.  %l = current line; %s = size of file,
    -- %c = current column; %i = Insert/Replace; %m = Modified/<blank>
    -- %z = character above cursor in decimal; %x = character above cursor in hex;
    -- %f = 1 file/<n> files
- compile endif
 compile endif
 
 ;  We've provided three methods of showing the modified status.
@@ -540,12 +529,10 @@ compile endif
 ;     of the filename.  For EPM it adds the string " (mod)" to the title bar.
 ;     This isn't as obvious as COLOR, but you can check it even when the file
 ;     is shrunk to an icon by clicking on the icon.
-compile if not defined(SHOW_MODIFY_METHOD)   -- If user didn't define in MYCNF,
- compile if EVERSION < 5                     --    then if non-PM
-   SHOW_MODIFY_METHOD = 'TITLE'              --         change filename color
- compile else                                --    if PM
-   SHOW_MODIFY_METHOD = ''                   --         change is on status line
- compile endif
+-- If user didn't define in MYCNF,
+compile if not defined(SHOW_MODIFY_METHOD)
+   -- if PM, then modified state is on status line
+   SHOW_MODIFY_METHOD = ''
 compile endif
 
 -- Lets you quit temporary files regardless of the state of the .modify bit.
@@ -553,28 +540,28 @@ compile endif
 -- .filename is a period.  If set to 1, you won't get the "Throw away changes?"
 -- prompt when trying to quit one of these files.
 compile if not defined(TRASH_TEMP_FILES)
-TRASH_TEMP_FILES = 0
+   TRASH_TEMP_FILES = 0
 compile endif
 
 -- Adds LOCK and UNLOCK commands.
-compile if EVERSION < 4 or not defined(WANT_LAN_SUPPORT)
-WANT_LAN_SUPPORT = 0
+compile if not defined(WANT_LAN_SUPPORT)
+   WANT_LAN_SUPPORT = 0
 compile endif
 
 -- Include or omit the MATH routines.  Values are '?' meaning do a TRYINCLUDE
 -- (this is what we used to do), 1 meaning it's required, so do an INCLUDE, or
 -- 0 meaning it's not wanted, so don't try to include it at all.
 compile if not defined(WANT_MATH)
-WANT_MATH = '?'
+   WANT_MATH = '?'
 compile endif
 
 -- Include the MATHLIB routines in the base .EX file.  Ignored for E3.  Default
 -- is 0 for OS/2 versions, which means that a separate MATHLIB.EX file is linked
 -- at runtime if any MATH commands are executed.  May be set to 1 if you have
 -- sufficient room in your EPM.EX file and don't want to maintain a MATHLIB.EX.
--- Will be ignored if EXTRA_EX is 1.
+-- Will be ignored if EXTRA_EX is 1. (In EPM EXTRA_EX is undefined.)
 compile if not defined(INCLUDE_MATHLIB)
-INCLUDE_MATHLIB = 0
+   INCLUDE_MATHLIB = 0
 compile endif
 
 -- Include or omit the DOSUTIL routines.  Values are '?' meaning do a TRYINCLUDE
@@ -582,23 +569,25 @@ compile endif
 -- 0 meaning it's not wanted, so don't try to include it at all.
 -- Note that Use_Append=1 or Host_Support='EMUL' forces DOSUTIL to be included.
 compile if not defined(WANT_DOSUTIL)
-WANT_DOSUTIL = '?'
+   WANT_DOSUTIL = '?'
 compile endif
 
 -- This provides a simple way to omit all user includes, for problem resolution.
 -- If you set VANILLA to 1 in MYCNF.E, then no MY*.E files will be included.
 compile if not defined(VANILLA)
-VANILLA = 0
+   VANILLA = 0
 compile endif
 
 -- Optionally include Larry Margolis' ALL command.
 compile if not defined(WANT_ALL)
-WANT_ALL = 0
+   -- What a poor default value!
+   -- Set WANT_ALL = 1 in MYCNF.E
+   WANT_ALL = 0
 compile endif
 
 -- Optionally include Ralph Yozzo's RETRIEVE command.
 compile if not defined(WANT_RETRIEVE)
-WANT_RETRIEVE = 0
+   WANT_RETRIEVE = 0
 compile endif
 
 -- This defines the limit on the number of files that will be included in the Ring
@@ -608,7 +597,7 @@ compile endif
 -- and instead a "List files in ring" entry will be added to the Options pulldown.
 -- This means that adding files to or removing them from the ring will be faster.
 compile if not defined(MENU_LIMIT)
-MENU_LIMIT = 0
+   MENU_LIMIT = 0
 compile endif
 
 -- Spelling support can now be optionally included.  Set to 1 to include, 0 to
@@ -616,26 +605,20 @@ compile endif
 -- the distributed macros; EOS2LEX and E3SPELL are available separately.
 -- New:  set to 'DYNALINK' to only link in if the user needs it.
 compile if not defined(SPELL_SUPPORT)
- compile if EPM
-SPELL_SUPPORT = 'DYNALINK'          -- New default
- compile else
-SPELL_SUPPORT = 0
- compile endif
+   SPELL_SUPPORT = 'DYNALINK'          -- New default
 compile endif
 
 -- Enhanced print support for EPM - can display list of printers.
 compile if not defined(ENHANCED_PRINT_SUPPORT)
- compile if EVERSION >= '5.51'  -- No longer any macro overhead
-ENHANCED_PRINT_SUPPORT = 1
- compile else                   -- Expensive in older versions, so default is to omit.
-ENHANCED_PRINT_SUPPORT = 0
- compile endif
+   ENHANCED_PRINT_SUPPORT = 1
 compile endif
 
-compile if not defined(WANT_EPM_SHELL) or EVERSION < '5.20'
-WANT_EPM_SHELL = 0
-                         /* Specifies whether support should be included   */
-                         /* for a shell window.                            */
+/* Specifies whether support should be included   */
+/* for a shell window.                            */
+compile if not defined(WANT_EPM_SHELL)
+   -- What a poor default value!
+   -- Set WANT_EPM_SHELL = 1 in MYCNF.E
+   WANT_EPM_SHELL = 0
 compile endif
 
 -- Specify a string to be written whenever a new EPM command shell window
@@ -655,13 +638,13 @@ compile endif
 -- marked area moves with it.  Bob Langer supplied code that lets us shift
 -- only what's inside the mark.  The default is the old behavior.
 compile if not defined(SHIFT_BLOCK_ONLY)
-SHIFT_BLOCK_ONLY = 0
+   SHIFT_BLOCK_ONLY = 0
 compile endif
 
 -- Determines if DBCS support should be included in the macros.  Note
 -- that EPM includes internal DBCS support; other versions of E do not.
 compile if not defined(WANT_DBCS_SUPPORT)
-WANT_DBCS_SUPPORT = 0
+   WANT_DBCS_SUPPORT = 0
 compile endif
 
 -- When the File Manager copies a file from a HPFS drive to a FAT drive,
@@ -670,13 +653,17 @@ compile endif
 -- will cause the long name to be displayed on the EPM title bar, instead of the
 -- real (short) name.
 compile if not defined(WANT_LONGNAMES)
-WANT_LONGNAMES = 0
+   -- What a poor default value!
+   -- Set WANT_LONGNAMES = 1 in MYCNF.E
+   WANT_LONGNAMES = 0
 compile endif
 
 -- Adds PUSHMARK, POPMARK, PUSHPOS and POPPOS commands.  For EPM, also adds
 -- pulldown entries to the action bar.
 compile if not defined(WANT_STACK_CMDS)
-WANT_STACK_CMDS = 0
+   -- What a poor default value!
+   -- Set WANT_STACK_CMDS = 'SWITCH' in MYCNF.E
+   WANT_STACK_CMDS = 0
 compile endif
 
 -- WANT_CUA_MARKING causes the mouse definitions to be limited to the CUA actions,
@@ -686,7 +673,8 @@ compile endif
 -- behave this way all the time, or to 'SWITCH' to enable switching it on and
 -- off.  The default is 0, meaning that the standard EPM settings are in effect.
 compile if not defined(WANT_CUA_MARKING)
-WANT_CUA_MARKING = 0
+   -- Set WANT_CUA_MARKING = 'SWITCH' in MYCNF.E
+   WANT_CUA_MARKING = 0
 compile endif
 
 -- MOUSE_SUPPORT only applies to EPM.  It can should normally be set to 1,
@@ -694,7 +682,7 @@ compile endif
 -- 'LINK' to have mouse support linked in at run time, or to 0 to omit mouse
 -- support completely.
 compile if not defined(MOUSE_SUPPORT)
-MOUSE_SUPPORT = 1
+   MOUSE_SUPPORT = 1
 compile endif
 
 -- WANT_DM_BUFFER specifies whether a "deletemark buffer" is used in EPM.
@@ -702,7 +690,9 @@ compile endif
 -- the Edit pulldown can be used to paste this buffer back into the editor.
 -- Not as useful as it originally was, since full undo has been added.
 compile if not defined(WANT_DM_BUFFER)
-WANT_DM_BUFFER = 0
+   -- What a poor default value!
+   -- Set WANT_DM_BUFFER = 1 in MYCNF.E
+   WANT_DM_BUFFER = 0
 compile endif
 
 -- WANT_STREAM_MODE enables stream mode editing, in which we pretend to be a
@@ -710,13 +700,17 @@ compile endif
 -- behave this way all the time, or to 'SWITCH' to enable switching it on and
 -- off.  The default is 0, meaning forget stream mode entirely.
 compile if not defined(WANT_STREAM_MODE)
-WANT_STREAM_MODE = 0
+   -- What a poor default value!
+   -- Set WANT_STREAM = 'SWITCH' in MYCNF.E
+   WANT_STREAM_MODE = 0
 compile endif
 
 -- WANT_STREAM_INDENTED lets you specify that if the Enter key splits a line,
 -- the new line should be indented the same way the previous line was.
 compile if not defined(WANT_STREAM_INDENTED)
-WANT_STREAM_INDENTED = 0
+   -- What a poor default value!
+   -- Set WANT_STREAM_INDENTED = 1 in MYCNF.E
+   WANT_STREAM_INDENTED = 0
 compile endif
 
 -- ENHANCED_ENTER_KEYS (EPM_only) specifies that the user can configure each
@@ -724,7 +718,9 @@ compile endif
 -- LAN installations, so people can use a common .EX but still customize the
 -- keys.
 compile if not defined(ENHANCED_ENTER_KEYS)
-ENHANCED_ENTER_KEYS = 0
+   -- What a poor default value!
+   -- Set ENHANCED_ENTER_KEYS = 1 in MYCNF.E
+   ENHANCED_ENTER_KEYS = 0
 compile endif
 
 -- RING_OPTIONAL makes it so you can enable or disable having more than one
@@ -732,109 +728,105 @@ compile endif
 -- Most people will want this to be set to 0, so that you always can load as
 -- many files as you like.
 compile if not defined(RING_OPTIONAL)
-RING_OPTIONAL = 0
+   RING_OPTIONAL = 0
 compile endif
 
 -- SUPPORT_BOOK_ICON specifies whether or not the "Book icon" entry is on
 -- the Options pulldown.  Another useless one for internals.
+-- EPM preload object:
+-- If EPM is started with option /i (icon), then
+--    MINWIN=VIEWER  ==> a hidden EPM is opened and can be found in the Minimized Windows Viewer
+--    MINWIN=HIDE    ==> a hidden EPM is opened.
+--    MINWIN=DESKTOP ==> a hidden EPM is opened and an icon is placed on the desktop.
+-- (obsolete pre-WPS function)
 compile if not defined(SUPPORT_BOOK_ICON)
 ;compile if EVERSION < '5.50'
+   -- Only useful if an EPM object is started with option /i and has the setup string MINWIN=DESKTOP
+   -- Set SUPPORT_BOOK_ICON = 0 in MYCNF.E
    SUPPORT_BOOK_ICON = 1
-; compile else
-;  SUPPORT_BOOK_ICON = 0  -- EPM/G has no book (yet)
-; compile endif
 compile endif
 
 -- WANT_DYNAMIC_PROMPTS specifies whether support for dynamic prompting is
 -- included or not.  (EPM only.)  If support is included, the actual prompts
 -- can be enabled or disabled from a menu pulldown.  Keeping this costs about
 -- 3k in terms of .EX space.
-compile if EPM -- was EVERSION >= '5.21'
- compile if not defined(WANT_DYNAMIC_PROMPTS)
-WANT_DYNAMIC_PROMPTS = 1
- compile endif
-compile else
-WANT_DYNAMIC_PROMPTS = 0  -- Must be 0 for earlier EPM
+-- (Dynamic prompts = hints for menu items on the message line)
+compile if not defined(WANT_DYNAMIC_PROMPTS)
+   WANT_DYNAMIC_PROMPTS = 1
 compile endif
 
 -- WANT_BOOKMARKS specifies whether support for bookmarks is included or not.
 -- (EPM only.)  Can be set to 0, 1, or 'LINK'.
-compile if EPM
- compile if not defined(WANT_BOOKMARKS)
-  compile if EVERSION >= '6.00c'
-WANT_BOOKMARKS = 1
-  compile else
-WANT_BOOKMARKS = 'LINK'
-  compile endif
- compile endif
-compile else
-WANT_BOOKMARKS = 0
+compile if not defined(WANT_BOOKMARKS)
+   WANT_BOOKMARKS = 1
 compile endif
 
 -- CHECK_FOR_LEXAM specifies whether or not EPM will check for Lexam, and only include
 -- PROOF on the menus if it's available.  Useful for product, if we're not shipping Lexam
 -- and don't want to advertise spell checking; a waste of space internally.
-compile if EPM
- compile if not defined(CHECK_FOR_LEXAM)
-CHECK_FOR_LEXAM = 0
- compile endif
-compile else
-CHECK_FOR_LEXAM = 0
+compile if not defined(CHECK_FOR_LEXAM)
+   CHECK_FOR_LEXAM = 0
 compile endif
 
 -- Set this to 1 to include bracket-matching (Ctrl+[)
 compile if not defined(WANT_BRACKET_MATCHING)
-WANT_BRACKET_MATCHING = 0
+   -- What a poor default value!
+   -- Set WANT_BRACKET_MATCHING = 1 in MYCNF.E
+   WANT_BRACKET_MATCHING = 0
 compile endif
 
 -- For GPI version of EPM, this lets you select an AVIO-style underline cursor instead
 -- of the GPI-style vertical bar.
 compile if not defined(UNDERLINE_CURSOR)
-UNDERLINE_CURSOR = 0
+   UNDERLINE_CURSOR = 0
 compile endif
 
 -- Select which style pointer you prefer.
 compile if EPM & not defined(EPM_POINTER)
- compile if EVERSION < 5.50
-   EPM_POINTER = SYSTEM_POINTER    -- AVIO version gets arrow pointer
- compile else
    EPM_POINTER = TEXT_POINTER      -- GPI version gets text pointer
- compile endif
 compile endif
 
+-- Obsolete const for older EPM versions:
 -- We're getting too big to fit all the standard stuff into EPM.EX, even without
 -- user additions, so this new option says to include a separate .EX file for
 -- MOUSE, MARKFILT, BOOKMARK, CLIPBRD, CHAROPS, DOSUTIL, ALL, MATH and SORT.
 compile if not defined(EXTRA_EX)
-EXTRA_EX = 0
+   -- Don't change this!
+   EXTRA_EX = 0
 compile endif
 
 -- Add support for looking up keywords in an index file and getting help.
 -- See KWHELP.E for details.  EPM only.
 compile if not defined(WANT_KEYWORD_HELP)
-WANT_KEYWORD_HELP = 0
+   -- What a poor default value!
+   -- Set KEYWORD_HELP = 1 in MYCNF.E
+   WANT_KEYWORD_HELP = 0
 compile endif
 
 -- By default, in EPM we block the action of action bar mnemonics being
 -- automatic accelerators.  Some users might not want this.  Can be 'SWITCH'.
 compile if not defined(BLOCK_ACTIONBAR_ACCELERATORS)
-BLOCK_ACTIONBAR_ACCELERATORS = 1
+   BLOCK_ACTIONBAR_ACCELERATORS = 1
 compile endif
 
 -- Define the default PASTE action for Shift+Ins.  Can be '' (for Paste Lines),
 -- 'B' (for Paste Block), or 'C' (for standard PM character mark).
 compile if not defined(DEFAULT_PASTE) & EPM
-DEFAULT_PASTE = 'C'
+   DEFAULT_PASTE = 'C'
 compile endif
 
 -- Include Rexx support?  (EPM 5.50 or above only.)
 compile if not defined(WANT_REXX)
-WANT_REXX = 1
+   WANT_REXX = 1
 compile endif
 
 -- Search for a Rexx profile?  (EPM 5.50 or above only.)
 compile if not defined(WANT_PROFILE)
-WANT_PROFILE = 0
+   -- What a poor default value!
+   -- Set WANT_PROFILE = 'SWITCH' in MYCNF.E
+   --    and
+   -- Set my_WANT_PROFILE = 1 in MYCNF.E
+   WANT_PROFILE = 0
 compile endif
 
 compile if WANT_PROFILE & not WANT_REXX
@@ -844,26 +836,28 @@ compile endif
 -- Toggle Escape key?  Default EPM for Boca doesn't use Esc to bring up command
 -- dialog, but all "real" EPM users want it.
 compile if not defined(TOGGLE_ESCAPE)
-TOGGLE_ESCAPE = 0
+   -- What a poor default value!
+   -- Set TOGGLE_ESCAPE = 'SWITCH' in MYCNF.E
+   TOGGLE_ESCAPE = 0
 compile endif
 
 -- Toggle Tab key?  Some people want the Tab key to insert a tab, rather than
 -- inserting spaces to the next tab stop.
 compile if not defined(TOGGLE_TAB)
-TOGGLE_TAB = 0
+   TOGGLE_TAB = 0
 compile endif
 
 -- Make menu support optional for people using the E Toolkit who want to
 -- use most of the standard macros.  *Not* for most users.
 compile if not defined(INCLUDE_MENU_SUPPORT)
-INCLUDE_MENU_SUPPORT = 1
+   INCLUDE_MENU_SUPPORT = 1
 compile endif
 
 -- For people using the E Toolkit who want to include the base menu support,
 -- but supply their own menus.  *Not* for most users.  Omits STDMENU.E,
 -- loaddefaultmenu cmd,
 compile if not defined(INCLUDE_STD_MENUS)
-INCLUDE_STD_MENUS = 1
+   INCLUDE_STD_MENUS = 1
 compile endif
 
 -- The compiler support is only included if the bookmark support is; this lets
@@ -881,11 +875,7 @@ compile endif
 -- EBOOKIE support desired?  0=no; 1=include bkeys.e; 'LINK'=always link BKEYS
 -- at startup; 'DYNALINK'=support for dynamically linking it in.
 compile if not defined(WANT_EBOOKIE)
- compile if E3
-   WANT_EBOOKIE = 0
- compile else
    WANT_EBOOKIE = 'DYNALINK'
- compile endif
 compile endif
 
 -- Starting in EPM 5.50, EPM was modified so that when scrolling with the
@@ -906,7 +896,9 @@ compile if not defined(WANT_APPLICATION_INI_FILE)
 compile endif
 
 -- Support for a TAGS file (EPM 5.60 or above, only).
-compile if EVERSION < '5.60' | not defined(WANT_TAGS)
+compile if not defined(WANT_TAGS)
+   -- What a poor default value!
+   -- Set WANT_TAGS = 1 in MYCNF.E
    WANT_TAGS = 0
 compile endif
 
@@ -928,20 +920,26 @@ compile endif
 
 -- Include support for viewing the EPM User's guide in the Help menu.
 compile if not defined(SUPPORT_USERS_GUIDE)
+   -- What a poor default value!
+   -- Set SUPPORT_USERS_GUIDE = 1 in MYCNF.E
    SUPPORT_USERS_GUIDE = 0
 compile endif
 
 -- Include support for viewing the EPM Technical Reference in the Help menu.
 compile if not defined(SUPPORT_TECHREF)
+   -- What a poor default value!
+   -- Set SUPPORT_TECH_REF = 1 in MYCNF.E
    SUPPORT_TECHREF = 0
 compile endif
 
 -- Include support for calling user exits in DEFMAIN, SAVE, NAME, and QUIT.
 -- (EPM 5.51+ only; requires isadefproc() ).
-compile if EVERSION < '5.51' or not defined(SUPPORT_USER_EXITS)
+compile if not defined(SUPPORT_USER_EXITS)
+   -- What a poor default value!
+   -- Set SUPPORT_USER_EXITS = 1 in MYCNF.E
    SUPPORT_USER_EXITS = 0
 compile endif
-compile if EVERSION < '5.51' or not defined(INCLUDE_BMS_SUPPORT)
+compile if not defined(INCLUDE_BMS_SUPPORT)
    INCLUDE_BMS_SUPPORT = 0
 compile endif
 
@@ -951,23 +949,19 @@ compile if not defined(DELAY_SAVEPATH_CHECK)
    DELAY_SAVEPATH_CHECK = 0
 compile endif
 
-compile if EPM & not defined(LOCATE_CIRCLE_STYLE)
+compile if not defined(LOCATE_CIRCLE_STYLE)
    LOCATE_CIRCLE_STYLE = 1
 compile endif
-compile if EVERSION >= '5.60'
- compile if not defined(LOCATE_CIRCLE_COLOR1)
+compile if not defined(LOCATE_CIRCLE_COLOR1)
    LOCATE_CIRCLE_COLOR1 = 16777220
- compile endif
- compile if not defined(LOCATE_CIRCLE_COLOR2)
+compile endif
+compile if not defined(LOCATE_CIRCLE_COLOR2)
    LOCATE_CIRCLE_COLOR2 = 16777218
- compile endif
 compile endif
 
 -- Include support for toolbar (EPM 6.00+ only)
-compile if EVERSION >= 6 and not defined(WANT_TOOLBAR)
+compile if not defined(WANT_TOOLBAR)
    WANT_TOOLBAR = 1
-compile elseif EVERSION < 6
-   WANT_TOOLBAR = 0  -- Toolbar only supported for EPM 6.00 & above.
 compile endif
 
 -- Use System Monospaced as default font, rather than the PM default.
@@ -994,28 +988,20 @@ compile endif
 -- above due to long line support, but will work in earlier EPM and even
 -- EOS2.
 compile if not defined(WANT_TREE)
- compile if E3
-   WANT_TREE = 0
- compile else
    WANT_TREE = 'DYNALINK'
- compile endif
 compile endif
 
 -- For GPI, we manage the cursor ourself.  This provides an alternate to
 -- UNDERLINE_CURSOR, to allow changing the shape at runtime.
-compile if EVERSION >='5.50'
- compile if not defined(DYNAMIC_CURSOR_STYLE)
-    DYNAMIC_CURSOR_STYLE = 0
- compile endif
+compile if not defined(DYNAMIC_CURSOR_STYLE)
+   DYNAMIC_CURSOR_STYLE = 0
 compile endif
 
 -- For EPM 6.00, we have the ability to be a Workplace Shell object.  If we
 -- are, the configuration information comes from the object and not the .INI
 -- file.  This saves a good amount of startup time.
-compile if EPM
- compile if not defined(WPS_SUPPORT)
+compile if not defined(WPS_SUPPORT)
     WPS_SUPPORT = EPM32
- compile endif
 compile endif
 
 -- Delay the building of the menus?  Gives faster startup for EPM 6.01, where
@@ -1023,18 +1009,14 @@ compile endif
 -- versions, the extra redrawing of the windows makes this not worthwhile.
 -- People who use external add-ons that update the menus might prefer to
 -- turn this off, to simplify the addition of those packages.
-compile if EPM
- compile if not defined(DELAY_MENU_CREATION)
+compile if not defined(DELAY_MENU_CREATION)
 ;;  DELAY_MENU_CREATION = EVERSION >= '6.01'
     DELAY_MENU_CREATION = 0  -- Traps in PMWIN.DLL; leave off for now.
- compile endif
 compile endif
 
 -- Use the normal-sized or the tiny icons for the built-in toolbar?
-compile if EPM32
- compile if not defined(WANT_TINY_ICONS)
+compile if not defined(WANT_TINY_ICONS)
     WANT_TINY_ICONS = 0
- compile endif
 compile endif
 
 -- Support the Shift+cursor movement for marking?
@@ -1049,15 +1031,17 @@ compile endif
 -- WANT_STREAM_EDITING = 'SWITCH', and RESPECT_SCROLL_LOCK = 1, cursor movement
 -- might be unacceptably slow.
 compile if not defined(RESPECT_SCROLL_LOCK)
+   -- What a poor default value!
+   -- Set RESPECT_SCROLL_LOCK = 1 in MYCNF.E
     RESPECT_SCROLL_LOCK = 0
 compile endif
 
 -- Should word-marking use a character or block mark?
 compile if not defined(WORD_MARK_TYPE)
 ;compile if WANT_CHAR_OPS
-;   WORD_MARK_TYPE = 'CHAR'
+;  WORD_MARK_TYPE = 'CHAR'
 ;compile else
-    WORD_MARK_TYPE = 'BLOCK'
+   WORD_MARK_TYPE = 'BLOCK'
 ;compile endif
 compile endif
 
@@ -1073,54 +1057,54 @@ include NLS_LANGUAGE'.e'
 -- This defines the "Directory of" string searched for by Alt-1 in DIR output.
 -- (User-definable for NLS requirements.)
 compile if not defined(DIRECTORYOF_STRING)
-DIRECTORYOF_STRING = DIR_OF__MSG
+   DIRECTORYOF_STRING = DIR_OF__MSG
 compile endif
 -------------------------------------------------------------------------------
 
 definit
 universal expand_on, matchtab_on, default_search_options
 universal vTEMP_FILENAME, vTEMP_PATH, vAUTOSAVE_PATH
-compile if EVERSION < 5
-   universal ZoomWindowStyle, comsfileid, messy
-compile else
+;compile if EVERSION < 5
+;   universal ZoomWindowStyle, comsfileid, messy
+;compile else
    universal edithwnd, MouseStyle, appname
- compile if EVERSION >= '5.20'
+; compile if EVERSION >= '5.20'
    universal app_hini
    universal CurrentHLPFiles
- compile endif
- compile if EVERSION >= '5.21'
+; compile endif
+; compile if EVERSION >= '5.21'
    universal vSTATUSCOLOR, vMESSAGECOLOR
-  compile if EVERSION >= '5.60'
+;  compile if EVERSION >= '5.60'
    universal vDESKTOPCOLOR
-  compile endif
- compile endif
- compile if CHECK_FOR_LEXAM
+;  compile endif
+; compile endif
+compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
- compile endif
- compile if WANT_DYNAMIC_PROMPTS
+compile endif
+compile if WANT_DYNAMIC_PROMPTS
    universal menu_prompt
- compile endif
- compile if ENHANCED_ENTER_KEYS
+compile endif
+compile if ENHANCED_ENTER_KEYS
    universal enterkey, a_enterkey, c_enterkey, s_enterkey
    universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
- compile endif
- compile if RING_OPTIONAL
+compile endif
+compile if RING_OPTIONAL
    universal ring_enabled
- compile endif
+compile endif
    universal EPM_utility_array_ID, defaultmenu, font
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE
    universal  ADDENDA_FILENAME
    universal  DICTIONARY_FILENAME
- compile if WANT_EPM_SHELL
+compile if WANT_EPM_SHELL
    universal shell_index
- compile endif
- compile if WANT_CUA_MARKING = 'SWITCH'
+compile endif
+compile if WANT_CUA_MARKING = 'SWITCH'
    universal CUA_marking_switch
- compile endif
 compile endif
-compile if EVERSION < '4.12'
-   universal autosave
-compile endif
+;compile endif
+;compile if EVERSION < '4.12'
+;   universal autosave
+;compile endif
 compile if HOST_SUPPORT
    universal hostcopy
 compile endif
@@ -1133,12 +1117,12 @@ compile endif
 compile if WANT_STACK_CMDS = 'SWITCH'
    universal stack_cmds
 compile endif
-compile if EVERSION >= '5.50'
+;compile if EVERSION >= '5.50'
    universal default_font
- compile if DYNAMIC_CURSOR_STYLE
+compile if DYNAMIC_CURSOR_STYLE
    universal cursordimensions
- compile endif
 compile endif
+;compile endif
    universal bitmap_present
 compile if WANT_LONGNAMES = 'SWITCH'
    universal SHOW_LONGNAMES
@@ -1157,8 +1141,8 @@ compile endif
 compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
    universal CUA_MENU_ACCEL
 compile endif
-compile if EPM
- compile if WPS_SUPPORT
+;compile if EPM
+compile if WPS_SUPPORT
    universal wpshell_handle
    wpshell_handle = windowmessage(1,  getpminfo(EPMINFO_OWNERFRAME),
                                 5152,    -- EPM_QUERY_CONFIG
@@ -1170,48 +1154,53 @@ compile if EPM
                       atol(wpshell_handle) ||  -- Base address
                       atol(1))             -- PAG_READ
    endif
- compile endif
 compile endif
+;compile endif
 
+-- set automatic syntax expansion 0/1
 compile if defined(my_expand_on)
-expand_on        = my_expand_on
+   expand_on        = my_expand_on
 compile else
-expand_on        = 1
+   expand_on        = 1
 compile endif
-                        -- set automatic syntax expansion 0/1
-compile if defined(my_matchtab_on)
-matchtab_on      = my_matchtab_on
-compile else
-matchtab_on      = 0
-compile endif
-                        -- set default matchtab to 0 or 1
-compile if EVERSION < 5
- compile if defined(my_ZoomWindowStyle)
-ZoomWindowStyle  = my_ZoomWindowStyle
- compile else
-ZoomWindowStyle  = 1
- compile endif
-                        -- set default zoom window style
- compile if EVERSION < '4.12'
-  compile if defined(my_autosave)
-autosave         = my_AUTOSAVE
-  compile else
-autosave         = DEFAULT_AUTOSAVE
-  compile endif
-                        -- set autosave initial value
- compile endif    -- EVERSION < 4.12
- compile if WANT_WINDOWS
-  compile if defined(my_messy)
-messy            = my_messy
-  compile else
-messy            = 0
-  compile endif
-                        -- set to 1 for messy-desk windowing
- compile else        -- No windowing ==> no choice of windowing style.
-messy            = 0    -- Do not change this copy!!!
- compile endif
 
-compile endif  -- EVERSION < 5
+-- set default matchtab to 0 or 1
+compile if defined(my_matchtab_on)
+   matchtab_on      = my_matchtab_on
+compile else
+   matchtab_on      = 0
+compile endif
+
+;compile if EVERSION < 5
+;
+;-- set default zoom window style
+;compile if defined(my_ZoomWindowStyle)
+;   ZoomWindowStyle  = my_ZoomWindowStyle
+;compile else
+;   ZoomWindowStyle  = 1
+;compile endif
+;
+;-- set autosave initial value
+; compile if EVERSION < '4.12'
+;  compile if defined(my_autosave)
+;   autosave         = my_AUTOSAVE
+;  compile else
+;   autosave         = DEFAULT_AUTOSAVE
+;  compile endif
+; compile endif    -- EVERSION < 4.12
+;
+;-- set to 1 for messy-desk windowing
+; compile if WANT_WINDOWS
+;  compile if defined(my_messy)
+;   messy            = my_messy
+;  compile else
+;   messy            = 0
+;  compile endif
+; compile else        -- No windowing ==> no choice of windowing style.
+;   messy            = 0    -- Do not change this copy!!!
+; compile endif
+;
+;compile endif  -- EVERSION < 5
 
 
 -- This option JOIN_AFTER_WRAP specifies whether to join the
@@ -1224,9 +1213,9 @@ compile endif  -- EVERSION < 5
 --    wrap.
 --    -- (sample next line)
 compile if defined(my_join_after_wrap)
-join_after_wrap = my_join_after_wrap
+   join_after_wrap = my_join_after_wrap
 compile else
-join_after_wrap = 1
+   join_after_wrap = 1
 compile endif
 
 
@@ -1236,27 +1225,27 @@ compile endif
 -- 1 :  Move the cursor to the word if it's visible on the current screen,
 --      to minimize text motion.  Else center the word in mid-screen.
 compile if defined(my_center_search)
-center_search = my_center_search
+   center_search = my_center_search
 compile else
-center_search = 1
+   center_search = 1
 compile endif
 
-compile if not EPM
--- This option TOP_OF_FILE_FIXED specifies whether the
---   "Top of File" line is allowed to move down from the top of the window.
--- 0 :  Allow the line to move down, so that cursor operations act the same
---      regardless of proximity to top of file.  For example, the key Shift-F5
---      (center the current line) will move the top-of-file line down if that's
---      what's needed to center the current line in a small file.
--- 1 :  Hold the line fixed; some cursor operations will change their behavior
---      as the cursor approaches the top of file.  Shift-F5 will not center the
---      current line in a small file.
- compile if defined(my_top_of_file_fixed)
-top_of_file_fixed = my_top_of_file_fixed
- compile else
-top_of_file_fixed = 1
- compile endif
-compile endif
+;compile if not EPM
+;-- This option TOP_OF_FILE_FIXED specifies whether the
+;--   "Top of File" line is allowed to move down from the top of the window.
+;-- 0 :  Allow the line to move down, so that cursor operations act the same
+;--      regardless of proximity to top of file.  For example, the key Shift-F5
+;--      (center the current line) will move the top-of-file line down if that's
+;--      what's needed to center the current line in a small file.
+;-- 1 :  Hold the line fixed; some cursor operations will change their behavior
+;--      as the cursor approaches the top of file.  Shift-F5 will not center the
+;--      current line in a small file.
+; compile if defined(my_top_of_file_fixed)
+;   top_of_file_fixed = my_top_of_file_fixed
+; compile else
+;   top_of_file_fixed = 1
+; compile endif
+;compile endif
 
 -- Ver. 4.12:  Some users want only one space after a period or colon when
 -- they reflow a paragraph.  This is a predefined universal variable similar to
@@ -1264,13 +1253,14 @@ compile endif
 -- special purposes.
 --    1 (TRUE)  ==>  supply two spaces after a sentence or colon.
 --    0 (FALSE) ==>  supply only one space.
-compile if EVERSION >= 4    -- not in E3
- compile if defined(my_two_spaces)
-  two_spaces = my_two_spaces
- compile else
-  two_spaces = TRUE  -- Default is as before, two spaces after sentence.
- compile endif
+;compile if EVERSION >= 4    -- not in E3
+compile if defined(my_two_spaces)
+   two_spaces = my_two_spaces
+compile else
+   -- Default is as before, two spaces after sentence.
+   two_spaces = TRUE
 compile endif
+;compile endif
 
 -- Default options for locate and change commands.  Pick from:
 --
@@ -1282,20 +1272,20 @@ compile endif
 -- The standard is 'EA+F' to be compatible with previous releases; that's
 -- what you get if you leave this blank.  Many users will prefer 'C'.
 compile if defined(my_default_search_options)
-default_search_options= my_default_search_options
+   default_search_options= my_default_search_options
 compile else
-default_search_options=''
+   default_search_options=''
 compile endif
 
 compile if HOST_SUPPORT
  compile if defined(my_hostcopy)
    hostcopy= my_hostcopy
  compile else
-  compile if E3
-   hostcopy='mytecopy'    -- Default for DOS is MYTECOPY.
-  compile else
+;  compile if E3
+;   hostcopy='mytecopy'    -- Default for DOS is MYTECOPY.
+;  compile else
    hostcopy='almcopy'     -- Default for OS/2 is the OS/2 version of ALMCOPY.
-  compile endif
+;  compile endif
  compile endif
                         -- Could be mytecopy, e78copy, bondcopy, cp78copy, almcopy, etc.
                         -- Add options if necessary (e.g., 'mytecopy /nowsf')
@@ -1307,77 +1297,78 @@ compile endif
 -- If you want ALL files saved with tab compression, without specifying
 -- the '/t', set this to 1.
 compile if defined(my_save_with_tabs)
-save_with_tabs = my_save_with_tabs
+   save_with_tabs = my_save_with_tabs
 compile else
-save_with_tabs = 0
+   save_with_tabs = 0
 compile endif
 
-compile if EVERSION < 5
--- Four function_key_text strings now for four shift states.
--- 80 characters (one line) max.  Broken into two strings here,
--- with arrow graphics replaced with ASCII codes for printability.
-
- compile if defined(my_function_key_text)
-function_key_text  = my_function_key_text
- compile else
-   compile if (WANT_DRAW=F6 | WANT_DRAW='F6') & not SMALL
-function_key_text  = "F1=Help  2=Save  3=Quit  4=File         "||
-                     " 6=Draw  7=Name  8=Edit  9=Undo  10=Next"
-   compile else
-function_key_text  = "F1=Help  2=Save  3=Quit  4=File         "||
-                     "         7=Name  8=Edit  9=Undo  10=Next"
-   compile endif
- compile endif
-
- compile if defined(my_a_function_key_text)
-a_function_key_text= my_a_function_key_text
- compile else
-a_function_key_text= "F1=LineChars                            "||
-                     "       7="\27"Shift  8=Shift"\26"        10=Prev"
- compile endif
-
- compile if defined(my_c_function_key_text)
-c_function_key_text= my_c_function_key_text
- compile else
-c_function_key_text= "F1=UpperWord  2=LowerWord  3=UpperMark  "||
-                     "4=LowerMark  5=BeginWord  6=EndWord     "
- compile endif
-
- compile if defined(my_s_function_key_text)
-s_function_key_text= my_s_function_key_text
- compile else
-s_function_key_text= "F1="\27"Scrl  2=Scrl"\26"  3=Scrl"\24"  4=Scrl"||
-                     \25"  5=CenterLine                               "
- compile endif
-
--- This specifies how long you must hold down a shift/ctrl/alt key before
--- the function_key_text changes.
--- It's an arbitrary value:  2000 gives about 3/4 second delay on an AT.
--- Set this to zero if you don't want the function_key_text to shift.
- compile if defined(my_function_key_text_delay)
-function_key_text_delay = my_function_key_text_delay
- compile else
-function_key_text_delay = 2000
-                                                               -- for DOS 3
--- On OS/2 real mode use about 1/10th of that.
-if machine()='OS2REAL' or dos_version() >= 1000 then
-   function_key_text_delay = function_key_text_delay % 10      -- for OS/2 real
-endif
-  compile if EVERSION >= '4.00'  -- Save a few bytes in DOS version
--- In protect mode use machine-independent units, milliseconds!
-if machine()='OS2PROTECT' then
-   function_key_text_delay = 800
-                                                               -- OS/2 protect
-endif
-  compile endif
- compile endif
-
--- Note:  You'll want to change the f.k.texts if you define new keysets with
--- different function keys.  The preferred method is:
---    define your new keyset in a separate file (like CKEYS.E);
---    write a small condition-check to select your keyset (like CKEYSEL.E);
---    assign the new function_key_texts in the select file.
-compile endif  -- EVERSION < 5
+;compile if EVERSION < 5
+;-- Four function_key_text strings now for four shift states.
+;-- 80 characters (one line) max.  Broken into two strings here,
+;-- with arrow graphics replaced with ASCII codes for printability.
+;
+; compile if defined(my_function_key_text)
+;   function_key_text  = my_function_key_text
+; compile else
+;   compile if (WANT_DRAW=F6 | WANT_DRAW='F6') & not SMALL
+;   function_key_text  = "F1=Help  2=Save  3=Quit  4=File         "||
+;                        " 6=Draw  7=Name  8=Edit  9=Undo  10=Next"
+;   compile else
+;   function_key_text  = "F1=Help  2=Save  3=Quit  4=File         "||
+;                        "         7=Name  8=Edit  9=Undo  10=Next"
+;   compile endif
+; compile endif
+;
+; compile if defined(my_a_function_key_text)
+;   a_function_key_text= my_a_function_key_text
+; compile else
+;   a_function_key_text= "F1=LineChars                            "||
+;                        "       7="\27"Shift  8=Shift"\26"        10=Prev"
+; compile endif
+;
+; compile if defined(my_c_function_key_text)
+;   c_function_key_text= my_c_function_key_text
+; compile else
+;   c_function_key_text= "F1=UpperWord  2=LowerWord  3=UpperMark  "||
+;                        "4=LowerMark  5=BeginWord  6=EndWord     "
+; compile endif
+;
+; compile if defined(my_s_function_key_text)
+;   s_function_key_text= my_s_function_key_text
+; compile else
+;   s_function_key_text= "F1="\27"Scrl  2=Scrl"\26"  3=Scrl"\24"  4=Scrl"||
+;                        \25"  5=CenterLine                               "
+; compile endif
+;
+;-- This specifies how long you must hold down a shift/ctrl/alt key before
+;-- the function_key_text changes.
+;-- It's an arbitrary value:  2000 gives about 3/4 second delay on an AT.
+;-- Set this to zero if you don't want the function_key_text to shift.
+; compile if defined(my_function_key_text_delay)
+;   function_key_text_delay = my_function_key_text_delay
+; compile else
+;   function_key_text_delay = 2000
+;
+;   -- On OS/2 real mode use about 1/10th of that.
+;   if machine()='OS2REAL' or dos_version() >= 1000 then
+;      -- for OS/2 real or DOS 3
+;      function_key_text_delay = function_key_text_delay % 10
+;   endif
+;  compile if EVERSION >= '4.00'  -- Save a few bytes in DOS version
+;-- In protect mode use machine-independent units, milliseconds!
+;   if machine()='OS2PROTECT' then
+;      -- OS/2 protect
+;      function_key_text_delay = 800
+;   endif
+;  compile endif
+; compile endif
+;
+;-- Note:  You'll want to change the f.k.texts if you define new keysets with
+;-- different function keys.  The preferred method is:
+;--    define your new keyset in a separate file (like CKEYS.E);
+;--    write a small condition-check to select your keyset (like CKEYSEL.E);
+;--    assign the new function_key_texts in the select file.
+;compile endif  -- EVERSION < 5
 
 compile if WANT_LONGNAMES = 'SWITCH'
  compile if defined(my_SHOW_LONGNAMES)
@@ -1415,9 +1406,9 @@ compile endif
 ; environment variable to see if a VDISK has been defined, and if so, set the
 ; temp_path to point to it).  The constants are used as default initialization,
 ; and for compatability with older macros.
-vTEMP_FILENAME = TEMP_FILENAME
-vTEMP_PATH = TEMP_PATH
-vAUTOSAVE_PATH = AUTOSAVE_PATH
+   vTEMP_FILENAME = TEMP_FILENAME
+   vTEMP_PATH = TEMP_PATH
+   vAUTOSAVE_PATH = AUTOSAVE_PATH
 
 ; Default options to be added to the EDIT command.  Normally null, some users
 ; might prefer to make it '/L'.
@@ -1431,17 +1422,17 @@ vAUTOSAVE_PATH = AUTOSAVE_PATH
 ; EDIT command as by "EDIT /U filename".
 ; This choice makes no difference for normal text files with CR-LF for newline.
 compile if defined(my_default_edit_options)
-default_edit_options= my_default_edit_options
+   default_edit_options= my_default_edit_options
 compile else
-default_edit_options=''
+   default_edit_options=''
 compile endif
 
 ; Default options to be added to the SAVE command.  Normally null, some users
 ; might prefer to make it '/S' (EPM 5.51 or above).
 compile if defined(my_default_save_options)
-default_save_options= my_default_save_options
+   default_save_options= my_default_save_options
 compile else
-default_save_options=''
+   default_save_options=''
 compile endif
 
 ; In EPM you can choose one of several (well, only 2 for now) prefabricated
@@ -1454,73 +1445,78 @@ compile endif
 ;     Same as style 1, but button 1 drag = character mark rather than block.
 ;  3: A marking style of point-the-corners instead of drag-paint.
 ;     (Not done yet.)
-compile if EPM
- compile if defined(my_MouseStyle)
-MouseStyle = my_MouseStyle
- compile else
-MouseStyle = 1
- compile endif
- compile if SPELL_SUPPORT = 'DYNALINK'  -- For EPM, initialize here if DYNALINK,
-  compile if defined(my_ADDENDA_FILENAME)  -- so can be overridden by CONFIG info.
-     ADDENDA_FILENAME= my_ADDENDA_FILENAME
-  compile else
-     ADDENDA_FILENAME= 'c:\lexam\lexam.adl'
-  compile endif
+;compile if EPM
+compile if defined(my_MouseStyle)
+   MouseStyle = my_MouseStyle
+compile else
+   MouseStyle = 1
+compile endif
 
-  compile if defined(my_DICTIONARY_FILENAME)
-     DICTIONARY_FILENAME= my_DICTIONARY_FILENAME
-  compile else
-     DICTIONARY_FILENAME= 'c:\lexam\us.dct'
-  compile endif
- compile endif  -- SPELL_SUPPORT
- compile if WANT_EPM_SHELL
+compile if SPELL_SUPPORT = 'DYNALINK'  -- For EPM, initialize here if DYNALINK,
+ compile if defined(my_ADDENDA_FILENAME)  -- so can be overridden by CONFIG info.
+   ADDENDA_FILENAME= my_ADDENDA_FILENAME
+ compile else
+   ADDENDA_FILENAME= 'c:\lexam\lexam.adl'
+ compile endif
+
+ compile if defined(my_DICTIONARY_FILENAME)
+   DICTIONARY_FILENAME= my_DICTIONARY_FILENAME
+ compile else
+   DICTIONARY_FILENAME= 'c:\lexam\us.dct'
+ compile endif
+compile endif  -- SPELL_SUPPORT
+
+compile if WANT_EPM_SHELL
    shell_index = 0
- compile endif
- compile if WANT_CUA_MARKING = 'SWITCH'
-  compile if defined(my_CUA_marking_switch)
+compile endif
+
+compile if WANT_CUA_MARKING = 'SWITCH'
+ compile if defined(my_CUA_marking_switch)
    CUA_marking_switch = my_CUA_marking_switch
-   compile if my_CUA_marking_switch
+  compile if my_CUA_marking_switch
    'togglecontrol 25 1'
-   compile endif
-  compile else
-   CUA_marking_switch = 0           -- Default is off, for standard EPM behavior.
   compile endif
- compile elseif WANT_CUA_MARKING = 1
+ compile else
+   CUA_marking_switch = 0           -- Default is off, for standard EPM behavior.
+ compile endif
+compile elseif WANT_CUA_MARKING = 1
    'togglecontrol 25 1'
- compile endif
+compile endif
+
    bitmap_present = 0
- compile if RESPECT_SCROLL_LOCK
+
+compile if RESPECT_SCROLL_LOCK
    'togglecontrol 26 0'  -- Turn off internal support for cursor keys.
- compile endif
-compile endif  -- EPM
+compile endif
+;compile endif  -- EPM
 
 ------------ Rest of this file isn't normally changed. ------------------------
 
-compile if EVERSION < '4.12'
--- Ver. 4.11B:  It's important that the base keyset, edit_keys, be
--- initialized early in the start-up process, before any modules are linked.
--- Linked modules can now contain key definitions that overlay the base keyset,
--- and they need a base to overlay onto.  Don't delete this line!
-keys edit_keys
+;compile if EVERSION < '4.12'
+;-- Ver. 4.11B:  It's important that the base keyset, edit_keys, be
+;-- initialized early in the start-up process, before any modules are linked.
+;-- Linked modules can now contain key definitions that overlay the base keyset,
+;-- and they need a base to overlay onto.  Don't delete this line!
+;   keys edit_keys
+;
+;-- Set some defaults.  In EOS2 4.12 and later, this is done in a DEFLOAD.
+;   'xcom tabs'    DEFAULT_TABS
+;   'xcom margins' DEFAULT_MARGINS
+;compile endif
 
--- Set some defaults.  In EOS2 4.12 and later, this is done in a DEFLOAD.
-'xcom tabs'    DEFAULT_TABS
-'xcom margins' DEFAULT_MARGINS
-compile endif
+;compile if EVERSION >= 5
+   vDEFAULT_TABS    = DEFAULT_TABS
+   vDEFAULT_MARGINS = DEFAULT_MARGINS
+   vDEFAULT_AUTOSAVE= DEFAULT_AUTOSAVE
 
-compile if EVERSION >= 5
-vDEFAULT_TABS    = DEFAULT_TABS
-vDEFAULT_MARGINS = DEFAULT_MARGINS
-vDEFAULT_AUTOSAVE= DEFAULT_AUTOSAVE
-
- compile if defined(my_APPNAME)
-appname=my_APPNAME
- compile else
-appname=leftstr(getpminfo(EPMINFO_EDITEXSEARCH),3)  -- Get the .ex search path
-                              -- name (this should be a reliable way to get a
-                              -- unique application under which to to store
-                              -- data in os2.ini.  I.e. EPM (EPMPATH) would be
- compile endif                -- 'EPM', LaMail (LAMPATH) would be 'LAM'
+compile if defined(my_APPNAME)
+   appname=my_APPNAME
+compile else
+   appname=leftstr(getpminfo(EPMINFO_EDITEXSEARCH),3)  -- Get the .ex search path
+                                 -- name (this should be a reliable way to get a
+                                 -- unique application under which to to store
+                                 -- data in os2.ini.  I.e. EPM (EPMPATH) would be
+compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 
 ; What was the ring_menu_array_id is now the EPM_utility_array_id, to reflect
 ; that it's a general-purpose array.  An array is a file, so it's cheaper to
@@ -1535,154 +1531,160 @@ appname=leftstr(getpminfo(EPMINFO_EDITEXSEARCH),3)  -- Get the .ex search path
 ;   si.       -- Style index
 ;   sn.       -- Style name
 ;   F         -- File id for Ring_more command; not used as of EPM 5.20
-do_array 1, EPM_utility_array_ID, "array.EPM"   -- Create this array.
-  compile if 0  -- LAM: Delete this feature; nobody used it, and it slowed things down.
-one = 1                                          -- (Value is a VAR, so have to kludge it.)
-do_array 2, EPM_utility_array_ID, 'menu.0', one           -- Item 0 says there is one item.
-do_array 2, EPM_utility_array_ID, 'menu.1', defaultmenu   -- Item 1 is the default menu name.
-  compile endif  -- 0
-zero = 0                                         -- (Value is a VAR, so have to kludge it.)
-do_array 2, EPM_utility_array_ID, 'bmi.0', zero    -- Index of 0 says there are no bookmarks
-do_array 2, EPM_utility_array_ID, 'si.0', zero     -- Set Style Index 0 to "no entries."
-compile endif  -- EVERSION >= 5
+   do_array 1, EPM_utility_array_ID, "array.EPM"   -- Create this array.
+     compile if 0  -- LAM: Delete this feature; nobody used it, and it slowed things down.
+   one = 1                                          -- (Value is a VAR, so have to kludge it.)
+   do_array 2, EPM_utility_array_ID, 'menu.0', one           -- Item 0 says there is one item.
+   do_array 2, EPM_utility_array_ID, 'menu.1', defaultmenu   -- Item 1 is the default menu name.
+     compile endif  -- 0
+   zero = 0                                         -- (Value is a VAR, so have to kludge it.)
+   do_array 2, EPM_utility_array_ID, 'bmi.0', zero    -- Index of 0 says there are no bookmarks
+   do_array 2, EPM_utility_array_ID, 'si.0', zero     -- Set Style Index 0 to "no entries."
+;compile endif  -- EVERSION >= 5
 
 compile if EXTRA_EX
  compile if defined(my_EXTRA_EX_NAME)
-  'linkverify' my_EXTRA_EX_NAME
+   'linkverify' my_EXTRA_EX_NAME
  compile else
-  'linkverify EXTRA'
+   'linkverify EXTRA'
  compile endif
 compile endif
 
-compile if EVERSION >= 5
- compile if EVERSION >= '5.20'
-  compile if WANT_APPLICATION_INI_FILE
-   compile if EVERSION >= '6.00'
-app_hini=dynalink32(ERES2_DLL, 'ERESQueryHini', gethwndc(EPMINFO_EDITCLIENT) ,2)
-   compile elseif EVERSION >= '5.53'
-app_hini=dynalink(ERES2_DLL, 'ERESQUERYHINI', gethwnd(EPMINFO_EDITCLIENT) ,2)
-   compile else
-app_hini=getpminfo(EPMINFO_HINI)
-   compile endif  -- 6.00 / 5.53
-if not app_hini then
-   call WinMessageBox('Bogus Ini File Handle', '.ini file handle =' app_hini, 16416)
-;; 'postme inifileupdate 1'  -- Don't think this is a problem any more.
-endif
-  compile endif  -- WANT_APPLICATION_INI_FILE
-CurrentHLPFiles = 'epm.hlp'
- compile endif  -- 5.20
+;compile if EVERSION >= 5
+; compile if EVERSION >= '5.20'
+compile if WANT_APPLICATION_INI_FILE
+;   compile if EVERSION >= '6.00'
+   app_hini=dynalink32(ERES2_DLL, 'ERESQueryHini', gethwndc(EPMINFO_EDITCLIENT) ,2)
+;   compile elseif EVERSION >= '5.53'
+;   app_hini=dynalink(ERES2_DLL, 'ERESQUERYHINI', gethwnd(EPMINFO_EDITCLIENT) ,2)
+;   compile else
+;   app_hini=getpminfo(EPMINFO_HINI)
+;   compile endif  -- 6.00 / 5.53
+   if not app_hini then
+      call WinMessageBox('Bogus Ini File Handle', '.ini file handle =' app_hini, 16416)
+;;    'postme inifileupdate 1'  -- Don't think this is a problem any more.
+   endif
+compile endif  -- WANT_APPLICATION_INI_FILE
+   CurrentHLPFiles = 'epm.hlp'
+; compile endif  -- 5.20
 ;compile if defined(my_TILDE)
-;  tilde = my_TILDE
+;   tilde = my_TILDE
 ;compile elseif EVERSION > '5.20'
-;  tilde = '~'
-;compile else
-;if dos_version() >= 1020 then
-;   tilde = ''
-;else
 ;   tilde = '~'
-;endif
+;compile else
+;   if dos_version() >= 1020 then
+;      tilde = ''
+;   else
+;      tilde = '~'
+;   endif
 ;compile endif
- compile if defined(my_FONT)
+compile if defined(my_FONT)
    font = my_FONT
-  compile if EVERSION < 5.21
-   if not my_FONT then call setfont(0, 0); endif  -- If FALSE then Togglefont
-  compile endif
- compile else
+;  compile if EVERSION < 5.21
+;   if not my_FONT then call setfont(0, 0); endif  -- If FALSE then Togglefont
+;  compile endif
+compile else
    font = TRUE                         -- default font is large
- compile endif
- compile if RING_OPTIONAL
-  compile if defined(my_RING_ENABLED)
+compile endif
+compile if RING_OPTIONAL
+ compile if defined(my_RING_ENABLED)
     ring_enabled = my_RING_ENABLED
-  compile else
+ compile else
     ring_enabled = 1
-  compile endif
-  compile if WANT_APPLICATION_INI_FILE
-   compile if WPS_SUPPORT
+ compile endif
+ compile if WANT_APPLICATION_INI_FILE
+  compile if WPS_SUPPORT
    if wpshell_handle then
 ; Key 18
 ;     this_ptr = peek32(shared_mem+72, 4); -- if this_ptr = \0\0\0\0 then return; endif
 ;     parse value peekz(this_ptr) with ? ring_enabled ?
-compile if 0  -- LAM/JP
-      ring_enabled = substr(peekz(peek32(wpshell_handle+64, 4)), 8, 1)
-compile else
+;compile if 0  -- LAM/JP
+;      ring_enabled = substr(peekz(peek32(wpshell_handle+64, 4)), 8, 1)
+;compile else
       ring_enabled = 1
-compile endif
+;compile endif
    else
-   compile endif
-    newcmd=queryprofile( app_hini, appname, INI_RINGENABLED)
-    if newcmd<>'' then ring_enabled = newcmd; endif
-   compile if WPS_SUPPORT
-   endif  -- wpshell_handle
-   compile endif
-  compile endif  -- WANT_APPLICATION_INI_FILE
-   if not ring_enabled then
-  compile if EVERSION < '5.53'
-      'togglecontrol 20 0'
-  compile else
-      'toggleframe 4 0'
   compile endif
+      newcmd=queryprofile( app_hini, appname, INI_RINGENABLED)
+      if newcmd<>'' then ring_enabled = newcmd; endif
+  compile if WPS_SUPPORT
+   endif  -- wpshell_handle
+  compile endif
+ compile endif  -- WANT_APPLICATION_INI_FILE
+   if not ring_enabled then
+;  compile if EVERSION < '5.53'
+;      'togglecontrol 20 0'
+;  compile else
+      'toggleframe 4 0'
+;  compile endif
    endif
- compile endif  -- RING_OPTIONAL
- compile if not DELAY_MENU_CREATION
+compile endif  -- RING_OPTIONAL
+compile if not DELAY_MENU_CREATION
    include 'menuacel.e'
- compile endif
- compile if WANT_DYNAMIC_PROMPTS
-  compile if defined(my_MENU_PROMPT)
+compile endif
+compile if WANT_DYNAMIC_PROMPTS
+ compile if defined(my_MENU_PROMPT)
    menu_prompt = my_MENU_PROMPT
-  compile else
+ compile else
 ;  menu_prompt = 0       -- Default is to not have it (at least, internally).
    menu_prompt = 1       -- (Start with it on for now, to get it beta tested.)
-  compile endif
- compile endif  -- DYNAMIC_PROMPTS
-compile endif  -- EVERSION >= 5
+ compile endif
+compile endif  -- DYNAMIC_PROMPTS
+;compile endif  -- EVERSION >= 5
 
-last_append_file = ''   -- Initialize for DEFC APPEND.
+   last_append_file = ''   -- Initialize for DEFC APPEND.
 
-compile if not EPM
- compile if E3
-'xcom e /n /h coms.e'
-getfileid comsfileid    -- initialize comsfileid for other macros
+;compile if not EPM
+;
+; compile if E3
+;   'xcom e /n /h coms.e'
+;   getfileid comsfileid    -- initialize comsfileid for other macros
+;
+;-- Make sure the top ring is active.  This E command (any old file
+;-- would do) activates the top ring.
+;   'xcom e /n coms.e'; 'xcom q'
+;; compile else
+;; 4.12:  We no longer need to load the COMS.E file here, it's done
+;; automatically.  And no need to query comsfileid, it's always 0.
+;; And no need to activate the top ring after loading COMS.E.  Now it's simply:
+;   comsfileid=0
+;; compile endif  -- E3
+;
+;-- Ver 3.11:  move color initializations to init_window() in WINDOW.E.
+;-- Much of it was repeated there anyway.
+;;call start_screen()
+;
+;compile else       -- EPM
 
--- Make sure the top ring is active.  This E command (any old file
--- would do) activates the top ring.
-'xcom e /n coms.e'; 'xcom q'
- compile else
-; 4.12:  We no longer need to load the COMS.E file here, it's done
-; automatically.  And no need to query comsfileid, it's always 0.
-; And no need to activate the top ring after loading COMS.E.  Now it's simply:
-comsfileid=0
- compile endif  -- E3
-
--- Ver 3.11:  move color initializations to init_window() in WINDOW.E.
--- Much of it was repeated there anyway.
-call start_screen()
-
-compile else       -- EPM
 ; Initialize the colors and paint the window.  (Done in WINDOW.E for non-EPM versions.)
-.textcolor  = TEXTCOLOR
-.markcolor  = MARKCOLOR
-compile if EVERSION < '5.21'
-.statuscolor  = STATUSCOLOR
-.messagecolor = MESSAGECOLOR
-compile else
-vSTATUSCOLOR  = STATUSCOLOR
-vMESSAGECOLOR = MESSAGECOLOR
- compile if EVERSION >= '5.60'
-vDESKTOPCOLOR = DESKTOPCOLOR
- compile endif
- compile if defined(STATUS_TEMPLATE)
-  compile if 0 -- EVERSION >= 6
-'postme setstatusline' STATUS_TEMPLATE
-  compile else
-'setstatusline' STATUS_TEMPLATE
-  compile endif
- compile elseif STATUSCOLOR <> 240  -- If different than the default...
- 'setstatusline'    -- Just set the color
- compile endif
- compile if MESSAGECOLOR <> 252  -- If different than the default...
- 'setmessageline'   -- Set the messageline color
- compile endif
-compile endif  -- 5.21
+   .textcolor  = TEXTCOLOR
+   .markcolor  = MARKCOLOR
+
+;compile if EVERSION < '5.21'
+;   .statuscolor  = STATUSCOLOR
+;   .messagecolor = MESSAGECOLOR
+
+;compile else
+   vSTATUSCOLOR  = STATUSCOLOR
+   vMESSAGECOLOR = MESSAGECOLOR
+; compile if EVERSION >= '5.60'
+   vDESKTOPCOLOR = DESKTOPCOLOR
+; compile endif
+compile if defined(STATUS_TEMPLATE)
+;  compile if 0 -- EVERSION >= 6
+;   'postme setstatusline' STATUS_TEMPLATE
+;  compile else
+   'setstatusline' STATUS_TEMPLATE
+;  compile endif
+compile elseif STATUSCOLOR <> 240  -- If different than the default...
+   'setstatusline'    -- Just set the color
+compile endif
+
+compile if MESSAGECOLOR <> 252  -- If different than the default...
+   'setmessageline'   -- Set the messageline color
+compile endif
+;compile endif  -- 5.21
+
 compile if ENHANCED_ENTER_KEYS
  compile if ENTER_ACTION='' | ENTER_ACTION='ADDLINE'  -- The default
    enterkey=1; a_enterkey=1; s_enterkey=1; padenterkey=1; a_padenterkey=1; s_padenterkey=1
@@ -1728,77 +1730,80 @@ compile elseif WANT_STREAM_MODE = 1
    'togglecontrol 24 1'
 compile endif
 
-compile if EVERSION >= '5.50'
+;compile if EVERSION >= '5.50'
   -- default editor font
   -- .font=registerfont('Courier', 12, 0)
- compile if WANT_SYS_MONOSPACED
+compile if WANT_SYS_MONOSPACED
    default_font = registerfont('System Monospaced', SYS_MONOSPACED_SIZE, 0)
- compile else
+compile else
    default_font = 1
- compile endif
- compile if DYNAMIC_CURSOR_STYLE
-  compile if defined(my_CURSORDIMENSIONS)
-   cursordimensions = my_CURSORDIMENSIONS
-  compile elseif UNDERLINE_CURSOR
-   cursordimensions = '-128.3 -128.-64'
-  compile else
-   cursordimensions = '-128.-128 2.-128'
-  compile endif
- compile endif
-   call fixup_cursor()
 compile endif
 
-; repaint_window()
+compile if DYNAMIC_CURSOR_STYLE
+ compile if defined(my_CURSORDIMENSIONS)
+   cursordimensions = my_CURSORDIMENSIONS
+ compile elseif UNDERLINE_CURSOR
+   cursordimensions = '-128.3 -128.-64'
+ compile else
+   cursordimensions = '-128.-128 2.-128'
+ compile endif
 compile endif
+
+   call fixup_cursor()
+;compile endif
+
+; repaint_window()
+;compile endif  -- not EPM
 
 compile if LINK_HOST_SUPPORT
  compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
-  'linkverify E3EMUL'
+   'linkverify E3EMUL'
  compile elseif HOST_SUPPORT = 'SRPI'
-  'linkverify SLSRPI'
+   'linkverify SLSRPI'
  compile else
    *** Error - LINK_HOST_SUPPORT not supported for your HOST_SUPPORT method.
  compile endif
 compile endif
 
 compile if MOUSE_SUPPORT = 'LINK' & EPM & not EXTRA_EX
-  'linkverify MOUSE'
+   'linkverify MOUSE'
 compile endif
 
 compile if WANT_BOOKMARKS = 'LINK' & not EXTRA_EX
-  'linkverify BOOKMARK'
+   'linkverify BOOKMARK'
 compile endif       -- Bookmarks
 
 compile if WANT_TAGS = 'LINK' /* & not EXTRA_EX */
-  'linkverify TAGS'
+   'linkverify TAGS'
 compile endif       -- TAGs
 
 compile if WANT_EBOOKIE = 'LINK'
-  'linkverify BKEYS'
+   'linkverify BKEYS'
 compile endif
 
 compile if WANT_TREE = 'LINK'
-  'linkverify TREE'
+   'linkverify TREE'
 compile endif
 
 compile if SPELL_SUPPORT = 'LINK'
- compile if EPM
-  'linkverify EPMLEX'
- compile elseif EOS2
-  'linkverify EOS2LEX'
- compile else
-   *** Error - SPELL_SUPPORT = 'LINK' not valid for E3.
- compile endif
+; compile if EPM
+   'linkverify EPMLEX'
+; compile elseif EOS2
+;  'linkverify EOS2LEX'
+; compile else
+;   *** Error - SPELL_SUPPORT = 'LINK' not valid for E3.
+; compile endif
+
 compile elseif SPELL_SUPPORT = 'DYNALINK'
 -----------------  End of DEFINIT  ------------------------------------------
 define
- compile if EPM
+; compile if EPM
    LEX_EX = 'EPMLEX'
- compile elseif EOS2
-   LEX_EX = 'EOS2LEX'
- compile else
-   *** Error - SPELL_SUPPORT = 'DYNALINK' not valid for E3.
- compile endif
+; compile elseif EOS2
+;   LEX_EX = 'EOS2LEX'
+; compile else
+;   *** Error - SPELL_SUPPORT = 'DYNALINK' not valid for E3.
+; compile endif
 
 defc syn = link_exec(LEX_EX, 'SYN', arg(1))
 
@@ -1806,11 +1811,10 @@ defc proof = link_exec(LEX_EX, 'PROOF', arg(1))
 
 defc proofword, verify = link_exec(LEX_EX, 'VERIFY', arg(1))
 
- compile if EPM
+; compile if EPM
 defc dict = link_exec(LEX_EX, 'DICT', arg(1))
 defc dynaspell = link_exec(LEX_EX, 'DYNASPELL', arg(1))
- compile endif
-
+; compile endif
 compile endif       -- Spell_Support
 
 compile if WANT_EBOOKIE = 'DYNALINK'
@@ -1830,30 +1834,30 @@ defc poptagsdlg  = link_exec('tags', 'poptagsdlg',  arg(1))
 compile endif       -- TAGs
 
 -- 4.10A:  Move the compile-if here from above, simpler.
-compile if EVERSION >= '4.0' & EVERSION < 5
- compile if ASK_BEFORE_LEAVING
-  include 'exit.e'
- compile endif
-compile endif
+;compile if EVERSION >= '4.0' & EVERSION < 5
+; compile if ASK_BEFORE_LEAVING
+;  include 'exit.e'
+; compile endif
+;compile endif
 
-compile if 0 -- EPM & WANT_APPLICATION_INI_FILE
-defc inifileupdate
-   universal app_hini
-   parse arg iteration .
-   compile if EVERSION >= '6.00'
-app_hini=dynalink32(ERES2_DLL, 'ERESQueryHini', gethwndc(EPMINFO_EDITCLIENT) ,2)
-   compile elseif EVERSION >= '5.53'
-app_hini=dynalink(ERES2_DLL, 'ERESQUERYHINI', gethwnd(EPMINFO_EDITCLIENT) ,2)
-   compile else
-app_hini=getpminfo(EPMINFO_HINI)
-   compile endif  -- 6.00 / 5.53
-if app_hini then
-   if iteration=1 then s=''; else s='s'; endif
-   sayerror 'ini file handle received as' app_hini 'after' iteration 'attempt's
-elseif iteration>10 then
-   call WinMessageBox('Bogus Ini File Handle', 'Giving up after' iteration 'attempts.', 16416)
-else
-   'postme inifileupdate' (iteration+1)
-endif
-compile endif  -- WANT_APPLICATION_INI_FILE
+;compile if 0 -- EPM & WANT_APPLICATION_INI_FILE
+;defc inifileupdate
+;   universal app_hini
+;   parse arg iteration .
+; compile if EVERSION >= '6.00'
+;   app_hini=dynalink32(ERES2_DLL, 'ERESQueryHini', gethwndc(EPMINFO_EDITCLIENT) ,2)
+; compile elseif EVERSION >= '5.53'
+;   app_hini=dynalink(ERES2_DLL, 'ERESQUERYHINI', gethwnd(EPMINFO_EDITCLIENT) ,2)
+; compile else
+;   app_hini=getpminfo(EPMINFO_HINI)
+; compile endif  -- 6.00 / 5.53
+;   if app_hini then
+;      if iteration=1 then s=''; else s='s'; endif
+;      sayerror 'ini file handle received as' app_hini 'after' iteration 'attempt's
+;   elseif iteration>10 then
+;      call WinMessageBox('Bogus Ini File Handle', 'Giving up after' iteration 'attempts.', 16416)
+;   else
+;      'postme inifileupdate' (iteration+1)
+;   endif
+;compile endif  -- WANT_APPLICATION_INI_FILE
 
