@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.13 2002-09-13 17:29:26 cla Exp $
+* $Id: test.c,v 1.14 2002-09-13 19:35:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -153,6 +153,7 @@ do
 
       {
             HCONFIG           hconfig = NULLHANDLE;
+            CHAR           szInifile[ _MAX_PATH];
             PSZ               pszPath;
             PSZ               pszValue;
             CHAR              szValue[ _MAX_PATH];
@@ -172,8 +173,13 @@ do
       // write and read all keys
       do
          {
+         // determine name of INI
+         rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szInifile, sizeof( szInifile));
+         if (rc = NO_ERROR)
+            break;
+
          // open profile
-         rc = OpenConfig( &hconfig);
+         rc = OpenConfig( &hconfig, szInifile);
          printf( "open configurarion: rc=%u, handle=0x%x\n\n", rc, hconfig);
          if (rc != NO_ERROR)
             break;
