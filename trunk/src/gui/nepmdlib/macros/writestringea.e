@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writestringea.e,v 1.11 2002-09-08 18:43:56 cla Exp $
+* $Id: writestringea.e,v 1.12 2002-09-19 11:43:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -85,6 +85,11 @@ _*Example:*_
 defc NepmdWriteStringEa, WriteStringEa =
 
  Filename =  arg( 1);
+ if (Filename = '') then
+    sayerror 'error: no filename specified.';
+    return;
+ endif
+
  rc = NepmdWriteStringEa( Filename, NEPMD_TEST_EANAME, NEPMD_TEST_EAVALUE);
  if (rc > 0) then
     sayerror 'Extended attribute not written, rc='rc;

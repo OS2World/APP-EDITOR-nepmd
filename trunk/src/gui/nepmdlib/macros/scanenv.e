@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: scanenv.e,v 1.4 2002-09-07 13:33:08 cla Exp $
+* $Id: scanenv.e,v 1.5 2002-09-19 11:43:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -68,7 +68,6 @@ _*Examples:*_
 defc NepmdScanEnv, ScanEnv =
 
  EnvName  =  arg( 1);
-
  if (EnvName = '') then
     sayerror 'error: no environment variable name specified !';
     return;

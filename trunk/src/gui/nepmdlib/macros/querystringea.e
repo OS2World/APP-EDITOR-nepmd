@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querystringea.e,v 1.1 2002-09-19 11:31:30 cla Exp $
+* $Id: querystringea.e,v 1.2 2002-09-19 11:43:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -82,6 +82,11 @@ _*Example:*_
 defc NepmdQueryStringEa, QueryStringEa =
 
  Filename =  arg( 1);
+ if (Filename = '') then
+    sayerror 'error: no filename specified.';
+    return;
+ endif
+
  EaValue = NepmdQueryStringEa( Filename, NEPMD_TEST_EANAME);
  parse value EaValue with 'ERROR:'rc;
  if (rc > '') then

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deletestringea.e,v 1.10 2002-09-08 18:43:56 cla Exp $
+* $Id: deletestringea.e,v 1.11 2002-09-19 11:43:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -88,8 +88,12 @@ _*Example:*_
 defc NepmdDeleteStringEa, DeleteStringEa =
 
  Filename = arg( 1);
- rc = NepmdWriteStringEa( Filename, NEPMD_TEST_EANAME, '');
+ if (Filename = '') then
+    sayerror 'error: no filename specified.';
+    return;
+ endif
 
+ rc = NepmdWriteStringEa( Filename, NEPMD_TEST_EANAME, '');
  if (rc > 0) then
     sayerror 'Extended attribute not deleted, rc='rc;
     return;

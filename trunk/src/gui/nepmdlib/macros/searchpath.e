@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: searchpath.e,v 1.3 2002-09-07 13:19:47 cla Exp $
+* $Id: searchpath.e,v 1.4 2002-09-19 11:43:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -84,14 +84,17 @@ _*Examples:*_
 defc NepmdSearchPath, SearchPath =
 
  Filename   = arg( 1);
- EnvVarName = arg( 2);
+ if (Filename = '') then
+    sayerror 'error: no filename specified.';
+    return;
+ endif
 
+ EnvVarName = arg( 2);
  if (EnvVarName = '') then
     EnvVarName = 'PATH';
  endif
 
  Fullname = NepmdSearchPath( Filename, EnvVarName);
-
  parse value Fullname with 'ERROR:'rc;
  if (rc > '') then
     sayerror '"'Filename'" could not be found on "'EnvVarName'", rc='rc;

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.10 2002-09-08 22:48:38 cla Exp $
+* $Id: querypathinfo.e,v 1.11 2002-09-19 11:43:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -80,7 +80,6 @@ about the specified file or directory into it.
 defc NepmdQueryPathInfo, QueryPathInfo
 
  PathName = arg( 1);
-
  if (PathName = '') then
     sayerror 'error: no pathname specified !';
     return;

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.14 2002-09-08 22:34:36 cla Exp $
+* $Id: getnextfile.e,v 1.15 2002-09-19 11:43:50 cla Exp $
 *
 * ===========================================================================
 *
@@ -118,6 +118,7 @@ defc NepmdGetNextFile, GetNextFile =
  FileMask = arg( 1);
  if (FileMask = '') then
     sayerror 'error: no filename mask specified !';
+    return;
  endif
 
  FileMask = NepmdQueryFullname( FileMask);

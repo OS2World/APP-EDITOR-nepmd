@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fileexists.e,v 1.6 2002-09-07 13:19:44 cla Exp $
+* $Id: fileexists.e,v 1.7 2002-09-19 11:43:50 cla Exp $
 *
 * ===========================================================================
 *
@@ -74,8 +74,12 @@ _*Example:*_
 defc NepmdFileExists, FileExists =
 
  Filename = arg( 1);
- fResult = NepmdFileExists( Filename);
+ if (Filename = '') then
+    sayerror 'error: no filename specified.';
+    return;
+ endif
 
+ fResult = NepmdFileExists( Filename);
  if (fResult) then
     StrResult = 'does';
  else
