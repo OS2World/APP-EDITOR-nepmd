@@ -7,7 +7,7 @@
 *               COPY:  copy all files to target dir and write flagfile
 *   flagfile  - zero byte file being written on copy
 *   basedir   - a directory within the CVS tree part
-*   targetdir - a directory below subdirectory compile 
+*   targetdir - a directory below subdirectory compile
 *
 * Helper batch for to copy sources to compile directory without CVS
 * directories in order to prevent then from being packed
@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: _srccopy.cmd,v 1.1 2002-04-19 12:41:46 cla Exp $
+* $Id: _srccopy.cmd,v 1.2 2002-07-21 16:23:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -100,12 +100,13 @@
              WHEN (Action = 'COPY')  THEN
              DO
                 /* copy file */
-                ThisTargetFile = TargetDir''SUBSTR( File.f, SourceDirLen + 1); 
+                ThisTargetFile = TargetDir''SUBSTR( File.f, SourceDirLen + 1);
                 ThisTargetDir  = LEFT( ThisTargetFile,   LASTPOS( '\', ThisTargetFile) - 1);
                 rc = XcopyFile( File.f, ThisTargetDir);
              END;
 
              OTHERWISE NOP;
+          END;
        END;
     END;
 
@@ -139,7 +140,7 @@ GetDirName: PROCEDURE
  rc = DIRECTORY(CurrentDrive);
 
  RETURN(DirFound);
-     
+
 /* -------------------------------------------------------------------------- */
 FileStamp: PROCEDURE
 PARSE ARG File;
