@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.6 2005-01-28 21:39:17 aschn Exp $
+* $Id: epmshell.e,v 1.7 2005-03-13 12:13:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -306,35 +306,40 @@ defc NowCanReadShell
       -- SUE_readln doesn't handle LF as line end, received from the app.
       -- It won't initiate a NowCanReadShell at Unix line ends.
       -- Therefore it must be parsed here again.
+      -- BTW: MORE.COM has the same bug.
       rest = readbuf
-      do while leftstr( rest, 1) = \10  -- LF is lineend
-         rest = substr( rest, 2)
-         p = pos( \10, rest)
+      do while rest <> ''
+         -- Search for further <LF> chars; <LF> at pos 1 is handled
+         -- by the original code itself
+         p = pos( \10, rest, 2)
          if p > 0 then
-            next = substr( rest, 1, p - 1)
+            next = leftstr( rest, p - 1)
             rest = substr( rest, p)
          else
             next = rest
             rest = ''
          endif
-         insertline next, shellfid.last+1, shellfid
-      enddo
-      readbuf = rest
 
-      if leftstr( readbuf, 1) = \10 then  -- LF is lineend
-         insertline substr( readbuf, 2), shellfid.last+1, shellfid
-      else
-         getline oldline, shellfid.last, shellfid
-         if length(oldline) + length(readbuf) > MAXCOL then
-            insertline readbuf, shellfid.last+1, shellfid
+         if leftstr( next, 1) = \10 then  -- LF is lineend
+            insertline substr( next, 2), shellfid.last+1, shellfid
          else
-            replaceline oldline || readbuf, shellfid.last, shellfid
+            getline oldline, shellfid.last, shellfid
+            if length(oldline) + length(next) > MAXCOL then
+               insertline next, shellfid.last+1, shellfid
+            else
+               replaceline oldline''next, shellfid.last, shellfid
+            endif
          endif
-      endif
-      getline lastline, shellfid.last, shellfid
-      shellfid.line = shellfid.last
-      shellfid.col = min( MAXCOL,length(lastline) + 1)
+         getline lastline, shellfid.last, shellfid
+         shellfid.line = shellfid.last
+         shellfid.col = min( MAXCOL,length(lastline) + 1)
+      enddo
+
    endwhile
+; Todo: Save last written pos or add an attribute
+;       in order to accept input by a waiting application directly
+;       in the shell window, not only in the Write to shell dialog.
+;       Determine therefore, if an application is terminated or waiting.
 
 -------------------------------------------------------------SUE_new---------------------
 ; Called from Shell command
