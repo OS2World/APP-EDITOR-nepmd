@@ -8,7 +8,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.13 2002-04-24 15:16:04 cla Exp $
+# $Id: makefile,v 1.14 2002-05-02 14:36:26 cla Exp $
 #
 # ===========================================================================
 #
@@ -106,7 +106,7 @@ SHOW: INF
   @start view $(INFDIR)\nepmd.inf Netlabs
 
 INST: ALL
-  @start warpin $(CMPDIR)\$(WPIFILE)
+  @bin\warpin.env start warpin $(CMPDIR)\$(WPIFILE)
 
 # ---
 
