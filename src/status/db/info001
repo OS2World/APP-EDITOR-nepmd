@@ -1,15 +1,9 @@
 CATEGORY: EPM info
 TITLE: Datetime in titletext
 PRIO: 1
-STATUS: coding
+STATUS: completed
 FILES: titletext.e
-UPDATED: $Id: info001,v 1.1 2002-07-17 15:56:16 cla Exp $
-
-Add date, time and modification information to titletext. Special modification 
-information is shown when the file doesn't exist on disk anymore or was altered
-by another application.
-
-The check is done on defload, defselect, defmodify, when edit window gets focus.
+UPDATED: $Id: info001,v 1.2 2002-11-03 17:26:17 cla Exp $
 
 Todo:
 - check what to do for non-local files?

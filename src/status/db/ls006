@@ -1,8 +1,7 @@
 CATEGORY: Locate/Select
 TITLE: Enhance bracket finding while typing
 PRIO: 1
-STATUS: coding
+STATUS: completed
 FILES: epmsmp\balance.e balance.e
-UPDATED: $Id: ls006,v 1.3 2002-07-21 16:57:15 aschn Exp $
+UPDATED: $Id: ls006,v 1.4 2002-11-03 17:26:17 cla Exp $
 
-balance: typing a closing bracket ) ] ] > will mark the corresponding opening bracket.

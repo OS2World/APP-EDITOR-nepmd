@@ -1,12 +1,7 @@
 CATEGORY: feature
 TITLE: Edit mode: Auto-highlighting
 PRIO: 1
-STATUS: started
+STATUS: completed
 FILES: load.e
-UPDATED: $Id: edit002,v 1.1 2002-07-17 15:56:14 cla Exp $
+UPDATED: $Id: edit002,v 1.2 2002-11-03 17:26:16 cla Exp $
 
-- Select the appropriate highlighting file according to edit mode instead of 
-  filename extension
-
-Todo:
-- dynamic selection of the epmkwds.* file, not hard-coded

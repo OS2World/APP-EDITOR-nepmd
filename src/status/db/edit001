@@ -1,16 +1,10 @@
 CATEGORY: Feature
 TITLE: Edit mode: replace filetypes
 PRIO: 1
-STATUS: coding
+STATUS: completed
 FILES: load.e
-UPDATED: $Id: edit001,v 1.2 2002-09-18 20:23:14 cla Exp $
-
-Implement "Edit mode" as replacement for file type/extension dependent switchings
-
-- Use the EA EPM.MODE in EPM's EA area (for getting the current mode) and set it 
-  immediately with the REXX SysPutEA function to keep the mode, even though the 
-  file is not saved.
+UPDATED: $Id: edit001,v 1.3 2002-11-03 17:26:16 cla Exp $
 
 Todo:
-- Make the definitions for selecting the mode variable, not hard-coded? (NEPMD.INI or EPM.INI?)
+- include .FILETYPE
 - Alternative: check XWorkplace new scheme for determining filetypes (adaption possible ?)

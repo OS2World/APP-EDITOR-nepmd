@@ -1,8 +1,7 @@
 CATEGORY: file handling
 TITLE: implement revert function
 PRIO: 1
-STATUS: coding
-FILES: epmsmp\revert.e revert.e         
-UPDATED: $Id: file004,v 1.1 2002-07-17 15:56:15 cla Exp $
+STATUS: completed
+FILES: epmsmp\revert.e revert.e
+UPDATED: $Id: file004,v 1.2 2002-11-03 17:26:16 cla Exp $
 
-Revert (reload file from disk)
