@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.18 2002-06-12 09:19:42 cla Exp $
+.. $Id: makefile.txt,v 1.19 2002-06-12 18:34:58 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -86,13 +86,13 @@ The following pseudotargets are available:
   the subdirectories are listed in the macro *MODULELIST*
 .
   This results in the *WarpIn* WPI package file created
-  either in the *debug* or *release* directory, depending on the value of 
+  either in the *debug* or *release* directory, depending on the value of
   the *DEBUG* environment variable (**)
 .
 - nmake inst
 = like *nmake all*, but also starts the WPI file (**)
 - nmake remove
-= quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIn* GUI. 
+= quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIn* GUI.
   This is intended for testing purposes only !
 .
   [=NOTE]
@@ -115,6 +115,19 @@ The following pseudotargets are available:
 .
 - nmake clean
 = remove the *compile* and binary (both *debug* and *release*) directories
+.
+- nmake NLS [[NLS=xxx]]
+=
+.
+(re)set NLS language identifier to default or the specified
+  [.IDPNL_APPENDIX_LANGIDS three letter language identifier].
+  To make things easier, the makefile allows also to set the language identifier
+  by just speficying the symbol *NLS=xxx* without any target.
+  .
+  [=NOTE]
+.ul compact
+  - This is only intended for testing purposes, as normally the language information
+    for [=TITLE] is set by running the installation package of it.
 
 .. .............................................................................
 .3 src\ipf\makefile
@@ -156,7 +169,7 @@ The following makefile pseudotargets are available for the makefile within the
 *src\rexx* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
-= create NLSETUP.EXE in the *compile\netlabs\install directory*  
+= create NLSETUP.EXE in the *compile\netlabs\install directory*
 .
 - nmake clean
 = remove the file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
@@ -218,13 +231,13 @@ The following makefile pseudotargets are available for the makefile within the
 - nmake [[all]]
 = downloads and unpacks files from leo and build complete package.
   This results in the *WarpIn* WPI package file created
-  either in the *debug* or *release* directory, depending on the value of 
+  either in the *debug* or *release* directory, depending on the value of
   the *DEBUG* environment variable (**)
 .
 - nmake inst
 = like *nmake all*, but also starts the WPI file (**)
 - nmake remove
-= quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIn* GUI. 
+= quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIn* GUI.
   This is intended for testing purposes only !
 .
   See pseudotarget *remove* of the [.IDPNL_TARGETS_MAIN] for further details.
@@ -344,7 +357,7 @@ Network or Internet Access Kit installed.
 .an IDPNL_REQUIREMENTS_UNZIP2
 .
 UNZIP is required in order to unpack certain parts of the EPMBBS packages,
-as it supports the "deflated" method used for some text files, this is not supported by 
+as it supports the "deflated" method used for some text files, this is not supported by
 PKUNZIP2.
 
 [=NOTE]
@@ -358,12 +371,12 @@ PKUNZIP2.
 .. .............................................................................
 .an IDPNL_REQUIREMENTS_WGET
 .
-*wget* is used to download of the original zip files, if not present   
+*wget* is used to download of the original zip files, if not present
 (currently tested with wget v1.7).
 
 [=NOTE]
 .ul
-- You can download *wget* from 
+- You can download *wget* from
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=wget The Hobbes File Archive]
 .
     (search "wget" at hobbes.nmsu.edu)
@@ -386,7 +399,7 @@ For compilation of the online help the preprocessor *HyperText/2* is used.
 
 [=NOTE]
 .ul
-- You can download *HyperText/2* from 
+- You can download *HyperText/2* from
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=htext The Hobbes File Archive]
 .
     (search "htext" at hobbes.nmsu.edu)
@@ -410,7 +423,7 @@ For converting a REXX script to an executable the *REXX2EXE* compiler us used.
 
 [=NOTE]
 .ul
-- You can download *REXX2EXE* from 
+- You can download *REXX2EXE* from
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=rexx2exe The Hobbes File Archive]
 .
     (search "rexx2exe" at hobbes.nmsu.edu)
@@ -439,7 +452,7 @@ For checking unpacked EPM files the *grep* utility is used.
 .ul
 - the *grep* utility is only required if you run *src\wis\makefile* with pseudotarget
   *check*. It is not mandandory in order to create the package itself.
-- You can download *Grep v2.0* from 
+- You can download *Grep v2.0* from
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=grep20 The Hobbes File Archive]
 .
     (search "grep20" at hobbes.nmsu.edu)
@@ -503,7 +516,7 @@ The following _temporary_ directory trees are created when building the *WarpIn*
 .. .............................................................................
 .an IDPNL_CONFIGMAKE_CONFIGUREIN
 .
-The *src\wis\makefile* requires several lists values, of which some have to be 
+The *src\wis\makefile* requires several lists values, of which some have to be
 configured before executing *nmake* to build the complete package.
 
 _*values to be configured by everybody*_
@@ -606,7 +619,7 @@ The following entries are written to *OS2.INI*:
 = alpha string (may be zero terminated)
 .el
 .. -------------------------------------------
-- 'recomp' - 'CONFIGDATA' 
+- 'recomp' - 'CONFIGDATA'
 =
 .pl compact bold break=none tsize=9
 - description
@@ -630,5 +643,5 @@ The following language identifiers are currently used within the project:
 - eng
 = english
 - deu
-= deutsch (german) 
+= deutsch (german)
 
