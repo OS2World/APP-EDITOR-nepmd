@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: afterload.e,v 1.1 2004-02-22 20:27:13 aschn Exp $
+* $Id: afterload.e,v 1.2 2004-02-28 15:35:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -108,13 +108,15 @@ compile endif
       if firstloadedfid <> '' then
          call NepmdPmPrintf( 'AFTERLOAD: activating firstloadedfileid = 'firstloadedfid.filename)
          activatefile firstloadedfid
-         --'HookAdd afterload postme activatefile' firstloadedfid
+         --'HookAdd afterloadonce postme activatefile' firstloadedfid
       endif
    endif
 
 ; --- Process hook ----------------------------------------------------------
    if isadefc('HookExecute') then
-      'HookExecute afterload'  -- no need for 'postme' here?
+      'HookExecute afterload'          -- no need for 'postme' here?
+      'HookExecuteOnce afterloadonce'  -- no need for 'postme' here?
+       call NepmdPmPrintf( 'AFTERLOAD: HookExecute afterload, afterloadonce')
    endif
 
 ; --- Change EPM pointer from standard arrow to text pointer ----------------
