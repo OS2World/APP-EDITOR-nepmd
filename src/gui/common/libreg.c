@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.2 2002-09-12 22:25:29 cla Exp $
+* $Id: libreg.c,v 1.3 2002-09-13 12:51:06 cla Exp $
 *
 * ===========================================================================
 *
@@ -145,6 +145,7 @@ do
 
 return hini;
 }
+
 // -----------------------------------------------------------------------------
 
 static APIRET _addKeyToContainerList( HINI hini, PSZ pszPath, PSZ pszKey)
@@ -212,6 +213,92 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
+static APIRET _removeKeyFromContainerList( HINI hini, PSZ pszPath, PSZ pszKey)
+{
+         APIRET         rc = NO_ERROR;
+         ULONG          ulDataLen;
+         PSZ            pszList = NULL;
+         PSZ            pszEntry;
+         PSZ            pszEow;
+         BOOL           fStopRemovePath = FALSE;
+
+do
+   {
+   // check parms
+   if ((!pszPath)  ||
+       (!*pszPath) ||
+       (!pszKey)   ||
+       (!*pszKey))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+
+   // check if value exists already
+   ulDataLen = PATHENTRYLEN( pszPath);
+   if (!ulDataLen)
+      {
+      // nothin to delete
+      rc = ERROR_PATH_NOT_FOUND;
+      break;
+      }
+
+   // get current container list
+   pszList = malloc( ulDataLen);
+   if (!pszList)
+      {
+      rc = ERROR_NOT_ENOUGH_MEMORY;
+      break;
+      }
+   memset( pszList, 0, ulDataLen);
+   if (!QUERYPATHENTRY( pszPath, pszList, ulDataLen))
+      {
+      rc = LASTERROR;
+      break;
+      }
+
+   // is key not in here already ?
+   pszEntry = _strword( pszList, pszKey);
+   if (!pszEntry)
+      {
+      rc = ERROR_PATH_NOT_FOUND;
+      break;
+      }
+
+   // search end of word and remove key from list
+   pszEow = strchr( pszEntry, ' ');
+   if (pszEow)
+      pszEow++; // cut of also the next blank
+   else
+      pszEow = pszEntry + strlen( pszEntry);
+   strcpy( pszEntry, pszEow);
+
+   // if list is empty, remove container
+   if (!strlen( pszList))
+      pszList = NULL;
+   else
+      fStopRemovePath = TRUE;
+
+   if (!WRITEPATHENTRY( pszPath, pszList))
+      {
+      rc = LASTERROR;
+      break;
+      }
+
+   // list is not empty, path may not be further removed
+   if (fStopRemovePath) 
+      rc = ERROR_DIR_NOT_EMPTY;
+
+   } while (FALSE);
+
+// cleanup
+if (pszList) free( pszList);
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
 static APIRET _createRegPath( HINI hini, PSZ pszValuePath)
 {
          APIRET         rc = NO_ERROR;
@@ -263,6 +350,50 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
+static APIRET _removeRegPath( HINI hini, PSZ pszValuePath)
+{
+         APIRET         rc = NO_ERROR;
+         PSZ            pszCopy     = strdup( pszValuePath);
+         PSZ            p;
+
+do
+   {
+   // everything fine ?
+   if (!pszCopy)
+      {
+      rc = ERROR_NOT_ENOUGH_MEMORY;
+      break;
+      }
+
+   // go backwards though path and create all container entries
+   // if not existant
+   p = strrchr( pszCopy, *pszPathSeparator);
+   while ((p) && (p > pszCopy))
+      {
+      // cut off current key first
+      *p = 0;
+
+      // add current basename to list of previous path
+      if (p != pszCopy)
+         {
+         rc = _removeKeyFromContainerList( hini, pszCopy, p + 1);
+         if (rc != NO_ERROR)
+            break;
+         }
+
+      // next slash
+      p = strrchr( pszCopy, *pszPathSeparator);
+      }
+
+   } while (FALSE);
+
+// cleanup
+if (pszCopy)     free( pszCopy);
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
 APIRET WriteConfigValue( PSZ pszValuePath, PSZ pszValue)
 
 {
@@ -283,14 +414,20 @@ do
    OPENPROFILE;
 
    // create path if not exist
+   DPRINTF(( "LIBREG: create path: %s\n", pszValuePath));
    rc = _createRegPath( hini, pszValuePath);
    if (rc != NO_ERROR)
+      {
+      DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
       break;
+      }
 
-   // create entry
+   // create key
+   DPRINTF(( "LIBREG: create key: %s\n", pszValuePath));
    if (!WRITEKEYENTRY( pszValuePath, pszValue))
       {
       rc = LASTERROR;
+      DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
       break;
       }
 
@@ -326,11 +463,14 @@ do
    OPENPROFILE;
 
    // read entry
+   DPRINTF(( "LIBREG: read: %s\n", pszValuePath));
    if (!QUERYKEYENTRY( pszValuePath, pszBuffer, ulBuflen))
       {
       rc = LASTERROR;
+      DPRINTF(( "LIBREG: error: %u/0x%x\n", rc, rc));
       break;
       }
+   DPRINTF(( "LIBREG: --> %s\n", pszBuffer));
 
    } while (FALSE);
 
@@ -361,14 +501,21 @@ do
    OPENPROFILE;
 
    // if key not exist: error
+   DPRINTF(( "LIBREG: delete key: %s\n", pszValuePath));
    if (!KEYEXISTS( pszValuePath))
       {
       rc = ERROR_PATH_NOT_FOUND;
+      DPRINTF(( "LIBREG: error: %u\n", rc));
       break;
       }
 
    // delete key
-   DELETE( pszValuePath);
+   DELETEKEY( pszValuePath);
+
+   // remove path as far as possible - ignore errors
+   DPRINTF(( "LIBREG: delete path: %s\n", pszValuePath));
+   _removeRegPath( hini, pszValuePath);
+
 
    } while (FALSE);
 
