@@ -15,7 +15,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.2 2002-04-15 22:04:17 cla Exp $
+: $Id: prepare.cmd,v 1.3 2002-04-16 15:13:23 cla Exp $
 :
 : ===========================================================================
 :
@@ -33,6 +33,7 @@
  SETLOCAL
  SET PATH=bin;%PATH%
  SET UNZ=CALL _UNPACK
+ SET MOV=CALL _MOVE
 
  SET LOGFILE=%1
  SET BASEURL=%2
@@ -123,6 +124,9 @@
 
  MD %TARGET%\BIN\BMP                                                           >NUL 2>&1
  %MOV% %TARGET%\BIN\*.BMP %TARGET%\BIN\BMP                                     >NUL 2>&1
+
+ MD %TARGET%\BIN\NDX                                                           >NUL 2>&1
+ %MOV% %TARGET%\BIN\*.NDX %TARGET%\BIN\NDX                                     >NUL 2>&1
 
 : --- unpack macro packages and distribute to subdirectories
 
