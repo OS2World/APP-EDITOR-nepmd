@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddelog.c,v 1.6 2002-06-09 22:01:48 cla Exp $
+* $Id: ddelog.c,v 1.7 2002-08-14 12:25:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -44,6 +44,7 @@
 #include "ddeutil.h"
 #include "client.h"
 #include "file.h"
+#include "process.h"
 
 // -----------------------------------------------------------------------------
 
@@ -185,7 +186,7 @@ static MRESULT EXPENTRY DdeLogWindowProc( HWND hwnd, ULONG msg, MPARAM mp1, MPAR
          ULONG          i;
          ULONG          ulTries;
 
-         CHAR           szCommand[ _MAX_PATH + 64];
+         CHAR           szArgs[ _MAX_PATH + 64];
 
 switch (msg)
    {
@@ -206,15 +207,15 @@ switch (msg)
 
       // load EPM with the log file, but call macro separately
       // (otherwise it will not work if only one file loaded)
-      sprintf( szCommand, "start /F EPM \"%s\"", plld->ei.szErrorFile);
-      sprintf( &szCommand[ strlen( szCommand)] ,
+      sprintf( szArgs, "\"%s\"", plld->ei.szErrorFile);
+      sprintf( _EOS( szArgs),
                " 'MC ;link %s;recomp SETPOS %u %u %u %u;'",
                plld->pszMacroFile,
                plld->ei.ulLine,
                plld->ei.ulCol,
                plld->ei.ulCol,
                plld->ei.ulCol + 1);
-      DPRINTF(( "DDELOG: start EPM with: %s\n", szCommand));
+      DPRINTF(( "DDELOG: start EPM with: %s\n", szArgs));
 
       // connect to that instance
       for (ulTries = 0; ulTries < RELOAD_MAXTRIES; ulTries++)
@@ -224,7 +225,7 @@ switch (msg)
 
          // start EPM
          DPRINTF(( "DDELOG: starting EPM instance - %u of %u tries\n", ulTries + 1, RELOAD_MAXTRIES));
-         system( szCommand);
+         StartPmSession( "EPM.EXE", szArgs, NULL, NULL, TRUE, 0);
          DosSleep( RELOAD_WAITPERIOD);
 
          // connect to it
@@ -254,8 +255,8 @@ switch (msg)
 
       // execute macro to set error message separately, so that we can
       // use all kinds of quotes !
-      sprintf( szCommand, "sayerror %s", plld->ei.szErrorMsg);
-      if (!_logExecuteEPMCommand( hwnd, plld->hwndServer, szCommand))
+      sprintf( szArgs, "sayerror %s", plld->ei.szErrorMsg);
+      if (!_logExecuteEPMCommand( hwnd, plld->hwndServer, szArgs))
          {
          WinAlarm( HWND_DESKTOP, WA_ERROR);
          ABORT_LOADING;
@@ -304,8 +305,8 @@ switch (msg)
          {
          // send command a second time after waiting a while
          DosSleep( RELOAD_WAITPERIOD);
-         sprintf( szCommand, "sayerror %s", plld->ei.szErrorMsg);
-         if (!_logExecuteEPMCommand( hwnd, plld->hwndServer, szCommand))
+         sprintf( szArgs, "sayerror %s", plld->ei.szErrorMsg);
+         if (!_logExecuteEPMCommand( hwnd, plld->hwndServer, szArgs))
             {
             WinAlarm( HWND_DESKTOP, WA_ERROR);
             ABORT_LOADING;
@@ -553,4 +554,4 @@ do
 return rc;
 
 }
-
+  
