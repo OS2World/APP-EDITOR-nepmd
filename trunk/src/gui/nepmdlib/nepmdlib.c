@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.35 2002-09-06 10:15:14 cla Exp $
+* $Id: nepmdlib.c,v 1.36 2002-09-07 13:28:12 cla Exp $
 *
 * ===========================================================================
 *
@@ -626,7 +626,7 @@ APIRET EXPENTRY NepmdQueryPathInfo( PSZ pszPathname, PSZ pszInfoTag, PSZ pszBuff
          ULONG          ulInfoStyle;
          BOOL           fTagFound = FALSE;
 
-         FILESTATUS     fs3;
+         FILESTATUS4     fs4;
          CHAR           szInfo[ _MAX_PATH];
          ULONG          ulAttr;
 
@@ -636,7 +636,8 @@ static   PSZ            apszInfoTag[] = { NEPMD_PATHINFO_CTIME,  // 0
                                           NEPMD_PATHINFO_MTIME,  // 1
                                           NEPMD_PATHINFO_ATIME,  // 2
                                           NEPMD_PATHINFO_SIZE,   // 3
-                                          NEPMD_PATHINFO_ATTR,   // 4
+                                          NEPMD_PATHINFO_EASIZE, // 4
+                                          NEPMD_PATHINFO_ATTR,   // 5
                                           ""};
 #define  STYLE_COUNTS  (sizeof( apszInfoTag) / sizeof( PSZ))
 
@@ -675,9 +676,9 @@ do
       break;
       }
 
-   // query fullname
-   memset( &fs3, 0, sizeof( fs3));
-   rc = DosQueryPathInfo( pszPathname, FIL_STANDARD, &fs3, sizeof( fs3));
+   // query pathinfo, including EA size
+   memset( &fs4, 0, sizeof( fs4));
+   rc = DosQueryPathInfo( pszPathname, FIL_QUERYEASIZE, &fs4, sizeof( fs4));
    if (rc != NO_ERROR)
       break;
 
@@ -688,40 +689,44 @@ do
       {
       case 0: // NEPMD_PATHINFO_CTIME
          sprintf( szInfo, pszTimestampMask,
-                  fs3.fdateCreation.year + 1980,
-                  fs3.fdateCreation.month,
-                  fs3.fdateCreation.day,
-                  fs3.ftimeCreation.hours,
-                  fs3.ftimeCreation.minutes,
-                  fs3.ftimeCreation.twosecs * 2);
+                  fs4.fdateCreation.year + 1980,
+                  fs4.fdateCreation.month,
+                  fs4.fdateCreation.day,
+                  fs4.ftimeCreation.hours,
+                  fs4.ftimeCreation.minutes,
+                  fs4.ftimeCreation.twosecs * 2);
          break;
 
       case 1: // NEPMD_PATHINFO_MTIME
          sprintf( szInfo, pszTimestampMask,
-                  fs3.fdateLastWrite.year + 1980,
-                  fs3.fdateLastWrite.month,
-                  fs3.fdateLastWrite.day,
-                  fs3.ftimeLastWrite.hours,
-                  fs3.ftimeLastWrite.minutes,
-                  fs3.ftimeLastWrite.twosecs * 2);
+                  fs4.fdateLastWrite.year + 1980,
+                  fs4.fdateLastWrite.month,
+                  fs4.fdateLastWrite.day,
+                  fs4.ftimeLastWrite.hours,
+                  fs4.ftimeLastWrite.minutes,
+                  fs4.ftimeLastWrite.twosecs * 2);
          break;
 
       case 2: // NEPMD_PATHINFO_ATIME
          sprintf( szInfo, pszTimestampMask,
-                  fs3.fdateLastAccess.year + 1980,
-                  fs3.fdateLastAccess.month,
-                  fs3.fdateLastAccess.day,
-                  fs3.ftimeLastAccess.hours,
-                  fs3.ftimeLastAccess.minutes,
-                  fs3.ftimeLastAccess.twosecs * 2);
+                  fs4.fdateLastAccess.year + 1980,
+                  fs4.fdateLastAccess.month,
+                  fs4.fdateLastAccess.day,
+                  fs4.ftimeLastAccess.hours,
+                  fs4.ftimeLastAccess.minutes,
+                  fs4.ftimeLastAccess.twosecs * 2);
          break;
 
       case 3: // NEPMD_PATHINFO_SIZE
-         sprintf( szInfo, "%u", fs3.cbFile);
+         sprintf( szInfo, "%u", fs4.cbFile);
          break;
 
-      case 4: // NEPMD_PATHINFO_ATTR
-         ulAttr = fs3.attrFile;
+      case 4: // NEPMD_PATHINFO_EASIZE
+         sprintf( szInfo, "%u", fs4.cbList);
+         break;
+
+      case 5: // NEPMD_PATHINFO_ATTR
+         ulAttr = fs4.attrFile;
          sprintf( szInfo, "%s%s%s%s%s",
                   (ulAttr & FILE_ARCHIVED)  ? "A" : "-",
                   (ulAttr & FILE_DIRECTORY) ? "D" : "-",

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.8 2002-09-07 13:19:45 cla Exp $
+* $Id: querypathinfo.e,v 1.9 2002-09-07 13:28:12 cla Exp $
 *
 * ===========================================================================
 *
@@ -49,7 +49,9 @@ The following keywords are supported:
 - CTIME
 = returns the creation time
 - SIZE
-= returns the filesize
+= returns the size of the file
+- SIZE
+= returns the size of the extended attributes attached to the file
 - ATTR
 = returns the file attributes
 
@@ -91,13 +93,14 @@ defc NepmdQueryPathInfo, QueryPathInfo
  insertline helperNepmdQueryPathInfoValue( PathName, 'MTIME');
  insertline helperNepmdQueryPathInfoValue( PathName, 'CTIME');
  insertline helperNepmdQueryPathInfoValue( PathName, 'SIZE');
+ insertline helperNepmdQueryPathInfoValue( PathName, 'EASIZE');
  insertline helperNepmdQueryPathInfoValue( PathName, 'ATTR');
  .modify = 0;
 
  return;
 
 defproc helperNepmdQueryPathInfoValue( Pathname, ValueTag) =
-  return leftstr( ValueTag, 5) ':' NepmdQueryPathInfo( PathName, ValueTag);
+  return leftstr( ValueTag, 6) ':' NepmdQueryPathInfo( PathName, ValueTag);
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryPathInfo                                 */
