@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.9 2005-01-09 18:58:48 aschn Exp $
+* $Id: rexxkeys.e,v 1.10 2005-01-12 19:32:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -373,14 +373,14 @@ compile endif
                         leave
                      endif
                      getline linel, l
-                        next = word( translate( upcase(linel), ' ', \t), 1)
-                        if wordpos( next, 'IF WHEN') then
-                           --sayerror 'IF WHEN OTHERWISE: ['line0']'
-                           -- Get indent of linel
-                           lastind = substr( linel, 1, max( 1, verify( linel, ' '\t)) - 1)
-                           nextind = lastind''copies( ' ', GetRexxIndent())
-                           leave
-                        endif
+                     next = word( translate( upcase(linel), ' ', \t), 1)
+                     if wordpos( next, 'IF WHEN') then
+                        --sayerror 'IF WHEN OTHERWISE: ['line0']'
+                        -- Get indent of linel
+                        lastind = substr( linel, 1, max( 1, verify( linel, ' '\t)) - 1)
+                        nextind = lastind''copies( ' ', GetRexxIndent())
+                        leave
+                     endif
                   enddo
                elseif wordpos( lastword( translate( upcase(linel), ' ', \t)), 'ELSE OTHERWISE') then
                   -- Get indent of line before with ELSE or OTHERWISE
@@ -405,14 +405,14 @@ compile endif
                   leave
                endif
                getline linel, l
-                  next = word( translate( upcase(linel), ' ', \t), 1)
-                  -- Search for first word
-                  if wordpos( word( next, 1), 'END END;') then
-                     endl = l
-                     endp = pos( 'END', translate(linel))
-                     --sayerror 'end line = 'endl' ['linel']'
-                     leave
-                  endif
+               next = word( translate( upcase(linel), ' ', \t), 1)
+               -- Search for first word
+               if wordpos( word( next, 1), 'END END;') then
+                  endl = l
+                  endp = pos( 'END', translate(linel))
+                  --sayerror 'end line = 'endl' ['linel']'
+                  leave
+               endif
             enddo
          endif
          -- Re-indent END line
@@ -481,6 +481,56 @@ compile endif
          '+1'
          endline
          retc = 1
+
+      elseif firstword = '/*' then
+         if words( tline) = 1 then
+            insertline ind' * ', .line + 1
+            insertline ind' */', .line + 2
+            '+1'
+            endline
+            retc = 1
+         endif
+
+      elseif firstword = '/**' then
+         if words( tline) = 1 then
+            replaceline '/'copies( '*', 76)
+            insertline '* ', .line + 1
+            insertline copies( '*', 76)'/', .line + 2
+            '+1'
+            endline
+            retc = 1
+         endif
+
+      elseif firstword = '*' then
+         -- Search for opening comment /*
+         Found = 0
+         startl = .line - 1
+         do l = startl to 1 by -1
+            if l < startl - 100 then  -- search only 100 next lines
+               leave
+            endif
+            getline linel, l
+            next = word( linel, 1)
+            -- Search for first word
+            if next = '*' then
+               iterate
+            elseif substr( next, 1, 2) = '/*' then
+               Found = 1
+               leave
+            else
+               leave
+            endif
+         enddo
+         if Found = 1 then
+            if firstp = 1 then
+               insertline '* ', .line + 1
+            else
+               insertline ind'* ', .line + 1
+            endif
+            '+1'
+            endline
+            retc = 1
+         endif
 
 compile if TERMINATE_COMMENTS
       elseif pos('/*',line) then        -- Annoying to me, as I don't always
