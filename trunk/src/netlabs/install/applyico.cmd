@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.2 2002-04-19 23:05:24 cla Exp $
+* $Id: applyico.cmd,v 1.3 2002-04-22 15:58:11 cla Exp $
 *
 * ===========================================================================
 *
@@ -31,7 +31,6 @@
  /* ##############   Maintainer: modify object id list here ######################## */
 
  FolderObjectIdList = '<NEPMD_FOLDER> <NEPMD_SAMPLES_FOLDER>';
- EpmObjectIdList    = '<NEPMD_EXECUTE>';
 
  /* ################################################################################# */
 
@@ -46,8 +45,10 @@
 
  /* get the base directory of the NEPMD installation */
  PARSE Source . . CallName;
- CallDir = LEFT( CallName,   LASTPOS( '\', CallName) - 1);
- IconDir = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1);
+ CallDir  = LEFT( CallName,   LASTPOS( '\', CallName) - 1);
+ NepmdDir = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1);
+ BaseDir  = LEFT( NepmdDir,   LASTPOS( '\', NepmdDir) - 1);
+ IconDir  = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1);
 
  /* determine operating system version */
  SELECT
@@ -63,12 +64,10 @@
     rc = SysSetObjectData( ThisObject, FolderIconSetup);
  END;
 
- /* set icon for EPM icon */
- EpmIconSetup = 'ICONFILE='CallDir'\ico\nepmd.ico;';
- DO WHILE (EpmObjectIdList \= '')
-    PARSE VAR EpmObjectIdList ThisObject EpmObjectIdList;
-    rc = SysSetObjectData( ThisObject, EpmIconSetup);
- END;
+ /* set  EPM program objects */
+ rc = SysSetObjectData( '<NEPMD_EXECUTE>', 'ICONFILE='CallDir'\ico\nepmd.ico;');
+ rc = SysSetObjectData( '<WP_EPM>',,
+                        'ICONFILE='CallDir'\ico\epm4.ico;EXENAME='BaseDir'\BIN\EPM.EXE');
 
  EXIT( 0);
 
