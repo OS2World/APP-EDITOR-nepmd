@@ -1,12 +1,19 @@
 CATEGORY: Misc
 TITLE: Implement NepmdSet/QueryConfigValue
 PRIO: 1
-STATUS: open
+STATUS: coding
 FILES: many
-UPDATED: $Id: misc004,v 1.1 2002-09-12 11:40:37 cla Exp $
+UPDATED: $Id: misc004,v 1.2 2002-09-13 22:01:24 cla Exp $
 
-- implement NepmdQueryConfigValue/NepmdSetConfigValue
-- hierarchical namespace, if possible
+- already implemented: 
+   - NepmdCloseConfig 
+   - NepmdDeleteConfigValue 
+   - NepmdOpenConfig 
+   - NepmdQueryConfigValue 
+   - NepmdWriteConfigValue 
+
+Todo:
 - implement a meaning for generic default values
-
+- implement NepmdGetNextKey for querying all keys of a container
 - remove all usage of static/dynamic WANT_* values with calls to NepmdQueryConfigValue wherever appropriate
+ 
