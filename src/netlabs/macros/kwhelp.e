@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.9 2002-09-21 16:51:18 cla Exp $
+* $Id: kwhelp.e,v 1.10 2002-09-21 17:16:55 cla Exp $
 *
 * ===========================================================================
 *
@@ -56,15 +56,6 @@ compile if not defined('NEPMD_KEYWORD_HELP_COMMAND')
    --NEPMD_KEYWORD_HELP_COMMAND = 'start newview'  -- optional value for MYCNF.E
    NEPMD_KEYWORD_HELP_COMMAND = 'view'  -- default
 compile endif
-compile if not defined(NEPMD_HELPNDXSHELF)
-   -- Replace the EnvVar HELPNDX with the new EnvVar HELPNDXSHELF,
-   -- simular to BOOKSHELF. *.ndx files are searched in the path list
-   -- specified by HELNDXSHELF, so there will be no need anymore to
-   -- edit the HELPNDX EnvVar when a new *.ndx file should be added.
-   -- If HELPNDXSHELF is not set, then HELPNDX will be used.
-   NEPMD_HELPNDXSHELF = 1
-compile endif
-
 
 defc kwhelp = call pHelp_C_identifier()
 
@@ -141,7 +132,7 @@ defproc pHelp_C_identifier
       if (helpindex_id) then
          sayerror 'Unable to find an entry for "'identifier'" in:' helpindex_id.userstring
       else
-         sayerror 'no matching indexfile found for "'identifier'"'
+         sayerror 'No matching indexfile found for "'identifier'"'
       endif
    else
       parse value substr(textline(.line), .col) with ',' line ')'
@@ -154,15 +145,47 @@ defproc pHelp_C_identifier
          line = leftstr(line, i-1)||identifier||substr(line, i+1)
       endloop
 
-      /* Execute keyword help command */
-      if upcase(word(line,1))='VIEW' then
-compile if defined(NEPMD_KEYWORD_HELP_COMMAND)
-         line = NEPMD_KEYWORD_HELP_COMMAND''delword( line, 1, 1 )
-compile endif
-         sayerror 'Invoking "'line'"'
+      /* search the file, if the command is a view */
+      if (translate( word( line, 1)) = 'VIEW') then
+
+         /* second word is the file */
+         ViewFileName =  word( line, 2)
+         ViewFile     = ViewFileName;
+
+         /* if the given name is an environment var, */
+         /* replace with first filename of the list  */
+         EnvValue = get_env( ViewFileName)
+         if (EnvValue <> '') then
+            parse value EnvValue with ViewFile'+'
+         endif
+
+         /* append extension, if not given */
+         if (pos( '.', ViewFile) = 0) then
+            ViewFile = ViewFile'.inf';
+         endif
+
+         /* search the file */
+         findfile fullname, ViewFile, 'BOOKSHELF'
+         if rc then
+            sayerror 'INF file' ViewFileName 'could not be found'
+            line = ''
+         endif
+
       endif
-      'dos' line  -- execute the command
+
+      if (line  <> '') then
+         /* Execute keyword help command */
+         if upcase(word(line,1))='VIEW' then
+compile if defined(NEPMD_KEYWORD_HELP_COMMAND)
+            line = NEPMD_KEYWORD_HELP_COMMAND''delword( line, 1, 1 )
+compile endif
+            sayerror 'Invoking "'line'"'
+         endif
+         'dos' line  -- execute the command
+      endif
+
    endif
+
    activatefile CurrentFile
    call prestore_pos(savedpos)
 
@@ -207,6 +230,8 @@ defproc pGet_Identifier(var id, startcol, endcol, ft)
 defproc pBuild_Helpfile(ft)
    universal helpindex_id, savetype
    rc = 0
+
+   sayerror 'Building help index for' ft '...'
 
    -- search all files on shelf first, put list into ShelfList
    HelpNdxShelf = Get_Env('HELPNDXSHELF')
