@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: revert.e,v 1.1 2002-10-06 23:34:22 aschn Exp $
+* $Id: revert.e,v 1.2 2004-02-29 19:46:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,7 +29,10 @@
 
 ; Changed:
 ;    o  Added restoring position
-;    o  Added switching off display updates
+;    o  Changed the msg box
+
+; Todo:
+;    o  Make reload undo-able
 
 compile if not defined(HOST_SUPPORT)  -- if compiled separately
    tryinclude 'mycnf.e'
@@ -52,13 +55,16 @@ compile endif
       return sayerror("File not found")
    endif
    if .modify then
-      if askyesno('Throw away changes to' .filename'?')<>'Y' then
+      if WinMessageBox( 'Revert - reload file from disk',
+                        .filename' was modified.'\13 ||
+                        'Throw away changes to file on disk?',
+                        MB_OKCANCEL + MB_WARNING + MB_DEFBUTTON1 + MB_MOVEABLE) <> MBID_OK then
          return -293  -- sayerror("has been modified")
       endif
    endif
    getfileid startfid
    call psave_pos(saved_pos)
-   display -8
+;   display -8
    'e /d ='            -- /D means load from disk even if in ring.
    getfileid newfid    -- Remember the new fileid.
    if rc = sayerror("new file") then  -- (Host) File not found
@@ -68,7 +74,8 @@ compile endif
          .modify = 0
          'quit'
          activatefile newfid
-         call prestore_pos(saved_pos)
+         --call prestore_pos(saved_pos)
+         'postme restorepos 'saved_pos  -- postme required
    endif
-   display 8
+;   display 8
 
