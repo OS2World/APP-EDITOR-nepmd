@@ -1,0 +1,307 @@
+; ***************************** Module Header ******************************\
+;
+; Module Name: c.hil
+;
+; Definitons of the Netlabs EPM Distribution Project
+; for the syntax highlighting of the EPM mode "C"
+;
+; Among others these definitions implement the definitions of
+; the respective epmkwds definitions file of the EPMBBS distributiuon.
+;
+; Copyright (c) Netlabs EPM Distribution Project 2002
+;
+; $Id: c.hil,v 1.1 2002-10-18 18:36:35 cla Exp $
+;
+; ===========================================================================
+;
+; This file is part of the Netlabs EPM Distribution package and is free
+; software.  You can redistribute it and/or modify it under the terms of the
+; GNU General Public License as published by the Free Software
+; Foundation, in version 2 as it comes in the "COPYING" file of the
+; Netlabs EPM Distribution.  This library is distributed in the hope that it
+; will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
+;
+; **************************************************************************/
+
+[COMMENT]
+; Start   End     Escape
+; string  string  character
+  /*      */
+  //
+
+[LITERAL]
+; Start   End     Escape
+; string  string  character colorsymbol
+  "        "       \
+  '        '       \        CHAR
+
+[OPERATOR]
+{
+}
+ ;
+,
+?
+:
+
+[KEYWORD]
+; --- C pre-processor keywords
+#define
+#elif
+#else
+#endif
+#include
+#if
+#ifdef
+#ifndef
+#pragma
+#undef
+
+; --- C language constructs
+auto
+break
+case
+char
+const
+continue
+default
+do
+double
+enum
+else
+extern
+float
+for
+goto
+if
+int
+long
+main
+register
+return
+short
+signed
+sizeof
+static
+struct
+switch
+typedef
+union
+unsigned
+void
+volatile
+while
+freopen
+fflush
+fopen
+fclose
+remove
+rename
+tmpfile
+tmpnam
+setvbuf
+setbuf
+fprintf
+printf
+sprintf
+vprintf
+vfprintf
+vsprintf
+fscanf
+scanf
+sscanf
+fgetc
+fgets
+fputc
+fputs
+getc
+getchar
+gets
+putc
+putchar
+puts
+ungetc
+fread
+FILE
+stdin
+stderr
+stdout
+size_t
+fread
+fwrite
+fseek
+ftell
+rewind
+fgetpos
+fsetpos
+SEEK_SET
+SEEK_CUR
+SEEK_END
+fpos_t
+clearerr
+feof
+ferror
+perror
+isalnum
+isalpha
+iscntrl
+isdigit
+isgraph
+islower
+isprint
+ispunct
+isspace
+isupper
+isxdigit
+tolower
+strcat
+strchr
+strcmp
+strcpy
+strcspn
+strerror
+stricmp
+strlen
+strncat
+strncpy
+strnicmp
+strpbrk
+strrchr
+strspn
+strstr
+strtok
+toupper
+memcpy
+memmove
+memcmp
+memchr
+memset
+sin
+cos
+tan
+asin
+acos
+atan
+atan2
+sinh
+cosh
+tanh
+exp
+log
+log10
+pow
+sqrt
+ceil
+floor
+fabs
+ldexp
+frexp
+modf
+fmod
+atof
+atoi
+atol
+strtod
+strtol
+strtoul
+rand
+srand
+calloc
+malloc
+realloc
+free
+abort
+exit
+atexit
+system
+getenv
+bsearch
+qsort
+abs
+labs
+div
+div_t
+ldiv
+ldiv_t
+assert
+va_list
+va_start
+va_arg
+va_end
+setjmp
+jmp_buf
+longjmp
+signal
+SIGABRT
+SIGFPE
+SIGILL
+SIGINT
+SIGSEV
+SIGTERM
+SIG_ERR
+raise
+clock_t
+clock
+time_t
+time
+difftime
+mktime
+tm
+asctime
+ctime
+gmtime
+localtime
+strftime
+CHAR_BIT
+CHAR_MAX
+UCHAR_MAX
+SCHAR_MAX
+CHAR_MIN
+SCHAR_MIN
+INT_MAX
+INT_MIN
+LONG_MAX
+LONG_MIN
+SCHAR_MAX
+SCHAR_MIN
+SHRT_MAX
+SHRT_MIN
+UCHAR_MAX
+UINT_MAX
+ULONG_MAX
+USHRT_MAX
+FLT_RADIX
+FLT_ROUNDS
+FLT_DIG
+FLT_EPSILON
+FLT_MANT_DIG
+FLT_MAX
+FLT_MAX_EXP
+FLT_MIN
+FLT_MIN_EXP
+DBL_DIG
+DBL_EPSILON
+DBL_MANT_DIG
+DBL_MAX
+DBL_MAX_EXP
+DBL_MIN
+DBL_MIN_EXP
+
+; --- C++ language constructs
+catch
+class
+delete
+friend
+inline
+new
+operator
+private
+protected
+public
+template
+this
+throw
+try
+virtual
+
