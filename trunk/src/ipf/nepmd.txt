@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.27 2002-09-03 10:35:33 cla Exp $
+.. $Id: nepmd.txt,v 1.28 2002-09-04 22:38:15 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -32,6 +32,7 @@
 .SET CATEGORY_INTERACT=User Interaction functions
 .SET CATEGORY_NLS=National Language Support functions
 .SET CATEGORY_PROCESS=Process related functions
+.SET CATEGORY_SYSTEM=System related functions
 .SET CATEGORY_DIVERSE=Diverse
 
 .. #############################################################################
