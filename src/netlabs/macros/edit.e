@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.5 2002-10-09 17:50:49 aschn Exp $
+* $Id: edit.e,v 1.6 2002-10-18 15:41:06 cla Exp $
 *
 * ===========================================================================
 *
@@ -62,7 +62,7 @@ defproc NepmdDeleteRexxEaFileSpec( Spec )
          ext = translate( substr( Filename, p1 + 1 ) )
          if wordpos( ext, RexxEaExtensions ) then
             --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
-            NepmdDeleteRexxEa( Filename )
+            call NepmdDeleteRexxEa( Filename )
          endif
       endif
    enddo  -- forever
@@ -216,7 +216,7 @@ compile if USE_APPEND  -- Support for DOS 3.3's APPEND, thanks to Ken Kahn.
          endif
 compile endif
 
-         call loadfile(file,options)
+         call locadfile(file,options)
 
          if rc=-3 then        -- sayerror('Path not found')
             bad_paths=bad_paths', 'file
