@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.3 2002-08-21 11:52:53 aschn Exp $
+* $Id: select.e,v 1.4 2003-08-31 18:54:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -53,23 +53,15 @@ compile endif
 compile if WANT_EBOOKIE = 'DYNALINK'
    universal bkm_avail
 compile endif
-compile if WANT_EPM_SHELL & INCLUDE_STD_MENUS
-   universal shell_index
-   if shell_index then
-      is_shell = leftstr(.filename, 15) = ".command_shell_"
- compile if not defined(STD_MENU_NAME)
-      SetMenuAttribute( 103, 16384, is_shell)
-      SetMenuAttribute( 104, 16384, is_shell)
- compile elseif STD_MENU_NAME = 'ovshmenu.e'
-      SetMenuAttribute( 152, 16384, is_shell)
-      SetMenuAttribute( 153, 16384, is_shell)
- compile elseif STD_MENU_NAME = 'fevshmnu.e'
-      SetMenuAttribute( 142, 16384, is_shell)
-      SetMenuAttribute( 143, 16384, is_shell)
- compile endif
-   endif  -- shell_index
-compile endif
+
+   -- moved the SetMenuAttribute stuff for command shell windows to STDCTRL.E, defc menuinit_0
+
 compile if LOCAL_MOUSE_SUPPORT
+   -- LOCAL_MOUSE_SUPPORT = 1 enables separate mouse definitions for every file in the ring.
+   -- Additional changes per register_mousehandler will then be local (for every file) only.
+   -- Because of this feature is not built-in as field var (starting with a '.' and belonging
+   -- to each file separately), it must be achieved by the use of an array var and must be
+   -- switched on every defselect.
    getfileid ThisFile
    OldRC = Rc
    rc = get_array_value(EPM_utility_array_ID, "LocalMausSet."ThisFile, NewMSName)
@@ -84,7 +76,7 @@ compile if LOCAL_MOUSE_SUPPORT
    else
       LMousePrefix = NewMSName"."
    endif
-compile endif
+compile endif  -- LOCAL_MOUSE_SUPPORT
 
 compile if WANT_EBOOKIE
  compile if WANT_EBOOKIE = 'DYNALINK'
