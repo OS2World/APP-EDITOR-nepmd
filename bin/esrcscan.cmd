@@ -49,7 +49,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.2 2002-08-25 19:57:08 cla Exp $
+* $Id: esrcscan.cmd,v 1.3 2002-08-25 20:06:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -624,6 +624,16 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
                                   '.su V30 breaks'CrLf||,
                                   '');
 
+    /* add prototype to syntax section */
+    ThisKey = 'PROTOTYPE';
+    IF (DocComment.ThisFunction.ThisKey \= '') THEN
+    DO
+       AddKey = 'SYNTAX';
+       DocComment.ThisFunction.AddKey = DocComment.ThisFunction.AddKey||,
+                                        '.fo off'CrLf||,
+                                        DocComment.ThisFunction.ThisKey''CrLf||,
+                                        '.fo on'CrLf;
+    END;
 
     rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'SYNTAX',  'Syntax');
 
