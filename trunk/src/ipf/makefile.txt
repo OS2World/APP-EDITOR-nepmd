@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.26 2002-11-04 13:39:11 cla Exp $
+.. $Id: makefile.txt,v 1.27 2002-11-05 20:26:54 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -77,7 +77,7 @@ The following pseudotargets are available:
 .pl bold compact break=none tsize=20
 - nmake [[help]]
 = show this INF file (if outdated, this compiles the INF before). This calls the
-  makefile within the *src\ipf* directory with the target *help*.
+  makefile within the *src\ipf* directory with the target *showhelp*.
 .
 - nmake all
 = build all modules and thus the complete package (**)
@@ -138,19 +138,27 @@ The following makefile pseudotargets are available for the makefile within the
 *src\ipf* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
-= build both the makefile INF and the project documentation INF, but show none
+= build both the makefile INF and the project documentation INFs, but show none
 .
-- nmake help
+- nmake showhelp
 = build and show this INF file (if outdated, this compiles the INF before). This is used
   by the [.IDPNL_TARGETS_MAIN main makefile] in order to bring up help if called with no
   target specified
-- nmake nepmd
-= build and show the project documentation INF
+- nmake neusr
+= build and show the user guide INF
+- nmake neprg
+= build and show the programming guide INF
+- nmake nefld
+= build and show the folder HLP
 .
 - nmake helpinf
 = build this makefile in the *bin* subdirectory !
-- nmake nepmdinf
-= build the project documentation INF in the *compile\netlabs\book directory*
+- nmake neusrinf
+= build the user guide INF in the *compile\netlabs\book* directory
+- nmake neusrinf
+= build the programming guide INF in the *compile\netlabs\book* directory
+- nmake nefldhlp
+= build the folder HLP file in the *compile\netlabs\help* directory
 .
 - nmake clean
 = remove the files created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
@@ -294,7 +302,7 @@ saying that a file cannot be opened.
 
 In such cases the environment variable *SHELLHANDLESINC* can be used to provide
 more file handles to the makefile process. This setting specifies the amount
-of file handles that the amount of file handles available for the 
+of file handles that the amount of file handles available for the
 Workplace Shell should be increased by.
 
 [=NOTE]
