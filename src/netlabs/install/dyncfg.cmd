@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.2 2002-08-12 12:59:00 cla Exp $
+* $Id: dyncfg.cmd,v 1.3 2002-08-12 15:06:07 cla Exp $
 *
 * ===========================================================================
 *
@@ -53,13 +53,14 @@
     PARSE VALUE TRANSLATE( VALUE('PATH',,env)) WITH '\OS2;' -2 BootDrive +2;
     OS2Dir = TRANSLATE( BootDrive'\OS2');
     CheckFile = OS2Dir'\EPM.EXE';
+    fCheckFileExists = FileExist( CheckFile);
 
     /* check parm */
     ARG Parm .;
     IF (Parm = 'DEINSTALL') THEN
     DO
        /* delete EPM.EXE in ?:\os2 if it is ours */
-       IF (IsNepmdExecutable( CheckFile)) THEN
+       IF ((fCheckFileExists) & (IsNepmdExecutable( CheckFile))) THEN
        DO
           rc = SysFileDelete( CheckFile);
           LEAVE;
@@ -87,7 +88,7 @@
     END;
    
     /* don't touch any EPM.EXE not being ours here */
-    IF (\IsNepmdExecutable( CheckFile)) THEN
+    IF ((fCheckFileExists) & (\IsNepmdExecutable( CheckFile))) THEN
     DO
        SAY 'error: ' CheckFile 'is not of NEPMD, cannot continue.';
        rc = 5; /* ERROR_ACCESS_DENIED */
