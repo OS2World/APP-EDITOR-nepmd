@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.16 2002-11-03 20:21:27 cla Exp $
+* $Id: epmcall.c,v 1.17 2002-11-04 15:44:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -38,50 +38,6 @@
 
 #define QUEUENAMEBASE "\\QUEUES\\EPMCALL\\"
 #define LOADSTRING(m,t)           GetMessage( NULL, 0, t, sizeof( t), m, &ulMessageLen)
-
-// -----------------------------------------------------------------------------
-
-APIRET PrepareEpmInit( PSZ pszEpmExecutable)
-{
-         APIRET         rc  = NO_ERROR;
-         HINI           hini = NULLHANDLE;
-         CHAR           szProfile[ _MAX_PATH];
-         PSZ            pszExt;
-
-         PSZ            pszAppName = "EPM";
-         PSZ            pszKeyName;
-         ULONG          ulProfileLen;
-
-do
-   {
-   // open up the profile
-   strcpy( szProfile, pszEpmExecutable);
-   pszExt = Filespec( szProfile, FILESPEC_EXTENSION);
-   if (!pszExt)
-      {
-      rc = ERROR_INVALID_PARAMETER;
-      break;
-      }
-   strcpy( pszExt, "ini");
-   hini = PrfOpenProfile( CURRENTHAB, szProfile);
-   if (!hini)
-      {
-      rc = LASTERROR;
-      break;
-      }
-
-   // - NEPMD traps if OPTFLAGS is not set, so we set it here
-   pszKeyName = "OPTFLAGS";
-   if ((!PrfQueryProfileSize( hini, pszAppName, pszKeyName, &ulProfileLen)) ||
-       (!ulProfileLen))
-      PrfWriteProfileString( hini, pszAppName, pszKeyName, "1 1 1 1 1 1 0 0 1 0 0 0 1 0 1 1 0 ");
-
-   } while (FALSE);
-
-// cleanup
-if (hini) PrfCloseProfile( hini);
-return rc;
-}
 
 // -----------------------------------------------------------------------------
 
@@ -160,9 +116,6 @@ do
 
       sprintf( _EOS( szProgramArgs), pszMask, argv[ i]);
       }
-
-   // setup EPM.INI - ignore all errors here
-   PrepareEpmInit( szExecutable);
 
    // start program - fill STARTDATA
    memset( &startdata, 0, sizeof( startdata));
