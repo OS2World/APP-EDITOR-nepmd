@@ -5,8 +5,9 @@ NMAKE targets for the Netlabs EPM Distribution package
 make all     - build complete package (*)
 
 make inst    - build complete package and start WPI (*)
-make show    - build NEPMD INF and show it
 
+make nepmd   - build NEPMD extensions
+make show    - build NEPMD INF and show it
 
 make prepare - only downloads zip files from leo and unpacks (*)
 make srccopy - copy some files from CVS tree part to compile directory
