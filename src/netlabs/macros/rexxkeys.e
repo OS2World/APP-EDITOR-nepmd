@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.8 2004-11-30 21:05:50 aschn Exp $
+* $Id: rexxkeys.e,v 1.9 2005-01-09 18:58:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,24 +41,57 @@ compile if not defined(TERMINATE_COMMENTS)
    TERMINATE_COMMENTS = 0
 compile endif
 compile if not defined(WANT_END_COMMENTED)
-   WANT_END_COMMENTED = 1
+   WANT_END_COMMENTED = 0
 compile endif
 compile if not defined(REXX_SYNTAX_CASE)
-   REXX_SYNTAX_CASE = 'lower'
+   REXX_SYNTAX_CASE = 'LOWER'  -- 'LOWER' | 'MIXED' | 'UPPER'
 compile endif
 compile if not defined(REXX_SYNTAX_FORCE_CASE)
-   --REXX_SYNTAX_FORCE_CASE = 0
-   REXX_SYNTAX_FORCE_CASE = 1  -- changed
+   REXX_SYNTAX_FORCE_CASE = 1
 compile endif
 compile if not defined(REXX_SYNTAX_NO_ELSE)
    REXX_SYNTAX_NO_ELSE = 0
 compile endif
-
-compile if REXX_SYNTAX_CASE <> 'lower' & REXX_SYNTAX_CASE <> 'Mixed' & REXX_SYNTAX_CASE <> 'UPPER'
-   *** Error: REXX_SYNTAX_CASE must be "Lower" or "Mixed" or "UPPER"
+compile if not defined(REXX_DO_STYLE)
+   REXX_DO_STYLE = 'NO_INDENT_AFTER_IF'  -- 'APPEND' | 'INDENT_AFTER_IF' | 'NO_INDENT_AFTER_IF'
 compile endif
 
 -- Moved defload to MODE.E
+
+; Todo:
+;
+; New procs: Tabs2Spaces and Spaces2Tabs for strings for expansion using Tabs
+;
+; New proc: Get indent of a line
+;
+; New proc: Find closing expression?
+; Better use locate?
+; Determine, if 'end' should be added.
+
+; ---------------------------------------------------------------------------
+; Todo: move in order to make that available for other modes as well.
+; Almost like strip: strip leading/trailing blanks (spaces and tabs).
+defproc StripBlanks( in)
+   next = in
+   Opt = upcase( substr( arg(2), 1, 1))
+   if not wordpos( Opt, 'B L T') then
+      Opt = 'B'
+   endif
+   StripChars = arg(3)
+   if StripChars == '' then
+      StripChars = ' '\t
+   endif
+   if Opt = 'L' | Opt = 'B' then
+      p = max( 1, verify( next, StripChars, 'N'))  -- find first word
+      next = substr( next, p)
+   endif
+   if Opt = 'T' | Opt = 'B' then
+      next = reverse( next)
+      p = max( 1, verify( next, StripChars, 'N'))  -- find first word
+      next = substr( next, p)
+      next = reverse( next)
+   endif
+   return next
 
 defkeys rexx_keys
 
@@ -142,6 +175,44 @@ compile endif
    return ind
 
 ; ---------------------------------------------------------------------------
+; Convert case of a string, word by word. Keep spaces and Tabs.
+defproc RexxSyntaxCase
+   in = arg(1)
+   --sayerror 'RexxSyntaxCase: in = ['in']'
+   out = in
+   p = verify( out, ' '\t, 'N')                   -- find first word
+   startp = p
+   i = 0
+   do while p > 0
+      pb = verify( out, ' '\t, 'M', startp + 1)   -- find next blank
+      p = 0
+      if pb > 0 then
+         p = verify( out, ' '\t, 'N', pb + 1)     -- find next word
+      endif
+      if p = 0 then
+         next = substr( out, startp)              -- rest
+      else
+         next = substr( out, startp, p - startp)  -- next word incl. trailing blanks
+      endif
+      --sayerror 'RexxSyntaxCase: next = ['next']'
+      if upcase( substr( REXX_SYNTAX_CASE, 1, 1)) = 'L' then
+         next = lowcase( next)
+      elseif upcase( substr( REXX_SYNTAX_CASE, 1, 1)) = 'U' then
+         next = upcase( next)
+      elseif upcase( substr( REXX_SYNTAX_CASE, 1, 1)) = 'M' then
+         next = lowcase( next)
+         next = upcase( substr( next, 1, 1))''substr( next, 2)
+      endif
+      out = overlay( next, out, startp)
+      if pb = 0 then
+         leave
+      endif
+      startp = p
+   enddo
+   --sayerror 'RexxSyntaxCase: out = ['out']'
+   return out
+
+; ---------------------------------------------------------------------------
 ; This is the definition for syntax expansion with <space>.
 ; If 0 is returned then
 ;    a normal <space> is processed,
@@ -151,134 +222,55 @@ defproc rex_first_expansion
    retc = 0                            -- Default: don't expanded, enter a space
    if .line then
       getline line
-      line = strip( line, 'T' )
-      w = line
-      wrd = upcase(w)
+      sline = StripBlanks( line, 'T')
+      wrd = upcase( StripBlanks( sline, 'L'))                      -- wrd = current line, stripped, uppercase
+      ind = substr( sline, 1, max( 1, verify( sline, ' '\t)) - 1)  -- ind = blanks before first word
+      col = .col
 
-compile if REXX_SYNTAX_FORCE_CASE
-      lb=copies(' ', max(1,verify(w,' '))-1)  -- Number of blanks before first word.
-compile endif
-
-      -- Skip expansion when cursor is not at line end (spaces not respected)
-      line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
-      lw = strip( line_l, 'T' )
-      if w <> lw then
+      -- Skip expansion if word before cursor is not a keyword or if some string follows
+      if not (length(sline) = .col - 1) then
+         -- cursor is not behind the last word: skip expansion
+      elseif wrd = '' then
+         -- empty line: skip expansion
 
       elseif wrd = 'IF' then
-
-compile if REXX_SYNTAX_CASE = 'lower'
- compile if REXX_SYNTAX_FORCE_CASE
-         replaceline lb'if then'
- compile else
-         replaceline w' then'
- compile endif
- compile if not REXX_SYNTAX_NO_ELSE
-         insertline substr(wrd,1,length(wrd)-2)'else',.line+1
- compile endif
-
-compile elseif REXX_SYNTAX_CASE = 'UPPER'
- compile if REXX_SYNTAX_FORCE_CASE
-         replaceline lb'IF THEN'
- compile else
-         replaceline w' THEN'
- compile endif
- compile if not REXX_SYNTAX_NO_ELSE
-         insertline substr(wrd,1,length(wrd)-2)'ELSE',.line+1
- compile endif
-
-compile else
- compile if REXX_SYNTAX_FORCE_CASE
-         replaceline lb'If Then'
- compile else
-         replaceline w' Then'
- compile endif
- compile if not REXX_SYNTAX_NO_ELSE
-         insertline substr(wrd,1,length(wrd)-2)'Else',.line+1
- compile endif
-compile endif
-
-         if not insert_state() then
-            insert_toggle
-            call fixup_cursor()
-         endif
-         keyin ' '
-         retc = 1
-
-      elseif wrd='WHEN' Then
-
-compile if REXX_SYNTAX_CASE = 'lower'
- compile if REXX_SYNTAX_FORCE_CASE
-         replaceline lb'when then'
- compile else
-         replaceline w' then'
- compile endif
-
-compile elseif REXX_SYNTAX_CASE = 'UPPER'
- compile if REXX_SYNTAX_FORCE_CASE
-         replaceline lb'WHEN THEN'
- compile else
-         replaceline w' THEN'
- compile endif
-
-compile else
- compile if REXX_SYNTAX_FORCE_CASE
-         replaceline lb'When Then'
- compile else
-         replaceline w' Then'
- compile endif
-compile endif
-
-         if not insert_state() then
-            insert_toggle
-            call fixup_cursor()
-         endif
-         keyin ' '
-         retc = 1
-
-      elseif wrd='DO' then
-
 compile if REXX_SYNTAX_FORCE_CASE
- compile if REXX_SYNTAX_CASE = 'lower'
-         replaceline lb'do'
- compile elseif REXX_SYNTAX_CASE = 'UPPER'
-         replaceline lb'DO'
- compile else
-         replaceline lb'Do'
- compile endif
-compile endif
-
-compile if WANT_END_COMMENTED
-
- compile if REXX_SYNTAX_CASE = 'lower'
-         insertline substr(wrd,1,length(wrd)-2)'end /'||'* do *'||'/',.line+1
- compile elseif REXX_SYNTAX_CASE = 'UPPER'
-         insertline substr(wrd,1,length(wrd)-2)'END /'||'* DO *'||'/',.line+1
- compile else
-         insertline substr(wrd,1,length(wrd)-2)'End /'||'* Do *'||'/',.line+1
- compile endif
-
+         replaceline ind''RexxSyntaxCase( 'if  then')
 compile else
-
- compile if REXX_SYNTAX_CASE = 'lower'
-         insertline substr(wrd,1,length(wrd)-2)'end',.line+1
- compile elseif REXX_SYNTAX_CASE = 'UPPER'
-         insertline substr(wrd,1,length(wrd)-2)'END',.line+1
- compile else
-         insertline substr(wrd,1,length(wrd)-2)'End',.line+1
- compile endif
-
+         replaceline sline''RexxSyntaxCase( '  then')
 compile endif
-         if not insert_state() then
-            insert_toggle
-            call fixup_cursor()
-         endif
-         keyin ' '
+compile if not REXX_SYNTAX_NO_ELSE
+         insertline ind''RexxSyntaxCase( 'else'), .line + 1
+compile endif
+         .col = col + 1
          retc = 1
 
-      endif  -- w <> lw
+      elseif wrd = 'WHEN' then
+compile if REXX_SYNTAX_FORCE_CASE
+         replaceline ind''RexxSyntaxCase( 'when  then')
+compile else
+         replaceline sline''RexxSyntaxCase( '  then')
+compile endif
+         .col = col + 1
+         retc = 1
+
+      elseif wrd = 'DO' then
+compile if REXX_SYNTAX_FORCE_CASE
+         replaceline ind''RexxSyntaxCase( 'do ')
+compile else
+         replaceline sline' '
+compile endif
+compile if WANT_END_COMMENTED
+         insertline ind''RexxSyntaxCase( 'end /* do */'),.line+1
+compile else
+         insertline ind''RexxSyntaxCase( 'end'),.line+1
+compile endif
+         .col = col + 1
+         retc = 1
+
+      endif  -- sline <> line_l
    endif  -- .line
    return retc
-
 
 ; ---------------------------------------------------------------------------
 ; This is the definition for syntax expansion with <enter>.
@@ -287,165 +279,214 @@ compile endif
 ; else
 ;    the keystroke was aleady processed by this procedure.
 defproc rex_second_expansion
-
    retc = 0                               -- Default:, don't expanded, insert a line
    if .line then
       getline line
-compile if REXX_SYNTAX_FORCE_CASE
-      parse value line with origword .
-compile endif
-      line = upcase(line)
-      --parse value line with firstword .
+      -- *word functions and parse don't recognize tab chars as word boundaries.
+      -- tline = uppercase line, with converted tabs
+      tline = translate( upcase(line) ' ', \t)
+
       -- Set firstword only to text left from the cursor
-      line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
-      parse value line_l with firstword rest
+      tline_l = substr( tline, 1, .col - 1) -- split tline into two parts at cursor
+      parse value tline_l with firstword rest
+      -- firstword is uppercase, because line is already upcased.
+      if firstword > ' ' then
+         firstp = pos( firstword, tline_l)
+      else
+         firstp = 1
+      endif
 
-      c=max(1,verify(line,' '))-1  -- Number of blanks before first word.
+      ind = substr( line, 1, max( 1, verify( line, ' '\t)) - 1)        -- ind  = blanks before first word
+      ind1 =  ind''copies( ' ', GetRexxIndent())                       -- ind1 = ind plus 1 level indented
+-- Todo: Tabs2Spaces for line
+-- doesn't handle Tabs near the end correctly:
+      ind0 =  substr( ind, 1, max( length(ind) - GetRexxIndent(), 0))  -- ind0 = ind minus 1 level indented
 
-      if firstword = 'SELECT' then
+-- Todo: rewrite THEN DO, ELSE DO expansion
+      if pos( 'THEN DO', tline) > 0 or pos( 'ELSE DO', tline) > 0 then
+         p = pos( 'ELSE DO', tline)  -- Don't be faked out by 'else doc = 5'
+         if not p then
+            p = pos( 'THEN DO', tline)
 compile if REXX_SYNTAX_FORCE_CASE
-
- compile if REXX_SYNTAX_CASE = 'lower'
-         if origword<>'select' then
-            replaceline overlay('select', textline(.line), c+1)
-         endif
-
- compile elseif REXX_SYNTAX_CASE = 'UPPER'
-         if origword<>'SELECT' then
-            replaceline overlay('SELECT', textline(.line), c+1)
-         endif
-
- compile else
-         if origword<>'Select' then
-            replaceline overlay('Select', textline(.line), c+1)
-         endif
- compile endif
-
+            s1 = 'then do'
+         else
+            s1 = 'else do'
 compile endif
-
-compile if REXX_SYNTAX_CASE = 'lower'
-         insertline substr('',1,c+GetRexxIndent())'when',.line+1
-         insertline substr('',1,c /*+GetRexxIndent()*/)'otherwise',.line+2
- compile if WANT_END_COMMENTED
-         insertline substr('',1,c)'end  /'||'* select *'||'/',.line+3
- compile else
-         insertline substr('',1,c)'end',.line+3
- compile endif
-
-compile elseif REXX_SYNTAX_CASE = 'UPPER'
-         insertline substr('',1,c+GetRexxIndent())'WHEN',.line+1
-         insertline substr('',1,c /*+GetRexxIndent()*/)'OTHERWISE',.line+2
- compile if WANT_END_COMMENTED
-         insertline substr('',1,c)'END  /'||'* SELECT *'||'/',.line+3
- compile else
-         insertline substr('',1,c)'END',.line+3
- compile endif
-
+         endif
+         -- Skip expansion, if THEN DO or ELSE DO is not followed by a semicolon or space.
+         -- Lineend is handled as space in EPM's edit window.
+         if p & not pos( substr( tline, p + 7, 1), ' ;') then
+            return 0
+         endif
+-- Todo: skip expansion, if matching END found.
+compile if REXX_SYNTAX_FORCE_CASE
+         replaceline overlay( RexxSyntaxCase( s1), line, p)
+compile endif
+         insertline ind1'', .line + 1
+compile if WANT_END_COMMENTED
+         insertline ind''RexxSyntaxCase( 'end /* do */'), .line + 2
 compile else
-         insertline substr('',1,c+GetRexxIndent())'When',.line+1
-         insertline substr('',1,c /*+GetRexxIndent()*/)'Otherwise',.line+2
- compile if WANT_END_COMMENTED
-         insertline substr('',1,c)'End  /'||'* Select *'||'/',.line+3
- compile else
-         insertline substr('',1,c)'End',.line+3
- compile endif
+         insertline ind''RexxSyntaxCase( 'end'), .line + 2
 compile endif
+         '+1'
+         endline
+         retc = 1
 
+      elseif firstword = 'SELECT' then
+compile if REXX_SYNTAX_FORCE_CASE
+         replaceline overlay( RexxSyntaxCase( 'select'), line, firstp)
+compile endif
+         insertline ind1''RexxSyntaxCase( 'when  then'), .line + 1
+         insertline ind''RexxSyntaxCase( 'otherwise'), .line + 2
+compile if WANT_END_COMMENTED
+         insertline ind''RexxSyntaxCase( 'end /* select */'), .line + 3
+compile else
+         insertline ind''RexxSyntaxCase( 'end'), .line + 3
+compile endif
          '+1'                             -- Move to When clause
-         .col = c+GetRexxIndent()+5         -- Position the cursor
+         endline
+         .col = .col - 5
          retc = 1
 
       elseif firstword = 'DO' then
+         lastind = ind
+         nextind = ind1
+         endl = 0
+         endp = 0
+         appendl = 0
+         if wordpos( upcase(REXX_DO_STYLE), 'APPEND NO_INDENT_AFTER_IF') then
+            -- Check for previous line with a trailing 'THEN' and get its indent
+            if .line > 1 then
+               -- Inspect previous line
+               -- Don't ignore blank lines here
+               getline linel, .line - 1
+               if lastword( translate( upcase(linel), ' ', \t)) = 'THEN' then
+                  -- Get indent of line before with IF|WHEN|OTHERWISE
+                  -- Re-indent DO line: take indent of line before
+                  -- or append DO and the rest to THEN line
+                  if upcase(REXX_DO_STYLE) = 'APPEND' then
+                     appendl = .line - 1
+                  endif
+                  startl = .line - 1
+                  do l = startl to 1 by -1
+                     if l < startl - 10 then  -- search only 10 last lines
+                        leave
+                     endif
+                     getline linel, l
+                        next = word( translate( upcase(linel), ' ', \t), 1)
+                        if wordpos( next, 'IF WHEN') then
+                           --sayerror 'IF WHEN OTHERWISE: ['line0']'
+                           -- Get indent of linel
+                           lastind = substr( linel, 1, max( 1, verify( linel, ' '\t)) - 1)
+                           nextind = lastind''copies( ' ', GetRexxIndent())
+                           leave
+                        endif
+                  enddo
+               elseif wordpos( lastword( translate( upcase(linel), ' ', \t)), 'ELSE OTHERWISE') then
+                  -- Get indent of line before with ELSE or OTHERWISE
+                  -- Re-indent DO line: take indent of line before
+                  -- or append DO and the rest to ELSE line
+                  l = .line - 1
+                  if upcase(REXX_DO_STYLE) = 'APPEND' then
+                     appendl = l
+                  endif
+                  getline linel, l
+                  -- Get indent of linel
+                  lastind = substr( linel, 1, max( 1, verify( linel, ' '\t)) - 1)
+                  nextind = lastind''copies( ' ', GetRexxIndent())
+                  --sayerror 'append line: 'appendl' ['linel']'
+               endif
+            endif
+            -- Find matching END and re-indent END too
+            -- Make END; match too
+            startl = .line + 1
+            do l = startl to .last
+               if l > startl + 50 then  -- search only 50 next lines
+                  leave
+               endif
+               getline linel, l
+                  next = word( translate( upcase(linel), ' ', \t), 1)
+                  -- Search for first word
+                  if wordpos( word( next, 1), 'END END;') then
+                     endl = l
+                     endp = pos( 'END', translate(linel))
+                     --sayerror 'end line = 'endl' ['linel']'
+                     leave
+                  endif
+            enddo
+         endif
+         -- Re-indent END line
+         -- must come first
+         if endp > 0 then
 compile if REXX_SYNTAX_FORCE_CASE
-
- compile if REXX_SYNTAX_CASE = 'lower'
-         if origword<>'do' then replaceline overlay('do', textline(.line), c+1); endif
- compile elseif REXX_SYNTAX_CASE = 'UPPER'
-         if origword<>'DO' then replaceline overlay('DO', textline(.line), c+1); endif
- compile else
-         if origword<>'Do' then replaceline overlay('Do', textline(.line), c+1); endif
- compile endif
-
+            next = overlay( RexxSyntaxCase( 'end'), textline(endl), endp)
+            replaceline lastind''substr( next, endp), endl  -- re-indent END line
+compile else
+            replaceline lastind''substr( textline(endl), endp), endl  -- re-indent END line
 compile endif
-         call einsert_line()
-         .col=.col+GetRexxIndent()
+         endif
+compile if REXX_SYNTAX_FORCE_CASE
+         next = overlay( RexxSyntaxCase( 'do'), line, firstp)
+compile else
+         next = line
+compile endif
+         --sayerror 'next = '.line' ['next']'
+         if appendl > 0 then
+            -- Append DO line
+            replaceline StripBlanks( textline(appendl), 'T')' 'StripBlanks( next), appendl
+            deleteline
+            '-1'
+         else
+            -- Re-indent DO line
+            replaceline lastind''substr( next, firstp)
+         endif
+         -- Add empty, indented line
+         insertline nextind, .line + 1
+         '+1'
+         endline
          retc = 1
 
       elseif firstword = 'IF' then
 compile if REXX_SYNTAX_FORCE_CASE
-
- compile if REXX_SYNTAX_CASE = 'lower'
-         if origword<>'if' then replaceline overlay('if', textline(.line), c+1); endif
- compile elseif REXX_SYNTAX_CASE = 'UPPER'
-         if origword<>'IF' then replaceline overlay('IF', textline(.line), c+1); endif
- compile else
-         if origword<>'If' then replaceline overlay('If', textline(.line), c+1); endif
- compile endif
-
+         replaceline overlay( RexxSyntaxCase( 'if'), line, firstp)
 compile endif
-         call einsert_line()
-         .col=.col+GetRexxIndent()
+         insertline ind1'', .line + 1
+         '+1'
+         endline
          retc = 1
 
-      elseif pos('THEN DO',line) > 0 or pos('ELSE DO',line) > 0 then
-         p = pos('ELSE DO',line)  -- Don't be faked out by 'else doc = 5'
-         if not p then
-            p = pos('THEN DO',line)
+      elseif firstword = 'WHEN' then
 compile if REXX_SYNTAX_FORCE_CASE
-
- compile if REXX_SYNTAX_CASE = 'lower'
-            s1 = 'then do'
-         else
-            s1 = 'else do'
- compile elseif REXX_SYNTAX_CASE = 'UPPER'
-            s1 = 'THEN DO'
-         else
-            s1 = 'ELSE DO'
- compile else
-            s1 = 'Then Do'
-         else
-            s1 = 'Else Do'
- compile endif
-
+         replaceline overlay( RexxSyntaxCase( 'when'), line, firstp)
 compile endif
-         endif
-         if p & not pos(substr(line, p+7, 1), ' ;') then
-            return 0
-         endif
+         insertline ind1, .line + 1
+         '+1'
+         endline
+         retc = 1
+
+      elseif firstword = 'OTHERWISE' then
 compile if REXX_SYNTAX_FORCE_CASE
-         if substr(textline(.line), p, 7)<>s1 then
-            replaceline overlay(s1, textline(.line), p)
-         endif
+         replaceline overlay( RexxSyntaxCase( 'otherwise'), line, firstp)
 compile endif
-         call einsert_line()
-         .col=.col+GetRexxIndent()
-compile if WANT_END_COMMENTED
+         insertline ind1, .line + 1
+         '+1'
+         endline
+         retc = 1
 
- compile if REXX_SYNTAX_CASE = 'lower'
-         insertline substr('',1,c)'end /'||'* do *'||'/',.line+1
- compile elseif REXX_SYNTAX_CASE = 'UPPER'
-         insertline substr('',1,c)'END /'||'* DO *'||'/',.line+1
- compile else
-         insertline substr('',1,c)'End /'||'* Do *'||'/',.line+1
- compile endif
-
-compile else
- compile if REXX_SYNTAX_CASE = 'lower'
-         insertline substr('',1,c)'end',.line+1
- compile elseif REXX_SYNTAX_CASE = 'UPPER'
-         insertline substr('',1,c)'END',.line+1
- compile else
-         insertline substr('',1,c)'End',.line+1
- compile endif
-
+      elseif firstword = 'ELSE' then
+compile if REXX_SYNTAX_FORCE_CASE
+         replaceline overlay( RexxSyntaxCase( 'else'), line, firstp)
 compile endif
+         insertline ind1, .line + 1
+         '+1'
+         endline
          retc = 1
 
 compile if TERMINATE_COMMENTS
-      elseif pos('/'||'*',line) then        -- Annoying to me, as I don't always
-         if not pos('*'||'/',line) then     -- want a comment closed on that line
-            end_line                        -- Enable if you wish by uncommenting
-            keyin ' *''/'
+      elseif pos('/*',line) then        -- Annoying to me, as I don't always
+         if not pos('*/',line) then     -- want a comment closed on that line
+            end_line                    -- Enable if you wish by uncommenting
+            keyin ' */'
          endif
          call einsert_line()
          retc = 1
