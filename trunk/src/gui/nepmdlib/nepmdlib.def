@@ -6,7 +6,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: nepmdlib.def,v 1.30 2002-10-03 20:18:24 cla Exp $
+; $Id: nepmdlib.def,v 1.31 2002-10-03 22:07:54 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -22,6 +22,8 @@
 ; **************************************************************************/
 
 LIBRARY NEPMDLIB INITINSTANCE TERMINSTANCE
+DESCRIPTION '@#NETLABS:1.00.1001#@RECOMP - NEPMD runtime library for EPM v6 - Copyright OS/2 Netlabs 2002'
+
 DATA NONSHARED MULTIPLE
 PROTMODE
 HEAPSIZE  16384
