@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.6 2002-09-24 22:20:05 cla Exp $
+* $Id: hilite.c,v 1.7 2002-09-25 09:57:18 cla Exp $
 *
 * ===========================================================================
 *
@@ -41,6 +41,20 @@
 #include "file.h"
 #include "mmf.h"
 
+// definitions for file format for *.hil
+#define CHAR_COMMENT         ';'
+#define CHAR_SECTION_START   '['
+#define CHAR_SECTION_END     ']'
+
+
+// some useful macros
+#define ALLOCATEMEMORYFILE(p,s)                      \
+rc = MmfAlloc( (PVOID*)&p, MMF_FILE_INMEMORY, 0, s); \
+if (rc != NO_ERROR)                                  \
+   break;
+
+#define FREEMEMORYFILE(p)   MmfFree( p)
+
 #define QUERYINITVALUE(h,s,k,t)                             \
 if (!InitQueryProfileString( h, s, k, NULL, t, sizeof( t))) \
    {                                                        \
@@ -49,7 +63,7 @@ if (!InitQueryProfileString( h, s, k, NULL, t, sizeof( t))) \
    }
 #define QUERYINITVALUESIZE(h,s,k) _queryInitValueSize( h, s, k)
 
-
+// structure vor an array of values
 typedef struct _VALUEARRAY
      {
          ULONG          ulCount;
@@ -57,7 +71,45 @@ typedef struct _VALUEARRAY
 
      } VALUEARRAY, *PVALUEARRAY;
 
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------
+
+static PSZ _stripblanks( PSZ string)
+{
+ PSZ p = string;
+ if (p != NULL)
+    {
+    while ((*p != 0) && (*p <= 32))
+       { p++;}
+    strcpy( string, p);
+    }
+ if (*p != 0)
+    {
+    p += strlen(p) - 1;
+    while ((*p <= 32) && (p >= string))
+       {
+       *p = 0;
+       p--;
+       }
+    }
+
+return string;
+}
+
+// ----------------------------------------------------------------------
+
+static PSZ _skipblanks( PSZ string)
+{
+ PSZ p = string;
+ if (p != NULL)
+    {
+    while ((*p != 0) && (*p <= 32))
+       { p++;}
+    }
+
+return p;
+}
+
+// ######################################################################
 
 static APIRET _searchFile( PSZ pszSearchPathName, PSZ pszBuffer, ULONG ulBuflen, PSZ pszSearchMask, ...)
 {
@@ -148,6 +200,20 @@ return ulDataLen;
 
 // -----------------------------------------------------------------------------
 
+static APIRET _scanFilePath( PSZ pszSearchPath, PULONG pulFileCount,  PSZ pszBuffer,PULONG pulBuflen, PSZ pszSearchMask, ...)
+{
+         APIRET         rc = NO_ERROR;
+         PSZ            pszPath;
+do
+   {
+
+   } while (FALSE);
+
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
 int _compareFilename( const void *pszKeyElement, const void *pszEntry)
 {
 pszKeyElement = (PVOID) Filespec( (PSZ) pszKeyElement, FILESPEC_NAME);
@@ -162,6 +228,7 @@ static APIRET _getDefFileList( PSZ pszEpmMode, PSZ *ppszFileList, PULONG pulFile
          PSZ            pszTmp;
 
          PSZ            pszFileList = NULL;
+         ULONG          ulListSize;
          ULONG          ulFileCount = 0;
          ULONG          ulTotalSize = 0;
 
@@ -193,12 +260,16 @@ do
       rc = ERROR_ENVVAR_NOT_FOUND;
       break;
       }
+
    pszKeywordPath = strdup( pszKeywordPath);
    if (!pszKeywordPath)
       {
       rc = ERROR_NOT_ENOUGH_MEMORY;
       break;
       }
+
+   // allocate dynamic memory fro file list
+   ALLOCATEMEMORYFILE( pszFileList, 16384);
 
    // go through all keyword directories
    pszKeywordDir = strtok( pszKeywordPath, ";");
@@ -223,15 +294,10 @@ do
          if (pszEntry)
             continue;
 
-         // store the file
-         pszTmp = realloc( pszFileList, (ulFileCount + 1) * _MAX_PATH);
-         if (!pszTmp)
-            {
-            rc = ERROR_NOT_ENOUGH_MEMORY;
-            break;
-            }
-         pszFileList = pszTmp;
-         strcpy( pszFileList + (ulFileCount * _MAX_PATH), szFile);
+//       DPRINTF(( "HILITE: %u [%u] bytes (%u entries) (re)allocated for file list at 0x%08x\n",
+//                ulListSize, _msize( pszTmp), ulListSize / _MAX_PATH, pszTmp));
+         pszEntry = pszFileList + (ulFileCount * _MAX_PATH);
+         strcpy( pszEntry, szFile);
          ulFileCount++;
          ulTotalSize += QueryFileSize( szFile);
 
@@ -261,7 +327,9 @@ do
 // cleanup
 if (rc)
    {
-   if (pszFileList) free( pszFileList);
+   if (pszFileList)  FREEMEMORYFILE( pszFileList);
+   if (ppszFileList) *ppszFileList = NULL;
+   if (pulFileCount) *pulFileCount = 0;
    }
 if (pszKeywordPath) free( pszKeywordPath);
 return rc;
@@ -355,19 +423,38 @@ return pvaResult;
 
 }
 
-// #############################################################################
+// -----------------------------------------------------------------------------
 
-#define ALLOCATEMEMORYFILE(p,s)                                \
-rc = MmfAlloc( (PVOID)*&p, MMF_FILE_INMEMORY, 0, ulTotalSize); \
-if (rc != NO_ERROR)                                            \
+static PSZ _queryInitValue( PVALUEARRAY pva, PSZ pszKey)
+{
+         PSZ            pszResult = NULL;
+
+do
+   {
+   // search the entry
+   pszResult = bsearch( &pszKey, pva->apszValue, pva->ulCount, sizeof( PSZ), _compareValue);
+   if (!pszResult)
    break;
 
-#define FREEMEMORYFILE(p)   MmfFree( p)
+   // report the value
+   pszResult = NEXTSTR( pszResult);
+
+   } while (FALSE);
+
+return pszResult;
+
+}
+
+// #############################################################################
+
 
 static APIRET _assembleKeywordFile(  PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
          ULONG          i;
+         PSZ            p;
+
+static   CHAR           chComment = 0xFE; // take 'þ' character as comment
 
          PSZ           *ppszEntry;
          PSZ            pszEntry;
@@ -419,6 +506,44 @@ static   PSZ            pszKeywordPathMask = "\\NEPMD\\Hilite\\%s\\TempFile";
          PSZ            pszSectionBreakChar = NULL;
          PSZ            pszSectionEndChar   = NULL;
 
+         PSZ            pszCurrentDelimiter;
+         PSZ            pszCurrentKeywords;
+         PSZ            pszCurrentSpecial;
+         PSZ            pszCurrentBreakChar;
+         PSZ            pszCurrentEndChar;
+
+static   PSZ            pszHeaderMask = "%c%s\r\n";
+
+         // ----------------------------------
+         ULONG          ulCurrentFile;
+         PSZ            pszSourceFile;
+         FILE          *pfile = NULL;
+         ULONG          ulLineCount;
+         CHAR           szLine[ 1024];
+         PSZ            pszLine;
+         CHAR           szCurrentSection[ 64];
+         PSZ            pszCurrentColors;
+
+// keep these definitions in sync !!!
+         ULONG          ulSpecialSection;
+         PSZ            apszSpecialSections[] = {"", "SPECIAL", "OPERATOR", "BREAKCHAR", "ENDCHAR"};
+#define  COUNT_SPECIALSECTION (sizeof( apszSpecialSections) / sizeof( PSZ))
+#define  SECTION_DEFAULT   0
+#define  SECTION_SPECIAL   1
+#define  SECTION_OPERATOR  2
+#define  SECTION_BREAKCHAR 3
+#define  SECTION_ENDCHAR   4
+
+
+         PSZ            pszStartStr;
+         PSZ            pszStopStr;
+         PSZ            pszBreakStr;
+
+         // ----------------------------------
+
+         PSZ            pszHiliteContents = NULL;
+         ULONG          ulHiliteContentsLen;
+         PSZ            pszCurrent;
 
 do
    {
@@ -548,9 +673,10 @@ do
    // -----------------------------------------------
 
    // get the list of files
+   ulFileCount = 0;
    rc = _getDefFileList( pszEpmMode, &pszFileList, &ulFileCount, &ulTotalSize);
-      if (rc != NO_ERROR)
-         break;
+   if (rc != NO_ERROR)
+      break;
 
    // -----------------------------------------------
 
@@ -561,23 +687,208 @@ do
    ALLOCATEMEMORYFILE( pszSectionBreakChar, ulTotalSize);
    ALLOCATEMEMORYFILE( pszSectionEndChar,   ulTotalSize);
 
+   pszCurrentDelimiter = pszSectionDelimiter;
+   pszCurrentKeywords  = pszSectionKeywords;
+   pszCurrentSpecial   = pszSectionSpecial; 
+   pszCurrentBreakChar = pszSectionBreakChar;
+   pszCurrentEndChar   = pszSectionEndChar;
+
+   // -----------------------------------------------
+   
+   // loop thru all files
+   for (ulCurrentFile = 0, pszSourceFile = pszFileList;
+           ulCurrentFile < ulFileCount;
+           ulCurrentFile++, pszFileList += _MAX_PATH)
+      {
+
+      do
+         {
+         // open the file
+         DPRINTF(( "HILITE: process file %s\n", pszSourceFile));
+         pfile = fopen( pszSourceFile, "r");
+         szCurrentSection[ 0] = 0;
+         pszCurrentColors = 0;
+         pszLine = szLine;
+         ulLineCount = 0;
+
+         while (!feof( pfile))
+            {
+            // read line
+            if (!fgets( szLine, sizeof( szLine),pfile))
+               break;
+            ulLineCount++;
+
+            // handle comments and empty lines
+            if ((*pszLine == CHAR_COMMENT) ||
+                (*pszLine == 0))
+               continue;
+
+            // skip leading blanks anyway
+            _skipblanks( pszLine);
+
+            // handle new section
+            if (*pszLine == CHAR_SECTION_START)
+               {
+               strcpy( pszLine, pszLine + 1);
+               p = strchr( pszLine, CHAR_SECTION_END);
+               if (!p)
+                  continue;
+               *p = 0;
+
+               // if there exists a symbol, store values
+               strupr( pszLine);
+               pszCurrentColors = _queryInitValue( pvaSymbols, szCurrentSection);
+               if (pszCurrentColors)
+                  {
+                  strcpy( szCurrentSection, strupr( pszLine));
+                  DPRINTF(( "HILITE: - process section %s with colors: %s\n", szCurrentSection, pszCurrentColors));
+                  }
+               else
+                  DPRINTF(( "HILITE: - error: skipping invalid section %s from line %u on\n", pszLine, ulLineCount));
+
+               // check if the values of the current symbol belong to a special section
+               ulSpecialSection = 0;
+               for (i = 1; i < COUNT_SPECIALSECTION; i++)
+                  {
+                  if (!strcmp( apszSpecialSections[ i], szCurrentSection))
+                     {
+                     ulSpecialSection = i;
+                     DPRINTF(( "HILITE: - special section recognized, index %u\n", ulSpecialSection));
+                     }
+                  }
+
+               continue;
+               }
+
+            // from here, skip line if no valid section has been found
+            if (!pszCurrentColors)
+               continue;
+
+            // tokenize line
+            pszStartStr = strtok( pszLine, " ");
+            pszStopStr  = strtok( NULL,    " "); 
+            pszBreakStr = strtok( NULL,    " ");
+            p           = strtok( NULL,    " ");
+            if (p)
+               {
+               DPRINTF(( "HILITE: - error: skipping invalid line %u\n", ulLineCount));
+               continue;
+               }
+
+            // if stop string is given, it always is a delimiter
+            if (pszStopStr)
+               {
+               sprintf( pszCurrentDelimiter, "%s %s %s %s\r\n",
+                        pszStartStr, pszCurrentColors, pszStopStr, (pszBreakStr) ? pszBreakStr : "");
+               pszCurrentDelimiter = NEXTSTR( pszCurrentDelimiter);
+               continue;
+               }
+
+            // handle different sections
+            switch (ulSpecialSection)
+               {
+               case SECTION_DEFAULT:
+                  sprintf( pszCurrentKeywords, "%s %s\r\n", pszStartStr, pszCurrentColors);
+                  pszCurrentKeywords = NEXTSTR( pszCurrentKeywords);
+                  break;
+
+               case SECTION_SPECIAL:
+               case SECTION_OPERATOR:
+                  sprintf( pszCurrentSpecial, "%s %s\r\n", pszStartStr, pszCurrentColors);
+                  pszCurrentSpecial = NEXTSTR( pszCurrentSpecial);
+                  break;
+
+               case SECTION_BREAKCHAR:
+                  sprintf( pszCurrentBreakChar, "%s\r\n", pszStartStr);
+                  pszCurrentBreakChar = NEXTSTR( pszCurrentBreakChar);
+                  break;
+
+               case SECTION_ENDCHAR:
+                  sprintf( pszCurrentEndChar, "%s\r\n", pszStartStr);
+                  pszCurrentEndChar = NEXTSTR( pszCurrentEndChar);
+                  break;
+               }
+
+            } // while (!feof( pinit->pfile))
 
 
-rc = 1;
+         } while (FALSE);
+
+      // cleanup
+      if (pfile) fclose( pfile);
+
+      } // for [all files]
+
+   // -----------------------------------------------
+
+   // determine the length 
+   ulHiliteContentsLen = (pszCurrentDelimiter - pszSectionDelimiter) + 
+                         (pszCurrentKeywords  - pszSectionKeywords)  +
+                         (pszCurrentSpecial   - pszSectionSpecial)   +
+                         (pszCurrentBreakChar - pszSectionBreakChar) +
+                         (pszCurrentEndChar   - pszSectionEndChar);
+
+   ALLOCATEMEMORYFILE( pszHiliteContents, ulHiliteContentsLen + 4096);
+   pszCurrent = pszHiliteContents;
+
+   // add all sections, if something in it
+   if (pszCurrentDelimiter - pszSectionDelimiter)
+      {
+      sprintf( pszCurrent, pszHeaderMask, CHAR_COMMENT, (fCaseSensitive) ? "DELIM"    : "DELIMI");
+      pszCurrent = NEXTSTR( pszCurrent);
+      strcpy( pszCurrent, pszSectionDelimiter);
+      pszCurrent = NEXTSTR( pszCurrent);
+      }
+   if (pszCurrentKeywords  - pszSectionKeywords)
+      {
+      sprintf( pszCurrent, pszHeaderMask, CHAR_COMMENT, (fCaseSensitive) ? "KEYWORDS" : "INSENSITIVE");
+      pszCurrent = NEXTSTR( pszCurrent);
+      strcpy( pszCurrent, pszSectionKeywords);
+      pszCurrent = NEXTSTR( pszCurrent);
+      }
+   if (pszCurrentSpecial   - pszSectionSpecial)
+      {
+      sprintf( pszCurrent,  pszHeaderMask, CHAR_COMMENT, (fCaseSensitive) ? "SPECIAL"  : "SPECIALI");
+      pszCurrent = NEXTSTR( pszCurrent);
+      strcpy( pszCurrent, pszSectionSpecial);
+      pszCurrent = NEXTSTR( pszCurrent);
+      }
+   if (pszCurrentBreakChar - pszSectionBreakChar)
+      {
+      sprintf( pszCurrent,  pszHeaderMask, CHAR_COMMENT, "BREAK");
+      pszCurrent = NEXTSTR( pszCurrent);
+      strcpy( pszCurrent, pszSectionBreakChar);
+      pszCurrent = NEXTSTR( pszCurrent);
+      }
+   if (pszCurrentEndChar   - pszSectionEndChar)
+      {
+      sprintf( pszCurrent,  pszHeaderMask, CHAR_COMMENT, "ENDCHAR");
+      pszCurrent = NEXTSTR( pszCurrent);
+      strcpy( pszCurrent, pszSectionEndChar);
+      pszCurrent = NEXTSTR( pszCurrent);
+      }
+
+   // set filesize
+   MmfSetSize( pszHiliteContents, strlen( pszHiliteContents));
+
+   // write temporary file
+   rc = MmfUpdate( pszHiliteContents);
+
    } while (FALSE);
 
 // cleanup
 
+if (pvaColors)           free( pvaColors);
+if (pvaSymbols)          free( pvaSymbols);
+if (pszModeCopy)         free( pszModeCopy);
+
+if (pszFileList)         FREEMEMORYFILE( pszFileList);
 if (pszSectionDelimiter) FREEMEMORYFILE( pszSectionDelimiter);
 if (pszSectionKeywords)  FREEMEMORYFILE( pszSectionKeywords);
 if (pszSectionSpecial)   FREEMEMORYFILE( pszSectionSpecial);
 if (pszSectionBreakChar) FREEMEMORYFILE( pszSectionBreakChar);
 if (pszSectionEndChar)   FREEMEMORYFILE( pszSectionEndChar);
-
-if (pszFileList)         free( pszFileList);
-if (pvaColors)           free( pvaColors);
-if (pvaSymbols)          free( pvaSymbols);
-if (pszModeCopy)         free( pszModeCopy);
+if (pszHiliteContents)   FREEMEMORYFILE( pszHiliteContents);
 
 if (hconfig) CloseConfig( hconfig);
 if (hinitDefault) InitCloseProfile( hinitDefault, FALSE);
@@ -585,7 +896,7 @@ if (hinitGlobals) InitCloseProfile( hinitGlobals, FALSE);
 return rc;
 }
 
-// -----------------------------------------------------------------------------
+// #############################################################################
 
 APIRET QueryHilightFile( PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBuflen)
 {
@@ -633,4 +944,4 @@ do
 
 return rc;
 }
-
+     
