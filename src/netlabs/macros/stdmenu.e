@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.3 2002-08-19 22:53:50 aschn Exp $
+* $Id: stdmenu.e,v 1.4 2002-09-01 14:42:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -46,11 +46,6 @@ defc loaddefaultmenu
       activemenu  = defaultmenu
    endif
 
-compile if EPATH='LAMPATH'  -- LaMail sets up a mail menu first.
-defc loaddefaultmenu2
-   universal activemenu,defaultmenu
-   menuname = defaultmenu
-compile endif
    call add_file_menu(menuname)
    call add_edit_menu(menuname)
    call add_search_menu(menuname)
@@ -59,9 +54,7 @@ compile if MENU_LIMIT
    call add_ring_menu(menuname)
 compile endif
    call add_command_menu(menuname)
-compile if EPATH<>'LAMPATH'  -- LaMail puts a VM menu here, then adds help.
    call add_help_menu(menuname)
-compile endif
 
 defproc add_file_menu(menuname)
 compile if RING_OPTIONAL
@@ -132,18 +125,7 @@ compile else
    * Error:  DEFAULT_PASTE must be '', 'B', or 'C'
 compile endif
 
-compile if not defined(MAIL_ACCEL__L)  -- LaMail not NLS-translated.
-const
-   MAIL_ACCEL__L = 'M'
-   MAIL_ACCEL__A1 =  77
-   MAIL_ACCEL__A2 = 109
-compile endif
 define  -- Prepare for some conditional tests
-compile if EPATH = 'LAMPATH'  -- If LaMail, "Mail" will be on action bar
-   maybe_mail_accel = 'MAIL_ACCEL__L <>'
-compile else                  -- otherwise, it won't
-   maybe_mail_accel = "' ' <"    -- Will be true for any letter
-compile endif
 compile if MENU_LIMIT
    maybe_ring_accel = 'RING_ACCEL__L <>'
 compile else
@@ -183,28 +165,28 @@ compile endif  -- WANT_DM_BUFFER
       buildmenuitem menuname, 8, 827, STYLE_MENU__MSG\9 || CTRL_KEY__MSG'+Y',        'fontlist'STYLE_MENUP__MSG,    0, mpfrom2short(HP_OPTIONS_STYLE, 0)
       buildmenuitem menuname, 8, 815, \0,                               '',          4, 0
 
-compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'C' & EDIT_ACCEL__L<>'C' & SEARCH_ACCEL__L<>'C' & OPTIONS_ACCEL__L<>'C' & COMMAND_ACCEL__L<>'C' & HELP_ACCEL__L<>'C' & $maybe_mail_accel 'C' & $maybe_ring_accel 'C' & $maybe_actions_accel 'C')
+compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'C' & EDIT_ACCEL__L<>'C' & SEARCH_ACCEL__L<>'C' & OPTIONS_ACCEL__L<>'C' & COMMAND_ACCEL__L<>'C' & HELP_ACCEL__L<>'C' & $maybe_ring_accel 'C' & $maybe_actions_accel 'C')
       buildmenuitem menuname, 8, 800, COPY_MARK_MENU__MSG\9 || ALT_KEY__MSG'+C',     'DUPMARK C'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
       buildmenuitem menuname, 8, 800, COPY_MARK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+C', accel_len),     'DUPMARK C'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
 compile else
       buildmenuitem menuname, 8, 800, COPY_MARK_MENU__MSG,              'DUPMARK C'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
 compile endif
-compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'M' & EDIT_ACCEL__L<>'M' & SEARCH_ACCEL__L<>'M' & OPTIONS_ACCEL__L<>'M' & COMMAND_ACCEL__L<>'M' & HELP_ACCEL__L<>'M' & $maybe_mail_accel 'M' & $maybe_ring_accel 'M' & $maybe_actions_accel 'M')
+compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'M' & EDIT_ACCEL__L<>'M' & SEARCH_ACCEL__L<>'M' & OPTIONS_ACCEL__L<>'M' & COMMAND_ACCEL__L<>'M' & HELP_ACCEL__L<>'M' & $maybe_ring_accel 'M' & $maybe_actions_accel 'M')
       buildmenuitem menuname, 8, 801, MOVE_MARK_MENU__MSG\9 || ALT_KEY__MSG'+M',     'DUPMARK M'MOVE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_MOVE, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
       buildmenuitem menuname, 8, 801, MOVE_MARK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+M', accel_len),     'DUPMARK M'MOVE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_MOVE, 0)
 compile else
       buildmenuitem menuname, 8, 801, MOVE_MARK_MENU__MSG,     'DUPMARK M'MOVE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_MOVE, 0)
 compile endif
-compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'O' & EDIT_ACCEL__L<>'O' & SEARCH_ACCEL__L<>'O' & OPTIONS_ACCEL__L<>'O' & COMMAND_ACCEL__L<>'O' & HELP_ACCEL__L<>'O' & $maybe_mail_accel 'O' & $maybe_ring_accel 'O' & $maybe_actions_accel 'O')
+compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'O' & EDIT_ACCEL__L<>'O' & SEARCH_ACCEL__L<>'O' & OPTIONS_ACCEL__L<>'O' & COMMAND_ACCEL__L<>'O' & HELP_ACCEL__L<>'O' & $maybe_ring_accel 'O' & $maybe_actions_accel 'O')
       buildmenuitem menuname, 8, 802, OVERLAY_MARK_MENU__MSG\9 || ALT_KEY__MSG'+O',  'DUPMARK O'OVERLAY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_OVERLAY, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
       buildmenuitem menuname, 8, 802, OVERLAY_MARK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+O', accel_len),  'DUPMARK O'OVERLAY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_OVERLAY, 0)
 compile else
       buildmenuitem menuname, 8, 802, OVERLAY_MARK_MENU__MSG,  'DUPMARK O'OVERLAY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_OVERLAY, 0)
 compile endif
-compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'A' & EDIT_ACCEL__L<>'A' & SEARCH_ACCEL__L<>'A' & OPTIONS_ACCEL__L<>'A' & COMMAND_ACCEL__L<>'A' & HELP_ACCEL__L<>'A' & $maybe_mail_accel 'A' & $maybe_ring_accel 'A' & $maybe_actions_accel 'A')
+compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'A' & EDIT_ACCEL__L<>'A' & SEARCH_ACCEL__L<>'A' & OPTIONS_ACCEL__L<>'A' & COMMAND_ACCEL__L<>'A' & HELP_ACCEL__L<>'A' & $maybe_ring_accel 'A' & $maybe_actions_accel 'A')
       buildmenuitem menuname, 8, 803, ADJUST_MARK_MENU__MSG\9 || ALT_KEY__MSG'+A',   'DUPMARK A'ADJUST_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_ADJUST, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
       buildmenuitem menuname, 8, 803, ADJUST_MARK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+A', accel_len),   'DUPMARK A'ADJUST_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_ADJUST, 0)
@@ -213,14 +195,14 @@ compile else
 compile endif
       buildmenuitem menuname, 8, 804, \0,                       '',          4, 0
       buildmenuitem menuname, 8, 828, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/',     'select_all'SELECT_ALL_MENUP__MSG, 0, mpfrom2short(HP_EDIT_SELECTALL, 0)
-compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'U' & EDIT_ACCEL__L<>'U' & SEARCH_ACCEL__L<>'U' & OPTIONS_ACCEL__L<>'U' & COMMAND_ACCEL__L<>'U' & HELP_ACCEL__L<>'U' & $maybe_mail_accel 'U' & $maybe_ring_accel 'U' & $maybe_actions_accel 'U')
+compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'U' & EDIT_ACCEL__L<>'U' & SEARCH_ACCEL__L<>'U' & OPTIONS_ACCEL__L<>'U' & COMMAND_ACCEL__L<>'U' & HELP_ACCEL__L<>'U' & $maybe_ring_accel 'U' & $maybe_actions_accel 'U')
       buildmenuitem menuname, 8, 805, UNMARK_MARK_MENU__MSG\9 || ALT_KEY__MSG'+U',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
       buildmenuitem menuname, 8, 805, UNMARK_MARK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+U', accel_len),   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)
 compile else
       buildmenuitem menuname, 8, 805, UNMARK_MARK_MENU__MSG,   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)
 compile endif
-compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'D' & EDIT_ACCEL__L<>'D' & SEARCH_ACCEL__L<>'D' & OPTIONS_ACCEL__L<>'D' & COMMAND_ACCEL__L<>'D' & HELP_ACCEL__L<>'D' & $maybe_mail_accel 'D' & $maybe_ring_accel 'D' & $maybe_actions_accel 'D')
+compile if BLOCK_ACTIONBAR_ACCELERATORS=1 | (FILE_ACCEL__L<>'D' & EDIT_ACCEL__L<>'D' & SEARCH_ACCEL__L<>'D' & OPTIONS_ACCEL__L<>'D' & COMMAND_ACCEL__L<>'D' & HELP_ACCEL__L<>'D' & $maybe_ring_accel 'D' & $maybe_actions_accel 'D')
       buildmenuitem menuname, 8, 806, DELETE_MARK_MENU__MSG\9 || ALT_KEY__MSG'+D',   'DUPMARK D'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
 compile elseif BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
       buildmenuitem menuname, 8, 806, DELETE_MARK_MENU__MSG||leftstr(\9 || ALT_KEY__MSG'+D', accel_len),   'DUPMARK D'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
@@ -412,10 +394,7 @@ compile endif
 compile if WANT_APPLICATION_INI_FILE
       buildmenuitem menuname, 4, 418, SAVE_OPTS_MENU__MSG,      'saveoptions'SAVE_OPTS_MENUP__MSG, 0, mpfrom2short(HP_OPTIONS_SAVE, 0)
 compile endif
-compile if EPATH = 'LAMPATH'
-      buildmenuitem menuname, 4, 419, \0,                       '',           4, 0
-      buildmenuitem menuname, 4, 420, TO_DESKTOP_MENU__MSG,     'popbook'TO_DESKTOP_MENUP__MSG, 0, 0
-compile elseif SUPPORT_BOOK_ICON
+compile if SUPPORT_BOOK_ICON
       buildmenuitem menuname, 4, 419, \0,                       '',           4, 0
       buildmenuitem menuname, 4, 420, TO_BOOK_MENU__MSG,        'popbook'TO_BOOK_MENUP__MSG, 0, mpfrom2short(HP_OPTIONS_BOOK, 0)
 compile endif
@@ -519,27 +498,27 @@ compile endif
    buildacceltable activeaccel, 'dokey F4',  AF_VIRTUALKEY,                VK_F4, 1107  -- F4
 
                        -- Build keys on Edit menu  ('C' & 'O' appear under Action bar keys for English)
-compile if FILE_ACCEL__L <> 'C' & EDIT_ACCEL__L <> 'C' & SEARCH_ACCEL__L <> 'C' & OPTIONS_ACCEL__L <> 'C' & COMMAND_ACCEL__L <> 'C' & HELP_ACCEL__L <> 'C' & $maybe_mail_accel 'C' & $maybe_ring_accel 'C' & $maybe_actions_accel 'C'
+compile if FILE_ACCEL__L <> 'C' & EDIT_ACCEL__L <> 'C' & SEARCH_ACCEL__L <> 'C' & OPTIONS_ACCEL__L <> 'C' & COMMAND_ACCEL__L <> 'C' & HELP_ACCEL__L <> 'C' & $maybe_ring_accel 'C' & $maybe_actions_accel 'C'
    buildacceltable activeaccel, 'dokey a+C', AF_CHAR+AF_ALT,                  67, 1201  -- a+C
    buildacceltable activeaccel, 'dokey a+C', AF_CHAR+AF_ALT,                  99, 1202  -- a+c
 compile endif
-compile if FILE_ACCEL__L <> 'M' & EDIT_ACCEL__L <> 'M' & SEARCH_ACCEL__L <> 'M' & OPTIONS_ACCEL__L <> 'M' & COMMAND_ACCEL__L <> 'M' & HELP_ACCEL__L <> 'M' & $maybe_mail_accel 'M' & $maybe_ring_accel 'M' & $maybe_actions_accel 'M'
+compile if FILE_ACCEL__L <> 'M' & EDIT_ACCEL__L <> 'M' & SEARCH_ACCEL__L <> 'M' & OPTIONS_ACCEL__L <> 'M' & COMMAND_ACCEL__L <> 'M' & HELP_ACCEL__L <> 'M' & $maybe_ring_accel 'M' & $maybe_actions_accel 'M'
    buildacceltable activeaccel, 'dokey a+M', AF_CHAR+AF_ALT,                  77, 1203  -- a+M
    buildacceltable activeaccel, 'dokey a+M', AF_CHAR+AF_ALT,                 109, 1204  -- a+m
 compile endif
-compile if FILE_ACCEL__L <> 'O' & EDIT_ACCEL__L <> 'O' & SEARCH_ACCEL__L <> 'O' & OPTIONS_ACCEL__L <> 'O' & COMMAND_ACCEL__L <> 'O' & HELP_ACCEL__L <> 'O' & $maybe_mail_accel 'O' & $maybe_ring_accel 'O' & $maybe_actions_accel 'O'
+compile if FILE_ACCEL__L <> 'O' & EDIT_ACCEL__L <> 'O' & SEARCH_ACCEL__L <> 'O' & OPTIONS_ACCEL__L <> 'O' & COMMAND_ACCEL__L <> 'O' & HELP_ACCEL__L <> 'O' & $maybe_ring_accel 'O' & $maybe_actions_accel 'O'
    buildacceltable activeaccel, 'dokey a+O', AF_CHAR+AF_ALT,                  79, 1205  -- a+O
    buildacceltable activeaccel, 'dokey a+O', AF_CHAR+AF_ALT,                 111, 1206  -- a+o
 compile endif
-compile if FILE_ACCEL__L <> 'A' & EDIT_ACCEL__L <> 'A' & SEARCH_ACCEL__L <> 'A' & OPTIONS_ACCEL__L <> 'A' & COMMAND_ACCEL__L <> 'A' & HELP_ACCEL__L <> 'A' & $maybe_mail_accel 'A' & $maybe_ring_accel 'A' & $maybe_actions_accel 'A'
+compile if FILE_ACCEL__L <> 'A' & EDIT_ACCEL__L <> 'A' & SEARCH_ACCEL__L <> 'A' & OPTIONS_ACCEL__L <> 'A' & COMMAND_ACCEL__L <> 'A' & HELP_ACCEL__L <> 'A' & $maybe_ring_accel 'A' & $maybe_actions_accel 'A'
    buildacceltable activeaccel, 'dokey a+A', AF_CHAR+AF_ALT,                  65, 1207  -- a+A
    buildacceltable activeaccel, 'dokey a+A', AF_CHAR+AF_ALT,                  97, 1208  -- a+a
 compile endif
-compile if FILE_ACCEL__L <> 'U' & EDIT_ACCEL__L <> 'U' & SEARCH_ACCEL__L <> 'U' & OPTIONS_ACCEL__L <> 'U' & COMMAND_ACCEL__L <> 'U' & HELP_ACCEL__L <> 'U' & $maybe_mail_accel 'U' & $maybe_ring_accel 'U' & $maybe_actions_accel 'U'
+compile if FILE_ACCEL__L <> 'U' & EDIT_ACCEL__L <> 'U' & SEARCH_ACCEL__L <> 'U' & OPTIONS_ACCEL__L <> 'U' & COMMAND_ACCEL__L <> 'U' & HELP_ACCEL__L <> 'U' & $maybe_ring_accel 'U' & $maybe_actions_accel 'U'
    buildacceltable activeaccel, 'dokey a+U', AF_CHAR+AF_ALT,                  85, 1209  -- a+U
    buildacceltable activeaccel, 'dokey a+U', AF_CHAR+AF_ALT,                 117, 1210  -- a+u
 compile endif
-compile if FILE_ACCEL__L <> 'D' & EDIT_ACCEL__L <> 'D' & SEARCH_ACCEL__L <> 'D' & OPTIONS_ACCEL__L <> 'D' & COMMAND_ACCEL__L <> 'D' & HELP_ACCEL__L <> 'D' & $maybe_mail_accel 'D' & $maybe_ring_accel 'D' & $maybe_actions_accel 'D'
+compile if FILE_ACCEL__L <> 'D' & EDIT_ACCEL__L <> 'D' & SEARCH_ACCEL__L <> 'D' & OPTIONS_ACCEL__L <> 'D' & COMMAND_ACCEL__L <> 'D' & HELP_ACCEL__L <> 'D' & $maybe_ring_accel 'D' & $maybe_actions_accel 'D'
    buildacceltable activeaccel, 'dokey a+D', AF_CHAR+AF_ALT,                  68, 1211  -- a+D
    buildacceltable activeaccel, 'dokey a+D', AF_CHAR+AF_ALT,                 100, 1212  -- a+d
 compile endif
@@ -622,10 +601,6 @@ compile if BLOCK_ACTIONBAR_ACCELERATORS
       buildacceltable activeaccel, 'dokey a+'RING_ACCEL__L,    AF_CHAR+AF_ALT, RING_ACCEL__A1   , 1013  -- a+R
       buildacceltable activeaccel, 'dokey a+'RING_ACCEL__L,    AF_CHAR+AF_ALT, RING_ACCEL__A2   , 1014  -- a+r
  compile endif
- compile if EPATH = 'LAMPATH'
-      buildacceltable activeaccel, 'dokey a+'MAIL_ACCEL__L,    AF_CHAR+AF_ALT, MAIL_ACCEL__A1   , 1015  -- a+M
-      buildacceltable activeaccel, 'dokey a+'MAIL_ACCEL__L,    AF_CHAR+AF_ALT, MAIL_ACCEL__A2   , 1016  -- a+m
- compile endif
  compile if defined(ACTIONS_ACCEL__L)  -- For CUSTEPM support
       buildacceltable activeaccel, 'dokey a+'ACTIONS_ACCEL__L, AF_CHAR+AF_ALT, ACTIONS_ACCEL__A1, 1017  -- a+A
       buildacceltable activeaccel, 'dokey a+'ACTIONS_ACCEL__L, AF_CHAR+AF_ALT, ACTIONS_ACCEL__A2, 1018  -- a+a
@@ -637,11 +612,6 @@ compile endif -- BLOCK_ACTIONBAR_ACCELERATORS
 
 compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
 define  -- Prepare for some conditional tests
- compile if EPATH = 'LAMPATH'  -- If LaMail, "Mail" will be on action bar
-   maybe_mail_accel = 'MAIL_ACCEL__L ='
- compile else                  -- otherwise, it won't
-   maybe_mail_accel = "' ' ="    -- Will be false for any letter
- compile endif
  compile if MENU_LIMIT
    maybe_ring_accel = 'RING_ACCEL__L ='
  compile else
@@ -657,7 +627,7 @@ defproc update_edit_menu_text =
    universal CUA_MENU_ACCEL
    accel_len = (3+length(ALT_KEY__MSG))*(not CUA_MENU_ACCEL)
 
- compile if FILE_ACCEL__L = 'C' | EDIT_ACCEL__L = 'C' | SEARCH_ACCEL__L = 'C' | OPTIONS_ACCEL__L = 'C' | COMMAND_ACCEL__L = 'C' | HELP_ACCEL__L = 'C' | $maybe_mail_accel 'C' | $maybe_ring_accel 'C' | $maybe_actions_accel 'C'
+ compile if FILE_ACCEL__L = 'C' | EDIT_ACCEL__L = 'C' | SEARCH_ACCEL__L = 'C' | OPTIONS_ACCEL__L = 'C' | COMMAND_ACCEL__L = 'C' | HELP_ACCEL__L = 'C' | $maybe_ring_accel 'C' | $maybe_actions_accel 'C'
    menutext = COPY_MARK_MENU__MSG || leftstr(\9 || ALT_KEY__MSG'+C', accel_len)\0
    call windowmessage(1, getpminfo(EPMINFO_EDITMENUHWND),
                       398,                  -- x18e, MM_SetItemText
@@ -665,7 +635,7 @@ defproc update_edit_menu_text =
                       ltoa(offset(menutext) || selector(menutext), 10) )
  compile endif
 
- compile if FILE_ACCEL__L = 'M' | EDIT_ACCEL__L = 'M' | SEARCH_ACCEL__L = 'M' | OPTIONS_ACCEL__L = 'M' | COMMAND_ACCEL__L = 'M' | HELP_ACCEL__L = 'M' | $maybe_mail_accel 'M' | $maybe_ring_accel 'M' | $maybe_actions_accel 'M'
+ compile if FILE_ACCEL__L = 'M' | EDIT_ACCEL__L = 'M' | SEARCH_ACCEL__L = 'M' | OPTIONS_ACCEL__L = 'M' | COMMAND_ACCEL__L = 'M' | HELP_ACCEL__L = 'M' | $maybe_ring_accel 'M' | $maybe_actions_accel 'M'
    menutext = MOVE_MARK_MENU__MSG || leftstr(\9 || ALT_KEY__MSG'+M', accel_len)\0
    call windowmessage(1, getpminfo(EPMINFO_EDITMENUHWND),
                       398,                  -- x18e, MM_SetItemText
@@ -673,7 +643,7 @@ defproc update_edit_menu_text =
                       ltoa(offset(menutext) || selector(menutext), 10) )
  compile endif
 
- compile if FILE_ACCEL__L = 'O' | EDIT_ACCEL__L = 'O' | SEARCH_ACCEL__L = 'O' | OPTIONS_ACCEL__L = 'O' | COMMAND_ACCEL__L = 'O' | HELP_ACCEL__L = 'O' | $maybe_mail_accel 'O' | $maybe_ring_accel 'O' | $maybe_actions_accel 'O'
+ compile if FILE_ACCEL__L = 'O' | EDIT_ACCEL__L = 'O' | SEARCH_ACCEL__L = 'O' | OPTIONS_ACCEL__L = 'O' | COMMAND_ACCEL__L = 'O' | HELP_ACCEL__L = 'O' | $maybe_ring_accel 'O' | $maybe_actions_accel 'O'
    menutext = OVERLAY_MARK_MENU__MSG || leftstr(\9 || ALT_KEY__MSG'+O', accel_len)\0
    call windowmessage(1, getpminfo(EPMINFO_EDITMENUHWND),
                       398,                  -- x18e, MM_SetItemText
@@ -681,7 +651,7 @@ defproc update_edit_menu_text =
                       ltoa(offset(menutext) || selector(menutext), 10) )
  compile endif
 
- compile if FILE_ACCEL__L = 'A' | EDIT_ACCEL__L = 'A' | SEARCH_ACCEL__L = 'A' | OPTIONS_ACCEL__L = 'A' | COMMAND_ACCEL__L = 'A' | HELP_ACCEL__L = 'A' | $maybe_mail_accel 'A' | $maybe_ring_accel 'A' | $maybe_actions_accel 'A'
+ compile if FILE_ACCEL__L = 'A' | EDIT_ACCEL__L = 'A' | SEARCH_ACCEL__L = 'A' | OPTIONS_ACCEL__L = 'A' | COMMAND_ACCEL__L = 'A' | HELP_ACCEL__L = 'A' | $maybe_ring_accel 'A' | $maybe_actions_accel 'A'
    menutext = ADJUST_MARK_MENU__MSG || leftstr(\9 || ALT_KEY__MSG'+A', accel_len)\0
    call windowmessage(1, getpminfo(EPMINFO_EDITMENUHWND),
                       398,                  -- x18e, MM_SetItemText
@@ -689,7 +659,7 @@ defproc update_edit_menu_text =
                       ltoa(offset(menutext) || selector(menutext), 10) )
  compile endif
 
- compile if FILE_ACCEL__L = 'U' | EDIT_ACCEL__L = 'U' | SEARCH_ACCEL__L = 'U' | OPTIONS_ACCEL__L = 'U' | COMMAND_ACCEL__L = 'U' | HELP_ACCEL__L = 'U' | $maybe_mail_accel 'U' | $maybe_ring_accel 'U' | $maybe_actions_accel 'U'
+ compile if FILE_ACCEL__L = 'U' | EDIT_ACCEL__L = 'U' | SEARCH_ACCEL__L = 'U' | OPTIONS_ACCEL__L = 'U' | COMMAND_ACCEL__L = 'U' | HELP_ACCEL__L = 'U' | $maybe_ring_accel 'U' | $maybe_actions_accel 'U'
    menutext = UNMARK_MARK_MENU__MSG || leftstr(\9 || ALT_KEY__MSG'+U', accel_len)\0
    call windowmessage(1, getpminfo(EPMINFO_EDITMENUHWND),
                       398,                  -- x18e, MM_SetItemText
@@ -697,7 +667,7 @@ defproc update_edit_menu_text =
                       ltoa(offset(menutext) || selector(menutext), 10) )
  compile endif
 
- compile if FILE_ACCEL__L = 'D' | EDIT_ACCEL__L = 'D' | SEARCH_ACCEL__L = 'D' | OPTIONS_ACCEL__L = 'D' | COMMAND_ACCEL__L = 'D' | HELP_ACCEL__L = 'D' | $maybe_mail_accel 'D' | $maybe_ring_accel 'D' | $maybe_actions_accel 'D'
+ compile if FILE_ACCEL__L = 'D' | EDIT_ACCEL__L = 'D' | SEARCH_ACCEL__L = 'D' | OPTIONS_ACCEL__L = 'D' | COMMAND_ACCEL__L = 'D' | HELP_ACCEL__L = 'D' | $maybe_ring_accel 'D' | $maybe_actions_accel 'D'
    menutext = DELETE_MARK_MENU__MSG || leftstr(\9 || ALT_KEY__MSG'+D', accel_len)\0
    call windowmessage(1, getpminfo(EPMINFO_EDITMENUHWND),
                       398,                  -- x18e, MM_SetItemText
