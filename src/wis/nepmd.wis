@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.10 2002-04-19 14:52:30 cla Exp $
+# $Id: nepmd.wis,v 1.11 2002-04-19 23:06:18 cla Exp $
 #
 # ===========================================================================
 #
@@ -74,7 +74,7 @@
 
      EXECUTE="$(1)\netlabs\install\nlsetup.exe"
 
-     CREATEOBJECT="WPProgram|OS/2 Netlabs^EPM Distribution|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPMD.INF Netlabs;OBJECTID=<NEPMD_VIEW_NEPMD>;"
+     CREATEOBJECT="WPProgram|OS/2 Netlabs^EPM Distribution|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPMD.INF Netlabs;ICONFILE=$(1)\NETLABS\INSTALL\ICO\HELP.ICO;OBJECTID=<NEPMD_VIEW_NEPMD>;"
 
      >This package installs the Netlabs EPM Distribution Extensions for EPM.</PCK>
 
