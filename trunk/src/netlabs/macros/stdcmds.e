@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.19 2004-06-03 22:44:23 aschn Exp $
+* $Id: stdcmds.e,v 1.20 2004-07-02 10:06:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -854,7 +854,10 @@ defc ActivateHighlighting
 defc ActivateFile
    fid = arg(1)
    if fid <> '' then
-      activatefile fid
+      -- Check if file to be activated is still in ring and visible
+      if wordpos( ValidateFileid(fid), '1 2') then
+         activatefile fid
+      endif
    endif
 
 
