@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.7 2004-02-28 15:36:28 aschn Exp $
+* $Id: groups.e,v 1.8 2004-02-29 17:12:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -330,7 +330,7 @@ compile endif
          'xcom e /n'
       else
          'e "'this_file'"'
-         CurEditCmd = 'RESTOREPOS'  -- must follow the 'edit' cmd
+         CurEditCmd = 'LOADGROUP'  -- must follow the 'edit' cmd
       endif
       if not rc | rc = sayerror('Lines truncated') then
          call prestore_pos(queryprofile(app_hini, group_name, 'POSN'i))

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: afterload.e,v 1.2 2004-02-28 15:35:36 aschn Exp $
+* $Id: afterload.e,v 1.3 2004-02-29 17:12:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -88,7 +88,8 @@ compile endif
 
 ; --- Write position and name of all files in the ring to NEPMD.INI ---------
 compile if NEPMD_RESTORE_RING
-   if CurEditCmd <> 'SETPOS' then  -- don't process if files loaded by Recompile
+   -- Don't process if files loaded by Recompile or 'groups loadgroup'
+   if wordpos( CurEditCmd, 'SETPOS LOADGROUP') = 0 then
       -- see FILELIST.E
       -- must not execute 'postme activatefile' at this point
       call RingWriteFilePosition()
