@@ -1,0 +1,411 @@
+@ ***************************** Module Header ******************************\
+@
+@ Module Name: epmkwds.rc
+@
+@ Copyright (c) Netlabs EPM Distribution Project 2002
+@
+@ $Id: epmkwds.rc,v 1.1 2002-10-03 22:01:52 cla Exp $
+@
+@ ===========================================================================
+@
+@ This file is part of the Netlabs EPM Distribution package and is free
+@ software.  You can redistribute it and/or modify it under the terms of the
+@ GNU General Public License as published by the Free Software
+@ Foundation, in version 2 as it comes in the "COPYING" file of the 
+@ Netlabs EPM Distribution.  This library is distributed in the hope that it
+@ will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+@ General Public License for more details.
+@
+@ **************************************************************************/
+
+@ ------------------------------------------------------------------
+@ Format of the file - see NEPMD.INF
+@ ------------------------------------------------------------------
+@
+@  This file is used by EPM to figure out which keywords to highlight
+@  for OS/2 resource compiler files.
+@
+@ -----------------------------------------------------------------
+@ Actual description of the keywords
+@ -----------------------------------------------------------------
+@
+@DELIM
+@
+@ Start   Color Color  End     Escape
+@ string  bg	fg     string  character
+@  /*	   -1	  13   */
+@  //	   -1	  13
+@  "	   -1	   2   "       \
+@  '	   -1	  10   '       \
+  /*	   -1	  10   */
+  //	   -1	  10
+  "	   -1	  11   "       \
+  '	   -1	  11   '       \
+@
+@SPECIAL
+@@
+@{  -1  12
+@}  -1  12
+@;  -1  12
+@,  -1  12
+@?  -1  12
+@:  -1  12
+{  -1   15
+}  -1   15
+;  -1   15
+,  -1   15
+@
+@CHARSET
+@
+abcdefghijklmnopqrstuvwxyz_#ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+@
+@KEYWORDS
+@
+@ -------------------- C pre-processor keywords	---------------------------
+#define 	-1	5
+#elif		-1	5
+#else		-1	5
+#endif		-1	5
+#include	-1	5
+#if		-1	5
+#ifdef		-1	5
+#ifndef 	-1	5
+#pragma 	-1	5
+#undef		-1	5
+@ -------------------- Resource Statements ---------------------------
+ACCELTABLE      -1      5
+ALT             -1      5
+ASSOCTABLE      -1      5
+AUTOCHECKBOX    -1      5
+AUTORADIOBUTTON -1      5
+BEGIN 		-1	15
+BITMAP          -1      5
+CHAR            -1      5
+CHECKBOX        -1      5
+CODEPAGE        -1      5
+COMBOBOX        -1      5
+CONTAINER       -1      5
+CONTROL         -1      5
+CTEXT           -1	5
+CTLDATA         -1      5
+DEFPUSHBUTTON   -1      5
+DIALOG          -1      5
+DISCARDABLE     -1      5
+DLGINCLUDE      -1      5
+DLGTEMPLATE     -1      5
+EAF_DEFAULTOWNER -1     5
+EAF_REUSEICON   -1      5
+EAF_UNCHANGEABLE -1     5
+EDITTEXT        -1      5
+END  		-1	15
+ENTRYFIELD      -1      5
+FIXED           -1      5
+FONT            -1      5
+FRAME           -1      5
+GROUPBOX        -1      5
+HELP            -1      5
+HELPITEM        -1      5
+HELPSUBITEM     -1      5
+HELPSUBTABLE    -1      5
+HELPTABLE       -1      5
+ICON            -1	5
+ICON            -1      5
+LISTBOX	-1	5
+LOADONCALL      -1      5
+LONEKEY         -1      5
+LTEXT           -1	5
+MENU 		-1	5
+MENUITEM	-1	5
+MESSAGETABLE    -1      5
+MLE             -1      5
+MOVEABLE        -1      5
+NOT             -1      5
+NOTEBOOK        -1      5
+POINTER         -1      5
+PRELOAD         -1	5
+PRESPARAMS      -1      5
+PUSHBUTTON      -1      5
+RADIOBUTTON     -1      5
+RCDATA          -1      5
+RCINCLUDE       -1      5
+RESOURCE        -1      5
+RTEXT           -1	5
+SCANCODE        -1      5
+SEPARATOR       -1      5
+SHIFT           -1      5
+SLIDER          -1      5
+SPINBUTTON      -1      5
+STRINGTABLE     -1      5
+SUBITEMSIZE     -1      5
+SUBMENU 	-1	5
+SYSCOMMAND      -1      5
+VALUESET        -1      5
+VIRTUALKEY      -1      5
+WINDOW          -1      5
+WINDOWTEMPLATE  -1      5
+@ -------------------- OS/2 Toolkit definitions	---------------------------
+BKS_BACKPAGESBR 					-1	5
+BKS_BACKPAGESBL 					-1	5
+BKS_BACKPAGESTR 					-1	5
+BKS_BACKPAGESTL 					-1	5
+BKS_MAJORTABRIGHT					-1	5
+BKS_MAJORTABLEFT					-1	5
+BKS_MAJORTABTOP 					-1	5
+BKS_MAJORTABBOTTOM					-1	5
+BKS_SQUARETABS						-1	5
+BKS_ROUNDEDTABS 					-1	5
+BKS_POLYGONTABS 					-1	5
+BKS_SOLIDBIND						-1	5
+BKS_SPIRALBIND						-1	5
+BKS_STATUSTEXTLEFT					-1	5
+BKS_STATUSTEXTRIGHT					-1	5
+BKS_STATUSTEXTCENTER					-1	5
+BKS_TABTEXTLEFT 					-1	5
+BKS_TABTEXTRIGHT					-1	5
+BKS_TABTEXTCENTER					-1	5
+BS_3STATE		-1	5
+BS_AUTO3STATE		-1	5
+BS_AUTOCHECKBOX	-1	5
+BS_AUTORADIOBUTTON	-1	5
+BS_AUTOSIZE		-1	5
+BS_BITMAP		-1	5
+BS_CHECKBOX		-1	5
+BS_DEFAULT		-1	5
+BS_HELP 		-1	5
+BS_ICON 		-1	5
+BS_NOBORDER		-1	5
+BS_NOCURSORSELECT	-1	5
+BS_NOPOINTERFOCUS	-1	5
+BS_PRIMARYSTYLES	-1	5
+BS_PUSHBUTTON		-1	5
+BS_RADIOBUTTON	        -1	5
+BS_SYSCOMMAND		-1	5
+BS_USERBUTTON		-1	5
+CBS_COMPATIBLE		-1	5
+CBS_DROPDOWN		-1	5
+CBS_DROPDOWNLIST	-1	5
+CBS_SIMPLE		-1	5
+DT_LEFT 						-1	5
+DT_QUERYEXTENT						-1	5
+DT_UNDERSCORE						-1	5
+DT_STRIKEOUT						-1	5
+DT_TEXTATTRS						-1	5
+DT_EXTERNALLEADING					-1	5
+DT_CENTER						-1	5
+DT_RIGHT						-1	5
+DT_TOP							-1	5
+DT_VCENTER						-1	5
+DT_BOTTOM						-1	5
+DT_HALFTONE						-1	5
+DT_MNEMONIC						-1	5
+DT_WORDBREAK						-1	5
+DT_ERASERECT						-1	5
+ES_ANY			-1	5
+ES_AUTOSCROLL		-1	5
+ES_AUTOSIZE		-1	5
+ES_AUTOTAB		-1	5
+ES_CENTER		-1	5
+ES_COMMAND		-1	5
+ES_DBCS 		-1	5
+ES_LEFT 		-1	5
+ES_MARGIN		-1	5
+ES_MIXED		-1	5
+ES_READONLY		-1	5
+ES_RIGHT		-1	5
+ES_SBCS 		-1	5
+ES_UNREADABLE		-1	5
+FCF_ACCELTABLE		-1	5
+FCF_AUTOICON		-1	5
+FCF_BORDER		-1	5
+FCF_DBE_APPSTAT 	-1	5
+FCF_DLGBORDER		-1	5
+FCF_HIDEBUTTON		-1	5
+FCF_HIDEMAX		-1	5
+FCF_HORZSCROLL		-1	5
+FCF_ICON		-1	5
+FCF_MAXBUTTON		-1	5
+FCF_MENU		-1	5
+FCF_MINBUTTON		-1	5
+FCF_MINMAX		-1	5
+FCF_MOUSEALIGN		-1	5
+FCF_NOBYTEALIGN 	-1	5
+FCF_NOMOVEWITHOWNER	-1	5
+FCF_SCREENALIGN 	-1	5
+FCF_SHELLPOSITION	-1	5
+FCF_SIZEBORDER		-1	5
+FCF_STANDARD		-1	5
+FCF_SYSMENU		-1	5
+FCF_SYSMODAL		-1	5
+FCF_TASKLIST		-1	5
+FCF_TITLEBAR		-1	5
+FCF_VERTSCROLL		-1	5
+FS_ACCELTABLE						-1	5
+FS_AUTOICON						-1	5
+FS_BORDER						-1	5
+FS_DBE_APPSTAT						-1	5
+FS_DLGBORDER						-1	5
+FS_ICON 						-1	5
+FS_MOUSEALIGN						-1	5
+FS_NOBYTEALIGN						-1	5
+FS_NOMOVEWITHOWNER					-1	5
+FS_SCREENALIGN						-1	5
+FS_SHELLPOSITION					-1	5
+FS_SIZEBORDER						-1	5
+FS_STANDARD						-1	5
+FS_SYSMODAL						-1	5
+FS_TASKLIST						-1	5
+LS_EXTENDEDSEL		-1	5
+LS_HORZSCROLL		-1	5
+LS_MULTIPLESEL		-1	5
+LS_NOADJUSTPOS	        -1	5
+LS_OWNERDRAW		-1	5
+MIA_CHECKED		-1	5
+MIA_DISABLED		-1	5
+MIA_FRAMED		-1	5
+MIA_HILITED		-1	5
+MIA_NODISMISS		-1	5
+MIS_BITMAP		-1	5
+MIS_BREAK		-1	5
+MIS_BREAKSEPARATOR	-1	5
+MIS_BUTTONSEPARATOR	-1	5
+MIS_GROUP		-1	5
+MIS_HELP		-1	5
+MIS_MULTMENU		-1	5
+MIS_OWNERDRAW		-1	5
+MIS_SEPARATOR		-1	5
+MIS_SINGLE		-1	5
+MIS_STATIC		-1	5
+MIS_SUBMENU		-1	5
+MIS_SYSCOMMAND		-1	5
+MIS_TEXT		-1	5
+MS_ACTIONBAR						-1	5
+MS_TITLEBUTTON						-1	5
+MS_VERTICALFLIP 					-1	5
+MS_CONDITIONALCASCADE					-1	5
+PP_ACTIVECOLOR						-1	5
+PP_ACTIVECOLORINDEX					-1	5
+PP_ACTIVETEXTBGNDCOLOR					-1	5
+PP_ACTIVETEXTBGNDCOLORINDEX				-1	5
+PP_ACTIVETEXTFGNDCOLOR					-1	5
+PP_ACTIVETEXTFGNDCOLORINDEX				-1	5
+PP_BACKGROUNDCOLOR					-1	5
+PP_BACKGROUNDCOLORINDEX 				-1	5
+PP_BORDERCOLOR						-1	5
+PP_BORDERCOLORINDEX					-1	5
+PP_DISABLEDBACKGROUNDCOLOR				-1	5
+PP_DISABLEDBACKGROUNDCOLORINDEX 			-1	5
+PP_DISABLEDFOREGROUNDCOLOR				-1	5
+PP_DISABLEDFOREGROUNDCOLORINDEX 			-1	5
+PP_FONTHANDLE						-1	5
+PP_FONTNAMESIZE 					-1	5
+PP_FOREGROUNDCOLOR					-1	5
+PP_FOREGROUNDCOLORINDEX 				-1	5
+PP_HILITEBACKGROUNDCOLOR				-1	5
+PP_HILITEBACKGROUNDCOLORINDEX				-1	5
+PP_HILITEFOREGROUNDCOLOR				-1	5
+PP_HILITEFOREGROUNDCOLORINDEX				-1	5
+PP_INACTIVECOLOR					-1	5
+PP_INACTIVECOLORINDEX					-1	5
+PP_INACTIVETEXTBGNDCOLOR				-1	5
+PP_INACTIVETEXTBGNDCOLORINDEX				-1	5
+PP_INACTIVETEXTFGNDCOLOR				-1	5
+PP_INACTIVETEXTFGNDCOLORINDEX				-1	5
+PP_MENUBACKGROUNDCOLOR					-1	5
+PP_MENUBACKGROUNDCOLORINDEX				-1	5
+PP_MENUDISABLEDBGNDCOLOR				-1	5
+PP_MENUDISABLEDBGNDCOLORINDEX				-1	5
+PP_MENUDISABLEDFGNDCOLOR				-1	5
+PP_MENUDISABLEDFGNDCOLORINDEX				-1	5
+PP_MENUFOREGROUNDCOLOR					-1	5
+PP_MENUFOREGROUNDCOLORINDEX				-1	5
+PP_MENUHILITEBGNDCOLOR					-1	5
+PP_MENUHILITEBGNDCOLORINDEX				-1	5
+PP_MENUHILITEFGNDCOLOR					-1	5
+PP_MENUHILITEFGNDCOLORINDEX				-1	5
+PP_RESERVED						-1	5
+PP_SHADOW						-1	5
+PP_USER 						-1	5
+SBS_AUTOSIZE		-1	5
+SBS_AUTOTRACK		-1	5
+SBS_HORZ		-1	5
+SBS_THUMBSIZE		-1	5
+SBS_VERT		-1	5
+SPBM_OVERRIDESETLIMITS	-1	5
+SPBM_QUERYLIMITS	-1	5
+SPBM_QUERYVALUE 	-1	5
+SPBM_SETARRAY		-1	5
+SPBM_SETCURRENTVALUE	-1	5
+SPBM_SETLIMITS		-1	5
+SPBM_SETMASTER		-1	5
+SPBM_SETTEXTLIMIT	-1	5
+SPBM_SPINDOWN		-1	5
+SPBM_SPINUP		-1	5
+SPBN_CHANGE		-1	5
+SPBN_DOWNARROW		-1	5
+SPBN_ENDSPIN		-1	5
+SPBN_KILLFOCUS		-1	5
+SPBN_SETFOCUS		-1	5
+SPBN_UPARROW		-1	5
+SPBQ_ALWAYSUPDATE	-1	5
+SPBQ_DONOTUPDATE	-1	5
+SPBQ_UPDATEIFVALID	-1	5
+SPBS_ALLCHARACTERS	-1	5
+SPBS_FASTSPIN		-1	5
+SPBS_JUSTCENTER 	-1	5
+SPBS_JUSTDEFAULT	-1	5
+SPBS_JUSTLEFT		-1	5
+SPBS_JUSTRIGHT		-1	5
+SPBS_MASTER		-1	5
+SPBS_NOBORDER		-1	5
+SPBS_NUMERICONLY	-1	5
+SPBS_PADWITHZEROS	-1	5
+SPBS_READONLY		-1	5
+SPBS_SERVANT		-1	5
+SS_BITMAP		-1	5
+SS_BKGNDFRAME		-1	5
+SS_BKGNDRECT		-1	5
+SS_FGNDFRAME		-1	5
+SS_FGNDRECT		-1	5
+SS_GROUPBOX		-1	5
+SS_HALFTONEFRAME	-1	5
+SS_HALFTONERECT 	-1	5
+SS_ICON 		-1	5
+SS_SYSICON		-1	5
+SS_TEXT 		-1	5
+WC_FRAME						-1	5
+WC_COMBOBOX						-1	5
+WC_BUTTON						-1	5
+WC_MENU 						-1	5
+WC_STATIC						-1	5
+WC_ENTRYFIELD						-1	5
+WC_LISTBOX						-1	5
+WC_SCROLLBAR						-1	5
+WC_TITLEBAR						-1	5
+WC_MLE							-1	5
+WC_APPSTAT						-1	5
+WC_KBDSTAT						-1	5
+WC_PECIC						-1	5
+WC_DBE_KKPOPUP						-1	5
+WC_SPINBUTTON						-1	5
+WC_CONTAINER						-1	5
+WC_SLIDER						-1	5
+WC_VALUESET						-1	5
+WC_NOTEBOOK						-1	5
+WC_PENFIRST						-1	5
+WC_PENLAST						-1	5
+WC_MMPMFIRST						-1	5
+WC_MMPMLAST						-1	5
+WS_ANIMATE              -1	5
+WS_CLIPCHILDREN         -1	5
+WS_CLIPSIBLINGS         -1	5
+WS_DISABLED             -1	5
+WS_GROUP                -1	5
+WS_MAXIMIZED            -1	5
+WS_MINIMIZED            -1	5
+WS_MULTISELECT          -1	5
+WS_PARENTCLIP           -1	5
+WS_SAVEBITS             -1	5
+WS_SYNCPAINT            -1	5
+WS_TABSTOP              -1	5
+WS_VISIBLE              -1	5

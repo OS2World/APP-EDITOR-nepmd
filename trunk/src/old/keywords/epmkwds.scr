@@ -1,0 +1,630 @@
+@ ***************************** Module Header ******************************\
+@
+@ Module Name: epmkwds.scr
+@
+@ Copyright (c) Netlabs EPM Distribution Project 2002
+@
+@ $Id: epmkwds.scr,v 1.1 2002-10-03 22:01:53 cla Exp $
+@
+@ ===========================================================================
+@
+@ This file is part of the Netlabs EPM Distribution package and is free
+@ software.  You can redistribute it and/or modify it under the terms of the
+@ GNU General Public License as published by the Free Software
+@ Foundation, in version 2 as it comes in the "COPYING" file of the 
+@ Netlabs EPM Distribution.  This library is distributed in the hope that it
+@ will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+@ General Public License for more details.
+@
+@ **************************************************************************/
+
+@ ------------------------------------------------------------------
+@ Format of the file - see NEPMD.INF
+@ ------------------------------------------------------------------
+@
+@ Keywords highlighting feature of EPM, for Bookmaster.
+@ The tags which can accept parameters are entered as delimiters,
+@ so that everything from the : to the . will be highlighted.
+@ Note that delimiters are not (yet) kept sorted, so they're slower
+@ than keywords.  We plan on fixing this in a future release.  In the
+@ mean time, you can speed up the screen refresh for SCRIPT files by
+@ deleting any of the following that you don't use, and by moving
+@ any of the tags which *can* accept parameters, but for which you
+@ never supply parameters, from the DELIMI section to the INSENSITIVE
+@ section.  Note that the :tce* and :z* tags are commented out already.
+@ 
+@ -----------------------------------------------------------------
+@ Actual description of the keywords
+@ -----------------------------------------------------------------
+@
+@DELIMI
+@
+@ Start   Color Color  End     Escape
+@ string  bg    fg     string  character   Col.
+  .*        14     0      @       @         1
+  &         -1     9   .
+  :abbrev   -1    13   .
+  :abstract -1    13   .
+  :ansref   -1    13   .
+  :answer   -1    13   .
+  :artdef   -1    13   .
+  :artwork  -1    13   .
+  :author   -1    13   .
+  :bibliog  -1    13   .
+  :blank    -1    13   .
+  :caution  -1    13   .
+  :cc       -1    13   .
+  :cgdef    -1    13   .
+  :cgraphic -1    13   .
+  :choice   -1    13   .
+  :ci       -1    13   .
+  :ciref    -1    13   .
+  :cletter  -1    13   .
+  :codel    -1    13   .
+  :cover    -1    13   .
+  :ct       -1    13   .
+  :danger   -1    13   .
+  :dc       -1    13   .
+  :df       -1    13   .
+  :dfdef    -1    13   .
+  :dialdef  -1    13   .
+  :dialog   -1    13   .
+  :dirdef   -1    13   .
+  :direct   -1    13   .
+  :dl       -1    13   .
+  :docprof  -1    13   .
+  :erev     -1    13   .
+  :erevcw   -1    13   .
+  :erevpf   -1    13   .
+  :erevpp   -1    13   .
+  :erevpt   -1    13   .
+  :erevslug -1    13   .
+  :fig      -1    13   .
+  :figdef   -1    13   .
+  :figlist  -1    13   .
+  :figref   -1    13   .
+  :figseg   -1    13   .
+  :fle      -1    13   .
+  :fn       -1    13   .
+  :fnref    -1    13   .
+  :ft       -1    13   .
+  :gdoc     -1    13   .
+  :gl       -1    13   .
+  :glossary -1    13   .
+  :grid     -1    13   .
+  :griddef  -1    13   .
+  :gridseg  -1    13   .
+  :h0       -1    13   .
+  :h1       -1    13   .
+  :h10      -1    13   .
+  :h11      -1    13   .
+  :h12      -1    13   .
+  :h13      -1    13   .
+  :h14      -1    13   .
+  :h15      -1    13   .
+  :h16      -1    13   .
+  :h17      -1    13   .
+  :h18      -1    13   .
+  :h19      -1    13   .
+  :h2       -1    13   .
+  :h20      -1    13   .
+  :h3       -1    13   .
+  :h4       -1    13   .
+  :h5       -1    13   .
+  :h6       -1    13   .
+  :h7       -1    13   .
+  :h8       -1    13   .
+  :h9       -1    13   .
+  :hdref    -1    13   .
+  :i1       -1    13   .
+  :i2       -1    13   .
+  :i3       -1    13   .
+  :ih1      -1    13   .
+  :ih2      -1    13   .
+  :ih3      -1    13   .
+  :index    -1    13   .
+  :iref     -1    13   .
+  :ledi     -1    13   .
+  :legend   -1    13   .
+  :len      -1    13   .
+  :lers     -1    13   .
+  :lersdef  -1    13   .
+  :li       -1    13   .
+  :lines    -1    13   .
+  :liref    -1    13   .
+  :map      -1    13   .
+  :mapdef   -1    13   .
+  :match    -1    13   .
+  :mcdef    -1    13   .
+  :mindex   -1    13   .
+  :msgl     -1    13   .
+  :nitem    -1    13   .
+  :note     -1    13   .
+  :notel    -1    13   .
+  :ol       -1    13   .
+  :parml    -1    13   .
+  :partsasm -1    13   .
+  :pk       -1    13   .
+  :pnindex  -1    13   .
+  :preface  -1    13   .
+  :psc      -1    13   .
+  :ptoc     -1    13   .
+  :pv       -1    13   .
+  :qitem    -1    13   .
+  :qref     -1    13   .
+  :qt       -1    13   .
+  :question -1    13   .
+  :rev      -1    13   .
+  :revcw    -1    13   .
+  :revision -1    13   .
+  :revpf    -1    13   .
+  :revpp    -1    13   .
+  :revpt    -1    13   .
+  :revslug  -1    13   .
+  :row      -1    13   .
+  :safety   -1    13   .
+  :schdate  -1    13   .
+  :schdef   -1    13   .
+  :schedule -1    13   .
+  :schi     -1    13   .
+  :scrdef   -1    13   .
+  :screen   -1    13   .
+  :sig      -1    13   .
+  :sl       -1    13   .
+  :soa      -1    13   .
+  :spot     -1    13   .
+  :spotref  -1    13   .
+  :st       -1    13   .
+  :step     -1    13   .
+  :stepref  -1    13   .
+  :table    -1    13   .
+@ :tce0     -1    13   .
+@ :tce1     -1    13   .
+@ :tce10    -1    13   .
+@ :tce11    -1    13   .
+@ :tce12    -1    13   .
+@ :tce13    -1    13   .
+@ :tce14    -1    13   .
+@ :tce15    -1    13   .
+@ :tce16    -1    13   .
+@ :tce17    -1    13   .
+@ :tce18    -1    13   .
+@ :tce19    -1    13   .
+@ :tce2     -1    13   .
+@ :tce20    -1    13   .
+@ :tce3     -1    13   .
+@ :tce4     -1    13   .
+@ :tce5     -1    13   .
+@ :tce6     -1    13   .
+@ :tce7     -1    13   .
+@ :tce8     -1    13   .
+@ :tce9     -1    13   .
+  :tdef     -1    13   .
+  :tft      -1    13   .
+  :thd      -1    13   .
+  :title    -1    13   .
+  :tle      -1    13   .
+  :tlist    -1    13   .
+  :tnote    -1    13   .
+  :toc      -1    13   .
+  :tref     -1    13   .
+  :ul       -1    13   .
+  :userdoc  -1    13   .
+  :xmp      -1    13   .
+  :xmpdef   -1    13   .
+@ :zartdef  -1    13   .
+@ :zcgdef   -1    13   .
+@ :zdfdef   -1    13   .
+@ :zdialdef -1    13   .
+@ :zdirdef  -1    13   .
+@ :zdocprof -1    13   .
+@ :zelement -1    13   .
+@ :zfigdef  -1    13   .
+@ :zfont    -1    13   .
+@ :zfontdef -1    13   .
+@ :zgriddef -1    13   .
+@ :zhead    -1    13   .
+@ :zheaddef -1    13   .
+@ :zlayout  -1    13   .
+@ :zlersdef -1    13   .
+@ :zlodef   -1    13   .
+@ :zmapdef  -1    13   .
+@ :zmcdef   -1    13   .
+@ :zrf      -1    13   .
+@ :zrfdef   -1    13   .
+@ :zrh      -1    13   .
+@ :zrhdef   -1    13   .
+@ :zrule    -1    13   .
+@ :zscrdef  -1    13   .
+@ :zstyle   -1    13   .
+@ :ztdef    -1    13   .
+@ :ztocent  -1    13   .
+@ :zxmpdef  -1    13   .
+@CHARSET
+@
+abcdefghijklmnopqrstuvwxyz_$#ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.
+@
+@BREAK
+:
+;   -1 12
+@
+@END
+.
+@
+@INSENSITIVE
+@
+:address.     -1 13
+:aline.       -1 13
+:annot.       -1 13
+:apl.         -1 13
+:appendix.    -1 13
+:asmlist.     -1 13
+:attach.      -1 13
+:backm.       -1 13
+:bindnum.     -1 13
+:body.        -1 13
+:c.           -1 13
+:cause.       -1 13
+:char.        -1 13
+:cit.         -1 13
+:cmt.         -1 13
+:code.        -1 13
+:company.     -1 13
+:compl.       -1 13
+:coprext.     -1 13
+:coprnote.    -1 13
+:date.        -1 13
+:dd.          -1 13
+:ddhd.        -1 13
+:dentry.      -1 13
+:dept.        -1 13
+:dest.        -1 13
+:dirhdr.      -1 13
+:dirsub.      -1 13
+:docnum.      -1 13
+:dt.          -1 13
+:dthd.        -1 13
+:eaddress.    -1 13
+:eannot.      -1 13
+:eapl.        -1 13
+:ebibl.       -1 13
+:ecaution.    -1 13
+:ecgraphic.   -1 13
+:ecit.        -1 13
+:ecodel.      -1 13
+:edanger.     -1 13
+:edf.         -1 13
+:edialog.     -1 13
+:edirect.     -1 13
+:edl.         -1 13
+:ef.          -1 13
+:efig.        -1 13
+:efiglist.    -1 13
+:efle.        -1 13
+:efn.         -1 13
+:egdoc.       -1 13
+:egl.         -1 13
+:egrid.       -1 13
+:ehex.        -1 13
+:ehp0.        -1 13
+:ehp1.        -1 13
+:ehp2.        -1 13
+:ehp3.        -1 13
+:ehp4.        -1 13
+:ehp5.        -1 13
+:ehp6.        -1 13
+:ehp7.        -1 13
+:ehp8.        -1 13
+:ehp9.        -1 13
+:elblbox.     -1 13
+:elen.        -1 13
+:elers.       -1 13
+:elines.      -1 13
+:elq.         -1 13
+:emd.         -1 13
+:emsgl.       -1 13
+:emv.         -1 13
+:enotel.      -1 13
+:enotices.    -1 13
+:ent.         -1 13
+:eol.         -1 13
+:eparml.      -1 13
+:epk.         -1 13
+:epncdoc.     -1 13
+:eprolog.     -1 13
+:epsc.        -1 13
+:eptoc.       -1 13
+:epv.         -1 13
+:eq.          -1 13
+:equalif.     -1 13
+:equestion.   -1 13
+:erk.         -1 13
+:eschedule.   -1 13
+:escreen.     -1 13
+:esl.         -1 13
+:esnotice.    -1 13
+:estep.       -1 13
+:esub.        -1 13
+:esup.        -1 13
+:esynopsis.   -1 13
+:etable.      -1 13
+:etce0.       -1 13
+:etce1.       -1 13
+:etce10.      -1 13
+:etce11.      -1 13
+:etce12.      -1 13
+:etce13.      -1 13
+:etce14.      -1 13
+:etce15.      -1 13
+:etce16.      -1 13
+:etce17.      -1 13
+:etce18.      -1 13
+:etce19.      -1 13
+:etce2.       -1 13
+:etce20.      -1 13
+:etce3.       -1 13
+:etce4.       -1 13
+:etce5.       -1 13
+:etce6.       -1 13
+:etce7.       -1 13
+:etce8.       -1 13
+:etce9.       -1 13
+:etdesc.      -1 13
+:etft.        -1 13
+:ethd.        -1 13
+:etitle.      -1 13
+:etlist.      -1 13
+:etnote.      -1 13
+:etoc.        -1 13
+:etp.         -1 13
+:eul.         -1 13
+:euserdoc.    -1 13
+:evnotice.    -1 13
+:ewarning.    -1 13
+:exmp.        -1 13
+:exph.        -1 13
+:f.           -1 13
+:figcap.      -1 13
+:figdesc.     -1 13
+:filenum.     -1 13
+:from.        -1 13
+:frontm.      -1 13
+:gd.          -1 13
+:gdg.         -1 13
+:gridarea.    -1 13
+:grpsep.      -1 13
+:gt.          -1 13
+:hex.         -1 13
+:hp0.         -1 13
+:hp1.         -1 13
+:hp2.         -1 13
+:hp3.         -1 13
+:hp4.         -1 13
+:hp5.         -1 13
+:hp6.         -1 13
+:hp7.         -1 13
+:hp8.         -1 13
+:hp9.         -1 13
+:init.        -1 13
+:izip.        -1 13
+:lblbox.      -1 13
+:library.     -1 13
+:lp.          -1 13
+:lq.          -1 13
+:mapqfix.     -1 13
+:md.          -1 13
+:module.      -1 13
+:msg.         -1 13
+:msgno.       -1 13
+:mv.          -1 13
+:name.        -1 13
+:netid.       -1 13
+:notices.     -1 13
+:nt.          -1 13
+:numbytes.    -1 13
+:oresp.       -1 13
+:p.           -1 13
+:partnum.     -1 13
+:pc.          -1 13
+:pd.          -1 13
+:pgmnum.      -1 13
+:phone.       -1 13
+:presp.       -1 13
+:probd.       -1 13
+:prolog.      -1 13
+:prtloc.      -1 13
+:pt.          -1 13
+:q.           -1 13
+:qualif.      -1 13
+:ref.         -1 13
+:release.     -1 13
+:rk.          -1 13
+:severity.    -1 13
+:snotice.     -1 13
+:spresp.      -1 13
+:sub.         -1 13
+:subject.     -1 13
+:sup.         -1 13
+:synopsis.    -1 13
+:sys.         -1 13
+:sysact.      -1 13
+:tcap.        -1 13
+:tdesc.       -1 13
+:tipage.      -1 13
+:titlep.      -1 13
+:to.          -1 13
+:topic.       -1 13
+:tp.          -1 13
+:tpcode.      -1 13
+:uresp.       -1 13
+:user.        -1 13
+:vendor.      -1 13
+:vnhd.        -1 13
+:vnotice.     -1 13
+:warning.     -1 13
+:xph.         -1 13
+:xpl.         -1 13
+:zruledef.    -1 13
+:ztocdef.     -1 13
+@
+@ LAM:  Because the following start with an END character, we can't have
+@ them as part of INSENSITIVE, so we'll have to call them SPECIAL.
+@
+@SPECIALI
+@
+@ SCRIPT control words
+@
+.aa     -1 3
+.an     -1 3
+.ap     -1 3
+.ar     -1 3
+.bc     -1 3
+.bf     -1 3
+.bl     -1 3
+.bm     -1 3
+.br     -1 3
+.bx     -1 3
+.cb     -1 3
+.cc     -1 3
+.cd     -1 3
+.ce     -1 3
+.cg     -1 3
+.cl     -1 3
+.cm     -1 3
+.cp     -1 3
+.cs     -1 3
+.ct     -1 3
+.da     -1 3
+.dc     -1 3
+.dd     -1 3
+.df     -1 3
+.dh     -1 3
+.dl     -1 3
+.dm     -1 3
+.dr     -1 3
+.ds     -1 3
+.du     -1 3
+.dv     -1 3
+.ec     -1 3
+.ef     -1 3
+.el     -1 3
+.em     -1 3
+.eq     -1 3
+.es     -1 3
+.fl     -1 3
+.fn     -1 3
+.fo     -1 3
+.fv     -1 3
+.go     -1 3
+.gs     -1 3
+.hr     -1 3
+.hw     -1 3
+.hy     -1 3
+.h0     -1 3
+.h1     -1 3
+.h2     -1 3
+.h3     -1 3
+.h4     -1 3
+.h5     -1 3
+.h6     -1 3
+.ic     -1 3
+.ie     -1 3
+.if     -1 3
+.il     -1 3
+.im     -1 3
+.in     -1 3
+.ir     -1 3
+.is     -1 3
+.it     -1 3
+.ix     -1 3
+.ju     -1 3
+.kp     -1 3
+.lb     -1 3
+.li     -1 3
+.ll     -1 3
+.lo     -1 3
+.ls     -1 3
+.lt     -1 3
+.ly     -1 3
+.mc     -1 3
+.me     -1 3
+.mg     -1 3
+.ms     -1 3
+.nf     -1 3
+.nl     -1 3
+.oc     -1 3
+.of     -1 3
+.or     -1 3
+.pa     -1 3
+.pf     -1 3
+.pi     -1 3
+.pl     -1 3
+.pm     -1 3
+.pn     -1 3
+.pt     -1 3
+.pw     -1 3
+.px     -1 3
+.qq     -1 3
+.qu     -1 3
+.rc     -1 3
+.rd     -1 3
+.re     -1 3
+.rf     -1 3
+.rh     -1 3
+.ri     -1 3
+.rn     -1 3
+.rv     -1 3
+.sa     -1 3
+.sb     -1 3
+.sc     -1 3
+.se     -1 3
+.si     -1 3
+.sk     -1 3
+.so     -1 3
+.sp     -1 3
+.ss     -1 3
+.su     -1 3
+.sv     -1 3
+.sx     -1 3
+.tc     -1 3
+.te     -1 3
+.th     -1 3
+.ti     -1 3
+.tm     -1 3
+.tp     -1 3
+.tr     -1 3
+.ts     -1 3
+.tu     -1 3
+.ty     -1 3
+.uc     -1 3
+.ud     -1 3
+.un     -1 3
+.up     -1 3
+.us     -1 3
+.uw     -1 3
+.vr     -1 3
+.wf     -1 3
+.ws     -1 3
+.wz     -1 3
+@
+@  Bookmaster macros
+@
+.bookmark  -1 5
+.config    -1 5
+.getw      -1 5
+.getwsum   -1 5
+.inwidth   -1 5
+.layout    -1 5
+.mod       -1 5
+.modset    -1 5
+.modtrap   -1 5
+.namectr   -1 5
+.namef     -1 5
+.namefile  -1 5
+.nameit    -1 5
+.pgcheck   -1 5
+.setup     -1 5
+.tabrack   -1 5
+.using     -1 5
+.when      -1 5
