@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.16 2003-08-31 18:54:40 aschn Exp $
+* $Id: stdmenu.e,v 1.17 2003-08-31 19:46:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -446,8 +446,7 @@ compile if defined(WANT_ASCHN_MENU_ITEMS)
  compile endif  -- WANT_ASCHN_MENU_ITEMS
 compile endif  -- defined(WANT_ASCHN_MENU_ITEMS)
       buildmenuitem menuname, COMMAND_MENU_ID, 130, \0,                      '',            4, 0
-      buildmenuitem menuname, COMMAND_MENU_ID, 131, 'Recompile EPM.E...' , 'start %NEPMD_ROOTDIR%\netlabs\bin\recomp.exe %NEPMD_ROOTDIR%\myepm\ex', 0, 0  -- /START leads into problems
-;      buildmenuitem menuname, COMMAND_MENU_ID, 131, 'Recompile EPM.E' , 'start %NEPMD_ROOTDIR%\netlabs\bin\recomp.exe %NEPMD_ROOTDIR%\myepm\ex /START /NOLOG', 0, 0
+      buildmenuitem menuname, COMMAND_MENU_ID, 131, 'Recompile EPM.E...'       , 'StartRecompile'\1, 0, 0
    return
 
 defproc add_help_menu(menuname)

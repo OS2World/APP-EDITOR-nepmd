@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.7 2002-10-06 23:39:23 aschn Exp $
+* $Id: stdprocs.e,v 1.8 2003-08-31 19:46:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -126,45 +126,7 @@ defproc dos_version()
 ;     minor = ltoa(rightstr(verbuf,4),10)
       return 100*ltoa(leftstr(verbuf,4),10) + ltoa(rightstr(verbuf,4),10)
 
-compile if WANT_ET_COMMAND     -- Let user omit ET command.
-defproc ec_position_on_error(tempfile)   /* load file containing error */
-   'xcom e 'tempfile
-   if rc then    -- Unexpected error.
-      sayerror ERROR_LOADING__MSG tempfile
-      if rc=-282 then 'xcom q'; endif  -- sayerror('New file')
-      return
-   endif
-   if .last<=4 then
-      getline msg,.last
-      'xcom q'
-   else
-      getline msg,2
-      if leftstr(msg,3)='(C)' then  -- 5.20 changed output
-         getline msg,4
-      endif
-      getline temp,.last
-      parse value temp with 'col= ' col
-      getline temp,.last-1
-      parse value temp with 'line= ' line
-      getline temp,.last-2
-      parse value temp with 'filename=' filename
-      'xcom q'
-      'e 'filename               -- not xcom here, respect user's window style
-      if line<>'' and col<>'' then
-         .cursory=min(.windowheight%2,.last)
-         if col>0 then
-            .col=col
-            line
-         else
-            .line=line-1   /* sometimes the compiler is off by 1 */
-            getline s
-            .col=length(s) /* position cursor at end of previous line */
-         endif
-      endif
-   endif
-   sayerror msg
-compile endif
-
+; Moved defproc ec_position_on_error to LINCMDS.E
 ; Moved defproc einsert_line to ENTER.E
 ; Moved defproc enter_common(action) to ENTER.E
 
