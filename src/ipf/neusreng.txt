@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.13 2002-11-05 21:08:27 cla Exp $
+.. $Id: neusreng.txt,v 1.14 2003-03-19 10:26:10 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -167,7 +167,7 @@ Everybody is invited to join the project team or pass suggestions and/or contrib
 The following prerequisites apply to the current version of [=TITLE]:
 .ul
 - The [=TITLE] runs under *OS/2 WARP* Version 4 or later or *eComStation*.
-  It also runs under *OS/2 WARP* Version 4 under the prerequisite that the
+  It also runs under *OS/2 WARP* Version 3 under the prerequisite that the
   [.IDPNL_EPMBBS the EPMBBS distribution] is already installed
 - The [http://www.xworkplace.org WarpIn for OS/2] sofware installer has to
   be installed on your system in order to install the [=TITLE]
