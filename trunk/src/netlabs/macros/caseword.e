@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: caseword.e,v 1.3 2004-02-01 15:56:49 aschn Exp $
+* $Id: caseword.e,v 1.4 2004-06-03 21:49:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -67,13 +67,11 @@ defc caseword
    endcol   = 0
    -- find_token won't take '.' and '_' as word boundaries
    call find_token( startcol, endcol)
-   --sayerror '1: startcol = 'startcol', endcol = 'endcol
    -- If nothing found by find_token, then nothing is returned
    if startcol = 0 & .col > 1 then
       -- Inspect tokens left from cursor
       .col = .col - 1
       call find_token( startcol, endcol)
-      --sayerror '2: startcol = 'startcol', endcol = 'endcol
    endif
    if startcol = 0 then
       call prestore_pos(save_pos)
@@ -84,17 +82,19 @@ defc caseword
    lline = substr( line, 1, startcol - 1)
    wrd   = substr( line, startcol, endcol - startcol + 1)
    rline = substr( line, endcol + 1)
-   --sayerror '3: |'lline'|'wrd'|'rline'|'
 
    if verify( wrd, LOWERCHARS, 'M') = 0 then      -- no lowercase  -> lowercase
 -- XXXX -> xxxx
       newwrd = translate( wrd, LOWERCHARS, UPPERCHARS)
-   elseif verify( wrd, UPPERCHARS, 'M') = 0 then  -- no uppercase  -> Capitalize
+
+   elseif verify( wrd, UPPERCHARS, 'M') = 0  &           -- no uppercase and
+      verify( substr( wrd, 1, 1), LOWERCHARS, 'M') then  -- first char lowercase -> Capitalize
 -- xxxx -> Xxxx
       newwrd = translate( substr( wrd, 1, 1), UPPERCHARS, LOWERCHARS)          -- first letter
       if length(wrd) > 1 then
          newwrd = newwrd''translate( substr( wrd, 2), LOWERCHARS, UPPERCHARS)  -- append rest
       endif
+
    else                                           -- mixed case    -> UPPERCASE
 -- xxXx -> XXXX
       newwrd = translate( wrd, UPPERCHARS, LOWERCHARS)
