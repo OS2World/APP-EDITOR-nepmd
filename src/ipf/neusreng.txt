@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.1 2002-10-31 13:19:10 cla Exp $
+.. $Id: neusreng.txt,v 1.2 2002-10-31 17:59:49 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -2455,89 +2455,4 @@ are provided under the *GNU General Public License*:
 .fo off
 .include COPYING
 .fo on
-
-.. =============================================================================
-.2 Appendix: Extended Configuration Repository of the [=DOCTITLE]
-.. =============================================================================
-.an IDPNL_REGISTRY
-.
-[=TOPICS]
-.su V30
-
-.. -----------------------------------------------------------------------------
-.3 hierarchical namespace
-.. -----------------------------------------------------------------------------
-.an IDPNL_REGISTRY_NAMESPACE
-.
-The [=TITLE] provides an extended configuration repository, which
-overcomes the limitation of *OS/2* or *eComStation* initialization files,
-these support only a two-dimensional namespace. Instead, very similar to
-a registry, the configuration repository supports a hierarchical namespace:
-
-The values are stored under pathnames instead of under key values per
-application, where key values are stored within containers, and where
-containers can contain subcontainers. This resembles very much to storing
-a file in a filesystem, where directories can contain subdirectories.
-
-In order to ease the usage of the repository, and in opposite to a normal
-registry API, the API to access the configuration repository of the
-[=TITLE] implicitely creates and deletes the containers implicitely,
-when keys are created and deleted.
-
-.. -----------------------------------------------------------------------------
-.3 explicit open/close of the repository
-.. -----------------------------------------------------------------------------
-.an IDPNL_REGISTRY_EXPLICITOPEN
-.
-When performing multiple actions against the configuration repository
-of the [=TITLE], it is highly recommended to explicitely open and close
-the repository before and after the access. In such a case this approach
-saves a lot of time compared to the [.IDPNL_REGISTRY_IMPLICITOPEN], where
-each modification (re)opens and closes the repository, wasting much time
-by huge disk I/O overhead.
-
-For *[=.IDPNL_REGISTRY_EXPLICITOPEN]* the following steps must be accomplished
-in the following order:
-.ol
-- call [.IDPNL_EFUNC_NEPMDOPENCONFIG] to open the repository
-- call either
-.ul compact
-  - [.IDPNL_EFUNC_NEPMDQUERYCONFIGVALUE]
-  - [.IDPNL_EFUNC_NEPMDWRITECONFIGVALUE]
-  - [.IDPNL_EFUNC_NEPMDDELETECONFIGVALUE]
-.el
-.
-  to maintain the configuration values, where the handle from the call to
-  [.IDPNL_EFUNC_NEPMDOPENCONFIG] is passed to these functions
-- call [.IDPNL_EFUNC_NEPMDCLOSECONFIG] to close the repository
-
-.. -----------------------------------------------------------------------------
-.3 implicit open/close of the repository
-.. -----------------------------------------------------------------------------
-.an IDPNL_REGISTRY_IMPLICITOPEN
-.
-This approach is recommended only when a single operation against the
-configuration repository of the [=TITLE] needs to be performed. This
-saves you some code compared to the [.IDPNL_REGISTRY_EXPLICITOPEN],
-as you can ommit the call to [.IDPNL_EFUNC_NEPMDOPENCONFIG] and
-[.IDPNL_EFUNC_NEPMDCLOSECONFIG] before and after performing a call to
-.ul compact
-- [.IDPNL_EFUNC_NEPMDQUERYCONFIGVALUE]
-- [.IDPNL_EFUNC_NEPMDWRITECONFIGVALUE]
-- [.IDPNL_EFUNC_NEPMDDELETECONFIGVALUE]
-
-In this case you pass either a *zero* or an *empty string* as the handle
-to these functions - this will let them open and close the repository
-implicitely. As soon as you perform more than one action in a row, the
-[.IDPNL_REGISTRY_EXPLICITOPEN] is recommended instead to avoid unneccessary
-(re)open and close operations, which would waste much time by huge disk I/O
-overhead.
-
-.. -----------------------------------------------------------------------------
-.3 overview of keys used by the [=DOCTITLE]
-.. -----------------------------------------------------------------------------
-.an IDPNL_REGISTRY_KEYLIST
-.
-The following keys are used by the [=TITLE]:
-
 
