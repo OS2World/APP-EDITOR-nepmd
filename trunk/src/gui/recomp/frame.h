@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: frame.h,v 1.1 2002-06-03 22:27:06 cla Exp $
+* $Id: frame.h,v 1.2 2002-08-14 12:21:26 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,7 @@
 #ifndef FRAME_H
 #define FRAME_H
 
-APIRET ExecuteFrame( HAB hab, INT argc, PSZ  argv[]);
+APIRET ExecuteFrame( HAB hab, INT argc, PSZ  argv[], PSZ envp[]);
 VOID ShowHelp( HWND hwndOwner, HMODULE hmodResource);
 
 #endif // FRAME_H
