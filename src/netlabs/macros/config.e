@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.2 2004-07-01 12:07:56 aschn Exp $
+* $Id: config.e,v 1.3 2004-07-03 23:07:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -793,7 +793,7 @@ compile endif
    universal ring_enabled
    universal show_longnames
    universal rexx_profile
-   universal escape_key
+;   universal escape_key  -- Disabled
    universal tab_key
    universal default_tab_key
    universal vEPM_POINTER, cursordimensions
@@ -956,10 +956,14 @@ compile endif -- not defined(WANT_BITMAP_BACKGROUND)
          rexx_profile = profile
       endif
 ------------------------------------------------------------------
+/*
+-- Disabled; should remain on; can still be configured via PROFILE.ERX:
+-- 'escapekey 0'
       escape_key = 1
       if escapekey <> '' then
          escape_key = escapekey
       endif
+*/
 ------------------------------------------------------------------
       default_tab_key = 0
       if tabkey <> '' then
