@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.1 2002-08-21 13:24:16 cla Exp $
+# $Id: makefile,v 1.2 2002-08-22 09:02:41 cla Exp $
 #
 # ===========================================================================
 #
@@ -47,7 +47,7 @@ INCLUDE=..\common;$(CMPDIR);$(INCLUDE)
 all: exe
 
 run: all
-   $(BINDIR)\test.exe
+   @(SET NEPMD_TMFTESTFILE=..\nepmdlib\nepmdlib.tmf & $(BINDIR)\test.exe)
 
 clean:
    @echo cleaning up files ...
