@@ -1,11 +1,11 @@
 # ***************************** Module Header *******************************
 #
-# Module Name: rules.in - external version V1.07
+# Module Name: rules.in - external version V1.08
 #
-# generic (!) include file to setup compiler and linker flags and some
+# generic include file to setup compiler and linker flags and some
 # specific implicit rules - See description below !
 #
-# This creates the compile and either debug or release directory
+# This creates a compile and either debug or release directory
 # automatically, where files created by the defined rules are put.
 #
 # --- IMPORTANT --- IMPORTANT --- IMPORTANT --- IMPORTANT --- IMPORTANT ---
@@ -28,10 +28,9 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: rules.in,v 1.5 2002-06-19 10:56:50 cla Exp $
+# $Id: rules.in,v 1.6 2002-07-05 12:31:17 cla Exp $
 #
 # ===========================================================================
-#
 #
 # This file sets up rules for
 #   .c.obj    - c in current or srcdir, obj in bindir
@@ -40,7 +39,7 @@
 #   .obj.exe  - obj and exe in bindir
 #   .obj.lib  - obj and lib in bindir (either code libs or imp libs)
 #
-# Specify the following values by the calling makefile
+# Specify the following values before calling nmake:
 #
 # MANDANTORY:
 # -----------
@@ -52,9 +51,14 @@
 #  DEBUG    -  compile debug binaries                                  default: non-debug binaries
 #  SRCDIR   -  subdirectory for c sourcefiles                          default: empty
 #              (INCLUDE will be extended with this)
-#  OBJS     -  more objects to be linked  (include in dependency list) default: empty
-#  OBJS1    -  more objects to be linked  (include in dependency list) default: empty
-#  OBJS2    -  more objects to be linked  (include in dependency list) default: empty
+#
+#  C_FAGS_USER   - additional compiler flags                           default: empty
+#  L_FAGS_USER   - additional linker flags                             default: empty
+#  RC_FLAGS_USER - additional resource compiler flags                  default: empty
+#
+#  OBJS     -  more objects to be linked (include in dependency list!) default: empty
+#  OBJS1    -  more objects to be linked (include in dependency list!) default: empty
+#  OBJS2    -  more objects to be linked (include in dependency list!) default: empty
 #  LIBS     -  own libs to be linked (include in dependency list !)    default: empty
 #  EXTLIBS  -  external libs (don not include in dependency list!)     default: empty
 #  DEF      -  definition file (include in dependency list !)          default: no def file
@@ -65,6 +69,38 @@
 #  OPTIMIZE -  define this to have optimized non-debug binaries        default: no otpimization
 #  LXLITE   -  define this to compress non-debug binaries              default: no compression
 #  IMPLIB   -  build import libs                                       default: build code libs
+#
+# ---------------------------------------------------------------------------
+#
+# The following values are set and used for implicit rules.
+# They can also be used for explicit commands:
+#
+#   CC               - name of the compiler executable
+#   LL               - name of the linker executable
+#   CLIB             - name of the code library manager executable
+#   ILIB             - name of the import library manager executable
+#   RC               - name of the resource compiler executable
+#
+#   C_FLAGS          - compiler flags according to the DEBUG setting
+#   L_FLAGS          - linker flags according to the DEBUG setting
+#   RC_FLAGS         - resource compiler flags according to the DEBUG setting
+#   PMPRINTF         - PMPrintf object file for DEBUG mode or empty
+#
+#   For makefiles requiring to build DEBUG/RELEASE executables in one run,
+#   you can copy the commands from the implicit rules within this file to
+#   your makefile and replace the *_FLAGS_* macro with one of the following:
+#
+#   C_FLAGS_MAIN     - compiler flags without any debug/release settings
+#   L_FLAGS_MAIN     - linker flags without any debug/release settings
+#   RC_FLAGS_MAIN    - resource compiler flags without any debug/release settings
+#
+#   C_FLAGS_DEBUG    - compiler flags with debug settings
+#   L_FLAGS_DEBUG    - linker flags with debug settings
+#   RC_FLAGS_DEBUG   - resource compiler flags with debug settings
+#
+#   C_FLAGS_RELEASE  - compiler flags with debug settings
+#   L_FLAGS_RELEASE  - linker flags with debug settings
+#   RC_FLAGS_RELEASE - resource compiler flags with debug settings
 #
 # ===========================================================================
 #
@@ -174,17 +210,18 @@ C_FLAGS_MT=-Gm-
 !endif
 
 # --- concatenate main options (all without DEBUG options)
-C_FLAGS_MAIN=$(C_FLAGS_BASE) $(C_FLAGS_COMPILER) $(C_FLAGS_EXETYPE) $(C_FLAGS_OPT) $(C_FLAGS_MT)
-L_FLAGS_MAIN=$(L_FLAGS_LINKER) $(L_FLAGS_BASE)
+C_FLAGS_MAIN=$(C_FLAGS_BASE) $(C_FLAGS_COMPILER) $(C_FLAGS_EXETYPE) $(C_FLAGS_OPT) $(C_FLAGS_MT) $(C_FAGS_USER)
+L_FLAGS_MAIN=$(L_FLAGS_LINKER) $(L_FLAGS_BASE) $(L_FAGS_USER)
+RC_FLAGS_MAIN=$(RC_FLAGS_USER)
 
 # --- define debug options (always both)
 C_FLAGS_DEBUG=$(C_FLAGS_MAIN) -Tm -Ti+ -DDEBUG
 L_FLAGS_DEBUG=$(L_FLAGS_MAIN) /CO
-RC_FLAGS_DEB=-DDEBUG
+RC_FLAGS_DEBUG=$(RC_FLAGS_MAIN) -DDEBUG
 
 C_FLAGS_RELEASE=$(C_FLAGS_MAIN) -Ti- -DNDEBUG
 L_FLAGS_RELEASE=$(L_FLAGS_MAIN)
-RC_FLAGS_RELEASE=-DNDEBUG
+RC_FLAGS_RELEASE=$(RC_FLAGS_MAIN) -DNDEBUG
 
 # --- define debug options
 !ifdef DEBUG
@@ -290,8 +327,8 @@ $(DEF)
 {$(BINDIR)}.lib{$(BINDIR)}.lst:
    $(CLIB) /NOLOGO $*,$*.lst;
 
-# --- if file project.in exists, call this to create
-#     additional project specific directories and extend macros etc.
+# --- if file project.in exists, call this to create additional
+#     project specific directories and extend macros etc.
 
 PROJECTFILE=$(BASEDIR)\project.in
 !if [@dir $(PROJECTFILE) >NUL 2>&1]
