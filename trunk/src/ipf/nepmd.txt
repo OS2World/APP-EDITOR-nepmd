@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.22 2002-08-25 18:19:15 cla Exp $
+.. $Id: nepmd.txt,v 1.23 2002-08-27 12:18:39 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -25,6 +25,13 @@
 .include title.inc
 .ti [=DOCTITLE]
 .hi 234
+
+.SET CATEGORY_CONFIG=Configuration related functions
+.SET CATEGORY_EAS=Extended Attribute functions
+.SET CATEGORY_FILE= File related functions
+.SET CATEGORY_INTERACT=User Interaction functions
+.SET CATEGORY_NLS=National Language Support functions
+.SET CATEGORY_DIVERSE=Diverse
 
 .. #############################################################################
 .1 [=DOCTITLE]
@@ -2038,9 +2045,7 @@ are provided under the *GNU General Public License*:
 .. =============================================================================
 .an IDPNL_EFUNC
 .
-The following E language functions are provided by the [=TITLE].
+The following E language functions are provided by the [=TITLE]:
 
-[=TOPICS]
-.su 1
 .include ..\..\compile\functions.txt
 
