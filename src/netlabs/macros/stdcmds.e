@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.12 2002-12-09 21:09:02 aschn Exp $
+* $Id: stdcmds.e,v 1.13 2003-08-31 19:46:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -298,33 +298,7 @@ defc ESCAPEKEY
 compile endif
 
 
-define TEMPFILENAME = 'vTEMP_FILENAME'
-compile if WANT_ET_COMMAND     -- Ver. 3.09 - Let user omit ET command.
-define TEMPFILENAME = 'tempfile'
-defc et,etpm=
-   universal vTEMP_PATH,vTEMP_FILENAME
-   infile=arg(1); if infile='' then infile=MAINFILE endif
-   sayerror COMPILING__MSG infile
-   tempfile=vTEMP_PATH'ETPM'substr(ltoa(gethwnd(EPMINFO_EDITCLIENT),16),1,4)'.TMP'
-   -- quietshell 'xcom etpm /e 'tempfile infile
- compile if defined(ETPM_CMD)  -- let user specify fully-qualified name
-   quietshell 'xcom' ETPM_CMD infile ' /e 'tempfile ' /p'upcase(EPATH)
-   if rc=-2 then sayerror CANT_FIND_PROG__MSG ETPM_CMD; stop; endif
- compile else
-   quietshell 'xcom etpm 'infile ' /e 'tempfile ' /p'upcase(EPATH)
-   if rc=-2 then sayerror CANT_FIND_PROG__MSG 'ETPM.EXE'; stop; endif
- compile endif
-   if rc=41 then sayerror 'ETPM.EXE' CANT_OPEN_TEMP__MSG '"'tempfile'"'; stop; endif
-   if rc then
-      saverc = rc
-      call ec_position_on_error($TEMPFILENAME)
-      rc = saverc
-   else
-      refresh
-      sayerror COMP_COMPLETED__MSG
-   endif
-   call erasetemp($TEMPFILENAME) -- 4.11:  added to erase the temp file.
-compile endif
+; Moved defc et,etpm to LINKCMDS.E
 
 -- No EXIT command in EPM.  Do it from the system pull-downs.
 

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.3 2002-08-18 20:35:49 aschn Exp $
+* $Id: linkcmds.e,v 1.4 2003-08-31 19:46:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -60,6 +60,7 @@ defc unlink
 
 
 compile if WANT_ET_COMMAND
+
 ;  Relink [modulename]
 ;
 ;  Compiles the module, unlinks it and links it again.  A fast way to
@@ -70,7 +71,7 @@ compile if WANT_ET_COMMAND
 ;  If modulename is omitted, the current filename is assumed.
 ;
 defc relink
-   modulename=arg(1)
+   modulename=arg(1)  -- new: path and ext optional
    if modulename='' then                           -- If no name given,
       p = lastpos('.', .filename)
       if upcase(substr(.filename,p))<>'.E' then
@@ -83,12 +84,138 @@ defc relink
          if rc then return; endif
       endif
    endif
+
    'etpm' modulename  -- This is the macro ETPM command.
    if rc then return; endif
-   unlink modulename
+
+   lp1 = lastpos( '\', modulename)
+   name = substr( modulename, lp1 + 1)
+   lp2 = lastpos( '.', name)
+   if lp2 > 1 then
+      basename = substr( name, 1, lp2 - 1)
+   else
+      basename = name
+   endif
+
+   unlink basename
    if RC & (RC <> -310) then sayerror RC; return; endif  -- -310 = "Unlink:  unknown module"
-   link modulename
+
+   link basename
+
+
+defc et,etpm=
+   universal vTEMP_PATH,vTEMP_FILENAME
+
+   infile=arg(1); if infile='' then infile=MAINFILE endif
+
+   lp1 = lastpos( '\', infile)
+   name = substr( infile, lp1 + 1)
+   lp2 = lastpos( '.', name)
+   if lp2 > 1 then
+      basename = substr( name, 1, lp2 - 1)
+   else
+      basename = name
+   endif
+   NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
+   NextDir = NepmdRootDir'\myepm\autolink'  -- search in myepm\autolink first
+   if exist( NextDir'\'basename'.ex') then
+      DestDir = NextDir
+   else
+      DestDir = NepmdRootDir'\myepm\ex'     -- myepm\ex
+   endif
+   ExFile = DestDir'\'basename'.ex'
+
+   tempfile=vTEMP_PATH'ETPM'substr( ltoa( gethwnd(EPMINFO_EDITCLIENT), 16), 1, 4)'.TMP'
+
+   Params = infile ExFile' /e 'tempfile
+
+ compile if defined(ETPM_CMD)  -- let user specify fully-qualified name
+   EtpmCmd = ETPM_CMD
+ compile else
+   EtpmCmd = 'etpm'
+ compile endif
+
+;   CurDir = directory()
+;   call directory('\')
+;   call directory(DestDir)  -- change to DestDir first to avoid loading macro files from CurDir
+
+   sayerror COMPILING__MSG infile
+   quietshell 'xcom' EtpmCmd Params
+
+;   call directory('\')
+;   call directory(CurDir)
+   if rc=-2 then sayerror CANT_FIND_PROG__MSG EtpmCmd; stop; endif
+   if rc=41 then sayerror 'ETPM.EXE' CANT_OPEN_TEMP__MSG '"'tempfile'"'; stop; endif
+   if rc then
+      saverc = rc
+      call ec_position_on_error(tempfile)
+      rc = saverc
+   else
+      refresh
+      sayerror COMP_COMPLETED__MSG
+   endif
+   call erasetemp(tempfile) -- 4.11:  added to erase the temp file.
+
+
+defproc ec_position_on_error(tempfile)   /* load file containing error */
+   'xcom e 'tempfile
+   if rc then    -- Unexpected error.
+      sayerror ERROR_LOADING__MSG tempfile
+      if rc=-282 then 'xcom q'; endif  -- sayerror('New file')
+      return
+   endif
+   if .last<=4 then
+      getline msg,.last
+      'xcom q'
+   else
+      getline msg,2
+      if leftstr(msg,3)='(C)' then  -- 5.20 changed output
+         getline msg,4
+      endif
+      getline temp,.last
+      parse value temp with 'col= ' col
+      getline temp,.last-1
+      parse value temp with 'line= ' line
+      getline temp,.last-2
+      parse value temp with 'filename=' filename
+      'xcom q'
+      'e 'filename               -- not xcom here, respect user's window style
+      if line<>'' and col<>'' then
+         .cursory=min(.windowheight%2,.last)
+         if col>0 then
+            'postme goto' line col
+         else
+            line = line - 1
+            col = length( textline(line))
+            'postme goto' line col
+         endif
+      endif
+   endif
+   sayerror msg
+
 compile endif  -- WANT_ET_COMMAND
+
+
+defc StartRecompile
+   NepmdRootDir = NepmdScanEnv('NEPMD_ROOTDIR')
+   parse value NepmdRootDir with 'ERROR:'rc
+   if rc = '' then
+      MyepmExDir = NepmdRootDir'\myepm\ex'
+      -- Workaround:
+      -- Change to root dir first to avoid erroneously loading of .e files from current dir.
+      -- Better let Recompile.exe do this, because the restarted EPM will open with the
+      -- same directory as Recompile.
+      -- And additionally: make Recompile change save/restore EPM's directory.
+      CurDir = directory()
+      call directory('\')
+      rc = directory(MyepmExDir)
+      'start 'NepmdRootDir'\netlabs\bin\recomp.exe 'MyepmExDir
+      call directory('\')
+      call directory(CurDir)
+   else
+      sayerror 'Environment var NEPMD_ROOTDIR not set'
+   endif
+   return
 
 
 ;  New command to query whether a module is linked.  Of course if
@@ -142,4 +269,5 @@ defproc link_exec(ex_file, cmd_name)
    else
       sayerror UNABLE_TO_EXECUTE__MSG cmd_name
    endif
+
 
