@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.9 2002-09-12 15:26:55 cla Exp $
+* $Id: test.c,v 1.10 2002-09-12 22:26:18 cla Exp $
 *
 * ===========================================================================
 *
@@ -182,6 +182,12 @@ do
 
          // write a new key in the middle of an existand path
          PROCESSVALUE( "\\NEPMD\\Testcases\\AdditionalCase",  "Additional value 2");
+
+         // write a new key to be deleted
+         pszPath = "\\NEPMD\\Testcases\\KeyToDelete";
+         PROCESSVALUE( pszPath, "Value to be deleted");
+         rc = DeleteConfigValue( pszPath);
+         printf( "Key deleted, rc=%u\n", rc);
 
          } while (FALSE);
 
