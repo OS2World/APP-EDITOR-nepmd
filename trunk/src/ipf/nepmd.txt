@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.26 2002-08-30 15:10:46 cla Exp $
+.. $Id: nepmd.txt,v 1.27 2002-09-03 10:35:33 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -31,6 +31,7 @@
 .SET CATEGORY_FILE= File related functions
 .SET CATEGORY_INTERACT=User Interaction functions
 .SET CATEGORY_NLS=National Language Support functions
+.SET CATEGORY_PROCESS=Process related functions
 .SET CATEGORY_DIVERSE=Diverse
 
 .. #############################################################################
@@ -488,7 +489,7 @@ language. Moreover this sample uses the E Toolkit, which allow the usage of *EPM
 functionality within other applications. For the latter only the
 *runtime of the E Toolkit* is required, this is already included
 in plain *OS/2 Warp 4* or *eComStation*. Users of *OS/2 Warp 3* need to install
-the version of the [.IDPNL_EPMBBS_COMP_EPMDLL runtime of the E Toolkit] coming 
+the version of the [.IDPNL_EPMBBS_COMP_EPMDLL runtime of the E Toolkit] coming
 with the [.IDPNL_EPMBBS EPMBBS distribution].
 
 [=NOTE]
@@ -517,20 +518,20 @@ This interface is e.g. used by the *Workframe/2* package.
 This package contains dample REXX code in order to demo the external
 REXX support of *EPM*.
 
-In opposite to the internal *REXX* support, which better is called *E Language* 
+In opposite to the internal *REXX* support, which better is called *E Language*
 support (only *REXX*-alike syntax), true *REXX* scripts can be invoked by a call
-to the *REXX interpreter* of *OS/2 Warp* or *eComStation*, started in a special 
+to the *REXX interpreter* of *OS/2 Warp* or *eComStation*, started in a special
 *REXX* environment with the name *erx* (that is, external *REXX* macros for *EPM*
 are expected to have a filename extension of *.erx* instead of *.cmd* !).
 
 While the real *REXX* scripts have the advantage of that they don't require
 compilation from macro sources (**.e) to REXX binaries (**.EX), they don't
-have direct access to the running *EPM* instance, but instead need to call 
+have direct access to the running *EPM* instance, but instead need to call
 the *REXX* functions interface implemented in the *E Toolkit runtime* DLLs
 of the *erx* environment.
 
-Moreover, smaller *REXX* scripts may start little slower than internal 
-compiled *E Language* scripts, but very much depending on the task accomplished, 
+Moreover, smaller *REXX* scripts may start little slower than internal
+compiled *E Language* scripts, but very much depending on the task accomplished,
 they possibly execute much faster, as true *REXX* is more flexible for most purposes.
 
 [=NOTE]
