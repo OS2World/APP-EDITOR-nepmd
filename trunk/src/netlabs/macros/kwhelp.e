@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.10 2002-09-21 17:16:55 cla Exp $
+* $Id: kwhelp.e,v 1.11 2002-09-23 14:35:30 cla Exp $
 *
 * ===========================================================================
 *
@@ -160,14 +160,15 @@ defproc pHelp_C_identifier
          endif
 
          /* append extension, if not given */
-         if (pos( '.', ViewFile) = 0) then
-            ViewFile = ViewFile'.inf';
+         parse value ViewFile with CheckFile'+'
+         if (pos( '.', CheckFile) = 0) then
+            CheckFile = CheckFile'.inf';
          endif
 
          /* search the file */
-         findfile fullname, ViewFile, 'BOOKSHELF'
+         findfile fullname, CheckFile, 'BOOKSHELF'
          if rc then
-            sayerror 'INF file' ViewFileName 'could not be found'
+            sayerror 'INF file' ViewFile 'could not be found'
             line = ''
          endif
 
@@ -235,6 +236,7 @@ defproc pBuild_Helpfile(ft)
 
    -- search all files on shelf first, put list into ShelfList
    HelpNdxShelf = Get_Env('HELPNDXSHELF')
+   HelpNdx      = Get_Env('HELPNDX');
    ShelfList = ''
 
    if HelpNdxShelf <> '' then
@@ -259,7 +261,7 @@ defproc pBuild_Helpfile(ft)
 
             -- add filename only to HelpList, if not already in
             Filename = substr( Filename, lastpos( '\', Filename) + 1)
-            if (pos( Filename, ShelfList) = 0) then
+            if (pos( translate( Filename), translate( ShelfList'+'HelpNdx)) = 0) then
                ShelfList = ShelfList'+'Filename;
             endif
          enddo
@@ -270,7 +272,7 @@ defproc pBuild_Helpfile(ft)
    endif -- if HelpNdxShelf <> '' then
 
    -- now prepend given help list to previous searchlist
-   HelpList = Get_Env('HELPNDX')''ShelfList;
+   HelpList = HelpNdx''ShelfList;
    if HelpList='' then
       compile if defined(KEYWORD_HELP_INDEX_FILE)
                     HelpList = KEYWORD_HELP_INDEX_FILE
