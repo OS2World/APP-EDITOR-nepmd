@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.16 2004-06-04 07:34:50 aschn Exp $
+# $Id: makefile,v 1.17 2004-07-02 08:34:26 aschn Exp $
 #
 # ===========================================================================
 #
@@ -48,25 +48,28 @@ FILESTOCLEAN=\
  $(SRCCOPY_FLAGFILE)
 
 # --- list for standalone modules
+#     keep this in sync with exfiles.lst!
 EMODULELIST=\
 $(CMPEXDIR)\epm.ex \
-#$(CMPEXDIR)\bookmark.ex\
+$(CMPEXDIR)\bookmark.ex\
 $(CMPEXDIR)\box.ex\
+$(CMPEXDIR)\dict.ex\
 $(CMPEXDIR)\draw.ex\
 $(CMPEXDIR)\epmcomp.ex\
 $(CMPEXDIR)\epmlex.ex\
 $(CMPEXDIR)\fevshmnu.ex\
-$(CMPEXDIR)\fonts.ex\
 $(CMPEXDIR)\ftpload.ex\
 $(CMPEXDIR)\ftpsave.ex\
 #$(CMPEXDIR)\get.ex\
 $(CMPEXDIR)\help.ex\
-#$(CMPEXDIR)\kwhelp.ex\
+$(CMPEXDIR)\kwhelp.ex\
 $(CMPEXDIR)\maketags.ex\
 $(CMPEXDIR)\newmenu.ex\
 $(CMPEXDIR)\next_win.ex\
 $(CMPEXDIR)\ovshmenu.ex\
+$(CMPEXDIR)\popup.ex\
 #$(CMPEXDIR)\put.ex\
+$(CMPEXDIR)\recode.ex\
 $(CMPEXDIR)\showu.ex\
 $(CMPEXDIR)\stdmenu.ex\
 $(CMPEXDIR)\tags.ex\
@@ -76,8 +79,10 @@ $(CMPEXDIR)\wordproc.ex\
 
 
 # --- list for toolbar modules
+#     keep this in sync with actions.lst!
 TEMODULELIST=\
 $(CMPEXDIR)\commands.ex\
+$(CMPEXDIR)\fonts.ex\
 $(CMPEXDIR)\groups.ex\
 $(CMPEXDIR)\jot.ex\
 $(CMPEXDIR)\makeactn.ex\
