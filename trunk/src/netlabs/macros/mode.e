@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.3 2002-09-11 12:33:41 cla Exp $
+* $Id: mode.e,v 1.4 2002-09-11 12:42:18 cla Exp $
 *
 * ===========================================================================
 *
@@ -487,8 +487,12 @@ compile endif
             endif
          endif
          --sayerror '.filename = '.filename', color_file = 'color_file
-         if color_file <> '' & exist( color_file) then
-            'toggle_parse' hili_switch color_file
+         if color_file <> '' then
+            -- check if file truly exists
+            findfile color_file, color_file, 'EPMPATH'
+            if rc == 0 then
+               'toggle_parse' hili_switch color_file
+            endif
          endif
       endif  --if hili_switch = 0 elseif colorfile <> '' else
 
