@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.10 2004-06-03 22:40:07 aschn Exp $
+* $Id: stdprocs.e,v 1.11 2004-07-01 11:20:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -43,11 +43,14 @@ defproc atol_swap(num)
    hwnd=atol(num)
    return rightstr(hwnd,2) || leftstr(hwnd,2)
 
-defproc checkmark()        /* Common routine, save space.  from Jim Hurley.*/
-  if marktype()='' then
-    sayerror NO_MARK_HERE__MSG
-    stop
-  endif
+; Common routine, save space.  from Jim Hurley.
+; Check if current file is marked. If not, stop further processing of
+; calling command or procedure. (Changed from any to current file.)
+defproc checkmark()
+   if not FileIsMarked() then
+      sayerror NO_MARK_HERE__MSG
+      stop
+   endif
 
 ; Routine to tell if a mark is visible on the screen.  (Actually, only on the
 ; current window; if the window is less than full size, a mark could be visible
@@ -56,7 +59,9 @@ defproc checkmark()        /* Common routine, save space.  from Jim Hurley.*/
 ; window contains only blank lines, then this routine will return 1 (since the
 ; mark spans the window) even though no sign of the mark will be visible.
 defproc check_mark_on_screen =
-   if marktype() = '' then return 0; endif  -- If no mark, then not on screen.
+   if not FileIsMarked() then
+      return 0  -- If no mark, then not on screen.
+   endif
    getmark first_mark_line, last_mark_line, first_mark_col, last_mark_col
    first_screen_line = .line - .cursory + 1
    last_screen_line = .line - .cursory + .windowheight
@@ -232,7 +237,10 @@ defproc min(a,b)  -- Support as many arguments as E3 will allow.
 ; mark area.  If the mark area is not in the active file, the marked file is
 ; activated.
 defproc pbegin_mark
-   call checkmark()
+   if marktype() = '' then
+      sayerror NO_MARK_HERE__MSG
+      stop
+   endif
    getmark  firstline,lastline,firstcol,lastcol,fileid
    activatefile fileid
    firstline
@@ -276,6 +284,7 @@ defproc pbegin_word
 ; block in the destination block.  The source block is fill with spaces.
 ;   option=0 saves the marked block in temp file
 ;   option=1 reflow temp file text and copies it to marked area
+; Changed: Stop if not current file is marked.
 defproc pblock_reflow( option, var spc, var tempofid)
    call checkmark()
    if not option then
@@ -433,7 +442,10 @@ defproc pend_mark
 compile if WANT_DBCS_SUPPORT
    universal ondbcs
 compile endif
-   call checkmark()
+   if marktype() = '' then
+      sayerror NO_MARK_HERE__MSG
+      stop
+   endif
    getmark  firstline,lastline,firstcol,lastcol,fileid
    activatefile fileid
    if marktype()<>'LINE' then
@@ -533,6 +545,22 @@ defproc plowercase
 defproc pmargins
    return .margins
 
+; ---------------------------------------------------------------------------
+; Check if current or a specific file is marked. Return 1 or 0.
+; marktype() returns true, if any file is marked.
+defproc FileIsMarked
+   file = arg(1)
+   if file = '' then
+      file = .filename
+   endif
+   getfileid fid, file
+   getmark firstline, lastline, firstcol, lastcol, markfid
+   if (marktype() & fid = markfid) then  -- if file is marked
+      return 1
+   else
+      return 0
+   endif
+
 
 ; PMARK: mark at the cursor position (mark type received as argument).  Used by
 ; pset_mark
@@ -550,9 +578,12 @@ defproc pmark(mt)
 ; space, the word at the right is marked.  If there is no word on the right, the
 ; word on the left is marked.
 defproc pmark_word
-   if marktype()<>'' then
-      sayerror -279  -- 'Text already marked'
-      stop
+;   if marktype()<>'' then
+;      sayerror -279  -- 'Text already marked'
+;      stop
+;   endif
+   if marktype() then
+      unmark
    endif
    call pend_word()
 compile if WORD_MARK_TYPE = 'CHAR'
