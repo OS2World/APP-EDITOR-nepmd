@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.h,v 1.5 2002-09-20 14:49:56 cla Exp $
+* $Id: instval.h,v 1.6 2002-09-21 13:58:53 cla Exp $
 *
 * ===========================================================================
 *
@@ -29,6 +29,8 @@
 #define NEPMD_INSTVALUE_LANGUAGE        "LANGUAGE"
 #define NEPMD_INSTVALUE_INIT            "INIT"
 #define NEPMD_INSTVALUE_MESSAGE         "MESSAGE"
+#define NEPMD_INSTVALUE_INF             "INF"
+#define NEPMD_INSTVALUE_HELP            "HELP"
 
 // define external env variable for testing of
 // NEPMD utilities in working directory tree
