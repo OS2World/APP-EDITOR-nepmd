@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.5 2005-01-16 10:15:29 aschn Exp $
+* $Id: modeexec.e,v 1.6 2005-03-13 10:15:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -28,6 +28,10 @@
 ;    'ModeExecute <mode> Set*' commands )
 ;
 ; 3. File settings (configurable via File properties menu, highest priority)
+if 0 = 1 then
+   sayerror 'moin'
+else
+endif
 ;
 ; The settings of 2. and 3. are saved in array vars. It is determined, if a
 ; setting has to be executed at defload or defselect using lists. After the
@@ -70,26 +74,32 @@
 ;         SetStreamMode     0 | 1
 ;         SetInsertMode     0 | 1
 ;         SetHighlight      0 | 1
-;         SetTabs           <number> or <list of numbers>
+;         SetTabs           <number> | <list of numbers>
 ;         SetTabkey         0 | 1
 ;         SetMatchTab       0 | 1
 ;         SetMargins        <left> <right> <par>
 ;         SetExpand         0 | 1
-;         SetIndent         <number> (default = const, if defined,
-;                           e.g. REXX_INDENT; else first number of tabs)
-;         SetTextColor      number (with PROFILE.ERX, or const, see COLORS.E)
-;         SetMarkColor      number (with PROFILE.ERX, or const, see COLORS.E)
+;                           (means syntax expansion)
+;         SetIndent         <number>
+;                           (default = const, if defined, e.g. REXX_INDENT
+;                           else first number of tabs)
+;         SetTextColor      number | const
+;                           (see COLORS.E or defproc GetColorFromName)
+;         SetMarkColor      number | const
+;                           (see COLORS.E or defproc GetColorFromName)
 ;                           (Hint: place cursor on COLORS.E and press Alt+1 to
 ;                                  load the file)
-;         SetTextFont       <font_size>.<font_name>[.<font_sel>]  (<font_size>
-;                           and <font_name> can be exchanged. Any EPM font
-;                           specification syntax will be accepted as well. The
-;                           args are case-sensitive.)
-;         SetToolbar        <toolbar_name> (must be defined in EPM.INI)
+;         SetTextFont       <font_size>.<font_name>[.<font_sel>]
+;                           (<font_size> and <font_name> can be exchanged.
+;                           Any EPM font specification syntax will be accepted
+;                           as well. The args are case-sensitive.)
+;         SetToolbar        <toolbar_name> | BUILDIN
+;                           (case-sensitive, must be defined in EPM.INI)
 ;         SetDynaspell      0 | 1
-;         SetEditOptions    see description of EDIT command
-;         SetSaveOptions    see description of SAVE command
-;         SetSearchOptions  see description of LOCATE and REPLACE commands
+;                           (means spell-checking while typing)
+;         SetEditOptions    see description of Edit command
+;         SetSaveOptions    see description of Save command
+;         SetSearchOptions  see description of Locate and Replace commands
 ;                           (plus undocumented TB options)
 ;         SetKeys           <keyset_name>
 
@@ -727,7 +737,7 @@ defc SetToolbar
       current_toolbar = toolbar_loaded
    endif
    if upcase(current_toolbar) <> arg1 then
-      if arg1 = '' | arg(1) = 'DEFAULT' then
+      if arg1 = '' | arg1 = 'DEFAULT' then
          def_toolbar = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
          if def_toolbar <> '' then
             'postme load_toolbar 'def_toolbar
@@ -737,7 +747,7 @@ defc SetToolbar
          'postme loaddefaulttoolbar'  -- built-in toolbar
          current_toolbar = 'BUILDIN'
       else
-         'postme load_toolbar 'arg1
+         'postme load_toolbar 'arg(1)
          current_toolbar = arg(1)
       endif
    endif
