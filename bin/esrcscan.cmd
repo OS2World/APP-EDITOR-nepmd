@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.12 2002-09-08 22:19:40 cla Exp $
+* $Id: esrcscan.cmd,v 1.13 2002-09-19 16:11:31 cla Exp $
 *
 * ===========================================================================
 *
@@ -337,11 +337,14 @@ GetDirName: PROCEDURE
  PARSE ARG Name
 
  /* save environment */
- CurrentDrive = FILESPEC('D', DIRECTORY());
- CurrentDir   = DIRECTORY(FILESPEC('D', Name));
+ CurrentDrive   = FILESPEC( 'D', DIRECTORY());
+ SpecifiedDrive = FILESPEC( 'D', Name);
+ IF (SpecifiedDrive = '') THEN
+    SpecifiedDrive = CurrentDrive;
+ CurrentDir     = DIRECTORY( SpecifiedDrive);
 
  /* try directory */
- DirFound  = DIRECTORY(Name);
+ DirFound  = DIRECTORY( Name);
 
  /* reset environment */
  rc = DIRECTORY(CurrentDir);
