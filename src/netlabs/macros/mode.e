@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.13 2002-10-09 13:27:20 cla Exp $
+* $Id: mode.e,v 1.14 2002-10-10 20:44:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -185,10 +185,7 @@ defproc NepmdProcessMode()
 compile if NEPMD_SPECIAL_STATUSLINE
    'refreshstatusline'
 compile endif
-   -- post the hilight command because the exception handler
-   -- used by it gets unset when this code is executed during
-   -- defload
-   'postme ActivateHighlight ON' CurMode
+   NepmdActivateHighlight( 'ON', CurMode)
 
    return
 
