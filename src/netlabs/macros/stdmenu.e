@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.20 2004-02-29 17:04:32 aschn Exp $
+* $Id: stdmenu.e,v 1.21 2004-06-03 22:13:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,111 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+Not removed consts (compared to NEWMENU.E):
+- WANT_DYNAMIC_PROMPTS,
+  ALLOW_PROMPTING_AT_TOP, BLOCK_ACTIONBAR_ACCELERATORS, WANT_STACK_CMDS,
+  RING_OPTIONAL, WANT_STREAM_MODE, WANT_CUA_MARKING, WANT_BOOKMARKS, WANT_TAGS
+  WANT_EPM_SHELL, WANT_TOOLBAR, SPELL_SUPPORT, ENHANCED_PRINT_SUPPORT,
+  WANT_DM_BUFFER, WANT_APPLICATION_INI_FILE, SUPPORT_BOOK_ICON
+Menu ids are still hard-coded.
+*/
+
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately
+define INCLUDING_FILE = 'STDMENU.E'
+const
+   tryinclude 'MYCNF.E'        -- the user's configuration customizations.
+
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
+ compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+const
+; Following consts are copied from STDCNF.E to make it separately compilable
+ compile if not defined(WANT_NODISMISS_MENUS)
+   WANT_NODISMISS_MENUS = 1
+ compile endif
+ compile if not defined(DEFAULT_PASTE)
+   DEFAULT_PASTE = 'C'
+ compile endif
+ compile if not defined(SUPPORT_USERS_GUIDE)
+   SUPPORT_USERS_GUIDE = 1
+ compile endif
+ compile if not defined(SUPPORT_TECHREF)
+   SUPPORT_TECHREF = 1
+ compile endif
+ compile if not defined(CHECK_FOR_LEXAM)
+   CHECK_FOR_LEXAM = 0
+ compile endif
+ compile if not defined(HOST_SUPPORT)
+   HOST_SUPPORT = ''
+ compile endif
+; Following obsolete consts are copied from STDCNF.E to make it separately compilable
+ compile if not defined(WANT_DYNAMIC_PROMPTS)
+   WANT_DYNAMIC_PROMPTS = 1
+ compile endif
+ compile if not defined(ALLOW_PROMPTING_AT_TOP)
+   ALLOW_PROMPTING_AT_TOP = 1
+ compile endif
+ compile if not defined(BLOCK_ACTIONBAR_ACCELERATORS)
+   BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
+ compile endif
+ compile if not defined(WANT_STACK_CMDS)
+   WANT_STACK_CMDS = 'SWITCH'
+ compile endif
+ compile if not defined(RING_OPTIONAL)
+   RING_OPTIONAL = 1
+ compile endif
+ compile if not defined(WANT_STREAM_MODE)
+   WANT_STREAM_MODE = 'SWITCH'
+ compile endif
+ compile if not defined(WANT_CUA_MARKING)
+   WANT_CUA_MARKING = 'SWITCH'
+ compile endif
+ compile if not defined(WANT_BOOKMARKS)
+   WANT_BOOKMARKS = 1
+ compile endif
+ compile if not defined(WANT_TAGS)
+   WANT_TAGS = 'DYNALINK'
+ compile endif
+ compile if not defined(WANT_EPM_SHELL)
+   WANT_EPM_SHELL = 1
+ compile endif
+ compile if not defined(WANT_TOOLBAR)
+   WANT_TOOLBAR = 1
+ compile endif
+ compile if not defined(SPELL_SUPPORT)
+   SPELL_SUPPORT = 'DYNALINK'
+ compile endif
+ compile if not defined(ENHANCED_PRINT_SUPPORT)
+   ENHANCED_PRINT_SUPPORT = 1
+ compile endif
+ compile if not defined(WANT_DM_BUFFER)
+   WANT_DM_BUFFER = 1
+ compile endif
+ compile if not defined(WANT_APPLICATION_INI_FILE)
+   WANT_APPLICATION_INI_FILE = 1
+ compile endif
+ compile if not defined(SUPPORT_BOOK_ICON)
+   SUPPORT_BOOK_ICON = 0
+ compile endif
+
+const
+ compile if not defined(NLS_LANGUAGE)
+   NLS_LANGUAGE = 'ENGLISH'
+ compile endif
+   include NLS_LANGUAGE'.e'
+   include 'stdconst.e'
+   include 'menuhelp.h'
+   EA_comment 'This defines the menu.'
+
+compile endif
+
+
 compile if not defined(CORE_stuff)
 ; This determines whether the CORE-specific commands (DEFINE)
 ; are included in the menus.
@@ -51,6 +156,12 @@ defc loaddefaultmenu
    call add_search_menu(menuname)
    call add_options_menu(menuname)
    call add_command_menu(menuname)
+
+   -- Process hook: add a user-defined submenu
+   if isadefc('HookExecute') then
+      'HookExecute addmenu'
+   endif
+
    call add_help_menu(menuname)
 
 defproc add_file_menu(menuname)
@@ -251,8 +362,8 @@ defproc add_search_menu(menuname)
          buildmenuitem menuname, 3, 365, 'R'\9'reverse: right to left',             '', 1, 32
          buildmenuitem menuname, 3, 366, \0,                        '',            4, 0
          buildmenuitem menuname, 3, 367, ''\9'start at cursor*',                    '', 1, 32
-         buildmenuitem menuname, 3, 368, 'B'\9'start at bottom of file',       '', 1, 32
-         buildmenuitem menuname, 3, 369, 'T'\9'start at top of file',          '', 1, 32
+         buildmenuitem menuname, 3, 368, 'B'\9'start at bottom of file',            '', 1, 32
+         buildmenuitem menuname, 3, 369, 'T'\9'start at top of file',               '', 1, 32
          buildmenuitem menuname, 3, 370, \0,                        '',            4, 0
          buildmenuitem menuname, 3, 371, 'A'\9'all: in the whole file*',            '', 1, 32
          buildmenuitem menuname, 3, 372, 'M'\9'mark: in mark only',                 '', 1, 32
@@ -274,7 +385,8 @@ defproc add_search_menu(menuname)
          buildmenuitem menuname, 3, 388, ''\9'change next only*',                   '', 1, 32
          buildmenuitem menuname, 3, 389, '*'\9'change all',                         '', 1, 32
          buildmenuitem menuname, 3, 390, \0,                        '',            4, 0
-         buildmenuitem menuname, 3, 391, ''\9'Set as new default!',                 '', 1 + 32768, 0
+         buildmenuitem menuname, 3, 391, \9'Set as new default!',                   '', 1, 0
+         buildmenuitem menuname, 3, 392, \9'Reset to NEPMD default!',               '', 1 + 32768, 0
 
       buildmenuitem menuname, 3, 353, \0,                           '',            4, 0
       buildmenuitem menuname, 3, 302, FIND_NEXT_MENU__MSG\9 || CTRL_KEY__MSG'+F',   'SEARCHDLG F'FIND_NEXT_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_FIND, 0)
@@ -428,10 +540,12 @@ compile endif -- WANT_TOOLBAR
          buildmenuitem menuname, 4, 439, \0,                       '',           4, 0
 compile if WANT_DYNAMIC_PROMPTS
          buildmenuitem menuname, 4, 421, INFOATTOP_MENU__MSG,   TOGGLEINFO || INFOATTOP_MENUP__MSG,     0, mpfrom2short(HP_FRAME_EXTRAPOS, NODISMISS)
-         buildmenuitem menuname, 4, 422, PROMPTING_MENU__MSG,   'toggleprompt'PROMPTING_MENUP__MSG,     32768+1, mpfrom2short(HP_FRAME_PROMPT, NODISMISS)
+         buildmenuitem menuname, 4, 422, PROMPTING_MENU__MSG,   'toggleprompt'PROMPTING_MENUP__MSG,     0, mpfrom2short(HP_FRAME_PROMPT, NODISMISS)
 compile else
-         buildmenuitem menuname, 4, 421, INFOATTOP_MENU__MSG,   TOGGLEINFO || INFOATTOP_MENUP__MSG,     32768+1, mpfrom2short(HP_FRAME_EXTRAPOS, NODISMISS)
+         buildmenuitem menuname, 4, 421, INFOATTOP_MENU__MSG,   TOGGLEINFO || INFOATTOP_MENUP__MSG,     0, mpfrom2short(HP_FRAME_EXTRAPOS, NODISMISS)
 compile endif
+         buildmenuitem menuname, 4, 460, \0,                       '',           4, 0
+         buildmenuitem menuname, 4, 461, 'Select menu...',      'ChangeMenu'\1'Open a listbox and change or refresh the menu', 32768+1, 0
 compile if WANT_APPLICATION_INI_FILE
       buildmenuitem menuname, 4, 418, SAVE_OPTS_MENU__MSG,      'saveoptions'SAVE_OPTS_MENUP__MSG, 0, mpfrom2short(HP_OPTIONS_SAVE, 0)
 compile endif
@@ -461,26 +575,6 @@ compile if WANT_EPM_SHELL = 1
 ;     buildmenuitem menuname, COMMAND_MENU_ID, 104, KILL_SHELL_MENU__MSG,         'shell_kill'KILL_SHELL_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_KILL, 16384)
       buildmenuitem menuname, COMMAND_MENU_ID, 104, SHELL_BREAK_MENU__MSG,        'shell_break'SHELL_BREAK_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_BREAK, 16384)
 compile endif
-compile if defined(WANT_ASCHN_MENU_ITEMS)
- compile if WANT_ASCHN_MENU_ITEMS
-      buildmenuitem menuname, COMMAND_MENU_ID, 105, \0,                      '',            4, 0
-      buildmenuitem menuname, COMMAND_MENU_ID, 106, 'GFC current file'         , 'GfcCurrentFile'\1, 0, 0
-      buildmenuitem menuname, COMMAND_MENU_ID, 110, \0,                      '',            4, 0
--- Todo: replace all strings and add consts for menu styles ------------------------------------------------------
-      buildmenuitem menuname, COMMAND_MENU_ID, 111, 'Edit PROFILE.ERX'         , 'ep profile.erx path'\1, 0, 0  -- <----------- Todo: adapt to real search path
-      buildmenuitem menuname, COMMAND_MENU_ID, 112, 'Edit MYCNF.E'             , 'ep mycnf.e epmpath'\1 , 0, 0
-;      buildmenuitem menuname, COMMAND_MENU_ID, 113, "Edit user's EPM.ENV"      , 'e %NEPMD_USERENVFILE%'\1    , 0, 0
-      buildmenuitem menuname, COMMAND_MENU_ID, 113, "Edit user's EPM.ENV"      , 'e %NEPMD_ROOTDIR%\myepm\bin\epm.env'\1    , 0, 0
-      buildmenuitem menuname, COMMAND_MENU_ID, 114, 'Open EPM.INI'             , 'start /c /min open %BOOTDRIVE%\os2\epm.ini'\1    , 0, 0  -- <-------- Todo: replace 'open' call and %BOOTDRIVE%, get EPM.INI from OS2.INI
-      buildmenuitem menuname, COMMAND_MENU_ID, 115, 'Open NEPMD.INI'           , 'start /c /min open %NEPMD_ROOTDIR%\myepm\bin\nepmd.ini'\1    , 0, 0  -- <-------- Todo: replace 'open' call
-      buildmenuitem menuname, COMMAND_MENU_ID, 116, 'Open NETLABS\MACROS\*.E'  , 'o %NEPMD_ROOTDIR%\netlabs\macros\*.e'\1    , 0, 0
-      buildmenuitem menuname, COMMAND_MENU_ID, 117, 'Open MYEPM\MACROS\*.E'    , 'o %NEPMD_ROOTDIR%\myepm\macros\*.e'\1    , 0, 0
-      buildmenuitem menuname, COMMAND_MENU_ID, 120, \0,                      '',            4, 0
-      buildmenuitem menuname, COMMAND_MENU_ID, 121, 'Open NEPMD programs folder', 'start /c /min open "<NEPMD_FOLDER>"'\1, 0, 0  -- <-------- Todo: replace 'open' call
-      buildmenuitem menuname, COMMAND_MENU_ID, 122, 'Open NEPMD root folder'   , 'start /c /min open %NEPMD_ROOTDIR%'\1, 0, 0  -- <-------- Todo: replace 'open' call
-      buildmenuitem menuname, COMMAND_MENU_ID, 123, 'Open folder of EPM.EXE'   , 'start /c /min open %NEPMD_EPMEXECUTABLE%\..'\1, 0, 0  -- <-------- Todo: replace 'open' call
- compile endif  -- WANT_ASCHN_MENU_ITEMS
-compile endif  -- defined(WANT_ASCHN_MENU_ITEMS)
       buildmenuitem menuname, COMMAND_MENU_ID, 130, \0,                      '',            4, 0
       buildmenuitem menuname, COMMAND_MENU_ID, 131, 'Recompile EPM.E...'       , 'StartRecompile'\1, 0, 0
    return
@@ -524,40 +618,217 @@ compile if SUPPORT_TECHREF
          buildmenuitem menuname, HELP_MENU_ID, 632, VIEW_IN_TECHREF_MENU__MSG,  'viewword epmtech'VIEW_IN_TECHREF_MENUP__MSG, 32768+1, mpfrom2short(HP_HELP_TECHREF, 0)
 compile endif
 
-defproc readd_help_menu
-   universal defaultmenu, activemenu
-   call add_help_menu(defaultmenu)
-   call maybe_show_menu()
 
-defproc maybe_show_menu
-   universal defaultmenu, activemenu
-   if activemenu=defaultmenu then
-      call showmenu_activemenu()  -- show the updated EPM menu
-   endif
+; Moved readd_help_menu, maybe_show_menu and showmenu_activemenu to MENU.E.
 
-
-defproc showmenu_activemenu()
-   -- Better use the optional executed-as-default submenu id here,
-   -- to have that submenu item checked automatically.
-   -- Otherwise the 1st submenu item is executed, but MIA_CHECKED
-   -- is missing.
-   universal activemenu
-   showmenu activemenu  -- show the updated EPM menu
-   'postme cascade_menu 220 221'  -- File -> Open Folder
-   'postme cascade_menu 640 641'  -- Help -> NEPMD User Guide
-   'postme cascade_menu 650 651'  -- Help -> NEPMD Programming Guide
+; ---------------------------------------------------------------------------
+defc add_cascade_menus
+   -- This command is called by defproc showmmenu_activemenu with 'postme'.
+   'cascade_menu 220 221'  -- File -> Open Folder
+   'cascade_menu 640 641'  -- Help -> NEPMD User Guide
+   'cascade_menu 650 651'  -- Help -> NEPMD Programming Guide
 compile if SUPPORT_USERS_GUIDE
-   'postme cascade_menu 620 621'  -- Help -> View User's Guide
+   'cascade_menu 620 621'  -- Help -> View User's Guide
 compile endif
 compile if SUPPORT_TECHREF
-   'postme cascade_menu 630 631'  -- Help -> View Technical Reference
+   'cascade_menu 630 631'  -- Help -> View Technical Reference
 compile endif
    -- CUSTEPM package
 compile if defined(CUSTEPM_DEFAULT_SCREEN)
-   'postme cascade_menu' 3700 (CUSTEPM_DEFAULT_SCREEN + 3700)
+   'cascade_menu' 3700 (CUSTEPM_DEFAULT_SCREEN + 3700)
 compile elseif defined(HAVE_CUSTEPM)
-   'postme cascade_menu' 3700
+   'cascade_menu' 3700
 compile endif
+
+
+; Moved from STDPROCS.E
+; The following is individual commands on 5.51+; all part of ProcessMenuInit cmd on earlier versions.
+
+--------------------------------------------- Menu id 8 -- Edit -------------------------
+defc menuinit_8
+ compile if WANT_STACK_CMDS
+   universal mark_stack, position_stack
+  compile if WANT_STACK_CMDS = 'SWITCH'
+   universal stack_cmds
+  compile endif
+ compile endif  -- WANT_STACK_CMDS
+      SetMenuAttribute( 816, 16384, isadirtyline())
+      undoaction 1, PresentState        -- Do to fix range, not for value.
+      undoaction 6, StateRange               -- query range
+      parse value staterange with oldeststate neweststate .
+      SetMenuAttribute( 818, 16384, oldeststate<>neweststate )  -- Set to 1 if different
+      paste = clipcheck(format) & (format = 1024) & not (browse() | .readonly)
+      SetMenuAttribute( 810, 16384, paste)
+      SetMenuAttribute( 811, 16384, paste)
+      SetMenuAttribute( 812, 16384, paste)
+      on = marktype()<>''
+      buf_flag = 0
+      if not on then                             -- Only check buffer if no mark
+         bufhndl = buffer(OPENBUF, EPMSHAREDBUFFER)
+         if bufhndl then                         -- If the buffer exists, check the
+            buf_flag = itoa(peek(bufhndl,2,2),10)  -- amount of used space in buffer
+            call buffer(FREEBUF, bufhndl)        -- then free it.
+         endif
+      endif
+      SetMenuAttribute( 800, 16384, on | buf_flag)  -- Can copy if mark or buffer has data
+      SetMenuAttribute( 801, 16384, on)
+      SetMenuAttribute( 802, 16384, on | buf_flag)  -- Ditto for Overlay mark
+      SetMenuAttribute( 803, 16384, on)
+      SetMenuAttribute( 805, 16384, on)
+      SetMenuAttribute( 806, 16384, on)
+      SetMenuAttribute( 808, 16384, on)
+      SetMenuAttribute( 809, 16384, on)
+      SetMenuAttribute( 814, 16384, on)
+ compile if WANT_STACK_CMDS
+  compile if WANT_STACK_CMDS = 'SWITCH'
+   if stack_cmds then
+  compile endif
+      SetMenuAttribute( 820, 16384, on)
+      SetMenuAttribute( 821, 16384, mark_stack<>'')
+      SetMenuAttribute( 822, 16384, on & mark_stack<>'')
+      SetMenuAttribute( 824, 16384, position_stack<>'')
+      SetMenuAttribute( 825, 16384, position_stack<>'')
+  compile if WANT_STACK_CMDS = 'SWITCH'
+   endif
+  compile endif
+ compile endif  -- WANT_STACK_COMMANDS
+
+--------------------------------------------- Menu id 4 -- Options ---------------------
+defc menuinit_4
+ compile if RING_OPTIONAL
+   universal ring_enabled
+ compile endif
+ compile if CHECK_FOR_LEXAM
+   universal LEXAM_is_available
+ compile endif
+ compile if RING_OPTIONAL
+      if ring_enabled then
+ compile endif
+         SetMenuAttribute( 410, 16384, filesinring()>1)
+ compile if RING_OPTIONAL
+      endif
+ compile endif
+ compile if SPELL_SUPPORT
+  compile if CHECK_FOR_LEXAM
+    if LEXAM_is_available then
+  compile endif
+      SetMenuAttribute( 450, 8192, .keyset <> 'SPELL_KEYS')
+  compile if CHECK_FOR_LEXAM
+    endif
+  compile endif
+ compile endif  -- SPELL_SUPPORT
+
+ compile if WANT_CUA_MARKING = 'SWITCH' | WANT_STREAM_MODE = 'SWITCH' | RING_OPTIONAL | WANT_STACK_CMDS = 'SWITCH'
+--------------------------------------------- Menu id 400 -- Options / Preferences -------
+defc menuinit_400
+  compile if WANT_STACK_CMDS = 'SWITCH'
+   universal stack_cmds
+  compile endif
+  compile if WANT_CUA_MARKING = 'SWITCH'
+   universal CUA_marking_switch
+  compile endif
+  compile if WANT_STREAM_MODE = 'SWITCH'
+   universal stream_mode
+  compile endif
+  compile if RING_OPTIONAL
+   universal ring_enabled
+  compile endif
+  compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
+   universal CUA_MENU_ACCEL
+  compile endif
+  compile if WANT_CUA_MARKING = 'SWITCH'
+      SetMenuAttribute( 441, 8192, CUA_marking_switch)
+  compile endif
+  compile if WANT_STREAM_MODE = 'SWITCH'
+      SetMenuAttribute( 442, 8192, not stream_mode)
+  compile endif
+  compile if RING_OPTIONAL
+      SetMenuAttribute( 443, 8192, not ring_enabled)
+  compile endif
+  compile if WANT_STACK_CMDS = 'SWITCH'
+      SetMenuAttribute( 445, 8192, not stack_cmds)
+  compile endif
+  compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
+    SetMenuAttribute( 446, 8192, not CUA_MENU_ACCEL)
+  compile endif
+ compile endif  -- WANT_CUA_MARKING, WANT_STREAM_MODE, RING_OPTIONAL, WANT_STACK_CMDS
+
+--------------------------------------------- Menu id 425 -- Options / Frame controls  ---
+defc menuinit_425
+   universal bitmap_present
+ compile if RING_OPTIONAL
+      universal ring_enabled
+ compile endif
+ compile if WANT_DYNAMIC_PROMPTS
+      universal menu_prompt
+ compile endif
+      SetMenuAttribute( 413, 8192, not queryframecontrol(1) )
+      SetMenuAttribute( 414, 8192, not queryframecontrol(2) )
+      SetMenuAttribute( 415, 8192, not queryframecontrol(16))
+ compile if RING_OPTIONAL
+      if ring_enabled then
+ compile endif
+         SetMenuAttribute( 417, 8192, not queryframecontrol(4))
+ compile if WANT_TOOLBAR
+         SetMenuAttribute( 430, 8192, not queryframecontrol(EFRAMEF_TOOLBAR))
+ compile endif
+         SetMenuAttribute( 437, 8192, not bitmap_present)
+ compile if RING_OPTIONAL
+      else
+         SetMenuAttribute( 417, 16384, 1)  -- Grey out Rotate Buttons if ring not enabled
+      endif
+ compile endif
+      SetMenuAttribute( 421, 8192, not queryframecontrol(32))
+ compile if WANT_DYNAMIC_PROMPTS
+      SetMenuAttribute( 422, 8192, not menu_prompt)
+ compile endif
+
+--------------------------------------------- Menu id 3 -- Search -----------------------
+defc menuinit_3
+      universal lastchangeargs
+      getsearch strng
+      parse value strng with . c .       -- blank, 'c', or 'l'
+      SetMenuAttribute( 302, 16384, c<>'')               -- Find next OK if not blank
+      SetMenuAttribute( 303, 16384, lastchangeargs<>'')  -- Change next only if 'c'
+      SetMenuAttribute( 350, 16384, c<>'')               -- Global find next OK if not blank
+      SetMenuAttribute( 351, 16384, lastchangeargs<>'')  -- Global change next only if 'c'
+      SetMenuAttribute( 352, 16384, c<>'')               -- Toggle direction OK if not blank
+
+ compile if WANT_BOOKMARKS
+--------------------------------------------- Menu id 3 -- Bookmarks --------------------
+defc menuinit_305
+      universal EPM_utility_array_ID
+      --do_array 3, EPM_utility_array_ID, 'bmi.0', bmcount          -- Index says how many bookmarks there are
+      rc = get_array_value( EPM_utility_array_ID, 'bmi.0', bmcount )          -- Index says how many bookmarks there are
+      SetMenuAttribute( 306, 16384, not (browse() | .readonly))  -- Set
+      SetMenuAttribute( 308, 16384, bmcount>0)   -- List
+      SetMenuAttribute( 311, 16384, bmcount>0)   -- Next
+      SetMenuAttribute( 312, 16384, bmcount>0)   -- Prev
+ compile endif  -- WANT_BOOKMARKS
+
+; Also will need to handle 204 (Name) on File menu if 5.60 & LaMail...
+
+
+--------------------------------------------- Menu id 0 -- Command ----------------------
+; This is not called by entering the Command menu if menu id = 1. Changing the menu id
+; to e.g. 0 will make it. Apperently 'processmenuinit' is not executed for menu id = 1.
+; The id must be changed in:
+;    -  STDMENU.E: defproc add_command_menu
+; Since in FEVSHMNU.E the file menu gets the id = 1 and the shell actions are defined
+; as submenuitems of File->Command, following is not important:
+;    -  EPMSHELL.E: defc shell if WANT_EPM_SHELL = 'HIDDEN' & not defined(STD_MENU_NAME).
+; Unfortunately the command name includes the id. Maybe we'll change this in future.
+defc menuinit_0
+compile if WANT_EPM_SHELL
+   universal shell_index
+   if shell_index then
+      is_shell = leftstr(.filename, 15) = ".command_shell_"
+      SetMenuAttribute( 103, 16384, is_shell)  -- 'shell_write'
+      SetMenuAttribute( 104, 16384, is_shell)  -- 'shell_break'
+   endif  -- shell_index
+compile endif
+
+; The above is all part of ProcessMenuInit cmd on old versions.  -----------------
 
 
 defproc build_menu_accelerators(activeaccel)
@@ -747,3 +1018,194 @@ defproc update_edit_menu_text =
  compile endif
 
 compile endif  -- BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
+
+
+/*
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ what's it called: togglecontrol                                            ³
+³                                                                            ³
+³ what does it do : The command either toggles a EPM control window on or off³
+³                   or forces a EPM control window on or off.                ³
+³                   arg1   = EPM control window handle ID.  Control window   ³
+³                            ids given above.  The following windows handles ³
+³                            are currently supported.                        ³
+³                            EDITSTATUS, EDITVSCROLL, EDITHSCROLL, and       ³
+³                            EDITMSGLINE.                                    ³
+³                   arg2   [optional] = force option.                        ³
+³                            a value of 0, forces control window off         ³
+³                            a value of 1, forces control window on          ³
+³                           IF this argument is not specified the window     ³
+³                           in question is toggled.                          ³
+³                                                                            ³
+³                   This command is possible because of the EPM_EDIT_CONTROL ³
+³                   EPM_EDIT_CONTROLSTATUS message.                          ³
+³                   (All EPM_EDIT_xxx messages are defined in the ETOOLKT    ³
+³                    PACKAGE available on PCTOOLS.)                          ³
+³                                                                            ³
+³ who and when    : Jerry C.   2/27/89                                       ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+*/
+defc togglecontrol
+compile if WANT_DYNAMIC_PROMPTS
+   universal menu_prompt
+compile endif
+   forceon=0
+   parse arg controlid fon
+   if fon<>'' then
+      forceon=(fon+1)*65536
+compile if (WANT_NODISMISS_MENUS | WANT_DYNAMIC_PROMPTS)
+   else
+      fon = not querycontrol(controlid)  -- Query now, since toggling is asynch.
+compile endif  -- WANT_NODISMISS_MENUS
+   endif
+
+   call windowmessage(0,  getpminfo(EPMINFO_EDITFRAME),
+                      5388,               -- EPM_EDIT_CONTROLTOGGLE
+                      controlid + forceon,
+                      0)
+compile if WANT_NODISMISS_MENUS
+   p = wordpos(controlid, '  7   8  10 20  22  23')
+   if p then       -->     === === === === === ===
+      menuid =       word('413 414 415 417 416 421', p)
+      SetMenuAttribute( menuid, 8192, not fon)
+   endif
+compile endif  -- WANT_NODISMISS_MENUS
+
+defc toggleframe
+ compile if WANT_DYNAMIC_PROMPTS
+   universal menu_prompt
+ compile endif
+   forceon=0
+   parse arg controlid fon
+   if fon<>'' then
+      forceon=(fon+1)*65536
+compile if (WANT_NODISMISS_MENUS | WANT_DYNAMIC_PROMPTS)
+   else
+      fon = not queryframecontrol(controlid)  -- Query now, since toggling is asynch.
+compile endif  -- WANT_NODISMISS_MENUS
+   endif
+
+   call windowmessage(0,  getpminfo(EPMINFO_EDITFRAME),
+                      5907,               -- EFRAMEM_TOGGLECONTROL
+                      controlid + forceon,
+                      0)
+ compile if WANT_DYNAMIC_PROMPTS & not ALLOW_PROMPTING_AT_TOP
+   if controlid=32 then
+      if fon then  -- 1=top; 0=bottom.  If now top, turn off.
+         menu_prompt = 0
+  compile if WANT_NODISMISS_MENUS
+         SetMenuAttribute( 422, 8192, 1)
+  compile endif  -- WANT_NODISMISS_MENUS
+      endif
+   endif
+ compile endif
+ compile if WANT_NODISMISS_MENUS
+   p = wordpos(controlid, '  1   2   4  16 32')
+   if p then       -->     === === === === ===
+      menuid =       word('413 414 417 415 421', p)
+      SetMenuAttribute( menuid, 8192, not fon)
+   endif
+ compile endif  -- WANT_NODISMISS_MENUS
+
+defproc queryframecontrol(controlid)
+   return windowmessage(1,  getpminfo(EPMINFO_EDITFRAME),   -- Send message to edit client
+                        5907,               -- EFRAMEM_TOGGLECONTROL
+                        controlid,
+                        1)
+
+compile if WANT_DYNAMIC_PROMPTS
+defc toggleprompt
+   universal menu_prompt
+   menu_prompt = not menu_prompt
+ compile if not ALLOW_PROMPTING_AT_TOP
+   if menu_prompt then
+      'toggleframe 32 0'      -- Force Extra window to bottom.
+   endif
+ compile endif  -- not ALLOW_PROMPTING_AT_TOP
+ compile if WANT_NODISMISS_MENUS
+   SetMenuAttribute( 422, 8192, not menu_prompt)
+ compile endif  -- WANT_NODISMISS_MENUS
+compile endif
+
+defc setscrolls
+   'toggleframe 8'
+   'toggleframe 16'
+
+defc toggle_bitmap
+   universal bitmap_present, bm_filename
+   bitmap_present = not bitmap_present
+;; bm_filename = ''
+   call windowmessage(0, getpminfo(EPMINFO_EDITCLIENT),
+                      5498 - (44*bitmap_present), 0, 0)
+compile if WANT_NODISMISS_MENUS
+   SetMenuAttribute( 437, 8192, not bitmap_present)
+compile endif  -- WANT_NODISMISS_MENUS
+
+
+compile if WANT_CUA_MARKING = 'SWITCH'
+defc CUA_mark_toggle
+   universal CUA_marking_switch
+   CUA_marking_switch = not CUA_marking_switch
+   'togglecontrol 25' CUA_marking_switch
+ compile if WANT_NODISMISS_MENUS
+   SetMenuAttribute( 441, 8192, CUA_marking_switch)
+ compile endif  -- WANT_NODISMISS_MENUS
+   call MH_set_mouse()
+compile endif
+
+compile if WANT_STREAM_MODE = 'SWITCH'
+defc stream_toggle
+   universal stream_mode
+   stream_mode = not stream_mode
+   'togglecontrol 24' stream_mode
+   'RefreshInfoLine STREAMMODE'
+ compile if WANT_NODISMISS_MENUS
+   SetMenuAttribute( 442, 8192, not stream_mode)
+ compile endif  -- WANT_NODISMISS_MENUS
+compile endif
+
+compile if RING_OPTIONAL
+defc ring_toggle
+   universal ring_enabled
+   universal activemenu, defaultmenu
+   ring_enabled = not ring_enabled
+   'toggleframe 4' ring_enabled
+   deletemenu defaultmenu, 2, 0, 1                  -- Delete the file menu
+   call add_file_menu(defaultmenu)
+   deletemenu defaultmenu, 4, 0, 1                  -- Delete the options menu
+   call add_options_menu(defaultmenu, dos_version() >= 1020)
+   call maybe_show_menu()
+compile endif
+
+compile if WANT_STACK_CMDS = 'SWITCH'
+defc stack_toggle
+   universal stack_cmds
+   universal activemenu, defaultmenu
+   stack_cmds = not stack_cmds
+   deletemenu defaultmenu, 8, 0, 1                  -- Delete the edit menu
+   call add_edit_menu(defaultmenu)
+   call maybe_show_menu()
+compile endif
+
+compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
+defc accel_toggle
+   universal CUA_MENU_ACCEL
+   universal activemenu, defaultmenu
+   CUA_MENU_ACCEL = not CUA_MENU_ACCEL
+   deleteaccel 'defaccel'
+   'loadaccel'
+   deletemenu defaultmenu, 8, 0, 1                  -- Delete the edit menu
+   call add_edit_menu(defaultmenu)
+   if activemenu = defaultmenu  then
+  compile if 0   -- Don't need to actually show the menu; can just update the affected text.
+      showmenu activemenu
+  compile else
+      call update_edit_menu_text()
+  compile endif
+   endif
+ compile if WANT_NODISMISS_MENUS
+   SetMenuAttribute( 446, 8192, not CUA_MENU_ACCEL)
+ compile endif  -- WANT_NODISMISS_MENUS
+compile endif
+
+
