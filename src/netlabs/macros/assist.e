@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.5 2002-11-03 00:08:57 aschn Exp $
+* $Id: assist.e,v 1.6 2004-02-01 20:55:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -105,27 +105,41 @@ compile if not defined(LOCATE_CIRCLE_COLOR2)
 compile endif
 
 def c_leftbracket, c_rightbracket = call passist()
-def c_8 = call passist()  -- added for grman keyboards
+def c_8 = call passist()  -- added for german keyboards
 
 ; ---------------------------------------------------------------------------
+; id           = found word under cursor (or beneath the cursor in some cases)
+; force_search = set to 1 if id is an intermediate conditional token
+;                (e.g. 'else', but not 'if' or 'endif')
+; c            = char at cursor
+; k            = matching position of c in const GOLD or flag for
+;                foreward (k = 1) or backward (k = 0) search
+; search       = string for locate command, without seps and options,
+;                egrep will be used
+; incr         = offset cursor pos to whole string to search
 defproc passist
    call psave_pos(savepos)
-   case = 'e'
+   getsearch search_command -- Save user's search command.
+   case = 'e'  -- respect case is default
    id = ''
    force_search = 0
    n=1
+   -- get c = char at cursor
    c=substr(textline(.line),.col,1)
+   -- if c = space, then try it 1 col left
    if c==' ' & .col > 1 then
       left
       c=substr(textline(.line),.col,1)
    endif
-   getsearch search_command -- Save user's search command.
    k=pos(c,GOLD)            --  '(){}[]<>'
    if k then
+   -- if c = bracket defined in GOLD, then set search to the corresponding char out of GOLD
       search = substr(GOLD,(k+1)%2*2-1,2)
       incr = 0
    else
+   -- if not a bracket char
                      -- Add '.' to default token_separators & remove ':' for GML markup.
+      -- build the separator list for find_token
       if pos(c, '*/') then
          seps = '/*'
       else
@@ -140,23 +154,30 @@ defproc passist
       endif
 -- end addition for TeX
 
+      -- get the word under cursor and return startcol and endcol
+      -- stop at separators = arg(3)
+      -- stop at double char separators = arg(4)
       if find_token(startcol, endcol,  seps, '/* */') then
          getline line
          if startcol>1 then
+            -- add '<' to found word if it is on the left side of it
             if substr(line, startcol-1, 1)='<' then
                startcol = startcol - 1
             endif
          endif
+         -- id = found word
          id = substr(line, startcol, (endcol-startcol)+1)
 -- begin addition for TeX
          if CurMode = 'TEX' and startcol > 1 then
-           --//PM TeX macros are preceded by \backslash which is also separator
-           if substr(line,startcol-1,1)='\' then --EPM evals all conditions of if=>all 3 conditions cannot be done on 1 line as in C
-             startcol = startcol-1
-             id = substr(line, startcol, (endcol-startcol)+1)
-           endif
+            --//PM TeX macros are preceded by \backslash which is also separator
+            -- add '\' to found word if it is on the left side of it
+            if substr(line,startcol-1,1)='\' then --EPM evals all conditions of if=>all 3 conditions cannot be done on 1 line as in C
+               startcol = startcol-1
+               id = substr(line, startcol, (endcol-startcol)+1)
+            endif
          endif
 -- end addition for TeX
+         -- if id = '.', then go 1 col left and search again
          if id='.' & .col > 1 then
             left
             if find_token(startcol, endcol) then
@@ -165,6 +186,7 @@ defproc passist
          endif
       endif
 
+      ---------------------------------------------------------------------------------------------
       if wordpos(id, '#if #ifdef #ifndef #endif #else #elif') then
          search = '\#(if((n?def)|):w|endif)'
          c = substr(id, 2, 1)
@@ -175,8 +197,10 @@ defproc passist
             .col = endcol
          endif
          incr = 1
+         -- set force_search flag for #else or #elif
          force_search = substr(id, 3, 1)='l'
 
+      ---- E compiler directives: compile if, compile else, compile elseif, compile endif ---------
       elseif lowcase(id)='compile' &
              wordpos(lowcase(word(substr(line, endcol+1), 1)), 'if endif else elseif') then
          search = 'compile:w(end|)if'
@@ -190,8 +214,10 @@ defproc passist
          endif
          id=lowcase(id)
          incr = 0
+         -- set force_search flag for compile else or compile elseif
          force_search = lowcase(substr(word(substr(line, endcol+1), 1), 2, 1))='l'
 
+      ---------------------------------------------------------------------------------------------
       elseif wordpos(lowcase(id), ':ol :eol :ul :eul :sl :esl :dl :edl :parml :eparml') &
              pos(substr(line, endcol+1, 1), '. ') then
          c = substr(id, 2, 1)  -- Character to check to see if it's an end tag
@@ -207,6 +233,7 @@ defproc passist
          incr = 1              -- offset from match of the char. to compare with 'c' value
          force_search = 0      -- force a search if on an intermediate (like #else).
 
+      ---- C multiline comments: /*,*/ ------------------------------------------------------------
       elseif wordpos(id, '/* */') then
          c = leftstr(id, 1)    -- Character to check to see if it's the same or the other
          k = (c='/')           -- k = 1 if searching forward; 0 if backwards
@@ -219,6 +246,7 @@ defproc passist
          incr = 0              -- offset from match of the char. to compare with 'c' value
          force_search = 0      -- force a search if on an intermediate (like #else).
 
+      ---- HTML tags: <...,</...> -----------------------------------------------------------------
       elseif leftstr(id, 1)='<' then
          c = substr(id, 2, 1)  -- Character to check to see if it's the same or the other
          k = (c<>'/')           -- k = 1 if searching forward; 0 if backwards
@@ -236,6 +264,8 @@ defproc passist
 
 -- begin addition for TeX
       -- //PM additions: balanceable tokens for (La)TeX
+
+      ---- TeX conditions: \if, \else, \fi --------------------------------------------------------
       elseif substr(id,1,3)='\if' or wordpos(id, '\else \fi') then --// \if.. \else \fi
          search = '\\(if|fi)'
          c = substr(id, 2, 1)
@@ -246,9 +276,14 @@ defproc passist
             .col = endcol -- \else,\if: move to end
          endif
          incr = 1
+         -- set force_search flag for \else
          force_search = substr(id, 3, 1)='l' -- force_search=1 for \else
+
+      ---- TeX environment: \begin..., \end... ----------------------------------------------------
       elseif substr(id,1,6)='\begin' or substr(id,1,4)='\end' then --// \begin.. \end..
          search = '\\(begin|end)'
+         ---- LaTeX environment: \begin{...}, \end{...} -------------------------------------------
+----> bug   \begin {...} is not recognized!
          if substr(line,endcol+1,1)='{' then -- isn't it LaTeX's \begin{sth} ?
 -- compile if 0
 compile if 1
@@ -276,6 +311,8 @@ compile endif
          incr = 1
          force_search = 0
          -- sayerror 'searching for 'search
+
+      ---- TeX math -------------------------------------------------------------------------------
       elseif wordpos(id,'\left \right') then --// \left \right
          search = '\\(left|right)'
          c = substr(id, 2, 1)
@@ -289,6 +326,72 @@ compile endif
          force_search = 0
       -- end of //PM additions for TeX files
 -- end addition for TeX
+/**/
+      ---- E conditions: if, else, elseif, endif --------------------------------------------------
+      elseif CurMode = 'E' then
+         if wordpos( lowcase(id), 'if endif else elseif') then
+---->       -- todo: if word left from id = 'compile', then search for compile ...
+            search = '(end|)if'
+            case = 'c'  -- Case insensitive
+            c = lowcase( leftstr( id, 1))
+            k = (c <> 'e')
+            if k then  -- move to beginning
+               .col = startcol
+            else       -- move to end, so first Locate will hit this instance.
+               .col = endcol
+            endif
+            id = lowcase(id)
+            incr = 0
+            -- set force_search flag for else or elseif
+            force_search = lowcase( substr( id, 2, 1)) = 'l'
+         elseif wordpos( lowcase(id), 'loop endloop') then
+            search = '(end|)loop'
+            case = 'c'  -- Case insensitive
+            c = lowcase( leftstr( id, 1))
+            k = (c <> 'e')
+            if k then  -- move to beginning
+               .col = startcol
+            else       -- move to end, so first Locate will hit this instance.
+               .col = endcol
+            endif
+            id = lowcase(id)
+            incr = 0
+            -- set force_search flag for else or elseif
+            force_search = 0
+         endif
+
+      ---- REXX conditions: if, else --------------------------------------------------------------
+      elseif CurMode = 'REXX' then
+         if wordpos( lowcase(id), 'if else') then
+            search = '(if|else)'
+            case = 'cw'  -- Case insensitive and for words only
+            c = lowcase( leftstr( id, 1))
+            k = (c <> 'e')
+            if k then  -- move to beginning
+               .col = startcol
+            else       -- move to end, so first Locate will hit this instance.
+               .col = endcol
+            endif
+            id = lowcase(id)
+            incr = 0
+            -- set force_search flag for else or elseif
+            force_search = 0
+         elseif wordpos( lowcase(id), 'do end') then
+            search = '(do|end)'
+            case = 'cw'  -- Case insensitive
+            c = lowcase( leftstr( id, 1))
+            k = (c <> 'e')
+            if k then  -- move to beginning
+               .col = startcol
+            else       -- move to end, so first Locate will hit this instance.
+               .col = endcol
+            endif
+            id = lowcase(id)
+            incr = 0
+            -- set force_search flag for else or elseif
+            force_search = 0
+         endif
+/**/
 
       else
          sayerror NOT_BALANCEABLE__MSG
@@ -300,7 +403,9 @@ compile endif
    if search='[]' then search='\[\]'; endif
 ;  if search='()' then search='\(\)'; endif  -- Don't need to escape it if inside brackets...
    if id='' then search='['search']'; endif
+
    if force_search then
+      -- search begin of condition
       setsearch 'xcom l /'search'/x'case||direction
  compile if defined(HIGHLIGHT_COLOR)
       circleit LOCATE_CIRCLE_STYLE, .line, startcol, endcol, LOCATE_CIRCLE_COLOR1, LOCATE_CIRCLE_COLOR2
@@ -308,6 +413,7 @@ compile endif
    else
       'L '\1 || search\1'x'case||direction
    endif
+
    loop
       repeatfind
       if rc then leave; endif
