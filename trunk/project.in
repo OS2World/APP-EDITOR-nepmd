@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: project.in,v 1.6 2002-08-10 13:41:03 cla Exp $
+# $Id: project.in,v 1.7 2002-08-10 14:15:05 cla Exp $
 #
 # ===========================================================================
 #
@@ -39,6 +39,11 @@
 !error in project.in: BINDIR must be set in your makfile before including this file.
 !endif
 
+# ---- if no pakcage subdirectory defined, we use "base"
+!ifndef PKGDIR
+PKGDIR=base
+!endif
+
 # ---- create additionally required directories
 #      NOTE: They do not need special cleanup, as they are deleted
 #      as subdirectories of CMPDIR and BINDIR in main makefile, so the macro
@@ -46,8 +51,16 @@
 
 # - create netlabs tree in compile directory
 
-CMPDSTDIR=$(CMPDIR)\netlabs
+CMPPKGDIR=$(CMPDIR)\$(PKGDIR)
+!if [@md $(CMPPKGDIR) 2> NUL]
+!endif
+
+CMPDSTDIR=$(CMPPKGDIR)\netlabs
 !if [@md $(CMPDSTDIR) 2> NUL]
+!endif
+
+CMPBINDIR=$(CMPDSTDIR)\bin
+!if [@md $(CMPBINDIR) 2> NUL]
 !endif
 
 CMPINFDIR=$(CMPDSTDIR)\book
@@ -58,19 +71,19 @@ CMPINSTDIR=$(CMPDSTDIR)\install
 !if [@md $(CMPINSTDIR) 2> NUL]
 !endif
 
+
 CMPMACDIR=$(CMPDSTDIR)\macros
 !if [@md $(CMPMACDIR) 2> NUL]
 !endif
-
 
 CMPEXDIR=$(CMPDSTDIR)\ex
 !if [@md $(CMPEXDIR) 2> NUL]
 !endif
 
+
 # - create netlabs tree in binary directory
 #   taking care of subdirectory per package
 
-!ifdef PKGDIR
 BINPKGDIR=$(BINDIR)\$(PKGDIR)
 !if [@md $(BINPKGDIR) 2> NUL]
 !endif
@@ -82,9 +95,6 @@ BINDSTDIR=$(BINPKGDIR)\netlabs
 BINBINDIR=$(BINDSTDIR)\bin
 !if [@md $(BINBINDIR) 2> NUL]
 !endif
-
-!endif
-
 
 
 # --- extend path for executables to make helper programs available
@@ -98,7 +108,9 @@ SRCCOPY_FLAGFILE=$(CMPDIR)\srccopy.txt
 
 WPIDEPLIST=\
  $(SRCCOPY_FLAGFILE) \
- $(BINBINDIR)\* \
+ $(BINDIR)\recomp\netlabs\bin\* \
+ $(BINDIR)\epmcall\netlabs\bin\* \
+ $(CMPBINDIR)\* \
  $(CMPINFDIR)\* \
  $(CMPINSTDIR)\* \
  $(CMPMACDIR)\* \
