@@ -1,6 +1,6 @@
 # ***************************** Module Header *******************************
 #
-# Module Name: rules.in - external version V1.06
+# Module Name: rules.in - external version V1.07
 #
 # generic (!) include file to setup compiler and linker flags and some
 # specific implicit rules - See description below !
@@ -28,7 +28,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: rules.in,v 1.4 2002-06-19 10:54:45 cla Exp $
+# $Id: rules.in,v 1.5 2002-06-19 10:56:50 cla Exp $
 #
 # ===========================================================================
 #
@@ -98,9 +98,10 @@ DLLEXT=.dll
 !undef DEBUG
 !endif
 
-# --- determine compress option
+# --- determine DEBUG related options
 !ifdef DEBUG
 !undef LXLITE
+!undef OPTIMIZE
 !endif
 
 # --- create compile directory depending on debug option
