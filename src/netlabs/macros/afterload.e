@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: afterload.e,v 1.10 2004-09-12 15:10:25 aschn Exp $
+* $Id: afterload.e,v 1.11 2004-11-30 21:25:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -53,16 +53,6 @@ compile endif
    'HookExecute afterload'          -- no need for 'postme' here?
    'HookExecuteOnce afterloadonce'  -- no need for 'postme' here?
    dprintf( 'AFTERLOAD', 'HookExecute afterload, afterloadonce')
-
-;  Change EPM pointer from standard arrow to text pointer -------------------
-;     bug fix (hopefully): even standard EPM doesn't show everytime the
-;                          correct pointer after a new edit window was opened
-;     defined in defc initconfig, STDCTRL.E
-compile if EPM_POINTER = 'SWITCH'
-   'postme setmousepointer 'vEPM_POINTER
-compile else
-   'postme setmousepointer 'EPM_POINTER
-compile endif
 
    return
 
