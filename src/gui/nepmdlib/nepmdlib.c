@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.14 2002-08-24 15:19:11 cla Exp $
+* $Id: nepmdlib.c,v 1.15 2002-08-24 20:00:20 cla Exp $
 *
 * ===========================================================================
 *
@@ -43,6 +43,11 @@
 #include "eas.h"
 #include "tmf.h"
 
+// some useful macros
+#define EPMINSERTTEXT(t)     EtkInsertTextBuffer( hwndClient, 0, strlen( t), t, 0x100);
+#define LOADSTRING(m,t)      TmfGetMessage( NULL, 0, t, sizeof( t), m, szMessageFile, &ulMessageLen)
+#define STRING_INTERNALERROR "\n\n>>> INTERNAL ERROR:"
+
 // ------------------------------------------------------------------------------
 
 static APIRET _executeEPMCommand( HWND hwndClient, PSZ pszCommand, ...)
@@ -73,7 +78,7 @@ static APIRET _insertMessage( HWND hwndClient, PSZ pszFilename, PSZ pszMessageNa
 do
    {
    // check parms
-   if ((!hwndClient)      ||
+   if ((!hwndClient)   ||
        (!pszFilename)  ||
        (!pszMessageName))
       {
@@ -95,11 +100,11 @@ do
                        pszMessageName, pszFilename, &ulMessageLen);
    va_end (arg_ptr);
    if (rc != NO_ERROR)
-      sprintf( pszMessage, "\n\n>>> INTERNAL ERROR: message %s could not be retrieved, rc=%u\n\n",
+      sprintf( pszMessage, STRING_INTERNALERROR "message %s could not be retrieved, rc=%u\n\n",
                pszMessageName, rc);
 
    // insert result
-   rc = EtkInsertTextBuffer( hwndClient, 0, strlen( pszMessage), pszMessage, 0x100);
+   EPMINSERTTEXT( pszMessage);
 
    } while (FALSE);
 
@@ -362,17 +367,25 @@ APIRET EXPENTRY NepmdInfo( HWND hwndClient)
 {
          APIRET         rc = NO_ERROR;
          CHAR           szMessageFile[ _MAX_PATH];
+         CHAR           szErrorMsg[ 128];
 
 
 do
    {
-   // determine messsage file
-   rc = NepmdGetInstValue( NEPMD_VALUETAG_MESSAGE, szMessageFile, sizeof( szMessageFile));
-   if (rc != NO_ERROR)
-      break;
 
    // open new file in ring and disable autosave
    _executeEPMCommand( hwndClient, "xcom e /c %s", NEPMD_FILENAME_LIBINFO);
+
+   // determine messsage file
+   rc = GetInstValue( NEPMD_VALUETAG_MESSAGE, szMessageFile, sizeof( szMessageFile));
+   if (rc != NO_ERROR)
+      {
+      sprintf( szErrorMsg,
+               STRING_INTERNALERROR "Fatal error: cannot determine NEPMD message file, rc=%u\n\n",
+               rc);
+      EPMINSERTTEXT( szErrorMsg);
+      break;
+      }
 
    // insert message in reverse order !
 
@@ -383,49 +396,67 @@ do
             PTIB           ptib;
    
             CHAR           szModule[ _MAX_PATH];
-            CHAR           szExecutable[ _MAX_PATH];
 
    // get path and name of this DLL
    rc = GetModuleName( szModule, sizeof( szModule));
    if (rc != NO_ERROR)
       break;
 
-   // get pathname of process executable
-   DosGetInfoBlocks( &ptib,&ppib);
-   DosQueryModuleName( ppib->pib_hmte, sizeof( szExecutable), szExecutable);
-
-
    _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_LIB",
-                   szModule, NEPMDLIB_VERSION, szExecutable);
+                   szModule, NEPMDLIB_VERSION, __DATE__);
    }
 
    // ------------------------------------------------------------------------
    // ---  dynamic configuration
    {
+         ULONG          ulMessageLen;
+         PSZ            p;
+
+         CHAR           szNotFound[ 32];
+         CHAR           szNotUsed[ 32];
+         CHAR           szNotInstalled[ 32];
+
          CHAR           szNepmdRootdir[ _MAX_PATH];
          CHAR           szLanguage[ 10];
          CHAR           szNepmdInitfile[ _MAX_PATH];
 
+         CHAR           szEpmExecutable[ _MAX_PATH];
+
+         PSZ            pszEpmExecutable = getenv( ENV_NEPMD_EPMEXECUTABLE);
+         PSZ            pszLoaderExecutable = getenv( ENV_NEPMD_LOADEREXECUTABLE);
          PSZ            pszMainEnvFile = getenv( ENV_NEPMD_MAINENVFILE);
          PSZ            pszUserEnvFile = getenv( ENV_NEPMD_USERENVFILE);
-static   PSZ            pszNotAvailable = "N/A";
+
+
+   // get some default strings
+   LOADSTRING( "STR_INFO_NOTUSED", szNotUsed);
+   LOADSTRING( "STR_INFO_NOTFOUND", szNotFound);
+   LOADSTRING( "STR_INFO_NOTINSTALLED", szNotInstalled);
 
    // get main config values
-   rc = NepmdGetInstValue( NEPMD_VALUETAG_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
-   NepmdGetInstValue( NEPMD_VALUETAG_LANGUAGE, szLanguage, sizeof( szLanguage));
-   NepmdGetInstValue(NEPMD_VALUETAG_INIT, szNepmdInitfile, sizeof( szNepmdInitfile));
+   rc = GetInstValue( NEPMD_VALUETAG_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
+   GetInstValue( NEPMD_VALUETAG_LANGUAGE, szLanguage, sizeof( szLanguage));
+   GetInstValue( NEPMD_VALUETAG_INIT, szNepmdInitfile, sizeof( szNepmdInitfile));
 
    // select defaults if some values not available
    if (rc != NO_ERROR)
-      strcpy( szNepmdRootdir, pszNotAvailable);
-   if (!pszMainEnvFile) pszMainEnvFile = pszNotAvailable;
-   if (!pszUserEnvFile) pszUserEnvFile = pszNotAvailable;
+      strcpy( szNepmdRootdir, szNotInstalled);
+   if (!pszEpmExecutable)
+      {
+      DosSearchPath( SEARCH_ENVIRONMENT | SEARCH_IGNORENETERRS,
+                     "PATH", "EPM.EXE",
+                     szEpmExecutable, sizeof( szEpmExecutable));
+      pszEpmExecutable = szEpmExecutable;
+      }
+   if ((!pszLoaderExecutable) || (!*pszLoaderExecutable)) pszLoaderExecutable = szNotUsed;
+   if ((!pszMainEnvFile) || (!*pszMainEnvFile)) pszMainEnvFile = szNotFound;
+   if ((!pszUserEnvFile) || (!*pszUserEnvFile)) pszUserEnvFile = szNotFound;
 
    // insert the result
    _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_DYNCFG",
-                   szNepmdRootdir, szLanguage, szNepmdInitfile, szMessageFile,
+                   szNepmdRootdir, pszLoaderExecutable, pszEpmExecutable,
+                   szLanguage, szNepmdInitfile, szMessageFile,
                    pszMainEnvFile, pszUserEnvFile);
-
    }
 
    // ------------------------------------------------------------------------

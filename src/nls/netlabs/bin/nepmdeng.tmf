@@ -6,7 +6,7 @@
 ;
 ; Text Message file for language specific symbols and text messages
 ;
-; $Id: nepmdeng.tmf,v 1.2 2002-08-24 15:15:18 cla Exp $
+; $Id: nepmdeng.tmf,v 1.3 2002-08-24 20:00:20 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -28,15 +28,22 @@
 <--MSG_INFO_BODY_DYNCFG-->:
 NEPMD dynamic configuration
 ---------------------------
-NEPMD installation directory: %1
-selected language: %2
-initialization file: %3
-message file: %4
-main environment file: %5
-user environment file: %6
+  installation directory: %1
+       loader executable: %2
+   loaded EPM executable: %3
+
+       selected language: %4
+     initialization file: %5
+            message file: %6
+   main environment file: %7
+   user environment file: %8
 <--MSG_INFO_BODY_LIB-->:
 NEPMD runtime library
 ---------------------
-filename: %1
-version: %2
-Loaded from: %3
+      filename: %1
+       version: %2
+          date: %3
+<--STR_INFO_NOTLOADED-->:(not loaded)
+<--STR_INFO_NOTUSED-->:(not used)
+<--STR_INFO_NOTFOUND-->:(not found)
+<--STR_INFO_NOTINSTALLED-->:(not installed)
