@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.15 2002-06-11 15:41:22 cla Exp $
+.. $Id: makefile.txt,v 1.16 2002-06-11 16:25:37 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -575,4 +575,60 @@ _*values to be configured by release maintainer only*_
 .
 
 .include guide.inc
+
+.. -----------------------------------------------------------------------------
+.2 Appendix: INI entries overview
+.. -----------------------------------------------------------------------------
+.an IDPNL_APPENDIX_INIENTRIES
+.
+[=TOPICS]
+.su V30
+
+.. .............................................................................
+.3 OS2.INI
+.. .............................................................................
+.an IDPNL_APPENDIX_INIENTRIES_OS2INI
+.
+The following entries are written to *OS2.INI*:
+
+.pl bold tsize=3
+.. -------------------------------------------
+- 'NEPMD' - 'Language'
+=
+.pl compact bold break=none tsize=9
+- description
+= language information used by several programs
+- originator
+= installation of [=TITLE]
+- value
+= a [.IDPNL_APPENDIX_LANGIDS three letter language identification]
+- type
+= alpha string (may be zero terminated)
+.el
+.. -------------------------------------------
+- 'recomp' - 'CONFIGDATA' 
+=
+.pl compact bold break=none tsize=9
+- description
+= configuration data
+- originator
+= *RECOMP* utility
+- value
+= internal
+- type
+= binary
+.el
+
+.. -----------------------------------------------------------------------------
+.2 Appendix: language identifiers overview
+.. -----------------------------------------------------------------------------
+.an IDPNL_APPENDIX_LANGIDS
+.
+The following language identifiers are currently used within the project:
+.lm 5
+.pl bold compact break=none tsize=7
+- eng
+= english
+- deu
+= deutsch (german) 
 
