@@ -1,0 +1,13 @@
+CATEGORY: EPM info
+TITLE: Enhance statusline
+PRIO: 1
+STATUS: coding
+FILES: statusline.e stdctrl.e
+UPDATED: $Id: info003,v 1.1 2002-07-17 15:56:17 cla Exp $
+
+Statusline information is extended by current margins, tabs, edit mode
+
+The disadvantage if this approach is that it's not configurable by a const in 
+mycnf.e anymore, because the implementation of the standard '%' templates is hard-coded.
+
+Todo: check for a more dynamic solution

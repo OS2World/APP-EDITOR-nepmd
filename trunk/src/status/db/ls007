@@ -1,0 +1,14 @@
+CATEGORY: Locate/Select
+TITLE: MB1 dclick on URL starts browser
+PRIO: 1
+STATUS: coding
+FILES: mouse.e
+UPDATED: $Id: ls007,v 1.1 2002-07-17 15:56:17 cla Exp $
+
+MB1 dclick on a URL will start a browser.
+
+- Use default browser from os2.ini
+- For ftp URLs: open the browser with the parent directory
+
+Todo:
+- Make the dclick behaviour mode dependent?

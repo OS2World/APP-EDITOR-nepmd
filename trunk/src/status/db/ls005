@@ -1,0 +1,14 @@
+CATEGORY: Locate/Select:
+TITLE: Enhance bracket finding
+PRIO: 1
+STATUS: coding
+FILES: assist.e
+UPDATED: $Id: ls005,v 1.1 2002-07-17 15:56:17 cla Exp $
+
+passist: Move the cursor to the matching bracket or expression.
+
+Petr Mikulik shows how to enhance the passist function for TeX environments. 
+Already implemented is the enhancement for E mode.
+
+Todo:
+- mode dependent implementaion for any bracket characters or expressions

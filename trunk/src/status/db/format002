@@ -1,0 +1,11 @@
+CATEGORY: Formatting
+TITLE: recode support
+PRIO: 1
+STATUS: coding
+FILES: recode.e
+UPDATED: $Id: format002,v 1.1 2002-07-17 15:56:15 cla Exp $
+
+Call GNU recode via menu items
+
+Todo:
+- define recode commands

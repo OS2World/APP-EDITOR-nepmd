@@ -1,0 +1,11 @@
+CATEGORY: file handling
+TITLE: smart quit
+PRIO: 2
+STATUS: coding
+FILES: user_exits.e
+UPDATED: $Id: file001,v 1.1 2002-07-17 15:56:14 cla Exp $
+
+Before the last file is quitted an unnamed file is loaded.                                      
+
+Todo:
+- make this feature configurable (not default!)

@@ -1,0 +1,10 @@
+CATEGORY: Formatting
+TITLE: Enhance home key
+PRIO: 1
+STATUS: coding
+FILES: mykeys.e
+UPDATED: $Id: format007,v 1.1 2002-07-17 15:56:16 cla Exp $
+
+- home positions cursor on first word
+- when cursor is on the beginning of the first word or before, home will position 
+  the cursor to col 1

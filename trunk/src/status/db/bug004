@@ -1,0 +1,12 @@
+CATEGORY: bug
+TITLE: error printing in color
+PRIO: 4
+STATUS: open
+FILES:
+UPDATED: $Id: bug004,v 1.1 2002-07-17 15:56:14 cla Exp $
+
+Printing and previewing a keyword highlighted text in color while System VIO 
+is the current font, ships out every line on a new page
+
+Workaround:
+- switch to Courier before printing

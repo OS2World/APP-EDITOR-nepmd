@@ -1,0 +1,9 @@
+CATEGORY: bug
+TITLE: marking does not work properly in advanced marking mode
+PRIO: 1
+STATUS: coding
+FILES: mouse.e
+UPDATED: $Id: bug002,v 1.1 2002-07-17 15:56:13 cla Exp $
+
+Last char in a line of a keyword highlighted text is not selectable with the mouse
+in advanced marking mode

@@ -1,0 +1,9 @@
+CATEGORY: file handling
+TITLE: automatic save of Lastgroup
+PRIO: 4
+STATUS: coding
+FILES: lastgroup.e
+UPDATED: $Id: file003,v 1.1 2002-07-17 15:56:15 cla Exp $
+
+Save a list of the last loaded files in ring (called group) before closing EPM to 
+restore the ring later

@@ -1,0 +1,9 @@
+CATEGORY: misc
+TITLE: Keep directories unlocked
+PRIO: 1
+STATUS: started
+FILES: *
+UPDATED: $Id: misc001,v 1.1 2002-07-17 15:56:18 cla Exp $
+
+Every directory(...) call should be preceeded by a directory('\') to "unlock" the 
+directory when changing drives.                                   

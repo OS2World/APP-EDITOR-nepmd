@@ -1,0 +1,11 @@
+CATEGORY: Formatting
+TITLE: Insert/remove comment chars
+PRIO: 1
+STATUS: coding
+FILES:  comment.e
+UPDATED: $Id: format009,v 1.1 2002-07-17 15:56:16 cla Exp $
+
+Commands 'comment' and 'uncomment'. in marked area
+
+Todo:
+- Make it mode dependent.

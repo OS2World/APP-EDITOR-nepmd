@@ -1,0 +1,11 @@
+CATEGORY: Formatting
+TITLE: Exchange lines and chars
+PRIO: 1
+STATUS: coding
+FILES: mykeys.e
+UPDATED: $Id: format001,v 1.1 2002-07-17 15:56:15 cla Exp $
+
+Alt+Sh+<arrow key> will exchange lines down/up or chars left/right.                           
+
+Hint:
+- may conflict with PageMage keys, must be selectable !
