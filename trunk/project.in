@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: project.in,v 1.9 2002-08-21 14:02:29 cla Exp $
+# $Id: project.in,v 1.10 2002-09-19 10:47:23 cla Exp $
 #
 # ===========================================================================
 #
@@ -104,9 +104,15 @@ BINDLLDIR=$(BINDSTDIR)\dll
 # --- private extension of suffix list for .e macros
 .SUFFIXES: .e .ex
 
-# --- private rule for .e macro
+# --- private rules for .e macro, one for the package ex dir, from
+#     where files get shipped, and one for the main compile directory,
+#     from where files are only used by compilation of resource modules
+
 {$(MACRODIR)}.e{$(CMPEXDIR)}.ex:
-   mkex $(CMPEXDIR) $(@B).e
+   mkex $(EPMPATH) $(CMPEXDIR) $(@B).e
+
+{$(MACRODIR)}.e{$(CMPDIR)}.ex:
+   mkex $(EPMPATH) $(CMPDIR) $(@B).e
 
 # --- extend path for executables to make helper programs available
 
@@ -120,14 +126,15 @@ NLSCOPY_FLAGFILE=$(CMPDIR)\nlscopy.txt
 
 WPIDEPLIST=\
  $(SRCCOPY_FLAGFILE) \
- $(BINDIR)\recomp\netlabs\bin\* \
+ $(CMPDIR)\base\netlabs\bin\* \
+ $(CMPDIR)\base\netlabs\book\* \
+ $(CMPDIR)\base\netlabs\ex\* \
+ $(CMPDIR)\base\netlabs\install\* \
+ $(CMPDIR)\base\netlabs\keywords\* \
+ $(CMPDIR)\base\netlabs\macros\* \
+ $(BINDIR)\\base\netlabs\dll\* \
  $(BINDIR)\epmcall\netlabs\bin\* \
- $(CMPBINDIR)\* \
- $(CMPINFDIR)\* \
- $(CMPINSTDIR)\* \
- $(CMPMACDIR)\* \
- $(CMPEXDIR)\*
-
+ $(BINDIR)\recomp\netlabs\bin\*
 
 # --- check for required programs
 !if [@required]
