@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.2 2004-06-03 21:58:34 aschn Exp $
+* $Id: toolbar.e,v 1.3 2004-07-02 09:09:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -82,38 +82,34 @@ defc load_actions
       -- Load all the EX Modules in actlist.lst, and call EX modules
       -- actionlist defc.
       for i = 1 to ActionsEXModuleList_FileID.last
-         getline  exmodule, i, ActionsEXModuleList_FileID
-         not_linked = linked(exmodule) < 0
+         getline Line, i, ActionsEXModuleList_FileID
+         StrippedLine = strip(Line)
+         -- Ignore comments, lines starting with ';' at column 1 are comments
+         if substr( Line, 1, 1) = ';' then
+            iterate
+         -- Ignore empty lines
+         elseif StrippedLine = '' then
+            iterate
+         endif
+         ExFile = StrippedLine
+         -- Strip extension
+         if rightstr( upcase(ExFile), 3) = '.EX' then
+            ExFile = substr( ExFile, 1, length(ExFile) - 3)
+         endif
+         not_linked = linked(ExFile) < 0
          if not_linked then
-            link exmodule
+            link ExFile  -- without msg
             linkrc = rc
             if rc < 0 then
-               sayerror 'Load_Actions:  'sayerrortext(rc) '-' exmodule
+               sayerror 'Load_Actions:  'sayerrortext(rc) '-' ExFile
                not_linked = 0  -- Don't try to unlink it.
             endif
          endif
-         exmodule'_actionlist'
+         ExFile'_actionlist'
          if not_linked then
-            -- unlink needs full pathname if .ex file not in current path.
-            -- Todo: extend defc unlink that it searches .ex file first in EPMPATH.
-            -- Note: The syntax for findfile, described in epmtech.inf, is wrong.
-            --       It must be called:
-            --       FINDFILE destfilename , filename [, environment_path_variable, (P|D)]
-            if substr( exmodule, 2, 2) = ':\' & exist(exmodule) then  -- if full pathname
-               fullpathexmodule = exmodule
-            else
-               lp1 = lastpos( '\', exmodule)
-               exname = substr( exmodule, lp1 + 1)
-               lp2 = lastpos( '.', exname)
-               if lp2 > 0 then
-                  exbase = substr( exname, 1, lp2 - 1)
-                  exext = substr( exname, lp2 + 1)
-               else
-                  exname = exname'.ex'
-               endif
-               findfile fullpathexmodule, exname, '', 'D'
-            endif
-            'unlink' fullpathexmodule
+            -- Standard unlink needs full pathname if .ex file not in current path.
+            -- This is fixed now for def unlink, not for the statement.
+            'unlink' ExFile
             unlinkrc = rc
          endif
       endfor
