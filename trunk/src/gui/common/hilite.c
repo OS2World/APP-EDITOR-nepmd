@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.16 2002-10-09 15:50:18 cla Exp $
+* $Id: hilite.c,v 1.17 2002-10-10 20:33:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -50,7 +50,7 @@
 #define DEBUG_DUMPARRAYDETAILS 0
 
 // debug output on func entry and exit
-#define DEBUG_NOMESSAGE_ENTEREXIT 1
+#define DEBUG_NOMESSAGE_ENTEREXIT 0
 
 #if DEBUG_NOMESSAGE_ENTEREXIT
 #undef FUNCENTER
@@ -93,12 +93,12 @@ static   PSZ            pszKeywordNone    = "NONE:";
 // ----------------------------------------------------------------------
 
 // some useful macros
-#define ALLOCATEMEMORYFILE(p,s)                      \
-rc = MmfAlloc( (PVOID*)&p, MMF_FILE_INMEMORY, 0, s); \
-if (rc != NO_ERROR)                                  \
+#define ALLOCATEMEMORYFILE(p,s)                            \
+rc = MmfAlloc( hmmf, (PVOID*)&p, MMF_FILE_INMEMORY, 0, s); \
+if (rc != NO_ERROR)                                        \
    break;
 
-#define FREEMEMORYFILE(p)   MmfFree( p)
+#define FREEMEMORYFILE(p)   MmfFree( hmmf, p)
 
 #define QUERYOPTINITVALUE(h,s,k,t,d) \
 InitQueryProfileString( h, s, k, d, t, sizeof( t));
@@ -234,7 +234,7 @@ pszEntry      = (PVOID) Filespec( (PSZ) pszEntry, FILESPEC_NAME);
 return stricmp( pszKeyElement, pszEntry);
 }
 
-static APIRET _getDefFileList( PSZ pszEpmMode, ULONG ulKeywordFileDate, PSZ *ppszFileList,
+static APIRET _getDefFileList( HMMF hmmf, PSZ pszEpmMode, ULONG ulKeywordFileDate, PSZ *ppszFileList,
                                PULONG pulFileCount, PULONG pulTotalSize, PBOOL pfOutdated)
 {
 
@@ -314,10 +314,11 @@ do
 //       DPRINTF(( "HILITE: %u [%u] bytes (%u entries) (re)allocated for file list at 0x%08x\n",
 //                ulListSize, _msize( pszTmp), ulListSize / _MAX_PATH, pszTmp));
          pszEntry = pszFileList + (ulFileCount * _MAX_PATH);
-DMARK;
-DPRINTF(( "copy file to list: pszEntry 0x%08x <- szFile 0x%08x\n", pszEntry, szFile));
+#ifdef DEBUG
+_dumpMMF( hmmf);
+printf( "copy entry at entry at %p: %s\n", pszEntry, szFile);
+#endif
          strcpy( pszEntry, szFile);
-DMARK;
          strlwr( pszEntry );
          ulFileCount++;
          ulTotalSize += QueryFileSize( szFile);
@@ -591,6 +592,8 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, PBOOL pfReload, PSZ pszBuffe
 {
          APIRET         rc = NO_ERROR;
          ULONG          i;
+         HMMF           hmmf = NULLHANDLE;
+
          PSZ            p;
          PSZ            pszTmpDir;
 
@@ -726,6 +729,12 @@ do
    *pfReload = TRUE;
    memset( pszBuffer, 0, ulBuflen);
 
+   // initialize support for memory mapped files
+
+   rc = MmfInitialize( &hmmf);
+   if (rc != NO_ERROR)
+      break;
+
    // -----------------------------------------------
 
    // search and load values from INI files
@@ -855,7 +864,7 @@ do
 
    // get the list of files
    ulFileCount = 0;
-   rc = _getDefFileList( pszEpmMode, ulKeywordFileDate, &pszFileList, &ulFileCount, &ulTotalSize, &fOutdated);
+   rc = _getDefFileList( hmmf, pszEpmMode, ulKeywordFileDate, &pszFileList, &ulFileCount, &ulTotalSize, &fOutdated);
    if (rc != NO_ERROR)
       break;
 
@@ -1197,7 +1206,8 @@ do
 
 // DPRINTF(( "HILITE: assembling %u bytes to hilite file: %s\n", ulHiliteContentsLen, szKeywordFile));
 
-   rc = MmfAlloc( (PVOID*)&pszHiliteContents,
+   rc = MmfAlloc( hmmf,
+                  (PVOID*)&pszHiliteContents,
                   szKeywordFile,
                   MMF_ACCESS_READWRITE |
                   MMF_OPENMODE_RESETFILE,
@@ -1282,11 +1292,11 @@ do
 
    // set filesize
    ulHiliteContentsLen = strlen( pszHiliteContents);
-   rc = MmfSetSize( pszHiliteContents, ulHiliteContentsLen);
+   rc = MmfSetSize( hmmf, pszHiliteContents, ulHiliteContentsLen);
 // DPRINTF(( "-  setting filesize to size of %u bytes, rc=%u\n", ulHiliteContentsLen, rc));
 
    // write temporary file
-   rc = MmfUpdate( pszHiliteContents);
+   rc = MmfUpdate( hmmf, pszHiliteContents);
 // DPRINTF(( "-  update file, rc=%u\n", rc));
 
 
@@ -1322,6 +1332,7 @@ if (pszHiliteContents)    FREEMEMORYFILE( pszHiliteContents);
 
 if (hinitDefault) InitCloseProfile( hinitDefault, FALSE);
 if (hinitGlobals) InitCloseProfile( hinitGlobals, FALSE);
+if (hmmf)         MmfTerminate( hmmf);
 
 FUNCEXITRC;
 return rc;
