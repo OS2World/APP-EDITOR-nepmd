@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.15 2004-02-22 18:55:20 aschn Exp $
+* $Id: edit.e,v 1.16 2004-02-28 15:33:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -79,7 +79,7 @@ defc ring
       endif
    enddo
    'postme activatefile' startfid
-   display 3
+   'postme display' 3
    return
 
 ; ---------------------------------------------------------------------------
@@ -474,10 +474,10 @@ defc be, binedit
       -- switch to overwrite mode
       insert_toggle
    endif
-   'HookAdd load tabs 1'
-   'HookAdd load tabkey on'
-   'HookAdd load matchtab off'
-   'HookAdd load mode bin'
+   'HookAdd loadonce tabs 1'
+   'HookAdd loadonce tabkey on'
+   'HookAdd loadonce matchtab off'
+   'HookAdd loadonce mode bin'
 
 ; ---------------------------------------------------------------------------
 ; linebreak at lineend chars
@@ -492,10 +492,10 @@ defc ble, binlineedit
       -- switch to overwrite mode
       insert_toggle
    endif
-   'HookAdd load tabs 1'
-   'HookAdd load tabkey on'
-   'HookAdd load matchtab off'
-   'HookAdd load mode bin'
+   'HookAdd loadonce tabs 1'
+   'HookAdd loadonce tabkey on'
+   'HookAdd loadonce matchtab off'
+   'HookAdd loadonce mode bin'
 
 ; ---------------------------------------------------------------------------
 ; linebreak at maxmargin
@@ -510,10 +510,10 @@ defc bme, binmaxedit
       -- switch to overwrite mode
       insert_toggle
    endif
-   'HookAdd load tabs 1'
-   'HookAdd load tabkey on'
-   'HookAdd load matchtab off'
-   'HookAdd load mode bin'
+   'HookAdd loadonce tabs 1'
+   'HookAdd loadonce tabkey on'
+   'HookAdd loadonce matchtab off'
+   'HookAdd loadonce mode bin'
 
 ; ---------------------------------------------------------------------------
 ; Finds EPM macro files <basename>.e in Dir of arg(1) and EPMMACROPATH.
