@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.35 2002-09-22 13:20:52 cla Exp $
+* $Id: nepmdlib.e,v 1.36 2002-10-07 21:40:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -95,7 +95,7 @@ defproc helperNepmdCheckliberror (LibFile, rc) =
 defproc helperNepmdCreateDumpfile (FunctionName, Parms) =
 
  TestcaseTitle = FunctionName':' Parms;
- Separator     = copies( '-', length( TestcaseTitle));  
+ Separator     = copies( '-', length( TestcaseTitle));
 
  'xcom e /c .TEST_'translate( FunctionName);
  .autosave = 0;
@@ -141,6 +141,7 @@ include 'initconfig.e'
 include 'libversion.e'
 include 'openconfig.e'
 include 'queryconfigvalue.e'
+include 'querydefaultmode.e'
 include 'queryfullname.e'
 include 'queryinstvalue.e'
 include 'querypathinfo.e'
