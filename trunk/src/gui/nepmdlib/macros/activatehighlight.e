@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: activatehighlight.e,v 1.3 2002-09-22 22:23:08 cla Exp $
+* $Id: activatehighlight.e,v 1.4 2002-10-01 14:34:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -114,8 +114,7 @@ defproc NepmdActivateHighlight( ActivateFlag)
  /* get mode of current file, if not specified */
  EpmMode = arg( 2);
  if (EpmMode = '') then
-    -- EpmMode = NepmdGetMode();
-    EpmMode = 'C';
+    EpmMode = NepmdGetMode();
  endif
 
  /* prepare parameters for C routine */
