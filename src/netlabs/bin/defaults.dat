@@ -7,7 +7,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.5 2004-05-09 12:49:30 aschn Exp $
+; $Id: defaults.dat,v 1.6 2004-06-04 00:15:58 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -37,21 +37,64 @@
 ; Statusline and Titletext
 "\NEPMD\User\InfoLine\StatusFields" = "Line <line> of <lines> * Col <col> * '<hex>'x/<dec> * Ma <ma> * Tabs <tabs>, <tabkey> * <mode> * <modified>"
 "\NEPMD\User\InfoLine\TitleFields" = "<file>/<files> * <filename> * <datetimemodified>"
+; \250
 "\NEPMD\User\InfoLine\Sep" = " ú "
 
 ; Mouse
 "\NEPMD\User\Mouse\Mark\DragAlwaysMarks" = "1"
-;    MouseStyle =  1: MB1 = block marking, MB2 = char marking
-;    MouseStyle <> 1: MB2 = block marking, MB1 = char marking
+;    MouseStyle =  1: MB1 = block marking, MB3 = char marking, MB2 = line marking
+;    MouseStyle <> 1: MB3 = block marking, MB1 = char marking, MB2 = line marking
 "\NEPMD\User\Mouse\Mark\MouseStyle" = "2"
+"\NEPMD\User\Mouse\Mark\DefaultPaste" = "C"
 "\NEPMD\User\Mouse\Mark\Workaround" = "1"
 
 "\NEPMD\User\Mouse\Url\MB1_DClick" = "1"
 "\NEPMD\User\Mouse\Url\Browser" = "DEFAULT"
 
-; Indent
-"\NEPMD\User\Indent\Home\RespectIndent" = "1"
+; Scroll
+"\NEPMD\User\Scroll\AfterLocate" = "0"
+"\NEPMD\User\Scroll\KeepCursorOnScreen" = "1"
+
+; AutoRestore
+"\NEPMD\User\AutoRestore\CursorPos" = "1"
+"\NEPMD\User\AutoRestore\Ring\SaveLast" = "0"
+"\NEPMD\User\AutoRestore\Ring\LoadLast" = "0"
+"\NEPMD\User\AutoRestore\Ring\MaxFiles" = "30"
+"\NEPMD\User\AutoRestore\Ring\MaxRings" = "1"
 
 ; Reflow
 "\NEPMD\User\Reflow\TwoSpaces" = "0"
+"\NEPMD\User\Reflow\JoinAfterWrap" = "0"
+"\NEPMD\User\Reflow\Next" = "1"
+"\NEPMD\User\Reflow\Mail\IndentedIsVerbatim" = "1"
+
+; History
+"\NEPMD\User\History" = "1"
+
+; AccelKeys
+"\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey" = "0"
+"\NEPMD\User\Keys\AccelKeys\BlockRightAltKey" = "0"
+
+; Home key
+"\NEPMD\User\Keys\Home\ToggleBeginLineText" = "1"
+
+; Tab key
+"\NEPMD\User\Keys\Tab\MatchTab" = "0"
+"\NEPMD\User\Keys\Tab\TabGlyph" = "1"
+
+; KeywordHighlighting
+"\NEPMD\User\KeywordHighlighting" = "1"
+
+; SyntaxExpansion
+"\NEPMD\User\SyntaxExpansion" = "1"
+
+; Menu
+"\NEPMD\User\Menu\NoDismiss" = "1"
+"\NEPMD\User\Menu\Name" = "Newmenu"
+
+; Readonly
+"\NEPMD\User\Readonly" = "1"
+
+; Lock
+"\NEPMD\User\Lock\OnModify" = "1"
 
