@@ -3,7 +3,7 @@
  *
  *      Syntax: rmwpi wis-script
  *
- *    This program quickly removes packages matching the package ids of the 
+ *    This program quickly removes packages matching the package ids of the
  *    specified wis script without using the WarpIn GUI.
  *    THIS IS INTENDED FOR TESTING PURPOSES ONLY !
  *
@@ -23,7 +23,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rmwpi.cmd,v 1.6 2002-08-16 22:35:56 cla Exp $
+* $Id: rmwpi.cmd,v 1.7 2004-12-25 15:13:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.6 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.7 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -152,14 +152,14 @@
        PARSE VAR ThisId '"'ThisId'"'
        IF (ThisId = '') THEN ITERATE;
 
-       /* strip of dynamic version number */
+       /* strip off dynamic version number */
        PARSE VAR ThisId ThisVendor'\'ThisPackage'\'ThisComponent'\'.
        ThisId = ThisVendor'\'ThisPackage'\'ThisComponent;
 
        DO n = 1 TO IniFile.0
 
           /* query all apps and remove matching ones */
-          Apps = SysIni( 'C:\os2\install\warpin\DATBAS_C.INI', 'ALL:', 'Apps.');
+          Apps = SysIni( IniFile.n, 'ALL:', 'Apps.');
           DO a = 1 TO Apps.0
              IF (POS( ThisId, Apps.a) = 1) THEN
              DO
@@ -172,7 +172,7 @@
        END;
     END;
 
-    /* any app removed ? */ 
+    /* any app removed ? */
     IF (\fAppRemoved) THEN
        rc = ERROR.NO_MORE_FILES;
 
@@ -292,7 +292,7 @@ RemoveApp: PROCEDURE EXPOSE (GlobalVars)
     END;
     IF (ObjectCount > 0 ) THEN
        SAY '  -' ObjectCount 'WPS object(s) destroyed'
-   
+
     /* delete ini entry */
     rcx = SysIni( IniFile, AppId, 'DELETE:');
  END;
