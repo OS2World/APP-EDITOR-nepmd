@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.17 2003-12-12 17:20:41 aschn Exp $
+* $Id: main.e,v 1.18 2004-01-13 17:27:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -72,6 +72,7 @@ compile endif
    universal should_showwindow
    universal nepmd_hini
    universal app_hini
+   universal unnamedfilename
 
    should_showwindow = 1  -- Lets cmdline commands inhibit the SHOWWINDOW.
 
@@ -136,28 +137,17 @@ compile endif
    endif
 
 ; --- Get the .Untitled filename, defined in the DLLs, NLS-dependent. -------
-   -- For the language-specific versions of the EPM binaries (W4+) all resources
-   -- moved to epmmri.dll. The .Untitled name is stringtable item 54.
-   -- For the Larry Margolis version epmmri.dll doesn't exist. It is located in
-   -- etke603.dll as resource, stringtable item 54.
-   -- Load a new empty file to query it's filename and save it in NEPMD.INI
-   -- This filename is NLS-dependent and hard-coded in the E Toolkit DLL's,
-   -- while the filename coming from the 'edit' command queries the constant.
-   -- To keep both names in synch, we take the name from the DLL and replace
-   -- all occurences of the UNNAMED_FILE_NAME const with a query of the
-   -- ini key.
-;   'xcom e /n'                     -- required?
-   UnnamedFilename = .filename
-   KeyPath = '\NEPMD\Language\UnnamedFilename'
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, UnnamedFilename)
-   -- Quit it
-;   'xcom q'                        -- required?
-   ---- UnnamedFilename can be queried with following 2 lines ----
-   -- KeyPath = '\NEPMD\Language\UnnamedFilename'
-   -- UnnamedFilename = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-
-   -- Set the field var '.filename' for the automatically created empty file
-;   .filename = UnnamedFilename     -- required?
+;     For the language-specific versions of the EPM binaries (W4+) all
+;     resources moved to epmmri.dll. The .Untitled name is stringtable item
+;     54.
+;     For the Larry Margolis version epmmri.dll doesn't exist. It is located
+;     in etke603.dll as resource, stringtable item 54.
+;     This filename is NLS-dependent and hard-coded in the E Toolkit DLL's,
+;     while the filename coming from the 'edit' command queries the constant.
+;     To keep both names in synch, we take the name from the DLL and replace
+;     all occurences of the UNNAMED_FILE_NAME const with a query of the
+;     universal var or of the proc GetUnnamedFilename().
+   unnamedfilename = .filename
 
 ; --- Host support ----------------------------------------------------------
 compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH) or DELAY_SAVEPATH_CHECK
@@ -187,7 +177,7 @@ compile endif
    do i = 1 to 1  -- use a loop here to make 'leave' omit the rest
       -- get fileid of automatically created empty file, before doscmdline
 ;;;      getfileid emptyfileid, UNNAMED_FILE_NAME
-      getfileid emptyfileid, UnnamedFilename
+      getfileid emptyfileid, unnamedfilename
       if emptyfileid = '' then           -- User deleted it?
          leave
       endif
