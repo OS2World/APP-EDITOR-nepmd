@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.7 2004-06-03 21:45:30 aschn Exp $
+* $Id: rexxkeys.e,v 1.8 2004-11-30 21:05:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -60,11 +60,7 @@ compile endif
 
 -- Moved defload to MODE.E
 
-compile if    WANT_CUA_MARKING
-defkeys rexx_keys clear
-compile else
 defkeys rexx_keys
-compile endif
 
 def space=
    universal expand_on

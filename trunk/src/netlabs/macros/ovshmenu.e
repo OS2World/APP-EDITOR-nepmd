@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ovshmenu.e,v 1.8 2004-07-09 14:10:37 aschn Exp $
+* $Id: ovshmenu.e,v 1.9 2004-11-30 21:05:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -80,9 +80,6 @@ const
 ; Following obsolete consts are copied from STDCNF.E to make it separately compilable
  compile if not defined(WANT_STREAM_MODE)
    WANT_STREAM_MODE = 'SWITCH'
- compile endif
- compile if not defined(WANT_CUA_MARKING)
-   WANT_CUA_MARKING = 'SWITCH'
  compile endif
  compile if not defined(WANT_BOOKMARKS)
    WANT_BOOKMARKS = 1
@@ -968,13 +965,11 @@ defc toggle_bitmap
                       5498 - (44*bitmap_present), 0, 0)
 
 
-compile if WANT_CUA_MARKING = 'SWITCH'
 defc CUA_mark_toggle
    universal CUA_marking_switch
    CUA_marking_switch = not CUA_marking_switch
    'togglecontrol 25' CUA_marking_switch
    call MH_set_mouse()
-compile endif
 
 compile if WANT_STREAM_MODE = 'SWITCH'
 defc stream_toggle

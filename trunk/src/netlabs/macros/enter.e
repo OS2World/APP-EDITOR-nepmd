@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: enter.e,v 1.5 2004-06-29 20:45:33 aschn Exp $
+* $Id: enter.e,v 1.6 2004-11-30 21:05:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,6 @@
 ; ASSIST_TRIGGER = 'ENTER'
 ; WANT_STREAM_INDENTED = 1
 ; WANT_STREAM_MODE = 'SWITCH'
-; WANT_CUA_MARKING = 'SWITCH'
 ; ENTER_ACTION = 'STREAM'
 ; NEPMD_STREAM_INDENTED = 1
 
