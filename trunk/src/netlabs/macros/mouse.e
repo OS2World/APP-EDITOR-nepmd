@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.16 2004-06-29 22:49:49 aschn Exp $
+* $Id: mouse.e,v 1.17 2004-11-30 21:17:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -358,7 +358,7 @@ defc MH_begin_mark
    universal CUA_marking_switch
    universal stream_mode
    universal nepmd_hini
-   KeyPath = "\NEPMD\User\Mouse\Mark\DragAlwaysMarks"
+   KeyPath = "\NEPMD\User\Mark\DragAlwaysMarks"
    DragAlwaysMarks = NepmdQueryConfigValue( nepmd_hini, KeyPath)
 
    if DragAlwaysMarks = 1 then
@@ -861,7 +861,7 @@ defc mouse_init
 ;   universal EPM_utility_array_ID, MouseStyle
    universal EPM_utility_array_ID
    universal nepmd_hini
-   KeyPath = "\NEPMD\User\Mouse\Mark\MouseStyle"
+   KeyPath = "\NEPMD\User\Mark\MouseStyle"
    MouseStyle = NepmdQueryConfigValue( nepmd_hini, KeyPath )
 
 compile if WANT_MMEDIA
@@ -918,9 +918,9 @@ compile endif  -- WANT_MMEDIA
 defproc MH_set_mouse
    universal nepmd_hini
    universal CUA_marking_switch
-   KeyPath = "\NEPMD\User\Mouse\Mark\MouseStyle"
+   KeyPath = "\NEPMD\User\Mark\MouseStyle"
    MouseStyle = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   KeyPath = "\NEPMD\User\Mouse\Mark\DefaultPaste"
+   KeyPath = "\NEPMD\User\Mark\DefaultPaste"
    DefaultPaste = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if DefaultPaste = 'C' then
       AlternatePaste = 'L'
