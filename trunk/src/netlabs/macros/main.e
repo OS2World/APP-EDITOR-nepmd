@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.16 2003-08-30 20:20:33 aschn Exp $
+* $Id: main.e,v 1.17 2003-12-12 17:20:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -71,6 +71,7 @@ compile if WANT_PROFILE='SWITCH'
 compile endif
    universal should_showwindow
    universal nepmd_hini
+   universal app_hini
 
    should_showwindow = 1  -- Lets cmdline commands inhibit the SHOWWINDOW.
 
@@ -83,6 +84,56 @@ compile endif
 compile if DEBUG_MAIN
    messageNwait('DEFMAIN: arg(1)="'arg(1)'"')
 compile endif
+
+; -------- 1) Process standard EPM.INI settings --------
+compile if WANT_APPLICATION_INI_FILE  -- we should remove this
+
+; --- Check EPM.INI -> EPM -> DTBITMAP for a valid entry --------------------
+   -- The SLE of the settings dialog truncates the bitmap filename after
+   -- 32 chars. Additionally, the truncated string is at pos 32 replaced with
+   -- a hex char. As a result, MAIN.E will be processed only up to the point,
+   -- where the not existing bitmap should be set.
+   bgbitmap = queryprofile( app_hini, 'EPM', 'DTBITMAP')
+   bgbitmap = strip( bgbitmap, 'T', \0)
+   -- Set to \0 if bitmap doesn't exist
+   if not exist(bgbitmap) then
+      call setprofile( app_hini, 'EPM', 'DTBITMAP', \0)
+   endif
+
+; --- Check if anything of interest is in OS2.INI ---------------------------
+; --- and get settings from EPM.INI -----------------------------------------
+   'initconfig'
+
+ compile if DEBUG_MAIN
+   messageNwait('DEFMAIN: after INITCONFIG')
+ compile endif
+
+compile endif  -- WANT_APPLICATION_INI_FILE
+
+; -------- 2) Process NEPMD.INI settings --------
+compile if LINK_NEPMDLIB = 'DEFMAIN'
+   if not isadefproc('NepmdOpenConfig') then
+; --- Link the NEPMD library. Open a MessageBox if .ex file not found. ------
+      'linkverify nepmdlib.ex'
+   endif
+compile endif
+
+; --- Open NEPMD.INI and save the returned handle ---------------------------
+; --- to the universal var 'nepmd_hini' -------------------------------------
+   nepmd_hini = NepmdOpenConfig()
+   parse value nepmd_hini with 'ERROR:'rc;
+   if (rc > 0) then
+      sayerror 'Configuration repository could not be opened, rc='rc;
+   endif
+
+; --- Process NEPMD.INI initialisation --------------------------------------
+   -- Write default values from nepmd\netlabs\bin\defaults.dat to NEPMD.INI,
+   -- application 'RegDefaults', if 'RegDefaults' was not found
+   rc = NepmdInitConfig( nepmd_hini )
+   parse value rc with 'ERROR:'rc;
+   if (rc > 0) then
+      sayerror 'Configuration repository could not be initialized, rc='rc;
+   endif
 
 ; --- Get the .Untitled filename, defined in the DLLs, NLS-dependent. -------
    -- For the language-specific versions of the EPM binaries (W4+) all resources
@@ -152,7 +203,10 @@ compile endif
          activatefile emptyfileid
          'xcom q'
          activatefile newfileid
-         call select_edit_keys()
+         --call select_edit_keys()  -- obsolete
+      else
+         -- Process mode settings for automatically created empty file
+         call NepmdProcessMode()
       endif
    enddo  -- i = 1 to 1
 
