@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.23 2002-10-21 12:48:56 cla Exp $
+* $Id: mode.e,v 1.24 2002-11-02 22:46:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -26,30 +26,58 @@ compile if not defined(NEPMD_SPECIAL_STATUSLINE)
 compile endif
 
 ; ---------------------------------------------------------------------------
-; Returns the current mode.
-defproc NepmdGetMode()
+; Creates the array var 'mode.'fid so that it can be queried later.
+; This proc is called by defload in EDIT.E
+defproc NepmdInitMode
    universal EPM_utility_array_ID
-   parse arg filename
-   if filename = '' then
-      filename = .filename
+   Filename = arg(1)
+   if Filename = '' then
+      Filename = .filename
    endif
+
+   -- Sets 'mode.'fid = '' because an array var must be set
+   -- to any value before querying it.
+   -- If NepmdGetMode will find an empty 'mode.'fid, then it will
+   -- determine the mode from EA or get the default mode.
+   getfileid fid, filename
+   InitMode = ''
+   -- arg(2) and arg(4) of do_array must be vars!
+   do_array 2, EPM_utility_array_ID, 'mode.'fid, InitMode
+
+   return
+
+; ---------------------------------------------------------------------------
+; Returns the current mode.
+; Get mode from array var 'mode.'fid.
+; If mode not set: get mode from EA 'EPM.MODE'.
+; If mode not set: get default mode.
+defproc NepmdGetMode
+   universal EPM_utility_array_ID
+   Filename = arg(1)
+   if Filename = '' then
+      Filename = .filename
+   endif
+   -- save currently activated file to restore the activation later
+   -- (arg(1) may differ from filename!)
    getfileid save_fid
 
-   -- Get CurMode for filename
+   -- Get CurMode for Filename by querying an array var
    -- The array var 'mode.'fid was initially set by NepmdInitMode
-   getfileid fid, filename
+   getfileid fid, Filename
+   -- arg(2) and arg(4) of do_array must be vars!
    do_array 3, EPM_utility_array_ID, 'mode.'fid, CurMode
+   -- Save this value as SavedMode
+   SavedMode = CurMode
 
-   -- CurMode should be set at this point. If not, get mode from EA or default mode:
    if CurMode = '' then
-      -- Get CurMode from EA EPM.MODE:
+      -- Get CurMode from EA EPM.MODE
       activatefile fid
       CurMode = get_EAT_ASCII_value('EPM.MODE')
    endif
 
    if CurMode = '' then
-      -- Get default mode:
-      CurMode = NepmdQueryDefaultMode(filename)
+      -- Get default mode
+      CurMode = NepmdQueryDefaultMode(Filename)
       parse value CurMode with 'ERROR:'rc
       if rc > '' then
          sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc
@@ -57,21 +85,59 @@ defproc NepmdGetMode()
       endif
    endif
 
-   -- Update array var 'mode.'fid
-   do_array 2, EPM_utility_array_ID, 'mode.'fid, CurMode
+   -- Update array var 'mode.'fid if CurMode has changed
+   if CurMode <> SavedMode then
+      -- arg(2) and arg(4) of do_array must be vars!
+      do_array 2, EPM_utility_array_ID, 'mode.'fid, CurMode
+   endif
 
    activatefile save_fid
 
    return CurMode
 
 ; ---------------------------------------------------------------------------
+; Extra procedure for getting the CheckFlag to allow using a universal var
+; during the defload event.
+; HiliteModeList is reset by defproc NepmdResetHiliteModeList, called by defc edit.
+defproc NepmdGetHiliteCheckFlag
+   universal HiliteModeList
+   Filemode = arg(1)
+
+   -- make sure each mode is checked for only once
+   if (wordpos( Filemode, HiliteModelist) = 0) then
+      HiliteModeList = HiliteModeList Filemode
+      CheckFlag = ''
+   else
+      CheckFlag = 'N'  -- 'N' means: no check for new highlighting definition files
+   endif
+   --sayerror 'Filename = '.filename', Filemode = 'Filemode', HiliteModeList = 'HiliteModeList', CheckFlag = 'CheckFlag
+
+   return CheckFlag
+
+; ---------------------------------------------------------------------------
+; Deletes the HiliteModeList.
+; Called by defc edit.
+defproc NepmdResetHiliteModeList
+   universal HiliteModeList
+
+   HiliteModeList = ''
+   return
+
+; ---------------------------------------------------------------------------
 ; Resets and redetermines current mode.
+; Processes settings for current mode only if current mode <> old mode.
+; arg(1) = old mode.
 ; Called by defc s,save.
-; arg(1) = OldMode
-defproc NepmdResetMode()
+defproc NepmdResetMode
    universal EPM_utility_array_ID
-   parse arg OldMode
-   OldMode = strip(OldMode)
+   OldMode = arg(1)
+
+   -- Set 'mode.'fid to an empty string to make NepmdGetMode redetermine
+   -- the current mode
+   getfileid fid
+   ResetMode = ''
+   -- arg(2) and arg(4) of do_array must be vars!
+   do_array 2, EPM_utility_array_ID, 'mode.'fid, ResetMode
 
    -- Get current mode
    CurMode = NepmdGetMode()
@@ -79,52 +145,11 @@ defproc NepmdResetMode()
    -- does it differ from old mode ?
    -- if not, skip
    if CurMode <> OldMode then
-
-      -- Set 'mode.'fid to an empty string to make NepmdGetMode re-determining
-      -- the current mode
-      getfileid fid
-      ResetMode = ''
-      do_array 2, EPM_utility_array_ID, 'mode.'fid, ResetMode
-
       -- Process all mode dependent settings
       call NepmdProcessMode(CurMode)
    endif
 
    return
-
-; ---------------------------------------------------------------------------
-; Creates the array var 'mode.'fid is created to be queried later.
-; NepmdProcessMode is called here.
-; This proc is called by defload in LOAD.E
-defproc NepmdInitMode
-   universal EPM_utility_array_ID
-   HiliteCheckFlag = arg( 1)
-
-   -- Get the mode from EA 'EPM.MODE'
-   NewMode = get_EAT_ASCII_value('EPM.MODE')
-   if NewMode = '' then
-      -- Get the default mode
-      NewMode =  NepmdQueryDefaultMode(.filename)
-      parse value NewMode with 'ERROR:'rc
-      if rc > '' then
-         sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc
-         NewMode = ''
-      endif
-   endif
-
-   -- Save mode in an array var for the statusline and for hili
-   -- Sets 'mode.'fid even if NewMode = '' because an array var must be set
-   -- to any value before querying it.
-   getfileid fid
-   do_array 2, EPM_utility_array_ID, 'mode.'fid, NewMode
-
-   -- Process all mode dependent settings
-   if NewMode <> '' then
-      call NepmdProcessMode( NewMode, HiliteCheckFlag)
-   endif  -- if NewMode <> ''
-
-   return NewMode
-
 
 ; ---------------------------------------------------------------------------
 ; Changes the current mode.
@@ -157,7 +182,7 @@ defc mode
       NewMode = upcase( NepmdSelectMode())
    endif
 
-   if wordpos( NewMode, '-RESET- RESET 0 OFF DEFAULT -DEFAULT-' ) > 0 then
+   if wordpos( NewMode, '0 OFF DEFAULT -DEFAULT-' ) > 0 then
 
       -- Delete the EA 'EPM.MODE' immediately
       rc = NepmdDeleteStringEa( .filename, 'EPM.MODE' )
@@ -175,6 +200,10 @@ defc mode
          sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc
          NewMode = ''
       endif
+
+      -- Save default mode in an array var for the statusline and for hili
+      getfileid fid
+      do_array 2, EPM_utility_array_ID, 'mode.'fid, NewMode
 
       -- Process all mode specific settings
       call NepmdProcessMode( NewMode )
@@ -198,20 +227,24 @@ defc mode
       -- Process all mode specific settings
       call NepmdProcessMode( NewMode )
 
-   endif  -- wordpos( NewMode, '-RESET- RESET 0 OFF DEFAULT' ) > 0
+   endif  -- wordpos( NewMode, '0 OFF DEFAULT -DEFAULT-' ) > 0
 
    return
 
 
 ; ---------------------------------------------------------------------------
 ; Processes all mode specific settings
-defproc NepmdProcessMode()
+defproc NepmdProcessMode
    -- load_var is a marker that stores if tabs or margins were already set
    -- by the EA's EPM.TABS or EPM.MARGINS
    universal load_var
 
    CurMode = arg(1)
    HiliteCheckFlag = arg( 2)
+
+   if not .visible then
+      return
+   endif
 
    if CurMode = '' then
       CurMode = NepmdGetMode()

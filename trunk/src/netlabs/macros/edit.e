@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.8 2002-10-21 11:51:00 cla Exp $
+* $Id: edit.e,v 1.9 2002-11-02 22:46:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -43,50 +43,71 @@ defproc NepmdResolveEnvVars( Spec )
    enddo  -- forever
    return Spec
 
--- _cla
 ; ---------------------------------------------------------------------------
-; Load files from a filespec, make sure that a mode already used within
-; this loop is not checked again
+; Load files from a filespec, remove REXX EA's before loading
 
 defproc NepmdLoadFile( Spec, Options )
    universal nepmd_hini
+   KeyPath = '\NEPMD\User\RexxEa\Extensions'
+   RexxEaExtensions = NepmdQueryConfigValue( nepmd_hini, KeyPath )
 
    Spec = strip( Spec, 'B', '"' )
-   ModeList = '';
 
-   Handle = 0;
+   -- Resolve wildcards in Spec to delete REXX EA's for every REXX file
+   SpecProcessed = 0
+   Handle = 0
    do forever
-      Filename = NepmdGetNextFile( Spec, address( Handle) )
-      parse value Filename with 'ERROR:'rc
-      if rc > 0 then
+
+      if SpecProcessed = 1 then
          leave
       endif
 
-      -- check if mode has already been used in this loop
-      Filemode = NepmdQueryDefaultMode( FileName )
-      if ( filemode = 'REXX' ) then
-         call NepmdDeleteRexxEa( Filename )
-      endif
-
-      -- load the file
-      loadfile( Filename, Options)
-
-      -- activate highlighting
-      -- make sure each mode is checked for only once
-      if (wordpos( Filemode, Modelist) = 0) then
-         CheckFlag = ''
-         Modelist = Modelist Filemode
+      if (pos( '*', Spec ) + pos( '?', Spec ) > 0) then
+         -- if Spec contains wildcards then find FileNames
+         FileName = NepmdGetNextFile( Spec, address( Handle) )
+         parse value Filename with 'ERROR:'rc
+         if rc <> '' then
+            leave
+         endif
       else
-         CheckFlag = 'N'
+         -- if Spec doesn't contain wildcards then set Filename to enable the
+         -- edit command adding a not existing file to the edit ring
+         Filename = Spec
+         SpecProcessed = 1  -- Set a flag to process the loop only once
       endif
 
-      -- process mode initialization (this activates syntax highlighting)
-      Filemode = NepmdInitMode( CheckFlag)
+      --sayerror 'Spec = 'Spec', Filename = 'Filename
+
+      -- Remove REXX EA's if extension is found in RexxEaExtensions.
+      -- Use the extension here instead of the mode to avoid determining the
+      -- mode twice: here and at defload.
+      p1 = lastpos( '.', Filename )
+      if p1 > 1 then
+         ext = translate( substr( Filename, p1 + 1 ) )
+         if wordpos( ext, RexxEaExtensions ) then
+            --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
+            call NepmdDeleteRexxEa( FileName )
+         endif
+      endif
+
+/*
+      -- Better use loadfile with the original Spec as arg, so
+      -- following is commented out:
+      -- load the file
+      thisloadrc = loadfile( Filename, Options )
+      if thisloadrc <> 0 then  -- if error
+         loadrc = thisloadrc   -- then set loadrc to ensure submitting the (last) error
+      endif
+*/
 
    enddo  -- forever
 
-   return
+   -- load the file
+   -- add "..." here to enable loading file names with spaces and
+   -- use Spec instead of FileName to keep the loading of host files unchanged
+   loadrc = loadfile( '"'Spec'"', Options )
 
+   return loadrc
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
@@ -119,6 +140,8 @@ compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') & not SMALL
    universal fto                -- Need this passed to loadfile...
 compile endif
    universal nepmd_hini
+
+   call NepmdResetHiliteModeList()
 
    rest=strip(arg(1))
 
@@ -164,7 +187,7 @@ compile endif
       if ch='"' then
          p=pos('"',rest,2)
          if p then
-            file = substr(rest, 1, p)
+            filespec = substr(rest, 1, p)
             rest = substr(rest, p+1)
          else
             sayerror INVALID_FILENAME__MSG
@@ -186,14 +209,14 @@ compile if HOST_SUPPORT & not SMALL
  compile else
          p=min(p1,p2,p3,p4)
  compile endif
-         file=substr(rest,1,p-1)
-         if VMfile(file,more) then        -- tricky - VMfile modifies file
+         filespec=substr(rest,1,p-1)
+         if VMfile(filespec,more) then    -- tricky - VMfile modifies file
             if p=p1 then p=p+1; endif     -- Keep any except comma in string
             rest=more substr(rest,p)
          else
 compile endif
-            parse value rest with file rest2
-            if pos(',',file) then parse value rest with file ',' rest
+            parse value rest with filespec rest2
+            if pos(',',filespec) then parse value rest with filespec ',' rest
             else rest=rest2; endif
 compile if HOST_SUPPORT & not SMALL
             endif
@@ -207,37 +230,37 @@ compile if HOST_SUPPORT & not SMALL
 compile endif
          endif  -- VMfile(file,more)
 
-         if pos('=', file) & not pos('"', file) then
-            call parse_filename(file,.filename)
-            if pos(' ', file) then
-               file = '"'file'"'
+         if pos('=', filespec) & not pos('"', filespec) then
+            call parse_filename(filespec,.filename)
+            if pos(' ', filespec) then
+               filespec = '"'filespec'"'
             endif
          endif
 
          -- resolve environment variables
-         if pos( '%', file ) then
-            file = NepmdResolveEnvVars( file )
+         if pos( '%', filespec ) then
+            filespec = NepmdResolveEnvVars( filespec )
          endif
 
-         --sayerror 'EDIT.E before call loadfile(file,options): file = 'file
+         --sayerror 'EDIT.E before call loadfile(filespec,options): filespec = 'filespec
 
 
 compile if USE_APPEND  -- Support for DOS 3.3's APPEND, thanks to Ken Kahn.
-         if not(verify(file,'\:','M')) then
-            if not exist(file) then
-               File = Append_Path(File)||File  -- LAM todo: fixup
+         if not(verify(filespec,'\:','M')) then
+            if not exist(filespec) then
+               Filespec = Append_Path(Filespec)||Filespec  -- LAM todo: fixup
             endif
         endif
 compile endif
 
-         call NepmdLoadFile(file, options)
+         call NepmdLoadFile(filespec, options)
 
          if rc=-3 then        -- sayerror('Path not found')
-            bad_paths=bad_paths', 'file
+            bad_paths=bad_paths', 'filespec
          elseif rc=-2 then    -- sayerror('File not found')
-            not_found=not_found', 'file
+            not_found=not_found', 'filespec
          elseif rc=-282 then  -- sayerror('New file')
-            new_files=new_files', 'file
+            new_files=new_files', 'filespec
             new_files_loaded=new_files_loaded+1
          elseif rc=-278 then  --sayerror('Lines truncated')
             getfileid truncid
@@ -248,13 +271,13 @@ compile endif
             truncated=truncated', '.filename
             .modify = 0
          elseif rc=-5 then  -- sayerror('Access denied')
-            access_denied=access_denied', 'file
+            access_denied=access_denied', 'filespec
          elseif rc=-15 then  -- sayerror('Invalid drive')
-            invalid_drive=invalid_drive', 'file
+            invalid_drive=invalid_drive', 'filespec
          elseif rc=-286 then  -- sayerror('Error reading file')
-            error_reading=error_reading', 'file
+            error_reading=error_reading', 'filespec
          elseif rc=-284 then  -- sayerror('Error opening file')
-            error_opening=error_opening', 'file
+            error_opening=error_opening', 'filespec
          endif  -- rc=-3
          if first_file_loaded='' then
             if rc<>-3   &  -- sayerror('Path not found')
