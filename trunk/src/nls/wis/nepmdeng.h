@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdeng.h,v 1.2 2002-08-01 13:28:56 cla Exp $
+* $Id: nepmdeng.h,v 1.3 2002-08-05 15:29:52 cla Exp $
 *
 * ===========================================================================
 *
@@ -27,7 +27,7 @@
 #define PCK_2_TITLE "Recompilation package"
 #define PCK_3_TITLE "Programming samples"
 #define PCK_4_TITLE "Speech Support"
-#define PCK_99_TITLE "EPMBBS Base Application"
+#define PCK_99_TITLE "EPMBBS Base Application (use with OS/2 Warp 3 only !!!)"
 
 
 #define TITLE_NEPMD_FOLDER                       "EPM v6.03b"
