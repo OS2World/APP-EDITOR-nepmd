@@ -15,7 +15,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.8 2002-04-18 14:05:26 cla Exp $
+: $Id: prepare.cmd,v 1.9 2002-04-18 16:07:50 cla Exp $
 :
 : ===========================================================================
 :
@@ -84,7 +84,6 @@
 
  DEL %TARGET%\BIN\README.EPM                                                   >>%LOGFILE% 2>&1
  DEL %TARGET%\BIN\TTITALIC.BMP                                                 >>%LOGFILE% 2>&1
- DEL %TARGET%\BIN\EPMHELP.QHL                                                  >>%LOGFILE% 2>&1
 
  MD %TARGET%\BIN\BMP                                                           >>%LOGFILE% 2>&1
  %MOV% %TARGET%\BIN\*.BMP %TARGET%\BIN\BMP                                     >>%LOGFILE% 2>&1
