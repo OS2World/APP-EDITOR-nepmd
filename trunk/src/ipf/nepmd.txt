@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.24 2002-08-28 21:47:25 cla Exp $
+.. $Id: nepmd.txt,v 1.25 2002-08-29 10:02:41 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -293,7 +293,7 @@ This package contains the application core files.
 [=NOTE]
 .ul compact
 - Together with the
-  [.IDPNL_WHAT_EPMBBS_EPMDLL epmdll] package this is the absolute minimum to
+  [.IDPNL_EPMBBS_COMP_EPMDLL epmdll] package this is the absolute minimum to
   run *EPM*.
 - While all files reside in one directory within this package,
   within the installation provided by [=TITLE] these files are distributed
@@ -309,11 +309,11 @@ This package contains the dynamic link libraries of the *E Toolkit* used by *EPM
 
 [=NOTE]
 .ul compact
-- Together with the [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package this is the absolute
+- Together with the [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] package this is the absolute
   minimum to run *EPM*.
 - While all files reside in one directory within this package and are
   intended to be installed in the same directory as the
-  [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package,
+  [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] package,
   within the installation provided by [=TITLE] these files are placed in
   the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\dll]
 
@@ -323,13 +323,13 @@ This package contains the dynamic link libraries of the *E Toolkit* used by *EPM
 .an IDPNL_EPMBBS_COMP_EPMHLP
 .
 This package contains the help files used by diverse macros coming with
-the standard *EPM.
+the standard *EPM*.
 
 [=NOTE]
 .ul compact
 - While all files reside in one directory within this package and are
   intended to be installed in the same directory as the
-  [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package,
+  [.IDPNL_EPMBBS_COMP_EPMAPP epmapp] package,
   within the installation provided by [=TITLE] these files are placed in
   the [.IDPNL_ADDITIONS_DIRTREE subdirectory help]
 
@@ -646,6 +646,7 @@ only available within the extended environment, of course).
 .at hi
   The installation routine of the [=TITLE] will not do so for you !
 .at
+
 .. .............................................................................
 .4 environment files
 .. .............................................................................
@@ -1478,8 +1479,7 @@ _*How to exit the Enhanced Editor*_
 = locate string
 - C    /old/new/[[ c | e ]][[ m | a ]][[ - | + ]]
 = change string
-- NAME, N
-= [[filespec]]
+- NAME, N [[filespec]]
 = renames for next save
 - PRINT
 = print the file
