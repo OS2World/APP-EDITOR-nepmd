@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getinstvalue.e,v 1.1 2002-08-22 15:48:45 cla Exp $
+* $Id: getinstvalue.e,v 1.2 2002-08-23 08:30:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -30,9 +30,17 @@ defc NepmdGetInstValue, GetInstValue
 
   if (arg( 1) = '') then
      sayerror 'error: no value tag specified !';
-  else
-     sayerror 'value for "'arg( 1)'" is:' NepmdGetInstValue( arg( 1));
+     return;
   endif
+
+  InstValue = NepmdGetInstValue( arg( 1));
+  parse value InstValue with 'ERROR:'rc;
+  if (rc > '') then
+     sayerror 'error: could not retrieve value for "'arg( 1)'", rc='rc;
+     return;
+  endif
+
+  sayerror 'value for "'arg( 1)'" is:' NepmdGetInstValue( arg( 1));
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetInstValue                                  */
