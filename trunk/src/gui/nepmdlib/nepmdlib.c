@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.11 2002-08-23 08:31:23 cla Exp $
+* $Id: nepmdlib.c,v 1.12 2002-08-23 12:36:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -172,9 +172,9 @@ do
 
    } while (FALSE);
 
-return rc;
-
+return _getRexxError( rc, pszBuffer, ulBuflen);
 }
+
 // ------------------------------------------------------------------------------
 
 APIRET EXPENTRY NepmdGetNextFile( PSZ pszFileMask, PSZ pszHandle, PSZ pszBuffer, ULONG ulBuflen)
@@ -246,7 +246,7 @@ do
 
    } while (FALSE);
 
-return rc;
+return _getRexxError( rc, pszBuffer, ulBuflen);
 
 }
 
@@ -278,7 +278,7 @@ do
 
    } while (FALSE);
 
-return rc;
+return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
 // ------------------------------------------------------------------------------
@@ -357,7 +357,7 @@ do
 
    } while (FALSE);
 
-return rc;
+return _getRexxError( rc, pszBuffer, ulBuflen);
 
 }
 
