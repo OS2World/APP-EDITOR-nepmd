@@ -6,7 +6,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: nepmdlib.def,v 1.2 2002-08-20 12:06:16 cla Exp $
+; $Id: nepmdlib.def,v 1.3 2002-08-20 14:54:00 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -28,12 +28,57 @@ HEAPSIZE  16384
 STACKSIZE 16384
 
 EXPORTS
-   NepmdErrorMsgBox
-   NepmdLibInfo
-   NepmdQueryFullname
-   NepmdReadStringEa
-   NepmdWriteStringEa
+ NepmdErrorMsgBox
+ NepmdLibInfo
+ NepmdQueryFullname
+ NepmdReadStringEa
+ NepmdWriteStringEa
+ NepmdLibVersion
 
 IMPORTS
-   ETKE603.EtkExecuteCommand
+ ETKE603.EtkAccessLowLevelData
+ ETKE603.EtkAssignAttributeClass
+ ETKE603.EtkChangeLineTerminator
+ ETKE603.EtkCreate
+ ETKE603.EtkCreateArray
+ ETKE603.EtkDeleteArrayElement
+ ETKE603.EtkDeleteText
+ ETKE603.EtkDestroy
+ ETKE603.EtkExecuteCommand
+ ETKE603.EtkFindArray
+ ETKE603.EtkFindAttribute
+ ETKE603.EtkFreeKeywordsInfo
+ ETKE603.EtkGetArrayElement
+ ETKE603.EtkGetPMInfo
+ ETKE603.EtkInsertText
+ ETKE603.EtkInsertTextBuffer
+ ETKE603.EtkInvalidateText
+ ETKE603.EtkMapPointDoc2LCO
+ ETKE603.EtkMapPointDoc2Window
+ ETKE603.EtkMapPointLCO2Doc
+ ETKE603.EtkMapPointLCO2Window
+ ETKE603.EtkMapPointWindow2Doc
+ ETKE603.EtkMapPointWindow2LCO
+ ETKE603.EtkProcessEditKey
+ ETKE603.EtkQueryAttributeClassID
+ ETKE603.EtkQueryFileField
+ ETKE603.EtkQueryFileFieldString
+ ETKE603.EtkQueryFileID
+ ETKE603.EtkQueryInsertState
+ ETKE603.EtkQueryLineTerminator
+ ETKE603.EtkQuerySelection
+ ETKE603.EtkQuerySelectionType
+ ETKE603.EtkQueryText
+ ETKE603.EtkQueryTextBuffer
+ ETKE603.EtkRegisterAttributeClass
+ ETKE603.EtkRegisterEMLEClass
+ ETKE603.EtkRegisterEMLEClientClass
+ ETKE603.EtkRegisterFont
+ ETKE603.EtkRegisterFont2
+ ETKE603.EtkReplaceText
+ ETKE603.EtkSetArrayElement
+ ETKE603.EtkSetFileField
+ ETKE603.EtkSetSelection
+ ETKE603.EtkSort
+ ETKE603.EtkVersion
 
