@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution project 2002
 #
-# $Id: nepmd.wis,v 1.5 2002-04-16 21:51:29 cla Exp $
+# $Id: nepmd.wis,v 1.6 2002-04-16 22:18:52 cla Exp $
 #
 # ===========================================================================
 #
@@ -132,14 +132,12 @@ Select "Cancel" to abort installation.</TEXT>
 IMPORTANT: the following restrictions apply to WarpIn V0.9.18 and may apply to newer versios as well:
 
 Installation:
-       If you deselect all packages via the menu item "Selection" - "Deselect all", also the package "Base Application" is deselected, what should not be possible. The files installed will not work, if the package "Base Application" is not installed.
-
        Changing the installation path does not change ot for all components. Don't change the installation path or make sure that you use the same installation path for all components, otherwise the installed version will not properly work.
 
 Deinstallation:
        Deinstallation from within this WarpIn package does not work. Start WarpIn without a WPI package file in order to deinstall this package instead.
 
-       Deinstall all packages separately without the package "Base Application", otherwise you will get errors. If you get errors, close the error report and remove the remaining database entries manually.
+       Don't deinstall packages of this distribution without deinstalling also the package "Base Application", otherwise you will get errors. If you have done that nevertheless, close the error report and remove the remaining database entries manually.
 
        WarpIn will warn you, if you attempt to install any packages of this distribution but the package "Base Application", because you may not deinstall any packages, if the main package is not also selected for deinstallation. Nevertheless WarpIn will warn you only about up to a maximum of two dependad packages, although you may have selected more than two packages depending on the main package.
 
