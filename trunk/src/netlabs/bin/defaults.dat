@@ -7,7 +7,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.6 2004-06-04 00:15:58 aschn Exp $
+; $Id: defaults.dat,v 1.7 2004-07-02 12:22:40 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -28,6 +28,10 @@
 ; these keys are junk only
 "\NEPMD\Testcase\MyContainer\MyKey" = "This is my value"
 "\NEPMD\Testcase\MyContainer\MyKey2"="This is another value"
+
+; Installation
+"\NEPMD\System\JustInstalled" = "1"
+"\NEPMD\System\CheckEpmExTimeStamp" = "1"
 
 ; Default edit, save and search options
 "\NEPMD\User\Edit\DefaultOptions" = "/b /t /l"
