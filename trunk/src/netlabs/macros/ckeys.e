@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.3 2002-08-09 19:43:38 aschn Exp $
+* $Id: ckeys.e,v 1.4 2002-08-20 05:24:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -86,40 +86,40 @@ defload
    if wordpos(load_ext, C_EXTENSIONS CPP_EXTENSIONS) then
 ;                                               C++                                         Data Base Manager
       keys   C_keys
- compile if C_TABS <> 0
+compile if C_TABS <> 0
       if not (load_var // 2) then  -- 1 would be on if tabs set from EA EPM.TABS
          'tabs' C_TABS
       endif
- compile endif
- compile if C_MARGINS <> 0
+compile endif
+compile if C_MARGINS <> 0
       if not (load_var bitand 2) then  -- 2 would be on if tabs set from EA EPM.MARGINS
          'ma'   C_MARGINS
       endif
- compile endif
- compile if (C_KEYWORD_HIGHLIGHTING | JAVA_KEYWORD_HIGHLIGHTING)
-  compile if INCLUDE_WORKFRAME_SUPPORT
+compile endif
+compile if (C_KEYWORD_HIGHLIGHTING | JAVA_KEYWORD_HIGHLIGHTING)
+ compile if INCLUDE_WORKFRAME_SUPPORT
     if not (.levelofattributesupport bitand 16) &
        .visible then
-  compile else
+ compile else
     if .visible then
-  compile endif
+ compile endif
        if substr(load_ext, 1, 3)='JAV' then
-  compile if JAVA_KEYWORD_HIGHLIGHTING
+ compile if JAVA_KEYWORD_HIGHLIGHTING
           'toggle_parse 1 epmkwds.jav'
-  compile endif
+ compile endif
        else
-  compile if C_KEYWORD_HIGHLIGHTING
+ compile if C_KEYWORD_HIGHLIGHTING
           'toggle_parse 1 epmkwds.c'
-  compile endif
+ compile endif
        endif
     endif
- compile endif
+compile endif
    endif
 
 compile if    WANT_CUA_MARKING
- defkeys c_keys clear
+defkeys c_keys clear
 compile else
- defkeys c_keys
+defkeys c_keys
 compile endif
 
 def space=
@@ -194,7 +194,7 @@ def c_x=       /* Force expansion if we don't have it turned on automatic */
    endif
 
 define
- compile if WANT_END_COMMENTED = '//'
+compile if WANT_END_COMMENTED = '//'
    END_CATCH  = ' // endcatch'
    END_DO     = ' // enddo'
    END_FOR    = ' // endfor'
@@ -202,7 +202,7 @@ define
    END_SWITCH = ' // endswitch'
    END_TRY    = ' // endtry'
    END_WHILE  = ' // endwhile'
- compile elseif WANT_END_COMMENTED
+compile elseif WANT_END_COMMENTED
    END_CATCH  = ' /* endcatch */'
    END_DO     = ' /* enddo */'
    END_FOR    = ' /* endfor */'
@@ -210,7 +210,7 @@ define
    END_SWITCH = ' /* endswitch */'
    END_TRY    = ' /* endtry */'
    END_WHILE  = ' /* endwhile */'
- compile else
+compile else
    END_CATCH  = ''
    END_DO     = ''
    END_FOR    = ''
@@ -218,7 +218,7 @@ define
    END_SWITCH = ''
    END_TRY    = ''
    END_WHILE  = ''
- compile endif
+compile endif
 
 defproc c_first_expansion
    retc=1
@@ -527,12 +527,12 @@ compile endif -- CPP_SYNTAX_ASSIST
 ;        endif
       elseif firstword='MAIN' then
          call enter_main_heading()
- compile if CPP_SYNTAX_ASSIST
+compile if CPP_SYNTAX_ASSIST
       elseif (wordpos(firstword, 'DO IF ELSE WHILE') |
               (cpp & wordpos(firstword, 'TRY'))) then
- compile else
+compile else
       elseif wordpos(firstword, 'DO IF ELSE WHILE') then
- compile endif -- CPP_SYNTAX_ASSIST
+compile endif -- CPP_SYNTAX_ASSIST
          if not brace and next_is_brace then down; endif
          call einsert_line()
          .col=.col+C_SYNTAX_INDENT
