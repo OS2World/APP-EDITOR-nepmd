@@ -2,7 +2,6 @@
 NMAKE targets for the Netlabs EPM Distribution package
 ------------------------------------------------------
 
-
 make all     - build complete package (*)
 
 make inst    - build complete package and start WPI (*)
@@ -10,14 +9,15 @@ make show    - build NEPMD INF and show it
 
 
 make prepare - only downloads zip files from leo and unpacks (*)
+make srccopy - copy some files from CVS tree part to compile directory
 make check   - check prepared files for
                - SYSxxxx errors during unpack
                - zero byte files, making WIC trap (thanks god !).
-                 I had some zero byte files from time to time,
-                 maybe pkunzip2 does not work properly
+                 pkunzip2 does not unpack properly sometimes (zero byte files)
 
 NOTE:
 - edit configure.in to your needs before executing (n)make
 - targets marked with (*) require a working intenet connection
   for to download the EPM packages, if not already done
+
 
