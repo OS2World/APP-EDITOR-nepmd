@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.2 2002-06-04 21:57:26 cla Exp $
+# $Id: makefile,v 1.3 2002-06-04 22:19:56 cla Exp $
 #
 # ===========================================================================
 #
@@ -37,7 +37,6 @@ BASEDIR=..\..\..
 # --- some file definitions for this makefile
 
 DEPENDFILE=$(CMPDIR)\common.dep
-DEPENDPATH=E:\SRC\nepmd\WORK\src\gui\common
 
 FILESTOCLEAN=$(DEPENDFILE) \
  $(OBJS)\
@@ -57,9 +56,12 @@ clean:
 
 lib: $(BINDIR)\common.lst
 
+dep:
+   makedep $(BINDIR) $(DEPENDFILE)
+
 # --- include dependencies - create dependency file if not present
 
-!if [@dir $(DEPENDFILE) >NUL 2>&1 || fastdep -o $(BINDIR) -d $(DEPENDFILE) -e $(DEPENDPATH) -a- *.c]
+!if [@dir $(DEPENDFILE) >NUL 2>&1 || makedep $(BINDIR) $(DEPENDFILE)]
 !endif
 !include $(DEPENDFILE)
 
