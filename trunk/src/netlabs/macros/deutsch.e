@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deutsch.e,v 1.5 2002-09-01 14:28:04 aschn Exp $
+* $Id: deutsch.e,v 1.6 2002-09-16 16:23:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -51,9 +51,10 @@ compile endif
 compile if not defined(WANT_BOOKMARKS)
    WANT_BOOKMARKS = 0
 compile endif
-compile if not defined(WANT_TAGS)
-   WANT_TAGS = 0
-compile endif
+;   Now included tags consts everytime to let tags.e compile alone
+;compile if not defined(WANT_TAGS)
+;   WANT_TAGS = 0
+;compile endif
 compile if not defined(SPELL_SUPPORT)
    SPELL_SUPPORT = 0
 compile endif
@@ -443,7 +444,7 @@ compile if WANT_BOOKMARKS
        NEXT_MARK_MENU__MSG =  '~NÑchstes'
        PREV_MARK_MENU__MSG =  '~Voriges'
 compile endif -- WANT_BOOKMARKS
-compile if WANT_TAGS
+;compile if WANT_TAGS
      TAGS_MENU__MSG =       '~Tags'          -- Pull-right
        TAGSDLG_MENU__MSG =    '~Tags-Dialogfenster...'
        FIND_TAG_MENU__MSG =   '~Aktuelle Prozedur suchen'
@@ -451,7 +452,7 @@ compile if WANT_TAGS
        TAGFILE_NAME_MENU__MSG='Tags-Datei-~Name...'
        MAKE_TAGS_MENU__MSG =  '~Erstelle Tags-Datei...'
        SCAN_TAGS_MENU__MSG =  'Aktuelle Datei ~durchsuchen...'
-compile endif -- WANT_TAGS
+;compile endif -- WANT_TAGS
 
 compile if WANT_DYNAMIC_PROMPTS
  compile if WANT_BOOKMARKS
@@ -469,7 +470,7 @@ compile if WANT_DYNAMIC_PROMPTS
      NEXT_MARK_MENUP__MSG =  \1'Aufsuchen des nÑchsten Lesezeichens in der Datei'
      PREV_MARK_MENUP__MSG =  \1'Aufsuchen des vorigen Lesezeichens in der Datei'
  compile endif -- WANT_BOOKMARKS
- compile if WANT_TAGS
+; compile if WANT_TAGS
      TAGS_MENUP__MSG =       \1'UntermenÅ fÅr die Verwendung einer "Tags-"Datei'
      TAGSDLG_MENUP__MSG =    \1'Aktivieren des Tags-Dialogfensters'
      FIND_TAG_MENUP__MSG =   \1'Aufsuchen der Definition des Prozedurnamens unter dem Cursor'
@@ -477,7 +478,7 @@ compile if WANT_DYNAMIC_PROMPTS
      TAGFILE_NAME_MENUP__MSG=\1'öberpÅfen oder éndern des Namens einer Tags-Datei'
      MAKE_TAGS_MENUP__MSG =  \1'Erstellen oder Erneuern eine Tags-Datei'
      SCAN_TAGS_MENUP__MSG =  \1'Durchsuchen der aktuellen Datei nach Prozeduren & Anzeigen einer Ergebnisliste'
- compile endif -- WANT_TAGS
+; compile endif -- WANT_TAGS
 compile else
    SEARCH_BARP__MSG =      ''
      SEARCH_MENUP__MSG =     ''
@@ -490,7 +491,7 @@ compile else
      NEXT_MARK_MENUP__MSG =  ''
      PREV_MARK_MENUP__MSG =  ''
  compile endif -- WANT_BOOKMARKS
- compile if WANT_TAGS
+; compile if WANT_TAGS
      TAGS_MENUP__MSG =       ''
      TAGSDLG_MENUP__MSG =    ''
      FIND_TAG_MENUP__MSG =   ''
@@ -498,7 +499,7 @@ compile else
      TAGFILE_NAME_MENUP__MSG=''
      MAKE_TAGS_MENUP__MSG =  ''
      SCAN_TAGS_MENUP__MSG =  ''
- compile endif -- WANT_TAGS
+; compile endif -- WANT_TAGS
 compile endif  -- WANT_DYNAMIC_PROMPTS
 
    OPTIONS_BAR__MSG         = '~Optionen '
@@ -1100,7 +1101,7 @@ compile if WANT_STACK_CMDS
    STACK_FULL__MSG =        'Stapelspeicher ist voll.'
    STACK_EMPTY__MSG =       'Stapelspeicher ist leer.'
 compile endif
-compile if WANT_TAGS
+;compile if WANT_TAGS
    TAGSNAME__MSG = 'Name fÅr Tags-Datei'     -- Entry box title
    TAGSNAME_PROMPT__MSG = 'Geben Sie den Dateinamen fÅr die Tags-Datei ein:'
    FINDTAG__MSG = 'Suchen einer Prozedur'      -- Entry box title
@@ -1108,7 +1109,7 @@ compile if WANT_TAGS
    NO_TAGS__MSG = 'Keine Tags in Tags-Datei gefunden.'
    LIST_TAGS__MSG = 'Tags-Liste'         -- Listbox title
    BUILDING_LIST__MSG = 'Erstelle Liste...'  -- Processing message
-compile endif
+;compile endif
    LIST__MSG = 'Auf~listen...'               -- Button
    MAKETAGS__MSG = 'Erstellen der Tags-Datei'
    MAKETAGS_PROMPT__MSG = 'Geben Sie einen oder mehrere Dateinamen ein (Wildcards OK) oder @Listen.'

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: english.e,v 1.4 2002-09-01 14:27:34 aschn Exp $
+* $Id: english.e,v 1.5 2002-09-16 16:22:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -51,9 +51,10 @@ compile endif
 compile if not defined(WANT_BOOKMARKS)
    WANT_BOOKMARKS = 0
 compile endif
-compile if not defined(WANT_TAGS)
-   WANT_TAGS = 0
-compile endif
+;   Now included tags consts everytime to let tags.e compile alone
+;compile if not defined(WANT_TAGS)
+;   WANT_TAGS = 0
+;compile endif
 compile if not defined(SPELL_SUPPORT)
    SPELL_SUPPORT = 0
 compile endif
@@ -443,7 +444,7 @@ compile if WANT_BOOKMARKS
        NEXT_MARK_MENU__MSG =  '~Next'
        PREV_MARK_MENU__MSG =  '~Previous'
 compile endif -- WANT_BOOKMARKS
-compile if WANT_TAGS
+;compile if WANT_TAGS
      TAGS_MENU__MSG =       '~Tags'          -- Pull-right
        TAGSDLG_MENU__MSG =    '~Tags dialog...'
        FIND_TAG_MENU__MSG =   '~Find current procedure'
@@ -451,7 +452,7 @@ compile if WANT_TAGS
        TAGFILE_NAME_MENU__MSG='Tags file ~name...'
        MAKE_TAGS_MENU__MSG =  '~Make tags file...'
        SCAN_TAGS_MENU__MSG =  '~Scan current file...'
-compile endif -- WANT_TAGS
+;compile endif -- WANT_TAGS
 
 compile if WANT_DYNAMIC_PROMPTS
  compile if WANT_BOOKMARKS & not defined(STD_MENU_NAME)
@@ -469,7 +470,7 @@ compile if WANT_DYNAMIC_PROMPTS
      NEXT_MARK_MENUP__MSG =  \1'Go to next bookmark in this file'
      PREV_MARK_MENUP__MSG =  \1'Go to previous bookmark in this file'
  compile endif -- WANT_BOOKMARKS
- compile if WANT_TAGS
+; compile if WANT_TAGS
      TAGS_MENUP__MSG =       \1'Cascaded menu for using a "tags" file'
      TAGSDLG_MENUP__MSG =    \1'Activate tags dialog'
      FIND_TAG_MENUP__MSG =   \1'Find the definition for the procedure name under the cursor'
@@ -477,7 +478,7 @@ compile if WANT_DYNAMIC_PROMPTS
      TAGFILE_NAME_MENUP__MSG=\1'Check or set the name of the tags file'
      MAKE_TAGS_MENUP__MSG =  \1'Create or update a tags file'
      SCAN_TAGS_MENUP__MSG =  \1'Search current file for procedures & present them in a list'
- compile endif -- WANT_TAGS
+; compile endif -- WANT_TAGS
 compile else
    SEARCH_BARP__MSG =      ''
      SEARCH_MENUP__MSG =     ''
@@ -490,7 +491,7 @@ compile else
      NEXT_MARK_MENUP__MSG =  ''
      PREV_MARK_MENUP__MSG =  ''
  compile endif -- WANT_BOOKMARKS
- compile if WANT_TAGS
+; compile if WANT_TAGS
      TAGS_MENUP__MSG =       ''
      TAGSDLG_MENUP__MSG =    ''
      FIND_TAG_MENUP__MSG =   ''
@@ -498,7 +499,7 @@ compile else
      TAGFILE_NAME_MENUP__MSG=''
      MAKE_TAGS_MENUP__MSG =  ''
      SCAN_TAGS_MENUP__MSG =  ''
- compile endif -- WANT_TAGS
+; compile endif -- WANT_TAGS
 compile endif  -- WANT_DYNAMIC_PROMPTS
 
    OPTIONS_BAR__MSG         = '~Options '
@@ -1100,7 +1101,7 @@ compile if WANT_STACK_CMDS
    STACK_FULL__MSG =        'No room in stack.'
    STACK_EMPTY__MSG =       'Stack is empty.'
 compile endif
-compile if WANT_TAGS
+;compile if WANT_TAGS
    TAGSNAME__MSG = 'Tags file name'     -- Entry box title
    TAGSNAME_PROMPT__MSG = 'Enter the file name for the tags file'
    FINDTAG__MSG = 'Find Procedure'      -- Entry box title
@@ -1108,7 +1109,7 @@ compile if WANT_TAGS
    NO_TAGS__MSG = 'No tags found in tags file.'
    LIST_TAGS__MSG = 'List tags'         -- Listbox title
    BUILDING_LIST__MSG = 'Building list...'  -- Processing message
-compile endif
+;compile endif
    LIST__MSG = '~List...'               -- Button
    MAKETAGS__MSG = 'Make tags file'
    MAKETAGS_PROMPT__MSG = 'Enter one or more filenames (wildcards OK) or @lists.'
