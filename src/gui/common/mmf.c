@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.c,v 1.4 2002-09-25 11:10:21 cla Exp $
+* $Id: mmf.c,v 1.5 2002-10-08 16:25:32 cla Exp $
 *
 * ===========================================================================
 *
@@ -119,6 +119,8 @@ static ULONG APIENTRY _pageFaultHandler( PEXCEPTIONREPORTRECORD p1,
                                          PEXCEPTIONREGISTRATIONRECORD p2,
                                          PCONTEXTRECORD p3, PVOID  pv)
 {
+DPRINTF(( "MMF: HANDLER: called\n"));
+
 if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
     ((EXCEPTION_TYPE == XCPT_WRITE_ACCESS) ||
      (EXCEPTION_TYPE == XCPT_READ_ACCESS)))
@@ -135,7 +137,6 @@ if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
    pmmfe = _locate( EXCEPTION_ADDR);
    if(!pmmfe)
       {
-      DPRINTF(( "MMF: HANDLER: skipped exception for 0x%08x, not my memory\n", EXCEPTION_ADDR));
       return XCPT_CONTINUE_SEARCH;
       }
 
@@ -286,6 +287,43 @@ if (!fInitialized)
 return fInitialized;
 }
 
+// -----------------------------------------------------------------------------
+
+#ifdef DEBUG
+VOID _dumpMMF( VOID)
+{
+         ULONG          i;
+         ULONG          ulCount = 0;
+         PSZ            pszType;
+         PPIB           ppib;
+         PTIB           ptib;
+
+// try to initialize
+if (!fInitialized)
+   {
+   printf( "MMF: DUMP: not initialized\n");
+   return;
+   }
+
+DosGetInfoBlocks( &ptib,&ppib);
+printf( "MMF: DUMP entries for pid %u tid: %u:\n"
+        "-------------------------------------\n",
+        ppib->pib_ulpid, ptib->tib_ptib2->tib2_ultid);
+for(i = 0; i < MMF_MAX; i++)
+   {
+   if (ammfentry[ i].ulFlags & MMF_USEDENTRY)
+      {
+      pszType = (ammfentry[ i].hfile == NULLHANDLE) ? "<MEMORY>" : ammfentry[ i].szFile;
+      printf( "%u: memory at %p size %u: type: %s\n", 
+              i, ammfentry[ i].pvData, ammfentry[ i].ulSize, pszType);
+      ulCount++;
+      }
+   }
+printf( "%u entries \n\n", ulCount);
+return;
+}
+#endif
+
 // #############################################################################
 
 
@@ -375,6 +413,7 @@ do
    rc = DosAllocMem( &pvData, ulMaxSize, PAG_READ | PAG_WRITE);
    if (rc != NO_ERROR)
       break;
+   DPRINTF(( "MMF: ALLOCATE 0x%08p (0x%08p)\n", pvData, ulMaxSize));
 
    // setup handle data
    pmmfe->ulFlags       = ulOpenFlags | MMF_USEDENTRY;
@@ -430,7 +469,11 @@ do
 
    // cleanup all data related to the file
    if( pmmfe->hfile)  DosClose( pmmfe->hfile);
-   if (pmmfe->pvData) DosFreeMem( pmmfe->pvData);
+   if (pmmfe->pvData)
+      {
+      rc = DosFreeMem( pmmfe->pvData);
+      DPRINTF(( "MMF: FREE 0x%08p (0x%08p) rc=%u\n", pmmfe->pvData,  pmmfe->ulSize, rc));
+      }
    memset( pmmfe, 0, sizeof( MMFENTRY));
 
    } while (FALSE);
