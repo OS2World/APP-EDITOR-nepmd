@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nldeinst.cmd,v 1.2 2002-08-13 15:39:14 cla Exp $
+* $Id: nldeinst.cmd,v 1.3 2002-08-15 13:23:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -31,17 +31,27 @@
 
  /* init */
  '@ECHO OFF';
+ env = 'OS2ENVIRONMENT';
 
- /* make sure we are called on purpose */
- ARG Parm .;
+ /* defaults */
+ ErrorTitle = 'Netlabs EPM Distribution Installation';
+ rc = 0;
 
 /* this code deactivated due to an error in WarpIn 0.9.20:
    a DEEXECUTE call to a program including parameters writes
    a corrupt ini to the WarpIn Database, making all Warpin
-   instances crash !
+   instances crash ! */
+ /* make sure we are called on purpose */
+/*
+ ARG Parm .;
  IF (Parm \= 'NEPMD') THEN
-    ShowError( 'Netlabs EPM Distribution Installation', 'Error: not called by Warpin Package !');
+    ShowError( ErrorTitle, 'Error: not called by Warpin Package !');
 */
+
+ /* create private queue for error messages and set as default */
+ QueueName = RXQUEUE('CREATE');
+ rcx = RXQUEUE( 'SET', QueueName);
+ rcx = VALUE( 'NEPMD_RXQUEUE', QueueName, env);
 
  /* make calldir the current directory */
  PARSE Source . . CallName;
@@ -49,9 +59,18 @@
  rcx = DIRECTORY( CallDir);
 
  /* call all modules required */
- 'CALL DYNCFG DEINSTALL';
+ DO UNTIL (1)
+    'CALL DYNCFG DEINSTALL'; IF (rc \= 0) THEN LEAVE;
+ END;
 
- EXIT( 0);
+ /* show error message where applicable */
+ IF ((rc \= 0) & (QUEUED() > 0)) THEN
+ DO
+    PARSE PULL ErrorMessage;
+    ShowError( ErrorTitle, ErrorMessage);
+ END;
+
+ EXIT( rc);
 
 
 /* ========================================================================= */

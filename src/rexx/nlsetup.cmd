@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.4 2002-08-12 13:18:23 cla Exp $
+* $Id: nlsetup.cmd,v 1.5 2002-08-15 13:23:27 cla Exp $
 *
 * ===========================================================================
 *
@@ -31,11 +31,21 @@
 
  /* init */
  '@ECHO OFF';
+ env = 'OS2ENVIRONMENT';
+
+ /* defaults */
+ ErrorTitle = 'Netlabs EPM Distribution Installation';
+ rc = 0;
 
  /* make sure we are called on purpose */
  ARG Parm .;
  IF (Parm \= 'NEPMD') THEN
-    ShowError( 'Netlabs EPM Distribution Installation', 'Error: not called by Warpin Package !');
+    ShowError( ErrorTitle, 'Error: not called by Warpin Package !');
+
+ /* create private queue for error messages and set as default */
+ QueueName = RXQUEUE('CREATE');
+ rcx = RXQUEUE( 'SET', QueueName);
+ rcx = VALUE( 'NEPMD_RXQUEUE', QueueName, env);
 
  /* make calldir the current directory */
  PARSE Source . . CallName;
@@ -43,11 +53,19 @@
  rcx = DIRECTORY( CallDir);
 
  /* call all modules required */
- 'CALL USERTREE';
- 'CALL APPLYICO';
- 'CALL DYNCFG';
+ DO UNTIL (1)
+    'CALL USERTREE'; IF (rc \= 0) THEN LEAVE;
+    'CALL APPLYICO'; IF (rc \= 0) THEN LEAVE;
+    'CALL DYNCFG';   IF (rc \= 0) THEN LEAVE;
+ END;
 
- EXIT( 0);
+ IF ((rc \= 0) & (QUEUED() > 0)) THEN
+ DO
+    PARSE PULL ErrorMessage;
+    ShowError( ErrorTitle, ErrorMessage);
+ END;
+
+ EXIT( rc);
 
 /* ========================================================================= */
 ShowError: PROCEDURE
