@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.5 2002-08-15 13:23:27 cla Exp $
+* $Id: nlsetup.cmd,v 1.6 2004-05-09 12:57:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,6 +32,9 @@
  /* init */
  '@ECHO OFF';
  env = 'OS2ENVIRONMENT';
+
+ call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
+ call SysLoadFuncs;
 
  /* defaults */
  ErrorTitle = 'Netlabs EPM Distribution Installation';
@@ -57,6 +60,7 @@
     'CALL USERTREE'; IF (rc \= 0) THEN LEAVE;
     'CALL APPLYICO'; IF (rc \= 0) THEN LEAVE;
     'CALL DYNCFG';   IF (rc \= 0) THEN LEAVE;
+    'CALL INITREG';  IF (rc \= 0) THEN LEAVE;
  END;
 
  IF ((rc \= 0) & (QUEUED() > 0)) THEN
