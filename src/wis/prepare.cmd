@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.3 2002-06-12 14:18:04 cla Exp $
+: $Id: prepare.cmd,v 1.4 2002-07-31 14:42:37 cla Exp $
 :
 : ===========================================================================
 :
@@ -82,8 +82,15 @@
  %CHECKERROR%
 
 : --- unpack main application package and distribute to subdirectories
- SET TARGET=%UNZIPPEDDIR%\EPMAPP
  %UNZ% %UNZIPPEDDIR%\epmapp             %UNZIPPEDDIR%\EPMAPP\BIN               >>%LOGFILE% 2>&1
+ %CHECKERROR%
+
+ SET TARGET=%UNZIPPEDDIR%\EPMAPP
+ MD %TARGET%.base
+ %CHECKERROR%
+ MD %TARGET%.base\bin
+ %CHECKERROR%
+ %MOV% %TARGET%\bin\epm.exe %TARGET%.base\bin                                  >>%LOGFILE% 2>&1
  %CHECKERROR%
 
  DEL %TARGET%\BIN\README.EPM                                                   >>%LOGFILE% 2>&1
@@ -122,18 +129,33 @@
 
  %UNZ% %UNZIPPEDDIR%\epmdll  %UNZIPPEDDIR%\EPMDLL\DLL                          >>%LOGFILE% 2>&1
  %CHECKERROR%
+
  %UNZ% %UNZIPPEDDIR%\epmhlp  %UNZIPPEDDIR%\EPMHLP\HELP                         >>%LOGFILE% 2>&1
  %CHECKERROR%
+
+ SET TARGET=%UNZIPPEDDIR%\EPMHLP
+ MD %TARGET%.base
+ %CHECKERROR%
+ MD %TARGET%.base\help
+ %CHECKERROR%
+ %MOV% %TARGET%\help\ETKUCMS.HLP %TARGET%.base\help                            >>%LOGFILE% 2>&1
+ %CHECKERROR%
+ %MOV% %TARGET%\help\EPM.HLP %TARGET%.base\help                                >>%LOGFILE% 2>&1
+ %CHECKERROR%
+
+
  %UNZ% %UNZIPPEDDIR%\epmbk   %UNZIPPEDDIR%\EPMBK\BOOK                          >>%LOGFILE% 2>&1
  %CHECKERROR%
+
  %UNZ% %UNZIPPEDDIR%\epmbmps %UNZIPPEDDIR%\EPMBMPS\BIN\BMP                     >>%LOGFILE% 2>&1
  %CHECKERROR%
 
 : --- unpack speech support package and distribute to subdirectories
 
- SET TARGET=%UNZIPPEDDIR%\EPMSPCH
- %UNZ% %UNZIPPEDDIR%\epmspch   %TARGET%\BIN                                    >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmspch %UNZIPPEDDIR%\EPMSPCH                             >>%LOGFILE% 2>&1
  %CHECKERROR%
+
+ SET TARGET=%UNZIPPEDDIR%\EPMSPCH
  DEL %TARGET%\BIN\README.TXT                                                   >>%LOGFILE% 2>&1
  %CHECKERROR%
 
@@ -212,7 +234,7 @@
 
 : --- make all files lowercase names
 
- ECHO - lowercase names od directories files
+ ECHO - lowercase names or directories files
  LT %UNZIPPEDDIR%
 
 :end

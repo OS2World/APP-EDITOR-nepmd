@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.18 2002-07-23 11:59:24 cla Exp $
+# $Id: nepmd.wis,v 1.19 2002-07-31 14:42:37 cla Exp $
 #
 # ===========================================================================
 #
@@ -30,12 +30,12 @@
 <HEAD>
 
 <PCK INDEX=1
-     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Base Application\%ID_VERSION_NEPMD%"
+     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Base Application Support\%ID_VERSION_NEPMD%"
      TARGET="$(WARPIN_DEFAULTAPPSPATH)\EPM"
      REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
      SELECT
      NODESELECT
-     TITLE="Base Application"
+     TITLE="Base Application Support"
      EXECUTE="$(1)\netlabs\install\nlsetup.exe"
 
      CREATEOBJECT="WPFolder|EPM v6.03b|<WP_APPSFOLDER>|ICONVIEWPOS=22 41 65 34;CCVIEW=NO;OPEN=DEFAULT;OPEN=DEFAULT;OBJECTID=<NEPMD_FOLDER>;"
@@ -44,9 +44,13 @@
      CREATEOBJECT="WPProgram|EPM Users Guide|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\EPMUSERS.INF;OBJECTID=<NEPMD_VIEW_EPMUSERS>;"
      CREATEOBJECT="WPProgram|OS/2 Netlabs^EPM Distribution|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPMD.INF Netlabs;ICONFILE=$(1)\NETLABS\INSTALL\ICO\HELP.ICO;OBJECTID=<NEPMD_VIEW_NEPMD>;"
 
-     >This package installs the base application files.
+     >This package installs the support files for the base EPM application being installed on your system.
 
-     This is the very minimum set of files being required to run EPM plus the basic extensions of the Netlabs EPM distribution</PCK>
+     This is a set of files of the EPMBBS package to run EPM with the basic extensions of the Netlabs EPM distribution.
+
+     NOTE: 
+     This package does not include the EPM itself. The EPM and the E Toolkit runtime DLLs must be installed with the installation program of your OS/2 Warp or eComStation! 
+     You have to ensure yourself that EPM is installed, as a WarpIn package currently cannot test something and then deny installation, if the test fails!</PCK>
 
 <PCK INDEX=2
      PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Recompilation package\%ID_VERSION_NEPMD%"
@@ -87,9 +91,27 @@
      CREATEOBJECT="WPShadow|Start EPM Speech Support|<WP_START>|SHADOWID=<NEPMD_SPEECH>;OBJECTID=<NEPMD_SPEECH_SHADOW>;"
      CREATEOBJECT="WPShadow|Startup Folder Shadow|<NEPMD_FOLDER>|SHADOWID=<WP_START>;OBJECTID=<NEPMD_WPSTART_SHADOW>;"
 
-     >This package installs the speech support for EPM. This makes sense only if you also have installed VoiceType support coming with OS/2 Warp 4 and above.
+     >This package installs the speech support for EPM. This makes sense only if you also have installed VoiceType support coming with OS/2 Warp 4 and above.</PCK>
 
-     With this additional EPM Speech Support you can further control EPM windows with voice commands.</PCK>
+
+<!-- ============================== packet 99 not yet used ==================================
+
+--- complete next line by adding the open bracket for the PCK tag and remove these two lines
+--- first char is removed as tags are scanned for also in comments... (???)
+
+ PCK INDEX=99
+      PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\EPMBBS Base Application\%ID_VERSION_NEPMD%"
+      TARGET="$(1)"
+      REQUIRES="1"
+      TITLE="EPMBBS Base Application"
+
+      >This package installs the EPM base application for users of OS/2 Warp 3 and EPM V5.51.
+
+      NOTE:
+      This should not be installed by users of OS/2 Warp 4 or eComStation. They should
+      instead install the much newer EPM V6.03b coming with their operating system.</PCK>
+
+     ============================== packet 99 not yet used ==================================            -->
 
 </HEAD>
 
@@ -99,12 +121,17 @@
 <PAGE INDEX=1 TYPE=TEXT>
 <NEXTBUTTON TARGET=2>~Next</NEXTBUTTON>
 <TEXT>
-Welcome to the EPM v6.03b Installation Package by
+Welcome to the Netlabs EPM Distribution Package by
 OS/2 Netlabs (http://www.netlabs.org)
 
-This package installs the files of the Enhanced Editor including macro and REXX support, additional macros, extended syntax hilighting support and many more. Furthermore, the files and settings of EPM coming with Warp 4 are removed.
+This package installs support files for the Enhanced Editor (EPM) including macro and REXX support, additional macros, extended syntax hilighting support, extended recompile support and many more.
 
-This package was compiled by the Netlabs distribution project team, see the online help for more information about the project team and contributors to the project.
+Note:
+     Installed files of EPM coming with OS/2 Warp 4 or eComStation are not removed!
+
+     Either the EPM V6.03b coming with your OS/2 Warp 4 or eComStation or the EPM BBS package must be installed, otherwise this package is useless!
+     
+     This package is incompatible to and currently cannot be used with the outdated EPM V5.51 of OS/2 Warp 3. This may be adressed in a forthcoming version, allowing to also install the V6.03b base application in such cases.
 
 Select "Next" to continue.
 Select "Cancel" to abort installation.</TEXT>
@@ -114,13 +141,15 @@ Select "Cancel" to abort installation.</TEXT>
 <PAGE INDEX=2 TYPE=TEXT>
 <NEXTBUTTON TARGET=3>~Next</NEXTBUTTON>
 <TEXT>
-The EPM v6.03b Installation Package by OS/2 Netlabs consists of
+The EPM v6.03b Installation Package by OS/2 Netlabs consists of files from
 
 - epm603.zip and epm603b.zip from www.leo.org
      EPM was developed by IBM T. J.Watson Research Center
 - additional macros
 - additional syntax highlighting support
 - this WarpIn package for easy and smooth installation
+
+This package was compiled by the Netlabs distribution project team, see the online help for more information about the project team and contributors to the project.
 
 See the online help for more information about the project team and contributors to the project and further credits.
 
@@ -132,7 +161,7 @@ Select "Cancel" to abort installation.</TEXT>
 <PAGE INDEX=3 TYPE=TEXT>
 <NEXTBUTTON TARGET=4>~Next</NEXTBUTTON>
 <TEXT>
-IMPORTANT: the following restrictions apply to WarpIn V0.9.19 and may apply to newer versios as well:
+IMPORTANT: the following restrictions apply to WarpIn V0.9.19 and may apply to newer versions as well:
 
 Installation:
        Changing the installation path does not change ot for all components. Don't change the installation path or make sure that you use the same installation path for all components, otherwise the installed version will not properly work.
