@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: list.php,v 1.6 2002-07-19 15:17:03 cla Exp $
+* $Id: list.php,v 1.7 2002-07-21 16:10:30 cla Exp $
 *
 * ===========================================================================
 *
@@ -58,7 +58,7 @@ $aaentry = filedb_queryentries( "db");
 // ...
 
 // display sorted rows
-for ($i = 1; $i < count( $aaentry);$i++)
+for ($i = 0; $i < count( $aaentry);$i++)
    {
 
    // select background color
@@ -82,7 +82,7 @@ for ($i = 1; $i < count( $aaentry);$i++)
    // display entry
    echo "<tr>";
    echo "<td align=right bgcolor=".$bgcolor.">";
-   echo $i;
+   echo $i + 1;
    echo "</td>";
    echo "<td align=center bgcolor=".$bgcolor.">";
    echo $prio;
