@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: maketags.e,v 1.4 2003-05-14 16:21:34 aschn Exp $
+* $Id: maketags.e,v 1.5 2004-07-03 22:29:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -122,7 +122,7 @@ compile endif
       if list_fid<>'' then  -- We're processing a file containing a list of files
          activatefile list_fid
          if .line = .last then
-            'quit'
+            'xcom quit'
             parse value list_stack with list_fid path_prefix list_stack
             iterate
          endif
@@ -135,10 +135,10 @@ compile endif
          If not(verify(filename,'\:','M')) then
             filename=path_prefix||filename
          endif
-         'e /d' filename
+         'xcom e /d' filename
          if rc then
             if rc=-282 then  -- -282 = sayerror("New file")
-               'quit'
+               'xcom quit'
                msg="'"filename"' not found."
             else
                msg=sayerrortext(rc)
@@ -293,7 +293,7 @@ compile endif
    'setmessageline '\0
    'toggleframe 2' msgl_on_off
    if status then
-      'quit'
+      'xcom quit'
       return 1
    endif
    if not .last then
@@ -318,19 +318,20 @@ compile endif
       endif
       if already_loaded then
          activatefile tags_fileid
-         'quit'
+         'xcom quit'
          activatefile tag_fid
          tags_fileid = tag_fid  -- Update universal variable
-         'save'
+         'xcom save'
          if not rc then
             .visible = 0
             prevfile
          endif
       else
-         'file'
+         'xcom save'
+         'xcom quit'
       endif
    else
-      'quit'  -- Must be an old tags file here, or we would have said "No tags found" above.
+      'xcom quit'  -- Must be an old tags file here, or we would have said "No tags found" above.
       sayerror 'Tags file was up-to-date.  (Scanned' filecount 'files; skipped' skipped')'
 compile if LOG_TAG_MATCHES
       insertline 'Tags file was up-to-date.  (Scanned' filecount 'files; skipped' skipped')', TAG_LOG_FID.last+1, TAG_LOG_FID
@@ -355,10 +356,10 @@ compile endif
 
 
 defproc add_tags(filename, tag_fid, filedate)
-   'e /d' filename
+   'xcom e /d' filename
    if rc then
       if rc=-282 then  -- -282 = sayerror("New file")
-         'quit'
+         'xcom quit'
          msg='File not found.'
       else
          msg=sayerrortext(rc)
@@ -374,7 +375,7 @@ defproc add_tags(filename, tag_fid, filedate)
    ext=filetype()
    if not tags_supported(ext) then
       sayerror "Don't know how to do tags for file of type '"ext"'"
-      'quit'
+      'xcom quit'
       return 1
    endif
    proc_name=''
@@ -390,7 +391,7 @@ compile endif
       end_line
       rc=proc_search(proc_name,0,ext)
    endwhile
-   'quit'
+   'xcom quit'
    return 0
 
 defproc parse_file(var string, prev_file, var list_flag)
