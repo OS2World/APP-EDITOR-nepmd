@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.15 2003-08-31 22:35:19 aschn Exp $
+* $Id: kwhelp.e,v 1.16 2004-01-17 22:54:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -50,7 +50,7 @@ compile if not defined(GENERAL_NOCASE_TYPES)
 ;   GENERAL_NOCASE_TYPES = 'CMD SYS BAT'         --<---------------------------------------------------- Todo
    GENERAL_NOCASE_TYPES = 'CMD SYS BAT E'         --<---------------------------------------------------- Todo
 compile endif
-compile if not defined('NEPMD_KEYWORD_HELP_COMMAND')
+compile if not defined(NEPMD_KEYWORD_HELP_COMMAND)
    -- Following is an OS/2 command that can replace the 'view' call.
    -- Specifying a path or extension is optional. It is invoked by
    -- cmd.exe.
