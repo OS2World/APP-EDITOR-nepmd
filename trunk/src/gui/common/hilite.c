@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.28 2004-09-12 13:34:49 aschn Exp $
+* $Id: hilite.c,v 1.29 2004-09-12 13:45:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -728,11 +728,19 @@ do
       }
 
    // check env
-   pszTmpDir = getenv( "TMP");
+   pszTmpDir = getenv( "EPMKWDSTMP");
    if (!pszTmpDir)
       {
-      rc = ERROR_ENVVAR_NOT_FOUND;
-      break;
+      pszTmpDir = getenv( "TMP");
+      if (!pszTmpDir)
+         {
+         pszTmpDir = getenv( "TEMP");
+         if (!pszTmpDir)
+            {
+            rc = ERROR_ENVVAR_NOT_FOUND;
+            break;
+            }
+         }
       }
 
    // init target vars
