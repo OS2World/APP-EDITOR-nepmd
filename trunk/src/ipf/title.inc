@@ -1,4 +1,26 @@
-; $Id: title.inc,v 1.1 2002-04-15 16:37:52 ktk Exp $ 
+.. ***************************** Module Header *******************************
+..
+.. Module Name: title.inc
+..
+.. include file defining major variables for sources for INF files
+.. Requires HyperText/2 package to compile
+..
+.. Copyright (c) Netlabs EPM Distribution project 2002
+..
+.. $Id: title.inc,v 1.2 2002-04-16 10:02:02 cla Exp $
+..
+.. ===========================================================================
+..
+.. This file is part of the Netlabs EPM Distribution package and is free
+.. software.  You can redistribute it and/or modify it under the terms of the
+.. GNU Library General Public License as published by the Free Software
+.. Foundation, in version 2 as it comes in the "COPYING.LIB" file of the WPS
+.. Toolkit main distribution.  This library is distributed in the hope that it
+.. will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+.. of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.. Library General Public License for more details.
+..
+.. ***************************************************************************
 
 .set DOCTITLE=Netlabs EPM Distribution
 .set TOPICS=Select one of the following topics:
@@ -10,3 +32,4 @@
 
 .set NOTE=*Note:*
 .set WARNING=*Warning:*
+
