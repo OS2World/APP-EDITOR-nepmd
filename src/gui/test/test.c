@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.10 2002-09-12 22:26:18 cla Exp $
+* $Id: test.c,v 1.11 2002-09-13 12:52:47 cla Exp $
 *
 * ===========================================================================
 *
@@ -74,16 +74,16 @@ do
                CHAR           szBuffer[ 512];
                ULONG          ulMessageLen;
 
-   
+
       // testcase for TMF function of nepmdlib.tmf
       do
          {
    static         PSZ            pszEnvVar = "NEPMD_TMFTESTFILE";
    static         PSZ            pszMessageName = "TESTMESSAGE";
                   PSZ            pszFilename = getenv( pszEnvVar);
-   
+
                   PSZ            apszParms[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
-   
+
          if (!pszFilename)
             {
             printf( "testcase for TMF skipped, envvar %s not found !\n", pszEnvVar);
@@ -110,15 +110,15 @@ do
          rc = QueryInstValue( NEPMD_INSTVALUE_MESSAGE, szMessageFile, sizeof( szMessageFile));
          if (rc != NO_ERROR)
             {
-            printf( "error: cannot determine location of nepmdeng.tmf !\n"); 
+            printf( "error: cannot determine location of nepmdeng.tmf !\n");
             break;
             }
 
          GETMESSAGE( "MSG_INFO_HEADER", NULL, 0);
-         GETMESSAGE( "MSG_INFO_BODY_LIB", apszParms, 9); 
+         GETMESSAGE( "MSG_INFO_BODY_LIB", apszParms, 9);
 
          } while (FALSE);
-   
+
       } // testcase TMF
 
    // =========================================================================
@@ -139,9 +139,9 @@ do
       GETVALUE( NEPMD_INSTVALUE_ROOTDIR);
       GETVALUE( NEPMD_INSTVALUE_LANGUAGE);
 
-      GETVALUE( NEPMD_INSTVALUE_INIT); 
+      GETVALUE( NEPMD_INSTVALUE_INIT);
       GETVALUE( NEPMD_INSTVALUE_MESSAGE);
-   
+
       } // testcase INSTVAL
 
    // =========================================================================
@@ -184,7 +184,7 @@ do
          PROCESSVALUE( "\\NEPMD\\Testcases\\AdditionalCase",  "Additional value 2");
 
          // write a new key to be deleted
-         pszPath = "\\NEPMD\\Testcases\\KeyToDelete";
+         pszPath = "\\NEPMD\\Testcases\\ContainerToDelete\\SubContainerToDelete\\KeyToDelete";
          PROCESSVALUE( pszPath, "Value to be deleted");
          rc = DeleteConfigValue( pszPath);
          printf( "Key deleted, rc=%u\n", rc);
