@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.7 2002-10-06 23:37:58 aschn Exp $
+* $Id: load.e,v 1.8 2002-10-19 14:00:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -47,68 +47,74 @@ compile if WANT_EBOOKIE = 'DYNALINK'
 compile endif
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE, load_var
    universal default_font
- compile if WANT_LONGNAMES='SWITCH'
+compile if WANT_LONGNAMES='SWITCH'
    universal SHOW_LONGNAMES
- compile endif
+compile endif
 
    load_var = 0
+   load_ext = filetype()
+   keys edit_keys    -- defaults for non-special filetypes
 
    .tabs     = vDEFAULT_TABS
    .margins  = vDEFAULT_MARGINS
    .autosave = vDEFAULT_AUTOSAVE
- compile if WANT_LONGNAMES
-  compile if WANT_LONGNAMES='SWITCH'
-   if SHOW_LONGNAMES then
-  compile endif
-   longname = get_EAT_ASCII_value('.LONGNAME')
-   if longname<>'' then
-      filepath = leftstr(.filename, lastpos('\',.filename))
-      .titletext = filepath || longname
-   endif
-  compile if WANT_LONGNAMES='SWITCH'
-   endif
-  compile endif
+
+   if .visible then  -- process following only if file is visible
+                     -- to avoid showing i.e. 'actlist' and '.HELPFILE' files
+
+compile if WANT_LONGNAMES
+ compile if WANT_LONGNAMES='SWITCH'
+      if SHOW_LONGNAMES then
  compile endif
-   load_ext = filetype()
-   keys edit_keys    -- defaults for non-special filetypes
-   if .font < 2 then    -- If being called from a NAME, and font was set, don't change it.
-      .font = default_font
-   endif
+         longname = get_EAT_ASCII_value('.LONGNAME')
+         if longname<>'' then
+            filepath = leftstr(.filename, lastpos('\',.filename))
+            .titletext = filepath || longname
+         endif
+ compile if WANT_LONGNAMES='SWITCH'
+      endif
+ compile endif
+compile endif
+
+      if .font < 2 then    -- If being called from a NAME, and font was set, don't change it.
+         .font = default_font
+      endif
 compile if WANT_BOOKMARKS
-   if .levelofattributesupport < 2 then  -- If not already set (e.g., NAME does a DEFLOAD)
-      'loadattributes'
-   endif
+      if .levelofattributesupport < 2 then  -- If not already set (e.g., NAME does a DEFLOAD)
+         'loadattributes'
+      endif
 compile endif
 compile if WANT_EBOOKIE
  compile if WANT_EBOOKIE = 'DYNALINK'
-   if bkm_avail <> '' then
+      if bkm_avail <> '' then
  compile endif
-      if bkm_defload()<>0 then keys bkm_keys; endif
+         if bkm_defload()<>0 then keys bkm_keys; endif
  compile if WANT_EBOOKIE = 'DYNALINK'
-   endif
+      endif
  compile endif
 compile endif  -- WANT_EBOOKIE
 
 compile if NEPMD_RESTORE_POS_FROM_EA
-   save_pos = get_EAT_ASCII_value('EPM.POS')
-   if save_pos <> '' then
-      call prestore_pos( save_pos )
-   endif
+      save_pos = get_EAT_ASCII_value('EPM.POS')
+      if save_pos <> '' then
+         call prestore_pos( save_pos )
+      endif
 compile endif
 
-   -- activate syntax highlighting, ignore errors here
-;   NepmdActivateHighlight( 'ON', NepmdGetMode());
-;   'mode DEFLOAD'
-   CurMode = NepmdInitMode()
-   call NepmdProcessMode(CurMode)
+      -- activate syntax highlighting, ignore errors here
+;      call NepmdActivateHighlight( 'ON', NepmdGetMode());
+;      'mode DEFLOAD'
+      CurMode = NepmdInitMode()
+      call NepmdProcessMode(CurMode)
+
+   endif  -- .visible
 
 -- this is a leftover ov the old code to activate syntax highlighting
 compile if INCLUDE_BMS_SUPPORT
-  if isadefproc('BMS_defload_exit') then
-     call BMS_defload_exit()
-  endif
+     if isadefproc('BMS_defload_exit') then
+        call BMS_defload_exit()
+     endif
 compile endif
-
 
    if defload_profile_name then
       if not verify(defload_profile_name, ':\', 'M') then  -- Not fully qualified?  Search for it...
