@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: statline.e,v 1.5 2002-10-20 14:18:13 aschn Exp $
+* $Id: statline.e,v 1.6 2002-11-01 13:45:12 cla Exp $
 *
 * ===========================================================================
 *
@@ -82,7 +82,7 @@ defc refreshstatusline
 ;                                 "tabs "word(.tabs,1)" "sep" "CurMode" "sep" %m"
       current_status_template =  "Line %l of %s "sep" Col %c "sep" '%x'x/%z "sep" ma ".margins" "sep" " ||
                                  "tabs "word(.tabs,1)" "sep" %i "sep" "CurMode" "sep" %f"
-;      current_status_template =  " %l of %s "sep"  %c "sep" '%x'x = %z "sep" %f "sep" ma ".margins" "sep" " ||
+;      current_status_template =  " %l of %s "sep" %c "sep" '%x'x = %z "sep" %f "sep" ma ".margins" "sep" " ||
 ;                                 "tabs "word(.tabs,1)" "sep" "CurMode" "sep" %m"
 
       'setstatusline 'current_status_template
