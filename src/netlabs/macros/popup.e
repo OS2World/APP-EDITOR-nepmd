@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: popup.e,v 1.1 2004-06-03 22:28:41 aschn Exp $
+* $Id: popup.e,v 1.2 2004-06-29 22:48:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -97,7 +97,7 @@ compile endif -- WANT_TEXT_PROCS
    TOP_LINE_MENUP__MSG = \1'Scroll so line under mouse pointer is at top of window.'
    HP_POPUP_TOP = 0
 
-compile if WANT_TREE
+;compile if WANT_TREE
    LOAD_FILE_MENU__MSG = '~Load file'
    SORT_ASCENDING_MENU__MSG = '~Sort ascending'
    SORT_DATE_MENU__MSG = 'Sort by ~date'
@@ -113,7 +113,7 @@ compile if WANT_TREE
    SORT_ASCENDING_MENUP__MSG = \1'Sort the file or marked lines from smallest to largest'
    SORT_XXXX_MENUP__MSG = \1'Sort the file or marked lines by the indicated attribute'
    SORT_DESCENDING_MENUP__MSG = \1'Sort the file or marked lines from largest to smallest'
-compile endif
+;compile endif
 
 
 defc MH_popup
@@ -140,12 +140,11 @@ compile endif
    if menuname = '' then
       menuname = 'popup1'
    endif
-   mt = leftstr(marktype(),1)
+   mt = leftstr( marktype(), 1)
    in_mark = mouse_in_mark()  -- Save in a variable so user's include file can test.
 
    buildsubmenu  menuname, 80, '', '', 0 , 0
-compile if INCLUDE_STANDARD_CONTEXT_MENU
- compile if WANT_TREE
+;compile if WANT_TREE
    if .filename = '.tree' then
       buildmenuitem menuname, 80, 8000, LOAD_FILE_MENU__MSG\9'Alt+1',   'dokey a_1'LOAD_FILE_MENUP__MSG, 0, 0
       buildmenuitem menuname, 80, 8001, SORT_ASCENDING_MENU__MSG,   ''SORT_ASCENDING_MENUP__MSG, 17, 0
@@ -165,9 +164,9 @@ compile if INCLUDE_STANDARD_CONTEXT_MENU
       buildmenuitem menuname, 80, 8017, SORT_NAME_MENU__MSG,        'treesort' '/R' 'N'SORT_XXXX_MENUP__MSG, 1, 0
       buildmenuitem menuname, 80, 8018, SORT_EXTENSION_MENU__MSG,   'treesort' '/R' 'EX'SORT_XXXX_MENUP__MSG, 32769, 0
    elseif in_mark then  -- Build Inside-Mark pop-up
- compile else
-   if in_mark then  -- Build Inside-Mark pop-up
- compile endif
+;compile else
+;   if in_mark then  -- Build Inside-Mark pop-up
+;compile endif
       gray_if_charmark = 16384*( mt = 'C')
       gray_if_notcharmark = 16384 - gray_if_charmark
       buildmenuitem menuname, 80, 8000, UNMARK_MARK_MENU__MSG\9'Alt+U',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)
@@ -198,20 +197,16 @@ compile endif -- WANT_TEXT_PROCS
       buildmenuitem menuname, 80, 8021, CUT_MENU__MSG\9 || SHIFT_KEY__MSG'+'DELETE_KEY__MSG, 'Cut'CUT_MENUP__MSG,       0, mpfrom2short(HP_EDIT_CUT, 0)
       buildmenuitem menuname, 80, 8022, \0,                               '',          4, 0
       buildmenuitem menuname, 80, 8023, STYLE_MENU__MSG\9'Ctrl+Y',        'fontlist'STYLE_MENUP__MSG,    0, mpfrom2short(HP_OPTIONS_STYLE, 0)
-  compile if CHECK_FOR_LEXAM
+compile if CHECK_FOR_LEXAM
    if LEXAM_is_available then
-  compile endif
+compile endif
       buildmenuitem menuname, 80, 8024, \0,                               '',          4, 0
       buildmenuitem menuname, 80, 8025, PROOF_MENU__MSG,           'proof'PROOF_MENUP__MSG,     0, mpfrom2short(HP_OPTIONS_PROOF, 16384*(mt<>'L'))
-  compile if CHECK_FOR_LEXAM
+compile if CHECK_FOR_LEXAM
    endif
-  compile endif
+compile endif
       buildmenuitem menuname, 80, 8026, \0,                               '',          4, 0
- compile if ENHANCED_PRINT_SUPPORT
       buildmenuitem menuname, 80, 8027, PRT_MARK_MENU__MSG'...',          'PRINTDLG M'ENHPRT_MARK_MENUP__MSG,0, mpfrom2short(HP_EDIT_ENHPRINT, 0)
-  compile else
-      buildmenuitem menuname, 80, 8027, PRT_MARK_MENU__MSG,               'DUPMARK P'PRT_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_PRINT, 0)
- compile endif
    elseif mt <> ' ' then  -- Build Outside-Mark pop-up
       'MH_gotoposition'
       buildmenuitem menuname, 80, 8000, COPY_MARK_MENU__MSG\9'Alt+C',     'DUPMARK C'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
@@ -225,7 +220,7 @@ compile endif -- WANT_TEXT_PROCS
       ch = substr( textline(.line), .col, 1)
       gray_if_space = 16384*( ch = ' ' | not .line)
       buildmenuitem menuname, 80, 8000, MARK_WORD_MENU__MSG\9'Alt+W',      'MARKWORD'MARK_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKWORD, gray_if_space)
-      buildmenuitem menuname, 80, 8001, MARK_TOKEN_MENU__MSG\9'Ctrl+W',    'MARKTOKEN'MARK_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKTOKEN, gray_if_space)
+      buildmenuitem menuname, 80, 8001, MARK_TOKEN_MENU__MSG\9/*'Ctrl+W'*/,'MARKTOKEN'MARK_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKTOKEN, gray_if_space)
       buildmenuitem menuname, 80, 8002, FIND_TOKEN_MENU__MSG,              'FINDWORD'FIND_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_FINDTOKEN, gray_if_space)
       buildmenuitem menuname, 80, 8003, \0,                       '',          4, 0
 compile if WANT_TEXT_PROCS
@@ -245,7 +240,6 @@ compile endif -- WANT_TEXT_PROCS
       buildmenuitem menuname, 80, 8014, PASTE_L_MENU__MSG,   'Paste'PASTE_L_MENUP__MSG,     0, mpfrom2short(HP_EDIT_PASTE, 0)
       buildmenuitem menuname, 80, 8015, PASTE_B_MENU__MSG,   'Paste B'PASTE_B_MENUP__MSG,   32769, mpfrom2short(HP_EDIT_PASTEB, 0)
    endif
-compile endif -- INCLUDE_STANDARD_CONTEXT_MENU
 compile if not VANILLA
 tryinclude 'mymsemnu.e'  -- For user-added configuration
 compile endif
