@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modify.e,v 1.4 2004-01-13 17:27:59 aschn Exp $
+* $Id: modify.e,v 1.5 2004-07-01 11:34:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -57,87 +57,29 @@
 ;     replace this one entirely.  For example, create a file NEWMOD.E with
 ;     your defmodify proc; compile it separately (ETPM NEWMOD); add a link
 ;     statement (link 'newmod') to your MYKEYS.E or MYSTUFF.E file.
-;
-
-compile if SHOW_MODIFY_METHOD = 'COLOR'
 
 defmodify
-   universal  appname, app_hini
- compile if WPS_SUPPORT
-   universal wpshell_handle
- compile endif
-
-   getfileid fileid
-   if .autosave and .modify>=.autosave then
-      if leftstr(.filename,1,1) <> '.' | .filename = GetUnnamedFilename() then
-         sayerror AUTOSAVING__MSG
-         'xcom save "'MakeTempName()'"'
-         .modify=1                  /* Reraise the modify flag. */
-         sayerror 0
-      endif
-   endif
-
-compile endif -- COLOR
-
-
-compile if SHOW_MODIFY_METHOD = 'TITLE'
-const
-   -- This is what we'll append to the file title.
-  compile if not defined(SHOW_MODIFY_TEXT)   -- If user didn't define in MYCNF:
-   SHOW_MODIFY_TEXT = ' (mod)'
-  compile endif
-
-defmodify
+   -- do autosave
    if .autosave and .modify>=.autosave then
       getfileid fileid
       if leftstr(.filename,1,1) <> '.' | .filename = GetUnnamedFilename() then
          sayerror AUTOSAVING__MSG
          'xcom save "'MakeTempName()'"'
-         .modify=1                  /* Reraise the modify flag. */
-          sayerror 0
+         .modify = 1  -- Reraise the modify flag
+          sayerror 0  -- delete autosave message
       endif
    endif
-   settitletext(.filename) -- This procedure adds the SHOW_MODIFY_TEXT.
-compile endif  -- title
 
-
-compile if SHOW_MODIFY_METHOD = 'FKTEXTCOLOR'
-defmodify
-   universal comsfileid
-   if .autosave and .modify>=.autosave then
-      getfileid fileid
-      if fileid <> comsfileid & substr(.filename,1,1) <> '.' then
-         'xcom save 'MakeTempName()
-         .modify=1                  /* Reraise the modify flag. */
-      endif
-   endif
-   fids = fileidfromanchorblock(.anchorblock)  -- Get list of fileids
-   do while fids <> ''
-      parse value fids with fileid fids
-      if .modify then
-         fileid.functionkeytextcolor= MODIFIED_FKTEXTCOLOR
-      else -- if .modify==0 then
-         fileid.functionkeytextcolor= FUNCTIONKEYTEXTCOLOR
-      endif
-   end  -- do while
-compile endif  -- statuscolor
-
-
-compile if SHOW_MODIFY_METHOD = ''  -- No change in display, just do AUTOSAVE.
-defmodify
-   if .autosave and .modify>=.autosave then
-      getfileid fileid
-      if leftstr(.filename,1,1) <> '.' | .filename = GetUnnamedFilename() then
-         sayerror AUTOSAVING__MSG
-         'xcom save "'MakeTempName()'"'
-         .modify=1                  /* Reraise the modify flag. */
-          sayerror 0
-      endif
-   endif
-compile endif  -- No display change.
-
-compile if INCLUDE_BMS_SUPPORT  -- Put this at the end, so it will be included in any of the above
+compile if INCLUDE_BMS_SUPPORT
    if isadefproc('BMS_defmodify_exit') then
       call BMS_defmodify_exit()
    endif
 compile endif
+
+; Other used defmodifies, so far:
+; FILE.E       -  lock on modify
+; INFOLINE.E   -  show datetime or 'Modified', change color of statusline text
+; EPMSHELL.E   -  reset modify for EPM shells to avoid the internal modified
+;                 dialog on quit
+
+
