@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.17 2002-09-16 21:40:10 cla Exp $
+* $Id: test.c,v 1.18 2002-09-19 13:47:52 cla Exp $
 *
 * ===========================================================================
 *
@@ -181,6 +181,12 @@ do
          // open profile
          rc = OpenConfig( &hconfig, szInifile);
          printf( "open configurarion: rc=%u, handle=0x%x\n\n", rc, hconfig);
+         if (rc != NO_ERROR)
+            break;
+
+         // initialize it
+         rc = InitConfig( hconfig, "..\\..\\netlabs\\bin\\defaults.dat");
+         printf( "initializing config: rc=%u\n", rc);
          if (rc != NO_ERROR)
             break;
 
