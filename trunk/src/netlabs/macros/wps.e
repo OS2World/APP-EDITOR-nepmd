@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wps.e,v 1.1 2002-10-16 18:26:50 aschn Exp $
+* $Id: wps.e,v 1.2 2002-10-16 18:44:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,7 +32,6 @@
 ;       default view.
 defc OpenFolder
    SetupString = strip( arg(1) )
-   sayerror SetupString
    if SetupString = '' then
       SetupString = 'OPEN=DEFAULT'
    endif
