@@ -1,13 +1,13 @@
 /****************************** Module Header *******************************
 *
-* Module Name: queryfullname.e
+* Module Name: libinfo.e
 *
 * .e wrapper routine to access the NEPMD library DLL.
 * include of nepmdlib.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libinfo.e,v 1.1 2002-08-20 12:07:13 cla Exp $
+* $Id: libinfo.e,v 1.2 2002-08-20 14:57:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,44 +26,29 @@
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
 
-defc NepmdVersion =
+defc NepmdLibInfo =
 
-  sayerror 'NEPMDLIB Version' NepmdLibInfo( 'VERSION');
+  rc = NepmdLibInfo();
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdLibInfo                                       */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
-/*    data = NepmdLibInfo( '<token>');                           */
-/*                                                               */
-/*  Valid tokens are:                                            */
-/*     'VERSION'  - returns version number ('1.23')              */
-/*     'COMPILED' - returns compiledate ('dd mmm yyyy')          */
+/*    rc = NepmdLibInfo();                                       */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
-/*  APIRET EXPENTRY NepmdLibInfo( PSZ pszFilename,               */
-/*                                PSZ pszBuffer,                 */
-/*                                PSZ pszBuflen)                 */
-/*                                                               */
+/*  APIRET EXPENTRY NepmdLibInfo( HWND hwndClient);              */
 /* ------------------------------------------------------------- */
 
-defproc NepmdLibInfo( Token) =
-
- BufLen   = 260;
- LibInfo  = copies( atoi( 0), BufLen);
-
- /* prepare parameters for C routine */
- Token    = Token''atoi( 0);
+defproc NepmdLibInfo =
 
  /* call C routine */
  LibFile = getlibfile();
  rc = dynalink32( LibFile,
                   "NepmdLibInfo",
-                  address( Token)   ||
-                  address( LibInfo) ||
-                  atol( Buflen));
+                  gethwndc( EPMINFO_EDITCLIENT));
 
  checkliberror( LibFile, rc);
 
- return LibInfo;
+ return rc;
 
