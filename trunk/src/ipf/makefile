@@ -9,7 +9,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.10 2002-10-31 18:07:36 cla Exp $
+# $Id: makefile,v 1.11 2002-11-04 17:00:10 cla Exp $
 #
 # ===========================================================================
 #
@@ -66,7 +66,11 @@ NEPMDPANEL=$(PANEL)
 
 ALL: HELPINF NEUSRINF NEPRGINF
 
-VIEWNE: NEUSR NEPRG
+SHOW: SHOWHELP SHOWNEUSR SHOWNEPRG
+
+NEW: NEWHELP NEWNEUSR NEWNEPRG
+
+# --- build in normal make processing
 
 HELPINF: $(BASEDIR)\bin\makefile.inf
 
@@ -74,15 +78,29 @@ NEUSRINF: $(CMPINFDIR)\neusr$(NLS).inf
 
 NEPRGINF: $(CMPINFDIR)\neprg$(NLS).inf
 
-HELP: HELPINF
-  @start view $(BASEDIR)\bin\makefile.inf $(MAKEPANEL)
+# --- show always, rebuild if new
 
-NEUSR: NEUSRINF
-  @start view $(CMPINFDIR)\neusr$(NLS).inf $(NEPMDPANEL)
+SHOWHELP: HELPINF
+   @start view $(BASEDIR)\bin\makefile.inf $(MAKEPANEL)
 
-NEPRG: NEPRGINF
+SHOWNEUSR: NEUSRINF
+   @start view $(CMPINFDIR)\neusr$(NLS).inf $(NEPMDPANEL)
+
+SHOWNEPRG: NEPRGINF
   @start view $(CMPINFDIR)\neprg$(NLS).inf $(NEPMDPANEL)
 
+# --- rebuild outdated, show new INFs only
+
+NEWHELP:
+  @$(MAKE) /nologo HELPINF SHOWFILE=1
+
+NEWNEUSR:
+  @$(MAKE) /nologo NEUSRINF SHOWFILE=1
+
+NEWNEPRG:
+  @$(MAKE) /nologo NEPRGINF SHOWFILE=1
+
+# --- cleanup
 
 CLEAN:
    @echo cleaning up files ...
@@ -91,12 +109,18 @@ CLEAN:
 # ---- create makefile help INF
 
 $(BASEDIR)\bin\makefile.inf: makefile.txt *.inc
-  htext /N makefile.txt $(BASEDIR)\compile\makefile.ipf $(BASEDIR)\bin\makefile.inf
+   htext /N makefile.txt $(BASEDIR)\compile\makefile.ipf $(BASEDIR)\bin\makefile.inf
+!ifdef SHOWFILE
+   @start view $(BASEDIR)\bin\makefile.inf $(MAKEPANEL)
+!endif
 
 # ---- generate programming guide INF
 
 $(CMPINFDIR)\neprg$(NLS).inf: neprg$(NLS).txt title$(NLS).inc bmp\* $(CMPDIR)\functions.txt
    htext /N neprg$(NLS).txt $(CMPDIR)\neprg$(NLS).ipf $(CMPINFDIR)\neprg$(NLS).inf
+!ifdef SHOWFILE
+  @start view $(CMPINFDIR)\neprg$(NLS).inf $(NEPMDPANEL)
+!endif
 
 $(CMPDIR)\functions.txt: ..\gui\nepmdlib\nepmdlib.e ..\gui\nepmdlib\macros\*
    esrcscan $(ESRCPATH)\nepmdlib.e $(ESRCPATH) $(CMPDIR) $(LIMITPATH)
@@ -105,4 +129,7 @@ $(CMPDIR)\functions.txt: ..\gui\nepmdlib\nepmdlib.e ..\gui\nepmdlib\macros\*
 
 $(CMPINFDIR)\neusr$(NLS).inf: neusr$(NLS).txt title$(NLS).inc bmp\*
    htext /N neusr$(NLS).txt $(CMPDIR)\neusr$(NLS).ipf $(CMPINFDIR)\neusr$(NLS).inf
+!ifdef SHOWFILE
+   @start view $(CMPINFDIR)\neusr$(NLS).inf $(NEPMDPANEL)
+!endif
 
