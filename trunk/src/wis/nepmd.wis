@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.8 2002-04-18 17:01:37 cla Exp $
+# $Id: nepmd.wis,v 1.9 2002-04-19 13:07:25 cla Exp $
 #
 # ===========================================================================
 #
@@ -71,6 +71,8 @@
      SELECT
      REQUIRES="1"
      TITLE="Netlabs EPM Distribution Extensions"
+
+     EXECUTE="$(1)\netlabs\install\usertree.cmd"
 
      CREATEOBJECT="WPProgram|OS/2 Netlabs^EPM Distribution|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPMD.INF Netlabs;OBJECTID=<NEPMD_VIEW_NEPMD>;"
 
