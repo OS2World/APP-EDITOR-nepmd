@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: frame.c,v 1.2 2002-06-08 22:23:59 cla Exp $
+* $Id: frame.c,v 1.3 2002-06-09 21:40:59 cla Exp $
 *
 * ===========================================================================
 *
@@ -400,8 +400,6 @@ APIRET ExecuteFrame( HAB hab, INT argc, PSZ  argv[])
 
          WINDOWDATA     wd;
 
-         PSZ            pszAlternateFilename = getenv( "RECOMP_SOURCEFILE");
-
          PSZ            pszSemName = SEMNAME;
          HEV            hevProgramActive = NULLHANDLE;
 
@@ -477,7 +475,7 @@ do
       }
 
    // determine some values for EPM compilation
-   strcpy( wd.szSourceFile,  (pszAlternateFilename) ? pszAlternateFilename : EPM_SOURCENAME);
+   strcpy( wd.szSourceFile, EPM_SOURCENAME);
    strcpy( wd.szTargetDir, (pszTargetDirectory) ? pszTargetDirectory : "");
 
    // process dialog
