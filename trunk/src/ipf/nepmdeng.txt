@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmdeng.txt,v 1.2 2002-09-22 12:30:45 cla Exp $
+.. $Id: nepmdeng.txt,v 1.3 2002-10-17 21:44:46 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -904,10 +904,11 @@ placed into the following directory tree:
 .fo off
 <install dir>
 ÀÄ[=USERDIR]
+  ÃÄautolink    **.ex        user binaries for automatic load on EPM start
   ÃÄbar         **.bar       user toolbar files
   ÃÄbin         **.bin       user .env files
   ÃÄbmp         **.bmp       user bitmaps
-  ÃÄex          **.ex        user macro compiled binaries
+  ÃÄex          **.ex        user binaries for dynamic load
   ÃÄkeywords    epmkwds.**   user keyword files for syntax highlighting
   ÀÄmacros      **.e         user macros
   ÀÄndx         **.ndx       user help index files
