@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.8 2002-09-02 08:36:05 cla Exp $
+* $Id: epmenv.c,v 1.9 2002-09-05 13:23:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -80,7 +80,7 @@ do
 
    // get name of EPM.EXE in NEPMD path
    memset( szNepmdModule, 0, sizeof( szNepmdModule));
-   rc = GetInstValue( NEPMD_VALUETAG_ROOTDIR, szNepmdModule, sizeof( szNepmdModule));
+   rc = GetInstValue( NEPMD_INSTVALUE_ROOTDIR, szNepmdModule, sizeof( szNepmdModule));
    if (rc == NO_ERROR)
       {
       strcat( szNepmdModule, "\\"NEPMD_SUBPATH_BINBINDIR"\\epm.exe");
@@ -207,7 +207,7 @@ do
    strcpy( strrchr( szExecutablePath, '\\'), "");
 
    // get NEPMD install directory
-   rc = GetInstValue( NEPMD_VALUETAG_ROOTDIR, szNepmdPath, sizeof( szNepmdPath));
+   rc = GetInstValue( NEPMD_INSTVALUE_ROOTDIR, szNepmdPath, sizeof( szNepmdPath));
    fNepmdPathFound =  (rc == NO_ERROR);
 
    // ----- check for main env file loaded
@@ -661,7 +661,7 @@ do
    // --- > set environment variable for NEPMD install directory
    memset( szInstallVar, 0, sizeof( szInstallVar));
    sprintf( szInstallVar, "%s=", ENV_NEPMD_PATH);
-   rc = GetInstValue( NEPMD_VALUETAG_ROOTDIR, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
+   rc = GetInstValue( NEPMD_INSTVALUE_ROOTDIR, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
    if (rc == NO_ERROR)
       {
       apszVar[ 0] = strdup( szInstallVar);
@@ -674,7 +674,7 @@ do
    // --- > set environment variable for NEPMD language
    memset( szInstallVar, 0, sizeof( szInstallVar));
    sprintf( szInstallVar, "%s=", ENV_NEPMD_LANGUAGE);
-   GetInstValue( NEPMD_VALUETAG_LANGUAGE, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
+   GetInstValue( NEPMD_INSTVALUE_LANGUAGE, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
    apszVar[ 1] = strdup( szInstallVar);
    ADDVAR( apszVar[ 1]);
 

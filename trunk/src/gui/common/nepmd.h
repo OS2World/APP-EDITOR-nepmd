@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.12 2002-09-02 09:36:22 cla Exp $
+* $Id: nepmd.h,v 1.13 2002-09-05 13:23:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -35,10 +35,10 @@
 #define NEPMD_FILENAMEEXT_ENV          ".env"
 
 // tag definitions for GetInstValue
-#define NEPMD_VALUETAG_ROOTDIR         "ROOTDIR"
-#define NEPMD_VALUETAG_LANGUAGE        "LANGUAGE"
-#define NEPMD_VALUETAG_INIT            "INIT"
-#define NEPMD_VALUETAG_MESSAGE         "MESSAGE"
+#define NEPMD_INSTVALUE_ROOTDIR         "ROOTDIR"
+#define NEPMD_INSTVALUE_LANGUAGE        "LANGUAGE"
+#define NEPMD_INSTVALUE_INIT            "INIT"
+#define NEPMD_INSTVALUE_MESSAGE         "MESSAGE"
 
 // define some filenames for EPM
 #define NEPMD_FILENAME_LIBINFO         ".NEPMD_INFO"

@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: client.c,v 1.6 2002-09-02 09:36:23 cla Exp $
+* $Id: client.c,v 1.7 2002-09-05 13:23:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -152,7 +152,7 @@ switch (msg)
       ENABLEWINDOW( hwnd, IDPBS_CANCEL, FALSE);
 
       // check for help file
-      rc = GetInstValue( NEPMD_VALUETAG_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
+      rc = GetInstValue( NEPMD_INSTVALUE_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
       if (rc  == NO_ERROR)
          {
          sprintf( szHelpFile, "%s\\%s\\%s", szNepmdRootdir, NEPMD_SUBPATH_CMPINFDIR, HELP_NEPMDINF);
