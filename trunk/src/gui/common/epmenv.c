@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.15 2002-09-20 18:11:45 cla Exp $
+* $Id: epmenv.c,v 1.16 2003-03-22 20:22:42 cla Exp $
 *
 * ===========================================================================
 *
@@ -413,7 +413,11 @@ if (!pszEntry)
 
 // copy name to allow proper check with strcmp
 // (strncmp does not work properly here, finds LIB in LIBPATH etc)
-ulNameLen = strchr( pszEntry, '=') - pszEntry;
+p = strchr( pszEntry, '=');
+if (!p)
+   return pszCurrent;
+
+ulNameLen = p - pszEntry;
 strncpy( szName, pszEntry, ulNameLen);
 szName[ ulNameLen] = 0;
 
