@@ -1,10 +1,20 @@
 /****************************** Module Header *******************************
 *
-* Module Name:
+* Module Name: startapache.cmd
+*
+* Script to start a test instance of Apache on port 55555.
+* For that a copy of conf\httpd.conf-dist-os is written to
+* TMP and modified.
+*
+* NOTE:
+*  - the env var APACHE_ROOT must point to the root directory of
+*    the Apache installation
+*  - the Apache installation must include PHP4 support
+*  - SED.EXE is required to be accessible within the PATH
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: startapache.cmd,v 1.1 2002-07-17 15:55:44 cla Exp $
+* $Id: startapache.cmd,v 1.2 2002-07-17 16:03:06 cla Exp $
 *
 * ===========================================================================
 *
@@ -23,7 +33,7 @@
  env = 'OS2ENVIRONMENT';
  rcx = SETLOCAL();
 
- Stem = 'lnnew';
+ Stem = 'NEPMD-Status';
  HttpPort       = '55555';
  HttpDocRoot    = DIRECTORY();
  HttpServerName = 'localhost';
