@@ -1,0 +1,61 @@
+/****************************** Module Header *******************************
+*
+* Module Name: open.erx
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: open.erx,v 1.2 2002-10-16 05:10:11 aschn Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
+/* ERX (EPM-REXX) */
+
+/* Opens arg(1).                                                           */
+/* To be called from an EPM command line.                                  */
+/*                                                                         */
+/* Syntax:  rx Open [object, [setup_string]]                               */
+/*                                                                         */
+/* object may contain a relative filespec if it is a directory.            */
+/* Both args are submitted to SysSetObjectData.                            */
+/* If setup_string is not specified, then OPEN=DEFAULT is assumed.         */
+
+call RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+call SysLoadFuncs
+
+parse arg arg1 ','arg2
+Object = strip( arg1 )
+Setup  = strip( arg2 )
+
+if Object = '' then
+   return 1
+
+if Setup = '' then
+   Setup = 'OPEN=DEFAULT'
+
+/* test if dir and resolve filespec */
+CurDir = directory()
+next = directory(Object)  /* this resolves also: Filename'\..' */
+call directory CurDir
+if next <> '' then  /* if dir exists */
+   Object = next
+
+/* open the object */
+do 2
+   /* the 2nd call is for to make it the topmost window */
+   rc = SysSetObjectData( Object, Setup )
+   if rc <> 1 then  /* rc = 1 ==> ok */
+      leave
+end /* do 2 */
+
+return 0
+

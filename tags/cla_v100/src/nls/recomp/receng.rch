@@ -1,0 +1,76 @@
+
+#ifndef RECENG_RCH
+#define RECENG_RCH
+
+#define IDT_IDRES_FRAME                          "Recompile EPM"
+#define IDT_IDGRP_RECOMPILE                      "recompilation progress"
+#define IDT_IDTXT_PREPARE                        "prepare compilation"
+#define IDT_IDTXT_SAVE_FILELISTS                 "save current file lists"
+#define IDT_IDTXT_RECOMPILE_EPM                  "recompile EPM"
+#define IDT_IDTXT_CLOSE_EPMWINDOWS               "close EPM windows"
+#define IDT_IDTXT_RELOAD_FILES                   "reloading files"
+#define IDT_IDTXT_LOADLOG                        "load log file"
+
+#define IDT_IDDLG_INFO                           __APPNAME__ " - Product Information"
+#define IDT_IDTXT_PROGRAMVERSION                 __APPNAME__ " " __VERSION__
+#define IDT_IDTXT_DESCRIPTION                    "EPM recompilation utility"
+#define IDT_IDTXT_COPYRIGHT                      "Copyright (c) " __YEAR__ " by the",
+#define IDT_IDTXT_OPENSOURCE                     "Netlabs Open Source Project"
+#define IDT_IDTXT_PROJECTNAME                    "Netlabs EPM Distribution"
+#define IDT_IDTXT_HOMEPAGE                       __HOMEPAGE__
+
+#define IDT_IDMEN_FILE                           "~File"
+#define IDT_IDMEN_FILE_EXIT                      "E~xit"
+#define IDT_IDMEN_SETTINGS                       "~Settings"
+#define IDT_IDMEN_SETTINGS_DISCARD_UNSAVED       "~discard unsaved files"
+#define IDT_IDMEN_SETTINGS_RELOAD_FILES          "~reload files after compile"
+#define IDT_IDMEN_SETTINGS_SHOW_COMPILELOG       "~show compile log on success"
+#define IDT_IDMEN_HELP                           "~Help"
+#define IDT_IDMEN_HELP_PARMS                     "Commandline ~parameters..."
+#define IDT_IDMEN_HELP_NEPMDUSRINF               "Load ~NEPMD User Guide..."
+#define IDT_IDMEN_HELP_NEPMDPRGINF               "Load NEPMD ~Programming Guide..."
+#define IDT_IDMEN_HELP_INFO                      "Product ~Information..."
+
+
+#define IDT_IDSTR_ALREADY_RUNNING                "Program is already running!"
+#define IDT_IDSTR_CANNOT_FIND_COMPILER           "Cannot find the EPM macro compiler, processing " \
+                                                 "aborted. Provide %s within a directory of the " \
+                                                 "PATH environment variable."
+#define IDT_IDSTR_CANNOT_FIND_SOURCEFILE         "Cannot find source file %s, processing aborted. " \
+                                                 "Provide that file within a directory of the " \
+                                                 "EPMPATH environment variable."
+#define IDT_IDSTR_CANNOT_WRITE_MACRO             "Error: cannot write macro."
+#define IDT_IDSTR_UNSAVED_FILES                  "One or more files within EPM are not saved. " \
+                                                 "Please save modified files and retry again or " \
+                                                 "select to discard unsaved files within the " \
+                                                 "settings menu."
+#define IDT_IDSTR_COMPILE_ERROR                  "The compilation of EPM was not successful. " \
+                                                 "Please check the faulty file to correct the " \
+                                                 "error."
+#define IDT_IDSTR_INVALID_PARM                   "Invalid parameter %s specified. Program aborted."
+#define IDT_IDSTR_START_NOT_SPECIFIED            "Parameter /%s not specified with /%s. Program aborted.";
+#define IDT_IDSTR_COMPILE_SUCCESSFUL             "recompile successful"
+#define IDT_IDSTR_COMPILE_ABORTED                "recompile aborted"
+#define IDT_IDSTR_HELP_HEAD                      __APPNAME__ " " __VERSION__                     NEWLINE \
+                                                 "commandline parameters"                        NEWLINE \
+                                                                                                 NEWLINE \
+                                                 "Usage: " __APPNAME__ " [targetdir] [options]"  NEWLINE \
+                                                                                                 NEWLINE
+#define IDT_IDSTR_HELP_1                         "Valid options:"                                NEWLINE \
+                                                 "/" PARM_START                                  NEWLINE \
+                                                 "/" PARM_DISCARDUNSAVED                         NEWLINE
+
+#define IDT_IDSTR_HELP_2                         "/" PARM_NORELOADFILES                          NEWLINE \
+                                                 "/" PARM_NOLOG                                  NEWLINE \
+                                                 "/" PARM_HELP " or /" PARM_HELP2                NEWLINE
+
+#define IDT_IDSTR_HELP_TAIL                                                                      NEWLINE \
+                                                 "Specifying /" PARM_START " resets to use default " \
+                                                 "settings. Parameters /" PARM_DISCARDUNSAVED ", " \
+                                                 "/" PARM_NORELOADFILES " and /" PARM_NOLOG " " \
+                                                 "are invalid as long as /" PARM_START " is not " \
+                                                 "specified. See the documentation for further " \
+                                                 "description."
+
+#endif // RECENG_RCH
+

@@ -1,0 +1,28 @@
+
+Name: Christian Langanke
+email: C.Langanke@Teamos2.de
+URL: http://nepmd.netlabs.org
+
+The Netlabs EPM Distribution Project launches its website
+
+The new project of netlabs.org, named the Netlabs EPM Distribution (NEPMD), hast just launched its new website at http://nepmd.netlabs.org
+
+The project team invites you to visit the site and learn about the benfits and new functionality, that this distribution provides to users of OS/2 and eComStation. All efforts target the developers as well as plain endusers - if you don't know, how EPM can do for you, you have missed a lot!
+
+In opposite to the EPM normally shipped with OS/2 and eComStation, the Netlabs EPM Distribution intends to make installation, configuration and usage of additions to the EPM so easy that every average user can perform all these tasks without any problems. The first version of the Netlabs EPM Distribution may not achieve these goals in all aspects already, but it is already a huge step forward and an important first milestone on the road ahead.
+
+See also the two sessions on the Netlabs EPM Distribution at Warpstock Europe 2002! (http://warpstock.os2.org/en)
+
+
+
+Das Netlabs EPM Distribution Projekt îffnet seine Webseiten
+
+Das neue Projekt von netlabs.org, die Netlabs EPM Distribution (NEPMD), hat soeben seine Webseiten auf http://nepmd.netlabs.org errîffnet.
+
+Das Projektteam lÑdt Sie herzlich dazu ein, auf diesen Seiten vorbeizuschauen, um mehr Åber die Vorteile und neuen Funktionen zu erfahren, die diese Distribution OS/2 und eComStation Benutzern bietet. Alle Erweiterungen helfen sowohl Entwicklern als auch Endbenutzern - wenn Sie den EPM noch nicht benutzt haben, haben Sie bestimmt eine Menge verpasst!
+
+Im Gegensatz zum EPM, der mit OS/2 und eComStation ausgeliefert wird, will die Netlabs EPM Distribution die Installation, Konfiguration und das HinzufÅgen von Erweiterungen so einfach machen, dass jeder Endbenutzer all diese Dinge problemlos bewÑltigen kann.
+
+Sehen Sie auch zwei VortrÑge Åber die Netlabs EPM Distribution auf Warpstock Europa 2002! (http://warpstock.os2.org/de)
+
+

@@ -1,0 +1,7 @@
+CATEGORY: Locate/Select
+TITLE: Enhance locate method
+PRIO: 1
+STATUS: completed
+FILES: enhlocate.e epmsmp\globfind.e epmsmp\revert.e epmsmp\globchng.e
+UPDATED: $Id: ls001,v 1.2 2002-11-03 17:26:17 cla Exp $
+

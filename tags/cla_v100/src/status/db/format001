@@ -1,0 +1,9 @@
+CATEGORY: Formatting
+TITLE: Exchange lines and chars
+PRIO: 1
+STATUS: completed
+FILES: mykeys.e
+UPDATED: $Id: format001,v 1.2 2002-11-03 17:26:16 cla Exp $
+
+Todo:
+- may conflict with PageMage keys, must be selectable !

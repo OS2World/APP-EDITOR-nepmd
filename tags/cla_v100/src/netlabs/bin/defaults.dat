@@ -1,0 +1,63 @@
+; ***************************** Module Header ******************************\
+;
+; Module Name: defaults.dat
+;
+; This file contains default values for the configuration repository of
+; the Netlabs EPM Distribution
+;
+; Copyright (c) Netlabs EPM Distribution Project 2002
+;
+; $Id: defaults.dat,v 1.4 2002-10-20 10:38:29 cla Exp $
+;
+; ===========================================================================
+;
+; This file is part of the Netlabs EPM Distribution package and is free
+; software.  You can redistribute it and/or modify it under the terms of the
+; GNU General Public License as published by the Free Software
+; Foundation, in version 2 as it comes in the "COPYING" file of the
+; Netlabs EPM Distribution.  This library is distributed in the hope that it
+; will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
+;
+; **************************************************************************/
+
+; this key for NEPMDLIB Testcases - don't remove
+"\NEPMD\Test\Nepmdlib\TestKey" = "This is a default value"
+
+; these keys are junk only
+"\NEPMD\Testcase\MyContainer\MyKey" = "This is my value"
+"\NEPMD\Testcase\MyContainer\MyKey2"="This is another value"
+
+; Language
+"\NEPMD\Language\UnnamedFilename" = ".Untitled"
+
+; Statusline
+;"\NEPMD\User\Statusline\Template" = "Line %l of %s | Col %c | '%x'x/%z | %f | ma %ma | tabs %ta | %mo | %m"
+;"\NEPMD\User\Statusline\Separator" = " ú "
+;"\NEPMD\User\Statusline\Font" = "10.System Proportional.Non-ISO"
+;"\NEPMD\User\Statusline\Color" = "BLACK + LIGHT_GREYB"
+;"\NEPMD\User\Statusline\ModifiedColor" = "MAGENTA + LIGHT_GREYB"
+
+; Titletext
+;"\NEPMD\User\Titletext\Template" = "%fn   (%dt)"
+
+; Messageline
+;"\NEPMD\User\Messageline\Font" = "10.Helv"
+;"\NEPMD\User\Messageline\Color" = "LIGHT_RED + WHITEB"
+
+; Mouse
+"\NEPMD\User\Mouse\Mark\DragAlwaysMarks" = "1"
+;    MouseStyle =  1: MB1 = block marking, MB2 = char marking
+;    MouseStyle <> 1: MB2 = block marking, MB1 = char marking
+"\NEPMD\User\Mouse\Mark\MouseStyle" = "1"
+"\NEPMD\User\Mouse\Mark\Workaround" = "1"
+
+"\NEPMD\User\Mouse\Url\MB1_DClick" = "1"
+"\NEPMD\User\Mouse\Url\Browser" = "DEFAULT"
+;"\NEPMD\User\Mouse\Url\ContextMenu" = "1"
+
+; Indent
+"\NEPMD\User\Indent\Home\RespectIndent" = "1"
+
+

@@ -1,0 +1,1055 @@
+.. ***************************** Module Header *******************************
+..
+.. Module Name: makefile.txt
+..
+.. source file for the INF file providing help for makefile
+.. Requires HyperText/2 package to compile
+..
+.. Unlike the nepmd.inf, the makfile.inf is compiled to the bin subdirectory
+.. and checked in to make it always available right after checking out.
+..
+.. So when updating this file, commit also the changed INF file !!!
+..
+.. Copyright (c) Netlabs EPM Distribution Project 2002
+..
+.. $Id: makefile.txt,v 1.27 2002-11-05 20:26:54 cla Exp $
+..
+.. ===========================================================================
+..
+.. This file is part of the Netlabs EPM Distribution package and is free
+.. software.  You can redistribute it and/or modify it under the terms of the
+.. GNU General Public License as published by the Free Software
+.. Foundation, in version 2 as it comes in the "COPYING" file of the
+.. Netlabs EPM Distribution.  This library is distributed in the hope that it
+.. will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+.. of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.. General Public License for more details.
+..
+.. ***************************************************************************
+
+.hi 234
+.include titleeng.inc
+.set TITLE=*[=DOCTITLE]*
+
+.set STDLIST=compact break=fit tsize=20
+
+.ti [=DOCTITLE]
+
+.. =============================================================================
+.1 Making of [=DOCTITLE]
+.. =============================================================================
+.an IDPNL_OVERVIEW
+.
+.at font='20.Tms Rmn' fc=darkgray italic bold
+.bitmap src\bmp\nllogo.bmp center
+.ce present the Making of
+.at font='24.Tms Rmn' fc=red bold italic
+.ce The [=DOCTITLE]
+.at
+
+[=TOPICS]
+.su 1
+
+.. -----------------------------------------------------------------------------
+.2 makefile pseudotargets
+.. -----------------------------------------------------------------------------
+.an IDPNL_TARGETS
+.
+[=TOPICS]
+.su V30
+
+.. .............................................................................
+.3 main makefile
+.. .............................................................................
+.an IDPNL_TARGETS_MAIN
+.
+This section describes the makefile pseudotargets that are available for the main makefile
+within the project working directory (root of the development tree).
+
+[=NOTE]
+.ul compact
+- edit configure.in to your needs before executing nmake
+- targets marked with (**) require a working internet connection
+  for to download the EPM packages, if they are not available within the directory
+  specified by the macro *ZIPSRCDIR* in the file *configure.in*.
+
+The following pseudotargets are available:
+.pl bold compact break=none tsize=20
+- nmake [[help]]
+= show this INF file (if outdated, this compiles the INF before). This calls the
+  makefile within the *src\ipf* directory with the target *showhelp*.
+.
+- nmake all
+= build all modules and thus the complete package (**)
+.
+  This is achieved ba calling all makefiles below the *src* subdirectory, of which
+  the subdirectories are listed in the macro *MODULELIST*
+.
+  This results in the *WarpIn* WPI package file created
+  either in the *debug* or *release* directory, depending on the value of
+  the *DEBUG* environment variable (**)
+.
+- nmake inst
+= like *nmake all*, but also starts the WPI file (**)
+- nmake remove
+= quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIn* GUI.
+  This is intended for testing purposes only !
+.
+  [=NOTE]
+.ul compact
+  - the revision numbers from the *WarpIn* script are ignored, but
+    the vendor name, package name and component name must match exactly
+  - all files and WPS objects are removed
+  - no *INI* entries or *CONFIG.SYS* entries are removed
+  - no dependencies are checked!
+.
+- nmake gui
+= build GUI components only
+- nmake rungui
+= build and run selected GUI components
+.
+- nmake inf
+= build all INF files of the whole project
+- nmake show
+= build NEPMD INF only and show it
+.
+- nmake clean
+= remove the *compile* and binary (both *debug* and *release*) directories
+.
+- nmake NLS [[NLS=xxx]]
+=
+.
+(re)set NLS language identifier to default or the specified
+  [.IDPNL_APPENDIX_LANGIDS three letter language identifier].
+  To make things easier, the makefile allows also to set the language identifier
+  by just speficying the symbol *NLS=xxx* without any target.
+  .
+  [=NOTE]
+.ul compact
+  - This is only intended for testing purposes, as normally the language information
+    for [=TITLE] is set by running the installation package of it.
+
+.. .............................................................................
+.3 src\ipf\makefile
+.. .............................................................................
+.an IDPNL_TARGETS_IPF
+.
+The following makefile pseudotargets are available for the makefile within the
+*src\ipf* subdirectory:
+.pl bold compact break=none tsize=20
+- nmake [[all]]
+= build both the makefile INF and the project documentation INFs, but show none
+.
+- nmake showhelp
+= build and show this INF file (if outdated, this compiles the INF before). This is used
+  by the [.IDPNL_TARGETS_MAIN main makefile] in order to bring up help if called with no
+  target specified
+- nmake neusr
+= build and show the user guide INF
+- nmake neprg
+= build and show the programming guide INF
+- nmake nefld
+= build and show the folder HLP
+.
+- nmake helpinf
+= build this makefile in the *bin* subdirectory !
+- nmake neusrinf
+= build the user guide INF in the *compile\netlabs\book* directory
+- nmake neusrinf
+= build the programming guide INF in the *compile\netlabs\book* directory
+- nmake nefldhlp
+= build the folder HLP file in the *compile\netlabs\help* directory
+.
+- nmake clean
+= remove the files created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+.
+ [=NOTE]
+.ul compact
+  - directories are not removed by this pseudotarget. For a complete cleanup, call
+    *nmake clean* within the project working directory (root of the development tree).
+
+.. .............................................................................
+.3 src\rexx\makefile
+.. .............................................................................
+.an IDPNL_TARGETS_REXX
+.
+The following makefile pseudotargets are available for the makefile within the
+*src\rexx* subdirectory:
+.pl bold compact break=none tsize=20
+- nmake [[all]]
+= create NLSETUP.EXE in the *compile\netlabs\install directory*
+.
+- nmake clean
+= remove the file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+.
+ [=NOTE]
+.ul compact
+  - directories are not removed by this pseudotarget. For a complete cleanup, call
+    *nmake clean* within the project working directory (root of the development tree).
+
+.. .............................................................................
+.3 src\netlabs\makefile
+.. .............................................................................
+.an IDPNL_TARGETS_NETLABS
+.
+The following makefile pseudotargets are available for the makefile within the
+*src\netlabs* subdirectory:
+.pl bold compact break=none tsize=20
+- nmake [[all]]
+= copy all modified files below the *src\netlabs* directory to the *compile\netlabs* directory
+.
+- nmake checksrc
+= check only if some files have been modified. If not, the flag file *compile\srccopy.txt*
+  is created, otherwise it is deleted.
+- nmake srccopy
+= copy modified files anyway
+.
+- nmake clean
+= remove the flag file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+.
+ [=NOTE]
+.ul compact
+  - directories are not removed by this pseudotarget. For a complete cleanup, call
+    *nmake clean* within the project working directory (root of the development tree).
+
+.. .............................................................................
+.3 src\wis\makefile
+.. .............................................................................
+.an IDPNL_TARGETS_WIS
+.
+.at fc=red
+This makefile cannot be called directly, instead it can only be processed by calling
+the main makefile by executing
+.sl compact
+-  *nmake all*
+
+in the project working root directory instead.
+.
+This ensures that all other makefiles from within the *src* directory are called
+before and with that all required files are available for building the WPI package.
+
+Nevertheless the pseudotargets provided by *[=.IDPNL_TARGETS_WIS]* are described here,
+for testing purposes you may still call the makefile directly by specifying the symbol
+*CALLED=1*.
+.at
+
+The following makefile pseudotargets are available for the makefile within the
+*src\wis* subdirectory:
+.pl bold compact break=none tsize=20
+- nmake [[all]]
+= downloads and unpacks files from leo and build complete package.
+  This results in the *WarpIn* WPI package file created
+  either in the *debug* or *release* directory, depending on the value of
+  the *DEBUG* environment variable (**)
+.
+- nmake inst
+= like *nmake all*, but also starts the WPI file (**)
+- nmake remove
+= quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIn* GUI.
+  This is intended for testing purposes only !
+.
+  See pseudotarget *remove* of the [.IDPNL_TARGETS_MAIN] for further details.
+.
+- nmake prepare
+= only downloads EPMBBS zip files from leo and unpacks (**)
+- nmake check
+= check prepared files for
+.ul compact
+  - SYSxxxx errors during unpack
+  - zero byte files, making WIC trap (thanks god !).
+    pkunzip2 does not unpack properly sometimes (zero byte files)
+.el
+.
+- nmake clean
+= remove the flag file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+.
+ [=NOTE]
+.ul compact
+  - directories are not removed by this pseudotarget. For a complete cleanup, call
+    *nmake clean* within the project working directory (root of the development tree).
+
+[=NOTE]
+.ul compact
+- edit configure.in to your needs before executing nmake
+- targets marked with (**) require a working internet connection
+  for to download the EPM packages, if they are not available within the directory
+  specified by the macro *ZIPSRCDIR* in the file *configure.in*.
+
+
+.. -----------------------------------------------------------------------------
+.2 Requirements
+.. -----------------------------------------------------------------------------
+.an IDPNL_REQUIREMENTS
+.
+The following is required for making [=TITLE]:
+.su V30
+
+[=NOTE]
+.ul compact
+.at hi
+- any makefile processing will check for all required packages
+  to be available and abort if anything is missing on your system!
+.at
+
+.. .............................................................................
+.3 CONFIG.SYS settings
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_CONFIGSYS
+.
+In some situations the makefile processing and especially REXX scripts called
+by it cannot open enough files, and an error message is being displayed,
+saying that a file cannot be opened.
+
+In such cases the environment variable *SHELLHANDLESINC* can be used to provide
+more file handles to the makefile process. This setting specifies the amount
+of file handles that the amount of file handles available for the
+Workplace Shell should be increased by.
+
+[=NOTE]
+.ul compact
+- the environment variable *SHELLHANDLESINC* must be set in CONFIG.SYS,
+  so it requires a reboot to activate it
+
+_*Example:*_
+.fo off
+SET SHELLHANDLESINC=60
+.fo on
+
+
+.. .............................................................................
+.3 WarpIn
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_WARPIN
+.
+The *WarpIn* Installer is used to create the installation package.
+As a minimum version 0.9.18 is required.
+
+[=NOTE]
+.ul
+- You can download *Warpin* from
+  - [http://www.xworkplace.org]
+- makefile processing will extend the environment automatically
+  to access the *WarpIn* executables, so it is not required to make
+  them accessible via the PATH statement.
+
+.. .............................................................................
+.3 C Compiler
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_COMPILER
+.
+As compiler the following are supported
+.ul compact
+- *IBM CSet /2* (debugger seems not to cope with the debug version...)
+- *IBM VAC 3.08* (much better debugger)
+
+[=NOTE]
+.ul compact
+- the compiler used is automatically recognized by the makefile
+
+.. .............................................................................
+.3 Toolkit for OS/2 Warp
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_TOOLKIT
+.
+As toolkit one of the following is required:
+.ul compact
+- *OS/2 Warp 3 Developers Toolkit*
+- *OS/2 Warp 4 Developers Toolkit*
+- *OS/2 Warp 4.5 Developers Toolkit*
+
+.. .............................................................................
+.3 EPM Macro Compiler
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_ETPM
+.
+The *EPM Macro Compiler* is required to compile the *RECOMP* macro.
+
+[=NOTE]
+.ul compact
+- You can download the program file *etpm.exe* as part of the *EPM base application*
+  package zip file (no other files of this package are required)
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=epmapp The Hobbes File Archive]
+.
+    (search "epmapp" at hobbes.nmsu.edu)
+.
+- *etpm.exe* must be accessible by the PATH statement
+
+.. .............................................................................
+.3 PKUNZIP2
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_PKUNZIP2
+.
+PKUNZIP2 is required in order to unpack certain parts of the EPMBBS packages,
+as it supports the shrink method, this is not supported by newer versions of *Info-Zip*.
+
+As PKUNZIP2.EXE comes as part of *MPTS*, it is available on OS/2 Warp Systems with
+Network or Internet Access Kit installed.
+
+.. .............................................................................
+.3 unzip.exe of Info-Zip
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_UNZIP2
+.
+UNZIP is required in order to unpack certain parts of the EPMBBS packages,
+as it supports the "deflated" method used for some text files, this is not supported by
+[.IDPNL_REQUIREMENTS_PKUNZIP2].
+
+[=NOTE]
+.ul
+- You can download *unzip* from
+  - [http://www.info-zip.org Info-ZIP's homepage (www.info-zip.org)]
+- *unzip.exe* must be accessible by the PATH statement
+
+.. .............................................................................
+.3 wget
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_WGET
+.
+*wget* is used to download of the original zip files, if not present
+(currently tested with wget v1.7).
+
+[=NOTE]
+.ul
+- You can download *wget* from
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=wget The Hobbes File Archive]
+.
+    (search "wget" at hobbes.nmsu.edu)
+- *wget.exe* must be accessible by the PATH statement
+- when sitting behind a firewall, create/modify a wget resource file in order
+  to use an FTP proxy. Insert or add the following entries to the file
+  %home%\.wgetrc and replace the bold printed values as required:
+.fo off
+       ftp__proxy=http://*proxyname*:*proxyport*
+       proxy__user=*proxy__userid*
+       proxy__passwd=*proxy__password*
+.fo on
+
+.. .............................................................................
+.3 HyperText/2
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_HTEXT
+.
+For compilation of the online help the preprocessor *HyperText/2* is used.
+
+[=NOTE]
+.ul
+- You can download *HyperText/2* from
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=htext The Hobbes File Archive]
+.
+    (search "htext" at hobbes.nmsu.edu)
+- install according to the information in htext.inf
+.ul compact
+  - *htext.cmd* must be accessible by the PATH statement
+  - the bitmap files ***.bmp* must be placed either
+    - into the same directory where you put *htext.cmd* to
+    - into a subdirectory *htext* or *bmp* within the directory where you
+      put *htext.cmd* to
+    - into a directory specified in the environment variables
+      - *INCLUDE*
+      - *HTINCLUDE*
+
+.. .............................................................................
+.3 REXX2EXE
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_REXX2EXE
+.
+For converting a REXX script to an executable the *REXX2EXE* compiler us used.
+
+[=NOTE]
+.ul
+- You can download *REXX2EXE* from
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=rexx2exe The Hobbes File Archive]
+.
+    (search "rexx2exe" at hobbes.nmsu.edu)
+- *rexx2exe.exe* must be accessible by the PATH statement
+
+.. .............................................................................
+.3 FASTDEP
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_FASTDEP
+.
+For creating dependency files the FastDep utility is used.
+
+[=NOTE]
+.ul
+- You can download *FastDep* from the *XWorkplace* project being hosted on the *Netlabs Archive Server*.
+- *fastdep.exe* must be accessible by the PATH statement
+
+.. .............................................................................
+.3 GREP
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_GREP
+.
+For checking unpacked EPM files the *grep* utility is used.
+
+[=NOTE]
+.ul
+- the *grep* utility is only required if you run *src\wis\makefile* with pseudotarget
+  *check*. It is not mandandory in order to create the package itself.
+- You can download *Grep v2.0* from
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=grep20 The Hobbes File Archive]
+.
+    (search "grep20" at hobbes.nmsu.edu)
+.el
+.
+  This version has the advantage that it does not require the *EMX* runtime.
+- *grep.exe* must be accessible by the PATH statement
+
+.. .............................................................................
+.3 LXLITE
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_LXLITE
+.
+For packing the executables of the [=TITLE], the *lxlite* utility is used.
+
+[=NOTE]
+.ul
+- the *lxlite* utility is only required if you build the release version of the
+  [=TITLE] executables, which is the default. In order to build the debug versions
+  instead, either
+.ul compact
+  - specify *DEBUG=1* as parameter to *nmmake* or
+  - set the environment variable *DEBUG=1* before calling *nmake*
+- *lxlite.exe* must be accessible by the PATH statement
+
+.. -----------------------------------------------------------------------------
+.2 CVS development tree overview
+.. -----------------------------------------------------------------------------
+.an IDPNL_DEVTREE
+.
+The following directories currently exist in the CVS development tree
+.
+(the *CVS* maintenance directories are not included here):
+.pl compact break=none tsize=15
+.fo off
+<working dir>
+ÃÄheader       GNU header for all used filetypes
+ÃÄipf          HypeText/2 sources for the NEPMD INF files
+³ ÀÄbmp        bitmaps for INF files
+ÃÄ[=DISTDIR]      base directory for sources simoly copied to compile\[=DISTDIR]
+³ ÀÄinstall    installation related files
+³     ÀÄico    NEPMD related icons for installation
+ÃÄrexx         REXX sources being compiled for NEPMD
+ÀÄwis          WarpIn script
+.fo on
+
+The following _temporary_ directory trees are created when building the *WarpIn* package:
+.fo off
+<working dir>
+ÃÄcompile      holds temporary files being the same for debug or
+³  ³           release version
+³  ÀÄ[=DISTDIR]   directory tree to be packed into the WarpIn package
+³    ÀÄinstall holding copies of files of src\[=DISTDIR]
+³      ÀÄico   or compiled binaries
+³
+ÀÄ<binary dir> the name of this directory is either *debug* or *release*
+   ³           Among others it holds the resulting WarpIn package file.
+   ÀÄ[=DISTDIR]   directory tree to be packed into the WarpIn package
+     ÀÄbin     holding copies of selected executables being compiled to
+               <binary dir>
+.fo on
+
+[=NOTE]
+.ul compact
+- the temporary directory trees can be completely cleaned up (deleted) with
+  executing *nmake clean* in the working root directory.
+
+.. -----------------------------------------------------------------------------
+.2 configuring the make process
+.. -----------------------------------------------------------------------------
+.an IDPNL_CONFIGMAKE
+.
+[=TOPICS]
+.su V30
+
+.. .............................................................................
+.3 general settings in configure.in
+.. .............................................................................
+.an IDPNL_CONFIGMAKE_CONFIGUREIN
+.
+The *src\wis\makefile* requires several lists values, of which some have to be
+configured before executing *nmake* to build the complete package.
+
+_*values to be configured by everybody*_
+.pl bold
+- BASEURL
+= specifies the location from where the original ZIP files of the EPMBBS
+  package (epm603.zip and epm603b.zip) are to be downloaded from.
+.
+.
+[=NOTE]
+.ul compact
+  - It will generally not be necessary to modify that value !
+  - You can predefine that value also as an environment variable before calling *nmake*
+.el
+- ZIPSRCDIR
+= specifies a directory of your choice either empty or already holding
+  the ZIP files of the EPMBBS package (epm603.zip and epm603b.zip).
+  If files are not present, they are downloaded from LEO
+  from the base URL - see setting BASEURL above.
+.
+.
+[=NOTE]
+.ul compact
+  - the directory may not exist, but at least directory above
+    must exist (that is not tested for !)
+  - if you don't modify the value, the directory *zip* is created within your
+    working directory and used for that purpose
+  - You can predefine that value also as an environment variable before calling *nmake*
+.el
+- UNZIPPEDDIR
+= specifies an empty or non-existant directory of your choice where
+  to put unpacked files
+.
+.
+[=NOTE]
+.ul compact
+  - the directory may not exist, but at least directory above must exist
+    (that is not tested for !)
+  - if you don't modify the value, the directory *epm.packages* is created within your
+    working directory and used for that purpose
+  - the contents of that directory (if any) is completely deleted
+    before unpacking the EPMBBS package files
+  - You can predefine that value also as an environment variable before calling *nmake*
+.el
+
+
+_*values to be configured by release maintainer only*_
+.pl bold
+- STEM
+= specifies the id of the project, used within some filenames
+- VERSION
+= specifies the current version, used in the name of the WPI package file
+- ID__VERSION__NEPMD
+= specifies the current version and revision as to be used within the *WarpIn* script.
+.
+  [=NOTE]
+.ul compact
+  - Keep in sync with the major and minor version used in *VERSION* !!!
+  - This value has to be specified in the *WapIn* package ID style: <major>\<minor>\<revision>
+.el
+- ID__VERSION__REQ__WARPIN
+= specifies the version and revision of *WarpIn* that the resulting WPI package should
+  be restricted to as a minimum for installation.
+.
+  [=NOTE]
+.ul compact
+  - This value has to be specified in the *WapIn* package ID style: <major>\<minor>\<revision>
+.el
+.
+
+.include guide.inc
+
+.. -----------------------------------------------------------------------------
+.2 Appendix: INI entries overview
+.. -----------------------------------------------------------------------------
+.an IDPNL_APPENDIX_INIENTRIES
+.
+[=TOPICS]
+.su V30
+
+.. .............................................................................
+.3 OS2.INI
+.. .............................................................................
+.an IDPNL_APPENDIX_INIENTRIES_OS2INI
+.
+The following entries are written to *OS2.INI*:
+
+.pl bold tsize=3
+.. -------------------------------------------
+- 'NEPMD' - 'Language'
+=
+.pl compact bold break=none tsize=9
+- description
+= language information used by several programs
+- originator
+= installation of [=TITLE]
+- value
+= a [.IDPNL_APPENDIX_LANGIDS three letter language identification]
+- type
+= alpha string (may be zero terminated)
+.el
+.. -------------------------------------------
+- 'recomp' - 'CONFIGDATA'
+=
+.pl compact bold break=none tsize=9
+- description
+= configuration data
+- originator
+= *RECOMP* utility
+- value
+= internal
+- type
+= binary
+.el
+
+.. -----------------------------------------------------------------------------
+.2 Appendix: language identifiers overview
+.. -----------------------------------------------------------------------------
+.an IDPNL_APPENDIX_LANGIDS
+.
+The following language identifiers are currently used within the project:
+.lm 5
+.pl bold compact break=none tsize=7
+- eng
+= english
+- deu
+= deutsch (german)
+
+.. -----------------------------------------------------------------------------
+.2 Appendix: documentation comments for E functions
+.. -----------------------------------------------------------------------------
+.an IDPNL_APPENDIX_DOCCOMMENTS
+.
+[=TOPICS]
+.su V30
+
+.. .............................................................................
+.3 doc comments in general
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_GENERAL
+.
+All E functions provided by the [=TITLE] should be documented in the
+E functions reference of the INF file for the release package.
+In order to have this task accomplished, the following is required:
+.pl bold tsize=3
+- the information to be put into the panels of the INF file
+= this information has to be provided by the developer of the function within
+  the .e source file within so-called documentation comments
+- the generation of the panels into an appendix of the INF file
+= this is done by the script *escansrc.cmd*, which is called by the makefile
+  generating all of the online help files.
+
+Having said this, once a developer has added the documentation comments to the
+respective source file [.IDPNL_APPENDIX_DOCCOMMENTS_FORMAT in correct format],
+the information about the function is automatically inlcuded in the functions
+reference.
+
+.. .............................................................................
+.3 format of doc comments
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_FORMAT
+.
+The following rules apply to documentation comments:
+.ul
+- All documentation comments have to be embedded into comments for the E language,
+  so that the *EPM macro compiler* does not see them.
+- for each function a set of documentation comments have to be defined, some
+  others are optional. If comments not being optional are missing, the script
+  reading them will display warnings when generating the reference information,
+  but will not stop.
+- a documentation comment consists of the following:
+.ul compact
+  - one line specifying the name of the comment. This line must have the following
+    information in one word (without spaces included!):
+    - two *@* characters
+    - the name of the function
+    - one *@* character
+    - the type name of the comment (like [.IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX],
+    [.IDPNL_APPENDIX_DOCCOMMENTS_PARM], .etc.)
+.el
+.
+  For special comment types like [.IDPNL_APPENDIX_DOCCOMMENTS_CATEGORY] and
+  [.IDPNL_APPENDIX_DOCCOMMENTS_PARM] another *@* character and an additional
+  parameter (here either the category name or the name of the parameter) must
+  be appended. Please see the descriptions about the comment types in this
+  section for details.
+.el
+- all following lines up to the next documentation comment are taken as text
+  into the INF file panel,
+.at fc=red
+  where this text must apply to the [.IDPNL_REQUIREMENTS_HTEXT] syntax, as this
+  preprocessor is used for generation the online help.
+  Especially important is to
+  - take care for the characters ** __ ## [[ ]], as
+    they are escape characters for *HyperText/2* in order to switch bold,
+    underline and italic print of characters on and off and for to create
+    hyperlinks. In order to use those characters within the example code,
+    just repeat the character, as each escape character escapes itself.
+  - also make sure that no line begins with a dot,
+    because that may be interpretet as a HyperText command.
+  - for to print text in non-formatted style, you may want to use the .FORMAT
+    command of HyperText/2, switching formating off and later on again.
+.at
+- the last comment is closed with the [.IDPNL_APPENDIX_DOCCOMMENTS_ENDMARKER],
+  that is one word with two *@* characters
+- multiple comments may be spread over a source file and can include
+  information about several functions, as long as each documentation comment
+  is followed either by the next one or an [.IDPNL_APPENDIX_DOCCOMMENTS_ENDMARKER].
+
+.. .............................................................................
+.3 linking to sections created by doc comments
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_LINKAGE
+.
+It may be very useful to link between panels created by documentation
+comments. Wehn doing this, keep in mind that the text included in these
+panels must be compatible to the [.IDPNL_REQUIREMENTS_HTEXT] syntax,
+so that a link is easily created by the following syntax:
+.fo off
+  This is a link to a panel:
+    [[.<anchorname> linktext as much as you want]]
+.fo on
+.
+where *anchorname* is the name of the anchor being set for a panel
+by the *.ANCHOR* command that has been generated by
+[.IDPNL_APPENDIX_DOCCOMMENTS_GENERAL escansrc.cmd].
+The above example would look likethis (here with a dead link though):
+
+This is a link to a panel: [.IDPNL_APPENDIX_DOCCOMMENTS_LINKAGE linktext as much as you want]
+
+The anchor names being used for the generated part of the online help cosinst
+of the following:
+.ul compact
+- the basename *IDPNL__EFUNC__*
+- the function name in uppercase characters plus an underscore
+- the type name of the comment (like [.IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX],
+  [.IDPNL_APPENDIX_DOCCOMMENTS_PARM], .etc.)
+- if it is a link to a dedicated parameter section, an additional underscore
+  plus the name of the parameter un uppercase characters
+
+The following examples show you how to write a link in [.IDPNL_REQUIREMENTS_HTEXT] syntax,
+but without specifying a link text (so these examples would display the title of the linked
+panel instead, which would mostly not be useful in this case). Just include the link text
+beween the anchorname (sparated by a space character) and the closing square bracket:
+.pl tsize=3
+- [[.IDPNL__EFUNC__NEPMDWRITESTRINGEA]]
+= links main panel of function NepmdWriteStringEa
+- [[.IDPNL__EFUNC__NEPMDQUERYFULLNAME__SYNTAX]]
+= links syntax panel of function NepmdQueryFullname
+- [[.IDPNL__EFUNC__NEPMDDELETESTRINGEA__PARM]]
+= links parameter overview panel of function NepmdDeleteStringEa
+- [[.IDPNL__EFUNC__NEPMDERRORMSGBOX__PARM__BOXMESSAGE]]
+= links panel for parameter BoxMessage of function NepmdErrorMsgBox
+- [[.IDPNL__EFUNC__NEPMDGETINSTVALUE__RETURNS]]
+= links results panel of function NepmdGetInstValue
+- [[.IDPNL__EFUNC__NEPMDINFO__REMARKS]]
+= links remarks panel of the function NepmdInfo
+- [[.IDPNL__EFUNC__NEPMDGETNEXTFILE__EXAMPLE]]
+= links example panel of the function NepmdGetNextFile
+
+[=NOTE]
+.ul compact
+- Don't forget the point when inserting the anchorname in square brackets,
+  otherwise the name is not recognized as an anchorname.
+- Note: you cannot link to a panel created by the documentation comments
+  [.IDPNL_APPENDIX_DOCCOMMENTS_PROTOTYPE] and [.IDPNL_APPENDIX_DOCCOMMENTS_CATEGORY],
+  as these do not create a panel, but are used only to further specify information
+  about a function to be added to other panels.
+
+.. .............................................................................
+.3 PROTOTYPE
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_PROTOTYPE
+.
+The prototype comment specifies the prototype being inserted in
+non-formatted font into the syntax panel for a given function.
+
+[=NOTE]
+.ul compact
+- The text of this comment should not be longer than one or at least as
+  few lines, as possible.
+- Make sure that the names of the parameters match the names specified in the
+  [.IDPNL_APPENDIX_DOCCOMMENTS_PARM] comments for this function, so that
+  links can be created!
+
+*Example:*
+.fo off
+/**
+
+@@MyFunction@PROTOTYPE
+ResultValue = MyFunction( Parm1, Parm2, Parm3);
+@@
+
+**/
+.fo on
+
+.. .............................................................................
+.3 SYNTAX
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX
+.
+The syntax comment specifies the text to be displayed in the *Syntax* supanel for
+the specified function.
+
+Please don't take the text in the below example too serious, your explanation for
+a function should be much more senseful.
+
+If you have very important remarks to state, you may want to insert these also here,
+but for remarks longer than one sentence you should use the optional
+[.IDPNL_APPENDIX_DOCCOMMENTS_REMARKS] comment and link to that from the text here
+in the *[=.IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX]* comment.
+
+*Example:*
+.fo off
+/**
+
+@@MyFunction@SYNTAX
+This function intends to return valuable information
+and requires three parameters.
+@@
+
+**/
+.fo on
+
+
+.. .............................................................................
+.3 CATEGORY
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_CATEGORY
+.
+The category comment specifies the category that the specified function
+should be included.
+
+[=NOTE]
+.ul compact
+- this comment does not specifiy text, but instead requires the category
+  name appended to the comment name !
+- The main source file fo the online help must include a .SET command to
+  define the title for a category, where the name of the setting must be
+  *CATEGORY__*#categoryname#
+
+The following example specifies the function *MyFunction()* being a member
+of the category *SPECIAL*.
+
+*Example:*
+.fo off
+/**
+
+@@MyFunction@CATEGORY@SPECIAL
+@@
+
+**/
+.fo on
+
+The title for this category must be defined in the main source file like
+.fo off
+ .SET CATEGORY__SPECIAL=This is my very special category
+.fo on
+
+.. .............................................................................
+.3 PARM
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_PARM
+.
+The parameter comment specifies the information about a parameter passed to
+the specified function. Therefore this comment must be included for each parameter
+of the function.
+
+[=NOTE]
+.ul compact
+- this comment requires the parameter name appended to the comment name !
+- make sure that it matches identically the parameters in the
+  [.IDPNL_APPENDIX_DOCCOMMENTS_PROTOTYPE] comment, so that a link from the
+  prototype to the parameter section is automatically created
+
+*Example:*
+.fo off
+/**
+
+@@MyFunction@PARM@Parm1
+This is parameter 1 for this function
+and passes an important value.
+@@MyFunction@PARM@Parm2
+This is parameter 1 for this function
+and passes an even more important value.
+@@MyFunction@PARM@Parm3
+This is parameter 3 for this function
+and passes an optional value.
+@@
+
+**/
+.fo on
+
+.. .............................................................................
+.3 RETURNS
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_RETURNS
+.
+The comment  for the return value is intended for information about the return
+value.
+
+*Example:*
+.fo off
+/**
+
+@@MyFunction@RETURNS
+The function MyFunction() returns an OS/2 error code.
+@@
+
+**/
+.fo on
+
+.. .............................................................................
+.3 REMARKS
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_REMARKS
+.
+The remarks comment is optional and is intended for very special
+information about the function.
+
+*Example:*
+.fo off
+/**
+
+@@MyFunction@REMARKS
+For using the function MyFunction() some very specific details
+are important to know:
+ ...
+@@
+
+**/
+.fo on
+
+.. .............................................................................
+.3 EXAMPLE
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_EXAMPLE
+.
+The examples comment is optional and is intended for to give a sample
+snippet for usage of the specified function.
+
+[=NOTE]
+.ul compact
+- take care for the *HyperText/2* [.IDPNL_APPENDIX_DOCCOMMENTS_FORMAT escape characters]
+  and other formatting issues.
+
+
+*Example:*
+.fo off
+/**
+
+@@MyFunction@EXAMPLE
+ Here is an example  for calling the function:
+ .fo off
+ ResultValue = MyFunction( Parm1, Parm2, Parm3);
+ .fo on
+ ...
+@@
+
+**/
+.fo on
+
+
+.. .............................................................................
+.3 documention comment end marker
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_ENDMARKER
+.
+In order to let the source scanner script know that no more documentation comments
+follow after the last one, just add a line with one word of two *@* characters
+at the end of the last documentation comment.
+
+*Example:*
+.fo off
+/**
+
+@@MyFunction@RETURNS
+This is the last documentation comment and has to be
+followed by a documention comment end marker of
+two @ characters, see following line:
+@@
+
+**/
+.fo on
+

@@ -1,0 +1,10 @@
+CATEGORY: Formatting
+TITLE: Word wrap
+PRIO: 2
+STATUS: coding
+FILES: wrap.e
+UPDATED: $Id: format010,v 1.2 2002-09-18 20:23:34 cla Exp $
+
+Implement a wrap command
+
+(pssoibly basing on modified reflow command)

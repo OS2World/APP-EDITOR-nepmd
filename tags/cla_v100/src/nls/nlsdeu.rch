@@ -1,0 +1,13 @@
+
+#ifndef NLSDEU_RCH
+#define NLSDEU_RCH
+
+#define NEWLINE                                  "\015"
+
+#define IDT_IDPBS_START                          "~Start"
+#define IDT_IDPBS_CANCEL                         "~Abbruch"
+#define IDT_IDPBS_EXIT                           "~Ende"
+#define IDT_IDPBS_OK                             "~Ok"
+
+#endif // NLSDEU_RCH
+

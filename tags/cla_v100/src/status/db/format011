@@ -1,0 +1,8 @@
+CATEGORY: Formatting
+TITLE: Wordproc
+PRIO: 2
+STATUS: coding
+FILES: epmsmp\wordproc.e
+UPDATED: $Id: format011,v 1.1 2002-07-17 15:56:16 cla Exp $
+
+Prepare file for input in word proc appl

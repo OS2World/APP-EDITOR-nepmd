@@ -1,0 +1,37 @@
+<!--
+# ***************************** Module Header *******************************
+#
+# Module Name: page1eng.xml
+#
+# WPI page include file in english language
+#
+# Copyright (c) Netlabs EPM Distribution Project 2002
+#
+# $Id: page1eng.xml,v 1.2 2002-11-04 13:39:12 cla Exp $
+#
+# ===========================================================================
+#
+# This file is part of the Netlabs EPM Distribution package and is free
+# software.  You can redistribute it and/or modify it under the terms of the
+# GNU General Public License as published by the Free Software
+# Foundation, in version 2 as it comes in the "COPYING" file of the
+# Netlabs EPM Distribution.  This library is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# ***************************************************************************
+-->
+Welcome to the Netlabs EPM Distribution Package (nepmd.netlabs.org)
+
+This package installs support files for the Enhanced Editor (EPM) including macro and REXX support, additional macros, extended syntax hilighting support, extended recompile support and many more.
+
+Note:
+     Installed files of EPM coming with OS/2 Warp 4 or eComStation are not removed!
+
+     Either the EPM V6.03b coming with your OS/2 Warp 4 or eComStation or the EPM BBS package must be installed, otherwise this package is useless!
+
+     This package is incompatible to and currently cannot be used with the outdated EPM V5.51 of OS/2 Warp 3. This may be adressed in a forthcoming version, allowing to also install the V6.03b base application in such cases.
+
+Select "Next" to continue.
+Select "Cancel" to abort installation.

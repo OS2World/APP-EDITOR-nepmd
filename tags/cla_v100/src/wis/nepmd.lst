@@ -1,0 +1,63 @@
+: ***************************** Module Header ******************************\
+:
+: Module Name: nepmd.lst
+:
+: List file for the WarpIn package, defining packages and files to
+: be packed into the WPI file.
+:
+: Requires mkwpi.cmd
+:
+: Copyright (c) Netlabs EPM Distribution Project 2002
+:
+: $Id: nepmd.lst,v 1.12 2002-11-04 22:46:40 cla Exp $
+:
+: ===========================================================================
+:
+: This file is part of the Netlabs EPM Distribution package and is free
+: software.  You can redistribute it and/or modify it under the terms of the
+: GNU General Public License as published by the Free Software
+: Foundation, in version 2 as it comes in the "COPYING" file of the
+: Netlabs EPM Distribution.  This library is distributed in the hope that it
+: will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+: of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+: General Public License for more details.
+:
+: **************************************************************************/
+
+: --- package 1: application with Netlabs distribution extensions
+
+APP              1 %UNZIPPEDDIR%\epmapp          epmbbs\*
+HLP              1 %UNZIPPEDDIR%\epmhlp          epmbbs\*
+BK               1 %UNZIPPEDDIR%\epmbk           epmbbs\*
+BMP              1 %UNZIPPEDDIR%\epmbmps         epmbbs\*
+NEPMD_EPMCALL    1 %BINDIR_NAME%\epmcall         netlabs\bin\*
+NEPMD_EPMCALLCFG 1 %CMPDIR_NAME%\base            netlabs\bin\*
+NEPMD_INSTALL    1 %CMPDIR_NAME%\base            netlabs\install\*
+NEPMD_BOOK       1 %CMPDIR_NAME%\base            netlabs\book\*
+NEPMD_HELP       1 %CMPDIR_NAME%\base            netlabs\help\*
+NEPMD_EX         1 %CMPDIR_NAME%\base            netlabs\ex\*
+NEPMD_DLL        1 %BINDIR_NAME%\base            netlabs\dll\*
+NEPMD_MODE       1 %CMPDIR_NAME%\base            netlabs\mode\*
+
+: --- package 2: macros
+
+MACROS           2 %UNZIPPEDDIR%\epmmac          epmbbs\*
+MACROS2          2 %UNZIPPEDDIR%\epmmac2         epmbbs\*
+MACROSAMPLES     2 %UNZIPPEDDIR%\epmsmp          epmbbs\*
+EBOOKE           2 %UNZIPPEDDIR%\ebooke          epmbbs\*
+MYASSIST         2 %UNZIPPEDDIR%\epmasi          epmbbs\*
+VMEXEC           2 %UNZIPPEDDIR%\lampdq          epmbbs\*
+NEPMD_RECOMP     2 %BINDIR_NAME%\recomp          netlabs\bin\*
+NEPMD_MACROS     2 %CMPDIR_NAME%\base            netlabs\macros\*
+
+: --- package 3: Programming Samples
+
+DDESAMPLE        3 %UNZIPPEDDIR%\epmdde          epmbbs\*
+REXXSAMPLE       3 %UNZIPPEDDIR%\epmrex          epmbbs\*
+CSAMPLE          3 %UNZIPPEDDIR%\epmcsamp        epmbbs\*
+ATTR             3 %UNZIPPEDDIR%\epmatr          epmbbs\*
+
+: --- package 4: Speech Support
+
+SPEECH           4 %UNZIPPEDDIR%\epmspch         epmbbs\*
+

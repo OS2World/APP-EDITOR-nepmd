@@ -1,0 +1,32 @@
+: ***************************** Module Header ******************************\
+:
+: Module Name: epmbase.lst
+:
+: List file for the external WarpIn package, defining packages
+: and files to be packed into the WPI file.
+:
+: Requires mkwpi.cmd
+:
+: Copyright (c) Netlabs EPM Distribution Project 2002
+:
+: $Id: epmbase.lst,v 1.2 2002-08-10 15:22:35 cla Exp $
+:
+: ===========================================================================
+:
+: This file is part of the Netlabs EPM Distribution package and is free
+: software.  You can redistribute it and/or modify it under the terms of the
+: GNU General Public License as published by the Free Software
+: Foundation, in version 2 as it comes in the "COPYING" file of the
+: Netlabs EPM Distribution.  This library is distributed in the hope that it
+: will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+: of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+: General Public License for more details.
+:
+: **************************************************************************/
+
+: --- package 99: EPM base
+:     later used for  Warp3 packages requiring complete update to EPM V6.03b
+BASE_APP        99 %UNZIPPEDDIR%\epmapp.base     epmbbs\*
+BASE_DLL        99 %UNZIPPEDDIR%\epmdll          epmbbs\*
+BASE_HLP        99 %UNZIPPEDDIR%\epmhlp.base     epmbbs\*
+

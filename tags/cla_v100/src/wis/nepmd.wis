@@ -1,0 +1,136 @@
+<!--
+# ***************************** Module Header *******************************
+#
+# Module Name: nepmd.wis
+#
+# Script for WarpIn package
+#
+# NOTE: the packages defined here must match with the files
+#       added to the packages in bin\create.cmd !
+#
+# Copyright (c) Netlabs EPM Distribution Project 2002
+#
+# $Id: nepmd.wis,v 1.34 2002-11-04 22:47:14 cla Exp $
+#
+# ===========================================================================
+#
+# This file is part of the Netlabs EPM Distribution package and is free
+# software.  You can redistribute it and/or modify it under the terms of the
+# GNU General Public License as published by the Free Software
+# Foundation, in version 2 as it comes in the "COPYING" file of the
+# Netlabs EPM Distribution.  This library is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# ***************************************************************************
+-->
+
+<CINCLUDE name="..\nls\wis\nepmd%NLS%.h"/>
+
+<WARPIN>
+<HEAD>
+
+<PCK INDEX=1
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Base Application Support\%ID_VERSION_NEPMD%"
+     TARGET="$(WARPIN_DEFAULTAPPSPATH)\NEPMD"
+     BASE
+     REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
+     SELECT
+     NODESELECT
+     TITLE="%PCK_1_TITLE%"
+     EXECUTE="$(1)\netlabs\install\nlsetup.exe NEPMD"
+     DEEXECUTE="$(1)\netlabs\install\nldeinst.exe"
+
+     WRITEPROFILE="USER\NEPMD\Language|%NLS%"
+     WRITEPROFILE="USER\NEPMD\Path|$(1)"
+
+     CREATEOBJECT="WPFolder|%TITLE_NEPMD_FOLDER%|<WP_APPSFOLDER>|ICONVIEWPOS=22 41 65 34;CCVIEW=NO;OPEN=DEFAULT;OPEN=DEFAULT;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=100;OBJECTID=<NEPMD_FOLDER>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_EXECUTE%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=EPM.EXE;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EXECUTE>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_EPMTECH%|<NEPMD_FOLDER>|;PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\EPMBBS\BOOK\EPMTECH.INF;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=107;OBJECTID=<NEPMD_VIEW_EPMTECH>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_EPMUSERS%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\EPMBBS\BOOK\EPMUSERS.INF;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=106;OBJECTID=<NEPMD_VIEW_EPMUSERS>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_NEUSR%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEUSR%NLS%.INF Netlabs;ICONFILE=$(1)\NETLABS\INSTALL\ICO\HELP.ICO;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=102;OBJECTID=<NEPMD_VIEW_NEUSR>;"
+     ><TINCLUDE name="..\nls\wis\desc1%NLS%.xml"/></PCK>
+
+<PCK INDEX=2
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Recompilation package\%ID_VERSION_NEPMD%"
+     TARGET="$(1)"
+     REQUIRES="1"
+     SELECT
+     TITLE="%PCK_2_TITLE%"
+
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_RECOMP%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=$(1)\NETLABS\BIN\RECOMP.EXE;PARAMETERS=$(1)\MYEPM\EX;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=104;OBJECTID=<NEPMD_RECOMP>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_NEPRG%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPRG%NLS%.INF Netlabs;ICONFILE=$(1)\NETLABS\INSTALL\ICO\HELP.ICO;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=103;OBJECTID=<NEPMD_VIEW_NEPRG>;"
+     ><TINCLUDE name="..\nls\wis\desc2%NLS%.xml"/></PCK>
+
+<PCK INDEX=3
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Programming samples\%ID_VERSION_NEPMD%"
+     TARGET="$(1)"
+     REQUIRES="1"
+     SELECT
+     TITLE="%PCK_3_TITLE%"
+
+     CREATEOBJECT="WPFolder|%TITLE_NEPMD_NEPMD_SAMPLES_FOLDER%|<NEPMD_FOLDER>|CCVIEW=NO;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=108;OBJECTID=<NEPMD_SAMPLES_FOLDER>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_VIEW_EPMTK%|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\EPMBBS\SAMPLES\C\ETKE.INF;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=109;OBJECTID=<NEPMD_VIEW_EPMTK>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_VIEW_EPMCM_README%|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=E.EXE;PARAMETERS=$(1)\EPMBBS\SAMPLES\C\READ.ME;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=110;OBJECTID=<NEPMD_VIEW_EPMCM_README>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_VIEW_EPMRM_README%|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=E.EXE;PARAMETERS=$(1)\EPMBBS\SAMPLES\REXX\EPMREXX.DOC;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=111;OBJECTID=<NEPMD_VIEW_EPMRM_README>;"
+     ><TINCLUDE name="..\nls\wis\desc3%NLS%.xml"/></PCK>
+
+<PCK INDEX=4
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Speech Support\%ID_VERSION_NEPMD%"
+     TARGET="$(1)"
+     REQUIRES="1"
+     TITLE="%PCK_4_TITLE%"
+
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_SPEECH%|<NEPMD_FOLDER>|PROGTYPE=WINDOWABLEVIO;NINIMIZED=YES;EXENAME=$(1)\EPMBBS\BIN\EPMSPCH.EXE;STARTUPDIR=$(1)\EPMBBS\DLL;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=112;OBJECTID=<NEPMD_SPEECH>;"
+     CREATEOBJECT="WPShadow|%TITLE_NEPMD_NEPMD_SPEECH_SHADOW%|<WP_START>|SHADOWID=<NEPMD_SPEECH>;OBJECTID=<NEPMD_SPEECH_SHADOW>;"
+     CREATEOBJECT="WPShadow|%TITLE_NEPMD_NEPMD_WPSTART_SHADOW%|<NEPMD_FOLDER>|SHADOWID=<WP_START>;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=113;OBJECTID=<NEPMD_WPSTART_SHADOW>;"
+     ><TINCLUDE name="..\nls\wis\desc4%NLS%.xml"/></PCK>
+
+<PCK INDEX=99
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Base Application\%ID_VERSION_NEPMD%"
+     TARGET="$(1)"
+     REQUIRES="1"
+     EXTERNAL="nepmd_epmbase.wpp"
+     TITLE="%PCK_99_TITLE%"
+     ><TINCLUDE name="..\nls\wis\desc99%NLS%.xml"/></PCK>
+
+</HEAD>
+
+<BODY>
+
+<!--  ------------------------------ page 1: introductory page -------------------------------->
+<PAGE INDEX=1 TYPE=TEXT>
+<NEXTBUTTON TARGET=2>%BUTTON_NEXT%</NEXTBUTTON>
+<TEXT><TINCLUDE name="..\nls\wis\page1%NLS%.xml"></TEXT>
+</PAGE>
+
+<!--  ------------------------------ page 2: credits pages ----------------------------------->
+<PAGE INDEX=2 TYPE=TEXT>
+<NEXTBUTTON TARGET=3>%BUTTON_NEXT%</NEXTBUTTON>
+<TEXT><TINCLUDE name="..\nls\wis\page2%NLS%.xml"></TEXT>
+</PAGE>
+
+<!--  ------------------------------ page 3: Warpin restriction page ------------------------->
+<PAGE INDEX=3 TYPE=TEXT>
+<NEXTBUTTON TARGET=4>%BUTTON_NEXT%</NEXTBUTTON>
+<TEXT><TINCLUDE name="..\nls\wis\page3%NLS%.xml"></TEXT>
+</PAGE>
+
+<!--  ------------------------------ page 4: show package container --------------------------->
+<!-- The TYPE=CONTAINER will list the packages which can be installed. -->
+<PAGE INDEX=4 TYPE=CONTAINER>
+<NEXTBUTTON TARGET=5>%BUTTON_NEXT%</NEXTBUTTON>
+<TEXT><TINCLUDE name="..\nls\wis\page4%NLS%.xml"></TEXT>
+</PAGE>
+
+<!--  ------------------------------ page 5: configure Warpin behaviour ----------------------->
+<!-- The TYPE=CONFIGURE will change config.sys -->
+<PAGE INDEX=5 TYPE=CONFIGURE>
+<NEXTBUTTON TARGET=0>%BUTTON_NEXT%</NEXTBUTTON>
+<TEXT><TINCLUDE name="..\nls\wis\page5%NLS%.xml"></TEXT>
+</PAGE>
+
+</BODY>
+</WARPIN>
+

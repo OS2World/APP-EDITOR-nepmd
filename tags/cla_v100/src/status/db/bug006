@@ -1,0 +1,9 @@
+CATEGORY: bug
+TITLE: error saving long filenames on FAT
+PRIO: 4
+STATUS: open
+FILES:
+UPDATED: $Id: bug006,v 1.1 2002-07-17 15:56:14 cla Exp $
+
+When support for long file names is activated, EPM can't save a file with a long
+name on a FAT drive

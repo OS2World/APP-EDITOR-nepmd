@@ -1,0 +1,9 @@
+CATEGORY: file handling
+TITLE: extendded revert after save/quit
+PRIO: 2
+STATUS: started
+FILES: 
+UPDATED: $Id: file006,v 1.1 2002-07-17 15:56:15 cla Exp $
+
+Keep a copy of every edited file, even after the file is saved and/or quitted. 
+Undo and Autosave need to work independent of that!

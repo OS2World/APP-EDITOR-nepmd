@@ -1,0 +1,9 @@
+CATEGORY: EPM info
+TITLE: Datetime in titletext
+PRIO: 1
+STATUS: completed
+FILES: titletext.e
+UPDATED: $Id: info001,v 1.2 2002-11-03 17:26:17 cla Exp $
+
+Todo:
+- check what to do for non-local files?

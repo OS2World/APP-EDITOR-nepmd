@@ -1,0 +1,7 @@
+CATEGORY: Bug
+TITLE: EA's > 32 Kb
+PRIO: 1
+STATUS: completed
+FILES: saveload.e slnohost.e e3emul.e
+UPDATED: $Id: bug001,v 1.4 2002-11-03 17:26:15 cla Exp $
+

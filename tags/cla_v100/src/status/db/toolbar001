@@ -1,0 +1,14 @@
+CATEGORY: Toolbar
+TITLE: Add more items
+PRIO: 2
+STATUS: coding
+FILES: openparent.erx monopropfont.e
+UPDATED: $Id: toolbar001,v 1.2 2002-11-03 17:25:33 cla Exp $
+
+Todo:
+- Open parent folder
+- Change font, also mono and proportional. Better use a menu item?
+- Wrap or reload with new margin
+- Revert (reload file from disk)
+- Delete
+- Passist (bracket/expression matching)

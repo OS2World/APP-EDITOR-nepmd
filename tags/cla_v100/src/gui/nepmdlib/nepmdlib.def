@@ -1,0 +1,116 @@
+; ***************************** Module Header ******************************\
+;
+; Module Name: nepmdlib.def
+;
+; Module definition file for NEPMD library DLL
+;
+; Copyright (c) Netlabs EPM Distribution Project 2002
+;
+; $Id: nepmdlib.def,v 1.35 2002-11-04 13:39:10 cla Exp $
+;
+; ===========================================================================
+;
+; This file is part of the Netlabs EPM Distribution package and is free
+; software.  You can redistribute it and/or modify it under the terms of the
+; GNU General Public License as published by the Free Software
+; Foundation, in version 2 as it comes in the "COPYING" file of the
+; Netlabs EPM Distribution.  This library is distributed in the hope that it
+; will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
+;
+; **************************************************************************/
+
+LIBRARY NEPMDLIB INITINSTANCE TERMINSTANCE
+DESCRIPTION '@#NETLABS:1.00.1001#@RECOMP - NEPMD runtime library for EPM v6 - Copyright www.netlabs.org 2002'
+
+DATA NONSHARED MULTIPLE
+PROTMODE
+HEAPSIZE  16384
+STACKSIZE 16384
+
+EXPORTS
+ NepmdActivateHighlight
+ NepmdAlarm
+ NepmdCloseConfig
+ NepmdDeleteConfigValue
+;NepmdDeleteRexxEa    -- not required, the E call uses NepmdWriteStringEa
+;NepmdDeleteStringEa  -- not required, the E call uses NepmdWriteStringEa
+ NepmdDirExists
+ NepmdErrorMsgBox
+ NepmdFileDelete
+ NepmdFileExists
+ NepmdGetNextClose
+ NepmdGetNextConfigKey
+ NepmdGetNextDir
+ NepmdGetNextFile
+ NepmdGetTextMessage
+ NepmdInfo
+ NepmdInitConfig
+ NepmdLibVersion
+ NepmdOpenConfig
+ NepmdPmPrintf
+ NepmdQueryConfigValue
+ NepmdQueryDefaultMode
+ NepmdQueryFullname
+ NepmdQueryInstValue
+ NepmdQueryModeList
+ NepmdQueryPathInfo
+ NepmdQueryProcessInfo
+ NepmdQueryStringEa
+ NepmdQuerySysInfo
+ NepmdQueryWindowPos
+ NepmdScanEnv
+ NepmdSearchPath
+ NepmdSetFrameWindowPos
+ NepmdWriteConfigValue
+ NepmdWriteStringEa
+
+IMPORTS
+ ETKE603.EtkAccessLowLevelData
+ ETKE603.EtkAssignAttributeClass
+ ETKE603.EtkChangeLineTerminator
+ ETKE603.EtkCreate
+ ETKE603.EtkCreateArray
+ ETKE603.EtkDeleteArrayElement
+ ETKE603.EtkDeleteText
+ ETKE603.EtkDestroy
+ ETKE603.EtkExecuteCommand
+ ETKE603.EtkFindArray
+ ETKE603.EtkFindAttribute
+ ETKE603.EtkFreeKeywordsInfo
+ ETKE603.EtkGetArrayElement
+ ETKE603.EtkGetPMInfo
+ ETKE603.EtkInsertText
+ ETKE603.EtkInsertTextBuffer
+ ETKE603.EtkInvalidateText
+ ETKE603.EtkMapPointDoc2LCO
+ ETKE603.EtkMapPointDoc2Window
+ ETKE603.EtkMapPointLCO2Doc
+ ETKE603.EtkMapPointLCO2Window
+ ETKE603.EtkMapPointWindow2Doc
+ ETKE603.EtkMapPointWindow2LCO
+ ETKE603.EtkProcessEditKey
+ ETKE603.EtkQueryAttributeClassID
+ ETKE603.EtkQueryFileField
+ ETKE603.EtkQueryFileFieldString
+ ETKE603.EtkQueryFileID
+ ETKE603.EtkQueryInsertState
+ ETKE603.EtkQueryLineTerminator
+ ETKE603.EtkQuerySelection
+ ETKE603.EtkQuerySelectionType
+ ETKE603.EtkQueryText
+ ETKE603.EtkQueryTextBuffer
+ ETKE603.EtkRegisterAttributeClass
+ ETKE603.EtkRegisterEMLEClass
+ ETKE603.EtkRegisterEMLEClientClass
+ ETKE603.EtkRegisterFont
+ ETKE603.EtkRegisterFont2
+ ETKE603.EtkReplaceText
+ ETKE603.EtkSetArrayElement
+ ETKE603.EtkSetFileField
+ ETKE603.EtkSetSelection
+ ETKE603.EtkSort
+ ETKE603.EtkVersion
+
+
