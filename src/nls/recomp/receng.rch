@@ -42,7 +42,7 @@
                                                  "select to discard unsaved files within the " \
                                                  "settings menu."
 #define IDT_IDSTR_COMPILE_ERROR                  "The compilation of EPM was not successful. " \
-                                                 "Please check the compile log to correct the " \
+                                                 "Please check the faulty file to correct the " \
                                                  "error."
 #define IDT_IDSTR_INVALID_PARM                   "Invalid parameter %s specified. Program aborted."
 #define IDT_IDSTR_START_NOT_SPECIFIED            "Parameter /%s not specified with /%s. Program aborted.";
