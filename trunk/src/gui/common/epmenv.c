@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.11 2002-09-18 19:14:28 cla Exp $
+* $Id: epmenv.c,v 1.12 2002-09-19 10:50:42 cla Exp $
 *
 * ===========================================================================
 *
@@ -550,6 +550,7 @@ APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv, PSZ pszBuffer, UL
 {
          APIRET         rc  = NO_ERROR;
          ULONG          i;
+         BOOL           fEnvIsExtended = FALSE;
 
          CHAR           szMainEnvFile[ _MAX_PATH];
          CHAR           szUserEnvFile[ _MAX_PATH];
@@ -586,21 +587,14 @@ do
    // default to make no changes
    *ppszNewEnv = NULL;
 
-   // if extended environment is already set, don't touch
+   // check if extended environment is already set
    pszValue = getenv( ENV_NEPMD_USERENVFILE);
    if ((!pszValue) || (!*pszValue))
       pszValue = getenv( ENV_NEPMD_MAINENVFILE);
    if ((pszValue) && (*pszValue))
-      {
-      DPRINTF(( "EPMENV: skip environment extension, already set with: %s\n", pszValue));
-      break;
-      }
+      fEnvIsExtended = TRUE;
 
-   // search environment file - ignore errors !
-   _searchNepmdEnvironmentFiles( szMainEnvFile, sizeof( szMainEnvFile),
-                                 szUserEnvFile,  sizeof( szUserEnvFile));
-
-   // search EPM executable
+   // search EPM executable in anyway
    rc = _searchEpmExecutable( szEpmExecutable,    sizeof( szEpmExecutable),
                               szLoaderExecutable, sizeof(  szLoaderExecutable));
    if (rc != NO_ERROR)
@@ -617,6 +611,19 @@ do
       DPRINTF(( "found executable: %s\n", szEpmExecutable));
       strcpy( pszBuffer, szEpmExecutable);
       }
+
+   // bail out here if environment is already extended
+   if (fEnvIsExtended)
+      {
+      DPRINTF(( "EPMENV: skip environment extension, already set with: %s\n", pszValue));
+      break;
+      }
+
+   // ------- ------------------------------------------
+
+   // search environment file - ignore errors !
+   _searchNepmdEnvironmentFiles( szMainEnvFile, sizeof( szMainEnvFile),
+                                 szUserEnvFile,  sizeof( szUserEnvFile));
 
    // ------- get name list ----------------------------
 
