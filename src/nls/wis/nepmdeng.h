@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdeng.h,v 1.4 2002-09-18 18:56:33 cla Exp $
+* $Id: nepmdeng.h,v 1.5 2002-10-31 13:31:39 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,7 +34,8 @@
 #define TITLE_NEPMD_EXECUTE                      "EPM v6.03b"
 #define TITLE_NEPMD_VIEW_EPMTECH                 "EPM Technical Reference"
 #define TITLE_NEPMD_VIEW_EPMUSERS                "EPM Users Guide"
-#define TITLE_NEPMD_VIEW_NEPMD                   "Netlabs^EPM Distribution^Online Help"
+#define TITLE_NEPMD_VIEW_NEUSR                   "Netlabs^EPM Distribution^User Guide"
+#define TITLE_NEPMD_VIEW_NEPRG                   "Netlabs^EPM Distribution^Programming Guide"
 #define TITLE_NEPMD_RECOMP                       "Recompile EPM"
 #define TITLE_NEPMD_NEPMD_SAMPLES_FOLDER         "EPM Programming Samples"
 #define TITLE_NEPMD_NEPMD_VIEW_EPMTK             "Programmers Guide to the EPM Toolkit"
