@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: filedb.inc,v 1.1 2002-07-18 19:26:23 cla Exp $
+* $Id: filedb.inc,v 1.2 2002-07-18 22:00:36 cla Exp $
 *
 * ===========================================================================
 *
@@ -30,42 +30,46 @@ $maxlinelen = 256;
 // read file contents
 $hfile = fopen( $file, "r");
 
-// category
-$line = fgets( $hfile, $maxlinelen);
-list( $tag, $category) = explode( ":", $line, 2);
-
-// title
-$line = fgets( $hfile, $maxlinelen);
-list( $tag, $title) = explode( ":", $line, 2);
-
-// priority
-$line = fgets( $hfile, $maxlinelen);
-list( $tag, $prio) = explode( ":", $line, 2);
-
-// status
-$line = fgets( $hfile, $maxlinelen);
-list( $tag, $status) = explode( ":", $line, 2);
-
-// filelist
-$line = fgets( $hfile, $maxlinelen);
-list( $tag, $filelist) = explode( ":", $line, 2);
-
-// update info
-$line = fgets( $hfile, $maxlinelen);
-$aline = explode( " ", $line);
-$modified   = $aline[4]." ".$aline[5]." ".$aline[6];
-
-$details = "";
-$line = fgets( $hfile, $maxlinelen);
+// read header lines here
+$headerended = 0;
 while (!feof( $hfile))
    {
    $line = fgets( $hfile, $maxlinelen);
-   $details = $details." ".$line;
+   if ($headerended == 0)
+      {
+      list( $tag, $value) = explode( ":", $line, 2);
+
+      if ($tag == "CATEGORY")
+         $category = $value;
+
+      else if ($tag == "TITLE")
+         $title = $value;
+
+      else if ($tag == "PRIO")
+         $prio = $value;
+
+      else if ($tag == "STATUS")
+         $status = $value;
+
+      else if ($tag == "FILES")
+         $filelist = $value;
+
+      else if ($tag == "UPDATED")
+         {
+         $updated = $value;
+         $aline = explode( " ", $line);
+         $modified   = $aline[4]." ".$aline[5]." ".$aline[6];
+         }
+      else
+         $headerended = 1;
+      }
+   else
+      $details = $details.$line;
    }
 
 fclose( $hfile);
 
-return array( $file, $category, $title, $prio, $status, $filelist, $modified, $details);
+return array( $file, $category, $title, $prio, $status, $filelist, $updated, $modified, $details);
 }
 
 ?>
