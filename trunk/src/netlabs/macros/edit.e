@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.3 2002-10-06 23:15:19 aschn Exp $
+* $Id: edit.e,v 1.4 2002-10-08 22:10:01 cla Exp $
 *
 * ===========================================================================
 *
@@ -77,7 +77,7 @@ defproc NepmdDeleteRexxEaFileSpec
          ext = translate( substr( Filename, p1 + 1 ) )
          if wordpos( ext, RexxEaExtensions ) then
             --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
-            'NepmdDeleteRexxEa 'Filename
+            NepmdDeleteRexxEa( Filename )
          endif
       endif
    enddo  -- forever
