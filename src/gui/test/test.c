@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.24 2002-10-01 14:36:28 cla Exp $
+* $Id: test.c,v 1.25 2002-10-06 20:45:58 cla Exp $
 *
 * ===========================================================================
 *
@@ -37,6 +37,7 @@
 #include "libreg.h"
 #include "hilite.h"
 #include "mmf.h"
+#include "mode.h"
 
 // -----------------------------------------------------------------------------
 
@@ -278,6 +279,30 @@ do
          printf( "hilite file for mode %s could not be determined, rc=%u\n", pszEpmMode, rc);
       else
          printf( "hilite file needs %sto be reloaded.\n", (fReload) ? "" : "not ");
+
+      } // testcase QUERYHILIGHTFILE
+
+   // =========================================================================
+   // testcase for selecting a mode
+   // =========================================================================
+
+
+   if (!(strcmp( pszTestcase, "QUERYMODE")))
+
+      {
+               CHAR           szMode[ _MAX_PATH];
+               PSZ            pszFilename = "test.c";
+               BYTE           abData[ 500];
+               PMODEINFO      pmi = (PMODEINFO) abData;
+
+
+      if (argc > 2) pszFilename = argv[ 2];
+
+      rc = QueryFileModeInfo( pszFilename, pmi, sizeof( abData));
+      if (rc != NO_ERROR)
+         printf( "mode for file %s could not be determined, rc=%u\n", pszFilename, rc);
+      else
+         printf( "mode for %s is %s\n", pszFilename, pmi->pszModeName);
 
       } // testcase QUERYHILIGHTFILE
 
