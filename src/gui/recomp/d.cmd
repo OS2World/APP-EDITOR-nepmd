@@ -12,7 +12,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: d.cmd,v 1.2 2002-06-08 22:22:13 cla Exp $
+: $Id: d.cmd,v 1.3 2002-06-09 21:43:59 cla Exp $
 :
 : ===========================================================================
 :
@@ -28,7 +28,6 @@
 : **************************************************************************/
 
  SETLOCAL
- CALL ENV
 
  SET DEBUGGER=icsdebug
  IF .%CPPLOCAL% == . SET DEBUGGER=ipmd
