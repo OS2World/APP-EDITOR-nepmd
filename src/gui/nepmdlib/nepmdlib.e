@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.33 2002-09-19 11:31:30 cla Exp $
+* $Id: nepmdlib.e,v 1.34 2002-09-19 13:03:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -136,6 +136,7 @@ include 'getnextdir.e'
 include 'getnextfile.e'
 include 'gettextmessage.e'
 include 'info.e'
+include 'initconfig.e'
 include 'libversion.e'
 include 'openconfig.e'
 include 'queryconfigvalue.e'
@@ -151,3 +152,4 @@ include 'searchpath.e'
 include 'setframewindowpos.e'
 include 'writeconfigvalue.e'
 include 'writestringea.e'
+

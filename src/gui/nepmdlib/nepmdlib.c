@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.42 2002-09-19 11:31:29 cla Exp $
+* $Id: nepmdlib.c,v 1.43 2002-09-19 13:03:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -766,6 +766,33 @@ do
 
    } while (FALSE);
 
+return rc;
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdInitConfig( HCONFIG hconfig)
+{
+         APIRET         rc = NO_ERROR;
+         BOOL           fImplicitOpen = FALSE;
+do
+   {
+   // implicit open if handle is zero
+   if (!hconfig)
+      {
+      rc = _openConfig( &hconfig);
+      if (rc != NO_ERROR)
+         break;
+      fImplicitOpen = TRUE;
+      }
+
+   // do the job
+   rc = InitConfig( hconfig, NULL);
+
+   } while (FALSE);
+
+// cleanup
+if (fImplicitOpen) CloseConfig( hconfig); 
 return rc;
 }
 
