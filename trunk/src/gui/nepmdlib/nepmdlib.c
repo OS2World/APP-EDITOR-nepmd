@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.8 2002-08-22 12:14:11 cla Exp $
+* $Id: nepmdlib.c,v 1.9 2002-08-22 12:38:08 cla Exp $
 *
 * ===========================================================================
 *
@@ -77,8 +77,11 @@ return rc;
 
 // ------------------------------------------------------------------------------
 
-APIRET EXPENTRY NepmdGetNextFile( PSZ pszFileMask, PSZ pszHandle,
-                                  PSZ pszBuffer, ULONG ulBuflen)
+#define NEPMD_NEXTTYPE_FILE 0
+#define NEPMD_NEXTTYPE_DIR  1
+
+static APIRET _getNextEntry( ULONG ulEntryType,
+                             PSZ pszSearchMask, PSZ pszHandle, PSZ pszBuffer, ULONG ulBuflen)
 
 {
          APIRET         rc = NO_ERROR;
@@ -92,7 +95,7 @@ do
       memset( pszBuffer, 0, ulBuflen);
 
    // check parms
-   if ((!pszFileMask)  ||
+   if ((!pszSearchMask)  ||
        (!pszHandle)    ||
        (!pszBuffer))
       {
@@ -113,12 +116,26 @@ do
       fNewHandle = TRUE;
       }
 
-   // get the file
-   rc = GetNextFile( pszFileMask, &hdir, pszBuffer, ulBuflen);
+   // get the file or directory
+   switch (ulEntryType)
+      {
+      case NEPMD_NEXTTYPE_FILE:
+         rc = GetNextFile( pszSearchMask, &hdir, pszBuffer, ulBuflen);
+         break;
+
+      case NEPMD_NEXTTYPE_DIR:
+         rc = GetNextDir( pszSearchMask, &hdir, pszBuffer, ulBuflen);
+         break;
+
+      default:
+         rc = ERROR_INVALID_PARAMETER;
+         break;
+
+   }
 
    // copy back handle - hopefully we don't overwrite memory
    // inside the REXX variable stack...
-   if (fNewHandle)
+   if ((!rc) && (fNewHandle))
       _ltoa( hdir, pszHandle, 10);
 
    } while (FALSE);
@@ -126,7 +143,21 @@ do
 return rc;
 
 }
+// ------------------------------------------------------------------------------
 
+APIRET EXPENTRY NepmdGetNextFile( PSZ pszFileMask, PSZ pszHandle, PSZ pszBuffer, ULONG ulBuflen)
+
+{
+return _getNextEntry( NEPMD_NEXTTYPE_FILE, pszFileMask, pszHandle, pszBuffer, ulBuflen);
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdGetNextDir( PSZ pszDirMask, PSZ pszHandle, PSZ pszBuffer, ULONG ulBuflen)
+
+{
+return _getNextEntry( NEPMD_NEXTTYPE_DIR, pszDirMask, pszHandle, pszBuffer, ulBuflen);
+}
 
 // ------------------------------------------------------------------------------
 
