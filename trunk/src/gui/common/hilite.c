@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.12 2002-10-01 14:32:01 cla Exp $
+* $Id: hilite.c,v 1.13 2002-10-08 16:24:36 cla Exp $
 *
 * ===========================================================================
 *
@@ -48,6 +48,18 @@
 // --- defines for detailed debug messages
 
 #define DEBUG_DUMPARRAYDETAILS 0
+
+// debug output on func entry and exit
+#define DEBUG_NOMESSAGE_ENTEREXIT 0
+
+#if DEBUG_NOMESSAGE_ENTEREXIT
+#undef FUNCENTER
+#undef FUNCEXIT
+#undef FUNCEXITRC
+#define FUNCENTER
+#define FUNCEXIT
+#define FUNCEXITRC
+#endif
 
 // ----- values for control files for creating hilite files -------------
 
@@ -257,6 +269,7 @@ do
       break;
       }
 
+
    // create a strdup of the path, so that we can tokenize it
    pszKeywordPath = getenv( pszEnvnameEpmKeywordpath);
    if (!pszKeywordPath)
@@ -301,6 +314,11 @@ do
 //       DPRINTF(( "HILITE: %u [%u] bytes (%u entries) (re)allocated for file list at 0x%08x\n",
 //                ulListSize, _msize( pszTmp), ulListSize / _MAX_PATH, pszTmp));
          pszEntry = pszFileList + (ulFileCount * _MAX_PATH);
+
+#ifdef DEBUG
+_dumpMMF();
+printf( "copy entry at entry at %p: %s\n", pszEntry, szFile);
+#endif
          strcpy( pszEntry, szFile);
          strlwr( pszEntry );
          ulFileCount++;
@@ -683,6 +701,8 @@ static   PSZ            pszHeaderMask = "\r\n%s%s\r\n";
          PSZ            pszHiliteContents = NULL;
          ULONG          ulHiliteContentsLen;
          PSZ            pszCurrent;
+
+FUNCENTER;
 
 do
    {
@@ -1287,17 +1307,20 @@ if (pvaSymbols)          free( pvaSymbols);
 if (pszModeCopy)         free( pszModeCopy);
 if (pszOldFileInfoList)  free( pszOldFileInfoList);
 
-if (pszFileList)         FREEMEMORYFILE( pszFileList);
-if (pszFileInfoList)     FREEMEMORYFILE( pszFileInfoList);
-if (pszSectionDelimiter) FREEMEMORYFILE( pszSectionDelimiter);
-if (pszSectionKeywords)  FREEMEMORYFILE( pszSectionKeywords);
-if (pszSectionSpecial)   FREEMEMORYFILE( pszSectionSpecial);
-if (pszSectionBreakChar) FREEMEMORYFILE( pszSectionBreakChar);
-if (pszSectionEndChar)   FREEMEMORYFILE( pszSectionEndChar);
-if (pszHiliteContents)   FREEMEMORYFILE( pszHiliteContents);
+if (pszFileList)          FREEMEMORYFILE( pszFileList);
+if (pszFileInfoList)      FREEMEMORYFILE( pszFileInfoList);
+if (pszSectionDelimiter)  FREEMEMORYFILE( pszSectionDelimiter);
+if (pszSectionDelimiteri) FREEMEMORYFILE( pszSectionDelimiteri);
+if (pszSectionKeywords)   FREEMEMORYFILE( pszSectionKeywords);
+if (pszSectionSpecial)    FREEMEMORYFILE( pszSectionSpecial);
+if (pszSectionBreakChar)  FREEMEMORYFILE( pszSectionBreakChar);
+if (pszSectionEndChar)    FREEMEMORYFILE( pszSectionEndChar);
+if (pszHiliteContents)    FREEMEMORYFILE( pszHiliteContents);
 
 if (hinitDefault) InitCloseProfile( hinitDefault, FALSE);
 if (hinitGlobals) InitCloseProfile( hinitGlobals, FALSE);
+
+FUNCEXITRC;
 return rc;
 }
 
