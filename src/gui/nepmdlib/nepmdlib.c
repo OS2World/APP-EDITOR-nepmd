@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.53 2002-10-08 22:05:12 cla Exp $
+* $Id: nepmdlib.c,v 1.54 2002-10-14 17:51:23 cla Exp $
 *
 * ===========================================================================
 *
@@ -354,8 +354,8 @@ do
       rc = QueryHilightFile( pszEpmMode, &fReload, szHilightFile, sizeof( szHilightFile));
       if (rc != NO_ERROR)
          break;
-      DPRINTF(( "NEPMDLIB: hilite file is %s\n", szHilightFile));
-      DPRINTF(( "NEPMDLIB: reload is %srequired\n", fReload ? "" : "not "));
+//    DPRINTF(( "NEPMDLIB: hilite file is %s\n", szHilightFile));
+//    DPRINTF(( "NEPMDLIB: reload is %srequired\n", fReload ? "" : "not "));
 //    if (fReload)
 //       *pszActivateFlag = "2";
       }
@@ -1607,6 +1607,36 @@ if (pszBuffer)
    memset( pszBuffer, 0, ulBuflen);
 
 rc = QueryInstValue( pszFileTag, pszBuffer, ulBuflen);
+
+FUNCEXITRC;
+return _getRexxError( rc, pszBuffer, ulBuflen);
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdQueryModeList( PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         PSZ            pszResult;
+
+FUNCENTER;
+
+do
+   {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
+   // check parms
+   if (!pszBuffer)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // query mode list
+   rc = QueryFileModeList( pszBuffer, ulBuflen);
+   } while (FALSE);
 
 FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
