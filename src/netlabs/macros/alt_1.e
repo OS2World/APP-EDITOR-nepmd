@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.1 2002-10-06 23:21:19 aschn Exp $
+* $Id: alt_1.e,v 1.2 2004-02-01 20:43:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -96,67 +96,6 @@
 -- I turn on this feature if the filetype is "USE" or "XRF".
 -------------------------------------------------------------------------------
 
--- For linking:  To make this separately compilable, we set the constants we
--- need to check the same way they would be set if we were included in E.EX.
-compile if not defined(SMALL)        -- If compiling stand-alone,
-  tryinclude 'mycnf.e'                 -- Include user's configuration
-const
-   E3      = EVERSION < 4
-   EOS2    = EVERSION >= 4 & EVERSION < 5
-   EOS2FAM = EVERSION >= 4 & EVERSION < '4.10'
-   EPM     = EVERSION >= 5
-   EPM32   = EVERSION >= 6
-
-  compile if not defined(USE_APPEND)   -- because we need these variables
-  USE_APPEND = 0                       -- and this sets them properly.
-  compile endif
-  compile if not defined(HOST_SUPPORT)
-  HOST_SUPPORT = 'STD'
-  compile endif
-  compile if HOST_SUPPORT='STD' | HOST_SUPPORT=''
-   compile if not defined(HOSTDRIVE)
-      HOSTDRIVE= 'H:'
-   compile endif
-  compile endif
-  compile if not defined(WANT_SEARCH_PATH)
-  WANT_SEARCH_PATH = 0
-  compile endif
-  compile if not defined(WANT_GET_ENV)
-    compile if E3
-  WANT_GET_ENV = 0
-    compile else
-  WANT_GET_ENV = 1
-    compile endif
-  compile endif
-  compile if not defined(EPATH)
-    compile if EPM  -- EPM uses a different name, for easier coexistance
-  EPATH= 'epmpath'
-    compile else
-  EPATH= 'epath'
-    compile endif
-  compile endif
-  compile if EVERSION >= '4.11' & EVERSION < 5   -- new in EOS2
-   compile if not defined(SHELL_USAGE)
-  SHELL_USAGE = 1
-   compile endif
-  compile else
-  SHELL_USAGE = 0
-  compile endif
-  compile if not defined(WANT_EPM_SHELL) or EVERSION < '5.20'
-  WANT_EPM_SHELL = 0
-                           /* Specifies whether support should be included   */
-                           /* for a shell window.                            */
-  compile endif
-  compile if not defined(NLS_LANGUAGE)
-    NLS_LANGUAGE = 'ENGLISH'
-  compile endif
-  include NLS_LANGUAGE'.e'
-  compile if not defined(DIRECTORYOF_STRING)
-; DIRECTORYOF_STRING = 'Directory of'  -- Since we're now including ENGLISH.E, ...
-  DIRECTORYOF_STRING = DIR_OF__MSG
-  compile endif
-compile endif
-
 const                             -- These are Alt-1.e -specific constants.
   compile if not defined(AltOnePathVar)
    AltOnePathVar= 'ESEARCH'    -- the name of the environment variable
@@ -178,36 +117,51 @@ compile endif
    getline line
    orig_line = line
 
-compile if (EVERSION >= '4.12' & EVERSION < 5 & SHELL_USAGE) | WANT_EPM_SHELL
- compile if EOS2
-   if .filename = '.SHELL' then
- compile else
+; ----------------------------------------------------------------------------- shell
    if leftstr(.filename, 15) = ".command_shell_" then
- compile endif
-      if substr(line, 13, 1) = ' ' then  -- old format DIR, or not a DIR line
-         flag = substr(line, 1, 1) <> ' ' &
-                (isnum(substr(line, 14, 8)) | substr(line, 14, 8)='<DIR>') &
-                length(line) < 40 &
-                isnum(substr(line, 24, 2) || substr(line, 27, 2) || substr(line, 30, 2)) &
-                substr(line, 26, 1) = substr(line, 29, 1) &
-                pos(substr(line, 26, 1), '/x.-')
+
+      if substr(line, 13, 1) = ' ' then  -- old (i.e. FAT) format DIR, or not a DIR line
+         if substr(line, 27, 1) = ' ' then  -- /V in effect
+            flag = substr(line, 1, 1) <> ' ' &
+               (isnum(translate(substr(line, 14, 13), '0', ',')) | substr(line, 14, 13)='<DIR>') &
+               length(line) < 40 &
+               isnum(substr(line, 28, 2) || substr(line, 31, 2) || substr(line, 34, 2)) &
+               substr(line, 30, 1) = substr(line, 33, 1) &
+               pos(substr(line, 30, 1), '/x.-')
+         else
+            flag = substr(line, 1, 1) <> ' ' &
+               (isnum(substr(line, 14, 8)) | substr(line, 14, 8)='<DIR>') &
+               length(line) < 40 &
+               isnum(substr(line, 24, 2) || substr(line, 27, 2) || substr(line, 30, 2)) &
+               substr(line, 26, 1) = substr(line, 29, 1) &
+               pos(substr(line, 26, 1), '/x.-')
+         endif
          filename=strip(substr(line,1,8))
          word2=strip(substr(line,10,3))
          if word2<>'' then filename=filename'.'word2; endif
-      else                               -- new format DIR, or not a DIR line
-         flag = substr(line, 41, 1) <> ' ' &
+
+      else                                      -- new (i.e. HPFS or JFS) format DIR, or not a DIR line
+         if substr(line, 16, 1) = ' ' then      -- /V in effect
+            flag = substr(line, 44, 1) <> ' ' &
+               (isnum(translate(substr(line, 17, 13), '0', ',')) | substr(line, 17, 13)='<DIR>') &
+               isnum(substr(line, 1, 2) || substr(line, 4, 2) || substr(line, 7, 2)) &
+               substr(line, 3, 1) = substr(line, 6, 1) &
+               pos(substr(line, 3, 1), '/x.-')
+            filename=substr(line,44)
+         else
+            flag = substr(line, 41, 1) <> ' ' &
                 (isnum(substr(line, 18, 9)) | substr(line, 18, 9)='<DIR>') &
                 isnum(substr(line, 1, 2) || substr(line, 4, 2) || substr(line, 7, 2)) &
                 substr(line, 3, 1) = substr(line, 6, 1) &
                 pos(substr(line, 3, 1), '/x.-')
-         filename=substr(line,41)
+            filename=substr(line,41)
+         endif
       endif
+
       if flag then
          call psave_pos(save_pos)
          getsearch oldsearch
- compile if EPM
          display -2
- compile endif
          'xcom l /'DIRECTORYOF_STRING'/c-'
          dir_rc = rc
          if not rc then
@@ -217,14 +171,8 @@ compile if (EVERSION >= '4.12' & EVERSION < 5 & SHELL_USAGE) | WANT_EPM_SHELL
             if verify(word3,'?*','M') then  -- If wildcards - must be 4OS2 or similar shell
                word3 = strip(substr(word3, 1, lastpos(word3, '\')-1))
             endif
- compile if EOS2
-         else
-            sayerror 1
- compile endif
          endif
- compile if EPM
          display 2
- compile endif
          setsearch oldsearch
          call prestore_pos(save_pos)
          if not dir_rc then
@@ -232,12 +180,10 @@ compile if (EVERSION >= '4.12' & EVERSION < 5 & SHELL_USAGE) | WANT_EPM_SHELL
                  leftstr('\',                        -- Append a '\', but only if path
                          '\'<>rightstr(word3,1)) ||  -- doesn't end with one.
                  filename                            -- Finally, the filename
- compile if EPM
 ;           if pos(' ',name) then  -- enquote
             if verify(name, ' =', 'M') then  -- enquote
                name = '"'name'"'
             endif
- compile endif
             if pos('<DIR>',line) then
                'dir 'name
             else
@@ -246,9 +192,10 @@ compile if (EVERSION >= '4.12' & EVERSION < 5 & SHELL_USAGE) | WANT_EPM_SHELL
             return
          endif
       endif
-   endif
-compile endif  -- SHELL_USAGE | WANT_EPM_SHELL
 
+   endif  -- leftstr(.filename, 15) = ".command_shell_"
+
+; ----------------------------------------------------------------------------- .DOS DIR
    -- jbl 2/14/89:  we now distribute a standard front end for the DIR
    -- command, which redirects the output to a file named ".dos dir <dirname>".
    -- lam 3/15/89:  added code to handle trailing blanks and wildcards.
@@ -256,9 +203,7 @@ compile endif  -- SHELL_USAGE | WANT_EPM_SHELL
    parse value .filename with word1 word2 word3 .
    if upcase(word1 word2) = '.DOS DIR' then
       call psave_pos(save_pos)
-compile if EVERSION >= '4.12'
       getsearch oldsearch
-compile endif
       'xcom l /'DIRECTORYOF_STRING'/c-'
       if not rc then
          getline word3
@@ -267,35 +212,22 @@ compile endif
             word3 = strip(substr(word3, 1, lastpos(word3, '\')-1))
          endif
       endif
-compile if EVERSION >= '4.12'
       setsearch oldsearch
-compile endif
       call prestore_pos(save_pos)
-compile if EVERSION >= 4  -- DOS (box) doesn't see new-format DIR listing
       filename=substr(line,41)                 -- Support HPFS.  FAT dir's end at 40
       if filename='' then                      -- Must be FAT.
-compile endif
          filename=strip(substr(line,1,8))
          word2=strip(substr(line,10,3))
          if word2<>'' then filename=filename'.'word2; endif
-compile if EVERSION >= 4  -- DOS (box) doesn't see new-format DIR listing
       endif
-compile endif
       name=word3 ||                            -- Start with the path.
-compile if EVERSION >= '5.17'
            leftstr('\',                        -- Append a '\', but only if path
                    '\'<>rightstr(word3,1)) ||  -- doesn't end with one.
-compile else
-           substr('\', 1,                      -- Append a '\', but only if path
-                  '\'<>substr(word3,length(word3),1)) ||  -- doesn't end with one.
-compile endif
            filename                            -- Finally, the filename
-compile if EPM
 ;     if pos(' ',name) then  -- enquote
       if verify(name, ' =', 'M') then  -- enquote
          name = '"'name'"'
       endif
-compile endif
       if pos('<DIR>',line) then
          'dir 'name
       else
@@ -304,7 +236,8 @@ compile endif
       endif
       return
    endif
-;compile if EPM32
+
+; ----------------------------------------------------------------------------- .tree
    if .filename = '.tree' then
       if substr(line,5,1)substr(line,8,1)substr(line,15,1)substr(line,18,1) = '--::' then
          name = substr(line, 52)
@@ -315,33 +248,13 @@ compile endif
                'dir' name
             endif
          else
-compile if EVERSION >= '5.50'
             'e "'name'"'
-compile else
-            'e' name
-compile endif
          endif
       endif
       return
    endif
-;compile endif
 
-   -- jbl 11/15/88:  replace any '/' with '\'.  C compiler error output
-   -- can have forward slashes.
-   p=pos('/',line)
-   while p>0 do
-      line=substr(line,1,p-1)'\'substr(line,p+1)
-      p=pos('/',line)
-   endwhile
-   -- jbl 11/15/88:  The C compiler error line can have a line number in
-   -- parentheses, like "/epm/i/iproto.h(196)".  Get the number.
-   linenum=''; col = ''
-   p=pos('(',line)
-   if p>0 then
-      parse value line with line '(' linenum ')' .
-      parse value linenum with linenum ':' col  -- LAM: CSet/2 includes column
-   endif
-
+; ----------------------------------------------------------------------------- Host: abbrev(LISTFILE) OUTPUT
 /******************************************************************************/
 /***       LAMPDQ support for LISTFILE output                               ***/
 /******************************************************************************/
@@ -358,25 +271,18 @@ compile if HOST_SUPPORT
    parse value .filename with file ext .
    if ext='OUTPUT' & file=substr('LISTFILE',1,length(file)) then
       parse value line with fn ft fm .
-compile if EPM
       parse value .userstring with '[lt:'lt']'
       if lt='' then lt=host_lt; endif
       'e 'substr(hostdrive,1,1) || lt':'fn ft fm
-compile else
-      'e 'substr(hostdrive,1,1) || host_lt':'fn ft fm
-compile endif -- EPM
       return
    endif
 compile endif  -- HOST_SUPPORT
 
+; ----------------------------------------------------------------------------- LaMail .ndx
 /******************************************************************************/
 /***       LaMail index support                                             ***/
 /******************************************************************************/
-compile if EPM
    if upcase(rightstr(.filename, 4))='.NDX' then
-compile else
-   if filetype()='NDX' then
-compile endif -- EPM
       parse value orig_line with 28 fn ft . 84 ext
       if pos(\1, ext) then
          'e' substr(.filename, 1, length(.filename)-4)'\'fn'.'ft
@@ -384,6 +290,7 @@ compile endif -- EPM
       endif
    endif
 
+; ----------------------------------------------------------------------------- *.use *.xrf
 /******************************************************************************/
 /***       C-USED support                                                   ***/
 /******************************************************************************/
@@ -418,6 +325,7 @@ compile endif -- EPM
       return
    endif    -- C-USED feature
 
+; ----------------------------------------------------------------------------- Host: procs*.index
 /******************************************************************************/
 /***       E3PROCS index support                                            ***/
 /******************************************************************************/
@@ -431,11 +339,7 @@ compile endif -- EPM
 compile if HOST_SUPPORT
    fn = .filename
    parse value .filename with filename filetyp fmode .  -- Not as crude, TJR
- compile if EPM
    if ('INDEX'=filetyp & 'PROCS'=rightstr(filename, 5) &
- compile else
-   if ('INDEX'=filetyp & 'PROCS'=substr(filename, max(length(filename)-4,1), 5) &
- compile endif
         vmfile(fn,ft)) then
       parse value line with proc fn ft uid node date .
       if ('PROCS'<>ft) then                   -- Is the current line an entry?
@@ -458,13 +362,9 @@ compile if HOST_SUPPORT
  compile endif
       top                                     -- Goto top of file.
       do forever
- compile if EVERSION >= '4.12'
          getsearch oldsearch
- compile endif
          'xcom l ž'date'ž'                    -- Try to get the procedure.
- compile if EVERSION >= '4.12'
          setsearch oldsearch
- compile endif
          if rc then
             sayerror proc' macro added by 'uid' on 'date' was not found!'
             TOP                               -- Go back to the top.
@@ -485,6 +385,7 @@ compile if HOST_SUPPORT
    -- End of TJR's INDEX file modifications.
 compile endif  -- HOST_SUPPORT
 
+; ----------------------------------------------------------------------------- .Output from GNU grep
 /******************************************************************************/
 /***       GREP support                                                     ***/
 /******************************************************************************/
@@ -498,32 +399,30 @@ compile endif  -- HOST_SUPPORT
    endif
 */
    -- Handle Gnu GREP output like  full_specified_filename:lineno:text
-   FileName = ''
-   parse value line with DriveLetter':'Rest
-   if length(DriveLetter) = 1 then
-      parse value Rest with FileName':'LineNumber':'Rest
-      FileName = DriveLetter':'FileName
-   endif
-   if FileName then
-      "e "FileName" '"LineNumber"'"
-      return
+   if substr( .filename, 1, 17) = '.Output from grep' then            -- GNU grep
+      FileName = ''
+      parse value line with DriveLetter':'Rest
+      if length(DriveLetter) = 1 then
+         parse value Rest with FileName':'LineNumber':'Rest
+         FileName = DriveLetter':'FileName
+      endif
+      if FileName then
+         "e "FileName" '"LineNumber"'"
+         return
+      endif
    endif
 
 ; The rest is not used anymore:
-
+/*
    -- 11/03/88: Open file specified by GREP and move to current line!  TJR
    -- Use the name ".grep" as the signature, so I can load multiple grep lists.
    -- See GREP.E.  jbl.
    if substr(.filename,1,5)=".grep" |                            -- TJR's GREP
       substr(.filename,1,17)=".Output from grep" then            -- LAM's GREP
-compile if EVERSION >= '4.12'
          getsearch oldsearch
-compile endif
        call psave_pos(save_pos)
        'xcom l .   File #. -'          /* Find previous file           */
-compile if EVERSION >= '4.12'
          setsearch oldsearch
-compile endif
        if rc then
           sayerror 'No files found!'
           return
@@ -548,22 +447,9 @@ compile endif
 ;;compile else                                                -- TJR doesn't
           parse value orig_line with "==>" tempstr
           if  tempstr = ''  then
- compile if defined(HIGHLIGHT_COLOR)  -- Let it be hilighted by the built-in stuff...
              'l ž'orig_line'žeaf+'          /* ALT-158 is the search delim */
- compile else
-             'xcom l ž'orig_line'ž'         /* ALT-158 is the search delim */
- compile endif
              if rc then
                  sayerror substr(line, 1, 60)'. . . Not Found!'
- compile if not defined(HIGHLIGHT_COLOR)
-             else
-                 refresh
-                 unmark
-                 mark_block            /* hilite the line with string  */
-                 end_line
-                 mark_block
-                 begin_line
- compile endif
              endif
           endif
           return
@@ -571,7 +457,9 @@ compile endif
        endif
    endif
    -- End of TJRs 11/03/88 Modifications!
+*/
 
+; ----------------------------------------------------------------------------- .Output from gsee
    if substr(.filename,1,17)=".Output from gsee" then            -- LAM's GSEE
       parse value line with name '.' ext 13 52 path
       if substr(line,9,1)='.' & substr(line,53,1)=':' then
@@ -581,60 +469,82 @@ compile endif
       endif
    endif
 
+; ----------------------------------------------------------------------------- icc
+   -- jbl 11/15/88:  The C compiler error line can have a line number in
+   -- parentheses, like "/epm/i/iproto.h(196)".  Get the number.
 
-   /** If line starts with 'include' or '#include', read the filename. **/
-   pathvar = AltOnePathVar      -- default, if not #include <>
-   TryCurFirst=1
-   -- jbl 10/25/88:  don't accept "include" anywhere in the line, you'll be
-   -- fooled by path names like c:\c\include.  Accept it only as first word.
-   -- inclpos=pos('include',lowcase(line))
-   parse value lowcase(line) with word1 word2 .
-   if word1="include" or word1="#include" or word1="tryinclude" then
-      delim=substr(word2,1,1)
-      if delim="'" | delim='"' then
-         call a1load(strip(word2,'B',delim),EPATH,1)    /* For E files */
-      elseif delim='<' then
-         parse value word2 with '<'word2'>'
-         -- jbl 10/25/88:  Searching only along the INCLUDE path didn't always
-         -- work.  Rechecking the C compiler manual, I see that it first
-         -- searches the specified search path (i.e., what we call ESEARCH) and
-         -- then the "standard directories", the INCLUDE path.
-         call a1load(word2,PathVar,TryCurFirst)  -- So first search ESEARCH.
+   linenum = ''; col = ''
+
+   p = pos( '(', line)
+   if p > 0 then
+      parse value line with next '(' num ')' .
+      if verify( num, '0123456789:') = 0 then  -- if number or colon
+         line    = next
+         linenum = num
+         parse value linenum with linenum ':' col  -- LAM: CSet/2 includes column
+      endif
+   endif
+
+; ----------------------------------------------------------------------------- word under cursor
+   StartCol = 0
+   EndCol   = 0
+                                                         -- todo: support spaces in filenames and pathes
+   SeparatorList = '"'||"'"||'(){}[]<>,;|+ '\9'#'
+   call find_token( StartCol, EndCol, SeparatorList, '')
+
+   WordFound = (StartCol <> 0 & EndCol >= StartCol)
+   if WordFound then  -- if word found
+      Spec = substr( line, StartCol, EndCol - StartCol + 1)
+                                                         -- todo: handle URLs here, start browser
+      -- convert slashes to backslashes
+      Spec = translate( Spec, '\', '/')
+      -- strip trailing periods
+      Spec = strip( Spec, 'T', '.')
+
+      CurMode = NepmdGetMode()
+
+      SpecExt = ''
+      lp = lastpos( '.', Spec)
+      if lp > 1 & lp < length(Spec) then
+         SpecExt = substr( Spec, lp + 1)
+         SpecExt = upcase(SpecExt)
+      endif
+
+      PathVar = 'PATH'
+      if CurMode = 'E' | wordpos( SpecExt, 'E') > 0 then
+         PathVar = 'EPMPATH'
+      elseif CurMode = 'TEX' | wordpos( SpecExt, 'TEX') > 0 then
+         PathVar = 'TEXINPUT'
+      endif
+
+      TryCurFirst = 1  -- 1 ==> search in current dir first
+
+      call a1load( Spec, PathVar, TryCurFirst)
+
 compile if C_INCLUDE
-         -- If that fails, try INCLUDE path.
-         if rc=sayerror("New file") or rc=sayerror("Path not found") then
-            'q'
-            pathvar='INCLUDE'
-            TryCurFirst=0
-            call a1load(word2,PathVar,TryCurFirst)
-         endif
+      -- If that fails, try INCLUDE path.
+      if rc = sayerror('New file') or rc = sayerror('Path not found') then
+         'q'
+         PathVar = 'INCLUDE'
+         TryCurFirst = 0
+         call a1load( word2, SearchVar, TryCurFirst)
+      endif
 compile endif
+
+      if rc = sayerror('New file') or rc = sayerror('Path not found') then
+         --'q'
+      else
+         linenum  -- jbl 11/15/88, go to specified linenum if any.
+         if col <> '' then
+            .col = col
+         endif
       endif
-      line=''  -- Don't try to load "INCLUDE" !
-   else
-      /** If line starts with fillers (duplicate characters and a space) like: **/
-      /**   --- FOOBAR.TXT    (which is from SCAN), strip them off.  JBL       **/
-      c=substr(line,1,1)
-      temp = strip(line,'L',c)
-      /* Must be a space after the fillers, and more than one filler. */
-      if substr(temp,1,1)=' ' and length(temp)<length(line)-1 then
-         line=temp          --LAM: Leading blank will be stripped by Parse, below.
-      endif
-      /**  end of strip-leading-fillers modification  **/
    endif
 
-   if line<>'' then
-      /* also discard remainder of line after the first word, so I can comment */
-      parse value line with line .
-      call a1load(line,PathVar,TryCurFirst)
-   endif
-   linenum  -- jbl 11/15/88, go to specified linenum if any.
-   if col <> '' then .col = col; endif
 
-
-defproc a1load(filename,PathVar,TryCurFirst)
-   if pos('*', filename) then
-      if YES_CHAR<>askyesno(WILDCARD_WARNING__MSG, '', filename) then
+defproc a1load( filename, PathVar, TryCurFirst)
+   if pos( '*', filename) then
+      if YES_CHAR <> askyesno( WILDCARD_WARNING__MSG, '', filename) then
          return
       endif
    endif
@@ -644,76 +554,5 @@ defproc a1load(filename,PathVar,TryCurFirst)
          return
       endif
    endif
-   'e' search_path(Get_Env(PathVar),filename)filename
+   'e' search_path( Get_Env(PathVar), filename)filename
 
-compile if not (USE_APPEND | WANT_SEARCH_PATH)  -- This might already be included in user's E.
-defproc search_path(AppendPath, FileName)
-   do while AppendPath<>''
-      parse value AppendPath with TryDir ';' AppendPath
-      if trydir='' then iterate; endif
-compile if EVERSION >= '5.17'
-      lastch=rightstr(TryDir,1)
-compile else
-      lastch=substr(TryDir,length(TryDir),1)
-compile endif
-      if lastch<>'\' & lastch<>':' then
-         TryDir = TryDir||'\'
-      endif
-      if exist(TryDir||FileName) then
-         return TryDir
-      endif
-   enddo
-   return ''
-compile endif
-
-compile if not (USE_APPEND | WANT_GET_ENV)  -- This might already be included in user's E.
-defproc get_env(varname)=
-   varname = upcase(varname)
-   env_ofs = 0
-compile if EVERSION>=4
- compile if EVERSION<'4.10'     -- If no more family mode, don't check machine()
-   if machine()='OS2PROTECT' then
- compile endif
-      seg_ptr = 1234
-      cmd_ptr = 1234
-      call dynalink('DOSCALLS',
-                    '#91',
-                    selector(seg_ptr) ||
-                    offset(seg_ptr)   ||
-                    selector(cmd_ptr) ||
-                    offset(cmd_ptr)     )
-      env_seg=itoa(seg_ptr,10)
- compile if EVERSION<'4.10'     -- If no more family mode, don't check machine()
-   else
- compile endif
-compile endif
-compile if EVERSION<'4.10'
-      if dos_version() < 300 then
-         sayerror 'DOS version 3.0 or above required for Get_Env Address.'
-         return ''
-      endif
-      parse value int86x(33,25088,'') with . PSP_seg .  -- Int 21H, AH=62H
-      env_seg = asc(peek(PSP_seg,45,1)) * 256 + asc(peek(PSP_seg,44,1))
- compile if EVERSION>='4.02'
-   endif
- compile endif
-compile endif
-   do while peek(env_seg,env_ofs,1) /== \0  -- (backslash) 0 == ASCII null
-compile if EVERSION < '5.17'
-      start = env_ofs
-      do while peek(env_seg,env_ofs,1) /== \0
-         env_ofs = env_ofs + 1
-      end
-      setting = peek(env_seg,start,env_ofs-start)
-compile else
-      setting = peekz(env_seg,env_ofs)
-compile endif
-      parse value setting with name '=' parameter
-      if name=varname then return parameter; endif
-compile if EVERSION < '5.17'
-      env_ofs=env_ofs+1
-compile else
-      env_ofs=env_ofs+length(setting)+1
-compile endif
-   end
-compile endif
