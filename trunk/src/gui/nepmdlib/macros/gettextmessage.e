@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.1 2002-08-20 20:03:19 cla Exp $
+* $Id: gettextmessage.e,v 1.2 2002-08-21 13:56:17 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,13 +28,27 @@
 
 defc NepmdGetTextMessage, GetTextMessage
 
-  Envvar = 'NEPMD_TMFTESTFILE';
+  /* determine message name or use default */
+  if ( words( arg( 1)) = 0) then
+     Messagename = 'TESTMESSAGE';
+  else
+     Messagename = arg( 1);
+  endif
 
+  /* determine TMF name  */
+  Envvar = 'NEPMD_TMFTESTFILE';
   Testfile = get_env( Envvar);
   if (length( Testfile) = 0) then
      sayerror 'error: cannot test NepmdGetTextMessage, envvar' Envvar 'not set!';
+     return;
+  endif
+
+  /* fetch message */
+  MessageText = NepmdGetTextMessage( Testfile, Messagename);
+  if (MessageText = '') then
+     sayerror 'error: message' Messagename 'could not be retrieved!';
   else
-     sayerror NepmdGetTextMessage( Testfile, 'TESTMESSAGE');
+     sayerror 'message is: "'MessageText'"';
   endif
 
 /* ------------------------------------------------------------- */
@@ -62,7 +76,7 @@ defc NepmdGetTextMessage, GetTextMessage
 
 defproc NepmdGetTextMessage( Filename, Messagename) =
 
- BufLen      = 512;
+ BufLen      = 1024;
  TextMessage = copies( atoi( 0), BufLen);
 
  /* prepare parameters for C routine */
@@ -80,5 +94,5 @@ defproc NepmdGetTextMessage( Filename, Messagename) =
 
  checkliberror( LibFile, rc);
 
- return TextMessage;
+ return makerexxstring( TextMessage);
 
