@@ -6,7 +6,7 @@
 ;
 ; Text Message file for language specific symbols and text messages
 ;
-; $Id: nepmdeng.tmf,v 1.1 2002-08-21 13:50:04 cla Exp $
+; $Id: nepmdeng.tmf,v 1.2 2002-08-24 15:15:18 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -21,4 +21,22 @@
 ;
 ; **************************************************************************/
 
-<--MYSYMBOL-->:This is the value of the dummy symbol
+<--MSG_INFO_HEADER-->:
+            Netlabs EPM Distribution - Runtime Information
+         Copyright (c) Netlabs EPM Distribution Project 2002
+                       http://nepmd.netlabs.org
+<--MSG_INFO_BODY_DYNCFG-->:
+NEPMD dynamic configuration
+---------------------------
+NEPMD installation directory: %1
+selected language: %2
+initialization file: %3
+message file: %4
+main environment file: %5
+user environment file: %6
+<--MSG_INFO_BODY_LIB-->:
+NEPMD runtime library
+---------------------
+filename: %1
+version: %2
+Loaded from: %3
