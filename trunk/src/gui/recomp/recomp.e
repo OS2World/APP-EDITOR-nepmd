@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.e,v 1.1 2002-06-03 22:28:06 cla Exp $
+* $Id: recomp.e,v 1.2 2002-06-09 14:39:34 cla Exp $
 *
 * ===========================================================================
 *
@@ -58,7 +58,7 @@ if (RecompAction = 'CLOSEWINDOW') then
    recomp_closewindow();
 
 elseif (RecompAction = 'SETPOS') then
-   sayerror '        ';
+   sayerror 0;
    prestore_pos( RecompOption);
 
 elseif (RecompAction = 'GETFILELIST') then
