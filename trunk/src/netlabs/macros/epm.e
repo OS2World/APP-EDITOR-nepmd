@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.6 2002-09-11 00:15:55 aschn Exp $
+* $Id: epm.e,v 1.7 2002-09-19 15:05:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,6 +41,8 @@ compile endif
 include        'stdcnf.e'      -- Standard configuration; shouldn't be modified.
 
 include        'menuhelp.h'
+
+'linkverify     nepmdlib.ex'   -- Link the NEPMD library. Open a MessageBox if .ex or .dll not found.
 
 compile if WANT_DBCS_SUPPORT
    include     'epmdbcs.e'
