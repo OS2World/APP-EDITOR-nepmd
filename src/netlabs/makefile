@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.2 2002-07-23 11:41:36 cla Exp $
+# $Id: makefile,v 1.3 2002-08-15 14:55:09 cla Exp $
 #
 # ===========================================================================
 #
@@ -38,10 +38,44 @@ WPIFILE=$(STEM)$(VERSION).wpi
 FILESTOCLEAN=\
  $(SRCCOPY_FLAGFILE)
 
+# --- list for standalone modules
+EMODULELIST=\
+$(CMPEXDIR)\epm.ex \
+$(CMPEXDIR)\box.ex\
+$(CMPEXDIR)\draw.ex\
+$(CMPEXDIR)\epmcomp.ex\
+$(CMPEXDIR)\epmlex.ex\
+$(CMPEXDIR)\fonts.ex\
+$(CMPEXDIR)\get.ex\
+$(CMPEXDIR)\help.ex\
+$(CMPEXDIR)\maketags.ex\
+$(CMPEXDIR)\put.ex\
+$(CMPEXDIR)\treeit.ex
+
+
+# --- list for toolbar modules
+TEMODULELIST=\
+$(CMPEXDIR)\commands.ex\
+$(CMPEXDIR)\groups.ex\
+$(CMPEXDIR)\jot.ex\
+$(CMPEXDIR)\makeactn.ex\
+$(CMPEXDIR)\reflow.ex\
+$(CMPEXDIR)\sampactn.ex\
+$(CMPEXDIR)\stylebut.ex\
+$(CMPEXDIR)\tagsactn.ex\
+$(CMPEXDIR)\tree.ex
+
+# --- private extension of suffix list
+.SUFFIXES: .e .ex
+
+# --- private rules
+{macros}.e{$(CMPEXDIR)}.ex:
+   mkex $(CMPEXDIR) $(@B).e
+
 
 # --- pseudotargets
 
-ALL: CHECKSRC SRCCOPY EPMEX
+ALL: CHECKSRC SRCCOPY $(EMODULELIST) $(TEMODULELIST)
 
 CLEAN:
    @echo cleaning up files ...
@@ -59,8 +93,4 @@ SRCCOPY: $(SRCCOPY_FLAGFILE)
 
 $(SRCCOPY_FLAGFILE):
    _srccopy COPY $(SRCCOPY_FLAGFILE) $(BASEDIR)\src\netlabs $(CMPDSTDIR)
-
-# ---- compile NEPMD version of EPM.EX
-$(CMPEXDIR)\epm.ex: mkex.cmd
-   mkex $(CMPEXDIR)
 
