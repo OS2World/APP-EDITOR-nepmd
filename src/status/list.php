@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: list.php,v 1.3 2002-07-18 19:27:09 cla Exp $
+* $Id: list.php,v 1.4 2002-07-18 21:59:21 cla Exp $
 *
 * ===========================================================================
 *
@@ -85,7 +85,9 @@ for ($i = 0; $i < count( $aaentry);$i++)
    list( , $prio)      = each( $aentry);
    list( , $status)    = each( $aentry);
    list( , $filelist)  = each( $aentry);
+   list( , $updated)   = each( $aentry);
    list( , $modified)  = each( $aentry);
+   list( , $details)   = each( $aentry);
 
    // display entry
    echo "<tr>";
