@@ -1,0 +1,8 @@
+CATEGORY: Feature
+TITLE: Let Ctrl-A select all text within file
+PRIO: 1
+STATUS: open
+FILES: 
+UPDATED: 
+
+Ctrl-A should mark all text within the file
