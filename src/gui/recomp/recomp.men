@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.men,v 1.2 2002-06-09 21:52:45 cla Exp $
+* $Id: recomp.men,v 1.3 2002-06-10 11:27:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -42,6 +42,8 @@ BEGIN
    SUBMENU     IDT_IDMEN_HELP,                             IDMEN_HELP,                     MIS_TEXT
    BEGIN
       MENUITEM    IDT_IDMEN_HELP_PARMS,                    IDMEN_HELP_PARMS,               MIS_TEXT
+      MENUITEM    IDT_IDMEN_HELP_NEPMDINF,                 IDMEN_HELP_NEPMDINF,            MIS_TEXT
+      MENUITEM    "",                                      -1,                             MIS_SEPARATOR
       MENUITEM    IDT_IDMEN_HELP_INFO,                     IDMEN_HELP_INFO,                MIS_TEXT
    END
 

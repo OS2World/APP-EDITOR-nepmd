@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: common.h,v 1.4 2002-06-09 22:01:48 cla Exp $
+* $Id: common.h,v 1.5 2002-06-10 11:27:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -42,6 +42,8 @@
 #define PARM_HELP              "?"
 #define PARM_HELP2             "Help"
 
+// help related strings
+#define HELP_LAUNCH_NEPMDINF   "start view ..\\book\\nepmd.inf Netlabs"
 
 // control compilation
 #define SUPPORT_LOCAL_COMPILE          0
