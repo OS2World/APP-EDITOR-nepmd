@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: activatehighlight.e,v 1.6 2002-10-20 12:17:02 cla Exp $
+* $Id: activatehighlight.e,v 1.7 2002-10-20 12:29:55 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,8 +40,10 @@ Specifiy one of the following values:
 .pl compact tsize=5
 - *0* or *OFF*
 = deactivate syntax highlighting
-- *1* or *ON*  (default)
+- *1* or *ON*
 = activate syntax highlighting
+
+The default value is to activate syntax highlighting.
 
 @@NepmdActivateHighlight@PARM@EpmMode
 This optional parameter specifies the mode to be used. If no mode
@@ -55,6 +57,8 @@ Specifiy one of the following values:
 - *N*
 = don't check the internal *EPM* highlight file for being outdated.
   The file is nevertheless newly generated, if it does not yet exist
+
+By default no options are used.
 
 @@NepmdActivateHighlight@RETURNS
 *NepmdActivateHighlight* returns an OS/2 error code or zero for no error.
