@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.7 2004-09-12 15:10:26 aschn Exp $
+* $Id: select.e,v 1.8 2004-11-30 21:24:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -57,19 +57,36 @@ defproc select_edit_keys()
 defselect
    universal lastselectedfid
    universal loadstate
+   universal vEPM_POINTER
    getfileid fid
    dprintf('SELECT', 'DEFSELECT for '.filename', loadstate = 'loadstate)
+
+   JustLoaded = 0
    if loadstate = 1 then  -- if a defload was processed before
       loadstate = 2
+      JustLoaded = 1
       'AfterLoad'  -- executes multiple ring commands that sometimes leave the wrong file on top
       'postme activatefile' fid  -- postme required, but doesn't work in some rare cases
       loadstate = 0
    endif
+
    if fid = lastselectedfid then
       -- nop, ProcessSelect was already executed for this file
    else
       'ProcessSelect'
       lastselectedfid = fid
+   endif
+
+;  Change EPM pointer from standard arrow to text pointer -------------------
+;     bug fix (hopefully): even standard EPM doesn't show everytime the
+;                          correct pointer after a new edit window was opened
+;     defined in defc initconfig, STDCTRL.E
+   if JustLoaded then
+compile if EPM_POINTER = 'SWITCH'
+      'postme setmousepointer 'vEPM_POINTER
+compile else
+      'postme setmousepointer 'EPM_POINTER
+compile endif
    endif
 
 ; ---------------------------------------------------------------------------
