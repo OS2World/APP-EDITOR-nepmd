@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.21 2004-06-03 22:13:00 aschn Exp $
+* $Id: stdmenu.e,v 1.22 2004-07-04 22:24:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -516,9 +516,10 @@ compile endif
 compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
          buildmenuitem menuname, 4, 446, CUAACCEL_MENU__MSG,       'accel_toggle'CUAACCEL_MENUP__MSG,  ACCEL__ATTRIB, mpfrom2short(HP_OPTIONS_CUAACCEL, NODISMISS)
 compile endif
+      buildmenuitem menuname, 4, 460, \0,                       '',           4, 0
+      buildmenuitem menuname, 4, 461, 'Select menu...',         'ChangeMenu'\1'Open a listbox and change or refresh the menu', 1, 0
       buildmenuitem menuname, 4, 401, \0,                       '',           4, 0
       buildmenuitem menuname, 4, 402, AUTOSAVE_MENU__MSG,       'autosave ?'AUTOSAVE_MENUP__MSG, 0, mpfrom2short(HP_OPTIONS_AUTOSAVE, 0)
-      buildmenuitem menuname, 4, 403, \0,                       '',           4, 0
       buildmenuitem menuname, 4, 412, MESSAGES_MENU__MSG,       'messagebox'MESSAGES_MENUP__MSG, 0, mpfrom2short(HP_OPTIONS_MESSAGES, 0)
       buildmenuitem menuname, 4, 409, \0,           '',                       4, 0
 ;  Note:  408 is referenced by TOGGLEFONT.  If the number changes, update TOGGLEFONT.
@@ -540,12 +541,10 @@ compile endif -- WANT_TOOLBAR
          buildmenuitem menuname, 4, 439, \0,                       '',           4, 0
 compile if WANT_DYNAMIC_PROMPTS
          buildmenuitem menuname, 4, 421, INFOATTOP_MENU__MSG,   TOGGLEINFO || INFOATTOP_MENUP__MSG,     0, mpfrom2short(HP_FRAME_EXTRAPOS, NODISMISS)
-         buildmenuitem menuname, 4, 422, PROMPTING_MENU__MSG,   'toggleprompt'PROMPTING_MENUP__MSG,     0, mpfrom2short(HP_FRAME_PROMPT, NODISMISS)
+         buildmenuitem menuname, 4, 422, PROMPTING_MENU__MSG,   'toggleprompt'PROMPTING_MENUP__MSG, 32768+1, mpfrom2short(HP_FRAME_PROMPT, NODISMISS)
 compile else
-         buildmenuitem menuname, 4, 421, INFOATTOP_MENU__MSG,   TOGGLEINFO || INFOATTOP_MENUP__MSG,     0, mpfrom2short(HP_FRAME_EXTRAPOS, NODISMISS)
+         buildmenuitem menuname, 4, 421, INFOATTOP_MENU__MSG,   TOGGLEINFO || INFOATTOP_MENUP__MSG, 32768+1, mpfrom2short(HP_FRAME_EXTRAPOS, NODISMISS)
 compile endif
-         buildmenuitem menuname, 4, 460, \0,                       '',           4, 0
-         buildmenuitem menuname, 4, 461, 'Select menu...',      'ChangeMenu'\1'Open a listbox and change or refresh the menu', 32768+1, 0
 compile if WANT_APPLICATION_INI_FILE
       buildmenuitem menuname, 4, 418, SAVE_OPTS_MENU__MSG,      'saveoptions'SAVE_OPTS_MENUP__MSG, 0, mpfrom2short(HP_OPTIONS_SAVE, 0)
 compile endif
@@ -597,14 +596,6 @@ compile else
 compile endif
 -- Todo: replace all strings and add consts for menu styles ------------------------------------------------------
       buildmenuitem menuname, HELP_MENU_ID, 609, 'NEPMD runtime information', 'nepmdinfo', 0, 0
-      buildmenuitem menuname, HELP_MENU_ID, 640, 'View NEPMD Users Guide', ''\1, 17+64, 0
-         -- start is used here to resolve environment var
-         buildmenuitem menuname, HELP_MENU_ID, 641, 'View NEPMD User Guide', 'start view neusr%NEPMD_LANGUAGE% netlabs'\1, 0, 0
-         buildmenuitem menuname, HELP_MENU_ID, 642, 'Current word', 'viewword neusr%NEPMD_LANGUAGE%'\1, 32768+1, 0
-      buildmenuitem menuname, HELP_MENU_ID, 650, 'View NEPMD Programming Guide', ''\1, 17+64, 0
-         -- start is used here to resolve environment var
-         buildmenuitem menuname, HELP_MENU_ID, 651, 'View NEPMD Programming Guide', 'start view neprg%NEPMD_LANGUAGE% netlabs'\1, 0, 0
-         buildmenuitem menuname, HELP_MENU_ID, 652, 'Current word', 'viewword neprg%NEPMD_LANGUAGE%'\1, 32768+1, 0
       buildmenuitem menuname, HELP_MENU_ID, 610, \0,           '',                        4, 0
 compile if SUPPORT_USERS_GUIDE
       buildmenuitem menuname, HELP_MENU_ID, 620, USERS_GUIDE_MENU__MSG,   USERS_GUIDE_MENUP__MSG, 17+64, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
@@ -617,6 +608,14 @@ compile if SUPPORT_TECHREF
          buildmenuitem menuname, HELP_MENU_ID, 631, VIEW_TECHREF_MENU__MSG,  'view epmtech'VIEW_TECHREF_MENUP__MSG, 0, mpfrom2short(HP_HELP_TECHREF, 0)
          buildmenuitem menuname, HELP_MENU_ID, 632, VIEW_IN_TECHREF_MENU__MSG,  'viewword epmtech'VIEW_IN_TECHREF_MENUP__MSG, 32768+1, mpfrom2short(HP_HELP_TECHREF, 0)
 compile endif
+      buildmenuitem menuname, HELP_MENU_ID, 640, 'View NEPMD Users Guide', ''\1, 17+64, 0
+         -- start is used here to resolve environment var
+         buildmenuitem menuname, HELP_MENU_ID, 641, 'View NEPMD User Guide', 'start view neusr%NEPMD_LANGUAGE% netlabs'\1, 0, 0
+         buildmenuitem menuname, HELP_MENU_ID, 642, 'Current word', 'viewword neusr%NEPMD_LANGUAGE%'\1, 32768+1, 0
+      buildmenuitem menuname, HELP_MENU_ID, 650, 'View NEPMD Programming Guide', ''\1, 17+64, 0
+         -- start is used here to resolve environment var
+         buildmenuitem menuname, HELP_MENU_ID, 651, 'View NEPMD Programming Guide', 'start view neprg%NEPMD_LANGUAGE% netlabs'\1, 0, 0
+         buildmenuitem menuname, HELP_MENU_ID, 652, 'Current word', 'viewword neprg%NEPMD_LANGUAGE%'\1, 32768+1, 0
 
 
 ; Moved readd_help_menu, maybe_show_menu and showmenu_activemenu to MENU.E.
