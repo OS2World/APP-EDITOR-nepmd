@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.4 2002-09-06 19:08:40 aschn Exp $
+* $Id: kwhelp.e,v 1.5 2002-09-06 19:24:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -247,12 +247,15 @@ compile if WANT_HELPNDXSHELF
          enddo
          --sayerror 'HelpDir = 'HelpDir', HelpList = 'HelpList -- for testing
       enddo
-   endif -- helpndxshelf = ''
+   endif -- HelpNdxShelf = ''
 compile endif -- WANT_HELPNDXSHELF
 
-   do while helplist<>''
-      parse value helplist with helpindex '+' helplist
+   do while HelpList<>''
 
+compile if WANT_HELPNDXSHELF
+      parse value HelpList with DestFilename '+' HelpList
+compile else
+      parse value HelpList with HelpIndex '+' HelpList
       /* look for the help index file in current dir, EPMPATH, DPATH, and EPM.EXE's dir: */
       findfile destfilename, helpindex, '','D'
 
@@ -266,6 +269,7 @@ compile endif -- WANT_HELPNDXSHELF
             destfilename = ''
          endif
       endif
+compile endif -- WANT_HELPNDXSHELF
 
       if destfilename <> '' then
          if pos(' ',destfilename) then
