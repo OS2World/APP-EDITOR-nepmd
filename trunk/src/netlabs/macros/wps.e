@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wps.e,v 1.2 2002-10-16 18:44:23 aschn Exp $
+* $Id: wps.e,v 1.3 2004-06-04 00:13:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,6 +35,63 @@ defc OpenFolder
    if SetupString = '' then
       SetupString = 'OPEN=DEFAULT'
    endif
-   'rx open '.filename'\..,'SetupString
+   Filename = .filename
+   -- Get Dir of Filename
+   p = lastpos( '\', Filename)
+   if p > 1 then
+      Dir = substr( Filename, 1, p - 1)
+   else
+      Dir = Filename'\..'
+   endif
+   'rx open 'Dir','SetupString
+   return
+
+; ---------------------------------------------------------------------------
+; Opens the location of the specified file as a WPS folder.
+; arg(1) = filename
+; Notes for the current version:
+;    -  Open.erx is needed.
+;    -  The setup string will be passed to the REXX function
+;       SysSetObjectData.
+;    -  If no filename is specified, the folder of the current filename
+;       will open.
+defc OpenFolderOf
+   SetupString = 'OPEN=DEFAULT'
+   Filename = arg(1)
+   if leftstr( Filename, 1) = '"' & rightstr( Filename, 1) = '"' then
+      Filename = substr( Filename, 2, length(Filename) - 2)
+   endif
+   if Filename = '' then
+      Filename = .filename
+   endif
+   -- Get Dir of Filename
+   p = lastpos( '\', Filename)
+   if p > 1 then
+      Dir = substr( Filename, 1, p - 1)
+   else
+      Dir = Filename'\..'
+   endif
+   'rx open 'Dir','SetupString
+   return
+
+; ---------------------------------------------------------------------------
+; Opens the properties dialog of the specified object
+; arg(1) = objectname or objectid
+; Notes for the current version:
+;    -  Open.erx is needed.
+;    -  The setup string will be passed to the REXX function
+;       SysSetObjectData.
+;    -  If no objectname is specified, the properties dialog of the
+;       current filename will open.
+defc OpenSettings
+   SetupString = 'OPEN=SETTINGS'
+   Filename = arg(1)
+   if leftstr( Filename, 1) = '"' & rightstr( Filename, 1) = '"' then
+      Filename = substr( Filename, 2 length(Filename) - 2)
+   endif
+   if Filename = '' then
+      Filename = .filename
+   endif
+   'rx open 'Filename','SetupString
    return
 
