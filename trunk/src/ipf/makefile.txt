@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.13 2002-06-10 14:28:44 cla Exp $
+.. $Id: makefile.txt,v 1.14 2002-06-11 10:24:47 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -91,6 +91,19 @@ The following pseudotargets are available:
 .
 - nmake inst
 = like *nmake all*, but also starts the WPI file (**)
+- nmake remove
+= quickly deinstalls all packages of [=TITLE] without the GUI. This is intended for
+  testing purposes only !
+.
+  The quick deinstallation
+.ul compact
+  - removes all files, WPS objects and empty directories below the installation
+    directory for each package
+  - uses the package IDs from the *WarpIn* package script 
+    in *src\wis*, but without the revision numbers of the IDs. So deinstall will 
+    work, if you have modified the revision numbers between last install and 
+    deinstall, but not, if you have modified the vendor, application or package 
+    names.
 .
 - nmake gui
 = build GUI components only
