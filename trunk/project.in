@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: project.in,v 1.4 2002-07-23 11:39:04 cla Exp $
+# $Id: project.in,v 1.5 2002-07-23 11:53:34 cla Exp $
 #
 # ===========================================================================
 #
@@ -54,6 +54,11 @@ CMPINSTDIR=$(CMPDSTDIR)\install
 !if [@md $(CMPINSTDIR) 2> NUL]
 !endif
 
+CMPMACDIR=$(CMPDSTDIR)\macros
+!if [@md $(CMPMACDIR) 2> NUL]
+!endif
+
+
 CMPEXDIR=$(CMPDSTDIR)\ex
 !if [@md $(CMPEXDIR) 2> NUL]
 !endif
@@ -82,7 +87,9 @@ WPIDEPLIST=\
  $(SRCCOPY_FLAGFILE) \
  $(BINBINDIR)\* \
  $(CMPINFDIR)\* \
- $(CMPINSTDIR)\*
+ $(CMPINSTDIR)\* \
+ $(CMPMACDIR)\* \
+ $(CMPEXDIR)\*
 
 
 # --- check for required programs
