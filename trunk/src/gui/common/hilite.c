@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.25 2002-11-03 19:32:10 cla Exp $
+* $Id: hilite.c,v 1.26 2004-07-03 10:38:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1415,7 +1415,7 @@ do
       break;
       }
 
-printf ("### HILITE: %s: options: %08x\n", pszEpmMode, ulOptions);
+   DPRINTF(( "### HILITE: %s: options: %08x\n", pszEpmMode, ulOptions));
 
    // search mode files
    rc = _assembleKeywordFile( pszEpmMode, ulOptions, pfReload, szValue, sizeof( szValue));
@@ -1443,4 +1443,4 @@ printf ("### HILITE: %s: options: %08x\n", pszEpmMode, ulOptions);
 
 return rc;
 }
- 
+
