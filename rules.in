@@ -28,7 +28,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: rules.in,v 1.6 2002-07-05 12:31:17 cla Exp $
+# $Id: rules.in,v 1.7 2002-07-05 12:33:32 cla Exp $
 #
 # ===========================================================================
 #
@@ -59,6 +59,7 @@
 #  OBJS     -  more objects to be linked (include in dependency list!) default: empty
 #  OBJS1    -  more objects to be linked (include in dependency list!) default: empty
 #  OBJS2    -  more objects to be linked (include in dependency list!) default: empty
+#  DLL      -  compile a DLL                                           default: compile an EXE
 #  LIBS     -  own libs to be linked (include in dependency list !)    default: empty
 #  EXTLIBS  -  external libs (don not include in dependency list!)     default: empty
 #  DEF      -  definition file (include in dependency list !)          default: no def file
