@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: touchrel.cmd,v 1.2 2002-11-05 20:28:29 cla Exp $
+* $Id: touchrel.cmd,v 1.3 2004-07-03 12:36:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,6 +32,8 @@
 ****************************************************************************/
 
  '@ECHO OFF'
+ call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+ call SysLoadFuncs
 
  /* get command parms */
  PARSE ARG Parms;
