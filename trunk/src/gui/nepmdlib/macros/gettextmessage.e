@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.4 2002-08-21 22:08:11 cla Exp $
+* $Id: gettextmessage.e,v 1.5 2002-08-22 09:18:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -127,15 +127,15 @@ defproc NepmdGetTextMessage( Filename, Messagename) =
  /* prepare all parms as ASSCIZ string and assemble variable parm list */
  /* NOTE: we need to setup vars for each parm, as arg() */
  /*       returns the same address for all values :-((  */
- Parm1 = arg(  3)''atoi( 0);  if (arg() >=  3) then Addr1 = address( Parm1); else Addr1 = atol( 0); endif
- Parm2 = arg(  4)''atoi( 0);  if (arg() >=  4) then Addr2 = address( Parm2); else Addr2 = atol( 0); endif
- Parm3 = arg(  5)''atoi( 0);  if (arg() >=  5) then Addr3 = address( Parm3); else Addr3 = atol( 0); endif
- Parm4 = arg(  6)''atoi( 0);  if (arg() >=  6) then Addr4 = address( Parm4); else Addr4 = atol( 0); endif
- Parm5 = arg(  7)''atoi( 0);  if (arg() >=  7) then Addr5 = address( Parm5); else Addr5 = atol( 0); endif
- Parm6 = arg(  8)''atoi( 0);  if (arg() >=  8) then Addr6 = address( Parm6); else Addr6 = atol( 0); endif
- Parm7 = arg(  9)''atoi( 0);  if (arg() >=  9) then Addr7 = address( Parm7); else Addr7 = atol( 0); endif
- Parm8 = arg( 10)''atoi( 0);  if (arg() >= 10) then Addr8 = address( Parm8); else Addr8 = atol( 0); endif
- Parm9 = arg( 11)''atoi( 0);  if (arg() >= 11) then Addr9 = address( Parm9); else Addr9 = atol( 0); endif
+ if (arg() >=  3) then  Parm1 = arg(  3)''atoi( 0); Addr1 = address( Parm1); else Addr1 = atol( 0); endif
+ if (arg() >=  4) then  Parm2 = arg(  4)''atoi( 0); Addr2 = address( Parm2); else Addr2 = atol( 0); endif
+ if (arg() >=  5) then  Parm3 = arg(  5)''atoi( 0); Addr3 = address( Parm3); else Addr3 = atol( 0); endif
+ if (arg() >=  6) then  Parm4 = arg(  6)''atoi( 0); Addr4 = address( Parm4); else Addr4 = atol( 0); endif
+ if (arg() >=  7) then  Parm5 = arg(  7)''atoi( 0); Addr5 = address( Parm5); else Addr5 = atol( 0); endif
+ if (arg() >=  8) then  Parm6 = arg(  8)''atoi( 0); Addr6 = address( Parm6); else Addr6 = atol( 0); endif
+ if (arg() >=  9) then  Parm7 = arg(  9)''atoi( 0); Addr7 = address( Parm7); else Addr7 = atol( 0); endif
+ if (arg() >= 10) then  Parm8 = arg( 10)''atoi( 0); Addr8 = address( Parm8); else Addr8 = atol( 0); endif
+ if (arg() >= 11) then  Parm9 = arg( 11)''atoi( 0); Addr9 = address( Parm9); else Addr9 = atol( 0); endif
  VarParmList = Addr1 || Addr2 || Addr3 || Addr4 || Addr5 || Addr6 || Addr7 || Addr8 || Addr9;
 
  /* call C routine */
