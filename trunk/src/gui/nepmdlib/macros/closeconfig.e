@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: closeconfig.e,v 1.1 2002-09-13 21:55:05 cla Exp $
+* $Id: closeconfig.e,v 1.2 2002-09-16 18:44:04 cla Exp $
 *
 * ===========================================================================
 *
@@ -52,8 +52,44 @@ If multiple operations are to be processed in a row,
 the repository before and after the access will save you from
 additional disk I/O.
 
+@@NepmdCloseConfig@TESTCASE
+You can test this function from the *EPM* commandline by
+executing:
+.sl
+- *NepmdCloseConfig*
+  - or
+- *CloseConfig*
+
+This is identical to the testcase of the [.IDPNL_EFUNC_NEPMDOPENCONFIG] API.
+
+
+Executing this command will a execute a testcase, which performs
+the access to the configuration repository of the [=TITLE]
+[.IDPNL_REGISTRY_EXPLICITOPEN explicitely opening and closing]
+the repository before / after accessing it.
+
+The testcase performs the following calls
+.ul compact
+- [.IDPNL_EFUNC_NEPMDOPENCONFIG],
+- [.IDPNL_EFUNC_NEPMDWRITECONFIGVALUE],
+- [.IDPNL_EFUNC_NEPMDQUERYCONFIGVALUE],
+- [.IDPNL_EFUNC_NEPMDDELETECONFIGVALUE] and
+- [.IDPNL_EFUNC_NEPMDCLOSECONFIG],
+.el
+and opens up a virtual file, writing the testcase result into it.
+
+If an error occurrs, the error message will be displayed
+result within the status area.
+
 @@
 */
+/* ------------------------------------------------------------- */
+/*   allow editor command to call function                       */
+/* ------------------------------------------------------------- */
+
+defc NepmdCloseConfig, CloseConfig =
+ 'NepmdOpenConfig'
+
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdCloseConfig                                   */
