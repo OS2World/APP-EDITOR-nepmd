@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: afterload.e,v 1.3 2004-02-29 17:12:02 aschn Exp $
+* $Id: afterload.e,v 1.4 2004-02-29 17:23:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -97,27 +97,41 @@ compile if NEPMD_RESTORE_RING
 compile endif
 
 ; --- Activate first loaded file of the current edit command ----------------
-   if (.filename = GetUnnamedFileName() & filestoloadmax = '') then
+   display -2  -- required, because firstloadedfid.filename activates
+               -- firstloadedfid temporarily, which causes the message
+               -- "Invalid fileid", if deleted from the ring.
+   if (.filename = GetUnnamedFileName() & filestoloadmax <= 1) then
       -- nop
       -- This happens, if a new empty file is loaded with 'xcom e'. Than no
       -- 'edit' cmd is called.
-      call NepmdPmPrintf( "AFTERLOAD: current file is .Unnamed, filestoloadmax = ''")
-   else
+compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
+      call NepmdPmPrintf( "AFTERLOAD: current file is ".filename", filestoloadmax = "filestoloadmax)
+compile endif
+   elseif firstloadedfid.filename = '' then
+      -- nop
+      -- This happens, if the file was already quit.
+compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
+      call NepmdPmPrintf( "AFTERLOAD: firstloadedfid = "firstloadedfid" was quit")
+compile endif
+   elseif firstloadedfid <> '' then
       -- Activate first loaded file from the current edit cmd.
       -- This works only here properly and only when action is posted.
       -- Disabled activatefile in edit.
-      if firstloadedfid <> '' then
-         call NepmdPmPrintf( 'AFTERLOAD: activating firstloadedfileid = 'firstloadedfid.filename)
-         activatefile firstloadedfid
-         --'HookAdd afterloadonce postme activatefile' firstloadedfid
-      endif
+compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
+      call NepmdPmPrintf( 'AFTERLOAD: activating firstloadedfile = 'firstloadedfid.filename', fid = 'firstloadedfid)
+compile endif
+      activatefile firstloadedfid
+      --'HookAdd afterloadonce postme activatefile' firstloadedfid
    endif
+   display 2
 
 ; --- Process hook ----------------------------------------------------------
    if isadefc('HookExecute') then
       'HookExecute afterload'          -- no need for 'postme' here?
       'HookExecuteOnce afterloadonce'  -- no need for 'postme' here?
+compile if NEPMD_DEBUG_AFTERLOAD and NEPMD_DEBUG
        call NepmdPmPrintf( 'AFTERLOAD: HookExecute afterload, afterloadonce')
+compile endif
    endif
 
 ; --- Change EPM pointer from standard arrow to text pointer ----------------
