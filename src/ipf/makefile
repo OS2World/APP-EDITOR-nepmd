@@ -9,7 +9,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.5 2002-08-27 12:19:53 cla Exp $
+# $Id: makefile,v 1.6 2002-08-29 14:53:25 cla Exp $
 #
 # ===========================================================================
 #
@@ -34,6 +34,8 @@ BASEDIR=..\..
 #           to be available in the bin subdirectory !
 
 FILESTOCLEAN= \
+ $(CMPDIR)\functions.txt \
+ $(CMPDIR)\functions.log \
  $(CMPDIR)\makefile.ipf \
  $(CMPDIR)\nepmd.ipf \
  $(CMPINFDIR)\nepmd.inf
