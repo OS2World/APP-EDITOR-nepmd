@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.24 2002-09-04 22:40:45 cla Exp $
+* $Id: nepmdlib.e,v 1.25 2002-09-05 13:31:53 cla Exp $
 *
 * ===========================================================================
 *
@@ -106,7 +106,6 @@ include 'direxists.e'
 include 'errormsgbox.e'
 include 'filedelete.e'
 include 'fileexists.e'
-include 'getinstvalue.e'
 include 'getnextclose.e'
 include 'getnextdir.e'
 include 'getnextfile.e'
@@ -114,11 +113,12 @@ include 'gettextmessage.e'
 include 'info.e'
 include 'libversion.e'
 include 'queryfullname.e'
+include 'queryinstvalue.e'
 include 'querypathinfo.e'
 include 'queryprocessinfo.e'
+include 'querysysinfo.e'
 include 'readstringea.e'
 include 'scanenv.e'
 include 'searchpath.e'
 include 'writestringea.e'
-include 'querysysinfo.e'
 

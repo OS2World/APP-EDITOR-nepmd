@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.h,v 1.1 2002-08-22 15:02:29 cla Exp $
+* $Id: instval.h,v 1.2 2002-09-05 13:31:52 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,7 @@
 #ifndef INSTVAL_H
 #define INSTVAL_H
 
-APIRET GetInstValue( PSZ pszFileTag, PSZ pszBuffer, ULONG ulBuflen);
+APIRET QueryInstValue( PSZ pszFileTag, PSZ pszBuffer, ULONG ulBuflen);
 
 #endif // INSTVAL_H
 
