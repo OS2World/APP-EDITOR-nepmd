@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.6 2004-06-04 00:46:30 aschn Exp $
+* $Id: linkcmds.e,v 1.7 2004-07-02 09:07:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,10 +18,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-/*
-Todo:
-- Replace the internal proc unlink with this defc.
-*/
 
 compile if not defined(SMALL)  -- If being externally compiled...
 include 'STDCONST.E'
@@ -51,20 +47,29 @@ compile endif
 ; A simple front end to the link statement to allow command-line invocation.
 defc link
    waslinkedrc = linked(arg(1))
-   display -2  -- turn non-critical messages off, we give our own message
+   display -2  -- Turn non-critical messages off, we give our own message.
    link arg(1)
+   linkrc = rc
    display 2
-   if rc >= 0 then
+   if linkrc >= 0 then
       if waslinkedrc > 0 then
-         sayerror 'Module "'arg(1)'" already linked as module # 'waslinkedrc'.'
+         sayerror 'Module "'arg(1)'" already linked as module #'waslinkedrc'.'
       else
          --sayerror LINK_COMPLETED__MSG RC
-         sayerror LINK_COMPLETED__MSG rc' "'arg(1)'"'
+         sayerror LINK_COMPLETED__MSG''linkrc' "'arg(1)'"'
       endif
-   elseif rc = -307 then
+   elseif linkrc = -307 then
       sayerror 'Module "'arg(1)'" not linked, file not found'
-   elseif rc < 0 then
-      sayerror 'Module "'arg(1)'" not linked, rc = 'rc
+   elseif linkrc < 0 then
+      -- Sometimes is linkrc = empty, therefore check it again
+      linkedrc = linked(arg(1))
+      if linkedrc < 0 then
+         sayerror 'Module "'arg(1)'" not linked, rc = 'linkrc', linkedrc = 'linkedrc
+      elseif waslinkedrc < 0 then
+         sayerror LINK_COMPLETED__MSG''linkedrc' "'arg(1)'"'
+      else
+         sayerror 'Module "'arg(1)'": linkedrc = 'linkedrc
+      endif
    endif
 
 ; ---------------------------------------------------------------------------
@@ -281,6 +286,209 @@ defproc ec_position_on_error(tempfile)
    sayerror msg
 
 ; ---------------------------------------------------------------------------
+; Check for a modified file in ring. If not, compile EPM.E, position cursor
+; on errorline or restart on success. Quite fast!
+; Will only restart topmost EPM window.
+; Because of defc Etpm is used, EPM.EX is created in myepm\ex.
+; Because of defc Restart is used, current directory will be kept.
+defc RecompileEpm
+   'RingCheckModify'
+   'Etpm epm'
+   if rc = 0 then
+      'Restart'
+   endif
+
+; ---------------------------------------------------------------------------
+; Check for a modified file in ring. If not, restart current EPM window.
+; Keep current directory.
+defc Restart
+   'RingCheckModify'
+   'SaveRing'
+   "postme Open 'RestoreRing'"
+   'postme Close'
+
+; ---------------------------------------------------------------------------
+; When a non-temporary file (except .Untitled) in ring is modified, then
+; -  make this file topmost
+; -  give a message
+; -  set rc = 1 (but not required, because stop is used)
+; -  stop processing of calling command or procedure.
+; Otherwise set rc = 0.
+defc RingCheckModify
+   rc = 0
+   getfileid fid
+   startfid = fid
+   do i = 1 to filesinring()  -- omit hidden files
+      if (substr( .filename, 1, 1) = '.') & (.filename <> GetUnnamedFilename()) then
+          -- ignore
+      else
+        if .modify then
+           rc = 1
+           -- let this file on top
+           activatefile fid
+           sayerror 'Current file is modified. Save it or discard changes first.'
+           stop  -- Stops further processing of current and calling command or
+                 -- procedure. Advantage: no check for rc required.
+        endif
+      endif
+      nextfile
+      getfileid fid
+      if fid = startfid then
+         leave
+      endif
+   enddo
+
+; ---------------------------------------------------------------------------
+; Recompile all files, whose names found in .lst files in EPMEXPATH.
+defc RecompileAll
+
+   'RingCheckModify'
+
+   Path = NepmdScanEnv('EPMEXPATH')
+   parse value Path with 'ERROR'rc
+   if (rc > '') then
+      return
+   endif
+
+   ListFiles = ''
+   rest = Path
+   do while rest <> ''
+      parse value rest with next';'rest
+      -- Search in every piece of Path for .lst files
+      FileMask = next'\*.lst'
+      Handle = 0
+      do forever
+         ListFile = NepmdGetNextFile( FileMask, address(Handle))
+         parse value ListFile with 'ERROR:'rc
+         if (rc > '') then
+            leave
+         -- Append if not already in list
+         elseif pos( upcase(ListFile)';', upcase(ListFiles)';') = 0 then
+            ListFiles = ListFiles''ListFile';'
+         endif
+      enddo
+   enddo
+
+   ExFiles = ''
+   rest = ListFiles
+   do while rest <> ''
+      parse value rest with ListFile';'rest
+      -- Load ListFile
+      'xcom e /d' ListFile
+      if rc <> 0 then
+         iterate
+      endif
+      getfileid fid
+      .visible = 0
+      -- Read lines
+      do l = 1 to .last
+         Line = textline(l)
+         StrippedLine = strip(Line)
+
+         -- Ignore comments, lines starting with ';' at column 1 are comments
+         if substr( Line, 1, 1) = ';' then
+            iterate
+         -- Ignore empty lines
+         elseif StrippedLine = '' then
+            iterate
+         endif
+
+         ExFile = StrippedLine
+         -- Strip extension
+         if rightstr( upcase(ExFile), 3) = '.EX' then
+            ExFile = substr( ExFile, 1, length(ExFile) - 3)
+         endif
+         -- Ignore epm (this time)
+         if upcase(ExFile) = 'EPM' then
+            -- nop
+         -- Append ExFile to list
+         elseif pos( upcase(ExFile)';', upcase(ExFiles)';') = 0 then
+            ExFiles = ExFiles''ExFile';'
+         endif
+      enddo  -- l
+      -- Quit ListFile
+      activatefile ListFile
+      .modify = 0
+      'xcom q'
+   enddo
+
+   rest = ExFiles
+   do while rest <> ''
+      parse value rest with ExFile';'rest
+      -- Compile ExFile and position cursor on errorline
+      'etpm' ExFile
+      -- Return if error
+      if rc <> 0 then
+         return
+      endif
+   enddo
+
+   -- Compile epm and restart (if no error)
+   'RecompileEpm'
+
+; ---------------------------------------------------------------------------
+; Compare loaded EPM.EX with Netlabs' EPM.EX. Give a Message, if Nelabs'
+; EPM.EX is newer. Make that suppressable with an ini key, to reset by the
+; next NEPMD installation.
+defc CheckEpmExTimeStamp
+   universal nepmd_hini
+
+   App = 'RegDefaults'
+   Key = '\NEPMD\System\CheckEpmEx'
+
+   Enabled = QueryProfile( nepmd_hini, App, Key)
+   if Enabled = 0 then
+      return
+   endif
+
+   EpmEx = wheredefc('versioncheck')
+   EpmEx = NepmdQueryFullName(EpmEx)
+   TEpmEx = NepmdQueryPathInfo( EpmEx, 'MTIME')
+
+   NepmdRoot = NepmdScanEnv( 'NEPMD_ROOTDIR')
+   NEpmEx = NepmdRoot'\netlabs\ex\epm.ex'
+   TNEpmEx = NepmdQueryPathInfo( NEpmEx, 'MTIME')
+
+   if TEpmEx >= TNEpmEx then
+      --sayerror 'OK! Loaded EPM.EX: 'TEpmEx', Netlabs EPM.EX: 'TNEpmEx
+      return
+   else
+      --sayerror 'Old! Loaded EPM.EX: 'TEpmEx', Netlabs EPM.EX: 'TNEpmEx
+   endif
+
+   Style = MB_YESNO+MB_CUAWARNING+MB_DEFBUTTON1+MB_MOVEABLE
+
+   --Bul = \16
+   Bul = \7
+   ret = winmessagebox( 'Old macro file',
+                        EpmEx\10                                 ||
+                        TEpmEx\10\10                             ||
+                        'is an old file from before the last'    ||
+                        ' NEPMD installation.'\10\10             ||
+                        'In order to use the new EPM:'\10        ||
+                        '       'Bul\9'Backup your old files in the'\10           ||
+                                    \9'NEPMD\MYEPM tree, if you have'\10          ||
+                                    \9'added anything.'\10                        ||
+                        '       'Bul\9'Delete all files in NEPMD\MYEPM\EX'\10     ||
+                                    \9'and NEPMD\MYEPM\MACROS.'\10                ||
+                        '       'Bul\9'Restart EPM.'\10\10                        ||
+                        'Only when you have added own macros:'\10                 ||
+                        'After that, merge your own additions with the new'       ||
+                        ' versions of the macros in NEPMD\NETLABS\MACROS.'        ||
+                        ' (They can be let in your MYEPM\MACROS dir, if there''s' ||
+                        ' no name clash.) Then Recompile your macros.'\10\10      ||
+                        'Should this be checked on the next start again?'\10,
+                        Style)
+   if ret = 6 then  -- Yes
+      -- nop
+   elseif ret = 7 then  -- No
+      -- Change (this time only) the default setting to reset it
+      -- automatically by the next install.
+      call SetProfile( nepmd_hini, App, Key, 0)
+   endif
+   return
+
+; ---------------------------------------------------------------------------
 defc StartRecompile
    NepmdRootDir = NepmdScanEnv('NEPMD_ROOTDIR')
    parse value NepmdRootDir with 'ERROR:'rc
@@ -301,7 +509,6 @@ defc StartRecompile
       sayerror 'Environment var NEPMD_ROOTDIR not set'
    endif
    return
-
 
 ; ---------------------------------------------------------------------------
 ;  New command to query whether a module is linked.  Of course if
