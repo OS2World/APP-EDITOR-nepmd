@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflow.e,v 1.4 2002-09-06 13:46:05 cla Exp $
+* $Id: reflow.e,v 1.5 2004-06-03 23:25:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,7 +18,7 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-;Source: http://groups.google.com/groups?q=reflow+margolis&hl=en&rnum=3&selm=5ebbc3%24g98%241%40news-s01.ca.us.ibm.net
+;Source: http://groups.google.com/groups?selm=5ebbc3%24g98%241%40news-s01.ca.us.ibm.net
 
 include 'stdconst.e'
 include 'english.e'
@@ -87,6 +87,8 @@ const
 
 defc reflow =
    universal last_reflow_width
+   saved_modify = .modify
+   saved_autosave = .autosave
    par_width = arg(1)
    units_width = ''
    if par_width = '=' then
@@ -116,39 +118,39 @@ defc reflow =
                        gethwndc(EPMINFO_EDITORVSCROLL)  ||
                        address(swpScrollbar))
 
-      par_width = ltoa(substr(swpFrame,9,4),10) - ltoa(substr(swpScrollbar,9,4),10);
+      par_width = ltoa( substr( swpFrame, 9, 4), 10) - ltoa( substr( swpScrollbar, 9, 4), 10);
 ;     sayerror 'width =' par_width 'pels'
    elseif isnum(par_width) then
       -- nop
    else
       units_width = par_width'='
-      y = verify(par_width, '0123456789. ')
-      x = leftstr(par_width, y-1)
+      y = verify( par_width, '0123456789. ')
+      x = leftstr( par_width, y - 1)
       if not isnum(x) then
          sayerror -263 -- 'Invalid argument'
          return
       endif
-      y = upcase(substr(par_width, y))
-      out_array = copies(\0, 4)  -- reserve space for 1 long
+      y = upcase(substr( par_width, y))
+      out_array = copies( \0, 4)  -- reserve space for 1 long
       call dynalink32( 'PMGPI',
                        '#606', -- Dev32QueryCaps
                        atol(dynalink32( 'PMWIN',
                                         '#835' /*Win32QueryWindowDC*/,
                                         gethwndc(EPMINFO_EDITCLIENT),
-                                        2) ) ||
-                       atol(8)               ||  -- start = 8 (horizontal resolution)
-                       atol(1)               ||  -- count = 1
-                       address(out_array) )
-      h = ltoa(out_array, 10)  -- Horizontal res. in pels / meter
-      if abbrev('INCHES', y, 1) then
+                                        2)) ||
+                       atol(8)              ||  -- start = 8 (horizontal resolution)
+                       atol(1)              ||  -- count = 1
+                       address(out_array))
+      h = ltoa( out_array, 10)  -- Horizontal res. in pels / meter
+      if abbrev( 'INCHES', y, 1) then
          par_width = x * h * .0254
-      elseif abbrev('FOOT', y, 1) | abbrev('FEET', y, 1) then
+      elseif abbrev( 'FOOT', y, 1) | abbrev('FEET', y, 1) then
          par_width = x * h * .3048
-      elseif abbrev('METERS', y, 1) then
+      elseif abbrev( 'METERS', y, 1) then
          par_width = x * h
-      elseif y='CM' | abbrev('CENTIMETERS', y, 1) then
+      elseif y = 'CM' | abbrev( 'CENTIMETERS', y, 1) then
          par_width = x * h / 100
-      elseif y='MM' | abbrev('MILLIMETERS', y, 2) then
+      elseif y = 'MM' | abbrev( 'MILLIMETERS', y, 2) then
          par_width = x * h / 1000
       else
          sayerror 'Unrecognized unit:  'y
@@ -165,10 +167,11 @@ defc reflow =
       sayerror 'Reflow:  'units_width || par_width 'pels is too wide!  Max is' x 'pels = column' MAXMARGIN
       return
    endif
-   if arg(1)<>'' then  -- If not using windowwidth, save width for next time.
+   if arg(1) <> '' then  -- If not using windowwidth, save width for next time.
       last_reflow_width = save_width
    endif
    display -1
+   undoaction 1, junk                -- Create a new state
    start_col = .col
    do forever
       x = .line; y = 1
@@ -181,11 +184,11 @@ defc reflow =
       map_point map_DocToLCO, x, y              -- Get column corresponding to pel pos.
 ;sayerror 'line' .line':  After map 2, line='x'; col='y
       getline line
-      if substr(line, y)='' then  -- Nothing past the given column.
-         if .line=.last then
+      if substr( line, y) = '' then  -- Nothing past the given column.
+         if .line = .last then
             next_blank = 1
          else
-            next_blank = textline(.line+1)=''
+            next_blank = textline( .line + 1) = ''
          endif
          if next_blank then
             display 1
@@ -199,14 +202,14 @@ defc reflow =
          if x = .last then  --  rc=-276 == Line too long to join, or
                     -- Must have hit MAXMARGIN, and JOIN split the line for us.
             '+1'
-            if leftstr(textline(.line),1)=' ' then -- joinlines() added a blank
+            if leftstr( textline(.line), 1) = ' ' then -- joinlines() added a blank
                getsearch savesearch
                .col = 1
                'xcom c/ //'  -- Change first blank to null
                setsearch savesearch
             endif
             getline line
-            x = wordindex(line, 2)
+            x = wordindex( line, 2)
             if x then  -- More than one word
                .col = x
                split
@@ -216,7 +219,7 @@ defc reflow =
          iterate
       else
          .col = y
-         if substr(line, y, 1) <> ' ' then
+         if substr( line, y, 1) <> ' ' then
             backtab_word
             if .col = 1 then .col = y; endif
          endif
@@ -224,6 +227,8 @@ defc reflow =
          '+1'
       endif
    enddo
+   .modify = saved_modify + 1
+   .autosave = saved_autosave
    .margins = oldmargins
    .col = start_col
 
