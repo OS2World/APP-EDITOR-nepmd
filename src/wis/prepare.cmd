@@ -15,7 +15,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.13 2002-06-03 18:12:04 cla Exp $
+: $Id: prepare.cmd,v 1.1 2002-06-12 09:08:04 cla Exp $
 :
 : ===========================================================================
 :
