@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deletestringea.e,v 1.7 2002-08-28 21:16:25 cla Exp $
+* $Id: deletestringea.e,v 1.8 2002-09-06 10:01:13 cla Exp $
 *
 * ===========================================================================
 *
@@ -77,14 +77,14 @@ defproc NepmdDeleteStringEa( Filename, EaName ) =
  EaValue    = atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdWriteStringEa",
                   address( Filename)            ||
                   address( EaName)              ||
                   address( EaValue));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return rc;
 

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: searchpath.e,v 1.1 2002-09-03 10:26:30 cla Exp $
+* $Id: searchpath.e,v 1.2 2002-09-06 10:01:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -101,7 +101,7 @@ defproc NepmdSearchPath( Filename) =
  EnvVarName = arg( 2)''atoi( 0);  /* this parm is optional */
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdSearchPath",
                   address( Filename)            ||
@@ -109,7 +109,7 @@ defproc NepmdSearchPath( Filename) =
                   address( Fullname)            ||
                   atol( Buflen));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( FullName);
 

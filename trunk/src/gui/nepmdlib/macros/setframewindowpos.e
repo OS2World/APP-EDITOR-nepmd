@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setframewindowpos.e,v 1.1 2002-09-05 16:40:17 cla Exp $
+* $Id: setframewindowpos.e,v 1.2 2002-09-06 10:01:17 cla Exp $
 *
 * ===========================================================================
 *
@@ -126,7 +126,7 @@ defproc NepmdSetFrameWindowPos( x, y, cx, cy) =
  endif
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdSetFrameWindowPos",
                   gethwndc( EPMINFO_EDITFRAME)  ||
@@ -136,7 +136,7 @@ defproc NepmdSetFrameWindowPos( x, y, cx, cy) =
                   atol( cy)                     ||
                   atol( flags));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return rc;
 

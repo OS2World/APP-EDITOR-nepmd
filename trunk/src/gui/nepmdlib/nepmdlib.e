@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.27 2002-09-05 16:41:46 cla Exp $
+* $Id: nepmdlib.e,v 1.28 2002-09-06 10:01:13 cla Exp $
 *
 * ===========================================================================
 *
@@ -51,7 +51,7 @@ const
 /*   generic routine for library file and string handling        */
 /* ------------------------------------------------------------- */
 
-defproc getlibfile =
+defproc helperNepmdGetlibfile =
 
 universal app_hini;
 
@@ -70,7 +70,7 @@ universal app_hini;
  return LibFile;
 
 
-defproc checkliberror (LibFile, rc) =
+defproc helperNepmdCheckliberror (LibFile, rc) =
 
  /* complain if library not available */
  if (rc > 2147483647) then

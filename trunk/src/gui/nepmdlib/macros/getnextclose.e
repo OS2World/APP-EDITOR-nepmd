@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextclose.e,v 1.3 2002-08-28 21:16:25 cla Exp $
+* $Id: getnextclose.e,v 1.4 2002-09-06 10:01:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -87,12 +87,12 @@ defc NepmdGetNextClose, GetNextClose =
 defproc NepmdGetNextClose( Handle) =
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdGetNextClose",
                   atol( Handle));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return rc;
 

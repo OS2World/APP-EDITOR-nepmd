@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libversion.e,v 1.5 2002-08-27 12:21:26 cla Exp $
+* $Id: libversion.e,v 1.6 2002-09-06 10:01:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -68,13 +68,13 @@ defproc NepmdLibVersion() =
  Token    = Token''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdLibVersion",
                   address( LibVersion) ||
                   atol( Buflen));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( LibVersion);
 

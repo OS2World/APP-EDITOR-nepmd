@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: direxists.e,v 1.3 2002-09-02 19:48:23 cla Exp $
+* $Id: direxists.e,v 1.4 2002-09-06 10:01:13 cla Exp $
 *
 * ===========================================================================
 *
@@ -78,12 +78,12 @@ defproc NepmdDirExists( Dirname) =
  Dirname   = Dirname''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  fResult = dynalink32( LibFile,
                        "NepmdDirExists",
                         address( Dirname));
 
- checkliberror( LibFile, fResult);
+ helperNepmdCheckliberror( LibFile, fResult);
 
  return fResult;
 

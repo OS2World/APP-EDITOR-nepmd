@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fileexists.e,v 1.4 2002-09-02 19:48:23 cla Exp $
+* $Id: fileexists.e,v 1.5 2002-09-06 10:01:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -84,12 +84,12 @@ defproc NepmdFileExists( Filename) =
  Filename   = Filename''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  fResult = dynalink32( LibFile,
                        "NepmdFileExists",
                         address( Filename));
 
- checkliberror( LibFile, fResult);
+ helperNepmdCheckliberror( LibFile, fResult);
 
  return fResult;
 

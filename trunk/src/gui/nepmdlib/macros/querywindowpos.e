@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querywindowpos.e,v 1.1 2002-09-05 16:08:55 cla Exp $
+* $Id: querywindowpos.e,v 1.2 2002-09-06 10:01:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -101,14 +101,14 @@ defproc NepmdQueryWindowPos( WindowId) =
  WindowPos = copies( atoi( 0), BufLen);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdQueryWindowPos",
                   gethwndc( WindowId)         ||
                   address( WindowPos)         ||
                   atol( Buflen));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( WindowPos);
 

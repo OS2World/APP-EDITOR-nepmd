@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.10 2002-09-05 22:07:25 cla Exp $
+* $Id: getnextfile.e,v 1.11 2002-09-06 10:01:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -143,7 +143,7 @@ defproc NepmdGetNextFile( FileMask, PtrToHandle) =
  FileMask   = FileMask''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdGetNextFile",
                   address( Filemask)            ||
@@ -151,7 +151,7 @@ defproc NepmdGetNextFile( FileMask, PtrToHandle) =
                   address( Filename)            ||
                   atol( Buflen));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( FileName);
 

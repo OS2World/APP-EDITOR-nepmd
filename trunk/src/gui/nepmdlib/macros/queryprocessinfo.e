@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryprocessinfo.e,v 1.2 2002-09-05 13:23:19 cla Exp $
+* $Id: queryprocessinfo.e,v 1.3 2002-09-06 10:01:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -96,14 +96,14 @@ defproc NepmdQueryProcessInfo( ValueTag) =
  ValueTag  = ValueTag''atoi( 0);
 
  /* call C routine */
- LibFile = getlibfile();
+ LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdQueryProcessInfo",
                   address( ValueTag)         ||
                   address( InfoValue)        ||
                   atol( Buflen));
 
- checkliberror( LibFile, rc);
+ helperNepmdCheckliberror( LibFile, rc);
 
  return makerexxstring( InfoValue);
 
