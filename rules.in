@@ -28,7 +28,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: rules.in,v 1.1 2002-06-03 18:06:53 cla Exp $
+# $Id: rules.in,v 1.2 2002-06-03 22:18:39 cla Exp $
 #
 # ===========================================================================
 #
@@ -122,7 +122,7 @@ CMPDIR=$(BASEDIR)\$(CMPDIR_NAME)
 
 # --- cleanup list for directories created here for main makefile
 #     This macro should be used in the main makefile of a project only
-#     in order to cleanup temporary directories. Extend this macro in 
+#     in order to cleanup temporary directories. Extend this macro in
 #     the file project.in when creating additional directories, that should
 #     also be cleaned up
 DIRSTOCLEAN=$(BINDIR) $(CMPDIR)
@@ -137,15 +137,15 @@ L_FLAGS=/A:4 /E /NOI /NOE /NOL /NOLOGO /MAP
 
 !ifdef CPPLOCAL
 # - VAC3 -
-CODELIB=ilib
-IMPLIB=ilib
+CLIB=ilib
+ILIB=ilib
 LL=ilink
 C_FLAGS=$(C_FLAGS) -Wcnd-
 L_FLAGS=/NOFREE $(L_FLAGS)
 !else
 # - IBM C/Set2 -
-CODELIB=lib
-IMPLIB=implib
+CLIB=lib
+ILIB=implib
 LL=link386
 L_FLAGS=/BATCH $(L_FLAGS)
 !endif
@@ -187,7 +187,7 @@ PMPRINTF=
 # --- implicit rules
 
 
-# - source roules
+# - source to object rules
 
 !ifdef SRCDIR
 
@@ -206,7 +206,7 @@ PMPRINTF=
    $(RC) -r $(@B).rc $*.res
 !endif
 
-# - object rules
+# - object to executable rules
 
 {$(BINDIR)}.obj{$(BINDIR)}$(DLLEXT):
    echo @<<link.tmp
@@ -250,19 +250,19 @@ $(DEF)
    lxlite $*.exe
 !endif
 
-# - library rules
+# - library creatin and listing rules
 
 !ifdef IMPLIB
-{$(CMPDIR)}.dll{$(CMPDIR)}.lib:
-    $(IMPLIB) /NOLOGO $*.lib $*.dll
+{$(BINDIR)}.dll{$(BINDIR)}.lib:
+    $(ILIB) /NOLOGO $*.lib $*.dll
 !else
-{$(CMPDIR)}.obj{$(CMPDIR)}.lib:
-    !$(CODELIB) $@ -+$?;
+{$(BINDIR)}.obj{$(BINDIR)}.lib:
+    !$(CLIB) /NOLOGO $@ -+$?;
     @if exist $*.bak del $*.bak
 !endif
 
 {$(BINDIR)}.lib{$(BINDIR)}.lst:
-   $(CODELIB) /NOLOGO $*,$*.lst;
+   $(CLIB) /NOLOGO $*,$*.lst;
 
 # --- if file project.in exists, call this to create
 #     additional project specific directories and extend macros etc.
