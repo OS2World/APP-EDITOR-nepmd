@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: startapache.cmd,v 1.2 2002-07-17 16:03:06 cla Exp $
+* $Id: startapache.cmd,v 1.3 2002-09-09 20:58:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -33,74 +33,142 @@
  env = 'OS2ENVIRONMENT';
  rcx = SETLOCAL();
 
- Stem = 'NEPMD-Status';
- HttpPort       = '55555';
- HttpDocRoot    = DIRECTORY();
- HttpServerName = 'localhost';
+ CALL RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+ CALL SysLoadFuncs
 
- ApacheDir      = VALUE( 'APACHE_ROOT',,env);
+ /* read anvironment */
+ 'CALL statusenv'
+ Apache._Stem       = VALUE( 'APACHE_STEM',,env);
+ Apache._Dir        = VALUE( 'APACHE_ROOT',,env);
+ Apache._Port       = VALUE( 'APACHE_PORT',,env);
+ Apache._DocRoot    = VALUE( 'APACHE_DOCROOT',,env);
+ Apache._Servername = VALUE( 'APACHE_SERVERNAME',,env);
 
- TmpDir         = VALUE( 'TMP',,env);
- ConfigSource   = 'conf\httpd.conf-dist-os2';
- ConfigTmp      = TmpDir'\'Stem'.conf';
- ConfigTitle    = 'Apache' Stem;
+ /* defaults */
+ TmpDir          = VALUE( 'TMP',,env);
+ ConfigSource    = 'conf\httpd.conf-dist-os2';
+ ConfigTmp       = TmpDir'\'Apache._Stem'.conf';
+ ConfigTitle     = 'Apache' Apache._Stem;
+
+ Apache._Dir     = unixpath( Apache._Dir);
+ Apache._DocRoot = unixpath( GetDirName( Apache._DocRoot));
+ UsedConfig      = unixpath( ConfigTmp);
+
+ SedExec         = SysSearchPath( 'PATH', 'SED.EXE');
+ ApacheExec      = Apache._Dir'\httpd.exe';
+ ConfigSource    = Apache._Dir'\'ConfigSource;
 
  DO UNTIL (1)
 
-    ConfigSource = ApacheDir'\'ConfigSource;
-
-    ServerRoot = unixpath( ApacheDir);
-    DocRoot = unixpath( HttpDocRoot);
-
-    /* setup replacement rules */
-    Strings.1._old = '@@ServerRoot@@/htdocs'
-    Strings.1._new = DocRoot;
-
-    Strings.2._old = '@@ServerRoot@@'
-    Strings.2._new = ServerRoot;
-
-    Strings.3._old = 'Port 80';
-    Strings.3._new = 'Port' HttpPort;
-
-    Strings.4._old = '#ServerName new.host.name';
-    Strings.4._new = 'ServerName 'HttpServerName;
-
-    Strings.5._old = '#AddType application/x-httpd-php .php';
-    Strings.5._new = 'AddType application/x-httpd-php .php .php3 .php4';
-
-    Strings.6._old = '#AddType application/x-httpd-php-source .phps';
-    Strings.6._new = 'AddType application/x-httpd-php-source .phps';
-
-    Strings.7._old = 'Options Indexes FollowSymLinks MultiViews';
-    Strings.7._new = 'Options -Indexes FollowSymLinks MultiViews';
-
-    Strings.8._old = 'AllowOverride None';
-    Strings.8._new = 'AllowOverride All';
-
-    Strings.0 = 8;
-
-    Rules = '';
-    DO i = 1 TO Strings.0
-       Rules = Rules  '-e "s+'Strings.i._old'+'Strings.i._new'+g"';
+    /* check for required files */
+    MissingFiles = '';
+    IF (SedExec = '') THEN
+       MissingFiles = MissingFiles 'SED.EXE';
+    MissingFiles = MissingFiles CheckMissingFile( ConfigSource);
+    MissingFiles = MissingFiles CheckMissingFile( ApacheExec);
+    IF (MissingFiles \= '') THEN
+    DO
+       SAY;
+       SAY 'error: the apache configuration cannot be determined.';
+       SAY 'The following files are missing:';
+       SAY '  ' MissingFiles;
+       SAY;
+       rc = 2;
+       LEAVE;
     END;
 
-    /* create config file from source file */
-    echo 'LoadModule php4_module libexec/libphp4.dll' '>'  ConfigTmp;
-    'sed' Rules '<' ConfigSource    '>>' ConfigTmp;
-    UsedConfig = unixpath( ConfigTmp);
+    /* prepare configuration */
+    rc = SetupConfig( ConfigSource, ConfigTmp);
+    IF (rc \= 0) THEN
+       LEAVE;
 
-    'rem call gfc' ConfigSource ConfigTmp
+    /* debug with gfc */
+    /* 'call gfc' ConfigSource ConfigTmp; */
 
-
-    rcx = DIRECTORY( ApacheDir);
-    'start /MIN /C "'ConfigTitle '-' HttpPort '" httpd -d . -f' UsedConfig;
+    /* startup server */
+    rcx = DIRECTORY( Apache._Dir);
+    'start /MIN /C "'ConfigTitle '-' Apache._Port '" httpd -d . -f' UsedConfig;
 
  END;
 
  EXIT( rc);
 
+/* -------------------------------------------------------------------------- */
+GetDirName: PROCEDURE
+ PARSE ARG Name
+
+ /* save environment */
+ CurrentDrive = FILESPEC( 'D', DIRECTORY());
+ CurrentDir   = DIRECTORY( FILESPEC( 'D', Name));
+
+ /* try directory */
+ DirFound  = DIRECTORY( Name);
+
+ /* reset environment */
+ rc = DIRECTORY( CurrentDir);
+ rc = DIRECTORY( CurrentDrive);
+
+ RETURN( DirFound);
+     
+/* ------------------------------------------------------------------------- */
+FileExist: PROCEDURE
+ PARSE ARG FileName
+
+ RETURN(STREAM(Filename, 'C', 'QUERY EXISTS') > '');
+
 /* =========================================================================== */
 unixpath: PROCEDURE
  PARSE ARG Path;
  RETURN( TRANSLATE( Path, '/', '\'));
+
+/* ========================================================================= */
+CheckMissingFile: PROCEDURE
+ PARSE ARG Filename;
+
+ IF (\FileExist( Filename)) THEN
+    RETURN( FILESPEC( 'N', Filename));
+ ELSE
+    RETURN('');
+
+/* ========================================================================= */
+SetupConfig: PROCEDURE EXPOSE Apache.;
+ PARSE ARG SourceFile, TargetFile;
+
+ /* setup replacement rules */
+ Strings.1._old = '@@ServerRoot@@/htdocs'
+ Strings.1._new = Apache._DocRoot;
+
+ Strings.2._old = '@@ServerRoot@@'
+ Strings.2._new = Apache._Dir;
+
+ Strings.3._old = 'Port 80';
+ Strings.3._new = 'Port' Apache._Port;
+
+ Strings.4._old = '#ServerName new.host.name';
+ Strings.4._new = 'ServerName 'Apache._Servername;
+
+ Strings.5._old = '#AddType application/x-httpd-php .php';
+ Strings.5._new = 'AddType application/x-httpd-php .php .php3 .php4';
+
+ Strings.6._old = '#AddType application/x-httpd-php-source .phps';
+ Strings.6._new = 'AddType application/x-httpd-php-source .phps';
+
+ Strings.7._old = 'Options Indexes FollowSymLinks MultiViews';
+ Strings.7._new = 'Options -Indexes FollowSymLinks MultiViews';
+
+ Strings.8._old = 'AllowOverride None';
+ Strings.8._new = 'AllowOverride All';
+
+ Strings.0 = 8;
+
+ Rules = '';
+ DO i = 1 TO Strings.0
+    Rules = Rules  '-e "s+'Strings.i._old'+'Strings.i._new'+g"';
+ END;
+
+ /* create config file from source file */
+ echo 'LoadModule php4_module libexec/libphp4.dll' '>'  TargetFile;
+ 'sed' Rules '<' SourceFile '>>' TargetFile;
+
+ RETURN( rc);
 
