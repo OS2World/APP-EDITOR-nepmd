@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: nepmd.lst,v 1.8 2002-08-10 15:22:36 cla Exp $
+: $Id: nepmd.lst,v 1.9 2002-08-20 13:51:03 cla Exp $
 :
 : ===========================================================================
 :
@@ -35,8 +35,9 @@ NEPMD_EPMCALLCFG 1 %CMPDIR_NAME%\base            netlabs\bin\*
 NEPMD_INSTALL    1 %CMPDIR_NAME%\base            netlabs\install\*
 NEPMD_BOOK       1 %CMPDIR_NAME%\base            netlabs\book\*
 NEPMD_EX         1 %CMPDIR_NAME%\base            netlabs\ex\*
+NEPMD_DLL        1 %BINDIR_NAME%\base            netlabs\dll\*
 
-: --- package 2: macros                          
+: --- package 2: macros
 
 MACROS           2 %UNZIPPEDDIR%\epmmac          epmbbs\*
 MACROS2          2 %UNZIPPEDDIR%\epmmac2         epmbbs\*
@@ -47,14 +48,14 @@ VMEXEC           2 %UNZIPPEDDIR%\lampdq          epmbbs\*
 NEPMD_RECOMP     2 %BINDIR_NAME%\recomp          netlabs\bin\*
 NEPMD_MACROS     2 %CMPDIR_NAME%\base            netlabs\macros\*
 
-: --- package 3: Programming Samples             
+: --- package 3: Programming Samples
 
 DDESAMPLE        3 %UNZIPPEDDIR%\epmdde          epmbbs\*
 REXXSAMPLE       3 %UNZIPPEDDIR%\epmrex          epmbbs\*
 CSAMPLE          3 %UNZIPPEDDIR%\epmcsamp        epmbbs\*
 ATTR             3 %UNZIPPEDDIR%\epmatr          epmbbs\*
 
-: --- package 4: Speech Support                  
+: --- package 4: Speech Support
 
 SPEECH           4 %UNZIPPEDDIR%\epmspch         epmbbs\*
 
