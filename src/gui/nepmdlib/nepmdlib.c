@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.44 2002-09-19 13:51:05 cla Exp $
+* $Id: nepmdlib.c,v 1.45 2002-09-20 14:37:20 cla Exp $
 *
 * ===========================================================================
 *
@@ -41,6 +41,7 @@
 #include "file.h"
 #include "module.h"
 #include "instval.h"
+#include "epmenv.h"
 #include "eas.h"
 #include "tmf.h"
 #include "libreg.h"
@@ -520,17 +521,19 @@ return _getNextEntry( NEPMD_NEXTTYPE_DIR, pszDirMask, pszHandle, pszBuffer, ulBu
 
 #define SETPARM(i,p) if (p) apszParms[ i] = p; ulParmCount++;
 
-APIRET EXPENTRY NepmdGetTextMessage( PSZ pszFilename, PSZ pszMessageName,
-                                     PSZ pszBuffer, ULONG ulBuflen,
+APIRET EXPENTRY NepmdGetTextMessage( PSZ pszFilename, PSZ pszMessageName, PSZ pszBuffer, ULONG ulBuflen,
                                      PSZ pszParm1, PSZ pszParm2, PSZ pszParm3, PSZ pszParm4,
                                      PSZ pszParm5, PSZ pszParm6, PSZ pszParm7, PSZ pszParm8,
                                      PSZ pszParm9)
 {
          APIRET         rc = NO_ERROR;
          ULONG          i;
+         CHAR           szMessageFile[ _MAX_PATH];
          PSZ            apszParms[ 9];
          ULONG          ulParmCount;
          ULONG          ulMessageLen;
+
+
 
 do
    {
@@ -539,12 +542,20 @@ do
       memset( pszBuffer, 0, ulBuflen);
 
    // check parms
-   if ((!pszFilename)    ||
-       (!pszMessageName) ||
+   if ((!pszMessageName) ||
        (!pszBuffer))
       {
       rc = ERROR_INVALID_PARAMETER;
       break;
+      }
+
+   // determine messsage file
+   if ((!pszFilename) || (!*pszFilename))
+      {
+      rc = QueryInstValue( NEPMD_INSTVALUE_MESSAGE, szMessageFile, sizeof( szMessageFile));
+      if (rc != NO_ERROR)
+         break;
+      pszFilename = szMessageFile;
       }
 
    // setup parm table with empty strings

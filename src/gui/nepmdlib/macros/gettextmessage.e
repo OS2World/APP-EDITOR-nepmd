@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.14 2002-09-07 13:19:45 cla Exp $
+* $Id: gettextmessage.e,v 1.15 2002-09-20 14:37:20 cla Exp $
 *
 * ===========================================================================
 *
@@ -34,8 +34,18 @@ This function queries messages from a specified text message file. Up to
 can be specified to be inserted into the message.
 
 @@NepmdGetTextMessage@PARM@Filename
-This parameter specifies the filename of the text message file. Note that
-this is not an OS/2 message file, but a text file with a certain format.
+This parameter specifies the filename of the text message file.
+
+If you ommit that parameter or specify an empty string, the
+text message file of the [=TITLE] is assumed to be taken.
+This file contains language dependant strings. The name of
+it can be optained by executing the command
+[.IDPNL_EFUNC_NEPMDINFO NepmdInfo] on the *EPM* commandline.
+
+[=NOTE]
+.ul compact
+- text message files are not an OS/2 message file, but a text
+  file with a certain format.
 
 @@NepmdGetTextMessage@PARM@Messagename
 This parameter specifies the name of the message to be searched within
@@ -80,17 +90,19 @@ You can test this function from the *EPM* commandline by
 executing:
 .sl
 - *NepmdGetTextMessage*
-    [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_MESSAGENAME messagename] 
+    [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_MESSAGENAME messagename]
     [[ [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_PARAMETERS parameters] ]]
   - or
 - *GetTextMessage*
-    [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_MESSAGENAME messagename] 
+    [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_MESSAGENAME messagename]
     [[ [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_PARAMETERS parameters] ]]
 
-Executing this command will
-display the specified message from the file pointed to by the environment variable
-*NEPMD__TMFTESTFILE*, insert the specified parameters
+Executing this command will display the specified message from the
+text meesage file of the [TITLE], having inserted the specified parameters
 and display the result within the status area.
+
+You can also use an alternate text message file by specifying its
+pathname with the environment variable *NEPMD__TMFTESTFILE*.
 
 _*Example:*_
 .fo off
@@ -116,10 +128,6 @@ defc NepmdGetTextMessage, GetTextMessage
  /* determine TMF name  */
  Envvar = 'NEPMD_TMFTESTFILE';
  Testfile = get_env( Envvar);
- if (length( Testfile) = 0) then
-    sayerror 'error: cannot test NepmdGetTextMessage, envvar' Envvar 'not set!';
-    return;
- endif
 
  /* fetch message - NOTE: word 1 is already message name ! */
  ParmCount = words( arg( 1));
