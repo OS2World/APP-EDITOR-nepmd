@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2003
 *
-* $Id: epmchgpal.cmd,v 1.2 2003-12-12 20:17:08 aschn Exp $
+* $Id: epmchgpal.cmd,v 1.3 2003-12-12 20:26:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -124,8 +124,9 @@ call directory WorkDir
 /* Check presence of extended environment first */
 if value( 'NEPMD_ROOTDIR', , env) = '' then
    do
-      'NEPMD''s extended environment must be set to run this script.'
-      'Either run it from an EPM command window or shell or run epmenv.cmd first.'
+      say 'NEPMD''s extended environment must be set to run this script.'
+      say 'Either run it from an EPM command window or shell or run epmenv.cmd first.'
+      return
    end
 
 if stream( MyepmBinDir'\'ColorIniName, 'C', 'QUERY EXISTS' ) = '' then
