@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.5 2002-09-08 15:40:08 aschn Exp $
+* $Id: stdctrl.e,v 1.6 2002-09-10 23:51:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -63,6 +63,10 @@
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 
+const
+compile if not defined(NEPMD_SPECIAL_STATUSLINE)
+   NEPMD_SPECIAL_STATUSLINE = 0
+compile endif
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
@@ -384,29 +388,37 @@ defproc entrybox(title)
    else
       flags = 0
    endif
-   call dynalink32( ERES_DLL,                /* entry box control in EDLL dyna */
-             'ENTRYBOX',                     /* function name                 */
-              gethwndc(EPMINFO_EDITFRAME)||   /* edit frame handle             */
-              address(title)             ||   /*                               */
-              atol(0)                    ||   /* x coordinate                  */
-              atol(0)                    ||   /* y coordinate (0,0) = center   */
-              atol(columns)              ||
-              atol(maxchars)             ||
-              address(entrytext)         ||   /* (optional text in entry field)*/
-              atoi(nb)                   ||   /* Number of buttons, and        */
-              atoi(flags)                ||   /* flags:  mpfrom2short(flags, nb)*/
-              address(but1)              ||   /* (optional button 1 text )     */
-              address(but2)              ||   /* (optional button 2 text )     */
-              address(but3)              ||   /* (optional button 3 text )     */
-              address(but4)              ||   /* (optional button 4 text )     */
-              address(selectbuf))             /* return string buffer          */
+   call dynalink32( ERES_DLL,                      /* entry box control in EDLL dyna */
+                   'ENTRYBOX',                     /* function name                 */
+                   gethwndc(EPMINFO_EDITFRAME)||   /* edit frame handle             */
+                   address(title)             ||   /*                               */
+                   atol(0)                    ||   /* x coordinate                  */
+                   atol(0)                    ||   /* y coordinate (0,0) = center   */
+                   atol(columns)              ||
+                   atol(maxchars)             ||
+                   address(entrytext)         ||   /* (optional text in entry field)*/
+                   atoi(nb)                   ||   /* Number of buttons, and        */
+                   atoi(flags)                ||   /* flags:  mpfrom2short(flags, nb)*/
+                   address(but1)              ||   /* (optional button 1 text )     */
+                   address(but2)              ||   /* (optional button 2 text )     */
+                   address(but3)              ||   /* (optional button 3 text )     */
+                   address(but4)              ||   /* (optional button 4 text )     */
+                   address(selectbuf))             /* return string buffer          */
 
-   if arg(6) then return selectbuf; endif  -- New way
+   if arg(6) then  -- New way
+      return selectbuf
+   endif
    button = asc(leftstr(selectbuf,1))
-   if button=0 | button=2 then return ''; endif  -- Old way...
-   if button<>1 then return button; endif
+   if button=0 | button=2 then  -- Old way...
+      return ''
+   endif
+   if button<>1 then
+      return button
+   endif
    EOS = pos(\0,selectbuf,2)        -- CHR(0) signifies End Of String
-   if not EOS then return 'error'; endif
+   if not EOS then
+      return 'error'
+   endif
    return substr(selectbuf,2,EOS-2)
 
 /*
@@ -1749,6 +1761,9 @@ defc setconfig
    if     configid= 1 then
       if .margins<>newcmd then
          'postme maybe_reflow_all'
+  compile if NEPMD_SPECIAL_STATUSLINE
+         'postme refreshstatusline'  -- refreshstatusline is defined in STATLINE.E
+  compile endif
       endif
       .margins=newcmd
       vDEFAULT_MARGINS=setini(INI_MARGINS, .margins, perm)
@@ -1760,6 +1775,9 @@ defc setconfig
    elseif configid= 3 then
       rc=0
       .tabs=newcmd
+  compile if NEPMD_SPECIAL_STATUSLINE
+         'postme refreshstatusline'  -- refreshstatusline is defined in STATLINE.E
+  compile endif
       if not rc then
          vDEFAULT_TABS=setini(INI_TABS,newcmd, perm)
       endif
@@ -3747,6 +3765,8 @@ compile else
 compile endif
    activatefile firstloaded
 
+/*
+; Moved to STATUSLINE.E
 ; Called with a string to set the statusline text to that string; with no argument
 ; to just set the statusline color.
 defc setstatusline
@@ -3762,6 +3782,7 @@ defc setstatusline
                       5431,      -- EPM_FRAME_STATUSLINE
                       template_ptr,
                       vSTATUSCOLOR)
+*/
 
 ; Called with a string to set the messageline text to that string; with no argument
 ; to just set the messageline color.
