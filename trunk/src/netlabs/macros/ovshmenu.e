@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ovshmenu.e,v 1.7 2004-06-03 22:13:58 aschn Exp $
+* $Id: ovshmenu.e,v 1.8 2004-07-09 14:10:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -109,6 +109,12 @@ const
    include 'menuhelp.h'
    EA_comment 'This defines the menu.'
 
+compile endif
+
+; Make that configurable for testing or emergency cases:
+compile if not defined(OLD_ACCEL_KEY_DEFS)
+const
+   OLD_ACCEL_KEY_DEFS = 0
 compile endif
 
 /*
@@ -474,6 +480,18 @@ compile elseif defined(HAVE_CUSTEPM)
    'cascade_menu' 3700
 compile endif
 
+
+; ---------------------------------------------------------------------------
+definit
+   -- Define a list of used menu accelerators, that can't be used as standard
+   -- accelerator keys combined with Alt anymore, when 'Menu accelerators' is
+   -- activated.
+   -- Maybe someone has already defined something here at definit,
+   -- so better add it to the array var if not already.
+   call AddOnceAVar( 'usedmenuaccelerators', 'F V S H')
+
+
+compile if OLD_ACCEL_KEY_DEFS  -- following is disabled #####################
 defproc build_menu_accelerators(activeaccel)
 compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
    universal CUA_MENU_ACCEL
@@ -481,119 +499,194 @@ compile endif
 compile if WANT_STACK_CMDS = 'SWITCH'
    universal stack_cmds
 compile endif
+   -- Get the last used id from an array var
+   i = GetAVar( 'lastkeyaccelid')
+
                        -- Build keys on File menu
-   buildacceltable activeaccel, 'dokey F8',  AF_VIRTUALKEY,                VK_F8, 1101  -- F8
-   buildacceltable activeaccel, 'dokey c+O', AF_CHAR+AF_CONTROL,              79, 1102  -- c+O
-   buildacceltable activeaccel, 'dokey c+O', AF_CHAR+AF_CONTROL,             111, 1103  -- c+o
-   buildacceltable activeaccel, 'dokey F7',  AF_VIRTUALKEY,                VK_F7, 1104  -- F7
-   buildacceltable activeaccel, 'dokey F2',  AF_VIRTUALKEY,                VK_F2, 1105  -- F2
-   buildacceltable activeaccel, 'dokey F3',  AF_VIRTUALKEY,                VK_F3, 1106  -- F3
-   buildacceltable activeaccel, 'dokey F4',  AF_VIRTUALKEY,                VK_F4, 1107  -- F4
+   i = i + 1
+   buildacceltable activeaccel, 'dokey F8',  AF_VIRTUALKEY,                VK_F8, i  -- F8
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+O', AF_CHAR+AF_CONTROL,              79, i  -- c+O
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+O', AF_CHAR+AF_CONTROL,             111, i  -- c+o
+   i = i + 1
+   buildacceltable activeaccel, 'dokey F7',  AF_VIRTUALKEY,                VK_F7, i  -- F7
+   i = i + 1
+   buildacceltable activeaccel, 'dokey F2',  AF_VIRTUALKEY,                VK_F2, i  -- F2
+   i = i + 1
+   buildacceltable activeaccel, 'dokey F3',  AF_VIRTUALKEY,                VK_F3, i  -- F3
+   i = i + 1
+   buildacceltable activeaccel, 'dokey F4',  AF_VIRTUALKEY,                VK_F4, i  -- F4
 
                        -- Build keys on Edit menu  ('C' & 'O' appear under Action bar keys for English)
 compile if FILE_ACCEL__L <> 'C' & EDIT_ACCEL__L <> 'C' & SEARCH_ACCEL__L <> 'C' & OPTIONS_ACCEL__L <> 'C' & COMMAND_ACCEL__L <> 'C' & HELP_ACCEL__L <> 'C' & $maybe_ring_accel 'C' & $maybe_actions_accel 'C'
-   buildacceltable activeaccel, 'dokey a+C', AF_CHAR+AF_ALT,                  67, 1201  -- a+C
-   buildacceltable activeaccel, 'dokey a+C', AF_CHAR+AF_ALT,                  99, 1202  -- a+c
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+C', AF_CHAR+AF_ALT,                  67, i  -- a+C
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+C', AF_CHAR+AF_ALT,                  99, i  -- a+c
 compile endif
 compile if FILE_ACCEL__L <> 'M' & EDIT_ACCEL__L <> 'M' & SEARCH_ACCEL__L <> 'M' & OPTIONS_ACCEL__L <> 'M' & COMMAND_ACCEL__L <> 'M' & HELP_ACCEL__L <> 'M' & $maybe_ring_accel 'M' & $maybe_actions_accel 'M'
-   buildacceltable activeaccel, 'dokey a+M', AF_CHAR+AF_ALT,                  77, 1203  -- a+M
-   buildacceltable activeaccel, 'dokey a+M', AF_CHAR+AF_ALT,                 109, 1204  -- a+m
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+M', AF_CHAR+AF_ALT,                  77, i  -- a+M
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+M', AF_CHAR+AF_ALT,                 109, i  -- a+m
 compile endif
 compile if FILE_ACCEL__L <> 'O' & EDIT_ACCEL__L <> 'O' & SEARCH_ACCEL__L <> 'O' & OPTIONS_ACCEL__L <> 'O' & COMMAND_ACCEL__L <> 'O' & HELP_ACCEL__L <> 'O' & $maybe_ring_accel 'O' & $maybe_actions_accel 'O'
-   buildacceltable activeaccel, 'dokey a+O', AF_CHAR+AF_ALT,                  79, 1205  -- a+O
-   buildacceltable activeaccel, 'dokey a+O', AF_CHAR+AF_ALT,                 111, 1206  -- a+o
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+O', AF_CHAR+AF_ALT,                  79, i  -- a+O
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+O', AF_CHAR+AF_ALT,                 111, i  -- a+o
 compile endif
 compile if FILE_ACCEL__L <> 'A' & EDIT_ACCEL__L <> 'A' & SEARCH_ACCEL__L <> 'A' & OPTIONS_ACCEL__L <> 'A' & COMMAND_ACCEL__L <> 'A' & HELP_ACCEL__L <> 'A' & $maybe_ring_accel 'A' & $maybe_actions_accel 'A'
-   buildacceltable activeaccel, 'dokey a+A', AF_CHAR+AF_ALT,                  65, 1207  -- a+A
-   buildacceltable activeaccel, 'dokey a+A', AF_CHAR+AF_ALT,                  97, 1208  -- a+a
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+A', AF_CHAR+AF_ALT,                  65, i  -- a+A
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+A', AF_CHAR+AF_ALT,                  97, i  -- a+a
 compile endif
 compile if FILE_ACCEL__L <> 'U' & EDIT_ACCEL__L <> 'U' & SEARCH_ACCEL__L <> 'U' & OPTIONS_ACCEL__L <> 'U' & COMMAND_ACCEL__L <> 'U' & HELP_ACCEL__L <> 'U' & $maybe_ring_accel 'U' & $maybe_actions_accel 'U'
-   buildacceltable activeaccel, 'dokey a+U', AF_CHAR+AF_ALT,                  85, 1209  -- a+U
-   buildacceltable activeaccel, 'dokey a+U', AF_CHAR+AF_ALT,                 117, 1210  -- a+u
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+U', AF_CHAR+AF_ALT,                  85, i  -- a+U
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+U', AF_CHAR+AF_ALT,                 117, i  -- a+u
 compile endif
 compile if FILE_ACCEL__L <> 'D' & EDIT_ACCEL__L <> 'D' & SEARCH_ACCEL__L <> 'D' & OPTIONS_ACCEL__L <> 'D' & COMMAND_ACCEL__L <> 'D' & HELP_ACCEL__L <> 'D' & $maybe_ring_accel 'D' & $maybe_actions_accel 'D'
-   buildacceltable activeaccel, 'dokey a+D', AF_CHAR+AF_ALT,                  68, 1211  -- a+D
-   buildacceltable activeaccel, 'dokey a+D', AF_CHAR+AF_ALT,                 100, 1212  -- a+d
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+D', AF_CHAR+AF_ALT,                  68, i  -- a+D
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+D', AF_CHAR+AF_ALT,                 100, i  -- a+d
 compile endif
-   buildacceltable activeaccel, 'copy2clip', AF_VIRTUALKEY+AF_CONTROL, VK_INSERT, 1213  -- c+Insert
-   buildacceltable activeaccel, 'cut',       AF_VIRTUALKEY+AF_SHIFT,   VK_DELETE, 1214  -- s+Delete
-   buildacceltable activeaccel, 'paste' DEFAULT_PASTE, AF_VIRTUALKEY+AF_SHIFT,   VK_INSERT, 1215  -- s+Insert
-   buildacceltable activeaccel, 'paste' ALTERNATE_PASTE, AF_VIRTUALKEY+AF_SHIFT+AF_CONTROL,   VK_INSERT, 1221  -- c+s+Insert
-   buildacceltable activeaccel, 'dokey F9',  AF_VIRTUALKEY,                VK_F9, 1216  -- F9
-   buildacceltable activeaccel, 'dokey c+Y', AF_CHAR+AF_CONTROL,              89, 1217  -- c+Y
-   buildacceltable activeaccel, 'dokey c+Y', AF_CHAR+AF_CONTROL,             121, 1218  -- c+y
-   buildacceltable activeaccel, 'select_all',AF_CHAR+AF_CONTROL,              47, 1219  -- c+/
-   buildacceltable activeaccel, 'DUPMARK U', AF_CHAR+AF_CONTROL,              92, 1220  -- c+\
+   i = i + 1
+   buildacceltable activeaccel, 'copy2clip', AF_VIRTUALKEY+AF_CONTROL, VK_INSERT, i  -- c+Insert
+   i = i + 1
+   buildacceltable activeaccel, 'cut',       AF_VIRTUALKEY+AF_SHIFT,   VK_DELETE, i  -- s+Delete
+   i = i + 1
+   buildacceltable activeaccel, 'paste' DEFAULT_PASTE, AF_VIRTUALKEY+AF_SHIFT,   VK_INSERT, i  -- s+Insert
+   i = i + 1
+   buildacceltable activeaccel, 'paste' ALTERNATE_PASTE, AF_VIRTUALKEY+AF_SHIFT+AF_CONTROL,   VK_INSERT, i  -- c+s+Insert
+   i = i + 1
+   buildacceltable activeaccel, 'dokey F9',  AF_VIRTUALKEY,                VK_F9, i  -- F9
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+Y', AF_CHAR+AF_CONTROL,              89, i  -- c+Y
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+Y', AF_CHAR+AF_CONTROL,             121, i  -- c+y
+   i = i + 1
+   buildacceltable activeaccel, 'select_all',AF_CHAR+AF_CONTROL,              47, i  -- c+/
+   i = i + 1
+   buildacceltable activeaccel, 'DUPMARK U', AF_CHAR+AF_CONTROL,              92, i  -- c+\
 
 compile if WANT_STACK_CMDS
  compile if WANT_STACK_CMDS = 'SWITCH'
    if stack_cmds then
  compile endif
-   buildacceltable activeaccel, 'dokey c+down', AF_VIRTUALKEY+AF_CONTROL,   VK_DOWN, 1222  -- c+Down
-   buildacceltable activeaccel, 'dokey c+Up',   AF_VIRTUALKEY+AF_CONTROL,     VK_UP, 1223  -- c+Up
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+down', AF_VIRTUALKEY+AF_CONTROL,   VK_DOWN, i  -- c+Down
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+Up',   AF_VIRTUALKEY+AF_CONTROL,     VK_UP, i  -- c+Up
  compile if WANT_STACK_CMDS = 'SWITCH'
    endif
  compile endif
-   buildacceltable activeaccel, 'swappos',  AF_CHAR+AF_CONTROL,                     61, 1224  -- c+=
-   buildacceltable activeaccel, 'pushmark', AF_VIRTUALKEY+AF_CONTROL+AF_SHIFT, VK_DOWN, 1225  -- c+s+Down
-   buildacceltable activeaccel, 'popmark',  AF_VIRTUALKEY+AF_CONTROL+AF_SHIFT,   VK_UP, 1226  -- c+s+Up
-   buildacceltable activeaccel, 'swapmark', AF_CHAR+AF_CONTROL+AF_SHIFT,            61, 1227  -- c+s+=
-   buildacceltable activeaccel, 'swapmark', AF_CHAR+AF_CONTROL+AF_SHIFT,            43, 1228  -- c+s++
+   i = i + 1
+   buildacceltable activeaccel, 'swappos',  AF_CHAR+AF_CONTROL,                     61, i  -- c+=
+   i = i + 1
+   buildacceltable activeaccel, 'pushmark', AF_VIRTUALKEY+AF_CONTROL+AF_SHIFT, VK_DOWN, i  -- c+s+Down
+   i = i + 1
+   buildacceltable activeaccel, 'popmark',  AF_VIRTUALKEY+AF_CONTROL+AF_SHIFT,   VK_UP, i  -- c+s+Up
+   i = i + 1
+   buildacceltable activeaccel, 'swapmark', AF_CHAR+AF_CONTROL+AF_SHIFT,            61, i  -- c+s+=
+   i = i + 1
+   buildacceltable activeaccel, 'swapmark', AF_CHAR+AF_CONTROL+AF_SHIFT,            43, i  -- c+s++
 compile endif
 
                        -- Build keys on Search menu
-   buildacceltable activeaccel, 'dokey c+S', AF_CHAR+AF_CONTROL,              83, 1301  -- c+S
-   buildacceltable activeaccel, 'dokey c+S', AF_CHAR+AF_CONTROL,             115, 1302  -- c+s
-   buildacceltable activeaccel, 'dokey c+F', AF_CHAR+AF_CONTROL,              70, 1303  -- c+F
-   buildacceltable activeaccel, 'dokey c+F', AF_CHAR+AF_CONTROL,             102, 1304  -- c+f
-   buildacceltable activeaccel, 'dokey c+C', AF_CHAR+AF_CONTROL,              67, 1305  -- c+C
-   buildacceltable activeaccel, 'dokey c+C', AF_CHAR+AF_CONTROL,              99, 1306  -- c+c
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+S', AF_CHAR+AF_CONTROL,              83, i  -- c+S
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+S', AF_CHAR+AF_CONTROL,             115, i  -- c+s
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+F', AF_CHAR+AF_CONTROL,              70, i  -- c+F
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+F', AF_CHAR+AF_CONTROL,             102, i  -- c+f
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+C', AF_CHAR+AF_CONTROL,              67, i  -- c+C
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+C', AF_CHAR+AF_CONTROL,              99, i  -- c+c
                        -- Build keys on Bookmark submenu
 compile if WANT_BOOKMARKS
-   buildacceltable activeaccel, 'dokey c+B', AF_CHAR+AF_CONTROL,              66, 1331  -- c+B
-   buildacceltable activeaccel, 'dokey c+B', AF_CHAR+AF_CONTROL,              98, 1332  -- c+b
-   buildacceltable activeaccel, 'dokey c+M', AF_CHAR+AF_CONTROL,              77, 1333  -- c+M
-   buildacceltable activeaccel, 'dokey c+M', AF_CHAR+AF_CONTROL,             109, 1334  -- c+m
-   buildacceltable activeaccel, 'nextbookmark',  AF_CHAR+AF_ALT,              47, 1335  -- a+/
-   buildacceltable activeaccel, 'nextbookmark P',AF_CHAR+AF_ALT,              92, 1336  -- a+\
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+B', AF_CHAR+AF_CONTROL,              66, i  -- c+B
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+B', AF_CHAR+AF_CONTROL,              98, i  -- c+b
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+M', AF_CHAR+AF_CONTROL,              77, i  -- c+M
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+M', AF_CHAR+AF_CONTROL,             109, i  -- c+m
+   i = i + 1
+   buildacceltable activeaccel, 'nextbookmark',  AF_CHAR+AF_ALT,              47, i  -- a+/
+   i = i + 1
+   buildacceltable activeaccel, 'nextbookmark P',AF_CHAR+AF_ALT,              92, i  -- a+\
 compile endif
                        -- Build keys on Tags submenu
 compile if WANT_TAGS
-   buildacceltable activeaccel, 'dokey s+F6', AF_VIRTUALKEY+AF_SHIFT,      VK_F6, 1361  -- s+F6
-   buildacceltable activeaccel, 'dokey s+F7', AF_VIRTUALKEY+AF_SHIFT,      VK_F7, 1362  -- s+F7
-   buildacceltable activeaccel, 'dokey s+F8', AF_VIRTUALKEY+AF_SHIFT,      VK_F8, 1363  -- s+F8
-   buildacceltable activeaccel, 'dokey s+F9', AF_VIRTUALKEY+AF_SHIFT,      VK_F9, 1364  -- s+F9
+   i = i + 1
+   buildacceltable activeaccel, 'dokey s+F6', AF_VIRTUALKEY+AF_SHIFT,      VK_F6, i  -- s+F6
+   i = i + 1
+   buildacceltable activeaccel, 'dokey s+F7', AF_VIRTUALKEY+AF_SHIFT,      VK_F7, i  -- s+F7
+   i = i + 1
+   buildacceltable activeaccel, 'dokey s+F8', AF_VIRTUALKEY+AF_SHIFT,      VK_F8, i  -- s+F8
+   i = i + 1
+   buildacceltable activeaccel, 'dokey s+F9', AF_VIRTUALKEY+AF_SHIFT,      VK_F9, i  -- s+F9
 compile endif
 
                        -- Build keys on Options menu
-   buildacceltable activeaccel, 'dokey c+G', AF_CHAR+AF_CONTROL,              71, 1401  -- c+G
-   buildacceltable activeaccel, 'dokey c+G', AF_CHAR+AF_CONTROL,             103, 1402  -- c+g
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+G', AF_CHAR+AF_CONTROL,              71, i  -- c+G
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+G', AF_CHAR+AF_CONTROL,             103, i  -- c+g
 
                        -- Build keys on Command menu
-   buildacceltable activeaccel, 'dokey c+I', AF_CHAR+AF_CONTROL,              73, 1501  -- c+I
-   buildacceltable activeaccel, 'dokey c+I', AF_CHAR+AF_CONTROL,             105, 1502  -- c+i
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+I', AF_CHAR+AF_CONTROL,              73, i  -- c+I
+   i = i + 1
+   buildacceltable activeaccel, 'dokey c+I', AF_CHAR+AF_CONTROL,             105, i  -- c+i
 
                        -- Block action bar accelerator keys (English)
 compile if BLOCK_ACTIONBAR_ACCELERATORS
  compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
    if not CUA_MENU_ACCEL then
  compile endif
-   buildacceltable activeaccel, 'dokey a+'FILE_ACCEL__L,    AF_CHAR+AF_ALT, FILE_ACCEL__A1   , 1001  -- a+F
-   buildacceltable activeaccel, 'dokey a+'FILE_ACCEL__L,    AF_CHAR+AF_ALT, FILE_ACCEL__A2   , 1002  -- a+f
-   buildacceltable activeaccel, 'dokey a+'VIEW_ACCEL__L,    AF_CHAR+AF_ALT, VIEW_ACCEL__A1   , 1003  -- a+V
-   buildacceltable activeaccel, 'dokey a+'VIEW_ACCEL__L,    AF_CHAR+AF_ALT, VIEW_ACCEL__A2   , 1004  -- a+v
-   buildacceltable activeaccel, 'dokey a+'SELECTED_ACCEL__L,AF_CHAR+AF_ALT, SELECTED_ACCEL__A1,1005  -- a+S
-   buildacceltable activeaccel, 'dokey a+'SELECTED_ACCEL__L,AF_CHAR+AF_ALT, SELECTED_ACCEL__A2,1006  -- a+s
-   buildacceltable activeaccel, 'dokey a+'HELP_ACCEL__L,    AF_CHAR+AF_ALT, HELP_ACCEL__A1   , 1011  -- a+H
-   buildacceltable activeaccel, 'dokey a+'HELP_ACCEL__L,    AF_CHAR+AF_ALT, HELP_ACCEL__A2   , 1012  -- a+h
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+'FILE_ACCEL__L,    AF_CHAR+AF_ALT, FILE_ACCEL__A1   , i  -- a+F
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+'FILE_ACCEL__L,    AF_CHAR+AF_ALT, FILE_ACCEL__A2   , i  -- a+f
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+'VIEW_ACCEL__L,    AF_CHAR+AF_ALT, VIEW_ACCEL__A1   , i  -- a+V
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+'VIEW_ACCEL__L,    AF_CHAR+AF_ALT, VIEW_ACCEL__A2   , i  -- a+v
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+'SELECTED_ACCEL__L,AF_CHAR+AF_ALT, SELECTED_ACCEL__A1,i  -- a+S
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+'SELECTED_ACCEL__L,AF_CHAR+AF_ALT, SELECTED_ACCEL__A2,i  -- a+s
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+'HELP_ACCEL__L,    AF_CHAR+AF_ALT, HELP_ACCEL__A1   , i  -- a+H
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+'HELP_ACCEL__L,    AF_CHAR+AF_ALT, HELP_ACCEL__A2   , i  -- a+h
+   i = i + 1
   compile if defined(ACTIONS_ACCEL__L)  -- For CUSTEPM support
-   buildacceltable activeaccel, 'dokey a+'ACTIONS_ACCEL__L, AF_CHAR+AF_ALT, ACTIONS_ACCEL__A1, 1017  -- a+A
-   buildacceltable activeaccel, 'dokey a+'ACTIONS_ACCEL__L, AF_CHAR+AF_ALT, ACTIONS_ACCEL__A2, 1018  -- a+a
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+'ACTIONS_ACCEL__L, AF_CHAR+AF_ALT, ACTIONS_ACCEL__A1, i  -- a+A
+   i = i + 1
+   buildacceltable activeaccel, 'dokey a+'ACTIONS_ACCEL__L, AF_CHAR+AF_ALT, ACTIONS_ACCEL__A2, i  -- a+a
   compile endif
  compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
    endif -- CUA_MENU_ACCEL
  compile endif
 compile endif -- BLOCK_ACTIONBAR_ACCELERATORS
+
+   -- Save the last used id in an array var
+   call SetAVar( 'lastkeyaccelid', i)
+   return
+compile endif -- OLD_ACCEL_KEY_DEFS  ########################################
+
 
 compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
 define  -- Prepare for some conditional tests

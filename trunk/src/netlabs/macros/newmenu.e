@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.3 2004-07-04 22:20:17 aschn Exp $
+* $Id: newmenu.e,v 1.4 2004-07-09 14:10:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -3750,42 +3750,15 @@ defc setsearchoptions
    --sayerror 'default_search_options = 'default_search_options
 
 ; ---------------------------------------------------------------------------
-; Can be moved to MENU.E.
-; Must be deactivated in all other menus.
-;                             --------------------------------- Todo: rename it to block_menu_accelerators
-;
-; The PM menu automatically assigns Alt+<actionbar_key> combinations to
-; open the main actionbar, if key mnemonics defined. This overwrites the
-; definitions, provided by the keyset.
-; Defined menu accels have priority to definitions provided by a keyset
-; or by the automatically assigned defs by the PM menu. Therefore they are
-; used here to recreate the keyset definition with the dokey command.
+; Nothing defined here.
 defproc build_menu_accelerators(activeaccel)
-   universal cua_menu_accel
-   i = 1000
-   -- Re-enable some (not definable via def) key bindings
-   i = i + 1
-   buildacceltable activeaccel, 'dokey s_f1',  AF_VIRTUALKEY + AF_SHIFT, VK_F1, i  -- Sh+F1
-   i = i + 1
-   buildacceltable activeaccel, 'dokey s_f9',  AF_VIRTUALKEY + AF_SHIFT, VK_F9, i  -- Sh+F9
-   -- Block action bar accelerator keys
-   if not cua_menu_accel then
-      UsedMenuAccelerators = GetAVar('usedmenuaccelerators')
-      do w = 1 to words( UsedMenuAccelerators)
-         char = word( UsedMenuAccelerators, w)
-         do u = 1 to 2
-            i = i + 1
-            if u = 1 then
-               char = upcase(char)  -- capslocked key, shifted combination isn't affected
-            else
-               char = lowcase(char)
-            endif
-            key = asc(char)
-            buildacceltable activeaccel, 'dokey a+'upcase(char), AF_CHAR + AF_ALT, key, i
-         enddo
-      enddo
-   endif
-   -- save the last used id in an array var
+   -- Get the last used id from an array var
+   i = GetAVar( 'lastkeyaccelid')
+
+   --i = i + 1
+   --buildacceltable activeaccel, 'dokey ...',  AF_... + AF_..., VK_..., i
+
+   -- Save the last used id in an array var
    call SetAVar( 'lastkeyaccelid', i)
    return
 
