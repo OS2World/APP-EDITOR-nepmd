@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.php,v 1.2 2002-07-19 14:08:57 cla Exp $
+* $Id: edit.php,v 1.3 2002-07-19 15:30:58 cla Exp $
 *
 * ===========================================================================
 *
@@ -73,17 +73,17 @@ if ($file != "")
    echo "<table width=70% border=0>";
    echo "<input name=file type=hidden value=\"".$file."\">";
 
-   echo "<tr><td align=right bgcolor=#dddddd><font size=-1>";
+   echo "<tr><td align=right valign=center bgcolor=#dddddd>";
    echo "file:";
-   echo "</font></td><td bgcolor=#dddddd><font size=-1>";
+   echo "</td><td valign=center bgcolor=#dddddd>";
    echo $file;
-   echo "</font></td></tr>";
+   echo "</td></tr>";
 
-   echo "<tr><td align=right><font size=-1>";
+   echo "<tr><td align=right>";
    echo "title:";
-   echo "</font></td><td><font size=-1>";
+   echo "</td><td>";
    echo "<input name=title size=70 maxlength=256 value=\"".$title."\">";
-   echo "</font></td></tr>";
+   echo "</td></tr>";
 
    echo "<tr><td align=right bgcolor=#dddddd><font size=-1>";
    echo "category:";
