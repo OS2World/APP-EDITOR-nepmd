@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: maketags.e,v 1.6 2004-07-04 21:39:22 aschn Exp $
+* $Id: maketags.e,v 1.7 2004-12-31 00:18:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,19 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+; Todo for TAGS.E, MAKETAGS.E
+; -  'MakeTags' doesn't remove entries for non-existing files. It only
+;    updates or adds entries.
+;    --> Workaround: delete tags file, maybe create a cmd and menu item.
+; -  'MakeTags' for mode E lists only defproc. defc, def and defkeys are
+;    missing.
+;    --> Add an aditional parameter to specify the tags type.
+;    --> Change the 'TagScan' listbox to show this column or create a new
+;        dialog.
+; -  Tags in multi-line comments are not ignored. Some *_proc_search procs
+;    even don't ignore strings.
+; -  Replace extension with mode.
 
 ;def s_f6 'FindTag'     -- Find procedure under cursor via tags file
 ;def s_f7 'FindTag *'   -- Open entrybox to enter a procedure to find via tags file
@@ -163,6 +176,7 @@ compile endif
          getline params
          activatefile tag_fid
       endif
+      -- get next filemask or filename
       filename = parse_file( params, prev_file, listflag)
       if listflag then  /* specify list? */
          If not verify( filename, '\:', 'M') then
@@ -193,6 +207,8 @@ compile endif
       If not verify( filename, '\:', 'M') then
          filename = path_prefix||filename
       endif
+      --sayerror 'MAKETAGS: filemask = "'filename'"'
+      dprintf( 'TAGS', 'MAKETAGS: filemask = "'filename'"'
 
       if verify( filename, '?*', 'M') then  -- If wildcards
          wildcards = 1
@@ -225,8 +241,7 @@ compile endif
             elseif result = 206 then msg = 'FILENAME EXCED RANGE'
             endif
             sayerror 'Error' result '('msg') for "'filename'"'
-            status = 1
-            leave
+            iterate  -- take next filemask
          endif
          filename = wild_prefix || substr(resultbuf, 30, asc(substr(resultbuf, 29, 1)))
          filedate = ltoa(substr(resultbuf, 13, 4), 16)
