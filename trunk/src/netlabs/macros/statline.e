@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: statline.e,v 1.2 2002-09-20 19:37:40 aschn Exp $
+* $Id: statline.e,v 1.3 2002-10-19 13:22:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,9 +22,6 @@
 const
 compile if not defined(NEPMD_SPECIAL_STATUSLINE)
    NEPMD_SPECIAL_STATUSLINE = 1
-compile endif
-compile if not defined(NEPMD_MODE)
-   NEPMD_MODE = 1
 compile endif
 compile if not defined(NEPMD_MODIFIED_STATUSCOLOR)
    NEPMD_MODIFIED_STATUSCOLOR = LIGHT_GREYB + MAGENTA
@@ -77,19 +74,17 @@ compile endif
 ; The default value if STATUS_TEMPLATE is not defined is 'Line %l of %s
 ; Column %c  %i   %m   %f'
 defc refreshstatusline
-   sep = (NEPMD_STATUSLINE_SEP)
-compile if NEPMD_MODE
-   CurMode = NepmdGetMode()
+   if .visible then
+      sep = (NEPMD_STATUSLINE_SEP)
+      CurMode = NepmdGetMode()
 
-   current_status_template =  "Line %l of %s "sep" Col %c "sep" '%x'x = %z "sep" %f "sep" ma ".margins" "sep" " ||
-                              "tabs "word(.tabs,1)" "sep" "CurMode" "sep" %m"
-;   current_status_template =  " %l of %s "sep"  %c "sep" '%x'x = %z "sep" %f "sep" ma ".margins" "sep" " ||
-;                              "tabs "word(.tabs,1)" "sep" "CurMode" "sep" %m"
-compile else
-   current_status_template =  "Line %l of %s "sep" Col %c "sep" '%x'x = %z "sep" %f "sep" ma ".margins" "sep" " ||
-                              "tabs "word(.tabs,1)" "sep" %m"
-compile endif
-   'setstatusline 'current_status_template
+      current_status_template =  "Line %l of %s "sep" Col %c "sep" '%x'x = %z "sep" %f "sep" ma ".margins" "sep" " ||
+                                 "tabs "word(.tabs,1)" "sep" "CurMode" "sep" %m"
+;      current_status_template =  " %l of %s "sep"  %c "sep" '%x'x = %z "sep" %f "sep" ma ".margins" "sep" " ||
+;                                 "tabs "word(.tabs,1)" "sep" "CurMode" "sep" %m"
+
+      'setstatusline 'current_status_template
+   endif  -- .visible
    return
 
 
