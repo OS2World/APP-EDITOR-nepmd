@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.9 2002-09-25 11:44:06 cla Exp $
+* $Id: hilite.c,v 1.10 2002-09-25 14:46:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -67,6 +67,7 @@ if (!InitQueryProfileString( h, s, k, NULL, t, sizeof( t))) \
 typedef struct _VALUEARRAY
      {
          ULONG          ulCount;
+         ULONG          ulArraySize;
          PSZ            apszValue[ 1];
 
      } VALUEARRAY, *PVALUEARRAY;
@@ -343,20 +344,25 @@ return stricmp( *(PSZ*)ppszKeyElement, *(PSZ*)ppszEntry);
 }
 
 
-static PVALUEARRAY _createInitValueArray( HCONFIG hinit, PSZ pszSection)
+static PVALUEARRAY _maintainInitValueArray( HCONFIG hinit, PSZ pszSection, PVALUEARRAY pva)
 {
-         PVALUEARRAY    pvaResult = NULL;
+         PVALUEARRAY    pvaResult = pva;
          APIRET         rc = NO_ERROR;
+         ULONG          i;
+         BOOL           fSkip;
 
          PSZ            pszKey;
          ULONG          ulKeyCount;
-         PVALUEARRAY    pva = NULL;
+         PVALUEARRAY    pvaNew = NULL;
          ULONG          ulBuflen;
          CHAR           szKeyList[ 1024];
          CHAR           szKeyValue[ 128];
 
          PSZ           *ppszAnchor;
-         PSZ           pszEntry;
+         PSZ            pszEntry;
+
+         PSZ           *ppszOldAnchor;
+         PSZ            pszOldEntry;
 
 do
    {
@@ -369,38 +375,98 @@ do
    pszKey = szKeyList;
    while (*pszKey)
       {
-      // add appropriate space and cout up
-      ulKeyCount++;
-      ulBuflen += sizeof( PSZ) +
-                  strlen( pszKey) + 1 +
-                  QUERYINITVALUESIZE( hinit, pszSection, pszKey) + 1;
+      // does entry exist in the old array ? then skip
+      fSkip = FALSE;
+      if (pva)
+         {
+         ppszOldAnchor = bsearch( &pszKey, pva->apszValue, pva->ulCount, sizeof( PSZ), _compareValue);
+         if (ppszOldAnchor)
+            fSkip = TRUE;
+         }
+
+      if (!fSkip)
+         {
+         // add appropriate space and count up
+         ulKeyCount++;
+         ulBuflen += sizeof( PSZ) +
+                     strlen( pszKey) + 1 +
+                     QUERYINITVALUESIZE( hinit, pszSection, pszKey) + 1;
+         }
 
       // next key
       pszKey = NEXTSTR( pszKey);
       }
 
+   // add count and space of existing array
+   if (pva)
+      {
+      ulBuflen   += pva->ulArraySize;
+      ulKeyCount += pva->ulCount;
+      }
+
    // allocate memory
-   pva = malloc( ulBuflen);
-   if (!pva)
+   pvaNew = malloc( ulBuflen);
+   if (!pvaNew)
       break;
-   memset( pva, 0, ulBuflen);
-   pvaResult = pva;
+   memset( pvaNew, 0, ulBuflen);
+   pvaNew->ulArraySize = ulBuflen;
+   pvaNew->ulCount = ulKeyCount;
+   pvaResult = pvaNew;
 
+   // remove values from old array, that we want to readd
+   if (pva)
+      {
+      pszKey = szKeyList;
+      while (*pszKey)
+         {
+         // 
+         ppszOldAnchor = bsearch( &pszKey, pva->apszValue, pva->ulCount, sizeof( PSZ), _compareValue);
+         if (ppszOldAnchor)
+            **ppszOldAnchor = 0;
 
-   // create array
-   pva->ulCount = ulKeyCount;
-   ppszAnchor   = pva->apszValue;
-   pszEntry     = (PSZ) pva->apszValue + (ulKeyCount * sizeof( PSZ));
+         // next key
+         pszKey = NEXTSTR( pszKey);
+         }
+      } // if (pva)
+
+   // transfer existing entries
+   ppszAnchor   = pvaNew->apszValue;
+   pszEntry     = (PSZ) pvaNew->apszValue + (ulKeyCount * sizeof( PSZ));
+   if (pva)
+      {
+      for ( i = 0, ppszOldAnchor = pva->apszValue; i < pva->ulCount; i++, ppszOldAnchor++, ppszAnchor++)
+         {
+         // store entry
+         pszOldEntry = *ppszOldAnchor;
+         if (!*pszOldEntry)
+            continue;
+
+         *ppszAnchor = pszEntry;
+         strcpy( pszEntry, pszOldEntry);
+
+         pszEntry = NEXTSTR( pszEntry);
+         pszOldEntry = NEXTSTR( pszOldEntry);
+
+         strcpy( pszEntry, pszOldEntry);
+         }
+      }
+
+   // add new values to array
+   // duplicates are now removed
    pszKey = szKeyList;
    while (*pszKey)
       {
       // store entry
       *ppszAnchor = pszEntry;
+
       strcpy( pszEntry, pszKey);
       pszEntry = NEXTSTR( pszEntry);
+
       QUERYINITVALUE( hinit, pszSection, pszKey, szKeyValue);
       strcpy( pszEntry, szKeyValue);
       pszEntry = NEXTSTR( pszEntry);
+
+//    DPRINTF(( "HILITE: array: store %s=%s\n", pszKey, szKeyValue));
 
       // next key
       ppszAnchor++;
@@ -408,8 +474,11 @@ do
       }
 
    // sort the entries
-   qsort( pva->apszValue, pva->ulCount, sizeof( PSZ), _compareValue);
+   qsort( pvaNew->apszValue, pvaNew->ulCount, sizeof( PSZ), _compareValue);
 
+   // throw away the old array
+   if (pva)
+      free( pva);
 
    } while (FALSE);
 
@@ -438,6 +507,26 @@ do
 
 return pszResult;
 
+}
+
+// -----------------------------------------------------------------------------
+
+static VOID _dumpInitValueArray( PVALUEARRAY pva)
+{
+
+
+         PSZ           *ppszEntry = pva->apszValue;
+         PSZ            pszEntry;
+         ULONG          i;
+
+printf( "\n\nSymbols from array at 0x%08x:\n", pva);
+
+for (i = 0; i < pva->ulCount; i++)
+   {
+   pszEntry =  *ppszEntry;
+   printf( "-> %s %s\n", *ppszEntry, NEXTSTR( *ppszEntry));
+   ppszEntry++;
+   }
 }
 
 // #############################################################################
@@ -513,22 +602,28 @@ static   PSZ            pszHeaderMask = "þ%s\r\n";  // take 'þ' character as com
          CHAR           szLine[ 1024];
          PSZ            pszLine;
          CHAR           szCurrentSection[ 64];
-         PSZ            pszCurrentColors;
+         PSZ            pszCurrentSectionColors;
+         CHAR           szEntryColors[32];
+         BOOL           fEntryColors;
 
 // keep these definitions in sync !!!
-         ULONG          ulSpecialSection;
-         PSZ            apszSpecialSections[] = {"", "SPECIAL", "OPERATOR", "BREAKCHAR", "ENDCHAR"};
+         ULONG          ulSectionIndex;
+         PSZ            apszSpecialSections[] = {"", "COMMENT", "LITERAL", "SPECIAL", "OPERATOR", "BREAKCHAR", "ENDCHAR"};
 #define  COUNT_SPECIALSECTION (sizeof( apszSpecialSections) / sizeof( PSZ))
 #define  SECTION_DEFAULT   0
-#define  SECTION_SPECIAL   1
-#define  SECTION_OPERATOR  2
-#define  SECTION_BREAKCHAR 3
-#define  SECTION_ENDCHAR   4
+#define  SECTION_COMMENT   1
+#define  SECTION_LITERAL   2
+#define  SECTION_SPECIAL   3
+#define  SECTION_OPERATOR  4
+#define  SECTION_BREAKCHAR 5
+#define  SECTION_ENDCHAR   6
 
 
          PSZ            pszStartStr;
          PSZ            pszStopStr;
          PSZ            pszBreakStr;
+
+         ULONG          ulThisSectionIndex;
 
          // ----------------------------------
 
@@ -559,8 +654,30 @@ do
    if (rc != NO_ERROR)
       break;
 
-   pvaColors = _createInitValueArray( hinitGlobals, pszColorsSection);
-   pvaSymbols = _createInitValueArray( hinitGlobals, pszSymbolsSection);
+   pvaColors = _maintainInitValueArray( hinitGlobals, pszColorsSection, NULL);
+   pvaSymbols = _maintainInitValueArray( hinitGlobals, pszSymbolsSection, NULL);
+
+
+   // - read defaults of the mode
+   rc = _openInitFile( &hinitDefault, "EPMKEYWORDPATH", "%s\\default.ini", pszEpmMode);
+   if (rc != NO_ERROR)
+      break;
+
+   QUERYINITVALUE( hinitDefault, pszGlobalSection, "CHARSET",       szCharset);
+   QUERYINITVALUE( hinitDefault, pszGlobalSection, "DEFEXTENSIONS", szDefExtensions);
+   QUERYINITVALUE( hinitDefault, pszGlobalSection, "CASESENSITIVE", szValue);
+   fCaseSensitive = atol( szValue);
+
+   // -----------------------------------------------
+
+   _dumpInitValueArray( pvaSymbols);
+
+   // add/replace with symbols from <mode>\global.ini
+// pvaSymbols = _maintainInitValueArray( hinitDefault, pszSymbolsSection, pvaSymbols);
+
+   _dumpInitValueArray( pvaSymbols);
+
+   // -----------------------------------------------
 
    // replace color values in symbol defs
    ppszEntry = pvaSymbols->apszValue;
@@ -569,6 +686,7 @@ do
 
                PSZ            pszValueBuf;
                ULONG          ulValueLen;
+               PSZ            pszValue;
 
       // loop through all symbols
       pszEntry =  *ppszEntry;
@@ -588,8 +706,10 @@ do
                                     _compareValue);
          if (ppszSymbolValue)
             {
+            pszValue = NEXTSTR( *ppszSymbolValue);
             strcat( szValue, " ");
-            strcat( szValue, NEXTSTR( *ppszSymbolValue));
+            strcat( szValue, pszValue);
+//          DPRINTF(( "HILITE: %s: %s -> %s\n", pszEntry, pszSymbol, pszValue));
             }
 
          // next symbol
@@ -597,40 +717,13 @@ do
          }
 
       // check buffer
+      _stripblanks( szValue);
       if (strlen( szValue) <= ulValueLen)
          strcpy( pszValueBuf, szValue);
 
       // next entry
       ppszEntry++;
       }
-
-// #######
-#ifdef DEBUG
-   {
-   PSZ *ppszEntry = pvaSymbols->apszValue;
-   PSZ pszEntry;
-   ULONG i;
-
-   printf( "Symbols:\n");
-   for (i = 0; i < pvaSymbols->ulCount; i++)
-      {
-      pszEntry =  *ppszEntry;
-      printf( "-> %s %s\n", *ppszEntry, NEXTSTR( *ppszEntry));
-      ppszEntry++;
-      }
-   }
-#endif
-// #######
-
-   // - read defaults of the mode
-   rc = _openInitFile( &hinitDefault, "EPMKEYWORDPATH", "%s\\default.ini", pszEpmMode);
-   if (rc != NO_ERROR)
-      break;
-
-   QUERYINITVALUE( hinitDefault, pszGlobalSection, "CHARSET",       szCharset);
-   QUERYINITVALUE( hinitDefault, pszGlobalSection, "DEFEXTENSIONS", szDefExtensions);
-   QUERYINITVALUE( hinitDefault, pszGlobalSection, "CASESENSITIVE", szValue);
-   fCaseSensitive = atol( szValue);
 
    // -----------------------------------------------
 
@@ -722,7 +815,7 @@ do
          DPRINTF(( "HILITE: process file %s\n", pszSourceFile));
          pfile = fopen( pszSourceFile, "r");
          szCurrentSection[ 0] = 0;
-         pszCurrentColors = 0;
+         pszCurrentSectionColors = 0;
          pszLine = szLine;
          ulLineCount = 0;
 
@@ -756,23 +849,23 @@ do
 
                // if there exists a symbol, store values
                strupr( pszLine);
-               pszCurrentColors = _queryInitValue( pvaSymbols, pszLine);
-               if (pszCurrentColors)
+               pszCurrentSectionColors = _queryInitValue( pvaSymbols, pszLine);
+               if (pszCurrentSectionColors)
                   {
                   strcpy( szCurrentSection, strupr( pszLine));
-                  DPRINTF(( "HILITE: - process section %s with colors: %s\n", szCurrentSection, pszCurrentColors));
+//                DPRINTF(( "HILITE: - process section %s with colors: %s\n", szCurrentSection, pszCurrentSectionColors));
                   }
                else
                   DPRINTF(( "HILITE: - error: skipping invalid section %s from line %u on\n", pszLine, ulLineCount));
 
                // check if the values of the current symbol belong to a special section
-               ulSpecialSection = 0;
+               ulSectionIndex = 0;
                for (i = 1; i < COUNT_SPECIALSECTION; i++)
                   {
                   if (!strcmp( apszSpecialSections[ i], szCurrentSection))
                      {
-                     ulSpecialSection = i;
-                     DPRINTF(( "HILITE: - special section recognized, index %u\n", ulSpecialSection));
+                     ulSectionIndex = i;
+//                   DPRINTF(( "HILITE: - special section recognized, index %u\n", ulSectionIndex));
                      }
                   }
 
@@ -780,7 +873,7 @@ do
                }
 
             // from here, skip line if no valid section has been found
-            if (!pszCurrentColors)
+            if (!pszCurrentSectionColors)
                continue;
 
             // tokenize line
@@ -794,39 +887,88 @@ do
                continue;
                }
 
-            // if stop string is given, it always is a delimiter
-            if (pszStopStr)
+            // change section index for this section to comment
+            // if stopstr is given and is no color symbol
+            fEntryColors = FALSE;
+            strcpy( szEntryColors, pszCurrentSectionColors);
+            if ((pszStopStr) &&
+                (ulSectionIndex != SECTION_COMMENT) &&
+                (ulSectionIndex != SECTION_LITERAL))
                {
-               sprintf( pszCurrentDelimiter, "%s %s %s %s\r\n",
-                        pszStartStr, pszCurrentColors, pszStopStr, (pszBreakStr) ? pszBreakStr : "");
-               pszCurrentDelimiter = _EOS( pszCurrentDelimiter);
-               continue;
+               do
+                  {
+                  // replace symbol with color value
+                  p = _queryInitValue( pvaSymbols, pszStopStr);
+                  if (p)
+                     {
+                     strcpy( szEntryColors, p);
+                     fEntryColors = TRUE;
+                     break;
+                     }
+
+                  // replace two color names with color values
+                  if (!pszBreakStr) // we need two color names
+                     break;
+                  p = _queryInitValue( pvaColors, pszStopStr);
+                  if (p)
+                     sprintf( szEntryColors, "%s ", p);
+                  else
+                     break;
+                  p = _queryInitValue( pvaColors, pszBreakStr);
+                  if (p)
+                     {
+                     strcat( szEntryColors, p);
+                     fEntryColors = TRUE;
+                     }
+                  else
+                     strcpy( szEntryColors, pszCurrentSectionColors); // reset here
+                  } while (FALSE);
                }
 
             // handle different sections
-            switch (ulSpecialSection)
+            switch (ulSectionIndex)
                {
                case SECTION_DEFAULT:
-                  sprintf( pszCurrentKeywords, "%s %s\r\n", pszStartStr, pszCurrentColors);
+                  sprintf( pszCurrentKeywords, "%s %s\r\n", pszStartStr, szEntryColors);
+                  pszCurrentKeywords = _EOS( pszCurrentKeywords);
+                  break;
+
+               case SECTION_COMMENT:
+               case SECTION_LITERAL:
+                  sprintf( pszCurrentDelimiter, "%s %s",
+                           pszStartStr, szEntryColors);
+                  if (pszStopStr)
+                     sprintf( _EOS( pszCurrentDelimiter), " %s", pszStopStr);
+                  if (pszBreakStr)
+                     sprintf( _EOS( pszCurrentDelimiter), " %s", pszBreakStr);
+                  strcat( pszCurrentDelimiter, "\r\n");
+                  pszCurrentDelimiter = _EOS( pszCurrentDelimiter);
                   pszCurrentKeywords = _EOS( pszCurrentKeywords);
                   break;
 
                case SECTION_SPECIAL:
                case SECTION_OPERATOR:
-                  sprintf( pszCurrentSpecial, "%s %s\r\n", pszStartStr, pszCurrentColors);
+                  sprintf( pszCurrentSpecial, "%s %s\r\n", pszStartStr, szEntryColors);
                   pszCurrentSpecial = _EOS( pszCurrentSpecial);
                   break;
 
                case SECTION_BREAKCHAR:
-                  sprintf( pszCurrentBreakChar, "%s\r\n", pszStartStr);
+                  sprintf( pszCurrentBreakChar, "%s", pszStartStr);
+                  if (fEntryColors)
+                     sprintf( _EOS( pszCurrentBreakChar), " %s", szEntryColors);
+                  strcat( pszCurrentBreakChar, "\r\n");
                   pszCurrentBreakChar = _EOS( pszCurrentBreakChar);
                   break;
 
                case SECTION_ENDCHAR:
-                  sprintf( pszCurrentEndChar, "%s\r\n", pszStartStr);
+                  sprintf( pszCurrentEndChar, "%s", pszStartStr);
+                  if (fEntryColors)
+                     sprintf( _EOS( pszCurrentEndChar), " %s", szEntryColors);
+                  strcat( pszCurrentEndChar, "\r\n");
                   pszCurrentEndChar = _EOS( pszCurrentEndChar);
                   break;
-               }
+
+               } // switch (ulThisSectionIndex)
 
             } // while (!feof( pinit->pfile))
 
@@ -847,7 +989,8 @@ do
                          (pszCurrentKeywords  - pszSectionKeywords)  +
                          (pszCurrentSpecial   - pszSectionSpecial)   +
                          (pszCurrentBreakChar - pszSectionBreakChar) +
-                         (pszCurrentEndChar   - pszSectionEndChar);
+                         (pszCurrentEndChar   - pszSectionEndChar)   +
+                         (strlen( szCharset) + 32);
 
    DPRINTF(( "- total len of all hilite data is: %u\n", ulHiliteContentsLen));
 
@@ -859,16 +1002,23 @@ do
    if (rc != NO_ERROR)
       break;
 
-   DPRINTF(( "- allocated buffer at 0x%08x, len %u, end address 0x%08x\n",
-             pszHiliteContents, ulHiliteContentsLen, pszHiliteContents + ulHiliteContentsLen));
+// DPRINTF(( "- allocated buffer at 0x%08x, len %u, end address 0x%08x\n",
+//           pszHiliteContents, ulHiliteContentsLen, pszHiliteContents + ulHiliteContentsLen));
 
    pszCurrent = pszHiliteContents;
+
+   // first of all write CHARSET
+   sprintf( pszCurrent, pszHeaderMask, "CHARSET");
+// DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
+   pszCurrent = _EOS( pszCurrent);
+   sprintf( pszCurrent, "%s\r\n", szCharset);
+   pszCurrent = _EOS( pszCurrent);
 
    // add all sections, if something in it
    if (pszCurrentDelimiter - pszSectionDelimiter)
       {
       sprintf( pszCurrent, pszHeaderMask, (fCaseSensitive) ? "DELIM"    : "DELIMI");
-      DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
+//    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionDelimiter);
       pszCurrent = _EOS( pszCurrent);
@@ -877,7 +1027,7 @@ do
    if (pszCurrentKeywords  - pszSectionKeywords)
       {
       sprintf( pszCurrent, pszHeaderMask, (fCaseSensitive) ? "KEYWORDS" : "INSENSITIVE");
-      DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
+//    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionKeywords);
       pszCurrent = _EOS( pszCurrent);
@@ -886,7 +1036,7 @@ do
    if (pszCurrentSpecial   - pszSectionSpecial)
       {
       sprintf( pszCurrent,  pszHeaderMask, (fCaseSensitive) ? "SPECIAL"  : "SPECIALI");
-      DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
+//    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionSpecial);
       pszCurrent = _EOS( pszCurrent);
@@ -895,7 +1045,7 @@ do
    if (pszCurrentBreakChar - pszSectionBreakChar)
       {
       sprintf( pszCurrent,  pszHeaderMask, "BREAK");
-      DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
+//    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionBreakChar);
       pszCurrent = _EOS( pszCurrent);
@@ -904,7 +1054,7 @@ do
    if (pszCurrentEndChar   - pszSectionEndChar)
       {
       sprintf( pszCurrent,  pszHeaderMask, "ENDCHAR");
-      DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
+//    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionEndChar);
       pszCurrent = _EOS( pszCurrent);
@@ -913,11 +1063,11 @@ do
    // set filesize
    ulHiliteContentsLen = strlen( pszHiliteContents);
    rc = MmfSetSize( pszHiliteContents, ulHiliteContentsLen);
-   DPRINTF(( "-  setting filesize to size of %u bytes, rc=%u\n", ulHiliteContentsLen, rc));
+// DPRINTF(( "-  setting filesize to size of %u bytes, rc=%u\n", ulHiliteContentsLen, rc));
 
    // write temporary file
    rc = MmfUpdate( pszHiliteContents);
-   DPRINTF(( "-  update file, rc=%u\n", rc));
+// DPRINTF(( "-  update file, rc=%u\n", rc));
 
 
    } while (FALSE);
@@ -985,7 +1135,6 @@ do
 
    // hand over result
    strcpy( pszBuffer, szValue);
-   DPRINTF(( "HILITE: keywordfile is: %s\n", szValue));
 
    } while (FALSE);
 
