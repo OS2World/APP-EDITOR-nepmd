@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.58 2004-07-02 12:57:15 aschn Exp $
+* $Id: nepmdlib.c,v 1.59 2004-07-03 12:11:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -885,7 +885,7 @@ do
       break;
       }
 
-   printf( "pmprintf  %s\n", pszText);
+   printf( "%s\n", pszText);
 
    } while (FALSE);
 
