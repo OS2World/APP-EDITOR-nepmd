@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.rch,v 1.4 2002-06-09 22:01:48 cla Exp $
+* $Id: recomp.rch,v 1.5 2002-06-10 10:32:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -42,12 +42,14 @@
 #define IDTXT_RECOMPILE_EPM                 0x103
 #define IDTXT_CLOSE_EPMWINDOWS              0x104
 #define IDTXT_RELOAD_FILES                  0x105
+#define IDTXT_LOADLOG                       0x106
 
 #define IDBLT_PREPARE                       0x110
 #define IDBLT_SAVE_FILELISTS                0x111
 #define IDBLT_CLOSE_EPMWINDOWS              0x112
 #define IDBLT_RECOMPILE_EPM                 0x113
 #define IDBLT_RELOAD_FILES                  0x114
+#define IDBLT_LOADLOG                       0x115
 
 #define IDDLG_INFO                          0x200
 
