@@ -14,7 +14,7 @@
 #define IDT_IDDLG_INFO                           __APPNAME__ " - Product Information"
 #define IDT_IDTXT_PROGRAMVERSION                 __APPNAME__ " " __VERSION__
 #define IDT_IDTXT_DESCRIPTION                    "EPM recompilation utility"
-#define IDT_IDTXT_COPYRIGHT                      "Copyright (c) " __YEAR__ " by the",
+#define IDT_IDTXT_COPYRIGHT                      "Copyright (c) " __YEAR__ " by the"
 #define IDT_IDTXT_OPENSOURCE                     "Netlabs Open Source Project"
 #define IDT_IDTXT_PROJECTNAME                    "Netlabs EPM Distribution"
 #define IDT_IDTXT_HOMEPAGE                       __HOMEPAGE__
