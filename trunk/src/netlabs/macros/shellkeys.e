@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: shellkeys.e,v 1.2 2005-03-13 14:36:54 aschn Exp $
+* $Id: shellkeys.e,v 1.3 2005-03-29 20:49:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -33,37 +33,71 @@
 ; EPM_SHELL_PROMPT = '@prompt epm: $p $g'
 ; WANT_EPM_SHELL = 1
 
+; ---------------------------------------------------------------------------
+; Tab must not be defined as accelerator key, because otherwise
+; lastkey(2) and lastkey(3) would return wrong values for Tab.
+; lastkey() = lastkey(0) and lastkey(1) for Tab doesn't work in EPM!
+; When Sh is pressed, lastkey() is set to Sh. While Sh is down and
+; Tab is pressed additionally, lastkey is set to Sh+Tab and lastkey(2)
+; is set to Sh. Therefore querying lastkey(2) to determine if Tab was
+; pressed before doesn't work for any key combination!
+defc TabComplete
+   universal shellfnc_starting_keyset
+   if .keyset <> 'SHELLFNC_KEYS' then
+      shellfnc_starting_keyset = upcase(.keyset)
+      'SetKeys shellfnc_keys'
+      'deleteaccel'  -- required to reset really all keys
+      -- Block actionbar accelerators and alt keys doesn't work now!
+      'ShellFncInit'
+   endif
+   'ShellFncComplete'
 
-defproc PromptPos
-   shellnum = ''
-   if leftstr( .filename, 15) = '.command_shell_' then
-      shellnum = substr( .filename, 16)
-   else
-      return 0
+; ---------------------------------------------------------------------------
+defc ShTabComplete
+   universal shellfnc_starting_keyset
+   if .keyset <> 'SHELLFNC_KEYS' then
+      shellfnc_starting_keyset = upcase(.keyset)
+      'SetKeys shellfnc_keys'
+      'deleteaccel'  -- required to reset really all keys
+      -- Block actionbar accelerators and alt keys doesn't work now!
+      'ShellFncInit'
    endif
-   line = arg(1)
-   if line = '' then
-      getline line
-   endif
-compile if not (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   return 1
-compile endif
-compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-   x = pos( '>',line)
-compile else
-   x = pos( ']',line)
-compile endif
-   text = substr( line, x + 1)
-compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-   if leftstr( line, 5)='epm: ' & x & shellnum /*& text<>''*/ then
-compile else
-   if leftstr( line, 6)='[epm: ' & x & shellnum /*& text<>''*/ then
-compile endif
-      return x
+   'ShellFncComplete -'
+
+; ---------------------------------------------------------------------------
+; Define an own keyset for filename completion:
+defkeys shellfnc_keys new clear  -- start with an empty keyset
+
+def tab
+   'TabComplete'
+
+def s_tab
+   'ShTabComplete'
+
+-- Any other key will leave the SHELLFNC_KEYS keyset
+def otherkeys
+   universal shellfnc_starting_keyset
+   k = lastkey()
+;    if length(k) = 1 then
+;       ch = 'chr('asc(k)')'
+;    else
+;       ch = "x'"rightstr( itoa( leftstr( k, 1)\0,   16), 2, 0) ||
+;                rightstr( itoa( substr( k, 2, 1)\0, 16), 2, 0)"'"
+;    endif
+;    sayerror ch
+   -- Ignore the following keys
+   if     k = \10\18 then  -- Ctrl
+   elseif k = \09\10 then  -- Shift
+   elseif k = \11\34 then  -- Alt
+   elseif k = \12\02 then  -- AltGr (right Alt)
    else
-      return 0
+      'SetKeys' shellfnc_starting_keyset
+      'loadaccel'
+      --sayerror 'Back to keyset' .keyset
+      executekey k
    endif
 
+; ---------------------------------------------------------------------------
 defkeys shell_keys overlay  -- we want to keep old key defs
 
 ; Moved from ENTER.E:
@@ -83,40 +117,12 @@ def padenter =
  compile endif
 
 defproc shell_enter_routine(xxx_enterkey)
-; ###### Todo: Save .line and .col for every shell separately ######
-   universal ShellAppWaiting
    if leftstr(.filename, 15) = ".command_shell_" then
-      shellnum = substr( .filename, 16)
-      if PromptPos() then
-         getline line
-         x = PromptPos()
-         text = substr( line, x + 1)
-         if .line = .last then
-            .col = x + 1
-            erase_end_line
-         endif
-         'shell_write' shellnum text
-      elseif words( ShellAppWaiting) = 2 then
-         parse value ShellAppWaiting with lastl lastc
-         text = ''
-         l = lastl
-         do while l <= .line
-            getline line, l
-            if l = lastl then
-               startc = lastc
-            else
-               startc = 1
-            endif
-            text = text''substr( line, startc)
-            if l = .last then
-               insertline '', .last + 1
-               leave
-            else
-               l = l + 1
-            endif
-         enddo
-         'shell_write' shellnum text
-      else
+      rc = ShellEnterWrite()
+      if rc then
+         rc = ShellEnterWriteToApp()
+      endif
+      if rc then
          call enter_common(xxx_enterkey)
       endif
    else
@@ -126,48 +132,27 @@ defproc shell_enter_routine(xxx_enterkey)
 compile else
 
 def enter, pad_enter, a_enter, a_pad_enter, s_enter, s_padenter
-; ###### Todo: Save .line and .col for every shell separately ######
-   universal ShellAppWaiting
    if leftstr( .filename, 15) = '.command_shell_' then
-      shellnum = substr( .filename, 16)
-      if PromptPos() then
-         getline line
-         x = PromptPos()
-         text = substr( line, x + 1)
-         if .line = .last then
-            .col = x + 1
-            erase_end_line
-         endif
-         'shell_write' shellnum text
-      elseif words( ShellAppWaiting) = 2 then
-         parse value ShellAppWaiting with lastl lastc
-         text = ''
-         l = lastl
-         do while l <= .line
-            getline line, l
-            if l = lastl then
-               startc = lastc
-            else
-               startc = 1
-            endif
-            text = text''substr( line, startc)
-            if l = .last then
-               insertline '', .last + 1
-               leave
-            else
-               l = l + 1
-            endif
-         enddo
-         'shell_write' shellnum text
-      else
+      rc = ShellEnterWrite()
+      if rc then
+         rc = ShellEnterWriteToApp()
+      endif
+      if rc then
          call my_enter()
       endif
    endif
 
 compile endif  -- ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
 
-def esc
-   'shell_commandline'
+; Not used anymore, since we can always write directly into the shell window:
+;def esc
+;   'shell_commandline'
+
+def tab
+   'TabComplete'
+
+def s_tab
+   'ShTabComplete'
 
 ; From Joerg Tiemann's SHELLKRAM.E:
 

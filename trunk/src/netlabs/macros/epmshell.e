@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.8 2005-03-13 14:36:53 aschn Exp $
+* $Id: epmshell.e,v 1.9 2005-03-29 20:49:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,49 +24,18 @@
 ; so-far-defined defmodify event defs.
 
 ; ---------------------------------------------------------------------------
-; ShellKram macros added. See SHELLKEYS.E for key definitions.
+; Some ShellKram macros added. See SHELLKEYS.E for key definitions.
 ; SHELLKRAM.E was available from Joerg Tiemann's homepage some years ago:
 ; http://home.foni.net/~tiemannj/epm/index.html
 ; See his pages for documentation.
 
-; Todo:
-; Filename completion disabled. Finds currently only first occurence with
-; NEPMD. NEPMD's procs for file search (NepmdGetNextFile) should be used,
-; to make the code more readable.
-
-/* Set the following two configuration constants */
-const
-compile if not defined(WANT_DIR_BACKSLASH)
-   WANT_DIR_BACKSLASH = 1
-   -- (0/1) directory names are while being completed:
-   --  0 - left as they are
-   --       Disadvantage: more typing in most cases
-   --  1 - terminated with an backslash
-   --       Disadvantage: cd and rd don't work with 'dir\' (jcd.cmd does!)
-compile endif
-compile if not defined(WANT_EXT_WILDCARD)
-   WANT_EXT_WILDCARD = 0
-   -- (0/1) a searchmask already provided with an extension
-   --  0 - does not get extended with an '*'
-   --      Example: *.htm will only find *.htm and not *.html
-   --  1 - gets extendes with an '*'
-   --       Examples: *.e becomes *.e*, which finds all *.e, *.exe, *.eps, ...
-compile endif
-
-/* Display the About dialog */
-defc esk_About=
-   r = WinMessageBox( 'About EPM Shellkram',
-                      'EPM Shellkram v.0.88 beta'\10 ||
-                      'Wed, 3 Oct 2001'\10 ||
-                      'Copyright (c) 1998-2001 by Joerg Tiemann'\10 ||
-                      'Joerg Tiemann <tiemannj@gmx.de>', 16432)
-
-; ---------------------------------------------------------------------------
 
 compile if WANT_EPM_SHELL='HIDDEN' & not defined(HP_COMMAND_SHELL)
    include 'MENUHELP.H'
 compile endif
 
+; ---------------------------------------------------------------------------
+; Write to current shell the text of current line, starting at cursor
 defc sendshell =
    if leftstr( .filename, 15) <> '.command_shell_' then
       sayerror NOT_IN_SHELL__MSG
@@ -286,6 +255,9 @@ defc NowCanWriteShell
 -------------------------------------------------------------NowCanReadShell-------------
 ; Shell object sends this command to inform the editor that there is
 ; additional data to be read.
+; Fixed to handle LF-terminated lines correctly.
+; Recognize if an app is waiting for user input (then last line is not the EPM prompt).
+; Set ShellAppWaitung to 0 or to line and col.
 ; Right margin setting of current shell is not respected.
 defc NowCanReadShell
    universal EPM_utility_array_ID
@@ -307,13 +279,19 @@ defc NowCanReadShell
       if readbuf = \13
          then iterate           -- ignore CR
       endif
-
       -- SUE_readln doesn't handle LF as line end, received from the app.
       -- It won't initiate a NowCanReadShell at Unix line ends.
       -- Therefore it must be parsed here again.
       -- BTW: MORE.COM has the same bug.
       rest = readbuf
-      do while rest <> ''
+      -- "do while rest <> ''" is too slow here. It has caused following issue:
+      -- The prompt after executing a start command (maybe "start epm config.sys")
+      -- changed to "epm:F:\>" instead of "epm: F:\ >". This should be fixed now.
+      -- But the main problem still remains (EPM bug):
+      -- After a "start epm" command, SUE_readln sends all data very slowly, sometimes
+      -- byte per byte. This can be checked by undoing the output of a "dir" command.
+      -- A new undo state is created for every line of the dir output then.
+      do forever
          -- Search for further <LF> chars; <LF> at pos 1 is handled
          -- by the original code itself
          p = pos( \10, rest, 2)
@@ -324,7 +302,6 @@ defc NowCanReadShell
             next = rest
             rest = ''
          endif
-
          if leftstr( next, 1) = \10 then  -- LF is lineend
             insertline substr( next, 2), shellfid.last+1, shellfid
          else
@@ -337,7 +314,11 @@ defc NowCanReadShell
          endif
          getline lastline, shellfid.last, shellfid
          shellfid.line = shellfid.last
-         shellfid.col = min( MAXCOL,length(lastline) + 1)
+         shellfid.col = min( MAXCOL, length(lastline) + 1)
+         -- Following added because "do while rest <> ''" was too slow:
+         if rest = '' then
+            leave
+         endif
       enddo
    endwhile
 
@@ -359,6 +340,118 @@ compile endif -- EPM_SHELL_PROMPT
       ShellAppWaiting = shellfid.line shellfid.col
 ;      sayerror 'app waiting for input or further output will follow'
    endif
+
+; ---------------------------------------------------------------------------
+; Write user input to the shell if EPM prompt is in current line.
+; Enhanced for filename completion. Prepend 'cd ' to input if a directory.
+; Remove trailing \ from directories for 'cd'.
+; Works with spaces in filenames and surrounding "...".
+; Returns 0 on success; 1 when not on a EPM prompt line.
+; ####################################################################
+; Todo:
+;    Add workaround for "start epm" and "start epm /r"
+defproc ShellEnterWrite
+   shellnum = substr( .filename, 16)
+   ret = 1
+   if PromptPos() then
+      getline line
+      x = PromptPos()
+      Text = substr( line, x + 1)
+      Text = strip( Text, 'L')
+
+      -- Get last word or "..."
+      CmdWord = ''
+      CmdPiece = ''
+      FilePiece = ''
+      lp = ''
+      if rightstr( Text, 1) = '"' then
+         -- FilePiece is last word in "..."
+         next = leftstr( Text, length( Text) - 1)  -- strip last "
+         lp = lastpos( '"', next)
+         FilePiece = substr( Text, lp + 1, length( Text) - lp - 1)
+         if lp > 1 then
+            CmdPiece = leftstr( Text, lp - 1)
+            if pos( ' ', strip( CmdPiece)) then
+               CmdWord = word( Text, 1)
+            endif
+         endif
+      else
+         -- FilePiece is last word
+         if words( Text) = 1 then
+            -- No CmdWord
+            FilePiece = Text
+         elseif words( Text) > 1 then
+            CmdWord   = word( Text, 1)
+            FilePiece = lastword( Text)
+            lp = wordindex( Text, words( Text))
+            CmdPiece  = leftstr( Text, lp - 1)
+         endif
+      endif
+      --dprintf( 'ShellEnter', 'CmdWord = ['CmdWord'], CmdPiece = ['CmdPiece'], FilePiece = ['FilePiece'], lp = 'lp)
+      if upcase( CmdWord) = 'CD' then
+         -- Remove trailing \ for cd command
+         if (rightstr( FilePiece, 2, 2) <> ':\') &
+            (rightstr( FilePiece, 1) = '\') &
+            (FilePiece <> '\') then
+            FilePiece = leftstr( FilePiece, length( FilePiece) - 1)
+         endif
+      elseif CmdWord = '' then
+         -- Add cd command
+         -- Remove trailing \ for cd command
+         if (rightstr( FilePiece, 2, 2) <> ':\') &
+            (rightstr( FilePiece, 1) = '\') &
+            (upcase( FilePiece) <> 'CD\') then
+            FilePiece = leftstr( FilePiece, length( FilePiece) - 1)
+            CmdPiece = 'cd '
+         endif
+      endif
+      if pos( ' ', FilePiece) then
+         FilePiece = '"'FilePiece'"'
+      endif
+      Text = CmdPiece''FilePiece
+
+      if .line = .last then
+         .col = x + 1
+         erase_end_line
+      endif
+      'shell_write' shellnum text
+      ret = 0
+   endif
+   return ret
+
+; ---------------------------------------------------------------------------
+; Write user input to a prompting (waiting) app.
+; Use ShellAppWaiting, that holds line and col from last write of the shell
+; object to the EPM window, set in defc NowCanReadShell.
+; Returns 0 on success; 1 when no app is waiting.
+defproc ShellEnterWriteToApp
+; ###### Todo: Save .line and .col for every shell separately ######
+   universal ShellAppWaiting
+   shellnum = substr( .filename, 16)
+   ret = 1
+   if words( ShellAppWaiting) = 2 then
+      parse value ShellAppWaiting with lastl lastc
+      text = ''
+      l = lastl
+      do while l <= .line
+         getline line, l
+         if l = lastl then
+            startc = lastc
+         else
+            startc = 1
+         endif
+         text = text''substr( line, startc)
+         if l = .last then
+            insertline '', .last + 1
+            leave
+         else
+            l = l + 1
+         endif
+      enddo
+      'shell_write' shellnum text
+      ret = 0
+   endif
+   return ret
 
 -------------------------------------------------------------SUE_new---------------------
 ; Called from Shell command
@@ -463,6 +556,347 @@ defc shell_commandline
    endif
    'commandline shell_write 'shellnum' 'text
 
+; ---------------------------------------------------------------------------
+; Returns 0 if not a shell,
+; otherwise the .col for the end of the prompt (> or ]).
+defproc PromptPos
+   shellnum = ''
+   if leftstr( .filename, 15) = '.command_shell_' then
+      shellnum = substr( .filename, 16)
+   else
+      return 0
+   endif
+   line = arg(1)
+   if line = '' then
+      getline line
+   endif
+compile if not (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
+   return 1
+compile endif
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
+   x = pos( '>',line)
+compile else
+   x = pos( ']',line)
+compile endif
+   text = substr( line, x + 1)
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
+   if leftstr( line, 5)='epm: ' & x & shellnum /*& text<>''*/ then
+compile else
+   if leftstr( line, 6)='[epm: ' & x & shellnum /*& text<>''*/ then
+compile endif
+      return x
+   else
+      return 0
+   endif
+
+; ---------------------------------------------------------------------------
+; Filename completion like in 4os2.
+; Difference in sorting order: dirs come first and executables are sorted
+; according to their appearance in EXE_MASK_LIST
+const
+compile if not defined(FNC_EXE_MASK_LIST)
+   FNC_EXE_MASK_LIST      = '*.cmd *.exe *.com *.bat'
+compile endif
+compile if not defined(FNC_DIR_ONLY_CMD_LIST)
+   FNC_DIR_ONLY_CMD_LIST  = 'CD'
+compile endif
+compile if not defined(FNC_FILE_ONLY_CMD_LIST)
+   FNC_FILE_ONLY_CMD_LIST = ''
+compile endif
+
+defc ShellFncInit
+   if leftstr( .filename, 15) = '.command_shell_' then
+      shellnum = substr( .filename, 16)
+   else
+      return
+   endif
+   x = PromptPos()
+   if not x then
+      return
+   endif
+   getline Line
+   Prompt = leftstr( Line, x)
+   PromptChar = substr( Prompt, x, 1)
+   parse value Prompt with 'epm:' ShellDir (PromptChar)
+   ShellDir = strip( ShellDir)
+   -- Get the part of the line between prompt and cursor
+   Text = substr( Line, x + 1, .col - 1 - x)
+   -- Strip leading spaces only, because a trailing space identifies the word before
+   -- to have ended:
+   --    > dir |   ->   dir *
+   --    > dir|    ->   dir*   (this will search for names starting with dir)
+   Text = strip( Text, 'L')
+
+   -- Todo:
+   -- Find expression starting with ':\' or '\\' (FilePieth may be part of a parameter,
+   -- e.g. -dd:\os2\apps or -d:d:\os2\apps)
+
+   CmdPiece  = ''
+   CmdWord   = ''
+   FilePiece = ''
+   -- Parse into CmdPiece and FilePiece
+; Todo:
+; Make options with filenames, not followed by a space, work
+; app.exe -d*  -> CmdPiece = 'app.exe -d', FilePiece = '*'
+   if rightstr( Text, 1) == ' ' then
+      -- No FilePiece
+      if words( Text) > 0 then
+         CmdWord   = word( Text, 1)
+         CmdPiece  = Text
+      endif
+   elseif rightstr( Text, 1) = '"' then
+      -- FilePiece is last word in "..."
+      next = leftstr( Text, length( Text) - 1)  -- strip last "
+      lp = lastpos( '"', next)
+      --dprintf( 'TabComplete', 'Text = ['Text'], lp = 'lp)
+      FilePiece = substr( Text, lp + 1, length( Text) - lp - 1)
+      if lp > 1 then
+         CmdPiece = leftstr( Text, lp - 1)
+         if pos( ' ', CmdPiece) then
+            CmdWord = word( Text, 1)
+         endif
+      endif
+   else
+      -- FilePiece is last word
+      if words( Text) = 1 then
+         -- No CmdWord
+         FilePiece = Text
+      elseif words( Text) > 1 then
+         CmdWord   = word( Text, 1)
+         FilePiece = lastword( Text)
+         lp = wordindex( Text, words( Text))
+         CmdPiece  = leftstr( Text, lp - 1)
+      endif
+   endif
+   --dprintf( 'TabComplete', 'CmdWord = ['CmdWord'], CmdPiece = ['CmdPiece'], FilePiece = ['FilePiece']')
+
+   -- Construct fully qualified dirname to avoid change of directories, that
+   -- doesn't work for UNC names.
+   FileMask = FilePiece
+   PrepMask = ''
+   if not (substr( FilePiece, 2, 2) = ':\' | leftstr( FilePiece, 2) = '\\') then
+      if leftstr( FilePiece, 1) = '\' then
+         -- Prepend drive
+         if substr( ShellDir, 2, 2) = ':\' then
+            PrepMask = leftstr( ShellDir, 2)
+            FileMask = PrepMask''FilePiece
+;          -- Prepend host
+;          elseif leftstr( ShellDir, 2) = '\\' then  -- not possible
+;             parse value ShellDir with '\\'Server'\'Resource
+;             if pos( '\', Resource) then
+;                parse value Resource with Resource'\'rest
+;             endif
+;             PrepMask = '\\'Server'\'Resource
+;             FileMask = PrepMask''FilePiece
+         endif
+      else
+         -- Prepend ShellDir
+         PrepMask = strip( ShellDir, 't', '\')'\'
+         FileMask = PrepMask''FilePiece
+      endif
+   endif
+
+   -- Resolve FileMask to valid names for DosFind*
+   next = NepmdQueryFullName( FileMask)
+   parse value next with 'ERROR:'rc
+   if rc = '' then
+      FileMask = next
+   endif
+
+   -- The here fully qualified filemask must be changed to a relative path later,
+   -- if FilePiece was relative before.
+
+   -- Rebuild array
+   fAppendExeMask = 0
+   fAppendAllMask = 0
+   -- Append * to FileMask only, if no * or ? is present in last dir segment.
+   UnAppFileMask = FileMask
+   lp = lastpos( '\', FileMask)
+   LastSegment = substr( FileMask, lp + 1)
+   --dprintf( 'TabComplete', 'LastSegment = ['LastSegment']')
+   if verify( LastSegment, '?*', 'M') then
+      --dprintf( 'TabComplete', '1 (wildcards): FileMask = ['FileMask']')
+   elseif CmdWord = '' then
+      --dprintf( 'TabComplete', '2 (no CmdWord): AppendExeMask')
+      fAppendExeMask = 1
+   else
+      fAppendAllMask = 1
+   endif
+   if fAppendExeMask | fAppendAllMask then
+      --dprintf( 'TabComplete', '3 (no wildcard): FileMask before = ['FileMask']')
+      -- Handling FAT different is not required:
+;       FileSys = ''
+;       if length( FileMask) > 1 then
+;          if substr( FileMask, 2, 1) = ':' then
+;             next = QueryFileSys( leftstr( FileMask, 2))
+;             parse value next with 'ERROR:'rc0
+;             if rc0 = '' then
+;                FileSys = next
+;             endif
+;          endif
+;       endif
+;       if FileSys = 'FAT' then
+;          FileMask = FileMask'*.*'
+;       else
+         FileMask = FileMask'*'
+;       endif
+      --dprintf( 'TabComplete', '3 (no wildcard): FileMask after  = ['FileMask']')
+   endif
+
+   -- Delete old array
+   cTotal = GetAVar( 'FncFound.0')
+   if cTotal > '' then
+      do i = 1 to cTotal
+         call SetAVar( 'FncFound.'i, '')
+      enddo
+   endif
+   call SetAVar( 'FncFound.0', '')
+   call SetAVar( 'FncFound.last', '')
+
+   -- Find dirs and files
+   rc1 = ''
+   rc2 = ''
+   handle = 0  -- handle must be reset to 0 before the search
+   c = 0  -- number of found names
+   m = 0  -- item number of ExeMaskList
+   f = 0  -- number of found items per FileMask, only used for debugging
+   CurDir = directory()
+   call directory( ShellDir)
+   do forever
+      Name = ''
+      if rc1 = '' & wordpos( upcase( CmdWord), FNC_FILE_ONLY_CMD_LIST) = 0 then
+         if f = 0 then
+            --dprintf( 'TabComplete', 'Dir: FileMask = ['FileMask']')
+         endif
+         -- Find dirs first
+         next = NepmdGetNextDir( FileMask, address(handle))
+         parse value next with 'ERROR:'rc1
+         if rc1 = '' then
+            Name = next
+            -- Append \ for dirs
+            Name = Name'\'
+            f = f + 1
+         else
+            --dprintf( 'TabComplete', 'Dir: FileMask = ['FileMask'], Found 'f' filenames.')
+            handle = 0  -- handle must be reset to 0 before the next search
+            f = 0
+         endif
+      endif
+      if rc1 > '' then
+         if fAppendExeMask then
+            -- Append executable masks
+            if ((m = 0 | rc2 > '') & words( FNC_EXE_MASK_LIST) > m) then
+               m = m + 1
+               FileMask = UnAppFileMask''word( FNC_EXE_MASK_LIST, m)
+               rc2 = ''
+            endif
+         endif
+         if rc2 = '' & wordpos( upcase( CmdWord), FNC_DIR_ONLY_CMD_LIST) = 0 then
+            if f = 0 then
+               --dprintf( 'TabComplete', 'File 'm': FileMask = ['FileMask']')
+            endif
+            -- Find files
+            next = NepmdGetNextFile( FileMask, address(handle))
+            parse value next with 'ERROR:'rc2
+            if rc2 = '' then
+               Name = next
+               f = f + 1
+            else
+               --dprintf( 'TabComplete', 'File 'm': FileMask = ['FileMask'], Found 'f' filenames.')
+               f = 0
+               if fAppendExeMask & words( FNC_EXE_MASK_LIST) > m then
+                  -- Initiate a new search with the next ExeMask
+                  handle = 0  -- handle must be reset to 0 before the next search
+                  iterate
+               endif
+            endif
+         endif
+      endif
+      if Name > '' then
+         -- Remove maybe previously added PrepMask if FilePiece was relative
+         l = length( PrepMask)
+         if l > 0 then
+            if leftstr( upcase(Name), l) == upcase(PrepMask) then
+               Name = substr( Name, l + 1)
+            endif
+         endif
+         -- Add it to array
+         c = c + 1
+         call SetAVar( 'FncFound.'c, Name)
+      else
+         leave
+      endif
+   enddo
+   if c > 0 then
+      call SetAVar( 'FncFound.0', c)       -- number of found names
+      call SetAVar( 'FncFound.last', '0')  -- use 0 as initial number
+      sayerror c 'dirs/files found.'
+   else
+      sayerror 'No match for "'FilePiece'".'
+   endif
+   call SetAVar( 'FncShellNum', ShellNum)
+   call SetAVar( 'FncPrompt', Prompt)
+   call SetAVar( 'FncCmdPiece', CmdPiece)
+
+; ---------------------------------------------------------------------------
+; Tab must not be defined as accelerator key, because otherwise
+; lastkey(2) and lastkey(3) would return wrong values for Tab.
+; lastkey() = lastkey(0) and lastkey(1) for Tab doesn't work in EPM!
+; When Sh is pressed, lastkey() is set to Sh. While Sh is down and
+; Tab is pressed additionally, lastkey is set to Sh+Tab and lastkey(2)
+; is set to Sh. Therefore querying lastkey(2) to determine if Tab was
+; pressed before doesn't work for any key combination!
+;defc TabComplete
+defc ShellFncComplete
+   fForeward = ( arg(1) <> '-')
+   -- Check shell
+   next     = GetAVar( 'FncShellNum')
+   ShellNum = ''
+   if leftstr( .filename, 15) = '.command_shell_' then
+      ShellNum = substr( .filename, 16)
+   endif
+   if ShellNum = '' | ShellNum <> next then
+      return
+   endif
+   -- Query array
+   Prompt   = GetAVar( 'FncPrompt')
+   CmdPiece = GetAVar( 'FncCmdPiece')
+   Name     = ''
+   cLast    = GetAVar( 'FncFound.last')
+   if cLast > '' then
+      cTotal = GetAVar( 'FncFound.0')
+      --sayerror cTotal 'files in array.'
+      if fForeward then
+         if cLast < cTotal then
+            cLast = cLast + 1
+         else
+            cLast = 1
+         endif
+      else
+         if cLast > 1 then
+            cLast = cLast - 1
+         else
+            cLast = cTotal
+         endif
+      endif
+      Name = GetAVar( 'FncFound.'cLast)
+      call SetAVar( 'FncFound.last', cLast)  -- save last used name number
+   endif
+
+   if Name > '' then
+      if pos( ' ', Name) then
+         Name = '"'Name'"'
+      endif
+; Todo:
+; Make -dName possible
+      if CmdPiece > '' then
+         NewLine = Prompt strip( CmdPiece) Name
+      else
+         NewLine = Prompt Name
+      endif
+      replaceline NewLine
+      .col = length( NewLine) + 1  -- go to end
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Following definitions are copied from Joerg Tiemann's SHELLKRAM.E package:
@@ -639,456 +1073,11 @@ defc Shell_SendKey
       endif
    endif
 
-
-; Following definitions provide the filename completition feature of SHELLKRAM.E:
 /*
-/* Abandon current fnc command */
-defc Abandon_fnc
-   universal OutCmdLine
-   universal OutCurPos
-   universal fnc_id
-   OutCmdLine = ''
-   OutCurPos = ''
-   if fnc_id <> '' then                -- if an old fnc_array exists
-      killres = fnc_killarray(fnc_id)  -- kill it!
-      if not killres then
-         sayerror "killed old fnc_array"
-      else
-         sayerror "error: couldn't kill old fnc_array!"
-         stop  -- didn't come here, but don't want to either
-      endif
-   endif
-
-/* Here we go! */
-defc Filename_Completion
-   universal ShellHandle
-   universal max_count
-   universal zaehler
-   universal fnc_id
-   universal last_search
-   universal search_type
-   universal OutCmdLine
-   universal OutCurPos
-
-; Check if command_shell, Shell_num, shell_handle...
-   parse arg shellnum text
-   if shellnum='' & leftstr(.filename, 15) = ".command_shell_" then
-      shellnum=substr(.filename,16)
-   endif
-
-   if shellnum='' then
-      sayerror "error: not an EPM Shell!"
-      return
-   endif
-
-; Look for an fnc-array
-; This routine does not work as described in epmtech.inf => see comments
-   array_name = "fnc_array"
-   do_array 6, array_index, array_name    -- "Invalid second parameter" if array doesn't exist!
-   if array_index=-1 then fnc_id='';endif -- because d_a 6 does not return array_id but array_id-1
-                                          -- this means rc=-1 => rc=0 => no array => fnc_id-Variable erased
-
-; New search or continue browsing through last search?
-   if last_search <> "Fehler!" then -- if the last search was successful
-      InCmdLine = textline(.line)
-      InCurPos = .col
-      LineComp = InCmdLine = OutCmdLine  -- current line content and
-      CurPosComp = InCurPos = OutCurPos  -- cursor position match those after last completion
-      neuesuche = not LineComp & not CurPosComp
-   else                              -- if the last search was not sucessful
-      neuesuche = 1                  -- start new search anyway
-      sayerror 'notify: New Search!' -- can happen: 0 matches found, but user hits repeadly TAB or Shift-TAB
-   endif
-
-; determine last key
-   parse value lastkey(2) with flags 3 repeat 4 fnc_key 5 charcode 7 vk_code 9
-   tab_key  = c2x(fnc_key) = '0f' & c2x(vk_code) = '0600'
-   stab_key = c2x(fnc_key) = '0f' & c2X(vk_code) = '0700'
-
-; New search
-   if neuesuche then
-      last_search = ''               -- set back my little error flag
-      if fnc_id <> '' then                -- if an old fnc_array exists
-         killres = fnc_killarray(fnc_id)  -- kill it!
-         if not killres then
-            sayerror "killed old fnc_array"
-         else
-            sayerror "error: couldn't kill old fnc_array!"
-            stop  -- didn't come here, but don't want to either
-         endif
-      endif
-      ns_res = fnc_neuesuche()
-      parse value ns_res with dir_count exe_count file_count -- getting array_id and number of matches found
-      ges_count = dir_count + exe_count + file_count
-      sayerror ges_count "hit(s)! Use <tab> and <shift-tab> to browse!" -- "Found:" dir_count "dir(s)," exe_count "exe(s) and" file_count "other."
-      zaehler = 1
-      if search_type = 'N' & tab_key then
-         if file_count then array_section = 'file'; endif -- start with file 1
-         if not file_count then
-            array_section = 'dir'; zaehler = dir_count    -- no files, start with last dir
-         endif
-      elseif search_type = 'N' & stab_key then
-         if dir_count then array_section = 'dir'; endif  -- start with dir 1
-         if not dir_count then
-            array_section = 'file'; zaehler = file_count -- no dirs, start with last file
-         endif
-      elseif search_type = 'C' & tab_key then
-         if exe_count then array_section = 'exe'; endif -- start with exe 1
-         if not exe_count then
-            array_section = 'dir'; zaehler = dir_count  -- no exes, start with last dir
-         endif
-      elseif search_type = 'C' & stab_key then
-         if dir_count then array_section = 'dir'; endif  -- start with dir 1
-         if not dir_count then
-            array_section = 'exe'; zaehler = exe_count   -- no dirs, start with last exe
-         endif
-      endif
---      sayerror "e5: array_sec =" array_section
-      get_res = fnc_getcompletion(fnc_id, array_section, zaehler)
-      parse value get_res with filename    -- getting 1 matching filename
-      out_res = fnc_output(filename, array_section) -- calling defproc out_res to do the output
-   endif
-
-; No new search -> get next matches out of the fnc_array
-   if not neuesuche then
-      if search_type = 'N' & tab_key then
-         if array_section = 'file' & zaehler < file_count then zaehler = zaehler + 1
-         elseif array_section = 'dir' & zaehler < dir_count then zaehler = zaehler + 1
-         elseif array_section = 'file' & zaehler = file_count then
-            if dir_count then
-               array_section = 'dir'; zaehler = 1
-            else
-               zaehler = 1
-            endif
-         elseif array_section = 'dir' & zaehler = dir_count then
-            if file_count then
-               array_section = 'file'; zaehler = 1
-            else
-               zaehler = 1
-            endif
-         endif
-      elseif search_type = 'N' & stab_key then
-         if array_section = 'file' & zaehler > 1 then zaehler = zaehler - 1
-         elseif array_section = 'dir' & zaehler > 1 then zaehler = zaehler - 1
-         elseif array_section = 'file' & zaehler = 1 then
-            if dir_count then
-               array_section = 'dir'; zaehler = dir_count
-            else
-               zaehler = file_count
-            endif
-         elseif array_section = 'dir' & zaehler = 1 then
-            if file_count then
-               array_section = 'file'; zaehler = file_count
-            else
-               zaehler = dir_count
-            endif
-         endif
-      elseif search_type = 'C' & tab_key then
-         if array_section = 'exe' & zaehler < exe_count then zaehler = zaehler + 1
-         elseif array_section = 'dir' & zaehler < dir_count then zaehler = zaehler + 1
-         elseif array_section = 'exe' & zaehler = exe_count then
-            if dir_count then
-               array_section = 'dir'; zaehler = 1
-            else
-               zaehler = 1
-            endif
-         elseif array_section = 'dir' & zaehler = dir_count then
-            if exe_count then
-               array_section = 'exe'; zaehler = 1
-            else
-               zaehler = 1
-            endif
-         endif
-      elseif search_type = 'C' & stab_key then
-         if array_section = 'exe' & zaehler > 1 then zaehler = zaehler - 1
-         elseif array_section = 'dir' & zaehler > 1 then zaehler = zaehler - 1
-         elseif array_section = 'exe' & zaehler = 1 then
-            if dir_count then
-               array_section = 'dir'; zaehler = dir_count
-            else
-               zaehler = exe_count
-            endif
-         elseif array_section = 'dir' & zaehler = 1 then
-            if exe_count then
-               array_section = 'exe'; zaehler = exe_count
-            else
-               zaehler = dir_count
-            endif
-         endif
-      endif
-      get_res = fnc_getcompletion(fnc_id, array_section, zaehler)
-      parse value get_res with filename    -- getting 1 matching filename
-      out_res = fnc_output(filename, array_section) -- calling defproc out_res to do the output
-   endif
-
-/********************************************************************/
-/* fnc_neuesuche (new search)                                       */
-/* First the part of a filename to be completed or wildcard to be   */
-/* interpreted is read from the command line; if necessary the      */
-/* fully qualified path is constructed and wildcards are added. The */
-/* result is fed to Dos32FindFirst/Next and the results of this     */
-/* search are returned to the calling procedure.                    */
-/*                                                                  */
-/* This second part of this defproc is more or less inspired by,    */
-/* if not even based on, Tree_SearchDir (treecomp.e) by, of course, */
-/* Larry Margolis. Thanks to him for that great piece of code!      */
-/********************************************************************/
-
-defproc fnc_neuesuche
-   universal last_search
-   universal target
-   universal Vorspiel
-   universal fnc_id
-   universal Nachspiel
-   universal search_type
-   universal begincol
-
-   target ='' -- initialize
-   call psave_pos(save_pos) -- store cursor pos
-   markline
-   beginline
-   'xcom l /^epm\: .*>:o./mx' -- search line mark for prompt
-   unmark
-   call prestore_pos(save_pos) -- restore cursor pos
-   CmdZeile = textline(.line)
-   insertcol = .col-1  -- store column
-   tmpcol = .col-1
-   do while not pos(substr(CmdZeile,tmpcol,1),'<>| ')  -- find begin of current word/command
-      tmpcol = tmpcol-1
-      left
-   enddo
-   begincol = .col     -- store this column, too
-   tcols = insertcol-begincol+1  -- length of word till cursor
-   Vorspiel = substr(CmdZeile,1,begincol-1) -- line up to current word
-   target = substr(CmdZeile,begincol,tcols) -- current word till cursor
-   Nachspiel = substr(Cmdzeile,insertcol+1) -- line after current word
-   filename = target -- target is needed later - umtampered with
-
-/* get the current path from the last prompt line of the shell */
-   bottom
-   'xcom l /^epm\: .*>:o./rx'
-   LastLine = textline(.line)
-   parse value LastLine with 'epm: ' curdir ' >' Rest
-   curdir = strip(curdir,'t','\') -- if it is root dir
-   call prestore_pos(save_pos) -- restore cursor pos
-
-/* look for search mode */
-   pipe = pos('|',substr(CmdZeile,begincol-2,2)) -- '|target' or '| target'
-   prompt = pos('>', CmdZeile) = begincol-1 | pos('>', CmdZeile) = begincol-2 -- first '>' in command line
-   if pipe | prompt then
-      search_type = 'C' -- command completion, only dirs and commands
-   else
-      search_type = 'N' -- filename completion, all files
-   endif
-
-   bslash = pos('\',filename)
-   updir = pos('..\',filename)
-   colon = pos(':', filename)
-   if bslash = 1 then                         -- target starts with backslash
-      filename = substr(curdir,1,2)||filename -- -> root of current drive is base
-   elseif not bslash | (bslash & not colon) then  -- in current dir or already specified subdir
-      filename = curdir'\'filename            -- add path from epm prompt
-   endif
-   if updir = 1 & pos('\',curdir) then -- ..\xyz.xx or ..\..\..\..\xyz.* etc.
-      do while pos('..\',filename) & lastpos('\',curdir)
-         updir = pos('..\', filename)
-         filename = substr(filename,updir+3)
-         curupdir = lastpos('\',curdir)
-         curdir = substr(curdir,1,curupdir-1)
-      enddo
-      if pos('..\',filename) then -- can happen: user couldn't stop typing '..\'
-         sayerror "You don't really wanna go that far up, do you?" -- fatherly advice given
-         stop -- unconditionally exiting the macros
-      else
-         filename = curdir'\'filename
-      endif
-   endif
-
-
-; now we're gonna add some nice wildcards for some of the files
-   wea = lastpos('*',filename) = tcols -- wea = with end ateriks
-   ast = pos('*',filename)             -- ast = with asteriks
-   pnt = pos('.',substr(filename,(lastpos('\',filename))))
-   -- pnt = with period (in filename part after last backslash)
-   wap = ast | pnt                     -- wap = with asterix and period
-   if not wap then
-      filename = filename'*.*'    -- xyz -> xyz*.*
-   else
-      if wea & pnt then
-         filename = filename      -- xyz.* -> xyz.* or xy.z* -> xy.z*
-      elseif wea then
-         filename = filename'.*'  -- xyz* -> xyz*.*
-      elseif pnt & WANT_EXT_WILDCARD = 1 then -- for WANT_EXT_WILDCARD see begin of this file
-         filename = filename'*'   -- xy.z -> xy.z* or *.htm -> *.htm* or *.e -> *.e*
-      elseif ast then
-         filename = filename'*'   -- *xy -> *xy* or B*s -> B*s*
-      endif
-   endif
-
-   attribute = 55 -- Want to see all files
-   namez    = filename\0    -- ASCIIZ
-   resultbuf = substr('', 1, 300, \0)
-   dirhandle = \xff\xff\xff\xff  -- Ask system to assign us a handle
-   searchcnt = atol(1)   -- Search count; we're only asking for 1 file at a time here.
-
-   result=dynalink32('DOSCALLS',             -- dynamic link library name
-                     '#264',                 -- ordinal value for DOS32FINDFIRST
-                     address(namez)      ||  -- Filename we're looking for
-                     address(dirhandle)  ||  -- Pointer to the handle
-                     atol(attribute)     ||  -- Attribute value describing desired files
-                     address(resultbuf)  ||  -- string address
-                     atol(length(resultbuf)) ||
-                     address(searchcnt)  ||  -- Pointer to the count; system updates
-                     atol(2), 2)             -- File info level 2 requested
-
-   if result & result<>18 then  -- unexpected error
-      sayerror 'result' result 'from DosFindFirst' filename
-      stop                      -- unconditionally exit macro!
-   endif
-
-   if result = 18 then call fnc_error(); endif -- no completions found at all
-
-   if not result then
-      fnc_id = ''; array_name = 'fnc_array'
-      do_array 1, fnc_id, array_name  -- make an array
-      fnc_id.userstring = '[not set]' -- Set default value
-      dir_count = 0; exe_count = 0; file_count = 0
-      loop
-         filename = substr(resultbuf, 34, asc(substr(resultbuf, 33, 1)))
-         fileattrib = ltoa(substr(resultbuf,25,4),10)
-         ext = filetype(filename)
-         skip = filename='.' | filename='..' -- aren't of any use here
-         if not skip then
-            type = fnc_filetype(fileattrib, ext)
-            if type = 'D' then -- Directory-Teil des arrays
-               dir_count = dir_count+1
-               do_array 2, fnc_id, 'dir.'dir_count, filename
-            elseif type = 'E' & search_type = 'C' then -- executables are dealt with in a separate of array
-               exe_count = exe_count+1                 -- in a command completion
-               do_array 2, fnc_id, 'exe.'exe_count, filename
-            elseif type = 'N' & search_type <> 'C' then -- "normal" files are junked if command completion
-               file_count = file_count+1
-               do_array 2, fnc_id, 'file.'file_count, filename
-            elseif type = 'E' & search_type <> 'C' then -- executables are regarded normal files in
-               file_count = file_count+1                -- filename completion
-               do_array 2, fnc_id, 'file.'file_count, filename
-            endif /* if type ... */
-         endif /* if not skip */
-
-         result=dynalink32('DOSCALLS',            -- dynamic link library name
-                          '#265',                 -- ordinal value for DOS32FINDNEXT
-                          dirhandle           ||  -- Directory handle, returned by DosFindFirst(2)
-                          address(resultbuf)  ||  -- address of result buffer
-                          atol(length(resultbuf)) ||
-                          address(searchcnt), 2)  -- Pointer to the count; system updates
-
-         if result then
-            call dynalink32('DOSCALLS',           -- dynamic link library name
-                            '#263',               -- ordinal value for DOS32FINDCLOSE
-                            dirhandle)            -- Directory handle, returned by DosFindFirst(2)
-
-            if result<>18 then
-               sayerror 'Unexpected error' result 'from DosFindNext'
-            endif
-            leave
-         endif
-      endloop
-      if search_type='C' & dir_count + exe_count = 0 then call fnc_error(); endif
-      -- command name completion but neither dirs nor executables found
-   endif  -- result from DosFindFirst
-   nsres = dir_count' 'exe_count' 'file_count
-   return(nsres)
-
-/********************************************************************/
-/* fnc_filetype                                                     */
-/* Tells us if found file is a directory or not                     */
-/********************************************************************/
-
-defproc fnc_filetype(fileattrib, ext)
-         fileattrib = fileattrib // 64
-         if fileattrib % 32 then -- Archiv-Bit gesetzt
-            fileattrib = fileattrib // 32
-         endif
-         if fileattrib % 16 then
-            attr_string = 'D' -- Directory
-         elseif ext = 'EXE' | ext = 'COM' | ext = 'CMD' then
-            attr_string = 'E' -- Executable
-         else attr_string = 'N'
-         endif
-         return attr_string
-
-/********************************************************************/
-/* fnc_getcompletion                                                */
-/* gets value for filename from index position zaehler of array     */
-/* with id fnc_id and returns it to caller                          */
-/********************************************************************/
-
-defproc fnc_getcompletion(fnc_id, array_section, zaehler)
-   do_array 7, fnc_id, array_section'.'zaehler, filename
-   return filename
-
-/********************************************************************/
-/* fnc_killarray                                                    */
-/* Kills old fnc_array because the old search is over and gone.     */
-/********************************************************************/
-
-defproc fnc_killarray(fnc_id)
-   getfileid curr_file     -- Save the current file
-   activatefile fnc_id     -- Activate the fnc_array pseudo-file
-   'xcom quit'             -- Quit the array
-   activatefile curr_file  -- Restore the previously-active file
-   return
-
-/********************************************************************/
-/* fnc_output                                                       */
-/* Combines the fully qualified result from Dos32FindFirst/Next     */
-/* with our initial searchstring to the output string. If wanted    */
-/* a backslash is appended to directory names -- set configuration  */
-/* constant WANT_DIR_BACKSLASH accordingly (see begin of this file) */
-/********************************************************************/
-
-defproc fnc_output(filename, type)
-   universal target
-   universal Vorspiel
-   universal Nachspiel
-   universal OutCmdLine
-   universal OutCurPos
-   tlb = lastpos('\', target)  --target's last backslash
-   if not tlb then
-      ausgabestring = filename
-   else
-      ausgabestring = substr(target,1,tlb)||filename
-   endif
-   if WANT_DIR_BACKSLASH = 1 then
-      if type= 'dir' then ausgabestring = ausgabestring||'\';endif
-   endif
-   tarlen = length(target)
-   backtabword
-   for i = 1 to tarlen
-      deletechar
-   endfor
-   OutCmdLine = Vorspiel||ausgabestring||Nachspiel
-   replaceline OutCmdLine
-   OutCurPos = length(Vorspiel)+length(ausgabestring)+1
-   .col = OutCurPos
-return
-
-/********************************************************************/
-/* fnc_error                                                        */
-/* gets called when DOS32FindFirst/Next could not find a completion */
-/* for the asked for type of file or no completion at all. All this */
-/* procedure does is to set the last_search-Error-Flag and exit the */
-/* filename completion.                                             */
-/********************************************************************/
-
-defproc fnc_error()
-   universal last_search
-   universal begincol
-   universal target
-   sayerror "No file matches! Have another try!"
-   .col = max(begincol, lastpos('\',target)+begincol)
-   last_search = "Fehler!" -- set error-flag and
-   stop                    -- unconditionally exit macro!
-
+defc esk_About=
+   r = WinMessageBox( 'About EPM Shellkram',
+                      'EPM Shellkram v.0.88 beta'\10 ||
+                      'Wed, 3 Oct 2001'\10 ||
+                      'Copyright (c) 1998-2001 by Joerg Tiemann'\10 ||
+                      'Joerg Tiemann <tiemannj@gmx.de>', 16432)
 */
-
