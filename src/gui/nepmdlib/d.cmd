@@ -17,7 +17,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: d.cmd,v 1.2 2002-09-19 13:49:36 cla Exp $
+: $Id: d.cmd,v 1.3 2002-09-22 22:24:56 cla Exp $
 :
 : ===========================================================================
 :
@@ -41,7 +41,7 @@
     Debugger = 'ipmd';
 
  /* set more environment */
- rcx = VALUE( 'EPMPATH', 'macros;..\..\..\compile\base\netlabs\ex;', env);
+ rcx = VALUE( 'EPMPATH', VALUE( 'EPMPATH',,env)'macros;..\..\..\compile\base\netlabs\ex;', env);
  rcx = VALUE( 'NEPMD_TMFTESTFILE', 'nepmdlib.tmf',env);
 
  /* search epm.exe */
