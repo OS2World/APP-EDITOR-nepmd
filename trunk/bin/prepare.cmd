@@ -15,7 +15,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.6 2002-04-16 15:39:57 cla Exp $
+: $Id: prepare.cmd,v 1.7 2002-04-16 21:22:23 cla Exp $
 :
 : ===========================================================================
 :
@@ -132,7 +132,7 @@
 
  %UNZ% %UNZIPPEDDIR%\epmmac  %UNZIPPEDDIR%\EPMMAC\BIN\MACROS                   >>%LOGFILE% 2>&1
  %UNZ% %UNZIPPEDDIR%\epmmac2 %UNZIPPEDDIR%\EPMMAC2\BIN\MACROS                  >>%LOGFILE% 2>&1
- %UNZ% %UNZIPPEDDIR%\epmsmp  %UNZIPPEDDIR%\EPMSMP\MACROS\SAMPLES               >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmsmp  %UNZIPPEDDIR%\EPMSMP\BIN\MACROS\SAMPLES           >>%LOGFILE% 2>&1
  %UNZ% %UNZIPPEDDIR%\epmasi  %UNZIPPEDDIR%\EPMASI\BIN\MACROS\MYASSIST          >>%LOGFILE% 2>&1
  %UNZ% %UNZIPPEDDIR%\lampdq  %UNZIPPEDDIR%\LAMPDQ\BIN\MACROS\LAMPDQ            >>%LOGFILE% 2>&1
 
