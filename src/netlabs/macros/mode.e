@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.26 2003-07-06 15:27:13 aschn Exp $
+* $Id: mode.e,v 1.27 2003-07-06 16:28:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -65,10 +65,11 @@ defproc NepmdGetMode
    if CurMode = '' then
       -- if it's a temp filename starting with '.'
       IsATempFile = (leftstr( Filename, 1 ) = '.')
+      IsAShellFile = (leftstr( Filename, 15 ) = '.command_shell_')
       -- set DefaultMode here to not have NepmdQueryDefaultMode go trough
       -- all ini files in the mode dirs
       CurMode = 'TEXT' -- general default mode
-      if not IsATempFile then
+      if not IsATempFile or IsAShellFile then
 compile if NEPMD_WANT_MODE_DETERMINATION
          -- Get default mode
          if isadefproc('NepmdQueryDefaultMode') then
