@@ -8,7 +8,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution project 2002
 #
-# $Id: makefile,v 1.3 2002-04-16 15:30:19 cla Exp $
+# $Id: makefile,v 1.4 2002-04-16 21:19:40 cla Exp $
 #
 # ===========================================================================
 #
@@ -51,7 +51,11 @@ CMPDIR=compile
 !if [@md $(CMPDIR) 2> NUL]
 !endif
 
-INFDIR=book
+DSTDIR=netlabs
+!if [@md $(DSTDIR) 2> NUL]
+!endif
+
+INFDIR=$(DSTDIR)\book
 !if [@md $(INFDIR) 2> NUL]
 !endif
 
@@ -117,7 +121,7 @@ CHECK: PREPARE
 CLEAN:
   @echo cleanin up $(BINDIR)
   -@DEL $(INFDIR)\*  $(CMPDIR)\*  *.wpi /N >NUL 2>&1
-  -@RD  $(INFDIR)    $(CMPDIR)             >NUL 2>&1
+  -@RD  $(INFDIR)    $(CMPDIR) $(DSTDIR)   >NUL 2>&1
 
 # ---- generate INF
 
