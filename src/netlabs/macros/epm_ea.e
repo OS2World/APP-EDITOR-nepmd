@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm_ea.e,v 1.2 2002-07-22 19:00:17 cla Exp $
+* $Id: epm_ea.e,v 1.3 2002-08-09 19:34:21 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -41,15 +41,6 @@ defproc find_ea(name, var ea_seg, var ea_ofs, var ea_ptr1, var ea_ptr2, var ea_l
    ea_ptr1 = ea_ofs + 4                     -- Point past length of FEAList
    do while ea_ptr1 < ea_len
 ;     ea_flag = itoa(peek(ea_seg, ea_ptr1, 1)\0,16)
-compile if EVERSION < '6.00'
-      ea_namelen  = asc(peek(ea_seg, ea_ptr1+1, 1))
-      ea_valuelen = ltoa(peek(ea_seg, ea_ptr1+2, 2)\0\0,10)
-      ea_entrylen = ea_namelen + 5 + ea_valuelen
-      if name = peekz(ea_seg, ea_ptr1+4) then
-         ea_ptr2 = ea_ptr1+5+ea_namelen  -- Point to start of EA value
-         return 1
-      endif
-compile else
       ea_namelen  = asc(peek(ea_seg, ea_ptr1+5, 1))
       ea_valuelen = ltoa(peek(ea_seg, ea_ptr1+6, 2)\0\0,10)
 ;     ea_entrylen = ltoa(peek(ea_seg, ea_ptr1, 4),10)
@@ -61,7 +52,6 @@ compile else
          ea_ptr2 = ea_ptr1+9+ea_namelen  -- Point to start of EA value
          return 1
       endif
-compile endif
       ea_ptr1 = ea_ptr1 + ea_entrylen       -- Point to start of next entry
    enddo
 
@@ -75,11 +65,7 @@ defc addea, add_ea =                 -- Adds a single name / value pair to an ex
    endif
    name_len = length(name)
    data_len = length(data)
-compile if EPM32
    ea_len_incr = ((16 + name_len + data_len)%4)*4;  -- align on 32bit boundary (+13 for overhead +3 for rounding)
-compile else
-   ea_len_incr = 9 + name_len + data_len
-compile endif
    if .eaarea then
       ea_long = atol(.eaarea)
 ;     ea_seg = itoa(rightstr(ea_long,2),10)
@@ -87,7 +73,6 @@ compile endif
 ;     ea_ofs = itoa(leftstr(ea_long,2),10)
       ea_ofs = ltoa(leftstr(ea_long,2)\0\0,10)
       ea_old_len  = ltoa(peek(ea_seg, ea_ofs, 4),10)
-compile if EPM32
       call dynalink32(E_DLL,
                       'myrealloc',
                       ea_long ||
@@ -96,32 +81,13 @@ compile if EPM32
                       2)
 
       r = 0
-compile else
-      r =  dynalink('DOSCALLS',           -- Dynamic link library name
-               '#38',                     -- DosReAllocSeg
-               atoi(ea_old_len+ea_len_incr) ||  -- Number of bytes requested
-               rightstr(ea_long,2) )
-compile endif  -- EPM32
       ea_ptr = ea_seg
    else
-compile if EPM32
       ea_ptr = atol(dynalink32(E_DLL,
                                'mymalloc',
                                atol(ea_len_incr+4), 2))
-;compile if not POWERPC
       ea_ptr  = ltoa(substr(ea_ptr, 3, 2)\0\0, 10)
-;compile endif
       r = -270 * (ea_ptr = 0)
-compile else
-      ea_buffer = "00"                    -- Initialize string pointer.
-      r =  dynalink('DOSCALLS',           -- Dynamic link library name
-               '#34',                     -- DosAllocSeg
-               atoi(ea_len_incr+4)    ||  -- Number of bytes requested
-               address(ea_buffer)     ||
-               atoi(0) )                  -- Share information
-;     ea_ptr = itoa(ea_buffer,10)
-      ea_ptr = ltoa(ea_buffer\0\0,10)
-compile endif  -- EPM32
       ea_ofs = 0
       ea_old_len  = 4           -- Point past length field
    endif
@@ -129,16 +95,6 @@ compile endif  -- EPM32
    if r then sayerror ERROR__MSG r ALLOC_HALTED__MSG; stop; endif
    poke ea_ptr, ea_ofs, atol(ea_old_len+ea_len_incr)
    ea_ofs = ea_ofs + ea_old_len
-compile if EVERSION < '6.00'
-   poke ea_ptr, ea_ofs  , \0              -- Start of EA:  flag byte
-   poke ea_ptr, ea_ofs+1, chr(name_len)
-   poke ea_ptr, ea_ofs+2, atoi(data_len + 4)     -- Value length = len(data) + len(data_type) + len(data_len)
-   poke ea_ptr, ea_ofs+4, name
-   poke ea_ptr, ea_ofs+4+name_len, \0     -- Null byte after name
-   poke ea_ptr, ea_ofs+5+name_len, EAT_ASCII
-   poke ea_ptr, ea_ofs+7+name_len, atoi(data_len)
-   poke ea_ptr, ea_ofs+9+name_len, data
-compile else
  compile if 0  -- C code does this internally, when saving.
    -- we need to make sure the last entry is marked with zero length
    --   to find the last entry, just look for
@@ -162,7 +118,6 @@ compile else
    poke ea_ptr, ea_ofs+9+name_len, EAT_ASCII
    poke ea_ptr, ea_ofs+11+name_len, atoi(data_len)
    poke ea_ptr, ea_ofs+13+name_len, data
-compile endif
    .eaarea = mpfrom2short(ea_ptr,0)
 
 
@@ -184,13 +139,9 @@ defproc delete_ea(name) =
    endif
    newlen = ea_len - ea_entrylen
    poke ea_seg, ea_ofs, atol(newlen)
-compile if EVERSION < '5.21'
-   junk = 'junk'  -- Avoid problem due to bug in MEMCPYX in EPM 5.20
-compile endif
    if ea_ptr1+ea_entrylen < ea_len then  -- If in the middle, close it up
       call memcpyx(atoi(ea_ptr1) || atoi(ea_seg), atoi(ea_ptr1+ea_entrylen) || atoi(ea_seg), ea_len - ea_ptr1 - ea_entrylen)
    endif
-compile if EPM32
 --   call dynalink32('DOSCALLS',
 --                   '#305',                -- DosSetMem
 --                   atol(ea_seg\0\0) ||
@@ -203,12 +154,6 @@ compile if EPM32
                   atol(newlen) ||
                   atol(0),
                   2)
-compile else
-   call dynalink('DOSCALLS',           -- Dynamic link library name
-            '#38',                     -- DosReAllocSeg
-            atoi(newlen)           ||  -- Number of bytes requested
-            atoi(ea_seg) )
-compile endif  -- EPM32
 
 
 ; Dependencies:  find_ea(), delete_ea(), add_ea
@@ -244,10 +189,6 @@ defc type =
       answer = winmessagebox(TYPE_TITLE__MSG, NON_ASCII_TYPE__MSG\13CHANGE_QUERY__MSG, 16388) -- YESNO + MOVEABLE
    endif
    if answer=6 then
-compile if EVERSION < 5.21
-      newtype = listbox(SELECT_TYPE__MSG, TYPE_LIST__MSG)
-      if newtype then
-compile else
       parse value listbox(TYPE_TITLE__MSG, TYPE_LIST__MSG, '/'SET__MSG'/'CANCEL__MSG'/'HELP__MSG, 0, 0, 0, 0,
  compile if EVERSION >= 5.60
                           gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6040) ||
@@ -256,7 +197,6 @@ compile else
  compile endif
                           SELECT_TYPE__MSG) with button 2 newtype \0
       if newtype & (button=\1) then
-compile endif  -- EVERSION < 5.21
          if found then call delete_ea('.TYPE'); endif
          'add_ea .TYPE' newtype
       endif
@@ -307,28 +247,15 @@ compile endif -- EPATH = 'LAMPATH'
       answer = 6
    endif
    if answer=6 then
-compile if EVERSION < 5.21  -- The old way
-      if arg(1)='' then
-         newsubj = entrybox(SELECT_SUBJECT__MSG, '', subj, 40, 230)
-      else
-         newsubj = arg(1)
-      endif
-      if newsubj then
-compile else
       if arg(1)='' then
          parse value entrybox(SUBJ_TITLE__MSG, '/'SET__MSG'/'CANCEL__MSG'/'HELP__MSG, subj, 40,
- compile if EVERSION >= 5.60 -- long strings
                 260,
- compile else
-                230,  -- 255 limit on strings; must leave room for 'add_ea...'
- compile endif
                 atoi(1) || atoi(6050) || gethwndc(APP_HANDLE) || SELECT_SUBJECT__MSG) with button 2 newsubj \0
       else
          newsubj = arg(1)
          button = \1
       endif
       if newsubj & (button=\1) then
-compile endif
          if found then call delete_ea('.SUBJECT'); endif
          'add_ea .SUBJECT' newsubj
 compile if EPATH = 'LAMPATH'
@@ -379,11 +306,7 @@ compile if EPATH = 'LAMPATH'
                subjstart = pos('', line, 84)
                subjend = pos('', line, subjstart+1)
                if subjstart & subjend then
- compile if EVERSION >= 5.60
                   line = insertstr(newsubj, delstr(line, subjstart+1, subjend-subjstart-1), subjstart)
- compile else  -- Must limit index line to 255 characters.
-                  line = insertstr(newsubj, delstr(line, subjstart+1, subjend-subjstart-1), subjstart, min(length(newsubj), 255-length(line)+(subjend-subjstart-1)))
- compile endif
                   replaceline line, .line
                   call fn2spoolid(startid.filename, spoolid)
                   call LAM_SPOOL_CMD(5505, spoolid, line)   -- x1581; LAM VIEWED
