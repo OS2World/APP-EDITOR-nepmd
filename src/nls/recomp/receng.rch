@@ -24,7 +24,7 @@
 #define IDT_IDMEN_SETTINGS                       "~Settings"
 #define IDT_IDMEN_SETTINGS_DISCARD_UNSAVED       "~discard unsaved files"
 #define IDT_IDMEN_SETTINGS_RELOAD_FILES          "~reload files after compile"
-#define IDT_IDMEN_SETTINGS_SHOW_COMPILELOG       "~show compile log"
+#define IDT_IDMEN_SETTINGS_SHOW_COMPILELOG       "~show compile log on success"
 #define IDT_IDMEN_HELP                           "~Help"
 #define IDT_IDMEN_HELP_PARMS                     "Commandline ~parameters..."
 #define IDT_IDMEN_HELP_NEPMDINF                  "Load ~NEPMD Reference..."
