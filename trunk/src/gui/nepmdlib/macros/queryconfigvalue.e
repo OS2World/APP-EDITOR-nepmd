@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryconfigvalue.e,v 1.2 2002-09-15 14:58:36 cla Exp $
+* $Id: queryconfigvalue.e,v 1.3 2003-08-30 16:01:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -73,6 +73,8 @@ and display the result within the status area.
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+; We want this command also if included in EPM.E to call it from
+; the command line or from an menu item.
 
 defc NepmdQueryConfigValue, QueryConfigValue =
 

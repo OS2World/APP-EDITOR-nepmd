@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextclose.e,v 1.5 2002-09-07 13:19:44 cla Exp $
+* $Id: getnextclose.e,v 1.6 2003-08-30 16:01:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -66,7 +66,7 @@ Executing this command will
 delete the specified handle
 and display the result within the status area.
 
-Because of that only a previous call to the functions [.IDPNL_EFUNC_NEPMDGETNEXTFILE] 
+Because of that only a previous call to the functions [.IDPNL_EFUNC_NEPMDGETNEXTFILE]
 or [.IDPNL_EFUNC_NEPMDGETNEXTDIR] can leave an open handle for you to test, and
 the related testcases will not do so, you will not truly be able to test a successful
 call to this function by this testcase.
@@ -82,6 +82,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdGetNextClose, GetNextClose =
 
@@ -96,6 +97,8 @@ defc NepmdGetNextClose, GetNextClose =
  sayerror 'Handle'  Handle '  was closed successfully.';
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetNextClose                                  */

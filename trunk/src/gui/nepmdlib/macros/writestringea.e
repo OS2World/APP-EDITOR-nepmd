@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writestringea.e,v 1.12 2002-09-19 11:43:51 cla Exp $
+* $Id: writestringea.e,v 1.13 2003-08-30 16:01:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -51,7 +51,7 @@ the value of the specified extended attribute.
 You can test this function from the *EPM* commandline by
 executing:
 .sl
-- *NepmdWriteStringEa* 
+- *NepmdWriteStringEa*
    [.IDPNL_EFUNC_NEPMDWRITESTRINGEA_PARM_FILENAME filename]
   - or
 - *WriteStringEa*
@@ -65,7 +65,7 @@ write the string
 .el
 as an extended string attribute with the name
 .sl compact
-- *NEPMD.__TestStringEa* 
+- *NEPMD.__TestStringEa*
 .el
 to the specified file
 and display the result within the status area.
@@ -81,6 +81,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdWriteStringEa, WriteStringEa =
 
@@ -99,6 +100,8 @@ defc NepmdWriteStringEa, WriteStringEa =
  sayerror 'Extended attribute "'NEPMD_TEST_EANAME'" written to:' Filename;
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdWriteStringEa                                 */

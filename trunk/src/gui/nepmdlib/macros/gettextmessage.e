@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.15 2002-09-20 14:37:20 cla Exp $
+* $Id: gettextmessage.e,v 1.16 2003-08-30 16:01:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -115,6 +115,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdGetTextMessage, GetTextMessage
 
@@ -180,6 +181,8 @@ defc NepmdGetTextMessage, GetTextMessage
  sayerror 'message is: "'MessageText'"';
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetTextMessage                                */

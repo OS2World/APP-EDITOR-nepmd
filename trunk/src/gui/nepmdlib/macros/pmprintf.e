@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pmprintf.e,v 1.1 2002-10-20 21:53:40 cla Exp $
+* $Id: pmprintf.e,v 1.2 2003-08-30 16:01:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -26,6 +26,7 @@
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdPmPrintf, PmPrintf =
 
@@ -38,6 +39,8 @@ defc NepmdPmPrintf, PmPrintf =
  call NepmdPmPrintf( Text);
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdPmPrintf                                      */

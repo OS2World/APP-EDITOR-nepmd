@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: initconfig.e,v 1.2 2003-08-30 15:23:16 aschn Exp $
+* $Id: initconfig.e,v 1.3 2003-08-30 16:01:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -62,6 +62,7 @@ and display the result within the status area.
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdInitConfig
 
@@ -75,6 +76,8 @@ defc NepmdInitConfig
  sayerror 'config value repository initialized successfully';
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdInitConfig                                    */

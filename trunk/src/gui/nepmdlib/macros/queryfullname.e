@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryfullname.e,v 1.12 2002-09-19 11:43:50 cla Exp $
+* $Id: queryfullname.e,v 1.13 2003-08-30 16:01:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,7 +29,7 @@ Fullname = NepmdQueryFullname( Filename);
 @@NepmdQueryFullname@CATEGORY@FILE
 
 @@NepmdQueryFullname@SYNTAX
-This function queries the fullname of the specified filename. It 
+This function queries the fullname of the specified filename. It
 does not check, wether a file or directory really exists, for that use
 the functions [.IDPNL_EFUNC_NEPMDFILEEXISTS] or [.IDPNL_EFUNC_NEPMDDIREXISTS].
 
@@ -62,7 +62,7 @@ valid.
 You can test this function from the *EPM* commandline by
 executing:
 .sl
-- *NepmdQueryFullname* [.IDPNL_EFUNC_NEPMDQUERYFULLNAME_PARM_FILENAME filename] 
+- *NepmdQueryFullname* [.IDPNL_EFUNC_NEPMDQUERYFULLNAME_PARM_FILENAME filename]
   - or
 - *QueryFullname* [.IDPNL_EFUNC_NEPMDQUERYFULLNAME_PARM_FILENAME filename]
 
@@ -83,6 +83,7 @@ _*Examples:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdQueryFullname, QueryFullname =
 
@@ -103,6 +104,8 @@ defc NepmdQueryFullname, QueryFullname =
  sayerror 'fullname of "'Filename'" is:' Fullname;
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryFullname                                 */

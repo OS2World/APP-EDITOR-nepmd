@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.11 2002-09-19 11:43:51 cla Exp $
+* $Id: querypathinfo.e,v 1.12 2003-08-30 16:01:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -77,6 +77,11 @@ about the specified file or directory into it.
 @@
 */
 
+/* ------------------------------------------------------------- */
+/*   allow editor command to call function                       */
+/* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
+
 defc NepmdQueryPathInfo, QueryPathInfo
 
  PathName = arg( 1);
@@ -100,6 +105,8 @@ defc NepmdQueryPathInfo, QueryPathInfo
 
 defproc helperNepmdQueryPathInfoValue( Pathname, ValueTag) =
   return leftstr( ValueTag, 6) ':' NepmdQueryPathInfo( PathName, ValueTag);
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryPathInfo                                 */

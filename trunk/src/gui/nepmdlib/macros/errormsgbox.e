@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: errormsgbox.e,v 1.10 2002-09-19 11:43:50 cla Exp $
+* $Id: errormsgbox.e,v 1.11 2003-08-30 16:00:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -62,6 +62,7 @@ specified message text.
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdErrorMsgBox, ErrorMsgBox =
 
@@ -73,6 +74,8 @@ defc NepmdErrorMsgBox, ErrorMsgBox =
  rcx = NepmdErrorMsgBox( ErrorText, 'Netlabs EPM Distribution');
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdErrorMsgBox                                   */

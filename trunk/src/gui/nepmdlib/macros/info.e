@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.11 2002-09-21 13:32:16 cla Exp $
+* $Id: info.e,v 1.12 2003-08-30 16:01:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -64,6 +64,8 @@ configuration of your system and the installation of your
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+; We want this command also if included in EPM.E to call it from
+; the command line or from an menu item.
 
 defc NepmdInfo =
 
@@ -92,8 +94,8 @@ defproc NepmdInfo =
     RestoreStartFid = 1;
     getfileid startfid;
  endif;
- MaxFiles = filesinring( 3);
- do i = 1 to MaxFiles
+ MaxFiles = filesinring(2);  -- 1 (default): .visible files only, 2: include hidden files, 3: not defined
+ do i = 1 to MaxFiles        -- prevent looping forever
     if (.filename = NepmdInfoFilename) then
        .modify = 0;
        'QUIT'

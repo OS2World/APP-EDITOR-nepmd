@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libversion.e,v 1.9 2002-09-23 20:58:46 cla Exp $
+* $Id: libversion.e,v 1.10 2003-08-30 16:01:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -52,6 +52,8 @@ within the status area.
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+; We want this command also if included in EPM.E to call it from
+; the command line or from an menu item.
 
 defc NepmdLibVersion =
 

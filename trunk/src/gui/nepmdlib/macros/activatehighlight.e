@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: activatehighlight.e,v 1.7 2002-10-20 12:29:55 cla Exp $
+* $Id: activatehighlight.e,v 1.8 2003-08-30 16:00:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -82,6 +82,7 @@ mode of the currently loaded file
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdActivateHighlight, ActivateHighlight =
 
@@ -110,6 +111,8 @@ defc NepmdActivateHighlight, ActivateHighlight =
  sayerror 'syntax highlighting was' NewStatus 'successfully.';
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdActivateHighlight                             */

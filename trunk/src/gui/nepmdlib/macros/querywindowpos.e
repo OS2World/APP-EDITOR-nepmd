@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querywindowpos.e,v 1.6 2002-09-08 22:48:38 cla Exp $
+* $Id: querywindowpos.e,v 1.7 2003-08-30 16:01:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -83,6 +83,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdQueryWindowPos, QueryWindowPos
 
@@ -102,6 +103,8 @@ defc NepmdQueryWindowPos, QueryWindowPos
  sayerror 'window pos of window with id' WindowId 'is:' WindowPos;
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryWindowPos                                */

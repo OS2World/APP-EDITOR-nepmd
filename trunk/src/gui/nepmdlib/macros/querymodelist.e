@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querymodelist.e,v 1.1 2002-10-14 17:50:02 cla Exp $
+* $Id: querymodelist.e,v 1.2 2003-08-30 16:01:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -55,6 +55,7 @@ display the list of all available *EPM* modes in the statusline.
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdQueryModeList, QueryModeList =
 
@@ -68,6 +69,8 @@ defc NepmdQueryModeList, QueryModeList =
  sayerror 'EPM modes:' ModeList;
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryModeList                                 */

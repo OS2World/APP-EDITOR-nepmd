@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextdir.e,v 1.12 2002-09-19 11:43:50 cla Exp $
+* $Id: getnextdir.e,v 1.13 2003-08-30 16:01:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -107,6 +107,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdGetNextDir, GetNextDir =
 
@@ -142,6 +143,8 @@ defc NepmdGetNextDir, GetNextDir =
  .modify = 0;
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetNextDir                                    */

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alarm.e,v 1.5 2002-09-08 22:48:37 cla Exp $
+* $Id: alarm.e,v 1.6 2003-08-30 16:00:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -70,6 +70,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdAlarm, Alarm =
 
@@ -84,6 +85,8 @@ defc NepmdAlarm, Alarm =
  sayerror 'alarm' StrResult 'generated';
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdAlarm                                         */

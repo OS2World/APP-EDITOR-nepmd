@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querydefaultmode.e,v 1.4 2002-10-15 20:40:48 cla Exp $
+* $Id: querydefaultmode.e,v 1.5 2003-08-30 16:01:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -68,6 +68,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdQueryDefaultMode, QueryDefaultMode =
 
@@ -87,6 +88,8 @@ defc NepmdQueryDefaultMode, QueryDefaultMode =
  sayerror 'default mode for "'Filename'" is:' DefaultMode;
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryDefaultMode                              */
