@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.14 2003-09-01 06:40:19 aschn Exp $
+* $Id: stdcnf.e,v 1.15 2003-12-12 17:20:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -702,7 +702,7 @@ compile endif
 -- support completely.
 compile if not defined(MOUSE_SUPPORT)
    MOUSE_SUPPORT = 1
-;   MOUSE_SUPPORT = 'LINK'
+;   MOUSE_SUPPORT = 'LINK'  doesn't work
 compile endif
 
 -- WANT_DM_BUFFER specifies whether a "deletemark buffer" is used in EPM.
@@ -1092,7 +1092,7 @@ compile if not defined(DIRECTORYOF_STRING)
 compile endif
 
 compile if not defined(LINK_NEPMDLIB)
-   LINK_NEPMDLIB = 1
+   LINK_NEPMDLIB = 'DEFINIT'
 compile endif
 -------------------------------------------------------------------------------
 
@@ -1845,58 +1845,6 @@ compile endif
 ;compile endif  -- not EPM
 
 
-; -------- 1) Process standard EPM.INI settings --------
-compile if WANT_APPLICATION_INI_FILE  -- we should remove this
-
-; --- Check EPM.INI -> EPM -> DTBITMAP for a valid entry --------------------
-   -- The SLE of the settings dialog truncates the bitmap filename after
-   -- 32 chars. Additionally, the truncated string is at pos 32 replaced with
-   -- a hex char. As a result, MAIN.E will unly be processed until the not
-   -- existing bitmap should be set.
-   bgbitmap = queryprofile( app_hini, 'EPM', 'DTBITMAP')
-   bgbitmap = strip( bgbitmap, 'T', \0)
-   -- Set to \0 if bitmap doesn't exist
-   if not exist(bgbitmap) then
-      call setprofile( app_hini, 'EPM', 'DTBITMAP', \0)
-   endif
-
-; --- Check if anything of interest is in OS2.INI ---------------------------
-; --- and get settings from EPM.INI -----------------------------------------
-   'initconfig'
-
-compile endif  -- WANT_APPLICATION_INI_FILE
-
-
-; -------- 2) Process NEPMD.INI settings --------
-compile if LINK_NEPMDLIB
-if not isadefproc('NepmdOpenConfig') then
-; --- Link the NEPMD library. Open a MessageBox if .ex file not found. ------
-   -- Any linking can not be processed before 'initconfig' in MAIN.E.
-   -- Otherwise the rest of MAIN.E will not be processed and all the
-   -- config stuff is not queried from EPM.INI, but defaults to internal
-   -- values (i.e. the toolbar will get lost and the fonts will change).
-   'linkverify nepmdlib.ex'
-endif
-compile endif
-
-; --- Open NEPMD.INI and set the returned handle ----------------------------
-; --- as the universal var 'nepmd_hini' -------------------------------------
-   nepmd_hini = NepmdOpenConfig()
-   parse value nepmd_hini with 'ERROR:'rc;
-   if (rc > 0) then
-      sayerror 'Configuration repository could not be opened, rc='rc;
-   endif
-
-; --- Process NEPMD.INI initialisation --------------------------------------
-   -- Write default values from nepmd\netlabs\bin\defaults.dat to NEPMD.INI,
-   -- application 'RegDefaults', if 'RegDefaults' was not found
-   rc = NepmdInitConfig( nepmd_hini )
-   parse value rc with 'ERROR:'rc;
-   if (rc > 0) then
-      sayerror 'Configuration repository could not be initialized, rc='rc;
-   endif
-
-
 ; -------- Link separately compiled macros if consts = 'LINK' --------
 ; If the String Area Size gets too large (limited to 64 KB),
 ; it could be useful to link some packages instead to include them in
@@ -1913,9 +1861,9 @@ compile endif
 ; compile endif
 ;compile endif
 
-compile if MOUSE_SUPPORT = 'LINK'
-   'linkverify MOUSE'
-compile endif
+;compile if MOUSE_SUPPORT = 'LINK'
+;   'linkverify MOUSE'  -- doesn't work
+;compile endif
 
 compile if WANT_BOOKMARKS = 'LINK'
    'linkverify BOOKMARK'
@@ -1942,6 +1890,13 @@ compile if SPELL_SUPPORT = 'LINK'
 ; compile else
 ;   *** Error - SPELL_SUPPORT = 'LINK' not valid for E3.
 ; compile endif
+compile endif
+
+compile if LINK_NEPMDLIB = 'DEFINIT'
+   if not isadefproc('NepmdOpenConfig') then
+; --- Link the NEPMD library. Open a MessageBox if .ex file not found. ------
+      'linkverify nepmdlib.ex'
+   endif
 compile endif
 
 -----------------  End of DEFINIT  ------------------------------------------
