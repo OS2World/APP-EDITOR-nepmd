@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.32 2002-09-19 14:34:47 cla Exp $
+.. $Id: nepmd.txt,v 1.33 2002-09-19 14:36:38 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -2196,6 +2196,14 @@ implicitely. As soon as you perform more than one action in a row, the
 [.IDPNL_REGISTRY_EXPLICITOPEN] is recommended instead to avoid unneccessary
 (re)open and close operations, which would waste much time by huge disk I/O
 overhead.
+
+.. -----------------------------------------------------------------------------
+.3 overview of keys used by the [=DOCTITLE]
+.. -----------------------------------------------------------------------------
+.an IDPNL_REGISTRY_KEYLIST
+.
+The following keys are used by the [=TITLE]:
+
 
 .. =============================================================================
 .2 Appendix: E Language functions of the [=DOCTITLE]
