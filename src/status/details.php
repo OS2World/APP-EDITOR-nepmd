@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: details.php,v 1.7 2002-07-19 15:18:06 cla Exp $
+* $Id: details.php,v 1.8 2002-07-21 18:28:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -32,7 +32,7 @@ $file = $_GET[ "file"];
 if ($file == "")
    {
    $aaentry = filedb_queryentries( "db");
-   $aentry = $aaentry[ 1];
+   $aentry = $aaentry[ 0];
 
    }
 else
@@ -41,7 +41,7 @@ else
    $aentry = filedb_read( $file);
    }
    
-list( , $entryfile) = each( $aentry);
+list( , $file)      = each( $aentry);
 list( , $category)  = each( $aentry);
 list( , $title)     = each( $aentry);
 list( , $prio)      = each( $aentry);
