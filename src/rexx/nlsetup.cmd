@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.3 2002-08-11 00:44:02 cla Exp $
+* $Id: nlsetup.cmd,v 1.4 2002-08-12 13:18:23 cla Exp $
 *
 * ===========================================================================
 *
@@ -32,6 +32,11 @@
  /* init */
  '@ECHO OFF';
 
+ /* make sure we are called on purpose */
+ ARG Parm .;
+ IF (Parm \= 'NEPMD') THEN
+    ShowError( 'Netlabs EPM Distribution Installation', 'Error: not called by Warpin Package !');
+
  /* make calldir the current directory */
  PARSE Source . . CallName;
  CallDir = LEFT( CallName, LASTPOS( '\', CallName) - 1);
@@ -43,4 +48,21 @@
  'CALL DYNCFG';
 
  EXIT( 0);
+
+/* ========================================================================= */
+ShowError: PROCEDURE
+ PARSE ARG Title, Message;
+
+ /* show message box in PM mode */
+ SIGNAL ON SYNTAX;
+ rcx = rxmessagebox( Message, Title, 'CANCEL', 'ERROR');
+ EXIT( 99);
+
+ /* print text in VIO mode */
+SYNTAX:
+ SIGNAL OFF SYNTAX;
+ SAY '';
+ SAY Title;
+ SAY Message;
+ EXIT( 99);
 
