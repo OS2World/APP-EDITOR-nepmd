@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.9 2002-09-30 18:19:37 aschn Exp $
+* $Id: stdmenu.e,v 1.10 2002-10-16 05:16:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -71,6 +71,8 @@ compile if RING_OPTIONAL
 compile endif
       buildmenuitem menuname, 2, 203, \0,                          '',                 4, 0
       buildmenuitem menuname, 2, 204, RENAME_MENU__MSG\9'F7',   'rename'RENAME_MENUP__MSG,0, mpfrom2short(HP_FILE_NAME, 0)
+      buildmenuitem menuname, 2, 212, 'Revert',                 'revert'\1'Reload file from disk, ask if modified',0, 0
+      buildmenuitem menuname, 2, 213, 'Open folder',            'rx open '.filename'\.., OPEN=DEFAULT', 0, 0
       buildmenuitem menuname, 2, 205, \0,                          '',                 4, 0
       buildmenuitem menuname, 2, 206, SAVE_MENU__MSG\9'F2',     'SAVE'SAVE_MENUP__MSG,             0, mpfrom2short(HP_FILE_SAVE, 0)
       buildmenuitem menuname, 2, 208, SAVEAS_MENU__MSG,         'SAVEAS_DLG'SAVEAS_MENUP__MSG, 0, mpfrom2short(HP_FILE_SAVEAS, 0)
@@ -412,7 +414,7 @@ compile if defined(WANT_ASCHN_MENU_ITEMS)
       buildmenuitem menuname, 1, 112, 'Edit MYCNF.E'             , 'ep mycnf.e epmpath'\1 , 0, 0
 ;      buildmenuitem menuname, 1, 113, "Edit user's EPM.ENV"      , 'e %NEPMD_USERENVFILE%'\1    , 0, 0
       buildmenuitem menuname, 1, 113, "Edit user's EPM.ENV"      , 'e %NEPMD_ROOTDIR%\myepm\bin\epm.env'\1    , 0, 0
-      buildmenuitem menuname, 1, 114, 'Open EPM.INI'             , 'start /c /min open %BOOTDRIVE%\os2\epm.ini'\1    , 0, 0  -- <-------- Todo: replace 'open' call and %BBOTDRIVE%, get EPM.INI from OS2.INI
+      buildmenuitem menuname, 1, 114, 'Open EPM.INI'             , 'start /c /min open %BOOTDRIVE%\os2\epm.ini'\1    , 0, 0  -- <-------- Todo: replace 'open' call and %BOOTDRIVE%, get EPM.INI from OS2.INI
       buildmenuitem menuname, 1, 115, 'Open NEPMD.INI'           , 'start /c /min open %NEPMD_ROOTDIR%\myepm\bin\nepmd.ini'\1    , 0, 0  -- <-------- Todo: replace 'open' call
       buildmenuitem menuname, 1, 116, 'Open NETLABS\MACROS\*.E'  , 'o %NEPMD_ROOTDIR%\netlabs\macros\*.e'\1    , 0, 0
       buildmenuitem menuname, 1, 117, 'Open MYEPM\MACROS\*.E'    , 'o %NEPMD_ROOTDIR%\myepm\macros\*.e'\1    , 0, 0
@@ -423,7 +425,8 @@ compile if defined(WANT_ASCHN_MENU_ITEMS)
  compile endif  -- WANT_ASCHN_MENU_ITEMS
 compile endif  -- defined(WANT_ASCHN_MENU_ITEMS)
       buildmenuitem menuname, 1, 130, \0,                      '',            4, 0
-      buildmenuitem menuname, 1, 131, 'Recompile EPM.E' , 'start %NEPMD_ROOTDIR%\netlabs\bin\recomp.exe %NEPMD_ROOTDIR%\myepm\ex /START /NOLOG', 0, 0
+      buildmenuitem menuname, 1, 131, 'Recompile EPM.E...' , 'start %NEPMD_ROOTDIR%\netlabs\bin\recomp.exe %NEPMD_ROOTDIR%\myepm\ex', 0, 0  -- /START leads into problems
+;      buildmenuitem menuname, 1, 131, 'Recompile EPM.E' , 'start %NEPMD_ROOTDIR%\netlabs\bin\recomp.exe %NEPMD_ROOTDIR%\myepm\ex /START /NOLOG', 0, 0
    return
 
 defproc add_help_menu(menuname)
