@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: dict.e,v 1.1 2004-06-29 22:35:13 aschn Exp $
+* $Id: dict.e,v 1.2 2004-07-02 08:03:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -20,6 +20,24 @@
 ****************************************************************************/
 
 ; Select dictionaries
+
+
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately
+define INCLUDING_FILE = 'DICT.E'
+const
+   tryinclude 'MYCNF.E'        -- the user's configuration customizations.
+
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
+ compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+   include 'stdconst.e'
+   EA_comment 'Select languade for dictionaries.'
+
+compile endif
 
 ; ---------------------------------------------------------------------------
 ; Syntax: DictLang <new_lang>
