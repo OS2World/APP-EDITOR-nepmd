@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.1 2002-08-21 13:24:17 cla Exp $
+* $Id: test.c,v 1.2 2002-08-21 20:28:10 cla Exp $
 *
 * ===========================================================================
 *
@@ -46,9 +46,9 @@ do
    {
    // =========================================================================
 
-#define GETMESSAGE(m) \
+#define GETMESSAGE(m,t,c) \
         memset( szBuffer, 0, sizeof( szBuffer)); \
-        rc = TmfGetMessage( NULL, 0, szBuffer, sizeof( szBuffer), m, pszFilename, &ulMessageLen); \
+        rc = TmfGetMessage( t, c, szBuffer, sizeof( szBuffer), m, pszFilename, &ulMessageLen); \
         DPRINTF(( "%u - %s: ***>%s<***\n\n", rc, m, szBuffer));
 
    // testcase for TMF function
@@ -60,6 +60,7 @@ static         PSZ            pszMessageName = "TESTMESSAGE";
                ULONG          ulMessageLen;
 
                CHAR           szBuffer[ 512];
+               PSZ            apszParms[] = { "parm1", "parm2", "parm3"};
 
       if (!pszFilename)
          {
@@ -67,11 +68,11 @@ static         PSZ            pszMessageName = "TESTMESSAGE";
          rc = ERROR_ENVVAR_NOT_FOUND;
          break;
          }
-      GETMESSAGE( "INSERTTEST");
-      GETMESSAGE( "TESTMESSAGE");
-      GETMESSAGE( "TESTVAL1");
-      GETMESSAGE( "TESTVAL2");
-      GETMESSAGE( "TESTVAL3");
+      GETMESSAGE( "INSERTTEST", apszParms, 1);
+      GETMESSAGE( "TESTMESSAGE", NULL, 0);
+      GETMESSAGE( "TESTVAL1", NULL, 0);
+      GETMESSAGE( "TESTVAL2", NULL, 0);
+      GETMESSAGE( "TESTVAL3", NULL, 0);
 
       } while (FALSE);
 
