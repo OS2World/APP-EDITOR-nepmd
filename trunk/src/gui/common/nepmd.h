@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.10 2002-08-24 17:45:26 cla Exp $
+* $Id: nepmd.h,v 1.11 2002-08-24 18:29:07 cla Exp $
 *
 * ===========================================================================
 *
@@ -68,6 +68,7 @@
 #define ENV_NEPMD_MAINENVFILE      "NEPMD_MAINENVFILE"
 #define ENV_NEPMD_USERENVFILE      "NEPMD_USERENVFILE"
 #define ENV_NEPMD_EPMEXECUTABLE    "NEPMD_EPMEXECUTABLE"
+#define ENV_NEPMD_LOADEREXECUTABLE "NEPMD_LOADEREXECUTABLE"
 
 // define external env variable for testing of
 // NEPMD utilities in working directory tree
