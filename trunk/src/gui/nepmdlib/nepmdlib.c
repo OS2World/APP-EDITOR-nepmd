@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.50 2002-10-07 18:36:49 cla Exp $
+* $Id: nepmdlib.c,v 1.51 2002-10-07 21:40:18 cla Exp $
 *
 * ===========================================================================
 *
@@ -47,6 +47,7 @@
 #include "libreg.h"
 #include "module.h"
 #include "tmf.h"
+#include "mode.h"
 
 // some useful macros
 #define EPMINSERTTEXT(t)          EtkInsertTextBuffer( hwndClient, 0, strlen( t), t, 0x100);
@@ -735,6 +736,60 @@ do
 
    // hand over result
    strcpy( pszBuffer, szResult);
+
+   } while (FALSE);
+
+return _getRexxError( rc, pszBuffer, ulBuflen);
+}
+
+// ------------------------------------------------------------------------------
+
+#define MODEINFO_LEN 1024
+
+APIRET EXPENTRY NepmdQueryDefaultMode( PSZ pszFilename, PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         HCONFIG        hconfig;
+
+         CHAR           szResult[ 20];
+         PMODEINFO      pmi = malloc( 1024);
+
+do
+   {
+   // init return value first
+   if (pszBuffer)
+      memset( pszBuffer, 0, ulBuflen);
+
+   // check parms
+   if ((!pszFilename) ||
+       (!pszBuffer))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // 
+   pmi = malloc( MODEINFO_LEN);
+   if (!pmi)
+      {
+      rc = ERROR_NOT_ENOUGH_MEMORY;
+      break;
+      }
+
+   // query mode
+   rc = QueryFileModeInfo( pszFilename, pmi, MODEINFO_LEN);
+   if (rc != NO_ERROR)
+      break;
+
+   // convert handle to string
+   if (strlen( pmi->pszModeName) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszBuffer, pmi->pszModeName);
 
    } while (FALSE);
 

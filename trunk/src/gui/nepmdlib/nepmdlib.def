@@ -6,7 +6,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: nepmdlib.def,v 1.31 2002-10-03 22:07:54 cla Exp $
+; $Id: nepmdlib.def,v 1.32 2002-10-07 21:40:18 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -50,6 +50,7 @@ EXPORTS
  NepmdLibVersion
  NepmdOpenConfig
  NepmdQueryConfigValue
+ NepmdQueryDefaultMode
  NepmdQueryFullname
  NepmdQueryInstValue
  NepmdQueryPathInfo
