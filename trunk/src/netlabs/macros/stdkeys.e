@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.5 2002-09-16 19:37:30 aschn Exp $
+* $Id: stdkeys.e,v 1.6 2002-10-06 23:35:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1081,7 +1081,7 @@ def f9, a_backspace = undo
 def f10,f12,c_N=   -- F10 is usual E default; F12 for enhanced kbd, c_N for EPM.
    nextfile
 
-
+/*
 def home =
 compile if WANT_CUA_MARKING
  compile if WANT_CUA_MARKING = 'SWITCH'
@@ -1101,6 +1101,49 @@ def s_home =
    begin_line
    call extend_mark(startline, startcol, 0)
 compile endif
+*/
+
+def home =
+   universal nepmd_hini
+compile if WANT_CUA_MARKING
+ compile if WANT_CUA_MARKING = 'SWITCH'
+   universal CUA_marking_switch
+   if CUA_marking_switch then
+ compile endif
+      unmark
+ compile if WANT_CUA_MARKING = 'SWITCH'
+   endif
+ compile endif
+compile endif
+   KeyPath = "\NEPMD\User\Indent\Home\RespectIndent"
+   RespectIndent = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+   if RespectIndent = 1 then
+      startline = .line; startcol = .col
+      call pfirst_nonblank()
+      if .line = startline and .col = startcol then
+         begin_line
+      endif
+   else
+      begin_line
+   endif
+
+compile if WANT_SHIFT_MARKING
+def s_home =
+   universal nepmd_hini
+   startline = .line; startcol = .col
+   KeyPath = "\NEPMD\User\Indent\Home\RespectIndent"
+   RespectIndent = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+   if RespectIndent = 1 then
+      call pfirst_nonblank()
+      if .line = startline and .col = startcol then
+         begin_line
+      endif
+   else
+      begin_line
+   endif
+   call extend_mark(startline, startcol, 0)
+compile endif
+
 
 def ins=
    insert_toggle
