@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.5 2002-08-03 16:39:23 cla Exp $
+: $Id: prepare.cmd,v 1.6 2002-08-10 15:22:37 cla Exp $
 :
 : ===========================================================================
 :
@@ -29,6 +29,10 @@
  SET UNZ=CALL _UNPACK
  SET MOV=CALL _MOVE
 
+: - set DEBUG=echo to display package names during unpack
+ SET DEBUG=echo
+ SET DEBUG=rem
+
  SET LOGFILE=%1
  SET BASEURL=%2
  SET ZIPSRCDIR=%3
@@ -41,7 +45,8 @@
  GOTO end
 
 :parmok
-: ---------- check for package files from LEO
+
+: ----- check for package files from LEO
 
  MD %ZIPSRCDIR%   >NUL 2>&1
 
@@ -82,20 +87,24 @@
  %CHECKERROR%
 
 : --- unpack main application package and distribute to subdirectories
- %UNZ% %UNZIPPEDDIR%\epmapp             %UNZIPPEDDIR%\EPMAPP\BIN               >>%LOGFILE% 2>&1
+ %DEBUG% -- EPMAPP
+ %UNZ% %UNZIPPEDDIR%\epmapp             %UNZIPPEDDIR%\EPMAPP\EPMBBS\BIN        >>%LOGFILE% 2>&1
  %CHECKERROR%
 
  SET TARGET=%UNZIPPEDDIR%\EPMAPP
  MD %TARGET%.base
  %CHECKERROR%
- MD %TARGET%.base\bin
+ MD %TARGET%.base\EPMBBS
  %CHECKERROR%
- %MOV% %TARGET%\bin\epm.exe %TARGET%.base\bin                                  >>%LOGFILE% 2>&1
+ MD %TARGET%.base\EPMBBS\bin
+ %CHECKERROR%
+ %MOV% %TARGET%\EPMBBS\bin\epm.exe %TARGET%.base\EPMBBS\bin                    >>%LOGFILE% 2>&1
  %CHECKERROR%
 
- DEL %TARGET%\BIN\README.EPM                                                   >>%LOGFILE% 2>&1
+ SET TARGET=%UNZIPPEDDIR%\EPMAPP\EPMBBS
+ DEL %TARGET%\EPMBBS\BIN\README.EPM                                            >>%LOGFILE% 2>&1
  %CHECKERROR%
- DEL %TARGET%\BIN\TTITALIC.BMP                                                 >>%LOGFILE% 2>&1
+ DEL %TARGET%\EPMBBS\BIN\TTITALIC.BMP                                          >>%LOGFILE% 2>&1
  %CHECKERROR%
 
  MD %TARGET%\BIN\BMP                                                           >>%LOGFILE% 2>&1
@@ -127,35 +136,41 @@
 
 : --- unpack further main application package components
 
- %UNZ% %UNZIPPEDDIR%\epmdll  %UNZIPPEDDIR%\EPMDLL\DLL                          >>%LOGFILE% 2>&1
+ %DEBUG% -- EPMDLL
+ %UNZ% %UNZIPPEDDIR%\epmdll  %UNZIPPEDDIR%\EPMDLL\EPMBBS\DLL                   >>%LOGFILE% 2>&1
  %CHECKERROR%
 
- %UNZ% %UNZIPPEDDIR%\epmhlp  %UNZIPPEDDIR%\EPMHLP\HELP                         >>%LOGFILE% 2>&1
+ %DEBUG% -- EPMHLP
+ %UNZ% %UNZIPPEDDIR%\epmhlp  %UNZIPPEDDIR%\EPMHLP\EPMBBS\HELP                  >>%LOGFILE% 2>&1
  %CHECKERROR%
 
  SET TARGET=%UNZIPPEDDIR%\EPMHLP
  MD %TARGET%.base
  %CHECKERROR%
- MD %TARGET%.base\help
+ MD %TARGET%.base\EPMBBS
  %CHECKERROR%
- %MOV% %TARGET%\help\ETKUCMS.HLP %TARGET%.base\help                            >>%LOGFILE% 2>&1
+ MD %TARGET%.base\EPMBBS\help
  %CHECKERROR%
- %MOV% %TARGET%\help\EPM.HLP %TARGET%.base\help                                >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\EPMBBS\help\ETKUCMS.HLP %TARGET%.base\EPMBBS\help              >>%LOGFILE% 2>&1
  %CHECKERROR%
-
-
- %UNZ% %UNZIPPEDDIR%\epmbk   %UNZIPPEDDIR%\EPMBK\BOOK                          >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\EPMBBS\help\EPM.HLP %TARGET%.base\EPMBBS\help                  >>%LOGFILE% 2>&1
  %CHECKERROR%
 
- %UNZ% %UNZIPPEDDIR%\epmbmps %UNZIPPEDDIR%\EPMBMPS\BIN\BMP                     >>%LOGFILE% 2>&1
+ %DEBUG% -- EPMBK
+ %UNZ% %UNZIPPEDDIR%\epmbk   %UNZIPPEDDIR%\EPMBK\EPMBBS\BOOK                   >>%LOGFILE% 2>&1
+ %CHECKERROR%
+
+ %DEBUG% -- EPMBMPS
+ %UNZ% %UNZIPPEDDIR%\epmbmps %UNZIPPEDDIR%\EPMBMPS\EPMBBS\BIN\BMP              >>%LOGFILE% 2>&1
  %CHECKERROR%
 
 : --- unpack speech support package and distribute to subdirectories
 
- %UNZ% %UNZIPPEDDIR%\epmspch %UNZIPPEDDIR%\EPMSPCH                             >>%LOGFILE% 2>&1
+ %DEBUG% -- EPMSPCH
+ %UNZ% %UNZIPPEDDIR%\epmspch %UNZIPPEDDIR%\EPMSPCH\EPMBBS\BIN                  >>%LOGFILE% 2>&1
  %CHECKERROR%
 
- SET TARGET=%UNZIPPEDDIR%\EPMSPCH
+ SET TARGET=%UNZIPPEDDIR%\EPMSPCH\EPMBBS
  DEL %TARGET%\BIN\README.TXT                                                   >>%LOGFILE% 2>&1
  %CHECKERROR%
 
@@ -183,35 +198,36 @@
 
 : --- unpack macro packages and distribute to subdirectories
 
- %UNZ% %UNZIPPEDDIR%\epmmac  %UNZIPPEDDIR%\EPMMAC\BIN\MACROS                   >>%LOGFILE% 2>&1
+ %DEBUG% -- macros
+ %UNZ% %UNZIPPEDDIR%\epmmac  %UNZIPPEDDIR%\EPMMAC\EPMBBS\BIN\MACROS            >>%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\epmmac2 %UNZIPPEDDIR%\EPMMAC2\BIN\MACROS                  >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmmac2 %UNZIPPEDDIR%\EPMMAC2\EPMBBS\BIN\MACROS           >>%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\epmsmp  %UNZIPPEDDIR%\EPMSMP\BIN\MACROS\SAMPLES           >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmsmp  %UNZIPPEDDIR%\EPMSMP\EPMBBS\BIN\MACROS\SAMPLES    >>%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\epmatr   %UNZIPPEDDIR%\EPMATR\BIN\MACROS\ATTR             >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmatr   %UNZIPPEDDIR%\EPMATR\EPMBBS\BIN\MACROS\ATTR      >%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\epmasi  %UNZIPPEDDIR%\EPMASI\BIN\MACROS\MYASSIST          >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmasi  %UNZIPPEDDIR%\EPMASI\EPMBBS\BIN\MACROS\MYASSIST   >%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\lampdq  %UNZIPPEDDIR%\LAMPDQ\BIN\MACROS\LAMPDQ            >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\lampdq  %UNZIPPEDDIR%\LAMPDQ\EPMBBS\BIN\MACROS\LAMPDQ     >%LOGFILE% 2>&1
  %CHECKERROR%
-
- %UNZ% %UNZIPPEDDIR%\ebooke  %UNZIPPEDDIR%\EBOOKE\BIN\MACROS\EBOOKE            >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\ebooke  %UNZIPPEDDIR%\EBOOKE\EPMBBS\BIN\MACROS\EBOOKE     >%LOGFILE% 2>&1
  %CHECKERROR%
- DEL %UNZIPPEDDIR%\EBOOKE\BIN\MACROS\EBOOKE\READ.ME
+ DEL %UNZIPPEDDIR%\EBOOKE\EPMBBS\BIN\MACROS\EBOOKE\READ.ME
  %CHECKERROR%
 
 : --- unpack sample packages and distribute to subdirectories
 
- %UNZ% %UNZIPPEDDIR%\epmdde   %UNZIPPEDDIR%\EPMDDE\SAMPLES\DDE                 >>%LOGFILE% 2>&1
+ %DEBUG% -- samples
+ %UNZ% %UNZIPPEDDIR%\epmdde   %UNZIPPEDDIR%\EPMDDE\EPMBBS\SAMPLES\DDE          >>%LOGFILE% 2>&1
  %CHECKERROR%
- %UNZ% %UNZIPPEDDIR%\epmrex   %UNZIPPEDDIR%\EPMREX\SAMPLES\REXX                >>%LOGFILE% 2>&1
- %CHECKERROR%
-
- %UNZ% %UNZIPPEDDIR%\epmcsamp %UNZIPPEDDIR%\EPMCSAMP\SAMPLES                   >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmrex   %UNZIPPEDDIR%\EPMREX\EPMBBS\SAMPLES\REXX         >>%LOGFILE% 2>&1
  %CHECKERROR%
 
- REN %UNZIPPEDDIR%\EPMCSAMP\SAMPLES\EPMCSAMP C                                 >>%LOGFILE% 2>&1
+ %UNZ% %UNZIPPEDDIR%\epmcsamp %UNZIPPEDDIR%\EPMCSAMP\EPMBBS\SAMPLES            >>%LOGFILE% 2>&1
+ %CHECKERROR%
+
+ REN %UNZIPPEDDIR%\EPMCSAMP\EPMBBS\SAMPLES\EPMCSAMP C                          >>%LOGFILE% 2>&1
  %CHECKERROR%
 
 : --- cleanup here
