@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: activatehighlight.e,v 1.1 2002-09-22 13:20:35 cla Exp $
+* $Id: activatehighlight.e,v 1.2 2002-09-22 21:44:12 cla Exp $
 *
 * ===========================================================================
 *
@@ -29,7 +29,7 @@ rc = NepmdActivateHighlight( ActivateFlag, EpmMode);
 @@NepmdActivateHighlight@CATEGORY@MODE
 
 @@NepmdActivateHighlight@SYNTAX
-This function activates or deactivates the syntax highlighting for 
+This function activates or deactivates the syntax highlighting for
 the loaded file.
 
 @@NepmdActivateHighlight@PARM@ActivateFlag
@@ -44,7 +44,7 @@ Specifiy one of the following values:
 = activate syntax highlighting
 
 @@NepmdActivateHighlight@PARM@EpmMode
-This parameter specifies the current 
+This parameter specifies the current
 
 @@NepmdActivateHighlight@RETURNS
 *NepmdActivateHighlight* returns an OS/2 error code or zero for no error.
@@ -72,7 +72,7 @@ mode of the currently loaded file
 defc NepmdActivateHighlight, ActivateHighlight =
 
  ActivateFlag = translate( arg( 1));
- if (ActivateFlag) then
+ if (ActivateFlag = '') then
     ActivateFlag = 'ON';
  endif
 
@@ -80,8 +80,8 @@ defc NepmdActivateHighlight, ActivateHighlight =
     NewStatus = 'activated';
  elseif (wordpos( ActivateFlag, 'OFF 0') > 0) then
     NewStatus = 'deactivated';
- elseif (NewStatus = '') then
-    sayerror 'wrong parameter specified !';
+ else
+    sayerror 'Wrong parameter "'ActivateFlag'" specified !';
     return;
  endif
 
@@ -91,7 +91,7 @@ defc NepmdActivateHighlight, ActivateHighlight =
     return;
  endif
 
- sayerror 'window pos of frame modified successfully.';
+ sayerror 'syntax highlighting was' NewStatus 'successfully. ('ActivateFlag')';
 
  return;
 
@@ -126,7 +126,7 @@ defproc NepmdActivateHighlight( ActivateFlag)
  LibFile = helperNepmdGetlibfile();
  rc = dynalink32( LibFile,
                   "NepmdActivateHighlight",
-                  gethwndc( EPMINFO_EDITFRAME)  ||
+                  gethwndc( EPMINFO_EDITCLIENT) ||
                   address( ActivateFlag)        ||
                   address( EpmMode));
 
