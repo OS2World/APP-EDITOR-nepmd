@@ -7,7 +7,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.2 2002-09-19 14:15:44 cla Exp $
+; $Id: defaults.dat,v 1.3 2002-10-06 23:10:07 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -28,4 +28,40 @@
 ; these keys are junk only
 "\NEPMD\Testcase\MyContainer\MyKey" = "This is my value"
 "\NEPMD\Testcase\MyContainer\MyKey2"="This is another value"
+
+; RexxEa
+"\NEPMD\User\RexxEa\Delete" = 1
+"\NEPMD\User\RexxEa\Extensions" = "CMD ERX"
+
+; Language
+"\NEPMD\Language\UnnamedFilename" = ".Untitled"
+
+; Statusline
+;"\NEPMD\User\Statusline\Template" = "Line %l of %s | Col %c | '%x'x/%z | %f | ma %ma | tabs %ta | %mo | %m"
+;"\NEPMD\User\Statusline\Separator" = " ú "
+;"\NEPMD\User\Statusline\Font" = "10.System Proportional.Non-ISO"
+;"\NEPMD\User\Statusline\Color" = "BLACK + LIGHT_GREYB"
+;"\NEPMD\User\Statusline\ModifiedColor" = "MAGENTA + LIGHT_GREYB"
+
+; Titletext
+;"\NEPMD\User\Titletext\Template" = "%fn   (%dt)"
+
+; Messageline
+;"\NEPMD\User\Messageline\Font" = "10.Helv"
+;"\NEPMD\User\Messageline\Color" = "LIGHT_RED + WHITEB"
+
+; Mouse
+"\NEPMD\User\Mouse\Mark\DragAlwaysMarks" = "1"
+;    MouseStyle =  1: MB1 = block marking, MB2 = char marking
+;    MouseStyle <> 1: MB2 = block marking, MB1 = char marking
+"\NEPMD\User\Mouse\Mark\MouseStyle" = "1"
+"\NEPMD\User\Mouse\Mark\Workaround" = "1"
+
+"\NEPMD\User\Mouse\Url\MB1_DClick" = "1"
+"\NEPMD\User\Mouse\Url\Browser" = "DEFAULT"
+;"\NEPMD\User\Mouse\Url\ContextMenu" = "1"
+
+; Indent
+"\NEPMD\User\Indent\Home\RespectIndent" = "1"
+
 
