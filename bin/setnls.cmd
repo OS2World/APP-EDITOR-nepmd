@@ -4,12 +4,12 @@
 *
 *   Syntax:  setnls [<languageid>]
 *
-*   This program sets the language id for the NEPMD project.
+*   This program sets the three character language id for the NEPMD project.
 *   Specify no id in order to NEPMD delete the language information.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setnls.cmd,v 1.1 2002-06-03 18:35:46 cla Exp $
+* $Id: setnls.cmd,v 1.2 2002-06-12 18:14:01 cla Exp $
 *
 * ===========================================================================
 *
@@ -23,18 +23,34 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-/*
- */
 
+ /* load REXX util */
  call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
  call SysLoadFuncs
 
+ /* defaults */
+ IniApp         = 'NEPMD';
+ IniKeyLanguage = 'Language';
+
+ /* set new value - must have zero or three characters */
  PARSE ARG LanguageId;
  LanguageId = STRIP( LanguageId);
+ IF (WORDPOS( LENGTH( LanguageId), '0 3') = 0) THEN
+ DO
+    SAY 'error: invalid language id specified:' LanguageId;
+    EXIT( 87);
+ END;
+
+ /* delete current value, if none specified */
  IF (LanguageId = '') THEN
     LanguageId = 'DELETE:';
 
- rc = SysIni(, 'NEPMD', 'Language', LanguageId);
+ /* display the vaule just set */
+ rc = SysIni(, IniApp, IniKeyLanguage, LanguageId);
+ IF (rc = 'ERROR:') THEN
+    CurrentValue = '<not defined>';
+ ELSE
+    CurrentValue = SysIni(, IniApp, IniKeyLanguage);
 
- SAY 'Current id is:' SysIni(, 'NEPMD', 'Language');
+ SAY 'Language id is set to:' CurrentValue;
 
