@@ -15,7 +15,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.4 2002-04-16 15:15:53 cla Exp $
+: $Id: prepare.cmd,v 1.5 2002-04-16 15:20:50 cla Exp $
 :
 : ===========================================================================
 :
@@ -99,6 +99,9 @@
  MD %TARGET%\BIN\BAR                                                           >>%LOGFILE% 2>&1
  %MOV% %TARGET%\BIN\*.BAR %TARGET%\BIN\BAR                                     >>%LOGFILE% 2>&1
 
+ MD %TARGET%\BIN\NDX                                                           >>%LOGFILE% 2>&1
+ %MOV% %TARGET%\BIN\*.NDX %TARGET%\BIN\NDX                                     >>%LOGFILE% 2>&1
+
 : --- unpack further main application package components
 
  %UNZ% %UNZIPPEDDIR%\epmdll  %UNZIPPEDDIR%\EPMDLL\DLL                          >>%LOGFILE% 2>&1
@@ -124,9 +127,6 @@
 
  MD %TARGET%\BIN\BMP                                                           >>%LOGFILE% 2>&1
  %MOV% %TARGET%\BIN\*.BMP %TARGET%\BIN\BMP                                     >>%LOGFILE% 2>&1
-
- MD %TARGET%\BIN\NDX                                                           >>%LOGFILE% 2>&1
- %MOV% %TARGET%\BIN\*.NDX %TARGET%\BIN\NDX                                     >>%LOGFILE% 2>&1
 
 : --- unpack macro packages and distribute to subdirectories
 
