@@ -28,7 +28,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: rules.in,v 1.10 2002-08-21 12:12:27 cla Exp $
+# $Id: rules.in,v 1.11 2004-12-26 14:20:57 aschn Exp $
 #
 # ===========================================================================
 #
@@ -226,11 +226,11 @@ RC_FLAGS_MAIN=$(RC_FLAGS_USER)
 # --- define debug options (always both)
 C_FLAGS_DEBUG=$(C_FLAGS_MAIN) -Tm -Ti+ -DDEBUG
 L_FLAGS_DEBUG=$(L_FLAGS_MAIN) /CO
-RC_FLAGS_DEBUG=$(RC_FLAGS_MAIN) -DDEBUG
+RC_FLAGS_DEBUG=$(RC_FLAGS_MAIN) -D DEBUG
 
 C_FLAGS_RELEASE=$(C_FLAGS_MAIN) -Ti- -DNDEBUG
 L_FLAGS_RELEASE=$(L_FLAGS_MAIN)
-RC_FLAGS_RELEASE=$(RC_FLAGS_MAIN) -DNDEBUG
+RC_FLAGS_RELEASE=$(RC_FLAGS_MAIN) -D NDEBUG
 
 # --- define debug options
 !ifdef DEBUG
