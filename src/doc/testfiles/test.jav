@@ -6,7 +6,7 @@ Comment - DEFAULT LIGHTMAGENTA
 
 Literal - DEFAULT GREEN
 ==========================
-"is a literal"
+"this is a literal"
 
 
 character - DEFAULT LIGHTGREEN

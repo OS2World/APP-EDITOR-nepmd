@@ -5,7 +5,7 @@ Comment - DEFAULT LIGHTMAGENTA
 
 Literal - DEFAULT LIGHTRED
 ==========================
-"is a literal"   %this is a literal%
+"this is a literal"   %this is a literal%
 
 Ada keywords - DEFAULT MAGENTA
 ==============================
