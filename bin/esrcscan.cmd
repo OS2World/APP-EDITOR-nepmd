@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.10 2002-09-07 13:17:45 cla Exp $
+* $Id: esrcscan.cmd,v 1.11 2002-09-08 22:11:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -778,23 +778,23 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
           PARSE VAR ParmList ThisParm ParmList;
 
           /* add parameter to the parameter overview */
-          ParmDoc = '*'ThisParm'*'CrLf||,
+          ParmDoc = '.lm 1'CrLf||,
+                    '*'ThisParm'*'CrLf||,
                     '.'CrLf||,
                     '.lm 4'CrLf||,
                     DocComment.ThisFunction.ThisKey.ThisParm||,
-                    '.lm 1'CrLf||,
                     ''CrLf;
           DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''ParmDoc;
        END;
 
        /* append returns section to the parameter overview */
        ReturnKey = 'RETURNS';
-       ReturnDoc = '*return value*'CrLf||,
-                    '.'CrLf||,
-                    '.lm 4'CrLf||,
-                    DocComment.ThisFunction.ReturnKey||,
-                    '.lm 1'CrLf||,
-                    ''CrLf;
+       ReturnDoc = '.lm 1'CrLf||,
+                   '*return value*'CrLf||,
+                   '.'CrLf||,
+                   '.lm 4'CrLf||,
+                   DocComment.ThisFunction.ReturnKey||,
+                   ''CrLf;
        DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''ReturnDoc;
 
        rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'PARM', '', 'Parameters');
