@@ -10,7 +10,7 @@ EXTPROC CHECKPRG
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: required.cmd,v 1.1 2002-06-05 22:20:57 cla Exp $
+: $Id: required.cmd,v 1.2 2002-06-10 14:09:27 cla Exp $
 :
 : ===========================================================================
 :
@@ -29,6 +29,7 @@ INI:USER  WarpIN:Path   WarpIN Installer for OS/2
 ENV:PATH  IPFC.EXE      IBM C Compiler
 ENV:PATH  DLGEDIT.EXE   Toolkit for OS/2 Warp
 ENV:PATH  IPFC.EXE      IPF Compiler
+ENV:PATH  ETPM.EXE      EPM Macro Compiler
 ENV:PATH  PKUNZIP2.EXE  PKUnzip for OS/2 V1.11 (as part of MPTS)
 ENV:PATH  GREP.EXE      Grep Utility
 ENV:PATH  UNZIP.EXE     UNZIP.EXE of Info-ZIP
