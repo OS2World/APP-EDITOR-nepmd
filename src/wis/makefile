@@ -17,7 +17,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.7 2002-06-12 09:08:04 cla Exp $
+# $Id: makefile,v 1.8 2002-07-31 14:40:48 cla Exp $
 #
 # ===========================================================================
 #
@@ -60,7 +60,7 @@ FILESTOCLEAN=\
  $(CMPDIR)\$(SCRIPTFILE) \
  $(BINDIR)\$(WPIFILE) \
  $(CMPDIR)\prepare.log \
- $(BINDIR)\create.log
+ $(BINDIR)\mkwpi.log
 
 
 # --- parameters for to patch into the WarpIn script
@@ -113,7 +113,7 @@ $(UNZIPPEDDIR)\prepare.log: prepare.cmd
 
 $(BINDIR)\$(WPIFILE): PREPARE $(CMPDIR)\$(SCRIPTFILE) $(WPIDEPLIST) $(LISTFILE)
    @CD $(BASEDIR)
-   mkwpi src\wis\$(LISTFILE) $(BINDIR_NAME)\create.log $(CMPDIR_NAME)\$(SCRIPTFILE) $(BINDIR_NAME)\$(WPIFILE) $(CREATEPARMS)
+   mkwpi src\wis\$(LISTFILE) $(BINDIR_NAME)\mkwpi.log $(CMPDIR_NAME)\$(SCRIPTFILE) $(BINDIR_NAME)\$(WPIFILE) $(CREATEPARMS)
 
 # --- create customized WarpIn script file
 $(CMPDIR)\$(SCRIPTFILE): $(SCRIPTFILE)
