@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: xchgline.e,v 1.2 2004-06-29 20:36:57 aschn Exp $
+* $Id: xchgline.e,v 1.3 2004-07-13 18:27:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,19 +21,18 @@
 
 defc MoveLineUp
    getline line
+   l = max( .line - 1, 1)
    deleteline
-   insertline line, max( .line - 1, 1)
-   up
-   if .line > 1 then
-      up
-   endif
+   insertline line, l  -- insert above
+   .line = l
+   down; up  -- scroll to make the line below viewable
    return
 
 defc MoveLineDown
    col = .col
    getline line
    deleteline
-   insertline line, .line + 1
+   insertline line, .line + 1  -- insert below
    down
    .col = col
    return
@@ -75,5 +74,4 @@ defc MoveCharRight
       insert_toggle
    endif
    return
-
 
