@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: file.h,v 1.2 2002-08-22 10:08:35 cla Exp $
+* $Id: file.h,v 1.3 2002-09-24 16:48:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -44,6 +44,7 @@ PSZ Filespec ( PSZ pszFilename, ULONG ulPart);
 #define FILESPEC_NAME      2
 #define FILESPEC_EXTENSION 3
 
+ULONG QueryFileSize( PSZ pszName);
 
 #endif // FILE_H
 

@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: file.c,v 1.4 2002-08-22 10:08:34 cla Exp $
+* $Id: file.c,v 1.5 2002-09-24 16:48:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -422,6 +422,38 @@ do
 
 return pszFilenamePart;
 
+}
+
+// -----------------------------------------------------------------------------
+
+ULONG QueryFileSize( PSZ pszFilename)
+{
+         ULONG          ulFileSize = 0;
+         APIRET         rc = NO_ERROR;
+         FILESTATUS3    fs3;
+
+do
+   {
+   // check parms
+   if (!pszFilename)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // search entry
+   rc = DosQueryPathInfo( pszFilename,
+                          FIL_STANDARD,
+                          &fs3,
+                          sizeof( fs3));
+   if (rc != NO_ERROR)
+      break;
+
+   ulFileSize = fs3.cbFile;
+
+   } while (FALSE);
+
+return ulFileSize;
 }
 
 
