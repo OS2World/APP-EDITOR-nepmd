@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.1 2002-08-13 21:04:34 cla Exp $
+* $Id: epmenv.c,v 1.2 2002-08-14 12:11:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -52,6 +52,8 @@ static APIRET _searchNepmdEnvironmentFile( PSZ pszEnvfile, ULONG ulBuflen)
 
          CHAR           szEnvfile[ _MAX_PATH];
 
+static  PSZ            pszNepmdExecDirMask = "%s\\"NEPMD_SUBPATH_BINBINDIR"\\%s";
+
 do
    {
    // check parms
@@ -84,27 +86,49 @@ do
       {
       // handle also non-zero-terminated strings
       szFilePath[ ulDataLen] = 0;
+      }
 
+   // ----- try <nepmd_rotodir>\netlabs\bin\<exename>.env
+
+   if (ulDataLen)
+      {
       // determine complete filename
-      sprintf( szEnvfile, "%s\\"NEPMD_SUBPATH_BINBINDIR"\\%s", szFilePath, szBasename);
+      sprintf( szEnvfile, pszNepmdExecDirMask, szFilePath, szBasename);
       fFound = (FileExists( szEnvfile));
       }
 
+   // ----- try <nepmd_rotodir>\netlabs\bin\epm.env
+
+   if (!fFound)
+      {
+      sprintf( szEnvfile, pszNepmdExecDirMask, szFilePath, "epm.env");
+      fFound = (FileExists( szEnvfile));
+      }
+
+   // try <execdir>\<exename>.env
    if (!fFound)
       {
       // nothing stored or no config found in install tree - use path of executable
       sprintf( szEnvfile, "%s\\%s", szExecutable, szBasename);
+      fFound = (FileExists( szEnvfile));
+      }
+
+   // error if not found
+   if (!fFound)
+      {
+      rc = ERROR_FILE_NOT_FOUND;
+      break;
       }
 
 
    // hand over result
    if (strlen( szEnvfile) + 1 > ulBuflen)
       {
-      rc= ERROR_BUFFER_OVERFLOW;
+      rc = ERROR_BUFFER_OVERFLOW;
       break;
       }
    strcpy( pszEnvfile, szEnvfile);
-   DPRINTF(( "EPMCALL: envfile is %s\n", szEnvfile));
+   DPRINTF(( "EPMENV: envfile is %s\n", szEnvfile));
 
    } while (FALSE);
 
@@ -235,13 +259,13 @@ while (*p)
 if (fFound)
    {
    // move whole block and thus eliminate old entry
-// DPRINTF(( "var moved: %s ", pszEntry));
+// DPRINTF(( "EPMENV: var moved: %s ", pszEntry));
    memcpy( p, p + ulNameLen + 1, pszCurrent - p);
    pszCurrent -= ulNameLen + 1;
    }
 else
    {
-// DPRINTF(( "var added: %s ", pszEntry));
+// DPRINTF(( "EPMENV: var added: %s ", pszEntry));
    }
 
 // copy current name to the end
@@ -303,9 +327,10 @@ do
 
    // if extended environment is already set, don't touch
    pszValue = getenv( ENV_NEPMD_ENVFILE);
+   DPRINTF(( "EPMENV: testing environment extension: %s=%s\n", ENV_NEPMD_ENVFILE, pszValue));
    if (pszValue)
       {
-      DPRINTF(( "skip environment extension, already set with: %s\n", pszValue));
+      DPRINTF(( "EPMENV: skip environment extension, already set with: %s\n", pszValue));
       break;
       }
 
@@ -327,7 +352,6 @@ do
       ppszEnv++;
       }
    ulEnvSize += 1;
-// DPRINTF(( "unmodified env size is: %u\n", ulEnvSize));
 
    // get memory for name list
    pszEnvNameList = malloc( ulEnvSize);
@@ -440,11 +464,11 @@ do
             pszNewLine = _expandEnvVar( pszLine);
             if (pszNewLine)
                {
-               DPRINTF(( "env added: %s\n", pszNewLine));
+               DPRINTF(( "EPMENV: added: %s\n", pszNewLine));
                ADDVAR( pszNewLine);
                }
             else
-               DPRINTF(( "ERROR: cannot expand \"%s\"\n", pszLine));
+               DPRINTF(( "EPMENV: ERROR: cannot expand \"%s\"\n", pszLine));
 
             } while (FALSE);
 
@@ -475,14 +499,12 @@ do
       {
       // copy var
       sprintf( pszVar, "%s=%s",  pszName, getenv( pszName));
-//    DPRINTF(( "copyenv (%u):%s\n", pszVar - pszEnv, pszVar));
 
       // copy next var
       pszVar = NEXTSTR( pszVar);
       pszName = NEXTSTR( pszName);
       }
    *pszVar = 0;
-// DPRINTF(( "used env size is: %u\n", pszVar - pszEnv));
 
    // hand over result
    *ppszNewEnv = pszEnv;
