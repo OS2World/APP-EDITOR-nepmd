@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: open.erx,v 1.2 2002-10-16 05:10:11 aschn Exp $
+* $Id: open.erx,v 1.3 2004-06-04 07:55:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,12 +29,23 @@
 /* Both args are submitted to SysSetObjectData.                            */
 /* If setup_string is not specified, then OPEN=DEFAULT is assumed.         */
 
+env = 'OS2ENVIRONMENT'
+ObjectType = ''
+
 call RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
 call SysLoadFuncs
 
-parse arg arg1 ','arg2
-Object = strip( arg1 )
-Setup  = strip( arg2 )
+parse arg args
+if left( args, 1) = '"' then  /* object may be surrounded with doublequotes */
+   do
+      parse value args with '"'arg1'"'rest
+      parse value rest with ',' arg2
+   end /* do */
+else
+   parse value args with arg1',' arg2
+Object = strip( arg1)
+Setup  = strip( arg2)
+/*'sayerror Object = ['Object'], Setup = ['Setup']'*/
 
 if Object = '' then
    return 1
@@ -42,20 +53,70 @@ if Object = '' then
 if Setup = '' then
    Setup = 'OPEN=DEFAULT'
 
+/* resolve envvars */
+Object = ResolveEnvVars( Object)
+
 /* test if dir and resolve filespec */
 CurDir = directory()
 next = directory(Object)  /* this resolves also: Filename'\..' */
 call directory CurDir
 if next <> '' then  /* if dir exists */
-   Object = next
+   do
+      Object = next
+      ObjectType = 'FOLDER'
+   end /* do */
 
 /* open the object */
-do 2
+if ObjectType = 'FOLDER' then  /* doesn't identify object ids for folders */
+   n = 2
+else
+   n = 1  /* better do it only once for other objects to avoid unhiding of */
+          /* minimized cmd windows */
+do n
    /* the 2nd call is for to make it the topmost window */
-   rc = SysSetObjectData( Object, Setup )
+   rc = SysSetObjectData( Object, Setup)
    if rc <> 1 then  /* rc = 1 ==> ok */
       leave
 end /* do 2 */
 
 return 0
+
+
+ResolveEnvVars:
+   Spec = arg(1)
+   startp = 1
+   do forever
+      p1 = pos( '%', Spec, startp)
+      if p1 = 0 then
+         leave
+      startp = p1 + 1
+      p2 = pos( '%', Spec, startp)
+      if p2 = 0 then
+         leave
+      else
+      do
+         startp = p2 + 1
+         Spec = substr( Spec, 1, p1 - 1) ||,
+                value( substr( Spec, p1 + 1, p2 - p1 - 1), , env) ||,
+                substr( Spec, p2 + 1 )
+      end
+   end  /* forever */
+   /* resolve ?: */
+   do while pos( '?:', Spec) <> 0
+      parse value Spec with first '?:' rest
+      Spec = first''GetBootDrive()''rest
+   end /* do while */
+   return Spec
+
+
+GetBootDrive: procedure
+   if RxfuncQuery('SysBootDrive') = 0 then
+      BootDrive = SysBootDrive()
+   else
+      do
+         Path =  value( 'PATH', , env)
+         parse upper value Path with '\OS2\SYSTEM' -2 BootDrive +2
+      end /* do */
+   return BootDrive
+
 
