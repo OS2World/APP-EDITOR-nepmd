@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmlex.e,v 1.3 2002-08-09 19:37:09 aschn Exp $
+* $Id: epmlex.e,v 1.4 2002-10-07 00:27:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -97,13 +97,16 @@ RESPECT_case_for_addenda     = 1        /* If addenda entries are to be     */
 compile endif -- ADDENDASUPPORT
 
 compile if not defined(PROOF_CIRCLE_STYLE)
-   PROOF_CIRCLE_STYLE = 2
+   --PROOF_CIRCLE_STYLE = 2
+   PROOF_CIRCLE_STYLE = 4          --         Select a wide sloppy circle
 compile endif
 compile if not defined(PROOF_CIRCLE_COLOR1)
-   PROOF_CIRCLE_COLOR1 = 16777220
+   --PROOF_CIRCLE_COLOR1 = 16777220
+   PROOF_CIRCLE_COLOR1 = 14        --         gives bright yellow circles
 compile endif
 compile if not defined(PROOF_CIRCLE_COLOR2)
-   PROOF_CIRCLE_COLOR2 = 16777218
+   --PROOF_CIRCLE_COLOR2 = 16777218
+   PROOF_CIRCLE_COLOR2 = 14        --         gives bright yellow circles
 compile endif
 compile if not defined(DYNASPELL_BEEP)
    DYNASPELL_BEEP = 'ALARM'
