@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: enter.e,v 1.3 2002-09-21 19:47:59 aschn Exp $
+* $Id: enter.e,v 1.4 2004-02-22 13:47:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,11 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+Todo:
+-  Move enter code for EPM command shells to SHELLKEYS.E.
+*/
 
 ; Consts concerning with enter:
 ; ENHANCED_ENTER_KEYS = 1
@@ -33,6 +38,18 @@ compile if not defined(NEPMD_STREAM_INDENTED)
    -- This activates the defs for WANT_STREAM_INDENTED too
    NEPMD_STREAM_INDENTED = 1
 compile endif
+
+/*
+defproc IsACommentedLine
+   ret = 0
+   mode = NepmdGetMode()
+   getline line
+   SLC = ';'
+   if substr( line, 1, length(SLC)) then
+      ret = 1
+   endif
+   return ret
+*/
 
 compile if NEPMD_STREAM_INDENTED and WANT_STREAM_MODE <> 0
 ; ---------------------------------------------------------------------
@@ -196,9 +213,6 @@ compile if ENHANCED_ENTER_KEYS & C_ENTER_ACTION <> ''  -- define each key separa
 compile else
 def c_enter, c_pad_enter=     -- 4.10:  new key for enhanced keyboard
    call my_c_enter()
- compile if    SHOW_MODIFY_METHOD
-   call show_modify()
- compile endif
 compile endif
 
 compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''  -- define each key separately
