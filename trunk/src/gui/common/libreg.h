@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.h,v 1.3 2002-09-13 17:28:42 cla Exp $
+* $Id: libreg.h,v 1.4 2002-09-13 19:34:23 cla Exp $
 *
 * ===========================================================================
 *
@@ -27,8 +27,9 @@
 typedef LHANDLE HCONFIG;
 typedef HCONFIG *PHCONFIG;
 
-APIRET OpenConfig( PHCONFIG phconfig);
+APIRET OpenConfig( PHCONFIG phconfig, PSZ pszFilename);
 APIRET CloseConfig( HCONFIG hconfig);
+
 APIRET WriteConfigValue( HCONFIG hconfig, PSZ pszValuePath, PSZ pszValue);
 APIRET QueryConfigValue( HCONFIG hconfig, PSZ pszValuePath, PSZ pszBuffer, ULONG ulBuflen);
 APIRET DeleteConfigValue( HCONFIG hconfig, PSZ pszValuePath);

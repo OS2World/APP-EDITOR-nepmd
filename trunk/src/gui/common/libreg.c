@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.6 2002-09-13 17:28:42 cla Exp $
+* $Id: libreg.c,v 1.7 2002-09-13 19:34:23 cla Exp $
 *
 * ===========================================================================
 *
@@ -35,7 +35,6 @@
 
 #include "macros.h"
 #include "nepmd.h"
-#include "instval.h"
 #include "libreg.h"
 
 // some globals
@@ -454,27 +453,23 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-APIRET OpenConfig( PHCONFIG phconfig)
+APIRET OpenConfig( PHCONFIG phconfig, PSZ pszFilename)
 {
          APIRET         rc = NO_ERROR;
-         CHAR           szInifile[ _MAX_PATH];
 
 do
    {
    // check parms
-   if (!phconfig)
+   if ((!phconfig)    ||
+       (!pszFilename) ||
+       (!*pszFilename))
       {
       rc = ERROR_INVALID_PARAMETER;
       break;
       }
 
-   // determine name of INI
-   rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szInifile, sizeof( szInifile));
-   if (rc = NO_ERROR)
-      break;
-
    // open profile
-   *phconfig = PrfOpenProfile( CURRENTHAB, szInifile);
+   *phconfig = PrfOpenProfile( CURRENTHAB, pszFilename);
    if (!*phconfig)
       {
       rc = LASTERROR;
