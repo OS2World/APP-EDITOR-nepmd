@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.21 2002-08-05 15:17:35 cla Exp $
+# $Id: nepmd.wis,v 1.22 2002-08-10 13:42:18 cla Exp $
 #
 # ===========================================================================
 #
@@ -39,6 +39,9 @@
      NODESELECT
      TITLE="%PCK_1_TITLE%"
      EXECUTE="$(1)\netlabs\install\nlsetup.exe"
+
+     WRITEPROFILE="USER\NEPMD\Language|%NLS%"
+     WRITEPROFILE="USER\NEPMD\Path|$(1)"
 
      CREATEOBJECT="WPFolder|%TITLE_NEPMD_FOLDER%|<WP_APPSFOLDER>|ICONVIEWPOS=22 41 65 34;CCVIEW=NO;OPEN=DEFAULT;OPEN=DEFAULT;OBJECTID=<NEPMD_FOLDER>;"
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_EXECUTE%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=EPM.EXE;OBJECTID=<NEPMD_EXECUTE>;"
