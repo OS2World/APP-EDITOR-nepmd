@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.9 2002-08-13 15:41:53 cla Exp $
+# $Id: makefile,v 1.10 2002-08-14 12:52:32 cla Exp $
 #
 # ===========================================================================
 #
@@ -26,6 +26,7 @@
 #         because common.lib is compiled MT also
 PKGDIR=epmcall
 DEF=epmcall.def
+RES=$(BINDIR)\epmcall.res
 LXLITE=1
 LIBS=$(BINDIR)\common.lib
 MT=1
@@ -87,5 +88,5 @@ $(BINBINDIR)\epm.env: epmcall.env
 
 # --- build program
 
-$(BINDIR)\epmcall.exe: $(BINDIR)\epmcall.obj $(OBJS) $(DEF)
+$(BINDIR)\epmcall.exe: $(BINDIR)\epmcall.obj $(OBJS) $(DEF) $(RES)
 
