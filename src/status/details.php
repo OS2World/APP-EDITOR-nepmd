@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: details.php,v 1.2 2002-07-17 16:03:05 cla Exp $
+* $Id: details.php,v 1.3 2002-07-18 19:27:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -20,6 +20,9 @@
 * General Public License for more details.
 *
 *************************************************************************/ ?>
+
+<? include( "filedb.inc") ?>
+
 <html>
 <body text="#000000" bgcolor=#FFFFFF link=#CC6633 vlink=#993300 alink=#6666CC>
 
@@ -28,41 +31,24 @@
 // load file
 if ($file != "")
    {
-   $maxlinelen = 256;
-
-   // read file contents
-   $hfile = fopen( $file, "r");
-
-   // category
-   $line = fgets( $hfile, $maxlinelen);
-   list( $tag, $category) = explode( ":", $line, 2);
-
-   // title
-   $line = fgets( $hfile, $maxlinelen);
-   list( $tag, $title) = explode( ":", $line, 2);
-
-   // priority
-   $line = fgets( $hfile, $maxlinelen);
-   list( $tag, $prio) = explode( ":", $line, 2);
-
-   // status
-   $line = fgets( $hfile, $maxlinelen);
-   list( $tag, $status) = explode( ":", $line, 2);
-
-   // filelist
-   $line = fgets( $hfile, $maxlinelen);
-   list( $tag, $filelist) = explode( ":", $line, 2);
-
-   // update info
-   $line = fgets( $hfile, $maxlinelen);
-   $aline = explode( " ", $line);
-   $modified   = $aline[4]." ".$aline[5]." ".$aline[6];
-
-
-
+   // read database
+   $aentry = filedb_read( $file);
+   list( , $entryfile) = each( $aentry);
+   list( , $category)  = each( $aentry);
+   list( , $title)     = each( $aentry);
+   list( , $prio)      = each( $aentry);
+   list( , $status)    = each( $aentry);
+   list( , $filelist)  = each( $aentry);
+   list( , $modified)  = each( $aentry);
+   list( , $details)   = each( $aentry);
 
    echo "<br>";
-   echo "<font size=+1><b>".$title."</b></font><p>";
+   echo "<table width=70% border=0>";
+   echo "<tr>";
+   echo "<td bgcolor=#dddddd><font size=+1><b>".$title."</b></font></td>";
+   echo "<td width=50 align=right bgcolor=#dddddd><img src=\"edit.gif\"></td>";
+   echo "</tr>";
+   echo "</table>";
    echo "<table width=70% border=0>";
    echo "<tr>";
    echo "<td width=25% bgcolor=#dddddd >category</td>";
@@ -78,15 +64,9 @@ if ($file != "")
    echo "</tr>";
    echo "</table>";
 
-   echo "<xmp>";
-   $line = fgets( $hfile, $maxlinelen);
-   while (!feof( $hfile))
-      {
-      $line = fgets( $hfile, $maxlinelen);
-      echo $line;
-      }
-   echo "</xmp>";
-   fclose( $hfile);
+   echo "<font size=+1><xmp>";
+   echo $details;
+   echo "</xmp></font>";
 
    }
 
