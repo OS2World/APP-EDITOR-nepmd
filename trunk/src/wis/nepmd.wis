@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.16 2002-06-10 20:03:56 cla Exp $
+# $Id: nepmd.wis,v 1.17 2002-07-23 11:56:27 cla Exp $
 #
 # ===========================================================================
 #
@@ -132,7 +132,7 @@ Select "Cancel" to abort installation.</TEXT>
 <PAGE INDEX=3 TYPE=TEXT>
 <NEXTBUTTON TARGET=4>~Next</NEXTBUTTON>
 <TEXT>
-IMPORTANT: the following restrictions apply to WarpIn V0.9.18 and may apply to newer versios as well:
+IMPORTANT: the following restrictions apply to WarpIn V0.9.19 and may apply to newer versios as well:
 
 Installation:
        Changing the installation path does not change ot for all components. Don't change the installation path or make sure that you use the same installation path for all components, otherwise the installed version will not properly work.
@@ -142,7 +142,7 @@ Deinstallation:
 
        Don't deinstall packages of this distribution without deinstalling also the package "Base Application", otherwise you will get errors. If you have done that nevertheless, close the error report and remove the remaining database entries manually.
 
-       WarpIn will warn you, if you attempt to install any packages of this distribution but the package "Base Application", because you may not deinstall any packages, if the main package is not also selected for deinstallation. Nevertheless WarpIn will warn you only about up to a maximum of two dependad packages, although you may have selected more than two packages depending on the main package.
+       WarpIn will warn you, if you attempt to deinstall any packages of this distribution but the package "Base Application", because you may not deinstall any packages, if the base package is not also selected for deinstallation. Nevertheless WarpIn will warn you only about up to a maximum of two dependad packages, although you may have selected more than two packages depending on the main package.
 
        When removing database entries, WarpIn will only let you remove the last selected entry. If you want to remove several entries at a time, you will have to repeat the step for each package.
 
