@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: titletext.e,v 1.2 2002-10-16 18:38:11 aschn Exp $
+* $Id: titletext.e,v 1.3 2002-10-19 13:22:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -28,75 +28,79 @@ compile endif
    NEPMD_FLAG_MODIFIED           = 'NEPMD3'
 
 defc maketitletext
-   filename = .filename
-   if .modify = 0 then
-      if leftstr( filename, 1 ) = '.' then
-         --.titletext = filename
-         next = 'ERROR:'NEPMD_FLAG_NO_DATETIME
+   if .visible then
+      filename = .filename
+      if .modify = 0 then
+         if leftstr( filename, 1 ) = '.' then
+            --.titletext = filename
+            next = 'ERROR:'NEPMD_FLAG_NO_DATETIME
+         else
+            next = get_filedatehex( filename )
+         endif
       else
-         next = get_filedatehex( filename )
+         --.titletext = filename'   (Modified)'
+         next = 'ERROR:'NEPMD_FLAG_MODIFIED
       endif
-   else
-      --.titletext = filename'   (Modified)'
-      next = 'ERROR:'NEPMD_FLAG_MODIFIED
-   endif
-   call refreshtitletext(next)
+      call refreshtitletext(next)
+   endif  -- .visible
    return
 
 ; Todo:
 ;    o  use templates for the .titletext definitions
 ;    o  use the NEPMD style of returning an rc > 0: (ERROR:rc)
 defproc refreshtitletext(next)
-   filename = .filename
-   parse value next with 'ERROR:'rc
-   if rc > '' then                   -- if DosQueryPathInfo returned error code
-      msg       = ''
-      statusmsg = ''
-      if rc then
-         if     rc = 2   then msg = 'File not found'
-         elseif rc = 3   then msg = 'Path not found'
-         elseif rc = 6   then msg = 'Invalid handle'
-         elseif rc = 18  then msg = 'No more files'
-         elseif rc = 26  then msg = 'Not DOS disk'
-         elseif rc = 87  then msg = 'Invalid parameter'
-         elseif rc = 108 then msg = 'Drive locked'
-         elseif rc = 111 then msg = 'Buffer overflow'
-         elseif rc = 113 then msg = 'No more search handles'
-         elseif rc = 206 then msg = 'Filename exced range'
-         -- following rc's don't come from DosQueryPathInfo
-         elseif rc = NEPMD_FLAG_ALTERED_BY_ANOTHER then
-                              msg = 'File was altered by another application'
-                              statusmsg = 0
-         elseif rc = NEPMD_FLAG_NO_DATETIME then
-                              msg = 0
-                              statusmsg = 0
-         elseif rc = NEPMD_FLAG_MODIFIED then
-                              msg = 'Modified'
-                              statusmsg = 0
-         else
-                              msg = 'rc = 'rc
+   if .visible then
+      filename = .filename
+      parse value next with 'ERROR:'rc
+      if rc > '' then                   -- if DosQueryPathInfo returned error code
+         msg       = ''
+         statusmsg = ''
+         if rc then
+            if     rc = 2   then msg = 'File not found'
+            elseif rc = 3   then msg = 'Path not found'
+            elseif rc = 6   then msg = 'Invalid handle'
+            elseif rc = 18  then msg = 'No more files'
+            elseif rc = 26  then msg = 'Not DOS disk'
+            elseif rc = 87  then msg = 'Invalid parameter'
+            elseif rc = 108 then msg = 'Drive locked'
+            elseif rc = 111 then msg = 'Buffer overflow'
+            elseif rc = 113 then msg = 'No more search handles'
+            elseif rc = 206 then msg = 'Filename exced range'
+            -- following rc's don't come from DosQueryPathInfo
+            elseif rc = NEPMD_FLAG_ALTERED_BY_ANOTHER then
+                                 msg = 'File was altered by another application'
+                                 statusmsg = 0
+            elseif rc = NEPMD_FLAG_NO_DATETIME then
+                                 msg = 0
+                                 statusmsg = 0
+            elseif rc = NEPMD_FLAG_MODIFIED then
+                                 msg = 'Modified'
+                                 statusmsg = 0
+            else
+                                 msg = 'rc = 'rc
+            endif
          endif
-      endif
-      if statusmsg <> 0 then
-         if statusmsg = '' then
-            statusmsg = msg
+         if statusmsg <> 0 then
+            if statusmsg = '' then
+               statusmsg = msg
+               sayerror filename': 'msg
+            endif
+         endif
+         if msg = 0 then
+            .titletext = filename
+         else
+            .titletext = filename'   ('msg')'
             sayerror filename': 'msg
          endif
-      endif
-      if msg = 0 then
-         .titletext = filename
-      else
-         .titletext = filename'   ('msg')'
-         sayerror filename': 'msg
-      endif
 
-   else                      -- if DosQueryPathInfo returned a datetime string
-      filedatehex = next
-      datetime = filedatehex2datetime( filedatehex )
-      parse value datetime with date time
-      .titletext = filename'   ('date' - 'time')'
+      else                      -- if DosQueryPathInfo returned a datetime string
+         filedatehex = next
+         datetime = filedatehex2datetime( filedatehex )
+         parse value datetime with date time
+         .titletext = filename'   ('date' - 'time')'
 
-   endif
+      endif  -- rc > ''
+   endif  -- .visible
    return
 
 compile if WANT_DATETIME_IN_TITLE
@@ -131,46 +135,48 @@ compile endif
 ;       DosQueryFileInfo/get_filedatehex.
 ; Called by defselect and defc processmouse; if not WindowHadFocus
 defc checkifupdated
-   filename = .filename
-   if leftstr( filename, 1 ) = '.' then
-      -- if temp file
-      if .modify = 0 then
-         ret = 'ERROR:'NEPMD_FLAG_NO_DATETIME              -- titletext = filename
-      else
-         ret = 'ERROR:'NEPMD_FLAG_MODIFIED                 -- titletext = filename'   (Modified)'
-      endif
-
-   else
-      -- if not a temp file
-      cur_filedatehex = ltoa(substr(.fileinfo, 9, 4), 16)
-      next = get_filedatehex(filename)
-      parse value next with 'ERROR:'rc
-
-      if rc > '' then                   -- if DosQueryPathInfo returned error code
-         ret = next        -- update titletext with error msg
-
-      else                              -- if DosQueryPathInfo returned data string
-         new_filedatehex = next
-         if new_filedatehex <> cur_filedatehex then
-            -- if file was altered by another application
-            ret = 'ERROR:'NEPMD_FLAG_ALTERED_BY_ANOTHER    -- update titletext with msg
+   if .visible then
+      filename = .filename
+      if leftstr( filename, 1 ) = '.' then
+         -- if temp file
+         if .modify = 0 then
+            ret = 'ERROR:'NEPMD_FLAG_NO_DATETIME              -- titletext = filename
          else
-            -- if file on disk has the same datetime as file when loaded
-            if .modify = 0 then
-               ret = next  -- update titletext with new datetime (why?) --> .modify could be changed!
-               --ret = -1    -- skip updating
+            ret = 'ERROR:'NEPMD_FLAG_MODIFIED                 -- titletext = filename'   (Modified)'
+         endif
+
+      else
+         -- if not a temp file
+         cur_filedatehex = ltoa(substr(.fileinfo, 9, 4), 16)
+         next = get_filedatehex(filename)
+         parse value next with 'ERROR:'rc
+
+         if rc > '' then                   -- if DosQueryPathInfo returned error code
+            ret = next        -- update titletext with error msg
+
+         else                              -- if DosQueryPathInfo returned data string
+            new_filedatehex = next
+            if new_filedatehex <> cur_filedatehex then
+               -- if file was altered by another application
+               ret = 'ERROR:'NEPMD_FLAG_ALTERED_BY_ANOTHER    -- update titletext with msg
             else
-               ret = 'ERROR:'NEPMD_FLAG_MODIFIED           -- .titletext = filename'   (Modified)'
+               -- if file on disk has the same datetime as file when loaded
+               if .modify = 0 then
+                  ret = next  -- update titletext with new datetime (why?) --> .modify could be changed!
+                  --ret = -1    -- skip updating
+               else
+                  ret = 'ERROR:'NEPMD_FLAG_MODIFIED           -- .titletext = filename'   (Modified)'
+               endif
             endif
+
          endif
 
       endif
 
-   endif
-
-   if ret <> -1 then
-      call refreshtitletext(ret)
-   endif
+      if ret <> -1 then
+         call refreshtitletext(ret)
+      endif
+   endif  -- .visible
    return
 
 defproc get_filedatehex(filename)
