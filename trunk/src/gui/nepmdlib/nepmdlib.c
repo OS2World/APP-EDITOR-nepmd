@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.52 2002-10-08 14:57:46 cla Exp $
+* $Id: nepmdlib.c,v 1.53 2002-10-08 22:05:12 cla Exp $
 *
 * ===========================================================================
 *
@@ -354,6 +354,8 @@ do
       rc = QueryHilightFile( pszEpmMode, &fReload, szHilightFile, sizeof( szHilightFile));
       if (rc != NO_ERROR)
          break;
+      DPRINTF(( "NEPMDLIB: hilite file is %s\n", szHilightFile));
+      DPRINTF(( "NEPMDLIB: reload is %srequired\n", fReload ? "" : "not "));
 //    if (fReload)
 //       *pszActivateFlag = "2";
       }
