@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.8 2002-07-21 15:43:51 cla Exp $
+# $Id: configure.in,v 1.9 2002-07-23 11:42:55 cla Exp $
 #
 # ===========================================================================
 #
@@ -92,5 +92,5 @@ ID_VERSION_NEPMD=1\0\0
 # NOTE:
 #  - must be specified in WarpIn package ID style
 
-ID_VERSION_REQ_WARPIN=0\9\18
+ID_VERSION_REQ_WARPIN=0\9\19
 
