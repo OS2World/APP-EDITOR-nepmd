@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writestringea.e,v 1.7 2002-08-28 21:04:38 cla Exp $
+* $Id: writestringea.e,v 1.8 2002-08-28 21:16:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -45,7 +45,7 @@ This parameter specifies the string to be written as
 the value of the specified extended attribute.
 
 @@NepmdWriteStringEa@RETURNS
-NepmdWriteStringEa returns an OS/2 error code.
+NepmdWriteStringEa returns an OS/2 error code or zero for no error.
 
 @@
 */

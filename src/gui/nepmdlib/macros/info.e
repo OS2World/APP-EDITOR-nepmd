@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.6 2002-08-27 12:21:26 cla Exp $
+* $Id: info.e,v 1.7 2002-08-28 21:16:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -38,7 +38,7 @@ and writes runtime information into it like for example about
 .el
 
 @@NepmdInfo@RETURNS
-NepmdInfo returns an OS/2 error code.
+NepmdInfo returns an OS/2 error code or zero for no error.
 
 @@NepmdInfo@REMARKS
 Note that any existing file in the ring named *.NEPMD__INFO*
