@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.6 2002-06-03 22:53:41 cla Exp $
+.. $Id: makefile.txt,v 1.7 2002-06-04 23:23:12 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -27,6 +27,7 @@
 ..
 .. ***************************************************************************
 
+.hi 234
 .include title.inc
 .set TITLE=*[=DOCTITLE]*
 
@@ -231,67 +232,163 @@ The following makefile targets are available for the makefile within the
 .an IDPNL_REQUIREMENTS
 .
 The following is required for making [=TITLE]:
-.ul
-- *WarpIn* installed (minimum: 0.9.18)
-.ul compact
-  - makefile processing will extend the environment automatically
-    to access the *WarpIn* executables
-- *pkunzip2* (as part of MPTS)
-.ul compact
-  - the shrink method is not supported by newer versions of *Info-Zip*,
-    but required
-- *unzip.exe* of *Info-Zip*
-.ul compact
-   - required because "deflated" method used for txt files
-     in the update zip file are not supported by pkunzip2 of MPTS
-   - *unzip.exe* must be accessible by the PATH statement
-- *wget* for to download of the original zip files, if not present
+.su V30
+
+.. .............................................................................
+.3 WarpIn
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_WARPIN
 .
-  (currently tested with wget v1.7)
+The *WarpIn* Installer is used to create the installation package.
+As a minimum version 0.9.18 is required.
+
+[=NOTE]
 .ul compact
-   - *wget* must be accessible by the PATH statement
-   - when sitting behind a firewall, create/modify a wget resource file in order
-     to use an FTP proxy. Insert or add the following entries to the file
-     %home%\.wgetrc and replace the bold printed values as required:
+- You can download *Warpin* from
+  - [http://www.xworkplace.org]
+- makefile processing will extend the environment automatically
+  to access the *WarpIn* executables, so it is not required to make
+  them accessible via the PATH statement.
+
+.. .............................................................................
+.3 C Compiler
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_COMPILER
+.
+As compiler the following are supported
+.ul compact
+- *IBM CSet /2* (debugger seems not to cope with the debug version...)
+- *IBM VAC 3.08* (much better debugger)
+
+[=NOTE]
+.ul compact
+- the compiler used is automatically recognized by the makefile
+
+.. .............................................................................
+.3 Toolkit for OS/2 Warp
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_TOOLKIT
+.
+As toolkit one of the following is required:
+.ul compact
+- *OS/2 Warp 3 Developers Toolkit*
+- *OS/2 Warp 4 Developers Toolkit*
+- *OS/2 Warp 4.5 Developers Toolkit*
+
+.. .............................................................................
+.3 PKUNZIP2
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_PKUNZIP2
+.
+PKUNZIP2 is required in order to unpack certain parts of the EPMBBS packages,
+as it supports the shrink method, this is not supported by newer versions of *Info-Zip*.
+
+As PKUNZIP2.EXE comes as part of *MPTS*, it is available on OS/2 Warp Systems with
+Network or Internet Access Kit installed.
+
+.. .............................................................................
+.3 unzip.exe of Info-Zip
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_UNZIP2
+.
+UNZIP is required in order to unpack certain parts of the EPMBBS packages,
+as it supports the "deflated" method used for some text files, this is not supported by 
+PKUNZIP2.
+
+[=NOTE]
+.ul compact
+- You can download *unzip* from
+  - [http://www.info-zip.org Info-ZIP's homepage (www.info-zip.org)]
+- *unzip.exe* must be accessible by the PATH statement
+
+.. .............................................................................
+.3 wget
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_WGET
+.
+*wget* is used to download of the original zip files, if not present   
+(currently tested with wget v1.7).
+
+[=NOTE]
+.ul compact
+- You can download *wget* from 
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=wget The Hobbes File Archive]
+.
+    (search "wget" at hobbes.nmsu.edu)
+- *wget.exe* must be accessible by the PATH statement
+- when sitting behind a firewall, create/modify a wget resource file in order
+  to use an FTP proxy. Insert or add the following entries to the file
+  %home%\.wgetrc and replace the bold printed values as required:
 .fo off
        ftp__proxy=http://*proxyname*:*proxyport*
        proxy__user=*proxy__userid*
        proxy__passwd=*proxy__password*
 .fo on
- - as compiler either
-.ul compact
-   - *IBM CSet /2* (debugger seems not to cope with the debug version...)
-   - *IBM VAC 3.08* (much better debugger)
-.el
+
+.. .............................................................................
+.3 HyperText/2
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_HTEXT
 .
-  [=NOTE]
-  - the compiler used is automatically recognized by the makefile
-- either
+For compilation of the online help the pÅreprocessor *HyperText/2* is used.
+
+[=NOTE]
 .ul compact
-  - *OS/2 Warp 3 Developers Toolkit*
-  - *OS/2 Warp 4 Developers Toolkit*
-  - *OS/2 Warp 4.5 Developers Toolkit*
-- *HyperText/2*
+- You can download *HyperText/2* from 
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=htext The Hobbes File Archive]
+.
+    (search "htext" at hobbes.nmsu.edu)
+- install according to the information in htext.inf
+  - *htext.cmd* must be accessible by the PATH statement
+  - the bitmap files ***.bmp* must be placed either
+    - into the same directory where you put *htext.cmd* to
+    - into a subdirectory *htext* within the directory where you
+      put *htext.cmd* to
+    - into a directory specified in the environment variables
+      - *INCLUDE*
+      - *HTINCLUDE*
+
+.. .............................................................................
+.3 GREP
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_GREP
+.
+For checking unpacked EPM files the *grep* utility is used.
+
+[=NOTE]
 .ul compact
-  - download from
-    [http://hobbes.nmsu.edu/cgi-bin/h-search?key=htext The Hobbes File Archive
-    (search "htext" at hobbes.nmsu.edu)]
-  - install according to the information in htext.inf
-    - *htext.cmd* must be accessible by the PATH statement
-    - the bitmap files ***.bmp* must be placed either
-      - into the same directory where you put *htext.cmd* to
-      - into a subdirectory *htext* within the directory where you
-        put *htext.cmd* to
-      - into a directory specified in the environment variables
-        - *INCLUDE*
-        - *HTINCLUDE*
-- *grep* utility (reachable by the PATH statement)
-- *REXX2EXE* compiler
+- You can download *Grep v2.0* from 
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=grep20 The Hobbes File Archive]
+.
+    (search "grep20" at hobbes.nmsu.edu)
+- *grep.exe* must be accessible by the PATH statement
+
+.. .............................................................................
+.3 REXX2EXE
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_REXX2EXE
+.
+For converting a REXX script to an executable the *REXX2EXE* compiler us used.
+
+[=NOTE]
 .ul compact
-- download from
-  [http://hobbes.nmsu.edu/cgi-bin/h-search?key=rexx2exe The Hobbes File Archive
-  (search "rexx2exe" at hobbes.nmsu.edu)]
-- *rexx2exe* must be accessible by the PATH statement
+- You can download *REXX2EXE* from 
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=rexx2exe The Hobbes File Archive]
+.
+    (search "rexx2exe" at hobbes.nmsu.edu)
+- *rexx2exe.exe* must be accessible by the PATH statement
+
+.. .............................................................................
+.3 FASTDEP
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_FASTDEP
+.
+For creating dependency files the FastDep utility is used.
+
+[=NOTE]
+.ul compact
+- You can download *FastDep* from the *OS/2 Netlabs Archive* of the *XWorkplace* project.
+- *fastdep.exe* must be accessible by the PATH statement
 
 .. -----------------------------------------------------------------------------
 .2 CVS development tree overview
