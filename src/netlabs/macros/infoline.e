@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.1 2004-01-17 22:22:52 aschn Exp $
+* $Id: infoline.e,v 1.2 2004-02-22 17:13:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -20,45 +20,21 @@
 ****************************************************************************/
 
 /*
------------------------------------------------------------------------
 Todo:
+-  If file was altered by another file, then the old date is shown in title
+   if file was selected by ring_more dialog.
 -  Make Sep = NEPMD_STATUSLINE_SEP an IniValue
 -  Make DefaultField an IniValue (2x)
 -  Determine flags from field defs automatically
 -  'file' should not redetermine <datetimemodified> to make 'quit' process
    faster
 -  Use NLS settings from OS2.INI for DateTime
-
----- Overview of used InfoLine calls in other files ----
-FILELIST.E  defproc GetFileNumber
-SECTION.E   defc refreshsection
-EDIT.E      defc e,edit,epm: 'ResetDateTimeModified'
-                             'RefreshInfoLine MODIFIED'
-MOUSE.E     'ResetDateTimeModified'
-            'RefreshInfoLine MODIFIED'
-
-STDCMDS.E   defc q,quit: call RingWriteFileNumber()
-            defc s,save: 'refreshinfoline FILE'
-STDCTRL.E   defc ring_more: call RingWriteFileNumber()
-MODE.E      if not QueryDefloadFlag() then
-               -- don't process this on defload
-              'RefreshInfoLine MODE'
-            endif
-defmodify
-   'ResetDateTimeModified'
-   'RefreshInfoLine MODIFIED'
-
-defselect
-   'ResetDateTimeModified'
-   'RefreshInfoLine TABS TABKEY MODE MARGINS ALTERED FILE SECTION'
-
-defload
-   if .visible then
-      'RefreshInfoLine FILE'
------------------------------------------------------------------------
 */
 
 const
+compile if not defined(NEPMD_SPECIAL_STATUSLINE)
+   NEPMD_SPECIAL_STATUSLINE = 1
+compile endif
 compile if not defined(NEPMD_MODIFIED_STATUSCOLOR)
    NEPMD_MODIFIED_STATUSCOLOR = LIGHT_GREYB + MAGENTA
 compile endif
@@ -72,11 +48,13 @@ compile if not defined(NEPMD_STATUSLINE_SEP)
    NEPMD_STATUSLINE_SEP = ' ú '
 compile endif
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 defc RefreshInfoLine
    if .visible then
       Flags = arg(1)
       -- Todo: determine flags from field defs automatically
+      -- Todo: 'FILE' should not redetermine <datetimemodified> to make 'quit'
+      --       process faster
       StatusLineFlags = GetStatusLineFlags()
       TitleTextFlags  = GetTitleTextFlags()
       do w = 1 to words(Flags)
@@ -95,17 +73,17 @@ defc RefreshInfoLine
       enddo
    endif
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 defproc GetStatusLineFlags
-   StatusLineFlags = 'MARGINS TABS TABKEY MODE FILE MODIFIED'
+   StatusLineFlags = 'MARGINS TABS TABKEY MODE FILE MODIFIED STREAMMODE'
    return StatusLineFlags
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 defproc GetTitleTextFlags
    TitleTextFlags  = 'FILE FILELIST MODIFIED ALTERED'
    return TitleTextFlags
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; refreshstatusline refreshes the statusline with the current values.
 ;
 ; This defc is required, if the statusbar template should contain
@@ -144,7 +122,7 @@ defc RefreshStatusLine
    endif  -- .visible
    return
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 defproc GetStatusFields
    universal StatusFieldFlags
 
@@ -153,6 +131,7 @@ defproc GetStatusFields
                     " * '<hex>'x/<dec>"         ||
                     " * Ma <ma>"                ||
                     " * Tabs <tabs>, <tabkey>"  ||
+;                   " * <streammode>"           ||
 ;                   " * <ins>"                  ||
                     " * <mode>"                 ||
 ;                   " * <datetime>"             ||
@@ -174,7 +153,7 @@ defproc GetStatusFields
    endif
    return ResolveInfoFields(Fields)
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 defproc GetTitleFields
    universal TitleFieldFlags
 
@@ -194,7 +173,7 @@ defproc GetTitleFields
    endif
    return ResolveInfoFields(Fields)
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Standard EPM %... patterns may be used here too for compatibility.
 ; The string '<InfoFieldVar>' will be replaced by its value.
 ; Therefore a new escape char pair '<' and '>' is introduced (at the
@@ -274,7 +253,7 @@ defproc ResolveInfoFields(Fields)
 
    return Fields
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Helper for defproc GetInfoFieldValue.
 ; Removes the 'ERROR:'rc return value
 ; arg(1) = Filename, arg(2) = Keyword for NepmdQueryPathInfo.
@@ -299,10 +278,11 @@ defproc QueryPathInfo
       return ret
    endif
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Replace info field vars with '%...' or other values
 defproc GetInfoFieldValue(FVar)
    universal tab_key
+   universal stream_mode
 
    -- Get Sep
    KeyPath = ''
@@ -339,14 +319,15 @@ defproc GetInfoFieldValue(FVar)
    elseif FVar = 'SIZE'             then FValue = QueryPathInfo('SIZE')                  -- show size in bytes
    elseif FVar = 'EASIZE'           then FValue = QueryPathInfo('EASIZE')                -- show size of EAs in bytes
    elseif FVar = 'DATETIMEMODIFIED' then FValue = GetDateTimeModified()                  -- shows date - time or modified or other infos
+   elseif FVar = 'STREAMMODE'       then FValue = word( 'L S', stream_mode + 1)          -- show 'S' or 'L'
 ; not implemented yet:
 ;  elseif FVar = 'SECTION'          then FValue = GetCurSection()                        -- shows current section or function
    endif
 
    return FValue
 
-; ---------------------------------------------------------------------
-; Moved defc setstatusline from STDCTRL.E to STATLINE.E to INFOLINE.E
+; ---------------------------------------------------------------------------
+; Moved defc setstatusline from STDCTRL.E to STATLINE.E
 ; Called with a string to set the statusline text to that string; with no argument
 ; to just set the statusline color.
 defc SetStatusLine
@@ -374,7 +355,7 @@ compile endif
                        newSTATUSCOLOR )
    return
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 defmodify
    -- defmodify is triggered
    -- when .modify changes from 0 to >0
@@ -388,18 +369,19 @@ defmodify
       -- if this is the first selected file
       lastselectedfid = fid
    endif
-   ModifiedChanged = 0
-   ret = GetDateTimeModified()
-   -- no need for a refresh if modified state hasn't changed
-   if ((ret <> 'Modified' & .modify > 0) | (ret = 'Modified' & .modify = 0)) then
-      ModifiedChanged = 1
-   endif
-   if ModifiedChanged then
-      'ResetDateTimeModified FORCE'
-      'RefreshInfoLine MODIFIED'
-      'SetStatusLine'  -- update color of statusline
-   endif
+      ModifiedChanged = 0
+      ret = GetDateTimeModified()
+      -- no need for a refresh if modified state hasn't changed
+      if ((ret <> 'Modified' & .modify > 0) | (ret = 'Modified' & .modify = 0)) then
+         ModifiedChanged = 1
+      endif
+      if ModifiedChanged then
+         'ResetDateTimeModified FORCE'
+         'RefreshInfoLine MODIFIED'
+         'SetStatusLine'  -- update color of statusline
+    endif
 
+; ---------------------------------------------------------------------------
 defselect
    universal lastselectedfid
    -- workaround for defselect->defmodify
@@ -407,15 +389,13 @@ defselect
    'ResetDateTimeModified'  -- required to check file on disk
    'RefreshInfoLine TABS TABKEY MODE MARGINS ALTERED FILE SECTION MODIFIED'
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Moved defproc settitletext() from STDCTRL.E to STATLINE.E
 ; See also: MODIFY.E (SHOW_MODIFY_METHOD),
 ;                    call show_modify() is obsolete (SELECT.E in epmbbs only)
 ; See also: STDCMDS.E, defc n,name
 ; See also: STDCMDS.E, defc s,save
 ; See also: ENTER.E, def c_enter, c_pad_enter=
-
-; ---------------------------------------------------------------------
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: settitletext                                             ³
@@ -424,27 +404,26 @@ defselect
 ³                                                                            ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
-/*
+; unused
 defproc settitletext()
    text = arg(1)
-compile if SHOW_MODIFY_METHOD = 'TITLE'
-   if .modify then
-      text = text || SHOW_MODIFY_TEXT
-   endif
-compile endif
+;compile if SHOW_MODIFY_METHOD = 'TITLE'  -- obsolete
+;   if .modify then
+;      text = text || SHOW_MODIFY_TEXT
+;   endif
+;compile endif
    .titletext = text
    return
-*/
 
+; ---------------------------------------------------------------------------
 defc SetTitleText
    .titletext = arg(1)
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 defc RefreshTitleText
-   call NepmdPmPrintf( 'INFOLINE.E - RefreshTitleText called. Remove?')
    'SetTitleText 'GetTitleFields()
 
-; ---------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 defc ResetDateTimeModified
    do i = 1 to 1
       if arg(1) = 'FORCE' then
@@ -487,15 +466,15 @@ defproc GetDateTimeModified
    rc = get_array_value( EPM_utility_array_ID, 'datetimemodified.'fid, next)
    if next = '' | Flag = 'RESET' then
 
-      -- if modified
+      ---- if modified ----
       if .modify > 0 then
          -- display text instead of DateTime
          DateTime = 'Modified'
       else
-         -- if not modified and filename is a temp file (starts with '.')
+         ---- if not modified and filename is a temp file (starts with '.') ----
          if leftstr( filename, 1 ) = '.' then
 
-         -- if not modified and filename is not a temp file
+         ---- if not modified and filename is not a temp file ----
          else
 
             next = get_filedatehex( filename )
@@ -508,6 +487,7 @@ defproc GetDateTimeModified
                if new_filedatehex <> cur_filedatehex then
                   -- if file was altered by another application
                   msg = 'File was altered by another application'
+                  --DateTime = ''  -- reset datetime in any case  --<------------------ Doesn't work
                else
                   --DateTime = NlsDateTime(next)
                   DateTime = filedatehex2datetime(next)
