@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.4 2002-08-19 17:45:23 cla Exp $
+# $Id: makefile,v 1.5 2002-08-19 18:02:46 cla Exp $
 #
 # ===========================================================================
 #
@@ -21,6 +21,11 @@
 # General Public License for more details.
 #
 # ***************************************************************************
+
+# --- extend EPMPATH and search macro sources in subdirectory
+#     (MACRODIR used by project.in)
+MACRODIR=macros
+EPMPATH=$(MACRODIR);$(EPMPATH)
 
 # --- include main definitions
 
@@ -65,15 +70,6 @@ $(CMPEXDIR)\stylebut.ex\
 $(CMPEXDIR)\tagsactn.ex\
 $(CMPEXDIR)\tree.ex
 
-# --- private extension of suffix list
-.SUFFIXES: .e .ex
-
-# --- private rules
-{macros}.e{$(CMPEXDIR)}.ex:
-   mkex $(CMPEXDIR) $(@B).e
-
-# --- extend EPMPATH
-EPMPATH=macros;$(EPMPATH)
 
 # --- pseudotargets
 
