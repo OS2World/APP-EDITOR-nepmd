@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.4 2002-10-08 22:10:01 cla Exp $
+* $Id: edit.e,v 1.5 2002-10-09 17:50:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,25 +18,11 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-/*
-const
-compile if not defined(REMOVE_EA_EXTENSIONS)
-   REMOVE_EA_EXTENSIONS = 'CMD REX REXX'
-compile endif
-*/
 
-defc GetDeleteRexxEa
-   universal nepmd_hini
-   ConfValue = NepmdQueryConfigValue( nepmd_hini, '\NEPMD\User\RexxEa\Delete' )
-   sayerror 'DeleteRexxEa = 'ConfValue
-
-
-
-
-
-; -----------------------------------------------------------------------------
-defproc NepmdResolveEnvVars
-   Spec = arg(1)
+; ---------------------------------------------------------------------------
+; Resolves environment variables in a string
+; Returns converted string
+defproc NepmdResolveEnvVars( Spec )
    startp = 1
    do forever
       p1 = pos( '%', Spec, startp )
@@ -57,14 +43,13 @@ defproc NepmdResolveEnvVars
    enddo  -- forever
    return Spec
 
-; -----------------------------------------------------------------------------
-; Spec may contain wildcards
+; ---------------------------------------------------------------------------
 ; All REXX EA's are deleted (if present) if the extension matches
-defproc NepmdDeleteRexxEaFileSpec
+; Spec may contain wildcards
+defproc NepmdDeleteRexxEaFileSpec( Spec )
    universal nepmd_hini
    KeyPath = '\NEPMD\User\RexxEa\Extensions'
    RexxEaExtensions = NepmdQueryConfigValue( nepmd_hini, KeyPath )
-   Spec = arg(1)
    Spec = strip( Spec, 'B', '"' )
    do forever
       Filename = NepmdGetNextFile( Spec, address(0) )
@@ -84,7 +69,7 @@ defproc NepmdDeleteRexxEaFileSpec
    return
 
 
-; -----------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
 /* This DEFC EDIT eventually calls the built-in edit command, by calling      */
 /* loadfile(), but does additional processing for messy-desk windowing (moves */
@@ -291,6 +276,7 @@ compile endif
    if first_file_loaded<>'' then activatefile first_file_loaded; endif
 
 
+; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
 ;  New in EPM.  Edits a file in a different PM window.  This means invoking
 ;  a completely new instance of E.DLL, with its own window and data.  We do it
@@ -319,6 +305,7 @@ compile if WPS_SUPPORT
 compile endif
 
 
+; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
 ; LAM - Edit a file along the EPATH.  This command will be included if
 ; the user is including the required routines.  If you've done a
@@ -356,6 +343,7 @@ defc ep, epath=
  compile endif
 
 
+; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
 defc op, opath, openpath=
    "open 'ep "arg(1)"'"
