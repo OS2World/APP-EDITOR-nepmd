@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: clipbrd.e,v 1.3 2002-08-09 19:57:50 aschn Exp $
+* $Id: clipbrd.e,v 1.4 2003-08-31 22:58:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -626,7 +626,8 @@ defc clipview =
       sayerror CLIPBOARD_ERROR__MSG
       return
    endif
-   if format<>256 then                 -- no text in clipboard
+   --if format<>256 then                 -- no text in clipboard
+   if format<>1024 then                 -- no text in clipboard
       sayerror CLIPBOARD_EMPTY__MSG
       return
    endif
