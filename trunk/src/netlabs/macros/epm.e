@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.21 2004-02-22 16:02:29 aschn Exp $
+* $Id: epm.e,v 1.22 2004-02-22 20:02:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -206,11 +206,7 @@ compile if not VANILLA
    tryinclude  'mystuff.e'     -- Other user stuff.
 compile endif  -- not VANILLA
 
-compile if USE_APPEND | Host_Support='EMUL' | Host_Support='E3EMUL' | WANT_DOSUTIL=1
-   include     'dosutil.e'     -- DOSUTIL is required for the above (EMUL uses Exist() )
-compile elseif WANT_DOSUTIL = '?'
-   tryinclude  'dosutil.e'     -- otherwise, optional.
-compile endif
+include        'dosutil.e'     -- DOSUTIL is now required.
 
 compile if WANT_MATH = '?'     -- Try to include it.
    tryinclude  'math.e'
