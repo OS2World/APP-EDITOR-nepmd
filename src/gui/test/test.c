@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.18 2002-09-19 13:47:52 cla Exp $
+* $Id: test.c,v 1.19 2002-09-23 15:57:41 cla Exp $
 *
 * ===========================================================================
 *
@@ -35,6 +35,7 @@
 #include "tmf.h"
 #include "instval.h"
 #include "libreg.h"
+#include "hilite.h"
 
 // -----------------------------------------------------------------------------
 
@@ -254,6 +255,24 @@ do
 
       } // testcase CONFIGVALUE
 
+   // =========================================================================
+   // testcase for creating a hilite file out of the new definitions
+   // =========================================================================
+
+
+   if (!(strcmp( pszTestcase, "QUERYHILIGHTFILE")))
+
+      {
+               CHAR           szHiliteFile[ _MAX_PATH];
+               PSZ            pszEpmMode = "C";
+
+      rc = QueryHilightFile( "C", szHiliteFile, sizeof( szHiliteFile));
+      if (rc != NO_ERROR)
+         printf( "hilite file for mode %s could not be determined, rc=%u\n", pszEpmMode, rc);
+      else
+         printf( "hilite file for mode %s is: %s\n", pszEpmMode, szHiliteFile);
+
+      } // testcase QUERYHILIGHTFILE
 
 
    } while (FALSE);
