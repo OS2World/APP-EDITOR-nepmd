@@ -1,0 +1,61 @@
+/****************************** Module Header *******************************
+*
+* Module Name: getmode.erx
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: getmode.erx,v 1.1 2004-06-04 00:31:40 aschn Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
+/* EPM REXX                                                                */
+/* This is an example how to query array vars from EPM REXX.               */
+/*                                                                         */
+/* You may want to call it from your own EPM REXX macros with              */
+/*                                                                         */
+/*    Mode = GetMode()                                                     */
+/*                                                                         */
+/* to get the mode for the current file. The mode in uppercase letters     */
+/* will be returned, e.g. 'REXX' or 'CONFIGSYS'.                           */
+/*                                                                         */
+/* Following E commands, defined as an interface for REXX, are used:       */
+/*                                                                         */
+/*    saveuserstring       Save the current value for the ".userstring"    */
+/*                         field var.                                      */
+/*    restoreuserstring    Restore the old value for the ".userstring"     */
+/*                         field var.                                      */
+/*    field2userstring <fieldname>                                         */
+/*                         Query the value for the array var               */
+/*                         "<fieldname>.fid" (fid = fileid),               */
+/*                         e.g. 'mode.'fid.                                */
+/*                         Set the ".userstring" field var to this value   */
+/*                         to make it querible from REXX with the          */
+/*                         "extract" command.                              */
+/*                                                                         */
+/* Background: Field vars (starting with a '.') are defined internally.    */
+/*             Since we extended file-specific settings, we have to use    */
+/*             array vars (containing the fileid) for that. Using          */
+/*             ".userstring" for that is not a quite good idea, because it */
+/*             must be parsed before its value gets usable and maybe users */
+/*             even replace its value with their own stuff instead of      */
+/*             extending it (maybe with a key1="value1";... list).         */
+
+'saveuserstring'
+'field2userstring mode'
+'extract /userstring/filename'
+Mode = userstring.1
+'restoreuserstring'
+
+'sayerror Mode for "'filename.1'" = 'Mode
+return Mode
+
