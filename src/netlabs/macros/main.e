@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.11 2002-11-04 14:53:44 aschn Exp $
+* $Id: main.e,v 1.12 2002-11-13 15:47:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -47,51 +47,16 @@ defexit
    endif
 /**/
 
-; -------------------------------------------------------------------
-; As a workaround for trapping EPM windows if
-;    o  the filespec contains wildcards
-; and if
-;    o  the REXX profile bit in EPM.INI is 0 or
-; and if
-;    o  the Toolbar is set to the built-in Toolbar (not stored in EPM.INI)
-;       while the Toolbar is activated.
-; This proc switches the REXX profile support on if arg(1) is not 0.
-defproc SetIniProfileBit
-/*
-   Bit  Setting if value = 1
-   -------------------------
-   10   stream mode
-   12   REXX profile on
-*/
-   universal appname, app_hini
-   ON = ( arg(1) <> 0 )  -- default arg is 1
-   if appname = '' then
-      appname = 'EPM'
-   endif
-   inikey = 'OPTFLAGS'
-   inidata=queryprofile(app_hini, appname,inikey)
-   --sayerror 'found inidata = 'inidata  -- sayerror doesn't work here
-   if inidata = '' then
-      inidata = '1 1 1 1 1 1 0 0 1 1 1 0 1 0 1 1 0 '\0
-   endif
-   Bit = 12
-   newinidata = overlay( ON, inidata, 2*Bit - 1 )
-   call setprofile(app_hini, appname, inikey, newinidata)
-   return
-
-; For testing:
-defc setprof
-   call SetIniProfileBit( arg(1) )
-   return
 ; ------------------------------------------------------------------
-
-
 define DEBUG_MAIN = 0
 
 defmain    /* defmain should be used to parse the command line arguments */
 compile if WANT_PROFILE='SWITCH'
    universal REXX_PROFILE
 compile endif
+; ---- begin workaround ----
+   universal app_hini
+; ---- end workaround ----
    universal should_showwindow
    universal nepmd_hini
    universal default_search_options, default_edit_options, default_save_options
@@ -110,12 +75,59 @@ compile endif
 
 compile if WANT_APPLICATION_INI_FILE
 
-   -- Workaround for trapping EPM windows
-   --    o  As a workaround the REXX profile is processed everytime. We don't care about
-   --       the EPM.INI setting anymore (until the bug will be found).
-   --    o  This works even if no profile was found or if profile support is commented out
-   --       at the end of this file.
-   call SetIniProfileBit(1)
+; ---- begin workaround ----
+   -- With certain settings in EPM.INI the defmain procedure will stop.
+   -- Then EPM remains in the background and all settings are reset to
+   -- their internal defaults.
+   -- As a workaround for trapping EPM windows...
+   -- (
+   --    if the filespec contains wildcards
+   -- and
+   --    if the REXX profile bit in EPM.INI is 0
+   -- and
+   --    if the Toolbar is set to the built-in Toolbar (not stored in EPM.INI)
+   --       while the Toolbar is activated.
+   -- )
+   -- or
+   --    if the CUA marking bit in EPM.INI is 1
+   --
+   -- This switches the REXX profile support on and the CUA marking
+   -- off temporarily.
+   -- Before doing so, the current settings from EPM.INI are queried and
+   -- saved as SavedCUAMarking and SavedRexxProfile to reset these
+   -- settings to their values from before applying the workaround later.
+/*
+   Bit              Setting
+        for value = 1      for value = 0
+   ---  ----------------   -------------------
+    8   CUA marking        advanced marking
+   10   stream mode        line mode
+   12   REXX profile on    REXX profile off
+*/
+   appname = 'EPM'
+   inikey  = 'OPTFLAGS'
+   inidata = queryprofile( app_hini, appname, inikey )
+   SavedCuaMarking  = strip( word( inidata, 8 ) )
+   SavedRexxProfile = strip( word( inidata, 12 ) )
+
+   -- reset to a valid entry if none found
+   if inidata = '' then
+      inidata = '1 1 1 1 1 1 0 0 1 1 1 1 1 0 1 1 0 '\0
+      --   Bit:  1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7
+   endif
+
+   -- switch CUA marking off
+   Bit      = 8
+   newvalue = 0
+   inidata  = overlay( newvalue, inidata, 2*Bit - 1 )
+
+   -- set REXX profile on
+   Bit      = 12
+   newvalue = 1
+   inidata  = overlay( newvalue, inidata, 2*Bit - 1 )
+
+   call setprofile( app_hini, appname, inikey, inidata )
+; ---- end workaround ----
 
    'initconfig'                  -- Check if anything of interest is in OS2.INI and get settings from EPM.INI
 
@@ -267,6 +279,23 @@ end
 
    -- escapekey: open EPM commandline with Esc and Ctrl+I
 ;   'escapekey on'  -- default now
+
+; ---- begin workaround ----
+   EpmIniChanged = 0
+   if SavedRexxProfile = 0 then
+      --sayerror 'Switching profile support off as defined in EPM.INI before'
+      'profile off'
+      EpmIniChanged = 1
+   endif
+   if SavedCUAMarking = 1 then
+      --sayerror 'Switching CUA marking on as defined in EPM.INI before'
+      'CUA_mark_toggle'
+      EpmIniChanged = 1
+   endif
+   if EpmIniChanged = 1 then
+      'saveoptions'
+   endif
+; ---- end workaround ----
 
    -- process PROFILE.ERX
 ;   'profile on'  -- no effect to the bug
