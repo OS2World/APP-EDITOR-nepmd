@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.13 2002-10-17 22:30:21 aschn Exp $
+* $Id: stdmenu.e,v 1.14 2002-10-31 14:34:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -462,7 +462,8 @@ compile endif
       buildmenuitem menuname, HELP_MENU_ID, 610, \0,           '',                        4, 0
       buildmenuitem menuname, HELP_MENU_ID, 640, 'View NEPMD Online Help', ''\1, 17+64, 0
          -- start is used here to resolve environment var
-         buildmenuitem menuname, HELP_MENU_ID, 641, 'View NEPMD Online Help', 'start view nepmd%NEPMD_LANGUAGE% netlabs'\1, 0, 0
+         buildmenuitem menuname, HELP_MENU_ID, 641, 'View NEPMD User Guide', 'start view neusr%NEPMD_LANGUAGE% netlabs'\1, 0, 0
+         buildmenuitem menuname, HELP_MENU_ID, 641, 'View NEPMD Programming Guide', 'start view neprg%NEPMD_LANGUAGE% netlabs'\1, 0, 0
          buildmenuitem menuname, HELP_MENU_ID, 642, 'Current word', 'viewword nepmd%NEPMD_LANGUAGE%'\1, 32768+1, 0
 compile if SUPPORT_USERS_GUIDE
       buildmenuitem menuname, HELP_MENU_ID, 620, USERS_GUIDE_MENU__MSG,   USERS_GUIDE_MENUP__MSG, 17+64, mpfrom2short(HP_HELP_USERS_GUIDE, 0)

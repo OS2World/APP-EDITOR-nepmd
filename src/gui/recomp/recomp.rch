@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.rch,v 1.6 2002-06-10 11:27:57 cla Exp $
+* $Id: recomp.rch,v 1.7 2002-10-31 14:34:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -69,8 +69,9 @@
 #define IDMEN_SETTINGS_SHOW_COMPILELOG     0x1013
 #define IDMEN_HELP                         0x1090
 #define IDMEN_HELP_PARMS                   0x1091
-#define IDMEN_HELP_NEPMDINF                0x1092
-#define IDMEN_HELP_INFO                    0x1093
+#define IDMEN_HELP_NEPMDUSRINF             0x9992
+#define IDMEN_HELP_NEPMDPRGINF             0x8893
+#define IDMEN_HELP_INFO                    0x1094
 
 #define IDMEN_TEST                         0x1100
 #define IDMEN_TEST_ALTSOURCE               0x1101
