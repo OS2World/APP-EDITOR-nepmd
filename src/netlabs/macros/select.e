@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.4 2003-08-31 18:54:40 aschn Exp $
+* $Id: select.e,v 1.5 2004-02-22 20:20:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,11 +18,20 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-compile if not defined(LOCAL_MOUSE_SUPPORT)
-   const LOCAL_MOUSE_SUPPORT = 0
-compile endif
 const
+compile if not defined(LOCAL_MOUSE_SUPPORT)
+   LOCAL_MOUSE_SUPPORT = 0
+compile endif
    TransparentMouseHandler = "TransparentMouseHandler"
+compile if not defined(NEPMD_USE_DIRECTORY_OF_CURRENT_FILE)
+   NEPMD_USE_DIRECTORY_OF_CURRENT_FILE = 0
+compile endif
+compile if not defined(NEPMD_DEBUG)
+   NEPMD_DEBUG = 0  -- General debug const
+compile endif
+compile if not defined(NEPMD_DEBUG_SELECT)
+   NEPMD_DEBUG_SELECT = 0
+compile endif
 
 ;  SELECT.E                                                 Bryan Lewis 1/2/89
 ;
@@ -45,13 +54,16 @@ defproc select_edit_keys()
    /* Dummy proc for compatibility.  Select_edit_keys() isn't used any more.*/
 
 defselect
-   universal messy
 compile if LOCAL_MOUSE_SUPPORT
    universal LMousePrefix
    universal EPM_utility_array_ID
 compile endif
 compile if WANT_EBOOKIE = 'DYNALINK'
    universal bkm_avail
+compile endif
+
+compile if NEPMD_DEBUG_SELECT and NEPMD_DEBUG
+   call NepmdPmPrintf( 'DEFSELECT: '.filename)
 compile endif
 
    -- moved the SetMenuAttribute stuff for command shell windows to STDCTRL.E, defc menuinit_0
@@ -88,5 +100,12 @@ compile if WANT_EBOOKIE
  compile endif
 compile endif  -- WANT_EBOOKIE
 
-   -- sayerror 'DEFSELECT occurred for file '.filename'.'
+; --- Change to dir of current file -----------------------------------------
+Filename = .filename
+compile if NEPMD_USE_DIRECTORY_OF_CURRENT_FILE
+   if pos( ':\', Filename) then
+      call directory('\')
+      call directory(Filename'\..')
+   endif
+compile endif
 
