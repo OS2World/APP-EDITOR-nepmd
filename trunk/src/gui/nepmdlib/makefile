@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.1 2002-08-19 18:18:02 cla Exp $
+# $Id: makefile,v 1.2 2002-08-20 12:05:24 cla Exp $
 #
 # ===========================================================================
 #
@@ -20,6 +20,9 @@
 # General Public License for more details.
 #
 # ***************************************************************************
+
+# --- extend EPMPATH to find include files in subdirectory
+EPMPATH=macros;$(EPMPATH)
 
 # - create utilitiy
 #   NOTE: compile with multithread support,
