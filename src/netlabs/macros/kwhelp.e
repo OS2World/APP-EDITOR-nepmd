@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.20 2004-06-04 07:31:44 aschn Exp $
+* $Id: kwhelp.e,v 1.21 2004-12-31 00:36:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,7 +22,8 @@
 /*
 Todo:
 -  Change NEPMD_KEYWORD_HELP_COMMAND to an ini key
--  Implement MODE to replace filetype() and the EXT keyword in .ndx files.
+-  Implement MODE to replace filetype() and the EXTENSIONS: keyword in .ndx
+   files.
 */
 
 /********************************************************************/
@@ -218,11 +219,20 @@ defproc pHelp_C_identifier
 
       if (line  <> '') then
          /* Execute keyword help command */
-         if upcase(word(line,1))='VIEW' then
 compile if defined(NEPMD_KEYWORD_HELP_COMMAND)
-            line = NEPMD_KEYWORD_HELP_COMMAND' 'delword( line, 1, 1 )
-compile endif
+         if upcase( word( line, 1)) = 'VIEW' then
+            parse value line with app inf key
+            -- Newview requires "..." for strings with spaces, View strips them
+            if leftstr( key, 1) <> '"' then
+               key = '"'strip( key)'"'
+            endif
+            if upcase(NEPMD_KEYWORD_HELP_COMMAND) == 'NEWVIEW' then
+               line = NEPMD_KEYWORD_HELP_COMMAND' 'inf' /s:'key
+            else
+               line = NEPMD_KEYWORD_HELP_COMMAND' 'inf' 'key
+            endif
          endif
+compile endif
          if wordpos( upcase( word( line, 1)), 'START QS QUIETSHELL DOS OS2') then
             -- Omit the 'dos' or 'start' command if specified in .ndx file or
             -- as an alternative VIEW command.
@@ -248,29 +258,42 @@ defproc pGet_Identifier(var id, startcol, endcol, ft)
       id = substr(line, startcol, (endcol-startcol)+1)
       return
    endif
-;; is_class = 0; colon_pos = 0
-   if substr(line, endcol+1, 2) = '::' then  -- Class?
-      ch = upcase(substr(line, endcol+3, 1))
-      if (ch>='A' & ch<='Z') | ch='_' then
-         curcol = .col
-         .col = endcol+3
-         call find_token(junk, endcol)
-         .col = curcol
-;;       is_class = 1
+
+   if (startcol >= 3) then
+      if substr(line, startcol-2, 2) = '::' then
+         startcol = startcol-2
       endif
-   elseif startcol>3 then
-      if substr(line, startcol-2, 2) = '::' then  -- Class?
-         ch = upcase(substr(line, startcol-3, 1))
-         if (ch>='A' & ch<='Z') | (ch>='0' & ch<='9') | ch='_' then
-            curcol = .col
-            .col = startcol-3
-            call find_token(startcol, junk)
-            .col = curcol
-;;          is_class = 2
+   endif
+   if substr(line, startcol, 2) = '::' then
+      if (startcol = 1)  then
+         endcol = startcol + 1
+      else  -- startcol > 1
+         if verify(substr(line, startcol-1, 1), ' '\t, 'M') then
+            endcol = startcol + 1
+         else  -- startcol > 1
+            ch = upcase(substr(line, startcol-1, 1))
+            if (ch>='A' & ch<='Z') | (ch>='0' & ch<='9') | ch='_' then
+               curcol = .col
+               .col = startcol-3
+               call find_token(startcol, endcol)
+               .col = curcol
+            endif
          endif
       endif
    endif
    id = substr(line, startcol, (endcol-startcol)+1)
+   if id = '::' then -- This is to support Object REXX ::class, ::requires, etc.
+      if ft = 'CMD' then
+         getline line
+         if verify(substr(line, endcol + 1, 1), ' '\t) then
+            curcol = .col
+            .col = endcol + 1
+            call find_token(junk, endcol)
+            .col = curcol
+            id = substr(line, startcol, endcol-startcol+1)
+         endif
+      endif
+   endif
 
 ; ---------------------------------------------------------------------------
 defproc pBuild_Helpfile(ft)
