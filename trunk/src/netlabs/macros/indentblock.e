@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: indentblock.e,v 1.3 2004-07-09 13:37:42 aschn Exp $
+* $Id: indentblock.e,v 1.4 2005-03-06 07:57:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -152,15 +152,14 @@ defc indentblock
    enddo
 
    call prestore_pos(savedpos)
-   --unmark
-   if WasMarked = 0 then
-      --unmark
-      setmark firstLine, lastLine, firstCol, lastCol, mt, fId
+/*
+   if WasMarked = 1 then
+      call pset_mark( firstLine, lastLine, firstCol, lastCol, mt, fid)
    endif
+*/
 
    if .modify > savedmodify then
       .modify = savedmodify + 1
    endif
    .autosave = savedautosave
-
 
