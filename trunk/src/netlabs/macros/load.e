@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.19 2004-07-02 10:16:22 aschn Exp $
+* $Id: load.e,v 1.20 2004-09-12 15:10:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -86,7 +86,7 @@ compile if WANT_EBOOKIE = 'DYNALINK'
 compile endif
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE, load_var
    universal default_font
-   universal defloadactive
+   universal loadstate
 
    load_var = 0
    load_ext = filetype()  -- Extension for the current file. To be used only
@@ -102,8 +102,11 @@ compile endif
       return             -- to avoid showing i.e. 'actlist' and '.HELPFILE' files
    endif
 
-   defloadactive = 1  -- This universal var can be used to check if there occuered
-                      -- a defload event after the last afterload was processed.
+   loadstate = 1  -- This universal var can be used to check if there occured
+                  -- a defload event after the last afterload was processed.
+                  --    1: defload is running
+                  --    2: defload processed
+                  --    0: afterload processed
    Filename = .filename
    getfileid fid
 
@@ -192,7 +195,5 @@ compile endif
 
 ;  Refresh InfoLines --------------------------------------------------------
    'refreshinfoline FILE'
-
-; continued in AFTERLOAD.E
 
 

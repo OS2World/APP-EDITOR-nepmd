@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: debug.e,v 1.2 2004-07-04 21:46:16 aschn Exp $
+* $Id: debug.e,v 1.3 2004-09-12 15:10:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -43,8 +43,8 @@ compile endif
 compile if not defined(NEPMD_DEBUG_AFTERLOAD)
    NEPMD_DEBUG_AFTERLOAD = 0
 compile endif
-compile if not defined(NEPMD_DEBUG_AFTERLOAD_ACTIVATE)
-   NEPMD_DEBUG_AFTERLOAD_ACTIVATE = 0
+compile if not defined(NEPMD_DEBUG_SELECT)
+   NEPMD_DEBUG_SELECT = 0
 compile endif
 compile if not defined(NEPMD_DEBUG_RESTORE_POS)
    NEPMD_DEBUG_RESTORE_POS = 0
@@ -60,7 +60,7 @@ compile endif
 ; configuration consts. The main config const NEPMD_DEBUG must be
 ; set to 1 to enable output generally.
 defproc dprintf
-compile if NEPMD_DEBUG then
+compile if NEPMD_DEBUG
    type   = arg(1)
    uptype = upcase(type)
    msg    = arg(2)
@@ -84,6 +84,10 @@ compile if NEPMD_DEBUG then
       endif
    elseif type = 'AFTERLOAD_ACTIVATE' then
       if NEPMD_DEBUG_AFTERLOAD_ACTIVATE then
+         WriteMsg = 1
+      endif
+   elseif type = 'SELECT' then
+      if NEPMD_DEBUG_SELECT then
          WriteMsg = 1
       endif
    elseif type = 'RESTORE_POS' then
