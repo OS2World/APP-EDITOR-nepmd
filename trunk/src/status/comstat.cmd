@@ -15,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comstat.cmd,v 1.1 2002-09-09 14:26:13 cla Exp $
+* $Id: comstat.cmd,v 1.2 2002-09-09 16:02:01 cla Exp $
 *
 * ===========================================================================
 *
@@ -131,6 +131,7 @@ UpdateStatus: PROCEDURE EXPOSE (GlobalVars)
  rc = ERROR.NO_ERROR;
  CommitTag = '.commit';
  StatusCount  = 0;
+ AddedCount   = 0;
  ModifyCount  = 0;
  InvalidCount = 0;
  UpdateCount  = 0;
@@ -190,12 +191,36 @@ UpdateStatus: PROCEDURE EXPOSE (GlobalVars)
           /* determine temp file */
           LogFile = SysTempFilename( VALUE('TMP',,env)'\comstat.???');
 
+          /* read out comment */
+          rcx = STREAM( CommitFile.i, 'C', 'OPEN READ');
+          FirstComment = LINEIN( CommitFile.i);
+          rcx = STREAM( CommitFile.i, 'C', 'CLOSE');
+          fNewFile = (FirstComment = 'First revision');
+          IF (fNewFile) THEN
+          DO
+             SAY '-> adding' BaseName;
+             'cvs add' SourceFile '>' LogFile '2>&1';
+             IF (rc \= ERROR.NO_ERROR) THEN
+             DO
+                ErrorCount = ErrorCount + 1;
+                SAY 'error:' BaseName 'could not be added, rc='rc;
+                SAY;
+                'TYPE' LogFile;
+                SAY;
+                'PAUSE';
+                ITERATE;
+             END;
+          END;
+
           /* commit the change */
-          SAY '->' BaseName;
+          SAY '-> commit' BaseName;
           'cvs com -F' MessageFile SourceFile '>' LogFile '2>&1';
           IF (rc = ERROR.NO_ERROR) THEN
           DO
-             UpdateCount = UpdateCount + 1; 
+             IF (fNewFile) THEN
+                AddedCount = AddedCount + 1;
+             ELSE
+                UpdateCount = UpdateCount + 1;
              rcx = SysFileDelete( CommitFile.i);
           END;
           ELSE
@@ -220,9 +245,11 @@ UpdateStatus: PROCEDURE EXPOSE (GlobalVars)
  SAY '---------------';
  SAY StatusCount  'status entries in database directory';
  SAY ModifyCount  'entries were uncommitted';
- IF (InvalidCount) THEN
+ IF (InvalidCount > 0) THEN
     SAY '-' InvalidCount 'invalid uncommitted entries';
     SAY '-' UpdateCount  'entries committed.';
+ IF (AddedCount > 0) THEN
+    SAY '-' AddedCount   'entries added';
     SAY '-' ErrorCount   'errors occurred';
 
 'PAUSE'
