@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.1 2002-06-03 18:13:58 cla Exp $
+# $Id: makefile,v 1.2 2002-07-23 11:41:36 cla Exp $
 #
 # ===========================================================================
 #
@@ -41,12 +41,14 @@ FILESTOCLEAN=\
 
 # --- pseudotargets
 
-ALL: CHECKSRC SRCCOPY
+ALL: CHECKSRC SRCCOPY EPMEX
 
 CLEAN:
    @echo cleaning up files ...
    -@for %%a in ($(FILESTOCLEAN)) do @del %%a /N >NUL 2>&1
    @kd $(CMPINSTDIR)
+
+EPMEX: $(CMPEXDIR)\epm.ex
 
 CHECKSRC:
    @_srccopy CHECK $(SRCCOPY_FLAGFILE) $(BASEDIR)\src\netlabs
@@ -57,4 +59,8 @@ SRCCOPY: $(SRCCOPY_FLAGFILE)
 
 $(SRCCOPY_FLAGFILE):
    _srccopy COPY $(SRCCOPY_FLAGFILE) $(BASEDIR)\src\netlabs $(CMPDSTDIR)
+
+# ---- compile NEPMD version of EPM.EX
+$(CMPEXDIR)\epm.ex: mkex.cmd
+   mkex $(CMPEXDIR)
 
