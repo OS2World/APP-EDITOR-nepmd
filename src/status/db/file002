@@ -1,8 +1,8 @@
-CATEGORY: file handling
+CATEGORY: File handling
 TITLE: enhance file history
-PRIO: 1
-STATUS: coding      
+PRIO: 3
+STATUS: coding
 FILES: history.e
-UPDATED: $Id: file002,v 1.1 2002-07-17 15:56:15 cla Exp $
+UPDATED: $Id: file002,v 1.2 2002-09-18 20:23:20 cla Exp $
 
 Every file load will update the file history

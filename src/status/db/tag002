@@ -1,9 +1,9 @@
 CATEGORY: Tagging
 TITLE: Tags on the fly
-PRIO: 2
+PRIO: 3
 STATUS: open
 FILES: 
-UPDATED: $Id: tag002,v 1.1 2002-07-17 15:56:18 cla Exp $
+UPDATED: $Id: tag002,v 1.2 2002-09-18 20:23:59 cla Exp $
 
 Determine
 - when the tag creation should be restarted (On every defmodify?)
