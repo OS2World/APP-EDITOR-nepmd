@@ -10,7 +10,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: usertree.cmd,v 1.2 2002-04-19 14:48:25 cla Exp $
+* $Id: usertree.cmd,v 1.3 2002-08-12 12:28:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -29,7 +29,7 @@
  /* ##############   Maintainer: modify directory list here ######################## */
 
  UserDirName = 'myepm';
- UserDirList = 'bmp ex keywords macros';
+ UserDirList = 'bar bmp ex keywords macros ndx';
 
  /* ################################################################################# */
 
