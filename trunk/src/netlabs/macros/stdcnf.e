@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.17 2004-03-19 14:56:19 aschn Exp $
+* $Id: stdcnf.e,v 1.18 2004-06-03 22:31:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -184,11 +184,13 @@ compile endif
 
 -- Ver. 3.09 - Lets user omit ET command.
 compile if not defined(WANT_ET_COMMAND)
+; obsolete (new)
    WANT_ET_COMMAND = 1
 compile endif
 
 -- Ver. 3.09 - Lets user omit macro support for character marks.
 compile if not defined(WANT_CHAR_OPS)
+; obsolete (new)
    WANT_CHAR_OPS = 1
 compile endif
 
@@ -277,6 +279,7 @@ compile endif
 -- MYSELECT and MYKEYSET.  If you don't use any of
 -- them, it makes SELECT.E much simpler.
 compile if not defined(ALTERNATE_KEYSETS)
+; obsolete (new)
    ALTERNATE_KEYSETS = 1
 compile endif
 
@@ -384,6 +387,7 @@ compile if not defined(SMARTQUIT)
    SMARTQUIT = 0
 compile endif
 compile if not defined(FILEKEY)
+; obsolete (new)
    -- Note:  Must be a string (in quotes).
    FILEKEY   = 'F4'
 compile endif
@@ -391,6 +395,7 @@ compile endif
 -- This is used as the decimal point in MATH.E.  Some users might prefer to
 -- use a comma.  Not used in DOS version, which only allows integers.
 compile if not defined(DECIMAL)
+; obsolete (new, todo, use os2.ini)
    DECIMAL = '.'
 compile endif
 
@@ -442,6 +447,7 @@ compile endif
 --         Not recommended:  slowest, ignores upper/lower case.  But available
 --         in OS/2 protect mode.
 compile if not defined(SORT_TYPE)
+; obsolete (new)
    -- At long last - an internal sort.
    SORT_TYPE = 'EPM'
 compile endif
@@ -474,6 +480,7 @@ compile endif
 -- will be added to let the user change this dynamically.  If SETSTAY='?' then
 -- STAY will be initialized in the next section.
 compile if not defined(SETSTAY)
+; obsolete (new)
    --SETSTAY = 0  -- changed by aschn
    SETSTAY = '?'
 compile endif
@@ -489,6 +496,7 @@ compile endif
 -- Ver. 3.11d:  This constant lets the E3 user omit the SaveFileWithTabs
 -- routine in STDPROCS.E.
 compile if not defined(WANT_TABS)
+; obsolete (new)
    WANT_TABS = 1
 compile endif
 
@@ -513,6 +521,7 @@ compile endif
 -- automatically.)
 -- Also enables the 'editpath' command.
 compile if not defined(WANT_SEARCH_PATH)
+; obsolete (new)
    --WANT_SEARCH_PATH = 0  -- changed by aschn
    WANT_SEARCH_PATH = 1
 compile endif
@@ -522,6 +531,7 @@ compile endif
 -- routine will be included automatically.)
 -- Ver. 4.12:  The default is 1 rather than 0; OS/2 users have more room.
 compile if not defined(WANT_GET_ENV)
+; obsolete (new)
    WANT_GET_ENV = 1
 compile endif
 
@@ -559,16 +569,17 @@ compile if not defined(TRASH_TEMP_FILES)
    TRASH_TEMP_FILES = 0
 compile endif
 
--- Adds LOCK and UNLOCK commands.
-compile if not defined(WANT_LAN_SUPPORT)
-   --WANT_LAN_SUPPORT = 0  -- changed by aschn
-   WANT_LAN_SUPPORT = 1
-compile endif
+;-- Adds LOCK and UNLOCK commands.
+;compile if not defined(WANT_LAN_SUPPORT)
+;   --WANT_LAN_SUPPORT = 0  -- changed by aschn
+;   WANT_LAN_SUPPORT = 1
+;compile endif
 
 -- Include or omit the MATH routines.  Values are '?' meaning do a TRYINCLUDE
 -- (this is what we used to do), 1 meaning it's required, so do an INCLUDE, or
 -- 0 meaning it's not wanted, so don't try to include it at all.
 compile if not defined(WANT_MATH)
+; obsolete (new)
    WANT_MATH = '?'
 compile endif
 
@@ -578,6 +589,7 @@ compile endif
 -- sufficient room in your EPM.EX file and don't want to maintain a MATHLIB.EX.
 -- Will be ignored if EXTRA_EX is 1. (In EPM EXTRA_EX is undefined.)
 compile if not defined(INCLUDE_MATHLIB)
+; obsolete
    INCLUDE_MATHLIB = 0
 compile endif
 
@@ -586,6 +598,7 @@ compile endif
 -- 0 meaning it's not wanted, so don't try to include it at all.
 -- Note that Use_Append=1 or Host_Support='EMUL' forces DOSUTIL to be included.
 compile if not defined(WANT_DOSUTIL)
+; obsolete (new)
    WANT_DOSUTIL = '?'
 compile endif
 
@@ -623,17 +636,20 @@ compile endif
 -- the distributed macros; EOS2LEX and E3SPELL are available separately.
 -- New:  set to 'DYNALINK' to only link in if the user needs it.
 compile if not defined(SPELL_SUPPORT)
+; obsolete (new)
    SPELL_SUPPORT = 'DYNALINK'          -- New default
 compile endif
 
 -- Enhanced print support for EPM - can display list of printers.
 compile if not defined(ENHANCED_PRINT_SUPPORT)
+; obsolete (new)
    ENHANCED_PRINT_SUPPORT = 1
 compile endif
 
 /* Specifies whether support should be included   */
 /* for a shell window.                            */
 compile if not defined(WANT_EPM_SHELL)
+; obsolete (new)
    --WANT_EPM_SHELL = 0  -- changed by aschn
    WANT_EPM_SHELL = 1
 compile endif
@@ -671,6 +687,7 @@ compile endif
 -- will cause the long name to be displayed on the EPM title bar, instead of the
 -- real (short) name.
 compile if not defined(WANT_LONGNAMES)
+; obsolete (new)
    --WANT_LONGNAMES = 0  -- changed by aschn
    WANT_LONGNAMES = 'SWITCH'
    -- 'SWITCH' activates MY_SHOW_LONGNAMES, default is now: 1
@@ -679,6 +696,7 @@ compile endif
 -- Adds PUSHMARK, POPMARK, PUSHPOS and POPPOS commands.  For EPM, also adds
 -- pulldown entries to the action bar.
 compile if not defined(WANT_STACK_CMDS)
+; obsolete (new)
    --WANT_STACK_CMDS = 0  -- changed by aschn
    WANT_STACK_CMDS = 'SWITCH'
    -- 'SWITCH' activates MY_STACK_CMDS, default is now: 1, defined in MENUACCEL.E
@@ -691,6 +709,7 @@ compile endif
 -- behave this way all the time, or to 'SWITCH' to enable switching it on and
 -- off.  The default is 0, meaning that the standard EPM settings are in effect.
 compile if not defined(WANT_CUA_MARKING)
+; obsolete (new)
    --WANT_CUA_MARKING = 0  -- changed by aschn
    WANT_CUA_MARKING = 'SWITCH'
    -- 'SWITCH' activates MY_CUA_MARKING_SWITCH, default is: 0
@@ -701,6 +720,7 @@ compile endif
 -- 'LINK' to have mouse support linked in at run time, or to 0 to omit mouse
 -- support completely.
 compile if not defined(MOUSE_SUPPORT)
+; obsolete (new)
    MOUSE_SUPPORT = 1
 ;   MOUSE_SUPPORT = 'LINK'  doesn't work
 compile endif
@@ -710,6 +730,7 @@ compile endif
 -- the Edit pulldown can be used to paste this buffer back into the editor.
 -- Not as useful as it originally was, since full undo has been added.
 compile if not defined(WANT_DM_BUFFER)
+; obsolete (new)
    --WANT_DM_BUFFER = 0  -- changed by aschn
    WANT_DM_BUFFER = 1
 compile endif
@@ -719,6 +740,7 @@ compile endif
 -- behave this way all the time, or to 'SWITCH' to enable switching it on and
 -- off.  The default is 0, meaning forget stream mode entirely.
 compile if not defined(WANT_STREAM_MODE)
+; obsolete (new)
    --WANT_STREAM_MODE = 0  -- changed by aschn
    WANT_STREAM_MODE = 'SWITCH'
    -- 'SWITCH' activates MY_STREAM_MODE, default is now: 1
@@ -736,6 +758,7 @@ compile endif
 -- LAN installations, so people can use a common .EX but still customize the
 -- keys.
 compile if not defined(ENHANCED_ENTER_KEYS)
+; obsolete (new)
    --ENHANCED_ENTER_KEYS = 0  -- changed by aschn
    ENHANCED_ENTER_KEYS = 1
 compile endif
@@ -745,6 +768,7 @@ compile endif
 -- Most people will want this to be set to 0, so that you always can load as
 -- many files as you like.
 compile if not defined(RING_OPTIONAL)
+; obsolete (new)
    --RING_OPTIONAL = 0  -- changed by aschn
    RING_OPTIONAL = 1
 compile endif
@@ -842,6 +866,7 @@ compile endif
 
 -- Search for a Rexx profile?  (EPM 5.50 or above only.)
 compile if not defined(WANT_PROFILE)
+; obsolete
    --WANT_PROFILE = 0  -- changed by aschn
    WANT_PROFILE = 'SWITCH'
 compile endif
@@ -853,6 +878,7 @@ compile endif
 -- Toggle Escape key?  Default EPM for Boca doesn't use Esc to bring up command
 -- dialog, but all "real" EPM users want it.
 compile if not defined(TOGGLE_ESCAPE)
+; obsolete
    --TOGGLE_ESCAPE = 0  -- changed by aschn
    TOGGLE_ESCAPE = 1
 compile endif
@@ -860,6 +886,7 @@ compile endif
 -- Toggle Tab key?  Some people want the Tab key to insert a tab, rather than
 -- inserting spaces to the next tab stop.
 compile if not defined(TOGGLE_TAB)
+; obsolete
    -- TOGGLE_TAB = 1 means: define the 'tabkey' command
    --TOGGLE_TAB = 0  -- changed by aschn
    TOGGLE_TAB = 1
@@ -868,6 +895,7 @@ compile endif
 -- Make menu support optional for people using the E Toolkit who want to
 -- use most of the standard macros.  *Not* for most users.
 compile if not defined(INCLUDE_MENU_SUPPORT)
+; obsolete
    INCLUDE_MENU_SUPPORT = 1
 compile endif
 
@@ -875,7 +903,13 @@ compile endif
 -- but supply their own menus.  *Not* for most users.  Omits STDMENU.E,
 -- loaddefaultmenu cmd,
 compile if not defined(INCLUDE_STD_MENUS)
+; obsolete
    INCLUDE_STD_MENUS = 1
+compile endif
+
+compile if not defined(STD_MENU_NAME)
+   --STD_MENU_NAME = ''  -- changed by aschn
+   STD_MENU_NAME = 'newmenu.e'
 compile endif
 
 -- The compiler support is only included if the bookmark support is; this lets
@@ -912,6 +946,7 @@ compile endif
 -- E Toolkit users might want to omit support for accessing the application
 -- .INI file (e.g., EPM.INI).
 compile if not defined(WANT_APPLICATION_INI_FILE)
+; obsolete
    WANT_APPLICATION_INI_FILE = 1
 compile endif
 
@@ -952,6 +987,7 @@ compile endif
 -- Include support for calling user exits in DEFMAIN, SAVE, NAME, and QUIT.
 -- (EPM 5.51+ only; requires isadefproc() ).
 compile if not defined(SUPPORT_USER_EXITS)
+; obsolete
    --SUPPORT_USER_EXITS = 0  -- changed by aschn
    SUPPORT_USER_EXITS = 1
 compile endif
@@ -985,6 +1021,7 @@ compile endif
 
 -- Include support for toolbar (EPM 6.00+ only)
 compile if not defined(WANT_TOOLBAR)
+; obsolete
    WANT_TOOLBAR = 1
 compile endif
 
@@ -1020,6 +1057,7 @@ compile endif
 -- For GPI, we manage the cursor ourself.  This provides an alternate to
 -- UNDERLINE_CURSOR, to allow changing the shape at runtime.
 compile if not defined(DYNAMIC_CURSOR_STYLE)
+; obsolete
    --DYNAMIC_CURSOR_STYLE = 0  -- changed by aschn
    DYNAMIC_CURSOR_STYLE = 1
 compile endif
@@ -1050,6 +1088,7 @@ compile endif
 
 -- Support the Shift+cursor movement for marking?
 compile if not defined(WANT_SHIFT_MARKING)
+; obsolete
    WANT_SHIFT_MARKING = EPM
 compile endif
 
@@ -1101,16 +1140,27 @@ compile if not defined(DIRECTORYOF_STRING)
    DIRECTORYOF_STRING = DIR_OF__MSG
 compile endif
 
+-- Standard is to link the NEPMD library at definit. Other possibilities:
+-- 'DEFMAIN' or 0 (included not linked).
 compile if not defined(LINK_NEPMDLIB)
    LINK_NEPMDLIB = 'DEFINIT'
 compile endif
+
+-- New standard is to link a menu file in order to save space in EPM.EX
+-- (String Area Size = 64k max).
+compile if not defined(LINK_MENU)
+   LINK_MENU = 1
+compile endif
+
 -------------------------------------------------------------------------------
 
-; -------- Set universal vars and init misc --------
+; -------- Set universal vars and init misc, depending on consts --------
+; (Initialisation depending on ini files is made in initconfig, called
+; by defmain, when all definits are processed.)
 
 definit
-universal expand_on, matchtab_on, default_search_options
-universal vTEMP_FILENAME, vTEMP_PATH, vAUTOSAVE_PATH
+   universal expand_on, matchtab_on
+   universal vTEMP_FILENAME, vTEMP_PATH, vAUTOSAVE_PATH
 ;compile if EVERSION < 5
 ;   universal ZoomWindowStyle, comsfileid, messy
 ;compile else
@@ -1126,9 +1176,9 @@ universal vTEMP_FILENAME, vTEMP_PATH, vAUTOSAVE_PATH
    universal vDESKTOPCOLOR
 ;  compile endif
 ; compile endif
-compile if CHECK_FOR_LEXAM
-   universal LEXAM_is_available
-compile endif
+;compile if CHECK_FOR_LEXAM
+;   universal LEXAM_is_available
+;compile endif
 compile if WANT_DYNAMIC_PROMPTS
    universal menu_prompt
 compile endif
@@ -1162,9 +1212,9 @@ compile endif
 compile if WANT_STREAM_MODE = 'SWITCH'
    universal stream_mode
 compile endif
-compile if WANT_STACK_CMDS = 'SWITCH'
-   universal stack_cmds
-compile endif
+;compile if WANT_STACK_CMDS = 'SWITCH'
+;   universal stack_cmds
+;compile endif
 ;compile if EVERSION >= '5.50'
    universal default_font
 compile if DYNAMIC_CURSOR_STYLE
@@ -1173,54 +1223,104 @@ compile endif
 ;compile endif
    universal bitmap_present
 compile if WANT_LONGNAMES = 'SWITCH'
-   universal SHOW_LONGNAMES
+   universal show_longnames
 compile endif
 compile if WANT_PROFILE = 'SWITCH'
-   universal REXX_PROFILE
+   universal rexx_profile
 compile endif
 compile if TOGGLE_ESCAPE
-   universal ESCAPE_KEY
+   universal escape_key
 compile endif
 compile if TOGGLE_TAB
-   universal TAB_KEY
+   universal tab_key
 compile endif
-   universal save_with_tabs, default_edit_options, default_save_options
+   universal save_with_tabs
+;   universal default_edit_options, default_save_options, default_search_options
    universal last_append_file
-compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
-   universal CUA_MENU_ACCEL
-compile endif
+;compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
+;   universal cua_menu_accel
+;compile endif
 ;compile if EPM
 compile if WPS_SUPPORT
    universal wpshell_handle
-   wpshell_handle = windowmessage(1,  getpminfo(EPMINFO_OWNERFRAME),
-                                5152,    -- EPM_QUERY_CONFIG
-                                getpminfo(EPMINFO_EDITCLIENT),
-                                0)
+compile endif
+
+   CurMenu = ''
+;  Link NEPMDLIB.EX if not already linked in DEFINIT ------------------------
+compile if LINK_NEPMDLIB = 'DEFINIT'  -- LINK_NEPMDLIB = 'DEFINIT' is default
+; --- Link the NEPMD library. Open a MessageBox if .ex file not found. ------
+   'linkverify nepmdlib.ex'
+
+;  Open NEPMD.INI and save the returned handle ------------------------------
+   nepmd_hini = NepmdOpenConfig()
+   parse value nepmd_hini with 'ERROR:'rc;
+   if (rc > 0) then
+      sayerror 'Configuration repository could not be opened, rc='rc;
+   endif
+
+;  Process NEPMD.INI initialization -----------------------------------------
+   -- Write default values from nepmd\netlabs\bin\defaults.dat to NEPMD.INI,
+   -- application 'RegDefaults', if 'RegDefaults' was not found
+   rc = NepmdInitConfig( nepmd_hini)
+   parse value rc with 'ERROR:'rc;
+   if (rc > 0) then
+      sayerror 'Configuration repository could not be initialized, rc='rc;
+   endif
+
+   if isadefproc('NepmdQueryConfigValue') then
+      KeyPath = '\NEPMD\User\Menu\Name'
+      CurMenu = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   endif
+compile endif
+
+;  Link the menu ------------------------------------------------------------
+; toggleframe and togglecontrol must be defined early in definit or before.
+; Therefore NEWMENU.EX is now linked early in definit.
+; 'initmenu' can't be executed at this time.
+compile if LINK_MENU
+   if CurMenu = '' then  -- CurMenu is not set if LINK_NEPMDLIB <> 'DEFINIT'
+      CurMenu = 'newmenu'
+   endif
+   'linkverify 'CurMenu'.ex'
+; compile if STD_MENU_NAME = ''
+;   'linkverify stdmenu.ex'
+; compile else
+;   'linkverify 'STD_MENU_NAME'x'
+; compile endif
+compile endif
+
+compile if WPS_SUPPORT
+   wpshell_handle = windowmessage( 1,  getpminfo(EPMINFO_OWNERFRAME),
+                                   5152,    -- EPM_QUERY_CONFIG
+                                   getpminfo(EPMINFO_EDITCLIENT),
+                                   0)
    if wpshell_handle then
-      call dynalink32('DOSCALLS',
-                      '#302',  -- Dos32GetSharedMem
-                      atol(wpshell_handle) ||  -- Base address
-                      atol(1))             -- PAG_READ
+      call dynalink32( 'DOSCALLS',
+                       '#302',  -- Dos32GetSharedMem
+                       atol(wpshell_handle) ||  -- Base address
+                       atol(1))             -- PAG_READ
    endif
 compile endif
 ;compile endif
 
--- set automatic syntax expansion 0/1
-compile if defined(my_expand_on)
-   expand_on        = my_expand_on
-compile else
+;-- set automatic syntax expansion 0/1
+;compile if defined(my_expand_on)
+;   expand_on        = my_expand_on
+;compile else
+; will be overwritten later
    expand_on        = 1
-compile endif
+;compile endif
 
--- set default matchtab to 0 or 1
-compile if defined(my_matchtab_on)
-   matchtab_on      = my_matchtab_on
-compile else
+;-- set default matchtab to 0 or 1
+;compile if defined(my_matchtab_on)
+;   matchtab_on      = my_matchtab_on
+;compile else
+; will be overwritten later
    matchtab_on      = 0
-compile endif
+;compile endif
 
--- tabglyph: show a circle for the tab char
-   call tabglyph(1)
+;-- tabglyph: show a circle for the tab char
+;   call tabglyph(1)
 
 ;compile if EVERSION < 5
 ;
@@ -1263,11 +1363,12 @@ compile endif
 -- If join_after_wrap = 0, you'll get:
 --    wrap.
 --    -- (sample next line)
-compile if defined(my_join_after_wrap)
-   join_after_wrap = my_join_after_wrap
-compile else
+;compile if defined(my_join_after_wrap)
+;   join_after_wrap = my_join_after_wrap
+;compile else
+; will be overwritten later
    join_after_wrap = 1
-compile endif
+;compile endif
 
 
 -- This option CENTER_SEARCH specifies how the cursor moves
@@ -1275,6 +1376,8 @@ compile endif
 -- 0 :  Hold the cursor fixed; move the word to the cursor.  Like old E.
 -- 1 :  Move the cursor to the word if it's visible on the current screen,
 --      to minimize text motion.  Else center the word in mid-screen.
+; EPM does this everytime
+; obsolete
 compile if defined(my_center_search)
    center_search = my_center_search
 compile else
@@ -1305,12 +1408,12 @@ compile endif
 --    1 (TRUE)  ==>  supply two spaces after a sentence or colon.
 --    0 (FALSE) ==>  supply only one space.
 ;compile if EVERSION >= 4    -- not in E3
-compile if defined(my_two_spaces)
-   two_spaces = my_two_spaces
-compile else
-   -- Default is as before, two spaces after sentence.
-   two_spaces = TRUE
-compile endif
+; compile if defined(my_two_spaces)
+;    two_spaces = my_two_spaces
+; compile else
+;    -- Default is as before, two spaces after sentence.
+;    two_spaces = TRUE
+; compile endif
 ;compile endif
 
 -- Default options for locate and change commands.  Pick from:
@@ -1330,12 +1433,12 @@ compile endif
    --       r  from right to left      x  extended grep
    --       a  in the whole file       w  search for words
    --       m  in the marked area      ~  negative search
-compile if defined(my_default_search_options)
-   default_search_options= my_default_search_options
-compile else
-   --default_search_options=''  -- changed by aschn
-   default_search_options='+fac'
-compile endif
+;compile if defined(my_default_search_options)
+;   default_search_options= my_default_search_options
+;compile else
+;   --default_search_options=''  -- changed by aschn
+;   default_search_options= '+fac'
+;compile endif
 
 compile if HOST_SUPPORT
  compile if defined(my_hostcopy)
@@ -1356,6 +1459,7 @@ compile endif
 -- to save an individual file with tabs by issuing 'save /t' or 'file /t'.
 -- If you want ALL files saved with tab compression, without specifying
 -- the '/t', set this to 1.
+; obsolete
 compile if defined(my_save_with_tabs)
    save_with_tabs = my_save_with_tabs
 compile else
@@ -1431,31 +1535,34 @@ compile endif
 ;compile endif  -- EVERSION < 5
 
 ; Init universal vars if the corresponding consts are defined to use variables
-compile if WANT_LONGNAMES = 'SWITCH'
- compile if defined(my_SHOW_LONGNAMES)
-   SHOW_LONGNAMES = my_SHOW_LONGNAMES
- compile else
-   --SHOW_LONGNAMES = 0  -- changed by aschn
-   SHOW_LONGNAMES = 1
- compile endif
-compile endif
+;compile if WANT_LONGNAMES = 'SWITCH'
+; compile if defined(my_SHOW_LONGNAMES)
+;   show_longnames = my_SHOW_LONGNAMES
+; compile else
+;   --show_longnames = 0  -- changed by aschn
+; will be overwritten later
+   show_longnames = 1
+; compile endif
+;compile endif
 
-compile if WANT_PROFILE = 'SWITCH'
- compile if defined(my_REXX_PROFILE)
-   REXX_PROFILE = my_REXX_PROFILE
- compile else
-   --REXX_PROFILE = 0  -- changed by aschn
-   REXX_PROFILE = 1
- compile endif
-compile endif
+;compile if WANT_PROFILE = 'SWITCH'
+; compile if defined(my_REXX_PROFILE)
+;   rexx_profile = my_REXX_PROFILE
+; compile else
+   --rexx_profile = 0  -- changed by aschn
+; will be overwritten later
+   rexx_profile = 1
+; compile endif
+;compile endif
 
 compile if TOGGLE_ESCAPE
-   --ESCAPE_KEY = 0  -- changed by aschn
-   ESCAPE_KEY = 1
+   --escape_key = 0  -- changed by aschn
+   escape_key = 1
 compile endif
-compile if TOGGLE_TAB
-   TAB_KEY = 0
-compile endif
+;compile if TOGGLE_TAB
+; will be overwritten later
+   tab_key = 0
+;compile endif
 
 compile if SETSTAY='?'
  compile if defined(my_stay)
@@ -1490,8 +1597,8 @@ compile endif
    --       /b    don't load file from disk if already in ring
    --       /c    create a new file
    --       /d    load it from disk, even if already in ring
-   --       /t    don't convert Tab's
-   --       /nt   no tab chars: convert it into spaces
+   --       /t    don't convert tab chars
+   --       /nt   no tab chars: convert it into spaces (tabs = 8)
    --       /u    Unix line end: LF is line end and CR is ignored
    --       /l    DOS line end: CRLF is line end, CR's and LF's are text
    --       /64   wrap every line after 64 chars, on saving there will
@@ -1503,12 +1610,12 @@ compile endif
    --       'e /t /l /64 /bin mybinary.file'
    --    Further options:
    --       /k0 /k /k1 /k2 /v /r /s /n*
-compile if defined(my_default_edit_options)
-   default_edit_options= my_default_edit_options
-compile else
-   --default_edit_options=''  -- changed by aschn
-   default_edit_options='/b /t /l'
-compile endif
+;compile if defined(my_default_edit_options)
+;   default_edit_options= my_default_edit_options
+;compile else
+;   --default_edit_options=''  -- changed by aschn
+;   default_edit_options='/b /t /l'
+;compile endif
 
 ; Default options to be added to the SAVE command.  Normally null, some users
 ; might prefer to make it '/S' (EPM 5.51 or above).
@@ -1518,7 +1625,7 @@ compile endif
    --       /ns   don't strip spaces
    --       /e    append a file end char
    --       /ne   no file end char
-   --       /t    convert spaces to tab chars
+   --       /t    convert spaces to tab chars (tabs = 8, buggy)
    --       /nt   don't convert spaces
    --       /q    quiet
    --       /o    insert CRLF as line end char
@@ -1527,12 +1634,12 @@ compile endif
    --    How to save binary files?
    --       's /nt /ns /ne mybinary.file'
    --       This will only work, if none of /o /l /u is specified.
-compile if defined(my_default_save_options)
-   default_save_options= my_default_save_options
-compile else
-   --default_save_options=''  -- changed by aschn
-   default_save_options='/s /ne /nt'
-compile endif
+;compile if defined(my_default_save_options)
+;   default_save_options= my_default_save_options
+;compile else
+;   --default_save_options=''  -- changed by aschn
+;   default_save_options='/s /ne /nt'
+;compile endif
 
 ; In EPM you can choose one of several (well, only 2 for now) prefabricated
 ; styles of mouse behavior.  You can change styles on the fly with the command
@@ -1545,38 +1652,39 @@ compile endif
 ;  3: A marking style of point-the-corners instead of drag-paint.
 ;     (Not done yet.)
 ;compile if EPM
-compile if defined(my_MouseStyle)
-   MouseStyle = my_MouseStyle
-compile else
+;compile if defined(my_MouseStyle)
+;   MouseStyle = my_MouseStyle
+;compile else
+; will be overwritten later
    MouseStyle = 1
-compile endif
+;compile endif
 
 compile if SPELL_SUPPORT = 'DYNALINK'  -- For EPM, initialize here if DYNALINK,
  compile if defined(my_ADDENDA_FILENAME)  -- so can be overridden by CONFIG info.
-   ADDENDA_FILENAME= my_ADDENDA_FILENAME
+   addenda_filename= my_ADDENDA_FILENAME
  compile else
-   ADDENDA_FILENAME= 'c:\lexam\lexam.adl'
+   addenda_filename= 'c:\lexam\lexam.adl'
  compile endif
 
  compile if defined(my_DICTIONARY_FILENAME)
-   DICTIONARY_FILENAME= my_DICTIONARY_FILENAME
+   dictionary_filename= my_DICTIONARY_FILENAME
  compile else
-   DICTIONARY_FILENAME= 'c:\lexam\us.dct'
+   dictionary_filename= 'c:\lexam\us.dct'
  compile endif
 compile endif  -- SPELL_SUPPORT
 
-compile if WANT_EPM_SHELL
+;compile if WANT_EPM_SHELL
    shell_index = 0
-compile endif
+;compile endif
 
 compile if WANT_CUA_MARKING = 'SWITCH'
  compile if defined(my_CUA_marking_switch)
-   CUA_marking_switch = my_CUA_marking_switch
+   cua_marking_switch = my_CUA_marking_switch
   compile if my_CUA_marking_switch
    'togglecontrol 25 1'
   compile endif
  compile else
-   CUA_marking_switch = 0           -- Default is off, for standard EPM behavior.
+   cua_marking_switch = 0           -- Default is off, for standard EPM behavior.
  compile endif
 compile elseif WANT_CUA_MARKING = 1
    'togglecontrol 25 1'
@@ -1651,19 +1759,19 @@ compile endif  -- 0
 
 ;compile if EVERSION >= 5
 ; compile if EVERSION >= '5.20'
-compile if WANT_APPLICATION_INI_FILE
+;compile if WANT_APPLICATION_INI_FILE
 ;   compile if EVERSION >= '6.00'
-   app_hini=dynalink32(ERES2_DLL, 'ERESQueryHini', gethwndc(EPMINFO_EDITCLIENT) ,2)
+   app_hini = dynalink32( ERES2_DLL, 'ERESQueryHini', gethwndc(EPMINFO_EDITCLIENT), 2)
 ;   compile elseif EVERSION >= '5.53'
 ;   app_hini=dynalink(ERES2_DLL, 'ERESQUERYHINI', gethwnd(EPMINFO_EDITCLIENT) ,2)
 ;   compile else
 ;   app_hini=getpminfo(EPMINFO_HINI)
 ;   compile endif  -- 6.00 / 5.53
    if not app_hini then
-      call WinMessageBox('Bogus Ini File Handle', '.ini file handle =' app_hini, 16416)
+      call WinMessageBox( 'Bogus Ini File Handle', '.ini file handle =' app_hini, 16416)
 ;;    'postme inifileupdate 1'  -- Don't think this is a problem any more.
    endif
-compile endif  -- WANT_APPLICATION_INI_FILE
+;compile endif  -- WANT_APPLICATION_INI_FILE
    CurrentHLPFiles = 'epm.hlp'
 ; compile endif  -- 5.20
 ;compile if defined(my_TILDE)
@@ -1719,7 +1827,9 @@ compile if RING_OPTIONAL
    endif
 compile endif  -- RING_OPTIONAL
 ;compile if not DELAY_MENU_CREATION
-   include 'menuacel.e'
+; MENUACEL.E doesn't exist anymore. It's now part of defc initconfig in
+; STDCTRL.E
+;;;   include 'menuacel.e'
 ;compile endif
 compile if WANT_DYNAMIC_PROMPTS
  compile if defined(my_MENU_PROMPT)
@@ -1769,22 +1879,22 @@ compile endif  -- DYNAMIC_PROMPTS
 ; compile if EVERSION >= '5.60'
    vDESKTOPCOLOR = DESKTOPCOLOR
 ; compile endif
-compile if defined(STATUS_TEMPLATE)
+;;compile if defined(STATUS_TEMPLATE)
 ;  compile if 0 -- EVERSION >= 6
 ;   'postme setstatusline' STATUS_TEMPLATE
 ;  compile else
-   'setstatusline' STATUS_TEMPLATE
+;;   'setstatusline' STATUS_TEMPLATE
 ;  compile endif
-compile elseif STATUSCOLOR <> 240  -- If different than the default...
-   'setstatusline'    -- Just set the color
-compile endif
+;;compile elseif STATUSCOLOR <> 240  -- If different than the default...
+;;   'setstatusline'    -- Just set the color
+;;compile endif
 
-compile if MESSAGECOLOR <> 252  -- If different than the default...
-   'setmessageline'   -- Set the messageline color
-compile endif
+;;compile if MESSAGECOLOR <> 252  -- If different than the default...
+;;   'setmessageline'   -- Set the messageline color
+;;compile endif
 ;compile endif  -- 5.21
 
-compile if ENHANCED_ENTER_KEYS
+;compile if ENHANCED_ENTER_KEYS
  compile if ENTER_ACTION='' | ENTER_ACTION='ADDLINE'  -- The default
    enterkey=1; a_enterkey=1; s_enterkey=1; padenterkey=1; a_padenterkey=1; s_padenterkey=1
  compile elseif ENTER_ACTION='NEXTLINE'
@@ -1811,9 +1921,9 @@ compile if ENHANCED_ENTER_KEYS
  compile elseif C_ENTER_ACTION='STREAM'
    c_enterkey=6; c_padenterkey=6;
  compile endif
-compile endif -- ENHANCED_ENTER_KEYS
+;compile endif -- ENHANCED_ENTER_KEYS
 
-compile if WANT_STREAM_MODE = 'SWITCH'
+;compile if WANT_STREAM_MODE = 'SWITCH'
  compile if defined(my_STREAM_MODE)
    stream_mode = my_STREAM_MODE
   compile if my_STREAM_MODE
@@ -1825,9 +1935,9 @@ compile if WANT_STREAM_MODE = 'SWITCH'
  compile else
    stream_mode = 0
  compile endif
-compile elseif WANT_STREAM_MODE = 1
-   'togglecontrol 24 1'
-compile endif
+;compile elseif WANT_STREAM_MODE = 1
+;   'togglecontrol 24 1'
+;compile endif
 
 ;compile if EVERSION >= '5.50'
   -- default editor font
@@ -1838,7 +1948,7 @@ compile else
    default_font = 1
 compile endif
 
-compile if DYNAMIC_CURSOR_STYLE
+;compile if DYNAMIC_CURSOR_STYLE
  compile if defined(my_CURSORDIMENSIONS)
    cursordimensions = my_CURSORDIMENSIONS
  compile elseif UNDERLINE_CURSOR
@@ -1846,7 +1956,7 @@ compile if DYNAMIC_CURSOR_STYLE
  compile else
    cursordimensions = '-128.-128 2.-128'
  compile endif
-compile endif
+;compile endif
 
    call fixup_cursor()
 ;compile endif
@@ -1902,12 +2012,13 @@ compile if SPELL_SUPPORT = 'LINK'
 ; compile endif
 compile endif
 
-compile if LINK_NEPMDLIB = 'DEFINIT'
-   if not isadefproc('NepmdOpenConfig') then
-; --- Link the NEPMD library. Open a MessageBox if .ex file not found. ------
-      'linkverify nepmdlib.ex'
-   endif
-compile endif
+; Process menu initialization if defined.
+; This can't be executed at the begin of definit.
+; The menu defs must be linked before togglecontrol and toggleframe are
+; executed.
+if isadefc('initmenu') then
+   'initmenu'
+endif
 
 -----------------  End of DEFINIT  ------------------------------------------
 
