@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.2 2002-04-20 14:52:11 cla Exp $
+.. $Id: makefile.txt,v 1.3 2002-04-21 13:41:46 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -56,30 +56,31 @@
 The following is required for making [=TITLE]:
 .ul
 - *WarpIn* installed (minimum: 0.9.18)
-.
-  *WarpIn* dirrectory reachable by PATH and (BEGIN)LIBPATH statement
+.ul compact
+  - makefile processing will extend the environment automatically
+    to access the *WarpIn* executables
 - *pkunzip2* (as part of MPTS)
+.ul compact
   - the shrink method is not supported by newer versions of *Info-Zip*,
     but required
-- *zip.exe* of *Info-Zip*
-  - required because "deflated" method used for txt files
-    in the update zip file are not supported by pkunzip2 of MPTS
-- *wget* for download of the original zip files, if not present
+- *unzip.exe* of *Info-Zip*
+.ul compact
+   - required because "deflated" method used for txt files
+     in the update zip file are not supported by pkunzip2 of MPTS
+   - *unzip.exe* must be accessible by the PATH statement
+- *wget* for to download of the original zip files, if not present
 .
   (currently tested with wget v1.7)
-.
-.
-  [=NOTE]
 .ul compact
+   - *wget* must be accessible by the PATH statement
    - when sitting behind a firewall, create/modify a wget resource file in order
-     to use an FTP proxy. Insert or add the following entries and replace the
-     bold printed values as required:
+     to use an FTP proxy. Insert or add the following entries to the file
+     %home%\.wgetrc and replace the bold printed values as required:
 .fo off
        ftp__proxy=http://*proxyname*:*proxyport*
        proxy__user=*proxy__userid*
        proxy__passwd=*proxy__password*
 .fo on
-.el
 .. - as compiler either
 .. either
 .. .ul compact
@@ -93,13 +94,27 @@ The following is required for making [=TITLE]:
   - *OS/2 Warp 3 Developers Toolkit*
   - *OS/2 Warp 4 Developers Toolkit*
   - *OS/2 Warp 4.5 Developers Toolkit*
-- *HyperText/2* from
-  [http://hobbes.nmsu.edu/cgi-bin/h-search?key=htext The Hobbes File Archive
-  (search "htext" at hobbes.nmsu.edu)]
-- *REXX2EXE* compiler from
+- *HyperText/2*
+.ul compact
+  - download from
+    [http://hobbes.nmsu.edu/cgi-bin/h-search?key=htext The Hobbes File Archive
+    (search "htext" at hobbes.nmsu.edu)]
+  - install according to the information in htext.inf
+    - *htext.cmd* must be accessible by the PATH statement
+    - the bitmap files ***.bmp* must be placed either
+      - into the same directory where you put *htext.cmd* to
+      - into a subdirectory *htext* within the directory where you
+        put *htext.cmd* to
+      - into a directory specified in the environment variables
+        - *INCLUDE*
+        - *HTINCLUDE*
+- *grep* utility (reachable by the PATH statement)
+- *REXX2EXE* compiler
+.ul compact
+- download from
   [http://hobbes.nmsu.edu/cgi-bin/h-search?key=rexx2exe The Hobbes File Archive
   (search "rexx2exe" at hobbes.nmsu.edu)]
-- *grep* utility reachable by the PATH statement
+- *rexx2exe* must be accessible by the PATH statement
 
 .. -----------------------------------------------------------------------------
 .2 CVS development tree overview
