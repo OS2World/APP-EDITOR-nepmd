@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: project.in,v 1.12 2002-10-18 19:06:55 cla Exp $
+# $Id: project.in,v 1.13 2002-11-04 22:45:20 cla Exp $
 #
 # ===========================================================================
 #
@@ -65,6 +65,10 @@ CMPBINDIR=$(CMPDSTDIR)\bin
 
 CMPINFDIR=$(CMPDSTDIR)\book
 !if [@md $(CMPINFDIR) 2> NUL]
+!endif
+
+CMPHLPDIR=$(CMPDSTDIR)\help
+!if [@md $(CMPHLPDIR) 2> NUL]
 !endif
 
 CMPINSTDIR=$(CMPDSTDIR)\install
