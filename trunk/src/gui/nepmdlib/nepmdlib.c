@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.57 2004-07-02 12:11:35 aschn Exp $
+* $Id: nepmdlib.c,v 1.58 2004-07-02 12:57:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1002,6 +1002,8 @@ do
    _executeEPMCommand( hwndClient, "InsertEditorVersion");  // E command required
    _executeEPMCommand( hwndClient, "mc /bot/-1");
    _executeEPMCommand( hwndClient, "InsertMacrosVersion");  // E command required
+   _executeEPMCommand( hwndClient, "mc /bot/-1");
+   _executeEPMCommand( hwndClient, "InsertNepmdVersion");  // E command required
    _executeEPMCommand( hwndClient, "mc /bot/-1");
    _insertMessage( hwndClient, szMessageFile, "STR_INFO_NEPMDLIBVERSION", NEPMDLIB_VERSION);
    _executeEPMCommand( hwndClient, "mc /bot/-1");
