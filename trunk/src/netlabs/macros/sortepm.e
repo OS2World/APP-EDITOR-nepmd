@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sortepm.e,v 1.2 2002-07-22 19:02:01 cla Exp $
+* $Id: sortepm.e,v 1.3 2002-08-21 11:54:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,34 +18,18 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-compile if EVERSION < '5.60'
- Error:  SORTEPM.E (SORT_TYPE = 'EPM') can only be used with EPM 5.60 or above.
-compile endif
 
 defproc sort(firstline, lastline, firstcol, lastcol, fileid)
-compile if EVERSION >= '6.01b'  -- Using BitOr, we can accept either Reverse or Descending
    flags = (not verify('R',upcase(arg(6)))) bitor    -- Reverse
            (not verify('D',upcase(arg(6)))) bitor    -- Descending
         (2*(not verify('I',upcase(arg(6))))) bitor   -- case Insensitive
         (4*(not verify('C',upcase(arg(6)))))         -- Collating order
-compile else
-   flags = not verify('R',upcase(arg(6))) + 2*(not verify('I',upcase(arg(6)))) + 4*(not verify('C',upcase(arg(6))))
-compile endif
-compile if EPM32
    return dynalink32(E_DLL, 'EtkSort',
                      gethwndc(5)     || atol(fileid)   ||
                      atol(firstline) || atol(lastline) ||
                      atol(firstcol)  || atol(lastcol)  ||
                      atol(flags),
                      2)
-compile else
-   return dynalinkc( E_DLL, '_EtkSort',      /* function name                 */
-                     gethwndc(5)     || atol(fileid)   ||
-                     atol(firstline) || atol(lastline) ||
-                     atoi(firstcol)  || atoi(lastcol)  ||
-                     atol(flags),
-                     2);
-compile endif
 
 defc sort =
    if browse() then
@@ -62,12 +46,10 @@ defc sort =
       /* imagine anyone needing a key longer than 40.                */
       if TypeMark='LINE' then lastcol=40 endif
    endif
-compile if EVERSION >= '6.03'
    if fileid.readonly then
       sayerror READ_ONLY__MSG
       return
    endif
-compile endif
 
    sayerror SORTING__MSG lastline-firstline+1 LINES__MSG'...'
 
@@ -98,12 +80,10 @@ defc sortcols =
    else
       getmark firstline, lastline, firstcol, lastcol, fileid
    endif
-compile if EVERSION >= '6.03'
    if fileid.readonly then
       sayerror READ_ONLY__MSG
       return
    endif
-compile endif
 
    cols = arg(1)
    sort_flags = ''

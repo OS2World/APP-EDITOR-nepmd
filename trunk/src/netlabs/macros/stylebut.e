@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stylebut.e,v 1.2 2002-07-22 19:02:54 cla Exp $
+* $Id: stylebut.e,v 1.3 2002-08-21 11:54:18 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -69,7 +69,6 @@ defc apply_style
       if stylename = '' then          -- Provide list of styles
          App = 'Style'\0
          inidata = copies(' ', MAXCOL)
-      compile if EPM32
          retlen = \0\0\0\0
          l = dynalink32('PMSHAPI',
                         '#115', -- 'PRF32QUERYPROFILESTRING',
@@ -80,16 +79,6 @@ defc apply_style
                         address(inidata)  ||  -- pointer to returned string buffer
                         atol(MAXCOL)      ||       -- max length of returned string
                         address(retlen), 2)         -- length of returned string
-      compile else
-         l =  dynalink( 'PMSHAPI',
-                        'PRFQUERYPROFILESTRING',
-                        atol(app_hini)   ||  -- HINI_PROFILE
-                        address(App)     ||  -- pointer to application name
-                        atol(0)          ||  -- Key name is NULL; returns all keys
-                        atol(0)          ||  -- Default return string is NULL
-                        address(inidata) ||  -- pointer to returned string buffer
-                        atol_swap(MAXCOL), 2)        -- max length of returned string
-      compile endif
 
          if not l then
             sayerror NO_STYLES__MSG
@@ -106,11 +95,7 @@ defc apply_style
          parse value listbox(STYLEBUT__MSG,
                              inidata,
                              '/'APPLY__MSG'/'Cancel__MSG,1,5,min(count(\1, inidata)-1,12),0,
-       compile if EVERSION >= 5.60
                              gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(0) ||
-       compile else
-                             atoi(1) || atoi(1) || atoi(0) || gethwndc(APP_HANDLE) ||
-       compile endif
                              STYLEBUT_PROMPT__MSG) with button 2 stylename \0
          if button <> \1 then
             return
@@ -210,6 +195,4 @@ defproc removestyle_delete(x_CLASS, offst1, col1, line1, offst2, col2, line2)
       endif
    endif
 
- compile if EVERSION >= 6
 EA_comment 'This is a toolbar "actions" file which defines a command for a Style button.'
- compile endif

@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.2 2002-07-22 19:02:59 cla Exp $
+* $Id: tags.e,v 1.3 2002-08-21 11:53:12 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -45,15 +45,15 @@
 ;                             example.
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately
- define INCLUDING_FILE = 'TAGS.E'
+define INCLUDING_FILE = 'TAGS.E'
 const
    tryinclude 'MYCNF.E'        -- the user's configuration customizations.
 
  compile if not defined(SITE_CONFIG)
-    const SITE_CONFIG = 'SITECNF.E'
+   const SITE_CONFIG = 'SITECNF.E'
  compile endif
  compile if SITE_CONFIG
-    tryinclude SITE_CONFIG
+   tryinclude SITE_CONFIG
  compile endif
 
 include 'stdconst.e'
@@ -62,7 +62,7 @@ const
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
-include NLS_LANGUAGE'.e'
+   include NLS_LANGUAGE'.e'
 compile endif
 
 define
@@ -136,9 +136,13 @@ compile endif
 
    orig_name = tags_file
    if arg(1)='' then
-      parse value entrybox(TAGSNAME__MSG,'/'SET__MSG'/'SETP__MSG'/'Cancel__MSG'/'Help__MSG'/',tags_filename(),'',200,
-             atoi(1) || atoi(6070) || gethwndc(APP_HANDLE) ||
-             TAGSNAME_PROMPT__MSG) with button 2 newname \0
+      parse value entrybox( TAGSNAME__MSG,
+                            '/'SET__MSG'/'SETP__MSG'/'Cancel__MSG'/'Help__MSG'/',
+                            tags_filename(),
+                            '',
+                            200,
+                            atoi(1) || atoi(6070) || gethwndc(APP_HANDLE) ||
+                            TAGSNAME_PROMPT__MSG) with button 2 newname \0
       if button=\1 | button=\2 then
          tags_file = newname
          if button=\2 & tags_file<>'' then
@@ -234,9 +238,13 @@ compile endif
          proc_name = substr(proc_name, lastpos('.', proc_name)+1)
       endif
    elseif arg(1)='*' then
-      parse value entrybox(FINDTAG__MSG,'/'OK__MSG'/'LIST__MSG'/'Cancel__MSG'/'Help__MSG'/',checkini(0, 'FINDTAG_ARG', ''),'',200,
-             atoi(1) || atoi(6010) || gethwndc(APP_HANDLE) ||
-             FINDTAG_PROMPT__MSG) with button 2 proc_name \0
+      parse value entrybox( FINDTAG__MSG,
+                            '/'OK__MSG'/'LIST__MSG'/'Cancel__MSG'/'Help__MSG'/',
+                            checkini(0, 'FINDTAG_ARG', ''),
+                            '',
+                            200,
+                            atoi(1) || atoi(6010) || gethwndc(APP_HANDLE) ||
+                            FINDTAG_PROMPT__MSG) with button 2 proc_name \0
       if button<>\1 & button<>\2 then return; endif
       if button=\1 then
          call setini('FINDTAG_ARG', proc_name)
@@ -306,20 +314,14 @@ compile endif
          return
       endif
       if listbox_buffer_from_file(tags_fileid, bufhndl, noflines, usedsize) then return; endif
-      parse value listbox(LIST_TAGS__MSG,
-    compile if 0 -- POWERPC
-                          \0 || atol(usedsize) || atol(bufhndl+32),
-    compile elseif EPM32
-                          \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
-    compile else
-                          \0 || atoi(usedsize) || atoi(bufhndl) || atoi(32),
-    compile endif -- EPM32
-                          '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,1,5,min(noflines,12),0,
-    compile if EVERSION >= 5.60
-                          gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6012)) with button 2 proc_name \0
-    compile else
-                          atoi(1) || atoi(1) || atoi(6012) || gethwndc(APP_HANDLE)) with button 2 proc_name \0
-    compile endif
+      parse value listbox( LIST_TAGS__MSG,
+                           \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
+                           '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
+                           1,
+                           5,
+                           min(noflines,12),
+                           0,
+                           gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6012)) with button 2 proc_name \0
       call buffer(FREEBUF, bufhndl)
       if button<>\1 then
 compile if KEEP_TAGS_FILE_LOADED
@@ -407,22 +409,16 @@ compile endif
          if browse_mode then call browse(1); endif  -- restore browse state
          if .last>2 then
             if listbox_buffer_from_file(tags_fid, bufhndl, noflines, usedsize) then return; endif
-            parse value listbox('Select a file',
-          compile if 0 -- POWERPC
-                                \0 || atol(usedsize) || atol(bufhndl+32),
-          compile elseif EPM32
-                                \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
-          compile else
-                                \0 || atoi(usedsize) || atoi(bufhndl) || atoi(32),
-          compile endif -- EPM32
-                                '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,0,0,min(noflines,12),60,
-          compile if EVERSION >= 5.60
-                                gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6015) ||
-          compile else
-                                atoi(1) || atoi(1) || atoi(6015) || gethwndc(APP_HANDLE) ||
-          compile endif
-;;                              "'"name"' appears in multiple files.") with button 2 filename \0
-                                "'"name"' appears in multiple files.") with button 2 i '.' \0
+            parse value listbox( 'Select a file',
+                                 \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
+                                 '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
+                                 0,
+                                 0,
+                                 min(noflines,12),
+                                 60,
+                                 gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6015) ||
+;;                               "'"name"' appears in multiple files.") with button 2 filename \0
+                                 "'"name"' appears in multiple files.") with button 2 i '.' \0
             call buffer(FREEBUF, bufhndl)
             if button<>\1 then  -- Didn't select OK
                filename = ''
@@ -922,25 +918,14 @@ defproc find_matching_paren
 defproc get_file_date(filename)
          pathname = filename\0
          resultbuf = copies(\0,30)
-compile if EVERSION >= 6  -- EPM32:  32-bit version
          ca = dynalink32('DOSCALLS',      /* dynamic link library name       */
                          '#223',           /* ordinal value for DOS32QueryPathInfo  */
                          address(pathname)         ||  -- pathname to be queried
                          atol(1)                   ||  -- PathInfoLevel
                          address(resultbuf)        ||  -- buffer where info is to be returned
                          atol(length(resultbuf)) )     -- size of buffer
-compile else
-         ca = dynalink('DOSCALLS',      /* dynamic link library name       */
-                       '#98',           /* ordinal value for DOSQPATHINFO  */
-                       address(pathname)         ||  -- pathname to be queried
-                       atoi(1)                   ||  -- PathInfoLevel
-                       address(resultbuf)        ||  -- buffer where info is to be returned
-                       atoi(length(resultbuf))   ||  -- size of buffer
-                       atol(0) )                     -- (reserved)
-compile endif -- EVERSION >= 6
          return ltoa(substr(resultbuf, 9, 4), 16)
 
-compile if EPM32
 defc QueryTagsFiles
    universal app_hini
    parse arg hwnd .
@@ -1051,7 +1036,6 @@ defc delete_tags_info
    universal appname, app_hini
    if arg(1)='' then sayerror -263; return; endif  -- "Invalid argument"
    call setprofile(app_hini, INI_TAGSFILES, upcase(arg(1)), '')
-compile endif -- EPM32
 
 defc tagscan
    ext=filetype()
@@ -1093,20 +1077,14 @@ defc tagscan
    endif
    sayerror 0
    if listbox_buffer_from_file(sourcefid, bufhndl, noflines, usedsize) then return; endif
-   parse value listbox(LIST_TAGS__MSG,
- compile if 0 -- POWERPC
-                       \0 || atol(usedsize) || atol(bufhndl+32),
- compile elseif EPM32
-                       \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
- compile else
-                       \0 || atoi(usedsize) || atoi(bufhndl) || atoi(32),
- compile endif -- EPM32
-                       '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,1,5,min(noflines,12),0,
- compile if EVERSION >= 5.60
-                       gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6012)) with button 2 proc_name \0
- compile else
-                       atoi(1) || atoi(1) || atoi(6012) || gethwndc(APP_HANDLE)) with button 2 proc_name \0
- compile endif
+   parse value listbox( LIST_TAGS__MSG,
+                        \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
+                        '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
+                        1,
+                        5,
+                        min(noflines,12),
+                        0,
+                        gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6012)) with button 2 proc_name \0
    call buffer(FREEBUF, bufhndl)
    if button<>\1 then
       return
