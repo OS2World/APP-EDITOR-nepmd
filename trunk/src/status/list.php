@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: list.php,v 1.4 2002-07-18 21:59:21 cla Exp $
+* $Id: list.php,v 1.5 2002-07-19 14:10:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -29,6 +29,9 @@
 
 <table cellspacing=1 cellpadding=2 border=0>
   <tr>
+    <th align=center>
+       #
+    </th>
     <th align=left>
        prio
     </th>
@@ -68,7 +71,7 @@ while ($entry = $dir->read())
 // ...
 
 // display sorted rows
-for ($i = 0; $i < count( $aaentry);$i++)
+for ($i = 1; $i < count( $aaentry);$i++)
    {
 
    // select background color
@@ -91,7 +94,10 @@ for ($i = 0; $i < count( $aaentry);$i++)
 
    // display entry
    echo "<tr>";
-   echo "<td bgcolor=".$bgcolor.">";
+   echo "<td align=right bgcolor=".$bgcolor.">";
+   echo $i;
+   echo "</td>";
+   echo "<td align=center bgcolor=".$bgcolor.">";
    echo $prio;
    echo "</td>";
    echo "<td bgcolor=".$bgcolor.">";
@@ -110,11 +116,7 @@ for ($i = 0; $i < count( $aaentry);$i++)
    }
 ?>
 
-
-
 </table>
-
-
 <p>
 <font size=-1> <b><?=$NOTE?></b>:<br><?=$NOTETEXT?></font>
 
