@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.16 2002-06-03 18:19:13 cla Exp $
+# $Id: makefile,v 1.17 2002-06-03 22:32:37 cla Exp $
 #
 # ===========================================================================
 #
@@ -34,10 +34,11 @@ BASEDIR=.
 #     NOTE:
 #      - module names must be identical to the subdirectory below
 #        src directory
-#      - keep module WIS last in order to have all required
+#      - keep module gui\common before all other gui submodules
+#      - keep module wis last in order to have all required
 #        files available !
 
-MODULELIST=ipf rexx netlabs wis
+MODULELIST=ipf rexx netlabs gui\common gui\recomp wis
 
 # --- generic module target
 
