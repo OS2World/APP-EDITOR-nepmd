@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.6 2002-08-25 19:58:16 cla Exp $
+* $Id: getnextfile.e,v 1.7 2002-08-26 20:31:59 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdGetNextFile@PROTOTYPE
-Filename = NepmdGetNextFile( FileMask, adress( Handle));
+Filename = NepmdGetNextFile( FileMask, AddressOfHandle);
 
 @@NepmdGetNextFile@SYNTAX
 This function implements an easy directory lookup
@@ -39,7 +39,8 @@ and may contain wildcards.
 This parameter specifies the address of a search handle,
 it can be determined with the *adress()* function like
 .fo off
-   adress( handle);
+ Handle = 0;
+ AddressOfHandle = adress( Handle);
 .fo on
 
 Note that on the first call to NepmdGetNextFile() the value

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.9 2002-08-25 19:58:16 cla Exp $
+* $Id: gettextmessage.e,v 1.10 2002-08-26 20:32:00 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,10 +24,12 @@
 
 /*
 @@NepmdGetTextMessage@PROTOTYPE
-TextMessage = NepmdGetTextMessage( Filename, Messagename [, parm1, [...]]);
+TextMessage = NepmdGetTextMessage( Filename, Messagename);
 
 @@NepmdGetTextMessage@SYNTAX
-This function queries messages from a specified text message file.
+This function queries messages from a specified text message file. Up to 
+[.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_PARAMETERS nine optional parameters]
+can be specified to be inserted into the message.
 
 @@NepmdGetTextMessage@PARM@Filename
 This parameter specifies the filename of the text message file. Note that
@@ -38,8 +40,12 @@ This parameter specifies the name of the message to be searched within
 the specified text message file.
 
 @@NepmdGetTextMessage@PARM@Parameters
-Up to nine optional parameters can be specified to be inserted into 
-the text message.
+Up to nine optional parameters can be specified to be inserted into
+the text message, if the message contains placeholders from %1 to %9.
+
+Placeholders can be specified several times, if a parameter is
+not specified or empty, its related placeholder is replaced
+with an empty string.
 
 @@NepmdGetTextMessage@RETURNS
 NepmdGetTextMessage returns either
