@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.8 2002-08-13 16:38:59 cla Exp $
+* $Id: epmcall.c,v 1.9 2002-08-13 16:50:48 cla Exp $
 *
 * ===========================================================================
 *
@@ -429,6 +429,7 @@ APIRET SearchEPMExecutable( PSZ pszExecutable, ULONG ulBuflen)
          APIRET         rc  = NO_ERROR;
          PPIB           ppib;
          PTIB           ptib;
+         ULONG          ulBootDrive;
 
 
          BOOL           fFound = FALSE;
@@ -439,6 +440,7 @@ APIRET SearchEPMExecutable( PSZ pszExecutable, ULONG ulBuflen)
 
          CHAR           szThisModule[ _MAX_PATH];
          CHAR           szNepmdModule[ _MAX_PATH];
+         CHAR           szInstalledModule[ _MAX_PATH];
 
 do
    {
@@ -472,6 +474,11 @@ do
    strcat( szNepmdModule, "\\"NEPMD_SUBPATH_BINBINDIR"\\epm.exe");
    strupr( szNepmdModule);
 
+   // get name of epm.exe in OS/2 directory
+   // this is used by installed NEPMD
+   DosQuerySysInfo( QSV_BOOT_DRIVE, QSV_BOOT_DRIVE, &ulBootDrive, sizeof( ULONG));
+   sprintf( szInstalledModule, "%c:\\OS2\\EPM.EXE", (CHAR) ulBootDrive + 'A' - 1);
+
    // create copy to allow modification
    pszCopy = strdup( pszPath);
    if (!pszCopy)
@@ -492,7 +499,8 @@ do
 
       // process only modules not being the current one or of NEPMD
       if ((strcmp( szExecutable, szThisModule)) &&
-          (strcmp( szExecutable, szNepmdModule)))
+          (strcmp( szExecutable, szNepmdModule)) &&
+          (strcmp( szExecutable, szInstalledModule)))
          {
          // does executable exist ?
 //       DPRINTF(( "EPMCALL: searching %s\n", szExecutable));
