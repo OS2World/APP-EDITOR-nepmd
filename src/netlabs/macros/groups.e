@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.5 2004-01-17 07:56:55 aschn Exp $
+* $Id: groups.e,v 1.6 2004-02-22 16:12:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,7 +18,13 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-; Group.e, by Larry Margolis
+
+/*
+Todo:
+-  Disable Afterload until all files are loaded in loadgroup.
+*/
+
+; Groups.e, by Larry Margolis
 ;
 ; Defines a SaveGroup command which saves the contents of the edit ring
 ; as a group, and a LoadGroup command which reloads that group, positioning
@@ -63,6 +69,12 @@ compile endif
    GR_LOAD_PROMPT = 'Load a previously saved group.'
    GR_DELETE_PROMPT = 'OK to delete group:'
    GR_NONE_FOUND = 'No saved groups found!'
+compile if not defined(NEPMD_DEBUG)
+   NEPMD_DEBUG = 0
+compile endif
+compile if not defined(NEPMD_DEBUG_LOADGROUP)
+   NEPMD_DEBUG_LOADGROUP = 0
+compile endif
 
 defc groups_actionlist
 universal ActionsList_FileID  -- This is the fileid that gets the line(s)
@@ -110,9 +122,12 @@ compile endif
 defc savegroup =
    universal app_hini
    getfileid startfid
-   do i=1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
-      if .filename=GetUnnamedFilename() then
-         if .last<>1 or textline(1)<>'' then
+   -- Select next file, so that previous selected file will be the last one reloaded
+   next_file
+   getfileid firstfid
+   do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
+      if .filename = GetUnnamedFilename() then
+         if .last <> 1 or textline(1) <> '' then
             activatefile startfid
             sayerror 'An unnamed file exists in the ring; it must have a name to save the ring.'
             return
@@ -120,7 +135,10 @@ defc savegroup =
       endif
       next_file
       getfileid curfile
-      if curfile = startfid then leave; endif
+      if curfile = firstfid then
+         activatefile startfid
+         leave
+      endif
    enddo  -- Loop through all files in ring
 
    group_name = arg(1)
@@ -131,13 +149,15 @@ defc savegroup =
       return
    endif
    tempstr = queryprofile( app_hini,  group_name, 'ENTRIES')
-   if tempstr<>'' then
-      if MBID_OK <> winmessagebox('Save Group', 'Group already exists.  OK to replace it?', 16417) then  -- MB_OKCANCEL + MB_ICONEXCLAMATION + MB_MOVEABLE
+   if tempstr <> '' then
+      if MBID_OK <> winmessagebox( 'Save Group',
+                                   'Group already exists.  OK to replace it?',
+                                   16417) then  -- MB_OKCANCEL + MB_ICONEXCLAMATION + MB_MOVEABLE
          return
       endif
    endif
 
-   do i=1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
+   do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       call setprofile(app_hini, group_name, 'FILE'i, .filename)
       call setprofile(app_hini, group_name, 'POSN'i, .line .col .cursorx .cursory)
       next_file
@@ -146,14 +166,17 @@ defc savegroup =
    enddo  -- Loop through all files in ring
    call setprofile(app_hini, group_name, 'ENTRIES', i)
 
-   if tempstr<>'' & tempstr>i then
-      do j = i+1 to tempstr
+   if (tempstr <> '') & (tempstr > i) then
+      do j = i + 1 to tempstr
          call setprofile(app_hini, group_name, 'FILE'j, '')
          call setprofile(app_hini, group_name, 'POSN'j, '')
       enddo
    endif
 compile if INCLUDE_DESKTOP_SUPPORT -- Ask whether to include on Desktop?
-   if MBID_YES = winmessagebox('Save Group', 'Add a program object to the OS/2 desktop for this group?', 16404) then  -- MB_YESNO + MB_ICONQUESTION + MB_MOVEABLE
+   if MBID_YES = winmessagebox( 'Save Group',
+                                'Add a program object to the OS/2 desktop for this group?',
+                                16404) then  -- MB_YESNO + MB_ICONQUESTION + MB_MOVEABLE
+/*
       tib_ptr = 1234                /* 4-byte place to put a far pointer */
       pib_ptr = 1234
       call dynalink32('DOSCALLS',           /* dynamic link library name   */
@@ -163,11 +186,15 @@ compile if INCLUDE_DESKTOP_SUPPORT -- Ask whether to include on Desktop?
 ;     sayerror 'tib_ptr =' c2x(tib_ptr) 'pib_ptr =' c2x(pib_ptr)
       pib = peek(itoa(rightstr(pib_ptr,2),10), itoa(leftstr(pib_ptr,2),10), 28)
       epm_cmd = peekz(substr(pib, 13, 4))
-
+*/
+      epm_cmd = 'EPM.EXE'  -- No path required
       class_name = "WPProgram"\0
                       /* ^ = ASCII 94 = 'hat' */
       title = "EPM Group:^"group_name\0
-      setup_string = "EXENAME="epm_cmd";PROGTYPE=PM;STARTUPDIR="directory()";PARAMETERS='"loadgroup_cmd group_name"';"\0
+      setup_string = "EXENAME="epm_cmd";"        ||
+                     "PROGTYPE=PM;"              ||
+                     "STARTUPDIR="directory()";" ||
+                     "PARAMETERS='"loadgroup_cmd group_name"';"\0
       location = "<WP_DESKTOP>"\0
       rc = 0
       hobj=dynalink32('PMWP',           /* dynamic link library name   */
@@ -177,7 +204,7 @@ compile if INCLUDE_DESKTOP_SUPPORT -- Ask whether to include on Desktop?
                       address(setup_string) ||
                       address(location)     ||
                       atol(CO_REPLACEIFEXISTS), 2)
-;     if rc then hobj = hobj'; rc='rc '-' sayerrortext(rc); endif
+;     if rc then hobj = hobj'; rc = 'rc '-' sayerrortext(rc); endif
 ;     sayerror 'hobject =' hobj
       if not hobj then
          sayerror 'Unable to create the program object in the Desktop folder'
@@ -189,32 +216,32 @@ defc loadgroup =
    universal app_hini
    getfileid startfid
    group_name = arg(1)
-   if group_name='' | group_name='?' then
-      if group_name='' then
-         parse value entrybox('Group name',
-                              '/'OK__MSG'/'LIST__MSG'/'Cancel__MSG'/',
-                              '', '', 64,                -- Entrytext, cols, maxchars
-                              atoi(1) || atoi(0000) || gethwndc(APP_HANDLE)) with button 2 group_name \0
+   if (group_name = '') | (group_name = '?') then
+      if group_name = '' then
+         parse value entrybox( 'Group name',
+                               '/'OK__MSG'/'LIST__MSG'/'Cancel__MSG'/',
+                               '', '', 64,                -- Entrytext, cols, maxchars
+                               atoi(1) || atoi(0000) || gethwndc(APP_HANDLE)) with button 2 group_name \0
       else
-         button=\2
+         button = \2
       endif
-      if button=\2 then -- User asked for a list
+      if button = \2 then -- User asked for a list
          bufhndl = buffer(CREATEBUF, 'groups', MAXBUFSIZE, 1 )  -- Create a private buffer
          retlen = \0\0\0\0
-         l = dynalink32('PMSHAPI',
-                        '#115',               -- PRF32QUERYPROFILESTRING
-                        atol(app_hini)    ||  -- HINI_PROFILE
-                        atol(0)           ||  -- Application name is NULL; returns all apps
-                        atol(0)           ||  -- Key name
-                        atol(0)           ||  -- Default return string is NULL
-                        atoi(0) || atoi(bufhndl)  ||  -- pointer to returned string buffer
-                        atol(65535)       ||       -- max length of returned string
-                        address(retlen), 2)         -- length of returned string
+         l = dynalink32( 'PMSHAPI',
+                         '#115',               -- PRF32QUERYPROFILESTRING
+                         atol(app_hini)    ||  -- HINI_PROFILE
+                         atol(0)           ||  -- Application name is NULL; returns all apps
+                         atol(0)           ||  -- Key name
+                         atol(0)           ||  -- Default return string is NULL
+                         atoi(0) || atoi(bufhndl)  ||  -- pointer to returned string buffer
+                         atol(65535)       ||       -- max length of returned string
+                         address(retlen), 2)         -- length of returned string
          poke bufhndl, 65535, \0
          if not l then sayerror 'Nothing in .INI file???'; return; endif
          getfileid startfid
          'xcom e /c /q tempfile'
-         if rc<>-282 then  -- sayerror('New file')
+         if rc <> -282 then  -- sayerror('New file')
             sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
             call buffer(FREEBUF, bufhndl)
             return
@@ -232,24 +259,29 @@ defc loadgroup =
             buf_ofs = buf_ofs + length(this_group) + 1
          enddo
          call buffer(FREEBUF, bufhndl)
-         if .last>2 then
+         if .last > 2 then
             getfileid fileid
             call sort(2, .last, 1, 40, fileid, 'I')
          endif
          if browse_mode then call browse(1); endif  -- restore browse state
-         if .last=1 then
+         if .last = 1 then
             'xcom quit'
-            call winmessagebox(GROUPS__MSG, GR_NONE_FOUND, MB_CANCEL + MB_ICONEXCLAMATION + MB_MOVEABLE)
+            call winmessagebox( GROUPS__MSG,
+                                GR_NONE_FOUND,
+                                MB_CANCEL + MB_ICONEXCLAMATION + MB_MOVEABLE)
             return
          endif
 
          if listbox_buffer_from_file(startfid, bufhndl, noflines, usedsize) then return; endif
-         parse value listbox('Select group name', \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
-                                   '/~Load/~Delete.../'Cancel__MSG, 1, 35, min(noflines,12), 0,   -- Buttons, row, col, height, width
-                                   gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(0000)) with button 2 group_name \0
+         parse value listbox( 'Select group name',
+                              \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
+                              '/~Load/~Delete.../'Cancel__MSG, 1, 35, min(noflines,12), 0,   -- Buttons, row, col, height, width
+                              gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(0000)) with button 2 group_name \0
          call buffer(FREEBUF, bufhndl)
-         if button=\2 then -- 'Delete' selected
-            if MBID_OK <> winmessagebox(GROUPS__MSG, GR_DELETE_PROMPT\10 group_name, MB_OKCANCEL + MB_QUERY + MB_MOVEABLE) then
+         if button = \2 then -- 'Delete' selected
+            if MBID_OK <> winmessagebox( GROUPS__MSG,
+                                         GR_DELETE_PROMPT\10 group_name,
+                                         MB_OKCANCEL + MB_QUERY + MB_MOVEABLE) then
                return
             endif
             call setprofile( app_hini, group_name, '', '')
@@ -259,27 +291,43 @@ defc loadgroup =
          return
       endif
    endif
-   if group_name='' then
+   if group_name = '' then
       return
    endif
    howmany = queryprofile( app_hini,  group_name, 'ENTRIES')
-   if howmany='' then
+   if howmany = '' then
       sayerror 'Group unknown.'
       return
    endif
-   do i=1 to howmany
+   do i = 1 to howmany
       display -8
       sayerror 'Loading file' i 'of' howmany
       display 8
       this_file = queryprofile(app_hini, group_name, 'FILE'i)
-      if leftstr(this_file, 5)='.DOS ' then
+compile if NEPMD_DEBUG_LOADGROUP and NEPMD_DEBUG
+      call NepmdPmPrintf( 'LOADGROUP: file 'i': 'this_file)
+      call NepmdPmPrintf( 'LOADGROUP:         FilesInRing = 'filesinring())
+      getfileid curfid
+      next_file
+      getfileid firstfid
+      do f = 1 to filesinring(1)
+         call NepmdPmPrintf( 'LOADGROUP:         file 'f' in ring: '.filename)
+         next_file
+         getfileid fid
+         if fid = firstfid then
+            leave
+         endif
+      enddo
+      activatefile curfid
+compile endif
+      if leftstr(this_file, 5) = '.DOS ' then
          subword(this_file, 2)  -- execute the command
-      elseif this_file=GetUnnamedFilename() then
+      elseif this_file = GetUnnamedFilename() then
          'xcom e /n'
       else
          'e "'this_file'"'
       endif
-      if not rc | rc=sayerror('Lines truncated') then
+      if not rc | rc = sayerror('Lines truncated') then
          call prestore_pos(queryprofile(app_hini, group_name, 'POSN'i))
       endif
    enddo
@@ -293,7 +341,7 @@ defc listgroups =
    do while applications <> ''
       parse value applications with app \0 applications
       group_entries =  queryprofile(app_hini, app, 'ENTRIES')
-      if group_entries<>'' then
+      if group_entries <> '' then
          groups = groups app
       endif
    enddo
@@ -303,8 +351,9 @@ defc killgroup =
    universal app_hini
    parse arg group
    group_entries =  queryprofile(app_hini, group, 'ENTRIES')
-   if group_entries='' then  -- Make sure we don't delete something important!
+   if group_entries = '' then  -- Make sure we don't delete something important!
       sayerror 'Not a group.'
       return
    endif
    call setprofile(app_hini, group, '', '')  -- Delete the entire application
+
