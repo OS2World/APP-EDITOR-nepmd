@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comment.e,v 1.2 2003-08-30 22:15:09 aschn Exp $
+* $Id: comment.e,v 1.3 2003-08-31 20:47:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -26,6 +26,7 @@
 ;    This doesn't apply to modes, where the space is required, e.g. 'REM '.
 ;    0: no, 1: yes,
 ;    any other string: respect the SLC?AddSpace variable, defined below.
+const
 compile if not defined(COMMENT_ADD_SPACE)
    COMMENT_ADD_SPACE = 'MODE'  -- (0|1|<anything else>)
 compile endif
