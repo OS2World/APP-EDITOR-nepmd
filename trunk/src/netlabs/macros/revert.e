@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: revert.e,v 1.2 2004-02-29 19:46:27 aschn Exp $
+* $Id: revert.e,v 1.3 2004-06-03 23:32:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,16 +34,29 @@
 ; Todo:
 ;    o  Make reload undo-able
 
-compile if not defined(HOST_SUPPORT)  -- if compiled separately
-   tryinclude 'mycnf.e'
- compile if not defined(HOST_SUPPORT)
-   const
-      HOST_SUPPORT = 'STD'
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
+   include 'stdconst.e'
+define INCLUDING_FILE = 'REVERT.E'
+const
+   tryinclude 'MYCNF.E'        -- The user's configuration customizations.
+
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
  compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+const
+ compile if not defined(NLS_LANGUAGE)
+   NLS_LANGUAGE = 'ENGLISH'
+ compile endif
+   include NLS_LANGUAGE'.e'
 
 defmain
    'revert'
-compile endif
+compile endif  -- not defined(SMALL)
+
 
 defc revert =
 compile if HOST_SUPPORT
@@ -64,8 +77,27 @@ compile endif
    endif
    getfileid startfid
    call psave_pos(saved_pos)
+   if .lockhandle then
+      'unlock'
+      sayerror LOCKED__MSG
+      return
+   endif
 ;   display -8
-   'e /d ='            -- /D means load from disk even if in ring.
+   Mode = NepmdGetMode()
+   if Mode = 'BIN' then
+      Filename = .filename
+      --sayerror 'o ''be "'Filename'"'''
+      --'o ''be "'Filename'"'''
+      'o ''mc /be 'Filename' /postme restorepos 'saved_pos''
+      if rc = 0 then
+         activatefile startfid
+         .modify = 0
+         'quit'
+         return
+      endif
+   else
+      'e /d ='            -- /D means load from disk even if in ring.
+   endif
    getfileid newfid    -- Remember the new fileid.
    if rc = sayerror("new file") then  -- (Host) File not found
       'quit'                        -- Don't throw away what we had.
