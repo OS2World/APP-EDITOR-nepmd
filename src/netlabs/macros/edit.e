@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.16 2004-02-28 15:33:50 aschn Exp $
+* $Id: edit.e,v 1.17 2004-06-03 23:07:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,80 +19,29 @@
 *
 ****************************************************************************/
 
+; Definitions for editing (loading) files.
+; See also: SLNOHOST.E/SAVELOAD.E/E3EMUL.E and FILE.E.
+
 /*
 Todo:
 -  Make disabling of RestorePosFromEa possible *before* calling 'edit'.
 */
 
 ; ---------------------------------------------------------------------------
-; Todo: move
-; Todo: resolve '=' as well
-; Resolves environment variables in a string
-; Returns converted string
-defproc NepmdResolveEnvVars( Spec )
-   startp = 1
-   do forever
-      -- We don't use parse here, because if only 1 % char is present, it will
-      -- assign all the rest to EnvVar:
-      --    parse value rest with next'%'EnvVar'%'rest
-      --    if rest = '' then
-      --       Spec = Spec''next''Get_Env(EnvVar)
-      --       leave
-      --    else
-      --       Spec = Spec''next''Get_Env(EnvVar)''rest
-      --    endif
-      p1 = pos( '%', Spec, startp )
-      if p1 = 0 then
-         leave
-      endif
-      startp = p1 + 1
-      p2 = pos( '%', Spec, startp )
-      if p2 = 0 then
-         leave
-      else
-         startp = p2 + 1
-         Spec = substr( Spec, 1, p1 - 1 ) ||
-                Get_Env( substr( Spec, p1 + 1, p2 - p1 - 1 ) ) ||
-                substr( Spec, p2 + 1 )
-      endif
-      --sayerror 'arg(1) = 'arg(1)', p1 = 'p1', p2 = 'p2', resolved spec = 'Spec
-   enddo  -- forever
-   return Spec
-
-; ---------------------------------------------------------------------------
-; Todo: move
-; Syntax: ring <cmd>
-; Executes a cmd on all files of the ring.
-defc ring
-   if arg(1) = '' then
-      sayerror 'Specify a command to be executed on all files in the ring.'
-      return
-   endif
-   display -3
-   getfileid startfid
-   do i = 1 to filesinring()  -- omit hidden files
-      arg(1)
-      nextfile
-      getfileid fid
-      if fid = startfid then
-         leave
-      endif
-   enddo
-   'postme activatefile' startfid
-   'postme display' 3
-   return
-
-; ---------------------------------------------------------------------------
 ; Load files from a filespec, remove REXX EAs before loading
-defproc NepmdLoadFile( Spec, Options )
+defproc NepmdLoadFile( Spec, Options)
    universal filestoload
-   universal filestoloadmax  -- still used for 'xcom e'
-   filestoload        = 0
-   filestoloadmax     = 0
+   universal filestoloadmax  -- still used for 'xcom e' and afterload
+   if filestoload = '' then
+      filestoload = 0
+   endif
+   if filestoloadmax = '' then
+      filestoloadmax = 0
+   endif
    RexxEaExtensions = 'CMD ERX'
 
-   Spec = strip( Spec, 'B', '"' )
-   ContainsWildcard = (pos( '*', Spec ) + pos( '?', Spec ) > 0);
+   Spec = strip( Spec, 'B', '"')
+   ContainsWildcard = (pos( '*', Spec) + pos( '?', Spec) > 0);
 
    -- Resolve wildcards in Spec to delete REXX EAs for every REXX file
    ProcessOnce = 0
@@ -103,7 +52,7 @@ defproc NepmdLoadFile( Spec, Options )
        endif
       if (ContainsWildcard) then
          -- if Spec contains wildcards then find Filenames
-         Filename = NepmdGetNextFile( Spec, address( Handle) )
+         Filename = NepmdGetNextFile( Spec, address( Handle))
          parse value Filename with 'ERROR:'rc
          if rc > '' then
             leave
@@ -128,18 +77,40 @@ defproc NepmdLoadFile( Spec, Options )
       -- Note: The use of array vars containing the fileid to become file-specific
       -- does only work properly at or after defload. Therefore the mode should be
       -- determined at defload.
-      p1 = lastpos( '.', Filename )
-      if p1 > 1 then
-         ext = translate( substr( Filename, p1 + 1 ) )
-         if wordpos( ext, RexxEaExtensions ) then
-            --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
-            call NepmdDeleteRexxEa( Filename )
+      p1 = lastpos( '\', Filename)
+      p2 = lastpos( '.', Filename)
+      if p2 > p1 + 1 then
+         Ext = translate( substr( Filename, p2 + 1))
+         if wordpos( Ext, RexxEaExtensions) then
+            if exist(Filename) then
+               --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
+               call NepmdDeleteRexxEa( Filename)
+            endif
          endif
       endif
 
       -- NepmdGetMode doesn't work here, because it tries to write the 'mode.'fid
       -- array var. At this time the file is not loaded, so the fileid is not set.
       -- But calling NepmdQueryDefaultMode(Filename) would work.
+      -- We should better determine the mode here, save it in a array var with the
+      -- .filename as identifier, and replace the identifier with the fileid later
+      -- at defload (or replace the array var with the final one).
+
+      /*
+      -- Experimental codepage support (the .codepage field var exists, but is not used yet)
+      Codepage = NepmdQueryStringEa( Filename, 'EPM.CODEPAGE')
+      parse value Codepage with 'ERROR:'rc
+      if rc = '' then
+         Codepage = upcase(Codepage)
+         if Codepage = 'CP1004' then
+            Codepage = 'latin-1'
+         endif
+         -- Note: GNU Recode deletes all EAs
+         'dos recode 'Codepage':cp850 'Filename
+         -- Delete EA, because it will not be reset on save yet
+         --call NepmdDeleteStringEa( Filename, 'EPM.CODEPAGE')
+      endif
+      */
 
       if ProcessOnce = 1 then
          leave
@@ -149,15 +120,27 @@ defproc NepmdLoadFile( Spec, Options )
    -- load the file
    -- add "..." here to enable loading file names with spaces and
    -- use Spec instead of FileName to keep the loading of host files unchanged
-   loadrc = loadfile( '"'Spec'"', Options )
-
-   return loadrc
+   if pos( ' ', Spec) > 0 then
+      Spec = '"'Spec'"'
+   endif
+   call loadfile( Spec, Options)
+   loadrc = rc
+   -- Set standard rc here. Since in EPM some non-internal commands won't change
+   -- the standard rc anymore, the calling 'edit' command will overtake it.
+   -- Standard commands that don't change rc (are there more?):
+   --    'locate', 'edit'
+   -- This is fixed in NEPMD.
+   -- The standard commands 'quit', 'save', 'name',... do change rc.
+   -- As a result, we can check the rc for the 'edit' cmd now, without having
+   -- to use 'xcom edit', which is an internal command.
+   rc = loadrc
+   return rc
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
-/* This DEFC EDIT eventually calls the built-in edit command, by calling      */
-/* loadfile(), but does additional processing for messy-desk windowing (moves */
-/* each file to its own window), and ends by calling select_edit_keys().      */
+; This DEFC EDIT eventually calls the built-in edit command, by calling
+; loadfile(), but does additional processing for messy-desk windowing (moves
+; each file to its own window), and ends by calling select_edit_keys().
 ; Parse off each file individually.  Files can optionally be followed by one
 ; or more commands, each in quotes.  The first file that follows a host file
 ; must be separated by a comma, an option, or a (possibly null) command.
@@ -178,9 +161,9 @@ define SAYERR = 'sayerror'  -- EPM:  Message box shows all SAYERRORs
 ; compile endif
 ;compile endif
 
-defc e,ed,edit,epm=
+defc e, ed, edit, epm=
    universal default_edit_options
-compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') & not SMALL
+compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') & not SMALL
    universal fto                -- Need this passed to loadfile...
 compile endif
    universal CurEditCmd
@@ -191,156 +174,165 @@ compile endif
    call NepmdResetHiliteModeList()
    CurEditCmd = 'EDIT'  -- initialize CurEditCmd for restore pos
 
-   rest=strip(arg(1))
+   args = strip(arg(1))
 
-   if rest='' then   /* 'edit' by itself goes to next file */
-;      nextfile  -- removed to have 'epm /r' only bring an EPM window to the foreground
-                 -- instead of switching to the next file in the ring.
+   if args = '' then   /* 'edit' by itself goes to next file */
+      --nextfile  -- removed to make 'epm /r' only bring an EPM window to the foreground
+                  -- instead of switching to the next file in the ring.
       return 0
    endif
 
-   options=default_edit_options
-   parse value '0 0' with files_loaded new_files_loaded new_files not_found bad_paths truncated access_denied invalid_drive error_reading error_opening first_file_loaded
---  bad_paths     --> Non-existing path specified.
---  truncated     --> File contained lines longer than 255 characters.
---  access_denied --> If user tried to edit a subdirectory.
---  invalid_drive --> No such drive letter
---  error_reading --> Bad disk(ette).
---  error_opening --> Path contained invalid name.
+   call AddToHistory( 'EDIT', args)
 
-   do while rest<>''
-      rest=strip(rest,'L')
-      if substr(rest,1,1)=',' then rest=strip(substr(rest,2),'L'); endif
-      ch=substr(rest,1,1)
-compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') & not SMALL
+   options = default_edit_options
+   parse value '0 0' with files_loaded new_files_loaded new_files not_found bad_paths truncated access_denied invalid_drive error_reading error_opening first_file_loaded
+   --  bad_paths     --> Non-existing path specified.
+   --  truncated     --> File contained lines longer than 255 characters.
+   --  access_denied --> If user tried to edit a subdirectory.
+   --  invalid_drive --> No such drive letter
+   --  error_reading --> Bad disk(ette).
+   --  error_opening --> Path contained invalid name.
+
+   rest = args
+   do while rest <> ''
+      rest = strip( rest, 'L')
+      -- Remove leading ',' from rest
+      if substr( rest, 1, 1) = ',' then
+         rest = strip( substr( rest, 2), 'L')
+      endif
+      -- Get first char
+      ch = substr( rest, 1, 1)
+
+compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') & not SMALL
  compile if MVS and not HOST_LT_REQUIRED  -- (MVS filespecs can start with '.)
-      if 0 then                         -- No-op
+      if 0 then                           -- No-op
  compile else
-      if ch="'" then                    -- Command
+      if ch = "'" then                    -- Command
  compile endif
 compile else
-      if ch="'" then                    -- Command
+      if ch = "'" then                    -- Command
 compile endif
          parse value rest with (ch) cmd (ch) rest
-         do while substr(rest,1,1)=ch & pos(ch,rest,2)
+         do while substr( rest, 1, 1) = ch & pos( ch, rest, 2)
             parse value rest with (ch) p (ch) rest
             cmd = cmd || ch || p
          enddo
          CurEditCmd = cmd  -- set universal var to determine later in LOAD.E if pos shall be restored from EA
          cmd
-      elseif ch='/' then       -- Option
+
+      elseif ch = '/' then       -- Option
          parse value rest with opt rest
-         options=options upcase(opt)
+         options = options upcase(opt)
+
       else
-         files_loaded=files_loaded+1  -- Number of files we tried to load
-      if ch='"' then
-         p=pos('"',rest,2)
-         if p then
-            filespec = substr(rest, 1, p)
-            rest = substr(rest, p+1)
+         files_loaded = files_loaded + 1  -- Number of files we tried to load
+         -- Remove doublequotes
+         if ch = '"' then
+            p = pos( '"', rest, 2)
+            if p then
+               filespec = substr( rest, 1, p)
+               rest = substr( rest, p + 1)
+            else
+               sayerror INVALID_FILENAME__MSG
+               return
+            endif
          else
-            sayerror INVALID_FILENAME__MSG
-            return
-         endif
-      else
 compile if HOST_SUPPORT & not SMALL
-         p=length(rest)+1  -- If no delimiters, take to the end.
-         p1=pos(',',rest); if not p1 then p1=p; endif
-         p2=pos('/',rest); if not p2 then p2=p; endif
-         p3=pos('"',rest); if not p3 then p3=p; endif
-         p4=pos("'",rest); if not p4 then p4=p; endif
+            p  = length(rest) + 1  -- If no delimiters, take to the end.
+            p1 = pos( ',', rest); if not p1 then p1 = p; endif
+            p2 = pos( '/', rest); if not p2 then p2 = p; endif
+            p3 = pos( '"', rest); if not p3 then p3 = p; endif
+            p4 = pos( "'", rest); if not p4 then p4 = p; endif
  compile if HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL'
   compile if MVS
-         p4=p     -- Can't use single quote for commands if allowing MVS files
+            p4 = p     -- Can't use single quote for commands if allowing MVS files
   compile endif
-         p5=pos('[',rest); if not p5 then p5=p; endif  -- Allow for [FTO]
-         p=min(p1,p2,p3,p4,p5)
+            p5 = pos( '[', rest); if not p5 then p5 = p; endif  -- Allow for [FTO]
+            p = min( p1, p2, p3, p4, p5)
  compile else
-         p=min(p1,p2,p3,p4)
+            p = min( p1, p2, p3, p4)
  compile endif
-         filespec=substr(rest,1,p-1)
-         if VMfile(filespec,more) then    -- tricky - VMfile modifies file
-            if p=p1 then p=p+1; endif     -- Keep any except comma in string
-            rest=more substr(rest,p)
-         else
+            filespec = substr( rest, 1, p - 1)
+            if VMfile( filespec, more) then    -- tricky - VMfile modifies file
+               if p = p1 then p = p + 1; endif     -- Keep any except comma in string
+               rest = more substr( rest, p)
+            else
 compile endif
-            parse value rest with filespec rest2
-            if pos(',',filespec) then parse value rest with filespec ',' rest
-            else rest=rest2; endif
+               -- Remove ',' from filespec (DOS and VM)
+               parse value rest with filespec rest2
+               if pos( ',', filespec) then
+                  parse value rest with filespec ',' rest
+               else
+                  rest = rest2
+               endif
 compile if HOST_SUPPORT & not SMALL
-            endif
-  compile if HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL'
-            if substr(strip(rest,'L'),1,1)='[' then
+            endif  -- VMfile( filespec, more)
+ compile if HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL'
+            if substr( strip( rest, 'L'), 1, 1) = '[' then
                parse value rest with '[' fto ']' rest
             else
                fto = ''                           --  reset for each file!
             endif
-  compile endif
+ compile endif
 compile endif
-         endif  -- VMfile(file,more)
+         endif  -- ch = '"' else (Remove doublequotes)
 
-         if pos('=', filespec) & not pos('"', filespec) then
-            call parse_filename(filespec,.filename)
-            if pos(' ', filespec) then
-               filespec = '"'filespec'"'
-            endif
+         call parse_filename( filespec, .filename)
+
+         if (not pos( '"', filespec)) & pos( ' ', filespec) then
+            filespec = '"'filespec'"'
          endif
-
-         -- resolve environment variables
-         if pos( '%', filespec ) then
-            filespec = NepmdResolveEnvVars( filespec )
-         endif
-
-         --sayerror 'EDIT.E before call loadfile(filespec,options): filespec = 'filespec
 
 compile if USE_APPEND  -- Support for DOS 3.3's APPEND, thanks to Ken Kahn.
-         if not(verify(filespec,'\:','M')) then
+         if not verify( filespec,'\:','M') then
             if not exist(filespec) then
                Filespec = Append_Path(Filespec)||Filespec  -- LAM todo: fixup
             endif
         endif
 compile endif
 
-         rc = NepmdLoadFile(filespec, options)
+         rc = NepmdLoadFile( filespec, options)
 
-         if rc=-3 then        -- sayerror('Path not found')
-            bad_paths=bad_paths', 'filespec
-         elseif rc=-2 then    -- sayerror('File not found')
-            not_found=not_found', 'filespec
-         elseif rc=-282 then  -- sayerror('New file')
-            new_files=new_files', 'filespec
-            new_files_loaded=new_files_loaded+1
-         elseif rc=-278 then  --sayerror('Lines truncated') <-- never happens for EPM 6
+         if rc = -3 then        -- sayerror('Path not found')
+            bad_paths = bad_paths', 'filespec
+         elseif rc = -2 then    -- sayerror('File not found')
+            not_found = not_found', 'filespec
+         elseif rc = -282 then  -- sayerror('New file')
+            new_files = new_files', 'filespec
+            new_files_loaded = new_files_loaded + 1
+         elseif rc = -278 then  --sayerror('Lines truncated') <-- never happens for EPM 6
             getfileid truncid
-            do i=1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
+            do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
                if .modify then leave; endif  -- Need to do this if wildcards were specified.
                nextfile
             enddo
-            truncated=truncated', '.filename
+            truncated = truncated', '.filename
             .modify = 0
-         elseif rc=-5 then  -- sayerror('Access denied')
-            access_denied=access_denied', 'filespec
-         elseif rc=-15 then  -- sayerror('Invalid drive')
-            invalid_drive=invalid_drive', 'filespec
-         elseif rc=-286 then  -- sayerror('Error reading file')
-            error_reading=error_reading', 'filespec
-         elseif rc=-284 then  -- sayerror('Error opening file')
-            error_opening=error_opening', 'filespec
+         elseif rc = -5 then  -- sayerror('Access denied')
+            access_denied = access_denied', 'filespec
+         elseif rc = -15 then  -- sayerror('Invalid drive')
+            invalid_drive = invalid_drive', 'filespec
+         elseif rc = -286 then  -- sayerror('Error reading file')
+            error_reading = error_reading', 'filespec
+         elseif rc = -284 then  -- sayerror('Error opening file')
+            error_opening = error_opening', 'filespec
          endif  -- rc=-3
-;         if first_file_loaded = '' then  -- useless: forever empty at this point
-            if rc<>-3   &  -- sayerror('Path not found')
-               rc<>-2   &  -- sayerror('File not found')
-               rc<>-5   &  -- sayerror('Access denied')
-               rc<>-15     -- sayerror('Invalid drive')
+         --if first_file_loaded = '' then  -- useless: forever empty at this point
+            if rc <> -3   &  -- sayerror('Path not found')
+               rc <> -2   &  -- sayerror('File not found')
+               rc <> -5   &  -- sayerror('Access denied')
+               rc <> -15     -- sayerror('Invalid drive')
                then
                -- If rc = 0, then set first_file_loaded:
                getfileid first_file_loaded
             endif
-;         endif  -- first_file_loaded=''
-      endif  -- ch=... (not "cmd")
-   enddo  -- while rest<>''
-   if files_loaded>1 then  -- If only one file, leave E3's message
-      if new_files_loaded>1 then p='New files:'; else p='New file:'; endif
+         --endif  -- first_file_loaded=''
+      endif  -- ch = ... (not "cmd")
+
+   enddo  -- while rest <> ''
+
+   if files_loaded > 1 then  -- If only one file, leave E3's message
+      if new_files_loaded > 1 then p = 'New files:'; else p = 'New file:'; endif
       multiple_errors = (new_files || bad_paths || not_found || truncated || access_denied || error_reading || error_opening || invalid_drive <>
                          invalid_drive || error_opening || error_reading || access_denied || truncated || not_found || bad_paths || new_files ) &
                    '' <> new_files || bad_paths || not_found || truncated || access_denied || error_reading || error_opening || invalid_drive
@@ -391,25 +383,25 @@ compile endif
 ;  New in EPM.  Edits a file in a different PM window.  This means invoking
 ;  a completely new instance of E.DLL, with its own window and data.  We do it
 ;  by posting a message to the executive, the top-level E application.
-defc o,open=
+defc o, open=
 compile if WPS_SUPPORT
    universal wpshell_handle
 compile endif
-   fname=strip(arg(1))                    -- Remove excess spaces
-   call parse_filename(fname,.filename)   -- Resolve '=', if any
+   fname = strip(arg(1))                    -- Remove excess spaces
+   call parse_filename( fname, .filename)   -- Resolve '=', if any
 
 compile if WPS_SUPPORT
    if wpshell_handle then
-      call windowmessage(0,  getpminfo(APP_HANDLE),
-                         5159,                   -- EPM_WPS_OPENNEWFILE
-                         getpminfo(EPMINFO_EDITCLIENT),
-                         put_in_buffer(fname))
+      call windowmessage( 0,  getpminfo(APP_HANDLE),
+                          5159,                   -- EPM_WPS_OPENNEWFILE
+                          getpminfo(EPMINFO_EDITCLIENT),
+                          put_in_buffer(fname))
    else
 compile endif
-      call windowmessage(0,  getpminfo(APP_HANDLE),
-                         5386,                   -- EPM_EDIT_NEWFILE
-                         put_in_buffer(fname),
-                         1)                      -- Tell EPM to free the buffer.
+      call windowmessage( 0,  getpminfo(APP_HANDLE),
+                          5386,                   -- EPM_EDIT_NEWFILE
+                          put_in_buffer(fname),
+                          1)                      -- Tell EPM to free the buffer.
 compile if WPS_SUPPORT
    endif
 compile endif
@@ -428,22 +420,22 @@ compile endif
 ;                 ep mycnf.e . '/spell'
 defc ep, epath=
    parse arg filename pathname rest
-   if pathname='' | pathname='.' then
-      if filetype(filename)='CMD' then
-         pathname='PATH'
+   if pathname = '' | pathname = '.' then
+      if filetype(filename) = 'CMD' then
+         pathname = 'PATH'
       else
-         pathname=EPATH
+         pathname = EPATH
       endif
    endif
  compile if 0  -- Old way required the optional search_path & get_env routines
    if not exist(filename) then
-      filename = search_path_ptr(Get_Env(pathname,1),filename)filename
+      filename = search_path_ptr( Get_Env( pathname, 1), filename)filename
    endif
    'e 'filename
  compile else  -- New way uses the built-in Findfile.
-   if pos('=', filename) & leftstr(filename, 1)<>'"' then
-      call parse_filename( filename, substr(.filename, lastpos('\', .filename)+1))
-   endif
+   --if pos( '=', filename) & leftstr( filename, 1) <> '"' then
+      call parse_filename( filename, substr( .filename, lastpos( '\', .filename) + 1))
+   --endif
    findfile newfile, filename, pathname
    if rc then
       newfile = filename
@@ -457,6 +449,63 @@ defc op, opath, openpath=
    "open 'ep "arg(1)"'"
 
 ; ---------------------------------------------------------------------------
+; Moved from STDCTRL.E
+defc new
+   getfileid startfid
+   'xcom e /n'
+   if rc <> -282 then return; endif  -- sayerror 'New file'
+   getfileid newfid
+   activatefile startfid
+   temp = startfid  -- temp fix for some bug
+   'quit'
+   getfileid curfid
+   activatefile newfid
+   if curfid = startfid then  -- Wasn't quit; user must have said Cancel to Quit dlg
+      'xcom quit'
+   endif
+
+; ---------------------------------------------------------------------------
+; Moved from STDCMDS.E
+defc newwindow=
+   if leftstr(.filename, 5)='.DOS ' then
+      fn = "'"substr(.filename, 6)"'"
+compile if WANT_TREE
+   elseif .filename = '.tree' then
+      parse value .titletext with cmd ': ' args
+      fn = "'"cmd args"'"
+compile endif
+   elseif leftstr( .filename, 14 ) = '.command_shell' then
+      shell_dir = directory()
+      fn = "'mc +cd "shell_dir" +shell'"
+   elseif leftstr( .filename, 1 ) = '.' then  -- other temp file
+      fn = ''
+   else
+      if .modify then
+         'save'
+         if rc then
+            sayerror ERROR_SAVING_HALT__MSG
+            return
+         endif
+      endif
+      fn = .filename
+      if fn = GetUnnamedFileName() then
+         fn = ''
+      elseif pos( ' ', fn) then  -- support for spaces in filename
+         fn = '"'fn'"'
+      endif
+      if .readonly then
+         fn = '/r' fn
+      endif
+   endif
+   if fn <> '' then
+      call psave_pos( saved_pos )
+      "open" fn "'postme restorepos "saved_pos"'"
+   else
+      'open' fn
+   endif
+   'quit'
+
+; ---------------------------------------------------------------------------
 ; Edit binary files in EPM.
 ; linebreak after 64 chars
 ;    Program object:
@@ -468,16 +517,16 @@ defc be, binedit
    -- with F2. Therefore this command should be used in a separate EPM
    -- window only.
    default_save_options = '/ne /ns /nt'
-   'e /t /64 /bin "'arg(1)'"'    -- options should go before filename
+   'HookAdd loadonce tabs 1 noea'
+   'HookAdd loadonce tabkey on'
+   'HookAdd loadonce matchtab off'
+   'HookAdd loadonce mode bin noea'
+   'e /t /64 /bin "'arg(1)'"'    -- options should go before filename                    <-- Todo: parse options and filename
                                  -- /64 doesn't work if run from a program object.
    if insert_state() then
       -- switch to overwrite mode
       insert_toggle
    endif
-   'HookAdd loadonce tabs 1'
-   'HookAdd loadonce tabkey on'
-   'HookAdd loadonce matchtab off'
-   'HookAdd loadonce mode bin'
 
 ; ---------------------------------------------------------------------------
 ; linebreak at lineend chars
@@ -487,15 +536,15 @@ defc ble, binlineedit
    -- with F2. Therefore this command should be used in a separate EPM
    -- window only.
    default_save_options = '/ne /ns /nt'
+   'HookAdd loadonce tabs 1 noea'
+   'HookAdd loadonce tabkey on'
+   'HookAdd loadonce matchtab off'
+   'HookAdd loadonce mode bin noea'
    'e /t /bin "'arg(1)'"'        -- options should go before filename
    if insert_state() then
       -- switch to overwrite mode
       insert_toggle
    endif
-   'HookAdd loadonce tabs 1'
-   'HookAdd loadonce tabkey on'
-   'HookAdd loadonce matchtab off'
-   'HookAdd loadonce mode bin'
 
 ; ---------------------------------------------------------------------------
 ; linebreak at maxmargin
@@ -505,15 +554,24 @@ defc bme, binmaxedit
    -- with F2. Therefore this command should be used in a separate EPM
    -- window only.
    default_save_options = '/ne /ns /nt'
+   'HookAdd loadonce tabs 1 noea'
+   'HookAdd loadonce tabkey on'
+   'HookAdd loadonce matchtab off'
+   'HookAdd loadonce mode bin noea'
    'e /t /1599 /bin "'arg(1)'"'  -- options should go before filename
    if insert_state() then
       -- switch to overwrite mode
       insert_toggle
    endif
-   'HookAdd loadonce tabs 1'
-   'HookAdd loadonce tabkey on'
-   'HookAdd loadonce matchtab off'
-   'HookAdd loadonce mode bin'
+
+; ---------------------------------------------------------------------------
+; Open a file dialog to select a file for binary editing in a new edit
+; window. No args.
+defc OpenBinDlg
+   cmd      = 'be'
+   filemask = '*.exe;*.dll'
+   title    = 'Select a binary file'
+   "o 'filedlg "cmd" "filemask" "title"'"
 
 ; ---------------------------------------------------------------------------
 ; Finds EPM macro files <basename>.e in Dir of arg(1) and EPMMACROPATH.
@@ -647,4 +705,200 @@ defc EditMacroFile
       endif
    endif
    return
+
+; ---------------------------------------------------------------------------
+; unused
+; Moved from STDCTRL.E
+defc edit_list =
+   getfileid startfid
+   firstloaded = startfid
+   parse arg list_sel list_ofs .
+   orig_ofs = list_ofs
+   do forever
+      list_ptr = peek( list_sel, list_ofs, 4)
+      if list_ptr == \0\0\0\0 then leave; endif
+      fn = peekz(list_ptr)
+      if pos( ' ', fn) then
+         fn = '"'fn'"'
+      endif
+      'e' fn
+      list_ofs = list_ofs + 4
+      if startfid = firstloaded then
+         getfileid firstloaded
+      endif
+   enddo
+compile if 1  -- Now, the macros free the buffer.
+   call buffer( FREEBUF, list_sel)
+compile else
+   call windowmessage( 1,  getpminfo(EPMINFO_OWNERCLIENT),   -- Send message to owner client
+                       5486,               -- Tell it to free the buffer.
+                       mpfrom2short( list_sel, orig_ofs),
+                       0)
+compile endif
+   activatefile firstloaded
+
+; ---------------------------------------------------------------------------
+; A common routine to parse a DOS file name.  Optional second argument
+; gives source for = when used for path or fileid.  RC is 0 if successful, or
+; position of "=" in first arg if no second arg given but was needed.
+; New: Quotes, doublequotes and spaces are handled correctly.
+;      Avoid duplicated '\' between path and name.
+;      Environment vars are resolved.
+;      ?: is replaced with the bootdrive.
+;      Works now with temp files (starting with '.') as well.
+; Currently this proc is only called if filename contains '='. This check
+; has to be removed in order to resolve environment vars.
+defproc parse_filename( var filename)
+
+   sourcefile = strip(arg(2))
+   p = pos( '=', filename)
+   if sourcefile = '' then  -- syntax error
+      return p              -- strange rc!
+   endif
+
+   -- resolve every word separately
+   rest = filename
+   resolved = ''
+   do while rest <> ''
+      if leftstr( rest, 1) = "'" then
+         -- resolve quoted wrd
+         parse value rest with "'"wrd"'" rest
+         -- parse wrd again without the quotes (wrd may contain multiple wrds)
+         call parse_filename( wrd, sourcefile)
+         resolved = resolved" '"wrd"'"
+      elseif leftstr( rest, 1) = '"' then
+         -- resolve doublequoted wrd
+         parse value rest with '"'wrd'"' rest
+         -- wrd is ready to resolve '='
+         call parse_filename2( wrd, sourcefile)
+         resolved = resolved' "'wrd'"'
+      else
+         -- resolve wrd
+         parse value rest with wrd rest
+         -- wrd is ready to resolve '='
+         call parse_filename2( wrd, sourcefile)
+         resolved = resolved' 'wrd
+      endif
+   enddo
+   resolved = strip(resolved)
+   filename = resolved
+   return 0
+
+; ---------------------------------------------------------------------------
+; Resolve '=', '%' and ?: in a single word or word with spaces
+defproc parse_filename2( var wrd, sourcefile)
+
+   -- parse sourcefile
+   lp1 = lastpos( '\', sourcefile)
+   spath = substr( sourcefile, 1, lp1)
+   sname = substr( sourcefile, lp1 + 1)
+   lp2 = lastpos( '.', sname)
+   if lp2 > 1 then
+      sbase = substr( sname, 1, lp2 - 1)
+   else
+      sbase = sname
+   endif
+   sext  = substr( sname, lp2 + 1)
+
+   -- replace environment variables
+   if pos( '%', wrd) then
+      wrd = NepmdResolveEnvVars(wrd)
+   endif
+
+   -- replace ?: with bootdrive
+   do while pos( '?:', wrd) > 0
+      parse value wrd with first '?:' rest
+      BootDrive = NepmdQuerySysInfo('BOOTDRIVE')
+      wrd = first''BootDrive''rest
+   enddo
+
+   --replace '='
+   if pos( '=', wrd) then
+      p = pos( '=', wrd)
+      lwrd = substr( wrd, 1, p - 1)
+      rwrd = substr( wrd, p + 1)
+      -- base'.='     ==> base'.'sext
+      -- '=.'ext      ==> sbase'.'ext
+      -- '='          ==> sname
+      -- '=\'name     ==> name
+      -- '='name      ==> name
+      -- path'\='     ==> path''sname
+      -- path'='      ==> path''sname
+      -- path'=.'ext  ==> path''sbase'.'ext
+      -- path'\=.'ext ==> path''sbase'.'ext
+      if rightstr( wrd, 2) = '.=' then
+         sayerror 'lwrd = 'lwrd', sext = 'sext
+         wrd = lwrd''sext
+      elseif leftstr( wrd, 2) = '=.' then
+         wrd = sbase''rwrd
+      elseif wrd = '=' then
+         wrd = sname
+      elseif leftstr( wrd, 2) = '=\' & rwrd <> '' then
+         wrd = substr( rwrd, 2)
+      elseif leftstr( wrd, 1) = '=' & rwrd <> '' then
+         wrd = rwrd
+      elseif rightstr( wrd, 2) = '\=' then
+         wrd = strip( lwrd, 't', '\')'\'sname
+      elseif rightstr( wrd, 2) = '=' then
+         wrd = strip( lwrd, 't', '\')'\'sname
+      elseif substr( wrd, p, 2) = '=.' & lwrd <> '' & rwrd <> '' then
+         wrd = strip( lwrd, 't', '\')'\'sbase''rwrd
+      elseif substr( wrd, p - 1, 3) = '\=.' & lwrd <> '' & rwrd <> '' then
+         wrd = strip( lwrd, 't', '\')'\'sbase''rwrd
+      endif
+      -- If resolved wrd doesn't contain ':\' then prepend spath.
+      if pos( ':\', wrd) = 0 & pos( '\\', wrd) = 0 then
+         wrd = strip( spath, 't', '\')'\'wrd
+      endif
+   endif
+   return
+
+; ---------------------------------------------------------------------------
+; This proc is called by defc app, append, put and defc save.
+; Does *not* assume all options are specified before filenames.
+defproc parse_leading_options( var rest,var options)
+   options = ''
+   loop
+      parse value rest with wrd more
+      if substr( wrd, 1, 1) = '/' then
+         options = options wrd
+         rest = more
+      else
+         leave
+      endif
+   endloop
+
+; ---------------------------------------------------------------------------
+; This proc is called by defc app, append, put.
+; A common routine to parse an argument string containing a mix of
+; options and DOS file specs.  The DOS file specs can contain an "=" for the
+; path or the fileid, which will be replaced by the corresponding part of the
+; previous file (initially, the current filename).
+defproc parse_file_n_opts(argstr)
+   prev_filename = .filename
+   output = ''
+   do while argstr <> ''
+      parse value argstr with filename rest
+      if leftstr( filename, 1) = '"' then
+         parse value argstr with '"' filename '"' argstr
+         filename = '"'filename'"'
+      else
+         argstr = rest
+      endif
+      if substr( filename, 1, 1) <> '/' then
+         call parse_filename( filename, prev_filename)
+         prev_filename = filename
+      endif
+      output = output filename
+   end
+   return substr( output, 2)
+
+; ---------------------------------------------------------------------------
+; Called when the EPM file icon is dropped on another EPM window, while the
+; source file is modified.
+; We can just execute 'get' to achieve the same result.
+; Moved from CLIPBRD.E.
+defc insert_text_file
+   'get 'arg(1)
+
 
