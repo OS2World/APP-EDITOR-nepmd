@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.10 2002-09-05 13:31:52 cla Exp $
+* $Id: epmenv.c,v 1.11 2002-09-18 19:14:28 cla Exp $
 *
 * ===========================================================================
 *
@@ -588,7 +588,7 @@ do
 
    // if extended environment is already set, don't touch
    pszValue = getenv( ENV_NEPMD_USERENVFILE);
-   if ((pszValue) && (*pszValue))
+   if ((!pszValue) || (!*pszValue))
       pszValue = getenv( ENV_NEPMD_MAINENVFILE);
    if ((pszValue) && (*pszValue))
       {
