@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddereload.c,v 1.6 2002-08-14 12:25:05 cla Exp $
+* $Id: ddereload.c,v 1.7 2004-07-02 11:39:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -310,7 +310,8 @@ switch (msg)
       // load next file and take care for position
       DPRINTF(( "DDERELOAD: list %u, file %u: %s (%s)\n", prd->ulListIndex + 1,
                 prd->ulFilesLoaded, szFilename, szCurPos));
-      sprintf( szArgs, "MC ;EDIT \"%s\";link %s;recomp SETPOS %s;", szFilename, prd->pszMacroFile, szCurPos);
+      //sprintf( szArgs, "MC ;EDIT \"%s\";link %s;recomp SETPOS %s;", szFilename, prd->pszMacroFile, szCurPos);
+      sprintf( szArgs, "MC ;EDIT \"%s\";recomp SETPOS %s;", szFilename, szCurPos);
       if (!_reloadExecuteEPMCommand( hwnd, prd->hwndServer, szArgs))
          {
          WinAlarm( HWND_DESKTOP, WA_ERROR);
