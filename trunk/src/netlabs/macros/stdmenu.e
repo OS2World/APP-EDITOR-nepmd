@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.8 2002-09-21 20:51:21 aschn Exp $
+* $Id: stdmenu.e,v 1.9 2002-09-30 18:19:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -404,6 +404,8 @@ compile if WANT_EPM_SHELL = 1
 ;     buildmenuitem menuname, 1, 104, KILL_SHELL_MENU__MSG,         'shell_kill'KILL_SHELL_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_KILL, 16384)
       buildmenuitem menuname, 1, 104, SHELL_BREAK_MENU__MSG,        'shell_break'SHELL_BREAK_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_BREAK, 16384)
 compile endif
+compile if defined(WANT_ASCHN_MENU_ITEMS)
+ compile if WANT_ASCHN_MENU_ITEMS
       buildmenuitem menuname, 1, 110, \0,                      '',            4, 0
 -- Todo: replace all strings and add consts for menu styles ------------------------------------------------------
       buildmenuitem menuname, 1, 111, 'Edit PROFILE.ERX'         , 'ep profile.erx path'\1, 0, 0  -- <----------- Todo: adapt to real search path
@@ -418,6 +420,8 @@ compile endif
       buildmenuitem menuname, 1, 121, 'Open NEPMD programs folder', 'start /c /min open "<NEPMD_FOLDER>"'\1, 0, 0  -- <-------- Todo: replace 'open' call
       buildmenuitem menuname, 1, 122, 'Open NEPMD root folder'   , 'start /c /min open %NEPMD_ROOTDIR%'\1, 0, 0  -- <-------- Todo: replace 'open' call
       buildmenuitem menuname, 1, 123, 'Open folder of EPM.EXE'   , 'start /c /min open %NEPMD_EPMEXECUTABLE%\..'\1, 0, 0  -- <-------- Todo: replace 'open' call
+ compile endif  -- WANT_ASCHN_MENU_ITEMS
+compile endif  -- defined(WANT_ASCHN_MENU_ITEMS)
       buildmenuitem menuname, 1, 130, \0,                      '',            4, 0
       buildmenuitem menuname, 1, 131, 'Recompile EPM.E' , 'start %NEPMD_ROOTDIR%\netlabs\bin\recomp.exe %NEPMD_ROOTDIR%\myepm\ex /START /NOLOG', 0, 0
    return
@@ -442,8 +446,9 @@ compile endif
       buildmenuitem menuname, HELP_MENU_ID, 609, 'NEPMD runtime information', 'nepmdinfo', 0, 0
       buildmenuitem menuname, HELP_MENU_ID, 610, \0,           '',                        4, 0
       buildmenuitem menuname, HELP_MENU_ID, 640, 'View NEPMD Online Help', ''\1, 17+64, 0
-         buildmenuitem menuname, HELP_MENU_ID, 641, 'View NEPMD Online Help', 'view nepmd'\1, 0, 0
-         buildmenuitem menuname, HELP_MENU_ID, 642, 'Current word', 'viewword nepmd'\1, 32768+1, 0
+         -- start is used here to resolve environment var
+         buildmenuitem menuname, HELP_MENU_ID, 641, 'View NEPMD Online Help', 'start view nepmd%NEPMD_LANGUAGE% netlabs'\1, 0, 0
+         buildmenuitem menuname, HELP_MENU_ID, 642, 'Current word', 'viewword nepmd%NEPMD_LANGUAGE%'\1, 32768+1, 0
 compile if SUPPORT_USERS_GUIDE
       buildmenuitem menuname, HELP_MENU_ID, 620, USERS_GUIDE_MENU__MSG,   USERS_GUIDE_MENUP__MSG, 17+64, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
          buildmenuitem menuname, HELP_MENU_ID, 621, VIEW_USERS_MENU__MSG,  'view epmusers'VIEW_USERS_MENUP__MSG, 0, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
