@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.8 2002-09-12 15:26:09 cla Exp $
+* $Id: test.c,v 1.9 2002-09-12 15:26:55 cla Exp $
 *
 * ===========================================================================
 *
@@ -149,7 +149,7 @@ do
    // =========================================================================
 
 
-   if (!(strcmp( pszTestcase, "WRITECONFIGVALUE")))
+   if (!(strcmp( pszTestcase, "CONFIGVALUE")))
 
       {
 
@@ -188,7 +188,7 @@ do
       if (rc)
          printf( "\n\nerror: cannot write value for: %s\n", pszPath);
 
-      } // testcase WRITECONFIGVALUE
+      } // testcase CONFIGVALUE
 
 
 
