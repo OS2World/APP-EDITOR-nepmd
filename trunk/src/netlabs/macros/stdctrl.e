@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.16 2004-01-17 22:22:55 aschn Exp $
+* $Id: stdctrl.e,v 1.17 2004-02-22 16:35:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -911,13 +911,14 @@ compile endif -- WANT_APPLICATION_INI_FILE
 defc monofont
    parse value queryfont(.font) with fontname '.' fontsize '.'
    if fontname<>'Courier' & fontname<>'System Monospaced' then
-      if rightstr(fontsize,2)='BB' then  -- Bitmapped font
+      if rightstr(fontsize,2) = 'BB' then  -- Bitmapped font
          parse value fontsize with 'DD' decipoints 'WW' width 'HH' height 'BB'
          if width & height then  -- It's fixed pitch
             return
          endif
       endif
-      .font = registerfont('System Monospaced', SYS_MONOSPACED_SIZE, 0)
+      --.font = registerfont('System Monospaced', SYS_MONOSPACED_SIZE, 0)
+      .font = registerfont('System VIO', 'DD120HH16WW8BB', 0)
    endif
 
 /*
