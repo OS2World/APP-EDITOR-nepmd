@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.18 2002-10-11 15:12:58 cla Exp $
+* $Id: hilite.c,v 1.19 2002-10-11 15:58:31 cla Exp $
 *
 * ===========================================================================
 *
@@ -88,6 +88,7 @@ static   PSZ            pszKeywordNone    = "NONE:";
 #define SEARCHMASK_MODEDIR     "%s\\nepmd\\mode"
 #define SEARCHMASK_GLOBALINI   "global.ini"
 #define SEARCHMASK_DEFAULTINI  "%s\\default.ini"
+#define SEARCHMASK_CUSTOMINI   "%s\\custom.ini"
 #define SEARCHMASK_EPMKWDS     "epmkwds.%s"
 
 // ----------------------------------------------------------------------
@@ -625,6 +626,14 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, PBOOL pfReload, PSZ pszBuffe
 
          // ----------------------------------
 
+         HINIT          hinitCustom = NULLHANDLE;
+         CHAR           szInitCustomFilename[ _MAX_PATH];
+         BOOL           fCustomLoaded = FALSE;
+
+         CHAR           szCustomCharset[ _MAX_PATH];
+
+         // ----------------------------------
+
          CHAR           szKeywordFile[ _MAX_PATH];
          ULONG          ulKeywordFileDate;
          BOOL           fOutdated = FALSE;
@@ -763,14 +772,41 @@ do
    QUERYINITVALUE( hinitDefault, pszGlobalSection, "CASESENSITIVE",  szValue);
    fCaseSensitive = atol( szValue);
 
+   // - read customs of the mode - optional - so ignore errors here
+   rc = _openInitFile( &hinitCustom, pszEnvnameEpmKeywordpath, SEARCHMASK_CUSTOMINI, pszEpmMode,
+                       szInitCustomFilename, sizeof( szInitCustomFilename));
+   if (rc == NO_ERROR)
+      {
+      // note that we found the custom ini
+      fCustomLoaded = TRUE;
+
+      // read optional values - other values are read in mode.c !
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, "ADD_CHARSET",        szCustomCharset, "");
+
+      // append these settings to the ones already read
+      if (strlen( szCustomCharset))
+         strcat( szCharset, szCustomCharset);
+      }
+
+   else
+      rc = NO_ERROR;
+
    // -----------------------------------------------
 
    DUMPINITVALUEARRAY( pvaSymbols);
 
-   // add/replace with symbols from <mode>\global.ini
+   // add/replace with symbols from <mode>\default.ini
    pvaSymbols = _maintainInitValueArray( hinitDefault, pszSymbolsSection, pvaSymbols);
 
    DUMPINITVALUEARRAY( pvaSymbols);
+
+   // add/replace with symbols from <mode>\custom.ini
+   pvaSymbols = _maintainInitValueArray( hinitDefault, pszSymbolsSection, pvaSymbols);
+
+   DUMPINITVALUEARRAY( pvaSymbols);
+
+   if (fCustomLoaded)
+      pvaSymbols = _maintainInitValueArray( hinitCustom, pszSymbolsSection, pvaSymbols);
 
    // -----------------------------------------------
 
@@ -899,6 +935,11 @@ do
    sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
    pszSourceFile = szInitDefaultFilename;
    sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+   if (fCustomLoaded)
+      {
+      pszSourceFile = szInitCustomFilename;
+      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+      }
 
    // loop thru all files
    for (ulCurrentFile = 0, pszSourceFile = pszFileList;
@@ -1330,6 +1371,7 @@ if (pszSectionBreakChar)  FREEMEMORYFILE( pszSectionBreakChar);
 if (pszSectionEndChar)    FREEMEMORYFILE( pszSectionEndChar);
 if (pszHiliteContents)    FREEMEMORYFILE( pszHiliteContents);
 
+if (hinitCustom)  InitCloseProfile( hinitCustom, FALSE);
 if (hinitDefault) InitCloseProfile( hinitDefault, FALSE);
 if (hinitGlobals) InitCloseProfile( hinitGlobals, FALSE);
 if (hmmf)         MmfTerminate( hmmf);
