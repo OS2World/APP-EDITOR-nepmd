@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.4 2004-06-03 22:36:24 aschn Exp $
+* $Id: infoline.e,v 1.5 2004-07-01 11:39:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,10 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+; Contains defmodify. Therefore it should not be linked, because any
+; occurance of defmodify in a linked module would replace all other
+; so-far-defined defmodify event defs.
 
 /*
 Todo:
@@ -321,6 +325,7 @@ defproc GetInfoFieldValue(FVar, var FFlag)
    FVar = upcase(FVar)
    FValue = ''
    FFlag  = ''
+
    -- Synonyms:
    if     FVar = 'MARGINS'  then FVar = 'MA'
    elseif FVar = 'MOD'      then FVar = 'MODIFIED'
@@ -574,7 +579,7 @@ defproc GetDateTimeModified
                   msg = 'Altered by another application'
                else
                   --DateTime = NlsDateTime(next)
-                  DateTime = filedatehex2datetime(next)
+                  DateTime = filedatehex2datetime(new_filedatehex)
                endif
             elseif rc = 2   then msg = 'File not found'
             elseif rc = 3   then msg = 'Path not found'
@@ -655,7 +660,7 @@ defc ConfigFrame
                          400,
                          260,
                          atoi(1)              ||
-                         atoi(0000)           ||  -- help id
+                         atoi(0)              ||  -- help id
                          gethwndc(APP_HANDLE) ||
                          Text) with Button 2 NewValue \0
    if Button = \1 then
