@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.17 2004-07-02 08:34:26 aschn Exp $
+# $Id: makefile,v 1.18 2004-07-03 08:32:32 aschn Exp $
 #
 # ===========================================================================
 #
@@ -62,6 +62,7 @@ $(CMPEXDIR)\ftpload.ex\
 $(CMPEXDIR)\ftpsave.ex\
 #$(CMPEXDIR)\get.ex\
 $(CMPEXDIR)\help.ex\
+$(CMPEXDIR)\indentblock.ex\
 $(CMPEXDIR)\kwhelp.ex\
 $(CMPEXDIR)\maketags.ex\
 $(CMPEXDIR)\newmenu.ex\
