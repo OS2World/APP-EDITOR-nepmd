@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.6 2004-06-03 21:57:35 aschn Exp $
+* $Id: dosutil.e,v 1.7 2004-07-02 10:04:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -185,10 +185,11 @@ defproc NepmdResolveEnvVars(Spec)
       if p2 = 0 then
          leave
       else
-         startp = p2 + 1
-         Spec = substr( Spec, 1, p1 - 1) ||
-                Get_Env( substr( Spec, p1 + 1, p2 - p1 - 1)) ||
-                substr( Spec, p2 + 1)
+         LeftPart  = substr( Spec, 1, p1 - 1)
+         New       = Get_Env( substr( Spec, p1 + 1, p2 - p1 - 1))
+         RightPart = substr( Spec, p2 + 1)
+         startp = length(LeftPart) + length(New) + 1
+         Spec = LeftPart''New''RightPart
       endif
       --sayerror 'arg(1) = 'arg(1)', p1 = 'p1', p2 = 'p2', resolved spec = 'Spec
    enddo  -- forever
