@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.9 2003-07-06 16:38:32 aschn Exp $
+* $Id: mouse.e,v 1.10 2003-08-31 18:09:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -103,6 +103,18 @@ compile endif
 ; Todo:
 compile if not defined(WANT_DATETIME_IN_TITLE)
    WANT_DATETIME_IN_TITLE = 1
+compile endif
+compile if not defined(MOUSE_MARK_SETS_CURSOR)
+-- Move the cursor to the mouse pointer after a mouse mark.
+-- This was necessary, because otherwise it will be almost unpossible to
+-- get the last char of a line marked if keyword highlighting is on.
+-- See defc MH_end_mark.
+   MOUSE_MARK_SETS_CURSOR = 3  -- 1|2|3  (don't change this, just for testing)
+                               -- 1 = don't move cursor, jump back to cursor if cursor
+                               --     is not on screen anymore
+                               -- 2 = set cursor everytime to mouse position
+                               -- 3 = set cursor only if cursor is not on screen and if
+                               --     keyword highlighting is on
 compile endif
 
 const
@@ -411,6 +423,7 @@ compile else
    .DragColor = .markcolor
 compile endif
 
+
 defc MH_end_mark
    universal BeginningLineOfDrag
    universal BeginningColOfDrag
@@ -433,38 +446,31 @@ compile endif
    --               the mark.
    --               This is an unusual behaviour and could confuse
    --               the user.
-   --               Therefore: cursor goes to end of mark and cursor is vcentered.
+   --               Therefore: The cursor position after the mouse mark
+   --               was processed can be controlled by MOUSE_MARK_SETS_CURSOR.
    universal EPM_utility_array_ID
    universal nepmd_hini
+
+   -- Query keyword highlighting state (windowmessage returns 0 or 2)
+   -- from defc qparse (commented out) in STDCTRL.E:
+   saved_toggle = windowmessage( 1,  getpminfo(EPMINFO_EDITFRAME),
+                                 5505,          -- EPM_EDIT_KW_QUERYPARSE
+                                 0,
+                                 0)
+   saved_cursory = .cursory
+
    KeyPath = "\NEPMD\User\Mouse\Mark\Workaround"
    Workaround = NepmdQueryConfigValue( nepmd_hini, KeyPath )
    if Workaround = 1 then
-      -- Query keyword highlighting state (windowmessage returns 0 or 2)
-      -- from defc qparse (commented out) in STDCTRL.E:
-      saved_toggle = windowmessage(1,  getpminfo(EPMINFO_EDITFRAME),
-                                   5505,          -- EPM_EDIT_KW_QUERYPARSE
-                                   0,
-                                   0)
-
       -- Get current keyword highlighting file if highlighting is on.
       --   (Uses an array var, set before by 'toggle_parse'.)
       --   ('toggle_parse' from STDCTRL.E was altered too:
       --   Now it stores the kwfilename in an array.)
       -- Switch keyword highlighting off it is on.
       if saved_toggle <> 0 then
-         --refresh
-         --call psave_pos(saved_pos)
-         --saved_windowx = .windowx
-         --saved_windowy = .windowy
-         --saved_cursorx = .cursorx
-         saved_cursory = .cursory
-         --saved_line = .line
-         --saved_col = .col
-         --sayerror '.line = '.line', .col = '.col', .cursorx = '.cursorx', .cursory = '.cursory', .windowx = '.windowx', .windowy = '.windowy
          getfileid fid
          -- Get keyword highlighting file for this file
          -- (The array var 'kwfile.'fid is set by defc toggle_parse in STDCTRL.E)
-         do_array 3, EPM_utility_array_ID, 'kwfile.'fid, kwfilename
          rc = get_array_value( EPM_utility_array_ID, 'kwfile.'fid, kwfilename )
          'toggle_parse' 0
       endif
@@ -539,26 +545,18 @@ compile endif
    call register_mousehandler(1, 'CANCELDRAG', ' ')
 
    if Workaround = 1 then
- compile if KEEP_CURSOR_ON_SCREEN
+compile if MOUSE_MARK_SETS_CURSOR = 1
+      -- nop
+compile elseif MOUSE_MARK_SETS_CURSOR = 2
+      'MH_gotoposition'
+compile elseif MOUSE_MARK_SETS_CURSOR = 3
+-- compile if KEEP_CURSOR_ON_SCREEN
       if saved_toggle <> 0 then
-         if saved_cursory < 1 or saved_cursory > .windowheight then
-            --call prestore_pos(saved_pos)
-            --.windowx = saved_windowx
-            --.windowy = saved_windowy
-            -- go to end of mark and vcenter cursor
-            call pend_mark()
-            --.lineg = saved_line-- - saved_cursory
-            --.col = saved_col
-            --refresh
-            --.cursorx = saved_cursorx
-            --.cursory = saved_cursory
-            right
-            oldline=.line
-            .cursory=.windowheight%2
-            oldline
+         if saved_cursory < 1 or saved_cursory > .windowheight then  -- if cursor not on screen
+            'MH_gotoposition'
          endif
       endif
- compile endif
+compile endif
    endif  -- Workaround = 1
 
 
@@ -635,14 +633,166 @@ defc MH_dblclick
 
 compile endif  -- WANT_CUA_MARKING
 
-defc MH_double -- take care for doubleclicks on URLs
+
+defc StartBrowser
    universal nepmd_hini
-   KeyPath = "\NEPMD\User\Mouse\Url\MB1_DClick"
-   MB1DClickStartsBrowser = NepmdQueryConfigValue( nepmd_hini, KeyPath )
    KeyPath = "\NEPMD\User\Mouse\Url\Browser"
    BrowserExecutable = NepmdQueryConfigValue( nepmd_hini, KeyPath )
    UrlStrings = 'http:// ftp:// www. https:// mailto:'
+   arg1 = arg(1)
    Url = ''
+   browser_rc = 1  -- default rc; 1: browser not started or no Url
+
+   if arg1 <> '' then  -- if Url submitted as arg(1)
+      Url = strip( arg1, 'B', '"')
+   else  -- if no Url submitted as arg(1) then take word under pointer
+
+      -- go to mouse position to ensure getting URL at mouse pointer and not at cursor
+      call psave_pos(saved_pos)
+      call psave_mark(saved_mark)
+      'MH_gotoposition'
+
+      -- get word under cursor, separated by any char of SeparatorList
+      StartCol = 0
+      EndCol   = 0
+      SeparatorList = '"'||"'"||'(){}[]<>,;! '\9;
+      call find_token( StartCol, EndCol, SeparatorList, '')
+      getline line
+
+      call prestore_pos(saved_pos)
+      call prestore_mark(saved_mark)
+
+      WordFound = (StartCol <> 0 & EndCol >= StartCol)
+      if WordFound then  -- if word found
+         Spec = substr( line, StartCol, EndCol - StartCol + 1)
+
+         -- strip trailing points
+         Spec = strip( Spec, 'T', '.')
+
+         -- locate URL in double-clicked word
+         do u = 1 to words( UrlStrings )
+            UrlString = word( UrlStrings, u )
+            p1 = pos( UrlString, Spec )
+            if p1 > 0 then
+
+               -- get URL
+               Url = substr( Spec, p1)
+
+               -- add default protocol identifier
+               if (pos( ':', Url) = 0) then
+                  Url = 'http://'Url
+               endif
+
+               leave
+            endif
+         enddo
+/*
+         -- if no URL found, automatically process special URLs
+         if Url = '' then
+            filename = .filename
+            p1 = lastpos( '\', filename )
+            fname = substr( filename, p1 + 1 )
+            if translate( leftstr( fname, 6 ) ) = 'FILES.' then
+               Url = 'ftp://ftp.dante.de/tex-archive/'Spec
+               p2 = lastpos( '/', Url )
+               Parent = substr( Url, 1, p2 )
+               Url = Parent
+            endif
+            if translate( leftstr( Spec, 6 ) ) = 'DANTE:' or
+               translate( leftstr( Spec, 5 ) ) = 'CTAN:' then
+               Url = substr( Spec, 7 )  -- <--- ToDo
+               Url = strip( Url, 'L' )
+               Url = strip( Url, 'L', '/' )
+               Url = 'ftp://ftp.dante.de/tex-archive/'Url
+               p2 = lastpos( '/', Url )
+               Parent = substr( Url, 1, p2 )
+               Url = Parent
+            endif
+         endif  -- Url = ''
+*/
+      endif  -- WordFound
+   endif  -- arg1 <> ''
+
+   -- if URL found until here, process it
+   if Url <> '' then
+      -- select default browser or use netscape as default
+      if upcase(BrowserExecutable) = 'DEFAULT' then
+         BrowserExecutable = queryprofile( HINI_USERPROFILE, 'WPURLDEFAULTSETTINGS', 'DefaultBrowserExe')
+         NamePos           = lastpos( '\', BrowserExecutable) + 1
+         ExtPos            = pos( '.', BrowserExecutable, NamePos)
+         PathPos           = pos( '\', BrowserExecutable)
+
+         BrowserName       = substr( BrowserExecutable, NamePos, ExtPos - NamePos)
+         BrowserPath       = substr( BrowserExecutable, 1, NamePos - 2)
+
+      elseif BrowserExecutable = '' then
+         BrowserExecutable = 'netscape'
+         BrowserName       = 'Netscape'
+         BrowserPath       = ''
+      endif
+
+      -- save current directory
+      if BrowserPath <> '' then
+         CurrentDirectory  = directory()
+         call directory( BrowserPath)
+      endif
+
+      --'os2 /min /c start /f' BrowserExecutable' "'Url'"'
+      CmdPre  = 'start /f' BrowserExecutable' "'
+      CmdPost = '"'
+      CmdLen = length(CmdPre) + length(CmdPost)
+
+      -- truncate URL if too long to avoid EPM crashing
+      -- max length for a command executed by cmd.exe is 300
+      MaxLen = 239 - CmdLen  -- why 239?
+      IsTruncated = 0
+      if length( Url) > MaxLen then
+         Url = leftstr( Url, MaxLen )
+         IsTruncated = 1
+         -- try to truncate before a % char, otherwise the URL gets unvalid sometimes,
+         -- but only in the last 20 chars
+         lp = lastpos( '%', Url )
+         if lp > MaxLen - 20 then
+            Url = leftstr( Url, lp - 1 )
+         endif
+      endif
+
+      if IsTruncated then
+         sayerror 'Invoking' BrowserName 'with (truncated):' Url
+      else
+         sayerror 'Invoking' BrowserName 'with:' Url
+      endif
+
+      -- execute the command and set rc
+      CmdPre''Url''CmdPost
+      browser_rc = rc
+
+      -- Teststrings here:
+      -- http://www.os2.org
+      -- ftp://ftp.netlabs.org,www.netlabs.org,ftp://ftp.os2.org
+      -- (ftp://ftp.netlabs.org)
+      -- ####ftp://ftp.netlabs.org)###)
+      -- ftp://ftp.netlabs.org
+      -- www.netlabs.org
+      -- mailto:C.Langanke@Teamos2.de
+      -- <head><title>Index of ftp://ftp.netlabs.org/</title><base href="ftp://ftp.netlabs.org/"/>
+      -- http://groups.google.com/groups?num=20&hl=de&scoring=d&as_drrb=b&q=epm+group%3Ade.comp.os.*+OR+group%3Acomp.os.*&btnG=Google-Suche&as_miny=2001&as_minm=1&as_mind=1
+         -- next is much too long:
+      -- http://groups.google.com/groups?hl=de&lr=&ie=UTF-8&threadm=4ebg22%24jod%40watnews2.watson.ibm.com&rnum=3&prev=/groups%3Fq%3Dautosave%2Bgroup:comp.os.os2.apps%26hl%3Dde%26lr%3D%26ie%3DUTF-8%26group%3Dcomp.os.os2.apps%26selm%3D4ebg22%2524jod%2540watnews2.watson.ibm.com%26rnum%3D3
+
+      -- restore current directory
+      if Browserpath <> '' then
+         call directory( CurrentDirectory)
+      endif
+   endif  -- Url <> ''
+   rc = browser_rc
+
+
+defc MH_double -- take care for doubleclicks on URLs
+   universal nepmd_hini
+   browser_rc = 1
+   KeyPath = "\NEPMD\User\Mouse\Url\MB1_DClick"
+   MB1DClickStartsBrowser = NepmdQueryConfigValue( nepmd_hini, KeyPath )
 compile if WANT_TREE
    if upcase(subword(.filename,1,2)) = '.DOS DIR' | .filename = '.tree' then
 compile else
@@ -651,120 +801,17 @@ compile endif
       executekey a_1  -- For simplicity, assume user hasn't redefined this key:
    else
       if MB1DClickStartsBrowser = 1 then
-         -- if word under cursor contains an url then start netscape
-         call psave_pos(saved_pos)
-         call psave_mark(saved_mark)
-
-         -- go to mouse position to ensure getting URL at mouse pointer and not at cursor
-         'MH_gotoposition'
-         cursorcol = .col
-         call pmark_word()
-         getmark firstline, lastline, firstcol, lastcol, fileid
-         Spec = substr( textline( firstline ), firstcol, lastcol - firstcol + 1 )
-         call prestore_mark(saved_mark)
-         call prestore_pos(saved_pos)
-         if cursorcol >= firstcol and cursorcol <= lastcol then -- if cursor in mark
-
-            -- locate URL in double-clicked word
-            do u = 1 to words( UrlStrings )
-               UrlString = word( UrlStrings, u )
-               p1 = pos( UrlString, Spec )
-               if p1 > 0 then
-
-                  -- get URL
-                  Url = substr( Spec, p1)
-
-                  -- add default protocol identifier
-                  if (pos( ':', Url) = 0) then
-                     Url = 'http://'Url
-                  endif
-
-                  leave
-               endif
-            enddo
-
-
-            -- if no URL found, automatically process special URLs
-            if Url = '' then
-               filename = .filename
-               p1 = lastpos( '\', filename )
-               fname = substr( filename, p1 + 1 )
-               if translate( leftstr( fname, 6 ) ) = 'FILES.' then
-                  Url = 'ftp://ftp.dante.de/tex-archive/'Spec
-                  p2 = lastpos( '/', Url )
-                  Parent = substr( Url, 1, p2 )
-                  Url = Parent
-               endif
-               if translate( leftstr( Spec, 6 ) ) = 'DANTE:' or
-                  translate( leftstr( Spec, 5 ) ) = 'CTAN:' then
-                  Url = substr( Spec, 7 )  -- <--- ToDo
-                  Url = strip( Url, 'L' )
-                  Url = strip( Url, 'L', '/' )
-                  Url = 'ftp://ftp.dante.de/tex-archive/'Url
-                  p2 = lastpos( '/', Url )
-                  Parent = substr( Url, 1, p2 )
-                  Url = Parent
-               endif
-            endif
-
-            -- if URL found until here, process it
-            if Url <> '' then
-               -- cut off special separators from URL
-               SeparatorList = '"'||"'"||')}]>,;!';
-               ReplaceList   =  copies( ' ', length( SeparatorList))
-               Url = word( translate( Url, ReplaceList, SeparatorList),  1)
-
-               -- select default browser or use netscape as default
-               if upcase(BrowserExecutable) = 'DEFAULT' then
-                  BrowserExecutable = queryprofile( HINI_USERPROFILE, 'WPURLDEFAULTSETTINGS', 'DefaultBrowserExe')
-                  NamePos           = lastpos( '\', BrowserExecutable) + 1
-                  ExtPos            = pos( '.', BrowserExecutable, NamePos)
-                  PathPos           = pos( '\', BrowserExecutable)
-
-                  BrowserName       = substr( BrowserExecutable, NamePos, ExtPos - NamePos)
-                  BrowserPath       = substr( BrowserExecutable, 1, NamePos - 2)
-
-               elseif BrowserExecutable = '' then
-                  BrowserExecutable = 'netscape'
-                  BrowserName       = 'Netscape'
-                  BrowserPath       = ''
-               endif
-
-               -- save current directory
-               if BrowserPath <> '' then
-                  CurrentDirectory  = directory()
-                  call directory( BrowserPath)
-               endif
-
-               sayerror 'Invoking' BrowserName 'with:' Url
-               'os2 /min /c start /f' BrowserExecutable' "'Url'"'
-
-               -- Teststrings here:
-               -- http://www.os2.org
-               -- ftp://ftp.netlabs.org,www.netlabs.org,ftp://ftp.os2.org
-               -- (ftp://ftp.netlabs.org)
-               -- ####ftp://ftp.netlabs.org)###)
-               -- ftp://ftp.netlabs.org
-               -- www.netlabs.org
-               -- mailto:C.Langanke@Teamos2.de
-
-               -- restore current directory
-               if Browserpath <> '' then
-                  call directory( CurrentDirectory)
-               endif
-            endif  -- Url <> ''
-
-         endif  -- cursorcol > firstcol and cursorcol < lastcol
-
+         'StartBrowser'
+         browser_rc = rc
       endif  -- MB1DClickStartsBrowser = 1
 
-      -- if no URL found, process the normal definition
-      if MB1DClickStartsBrowser <> 1 or Url = '' then
+      -- if browser not started, process the normal definition
+      if browser_rc then
          unmark
          'ClearSharBuff'
       endif
-
    endif  -- filename = (.DOS DIR | .tree)
+
 
 defc MH_shiftclick
    if marktype() then
