@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.3 2004-07-09 13:44:03 aschn Exp $
+* $Id: keys.e,v 1.4 2004-09-12 15:49:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -80,7 +80,7 @@ defc ProcessOtherKeys
 ;    elseif hexch = '2b20' then  -- Alt++
 ;       'ExecuteKeyCmd a_plus'
 ;    elseif hexch = '2a20' then  -- Alt+*  (german keyboards: * = Shift++)
-;       'ExecuteKeyCmd a_asterix'
+;       'ExecuteKeyCmd a_asterisk'
 ;    elseif hexch = '3d20' then  -- Alt+=  (german keyboards: = = Shift++)
 ;       'ExecuteKeyCmd a_equal'
 ;    elseif hexch = '2f20' then  -- Alt+/  (german keyboards: / = Shift+7)
@@ -111,7 +111,7 @@ defc ProcessOtherKeys
    elseif hexch = '2b10' then  -- Ctrl++
       'ExecuteKeyCmd c_plus'
    elseif hexch = '2a10' then  -- Ctrl+*  (german keyboards: * = Shift++)
-      'ExecuteKeyCmd c_asterix'
+      'ExecuteKeyCmd c_asterisk'
    elseif hexch = '3d10' then  -- Ctrl+=  (german keyboards: = = Shift++)
       'ExecuteKeyCmd c_equal'
    elseif hexch = '2f10' then  -- Ctrl+/  (german keyboards: / = Shift+7)
@@ -272,7 +272,7 @@ compile endif
    -- CHAR_LIST = keys, for those no <key> and no Sh+<key> should be defined
 compile if not defined(CharList)
    CHAR_LIST  = '0 1 2 3 4 5 6 7 8 9 /     \         =     -     +    *'
-   CHAR_NAMES = '0 1 2 3 4 5 6 7 8 9 SLASH BACKSLASH EQUAL MINUS PLUS ASTERIX'
+   CHAR_NAMES = '0 1 2 3 4 5 6 7 8 9 SLASH BACKSLASH EQUAL MINUS PLUS ASTERISK'
    CHAR_LIST  = CHAR_LIST  || ' <    >'
    CHAR_NAMES = CHAR_NAMES || ' LESS GREATER'
 compile endif
