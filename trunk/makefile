@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.18 2002-06-06 11:43:43 cla Exp $
+# $Id: makefile,v 1.19 2002-06-10 11:27:40 cla Exp $
 #
 # ===========================================================================
 #
@@ -85,6 +85,9 @@ HELP:
 
 SHOW:
   @$(MAKE) QUIET ARG=NEPMD MODULE=ipf CALLED=1
+
+INF:
+  @$(MAKE) QUIET MODULE=ipf CALLED=1
 
 INST: ALL
   @$(MAKE) QUIET ARG=INST MODULE=wis CALLED=1
