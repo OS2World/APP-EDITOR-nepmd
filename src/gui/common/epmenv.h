@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.h,v 1.3 2002-08-24 17:50:47 cla Exp $
+* $Id: epmenv.h,v 1.4 2002-09-20 13:45:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,6 +24,17 @@
 
 #ifndef EPMENV_H
 #define EPMENV_H
+
+// define filename extensions
+#define NEPMD_FILENAMEEXT_ENV          ".env"
+
+// define external env vars available in epm.env
+#define ENV_NEPMD_LANGUAGE         "NEPMD_LANGUAGE"
+#define ENV_NEPMD_PATH             "NEPMD_ROOTDIR"
+#define ENV_NEPMD_MAINENVFILE      "NEPMD_MAINENVFILE"
+#define ENV_NEPMD_USERENVFILE      "NEPMD_USERENVFILE"
+#define ENV_NEPMD_EPMEXECUTABLE    "NEPMD_EPMEXECUTABLE"
+#define ENV_NEPMD_LOADEREXECUTABLE "NEPMD_LOADEREXECUTABLE"
 
 // pszBuffer is optional and receives the name
 // of the original EPM executable

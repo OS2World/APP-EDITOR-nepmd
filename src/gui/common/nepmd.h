@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.14 2002-09-19 13:49:05 cla Exp $
+* $Id: nepmd.h,v 1.15 2002-09-20 13:45:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -30,15 +30,6 @@
 #define NEPMD_INI_APPNAME              "NEPMD"
 #define NEPMD_INI_KEYNAME_LANGUAGE     "Language"
 #define NEPMD_INI_KEYNAME_PATH         "Path"
-
-// define filename extensions
-#define NEPMD_FILENAMEEXT_ENV          ".env"
-
-// tag definitions for GetInstValue
-#define NEPMD_INSTVALUE_ROOTDIR         "ROOTDIR"
-#define NEPMD_INSTVALUE_LANGUAGE        "LANGUAGE"
-#define NEPMD_INSTVALUE_INIT            "INIT"
-#define NEPMD_INSTVALUE_MESSAGE         "MESSAGE"
 
 // define some filenames for EPM
 #define NEPMD_FILENAME_LIBINFO         ".NEPMD_INFO"
@@ -65,19 +56,6 @@
 #define NEPMD_SUBPATH_DEFAULTSFILE  NEPMD_SUBPATH_BINBINDIR
 #define NEPMD_FILENAME_DEFAULTSFILE "defaults.dat"
 #define NEPMD_DEVPATH_DEFAULTSFILE  "src\\netlabs\\bin"
-
-// define external env vars available in epm.env
-
-#define ENV_NEPMD_LANGUAGE         "NEPMD_LANGUAGE"
-#define ENV_NEPMD_PATH             "NEPMD_ROOTDIR"
-#define ENV_NEPMD_MAINENVFILE      "NEPMD_MAINENVFILE"
-#define ENV_NEPMD_USERENVFILE      "NEPMD_USERENVFILE"
-#define ENV_NEPMD_EPMEXECUTABLE    "NEPMD_EPMEXECUTABLE"
-#define ENV_NEPMD_LOADEREXECUTABLE "NEPMD_LOADEREXECUTABLE"
-
-// define external env variable for testing of
-// NEPMD utilities in working directory tree
-#define ENV_NEPMD_DEVPATH          "NEPMD_DEVROOTDIR"
 
 #endif // NEPMD_H
 

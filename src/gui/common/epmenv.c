@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.13 2002-09-19 11:14:55 cla Exp $
+* $Id: epmenv.c,v 1.14 2002-09-20 13:45:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -35,6 +35,8 @@
 #include "file.h"
 #include "nepmd.h"
 #include "instval.h"
+
+#include "epmenv.h"
 
 // -----------------------------------------------------------------------------
 
