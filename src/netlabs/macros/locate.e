@@ -20,7 +20,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.13 2004-07-02 10:31:09 aschn Exp $
+* $Id: locate.e,v 1.14 2004-07-02 14:54:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -706,8 +706,15 @@ defc globalfind, globalfindnext
          bottom
          endline
       endif
-      'postme FindNext'
+      -- 'postme FindNext'  -- doesn't work
+;      display -8
+;      repeat_find  -- would start from top again if T is in default_search_options
+;      display 8
+      'FindNext'
       if rc = 0 then  -- if found
+         refresh
+         --'postme highlightmatch'  -- postme required
+         'highlightmatch'  -- postme not required, command instead of proc makes it
          display -8
          if fileid = StartFileID then
             sayerror "String only found in this file"
