@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: update.php,v 1.2 2002-07-19 14:11:59 cla Exp $
+* $Id: update.php,v 1.3 2002-07-21 22:40:07 cla Exp $
 *
 * ===========================================================================
 *
@@ -30,7 +30,13 @@
 
 // save file
 $file = $_POST[ "file"];
-if ($file != "")
+$comment = $_POST[ "comment"];
+if ($comment == "")
+   {
+   echo "<br>error: <b>no commit comment specified !</b><p>";
+   echo "press the Back button and enter a commit comment."; 
+   }
+else if ($file != "")
    {
    // read file contents
    $hfile = fopen( $file, "w");
@@ -44,6 +50,11 @@ if ($file != "")
    fputs( $hfile, "UPDATED: ".trim( $_POST[ "updated"])."\r\n");
    fputs( $hfile, "\r\n");
    fputs( $hfile, stripslashes( $_POST[ "details"]));
+   fclose( $hfile);
+
+   // write comment to comment file
+   $hfile = fopen( filedb_getcommitfile( $file), "w");
+   fputs( $hfile, stripslashes( stripslashes( $comment)));
    fclose( $hfile);
 
    // update
