@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.1 2002-08-22 15:02:28 cla Exp $
+* $Id: instval.c,v 1.2 2002-08-22 15:46:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,22 +36,28 @@
 
 // -----------------------------------------------------------------------------
 
-APIRET GetInstValue( PSZ pszFileTag, PSZ pszBuffer, ULONG ulBuflen) 
+APIRET GetInstValue( PSZ pszValueTag, PSZ pszBuffer, ULONG ulBuflen)
 
 {
          APIRET         rc = NO_ERROR;
          BOOL           fNepmdInstalled = FALSE;
 
          CHAR           szNepmdPath[ _MAX_PATH];
+         CHAR           szNepmdLanguage[ 20];
+
          CHAR           szModulePath[ _MAX_PATH];
-         CHAR           szFilename[ _MAX_PATH];
+         CHAR           szTmp[ _MAX_PATH];
+         CHAR           szValue[ _MAX_PATH];
 
 
 static   PSZ            pszUserBinDir = NEPMD_SUBPATH_MYBINDIR;
+static   PSZ            pszNepmdBinDir = NEPMD_SUBPATH_BINBINDIR;
+
 static   PSZ            pszUserIniFile = NEPMD_FILENAME_INIFILE;
+static   PSZ            pszMessageFile = NEPMD_FILENAME_MESSAGEFILE;
 
 static   PSZ            pszInstPathMask = "%s\\%s\\%s";
-static   PSZ            pszFreePathMask = "%s\\%s\\%s";
+static   PSZ            pszFreePathMask = "%s\\%s";
 
 do
    {
@@ -60,7 +66,7 @@ do
       memset( pszBuffer, 0, ulBuflen);
 
    // check parms
-   if ((!pszFileTag) ||
+   if ((!pszValueTag) ||
        (!pszBuffer))
       {
       rc = ERROR_INVALID_PARAMETER;
@@ -83,26 +89,63 @@ do
                           sizeof( szNepmdPath));
    fNepmdInstalled = (szNepmdPath[ 0] > 0);
 
+   // get installed language - english as default
+   memset( szNepmdLanguage, 0, sizeof( szNepmdLanguage));
+   PrfQueryProfileString( HINI_USER,
+                          NEPMD_INI_APPNAME,
+                          NEPMD_INI_KEYNAME_LANGUAGE,
+                          "eng",
+                          szNepmdLanguage,
+                          sizeof( szNepmdLanguage));
 
    // --------------------------------------
 
-   if (!stricmp( pszFileTag, NEPMD_VALUETAG_INIT))
+   if (!stricmp( pszValueTag, NEPMD_VALUETAG_ROOTDIR))
+      // determine installation path
+      strcpy( szValue, szNepmdPath);
+
+   else if (!stricmp( pszValueTag, NEPMD_VALUETAG_LANGUAGE))
+      // determine installation language
+      strcpy( szValue, szNepmdLanguage);
+
+   else if (!stricmp( pszValueTag, NEPMD_VALUETAG_INIT))
       {
       // determine name of initialization file
       if (fNepmdInstalled)
-         sprintf( szFilename, pszInstPathMask, szNepmdPath, pszUserBinDir, pszUserIniFile);
+         sprintf( szValue, pszInstPathMask, szNepmdPath, pszUserBinDir, pszUserIniFile);
       else
-         sprintf( szFilename, pszFreePathMask, pszUserIniFile);
+         sprintf( szValue, pszFreePathMask, szModulePath, pszUserIniFile);
       }
 
-   else if (!stricmp( pszFileTag, NEPMD_VALUETAG_MESSAGES))
+   else if (!stricmp( pszValueTag, NEPMD_VALUETAG_MESSAGE))
       {
       // determine name of message file
       if (fNepmdInstalled)
-         sprintf( szFilename, pszInstPathMask, szNepmdPath, pszUserBinDir, pszUserIniFile);
+         sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdBinDir, pszMessageFile);
       else
-         sprintf( szFilename, pszFreePathMask, pszUserIniFile);
+         sprintf( szTmp, pszFreePathMask, szModulePath, pszMessageFile);
+
+      // pass in language identifier
+      sprintf( szValue, szTmp, szNepmdLanguage);
       }
+
+   else
+
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+
+   // check result buffer
+   if (strlen( szValue) + 1 > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszBuffer, szValue);
 
    } while (FALSE);
 
