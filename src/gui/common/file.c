@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: file.c,v 1.1 2002-06-03 22:19:57 cla Exp $
+* $Id: file.c,v 1.2 2002-06-04 22:35:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -33,7 +33,7 @@
 #include "file.h"
 
 // -----------------------------------------------------------------------------
-ULONG _swapTimestamp( ULONG ulTimeStamp)
+static ULONG _swapTimestamp( ULONG ulTimeStamp)
 {
 
 swab( (PSZ)&ulTimeStamp,
