@@ -8,7 +8,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: env.cmd,v 1.4 2002-10-14 17:49:25 cla Exp $
+: $Id: env.cmd,v 1.5 2002-10-19 14:51:59 cla Exp $
 :
 : ===========================================================================
 :
@@ -23,8 +23,11 @@
 :
 : **************************************************************************/
 
+ SET EPMMODEPATH=o:\NEPMD\myepm\mode;o:\NEPMD\netlabs\mode;
+
  SET TESTCASE=CONFIGVALUE
  SET TESTCASE=MMF
  SET TESTCASE=QUERYMODELIST
  SET TESTCASE=QUERYMODE
  SET TESTCASE=QUERYHILIGHTFILE
+
