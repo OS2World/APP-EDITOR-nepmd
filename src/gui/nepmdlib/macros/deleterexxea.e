@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleterexxea.e,v 1.3 2002-08-21 10:35:52 cla Exp $
+* $Id: deleterexxea.e,v 1.4 2002-08-23 08:30:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -33,14 +33,14 @@ defc NepmdDeleteRexxEa, DeleteRexxEa =
 
   if (rc > 0) then
      sayerror 'REXX Eas not deleted, rc='rc;
-  else
-
-     /* delete all others as well, discard result codes here */
-     rcx = NepmdWriteStringEa( arg( 1), 'REXX.PROGRAMDATA', '');
-     rcx = NepmdWriteStringEa( arg( 1), 'REXX.LITERALPOOL', '');
-     rcx = NepmdWriteStringEa( arg( 1), 'REXX.TOKENSIMAGE', '');
-     rcx = NepmdWriteStringEa( arg( 1), 'REXX.VARIABLEBUF', '');
-
-     sayerror 'REXX Eas deleted';
+     return;
   endif
+
+  /* delete all others as well, discard result codes here */
+  rcx = NepmdWriteStringEa( arg( 1), 'REXX.PROGRAMDATA', '');
+  rcx = NepmdWriteStringEa( arg( 1), 'REXX.LITERALPOOL', '');
+  rcx = NepmdWriteStringEa( arg( 1), 'REXX.TOKENSIMAGE', '');
+  rcx = NepmdWriteStringEa( arg( 1), 'REXX.VARIABLEBUF', '');
+
+  sayerror 'REXX Eas deleted';
 
