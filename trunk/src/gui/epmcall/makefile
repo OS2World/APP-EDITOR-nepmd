@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.8 2002-08-12 08:01:54 cla Exp $
+# $Id: makefile,v 1.9 2002-08-13 15:41:53 cla Exp $
 #
 # ===========================================================================
 #
@@ -66,6 +66,9 @@ rel:
 
 dep:
    makedep $(BINDIR) $(DEPENDFILE)
+
+copy: all
+   copy $(BINBINDIR)\epm.exe c:\os2\
 
 # --- include dependencies - create dependency file if not present
 
