@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.26 2002-10-31 13:30:21 cla Exp $
+# $Id: makefile,v 1.27 2002-11-05 20:30:19 cla Exp $
 #
 # ===========================================================================
 #
@@ -92,8 +92,11 @@ RUNGUI: GUI
 REL:
   @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a NDEBUG=1 ARG=ALL
 
+TOUCHREL:
+  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a NDEBUG=1 ARG="ALL TOUCH=1"
+
 HELP:
-  @$(MAKE) QUIET ARG=HELP MODULE=ipf CALLED=1
+  @$(MAKE) QUIET ARG=SHOWHELP MODULE=ipf CALLED=1
 
 SHOW:
   @$(MAKE) QUIET ARG=NEUSR MODULE=ipf CALLED=1
