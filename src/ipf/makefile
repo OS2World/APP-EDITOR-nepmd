@@ -9,7 +9,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.11 2002-11-04 17:00:10 cla Exp $
+# $Id: makefile,v 1.12 2002-11-04 22:50:06 cla Exp $
 #
 # ===========================================================================
 #
@@ -64,11 +64,11 @@ NEPMDPANEL=$(PANEL)
 
 # --- pseudotargets ****************
 
-ALL: HELPINF NEUSRINF NEPRGINF
+ALL: HELPINF NEUSRINF NEPRGINF NEFLDHLP
 
-SHOW: SHOWHELP SHOWNEUSR SHOWNEPRG
+SHOW: SHOWHELP SHOWNEUSR SHOWNEPRG SHOWNEFLD
 
-NEW: NEWHELP NEWNEUSR NEWNEPRG
+NEW: NEWHELP NEWNEUSR NEWNEPRG NEWNEFLD
 
 # --- build in normal make processing
 
@@ -77,6 +77,8 @@ HELPINF: $(BASEDIR)\bin\makefile.inf
 NEUSRINF: $(CMPINFDIR)\neusr$(NLS).inf
 
 NEPRGINF: $(CMPINFDIR)\neprg$(NLS).inf
+
+NEFLDHLP: $(CMPHLPDIR)\nefld$(NLS).hlp
 
 # --- show always, rebuild if new
 
@@ -89,6 +91,9 @@ SHOWNEUSR: NEUSRINF
 SHOWNEPRG: NEPRGINF
   @start view $(CMPINFDIR)\neprg$(NLS).inf $(NEPMDPANEL)
 
+SHOWNEFLD: NEFLDHLP
+  @start view $(CMPHLPDIR)\nefld$(NLS).hlp
+
 # --- rebuild outdated, show new INFs only
 
 NEWHELP:
@@ -99,6 +104,9 @@ NEWNEUSR:
 
 NEWNEPRG:
   @$(MAKE) /nologo NEPRGINF SHOWFILE=1
+
+NEWNEFLD:
+  @$(MAKE) /nologo NEFLDHLP SHOWFILE=1
 
 # --- cleanup
 
@@ -131,5 +139,13 @@ $(CMPINFDIR)\neusr$(NLS).inf: neusr$(NLS).txt title$(NLS).inc bmp\*
    htext /N neusr$(NLS).txt $(CMPDIR)\neusr$(NLS).ipf $(CMPINFDIR)\neusr$(NLS).inf
 !ifdef SHOWFILE
    @start view $(CMPINFDIR)\neusr$(NLS).inf $(NEPMDPANEL)
+!endif
+
+# ---- generate folder help file
+
+$(CMPHLPDIR)\nefld$(NLS).hlp: nefld$(NLS).txt title$(NLS).inc bmp\*
+   htext /HLP /N nefld$(NLS).txt $(CMPDIR)\nefld$(NLS).ipf $(CMPHLPDIR)\nefld$(NLS).hlp
+!ifdef SHOWFILE
+   @start view $(CMPHLPDIR)\nefld$(NLS).hlp $(NEPMDPANEL)
 !endif
 
