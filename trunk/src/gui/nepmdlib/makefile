@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.4 2002-08-21 13:51:19 cla Exp $
+# $Id: makefile,v 1.5 2002-09-01 18:48:57 cla Exp $
 #
 # ===========================================================================
 #
@@ -48,7 +48,7 @@ FILESTOCLEAN=$(DEPENDFILE) \
  $(BINDIR)\nepmdlib.dll \
  $(BINDIR)\nepmdlib.map
 
-INCLUDE=..\common;etk;$(CMPDIR);$(INCLUDE)
+INCLUDE=..\common;..\etk;$(CMPDIR);$(INCLUDE)
 
 # --- general pseudo targets
 
