@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.24 2004-07-04 21:51:17 aschn Exp $
+* $Id: stdctrl.e,v 1.25 2004-07-09 13:41:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1574,38 +1574,7 @@ defproc put_in_buffer(string)
    return mpfrom2short(strbuffer,0)    -- Return a long pointer to buffer
 
 
-defc loadaccel
-   universal activeaccel
-   universal nepmd_hini
-   activeaccel = 'defaccel'
-                       -- Help key
-;; buildacceltable activeaccel, 'helpmenu 4000', AF_VIRTUALKEY, VK_F1, 1000
-   -- doesn't work:
-   buildacceltable activeaccel, 'dokey s+F1', AF_VIRTUALKEY+AF_SHIFT, VK_F1, 1000
-
-   call build_menu_accelerators(activeaccel)  -- Moved to menu-specific file
-
-   buildacceltable activeaccel, 'Alt_enter 1', AF_VIRTUALKEY+AF_ALT,  VK_NEWLINE, 1080  -- Alt+Enter
-   buildacceltable activeaccel, 'Alt_enter 2', AF_VIRTUALKEY+AF_ALT,    VK_ENTER, 1081  -- Alt+PadEnter
-   buildacceltable activeaccel, 'Alt_enter 3', AF_VIRTUALKEY+AF_SHIFT,VK_NEWLINE, 1082  -- Shift+Enter
-   buildacceltable activeaccel, 'Alt_enter 4', AF_VIRTUALKEY+AF_SHIFT,  VK_ENTER, 1083  -- Shift+PadEnter
-
-   -- don't want Alt or AltGr switch to menu (PM-defined key F10 does the same)
-;  buildacceltable activeaccel, 'beep 2000 50', AF_VIRTUALKEY+AF_LONEKEY, VK_ALT, 1020
-;  buildacceltable activeaccel, 'beep 2000 50', AF_VIRTUALKEY+AF_LONEKEY, VK_ALTGRAF, 1021
-   -- who wants beeps instead?
-   KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey'
-   Blocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Blocked = 1 then
-      buildacceltable activeaccel, '', AF_VIRTUALKEY+AF_LONEKEY, VK_ALT, 1020
-   endif
-   KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockRightAltKey'
-   Blocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Blocked = 1 then
-      buildacceltable activeaccel, '', AF_VIRTUALKEY+AF_LONEKEY, VK_ALTGRAF, 1021
-   endif
-
-   activateacceltable activeaccel
+; Moved defc loadaccel, alt_enter, dokey, keyin to KEYS.E.
 
 ;compile if defined(BLOCK_ALT_KEY)
 defc beep =
@@ -1615,20 +1584,6 @@ defc beep =
       call beep(pitch, duration)
    enddo
 ;compile endif
-
-defc alt_enter =
-compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''  -- define each key separately
-   universal a_enterkey, a_padenterkey, s_enterkey, s_padenterkey
-   call enter_common( substr( a_enterkey||a_padenterkey||s_enterkey||s_padenterkey, arg(1), 1))
-compile else
-   executekey enter
-compile endif
-
-defc dokey
-   executekey resolve_key(arg(1))
-
-defc keyin
-   keyin arg(1)
 
 defc maybe_reflow_ALL
    do i = 1 to .last
