@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.7 2004-02-22 18:58:05 aschn Exp $
+* $Id: assist.e,v 1.8 2004-06-03 22:43:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -122,6 +122,7 @@ compile endif
 
 def c_leftbracket, c_rightbracket = call passist()
 def c_8 = call passist()  -- added for german keyboards
+defc passist = call passist()
 
 ; ---------------------------------------------------------------------------
 ; id           = found word under cursor (or beneath the cursor in some cases)
@@ -427,7 +428,8 @@ compile endif
       circleit LOCATE_CIRCLE_STYLE, .line, startcol, endcol, LOCATE_CIRCLE_COLOR1, LOCATE_CIRCLE_COLOR2
  compile endif
    else
-      'L '\1 || search\1'x'case||direction
+      --'L '\1 || search\1'x'case||direction
+      'xcom l '\1 || search\1'x'case||direction
    endif
 
    loop
