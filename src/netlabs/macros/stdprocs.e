@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.11 2004-07-01 11:20:19 aschn Exp $
+* $Id: stdprocs.e,v 1.12 2004-07-09 13:42:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -689,35 +689,7 @@ defproc puppercase
 ;   /* instead.  But left here for compatibility with older procs.     */
 ;   return strip(arg(1),'T')
 
-; In E3 and EOS2, we can use a_X to enter the value of any key.  In EPM,
-; we can't, so the following routine is used by KEY and LOOPKEY to convert
-; from an ASCII key name to the internal value.  It handles shift or alt +
-; any letter, or a function key (optionally, with any shift prefix).  LAM
-defproc resolve_key(k)
-   kl=lowcase(k)
-   suffix=\2                           -- For unshifted function keys
-   if length(k)>=3 & pos(substr(k,2,1),'_-+') then
-      if length(k)>3 then
-         if substr(kl,3,1)='f' then     -- Shifted function key
-            suffix=substr(\10\34\18,pos(leftstr(kl,1),'sac'),1)  -- Set suffix,
-            kl=substr(kl,3)             -- strip shift prefix, and more later...
-         elseif wordpos(substr(kl, 3), 'left up right down') then
-            suffix=substr(\10\34\18,pos(leftstr(kl,1),'sac'),1)  -- Set suffix,
-            kl=substr(kl,3)             -- strip shift prefix, and more later...
-         else                        -- Something we don't handle...
-            sayerror 'Resolve_key:' sayerrortext(-328)
-            rc = -328
-         endif
-      else                        -- alt+letter or ctrl+letter
-         k=substr(kl,3,1) || substr(' ',pos(leftstr(kl,1),'ac'),1)
-      endif
-   endif
-   if leftstr(kl,1)='f' & isnum(substr(kl,2)) then
-      k=chr(substr(kl,2)+31) || suffix
-   elseif wordpos(kl, 'left up right down') then
-      k=chr(wordpos(kl, 'left up right down')+20) || suffix
-   endif
-   return k
+; Moved resolve_key to KEYS.E.
 
 
 define
