@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.32 2004-07-02 09:49:07 aschn Exp $
+* $Id: mode.e,v 1.33 2004-07-03 08:29:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -20,9 +20,6 @@
 ****************************************************************************/
 
 const
-compile if not defined(NEPMD_WANT_HIGHLIGHTING)
-   NEPMD_WANT_HIGHLIGHTING = 1  -- for testing
-compile endif
 compile if not defined(NEPMD_WANT_MODE_DETERMINATION)
    NEPMD_WANT_MODE_DETERMINATION = 1  -- for testing
 compile endif
