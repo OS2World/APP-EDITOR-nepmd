@@ -6,7 +6,7 @@
 ;
 ; Test TMF file
 ;
-; $Id: nepmdlib.tmf,v 1.1 2002-08-20 20:02:59 cla Exp $
+; $Id: nepmdlib.tmf,v 1.2 2002-08-21 13:51:52 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -21,12 +21,10 @@
 ;
 ; **************************************************************************/
 
-<--TESTMESSAGE-->: This is a test message from nepmdlib.tmf !
+<--TESTMESSAGE-->:This is a test message from nepmdlib.tmf !
+<--TESTVAL1-->:This is testvalue 1
+<--TESTVAL2-->:This is testvalue 2 with a newline
 
-<--TESTVAL1-->: This is testvalue 1
-<--TESTVAL2-->: This is testvalue 2 with a newline
+<--TESTVAL3-->:How about this value 3 with a newline
 
-<--TESTVAL3-->: How about this value 3
-
-<--INSERTTEST-->: This is parm 1: %1 This is parm2: %2 this is parm 3: %3
-
+<--INSERTTEST-->:This is parm 1: %1 This is parm2: %2 this is parm 3: %3
