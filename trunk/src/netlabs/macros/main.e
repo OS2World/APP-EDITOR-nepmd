@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.4 2002-09-02 22:13:58 aschn Exp $
+* $Id: main.e,v 1.5 2002-09-19 13:22:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -152,8 +152,8 @@ compile if WANT_PROFILE
    if REXX_PROFILE then
  compile endif
       profile = 'profile.erx'
-      findfile profile1, profile, EPATH
-      if rc then findfile profile1, profile, 'PATH'; endif
+      findfile profile1, profile, 'PATH'
+      if rc then findfile profile1, profile, EPATH; endif
       if not rc then
 compile if 0 -- debug for LaMail
          if isadefproc('write_debug_file') then
