@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.7 2002-10-18 15:42:30 cla Exp $
+* $Id: edit.e,v 1.8 2002-10-21 11:51:00 cla Exp $
 *
 * ===========================================================================
 *
@@ -43,29 +43,48 @@ defproc NepmdResolveEnvVars( Spec )
    enddo  -- forever
    return Spec
 
+-- _cla
 ; ---------------------------------------------------------------------------
-; All REXX EA's are deleted (if present) if the extension matches
-; Spec may contain wildcards
-defproc NepmdDeleteRexxEaFileSpec( Spec )
+; Load files from a filespec, make sure that a mode already used within
+; this loop is not checked again
+
+defproc NepmdLoadFile( Spec, Options )
    universal nepmd_hini
-   KeyPath = '\NEPMD\User\RexxEa\Extensions'
-   RexxEaExtensions = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+
    Spec = strip( Spec, 'B', '"' )
+   ModeList = '';
+
+   Handle = 0;
    do forever
-      Filename = NepmdGetNextFile( Spec, address(0) )
+      Filename = NepmdGetNextFile( Spec, address( Handle) )
       parse value Filename with 'ERROR:'rc
       if rc > 0 then
          leave
       endif
-      p1 = lastpos( '.', Filename )
-      if p1 > 1 then
-         ext = translate( substr( Filename, p1 + 1 ) )
-         if wordpos( ext, RexxEaExtensions ) then
-            --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
-            call NepmdDeleteRexxEa( Filename )
-         endif
+
+      -- check if mode has already been used in this loop
+      Filemode = NepmdQueryDefaultMode( FileName )
+      if ( filemode = 'REXX' ) then
+         call NepmdDeleteRexxEa( Filename )
       endif
+
+      -- load the file
+      loadfile( Filename, Options)
+
+      -- activate highlighting
+      -- make sure each mode is checked for only once
+      if (wordpos( Filemode, Modelist) = 0) then
+         CheckFlag = ''
+         Modelist = Modelist Filemode
+      else
+         CheckFlag = 'N'
+      endif
+
+      -- process mode initialization (this activates syntax highlighting)
+      Filemode = NepmdInitMode( CheckFlag)
+
    enddo  -- forever
+
    return
 
 
@@ -202,21 +221,16 @@ compile endif
 
          --sayerror 'EDIT.E before call loadfile(file,options): file = 'file
 
-         -- resolve wildcards in filespec 'file' and delete REXX EA's for certain extensions
-         RexxEaDelete = NepmdQueryConfigValue( nepmd_hini, '\NEPMD\User\RexxEa\Delete' )
-         if RexxEaDelete = 1 then
-            call NepmdDeleteRexxEaFileSpec( file )
-         endif
 
 compile if USE_APPEND  -- Support for DOS 3.3's APPEND, thanks to Ken Kahn.
          if not(verify(file,'\:','M')) then
             if not exist(file) then
                File = Append_Path(File)||File  -- LAM todo: fixup
             endif
-         endif
+        endif
 compile endif
 
-         call loadfile(file,options)
+         call NepmdLoadFile(file, options)
 
          if rc=-3 then        -- sayerror('Path not found')
             bad_paths=bad_paths', 'file
