@@ -1,0 +1,41 @@
+/* ERX (EPM-REXX) */
+
+/* Opens arg(1).                                                           */
+/* To be called from an EPM command line.                                  */
+/*                                                                         */
+/* Syntax:  rx Open [object, [setup_string]]                               */
+/*                                                                         */
+/* object may contain a relative filespec if it is a directory.            */
+/* Both args are submitted to SysSetObjectData.                            */
+/* If setup_string is not specified, then OPEN=DEFAULT is assumed.         */
+
+call RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+call SysLoadFuncs
+
+parse arg arg1 ','arg2
+Object = strip( arg1 )
+Setup  = strip( arg2 )
+
+if Object = '' then
+   return 1
+
+if Setup = '' then
+   Setup = 'OPEN=DEFAULT'
+
+/* test if dir and resolve filespec */
+CurDir = directory()
+next = directory(Object)  /* this resolves also: Filename'\..' */
+call directory CurDir
+if next <> '' then  /* if dir exists */
+   Object = next
+
+/* open the object */
+do 2
+   /* the 2nd call is for to make it the topmost window */
+   rc = SysSetObjectData( Object, Setup )
+   if rc <> 1 then  /* rc = 1 ==> ok */
+      leave
+end /* do 2 */
+
+return 0
+
