@@ -2,13 +2,14 @@
 *
 * Module Name: mkex.cmd
 *
-* Syntax: mkex target_dir sourcefile
+* Syntax: mkex sourcepath target_dir sourcefile
 *
 * Script for to create the NEPMD version of EPM.EX
+* Sources are taken only from the specified source directory
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkex.cmd,v 1.3 2002-09-16 13:42:51 cla Exp $
+* $Id: mkex.cmd,v 1.4 2002-09-19 10:49:01 cla Exp $
 *
 * ===========================================================================
 *
@@ -30,7 +31,7 @@
  call SysLoadFuncs
 
  /* get parms */
- PARSE ARG TargetDir SourceFile;
+ PARSE ARG SourcePath TargetDir SourceFile;
  TargetDir = STRIP( TargetDir);
  IF (TargetDir = '') THEN
  DO
@@ -42,6 +43,9 @@
     SourceFile = 'epm.e';
 
  TargetFile = SourceFile'x';
+
+ /* set sourcepath as EPMPATH */
+ rcx = VALUE( 'EPMPATH', SourcePath, env);
 
  /* create tempfile */
  TmpFile = SysTempFilename( VALUE('TMP',,env)'\mkex.???');
