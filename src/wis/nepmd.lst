@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: nepmd.lst,v 1.12 2002-11-04 22:46:40 cla Exp $
+: $Id: nepmd.lst,v 1.13 2004-12-25 15:18:31 aschn Exp $
 :
 : ===========================================================================
 :
@@ -30,14 +30,14 @@ APP              1 %UNZIPPEDDIR%\epmapp          epmbbs\*
 HLP              1 %UNZIPPEDDIR%\epmhlp          epmbbs\*
 BK               1 %UNZIPPEDDIR%\epmbk           epmbbs\*
 BMP              1 %UNZIPPEDDIR%\epmbmps         epmbbs\*
-NEPMD_EPMCALL    1 %BINDIR_NAME%\epmcall         netlabs\bin\*
-NEPMD_EPMCALLCFG 1 %CMPDIR_NAME%\base            netlabs\bin\*
-NEPMD_INSTALL    1 %CMPDIR_NAME%\base            netlabs\install\*
-NEPMD_BOOK       1 %CMPDIR_NAME%\base            netlabs\book\*
-NEPMD_HELP       1 %CMPDIR_NAME%\base            netlabs\help\*
-NEPMD_EX         1 %CMPDIR_NAME%\base            netlabs\ex\*
-NEPMD_DLL        1 %BINDIR_NAME%\base            netlabs\dll\*
-NEPMD_MODE       1 %CMPDIR_NAME%\base            netlabs\mode\*
+NEPMD_EPMCALL    1 %BINDIR%\epmcall              netlabs\bin\*
+NEPMD_EPMCALLCFG 1 %CMPDIR%\base                 netlabs\bin\*
+NEPMD_INSTALL    1 %CMPDIR%\base                 netlabs\install\*
+NEPMD_BOOK       1 %CMPDIR%\base                 netlabs\book\*
+NEPMD_HELP       1 %CMPDIR%\base                 netlabs\help\*
+NEPMD_EX         1 %CMPDIR%\base                 netlabs\ex\*
+NEPMD_DLL        1 %BINDIR%\base                 netlabs\dll\*
+NEPMD_MODE       1 %CMPDIR%\base                 netlabs\mode\*
 
 : --- package 2: macros
 
@@ -47,8 +47,8 @@ MACROSAMPLES     2 %UNZIPPEDDIR%\epmsmp          epmbbs\*
 EBOOKE           2 %UNZIPPEDDIR%\ebooke          epmbbs\*
 MYASSIST         2 %UNZIPPEDDIR%\epmasi          epmbbs\*
 VMEXEC           2 %UNZIPPEDDIR%\lampdq          epmbbs\*
-NEPMD_RECOMP     2 %BINDIR_NAME%\recomp          netlabs\bin\*
-NEPMD_MACROS     2 %CMPDIR_NAME%\base            netlabs\macros\*
+NEPMD_RECOMP     2 %BINDIR%\recomp               netlabs\bin\*
+NEPMD_MACROS     2 %CMPDIR%\base                 netlabs\macros\*
 
 : --- package 3: Programming Samples
 

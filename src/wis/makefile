@@ -17,7 +17,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.12 2004-07-02 11:46:31 aschn Exp $
+# $Id: makefile,v 1.13 2004-12-25 15:18:31 aschn Exp $
 #
 # ===========================================================================
 #
@@ -35,7 +35,7 @@
 # --- do not allow execution from within this directory
 
 !ifndef CALLED
-!error in wis\makefile: This makefile is to be called from the main makefile only !
+!error in wis\makefile: This makefile is to be called from the main makefile only!
 !endif
 
 # --- include main definitions
@@ -54,30 +54,33 @@ NLS=eng
 # --- read special makefile configuration
 
 !include $(BASEDIR)\configure.in
-SCRIPTFILE=$(STEM).wis
-NLSSCRIPTFILE=$(CMPDIR)\$(STEM)_$(NLS).wis
 
+SCRIPTFILE=nepmd.wis
+
+NLSSCRIPTFILE=$(CMPDIR)\$(STEM)_$(NLS).wis
 WPISTEM=$(STEM)$(VERSION)_$(NLS)
-WPIFILE=$(WPISTEM).wpi
-WPILOGFILE=$(BINDIR_NAME)\$(WPISTEM).log
+WPIFILE=$(BINDIR)\$(WPISTEM).wpi
+WPILOGFILE=$(BINDIR)\$(WPISTEM).log
 WPILISTFILE=$(STEM).lst
 
+WPPSCRIPTFILE=epmbase.wis
 WPPSTEM=$(STEM)_epmbase
-WPPFILE=$(WPPSTEM).wpp
-WPPLOGFILE=$(BINDIR_NAME)\$(WPPSTEM).log
+WPPFILE=$(BINDIR)\$(WPPSTEM).wpp
+WPPLOGFILE=$(BINDIR)\$(WPPSTEM).log
 WPPLISTFILE=epmbase.lst
 
 NLSINCLUDE=..\nls\wis
 
-# --- extend path for creating WPI file from basedir
+# --- extend path for creating WPI file from src\wis directory
 
-PATH=bin;$(PATH)
+PATH=$(BASEDIR)\bin;$(PATH)
 
 # --- definitions for this makefile
 
 FILESTOCLEAN=\
- $(CMPDIR)\$(SCRIPTFILE) \
- $(BINDIR)\$(WPIFILE) \
+ $(NLSSCRIPTFILE) \
+ $(WPPSCRIPTFILE) \
+ $(WPIFILE) \
  $(CMPDIR)\prepare.log \
  $(BINDIR)\mkwpi.log
 
@@ -90,26 +93,27 @@ WISPARMS= \
  NLS=$(NLS)
 
 CREATEPARMS=\
- UNZIPPEDDIR=$(UNZIPPEDDIR)\
- BINDIR_NAME=$(BINDIR_NAME)\
- CMPDIR_NAME=$(CMPDIR_NAME)
+ UNZIPPEDDIR=$(UNZIPPEDDIR) \
+ BINDIR=$(BINDIR) \
+ CMPDIR=$(CMPDIR)
 
 # --- pseudotargets
 
 ALL: PREPARE CREATE
 
 INST: ALL
-  warpin.env start warpin $(BINDIR)\$(WPIFILE)
+  warpin.env start warpin $(WPIFILE)
 
-REMOVE: $(CMPDIR)\$(SCRIPTFILE)
-  rmwpi $(CMPDIR)\$(SCRIPTFILE)
+REMOVE: $(NLSSCRIPTFILE)
+  @rmwpi $(NLSSCRIPTFILE)
+#  @rmwpi $(WPPSCRIPTFILE)  # to be fixed
 
 
 # ---
 
 PREPARE: $(UNZIPPEDDIR)\prepare.log
 
-CREATE:  $(BINDIR)\$(WPIFILE) $(BINDIR)\$(WPPFILE)
+CREATE:  $(WPIFILE) $(WPPFILE)
 
 CLEAN:
    @echo cleaning up files ...
@@ -129,27 +133,21 @@ $(UNZIPPEDDIR)\prepare.log: prepare.cmd
    prepare $(UNZIPPEDDIR)\prepare.log $(BASEURL) $(ZIPSRCDIR) $(UNZIPPEDDIR)
    -@COPY $(UNZIPPEDDIR)\*.log $(CMPDIR) >NUL 2>&1
 
+# --- create customized WarpIn script file
+
+$(NLSSCRIPTFILE): $(SCRIPTFILE) $(NLSINCLUDE)\nepmd$(NLS).h $(NLSINCLUDE)\page*$(NLS).xml $(NLSINCLUDE)\desc*$(NLS).xml
+   parseenv $(SCRIPTFILE) $(NLSSCRIPTFILE) $(WISPARMS)
+
 # ---- create WPI package
 
-$(BINDIR)\$(WPIFILE): PREPARE $(NLSSCRIPTFILE) $(WPIDEPLIST) $(WPILISTFILE)
+$(WPIFILE): PREPARE $(NLSSCRIPTFILE) $(WPIDEPLIST) $(WPILISTFILE)
 !ifdef TOUCH
    touchrel $(CMPDIR) $(BINDIR)
 !endif
-   @CD $(BASEDIR)
-   mkwpi src\wis\$(WPILISTFILE) $(WPILOGFILE) src\wis\$(NLSSCRIPTFILE) $(BINDIR_NAME)\$(WPIFILE) $(CREATEPARMS)
-   @cd $(MAKEDIR)
+   mkwpi $(WPILISTFILE) $(WPILOGFILE) $(NLSSCRIPTFILE) $(WPIFILE) $(CREATEPARMS)
 
 # ---- create WPP package
 
-$(BINDIR)\$(WPPFILE): PREPARE epmbase.wis $(WPPLISTFILE)
-#!ifdef TOUCH
-#   touchrel $(CMPDIR) $(BINDIR)
-#!endif
-   @CD $(BASEDIR)
-   mkwpi src\wis\$(WPPLISTFILE) $(WPPLOGFILE) src\wis\epmbase.wis $(BINDIR_NAME)\$(WPPFILE) $(CREATEPARMS)
-   @cd $(MAKEDIR)
-
-# --- create customized WarpIn script file
-$(NLSSCRIPTFILE): $(SCRIPTFILE) $(NLSINCLUDE)\nepmd$(NLS).h $(NLSINCLUDE)\page*$(NLS).xml $(NLSINCLUDE)\desc*$(NLS).xml
-   parseenv $(SCRIPTFILE) $(NLSSCRIPTFILE) $(WISPARMS)
+$(WPPFILE): PREPARE $(WPPSCRIPTFILE) $(WPPLISTFILE)
+   mkwpi $(WPPLISTFILE) $(WPPLOGFILE) $(WPPSCRIPTFILE) $(WPPFILE) $(CREATEPARMS)
 
