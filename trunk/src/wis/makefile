@@ -17,7 +17,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.6 2002-06-11 14:15:13 cla Exp $
+# $Id: makefile,v 1.7 2002-06-12 09:08:04 cla Exp $
 #
 # ===========================================================================
 #
@@ -105,7 +105,7 @@ CHECK: PREPARE
 #      may require internet connection, see env.cmd
 #      also copy logfile
 
-$(UNZIPPEDDIR)\prepare.log: $(BASEDIR)\bin\prepare.cmd
+$(UNZIPPEDDIR)\prepare.log: prepare.cmd
    prepare $(UNZIPPEDDIR)\prepare.log $(BASEURL) $(ZIPSRCDIR) $(UNZIPPEDDIR)
    -@COPY $(UNZIPPEDDIR)\*.log $(CMPDIR) >NUL 2>&1
 
