@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.40 2002-09-16 21:39:37 cla Exp $
+* $Id: nepmdlib.c,v 1.41 2002-09-16 22:00:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -405,7 +405,7 @@ return DosFindClose( hdir);
 // ------------------------------------------------------------------------------
 
 APIRET EXPENTRY NepmdGetNextConfigKey( HCONFIG hconfig, PSZ pszRegPath, PSZ pszPreviousKey,
-                                       PSZ pszBuffer, ULONG ulBuflen)
+                                       PSZ pszOptions, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
          BOOL           fImplicitOpen = FALSE;
@@ -421,7 +421,7 @@ do
       }
 
    // do the job
-   rc = GetNextConfigKey( hconfig, pszRegPath, pszPreviousKey, pszBuffer, ulBuflen);
+   rc = GetNextConfigKey( hconfig, pszRegPath, pszPreviousKey, pszOptions, pszBuffer, ulBuflen);
 
    } while (FALSE);
 
