@@ -10,7 +10,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: usertree.cmd,v 1.7 2002-11-04 20:57:44 cla Exp $
+* $Id: usertree.cmd,v 1.8 2002-11-04 22:48:18 cla Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +54,7 @@
  rcx = SysMkDir( FullPath);
  ObjectId = ObjectIdStart''TRANSLATE( UserDirName)''ObjectIdEnd;
  rcx = SysCreateObject( 'WPShadow', '.', FolderId, 'SHADOWID='FullPath';OBJECTID='ObjectId';', 'U');
- rcx = SysSetObjectData( FullPath, 'DEFAULTVIEW=TREE;');
+ rcx = SysSetObjectData( FullPath, 'DEFAULTVIEW=TREE;HELPLIBRARY='BaseDir'\netlabs\help\nefldeng.hlp;HELPPANEL=105;');
 
  /* create directories here - ignore errors */
  DO WHILE (UserDirList \= '')
