@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.18 2002-10-17 22:26:11 aschn Exp $
+* $Id: mode.e,v 1.19 2002-10-19 15:45:41 cla Exp $
 *
 * ===========================================================================
 *
@@ -63,6 +63,15 @@ compile endif
 
    return CurMode
 
+; ---------------------------------------------------------------------------
+; Resets and redetermines current mode.
+defproc NepmdResetMode()
+   universal EPM_utility_array_ID
+   getfileid fid
+   ResetMode = '';
+   do_array 2, EPM_utility_array_ID, 'mode.'fid, ResetMode
+   call NepmdProcessMode( )
+   return
 
 ; ---------------------------------------------------------------------------
 ; This command uses the NEPMDLIB EA functions to change the EA 'EPM.MODE'
