@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.7 2002-08-10 19:23:17 cla Exp $
+# $Id: makefile,v 1.8 2002-08-12 08:01:54 cla Exp $
 #
 # ===========================================================================
 #
@@ -22,10 +22,13 @@
 # ***************************************************************************
 
 # - create utilitiy
+#   NOTE: compile with multithread support,
+#         because common.lib is compiled MT also
 PKGDIR=epmcall
 DEF=epmcall.def
 LXLITE=1
 LIBS=$(BINDIR)\common.lib
+MT=1
 
 # include main definitions
 BASEDIR=..\..\..
