@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: job.h,v 1.1 2002-06-03 22:27:07 cla Exp $
+* $Id: job.h,v 1.2 2002-06-04 20:06:34 cla Exp $
 *
 * ===========================================================================
 *
@@ -49,6 +49,7 @@
 
 
 #define RESET_STATUS                (pwd->ulJobStatus = JOB_ACTION_INITIALIZE)
+#define JOB_RUNNING                 (pwd->ulJobStatus != JOB_ACTION_INITIALIZE)
 
 // prototypes
 MRESULT EXPENTRY JobWindowProc( HWND hwnd, ULONG msg, MPARAM mp1, MPARAM mp2);

@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: client.c,v 1.1 2002-06-03 22:27:04 cla Exp $
+* $Id: client.c,v 1.2 2002-06-04 20:06:34 cla Exp $
 *
 * ===========================================================================
 *
@@ -247,18 +247,22 @@ switch (msg)
    // ---------------------------------------------------------------
 
    case WM_INITMENU:
-      if (pwd->fAutoStart)
-         {
-         ENABLEMENUITEM( hwndMenu, IDMEN_SETTINGS_DISCARD_UNSAVED, FALSE);
-         ENABLEMENUITEM( hwndMenu, IDMEN_SETTINGS_RELOAD_FILES,    FALSE);
-         ENABLEMENUITEM( hwndMenu, IDMEN_SETTINGS_SHOW_COMPILELOG, FALSE);
-         }
-      else
-         {
-         SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_DISCARD_UNSAVED, pwd->cd.fDiscardUnsaved);
-         SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_RELOAD_FILES,    pwd->cd.fReloadFiles);
-         SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_SHOW_COMPILELOG, pwd->cd.fShowCompileLog);
-         }
+      {
+               BOOL           fEnableMenu = (!pwd->fAutoStart) && (!JOB_RUNNING);
+
+      // enable  menu items only when job is not running
+      ENABLEMENUITEM( hwndMenu, IDMEN_FILE_EXIT,                fEnableMenu);
+      ENABLEMENUITEM( hwndMenu, IDMEN_SETTINGS_DISCARD_UNSAVED, fEnableMenu);
+      ENABLEMENUITEM( hwndMenu, IDMEN_SETTINGS_RELOAD_FILES,    fEnableMenu);
+      ENABLEMENUITEM( hwndMenu, IDMEN_SETTINGS_SHOW_COMPILELOG, fEnableMenu);
+      ENABLEMENUITEM( hwndMenu, IDMEN_HELP_PARMS,               fEnableMenu);
+      ENABLEMENUITEM( hwndMenu, IDMEN_HELP_INFO,                fEnableMenu);
+
+      // maintain menu checkmarks
+      SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_DISCARD_UNSAVED, pwd->cd.fDiscardUnsaved);
+      SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_RELOAD_FILES,    pwd->cd.fReloadFiles);
+      SETMENUCHECKVALUE( hwndMenu, IDMEN_SETTINGS_SHOW_COMPILELOG, pwd->cd.fShowCompileLog);
+      }
       break;
 
    // ---------------------------------------------------------------
