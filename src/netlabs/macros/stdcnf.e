@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.10 2002-11-05 18:06:20 aschn Exp $
+* $Id: stdcnf.e,v 1.11 2002-12-09 20:48:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,12 +23,6 @@
 ; ---------------------------------------------------------------------------
 ; Commented out obsolete lines by a ';' (rather then deleting them) to enable
 ; searching for obsolete consts.
-;
-; Added recommended entries for MYCNF.E. Can be found as follows:
-; Place the cursor on the overnext line and press Ctrl+L
-; or Alt+= (english keyboard) or Alt+0 (german keyboard)
-    l /Set.*=.*in MYCNF\.E/g+fae
-; For finding the next line, press Ctrl+F
 ; ---------------------------------------------------------------------------
 */
 
@@ -210,7 +204,7 @@ compile endif
 --   ''     loads no host-file support at all.
 compile if not defined(HOST_SUPPORT)
  compile if not SMALL
-   --HOST_SUPPORT = 'STD'
+   --HOST_SUPPORT = 'STD'  -- changed by aschn
    -- Changed HOST_SUPPORT to W4's and eCS's default, because otherwise files from
    -- drive H: are not loaded properly and can't be saved.
    -- Note: if you want to activate it in your MYCNF.E, then also specify HOSTDRIVE!
@@ -310,7 +304,7 @@ compile if not defined(E_MARGINS)
 compile endif
 
 compile if not defined(REXX_SYNTAX_ASSIST)
-   --REXX_SYNTAX_ASSIST = 0
+   --REXX_SYNTAX_ASSIST = 0  -- changed by aschn
    REXX_SYNTAX_ASSIST = 1
 compile endif
 compile if not defined(REXX_TABS)
@@ -353,7 +347,7 @@ compile endif
 -- Set this to 1 if you like PE2's method of reflowing a paragraph -- moving
 -- the cursor to the next paragraph.
 compile if not defined(REFLOW_LIKE_PE)
-   --REFLOW_LIKE_PE = 0
+   --REFLOW_LIKE_PE = 0  -- changed by aschn
    REFLOW_LIKE_PE = 1
 compile endif
 
@@ -361,14 +355,14 @@ compile endif
 -- save the file if the file was not modified.  Has the side effect that
 -- the Name command sets .modify to 1.
 compile if not defined(SMARTFILE)
-   --SMARTFILE = 0
+   --SMARTFILE = 0  -- changed by aschn
    SMARTFILE = 1
 compile endif
 
 -- Set this to 1 if you want the Save key to prompt you if the file was not
 -- modified.  the side effect that
 compile if not defined(SMARTSAVE)
-   --SMARTSAVE = 0
+   --SMARTSAVE = 0  -- changed by aschn
    SMARTSAVE = 1
 compile endif
 
@@ -380,6 +374,7 @@ compile endif
 -- MYKEYS.E.  Also, SMARTQUIT doesn't apply to EPM.
 -- (No effect if using EPM.)
 compile if not defined(SMARTQUIT)
+; obsolete
    SMARTQUIT = 0
 compile endif
 compile if not defined(FILEKEY)
@@ -397,6 +392,7 @@ compile endif
 --         minimal-sized E.
 -- (No effect if using EPM.)
 compile if not defined(WANT_WINDOWS)
+; obsolete
    -- Don't change.  No window support in EPM
    WANT_WINDOWS = 0
 compile endif
@@ -406,6 +402,7 @@ compile endif
 -- (No effect if using EPM.)
 compile if WANT_WINDOWS
  compile if not defined(JHwindow)
+; obsolete
    JHwindow = 0
  compile endif
 compile endif
@@ -460,6 +457,7 @@ compile endif
 
 -- EOS2 4.02:  On OS/2 we'll search the DPATH for text files if this is 1.
 compile if not defined(USE_APPEND)
+; obsolete
    USE_APPEND = 0
 compile endif
 
@@ -470,7 +468,8 @@ compile endif
 -- will be added to let the user change this dynamically.  If SETSTAY='?' then
 -- STAY will be initialized in the next section.
 compile if not defined(SETSTAY)
-   SETSTAY = 0
+   --SETSTAY = 0  -- changed by aschn
+   SETSTAY = '?'
 compile endif
 
 -- EOS2:  This constant enables a small DEFEXIT which keeps you in the editor
@@ -487,18 +486,21 @@ compile if not defined(WANT_TABS)
    WANT_TABS = 1
 compile endif
 
+; disabled by aschn
 ;-- Ver. 3.11d:  This constant lets the user specify where the cursor should
 ;-- be when starting E.  0 means in the file area, 1 means on the command line.
 ;-- (No effect if using EPM.)
-;compile if not defined(CURSOR_ON_COMMAND)
-;   CURSOR_ON_COMMAND = 0
-;compile endif
+compile if not defined(CURSOR_ON_COMMAND)
+; obsolete
+   CURSOR_ON_COMMAND = 0
+compile endif
 
 /* specifies whether the process window will be used.*/
 /* a process window allows the editor to view output */
 /* directed to the standard output device (stdout)   */
 /* as if it were directed into an editor file        */
 -- (No effect if using EPM.)
+; obsolete
    SHELL_USAGE = 0
 
 -- Ver. 3.12:  Lets you include the routine that searches a path for a file
@@ -523,13 +525,13 @@ compile endif
 -- status line configuration
 -- Standard EPM >= 5.21: undefined
 -- Now handled as arg(1) of 'setstatuscolor' by sending a windowmessage
-compile if not defined(STATUS_TEMPLATE)
-   --STATUS_TEMPLATE=   'Line %l of %s   Column %c  %i   %m   %f   EPM 'EVERSION
-   -- Template for status line.  %l = current line; %s = size of file,
-   -- %c = current column; %i = Insert/Replace; %m = Modified/<blank>
-   -- %z = character above cursor in decimal; %x = character above cursor in hex;
-   -- %f = 1 file/<n> files
-compile endif
+;compile if not defined(STATUS_TEMPLATE)
+;   STATUS_TEMPLATE=   'Line %l of %s   Column %c  %i   %m   %f   EPM 'EVERSION
+;   -- Template for status line.  %l = current line; %s = size of file,
+;   -- %c = current column; %i = Insert/Replace; %m = Modified/<blank>
+;   -- %z = character above cursor in decimal; %x = character above cursor in hex;
+;   -- %f = 1 file/<n> files
+;compile endif
 
 ;  We've provided three methods of showing the modified status.
 ;  1. The COLOR method changes the window color, for a very obvious indicator.
@@ -541,6 +543,7 @@ compile endif
 ;     is shrunk to an icon by clicking on the icon.
 -- If user didn't define in MYCNF,
 compile if not defined(SHOW_MODIFY_METHOD)
+; obsolete
    -- if PM, then modified state is on status line
    SHOW_MODIFY_METHOD = ''
 compile endif
@@ -590,9 +593,7 @@ compile endif
 
 -- Optionally include Larry Margolis' ALL command.
 compile if not defined(WANT_ALL)
-   -- What a poor default value!
-   -- Set WANT_ALL = 1 in MYCNF.E
-   --WANT_ALL = 0
+   --WANT_ALL = 0  -- changed by aschn
    WANT_ALL = 1
 compile endif
 
@@ -608,6 +609,7 @@ compile endif
 -- and instead a "List files in ring" entry will be added to the Options pulldown.
 -- This means that adding files to or removing them from the ring will be faster.
 compile if not defined(MENU_LIMIT)
+; obsolete
    MENU_LIMIT = 0
 compile endif
 
@@ -627,9 +629,7 @@ compile endif
 /* Specifies whether support should be included   */
 /* for a shell window.                            */
 compile if not defined(WANT_EPM_SHELL)
-   -- What a poor default value!
-   -- Set WANT_EPM_SHELL = 1 in MYCNF.E
-   --WANT_EPM_SHELL = 0
+   --WANT_EPM_SHELL = 0  -- changed by aschn
    WANT_EPM_SHELL = 1
 compile endif
 
@@ -665,20 +665,17 @@ compile endif
 -- will cause the long name to be displayed on the EPM title bar, instead of the
 -- real (short) name.
 compile if not defined(WANT_LONGNAMES)
-   -- What a poor default value!
-   -- Set WANT_LONGNAMES = 1 in MYCNF.E
-   --WANT_LONGNAMES = 0
-   WANT_LONGNAMES = 1
+   --WANT_LONGNAMES = 0  -- changed by aschn
+   WANT_LONGNAMES = 'SWITCH'
+   -- 'SWITCH' activates MY_SHOW_LONGNAMES, default is now: 1
 compile endif
 
 -- Adds PUSHMARK, POPMARK, PUSHPOS and POPPOS commands.  For EPM, also adds
 -- pulldown entries to the action bar.
 compile if not defined(WANT_STACK_CMDS)
-   -- What a poor default value!
-   -- Set WANT_STACK_CMDS = 'SWITCH' in MYCNF.E
-   --WANT_STACK_CMDS = 0
+   --WANT_STACK_CMDS = 0  -- changed by aschn
    WANT_STACK_CMDS = 'SWITCH'
-   MY_STACK_CMDS = 1
+   -- 'SWITCH' activates MY_STACK_CMDS, default is now: 1, defined in MENUACCEL.E
 compile endif
 
 -- WANT_CUA_MARKING causes the mouse definitions to be limited to the CUA actions,
@@ -688,10 +685,9 @@ compile endif
 -- behave this way all the time, or to 'SWITCH' to enable switching it on and
 -- off.  The default is 0, meaning that the standard EPM settings are in effect.
 compile if not defined(WANT_CUA_MARKING)
-   -- Set WANT_CUA_MARKING = 'SWITCH' in MYCNF.E
-   --WANT_CUA_MARKING = 0
+   --WANT_CUA_MARKING = 0  -- changed by aschn
    WANT_CUA_MARKING = 'SWITCH'
-   MY_CUA_MARKING_SWITCH = 0
+   -- 'SWITCH' activates MY_CUA_MARKING_SWITCH, default is: 0
 compile endif
 
 -- MOUSE_SUPPORT only applies to EPM.  It can should normally be set to 1,
@@ -707,9 +703,7 @@ compile endif
 -- the Edit pulldown can be used to paste this buffer back into the editor.
 -- Not as useful as it originally was, since full undo has been added.
 compile if not defined(WANT_DM_BUFFER)
-   -- What a poor default value!
-   -- Set WANT_DM_BUFFER = 1 in MYCNF.E
-   --WANT_DM_BUFFER = 0
+   --WANT_DM_BUFFER = 0  -- changed by aschn
    WANT_DM_BUFFER = 1
 compile endif
 
@@ -718,19 +712,15 @@ compile endif
 -- behave this way all the time, or to 'SWITCH' to enable switching it on and
 -- off.  The default is 0, meaning forget stream mode entirely.
 compile if not defined(WANT_STREAM_MODE)
-   -- What a poor default value!
-   -- Set WANT_STREAM = 'SWITCH' in MYCNF.E
-   --WANT_STREAM_MODE = 0
+   --WANT_STREAM_MODE = 0  -- changed by aschn
    WANT_STREAM_MODE = 'SWITCH'
-   MY_WANT_STREAM_MODE = 1
+   -- 'SWITCH' activates MY_STREAM_MODE, default is now: 1
 compile endif
 
 -- WANT_STREAM_INDENTED lets you specify that if the Enter key splits a line,
 -- the new line should be indented the same way the previous line was.
 compile if not defined(WANT_STREAM_INDENTED)
-   -- What a poor default value!
-   -- Set WANT_STREAM_INDENTED = 1 in MYCNF.E
-   --WANT_STREAM_INDENTED = 0
+   --WANT_STREAM_INDENTED = 0  -- changed by aschn
    WANT_STREAM_INDENTED = 1
 compile endif
 
@@ -739,9 +729,7 @@ compile endif
 -- LAN installations, so people can use a common .EX but still customize the
 -- keys.
 compile if not defined(ENHANCED_ENTER_KEYS)
-   -- What a poor default value!
-   -- Set ENHANCED_ENTER_KEYS = 1 in MYCNF.E
-   --ENHANCED_ENTER_KEYS = 0
+   --ENHANCED_ENTER_KEYS = 0  -- changed by aschn
    ENHANCED_ENTER_KEYS = 1
 compile endif
 
@@ -750,7 +738,8 @@ compile endif
 -- Most people will want this to be set to 0, so that you always can load as
 -- many files as you like.
 compile if not defined(RING_OPTIONAL)
-   RING_OPTIONAL = 0
+   --RING_OPTIONAL = 0  -- changed by aschn
+   RING_OPTIONAL = 1
 compile endif
 
 -- SUPPORT_BOOK_ICON specifies whether or not the "Book icon" entry is on
@@ -765,7 +754,7 @@ compile if not defined(SUPPORT_BOOK_ICON)
 ;compile if EVERSION < '5.50'
    -- Only useful if an EPM object is started with option /i and has the setup string MINWIN=DESKTOP
    -- Set SUPPORT_BOOK_ICON = 0 in MYCNF.E
-   --SUPPORT_BOOK_ICON = 1
+   --SUPPORT_BOOK_ICON = 1  -- changed by aschn
    SUPPORT_BOOK_ICON = 0
 compile endif
 
@@ -793,9 +782,7 @@ compile endif
 
 -- Set this to 1 to include bracket-matching (Ctrl+[)
 compile if not defined(WANT_BRACKET_MATCHING)
-   -- What a poor default value!
-   -- Set WANT_BRACKET_MATCHING = 1 in MYCNF.E
-   --WANT_BRACKET_MATCHING = 0
+   --WANT_BRACKET_MATCHING = 0  -- changed by aschn
    WANT_BRACKET_MATCHING = 1
 compile endif
 
@@ -815,6 +802,7 @@ compile endif
 -- user additions, so this new option says to include a separate .EX file for
 -- MOUSE, MARKFILT, BOOKMARK, CLIPBRD, CHAROPS, DOSUTIL, ALL, MATH and SORT.
 compile if not defined(EXTRA_EX)
+; obsolete
    -- Don't change this!
    EXTRA_EX = 0
 compile endif
@@ -822,16 +810,15 @@ compile endif
 -- Add support for looking up keywords in an index file and getting help.
 -- See KWHELP.E for details.  EPM only.
 compile if not defined(WANT_KEYWORD_HELP)
-   -- What a poor default value!
-   -- Set KEYWORD_HELP = 1 in MYCNF.E
-   --WANT_KEYWORD_HELP = 0
+   --WANT_KEYWORD_HELP = 0  -- changed by aschn
    WANT_KEYWORD_HELP = 1
 compile endif
 
 -- By default, in EPM we block the action of action bar mnemonics being
 -- automatic accelerators.  Some users might not want this.  Can be 'SWITCH'.
 compile if not defined(BLOCK_ACTIONBAR_ACCELERATORS)
-   BLOCK_ACTIONBAR_ACCELERATORS = 1
+   --BLOCK_ACTIONBAR_ACCELERATORS = 1  -- changed by aschn
+   BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
 compile endif
 
 -- Define the default PASTE action for Shift+Ins.  Can be '' (for Paste Lines),
@@ -847,13 +834,9 @@ compile endif
 
 -- Search for a Rexx profile?  (EPM 5.50 or above only.)
 compile if not defined(WANT_PROFILE)
-   -- What a poor default value!
-   -- Set WANT_PROFILE = 'SWITCH' in MYCNF.E
-   --    and
-   -- Set my_REXX_PROFILE = 1 in MYCNF.E
-   --WANT_PROFILE = 0
+   --WANT_PROFILE = 0  -- changed by aschn
    WANT_PROFILE = 'SWITCH'
-   MY_REXX_PROFILE = 1
+;   MY_REXX_PROFILE = 1
 compile endif
 
 compile if WANT_PROFILE & not WANT_REXX
@@ -863,16 +846,16 @@ compile endif
 -- Toggle Escape key?  Default EPM for Boca doesn't use Esc to bring up command
 -- dialog, but all "real" EPM users want it.
 compile if not defined(TOGGLE_ESCAPE)
-   -- What a poor default value!
-   -- Set TOGGLE_ESCAPE = 'SWITCH' in MYCNF.E
-   --TOGGLE_ESCAPE = 0
+   --TOGGLE_ESCAPE = 0  -- changed by aschn
    TOGGLE_ESCAPE = 1
 compile endif
 
 -- Toggle Tab key?  Some people want the Tab key to insert a tab, rather than
 -- inserting spaces to the next tab stop.
 compile if not defined(TOGGLE_TAB)
-   TOGGLE_TAB = 0
+   -- TOGGLE_TAB = 1 means: define the 'tabkey' command
+   --TOGGLE_TAB = 0  -- changed by aschn
+   TOGGLE_TAB = 1
 compile endif
 
 -- Make menu support optional for people using the E Toolkit who want to
@@ -897,7 +880,9 @@ compile endif
 -- For Toolkit developers - set to 0 if you don't want the user to be able
 -- to go to line 0.  Affects MH_gotoposition in MOUSE.E and Def Up in STDKEYS.E.
 compile if not defined(TOP_OF_FILE_VALID)
-   TOP_OF_FILE_VALID = 1       -- Can be '0', '1', or 'STREAM' (dependant on STREAM_MODE)
+   -- Can be '0', '1', or 'STREAM' (dependant on STREAM_MODE)
+   --TOP_OF_FILE_VALID = 1  -- changed by aschn
+   TOP_OF_FILE_VALID = 0
 compile endif
 
 -- EBOOKIE support desired?  0=no; 1=include bkeys.e; 'LINK'=always link BKEYS
@@ -925,9 +910,7 @@ compile endif
 
 -- Support for a TAGS file (EPM 5.60 or above, only).
 compile if not defined(WANT_TAGS)
-   -- What a poor default value!
-   -- Set WANT_TAGS = 1 in MYCNF.E
-   --WANT_TAGS = 0
+   --WANT_TAGS = 0  -- changed by aschn
    --WANT_TAGS = 'DYNALINK'
    WANT_TAGS = 1
 compile endif
@@ -950,26 +933,20 @@ compile endif
 
 -- Include support for viewing the EPM User's guide in the Help menu.
 compile if not defined(SUPPORT_USERS_GUIDE)
-   -- What a poor default value!
-   -- Set SUPPORT_USERS_GUIDE = 1 in MYCNF.E
-   --SUPPORT_USERS_GUIDE = 0
+   --SUPPORT_USERS_GUIDE = 0  -- changed by aschn
    SUPPORT_USERS_GUIDE = 1
 compile endif
 
 -- Include support for viewing the EPM Technical Reference in the Help menu.
 compile if not defined(SUPPORT_TECHREF)
-   -- What a poor default value!
-   -- Set SUPPORT_TECH_REF = 1 in MYCNF.E
-   --SUPPORT_TECHREF = 0
+   --SUPPORT_TECHREF = 0  -- changed by aschn
    SUPPORT_TECHREF = 1
 compile endif
 
 -- Include support for calling user exits in DEFMAIN, SAVE, NAME, and QUIT.
 -- (EPM 5.51+ only; requires isadefproc() ).
 compile if not defined(SUPPORT_USER_EXITS)
-   -- What a poor default value!
-   -- Set SUPPORT_USER_EXITS = 1 in MYCNF.E
-   --SUPPORT_USER_EXITS = 0
+   --SUPPORT_USER_EXITS = 0  -- changed by aschn
    SUPPORT_USER_EXITS = 1
 compile endif
 compile if not defined(INCLUDE_BMS_SUPPORT)
@@ -979,19 +956,20 @@ compile endif
 -- Lets EOS2 users delay the SAVEPATH check the way that EPM does, so that a
 -- DEFINIT can modify the value before E3EMUL checks it.
 compile if not defined(DELAY_SAVEPATH_CHECK)
+; obsolete
    DELAY_SAVEPATH_CHECK = 0
 compile endif
 
 compile if not defined(LOCATE_CIRCLE_STYLE)
-   --LOCATE_CIRCLE_STYLE = 1
+   --LOCATE_CIRCLE_STYLE = 1  -- changed by aschn
    LOCATE_CIRCLE_STYLE = 5         -- (1)     filled oval
 compile endif
 compile if not defined(LOCATE_CIRCLE_COLOR1)
-   --LOCATE_CIRCLE_COLOR1 = 16777220
+   --LOCATE_CIRCLE_COLOR1 = 16777220  -- changed by aschn
    LOCATE_CIRCLE_COLOR1 = 16777231 -- (16777220) complementary
 compile endif
 compile if not defined(LOCATE_CIRCLE_COLOR2)
-   --LOCATE_CIRCLE_COLOR2 = 16777218
+   --LOCATE_CIRCLE_COLOR2 = 16777218  -- changed by aschn
    LOCATE_CIRCLE_COLOR2 = 16777216 -- (16777218) complementary
 compile endif
 compile if not defined(HIGHLIGHT_COLOR)
@@ -1005,7 +983,8 @@ compile endif
 
 -- Use System Monospaced as default font, rather than the PM default.
 compile if not defined(WANT_SYS_MONOSPACED)
-   WANT_SYS_MONOSPACED = 0
+   --WANT_SYS_MONOSPACED = 0  -- changed by aschn
+   WANT_SYS_MONOSPACED = 1
 compile endif
 
 -- Specify the size of the System Monospaced font to use.  Default is 0, which
@@ -1033,14 +1012,16 @@ compile endif
 -- For GPI, we manage the cursor ourself.  This provides an alternate to
 -- UNDERLINE_CURSOR, to allow changing the shape at runtime.
 compile if not defined(DYNAMIC_CURSOR_STYLE)
-   DYNAMIC_CURSOR_STYLE = 0
+   --DYNAMIC_CURSOR_STYLE = 0  -- changed by aschn
+   DYNAMIC_CURSOR_STYLE = 1
 compile endif
 
 -- For EPM 6.00, we have the ability to be a Workplace Shell object.  If we
 -- are, the configuration information comes from the object and not the .INI
 -- file.  This saves a good amount of startup time.
 compile if not defined(WPS_SUPPORT)
-   WPS_SUPPORT = EPM32
+   --WPS_SUPPORT = EPM32  -- changed by aschn
+   WPS_SUPPORT = 0
 compile endif
 
 -- Delay the building of the menus?  Gives faster startup for EPM 6.01, where
@@ -1050,6 +1031,7 @@ compile endif
 -- turn this off, to simplify the addition of those packages.
 compile if not defined(DELAY_MENU_CREATION)
 ;; DELAY_MENU_CREATION = EVERSION >= '6.01'
+; obsolete
    DELAY_MENU_CREATION = 0  -- Traps in PMWIN.DLL; leave off for now.
 compile endif
 
@@ -1070,9 +1052,7 @@ compile endif
 -- WANT_STREAM_EDITING = 'SWITCH', and RESPECT_SCROLL_LOCK = 1, cursor movement
 -- might be unacceptably slow.
 compile if not defined(RESPECT_SCROLL_LOCK)
-   -- What a poor default value!
-   -- Set RESPECT_SCROLL_LOCK = 1 in MYCNF.E
-   --RESPECT_SCROLL_LOCK = 0
+   --RESPECT_SCROLL_LOCK = 0  -- changed by aschn
    RESPECT_SCROLL_LOCK = 1
 compile endif
 
@@ -1081,7 +1061,11 @@ compile if not defined(WORD_MARK_TYPE)
 ;compile if WANT_CHAR_OPS
 ;  WORD_MARK_TYPE = 'CHAR'
 ;compile else
-   WORD_MARK_TYPE = 'BLOCK'
+   -- Bug using 'BLOCK':
+   -- If a block is copied to the clipboard, a CRLF is appended.
+   -- Sh+Ins will insert this CRLF instead of ignoring it.
+   --WORD_MARK_TYPE = 'BLOCK'  -- changed by aschn
+   WORD_MARK_TYPE = 'CHAR'
 ;compile endif
 compile endif
 
@@ -1211,6 +1195,9 @@ compile else
    matchtab_on      = 0
 compile endif
 
+-- tabglyph: show a circle for the tab char
+   call tabglyph(1)
+
 ;compile if EVERSION < 5
 ;
 ;-- set default zoom window style
@@ -1311,10 +1298,19 @@ compile endif
 --
 -- The standard is 'EA+F' to be compatible with previous releases; that's
 -- what you get if you leave this blank.  Many users will prefer 'C'.
+   -- default_search_options
+   --    internal default: '+ef'
+   --       +  from top to bottom      e  respect case
+   --       -  from bottom to top      c  don't respect case
+   --       f  from left to right      g  grep
+   --       r  from right to left      x  extended grep
+   --       a  in the whole file       w  search for words
+   --       m  in the marked area      ~  negative search
 compile if defined(my_default_search_options)
    default_search_options= my_default_search_options
 compile else
-   default_search_options=''
+   --default_search_options=''  -- changed by aschn
+   default_search_options='+fac'
 compile endif
 
 compile if HOST_SUPPORT
@@ -1415,7 +1411,8 @@ compile if WANT_LONGNAMES = 'SWITCH'
  compile if defined(my_SHOW_LONGNAMES)
    SHOW_LONGNAMES = my_SHOW_LONGNAMES
  compile else
-   SHOW_LONGNAMES = 0
+   --SHOW_LONGNAMES = 0  -- changed by aschn
+   SHOW_LONGNAMES = 1
  compile endif
 compile endif
 
@@ -1423,12 +1420,13 @@ compile if WANT_PROFILE = 'SWITCH'
  compile if defined(my_REXX_PROFILE)
    REXX_PROFILE = my_REXX_PROFILE
  compile else
-   REXX_PROFILE = 0
+   --REXX_PROFILE = 0  -- changed by aschn
+   REXX_PROFILE = 1
  compile endif
 compile endif
 
 compile if TOGGLE_ESCAPE
-   --ESCAPE_KEY = 0
+   --ESCAPE_KEY = 0  -- changed by aschn
    ESCAPE_KEY = 1
 compile endif
 compile if TOGGLE_TAB
@@ -1463,18 +1461,53 @@ compile endif
 ; If you make /L the default, it can still be overridden on any specific
 ; EDIT command as by "EDIT /U filename".
 ; This choice makes no difference for normal text files with CR-LF for newline.
+   -- default_edit_options
+   --    internal default: '/b /nt /u'
+   --       /b    don't load file from disk if already in ring
+   --       /c    create a new file
+   --       /d    load it from disk, even if already in ring
+   --       /t    don't convert Tab's
+   --       /nt   no tab chars: convert it into spaces
+   --       /u    Unix line end: LF is line end and CR is ignored
+   --       /l    DOS line end: CRLF is line end, CR's and LF's are text
+   --       /64   wrap every line after 64 chars, on saving there will
+   --             be no line end added at the wrap points if none of the
+   --             following *save* options is set: /o /u /l
+   --       /bin  binary mode: all chars are editable, note the difference
+   --             between '/64 /bin' and '/bin /64'
+   --    How to edit binary files?
+   --       'e /t /l /64 /bin mybinary.file'
+   --    Further options:
+   --       /k0 /k /k1 /k2 /v /r /s /n*
 compile if defined(my_default_edit_options)
    default_edit_options= my_default_edit_options
 compile else
-   default_edit_options=''
+   --default_edit_options=''  -- changed by aschn
+   default_edit_options='/b /t /l'
 compile endif
 
 ; Default options to be added to the SAVE command.  Normally null, some users
 ; might prefer to make it '/S' (EPM 5.51 or above).
+   -- default_save_options
+   --    internal default: '/ns /nt /ne'?
+   --       /s    strip trailing spaces
+   --       /ns   don't strip spaces
+   --       /e    append a file end char
+   --       /ne   no file end char
+   --       /t    convert spaces to tab chars
+   --       /nt   don't convert spaces
+   --       /q    quiet
+   --       /o    insert CRLF as line end char
+   --       /l    insert LF as line end char
+   --       /u    Unix line end: insert LF as line end char and don't append a file end char
+   --    How to save binary files?
+   --       's /nt /ns /ne mybinary.file'
+   --       This will only work, if none of /o /l /u is specified.
 compile if defined(my_default_save_options)
    default_save_options= my_default_save_options
 compile else
-   default_save_options=''
+   --default_save_options=''  -- changed by aschn
+   default_save_options='/s /ne /nt'
 compile endif
 
 ; In EPM you can choose one of several (well, only 2 for now) prefabricated
