@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: statline.e,v 1.3 2002-10-19 13:22:26 aschn Exp $
+* $Id: statline.e,v 1.4 2002-10-19 16:59:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -71,15 +71,17 @@ compile endif
 ; %X   displays the hexadecimal value of the current character
 ; %Z   displays the ASCII value of the current character
 ;
-; The default value if STATUS_TEMPLATE is not defined is 'Line %l of %s
-; Column %c  %i   %m   %f'
+; The default value if STATUS_TEMPLATE is not defined is:
+; 'Line %l of %s Column %c  %i   %m   %f'
 defc refreshstatusline
    if .visible then
       sep = (NEPMD_STATUSLINE_SEP)
       CurMode = NepmdGetMode()
 
-      current_status_template =  "Line %l of %s "sep" Col %c "sep" '%x'x = %z "sep" %f "sep" ma ".margins" "sep" " ||
-                                 "tabs "word(.tabs,1)" "sep" "CurMode" "sep" %m"
+;      current_status_template =  "Line %l of %s "sep" Col %c "sep" '%x'x = %z "sep" %f "sep" ma ".margins" "sep" " ||
+;                                 "tabs "word(.tabs,1)" "sep" "CurMode" "sep" %m"
+      current_status_template =  "Line %l of %s "sep" Col %c "sep" '%x'x/%z "sep" ma ".margins" "sep" " ||
+                                 "tabs "word(.tabs,1)" "sep" %i "sep" "CurMode" "sep" %f"
 ;      current_status_template =  " %l of %s "sep"  %c "sep" '%x'x = %z "sep" %f "sep" ma ".margins" "sep" " ||
 ;                                 "tabs "word(.tabs,1)" "sep" "CurMode" "sep" %m"
 
