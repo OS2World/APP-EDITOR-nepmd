@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmlex.e,v 1.2 2002-07-22 19:00:10 cla Exp $
+* $Id: epmlex.e,v 1.3 2002-08-09 19:37:09 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -59,13 +59,13 @@
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
 include 'stdconst.e'
- define INCLUDING_FILE = 'EPMLEX.E'
-   tryinclude 'MYCNF.E'        -- Include the user's configuration customizations.
+define INCLUDING_FILE = 'EPMLEX.E'
+tryinclude 'MYCNF.E'        -- Include the user's configuration customizations.
  compile if not defined(SITE_CONFIG)
-    const SITE_CONFIG = 'SITECNF.E'
+   const SITE_CONFIG = 'SITECNF.E'
  compile endif
  compile if SITE_CONFIG
-    tryinclude SITE_CONFIG
+   tryinclude SITE_CONFIG
  compile endif
 const
  compile if not defined(SPELL_SUPPORT)  -- Must set here, since set to 0 in ENGLISH.E
@@ -75,9 +75,7 @@ const
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
 include NLS_LANGUAGE'.e'
- compile if EVERSION >= 6
    EA_comment 'This contains the spell-checking code.  It can be linked explicitly, or will be linked automatically if the base .ex file is configured for it.'
- compile endif
 compile endif
 
 const
@@ -116,7 +114,6 @@ compile endif
 
 const
 ; Functions
-compile if EVERSION >= 5.50     -- Use the new function numbers
 LXFINIT   = 0     /* Initialize                   */
 LXFTERM   = 1     /* Terminate                    */
 LXFGDIC   = 2     /* Pickup Dictionary            */
@@ -136,17 +133,6 @@ LXFQLIB    = -1    /* Query Lexam library          */   /* ˚ */
 LXFFINIS   = -2    /* Drop all dicts & terminate   */   /* ˚ */
 LXFPRFLINE = -3    /* Proof an entire line in file */   /*   */
 LXFSETPUNCT= -4    /* Set punctuation for ProofLine*/
-compile else                    -- The old way; uses strings
-LXFINIT   = 'I'    -- Initialize
-LXFTERM   = 'T'    -- Terminate
-LXFGDIC   = 'PI'   -- Pickup Dictionary
-LXFFDIC   = 'DR'   -- Drop Dictionary
-LXFAD2TRS = 'ADDI' -- Add(ition) to Transient Addenda
-LXFVERFY  = 'V'    -- Verification
-LXFSPAID  = 'SP'   -- Spelling Aid
-LXFSYN    = 'SY'   -- Synonym
-LXFAMUGDIC= 'ADDE' -- Addenda Pickup Dictionary
-compile endif
 
 ; Return codes
 LXRFGOOD = 0000   /* Function Successful:  Good Return Code                */
@@ -156,36 +142,26 @@ LXRFDUPD = 0107   /* Function Unsuccessful: Duplicate Dictionary           */
 LXRFINIT = 0200   /* PC LEXAM Not Initialized: Control Block/Parameter Err */
 LXRFIFCN = 0201   /* Invalid Function                                      */
 
-compile if EVERSION >= 6.01
-   DEFAULT_LEXAM_PUNCTUATION ='~!@#$õúù%^&*()_+|`1234567890-=\{}[]:";''<>?,./™ƒÕ…ª»º⁄ø¿Ÿ∫ÀÃπ Œ¬√¥¡≈≥'
-compile else               -- Keep these two strings the same.
-   LEXAM_PUNCTUATION         ='~!@#$õúù%^&*()_+|`1234567890-=\{}[]:";''<>?,./™ƒÕ…ª»º⁄ø¿Ÿ∫ÀÃπ Œ¬√¥¡≈≥'
-compile endif
+DEFAULT_LEXAM_PUNCTUATION ='~!@#$õúù%^&*()_+|`1234567890-=\{}[]:";''<>?,./™ƒÕ…ª»º⁄ø¿Ÿ∫ÀÃπ Œ¬√¥¡≈≥'
 
-compile if (EVERSION >= '5.60c' & EVERSION < 6) | EVERSION >= '6.00c'
-   USE_CUSTOM_PROOF_DIALOG = 1
-compile else
-   USE_CUSTOM_PROOF_DIALOG = 0
-compile endif
+USE_CUSTOM_PROOF_DIALOG = 1
 
 definit
    universal  addenda_has_been_modified
    universal  ADDENDA_FILENAME
    universal  DICTIONARY_FILENAME
    universal  Dictionary_loaded
-compile if EVERSION >= 6.01
    universal  LEXAM_PUNCTUATION
 
    LEXAM_PUNCTUATION = DEFAULT_LEXAM_PUNCTUATION
- compile if defined(my_LEXAM_PUNCTUATION)
+compile if defined(my_LEXAM_PUNCTUATION)
    'proof_punctuation' my_LEXAM_PUNCTUATION
- compile endif
 compile endif
 
 ; Note:  don't initialize the universals here for EPM if SPELL_SUPPORT =
 ; 'DYNALINK'; it will be done in STDCNF so that this won't override the
 ; config info read from the .INI file.
-compile if EVERSION < 5 or SPELL_SUPPORT <> 'DYNALINK'
+compile if    SPELL_SUPPORT <> 'DYNALINK'
  compile if defined(my_ADDENDA_FILENAME)
    ADDENDA_FILENAME= my_ADDENDA_FILENAME
  compile else
@@ -240,9 +216,7 @@ defc syn =
 */
 defproc synonym()
    getline line                           /* get the current line          */
-compile if EVERSION >= '5.21'
    line = translate(line, ' ', \9)  -- Convert tabs to spaces
-compile endif
    if line<>'' then                       /* if it is NOT blank            */
       i=.col                              /* get the current column number */
       l=pos(' ',line,.col)                /* get possible word             */
@@ -270,34 +244,15 @@ compile endif
          return ''
       endif
 
-compile if EVERSION < 5.21  -- The old way
-      do forever
-         newword = listbox(SYNONYMS__MSG,'/'result,'/'REPLACE__MSG'/'CANCEL__MSG'/'HELP__MSG'/')
-         if newword<>3 then leave; endif
-         -- help was pressed
-         'helpmenu 14002'
-         return ''
-      enddo
-compile else
       parse value listbox(SYNONYMS__MSG,'/'result,'/'REPLACE__MSG'/'CANCEL__MSG'/'HELP__MSG'/',0,0,0,0,
- compile if EVERSION >= 5.60
                           gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(14002) || \26 wrd) with button 2 newword \0
- compile else
-                          atoi(1) || atoi(1) || atoi(14002) || gethwndc(APP_HANDLE) || \26 wrd) with button 2 newword \0
- compile endif
       if button<>\1 then
          newword = ''
       endif
-compile endif -- EVERSION < 5.21
       if newword<>'' then
-compile if EVERSION < 5.50  -- Don't have to worry about losing attributes...
-         getline line                           /* get the current line          */
-         replaceline leftstr(line,.col-1)||newword||substr(line,l)
-compile else
          getsearch oldsearch
          'xcom c '\1 || wrd || \1 || newword || \1
          setsearch oldsearch
-compile endif
          return length(newword)-oldwordlen
       endif
    endif
@@ -310,8 +265,6 @@ compile endif
 
 compile if PROOF_DIALOG_FIXED
    define DIALOG_POSN = ', -2, .windowwidth'
-compile elseif EVERSION < 5.21
-   define DIALOG_POSN = ' '
 compile else
    define DIALOG_POSN = ', 0, 0 '
 compile endif
@@ -364,9 +317,7 @@ compile endif
 ¿ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒŸ
 */
 defproc proof2
-compile if EVERSION >= 6.01
    universal LEXAM_PUNCTUATION
-compile endif
    script_file_type=AMU_script_verification()
 compile if defined(TEX_FILETYPES)
    tex_file_type = wordpos(filetype(),TEX_FILETYPES)
@@ -374,121 +325,105 @@ compile else
    tex_file_type = (filetype() = 'TEX')
 compile endif
 
- --@@ If there's a line-marked area in the current file, proof only in there.
- firstline=max(.line,1); lastline=.last; what = FILE__MSG
- if marktype() then  /* if no mark, default to entire file */
-    getfileid curfileid
-    getmark fl,ll,fc,lc,markfileid
-    if markfileid = curfileid then
-       firstline=fl; lastline=ll
-       what = MARKED_AREA__MSG
-    endif
- endif
- partial_lines = marktype()='BLOCK' | marktype()='CHAR'
+   --@@ If there's a line-marked area in the current file, proof only in there.
+   firstline=max(.line,1); lastline=.last; what = FILE__MSG
+   if marktype() then  /* if no mark, default to entire file */
+      getfileid curfileid
+      getmark fl,ll,fc,lc,markfileid
+      if markfileid = curfileid then
+         firstline=fl; lastline=ll
+         what = MARKED_AREA__MSG
+      endif
+   endif
+   partial_lines = marktype()='BLOCK' | marktype()='CHAR'
 
- /* start checking at next word...*/
-;getline line
-;.col=1
-;if leftstr(line,1)==' 'then
-;   tabword
-;endif
- if partial_lines then .col=fc; else .col=1; endif
- firstline
+   /* start checking at next word...*/
+;  getline line
+;  .col=1
+;  if leftstr(line,1)==' 'then
+;     tabword
+;  endif
+   if partial_lines then .col=fc; else .col=1; endif
+   firstline
 
- for zz= firstline to lastline --@@
-   zz                                 /* advance to next (new) line         */
-   getline line
-compile if EVERSION >= '5.21'
-   line = translate(line, ' ', \9)  -- Convert tabs to spaces
-compile endif
-compile if EVERSION >= '5.21'
-   display -8
-compile endif
-;  sayerror 'Spell Checking 'what'...'
-   sayerror CHECKING__MSG what '(line' zz'; last='lastline')...'
-compile if EVERSION >= '5.21'
-   display 8
-compile endif
+   for zz= firstline to lastline --@@
+      zz                                 /* advance to next (new) line         */
+      getline line
+      line = translate(line, ' ', \9)  -- Convert tabs to spaces
+      display -8
+;     sayerror 'Spell Checking 'what'...'
+      sayerror CHECKING__MSG what '(line' zz'; last='lastline')...'
+      display 8
 
-   loop
+      loop
 
-     if substr(line, .col, 1)=' ' & substr(line, .col)<>' ' then
-        tabword
-     endif
-     if partial_lines then
-        if .col>lc & (zz=lastline | marktype()='BLOCK') then
-           if marktype()='BLOCK' then .col=fc; endif
-           leave
-        endif
-     endif
-     l=pos(' ',line,.col)                /* find first word                 */
-     if not l then                       /* no more words on this line...   */
-        l=length(line)+1                 /* or there is only one word on    */
-        if l<=.col then                  /* the line...                     */
-           if marktype()='BLOCK' then .col=fc; else .col=1; endif
-           leave
-        endif
-     endif
-     wrd=substr(line,.col,l-.col)        /* extract word from line          */
-     if not verify(wrd, LEXAM_PUNCTUATION) then  -- No letters in "word"; skip it.
-        result = 0
-     else
-        result = lexam(LXFVERFY,wrd)        /* verify word using lexam         */
-     endif
-     if result and wrd<>'' then          /* was it a success???             */
-                                         /* YES, ignore script tags         */
-        if script_file_type then  -- Do just the cheap test first.
-           if (pos(leftstr(wrd,1),':&.') or pos(substr(line,max(.col-1,1),1),':&')) then
-              result=0
-              if leftstr(wrd,1)=':' then
-                 newl=pos('.',line,.col)
-                 if newl then
-                    l=newl
-                 endif
-              endif
-           endif
-        elseif tex_file_type & pos('\', wrd) then
-           result=0
-        endif
-        if result then                 /* strip punctuation and try again */
-           call strippunct(wrd,l,i)
-          .col=.col+i-1
-           result = lexam(LXFVERFY,wrd)
-        endif
-     endif
-     if result and wrd<>'' then
-;;      result = lexam(LXFVERFY,wrd)  -- Redundant???
-;;      if result and wrd<>'' then
-compile if EVERSION < 5.21  -- Help is now handled by the dialog box
-           -- t=-3 means help was requested, so call spellword again.
-           t=-3
-           do while t=-3
-compile endif
-compile if ADDENDASUPPORT
-              t=spellword2(wrd, l, '/~Next/~Temp. Add')    -- spell check the word
-compile else
-              t=spellword2(wrd, l, '/~Next')               -- spell check the word
-compile endif
-compile if EVERSION < 5.21  -- Help is now handled by the dialog box
-           enddo
-compile endif
-           if t=0 then                         -- error occured
-              return 0
-           endif
-           if t>0 then
-              l=l + t - 100
-           elseif t=-4 then   -- Edit was selected.
-              l = .col -1     -- (so .col won't change; recheck from current point)
-           endif
-           getline line
-compile if EVERSION >= '5.21'
-           line = translate(line, ' ', \9)  -- Convert tabs to spaces
-compile endif
-;;      endif
-     endif
-     .col=l+1
-   endloop
- endfor
+         if substr(line, .col, 1)=' ' & substr(line, .col)<>' ' then
+            tabword
+         endif
+         if partial_lines then
+            if .col>lc & (zz=lastline | marktype()='BLOCK') then
+               if marktype()='BLOCK' then .col=fc; endif
+               leave
+            endif
+         endif
+         l=pos(' ',line,.col)                /* find first word                 */
+         if not l then                       /* no more words on this line...   */
+            l=length(line)+1                 /* or there is only one word on    */
+            if l<=.col then                  /* the line...                     */
+               if marktype()='BLOCK' then .col=fc; else .col=1; endif
+               leave
+            endif
+         endif
+         wrd=substr(line,.col,l-.col)        /* extract word from line          */
+         if not verify(wrd, LEXAM_PUNCTUATION) then  -- No letters in "word"; skip it.
+            result = 0
+         else
+            result = lexam(LXFVERFY,wrd)        /* verify word using lexam         */
+         endif
+         if result and wrd<>'' then          /* was it a success???             */
+                                             /* YES, ignore script tags         */
+            if script_file_type then  -- Do just the cheap test first.
+               if (pos(leftstr(wrd,1),':&.') or pos(substr(line,max(.col-1,1),1),':&')) then
+                  result=0
+                  if leftstr(wrd,1)=':' then
+                     newl=pos('.',line,.col)
+                     if newl then
+                        l=newl
+                     endif
+                  endif
+               endif
+            elseif tex_file_type & pos('\', wrd) then
+               result=0
+            endif
+            if result then                 /* strip punctuation and try again */
+               call strippunct(wrd,l,i)
+               .col=.col+i-1
+               result = lexam(LXFVERFY,wrd)
+            endif
+         endif
+         if result and wrd<>'' then
+;;          result = lexam(LXFVERFY,wrd)  -- Redundant???
+;;          if result and wrd<>'' then
+   compile if ADDENDASUPPORT
+               t=spellword2(wrd, l, '/~Next/~Temp. Add')    -- spell check the word
+   compile else
+               t=spellword2(wrd, l, '/~Next')               -- spell check the word
+   compile endif
+               if t=0 then                         -- error occured
+                  return 0
+               endif
+               if t>0 then
+                  l=l + t - 100
+               elseif t=-4 then   -- Edit was selected.
+                  l = .col -1     -- (so .col won't change; recheck from current point)
+               endif
+               getline line
+               line = translate(line, ' ', \9)  -- Convert tabs to spaces
+;;          endif
+         endif
+         .col=l+1
+      endloop
+   endfor
 
 /*
 ⁄ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒø
@@ -507,9 +442,7 @@ compile endif
 */
 defproc spellword
    getline line                              /* ignore script tags           */
-compile if EVERSION >= '5.21'
    line = translate(line, ' ', \9)  -- Convert tabs to spaces
-compile endif
    if line<>'' then                          /* if the line is not empty...  */
       i=.col                                 /* save the cursor column       */
       l=pos(' ',line,.col)                   /* get next word after cursor   */
@@ -542,149 +475,88 @@ compile endif
    return 0
 
 defproc spellword2(wrd, l)
-         oldwordlen=length(wrd)              /* yes it's a word.....         */
-                                             /* use lexam to spell check word*/
-         refresh
-         parse value lexam(LXFSPAID,wrd) with 2 '/' result
-         if rc>=LXRFINIT then
-            sayerror LOOKUP_FAILED__MSG '<' wrd '> RC='rc
+   oldwordlen=length(wrd)              /* yes it's a word.....         */
+                                       /* use lexam to spell check word*/
+   refresh
+   parse value lexam(LXFSPAID,wrd) with 2 '/' result
+   if rc>=LXRFINIT then
+      sayerror LOOKUP_FAILED__MSG '<' wrd '> RC='rc
+      return -1  -- next word
+   else
+      if result='' then
+         result='*Nothing Found*'
+      endif
+      oldcol = .col; .col = .col + oldwordlen; .col = oldcol;
+      circleit PROOF_CIRCLE_STYLE, .line, .col, .col+oldwordlen-1, PROOF_CIRCLE_COLOR1, PROOF_CIRCLE_COLOR2
+      refresh  -- Refresh required to display circle, because control isn't being returned to the user
+compile if ADDENDASUPPORT
+      parse value listbox(PROOF__MSG '<'wrd'>', '/'result,
+                          '/'REPLACE__MSG'/'CANCEL__MSG||arg(3)'/'ADD__MSG'/'EDIT__MSG'.../'HELP__MSG $DIALOG_POSN ,0,0,
+                          gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(14000)) with button 2 newword \0
+      if button=\0 | button=\2 then  -- Close or Cancel
+         newword = ''
+      endif
+      if arg(3)='' then
+         butlist='7 7 3 4 5'  -- Next; Temp. Add; Add; Edit; Help
+      else
+         butlist='3 4 5 6 7'  -- Next; Temp. Add; Add; Edit; Help
+      endif
+compile else
+      parse value listbox(PROOF__MSG '<'wrd'>', '/'result,
+                          '/'REPLACE__MSG'/'CANCEL__MSG||arg(3)'/'EDIT__MSG'.../'HELP__MSG $DIALOG_POSN ,0,0,
+                          gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(14000)) with button 2 newword \0
+      if button=\0 | button=\2 then  -- Close or Cancel
+         newword = ''
+      endif
+      if arg(3)='' then
+         butlist='7 7 7 3 4'  -- Next; Temp. Add; Add; Edit; Help
+      else
+         butlist='3 7 7 4 5'  -- Next; Temp. Add; Add; Edit; Help
+      endif
+compile endif  -- ADDENDASUPPORT
+      parse value butlist with but_next but_temp_add but_add but_edit but_help
+      if button=chr(but_edit) then
+         newword=entrybox(REPLACEMENT__MSG '<'wrd'>','/'REPLACE__MSG'/'CANCEL__MSG,wrd)
+         if newword='' then
             return -1  -- next word
-         else
-            if result='' then
-               result='*Nothing Found*'
-            endif
-            oldcol = .col; .col = .col + oldwordlen; .col = oldcol;
-compile if EVERSION < '5.50'
-            refresh
-            sayat wrd, .cursory, .cursorx,
-                  .textcolor%16+(.textcolor // 16)*16, oldwordlen
-compile elseif EVERSION >= 5.60
-            circleit PROOF_CIRCLE_STYLE, .line, .col, .col+oldwordlen-1, PROOF_CIRCLE_COLOR1, PROOF_CIRCLE_COLOR2
-            refresh  -- Refresh required to display circle, because control isn't being returned to the user
-compile else
-            circleit PROOF_CIRCLE_STYLE, .line, .col, .col+oldwordlen-1, 1 -- color irrelevant now
-            refresh  -- Refresh required to display circle, because control isn't being returned to the user
-compile endif
+         endif
+         getsearch oldsearch
+         'xcom c '\1 || wrd || \1 || newword || \1
+         setsearch oldsearch
+         refresh
+;;       return -100 - (length(newword)-oldwordlen)    -- Don't care about new len.
+         return -4    -- re-check line
+      endif
+;     refresh  -- maybe can leave out...
+      if button=chr(but_next) then   -- goto next word
+         return -1
+      endif
 compile if ADDENDASUPPORT
- compile if EVERSION < 5.21  -- The old way
-            newword=listbox(PROOF__MSG '<'wrd'>', '/'result,
-                            '/'REPLACE__MSG'/'CANCEL__MSG||arg(3)'/'ADD__MSG'/'EDIT__MSG'.../'HELP__MSG $DIALOG_POSN)   -- put result in PM list box
- compile else
-            parse value listbox(PROOF__MSG '<'wrd'>', '/'result,
-                                '/'REPLACE__MSG'/'CANCEL__MSG||arg(3)'/'ADD__MSG'/'EDIT__MSG'.../'HELP__MSG $DIALOG_POSN ,0,0,
-  compile if EVERSION >= 5.60
-                                gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(14000)) with button 2 newword \0
-  compile else
-                                atoi(1) || atoi(1) || atoi(14000) || gethwndc(APP_HANDLE)) with button 2 newword \0
-  compile endif
-            if button=\0 | button=\2 then  -- Close or Cancel
-               newword = ''
-            endif
- compile endif -- EVERSION < 5.21
-            if arg(3)='' then
-               butlist='7 7 3 4 5'  -- Next; Temp. Add; Add; Edit; Help
-            else
-               butlist='3 4 5 6 7'  -- Next; Temp. Add; Add; Edit; Help
-            endif
-compile else
- compile if EVERSION < 5.21  -- The old way
-            newword=listbox(PROOF__MSG '<'wrd'>','/'result,'/'REPLACE__MSG'/'CANCEL__MSG ||arg(3)'/'EDIT__MSG'.../'HELP__MSG $DIALOG_POSN)  -- put result in PM list box
- compile else
-            parse value listbox(PROOF__MSG '<'wrd'>', '/'result,
-                                '/'REPLACE__MSG'/'CANCEL__MSG||arg(3)'/'EDIT__MSG'.../'HELP__MSG $DIALOG_POSN ,0,0,
-  compile if EVERSION >= 5.60
-                                gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(14000)) with button 2 newword \0
-  compile else
-                                atoi(1) || atoi(1) || atoi(14000) || gethwndc(APP_HANDLE)) with button 2 newword \0
-  compile endif
-            if button=\0 | button=\2 then  -- Close or Cancel
-               newword = ''
-            endif
- compile endif -- EVERSION < 5.21
-            if arg(3)='' then
-               butlist='7 7 7 3 4'  -- Next; Temp. Add; Add; Edit; Help
-            else
-               butlist='3 7 7 4 5'  -- Next; Temp. Add; Add; Edit; Help
-            endif
-compile endif
-            parse value butlist with but_next but_temp_add but_add but_edit but_help
-compile if EVERSION < 5.21  -- Help is now handled by the dialog box
-            if newword=but_help then
-               'helpmenu 14000'
-               return -3     -- do line over again
-            endif
-            if newword=but_edit then
-compile else
-            if button=chr(but_edit) then
-compile endif
-               newword=entrybox(REPLACEMENT__MSG '<'wrd'>','/'REPLACE__MSG'/'CANCEL__MSG,wrd)
-               if newword='' then
-                  return -1  -- next word
-               endif
-compile if EVERSION < 5.50  -- Don't have to worry about losing attributes...
-               getline line
-               replaceline leftstr(line,.col-1)||newword||substr(line,l)
-compile else
-               getsearch oldsearch
-               'xcom c '\1 || wrd || \1 || newword || \1
-               setsearch oldsearch
-compile endif
-               refresh
-;;             return -100 - (length(newword)-oldwordlen)    -- Don't care about new len.
-               return -4    -- re-check line
-            endif
-compile if EVERSION < '5.50'
-            sayat wrd, .cursory, .cursorx, .textcolor, oldwordlen
-compile else
-;           refresh  -- maybe can leave out...
-compile endif
-compile if EVERSION < 5.21
-            if newword=but_next then   -- goto next word
-compile else
-            if button=chr(but_next) then   -- goto next word
-compile endif
-               return -1
-            endif
-compile if ADDENDASUPPORT
- compile if EVERSION < 5.21
-            if newword=but_temp_add then   -- temporary addenda (just for this PROOF session)
- compile else
-            if button=chr(but_temp_add) then   -- goto next word
- compile endif
+      if button=chr(but_temp_add) then   -- goto next word
  compile if RESPECT_CASE_FOR_ADDENDA
-               call lexam(LXFAD2TRS, wrd)
+         call lexam(LXFAD2TRS, wrd)
  compile else
-               call lexam(LXFAD2TRS,lowcase(wrd))
+         call lexam(LXFAD2TRS,lowcase(wrd))
  compile endif
-               return -1
-            endif
- compile if EVERSION < 5.21
-            if newword=but_add then   -- addenda
- compile else
-            if button=chr(but_add) then   -- goto next word
- compile endif
-               call AMU_addenda_addition_processing(wrd)
-               return -1
-            endif
-compile endif
-            if newword='*Nothing Found*' then
-               return -1
-            endif
-            if newword<>'' then              /* was it a valid result ???    */
-                                             /* replace word in line         */
-compile if EVERSION < 5.50  -- Don't have to worry about losing attributes...
-               getline line
-               replaceline leftstr(line,.col-1)||newword||substr(line,l)
-               refresh
-compile else
-               getsearch oldsearch
-               'xcom c '\1 || wrd || \1 || newword || \1
-               setsearch oldsearch
-compile endif
-               return 100 + length(newword)-oldwordlen
-;              return -1
-            endif
-          endif
+         return -1
+      endif
+      if button=chr(but_add) then   -- goto next word
+         call AMU_addenda_addition_processing(wrd)
+         return -1
+      endif
+compile endif  -- ADDENDASUPPORT
+      if newword='*Nothing Found*' then
+         return -1
+      endif
+      if newword<>'' then              /* was it a valid result ???    */
+                                       /* replace word in line         */
+         getsearch oldsearch
+         'xcom c '\1 || wrd || \1 || newword || \1
+         setsearch oldsearch
+         return 100 + length(newword)-oldwordlen
+;        return -1
+      endif
+   endif  -- rc>=LXRFINIT
    return 0
 
 /*
@@ -709,33 +581,13 @@ defproc proof1( wrd )
          if result='' then
             result='*Nothing Found*'
          endif
-compile if EVERSION < 5.21  -- The old way
-         do forever
- compile if ADDENDASUPPORT
-            newword=listbox(PROOF_WORD__MSG,'/'result,'/'REPLACE__MSG'/'EXIT__MSG'/'ADD__MSG'/'HELP__MSG)     /* put result in PM list box   */
-            if newword='3' then   --  addenda
-               call AMU_addenda_addition_processing(wrd)
-               return -1
-            endif
-            if newword<>4 then leave; endif
- compile else
-            newword=listbox(PROOF_WORD__MSG,'/'strip(result),'/'REPLACE__MSG'/'EXIT__MSG'/'HELP__MSG)     /* put result in PM list box   */
-            if newword<>3 then leave; endif
- compile endif
-            'helpmenu 14001'
-         enddo
-compile else
          parse value listbox(PROOF_WORD__MSG, '/'result,
- compile if ADDENDASUPPORT
+compile if ADDENDASUPPORT
                              '/'REPLACE__MSG'/'EXIT__MSG'/'ADD__MSG'/'HELP__MSG,
- compile else
-                             '/'REPLACE__MSG'/'EXIT__MSG'/'HELP__MSG
- compile endif
- compile if EVERSION >= 5.60
+compile else
+                             '/'REPLACE__MSG'/'EXIT__MSG'/'HELP__MSG,  -- added missing colon aschn
+compile endif
                              gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(14001)) with button 2 newword \0
- compile else
-                             atoi(1) || atoi(1) || atoi(14001) || gethwndc(APP_HANDLE)) with button 2 newword \0
- compile endif
          if button=\0 | button=\2 then  -- Close or Cancel
             newword = ''
  compile if ADDENDASUPPORT
@@ -744,7 +596,6 @@ compile else
             return -1
  compile endif
          endif
-compile endif -- EVERSION < 5.21
          if newword='*Nothing Found*' then
             return
          endif
@@ -792,7 +643,7 @@ defproc maybe_save_addenda
       endif
       addenda_has_been_modified=0
       -- sayerror 0
-  endif
+   endif
 
 ;defc AMU_addenda_pickup
 ;   universal  ADDENDA_FILENAME
@@ -851,20 +702,11 @@ compile endif -- ADDENDASUPPORT
 ; The following is a script file type verification algorithm
 ; suggested by Larry Margolis. (Thanks, Larry)
 defproc AMU_script_verification()
-compile if EVERSION >= 5.50
  compile if defined(my_SCRIPT_FILE_TYPE)
    return (wordpos(filetype(), 'SCR SCT SCRIPT IPF' my_SCRIPT_FILE_TYPE)>0)
  compile else
    return (wordpos(filetype(), 'SCR SCT SCRIPT IPF')>0)
  compile endif
-compile else
-   ext=filetype()
- compile if defined(my_SCRIPT_FILE_TYPE)
-   return ext='SCR' or ext='SCT' or ext='SCRIPT' or ext='IPF' or ext=my_SCRIPT_FILE_TYPE
- compile else
-   return ext='SCR' or ext='SCT' or ext='SCRIPT' or ext='IPF'
- compile endif
-compile endif
 
 
 /*
@@ -881,9 +723,6 @@ defproc load_lexam
       result = lexam(LXFINIT)
       if (result<>LXRFGOOD and result<>LXRFIFCN) or rc=-322 then
          if result='febe' or rc=-322 then  -- x'febe' = -322 = sayerror('Dynalink: unrecognized library name')
-compile if EVERSION < '5.60a'  -- 5.60a and above give the message internally
-            sayerror sayerrortext(-322) LEXAM_DLL'.DLL'
-compile endif
          else
             sayerror INIT_ERROR__MSG '('rc')'
          endif
@@ -945,9 +784,7 @@ compile endif
    endif
 
 defproc strippunct(var wrd,var l,var i)
-compile if EVERSION >= 6.01
    universal LEXAM_PUNCTUATION
-compile endif
    /* strip leading and trailing punctuation and try again*/
    i=verify(wrd, LEXAM_PUNCTUATION)
    if i then
@@ -1046,19 +883,15 @@ compile endif
 ;; if partial_lines then .col=fc; else .col=1; endif
 
    while firstline<=lastline do
- compile if EVERSION >= '5.21'
       display -8
- compile endif
       sayerror CHECKING__MSG what'...'
 ;;    sayerror 'Spell Checking 'what '(line' zz'; last='lastline')...'
- compile if EVERSION >= '5.21'
       display 8
- compile endif
       .col = 1
- rc = '[not set]'
+      rc = '[not set]'
       result = lexam(LXFPRFLINE, firstline, lastline)
       if length(result) then
- sayerror 'rc=' rc'; result =' c2x(result)
+         sayerror 'rc=' rc'; result =' c2x(result)
          firstline = ltoa(leftstr(result, 4), 10)
          if length(result)=4 then sayerror 'Unexpected error on line' firstline'; aborting.'; stop; endif
          firstline
@@ -1101,7 +934,6 @@ compile endif
 
 compile endif  -- >= 5.60
 
-compile if EVERSION >= 6.01
 defc proof_punctuation
    universal LEXAM_PUNCTUATION
    if arg(1)<>'' then
@@ -1115,7 +947,6 @@ defc proof_punctuation
    else
       LEXAM_PUNCTUATION = newpunct
    endif
-compile endif  -- >= 6.01
 
 compile if USE_CUSTOM_PROOF_DIALOG
 ; New commands for use with custom Proof dialog.
@@ -1277,7 +1108,6 @@ defc keep_on_prufin
       sayerror DONE__MSG
    endif
 
-
 defc proofword, verify
    universal ADDENDA_FILENAME
    universal proofdlg_hwnd, proofdlg_whatflag
@@ -1308,9 +1138,7 @@ defc proofword, verify
 ;       X       -4 = User selected Edit; recheck line.
 ;      (X means not returned by this version of the routine.)
 defproc spellwordd
-compile if EVERSION >= 6.01
    universal LEXAM_PUNCTUATION
-compile endif
    universal proofdlg_hwnd, proof_word, proofdlg_filetypeflags, proofdlg_whatflag
    getline line
    line = translate(line, ' ', \9)  -- Convert tabs to spaces
@@ -1338,11 +1166,7 @@ compile endif
  compile endif
    else
       script_file_type=proofdlg_filetypeflags // 2
- compile if EVERSION >= '6.01b'
       tex_file_type = proofdlg_filetypeflags bitand 2
- compile else
-      tex_file_type = proofdlg_filetypeflags%2 - 2 * (proofdlg_filetypeflags % 4)
- compile endif
    endif
    result = 1
    if script_file_type then  -- Do just the cheap test first.
@@ -1577,9 +1401,7 @@ const SPELL_DEBUG = 0
 defkeys spell_keys overlay  -- For dynamic spell-checking
 
 def space, enter =
-compile if EVERSION >= 6.01
    universal LEXAM_PUNCTUATION
-compile endif
    universal EPM_utility_array_ID
    universal dynaspel_line, dynaspel_col
    saveline = .line
@@ -1655,18 +1477,10 @@ compile endif -- DEBUG
    endif
    if(result <> LXRFGOOD) then         /* was it a success ???          */
 compile if DYNASPELL_BEEP = 'ALARM'
- compile if EPM32
       call dynalink32('PMWIN',
                       '#701',      -- ORD_WIN32ALARM
                       atol(1)  ||  -- HWND_DESKTOP
                       atol(0) )    -- WA_WARNING
- compile else
-      call dynalink('PMWIN',
-                    'WINALARM',
-                    atoi(0) ||   -- atol_swap(
-                    atoi(1) ||   --    HWND_DESKTOP)
-                    atoi(0) )    -- WA_WARNING
- compile endif
 compile elseif DYNASPELL_BEEP
       call beep(1000, 100)
 compile endif
