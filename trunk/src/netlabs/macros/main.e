@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.25 2004-07-02 09:41:21 aschn Exp $
+* $Id: main.e,v 1.26 2004-07-12 19:49:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -189,50 +189,38 @@ compile endif
 ;  Quit automatically loaded empty file -------------------------------------
    -- E automatically created an empty file when it started.
    -- If user specified file(s) to edit, get rid of the empty file.
+   -- This must be processed at defmain, because this file is the only one,
+   -- that won't trigger a defload event.
    -- Get fileid after processing of doscmdline.
    getfileid newfid
-   do f = 1 to filesinring()  -- exclude hidden files
-      dprintf( 'DEFMAIN_EMPTY_FILE', 'file 'f' of 'filesinring()' in ring: '.filename)
-      getfileid fid
-      if fid = unnamedfid then
-         -- Check if other files in ring
-         next_file
-         getfileid otherfid
-         if otherfid = unnamedfid then  -- no other file in ring
-            -- For the automatically created empty file no defload event is
-            -- triggered.
-            -- Load a new empty file, for that the defload event will
-            -- process.
-            dprintf( 'DEFMAIN_EMPTY_FILE', 'load a new empty file...')
-            'xcom e /n'
-            getfileid newfid
-            -- Set the universal vars to make afterload happy.
-            -- At this point they are initialized to unnamedfid.
-            firstloadedfid = newfid
-            firstinringfid = newfid  -- first file in the ring
-            dprintf( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
-         endif
-         -- Get rid of the automatically created empty file
-         dprintf( 'DEFMAIN_EMPTY_FILE', 'quit internally loaded empty file... unnamedfid = 'unnamedfid)
-         activatefile unnamedfid
-         'xcom q'
-         dprintf( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
-         leave
-      endif
+   dprintf( 'DEFMAIN_EMPTY_FILE', 'filesinring = 'filesinring()', filename = '.filename)
+   if validatefileid(unnamedfid) <> 0 then
+      activatefile unnamedfid
+      -- Check if other files in ring
       next_file
-   enddo
+      getfileid otherfid
+      if otherfid = unnamedfid then  -- no other file in ring
+         -- For the automatically created empty file no defload event is
+         -- triggered.
+         -- Load a new empty file, for that the defload event will
+         -- process.
+         dprintf( 'DEFMAIN_EMPTY_FILE', 'load a new empty file...')
+         'xcom e /n'
+         getfileid newfid
+         -- Set the universal vars to make afterload happy.
+         -- At this point they are initialized to unnamedfid.
+         firstloadedfid = newfid
+         firstinringfid = newfid  -- first file in the ring
+         dprintf( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
+      endif
+      -- Get rid of the automatically created empty file
+      dprintf( 'DEFMAIN_EMPTY_FILE', 'quit internally loaded empty file... unnamedfid = 'unnamedfid)
+      activatefile unnamedfid
+      'xcom q'
+      dprintf( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
+   endif
    dprintf( 'DEFMAIN_EMPTY_FILE', 'activating newfid = 'newfid', filename = 'newfid.filename)
    activatefile newfid
-
-;  Process 'main' Hook ------------------------------------------------------
-   -- The 'main' hook is a comfortable way to overwrite or add some
-   -- general settings, set by definit or defmain. It enables
-   -- configurations by other linked .ex files without the use of
-   -- PROFILE.ERX.
-   -- Example: 'HookAdd main default_save_options /ns /ne /nt'
-   -- Example: 'HookAdd main default_search_options +faet'
-   -- Note   : Hooks are only able to process commands, not procedures.
-   'HookExecute main'
 
 ;  Show menu and window -----------------------------------------------------
    call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
