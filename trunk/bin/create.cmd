@@ -16,7 +16,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: create.cmd,v 1.4 2002-04-19 09:57:35 cla Exp $
+: $Id: create.cmd,v 1.5 2002-04-19 10:33:59 cla Exp $
 :
 : ===========================================================================
 :
@@ -72,7 +72,7 @@
 
 : --- package 4: Netlabs distribution extensions
 
- SET NEPMD=4 compile\netlabs\* src\netlabs\*
+ SET NEPMD=4 -r -c compile\netlabs *
 
 : --- package 5: Speech Support
 
