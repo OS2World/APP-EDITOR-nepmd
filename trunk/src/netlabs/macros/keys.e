@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.5 2004-11-30 21:23:27 aschn Exp $
+* $Id: keys.e,v 1.6 2005-03-27 15:15:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -81,7 +81,9 @@ compile if not defined(VIRTUAL_LIST)
 compile endif
    -- PM_LIST    = don't overwrite <key>, because they are standard PM keys
 compile if not defined(PM_LIST)
-   PM_LIST       = 'F1 F10'
+   -- Tab must be excluded, because otherwise lastkey(2) and lastkey(3) would
+   -- return wrong values for Tab. lastkey() for Tab doesn't work in EPM!
+   PM_LIST       = 'F1 F10 TAB'
 compile endif
    -- PM_ALT_LIST = don't overwrite Alt+<key>, because they are standard PM keys
 compile if not defined(PM_ALT_LIST)
