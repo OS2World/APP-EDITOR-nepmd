@@ -7,18 +7,18 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.5 2002-04-18 16:09:30 cla Exp $
+.. $Id: nepmd.txt,v 1.6 2002-04-18 17:01:36 cla Exp $
 ..
 .. ===========================================================================
 ..
 .. This file is part of the Netlabs EPM Distribution package and is free
 .. software.  You can redistribute it and/or modify it under the terms of the
-.. GNU Library General Public License as published by the Free Software
-.. Foundation, in version 2 as it comes in the "COPYING.LIB" file of the WPS
-.. Toolkit main distribution.  This library is distributed in the hope that it
+.. GNU General Public License as published by the Free Software
+.. Foundation, in version 2 as it comes in the "COPYING" file of the
+.. Netlabs EPM Distribution.  This library is distributed in the hope that it
 .. will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 .. of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-.. Library General Public License for more details.
+.. General Public License for more details.
 ..
 .. ***************************************************************************
 
@@ -79,6 +79,7 @@ These packages already include the following:
 In addition to that the [=TITLE] adds [.IDPNL_ADDITIONS various features]
 out of contributed macros and external add-ons.
 
+
 .. -----------------------------------------------------------------------------
 .3 What is EPM ?
 .. -----------------------------------------------------------------------------
@@ -124,6 +125,37 @@ Install the programming samples to see samples for the following
 If you start *EPM*, press F1, select "*EPM* Features", and page down to
 the bottom half of the help text, you'll get a partial list of the new
 features in *EPM* 6 compared to *EPM* 5
+
+.. -----------------------------------------------------------------------------
+.3 The [=DOCTITLE] project
+.. -----------------------------------------------------------------------------
+.
+The sources for to build the [=TITLE] are freely available under the 
+*GNU General Public License* within a *CVS* archiv on
+the *OS/2 Netlabs Open Source Archive* server.
+
+To access them you either can
+.pl compact tsize=3
+- use plain *CVS* 
+= set
+.ul compact
+  - set USER=guest  or your personal Netlabs userid
+  - set CVSROOT=:pserver:guest@www.netlabs.org:/netlabs.cvs/nepmd  or with your personal Netlabs userid
+  - use *readonly* as password or use your personal Netlabs password
+.el
+- use *CVS* in conjunction with the
+.
+  *Netlabs Open Source Archive Client* (NOSAC)
+= the latter package will help you a lot if you are not familliar with *CVS*.
+  Follow the instructions for easy access to a *Netlabs Open Source Archive*
+  and watch out for an archive called *NEPMD*
+
+See the following URL for more information on the
+*Netlabs Open Source Archive Client* and *CVS*:
+.ul compact
+- [http://nosa.netlabs.org Netlabs Open Source Archive (http://nosa.netlabs.org)]
+
+Everybody is invited to join the project team or pass contributions to it.
 
 .. =============================================================================
 .2 Prerequisites
@@ -519,7 +551,8 @@ all files are separated in dedicated directories:
 .ul compact
 - The user should never modify any files within the directories provided
   for the *EPMBBS package* and the [=TITLE], but always make changes only
-  to the directory structure for personal changes. This includes:
+  to the directory structure for [.IDPNL_USAGE_CONFIGURE personal files].
+  This includes:
   - adding new files
   - copying files from the *EPMBBS package* and the [=TITLE] directories
     in order to make modifications to them. It is highly recommended not
@@ -577,7 +610,8 @@ Files of the [=TITLE] reside in the following directories:
 .. .............................................................................
 .an IDPNL_ADDITIONS_DIRTREE_USER
 .
-Files for personal extension are to be placed into the following directory tree:
+Files for [.IDPNL_USAGE_CONFIGURE personal configuration extensions] are to be 
+placed into the following directory tree:
 .fo off
 <install dir>
 юд[=USERDIR]      
