@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: process.h,v 1.1 2002-06-03 22:19:58 cla Exp $
+* $Id: process.h,v 1.2 2002-08-14 12:15:44 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,8 +25,8 @@
 #define PROCESS_H
 
 APIRET ExecPipedCommand( PSZ pszCommand, PSZ pszBuffer, ULONG ulBuflen);
-APIRET ExecVioCommandSession( PSZ pszAppName, PSZ pszCommand, BOOL fVisible);
-APIRET StartPmSession( PSZ pszProgram, PSZ pszParms, PSZ pszTitle,
+APIRET ExecVioCommandSession( PSZ pszEnv, PSZ pszAppName, PSZ pszCommand, BOOL fVisible);
+APIRET StartPmSession( PSZ pszProgram, PSZ pszParms, PSZ pszTitle, PSZ pszEnv,
                        BOOL fForeground, ULONG ulControlStyle);
 
 #endif // PROCESS_H
