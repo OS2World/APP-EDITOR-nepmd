@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.18 2004-07-03 08:32:32 aschn Exp $
+# $Id: makefile,v 1.19 2004-07-09 14:23:17 aschn Exp $
 #
 # ===========================================================================
 #
@@ -71,6 +71,8 @@ $(CMPEXDIR)\ovshmenu.ex\
 $(CMPEXDIR)\popup.ex\
 #$(CMPEXDIR)\put.ex\
 $(CMPEXDIR)\recode.ex\
+$(CMPEXDIR)\reflow.ex\
+$(CMPEXDIR)\reflowmail.ex\
 $(CMPEXDIR)\showu.ex\
 $(CMPEXDIR)\stdmenu.ex\
 $(CMPEXDIR)\tags.ex\
