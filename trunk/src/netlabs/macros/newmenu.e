@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.7 2005-01-30 22:53:36 aschn Exp $
+* $Id: newmenu.e,v 1.8 2005-03-14 22:43:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1114,7 +1114,7 @@ defproc add_search_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, SCAN_TAGS_MENU__MSG\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+T',                                                  -- Scan current file...
+   buildmenuitem menuname, mid, i, SCAN_TAGS_MENU__MSG,                                                  -- Scan current file...
                                    'tagscan' ||
                                    SCAN_TAGS_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_SEARCH_TAGS, 0)
@@ -1272,18 +1272,26 @@ compile endif
    buildmenuitem menuname, mid, i, '/~t'\9'don''t expand tabs*',
                                    'seteditoptions /t',
                                    MIS_TEXT, nodismiss
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_editoptions_u', i)
-   buildmenuitem menuname, mid, i, '/~u'\9'Unix line end (LF)',
-                                   'seteditoptions /u',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_editoptions_l', i)
-   buildmenuitem menuname, mid, i, '/~l'\9'DOS line end (CRLF)*',
-                                   'seteditoptions /l',
-                                   MIS_TEXT, nodismiss
+; In EPM 6 there's no difference between /u and /l anymore.
+; EPM breaks lines at CRCRLF, CRLF, CR and LF, not dependent on /u or /l.
+; EPM adds CRLF when Enter is pressed. That can't be changed with an option.
+; /u and /l are senseless now.
+; Per default all line ends are kept as on file loading. Even 'unterminated'
+; is possible for the last line. (But it's not visible, if the last line is
+; terminated or not. EPM won't add a blank line, if the last line is terminated.)
+; Line ends can be forced to CRLF or CR on save. That applies also to the last line.
+;    i = i + 1;
+;    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+;                                    '',
+;                                    MIS_SEPARATOR, 0
+;    i = i + 1; call SetAVar( 'mid_editoptions_u', i)
+;    buildmenuitem menuname, mid, i, '/~u'\9'Unix line end (LF)',
+;                                    'seteditoptions /u',
+;                                    MIS_TEXT, nodismiss
+;    i = i + 1; call SetAVar( 'mid_editoptions_l', i)
+;    buildmenuitem menuname, mid, i, '/~l'\9'DOS line end (CRLF)*',
+;                                    'seteditoptions /l',
+;                                    MIS_TEXT, nodismiss
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
@@ -1337,11 +1345,11 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_saveoptions_a', i)
-   buildmenuitem menuname, mid, i, ''\9'~auto-line-end*',
+   buildmenuitem menuname, mid, i, ''\9'~auto-line-end (maybe mixed)',
                                    'setsaveoptions /a',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_saveoptions_o', i)
-   buildmenuitem menuname, mid, i, '/~o'\9'force DOS line end (CRLF)',
+   buildmenuitem menuname, mid, i, '/~o'\9'force DOS line end (CRLF)*',
                                    'setsaveoptions /o',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_saveoptions_l', i)
@@ -3591,11 +3599,13 @@ defc seteditoptions
       endif
       return
    elseif opt = 'MENUINIT' then
-      opt = '/b /t /u 'default_edit_options  -- internal default + default_search_options
+;      opt = '/b /t /u 'default_edit_options  -- internal default + default_edit_options
+      opt = '/b /t 'default_edit_options  -- internal default + default_edit_options
    endif
    opt = lowcase(opt)
    -- Remove multiple and excluding options and spaces
-   ExcludeList = '/b/c/d /t/nt /l/u'    -- for every word in this list: every expression excludes each other
+;   ExcludeList = '/b/c/d /t/nt /l/u'    -- for every word in this list: every expression excludes each other
+   ExcludeList = '/b/c/d /t/nt'    -- for every word in this list: every expression excludes each other
    rest = lowcase(default_edit_options' 'opt)
    rest = translate( rest, ' ', '/')  -- replace all slashes with spaces to use the word* procs
    newopt = ''
@@ -3666,7 +3676,7 @@ defc setsaveoptions
       endif
       return
    elseif opt = 'MENUINIT' then
-      opt = '/a /ns /ne /nt 'default_save_options  -- internal default + default_search_options
+      opt = '/a /ns /ne /nt 'default_save_options  -- internal default + default_save_options
    endif
    opt = lowcase(opt)
    -- Replace option /u with /l /ne
