@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.12 2003-09-01 06:40:15 aschn Exp $
+# $Id: makefile,v 1.13 2004-02-22 16:05:38 aschn Exp $
 #
 # ===========================================================================
 #
@@ -58,6 +58,7 @@ $(CMPEXDIR)\epmlex.ex\
 $(CMPEXDIR)\fonts.ex\
 $(CMPEXDIR)\get.ex\
 $(CMPEXDIR)\help.ex\
+$(CMPEXDIR)\kwhelp.ex\
 $(CMPEXDIR)\maketags.ex\
 $(CMPEXDIR)\put.ex\
 $(CMPEXDIR)\tags.ex\
