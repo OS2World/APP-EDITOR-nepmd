@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.3 2002-08-23 09:06:09 cla Exp $
+* $Id: instval.c,v 1.4 2002-08-23 14:08:48 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,9 @@ APIRET GetInstValue( PSZ pszValueTag, PSZ pszBuffer, ULONG ulBuflen)
 
 {
          APIRET         rc = NO_ERROR;
+
          BOOL           fNepmdInstalled = FALSE;
+         BOOL           fRunningInDevTree = FALSE;
 
          CHAR           szNepmdPath[ _MAX_PATH];
          CHAR           szNepmdLanguage[ 20];
@@ -49,6 +51,7 @@ APIRET GetInstValue( PSZ pszValueTag, PSZ pszBuffer, ULONG ulBuflen)
          CHAR           szTmp[ _MAX_PATH];
          CHAR           szValue[ _MAX_PATH];
 
+         PSZ            pszDevTreePath;
 
 static   PSZ            pszUserBinDir = NEPMD_SUBPATH_MYBINDIR;
 static   PSZ            pszNepmdBinDir = NEPMD_SUBPATH_BINBINDIR;
@@ -98,6 +101,11 @@ do
                           szNepmdLanguage,
                           sizeof( szNepmdLanguage));
 
+   // get developer tree rootdir
+   pszDevTreePath = getenv( ENV_NEPMD_DEVPATH);
+   fRunningInDevTree = (pszDevTreePath != NULL);
+
+
    // --------------------------------------
 
    if (!stricmp( pszValueTag, NEPMD_VALUETAG_ROOTDIR))
@@ -119,7 +127,9 @@ do
    else if (!stricmp( pszValueTag, NEPMD_VALUETAG_INIT))
       {
       // determine name of initialization file
-      if (fNepmdInstalled)
+      if (fRunningInDevTree)
+         sprintf( szValue, pszInstPathMask, pszDevTreePath, NEPMD_DEVPATH_INIFILE, pszUserIniFile);
+      else if (fNepmdInstalled)
          sprintf( szValue, pszInstPathMask, szNepmdPath, pszUserBinDir, pszUserIniFile);
       else
          sprintf( szValue, pszFreePathMask, szModulePath, pszUserIniFile);
@@ -128,7 +138,9 @@ do
    else if (!stricmp( pszValueTag, NEPMD_VALUETAG_MESSAGE))
       {
       // determine name of message file
-      if (fNepmdInstalled)
+      if (fRunningInDevTree)
+         sprintf( szTmp, pszInstPathMask, pszDevTreePath, NEPMD_DEVPATH_MESSAGEFILE, pszMessageFile);
+      else if (fNepmdInstalled)
          sprintf( szTmp, pszInstPathMask, szNepmdPath, pszNepmdBinDir, pszMessageFile);
       else
          sprintf( szTmp, pszFreePathMask, szModulePath, pszMessageFile);
