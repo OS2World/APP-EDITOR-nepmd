@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.31 2002-09-13 21:57:30 cla Exp $
+.. $Id: nepmd.txt,v 1.32 2002-09-19 14:34:47 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -910,13 +910,6 @@ placed into the following directory tree:
   ÀÄmacros      **.e         user macros
   ÀÄndx         **.ndx       user help index files
 .fo on
-                  +
-.. -----------------------------------------------------------------------------
-.3 reworked E macros
-.. -----------------------------------------------------------------------------
-.an IDPNL_ADDITIONS_NEWMACROS
-.
-<to be edited>
 
 .. -----------------------------------------------------------------------------
 .3 extended keyword hilighting
@@ -970,6 +963,30 @@ convenience. It works as follows:
   - loads the compile log (optional)
 
 Using the reload function makes the work much easier especially when developing macros for *EPM*.
+
+.. -----------------------------------------------------------------------------
+.3 reworked E macros
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_NEWMACROS
+.
+<to be edited>
+
+.. -----------------------------------------------------------------------------
+.3 extended configuration repository 
+.. -----------------------------------------------------------------------------
+.an IDPNL_ADDITIONS_REGISTRY
+.
+The [=TITLE] provides an extended configuration repository, which
+overcomes the limitation of *OS/2* or *eComStation* initialization files,
+these support only a two-dimensional namespace. Instead, very similar to
+a registry, the configuration repository supports a hierarchical namespace.
+
+See the panels of the 
+.sl compact
+- [.IDPNL_REGISTRY]
+.el
+
+for more technical details when using it in your own macro soruce code.
 
 .. -----------------------------------------------------------------------------
 .3 Readme text files matrix
@@ -1202,6 +1219,8 @@ The following persons (in alphabetic order) assembled and contributed extensions
   - [.IDPNL_ADDITIONS_RECOMP recompilation GUI utility RECOMP]
   - [.IDPNL_ADDITIONS_DYNCFG]
      - [.IDPNL_ADDITIONS_DYNCFG_LOADER]
+  - many functions of an external dynamic link library *NEPMDLIB*, containing  many of
+    the [.IDPNL_EFUNC E Language functions] of the [=TITLE]
 ..- extended syntax highlighting support
 ..
 - *Andreas Schnellbacher* <Andreas.Schnellbacher@web.de>
