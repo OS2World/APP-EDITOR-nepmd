@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.24 2004-06-03 22:32:35 aschn Exp $
+* $Id: main.e,v 1.25 2004-07-02 09:41:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,50 +19,6 @@
 *
 ****************************************************************************/
 
--------- Begin debug stuff --------
-const
-compile if not defined(NEPMD_DEBUG)
-   NEPMD_DEBUG = 0  -- General debug const
-compile endif
-compile if not defined(NEPMD_DEBUG_DEFMAIN)
-   NEPMD_DEBUG_DEFMAIN = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_DEFMAIN_EMPTY_FILE)
-   NEPMD_DEBUG_DEFMAIN_EMPTY_FILE = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_AFTERLOAD)
-   NEPMD_DEBUG_AFTERLOAD = 0
-compile endif
-
-defproc debugmain
-compile if NEPMD_DEBUG then
-   type = upcase(arg(1))
- compile if NEPMD_DEBUG_DEFMAIN then
-   if type = 'DEFMAIN' then
-      call NepmdPmPrintf( type': 'arg(2))
-   endif
- compile endif
- compile if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE then
-   if type = 'DEFMAIN_EMPTY_FILE' then
-      call NepmdPmPrintf( type': 'arg(2))
-   endif
- compile endif
- compile if NEPMD_DEBUG_AFTERLOAD then
-   if type = 'AFTERLOAD' then
-      call NepmdPmPrintf( type': 'arg(2))
-   endif
- compile endif
-compile endif  -- NEPMD_DEBUG
-   return
-
-; Bug: Every sayerror seems to be executed 2 times (according to the
-;      MessageBox), but fortunately defmain is not (can be verified with
-;      NepmdPmPrintf).
-;      Workaround: use the 'refresh' statement before every 'sayerror'.
-; ->   Better use NepmdPmPrintf and PmPrintf.exe for fast and save
-;      processing of messages.
--------- End debug stuff --------
-
 const
 ; Added for testing:
 compile if not defined(NEPMD_WANT_AFTERLOAD)
@@ -70,43 +26,9 @@ compile if not defined(NEPMD_WANT_AFTERLOAD)
 compile endif
 
 ; ---------------------------------------------------------------------------
-;  -  DEFINIT and DEFMAIN are processed whenever the .ex file is linked.
-;     For the main .ex file this is equivalent to 'for every new opened EPM
-;     window'. For other linked packages DEFMAIN is only executed, if
-;     the package is called by the command/DEFMAIN trick: If a command
-;     is executed, also .ex files are searched. If an .ex file with the
-;     same basename as the command exists, then DEFMAIN of this package
-;     will be executed.
-;  -  DEFMAIN is processed after all DEFINITs are completed. That makes it
-;     possible to process something in DEFMAIN being ensured that all
-;     DEFINIT actions (e.g. set default values) are finished.
-;  -  DEFMAIN is not processed, if EPM.EXE is started with option /r.
-;     /r opens first a new EPM thread, but if an EPM window is already
-;     present, all args will be passed to that window.
-;  -  Only 1 DEFMAIN is allowed per .ex file.
-;  -  Every .ex file defines it's own DEFINIT, DEFMAIN and DEFEXIT.
-;  -  DEFEXIT is not processed for the main .ex file. For other linked
-;     .ex files it is processed on unlink (may be used to switch a keyset
-;     back or to remove a submenu).
-;  -  DEFMAIN should be used to parse the command line arguments of the
-;     current .EX file. For EPM.EX this is handled by MAIN.E.
-defmain
-   universal rexx_profile
-   universal should_showwindow
+; Put the test stuff into an extra command.
+defc TestLinkAtDefmain
    universal nepmd_hini
-   universal app_hini
-   universal unnamedfilename
-   universal defmainprocessed
-   universal defloadprocessed
-   universal firstloadedfid  -- first file for the 'xcom e /n' cmd
-   universal firstinringfid  -- first file in the ring
-
-
-
-;  Get args and make it a parameter for the edit cmd ------------------------
-   doscmdline = 'e 'arg(1) /* Can do special processing of DOS command line.*/
-
-   debugmain('DEFMAIN' 'arg(1) = "'arg(1)'"')
 
 ;  Link NEPMDLIB.EX if not already linked in DEFINIT ------------------------
 compile if LINK_NEPMDLIB = 'DEFMAIN'  -- default is to link NepmdLib at DEFINIT
@@ -117,10 +39,6 @@ compile if LINK_NEPMDLIB = 'DEFMAIN'  -- default is to link NepmdLib at DEFINIT
 compile endif
 
 compile if LINK_NEPMDLIB <> 'DEFINIT'  -- default is to link NepmdLib at DEFINIT
-   if isadefproc('NepmdQueryConfigValue') then
-      KeyPath = '\NEPMD\User\Menu\Name'
-      CurMenu = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   endif
 ;  Open NEPMD.INI and save the returned handle ------------------------------
    nepmd_hini = NepmdOpenConfig()
    parse value nepmd_hini with 'ERROR:'rc;
@@ -142,9 +60,55 @@ compile if LINK_NEPMDLIB <> 'DEFINIT'  -- default is to link NepmdLib at DEFINIT
       KeyPath = '\NEPMD\User\Menu\Name'
       CurMenu = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    endif
+ compile if LINK_MENU
+   if CurMenu = '' then  -- CurMenu is not set if LINK_NEPMDLIB <> 'DEFINIT'
+      CurMenu = 'newmenu'
+   endif
+   'linkverify 'CurMenu'.ex'
+ compile endif
 compile endif
 
-;  Process settings from EPM.INI --------------------------------------------
+; ---------------------------------------------------------------------------
+;  -  DEFINIT and DEFMAIN are processed whenever the .ex file is linked.
+;     For the main .ex file this is equivalent to 'for every new opened EPM
+;     window'. For other linked packages DEFMAIN is only executed, if
+;     the package is called by the command/DEFMAIN trick: If a command
+;     is executed, also .ex files are searched. If an .ex file with the
+;     same basename as the command exists, then DEFMAIN of this package
+;     will be executed.
+;  -  DEFMAIN is processed after all DEFINITs are completed. That makes it
+;     possible to process something in DEFMAIN being ensured that all
+;     DEFINIT actions (e.g. set default values) are finished.
+;  -  DEFMAIN is not processed, if EPM.EXE is started with option /r.
+;     /r opens first a new EPM thread, but if an EPM window is already
+;     present, all args will be passed to that window.
+;  -  Only 1 DEFMAIN is allowed per .ex file.
+;  -  Every .ex file defines its own DEFINIT, DEFMAIN and DEFEXIT.
+;  -  DEFEXIT is not processed for the main .ex file. For other linked
+;     .ex files it is processed on unlink (may be used to switch a keyset
+;     back or to remove a submenu).
+;  -  DEFMAIN should be used to parse the command line arguments of the
+;     current .EX file. For EPM.EX this is handled by MAIN.E.
+defmain
+   universal rexx_profile
+   universal should_showwindow
+   universal nepmd_hini
+   universal app_hini
+   universal unnamedfilename
+   universal defmainprocessed
+   universal defloadprocessed
+   universal firstloadedfid  -- first file for the 'xcom e /n' cmd
+   universal firstinringfid  -- first file in the ring
+
+;  Get args and make it a parameter for the edit cmd ------------------------
+   doscmdline = 'e 'arg(1) /* Can do special processing of DOS command line.*/
+
+   dprintf( 'DEFMAIN', 'arg(1) = ['arg(1)']')
+
+;  Usually NEPMDLIB and the menu are linked at definit ----------------------
+   'TestLinkAtDefmain'
+
+;  Process settings from EPM.INI and load menu ------------------------------
    -- This should be processed after NepmdInitConfig, because now there are
    -- values from NEPMD.INI queried as well.
    'initconfig'
@@ -185,8 +149,34 @@ compile if SUPPORT_USER_EXITS
    endif
 compile endif
 
+;  Automatically link .ex files from myepm\autolink -------------------------
+   call NepmdAutoLink()
+
+;  Process PROFILE.ERX ------------------------------------------------------
+   -- Changed: profile.erx is now processed before any file is loaded. In
+   --          order to change file settings, the 'load' or 'loadonce' hook
+   --          must be used now.
+   -- Note: E.g. switching highlighting on for the original EPM with
+   --       'toggle_parse 1 epmkwds.<ext>' from profile.erx didn't work for
+   --       every loaded file. Any file stuff didn't work properly there.
+   --       Using the new load hooks, one can execute something for every
+   --       loaded file -- easily and properly.
+   if rexx_profile then
+      ProfileName = 'profile.erx'
+      -- REXX profile is not searched anymore. It must be placed in
+      -- NEPMD\myepm\bin with the name PROFILE.ERX now.
+      Profile = Get_Env('NEPMD_ROOTDIR')'\myepm\bin\'ProfileName
+      if exist(Profile) then
+;      -- REXX_PROFILE is now searched in .;%PATH%;%EPMPATH% instead of .;%EPMPATH%;%PATH%
+;      findfile Profile, ProfileName, 'PATH'
+;      if rc then findfile Profile, ProfileName, EPATH; endif
+;      if not rc then
+         'rx' Profile arg(1)
+      endif
+   endif
+
 ;  Execute the doscmdline (edit command) ------------------------------------
-   debugmain( 'DEFMAIN', 'doscmdline = 'doscmdline)
+   dprintf( 'DEFMAIN', 'doscmdline = 'doscmdline)
    -- Restore last edit ring if started without args
    KeyPath = '\NEPMD\User\AutoRestore\Ring\LoadLast'
    Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -202,7 +192,7 @@ compile endif
    -- Get fileid after processing of doscmdline.
    getfileid newfid
    do f = 1 to filesinring()  -- exclude hidden files
-      debugmain( 'DEFMAIN_EMPTY_FILE', 'file 'f' of 'filesinring()' in ring: '.filename)
+      dprintf( 'DEFMAIN_EMPTY_FILE', 'file 'f' of 'filesinring()' in ring: '.filename)
       getfileid fid
       if fid = unnamedfid then
          -- Check if other files in ring
@@ -213,29 +203,26 @@ compile endif
             -- triggered.
             -- Load a new empty file, for that the defload event will
             -- process.
-            debugmain( 'DEFMAIN_EMPTY_FILE', 'load a new empty file...')
+            dprintf( 'DEFMAIN_EMPTY_FILE', 'load a new empty file...')
             'xcom e /n'
             getfileid newfid
             -- Set the universal vars to make afterload happy.
             -- At this point they are initialized to unnamedfid.
             firstloadedfid = newfid
             firstinringfid = newfid  -- first file in the ring
-            debugmain( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
+            dprintf( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
          endif
          -- Get rid of the automatically created empty file
-         debugmain( 'DEFMAIN_EMPTY_FILE', 'quit internally loaded empty file... unnamedfid = 'unnamedfid)
+         dprintf( 'DEFMAIN_EMPTY_FILE', 'quit internally loaded empty file... unnamedfid = 'unnamedfid)
          activatefile unnamedfid
          'xcom q'
-         debugmain( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
+         dprintf( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
          leave
       endif
       next_file
    enddo
-   debugmain( 'DEFMAIN_EMPTY_FILE', 'activating newfid = 'newfid', filename = 'newfid.filename)
+   dprintf( 'DEFMAIN_EMPTY_FILE', 'activating newfid = 'newfid', filename = 'newfid.filename)
    activatefile newfid
-
-;  Automatically link .ex files from myepm\autolink -------------------------
-   call NepmdAutoLink()
 
 ;  Process 'main' Hook ------------------------------------------------------
    -- The 'main' hook is a comfortable way to overwrite or add some
@@ -247,21 +234,6 @@ compile endif
    -- Note   : Hooks are only able to process commands, not procedures.
    'HookExecute main'
 
-;  Process PROFILE.ERX ------------------------------------------------------
-   if rexx_profile then
-      profile = 'profile.erx'
-      -- REXX profile is not searched anymore. It must be placed in
-      -- NEPMD\myepm\bin with the name PROFILE.ERX now.
-      profile1 = Get_Env('NEPMD_ROOTDIR')'\myepm\bin\'profile
-      if exist(profile1) then
-;      -- REXX_PROFILE is now searched in .;%PATH%;%EPMPATH% instead of .;%EPMPATH%;%PATH%
-;      findfile profile1, profile, 'PATH'
-;      if rc then findfile profile1, profile, EPATH; endif
-;      if not rc then
-         'rx' profile1 arg(1)
-      endif
-   endif
-
 ;  Show menu and window -----------------------------------------------------
    call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
    -- see also: STDCNF.E for menu
@@ -272,11 +244,33 @@ compile endif
    defmainprocessed = 1
 compile if NEPMD_WANT_AFTERLOAD
    if defloadprocessed = 1 then -- if all DEFLOADs from first edit command already processed
-      debugmain( 'AFTERLOAD', 'Calling AfterLoad from DEFMAIN...')
+      dprintf( 'AFTERLOAD', 'Calling AfterLoad from DEFMAIN...')
       'postme AfterLoad'
    else
-      debugmain( 'AFTERLOAD', 'AfterLoad not called from DEFMAIN, because defloadprocessed <> 1.')
+      dprintf( 'AFTERLOAD', 'AfterLoad not called from DEFMAIN, because defloadprocessed <> 1.')
    endif
 compile endif
+
+;  Check used version of EPM.EX ---------------------------------------------
+   'CheckEpmExTimeStamp'
+
+;  Execute just-installed stuff, if any -------------------------------------
+   App = 'RegDefaults'
+   Key = '\NEPMD\System\JustInstalled'
+   JustInstalled = QueryProfile( nepmd_hini, App, Key)
+   if JustInstalled = 1 then
+      -- Link JustInst.ex if present
+      display -2
+      link 'justinst'
+      display 2
+      if rc > 0 then
+         -- Execute defc JustInst
+         if isadefc('JustInst') then
+            'postme JustInst'
+         endif
+      endif
+      -- Reset ini key
+      call SetProfile( nepmd_hini, App, Key, 0)
+   endif
 
 
