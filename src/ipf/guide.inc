@@ -10,7 +10,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: guide.inc,v 1.1 2002-04-24 15:14:50 cla Exp $
+.. $Id: guide.inc,v 1.2 2002-04-26 09:40:18 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -161,8 +161,8 @@ If you fear to commit non-working code though, either
 .ul compact
 - you did not plan your work well  or
 - your modification task may be too large or takte too much time to code or test 
-  for a normal development cycle. So you may need a [.IDPNL_CVSGUIDE_TRUNKS CVS trunk]
-  in order to develop separately from the  main development path. But using trunks 
+  for a normal development cycle. So you may need a [.IDPNL_CVSGUIDE_BRANCHES CVS branch]
+  in order to develop separately from the  main development path. But using branches
   to separate different development paths are mostly used on large *CVS* archives 
   only, likely the [=TITLE] archive is yet too small to really require this...
 
@@ -219,17 +219,17 @@ A good thumbrule for that is:
 
 So the very best way is to
 .ul compact
-- get the last revision (or last revision of desired trunk) of all files 
+- get the last revision (or last revision of desired branch) of all files 
 - make the changes for a given modification
 - test the modifications
 - commit all modified files in one step, writing a meaningful commit comment
 
 .. -----------------------------------------------------------------------------
-.3 do not create trunks
+.3 do not create branches
 .. -----------------------------------------------------------------------------
-.an IDPNL_CVSGUIDE_TRUNKS
+.an IDPNL_CVSGUIDE_BRANCHES
 .
-*CVS* trunks are mostly used when
+*CVS* branches are mostly used when
 .ul compact
 - shipping a release, allowing fixes on the release version without affecting
   the development
@@ -239,12 +239,12 @@ So the very best way is to
 
 It is project policy that
 .ul compact
-- generally only the release maintainer is to create trunks for releases 
+- generally only the release maintainer is to create branches for releases 
 - while the [=TITLE] archive has no basic module requiring larger development 
-  cicles no trunks are required for this
-- if you ever think you require trunks, ask the release maintiner for it
+  cycles no branches are required for this
+- if you ever think you require branches, ask the release maintiner for it
 
-So as a thumb rule: DON'T CREATE TRUNKS YOURSELF !
+So as a thumb rule: DON'T CREATE BRANCHES YOURSELF !
 
 .. -----------------------------------------------------------------------------
 .3 how to ship a release 
@@ -256,8 +256,8 @@ everybody an overview. A release is packed as follows:
 .ul compact
 - the working directory is cleaned up
 - the current tip revision is checked out
-- a new trunk for the release is created
-- the file revisions of that trunk are marked with a release label
+- a new branch for the release is created
+- the file revisions of that branch are marked with a release label
   in order to checkout a complete release later on
 - the package is built and tested
 - if necessary, the release maintainer creates
