@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextdir.e,v 1.3 2002-08-23 15:35:00 cla Exp $
+* $Id: getnextdir.e,v 1.4 2002-08-25 19:58:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -21,6 +21,57 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+@@NepmdGetNextDir@PROTOTYPE
+Filename = NepmdGetNextDir( DirMask, adress( Handle));
+
+@@NepmdGetNextDir@SYNTAX
+This function implements an easy directory lookup
+for subdirectories with one function. For that it
+needs to be called in a loop.
+
+@@NepmdGetNextDir@PARM@DirMask
+This parameter specifies the directories to be searched
+and may contain wildcards.
+
+@@NepmdGetNextDir@PARM@AddressOfHandle
+This parameter specifies the address of a search handle, 
+it can be determined with the *adress()* function like
+.fo off
+   adress( handle);
+.fo on
+
+Note that on the first call to NepmdGetNextDir() the value
+of the variable holding the handle must be set to zero.
+
+@@NepmdGetNextDir@EXAMPLE
+The following code searches all subdirectories within the directory C:\OS2:
+.fo off
+ Handle  = 0;  /** always create a new handle ! **/
+ DirMask = 'C:\OS2\**';
+
+ /** search all files **/
+ do while (1)
+    Dirname = NepmdGetNextDir(  DirMask, address( Handle));
+    parse value Dirname with 'ERROR:'rc;
+    if (rc > '') then
+       leave;
+    endif
+
+    /** process subdirectory - here as a sample we display a popup **/
+    messagenwait( 'Dir found:' Dirname);
+ end;
+.fo on
+
+@@NepmdGetNextDir@RETURNS
+NepmdGetNextDir returns either
+.ul compact
+- the next directory returned by the directory seach  or
+- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@
+*/
 
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
@@ -37,13 +88,13 @@ defc NepmdGetNextDir, GetNextDir =
 
  /* search all files */
  do while (1)
-    Fullname = NepmdGetNextDir(  DirMask, address( Handle));
-    parse value Fullname with 'ERROR:'rc;
+    Dirname = NepmdGetNextDir(  DirMask, address( Handle));
+    parse value Dirname with 'ERROR:'rc;
     if (rc > '') then
        leave;
     endif
 
-    messagenwait( 'File found:' Fullname);
+    messagenwait( 'Dir found:' Dirname);
  end;
 
 /* ------------------------------------------------------------- */

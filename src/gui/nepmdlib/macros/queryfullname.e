@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryfullname.e,v 1.7 2002-08-25 18:15:13 cla Exp $
+* $Id: queryfullname.e,v 1.8 2002-08-25 19:58:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -23,17 +23,21 @@
 ****************************************************************************/
 
 /*
+@@NepmdQueryFullname@PROTOTYPE
+Fullname = NepmdQueryFullname( Filename);
 
 @@NepmdQueryFullname@SYNTAX
-This function queries the fullname of the specified filenae
+This function queries the fullname of the specified filename.
 
 @@NepmdQueryFullname@PARM@Filename
-This parameter specifies the filename, It may include wildcards
+This parameter specifies the filename, it may include wildcards
 only within the filename part, these are returned within the result.
 
 @@NepmdQueryFullname@RETURNS
-NepmdQueryFullname returns the full qualified filename
-or the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+NepmdQueryFullname returns either
+.ul compact
+- the full qualified filename  or
+- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
 
 @@NepmdQueryFullname@REMARKS
 This function calls the OS/2 API *DosQueryPathInfo* and will

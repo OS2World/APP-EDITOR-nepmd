@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: errormsgbox.e,v 1.4 2002-08-23 15:34:59 cla Exp $
+* $Id: errormsgbox.e,v 1.5 2002-08-25 19:58:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -22,6 +22,27 @@
 *
 ****************************************************************************/
 
+/*
+@@NepmdErrorMsgBox@PROTOTYPE
+rc = NepmdErrorMsgBox( BoxMessage, BoxTitle);
+
+@@NepmdErrorMsgBox@SYNTAX
+This function pops up an error messagebox.
+
+@@NepmdErrorMsgBox@PARM@BoxMessage
+This parameter specifies the message to be
+displayed in the message box.
+
+@@NepmdErrorMsgBox@PARM@BoxTitle
+This parameter specifies the title to be
+displayed in the message box.
+
+@@NepmdErrorMsgBox@RETURNS
+NepmdErrorMsgBox returns an OS/2 error code.
+
+@@
+*/
+
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
@@ -34,7 +55,7 @@ defc NepmdErrorMsgBox, ErrorMsgBox =
 /* procedure: NepmdErrorMsgBox                                   */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
-/*    rc = NepmdErrorMsgBox( message, title);                    */
+/*    rc = NepmdErrorMsgBox( BoxMessage, BoxTitle);              */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdErrorMsgBox( HWND hwndClient,           */
@@ -42,7 +63,7 @@ defc NepmdErrorMsgBox, ErrorMsgBox =
 /*                                    PSZ pszTitle)              */
 /* ------------------------------------------------------------- */
 
-defproc NepmdErrorMsgBox( BoxMessage, Boxtitle) =
+defproc NepmdErrorMsgBox( BoxMessage, BoxTitle) =
 
  /* prepare parameters for C routine */
  BoxMessage = BoxMessage''atoi( 0);

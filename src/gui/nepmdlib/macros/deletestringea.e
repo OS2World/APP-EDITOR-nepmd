@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deletestringea.e,v 1.3 2002-08-23 15:34:59 cla Exp $
+* $Id: deletestringea.e,v 1.4 2002-08-25 19:58:15 cla Exp $
 *
 * ===========================================================================
 *
@@ -21,6 +21,28 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+@@NepmdDeleteStringEa@PROTOTYPE
+Fullname = NepmdDeleteStringEa( Filename, EaName);
+
+@@NepmdDeleteStringEa@SYNTAX
+This function deletes the specified extended attribute
+from the specified file.
+
+@@NepmdDeleteStringEa@PARM@Filename
+This parameter specifies the name of the file, from which
+the specified REXX EAs is to be deleted.
+
+@@NepmdDeleteStringEa@PARM@EaName
+This parameter specifies the name of the extended 
+attribute to be deleted.
+
+@@NepmdDeleteStringEa@RETURNS
+NepmdDeleteStringEa returns an OS/2 error code.
+
+@@
+*/
 
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
@@ -37,4 +59,30 @@ defc NepmdDeleteStringEa, DeleteStringEa =
  endif
 
  sayerror 'Extended attribute "'NEPMD_TEST_EANAME'" deleted from:' Filename;
+
+/* ------------------------------------------------------------- */
+/* procedure: NepmdDeleteStringEa                                */
+/* ------------------------------------------------------------- */
+/* .e Syntax:                                                    */
+/*    Fullname = NepmdDeleteStringEa( Filename, EaName);         */
+/* ------------------------------------------------------------- */
+
+defproc NepmdDeleteStringEa( Filename, EaName ) = 
+
+ /* prepare parameters for C routine */
+ Filename   = Filename''atoi( 0);
+ EaName     = EaName''atoi( 0);
+ EaValue    = atoi( 0);
+
+ /* call C routine */
+ LibFile = getlibfile();
+ rc = dynalink32( LibFile,
+                  "NepmdWriteStringEa",
+                  address( Filename)            ||
+                  address( EaName)              ||
+                  address( EaValue));
+
+ checkliberror( LibFile, rc);
+
+ return rc;
 

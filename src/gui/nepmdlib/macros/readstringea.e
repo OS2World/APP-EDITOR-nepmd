@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: readstringea.e,v 1.1 2002-08-23 15:31:01 cla Exp $
+* $Id: readstringea.e,v 1.2 2002-08-25 19:58:17 cla Exp $
 *
 * ===========================================================================
 *
@@ -21,6 +21,33 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+@@NepmdReadStringEa@PROTOTYPE
+EaValue = NepmdReadStringEa( Filename, EaName);
+
+@@NepmdReadStringEa@SYNTAX
+This function reads the specified string extended attribute
+from the specified file. Please note that this function can 
+only retrieve string EAs properly, retrieving any other type
+of extended attributes may lead to unpredictable results.
+
+@@NepmdReadStringEa@PARM@Filename
+This parameter specifies the name of the file, from which
+the specified REXX EAs is to be read.
+
+@@NepmdReadStringEa@PARM@EaName
+This parameter specifies the name of the extended 
+attribute to be read.
+
+@@NepmdReadStringEa@RETURNS
+NepmdReadStringEa returns either
+.ul compact
+- the value of the requested extended attribute  or
+- the string *ERROR:xxx*, where *xxx* is an OS/2 error code.
+
+@@
+*/
 
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */

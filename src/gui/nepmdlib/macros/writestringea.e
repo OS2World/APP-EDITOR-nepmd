@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writestringea.e,v 1.4 2002-08-23 15:35:00 cla Exp $
+* $Id: writestringea.e,v 1.5 2002-08-25 19:58:17 cla Exp $
 *
 * ===========================================================================
 *
@@ -21,6 +21,32 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+@@NepmdWriteStringEa@PROTOTYPE
+EaValue = NepmdWriteStringEa( Filename, EaName, EaValue);
+
+@@NepmdWriteStringEa@SYNTAX
+This function writes the specified string as value for the specified
+extended attribute to the specified file.
+
+@@NepmdWriteStringEa@PARM@Filename
+This parameter specifies the name of the file, to which
+the specified REXX EAs is to be written.
+
+@@NepmdWriteStringEa@PARM@EaName
+This parameter specifies the name of the extended 
+attribute to be written.
+
+@@NepmdWriteStringEa@PARM@EaValue
+This parameter specifies the string to be written as
+the value of the specified extended attribute.
+
+@@NepmdWriteStringEa@RETURNS
+NepmdWriteStringEa returns an OS/2 error code.
+
+@@
+*/
 
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */

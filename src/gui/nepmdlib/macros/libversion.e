@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libversion.e,v 1.3 2002-08-23 15:35:00 cla Exp $
+* $Id: libversion.e,v 1.4 2002-08-25 19:58:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -22,6 +22,21 @@
 *
 ****************************************************************************/
 
+/*
+@@NepmdLibVersion@PROTOTYPE
+Version = NepmdLibVersion();
+
+@@NepmdLibVersion@SYNTAX
+This function queries the version of the installed runtime library 
+of the [=TITLE].
+
+@@NepmdLibVersion@RETURNS
+NepmdLibVersion returns the version number of the runtime library
+of the [=TITLE].
+
+@@
+*/
+
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
@@ -34,7 +49,7 @@ defc NepmdLibVersion =
 /* procedure: NepmdLibVersion                                    */
 /* ------------------------------------------------------------- */
 /* .e Syntax:                                                    */
-/*    data = NepmdLibVersion();                                  */
+/*    Version = NepmdLibVersion();                               */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdLibVersion( PSZ pszBuffer,              */
