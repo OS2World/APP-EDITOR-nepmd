@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.31 2004-06-03 23:23:46 aschn Exp $
+* $Id: mode.e,v 1.32 2004-07-02 09:49:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -40,28 +40,31 @@ defproc NepmdGetMode
    Filename = arg(1)
    if Filename = '' then
       Filename = .filename
+      getfileid fid  -- for current file
+   else
+      getfileid fid, Filename  -- for first found file ring with name = Filename
    endif
-   -- save currently activated file to restore the activation later
-   -- (arg(1) may differ from filename!)
-   getfileid save_fid
+
+   IsATempFile  = (leftstr( Filename, 1 ) = '.')
+   IsAShellFile = (leftstr( Filename, 15 ) = '.command_shell_')
 
    -- Get CurMode for Filename by querying an array var
-   getfileid fid, Filename
    -- arg(2) and arg(4) of do_array must be vars!
    rc = get_array_value( EPM_utility_array_ID, 'mode.'fid, CurMode )
    -- Save this value as SavedMode
    SavedMode = CurMode
 
-   if CurMode = '' then
+   if CurMode = '' & not IsATempFile then
       -- Get CurMode from EA EPM.MODE
-      activatefile fid
-      CurMode = get_EAT_ASCII_value('EPM.MODE')
+      next = NepmdQueryStringEa( Filename, 'EPM.MODE')
+      parse value next with 'ERROR:'ret
+      if ret = '' then
+         CurMode = next
+      endif
    endif
 
    if CurMode = '' then
       -- if it's a temp filename starting with '.'
-      IsATempFile = (leftstr( Filename, 1 ) = '.')
-      IsAShellFile = (leftstr( Filename, 15 ) = '.command_shell_')
       -- set DefaultMode here to not have NepmdQueryDefaultMode go trough
       -- all ini files in the mode dirs
       CurMode = 'TEXT' -- general default mode
@@ -94,20 +97,7 @@ compile endif
       do_array 2, EPM_utility_array_ID, 'mode.'fid, CurMode
    endif
 
-   activatefile save_fid
-
    return CurMode
-
-; ---------------------------------------------------------------------------
-defc WM
-   universal EPM_utility_array_ID
-   getfileid fid
-   CurMode = arg(1)
-   if arg(1) <> '' then
-      do_array 2, EPM_utility_array_ID, 'mode.'fid, CurMode
-   endif
-   next = GetAVar('mode.'fid)
-   sayerror 'array var mode.fid = ['next']'
 
 ; ---------------------------------------------------------------------------
 ; Extra procedure for getting the CheckFlag to allow using a universal var
