@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.11 2002-08-27 12:21:25 cla Exp $
+* $Id: gettextmessage.e,v 1.12 2002-08-29 14:49:12 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,7 @@
 
 /*
 @@NepmdGetTextMessage@PROTOTYPE
-TextMessage = NepmdGetTextMessage( Filename, Messagename);
+TextMessage = NepmdGetTextMessage( Filename, Messagename, Parameters);
 
 @@NepmdGetTextMessage@CATEGORY@NLS
 
@@ -43,11 +43,32 @@ the specified text message file.
 
 @@NepmdGetTextMessage@PARM@Parameters
 Up to nine optional parameters can be specified to be inserted into
-the text message, if the message contains placeholders from %1 to %9.
+the text message, if the message contains placeholders from *%1* to *%9*.
+If no variable parameters are required, *NepmdGetTextMessage* can be called
+with the two parameters [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_FILENAME Filename]
+and [.IDPNL_EFUNC_NEPMDGETTEXTMESSAGE_PARM_MESSAGENAME Messagename] only.
 
-Placeholders can be specified several times, if a parameter is
-not specified or empty, its related placeholder is replaced
+The placeholders from *%1* to *%9* can be specified several times. If a
+parameter is not specified or empty, its related placeholder is replaced
 with an empty string.
+
+The following example reads the message *MSG__DRIVE__NOT__READY* from the
+text message file *myproject.tmf* and inserts the string *A:*, where
+the message text includes the palceholder *%1*.
+
+.fo off
+TextMessage = NepmdGetTextMessage( "myproject.tmf", "MSG__DRIVE__NOT__READY",  "A:");
+.fo on
+.
+Taken that the file *myproject.tmf* contains a message like this one
+.fo off
+<--MSG__DRIVE__NOT__READY-->:Drive %1 ist not ready, please insert a diskette and press any key!
+.fo on
+.
+the resulting message would be:
+
+Drive A: ist not ready, please insert a diskette and press any key!
+
 
 @@NepmdGetTextMessage@RETURNS
 NepmdGetTextMessage returns either
