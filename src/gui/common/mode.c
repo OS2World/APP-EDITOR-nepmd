@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.c,v 1.6 2002-10-18 19:06:56 cla Exp $
+* $Id: mode.c,v 1.7 2004-09-12 13:34:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -346,8 +346,11 @@ static APIRET _getModeSettings( PSZ pszMode, PMODEINFO pmi, ULONG ulBuflen)
 
          CHAR           szCustomDefExtensions[ _MAX_PATH];
          CHAR           szCustomDefNames[ _MAX_PATH];
+         CHAR           szCustomAddDefExtensions[ _MAX_PATH];
+         CHAR           szCustomAddDefNames[ _MAX_PATH];
 
          CHAR           szCaseSensitive[ 5];
+         CHAR           szCustomCaseSensitive[ 5];
          ULONG          ulCaseSensitive;
          ULONG          ulInfoSize;
 
@@ -378,19 +381,42 @@ do
       if (InitOpenProfile( szIniFile, &hinit, INIT_OPEN_READONLY, 0, NULL) == NO_ERROR)
          {
          // read values here
-         QUERYOPTINITVALUE( hinit, pszGlobalSection, "ADD_DEFEXTENSIONS", szCustomDefExtensions, "");
-         QUERYOPTINITVALUE( hinit, pszGlobalSection, "ADD_DEFNAMES",      szCustomDefNames, "");
+         QUERYOPTINITVALUE( hinit, pszGlobalSection, "DEFEXTENSIONS",     szCustomDefExtensions, "");
+         QUERYOPTINITVALUE( hinit, pszGlobalSection, "ADD_DEFEXTENSIONS", szCustomAddDefExtensions, "");
+         QUERYOPTINITVALUE( hinit, pszGlobalSection, "DEFNAMES",          szCustomDefNames, "");
+         QUERYOPTINITVALUE( hinit, pszGlobalSection, "ADD_DEFNAMES",      szCustomAddDefNames, "");
+         // next is only for _MODEINFO struct here
+         QUERYOPTINITVALUE( hinit, pszGlobalSection, "CASESENSITIVE",     szCustomCaseSensitive, "");
+         // see also: HILITE.C
          InitCloseProfile( hinit, FALSE);
+
+         // replace settings from DEFAULT.INI, if present
          if (strlen( szCustomDefExtensions))
             {
-            strcat( szDefExtensions, " ");
-            strcat( szDefExtensions, szCustomDefExtensions);
+            strcpy( szDefExtensions, szCustomDefExtensions);
             }
 
          if (strlen( szCustomDefNames))
             {
+            strcpy( szDefNames, szCustomDefNames);
+            }
+
+         if (strlen( szCustomCaseSensitive))
+            {
+            strcpy( szCaseSensitive, szCustomCaseSensitive);
+            }
+
+         // append "ADD_" settings to settings from DEFAULT.INI, if present
+         if (strlen( szCustomAddDefExtensions))
+            {
+            strcat( szDefExtensions, " ");
+            strcat( szDefExtensions, szCustomAddDefExtensions);
+            }
+
+         if (strlen( szCustomAddDefNames))
+            {
             strcat( szDefNames, " ");
-            strcat( szDefNames, szCustomDefNames);
+            strcat( szDefNames, szCustomAddDefNames);
             }
          }
       }
@@ -466,7 +492,7 @@ static APIRET _scanModes( ULONG ulReturnType,
          HDIR           hdir = NULLHANDLE;
 
          PSZ            pszRexxSig = "/*";
-         ULONG          ulIniSig = -1;
+         PSZ            pszIniSig = "\xFF\xFF\xFF\xFF\x14\x00";
 
          PSZ            pszNameMode = NULL;
          PSZ            pszExtMode = NULL;
@@ -541,8 +567,10 @@ do
       if (!strcmp( pszExtension, "INI"))
          {
          // dont act on true OS/2 INI Files !
-         if (_checkSpecialFile( pszFilename, (PBYTE)&ulIniSig, sizeof( ulIniSig)))
-            rc = ERROR_PATH_NOT_FOUND;
+         //if (_checkSpecialFile( pszFilename, (PBYTE)&ulIniSig, sizeof( ulIniSig)))
+         if (_checkSpecialFile( pszFilename, pszIniSig, strlen( pszIniSig)))
+            //rc = ERROR_PATH_NOT_FOUND;  // this would cause mode = INI as well
+            pszExtMode = strdup( "BIN");
          else
             pszExtMode = strdup( "INI");
          }
