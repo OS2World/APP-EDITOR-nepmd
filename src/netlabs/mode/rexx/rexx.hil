@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: rexx.hil,v 1.2 2002-10-18 19:14:37 cla Exp $
+; $Id: rexx.hil,v 1.3 2002-10-18 19:41:27 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -58,17 +58,21 @@
 ; --- SAA  REXX Keywork Instructions
 address
 arg
+by
 call
 do
+down
 drop
-end
 else
+end
 exit
 expose
+forever
 if
 interpret
 iterate
 leave
+lower
 nop
 numeric
 options
@@ -82,11 +86,16 @@ return
 say
 select
 signal
+source
 then
+to
 trace
 until
+var
+version
 when
 while
+with
 
 ; --- SAA REXX Functions
 abbrev
