@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.23 2002-08-27 12:18:39 cla Exp $
+.. $Id: nepmd.txt,v 1.24 2002-08-28 21:47:25 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -694,7 +694,6 @@ after the other in the following order:
 .5 epm.env
 .. .............................................................................
 .an IDPNL_ADDITIONS_DYNCFG_ENVFILES_EPMENV
-.in __todo: include epm.env
 .
 The [=TITLE] comes with the following [.IDPNL_ADDITIONS_DYNCFG_ENVFILES main environment file],
 defining all required extensions for the environment to make all additions work properly.
@@ -702,12 +701,9 @@ defining all required extensions for the environment to make all additions work 
 Note that you should not modify this file, but create your own personal environment file
 in the directory *myepm\bin* with the same name, which is loaded after this main file.
 
-** NOTE TO THE EDITOR: include epm.env here ***
-.. .at fc=darkgray
-.. .xmp
-.. .im ..\netlabs\bin\epm.env
-.. .exmp
-.. .at
+.fo off
+.textinclude ..\netlabs\bin\epm.env
+.fo on
 
 .. .............................................................................
 .4 search order for environment files
