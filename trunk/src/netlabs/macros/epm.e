@@ -1,13 +1,10 @@
-/*
-- Added DICT.E.
-*/
 /****************************** Module Header *******************************
 *
 * Module Name: epm.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.25 2004-06-29 22:33:41 aschn Exp $
+* $Id: epm.e,v 1.26 2004-06-29 22:56:24 aschn Exp $
 *
 * ===========================================================================
 *
