@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querydefaultmode.e,v 1.1 2002-10-07 21:39:59 cla Exp $
+* $Id: querydefaultmode.e,v 1.2 2002-10-08 12:33:53 cla Exp $
 *
 * ===========================================================================
 *
@@ -78,6 +78,7 @@ defc NepmdQueryDefaultMode, QueryDefaultMode =
  endif
 
  DefaultMode = NepmdQueryDefaultMode( Filename);
+ sayerror( 'mode is' DefaultMode);
  parse value DefaultMode with 'ERROR:'rc;
  if (rc > '') then
     sayerror 'default EPM mode could not be determined, rc='rc;
@@ -117,11 +118,12 @@ defproc NepmdQueryDefaultMode( Filename ) =
                   atol( Buflen));
 
  /* reserved value, if no mode found */
- if (rc = 3) then
-    rc = "UNKNOWN";
+ if (rc == 3) then
+    DefaultMode = "UNKNOWN";
+ else
+    helperNepmdCheckliberror( DefaultMode, rc);
+    DefaultMode = makerexxstring( DefaultMode);
  endif
 
- helperNepmdCheckliberror( LibFile, rc);
-
- return makerexxstring( DefaultMode);
+ return DefaultMode;
 
