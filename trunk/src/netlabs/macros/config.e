@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.3 2004-07-03 23:07:12 aschn Exp $
+* $Id: config.e,v 1.4 2004-07-04 22:05:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1143,7 +1143,7 @@ defc initconfig2
 
    KeyPath = '\NEPMD\User\Keys\Tab\TabGlyph'
    on =  NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   tabglyph(on)
+   call tabglyph(on)
 
    KeyPath = '\NEPMD\User\Reflow\JoinAfterWrap'
    join_after_wrap = NepmdQueryConfigValue( nepmd_hini, KeyPath)
