@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.2 2004-02-22 17:13:06 aschn Exp $
+* $Id: infoline.e,v 1.3 2004-02-22 18:17:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,9 +32,6 @@ Todo:
 */
 
 const
-compile if not defined(NEPMD_SPECIAL_STATUSLINE)
-   NEPMD_SPECIAL_STATUSLINE = 1
-compile endif
 compile if not defined(NEPMD_MODIFIED_STATUSCOLOR)
    NEPMD_MODIFIED_STATUSCOLOR = LIGHT_GREYB + MAGENTA
 compile endif
