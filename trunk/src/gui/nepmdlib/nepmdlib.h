@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.h,v 1.2 2002-08-20 14:49:33 cla Exp $
+* $Id: nepmdlib.h,v 1.3 2002-09-02 20:09:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -29,6 +29,11 @@
 #define NEPMDLIB_STR_LOADEDFROM   "Directory: "
 #define NEPMDLIB_STR_VERSION      "Version: "
 #define NEPMDLIB_STR_LOADEDBY     "Loaded from: "
+
+// tag definitions for Alarm;
+#define NEPMD_ALARMSTYLE_ALARM         "ALARM"
+#define NEPMD_ALARMSTYLE_ERROR         "ERROR"
+#define NEPMD_ALARMSTYLE_WARNING       "WARNING"
 
 #endif // NEPMDLIB_H
 
