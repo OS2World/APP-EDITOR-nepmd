@@ -11,7 +11,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: _unpack.cmd,v 1.3 2002-04-19 19:57:55 cla Exp $
+* $Id: _unpack.cmd,v 1.4 2004-07-03 12:36:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -25,6 +25,9 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+ call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+ call SysLoadFuncs
 
  PARSE ARG Source Target;
  Source = STRIP( Source);
