@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.39 2002-09-15 14:58:35 cla Exp $
+* $Id: nepmdlib.c,v 1.40 2002-09-16 21:39:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -42,7 +42,7 @@
 #include "instval.c"
 #include "eas.h"
 #include "tmf.h"
-#include "libreg.c"
+#include "libreg.h"
 
 // some useful macros
 #define EPMINSERTTEXT(t)          EtkInsertTextBuffer( hwndClient, 0, strlen( t), t, 0x100);
@@ -400,6 +400,34 @@ return FileExists( pszFileName);
 APIRET EXPENTRY NepmdGetNextClose( HDIR hdir)
 {
 return DosFindClose( hdir);
+}
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdGetNextConfigKey( HCONFIG hconfig, PSZ pszRegPath, PSZ pszPreviousKey,
+                                       PSZ pszBuffer, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         BOOL           fImplicitOpen = FALSE;
+do
+   {
+   // implicit open if handle is zero
+   if (!hconfig)
+      {
+      rc = _openConfig( &hconfig);
+      if (rc != NO_ERROR)
+         break;
+      fImplicitOpen = TRUE;
+      }
+
+   // do the job
+   rc = GetNextConfigKey( hconfig, pszRegPath, pszPreviousKey, pszBuffer, ulBuflen);
+
+   } while (FALSE);
+
+// cleanup
+if (fImplicitOpen) CloseConfig( hconfig); 
+return _getRexxError( rc, pszBuffer, ulBuflen);
 }
 
 

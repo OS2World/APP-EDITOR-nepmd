@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.31 2002-09-15 14:58:35 cla Exp $
+* $Id: nepmdlib.e,v 1.32 2002-09-16 21:39:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -131,6 +131,7 @@ include 'errormsgbox.e'
 include 'filedelete.e'
 include 'fileexists.e'
 include 'getnextclose.e'
+include 'getnextconfigkey.e'
 include 'getnextdir.e'
 include 'getnextfile.e'
 include 'gettextmessage.e'
