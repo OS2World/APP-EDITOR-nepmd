@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setconfig.e,v 1.1 2002-10-06 23:29:05 aschn Exp $
+* $Id: setconfig.e,v 1.2 2002-10-20 10:40:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -24,9 +24,6 @@
 
 ; Current DEFAULTS.DAT:
 /*
-; RexxEa
-"\NEPMD\User\RexxEa\Delete" = 1
-"\NEPMD\User\RexxEa\Extensions" = "CMD ERX"
 
 ; Statusline
 ;"\NEPMD\User\Statusline\Template" = "Line %l of %s | Col %c | '%x'x/%z | %f | ma %ma | tabs %ta | %mo | %m"
