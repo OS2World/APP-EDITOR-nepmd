@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.h,v 1.4 2002-10-10 20:33:00 cla Exp $
+* $Id: mmf.h,v 1.5 2002-10-11 15:12:01 cla Exp $
 *
 * ===========================================================================
 *
@@ -49,7 +49,7 @@
 typedef LHANDLE HMMF, *PHMMF;
 
 /* prototypes */
-APIRET MmfInitialize( PHMMF phmmf);
+APIRET MmfInitialize( PHMMF phmmf, ULONG ulMaxBuffer);
 APIRET MmfTerminate( HMMF hmmf);
 APIRET MmfAlloc( HMMF hmmf, PVOID *ppvdata, PSZ pszFilename, ULONG ulOpenFlags, ULONG ulMaxSize);
 APIRET MmfFree( HMMF hmmf, PVOID pvData);
