@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: e3emul.e,v 1.4 2002-09-02 22:12:13 aschn Exp $
+* $Id: e3emul.e,v 1.5 2002-09-16 16:55:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1160,9 +1160,7 @@ defproc hidden_info(hostfileid, hostfilename, var tempfile, var fto, verb, bin, 
       'xcom l /'hostfilename
    endif
    found = rc<> -273 -- sayerror('String not found')        --LAM
- compile if EVERSION >= 5
-      display 2               -- reenable display of nonfatal error messages
- compile endif
+   display 2               -- reenable display of nonfatal error messages
    setsearch search_command -- Restores user's command so Ctrl-F works.
 compile if DEBUG
    if found then

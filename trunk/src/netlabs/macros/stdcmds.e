@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.5 2002-09-10 23:53:13 aschn Exp $
+* $Id: stdcmds.e,v 1.6 2002-09-16 16:54:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -337,10 +337,6 @@ define SAYERR = 'sayerror'  -- EPM:  Message box shows all SAYERRORs
 ; compile endif
 ;compile endif
 
-compile if not defined(WANT_TRUNCATED_WARNING)
-const WANT_TRUNCATED_WARNING = 0
-compile endif
-
 defc e,ed,edit,epm=
    universal default_edit_options
 compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') & not SMALL
@@ -465,13 +461,6 @@ compile endif
             enddo
             truncated=truncated', '.filename
             .modify = 0
-compile if WANT_TRUNCATED_WARNING
-            refresh
-            call winmessagebox( sayerrortext(-278),
-                             .filename\10 || LINES_TRUNCATED_WNG__MSG,
-                             16416)  -- MB_OK + MB_WARNING + MB_MOVEABLE
-            activatefile truncid
-compile endif  -- WANT_TRUNCATED_WARNING
          elseif rc=-5 then  -- sayerror('Access denied')
             access_denied=access_denied', 'file
          elseif rc=-15 then  -- sayerror('Invalid drive')

@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: colors.e,v 1.3 2002-08-09 19:57:25 aschn Exp $
+* $Id: colors.e,v 1.4 2002-09-16 16:55:43 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -86,9 +86,7 @@ const
 ;        window style 3.  (E3 and EOS2)
 define
    STATUSCOLOR              = WHITEB
- compile if EVERSION >= '5.60'
    DESKTOPCOLOR             = LIGHT_GREY
- compile endif
    MONOSTATUSCOLOR          = NORMAL
    FILENAMECOLOR            = NORMAL
    MONOFILENAMECOLOR        = NORMAL

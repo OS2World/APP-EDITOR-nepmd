@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.4 2002-09-08 16:15:00 aschn Exp $
+* $Id: stdprocs.e,v 1.5 2002-09-16 16:54:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -446,13 +446,9 @@ defproc message
 defproc messageNwait
    getfileid zzfileid
    display -4                    -- Force a messagebox popup from the SAYERROR
- compile if EVERSION >= '5.60b'
    display 32                    -- Force a messagebox popup from the SAYERROR
- compile endif
    sayerror arg(1)
- compile if EVERSION >= '5.60b'
    display -32
- compile endif
    display 4
    activatefile zzfileid
 
