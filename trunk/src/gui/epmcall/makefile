@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.5 2002-08-10 13:41:04 cla Exp $
+# $Id: makefile,v 1.6 2002-08-10 14:13:51 cla Exp $
 #
 # ===========================================================================
 #
@@ -70,14 +70,14 @@ dep:
 !endif
 !include $(DEPENDFILE)
 
-# --- copy executable and envfile to netlabs directory below binary directory
+# --- copy executable to netlabs directory below binary directory
 
 $(BINBINDIR)\epm.exe: $(BINDIR)\epmcall.exe
      @COPY $(BINDIR)\epmcall.exe $(BINBINDIR)\epm.exe >NUL
 
+# --- copy env file to $(BINDIR) to allow debugging
 $(BINBINDIR)\epm.env: epmcall.env
      @COPY epmcall.env $(BINDIR)\ >NUL
-     @COPY epmcall.env $(BINBINDIR)\epm.env >NUL
 
 # --- build program
 
