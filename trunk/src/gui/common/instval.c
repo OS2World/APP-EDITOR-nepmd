@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.2 2002-08-22 15:46:44 cla Exp $
+* $Id: instval.c,v 1.3 2002-08-23 09:06:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -101,8 +101,16 @@ do
    // --------------------------------------
 
    if (!stricmp( pszValueTag, NEPMD_VALUETAG_ROOTDIR))
+      {
+      if (!fNepmdInstalled)
+         {
+         rc = ERROR_PATH_NOT_FOUND;
+         break;
+         }
+
       // determine installation path
       strcpy( szValue, szNepmdPath);
+      }
 
    else if (!stricmp( pszValueTag, NEPMD_VALUETAG_LANGUAGE))
       // determine installation language
