@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.18 2004-02-22 17:13:04 aschn Exp $
+* $Id: stdctrl.e,v 1.19 2004-02-28 15:30:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,13 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+/*
+Todo:
+- Merge NEPMD_USE_DIRECTORY_OF_CURRENT_FILE with
+  USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG.
+- Differ change to directory and directory for open dialog.
+*/
 
 /*
 浜様様様様様様様様様様様様様様様様様様様様様様様様様様様様様様様様様様様様様融
@@ -1217,7 +1224,7 @@ compile endif
 compile if WPS_SUPPORT
    universal wpshell_handle
 compile endif
-compile if USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG
+compile if USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG or NEPMD_USE_DIRECTORY_OF_CURRENT_FILE
    universal app_hini
    call setprofile( app_hini, 'ERESDLGS', 'LASTFILESELECTED', '')
 compile endif
