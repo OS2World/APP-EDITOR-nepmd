@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: textproc.e,v 1.1 2004-02-22 15:44:06 aschn Exp $
+* $Id: textproc.e,v 1.2 2004-07-01 11:09:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,7 +35,7 @@
 ;
 ; --
 ; Larry Margolis, margoli@ibm.net
-; http://groups.google.com/groups?hl=de&lr=&ie=UTF-8&selm=5957rh%241buc%242%40news-s01.ca.us.ibm.net&rnum=9
+; http://groups.google.com/groups?selm=5957rh%241buc%242%40news-s01.ca.us.ibm.net&rnum=9
 
 ; Some subroutines for dealing with textual units (sentences and paragraphs)
 ; by Larry Margolis, margoli@ibm.net
@@ -48,12 +48,17 @@ compile endif
 ; saying to skip the end-sentence characters, so we move to the next sentence
 ; if we're at the end of one - used by the mark_through_next_sentence routine.
 defproc end_sentence
+   universal two_spaces
    getsearch savesearch
    display -2
    if arg(1) then  -- Skip if at end of current sentence
       'xcom l /[^]\)''".?!]/x'
    endif
-   'xcom l /[.?!][])''"]*([ \t][ \t]|:o$)/x'
+   if two_spaces then  -- original def
+      'xcom l /[.?!][])''"]*([ \t][ \t]|:o$)/x'
+   else
+      'xcom l /[.?!][])''"]*([ \t]|:o$)/x'
+   endif
    if rc then
       .line = .last
       endline
@@ -65,6 +70,7 @@ defproc end_sentence
 
 ; A routine to move to the beginning a sentence.
 defproc begin_sentence
+   universal two_spaces
    getsearch savesearch
    if pos(substr(textline(.line), .col, 1), '.!?') then
       if .col>1 then
@@ -74,7 +80,11 @@ defproc begin_sentence
       endif
    endif
    display -2
-   'xcom l /[.!?][])''"]*([ \t][ \t]|:o$)/x-r'
+   if two_spaces then  -- original def
+      'xcom l /[.!?][])''"]*([ \t][ \t]|:o$)/x-r'
+   else
+      'xcom l /[.!?][])''"]*([ \t]|:o$)/x-r'
+   endif
    if rc then
       0
    else
