@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryprocessinfo.e,v 1.5 2002-09-07 13:19:46 cla Exp $
+* $Id: queryprocessinfo.e,v 1.6 2002-09-08 22:48:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -45,6 +45,7 @@ The following keywords are supported:
 = returns the full pathname of the process executable (so of *EPM*)
 - PARMS
 = returns the commandline parameters for the current process
+.el
 
 @@NepmdQueryProcessInfo@RETURNS
 *NepmdQueryProcessInfo* returns either

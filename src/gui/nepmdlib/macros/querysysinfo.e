@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querysysinfo.e,v 1.6 2002-09-07 13:19:46 cla Exp $
+* $Id: querysysinfo.e,v 1.7 2002-09-08 22:48:38 cla Exp $
 *
 * ===========================================================================
 *
@@ -77,6 +77,7 @@ The following keywords are supported and queried from *WinQuerySysValue*:
 - PRINTSCREEN
 = TRUE when the Print Screen function is enabled; FALSE when
   the Print Screen function is disabled.
+.el
 
 @@NepmdQuerySysInfo@REMARKS
 NepmdQuerySysInfo queries selected values from the *DosQuerySysInfo*
@@ -129,7 +130,7 @@ defc NepmdQuerySysInfo, QuerySysInfo
  insertline helperNepmdQuerySysInfoValue( 'MOUSEPRESENT');
  insertline helperNepmdQuerySysInfoValue( 'PRINTSCREEN');
  .modify = 0;
- 
+
  return;
 
 defproc helperNepmdQuerySysInfoValue( ValueTag) =

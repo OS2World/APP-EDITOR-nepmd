@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alarm.e,v 1.4 2002-09-07 13:19:43 cla Exp $
+* $Id: alarm.e,v 1.5 2002-09-08 22:48:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -33,13 +33,13 @@ This function generates an alarm according to the style specified.
 
 @@NepmdAlarm@PARM@AlarmStyle
 This optional parameter specifies the style of the alarm to be generated.
-If no style is specified, the alarm for *NOTE* is generated.
-
 The following styles are supported:
 .ul compact
 - NOTE
 - WARNING
 - ERROR
+
+If no style is specified, the alarm for *NOTE* is generated.
 
 @@NepmdAlarm@RETURNS
 *NepmdAlarm* returns either
