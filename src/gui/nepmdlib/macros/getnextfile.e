@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.15 2002-09-19 11:43:50 cla Exp $
+* $Id: getnextfile.e,v 1.16 2003-08-30 16:01:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -109,6 +109,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdGetNextFile, GetNextFile =
 
@@ -144,6 +145,8 @@ defc NepmdGetNextFile, GetNextFile =
  .modify = 0;
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetNextFile                                   */

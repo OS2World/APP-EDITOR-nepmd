@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setframewindowpos.e,v 1.3 2002-09-07 13:19:47 cla Exp $
+* $Id: setframewindowpos.e,v 1.4 2003-08-30 16:01:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -64,7 +64,7 @@ This optional parameter specifies how to modify the window position.
 Specifiy one of the following values:
 .pl compact bold tsize=5 break=none
 - 1
-= size the *EPM* window according to the parameters 
+= size the *EPM* window according to the parameters
   [.IDPNL_EFUNC_NEPMDSETFRAMEWINDOWPOS_PARM_CX cx] and [.IDPNL_EFUNC_NEPMDSETFRAMEWINDOWPOS_PARM_CY cy].
 - 2
 = move the (lower left corner of the) *EPM* window according to the parameters
@@ -101,6 +101,10 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+/* ------------------------------------------------------------- */
+/*   allow editor command to call function                       */
+/* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdSetFrameWindowPos, SetFrameWindowPos
 
@@ -120,6 +124,8 @@ defc NepmdSetFrameWindowPos, SetFrameWindowPos
  sayerror 'window pos of frame modified successfully.';
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdSetFrameWindowPos                             */

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: direxists.e,v 1.6 2002-09-19 11:43:49 cla Exp $
+* $Id: direxists.e,v 1.7 2003-08-30 16:00:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -64,6 +64,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdDirExists, DirExists =
 
@@ -83,6 +84,8 @@ defc NepmdDirExists, DirExists =
  sayerror 'directory "'Dirname'"' StrResult 'exist';
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdDirExists                                     */
@@ -104,7 +107,7 @@ defproc NepmdDirExists( Dirname) =
  LibFile = helperNepmdGetlibfile();
  fResult = dynalink32( LibFile,
                        "NepmdDirExists",
-                        address( Dirname));
+                       address( Dirname));
 
  helperNepmdCheckliberror( LibFile, fResult);
 

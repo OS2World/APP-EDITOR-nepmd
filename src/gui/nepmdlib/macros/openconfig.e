@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: openconfig.e,v 1.2 2002-09-16 18:44:04 cla Exp $
+* $Id: openconfig.e,v 1.3 2003-08-30 16:01:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -53,7 +53,7 @@ additional disk I/O.
 You can test this function from the *EPM* commandline by
 executing:
 .sl
-- *NepmdOpenConfig* 
+- *NepmdOpenConfig*
   - or
 - *OpenConfig*
 
@@ -84,6 +84,7 @@ result within the status area.
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdOpenConfig, OpenConfig =
 
@@ -128,7 +129,7 @@ defc NepmdOpenConfig, OpenConfig =
 
  return;
 
-
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdOpenConfig                                    */

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querysysinfo.e,v 1.7 2002-09-08 22:48:38 cla Exp $
+* $Id: querysysinfo.e,v 1.8 2003-08-30 16:01:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -108,7 +108,7 @@ into it.
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
-
+compile if NEPMD_LIB_TEST
 
 defc NepmdQuerySysInfo, QuerySysInfo
 
@@ -136,6 +136,7 @@ defc NepmdQuerySysInfo, QuerySysInfo
 defproc helperNepmdQuerySysInfoValue( ValueTag) =
   return leftstr( ValueTag, 15) ':' NepmdQuerySysInfo( ValueTag);
 
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQuerySysInfo                                  */

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deletestringea.e,v 1.11 2002-09-19 11:43:49 cla Exp $
+* $Id: deletestringea.e,v 1.12 2003-08-30 16:00:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -65,7 +65,7 @@ executing:
 
 
 Executing this command will
-remove the specified extended attribute 
+remove the specified extended attribute
 with the name
 .sl compact
 - *NEPMD.__TestStringEa*
@@ -84,6 +84,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdDeleteStringEa, DeleteStringEa =
 
@@ -102,6 +103,8 @@ defc NepmdDeleteStringEa, DeleteStringEa =
  sayerror 'Extended attribute "'NEPMD_TEST_EANAME'" deleted from:' Filename;
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdDeleteStringEa                                */

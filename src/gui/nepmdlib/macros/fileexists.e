@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fileexists.e,v 1.7 2002-09-19 11:43:50 cla Exp $
+* $Id: fileexists.e,v 1.8 2003-08-30 16:00:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -70,6 +70,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdFileExists, FileExists =
 
@@ -89,6 +90,8 @@ defc NepmdFileExists, FileExists =
  sayerror 'file "'Filename'"' StrResult 'exist';
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdFileExists                                    */

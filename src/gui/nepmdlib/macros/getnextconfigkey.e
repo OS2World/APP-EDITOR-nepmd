@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextconfigkey.e,v 1.3 2002-09-16 22:00:15 cla Exp $
+* $Id: getnextconfigkey.e,v 1.4 2003-08-30 16:01:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -122,6 +122,7 @@ write all keys found for the container *\NEPMD* to it.
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdGetNextConfigKey, GetNextConfigKey =
 
@@ -157,6 +158,8 @@ defc NepmdGetNextConfigKey, GetNextConfigKey =
  rcx = NepmdCloseConfig( Handle);
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdGetNextConfigKey                              */

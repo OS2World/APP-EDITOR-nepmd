@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleterexxea.e,v 1.12 2002-10-03 21:15:04 cla Exp $
+* $Id: deleterexxea.e,v 1.13 2003-08-30 16:00:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -71,6 +71,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdDeleteRexxEa, DeleteRexxEa =
 
@@ -90,6 +91,8 @@ defc NepmdDeleteRexxEa, DeleteRexxEa =
  sayerror 'REXX Eas deleted';
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdDeleteRexxEa                                  */

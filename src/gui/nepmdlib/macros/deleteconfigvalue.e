@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleteconfigvalue.e,v 1.2 2002-09-15 14:58:36 cla Exp $
+* $Id: deleteconfigvalue.e,v 1.3 2003-08-30 16:00:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -51,7 +51,7 @@ configuration value is to be deleted.
 You can test this function from the *EPM* commandline by
 executing:
 .sl
-- *NepmdDeleteConfigValue* 
+- *NepmdDeleteConfigValue*
   - or
 - *DeleteConfigValue*
 
@@ -69,6 +69,7 @@ and display the result within the status area.
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdDeleteConfigValue, DeleteConfigValue =
 
@@ -82,6 +83,8 @@ defc NepmdDeleteConfigValue, DeleteConfigValue =
  sayerror 'config value  "'NEPMD_TEST_CONFIGPATH'" successfully deleted!';
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdDeleteConfigValue                             */

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: filedelete.e,v 1.5 2002-09-19 11:43:50 cla Exp $
+* $Id: filedelete.e,v 1.6 2003-08-30 16:00:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -67,6 +67,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdFileDelete, FileDelete =
 
@@ -86,6 +87,8 @@ defc NepmdFileDelete, FileDelete =
  sayerror 'file "'Filename'" has' StrResult;
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdFileDelete                                    */

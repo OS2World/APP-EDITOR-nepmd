@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writeconfigvalue.e,v 1.2 2002-09-15 14:58:36 cla Exp $
+* $Id: writeconfigvalue.e,v 1.3 2003-08-30 16:01:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -77,6 +77,7 @@ and display the result within the status area.
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdWriteConfigValue, WriteConfigValue =
 
@@ -89,6 +90,8 @@ defc NepmdWriteConfigValue, WriteConfigValue =
  sayerror 'config value "'NEPMD_TEST_CONFIGPATH'" successfully written!';
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdWriteConfigValue                              */

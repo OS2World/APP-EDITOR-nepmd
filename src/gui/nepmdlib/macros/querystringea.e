@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querystringea.e,v 1.2 2002-09-19 11:43:51 cla Exp $
+* $Id: querystringea.e,v 1.3 2003-08-30 16:01:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -78,6 +78,7 @@ _*Example:*_
 /* ------------------------------------------------------------- */
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defc NepmdQueryStringEa, QueryStringEa =
 
@@ -97,6 +98,8 @@ defc NepmdQueryStringEa, QueryStringEa =
  sayerror 'Extended attribute "'NEPMD_TEST_EANAME'" contains:' EaValue;
 
  return;
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryStringEa                                 */

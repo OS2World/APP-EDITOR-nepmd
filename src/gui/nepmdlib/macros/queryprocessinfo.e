@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryprocessinfo.e,v 1.6 2002-09-08 22:48:38 cla Exp $
+* $Id: queryprocessinfo.e,v 1.7 2003-08-30 16:01:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -69,6 +69,11 @@ into it.
 @@
 */
 
+/* ------------------------------------------------------------- */
+/*   allow editor command to call function                       */
+/* ------------------------------------------------------------- */
+compile if NEPMD_LIB_TEST
+
 defc NepmdQueryProcessInfo, QueryProcessInfo
 
  helperNepmdCreateDumpfile( 'NepmdQueryProcessInfo', '');
@@ -82,6 +87,8 @@ defc NepmdQueryProcessInfo, QueryProcessInfo
 
 defproc helperNepmdQueryProcessInfoValue( ValueTag) =
   return leftstr( ValueTag, 15) ':' NepmdQueryProcessInfo( ValueTag);
+
+compile endif
 
 /* ------------------------------------------------------------- */
 /* procedure: NepmdQueryProcessInfo                              */
