@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.15 2002-06-10 13:35:40 cla Exp $
+# $Id: nepmd.wis,v 1.16 2002-06-10 20:03:56 cla Exp $
 #
 # ===========================================================================
 #
@@ -43,17 +43,23 @@
      CREATEOBJECT="WPProgram|EPM Technical Reference|<NEPMD_FOLDER>|;PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\EPMTECH.INF;OBJECTID=<NEPMD_VIEW_EPMTECH>;"
      CREATEOBJECT="WPProgram|EPM Users Guide|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\BOOK\EPMUSERS.INF;OBJECTID=<NEPMD_VIEW_EPMUSERS>;"
      CREATEOBJECT="WPProgram|OS/2 Netlabs^EPM Distribution|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPMD.INF Netlabs;ICONFILE=$(1)\NETLABS\INSTALL\ICO\HELP.ICO;OBJECTID=<NEPMD_VIEW_NEPMD>;"
-     CREATEOBJECT="WPProgram|Recompile EPM|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=$(1)\NETLABS\BIN\RECOMP.EXE;OBJECTID=<NEPMD_RECOMP>;"
 
-     >This package installs the base application files.</PCK>
+     >This package installs the base application files.
+
+     This is the very minimum set of files being required to run EPM plus the basic extensions of the Netlabs EPM distribution</PCK>
 
 <PCK INDEX=2
-     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\EPM Macros\%ID_VERSION_NEPMD%"
+     PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Recompilation package\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
-     TITLE="EPM Macros"
-     >This package installs the EPM macros.</PCK>
+     TITLE="Recompilation package"
+     CREATEOBJECT="WPProgram|Recompile EPM|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=$(1)\NETLABS\BIN\RECOMP.EXE;OBJECTID=<NEPMD_RECOMP>;"
+     >This package installs files required for to recompile the EPM.
+
+     It contains the macros coming with the original EPM plus additional macro sources and utilities from the Netlabs EPM distribution.
+
+     Note that with the Netlabs EPM Distribution it normally should not be necessary to recompile the EPM.</PCK>
 
 <PCK INDEX=3
      PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Programming samples\%ID_VERSION_NEPMD%"
@@ -67,7 +73,9 @@
      CREATEOBJECT="WPProgram|EPM C macro Readme|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=E.EXE;PARAMETERS=$(1)\SAMPLES\C\READ.ME;OBJECTID=<NEPMD_VIEW_EPMCM_README>;"
      CREATEOBJECT="WPProgram|EPM REXX macro Readme|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=E.EXE;PARAMETERS=$(1)\SAMPLES\REXX\EPMREXX.DOC;OBJECTID=<NEPMD_VIEW_EPMRM_README>;"
 
-     >This package installs the programming samples.</PCK>
+     >This package installs the programming samples and the EPM Toolkit.
+
+     They are required only if you intend to create own programs using EPM functionality using the EPM Toolkit, want to control EPM windows via DDE or create EPM macros using the C programming language.</PCK>
 
 <PCK INDEX=4
      PACKAGEID="OS/2 Netlabs\Netlabs EPM Distribution\Speech Support\%ID_VERSION_NEPMD%"
@@ -79,7 +87,9 @@
      CREATEOBJECT="WPShadow|Start EPM Speech Support|<WP_START>|SHADOWID=<NEPMD_SPEECH>;OBJECTID=<NEPMD_SPEECH_SHADOW>;"
      CREATEOBJECT="WPShadow|Startup Folder Shadow|<NEPMD_FOLDER>|SHADOWID=<WP_START>;OBJECTID=<NEPMD_WPSTART_SHADOW>;"
 
-     >This package installs the speech support for EPM.</PCK>
+     >This package installs the speech support for EPM. This makes sense only if you also have installed VoiceType support coming with OS/2 Warp 4 and above.
+
+     With this additional EPM Speech Support you can further control EPM windows with voice commands.</PCK>
 
 </HEAD>
 
