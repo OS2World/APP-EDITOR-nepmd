@@ -3,11 +3,11 @@
 * Module Name: nepmdlib.e
 *
 * .e wrapper routines to access the NEPMD library DLL.
-* Coutnerpart to this .e/.ex file is nepmdlib.dll
+* Counterpart to this .e/.ex file is nepmdlib.dll
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.38 2002-10-20 21:51:19 cla Exp $
+* $Id: nepmdlib.e,v 1.39 2003-08-30 15:54:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,32 +22,61 @@
 *
 ****************************************************************************/
 
+; This file may be included in epm.e (e.g. for testing) as well. But it's
+; intended to be compiled separately and linked later on to save space
+; in epm.ex.
+
 /* ------------------------------------------------------------- */
-/*   avoid include of stdconst.e                                 */
+/*   avoid include of stdconst.e if compiled separately          */
 /* ------------------------------------------------------------- */
+compile if not defined(SMALL)  -- SMALL is undefined if an .e file is compiled separately without EPM.E
+const                          -- (added because many users omit from MYCNF.)
+tryinclude     'mycnf.e'       -- User configuration goes here.
+
+ compile if not defined(SITE_CONFIG)  -- Did user's MYCNF.E set a SITE_CONFIG file?
+   const SITE_CONFIG = 'sitecnf.e'    -- If not, use the default
+ compile endif
+ compile if SITE_CONFIG               -- If SITE_CONFIG file was not set to null,
+   tryinclude  SITE_CONFIG            -- include the site configuration file.
+ compile endif
+compile endif
 
 const
- DEBUG                   = 1;
- NEPMD_MAXLEN_ESTRING    = 1600;
+-------- Start of configuration constants for MYCNF.E --------
+compile if not defined(NEPMD_LIB_TEST)
+   NEPMD_LIB_TEST = 1   -- Include test and demo commands?
+compile endif
+compile if not defined(NEPMD_LIB_DEBUG)
+   NEPMD_LIB_DEBUG = 0  -- Activate debug for this package?
+compile endif
+-------- End of configuration constants for MYCNF.E ----------
 
- NEPMD_INI_APPNAME       = 'NEPMD';
- NEPMD_INI_KEY_PATH      = 'Path';
+   NEPMD_MAXLEN_ESTRING    = 1600;
 
- NEPMD_LIBRARY_BASENAME  = 'nepmdlib';
- NEPMD_SUBPATH_BINDLLDIR = 'netlabs\dll';
+   NEPMD_INI_APPNAME       = 'NEPMD';
+   NEPMD_INI_KEY_PATH      = 'Path';
 
- ERRMSG_ERROR_TITLE      = 'Netlabs EPM Distribution';
- ERRMSG_CANNOT_LOAD      = 'error: cannot load NEPMD library file NEPMDLIB.DLL !';
- ERRMSG_BOXSTYLE         = 16454; -- CANCEL + ICONHAND + MOVEABLE
+   NEPMD_LIBRARY_BASENAME  = 'nepmdlib';
+   NEPMD_SUBPATH_BINDLLDIR = 'netlabs\dll';
 
- EPMINFO_EDITCLIENT      = 5; /* avoid include of stdconst.e */
- EPMINFO_EDITFRAME       = 6;
+   ERRMSG_ERROR_TITLE      = 'Netlabs EPM Distribution';
+   ERRMSG_CANNOT_LOAD      = 'error: cannot load NEPMD library file NEPMDLIB.DLL !';
+   ERRMSG_BOXSTYLE         = 16454; -- CANCEL + ICONHAND + MOVEABLE
 
- NEPMD_TEST_EANAME       = 'NEPMD._TestStringEa';
- NEPMD_TEST_EAVALUE      = 'This is a test value for the NepmdWriteStringEa API !';
+compile if not defined(EPMINFO_EDITCLIENT)
+   EPMINFO_EDITCLIENT      = 5; /* avoid include of stdconst.e */
+compile endif
+compile if not defined(EPMINFO_EDITFRAME)
+   EPMINFO_EDITFRAME       = 6;
+compile endif
 
- NEPMD_TEST_CONFIGPATH   = '\NEPMD\Test\Nepmdlib\TestKey';
- NEPMD_TEST_CONFIGVALUE  = 'This is a test value for the Nepmd*Config* APIs !';
+compile if NEPMD_LIB_TEST
+   NEPMD_TEST_EANAME       = 'NEPMD._TestStringEa';
+   NEPMD_TEST_EAVALUE      = 'This is a test value for the NepmdWriteStringEa API !';
+
+   NEPMD_TEST_CONFIGPATH   = '\NEPMD\Test\Nepmdlib\TestKey';
+   NEPMD_TEST_CONFIGVALUE  = 'This is a test value for the Nepmd*Config* APIs !';
+compile endif
 
 /* ------------------------------------------------------------- */
 /*   generic routine for library file and string handling        */
@@ -55,7 +84,7 @@ const
 
 defproc helperNepmdGetlibfile =
 
-universal app_hini;
+;universal app_hini;
 
  /* use default */
  LibFile =  NEPMD_LIBRARY_BASENAME;
@@ -83,7 +112,7 @@ defproc helperNepmdCheckliberror (LibFile, rc) =
  endif
 
  /* allow easy debugging - release DLL instantly */
- if (DEBUG) then
+ if (NEPMD_LIB_DEBUG) then
     /* use different rc  - don't overwrite rc from dynalink32 call */
     rcx = dynafree( LibFile);
  endif
@@ -91,6 +120,7 @@ defproc helperNepmdCheckliberror (LibFile, rc) =
  return;
 
 /* --------------------------------- */
+compile if NEPMD_LIB_TEST
 
 defproc helperNepmdCreateDumpfile (FunctionName, Parms) =
 
@@ -106,16 +136,11 @@ defproc helperNepmdCreateDumpfile (FunctionName, Parms) =
 
  return;
 
+compile endif
 /* --------------------------------- */
 
 defproc makerexxstring( asciizstring)
   return substr( asciizstring, 1, pos( atoi(0), asciizstring) - 1);
-
-/* ------------------------------------------------------------- */
-/*   allow to auto-process command on load of routine            */
-/* ------------------------------------------------------------- */
-
-defmain 'NepmdVersion';
 
 /* ------------------------------------------------------------- */
 /*   include functions                                           */
