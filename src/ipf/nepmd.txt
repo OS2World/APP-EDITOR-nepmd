@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.8 2002-04-19 09:23:18 cla Exp $
+.. $Id: nepmd.txt,v 1.9 2002-04-20 14:09:17 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -31,7 +31,7 @@
 .. #############################################################################
 .an IDPNL_MAIN
 .at font='20.Tms Rmn' fc=darkgray italic bold
-.bitmap src\bmp\nllogo.bmp center
+.bitmap nllogo.bmp center
 .ce present the
 .at font='24.Tms Rmn' fc=red bold italic
 .ce [=DOCTITLE]
@@ -54,7 +54,7 @@
 .an IDPNL_WHAT_NED
 .
 The [=TITLE] bases on the [.IDPNL_WHAT_EPM EPM V6.03b] package (EPMBBS distribution)
-and the update to that being available on internet FTP servers. 
+and the update to that being available on internet FTP servers.
 For this distribution, the following files have been taken from the
 .sl compact
 - [http://www.leo.org Link-Everything-Online (http://www.leo.org)]
@@ -129,13 +129,13 @@ features in *EPM* 6 compared to *EPM* 5
 .3 The [=DOCTITLE] project
 .. -----------------------------------------------------------------------------
 .
-The sources for to build the [=TITLE] are freely available under the 
+The sources for to build the [=TITLE] are freely available under the
 [.IDPNL_LEGAL_GPL GNU General Public License] within a *CVS* archiv on
 the *OS/2 Netlabs Open Source Archive* server.
 
 To access them you either can
 .pl compact tsize=3
-- use plain *CVS* 
+- use plain *CVS*
 = set
 .ul compact
   - set USER=*guest*
@@ -168,7 +168,7 @@ Everybody is invited to join the project team or pass suggestions and/or contrib
 The following prerequisites apply to the current version of [=TITLE]:
 .ul
 - The [=TITLE] runs under OS/2 WARP Version 3 or later
-- The [http://www.xworkplace.org WarpIn for OS/2] sofware installer has to 
+- The [http://www.xworkplace.org WarpIn for OS/2] sofware installer has to
   be installed on your system in order to install the [=TITLE]
   (when you read this, you likely have *WarpIn* installed ;-)
 
@@ -285,10 +285,10 @@ This package contains the application core files.
 
 [=NOTE]
 .ul compact
-- Together with the 
+- Together with the
   [.IDPNL_WHAT_EPMBBS_EPMDLL epmdll] package this is the absolute minimum to
   run *EPM*.
-- While all files reside in one directory within this package, 
+- While all files reside in one directory within this package,
   within the installation provided by [=TITLE] these files are distributed
   over several directories below the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin]
 
@@ -302,11 +302,11 @@ This package contains the dynamic link libraries of the *E Toolkit* used by *EPM
 
 [=NOTE]
 .ul compact
-- Together with the [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package this is the absolute 
+- Together with the [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package this is the absolute
   minimum to run *EPM*.
-- While all files reside in one directory within this package and are 
-  intended to be installed in the same directory as the 
-  [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package, 
+- While all files reside in one directory within this package and are
+  intended to be installed in the same directory as the
+  [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package,
   within the installation provided by [=TITLE] these files are placed in
   the [.IDPNL_ADDITIONS_DIRTREE subdirectory bin\dll]
 
@@ -315,14 +315,14 @@ This package contains the dynamic link libraries of the *E Toolkit* used by *EPM
 .. .............................................................................
 .an IDPNL_EPMBBS_COMP_EPMHLP
 .
-This package contains the help files used by diverse macros coming with 
+This package contains the help files used by diverse macros coming with
 the standard *EPM.
 
 [=NOTE]
 .ul compact
-- While all files reside in one directory within this package and are 
-  intended to be installed in the same directory as the 
-  [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package, 
+- While all files reside in one directory within this package and are
+  intended to be installed in the same directory as the
+  [.IDPNL_WHAT_EPMBBS_EPMAPP epmapp] package,
   within the installation provided by [=TITLE] these files are placed in
   the [.IDPNL_ADDITIONS_DIRTREE subdirectory help]
 
@@ -354,7 +354,7 @@ with the *VoiceType* package coming with *OS/2 Warp 4* and higher.
 
 [=NOTE]
 .ul compact
-- While all files reside in one directory within this package, 
+- While all files reside in one directory within this package,
   within the installation provided by [=TITLE] these files are distributed into
   and over several directories below the
   [.IDPNL_ADDITIONS_DIRTREE subdirectories dll and bin]
@@ -364,7 +364,7 @@ with the *VoiceType* package coming with *OS/2 Warp 4* and higher.
 .. .............................................................................
 .an IDPNL_EPMBBS_COMP_EPMBMPS
 .
-This package contains the bitmaps 
+This package contains the bitmaps
 with the *VoiceType* package coming with *OS/2 Warp 4* and higher.
 
 [=NOTE]
@@ -377,7 +377,7 @@ with the *VoiceType* package coming with *OS/2 Warp 4* and higher.
 .. .............................................................................
 .an IDPNL_EPMBBS_COMP_EPMMAC
 .
-This package contains the sources required for compiling the 
+This package contains the sources required for compiling the
 the REXX configuration part of *EPM* (EPM.EX).
 
 [=NOTE]
@@ -430,13 +430,13 @@ This package contains the source for an outdated attribute support for *EPM*.
 .an IDPNL_EPMBBS_COMP_EBOOKE
 .
 This package contains the source for tag support macro for *EPM*.
-It contains tag support for 
+It contains tag support for
 .ul compact
-- BookMaster version 2 and 3 
-- GML Starter-Set release 3.2 
-- FOILS5 version 5.3 
-- APAFOIL release 2.1 
-- IPF of OS/2 version 1.2 and above. 
+- BookMaster version 2 and 3
+- GML Starter-Set release 3.2
+- FOILS5 version 5.3
+- APAFOIL release 2.1
+- IPF of OS/2 version 1.2 and above.
 
 [=NOTE]
 .ul compact
@@ -483,7 +483,7 @@ commands on VM hosts.
 .. .............................................................................
 .an IDPNL_EPMBBS_COMP_EPMCSAMP
 .
-This package contains C sample code for to write EPM macros in the C programming 
+This package contains C sample code for to write EPM macros in the C programming
 language. Moreover this sample uses the E Toolkit, which allow the usage of *EPM*
 functionality within other applications. For the latter only the
 [.IDPNL_EPMBBS_COMP_EPMDLL runtime of the E Toolkit] coming with this package,
@@ -515,8 +515,8 @@ This interface is e.g. used by the *Workframe/2* package.
 This package contains dample REXX code in order  to demo the external
 REXX support of *EPM*. In opposite to the internal REXX support,
 which requires compilation of macro sources (**.e) to REXX binaries
-(**.EX), REXX macros can also be invoked by the REXX interpreter 
-of *OS/2 Warp*, not requiring precompilation, but possibly resulting 
+(**.EX), REXX macros can also be invoked by the REXX interpreter
+of *OS/2 Warp*, not requiring precompilation, but possibly resulting
 in slighly slower execution.
 
 [=NOTE]
@@ -529,7 +529,7 @@ in slighly slower execution.
 .. -----------------------------------------------------------------------------
 .an IDPNL_EPM_BBS_SOURCE
 .
-The following so-called EPMBBS distribution is 
+The following so-called EPMBBS distribution is
 available on FTP servers in the Internet like:
 .ul compact
 - [http://www.leo.org Link-Everything-Online (http://www.leo.org)]
@@ -606,7 +606,7 @@ Files of the [.IDPNL_EPMBBS EPMBBS distribution] reside in the following directo
 Files of the [=TITLE] reside in the following directories:
 .fo off
 <install dir>
-ÀÄ[=DISTDIR]      
+ÀÄ[=DISTDIR]
   ÃÄbook        **.inf       this helpfile
   ÃÄbmp         **.bmp       bitmaps
   ÃÄex          **.ex        macro compiled binaries
@@ -615,15 +615,15 @@ Files of the [=TITLE] reside in the following directories:
 .fo on
 
 .. .............................................................................
-.4  directory structure for personal extensions 
+.4  directory structure for personal extensions
 .. .............................................................................
 .an IDPNL_ADDITIONS_DIRTREE_USER
 .
-Files for [.IDPNL_USAGE_CONFIGURE personal configuration extensions] are to be 
+Files for [.IDPNL_USAGE_CONFIGURE personal configuration extensions] are to be
 placed into the following directory tree:
 .fo off
 <install dir>
-ÀÄ[=USERDIR]      
+ÀÄ[=USERDIR]
   ÃÄbmp         **.bmp       bitmaps
   ÃÄex          **.ex        macro compiled binaries
   ÃÄkeywords    epmkwds.**   keyword files for syntax highlighting
@@ -747,7 +747,7 @@ The following limitations apply to the current version of [=TITLE]:
 .at fc=darkgray
   NOT YET IMPLEMENTED:
 .
-  A backup of all removed files is created within the installation path 
+  A backup of all removed files is created within the installation path
   of [=TITLE] in the subdirectory *backup*
 .at
 
@@ -1698,7 +1698,7 @@ The levels are:
 .. =============================================================================
 .an IDPNL_LEGAL_GPL
 .
-All sources and programs of the [=TITLE] that are 
+All sources and programs of the [=TITLE] that are
 .ul compact
 - not part of the [.IDPNL_EPMBBS EPMBBS distribution]  and
 - provided with the distribution or within the *Netlabs Open Source Archive* called *NEPMD*
