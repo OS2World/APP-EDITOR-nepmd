@@ -1,9 +1,9 @@
 CATEGORY: Formatting
 TITLE: recode support
-PRIO: 1
+PRIO: 2
 STATUS: coding
 FILES: recode.e
-UPDATED: $Id: format002,v 1.1 2002-07-17 15:56:15 cla Exp $
+UPDATED: $Id: format002,v 1.2 2002-09-18 20:23:22 cla Exp $
 
 Call GNU recode via menu items
 
