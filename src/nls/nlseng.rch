@@ -1,0 +1,13 @@
+
+#ifndef NLSENG_RCH
+#define NLSENG_RCH
+
+#define NEWLINE                                  "\015"
+
+#define IDT_IDPBS_START                          "~Start"
+#define IDT_IDPBS_CANCEL                         "~Cancel"
+#define IDT_IDPBS_EXIT                           "~Exit"
+#define IDT_IDPBS_OK                             "~Ok"
+
+#endif // NLSENG_RCH
+
