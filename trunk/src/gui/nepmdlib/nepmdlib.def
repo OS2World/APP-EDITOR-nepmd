@@ -6,7 +6,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: nepmdlib.def,v 1.18 2002-09-03 13:31:55 cla Exp $
+; $Id: nepmdlib.def,v 1.19 2002-09-04 15:39:13 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -42,6 +42,7 @@ EXPORTS
  NepmdLibVersion
  NepmdQueryFullname
  NepmdQueryPathInfo
+ NepmdQueryProcessInfo
  NepmdReadStringEa
  NepmdScanEnv
  NepmdSearchPath
