@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.h,v 1.3 2002-09-24 22:08:42 cla Exp $
+* $Id: mmf.h,v 1.4 2002-10-10 20:33:00 cla Exp $
 *
 * ===========================================================================
 *
@@ -44,13 +44,19 @@
 /* special NULL filename for MmfAlloc parameter pszFilename */
 #define MMF_FILE_INMEMORY       NULL
 
-/* prototypes */
-APIRET MmfAlloc( PVOID *ppvdata, PSZ pszFilename, ULONG ulOpenFlags, ULONG ulMaxSize);
-APIRET MmfFree( PVOID pvData);
-APIRET MmfUpdate( PVOID pvData);
 
-APIRET MmfSetSize( PVOID pvData, ULONG ulNewSize);
-APIRET MmfQuerySize( PVOID pvData, PULONG pulSize);
+/* define a handle type */
+typedef LHANDLE HMMF, *PHMMF;
+
+/* prototypes */
+APIRET MmfInitialize( PHMMF phmmf);
+APIRET MmfTerminate( HMMF hmmf);
+APIRET MmfAlloc( HMMF hmmf, PVOID *ppvdata, PSZ pszFilename, ULONG ulOpenFlags, ULONG ulMaxSize);
+APIRET MmfFree( HMMF hmmf, PVOID pvData);
+APIRET MmfUpdate( HMMF hmmf, PVOID pvData);
+
+APIRET MmfSetSize( HMMF hmmf, PVOID pvData, ULONG ulNewSize);
+APIRET MmfQuerySize( HMMF hmmf, PVOID pvData, PULONG pulSize);
 
 #endif /* MMF_H */
 

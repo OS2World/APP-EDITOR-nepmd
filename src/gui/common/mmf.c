@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.c,v 1.8 2002-10-09 15:13:37 cla Exp $
+* $Id: mmf.c,v 1.9 2002-10-10 20:32:59 cla Exp $
 *
 * ===========================================================================
 *
@@ -54,6 +54,13 @@ todo: encapsulate init
 #define DPRINTF_ALLOCACTION(p)
 #endif
 
+// internal MMF defines
+#define MMF_MAXTHREADS     16
+#define MMF_MAXFILES       64
+#define MMF_USEDENTRY      0x10000000  /* internal flag to mark a used entry */
+
+#define MMF_MASK_ACCESS    0x0000FFFF
+#define MMF_MASK_OPENMODE  0xFFFF0000
 
 // Internal structures and constants
 #define PAG_SIZE    4096
@@ -71,62 +78,204 @@ typedef struct _MMFENTRY
 #endif
   } MMFENTRY, *PMMFENTRY;
 
-// internal MMF defines
-#define MMF_MAX            256
-#define MMF_USEDENTRY      0x10000000  /* internal flag to mark a used entry */
+typedef struct _MMF
+   {
+         EXCEPTIONREGISTRATIONRECORD errh;
+         MMFENTRY       ammfentry[ MMF_MAXFILES];
+         PID            pid;
+         TID            tid;
+   } MMF, *PMMF;
 
-#define MMF_MASK_ACCESS    0x0000FFFF
-#define MMF_MASK_OPENMODE  0xFFFF0000
 
 // global data
-static   EXCEPTIONREGISTRATIONRECORD errh;
-static   MMFENTRY       ammfentry[ MMF_MAX];
+static   PMMF           apmmf[ MMF_MAXTHREADS];
 static   BOOL           fInitialized = FALSE;
 
-// some macros to ensure initialization
-#define CHECKINIT                 \
-if (!_initialized())              \
-   {                              \
-   rc = ERROR_INVALID_FUNCTION;   \
-   break;                         \
-   }
+// #############################################################################
+
+// prototype used here
+PMMF _locateMMFHandler( VOID);
+
+static PMMFENTRY _locateMMFEntry( PMMF pmmf, PVOID addr)
+{
+         ULONG          i;
+         PMMFENTRY      pmmfeResult = NULL;
+
+if (!pmmf)
+   pmmf = _locateMMFHandler();
+
+if (pmmf)
+   for (i = 0; i < MMF_MAXFILES; i++)
+      {
+      if(pmmf->ammfentry[ i].ulFlags & MMF_USEDENTRY)
+         {
+         if (((ULONG) pmmf->ammfentry[ i].pvData <= (ULONG) addr) &&
+             (((ULONG) pmmf->ammfentry[ i].pvData + pmmf->ammfentry[ i].ulSize) >= (ULONG) addr))
+            {
+            pmmfeResult = &pmmf->ammfentry[ i];
+            break;
+            }
+         }
+      }
+
+return pmmfeResult;
+}
 
 // -----------------------------------------------------------------------------
 
-// Local functions implementation
-
-static PMMFENTRY _locate( PVOID addr)
+static PMMFENTRY _locateFreeMMFEntry( PMMF pmmf)
 {
          ULONG          i;
+         PMMFENTRY      pmmfeResult = NULL;
 
-for (i = 0; i < MMF_MAX; i++)
+if (pmmf)
+   for(i = 0; i < MMF_MAXFILES; i++)
+      {
+      if (!(pmmf->ammfentry[ i].ulFlags & MMF_USEDENTRY))
+         {
+         pmmfeResult = &pmmf->ammfentry[ i];
+         break;
+         }
+      }
+return pmmfeResult;
+}
+
+// -----------------------------------------------------------------------------
+
+static VOID _destroyMMFEntry( PMMFENTRY pmmfe)
+{
+         APIRET         rc = NO_ERROR;
+
+if ((pmmfe) && (pmmfe->ulFlags & MMF_USEDENTRY))
    {
-   if(ammfentry[ i].ulFlags & MMF_USEDENTRY)
+   // cleanup all data related to the file
+   if( pmmfe->hfile)  DosClose( pmmfe->hfile);
+   if (pmmfe->pvData)
       {
-      if (((ULONG) ammfentry[ i].pvData <= (ULONG) addr) &&
-          (((ULONG) ammfentry[ i].pvData + ammfentry[ i].ulSize) >= (ULONG) addr))
-         return &ammfentry[ i];
+      rc = DosFreeMem( pmmfe->pvData);
+      DPRINTF_ALLOCACTION(( "MMF: FREE 0x%08p (0x%08p) rc=%u\n", pmmfe->pvData,  pmmfe->ulSize, rc));
+      }
+   memset( pmmfe, 0, sizeof( MMFENTRY));
+   }
+
+return;
+}
+
+// #############################################################################
+
+static PMMF _locateMMFHandler( VOID)
+{
+         ULONG          i;
+         PMMF           pmmfResult = NULL;
+
+         PMMF           pmmf;
+         PPIB           ppib;
+         PTIB           ptib;
+
+// get process and thread id
+DosGetInfoBlocks( &ptib,&ppib);
+for (i = 0; i < MMF_MAXTHREADS; i++)
+   {
+   pmmf = apmmf[ i];
+   if ((pmmf)                         &&
+       (pmmf->pid == ppib->pib_ulpid) && 
+       (pmmf->tid == ptib->tib_ptib2->tib2_ultid))
+      {
+      pmmfResult = pmmf;
       }
    }
 
-return 0;
+return pmmfResult;
 }
 
 // -----------------------------------------------------------------------------
 
-static PMMFENTRY _locateFree( VOID)
+// prototype used here
+ULONG APIENTRY _pageFaultHandler( PEXCEPTIONREPORTRECORD p1,
+                                  PEXCEPTIONREGISTRATIONRECORD p2,
+                                  PCONTEXTRECORD p3, PVOID  pv);
+
+static PMMF _createNewMMFHandler( VOID)
 {
+         APIRET         rc = NO_ERROR;
          ULONG          i;
+         PMMF           pmmfNew = NULL;
 
-   for(i = 0; i < MMF_MAX; i++)
+         PPIB           ppib;
+         PTIB           ptib;
+
+// get process and thread id
+DosGetInfoBlocks( &ptib,&ppib);
+for (i = 0; i < MMF_MAXTHREADS; i++)
+   {
+   if (!apmmf[ i])
       {
-      if (!(ammfentry[ i].ulFlags & MMF_USEDENTRY))
-         return &ammfentry[ i];
+      // get memory for data struct
+      pmmfNew = malloc( sizeof( MMF));
+      if (pmmfNew)
+         {
+         apmmf[ i] = pmmfNew;
+         memset( pmmfNew, 0, sizeof( MMF));
+         pmmfNew->pid = ppib->pib_ulpid;
+         pmmfNew->tid = ptib->tib_ptib2->tib2_ultid;
+
+         // initialize
+         memset( &pmmfNew->errh, 0, sizeof( pmmfNew->errh));
+         pmmfNew->errh.ExceptionHandler = (ERR) _pageFaultHandler;
+         rc = DosSetExceptionHandler( &pmmfNew->errh);
+         if (rc != NO_ERROR)
+            break;
+      
+         // we are done
+         break;
+         }
       }
-return 0;
+   }
+
+// cleanup
+if (rc != NO_ERROR)
+   if (pmmfNew) free( pmmfNew);
+
+return pmmfNew;
 }
 
 // -----------------------------------------------------------------------------
+
+static APIRET _destroyMMFHandler( PMMF pmmf)
+{
+         APIRET         rc = NO_ERROR;
+         ULONG          i, j;
+
+if (pmmf)
+   {
+   rc = ERROR_INVALID_HANDLE;
+   for (i = 0; i < MMF_MAXTHREADS; i++)
+      {
+      if (apmmf[ i] == pmmf)
+         {
+         // release all memory objects
+         for (j = 0; j < MMF_MAXFILES; j++)
+            {
+            _destroyMMFEntry( &pmmf->ammfentry[ j]);
+            }
+
+         // release handler
+         rc = DosUnsetExceptionHandler( &pmmf->errh);
+         if (rc != NO_ERROR)
+            break;
+
+         // reset handler data
+         memset( pmmf, 0, sizeof( MMF));
+         apmmf[ i] = NULL;
+         rc = NO_ERROR;
+         break;
+         }
+      }
+   } // if (pmmf)
+
+return rc;
+}
+// #############################################################################
 
 #define EXCEPTION_NUM   p1->ExceptionNum
 #define EXCEPTION_TYPE  p1->ExceptionInfo[ 0]
@@ -153,7 +302,7 @@ if ((EXCEPTION_NUM == XCPT_ACCESS_VIOLATION)      &&
 
    DPRINTF_HANDLERACTION(( "MMF: HANDLER: catching exception\n"));
 
-   pmmfe = _locate( EXCEPTION_ADDR);
+   pmmfe = _locateMMFEntry( NULL, EXCEPTION_ADDR);
    DPRINTF_HANDLERACTION(( "MMF: HANDLER: examining address 0x%08x\n", EXCEPTION_ADDR));
    if(!pmmfe)
       {
@@ -278,45 +427,8 @@ return XCPT_CONTINUE_SEARCH;
 
 // -----------------------------------------------------------------------------
 
-static APIRET _initialize( VOID)
-{
-
-         APIRET         rc = NO_ERROR;
-do
-   {
-   memset( &errh, 0, sizeof( errh));
-   errh.ExceptionHandler = (ERR) _pageFaultHandler;
-   rc = DosSetExceptionHandler( &errh);
-   if (rc != NO_ERROR)
-      break;
-
-   // init handle table
-   memset( ammfentry, 0, sizeof( ammfentry));
-
-   // were done
-   fInitialized = TRUE;
-
-   } while (FALSE);
-
-return rc;
-}
-
-// -----------------------------------------------------------------------------
-
-static BOOL _initialized( VOID)
-{
-// try to initialize
-if (!fInitialized)
-   _initialize();
-
-// return current status
-return fInitialized;
-}
-
-// -----------------------------------------------------------------------------
-
 #ifdef DEBUG
-VOID _dumpMMF( VOID)
+VOID _dumpMMF(  PMMF pmmf)
 {
          ULONG          i;
          ULONG          ulCount = 0;
@@ -335,13 +447,13 @@ DosGetInfoBlocks( &ptib,&ppib);
 printf( "MMF: DUMP entries for pid %u tid: %u:\n"
         "-------------------------------------\n",
         ppib->pib_ulpid, ptib->tib_ptib2->tib2_ultid);
-for(i = 0; i < MMF_MAX; i++)
+for(i = 0; i < MMF_MAXFILES; i++)
    {
-   if (ammfentry[ i].ulFlags & MMF_USEDENTRY)
+   if (pmmf->ammfentry[ i].ulFlags & MMF_USEDENTRY)
       {
-      pszType = (ammfentry[ i].hfile == NULLHANDLE) ? "<MEMORY>" : ammfentry[ i].szFile;
+      pszType = (pmmf->ammfentry[ i].hfile == NULLHANDLE) ? "<MEMORY>" : pmmf->ammfentry[ i].szFile;
       printf( "%u: memory at %p size %u: type: %s\n",
-              i, ammfentry[ i].pvData, ammfentry[ i].ulSize, pszType);
+              i, pmmf->ammfentry[ i].pvData, pmmf->ammfentry[ i].ulSize, pszType);
       ulCount++;
       }
    }
@@ -350,12 +462,134 @@ return;
 }
 #endif
 
+// -----------------------------------------------------------------------------
+
+static VOID _freeMMF( PMMF pmmf)
+{
+
+         APIRET         rc = NO_ERROR;
+         ULONG          i;
+
+if (pmmf)
+   {
+   
+   for (i = 0; i < MMF_MAXFILES; i++)
+      {
+      if(pmmf->ammfentry[ i].ulFlags & MMF_USEDENTRY)
+         {
+         if (pmmf->ammfentry[ i].pvData)
+            {
+
+            rc = DosFreeMem( pmmf->ammfentry[ i].pvData);
+            DPRINTF_ALLOCACTION(( "MMF: FREE 0x%08p (0x%08p) rc=%u\n", pmmfe->pvData,  pmmfe->ulSize, rc));
+            }
+         }
+      }
+   memset( pmmf, 0, sizeof( MMF));
+   free( pmmf);
+   }
+}
+
+
+// -----------------------------------------------------------------------------
+
+static VOID _initialize( VOID)
+{
+do
+   {
+   if (fInitialized)
+      break;
+
+   // init handle table
+   memset( apmmf, 0, sizeof( apmmf));
+
+   // we're done
+   fInitialized = TRUE;
+
+   } while (FALSE);
+
+return;
+}
+
 // #############################################################################
 
 
-APIRET MmfAlloc( PVOID *ppvdata, PSZ pszFilename, ULONG ulOpenFlags, ULONG ulMaxSize)
+APIRET MmfInitialize( PHMMF phmmf)
+{
+
+         APIRET         rc = NO_ERROR;
+         PMMF           pmmfCheck;
+         PMMF           pmmf = NULL;
+do
+   {
+   // check parms
+   if (!phmmf)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // setup
+   _initialize();
+
+   // if a handlerr is already registered, break with error
+   pmmfCheck = _locateMMFHandler();
+   if (pmmfCheck)
+      {
+      DPRINTF_ALLOCACTION(( "MMF: initialize: handler already for pid %u tid %u\n",
+                            pmmfCheck->pid, pmmfCheck->Tid));
+      rc = ERROR_ACCESS_DENIED;
+      break;
+      }
+
+   // --------------------------------------------------------
+
+   // create a new entry
+   pmmf = _createNewMMFHandler();
+   if (!pmmf)
+      break;
+
+   // report pointer as handle
+   *phmmf = (HMMF) pmmf;
+
+   } while (FALSE);
+
+// cleanup
+if (rc != NO_ERROR)
+   _freeMMF( pmmf);
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
+APIRET MmfTerminate( HMMF hmmf)
 {
          APIRET         rc = NO_ERROR;
+         PMMF           pmmf = (PMMF) hmmf;
+
+do
+   {
+   // check parms
+   if (!hmmf)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // destroy handler
+   rc = _destroyMMFHandler( pmmf);
+   } while (FALSE);
+
+// cleanup
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
+APIRET MmfAlloc( HMMF hmmf, PVOID *ppvdata, PSZ pszFilename, ULONG ulOpenFlags, ULONG ulMaxSize)
+{
+         APIRET         rc = NO_ERROR;
+         PMMF           pmmf = (PMMF) hmmf;
 
          ULONG          ulAction;
          ULONG          fsOpenFlags;
@@ -369,10 +603,18 @@ APIRET MmfAlloc( PVOID *ppvdata, PSZ pszFilename, ULONG ulOpenFlags, ULONG ulMax
 do
    {
    // check parms
-   if ((!ppvdata) ||
+   if ((!hmmf)    ||
+       (!ppvdata) ||
        (!ulMaxSize))
       {
       rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // is handle valid for this thread ?
+   if (pmmf != _locateMMFHandler())
+      {
+      rc = ERROR_INVALID_HANDLE;
       break;
       }
 
@@ -397,11 +639,8 @@ do
       break;
 
 
-   // init if necessary
-   CHECKINIT;
-
    // locate free entry in table
-   pmmfe = _locateFree();
+   pmmfe = _locateFreeMMFEntry( pmmf);
    if(!pmmfe)
       {
       rc = ERROR_TOO_MANY_OPEN_FILES;
@@ -468,9 +707,10 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-APIRET MmfFree( PVOID pvData)
+APIRET MmfFree(  HMMF hmmf, PVOID pvData)
 {
          APIRET         rc = NO_ERROR;
+         PMMF           pmmf = (PMMF) hmmf;
          PMMFENTRY      pmmfe;
 
 do
@@ -482,11 +722,16 @@ do
       break;
       }
 
-   // init if necessary
-   CHECKINIT;
+   // is handle valid for this thread ?
+   if (pmmf != _locateMMFHandler())
+      {
+      rc = ERROR_INVALID_HANDLE;
+      break;
+      }
+
 
    // search entry
-   pmmfe = _locate( pvData);
+   pmmfe = _locateMMFEntry( pmmf, pvData);
    if (!pmmfe)
       {
       rc = ERROR_INVALID_HANDLE;
@@ -509,9 +754,10 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-APIRET MmfUpdate( PVOID pvData)
+APIRET MmfUpdate(  HMMF hmmf, PVOID pvData)
 {
          APIRET         rc = NO_ERROR;
+         PMMF           pmmf = (PMMF) hmmf;
          PMMFENTRY      pmmfe;
 
          PBYTE          pbArea  = 0;
@@ -533,11 +779,16 @@ do
       break;
       }
 
-   // init if necessary
-   CHECKINIT;
+   // is handle valid for this thread ?
+   if (pmmf != _locateMMFHandler())
+      {
+      rc = ERROR_INVALID_HANDLE;
+      break;
+      }
+
 
    // search entry
-   pmmfe = _locate( pvData);
+   pmmfe = _locateMMFEntry( pmmf, pvData);
    if (!pmmfe)
       {
       rc = ERROR_INVALID_HANDLE;
@@ -622,9 +873,10 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-APIRET MmfSetSize( PVOID pvData, ULONG ulNewSize)
+APIRET MmfSetSize(  HMMF hmmf, PVOID pvData, ULONG ulNewSize)
 {
          APIRET         rc = NO_ERROR;
+         PMMF           pmmf = (PMMF) hmmf;
          PMMFENTRY      pmmfe;
 
 do
@@ -636,11 +888,16 @@ do
       break;
       }
 
-   // init if necessary
-   CHECKINIT;
+   // is handle valid for this thread ?
+   if (pmmf != _locateMMFHandler())
+      {
+      rc = ERROR_INVALID_HANDLE;
+      break;
+      }
+
 
    // search entry
-   pmmfe = _locate( pvData);
+   pmmfe = _locateMMFEntry( pmmf, pvData);
    if (!pmmfe)
       {
       rc = ERROR_INVALID_HANDLE;
@@ -656,9 +913,10 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-APIRET MmfQuerySize( PVOID pvData, PULONG pulSize)
+APIRET MmfQuerySize(  HMMF hmmf, PVOID pvData, PULONG pulSize)
 {
          APIRET         rc = NO_ERROR;
+         PMMF           pmmf = (PMMF) hmmf;
          PMMFENTRY      pmmfe;
 
 do
@@ -672,11 +930,16 @@ do
       }
    *pulSize = 0;
 
-   // init if necessary
-   CHECKINIT;
+   // is handle valid for this thread ?
+   if (pmmf != _locateMMFHandler())
+      {
+      rc = ERROR_INVALID_HANDLE;
+      break;
+      }
+
 
    // search entry
-   pmmfe = _locate( pvData);
+   pmmfe = _locateMMFEntry( pmmf, pvData);
    if (!pmmfe)
       {
       rc = ERROR_INVALID_HANDLE;
