@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddereload.c,v 1.4 2002-06-09 15:30:44 cla Exp $
+* $Id: ddereload.c,v 1.5 2002-06-09 17:06:34 cla Exp $
 *
 * ===========================================================================
 *
@@ -70,7 +70,6 @@ typedef struct _RELOADDATA
          ULONG          ulListIndex;                 // index offile list (EPM ring)
          APIRET         rc;                          // for returning a reason code to ReloadFilelist
          HWND           hwndServer;                  // handle of server
-         ULONG          ulAckCount;                  // see handling of WM_DDE_ACK below
          ULONG          ulFilesLoaded;               // file count to be reported to caller of ReloadFilelist
 
     } RELOADDATA, *PRELOADDATA;
@@ -276,9 +275,6 @@ switch (msg)
          break;
          }
 
-      // count started EPM as first acknowledge
-      prd->ulAckCount++;
-
       // execute macro separately. This triggers also load of next file
       DPRINTF(( "DDERELOAD: list %u, file %u: %s (%s)\n", prd->ulListIndex + 1,
                 prd->ulFilesLoaded, szFilename, szCurPos));
@@ -355,9 +351,6 @@ switch (msg)
       DPRINTF(( "DDERELOAD: ACK from server %08x, size is: %u\n", hwndServer,  pdde->cbData));
 #endif
       DosFreeMem( pdde);
-
-      // count up acknowledge count
-      prd->ulAckCount++;
 
       // next file
       WinPostMsg( hwnd, WM_USER_LOADNEXTFILE, 0, 0);
