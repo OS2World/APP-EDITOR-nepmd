@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: d.cmd,v 1.1 2002-08-07 17:15:50 cla Exp $
+: $Id: d.cmd,v 1.2 2002-08-24 17:44:32 cla Exp $
 :
 : ===========================================================================
 :
@@ -27,6 +27,7 @@
  SETLOCAL
 
  SET DEBUGGER=icsdebug
+ SET PMDPATH=..\common;%PMDPATH%
  IF .%CPPLOCAL% == . SET DEBUGGER=ipmd
 
  call make
