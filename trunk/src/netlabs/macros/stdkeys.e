@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.4 2002-09-08 16:14:29 aschn Exp $
+* $Id: stdkeys.e,v 1.5 2002-09-16 19:37:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -537,7 +537,8 @@ def c_9 = keyin '{'
 def c_0 = keyin '}'
 def c_4 = keyin '›'                 -- C_4 enters a cents sign
 
-def c_a= 'newtop'     -- Move current line to top of window.
+;def c_a= 'newtop'     -- Move current line to top of window.
+def c_a= 'select_all'  -- new
 
 compile if WANT_BOOKMARKS
 def c_B = 'listmark'
