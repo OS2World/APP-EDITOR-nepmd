@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.15 2002-09-13 19:45:57 cla Exp $
+* $Id: test.c,v 1.16 2002-09-15 14:17:10 cla Exp $
 *
 * ===========================================================================
 *
@@ -195,6 +195,11 @@ do
 
          // write a new key in the middle of an existant path, name includes a space
          PROCESSVALUE( "\\NEPMD\\Testcases\\Additional Case",  "Additional value 2");
+
+         // add keys to test case sensitive handling in container lists
+         PROCESSVALUE( "\\NEPMD\\CaseTest\\THISISACASE",  "value");
+         PROCESSVALUE( "\\NEPMD\\CaseTest\\thisisacase",  "value");
+         PROCESSVALUE( "\\NEPMD\\CaseTest\\ThisIsACase",  "value");
 
          // write a new key to be deleted, name includes a space
          pszPath = "\\NEPMD\\Testcases\\ContainerToDelete\\SubContainerToDelete\\Key To Delete";
