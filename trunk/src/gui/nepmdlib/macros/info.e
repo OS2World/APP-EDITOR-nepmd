@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.13 2004-07-02 11:53:05 aschn Exp $
+* $Id: info.e,v 1.14 2004-07-02 12:58:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -125,6 +125,14 @@ defproc NepmdInfo
 defc InsertEditorVersion
    MsgName = 'STR_INFO_EDITORVERSION'
    insertline NepmdGetTextMessage( '', MsgName, ver(0)), .line + 1
+   return
+
+; Insert a line with version of NEPMD after the current.
+; Used a const from STDCONST.E, contained in EPM.E.
+; Used by nepmdinfo.
+defc InsertNepmdVersion
+   MsgName = 'STR_INFO_NEPMDVERSION'
+   insertline NepmdGetTextMessage( '', MsgName, GetNepmdVersion()), .line + 1
    return
 
 ; Insert a line with version of EPM macros after the current.
