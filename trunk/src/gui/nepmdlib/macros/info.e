@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.10 2002-09-21 08:24:52 aschn Exp $
+* $Id: info.e,v 1.11 2002-09-21 13:32:16 cla Exp $
 *
 * ===========================================================================
 *
@@ -26,7 +26,7 @@
 @@NepmdInfo@PROTOTYPE
 rc = NepmdInfo();
 
-@@NepmdInfo@CATEGORY@CONFIG
+@@NepmdInfo@CATEGORY@INSTALL
 
 @@NepmdInfo@SYNTAX
 This function creates a virtual file named *.NEPMD__INFO*
