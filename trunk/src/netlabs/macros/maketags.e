@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: maketags.e,v 1.7 2004-12-31 00:18:33 aschn Exp $
+* $Id: maketags.e,v 1.8 2004-12-31 02:38:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -208,7 +208,7 @@ compile endif
          filename = path_prefix||filename
       endif
       --sayerror 'MAKETAGS: filemask = "'filename'"'
-      dprintf( 'TAGS', 'MAKETAGS: filemask = "'filename'"'
+      dprintf( 'TAGS', 'MAKETAGS: filemask = "'filename'"')
 
       if verify( filename, '?*', 'M') then  -- If wildcards
          wildcards = 1
