@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.7 2002-06-04 23:23:12 cla Exp $
+.. $Id: makefile.txt,v 1.8 2002-06-04 23:28:56 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -330,7 +330,7 @@ PKUNZIP2.
 .. .............................................................................
 .an IDPNL_REQUIREMENTS_HTEXT
 .
-For compilation of the online help the pÅreprocessor *HyperText/2* is used.
+For compilation of the online help the preprocessor *HyperText/2* is used.
 
 [=NOTE]
 .ul compact
@@ -347,21 +347,6 @@ For compilation of the online help the pÅreprocessor *HyperText/2* is used.
     - into a directory specified in the environment variables
       - *INCLUDE*
       - *HTINCLUDE*
-
-.. .............................................................................
-.3 GREP
-.. .............................................................................
-.an IDPNL_REQUIREMENTS_GREP
-.
-For checking unpacked EPM files the *grep* utility is used.
-
-[=NOTE]
-.ul compact
-- You can download *Grep v2.0* from 
-  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=grep20 The Hobbes File Archive]
-.
-    (search "grep20" at hobbes.nmsu.edu)
-- *grep.exe* must be accessible by the PATH statement
 
 .. .............................................................................
 .3 REXX2EXE
@@ -389,6 +374,23 @@ For creating dependency files the FastDep utility is used.
 .ul compact
 - You can download *FastDep* from the *OS/2 Netlabs Archive* of the *XWorkplace* project.
 - *fastdep.exe* must be accessible by the PATH statement
+
+.. .............................................................................
+.3 GREP
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_GREP
+.
+For checking unpacked EPM files the *grep* utility is used.
+
+[=NOTE]
+.ul compact
+- the *grep* utility is only required if you run *src\wis\makefile* with pseudotarget
+  *check*. It is not mandandory in order to create the package itself.
+- You can download *Grep v2.0* from 
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=grep20 The Hobbes File Archive]
+.
+    (search "grep20" at hobbes.nmsu.edu)
+- *grep.exe* must be accessible by the PATH statement
 
 .. -----------------------------------------------------------------------------
 .2 CVS development tree overview
