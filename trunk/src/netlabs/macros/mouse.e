@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.14 2004-02-22 15:47:34 aschn Exp $
+* $Id: mouse.e,v 1.15 2004-06-03 22:29:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -68,13 +68,13 @@ const
  compile if not defined(VANILLA)
    VANILLA = 0
  compile endif
- compile if not defined(DEFAULT_PASTE)
-   DEFAULT_PASTE = 'C'
- compile endif
- compile if not defined(WANT_CUA_MARKING)
+; compile if not defined(DEFAULT_PASTE)
+;   DEFAULT_PASTE = 'C'
+; compile endif
+ compile if not defined(WANT_CUA_MARKING)  -- remove
    WANT_CUA_MARKING = 0
  compile endif
- compile if not defined(WANT_STREAM_MODE)
+ compile if not defined(WANT_STREAM_MODE)  -- remove
    WANT_STREAM_MODE = 0
  compile endif
  compile if not defined(NLS_LANGUAGE)
@@ -98,14 +98,14 @@ const
    include NLS_LANGUAGE'.e'
 compile endif  -- not defined(SMALL)
 
-define
-compile if not defined(ALTERNATE_PASTE)
- compile if DEFAULT_PASTE = ''
-   ALTERNATE_PASTE = 'C'
- compile else
-   ALTERNATE_PASTE = ''
- compile endif
-compile endif
+;define
+;compile if not defined(ALTERNATE_PASTE)
+; compile if DEFAULT_PASTE = ''
+;   ALTERNATE_PASTE = 'C'
+; compile else
+;   ALTERNATE_PASTE = ''
+; compile endif
+;compile endif
 
 const
 compile if not defined(EPM_POINTER)
@@ -250,7 +250,7 @@ defc processmouse
    -- 'processmouse' is called at every mouse action
    if not WindowHadFocus then
       'ResetDateTimeModified'
-      'RefreshInfoLine ALTERED'
+      'RefreshInfoLine MODIFIED'
    endif
 
    if LMousePrefix<>BlankMouseHandler"." then
@@ -400,7 +400,7 @@ compile if WANT_STREAM_MODE = 'SWITCH'
 compile endif
    universal nepmd_hini
    KeyPath = "\NEPMD\User\Mouse\Mark\DragAlwaysMarks"
-   DragAlwaysMarks = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+   DragAlwaysMarks = NepmdQueryConfigValue( nepmd_hini, KeyPath)
 
 compile if 0
    mt = upcase(arg(1))
@@ -496,7 +496,7 @@ compile endif
    saved_cursory = .cursory
 
    KeyPath = "\NEPMD\User\Mouse\Mark\Workaround"
-   Workaround = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+   Workaround = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if Workaround = 1 then
       -- Get current keyword highlighting file if highlighting is on.
       --   (Uses an array var, set before by 'toggle_parse'.)
@@ -507,7 +507,7 @@ compile endif
          getfileid fid
          -- Get keyword highlighting file for this file
          -- (The array var 'kwfile.'fid is set by defc toggle_parse in STDCTRL.E)
-         rc = get_array_value( EPM_utility_array_ID, 'kwfile.'fid, kwfilename )
+         rc = get_array_value( EPM_utility_array_ID, 'kwfile.'fid, kwfilename)
          'toggle_parse' 0
       endif
 
@@ -610,6 +610,7 @@ compile endif
    refresh
 
 defc markword
+   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
    if arg(1) then
       'MH_gotoposition'
       unmark
@@ -618,6 +619,7 @@ defc markword
 
 compile if WANT_TEXT_PROCS
 defc marksentence
+   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
    if arg(1) then
       'MH_gotoposition'
       unmark
@@ -625,6 +627,7 @@ defc marksentence
    call mark_sentence()
 
 defc markparagraph
+   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
    if arg(1) then
       'MH_gotoposition'
       unmark
@@ -639,6 +642,7 @@ defc extendparagraph
 compile endif -- WANT_TEXT_PROCS
 
 defc marktoken
+   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
    if arg(1) then
       'MH_gotoposition'
    endif
@@ -652,14 +656,7 @@ compile endif
       'Copy2SharBuff'       /* Copy mark to shared text buffer */
    endif
 
-defc findword
-   if arg(1) then
-      'MH_gotoposition'
-   endif
-   if find_token(startcol, endcol) then
-      .col = endcol
-      'l '\1 || substr(textline(.line), startcol, (endcol-startcol)+1)
-   endif
+; Moved defc findword to LOCATE.E
 
 compile if WANT_CUA_MARKING
 defc MH_singleclick
@@ -724,8 +721,10 @@ defc StartBrowser
       if WordFound then  -- if word found
          Spec = substr( line, StartCol, EndCol - StartCol + 1)
 
-         -- strip trailing periods
-         Spec = strip( Spec, 'T', '.')
+         -- strip trailing punctuation chars and '-'
+         if wordpos( rightstr( Spec, 1), ', ; . ! ? -') then
+            Spec = substr( Spec, 1, length(Spec) - 1)
+         endif
 
          -- locate URL in double-clicked word
          do u = 1 to words( UrlStrings )
@@ -990,10 +989,23 @@ compile if WANT_CUA_MARKING = 'SWITCH'
 
 defproc MH_set_mouse
 ;   universal CUA_marking_switch, MouseStyle
-   universal CUA_marking_switch
    universal nepmd_hini
+   universal CUA_marking_switch
    KeyPath = "\NEPMD\User\Mouse\Mark\MouseStyle"
-   MouseStyle = NepmdQueryConfigValue( nepmd_hini, KeyPath )
+   MouseStyle = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   KeyPath = "\NEPMD\User\Mouse\Mark\DefaultPaste"
+   DefaultPaste = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if DefaultPaste = 'C' then
+      AlternatePaste = 'L'
+   else
+      AlternatePaste = 'C'
+   endif
+   if DefaultPaste = 'L' then    -- arg for defc paste maybe 'C', 'B' or ''
+      DefaultPaste = ''
+   endif
+   if AlternatePaste = 'L' then  -- arg for defc paste maybe 'C', 'B' or ''
+      AlternatePaste = ''
+   endif
 
    msgid = arg(1)
    if msgid='' then
@@ -1082,10 +1094,10 @@ compile if WANT_CUA_MARKING = 'SWITCH' or WANT_CUA_MARKING = 0
       if msgid <> WM_BUTTON2MOTIONSTART then
          call register_mousehandler(1, '2 BEGINDRAG 0', 'MH_begin_mark LINE')
       endif
-      call register_mousehandler(1, '1 CLICK 2',     'ifinmark copy2clip')
-      call register_mousehandler(1, '1 CLICK 3',     'ifinmark cut')
-      call register_mousehandler(1, '1 CLICK 4',     'mc /MH_gotoposition/paste' DEFAULT_PASTE)
-      call register_mousehandler(1, '1 CLICK 5',     'mc /MH_gotoposition/paste' ALTERNATE_PASTE)
+      call register_mousehandler(1, '1 CLICK 2',     'ifinmark copy2clip')                        -- Ctrl+MB1click
+      call register_mousehandler(1, '1 CLICK 3',     'ifinmark cut')                              -- Ctrl+Sh+NB1click
+      call register_mousehandler(1, '1 CLICK 4',     'mc /MH_gotoposition/paste' DefaultPaste)    -- Alt+MB1click
+      call register_mousehandler(1, '1 CLICK 5',     'mc /MH_gotoposition/paste' AlternatePaste)  -- Alt+Sh+MB1click
       if msgid <> WM_BUTTON3MOTIONSTART then
          call register_mousehandler(1, '3 BEGINDRAG 0', 'MH_begin_mark 'c_but_1)
       endif
@@ -1248,257 +1260,7 @@ defc MH_MM_dblclick
    endif  -- class=32
 compile endif
 
-const
-   FILL_MARK_MENU__MSG = 'Fill mark'
-   FILL_MARK_MENUP__MSG = \1'Fill marked region with a character, overlaying current contents.'
-   HP_POPUP_FILL = 0
-   REFLOW_MARK_MENU__MSG = 'Reflow mark'
-   REFLOW_MARK_MENUP__MSG = \1'Reflow text in marked region.'
-   HP_POPUP_REFLOW = 0
-   MARK_WORD_MENU__MSG = 'Mark word'
-   MARK_WORD_MENUP__MSG = \1'Mark space-delimited word under mouse pointer.'
-   HP_POPUP_MARKWORD = 0
-   MARK_TOKEN_MENU__MSG = 'Mark identifier'
-   MARK_TOKEN_MENUP__MSG = \1'Mark the C-language identifier under the mouse pointer.'
-   HP_POPUP_MARKTOKEN = 0
-   FIND_TOKEN_MENU__MSG = 'Find identifier'
-   FIND_TOKEN_MENUP__MSG = \1'Find the next occurrence of the identifier under the mouse pointer.'
-   HP_POPUP_FINDTOKEN = 0
-compile if WANT_TEXT_PROCS
-   MARK_SENTENCE_MENU__MSG = 'Mark sentence'
-   MARK_SENTENCE_MENUP__MSG = \1'Mark sentence around mouse pointer.'
-   HP_POPUP_MARKSENTENCE = 0
-   MARK_PARAGRAPH_MENU__MSG = 'Mark paragraph'
-   MARK_PARAGRAPH_MENUP__MSG = \1'Mark paragraph around mouse pointer.'
-   HP_POPUP_MARKPARAGRAPH = 0
-   EXTEND_SENTENCE_MENU__MSG = 'Extend sentence mark'
-   EXTEND_SENTENCE_MENUP__MSG = \1'Extend character mark through end of next sentence.'
-   HP_POPUP_EXTENDSENTENCE = 0
-   EXTEND_PARAGRAPH_MENU__MSG = 'Extend paragraph mark'
-   EXTEND_PARAGRAPH_MENUP__MSG = \1'Extend character mark through end of next paragraph.'
-   HP_POPUP_EXTENDPARAGRAPH = 0
-compile endif -- WANT_TEXT_PROCS
-   UPCASE_MARK_MENU__MSG = 'Uppercase selection'
-   UPCASE_MARK_MENUP__MSG = \1'Translate selected text to upper case.'
-   HP_POPUP_UPCASEMARK = 0
-   LOCASE_MARK_MENU__MSG = 'Lowercase selection'
-   LOCASE_MARK_MENUP__MSG = \1'Translate selected text to lower case.'
-   HP_POPUP_LOCASEMARK = 0
-   UPCASE_WORD_MENU__MSG = 'Uppercase word'
-   UPCASE_WORD_MENUP__MSG = \1'Translate word under mouse pointer to upper case.'
-   HP_POPUP_UPCASEWORD = 0
-   LOCASE_WORD_MENU__MSG = 'Lowercase word'
-   LOCASE_WORD_MENUP__MSG = \1'Translate word under mouse pointer to lower case.'
-   HP_POPUP_LOCASEWORD = 0
-   SHIFT_MENU__MSG = 'Shift'
-   SHIFT_MENUP__MSG = \1'Shift marked text left or right.'
-   HP_POPUP_SHIFT = 0
-   SHIFTLEFT_MENU__MSG = 'Shift left 1'
-   SHIFTLEFT_MENUP__MSG = \1'Shift marked text left 1 character.'
-   HP_POPUP_SHIFTLEFT = 0
-   SHIFTLEFT3_MENU__MSG = 'Shift left 3'
-   SHIFTLEFT3_MENUP__MSG = \1'Shift marked text left 3 characters.'
-   HP_POPUP_SHIFTLEFT3 = 0
-   SHIFTLEFT8_MENU__MSG = 'Shift left 8'
-   SHIFTLEFT8_MENUP__MSG = \1'Shift marked text left 8 characters.'
-   HP_POPUP_SHIFTLEFT8 = 0
-   SHIFTRIGHT_MENU__MSG = 'Shift right 1'
-   SHIFTRIGHT_MENUP__MSG = \1'Shift marked text right 1 character.'
-   HP_POPUP_SHIFTRIGHT = 0
-   SHIFTRIGHT3_MENU__MSG = 'Shift right 3'
-   SHIFTRIGHT3_MENUP__MSG = \1'Shift marked text right 3 characters.'
-   HP_POPUP_SHIFTRIGHT3 = 0
-   SHIFTRIGHT8_MENU__MSG = 'Shift right 8'
-   SHIFTRIGHT8_MENUP__MSG = \1'Shift marked text right 8 characters.'
-   HP_POPUP_SHIFTRIGHT8 = 0
-   CENTER_LINE_MENU__MSG = 'Center line'
-   CENTER_LINE_MENUP__MSG = \1'Center line under mouse pointer vertically in window.'
-   HP_POPUP_CENTERLINE = 0
-   CENTER_MARK_MENU__MSG = 'Center text'
-   CENTER_MARK_MENUP__MSG = \1'Center marked text within margins or block mark.'
-   HP_POPUP_CENTERMARK = 0
-   SORT_MARK_MENU__MSG = 'Sort'
-   SORT_MARK_MENUP__MSG = \1'Sort marked lines, using block mark (if present) as key.'
-   HP_POPUP_SORT = 0
-   TOP_LINE_MENU__MSG = 'Scroll to top'
-   TOP_LINE_MENUP__MSG = \1'Scroll so line under mouse pointer is at top of window.'
-   HP_POPUP_TOP = 0
-
-compile if WANT_TREE
-   LOAD_FILE_MENU__MSG = '~Load file'
-   SORT_ASCENDING_MENU__MSG = '~Sort ascending'
-   SORT_DATE_MENU__MSG = 'Sort by ~date'
-   SORT_TIME_MENU__MSG = 'Sort by ~time'
-   SORT_SIZE_MENU__MSG = 'Sort by ~size'
-   SORT_EASIZE_MENU__MSG = 'Sort by ~EA size'
-   SORT_FULLNAME_MENU__MSG = 'Sort by ~fully-qualified filename'
-   SORT_NAME_MENU__MSG = 'Sort by ~name'
-   SORT_EXTENSION_MENU__MSG = 'Sort by ~extension'
-   SORT_DESCENDING_MENU__MSG = 'Sort ~descending'
-
-   LOAD_FILE_MENUP__MSG = \1'Load the file or list the directory under the cursor'
-   SORT_ASCENDING_MENUP__MSG = \1'Sort the file or marked lines from smallest to largest'
-   SORT_XXXX_MENUP__MSG = \1'Sort the file or marked lines by the indicated attribute'
-   SORT_DESCENDING_MENUP__MSG = \1'Sort the file or marked lines from largest to smallest'
-compile endif
-
-
-defc MH_popup
-   universal activemenu, previouslyactivemenu
-compile if CHECK_FOR_LEXAM
-   universal LEXAM_is_available
-compile endif
-   if previouslyactivemenu = '' then
-      previouslyactivemenu = activemenu
-   endif
-   menuname = 'popup1'
-   activemenu = menuname
-
-   deletemenu menuname, 0, 0, 0
-   buildsubmenu  menuname, 80, '', '', 0 , 0
-   mt = leftstr(marktype(),1)
-   in_mark = mouse_in_mark()  -- Save in a variable so user's include file can test.
-
-compile if INCLUDE_STANDARD_CONTEXT_MENU
- compile if WANT_TREE
-   if .filename = '.tree' then
-      buildmenuitem menuname, 80, 8000, LOAD_FILE_MENU__MSG\9'Alt+1',   'dokey a_1'LOAD_FILE_MENUP__MSG, 0, 0
-      buildmenuitem menuname, 80, 8001, SORT_ASCENDING_MENU__MSG,   ''SORT_ASCENDING_MENUP__MSG, 17, 0
-      buildmenuitem menuname, 80, 8002, SORT_DATE_MENU__MSG,        'treesort' 'D'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8003, SORT_TIME_MENU__MSG,        'treesort' 'T'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8004, SORT_SIZE_MENU__MSG,        'treesort' 'S'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8005, SORT_EASIZE_MENU__MSG,      'treesort' 'EA'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8006, SORT_FULLNAME_MENU__MSG,    'treesort' 'F'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8007, SORT_NAME_MENU__MSG,        'treesort' 'N'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8008, SORT_EXTENSION_MENU__MSG,   'treesort' 'EX'SORT_XXXX_MENUP__MSG, 32769, 0
-      buildmenuitem menuname, 80, 8011, SORT_DESCENDING_MENU__MSG,  ''SORT_DESCENDING_MENUP__MSG, 17, 0
-      buildmenuitem menuname, 80, 8012, SORT_DATE_MENU__MSG,        'treesort' '/R' 'D'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8013, SORT_TIME_MENU__MSG,        'treesort' '/R' 'T'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8014, SORT_SIZE_MENU__MSG,        'treesort' '/R' 'S'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8015, SORT_EASIZE_MENU__MSG,      'treesort' '/R' 'EA'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8016, SORT_FULLNAME_MENU__MSG,    'treesort' '/R' 'F'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8017, SORT_NAME_MENU__MSG,        'treesort' '/R' 'N'SORT_XXXX_MENUP__MSG, 1, 0
-      buildmenuitem menuname, 80, 8018, SORT_EXTENSION_MENU__MSG,   'treesort' '/R' 'EX'SORT_XXXX_MENUP__MSG, 32769, 0
-   elseif in_mark then  -- Build Inside-Mark pop-up
- compile else
-   if in_mark then  -- Build Inside-Mark pop-up
- compile endif
-      gray_if_charmark = 16384*(MT='C')
-      gray_if_notcharmark = 16384 - gray_if_charmark
-      buildmenuitem menuname, 80, 8000, UNMARK_MARK_MENU__MSG\9'Alt+U',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)
-      buildmenuitem menuname, 80, 8001, DELETE_MARK_MENU__MSG\9'Alt+D',   'DUPMARK D'DELETE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_DELETE, 0)
-      buildmenuitem menuname, 80, 8002, FILL_MARK_MENU__MSG\9'Alt+F',     'Fill'FILL_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_FILL, 0)
-      buildmenuitem menuname, 80, 8003, REFLOW_MARK_MENU__MSG\9'Alt+P',   'key 1 a+P'REFLOW_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_REFLOW, gray_if_charmark)
-      buildmenuitem menuname, 80, 8004, UPCASE_MARK_MENU__MSG\9'Ctrl+F3', 'key 1 c+f3'UPCASE_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_UPCASEMARK, 0)
-      buildmenuitem menuname, 80, 8005, LOCASE_MARK_MENU__MSG\9'Ctrl+F4', 'key 1 c+f4'LOCASE_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_LOCASEMARK, 0)
-      buildmenuitem menuname, 80, 8006, SORT_MARK_MENU__MSG,              'Sort'SORT_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_SORT, gray_if_charmark)
-      buildmenuitem menuname, 80, 8007, \0,                               '',          4, 0
-compile if WANT_TEXT_PROCS
-      buildmenuitem menuname, 80, 8008, EXTEND_SENTENCE_MENU__MSG\9,      'EXTENDSENTENCE'EXTEND_SENTENCE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_EXTENDSENTENCE, 0)
-      buildmenuitem menuname, 80, 8009, EXTEND_PARAGRAPH_MENU__MSG\9,     'EXTENDPARAGRAPH'EXTEND_PARAGRAPH_MENUP__MSG, 0, mpfrom2short(HP_POPUP_EXTENDPARAGRAPH, 0)
-      buildmenuitem menuname, 80, 8010, \0,                       '',          4, 0
-compile endif -- WANT_TEXT_PROCS
-      buildmenuitem menuname, 80, 8011, SHIFT_MENU__MSG,   ''SHIFT_MENUP__MSG, 17, mpfrom2short(HP_POPUP_SHIFT, gray_if_charmark)
-      nodismiss_gifc = gray_if_charmark + 32  -- 32 = MIA_NODISMISS
-      buildmenuitem menuname, 80, 8012, SHIFTLEFT_MENU__MSG\9'Ctrl+F7',   'key 1 a+F7'SHIFTLEFT_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8013, SHIFTLEFT3_MENU__MSG,             'key 3 a+F7'SHIFTLEFT3_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT3, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8014, SHIFTLEFT8_MENU__MSG,             'key 8 a+F7'SHIFTLEFT8_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT8, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8015, SHIFTRIGHT_MENU__MSG\9'Ctrl+F8',  'key 1 a+F8'SHIFTRIGHT_MENUP__MSG, 2049, mpfrom2short(HP_POPUP_SHIFTRIGHT, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8016, SHIFTRIGHT3_MENU__MSG,            'key 3 a+F8'SHIFTRIGHT3_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTRIGHT3, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8017, SHIFTRIGHT8_MENU__MSG,            'key 8 a+F8'SHIFTRIGHT8_MENUP__MSG, 32769, mpfrom2short(HP_POPUP_SHIFTRIGHT8, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8018, CENTER_MARK_MENU__MSG\9'Alt+T',   'key 1 a+t'CENTER_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_CENTERMARK, gray_if_charmark)
-      buildmenuitem menuname, 80, 8019, \0,                               '',          4, 0
-      buildmenuitem menuname, 80, 8020, CLIP_COPY_MENU__MSG\9 || CTRL_KEY__MSG'+'INSERT_KEY__MSG ,  'Copy2Clip'CLIP_COPY_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPY, 0)
-      buildmenuitem menuname, 80, 8021, CUT_MENU__MSG\9 || SHIFT_KEY__MSG'+'DELETE_KEY__MSG, 'Cut'CUT_MENUP__MSG,       0, mpfrom2short(HP_EDIT_CUT, 0)
-      buildmenuitem menuname, 80, 8022, \0,                               '',          4, 0
-      buildmenuitem menuname, 80, 8023, STYLE_MENU__MSG\9'Ctrl+Y',        'fontlist'STYLE_MENUP__MSG,    0, mpfrom2short(HP_OPTIONS_STYLE, 0)
-  compile if CHECK_FOR_LEXAM
-   if LEXAM_is_available then
-  compile endif
-      buildmenuitem menuname, 80, 8024, \0,                               '',          4, 0
-      buildmenuitem menuname, 80, 8025, PROOF_MENU__MSG,           'proof'PROOF_MENUP__MSG,     0, mpfrom2short(HP_OPTIONS_PROOF, 16384*(mt<>'L'))
-  compile if CHECK_FOR_LEXAM
-   endif
-  compile endif
-      buildmenuitem menuname, 80, 8026, \0,                               '',          4, 0
- compile if ENHANCED_PRINT_SUPPORT
-      buildmenuitem menuname, 80, 8027, PRT_MARK_MENU__MSG'...',          'PRINTDLG M'ENHPRT_MARK_MENUP__MSG,0, mpfrom2short(HP_EDIT_ENHPRINT, 0)
-  compile else
-      buildmenuitem menuname, 80, 8027, PRT_MARK_MENU__MSG,               'DUPMARK P'PRT_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_PRINT, 0)
- compile endif
-   elseif mt<>' ' then  -- Build Outside-Mark pop-up
-      'MH_gotoposition'
-      buildmenuitem menuname, 80, 8000, COPY_MARK_MENU__MSG\9'Alt+C',     'DUPMARK C'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
-      buildmenuitem menuname, 80, 8001, MOVE_MARK_MENU__MSG\9'Alt+M',     'DUPMARK M'MOVE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_MOVE, 0)
-      buildmenuitem menuname, 80, 8002, OVERLAY_MARK_MENU__MSG\9'Alt+O',  'DUPMARK O'OVERLAY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_OVERLAY, 0)
-      buildmenuitem menuname, 80, 8003, ADJUST_MARK_MENU__MSG\9'Alt+A',   'DUPMARK A'ADJUST_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_ADJUST, 0)
-      buildmenuitem menuname, 80, 8004, \0,                       '',          4, 0
-      buildmenuitem menuname, 80, 8005, UNMARK_MARK_MENU__MSG\9'Alt+U',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)
-   else  -- Build No-mark pop-up
-      'MH_gotoposition'
-      ch = substr(textline(.line), .col, 1)
-      gray_if_space = 16384*(ch=' ' | not .line)
-      buildmenuitem menuname, 80, 8000, MARK_WORD_MENU__MSG\9'Alt+W',      'MARKWORD'MARK_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKWORD, gray_if_space)
-      buildmenuitem menuname, 80, 8001, MARK_TOKEN_MENU__MSG\9'Ctrl+W',    'MARKTOKEN'MARK_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKTOKEN, gray_if_space)
-      buildmenuitem menuname, 80, 8002, FIND_TOKEN_MENU__MSG,              'FINDWORD'FIND_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_FINDTOKEN, gray_if_space)
-      buildmenuitem menuname, 80, 8003, \0,                       '',          4, 0
-compile if WANT_TEXT_PROCS
-      buildmenuitem menuname, 80, 8004, MARK_SENTENCE_MENU__MSG,           'MARKSENTENCE'MARK_SENTENCE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKSENTENCE, 0)
-      buildmenuitem menuname, 80, 8005, MARK_PARAGRAPH_MENU__MSG,          'MARKPARAGRAPH'MARK_PARAGRAPH_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKPARAGRAPH, 0)
-      buildmenuitem menuname, 80, 8006, \0,                       '',          4, 0
-compile endif -- WANT_TEXT_PROCS
-      buildmenuitem menuname, 80, 8007, UPCASE_WORD_MENU__MSG\9'Ctrl+F1',  'key 1 c+f1'UPCASE_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_UPCASEWORD, gray_if_space)
-      buildmenuitem menuname, 80, 8008, LOCASE_WORD_MENU__MSG\9'Ctrl+F2',  'key 1 c+f2'LOCASE_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_LOCASEWORD, gray_if_space)
-      buildmenuitem menuname, 80, 8009, \0,                       '',          4, 0
-      buildmenuitem menuname, 80, 8010, CENTER_LINE_MENU__MSG\9'Shift+F5', 'key 1 s+f5'CENTER_LINE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_CENTERLINE, 0)
-      buildmenuitem menuname, 80, 8011, TOP_LINE_MENU__MSG,                'newtop'TOP_LINE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_TOP, 0)
-      buildmenuitem menuname, 80, 8012, PASTE_C_MENU__MSG,    PASTE_C_MENUP__MSG,   17+64, mpfrom2short(HP_EDIT_PASTEMENU, 0)
-      buildmenuitem menuname, 80, 8013, PASTE_C_MENU__MSG,   'Paste C'PASTE_C_MENUP__MSG,   0, mpfrom2short(HP_EDIT_PASTEC, 0)
-      buildmenuitem menuname, 80, 8014, PASTE_L_MENU__MSG,   'Paste'PASTE_L_MENUP__MSG,     0, mpfrom2short(HP_EDIT_PASTE, 0)
-      buildmenuitem menuname, 80, 8015, PASTE_B_MENU__MSG,   'Paste B'PASTE_B_MENUP__MSG,   32769, mpfrom2short(HP_EDIT_PASTEB, 0)
-   endif
-compile endif -- INCLUDE_STANDARD_CONTEXT_MENU
-compile if not VANILLA
-tryinclude 'mymsemnu.e'  -- For user-added configuration
-compile endif
-   showmenu menuname,1
-compile if DEFAULT_PASTE = 'C'
-   'cascade_popupmenu 8012 8013'  -- Paste cascade; default is Paste (character mark)
-compile elseif DEFAULT_PASTE = 'B'
-   'cascade_popupmenu 8012 8015'  -- Paste cascade; default is Paste Block
- compile else
-   'cascade_popupmenu 8012 8014'  -- Paste cascade; default is Paste Lines
-compile endif
-
-#define ETK_FID_POPUP          50
-
-defc cascade_popupmenu
-   parse arg menuid defmenuid .
-   menuitem = copies(\0, 16)  -- 2 bytes ea. pos'n, style, attribute, identity; 4 bytes submenu hwnd, long item
-   hwndp= dynalink32( 'PMWIN',
-                      '#899',                -- ordinal for Win32WindowFromID
-                      gethwndc(EPMINFO_EDITCLIENT) ||
-                      atol(ETK_FID_POPUP) )
-   if not windowmessage(1,
-                        hwndp,
-                        386,                  -- x182, MM_QueryItem
-                        menuid + 65536,
-                        ltoa(offset(menuitem) || selector(menuitem), 10) )
-   then return; endif
-   hwnd = substr(menuitem, 9, 4)
-
-   call dynalink32('PMWIN',
-                   '#874',     -- Win32SetWindowBits
-                    hwnd          ||
-                    atol(-2)      ||  -- QWL_STYLE
-                    atol(64)      ||  -- MS_CONDITIONALCASCADE
-                    atol(64) )        -- MS_CONDITIONALCASCADE
-   if defmenuid<>'' then  -- Default menu item
-      call windowmessage(1,
-                         ltoa(hwnd,10),
-                         1074,                  -- x432, MM_SETDEFAULTITEMID
-                         defmenuid, 0)  -- Make arg(2) the default menu item
-   endif
+; Moved popup menu to POPUP.E
 
 ; The StatWndMouseCmd and MsgWndMouseCmd are invoked with the following argument
 ; when the status or message windows receive the following event:
