@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: file.c,v 1.3 2002-08-14 12:14:14 cla Exp $
+* $Id: file.c,v 1.4 2002-08-22 10:08:34 cla Exp $
 *
 * ===========================================================================
 *
@@ -204,4 +204,224 @@ do
 
 return rc;
 }
+
+// -----------------------------------------------------------------------------
+
+APIRET GetNextFile( PSZ pszFileMask, PHDIR phdir, PSZ pszNextFile, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         PSZ            pszFilenamePart;
+         FILEFINDBUF3   ffb3;
+         ULONG          ulFilecount = 1;
+         CHAR           szNextFile[ _MAX_PATH];
+         CHAR           szName[ _MAX_PATH];
+
+do
+   {
+   // check parms
+   if ((pszFileMask   == NULL) ||
+       (phdir         == NULL) ||
+       (pszNextFile   == NULL))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   strcpy( szName, pszFileMask);
+
+   // get first/next file
+   if (*phdir == NULLHANDLE)
+      *phdir = HDIR_CREATE;
+   if (*phdir == HDIR_CREATE)
+      {
+      rc = DosFindFirst( szName,
+                         phdir,
+                         FILE_ARCHIVED | FILE_SYSTEM | FILE_HIDDEN | FILE_READONLY,
+                         &ffb3,
+                         sizeof( ffb3),
+                         &ulFilecount,
+                         FIL_STANDARD);
+      }
+   else
+      rc = DosFindNext( *phdir,
+                        &ffb3,
+                        sizeof( ffb3),
+                        &ulFilecount);
+
+   if (rc != NO_ERROR)
+      break;
+
+   // Namensteil isolieren
+   strcpy( szNextFile, szName);
+   pszFilenamePart = Filespec( szNextFile, FILESPEC_NAME);
+   strcpy( pszFilenamePart, ffb3.achName);
+
+   // does buffer fit ?
+   if ((strlen( szNextFile) + 1) > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszNextFile, szNextFile);
+
+   } while ( FALSE);
+
+
+// cleanup
+if (phdir)
+   if (rc == ERROR_NO_MORE_FILES)
+      DosFindClose( *phdir);
+
+return rc;
+
+}
+
+// -----------------------------------------------------------------------------
+
+APIRET GetNextDir( PSZ pszFileMask, PHDIR phdir, PSZ pszNextDir, ULONG ulBuflen)
+{
+         APIRET         rc = NO_ERROR;
+         PSZ            pszFilenamePart;
+         FILEFINDBUF3   ffb3;
+         ULONG          ulFilecount = 1;
+         CHAR           szNextFile[ _MAX_PATH];
+         CHAR           szName[ _MAX_PATH];
+
+do
+   {
+   // check parms
+   if ((pszFileMask   == NULL) ||
+       (phdir         == NULL) ||
+       (pszNextDir   == NULL))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   strcpy( szName, pszFileMask);
+
+   // get first/next file
+   if (*phdir == NULLHANDLE)
+      *phdir = HDIR_CREATE;
+   if (*phdir == HDIR_CREATE)
+      {
+      rc = DosFindFirst( szName,
+                         phdir,
+                         MUST_HAVE_DIRECTORY | FILE_ARCHIVED | FILE_SYSTEM | FILE_HIDDEN | FILE_READONLY,
+                         &ffb3,
+                         sizeof( ffb3),
+                         &ulFilecount,
+                         FIL_STANDARD);
+      }
+   else
+      rc = DosFindNext( *phdir,
+                        &ffb3,
+                        sizeof( ffb3),
+                        &ulFilecount);
+
+   if (rc != NO_ERROR)
+      break;
+
+   // skip dot entries
+
+   while ((rc == NO_ERROR) &&
+          ((!strcmp( ffb3.achName, ".")) || (!strcmp( ffb3.achName, ".."))))
+      {
+      rc = DosFindNext( *phdir,
+                        &ffb3,
+                        sizeof( ffb3),
+                        &ulFilecount);
+      }
+   if (rc != NO_ERROR)
+      break;
+
+   // Namensteil isolieren
+   strcpy( szNextFile, szName);
+   pszFilenamePart = Filespec( szNextFile, FILESPEC_NAME);
+   strcpy( pszFilenamePart, ffb3.achName);
+
+   // does buffer fit ?
+   if ((strlen( szNextFile) + 1) > ulBuflen)
+      {
+      rc = ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+
+   // hand over result
+   strcpy( pszNextDir, szNextFile);
+
+   } while ( FALSE);
+
+
+// cleanup
+if (phdir)
+   if (rc == ERROR_NO_MORE_FILES)
+      DosFindClose( *phdir);
+
+return rc;
+
+}
+
+// -----------------------------------------------------------------------------
+
+PSZ Filespec( PSZ  pszFilename, ULONG ulPart)
+{
+         PSZ            pszFilenamePart = NULL;
+         ULONG          ulAdjust = 0;
+do
+   {
+   // check parm
+   if (pszFilename == NULL)
+      break;
+
+   switch (ulPart)
+      {
+      case FILESPEC_EXTENSION:
+         // make sure we search the extension in name part only
+         pszFilenamePart = Filespec( pszFilename, FILESPEC_NAME);
+         if (pszFilenamePart != NULL)
+            {
+            pszFilenamePart = strrchr( pszFilenamePart, '.');
+            ulAdjust = 1;
+            }
+         break;
+
+      case FILESPEC_NAME:
+         if (pszFilenamePart == NULL)
+            {
+            pszFilenamePart = strrchr( pszFilename, '\\');
+            ulAdjust = 1;
+            }
+
+         // fall thru !!!
+
+      case FILESPEC_PATHNAME:
+         if (pszFilenamePart == NULL)
+            {
+            pszFilenamePart = strrchr( pszFilename, ':');
+            ulAdjust = 1;
+            if (pszFilenamePart == NULL)
+               {
+               pszFilenamePart = pszFilename;
+               ulAdjust = 0;
+               }
+            }
+         break;
+
+      default:
+         break;
+      }
+
+   // adjust if necessary
+   if (pszFilenamePart != NULL)
+      pszFilenamePart += ulAdjust;
+
+   } while (FALSE);
+
+return pszFilenamePart;
+
+}
+
 
