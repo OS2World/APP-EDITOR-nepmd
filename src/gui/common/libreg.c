@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.3 2002-09-13 12:51:06 cla Exp $
+* $Id: libreg.c,v 1.4 2002-09-13 16:59:26 cla Exp $
 *
 * ===========================================================================
 *
@@ -48,10 +48,10 @@ static   PSZ            pszAppRegContainer = "RegContainer";
 #define PATHENTRYLEN(p)       _queryEntrySize( hini, pszAppRegContainer, p)
 #define KEYENTRYLEN(p)        _queryEntrySize( hini, pszAppRegKeys, p)
 
-#define QUERYPATHENTRY(p,b,s) PrfQueryProfileString(  hini, pszAppRegContainer, p, NULL, b, s)
+#define QUERYPATHENTRY(p,b,s) _queryDataEntry(  hini, pszAppRegContainer, p, b, s)
 #define QUERYKEYENTRY(p,b,s)  PrfQueryProfileString(  hini, pszAppRegKeys, p, NULL, b, s)
 
-#define WRITEPATHENTRY(p,v)   PrfWriteProfileString(  hini, pszAppRegContainer, p, v)
+#define WRITEPATHENTRY(p,v,l) PrfWriteProfileData(  hini, pszAppRegContainer, p, v, l)
 #define WRITEKEYENTRY(p,v)    PrfWriteProfileString(  hini, pszAppRegKeys, p, v)
 
 #define DELETEPATH(p)         WRITEPATHENTRY( p, NULL)
@@ -71,6 +71,54 @@ static   PSZ            pszAppRegContainer = "RegContainer";
                     
 // -----------------------------------------------------------------------------
 
+static PSZ _getEndOfStrList( PSZ pszzStr)
+{
+         PSZ            pszResult = pszzStr;
+do
+   {
+   // quit on empty string
+   if (!pszzStr)
+      break;
+
+   // search end of zz string
+   while (*pszResult)
+      {
+      pszResult = NEXTSTR( pszResult);
+      }
+
+   } while (FALSE);
+
+return pszResult;
+}
+
+// -----------------------------------------------------------------------------
+
+static PSZ _searchStrInStrList( PSZ pszzStr, PSZ pszSearch)
+{
+         PSZ            pszResult = NULL;
+do
+   {
+   // quit on empty string
+   if ((!pszzStr) || (!pszSearch))
+      break;
+
+   // search string in zz string list
+   pszResult = pszzStr;
+   while (*pszResult)
+      {
+      if (!strcmp( pszResult, pszSearch))
+         break;
+
+      pszResult = NEXTSTR( pszResult);
+      }
+
+   } while (FALSE);
+
+return pszResult;
+}
+
+#ifdef UNSUSED
+// -----------------------------------------------------------------------------
 // runtime alike helper, searching word in space delimited list
 // returns a pointer to word or NULL
 
@@ -104,6 +152,7 @@ static char *_strword( const char *str, const char *word)
 
 return p;
 }
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -113,6 +162,19 @@ static ULONG _queryEntrySize( HINI hini, PSZ pszAppName, PSZ pszValuePath)
 
 PrfQueryProfileSize( hini, pszAppName, pszValuePath, &ulDataLen);
 return ulDataLen;
+}
+
+// -----------------------------------------------------------------------------
+
+static ULONG _queryDataEntry( HINI hini, PSZ pszAppName, PSZ pszValuePath, PSZ pszBuffer, ULONG ulBuflen)
+{
+         ULONG          ulDataLen = 0;
+
+ulDataLen = ulBuflen;
+if (PrfQueryProfileData(  hini, pszAppName, pszValuePath, pszBuffer, &ulDataLen))
+   return ulDataLen;
+else
+   return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -151,6 +213,7 @@ return hini;
 static APIRET _addKeyToContainerList( HINI hini, PSZ pszPath, PSZ pszKey)
 {
          APIRET         rc = NO_ERROR;
+         BOOL           fNewKey = FALSE;
          ULONG          ulDataLen;
          PSZ            pszList = NULL;
          PSZ            pszEntry;
@@ -170,23 +233,35 @@ do
 
    // check if value exists already
    ulDataLen = PATHENTRYLEN( pszPath);
-   if (!ulDataLen)
-      {
-      // completely new container list: just add our key
-      if (!WRITEPATHENTRY( pszPath, pszKey))
-         rc = LASTERROR;
-      break;
-      }
+   fNewKey = (ulDataLen == 0);
 
    // get current container list
-   ulDataLen += strlen( pszKey) + 2;
-   pszList = malloc( ulDataLen);
+   // apend a byte for the double zero byte - this will not be stored !
+   ulDataLen += strlen( pszKey) + 1;
+   pszList = malloc( ulDataLen + 1);
    if (!pszList)
       {
       rc = ERROR_NOT_ENOUGH_MEMORY;
       break;
       }
-   memset( pszList, 0, ulDataLen);
+   memset( pszList, 0, ulDataLen + 1);
+
+   // write new key list here
+   if (fNewKey)
+      {
+      // copy key with appended second zero byte
+      strcpy( pszList, pszKey);
+      pszEntry = NEXTSTR( pszList);
+      *pszEntry = 0; 
+
+      // completely new container list
+      if (!WRITEPATHENTRY( pszPath, pszKey, ulDataLen))
+         rc = LASTERROR;
+      break;
+      }
+
+
+   // query existant list
    if (!QUERYPATHENTRY( pszPath, pszList, ulDataLen))
       {
       rc = LASTERROR;
@@ -194,14 +269,17 @@ do
       }
 
    // is key in there already ? then quit with no error
-   pszEntry = _strword( pszList, pszKey);
-   if (pszEntry)
+   pszEntry = _searchStrInStrList( pszList, pszKey);
+   if (*pszEntry)
       break;
 
    // add key to list and write back
-   strcat( pszList, " ");
-   strcat( pszList, pszKey);
-   if (!WRITEPATHENTRY( pszPath, pszList))
+   pszEntry = _getEndOfStrList( pszList);
+   strcpy( pszEntry, pszKey);
+   pszEntry = NEXTSTR( pszEntry);
+   *pszEntry = 0;
+
+   if (!WRITEPATHENTRY( pszPath, pszList, ulDataLen))
       rc = LASTERROR;
 
    } while (FALSE);
@@ -219,7 +297,7 @@ static APIRET _removeKeyFromContainerList( HINI hini, PSZ pszPath, PSZ pszKey)
          ULONG          ulDataLen;
          PSZ            pszList = NULL;
          PSZ            pszEntry;
-         PSZ            pszEow;
+         PSZ            pszNextEntry;
          BOOL           fStopRemovePath = FALSE;
 
 do
@@ -245,13 +323,14 @@ do
       }
 
    // get current container list
-   pszList = malloc( ulDataLen);
+   // apend a byte for the double zero byte - this will not be stored !
+   pszList = malloc( ulDataLen + 1);
    if (!pszList)
       {
       rc = ERROR_NOT_ENOUGH_MEMORY;
       break;
       }
-   memset( pszList, 0, ulDataLen);
+   memset( pszList, 0, ulDataLen + 1);
    if (!QUERYPATHENTRY( pszPath, pszList, ulDataLen))
       {
       rc = LASTERROR;
@@ -259,28 +338,36 @@ do
       }
 
    // is key not in here already ?
-   pszEntry = _strword( pszList, pszKey);
+   pszEntry = _searchStrInStrList( pszList, pszKey);
    if (!pszEntry)
       {
       rc = ERROR_PATH_NOT_FOUND;
       break;
       }
 
-   // search end of word and remove key from list
-   pszEow = strchr( pszEntry, ' ');
-   if (pszEow)
-      pszEow++; // cut of also the next blank
+   // remove key from list
+   pszNextEntry = NEXTSTR( pszEntry);
+   if (*pszNextEntry)
+      {
+      // copy everything including the last two bytes
+      ulDataLen = _getEndOfStrList( pszNextEntry) - pszNextEntry + 1;
+      memcpy( pszEntry, pszNextEntry, ulDataLen);
+      }
    else
-      pszEow = pszEntry + strlen( pszEntry);
-   strcpy( pszEntry, pszEow);
+      // last word: just copy two zero bytes
+      memcpy( pszEntry, pszNextEntry - 1, 2);
 
-   // if list is empty, remove container
-   if (!strlen( pszList))
-      pszList = NULL;
-   else
+   // is list empty ? 
+   ulDataLen = _getEndOfStrList( pszList) - pszList;
+   if (ulDataLen)
+      // no, stop deleting further
       fStopRemovePath = TRUE;
+   else
+      // yes: remove this container entry
+      pszList = NULL;
 
-   if (!WRITEPATHENTRY( pszPath, pszList))
+   // wrrite back the updated list or delete it (when pszList == NULL)
+   if (!WRITEPATHENTRY( pszPath, pszList, ulDataLen))
       {
       rc = LASTERROR;
       break;
