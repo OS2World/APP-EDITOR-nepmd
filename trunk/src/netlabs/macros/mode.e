@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.16 2002-10-15 22:25:47 cla Exp $
+* $Id: mode.e,v 1.17 2002-10-17 19:50:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -175,19 +175,98 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 defproc NepmdProcessMode()
+   -- load_var is a marker that stores if tabs or margins were already set
+   -- by the EA's EPM.TABS or EPM.MARGINS
+   universal load_var
    CurMode = arg(1)
    if CurMode = '' then
       CurMode = NepmdGetMode()
    endif
+   -------- put mode dependent settings here: ------
 
-   -- put mode dependent settings here:
+   -- Statusline
 compile if NEPMD_SPECIAL_STATUSLINE
    'refreshstatusline'
 compile endif
+
+   -- Highlighting
    if (CurMode = 'OFF') then
      call NepmdActivateHighlight( 'OFF')
    else
      call NepmdActivateHighlight( 'ON', CurMode)
+   endif
+
+   -- Key set, tabs, margins
+   -- Moved from EKEYS.E, REXXKEYS.E, CKEYS.E, PKEYS.E
+   TabsSetFromEa    = (load_var // 2)      -- 1 would be on if tabs set from EA EPM.TABS
+   MarginsSetFromEa = (load_var bitand 2)  -- 2 would be on if tabs set from EA EPM.MARGINS
+   if CurMode = 'OFF' then
+
+   elseif CurMode = 'E' then          ---- E ----
+      keys E_keys
+compile if E_TABS <> 0
+      if not TabsSetFromEa then
+         'tabs' E_TABS
+      endif
+compile endif
+compile if E_MARGINS <> 0
+      if not MarginsSetFromEa then
+         'ma'   E_MARGINS
+      endif
+compile endif
+
+   elseif CurMode = 'REXX' then       ---- REXX ----
+      keys REXX_keys
+compile if REXX_TABS <> 0
+      if not TabsSetFromEa then
+         'tabs' REXX_TABS
+      endif
+compile endif
+compile if REXX_MARGINS <> 0
+      if not MarginsSetFromEa then
+         'ma'   REXX_MARGINS
+      endif
+compile endif
+
+   elseif CurMode = 'C' then          ---- C ----
+      keys C_keys
+compile if C_TABS <> 0
+      if not TabsSetFromEa then
+         'tabs' C_TABS
+      endif
+compile endif
+compile if C_MARGINS <> 0
+      if not MarginsSetFromEa then
+         'ma'   C_MARGINS
+      endif
+compile endif
+
+   elseif CurMode = 'JAVA' then       ---- JAVA ----
+      keys C_keys
+compile if C_TABS <> 0
+      if not TabsSetFromEa then
+         'tabs' C_TABS
+      endif
+compile endif
+compile if C_MARGINS <> 0
+      if not MarginsSetFromEa then
+         'ma'   C_MARGINS
+      endif
+compile endif
+
+   elseif CurMode = 'PASCAL' then     ---- PASCAL ----
+      keys Pas_keys
+compile if P_TABS <> 0
+      if not TabsSetFromEa then
+         'tabs' P_TABS
+      endif
+compile endif
+compile if P_MARGINS <> 0
+      if not MarginsSetFromEa then
+         'ma'   P_MARGINS
+      endif
+compile endif
+
    endif
 
    return

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.4 2002-09-02 22:09:41 aschn Exp $
+* $Id: rexxkeys.e,v 1.5 2002-10-17 19:50:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -40,14 +40,8 @@ compile endif
 compile if not defined(TERMINATE_COMMENTS)
    TERMINATE_COMMENTS = 0
 compile endif
-compile if not defined(REXX_KEYWORD_HIGHLIGHTING)
-   REXX_KEYWORD_HIGHLIGHTING = 0
-compile endif
 compile if not defined(WANT_END_COMMENTED)
    WANT_END_COMMENTED = 1
-compile endif
-compile if not defined(REXX_EXTENSIONS)  -- Keep in sync with TAGS.E
-   REXX_EXTENSIONS = 'BAT CMD ERX EXC EXEC XEDIT REX REXX VRX'
 compile endif
 compile if not defined(REXX_SYNTAX_CASE)
    REXX_SYNTAX_CASE = 'lower'
@@ -63,30 +57,7 @@ compile if REXX_SYNTAX_CASE <> 'lower' & REXX_SYNTAX_CASE <> 'Mixed'
    *** Error: REXX_SYNTAX_CASE must be "Lower" or "Mixed"
 compile endif
 
-defload
-   universal load_ext
-   universal load_var
-   if wordpos(load_ext, REXX_EXTENSIONS) then
-      getline line,1
-      if substr(line,1,2)='/*' or (line='' & .last = 1) then
-         keys   rexx_keys
-compile if REXX_TABS <> 0
-         if not (load_var // 2) then  -- 1 would be on if tabs set from EA EPM.TABS
-            'tabs' REXX_TABS
-         endif
-compile endif
-compile if REXX_MARGINS <> 0
-         if not (load_var bitand 2) then  -- 2 would be on if tabs set from EA EPM.MARGINS
-         'ma'   REXX_MARGINS
-         endif
-compile endif
-      endif
-compile if REXX_KEYWORD_HIGHLIGHTING
-      if .visible then
-         'toggle_parse 1 epmkwds.cmd'
-      endif
-compile endif
-   endif
+-- Moved defload to MODE.E
 
 compile if    WANT_CUA_MARKING
 defkeys rexx_keys clear
@@ -156,14 +127,24 @@ def c_x=       -- Force expansion if we don't have it turned on automatic
    endif
 
 defproc rex_first_expansion            -- Called by space bar
-   retc = 0                            -- Default, enter a space
+   retc = 1                            -- Default, enter a space
    if .line then
-      w=strip(textline(.line),'T')
-      wrd=upcase(w)
+      getline line
+      line = strip( line, 'T' )
+      w = line
+      wrd = upcase(w)
+
 compile if REXX_SYNTAX_FORCE_CASE
       lb=copies(' ', max(1,verify(w,' '))-1)  -- Number of blanks before first word.
 compile endif
-      If wrd='IF' Then
+
+      -- Skip expansion when cursor is not at line end
+      line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
+      lw = strip( line_l, 'T' )
+      if w <> lw then
+         retc = 0
+
+      elseif wrd = 'IF' then
 compile if REXX_SYNTAX_CASE = 'lower'
  compile if REXX_SYNTAX_FORCE_CASE
          replaceline lb'if then'
@@ -225,7 +206,11 @@ compile else
  compile endif
 compile endif
 ;        if not insert_state() then insert_toggle endif
+      else
+         retc=0
       endif
+   else
+      retc=0
    endif
    return retc
 
@@ -237,7 +222,11 @@ compile if REXX_SYNTAX_FORCE_CASE
       parse value line with origword .
 compile endif
       line = upcase(line)
-      parse value line with firstword .
+      --parse value line with firstword .
+      -- Set firstword only to text left from the cursor
+      line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
+      parse value line_l with firstword rest
+
       c=max(1,verify(line,' '))-1  -- Number of blanks before first word.
 
       If firstword='SELECT' then
