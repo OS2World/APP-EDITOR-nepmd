@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: activatehighlight.e,v 1.4 2002-10-01 14:34:49 cla Exp $
+* $Id: activatehighlight.e,v 1.5 2002-10-08 22:05:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -71,10 +71,12 @@ mode of the currently loaded file
 
 defc NepmdActivateHighlight, ActivateHighlight =
 
- ActivateFlag = translate( arg( 1));
+ ActivateFlag = translate( word( arg( 1), 1));
  if (ActivateFlag = '') then
     ActivateFlag = 'ON';
  endif
+
+ EpmMode = translate( word( arg( 1), 2));
 
  if (wordpos( ActivateFlag, 'ON 1') > 0) then
     NewStatus = 'activated';
@@ -85,7 +87,7 @@ defc NepmdActivateHighlight, ActivateHighlight =
     return;
  endif
 
- rc = NepmdActivateHighlight( ActivateFlag);
+ rc = NepmdActivateHighlight( ActivateFlag, EpmMode);
  if (rc > 0) then
     sayerror 'syntax highlighting could not be' NewStatus ', rc='rc;
     return;
