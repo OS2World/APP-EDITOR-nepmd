@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: titleeng.inc,v 1.3 2002-10-31 18:06:40 cla Exp $
+.. $Id: titleeng.inc,v 1.4 2002-11-04 22:49:13 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -25,6 +25,7 @@
 .set DOCTITLE=Netlabs EPM Distribution
 .set USRTITLE=[=DOCTITLE] User Guide
 .set PRGTITLE=[=DOCTITLE] Programming Guide
+.set FLDTITLE=[=DOCTITLE] Folder Help
 .set DISTDIR=netlabs
 .set USERDIR=myepm
 
