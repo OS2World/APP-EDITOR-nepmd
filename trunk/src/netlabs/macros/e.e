@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: e.e,v 1.5 2002-09-02 22:12:42 aschn Exp $
+* $Id: e.e,v 1.6 2002-09-08 11:51:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,8 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+-- not used anymore
+/*
 compile if    not defined(INCLUDING_FILE)
    compiler_msg E.E is not being included by EPM.E, which is unusual.
    compiler_msg Don't forget that EPM uses EPM.EX, not E.EX, as the default .EX file.
@@ -221,3 +223,4 @@ compile if ALTERNATE_KEYSETS
 compile endif  -- ALTERNATE_KEYSETS
 
 EA_comment 'This is the base .ex file for EPM, compiled with ETPM version' EVERSION
+*/
