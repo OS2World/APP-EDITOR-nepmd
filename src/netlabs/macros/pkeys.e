@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pkeys.e,v 1.2 2002-07-22 19:01:29 cla Exp $
+* $Id: pkeys.e,v 1.3 2002-08-20 05:22:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,8 +34,6 @@ compile if not defined(WANT_END_COMMENTED)
    WANT_END_COMMENTED = 1
 compile endif
 
-compile if INCLUDING_FILE <> 'EXTRA.E'  -- Following only gets defined in the base
-compile if EVERSION >= '4.12'
 ;  Keyset selection is now done once at file load time, not every time
 ;  the file is selected.  And because the DEFLOAD procedures don't have to be
 ;  kept together in the macros (ET will concatenate all the DEFLOADs the
@@ -44,47 +42,28 @@ compile if EVERSION >= '4.12'
 ;
 defload
    universal load_ext
-compile if EPM
    universal load_var
-compile endif
    if load_ext='PAS' or load_ext='PASCAL' then
       keys   Pas_keys
- compile if P_TABS <> 0
-  compile if EPM
+compile if P_TABS <> 0
       if not (load_var // 2) then  -- 1 would be on if tabs set from EA EPM.TABS
-  compile endif
-      'tabs' P_TABS
-  compile if EPM
+         'tabs' P_TABS
       endif
-  compile endif
- compile endif
- compile if P_MARGINS <> 0
-  compile if EPM
-   compile if EVERSION >= '6.01b'
-      if not (load_var bitand 2) then  -- 2 would be on if tabs set from EA EPM.MARGINS
-   compile else
-      if not (load_var%2 - 2*(load_var%4)) then  -- 2 would be on if tabs set from EA EPM.MARGINS
-   compile endif
-  compile endif
-      'ma'   P_MARGINS
-  compile if EPM
-      endif
-  compile endif
- compile endif
-   endif
 compile endif
+compile if P_MARGINS <> 0
+      if not (load_var bitand 2) then  -- 2 would be on if tabs set from EA EPM.MARGINS
+         'ma'   P_MARGINS
+      endif
+compile endif
+   endif
 
-compile if WANT_CUA_MARKING & EPM
+compile if    WANT_CUA_MARKING
  defkeys pas_keys clear
 compile else
  defkeys pas_keys
 compile endif
 
-compile if EVERSION >= 5
 def space=
-compile else
-def ' '=
-compile endif
    universal expand_on
    if expand_on then
       if  not pas_first_expansion() then
@@ -93,9 +72,7 @@ compile endif
    else
       keyin ' '
    endif
- compile if EVERSION >= '5.20'
    undoaction 1, junk                -- Create a new state
- compile endif
 
 compile if ASSIST_TRIGGER = 'ENTER'
 def enter=
@@ -110,18 +87,8 @@ def c_enter=
 compile endif
    universal expand_on
 
-compile if EVERSION >= 5
    if expand_on then
-compile else
-   if expand_on & not command_state() then
-compile endif
-compile if EVERSION >= '4.12'
       if not pas_second_expansion() then
-compile else
-      if pas_second_expansion() then
-         call maybe_autosave()
-      else
-compile endif
 compile if ASSIST_TRIGGER = 'ENTER'
  compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
          call enter_common(enterkey)
@@ -166,16 +133,10 @@ def c_x=       /* Force expansion if we don't have it turned on automatic */
    if not pas_first_expansion() then
       call pas_second_expansion()
    endif
-compile endif  -- EXTRA
 
-compile if not EXTRA_EX or INCLUDING_FILE = 'EXTRA.E'  -- Following gets defined in EXTRA.EX if it's being used
 defproc pas_first_expansion
    retc=1
-compile if EVERSION >= 5
    if .line then
-compile else
-   if .line and (not command_state()) then
-compile endif
       getline line
       line=strip(line,'T')
       w=line
@@ -188,9 +149,7 @@ compile else
          insertline substr(wrd,1,length(wrd)-3)'end;',.line+1
 compile endif
          if not insert_state() then insert_toggle
-compile if EVERSION >= '5.50'
              call fixup_cursor()
-compile endif
          endif
          keyin ' '
       elseif wrd='IF' then
@@ -202,9 +161,7 @@ compile else
          insertline substr(wrd,1,length(wrd)-2)'end;',.line+2
 compile endif
          if not insert_state() then insert_toggle
-compile if EVERSION >= '5.50'
              call fixup_cursor()
-compile endif
          endif
          keyin ' '
      elseif wrd='WHILE' then
@@ -215,9 +172,7 @@ compile else
          insertline substr(wrd,1,length(wrd)-5)'end;',.line+1
 compile endif
          if not insert_state() then insert_toggle
-compile if EVERSION >= '5.50'
              call fixup_cursor()
-compile endif
          endif
          keyin ' '
       elseif wrd='REPEAT' then
@@ -237,9 +192,7 @@ compile else
          insertline substr(wrd,1,length(wrd)-4)'end;',.line+1
 compile endif
          if not insert_state() then insert_toggle
-compile if EVERSION >= '5.50'
              call fixup_cursor()
-compile endif
          endif
          keyin ' '
       else
@@ -365,4 +318,3 @@ compile endif
 defproc getheading_name          /*  (heading ) name of heading */
    return substr(arg(1),1,max(0,verify(upcase(arg(1)),
                                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789')-1))
-compile endif  -- EXTRA
