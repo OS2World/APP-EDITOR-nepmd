@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.c,v 1.4 2002-10-14 17:47:10 cla Exp $
+* $Id: mode.c,v 1.5 2002-10-18 16:12:57 cla Exp $
 *
 * ===========================================================================
 *
@@ -47,13 +47,16 @@ static   PSZ            pszGlobalSection  = "GLOBAL";
 #define SEARCHMASK_DEFAULTINI  "%s\\default.ini"
 #define SEARCHMASK_CUSTOMINI   "%s\\custom.ini"
 
+// defs for glob search
+#define GLOBSEARCH_WILDCARD    '*'
+
 // some useful macros
 #define QUERYOPTINITVALUE(h,s,k,t,d) \
 InitQueryProfileString( h, s, k, d, t, sizeof( t));
 
 // #############################################################################
 
-char * strwrd( const char * string, const char * word)
+static char * strwrd( const char * string, const char * word)
 {
          char * result = NULL;
          char * p;
@@ -86,13 +89,73 @@ do
          break;
          }
 
-
       // search again
       p = strstr( p + 1, word);
       }
 
    } while (FALSE);
 
+return result;
+}
+
+// -----------------------------------------------------------------------------
+
+static char * _globMatch( const char * namelist, const char * name)
+{
+         char * result = NULL;
+         char * copy   = NULL;
+         char * p;
+         char * w;
+
+static   char * delimiter = " \t";
+
+do
+   {
+   // check parm
+   if ((!namelist) || (!name))
+      break;
+
+   // if no wildcard in list, exit
+   if (!strchr( namelist, GLOBSEARCH_WILDCARD))
+      break;
+
+   // create a copy
+   copy = strdup( namelist);
+   if (!copy)
+      break;
+
+   // get through all names - don't use strtok here
+   p = copy;
+   while ((*p) && !(result))
+      {
+      do
+         {
+         // skip blanks
+         while (*p == ' ') {  p++; }
+
+         // does name contain the wildcard char ?
+         w = strchr( p, GLOBSEARCH_WILDCARD);
+         if (!w)
+            break;
+
+         // check the filename
+         if (!strnicmp( p, name, w - p))
+            {
+            result = p;
+            break;
+            }
+
+         } while (FALSE);
+
+      // skip all nonblanks
+      while (*p > ' ') {  p++; }
+
+      } // while (*p)
+
+   } while (FALSE);
+
+// cleanup
+if (copy) free( copy);
 return result;
 }
 
@@ -290,6 +353,9 @@ static APIRET _getModeSettings( PSZ pszMode, PMODEINFO pmi, ULONG ulBuflen)
 
 do
    {
+   // init buffer
+   memset( pmi, 0, ulBuflen);
+
    // search default.ini
    rc = _searchFile( pszEnvnameEpmKeywordpath, szIniFile, sizeof( szIniFile),
                      SEARCHMASK_DEFAULTINI, pszMode);
@@ -305,8 +371,8 @@ do
    QUERYOPTINITVALUE( hinit, pszGlobalSection, "CASESENSITIVE",  szCaseSensitive, "");
    InitCloseProfile( hinit, FALSE);
 
-   // now read custom details - ignore all errors, since that all is optional 
-   if (_searchFile( pszEnvnameEpmKeywordpath, szIniFile, 
+   // now read custom details - ignore all errors, since that all is optional
+   if (_searchFile( pszEnvnameEpmKeywordpath, szIniFile,
                     sizeof( szIniFile), SEARCHMASK_CUSTOMINI,  pszMode) == NO_ERROR)
       {
       if (InitOpenProfile( szIniFile, &hinit, INIT_OPEN_READONLY, 0, NULL) == NO_ERROR)
@@ -320,7 +386,7 @@ do
             strcat( szDefExtensions, " ");
             strcat( szDefExtensions, szCustomDefExtensions);
             }
-   
+
          if (strlen( szCustomDefNames))
             {
             strcat( szDefNames, " ");
@@ -459,7 +525,7 @@ do
 
    // -----------------------------------------------------
 
-   if ((ulReturnType == SCANMODE_MODEINFO) && 
+   if ((ulReturnType == SCANMODE_MODEINFO) &&
        (pszExtension) && (pszFilename))
       {
       // check for .CMD files
@@ -484,7 +550,7 @@ do
       // search default file just to make sure that mode definition exists !
       if (pszExtMode)
          {
-         rc = _searchFile( pszEnvnameEpmKeywordpath, szIniFile, 
+         rc = _searchFile( pszEnvnameEpmKeywordpath, szIniFile,
                           sizeof( szIniFile), SEARCHMASK_DEFAULTINI,
                           pszExtMode);
          if (rc != NO_ERROR)
@@ -554,7 +620,8 @@ do
                       (*pszExtension) &&
                       (pmi->pszDefExtensions) &&
                       (*pmi->pszDefExtensions) &&
-                      (strwrd( pmi->pszDefExtensions, pszExtension)))
+                      ((_globMatch( pmi->pszDefExtensions, pszExtension) ||
+                       (strwrd( pmi->pszDefExtensions, pszExtension)))))
                      pszExtMode = strdup( pszDirName);
 
                   if ((!pszNameMode) &&
@@ -562,7 +629,8 @@ do
                       (*pszBasename) &&
                       (pmi->pszDefNames) &&
                       (*pmi->pszDefNames) &&
-                      (strwrd( pmi->pszDefNames, pszBasename)))
+                      ((_globMatch( pmi->pszDefNames, pszBasename) ||
+                       (strwrd( pmi->pszDefNames, pszBasename)))))
                      pszNameMode = strdup( pszDirName);
 
                   }
