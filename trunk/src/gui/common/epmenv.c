@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.4 2002-08-15 10:06:21 cla Exp $
+* $Id: epmenv.c,v 1.5 2002-08-19 17:37:03 cla Exp $
 *
 * ===========================================================================
 *
@@ -111,7 +111,7 @@ do
          DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
          if (fFound = FileExists( szMainEnvFile))
             break;
-   
+
          // <nepmd_rootdir>\netlabs\epm.env
          sprintf( szMainEnvFile, pszNepmdExecDirMask, szNepmdPath, "epm");
          DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
@@ -144,7 +144,7 @@ do
          DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
          if (fFound = FileExists( szUserEnvFile))
             break;
-   
+
          // <nepmd_rootdir>\myepm\epm.env
          sprintf( szUserEnvFile, pszMyEpmExecDirMask, szNepmdPath, "epm");
          DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
@@ -283,7 +283,7 @@ return pszResult;
 
 // -----------------------------------------------------------------------------
 
-PSZ _copyname( PSZ pszBuffer, PSZ pszCurrent, PSZ pszEntry)
+static PSZ _copyname( PSZ pszBuffer, PSZ pszCurrent, PSZ pszEntry)
 {
          BOOL           fFound = FALSE;
          PSZ            p;
