@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nepmd.txt,v 1.17 2002-08-14 19:25:30 cla Exp $
+.. $Id: nepmd.txt,v 1.18 2002-08-15 08:41:32 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -555,41 +555,247 @@ available on FTP servers in the Internet like:
 .in epmenv.cmd
 .
 The [=TITLE] provides you with a dynamic configuration for *EPM*, which makes
-any changes to your *CONFIG.SYS* obsolete. After having installed this package,
-you instantly can use the [=TITLE] extensions with the *EPM* intallation of
-your operating system.
+any changes to your *CONFIG.SYS* obsolete. 
 
+[=TOPICS]
+.su 1 H40
+
+.. .............................................................................
+.4 benefits of the dynamic configuration
+.. .............................................................................
+.an IDPNL_ADDITIONS_DYNCFG_BENEFITS
+.
+We thought a lot about this approach of a dynamic configuration and how to implement
+it best. We decided to copy one binary file, namely the [.IDPNL_ADDITIONS_DYNCFG_LOADER],
+to your system directory (directory *\os2* on your boot drive) to accomplish this. 
+Considering, that it normally would be a bad behaviour to clutter the system directory
+with non-system files, like this is well known from the windowze platforms, we
+nevertheless think that in this case the benefit outweighs this drawback by far:
+
+.ul compact
+- this way the *CONFIG.SYS* of your system remains untouched  and
+- you can start right away with working without a reboot  and
+- the [=TITLE] extensions can very easily be deactivated and deinstalled
+- if we would apply all required changes to CONFIG.SYS, this would be
+  a big change, extending for example alone the *PATH*, *HELP* and *BOOKSHELF*
+  statement with several entries, affecting the whole system. With our approach,
+  these extensions to the environment are only applied to the sessions where this
+  is required, namely for the *EPM* and othe GUI utilities of the [=TITLE].
+
+.. .............................................................................
+.4 loader executable
+.. .............................................................................
+.an IDPNL_ADDITIONS_DYNCFG_LOADER
+.
 For having no *CONFIG.SYS* changes, a special *EPM loader executable* is
 copyied to your *?:\OS2* directory (where ?: represents your boot drive).
+It's name is also *epm.exe* and it gets loaded instead of the *EPM* 
+installed on your system, as the real *epm.exe* is installed in ?:\OS2\APPS
+and this directory by default comes after the *?:\OS2* in the PATH statement.
+This approach makes the complete dynamic configuration absolutely transparent
+to the system.
+
 When EPM.EXE is either loaded from command line or by double-clicking the
 *Enhanced Editor* icon within the *Workplace Shell*, this loader is launched
 instead of the true *EPM* and does the following:
 .ul compact
-- a special environment settings file is loaded. It holds the complete
-  changes required for the standard environment that are required to run all
-  of the [.IDPNL_ADDITIONS], this is in particular the case for the support of
-  the extended [.IDPNL_ADDITIONS_DIRTREE_EPMBBS].
+- a special [.IDPNL_ADDITIONS_DYNCFG_ENVFILES environment settings file]
+  is loaded. It holds the complete changes required for the standard environment 
+  that are required to run all of the [.IDPNL_ADDITIONS], this is in particular
+  the case for the support of the [.IDPNL_ADDITIONS_DIRTREE_NEPMD].
 - the true *EPM* executable is searched along the path (of course skipping
   the *EPM loader executable* itself during the search) and launched with
   the extended environment and the parameters supplied to the loader executable
   before.
 
+.. .............................................................................
+.4 extended environment
+.. .............................................................................
+.an IDPNL_ADDITIONS_DYNCFG_EXTENV
+.
+All GUI utilities of the [=TITLE], and especially the [.IDPNL_ADDITIONS_DYNCFG_LOADER]
+for loading the *EPM* load the extended environment defined by the 
+[.IDPNL_ADDITIONS_DYNCFG_ENVFILES] coming with the [=TITLE].
+
+The extended environment supports in particular the [.IDPNL_ADDITIONS_DIRTREE] of
+the [=TITLE] and further functionality by [.IDPNL_ADDITIONS_DYNCFG_NEWVARS] (being
+only available within the extended environment, of course).
+
 [=NOTE]
 .ul compact
-- the modified environment is
+- The modified environment is
   - available only within the loaded *EPM* instance, so for example 
     in a shell window of *EPM* or OS/2 windows of fullscreens launched
     from within the loaded *EPM* instance
-  - also loaded by the [.IDPNL_ADDITIONS_RECOMP recompilation utility RECOMP]
+  - also loaded by GUI utilities of the [=TITLE], like the
+    [.IDPNL_ADDITIONS_RECOMP recompilation utility RECOMP],
     so that all source files of the [=TITLE] can be found during recompilation.
 - in order to have the extended environment also available for other processes
   you can execute *epmenv.cmd* (being part of the [=TITLE]) within an OS/2 
   window or fullscreen. You may want to copy this script file
-  *netlabs\bin\epmenv.cmd* to a directory along your *PATH*, so that it can
-  easily be called from any of your programs.
+  *netlabs\bin\epmenv.cmd* of the installation path of the [=TITLE] to 
+  a directory along your *PATH*, so that it can easily be called from any 
+  of your programs.
 .at hi
   The installation routine of the [=TITLE] will not do so for you !
 .at
+.. .............................................................................
+.4 environment files
+.. .............................................................................
+.an IDPNL_ADDITIONS_DYNCFG_ENVFILES
+.
+Environment files define extensions to the environment, have the filename 
+extension *.env* and concerning their contents they resemble somewhat to
+batch files:
+.ul compact
+- comment lines start with a colon in the first column
+- empty lines are ignored
+- the lines defining environment variables look like [inf:cmdref.inf SET] statements, just ommitting 
+  the *SET* keyword. This allows also to include the value of previously defined environment variables
+  into the value of a new definition. The following lines would be valid:
+.sl compact
+  - VAR1=my new variable
+  - PATH=D:\MYDIR\BIN;%PATH%
+  - BOOKSHELF=%BOOKSHELF%;D:\MYDIR\BOOK;
+.el
+- [=NOTE] the pseudo environment variables *BEGINLIBPATH* and *ENDLIBPATH* are not (yet) supported !
+
+
+There are two kinds of environment files, wich are loaded one
+after the other in the following order:
+.pl compact tsize=3
+- base or main environment files
+= The [=TITLE] comes with one main [.IDPNL_ADDITIONS_DYNCFG_ENVFILES_EPMENV]
+  named *netlabs\bin\epm.env* below its installation directory
+  [=NOTE]
+.ul compact
+  - this file should NOT be modified.
+  - if this file is missing, the extensions of the [=TITLE] will not work properly
+.el
+.
+  (see also [.IDPNL_ADDITIONS_DIRTREE_NEPMD]).
+.
+- user environment files
+= these files do not exist by default and may be created by the user, defining
+  modifications to the environment being defined by the main environment files.
+  These files are never overwritten when reinstalling the [=TITLE] or deleted
+  when the [=TITLE] is deinstalled.
+.
+  (see also [.IDPNL_ADDITIONS_DIRTREE_USER]).
+
+.. .............................................................................
+.5 epm.env
+.. .............................................................................
+.an IDPNL_ADDITIONS_DYNCFG_ENVFILES_EPMENV
+.in __todo: include epm.env
+.
+The [=TITLE] comes with the following [.IDPNL_ADDITIONS_DYNCFG_ENVFILES main environment file],
+defining all required extensions for the environment to make all additions work properly.
+
+Note that you should not modify this file, but create your own personal environment file
+in the directory *myepm\bin* with the same name, which is loaded after this main file.
+
+** NOTE TO THE EDITOR: include epm.env here ***
+.. .at fc=darkgray
+.. .xmp
+.. .im ..\netlabs\bin\epm.env
+.. .exmp
+.. .at
+
+.. .............................................................................
+.4 search order for environment files
+.. .............................................................................
+.an IDPNL_ADDITIONS_DYNCFG_SEARCHORDER
+.in __todo: link to recomp
+.
+Two [.IDPNL_ADDITIONS_DYNCFG_ENVFILES] are loaded 
+when the environment has to be extended for launch of *EPM* or a GUI
+utility of the [=TITLE]. In some of the below cases the name of the executable is
+taken as the name of a searched environment file (still with extension *.env*),
+this would always be *epm* when the EPM is launched, and for example *recomp*,
+if the recompilation utility *recomp.exe* is called.
+
+
+The two files are loaded in the following order, where
+.ul compact
+- all relative path specifications refer to the installation directory of the [=TITLE]
+- only the first main and the first user environment file found according to the following scheme
+is loaded
+
+.pl compact tsize=3 bold underline
+- the main environment file
+= this environment file is only searched within the *netlabs\bin* directory.
+  It is either a file with the name
+.ul
+  - of the executable and extension *.env* (if existing)
+.at fc=darkgray
+.
+     *netlabs\bin\<exename>.env*
+.at
+  - or otherwise *epm.env* (if existing)
+.at fc=darkgray
+.
+     *netlabs\bin\epm.env*
+.at
+.el
+- the "user" environment file
+= this environment file is
+.ul
+  - first searched within the current directory and the name of the calling executable
+.at fc=darkgray
+.
+     *<current__directory>\<exename>.env*
+.at
+  - or within the *myepm\bin* directory, being a file with the name
+     - of the executable and extension *.env* (if existing)
+.at fc=darkgray
+.
+     *netlabs\myepm\<exename>.env*
+.at
+     - or otherwise *epm.env* (if existing)
+.at fc=darkgray
+.
+     *netlabs\myepm\epm.env*
+.at
+.el
+
+.. .............................................................................
+.4 new NEPMD environment variables
+.. .............................................................................
+.an IDPNL_ADDITIONS_DYNCFG_NEWVARS
+.
+The following environment variables are defined only in the [.IDPNL_ADDITIONS_DYNCFG_EXTENV]
+ot the [=TITLE]:
+
+_*environment variables defined by the environment file loader code:*_
+.pl tsize=3 bold
+- NEPMD__ROOTDIR
+= installation directory of the [=TITLE]
+- NEPMD__LANGUAGE
+= three letter ISO language identifier for selected language
+. 
+  (currently only *eng* for english)
+- NEPMD__MAINENVFILE
+= containing the pathname of the main environmentfile loaded, if any
+- NEPMD__USERENVFILE
+= containing the pathname of the user environmentfile loaded, if any
+
+_*environment variables defined in netlabs\bin\epm.env:*_
+.pl tsize=3 bold
+- NEPMD__NAME
+= contains the project name (not necessary
+- HELPNDXSHELF
+= bookshelf path for help index files (**.ndx)
+- EPMBARPATH
+= path for *EPM* toolbar files (**.bar)
+- EPMBMPPATH
+= path for *EPM* bitmap files (**.bmp)
+- EPMEXPATH
+= path for *EPM* executable files (**.ex)
+- EPMKEYWORDPATH
+= path for keyword files for *EPM* syntax highlighting (epmkwds.**)
+- EPMMACROPATH
+= path for E language source files, especially used for recopilation of *EPM* (**.e)
 
 .. -----------------------------------------------------------------------------
 .3 extended directory structure
@@ -612,7 +818,7 @@ all files are separated in dedicated directories:
     to modify the original files!
 
 .. .............................................................................
-.4  directory structure for the EPMBBS files
+.4 directory structure for the EPMBBS files
 .. .............................................................................
 .an IDPNL_ADDITIONS_DIRTREE_EPMBBS
 .
@@ -644,7 +850,7 @@ Files of the [.IDPNL_EPMBBS EPMBBS distribution] reside in the following directo
 .fo on
 
 .. .............................................................................
-.4  directory structure for extensions of the Netlabs EPM Distribution
+.4 directory structure for extensions of the Netlabs EPM Distribution
 .. .............................................................................
 .an IDPNL_ADDITIONS_DIRTREE_NEPMD
 .
@@ -661,7 +867,7 @@ Files of the [=TITLE] reside in the following directories:
 .fo on
 
 .. .............................................................................
-.4  directory structure for personal extensions
+.4 directory structure for personal extensions
 .. .............................................................................
 .an IDPNL_ADDITIONS_DIRTREE_USER
 .
