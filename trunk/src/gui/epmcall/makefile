@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.2 2002-08-07 22:09:22 cla Exp $
+# $Id: makefile,v 1.3 2002-08-09 16:15:39 cla Exp $
 #
 # ===========================================================================
 #
@@ -55,7 +55,7 @@ clean:
 
 # --- special pseudo targets
 
-exe: $(BINBINDIR)\epmcall.exe
+exe: $(BINBINDIR)\epmcall.exe $(BINBINDIR)\epmcall.env
 
 rel:
    @$(MAKE) /nologo NDEBUG=1 MAKELEVEL=1
@@ -69,16 +69,16 @@ dep:
 !endif
 !include $(DEPENDFILE)
 
-# --- copy executable to netlabs directory below binary directory
+# --- copy executable and envfile to netlabs directory below binary directory
 
 $(BINBINDIR)\epmcall.exe: $(BINDIR)\epmcall.exe
      @COPY $(BINDIR)\epmcall.exe $(BINBINDIR)\epmcall.exe >NUL
 
+$(BINBINDIR)\epmcall.env: epmcall.env
+     @COPY epmcall.env $(BINDIR)\ >NUL
+     @COPY epmcall.env $(BINBINDIR)\ >NUL
+
 # --- build program
 
-$(BINDIR)\epmcall.exe: $(BINDIR)\epmcall.obj $(OBJS) $(DEF) $(BINDIR)\epm_env.cmd
-
-# ---- copy env batch
-$(BINDIR)\epm_env.cmd: epm_env.cmd
-     copy epm_env.cmd $(BINDIR)\ >NUL
+$(BINDIR)\epmcall.exe: $(BINDIR)\epmcall.obj $(OBJS) $(DEF)
 
