@@ -6,14 +6,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.1 2002-08-07 17:15:50 cla Exp $
+* $Id: epmcall.c,v 1.2 2002-08-07 22:08:39 cla Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -82,7 +82,7 @@ do
       strcat( szExecutable, "epm.exe");
       strupr( szExecutable);
 
-      // process only modules not being the current one 
+      // process only modules not being the current one
       if (strcmp( szExecutable, szThisModule))
          {
          // does executable exist ?
@@ -124,6 +124,10 @@ APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
 {
          APIRET         rc  = NO_ERROR;
          ULONG          i;
+
+         PPIB           ppib;
+         PTIB           ptib;
+
          PID            pid;
          ULONG          ulSession;
          STARTDATA      sd;
@@ -133,6 +137,7 @@ APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
          CHAR           szProgramName[ _MAX_PATH];
          CHAR           szProgramArgs[ _MAX_PATH * 4];
          CHAR           szBatchName[ _MAX_PATH];
+         CHAR           szEnv[ _MAX_PATH * 4];
 
          CHAR           szTermQueueName[ 260 ];
          CHAR           szTimeStamp[ 9];
@@ -169,13 +174,17 @@ do
       break;
 
    // check for env batchfile
-   strcpy( szBatchName, szProgramName);
-   strcpy( strrchr( szBatchName, '.'), "_ENV.CMD");
+   // get name of own module
+   DosGetInfoBlocks( &ptib,&ppib);
+   DosQueryModuleName( ppib->pib_hmte, sizeof( szBatchName), szBatchName);
+   strcpy( strrchr( szBatchName, '\\'), "\\EPM_ENV.CMD");
    // DPRINTF(( "EPMCALL: batchfile is %s\n", szBatchName));
 
-
    // concatenate parms
-   szProgramArgs[ 0] = 0;
+   sprintf( szProgramArgs,
+            "/C call %s & start %s ",
+            szBatchName,
+            szProgramName);
    for (i = 1; i < argc; i++)
       {
                PSZ            pszMask;
@@ -189,16 +198,20 @@ do
       sprintf( _EOS( szProgramArgs), pszMask, argv[ i]);
       }
 
-
    // start program
    memset( &sd, 0, sizeof( sd));
    sd.Length      = sizeof( sd);
    sd.Related     = SSF_RELATED_CHILD;
    sd.FgBg        = SSF_FGBG_FORE;
+   sd.InheritOpt  = SSF_INHERTOPT_PARENT;
    sd.SessionType = SSF_TYPE_PM;
-   sd.PgmName     = szProgramName;
+   sd.PgmControl  = SSF_CONTROL_INVISIBLE;
+   sd.PgmName     = pszComspec;
    sd.PgmInputs   = szProgramArgs;
    sd.TermQ       = szTermQueueName;
+
+   DPRINTF(( "call: %s\n   %s\n", sd.PgmName, sd.PgmInputs));
+
    rc = DosStartSession( &sd, &ulSession, &pid);
    if ((rc != NO_ERROR) && (rc != ERROR_SMG_START_IN_BACKGROUND))
       break;
@@ -223,6 +236,7 @@ do
 
    } while (FALSE);
 
+DPRINTF(( "start session result: %u\n", rc));
 return rc;
 }
 
