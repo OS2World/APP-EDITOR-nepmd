@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.13 2002-10-08 16:24:36 cla Exp $
+* $Id: hilite.c,v 1.14 2002-10-08 22:07:01 cla Exp $
 *
 * ===========================================================================
 *
@@ -909,10 +909,10 @@ do
       {
       if (!strcmp( pszOldFileInfoList, pszFileInfoList))
          {
-         DPRINTF(( "HILITE: file has not changed!\n"
-                   "files used for last generation:\n"
-                   "-------------------------------\n"
-                   "%s\n", pszOldFileInfoList));
+//       DPRINTF(( "HILITE: file has not changed!\n"
+//                 "files used for last generation:\n"
+//                 "-------------------------------\n"
+//                 "%s\n", pszOldFileInfoList));
 
          *pfReload = FALSE;
          break;
@@ -1293,10 +1293,10 @@ do
 
    // add file infolist as extended attribute
    rc = WriteStringEa( szKeywordFile, pszFileInfoListEaName, pszFileInfoList);
-   DPRINTF(( "\n"
-             "HILITE: used files for generation:\n"
-             "----------------------------------\n"
-             "%s\n", pszFileInfoList));
+// DPRINTF(( "\n"
+//           "HILITE: used files for generation:\n"
+//           "----------------------------------\n"
+//           "%s\n", pszFileInfoList));
 
    } while (FALSE);
 
@@ -1371,7 +1371,6 @@ do
    // hand over result
    strcpy( pszBuffer, szValue);
 
-   DPRINTF(( "HILITE: hilight file for mode \"%s\" is: %s\n", (pszEpmMode) ? pszEpmMode : "(null)", pszBuffer));
    } while (FALSE);
 
 return rc;
