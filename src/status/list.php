@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: list.php,v 1.8 2002-07-21 22:45:12 cla Exp $
+* $Id: list.php,v 1.9 2002-07-22 10:36:02 cla Exp $
 *
 * ===========================================================================
 *
@@ -29,53 +29,96 @@
 
 
 <?
+
+// some basic default values
+$bgcolor_bright   = "#ffffff";
+$bgcolor_dark     = "#dddddd";
+$bgcolor_header   = "#bbbbbb";
+$bgcolor_selected = $bgcolor_dark;
+
+
 // check for any commit file
 $commit = filedb_querycommitstatus( "db");
 $commit_color = filedb_getstatuscolor( $commit);
+
+// read filenames
+$aaentry = filedb_queryentries( "db");
+
+// define background colors for header line
+$bgcolor_u = $bgcolor_header;
+$bgcolor_t = $bgcolor_header;
+$bgcolor_p = $bgcolor_header;
+$bgcolor_c = $bgcolor_header;
+$bgcolor_s = $bgcolor_header;
+$bgcolor_m = $bgcolor_header;
+
+// sort here
+$sort = $_GET[ "sort"];
+if ($sort == "t")
+   {
+   $bgcolor_t = $bgcolor_selected;
+   usort( $aaentry, "filedb_sorttitle");
+   }
+else if ($sort == "p")
+   {
+   $bgcolor_p = $bgcolor_selected;
+   usort( $aaentry, "filedb_sortprio");
+   }
+else if ($sort == "c")
+   {
+   $bgcolor_c = $bgcolor_selected;
+   usort( $aaentry, "filedb_sortcategory");
+   }
+else if ($sort == "s")
+   {
+   $bgcolor_s = $bgcolor_selected;
+   usort( $aaentry, "filedb_sortstatus");
+   }
+else if ($sort == "m")
+   {
+   $bgcolor_m = $bgcolor_selected;
+   usort( $aaentry, "filedb_sortmodified");
+   }
+
 ?>
+
 
 <table cellspacing=1 cellpadding=2 border=0>
   <tr>
-    <th>
-       #
+    <th bgcolor=<?=$bgcolor_u?>>
+       <a href="list.php?sort=">#</a>
     </th>
-    <th align=left>
-       prio
+    <th align=left bgcolor=<?=$bgcolor_p?>>
+       <a href="list.php?sort=p">prio</a>
     </th>
-    <th align=left>
-       category
+    <th align=left bgcolor=<?=$bgcolor_c?>>
+       <a href="list.php?sort=c">category</a>
     </th>
-    <th align=left>
-       title
+    <th align=left bgcolor=<?=$bgcolor_t?>>
+       <a href="list.php?sort=t">title</a>
     </th>
-    <th>
-       status
+    <th bgcolor=<?=$bgcolor_s?>>
+       <a href="list.php?sort=s">status</a>
     </th>
-    <th>
+    <th bgcolor=<?=$bgcolor_header?>>
        <font color=<?=$commit_color?>>CVS</font>
     </th>
-    <th align=left>
-       last modified
+    <th align=left bgcolor=<?=$bgcolor_m?>>
+       <a href="list.php?sort=m">last modified</a>
     </th>
   </tr>
 
 
 <?
-// read filenames
-$aaentry = filedb_queryentries( "db");
-
-// sort here (not yet implemented)
-// ...
-
 // display sorted rows
 for ($i = 0; $i < count( $aaentry);$i++)
    {
 
    // select background color
    if ($i % 2 == 1)
-      $bgcolor = "#dddddd";
+      $bgcolor = $bgcolor_dark;
    else
-      $bgcolor = "#ffffff";
+      $bgcolor = $bgcolor_bright;
 
    // get values of entry
    $aentry = $aaentry[ $i];
