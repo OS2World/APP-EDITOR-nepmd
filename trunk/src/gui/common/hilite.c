@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.20 2002-10-14 17:47:41 cla Exp $
+* $Id: hilite.c,v 1.21 2002-10-18 19:06:56 cla Exp $
 *
 * ===========================================================================
 *
@@ -71,8 +71,8 @@
 #define STR_KWDSCOMMENT      "þ"
 
 // global string vars
-static   PSZ            pszEnvnameEpmKeywordpath = "EPMKEYWORDPATH";
-static   PSZ            pszEnvnameEpmPath        = "EPMPATH";
+static   PSZ            pszEnvnameEpmModepath = "EPMMODEPATH";
+static   PSZ            pszEnvnameEpmPath     = "EPMPATH";
 
 static   PSZ            pszGlobalSection  = "GLOBAL";
 static   PSZ            pszColorsSection  =  "COLORS";
@@ -272,7 +272,7 @@ do
 
 
    // create a strdup of the path, so that we can tokenize it
-   pszKeywordPath = getenv( pszEnvnameEpmKeywordpath);
+   pszKeywordPath = getenv( pszEnvnameEpmModepath);
    if (!pszKeywordPath)
       {
       rc = ERROR_ENVVAR_NOT_FOUND;
@@ -745,7 +745,7 @@ do
    // search and load values from INI files
 
    // - read global values
-   rc = _openInitFile( &hinitGlobals, pszEnvnameEpmKeywordpath, SEARCHMASK_GLOBALINI, NULL,
+   rc = _openInitFile( &hinitGlobals, pszEnvnameEpmModepath, SEARCHMASK_GLOBALINI, NULL,
                        szInitGlobalFilename, sizeof( szInitGlobalFilename));
    if (rc != NO_ERROR)
       break;
@@ -755,7 +755,7 @@ do
 
 
    // - read defaults of the mode
-   rc = _openInitFile( &hinitDefault, pszEnvnameEpmKeywordpath, SEARCHMASK_DEFAULTINI, pszEpmMode,
+   rc = _openInitFile( &hinitDefault, pszEnvnameEpmModepath, SEARCHMASK_DEFAULTINI, pszEpmMode,
                        szInitDefaultFilename, sizeof( szInitDefaultFilename));
    if (rc != NO_ERROR)
       break;
@@ -769,7 +769,7 @@ do
    fCaseSensitive = atol( szValue);
 
    // - read customs of the mode - optional - so ignore errors here
-   rc = _openInitFile( &hinitCustom, pszEnvnameEpmKeywordpath, SEARCHMASK_CUSTOMINI, pszEpmMode,
+   rc = _openInitFile( &hinitCustom, pszEnvnameEpmModepath, SEARCHMASK_CUSTOMINI, pszEpmMode,
                        szInitCustomFilename, sizeof( szInitCustomFilename));
    if (rc == NO_ERROR)
       {
