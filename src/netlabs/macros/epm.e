@@ -1,10 +1,13 @@
+/*
+- Added DICT.E.
+*/
 /****************************** Module Header *******************************
 *
 * Module Name: epm.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.24 2004-06-04 00:33:38 aschn Exp $
+* $Id: epm.e,v 1.25 2004-06-29 22:33:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -44,13 +47,14 @@ include        'stdcnf.e'      -- Standard configuration; shouldn't be modified.
 
 include        'menuhelp.h'
 
+include        'debug.e'       -- Write to a PmPrintf pipe for several debug cases
 
 compile if WANT_DBCS_SUPPORT
    include     'epmdbcs.e'
 compile endif
 
 compile if not LINK_NEPMDLIB
-   include     'nepmdlib.e'    -- NEPMD library procedures
+   include     'nepmdlib.e'    -- NEPMD library procedures, standard is to link it at definit
 compile endif
 
 include        'main.e'        -- This contains the DEFMAIN for the main .ex file
@@ -89,7 +93,8 @@ compile if not VANILLA
 compile endif  -- not VANILLA
 include        'modify.e'      -- New defmodify event processor.
 
-include        'stdkeys.e'     -- Standard key definitions.
+include        'keys.e'        -- Definitions for key combinations
+include        'stdkeys.e'     -- Standard key combinations
 
 compile if    WANT_BRACKET_MATCHING
    include     'assist.e'      -- Find matching identifier
@@ -129,9 +134,11 @@ compile elseif HOST_SUPPORT = 'SRPI'
 compile else
    include     'slnohost.e'    -- ... without host support
 compile endif
+
 include        'edit.e'        -- Edit commands, must come after E3EMUL.E if activated.
-include        'mode.e'        -- Mode definitions
-include        'modecnf.e'     -- Mode dependent settings
+include        'mode.e'        -- Mode selection and basic mode defs
+include        'modecnf.e'     -- Definitions for mode dependent settings
+include        'modeexec.e'    -- Executing user-configurable mode dependent settings
 
 include        'stdcmds.e'     -- Standard commands (DEFC's).
                                -- (Edit cmd uses variables defined in host routines.)
@@ -151,6 +158,8 @@ include        'alt_1.e'       -- Load filename under cursor with Alt+1
 include        'caseword.e'    -- Change case of word/identifier under cursor
 
 include        'xchgline.e'    -- Exchange lines and chars
+
+include        'tabsspaces.e'  -- Tabs2Spaces and Spaces2Tabs (without bugs)
 
 include        'revert.e'      -- Throw away changes and reload file from disk
 
@@ -189,7 +198,8 @@ include        'filelist.e'    -- Save/restore ring and provide 'File 3 of 28' f
 include        'toolbar.e'     -- Toolbar definitions
 
 include        'menu.e'        -- Common menu definitions
-compile if not LINK_MENU       -- New standard is to link a menu file in order to save space in EPM.EX
+compile if not LINK_MENU       -- New standard is to link a menu file in order to save space in EPM.EX.
+                               -- New default STD_MENU_NAME is 'NEWMENU.E'.
  compile if defined(STD_MENU_NAME) & STD_MENU_NAME <> ''
   compile if STD_MENU_NAME = 'STDMENU.E'
     *** Error:  Leave STD_MENU_NAME undefined to use the original menu layout (STDMENU.E).
@@ -200,6 +210,8 @@ compile if not LINK_MENU       -- New standard is to link a menu file in order t
    include     'stdmenu.e'     -- File/Edit/Search/Options/Command/Help menu
  compile endif
 compile endif  -- not LINK_MENU
+
+include        'dict.e'        -- Select dictionaries
 
 tryinclude     'clipbrd.e'     -- Clipboard interface and mark <--> buffer routines
 compile if WANT_BOOKMARKS = 1
@@ -235,7 +247,7 @@ compile elseif WANT_MATH = 1   -- Definitely include it.
 compile endif
 
 compile if SORT_TYPE
-   include     'sort'SORT_TYPE'.e' -- SORTE, SORTG, SORTF, SORTGW, SORTDLL, SORTDOS.E.
+   include     'sort'SORT_TYPE'.e' -- SORTEPM, SORTE, SORTG, SORTF, SORTGW, SORTDLL, SORTDOS.E.
 compile endif
 
 compile if WANT_EPM_SHELL
@@ -263,6 +275,8 @@ compile endif
 compile if WANT_EBOOKIE = 1
    include     'bkeys.e'
 compile endif
+
+   include     'shellkeys.e'   -- Syntax-assist for EPM command shells
 
 compile if ALTERNATE_KEYSETS
  compile if C_SYNTAX_ASSIST
