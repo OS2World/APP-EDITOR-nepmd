@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: file.h,v 1.1 2002-06-03 22:19:57 cla Exp $
+* $Id: file.h,v 1.2 2002-08-22 10:08:35 cla Exp $
 *
 * ===========================================================================
 *
@@ -32,6 +32,18 @@ BOOL DirExists( PSZ pszName);
 ULONG FileDate( PSZ pszName);
 
 APIRET FileInPath( PSZ pszEnvName, PSZ pszName, PSZ pszBuffer, ULONG ulBuflen);
+
+APIRET GetNextFile( PSZ pszFileMask, PHDIR phdir,
+                    PSZ pszNextFile, ULONG ulBuflen);
+APIRET GetNextDir( PSZ pszFileMask, PHDIR phdir,
+                   PSZ pszNextDir, ULONG ulBuflen);
+                   PSZ Filespec ( PSZ pszFilename, ULONG ulPart);
+
+PSZ Filespec ( PSZ pszFilename, ULONG ulPart);
+#define FILESPEC_PATHNAME  1
+#define FILESPEC_NAME      2
+#define FILESPEC_EXTENSION 3
+
 
 #endif // FILE_H
 
