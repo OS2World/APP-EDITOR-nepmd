@@ -17,7 +17,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: status.cmd,v 1.1 2002-09-09 20:19:43 cla Exp $
+* $Id: status.cmd,v 1.2 2002-09-09 21:00:59 cla Exp $
 *
 * ===========================================================================
 *
@@ -81,6 +81,11 @@
 
  DO UNTIL (TRUE)
 
+    /* read anvironment */
+    'CALL statusenv'
+    Apache._Port       = VALUE( 'APACHE_PORT',,env);
+    Apache._Servername = VALUE( 'APACHE_SERVERNAME',,env);
+
     /* determine warpzilla directory */
     SAY '- retrieving Mozilla home';
     PARSE VALUE SysIni(, 'Mozilla', 'Home') WITH MozillaDir'0'x;
@@ -94,13 +99,18 @@
     /* launch apache */
     SAY '- launch web server'
     'call startapache';
+    IF (rc \= ERROR.NO_ERROR) THEN
+    DO
+       SAY 'error: web browser could bot be launched.';
+       LEAVE;
+    END;
     rc = SysSleep( 1);
 
     /* launch warpzilla */
     SAY '- launch web browser'
     rc = SETLOCAL();
     rcx = DIRECTORY( MozillaDir);
-    'start /F mozilla.exe http://localhost:55555';
+    'start /F mozilla.exe http://'Apache._Servername':'Apache._Port;
 
  END;
 
