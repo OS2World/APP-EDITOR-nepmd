@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.5 2002-09-24 16:54:26 cla Exp $
+* $Id: hilite.c,v 1.6 2002-09-24 22:20:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -39,7 +39,7 @@
 #include "init.h"
 #include "instval.h"
 #include "file.h"
-
+#include "mmf.h"
 
 #define QUERYINITVALUE(h,s,k,t)                             \
 if (!InitQueryProfileString( h, s, k, NULL, t, sizeof( t))) \
@@ -187,7 +187,7 @@ do
       }
 
    // create a strdup of the path, so that we can tokenize it
-   pszKeywordPath = getenv( "EPMKEYWORDPATH"); 
+   pszKeywordPath = getenv( "EPMKEYWORDPATH");
    if (!pszKeywordPath)
       {
       rc = ERROR_ENVVAR_NOT_FOUND;
@@ -209,10 +209,10 @@ do
 
       // store a filenames
       hdir = HDIR_CREATE;
-   
+
       while (rc == NO_ERROR)
          {
-         // search it 
+         // search it
          rc = GetNextFile( szSearchMask, &hdir,
                            szFile, sizeof( szFile));
          if (rc != NO_ERROR)
@@ -307,10 +307,10 @@ do
    pszKey = szKeyList;
    while (*pszKey)
       {
-      // add appropriate space and cout up 
+      // add appropriate space and cout up
       ulKeyCount++;
       ulBuflen += sizeof( PSZ) +
-                  strlen( pszKey) + 1 + 
+                  strlen( pszKey) + 1 +
                   QUERYINITVALUESIZE( hinit, pszSection, pszKey) + 1;
 
       // next key
@@ -357,6 +357,13 @@ return pvaResult;
 
 // #############################################################################
 
+#define ALLOCATEMEMORYFILE(p,s)                                \
+rc = MmfAlloc( (PVOID)*&p, MMF_FILE_INMEMORY, 0, ulTotalSize); \
+if (rc != NO_ERROR)                                            \
+   break;
+
+#define FREEMEMORYFILE(p)   MmfFree( p)
+
 static APIRET _assembleKeywordFile(  PSZ pszEpmMode, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
@@ -395,7 +402,7 @@ static   PSZ            pszGlobalSection = "GLOBAL";
          BOOL           fCreateKeywordFile = FALSE;
 static   PSZ            pszKeywordPathMask = "\\NEPMD\\Hilite\\%s\\TempFile";
          CHAR           szKeywordPath[ _MAX_PATH];
-         CHAR           szKeywordFile[ _MAX_PATH]; 
+         CHAR           szKeywordFile[ _MAX_PATH];
          ULONG          ulKeywordFileDate = -1;
 
          // ----------------------------------
@@ -403,6 +410,15 @@ static   PSZ            pszKeywordPathMask = "\\NEPMD\\Hilite\\%s\\TempFile";
          PSZ            pszFileList = NULL;
          ULONG          ulFileCount;
          ULONG          ulTotalSize;
+
+         // ----------------------------------
+
+         PSZ            pszSectionDelimiter = NULL;
+         PSZ            pszSectionKeywords  = NULL;
+         PSZ            pszSectionSpecial   = NULL;
+         PSZ            pszSectionBreakChar = NULL;
+         PSZ            pszSectionEndChar   = NULL;
+
 
 do
    {
@@ -473,12 +489,12 @@ do
       }
 
 // #######
-#ifdef DEBUG   
+#ifdef DEBUG
    {
    PSZ *ppszEntry = pvaSymbols->apszValue;
    PSZ pszEntry;
    ULONG i;
-   
+
    printf( "Symbols:\n");
    for (i = 0; i < pvaSymbols->ulCount; i++)
       {
@@ -490,7 +506,7 @@ do
 #endif
 // #######
 
-   // - read defaults of the mode 
+   // - read defaults of the mode
    rc = _openInitFile( &hinitDefault, "EPMKEYWORDPATH", "%s\\default.ini", pszEpmMode);
    if (rc != NO_ERROR)
       break;
@@ -525,7 +541,7 @@ do
          break;
       }
 
-   // check for the file date - if not exists, will return -1, 
+   // check for the file date - if not exists, will return -1,
    // always enforcing a rebuild
    ulKeywordFileDate = FileDate( szKeywordFile);
 
@@ -536,33 +552,32 @@ do
       if (rc != NO_ERROR)
          break;
 
-// #######
-#ifdef DEBUG   
-   {
-   PSZ pszEntry;
-   ULONG i;
-   
-   printf( "files:\n");
-   for (i = 0, pszEntry = pszFileList; i < ulFileCount; i++, pszEntry += _MAX_PATH)
-      {
-      printf( "-> %s\n", pszEntry);
-      }
-   printf( "%u files, total size is: %u\n", ulFileCount, ulTotalSize);
-   }
-#endif
-// #######
+   // -----------------------------------------------
 
+   // open up in-memory files for the six sections
+   ALLOCATEMEMORYFILE( pszSectionDelimiter, ulTotalSize);
+   ALLOCATEMEMORYFILE( pszSectionKeywords,  ulTotalSize);
+   ALLOCATEMEMORYFILE( pszSectionSpecial,   ulTotalSize);
+   ALLOCATEMEMORYFILE( pszSectionBreakChar, ulTotalSize);
+   ALLOCATEMEMORYFILE( pszSectionEndChar,   ulTotalSize);
 
 
 
 rc = 1;
    } while (FALSE);
 
-// cleanup 
-if (pszFileList) free( pszFileList);
-if (pvaColors)   free( pvaColors);
-if (pvaSymbols)  free( pvaSymbols);
-if (pszModeCopy) free( pszModeCopy);
+// cleanup
+
+if (pszSectionDelimiter) FREEMEMORYFILE( pszSectionDelimiter);
+if (pszSectionKeywords)  FREEMEMORYFILE( pszSectionKeywords);
+if (pszSectionSpecial)   FREEMEMORYFILE( pszSectionSpecial);
+if (pszSectionBreakChar) FREEMEMORYFILE( pszSectionBreakChar);
+if (pszSectionEndChar)   FREEMEMORYFILE( pszSectionEndChar);
+
+if (pszFileList)         free( pszFileList);
+if (pvaColors)           free( pvaColors);
+if (pvaSymbols)          free( pvaSymbols);
+if (pszModeCopy)         free( pszModeCopy);
 
 if (hconfig) CloseConfig( hconfig);
 if (hinitDefault) InitCloseProfile( hinitDefault, FALSE);
@@ -595,7 +610,7 @@ do
       }
 
    // search mode files
-   rc = _assembleKeywordFile( pszEpmMode, szValue, sizeof( szValue)); 
+   rc = _assembleKeywordFile( pszEpmMode, szValue, sizeof( szValue));
    if (rc != NO_ERROR)
       {
       // if no mode infos available; conventional search
