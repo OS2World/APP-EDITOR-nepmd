@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: hooks.e,v 1.1 2004-02-22 15:15:31 aschn Exp $
+* $Id: hooks.e,v 1.2 2004-02-28 15:31:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -141,6 +141,26 @@ defc HookExecute
          rc = get_array_value( EPM_utility_array_ID, prefix''HookName'.'i, Cmd)
          Cmd
       enddo
+   endif
+   display 1
+   return
+
+; ---------------------------------------------------------------------------
+; Executes all entries (FIFO) and deletes them afterwards
+; Syntax: HookExecuteOnce <HookName>
+defc HookExecuteOnce
+   universal EPM_utility_array_ID
+   prefix = 'hook.'
+   parse arg HookName
+   HookName = strip( lowcase(HookName))
+   display -1
+   if not get_array_value( EPM_utility_array_ID, prefix''HookName'.0', imax) then  -- if imax set
+      do i = 1 to imax
+         rc = get_array_value( EPM_utility_array_ID, prefix''HookName'.'i, Cmd)
+         Cmd
+         do_array 4, EPM_utility_array_ID, prefix''HookName'.'i  -- delete entry
+      enddo
+      do_array 4, EPM_utility_array_ID, prefix''HookName'.0'     -- delete imax
    endif
    display 1
    return
