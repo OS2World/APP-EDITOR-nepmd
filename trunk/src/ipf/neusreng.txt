@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.2 2002-10-31 17:59:49 cla Exp $
+.. $Id: neusreng.txt,v 1.3 2002-10-31 18:09:21 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -972,12 +972,8 @@ overcomes the limitation of *OS/2* or *eComStation* initialization files,
 these support only a two-dimensional namespace. Instead, very similar to
 a registry, the configuration repository supports a hierarchical namespace.
 
-See the panels of the
-.sl compact
-- [.IDPNL_REGISTRY]
-.el
-
-for more technical details when using it in your own macro soruce code.
+See the *NEPMD Programming Reference* for more technical details when using it
+in your own macro source code.
 
 .. -----------------------------------------------------------------------------
 .3 Readme text files matrix
