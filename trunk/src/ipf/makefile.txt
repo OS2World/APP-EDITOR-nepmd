@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.19 2002-06-12 18:34:58 cla Exp $
+.. $Id: makefile.txt,v 1.20 2002-08-28 16:43:48 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -644,4 +644,291 @@ The following language identifiers are currently used within the project:
 = english
 - deu
 = deutsch (german)
+
+.. -----------------------------------------------------------------------------
+.2 Appendix: documentation comments for E functions
+.. -----------------------------------------------------------------------------
+.an IDPNL_APPENDIX_DOCCOMMENTS
+.
+[=TOPICS]
+.su V30
+
+.. .............................................................................
+.3 doc comments in general
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_GENERAL
+.
+All E functions provided by the [=TITLE] should be documented in the 
+E functions reference of the INF file for the release package. 
+In order to have this task accomplished, the following is required:
+.pl bold tsize=3
+- the information to be put into the panels of the INF file
+= this information has to be provided by the developer of the function within
+  the .e source file within so-called documentation comments
+- the generation of the panels into an appendix of the INF file
+= this is done by the script *escansrc.cmd*, which is called by the makefile
+  generating all of the online help files.
+
+Having said this, once a developer has added the documentation comments to the
+respective source file [.IDPNL_APPENDIX_DOCCOMMENTS_FORMAT in correct format], 
+the information about the function is automatically inlcuded in the functions
+reference.
+
+.. .............................................................................
+.3 format of doc comments
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_FORMAT
+.
+The following rules apply to documentation comments:
+.ul
+- All documentation comments have to be embedded into comments for the E language,
+  so that the *EPM macrocompiler* does not see them.
+- for each function a set of documentation comments have to be defined, some
+  others are optional. If comments not being optional are missing, the script
+  reading them will display warnings when generating the reference information,
+  but will not stop.
+- a documentation comment consists of the following:
+.ul compact
+  - one line specifying the name of the comment. This line must have the following
+    information in one word (without spaces included!):
+    - two *@* characters 
+    - the name of the function
+    - one *@* character
+    - the type name of the comment (like [.IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX],
+    [IDPNL_APPENDIX_DOCCOMMENTS_PARM], .etc.)
+.el
+.
+  For special comment types like [.IDPNL_APPENDIX_DOCCOMMENTS_CATEGORY] and 
+  [.IDPNL_APPENDIX_DOCCOMMENTS_PARM] another *@* character and an additional
+  parameter (here either the category name or the name of the parameter) must 
+  be appended. Please see the descriptions about the comment types in this
+  section for details.
+.el
+- all following lines up to the next documentation comment are taken as text
+  into the INF file panel,
+.at fc=red
+  where this text must apply to the *HyperText/2* syntax, as this
+  preprocessor is used for generation the online help.
+.at
+- the last comment is closed with the [.IDPNL_APPENDIX_DOCCOMMENTS_ENDMARKER],
+  that is one word with two *@* characters
+- multiple comments may be spread over a source file and can include
+  information about several functions, as long as each documentation comment
+  is followed either by the next one or an [.IDPNL_APPENDIX_DOCCOMMENTS_ENDMARKER].
+
+.. .............................................................................
+.3 PROTOTYPE
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_PROTOTYPE
+.
+The prototype comment specifies the prototype being inserted in
+non-formatted font into the syntax panel for a given function.
+
+[=NOTE]
+.ul compact
+- The text of this comment should not be longer than one or at least as
+  few lines, as possible.
+- Make sure that the names of the parameters match the names specified in the
+  [.IDPNL_APPENDIX_DOCCOMMENTS_PARM] comments for this function, so that 
+  links can be created!
+
+_*Example:*_
+.fo off
+/**
+
+@@MyFunction@PROTOTYPE
+ResultValue = MyFunction( Parm1, Parm2, Parm3);
+@@
+
+**/
+.fo on
+
+.. .............................................................................
+.3 SYNTAX
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX
+.
+The syntax comment specifies the text to be displayed in the *Syntax* supanel for
+the specified function.
+
+Please don't take the text in the below example too serious, your explanation for 
+a function should be much more senseful.
+
+If you have very important remarks to state, you may want to insert these also here,
+but for remarks longer than one sentence you should use the optional
+[.IDPNL_APPENDIX_DOCCOMMENTS_REMARKS] comment and link to that from the text here 
+in the *[=.IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX]* comment.
+
+_*Example:*_
+.fo off
+/**
+
+@@MyFunction@SYNTAX
+This function intends to return valuable information
+and requires three parameters.
+@@
+
+**/
+.fo on
+
+
+.. .............................................................................
+.3 CATEGORY
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_CATEGORY
+.
+The category comment specifies the category that the specified function
+should be included. 
+
+[=NOTE]
+.ul compact
+- this comment does not specifiy text, but instead requires the category
+  name appended to the comment name !
+- The main source file fo the online help must include a .SET command to
+  define the title for a category, where the name of the setting must be
+  *CATEGORY__*#categoryname#
+
+The following example specifies the function *MyFunction()* being a member
+of the category *SPECIAL*.
+
+_*Example:*_
+.fo off
+/**
+
+@@MyFunction@CATEGORY@SPECIAL
+@@
+
+**/
+.fo on
+
+The title for this category must be defined in the main source file like
+.fo off
+ .SET CATEGORY__SPECIAL=This is my very special category
+.fo on
+
+.. .............................................................................
+.3 PARM
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_PARM
+.
+The parameter comment specifies the information about a parameter passed to
+the specified function. Therefore this comment must be included for each parameter
+of the function.
+
+[=NOTE]
+.ul compact
+- this comment requires the parameter name appended to the comment name !
+- make sure that it matches identically the parameters in the 
+  [.IDPNL_APPENDIX_DOCCOMMENTS_PROTOTYPE] comment, so that a link from the 
+  prototype to the parameter section is automatically created 
+
+_*Example:*_
+.fo off
+/**
+
+@@MyFunction@PARM@Parm1
+This is parameter 1 for this function
+and passes an important value.
+@@MyFunction@PARM@Parm2
+This is parameter 1 for this function
+and passes an even more important value.
+@@MyFunction@PARM@Parm3
+This is parameter 3 for this function
+and passes an optional value.
+@@
+
+**/
+.fo on
+
+.. .............................................................................
+.3 RETURNS
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_RETURNS
+.
+The comment  for the return value is intended for information about the return
+value.
+
+_*Example:*_
+.fo off
+/**
+
+@@MyFunction@RETURNS
+The function MyFunction() returns an OS/2 error code.
+@@
+
+**/
+.fo on
+
+.. .............................................................................
+.3 REMARKS
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_REMARKS
+.
+The remarks comment is optional and is intended for very special
+information about the function.
+
+_*Example:*_
+.fo off
+/**
+
+@@MyFunction@REMARKS
+For using the function MyFunction() some very specific details
+are important to know: 
+ ...
+@@
+
+**/
+
+.. .............................................................................
+.3 EXAMPLE
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_EXAMPLE
+.
+The examples comment is optional and is intended for to give a sample
+snippet for usage of the specified function.
+
+[=NOTE]
+.ul compact
+- take care for the characters **, __ and ##, as they are escape characters
+  for *HyperText/2* in order to switch bold, underline  and italic print
+  of characters on and off. also make sure that no line begins with a dot,
+  because that may be interpretet as a HyperText command.
+. for to print text in non-formatted style, you may want to use the .FORMAT
+  command of HyperText/2, switching formating off and later on again.
+  
+
+_*Example:*_
+.fo off
+/**
+
+@@MyFunction@EXAMPLE
+ Here is an example  for calling the function:
+ .fo off
+ ResultValue = MyFunction( Parm1, Parm2, Parm3);
+ .fo on
+ ...
+@@
+
+
+.. .............................................................................
+.3 documention comment end marker
+.. .............................................................................
+.an IDPNL_APPENDIX_DOCCOMMENTS_ENDMARKER
+.
+In order to let the source scanner script know that no more documentation comments
+follow after the last one, just add a line with one word of two *@* characters
+at the end of the last documentation comment.
+
+_*Example:*_
+.fo off
+/**
+
+@@MyFunction@RETURNS
+This is the last documentation comment and has to be
+followed by a documention comment end marker of
+two @ characters, see following line:
+@@
+
+**/
+.fo on
 
