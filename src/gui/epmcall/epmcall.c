@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.3 2002-08-09 16:15:39 cla Exp $
+* $Id: epmcall.c,v 1.4 2002-08-10 13:04:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "common.h"
 #include "macros.h"
 #include "file.h"
 
@@ -360,14 +361,87 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
+APIRET SearchEnvironmentFile( PSZ pszEnvfile, ULONG ulBuflen)
+{
+         APIRET         rc  = NO_ERROR;
+         BOOL           fFound = FALSE;
+         PPIB           ppib;
+         PTIB           ptib;
+
+         CHAR           szExecutable[ _MAX_PATH];
+         CHAR           szBasename[ _MAX_PATH];
+
+         CHAR           szFilePath[ _MAX_PATH];
+         ULONG          ulDataLen;
+
+         CHAR           szEnvfile[ _MAX_PATH];
+
+do
+   {
+   // check parms
+   if ((!pszEnvfile) ||
+       (!ulBuflen))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+
+   // get own filename to isolate exe name
+   DosGetInfoBlocks( &ptib,&ppib);
+   DosQueryModuleName( ppib->pib_hmte, sizeof( szExecutable), szExecutable);
+   strcpy( szBasename, strrchr( szExecutable, '\\')  + 1);
+   strcpy( strrchr( szBasename, '.'), ".env");
+
+   // isolate path of executabe
+   strcpy( strrchr( szExecutable, '\\'), "");
+
+   // get NEPMD install directory
+   ulDataLen = PrfQueryProfileString( HINI_USER,
+                                      NEPMD_INI_APPNAME,
+                                      NEPMD_INI_KEYNAME_PATH,
+                                      NULL,
+                                      szFilePath,
+                                      sizeof( szFilePath));
+
+   if (ulDataLen)
+      {
+      // handle also non-zero-terminated strings
+      szFilePath[ ulDataLen] = 0;
+
+      // determine complete filename
+      sprintf( szEnvfile, "%s\\"NEPMD_SUBPATH_BINBINDIR"\\%s", szFilePath, szBasename);
+      fFound = (FileExists( szEnvfile));
+      }
+
+   if (!fFound)
+      {
+      // nothing stored or no config found in install tree - use path of executable
+      sprintf( szEnvfile, "%s\\%s", szExecutable, szBasename);
+      }
+
+
+   // hand over result
+   if (strlen( szEnvfile) + 1 > ulBuflen)
+      {
+      rc= ERROR_BUFFER_OVERFLOW;
+      break;
+      }
+   strcpy( pszEnvfile, szEnvfile);
+   DPRINTF(( "EPMCALL: envfile is %s\n", szEnvfile));
+
+   } while (FALSE);
+
+return rc;
+}
+
+// -----------------------------------------------------------------------------
+
 APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
 {
          APIRET         rc  = NO_ERROR;
          ULONG          i;
          PSZ            pszEnv = NULL;
-
-         PPIB           ppib;
-         PTIB           ptib;
 
          PID            pid;
          ULONG          ulSession;
@@ -413,11 +487,10 @@ do
    if (rc != NO_ERROR)
       break;
 
+   // search environment file
+   rc = SearchEnvironmentFile( szEnvName, sizeof( szEnvName));
+
    // get extended environment
-   DosGetInfoBlocks( &ptib,&ppib);
-   DosQueryModuleName( ppib->pib_hmte, sizeof( szEnvName), szEnvName);
-   strcpy( strrchr( szEnvName, '.'), ".ENV");
-   DPRINTF(( "EPMCALL: envfile is %s\n", szEnvName));
    rc = GetExtendedEnvironment(  envv, szEnvName,&pszEnv);
    if (rc != NO_ERROR)
       break;
