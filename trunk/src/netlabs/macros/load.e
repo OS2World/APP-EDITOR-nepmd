@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.15 2004-02-22 20:22:35 aschn Exp $
+* $Id: load.e,v 1.16 2004-02-28 15:34:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -236,12 +236,13 @@ compile endif
 
 ; --- Process hook ----------------------------------------------------------
    if isadefc('HookExecute') then
-      -- The 'load' hook is a comfortable way to overwrite some file
-      -- properties while a file is loaded. These properties were set by
-      -- defload, e.g.: margins, tabs, keyset, mode.
-      -- Example: 'HookAdd load tabs 2'  -- no postme required anymore!
+      -- The 'load' and 'loadonce' hook is a comfortable way to overwrite
+      -- some file properties while a file is loaded. These properties were
+      -- set by defload, e.g.: margins, tabs, keyset, mode.
+      -- Example: 'HookAdd loadonce tabs 2'  -- no postme required anymore!
       -- Note   : Hooks are only able to process commands, not procedures.
       'HookExecute load'
+      'HookExecuteOnce loadonce'
    endif
 
 ; --- CICS BMS (Basic Mapping Services) assembler macros support  -----------
