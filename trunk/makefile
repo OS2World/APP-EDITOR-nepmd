@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.24 2002-08-20 13:50:35 cla Exp $
+# $Id: makefile,v 1.25 2002-08-21 14:36:26 cla Exp $
 #
 # ===========================================================================
 #
@@ -39,7 +39,7 @@ BASEDIR=.
 #        files available !
 
 GUIMODULELIST=gui\common gui\recomp gui\epmcall gui\nepmdlib
-MODULELIST=ipf rexx netlabs $(GUIMODULELIST) wis
+MODULELIST=ipf rexx netlabs nls $(GUIMODULELIST) wis
 
 # --- default targets
 
