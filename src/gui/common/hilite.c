@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.15 2002-10-09 13:28:41 cla Exp $
+* $Id: hilite.c,v 1.16 2002-10-09 15:50:18 cla Exp $
 *
 * ===========================================================================
 *
@@ -314,7 +314,10 @@ do
 //       DPRINTF(( "HILITE: %u [%u] bytes (%u entries) (re)allocated for file list at 0x%08x\n",
 //                ulListSize, _msize( pszTmp), ulListSize / _MAX_PATH, pszTmp));
          pszEntry = pszFileList + (ulFileCount * _MAX_PATH);
+DMARK;
+DPRINTF(( "copy file to list: pszEntry 0x%08x <- szFile 0x%08x\n", pszEntry, szFile));
          strcpy( pszEntry, szFile);
+DMARK;
          strlwr( pszEntry );
          ulFileCount++;
          ulTotalSize += QueryFileSize( szFile);
@@ -633,7 +636,7 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, PBOOL pfReload, PSZ pszBuffe
 
          PSZ            pszFileInfoList = NULL;
          ULONG          ulInfoListSize  = 0;
-static   PSZ            pszFileInfoMask = "%s %u %u\n";
+static   PSZ            pszFileInfoMask = "%s %s %u %u\r\n";
 
          // ----------------------------------
 
@@ -884,9 +887,9 @@ do
 
    // first of all add info of init files to file list
    pszSourceFile = szInitGlobalFilename;
-   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
    pszSourceFile = szInitDefaultFilename;
-   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
 
    // loop thru all files
    for (ulCurrentFile = 0, pszSourceFile = pszFileList;
@@ -894,7 +897,7 @@ do
            ulCurrentFile++, pszSourceFile += _MAX_PATH)
       {
       // add file to the info list
-      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
       }
 
    // now check the file list, if old one is present
@@ -1207,7 +1210,12 @@ do
 
    // write one line with the comment char only
    pszCurrent = pszHiliteContents;
-   sprintf( pszCurrent, "%s\r\n", szCommentChar);
+   sprintf( pszCurrent, "%s\r\n"
+                        "%s NEPMD syntax hihlighting definition - Files used :\r\n"
+                        "%s ==================================================\r\n",
+                        szCommentChar, szCommentChar, szCommentChar);
+   pszCurrent = _EOS( pszCurrent);
+   strcat( pszCurrent, pszFileInfoList);
    pszCurrent = _EOS( pszCurrent);
 
    // first of all write CHARSET
