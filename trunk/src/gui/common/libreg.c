@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.11 2002-09-16 21:37:53 cla Exp $
+* $Id: libreg.c,v 1.12 2002-09-19 13:49:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -36,10 +36,12 @@
 #include "macros.h"
 #include "nepmd.h"
 #include "libreg.h"
+#include "file.h"
 
 // global variables and macros for reading/writing entries
 // and container lists
 static   PSZ            pszPathSeparator   = "\\";      // only one character, although it is a string !!!
+static   PSZ            pszAppRegDefaults  = "RegDefaults";
 static   PSZ            pszAppRegKeys      = "RegKeys";
 static   PSZ            pszAppRegContainer = "RegContainer";
 
@@ -64,6 +66,50 @@ static   PSZ              pszMutexSemName = "\\SEM32\\NEPMD\\CONFIGURATION\\ACCE
 
 #define REQUESTACCESS(ph) _getExclusiveAccess( ph)
 #define RELEASEACCESS(h)  _releaseExclusiveAccess( h)
+
+// ----------------------------------------------------------------------
+
+static PSZ _stripblanks( PSZ string)
+{
+ PSZ p = string;
+ if (p != NULL)
+    {
+    while ((*p != 0) && (*p <= 32))
+       { p++;}
+    strcpy( string, p);
+
+    if (*p != 0)
+       {
+       p += strlen(p) - 1;
+       while ((*p <= 32) && (p >= string))
+          {
+          *p = 0;
+          p--;
+          }
+       }
+    }
+
+
+return string;
+}
+
+// ----------------------------------------------------------------------
+
+static PSZ _stripquotes( PSZ string)
+{
+PSZ p;
+if (string != NULL)
+   {
+   p = string + strlen( string) - 1;
+   if (*p == '"')
+      *p = 0;
+
+   if (*string == '"')
+      strcpy( string, string + 1);
+   }
+
+return string;
+}
 
 // -----------------------------------------------------------------------------
 
@@ -883,4 +929,97 @@ if (hmtxAccess) RELEASEACCESS( hmtxAccess);
 return rc;
 }
 
+// -----------------------------------------------------------------------------
+
+APIRET InitConfig( HCONFIG hconfig, PSZ pszDefaultsFilename)
+{
+         APIRET         rc = NO_ERROR;
+         BOOL           fFound = FALSE;
+         HMTX           hmtxAccess = NULLHANDLE;
+
+         FILE          *pfile = NULL;
+         CHAR          szLine[ 2048];
+
+         PSZ           pszDelimiter;
+         PSZ           pszPath;
+         PSZ           pszValue;
+
+do
+   {
+   if (!hconfig)
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // check for optional text source file
+   if (pszDefaultsFilename)
+      {
+      if (!*pszDefaultsFilename)
+         pszDefaultsFilename = NULL;
+      else
+      if ( (!FileExists( pszDefaultsFilename)))
+         {
+         rc = ERROR_FILE_NOT_FOUND;
+         break;
+         }
+      }
+
+   // obtain exclusive access
+   rc = REQUESTACCESS( &hmtxAccess);
+   if (rc != NO_ERROR)
+      break;
+
+   // ------ read in defaults if they do not yet exist
+
+   if (pszDefaultsFilename)
+      {
+      // open file and read line by line
+      pfile = fopen( pszDefaultsFilename, "r");
+      if (!pfile)
+         {
+         rc = ERROR_OPEN_FAILED;
+         break;
+         }
+   
+      while (!feof( pfile))
+         {
+         // read line and skip empty lines
+         fgets( szLine, sizeof( szLine), pfile);
+         _stripblanks( szLine);
+         if (szLine[ 0] == 0)
+            continue;
+         if (szLine[ 0] == ';')
+            continue;
+
+         // check for delimter
+         pszDelimiter = strchr( szLine, '=');
+         if (!pszDelimiter)
+            continue;
+   
+         // prepare fields and write them to the ini file
+         *pszDelimiter = 0;
+         pszPath  = _stripquotes( _stripblanks( szLine));
+         pszValue = _stripquotes( _stripblanks( pszDelimiter + 1));
+   
+         if (!PrfWriteProfileString( hconfig, pszAppRegDefaults, pszPath, pszValue))
+            {
+            rc = LASTERROR;
+            break;
+            }
+
+         } // while (!feof( pfile))
+
+      if (rc != NO_ERROR)
+         break;
+
+      } // if (pszDefaultsFilename)
+
+   } while (FALSE);
+
+// cleanup
+if (pfile) fclose( pfile);
+if (hmtxAccess) RELEASEACCESS( hmtxAccess);
+return rc;
+}
 

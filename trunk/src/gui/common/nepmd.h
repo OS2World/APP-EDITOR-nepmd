@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.13 2002-09-05 13:23:56 cla Exp $
+* $Id: nepmd.h,v 1.14 2002-09-19 13:49:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -61,6 +61,10 @@
 #define NEPMD_DEVPATH_MESSAGEFILE  "src\\nls\\netlabs\\bin"
 #define NEPMD_FILENAME_MESSAGEFILE "nepmd%s.tmf"
 
+// filename used by NepmdInitconfig
+#define NEPMD_SUBPATH_DEFAULTSFILE  NEPMD_SUBPATH_BINBINDIR
+#define NEPMD_FILENAME_DEFAULTSFILE "defaults.dat"
+#define NEPMD_DEVPATH_DEFAULTSFILE  "src\\netlabs\\bin"
 
 // define external env vars available in epm.env
 

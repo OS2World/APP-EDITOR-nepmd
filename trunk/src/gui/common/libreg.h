@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.h,v 1.5 2002-09-16 21:37:54 cla Exp $
+* $Id: libreg.h,v 1.6 2002-09-19 13:49:05 cla Exp $
 *
 * ===========================================================================
 *
@@ -35,6 +35,8 @@ APIRET QueryConfigValue( HCONFIG hconfig, PSZ pszValuePath, PSZ pszBuffer, ULONG
 APIRET DeleteConfigValue( HCONFIG hconfig, PSZ pszValuePath);
 APIRET GetNextConfigKey( HCONFIG hconfig, PSZ pszValuePath, PSZ pszPreviousKey,
                          PSZ pszOptions, PSZ pszBuffer, ULONG ulBuflen);
+
+APIRET InitConfig( HCONFIG hconfig, PSZ pszDefaultsFilename);
 
 #endif // LIBREG_H
 
