@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.25 2002-08-12 13:20:09 cla Exp $
+# $Id: nepmd.wis,v 1.26 2002-08-13 15:38:27 cla Exp $
 #
 # ===========================================================================
 #
@@ -40,7 +40,7 @@
      NODESELECT
      TITLE="%PCK_1_TITLE%"
      EXECUTE="$(1)\netlabs\install\nlsetup.exe NEPMD"
-     DEEXECUTE="$(1)\netlabs\install\nldeinst.exe NEPMD"
+     DEEXECUTE="$(1)\netlabs\install\nldeinst.exe"
 
      WRITEPROFILE="USER\NEPMD\Language|%NLS%"
      WRITEPROFILE="USER\NEPMD\Path|$(1)"
