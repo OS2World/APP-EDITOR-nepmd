@@ -7,7 +7,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.4 2002-10-20 10:38:29 cla Exp $
+; $Id: defaults.dat,v 1.5 2004-05-09 12:49:30 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -29,35 +29,29 @@
 "\NEPMD\Testcase\MyContainer\MyKey" = "This is my value"
 "\NEPMD\Testcase\MyContainer\MyKey2"="This is another value"
 
-; Language
-"\NEPMD\Language\UnnamedFilename" = ".Untitled"
+; Default edit, save and search options
+"\NEPMD\User\Edit\DefaultOptions" = "/b /t /l"
+"\NEPMD\User\Save\DefaultOptions" = "/s /ne /nt"
+"\NEPMD\User\Search\DefaultOptions" = "+fac"
 
-; Statusline
-;"\NEPMD\User\Statusline\Template" = "Line %l of %s | Col %c | '%x'x/%z | %f | ma %ma | tabs %ta | %mo | %m"
-;"\NEPMD\User\Statusline\Separator" = " ú "
-;"\NEPMD\User\Statusline\Font" = "10.System Proportional.Non-ISO"
-;"\NEPMD\User\Statusline\Color" = "BLACK + LIGHT_GREYB"
-;"\NEPMD\User\Statusline\ModifiedColor" = "MAGENTA + LIGHT_GREYB"
-
-; Titletext
-;"\NEPMD\User\Titletext\Template" = "%fn   (%dt)"
-
-; Messageline
-;"\NEPMD\User\Messageline\Font" = "10.Helv"
-;"\NEPMD\User\Messageline\Color" = "LIGHT_RED + WHITEB"
+; Statusline and Titletext
+"\NEPMD\User\InfoLine\StatusFields" = "Line <line> of <lines> * Col <col> * '<hex>'x/<dec> * Ma <ma> * Tabs <tabs>, <tabkey> * <mode> * <modified>"
+"\NEPMD\User\InfoLine\TitleFields" = "<file>/<files> * <filename> * <datetimemodified>"
+"\NEPMD\User\InfoLine\Sep" = " ú "
 
 ; Mouse
 "\NEPMD\User\Mouse\Mark\DragAlwaysMarks" = "1"
 ;    MouseStyle =  1: MB1 = block marking, MB2 = char marking
 ;    MouseStyle <> 1: MB2 = block marking, MB1 = char marking
-"\NEPMD\User\Mouse\Mark\MouseStyle" = "1"
+"\NEPMD\User\Mouse\Mark\MouseStyle" = "2"
 "\NEPMD\User\Mouse\Mark\Workaround" = "1"
 
 "\NEPMD\User\Mouse\Url\MB1_DClick" = "1"
 "\NEPMD\User\Mouse\Url\Browser" = "DEFAULT"
-;"\NEPMD\User\Mouse\Url\ContextMenu" = "1"
 
 ; Indent
 "\NEPMD\User\Indent\Home\RespectIndent" = "1"
 
+; Reflow
+"\NEPMD\User\Reflow\TwoSpaces" = "0"
 
