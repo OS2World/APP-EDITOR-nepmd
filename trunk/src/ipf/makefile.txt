@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.24 2002-09-21 14:28:58 cla Exp $
+.. $Id: makefile.txt,v 1.25 2002-10-03 19:38:40 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -282,6 +282,31 @@ The following is required for making [=TITLE]:
 - any makefile processing will check for all required packages
   to be available and abort if anything is missing on your system!
 .at
+
+.. .............................................................................
+.3 CONFIG.SYS settings
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_CONFIGSYS
+.
+In some situations the makefile processing and especially REXX scripts called
+by it cannot open enough files, and an error message is being displayed,
+saying that a file cannot be opened.
+
+In such cases the environment variable *SHELLHANDLESINC* can be used to provide
+more file handles to the makefile process. This setting specifies the amount
+of file handles that the amount of file handles available for the 
+Workplace Shell should be increased by.
+
+[=NOTE]
+.ul compact
+- the environment variable *SHELLHANDLESINC* must be set in CONFIG.SYS,
+  so it requires a reboot to activate it
+
+_*Example:*_
+.fo off
+SET SHELLHANDLESINC=60
+.fo on
+
 
 .. .............................................................................
 .3 WarpIn
