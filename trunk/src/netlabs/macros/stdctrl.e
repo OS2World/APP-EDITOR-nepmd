@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.17 2004-02-22 16:35:40 aschn Exp $
+* $Id: stdctrl.e,v 1.18 2004-02-22 17:13:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -163,7 +163,7 @@ defproc listbox(title, listbuf)
                   address(listbuf)                /* list                          */
       flags = ''
    endif
-   title  = title \0
+   title = title \0
 
    if arg(3)<>'' then                      /* button names were specified    */
       parse value arg(3) with delim 2 but1 (delim) but2 (delim) but3 (delim) but4 (delim) but5 (delim) but6 (delim) but7 (delim)
@@ -681,7 +681,7 @@ defc processfontrequest
       return
    endif  -- markedonly = 3
 
-   fontid=registerfont(fontname, fontsize, fontsel)
+   fontid = registerfont(fontname, fontsize, fontsel)
 
    if setfont & not markedonly then
 compile if WANT_APPLICATION_INI_FILE
@@ -689,8 +689,8 @@ compile if WANT_APPLICATION_INI_FILE
 compile endif
       getfileid startid
       display -1
-      do i=1 to filesinring(1)
-         if .font=default_font then
+      do i = 1 to filesinring(1)
+         if .font = default_font then
             .font = fontid
          endif
          next_file
@@ -725,7 +725,7 @@ compile endif
          fg = bg*16+fg
          call attribute_on(1)  -- Colors flag
       endif
-      if themarktype='BLOCK' then
+      if themarktype = 'BLOCK' then
          do i = fstline to lstline
             if addfont then
                Insert_Attribute_Pair(16, fontid, i, i, fstcol, lstcol, mkfileid)
@@ -735,9 +735,9 @@ compile endif
             endif
          enddo
       else
-         if themarktype='LINE' then
+         if themarktype = 'LINE' then
             getline line, lstline, mkfileid
-            lstcol=length(line)
+            lstcol = length(line)
          endif
          if addfont then
             Insert_Attribute_Pair(16, fontid, fstline, lstline, fstcol, lstcol, mkfileid)
@@ -745,7 +745,7 @@ compile endif
          if bg<>'' then
             Insert_Attribute_Pair(1, fg, fstline, lstline, fstcol, lstcol, mkfileid)
          endif
-      endif  -- themarktype='BLOCK'
+      endif  -- themarktype = 'BLOCK'
       call attribute_on(8)  -- "Save attributes" flag
    else
       .font = fontid
@@ -758,7 +758,7 @@ compile if WANT_APPLICATION_INI_FILE
    call checkmark()     -- verify there is a marked area,
    parse arg stylename   -- can include spaces
    stylestuff = queryprofile(app_hini, 'Style', stylename)
-   if stylestuff='' then return; endif  -- Shouldn't happen
+   if stylestuff = '' then return; endif  -- Shouldn't happen
    parse value stylestuff with fontname '.' fontsize '.' fontsel '.' fg '.' bg
    getmark fstline, lstline, fstcol, lstcol, mkfileid
    if get_array_value(EPM_utility_array_ID, 'sn.'stylename, styleindex) then  -- See if we have an index
@@ -773,14 +773,14 @@ compile if WANT_APPLICATION_INI_FILE
    if bg<>'' then
 ;;    fg = 256 + bg*16 + fg
       fg = bg*16 + fg
-      if marktype()='BLOCK' then
+      if marktype() = 'BLOCK' then
          do i = fstline to lstline
             Insert_Attribute_Pair(1, fg, i, i, fstcol, lstcol, mkfileid)
          enddo
       else
-         if marktype()='LINE' then
+         if marktype() = 'LINE' then
             getline line, lstline, mkfileid
-            lstcol=length(line)
+            lstcol = length(line)
          endif
          Insert_Attribute_Pair(1, fg, fstline, lstline, fstcol, lstcol, mkfileid)
       endif
@@ -788,8 +788,8 @@ compile if WANT_APPLICATION_INI_FILE
    endif
    if fontsel<>'' then
       call attribute_on(4)  -- Mixed fonts flag
-      fontid=registerfont(fontname, fontsize, fontsel)
-      if marktype()='BLOCK' then
+      fontid = registerfont(fontname, fontsize, fontsel)
+      if marktype() = 'BLOCK' then
          do i = fstline to lstline
             Insert_Attribute_Pair(16, fontid, i, i, fstcol, lstcol, mkfileid)
          enddo
@@ -813,32 +813,32 @@ compile if WANT_APPLICATION_INI_FILE
       return  -- If not known, then we're not using it, so nothing to do.
    endif
    stylestuff = queryprofile(app_hini, 'Style', stylename)
-   if stylestuff='' then return; endif  -- Shouldn't happen
+   if stylestuff = '' then return; endif  -- Shouldn't happen
    parse value stylestuff with fontname '.' fontsize '.' fontsel '.' fg '.' bg
    getfileid startid
-   fontid=registerfont(fontname, fontsize, fontsel)
+   fontid = registerfont(fontname, fontsize, fontsel)
    fg = bg*16 + fg
-   do i=1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
+   do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       if .levelofattributesupport bitand 8 then  -- Is attribute 8 on?
                                                                  -- "Save attributes" flag
-         line=0; col=1; offst=0
+         line = 0; col = 1; offst = 0
          do forever
             class = 14  -- STYLE_CLASS
-            attribute_action 1, class, offst, col, line -- 1=FIND NEXT ATTR
-            if class=0 then leave; endif  -- not found
+            attribute_action 1, class, offst, col, line -- 1 = FIND NEXT ATTR
+            if class = 0 then leave; endif  -- not found
             query_attribute class, val, IsPush, offst, col, line
-            if val=styleindex then  -- If it's this style, then...
+            if val = styleindex then  -- If it's this style, then...
                offst = offst+1
                query_attribute class, val, IsPush, offst, col, line
-               if class=16 & val<>fontid then  -- Replace the font ID (if changed)
+               if class = 16 & val<>fontid then  -- Replace the font ID (if changed)
                   insert_attribute class, fontid, IsPush, offst, col, line
-                  attribute_action 16, class, offst, col, line -- 16=DELETE_ATTR_SUBOP
+                  attribute_action 16, class, offst, col, line -- 16 = DELETE_ATTR_SUBOP
                endif
                offst = offst+1
                query_attribute class, val, IsPush, offst, col, line
-               if class=1 & val<>fg then  -- Replace the color attribute (if changed)
+               if class = 1 & val<>fg then  -- Replace the color attribute (if changed)
                   insert_attribute class, fg, IsPush, offst, col, line
-                  attribute_action 16, class, offst, col, line -- 16=DELETE_ATTR_SUBOP
+                  attribute_action 16, class, offst, col, line -- 16 = DELETE_ATTR_SUBOP
                endif
             endif
          enddo  -- Loop looking for STYLE_CLASS in current file
@@ -859,23 +859,23 @@ compile if WANT_APPLICATION_INI_FILE
    stylename = arg(1)
    stylestuff = queryprofile(app_hini, 'Style', stylename)
    call setprofile(app_hini, 'Style', stylename, '')
-   if stylestuff='' then return; endif  -- Shouldn't happen
+   if stylestuff = '' then return; endif  -- Shouldn't happen
    if get_array_value(EPM_utility_array_ID, 'sn.'stylename, styleindex) then
       return  -- If not known, then we're not using it, so nothing to do.
    endif
 ;  parse value stylestuff with fontname '.' fontsize '.' fontsel '.' fg '.' bg
    getfileid startid
-;  fontid=registerfont(fontname, fontsize, fontsel)
+;  fontid = registerfont(fontname, fontsize, fontsel)
 ;  fg = bg*16 + fg
-   do i=1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
+   do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       if .levelofattributesupport bitand 8 then  -- Is attribute 8 on?
                    -- "Save attributes" flag --> using styles in this file
          oldmod = .modify
-         line=0; col=1; offst=0
+         line = 0; col = 1; offst = 0
          do forever
             class = 14  -- STYLE_CLASS
-            attribute_action 1, class, offst, col, line -- 1=FIND NEXT ATTR
-            if class=0 then  -- not found
+            attribute_action 1, class, offst, col, line -- 1 = FIND NEXT ATTR
+            if class = 0 then  -- not found
                if .modify <> oldmod then  -- We've deleted at least one...
                    call delete_ea('EPM.STYLES')
                    call delete_ea('EPM.ATTRIBUTES')
@@ -884,17 +884,17 @@ compile if WANT_APPLICATION_INI_FILE
                leave
             endif
             query_attribute class, val, IsPush, offst, col, line
-            if val=styleindex then  -- If it's this style, then...
-               attribute_action 16, class, offst, col, line -- 16=DELETE_ATTR_SUBOP
+            if val = styleindex then  -- If it's this style, then...
+               attribute_action 16, class, offst, col, line -- 16 = DELETE_ATTR_SUBOP
                offst = offst+1
                query_attribute class, val, IsPush, offst, col, line
-               if class=16 then  -- Delete the font ID
-                  attribute_action 16, class, offst, col, line -- 16=DELETE_ATTR_SUBOP
+               if class = 16 then  -- Delete the font ID
+                  attribute_action 16, class, offst, col, line -- 16 = DELETE_ATTR_SUBOP
                endif
                offst = offst+1
                query_attribute class, val, IsPush, offst, col, line
-               if class=1 then  -- Delete the color attribute
-                  attribute_action 16, class, offst, col, line -- 16=DELETE_ATTR_SUBOP
+               if class = 1 then  -- Delete the color attribute
+                  attribute_action 16, class, offst, col, line -- 16 = DELETE_ATTR_SUBOP
                endif
             endif
          enddo  -- Loop looking for STYLE_CLASS in current file
@@ -950,18 +950,18 @@ defproc Insert_Attribute_Pair(attribute, val, fstline, lstline, fstcol, lstcol, 
    col = fstcol
    line = fstline
    pairoffst = -255
-   attribute_action 1, class, offst1, col, line, fileid -- 1=FIND NEXT ATTR
-;sayerror 'attribute_action FIND NEXT ATTR,' class',' offst1',' col',' line',' fileid -- 1=FIND NEXT ATTR
+   attribute_action 1, class, offst1, col, line, fileid -- 1 = FIND NEXT ATTR
+;sayerror 'attribute_action FIND NEXT ATTR,' class',' offst1',' col',' line',' fileid -- 1 = FIND NEXT ATTR
    if class & col = fstcol & line = fstline  then  -- Found one!
       offst2 = offst1
-      attribute_action 3, class, offst2, col, line, fileid -- 3=FIND MATCH ATTR
-;sayerror 'attribute_action FIND MATCH ATTR,' class',' offst2',' col',' line',' fileid -- 1=FIND NEXT ATTR
+      attribute_action 3, class, offst2, col, line, fileid -- 3 = FIND MATCH ATTR
+;sayerror 'attribute_action FIND MATCH ATTR,' class',' offst2',' col',' line',' fileid -- 1 = FIND NEXT ATTR
       if class then
          lc1 = lstcol + 1
-         if line=lstline & col=lc1 then  -- beginning and end match, so replace the old attributes
+         if line = lstline & col = lc1 then  -- beginning and end match, so replace the old attributes
 compile if defined(COMPILING_FOR_ULTIMAIL)
             replace_it = 1
-            if class=14 then  -- STYLE_CLASS
+            if class = 14 then  -- STYLE_CLASS
                query_attribute class, val2, IsPush, offst1, fstcol, fstline, fileid
                --do_array 3, EPM_utility_array_ID, 'si.'val, stylename -- Get the style name
                rc = get_array_value( EPM_utility_array_ID, 'si.'val, stylename )  -- Get the style name
@@ -975,10 +975,10 @@ compile if defined(COMPILING_FOR_ULTIMAIL)
             endif
             if replace_it then
 compile endif
-               attribute_action 16, class, offst1, fstcol, fstline, fileid -- 16=DELETE ATTR
-;sayerror 'attribute_action DELETE ATTR,' class',' offst1',' fstcol',' fstline',' fileid -- 1=FIND NEXT ATTR
-               attribute_action 16, class, offst2, lc1, lstline, fileid -- 16=DELETE ATTR
-;sayerror 'attribute_action DELETE ATTR,' class',' offst2',' lc1',' lstline',' fileid -- 1=FIND NEXT ATTR
+               attribute_action 16, class, offst1, fstcol, fstline, fileid -- 16 = DELETE ATTR
+;sayerror 'attribute_action DELETE ATTR,' class',' offst1',' fstcol',' fstline',' fileid -- 1 = FIND NEXT ATTR
+               attribute_action 16, class, offst2, lc1, lstline, fileid -- 16 = DELETE ATTR
+;sayerror 'attribute_action DELETE ATTR,' class',' offst2',' lc1',' lstline',' fileid -- 1 = FIND NEXT ATTR
                pairoffst = offst1 + 1
                if not pairoffst then
                   lstcol = lc1
@@ -986,7 +986,7 @@ compile endif
 compile if defined(COMPILING_FOR_ULTIMAIL)
             endif
 compile endif
-         elseif line>lstline | (line=lstline & col>lstcol) then  -- old range larger then new
+         elseif line>lstline | (line = lstline & col>lstcol) then  -- old range larger then new
 ;sayerror 'pair offset set to 0'
             pairoffst = 0  -- so add attributes on the inside.
             lstcol = lc1
@@ -1003,8 +1003,8 @@ compile if 1  -- Disallow overlapping attributes.
          offst2 = offst1
          col2 = col
          line2 = line
-         attribute_action 3, class, offst2, col2, line2, fileid -- 3=FIND MATCH ATTR
-;sayerror 'attribute_action FIND MATCH ATTR,' class',' offst2',' col2',' line2',' fileid -- 1=FIND NEXT ATTR
+         attribute_action 3, class, offst2, col2, line2, fileid -- 3 = FIND MATCH ATTR
+;sayerror 'attribute_action FIND MATCH ATTR,' class',' offst2',' col2',' line2',' fileid -- 1 = FIND NEXT ATTR
          if not class then  -- No match?  Most curious...
             leave
          endif
@@ -1015,8 +1015,8 @@ compile if 1  -- Disallow overlapping attributes.
          offst1 = offst2 + 1
          col = col2
          line = line2
-         attribute_action 1, class, offst1, col, line, fileid -- 1=FIND NEXT ATTR
-;sayerror 'attribute_action FIND NEXT ATTR,' class',' offst1',' col',' line',' fileid -- 1=FIND NEXT ATTR
+         attribute_action 1, class, offst1, col, line, fileid -- 1 = FIND NEXT ATTR
+;sayerror 'attribute_action FIND NEXT ATTR,' class',' offst1',' col',' line',' fileid -- 1 = FIND NEXT ATTR
       enddo
 compile endif
    endif
@@ -1098,7 +1098,7 @@ defc commandline  -- The application will free the buffer allocated by this macr
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defproc PostCmdToEditWindow(cmd,winhndl)
-   if arg(3)<>'' then mp2=arg(3); else mp2=1; endif
+   if arg(3)<>'' then mp2 = arg(3); else mp2 = 1; endif
    call windowmessage(0,  winhndl,
                       5377,               -- EPM_EDIT_COMMAND
                       put_in_buffer(cmd,arg(4)),
@@ -1221,6 +1221,7 @@ compile if USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG
    universal app_hini
    call setprofile( app_hini, 'ERESDLGS', 'LASTFILESELECTED', '')
 compile endif
+
 compile if WPS_SUPPORT
    if wpshell_handle & not arg(1) then
       call windowmessage(0,  getpminfo(APP_HANDLE),
@@ -1238,7 +1239,7 @@ compile if RING_OPTIONAL
 compile else
                       1,
 compile endif
-                      pos(upcase(strip(arg(1))),'   EDITGET')%4 * 65536)  -- OPEN=0; EDIT=1; GET=2
+                      pos(upcase(strip(arg(1))),'   EDITGET')%4 * 65536)  -- OPEN = 0; EDIT = 1; GET = 2
 compile if WPS_SUPPORT
    endif
 compile endif
@@ -1265,7 +1266,7 @@ defc configdlg
    universal LEXAM_is_available
  compile endif
    call windowmessage(0,  getpminfo(APP_HANDLE),
-                      5129+(18*(arg(1)='SYS')),  -- EPM_POPCONFIGDLG / EPM_POPSYSCONFIGDLG
+                      5129+(18*(arg(1) = 'SYS')),  -- EPM_POPCONFIGDLG / EPM_POPSYSCONFIGDLG
  compile if ENHANCED_ENTER_KEYS
                       0,           -- Omit no pages
  compile else
@@ -1331,10 +1332,10 @@ defc renderconfig
  compile if WANT_STREAM_MODE = 'SWITCH'
    universal stream_mode
  compile endif
- compile if WANT_LONGNAMES='SWITCH'
+ compile if WANT_LONGNAMES = 'SWITCH'
    universal SHOW_LONGNAMES
  compile endif
- compile if WANT_PROFILE='SWITCH'
+ compile if WANT_PROFILE = 'SWITCH'
    universal REXX_PROFILE
  compile endif
  compile if WANT_CUA_MARKING = 'SWITCH'
@@ -1364,43 +1365,43 @@ defc renderconfig
     endif
  compile endif
 
-   if page=1 then  --------------------- Page 1 is tabs -------------
-      if send_default=2 then tempstr=.tabs
+   if page = 1 then  --------------------- Page 1 is tabs -------------
+      if send_default = 2 then tempstr = .tabs
       else tempstr = checkini(send_default, INI_TABS, DEFAULT_TABS)
       endif
       call send_config_data(hndle, tempstr, 3, help_panel)
  compile if TOGGLE_TAB
       tempstr = 0
       if not send_default then    -- 0: Use values from .ini file
-         newcmd=queryprofile( app_hini, appname, INI_OPTFLAGS)
+         newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if words(newcmd) >= 14 then
             tempstr = word(newcmd, 14)
          endif
-      elseif send_default=2 then  -- 2: Use current values
+      elseif send_default = 2 then  -- 2: Use current values
          tempstr = TAB_KEY
       endif
       call send_config_data(hndle, tempstr, 19, help_panel)
  compile endif
 
-   elseif page=2 then  ----------------- Page 2 is margins ----------
-      if send_default=2 then      -- 2: Use current values
-         tempstr=.margins
+   elseif page = 2 then  ----------------- Page 2 is margins ----------
+      if send_default = 2 then      -- 2: Use current values
+         tempstr = .margins
       else                        -- 0|1: Use values from .ini file or default values
          tempstr = checkini(send_default, INI_MARGINS, DEFAULT_MARGINS)
       endif
       call send_config_data(hndle, tempstr, 1, 5301)
 
-   elseif page=3 then  ----------------- Page 3 is colors -----------
+   elseif page = 3 then  ----------------- Page 3 is colors -----------
       if send_default = 2 then    -- 2: Use current values
          tempstr = .textcolor .markcolor vSTATUSCOLOR vMESSAGECOLOR
       else
          if send_default then     -- 1: Use default values
             tempstr = ''
          else                     -- 0: Use values from .ini file
-            tempstr= queryprofile( app_hini, appname, INI_STUFF)
+            tempstr = queryprofile( app_hini, appname, INI_STUFF)
          endif
-         if tempstr='' | tempstr=1 then
-            tempstr=TEXTCOLOR MARKCOLOR STATUSCOLOR MESSAGECOLOR
+         if tempstr = '' | tempstr = 1 then
+            tempstr = TEXTCOLOR MARKCOLOR STATUSCOLOR MESSAGECOLOR
          endif
       endif
       parse value tempstr with ttextcolor tmarkcolor tstatuscolor tmessagecolor .
@@ -1409,7 +1410,7 @@ defc renderconfig
       call send_config_data(hndle, tstatuscolor, 6, help_panel)
       call send_config_data(hndle, tmessagecolor, 7, help_panel)
 
-   elseif page=4 then  ----------------- Page 4 is paths ------------
+   elseif page = 4 then  ----------------- Page 4 is paths ------------
  compile if SPELL_SUPPORT   -- If dictionary & addenda present, ...
   compile if WPS_SUPPORT
       if not wpshell_handle then
@@ -1437,26 +1438,26 @@ defc renderconfig
   compile endif
  compile endif  -- SPELL_SUPPORT
 
-   elseif page=5 then  ----------------- Page 5 is autosave ---------
-      if send_default=2 then      -- 2: Use current values
-         tempstr=.autosave
+   elseif page = 5 then  ----------------- Page 5 is autosave ---------
+      if send_default = 2 then      -- 2: Use current values
+         tempstr = .autosave
       else                        -- 0|1: Use values from .ini file or default values
          tempstr = checkini(send_default, INI_AUTOSAVE, DEFAULT_AUTOSAVE)
       endif
       call send_config_data(hndle, tempstr, 2, help_panel)
       call send_config_data(hndle, checkini(send_default, INI_AUTOSPATH, vAUTOSAVE_PATH, AUTOSAVE_PATH), 9, help_panel)
 
-   elseif page=6 then  ----------------- Page 6 is fonts ------------
+   elseif page = 6 then  ----------------- Page 6 is fonts ------------
       call send_config_data(hndle, queryfont(word(default_font 0 .font, send_default+1))'.'trunc(.textcolor//16)'.'.textcolor%16, 24, help_panel)
       if not send_default then    -- 0: Use values from .ini file
-         tempstr= checkini(send_default, INI_STATUSFONT, '')
+         tempstr = checkini(send_default, INI_STATUSFONT, '')
          if tempstr then
             parse value tempstr with ptsize'.'facename'.'attr
             tempstr = facename'.'ptsize'.'attr
          else
             tempstr = queryfont(0)
          endif
-      elseif send_default=1 then  -- 1: Use default values
+      elseif send_default = 1 then  -- 1: Use default values
          tempstr = queryfont(0)
       else                        -- 2: Use current values
          if statfont then
@@ -1468,14 +1469,14 @@ defc renderconfig
       endif
       call send_config_data(hndle, tempstr'.'trunc(vSTATUSCOLOR//16)'.'vSTATUSCOLOR%16, 25, help_panel)
       if not send_default then    -- 0: Use values from .ini file
-         tempstr= checkini(send_default, INI_MESSAGEFONT, '')
+         tempstr = checkini(send_default, INI_MESSAGEFONT, '')
          if tempstr then
             parse value tempstr with ptsize'.'facename'.'attr
             tempstr = facename'.'ptsize'.'attr
          else
             tempstr = queryfont(0)
          endif
-      elseif send_default=1 then  -- 1: Use default values
+      elseif send_default = 1 then  -- 1: Use default values
          tempstr = queryfont(0)
       else                        -- 2: Use current values
          if msgfont then
@@ -1488,32 +1489,32 @@ defc renderconfig
       call send_config_data(hndle, tempstr'.'trunc(vMESSAGECOLOR//16)'.'vMESSAGECOLOR%16, 26, help_panel)
 
  compile if ENHANCED_ENTER_KEYS  -- Enter key definition for line mode
-   elseif page=7 then  ----------------- Page 7 is enter keys -------
-      if send_default=1 then      -- 1: Use default values
-  compile if ENTER_ACTION='' | ENTER_ACTION='ADDLINE'  -- The default
+   elseif page = 7 then  ----------------- Page 7 is enter keys -------
+      if send_default = 1 then      -- 1: Use default values
+  compile if ENTER_ACTION = '' | ENTER_ACTION = 'ADDLINE'  -- The default
          ek = \1
-  compile elseif ENTER_ACTION='NEXTLINE'
+  compile elseif ENTER_ACTION = 'NEXTLINE'
          ek = \2
-  compile elseif ENTER_ACTION='ADDATEND'
+  compile elseif ENTER_ACTION = 'ADDATEND'
          ek = \3
-  compile elseif ENTER_ACTION='DEPENDS'
+  compile elseif ENTER_ACTION = 'DEPENDS'
          ek = \4
-  compile elseif ENTER_ACTION='DEPENDS+'
+  compile elseif ENTER_ACTION = 'DEPENDS+'
          ek = \5
-  compile elseif ENTER_ACTION='STREAM'
+  compile elseif ENTER_ACTION = 'STREAM'
          ek = \6
   compile endif
-  compile if C_ENTER_ACTION='ADDLINE'
+  compile if C_ENTER_ACTION = 'ADDLINE'
          c_ek = \1
-  compile elseif C_ENTER_ACTION='' | C_ENTER_ACTION='NEXTLINE'  -- The default
+  compile elseif C_ENTER_ACTION = '' | C_ENTER_ACTION = 'NEXTLINE'  -- The default
          c_ek = \2
-  compile elseif C_ENTER_ACTION='ADDATEND'
+  compile elseif C_ENTER_ACTION = 'ADDATEND'
          c_ek = \3
-  compile elseif C_ENTER_ACTION='DEPENDS'
+  compile elseif C_ENTER_ACTION = 'DEPENDS'
          c_ek = \4
-  compile elseif C_ENTER_ACTION='DEPENDS+'
+  compile elseif C_ENTER_ACTION = 'DEPENDS+'
          c_ek = \5
-  compile elseif C_ENTER_ACTION='STREAM'
+  compile elseif C_ENTER_ACTION = 'STREAM'
          c_ek = \6
   compile endif
          tempstr = ek || ek || c_ek || ek || ek || ek || c_ek || ek
@@ -1523,42 +1524,42 @@ defc renderconfig
       call send_config_data(hndle, tempstr, 14, help_panel)
  compile endif  -- ENHANCED_ENTER_KEYS
 
-   elseif page=8 then  ----------------- Page 8 is Frame controls ---
+   elseif page = 8 then  ----------------- Page 8 is Frame controls ---
       tempstr = '1111010'  -- StatWnd, MsgWnd, hscroll, vscroll, extrawnd, bgbitmap, drop
       if not send_default then    -- 0: Use values from .ini file
-         newcmd=queryprofile( app_hini, appname, INI_OPTFLAGS)
+         newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
             parse value newcmd with statflg msgflg vscrollflg hscrollflg . . extraflg . . . . . . . new_bitmap . drop_style .
             tempstr = statflg || msgflg || hscrollflg || vscrollflg || extraflg || new_bitmap || drop_style
          endif
-      elseif send_default=2 then  -- 2: Use current values
+      elseif send_default = 2 then  -- 2: Use current values
          tempstr = queryframecontrol(1) || queryframecontrol(2) || queryframecontrol(16) || queryframecontrol(8) || queryframecontrol(32) || bitmap_present || queryframecontrol(8192)
       endif
       call send_config_data(hndle, tempstr, 15, help_panel)
       call send_config_data(hndle, checkini(send_default, INI_BITMAP, bm_filename, ''), 16, help_panel)
 
-   elseif page=9 then  ----------------- Page 9 is Misc. ------------
+   elseif page = 9 then  ----------------- Page 9 is Misc. ------------
       tempstr = '0000100'  -- CUA marking, stream mode, Rexx profile, longnames, I-beam pointer, underline cursor, menu accelerators
       if not send_default then    -- 0: Use values from .ini file
-         newcmd=queryprofile( app_hini, appname, INI_OPT2FLAGS)
+         newcmd = queryprofile( app_hini, appname, INI_OPT2FLAGS)
          if newcmd <> '' then
             parse value newcmd with pointer_style cursor_shape .
          else
-            pointer_style = (vEPM_POINTER=2)
+            pointer_style = (vEPM_POINTER = 2)
             cursor_shape = (cursordimensions = '-128.3 -128.-64') -- 1 if underline; 0 if vertical
          endif
 
-         newcmd=queryprofile( app_hini, appname, INI_CUAACCEL)
+         newcmd = queryprofile( app_hini, appname, INI_CUAACCEL)
          if newcmd<>'' then menu_accel = newcmd
                        else menu_accel = 0
          endif
 
-         newcmd=queryprofile( app_hini, appname, INI_OPTFLAGS)
+         newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
             parse value newcmd with . . . . . . . markflg . streamflg longnames profile .
             tempstr = markflg || streamflg || longnames || profile || pointer_style || cursor_shape || menu_accel
          endif
-      elseif send_default=2 then  -- 2: Use current values
+      elseif send_default = 2 then  -- 2: Use current values
  compile if WANT_STREAM_MODE <> 'SWITCH'  -- Set a local variable
          stream_mode = WANT_STREAM_MODE
  compile endif
@@ -1574,11 +1575,11 @@ defc renderconfig
  compile if BLOCK_ACTIONBAR_ACCELERATORS <> 'SWITCH'
          CUA_MENU_ACCEL = not BLOCK_ACTIONBAR_ACCELERATORS
  compile endif                                                                                                 -- 1 if underline; 0 otherwise
-         tempstr = CUA_marking_switch || stream_mode || REXX_PROFILE || SHOW_LONGNAMES || (vEPM_POINTER=2) || (cursordimensions = '-128.3 -128.-64') || CUA_MENU_ACCEL
+         tempstr = CUA_marking_switch || stream_mode || REXX_PROFILE || SHOW_LONGNAMES || (vEPM_POINTER = 2) || (cursordimensions = '-128.3 -128.-64') || CUA_MENU_ACCEL
       endif
       call send_config_data(hndle, tempstr, 18, help_panel)
 
-   elseif page=12 then  ---------------- Page 12 is Toolbar config --
+   elseif page = 12 then  ---------------- Page 12 is Toolbar config --
       if send_default = 1         -- 1: Use default values
          then tempstr = ''
       else                        -- 0|2: Use values from .ini file or current values
@@ -1589,7 +1590,7 @@ defc renderconfig
       endif
       call send_config_data(hndle, tempstr, 22, help_panel)
 
-   elseif page=13 then  ---------------- Page 13 is Toolbar name & on/off
+   elseif page = 13 then  ---------------- Page 13 is Toolbar name & on/off
       active_toolbar = toolbar_loaded
       if active_toolbar = \1 then active_toolbar = ''; endif
       call send_config_data(hndle, checkini(send_default, INI_DEF_TOOLBAR, active_toolbar, ''), 20, help_panel)
@@ -1622,12 +1623,12 @@ defc enterkeys =
 defproc checkini(send_default, inikey, defaultdata )
    universal appname, app_hini
    if send_default then
-      if send_default=1 & arg()>3 then
+      if send_default = 1 & arg()>3 then
          return arg(4)
       endif
       return defaultdata
    endif
-   inidata=queryprofile(app_hini, appname,inikey)
+   inidata = queryprofile(app_hini, appname,inikey)
    if inidata<>'' then
       return inidata
    endif
@@ -1637,10 +1638,10 @@ defproc checkini(send_default, inikey, defaultdata )
 ; If omitted, assume the old way - save.  If present, only save if 1.
 defproc setini( inikey, inidata )
    universal appname, app_hini
-   if arg()>=3 then
-      perm=arg(3)
+   if arg() >= 3 then
+      perm = arg(3)
    else
-      perm=1
+      perm = 1
    endif
    if perm then
       call setprofile(app_hini, appname, inikey, inidata)
@@ -1673,10 +1674,10 @@ defc setconfig
  compile if WANT_STREAM_MODE = 'SWITCH'
    universal stream_mode
  compile endif
- compile if WANT_LONGNAMES='SWITCH'
+ compile if WANT_LONGNAMES = 'SWITCH'
    universal SHOW_LONGNAMES
  compile endif
- compile if WANT_PROFILE='SWITCH'
+ compile if WANT_PROFILE = 'SWITCH'
    universal REXX_PROFILE
  compile endif
  compile if WANT_CUA_MARKING = 'SWITCH'
@@ -1692,70 +1693,70 @@ defc setconfig
 
    parse value arg(1) with configid perm newcmd
 
-   if     configid= 1 then
+   if     configid = 1 then
       if .margins<>newcmd then
          'postme maybe_reflow_all'
          'postme refreshinfoline MARGINS'
       endif
-      .margins=newcmd
-      vDEFAULT_MARGINS=setini(INI_MARGINS, .margins, perm)
+      .margins = newcmd
+      vDEFAULT_MARGINS = setini(INI_MARGINS, .margins, perm)
 
-   elseif configid= 2 then
+   elseif configid = 2 then
       .autosave=setini(INI_AUTOSAVE,newcmd, perm)
       vDEFAULT_AUTOSAVE=newcmd
 
-   elseif configid= 3 then
-      rc=0
-      .tabs=newcmd
+   elseif configid = 3 then
+      rc = 0
+      .tabs = newcmd
          'postme refreshinfoline TABS'
       if not rc then
-         vDEFAULT_TABS=setini(INI_TABS,newcmd, perm)
+         vDEFAULT_TABS = setini(INI_TABS,newcmd, perm)
       endif
 
-   elseif configid= 4 then
-      .textcolor=newcmd
+   elseif configid = 4 then
+      .textcolor = newcmd
 
-   elseif configid= 5 then
-      .markcolor=newcmd
+   elseif configid = 5 then
+      .markcolor = newcmd
 
-   elseif configid= 6 & newcmd<>vSTATUSCOLOR then
-      vSTATUSCOLOR=newcmd
+   elseif configid = 6 & newcmd<>vSTATUSCOLOR then
+      vSTATUSCOLOR = newcmd
       'setstatusline'
 
-   elseif configid= 7 & newcmd<>vMESSAGECOLOR then
-      vMESSAGECOLOR=newcmd
+   elseif configid = 7 & newcmd<>vMESSAGECOLOR then
+      vMESSAGECOLOR = newcmd
       'setmessageline'
 
-   elseif configid= 9 then
+   elseif configid = 9 then
       if newcmd<>'' & rightstr(newcmd,1)<>'\' then
-         newcmd=newcmd'\'
+         newcmd = newcmd'\'
       endif
-      if rightstr(newcmd,2)='\\' then             -- Temp fix for dialog bug
-         newcmd=leftstr(newcmd,length(newcmd)-1)
+      if rightstr(newcmd,2) = '\\' then             -- Temp fix for dialog bug
+         newcmd = leftstr(newcmd,length(newcmd)-1)
       endif
-      vAUTOSAVE_PATH=setini(INI_AUTOSPATH,newcmd, perm)
+      vAUTOSAVE_PATH = setini(INI_AUTOSPATH,newcmd, perm)
 
-   elseif configid=10 then
+   elseif configid = 10 then
       if newcmd<>'' & rightstr(newcmd,1)<>'\' then
-         newcmd=newcmd'\'
+         newcmd = newcmd'\'
       endif
-      if rightstr(newcmd,2)='\\' then             -- Temp fix for dialog bug
-         newcmd=leftstr(newcmd,length(newcmd)-1)
+      if rightstr(newcmd,2) = '\\' then             -- Temp fix for dialog bug
+         newcmd = leftstr(newcmd,length(newcmd)-1)
       endif
       if upcase(leftstr(vTEMP_FILENAME,length(vTEMP_PATH))) = upcase(vTEMP_PATH) then
-         vTEMP_FILENAME=newcmd||substr(vTEMP_FILENAME,length(vTEMP_PATH)+1)
+         vTEMP_FILENAME = newcmd||substr(vTEMP_FILENAME,length(vTEMP_PATH)+1)
       elseif not verify(vTEMP_FILENAME,':\','M') then   -- if not fully qualified
-         vTEMP_FILENAME=newcmd||vTEMP_FILENAME
+         vTEMP_FILENAME = newcmd||vTEMP_FILENAME
       endif
-      vTEMP_PATH=setini(INI_TEMPPATH,newcmd, perm)
+      vTEMP_PATH = setini(INI_TEMPPATH,newcmd, perm)
 
-   elseif configid=11 then
+   elseif configid = 11 then
       DICTIONARY_FILENAME = setini(INI_DICTIONARY,newcmd, perm)
 
-   elseif configid=12 then
+   elseif configid = 12 then
       ADDENDA_FILENAME    = setini(INI_ADDENDA,newcmd, perm)
 
-   elseif configid=15 then
+   elseif configid = 15 then
       parse value newcmd with statflg 2 msgflg 3 hscrollflg 4 vscrollflg 5 extraflg 6 new_bitmap 7 drop_style 8
       'toggleframe 1' statflg
       'toggleframe 2' msgflg
@@ -1770,7 +1771,7 @@ defc setconfig
          endif
       endif
       if perm then
-         newcmd=queryprofile( app_hini, appname, INI_OPTFLAGS)
+         newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
             parse value newcmd with . . . . w1 w2 . w3 w4 w5 w6 w7 w8 w9 . w10 . rest
             call setprofile(app_hini, appname, INI_OPTFLAGS,
@@ -1780,7 +1781,7 @@ defc setconfig
          endif
       endif
 
-   elseif configid=16 then
+   elseif configid = 16 then
       if bm_filename <> newcmd then
          bm_filename = newcmd
          if bitmap_present then
@@ -1796,7 +1797,7 @@ defc setconfig
          call setprofile(app_hini, appname, INI_BITMAP, bm_filename)
       endif
 
-   elseif configid=18 then
+   elseif configid = 18 then
       parse value newcmd with markflg 2 streamflg 3 profile 4 longnames 5 pointer_style 6 cursor_shape 7 menu_accel 8
       vEPM_POINTER = 1 + pointer_style
       mouse_setpointer vEPM_POINTER
@@ -1804,29 +1805,31 @@ defc setconfig
   compile if DYNAMIC_CURSOR_STYLE
       'cursor_style' (cursor_shape+1)
     compile else
-      if cursor_shape=0 then  -- Vertical bar
+      if cursor_shape = 0 then  -- Vertical bar
          cursordimensions = '-128.-128 2.-128'
-      elseif cursor_shape=1 then  -- Underline cursor
+      elseif cursor_shape = 1 then  -- Underline cursor
          cursordimensions = '-128.3 -128.-64'
       endif
       call fixup_cursor()
   compile endif -- DYNAMIC_CURSOR_STYLE
  compile endif
  compile if WANT_CUA_MARKING = 'SWITCH'
-       if markflg<>CUA_marking_switch then
+       if markflg <> CUA_marking_switch then
           'CUA_mark_toggle'
        endif
  compile endif
  compile if WANT_STREAM_MODE = 'SWITCH'
-      if streamflg<>stream_mode then 'stream_toggle'; endif
+      if streamflg <> stream_mode then
+         'stream_toggle'
+      endif
  compile endif
- compile if WANT_LONGNAMES='SWITCH'
-      if longnames<>'' then
+ compile if WANT_LONGNAMES = 'SWITCH'
+      if longnames <> '' then
          SHOW_LONGNAMES = longnames
       endif
  compile endif
- compile if WANT_PROFILE='SWITCH'
-      if PROFILE<>'' then
+ compile if WANT_PROFILE = 'SWITCH'
+      if PROFILE <> '' then
          REXX_PROFILE = PROFILE
       endif
  compile endif
@@ -1836,7 +1839,7 @@ defc setconfig
       endif
  compile endif
       if perm then
-         newcmd=queryprofile( app_hini, appname, INI_OPTFLAGS)
+         newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
             parse value newcmd with w1 w2 w3 w4 w5 w6 w7 . w8 . . . rest
             call setprofile(app_hini, appname, INI_OPTFLAGS,
@@ -1851,10 +1854,10 @@ defc setconfig
       endif
 
  compile if TOGGLE_TAB
-   elseif configid=19 then
+   elseif configid = 19 then
       TAB_KEY = newcmd
       if perm then
-         newcmd=queryprofile( app_hini, appname, INI_OPTFLAGS)
+         newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
             call setprofile(app_hini, appname, INI_OPTFLAGS,
                   subword(newcmd, 1, 13) tab_key subword(newcmd, 15))
@@ -1865,7 +1868,7 @@ defc setconfig
       'postme refreshinfoline TABKEY'
  compile endif
 
-   elseif configid=20 then
+   elseif configid = 20 then
       if newcmd = '' then  -- Null string; use compiled-in toolbar
          if toolbar_loaded <> \1 then
             'loaddefaulttoolbar'
@@ -1878,12 +1881,12 @@ defc setconfig
          call setprofile(app_hini, appname, INI_DEF_TOOLBAR, newcmd)
       endif
 
-   elseif configid=21 then
+   elseif configid = 21 then
       if newcmd <> queryframecontrol(EFRAMEF_TOOLBAR) then
          'toggleframe' EFRAMEF_TOOLBAR newcmd
       endif
       if perm then
-         temp=queryprofile( app_hini, appname, INI_OPTFLAGS)
+         temp = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if temp <> '' then
             call setprofile(app_hini, appname, INI_OPTFLAGS,
                   subword(temp, 1, 15) newcmd subword(temp, 17))
@@ -1892,7 +1895,7 @@ defc setconfig
          endif
       endif
 
-   elseif configid=22 then
+   elseif configid = 22 then
       call windowmessage(0, getpminfo(EPMINFO_EDITFRAME), 5921, put_in_buffer(newcmd), 0)
  compile if 0
       parse value newcmd with \1 style \1 cx \1 cy \1 font \1 color \1 itemcolor \1
@@ -1910,7 +1913,7 @@ defc setconfig
       endif
  compile endif
 
-   elseif configid= 0 then
+   elseif configid = 0 then
       call setprofile( app_hini, appname, INI_STUFF, .textcolor .markcolor vstatuscolor vmessagecolor)
 
    endif
@@ -1939,7 +1942,7 @@ defc initconfig
  compile if WANT_DYNAMIC_PROMPTS
    universal  menu_prompt
  compile endif
- compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH)
+ compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined(my_SAVEPATH)
    universal savepath
  compile endif
    universal vMESSAGECOLOR, vSTATUSCOLOR
@@ -1954,10 +1957,10 @@ defc initconfig
  compile if RING_OPTIONAL
    universal ring_enabled
  compile endif
- compile if WANT_LONGNAMES='SWITCH'
+ compile if WANT_LONGNAMES = 'SWITCH'
    universal SHOW_LONGNAMES
  compile endif
- compile if WANT_PROFILE='SWITCH'
+ compile if WANT_PROFILE = 'SWITCH'
    universal REXX_PROFILE
  compile endif
  compile if TOGGLE_ESCAPE
@@ -1977,68 +1980,68 @@ defc initconfig
    else                             -- read config data from EPM.INI
  compile endif
 
-      newcmd= queryprofile( app_hini, appname, INI_STUFF)
+      newcmd = queryprofile( app_hini, appname, INI_STUFF)
       if newcmd then
          parse value newcmd with ttextcolor tmarkcolor tstatuscolor tmessagecolor .
-         .textcolor=ttextcolor; .markcolor=tmarkcolor
+         .textcolor = ttextcolor; .markcolor = tmarkcolor
          if tstatuscolor<>'' & tstatuscolor<>vSTATUSCOLOR then
-            vSTATUSCOLOR=tstatuscolor
+            vSTATUSCOLOR = tstatuscolor
             'setstatusline'
          endif
          if tmessagecolor<>'' & tmessagecolor<>vMESSAGECOLOR then
-            vMESSAGECOLOR=tmessagecolor
+            vMESSAGECOLOR = tmessagecolor
             'setmessageline'
          endif
-         newcmd=queryprofile( app_hini, appname, INI_MARGINS)
+         newcmd = queryprofile( app_hini, appname, INI_MARGINS)
          if newcmd then
-            .margins=newcmd
-            vDEFAULT_MARGINS=newcmd
+            .margins = newcmd
+            vDEFAULT_MARGINS = newcmd
          endif
-         newcmd=queryprofile( app_hini, appname, INI_AUTOSAVE)
+         newcmd = queryprofile( app_hini, appname, INI_AUTOSAVE)
          if newcmd<>'' then
-            .autosave=newcmd
-            vDEFAULT_AUTOSAVE=newcmd
+            .autosave = newcmd
+            vDEFAULT_AUTOSAVE = newcmd
          endif
-         newcmd=queryprofile( app_hini, appname, INI_TABS)
+         newcmd = queryprofile( app_hini, appname, INI_TABS)
          if newcmd then
-            .tabs=newcmd; vDEFAULT_TABS=newcmd
+            .tabs = newcmd; vDEFAULT_TABS = newcmd
          endif
-         newcmd=queryprofile( app_hini, appname, INI_TEMPPATH)
+         newcmd = queryprofile( app_hini, appname, INI_TEMPPATH)
          if newcmd then
-            vTEMP_PATH=newcmd
+            vTEMP_PATH = newcmd
             if rightstr(vTemp_Path,1)<>'\' then
                vTemp_Path = vTemp_Path'\'          -- Must end with a backslash.
             endif
             if not verify(vTEMP_FILENAME,':\','M') then   -- if not fully qualified
-               vTEMP_FILENAME=vTEMP_PATH||vTEMP_FILENAME
+               vTEMP_FILENAME = vTEMP_PATH||vTEMP_FILENAME
             endif
          endif
-         newcmd=queryprofile( app_hini, appname, INI_AUTOSPATH)
+         newcmd = queryprofile( app_hini, appname, INI_AUTOSPATH)
          if newcmd then
-            vAUTOSAVE_PATH=newcmd
+            vAUTOSAVE_PATH = newcmd
             if rightstr(vAUTOSAVE_Path,1)<>'\' then
                vAUTOSAVE_Path = vAUTOSAVE_Path'\'  -- Must end with a backslash.
             endif
- compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH)
-            savepath=vAUTOSAVE_PATH
+ compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined(my_SAVEPATH)
+            savepath = vAUTOSAVE_PATH
  compile endif
          endif
-         newcmd=queryprofile( app_hini, appname, INI_DICTIONARY)
+         newcmd = queryprofile( app_hini, appname, INI_DICTIONARY)
          if newcmd then
-            DICTIONARY_FILENAME=newcmd
+            DICTIONARY_FILENAME = newcmd
          endif
-         newcmd=queryprofile( app_hini, appname, INI_ADDENDA)
+         newcmd = queryprofile( app_hini, appname, INI_ADDENDA)
          if newcmd then
-            ADDENDA_FILENAME=newcmd
+            ADDENDA_FILENAME = newcmd
          endif
       endif  -- newcmd
 
           -- Options from Option pulldown
-      newcmd=queryprofile( app_hini, appname, INI_OPTFLAGS)
+      newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
  compile if WPS_SUPPORT
    endif  -- wpshell_handle
  compile endif
-   if newcmd='' then
+   if newcmd = '' then
       optflag_extrastuff = ''
  compile if not defined(WANT_BITMAP_BACKGROUND)
       new_bitmap = 1
@@ -2082,7 +2085,7 @@ defc initconfig
       if drop_style <> '' then
          'toggleframe 8192' drop_style
       endif
-      if new_bitmap='' then
+      if new_bitmap = '' then
  compile if not defined(WANT_BITMAP_BACKGROUND)
          new_bitmap = 1
  compile else
@@ -2097,12 +2100,12 @@ defc initconfig
  compile if WANT_STREAM_MODE = 'SWITCH'
       if streamflg<>stream_mode then 'stream_toggle'; endif
  compile endif
- compile if WANT_LONGNAMES='SWITCH'
+ compile if WANT_LONGNAMES = 'SWITCH'
       if longnames<>'' then
          SHOW_LONGNAMES = longnames
       endif
  compile endif
- compile if WANT_PROFILE='SWITCH'
+ compile if WANT_PROFILE = 'SWITCH'
       if PROFILE<>'' then
          REXX_PROFILE = PROFILE
       endif
@@ -2125,26 +2128,26 @@ defc initconfig
          'toggle_bitmap'
       endif
  compile if WANT_STREAM_MODE <> 1 and ENHANCED_ENTER_KEYS
-      newcmd=queryprofile( app_hini, appname, INI_ENTERKEYS)
+      newcmd = queryprofile( app_hini, appname, INI_ENTERKEYS)
       if newcmd<>'' then
          parse value newcmd with enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey .
       endif
  compile endif
-      newcmd=queryprofile( app_hini, appname, INI_STATUSFONT)
+      newcmd = queryprofile( app_hini, appname, INI_STATUSFONT)
       if newcmd<>'' then
          statfont = newcmd  -- Need to keep?
          parse value newcmd with psize"."facename"."attr
          "setstatface" getpminfo(EPMINFO_EDITSTATUSHWND) facename
          "setstatptsize" getpminfo(EPMINFO_EDITSTATUSHWND) psize
       endif
-      newcmd=queryprofile( app_hini, appname, INI_MESSAGEFONT)
+      newcmd = queryprofile( app_hini, appname, INI_MESSAGEFONT)
       if newcmd<>'' then
          msgfont = newcmd   -- Need to keep?
          parse value newcmd with psize"."facename"."attr
          "setstatface" getpminfo(EPMINFO_EDITMSGHWND) facename
          "setstatptsize" getpminfo(EPMINFO_EDITMSGHWND) psize
       endif
-      newcmd=queryprofile( app_hini, appname, INI_BITMAP)
+      newcmd = queryprofile( app_hini, appname, INI_BITMAP)
       if newcmd<>'' then
          bm_filename = newcmd  -- Need to keep?
          if bitmap_present then
@@ -2171,9 +2174,9 @@ defc initconfig
   compile if DYNAMIC_CURSOR_STYLE
       'cursor_style' (cursor_shape+1)
   compile else
-      if cursor_shape=0 then  -- Vertical bar
+      if cursor_shape = 0 then  -- Vertical bar
          cursordimensions = '-128.-128 2.-128'
-      elseif cursor_shape=1 then  -- Underline cursor
+      elseif cursor_shape = 1 then  -- Underline cursor
          cursordimensions = '-128.3 -128.-64'
       endif
       call fixup_cursor()
@@ -2184,10 +2187,10 @@ defc initconfig
  compile if WPS_SUPPORT
    if not (wpshell_handle & useWPS) then
  compile endif
-      newcmd =queryprofile( app_hini, appname, INI_FONT)
+      newcmd = queryprofile( app_hini, appname, INI_FONT)
       parse value newcmd with fontname '.' fontsize '.' fontsel
       if newcmd<>'' then
-         .font=registerfont(fontname, fontsize, fontsel)
+         .font = registerfont(fontname, fontsize, fontsel)
          default_font = .font
       endif
  compile if WPS_SUPPORT
@@ -2217,7 +2220,7 @@ defproc load_wps_config(shared_mem)
    universal vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE, vDEFAULT_TABS, vSTATUSCOLOR,  vMESSAGECOLOR,vAUTOSAVE_PATH
    universal vTEMP_PATH, vTEMP_FILENAME, DICTIONARY_FILENAME, ADDENDA_FILENAME
    universal default_font
-  compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL')
+  compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL')
    universal savepath
   compile endif
   compile if ENHANCED_ENTER_KEYS
@@ -2227,8 +2230,8 @@ defproc load_wps_config(shared_mem)
    universal bitmap_present, bm_filename
 /* shared_memx = "x'"ltoa(atol(shared_mem), 16)"'"                                                                                                                                        */
 /*    thisptr = ''                                                                                                                                                                        */
-/*    do i=1 to 14                                                                                                                                                                        */
-/*         thisptr = thisptr i"=x'"ltoa(peek32(shared_mem, i*4, 4), 16)"'"                                                                                                                */
+/*    do i = 1 to 14                                                                                                                                                                        */
+/*         thisptr = thisptr i" = x'"ltoa(peek32(shared_mem, i*4, 4), 16)"'"                                                                                                                */
 /*    enddo                                                                                                                                                                               */
 /* call winmessagebox('load_wps_config('shared_memx') pointers', thisptr, 16432) -- MB_OK + MB_INFORMATION + MB_MOVEABLE                                                                  */
 ;  if rc then
@@ -2274,8 +2277,8 @@ defproc load_wps_config(shared_mem)
    if vAUTOSAVE_PATH & rightstr(vAUTOSAVE_Path,1)<>'\' then
       vAUTOSAVE_Path = vAUTOSAVE_Path'\'  -- Must end with a backslash.
    endif
-  compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH)
-   savepath=vAUTOSAVE_PATH
+  compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined(my_SAVEPATH)
+   savepath = vAUTOSAVE_PATH
   compile endif
 /** sayerror '9:  AutosavePath set OK:' peekz(this_ptr) */
 ; Key 10
@@ -2285,7 +2288,7 @@ defproc load_wps_config(shared_mem)
       vTemp_Path = vTemp_Path'\'          -- Must end with a backslash.
    endif
    if not verify(vTEMP_FILENAME,':\','M') then   -- if not fully qualified
-      vTEMP_FILENAME=vTEMP_PATH||vTEMP_FILENAME
+      vTEMP_FILENAME = vTEMP_PATH||vTEMP_FILENAME
    endif
 /** sayerror '10:  TempPath set OK:' peekz(this_ptr) */
 ; Key 11
@@ -2312,9 +2315,9 @@ defproc load_wps_config(shared_mem)
    this_ptr = peek32(shared_mem, 96, 4); -- if this_ptr = \0\0\0\0 then return; endif
 /** call winmessagebox('load_wps_config('shared_memx')', '13th pointer -> "'peekz(this_ptr)'"', 16432) */
    parse value peekz(this_ptr) with fontname '.' fontsize '.' fontsel '.'
-/*  sayerror 'data = "'peekz(this_ptr)'"; fontname = "'fontname'"; fontsize="'fontsize'"; fontsel="'fontsel'"'  */
-   .font=registerfont(fontname, fontsize, fontsel); default_font = .font
-/*  sayerror '24:  Font set OK:' peekz(this_ptr) '.font =' default_font  */
+/*  sayerror 'data = "'peekz(this_ptr)'"; fontname = "'fontname'"; fontsize = "'fontsize'"; fontsel = "'fontsel'"'  */
+   .font = registerfont(fontname, fontsize, fontsel); default_font = .font
+/*  sayerror '24:  Font set OK:' peekz(this_ptr) '.font = ' default_font  */
   compile if ENHANCED_ENTER_KEYS
 ; Key 14
    this_ptr = peek32(shared_mem, 56, 4); -- if this_ptr = \0\0\0\0 then return; endif
@@ -2335,7 +2338,7 @@ defproc load_wps_config(shared_mem)
    this_ptr = peek32(shared_mem, 100, 4); -- if this_ptr = \0\0\0\0 then return; endif
 /** call winmessagebox('load_wps_config('shared_memx')', '25th pointer -> "'peekz(this_ptr)'"', 16432) */
    parse value peekz(this_ptr) with fontname '.' fontsize '.' fontsel '.'
-/*  sayerror 'data = "'peekz(this_ptr)'"; fontname = "'fontname'"; fontsize="'fontsize'"; fontsel="'fontsel'"'  */
+/*  sayerror 'data = "'peekz(this_ptr)'"; fontname = "'fontname'"; fontsize = "'fontsize'"; fontsel = "'fontsel'"'  */
    statfont = fontsize'.'fontname'.'fontsel
    "setstatface" getpminfo(EPMINFO_EDITSTATUSHWND) fontname
    "setstatptsize" getpminfo(EPMINFO_EDITSTATUSHWND) fontsize
@@ -2343,7 +2346,7 @@ defproc load_wps_config(shared_mem)
    this_ptr = peek32(shared_mem, 104, 4); -- if this_ptr = \0\0\0\0 then return; endif
 /** call winmessagebox('load_wps_config('shared_memx')', '26th pointer -> "'peekz(this_ptr)'"', 16432) */
    parse value peekz(this_ptr) with fontname '.' fontsize '.' fontsel '.'
-/*  sayerror 'data = "'peekz(this_ptr)'"; fontname = "'fontname'"; fontsize="'fontsize'"; fontsel="'fontsel'"'  */
+/*  sayerror 'data = "'peekz(this_ptr)'"; fontname = "'fontname'"; fontsize = "'fontsize'"; fontsel = "'fontsel'"'  */
    msgfont = fontsize'.'fontname'.'fontsel
    "setstatface" getpminfo(EPMINFO_EDITMSGHWND) fontname
    "setstatptsize" getpminfo(EPMINFO_EDITMSGHWND) fontsize
@@ -2365,7 +2368,7 @@ defc refresh_config
   compile if RING_OPTIONAL
    universal ring_enabled
   compile endif
-  compile if WANT_LONGNAMES='SWITCH'
+  compile if WANT_LONGNAMES = 'SWITCH'
    universal SHOW_LONGNAMES
   compile endif
   compile if TOGGLE_ESCAPE
@@ -2374,7 +2377,7 @@ defc refresh_config
   compile if TOGGLE_TAB
    universal TAB_KEY
   compile endif
-  compile if WANT_PROFILE='SWITCH'
+  compile if WANT_PROFILE = 'SWITCH'
    universal REXX_PROFILE
   compile endif
   compile if WANT_DYNAMIC_PROMPTS
@@ -2410,7 +2413,7 @@ defc refresh_config
          'stream_toggle'
       endif
   compile endif
-  compile if WANT_LONGNAMES='SWITCH'
+  compile if WANT_LONGNAMES = 'SWITCH'
       SHOW_LONGNAMES = longnames
   compile endif
 ;compile if TOGGLE_ESCAPE
@@ -2422,9 +2425,9 @@ defc refresh_config
    compile if DYNAMIC_CURSOR_STYLE
       'cursor_style' (cursor_shape+1)
    compile else
-      if cursor_shape=0 then  -- Vertical bar
+      if cursor_shape = 0 then  -- Vertical bar
          cursordimensions = '-128.-128 2.-128'
-      elseif cursor_shape=1 then  -- Underline cursor
+      elseif cursor_shape = 1 then  -- Underline cursor
          cursordimensions = '-128.3 -128.-64'
       endif
       call fixup_cursor()
@@ -2486,10 +2489,10 @@ defc saveoptions
  compile if WANT_STREAM_MODE = 'SWITCH'
    universal stream_mode
  compile endif
- compile if WANT_LONGNAMES='SWITCH'
+ compile if WANT_LONGNAMES = 'SWITCH'
    universal SHOW_LONGNAMES
  compile endif
- compile if WANT_PROFILE='SWITCH'
+ compile if WANT_PROFILE = 'SWITCH'
    universal REXX_PROFILE
  compile endif
  compile if TOGGLE_ESCAPE
@@ -2529,7 +2532,7 @@ defc saveoptions
    call setprofile(app_hini, appname, INI_OPTFLAGS,
       queryframecontrol(1) queryframecontrol(2) queryframecontrol(8) queryframecontrol(16) queryframecontrol(64) queryframecontrol(4) queryframecontrol(32) CUA_marking_switch menu_prompt stream_mode show_longnames rexx_profile escape_key tab_key ||
       ' 'bitmap_present queryframecontrol(EFRAMEF_TOOLBAR) queryframecontrol(8192) optflag_extrastuff)
-   if arg(1)='OptOnly' then
+   if arg(1) = 'OptOnly' then
       return
    endif
  compile if RING_OPTIONAL
@@ -2632,34 +2635,34 @@ compile endif  -- WANT_APPLICATION_INI_FILE
 */
 defc PROCESSDRAGDROP
    parse arg cmdid hwnd
-;  hwnd=atol_swap(hwnd)
+;  hwnd = atol_swap(hwnd)
 
-   if cmdid=10 then
+   if cmdid = 10 then
     call windowmessage(0,
                        getpminfo(APP_HANDLE),
                        5144,               -- EPM_PRINTDLG
-                       hwnd='M',
+                       hwnd = 'M',
                        0)
-   elseif cmdid=1 and hwnd<>getpminfo(EPMINFO_EDITFRAME) and leftstr(.filename,1)<>'.' then
+   elseif cmdid = 1 and hwnd<>getpminfo(EPMINFO_EDITFRAME) and leftstr(.filename,1)<>'.' then
       call PostCmdToEditWindow('e '.filename,hwnd,9,2)  -- Get-able
-   elseif cmdid=3 then
-      if .filename=GetUnnamedFilename() then name=''; else name=.filename; endif
+   elseif cmdid = 3 then
+      if .filename = GetUnnamedFilename() then name = ''; else name = .filename; endif
       call windowmessage(0,  getpminfo(APP_HANDLE),
                          5386,                   -- EPM_EDIT_NEWFILE
                          put_in_buffer(name,2),  -- share = GETable
                          9)                      -- EPM does a GET first & a FREE after.
-   elseif cmdid=4 then
+   elseif cmdid = 4 then
       call winmessagebox(SYS_ED__MSG,SYS_ED1__MSG\10'   :-)', 16406) -- CANCEL + ICONQUESTION + MB_MOVEABLE
-   elseif cmdid=5 then
-      str=leftstr('',MAXCOL)
-      len= dynalink32( 'PMWIN',
-                       '#841',             --   'WINQUERYWINDOWTEXT',
-                       atol(hwnd)         ||
-                       atol(MAXCOL)       ||
-                       address(str), 2)
+   elseif cmdid = 5 then
+      str = leftstr('',MAXCOL)
+      len = dynalink32( 'PMWIN',
+                        '#841',             --   'WINQUERYWINDOWTEXT',
+                        atol(hwnd)         ||
+                        atol(MAXCOL)       ||
+                        address(str), 2)
       p = lastpos('\',leftstr(str,len))
       if p then
-         str = leftstr(str,p)'='
+         str = leftstr(str,p)' = '
          call parse_filename(str, .filename)
          if exist(str) then
             if 1<>winmessagebox(str, EXISTS_OVERLAY__MSG, 16417) then -- OKCANCEL + CUANWARNING + MOVEABLE
@@ -2700,7 +2703,7 @@ defproc repaint_window()
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defc saveas_dlg
-compile if WANT_LONGNAMES='SWITCH'
+compile if WANT_LONGNAMES = 'SWITCH'
    universal SHOW_LONGNAMES
 compile endif
 compile if WANT_LAN_SUPPORT
@@ -2711,8 +2714,8 @@ compile if WANT_LAN_SUPPORT
 compile endif
    AskIfExists = (arg(1) <> 0)-- new optional arg, 0 => no EXIST_OVERLAY__MSG, used by def f2 if SMARTSAVE
    if not saveas_dlg(name, type, AskIfExists) then
-      if leftstr(name,1)='"' & rightstr(name,1)='"' then
-         name=substr(name,2,length(name)-2)
+      if leftstr(name,1) = '"' & rightstr(name,1) = '"' then
+         name = substr(name,2,length(name)-2)
       endif
       autosave_name = MakeTempName()
       oldname = .filename
@@ -2720,11 +2723,11 @@ compile endif
       if get_EAT_ASCII_value('.LONGNAME')<>'' & upcase(oldname)<>upcase(name) then
          call delete_ea('.LONGNAME')
 compile if WANT_LONGNAMES
- compile if WANT_LONGNAMES='SWITCH'
+ compile if WANT_LONGNAMES = 'SWITCH'
          if SHOW_LONGNAMES then
  compile endif
             .titletext = ''
- compile if WANT_LONGNAMES='SWITCH'
+ compile if WANT_LONGNAMES = 'SWITCH'
          endif
  compile endif
 compile endif  -- WANT_LONGNAMES
@@ -2749,21 +2752,21 @@ compile endif
 
 defproc saveas_dlg(var name, var type)
    type = copies(\0,255)
-   if .filename=GetUnnamedFilename() then
+   if .filename = GetUnnamedFilename() then
       name = type
    else
       name = leftstr(.filename,255,\0)
    endif
    AskIfExists = (arg(3) = 0)  -- optional 3rd arg, 0: no EXIST_OVERLAY__MSG, used by def f2 if SMARTSAVE
 
-   res= dynalink32( ERES2_DLL,                -- library name
-                    'ERESSaveas',              -- function name
-                    gethwndc(EPMINFO_EDITCLIENT)  ||
-                    gethwndc(APP_HANDLE)          ||
-                    address(name)                 ||
-                    address(type) )
-; Return codes:  0=OK; 1=memory problem; 2=bad string; 3=couldn't load control from DLL
-   if res=2 then      -- File dialog didn't like the .filename;
+   res = dynalink32( ERES2_DLL,                -- library name
+                     'ERESSaveas',              -- function name
+                     gethwndc(EPMINFO_EDITCLIENT)  ||
+                     gethwndc(APP_HANDLE)          ||
+                     address(name)                 ||
+                     address(type) )
+; Return codes:  0 = OK; 1 = memory problem; 2 = bad string; 3 = couldn't load control from DLL
+   if res = 2 then      -- File dialog didn't like the .filename;
       name = copies(\0,255)  -- try again with no file name
       call dynalink32( ERES2_DLL,                -- library name
                        'ERESSaveas',              -- function name
@@ -2774,7 +2777,7 @@ defproc saveas_dlg(var name, var type)
    endif
    parse value name with name \0
    parse value type with type \0
-   if name='' then return -275; endif  -- sayerror('Missing filename')
+   if name = '' then return -275; endif  -- sayerror('Missing filename')
    if exist(name) & AskIfExists then
       if 1<>winmessagebox( SAVE_AS__MSG,
                            name\10\10||EXISTS_OVERLAY__MSG,
@@ -2802,7 +2805,7 @@ defproc showwindow
                       upcase(arg(1))<>'OFF', -- 0 if OFF, else 1
                       0)
 
-; Moved defproc settitle.text from STDCTRL.E to STATLINE.E to INFOLINE.E
+; Moved defproc settitletext from STDCTRL.E to STATLINE.E to INFOLINE.E
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
@@ -2817,10 +2820,10 @@ defproc winmessagebox(caption, text)
 
 ; msgtype = 4096                                        -- must be system modal.
 ; if arg(3) then
-;    msgtype=arg(3) + 4096 * (1 - (arg(3)%4096 - 2 * (arg(3)%8192)))  -- ensure x'1000' on
+;    msgtype = arg(3) + 4096 * (1 - (arg(3)%4096 - 2 * (arg(3)%8192)))  -- ensure x'1000' on
 ; endif
   if arg(3) then
-     msgtype=arg(3)
+     msgtype = arg(3)
   else
      msgtype = 0
   endif
@@ -2850,7 +2853,7 @@ defproc winmessagebox(caption, text)
 -- Todo:
 -- Move this to FILELIST.E
 defc Ring_More
-   if filesinring()=1 then
+   if filesinring() = 1 then
       sayerror ONLY_FILE__MSG
       return
    endif
@@ -2868,7 +2871,7 @@ defproc gethwnd(w)
 
    /* String handling in E language :                                 */
    /*    EditHwnd = '1235:1234'   <-  address in string form          */
-   /*    atol(EditHwnd)= '11GF'   <-  four byte pointer, represented  */
+   /*    atol(EditHwnd) = '11GF'  <-  four byte pointer, represented  */
    /*                                 as its ascii character          */
    /*                                 equivalent.                     */
    /*    Flipping (substr(...) ) <-  places 4 bytes in correct order. */
@@ -2938,7 +2941,7 @@ compile endif  -- WANT_DM_BUFFER
    elseif mt = 'P' then    -- Print marked area
       call checkmark()     -- verify there is a marked area,
 ;compile if ENHANCED_PRINT_SUPPORT  -- DUPMARK P is only called if no enhanced print support
-;      printer=get_printer()
+;      printer = get_printer()
 ;      if printer<>'' then 'print' printer; endif
 ;compile else
       'print'              -- then print it.
@@ -2973,7 +2976,7 @@ defexit
    universal defaultmenu
 
    deletemenu defaultmenu
-   defaultmenu=''
+   defaultmenu = ''
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴�
@@ -2994,25 +2997,25 @@ defc processcommand
    universal activemenu
 
    menuid = arg(1)
-   if menuid='' then
+   if menuid = '' then
       sayerror PROCESS_ERROR__MSG
       return
    endif
 
    -- first test if command was generated by the
    -- next/prev buttons on the editor frame.
-   if menuid=44 then
+   if menuid = 44 then
       nextfile
-   elseif menuid=45 then
+   elseif menuid = 45 then
       prevfile
-   elseif menuid=8101 then  -- Temporarily hardcode this
+   elseif menuid = 8101 then  -- Temporarily hardcode this
       'configdlg SYS'
    else
-      accelstr=queryaccelstring(activeaccel, menuid)
+      accelstr = queryaccelstring(activeaccel, menuid)
       if accelstr<>'' then
          accelstr
       else
-         if activemenu='' then
+         if activemenu = '' then
 ;;          sayerror MENU_ERROR__MSG '- ProcessCommand' arg(1)
             return
          endif
@@ -3026,7 +3029,7 @@ compile if    0
 defc processaccel
    universal activeaccel
    menuid = arg(1)
-   if menuid='' then
+   if menuid = '' then
       sayerror PROCESS_ERROR__MSG
       return
    endif
@@ -3049,7 +3052,7 @@ compile if INCLUDE_MENU_SUPPORT
       previouslyactivemenu = ''
    endif
  compile if WANT_DYNAMIC_PROMPTS
-   if menuid='' | activemenu='' | not menu_prompt then
+   if menuid = '' | activemenu = '' | not menu_prompt then
       sayerror 0
       return
    endif
@@ -3132,7 +3135,7 @@ defc menuinit_8
       undoaction 6, StateRange               -- query range
       parse value staterange with oldeststate neweststate .
       SetMenuAttribute( 818, 16384, oldeststate<>neweststate )  -- Set to 1 if different
-      paste = clipcheck(format) & (format=1024) & not (browse() | .readonly)
+      paste = clipcheck(format) & (format = 1024) & not (browse() | .readonly)
       SetMenuAttribute( 810, 16384, paste)
       SetMenuAttribute( 811, 16384, paste)
       SetMenuAttribute( 812, 16384, paste)
@@ -3141,7 +3144,7 @@ defc menuinit_8
       if not on then                             -- Only check buffer if no mark
          bufhndl = buffer(OPENBUF, EPMSHAREDBUFFER)
          if bufhndl then                         -- If the buffer exists, check the
-            buf_flag=itoa(peek(bufhndl,2,2),10)  -- amount of used space in buffer
+            buf_flag = itoa(peek(bufhndl,2,2),10)  -- amount of used space in buffer
             call buffer(FREEBUF, bufhndl)        -- then free it.
          endif
       endif
@@ -3292,7 +3295,7 @@ compile endif -- not defined(STD_MENU_NAME)
 ;    -  STDMENU.E: defproc add_command_menu
 ; Since in FEVSHMNU.E the file menu gets the id = 1 and the shell actions are defined
 ; as submenuitems of File->Command, following is not important:
-;    -  EPMSHELL.E: defc shell if WANT_EPM_SHELL='HIDDEN' & not defined(STD_MENU_NAME).
+;    -  EPMSHELL.E: defc shell if WANT_EPM_SHELL = 'HIDDEN' & not defined(STD_MENU_NAME).
 ; Unfortunately the command name includes the id. Maybe we'll change this in future.
 defc menuinit_0
 compile if WANT_EPM_SHELL & INCLUDE_STD_MENUS
@@ -3321,7 +3324,7 @@ defproc SetMenuAttribute( menuid, attr, on)
 ;     EditMenuHwnd = getpminfo(EPMINFO_EDITMENUHWND)  -- cache; relatively expensive to obtain.
 ;  endif
    if not on then
-      attr=mpfrom2short(attr, attr)
+      attr = mpfrom2short(attr, attr)
    endif
    call windowmessage(1,
 ;                     EditMenuHwnd,  -- Doesn't work; EditMenuHwnd changes.
@@ -3352,7 +3355,7 @@ defc printdlg
    call windowmessage(0,
                       getpminfo(APP_HANDLE),
                       5144,               -- EPM_PRINTDLG
-                      arg(1)='M',
+                      arg(1) = 'M',
                       0)
 
 defc printfile
@@ -3364,7 +3367,7 @@ defc process_qprint
 compile if EPM_POINTER = 'SWITCH'
    universal vEPM_POINTER
 compile endif
-   if arg(1)='' then
+   if arg(1) = '' then
       sayerror PRINTER__MSG /*printername*/ NO_QUEUE__MSG
    else
       mouse_setpointer WAIT_POINTER
@@ -3415,6 +3418,7 @@ defc stream_toggle
    universal stream_mode
    stream_mode = not stream_mode
    'togglecontrol 24' stream_mode
+   'RefreshInfoLine STREAMMODE'
  compile if WANT_NODISMISS_MENUS & INCLUDE_STD_MENUS & not defined(STD_MENU_NAME)
    SetMenuAttribute( 442, 8192, not stream_mode)
  compile endif  -- WANT_NODISMISS_MENUS & INCLUDE_STD_MENUS
@@ -3431,7 +3435,7 @@ defc ring_toggle
    deletemenu defaultmenu, 2, 0, 1                  -- Delete the file menu
    call add_file_menu(defaultmenu)
    deletemenu defaultmenu, 4, 0, 1                  -- Delete the options menu
-   call add_options_menu(defaultmenu, dos_version()>=1020)
+   call add_options_menu(defaultmenu, dos_version() >= 1020)
    call maybe_show_menu()
   compile elseif STD_MENU_NAME = 'ovshmenu.e'
    deletemenu defaultmenu, 1, 0, 1                  -- Delete the file menu
@@ -3473,7 +3477,7 @@ defc accel_toggle
  compile if not defined(STD_MENU_NAME)
    deletemenu defaultmenu, 8, 0, 1                  -- Delete the edit menu
    call add_edit_menu(defaultmenu)
-   if activemenu=defaultmenu  then
+   if activemenu = defaultmenu  then
   compile if 0   -- Don't need to actually show the menu; can just update the affected text.
       showmenu activemenu
   compile else
@@ -3483,7 +3487,7 @@ defc accel_toggle
  compile elseif STD_MENU_NAME = 'ovshmenu.e'
    deletemenu defaultmenu, 3, 0, 1                  -- Delete the selected menu
    call add_selected_menu(defaultmenu)
-   if activemenu=defaultmenu  then
+   if activemenu = defaultmenu  then
   compile if 0   -- Don't need to actually show the menu; can just update the affected text.
       showmenu activemenu
   compile else
@@ -3499,13 +3503,13 @@ compile endif
 defc helpmenu   -- send EPM icon window a help message.
    call windowmessage(0,  getpminfo(APP_HANDLE),
                       5133,      -- EPM_HelpMgrPanel
-                      arg(1),    -- mp1 = 0=Help for help, 1=index; 2=TOC; 256... =panel #
+                      arg(1),    -- mp1 = 0 = Help for help, 1 = index; 2 = TOC; 256... = panel #
                       0)         -- mp2 = NULL
 
 defc ibmmsg
    ever = EVERSION
    if \0 = rightstr(EVERSION,1) then
-      ever=leftstr(EVERSION,length(eversion)-1)
+      ever = leftstr(EVERSION,length(eversion)-1)
    endif
    call WinMessageBox( EDITOR__MSG,
                        EDITOR_VER__MSG ver(0)\13 ||
@@ -3527,13 +3531,13 @@ defproc LoadVersionString(var buff, var modname)
    endif
 
    buff = copies(\0, 255)
-   res= dynalink32('PMWIN',
-                   '#781',  -- Win32LoadString
-                   gethwndc(EPMINFO_HAB)  ||
-                   hmodule                ||  -- NULLHANDLE
-                   atol(65535)            ||  -- IDD_BUILDDATE
-                   atol(length(buff))     ||
-                   address(buff), 2 )
+   res = dynalink32( 'PMWIN',
+                     '#781',  -- Win32LoadString
+                     gethwndc(EPMINFO_HAB)  ||
+                     hmodule                ||  -- NULLHANDLE
+                     atol(65535)            ||  -- IDD_BUILDDATE
+                     atol(length(buff))     ||
+                     address(buff), 2 )
    buff = leftstr(buff, res)
 
    if arg(3) then
@@ -3596,20 +3600,20 @@ defproc find_epm_exec =
    return peekz(peek32(ltoa(pib, 10), 12, 4))
 
 defproc put_in_buffer(string)
-   if string='' then                   -- Was a string given?
+   if string = '' then                   -- Was a string given?
       return 0                         -- If not, return a null pointer.
    endif
-   if arg(2)='' then
-      share=83  -- PAG_READ | PAG_WRITE | PAG_COMMIT | OBJ_TILE
+   if arg(2) = '' then
+      share = 83  -- PAG_READ | PAG_WRITE | PAG_COMMIT | OBJ_TILE
    else
-      share=arg(2)
+      share = arg(2)
    endif
    strbuffer = "????"                  -- Initialize string pointer.
-   r =  dynalink32( 'DOSCALLS',          -- Dynamic link library name
-                    '#299',                    -- Dos32AllocMem
-                    address(strbuffer)     ||
-                    atol(length(string)+1) ||  -- Number of bytes requested
-                    atol(share))               -- Share information
+   r = dynalink32( 'DOSCALLS',          -- Dynamic link library name
+                   '#299',                    -- Dos32AllocMem
+                   address(strbuffer)     ||
+                   atol(length(string)+1) ||  -- Number of bytes requested
+                   atol(share))               -- Share information
 
    if r then sayerror ERROR__MSG r ALLOC_HALTED__MSG; stop; endif
    strbuffer = itoa(substr(strbuffer,3,2),10)
@@ -3620,7 +3624,7 @@ defproc put_in_buffer(string)
 
 defc loadaccel
    universal activeaccel
-   activeaccel='defaccel'
+   activeaccel = 'defaccel'
 compile if INCLUDE_MENU_SUPPORT & INCLUDE_STD_MENUS
                        -- Help key
 ;; buildacceltable activeaccel, 'helpmenu 4000', AF_VIRTUALKEY, VK_F1, 1000
@@ -3646,7 +3650,12 @@ compile endif
    activateacceltable activeaccel
 
 compile if defined(BLOCK_ALT_KEY)
-defc beep = a=arg(1); do while a<>''; parse value a with pitch duration a; call beep(pitch, duration); enddo
+defc beep =
+   a = arg(1)
+   do while a <> ''
+      parse value a with pitch duration a
+      call beep(pitch, duration)
+   enddo
 compile endif
 
 defc alt_enter =
@@ -3666,7 +3675,7 @@ defc keyin
 
 defc rename
    name = .filename
-   if name=GetUnnamedFilename() then name=''; endif
+   if name = GetUnnamedFilename() then name = ''; endif
    parse value entrybox( RENAME__MSG,
                          '',
                          name,
@@ -3675,7 +3684,7 @@ defc rename
                          -- atoi(1) || atoi(0) || gethwndc(APP_HANDLE) ||
                          atoi(1) || atoi(0) || atol(0) ||
                          RENAME_PROMPT__MSG '<' directory() '>') with button 2 name \0
-   if button=\1 & name<>'' then 'name' name; endif
+   if button = \1 & name<>'' then 'name' name; endif
 
 defc maybe_reflow_ALL
    do i = 1 to .last
@@ -3722,10 +3731,10 @@ compile endif
 defc setmessageline
    universal vMESSAGECOLOR
    if arg(1) then
-      template=atoi(length(arg(1))) || arg(1)
-      template_ptr=put_in_buffer(template)
+      template = atoi(length(arg(1))) || arg(1)
+      template_ptr = put_in_buffer(template)
    else
-      template_ptr=0
+      template_ptr = 0
    endif
    call windowmessage(1,  getpminfo(EPMINFO_EDITCLIENT),
                       5432,      -- EPM_FRAME_MESSAGELINE
@@ -3742,7 +3751,7 @@ defc new
    'quit'
    getfileid curfid
    activatefile newfid
-   if curfid=startfid then  -- Wasn't quit; user must have said Cancel to Quit dlg
+   if curfid = startfid then  -- Wasn't quit; user must have said Cancel to Quit dlg
       'xcom quit'
    endif
 
@@ -3802,7 +3811,7 @@ defproc SetCurrentHLPFiles(newlist)
                       5429,      -- EPM_Edit_Query_Help_Instance
                       0,
                       0)
-   if hwndHelpInst==0 then
+   if hwndHelpInst == 0 then
       -- there isn't a help instance deal with.
       return "No Help Instance";
    endif
@@ -3812,13 +3821,13 @@ defproc SetCurrentHLPFiles(newlist)
                        557,    -- HM_SET_HELP_LIBRARY_NAME
                        ltoa(offset(newlist2) || selector(newlist2), 10),
                        0)
-   if retval==0 then
+   if retval == 0 then
       -- it worked, now remember what you told it.
       CurrentHLPFiles = newlist;
    else
       -- failed for some reason, anyway, we had better revert to
       --   the previous version of the HLP list.
-      if CurrentHLPFiles=="" then
+      if CurrentHLPFiles == "" then
          CurrentHLPFiles = " ";
       endif
       newlist2 = CurrentHLPFiles || chr(0);
@@ -3826,7 +3835,7 @@ defproc SetCurrentHLPFiles(newlist)
                           557,    -- HM_SET_HELP_LIBRARY_NAME
                           ltoa(offset(newlist2) || selector(newlist2), 10),
                           0)
-      if retval2==0 then
+      if retval2 == 0 then
          -- whew, we were able to revert to the old list
          return retval;
       else
@@ -3845,7 +3854,7 @@ defc processendscroll
    universal beginscroll_x, beginscroll_y;
    .cursorx = beginscroll_x;
    .cursory = beginscroll_y;
-   if not .line & .last then .lineg=1; endif
+   if not .line & .last then .lineg = 1; endif
 
 defc processbeginscroll
    universal beginscroll_x, beginscroll_y;
@@ -3857,42 +3866,42 @@ defc setpresparam
    universal statfont, msgfont
    universal vSTATUSCOLOR, vMESSAGECOLOR, vDESKTOPColor
    parse value arg(1) with whichctrl " hwnd="hwnd " x="x "y="y rest
-   if (whichctrl=="STATFONTSIZENAME") or (whichctrl=="MSGFONTSIZENAME") then
+   if (whichctrl == "STATFONTSIZENAME") or (whichctrl == "MSGFONTSIZENAME") then
       parse value rest with "string="psize"."facename"."attr
       -- psize is pointsize, facename is facename, attr is "Bold" etc
       "setstatface" hwnd facename
       "setstatptsize" hwnd psize
-      if leftstr(whichctrl,1)='S' then  -- "STATFONTSIZENAME"
+      if leftstr(whichctrl,1) = 'S' then  -- "STATFONTSIZENAME"
          statfont = substr(rest,8)
       else                              -- "MSGFONTSIZENAME"
          msgfont = substr(rest,8)
          sayerror MESSAGELINE_FONT__MSG
       endif
-   elseif (whichctrl=="STATFGCOLOR") or (whichctrl=="MSGFGCOLOR") then
+   elseif (whichctrl == "STATFGCOLOR") or (whichctrl == "MSGFGCOLOR") then
       parse value rest with "rgb="rgb "clrattr="clrattr "oldfgattr="oldfgattr "oldbgattr="oldbgattr
       call windowmessage(0,  hwnd,
                          4099,      -- STATWNDM_SETCOLOR
                          clrattr,
                          oldbgattr)
-      if leftstr(whichctrl,1)='M' then
+      if leftstr(whichctrl,1) = 'M' then
          sayerror MESSAGELINE_FGCOLOR__MSG
          vMESSAGECOLOR = clrattr + 16 * oldbgattr
       else
          vSTATUSCOLOR = clrattr  + 16 * oldbgattr
       endif
-   elseif (whichctrl=="STATBGCOLOR") or (whichctrl=="MSGBGCOLOR") then
+   elseif (whichctrl == "STATBGCOLOR") or (whichctrl == "MSGBGCOLOR") then
       parse value rest with "rgb="rgb "clrattr="clrattr "oldfgattr="oldfgattr "oldbgattr="oldbgattr
       call windowmessage(0,  hwnd,
                          4099,      -- STATWNDM_SETCOLOR
                          oldfgattr,
                          clrattr)
-      if leftstr(whichctrl,1)='M' then
+      if leftstr(whichctrl,1) = 'M' then
          sayerror MESSAGELINE_BGCOLOR__MSG
          vMESSAGECOLOR = clrattr * 16 + oldfgattr
       else
          vSTATUSCOLOR = clrattr  * 16 + oldfgattr
       endif
-   elseif (whichctrl=="EDITBGCOLOR") then
+   elseif (whichctrl == "EDITBGCOLOR") then
       parse value rest with "rgb="rgb "clrattr="clrattr "oldfgattr="oldfgattr "oldbgattr="oldbgattr
       map_point 5, x, y, off, comment;  -- map screen to line
       if x<1 | x>.last then
@@ -3901,20 +3910,20 @@ defc setpresparam
       else
          .textcolor = (.textcolor // 16) + 16 * clrattr;
       endif
-   elseif (whichctrl=="EDITFGCOLOR") then
+   elseif (whichctrl == "EDITFGCOLOR") then
       parse value rest with "rgb="rgb "clrattr="clrattr "oldfgattr="oldfgattr "oldbgattr="oldbgattr
       .textcolor = .textcolor - (.textcolor // 16) + clrattr;
-   elseif whichctrl=="EDITFONTSIZENAME" then
+   elseif whichctrl == "EDITFONTSIZENAME" then
       parse value rest with "string="psize"."facename"."attr
       -- psize is pointsize, facename is facename, attr is "Bold" etc
       fontsel = 0
       do while attr<>''
          parse value attr with thisattr '.' attr
-         if     thisattr='Italic'     then fontsel = fontsel + 1
-         elseif thisattr='Underscore' then fontsel = fontsel + 2
-         elseif thisattr='Outline'    then fontsel = fontsel + 8
-         elseif thisattr='Strikeout'  then fontsel = fontsel + 16
-         elseif thisattr='Bold'       then fontsel = fontsel + 32
+         if     thisattr = 'Italic'     then fontsel = fontsel + 1
+         elseif thisattr = 'Underscore' then fontsel = fontsel + 2
+         elseif thisattr = 'Outline'    then fontsel = fontsel + 8
+         elseif thisattr = 'Strikeout'  then fontsel = fontsel + 16
+         elseif thisattr = 'Bold'       then fontsel = fontsel + 32
          endif
       enddo
       .font = registerfont(facename ,psize, fontsel)
@@ -3964,10 +3973,10 @@ defc echoback
 defc toggle_parse
    universal EPM_utility_array_ID
    parse arg parseon kwfilename
-   if parseon & .levelofattributesupport//2=0  then  -- the first bit of .levelofattributesupport is for color attributes
+   if parseon & .levelofattributesupport//2 = 0  then  -- the first bit of .levelofattributesupport is for color attributes
       call attribute_on(1) -- toggles color attributes mode
    endif
-   if kwfilename='' then
+   if kwfilename = '' then
       kwfilename = 'epmkwds.c'
    endif
    if parseon then
@@ -3985,13 +3994,13 @@ defc toggle_parse
       do_array 2, EPM_utility_array_ID, 'kwfile.'fid, kwfilename
    endif
 
-   call windowmessage(0,  getpminfo(EPMINFO_EDITFRAME),
-                      5502,               -- EPM_EDIT_TOGGLEPARSE
-                      parseon,
-                      put_in_buffer(fid kwfilename))
+   call windowmessage( 0,  getpminfo(EPMINFO_EDITFRAME),
+                       5502,               -- EPM_EDIT_TOGGLEPARSE
+                       parseon,
+                       put_in_buffer(fid kwfilename))
 compile if 0
 defc qparse =
-   c =  windowmessage(1,  getpminfo(EPMINFO_EDITFRAME),
+   c = windowmessage( 1,  getpminfo(EPMINFO_EDITFRAME),
                       5505,               -- EPM_EDIT_KW_QUERYPARSE
                       0,
                       0)
@@ -4000,7 +4009,7 @@ compile endif
 
 defc dyna_cmd =
    parse arg library entrypoint cmdargs
-   if entrypoint='' then
+   if entrypoint = '' then
       sayerror -257  -- "Invalid number of parameters"
       return
    endif
