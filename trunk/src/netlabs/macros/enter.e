@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: enter.e,v 1.2 2002-09-20 19:38:18 aschn Exp $
+* $Id: enter.e,v 1.3 2002-09-21 19:47:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -289,6 +289,135 @@ def enter, pad_enter, a_enter, a_pad_enter, s_enter, s_padenter=
    endif
  compile endif
 compile endif  -- ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
+
+
+; ---------------------------------------------------------------------
+; Following has moved from STDPROCS.E
+
+; The following two routines (from Larry Margolis) let the
+; user decide what action should be taken when the Enter and Ctrl-Enter
+; keys are pressed.  The possible values for the action constants are
+; defined in STDCNF.
+
+compile if C_ENTER_ACTION & not ENHANCED_ENTER_KEYS  -- If null, don't define - user will supply.
+defproc my_c_enter
+ compile if C_ENTER_ACTION = 'ADDATEND' | C_ENTER_ACTION = 'DEPENDS+'
+   if .line = .last then         -- If we're on the last line, then add a line.
+      call einsert_line()
+      down                       -- This keeps the === Bottom === line visible.
+   else
+ compile endif
+
+ compile if C_ENTER_ACTION = 'DEPENDS' | C_ENTER_ACTION = 'DEPENDS+'
+   if insert_state() then        -- DEPENDS means if insertstate() then ...
+ compile endif
+
+ compile if C_ENTER_ACTION = 'NEXTLINE' | C_ENTER_ACTION = 'DEPENDS' |
+            C_ENTER_ACTION = 'ADDATEND' | C_ENTER_ACTION = 'DEPENDS+'
+   down                          -- go to next line
+   begin_line
+ compile endif
+
+ compile if C_ENTER_ACTION = 'DEPENDS' | C_ENTER_ACTION = 'DEPENDS+'
+   else                          -- otherwise ...
+ compile endif
+
+ compile if C_ENTER_ACTION = 'ADDLINE' | C_ENTER_ACTION = 'DEPENDS' | C_ENTER_ACTION = 'DEPENDS+'
+   call einsert_line()           -- insert a line
+ compile endif
+
+ compile if C_ENTER_ACTION = 'DEPENDS' | C_ENTER_ACTION='ADDATEND' | C_ENTER_ACTION = 'DEPENDS+'
+   endif
+ compile endif
+
+ compile if C_ENTER_ACTION = 'DEPENDS+'
+   endif
+ compile endif
+
+ compile if C_ENTER_ACTION = 'STREAM'
+   call splitlines()
+   call pfirst_nonblank()
+   down
+   refresh
+ compile endif
+compile endif
+
+compile if not ENHANCED_ENTER_KEYS & ENTER_ACTION   -- If null, don't define - user will supply.
+defproc my_enter
+ compile if WANT_STREAM_MODE = 'SWITCH'
+   universal stream_mode
+ compile endif
+   if 0 then   -- EPM has no command_state()
+ compile if WANT_STREAM_MODE = 'SWITCH'
+   elseif stream_mode then
+ compile elseif WANT_STREAM_MODE = 1
+   elseif 1 then
+ compile endif
+ compile if WANT_STREAM_MODE
+      if .line then
+  compile if WANT_STREAM_INDENTED
+         call splitlines()
+         call pfirst_nonblank()
+         down
+  compile else
+         split
+         .col=1
+         down
+  compile endif -- WANT_STREAM_INDENTED
+      else
+         insert
+         .col=1
+      endif
+      return
+ compile endif
+ compile if WANT_STREAM_MODE <> 1
+ compile if ENTER_ACTION = 'ADDATEND' | ENTER_ACTION = 'DEPENDS+'
+   elseif .line = .last then     -- If we're on the last line, then add a line.
+      call einsert_line()
+      down                       -- This keeps the === Bottom === line visible.
+ compile endif
+   else
+      compile if ENTER_ACTION = 'DEPENDS' | ENTER_ACTION = 'DEPENDS+'
+      if insert_state() then     -- DEPENDS means if insertstate() then ...
+      compile endif
+
+      compile if ENTER_ACTION = 'ADDLINE' | ENTER_ACTION = 'DEPENDS' | ENTER_ACTION = 'DEPENDS+'
+      call einsert_line()        -- insert a line
+      compile endif
+
+      compile if ENTER_ACTION = 'DEPENDS' | ENTER_ACTION = 'DEPENDS+'
+      else                       -- otherwise ...
+      compile endif
+
+      compile if ENTER_ACTION = 'NEXTLINE' | ENTER_ACTION = 'DEPENDS' |
+                 ENTER_ACTION = 'ADDATEND' | ENTER_ACTION = 'DEPENDS+'
+      down                       -- go to next line
+      begin_line
+      compile endif
+
+      compile if ENTER_ACTION = 'DEPENDS' | ENTER_ACTION = 'DEPENDS+'
+      endif
+      compile endif
+
+      compile if ENTER_ACTION = 'STREAM'
+      if .line then
+         if .col<=length(textline(.line)) then
+            split
+            .col=1
+         else
+            split
+            call pfirst_nonblank()
+         endif
+         down
+      else
+         insert
+         .col=1
+      endif
+      refresh
+      compile endif
+ compile endif  -- WANT_STREAM_MODE <> 1
+   endif
+compile endif
 
 /*
 ; Todo:
