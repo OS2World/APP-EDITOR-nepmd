@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querywindowpos.e,v 1.3 2002-09-07 13:19:46 cla Exp $
+* $Id: querywindowpos.e,v 1.4 2002-09-07 13:41:19 cla Exp $
 *
 * ===========================================================================
 *
@@ -61,12 +61,12 @@ defined in *stdconst.e*:
 You can test this function from the *EPM* commandline by
 executing:
 .sl
-- *NepmdQueryWindowPos* 
-  [[ [.IDPNL_EFUNC_NEPMDQUERYWINDOWPOS_PARM_WINDOWID windowid] ]] 
+- *NepmdQueryWindowPos*
+  [[ [.IDPNL_EFUNC_NEPMDQUERYWINDOWPOS_PARM_WINDOWID windowid] ]]
   - or
 - *QueryWindowPos*
-  [[ [.IDPNL_EFUNC_NEPMDQUERYWINDOWPOS_PARM_WINDOWID windowid] ]] 
-   
+  [[ [.IDPNL_EFUNC_NEPMDQUERYWINDOWPOS_PARM_WINDOWID windowid] ]]
+
 
 Executing this command will
 query the window position of the specified *EPM* window or control window
@@ -123,6 +123,13 @@ defproc NepmdQueryWindowPos( WindowId) =
 
  BufLen    = 260;
  WindowPos = copies( atoi( 0), BufLen);
+
+
+ /* check for valid IDs */
+ ValidIds = '1 2 3 4 5 6 9 10 17'
+ if (wordpos( WindowId, ValidIds) = 0) then
+    return 'ERROR:87';
+ end;
 
  /* call C routine */
  LibFile = helperNepmdGetlibfile();
