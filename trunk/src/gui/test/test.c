@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.16 2002-09-15 14:17:10 cla Exp $
+* $Id: test.c,v 1.17 2002-09-16 21:40:10 cla Exp $
 *
 * ===========================================================================
 *
@@ -200,13 +200,42 @@ do
          PROCESSVALUE( "\\NEPMD\\CaseTest\\THISISACASE",  "value");
          PROCESSVALUE( "\\NEPMD\\CaseTest\\thisisacase",  "value");
          PROCESSVALUE( "\\NEPMD\\CaseTest\\ThisIsACase",  "value");
+         PROCESSVALUE( "\\NEPMD\\CaseTest\\CaseContainer\\SubValue", "value");
 
          // write a new key to be deleted, name includes a space
          pszPath = "\\NEPMD\\Testcases\\ContainerToDelete\\SubContainerToDelete\\Key To Delete";
          PROCESSVALUE( pszPath, "Value to be deleted");
          rc = DeleteConfigValue( hconfig, pszPath);
          printf( "Key deleted, rc=%u\n", rc);
+         if (rc != NO_ERROR)
+            break;
 
+         // make the get next call test
+         pszPath = "\\NEPMD\\CaseTest";
+         szValue[ 0] = 0;
+         printf( "\n\nsearch container in: %s\n", pszPath);
+         do {
+            // loop for the next key
+            rc = GetNextConfigKey( hconfig, pszPath, szValue, "C", szValue, sizeof( szValue));
+            if (rc != NO_ERROR)
+               break;
+
+            printf( "- %s\n", szValue);
+            } while (  TRUE);
+
+         szValue[ 0] = 0;
+         printf( "\n\nsearch keys in: %s\n", pszPath);
+         do {
+            // loop for the next key
+            rc = GetNextConfigKey( hconfig, pszPath, szValue, "K", szValue, sizeof( szValue));
+            if (rc != NO_ERROR)
+               break;
+
+            printf( "- %s\n", szValue);
+            } while (  TRUE);
+
+         if (rc == ERROR_NO_MORE_FILES)
+            rc = NO_ERROR;
 
          } while (FALSE);
 
