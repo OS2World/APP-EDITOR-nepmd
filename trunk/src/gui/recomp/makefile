@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.3 2002-06-04 22:19:56 cla Exp $
+# $Id: makefile,v 1.4 2002-06-09 21:02:35 cla Exp $
 #
 # ===========================================================================
 #
@@ -29,7 +29,7 @@
 
 OBJS=
 DEF=resource.def
-RES=$(CMPDIR)\rec$(NLS).res
+RES=$(BINDIR)\rec$(NLS).res
 DLLEXT=.nls
 
 !else
@@ -46,7 +46,7 @@ OBJS=\
  $(BINDIR)\job.obj\
 
 DEF=recomp.def
-RES=$(CMPDIR)\receng.res
+RES=$(BINDIR)\receng.res
 MT=1
 
 !endif
@@ -74,7 +74,7 @@ FILESTOCLEAN=$(DEPENDFILE) \
  $(BINDIR)\recomp.exe \
  $(BINDIR)\rec*.nls \
  $(BINDIR)\rec*.map \
- $(CMPDIR)\rec*.res \
+ $(BINDIR)\rec*.res \
  $(CMPDIR)\recomp.ex \
  $(BINBINDIR)\recomp.exe \
  $(BINBINDIR)\rec*.nls \
@@ -139,8 +139,7 @@ $(BINBINDIR)\recomp.exe: $(BINDIR)\recomp.exe
 
 $(BINDIR)\recomp.exe: $(BINDIR)\recomp.obj $(OBJS) $(DEF) $(RES) $(LIBS)
 
-$(CMPDIR)\rec$(NLS).res: $(NLSPATH)\nls$(NLS).rch $(NLSPATH)\recomp\rec$(NLS).rch recomp.rc recomp.rch recomp.dlg recomp.men $(CMPDIR)\recomp.ex
-     $(RC) -r $(@B).rc $*.res
+$(BINDIR)\rec$(NLS).res: rec$(NLS).rc $(NLSPATH)\nls$(NLS).rch $(NLSPATH)\recomp\rec$(NLS).rch recomp.rc recomp.rch recomp.dlg recomp.men $(CMPDIR)\recomp.ex
 
 $(CMPDIR)\recomp.ex: recomp.e
      etpm recomp.e $(CMPDIR)\recomp.ex
