@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.e,v 1.2 2002-06-09 14:39:34 cla Exp $
+* $Id: recomp.e,v 1.3 2002-06-10 14:30:51 cla Exp $
 *
 * ===========================================================================
 *
@@ -22,8 +22,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
-include 'stdconst.e'  -- Needed for EPMINFO_EDITCLIENT constant
 
 const
 
@@ -94,7 +92,7 @@ psave_pos( save_pos);
 
 /* post data with special end-of-data character */
 DdeData = DdeData''END_OF_DATA_CHAR;
-windowmessage(1,  getpminfo( EPMINFO_EDITCLIENT),
+windowmessage(1,  getpminfo( 5 ), -- EPMINFO_EDITCLIENT
               5478,    -- EPM_EDIT_DDE_POST_MSG
               ltoa( offset( DdeItem) || selector( DdeItem), 10),
               ltoa( offset( DdeData) || selector( DdeData), 10));
