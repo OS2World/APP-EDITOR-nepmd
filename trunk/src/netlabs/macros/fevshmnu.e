@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fevshmnu.e,v 1.7 2003-07-06 15:27:12 aschn Exp $
+* $Id: fevshmnu.e,v 1.8 2004-06-03 22:15:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,6 +32,90 @@
 ;   Menuinit_nnn - Define once for each pulldown or pullright menu ID <nnn> which
 ;                  needs to grey, check, etc. its submenu when its menu is activated.
 
+
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately
+define INCLUDING_FILE = 'FEVSHMNU.E'
+const
+   tryinclude 'MYCNF.E'        -- the user's configuration customizations.
+
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
+ compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+const
+; Following consts are copied from STDCNF.E to make it separately compilable
+ compile if not defined(DEFAULT_PASTE)
+   DEFAULT_PASTE = 'C'
+ compile endif
+ compile if not defined(WANT_DYNAMIC_PROMPTS)
+   WANT_DYNAMIC_PROMPTS = '1'
+ compile endif
+ compile if not defined(SUPPORT_USERS_GUIDE)
+   SUPPORT_USERS_GUIDE = 1
+ compile endif
+ compile if not defined(SUPPORT_TECHREF)
+   SUPPORT_TECHREF = 1
+ compile endif
+ compile if not defined(CHECK_FOR_LEXAM)
+   CHECK_FOR_LEXAM = 0
+ compile endif
+ compile if not defined(HOST_SUPPORT)
+   HOST_SUPPORT = ''
+ compile endif
+ compile if not defined(WANT_DYNAMIC_PROMPTS)
+   WANT_DYNAMIC_PROMPTS = 1
+ compile endif
+ compile if not defined(ALLOW_PROMPTING_AT_TOP)
+   ALLOW_PROMPTING_AT_TOP = 1
+ compile endif
+ compile if not defined(BLOCK_ACTIONBAR_ACCELERATORS)
+   BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
+ compile endif
+ compile if not defined(WANT_STACK_CMDS)
+   WANT_STACK_CMDS = 'SWITCH'
+ compile endif
+ compile if not defined(RING_OPTIONAL)
+   RING_OPTIONAL = 1
+ compile endif
+ compile if not defined(WANT_DM_BUFFER)
+   WANT_DM_BUFFER = 1
+ compile endif
+; Following obsolete consts are copied from STDCNF.E to make it separately compilable
+ compile if not defined(WANT_STREAM_MODE)
+   WANT_STREAM_MODE = 'SWITCH'
+ compile endif
+ compile if not defined(WANT_CUA_MARKING)
+   WANT_CUA_MARKING = 'SWITCH'
+ compile endif
+ compile if not defined(WANT_BOOKMARKS)
+   WANT_BOOKMARKS = 1
+ compile endif
+ compile if not defined(WANT_TAGS)
+   WANT_TAGS = 'DYNALINK'
+ compile endif
+ compile if not defined(WANT_EPM_SHELL)
+   WANT_EPM_SHELL = 1
+ compile endif
+ compile if not defined(SPELL_SUPPORT)
+   SPELL_SUPPORT = 'DYNALINK'
+ compile endif
+ compile if not defined(ENHANCED_PRINT_SUPPORT)
+   ENHANCED_PRINT_SUPPORT = 1
+ compile endif
+
+const
+ compile if not defined(NLS_LANGUAGE)
+   NLS_LANGUAGE = 'ENGLISH'
+ compile endif
+   include NLS_LANGUAGE'.e'
+   include 'stdconst.e'
+   include 'menuhelp.h'
+   EA_comment 'This defines the menu.'
+
+compile endif
 
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
@@ -64,6 +148,12 @@ defc loaddefaultmenu
    call add_edit_menu(menuname)
    call add_view_menu(menuname)
    call add_selected_menu(menuname)
+
+   -- Process hook: add a user-defined submenu
+   if isadefc('HookExecute') then
+      'HookExecute addmenu'
+   endif
+
    call add_help_menu(menuname)
 
 defproc add_file_menu(menuname)
@@ -83,10 +173,9 @@ compile if RING_OPTIONAL
       buildmenuitem menuname, 1, 100, NEWWIN_MENU__MSG\9 || CTRL_KEY__MSG'+O', 'OPENDLG'OPEN_MENUP__MSG,  0, mpfrom2short(HP_FILE_NEWWIN, 0)
    endif
 compile endif
-;compile if WANT_APPLICATION_INI_FILE
       buildmenuitem menuname, 1, 105, CONFIG_MENU__MSG,         'configdlg'CONFIG_MENUP__MSG,  0, mpfrom2short(HP_OPTIONS_CONFIG, 0)
+      buildmenuitem menuname, 1, 106, 'Select menu...',         'ChangeMenu'\1'Open a listbox and change or refresh the menu', 0, 0
       buildmenuitem menuname, 1, 107, \0,                           '',                 4, 0
-;compile endif
       buildmenuitem menuname, 1, 110, SAVE_MENU__MSG\9'F2',     'SAVE'SAVE_MENUP__MSG,             0, mpfrom2short(HP_FILE_SAVE, 0)
       buildmenuitem menuname, 1, 120, SAVEAS_MENU__MSG,         'SAVEAS_DLG'SAVEAS_MENUP__MSG, 0, mpfrom2short(HP_FILE_SAVEAS, 0)
 compile if RING_OPTIONAL
@@ -367,23 +456,12 @@ compile if SUPPORT_USERS_GUIDE | SUPPORT_TECHREF
  compile endif
 compile endif
 
-defproc readd_help_menu
-   universal defaultmenu, activemenu
-   call add_help_menu(defaultmenu)
-   call maybe_show_menu()
 
-defproc maybe_show_menu
-   universal defaultmenu, activemenu
-   if activemenu=defaultmenu then
-      call showmenu_activemenu()  -- show the updated EPM menu
-   endif
+; Moved readd_help_menu, maybe_show_menu and showmenu_activemenu to MENU.E.
 
-defproc showmenu_activemenu()
-   universal activemenu
-   showmenu activemenu  -- show the updated EPM menu
-   'postme add_cascade_menus'
-
+; ---------------------------------------------------------------------------
 defc add_cascade_menus
+   -- This command is called by defproc showmmenu_activemenu with 'postme'.
 compile if RING_OPTIONAL
    universal ring_enabled
 compile endif
@@ -740,5 +818,136 @@ compile if WANT_STACK_CMDS
 compile endif
    SetMenuAttribute( 450, 16384, on)      -- Print marked text
 
+
+/*
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ what's it called: togglecontrol                                            ³
+³                                                                            ³
+³ what does it do : The command either toggles a EPM control window on or off³
+³                   or forces a EPM control window on or off.                ³
+³                   arg1   = EPM control window handle ID.  Control window   ³
+³                            ids given above.  The following windows handles ³
+³                            are currently supported.                        ³
+³                            EDITSTATUS, EDITVSCROLL, EDITHSCROLL, and       ³
+³                            EDITMSGLINE.                                    ³
+³                   arg2   [optional] = force option.                        ³
+³                            a value of 0, forces control window off         ³
+³                            a value of 1, forces control window on          ³
+³                           IF this argument is not specified the window     ³
+³                           in question is toggled.                          ³
+³                                                                            ³
+³                   This command is possible because of the EPM_EDIT_CONTROL ³
+³                   EPM_EDIT_CONTROLSTATUS message.                          ³
+³                   (All EPM_EDIT_xxx messages are defined in the ETOOLKT    ³
+³                    PACKAGE available on PCTOOLS.)                          ³
+³                                                                            ³
+³ who and when    : Jerry C.   2/27/89                                       ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+*/
+defc togglecontrol
+compile if WANT_DYNAMIC_PROMPTS
+   universal menu_prompt
+compile endif
+   forceon=0
+   parse arg controlid fon
+   if fon<>'' then
+      forceon=(fon+1)*65536
+   endif
+
+   call windowmessage(0,  getpminfo(EPMINFO_EDITFRAME),
+                      5388,               -- EPM_EDIT_CONTROLTOGGLE
+                      controlid + forceon,
+                      0)
+
+defc toggleframe
+ compile if WANT_DYNAMIC_PROMPTS
+   universal menu_prompt
+ compile endif
+   forceon=0
+   parse arg controlid fon
+   if fon<>'' then
+      forceon=(fon+1)*65536
+   endif
+
+   call windowmessage(0,  getpminfo(EPMINFO_EDITFRAME),
+                      5907,               -- EFRAMEM_TOGGLECONTROL
+                      controlid + forceon,
+                      0)
+ compile if WANT_DYNAMIC_PROMPTS & not ALLOW_PROMPTING_AT_TOP
+   if controlid=32 then
+      if fon then  -- 1=top; 0=bottom.  If now top, turn off.
+         menu_prompt = 0
+      endif
+   endif
+ compile endif
+
+defproc queryframecontrol(controlid)
+   return windowmessage(1,  getpminfo(EPMINFO_EDITFRAME),   -- Send message to edit client
+                        5907,               -- EFRAMEM_TOGGLECONTROL
+                        controlid,
+                        1)
+
+compile if WANT_DYNAMIC_PROMPTS
+defc toggleprompt
+   universal menu_prompt
+   menu_prompt = not menu_prompt
+ compile if not ALLOW_PROMPTING_AT_TOP
+   if menu_prompt then
+      'toggleframe 32 0'      -- Force Extra window to bottom.
+   endif
+ compile endif  -- not ALLOW_PROMPTING_AT_TOP
+compile endif
+
+defc setscrolls
+   'toggleframe 8'
+   'toggleframe 16'
+
+defc toggle_bitmap
+   universal bitmap_present, bm_filename
+   bitmap_present = not bitmap_present
+;; bm_filename = ''
+   call windowmessage(0, getpminfo(EPMINFO_EDITCLIENT),
+                      5498 - (44*bitmap_present), 0, 0)
+
+
+compile if WANT_CUA_MARKING = 'SWITCH'
+defc CUA_mark_toggle
+   universal CUA_marking_switch
+   CUA_marking_switch = not CUA_marking_switch
+   'togglecontrol 25' CUA_marking_switch
+   call MH_set_mouse()
+compile endif
+
+compile if WANT_STREAM_MODE = 'SWITCH'
+defc stream_toggle
+   universal stream_mode
+   stream_mode = not stream_mode
+   'togglecontrol 24' stream_mode
+   'RefreshInfoLine STREAMMODE'
+compile endif
+
+compile if RING_OPTIONAL
+defc ring_toggle
+   universal ring_enabled
+   universal activemenu, defaultmenu
+   ring_enabled = not ring_enabled
+   'toggleframe 4' ring_enabled
+compile endif
+
+compile if WANT_STACK_CMDS = 'SWITCH'
+defc stack_toggle
+   universal stack_cmds
+   universal activemenu, defaultmenu
+   stack_cmds = not stack_cmds
+compile endif
+
+compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
+defc accel_toggle
+   universal CUA_MENU_ACCEL
+   universal activemenu, defaultmenu
+   CUA_MENU_ACCEL = not CUA_MENU_ACCEL
+   deleteaccel 'defaccel'
+   'loadaccel'
+compile endif
 
 
