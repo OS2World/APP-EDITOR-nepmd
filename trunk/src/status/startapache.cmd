@@ -10,11 +10,10 @@
 *  - the env var APACHE_ROOT must point to the root directory of
 *    the Apache installation
 *  - the Apache installation must include PHP4 support
-*  - SED.EXE is required to be accessible within the PATH
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: startapache.cmd,v 1.4 2002-09-19 18:09:19 cla Exp $
+* $Id: startapache.cmd,v 1.5 2003-09-19 10:01:00 cla Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +53,6 @@
  Apache._DocRoot = unixpath( GetDirName( Apache._DocRoot));
  UsedConfig      = unixpath( ConfigTmp);
 
- SedExec         = SysSearchPath( 'PATH', 'SED.EXE');
  ApacheExec      = Apache._Dir'\httpd.exe';
  ConfigSource    = Apache._Dir'\'ConfigSource;
 
@@ -62,8 +60,6 @@
 
     /* check for required files */
     MissingFiles = '';
-    IF (SedExec = '') THEN
-       MissingFiles = MissingFiles 'SED.EXE';
     MissingFiles = MissingFiles CheckMissingFile( ConfigSource);
     MissingFiles = MissingFiles CheckMissingFile( ApacheExec);
     IF (MissingFiles \= '') THEN
@@ -112,7 +108,7 @@ GetDirName: PROCEDURE
  rc = DIRECTORY( CurrentDrive);
 
  RETURN( DirFound);
-     
+
 /* ------------------------------------------------------------------------- */
 FileExist: PROCEDURE
  PARSE ARG FileName
@@ -137,12 +133,15 @@ CheckMissingFile: PROCEDURE
 SetupConfig: PROCEDURE EXPOSE Apache.;
  PARSE ARG SourceFile, TargetFile;
 
- /* setup replacement rules */
- Strings.1._old = '@@ServerRoot@@/htdocs'
- Strings.1._new = Apache._DocRoot;
+ CrLf = '0d0a'x;
 
- Strings.2._old = '@@ServerRoot@@'
- Strings.2._new = Apache._Dir;
+ /* setup replacement rules */
+ Strings.  = '';
+ Strings.1._old    = '@@ServerRoot@@/htdocs'
+ Strings.1._insert = Apache._DocRoot;
+
+ Strings.2._old    = '@@ServerRoot@@'
+ Strings.2._insert = Apache._Dir;
 
  Strings.3._old = 'Port 80';
  Strings.3._new = 'Port' Apache._Port;
@@ -150,28 +149,70 @@ SetupConfig: PROCEDURE EXPOSE Apache.;
  Strings.4._old = '#ServerName new.host.name';
  Strings.4._new = 'ServerName 'Apache._Servername;
 
- Strings.5._old = '#AddType application/x-httpd-php .php';
- Strings.5._new = 'AddType application/x-httpd-php .php .php3 .php4';
+ Strings.5._old = 'AddType application/x-tar .tgz'
+ Strings.5._new = Strings.5._old''CrLf||,
+                  'AddType application/x-httpd-php .php .php3 .php4'CrLf||,
+                  'AddType application/x-httpd-php-source .phps';
 
- Strings.6._old = '#AddType application/x-httpd-php-source .phps';
- Strings.6._new = 'AddType application/x-httpd-php-source .phps';
+ Strings.6._old = 'Options Indexes FollowSymLinks MultiViews';
+ Strings.6._new = 'Options -Indexes FollowSymLinks MultiViews';
 
- Strings.7._old = 'Options Indexes FollowSymLinks MultiViews';
- Strings.7._new = 'Options -Indexes FollowSymLinks MultiViews';
+ Strings.7._old = 'AllowOverride None';
+ Strings.7._new = 'AllowOverride All';
 
- Strings.8._old = 'AllowOverride None';
- Strings.8._new = 'AllowOverride All';
+ Strings.0 = 7;
 
- Strings.0 = 8;
+ Adds.1 = 'LoadModule php4_module libexec/libphp4.dll';
+ Adds.0 = 1;
 
- Rules = '';
- DO i = 1 TO Strings.0
-    Rules = Rules  '-e "s+'Strings.i._old'+'Strings.i._new'+g"';
+ rc = 1;
+
+ DO 1
+    /* Open files */
+    rcx = SysFileDelete( TargetFile);
+    IF (STREAM( SourceFile, 'C', 'OPEN READ') \= 'READY:') THEN
+       LEAVE;
+    IF (STREAM( TargetFile, 'C', 'OPEN WRITE') \= 'READY:') THEN
+       LEAVE;
+
+    /* start with additions at the beinning */
+    DO i = 1 TO Adds.0
+       rcx = LINEOUT( TargetFile, Adds.i);
+    END;
+
+
+
+    /* transform content */
+    DO WHILE (LINES( SourceFile) > 0)
+
+       ThisLine = LINEIN( SourceFile);
+
+       DO i = 1 TO Strings.0
+          StrPos = POS( Strings.i._old, ThisLine);
+          IF (StrPos > 0) THEN
+          DO
+             IF (Strings.i._new = '') THEN
+             DO
+                ThisLine = DELSTR( ThisLine, StrPos, LENGTH( Strings.i._old));
+                ThisLine = INSERT( Strings.i._insert, ThisLine, StrPos - 1);
+             END;
+             ELSE
+             DO
+                Indent = WORDINDEX( ThisLine, 1);
+                ThisLine = COPIES( ' ', Indent - 1)''Strings.i._new;
+             END;
+             LEAVE;
+          END;
+       END;
+
+       rcx = LINEOUT( TargetFile, ThisLine);
+    END;
+    rcx = STREAM( SourceFile, 'C', 'CLOSE');
+    rcx = STREAM( TargetFile, 'C', 'CLOSE');
+
+    rc = 0;
+
  END;
-
- /* create config file from source file */
- echo 'LoadModule php4_module libexec/libphp4.dll' '>'  TargetFile;
- 'sed' Rules '<' SourceFile '>>' TargetFile;
 
  RETURN( rc);
 
