@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.16 2004-01-17 22:54:43 aschn Exp $
+* $Id: kwhelp.e,v 1.17 2004-02-22 16:02:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,11 +18,13 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-; Todo:
-;   ok Use NEPMD lib functions.
-;   ok Make inf viewer selectable
-;   -  Implement MODE to replace filetype() and
-;      the EXT keyword in .ndx files.
+
+/*
+Todo:
+-  Change NEPMD_KEYWORD_HELP_COMMAND to an ini key
+-  Implement MODE to replace filetype() and the EXT keyword in .ndx files.
+*/
+
 /********************************************************************/
 /* Modified 12/03/93 to include the following changes:              */
 /*                                                                  */
@@ -41,6 +43,22 @@
      (Win*, view winhelp.inf ~)
      (printf, view edchelp.inf printf)
 */
+
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
+define INCLUDING_FILE = 'KWHELP.E'
+const
+   tryinclude 'MYCNF.E'        -- The user's configuration customizations.
+
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
+ compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+defmain
+   'kwhelp'
+compile endif  -- not defined(SMALL)
 
 const
 compile if not defined(FORTRAN_TYPES)
@@ -92,7 +110,8 @@ defproc pHelp_C_identifier
       else                            /* If helpfile index is already built ... */
          if (ft <> savetype) then     /* then make sure the file extension has not changed */
             savetype = ft                 /* if it has ... reset the file type */
-            'quit'
+            --'quit'
+            'xcom quit'
             activatefile CurrentFile
             helpindex_id = 0              /* and mark the helpfile index as unbuilt */
          endif
@@ -382,7 +401,8 @@ defproc pBuild_Helpfile(ft)
                else
                   /* This helpfile is not relevant to the file being edited, so remove it */
                   .modify = 0
-                  'quit'
+                  --'quit'
+                  'xcom quit'
                endif
             else
                sayerror 'Error reading helpfile ' destfilename
