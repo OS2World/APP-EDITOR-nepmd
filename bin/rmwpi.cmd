@@ -23,7 +23,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rmwpi.cmd,v 1.3 2002-06-12 09:56:22 cla Exp $
+* $Id: rmwpi.cmd,v 1.4 2002-06-12 14:20:45 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.3 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.4 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -81,6 +81,7 @@
  /* defaults */
  rc = ERROR.NO_ERROR;
  ZeroByte = '0'x;
+ fAppRemoved = FALSE;
 
  Remove.  = '';
  Remove.0 = 0;
@@ -164,11 +165,16 @@
              DO
                 /* remove app */
                 rc = RemoveApp( IniFile.n, Apps.a);
+                fAppRemoved = TRUE;
                 LEAVE;
              END;
           END;
        END;
     END;
+
+    /* any app removed ? */ 
+    IF (\fAppRemoved) THEN
+       rc = ERROR.NO_MORE_FILES;
 
  END;
 
