@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.45 2002-09-20 14:37:20 cla Exp $
+* $Id: nepmdlib.c,v 1.46 2002-09-22 13:20:52 cla Exp $
 *
 * ===========================================================================
 *
@@ -38,13 +38,15 @@
 #include "nepmd.h"
 #include "macros.h"
 #include "nepmdlib.h"
-#include "file.h"
-#include "module.h"
-#include "instval.h"
-#include "epmenv.h"
+
 #include "eas.h"
-#include "tmf.h"
+#include "epmenv.h"
+#include "file.h"
+#include "hilite.h"
+#include "instval.h"
 #include "libreg.h"
+#include "module.h"
+#include "tmf.h"
 
 // some useful macros
 #define EPMINSERTTEXT(t)          EtkInsertTextBuffer( hwndClient, 0, strlen( t), t, 0x100);
@@ -280,6 +282,74 @@ return rc;
 }
 
 // ##############################################################################
+
+// ------------------------------------------------------------------------------
+
+APIRET EXPENTRY NepmdActivateHighlight( HWND hwndClient, PSZ pszActivateFlag, PSZ pszEpmMode)
+{
+         APIRET         rc = NO_ERROR;
+         BOOL           fValidFlag = FALSE;
+         CHAR           szHilightFile[ _MAX_PATH];
+
+do
+   {
+   // check parms
+   if ((!pszEpmMode) ||
+       (!*pszEpmMode))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // check activate status
+   if ((pszActivateFlag) && (*pszActivateFlag))
+      {
+      // check / translate strings
+
+      if (!strcmp( "0",    pszActivateFlag))
+         fValidFlag = 1;
+
+      else if (!stricmp( "1",  pszActivateFlag))
+         fValidFlag = 1;
+
+      else if (!strcmp( "OFF", pszActivateFlag))
+         {
+         pszActivateFlag = "0";
+         fValidFlag = 1;
+         }
+
+      else if (!stricmp( "ON", pszActivateFlag))
+         {
+         pszActivateFlag = "1";
+         fValidFlag = 1;
+         }
+
+      if (!fValidFlag)
+         {
+         rc = ERROR_INVALID_PARAMETER;
+         break;
+         }
+      }
+   else
+      pszActivateFlag = "1";
+
+   if (*pszActivateFlag == '1')
+      {
+      // query / create hilite file
+      rc = QueryHilightFile( pszEpmMode, szHilightFile, sizeof( szHilightFile));
+      if (rc != NO_ERROR)
+         break;
+      }
+
+   // send command
+   _executeEPMCommand( hwndClient, "toggle_parse %u %s", pszActivateFlag, szHilightFile);
+
+   } while (FALSE);
+
+return rc;
+}
+
+// ------------------------------------------------------------------------------
 
 BOOL EXPENTRY NepmdAlarm( PSZ pszAlarmStyle)
 {

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.34 2002-09-19 13:03:38 cla Exp $
+* $Id: nepmdlib.e,v 1.35 2002-09-22 13:20:52 cla Exp $
 *
 * ===========================================================================
 *
@@ -121,6 +121,7 @@ defmain 'NepmdVersion';
 /*   include functions                                           */
 /* ------------------------------------------------------------- */
 
+include 'activatehighlight.e'
 include 'alarm.e'
 include 'closeconfig.e'
 include 'deleteconfigvalue.e'
