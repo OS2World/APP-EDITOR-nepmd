@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.4 2002-06-06 11:57:05 cla Exp $
+# $Id: makefile,v 1.5 2002-06-09 22:11:52 cla Exp $
 #
 # ===========================================================================
 #
@@ -21,14 +21,13 @@
 #
 # ***************************************************************************
 
-OBJS=\
-#$(BINDIR)\common.obj\
+OBJS= $(PMPRINTF) \
+ $(BINDIR)\common.obj\
  $(BINDIR)\ddeutil.obj\
  $(BINDIR)\eas.obj\
  $(BINDIR)\file.obj\
  $(BINDIR)\pmres.obj\
- $(BINDIR)\process.obj \
- $(PMPRINTF)
+ $(BINDIR)\process.obj
 
 MT=1
 
@@ -74,8 +73,6 @@ dep:
 # --- copy executable to netlabs directory below binary directory
 
 $(BINDIR)\common.lib: $(OBJS)
-#   !$(CODELIB) /nologo $@ -+$?;
-#   @if exist $*.bak del $*.bak
 
 $(BINDIR)\common.lst: $(BINDIR)\common.lib
 
