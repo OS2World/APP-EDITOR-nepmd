@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.3 2002-08-20 14:52:24 cla Exp $
+* $Id: nepmdlib.c,v 1.4 2002-08-20 20:04:10 cla Exp $
 *
 * ===========================================================================
 *
@@ -37,6 +37,7 @@
 #include "macros.h"
 #include "nepmdlib.h"
 #include "eas.h"
+#include "tmf.h"
 
 // undocumented function
 APIRET APIENTRY DosQueryModFromEIP (HMODULE *phModule, ULONG *pulObjectNumber,
@@ -66,6 +67,65 @@ do
                        pszTitle,
                        0L,
                        MB_CANCEL | MB_MOVEABLE | MB_ERROR);
+
+   } while (FALSE);
+
+return rc;
+
+}
+
+// ------------------------------------------------------------------------------
+
+#define SETPARM(i,p) if (p) apszParms[ i] = p; else break; ulParmCount++;
+
+APIRET EXPENTRY NepmdGetTextMessage( PSZ pszFilename, PSZ pszMessageName,
+                                     PSZ pszBuffer, ULONG ulBuflen,
+                                     PSZ pszParm1, PSZ pszParm2, PSZ pszParm3, PSZ pszParm4,
+                                     PSZ pszParm5, PSZ pszParm6, PSZ pszParm7, PSZ pszParm8)
+{
+         APIRET         rc = NO_ERROR;
+         PSZ            apszParms[ 7];
+         ULONG          ulParmCount;
+         ULONG          ulMessageLen;
+         PSZ            apszTest[] = {NULL};
+
+do
+   {
+   // check parms
+   if ((!pszFilename)    ||
+       (!pszMessageName) ||
+       (!pszBuffer))
+      {
+      rc = ERROR_INVALID_PARAMETER;
+      break;
+      }
+
+   // setup parm table
+   ulParmCount = 0;
+   memset( apszParms, 0, sizeof( apszParms));
+   do
+      {
+      SETPARM(0, pszParm1);
+      SETPARM(1, pszParm2);
+      SETPARM(2, pszParm3);
+      SETPARM(3, pszParm4);
+      SETPARM(4, pszParm5);
+      SETPARM(5, pszParm6);
+      SETPARM(6, pszParm7);
+      SETPARM(7, pszParm8);
+      } while (FALSE);
+
+
+   // get message with parms inserted
+// rc = TmfGetMessage( apszParms, ulParmCount, pszBuffer, ulBuflen,
+//                     pszMessageName, pszFilename, &ulMessageLen);
+
+
+   printf( "call with %u parms, buflen: %u\n ", ulParmCount, ulBuflen);
+   rc = TmfGetMessage( apszTest, 0, pszBuffer, ulBuflen,
+                       pszMessageName, pszFilename, &ulMessageLen);
+   printf( "rc=%u, result: %s\n", rc, pszBuffer);
+
 
    } while (FALSE);
 

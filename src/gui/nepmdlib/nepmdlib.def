@@ -6,7 +6,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: nepmdlib.def,v 1.3 2002-08-20 14:54:00 cla Exp $
+; $Id: nepmdlib.def,v 1.4 2002-08-20 20:04:10 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -29,11 +29,12 @@ STACKSIZE 16384
 
 EXPORTS
  NepmdErrorMsgBox
+ NepmdGetTextMessage
  NepmdLibInfo
+ NepmdLibVersion
  NepmdQueryFullname
  NepmdReadStringEa
  NepmdWriteStringEa
- NepmdLibVersion
 
 IMPORTS
  ETKE603.EtkAccessLowLevelData
