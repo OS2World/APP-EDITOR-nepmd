@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.5 2002-10-17 19:50:26 aschn Exp $
+* $Id: ckeys.e,v 1.6 2004-06-03 21:45:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -56,9 +56,9 @@ compile if not defined(JAVA_SYNTAX_ASSIST)
    JAVA_SYNTAX_ASSIST = 0
 compile endif
 
-compile if not defined(C_SYNTAX_INDENT)
-   C_SYNTAX_INDENT = SYNTAX_INDENT
-compile endif
+;compile if not defined(GetCIndent())
+;   C_SYNTAX_INDENT = SYNTAX_INDENT
+;compile endif
 
 ;compile if not defined(C_EXTENSIONS)  -- Keep in sync with TAGS.E
 ;   C_EXTENSIONS = 'C H SQC'
@@ -180,6 +180,25 @@ compile else
    END_WHILE  = ''
 compile endif
 
+; ---------------------------------------------------------------------------
+defproc GetCIndent
+   universal indent
+compile if defined(C_SYNTAX_INDENT)
+   ind = C_SYNTAX_INDENT  -- this const has priority, it is normally undefined
+compile else
+   ind = indent  -- will be changed at defselect for every mode, if defined
+compile endif
+   if ind = '' | ind = 0 then
+compile if defined(SYNTAX_INDENT)
+      ind = SYNTAX_INDENT
+compile endif
+   endif
+   if ind = '' | ind = 0 then
+      ind = 3
+   endif
+   return ind
+
+
 defproc c_first_expansion
    retc = 1
    if .line then
@@ -195,7 +214,7 @@ compile if CPP_SYNTAX_ASSIST
       cpp = (NepmdGetMode() = 'C') and (wordpos(filetype(), CPP_EXTENSIONS))
 compile endif -- CPP_SYNTAX_ASSIST
 compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
-      ws2 = ws || substr('', 1, C_SYNTAX_INDENT)
+      ws2 = ws || substr('', 1, GetCIndent())
 compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
 
       -- Skip expansion when cursor is not at line end
@@ -282,7 +301,7 @@ compile else
          insertline ws'} while (  );'END_DO, .line+1
 compile endif -- WANT_BRACE_BELOW_STATEMENT
          call einsert_line()
-         .col=.col+C_SYNTAX_INDENT    /* indent for new line */
+         .col=.col+GetCIndent()    /* indent for new line */
       elseif wrd='SWITCH' then
 compile if WANT_BRACE_BELOW_STATEMENT
          replaceline w' ()'
@@ -397,7 +416,7 @@ compile endif -- CPP_SYNTAX_ASSIST
            else
               if not brace and next_is_brace then down; endif
              call einsert_line()
-             .col=.col+C_SYNTAX_INDENT
+             .col=.col+GetCIndent()
            endif
          endif
       elseif firstword='CASE' or firstword='DEFAULT' then
@@ -416,7 +435,7 @@ compile endif -- CPP_SYNTAX_ASSIST
             elseif w<>'CASE' and w<>'SWITCH' and w<>'{' and prevline<>'' then  /* shift current line over */
                i=verify(prevline,' ')
                if i then .col=i endif
-               if i>C_SYNTAX_INDENT then i=i-C_SYNTAX_INDENT else i=1 endif
+               if i>GetCIndent() then i=i-GetCIndent() else i=1 endif
                .col=i
                replaceline substr('',1,i-1)||wrd rest, .line-1
             endif
@@ -428,12 +447,12 @@ compile endif -- CPP_SYNTAX_ASSIST
                endif
             endif
          endif
-         .col=.col+C_SYNTAX_INDENT
+         .col=.col+GetCIndent()
       elseif firstword='BREAK' then
          call einsert_line()
          c=.col
-         if .col>C_SYNTAX_INDENT then
-            .col=.col-C_SYNTAX_INDENT
+         if .col>GetCIndent() then
+            .col=.col-GetCIndent()
          endif
          keyin 'case :';left
          insertline substr('',1,c-1)'break;', .line+1
@@ -444,10 +463,10 @@ compile endif -- CPP_SYNTAX_ASSIST
 compile if I_like_my_cases_under_my_switch
          keyin 'case :';left
 compile else
-         keyin substr(' ',1,C_SYNTAX_INDENT)'case :';left
-         c=c+C_SYNTAX_INDENT
+         keyin substr(' ',1,GetCIndent())'case :';left
+         c=c+GetCIndent()
 compile endif
-         insertline substr(' ',1,c+C_SYNTAX_INDENT-1)'break;', .line+1
+         insertline substr(' ',1,c+GetCIndent()-1)'break;', .line+1
          /* look at the next line to see if this is the first time */
          /* the user typed enter on this switch statement */
          if .line<=.last-2 then
@@ -463,13 +482,13 @@ compile if I_like_my_cases_under_my_switch
                      insertline 'default:', .line+2
                   endif
 compile else
-                  i=i+C_SYNTAX_INDENT-1
+                  i=i+GetCIndent()-1
                   insertline substr(' ',1,i)'default:', .line+2
 compile endif
 compile if ADD_BREAK_AFTER_DEFAULT
-                  insertline substr(' ',1,i+C_SYNTAX_INDENT-1)'break;', .line+3
+                  insertline substr(' ',1,i+GetCIndent()-1)'break;', .line+3
 compile elseif I_like_a_semicolon_supplied_after_default then
-                  insertline substr(' ',1,i+C_SYNTAX_INDENT)';', .line+3
+                  insertline substr(' ',1,i+GetCIndent())';', .line+3
 compile endif
                endif
             endif
@@ -485,16 +504,16 @@ compile if CPP_SYNTAX_ASSIST
          else
             if not brace and next_is_brace then down; endif
             call einsert_line()
-            .col=.col+C_SYNTAX_INDENT
+            .col=.col+GetCIndent()
          endif
 compile endif -- CPP_SYNTAX_ASSIST
       elseif a='{' or firstword='{' then  /* firstword or last word {?*/
 ;        if firstword='{' then
 ;           replaceline  wrd rest      -- This shifts the { to col 1.  Why???
-;           call einsert_line();.col=C_SYNTAX_INDENT+1
+;           call einsert_line();.col=GetCIndent()+1
 ;        else
             call einsert_line()
-            .col=.col+C_SYNTAX_INDENT
+            .col=.col+GetCIndent()
 ;        endif
       elseif firstword='MAIN' then
          call enter_main_heading()
@@ -506,7 +525,7 @@ compile else
 compile endif -- CPP_SYNTAX_ASSIST
          if not brace and next_is_brace then down; endif
          call einsert_line()
-         .col=.col+C_SYNTAX_INDENT
+         .col=.col+GetCIndent()
 ;        insert
 ;        .col=length(a)+2
 compile if TERMINATE_COMMENTS
@@ -526,7 +545,7 @@ compile endif
 
 defproc enter_main_heading
 compile if not USE_ANSI_C_NOTATION     -- Use standard notation
-   temp=substr('',1,C_SYNTAX_INDENT)  /* indent spaces */
+   temp=substr('',1,GetCIndent())  /* indent spaces */
    replaceline 'main(argc, argv, envp)'
    insertline temp'int argc;', .line+1         /* double indent */
    insertline temp'char *argv[];', .line+2
@@ -538,13 +557,13 @@ compile if not USE_ANSI_C_NOTATION     -- Use standard notation
       .cursory=7
    endif
    mainline+5
-   .col=C_SYNTAX_INDENT+1
+   .col=GetCIndent()+1
    insertline '}', .line+1
 compile else                           -- Use shorter ANSII notation
    replaceline 'main(int argc, char *argv[], char *envp[])'
    insertline '{', .line+1
    insertline '', .line+2
-   .col=C_SYNTAX_INDENT+1
+   .col=GetCIndent()+1
    insertline '}', .line+3
    mainline = .line
    if .cursory<4 then

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.6 2002-12-09 21:10:20 aschn Exp $
+* $Id: rexxkeys.e,v 1.7 2004-06-03 21:45:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,9 +34,9 @@
 /**********************************************************************/
 
 const
-compile if not defined(REXX_SYNTAX_INDENT)
-   REXX_SYNTAX_INDENT = SYNTAX_INDENT
-compile endif
+;compile if not defined(REXX_SYNTAX_INDENT)
+;   REXX_SYNTAX_INDENT = SYNTAX_INDENT
+;compile endif
 compile if not defined(TERMINATE_COMMENTS)
    TERMINATE_COMMENTS = 0
 compile endif
@@ -47,14 +47,15 @@ compile if not defined(REXX_SYNTAX_CASE)
    REXX_SYNTAX_CASE = 'lower'
 compile endif
 compile if not defined(REXX_SYNTAX_FORCE_CASE)
-   REXX_SYNTAX_FORCE_CASE = 0
+   --REXX_SYNTAX_FORCE_CASE = 0
+   REXX_SYNTAX_FORCE_CASE = 1  -- changed
 compile endif
 compile if not defined(REXX_SYNTAX_NO_ELSE)
    REXX_SYNTAX_NO_ELSE = 0
 compile endif
 
-compile if REXX_SYNTAX_CASE <> 'lower' & REXX_SYNTAX_CASE <> 'Mixed'
-   *** Error: REXX_SYNTAX_CASE must be "Lower" or "Mixed"
+compile if REXX_SYNTAX_CASE <> 'lower' & REXX_SYNTAX_CASE <> 'Mixed' & REXX_SYNTAX_CASE <> 'UPPER'
+   *** Error: REXX_SYNTAX_CASE must be "Lower" or "Mixed" or "UPPER"
 compile endif
 
 -- Moved defload to MODE.E
@@ -127,6 +128,24 @@ def c_x=       -- Force expansion if we don't have it turned on automatic
    endif
 
 ; ---------------------------------------------------------------------------
+defproc GetRexxIndent
+   universal indent
+compile if defined(REXX_SYNTAX_INDENT)
+   ind = REXX_SYNTAX_INDENT  -- this const has priority, it is normally undefined
+compile else
+   ind = indent  -- will be changed at defselect for every mode, if defined
+compile endif
+   if ind = '' | ind = 0 then
+compile if defined(SYNTAX_INDENT)
+      ind = SYNTAX_INDENT
+compile endif
+   endif
+   if ind = '' | ind = 0 then
+      ind = 3
+   endif
+   return ind
+
+; ---------------------------------------------------------------------------
 ; This is the definition for syntax expansion with <space>.
 ; If 0 is returned then
 ;    a normal <space> is processed,
@@ -150,6 +169,7 @@ compile endif
       if w <> lw then
 
       elseif wrd = 'IF' then
+
 compile if REXX_SYNTAX_CASE = 'lower'
  compile if REXX_SYNTAX_FORCE_CASE
          replaceline lb'if then'
@@ -159,6 +179,17 @@ compile if REXX_SYNTAX_CASE = 'lower'
  compile if not REXX_SYNTAX_NO_ELSE
          insertline substr(wrd,1,length(wrd)-2)'else',.line+1
  compile endif
+
+compile elseif REXX_SYNTAX_CASE = 'UPPER'
+ compile if REXX_SYNTAX_FORCE_CASE
+         replaceline lb'IF THEN'
+ compile else
+         replaceline w' THEN'
+ compile endif
+ compile if not REXX_SYNTAX_NO_ELSE
+         insertline substr(wrd,1,length(wrd)-2)'ELSE',.line+1
+ compile endif
+
 compile else
  compile if REXX_SYNTAX_FORCE_CASE
          replaceline lb'If Then'
@@ -169,6 +200,7 @@ compile else
          insertline substr(wrd,1,length(wrd)-2)'Else',.line+1
  compile endif
 compile endif
+
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
@@ -177,12 +209,21 @@ compile endif
          retc = 1
 
       elseif wrd='WHEN' Then
+
 compile if REXX_SYNTAX_CASE = 'lower'
  compile if REXX_SYNTAX_FORCE_CASE
          replaceline lb'when then'
  compile else
          replaceline w' then'
  compile endif
+
+compile elseif REXX_SYNTAX_CASE = 'UPPER'
+ compile if REXX_SYNTAX_FORCE_CASE
+         replaceline lb'WHEN THEN'
+ compile else
+         replaceline w' THEN'
+ compile endif
+
 compile else
  compile if REXX_SYNTAX_FORCE_CASE
          replaceline lb'When Then'
@@ -190,6 +231,7 @@ compile else
          replaceline w' Then'
  compile endif
 compile endif
+
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
@@ -198,25 +240,37 @@ compile endif
          retc = 1
 
       elseif wrd='DO' then
+
 compile if REXX_SYNTAX_FORCE_CASE
  compile if REXX_SYNTAX_CASE = 'lower'
          replaceline lb'do'
+ compile elseif REXX_SYNTAX_CASE = 'UPPER'
+         replaceline lb'DO'
  compile else
          replaceline lb'Do'
  compile endif
 compile endif
+
 compile if WANT_END_COMMENTED
+
  compile if REXX_SYNTAX_CASE = 'lower'
          insertline substr(wrd,1,length(wrd)-2)'end /'||'* do *'||'/',.line+1
+ compile elseif REXX_SYNTAX_CASE = 'UPPER'
+         insertline substr(wrd,1,length(wrd)-2)'END /'||'* DO *'||'/',.line+1
  compile else
          insertline substr(wrd,1,length(wrd)-2)'End /'||'* Do *'||'/',.line+1
  compile endif
+
 compile else
+
  compile if REXX_SYNTAX_CASE = 'lower'
          insertline substr(wrd,1,length(wrd)-2)'end',.line+1
+ compile elseif REXX_SYNTAX_CASE = 'UPPER'
+         insertline substr(wrd,1,length(wrd)-2)'END',.line+1
  compile else
          insertline substr(wrd,1,length(wrd)-2)'End',.line+1
  compile endif
+
 compile endif
          if not insert_state() then
             insert_toggle
@@ -237,6 +291,7 @@ compile endif
 ; else
 ;    the keystroke was aleady processed by this procedure.
 defproc rex_second_expansion
+
    retc = 0                               -- Default:, don't expanded, insert a line
    if .line then
       getline line
@@ -253,59 +308,87 @@ compile endif
 
       if firstword = 'SELECT' then
 compile if REXX_SYNTAX_FORCE_CASE
+
  compile if REXX_SYNTAX_CASE = 'lower'
          if origword<>'select' then
             replaceline overlay('select', textline(.line), c+1)
          endif
+
+ compile elseif REXX_SYNTAX_CASE = 'UPPER'
+         if origword<>'SELECT' then
+            replaceline overlay('SELECT', textline(.line), c+1)
+         endif
+
  compile else
          if origword<>'Select' then
             replaceline overlay('Select', textline(.line), c+1)
          endif
  compile endif
+
 compile endif
+
 compile if REXX_SYNTAX_CASE = 'lower'
-         insertline substr('',1,c+REXX_SYNTAX_INDENT)'when',.line+1
-         insertline substr('',1,c /*+REXX_SYNTAX_INDENT*/)'otherwise',.line+2
+         insertline substr('',1,c+GetRexxIndent())'when',.line+1
+         insertline substr('',1,c /*+GetRexxIndent()*/)'otherwise',.line+2
  compile if WANT_END_COMMENTED
          insertline substr('',1,c)'end  /'||'* select *'||'/',.line+3
  compile else
          insertline substr('',1,c)'end',.line+3
  compile endif
+
+compile elseif REXX_SYNTAX_CASE = 'UPPER'
+         insertline substr('',1,c+GetRexxIndent())'WHEN',.line+1
+         insertline substr('',1,c /*+GetRexxIndent()*/)'OTHERWISE',.line+2
+ compile if WANT_END_COMMENTED
+         insertline substr('',1,c)'END  /'||'* SELECT *'||'/',.line+3
+ compile else
+         insertline substr('',1,c)'END',.line+3
+ compile endif
+
 compile else
-         insertline substr('',1,c+REXX_SYNTAX_INDENT)'When',.line+1
-         insertline substr('',1,c /*+REXX_SYNTAX_INDENT*/)'Otherwise',.line+2
+         insertline substr('',1,c+GetRexxIndent())'When',.line+1
+         insertline substr('',1,c /*+GetRexxIndent()*/)'Otherwise',.line+2
  compile if WANT_END_COMMENTED
          insertline substr('',1,c)'End  /'||'* Select *'||'/',.line+3
  compile else
          insertline substr('',1,c)'End',.line+3
  compile endif
 compile endif
+
          '+1'                             -- Move to When clause
-         .col = c+REXX_SYNTAX_INDENT+5         -- Position the cursor
+         .col = c+GetRexxIndent()+5         -- Position the cursor
          retc = 1
 
       elseif firstword = 'DO' then
 compile if REXX_SYNTAX_FORCE_CASE
+
  compile if REXX_SYNTAX_CASE = 'lower'
          if origword<>'do' then replaceline overlay('do', textline(.line), c+1); endif
+ compile elseif REXX_SYNTAX_CASE = 'UPPER'
+         if origword<>'DO' then replaceline overlay('DO', textline(.line), c+1); endif
  compile else
          if origword<>'Do' then replaceline overlay('Do', textline(.line), c+1); endif
  compile endif
+
 compile endif
          call einsert_line()
-         .col=.col+REXX_SYNTAX_INDENT
+         .col=.col+GetRexxIndent()
          retc = 1
 
       elseif firstword = 'IF' then
 compile if REXX_SYNTAX_FORCE_CASE
+
  compile if REXX_SYNTAX_CASE = 'lower'
          if origword<>'if' then replaceline overlay('if', textline(.line), c+1); endif
+ compile elseif REXX_SYNTAX_CASE = 'UPPER'
+         if origword<>'IF' then replaceline overlay('IF', textline(.line), c+1); endif
  compile else
          if origword<>'If' then replaceline overlay('If', textline(.line), c+1); endif
  compile endif
+
 compile endif
          call einsert_line()
-         .col=.col+REXX_SYNTAX_INDENT
+         .col=.col+GetRexxIndent()
          retc = 1
 
       elseif pos('THEN DO',line) > 0 or pos('ELSE DO',line) > 0 then
@@ -313,15 +396,21 @@ compile endif
          if not p then
             p = pos('THEN DO',line)
 compile if REXX_SYNTAX_FORCE_CASE
+
  compile if REXX_SYNTAX_CASE = 'lower'
             s1 = 'then do'
          else
             s1 = 'else do'
+ compile elseif REXX_SYNTAX_CASE = 'UPPER'
+            s1 = 'THEN DO'
+         else
+            s1 = 'ELSE DO'
  compile else
             s1 = 'Then Do'
          else
             s1 = 'Else Do'
  compile endif
+
 compile endif
          endif
          if p & not pos(substr(line, p+7, 1), ' ;') then
@@ -333,19 +422,26 @@ compile if REXX_SYNTAX_FORCE_CASE
          endif
 compile endif
          call einsert_line()
-         .col=.col+REXX_SYNTAX_INDENT
+         .col=.col+GetRexxIndent()
 compile if WANT_END_COMMENTED
+
  compile if REXX_SYNTAX_CASE = 'lower'
          insertline substr('',1,c)'end /'||'* do *'||'/',.line+1
+ compile elseif REXX_SYNTAX_CASE = 'UPPER'
+         insertline substr('',1,c)'END /'||'* DO *'||'/',.line+1
  compile else
          insertline substr('',1,c)'End /'||'* Do *'||'/',.line+1
  compile endif
+
 compile else
  compile if REXX_SYNTAX_CASE = 'lower'
          insertline substr('',1,c)'end',.line+1
+ compile elseif REXX_SYNTAX_CASE = 'UPPER'
+         insertline substr('',1,c)'END',.line+1
  compile else
          insertline substr('',1,c)'End',.line+1
  compile endif
+
 compile endif
          retc = 1
 

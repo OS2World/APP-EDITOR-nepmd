@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ekeys.e,v 1.5 2002-10-17 19:50:26 aschn Exp $
+* $Id: ekeys.e,v 1.6 2004-06-03 21:45:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,9 +24,9 @@
 /* specific E3 syntax structures.                       */
 
 const
-compile if not defined(E_SYNTAX_INDENT)
-   E_SYNTAX_INDENT = SYNTAX_INDENT
-compile endif
+;compile if not defined(E_SYNTAX_INDENT)
+;   E_SYNTAX_INDENT = SYNTAX_INDENT
+;compile endif
 compile if not defined(TERMINATE_COMMENTS)
    TERMINATE_COMMENTS = 0
 compile endif
@@ -116,6 +116,25 @@ def c_x=       /* Force expansion if we don't have it turned on automatic */
       call e_second_expansion()
    endif
 
+; ---------------------------------------------------------------------------
+defproc GetEIndent
+   universal indent
+compile if defined(E_SYNTAX_INDENT)
+   ind = E_SYNTAX_INDENT  -- this const has priority, it is normally undefined
+compile else
+   ind = indent  -- will be changed at defselect for every mode, if defined
+compile endif
+   if ind = '' | ind = 0 then
+compile if defined(SYNTAX_INDENT)
+      ind = SYNTAX_INDENT
+compile endif
+   endif
+   if ind = '' | ind = 0 then
+      ind = 3
+   endif
+   return ind
+
+
 defproc e_first_expansion
    /*  up;down */
    retc = 1
@@ -167,12 +186,12 @@ defproc e_first_expansion
          replaceline w
          insertline substr(wrd,1,length(wrd)-4)'endloop',.line+1
          call einsert_line()
-         .col=.col+E_SYNTAX_INDENT
+         .col=.col+GetEIndent()
 ;     elseif wrd='DO' then
 ;        replaceline w
 ;        insertline substr(wrd,1,length(wrd)-2)'enddo',.line+1
 ;        call einsert_line()
-;        .col=.col+E_SYNTAX_INDENT
+;        .col=.col+GetEIndent()
       else
          retc=0
       endif
@@ -202,7 +221,7 @@ defproc e_second_expansion
                .col=length(a)+4
             else
                call einsert_line()
-               .col=.col+E_SYNTAX_INDENT
+               .col=.col+GetEIndent()
             endif
          endif
       elseif wordpos(firstword, 'IF ELSEIF ELSE WHILE LOOP DO DEFC DEFPROC DEFLOAD DEF DEFMODIFY DEFSELECT DEFMAIN DEFINIT DEFEXIT') then
@@ -210,9 +229,9 @@ defproc e_second_expansion
             retc = 0
          else
             call einsert_line()
-            .col=.col+E_SYNTAX_INDENT
+            .col=.col+GetEIndent()
             if /* firstword='LOOP' | */ firstword='DO' then
-               insertline substr(line,1,.col-E_SYNTAX_INDENT-1)'end'lowcase(wrd), .line+1
+               insertline substr(line,1,.col-GetEIndent()-1)'end'lowcase(wrd), .line+1
             endif
          endif
 compile if TERMINATE_COMMENTS
