@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.10 2004-02-22 19:18:09 aschn Exp $
+* $Id: locate.e,v 1.11 2004-03-07 08:40:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -172,10 +172,10 @@ compile if NEPMD_SCROLL_AFTER_LOCATE
       -- begin scroll line on window
       oldline = .line
       AmountOfLines = NEPMD_SCROLL_AFTER_LOCATE
-      if NEPMD_SCROLL_AFTER_LOCATE > 0 then
+      if AmountOfLines > 0 then
          .cursory = min( AmountOfLines, .windowheight)          -- AmountOfLines from top
-      else
-         .cursory = max( 1, .windowheight - AmountOfLines + 1)  -- AmountOfLines from bottom
+      elseif AmountOfLines < 0 then
+         .cursory = max( 1, .windowheight + AmountOfLines + 1)  -- AmountOfLines from bottom
       endif
       .line = oldline
       -- end scroll line on window
@@ -262,9 +262,9 @@ defc globalfind, gfind, globallocate, glocate, gl
    Minuspos = lastpos( '-', searchoptions )
    Pluspos  = lastpos( '+', searchoptions )
    if Minuspos > Pluspos then
-      Foreward = 0
+      Forwards = 0
    else
-      Foreward = 1
+      Forwards = 1
    endif
 
    -- First repeat-find in current file in case we don't have to move.
@@ -278,7 +278,7 @@ defc globalfind, gfind, globallocate, glocate, gl
    endif
    fileid = StartFileID
    loop
-      if Foreward = 1 then
+      if Forwards = 1 then
          nextfile
       else
          prevfile
@@ -291,7 +291,7 @@ defc globalfind, gfind, globallocate, glocate, gl
 
       -- Start from top of file, save current posn in case no match.
       call psave_pos(save_pos)
-      if Foreward = 1 then
+      if Forwards = 1 then
          top
          .col=1
       else
@@ -303,11 +303,7 @@ defc globalfind, gfind, globallocate, glocate, gl
       display 8
       if rc = 0 then  -- if found
          refresh
-      --endif
-         --call highlight_match(search_len)
-         'postme highlightmatch 'search_len
-      -- Flickers most of the times instead of letting the highlight circle stay
-      --if rc = 0 then
+         'postme highlightmatch 'search_len  -- postme required
          display -8
          if fileid = StartFileID then
             sayerror "String only found in this file"
@@ -353,7 +349,6 @@ defc globalfind, gfind, globallocate, glocate, gl
 def c_minus = 'ToggleSearchDirection'
 
 defc ToggleSearchDirection
-;   universal default_search_options
 
    -- Get search
    getsearch oldsearch
@@ -376,7 +371,6 @@ defc ToggleSearchDirection
       searchcmd     = 'xcom l'
       delim         = \1
       searchstring  = ''
-;      searchoptions = default_search_options
       searchoptions = ''
    endif
          --call NepmdPmPrintf( 'cmd = |'searchcmd'|, string = |'searchstring'|, options = |'searchoptions'|, delim = |'delim'|')
@@ -399,7 +393,7 @@ defc ToggleSearchDirection
    -- Append +F or -R
    if Minuspos > Pluspos then  -- in searchoptions: the last option wins
       searchoptions = searchoptions'+F'
-      sayerror 'Changed search direction to: forewards'
+      sayerror 'Changed search direction to: forwards'
    else
       searchoptions = searchoptions'-R'
       sayerror 'Changed search direction to: backwards'
@@ -418,7 +412,7 @@ defc ToggleSearchDirection
 
 ; ---------------------------------------------------------------------------
 ; From EPMSMP\GLOBCHNG.E
-defc globchng, globalchange, gchange, gc  -------------------------- old version follows therafter
+defc globchng, globalchange, gchange, gc
 ;                                --<-------------------------------  todo: rewrite
    universal lastchangeargs, default_search_options
 compile if SETSTAY = '?'
@@ -532,104 +526,6 @@ compile endif
    sayerror 'String changed in' change_count files
    display 8
    return
-
-; ; ---------------------------------------------------------------------------
-; ; From EPMSMP\GLOBCHNG.E
-; defc globchng, globalchange, gchange, gc
-;    universal lastchangeargs, default_search_options
-; compile if SETSTAY='?'
-;    universal stay
-; compile endif
-;
-;    /* Insert default_search_options just before supplied options (if any)    */
-;    /* so the supplied options will take precedence.                          */
-;    user_options=''
-;    change_args=strip(arg(1),'L')  /* Delimiter = 1st char, ignoring leading spaces. */
-;    delim=substr(change_args,1,1)
-;    p=pos(delim, change_args, 2)   /* find last delimiter of 2 or 3 */
-;    if p then
-;       p=pos(delim, change_args, p+1)   /* find last delimiter of 2 or 3 */
-;       if p>0 then
-;          user_options=substr(change_args, p+1)
-;          change_args=substr(change_args,1,p-1)
-;       endif
-;    else
-;       sayerror NO_REP__MSG
-;       return
-;    endif
-;    if verify(upcase(default_search_options),'M','M') then
-;       user_options = 'A'user_options
-;    endif
-;    change_args=change_args || delim || default_search_options || user_options
-;    backwards = 0
-;    p1 = lastpos('-', default_search_options || user_options)
-;    if p1 then
-;       if p1 > lastpos('+', default_search_options || user_options) then
-;          backwards = 1
-;       endif
-;    endif
-;    rev = 0  -- changed to rev, because reverse is a statement
-;    p1 = lastpos('R', upcase(default_search_options || user_options))
-;    if p1 then
-;       if p1 > lastpos('F', upcase(default_search_options || user_options)) then
-;          rev = 1
-;       endif
-;    endif
-;
-;    /* Remember our current file so we don't search forever.  */
-;    getfileid StartFileID
-;    change_count = 0
-;
-;    loop
-;       /* Include this refresh if you like to see each file as it's */
-;       /* searched.  Causes too much screen flashing for my taste,  */
-; ;;       refresh
-;
-;       /* Start from top of file, save current posn in case no match. */
-;       call psave_pos(save_pos)
-;       if backwards then
-;          bottom
-;          if rev then
-;             end_line
-;          else
-;             begin_line
-;          endif
-;       else
-;          0
-;       endif
-;       display -8
-;       'xcom c' change_args
-;       display 8
-;       if rc=0 then
-;          change_count = change_count + 1
-; compile if SETSTAY='?'
-;          if stay then
-; compile endif
-; compile if SETSTAY
-;             call prestore_pos(save_pos)
-; compile endif
-; compile if SETSTAY='?'
-;          endif
-; compile endif
-;       else
-;          /* no match in file - restore file location */
-;          call prestore_pos(save_pos)
-;       endif
-;       nextfile
-;       getfileid fileid
-;       if fileid=StartFileID then
-;          leave
-;       endif
-;    endloop
-;    if change_count = 1 then
-;       files = 'file.'
-;    else
-;       files = 'files.'
-;    endif
-;    display -8
-;    sayerror 'String changed in' change_count files
-;    display 8
-;    return
 
 ; ---------------------------------------------------------------------------
 ; From EPMSMP\GREP.E
