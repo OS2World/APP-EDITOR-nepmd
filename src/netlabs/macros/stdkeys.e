@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.13 2004-02-22 21:04:30 aschn Exp $
+* $Id: stdkeys.e,v 1.14 2004-06-03 22:45:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -164,6 +164,8 @@ def a_0=    /* same as Alt-Equal, for sake of German keyboards */
 define
    QUOTED_DIR_STRING ='"'DIRECTORYOF_STRING'"'
 
+/*
+; Unused, we include ALT_1.E
 def a_1= /* edit filename on current text line */
    getline line
 compile if WANT_EPM_SHELL
@@ -311,6 +313,7 @@ compile endif  -- WANT_TREE
          'e 'line
       endif  -- p
    endif  -- upcase(word1 word2) = '.DOS DIR'
+*/
 
 def a_a=
 compile if WANT_CHAR_OPS
@@ -396,6 +399,9 @@ compile if UNMARK_AFTER_MOVE
 compile endif
 
 def a_minus =
+   'HighlightCursor'
+
+defc HighlightCursor
    circleit 5, .line, .col-1, .col+1, 16777220
 
 def a_n=  /* Type the full name of the current file. */
@@ -519,7 +525,43 @@ compile endif
          .levelofattributesupport = .levelofattributesupport + 2
          .cursoroffset = -300
       endif
+      -- begin workaround for cursor just behind or at begin of a mark
+      -- For char mark: Move mark left if cursor is on mark begin or end
+      old_col  = .col
+      old_line = .line
+      CorrectMarkBegin = 0
+      CorrectMarkEnd   = 0
+      mt = marktype()
+      if mt = 'CHAR' then
+         getmark first_line, last_line, first_col, last_col, fid
+         if ((old_col > 1) & (first_line = old_line) & (first_line = last_line) & (first_col = old_col)) then
+            -- Cursor is on mark begin and first_line = last_line
+            CorrectMarkBegin = 1
+            CorrectMarkEnd   = 1
+         elseif ((old_col > 1) & (first_line = old_line) & (first_col = old_col)) then
+            -- Cursor is on mark begin
+            CorrectMarkBegin = 1
+         elseif ((old_col > 0) & (last_line = old_line) & (last_col = old_col - 1)) then
+            -- Cursor is 1 col behind mark end
+            CorrectMarkEnd   = 1
+         endif
+         --sayerror first_line', 'last_line', 'first_col', 'last_col', Marktype = 'mt ||
+         --         ', CorrectMarkEnd/Begin = 'CorrectMarkEnd CorrectMarkBegin
+      endif
+      -- end workaround for cursor just behind or at begin of a mark
       rubout
+      -- begin workaround for cursor just behind or at begin of a mark
+      --mt = wordpos(mt,'LINE CHAR BLOCK CHARG BLOCKG')-1
+      if CorrectMarkBegin then
+         first_col = first_col - 1   -- move first_col left
+      endif
+      if CorrectMarkEnd then
+         last_col  = last_col - 1    -- move last_col left
+      endif
+      if CorrectMarkBegin | CorrectMarkEnd then
+         pset_mark( first_line, last_line, first_col, last_col, mt, fid)
+      endif
+      -- end workaround for cursor just behind or at begin of a mark
       .levelofattributesupport = old_level
 compile if WANT_STREAM_MODE
    endif
@@ -670,17 +712,21 @@ compile endif
 ; Moved def c_enter, c_pad_enter= to ENTER.E
 ; Moved def c_f to LOCATE.E
 
+; c_f1 is not definable in EPM.
 def c_f1=
+   call psave_pos(save_pos)
    call psave_mark(save_mark)
    call pmark_word()
    call puppercase()
    call prestore_mark(save_mark)
 
 def c_f2=
+   call psave_pos(save_pos)
    call psave_mark(save_mark)
    call pmark_word()
    call plowercase()
    call prestore_mark(save_mark)
+   call prestore_pos(save_pos)
 
 def c_f3= call puppercase()
 
@@ -691,6 +737,18 @@ def c_f5=
 
 def c_f6=
    call pend_word()
+
+; def c_f7  -- is defined as shift left
+; def c_f8  -- is defined as shift right
+
+def c_f9
+   'history edit'
+
+def c_f10
+   'history load'
+
+def c_f11
+   'history save'
 
 def c_f12
    'next_win'
@@ -1105,9 +1163,11 @@ compile if WANT_CUA_MARKING
    endif
  compile endif
 compile endif
-   KeyPath = "\NEPMD\User\Indent\Home\RespectIndent"
-   RespectIndent = NepmdQueryConfigValue( nepmd_hini, KeyPath )
-   if RespectIndent = 1 then
+   KeyPath = '\NEPMD\User\Keys\Home\ToggleBeginLineText'
+   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Enabled = 1 then
+      -- Go to begin of text.
+      -- If in area before or at begin of text, go to column 1.
       startline = .line; startcol = .col
       call pfirst_nonblank()
       if .line = startline and .col = startcol then
@@ -1121,9 +1181,12 @@ compile if WANT_SHIFT_MARKING
 def s_home =
    universal nepmd_hini
    startline = .line; startcol = .col
-   KeyPath = "\NEPMD\User\Indent\Home\RespectIndent"
-   RespectIndent = NepmdQueryConfigValue( nepmd_hini, KeyPath )
-   if RespectIndent = 1 then
+   KeyPath = '\NEPMD\User\Keys\Home\ToggleBeginLineText'
+   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Enabled = 1 then
+      -- Go to begin of text.
+      -- If in area before or at begin of text, go to column 1.
+      startline = .line; startcol = .col
       call pfirst_nonblank()
       if .line = startline and .col = startcol then
          begin_line
@@ -1372,6 +1435,9 @@ compile endif
    endif
 
 def s_f5= /* center current line */
+   'CenterLine'
+
+defc CenterLine
 compile if WANT_CUA_MARKING
  compile if WANT_CUA_MARKING = 'SWITCH'
    universal CUA_marking_switch
