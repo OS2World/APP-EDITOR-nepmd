@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: module.c,v 1.1 2002-08-22 15:02:27 cla Exp $
+* $Id: module.c,v 1.2 2004-12-17 23:44:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -31,10 +31,16 @@
 #include <os2.h>
 
 // using undocumented function
+// APIRET APIENTRY DosQueryModFromEIP (HMODULE *phModule, ULONG *pulObjectNumber,
+//                                     ULONG ulBufferLength, PCHAR pchBuffer,
+//                                     ULONG *pulOffset, PVOID pvAddress);
+#ifndef DosQueryModFromEIP
+// using undocumented function
 APIRET APIENTRY DosQueryModFromEIP (HMODULE *phModule, ULONG *pulObjectNumber,
                                     ULONG ulBufferLength, PCHAR pchBuffer,
-                                    ULONG *pulOffset, PVOID pvAddress);
-
+                                    ULONG *pulOffset, ULONG pvAddress);
+                                    // changed the cast of the last parameter
+#endif
 // -----------------------------------------------------------------------------
 
 APIRET EXPENTRY GetModuleName( PSZ pszBuffer, ULONG ulBuflen)
@@ -60,9 +66,13 @@ do
       }
 
    // get path and name of this executable
+   // rc = DosQueryModFromEIP( &hmod, &ulObjectNumber,
+   //                          sizeof( szModuleName), szModuleName,
+   //                          &ulOffset, (PVOID) GetModuleName);
    rc = DosQueryModFromEIP( &hmod, &ulObjectNumber,
                             sizeof( szModuleName), szModuleName,
-                            &ulOffset, (PVOID) GetModuleName);
+                            &ulOffset, (ULONG) GetModuleName);
+                            // changed the cast of the last parameter
    if (rc != NO_ERROR)
       break;
 
