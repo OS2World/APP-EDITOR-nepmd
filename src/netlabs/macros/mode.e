@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.14 2002-10-10 20:44:51 cla Exp $
+* $Id: mode.e,v 1.15 2002-10-14 17:55:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -25,7 +25,7 @@
 
 const
 compile if not defined(NEPMD_RESTORE_MODE_FROM_EA)
-   NEPMD_RESTORE_MODE_FROM_EA = 0
+   NEPMD_RESTORE_MODE_FROM_EA = 1
 compile endif
 compile if not defined(NEPMD_SPECIAL_STATUSLINE)
    NEPMD_SPECIAL_STATUSLINE = 1
@@ -119,8 +119,7 @@ defc mode
 
    if NewMode = '' then
       -- Ask user to set a mode
-      NewMode = NepmdSelectMode()
-      NewMode = upcase(NewMode)
+      NewMode = upcase( NepmdSelectMode())
 
    elseif NewMode = 'DEFLOAD' then
       -- This is called by defload
@@ -185,7 +184,7 @@ defproc NepmdProcessMode()
 compile if NEPMD_SPECIAL_STATUSLINE
    'refreshstatusline'
 compile endif
-   NepmdActivateHighlight( 'ON', CurMode)
+   call NepmdActivateHighlight( 'ON', CurMode)
 
    return
 
@@ -193,33 +192,51 @@ compile endif
 ; Opens a listbox to select a mode.
 ; Called by defc mode if no arg specified.
 defproc NepmdSelectMode()
-   CurMode = get_EAT_ASCII_value('EPM.MODE')
-   ModeList = ''
-   if CurMode <> '' then
-      ModeList = ' -reset-'
-   endif
-   ModeList = ModeList || ' TXT REXX CMD E C MAKE IPF HTML TEX CONFIGSYS' ||
-              ' NETREXX JAVA ADA BASIC PHP RC PASCAL PERL POSTSCRIPT INI' ||
-              ' BOOKMASTER PL/I FORTRAN SHELL EPMKWDS'
 
-   --sayerror 'EPM.MODE = 'CurMode
-   Title = 'Select an edit mode'
+   -- determine current mode
+   CurMode = get_EAT_ASCII_value('EPM.MODE')
+   DefMode = NepmdQueryDefaultMode( .filename);
+
    if CurMode = '' then
-      Text = ' EPM.MODE is not set.'
+      SelectedMode = DefMode
+      Text = 'Default mode:' SelectedMode;
    else
-      Text = ' EPM.MODE is 'CurMode
+      SelectedMode = CurMode;
+      Text = 'Selected mode:' SelectedMode;
    endif
-   Default = 1
+
+   -- check mode list and add default entry
+   ModeList = NepmdQueryModeList();
+   parse value ModeList with 'ERROR:'rc;
+   if (rc > '') then
+      sayerror 'error: list of EPM modes could not be determined, rc='rc;
+      stop;
+   endif
+   ModeList = ModeList '-DEFAULT-'
+
+
+   -- determine default selection
+   Selection = wordpos( SelectedMode, ModeList);
+   Title = 'Mode Selection:';
+
    refresh
    select = listbox( Title,
                      ModeList,
-                     '/Set/Cancel',    -- Ref.point  - in chars --
-                     35, 30, 25, 25,   -- Top, Left, Height, Width
-                     gethwnd(APP_HANDLE) || atoi(Default) || atoi(1) || atoi(0) ||
+                     '/Set/Cancel',                 -- buttons
+                     5, 5,                          -- Top, Left,
+                     min( words(ModeList),12), 25,  -- Height, Width
+                     gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(6015) ||
                      Text\0 )
    refresh
+
+   -- check result
    parse value select with \1 select \0
    select = strip( select, 'B', \1 ) -- sometimes the returned value for cancel is \1
+   if ((select = DefMode) | (select = '-DEFAULT-')) then
+      select = 'OFF'
+   end
+
    --sayerror 'defproc selectmode(): select = |'select'|'
+
    return select
 
