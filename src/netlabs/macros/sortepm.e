@@ -1,3 +1,23 @@
+/****************************** Module Header *******************************
+*
+* Module Name: sortepm.e
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: sortepm.e,v 1.2 2002-07-22 19:02:01 cla Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
 compile if EVERSION < '5.60'
  Error:  SORTEPM.E (SORT_TYPE = 'EPM') can only be used with EPM 5.60 or above.
 compile endif

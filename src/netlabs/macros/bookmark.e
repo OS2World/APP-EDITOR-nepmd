@@ -1,3 +1,23 @@
+/****************************** Module Header *******************************
+*
+* Module Name: bookmark.e
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: bookmark.e,v 1.2 2002-07-22 18:58:54 cla Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
 ; This file adds bookmark support to EPM.  It can be linked in or included
 ; in the base .ex file.  WANT_ATTRIBUTE_SUPPORT must have been set when compiling
 ; the base if this is to be linked in, because DEFLOAD and DEFC SAVE have hooks

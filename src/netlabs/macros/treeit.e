@@ -1,3 +1,23 @@
+/****************************** Module Header *******************************
+*
+* Module Name: treeit.e
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: treeit.e,v 1.2 2002-07-22 19:03:09 cla Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
 const
    NOT_TREE__MSG = "This is not a tree file.  You must be in a tree buffer to invoke TREE."
    NO_TREEIT_CMD__MSG = "You must provide the command that you want to invoke against the tree'd files."
