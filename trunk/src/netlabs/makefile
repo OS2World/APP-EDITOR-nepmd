@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.3 2002-08-15 14:55:09 cla Exp $
+# $Id: makefile,v 1.4 2002-08-19 17:45:23 cla Exp $
 #
 # ===========================================================================
 #
@@ -72,6 +72,8 @@ $(CMPEXDIR)\tree.ex
 {macros}.e{$(CMPEXDIR)}.ex:
    mkex $(CMPEXDIR) $(@B).e
 
+# --- extend EPMPATH
+EPMPATH=macros;$(EPMPATH)
 
 # --- pseudotargets
 
