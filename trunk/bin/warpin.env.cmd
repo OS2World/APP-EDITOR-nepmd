@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: warpin.env.cmd,v 1.2 2002-05-02 14:35:44 cla Exp $
+* $Id: warpin.env.cmd,v 1.3 2004-12-25 10:41:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,9 @@
     END;
 
     /* extend environment */
-    '@SET PATH='WarpInPath';';
+    /* If WarpIN calls external installation programs, then setting PATH only to */
+    /* WarpInPath probably won't suffice. Therefore %PATH% is appended here. */
+    '@SET PATH='WarpInPath';%PATH%';
     '@SET BEGINLIBPATH='WarpInPath';';
 
    /* execute command if given */
