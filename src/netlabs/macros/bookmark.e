@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: bookmark.e,v 1.6 2003-05-14 16:21:33 aschn Exp $
+* $Id: bookmark.e,v 1.7 2003-05-14 16:30:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -759,11 +759,9 @@ defproc put_file_as_MVST(source_fid, target_fid, ea_name)
 
       ea_ptr = ea_seg
    else
-/*
       ea_ptr = atol(dynalink32(E_DLL,
                                'mymalloc',
                                atol(ea_len_incr+4), 2))
-*/
       ea_ptr = ltoa(substr(ea_ptr,3,2)\0\0,10)
       r = -270 * (ea_ptr = 0)
 
