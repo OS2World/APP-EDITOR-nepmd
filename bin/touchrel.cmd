@@ -1,10 +1,11 @@
 /*
  *      TOUCHREL.CMD - C.Langanke for Netlabs EPM Distribution Project 2002
  *
- *      Syntax: touchrel filemask
+ *      Syntax: touchrel dirname
  *
- *    This program calls GNU touch to set the timestamp of the specified
- *    files. The timestamp of the last full hour or last half hour is used.
+ *    This program calls GNU touch to set the timestamp of the files below
+ *    the specified directory. The timestamp of the last full hour or last
+ *    half hour is used.
  */
 /* The first comment is used as online help text */
 /****************************** Module Header *******************************
@@ -15,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: touchrel.cmd,v 1.1 2002-11-04 23:18:28 cla Exp $
+* $Id: touchrel.cmd,v 1.2 2002-11-05 20:28:29 cla Exp $
 *
 * ===========================================================================
 *
@@ -51,6 +52,39 @@
     Mins = '00';
  TimeStamp = MonthDay''Hours''Mins''Year'.00';
 
+ DO WHILE (Parms \= '')
+    PARSE VAR Parms ThisDir Parms;
+    SAY '- touching' ThisDir;
+    rcx = TouchFilesInDir( ThisDir,     TimeStamp);
+    rcx = TouchFilesInDir( ThisDir'\*', TimeStamp);
+ END;
 
- 'call touch -t' TimeStamp Parms
+
+ EXIT( rc);
+
+/* ------------------------------------------------------------------------- */
+FileExist: PROCEDURE
+ PARSE ARG FileName
+
+ RETURN(STREAM(Filename, 'C', 'QUERY EXISTS') > '');
+
+/* ------------------------------------------------------------------------- */
+TouchFilesInDir: PROCEDURE
+ PARSE ARG Parm, TimeStamp;
+
+ rc = SysFileTree( Parm, 'Dir.', 'DOS');
+ IF (rc = 0) THEN
+ DO
+    /* add hase dir to stem */
+    d     = Dir.0 + 1;
+    Dir.d = ThisDir;
+    Dir.0 = d;
+
+    /* process all directories */
+    DO d = 1 TO Dir.0
+       IF (FileExist( Dir.d'\*')) THEN
+          'call touch -t' TimeStamp Dir.d'\*';
+    END;
+ END;
+ RETURN( 0);
 
