@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.4 2002-08-10 13:38:36 cla Exp $
+* $Id: applyico.cmd,v 1.5 2002-11-04 20:55:53 cla Exp $
 *
 * ===========================================================================
 *
@@ -63,6 +63,9 @@
     PARSE VAR FolderObjectIdList ThisObject FolderObjectIdList;
     rc = SysSetObjectData( ThisObject, FolderIconSetup);
  END;
+
+ /* set icon for myepm folder */
+ rc = SysSetObjectData( BaseDir'\myepm', FolderIconSetup);
 
  /* set  EPM program objects */
  rc = SysSetObjectData( '<NEPMD_EXECUTE>', 'ICONFILE='CallDir'\ico\nepmd.ico;');
