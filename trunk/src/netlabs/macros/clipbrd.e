@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: clipbrd.e,v 1.5 2004-01-13 17:27:58 aschn Exp $
+* $Id: clipbrd.e,v 1.6 2004-06-03 21:50:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -641,6 +641,7 @@ defc clipview2 =
       .readonly = 1
    endif
 
+; Doesn't work!
 defproc clipcheck(var format)  -- Returns error code; if OK, sets FORMAT
    hab=gethwndc(0)                         -- get EPM's anchorblock
    format = \0\0\0\0                       -- (reserve four bytes)
@@ -653,84 +654,5 @@ defproc clipcheck(var format)  -- Returns error code; if OK, sets FORMAT
    format = 1024
    return rc
 
-defc insert_text_file
-   universal default_edit_options
-   get_file = strip(arg(1))
-   if get_file='' then sayerror NO_FILENAME__MSG 'GET'; return; endif
-   if pos(argsep,get_file) then
-      sayerror INVALID_OPTION__MSG
-      return
-   endif
-   getfileid fileid
-   s_last=.last
-   display -1
-   'e /q /d' get_file
-   editrc=rc
-   getfileid gfileid
-   if editrc = -282 | not .last then  -- -282 = sayerror('New file')
-      'q'
-      display 1
-      if editrc= -282 then
-         sayerror FILE_NOT_FOUND__MSG':  'get_file
-      else
-         sayerror FILE_IS_EMPTY__MSG':  'get_file
-      endif
-      return
-   endif
-   if editrc & editrc<>-278 then  -- -278  sayerror('Lines truncated') then
-      display 1
-      sayerror editrc
-      stop
-   endif
-   call psave_mark(save_mark)
- compile if WANT_BOOKMARKS
-   if not .levelofattributesupport then
-      'loadattributes'
-   endif
- compile endif
-   get_file_attrib = .levelofattributesupport
-   if rightstr(textline(.last), 1) = \26 then  -- Ends with EOF?
-      incr = 0
-   else
-      incr = 1
-   endif
-   setmark 1, .last, 1, length(textline(.last))+incr, 3, gfileid  -- 3 = CHARG mark
-   activatefile fileid
-   if not .last then
-      insert
-      .col = 1
-   elseif .line = .last then
-      xxx = .mousex
-      yyy = .mousey
-      map_point 5, xxx, yyy, off, comment;  -- map screen to line
-      if xxx > .last then  -- Dropped below bottom of file; append to end.
-         insert
-         .col = 1
-      endif
-   endif
-   rc=0
-   copy_mark
-   copy_rc=rc           -- Test for memory too full for copy_mark.
-   activatefile gfileid
-   'q'
-   parse value save_mark with s_firstline s_lastline s_firstcol s_lastcol s_mkfileid s_mt
-   if fileid=s_mkfileid then           -- May have to move the mark.
-      diff=fileid.last-s_last          -- (Adjustment for difference in size)
-      if fileid.line<s_firstline then s_firstline=s_firstline+diff; endif
-      if fileid.line<s_lastline then s_lastline=s_lastline+diff; endif
-   endif
-   call prestore_mark(s_firstline s_lastline s_firstcol s_lastcol s_mkfileid s_mt)
-   activatefile fileid
-   if get_file_attrib // 2 then
-      call attribute_on(1)  -- Colors flag
-   endif
-   if get_file_attrib bitand 4 then
-      call attribute_on(4)  -- Mixed fonts flag
-   endif
-   if get_file_attrib bitand 8 then
-      call attribute_on(8)  -- "Save attributes" flag
-   endif
-   display 1
-   if copy_rc & copy_rc<>-281 then
-      sayerror NOT_2_COPIES__MSG get_file
-   endif
+; Moved defc insert_text_file to EDIT.E.
+
