@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: colors.e,v 1.2 2002-07-22 18:59:23 cla Exp $
+* $Id: colors.e,v 1.3 2002-08-09 19:57:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -60,7 +60,6 @@ const
    MAGENTAB       = 80
    BROWNB         = 96
    GREYB          =112
-compile if EVERSION >= 4     -- Note:  highlighted backgrounds are not possible
    LIGHT_GREYB    =112       -- on a CGA.  We assume if you're running OS/2, you
    DARK_GREYB     =128       -- have a better monitor.  If you are actually
    LIGHT_BLUEB    =144       -- running OS/2 on a CGA, be sure that you specify
@@ -70,10 +69,6 @@ compile if EVERSION >= 4     -- Note:  highlighted backgrounds are not possible
    LIGHT_MAGENTAB =208
    YELLOWB        =224
    WHITEB         =240
-compile else
-   YELLOWB        = 96
-   WHITEB         =112
-compile endif
 
    BLINK          =128        /* qualities */
    UNDERLINE      =  1
@@ -90,14 +85,10 @@ compile endif
 ; Note:  COMMANDCOLOR is used for the status line and filename in zoom
 ;        window style 3.  (E3 and EOS2)
 define
-compile if EVERSION < '5.50'
-   STATUSCOLOR              = NORMAL
-compile else
    STATUSCOLOR              = WHITEB
  compile if EVERSION >= '5.60'
    DESKTOPCOLOR             = LIGHT_GREY
  compile endif
-compile endif
    MONOSTATUSCOLOR          = NORMAL
    FILENAMECOLOR            = NORMAL
    MONOFILENAMECOLOR        = NORMAL
@@ -113,11 +104,7 @@ compile endif
    MONOCURSORCOLOR          = UNDERLINE + HIGH_INTENSITY
    MARKCOLOR                = BLUE + GREYB
    MONOMARKCOLOR            = INVERSE
-compile if EVERSION < '5.50'
-   MESSAGECOLOR             = LIGHT_RED
-compile else
    MESSAGECOLOR             = LIGHT_RED + WHITEB
-compile endif
    MONOMESSAGECOLOR         = NORMAL
 
 ;  E3 and EOS2 use all the above.  EPM only uses MARKCOLOR, TEXTCOLOR, STATUSCOLOR

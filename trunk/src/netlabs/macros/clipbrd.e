@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: clipbrd.e,v 1.2 2002-07-22 18:59:19 cla Exp $
+* $Id: clipbrd.e,v 1.3 2002-08-09 19:57:50 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -48,7 +48,6 @@
 º                                                                    6/89    º
 ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
 */
-compile if EVERSION >= 5.60
    #define CR_TERMINATOR_LDFLAG           1  -- Use CR as a terminator
    #define LF_TERMINATOR_LDFLAG           2  -- Use LF as a terminator
    #define CRLF_TERMINATOR_LDFLAG         4  -- Use CR,LF as a terminator
@@ -62,7 +61,6 @@ compile if EVERSION >= 5.60
    #define STRIP_SPACES_LDFLAG         1024  -- Strip trailing spaces when loading
    #define IGNORE_STORED_FORMAT_LDFLAG 2048  -- Don't use format flags saved in buffer header
    #define FORCE_TERMINATOR_LDFLAG     4096  -- Require a terminator after every line
-compile endif
 compile if not defined(REFLOW_AFTER_PASTE)
    const REFLOW_AFTER_PASTE = 0
 compile endif
@@ -80,11 +78,7 @@ defc Copy2SharBuff                     /* former name = CLIPBRD_pt          */
       return                           /* if mark doesn't exist, return     */
    endif
                                        /* save the dimensions of the mark   */
-compile if EVERSION >= 5.50
    getmarkg fstline,                   /* returned:  first line of mark     */
-compile else
-   getmark fstline,                    /* returned:  first line of mark     */
-compile endif
            lstline,                    /* returned:  last  line of mark     */
            fstcol,                     /* returned:  first column of mark   */
            lstcol,                     /* returned:  last  column of mark   */
@@ -109,17 +103,9 @@ compile endif
 
    /* Copy the current marked lines (up to 64k worth of data ) into EPM's */
    /* shared memory buffer.                                               */
-compile if EVERSION >= 5.51
    call buffer(PUTMARKBUF, bufhndl, fstline, lstline, APPENDCR+APPENDLF)  -- Was +FINALNULL+STRIPSPACES
-compile else  -- Older versions needed the null for the copy to clipboard routine
-   call buffer(PUTMARKBUF, bufhndl, fstline, lstline, APPENDCR+APPENDLF+FINALNULL)
-compile endif
 
-compile if EVERSION >= 5.50
    poke bufhndl, 28, atol(lstline-fstline+1-(lstline>.last))  -- Remember how many lines are *supposed* to be there.
-compile else
-   poke bufhndl, 28, atol(lstline-fstline+1)  -- Remember how many lines are *supposed* to be there.
-compile endif
 
    activatefile fileid
    if opened then
@@ -185,39 +171,6 @@ defc copy2clip
       return 1
    endif
 
-compile if EVERSION < '5.50'
-   hab=gethwnd(0)                           /* get EPM's anchorblock     */
-   call dynalink('PMWIN',                   /* Open PM's clipboard       */
-                 'WINOPENCLIPBRD',
-                 hab)
-
-   call dynalink('PMWIN',                   -- Empty the clipboard completely
-                 'WINEMPTYCLIPBRD',         -- before filling it.
-                 hab)
-   result = dynalink(E_DLL,                 /* create a buffer and copy  */
-            'CLIPBOARDCOPY',                /* the contents of the EPM   */
-            atoi(bufhndl)||                 /* shared buffer             */
-            atoi(0)      ||
-            atoi(1),                        /* buffer to pm clipboard    */
-            2)                              /* return long               */
-
-   /* Clipboardcopy allocates a buffer of memory                         */
-   /* we don't have to worry about freeing the buffer that clipboardcopy */
-   /* allocates... PM will free it                                       */
-
-   call dynalink('PMWIN',                   /* call PM function to       */
-                 'WINSETCLIPBRDDATA',       /* move data into the PM e cb*/
-                  hab ||                    /* anchor block              */
-                  atol(result) ||           /* pointer to text.          */
-                  atoi(1) ||                /* format (TEXT)             */
-                  atoi(256))                /* selector                  */
-
-   call dynalink('PMWIN',
-                 'WINCLOSECLIPBRD',
-                 hab)
-   call buffer(FREEBUF, bufhndl)
-
-compile else
 --  Copying to the Clipboard using the EToolkit message:
 --  EPM_EDIT_CLIPBOARDCOPY -  mp1 = pointer to memory buffer containing
 --                                  contents to copy to the clipboard.
@@ -233,24 +186,15 @@ compile else
 
    call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),
                       5441,               -- EPM_EDIT_CLIPBOARDCOPY
-; compile if POWERPC
-;                      bufhndl,
-; compile else
                       mpfrom2short( bufhndl, 0),
-; compile endif
                       1)
 
 defc processclipboardcopy
    result=arg(1)
    if result then      -- If non-zero, free the buffer.
-; compile if POWERPC
-;      call buffer(FREEBUF, result)  -- pass the pointer
-; compile else
       call buffer(FREEBUF, itoa(substr(atol(result),3,2),10))  -- pass just the selector
-; compile endif
    endif
 
-compile endif -- EVERSION < '5.50'
 
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
@@ -284,12 +228,10 @@ compile if WANT_CUA_MARKING = 'SWITCH'
    universal CUA_marking_switch
 compile endif
    arg1 = upcase(arg(1))
-compile if EVERSION >= '6.03'
    if .readonly then
       sayerror READ_ONLY__MSG
       return
    endif
-compile endif
    if browse() then
       sayerror BROWSE_IS__MSG ON__MSG
       return
@@ -302,82 +244,6 @@ compile endif
       insert         -- If file is empty, insert a blank line & paste there.
       begin_line
    endif
-compile if EVERSION < '5.50'
-   if not clipcheck(format) then
-      sayerror CLIPBOARD_ERROR__MSG
-      return
-   endif
-   if format<>256 then                 -- no text in clipboard
-      sayerror CLIPBOARD_EMPTY__MSG
-      return
-   endif
-
- compile if EPM32  -- The following is unnecessary; we're inside EVERSION < 5.50 ...
-   hab=gethwndc(0)                          -- get EPM's anchorblock
-   call dynalink32('PMWIN',                   /* Open PM's clipboard       */
-                   '#793',  -- WINOPENCLIPBRD
-                    hab)
-
-   result = dynalink32('PMWIN',               /* call PM function to       */
-                       '#806',  -- WINQUERYCLIPBRDDATA  /* look at the data in the cb*/
-                       hab ||                 /* anchor block              */
-                       atol(1),               /* data format ( TEXT )      */
-                       4)                     /* return a 4 byte result    */
-
-   result = dynalink32(E_DLL,                 /* create a buffer and copy  */
-                       'ClipboardCopy',       /*                           */
-                       atol(result) ||        /*                           */
-                       atol(0),               /* pm clipboard to shared buf*/
-                       4)                     /*                           */
-   call dynalink32('PMWIN',
-                   '#707',  -- WINCLOSECLIPBRD
-                   hab)
- compile else
-   hab=gethwnd(0)                          -- get EPM's anchorblock
-   call dynalink('PMWIN',                   /* Open PM's clipboard       */
-                 'WINOPENCLIPBRD',
-                 hab)
-
-   result = dynalink('PMWIN',               /* call PM function to       */
-                     'WINQUERYCLIPBRDDATA', /* look at the data in the cb*/
-                     hab ||                 /* anchor block              */
-                     atoi(1),               /* data format ( TEXT )      */
-                     2)                     /* return a 4 byte result    */
-
-   result = dynalink(E_DLL,                 /* create a buffer and copy  */
-                     'CLIPBOARDCOPY',       /*                           */
-                     atol(result) ||        /*                           */
-                     atoi(0),               /* pm clipboard to shared buf*/
-                     2)                     /*                           */
-   call dynalink('PMWIN',
-                 'WINCLOSECLIPBRD',
-                 hab)
- compile endif  -- EPM32
-
-   result=itoa(substr(atol(result),3,2),10) /* convert from bin to str   */
-   if arg1='C' | arg1='B' then
-      poke result, 8, chr(68-asc(arg1))              -- 'C'->1; 'B'->2; mark as a character or block buffer
- compile if WANT_CUA_MARKING
-      if arg1='C' &
-  compile if WANT_CUA_MARKING = 'SWITCH'
-         CUA_marking_switch &
-  compile endif
-         marktype()
-      then
-         call pbegin_mark()
-         call pdelete_mark()
-         'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
-      endif
- compile endif
- compile if REFLOW_AFTER_PASTE
-   start_line = .line
-   start_linetext = textline(.line)
-   start_col = .col+1
- compile endif
-      call psave_mark(savemark)                        -- Save the user's mark
-      call GetBuffCommon(result, NOTHING_TO_PASTE__MSG, arg1)
-      -- clause continued below for common stuff.
-compile else  -- if EVERSION < 5.50
 --  Pasting from the PM Clipboard using the EToolkit message:
 --  EPM_EDIT_CLIPBOARDPASTE-  mp1 = flag that describes the type of paste
 --                                  that is desired.  A paste could be of
@@ -438,7 +304,6 @@ defc processclipboardpaste
  compile endif
       call psave_mark(savemark)                        -- Save the user's mark
       call GetBuffCommon(result, NOTHING_TO_PASTE__MSG, chr(mark))
-compile endif -- EVERSION < '5.50'
       -- Two cases join here, in the middle of this IF statement.
       call prestore_mark(savemark)                     -- Restore the user's mark
    else
@@ -448,18 +313,12 @@ compile endif -- EVERSION < '5.50'
       start_linetext = textline(.line)
       start_col = 1
  compile endif
-compile if EVERSION >= 5.60
       call buffer(GETBUF2, result, 1, 0,
                   CR_TERMINATOR_LDFLAG + LF_TERMINATOR_LDFLAG + CRLF_TERMINATOR_LDFLAG +
                   CRCRLF_TERMINATOR_LDFLAG + NEW_BITS_LDFLAG + FORCE_TERMINATOR_LDFLAG)
       if textline(.line+.last-oldsize)=='' then
          deleteline .line+.last-oldsize
       endif
-compile elseif EVERSION >= 5.50
-      call buffer(GETBUF2, result)          /* put buffer into text      */
-compile else
-      call buffer(GETBUF, result)           /* put buffer into text      */
-compile endif -- EVERSION >= 5.50
       '+'(.last-oldsize)
    endif
 compile if REFLOW_AFTER_PASTE
@@ -544,20 +403,9 @@ compile if REFLOW_AFTER_PASTE
    endif  -- rm < MAXMARGIN
 compile endif  -- REFLOW_AFTER_PASTE
 
-compile if POWERPC  -- Pseudo-tiled memory; have to free with myfree()
-   call dynalink32(E_DLL,         -- dynamic link library name
-                   'myfree',                   -- DosFreeSeg
-                   atoi(0) ||  -- add an offset to make the selector an address
-                   atoi(result))
-compile elseif EPM32
    call dynalink32('DOSCALLS',        /* dynamic link library name         */
                    '#304',             /* DosFreeSeg                        */
                    ltoa(atoi(0) || atoi(result), 10))
-compile else
-   call dynalink('DOSCALLS',        /* dynamic link library name         */
-                 '#39',             /* DosFreeSeg                        */
-                 atoi(result))
-compile endif
 
 compile if WANT_DM_BUFFER
 definit
@@ -686,36 +534,21 @@ compile endif
    .visible=0                           -- (hide file)
    getfileid tmpfileid                  -- get hidden file's id
 
-compile if EVERSION >= 5.60
    noflines = buffer(GETBUF2, bufhndl, 1, 0,
                      CR_TERMINATOR_LDFLAG + LF_TERMINATOR_LDFLAG + CRLF_TERMINATOR_LDFLAG +
                      CRCRLF_TERMINATOR_LDFLAG + NEW_BITS_LDFLAG + FORCE_TERMINATOR_LDFLAG)
-compile elseif EVERSION >= 5.50
-   noflines = buffer(GETBUF2, bufhndl)  -- retrieve data from shared EPM buf
-compile else
-   noflines = buffer(GETBUF, bufhndl)   -- retrieve data from shared EPM buf
-compile endif -- EVERSION >= 5.50
    if not noflines then
       'xcom quit'
       sayerror errormsg
       return
    endif
-compile if EVERSION < 5.50
-   insert_attribute 13, 0, 2, 0, activefid.col, activefid.line, activefid  -- Place a bookmark on the character
-compile endif
 
-compile if EVERSION >= 5.50
    orig_lines = ltoa(peek(bufhndl,28,4),10)
- compile if EVERSION = 5.50
-   if orig_lines & orig_lines = noflines-1 & markt = 2 & textline(.last)==\0 then  -- Block mark?  Get rid of extra blank line
- compile else
 ;  sayerror 'orig_lines='orig_lines 'noflines='noflines 'markt='markt '.last='.last 'textline(.last)="'textline(.last)'"'
    if (not orig_lines | orig_lines = noflines-1) & markt = 2 & textline(.last)=='' then  -- Block mark?  Get rid of extra blank line
- compile endif
       noflines = noflines-1
       deleteline .last
    endif
-compile endif
    length_last = length(textline(.last))
    split_start = 0; split_end = 0
    '+1'                              -- advance to next line in hidden
@@ -731,14 +564,7 @@ compile endif
    elseif markt=1 | markt=3 then        -- Mark type is Character(G)
       split_start = activefid.col + length(textline(2)) > MAXCOL
       split_end = cur_line_len - activefid.col + length_last > MAXCOL
-compile if EVERSION >= 5.50
       setmark 2, .last, 1, length_last+1, 3, tmpfileid  -- 3 = CHARG mark
-compile else
-      mark_char                         -- character mark first char
-      noflines+1                        -- advance down to last
-      .col=length_last                  -- move to last character
-      mark_char                         -- complete character mark
-compile endif
    else
       mark_line                         -- line mark first line
       noflines+1                        -- advance down to last
@@ -767,16 +593,6 @@ compile endif
    activatefile tmpfileid               -- activate temp file
    'xcom q'                             -- quit it
    activatefile activefid               -- activate destination file
-compile if EVERSION < 5.50
-   class = 13  -- BOOKMARK_CLASS
-   col=.col+1; line=.line; offst=0
-   attribute_action 1, class, offst, col, line  -- 1=FIND NEXT ATTR
-   if class=13 then
-      query_attribute class, val, IsPush, offst, col, line
-      line; .col=col
-      attribute_action 16, class, offst, col, line -- 16=Delete attribute
-   endif
-compile else  -- 5.50 does char marks internally, so moving to the end of the mark will always work.
    call pend_mark()
 ;  sayerror 'length_last='length_last'; .col='.col'; cl1, cl2 =' cl1 cl2
    if length_last then  -- Move right by 'executekey right', to handle stream mode.
@@ -795,7 +611,6 @@ compile else  -- 5.50 does char marks internally, so moving to the end of the ma
       'togglecontrol 25 1'
  compile endif
    endif
-compile endif
    call verify_buffer_size(bufhndl, noflines)
 
 defproc verify_buffer_size(bufhndl, noflines)
@@ -822,15 +637,10 @@ defc clipview2 =
       .filename=CLIPBOARD_VIEW_NAME
       .autosave = 0
       .modify = 0
-compile if EVERSION >= '6.03'
       .readonly = 1
-compile else
-      call browse(1)
-compile endif
    endif
 
 defproc clipcheck(var format)  -- Returns error code; if OK, sets FORMAT
-compile if EPM32
    hab=gethwndc(0)                         -- get EPM's anchorblock
    format = \0\0\0\0                       -- (reserve four bytes)
    rc=dynalink32('PMWIN',                   -- call PM function to
@@ -840,20 +650,8 @@ compile if EPM32
                  address(format), 4)
 --   format = ltoa(format,10)                -- Convert format to ASCII
    format = 1024
-compile else
-   hab=gethwnd(0)                          -- get EPM's anchorblock
-   format = \0\0                           -- (reserve two bytes)
-   rc=dynalink('PMWIN',                    -- call PM function to
-               'WINQUERYCLIPBRDFMTINFO',   -- look at the data in the cb
-               hab              ||         -- anchor block
-               atoi(1)          ||         -- data format ( TEXT )
-               address(format))
---   format = itoa(format,10)                -- Convert format to ASCII
-   format = 256
-compile endif
    return rc
 
-compile if EVERSION >= 5.50
 defc insert_text_file
    universal default_edit_options
    get_file = strip(arg(1))
@@ -925,22 +723,13 @@ defc insert_text_file
    if get_file_attrib // 2 then
       call attribute_on(1)  -- Colors flag
    endif
- compile if EVERSION >= '6.01b'
    if get_file_attrib bitand 4 then
- compile else
-   if get_file_attrib % 4 - 2 * (get_file_attrib % 8) then
- compile endif
       call attribute_on(4)  -- Mixed fonts flag
    endif
- compile if EVERSION >= '6.01b'
    if get_file_attrib bitand 8 then
- compile else
-   if get_file_attrib % 8 - 2 * (get_file_attrib % 16) then
- compile endif
       call attribute_on(8)  -- "Save attributes" flag
    endif
    display 1
    if copy_rc & copy_rc<>-281 then
       sayerror NOT_2_COPIES__MSG get_file
    endif
-compile endif
