@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: debug.e,v 1.3 2004-09-12 15:10:25 aschn Exp $
+* $Id: debug.e,v 1.4 2004-09-12 15:22:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -80,10 +80,6 @@ compile if NEPMD_DEBUG
       endif
    elseif type = 'AFTERLOAD' then
       if NEPMD_DEBUG_AFTERLOAD then
-         WriteMsg = 1
-      endif
-   elseif type = 'AFTERLOAD_ACTIVATE' then
-      if NEPMD_DEBUG_AFTERLOAD_ACTIVATE then
          WriteMsg = 1
       endif
    elseif type = 'SELECT' then
