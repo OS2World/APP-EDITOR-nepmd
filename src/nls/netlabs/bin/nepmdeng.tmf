@@ -6,7 +6,7 @@
 ;
 ; Text Message file for language specific symbols and text messages
 ;
-; $Id: nepmdeng.tmf,v 1.4 2002-08-25 18:17:16 cla Exp $
+; $Id: nepmdeng.tmf,v 1.5 2002-09-06 10:15:15 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -43,7 +43,7 @@ EPM runtime module overview:
 <--MSG_INFO_BODY_MODULES_NEPMD-->:
 NEPMD runtime module overview:
 ------------------------------
-<--STR_INFO_EPMMODULESTAMP-->:%1  %2 (%3)  %4
+<--STR_INFO_EPMMODULESTAMP-->:%1  %2 %3   %4
 <--STR_INFO_NEPMDMODULESTAMP-->:%1  %2  %3  %4
 <--STR_INFO_NOTLOADED-->:(not loaded)
 <--STR_INFO_NOTUSED-->:(not used)

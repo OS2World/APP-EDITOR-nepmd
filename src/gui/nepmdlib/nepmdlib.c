@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.34 2002-09-05 16:41:46 cla Exp $
+* $Id: nepmdlib.c,v 1.35 2002-09-06 10:15:14 cla Exp $
 *
 * ===========================================================================
 *
@@ -145,16 +145,14 @@ do
    if (strstr( pszModuleName, ".DLL"))
       DosQueryModuleHandle( pszModuleName, &hmodule);
 
+   // for EPM modules load version string
+   strcpy( szVersionStamp, "");
    if (fEpmModule)
       {
-      // load version string
-      if (!WinLoadString( hab, hmodule, 65535, sizeof( szVersionStamp), szVersionStamp))
-         break;
+      if (WinLoadString( hab, hmodule, 65535, sizeof( szFilestamp), szFilestamp))
+         sprintf( szVersionStamp, "(%s)", szFilestamp);
       }
-   else
-      {
-      strcpy( szVersionStamp, "");
-      }
+
 
    // get filestamp from filesystem
    if (!hmodule)
@@ -191,9 +189,11 @@ do
    // take left aligned modulename from fullname (works in all cases!)
    sprintf( szModuleName, "%-12s", &szFullname[ strlen( szFullname) + 1]);
 
+   // sprintf( szFullname, "%-30s", szFullname);
+
    // insert result
    _insertMessage( hwndClient, pszFilename, pszMessageName,
-                   szModuleName, szFilestamp, szVersionStamp, szFullname);
+                   szModuleName, szFilestamp, szFullname, szVersionStamp);
 
    } while (FALSE);
 
