@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: new.php,v 1.1 2002-09-09 15:35:17 cla Exp $
+* $Id: new.php,v 1.2 2002-09-09 15:51:37 cla Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,7 @@ if ($file != "")
    $prio     = "1";
    $status   = "open";
    $filelist = "";
-   $updated  = "";
+   $updated  = "\$Id: new.php,v 1.2 2002-09-09 15:51:37 cla Exp $";
    $modified = "";
    $details  = "- please add details here";
 
