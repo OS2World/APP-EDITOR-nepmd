@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.4 2002-06-09 21:02:35 cla Exp $
+# $Id: makefile,v 1.5 2002-08-10 13:41:04 cla Exp $
 #
 # ===========================================================================
 #
@@ -55,8 +55,9 @@ MT=1
 
 NLSSUPPORTED=deu
 
-# --- select to compress release binaries
+# --- some defs for all compilations
 
+PKGDIR=recomp
 LXLITE=1
 LIBS=$(BINDIR)\common.lib
 

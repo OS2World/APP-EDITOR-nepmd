@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.4 2002-08-10 11:33:09 cla Exp $
+# $Id: makefile,v 1.5 2002-08-10 13:41:04 cla Exp $
 #
 # ===========================================================================
 #
@@ -22,6 +22,7 @@
 # ***************************************************************************
 
 # - create utilitiy
+PKGDIR=epmcall
 DEF=epmcall.def
 LXLITE=1
 LIBS=$(BINDIR)\common.lib
