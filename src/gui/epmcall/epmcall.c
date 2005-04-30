@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.17 2002-11-04 15:44:16 cla Exp $
+* $Id: epmcall.c,v 1.18 2005-04-30 14:41:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,6 +41,8 @@
 
 // -----------------------------------------------------------------------------
 
+#define EPM_SWITCH_CHARS "/"
+
 APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
 {
          APIRET         rc  = NO_ERROR;
@@ -65,6 +67,7 @@ APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
          REQUESTDATA    requestdata;
          ULONG          ulDataLength;
          BYTE           bElemPriority;
+         BOOL           fAsync = TRUE;  // default is to start EPM asynchronously
 
 do
    {
@@ -83,7 +86,6 @@ do
                         szTermQueueName);
    if (rc != NO_ERROR)
      break;
-
 
    // get extended environment
    szExecutable[ 0] = 0;
@@ -107,6 +109,7 @@ do
    for (i = 1; i < argc; i++)
       {
                PSZ            pszMask;
+               PSZ            pszThisParm;
 
       // take care for included blanks
       if (strchr( argv[ i], ' '))
@@ -115,18 +118,44 @@ do
          pszMask = "%s ";
 
       sprintf( _EOS( szProgramArgs), pszMask, argv[ i]);
+
+      // search /M parm for starting EPM synchronously then
+      pszThisParm = argv[i];
+
+      if (strchr(EPM_SWITCH_CHARS, *pszThisParm) != NULL)
+         {
+         pszThisParm++;
+
+         // upcase the parm name
+         strupr( pszThisParm);
+
+         // process M
+         if (strstr( "M", pszThisParm))
+            {
+            DPRINTF(( "CallEPM: parm %s specified\n", pszThisParm));
+            fAsync = FALSE;
+            }
+         }
+
       }
 
    // start program - fill STARTDATA
    memset( &startdata, 0, sizeof( startdata));
    startdata.Length      = sizeof( startdata);
+   if (fAsync == FALSE)
+   {
    startdata.Related     = SSF_RELATED_CHILD;
+   startdata.TermQ       = szTermQueueName;
+   }
+   else
+   {
+   startdata.Related     = SSF_RELATED_INDEPENDENT;
+   }
    startdata.InheritOpt  = SSF_INHERTOPT_PARENT;
    startdata.SessionType = SSF_TYPE_PM;
    startdata.FgBg        = SSF_FGBG_FORE;
    startdata.PgmName     = szExecutable;
    startdata.PgmInputs   = szProgramArgs;
-   startdata.TermQ       = szTermQueueName;
    startdata.Environment = pszEnv;
 
    rc = DosStartSession( &startdata, &ulSession, &pid);
@@ -134,6 +163,8 @@ do
    if ((rc != NO_ERROR) && (rc != ERROR_SMG_START_IN_BACKGROUND))
       break;
 
+   if (fAsync == FALSE)
+   {
    // wait for the program to terminate
    rc = DosReadQueue( hqTermQueue,
                       &requestdata,
@@ -152,6 +183,7 @@ do
    // BUG: seems to be always NO_ERROR (rc=0)
    rc = presc->codeResult;
    DPRINTF(( "session result: %u\n", rc));
+   }
 
    } while (FALSE);
 
