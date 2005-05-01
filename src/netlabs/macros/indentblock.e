@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: indentblock.e,v 1.4 2005-03-06 07:57:52 aschn Exp $
+* $Id: indentblock.e,v 1.5 2005-05-01 22:53:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -64,10 +64,7 @@ defc indentblock
       call pset_mark( firstLine, lastLine, 1, 1599, 'LINE', fid)
    endif
 
-   undoaction 1, junk                -- Create a new state
-   savedmodify = .modify
-   savedautosave = .autosave
-   .autosave = 0
+   -- no additional undo state supression required
 
    if WasMarked = 0 then
       -- Get indent of current line
@@ -157,9 +154,4 @@ defc indentblock
       call pset_mark( firstLine, lastLine, firstCol, lastCol, mt, fid)
    endif
 */
-
-   if .modify > savedmodify then
-      .modify = savedmodify + 1
-   endif
-   .autosave = savedautosave
 

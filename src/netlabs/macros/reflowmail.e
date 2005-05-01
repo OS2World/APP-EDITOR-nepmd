@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.2 2004-07-01 11:23:20 aschn Exp $
+* $Id: reflowmail.e,v 1.3 2005-05-01 22:53:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -339,10 +339,7 @@ defc reflowmail
    KeyPath = '\NEPMD\User\Reflow\Mail\IndentedIsVerbatim'
    IndentedIsVerbatim = NepmdQueryConfigValue( nepmd_hini, KeyPath)
 
-   saved_modify = .modify
-   saved_autosave = .autosave
-   .autosave = 0
-   undoaction 1, junk                -- Create a new state
+   -- no additional undo state supression required
    if marktype() then
       unmark
    endif
@@ -524,8 +521,4 @@ compile endif
    do while textline(.last) = ''
       deleteline .last
    enddo
-
-   .autosave = saved_autosave
-   .modify = saved_modify + 1
-
 
