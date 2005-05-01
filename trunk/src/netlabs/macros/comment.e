@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comment.e,v 1.5 2004-07-01 11:35:55 aschn Exp $
+* $Id: comment.e,v 1.6 2005-05-01 22:53:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -71,7 +71,6 @@ defc ucom, uncomment
 ;    -  Doesn't remove multi line comments, that appear on every line.
 defproc CommentMarkedLines
    psave_pos(saved_pos)
-   saved_modify = .modify
    getmark firstline, lastline, firstcol, lastcol, fid
    getfileid curfid
    mt = marktype()
@@ -89,6 +88,8 @@ defproc CommentMarkedLines
    elseif lastcol = 0 then  -- lastcol = 0 means, that the line end of the line above is marked
       last = last - 1
    endif
+
+   -- no additional undo state supression required
 
    mode = NepmdGetMode()
 
@@ -124,8 +125,8 @@ defproc CommentMarkedLines
       Case         = 1  -- default is case-sensitive
 
    -- SLC?         : single line comment char(s), ? = 1...3
-   -- SCL?Col      : column for the SLC, 0 means: allowed at every column, not used here
-   -- SCL?AddSpace : (0|1) shall a space be added/removed after the SLC
+   -- SLC?Col      : column for the SLC, 0 means: allowed at every column, not used here
+   -- SLC?AddSpace : (0|1) shall a space be added/removed after the SLC
    -- SLCPreferred : (1|2|3) used SLC?, only for action = 'COMMENT'
    -- MLC?Start    : multi line comment char(s), ? = 1...2, start string
    -- MLC?End      : multi line comment char(s), ? = 1...2, end string
@@ -200,7 +201,7 @@ defproc CommentMarkedLines
       Case         = 0  -- not required
 
    elseif     mode = 'PERL' then -------------------------------------- PERL
-      SLC1         = '#'  -- looks like a space thereafter is not required
+      SLC1         = '# '
       MLC1Start    = '/*'
       MLC1End      = '*/'
       Case         = 0  -- not required
@@ -287,7 +288,6 @@ compile endif
             Oldline = textline(.line)
             Newline = SLC''Oldline
             replaceline Newline
-            .modify = saved_modify + 1
          enddo
 
       elseif MLCStart <> '' & MLCEnd <> '' then  -- if a multi line comment is defined
@@ -295,14 +295,12 @@ compile endif
          -- Add a new line and the comment start
          .line = first        -- go to first marked line
          insertline MLCStart  -- insertline adds a line before the current
-         .modify = saved_modify + 1
 
          -- Add a new line and the comment end
          .line = last + 1     -- go to last marked line (respect that a line was added before)
          end_line; split      -- this inserts a new line after the current
          .line = .line + 1    -- go to new line
          replaceline MLCEnd
-         .modify = saved_modify + 1
 
          -- Restore mark
          call pset_mark( firstline + 1, lastline + 1, firstcol, lastcol, mt, fid)
@@ -389,7 +387,6 @@ compile endif
                Newline = ''
             endif
             replaceline Newline
-            .modify = saved_modify + 1
          enddo  -- l
          SLCProcessed = 1
          leave
@@ -451,7 +448,6 @@ compile endif
             if FoundStart = 1 and FoundEnd = 1 then
                call pset_mark( firstline, lastline, firstcol, lastcol, mt, fid)
                leave
-               .modify = saved_modify + 1
             endif
          enddo  -- i = 1 to 2
 
@@ -460,5 +456,6 @@ compile endif
    endif  -- action = 'COMMENT'
 
    prestore_pos(saved_pos)
+
    return
 

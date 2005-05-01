@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflow.e,v 1.5 2004-06-03 23:25:56 aschn Exp $
+* $Id: reflow.e,v 1.6 2005-05-01 22:53:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -87,8 +87,6 @@ const
 
 defc reflow =
    universal last_reflow_width
-   saved_modify = .modify
-   saved_autosave = .autosave
    par_width = arg(1)
    units_width = ''
    if par_width = '=' then
@@ -171,7 +169,8 @@ defc reflow =
       last_reflow_width = save_width
    endif
    display -1
-   undoaction 1, junk                -- Create a new state
+   undotime = 2            -- 2 = when moving the cursor from a modified line
+   undoaction 4, undotime  -- Disable state recording at specified time
    start_col = .col
    do forever
       x = .line; y = 1
@@ -227,8 +226,8 @@ defc reflow =
          '+1'
       endif
    enddo
-   .modify = saved_modify + 1
-   .autosave = saved_autosave
+   undoaction 5, undotime  -- Enable state recording at specified time
+   undoaction 1, junk      -- Create a new state
    .margins = oldmargins
    .col = start_col
 

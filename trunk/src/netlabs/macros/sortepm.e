@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sortepm.e,v 1.3 2002-08-21 11:54:38 aschn Exp $
+* $Id: sortepm.e,v 1.4 2005-05-01 22:53:24 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -36,25 +36,45 @@ defc sort =
       sayerror BROWSE_IS__MSG ON__MSG
       return
    endif
-   TypeMark=marktype()
-   if TypeMark='' then  /* if no mark, default to entire file */
+   TypeMark = marktype()
+   if TypeMark = '' then  /* if no mark, default to entire file */
       getfileid fileid
-      firstline=1 ; lastline=.last ; firstcol=1; lastcol = 40
+      firstline = 1 ; lastline = .last ; firstcol = 1; lastcol = 40
    else
       getmark firstline, lastline, firstcol, lastcol, fileid
-      /* If it was a line mark, the LastCol value can be 255.  Can't */
-      /* imagine anyone needing a key longer than 40.                */
-      if TypeMark='LINE' then lastcol=40 endif
+      if TypeMark = 'CHAR' then
+         call pset_mark( firstline, lastline, firstcol, lastcol, 'LINE', fileid)
+      endif
+      if TypeMark = 'LINE' then
+         /* If it was a line mark, the LastCol value can be 1599.  Can't */
+         /* imagine anyone needing a key longer than 40.                 */
+         lastcol = 40
+      endif
    endif
    if fileid.readonly then
       sayerror READ_ONLY__MSG
       return
    endif
 
+   undoaction 1, junk      -- Create a new state
+   undotime = 1            -- 1 = when starting each command
+;   undotime = 2            -- 2 = when moving the cursor from a modified line
+   undoaction 4, undotime  -- Disable state recording at specified time
+;   saved_modify   = .modify
+;   saved_autosave = .autosave
+;   .autosave = 0
+
    sayerror SORTING__MSG lastline-firstline+1 LINES__MSG'...'
 
    /* Pass the sort switches "rc", if any, as a sixth argument to sort().    */
    result = sort(firstline, lastline, firstcol, lastcol, fileid, arg(1) )
+
+   undoaction 5, undotime  -- Enable state recording at specified time
+   undoaction 1, junk      -- Create a new state
+   -- Bug in EtkSort: Undo to previous states doesn't work after sort!
+;   .modify = saved_modify + 1
+;   .autosave = saved_autosave
+
    if result then
       sayerror 'SORT' ERROR_NUMBER__MSG result
    else
@@ -85,6 +105,8 @@ defc sortcols =
       return
    endif
 
+   undotime = 1            -- 1 = when starting each command
+   undoaction 4, undotime  -- Disable state recording at specified time
    cols = arg(1)
    sort_flags = ''
    do while cols <> ''
@@ -104,9 +126,12 @@ defc sortcols =
       result = sort(firstline, lastline, c1, c2, fileid, sort_flags )
       if result then
          sayerror 'SORT' ERROR_NUMBER__MSG result
+         undoaction 5, undotime  -- Enable state recording at specified time
          stop
       endif
 
    enddo
+   undoaction 5, undotime  -- Enable state recording at specified time
+   undoaction 1, junk      -- Create a new state
    sayerror 0
 

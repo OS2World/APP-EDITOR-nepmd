@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wrap.e,v 1.5 2004-06-03 23:22:55 aschn Exp $
+* $Id: wrap.e,v 1.6 2005-05-01 22:53:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -118,9 +118,7 @@ defc softwrap2win, softwrap
 
    getfileid fid
    client_fid = gethwndc(EPMINFO_EDITCLIENT) || atol(fid)
-   saved_modify = .modify
-   saved_autosave = .autosave
-   .autosave = 0
+   -- no additional undo state supression required
    saved_readonly = .readonly
    if saved_readonly then
       .readonly = 0  -- need to disable .readonly temporarily
@@ -189,8 +187,6 @@ defc softwrap2win, softwrap
    if saved_readonly then
       .readonly = 1
    endif
-   .modify = saved_modify
-   .autosave = saved_autosave
    -- Save wrapped state in an array var
    if w > 0 then
       Wrapped = 1
@@ -214,9 +210,7 @@ defc unwrap
 
    getfileid fid
    client_fid = gethwndc(EPMINFO_EDITCLIENT) || atol(fid)
-   saved_modify = .modify
-   saved_autosave = .autosave
-   .autosave = 0
+   -- no additional undo state supression required
    saved_readonly = .readonly
    if saved_readonly then
       .readonly = 0  -- need to disable .readonly temporarily
@@ -303,8 +297,6 @@ defc unwrap
    if saved_readonly then
       .readonly = 1
    endif
-   .modify = saved_modify
-   .autosave = saved_autosave
    -- Save wrapped state in an array var
    Wrapped = 0
    getfileid fid
@@ -358,14 +350,11 @@ defc wrap
       return
    endif
 
-   saved_modify   = .modify
-   saved_autosave = .autosave
-   .autosave = 0
+   -- no additional undo state supression required
    if .readonly then
       sayerror 'File has .readonly field set. Edit is diabled, toggle .readonly first.'
       return
    endif
-   undoaction 1, junk                -- Create a new state
    call psave_pos(saved_pos)
    .line = 1
    .col  = 1
@@ -399,7 +388,6 @@ defc wrap
             --   *  keep indent (copy indent area of preceding line)
             --   *  respect comment chars (treat comment chars as indent)
             call splitlines()  -- keeps indent of current line
-            .modify = saved_modify + 1
 
          else
             p = lastpos( ' ', line, limit)
@@ -414,7 +402,6 @@ defc wrap
             split
             getline splitline, l + 1  -- Strip leading spaces from the new line
             replaceline strip( splitline, 'l'), l + 1
-            .modify = saved_modify + 1
          endif
 
          m = m + 1
@@ -423,7 +410,6 @@ defc wrap
    enddo  -- while l <= .last
 
    call prestore_pos(saved_pos)
-   .autosave = saved_autosave
    display 1
    mouse_setpointer vEPM_POINTER
 

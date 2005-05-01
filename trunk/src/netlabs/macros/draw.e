@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: draw.e,v 1.3 2002-08-09 19:49:34 aschn Exp $
+* $Id: draw.e,v 1.4 2005-05-01 22:53:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -129,18 +129,22 @@ compile endif
    boxtab3=g1||ga||g4||g3||g7||g8||gb
    boxtab4=g9||ga||g5||g6||g7||g8||gb
 
-   istate=insert_state();
-   if istate then
-      insert_toggle
-      call fixup_cursor()
-   endif
+   undotime = 2            -- 2 = when moving the cursor from a modified line
+   undoaction 4, undotime  -- Disable state recording at specified time
 
    -- EPM:  The old DRAW used a getkey() loop.  We don't have getkey() in EPM.
    -- The new way:  define a clear keyset of only the active keys.
    draw_starting_keyset = upcase(.keyset)
    keys draw_keys
-   cursor_mode = querycontrol(26)
-   'togglecontrol 26 0'
+
+   istate=insert_state();
+   if istate then
+      insert_toggle
+      call fixup_cursor()
+   endif
+   internalkeys = querycontrol(26)
+   cursor_mode = internalkeys istate
+   'togglecontrol 26 0'  -- don't use internal key definitions
 
 -- Make it a BASE CLEAR keyset so the only keys that do anything are
 -- the ones we explicitly define.  Without the CLEAR, the standard ASCII keys
@@ -190,7 +194,7 @@ def del        =
 -- because the mouse movement is too sensitive.
 -- This new wrinkle isn't really required.  We could define only one or two
 -- keys (like Esc) as exits and simply ignore all others.
-def otherkeys, F3 =   -- or def Esc
+def otherkeys, F3, Esc =
    universal draw_starting_keyset
    universal cursor_mode
    -- Whatever other key the user pressed, remember it so we can execute it.
@@ -199,10 +203,21 @@ def otherkeys, F3 =   -- or def Esc
    -- the standard keyset to make sure we don't get stuck in draw_keys.
    keys edit_keys
    .keyset = draw_starting_keyset -- Return to whatever keyset had been there.
-   'togglecontrol 26' cursor_mode
+
+   parse value cursor_mode with internalkeys istate
+   if istate <> insertstate() then
+      inserttoggle
+      call fixup_cursor()
+   endif
+   'togglecontrol 26' internalkeys
+
+   undotime = 2            -- 2 = when moving the cursor from a modified line
+   undoaction 5, undotime  -- Enable state recording at specified time
+   undoaction 1, junk      -- create a new state
    -- Execute the key the user pressed when he quit drawing.
    sayerror DRAW_ENDED__MSG
-   if k<>esc & k<>c_I & k<>F3 then executekey k; endif   -- But assume Esc was just to stop DRAW.
+
+   if k <> esc & k <> c_I & k <> F3 then executekey k; endif   -- But assume Esc was just to stop DRAW.
 
 -- End of EPM mods. ----------------------------------------------------------
 
