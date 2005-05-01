@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.60 2004-08-01 13:32:51 aschn Exp $
+* $Id: nepmdlib.c,v 1.61 2005-05-01 20:51:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1946,6 +1946,7 @@ do
       pszEnvVarName = "PATH";
 
    // search !
+   strupr( pszEnvVarName);
    rc = DosSearchPath( SEARCH_IGNORENETERRS |
                        SEARCH_ENVIRONMENT,
                        pszEnvVarName,
