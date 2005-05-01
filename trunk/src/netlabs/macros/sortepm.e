@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sortepm.e,v 1.4 2005-05-01 22:53:24 aschn Exp $
+* $Id: sortepm.e,v 1.5 2005-05-01 22:56:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -56,24 +56,19 @@ defc sort =
       return
    endif
 
-   undoaction 1, junk      -- Create a new state
-   undotime = 1            -- 1 = when starting each command
+   -- Bug in EtkSort?
+   -- Undo to previous states doesn't work after defproc sort. But defc treesort
+   -- uses it as well and it correctly creates 1 new undo state.
 ;   undotime = 2            -- 2 = when moving the cursor from a modified line
-   undoaction 4, undotime  -- Disable state recording at specified time
-;   saved_modify   = .modify
-;   saved_autosave = .autosave
-;   .autosave = 0
+;   undoaction 4, undotime  -- Disable state recording at specified time
 
    sayerror SORTING__MSG lastline-firstline+1 LINES__MSG'...'
 
    /* Pass the sort switches "rc", if any, as a sixth argument to sort().    */
    result = sort(firstline, lastline, firstcol, lastcol, fileid, arg(1) )
 
-   undoaction 5, undotime  -- Enable state recording at specified time
-   undoaction 1, junk      -- Create a new state
-   -- Bug in EtkSort: Undo to previous states doesn't work after sort!
-;   .modify = saved_modify + 1
-;   .autosave = saved_autosave
+;   undoaction 5, undotime  -- Enable state recording at specified time
+;   undoaction 1, junk      -- Create a new state
 
    if result then
       sayerror 'SORT' ERROR_NUMBER__MSG result
@@ -105,8 +100,6 @@ defc sortcols =
       return
    endif
 
-   undotime = 1            -- 1 = when starting each command
-   undoaction 4, undotime  -- Disable state recording at specified time
    cols = arg(1)
    sort_flags = ''
    do while cols <> ''
@@ -131,7 +124,5 @@ defc sortcols =
       endif
 
    enddo
-   undoaction 5, undotime  -- Enable state recording at specified time
-   undoaction 1, junk      -- Create a new state
    sayerror 0
 
