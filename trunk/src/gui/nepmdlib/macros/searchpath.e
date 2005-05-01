@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: searchpath.e,v 1.5 2003-08-30 16:01:04 aschn Exp $
+* $Id: searchpath.e,v 1.6 2005-05-01 20:14:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -84,13 +84,15 @@ compile if NEPMD_LIB_TEST
 
 defc NepmdSearchPath, SearchPath =
 
- Filename   = arg( 1);
+ parse arg Filename EnvVarName
+ if leftstr( Filename, 1) = '"' then
+    parse arg '"'Filename'"' EnvVarName
+ endif
+
  if (Filename = '') then
     sayerror 'error: no filename specified.';
     return;
  endif
-
- EnvVarName = arg( 2);
  if (EnvVarName = '') then
     EnvVarName = 'PATH';
  endif
