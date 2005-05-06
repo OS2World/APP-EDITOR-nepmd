@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.21 2004-12-31 00:36:28 aschn Exp $
+* $Id: kwhelp.e,v 1.22 2005-05-06 18:51:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,8 +22,11 @@
 /*
 Todo:
 -  Change NEPMD_KEYWORD_HELP_COMMAND to an ini key
+   -> Ok, const not supported anymore: Now use NewView, if found in PATH.
+      (Newview does a much better search than View.)
 -  Implement MODE to replace filetype() and the EXTENSIONS: keyword in .ndx
-   files.
+   files. But EXTENSIONS has still to be supported, because e.g. .erx files
+   use other .inf files than .cmd REXX files.
 */
 
 /********************************************************************/
@@ -73,13 +76,6 @@ compile endif
 compile if not defined(GENERAL_NOCASE_TYPES)
 ;   GENERAL_NOCASE_TYPES = 'CMD SYS BAT'         --<---------------------------------------------------- Todo
    GENERAL_NOCASE_TYPES = 'CMD SYS BAT E'         --<---------------------------------------------------- Todo
-compile endif
-compile if not defined(NEPMD_KEYWORD_HELP_COMMAND)
-   -- Following is an OS/2 command that can replace the 'view' call.
-   -- Specifying a path or extension is optional. It is invoked by
-   -- cmd.exe.
-   --NEPMD_KEYWORD_HELP_COMMAND = 'start newview'  -- optional value for MYCNF.E
-   NEPMD_KEYWORD_HELP_COMMAND = 'view'  -- default
 compile endif
 
 ; ---------------------------------------------------------------------------
@@ -132,10 +128,10 @@ defproc pHelp_C_identifier
 
    top; .col = 1
 
-   /* search for keyword match */
+   -- Search for keyword match
    display -2
    getsearch savesearch
-   /* Alter search criteria based on filetype */
+   -- Alter search criteria based on filetype
    if wordpos(ft, FORTRAN_TYPES GENERAL_NOCASE_TYPES) then
       case_aware = 'c'      -- Add 'ignore case' parameter for Fortran
    else
@@ -161,25 +157,36 @@ defproc pHelp_C_identifier
       endif
    else
       parse value substr(textline(.line), .col) with ',' line ')'
-      /* Substitute all occurrances of '~' with the original identifier */
+      -- Substitute all occurrances of '~' with the original identifier
       loop
-         i = pos('~', line)
+         i = pos( '~', line)
          if not i then
             leave
          endif
-         line = leftstr(line, i-1)||identifier||substr(line, i+1)
+         line = leftstr( line, i - 1)''identifier''substr( line, i + 1)
       endloop
 
-      /* resolve environment vars in line */
+      -- Resolve environment vars in line
       line = NepmdResolveEnvVars( line )  -- defined in EDIT.E
 
-      -- parse line
+      -- Parse line
       parse value line with cmd arg1 arg2
+      if (upcase(cmd) = 'START') then
+         parse value line with . cmd arg1 arg2
+      endif
 
-      /* search the file, if the command is a view */
-      if (translate(cmd) = 'VIEW') then
+      -- Determine .inf file viewer and search the file, if the command is View
+      if (upcase(cmd) = 'VIEW') then
+         -- Use NewView, if found in PATH
+         next = NepmdSearchPath( 'newview.exe')
+         parse value next with 'ERROR:' rc
+         if rc = '' then
+            cmd = 'newview'
+         endif
 
-         /* second word is the file */
+         -- Second word is the file.
+         -- Convert a possible ViewFileList to CheckedFileList, in order
+         -- to continue searching if an .inf file doesn't exist.
          ViewFileList =  arg1
          rest = ViewFileList
          CheckedFileList = ''
@@ -189,10 +196,10 @@ defproc pHelp_C_identifier
 
             -- EnvVars are already resolved at this point!
 
-            -- check if ViewFile specifies an EnvVar (e.g. PMREF)
+            -- Check if ViewFile specifies an EnvVar (e.g. PMREF)
             next = Get_Env(ViewFile)
             if next <> '' then
-               -- if found, add next to rest and re-parse it
+               -- If found, add next to rest and re-parse it
                rest = next'+'rest
                iterate
             endif
@@ -201,7 +208,7 @@ defproc pHelp_C_identifier
                ViewFile = ViewFile'.inf';
             endif
 
-            /* search the file */
+            -- Search the file
             findfile fullname, ViewFile, 'BOOKSHELF'
             if rc then
                sayerror 'INF file' ViewFile 'could not be found'
@@ -211,28 +218,22 @@ defproc pHelp_C_identifier
 
          enddo  -- while rest <> ''
 
-         -- re-build the line with a file list containing only found files
+         -- Re-build the line with a file list containing only found files.
          CheckedFileList = strip( CheckedFileList, 'B', '+' )
          line = cmd' 'CheckedFileList' 'arg2
 
       endif
 
       if (line  <> '') then
-         /* Execute keyword help command */
-compile if defined(NEPMD_KEYWORD_HELP_COMMAND)
-         if upcase( word( line, 1)) = 'VIEW' then
+         -- For newview: Execute a real search instead of just a lookup in the index.
+         if upcase( word( line, 1)) = 'NEWVIEW' then
             parse value line with app inf key
-            -- Newview requires "..." for strings with spaces, View strips them
+            -- Newview requires "..." for strings with spaces, View strips them.
             if leftstr( key, 1) <> '"' then
                key = '"'strip( key)'"'
             endif
-            if upcase(NEPMD_KEYWORD_HELP_COMMAND) == 'NEWVIEW' then
-               line = NEPMD_KEYWORD_HELP_COMMAND' 'inf' /s:'key
-            else
-               line = NEPMD_KEYWORD_HELP_COMMAND' 'inf' 'key
-            endif
+            line = 'newview 'inf' /s:'key
          endif
-compile endif
          if wordpos( upcase( word( line, 1)), 'START QS QUIETSHELL DOS OS2') then
             -- Omit the 'dos' or 'start' command if specified in .ndx file or
             -- as an alternative VIEW command.
