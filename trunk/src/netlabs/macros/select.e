@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.8 2004-11-30 21:24:56 aschn Exp $
+* $Id: select.e,v 1.9 2005-05-16 21:02:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,9 +23,6 @@ compile if not defined(LOCAL_MOUSE_SUPPORT)
    LOCAL_MOUSE_SUPPORT = 0
 compile endif
    TransparentMouseHandler = "TransparentMouseHandler"
-compile if not defined(NEPMD_USE_DIRECTORY_OF_CURRENT_FILE)
-   NEPMD_USE_DIRECTORY_OF_CURRENT_FILE = 0
-compile endif
 compile if not defined(NEPMD_DEBUG)
    NEPMD_DEBUG = 0  -- General debug const
 compile endif
@@ -92,6 +89,7 @@ compile endif
 ; ---------------------------------------------------------------------------
 ; Executed by defselect
 defc ProcessSelect
+   universal nepmd_hini
    universal tab_key
    universal stream_mode
    universal expand_on
@@ -142,13 +140,15 @@ compile if WANT_EBOOKIE
 compile endif  -- WANT_EBOOKIE
 
 ;  Change to dir of current file --------------------------------------------
-   Filename = .filename
-compile if NEPMD_USE_DIRECTORY_OF_CURRENT_FILE
-   if pos( ':\', Filename) then
-      call directory('\')
-      call directory(Filename'\..')
+   KeyPath = '\NEPMD\User\ChangeWorkDir'
+   ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if ChangeWorkDir = 2 then
+      Filename = .filename
+      if pos( ':\', Filename) then
+         call directory( '\')
+         call directory( Filename'\..')
+      endif
    endif
-compile endif
 
 ;  Process hooks ------------------------------------------------------------
    -- Use the 'select' hook for settings, you want to change on every
