@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sampactn.e,v 1.4 2002-10-06 23:33:21 aschn Exp $
+* $Id: sampactn.e,v 1.5 2005-05-16 22:15:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -257,7 +257,7 @@ defc a_Shell
    elseif action_letter = 'S' then   -- button Selected
       if isadefc('shell') then
          sayerror 0                        -- Clear prompt
-         'shell' parms                     -- execute action
+         'shell new' parms                 -- execute action
       else
          sayerror 'EPM was compiled without WANT_EPM_SHELL = 1; SHELL command not available.'
       endif

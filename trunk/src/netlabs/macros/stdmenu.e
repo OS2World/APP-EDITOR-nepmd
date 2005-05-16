@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.23 2004-11-30 21:05:50 aschn Exp $
+* $Id: stdmenu.e,v 1.24 2005-05-16 22:15:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -563,7 +563,7 @@ defproc add_command_menu(menuname)
       buildmenuitem menuname, COMMAND_MENU_ID, 65535, HALT_COMMAND_MENU__MSG, '', 0, mpfrom2short(HP_COMMAND_HALT, 0)
 compile if WANT_EPM_SHELL = 1
       buildmenuitem menuname, COMMAND_MENU_ID, 101, \0,                      '',            4, 0
-      buildmenuitem menuname, COMMAND_MENU_ID, 102, CREATE_SHELL_MENU__MSG,       'shell'CREATE_SHELL_MENUP__MSG,       0, mpfrom2short(HP_COMMAND_SHELL, 0)
+      buildmenuitem menuname, COMMAND_MENU_ID, 102, CREATE_SHELL_MENU__MSG,       'shell new'CREATE_SHELL_MENUP__MSG,       0, mpfrom2short(HP_COMMAND_SHELL, 0)
       buildmenuitem menuname, COMMAND_MENU_ID, 103, WRITE_SHELL_MENU__MSG,        'shell_write'WRITE_SHELL_MENUP__MSG, 0, mpfrom2short(HP_COMMAND_WRITE, 16384)
 ;     buildmenuitem menuname, COMMAND_MENU_ID, 104, KILL_SHELL_MENU__MSG,         'shell_kill'KILL_SHELL_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_KILL, 16384)
       buildmenuitem menuname, COMMAND_MENU_ID, 104, SHELL_BREAK_MENU__MSG,        'shell_break'SHELL_BREAK_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_BREAK, 16384)

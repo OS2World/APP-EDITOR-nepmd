@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.10 2005-05-16 21:05:23 aschn Exp $
+* $Id: epmshell.e,v 1.11 2005-05-16 22:14:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -57,7 +57,7 @@ compile if WANT_EPM_SHELL='HIDDEN' & not defined(STD_MENU_NAME)
    universal activemenu, defaultmenu
    if not shell_index then
       buildmenuitem defaultmenu, 1, 101, \0,                      '',            4, 0
-      buildmenuitem defaultmenu, 1, 102, CREATE_SHELL_MENU__MSG,       'shell'CREATE_SHELL_MENUP__MSG,       0, mpfrom2short(HP_COMMAND_SHELL, 0)
+      buildmenuitem defaultmenu, 1, 102, CREATE_SHELL_MENU__MSG,       'shell new'CREATE_SHELL_MENUP__MSG,       0, mpfrom2short(HP_COMMAND_SHELL, 0)
       buildmenuitem defaultmenu, 1, 103, WRITE_SHELL_MENU__MSG,        'shell_write'WRITE_SHELL_MENUP__MSG, 0, mpfrom2short(HP_COMMAND_SHELL, 16384)
 ;     buildmenuitem defaultmenu, 1, 104, KILL_SHELL_MENU__MSG,         'shell_kill'KILL_SHELL_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_SHELL, 16384)
       buildmenuitem defaultmenu, 1, 104, SHELL_BREAK_MENU__MSG,        'shell_break'SHELL_BREAK_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_SHELL, 16384)
