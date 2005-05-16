@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.9 2005-03-29 20:49:04 aschn Exp $
+* $Id: epmshell.e,v 1.10 2005-05-16 21:05:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -44,12 +44,12 @@ defc sendshell =
    'shell_write' substr( .filename, 16) substr( textline(.line), .col)
 
 -------------------------------------------------------------Shell-----------------------
-; Starts a new shell object.
-; Syntax: shell [<command>]
+; Starts a new shell object or re-uses the last shell (default).
+; Syntax: shell [new] [<command>]
 ; shell_index is the number of the last created shell, <shellnum>.
 ; The array var 'Shell_f'<shellnum> holds the fileid, 'Shell_h'<shellnum> the handle.
 defc shell
-   universal Shell_index, EPM_utility_array_ID
+   universal shell_index, EPM_utility_array_ID
 compile if RING_OPTIONAL
    universal ring_enabled
 compile endif
@@ -75,30 +75,52 @@ compile if RING_OPTIONAL
       'ring_toggle'
    endif
 compile endif
-   shell_index = shell_index + 1
-   ShellHandle  = '????'
-   retval = SUE_new(ShellHandle, shell_index)
-   if retval then
-      sayerror ERROR__MSG retval SHELL_ERROR1__MSG
-   else
-      'xcom e /c .command_shell_'shell_index
-      if rc<>sayerror('New file') then
-         sayerror ERROR__MSG rc SHELL_ERROR2__MSG
-         stop
-      endif
-      getfileid shellfid
-      .filename = '.command_shell_'shell_index
-      .autosave = 0
-      do_array 2, EPM_utility_array_ID, 'Shell_f'shell_index, shellfid
-      do_array 2, EPM_utility_array_ID, 'Shell_h'shell_index, shellHandle
-      'postme monofont'
+
+   fCreateNew = 0
+   args = arg(1)
+   wp = wordpos( 'NEW', upcase( args))
+   if wp then
+      fCreateNew = 1
+      args = delword( args, wp, 1)
    endif
-;; sayerror "shellhandle=0x" || ltoa(ShellHandle, 16) || "  newObject.retval="retval;
+   cmd = strip( args)
+   if fCreateNew = 0 then
+      getfileid shellfid, '.command_shell_'shell_index
+      if shell_index < 1 then
+         fCreateNew = 1
+      elseif not shellfid then
+         fCreateNew = 1
+      endif
+   endif
+
+   if fCreateNew = 1 then
+      shell_index = shell_index + 1
+      ShellHandle  = '????'
+      retval = SUE_new( ShellHandle, shell_index)
+      if retval then
+         sayerror ERROR__MSG retval SHELL_ERROR1__MSG
+      else
+         'xcom e /c .command_shell_'shell_index
+         if rc <> sayerror( 'New file') then
+            sayerror ERROR__MSG rc SHELL_ERROR2__MSG
+            stop
+         endif
+         getfileid shellfid
+         .filename = '.command_shell_'shell_index
+         .autosave = 0
+         do_array 2, EPM_utility_array_ID, 'Shell_f'shell_index, shellfid
+         do_array 2, EPM_utility_array_ID, 'Shell_h'shell_index, shellHandle
+         'postme monofont'
+      endif
+;;    sayerror "shellhandle=0x" || ltoa(ShellHandle, 16) || "  newObject.retval="retval;
+   else
+      activatefile shellfid
+   endif
 compile if EPM_SHELL_PROMPT <> ''
    'shell_write' shell_index EPM_SHELL_PROMPT
 compile endif
-   if arg(1) then
-      'shell_write' shell_index arg(1)
+   if cmd then
+      'shell_write' shell_index cmd
    endif
 
 -------------------------------------------------------------Shell_Kill------------------
