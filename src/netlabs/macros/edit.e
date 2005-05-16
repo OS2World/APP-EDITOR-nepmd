@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.21 2005-03-06 08:04:55 aschn Exp $
+* $Id: edit.e,v 1.22 2005-05-16 20:54:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,6 +41,33 @@ defproc NepmdLoadFile( Spec, Options)
    RexxEaExtensions = 'CMD ERX'
 
    Spec = strip( Spec, 'B', '"')
+
+   -- Experimental URL support using wget
+   if pos( '://', Spec) > 0 then
+      p1 = lastpos( '/', Spec)
+      Name = substr( Spec, p1 + 1)
+      next = Get_env( 'TMP')
+      if next > '' then
+         Tmp = next
+      else
+         next = Get_env( 'TEMP')
+         if next > '' then
+            Tmp = next
+         else
+            Tmp = leftstr( directory(), 3)
+         endif
+      endif
+      TmpFile = strip( Tmp, 'T', '\')'\'Name
+      if exist( TmpFile) then
+         erasetemp( TmpFile)
+      endif
+      --'os2 wget "'Spec'" -O 'TmpFile'&&start epm /r' TmpFile  -- doesn't wait for fist cmd to end
+      --'cmd /c wget "'Spec'" -O 'TmpFile'&&start epm /r' TmpFile
+      --'shell wget "'Spec'" -O 'TmpFile'&&start epm /r' TmpFile
+      'shell wget "'Spec'" -O 'TmpFile'&&start epm /r ''mc ;quit;e 'TmpFile''''
+      stop
+   endif
+
    ContainsWildcard = (pos( '*', Spec) + pos( '?', Spec) > 0);
 
    -- Resolve wildcards in Spec to delete REXX EAs for every REXX file
