@@ -3,11 +3,15 @@
 ; Module Name: defaults.dat
 ;
 ; This file contains default values for the configuration repository of
-; the Netlabs EPM Distribution
+; the Netlabs EPM Distribution.
+;
+; You can delete the RegDefaults application of NEPMD.INI in order to
+; process DEFAULTS.DAT again and to rebuild this application on the next
+; start of EPM. Use NEPMD\netlabs\install\initreg.cmd therefore.
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.9 2004-11-30 21:51:15 aschn Exp $
+; $Id: defaults.dat,v 1.10 2005-05-16 20:49:05 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -34,8 +38,10 @@
 "\NEPMD\System\CheckEpmExTimeStamp" = "1"
 
 ; Default edit, save and search options
-"\NEPMD\User\Edit\DefaultOptions" = "/b /t /l"
-"\NEPMD\User\Save\DefaultOptions" = "/s /ne /nt"
+;"\NEPMD\User\Edit\DefaultOptions" = "/b /t /l"
+"\NEPMD\User\Edit\DefaultOptions" = "/b /t"
+;"\NEPMD\User\Save\DefaultOptions" = "/s /ne /nt"
+"\NEPMD\User\Save\DefaultOptions" = "/s /ne /nt /o"
 "\NEPMD\User\Search\DefaultOptions" = "+fac"
 
 ; Statusline and Titletext
@@ -103,4 +109,10 @@
 
 ; Lock
 "\NEPMD\User\Lock\OnModify" = "0"
+
+; Work dir
+"\NEPMD\User\ChangeWorkDir" = "0"
+
+; Open dialog start dir
+"\NEPMD\User\OpenDlg\UseCurrentDir" = "0"
 
