@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.15 2004-07-12 19:52:57 aschn Exp $
+* $Id: locate.e,v 1.16 2005-05-16 20:58:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -641,7 +641,7 @@ defc searchdlg
 
 -- Changed to Ctrl+V, because Ctrl+G is already used for the 'ring_more' command
 
-defc globalfind, globalfindnext
+defc ringfind, ringf, ringlocate, ringl, globalfind, globalfindnext
 ;;;   universal search_len
    -- Remember our current file so we don't search forever.
    -- (Sometimes doesn't work.)
@@ -722,8 +722,28 @@ defc globalfind, globalfindnext
    return
 
 ; ---------------------------------------------------------------------------
+; Returns '+' or '-'.
+defproc GetSearchDirection
+   universal lastsearchargs
+   universal default_search_options
+   ret = '+'
+
+   args = lastsearchargs
+   s_delim = substr( args, 1, 1)  -- get 1st delimiter
+   parse value args with (s_delim)s_search_string(s_delim)s_user_options
+   s_user_options = strip( s_user_options, 'T', s_delim)
+
+   -- Analyze only last search options, not last change options
+   Minuspos = lastpos( '-', default_search_options''s_user_options)
+   Pluspos  = lastpos( '+', default_search_options''s_user_options)
+
+   if MinusPos > PlusPos then
+      ret = '-'
+   endif
+   return ret
+
+; ---------------------------------------------------------------------------
 ; From EPMSMP\REVERSE.E
-; Ctrl+- toggles the search direction.
 ; Search options for specifying the direction:
 ;    F  start searching from the start of line
 ;    R  start searching from the end of line
@@ -794,7 +814,7 @@ defc ToggleSearchDirection
 
 ; ---------------------------------------------------------------------------
 ; From EPMSMP\GLOBCHNG.E
-defc globchng, globalchange, gchange, gc
+defc ringchange, ringc, globchng, globalchange, gchange, gc
 ;                                --<-------------------------------  todo: rewrite
    universal lastchangeargs
    universal default_search_options
