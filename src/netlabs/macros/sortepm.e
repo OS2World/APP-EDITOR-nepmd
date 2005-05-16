@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sortepm.e,v 1.5 2005-05-01 22:56:09 aschn Exp $
+* $Id: sortepm.e,v 1.6 2005-05-16 20:53:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,25 +19,27 @@
 *
 ****************************************************************************/
 
-defproc sort(firstline, lastline, firstcol, lastcol, fileid)
-   flags = (not verify('R',upcase(arg(6)))) bitor    -- Reverse
-           (not verify('D',upcase(arg(6)))) bitor    -- Descending
-        (2*(not verify('I',upcase(arg(6))))) bitor   -- case Insensitive
-        (4*(not verify('C',upcase(arg(6)))))         -- Collating order
-   return dynalink32(E_DLL, 'EtkSort',
-                     gethwndc(5)     || atol(fileid)   ||
-                     atol(firstline) || atol(lastline) ||
-                     atol(firstcol)  || atol(lastcol)  ||
-                     atol(flags),
-                     2)
+; ---------------------------------------------------------------------------
+defproc sort( firstline, lastline, firstcol, lastcol, fileid)
+   flags = (not verify( 'R', upcase( arg(6)))) bitor    -- Reverse
+           (not verify( 'D', upcase( arg(6)))) bitor    -- Descending
+        (2*(not verify( 'I', upcase( arg(6))))) bitor   -- case Insensitive
+        (4*(not verify( 'C', upcase( arg(6)))))         -- Collating order
+   return dynalink32( E_DLL, 'EtkSort',
+                      gethwndc(5)     || atol(fileid)   ||
+                      atol(firstline) || atol(lastline) ||
+                      atol(firstcol)  || atol(lastcol)  ||
+                      atol(flags),
+                      2)
 
+; ---------------------------------------------------------------------------
 defc sort =
    if browse() then
       sayerror BROWSE_IS__MSG ON__MSG
       return
    endif
    TypeMark = marktype()
-   if TypeMark = '' then  /* if no mark, default to entire file */
+   if TypeMark = '' then  -- if no mark, default to entire file
       getfileid fileid
       firstline = 1 ; lastline = .last ; firstcol = 1; lastcol = 40
    else
@@ -46,8 +48,8 @@ defc sort =
          call pset_mark( firstline, lastline, firstcol, lastcol, 'LINE', fileid)
       endif
       if TypeMark = 'LINE' then
-         /* If it was a line mark, the LastCol value can be 1599.  Can't */
-         /* imagine anyone needing a key longer than 40.                 */
+         -- If it was a line mark, the LastCol value can be 1599.  Can't
+         -- imagine anyone needing a key longer than 40.
          lastcol = 40
       endif
    endif
@@ -57,15 +59,16 @@ defc sort =
    endif
 
    -- Bug in EtkSort?
-   -- Undo to previous states doesn't work after defproc sort. But defc treesort
-   -- uses it as well and it correctly creates 1 new undo state.
+   -- Undo to previous states doesn't work after defproc sort.
+   -- defc treesort uses defproc sort as well and it correctly creates a new
+   -- undo state, after the file was sorted once.
 ;   undotime = 2            -- 2 = when moving the cursor from a modified line
 ;   undoaction 4, undotime  -- Disable state recording at specified time
 
    sayerror SORTING__MSG lastline-firstline+1 LINES__MSG'...'
 
-   /* Pass the sort switches "rc", if any, as a sixth argument to sort().    */
-   result = sort(firstline, lastline, firstcol, lastcol, fileid, arg(1) )
+   -- Pass the sort switches "rc", if any, as a sixth argument to sort().
+   result = sort( firstline, lastline, firstcol, lastcol, fileid, arg(1))
 
 ;   undoaction 5, undotime  -- Enable state recording at specified time
 ;   undoaction 1, junk      -- Create a new state
@@ -76,22 +79,22 @@ defc sort =
       sayerror 0
    endif
 
-/* To sort a new-format directory listing by date & time, enter the command:
-      sortcols 11 15 16 16 1 5   7 8
-               hh:mm  a/p  mm/dd  yy
-   For an old-format directory listing, enter:
-      sortcols 34 38 39 39 23 28 30 31
-               hh:mm  a/p  mm/dd  yy
-*/
+; ---------------------------------------------------------------------------
+; To sort a new-format directory listing by date & time, enter the command:
+;    sortcols 11 15 16 16 1 5   7 8
+;             hh:mm  a/p  mm/dd  yy
+; For an old-format directory listing, enter:
+;    sortcols 34 38 39 39 23 28 30 31
+;             hh:mm  a/p  mm/dd  yy
 defc sortcols =
    if browse() then
       sayerror BROWSE_IS__MSG ON__MSG
       return
    endif
-   TypeMark=marktype()
-   if TypeMark='' then  /* if no mark, default to entire file */
+   TypeMark = marktype()
+   if TypeMark = '' then  -- if no mark, default to entire file
       getfileid fileid
-      firstline=1 ; lastline=.last
+      firstline = 1 ; lastline = .last
    else
       getmark firstline, lastline, firstcol, lastcol, fileid
    endif
@@ -115,11 +118,10 @@ defc sortcols =
 
       sayerror SORTING__MSG lastline-firstline+1 LINES__MSG '('c1 '-' c2') ...'
 
-      /* Pass the sort switches "rc", if any, as a sixth argument to sort().    */
-      result = sort(firstline, lastline, c1, c2, fileid, sort_flags )
+      -- Pass the sort switches "rc", if any, as a sixth argument to sort().
+      result = sort( firstline, lastline, c1, c2, fileid, sort_flags)
       if result then
          sayerror 'SORT' ERROR_NUMBER__MSG result
-         undoaction 5, undotime  -- Enable state recording at specified time
          stop
       endif
 

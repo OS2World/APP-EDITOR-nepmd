@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wrap.e,v 1.6 2005-05-01 22:53:24 aschn Exp $
+* $Id: wrap.e,v 1.7 2005-05-16 20:53:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -124,6 +124,9 @@ defc softwrap2win, softwrap
       .readonly = 0  -- need to disable .readonly temporarily
    endif
    call psave_pos(saved_pos)
+   undotime = 2            -- 2 = when moving the cursor from a modified line
+   undoaction 4, undotime  -- Disable state recording at specified time
+   saved_modify = .modify
 
    -- Split lines
    -- Start at line 1
@@ -190,11 +193,14 @@ defc softwrap2win, softwrap
    -- Save wrapped state in an array var
    if w > 0 then
       Wrapped = 1
-      sayerror 'Wrapped 'w' lines reversible. ("Save" won''t add line ends unless you add any.)'
+      sayerror 'Wrapped 'w' lines without changing the number of lines on file save.'
    else
       Wrapped = 0
       sayerror 'No wrap required'
    endif
+   undotime = 2
+   undoaction 5, undotime  -- Enable state recording at specified time
+   .modify = saved_modify
    do_array 2, EPM_utility_array_ID, 'wrapped.'fid, Wrapped
 
 ; ---------------------------------------------------------------------------
@@ -216,6 +222,9 @@ defc unwrap
       .readonly = 0  -- need to disable .readonly temporarily
    endif
    call psave_pos(saved_pos)
+   undotime = 2            -- 2 = when moving the cursor from a modified line
+   undoaction 4, undotime  -- Disable state recording at specified time
+   saved_modify = .modify
 
    -- Try to re-join lines
    -- Start at last line - 1
@@ -297,9 +306,11 @@ defc unwrap
    if saved_readonly then
       .readonly = 1
    endif
+   undotime = 2
+   undoaction 5, undotime  -- Enable state recording at specified time
+   .modify = saved_modify
    -- Save wrapped state in an array var
    Wrapped = 0
-   getfileid fid
    do_array 2, EPM_utility_array_ID, 'wrapped.'fid, Wrapped
 
 ; ---------------------------------------------------------------------------

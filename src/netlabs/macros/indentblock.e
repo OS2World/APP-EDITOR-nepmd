@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: indentblock.e,v 1.5 2005-05-01 22:53:22 aschn Exp $
+* $Id: indentblock.e,v 1.6 2005-05-16 20:53:02 aschn Exp $
 *
 * ===========================================================================
 *
