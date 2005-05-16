@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.27 2004-09-12 15:10:26 aschn Exp $
+* $Id: main.e,v 1.28 2005-05-16 21:02:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -173,6 +173,18 @@ compile endif
 ;      if rc then findfile Profile, ProfileName, EPATH; endif
 ;      if not rc then
          'rx' Profile arg(1)
+      endif
+   endif
+
+;  Maybe change to previous work dir ----------------------------------------
+   KeyPath = '\NEPMD\User\ChangeWorkDir'
+   ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if ChangeWorkDir = 1 then
+      KeyPath = '\NEPMD\User\ChangeWorkDir\Last'
+      LastWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+      if NepmdDirExists( LastWorkDir) = 1 then
+         call directory( '\')
+         call directory( LastWorkDir)
       endif
    endif
 
