@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.9 2004-11-30 21:05:46 aschn Exp $
+* $Id: ckeys.e,v 1.10 2005-05-16 21:00:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,36 +19,154 @@
 *
 ****************************************************************************/
 /*
-- Todo:
+Todo:
 
--  expand enter {|                  --> {
-                                           |   (if { not already indented, ML style 1)
+-- Expand <Enter> -----------------------------------------------------------
 
-                {|}                 --> {
-                                           |   (if { not already indented, ML style 1)
-                                        }
+WANT_BRACE_BELOW_STATEMENT_INDENTED
+WANT_BRACE_BELOW_STATEMENT
+WANT_BRACE_BELOW_PROC
+WANT_BRACE_BELOW_JAVA_STATEMENT
+WANT_BRACE_BELOW_JAVA_PROC
 
-                {|xxxx              --> {
-                                           |xxxxx   (if { not already indented, ML style 1)
 
-                while (xxx) {|xxxx  --> while (xxx) {
-                                           |xxxxx
+ok xxxxx (xxx) {xxx}|   -->   xxxxx (xxx) {xxx}
+                        -->   |
 
-                while (xxx) {|} --> while (xxx) {
-                                       |
-                                    }
+ok xxxxx (xxx) {|xxx}   -->   xxxxx (xxx) {     for WANT_BRACE_BELOW_STATEMENT = 0
+                        -->      |xxx
+                        -->   }
 
--  maybe unindent lines starting with }, dependent from the opening paren or
-   the opening statement (e.g. if, else)
+ok xxxxx (xxx) {|xxx}   -->   xxxxx (xxx)       for WANT_BRACE_BELOW_STATEMENT = 1
+                        -->   {
+                        -->      |xxx
+                        -->   }
 
-To be fixed:
+-----------
+
+
+
+
+
+
+
+ok xxxx {|              -->   xxxxx {
+                        -->      |
+
+
+ok {|                   -->   {
+                        -->      |
+
+ok {|}                  -->   {
+                        -->      |
+                        -->   }
+
+ok {|xxxx               -->   {
+                        -->      |xxxxx
+
+ok while (xxx) {|xxxx   -->   while (xxx) {
+                        -->      |xxxxx
+
+\  while (xxx) {xx|xx   -->   while (xxx) {xxxx
+                        -->      |
+
+ok while (xxx) {xx|xx   -->   while (xxx) {xx
+                        -->      |xx
+
+ok while (xxx) {|}      -->   while (xxx) {
+                        -->      |
+                        -->   }
+\  xxxxx (xxx)| {xxx}   -->   xxxxx (xxx)
+                        -->   {
+                        -->      xxx
+                        -->      |
+                        -->   }
+
+-- <Enter> on line with non-closed paren ------------------------------------
+   -- this will not respect current indent
+-  xxxxx( xxxxx |       -->   xxxxx( xxxxx
+                        -->          |
+
+-  xxxxx ( xxxxx |      -->   xxxxx ( xxxxx
+                        -->           |
+
+-  xxxxx (xxxxx |       -->   xxxxx (xxxxx
+                        -->          |
+
+   -- stream mode only (break line at current pos)
+-  xxxxx( xx|xxx        -->   xxxxx( xx
+                        -->          |xxx
+
+-  xxxxx( |)            -->   xxxxx(
+                        -->          |)
+
+-  xxxxx( |xxx)         -->   xxxxx(
+                        -->          |xxx)
+
+-  xxxxx( xxx)|         -->   xxxxx( xxx)
+                        -->   |
+
+-- Expand } -----------------------------------------------------------------
+ok xxxx {               -->   xxxx {    <-- opening brace is highlighted
+      xxxx              -->      xxxx
+             |          -->   }|        <-- unindent, compared to non-blank line above
+
+ok xxxx {               -->   xxxx {    <-- opening brace is highlighted
+             |          -->   }|        <-- same indent, compared to non-blank line
+                                        <-- with opening brace above
+
+?  maybe unindent lines starting with }, dependent from the opening paren or
+   the opening statement (e.g. if, else)  --> not required anymore
+
+-- To be fixed --------------------------------------------------------------
 ok expand 'int main' as well as 'main'
+
 ok don't expand main twice
--  do
+
+ok do
       {
       } while ();  <-- cursor on this line should not split line
 
--  Option: omit { and } while expanding
+ok do
+   {
+   } while ();  <-- cursor on this line should not split line
+
+ok do| + <Space>        -->   do {
+                        -->     |
+                        -->   } while ();   <-- 1 space before ); too much
+
+ok for + <Space>                        -->   for (|; ; ) {
+                                        -->   }
+ok fo|r ( xxx; xxx; xxx) { + <Enter>    -->   for ( xxx|; xxx; xxx) {
+ok for ( xxx; x|xx; xxx) { + <Enter>    -->   for ( xxx; xxx|; xxx) {
+ok for ( xxx; xxx|; xxx) { + <Enter>    -->   for ( xxx; xxx; xxx|) {
+ok for ( xxx; xxx; xxx|) { + <Enter>    -->   for ( xxx; xxx; xxx) {
+                                        -->      |
+
+-  don't split line in line mode
+
+-- <Return> on line with keyword --------------------------------------------
+   -- before opening paren in stream and line mode
+?  } whi|le (); + <Return>       -->   } while (|);
+?  } whi|le (xxx); + <Return>    -->   } while (xxx|);
+   -- after opening paren
+?  } while (|); + <Return>       -->   } while ();
+                                 -->   |
+
+-- Options ------------------------------------------------------------------
+-  omit { and } while expanding  <-- not much useful
+
+   -- general options, selectable for every mode:
+-  Change 1st expansion from <Space> to <Ctrl>+<Space>
+-  Change 2nd expansion from <Enter> to <Ctrl>+<Enter>
+   This would keep the rest of defined syntax expansion defs
+-  Enable/disable add matching brace/bracket/parenthesis on typing opening one
+
+-  Ignore blank lines when determining indent of last line
+-  Ignore comments when determining indent of last line
+
+-- Expand ; -----------------------------------------------------------------
+-  add ; and a new, unindented line
 
 */
 
@@ -108,9 +226,16 @@ compile if not defined(CPP_EXTENSIONS)  -- Keep in sync with TAGS.E
    CPP_EXTENSIONS = 'CPP HPP CXX HXX SQX JAV JAVA'
 compile endif
 
+
 ; Want a space after '(', an opening parenthesis?
 compile if not defined(WANT_SPACE_AFTER_PAREN)
    WANT_SPACE_AFTER_PAREN = 1                            -- new
+compile endif
+compile if not defined(C_HEADER_LENGTH)
+   C_HEADER_LENGTH = 77
+compile endif
+compile if not defined(C_HEADER_STYLE)
+   C_HEADER_STYLE = 1  -- (1 | 2), 1 = not indented
 compile endif
 
 ;  Keyset selection is now done once at file load time, not every time
@@ -198,12 +323,12 @@ def '}'
       l = 0
       PrevIndent = 0
       do l = 1 to 100 -- upper limit
-         getline line0, .line - l             -- line0 = line before {
+         getline line0, .line - l             -- line0 = line before }
          p0 = max( 1, verify( line0, ' '\t))  -- p0     = pos of first non-blank in line 0
          if length(line0) > p0 - 1 then  -- if not a blank line
             PrevIndent = p0 - 1
             -- check if last non-empty line is a {
-            if substr( line0, p0, 1) = '{' then
+            if rightstr( strip( line0), 1) = '{' then
                NewIndent = PrevIndent
             else
                NewIndent = PrevIndent - GetCIndent()
@@ -397,15 +522,15 @@ compile endif -- WANT_BRACE_BELOW_STATEMENT
 compile if WANT_BRACE_BELOW_STATEMENT
  compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
          insertline ws1'{', .line + 1
-         insertline ws1'} while (  );'END_DO, .line + 2
+         insertline ws1'} while ();'END_DO, .line + 2
  compile else
          insertline ws'{', .line + 1
-         insertline ws'} while (  );'END_DO, .line + 2
+         insertline ws'} while ();'END_DO, .line + 2
  compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
          down
 compile else
          replaceline w' {'
-         insertline ws'} while (  );'END_DO, .line + 1
+         insertline ws'} while ();'END_DO, .line + 1
 compile endif -- WANT_BRACE_BELOW_STATEMENT
          --call einsert_line()
          --replaceline ws1  -- better append real spaces, instead of just setting .col
@@ -445,7 +570,7 @@ compile if CPP_SYNTAX_ASSIST
          insertline ws'{', .line + 1
          insertline ws'}'END_TRY, .line + 2
   compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws'catch (  )', .line + 3
+         insertline ws'catch ()', .line + 3
   compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
          insertline ws1'{', .line + 4
          insertline ws1'}'END_CATCH, .line + 5
@@ -457,13 +582,14 @@ compile if CPP_SYNTAX_ASSIST
  compile else
          replaceline w' {'
          insertline ws'}'END_TRY, .line + 1
-         insertline ws'catch (  ) {', .line + 2
+         insertline ws'catch () {', .line + 2
          insertline ws'}'END_CATCH, .line + 3
  compile endif -- WANT_BRACE_BELOW_STATEMENT
+         insertline ws1, .line + 1; down; endline
 
       elseif ExpandCpp() & wrd = 'CATCH' then
  compile if WANT_BRACE_BELOW_STATEMENT
-         replaceline w' (  )'
+         replaceline w' ('GetPSpc()')'
   compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
          insertline ws1'{', .line + 1
          insertline ws1'}'END_CATCH, .line + 2
@@ -472,7 +598,7 @@ compile if CPP_SYNTAX_ASSIST
          insertline ws'}'END_CATCH, .line + 2
   compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
  compile else
-         replaceline w' (  ) {'
+         replaceline w' () {'
          insertline ws'}'END_CATCH, .line + 1
  compile endif -- WANT_BRACE_BELOW_STATEMENT
          if not insert_state() then
@@ -505,13 +631,40 @@ defproc c_second_expansion
    retc = 1
    if .line then
       getline line                                               -- line = current line
-      parse value upcase(line) with '{' +0 a                     -- a    = part of line starting with '{', upcase
-      a = strip(a)
-      brace = pos( '{', line)
-      if .line < .last then
-         next_is_brace = textline( .line + 1) = '{'
+
+; From REXXKEYS.E:
+      -- *word functions and parse don't recognize tab chars as word boundaries.
+      -- tline = uppercase line, with converted tabs
+      tline = translate( upcase(line) ' ', \t)
+
+      -- Set firstword only to text left from the cursor
+      tline_l = substr( tline, 1, .col - 1) -- split tline into two parts at cursor
+; firstword is currently overwritten by the old code
+      parse value tline_l with firstword rest
+      -- firstword is uppercase, because line is already upcased.
+      if firstword > ' ' then
+         firstp = pos( firstword, tline_l)
       else
-         next_is_brace = 0
+         firstp = 1
+      endif
+
+      ind = substr( line, 1, max( 1, verify( line, ' '\t)) - 1)        -- ind  = blanks before first word
+      ind1 =  ind''copies( ' ', GetCIndent())                          -- ind1 = ind plus 1 level indented
+-- Todo: Tabs2Spaces for line
+-- doesn't handle Tabs near the end correctly:
+      ind0 =  substr( ind, 1, max( length(ind) - GetCIndent(), 0))     -- ind0 = ind minus 1 level indented
+
+;      parse value upcase(line) with '{' +0 a                     -- a    = part of line starting with '{', upcase
+;      a = strip(a)
+      pobrace = pos( '{', line)
+      sline = strip( strip( strip( textline( .line)), 'b', \t))
+      this_is_obrace = (sline = '{')
+      if .line < .last then
+         snextline = strip( strip( strip( textline( .line + 1)), 'b', \t))
+         next_is_obrace = (snextline = '{')
+      else
+         snextline = ''
+         next_is_obrace = 0
       endif
       parse value line with w rest                               -- w  = first word
       parse value rest with w2 .                                 -- w2 = second word
@@ -537,23 +690,53 @@ defproc c_second_expansion
       if j <= 0 then j = length(wrd2) endif                      -- if j = 0 then j = position of last char in wrd2
       secondword = substr( wrd2, 1, j)                           -- secondword = second word in line left from cursor, upcase
 
+      line_l = substr( line, 1, .col - 1)                        -- line_l = line left from cursor pos
+      line_r = substr( line, .col)                               -- line_r = line right from cursor pos
+      cobrace = 0                                                -- cobrace = number of opening braces in left part of line
+      ccbrace = 0                                                -- ccbrace = number of closing braces in left part of line
+      n       = 0                                                -- n = number of open brace blocks in left part of line,
+      rest = line_l                                              --     starting at first opening brace
+      do forever
+         p1 = pos( '{', rest)
+         p2 = pos( '}', rest)
+         if p1 > 0 & (p1 < p2 | p2 = 0) then
+            cobrace = cobrace + 1
+            n = n + 1
+            rest = substr( rest, p1 + 1)
+         elseif p2 > p1 then
+            ccbrace = ccbrace + 1
+            if cobrace > 0 then
+               n = n - 1
+            endif
+            rest = substr( rest, p2 + 1)
+         else
+            leave
+         endif
+      enddo
+
       if firstword = 'FOR' then
          /* do tabs to fields of C for statement */
-         cp = pos( ';', line, .col)
+         --cp = pos( ';', line, .col)
+         cp = pos( ';', line, .col + 1)
          if cp and cp >= .col then
-            .col = cp + 2
+            --.col = cp + 2
+            .col = cp
          else
-            cpn = pos( ';', line, cp + 1)
-            if cpn and (cpn >= .col) then
-              .col = cpn + 2
+            cp = pos( ';', line, .col)
+            if cp and (cp >= .col) then
+               .col = cp + 2
+               bp = pos( ')', line, .col)
+               if bp then
+                  .col = bp
+               endif
             else
-              if not brace and next_is_brace then down; endif
-              insertline ws1, .line + 1; down; endline
+               if not pobrace and next_is_obrace then down; endif
+               insertline ws1, .line + 1; down; endline
            endif
          endif
 
       elseif firstword = 'CASE' or firstword = 'DEFAULT' then
-         insertline ws, .line + 1; down; endline
+         insertline ws1, .line + 1; down; endline
          -- get rid of line containing just a ;
          if firstword = 'DEFAULT' and .line < .last then
             getline line1, .line + 1
@@ -570,7 +753,7 @@ defproc c_second_expansion
          insertline ws'break;', .line + 1
 
       elseif firstword = 'SWITCH' then
-         if not brace and next_is_brace then down; endif
+         if not pobrace and next_is_obrace then down; endif
 compile if I_like_my_cases_under_my_switch
          insertline ws'case :', .line + 1; down; endline; left
          insertline ws1'break;', .line + 1
@@ -613,39 +796,115 @@ compile endif
                 call fixup_cursor()
             endif
          else
-            if not brace and next_is_brace then down; endif
+            if not pobrace and next_is_obrace then down; endif
             insertline ws1, .line + 1; down; endline
          endif
 
-      elseif a = '{' | firstword = '{' then  /* firstword or last word { */
-         indented = 0
-         p = pos( firstword, upcase(line))  -- p = pos of firstword
-         if strip(line) = '{' then          -- if line with a single {
-            -- get indent for line with {
-            getline line0, .line - 1             -- line0 = line before {
-            p0 = max( 1, verify( line0, ' '\t))  -- p0     = pos of first non-blank in line 0
-            if p > p0 then
-               indented = 1
-            endif
+      elseif n > 0 then
+         -- todo: don't split in line mode
+         -- todo: support WANT_BRACE_BELOW_STATEMENT_INDENTED = 1 (not for functions)
+         -- split line at cursor: replace current line with left part
+         stline_l =  strip( strip( strip( line_l, 't'), 't', \t), 't')  -- strip trailing spaces and tabs
+         replaceline stline_l, .line
+         if rightstr( stline_l, 1) = '{' and not this_is_obrace and
+            (WANT_BRACE_BELOW_STATEMENT or ws = 0) then  -- ws = indent of current line; braces for
+                                                         -- functions should be put on a separate line
+            -- put '{' on next line
+            replaceline leftstr( stline_l, length( stline_l) - 1), .line
+            insertline ws'{', .line + 1; down; endline
          endif
-         if indented then                   -- don't indent next line again
-            insertline ws, .line + 1; down; endline
-         else
-            insertline ws1, .line + 1; down; endline
+         sline_r =  strip( strip( strip( line_r), 'b', \t))  -- strip spaces and tabs
+         if rightstr( sline_r, 1) = '}' then
+            sline_r = leftstr( sline_r, length( sline_r) - 1)
+            insertline ws'}', .line + 1;
          endif
+         insertline ws1''sline_r, .line + 1; down; .col = length( ws1) + 1
 
       elseif firstword = 'MAIN' | (firstword = 'INT' & secondword = 'MAIN') then
          if not pos( '(', line) then
             call enter_main_heading()
          else
-            if not brace and next_is_brace then down; endif
+            if not pobrace and next_is_obrace then down; endif
             insertline ws1, .line + 1; down; endline
          endif
 
       elseif (wordpos( firstword, 'DO IF ELSE WHILE') |
               (ExpandCpp() & wordpos( firstword, 'TRY'))) then
-         if not brace and next_is_brace then down; endif
+         if not pobrace and next_is_obrace then down; endif
          insertline ws1, .line + 1; down; endline
+
+      elseif firstword = '}' & secondword = 'WHILE' then
+         insertline ws, .line + 1; down; endline
+
+      elseif next_is_obrace then  -- add a blank, indented line after line with single opening brace
+         down
+         insertline ws1, .line + 1; down; endline
+
+
+      elseif firstword = '/*' then
+         if words( tline) = 1 then
+            insertline ind' * ', .line + 1
+            insertline ind' */', .line + 2
+            '+1'
+            endline
+            retc = 1
+         endif
+
+      elseif firstword = '/**' then
+         if words( tline) = 1 then
+            headerlength = C_HEADER_LENGTH
+            headerstyle  = C_HEADER_STYLE
+            -- Style 1:
+            -- /***************
+            -- * |
+            -- ***************/
+            -- Style 2:
+            -- /***************
+            --  * |
+            --  **************/
+            replaceline '/'copies( '*', headerlength - 1)
+            if headerstyle = 1 then
+               insertline '* ', .line + 1
+               insertline copies( '*', headerlength - 1)'/', .line + 2
+            else
+               insertline ' * ', .line + 1
+               insertline ' 'copies( '*', headerlength - 2)'/', .line + 2
+            endif
+            '+1'
+            endline
+            retc = 1
+         endif
+
+      elseif firstword = '*' then
+         -- Search for opening comment /*
+         Found = 0
+         startl = .line - 1
+         do l = startl to 1 by -1
+            if l < startl - 100 then  -- search only 100 next lines
+               leave
+            endif
+            getline linel, l
+            next = word( linel, 1)
+            -- Search for first word
+            if next = '*' then
+               iterate
+            elseif substr( next, 1, 2) = '/*' then
+               Found = 1
+               leave
+            else
+               leave
+            endif
+         enddo
+         if Found = 1 then
+            if firstp = 1 then
+               insertline '* ', .line + 1
+            else
+               insertline ind'* ', .line + 1
+            endif
+            '+1'
+            endline
+            retc = 1
+         endif
 
 compile if TERMINATE_COMMENTS
       elseif pos( '/*', line) then
