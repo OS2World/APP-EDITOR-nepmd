@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.5 2005-03-06 08:00:38 aschn Exp $
+* $Id: file.e,v 1.6 2005-05-16 21:03:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -736,10 +736,23 @@ compile endif
 compile if WPS_SUPPORT
    universal wpshell_handle
 compile endif
-compile if USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG or NEPMD_USE_DIRECTORY_OF_CURRENT_FILE
    universal app_hini
-   call setprofile( app_hini, 'ERESDLGS', 'LASTFILESELECTED', '')
-compile endif
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\OpenDlg\UseCurrentDir'
+   opt = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   Filename = .filename
+   new = -1
+   if opt = 1 then
+      new = ''
+   elseif opt = 2 & pos( ':\', Filename) then
+      new = Filename
+   endif
+   -- Keep, delete or change last selected file.
+   -- The Open dialog will start with it's dir.
+   if new <> -1 then
+      call setprofile( app_hini, 'ERESDLGS', 'LASTFILESELECTED', new)
+   endif
 
    if upcase(arg(1)) = 'EDIT' then
       style = 1  -- EDIT
@@ -748,6 +761,7 @@ compile endif
    else
       style = 0  -- OPEN
    endif
+
 compile if WPS_SUPPORT
    if wpshell_handle & not arg(1) then
       call windowmessage( 0, getpminfo(APP_HANDLE),
@@ -1163,7 +1177,8 @@ defc RestorePosFromEa
    endif  -- RestorePos = 1
 
 ; ---------------------------------------------------------------------------
-defc cd=
+defc cd
+   universal nepmd_hini
    rc = 0
    if arg(1) = '' then
       dir = directory()
@@ -1172,6 +1187,33 @@ defc cd=
    endif
    if not rc then
       sayerror CUR_DIR_IS__MSG dir
+      if arg(1) <> '' then
+         KeyPath = '\NEPMD\User\ChangeWorkDir'
+         ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+         if ChangeWorkDir = 1 then
+            KeyPath = '\NEPMD\User\ChangeWorkDir\Last'
+            call NepmdWriteConfigValue( nepmd_hini, KeyPath, dir)
+         endif
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+defc cdbox
+   CurDir = directory()
+   Title = 'Enter new work directory'
+   Text  = CUR_DIR_IS__MSG CurDir
+   Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+   Entry = ''
+   parse value entrybox( Title,
+                         '',
+                         Entry,
+                         0,
+                         240,
+                         atoi(1) || atoi(0) || atol(0) ||
+                         Text) with button 2 NewDir \0
+   NewDir = strip( NewDir)
+   if button = \1 & NewDir <> '' & NewDir <> CurDir then
+      'cd' NewDir
    endif
 
 ; ---------------------------------------------------------------------------
