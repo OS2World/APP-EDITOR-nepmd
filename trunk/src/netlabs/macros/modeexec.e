@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.7 2005-03-14 22:36:56 aschn Exp $
+* $Id: modeexec.e,v 1.8 2005-05-16 20:58:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -512,6 +512,12 @@ defc SetHighlight
    if RefreshDefault then
       arg1 = delword( arg1, wp, 1)  -- remove 'REFRESHDEFAULT' from arg1
    endif
+   CheckFlag = ''
+   wp = wordpos( 'N', arg1)
+   if wp > 0 then
+      CheckFlag = 'N'
+      arg1 = delword( arg1, wp, 1)  -- remove 'REFRESHDEFAULT' from arg1
+   endif
 
    if arg1 = 'DEFAULT' then
       on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -528,10 +534,8 @@ defc SetHighlight
 
    -- Process setting
    Mode = NepmdGetMode()
-   if loadstate then
+   if (CheckFlag = '') & loadstate then
       CheckFlag = NepmdGetHiliteCheckFlag(Mode)
-   else
-      CheckFlag = ''
    endif
    call NepmdActivateHighlight( on, Mode, CheckFlag)
 
