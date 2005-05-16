@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.23 2004-11-30 21:16:08 aschn Exp $
+* $Id: stdcnf.e,v 1.24 2005-05-16 21:01:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1120,9 +1120,9 @@ compile endif
 -- EPM 6 by default remembers the last-loaded file from the open dialog, and
 -- starts the full file dialog in that directory instead of in the current
 -- directory.  Set this if you prefer the current directory.
-compile if not defined(USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG)
-   USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG = 0
-compile endif
+;compile if not defined(USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG)
+;   USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG = 0
+;compile endif
 
 -- EPM 6-only; uses EGREP searches.
 -- Include procedures for dealing with sentences and paragraphs?
