@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modify.e,v 1.5 2004-07-01 11:34:15 aschn Exp $
+* $Id: modify.e,v 1.6 2005-05-16 20:59:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -57,6 +57,9 @@
 ;     replace this one entirely.  For example, create a file NEWMOD.E with
 ;     your defmodify proc; compile it separately (ETPM NEWMOD); add a link
 ;     statement (link 'newmod') to your MYKEYS.E or MYSTUFF.E file.
+
+defc DiscardChanges
+   .modify = 0
 
 defmodify
    -- do autosave
