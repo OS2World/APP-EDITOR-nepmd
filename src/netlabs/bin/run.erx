@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: run.erx,v 1.1 2004-06-04 00:27:47 aschn Exp $
+* $Id: run.erx,v 1.2 2005-05-16 20:48:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -75,10 +75,15 @@ UpExt = translate(Ext)
 
 /*'sayerror Mode for "'filename.1'" = "'Mode'", UpExt = "'UpExt'"'*/
 
+/* filename.2: add ".." for spaces in filename.1 */
 If pos( ' ', filename.1) > 0 then
    filename.2 = '"'filename.1'"'
 else
    filename.2 = filename.1
+
+/* filename.3: strip path, use name only */
+lp = lastpos( '\', filename.1)
+filename.3 = substr( filename.1, lp + 1)
 
 /* Determine action from mode or extension */
 msg = ''
@@ -86,7 +91,8 @@ select
 
    /* CMD and REXX files */
    when Mode = 'CMD' | UPExt = 'CMD' then
-      action = 'os2 /k /f 'filename.2
+      /*action = 'os2 /k /f 'filename.2*/
+      action = 'shell 'filename.2
 
    /* main EPM macro file */
    when translate( filespec( 'NAME', filename.1)) = 'EPM.E' then
@@ -94,20 +100,21 @@ select
 
    /* other EPM macro files */
    when UpExt = 'E' then
-      action = 'relink'
+      action = 'RecompileNew'
 
    /* TeX source files */
    when wordpos( UpExt, 'TEX TEXI TEXINFO') > 0 then
-      action = 'os2 /c /f latex.cmd 'filename.1
+      action = 'shell vlatex.cmd 'filename.3
 
    /* LaTeX macro documentation source files */
    when wordpos( UpExt, 'DRV DTX FDD') > 0 then
-      action = 'os2 /c /f dtx2dvi.cmd 'filename.1
+      action = 'shell vlatex.cmd 'filename.3
 
    /* C files */
    when UpExt = 'C' then
       /*action = 'os2 /k wcc386 'filename.1*/
-      action = 'os2 /k /f gcc 'filename.1
+      /*action = 'os2 /k /f gcc 'filename.1*/
+      action = 'shell nmake /nologo clean & nmake /nologo all'
 
    /* REXX files */
    when Mode = 'REXX' & UpExt = 'ERX' then
@@ -116,7 +123,7 @@ select
    otherwise
    do
       msg = 'RUN.ERX: For this mode is no action defined. Executing OPEN.ERX...'
-      action = 'start /c /min open 'filename.2
+      /*action = 'start /c /min open 'filename.2*/
       action = call open '"'filename.2'"'
    end
 
