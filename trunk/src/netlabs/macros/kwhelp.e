@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.22 2005-05-06 18:51:59 aschn Exp $
+* $Id: kwhelp.e,v 1.23 2005-05-16 20:51:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -175,7 +175,7 @@ defproc pHelp_C_identifier
          parse value line with . cmd arg1 arg2
       endif
 
-      -- Determine .inf file viewer and search the file, if the command is View
+      -- Search the file, if the command is a view
       if (upcase(cmd) = 'VIEW') then
          -- Use NewView, if found in PATH
          next = NepmdSearchPath( 'newview.exe')
