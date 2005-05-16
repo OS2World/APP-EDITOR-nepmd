@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: makeactn.e,v 1.3 2003-07-06 15:27:13 aschn Exp $
+* $Id: makeactn.e,v 1.4 2005-05-16 22:15:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -297,7 +297,7 @@ defc MK_build
    build_number = build_number + 1
   if rc=-260 then
      -- activatefile failed -> invalid fileid
-     'shell'
+     'shell new'
      build_shellid = shell_index
      .userstring = index''build_number -- store the build envir associated to this shell
    endif

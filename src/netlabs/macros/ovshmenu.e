@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ovshmenu.e,v 1.9 2004-11-30 21:05:48 aschn Exp $
+* $Id: ovshmenu.e,v 1.10 2005-05-16 22:15:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -161,7 +161,7 @@ compile endif
       buildmenuitem menuname, 1, 100, OPENAS_MENU__MSG,           OPENAS_MENUP__MSG,     17+64, mpfrom2short(HP_FILE_OPENAS, 0)
          buildmenuitem menuname, 1, 101, NEWWIN_MENU__MSG\9 || CTRL_KEY__MSG'+O', 'OPENDLG'OPEN_MENUP__MSG,  0, mpfrom2short(HP_FILE_NEWWIN, 0)
          buildmenuitem menuname, 1, 102, SAMEWIN_MENU__MSG\9'F8', 'OPENDLG EDIT'ADD_MENUP__MSG,     0, mpfrom2short(HP_FILE_SAMEWIN, 0)
-         buildmenuitem menuname, 1, 103, COMMAND_SHELL_MENU__MSG,  'shell'CREATE_SHELL_MENUP__MSG,   32769, mpfrom2short(HP_COMMAND_SHELL, 0)
+         buildmenuitem menuname, 1, 103, COMMAND_SHELL_MENU__MSG,  'shell new'CREATE_SHELL_MENUP__MSG,   32769, mpfrom2short(HP_COMMAND_SHELL, 0)
 compile if RING_OPTIONAL
    else
       buildmenuitem menuname, 1, 100, NEWWIN_MENU__MSG\9 || CTRL_KEY__MSG'+O', 'OPENDLG'OPEN_MENUP__MSG,  0, mpfrom2short(HP_FILE_NEWWIN, 0)
