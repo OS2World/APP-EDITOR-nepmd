@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.14 2005-03-27 15:27:23 aschn Exp $
+* $Id: linkcmds.e,v 1.15 2005-05-16 20:54:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -206,7 +206,7 @@ defc relink
 ; etpm =       compiles current file to an .ex file in myepm\ex
 ; etpm = =     compiles current file to an .ex file in the same dir
 ;
-; Doesn't use the /v option.
+; Does use the /v option now.
 ; Doesn't respect options from the commandline, like /v or /e <logfile>.
 defc et,etpm=
 ;   universal vTEMP_PATH
@@ -380,16 +380,14 @@ defc RingCheckModify
    startfid = fid
    do i = 1 to filesinring()  -- omit hidden files
       if (substr( .filename, 1, 1) = '.') & (.filename <> GetUnnamedFilename()) then
-          -- ignore
-      else
-        if .modify then
-           rc = 1
-           -- let this file on top
-           activatefile fid
-           sayerror 'Current file is modified. Save it or discard changes first.'
-           stop  -- Stops further processing of current and calling command or
-                 -- procedure. Advantage: no check for rc required.
-        endif
+         .modify = 0
+      elseif .modify then
+         rc = 1
+         -- let this file on top
+         activatefile fid
+         sayerror 'Current file is modified. Save it or discard changes first.'
+         stop  -- Stops further processing of current and calling command or
+               -- procedure. Advantage: no check for rc required.
       endif
       nextfile
       getfileid fid
@@ -589,7 +587,7 @@ defc RecompileNew
       .modify = 0
       'xcom q'
    enddo
-   -- Append 'epm;'
+   -- Prepend 'epm;'
    -- 'epm;' should be the first entry, because it will restart EPM and
    -- unlinking/linking of other .EX files can be avoided then.
    if fPrependEpm = 1 then
@@ -670,7 +668,7 @@ defc RecompileNew
             if rc = '' then
                NetlabsExFileTime = next
                if OldExFileTime < NetlabsExFileTime then
-                  WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'OldExFile'" older then Netlabs .EX file')
+                  WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'OldExFile'" older than Netlabs .EX file')
                   cWarning = cWarning + 1
                endif
             endif  -- rc = ''
@@ -737,7 +735,7 @@ defc RecompileNew
                   -- Compare time of EFile with LastCheckTime
                   if EFileTime > LastCheckTime then
                      fCompExFile = 1
-                     WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" newer then last check')
+                     WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" newer than last check')
                      --leave  -- don't leave to enable further warnings
                   elseif (OldEFileTime = '') & (pos( ';'upcase( EFile)';', ';'upcase( OptEFiles)) > 0) then
                      --WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" is an optional file and probably not included')
@@ -753,7 +751,7 @@ defc RecompileNew
                   if rc = '' then
                      NetlabsEFileTime = next
                      if EFileTime < NetlabsEFileTime then
-                        WriteLog( LogFile, 'WARNING: 'BaseName' - .E file "'FullEFile'" older then Netlabs .E file')
+                        WriteLog( LogFile, 'WARNING: 'BaseName' - .E file "'FullEFile'" older than Netlabs .E file')
                         cWarning = cWarning + 1
                      endif
                   endif
