@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.3 2005-05-01 22:53:23 aschn Exp $
+* $Id: reflowmail.e,v 1.4 2005-05-16 20:53:03 aschn Exp $
 *
 * ===========================================================================
 *
