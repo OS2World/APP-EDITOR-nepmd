@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.20 2005-01-30 22:53:40 aschn Exp $
+* $Id: stdkeys.e,v 1.21 2005-05-16 21:03:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -118,7 +118,7 @@ def c_w           'FindWord'            -- Find current word, separators accordi
 ; ---- Clipboard ----
 def s_del         'Cut'                 -- Copy mark to clipboard and delete
 def s_ins         'DefaultPaste'        -- Default paste (paste as chars, selectable)
-def c_ins         'Copy2Clip'          -- Defined now as defc Key_c_ins, because the Sh variant is used
+def c_ins         'Copy2Clip'           -- Copy mark to clipboard
 defc Key_c_s_ins  'AlternatePaste'      -- Alternate paste (paste as lines, depends on default paste)
 
 ; ---- Execute ----
