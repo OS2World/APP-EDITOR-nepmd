@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.25 2004-07-09 13:41:33 aschn Exp $
+* $Id: stdctrl.e,v 1.26 2005-05-16 21:04:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,14 +18,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
-/*
-Todo:
-- Merge NEPMD_USE_DIRECTORY_OF_CURRENT_FILE with
-  USE_CURRENT_DIRECTORY_FOR_OPEN_DIALOG.
-- Differ change to directory and directory for open dialog.
-*/
-
 /*
 ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป
 บ What's it called: stdctrl.e                                                บ
@@ -850,6 +842,20 @@ compile if WANT_APPLICATION_INI_FILE
 compile else
    sayerror 'WANT_APPLICATION_INI_FILE = 0'
 compile endif -- WANT_APPLICATION_INI_FILE
+
+; Delete all attributes of current file.
+; Taken from Martin Lafaix' MLEPM package (defc munhighlightfile).
+defc DeleteAllAttributes, DelAttribs
+   call psave_mark(savemark)
+   class = 0  -- 0 means: find all attributes
+   line = 0; col = 0; off = -255
+   attribute_action 1, class, off, col, line      -- find next attribute
+   while class do
+      attribute_action 16, class, off, col, line  -- delete attribute
+      class = 0; off = -255
+      attribute_action 1, class, off, col, line   -- find next attribute
+   endwhile
+   call prestore_mark(savemark)
 
 defc monofont
    parse value queryfont(.font) with fontname '.' fontsize '.'
