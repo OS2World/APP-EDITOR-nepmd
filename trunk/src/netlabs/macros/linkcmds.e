@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.16 2005-05-20 17:57:28 aschn Exp $
+* $Id: linkcmds.e,v 1.17 2005-05-20 18:22:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -607,7 +607,10 @@ defc RecompileNew
       parse value rest with next';'rest
       WriteLog( LogFile, '   'next)
    enddo
-   WriteLog( LogFile, 'Other unlisted .E/.EX files are not checked here. Use the RELINK command instead.')
+   WriteLog( LogFile, 'Note: Other unlisted .E/.EX files are not checked here.')
+   WriteLog( LogFile, '      In order to recompile them')
+   WriteLog( LogFile, '         o  create your own .LST list file in the myepm\ex directory or')
+   WriteLog( LogFile, '         o  use the RELINK command instead.')
    fRestartEpm  = 0
    fFoundMd5    = '?'
    cWarning     = 0
@@ -617,6 +620,7 @@ defc RecompileNew
    -- Find new source files
    rest = BaseNames
    BaseNames = ''
+   WriteLog( LogFile, 'Checking for old (existing) .EX files and new .E files...')
    do while rest <> ''
       -- For every ExFile...
       parse value rest with BaseName';'rest
