@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.17 2005-05-20 18:22:11 aschn Exp $
+* $Id: linkcmds.e,v 1.18 2005-06-05 17:17:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -496,6 +496,7 @@ defc RecompileAll
 ; files, whose E sources are newer then their EX files.
 ; Could be a problem: the ini entry for epm\EFileTimes has currently 1341
 ; byte. Apparently in ETK every string is limitted to 1599 byte.
+; Syntax: RecompileNew [RESET] | [CHECKONLY]
 defc RecompileNew
    universal nepmd_hini
 
@@ -508,11 +509,16 @@ defc RecompileNew
    -- Optional E files tryincluded in EPM.E only:
    OptEpmEFiles =  'mymain.e;myload.e;myselect.e;mykeys.e;mystuff.e;mykeyset.e;'
 
+   -- Determine CheckOnly mode: disable file operations then
+   fCheckOnly = upcase( arg(1)) = 'CHECKONLY'
+
    parse value getdatetime() with Hour24 Minutes Seconds . Day MonthNum Year0 Year1 .
    Date = rightstr(Year0 + 256*Year1, 4, 0)'-'rightstr(monthnum, 2, 0)'-'rightstr(Day, 2, 0)
    Time = rightstr(hour24, 2)':'rightstr(Minutes,2,'0')':'rightstr(Seconds,2,'0')
 
-   'RingCheckModify'
+   if not fCheckOnly then
+      'RingCheckModify'
+   endif
 
    Path = NepmdScanEnv('EPMEXPATH')
    parse value Path with 'ERROR:'rc
@@ -600,7 +606,11 @@ defc RecompileNew
       call EraseTemp( LogFile)
    endif
    -- Writing ListFiles to LogFile in the part above would make EPM crash.
-   WriteLog( LogFile, 'RecompileNew started at' Date Time'.')
+   if fCheckOnly then
+      WriteLog( LogFile, 'RecompileNew CheckOnly started at' Date Time'.')
+   else
+      WriteLog( LogFile, 'RecompileNew started at' Date Time'.')
+   endif
    WriteLog( LogFile, 'Checking base names listed in')
    rest = ListFiles
    do while rest <> ''
@@ -695,14 +705,16 @@ defc RecompileNew
                      comprc = Md5Comp( OldExFile, NetlabsExFile)
                      if comprc = 0 then
                         WriteLog( LogFile, '         'BaseName' - old .EX file "'OldExFile'" equal to Netlabs .EX file')
-                        delrc = EraseTemp( OldExFile)
-                        if delrc then
-                           cWarning = cWarning + 1
-                           WriteLog( LogFile, 'WARNING: 'BaseName' - can''t delete old .EX file "'OldExFile'", rc = 'rc)
-                        else
-                           WriteLog( LogFile, '         'BaseName' - deleted old .EX file "'OldExFile'"')
+                        if not fCheckOnly then
+                           delrc = EraseTemp( OldExFile)
+                           if delrc then
+                              cWarning = cWarning + 1
+                              WriteLog( LogFile, 'WARNING: 'BaseName' - can''t delete old .EX file "'OldExFile'", rc = 'rc)
+                           else
+                              WriteLog( LogFile, '         'BaseName' - deleted old .EX file "'OldExFile'"')
+                              cDelete = cDelete + 1
+                           endif
                         endif
-                        cDelete = cDelete + 1
                      endif
                      if comprc <> 0 | (comprc = 0 & delrc) then
                         if LastCheckTime < max( OldExFileTime, NetlabsExFileTime) then
@@ -803,7 +815,7 @@ defc RecompileNew
          endif
       endif
 
-      if fReplaceExFile = 1 | fCompExFile = 1 then
+      if (fReplaceExFile = 1 | fCompExFile = 1) & not fCheckOnly then
          -- Run Etpm
          ExFile      = ''  -- init for CallEtpm
          EtpmLogFile = ''  -- init for CallEtpm
@@ -873,7 +885,7 @@ defc RecompileNew
          endif
       endif
 
-      if fReplaceExFile = 1 then
+      if fReplaceExFile = 1 & not fCheckOnly then
          DestDir = GetExFileDestDir( ExFile)
          if fDeleteExFile = 1 then
             rc = EraseTemp( OldExFile)
@@ -925,10 +937,14 @@ defc RecompileNew
       endif
 
    enddo
-   if fRestartEpm = 1 then
-      Text = cRecompile 'files recompiled and' cDelete 'files deleted,' cWarning 'warnings, restart'
+   if fCheckOnly then
+      Text = cWarning 'warnings, no file replaced. (Execute "RecompileNew" without args in order to replace old files.)'
    else
-      Text = cRecompile 'files recompiled and' cDelete 'files deleted, therefrom' cRelink' files relinked,' cWarning 'warnings'
+      if fRestartEpm = 1 then
+         Text = cRecompile 'files recompiled and' cDelete 'files deleted,' cWarning 'warnings, restart'
+      else
+         Text = cRecompile 'files recompiled and' cDelete 'files deleted, therefrom' cRelink' files relinked,' cWarning 'warnings'
+      endif
    endif
    sayerror Text' - see "'LogFile'"'
    if fRestartEpm = 1 then
@@ -950,9 +966,11 @@ defc RecompileNew
       endif
       'postme e 'LogFile
    endif
-   quietshell 'del' CompileDir'\* /n & rmdir' CompileDir  -- must come before restart
-   if fRestartEpm = 1 then
-      'postme postme Restart'
+   if not fCheckOnly then
+      quietshell 'del' CompileDir'\* /n & rmdir' CompileDir  -- must come before restart
+      if fRestartEpm = 1 then
+         'postme postme Restart'
+      endif
    endif
 
 ; ---------------------------------------------------------------------------
