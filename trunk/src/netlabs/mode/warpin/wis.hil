@@ -8,7 +8,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2003
 ;
-; $Id: wis.hil,v 1.1 2003-12-12 18:34:16 aschn Exp $
+; $Id: wis.hil,v 1.2 2005-06-05 15:14:56 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -63,20 +63,42 @@ $(
 </PAGE
 <PCK
 </PCK
+<README
+</README
 <REXX
 </REXX
-<TITLE
-</TITLE
 <TEXT
 </TEXT
-<WARPIN
-</WARPIN
+<TITLE
+</TITLE
 <VARPROMPT
 </VARPROMPT
+<WARPIN
+</WARPIN
 <CINCLUDE
 <TINCLUDE
 >
 <
+<B>
+</B>
+<I>
+</I>
+<U>
+</U>
+<CODE>
+</CODE>
+<BR>
+<P>
+<PRE>
+</PRE>
+<OL>
+</OL>
+<UL>
+</UL>
+<LI>
+<DL>
+</DL>
+<DD>
 
 [ATTRIBUTE]
 ; chars belong to CHARSET
@@ -116,4 +138,5 @@ FORMAT
 VERSION
 OS
 CODEPAGE
+FORMAT
 
