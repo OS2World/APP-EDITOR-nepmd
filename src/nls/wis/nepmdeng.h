@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdeng.h,v 1.5 2002-10-31 13:31:39 cla Exp $
+* $Id: nepmdeng.h,v 1.6 2005-06-30 22:22:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,6 +32,7 @@
 
 #define TITLE_NEPMD_FOLDER                       "Netlabs^EPM Distribution"
 #define TITLE_NEPMD_EXECUTE                      "EPM v6.03b"
+#define TITLE_NEPMD_CHECK_MYEPM_MACROS           "EPM - Check myepm macros"
 #define TITLE_NEPMD_VIEW_EPMTECH                 "EPM Technical Reference"
 #define TITLE_NEPMD_VIEW_EPMUSERS                "EPM Users Guide"
 #define TITLE_NEPMD_VIEW_NEUSR                   "Netlabs^EPM Distribution^User Guide"
