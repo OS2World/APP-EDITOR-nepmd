@@ -11,7 +11,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.10 2005-05-16 20:49:05 aschn Exp $
+; $Id: defaults.dat,v 1.11 2005-06-30 22:10:32 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -35,7 +35,7 @@
 
 ; Installation
 "\NEPMD\System\JustInstalled" = "1"
-"\NEPMD\System\CheckEpmExTimeStamp" = "1"
+"\NEPMD\System\CheckEpmMacros" = "1"
 
 ; Default edit, save and search options
 ;"\NEPMD\User\Edit\DefaultOptions" = "/b /t /l"
