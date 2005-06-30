@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.35 2004-12-20 20:08:56 aschn Exp $
+# $Id: nepmd.wis,v 1.36 2005-06-30 22:22:37 aschn Exp $
 #
 # ===========================================================================
 #
@@ -61,6 +61,7 @@
 
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_RECOMP%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=$(1)\NETLABS\BIN\RECOMP.EXE;PARAMETERS=$(1)\MYEPM\EX;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=104;OBJECTID=<NEPMD_RECOMP>;"
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_NEPRG%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPRG%NLS%.INF Netlabs;ICONFILE=$(1)\NETLABS\INSTALL\ICO\HELP.ICO;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=103;OBJECTID=<NEPMD_VIEW_NEPRG>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_CHECK_MYEPM_MACROS%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=EPM.EXE;PARAMETERS=/e$(1)\netlabs\ex\epm.ex 'HookAdd selectonce postme CheckEpmMacros force';HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=114;OBJECTID=<NEPMD_CHECK_MYEPM_MACROS>;"
      ><TINCLUDE name="..\nls\wis\desc2%NLS%.xml"/></PCK>
 
 <PCK INDEX=3
