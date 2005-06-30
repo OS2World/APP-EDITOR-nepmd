@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.6 2005-03-27 15:15:00 aschn Exp $
+* $Id: keys.e,v 1.7 2005-06-30 22:04:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -79,12 +79,14 @@ compile if not defined(VIRTUAL_LIST)
    VIRTUAL_NAMES = VIRTUAL_NAMES || ' F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12'
    -- more: SPACE, ENTER, PADENTER
 compile endif
+
    -- PM_LIST    = don't overwrite <key>, because they are standard PM keys
 compile if not defined(PM_LIST)
    -- Tab must be excluded, because otherwise lastkey(2) and lastkey(3) would
    -- return wrong values for Tab. lastkey() for Tab doesn't work in EPM!
    PM_LIST       = 'F1 F10 TAB'
 compile endif
+
    -- PM_ALT_LIST = don't overwrite Alt+<key>, because they are standard PM keys
 compile if not defined(PM_ALT_LIST)
    PM_ALT_LIST    = 'SPACE TAB ESC F4 F5 F6 F7 F8 F9 F10 F11'
@@ -149,6 +151,11 @@ defc Key_a_f10 = 'sayerror a_f10'
 ;    Key_c_a_s_<key>
 ; <key> may be any letter (see const LETTER_LIST), any char name (see const
 ; CHAR_NAMES) or any virtual key (see const VIRTUAL_NAMES).
+compile if not defined( NEWVIEW_HELP_WORKAROUND)
+const
+   NEWVIEW_HELP_WORKAROUND=1
+compile endif
+
 defc loadaccel
    universal activeaccel
    universal nepmd_hini
@@ -189,6 +196,24 @@ defc loadaccel
       i = i + 1
       buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALTGRAF, i  -- AltGr
    endif
+
+   -- Use a const to disable it easily for testing
+compile if NEWVIEW_HELP_WORKAROUND
+   -- Redefine F1 to open EPM's main help panel.
+   -- Otherwise pressing F1 would cause an EPM crash, when NewView's
+   -- helpmgr.dll is installed.
+   -- o  Help for EPM's dialogs works correctly.
+   -- o  Help for menu items doesn't work in EPM 6.03b with Warp 4.5/eCS.
+   --    This workaround opens EPM's main help panel instead.
+   --    Todo: query the help panel id, that was defined together with the
+   --          MIA (last arg of buildmenuitem: mpfrom2short( help_panel_id, 0)).
+   i = i + 1
+   id = VK_F1  -- F1 = 32
+   cmd = 'helpmenu 4000'
+   --flags = AF_VIRTUALKEY + AF_HELP  -- AF_HELP doesn't work!
+   flags = AF_VIRTUALKEY
+   buildacceltable activeaccel, cmd, flags, id, i
+compile endif
 
    -- Save the last used id in an array var
    call SetAVar( 'lastkeyaccelid', i)
