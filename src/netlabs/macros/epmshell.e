@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.11 2005-05-16 22:14:57 aschn Exp $
+* $Id: epmshell.e,v 1.12 2005-06-30 22:06:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,6 +22,12 @@
 ; Contains defmodify. Therefore it should not be linked, because any
 ; occurance of defmodify in a linked module would replace all other
 ; so-far-defined defmodify event defs.
+
+; Todo:
+; defc Shell
+;    Add an optional param <workdir> before <command>. Workdir must be fully
+;    qualified or start with . or .. or \ to get recognized. Enable spaces
+;    in workdir.
 
 ; ---------------------------------------------------------------------------
 ; Some ShellKram macros added. See SHELLKEYS.E for key definitions.
@@ -48,7 +54,12 @@ defc sendshell =
 ; Syntax: shell [new] [<command>]
 ; shell_index is the number of the last created shell, <shellnum>.
 ; The array var 'Shell_f'<shellnum> holds the fileid, 'Shell_h'<shellnum> the handle.
-defc shell
+;
+; ECHO must be ON. That is the default setting in CMD.EXE, but not in 4OS2.EXE.
+; Otherwise no prompt is inserted after the command execution and further commands
+; won't work (CMD.EXE) or the command is deleted (4OS2.EXE).
+; Therefore ECHO ON must be executed _after_ every call of 4OS2.EXE.
+defc Shell
    universal shell_index, EPM_utility_array_ID
 compile if RING_OPTIONAL
    universal ring_enabled
@@ -111,14 +122,15 @@ compile endif
          do_array 2, EPM_utility_array_ID, 'Shell_f'shell_index, shellfid
          do_array 2, EPM_utility_array_ID, 'Shell_h'shell_index, shellHandle
          'postme monofont'
+compile if EPM_SHELL_PROMPT <> ''
+         InitCmd = EPM_SHELL_PROMPT
+         'shell_write' shell_index InitCmd
+compile endif
       endif
 ;;    sayerror "shellhandle=0x" || ltoa(ShellHandle, 16) || "  newObject.retval="retval;
    else
       activatefile shellfid
    endif
-compile if EPM_SHELL_PROMPT <> ''
-   'shell_write' shell_index EPM_SHELL_PROMPT
-compile endif
    if cmd then
       'shell_write' shell_index cmd
    endif
@@ -126,7 +138,7 @@ compile endif
 -------------------------------------------------------------Shell_Kill------------------
 ; Destroys a shell object.
 ; Syntax: shell_kill [<shellnum>]
-defc shell_kill
+defc Shell_Kill
    universal EPM_utility_array_ID
    parse arg shellnum .
    if shellnum = '' & leftstr( .filename, 15) = '.command_shell_' then
@@ -163,8 +175,6 @@ defc Shell_Write
    universal ShellHandle
    universal EPM_utility_array_ID
    universal Shell_lastwrite
-; ###### Todo: Save .line and .col for every shell separately ######
-   universal ShellAppWaiting
    parse arg shellnum text
    if not isnum(shellnum) & leftstr( .filename, 15) = '.command_shell_' then
       shellnum = substr( .filename, 16)
@@ -174,6 +184,8 @@ defc Shell_Write
       sayerror NOT_IN_SHELL__MSG
       return
    endif
+   getfileid fid
+   ShellAppWaiting = GetAVar( 'ShellAppWaiting.'fid)
    rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle)
    if shellhandle <> '' then
       if text = '' & words( ShellAppWaiting) < 2 then  -- disable this silly box for Return in a waiting shell
@@ -283,8 +295,6 @@ defc NowCanWriteShell
 ; Right margin setting of current shell is not respected.
 defc NowCanReadShell
    universal EPM_utility_array_ID
-; ###### Todo: Save .line and .col for every shell separately ######
-   universal ShellAppWaiting  -- set to '.line .col' if app is waiting for user input
    parse arg shellnum .
    if not isnum(shellnum) then
       sayerror 'NowCanReadShell:  'INVALID_ARG__MSG '"'arg(1)'"'
@@ -354,14 +364,18 @@ compile else  -- else EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
    p1 = leftstr( lastline, 6) = '[epm: '
    p2 = rightstr( strip( lastline, 't'), 1) = ']'
 compile endif -- EPM_SHELL_PROMPT
-   -- set a universal var
+   -- set array var
    if p1 > 0 & p2 > 0 then
+      -- set to 0
       ShellAppWaiting = 0
 ;      sayerror 'app terminated'
    else
+      -- set to '.line .col' if app is waiting for user input
       ShellAppWaiting = shellfid.line shellfid.col
 ;      sayerror 'app waiting for input or further output will follow'
    endif
+   getfileid fid
+   call SetAVar( 'ShellAppWaiting.'fid, ShellAppWaiting)  -- save
 
 ; ---------------------------------------------------------------------------
 ; Write user input to the shell if EPM prompt is in current line.
@@ -369,9 +383,6 @@ compile endif -- EPM_SHELL_PROMPT
 ; Remove trailing \ from directories for 'cd'.
 ; Works with spaces in filenames and surrounding "...".
 ; Returns 0 on success; 1 when not on a EPM prompt line.
-; ####################################################################
-; Todo:
-;    Add workaround for "start epm" and "start epm /r"
 defproc ShellEnterWrite
    shellnum = substr( .filename, 16)
    ret = 1
@@ -435,6 +446,10 @@ defproc ShellEnterWrite
       if .line = .last then
          .col = x + 1
          erase_end_line
+      else
+          -- The Undo statement doesn't restore line well (only last change,
+          -- depending on .modify)
+         'postme ShellRestoreOrgCmd' .line
       endif
       'shell_write' shellnum text
       ret = 0
@@ -442,15 +457,30 @@ defproc ShellEnterWrite
    return ret
 
 ; ---------------------------------------------------------------------------
+; Restore line number = arg(1) to its state saved in ShellOrgCmd.
+defc ShellRestoreOrgCmd
+   getfileid fid
+   ShellOrgCmd = GetAVar( 'ShellOrgCmd.'fid)
+   l = arg(1)
+   parse value ShellOrgCmd with line cmd
+   if line = l then
+      saved_line = .line
+      .lineg = l
+      x = PromptPos()
+      replaceline substr( textline( l), 1, x)''cmd, l
+      .lineg = saved_line
+   endif
+
+; ---------------------------------------------------------------------------
 ; Write user input to a prompting (waiting) app.
 ; Use ShellAppWaiting, that holds line and col from last write of the shell
 ; object to the EPM window, set in defc NowCanReadShell.
 ; Returns 0 on success; 1 when no app is waiting.
 defproc ShellEnterWriteToApp
-; ###### Todo: Save .line and .col for every shell separately ######
-   universal ShellAppWaiting
    shellnum = substr( .filename, 16)
    ret = 1
+   getfileid fid
+   ShellAppWaiting = GetAVar( 'ShellAppWaiting.'fid)
    if words( ShellAppWaiting) = 2 then
       parse value ShellAppWaiting with lastl lastc
       text = ''
@@ -552,10 +582,46 @@ defproc SUE_break(shell_handle)
                       shell_handle)
 
 ; ---------------------------------------------------------------------------
-; Reset modified state to avoid the dialog on quit.
-defmodify
+defselect
+   event = 2
    Mode = NepmdGetMode()
    if Mode = 'SHELL' then
+      undoaction 4, event  -- disable
+   else
+      undoaction 5, event  -- enable
+   endif
+
+; ---------------------------------------------------------------------------
+; Reset modified state to avoid the dialog on quit.
+; Save the original command text, if on a prompt line, and if not already
+; saved before. The array var 'ShellOrgCmd.'fid is used later by
+; ShellRestoreOrgCmd, called by ShellEnterWrite.
+defmodify
+   getfileid fid
+   ShellOrgCmd = GetAVar( 'ShellOrgCmd.'fid)
+   Mode = NepmdGetMode()
+   if Mode = 'SHELL' then
+      p = PromptPos()
+      if p then
+         parse value ShellOrgCmd with line .
+         if (line <> .line) & (.line <> .last) then
+            -- Get OldCmd only if new text was entered
+            NewCmd = substr( textline( .line), p + 1)
+            if strip( NewCmd) <> '' then
+               undoaction 1, junk
+               undoaction 6, StateRange               -- query range
+               parse value StateRange with oldeststate neweststate
+               prevstate = max( neweststate - 1, oldeststate)
+               undoaction 7, prevstate
+               OldCmd = strip( substr( textline( .line), p + 1), 'l')
+               if OldCmd > '' then
+                  ShellOrgCmd = .line substr( textline( .line), p + 1)
+                  call SetAVar( 'ShellOrgCmd.'fid, ShellOrgCmd)
+               endif
+               undoaction 7, neweststate
+            endif
+         endif
+      endif
       .modify = 0
       .autosave = 0
       'ResetDateTimeModified'
