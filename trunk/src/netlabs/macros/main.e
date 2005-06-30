@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.28 2005-05-16 21:02:42 aschn Exp $
+* $Id: main.e,v 1.29 2005-06-30 22:18:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -240,8 +240,8 @@ compile endif
    -- see also: STDCNF.E for menu
    call showwindow('ON')
 
-;  Check used version of EPM.EX ---------------------------------------------
-   'CheckEpmExTimeStamp'
+;  Check used versions of .EX and .E files ----------------------------------
+   'CheckEpmMacros'
 
 ;  Execute just-installed stuff, if any -------------------------------------
    App = 'RegDefaults'
