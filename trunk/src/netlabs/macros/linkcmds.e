@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.18 2005-06-05 17:17:56 aschn Exp $
+* $Id: linkcmds.e,v 1.19 2005-06-30 22:17:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -600,6 +600,8 @@ defc RecompileNew
       BaseNames = 'epm;'BaseNames  -- ';'-separated list with basenames
    endif
    NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
+   call EnsureDirExists( NepmdRootDir'\myepm')
+   call EnsureDirExists( NepmdRootDir'\myepm\ex')
    CompileDir   = NepmdRootDir'\myepm\ex\tmp'
    LogFile      = NepmdRootDir'\myepm\ex\recompilenew.log'
    if Exist( LogFile) then
@@ -607,10 +609,19 @@ defc RecompileNew
    endif
    -- Writing ListFiles to LogFile in the part above would make EPM crash.
    if fCheckOnly then
-      WriteLog( LogFile, 'RecompileNew CheckOnly started at' Date Time'.')
+      WriteLog( LogFile, '"RecompileNew CheckOnly" started at' Date Time'.')
+      WriteLog( LogFile, 'Because of CheckOnly mode, no .EX file will be replaced.')
+      WriteLog( LogFile, 'When warnings occur:')
+      WriteLog( LogFile, '   Rename your NEPMD\MYEPM\MACROS and NEPMD\MYEPM\EX directories')
+      WriteLog( LogFile, '   before the next EPM start.')
+      WriteLog( LogFile, '   Then either discard your own macro files or merge it with')
+      WriteLog( LogFile, '   Netlabs'' newly installed files from NEPMD\NETLABS\MACROS.')
+      WriteLog( LogFile, 'Only when you really know what you are doing:')
+      WriteLog( LogFile, '   Execute "RecompileNew" without args in order to replace .EX files.')
    else
-      WriteLog( LogFile, 'RecompileNew started at' Date Time'.')
+      WriteLog( LogFile, '"RecompileNew" started at' Date Time'.')
    endif
+   WriteLog( LogFile, '')
    WriteLog( LogFile, 'Checking base names listed in')
    rest = ListFiles
    do while rest <> ''
@@ -627,34 +638,38 @@ defc RecompileNew
    cRecompile   = 0
    cDelete      = 0
    cRelink      = 0
+   fCheckOnlyNotCopied = 0
    -- Find new source files
    rest = BaseNames
    BaseNames = ''
+   WriteLog( LogFile, '')
    WriteLog( LogFile, 'Checking for old (existing) .EX files and new .E files...')
    do while rest <> ''
       -- For every ExFile...
       parse value rest with BaseName';'rest
-      fCompOldExFile = 0
-      fWarningOlder  = 0
+      fCompCurExFile = 0
       fCompExFile    = 0
       fReplaceExFile = 0
       fDeleteExFile  = 0
-      OldEFiles         = ''
-      OldEFileTimes     = ''
-      OldExFileTime     = ''
+      fCopiedExFile  = 0
+      CurEFiles         = ''
+      CurEFileTimes     = ''
+      CurExFileTime     = ''
       NewEFiles         = ''
       NewEFileTimes     = ''
       NewExFileTime     = ''
       NetlabsExFileTime = ''
       LastCheckTime     = ''
       KeyPath1 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\LastCheckTime'
-      KeyPath2 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\EFiles'     -- EFiles     = base.ext;...
-      KeyPath3 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\EFileTimes' -- EFileTimes = date time;...
+      KeyPath2 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\Time'
+      KeyPath3 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\EFiles'     -- EFiles     = base.ext;...
+      KeyPath4 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\EFileTimes' -- EFileTimes = date time;...
 
       if upcase( arg(1)) = 'RESET' then
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath1)
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath2)
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath3)
+         call NepmdDeleteConfigValue( nepmd_hini, KeyPath4)
          iterate
       endif
 
@@ -668,65 +683,74 @@ defc RecompileNew
 
       NetlabsExFile = NepmdRootDir'\netlabs\ex\'BaseName'.ex'
       -- Get full pathname
-      OldExFile = FindExFile( BaseName)
-      if OldExFile > '' then
+      CurExFile = FindExFile( BaseName)
+      if CurExFile > '' then
          -- Get time of ExFile
-         next = NepmdQueryPathInfo( OldExFile, 'MTIME')
+         next = NepmdQueryPathInfo( CurExFile, 'MTIME')
          parse value next with 'ERROR:'rc
          if rc = '' then
-            OldExFileTime = next
+            CurExFileTime = next
+            next = NepmdQueryConfigValue( nepmd_hini, KeyPath2)
+            if next <> CurExFileTime then
+               fCompExFile = 1
+            else
 
-            -- Compare (maybe myepm) ExFile with netlabs ExFile to delete it or to give a warning if older
-            NetlabsExFile = NepmdRootDir'\netlabs\ex\'BaseName'.ex'
-            next = NepmdQueryPathInfo( NetlabsExFile, 'MTIME')
-            parse value next with 'ERROR:'rc
-            if rc = '' then
-               NetlabsExFileTime = next
-               if upcase(OldExFile) <> upcase(NetlabsExFile) then  -- if different pathnames
-                  fCompOldExFile = 1
-               endif
-
-               if fCompOldExFile = 1 then
-                  if fFoundMd5 = '?' then
-                     -- Search for MD5.EXE only once to give an error message
-                     findfile next, 'md5.exe', 'PATH'
-                     if rc then
-                        findfile next, 'md5sum.exe', 'PATH'
-                     endif
-                     if rc then
-                        fFoundMd5 = 0
-                        WriteLog( LogFile, 'ERROR:   MD5.EXE or MD5SUM.EXE not found in PATH')
-                     else
-                        fFoundMd5 = 1
-                     endif
+               -- Compare (maybe myepm) ExFile with netlabs ExFile to delete it or to give a warning if older
+               NetlabsExFile = NepmdRootDir'\netlabs\ex\'BaseName'.ex'
+               next = NepmdQueryPathInfo( NetlabsExFile, 'MTIME')
+               parse value next with 'ERROR:'rc
+               if rc = '' then
+                  NetlabsExFileTime = next
+                  if upcase(CurExFile) <> upcase(NetlabsExFile) then  -- if different pathnames
+                     fCompCurExFile = 1
                   endif
-                  if fFoundMd5 = 1 then
-                     WriteLog( LogFile, '         'BaseName' - comparing old .EX file "'OldExFile'" with Netlabs .EX file')
-                     comprc = Md5Comp( OldExFile, NetlabsExFile)
-                     if comprc = 0 then
-                        WriteLog( LogFile, '         'BaseName' - old .EX file "'OldExFile'" equal to Netlabs .EX file')
-                        if not fCheckOnly then
-                           delrc = EraseTemp( OldExFile)
-                           if delrc then
-                              cWarning = cWarning + 1
-                              WriteLog( LogFile, 'WARNING: 'BaseName' - can''t delete old .EX file "'OldExFile'", rc = 'rc)
-                           else
-                              WriteLog( LogFile, '         'BaseName' - deleted old .EX file "'OldExFile'"')
-                              cDelete = cDelete + 1
+
+                  if fCompCurExFile = 1 then
+                     if fFoundMd5 = '?' then
+                        -- Search for MD5.EXE only once to give an error message
+                        findfile next, 'md5.exe', 'PATH'
+                        if rc then
+                           findfile next, 'md5sum.exe', 'PATH'
+                        endif
+                        if rc then
+                           fFoundMd5 = 0
+                           WriteLog( LogFile, 'ERROR:   MD5.EXE or MD5SUM.EXE not found in PATH')
+                        else
+                           fFoundMd5 = 1
+                        endif
+                     endif
+                     if fFoundMd5 = 1 then
+                        WriteLog( LogFile, '         'BaseName' - comparing current .EX file "'CurExFile'" with Netlabs .EX file')
+                        comprc = Md5Comp( CurExFile, NetlabsExFile)
+                        if comprc = 0 then
+                           WriteLog( LogFile, '         'BaseName' - current .EX file "'CurExFile'" equal to Netlabs .EX file')
+                           if not fCheckOnly then
+                              delrc = EraseTemp( CurExFile)
+                              if delrc then
+                                 cWarning = cWarning + 1
+                                 WriteLog( LogFile, 'WARNING: 'BaseName' - can''t delete current .EX file "'CurExFile'", rc = 'rc)
+                              else
+                                 WriteLog( LogFile, '         'BaseName' - deleted current .EX file "'CurExFile'"')
+                                 cDelete = cDelete + 1
+                              endif
                            endif
                         endif
-                     endif
-                     if comprc <> 0 | (comprc = 0 & delrc) then
-                        if LastCheckTime < max( OldExFileTime, NetlabsExFileTime) then
-                           WriteLog( LogFile, 'WARNING: 'BaseName' - old .EX file "'OldExFile'" older than Netlabs .EX file')
-                           cWarning = cWarning + 1
+                        if comprc <> 0 | (comprc = 0 & delrc) then
+                           if LastCheckTime < max( CurExFileTime, NetlabsExFileTime) then
+                              fCompExFile = 1
+                           endif
+                           if CurExFileTime < NetlabsExFileTime then
+                              WriteLog( LogFile, 'WARNING: 'BaseName' - current .EX file "'CurExFile'" older than Netlabs .EX file')
+                              cWarning = cWarning + 1
+                           endif
                         endif
-                     endif
-                  endif  -- fFoundMd5 = 1
-               endif  -- fCompOldExFile = 1
+                     endif  -- fFoundMd5 = 1
+                  endif  -- fCompCurExFile = 1
 
-            endif  -- rc = ''
-         endif  -- OldExFile > ''
+               endif  -- rc = ''
+
+            endif
+         endif  -- CurExFile > ''
 
       else
          fReplaceExFile = 1
@@ -736,20 +760,20 @@ defc RecompileNew
       if fReplaceExFile <> 1 then
 
          -- Get list of EFiles from NEPMD.INI
-         next = NepmdQueryConfigValue( nepmd_hini, KeyPath2)
-         parse value next with 'ERROR:'rc
-         if rc = '' & next > '' then
-            OldEFiles = next
-         else
-         endif
-         -- Get list of times for EFiles from NEPMD.INI
          next = NepmdQueryConfigValue( nepmd_hini, KeyPath3)
          parse value next with 'ERROR:'rc
          if rc = '' & next > '' then
-            OldEFileTimes = next
+            CurEFiles = next
+         else
+         endif
+         -- Get list of times for EFiles from NEPMD.INI
+         next = NepmdQueryConfigValue( nepmd_hini, KeyPath4)
+         parse value next with 'ERROR:'rc
+         if rc = '' & next > '' then
+            CurEFileTimes = next
          endif
 
-         if OldEFiles = '' then
+         if CurEFiles = '' then
             fCompExFile = 1
          else
 
@@ -757,46 +781,48 @@ defc RecompileNew
             orest = OptEFiles
             do while orest <> ''
                parse value orest with next';'orest
-               if pos( ';'upcase( next)';', ';'upcase( OldEFiles)) = 0 then
-                  OldEFiles = OldEFiles''next';'
+               if pos( ';'upcase( next)';', ';'upcase( CurEFiles)) = 0 then
+                  CurEFiles = CurEFiles''next';'
                endif
             enddo
             if upcase( BaseName) = 'EPM' then
                orest = OptEpmEFiles
                do while orest <> ''
                   parse value orest with next';'orest
-                  if pos( ';'upcase( next)';', ';'upcase( OldEFiles)) = 0 then
-                     OldEFiles = OldEFiles''next';'
+                  if pos( ';'upcase( next)';', ';'upcase( CurEFiles)) = 0 then
+                     CurEFiles = CurEFiles''next';'
                   endif
                enddo
             endif
 
-            erest = OldEFiles
-            trest = OldEFileTimes
+            erest = CurEFiles
+            trest = CurEFileTimes
             do while erest <> ''
                -- For every EFile...
                parse value erest with EFile';'erest
-               parse value trest with OldEFileTime';'trest
+               parse value trest with CurEFileTime';'trest
                EFileTime        = ''
                NetlabsEFileTime = ''
                -- Get full pathname (if not in current path)
-               findfile FullEFile, EFile, 'EPMMACROPATH'
+               findfile FullEFile, EFile, 'EPMMACROPATH'  --<------------------------ Todo: don't search in current dir
                -- Get time of EFile
                next = NepmdQueryPathInfo( FullEFile, 'MTIME')
                parse value next with 'ERROR:'rc
                if rc = '' then
                   EFileTime = next
-                  -- Compare time of EFile with LastCheckTime and OldExFileTime
-                  if EFileTime > max( LastCheckTime, OldExFileTime) then
-                     fCompExFile = 1
-                     WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" newer than last check')
-                     --leave  -- don't leave to enable further warnings
-                  elseif (OldEFileTime = '') & (pos( ';'upcase( EFile)';', ';'upcase( OptEFiles)) > 0) then
-                     --WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" is an optional file and probably not included')
-                  elseif EFileTime <> OldEFileTime then
-                     fCompExFile = 1
-                     WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" newer or older compared to last check of this .E file')
-                     --leave  -- don't leave to enable further warnings
+                  -- Compare time of EFile with LastCheckTime and CurExFileTime
+                  if not fCheckOnly then
+                     if EFileTime > max( LastCheckTime, CurExFileTime) then
+                        fCompExFile = 1
+                        WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" newer than last check')
+                        --leave  -- don't leave to enable further warnings
+                     elseif (CurEFileTime = '') & (pos( ';'upcase( EFile)';', ';'upcase( OptEFiles)) > 0) then
+                        --WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" is an optional file and probably not included')
+                     elseif EFileTime <> CurEFileTime then
+                        fCompExFile = 1
+                        WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" newer or older compared to last check of this .E file')
+                        --leave  -- don't leave to enable further warnings
+                     endif
                   endif
                   -- Compare time of (maybe myepm) EFile with netlabs EFile to give a warning if older
                   NetlabsEFile = NepmdRootDir'\netlabs\macros\'EFile
@@ -815,7 +841,7 @@ defc RecompileNew
          endif
       endif
 
-      if (fReplaceExFile = 1 | fCompExFile = 1) & not fCheckOnly then
+      if (fReplaceExFile = 1 | fCompExFile = 1) /*& not fCheckOnly*/ then
          -- Run Etpm
          ExFile      = ''  -- init for CallEtpm
          EtpmLogFile = ''  -- init for CallEtpm
@@ -837,9 +863,26 @@ defc RecompileNew
                   EFileTime = next
                endif
                NewEFileTimes = NewEFileTimes''EFileTime';'
+               -- Check E files here (after etpm) if not already done above
+               if CurEFiles = '' then
+                  -- Compare time of (maybe myepm) EFile with netlabs EFile to give a warning if older
+                  NetlabsEFile = NepmdRootDir'\netlabs\macros\'EFile
+                  if upcase( NetlabsEFile) <> upcase( EFile) then
+                     next = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
+                     parse value next with 'ERROR:'rc
+                     if rc = '' then
+                        NetlabsEFileTime = next
+                        if EFileTime < NetlabsEFileTime then
+                           WriteLog( LogFile, 'WARNING: 'BaseName' - .E file "'FullEFile'" older than Netlabs .E file')
+                           cWarning = cWarning + 1
+                        endif
+                     endif
+                  endif
+               endif
             enddo
          else
             rc = etpmrc
+            WriteLog( LogFile, 'ERROR:   'BaseName' - ETPM returned rc =' rc)
             return
          endif
          -- Get time of new ExFile
@@ -850,7 +893,7 @@ defc RecompileNew
          endif
       endif
 
-      if fCompExFile = 1 then
+      if fCompExFile = 1 /*& not fCheckOnly*/ then
          if fFoundMd5 = '?' then
             -- Search for MD5.EXE only once to give an error message
             findfile next, 'md5.exe', 'PATH'
@@ -865,20 +908,32 @@ defc RecompileNew
             endif
          endif
          if fFoundMd5 = 1 then
-            next = Md5Comp( ExFile, OldExFile)
+            next = Md5Comp( ExFile, CurExFile)
             if next = 1 then
                fReplaceExFile = 1
                next2 = Md5Comp( ExFile, NetlabsExFile)
                if next2 = 0 then
-                  if upcase( OldExFile) <> upcase( NetlabsExFile) then
-                     fDeleteExFile = 1
-                     WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to old but equal to Netlabs .EX file')
+                  if upcase( CurExFile) <> upcase( NetlabsExFile) then
+                     if not fCheckOnly then
+                        fDeleteExFile = 1
+                        WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to current but equal to Netlabs .EX file')
+                     else
+                        WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different to current but equal to Netlabs .EX file')
+                        cWarning = cWarning + 1
+                        fCheckOnlyNotCopied = 1
+                     endif
                   endif
                else
-                  WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to old and Netlabs .EX file')
+                  if not fCheckOnly then
+                     WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to current and Netlabs .EX file')
+                  else
+                     WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different to current and Netlabs .EX file')
+                     cWarning = cWarning + 1
+                     fCheckOnlyNotCopied = 1
+                  endif
                endif
             elseif next = 0 then
-               WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" equal to old .EX file')
+               WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" equal to current .EX file')
             else
                WriteLog( LogFile, 'ERROR:   'BaseName' - MD5Comp returned rc = 'next)
             endif
@@ -888,12 +943,12 @@ defc RecompileNew
       if fReplaceExFile = 1 & not fCheckOnly then
          DestDir = GetExFileDestDir( ExFile)
          if fDeleteExFile = 1 then
-            rc = EraseTemp( OldExFile)
+            rc = EraseTemp( CurExFile)
             if rc then
                cWarning = cWarning + 1
-               WriteLog( LogFile, 'WARNING: 'BaseName' - can''t delete .EX file "'OldExFile'", rc = 'rc)
+               WriteLog( LogFile, 'WARNING: 'BaseName' - can''t delete .EX file "'CurExFile'", rc = 'rc)
             else
-               WriteLog( LogFile, '         'BaseName' - deleted .EX file "'OldExFile'"')
+               WriteLog( LogFile, '         'BaseName' - deleted .EX file "'CurExFile'"')
             endif
             cDelete = cDelete + 1
          else
@@ -903,6 +958,7 @@ defc RecompileNew
                WriteLog( LogFile, 'WARNING: 'BaseName' - can''t copy .EX file to "'DestDir'", rc = 'rc)
             else
                WriteLog( LogFile, '         'BaseName' - copied .EX file to "'DestDir'"')
+               fCopiedExFile = 1
             endif
             quietshell 'copy' EtpmLogFile DestDir
             cRecompile = cRecompile + 1
@@ -928,28 +984,40 @@ defc RecompileNew
       if NewExFileTime > '' then
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath1)
          call NepmdWriteConfigValue( nepmd_hini, KeyPath1, NewExFileTime)
+         if fCopiedExFile = 1 then
+            call NepmdDeleteConfigValue( nepmd_hini, KeyPath2)
+            call NepmdWriteConfigValue( nepmd_hini, KeyPath2, NewExFileTime)
+         elseif fCompExFile = 1 then
+            call NepmdDeleteConfigValue( nepmd_hini, KeyPath2)
+            call NepmdWriteConfigValue( nepmd_hini, KeyPath2, CurExFileTime)
+         endif
       endif
       if NewEFiles > '' then
-         call NepmdDeleteConfigValue( nepmd_hini, KeyPath2)
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath3)
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath2, NewEFiles)
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath3, NewEFileTimes)
+         call NepmdDeleteConfigValue( nepmd_hini, KeyPath4)
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath3, NewEFiles)
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath4, NewEFileTimes)
       endif
 
    enddo
    if fCheckOnly then
-      Text = cWarning 'warnings, no file replaced. (Execute "RecompileNew" without args in order to replace old files.)'
+      if cWarning > 0 then
+         Text = cWarning 'warning(s), no file replaced. Correct that before the next EPM start!'
+      else
+         Text = 'No warnings, everything looks ok.'
+      endif
    else
       if fRestartEpm = 1 then
-         Text = cRecompile 'files recompiled and' cDelete 'files deleted,' cWarning 'warnings, restart'
+         Text = cRecompile 'file(s) recompiled and' cDelete 'file(s) deleted,' cWarning 'warning(s), restart'
       else
-         Text = cRecompile 'files recompiled and' cDelete 'files deleted, therefrom' cRelink' files relinked,' cWarning 'warnings'
+         Text = cRecompile 'file(s) recompiled and' cDelete 'file(s) deleted, therefrom' cRelink' file(s) relinked,' cWarning 'warning(s)'
       endif
    endif
    sayerror Text' - see "'LogFile'"'
    if fRestartEpm = 1 then
       WriteLog( LogFile, '         epm - restarted')
    endif
+   WriteLog( LogFile, '')
    WriteLog( LogFile, Text)
    if cWarning > 0 then
       -- Check if LogFile already loaded
@@ -966,12 +1034,27 @@ defc RecompileNew
       endif
       'postme e 'LogFile
    endif
+   if cWarning > 0 then
+      ret = 1
+   else
+      ret = 0
+   endif
+   quietshell 'del' CompileDir'\* /n & rmdir' CompileDir  -- must come before restart
    if not fCheckOnly then
-      quietshell 'del' CompileDir'\* /n & rmdir' CompileDir  -- must come before restart
       if fRestartEpm = 1 then
          'postme postme Restart'
       endif
    endif
+   rc = ret
+
+; ---------------------------------------------------------------------------
+; Check if Dir exists. If not, create it. Note: The parent dir must exist.
+defproc EnsureDirExists
+   Dir = arg(1)
+   if not NepmdDirExists( Dir) then
+      quietshell 'md' Dir
+   endif
+   return
 
 ; ---------------------------------------------------------------------------
 ; Returns rc of the ETPM.EXE call and sets ExFile, EtpmLogFile.
@@ -983,7 +1066,7 @@ defproc CallEtpm( MacroFile, CompileDir, var ExFile, var EtpmLogFile)
    etpmrc = -1
    CompileDir = NepmdRootDir'\myepm\ex\tmp'
    if not exist( CompileDir) then
-      quietshell 'md' CompileDir
+      call EnsureDirExists( CompileDir)
       if not exist( CompileDir) then
          sayerror 'CallEtpm: Can''t find or create CompileDir "'CompileDir'"'
          stop
@@ -1178,7 +1261,101 @@ defproc WriteLog( LogFile, Msg)
                        ltoa( offset( Msg)''selector( Msg), 10))
 
 ; ---------------------------------------------------------------------------
-; Compare loaded EPM.EX with Netlabs' EPM.EX. Give a Message, if Nelabs'
+; Compare .EX and .E macro files from MYEPM with those from the NETLABS tree.
+; EPM.EX is newer. Make that suppressable with an ini key, to reset by the
+; next NEPMD installation.
+; Optional args: enable | disable | force
+defc CheckEpmMacros
+   universal nepmd_hini
+
+   NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
+   call EnsureDirExists( NepmdRootDir'\myepm')
+   call EnsureDirExists( NepmdRootDir'\myepm\ex')
+   call EnsureDirExists( NepmdRootDir'\myepm\macros')
+   call EnsureDirExists( NepmdRootDir'\myepm\autolink')
+
+   App = 'RegDefaults'
+   Key = '\NEPMD\System\CheckEpmMacros'
+
+   if upcase( arg(1)) = 'ENABLE' then
+      call SetProfile( nepmd_hini, App, Key, 1)
+      -- If 'CheckEpmMacros enable' was specified as additional EPM cmd on
+      -- startup, the ini entry is written immediately, before 'CheckEpmMacros'
+      -- is processed by defmain. The following 'return' prevents doubled
+      -- execution in that case.
+      -- As a drawback, 'CheckEpmMacros enable' won't start RecompileNew itself.
+      -- Therefore EPM must be restarted (but maybe using /E<exfile> to use this
+      -- version of CheckEpmMacros/RecompileNew).
+      return
+   elseif upcase( arg(1)) = 'DISABLE' then
+      call SetProfile( nepmd_hini, App, Key, 0)
+      return
+   elseif upcase( arg(1)) = 'FORCE' then
+      -- bypass the query of the ini key
+   else
+      Enabled = QueryProfile( nepmd_hini, App, Key)
+      if Enabled = 0 then
+         return
+      endif
+   endif
+
+   'RecompileNew CheckOnly'
+   ret = rc
+   'postme postme postme CheckEpmMacrosMsgBox' ret
+
+defc CheckEpmMacrosMsgBox
+   ret = arg(1)
+   if ret = 1 then
+      Text = ''
+      Text = Text || 'Warning(s) occurred during comparism of MYEPM files'
+      Text = Text || ' with NETLABS files. See log file'
+      Text = Text || ' 'Get_Env('NEPMD_ROOTDIR')'\MYEPM\EX\RECOMPILENEW.LOG'\10\10
+      Text = Text || 'In order to use all the newly installed NETLABS files,'
+      Text = Text || ' delete or rename the listed MYEPM files, that produced'
+      Text = Text || ' a warning. A good idea would be to rename'
+      Text = Text || ' your NEPMD\MYEPM\MACROS and NEPMD\MYEPM\EX'
+      Text = Text || ' directories before the next EPM start.'\10\10
+      Text = Text || 'Only when you have added your own macros:'\10
+      Text = Text || 'After that, merge your own additions with the new'
+      Text = Text || ' versions of the macros in NEPMD\NETLABS\MACROS.'
+      Text = Text || ' (They can be left in your NEPMD\MYEPM\MACROS dir, if there''s'
+      Text = Text || ' no name clash.) Then Recompile your macros. This can be'
+      Text = Text || ' done easily with NEPMD''s RecompileNew command.'\10\10
+      Text = Text || 'Should this be checked on the next start again?'
+      Style = MB_YESNO+MB_WARNING+MB_DEFBUTTON1+MB_MOVEABLE
+   else
+      Text = ''
+      Text = Text || 'No warning(s) occurred during comparism of MYEPM files'
+      Text = Text || ' with NETLABS files.'\10\10
+      Text = Text || 'All newly installed macro files from NEPMD\NETLABS\MACROS'
+      Text = Text || ' and NEPMD\NETLABS\EX will be used correctly.'\10\10
+      Text = Text || 'Should this be checked on the next start again?'
+      Style = MB_YESNO+MB_INFORMATION+MB_DEFBUTTON1+MB_MOVEABLE
+   endif
+
+   Title = 'Checked .E and .EX files from MYEPM tree'
+   ret = winmessagebox( Title,
+                        Text,
+                        Style)
+   if ret = 6 then  -- Yes
+      -- Change (only here) the default setting to reset it
+      -- automatically by the next install.
+      'CheckEpmMacros ENABLE'
+   elseif ret = 7 then  -- No
+      -- Change (only here) the default setting to reset it
+      -- automatically by the next install.
+      'CheckEpmMacros DISABLE'
+   endif
+
+   --NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
+   --LogFile      = NepmdRootDir'\myepm\ex\recompilenew.log'
+   --'postme e' LogFile  -- This should ensure, that LogFile is on top.
+
+   return
+
+; ---------------------------------------------------------------------------
+;unused
+; Compare loaded EPM.EX with Netlabs' EPM.EX. Give a Message, if Netlabs'
 ; EPM.EX is newer. Make that suppressable with an ini key, to reset by the
 ; next NEPMD installation.
 defc CheckEpmExTimeStamp
@@ -1227,13 +1404,15 @@ defc CheckEpmExTimeStamp
                         'After that, merge your own additions with the new'       ||
                         ' versions of the macros in NEPMD\NETLABS\MACROS.'        ||
                         ' (They can be let in your MYEPM\MACROS dir, if there''s' ||
-                        ' no name clash.) Then Recompile your macros.'\10\10      ||
+                        ' no name clash.) Then recompile your macros.'\10\10      ||
                         'Should this be checked on the next start again?'\10,
                         Style)
    if ret = 6 then  -- Yes
-      -- nop
+      -- Change (only here) the default setting to reset it
+      -- automatically by the next install.
+      call SetProfile( nepmd_hini, App, Key, 1)
    elseif ret = 7 then  -- No
-      -- Change (this time only) the default setting to reset it
+      -- Change (only here) the default setting to reset it
       -- automatically by the next install.
       call SetProfile( nepmd_hini, App, Key, 0)
    endif
