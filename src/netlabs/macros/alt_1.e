@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.7 2004-07-12 19:54:08 aschn Exp $
+* $Id: alt_1.e,v 1.8 2005-06-30 22:01:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -102,13 +102,23 @@ Todo:
 -------------------------------------------------------------------------------
 
 const                             -- These are Alt-1.e -specific constants.
-  compile if not defined(AltOnePathVar)
+compile if not defined(AltOnePathVar)
    AltOnePathVar= 'ESEARCH'    -- the name of the environment variable
-  compile endif
-  compile if not defined(C_INCLUDE)
+compile endif
+compile if not defined(C_INCLUDE)
    C_INCLUDE    = 1            -- 1 means search <filename> along INCLUDE path
-  compile endif
+compile endif
 
+; consts for parsing dir listings
+compile if not defined(DIR_DATETIME_CHARS)
+   DIR_DATETIME_CHARS = '0123456789.-:'  -- better use '0123456789._-/:' ?
+compile endif
+compile if not defined(DIR_SIZE_CHARS)
+   DIR_SIZE_CHARS     = '0123456789.,'   -- 4os2 uses '.' as thousands separator
+compile endif
+compile if not defined(DIR_ATTRIB_CHARS)
+   DIR_ATTRIB_CHARS   = 'ashr-'
+compile endif
 ; Not used anymore
 ;define
 ;   QUOTED_DIR_STRING ='"'DIRECTORYOF_STRING'"'
@@ -124,188 +134,274 @@ compile endif
    orig_line = line
 
 ; ----------------------------------------------------------------------------- shell or .DOS DIR
-   IsShell = 0
-   IsDir   = 0
+   -- todo: enable saved .command_shells as well  <-- also for mode = SHELL, to re-use them
+   cmd = ''
    if leftstr( .filename, 15) = '.command_shell_' then
-      IsShell = 1
-   endif
-   if upcase( leftstr( .filename, 8)) = '.DOS DIR' then
-      IsDir = 1
-   endif
-
-   if IsShell | IsDir then
-/*
-      if substr(line, 13, 1) = ' ' then  -- old format DIR, or not a DIR line
-         flag = substr(line, 1, 1) <> ' ' &
-                (isnum(substr(line, 14, 8)) | substr(line, 14, 8)='<DIR>') &
-                length(line) < 40 &
-                isnum(substr(line, 24, 2) || substr(line, 27, 2) || substr(line, 30, 2)) &
-                substr(line, 26, 1) = substr(line, 29, 1) &
-                pos(substr(line, 26, 1), '/x.-')
-         filename=strip(substr(line,1,8))
-         word2=strip(substr(line,10,3))
-         if word2<>'' then filename=filename'.'word2; endif
-      else                               -- new format DIR, or not a DIR line
-         flag = substr(line, 41, 1) <> ' ' &
-                (isnum(substr(line, 18, 9)) | substr(line, 18, 9)='<DIR>') &
-                isnum(substr(line, 1, 2) || substr(line, 4, 2) || substr(line, 7, 2)) &
-                substr(line, 3, 1) = substr(line, 6, 1) &
-                pos(substr(line, 3, 1), '/x.-')
-         filename=substr(line,41)
-      endif
-*/
-      if substr(line, 13, 1) = ' ' then  -- old (i.e. FAT) format DIR, or not a DIR line
-         if substr(line, 27, 1) = ' ' then  -- /V in effect  -- fixed aschn
-            flag = substr(line, 1, 1) <> ' ' &
-               (isnum(translate(substr(line, 14, 13), '00', ',.')) | substr(line, 14, 13)='<DIR>') &
-               length(line) < 42 &
-               isnum(substr(line, 28, 2) || substr(line, 31, 2) || substr(line, 34, 2)) &
-               substr(line, 30, 1) = substr(line, 33, 1) &
-               pos(substr(line, 30, 1), '/x.-')
-         else
-            flag = substr(line, 1, 1) <> ' ' &
-               (isnum(substr(line, 14, 8)) | substr(line, 14, 8)='<DIR>') &
-               length(line) < 40 &
-               isnum(substr(line, 24, 2) || substr(line, 27, 2) || substr(line, 30, 2)) &
-               substr(line, 26, 1) = substr(line, 29, 1) &
-               pos(substr(line, 26, 1), '/x.-')
-         endif
-         filename=strip(substr(line,1,8))
-         word2=strip(substr(line,10,3))
-         if word2<>'' then filename=filename'.'word2; endif
-
-      else                                      -- new (i.e. HPFS or JFS) format DIR, or not a DIR line
-         if substr(line, 15, 1) = ' ' then      -- /V in effect  -- fixed aschn
-            flag = substr(line, 44, 1) <> ' ' &
-               (isnum(translate(substr(line, 17, 13), '0', ',')) | substr(line, 17, 13)='<DIR>') &
-               isnum(substr(line, 1, 2) || substr(line, 4, 2) || substr(line, 7, 2)) &
-               substr(line, 3, 1) = substr(line, 6, 1) &
-               pos(substr(line, 3, 1), '/x.-')
-            filename=substr(line,44)
-         else
-            flag = substr(line, 41, 1) <> ' ' &
-                (isnum(substr(line, 18, 9)) | substr(line, 18, 9)='<DIR>') &
-                isnum(substr(line, 1, 2) || substr(line, 4, 2) || substr(line, 7, 2)) &
-                substr(line, 3, 1) = substr(line, 6, 1) &
-                pos(substr(line, 3, 1), '/x.-')
-            filename=substr(line,41)
-         endif
-      endif
-
-;sayerror 'Flag = 'Flag', Filename = 'Filename
-      if flag then
-         call psave_pos(save_pos)
-         getsearch oldsearch
-         display -2
-/*
-         'xcom l /'DIRECTORYOF_STRING'/c-'
-         dir_rc = rc
-         if not rc then
-            getline word3
-            parse value word3 with $QUOTED_DIR_STRING word3 .
-;;          parse value word3 with . . word3 .
-            if verify(word3,'?*','M') then  -- If wildcards - must be 4OS2 or similar shell
-               word3 = strip(substr(word3, 1, lastpos(word3, '\')-1))
-            endif
-         endif
-*/
-         -- Better determine current dir language-independent:
-         FoundCurDir = 0
-         CheckNext   = 0
-         l = .line
-         do while FoundCurDir = 0
-            -- search upwards
-            l = l - 1
-            if l < 1 then
-               leave
-            endif
-            getline line, l
-            -- Find the next empty line
-            if line = '' then
-               CheckNext = 1  -- Next line contains the current dir
-            elseif CheckNext then
-               -- Todo: Parse also lines with ' Directory of 'dirname (dirname may be *) <----------------
-               p = lastpos( ':\', line)
-               if p > 0 & substr( line, 1, 1) = ' ' then  -- Dir line starts with a space
-                  Dir = strip( substr( line, p -1))
-                  DirBsl = strip( Dir, 'T', '\')'\'  -- Dir with backslash
-                  FoundCurDir = 1
-                  leave
-               else  -- Maybe user added an empty line to dir listing
-                  CheckNext = 0
-               endif
-            endif
-         enddo
-         display 2
-         setsearch oldsearch
-         call prestore_pos(save_pos)
-/*
-         if not dir_rc then
-            name=word3 ||                            -- Start with the path.
-                 leftstr('\',                        -- Append a '\', but only if path
-                         '\'<>rightstr(word3,1)) ||  -- doesn't end with one.
-                 filename                            -- Finally, the filename
-*/
-         if FoundCurDir then
-            name = DirBsl''filename
-;           if pos(' ',name) then  -- enquote
-            if verify(name, ' =', 'M') then  -- enquote
-               name = '"'name'"'
-            endif
-            if pos('<DIR>',line) then
-               'dir 'name
-            else
-               'e 'name
-            endif
-            return
-         endif
-      endif
-
-   endif  -- leftstr(.filename, 15) = ".command_shell_"
-
-/*
-; ----------------------------------------------------------------------------- .DOS DIR
-   -- jbl 2/14/89:  we now distribute a standard front end for the DIR
-   -- command, which redirects the output to a file named ".dos dir <dirname>".
-   -- lam 3/15/89:  added code to handle trailing blanks and wildcards.
-   -- Previously, after a 'DIR \path\*.E ', would do:  E \path\*.E \fname.ext
-   parse value .filename with word1 word2 word3 .
-   if upcase(word1 word2) = '.DOS DIR' then
+      -- search (reverse) in command shell window for the prompt and retrieve the current directory and
+      --    the cmd and its parameters
       call psave_pos(save_pos)
       getsearch oldsearch
-      'xcom l /'DIRECTORYOF_STRING'/c-'
-      if not rc then
-         getline word3
-         parse value word3 with . . word3 .
-         if verify(word3,'?*','M') then  -- If wildcards - must be 4OS2 or similar shell
-            word3 = strip(substr(word3, 1, lastpos(word3, '\')-1))
-         endif
-      endif
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
+      'xcom l /^epm\: .*>:o/-x'
+      parse value textline(.line) with 'epm: 'curdir' >'cmd Params
+compile else  -- else EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
+      'xcom l /^\[epm\: .*\]:o/-x'
+      parse value textline(.line) with '[epm: 'curdir' ]'cmd Params
+compile endif -- EPM_SHELL_PROMPT
       setsearch oldsearch
       call prestore_pos(save_pos)
-      filename=substr(line,41)                 -- Support HPFS.  FAT dir's end at 40
-      if filename='' then                      -- Must be FAT.
-         filename=strip(substr(line,1,8))
-         word2=strip(substr(line,10,3))
-         if word2<>'' then filename=filename'.'word2; endif
-      endif
-      name=word3 ||                            -- Start with the path.
-           leftstr('\',                        -- Append a '\', but only if path
-                   '\'<>rightstr(word3,1)) ||  -- doesn't end with one.
-           filename                            -- Finally, the filename
-;     if pos(' ',name) then  -- enquote
-      if verify(name, ' =', 'M') then  -- enquote
-         name = '"'name'"'
-      endif
-      if pos('<DIR>',line) then
-         'dir 'name
-      else
-;        call a1load(name,AltOnePathVar,0)
-         'e' name
-      endif
-      return
+   elseif upcase( leftstr( .filename, 8)) = '.DOS DIR' then
+      -- if a .DOS DIR window,
+      parse value upcase(.filename) with '.DOS DIR' Params  -- retrieve params from the title
+      cmd = 'DIR'
+      curdir = directory() -- set current directory
    endif
-*/
+
+   if upcase(cmd) = 'DIR' then  -- if "dir" executed as last cmd in .command_shell_ or if .DOS DIR
+      Flags    = ''
+      Mask     = ''
+      Dir      = ''
+      FullName = ''
+      call ParseDirParams( Params, Flags, Mask)  -- parse Params and DIRCMD env var, set Flags and Mask
+
+      if pos( 'B', Flags) then  -- if DIR /B, lines are filenames only and there is no "Directory of" line
+         Name = line
+         wildcardpos = verify( Mask, '*?', 'M')
+         if wildcardpos then                               -- if a wildcard is used
+            bslashpos = lastpos('\', mask, wildcardpos)    --   find the last '\' preceding the wildcard
+            if bslashpos then                              --   if found, set dir to mask up to but not
+               if pos( ':', Mask) = bslashpos - 1 then     --     if root dir
+                  dirname = leftstr( Mask, bslashpos)      --       including the found '\'
+               else                                        --     else
+                  dirname = leftstr( Mask, bslashpos - 1)  --       excluding the found '\'
+               endif
+            else
+               dirname = ''                                --   else there is no dir in the mask
+            endif
+         else
+            dirname = Mask                                 -- else (no wildcards) the mask is the dir
+         endif
+
+         -- Check if dirname is fully qualified
+         if substr( dirname, 1, 2) = '\\' then  -- UNC names must be fully qualified, because CD is not allowed
+            Dir = dirname
+
+         elseif substr( dirname, 2, 2) = ':\' then
+            Dir = dirname
+
+         elseif substr( dirname, 2, 1) = ':' then  -- drive with relative path
+            curdrive = upcase( substr( curdir, 1, 2))   -- drive of prompt dir
+            drive    = upcase( substr( dirname, 1, 2))  -- specified drive
+            if upcase( leftstr( .filename, 8)) = '.DOS DIR' then  -- .DOS DIR cannot change current dir so use it
+               Dir = dirname
+            elseif curdrive = drive then
+               Dir = strip( curdir, 'T', '\')'\'substr( dirname, 3)
+            else  -- if shell session, find current dir of specified drive in previous CD commands
+               prevdir  = ''
+               cddir    = ''
+               do while (prevdir = '')
+                  repeatfind  -- find the previous prompt
+                  if rc <> 0 then  -- if prompt not found
+                     leave
+                  endif
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
+                  parse value textline(.line) with 'epm: 'next' >'rest
+compile else
+                  parse value textline(.line) with '[epm: 'next' ]'rest
+compile endif -- EPM_SHELL_PROMPT
+                  parse value upcase( strip( rest)) with 'CD'cdparam
+                  if strip( cdparam) > '' then
+                     parse value strip( rest) with 3 cdparam  -- get case back
+                  endif
+                  cdparam = strip( cdparam)
+                  if upcase( leftstr( cdparam, 2)) = drive then
+                     if substr( cdparam, 3, 1) = '\' then  -- cd full_path found
+                        prevdir = cdparam
+                     else                                  -- cd relative_path found
+                        thiscddir = substr( cdparam, 3)
+                        if cddir = '' then
+                           cddir = thiscddir
+                        elseif thiscddir > '' then
+                           cddir = strip( thiscddir, 'T', '\')'\'cddir
+                        endif
+                        sayerror 'cddir = 'cddir
+                     endif
+                  elseif upcase( leftstr( next, 2)) = drive then  -- drive found in prompt
+                     prevdir = next
+                  endif
+               enddo
+               setsearch oldsearch
+               call prestore_pos(save_pos)
+
+               --sayerror 'drive = 'drive', prevdir = 'prevdir', cddir = 'cddir', dirname = 'dirname
+               if prevdir = '' then
+                  if cddir > '' then
+                     Dir = drive''strip( cddir, 'T', '\')'\'substr( dirname, 3)
+                  else
+                     Dir = dirname
+                  endif
+               else
+                  if cddir > '' then
+                     prevdir = strip( prevdir, 'T', '\')'\'cddir
+                  endif
+                  --sayerror 'prevdir = 'prevdir
+                  -- use found dir and append specified path without drive
+                  Dir = strip( prevdir, 'T', '\')'\'substr( dirname, 3)
+               endif
+            endif
+
+         else                                        -- relative path without drive
+            -- use curdir
+            if leftstr( dirname, 1) == '\' then          -- if path starts with '\'
+               Dir = leftstr( curdir, 2)''dirname        --   prepend the current drive
+            else
+               Dir = strip( curdir, 'T', '\')'\'dirname  -- else prepend entire current dir
+            endif
+
+         endif
+
+         -- Build FullName from Dir and Name
+         if rightstr( Dir, 1) = ':' then  -- if drive without a path
+            FullName = Dir''Name
+         else
+            FullName = strip( Dir, 'T', '\')'\'Name
+         endif
+         -- Resolve FullName according to OS/2 syntax, esp. '..' and '.'
+         -- Doesn't check if file or dir exists.
+         -- Note: DosQueryPathInfo can't handle trailing '\' if not a root dir.
+         next = NepmdQueryFullName( FullName)
+         parse value next with 'ERROR:'ret
+         if ret = '' then
+            FullName = next
+         else
+            sayerror 'defc a_1: QueryFullName: rc = 'ret
+         endif
+
+      elseif pos( 'F', flags) then  -- if DIR /F, then the line is the fully-qualified filename
+                                    -- Note: DIR /F /B is resolved to DIR /B.
+         FullName = line
+
+      else  -- if not DIR /F or DIR /B, then parse the dir listing
+         Name = ''
+
+         -- Check if word under cursor is fully qualified
+         p1 = pos( ':\', line)
+         p2 = pos( '\\', line)
+         if p1 > 0 then
+            FullName = strip( substr( line, p1 - 1))
+         elseif p2 > 0 then
+            FullName = strip( substr( line, p2))
+         endif
+
+         if FullName = '' then
+            if verify( word( line, 1), DIR_DATETIME_CHARS) = 0 &            -- date
+               VerifyTime( word( line, 2), DIR_DATETIME_CHARS) then         -- time
+               -- probably a dir listing, not FAT
+               NameIsDir = (word( line, 3) = '<DIR>')
+               if verify( word( line, 3), DIR_SIZE_CHARS) = 0 |             -- size
+                  NameIsDir then
+                  if verify( word( line, 4), DIR_SIZE_CHARS) = 0 then       -- EAsize
+                     if verify( word( line, 5), DIR_ATTRIB_CHARS) = 0 &     -- attribs if /v specified
+                        length( word( line, 5)) = 4 &
+                        word( line, 6) <> '' then
+                        Name = subword( line, 6)
+                     else
+                        Name = subword( line, 5)
+                     endif
+                  else
+                     --sayerror 'non-FAT EA size is invalid'
+                  endif
+               else
+                  --sayerror 'non-FAT size is invalid'
+               endif
+            elseif verify( word( line, words(line) - 1), DIR_DATETIME_CHARS) = 0 &  -- date
+               VerifyTime( word( line, words(line)), DIR_DATETIME_CHARS) then       -- time
+               -- probably a dir listing, FAT
+               --sayerror 'passed FAT code date/time verify'
+               NameIsDir = (word( line, words(line) - 2) = '<DIR>')
+               if verify( word( line, words(line) - 2), DIR_SIZE_CHARS) = 0 |       -- size
+                  NameIsDir then
+                  p = wordindex( line, words(line) - 2)  -- col of 3rdlast word
+                  Name = strip( substr( line, 1, p - 1))
+                  HasExtCol = ((substr( Name, 9, 1) = ' ') & (pos( Name, '.') = 0))  -- listing with separated extension column
+                  if HasExtCol then
+                     Name = strip( substr( Name, 1, 9 - 1))'.'substr( Name, 9 + 1)
+                  endif
+               endif
+            else -- both FAT and non-FAT date/time edits failed
+               --sayerror 'Unable to identify format (FAT/non-FAT)'
+            endif
+            --sayerror 'Name = 'Name', NameIsDir = 'NameIsDir
+            if Name > '' then
+               -- Determine listed dir language-independently
+               fFoundDir  = 0
+               fCheckNext = 0
+               l = .line
+               do while fFoundDir = 0
+               -- search upwards
+                  l = l - 1
+                  if l < 1 then
+                     leave
+                  endif
+                  getline curdirline, l
+                  -- Find the next empty line
+                  if curdirline = '' then
+                     fCheckNext = 1  -- Next line contains the current dir (Directory of ...)
+                  elseif fCheckNext then
+                     p1 = lastpos( ':\', curdirline)
+                     p2 = lastpos( '\\', curdirline)
+                     if p1 > 0 then
+                        Dir = strip( substr( curdirline, p1 - 1))
+                        fFoundDir = 1
+                        leave
+                     elseif p2 > 0 then
+                        Dir = strip( substr( curdirline, p2))
+                        fFoundDir = 1
+                        leave
+                     else  -- Maybe user added an empty line to dir listing
+                        fCheckNext = 0
+                     endif
+                  endif
+               enddo
+               if fFoundDir then
+                  -- Handle 4os2 output, that lists not only the name of the dir, but
+                  -- appends the wildcard segment, if specified:
+                  lp = lastpos( '\', Dir)
+                  lastseg = substr( Dir, lp)
+                  if verify( lastseg, '*?', 'M') then
+                     -- Strip last segment
+                     Dir = substr( Dir, 1, lp - 1)
+                  endif
+                  -- Build FullName
+                  FullName = strip( Dir, 'T', '\')'\'Name
+               endif
+            else
+               sayerror 'Unable to parse file name from directory listing'
+            endif
+         endif -- if FullName = ''
+
+      endif -- if DIR /B
+
+      if FullName = '' then
+         FullName = Name
+      endif
+      attrib = ''
+      -- qfilemode: Check if file or dir exists and query attribs
+      if (qfilemode(FullName, attrib) = 0) & (FullName > '') then
+         if verify( FullName, ' =', 'M') then  -- enquote
+            FullName = '"'FullName'"'
+         endif
+         if (attrib bitand 16) <> 0 then    -- if directory bit is set
+            'dir 'FullName
+         else                               -- if NOT a directory
+            'e 'FullName
+         endif
+         return
+      else
+         sayerror 'No such file/dir: 'FullName
+      endif
+
+   endif -- if DIR command
 
 ; ----------------------------------------------------------------------------- .tree
    if .filename = '.tree' then
@@ -642,7 +738,7 @@ compile endif
       endif
    endif
 
-
+; ---------------------------------------------------------------------------
 defproc a1load( filename, PathVar, TryCurFirst)
    if pos( '*', filename) then
       if YES_CHAR <> askyesno( WILDCARD_WARNING__MSG, '', filename) then
@@ -656,4 +752,62 @@ defproc a1load( filename, PathVar, TryCurFirst)
       endif
    endif
    'e' search_path( Get_Env(PathVar), filename)filename
+
+; ---------------------------------------------------------------------------
+defproc ParseDirParams( Params, var Flags, var Mask)
+   -- parse DIRCMD into Flags
+   DirCmd = Get_Env( 'DIRCMD')
+   temp = DirCmd
+   do while temp <> ''
+      parse value temp with arg1 temp
+      if leftstr( arg1, 1) = '/' then
+         ch = substr( arg1, 2, 1)
+         if ch = '-' then
+            flagpos = pos( substr( arg1, 3, 1), Flags)
+            if flagpos then
+               Flags = delstr( Flags, flagpos, 1)
+            endif
+         else
+            if pos( ch, flags) = 0 then
+               Flags = Flags''ch
+            endif
+         endif
+      endif
+   enddo
+   -- parse Params into Mask and Flags
+   temp = Params
+   do while temp <> ''
+      -- parse leading options
+      parse value temp with arg1 temp
+      if leftstr( arg1, 1) = '/' then
+         ch = upcase( substr( arg1, 2, 1))
+         if ch = '-' then
+            flagpos = pos( substr( arg1, 3, 1), Flags)
+            if flagpos then
+               Flags = delstr( Flags, flagpos, 1)
+            endif
+         else
+            if pos( ch, Flags) = 0 then
+               Flags = Flags''ch
+            endif
+         endif
+      else
+         temp = arg1 temp
+         -- parse trailing options
+         parse value temp with Mask '/'temp
+         Mask = strip( Mask)
+         if temp <> '' then
+            temp = '/'temp
+         endif
+      endif
+   enddo
+   return
+
+; ---------------------------------------------------------------------------
+defproc VerifyTime
+   TimeWord = arg(1)
+   DateTimeChars = arg(2)
+   BadTimeCharPos = verify( TimeWord, DateTimeChars)
+   return (BadTimeCharPos = 0) | (BadTimeCharPos = length( TimeWord) &
+                                  (verify( rightstr( TimeWord, 1), 'ap')) = 0)
 
