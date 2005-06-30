@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.11 2005-05-16 22:15:00 aschn Exp $
+* $Id: newmenu.e,v 1.12 2005-06-30 22:50:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2150,7 +2150,7 @@ defproc add_run_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~OS/2 window',                                                 -- OS/2 window
-                                   'start /f cmd /k' ||
+                                   'start /f /k' ||
                                    \1'Open an OS/2 window with NEPMD''s environment',
                                    MIS_TEXT, 0
    i = i + 1;
