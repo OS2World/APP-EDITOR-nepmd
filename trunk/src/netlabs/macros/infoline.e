@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.5 2004-07-01 11:39:04 aschn Exp $
+* $Id: infoline.e,v 1.6 2005-07-13 17:16:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -584,6 +584,7 @@ defproc GetDateTimeModified
             elseif rc = 2   then msg = 'File not found'
             elseif rc = 3   then msg = 'Path not found'
             elseif rc = 6   then msg = 'Invalid handle'
+            elseif rc = 15  then msg = 'Drive not valid'
             elseif rc = 18  then msg = 'No more files'
             elseif rc = 26  then msg = 'Unknown media type'
             elseif rc = 87  then msg = 'Invalid parameter'
