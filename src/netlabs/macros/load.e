@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.20 2004-09-12 15:10:25 aschn Exp $
+* $Id: load.e,v 1.21 2005-07-17 15:52:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,10 +18,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-/*
-Todo:
--  Replace NEPMD_USE_DIRECTORY_OF_CURRENT_FILE with an ini key
-*/
 ;  LOAD.E                                                Bryan Lewis 1/2/89
 ;
 ;  This event is triggered immediately after a file is loaded.  It will be
@@ -71,12 +67,6 @@ Todo:
 ;  the ModeExecute command provides a useful interface.
 ;
 ;  Many other hooks exist, e.g. for adding a submenu beside the helpmenu.
-
-const
-compile if not defined(NEPMD_USE_DIRECTORY_OF_CURRENT_FILE)  --<----------------------- Todo
-   NEPMD_USE_DIRECTORY_OF_CURRENT_FILE = 0
-compile endif
-
 
 defload
    universal load_ext
@@ -143,14 +133,6 @@ compile endif  -- WANT_EBOOKIE
 ;  Restore cursor position from EPM.POS -------------------------------------
    'RestorePosFromEa'
 
-;  Change to dir of current file --------------------------------------------
-compile if NEPMD_USE_DIRECTORY_OF_CURRENT_FILE
-   if pos( ':\', Filename) then
-      call directory('\')
-      call directory(Filename'\..')
-   endif
-compile endif
-
 ;  Set mode -----------------------------------------------------------------
    Mode = NepmdGetMode(Filename)
 
@@ -195,5 +177,4 @@ compile endif
 
 ;  Refresh InfoLines --------------------------------------------------------
    'refreshinfoline FILE'
-
 
