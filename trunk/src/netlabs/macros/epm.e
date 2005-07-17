@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.31 2004-11-30 21:34:05 aschn Exp $
+* $Id: epm.e,v 1.32 2005-07-17 15:41:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -180,7 +180,7 @@ compile if WANT_TREE = 1
 compile endif
 
 include        'linkcmds.e'    -- Useful new commands for the linking version.
-include        'autolink.e'    -- Link all .ex files found in myepm\autolink
+include        'autolink.e'    -- Link all .ex files found in <UserDir>\autolink
 
 include        'stdctrl.e'     -- PM controls for EPM.
 

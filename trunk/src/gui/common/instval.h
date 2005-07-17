@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.h,v 1.8 2002-10-31 14:40:35 cla Exp $
+* $Id: instval.h,v 1.9 2005-07-17 15:41:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,8 +24,9 @@
 #ifndef INSTVAL_H
 #define INSTVAL_H
 
-// tag definitions for GetInstValue
+// tag definitions for QueryInstValue
 #define NEPMD_INSTVALUE_ROOTDIR         "ROOTDIR"
+#define NEPMD_INSTVALUE_USERDIR         "USERDIR"
 #define NEPMD_INSTVALUE_LANGUAGE        "LANGUAGE"
 #define NEPMD_INSTVALUE_INIT            "INIT"
 #define NEPMD_INSTVALUE_MESSAGE         "MESSAGE"
@@ -39,7 +40,7 @@
 
 // prototypes
 APIRET QueryInstValue( PSZ pszValueTagTag, PSZ pszBuffer, ULONG ulBuflen);
-APIRET GetMessage( PCHAR *pTable, ULONG cTable, PBYTE pbBuffer, ULONG cbBuffer, 
+APIRET GetMessage( PCHAR *pTable, ULONG cTable, PBYTE pbBuffer, ULONG cbBuffer,
                    PSZ pszMessageName, PULONG pcbMsg);
 
 #endif // INSTVAL_H

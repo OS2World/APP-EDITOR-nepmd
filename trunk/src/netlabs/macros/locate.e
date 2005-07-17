@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.16 2005-05-16 20:58:05 aschn Exp $
+* $Id: locate.e,v 1.17 2005-07-17 15:42:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1035,34 +1035,52 @@ defc findmark
 ; ---------------------------------------------------------------------------
 ; Support for Graphical File Comparison
 ; Compares current file with another. File open box of GFC will open.
-; If current file is located in any tree of %NEPMD_ROOTDIR%\netlabs
-; or %NEPMD_ROOTDIR%\myepm, then the current file is compared with
-; the corresponding file of the other tree.
+; If current file is located in any tree of %NEPMD_ROOTDIR%\netlabs or
+; %NEPMD_USERDIR%, then the current file is compared with the
+; corresponding file of the other tree.
 defc GfcCurrentFile
    fn = .filename
    GfcParams = '"'fn'"'
-   NepmdRootDir = NepmdScanEnv('NEPMD_ROOTDIR')
-   parse value NepmdRootDir with 'ERROR:'rc
-   if rc = '' then
-      if abbrev( upcase(fn), upcase(NepmdRootDir)) then
-         p1 = length(NepmdRootDir)
+
+   RootDir = NepmdScanEnv('NEPMD_ROOTDIR')
+   parse value RootDir with 'ERROR:'rc1
+   if rc1 > '' then
+      sayerror 'Environment var NEPMD_ROOTDIR not set'
+   endif
+   NetlabsDir = RootDir'\netlabs'
+
+   UserDir = NepmdScanEnv('NEPMD_USERDIR')
+   parse value UserDir with 'ERROR:'rc2
+   if rc2 > '' then
+      sayerror 'Environment var NEPMD_USERPATH not set'
+   endif
+
+   if rc1 = '' & rc2 = '' then
+      if abbrev( upcase(fn), upcase(NetlabsDir)) then
+         p1 = length(NetlabsDir)
          p2 = pos( '\', fn, p1 + 2)
-         next = substr( fn, p1 + 2, max( p2 - p1 - 2, 0))
-         if upcase(next) = 'MYEPM' then
-            fn2 = substr( fn, 1, p1)'\netlabs'substr( fn, p2)
+         if p2 > 0 then
+            rest = substr( fn, p2)
+            Sub = substr( fn, p1 + 2, p2 - p1 - 2)
+            fn2 = UserDir'\'Sub'\'rest
             if NepmdFileExists(fn2) then
                GfcParams = GfcParams' "'fn2'"'
             endif
-         elseif upcase(next) = 'NETLABS' then
-            fn2 = substr( fn, 1, p1)'\myepm'substr( fn, p2)
+         endif
+      elseif abbrev( upcase(fn), upcase(UserDir)) then
+         p1 = length(UserDir)
+         p2 = pos( '\', fn, p1 + 2)
+         if p2 > 0 then
+            rest = substr( fn, p2)
+            Sub = substr( fn, p1 + 2, p2 - p1 - 2)
+            fn2 = RootDir'\'Sub'\'rest
             if NepmdFileExists(fn2) then
                GfcParams = GfcParams' "'fn2'"'
             endif
          endif
       endif
-   else
-      sayerror 'Environment var NEPMD_ROOTDIR not set'
    endif
+
    'start /f gfc 'GfcParams
    return
 

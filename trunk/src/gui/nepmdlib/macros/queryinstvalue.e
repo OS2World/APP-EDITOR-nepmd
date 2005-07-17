@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryinstvalue.e,v 1.8 2002-10-31 14:40:35 cla Exp $
+* $Id: queryinstvalue.e,v 1.9 2005-07-17 15:41:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -40,6 +40,11 @@ The following keywords are supported:
 - ROOTDIR
 = returns the installation directory of the [=TITLE]. If the
   installation directory cannot be determined, an error is returned.
+- USERDIR
+= returns the user's directory of the [=TITLE]. Normally this is
+  ROOTDIR"\myepm", but this can be changed with the ini entry
+  NEPMD -> UserDir. If the user's directory cannot be determined,
+  an error is returned.
 - LANGUAGE
 = returns the language selected by the installation of the [=TITLE].
 .
@@ -98,6 +103,7 @@ defc NepmdQueryInstValue, QueryInstValue
 
  helperNepmdCreateDumpfile( 'NepmdQueryInstValue', '');
  insertline helperNepmdQueryInstValue( 'ROOTDIR');
+ insertline helperNepmdQueryInstValue( 'USERDIR');
  insertline helperNepmdQueryInstValue( 'LANGUAGE');
  insertline helperNepmdQueryInstValue( 'INIT');
  insertline helperNepmdQueryInstValue( 'MESSAGE');

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: info.e,v 1.15 2004-07-04 21:45:10 aschn Exp $
+* $Id: info.e,v 1.16 2005-07-17 15:41:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -179,7 +179,7 @@ defc InsertExVersions
    n = 1
    insertline NepmdGetTextMessage( '', MsgName, Name, TStamp, Path), .line + n
    -- find more linked .ex files
-   AutolinkDir = get_env('NEPMD_ROOTDIR')'\myepm\autolink'
+   AutolinkDir = get_env('NEPMD_USERDIR')'\autolink'
    EpmPath = get_env('EPMPATH')';'
    rest = AutoLinkDir';'EpmPath
    ExFileList = ''

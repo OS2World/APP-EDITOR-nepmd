@@ -1,3 +1,6 @@
+/*
+- Cosmetic changes.
+*/
 /****************************** Module Header *******************************
 *
 * Module Name: nepmdlib.e
@@ -7,7 +10,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.39 2003-08-30 15:54:35 aschn Exp $
+* $Id: nepmdlib.e,v 1.40 2005-07-17 15:41:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -60,7 +63,7 @@ compile endif
    NEPMD_SUBPATH_BINDLLDIR = 'netlabs\dll';
 
    ERRMSG_ERROR_TITLE      = 'Netlabs EPM Distribution';
-   ERRMSG_CANNOT_LOAD      = 'error: cannot load NEPMD library file NEPMDLIB.DLL !';
+   ERRMSG_CANNOT_LOAD      = 'Error: cannot load NEPMD library file NEPMDLIB.DLL!';
    ERRMSG_BOXSTYLE         = 16454; -- CANCEL + ICONHAND + MOVEABLE
 
 compile if not defined(EPMINFO_EDITCLIENT)
@@ -72,10 +75,10 @@ compile endif
 
 compile if NEPMD_LIB_TEST
    NEPMD_TEST_EANAME       = 'NEPMD._TestStringEa';
-   NEPMD_TEST_EAVALUE      = 'This is a test value for the NepmdWriteStringEa API !';
+   NEPMD_TEST_EAVALUE      = 'This is a test value for the NepmdWriteStringEa API!';
 
    NEPMD_TEST_CONFIGPATH   = '\NEPMD\Test\Nepmdlib\TestKey';
-   NEPMD_TEST_CONFIGVALUE  = 'This is a test value for the Nepmd*Config* APIs !';
+   NEPMD_TEST_CONFIGVALUE  = 'This is a test value for the Nepmd*Config* APIs!';
 compile endif
 
 /* ------------------------------------------------------------- */
@@ -84,63 +87,61 @@ compile endif
 
 defproc helperNepmdGetlibfile =
 
-;universal app_hini;
+   /* use default */
+   LibFile =  NEPMD_LIBRARY_BASENAME;
 
- /* use default */
- LibFile =  NEPMD_LIBRARY_BASENAME;
+   /* check if DLL is available in NEPMD subdirectory */
+   InstallPath = queryprofile( , NEPMD_INI_APPNAME, NEPMD_INI_KEY_PATH);
+   if (InstallPath <> '') then
+      CheckFile = InstallPath'\'NEPMD_SUBPATH_BINDLLDIR'\'NEPMD_LIBRARY_BASENAME'.dll';
+      if exist( CheckFile) then
+         LibFile = CheckFile;
+      endif
+   endif
 
- /* check if DLL is available in NEPMD subdirectory */
- InstallPath = queryprofile( , NEPMD_INI_APPNAME, NEPMD_INI_KEY_PATH);
- if (InstallPath <> '') then
-    CheckFile = InstallPath'\'NEPMD_SUBPATH_BINDLLDIR'\'NEPMD_LIBRARY_BASENAME'.dll';
-    if exist( CheckFile) then
-       LibFile = CheckFile;
-    endif
- endif
-
- return LibFile;
+   return LibFile;
 
 /* --------------------------------- */
 
 defproc helperNepmdCheckliberror (LibFile, rc) =
 
- /* complain if library not available */
- if (rc > 2147483647) then
-    /* call  winmessagebox( ERRMSG_ERROR_TITLE, ERRMSG_CANNOT_LOAD, ERRMSG_BOXSTYLE); */
-    sayerror ERRMSG_CANNOT_LOAD;
-    stop;
- endif
+   /* complain if library not available */
+   if (rc > 2147483647) then
+      /* call  winmessagebox( ERRMSG_ERROR_TITLE, ERRMSG_CANNOT_LOAD, ERRMSG_BOXSTYLE); */
+      sayerror ERRMSG_CANNOT_LOAD;
+      stop;
+   endif
 
- /* allow easy debugging - release DLL instantly */
- if (NEPMD_LIB_DEBUG) then
-    /* use different rc  - don't overwrite rc from dynalink32 call */
-    rcx = dynafree( LibFile);
- endif
+   /* allow easy debugging - release DLL instantly */
+   if (NEPMD_LIB_DEBUG) then
+      /* use different rc  - don't overwrite rc from dynalink32 call */
+      rcx = dynafree( LibFile);
+   endif
 
- return;
+   return;
 
 /* --------------------------------- */
 compile if NEPMD_LIB_TEST
 
 defproc helperNepmdCreateDumpfile (FunctionName, Parms) =
 
- TestcaseTitle = FunctionName':' Parms;
- Separator     = copies( '-', length( TestcaseTitle));
+   TestcaseTitle = strip( FunctionName Parms);
+   Separator     = copies( '-', length(TestcaseTitle));
 
- 'xcom e /c .TEST_'translate( FunctionName);
- .autosave = 0;
- insertline '';
- insertline TestcaseTitle;
- insertline Separator;
- insertline '';
+   'xcom e /c .TEST_'translate( FunctionName);
+   .autosave = 0;
+   insertline '';
+   insertline TestcaseTitle;
+   insertline Separator;
+   insertline '';
 
- return;
+   return;
 
 compile endif
 /* --------------------------------- */
 
 defproc makerexxstring( asciizstring)
-  return substr( asciizstring, 1, pos( atoi(0), asciizstring) - 1);
+   return substr( asciizstring, 1, pos( atoi(0), asciizstring) - 1);
 
 /* ------------------------------------------------------------- */
 /*   include functions                                           */

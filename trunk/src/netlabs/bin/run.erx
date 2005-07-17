@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: run.erx,v 1.2 2005-05-16 20:48:05 aschn Exp $
+* $Id: run.erx,v 1.3 2005-07-17 15:41:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -27,7 +27,7 @@
 /*                                                                         */
 /* This is coded in REXX to let users adjust it to their needs easily:     */
 /*                                                                         */
-/*    o  Copy this file to your NEPMD\myepm\bin directory.                 */
+/*    o  Copy this file to your %NEPMD_USERDIR%\bin directory.             */
 /*                                                                         */
 /*    o  Change or extend the select expression below.                     */
 

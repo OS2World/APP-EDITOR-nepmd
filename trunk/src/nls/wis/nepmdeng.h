@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdeng.h,v 1.6 2005-06-30 22:22:37 aschn Exp $
+* $Id: nepmdeng.h,v 1.7 2005-07-17 15:42:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -27,15 +27,15 @@
 #define PCK_2_TITLE "Recompilation package"
 #define PCK_3_TITLE "Programming samples"
 #define PCK_4_TITLE "Speech Support"
-#define PCK_99_TITLE "EPMBBS Base Application (use with OS/2 Warp 3 only !!!)"
+#define PCK_99_TITLE "EPMBBS Base Application (use with OS/2 Warp 3 only!)"
 
 
 #define TITLE_NEPMD_FOLDER                       "Netlabs^EPM Distribution"
 #define TITLE_NEPMD_EXECUTE                      "EPM v6.03b"
-#define TITLE_NEPMD_CHECK_MYEPM_MACROS           "EPM - Check myepm macros"
+#define TITLE_NEPMD_CHECK_USER_MACROS            "EPM - Check user macros"
 #define TITLE_NEPMD_VIEW_EPMTECH                 "EPM Technical Reference"
-#define TITLE_NEPMD_VIEW_EPMUSERS                "EPM Users Guide"
-#define TITLE_NEPMD_VIEW_NEUSR                   "Netlabs^EPM Distribution^User Guide"
+#define TITLE_NEPMD_VIEW_EPMUSERS                "EPM User's Guide"
+#define TITLE_NEPMD_VIEW_NEUSR                   "Netlabs^EPM Distribution^User's Guide"
 #define TITLE_NEPMD_VIEW_NEPRG                   "Netlabs^EPM Distribution^Programming Guide"
 #define TITLE_NEPMD_RECOMP                       "Recompile EPM"
 #define TITLE_NEPMD_NEPMD_SAMPLES_FOLDER         "EPM Programming Samples"

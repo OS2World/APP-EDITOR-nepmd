@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.19 2005-06-30 22:17:30 aschn Exp $
+* $Id: linkcmds.e,v 1.20 2005-07-17 15:41:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -200,10 +200,10 @@ defc relink
 ; ---------------------------------------------------------------------------
 ; Syntax: etpm [[<path>]<e_file> [[<path>]<ex_file>]
 ;
-; etpm         compiles EPM.E to EPM.EX in myepm\ex
-; etpm tree.e  compiles TREE.E to TREE.EX in myepm\ex
-; etpm tree    compiles TREE.E to TREE.EX in myepm\ex
-; etpm =       compiles current file to an .ex file in myepm\ex
+; etpm         compiles EPM.E to EPM.EX in <UserDir>\ex
+; etpm tree.e  compiles TREE.E to TREE.EX in <UserDir>\ex
+; etpm tree    compiles TREE.E to TREE.EX in <UserDir>\ex
+; etpm =       compiles current file to an .ex file in <UserDir>\ex
 ; etpm = =     compiles current file to an .ex file in the same dir
 ;
 ; Does use the /v option now.
@@ -248,15 +248,15 @@ defc et,etpm=
    else
       BaseName = Name
    endif
-   NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
-   AutolinkDir  = NepmdRootDir'\myepm\autolink'  -- search in myepm\autolink first
-   ProjectDir   = NepmdRootDir'\myepm\project'   -- search in myepm\project second
+   NepmdUserDir = Get_Env('NEPMD_USERDIR')
+   AutolinkDir  = NepmdUserDir'\autolink'  -- search in <UserDir>\autolink first
+   ProjectDir   = NepmdUserDir'\project'   -- search in <UserDir>\project second
    if exist( AutolinkDir'\'BaseName'.ex') then
       DestDir = AutolinkDir
    elseif exist( ProjectDir'\'BaseName'.ex') then
       DestDir = ProjectDir
    else
-      DestDir = NepmdRootDir'\myepm\ex'     -- myepm\ex
+      DestDir = NepmdUserDir'\ex'
    endif
    If ExFile = '' then
       ExFile = DestDir'\'BaseName'.ex'
@@ -344,7 +344,7 @@ defproc ec_position_on_error(tempfile)
 ; Check for a modified file in ring. If not, compile EPM.E, position cursor
 ; on errorline or restart on success. Quite fast!
 ; Will only restart topmost EPM window.
-; Because of defc Etpm is used, EPM.EX is created in myepm\ex.
+; Because of defc Etpm is used, EPM.EX is created in <UserDir>\ex.
 ; Because of defc Restart is used, current directory will be kept.
 defc RecompileEpm
    'RingCheckModify'
@@ -400,7 +400,7 @@ defc RingCheckModify
 ; Recompile all files, whose names found in .lst files in EPMEXPATH.
 ;
 ; Maybe to be changed: compile only those files, whose (.EX files exist) names
-; are listed in ex\*.lst and whose E files found in myepm\macros.
+; are listed in ex\*.lst and whose E files found in <UserDir>\macros.
 ; Define a new command RecompileReallyAll to replace the current RecompileAll.
 ;
 ; Maybe another command: RecompileNew, checks filestamps and compiles
@@ -600,10 +600,12 @@ defc RecompileNew
       BaseNames = 'epm;'BaseNames  -- ';'-separated list with basenames
    endif
    NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
-   call EnsureDirExists( NepmdRootDir'\myepm')
-   call EnsureDirExists( NepmdRootDir'\myepm\ex')
-   CompileDir   = NepmdRootDir'\myepm\ex\tmp'
-   LogFile      = NepmdRootDir'\myepm\ex\recompilenew.log'
+   NepmdUserDir = Get_Env('NEPMD_USERDIR')
+   UserDirName = substr( NepmdUserDir, lastpos( '\', NepmdUserDir) + 1)
+   call EnsureDirExists( NepmdUserDir)
+   call EnsureDirExists( NepmdUserDir'\ex')
+   CompileDir   = NepmdUserDir'\ex\tmp'
+   LogFile      = NepmdUserDir'\ex\recompilenew.log'
    if Exist( LogFile) then
       call EraseTemp( LogFile)
    endif
@@ -612,10 +614,10 @@ defc RecompileNew
       WriteLog( LogFile, '"RecompileNew CheckOnly" started at' Date Time'.')
       WriteLog( LogFile, 'Because of CheckOnly mode, no .EX file will be replaced.')
       WriteLog( LogFile, 'When warnings occur:')
-      WriteLog( LogFile, '   Rename your NEPMD\MYEPM\MACROS and NEPMD\MYEPM\EX directories')
+      WriteLog( LogFile, '   Rename your 'upcase(UserDirName)'\MACROS and 'upcase(UserDirName)'\EX directories')
       WriteLog( LogFile, '   before the next EPM start.')
       WriteLog( LogFile, '   Then either discard your own macro files or merge it with')
-      WriteLog( LogFile, '   Netlabs'' newly installed files from NEPMD\NETLABS\MACROS.')
+      WriteLog( LogFile, '   Netlabs'' newly installed files from NETLABS\MACROS.')
       WriteLog( LogFile, 'Only when you really know what you are doing:')
       WriteLog( LogFile, '   Execute "RecompileNew" without args in order to replace .EX files.')
    else
@@ -630,7 +632,7 @@ defc RecompileNew
    enddo
    WriteLog( LogFile, 'Note: Other unlisted .E/.EX files are not checked here.')
    WriteLog( LogFile, '      In order to recompile them')
-   WriteLog( LogFile, '         o  create your own .LST list file in the myepm\ex directory or')
+   WriteLog( LogFile, '         o  create your own .LST list file in the 'upcase(UserDirName)'\EX directory or')
    WriteLog( LogFile, '         o  use the RELINK command instead.')
    fRestartEpm  = 0
    fFoundMd5    = '?'
@@ -695,7 +697,7 @@ defc RecompileNew
                fCompExFile = 1
             else
 
-               -- Compare (maybe myepm) ExFile with netlabs ExFile to delete it or to give a warning if older
+               -- Compare (maybe user's) ExFile with netlabs ExFile to delete it or to give a warning if older
                NetlabsExFile = NepmdRootDir'\netlabs\ex\'BaseName'.ex'
                next = NepmdQueryPathInfo( NetlabsExFile, 'MTIME')
                parse value next with 'ERROR:'rc
@@ -824,7 +826,7 @@ defc RecompileNew
                         --leave  -- don't leave to enable further warnings
                      endif
                   endif
-                  -- Compare time of (maybe myepm) EFile with netlabs EFile to give a warning if older
+                  -- Compare time of (maybe user's) EFile with netlabs EFile to give a warning if older
                   NetlabsEFile = NepmdRootDir'\netlabs\macros\'EFile
                   next = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
                   parse value next with 'ERROR:'rc
@@ -865,7 +867,7 @@ defc RecompileNew
                NewEFileTimes = NewEFileTimes''EFileTime';'
                -- Check E files here (after etpm) if not already done above
                if CurEFiles = '' then
-                  -- Compare time of (maybe myepm) EFile with netlabs EFile to give a warning if older
+                  -- Compare time of (maybe user's) EFile with netlabs EFile to give a warning if older
                   NetlabsEFile = NepmdRootDir'\netlabs\macros\'EFile
                   if upcase( NetlabsEFile) <> upcase( EFile) then
                      next = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
@@ -980,7 +982,7 @@ defc RecompileNew
       endif
 
       --<----------------------------- Todo: Reset NewExFileTime if temp ExFile is equal.
-      --<----------------------------- Todo: Compare myepm with netlabs ExFile. Delete myepm ExFile if equal.
+      --<----------------------------- Todo: Compare user's with netlabs ExFile. Delete user's ExFile if equal.
       if NewExFileTime > '' then
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath1)
          call NepmdWriteConfigValue( nepmd_hini, KeyPath1, NewExFileTime)
@@ -1062,13 +1064,13 @@ defproc EnsureDirExists
 ; Uses 'md' to create a maybe non-existing CompileDir, therefore its parent
 ; must exist.
 defproc CallEtpm( MacroFile, CompileDir, var ExFile, var EtpmLogFile)
-   NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
+   NepmdUserDir = Get_Env('NEPMD_USERDIR')
    etpmrc = -1
-   CompileDir = NepmdRootDir'\myepm\ex\tmp'
+   CompileDir = NepmdUserDir'\ex\tmp'
    if not exist( CompileDir) then
       call EnsureDirExists( CompileDir)
       if not exist( CompileDir) then
-         sayerror 'CallEtpm: Can''t find or create CompileDir "'CompileDir'"'
+         sayerror 'CallEtpm: Cannot find or create CompileDir "'CompileDir'"'
          stop
       endif
    endif
@@ -1132,9 +1134,9 @@ defproc GetEtpmFilesFromLog( EtpmLogFile)
 ; Doesn't search in current dir. The path of ExFile is stripped to get its
 ; name.
 defproc FindExFile( ExFile)
-   NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
-   AutolinkDir  = NepmdRootDir'\myepm\autolink'  -- search in myepm\autolink first
-   ProjectDir   = NepmdRootDir'\myepm\project'   -- search in myepm\project second
+   NepmdUserDir = Get_Env('NEPMD_USERDIR')
+   AutolinkDir  = NepmdUserDir'\autolink'  -- search in <UserDir>\autolink first
+   ProjectDir   = NepmdUserDir'\project'   -- search in <UserDir>\project second
    FullExFile = ''
    -- strip path
    lp = lastpos( '\', ExFile)
@@ -1161,9 +1163,9 @@ defproc FindExFile( ExFile)
 ; Doesn't search in current dir. The path of ExFile is stripped to get its
 ; name.
 defproc GetExFileDestDir( ExFile)
-   NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
-   AutolinkDir  = NepmdRootDir'\myepm\autolink'  -- search in myepm\autolink first
-   ProjectDir   = NepmdRootDir'\myepm\project'   -- search in myepm\project second
+   NepmdUserDir = Get_Env('NEPMD_USERDIR')
+   AutolinkDir  = NepmdUserDir'\autolink'  -- search in <UserDir>\autolink first
+   ProjectDir   = NepmdUserDir'\project'   -- search in <UserDir>\project second
    DestDir = ''
    -- strip path
    lp = lastpos( '\', ExFile)
@@ -1176,7 +1178,7 @@ defproc GetExFileDestDir( ExFile)
    elseif exist( ProjectDir'\'ExFile) then
       DestDir = ProjectDir
    else
-      DestDir = NepmdRootDir'\myepm\ex'
+      DestDir = NepmdUserDir'\ex'
    endif
    return DestDir
 
@@ -1261,18 +1263,18 @@ defproc WriteLog( LogFile, Msg)
                        ltoa( offset( Msg)''selector( Msg), 10))
 
 ; ---------------------------------------------------------------------------
-; Compare .EX and .E macro files from MYEPM with those from the NETLABS tree.
+; Compare .EX and .E macro files from <UserDir> with those from the NETLABS tree.
 ; EPM.EX is newer. Make that suppressable with an ini key, to reset by the
 ; next NEPMD installation.
 ; Optional args: enable | disable | force
 defc CheckEpmMacros
    universal nepmd_hini
 
-   NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
-   call EnsureDirExists( NepmdRootDir'\myepm')
-   call EnsureDirExists( NepmdRootDir'\myepm\ex')
-   call EnsureDirExists( NepmdRootDir'\myepm\macros')
-   call EnsureDirExists( NepmdRootDir'\myepm\autolink')
+   NepmdUserDir = Get_Env('NEPMD_USERDIR')
+   call EnsureDirExists( NepmdUserDir)
+   call EnsureDirExists( NepmdUserDir'\ex')
+   call EnsureDirExists( NepmdUserDir'\macros')
+   call EnsureDirExists( NepmdUserDir'\autolink')
 
    App = 'RegDefaults'
    Key = '\NEPMD\System\CheckEpmMacros'
@@ -1304,36 +1306,38 @@ defc CheckEpmMacros
    'postme postme postme CheckEpmMacrosMsgBox' ret
 
 defc CheckEpmMacrosMsgBox
+   NepmdUserDir = Get_Env('NEPMD_USERDIR')
+   UserDirName = substr( NepmdUserDir, lastpos( '\', NepmdUserDir) + 1)
    ret = arg(1)
    if ret = 1 then
       Text = ''
-      Text = Text || 'Warning(s) occurred during comparism of MYEPM files'
+      Text = Text || 'Warning(s) occurred during comparism of 'upcase(UserDirName)' files'
       Text = Text || ' with NETLABS files. See log file'
-      Text = Text || ' 'Get_Env('NEPMD_ROOTDIR')'\MYEPM\EX\RECOMPILENEW.LOG'\10\10
+      Text = Text || ' 'NepmdUserDir'\EX\RECOMPILENEW.LOG'\10\10
       Text = Text || 'In order to use all the newly installed NETLABS files,'
-      Text = Text || ' delete or rename the listed MYEPM files, that produced'
+      Text = Text || ' delete or rename the listed 'upcase(UserDirName)' files, that produced'
       Text = Text || ' a warning. A good idea would be to rename'
-      Text = Text || ' your NEPMD\MYEPM\MACROS and NEPMD\MYEPM\EX'
+      Text = Text || ' your 'upcase(UserDirName)'\MACROS and 'upcase(UserDirName)'\EX'
       Text = Text || ' directories before the next EPM start.'\10\10
       Text = Text || 'Only when you have added your own macros:'\10
       Text = Text || 'After that, merge your own additions with the new'
-      Text = Text || ' versions of the macros in NEPMD\NETLABS\MACROS.'
-      Text = Text || ' (They can be left in your NEPMD\MYEPM\MACROS dir, if there''s'
+      Text = Text || ' versions of the macros in NETLABS\MACROS.'
+      Text = Text || ' (They can be left in your 'upcase(UserDirName)'\MACROS dir, if there''s'
       Text = Text || ' no name clash.) Then Recompile your macros. This can be'
       Text = Text || ' done easily with NEPMD''s RecompileNew command.'\10\10
       Text = Text || 'Should this be checked on the next start again?'
       Style = MB_YESNO+MB_WARNING+MB_DEFBUTTON1+MB_MOVEABLE
    else
       Text = ''
-      Text = Text || 'No warning(s) occurred during comparism of MYEPM files'
+      Text = Text || 'No warning(s) occurred during comparism of 'upcase(UserDirName)' files'
       Text = Text || ' with NETLABS files.'\10\10
-      Text = Text || 'All newly installed macro files from NEPMD\NETLABS\MACROS'
-      Text = Text || ' and NEPMD\NETLABS\EX will be used correctly.'\10\10
+      Text = Text || 'All newly installed macro files from NETLABS\MACROS'
+      Text = Text || ' and NETLABS\EX will be used correctly.'\10\10
       Text = Text || 'Should this be checked on the next start again?'
       Style = MB_YESNO+MB_INFORMATION+MB_DEFBUTTON1+MB_MOVEABLE
    endif
 
-   Title = 'Checked .E and .EX files from MYEPM tree'
+   Title = 'Checked .E and .EX files from 'upcase(UserDirName)' tree'
    ret = winmessagebox( Title,
                         Text,
                         Style)
@@ -1347,83 +1351,18 @@ defc CheckEpmMacrosMsgBox
       'CheckEpmMacros DISABLE'
    endif
 
-   --NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
-   --LogFile      = NepmdRootDir'\myepm\ex\recompilenew.log'
    --'postme e' LogFile  -- This should ensure, that LogFile is on top.
 
    return
 
 ; ---------------------------------------------------------------------------
-;unused
-; Compare loaded EPM.EX with Netlabs' EPM.EX. Give a Message, if Netlabs'
-; EPM.EX is newer. Make that suppressable with an ini key, to reset by the
-; next NEPMD installation.
-defc CheckEpmExTimeStamp
-   universal nepmd_hini
-
-   App = 'RegDefaults'
-   Key = '\NEPMD\System\CheckEpmEx'
-
-   Enabled = QueryProfile( nepmd_hini, App, Key)
-   if Enabled = 0 then
-      return
-   endif
-
-   EpmEx = wheredefc('versioncheck')
-   EpmEx = NepmdQueryFullName(EpmEx)
-   TEpmEx = NepmdQueryPathInfo( EpmEx, 'MTIME')
-
-   NepmdRoot = NepmdScanEnv( 'NEPMD_ROOTDIR')
-   NEpmEx = NepmdRoot'\netlabs\ex\epm.ex'
-   TNEpmEx = NepmdQueryPathInfo( NEpmEx, 'MTIME')
-
-   if TEpmEx >= TNEpmEx then
-      --sayerror 'OK! Loaded EPM.EX: 'TEpmEx', Netlabs EPM.EX: 'TNEpmEx
-      return
-   else
-      --sayerror 'Old! Loaded EPM.EX: 'TEpmEx', Netlabs EPM.EX: 'TNEpmEx
-   endif
-
-   Style = MB_YESNO+MB_CUAWARNING+MB_DEFBUTTON1+MB_MOVEABLE
-
-   --Bul = \16
-   Bul = \7
-   ret = winmessagebox( 'Old macro file',
-                        EpmEx\10                                 ||
-                        TEpmEx\10\10                             ||
-                        'is an old file from before the last'    ||
-                        ' NEPMD installation.'\10\10             ||
-                        'In order to use the new EPM:'\10        ||
-                        '       'Bul\9'Backup your old files in the'\10           ||
-                                    \9'NEPMD\MYEPM tree, if you have'\10          ||
-                                    \9'added anything.'\10                        ||
-                        '       'Bul\9'Delete all files in NEPMD\MYEPM\EX'\10     ||
-                                    \9'and NEPMD\MYEPM\MACROS.'\10                ||
-                        '       'Bul\9'Restart EPM.'\10\10                        ||
-                        'Only when you have added own macros:'\10                 ||
-                        'After that, merge your own additions with the new'       ||
-                        ' versions of the macros in NEPMD\NETLABS\MACROS.'        ||
-                        ' (They can be let in your MYEPM\MACROS dir, if there''s' ||
-                        ' no name clash.) Then recompile your macros.'\10\10      ||
-                        'Should this be checked on the next start again?'\10,
-                        Style)
-   if ret = 6 then  -- Yes
-      -- Change (only here) the default setting to reset it
-      -- automatically by the next install.
-      call SetProfile( nepmd_hini, App, Key, 1)
-   elseif ret = 7 then  -- No
-      -- Change (only here) the default setting to reset it
-      -- automatically by the next install.
-      call SetProfile( nepmd_hini, App, Key, 0)
-   endif
-   return
-
-; ---------------------------------------------------------------------------
 defc StartRecompile
    NepmdRootDir = NepmdScanEnv('NEPMD_ROOTDIR')
-   parse value NepmdRootDir with 'ERROR:'rc
-   if rc = '' then
-      MyepmExDir = NepmdRootDir'\myepm\ex'
+   NepmdUserDir = NepmdScanEnv('NEPMD_USERDIR')
+   parse value NepmdRootDir with 'ERROR:'rc1
+   parse value NepmdUserDir with 'ERROR:'rc2
+   if rc1 = '' & rc2 = '' then
+      UserExDir = NepmdUserDir'\ex'
       -- Workaround:
       -- Change to root dir first to avoid erroneously loading of .e files from current dir.
       -- Better let Recompile.exe do this, because the restarted EPM will open with the
@@ -1431,8 +1370,8 @@ defc StartRecompile
       -- And additionally: make Recompile change save/restore EPM's directory.
       CurDir = directory()
       call directory('\')
-      rc = directory(MyepmExDir)
-      'start 'NepmdRootDir'\netlabs\bin\recomp.exe 'MyepmExDir
+      rc = directory(UserExDir)
+      'start 'NepmdRootDir'\netlabs\bin\recomp.exe 'UserExDir
       call directory('\')
       call directory(CurDir)
    else

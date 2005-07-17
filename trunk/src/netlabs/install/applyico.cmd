@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.7 2005-06-30 21:35:58 aschn Exp $
+* $Id: applyico.cmd,v 1.8 2005-07-17 15:41:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,6 +41,18 @@
  GlobalVars = 'Sep'
  env = 'OS2ENVIRONMENT';
  Sep = '01'x
+
+ /* INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
+ NEPMD_INI_APPNAME             = "NEPMD"
+ NEPMD_INI_KEYNAME_LANGUAGE    = "Language"
+ NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
+ NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
+ NEPMD_INI_KEYNAME_USERDIRNAME = "UserDirName"
+ NEPMD_INI_KEYNAME_USEHOME     = "UseHomeForUserDir"
+
+ /* default values */
+ fUseHome = 0
+ UserDirName = 'myepm'
  EcsFlag = 1  /* default, if syslevel.os2 not found, is to use eCS icons */
 
  /* Get BootDrive */
@@ -79,18 +91,63 @@
     END
  END
 
- /* get the base directory of the NEPMD installation */
+ /* get the root directory of the NEPMD installation */
  PARSE SOURCE . . CallName;
- CallDir  = LEFT( CallName,   LASTPOS( '\', CallName) - 1);
- NepmdDir = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1);
- BaseDir  = LEFT( NepmdDir,   LASTPOS( '\', NepmdDir) - 1);
- IconDir  = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1);
+ CallDir    = LEFT( CallName,   LASTPOS( '\', CallName) - 1);    /* NEPMD\netlabs\install */
+ NetlabsDir = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1);
+ RootDir    = LEFT( NetlabsDir, LASTPOS( '\', NetlabsDir) - 1);  /* can be queried from Ini as well */
+
+ /* get user directory */
+ DO 1
+    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIR)
+    IF next <> 'ERROR:' then
+    DO
+       next = STRIP( next, 't', '00'x)
+       IF next > '' THEN
+       DO
+          UserDir = next
+          LEAVE
+       END
+    END
+
+    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIRNAME)
+    IF next <> 'ERROR:' then
+    DO
+       next = STRIP( next, 't', '00'x)
+       IF next > '' THEN
+          UserDirName = next
+    END
+
+    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USEHOME)
+    IF next <> 'ERROR:' then
+    DO
+       next = STRIP( next, 't', '00'x)
+       IF next > '' THEN
+          fUseHome = next
+    END
+    IF fUseHome = 1 THEN
+    DO
+       Home = VALUE( 'HOME', , env)
+       IF Home > '' THEN
+       DO
+          call SysFileTree Home, 'Found.', 'DO', '*+--*'  /* ADHRS */
+          IF Found.1 > '' THEN
+          DO
+             UserDir = Home'\'UserDirName
+             LEAVE
+          END
+       END
+    END
+
+    UserDir = RootDir'\'UserDirName
+    LEAVE
+ END
 
  /* determine operating system version */
  SELECT
-    WHEN (SysOs2Ver() < '2.40')    THEN Type = '3';
-    WHEN (EcsFlag = 1)             THEN Type = 'e';
-    OTHERWISE                           Type = '4';
+    WHEN (SysOs2Ver() < '2.40') THEN Type = '3';
+    WHEN (EcsFlag = 1)          THEN Type = 'e';
+    OTHERWISE                        Type = '4';
  END;
 
  /* set icon for folders */
@@ -101,11 +158,14 @@
     rc = SysSetObjectData( ThisObject, FolderIconSetup);
  END;
 
- /* set icon for myepm folder */
- rc = SysSetObjectData( BaseDir'\myepm', FolderIconSetup);
+ /* set icon for user folder */
+ rc = SysSetObjectData( UserDir, FolderIconSetup);
+
+ /* set parameter for "Recompile EPM", created by WarpIN (WarpIN doesn't know UserDir) */
+ rc = SysSetObjectData( '<NEPMD_RECOMP>', 'PARAMETERS='UserDir'\ex');
 
 
- /* set  EPM program objects */
+ /* set EPM program objects */
 
 /* Disabled, because the icon is not used here (already added as resource to the loader).
  * rc = SysSetObjectData( '<NEPMD_EXECUTE>', 'ICONFILE='CallDir'\ico\nepmd.ico;');

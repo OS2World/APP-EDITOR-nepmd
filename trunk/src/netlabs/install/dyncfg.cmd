@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.5 2002-08-16 14:34:55 cla Exp $
+* $Id: dyncfg.cmd,v 1.6 2005-07-17 15:41:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -44,16 +44,29 @@
  call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
  call SysLoadFuncs;
 
+ /* INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
+ NEPMD_INI_APPNAME             = "NEPMD"
+ NEPMD_INI_KEYNAME_LANGUAGE    = "Language"
+ NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
+ NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
+ NEPMD_INI_KEYNAME_USERDIRNAME = "UserDirName"
+ NEPMD_INI_KEYNAME_USEHOME     = "UseHomeForUserDir"
+
  /* defaults */
  rc = 0;
  LoaderEaName = 'NEPMD.Loader';
  ErrorQueueName = VALUE( 'NEPMD_RXQUEUE', , env);
  ErrorMessage = '';
 
+ /* Get BootDrive */
+ IF \RxFuncQuery( 'SysBootDrive') THEN
+    BootDrive = SysBootDrive()
+ ELSE
+    PARSE UPPER VALUE VALUE( 'PATH', env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
+
  DO UNTIL (TRUE)
 
     /* get OS2 directory name */
-    PARSE VALUE TRANSLATE( VALUE('PATH',,env)) WITH '\OS2;' -2 BootDrive +2;
     OS2Dir = TRANSLATE( BootDrive'\OS2');
     CheckFile = OS2Dir'\EPM.EXE';
     fCheckFileExists = FileExist( CheckFile);
@@ -72,20 +85,19 @@
     END;
 
     /* get the base directory of the NEPMD installation */
-    PARSE VALUE SysIni(, 'NEPMD', 'Path') WITH InstallPath'00'x;
-    IF (InstallPath = 'ERROR:') THEN
+    PARSE VALUE SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_ROOTDIR) WITH RootDir'00'x;
+    IF (RootDir = 'ERROR:') THEN
     DO
-       ErrorMessage = 'error: NEPMD configuration not found.';
+       ErrorMessage = 'Error: NEPMD configuration not found.';
        rc = 3; /* ERROR_PATH_NOT_FOUND */
        LEAVE;
     END;
 
-
     /* determine name of loader executable */
-    LoaderExe = InstallPath'\netlabs\bin\epm.exe';
+    LoaderExe = RootDir'\netlabs\bin\epm.exe';
     IF (\FileExist( LoaderExe)) THEN
     DO
-       ErrorMessage = 'error:' LoaderExe 'not found, NEPMD installation is not complete.';
+       ErrorMessage = 'Error:' LoaderExe 'not found, NEPMD installation is not complete.';
        rc = 2; /* ERROR_FILE_NOT_FOUND */
        LEAVE;
     END;
@@ -93,10 +105,10 @@
     /* don't touch any EPM.EXE not being ours here */
     IF ((fCheckFileExists) & (\IsNepmdExecutable( CheckFile, LoaderEaName))) THEN
     DO
-       ErrorMessage = 'error: ' CheckFile 'is not of NEPMD, cannot continue.',
-                      'Dynamic EPM configuration and with it the NEPMD extensions will not properly work !'CrLf''CrLf||,
+       ErrorMessage = 'Error:' CheckFile 'is not of NEPMD, cannot continue.',
+                      'Dynamic EPM configuration and with it the NEPMD extensions will not work properly.'CrLf''CrLf||,
                       'Remove this file from this directory (usually it',
-                      'should rather be installed in ' BootDrive'\OS2\APPS) and repeat the installation!';
+                      'should rather be installed in' BootDrive'\OS2\APPS) and repeat the installation.';
        rc = 5; /* ERROR_ACCESS_DENIED */
        LEAVE;
     END;
@@ -129,7 +141,7 @@
        /* if os2 directory was not placed before, our loader will not be used */
        IF (\fOs2DirPassed) THEN
        DO
-          ErrorMessage = 'error: EPM.EXE found in directory prior to' OS2Dir', cannot proceed.';
+          ErrorMessage = 'Error: EPM.EXE found in directory prior to' OS2Dir', cannot proceed.';
           rc = 5; /* ERROR_ACCESS_DENIED */
           LEAVE;
        END;
@@ -138,7 +150,7 @@
        'COPY' LoaderExe OS2Dir Redirection;
        IF (rc \= 0) THEN
        DO
-          ErrorMessage = 'error: cannot write' CheckFile'!';
+          ErrorMessage = 'Error: cannot write' CheckFile'.';
           rc = 5; /* ERROR_ACCESS_DENIED */
           LEAVE;
        END;
@@ -148,7 +160,6 @@
        EaLen = REVERSE( RIGHT( D2C( LENGTH( LoaderInfo)), 2, D2C(0)));
        EaValue = 'FDFF'x''EaLen''LoaderInfo;
        rcx = SysPutEa( CheckFile, LoaderEaName, EaValue);
-
     END;
  END;
 

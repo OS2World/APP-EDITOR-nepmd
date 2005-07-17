@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.6 2005-05-16 21:03:23 aschn Exp $
+* $Id: file.e,v 1.7 2005-07-17 15:41:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -175,16 +175,24 @@ defc s, save=
 
    -- Handle special NEPMD dirs: don't overwrite files of the NETLABS or EPMBBS tree
    fn = Name
-   NepmdRootDir = NepmdScanEnv('NEPMD_ROOTDIR')
-   parse value NepmdRootDir with 'ERROR:'rc
-   if rc = '' then
-      if abbrev( upcase(fn), upcase(NepmdRootDir)) then
-         p1 = length(NepmdRootDir)
+   RootDir = NepmdScanEnv('NEPMD_ROOTDIR')
+   parse value RootDir with 'ERROR:'rc1
+   if rc1 > '' then
+      sayerror 'Environment var NEPMD_ROOTDIR not set'
+   endif
+   UserDir = NepmdScanEnv('NEPMD_USERDIR')
+   parse value UserDir with 'ERROR:'rc2
+   if rc2 > '' then
+      sayerror 'Environment var NEPMD_USERDIR not set'
+   endif
+   if rc1 = '' & rc2 = '' then
+      if abbrev( upcase(fn), upcase(RootDir)) then
+         p1 = length(RootDir)
          p2 = pos( '\', fn, p1 + 2)
          next = substr( fn, p1 + 2, max( p2 - p1 - 2, 0))
          if wordpos( upcase(next), 'NETLABS EPMBBS') then
-            newname = substr( fn, 1, p1)'\myepm'substr( fn, p2)
-            sayerror 'Better use the MYEPM tree for your own files'
+            newname = UserDir''substr( fn, p2)
+            sayerror 'Better use the user tree for your own files'
             oldname = .filename
             .filename = newname               -- saveas_dlg starts with .filename
             result = saveas_dlg( Name, Type)  -- saveas_dlg will set both vars
@@ -200,8 +208,6 @@ defc s, save=
             endif
          endif
       endif
-   else
-      sayerror 'Environment var NEPMD_ROOTDIR not set'
    endif
 
    -- Check for .readonly field
