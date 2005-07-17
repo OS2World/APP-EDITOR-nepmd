@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.h,v 1.4 2002-09-20 13:45:57 cla Exp $
+* $Id: epmenv.h,v 1.5 2005-07-17 15:41:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,7 +30,8 @@
 
 // define external env vars available in epm.env
 #define ENV_NEPMD_LANGUAGE         "NEPMD_LANGUAGE"
-#define ENV_NEPMD_PATH             "NEPMD_ROOTDIR"
+#define ENV_NEPMD_ROOTDIR          "NEPMD_ROOTDIR"
+#define ENV_NEPMD_USERDIR          "NEPMD_USERDIR"
 #define ENV_NEPMD_MAINENVFILE      "NEPMD_MAINENVFILE"
 #define ENV_NEPMD_USERENVFILE      "NEPMD_USERENVFILE"
 #define ENV_NEPMD_EPMEXECUTABLE    "NEPMD_EPMEXECUTABLE"

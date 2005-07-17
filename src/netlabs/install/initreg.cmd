@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: initreg.cmd,v 1.1 2004-05-09 12:53:20 aschn Exp $
+* $Id: initreg.cmd,v 1.2 2005-07-17 15:41:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,28 +41,84 @@
  call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
  call SysLoadFuncs;
 
+ /* INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
+ NEPMD_INI_APPNAME             = "NEPMD"
+ NEPMD_INI_KEYNAME_LANGUAGE    = "Language"
+ NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
+ NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
+ NEPMD_INI_KEYNAME_USERDIRNAME = "UserDirName"
+ NEPMD_INI_KEYNAME_USEHOME     = "UseHomeForUserDir"
+
  /* defaults */
  rc = 0;
  ErrorQueueName  = VALUE( 'NEPMD_RXQUEUE', , env);
  ErrorMessage    = '';
  NepmdIniName    = 'nepmd.ini';
- NepmdIniSubPath = '\myepm\bin\';
+ NepmdIniSubPath = 'bin';
  NepmdIniAppl    = 'RegDefaults';
+ fUseHome        = 0
+ UserDirName     = 'myepm'
 
  DO UNTIL (TRUE)
 
     /* get the base directory of the NEPMD installation */
-    PARSE VALUE SysIni(, 'NEPMD', 'Path') WITH InstallPath'00'x;
+    PARSE VALUE SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_ROOTDIR) WITH InstallPath'00'x;
     IF (InstallPath = 'ERROR:') THEN
     DO
        ErrorMessage = 'Error: NEPMD configuration not found.';
        rc = 3; /* ERROR_PATH_NOT_FOUND */
        LEAVE;
     END;
-   
+
+    /* get user directory */
+    DO 1
+       next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIR)
+       IF next <> 'ERROR:' then
+       DO
+          next = STRIP( next, 't', '00'x)
+          IF next > '' THEN
+          DO
+             UserDir = next
+             LEAVE
+          END
+       END
+
+       next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIRNAME)
+       IF next <> 'ERROR:' then
+       DO
+          next = STRIP( next, 't', '00'x)
+          IF next > '' THEN
+             UserDirName = next
+       END
+
+       next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USEHOME)
+       IF next <> 'ERROR:' then
+       DO
+          next = STRIP( next, 't', '00'x)
+          IF next > '' THEN
+             fUseHome = next
+       END
+       IF fUseHome = 1 THEN
+       DO
+          Home = VALUE( 'HOME', , env)
+          IF Home > '' THEN
+          DO
+             call SysFileTree Home, 'Found.', 'DO', '*+--*'  /* ADHRS */
+             IF Found.1 > '' THEN
+             DO
+                UserDir = Home'\'UserDirName
+                LEAVE
+             END
+          END
+       END
+
+       UserDir = RootDir'\'UserDirName
+       LEAVE
+    END
+
     /* full pathname of NEPMD.INI */
-    NepmdIni = InstallPath''NepmdIniSubPath''NepmdIniName
-    
+    NepmdIni = UserDir'\'NepmdIniSubPath'\'NepmdIniName
+
     /* check if NEPMD.INI exists */
     rc = SysFileTree( NepmdIni, 'Found.', 'FO', '*-***');
     IF Found.0 = 0 THEN
@@ -70,7 +126,7 @@
        rc = 0; /* no reset of default values required */
        LEAVE;
     END;
-   
+
     /* check if application in NEPMD.INI exists */
     rc = SysIni( NepmdIni, NepmdIniAppl);
     IF rc = 'ERROR:' THEN
@@ -78,7 +134,7 @@
        rc = 0; /* no reset of default values required */
        LEAVE;
     END;
-    
+
     /* delete application in NEPMD.INI */
     rc = SysIni( NepmdIni, NepmdIniAppl, 'DELETE:');
     IF rc <> '' then

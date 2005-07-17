@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.17 2002-10-31 14:31:22 cla Exp $
+* $Id: nepmd.h,v 1.18 2005-07-17 15:41:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,7 +29,10 @@
 // INI app names and keys of NEPMD project from OS2.INI
 #define NEPMD_INI_APPNAME              "NEPMD"
 #define NEPMD_INI_KEYNAME_LANGUAGE     "Language"
-#define NEPMD_INI_KEYNAME_PATH         "Path"
+#define NEPMD_INI_KEYNAME_ROOTDIR      "RootDir"
+#define NEPMD_INI_KEYNAME_USERDIR      "UserDir"
+#define NEPMD_INI_KEYNAME_USERDIRNAME  "UserDirName"
+#define NEPMD_INI_KEYNAME_USEHOME      "UseHomeForUserDir"
 
 // define some filenames for EPM
 #define NEPMD_FILENAME_LIBINFO         ".NEPMD_INFO"
@@ -41,11 +44,11 @@
 #define NEPMD_SUBPATH_BINBINDIR    "netlabs\\bin"
 #define NEPMD_SUBPATH_CMPINFDIR    "netlabs\\book"
 #define NEPMD_SUBPATH_CMPHLPDIR    "netlabs\\help"
-#define NEPMD_SUBPATH_MYBINDIR     "myepm\\bin"
+#define NEPMD_SUBPATH_USERBINDIR   "bin"
 
 // file path and name definitions used by NepmdGetInstFilename
 
-#define NEPMD_SUBPATH_INIFILE      NEPMD_SUBPATH_MYBINDIR
+#define NEPMD_SUBPATH_INIFILE      NEPMD_SUBPATH_USERBINDIR
 #define NEPMD_DEVPATH_INIFILE      "debug"
 #define NEPMD_FILENAME_INIFILE     "nepmd.ini"
 

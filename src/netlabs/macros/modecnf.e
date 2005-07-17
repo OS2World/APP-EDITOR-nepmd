@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modecnf.e,v 1.3 2004-11-30 21:36:16 aschn Exp $
+* $Id: modecnf.e,v 1.4 2005-07-17 15:42:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,31 +24,36 @@
 ;
 ; 1) Replace all settings of this file
 ;
-;    You may want to create your own MODECNF.E in you MYEPM\MACROS directory
-;    to replace the file in the NETLABS\MACROS directory. Don't simply
-;    overwrite a file of the NETLABS tree. After changing your configuration,
-;    you have to recompile EPM.E.
+;    You may want to create your own MODECNF.E in your %NEPMD_USERDIR%\MACROS
+;    directory to replace the file in the NETLABS\MACROS directory. Don't
+;    simply overwrite a file of the NETLABS tree. After changing your
+;    configuration, you have to recompile EPM.E.
 ;
 ; 2) Add your own settings or change several settings
 ;
-;    Create a file MYSTUFF.E in your MYEPM\MACROS directory and use this file
-;    as an example. The commands from MYSTUFF.E will be executed after the
-;    ones from this file, so you're able to overwrite the following.
+;    Create a file MYSTUFF.E in your %NEPMD_USERDIR%\MACROS directory and use
+;    this file as an example. The commands from MYSTUFF.E will be executed
+;    after the ones from this file, so you're able to overwrite the
+;    following.
 ;
 ;    As an alternative, you simply may want to specify the here used commands
-;    in your MYEPM\PROFILE.ERX. The commands from PROFILE.ERX will be
-;    executed after the ones from this file, so you're able to overwrite the
-;    following.
+;    in your %NEPMD_USERDIR%\PROFILE.ERX. The commands from PROFILE.ERX will
+;    be executed after the ones from this file, so you're able to overwrite
+;    the following.
 ;
 ;    Additionally, you can even reset all settings without modifying
 ;    MODECNF.E: Use the command 'ModeExecute CLEAR'.
 /*
 In order to create or edit one of these files, put the cursor on one of the
-following both lines and press Alt+= or Alt+0
+following three lines and press Alt+= or Alt+0
 
-   e %NEPMD_ROOTDIR%\myepm\macros\modecnf.e
-   e %NEPMD_ROOTDIR%\myepm\macros\mystuff.e
-   e %NEPMD_ROOTDIR%\myepm\bin\profile.erx
+   e %NEPMD_USERDIR%\macros\modecnf.e
+   e %NEPMD_USERDIR%\macros\mystuff.e
+   e %NEPMD_USERDIR%\bin\profile.erx
+
+View Netlabs' default mode configuration file:
+
+   e %NEPMD_ROOTDIR%\netlabs\macros\modecnf.e
 
 */
 ; You may want to reset all prior used ModeExecute defs with
@@ -104,9 +109,9 @@ following both lines and press Alt+= or Alt+0
 ; Omit DEFINIT when you put the following lines in your PROFILE.ERX.
 definit
 
-/* 'ModeExecute CLEAR' removes all prior ModeExecute definitions  */
+/* 'ModeExecute CLEAR' removes all prior ModeExecute definitions. */
 /* Use it, if you want to overwrite all NEPMD's defaults, without */
-/* creating your own MYEPM\MACROS\MODECNF.E file.                 */
+/* creating your own %NEPMD_USERDIR%\MACROS\MODECNF.E file.       */
 /*
 'ModeExecute CLEAR'
 */

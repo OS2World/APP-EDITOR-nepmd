@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2003
 *
-* $Id: epmchgpal.cmd,v 1.4 2005-04-03 21:05:08 aschn Exp $
+* $Id: epmchgpal.cmd,v 1.5 2005-07-17 15:41:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -44,9 +44,9 @@ Signature          = 'GpiCreatePS failed'
 SaveFileExt        = 'sav'
 ColorIniName       = 'EPMColor.ini'
 NetlabsBinDir      = value( 'NEPMD_ROOTDIR', , env)'\netlabs\bin'
-MyepmBinDir        = value( 'NEPMD_ROOTDIR', , env)'\myepm\bin'
-WorkDir            = MyepmBinDir  /* Where palettes and ColorIni is located or will be created */
-TmpDir             = MyepmBinDir'\tmp'  /* Better use a unique name in %TMP%? */
+UserBinDir         = value( 'NEPMD_USERDIR', , env)'\bin'
+WorkDir            = UserBinDir  /* Where palettes and ColorIni is located or will be created */
+TmpDir             = UserBinDir'\tmp'  /* Better use a unique name in %TMP%? */
 PalTitlePrefix     = 'EPM color palette - '
 ObjectIdPrefix     = 'EPM_PAL_'
 StandardName       = 'Standard'
@@ -129,10 +129,10 @@ if value( 'NEPMD_ROOTDIR', , env) = '' then
       return
    end
 
-if stream( MyepmBinDir'\'ColorIniName, 'C', 'QUERY EXISTS' ) = '' then
+if stream( UserBinDir'\'ColorIniName, 'C', 'QUERY EXISTS' ) = '' then
    do
-      say 'Copying Netlabs'' 'ColorIniName' to 'MyepmBinDir
-      rc = SysCopyObject( NetlabsBinDir'\'ColorIniName, MyepmBinDir)
+      say 'Copying Netlabs'' 'ColorIniName' to 'UserBinDir
+      rc = SysCopyObject( NetlabsBinDir'\'ColorIniName, UserBinDir)
    end
 
 select

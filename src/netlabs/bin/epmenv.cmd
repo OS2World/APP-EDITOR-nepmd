@@ -13,8 +13,8 @@
  *
  *      user environment file is loaded from:
  *         <currentdir>\<cmdname>.env
- *         <nepmd_rootdir>\myepm\bin\<cmdname>.env
- *         <nepmd_rootdir>\myepm\bin\epm.env
+ *         <nepmd_userdir>\bin\<cmdname>.env
+ *         <nepmd_userdir>\bin\epm.env
  */
 /* The first comment is used as online help text */
 /****************************** Module Header *******************************
@@ -26,7 +26,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.cmd,v 1.3 2003-12-12 16:31:40 aschn Exp $
+* $Id: epmenv.cmd,v 1.4 2005-07-17 15:41:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -88,28 +88,57 @@
  GlobalVars = GlobalVars '';
  rc = ERROR.NO_ERROR;
 
- CallDir        = GetCalldir();
- CallName       = GetCallName();
+ CallDir          = GetCalldir();
+ CallName         = GetCallName();
 
- IniAppName     = 'NEPMD';
- IniKeyPath     = 'Path';
- IniKeyLanguage = 'Language';
+ IniAppName       = 'NEPMD';
+ IniKeyRootDir    = 'RootDir';
+ IniKeyUserDir    = 'UserDir';            /* optional */
+ InKeyUseHome     = 'UseHomeForUserDir';
+ InKeyUserDirName = 'UserDirName';
+ IniKeyLanguage   = 'Language';
 
- NepmdSubdir    = 'netlabs\bin';
- UserSubdir     = 'myepm\bin';
+ NepmdSubdir      = 'netlabs\bin';
+ UserSubdir       = 'bin';
 
- EpmEnvFile     = 'epm';
- EnvExt         = '.env';
+ EpmEnvFile       = 'epm';
+ EnvExt           = '.env';
+
+ RootDir          = ''
+ UserDir          = ''
+ fUseHome         = 0
+ UserDirName      = 'myepm'
 
  DO UNTIL (TRUE)
 
     /* get the base directory of the NEPMD installation */
-    PARSE VALUE SysIni(, IniAppName, IniKeyPath) WITH InstallPath'00'x;
-    IF (InstallPath = 'ERROR:') THEN
-       InstallPath = '';
-    PARSE VALUE SysIni(, IniAppName, IniKeyLanguage) WITH InstallLanguage'00'x;
-    IF (InstallLanguage = 'ERROR:') THEN
-       InstallLanguage = '';
+    PARSE VALUE SysIni(, IniAppName, IniKeyRootDir) WITH RootDir'00'x;
+    IF (RootDir = 'ERROR:') THEN
+       RootDir = '';
+    /* get the user directory of the NEPMD installation */
+    PARSE VALUE SysIni(, IniAppName, IniKeyUserDir) WITH next'00'x;
+    IF (next <> 'ERROR:') THEN
+       UserDir = next;
+    IF UserDir = '' THEN
+    DO
+       PARSE VALUE SysIni(, IniAppName, IniKeyUseHome) WITH next'00'x;
+       IF (WORDPOS( next, '0 1')) THEN
+          fUseHome = next;
+       PARSE VALUE SysIni(, IniAppName, IniKeyUserDirName) WITH next'00'x;
+       IF (next <> 'ERROR:' & next > '') THEN
+          UserDirName = next;
+       IF fUseHome = 1 THEN
+       DO
+          Home = VALUE( 'HOME', , env);
+          UserDir = Home'\'UserDirName;
+       END
+       ELSE
+          UserDir = RootDir'\'UserDirName;
+    END
+    /* get the language of the NEPMD installation */
+    PARSE VALUE SysIni(, IniAppName, IniKeyLanguage) WITH Language'00'x;
+    IF (Language = 'ERROR:') THEN
+       Language = '';
 
     /* get currentdir with no slash */
     CurrentDir = DIRECTORY();
@@ -124,22 +153,23 @@
        /* load main environment */
        /*fUseEpmEnv = (TRANSLATE( CallName) = TRANSLATE( EpmEnvFile));  Unused */
        MainEnvFile = SearchEnvFile( CallDir'\'CallName''EnvExt,,
-                                    InstallPath'\'NepmdSubdir'\'CallName''EnvExt,,
-                                    InstallPath'\'NepmdSubdir'\'EpmEnvFile''EnvExt);
+                                    RootDir'\'NepmdSubdir'\'CallName''EnvExt,,
+                                    RootDir'\'NepmdSubdir'\'EpmEnvFile''EnvExt);
 
        /* load user environment file */
        /*fUseEpmEnv = (TRANSLATE( CallName) = TRANSLATE( EpmEnvFile));  Unused */
        UserEnvFile = SearchEnvFile( CurrentDir'\'CallName''EnvExt,,
-                                    InstallPath'\'UserSubdir'\'CallName''EnvExt,,
-                                    InstallPath'\'UserSubdir'\'EpmEnvFile''EnvExt);
+                                    UserDir'\'UserSubdir'\'CallName''EnvExt,,
+                                    UserDir'\'UserSubdir'\'EpmEnvFile''EnvExt);
 
        /* don't load same file twice */
        IF (TRANSLATE(MainEnvFile) = TRANSLATE(UserEnvFile)) THEN
           UserEnvFile = '';
 
        /* set the automatic variables */
-       rc = VALUE( 'NEPMD_ROOTDIR',     InstallPath, env);
-       rc = VALUE( 'NEPMD_LANGUAGE',    InstallLanguage, env);
+       rc = VALUE( 'NEPMD_ROOTDIR',     RootDir, env);
+       rc = VALUE( 'NEPMD_USERDIR',     UserDir, env);
+       rc = VALUE( 'NEPMD_LANGUAGE',    Language, env);
        rc = VALUE( 'NEPMD_MAINENVFILE', MainEnvFile, env);
        rc = VALUE( 'NEPMD_USERENVFILE', UserEnvFile, env);
 
@@ -206,8 +236,8 @@ PARSE SOURCE . . CallName
 /* ------------------------------------------------------------------------- */
 FileExist: PROCEDURE
  PARSE ARG FileName
- /* SAY '->' Filename */
- RETURN(STREAM(Filename, 'C', 'QUERY EXISTS') > '');
+ /* SAY '->' FileName */
+ RETURN(STREAM(FileName, 'C', 'QUERY EXISTS') > '');
 
 /* ========================================================================= */
 SearchEnvFile: PROCEDURE EXPOSE (GlobalVars)

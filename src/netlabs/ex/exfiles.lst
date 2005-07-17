@@ -4,13 +4,13 @@
 ;
 ; This list is read by the RecompileAll command, as well as the actions.lst.
 ; For own additions, create a new file with the extension LST in your
-; MYEPM\EX directory.
+; %NEPMD_USERDIR%\EX directory.
 ;
 ; Blank lines or lines starting with ; are ignored.
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2004
 ;
-; $Id: exfiles.lst,v 1.4 2004-11-30 21:12:29 aschn Exp $
+; $Id: exfiles.lst,v 1.5 2005-07-17 15:41:55 aschn Exp $
 ;
 ; ===========================================================================
 ;

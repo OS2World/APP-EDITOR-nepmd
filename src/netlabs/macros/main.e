@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.29 2005-06-30 22:18:36 aschn Exp $
+* $Id: main.e,v 1.30 2005-07-17 15:42:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -133,7 +133,7 @@ compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVE
    call check_savepath()
 compile endif
 
-;  Automatically link .ex files from myepm\autolink -------------------------
+;  Automatically link .ex files from <UserDir>\autolink ---------------------
    call NepmdAutoLink()
 
 ;  Process 'init' hook ------------------------------------------------------
@@ -165,8 +165,8 @@ compile endif
    if rexx_profile then
       ProfileName = 'profile.erx'
       -- REXX profile is not searched anymore. It must be placed in
-      -- NEPMD\myepm\bin with the name PROFILE.ERX now.
-      Profile = Get_Env('NEPMD_ROOTDIR')'\myepm\bin\'ProfileName
+      -- %NEPMD_USERDIR%\bin with the name PROFILE.ERX now.
+      Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
       if exist(Profile) then
 ;      -- REXX_PROFILE is now searched in .;%PATH%;%EPMPATH% instead of .;%EPMPATH%;%PATH%
 ;      findfile Profile, ProfileName, 'PATH'

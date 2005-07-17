@@ -3,11 +3,11 @@
 * Module Name: autolink.e
 *
 * This module is executed by load.e and is responsible to load
-* all modules found in myepm\autolink
+* all modules found in <UserDir>\autolink
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: autolink.e,v 1.4 2004-07-02 09:23:22 aschn Exp $
+* $Id: autolink.e,v 1.5 2005-07-17 15:41:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -28,13 +28,12 @@ defc autolink =
 defproc NepmdAutolink() =
 
   /* determine autolink directory */
-  InstallDir = NepmdQueryInstValue( 'ROOTDIR');
-  parse value InstallDir with 'ERROR:'rc;
+  UserDir = NepmdQueryInstValue( 'USERDIR');
+  parse value UserDir with 'ERROR:'rc;
   if (rc > '') then
      return rc;
   endif
-  AutoLinkDir = InstallDir'\myepm\autolink';
-
+  AutoLinkDir = UserDir'\autolink';
 
   -- loop through all .ex files
 
@@ -53,7 +52,6 @@ defproc NepmdAutolink() =
      link Filename;  -- message would slow startup down
   end;
   rc = 0;  -- no error from here
-
 
   return rc;
 

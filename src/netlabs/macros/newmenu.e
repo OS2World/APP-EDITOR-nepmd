@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.12 2005-06-30 22:50:29 aschn Exp $
+* $Id: newmenu.e,v 1.13 2005-07-17 15:42:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1391,6 +1391,8 @@ compile if IMPERMANENT_OPTIONS
 compile else
    IMP = ''
 compile endif
+   UserDir = Get_Env( 'NEPMD_USERDIR')
+   UserDirName = substr( UserDir, lastpos( '\', UserDir) + 1)
 
    mid = GetAVar('mid_options')
    i = mid'00'
@@ -2015,7 +2017,7 @@ compile endif
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_editprofile', i);
    buildmenuitem menuname, mid, i, 'Edit PROFILE.ERX',                                                   -- Edit PROFILE.ERX
-                                   'e %NEPMD_ROOTDIR%\myepm\bin\profile.erx' ||
+                                   'e %NEPMD_USERDIR%\bin\profile.erx' ||
                                    \1'Edit or create REXX configuration file',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_activateprofile', i);
@@ -2025,17 +2027,17 @@ compile endif
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_editmodecnf', i);
    buildmenuitem menuname, mid, i, 'Edit MODECNF.E',                                                     -- Edit MODECNF.E
-                                   'e %NEPMD_ROOTDIR%\myepm\macros\modecnf.e' ||
+                                   'e %NEPMD_USERDIR%\macros\modecnf.e' ||
                                    \1'Edit or create E configuration file for modes',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_editmycnf', i);
    buildmenuitem menuname, mid, i, 'Edit MYCNF.E',                                                       -- Edit MYCNF.E
-                                   'e %NEPMD_ROOTDIR%\myepm\macros\mycnf.e' ||
+                                   'e %NEPMD_USERDIR%\macros\mycnf.e' ||
                                    \1'Edit or create E configuration file',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_editmystuff', i);
    buildmenuitem menuname, mid, i, 'Edit MYSTUFF.E',                                                     -- Edit MYSTUFF.E
-                                   'e %NEPMD_ROOTDIR%\myepm\macros\mystuff.e' ||
+                                   'e %NEPMD_USERDIR%\macros\mystuff.e' ||
                                    \1'Edit or create E additions',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -2048,8 +2050,8 @@ compile endif
                                    \1,
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open MYEPM\MACROS\*.E',
-                                   'o %NEPMD_ROOTDIR%\myepm\macros\*.e' ||
+   buildmenuitem menuname, mid, i, 'Open 'upcase(UserDirName)'\MACROS\*.E',
+                                   'o %NEPMD_USERDIR%\macros\*.e' ||
                                    \1,
                                    MIS_TEXT, 0
    i = i + 1;
@@ -2060,12 +2062,12 @@ compile endif
    i = i + 1;
    -- this cmd is too long
    buildmenuitem menuname, mid, i, 'Open macro source dirs',
-                                   'mc /rx open %NEPMD_ROOTDIR%\myepm\macros /rx open %NEPMD_ROOTDIR%\netlabs\macros' ||
+                                   'mc /rx open %NEPMD_USERDIR%\macros /rx open %NEPMD_ROOTDIR%\netlabs\macros' ||
                                    \1,
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Open compiled macro dirs',
-                                   'mc /rx open %NEPMD_ROOTDIR%\myepm\ex /rx open %NEPMD_ROOTDIR%\myepm\autolink' ||
+                                   'mc /rx open %NEPMD_USERDIR%\ex /rx open %NEPMD_USERDIR%\autolink' ||
                                    \1,
                                    MIS_TEXT, 0
 */
@@ -2076,7 +2078,7 @@ compile endif
                                    MIS_TEXT, 0 -- <-------- Todo: get EPM.INI from OS2.INI
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Open NEPMD.INI',
-                                   'rx open %NEPMD_ROOTDIR%\myepm\bin\nepmd.ini' ||
+                                   'rx open %NEPMD_USERDIR%\bin\nepmd.ini' ||
                                    \1,
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    if nodismiss > 0 then
@@ -2824,7 +2826,7 @@ defc menuinit_run
 defc menuinit_macros
    universal rexx_profile
    SetMenuAttribute( GetAVar('mid_activateprofile'),  MIA_CHECKED, not rexx_profile)
-   file = NepmdResolveEnvVars('%NEPMD_ROOTDIR%\myepm\bin\profile.erx')
+   file = NepmdResolveEnvVars('%NEPMD_USERDIR%\bin\profile.erx')
    file_exist = exist(file)
    SetMenuAttribute( GetAVar('mid_activateprofile'),  MIA_DISABLED, file_exist)
    if file_exist then
@@ -2832,21 +2834,21 @@ defc menuinit_macros
    else
       SetMenuText( GetAVar('mid_editprofile'), 'Create PROFILE.ERX')
    endif
-   file = NepmdResolveEnvVars('%NEPMD_ROOTDIR%\myepm\macros\modecnf.e')
+   file = NepmdResolveEnvVars('%NEPMD_USERDIR%\macros\modecnf.e')
    file_exist = exist(file)
    if file_exist then
       SetMenuText( GetAVar('mid_editmodecnf'), 'Edit MODECNF.E')
    else
       SetMenuText( GetAVar('mid_editmodecnf'), 'Create MODECNF.E')
    endif
-   file = NepmdResolveEnvVars('%NEPMD_ROOTDIR%\myepm\macros\mycnf.e')
+   file = NepmdResolveEnvVars('%NEPMD_USERDIR%\macros\mycnf.e')
    file_exist = exist(file)
    if file_exist then
       SetMenuText( GetAVar('mid_editmycnf'), 'Edit MYCNF.E')
    else
       SetMenuText( GetAVar('mid_editmycnf'), 'Create MYCNF.E')
    endif
-   file = NepmdResolveEnvVars('%NEPMD_ROOTDIR%\myepm\macros\mystuff.e')
+   file = NepmdResolveEnvVars('%NEPMD_USERDIR%\macros\mystuff.e')
    file_exist = exist(file)
    if file_exist then
       SetMenuText( GetAVar('mid_editmystuff'), 'Edit MYSTUFF.E')
