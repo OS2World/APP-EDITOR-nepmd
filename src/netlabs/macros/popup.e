@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: popup.e,v 1.3 2004-07-02 08:03:44 aschn Exp $
+* $Id: popup.e,v 1.4 2005-07-18 19:12:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -254,9 +254,9 @@ compile endif
       'MH_gotoposition'
       ch = substr( textline(.line), .col, 1)
       gray_if_space = 16384*( ch = ' ' | not .line)
-      buildmenuitem menuname, 80, 8000, MARK_WORD_MENU__MSG\9'Alt+W',      'MARKWORD'MARK_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKWORD, gray_if_space)
-      buildmenuitem menuname, 80, 8001, MARK_TOKEN_MENU__MSG\9/*'Ctrl+W'*/,'MARKTOKEN'MARK_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKTOKEN, gray_if_space)
-      buildmenuitem menuname, 80, 8002, FIND_TOKEN_MENU__MSG,              'FINDWORD'FIND_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_FINDTOKEN, gray_if_space)
+      buildmenuitem menuname, 80, 8000, MARK_WORD_MENU__MSG\9,             'MARKWORD'MARK_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKWORD, gray_if_space)
+      buildmenuitem menuname, 80, 8001, MARK_TOKEN_MENU__MSG\9'Alt+W',     'MARKTOKEN'MARK_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKTOKEN, gray_if_space)
+      buildmenuitem menuname, 80, 8002, FIND_TOKEN_MENU__MSG\9'Ctrl+W',    'FINDWORD'FIND_TOKEN_MENUP__MSG, 0, mpfrom2short(HP_POPUP_FINDTOKEN, gray_if_space)
       buildmenuitem menuname, 80, 8003, \0,                       '',          4, 0
 compile if WANT_TEXT_PROCS
       buildmenuitem menuname, 80, 8004, MARK_SENTENCE_MENU__MSG,           'MARKSENTENCE'MARK_SENTENCE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKSENTENCE, 0)
