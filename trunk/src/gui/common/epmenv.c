@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.19 2005-07-17 15:41:51 aschn Exp $
+* $Id: epmenv.c,v 1.20 2005-07-31 19:13:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -879,7 +879,11 @@ DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
 // cleanup on error
 if (rc)
    if (pszEnv) free( pszEnv);
-   if (pszPathVar) free( pszPathVar);
+//   if (pszPathVar) free( pszPathVar);
+     // This causes following error msg, if the env is already extended,
+     // e.g. recomp cannot be started from EPM then:
+     //    Invalid memory block address 0xaaaaaaaa was used.
+     //    Memory error detected at line 882 of epmenv.c.
 if (pszEnvNameList) free( pszEnvNameList);
 // cleanup
 for (i = 0; i < (sizeof( apszVar) / sizeof( PSZ)); i++)
