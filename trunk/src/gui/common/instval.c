@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.14 2005-07-17 15:41:52 aschn Exp $
+* $Id: instval.c,v 1.15 2005-07-31 21:41:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include "macros.h"
+#include "file.h"
 #include "nepmd.h"
 #include "module.h"
 #include "tmf.h"
