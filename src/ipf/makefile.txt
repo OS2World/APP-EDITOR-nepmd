@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.29 2004-12-25 10:49:08 aschn Exp $
+.. $Id: makefile.txt,v 1.30 2005-08-01 19:54:33 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -287,7 +287,7 @@ The following is required for making [=TITLE]:
 [=NOTE]
 .ul compact
 .at hi
-- any makefile processing will check for all required packages
+- Any makefile processing will check for all required packages
   to be available and abort if anything is missing on your system!
 .at
 
@@ -307,8 +307,8 @@ Workplace Shell should be increased by.
 
 [=NOTE]
 .ul compact
-- the environment variable *SHELLHANDLESINC* must be set in CONFIG.SYS,
-  so it requires a reboot to activate it
+- The environment variable *SHELLHANDLESINC* must be set in CONFIG.SYS,
+  so it requires a reboot to activate it.
 
 _*Example:*_
 .fo off
@@ -317,19 +317,19 @@ SET SHELLHANDLESINC=60
 
 
 .. .............................................................................
-.3 WarpIn
+.3 WarpIN
 .. .............................................................................
 .an IDPNL_REQUIREMENTS_WARPIN
 .
-The *WarpIn* Installer is used to create the installation package.
+The *WarpIN* Installer is used to create the installation package.
 As a minimum version 0.9.18 is required.
 
 [=NOTE]
 .ul
-- You can download *Warpin* from
-  - [http://www.xworkplace.org]
-- makefile processing will extend the environment automatically
-  to access the *WarpIn* executables, so it is not required to make
+- You can download *WarpIN* from
+  - [http://warpin.netlabs.org/?show=download WarpIN home page (warpin.netlabs.org)]
+- Makefile processing will extend the environment automatically
+  to access the *WarpIN* executables, so it is not required to make
   them accessible via the PATH statement.
 
 .. .............................................................................
@@ -339,12 +339,12 @@ As a minimum version 0.9.18 is required.
 .
 As compiler the following are supported
 .ul compact
-- *IBM CSet /2* (debugger seems not to cope with the debug version...)
-- *IBM VAC 3.08* (much better debugger)
+- *IBM CSet/2* (debugger seems not to cope with the debug version...)
+- *IBM VAC 3.08* (much better debugger).
 
 [=NOTE]
 .ul compact
-- the compiler used is automatically recognized by the makefile
+- The compiler used is automatically recognized by the makefile.
 
 .. .............................................................................
 .3 Toolkit for OS/2 Warp
@@ -356,12 +356,6 @@ As toolkit one of the following is required:
 - *OS/2 Warp 3 Developers Toolkit*
 - *OS/2 Warp 4 Developers Toolkit*
 - *OS/2 Warp 4.5 Developers Toolkit*
-
-[=NOTE]
-.ul compact
-- The 32-bit *rc.exe* (version 5.x) out of *Toolkit 4.5* apparently searches for
-  its message files only in the current directory. Therefore replace it with a
-  prior version, e.g. the one in your ?:\OS2 directory.
 
 .. .............................................................................
 .3 EPM Macro Compiler
@@ -378,17 +372,18 @@ The *EPM Macro Compiler* is required to compile the *RECOMP* macro.
 .
     (search "epmapp" at hobbes.nmsu.edu)
 .
-- *etpm.exe* must be accessible by the PATH statement
+- *etpm.exe* must be accessible by the PATH statement.
 
 .. .............................................................................
 .3 PKUNZIP2
 .. .............................................................................
 .an IDPNL_REQUIREMENTS_PKUNZIP2
 .
-PKUNZIP2 is required in order to unpack certain parts of the EPMBBS packages,
-as it supports the shrink method, this is not supported by newer versions of *Info-Zip*.
+*PKUNZIP2* is required in order to unpack certain parts of the EPMBBS packages,
+as it supports the shrink method, this is not supported by some versions of *Info-Zip*
+before UNZIP 5.52 of 2005.
 
-As PKUNZIP2.EXE comes as part of *MPTS*, it is available on OS/2 Warp Systems with
+As *pkunzip2.exe* comes as part of *MPTS*, it is available on OS/2 Warp Systems with
 Network or Internet Access Kit installed.
 
 .. .............................................................................
@@ -396,15 +391,17 @@ Network or Internet Access Kit installed.
 .. .............................................................................
 .an IDPNL_REQUIREMENTS_UNZIP2
 .
-UNZIP is required in order to unpack certain parts of the EPMBBS packages,
+*UNZIP* is required in order to unpack certain parts of the EPMBBS packages,
 as it supports the "deflated" method used for some text files, this is not supported by
 [.IDPNL_REQUIREMENTS_PKUNZIP2].
 
 [=NOTE]
 .ul
 - You can download *unzip* from
-  - [http://www.info-zip.org Info-ZIP's homepage (www.info-zip.org)]
-- *unzip.exe* must be accessible by the PATH statement
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=unz+x2.exe The Hobbes File Archive]
+.
+    (search "unz x2.exe" at hobbes.nmsu.edu)
+- *unzip.exe* must be accessible by the PATH statement.
 
 .. .............................................................................
 .3 wget
@@ -420,7 +417,7 @@ as it supports the "deflated" method used for some text files, this is not suppo
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=wget The Hobbes File Archive]
 .
     (search "wget" at hobbes.nmsu.edu)
-- *wget.exe* must be accessible by the PATH statement
+- *wget.exe* must be accessible by the PATH statement.
 - when sitting behind a firewall, create/modify a wget resource file in order
   to use an FTP proxy. Insert or add the following entries to the file
   %home%\.wgetrc and replace the bold printed values as required:
@@ -443,10 +440,10 @@ For compilation of the online help the preprocessor *HyperText/2* is used.
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=htext The Hobbes File Archive]
 .
     (search "htext" at hobbes.nmsu.edu)
-- install according to the information in htext.inf
+- Install according to the information in htext.inf.
 .ul compact
-  - *htext.cmd* must be accessible by the PATH statement
-  - the bitmap files ***.bmp* must be placed either
+  - *htext.cmd* must be accessible by the PATH statement.
+  - The bitmap files ***.bmp* must be placed either
     - into the same directory where you put *htext.cmd* to
     - into a subdirectory *htext* or *bmp* within the directory where you
       put *htext.cmd* to
@@ -467,7 +464,7 @@ For converting a REXX script to an executable the *REXX2EXE* compiler us used.
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=rexx2exe The Hobbes File Archive]
 .
     (search "rexx2exe" at hobbes.nmsu.edu)
-- *rexx2exe.exe* must be accessible by the PATH statement
+- *rexx2exe.exe* must be accessible by the PATH statement.
 
 .. .............................................................................
 .3 FASTDEP
@@ -478,8 +475,14 @@ For creating dependency files the FastDep utility is used.
 
 [=NOTE]
 .ul
-- You can download *FastDep* from the *XWorkplace* project being hosted on the *Netlabs Archive Server*.
-- *fastdep.exe* must be accessible by the PATH statement
+- You can download *FastDep* from the *XWorkplace* project being hosted on the
+  *Netlabs CVS Archive Server*. Get the *XWPHelpers* project files with a CVS client.
+  A binary is contained in the *xwhelpers* directory.
+- As an alternative, download a snapshot from
+  - [ftp://ftp.netlabs.org/pub/snapshots/xwphelpers Netlabs ftp server]
+.
+    (go to ftp://ftp.netlabs.org/pub/snapshots/xwphelpers)
+- *fastdep.exe* must be accessible by the PATH statement.
 
 .. .............................................................................
 .3 GREP
@@ -490,7 +493,7 @@ For checking unpacked EPM files the *grep* utility is used.
 
 [=NOTE]
 .ul
-- the *grep* utility is only required if you run *src\wis\makefile* with pseudotarget
+- The *grep* utility is only required if you run *src\wis\makefile* with pseudotarget
   *check*. It is not mandandory in order to create the package itself.
 - You can download *Grep v2.0* from
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=grep20 The Hobbes File Archive]
@@ -499,7 +502,10 @@ For checking unpacked EPM files the *grep* utility is used.
 .el
 .
   This version has the advantage that it does not require the *EMX* runtime.
-- *grep.exe* must be accessible by the PATH statement
+- Any other version of *Gnu grep* should work as well, if a recent version of
+  *EMX* runtime is installed. (BTW: since v2.5 recoursive search is possible.)
+- The IBM version, contained in the CSTEPM package, doesn't work.
+- *grep.exe* must be accessible by the PATH statement.
 
 .. .............................................................................
 .3 LXLITE
@@ -510,13 +516,17 @@ For packing the executables of the [=TITLE], the *lxlite* utility is used.
 
 [=NOTE]
 .ul
-- the *lxlite* utility is only required if you build the release version of the
+- The *lxlite* utility is only required if you build the release version of the
   [=TITLE] executables, which is the default. In order to build the debug versions
   instead, either
 .ul compact
   - specify *DEBUG=1* as parameter to *nmmake* or
-  - set the environment variable *DEBUG=1* before calling *nmake*
-- *lxlite.exe* must be accessible by the PATH statement
+  - set the environment variable *DEBUG=1* before calling *nmake*.
+- You can download *lxlite* from
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=lxlt The Hobbes File Archive]
+.
+    (search "lxlt" at hobbes.nmsu.edu)
+- *lxlite.exe*, together with its *lxlite.cfg* must be accessible by the PATH statement.
 
 .. -----------------------------------------------------------------------------
 .2 CVS development tree overview
