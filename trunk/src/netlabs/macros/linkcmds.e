@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.20 2005-07-17 15:41:59 aschn Exp $
+* $Id: linkcmds.e,v 1.21 2005-08-07 19:57:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1034,7 +1034,9 @@ defc RecompileNew
             activatefile fid
          endif
       endif
+/*
       'postme e 'LogFile
+*/
    endif
    if cWarning > 0 then
       ret = 1
@@ -1042,10 +1044,10 @@ defc RecompileNew
       ret = 0
    endif
    quietshell 'del' CompileDir'\* /n & rmdir' CompileDir  -- must come before restart
-   if not fCheckOnly then
-      if fRestartEpm = 1 then
-         'postme postme Restart'
-      endif
+   if (not fCheckOnly) & (fRestartEpm = 1) then
+      'postme postme Restart postme postme RecompileNewMsgBox' ret
+   else
+      'postme postme RecompileNewMsgBox' ret
    endif
    rc = ret
 
@@ -1264,9 +1266,11 @@ defproc WriteLog( LogFile, Msg)
 
 ; ---------------------------------------------------------------------------
 ; Compare .EX and .E macro files from <UserDir> with those from the NETLABS tree.
+/*
 ; EPM.EX is newer. Make that suppressable with an ini key, to reset by the
 ; next NEPMD installation.
 ; Optional args: enable | disable | force
+*/
 defc CheckEpmMacros
    universal nepmd_hini
 
@@ -1276,6 +1280,7 @@ defc CheckEpmMacros
    call EnsureDirExists( NepmdUserDir'\macros')
    call EnsureDirExists( NepmdUserDir'\autolink')
 
+/*
    App = 'RegDefaults'
    Key = '\NEPMD\System\CheckEpmMacros'
 
@@ -1300,20 +1305,29 @@ defc CheckEpmMacros
          return
       endif
    endif
+*/
 
    'RecompileNew CheckOnly'
+/*
    ret = rc
    'postme postme postme CheckEpmMacrosMsgBox' ret
+*/
 
+; ---------------------------------------------------------------------------
+; Show a MsgBox with the result of RecompileNew, submitted as arg(1).
+/*
 defc CheckEpmMacrosMsgBox
+*/
+defc RecompileNewMsgBox
    NepmdUserDir = Get_Env('NEPMD_USERDIR')
    UserDirName = substr( NepmdUserDir, lastpos( '\', NepmdUserDir) + 1)
+   LogFile = NepmdUserDir'\ex\recompilenew.log'
    ret = arg(1)
    if ret = 1 then
       Text = ''
       Text = Text || 'Warning(s) occurred during comparism of 'upcase(UserDirName)' files'
       Text = Text || ' with NETLABS files. See log file'
-      Text = Text || ' 'NepmdUserDir'\EX\RECOMPILENEW.LOG'\10\10
+      Text = Text || ' 'upcase(UserDirName)'\EX\RECOMPILENEW.LOG'\10\10
       Text = Text || 'In order to use all the newly installed NETLABS files,'
       Text = Text || ' delete or rename the listed 'upcase(UserDirName)' files, that produced'
       Text = Text || ' a warning. A good idea would be to rename'
@@ -1325,15 +1339,16 @@ defc CheckEpmMacrosMsgBox
       Text = Text || ' (They can be left in your 'upcase(UserDirName)'\MACROS dir, if there''s'
       Text = Text || ' no name clash.) Then Recompile your macros. This can be'
       Text = Text || ' done easily with NEPMD''s RecompileNew command.'\10\10
-      Text = Text || 'Should this be checked on the next start again?'
+      Text = Text || 'Do you want to load the log file now?'
       Style = MB_YESNO+MB_WARNING+MB_DEFBUTTON1+MB_MOVEABLE
    else
       Text = ''
       Text = Text || 'No warning(s) occurred during comparism of 'upcase(UserDirName)' files'
       Text = Text || ' with NETLABS files.'\10\10
-      Text = Text || 'All newly installed macro files from NETLABS\MACROS'
-      Text = Text || ' and NETLABS\EX will be used correctly.'\10\10
-      Text = Text || 'Should this be checked on the next start again?'
+      Text = Text || 'If you have added own macro files to your MYEPM tree,'
+      Text = Text || ' they are newer than the files in the NETLABS tree.'
+      Text = Text || ' Apparently no old MYEPM files are used.'\10\10
+      Text = Text || 'Do you want to load the log file now?'
       Style = MB_YESNO+MB_INFORMATION+MB_DEFBUTTON1+MB_MOVEABLE
    endif
 
@@ -1342,16 +1357,9 @@ defc CheckEpmMacrosMsgBox
                         Text,
                         Style)
    if ret = 6 then  -- Yes
-      -- Change (only here) the default setting to reset it
-      -- automatically by the next install.
-      'CheckEpmMacros ENABLE'
+      'e 'LogFile
    elseif ret = 7 then  -- No
-      -- Change (only here) the default setting to reset it
-      -- automatically by the next install.
-      'CheckEpmMacros DISABLE'
    endif
-
-   --'postme e' LogFile  -- This should ensure, that LogFile is on top.
 
    return
 
