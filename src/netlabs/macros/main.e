@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.30 2005-07-17 15:42:01 aschn Exp $
+* $Id: main.e,v 1.31 2005-08-07 19:56:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,12 +18,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
-const
-; Added for testing:
-compile if not defined(NEPMD_WANT_AFTERLOAD)
-   NEPMD_WANT_AFTERLOAD = 1
-compile endif
 
 ; ---------------------------------------------------------------------------
 ; Put the test stuff into an extra command.
@@ -240,12 +234,9 @@ compile endif
    -- see also: STDCNF.E for menu
    call showwindow('ON')
 
-;  Check used versions of .EX and .E files ----------------------------------
-   'CheckEpmMacros'
-
 ;  Execute just-installed stuff, if any -------------------------------------
    App = 'RegDefaults'
-   Key = '\NEPMD\System\JustInstalled'
+   Key = '\NEPMD\User\JustInstalled'
    JustInstalled = QueryProfile( nepmd_hini, App, Key)
    if JustInstalled = 1 then
       -- Link JustInst.ex if present
