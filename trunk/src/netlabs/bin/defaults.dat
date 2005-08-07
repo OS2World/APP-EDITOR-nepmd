@@ -11,7 +11,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.11 2005-06-30 22:10:32 aschn Exp $
+; $Id: defaults.dat,v 1.12 2005-08-07 19:55:59 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -34,8 +34,7 @@
 "\NEPMD\Testcase\MyContainer\MyKey2"="This is another value"
 
 ; Installation
-"\NEPMD\System\JustInstalled" = "1"
-"\NEPMD\System\CheckEpmMacros" = "1"
+"\NEPMD\User\JustInstalled" = "1"
 
 ; Default edit, save and search options
 ;"\NEPMD\User\Edit\DefaultOptions" = "/b /t /l"
