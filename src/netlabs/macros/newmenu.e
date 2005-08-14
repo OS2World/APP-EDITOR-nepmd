@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.13 2005-07-17 15:42:02 aschn Exp $
+* $Id: newmenu.e,v 1.14 2005-08-14 18:14:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -355,11 +355,43 @@ defproc add_file_menu(menuname)
                                    'history save' ||
                                    \1'Open a list box with previous saved files',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
-/*
+   i = i + 1; call SetAVar( 'mid_openfolder', i);
+   buildmenuitem menuname, mid, i, 'Open ~folder',                                                 -- Open folder   >
+                                   '' ||
+                                   \1'Open WPS folder where the current file is located',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_openfolder_defaultview', i);
+   buildmenuitem menuname, mid, i, 'Default ~view',                                                      -- Default view
+                                   'openfolder OPEN=DEFAULT' ||
+                                   \1,
+                                   MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
                                    MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Icon view',                                                         -- Icon view
+                                   'openfolder ICONVIEW=NORMAL;OPEN=ICON' ||
+                                   \1,
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Icon ~flowed view',                                                  -- Icon flowed view
+                                   'openfolder ICONVIEW=FLOWED,MINI;OPEN=ICON' ||
+                                   \1,
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Tree view',                                                         -- Tree view
+                                   'openfolder TREEVIEW=MINI;SHOWALLINTREEVIEW=YES;OPEN=TREE' ||
+                                   \1,
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Details view',                                                      -- Details view
+                                   'openfolder OPEN=DETAILS' ||
+                                   \1,
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   -- Note: Don't specify the OpenFolder arg too long. There exists a restriction to the length of that parameter for buildmenuitem!
+   -- ToDo: use XWP's 'Reset to WPS's default view' feature to minimize stored EAs
+/*
    i = i + 1;
    buildmenuitem menuname, mid, i, 'F~TP',                                                         -- FTP   >
                                    '' ||
@@ -2155,46 +2187,6 @@ defproc add_run_menu(menuname)
                                    'start /f /k' ||
                                    \1'Open an OS/2 window with NEPMD''s environment',
                                    MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_openfolder', i);
-   buildmenuitem menuname, mid, i, 'Open ~folder',                                                 -- Open folder   >
-                                   '' ||
-                                   \1'Open WPS folder where the current file is located',
-                                   MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1; call SetAVar( 'mid_openfolder_defaultview', i);
-   buildmenuitem menuname, mid, i, 'Default ~view',                                                      -- Default view
-                                   'openfolder OPEN=DEFAULT' ||
-                                   \1,
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Icon view',                                                         -- Icon view
-                                   'openfolder ICONVIEW=NORMAL;OPEN=ICON' ||
-                                   \1,
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Icon ~flowed view',                                                  -- Icon flowed view
-                                   'openfolder ICONVIEW=FLOWED,MINI;OPEN=ICON' ||
-                                   \1,
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Tree view',                                                         -- Tree view
-                                   'openfolder TREEVIEW=MINI;SHOWALLINTREEVIEW=YES;OPEN=TREE' ||
-                                   \1,
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Details view',                                                      -- Details view
-                                   'openfolder OPEN=DETAILS' ||
-                                   \1,
-                                   MIS_TEXT + MIS_ENDSUBMENU, 0
-   -- Note: Don't specify the OpenFolder arg too long. There exists a restriction to the length of that parameter for buildmenuitem!
-   -- ToDo: use XWP's 'Reset to WPS's default view' feature to minimize stored EAs
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
