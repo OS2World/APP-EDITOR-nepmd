@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.22 2005-08-14 18:04:49 aschn Exp $
+* $Id: linkcmds.e,v 1.23 2005-08-14 18:39:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -988,6 +988,8 @@ defc RecompileNew
          endif
       endif
 
+      --<----------------------------- Todo: Reset NewExFileTime if temp ExFile is equal.
+      --<----------------------------- Todo: Compare myepm with netlabs ExFile. Delete myepm ExFile if equal.
       if NewExFileTime > '' then
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath1)
          call NepmdWriteConfigValue( nepmd_hini, KeyPath1, NewExFileTime)
