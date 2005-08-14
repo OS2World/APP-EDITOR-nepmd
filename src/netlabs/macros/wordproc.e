@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: wordproc.e,v 1.1 2004-02-22 21:21:52 aschn Exp $
+* $Id: wordproc.e,v 1.2 2005-08-14 22:07:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -79,7 +79,7 @@ defc wordproc
    .autosave = oldautosave
    call prestore_mark(savemark)
    call prestore_pos(savepos)
-
+   'AvoidSaveOptions /o /l'
 
 ; ---------------------------------------------------------------------------
 ; Todo: move

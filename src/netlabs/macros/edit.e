@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.22 2005-05-16 20:54:04 aschn Exp $
+* $Id: edit.e,v 1.23 2005-08-14 22:07:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -533,9 +533,23 @@ compile endif
          fn = '/r' fn
       endif
    endif
-   if fn <> '' then
+
+   postmc = ''
+   if fn > '' then
       call psave_pos( saved_pos )
-      "open" fn "'postme restorepos "saved_pos"'"
+      -- add arg for 'mc'
+      postmc = postmc';restorepos 'saved_pos
+   endif
+   -- Valid EPM commandline options are always regnized, even when they
+   -- are enclosed in '...' to signalize the submitted command part.
+   if NepmdGetMode() = 'BIN' then
+      -- prepend 'binedit'
+      fn = "'binedit "fn"'"
+   endif
+   if postmc > '' then
+      cmd = "open" fn "'postme mc "postmc"'"
+      sayerror cmd
+      cmd
    else
       'open' fn
    endif
@@ -548,57 +562,60 @@ compile endif
 ;       Name      : EPM Bin
 ;       Parameters: 'binedit %*'
 defc be, binedit
-   universal default_save_options
+;   universal default_save_options
    -- Change default options for save command to simply save a bin file
    -- with F2. Therefore this command should be used in a separate EPM
    -- window only.
-   default_save_options = '/ne /ns /nt'
+;   default_save_options = '/ne /ns /nt'
    'HookAdd loadonce tabs 1 noea'
    'HookAdd loadonce tabkey on'
    'HookAdd loadonce matchtab off'
    'HookAdd loadonce mode bin noea'
    'e /t /64 /bin "'arg(1)'"'    -- options should go before filename                    <-- Todo: parse options and filename
                                  -- /64 doesn't work if run from a program object.
-   if insert_state() then
-      -- switch to overwrite mode
-      insert_toggle
-   endif
+   'postme AvoidSaveOptions /e /s /t /o /l'
+;   if insert_state() then
+;      -- switch to overwrite mode
+;      insert_toggle
+;   endif
 
 ; ---------------------------------------------------------------------------
 ; linebreak at lineend chars
 defc ble, binlineedit
-   universal default_save_options
+;   universal default_save_options
    -- Change default options for save command to simply save a bin file
    -- with F2. Therefore this command should be used in a separate EPM
    -- window only.
-   default_save_options = '/ne /ns /nt'
+;   default_save_options = '/ne /ns /nt'
    'HookAdd loadonce tabs 1 noea'
    'HookAdd loadonce tabkey on'
    'HookAdd loadonce matchtab off'
    'HookAdd loadonce mode bin noea'
    'e /t /bin "'arg(1)'"'        -- options should go before filename
-   if insert_state() then
-      -- switch to overwrite mode
-      insert_toggle
-   endif
+   'postme AvoidSaveOptions /e /s /t /o /l'
+;   if insert_state() then
+;      -- switch to overwrite mode
+;      insert_toggle
+;   endif
 
 ; ---------------------------------------------------------------------------
 ; linebreak at maxmargin
 defc bme, binmaxedit
-   universal default_save_options
+;   universal default_save_options
    -- Change default options for save command to simply save a bin file
    -- with F2. Therefore this command should be used in a separate EPM
    -- window only.
-   default_save_options = '/ne /ns /nt'
+;   default_save_options = '/ne /ns /nt'
    'HookAdd loadonce tabs 1 noea'
    'HookAdd loadonce tabkey on'
    'HookAdd loadonce matchtab off'
    'HookAdd loadonce mode bin noea'
    'e /t /1599 /bin "'arg(1)'"'  -- options should go before filename
-   if insert_state() then
-      -- switch to overwrite mode
-      insert_toggle
-   endif
+   'postme AvoidSaveOptions /e /s /t /o /l'
+;   if insert_state() then
+;      -- switch to overwrite mode
+;      insert_toggle
+;   endif
 
 ; ---------------------------------------------------------------------------
 ; Open a file dialog to select a file for binary editing in a new edit
