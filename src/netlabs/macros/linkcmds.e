@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.21 2005-08-07 19:57:17 aschn Exp $
+* $Id: linkcmds.e,v 1.22 2005-08-14 18:04:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -496,7 +496,7 @@ defc RecompileAll
 ; files, whose E sources are newer then their EX files.
 ; Could be a problem: the ini entry for epm\EFileTimes has currently 1341
 ; byte. Apparently in ETK every string is limitted to 1599 byte.
-; Syntax: RecompileNew [RESET] | [CHECKONLY]
+; Syntax: RecompileNew [RESET] | [CHECKONLY] [NOMSG] [NOMSGBOX]
 defc RecompileNew
    universal nepmd_hini
 
@@ -509,8 +509,14 @@ defc RecompileNew
    -- Optional E files tryincluded in EPM.E only:
    OptEpmEFiles =  'mymain.e;myload.e;myselect.e;mykeys.e;mystuff.e;mykeyset.e;'
 
-   -- Determine CheckOnly mode: disable file operations then
-   fCheckOnly = upcase( arg(1)) = 'CHECKONLY'
+   -- Determine CheckOnly or Reset mode: disable file operations then
+   fCheckOnly = (wordpos( 'CHECKONLY', upcase( arg(1))) > 0)
+   fReset     = (wordpos( 'RESET'    , upcase( arg(1))) > 0)
+   fNoMsgBox  = (wordpos( 'NOMSGBOX' , upcase( arg(1))) > 0)
+   fNoMsg     = (wordpos( 'NOMSG'    , upcase( arg(1))) > 0)
+   if fNoMsgBox = 0 & fReset = 0 then
+      fNoMsg = 1  -- no output on the MsgLine, if MsgBox will pop up
+   endif
 
    parse value getdatetime() with Hour24 Minutes Seconds . Day MonthNum Year0 Year1 .
    Date = rightstr(Year0 + 256*Year1, 4, 0)'-'rightstr(monthnum, 2, 0)'-'rightstr(Day, 2, 0)
@@ -632,8 +638,9 @@ defc RecompileNew
    enddo
    WriteLog( LogFile, 'Note: Other unlisted .E/.EX files are not checked here.')
    WriteLog( LogFile, '      In order to recompile them')
-   WriteLog( LogFile, '         o  create your own .LST list file in the 'upcase(UserDirName)'\EX directory or')
-   WriteLog( LogFile, '         o  use the RELINK command instead.')
+   WriteLog( LogFile, '         o  create your own .LST list file in the 'upcase(UserDirName)'\EX directory,')
+   WriteLog( LogFile, '            name it maybe MYEXFILES.LST or')
+   WriteLog( LogFile, '         o  use the RELINK and LINK commands instead.')
    fRestartEpm  = 0
    fFoundMd5    = '?'
    cWarning     = 0
@@ -667,7 +674,7 @@ defc RecompileNew
       KeyPath3 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\EFiles'     -- EFiles     = base.ext;...
       KeyPath4 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\EFileTimes' -- EFileTimes = date time;...
 
-      if upcase( arg(1)) = 'RESET' then
+      if fReset then
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath1)
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath2)
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath3)
@@ -843,7 +850,7 @@ defc RecompileNew
          endif
       endif
 
-      if (fReplaceExFile = 1 | fCompExFile = 1) /*& not fCheckOnly*/ then
+      if (fReplaceExFile = 1 | fCompExFile = 1) then
          -- Run Etpm
          ExFile      = ''  -- init for CallEtpm
          EtpmLogFile = ''  -- init for CallEtpm
@@ -895,7 +902,7 @@ defc RecompileNew
          endif
       endif
 
-      if fCompExFile = 1 /*& not fCheckOnly*/ then
+      if fCompExFile = 1 then
          if fFoundMd5 = '?' then
             -- Search for MD5.EXE only once to give an error message
             findfile next, 'md5.exe', 'PATH'
@@ -981,8 +988,6 @@ defc RecompileNew
          endif
       endif
 
-      --<----------------------------- Todo: Reset NewExFileTime if temp ExFile is equal.
-      --<----------------------------- Todo: Compare user's with netlabs ExFile. Delete user's ExFile if equal.
       if NewExFileTime > '' then
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath1)
          call NepmdWriteConfigValue( nepmd_hini, KeyPath1, NewExFileTime)
@@ -1001,7 +1006,13 @@ defc RecompileNew
          call NepmdWriteConfigValue( nepmd_hini, KeyPath4, NewEFileTimes)
       endif
 
-   enddo
+   enddo  -- while rest <> ''
+   if fReset then
+      if not fNoMsg then
+         sayerror 'All RecompileNew entries deleted from NEPMD.INI'
+      endif
+      return
+   endif
    if fCheckOnly then
       if cWarning > 0 then
          Text = cWarning 'warning(s), no file replaced. Correct that before the next EPM start!'
@@ -1015,9 +1026,11 @@ defc RecompileNew
          Text = cRecompile 'file(s) recompiled and' cDelete 'file(s) deleted, therefrom' cRelink' file(s) relinked,' cWarning 'warning(s)'
       endif
    endif
-   sayerror Text' - see "'LogFile'"'
+   if not fNoMsg then
+      sayerror Text' - see "'LogFile'"'
+   endif
    if fRestartEpm = 1 then
-      WriteLog( LogFile, '         epm - restarted')
+      WriteLog( LogFile, '         epm - restart')
    endif
    WriteLog( LogFile, '')
    WriteLog( LogFile, Text)
@@ -1034,9 +1047,6 @@ defc RecompileNew
             activatefile fid
          endif
       endif
-/*
-      'postme e 'LogFile
-*/
    endif
    if cWarning > 0 then
       ret = 1
@@ -1044,11 +1054,18 @@ defc RecompileNew
       ret = 0
    endif
    quietshell 'del' CompileDir'\* /n & rmdir' CompileDir  -- must come before restart
+
    if (not fCheckOnly) & (fRestartEpm = 1) then
-      'postme postme Restart postme postme RecompileNewMsgBox' ret
+      Cmd = 'postme postme Restart'
    else
-      'postme postme RecompileNewMsgBox' ret
+      Cmd = ''
    endif
+   if not fNoMsgBox then
+      args = cWarning cRecompile cDelete cRelink fRestartEpm fCheckOnly
+      Cmd = strip( Cmd 'postme postme RecompileNewMsgBox' args)
+   endif
+   Cmd
+
    rc = ret
 
 ; ---------------------------------------------------------------------------
@@ -1265,12 +1282,8 @@ defproc WriteLog( LogFile, Msg)
                        ltoa( offset( Msg)''selector( Msg), 10))
 
 ; ---------------------------------------------------------------------------
-; Compare .EX and .E macro files from <UserDir> with those from the NETLABS tree.
-/*
-; EPM.EX is newer. Make that suppressable with an ini key, to reset by the
-; next NEPMD installation.
-; Optional args: enable | disable | force
-*/
+; Compare .EX and .E macro files from <UserDir> with those from the NETLABS
+; tree.
 defc CheckEpmMacros
    universal nepmd_hini
 
@@ -1280,74 +1293,58 @@ defc CheckEpmMacros
    call EnsureDirExists( NepmdUserDir'\macros')
    call EnsureDirExists( NepmdUserDir'\autolink')
 
-/*
-   App = 'RegDefaults'
-   Key = '\NEPMD\System\CheckEpmMacros'
-
-   if upcase( arg(1)) = 'ENABLE' then
-      call SetProfile( nepmd_hini, App, Key, 1)
-      -- If 'CheckEpmMacros enable' was specified as additional EPM cmd on
-      -- startup, the ini entry is written immediately, before 'CheckEpmMacros'
-      -- is processed by defmain. The following 'return' prevents doubled
-      -- execution in that case.
-      -- As a drawback, 'CheckEpmMacros enable' won't start RecompileNew itself.
-      -- Therefore EPM must be restarted (but maybe using /E<exfile> to use this
-      -- version of CheckEpmMacros/RecompileNew).
-      return
-   elseif upcase( arg(1)) = 'DISABLE' then
-      call SetProfile( nepmd_hini, App, Key, 0)
-      return
-   elseif upcase( arg(1)) = 'FORCE' then
-      -- bypass the query of the ini key
-   else
-      Enabled = QueryProfile( nepmd_hini, App, Key)
-      if Enabled = 0 then
-         return
-      endif
-   endif
-*/
-
    'RecompileNew CheckOnly'
-/*
-   ret = rc
-   'postme postme postme CheckEpmMacrosMsgBox' ret
-*/
 
 ; ---------------------------------------------------------------------------
 ; Show a MsgBox with the result of RecompileNew, submitted as arg(1).
-/*
-defc CheckEpmMacrosMsgBox
-*/
+; Todo: use different text for fCheckOnly = 1, cRecompile > 0, cRelink > 0
 defc RecompileNewMsgBox
    NepmdUserDir = Get_Env('NEPMD_USERDIR')
    UserDirName = substr( NepmdUserDir, lastpos( '\', NepmdUserDir) + 1)
    LogFile = NepmdUserDir'\ex\recompilenew.log'
-   ret = arg(1)
-   if ret = 1 then
-      Text = ''
+   parse arg cWarning cRecompile cDelete cRelink fRestart fCheckOnly
+   cWarning   = strip( cWarning)
+   cRecompile = strip( cRecompile)
+   cDelete    = strip( cDelete)
+   cRelink    = strip( cRelink)  -- required, why?
+   Bul = \7
+   Text = ''
+   if fCheckOnly then
+      Text = Text || 'RecompileNew CHECKONLY:'\n\n
+   else
+      Text = Text || 'RecompileNew:'\n\n
+      Text = Text || '       'Bul\9''cRecompile' file(s) recompiled'\n
+      Text = Text || '       'Bul\9''cDelete' file(s) deleted'\n
+      if fRestart then
+         Text = Text || '       'Bul\9'EPM restarted because'\n
+         Text = Text ||             \9'recompilation of EPM.EX'\n\n
+      else
+         Text = Text || '       'Bul\9''cRelink' file(s) relinked'\n\n
+      endif
+   endif
+   if cWarning > 0 then
       Text = Text || 'Warning(s) occurred during comparism of 'upcase(UserDirName)' files'
       Text = Text || ' with NETLABS files. See log file'
-      Text = Text || ' 'upcase(UserDirName)'\EX\RECOMPILENEW.LOG'\10\10
+      Text = Text || ' 'upcase(UserDirName)'\EX\RECOMPILENEW.LOG'\n\n
       Text = Text || 'In order to use all the newly installed NETLABS files,'
       Text = Text || ' delete or rename the listed 'upcase(UserDirName)' files, that produced'
       Text = Text || ' a warning. A good idea would be to rename'
       Text = Text || ' your 'upcase(UserDirName)'\MACROS and 'upcase(UserDirName)'\EX'
-      Text = Text || ' directories before the next EPM start.'\10\10
-      Text = Text || 'Only when you have added your own macros:'\10
+      Text = Text || ' directories before the next EPM start.'\n\n
+      Text = Text || 'Only when you have added your own macros:'\n
       Text = Text || 'After that, merge your own additions with the new'
       Text = Text || ' versions of the macros in NETLABS\MACROS.'
       Text = Text || ' (They can be left in your 'upcase(UserDirName)'\MACROS dir, if there''s'
       Text = Text || ' no name clash.) Then Recompile your macros. This can be'
-      Text = Text || ' done easily with NEPMD''s RecompileNew command.'\10\10
+      Text = Text || ' done easily with NEPMD''s RecompileNew command.'\n\n
       Text = Text || 'Do you want to load the log file now?'
       Style = MB_YESNO+MB_WARNING+MB_DEFBUTTON1+MB_MOVEABLE
    else
-      Text = ''
       Text = Text || 'No warning(s) occurred during comparism of 'upcase(UserDirName)' files'
-      Text = Text || ' with NETLABS files.'\10\10
+      Text = Text || ' with NETLABS files.'\n\n
       Text = Text || 'If you have added own macro files to your MYEPM tree,'
-      Text = Text || ' they are newer than the files in the NETLABS tree.'
-      Text = Text || ' Apparently no old MYEPM files are used.'\10\10
+      Text = Text || ' then they are newer than the files in the NETLABS tree.'
+      Text = Text || ' Apparently no old MYEPM files are used.'\n\n
       Text = Text || 'Do you want to load the log file now?'
       Style = MB_YESNO+MB_INFORMATION+MB_DEFBUTTON1+MB_MOVEABLE
    endif
@@ -1357,6 +1354,21 @@ defc RecompileNewMsgBox
                         Text,
                         Style)
    if ret = 6 then  -- Yes
+      -- check if old LogFile already in ring
+      getfileid logfid, LogFile
+      if logfid <> '' then
+         -- discard previously loaded LogFile from ring
+         getfileid curfid
+         if curfid = logfid then
+            -- quit current file
+            'xcom quit'
+         else
+            -- temporarily switch to old LogFile and quit it
+            activatefile logfid
+            'xcom quit'
+            activatefile curfid
+         endif
+      endif
       'e 'LogFile
    elseif ret = 7 then  -- No
    endif
