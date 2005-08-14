@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.23 2005-08-14 22:07:34 aschn Exp $
+* $Id: edit.e,v 1.24 2005-08-14 22:23:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -547,9 +547,7 @@ compile endif
       fn = "'binedit "fn"'"
    endif
    if postmc > '' then
-      cmd = "open" fn "'postme mc "postmc"'"
-      sayerror cmd
-      cmd
+      "open" fn "'postme mc "postmc"'"
    else
       'open' fn
    endif
