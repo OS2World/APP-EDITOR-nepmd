@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wrap.e,v 1.7 2005-05-16 20:53:04 aschn Exp $
+* $Id: wrap.e,v 1.8 2005-08-14 22:07:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -194,6 +194,7 @@ defc softwrap2win, softwrap
    if w > 0 then
       Wrapped = 1
       sayerror 'Wrapped 'w' lines without changing the number of lines on file save.'
+      'AvoidSaveOptions /o /l'
    else
       Wrapped = 0
       sayerror 'No wrap required'

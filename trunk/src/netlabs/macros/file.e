@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.7 2005-07-17 15:41:57 aschn Exp $
+* $Id: file.e,v 1.8 2005-08-14 22:07:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -270,6 +270,10 @@ compile endif
       options = '/t' options
    endif
 
+   -- Remove e.g. lineend options that can cause file damage after operations
+   -- with removal of lineends like WordProc, SoftWrap, BinEdit.
+   options = ProcessAvoidSaveOptions( options)
+
    -- Do the save
    display -2  -- suppress non-critical errors
    src = savefile( Name, Options)
@@ -401,6 +405,61 @@ compile endif
    endif
    rc = src
    return
+
+; ---------------------------------------------------------------------------
+; Specify a list of save options, that won't get executed on save,
+; undependent of the current save options. The command can be executed
+; several times, because new options are appended. This feature is
+; file-specific, because an array var, containing the file id is used.
+defc AvoidSaveOptions
+   new = strip( arg(1))
+   getfileid fid
+   AvoidOptions = GetAVar( 'avoidsaveoptions.'fid)
+   do n = 1 to words( new)
+      next = word( new, n)
+      if wordpos( next, AvoidOptions) = 0 then
+         AvoidOptions = AvoidOptions' 'next
+      endif
+   enddo
+   call SetAVar( 'avoidsaveoptions.'fid, strip( AvoidOptions))
+
+; ---------------------------------------------------------------------------
+; Remove e.g. /o, /l and /u if array var is set to keep file working after save
+defproc ProcessAvoidSaveOptions( options)
+   getfileid fid
+   AvoidOptions = lowcase( GetAVar( 'avoidsaveoptions.'fid))
+   if AvoidOptions > '' then
+      options = lowcase(options)
+      -- Replace option /u with /l /ne in AvoidOptions
+      if wordpos( '/u', AvoidOptions) then
+         if not wordpos( '/l', AvoidOptions) then
+            AvoidOptions = AvoidOptions' /l'
+         endif
+         if not wordpos( '/ne', AvoidOptions) then
+            AvoidOptions = AvoidOptions' /ne'
+         endif
+      endif
+      -- Replace option /u with /l /ne in Options
+      wp = ''
+      do while wp <> 0
+         wp = wordpos( '/u', options)
+         if wp > 0 then
+            options = subword( options, 1, wp - 1)' /l /ne 'subword( options, wp + 1)
+         endif
+      enddo
+      -- Process AvoidOptions
+      do w = 1 to words( AvoidOptions)
+         next = word( AvoidOptions, w)
+         wp = ''
+         do while wp <> 0
+            wp = wordpos( next, options)
+            if wp > 0 then
+               options = delword( options, wp, 1)
+            endif
+         enddo
+      enddo
+   endif
+   return options
 
 ; ---------------------------------------------------------------------------
 ; Change the submitted long (maybe full) filename into a FAT name and save
