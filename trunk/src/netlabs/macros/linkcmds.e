@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.23 2005-08-14 18:39:00 aschn Exp $
+* $Id: linkcmds.e,v 1.24 2005-08-27 09:44:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -356,6 +356,9 @@ defc RecompileEpm
 ; ---------------------------------------------------------------------------
 ; Check for a modified file in ring. If not, restart current EPM window.
 ; Keep current directory.
+; Doesn't work really reliable everytime (but even though useful):
+;    -  Sometimes EPM.EX is not reloaded.
+;    -  Sometimes EPM crashes on 'SaveRing' or on executing arg(1).
 defc Restart
    if arg(1) = '' then
       cmd = 'RestoreRing'
@@ -1064,8 +1067,13 @@ defc RecompileNew
    endif
    if not fNoMsgBox then
       args = cWarning cRecompile cDelete cRelink fRestartEpm fCheckOnly
-      Cmd = strip( Cmd 'postme postme RecompileNewMsgBox' args)
+      if fRestartEpm then
+         Cmd = Cmd 'postme postme RecompileNewMsgBox' args
+      else
+         Cmd = Cmd 'RecompileNewMsgBox' args
+      endif
    endif
+   Cmd = strip( Cmd)
    Cmd
 
    rc = ret
