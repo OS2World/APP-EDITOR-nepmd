@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.24 2005-08-27 09:44:44 aschn Exp $
+* $Id: linkcmds.e,v 1.25 2005-09-12 14:20:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -43,124 +43,215 @@ const
 compile endif
 
 ; ---------------------------------------------------------------------------
-; Syntax: link [<path>]<modulename>[.ex]          Example:  link draw
+; Syntax: link [<path>][<modulename>][.ex]          Example:  link draw
 ; A simple front end to the link statement to allow command-line invocation.
 defc link
-   waslinkedrc = linked(arg(1))
+   modulename = arg(1)
+   if modulename = '' then                           -- If no name given,
+      p = lastpos( '.', .filename)
+      if upcase( substr( .filename, p)) <> '.E' then
+         sayerror 'Not an .E file'
+         return
+      endif
+      modulename = substr( .filename, 1, p - 1)      -- current file without extension
+      p2 = lastpos( '\', modulename)
+      modulename = substr( modulename, p2 + 1)       -- strip path
+   endif
+   waslinkedrc = linked(modulename)
+   if waslinkedrc >= 0 then
+      sayerror 'Module "'modulename'" already linked as module #'waslinkedrc'.'
+      rc = -1
+      return
+   endif
    display -2  -- Turn non-critical messages off, we give our own message.
-   link arg(1)
+   link modulename
    linkrc = rc
    display 2
    if linkrc >= 0 then
-      if waslinkedrc > 0 then
-         sayerror 'Module "'arg(1)'" already linked as module #'waslinkedrc'.'
-      else
-         --sayerror LINK_COMPLETED__MSG RC
-         sayerror LINK_COMPLETED__MSG''linkrc' "'arg(1)'"'
-      endif
+      --sayerror LINK_COMPLETED__MSG RC
+      sayerror LINK_COMPLETED__MSG''linkrc' "'modulename'"'
    elseif linkrc = -307 then
-      sayerror 'Module "'arg(1)'" not linked, file not found'
+      sayerror 'Module "'modulename'" not linked, file not found'
    elseif linkrc < 0 then
       -- Sometimes is linkrc = empty, therefore check it again
-      linkedrc = linked(arg(1))
+      linkedrc = linked(modulename)
       if linkedrc < 0 then
-         sayerror 'Module "'arg(1)'" not linked, rc = 'linkrc', linkedrc = 'linkedrc
+         sayerror 'Module "'modulename'" not linked, rc = 'linkrc', linkedrc = 'linkedrc
       elseif waslinkedrc < 0 then
-         sayerror LINK_COMPLETED__MSG''linkedrc' "'arg(1)'"'
+         sayerror LINK_COMPLETED__MSG''linkedrc' "'modulename'"'
       else
-         sayerror 'Module "'arg(1)'": linkedrc = 'linkedrc
+         sayerror 'Module "'modulename'": linkedrc = 'linkedrc
       endif
    endif
 
 ; ---------------------------------------------------------------------------
-; Syntax: unlink [<path>]<modulename>[.ex]        Example:  unlink draw
+; Syntax: unlink [<path>][<modulename>][.ex]        Example:  unlink draw
 ; A simple front end to the unlink statement to allow command-line invocation.
 ; The standard unlink statement doesn't search in EPMPATH and DPATH like the
 ; link statement does. This is added here. ExFile is searched in
 ; .;%EPMPATH%;%DPATH% until the linked file is found.
 defc unlink
    FullPathName = ''
-   unlinkrc     = ''
    ExFile = arg(1)
-   p1 = lastpos( '\', ExFile)
-   ExFileName = substr( ExFile, p1 + 1)
-   p2 = lastpos( '.', ExFileName)
-   if p2 = 0 then
-      ExFile = ExFile'.ex'
-   endif
+
    if substr( ExFile, 2, 2) =  ':\' or substr( ExFile, 1, 2) =  '\\' then
       FullPathName = ExFile
    endif
 
    if FullPathName = '' then
-      -- search ExFile in whole PathList, until linkedrc > 0
-      PathList = '.;'Get_Env('EPMPATH')';'Get_Env('DPATH')';'
+
+      -- If no name given, use current file with '.ex' extension
+      if ExFile = '' then
+         p2 = lastpos( '.', .filename)
+         if upcase( substr( .filename, p2)) <> '.E' then
+            sayerror '"'.filename'" is not an .E file'
+            return
+         endif
+         ExFile = substr( .filename, 1, p2 - 1)'.ex'
+      endif
+
+      -- Strip path and append '.ex' if no extension
+      p1 = lastpos( '\', ExFile)
+      ExFileName = substr( ExFile, p1 + 1)
+      p2 = lastpos( '.', ExFileName)
+      if p2 = 0 then
+         ExFileName = ExFileName'.ex'
+      endif
+
+      -- Search ExFile in whole PathList, until linkedrc >= 0
+      PathList = '.;'Get_Env('EPMPATH')';'Get_Env('DPATH')';'  -- standard EPM
+      --PathList = Get_Env('EPMEXPATH')';'                       -- NEPMD
       rest = PathList
       do while rest <> ''
          parse value rest with Path';'rest
          if Path = '' then
             iterate
          endif
-         if rightstr( Path, 2, 2) = ':\' then  -- if root dir
-            Path = strip( Path, 'T', '\')
-         endif
-         next = Path'\'ExFile
+         next = strip( Path, 'T', '\')'\'ExFileName
          if Exist( next) then
-            -- Bug in linked: strips path forever, checks name only
             linkedrc = linked( next)
-            --sayerror 'linked: rc = 'linkedrc' for 'next
             if linkedrc >= 0 then
-               display -2  -- Turn non-critical messages off, we give our own message.
-               unlink next
-               display 2
-               if rc = 0 then
-                  unlinkrc = rc
-                  FullPathName = next
-                  leave
-               endif
+               FullPathName = next
+               leave
             endif
          endif
       enddo
+
    endif
 
    if FullPathName = '' then
       FullPathName = arg(1)  -- try to unlink arg(1) if not found until here
    endif
 
-   if unlinkrc = '' then  -- if not already tried to unlink
-      display -2  -- Turn non-critical messages off, we give our own message.
-      unlink FullPathName
-      unlinkrc = rc
-      display 2
-   endif
+   display -2  -- Turn non-critical messages off, we give our own message.
+   unlink FullPathName
+   unlinkrc = rc
+   display 2
    if unlinkrc then
       if unlinkrc = -310 then
-         sayerror 'Module "'arg(1)'" not unlinked, unknown module'
+         sayerror 'Module "'FullPathName'" not unlinked, unknown module'
+      elseif unlinkrc = -301 then
+         sayerror 'Module "'FullPathName'" not unlinked, module in use (better restart EPM)'
       elseif unlinkrc = -302 then
-         sayerror 'Module "'arg(1)'" not unlinked, defined keyset in use (better restart EPM)'
+         sayerror 'Module "'FullPathName'" not unlinked, defined keyset in use (better restart EPM)'
       else
-         sayerror 'Module "'arg(1)'" not unlinked, rc = 'unlinkrc
+         sayerror 'Module "'FullPathName'" not unlinked, rc = 'unlinkrc
       endif
    endif
 
 ; ---------------------------------------------------------------------------
-; Syntax: relink [[<path>]<modulename>[.e]]
+; New command to query whether a module is linked.  Of course if
+; you're not sure whether a module is linked, you can always just repeat the
+; link command.  E won't reload the file from disk if it's already linked, but
+; it will rerun the module's DEFINIT which might not be desirable.
+;
+; This also serves to document the new linked() function.  Linked() returns:
+;    module number        (a small integer, >= 0) if linked.
+;    -1                   if found on disk but not currently linked.
+;    -307                 if module can't be found on disk.  This RC value
+;                         is the same as sayerror("Link: file not found").
+;    -308                 if bad module name, can't be expanded.  Same as
+;                         sayerror("Link: invalid filename").
+defc qlink, qlinked, ql
+   module = arg(1)
+   if module = '' then
+      sayerror QLINK_PROMPT__MSG
+   else
+      result = linked(arg(1))
+      if result = -307 or    -- sayerror("Link: file not found")
+         result = -308 then  -- sayerror("Link: invalid filename")
+         sayerror CANT_FIND1__MSG module CANT_FIND2__MSG
+      elseif result < 0 then    -- return of -1 means file exists but not linked
+         sayerror module NOT_LINKED__MSG
+      else
+         sayerror module LINKED_AS__MSG result'.'
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+defc linkverify
+   module = arg(1)
+   link module
+   if RC < 0 then
+      if RC = -290 then  -- sayerror('Invalid EX file or incorrect version')
+         -- Get full pathname for a better error msg
+         if filetype(module) <> '.EX' then
+            module = module'.ex'              -- link does this by itself
+         endif
+         findfile module1, module, EPATH      -- link does this by itself
+         if rc then
+            findfile module1, module, 'PATH'  -- why search in PATH?
+         endif
+         if not rc then
+            module = module1
+         endif
+         RC = -290
+      endif
+      call winmessagebox( UNABLE_TO_LINK__MSG module,
+                          sayerrortext(rc),
+                          16416)  -- OK + ICON_EXCLAMATION + MB+MOVEABLE
+   endif
+
+; ---------------------------------------------------------------------------
+; Routine to link an .ex file, then execute a command in that file.
+defproc link_exec( ex_file, cmd_name)
+   'linkverify' ex_file
+   if RC >= 0 then
+      cmd_name arg(3)
+   else
+      sayerror UNABLE_TO_EXECUTE__MSG cmd_name
+   endif
+
+; ---------------------------------------------------------------------------
+defc linkexec
+   parse arg ex_file cmd_name
+   call link_exec( ex_file, cmd_name)
+
+; ---------------------------------------------------------------------------
+; Syntax: relink [IFLINKED] [[<path>]<modulename>[.e]]
 ;
 ; Compiles the module, unlinks it and links it again.  A fast way to
 ; recompile/reload a macro under development without leaving the editor.
 ; Note that the unlink is necessary in case the module is already linked,
 ; else the link will merely reinitialize the previous version.
 ;
-; If modulename is omitted, the current filename is assumed.
+; standard: link module, even if it was not linked before
+; IFLINKED: link module only, if it was linked before
 ;
-; New: Link it only if it was linked before.
+; If modulename is omitted, the current filename is assumed.
 ; New: Path and extension for modulename are not required.
 defc relink
-   modulename=arg(1)  -- new: path and ext optional
-   if modulename='' then                           -- If no name given,
+   args = arg(1)
+   wp = wordpos( 'IFLINKED', upcase( args))
+   fIfLinked = (wp > 0)
+   if wp then
+      args = delword( args, wp, 1)  -- remove 'IFLINKED' from args
+   endif
+   modulename = args  -- new: path and ext optional
+   if modulename = '' then                           -- If no name given,
       p = lastpos( '.', .filename)
-      if upcase(substr( .filename, p)) <> '.E' then
-         sayerror 'Not an .E file'
+      if upcase( substr( .filename, p)) <> '.E' then
+         sayerror '"'.filename'" is not an .E file'
          return
       endif
       modulename = substr( .filename, 1, p - 1)    -- use current file.
@@ -170,7 +261,7 @@ defc relink
       endif
    endif
 
-   -- check if basename of module was linked before
+   -- Check if basename of module was linked before
    lp1 = lastpos( '\', modulename)
    name = substr( modulename, lp1 + 1)
    lp2 = lastpos( '.', name)
@@ -187,13 +278,16 @@ defc relink
    -- Unlink and link module if linked
    if linkedrc >= 0 then  -- if linked
       'unlink' basename   -- 'unlink' gets full pathname now
-      if rc = 0 then
-         'link' basename
-         -- refresh menu if module is linked and defines a menu
-         if rc >= 0 & upcase( rightstr( basename, 4)) = 'MENU' &
-            length( basename) > 4 then
-            'ChangeMenu' basename
-         endif
+      if rc < 0 then
+         return
+      endif
+   endif
+   if linkedrc >= 0 | fIfLinked = 0 then
+      'link' basename
+      -- Refresh menu if module is linked and defines a menu
+      if rc >= 0 & upcase( rightstr( basename, 4)) = 'MENU' &
+         length( basename) > 4 then
+         'ChangeMenu' basename
       endif
    endif
 
@@ -643,7 +737,7 @@ defc RecompileNew
    WriteLog( LogFile, '      In order to recompile them')
    WriteLog( LogFile, '         o  create your own .LST list file in the 'upcase(UserDirName)'\EX directory,')
    WriteLog( LogFile, '            name it maybe MYEXFILES.LST or')
-   WriteLog( LogFile, '         o  use the RELINK and LINK commands instead.')
+   WriteLog( LogFile, '         o  use the RELINK [IFLINKED] command instead.')
    fRestartEpm  = 0
    fFoundMd5    = '?'
    cWarning     = 0
@@ -1316,7 +1410,7 @@ defc RecompileNewMsgBox
    cWarning   = strip( cWarning)
    cRecompile = strip( cRecompile)
    cDelete    = strip( cDelete)
-   cRelink    = strip( cRelink)  -- required, why?
+   cRelink    = strip( cRelink)  -- strip required, why?
    Bul = \7
    Text = ''
    if fCheckOnly then
@@ -1408,73 +1502,5 @@ defc StartRecompile
       sayerror 'Environment var NEPMD_ROOTDIR not set'
    endif
    return
-
-; ---------------------------------------------------------------------------
-;  New command to query whether a module is linked.  Of course if
-;  you're not sure whether a module is linked, you can always just repeat the
-;  link command.  E won't reload the file from disk if it's already linked, but
-;  it will rerun the module's DEFINIT which might not be desirable.
-;
-;  This also serves to document the new linked() function.  Linked() returns:
-;     module number        (a small integer, >= 0) if linked.
-;     -1                   if found on disk but not currently linked.
-;     -307                 if module can't be found on disk.  This RC value
-;                          is the same as sayerror("Link: file not found").
-;     -308                 if bad module name, can't be expanded.  Same as
-;                          sayerror("Link: invalid filename").
-defc qlink, qlinked, ql
-   module = arg(1)
-   if module = '' then
-      sayerror QLINK_PROMPT__MSG
-   else
-      result = linked(arg(1))
-      if result = -307 or    -- sayerror("Link: file not found")
-         result = -308 then  -- sayerror("Link: invalid filename")
-         sayerror CANT_FIND1__MSG module CANT_FIND2__MSG
-      elseif result < 0 then    -- return of -1 means file exists but not linked
-         sayerror module NOT_LINKED__MSG
-      else
-         sayerror module LINKED_AS__MSG result'.'
-      endif
-   endif
-
-; ---------------------------------------------------------------------------
-defc linkverify
-   module = arg(1)
-   link module
-   if RC < 0 then
-      if RC = -290 then  -- sayerror('Invalid EX file or incorrect version')
-         -- Get full pathname for a better error msg
-         if filetype(module) <> '.EX' then
-            module = module'.ex'              -- link does this by itself
-         endif
-         findfile module1, module, EPATH      -- link does this by itself
-         if rc then
-            findfile module1, module, 'PATH'  -- why search in PATH?
-         endif
-         if not rc then
-            module = module1
-         endif
-         RC = -290
-      endif
-      call winmessagebox( UNABLE_TO_LINK__MSG module,
-                          sayerrortext(rc),
-                          16416)  -- OK + ICON_EXCLAMATION + MB+MOVEABLE
-   endif
-
-; ---------------------------------------------------------------------------
-; Routine to link an .ex file, then execute a command in that file.
-defproc link_exec( ex_file, cmd_name)
-   'linkverify' ex_file
-   if RC >= 0 then
-      cmd_name arg(3)
-   else
-      sayerror UNABLE_TO_EXECUTE__MSG cmd_name
-   endif
-
-; ---------------------------------------------------------------------------
-defc linkexec
-   parse arg ex_file cmd_name
-   call link_exec( ex_file, cmd_name)
 
 
