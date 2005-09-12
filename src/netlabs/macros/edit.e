@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.24 2005-08-14 22:23:54 aschn Exp $
+* $Id: edit.e,v 1.25 2005-09-12 13:52:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -174,7 +174,6 @@ defproc NepmdLoadFile( Spec, Options)
 ;
 ; EPM doesn't give error messages from XCOM EDIT, so we have to handle that for
 ; it.
-define SAYERR = 'sayerror'  -- EPM:  Message box shows all SAYERRORs
 
 ;compile if LINK_HOST_SUPPORT & (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL')
 ; compile if not defined(MVS)
@@ -216,7 +215,8 @@ compile endif
       return 0
    endif
 
-   call AddToHistory( 'EDIT', args)
+   --call AddToHistory( 'EDIT', args)
+   'postme postme AddToHistory EDIT' args
 
    options = default_edit_options
    parse value '0 0' with files_loaded new_files_loaded new_files not_found bad_paths truncated access_denied invalid_drive error_reading error_opening first_file_loaded
@@ -317,15 +317,8 @@ compile endif
             filespec = '"'filespec'"'
          endif
 
-compile if USE_APPEND  -- Support for DOS 3.3's APPEND, thanks to Ken Kahn.
-         if not verify( filespec,'\:','M') then
-            if not exist(filespec) then
-               Filespec = Append_Path(Filespec)||Filespec  -- LAM todo: fixup
-            endif
-        endif
-compile endif
-
          rc = NepmdLoadFile( filespec, options)
+         edit_rc = rc  -- restore this rc at the end
 
 ; Todo: rewrite that horrible message stuff:
 
@@ -373,17 +366,17 @@ compile endif
                          invalid_drive || error_opening || error_reading || access_denied || truncated || not_found || bad_paths || new_files ) &
                    '' <> new_files || bad_paths || not_found || truncated || access_denied || error_reading || error_opening || invalid_drive
 
-      if new_files then $SAYERR NEW_FILE__MSG substr(new_files,2); endif
-      if not_found then $SAYERR FILE_NOT_FOUND__MSG':' substr(not_found,2); endif
+      if new_files then sayerror NEW_FILE__MSG substr(new_files,2); endif
+      if not_found then sayerror FILE_NOT_FOUND__MSG':' substr(not_found,2); endif
    else
       multiple_errors = 0
    endif
-   if bad_paths then $SAYERR BAD_PATH__MSG':' substr(bad_paths,2); endif
-   if truncated then $SAYERR LINES_TRUNCATED__MSG':' substr(truncated,2); endif
-   if access_denied then $SAYERR ACCESS_DENIED__MSG':' substr(access_denied,2); endif
-   if invalid_drive then $SAYERR INVALID_DRIVE__MSG':' substr(invalid_drive,2); endif
-   if error_reading then $SAYERR ERROR_READING__MSG':' substr(error_reading,2); endif  -- __MSGs were
-   if error_opening then $SAYERR ERROR_OPENING__MSG':' substr(error_opening,2); endif  -- exchanged
+   if bad_paths then sayerror BAD_PATH__MSG':' substr(bad_paths,2); endif
+   if truncated then sayerror LINES_TRUNCATED__MSG':' substr(truncated,2); endif
+   if access_denied then sayerror ACCESS_DENIED__MSG':' substr(access_denied,2); endif
+   if invalid_drive then sayerror INVALID_DRIVE__MSG':' substr(invalid_drive,2); endif
+   if error_reading then sayerror ERROR_READING__MSG':' substr(error_reading,2); endif  -- __MSGs were
+   if error_opening then sayerror ERROR_OPENING__MSG':' substr(error_opening,2); endif  -- exchanged
    if multiple_errors then
       messageNwait(MULTIPLE_ERRORS__MSG)
    endif
@@ -413,6 +406,7 @@ compile endif
       endif
 
    endif
+   rc = edit_rc
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
@@ -463,21 +457,12 @@ defc ep, epath=
          pathname = EPATH
       endif
    endif
- compile if 0  -- Old way required the optional search_path & get_env routines
-   if not exist(filename) then
-      filename = search_path_ptr( Get_Env( pathname, 1), filename)filename
-   endif
-   'e 'filename
- compile else  -- New way uses the built-in Findfile.
-   --if pos( '=', filename) & leftstr( filename, 1) <> '"' then
-      call parse_filename( filename, substr( .filename, lastpos( '\', .filename) + 1))
-   --endif
+   call parse_filename( filename, substr( .filename, lastpos( '\', .filename) + 1))
    findfile newfile, filename, pathname
    if rc then
       newfile = filename
    endif
    'e 'newfile rest
- compile endif
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
@@ -903,6 +888,106 @@ defproc parse_filename2( var wrd, sourcefile)
       endif
    endif
    return
+
+; ---------------------------------------------------------------------------
+; Find a filemask, maybe relative, with a given startdir.
+; Doesn't check if file exists.
+; Doesn't resolve envvars.
+; Doesn't resolve "=".
+; Supports UNC and Unix names, including something like ftp://.
+; Not tested with IBM host names.
+; Syntax: GetFullName( FileMask [, StartDir])
+; FileMask: any maybe relative dir or file filemask, wildcards allowed
+; StartDir: parts of StartDir are appended to FileMask, if it's relative
+defproc GetFullName( FileMask)
+   FullName = FileMask
+
+   -- Get current dir and drive
+   CurDir = directory()
+   CurDrive = leftstr( CurDir, 2)
+
+   -- Get specified dir
+   StartDir = arg(2)
+
+   -- Translate '/' to '\' if local masks specified
+   p1 = pos( ':/', FileMask)
+   p2 = pos( '://', FileMask)
+   p3 = pos( ':/', StartDir)
+   p4 = pos( '://', StartDir)
+   if (p1 > 0 & p1 <> p2) | (p3 > 0 & p3 <> p4) then
+      FileMask = translate( FileMask, '\', '/')
+      StartDir = translate( StartDir, '\', '/')
+   endif
+
+   -- Init
+   if StartDir = '' then
+      StartDir = CurDir
+   endif
+   StartDrive = ''
+   Server = ''
+
+   -- Determine StartDir and StartDrive or Server
+   if substr( StartDir, 2, 2) = ':\' then        -- fully qualified
+      StartDrive = leftstr( StartDir, 2)
+   elseif leftstr( StartDir, 2, 2) <> '\\' then  -- UNC
+      p1 = 3
+      p2 = pos( '\', StartDir, p1)
+      if p2 = 0 then
+         Server = StartDir
+      else
+         Server = leftstr( StartDir, p2 - 1)
+      endif
+   elseif pos( '://', StartDir ) then            -- something like ftp:// or http://
+      p1 = pos( '://', StartDir ) + 3
+      p2 = pos( '/', StartDir, p1)
+      if p2 = 0 then
+         Server = StartDir
+      else
+         Server = leftstr( StartDir, p2 - 1)
+      endif
+   elseif leftstr( StartDir, 1) = '\' then       -- local, without drive
+      StartDrive = CurDrive
+      StartDir = StartDrive''StartDir
+   else                                          -- relative
+      StartDrive = CurDrive
+      StartDir = strip( CurDir, 't', '\')'\'StartDir
+   endif
+
+   -- Determine fullname                   -- fully qualified
+   if substr( FileMask, 2, 2) = ':\' then        -- local, fully qualified
+      FullName = FileMask
+   elseif leftstr( FileMask, 2, 2) = '\\' then   -- fully qualified UNC
+      FullName = FileMask
+   elseif pos( '://', FileMask ) then            -- fully qualified, starting with something like ftp:// or http://
+      FullName = Server''FileMask
+                                           -- only drive or server missing
+   elseif leftstr( FileMask, 1) = '\' &          -- UNC mask without server
+      leftstr( StartDir, 2, 2) = '\\' then
+      FullName = Server''FileMask
+   elseif leftstr( FileMask, 1) = '/' &          -- Unix mask without server
+      pos( '://', StartDir ) then
+      FullName = Server''FileMask
+   elseif leftstr( FileMask, 1) = '\' then       -- without drive
+      FullName = StartDrive''FileMask
+                                           -- relative
+   elseif leftstr( StartDir, 2, 2) = '\\' then   -- relative UNC mask
+      FullName = strip( StartDir, 't', '\')'\'FileMask
+   elseif pos( '://', StartDir ) then            -- relative Unix mask
+      FullName = strip( StartDir, 't', '/')'/'FileMask
+   else                                          -- relative
+      FullName = strip( StartDir, 't', '\')'\'FileMask
+   endif
+
+   -- Resolve '.' and '..' in FullName
+   if not pos( '/', FullName) then
+      next = NepmdQueryFullname( FullName)
+      parse value next with 'ERROR:'rc
+      if rc = '' then
+         FullName = next
+      endif
+   endif
+
+   return FullName
 
 ; ---------------------------------------------------------------------------
 ; This proc is called by defc app, append, put and defc save.
