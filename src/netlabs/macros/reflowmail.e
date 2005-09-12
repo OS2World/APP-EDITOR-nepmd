@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.4 2005-05-16 20:53:03 aschn Exp $
+* $Id: reflowmail.e,v 1.5 2005-09-12 14:01:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -344,12 +344,19 @@ defc reflowmail
       unmark
    endif
 
+   saved_modify = .modify
+   saved_autosave = .autosave
+   .autosave = 0
+
    .line = 1
    .col = 1
 
    -- add a blank line after last to make reflow of the last par easy
    insertline '', .last + 1
-   do forever
+   i = 0
+   do while i < 1000
+      i = i + 1  -- Added only as emergency stop, for nothing else.
+                 -- Maybe this will help to find the bug in it?
       thisLineIsBlank    = 0
       thisLineIsVerbatim = 0
       getline line
@@ -521,4 +528,9 @@ compile endif
    do while textline(.last) = ''
       deleteline .last
    enddo
+
+   if .modify > saved_modify then
+      .modify = saved_modify + 1
+   endif
+   .autosave = saved_autosave
 
