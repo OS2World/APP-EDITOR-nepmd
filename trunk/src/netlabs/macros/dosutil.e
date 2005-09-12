@@ -1,15 +1,10 @@
-/*
-- Prepared to discard support for the Dos envvar APPEND.
-- Updated some comments.
-- Added defproc FindFileInList.
-*/
 /****************************** Module Header *******************************
 *
 * Module Name: dosutil.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.8 2005-09-12 13:49:54 aschn Exp $
+* $Id: dosutil.e,v 1.9 2005-09-12 13:51:18 aschn Exp $
 *
 * ===========================================================================
 *
