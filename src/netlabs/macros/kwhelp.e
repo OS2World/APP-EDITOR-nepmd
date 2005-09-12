@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.23 2005-05-16 20:51:29 aschn Exp $
+* $Id: kwhelp.e,v 1.24 2005-09-12 14:27:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -220,7 +220,7 @@ defproc pHelp_C_identifier
 
          -- Re-build the line with a file list containing only found files.
          CheckedFileList = strip( CheckedFileList, 'B', '+' )
-         line = cmd' 'CheckedFileList' 'arg2
+         line = cmd CheckedFileList arg2
 
       endif
 
@@ -230,7 +230,15 @@ defproc pHelp_C_identifier
             parse value line with app inf key
             -- Newview requires "..." for strings with spaces, View strips them.
             if leftstr( key, 1) <> '"' then
-               key = '"'strip( key)'"'
+               parse value key with wrd rest
+               if rest > '' then
+                  key = '"'strip( key)'"'
+               endif
+            endif
+            -- Newview bug (still present with 2.16.4): needs doubled closing "
+            -- Reproducable with: start newview cmdref /s:"net view"
+            if leftstr( key, 1) = '"' then
+               key = key'"'
             endif
             line = 'newview 'inf' /s:'key
          endif
