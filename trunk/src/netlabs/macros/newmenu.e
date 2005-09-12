@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.14 2005-08-14 18:14:57 aschn Exp $
+* $Id: newmenu.e,v 1.15 2005-09-12 13:57:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1334,8 +1334,7 @@ compile endif
                                    \1'Toggle non-destructive wrap at window width',
                                    MIS_TEXT, 0
    -- Check for a cmd of a linked file won't work here, because the menu is already built by 'initconfig'.
-   --if isadefc('fold') | (search_path( Get_Env( 'EPMEXPATH'), 'fold.ex') > '') then
-   if isadefc('fold') | (search_path( Get_Env( 'EPMEXPATH'), 'fold.ex') > '') then
+   if isadefc('fold') | (FindFileInList( 'fold.ex', Get_Env( 'EPMEXPATH')) > '') then
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -3771,8 +3770,8 @@ defc set_OpenDlgDir
       call setprofile( app_hini, 'ERESDLGS', 'LASTFILESELECTED', new)
    endif
    SetMenuAttribute( GetAVar('mid_opendlgdirprev'), MIA_CHECKED, (opt = 1 | opt = 2))
-   SetMenuAttribute( GetAVar('mid_opendlgdirwork'),    MIA_CHECKED, not (opt = 1))
-   SetMenuAttribute( GetAVar('mid_opendlgdirfile'),    MIA_CHECKED, not (opt = 2))
+   SetMenuAttribute( GetAVar('mid_opendlgdirwork'), MIA_CHECKED, not (opt = 1))
+   SetMenuAttribute( GetAVar('mid_opendlgdirfile'), MIA_CHECKED, not (opt = 2))
 
 ; ---------------------------------------------------------------------------
 ; Change edit options and set menu attributes.
@@ -4145,5 +4144,4 @@ defproc update_paste_menu_text
    SetMenuText( GetAVar(midname), MenuText)
 
    return
-
 
