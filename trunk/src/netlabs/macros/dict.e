@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: dict.e,v 1.3 2004-07-02 13:49:23 aschn Exp $
+* $Id: dict.e,v 1.4 2005-09-12 14:22:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -247,24 +247,35 @@ defc ConfigDictLang
       Again = 0
       -- Open EntryBox
       -- No Linebreak allowed in Text
-      if Config = 'NEW' then
-         Title = 'Add new language - page 'i'/3'
+      if Config = 'CONFIG' then
+         maxi = 2
       else
-         Title = 'Configure language "'DefLang'" - page 'i'/3'
+         maxi = 3
+      endif
+      if Config = 'NEW' then
+         Title = 'Add new language - page 'i'/'maxi
+      else
+         Title = 'Configure language "'DefLang'" - page 'i'/'maxi
       endif
 
       if i = 1 then
-         Text  = 'Enter a filename for dictionary or a space-separated list:'
+         Text  = 'Enter a filename for a dictionary or a space-separated list:'
          Buttons = '/~Next 'RightArrow'/~File dialog/~Cancel'
          Back = 0; Next = 1; FileDlg = 2; Cancel = 3; Ok = 0
          OldEntry = Dict
          DefButton = Next
       elseif i = 2 then
-         Text  = 'Enter a filename for addenda or a space-separated list:'
-         Buttons = '/'LeftArrow' ~Back/~Next 'RightArrow'/~File dialog/~Cancel'
-         Back = 1; Next = 2; FileDlg = 3; Cancel = 4; Ok = 0
+         Text  = 'Enter a filename for an addendum or a space-separated list:'
          OldEntry = Add
-         DefButton = Next
+         if Config = 'CONFIG' then
+            Buttons = '/'LeftArrow' ~Back/~Ok/~File dialog/~Cancel'
+            Back = 1; Next = 0; Ok = 2; FileDlg = 3; Cancel = 4
+            DefButton = Ok
+         else
+            Buttons = '/'LeftArrow' ~Back/~Next 'RightArrow'/~File dialog/~Cancel'
+            Back = 1; Next = 2; FileDlg = 3; Cancel = 4; Ok = 0
+            DefButton = Next
+         endif
       else
          Text  = 'Enter a name for the language:'
          Buttons = '/'LeftArrow' ~Back/~Ok/~Cancel'
@@ -349,7 +360,7 @@ defc ConfigDictLang
                FileMask = substr( Dict, 1, lp)''FileMask
             endif
          else
-            FileDlgTitle = 'Select an addenda'
+            FileDlgTitle = 'Select an addendum'
             FileMask = '*.add;*.adl'
             lp = lastpos( '\', Add)
             if lp then
