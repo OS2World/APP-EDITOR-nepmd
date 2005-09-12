@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: hooks.e,v 1.4 2005-03-14 22:24:01 aschn Exp $
+* $Id: hooks.e,v 1.5 2005-09-12 13:59:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -37,7 +37,7 @@
 ; 5.51 great) package MLEPM.
 ;
 ; Following standard hook names currently exist:
-; -  init             executed (once) at defmain, after NepmdInitConfig
+; -  init             executed (once) at defmain, after InitConfig
 ; -  main             executed (once) at the end of defmain
 ; -  load             executed at the end of defload
 ;                     (can be used to change file or mode specific settings,
@@ -47,6 +47,10 @@
 ;                     only)
 ; -  afterload        executed after all defloads are finished
 ; -  afterloadonce    executed once after all defloads are finished
+; -  select           usually contains ProcessSelectSettings, to be used
+;                     for user additions as well
+; -  selectonce       user additions, deleted after execution
+; -  afterselect      usually contains ProcessRefreshInfoLine
 ; -  addmenu          executed by loaddefaultmenu, when the menu is built,
 ;                     before the help menu.
 ;                     (can be used for user's submenus)
@@ -54,6 +58,11 @@
 ;                     menu items
 ; The *once types are deleted after being executed, so that they get
 ; executed 1 time only.
+;
+; Use the 'select' hook for settings, you want to change on every
+; defselect event. That should be only stuff, that don't stick with the
+; file. If your stuff sticks, better use the 'load' hook to avoid loss
+; of performance and stability.
 ;
 ; Other events (definit, defselect, defmodify, defexit) are extendable
 ; properly, so no hooks are required therefore.
@@ -73,15 +82,23 @@
 ;                               usually, there's no need to query the mode
 ;                               at defselect again, except if it is shown in
 ;                               e.g. the statusbar.
+;                               Instead of get_array_var, the simplier proc
+;                               GetAVar can be used. It is defined as command
+;                               as well.
 ;                 toolbar   --> No array var exists. Create a new array var
 ;                               toolbar.<fileid> and use 'HookAdd load' to
 ;                               prepare the creation of the array var holding
 ;                               the mode or extension specific name of a
 ;                               toolbar. The hook will be executed at
 ;                               defload and this will save the toolbar name.
-;                               At every defselect the array var must be
-;                               queried and maybe the toolbar has to be
-;                               changed.
+;                               As a 2nd step, at every defselect the array
+;                               var must be queried and maybe the toolbar has
+;                               to be changed. This can be achived with a
+;                               a new command, that can be executed via
+;                               'HookAdd select'.
+;                               This is just an example, for the case, that
+;                               no array var exists. In the meantime, the
+;                               command SetToolBar was defined.
 
 ; ---------------------------------------------------------------------------
 ; Adds an entry
@@ -106,7 +123,8 @@ defc HookAdd
    return
 
 ; ---------------------------------------------------------------------------
-; Change an entry, if its first word is in the list, otherwise append it.
+; Change an entry, if the first word of args is in the list, otherwise append
+; it.
 ; Syntax: HookChange <HookName> <Cmd>
 defc HookChange
    universal EPM_utility_array_ID
@@ -142,7 +160,7 @@ defc HookChange
    return
 
 ; ---------------------------------------------------------------------------
-; Replaces all entries with an entry
+; Replaces all entries with a new entry
 ; Syntax: HookSet <HookName> <Cmd>
 defc HookSet
    universal EPM_utility_array_ID
@@ -185,7 +203,8 @@ defc HookDelAll
    return
 
 ; ---------------------------------------------------------------------------
-; Deletes a Cmd from hook array
+; Deletes every Cmd from a hook array, that is in the list. Specifying just
+; an abbriviation for Cmd matches a stored hook definition as well.
 ; Syntax: HookDel <HookName> <Cmd>
 defc HookDel
    universal EPM_utility_array_ID
@@ -195,12 +214,28 @@ defc HookDel
    Cmd      = strip( Cmd)
    if Cmd <> '' then  -- don't try to process if no Cmd
       if not get_array_value( EPM_utility_array_ID, prefix''HookName'.0', imax) then  -- if imax set
+         imaxnew = imax
          do i = 1 to imax
-            rc = get_array_value( EPM_utility_array_ID, prefix''HookName'.'i, next)
-            if upcase(next) = upcase(Cmd) then
-               --------------------------------------- todo -----------------------------------
+            if not get_array_value( EPM_utility_array_ID, prefix''HookName'.'i, next) then  -- if next set
+               if abbrev( upcase( next), upcase( Cmd)) then  -- if abbreviation matches the entry
+                  do_array 4, EPM_utility_array_ID, prefix''HookName'.'i  -- delete entry
+                  -- move following entries
+                  do j = i + 1 to imax
+                     ret = get_array_value( EPM_utility_array_ID, prefix''HookName'.'j, next)  -- get next
+                     if ret then
+                        leave
+                     endif
+                     do_array 2, EPM_utility_array_ID, prefix''HookName'.'j - 1, next  -- change entry
+                  enddo
+                  if not ret then
+                     imaxnew = imaxnew - 1
+                  endif
+               endif
             endif
          enddo
+         if imaxnew <> imax then
+            do_array 2, EPM_utility_array_ID, prefix''HookName'.0', imaxnew    -- update imax
+         endif
       endif
    endif
    return
