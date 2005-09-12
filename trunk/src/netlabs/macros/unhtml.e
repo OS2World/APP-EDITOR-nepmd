@@ -1,11 +1,10 @@
-; new
 /****************************** Module Header *******************************
 *
 * Module Name: unhtml.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: unhtml.e,v 1.1 2004-11-30 21:08:39 aschn Exp $
+* $Id: unhtml.e,v 1.2 2005-09-12 13:51:58 aschn Exp $
 *
 * ===========================================================================
 *
