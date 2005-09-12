@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.8 2005-06-30 22:01:30 aschn Exp $
+* $Id: alt_1.e,v 1.9 2005-09-12 13:47:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,11 +18,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
-/*
-Todo:
-- RY's grep doesn't find line
-*/
 
 --          (Alt-1.e should be renamed alt_1.e for CD-ROM...)
 -- Alt-One.E   Bells & whistles for the Alt-1 key.   Bryan Lewis  03/08/87
@@ -168,7 +163,7 @@ compile endif -- EPM_SHELL_PROMPT
          Name = line
          wildcardpos = verify( Mask, '*?', 'M')
          if wildcardpos then                               -- if a wildcard is used
-            bslashpos = lastpos('\', mask, wildcardpos)    --   find the last '\' preceding the wildcard
+            bslashpos = lastpos( '\', Mask, wildcardpos)   --   find the last '\' preceding the wildcard
             if bslashpos then                              --   if found, set dir to mask up to but not
                if pos( ':', Mask) = bslashpos - 1 then     --     if root dir
                   dirname = leftstr( Mask, bslashpos)      --       including the found '\'
@@ -554,28 +549,27 @@ compile endif  -- HOST_SUPPORT
 /******************************************************************************/
 /***       GREP support                                                     ***/
 /******************************************************************************/
-
-; ----------------------------------------------------------------------------- .Output from Gnu grep
-/*
-   -- 8/10/88:  Handle GREP output like "File #0==> CKEYSEL.E <==".
-   parse value line with "==>" filename "<=="
-   if filename then
-      call a1load(filename,AltOnePathVar,1)
-      return
-   endif
-*/
-   -- Handle Gnu GREP output like  full_specified_filename:lineno:text
-   if substr( .filename, 1, 21) = '.Output from Gnu grep' then            -- GNU grep
-      -- New: get current dir from line 1
-      parse value textline(1) with 'Current directory = 'CurDir
-/*
-      FileName = ''
-      parse value line with DriveLetter':'Rest
-      if length(DriveLetter) = 1 then
-         parse value Rest with FileName':'LineNumber':'Rest
-         FileName = DriveLetter':'FileName
+   fGnu = ''
+   -- Support reloaded grep outputs: <path>.Output from grep ...
+   lp = lastpos( '\', word( .filename, 1))
+   if substr( .filename, lp + 1, 17) = '.Output from grep' then
+      parse value textline(1) with 'SEARCH:'next
+      if next > '' then
+         fGnuGrep = 0
+      else
+         parse value textline(1) with 'Current directory = 'next
+         if next > '' then
+            fGnuGrep = 1
+         else
+            fGnuGrep = GetGrepVersion( 'INIT')
+         endif
       endif
-*/
+   endif
+   if fGnuGrep = 1 then
+; ----------------------------------------------------------------------------- .Output from grep (Gnu)
+   -- Handle Gnu GREP output like  full_specified_filename:lineno:text
+      -- New: get current dir from line 1 to handle relative pathes.
+      parse value textline(1) with 'Current directory = 'CurDir
 
       if substr( line, 1, 2) = '\\' | substr( line, 2, 2) = ':\' then  -- full qualified
          parse value substr( line, 3) with next':'LineNumber':'rest
@@ -584,18 +578,7 @@ compile endif  -- HOST_SUPPORT
       else
          parse value line with FileMask':'LineNumber':'rest
          FileMask = translate( FileMask, '\', '/')
-         saved_dir = directory()
-         call directory( CurDir)
-         -- find file in CurDir or resolve relative path
-         handle = 0
-         do i = 1 to 1 -- find only first
-            CheckFile = NepmdGetNextFile( FileMask, address(handle))
-            parse value CheckFile with 'ERROR:'rc
-            if rc = '' then
-               FileName = CheckFile
-            endif
-         enddo
-         call directory( saved_dir)
+         FileName = GetFullName( FileMask, CurDir)
       endif
 
       if FileName then
@@ -604,49 +587,52 @@ compile endif  -- HOST_SUPPORT
       endif
    endif
 
-; ----------------------------------------------------------------------------- .Output from grep
+; ----------------------------------------------------------------------------- .Output from grep (RY)
    -- 11/03/88: Open file specified by GREP and move to current line!  TJR
    -- Use the name ".grep" as the signature, so I can load multiple grep lists.
    -- See GREP.E.  jbl.
    if substr( .filename, 1, 5) = ".grep" |                            -- TJR's GREP
-      substr( .filename, 1, 17) = ".Output from grep" then            -- LAM's GREP
-         getsearch oldsearch
-       call psave_pos(save_pos)
-       'xcom l .   File #. -'          /* Find previous file           */
+      fGnuGrep = 0 then                                               -- LAM's GREP
+;      substr( .filename, 1, 17) = ".Output from grep" then            -- LAM's GREP
+      getsearch oldsearch
+      call psave_pos(save_pos)
+      'xcom l .   File #. -'          /* Find previous file           */
          setsearch oldsearch
-       if rc then
-          sayerror 'No files found!'
-          return
-       else
-          --getline newline
-          call prestore_pos(save_pos)
-          --parse value newline with "==> " filename " <=="
-          parse value line with "==> " filename " <=="
-          call a1load( filename, AltOnePathVar, 1)
+      if rc then
+         sayerror 'No files found!'
+         return
+      else
+         getline newline
+         call prestore_pos(save_pos)
+         parse value newline with "==> " filename " <=="
+         call a1load( filename, AltOnePathVar, 1)
 ;;compile if 1                                                -- LAM:  I use /L
 ;  Now supports both; if line starts with a number, assume /L; if not, do search.
-          parse value orig_line with num ')'
-          if pos('(', num) & not pos(' ', num) then
-             parse value num with . '(' num
-          endif
-          parse value num with num ':' col
-          if isnum(num) then
-             .cursory = .windowheight%2
-             num
-             if isnum(col) then .col = col; endif
-             return
-          endif
+         parse value orig_line with num ')'
+         if pos('(', num) & not pos(' ', num) then
+            parse value num with . '(' num
+         endif
+         parse value num with num ':' col
+         if isnum(num) then
+            y = num
+            x = 1
+            .cursory = .windowheight%2
+            if isnum(col) then x = col; endif
+            'postme goto' y x
+            return
+         endif
 ;;compile else                                                -- TJR doesn't
-          parse value orig_line with "==>" tempstr
-          if  tempstr = ''  then
-             'l ž'orig_line'žeaf+'          /* ALT-158 is the search delim */
-             if rc then
-                 sayerror substr( line, 1, 60)'. . . Not Found!'
-             endif
-          endif
-          return
+         parse value orig_line with "==>" tempstr
+         if tempstr = ''  then
+            -- Let it be hilighted by the built-in stuff...
+            'postme l '\158''orig_line\158'eaf+'          /* ALT-158 is the search delim */
+            if rc then
+               sayerror substr( line, 1, 60)'. . . Not Found!'
+            endif
+         endif
+         return
 ;;compile endif
-       endif
+      endif
    endif
    -- End of TJRs 11/03/88 Modifications!
 
@@ -687,8 +673,8 @@ compile endif  -- HOST_SUPPORT
    SeparatorList = '"'||"'"||'(){}[]<>,;|+ '\9'#='
    call find_token( StartCol, EndCol, SeparatorList, '')
 
-   WordFound = (StartCol <> 0 & EndCol >= StartCol)
-   if WordFound then  -- if word found
+   fWordFound = (StartCol <> 0 & EndCol >= StartCol)
+   if fWordFound then  -- if word found
       Spec = substr( line, StartCol, EndCol - StartCol + 1)
                                                          -- todo: handle URLs here, start browser
       -- convert slashes to backslashes
@@ -705,6 +691,7 @@ compile endif  -- HOST_SUPPORT
          SpecExt = upcase(SpecExt)
       endif
 
+      fTryCurFirst = 1  -- 1 ==> search in current dir first
       PathVar = 'PATH'
       if CurMode = 'E' | wordpos( SpecExt, 'E') > 0 then
          PathVar = 'EPMPATH'
@@ -712,24 +699,23 @@ compile endif  -- HOST_SUPPORT
          PathVar = 'TEXINPUT'
       endif
 
-      TryCurFirst = 1  -- 1 ==> search in current dir first
-
-      call a1load( Spec, PathVar, TryCurFirst)
+      call a1load( Spec, PathVar, fTryCurFirst)
 
 compile if C_INCLUDE
       -- If that fails, try INCLUDE path.
-      if rc = sayerror('New file') or rc = sayerror('Path not found') then
-         'q'
+      if rc <> 0 then
          PathVar = 'INCLUDE'
-         TryCurFirst = 0
-         call a1load( Spec, PathVar, TryCurFirst)
+         fTryCurFirst = 0
+         call a1load( Spec, PathVar, fTryCurFirst)
       endif
 compile endif
 
-      if rc = sayerror('New file') or rc = sayerror('Path not found') then
-         'q'
-      elseif rc = sayerror('Access denied') then
-         -- nop
+      if rc <> 0 then
+         -- Todo: give a better msg using a standard OS/2 rc.
+         sayerror 'File "'Spec'" cannot be found or loaded.'
+         -- Todo: search in tree and remove maybe relative path
+         -- from Spec or concatenate every path of the tree with
+         -- Spec (should be resolved by NepmdQueryFullname).
       else
          linenum  -- jbl 11/15/88, go to specified linenum if any.
          if col <> '' then
@@ -739,19 +725,63 @@ compile endif
    endif
 
 ; ---------------------------------------------------------------------------
-defproc a1load( filename, PathVar, TryCurFirst)
-   if pos( '*', filename) then
+; Sets rc > 0 for an standard error code, rc > 0 for an ETK error code, set
+; by defc edit, or rc = 0 on success.
+; FileName can be a name, including wildcards.
+; PathVar can be a name for a path, e.g. 'PATH'.
+; fTryCurFirst as optional 3rd arg specifies, if current directory should
+; be searched first (fTryCurFirst = 1).
+defproc a1load( FileName, PathVar)
+   fTryCurFirst = (arg(3) = 1)
+   WildcardPos = verify( FileName, '*?', 'M')
+
+   if WildcardPos then
       if YES_CHAR <> askyesno( WILDCARD_WARNING__MSG, '', filename) then
          return
       endif
-   endif
-   if TryCurFirst then
-      if exist(filename) then
-         'e' filename
-         return
+      'edit' FileName
+
+   else
+      -- Every check for existing names returns always 0 for wildcards in name.
+      -- Currently NepmdFileExists, NepmdDirExists and Exist suppress a following
+      -- sayerror going to the MsgLine, but it's written to the MsgBox. Any
+      -- execution of display won't help. With NepmdPmPrintf it can be prooved,
+      -- that the correct values 0 or 1 are returned. This can be workarounded
+      -- by assigning the returned 0 or 1 to any (maybe dummy) var first. After
+      -- that, the 0 or 1 can be used for sayerror output.
+      LoadName = ''
+      do i = 1 to 1
+         if fTryCurFirst then
+            if NepmdFileExists( FileName) then
+               LoadName = FileName
+               leave
+            endif
+         endif
+
+         next = FindFileInList( FileName, Get_Env( PathVar))
+         if next > '' then
+            LoadName = next
+            leave
+         endif
+
+         if not fTryCurFirst then
+            if NepmdFileExists( FileName) then
+               LoadName = FileName
+               leave
+            endif
+         endif
+      enddo
+
+      rc = -2
+      if LoadName > '' then
+         -- LoadName must exist
+         FullName = NepmdQueryFullname( LoadName)
+         parse value FullName with 'ERROR:'rc
+         if rc = '' then
+            'edit' FullName
+         endif
       endif
    endif
-   'e' search_path( Get_Env(PathVar), filename)filename
 
 ; ---------------------------------------------------------------------------
 defproc ParseDirParams( Params, var Flags, var Mask)

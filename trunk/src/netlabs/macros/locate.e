@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.17 2005-07-17 15:42:00 aschn Exp $
+* $Id: locate.e,v 1.18 2005-09-12 13:47:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -932,85 +932,287 @@ compile endif
    return
 
 ; ---------------------------------------------------------------------------
+const
+compile if not defined( GREP_EXE)
+   GREP_EXE = 'grep.exe'
+compile endif
+compile if not defined( GNU_GREP_OPTIONS)
+   -- -i  case insensitive
+   -- -n  show line numbers
+   -- -H  force print filename (path is missing, if file is located in current directory)
+   GNU_GREP_OPTIONS = '-inH'
+compile endif
+compile if not defined( RY_GREP_OPTIONS)
+   -- /y  case insensitive
+   -- /q  quiet, disable stderr
+   -- /l  show line numbers
+   RY_GREP_OPTIONS = '/y /q /l'
+compile endif
+
+; ---------------------------------------------------------------------------
+; Determine version of grep.exe. Returns:
+; 0  Ralph Yozzo's version of grep (can be found in CSTEPM package)
+; 1  Gnu grep or any other version
+; 2  error: file not found
+defproc GetGrepVersion
+   universal nepmd_hini
+;   universal grep_version_determined
+   fInit = upcase( arg(1)) = 'INIT'
+
+   -- Get fGnu, Size, Time from ini
+   KeyPath = '\NEPMD\User\GrepVersion'
+   next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   parse value next with fLastGnu \1 LastSize \1 LastTime \1
+
+   -- Default values
+   Size = ''
+   Time = ''
+   File = ''
+   if (fLastGnu = 0 | fLastGnu = 1) then
+      fGnu = fLastGnu
+   else
+      fInit = 1
+      fGnu = 1
+   endif
+;   if grep_version_determined <> 1 then
+;      fInit = 1
+;   endif
+
+   do i = 1 to 1
+      if not fInit then
+         leave
+      endif
+
+      if substr( GREP_EXE, 2, 2) = ':\' | substr( GREP_EXE, 1, 2) = '\\' then
+         File = GREP_EXE
+         if Exist( File) then
+            return 2  -- File not found
+         endif
+      else
+         -- Find grep.exe in path
+         findfile File, GREP_EXE, 'PATH', 'P'
+         if File = '' then
+            return 2  -- File not found
+         endif
+      endif
+
+      -- Query size, time
+      Size = NepmdQueryPathInfo( File, 'SIZE')
+      parse value Size with 'ERROR:'rc
+      if rc > '' then
+         leave
+      endif
+      Time = NepmdQueryPathInfo( File, 'MTIME')  -- YYYY/MM/DD HH:MM:SS
+      parse value Time with 'ERROR:'rc
+      if rc > '' then
+         leave
+      endif
+      -- sayerror '1: 'fInit'-"'File'"-'fLastGnu'-'Size'-'Time
+
+;      grep_version_determined = 1
+      -- Compare Size and Time
+      if Size = LastSize & Time = LastTime then
+         leave
+      endif
+
+      -- Different. Determine GnuFlag
+      TmpFile = Get_Env( 'TMP')'\gnu-ver.out'
+      Cmd = GREP_EXE' -V'
+      RyString = "unrecognized option: '-V'"
+      quietshell Cmd arg(2) '>'TmpFile '2>&1'
+      -- [H:\CSTEPM]grep -V           -- Ralph Yozzo's grep of CSTEPM
+      -- unrecognized option: '-V'
+      --
+      -- [F:\bin]grep -V              -- Gnu grep
+      -- grep (GNU grep) 2.5a
+      --
+      -- Copyright 1988, 1992-1999, 2000 Free Software Foundation, Inc.
+      -- This is free software; see the source for copying conditions. There is NO
+      -- warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+      'xcom edit' TmpFile
+      e_rc = rc
+      if e_rc then    -- Unexpected error.
+         sayerror ERROR_LOADING__MSG TmpFile
+         if e_rc = -282 then 'xcom quit'; endif  -- sayerror('New file')
+         sayerror 'GetGrepVersion: rc from xcom edit = 'e_rc
+         rc = e_rc
+         leave
+      endif
+      if textline(1) = RyString then
+         fGnu = 0
+      else
+         fGnu = 1
+      endif
+      'xcom quit'
+      call EraseTemp( TmpFile)
+      -- Write fGnu, Size, Time to ini
+      KeyValue = fGnu\1''Size\1''Time\1
+      next = NepmdWriteConfigValue( nepmd_hini, KeyPath, KeyValue)
+      --sayerror '2: 'fInit'-"'File'"-'fGnu'-'Size'-'Time
+   enddo
+   --sayerror fInit'-'fGnu
+   return fGnu
+
+; ---------------------------------------------------------------------------
 ; From EPMSMP\GREP.E
 ; Call an external GREP utility and display the results in an EPM file.
 ; The modified Alt+1 definition in ALT_1.E will let you place the
 ; cursor on a line in the results file and press Alt+1 to load the
 ; corresponding source file.
-
-; by Larry Margolis
-/*
-defc scan, grep =
-   sayerror 'Scanning files...'
-   call redirect('grep','/y /q /l' arg(1))
-   if .last=0 then
-      'q'
-      sayerror 'No hits.'
-   endif
-*/
-; Todo:
-; Replace an relative filespec with a full one to make Alt+1 work than
-; or save the current dir of grep somewhere in the temp file.
 ;
-; Syntax:
-;    ggrep [grepoptions] string filespec
+; Syntax: grep [grepoptions] pattern filemask
 ;
 ; If no grepoptions where specified, the defaultgrepopt are submitted to grep.
-;
-; Requires GNU grep. Doesn't work with Ralph Yozzo's grep anymore.
-;
-; Renamed to avoid double-defined grep, scan and redirect if CUSTEPM is
-; included.
+; Works with Gnu grep or Ralph Yozzo's grep (contained e.g. in CSTEPM).
+defc Grep
+   fGnu = GetGrepVersion( 'INIT')
+   if fGnu = 2 then
+      sayerror 'Error: 'GREP_EXE' not found in PATH'
+   else
+      call callgrep( fGnu, arg(1))
+   endif
 
-compile if not defined(GNU_GREP_EXE)
-const
-   GNU_GREP_EXE = 'ggrep'  -- interferes with IBM's grep
-                          -- alternative: use full pathname
-compile endif
-defc ggrep, gnugrep
+; ---------------------------------------------------------------------------
+; For use as menu item.
+defc GrepBox
+   next = arg(1)
+   if next = 0 | next = 1 then
+      fGnu = next
+   else
+      fGnu = GetGrepVersion( 'INIT')
+      if fGnu = 2 then
+         sayerror 'Error: 'GREP_EXE' not found in PATH'
+         return
+      endif
+   endif
    -- Options:
-   --    -i  case insensitive
-   --    -n  show line numbers
-   defaultgrepopt = '-in'
-   display -8
-   arg1 = arg(1)
-   -- parse options
-   grepargs = arg1
+   if fGnu then
+      DefaultGrepOpt = GNU_GREP_OPTIONS
+   else
+      DefaultGrepOpt = RY_GREP_OPTIONS
+   endif
+   Title = 'Scan for text in files'
+   Text  = 'Enter string (in quotes if it contains spaces) and file spec.'
+   DefaultValue  = DefaultGrepOpt' '
+   DefaultButton = 1
+
+   parse value entrybox( Title,
+                         '/~Ok/~Cancel/Grep ~Help',  -- max. 4 buttons
+                         DefaultValue,
+                         '',
+                         260,
+                         atoi(DefaultButton)  ||
+                         atoi(0000)           ||  -- help id
+                         gethwndc(APP_HANDLE) ||
+                         Text) with Button 2 NewValue \0
+   NewValue = strip(NewValue)
+   if Button = \1 then
+      call CallGrep( fGnu, NewValue)
+      return
+   elseif Button = \2 then
+      return
+   elseif Button = \3 then
+      -- Show help
+      if fGnu then
+         GrepArgs = '--help'
+      else
+         GrepArgs = ''
+      endif
+      --call CallGrep( fGnu, GrepArgs)  -- opens too late
+      "Open 'Grep "GrepArgs"'"  -- use an extra window to show Grep's help
+      'postme GrepBox' fGnu
+   endif
+
+; ---------------------------------------------------------------------------
+; Syntax: callgrep( fGnu[, GrepArgs])
+; If GrepArgs doesnot contain options, the default options, either
+; GNU_GREP_OPTIONS or RY_GREP_OPTIONS, depending on fGnu are prepended to
+; GrepArgs.
+defproc CallGrep
+   fGnu = (arg(1) = 1)
+
+   -- Options:
+   if fGnu then
+      defaultgrepopt = GNU_GREP_OPTIONS
+   else
+      defaultgrepopt = RY_GREP_OPTIONS
+   endif
+   --display -8
+
+   grepargs = arg(2)
+   -- Parse options, if user specified any
    grepopt  = ''
-   do i = 1 to words(arg1)
-      next = word( arg1, i)
-      if substr( next, 1, 1) = '-' then
-         grepopt  = grepopt' 'next
-         grepargs = delword( grepargs, 1, 1)
+   if fGnu then
+      optdelim = '-'
+   else
+      optdelim = '-/'
+   endif
+   do i = 1 to words( grepargs)
+      next = word( grepargs, i)
+      --if substr( next, 1, 1) = '-' then
+      if verify( substr( next, 1, 1), optdelim, 'M') then
+         grepopt = grepopt' 'next
       endif
    enddo
    grepopt = strip(grepopt)
+   -- Prepend default options, if user specified none
    if grepopt = '' then
-      grepopt = defaultgrepopt
+      grepargs = defaultgrepopt grepargs
    endif
-   sayerror 'Scanning files...'
-   -- Changed to support only Gnu grep.
-   call redirect_gnugrep( GNU_GREP_EXE, grepopt grepargs, directory())
-   display 8
+
+   if words( grepargs) > 1 then
+      sayerror 'Scanning files...'
+   elseif fGnu then
+      -- Show Gnu help
+      grepargs = '--help'
+   else
+      -- Show RY help
+      grepargs = ''
+   endif
+
+   call redirect_grep( fGnu, GREP_EXE, grepargs, directory())
+
+   if words( grepargs) < 2 then
+      sayerror 'Syntax: grep [options] pattern filemask  (default options = 'defaultgrepopt')'
+   else
+      sayerror 'Use Alt+1 to load the file under cursor.'
+   endif
+   --display 8
    return
 
-; Added directory for ALt_1.
-defproc redirect_gnugrep( cmd)
+; ---------------------------------------------------------------------------
+; Added directory line in Gnu grep's output for ALt_1.
+defproc redirect_grep( fGnu, Cmd)
    universal vTEMP_PATH
-   outfile = vTEMP_PATH''substr(cmd'_______', 1, 8)'.out'
-   quietshell cmd arg(2) '>'outfile '2>&1'
-   CurDir = arg(3)
-   if arg(3) = '' then
+   outfile = vTEMP_PATH'grep____.out'
+
+   quietshell Cmd arg(3) '>'outfile '2>&1'
+
+   CurDir = arg(4)
+   if arg(4) = '' then
       CurDir = directory()
    endif
-   if rc = sayerror('Insufficient memory') or
-      rc = sayerror('File Not found') then
+   if rc = sayerror( 'Insufficient memory') or
+      rc = sayerror( 'File Not found') then
       stop
    endif
-   'e' outfile
+
+   'edit' outfile
+   if rc = -282 then 'xcom quit'  -- sayerror('New file')
+      return
+   elseif rc <> 0 then
+      return
+   endif
    .autosave = 0
-   .filename = '.Output from Gnu grep' subword( cmd, 2) arg(2)
-   insertline 'Current directory = 'CurDir
+   .filename = '.Output from grep' arg(3)
+
+   -- If current path is searched only, Gnu grep won't output the files' pathes.
+   -- Additionally, the string "Current directory = " works now as markup for
+   -- the following Alt+1 command to determine the grep version easily.
+   if fGnu then
+      insertline 'Current directory = 'CurDir
+   endif
+
    .modify = 0
    call erasetemp(outfile)
    return
@@ -1055,28 +1257,20 @@ defc GfcCurrentFile
       sayerror 'Environment var NEPMD_USERPATH not set'
    endif
 
+   NetlabsDir = strip( NetlabsDir, 't', '\')
+   UserDir    = strip( UserDir   , 't', '\')
    if rc1 = '' & rc2 = '' then
-      if abbrev( upcase(fn), upcase(NetlabsDir)) then
-         p1 = length(NetlabsDir)
-         p2 = pos( '\', fn, p1 + 2)
-         if p2 > 0 then
-            rest = substr( fn, p2)
-            Sub = substr( fn, p1 + 2, p2 - p1 - 2)
-            fn2 = UserDir'\'Sub'\'rest
-            if NepmdFileExists(fn2) then
-               GfcParams = GfcParams' "'fn2'"'
-            endif
+      if abbrev( upcase(fn), upcase(NetlabsDir)'\') then
+         rest = substr( fn, length( NetlabsDir) + 1)  -- including leading \
+         fn2 = UserDir''rest
+         if NepmdFileExists(fn2) then
+            GfcParams = GfcParams' "'fn2'"'
          endif
-      elseif abbrev( upcase(fn), upcase(UserDir)) then
-         p1 = length(UserDir)
-         p2 = pos( '\', fn, p1 + 2)
-         if p2 > 0 then
-            rest = substr( fn, p2)
-            Sub = substr( fn, p1 + 2, p2 - p1 - 2)
-            fn2 = RootDir'\'Sub'\'rest
-            if NepmdFileExists(fn2) then
-               GfcParams = GfcParams' "'fn2'"'
-            endif
+      elseif abbrev( upcase(fn), upcase(UserDir)'\') then
+         rest = substr( fn, length( UserDir) + 1)  -- including leading \
+         fn2 = NetlabsDir''rest
+         if NepmdFileExists(fn2) then
+            GfcParams = GfcParams' "'fn2'"'
          endif
       endif
    endif
@@ -1221,5 +1415,4 @@ defc SetScrollAfterLocate
    elseif Button = \4 then
       return
    endif
-
 
