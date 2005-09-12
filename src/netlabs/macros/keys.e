@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.7 2005-06-30 22:04:57 aschn Exp $
+* $Id: keys.e,v 1.8 2005-09-12 14:29:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1823,4 +1823,81 @@ defc AlternatePaste
    endif
    'paste' altstyle
 
+; Insert the char from the line above at cursor position.
+; May get executed repeatedly to copy an entire expression without
+; cluttering the undo list at every single execution.
+; From Luc van Bogaert.
+defc InsertCharAbove
+   if .line > 1 then
+      saved_modify = .modify
+      saved_autosave = .autosave
+      .autosave = 0
+      action = 1
+      undoaction 4, action  -- disable undo recording at every command
+      -- force overwrite mode
+      i_s = insert_state()
+      if i_s then
+         insert_toggle  -- Turn off insert mode
+      endif
+
+      line = textline( .line - 1)  -- line above
+      char = substr( line, .col, 1)
+      keyin char
+
+      if i_s then
+         insert_toggle
+      endif
+      if lastkey(2) = lastkey(3) & saved_modify > 0 then  -- reset to last .modify if key was repeated
+         .modify = saved_modify
+      else
+         .modify = saved_modify + 1
+      endif
+      .autosave = saved_autosave
+      -- Must be disabled to take effect!
+      --undoaction 5, action  -- enable undo recording at every command
+   endif
+
+; Insert the char from the line below at cursor position.
+; May get executed repeatedly to copy an entire expression without
+; cluttering the undo list at every single execution.
+; From Luc van Bogaert.
+defc InsertCharBelow
+   if .line < .last then
+      saved_modify = .modify
+      saved_autosave = .autosave
+      .autosave = 0
+      action = 1
+      undoaction 4, action  -- disable undo recording at every command
+      -- force overwrite mode
+      i_s = insert_state()
+      if i_s then
+         insert_toggle  -- Turn off insert mode
+      endif
+
+      line = textline( .line + 1)  -- line below
+      char = substr( line, .col, 1)
+      keyin char
+
+      if i_s then
+         insert_toggle
+      endif
+      if lastkey(2) = lastkey(3) & saved_modify > 0 then  -- reset to last .modify if key was repeated
+         .modify = saved_modify
+      else
+         .modify = saved_modify + 1
+      endif
+      .autosave = saved_autosave
+      -- Must be disabled to take effect!
+      --undoaction 5, action  -- enable undo recording at every command
+   endif
+
+; Add a new line before the current, move to it, keep col.
+defc NewLineBefore
+   insertline ''
+   up
+
+; Add a new line after the current, move to it, keep col.
+defc NewLineAfter
+   insertline '', .line + 1
+   down
 

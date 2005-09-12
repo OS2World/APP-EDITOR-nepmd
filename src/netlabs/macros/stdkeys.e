@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.21 2005-05-16 21:03:55 aschn Exp $
+* $Id: stdkeys.e,v 1.22 2005-09-12 14:29:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -143,7 +143,7 @@ defc Key_c_s_f11  'History save'        -- Open Save history listbox
 
 ; ---- Special chars ----
 def a_f1          'TypeFrameChars'      -- Type a list of IBM frame chars (help for the draw and box commands)
-def a_n           'TypeFileName'        -- Type the full filename
+;def a_n          'TypeFileName'        -- Type the full filename
 def c_2           'TypeNull'            -- Type a null char (\0)
 def c_6           'TypeNot'             -- Type a not char ª (\170)
 def c_9           'TypeOpeningBrace'    -- Type a {
@@ -217,13 +217,23 @@ def c_pgdn        'Redo1'               -- Scroll through next undo states (keep
 ; In Stream mode, all enter defcs behave the same.
 ; Redefined by several keysets for programming languages to do 2nd syntax expansion, if activated.
 def enter         'enter'
-def a_enter       'a_enter'
+def a_enter       'a_enter'             -- Alt+Enter and Alt+Sh+Enter not definable in EPM?
 def c_enter       'c_enter'
 def s_enter       's_enter'
 def padenter      'padenter'
 def a_padenter    'a_padenter'
 def c_padenter    'c_padenter'
 def s_padenter    's_padenter'
+; doesnot work:
+;defc key_c_a_enter   'NewLineAfter'    -- Add a new line after the current, move to it, keep col
+;defc key_c_s_a_enter 'NewLineBefore'   -- Add a new line below the current, move to it, keep col
+def a_n           'NewLineAfter'        -- Add a new line after the current, move to it, keep col
+defc key_a_s_n    'NewLineBefore'       -- Add a new line below the current, move to it, keep col
+
+; ---- Duplicate ----
+def c_k           'DuplicateLine'       -- Duplicate a line
+def a_g           'InsertCharAbove'     -- Insert char from line above at cursor
+defc Key_a_s_g    'InsertCharBelow'     -- Insert char from line below at cursor
 
 ; ---- Insert ----
 def ins           'InsertToggle'        -- Toggle between insert and overwrite mode
@@ -247,7 +257,7 @@ defc Key_a_s_i    'IndentBlock U'       -- Unindent current mark or block 1 inde
 
 ; ---- Comment ----
 def a_k           'comment'             -- Comment marked lines
-defc Key_a_s_k      'uncomment'           -- Uncomment marked lines
+defc Key_a_s_k    'uncomment'           -- Uncomment marked lines
 
 ; ---- Move chars and lines ----
 defc Key_a_s_left 'MoveCharLeft'        -- Move char left
