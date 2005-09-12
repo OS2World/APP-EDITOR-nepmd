@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.32 2005-07-17 15:41:57 aschn Exp $
+* $Id: epm.e,v 1.33 2005-09-12 14:07:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -78,7 +78,6 @@ compile if not VANILLA
 compile endif  -- not VANILLA
 
 include        'select.e'
-include        'afterload.e'
 compile if not VANILLA
  compile if defined(SITE_SELECT)
   compile if SITE_SELECT

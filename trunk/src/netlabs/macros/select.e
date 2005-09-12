@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.9 2005-05-16 21:02:17 aschn Exp $
+* $Id: select.e,v 1.10 2005-09-12 14:07:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -87,14 +87,41 @@ compile endif
    endif
 
 ; ---------------------------------------------------------------------------
+; This cmd is called once after all files were loaded by defselect.
+defc AfterLoad
+   universal CurEditCmd
+   universal filestoloadmax   -- set in NepmdLoadFile, only used for RingAddToHistory('LOAD')
+
+   dprintf( 'AFTERLOAD', .filename', CurEditCmd = 'CurEditCmd)
+
+;  Write number for all files in the ring to an array var -------------------
+   -- see FILELIST.E
+   -- must not execute 'postme activatefile' at this point
+   call RingWriteFileNumber()
+
+;  Write name of all files in the ring to NEPMD.INI -------------------------
+   -- We want do this only for single files, not for wildcards in filespec
+   if filestoloadmax <= 1 then
+      call RingAddToHistory('LOAD')
+   endif
+
+;  Write position and name of all files in the ring to NEPMD.INI ------------
+   -- Don't process if files loaded by Recompile or 'groups loadgroup'
+   if wordpos( CurEditCmd, 'SETPOS LOADGROUP') = 0 then
+      -- see FILELIST.E
+      -- must not execute 'postme activatefile' at this point
+      call RingAutoWriteFilePosition()
+   endif
+
+;  Process hooks ------------------------------------------------------------
+   'HookExecute afterload'          -- no need for 'postme' here?
+   'HookExecuteOnce afterloadonce'  -- no need for 'postme' here?
+   dprintf( 'AFTERLOAD', 'HookExecute afterload, afterloadonce')
+
+; ---------------------------------------------------------------------------
 ; Executed by defselect
 defc ProcessSelect
    universal nepmd_hini
-   universal tab_key
-   universal stream_mode
-   universal expand_on
-   universal matchtab_on
-   universal cua_marking_switch
 compile if LOCAL_MOUSE_SUPPORT
    universal LMousePrefix
    universal EPM_utility_array_ID
@@ -113,19 +140,19 @@ compile if LOCAL_MOUSE_SUPPORT
    -- Because of this feature is not built-in as field var (starting with a '.' and belonging
    -- to each file separately), it must be achieved by the use of an array var and must be
    -- switched on every defselect.
-   getfileid ThisFile
+   getfileid fid
    OldRC = Rc
-   rc = get_array_value(EPM_utility_array_ID, "LocalMausSet."ThisFile, NewMSName)
+   rc = get_array_value(EPM_utility_array_ID, 'LocalMausSet.'fid, NewMSName)
    if RC then
       if rc=-330 then
          -- no mouseset bound to file yet, assume blank.
-         LMousePrefix = TransparentMouseHandler"."
+         LMousePrefix = TransparentMouseHandler'.'
       else
          call messagenwait('RC='RC)
       endif
       RC = OldRC
    else
-      LMousePrefix = NewMSName"."
+      LMousePrefix = NewMSName'.'
    endif
 compile endif  -- LOCAL_MOUSE_SUPPORT
 
