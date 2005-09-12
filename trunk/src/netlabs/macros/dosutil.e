@@ -1,10 +1,15 @@
+/*
+- Prepared to discard support for the Dos envvar APPEND.
+- Updated some comments.
+- Added defproc FindFileInList.
+*/
 /****************************** Module Header *******************************
 *
 * Module Name: dosutil.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.7 2004-07-02 10:04:08 aschn Exp $
+* $Id: dosutil.e,v 1.8 2005-09-12 13:49:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -79,6 +84,9 @@ compile if WANT_DBCS_SUPPORT
 compile endif
    return Hour':'Minutes':'Seconds AmPm';'Hour24':'Hund
 
+; ---------------------------------------------------------------------------
+; APPEND is not used in OS/2. This is left in here for compatibility
+; and should be replaced. Remove it from defc edit as well.
 ; Ver. 3.10:  New routine by Ken Kahn.
 ; Ver. 3.11:  Support added for /E option of append.  This will also now work
 ;    for any user of DOS 3.0 or above that uses the DOS command SET APPEND,
@@ -106,6 +114,10 @@ defproc Append_Path(FileName)
 compile endif  -- USE_APPEND
 
 compile if USE_APPEND | WANT_SEARCH_PATH
+; Don't use this!
+; Replace it by the filefind statement or by
+; defproc FindFileInList( File, PathList) below.
+; Example: FullExName = FindFileInList( 'fold.ex', Get_Env( 'EPMEXPATH'))
 ; Ver. 3.12 - split off from Append_Path so can be called by other routines.
 defproc search_path( AppendPath, FileName)
    do while AppendPath <> ''
@@ -114,7 +126,6 @@ defproc search_path( AppendPath, FileName)
          return trydir
       endif
    enddo
-;  return ''
 
 defproc search_path_ptr( AppendPathPtr, FileName)
    parse value AppendPathPtr with env_seg env_ofs .
@@ -145,7 +156,9 @@ defproc check_path_piece( var trydir, filename)
    endif
 compile endif  -- USE_APPEND
 
+; ---------------------------------------------------------------------------
 ; Optional arg(2) is flag to return pointer to value instead of the value itself.
+; arg(2) should be removed.
 defproc get_env(varname)
    varname = upcase(varname)\0
    result_ptr = 1234                -- 4-byte place to put a far pointer
@@ -366,6 +379,12 @@ defproc QueryCodepage
    endif
 
 ; ---------------------------------------------------------------------------
+; Poor!
+; Slow: uses quietshell and a temporary file, that is parsed in EPM.
+; Don't use this defc!
+; Note: filename and destfilename are interchanged, compared to the
+; useful findfile statement.
+;
 ; As of EPM 5.18, this command supports use of the DOS or OS/2 ATTRIB command,
 ; so non-IBM users can also use the LIST command.  Note that installing SUBDIR
 ; (DOS) or FILEFIND (OS/2) is still preferred, since it's not necessary to
@@ -394,22 +413,59 @@ defc list, findfile, filefind=
    endif
 
 ; ---------------------------------------------------------------------------
+; Poor!
+; Slow, because /s is specified here. Better use NepmdGetNextFile to resolve
+; the filemask and NepmdGetNextDir, called in a loop, to get the entire tree.
 ; Moved from STDPROCS.E.
 defproc subdir
    quietshell 'dir /b /s /a:-D' arg(1)
 
 ; ---------------------------------------------------------------------------
-; Note on a speed trick:  The following routine is used to both verify that
-; an external program exists, and to get its path.  After that first search,
-; the exact path location of the routine is known; it can be remembered so that
-; all future calls can supply the exact location to avoid the path search.
-; See SUBDIR for an example of its use.
+; Note: EPMTECH.INF is wrong in the syntax description of findfile.
+; Correct is:
+; FINDFILE filename , destfilename [, environment_path_variable, (P|D)]
+; Searches for destfilename in the current directory and returns its entire
+; pathname in filename.
+
+; ---------------------------------------------------------------------------
+; Poor!
+; Syntax : find_routine( file [options])
+; Returns: fullname options
+; Doesn't handle spaces in filenames.
 ; Moved from STDPROCS.E.
-defproc find_routine(utility)  -- Split from SUBDIR
+defproc find_routine(utility)
    parse arg util opts         -- take first word, so can pass options too.
-   findfile fully_qualified,util,'PATH','P'
+   findfile fully_qualified, util, 'PATH', 'P'
    if rc then return -1 endif
    return fully_qualified opts
+
+; ---------------------------------------------------------------------------
+; Search file or dir in a path specification, pathes separated by ";".
+; This can be used instead of findfile to avoid a search in the current dir.
+; Example: FullExName = FindFileInList( 'fold.ex', Get_Env( 'EPMEXPATH'))
+; Returns '' if File not found in PathList, otherwise fully qualified name.
+defproc FindFileInList( File, PathList)
+   FullName = ''
+   rest = PathList
+   do while rest <> ''
+      parse value rest with Path';'rest
+      if Path = '' then
+         iterate
+      endif
+      Path = strip( Path, 'T', '\')
+      next = Path'\'File
+      if Exist( next) then  -- find files and dirs
+         test = NepmdQueryFullname( next)
+         parse value test with 'ERROR:'rc
+         if rc > '' then
+            iterate
+         else
+            FullName = test
+            leave
+         endif
+      endif
+   enddo
+   return FullName
 
 ; ---------------------------------------------------------------------------
 ; Returns DOS version number, multiplied by 100 so we can treat
