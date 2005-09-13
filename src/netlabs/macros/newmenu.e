@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.15 2005-09-12 13:57:23 aschn Exp $
+* $Id: newmenu.e,v 1.16 2005-09-13 19:52:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1054,12 +1054,21 @@ defproc add_search_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
+   buildmenuitem menuname, mid, i, '~Grep...',                                                     -- Grep...
+                                   'GrepBox' ||
+                                   \1'Scan external files using regular expressions',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
    buildmenuitem menuname, mid, i, 'Find ~indentifier'\9 || CTRL_KEY__MSG'+W',                     -- Find identifier
                                    'findword' ||
                                    \1'Find identifier (C-style word) under cursor',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_findmark', i);
-   buildmenuitem menuname, mid, i, 'Find ~mark/word',                                                   -- Find mark
+   buildmenuitem menuname, mid, i, 'Find ~mark/word',                                              -- Find mark
                                    'findmark' ||
                                    \1'Find marked string else word under cursor',
                                    MIS_TEXT, 0
