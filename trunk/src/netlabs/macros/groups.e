@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.9 2004-06-03 23:15:52 aschn Exp $
+* $Id: groups.e,v 1.10 2005-09-15 17:58:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -221,6 +221,7 @@ compile endif  -- INCLUDE_DESKTOP_SUPPORT
 defc loadgroup =
    universal app_hini
    universal CurEditCmd
+   getfileid startfid
    group_name = arg(1)
    if (group_name = '') | (group_name = '?') then
       if group_name = '' then
