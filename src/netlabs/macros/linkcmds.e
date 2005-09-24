@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.25 2005-09-12 14:20:37 aschn Exp $
+* $Id: linkcmds.e,v 1.26 2005-09-24 08:37:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -795,7 +795,12 @@ defc RecompileNew
          next = NepmdQueryPathInfo( CurExFile, 'MTIME')
          parse value next with 'ERROR:'rc
          if rc = '' then
-            CurExFileTime = next
+            parse value next with hh':'junk
+            if length( hh) < 2 then
+               CurExFileTime = '0'next
+            else
+               CurExFileTime = next
+            endif
             next = NepmdQueryConfigValue( nepmd_hini, KeyPath2)
             if next <> CurExFileTime then
                fCompExFile = 1
@@ -806,7 +811,12 @@ defc RecompileNew
                next = NepmdQueryPathInfo( NetlabsExFile, 'MTIME')
                parse value next with 'ERROR:'rc
                if rc = '' then
-                  NetlabsExFileTime = next
+                  parse value next with hh':'junk
+                  if length( hh) < 2 then
+                     NetlabsExFileTime = '0'next
+                  else
+                     NetlabsExFileTime = next
+                  endif
                   if upcase(CurExFile) <> upcase(NetlabsExFile) then  -- if different pathnames
                      fCompCurExFile = 1
                   endif
@@ -834,7 +844,7 @@ defc RecompileNew
                               delrc = EraseTemp( CurExFile)
                               if delrc then
                                  cWarning = cWarning + 1
-                                 WriteLog( LogFile, 'WARNING: 'BaseName' - can''t delete current .EX file "'CurExFile'", rc = 'rc)
+                                 WriteLog( LogFile, 'WARNING: 'BaseName' - cannot delete current .EX file "'CurExFile'", rc = 'rc)
                               else
                                  WriteLog( LogFile, '         'BaseName' - deleted current .EX file "'CurExFile'"')
                                  cDelete = cDelete + 1
@@ -909,13 +919,18 @@ defc RecompileNew
                parse value trest with CurEFileTime';'trest
                EFileTime        = ''
                NetlabsEFileTime = ''
-               -- Get full pathname (if not in current path)
-               findfile FullEFile, EFile, 'EPMMACROPATH'  --<------------------------ Todo: don't search in current dir
+               -- Get full pathname
+               FullEFile = FindFileInList( EFile, Get_Env( 'EPMMACROPATH'))
                -- Get time of EFile
                next = NepmdQueryPathInfo( FullEFile, 'MTIME')
                parse value next with 'ERROR:'rc
                if rc = '' then
-                  EFileTime = next
+                  parse value next with hh':'junk
+                  if length( hh) < 2 then
+                     EFileTime = '0'next
+                  else
+                     EFileTime = next
+                  endif
                   -- Compare time of EFile with LastCheckTime and CurExFileTime
                   if not fCheckOnly then
                      if EFileTime > max( LastCheckTime, CurExFileTime) then
@@ -935,7 +950,12 @@ defc RecompileNew
                   next = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
                   parse value next with 'ERROR:'rc
                   if rc = '' then
-                     NetlabsEFileTime = next
+                     parse value next with hh':'junk
+                     if length( hh) < 2 then
+                        NetlabsEFileTime = '0'next
+                     else
+                        NetlabsEFileTime = next
+                     endif
                      if EFileTime < NetlabsEFileTime then
                         WriteLog( LogFile, 'WARNING: 'BaseName' - .E file "'FullEFile'" older than Netlabs .E file')
                         cWarning = cWarning + 1
@@ -960,13 +980,18 @@ defc RecompileNew
                -- For every EFile...
                parse value erest with EFile';'erest
                EFileTime = ''
-               -- Get full pathname (if not in current path)
-               findfile FullEFile, EFile, 'EPMMACROPATH'  --<------------------------ Todo: don't search in current dir
+               -- Get full pathname
+               FullEFile = FindFileInList( EFile, Get_Env( 'EPMMACROPATH'))
                -- Get time of EFile
                next = NepmdQueryPathInfo( FullEFile, 'MTIME')
                parse value next with 'ERROR:'rc
                if rc = '' then
-                  EFileTime = next
+                  parse value next with hh':'junk
+                  if length( hh) < 2 then
+                     EFileTime = '0'next
+                  else
+                     EFileTime = next
+                  endif
                endif
                NewEFileTimes = NewEFileTimes''EFileTime';'
                -- Check E files here (after etpm) if not already done above
@@ -977,7 +1002,12 @@ defc RecompileNew
                      next = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
                      parse value next with 'ERROR:'rc
                      if rc = '' then
-                        NetlabsEFileTime = next
+                        parse value next with hh':'junk
+                        if length( hh) < 2 then
+                           NetlabsEFileTime = '0'next
+                        else
+                           NetlabsEFileTime = next
+                        endif
                         if EFileTime < NetlabsEFileTime then
                            WriteLog( LogFile, 'WARNING: 'BaseName' - .E file "'FullEFile'" older than Netlabs .E file')
                            cWarning = cWarning + 1
@@ -995,7 +1025,12 @@ defc RecompileNew
          next = NepmdQueryPathInfo( ExFile, 'MTIME')
          parse value next with 'ERROR:'rc
          if rc = '' then
-            NewExFileTime = next
+            parse value next with hh':'junk
+            if length( hh) < 2 then
+               NewExFileTime = '0'next
+            else
+               NewExFileTime = next
+            endif
          endif
       endif
 
