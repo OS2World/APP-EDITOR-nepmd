@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.17 2005-09-24 06:59:13 aschn Exp $
+* $Id: newmenu.e,v 1.18 2005-09-24 09:17:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -283,7 +283,7 @@ defproc add_file_menu(menuname)
                                    \1'Edit a new, empty file in this window',
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Add...'\9'F8',                                                 -- Add...
+   buildmenuitem menuname, mid, i, 'A~dd...'\9'F8',                                                 -- Add...
                                    'opendlg EDIT' ||
                                    ADD_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
