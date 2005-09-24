@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.26 2005-09-24 08:37:30 aschn Exp $
+* $Id: linkcmds.e,v 1.27 2005-09-24 08:48:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1307,7 +1307,7 @@ defproc FindExFile( ExFile)
    elseif exist( ProjectDir'\'ExFile) then
       FullExFile = ProjectDir'\'ExFile
    else
-      findfile FullExFile, ExFile, 'EPMEXPATH'  --<------------------------ Todo: don't search in current dir
+      FullExFile = FindFileInList( ExFile, Get_Env( 'EPMEXPATH'))
    endif
    next = NepmdQueryFullName( FullExFile)
    parse value next with 'ERROR:'rc
