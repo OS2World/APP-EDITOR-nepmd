@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.16 2005-09-13 19:52:29 aschn Exp $
+* $Id: newmenu.e,v 1.17 2005-09-24 06:59:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -3615,7 +3615,7 @@ defc toggle_default_stream
       SetMenuAttribute( GetAVar('mid_defaultstreammode'), MIA_CHECKED, not default_stream_mode)
       if saveoptions_auto then
          old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-         new = subword( old, 1, 7)' 'default_stream_mode' 'subword( old, 9)\0
+         new = subword( old, 1, 9)' 'default_stream_mode' 'subword( old, 11)\0
          call setprofile( app_hini, appname, INI_OPTFLAGS, new)
       endif
    endif
