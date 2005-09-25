@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.6 2005-01-16 12:44:24 aschn Exp $
+* $Id: filelist.e,v 1.7 2005-09-25 08:40:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -514,8 +514,8 @@ defc History
    select = listbox( Title,
                      HistoryList,
                      '/~Add/~Open/A~dd.../O~pen.../Open ~folder of/~Cancel',   -- buttons
-                     5, 5,    -- Top, Left,
-                     20, 80,  -- Height, Width
+                     15, 10,  -- top, left,
+                     20, 80,  -- height, width
                      gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(0) ||
                      Text\0 )
    refresh
