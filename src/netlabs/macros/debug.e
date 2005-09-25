@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: debug.e,v 1.4 2004-09-12 15:22:37 aschn Exp $
+* $Id: debug.e,v 1.5 2005-09-25 08:44:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -52,6 +52,12 @@ compile endif
 compile if not defined(NEPMD_DEBUG_TAGS)
    NEPMD_DEBUG_TAGS = 0
 compile endif
+compile if not defined(NEPMD_DEBUG_RESTORE_RING)
+   NEPMD_DEBUG_RESTORE_RING = 0
+compile endif
+compile if not defined(NEPMD_DEBUG_WRITE_FILE_NUMBER)
+   NEPMD_DEBUG_WRITE_FILE_NUMBER = 0
+compile endif
 
 ; ---------------------------------------------------------------------------
 ; Syntax: dprintf( <type>, <message>)
@@ -92,6 +98,14 @@ compile if NEPMD_DEBUG
       endif
    elseif type = 'TAGS' then
       if NEPMD_DEBUG_TAGS then
+         WriteMsg = 1
+      endif
+   elseif type = 'RESTORE_RING' then
+      if NEPMD_DEBUG_RESTORE_RING then
+         WriteMsg = 1
+      endif
+   elseif type = 'WRITE_FILE_NUMBER' then
+      if NEPMD_DEBUG_WRITE_FILE_NUMBER then
          WriteMsg = 1
       endif
    else  -- type is undefined
