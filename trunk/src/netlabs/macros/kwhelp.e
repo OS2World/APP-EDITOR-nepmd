@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.24 2005-09-12 14:27:42 aschn Exp $
+* $Id: kwhelp.e,v 1.25 2005-09-25 08:51:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -404,6 +404,11 @@ defproc pBuild_Helpfile(ft)
             'get "'destfilename'"'
             .modify = 0
             line = upcase(textline(last+1))
+            -- Sometimes a DESCRIPTION: line comes first.
+            -- Quick & dirty:  --<------------------------------------------------------------------ Todo
+            if word( line, 1) = 'DESCRIPTION:' then
+               line = upcase(textline(last+2))
+            endif
 
             if word(line,1)='EXTENSIONS:' & wordpos(ft, line) then  --<--------------------------------- Todo
                /* Give priority to this helpfile by moving it to the top */
@@ -431,6 +436,11 @@ defproc pBuild_Helpfile(ft)
                -- 'n' or 'xcom n' will give <path>\.HELPFILE, better use .filename:
                .filename = '.HELPFILE'
                line = upcase(textline(1))
+               -- Sometimes a DESCRIPTION: line comes first.
+               -- Quick & dirty:  --<------------------------------------------------------------------ Todo
+               if word( line, 1) = 'DESCRIPTION:' then
+                  line = upcase(textline(2))
+               endif
                if word(line,1)='EXTENSIONS:' & (wordpos(ft, line) | wordpos('*', line)) then  --<--------------------------------- Todo
                   /* only read in 'relevant' files */
                   getfileid helpindex_id -- read in the file
