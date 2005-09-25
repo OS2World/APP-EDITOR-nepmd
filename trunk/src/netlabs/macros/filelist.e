@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.7 2005-09-25 08:40:36 aschn Exp $
+* $Id: filelist.e,v 1.8 2005-09-25 08:44:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -27,18 +27,6 @@ Todo:
 ;    for the titletext or statusbar
 ; -  Save and restore a ring to/from NEPMD.INI
 ; -  History definitions to track commands or files from EDIT, LOAD and SAVE
-
-const
-; Keep only this amount of rings in NEPMD.INI:
-compile if not defined(NEPMD_DEBUG)
-   NEPMD_DEBUG = 0  -- General debug const
-compile endif
-compile if not defined(NEPMD_DEBUG_RESTORE_RING)
-   NEPMD_DEBUG_RESTORE_RING = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_WRITE_FILE_NUMBER)
-   NEPMD_DEBUG_WRITE_FILE_NUMBER = 0
-compile endif
 
 ; ---------------------------------------------------------------------------
 ; RingAutoWriteFilePosition is called by 'quit' and 'Afterload'.
@@ -176,7 +164,6 @@ defproc RingWriteFilePosition
       next_file
       getfileid fid
       if fid = firstfid then leave; endif
-;;      if fid = startfid then leave; endif
    enddo
 
    ---- Write 'Entries' (ammount of 'File'j and 'Posn'j) --------------------
@@ -253,16 +240,12 @@ defc RestoreRing
       endif
 */
       if OpenNewWindow = 1 then
-compile if NEPMD_DEBUG_RESTORE_RING and NEPMD_DEBUG
-         call NepmdPmPrintf(  "RESTORERING: j = "j", o 'restorering "LastNumber"'")
-compile endif
+         dprintf( 'RESTORE_RING', "j = "j", o 'restorering "LastNumber"'")
 -- Problems here:
          "o 'restorering "LastNumber"'"
          return
       else
-compile if NEPMD_DEBUG_RESTORE_RING and NEPMD_DEBUG
-         call NepmdPmPrintf( 'RESTORERING: j = 'j', e "'filename'"'||" 'restorepos "savedpos"'")
-compile endif
+         dprintf( 'RESTORE_RING', 'j = 'j', e "'filename'"'||" 'restorepos "savedpos"'")
          if pos( ' ', filename) then
             filename = '"'filename'"'
          endif
@@ -380,8 +363,8 @@ defproc RingAddToHistory
       NewItem = .filename
       rest = History
       -- Skip temp files
-      Ignore = ((leftstr( NewItem, 1) = '.') | (not .visible))
-      if not Ignore then
+      fIgnore = ((leftstr( NewItem, 1) = '.') | (not .visible))
+      if not fIgnore then
          -- Add NewItem
          i = 1
          History = NewItem''Delim
@@ -401,7 +384,7 @@ defproc RingAddToHistory
                History = NewHistory
             endif
          enddo  -- while
-      endif  -- not Ignore
+      endif  -- not fIgnore
       next_file
       getfileid fid
       if fid = firstfid then leave; endif
@@ -517,7 +500,7 @@ defc History
                      15, 10,  -- top, left,
                      20, 80,  -- height, width
                      gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(0) ||
-                     Text\0 )
+                     Text\0)
    refresh
 
    -- Check result
@@ -526,7 +509,7 @@ defc History
    select= substr( select, 2, EOS - 2)
    -- Edit or open filename
    if ListName = 'LOAD' | ListName = 'SAVE' then
-      -- Add doublequotes if spaces and if not already
+      -- Add doublequotes for filenames with spaces and if not already added
       if pos( ' ', select) then
          if not (leftstr( select, 1) = '"' & rightstr( select, 1) = '"') then
             select = '"'select'"'
@@ -544,43 +527,6 @@ defc History
    elseif button = 5 then
       'openfolderof 'select
    endif
-
-; ---------------------------------------------------------------------------
-; unused
-/*
-; WriteFileNumber is called by LOAD.E: defload.
-defproc WriteFileNumber
-   universal firstinringfid  -- first file in ring, set by edit
-   universal EPM_utility_array_ID
-
-   getfileid startfid  -- current file
-
-   display -2  -- turn off messages
-   activatefile firstinringfid
-   display 2   -- turn on messages
-   -- This fid is not valid, if RingWriteFileNumber was not called,
-   -- e.g. if EPM starts with an unnamed file.
-   if rc = -260 then  -- Invalid fileid
-compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
-      call NepmdPmPrintf( '### WriteFNumber: firstinringfid not valid, set to: '.filename)
-compile endif
-      firstinringfid = startfid
-   endif
-
-   do i = 1 to filesinring()
-      getfileid fid
-      -- arg(2) and arg(4) of do_array must be vars!
-      FileNumber = i
-      do_array 2, EPM_utility_array_ID, 'filenumber.'fid, FileNumber
-compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
-      call NepmdPmPrintf( '*** WriteFNumber: i = 'i', FileNumber = 'i', FileName = 'fid.filename)
-compile endif
-      nextfile
-   enddo
-
-   activatefile startfid
-   return
-*/
 
 ; ---------------------------------------------------------------------------
 ; RingWriteFileNumber is called by 'quit' and NepmdAfterLoad.
@@ -612,9 +558,7 @@ defproc RingWriteFileNumber
    endif
 
    getfileid startfid
-compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
-   call NepmdPmPrintf( '*** RingWFNumber: startfile = 'startfid.filename)
-compile endif
+   dprintf( 'WRITE_FILE_NUMBER', 'startfile = 'startfid.filename)
 
    display -2  -- turn off messages
    activatefile firstinringfid
@@ -622,9 +566,7 @@ compile endif
 
    if rc = -260 then  -- Invalid fileid
       -- if firstinringfid is not in ring anymore
-compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
-      call NepmdPmPrintf( '### RingWFNumber: startfid not found in ring, redetermining lowest file number.')
-compile endif
+      dprintf( 'WRITE_FILE_NUMBER', 'startfid not found in ring, redetermining lowest file number.')
       -- redetermine first loaded file (file with lowest FileNumber)
       LowestFileNumber = filesinring()
       getfileid lowestnumfid  -- initialize
@@ -632,9 +574,7 @@ compile endif
          getfileid fid
          numrc = get_array_value( EPM_utility_array_ID, 'filenumber.'fid, next )
          --next = GetFileNumber()  -- doesn't work if firstinringfid not set
-compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
-         call NepmdPmPrintf( '*** RingWFNumber: i = 'i', FileNumber = 'next', FileName = '.filename)
-compile endif
+         dprintf( 'WRITE_FILE_NUMBER', 'i = 'i', FileNumber = 'next', FileName = '.filename)
          if next <= LowestFileNumber & next <> '' then
             LowestFileNumber = next
             lowestnumfid = fid
@@ -645,9 +585,7 @@ compile endif
       firstinringfid = lowestnumfid
    endif
 
-compile if NEPMD_DEBUG_WRITE_FILE_NUMBER and NEPMD_DEBUG
-   call NepmdPmPrintf( '*** RingWFNumber: firstinringfid = 'firstinringfid.filename)
-compile endif
+   dprintf( 'WRITE_FILE_NUMBER', 'firstinringfid = 'firstinringfid.filename)
 
    -- Set FileNumbers for all files in the ring, start with LowestFId
    FileNumber = 0
@@ -673,28 +611,11 @@ defc RingWriteFileNumber
 
 ; ---------------------------------------------------------------------------
 ; Called by defproc GetInfoFieldValue('FILE').
-; WriteFileNumber caused suddenly a wrong start file. Fortunately Calling
-; WriteFileNumber is not required anymore. This is done by AfterLoad for the
-; whole ring.
 defproc GetFileNumber
    universal EPM_utility_array_ID
-/*
-   FileNumber = ''
-*/
    -- Get FileNumber for Filename by querying an array var
    getfileid fid
    rc = get_array_value( EPM_utility_array_ID, 'filenumber.'fid, FileNumber )
-/*
-   if FileNumber = '' then
-;      sayerror .filename': No FileNumber set.'
-      call WriteFileNumber()
-      rc = get_array_value( EPM_utility_array_ID, 'filenumber.'fid, FileNumber )
-      if FileNumber = '' then
-         -- This should not occur!
-         sayerror .filename': 2nd try -- no FileNumber set.'
-      endif
-   endif
-*/
    return FileNumber
 
 ; ---------------------------------------------------------------------------
@@ -742,5 +663,4 @@ defc Ring
    'postme activatefile' startfid
    'postme display' 3
    return
-
 
