@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.18 2005-09-12 13:47:08 aschn Exp $
+* $Id: locate.e,v 1.19 2005-09-29 18:55:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -42,6 +42,12 @@ definit
       lastsearchargs = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    endif
    search_len = 5     -- Initialize to anything, to prevent possible "Invalid number argument"
+
+defmodify             -- This stops the modification dialog for grep output "files"  -- JBS
+   if leftstr(.filename, 17) = '.Output from grep' then
+      .modify = 0
+      .autosave = 0
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Syntax: locate !<search_string>[!<user_options>]
