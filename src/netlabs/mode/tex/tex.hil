@@ -5,12 +5,9 @@
 ; Definitons of the Netlabs EPM Distribution Project
 ; for the syntax highlighting of the EPM mode "TEX"
 ;
-; Among others these definitions implement the definitions of
-; the respective epmkwds definitions file of the EPMBBS distributiuon.
-;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: tex.hil,v 1.1 2002-10-18 18:36:43 cla Exp $
+; $Id: tex.hil,v 1.2 2005-09-29 23:38:11 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -25,29 +22,44 @@
 ;
 ; **************************************************************************/
 
-[LITERAL]
+; --------------- Test -----------------------
+;             \\
+;             \par{  \par}  \par[  \par]  \par\  \par\par
+;             \begin{document}  \begin  \\begin
+;             {document}
+;             \usepackage{
+;             \usepackage{}
+;             \usepackage{test}
+;
+
+[COMMENT]
 ; Start   End     Escape
 ; string  string  character
   %        NONE:   \
-  [        ]       \
 
-
-[OPERATOR]
-$
-[
-
-[BREAKCHAR]
-\
-$
-[
-{ BREAK
 
 [ENDCHAR]
-} BREAK
+; use only chars here that are defined in CHARSET
+; \   if activated: no hiliting for keywords anymore
+; { } required
+{
+}
 
+[BREAKCHAR]
+; use only chars here that are defined in CHARSET
+; Definitions here for SPECIAL chars are ignored. It's not possible to
+; define any {environment} as SPECIAL and hilite the opening parenthesis
+; of \usepackage{test}, if { is defined as SPECIAL. Therefore { and }
+; are defined in CHARSET and ENDCHAR and BREAKCHAR.
+; \ { } required
+\
+{
+}
 
-[KEYWORD]
-; --- special keywords
+[OPERATOR]
+$   FONTSTYLE
+ [
+]
 \
 \/
 \!
@@ -55,8 +67,8 @@ $
 \$
 \&
 \'
-\(
-\)
+\(   FONTSTYLE
+\)   FONTSTYLE
 \+
 \,
 \-
@@ -66,9 +78,9 @@ $
 \<
 \=
 \>
-\[
+\[   FONTSTYLE
 \\
-\]
+\]   FONTSTYLE
 \^
 \_
 \`
@@ -77,8 +89,70 @@ $
 \%
 \{
 \}
+,
+&
+
+; --- LaTeX document types
+{article}         DOCTYPE
+{book}            DOCTYPE
+{letter}          DOCTYPE
+{report}          DOCTYPE
+{slides}          DOCTYPE
+{document}        DOCTYPE
+
+; Environments are defined as SPECIAL. Otherwise defining { as BREAKCHAR would
+; prevent hiliting them.
+; Defining just the name without { and } would work, but then not only environments
+; are hilited.
+; --- LaTeX environment names
+{abstract}        ENVNAME
+{titlepage}       ENVNAME
+{itemize}         ENVNAME
+{figure}          ENVNAME
+{enumerate}       ENVNAME
+{figure}          ENVNAME
+{table}           ENVNAME
+{description}     ENVNAME
+{itemize}         ENVNAME
+{enumerate}       ENVNAME
+{quote}           ENVNAME
+{center}          ENVNAME
+{verbatim}        ENVNAME
+{picture}         ENVNAME
+{array}           ENVNAME
+{tabular}         ENVNAME
+{tabbing}         ENVNAME
+{sloppypar}       ENVNAME
+{minipage}        ENVNAME
+{eqnarray}        ENVNAME
+{equation}        ENVNAME
+{verse}           ENVNAME
+{list}            ENVNAME
+{float}           ENVNAME
+{math}            ENVNAME
+{displaymath}     ENVNAME
+{stack}           ENVNAME
+{flushleft}       ENVNAME
+{flushright}      ENVNAME
+
 
 [MACRO]
+
+{ ENVNAME
+} ENVNAME
+\begin   FONTSTYLE
+\end     FONTSTYLE
+\makeatletter  FONTSTYLE
+\makeatother   FONTSTYLE
+
+; --- LaTeX2e macros
+\documentclass    INPUT
+\usepackage       INPUT
+\verbatiminput    INPUT
+\input            INPUT
+\include          INPUT
+\includeonly      INPUT
+
 ; --- LaTeX macros
 \a
 \active
@@ -124,8 +198,6 @@ $
 \char
 \chardef
 \circle
-\cleardoublepage
-\clearpage
 \cline
 \closeout
 \clubpenalty
@@ -233,12 +305,9 @@ $
 \hyphenchar
 \ignorespaces
 \immediate
-\include
-\includeonly
 \indent
 \index
 \indexentry
-\input
 \insert
 \interdisplaylinepenalty
 \interfootnotelinepenalty
@@ -281,8 +350,6 @@ $
 \llap
 \long
 \lower
-\makeatletter
-\makeatother
 \makeglossary
 \makeindex
 \makelabel
@@ -323,7 +390,6 @@ $
 \newlength
 \newline
 \newlinechar
-\newpage
 \newsavebox
 \newskip
 \newswitch
@@ -442,7 +508,6 @@ $
 \tabbingsep
 \tabcolsep
 \tableentry
-\tableofcontents
 \tabskip
 \tabular
 \tencirc
@@ -508,9 +573,7 @@ $
 \write
 \writes
 \xdef
-\begin
-\end
-\documentstyle
+; \documentstyle --------------------------------
 \item
 \caption
 \kill
@@ -533,19 +596,517 @@ $
 \ps
 \thanks
 
+; --- Additional LaTeX and PlainTeX commands from fte
+\hoffset
+\voffset
+\font
+\magnification
+\magstephalf
+\magstep
+\voffset
+\hoffset
+\goodbreak
+\nopagenumbers
+\headline
+\pageno
+\folio
+\rightline
+\centerline
+\includegraphics
+\enskip
+\vglue
+\topinsert
+\midinsert
+\handindent
+\hrulefill
+\settabs
+\arccos
+\cos
+\csc
+\exp
+\ker
+\limsup
+\min
+\sinh
+\arcsin
+\cosh
+\deg
+\gcd
+\lg
+\ln
+\Pr
+\sup
+\arctan
+\cot
+\det
+\hom
+\lim
+\log
+\sec
+\tan
+\arg
+\coth
+\dim
+\inf
+\liminfo
+\max
+\sin
+\tanh
+\textstyle
+\alpha
+\beta
+\gamma
+\delta
+\epsilon
+\varepsilon
+\zeta
+\eta
+\theta
+\vartheta
+\iota
+\kappa
+\lambda
+\mu
+\nu
+\xi
+\o
+\pi
+\varpi
+\rho
+\varrho
+\sigma
+\varsigma
+\tau
+\upsilon
+\phi
+\varphi
+\chi
+\psi
+\omega
+\Gamma
+\Delta
+\Theta
+\Lambda
+\Xi
+\Pi
+\Sigma
+\Upsilon
+\Phi
+\Psi
+\Omega
+\aleph
+\hbar
+\imath
+\jmath
+\ell
+\wp
+\Re
+\Im
+\partial
+\infty
+\backslash
+\prime
+\emptyset
+\nabla
+\surd
+\triangle
+\angle
+\bot
+\top
+\forall
+\exists
+\neg
+\lnot
+\flat
+\natural
+\sharp
+\clubsuit
+\diamondsuit
+\heartsuit
+\spadesuit
+\pm
+\mp
+\setminus
+\cdot
+\times
+\ast
+\star
+\diamond
+\circ
+\triangleleft
+\cap
+\cup
+\uplus
+\sqcap
+\sqcup
+\amalg
+\div
+\wr
+\bigcirc
+\vee
+\lor
+\wedge
+\land
+\oplus
+\ominus
+\otimes
+\oslash
+\odot
+\bigtriangleleft
+\bigtriangledown
+\sum
+\prod
+\coprod
+\int
+\oint
+\bigcap
+\bigcup
+\bigsqcup
+\bigvee
+\bigwedge
+\bigodot
+\bigotimes
+\bigoplus
+\biguplus
+\hat
+\acute
+\ddot
+\vec
+\check
+\grave
+\breve
+\tilde
+\dot
+\widehat
+\widetilde
+\ldots
+\vdots
+\cdots
+\ddots
+\leq
+\le
+\prec
+\preceq
+\ll
+\subset
+\subsetqe
+\supsetqe
+\in
+\vdash
+\smile
+\frown
+\geq
+\ge
+\succ
+\succeq
+\gg
+\supset
+\sqsubseteq
+\sqsupsetqe
+\ni
+\owns
+\dashv
+\mid
+\parallel
+\equiv
+\sim
+\simeq
+\asymp
+\approx
+\cong
+\bowtie
+\propto
+\models
+\doteq
+\perp
+\not
+\leftarrow
+\Leftarrow
+\gets
+\longleftarrow
+\Longleftarrow
+\rightarrow
+\Rightarrow
+\to
+\longrightarrow
+\Longrightarrow
+\leftrightarrow
+\Leftrightarrow
+\longleftrightarrow
+\Longleftrightarrow
+\mapsto
+\longmapsto
+\hookleftarrow
+\hookrightarrow
+\leftharpoonup
+\rightharpoonup
+\leftharpoondown
+\rightharpoondown
+\uparrow
+\Uparrow
+\downarrow
+\Downarrow
+\updownarrow
+\Updownarrow
+\nearrow
+\searrow
+\swarrow
+\nwarrow
+\lbrack
+\lfloor
+\rbrack
+\rfloor
+\lceil
+\langle
+\rceil
+\rangle
+\quad
+\qquad
+\Biggl
+\biggl
+\Bigl
+\bigl
+\bigr
+\Bigr
+\biggr
+\Biggr
+\lgroup
+\rgroup
+\langle
+\rangle
+\vert
+\Vert
+\uparrow
+\left
+\overrightarrow
+\overleftarrow
+\overbrace
+\underbrace
+\atop
+\choose
+\brack
+\above
+\brace
+\pmatrix
+\matrix
+\bordermatrix
+\eqalign
+\eqalignno
+\quad
+\newread
+\closein
+\endinput
+\openouput
+\ifcat
+\loop
+\repeat
+\beginpicture
+\setcoordinatesystem
+\plotheading
+\lines
+\putrule
+\setlinear
+\setquadratic
+\sethistograms
+\setsolid
+\setdashes
+\setdots
+\setdashpattern
+\setplotsymbol
+\plot
+\arrow
+\circulararc
+\ellipticarc
+\startrotation
+\stoprotation
+\setshadegrid
+\setshadesymbol
+\shaderectangleson
+\sharerectanglesoff
+\vshade
+\setquadratic
+\hshade
+\setplotarea
+\inboundscheckon
+\inboundscheckoff
+\axis
+\endpicturesave
+\AtBeginDocument
+\AtBeginDvi
+\AtEndDocument
+\AtEndOfPackage
+\Bigg
+\Box
+\CheckCommand
+\ClassError
+\ClassInfo
+\ClassWarning
+\ClassWarningNoLine
+\DeclareErrorFont
+\DeclareFixedFont
+\DeclareFontEncoding
+\DeclareFontEncodingDefaults
+\DeclareFontFamily
+\DeclareFontShape
+\DeclareFontSubstitution
+\DeclareMathAccent
+\DeclareMathAlphabet
+\DeclareMathDelimiter
+\DeclareMathRadical
+\DeclareMathSizes
+\DeclareMathSymbol
+\DeclareMathVersion
+\DeclareOldFontCommand
+\DeclareOption
+\DeclarePreloadSizes
+\DeclareRobustCommand
+\DeclareSizeFunction
+\DeclareSymbolFont
+\DeclareSymbolFontAlphabet
+\DeclareTextAccent
+\DeclareTextAccentDefault
+\DeclareTextCommand
+\DeclareTextCommandDefault
+\DeclareTextComposite
+\DeclareTextCompositeCommand
+\DeclareTextFontCommand
+\DeclareTextSymbol
+\DeclareTextSymbolDefault
+\ExecuteOptions
+\IfFileExists
+\InputIfFileExists
+\Join
+\LoadClass
+\LoadClassWithOptions
+\MessageBreak
+\NeedsTeXFormat
+\OptionNotUsed
+\PackageError
+\PackageInfo
+\PackageWarning
+\PackageWarningNoLine
+\PassOptionsToClass
+\PassOptionsToPackage
+\ProcessOptions
+\ProvideTextCommand
+\ProvideTextCommandDefault
+\ProvidesFile
+\ProvidesPackage
+\RequirePackage
+\RequirePackageWithOptions
+\SetMathAlphabet
+\SetSymbolFont
+\TextSymbolUnavailable
+\UseTextAccent
+\UseTextSymbol
+\addtoversion
+\afterassignment
+\allowbreak
+\baselinestretch
+\bezier
+\bfdefault
+\bfseries
+\bigbreak
+\bigg
+\bigskipamount
+\bigskipamount
+\bmod
+\boldmath
+\cases
+\depth
+\dotfill
+\encodingdefault
+\everycr
+\familydefault
+\familydefault
+\filbreak
+\fmtname
+\fmtversion
+\fontencoding
+\fontfamily
+\fontseries
+\fontshape
+\height
+\hphantom
+\itdefault
+\iterate
+\leadsto
+\leftline
+\lhd
+\liminf
+\lowercase
+\mathclose
+\mathopen
+\mathstrut
+\mddefault
+\medbreak
+\medmuskip
+\mho
+\narrower
+\negthinspace
+\newfont
+\newhelp
+\newlanguage
+\newmathalphabet
+\newmuskip
+\nocorrlist
+\nolimits
+\normalbaselines
+\null
+\offinterlineskip
+\openup
+\pagenumberin
+\phantom
+\pmod
+\providecommand
+\removelastskip
+\rhd
+\rmdefault
+\rq
+\scdefault
+\selectfont
+\seriesdefault
+\settodepth
+\settoheight
+\sfdefault
+\shapedefault
+\showhyphens
+\showoutput
+\showoverfull
+\sldefault
+\smallbreak
+\sqsubset
+\suppressfloats
+\symbol
+\thickmuskip
+\thinmuskip
+\tracingfonts
+\ttdefault
+\unboldmath
+\undefinedpagestyle
+\underbar
+\unlhd
+\unrhd
+\updefault
+\usefont
+\vphantom
+\width
+\wlog
+
+
 [FONTSTYLE]
 ; --- LaTeX Font selection: Style
-@
-\bf
-\tt
-\em
-\it
-\sc
-\sl
-\rm
-\sf
-\ss
-\mit
+;@
+\textbf
+\texttt
+\textem
+\textit
+\textsc
+\textsl
+\textrm
+\textsf
+\textss
+\textmit
 
 [FONTSIZE]
 ; --- LaTeX Font selection: Size
@@ -574,13 +1135,6 @@ $
 \subsubsection
 \paragraph
 \subparagraph
-\part*
-\chapter*
-\section*
-\subsection*
-\subsubsection*
-\paragraph*
-\subparagraph*
 \appendix
 \footnote
 \document
@@ -588,8 +1142,12 @@ $
 \glossary
 \bibliography
 \footnotetext
+\tableofcontents
 \listoffigures
 \listoftables
+\newpage
+\clearpage
+\cleardoublepage
 
 [TEXMACRO]
 ; --- TeX macros
@@ -629,51 +1187,10 @@ $
 \fi
 \TeX
 \frenchspacing
-\nofrenchspacing
-
-[DOCTYPE]
-; --- LaTeX document types
-{article}
-{book}
-{letter}
-{report}
-{slides}
-
-[ENVNAME]
-; --- LaTeX environment names
-{abstract}
-{titlepage}
-{document}
-{itemize}
-{figure}
-{enumerate}
-{figure}
-{table}
-{description}
-{itemize}
-{enumerate}
-{quote}
-{center}
-{verbatim}
-{picture}
-{array}
-{tabular}
-{tabbing}
-{sloppypar}
-{minipage}
-{eqnarray}
-{equation}
-{verse}
-{list}
-{float}
-{math}
-{displaymath}
-{stack}
-{flushleft}
-{flushright}
+\nonfrenchspacing
 
 [INTCOMMAND]
-; --- Internal LaTeX commands (for LaTeXperts)
+; --- Internal LaTeX 2.09 commands (for LaTeXperts), no additional 2e commands
 \@
 \@@
 \@@end
@@ -1337,4 +1854,16 @@ $
 \sixt@@n
 \tw@
 \z@
+
+[OLDCOMMAND]
+; --- Obsolete LaTeX 2.09 keywords
+\rm
+\em
+\bf
+\sc
+\it
+\sl
+\sf
+\tt
+\documentstyle
 
