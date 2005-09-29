@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.8 2005-09-12 14:29:23 aschn Exp $
+* $Id: keys.e,v 1.9 2005-09-29 20:39:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -874,11 +874,14 @@ defc CopyMark
    endif
 
 defc MoveMark
+   universal nepmd_hini
    call pmove_mark()
-compile if UNMARK_AFTER_MOVE
-   unmark
-   'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
-compile endif
+   KeyPath = '\NEPMD\User\Mark\UnmarkAfterMove'
+   UnmarkAfterMove = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if UnmarkAfterMove = 1 then
+      unmark
+      'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
+   endif
 
 defc DeleteMark
 ;compile if WANT_DM_BUFFER

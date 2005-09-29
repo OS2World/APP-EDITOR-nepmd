@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.25 2005-09-29 19:05:29 aschn Exp $
+* $Id: stdcnf.e,v 1.26 2005-09-29 20:39:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -184,13 +184,13 @@ compile endif
 
 -- Ver. 3.09 - Lets user omit ET command.
 compile if not defined(WANT_ET_COMMAND)
-; obsolete (new)
+; obsolete
    WANT_ET_COMMAND = 1
 compile endif
 
 -- Ver. 3.09 - Lets user omit macro support for character marks.
 compile if not defined(WANT_CHAR_OPS)
-; obsolete (new)
+; obsolete
    WANT_CHAR_OPS = 1
 compile endif
 
@@ -279,7 +279,7 @@ compile endif
 -- MYSELECT and MYKEYSET.  If you don't use any of
 -- them, it makes SELECT.E much simpler.
 compile if not defined(ALTERNATE_KEYSETS)
-; obsolete (new)
+; obsolete
    ALTERNATE_KEYSETS = 1
 compile endif
 
@@ -350,12 +350,14 @@ compile endif
 -- Set this to the desired indentation if using syntax-assist.
 -- Normal values are 2, 3, 8.  Has no effect if not using assist.
 compile if not defined(SYNTAX_INDENT)
+; Can be configure via MODECNF.E now. That overwrites this value.
    SYNTAX_INDENT = 3
 compile endif
 
 -- Set this to 1 if you like PE2's method of reflowing a paragraph -- moving
 -- the cursor to the next paragraph.
 compile if not defined(REFLOW_LIKE_PE)
+; obsolete
    --REFLOW_LIKE_PE = 0  -- changed by aschn
    REFLOW_LIKE_PE = 1
 compile endif
@@ -387,7 +389,7 @@ compile if not defined(SMARTQUIT)
    SMARTQUIT = 0
 compile endif
 compile if not defined(FILEKEY)
-; obsolete (new)
+; obsolete
    -- Note:  Must be a string (in quotes).
    FILEKEY   = 'F4'
 compile endif
@@ -395,7 +397,7 @@ compile endif
 -- This is used as the decimal point in MATH.E.  Some users might prefer to
 -- use a comma.  Not used in DOS version, which only allows integers.
 compile if not defined(DECIMAL)
-; obsolete (new, todo, use os2.ini)
+; Todo: use os2.ini
    DECIMAL = '.'
 compile endif
 
@@ -447,7 +449,7 @@ compile endif
 --         Not recommended:  slowest, ignores upper/lower case.  But available
 --         in OS/2 protect mode.
 compile if not defined(SORT_TYPE)
-; obsolete (new)
+; obsolete
    -- At long last - an internal sort.
    SORT_TYPE = 'EPM'
 compile endif
@@ -480,7 +482,7 @@ compile endif
 -- will be added to let the user change this dynamically.  If SETSTAY='?' then
 -- STAY will be initialized in the next section.
 compile if not defined(SETSTAY)
-; obsolete (new)
+; obsolete
    --SETSTAY = 0  -- changed by aschn
    SETSTAY = '?'
 compile endif
@@ -496,7 +498,7 @@ compile endif
 -- Ver. 3.11d:  This constant lets the E3 user omit the SaveFileWithTabs
 -- routine in STDPROCS.E.
 compile if not defined(WANT_TABS)
-; obsolete (new)
+; obsolete
    WANT_TABS = 1
 compile endif
 
@@ -521,7 +523,7 @@ compile endif
 -- automatically.)
 -- Also enables the 'editpath' command.
 compile if not defined(WANT_SEARCH_PATH)
-; obsolete (new)
+; obsolete
    --WANT_SEARCH_PATH = 0  -- changed by aschn
    WANT_SEARCH_PATH = 1
 compile endif
@@ -531,7 +533,7 @@ compile endif
 -- routine will be included automatically.)
 -- Ver. 4.12:  The default is 1 rather than 0; OS/2 users have more room.
 compile if not defined(WANT_GET_ENV)
-; obsolete (new)
+; obsolete
    WANT_GET_ENV = 1
 compile endif
 
@@ -569,17 +571,18 @@ compile if not defined(TRASH_TEMP_FILES)
    TRASH_TEMP_FILES = 0
 compile endif
 
-;-- Adds LOCK and UNLOCK commands.
-;compile if not defined(WANT_LAN_SUPPORT)
-;   --WANT_LAN_SUPPORT = 0  -- changed by aschn
-;   WANT_LAN_SUPPORT = 1
-;compile endif
+-- Adds LOCK and UNLOCK commands.
+compile if not defined(WANT_LAN_SUPPORT)
+; obsolete
+   --WANT_LAN_SUPPORT = 0  -- changed by aschn
+   WANT_LAN_SUPPORT = 1
+compile endif
 
 -- Include or omit the MATH routines.  Values are '?' meaning do a TRYINCLUDE
 -- (this is what we used to do), 1 meaning it's required, so do an INCLUDE, or
 -- 0 meaning it's not wanted, so don't try to include it at all.
 compile if not defined(WANT_MATH)
-; obsolete (new)
+; obsolete
    WANT_MATH = '?'
 compile endif
 
@@ -598,7 +601,7 @@ compile endif
 -- 0 meaning it's not wanted, so don't try to include it at all.
 -- Note that Use_Append=1 or Host_Support='EMUL' forces DOSUTIL to be included.
 compile if not defined(WANT_DOSUTIL)
-; obsolete (new)
+; obsolete
    WANT_DOSUTIL = '?'
 compile endif
 
@@ -636,20 +639,20 @@ compile endif
 -- the distributed macros; EOS2LEX and E3SPELL are available separately.
 -- New:  set to 'DYNALINK' to only link in if the user needs it.
 compile if not defined(SPELL_SUPPORT)
-; obsolete (new)
+; obsolete
    SPELL_SUPPORT = 'DYNALINK'          -- New default
 compile endif
 
 -- Enhanced print support for EPM - can display list of printers.
 compile if not defined(ENHANCED_PRINT_SUPPORT)
-; obsolete (new)
+; obsolete
    ENHANCED_PRINT_SUPPORT = 1
 compile endif
 
 /* Specifies whether support should be included   */
 /* for a shell window.                            */
 compile if not defined(WANT_EPM_SHELL)
-; obsolete (new)
+; obsolete
    --WANT_EPM_SHELL = 0  -- changed by aschn
    WANT_EPM_SHELL = 1
 compile endif
@@ -687,7 +690,7 @@ compile endif
 -- will cause the long name to be displayed on the EPM title bar, instead of the
 -- real (short) name.
 compile if not defined(WANT_LONGNAMES)
-; obsolete (new)
+; obsolete
    --WANT_LONGNAMES = 0  -- changed by aschn
    WANT_LONGNAMES = 'SWITCH'
    -- 'SWITCH' activates MY_SHOW_LONGNAMES, default is now: 1
@@ -696,7 +699,7 @@ compile endif
 -- Adds PUSHMARK, POPMARK, PUSHPOS and POPPOS commands.  For EPM, also adds
 -- pulldown entries to the action bar.
 compile if not defined(WANT_STACK_CMDS)
-; obsolete (new)
+; obsolete
    --WANT_STACK_CMDS = 0  -- changed by aschn
    WANT_STACK_CMDS = 'SWITCH'
    -- 'SWITCH' activates MY_STACK_CMDS, default is now: 1, defined in MENUACCEL.E
@@ -709,7 +712,7 @@ compile endif
 -- behave this way all the time, or to 'SWITCH' to enable switching it on and
 -- off.  The default is 0, meaning that the standard EPM settings are in effect.
 compile if not defined(WANT_CUA_MARKING)
-; obsolete (new)
+; obsolete
 ; Kept just for compatibility, 'SWITCH' is active forever.
    --WANT_CUA_MARKING = 0  -- changed by aschn
    WANT_CUA_MARKING = 'SWITCH'
@@ -721,7 +724,7 @@ compile endif
 -- 'LINK' to have mouse support linked in at run time, or to 0 to omit mouse
 -- support completely.
 compile if not defined(MOUSE_SUPPORT)
-; obsolete (new)
+; obsolete
    MOUSE_SUPPORT = 1
 ;   MOUSE_SUPPORT = 'LINK'  doesn't work
 compile endif
@@ -731,7 +734,7 @@ compile endif
 -- the Edit pulldown can be used to paste this buffer back into the editor.
 -- Not as useful as it originally was, since full undo has been added.
 compile if not defined(WANT_DM_BUFFER)
-; obsolete (new)
+; obsolete
    --WANT_DM_BUFFER = 0  -- changed by aschn
    WANT_DM_BUFFER = 1
 compile endif
@@ -741,7 +744,7 @@ compile endif
 -- behave this way all the time, or to 'SWITCH' to enable switching it on and
 -- off.  The default is 0, meaning forget stream mode entirely.
 compile if not defined(WANT_STREAM_MODE)
-; obsolete (new)
+; obsolete
    --WANT_STREAM_MODE = 0  -- changed by aschn
    WANT_STREAM_MODE = 'SWITCH'
    -- 'SWITCH' activates MY_STREAM_MODE, default is now: 1
@@ -759,7 +762,7 @@ compile endif
 -- LAN installations, so people can use a common .EX but still customize the
 -- keys.
 compile if not defined(ENHANCED_ENTER_KEYS)
-; obsolete (new)
+; obsolete
    --ENHANCED_ENTER_KEYS = 0  -- changed by aschn
    ENHANCED_ENTER_KEYS = 1
 compile endif
@@ -769,7 +772,7 @@ compile endif
 -- Most people will want this to be set to 0, so that you always can load as
 -- many files as you like.
 compile if not defined(RING_OPTIONAL)
-; obsolete (new)
+; obsolete
    --RING_OPTIONAL = 0  -- changed by aschn
    RING_OPTIONAL = 1
 compile endif
@@ -942,6 +945,7 @@ compile endif
 -- users found it horribly confusing and annoying.  Starting with 5.60, we
 -- can work either way; the default is now that we do what people prefer.
 compile if not defined(KEEP_CURSOR_ON_SCREEN)
+; obsolete
    KEEP_CURSOR_ON_SCREEN = 1
 compile endif
 
@@ -960,11 +964,13 @@ compile endif
 
 -- Unmark after doing a move mark?
 compile if not defined(UNMARK_AFTER_MOVE)
+; obsolete
    UNMARK_AFTER_MOVE = 0
 compile endif
 
 -- Keep EPM's Preferences and Frame menus up after a selection?
 compile if not defined(WANT_NODISMISS_MENUS)
+; obsolete
    WANT_NODISMISS_MENUS = 1
 compile endif
 
@@ -989,7 +995,6 @@ compile endif
 -- Include support for calling user exits in DEFMAIN, SAVE, NAME, and QUIT.
 -- (EPM 5.51+ only; requires isadefproc() ).
 compile if not defined(SUPPORT_USER_EXITS)
-; obsolete
    --SUPPORT_USER_EXITS = 0  -- changed by aschn
    SUPPORT_USER_EXITS = 1
 compile endif
@@ -1068,6 +1073,7 @@ compile endif
 -- are, the configuration information comes from the object and not the .INI
 -- file.  This saves a good amount of startup time.
 compile if not defined(WPS_SUPPORT)
+; obsolete
    --WPS_SUPPORT = EPM32  -- changed by aschn
    WPS_SUPPORT = 0
 compile endif
@@ -1139,6 +1145,7 @@ include NLS_LANGUAGE'.e'
 -- This defines the "Directory of" string searched for by Alt-1 in DIR output.
 -- (User-definable for NLS requirements.)
 compile if not defined(DIRECTORYOF_STRING)
+; obsolete
    DIRECTORYOF_STRING = DIR_OF__MSG
 compile endif
 
