@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.6 2005-07-13 17:16:47 aschn Exp $
+* $Id: infoline.e,v 1.7 2005-09-29 18:10:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -525,7 +525,7 @@ defc ResetDateTimeModified
          leave
       elseif wordpos( upcase( substr( .filename, 1, 2)), 'A: B:') then
          leave
-      elseif QueryFileSys( substr( .filename, 2)) = 'CDFS' then
+      elseif wordpos( QueryFileSys( substr( .filename, 2)), 'CDFS UDF') then
          leave
       else
          -- if .readonly is deactivated (standard in EPM)
@@ -550,8 +550,9 @@ defproc GetDateTimeModified
    getfileid fid
    msg = ''
    DateTime = ''
-   ArrayVar = ''
+   ArrayVal = ''
    filename = .filename
+   next = ''
 
    rc = get_array_value( EPM_utility_array_ID, 'datetimemodified.'fid, next)
    if next = '' | Flag = 'RESET' then
@@ -609,13 +610,13 @@ defproc GetDateTimeModified
 
       -- Save DateTime or msg as array var
       if msg <> '' then
-         ArrayVar = msg
+         ArrayVal = msg
       elseif DateTime <> '' then
-         ArrayVar = DateTime
+         ArrayVal = DateTime
       else
-         ArrayVar = 'New'
+         ArrayVal = 'New'
       endif
-      do_array 2, EPM_utility_array_ID, 'datetimemodified.'fid, ArrayVar
+      do_array 2, EPM_utility_array_ID, 'datetimemodified.'fid, ArrayVal
 
 
    elseif next = 'New' then
