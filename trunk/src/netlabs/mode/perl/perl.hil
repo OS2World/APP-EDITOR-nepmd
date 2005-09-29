@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: perl.hil,v 1.1 2002-10-18 18:36:41 cla Exp $
+; $Id: perl.hil,v 1.2 2005-09-29 22:34:18 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -250,4 +250,56 @@ warn
 while
 write
 y
+
+; more
+__END__
+AUTOLOAD
+BEGIN
+CORE
+DESTROY
+END
+INIT
+CHECK
+abs
+and
+bless
+chomp
+chr
+cmp
+eq
+exists
+formline
+ge
+glob
+gt
+lc
+lcfirst
+le
+lock
+lt
+map
+my
+ne
+no
+not
+or
+our
+pos
+prototype
+qr
+quotemedia
+qw
+readline
+readpipe
+ref
+sysopen
+sysseek
+tie
+tied
+uc
+ucfirst
+untie
+use
+x
+xor
 
