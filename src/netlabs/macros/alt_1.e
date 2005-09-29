@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.9 2005-09-12 13:47:07 aschn Exp $
+* $Id: alt_1.e,v 1.10 2005-09-29 17:58:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -99,9 +99,6 @@
 const                             -- These are Alt-1.e -specific constants.
 compile if not defined(AltOnePathVar)
    AltOnePathVar= 'ESEARCH'    -- the name of the environment variable
-compile endif
-compile if not defined(C_INCLUDE)
-   C_INCLUDE    = 1            -- 1 means search <filename> along INCLUDE path
 compile endif
 
 ; consts for parsing dir listings
@@ -451,6 +448,45 @@ compile endif  -- HOST_SUPPORT
       endif
    endif
 
+; ----------------------------------------------------------------------------- include
+/******************************************************************************/
+/***       include support                                                  ***/
+/******************************************************************************/
+; should work with any preprocesor, filetype, past  to future
+; set 'ESEARCH' to search other directories
+                                                         -- todo: support spaces in filenames and pathes
+; (The previous version of include support is commented out by /** ... **/ pairs.)
+   CurMode = NepmdGetMode()
+   parse value lowcase( line) with word1 word2 .
+   if rightstr( word1, 7) = 'include' then        -- if first word ends in "include"
+      if pos( leftstr( word2, 1), "'" || '"<') > 0 then
+         file = substr( word2, 2, length( word2) - 2) -- file has delimiters
+      else
+         file = word2     -- file has no delimiters, eg. MAK !include  file
+      endif
+      if CurMode = 'E' then
+         path = 'EPMPATH'  /* For E macros */
+      elseif CurMode = 'MAKE' then
+         path = 'PATH'  /* For make files */
+/*
+; This TeX support is not very useful:
+;   o  emTeX pathes may have "!" for recusive search appended.
+;   o  VTeX has become the standard OS/2 TeX system in the meantime.
+;   o  VTeX uses an ini, not env vars.
+      elseif CurMode = 'TEX' then
+         path = 'TEXINPUT'  /* For TEX files */
+*/
+      else
+         path = 'INCLUDE'  /* For C RC DLG MAK etc, all others PPWIZARD etc */
+      endif
+      call a1load( file, path)
+      if rc <> 0 then
+         sayerror 'Include file "'file'" not found'
+      endif
+      return
+; Really stop here, even when file was not found?
+   endif
+
 ; ----------------------------------------------------------------------------- *.use *.xrf
 /******************************************************************************/
 /***       C-USED support                                                   ***/
@@ -549,7 +585,7 @@ compile endif  -- HOST_SUPPORT
 /******************************************************************************/
 /***       GREP support                                                     ***/
 /******************************************************************************/
-   fGnu = ''
+   fGnuGrep = ''
    -- Support reloaded grep outputs: <path>.Output from grep ...
    lp = lastpos( '\', word( .filename, 1))
    if substr( .filename, lp + 1, 17) = '.Output from grep' then
@@ -577,12 +613,20 @@ compile endif  -- HOST_SUPPORT
          FileName = translate( FileName, '\', '/')
       else
          parse value line with FileMask':'LineNumber':'rest
-         FileMask = translate( FileMask, '\', '/')
-         FileName = GetFullName( FileMask, CurDir)
+         if LineNumber then
+            FileMask = translate( FileMask, '\', '/')
+            FileName = GetFullName( FileMask, CurDir)
+         else
+            FileName = ''
+         endif
       endif
 
       if FileName then
-         "e "FileName" '"LineNumber"'"
+         if rest & isnum( LineNumber) then
+            'e "'FileName'"' "'"LineNumber"'"
+         else
+            'e "'FileName'"'
+         endif
          return
       endif
    endif
@@ -667,31 +711,43 @@ compile endif  -- HOST_SUPPORT
    endif
 
 ; ----------------------------------------------------------------------------- word under cursor
+                                                         -- todo: support spaces in filenames and pathes
+
+   CurMode = NepmdGetMode()
    StartCol = 0
    EndCol   = 0
-                                                         -- todo: support spaces in filenames and pathes
    SeparatorList = '"'||"'"||'(){}[]<>,;|+ '\9'#='
-   call find_token( StartCol, EndCol, SeparatorList, '')
-
-   fWordFound = (StartCol <> 0 & EndCol >= StartCol)
+-- call find_token( StartCol, EndCol, SeparatorList, '')
+-- fWordFound = (StartCol <> 0 & EndCol >= StartCol)
+-- Checking the return code is better in the case the cursor is
+-- on a 'diad'.  JBS
+   rcx = find_token( StartCol, EndCol, SeparatorList, '')
+   fWordFound = (rcx == 1)
    if fWordFound then  -- if word found
       Spec = substr( line, StartCol, EndCol - StartCol + 1)
-                                                         -- todo: handle URLs here, start browser
+      -- strip trailing periods
+      -- This has been moved ahead of where it was in order to handle
+      -- the case where the 'token' is all '.'s and is therefore
+      -- stripped to nothing in this code.  JBS
+      Spec = strip( Spec, 'T', '.')
+      if Spec == "" then              -- was token all '.'s?
+         fWordFound = 0               -- if yes, abort "normal" search
+      endif
+   endif
+   if fWordFound then  -- if word still exists after truncating trailing '.'s
+                       -- todo: handle URLs here, start browser
       -- convert slashes to backslashes
       Spec = translate( Spec, '\', '/')
-      -- strip trailing periods
-      Spec = strip( Spec, 'T', '.')
-
-      CurMode = NepmdGetMode()
 
       SpecExt = ''
       lp = lastpos( '.', Spec)
-      if lp > 1 & lp < length(Spec) then
+--    if lp > 1 & lp < length(Spec) then
+--                lp < length(Spec) this could never be false after trailing '.'s have been stripped JBS
+      if lp > 1 then
          SpecExt = substr( Spec, lp + 1)
          SpecExt = upcase(SpecExt)
       endif
 
-      fTryCurFirst = 1  -- 1 ==> search in current dir first
       PathVar = 'PATH'
       if CurMode = 'E' | wordpos( SpecExt, 'E') > 0 then
          PathVar = 'EPMPATH'
@@ -699,38 +755,79 @@ compile endif  -- HOST_SUPPORT
          PathVar = 'TEXINPUT'
       endif
 
+      fTryCurFirst = 1  -- 1 ==> search in current dir first
       call a1load( Spec, PathVar, fTryCurFirst)
-
+/**
 compile if C_INCLUDE
+   -- This section may not be correct.  Just because a C file may have an
+   -- embedded file name does not mean that a search for this file should
+   -- take place on the INCLUDE path. The code for what may be a more
+   -- appropriate search for include files can be found below under
+   -- "Try a special case..."   JBS
+/*
       -- If that fails, try INCLUDE path.
       if rc <> 0 then
          PathVar = 'INCLUDE'
          fTryCurFirst = 0
          call a1load( Spec, PathVar, fTryCurFirst)
       endif
+*/
 compile endif
-
-      if rc <> 0 then
-         -- Todo: give a better msg using a standard OS/2 rc.
-         sayerror 'File "'Spec'" cannot be found or loaded.'
-         -- Todo: search in tree and remove maybe relative path
-         -- from Spec or concatenate every path of the tree with
-         -- Spec (should be resolved by NepmdQueryFullname).
-      else
-         linenum  -- jbl 11/15/88, go to specified linenum if any.
-         if col <> '' then
-            .col = col
+**/
+   endif
+/**
+   if fWordFound = 0 or rc <> 0 then
+      -- Try special case of an include/tryinclude line in an E or C/C++ file JBS
+      if CurMode = 'E' or CurMode = 'C' or CurMode = 'RC' then
+         fTryCurFirst = 1                       -- true for E and C/C++ #include "..."
+         getline includeline
+         parse value lowcase(includeline) with word1 word2.
+         delim = substr( word2, 1, 1)
+         if CurMode = 'E' and (word1 = 'include' or word1 = 'tryinclude') and
+            (delim = "'" or delim = '"') then
+            Spec = strip(word2, 'B', delim)
+            fWordFound = 1
+            call a1load(Spec, 'EPMPATH', fTryCurFirst)    /* For E files */
+compile if C_INCLUDE
+         else
+            if (CurMode = 'C' or CurMode = 'RC') and word1 = '#include' and
+               (delim = '"' or delim = "'" or delim = '<') then
+               Spec = strip(word2, 'B', delim)
+               fWordFound = 1
+               if delim = '<' then
+                  parse value word2 with '<'Spec'>'
+                  fTryCurFirst = 0                 -- reset on C/C++ #include <...>
+               endif
+               call a1load(Spec, 'INCLUDE', fTryCurFirst)    /* For C/C++ files */
+            endif
+compile endif
          endif
+      endif
+   endif
+**/
+   if fWordFound = 0 then
+      sayerror 'No filename under cursor'
+   elseif rc <> 0 then
+      -- Todo: give a better msg using a standard OS/2 rc.
+      sayerror 'File "'Spec'" cannot be found or loaded.'
+      -- Todo: search in tree and remove maybe relative path
+      -- from Spec or concatenate every path of the tree with
+      -- Spec (should be resolved by NepmdQueryFullname).
+   else
+      linenum  -- jbl 11/15/88, go to specified linenum if any.
+      if col <> '' then
+         .col = col
       endif
    endif
 
 ; ---------------------------------------------------------------------------
-; Sets rc > 0 for an standard error code, rc > 0 for an ETK error code, set
+; Sets rc > 0 for a standard error code, rc < 0 for an ETK error code, set
 ; by defc edit, or rc = 0 on success.
 ; FileName can be a name, including wildcards.
-; PathVar can be a name for a path, e.g. 'PATH'.
-; fTryCurFirst as optional 3rd arg specifies, if current directory should
-; be searched first (fTryCurFirst = 1).
+; PathVar must be a name for a path, e.g. 'PATH'.
+; fTryCurFirst as optional 3rd arg specifies, if current directory shall be
+;    searched first (fTryCurFirst = 1). Default is to omit the search in
+;    current dir.
 defproc a1load( FileName, PathVar)
    fTryCurFirst = (arg(3) = 1)
    WildcardPos = verify( FileName, '*?', 'M')
