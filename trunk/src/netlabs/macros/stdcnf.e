@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.24 2005-05-16 21:01:27 aschn Exp $
+* $Id: stdcnf.e,v 1.25 2005-09-29 19:05:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -921,10 +921,11 @@ compile endif
 
 -- For Toolkit developers - set to 0 if you don't want the user to be able
 -- to go to line 0.  Affects MH_gotoposition in MOUSE.E and Def Up in STDKEYS.E.
+-- Must be set to 1 in order to enable a copy line action to the top. (Copy line
+-- copies a line after the current line.)
 compile if not defined(TOP_OF_FILE_VALID)
    -- Can be '0', '1', or 'STREAM' (dependant on STREAM_MODE)
-   --TOP_OF_FILE_VALID = 1  -- changed by aschn
-   TOP_OF_FILE_VALID = 0
+   TOP_OF_FILE_VALID = 1
 compile endif
 
 -- EBOOKIE support desired?  0=no; 1=include bkeys.e; 'LINK'=always link BKEYS
