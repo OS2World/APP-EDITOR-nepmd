@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: zoc.hil,v 1.1 2002-10-18 19:42:00 cla Exp $
+; $Id: zoc.hil,v 1.2 2005-09-29 21:28:56 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -58,6 +58,7 @@ ZocOs
 ZocPID
 ZocReceiveBuf
 ZocRequest
+ZocReply
 ZocRespond
 ZocRestimer
 ZocScreen
