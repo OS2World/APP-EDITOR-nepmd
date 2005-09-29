@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.10 2005-09-12 14:07:25 aschn Exp $
+* $Id: select.e,v 1.11 2005-09-29 18:35:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -171,7 +171,7 @@ compile endif  -- WANT_EBOOKIE
    ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if ChangeWorkDir = 2 then
       Filename = .filename
-      if pos( ':\', Filename) then
+      if substr( Filename, 2, 2) = ':\' then
          call directory( '\')
          call directory( Filename'\..')
       endif
