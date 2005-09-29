@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.18 2005-09-24 09:17:01 aschn Exp $
+* $Id: newmenu.e,v 1.19 2005-09-29 20:39:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1795,6 +1795,11 @@ compile endif
    buildmenuitem menuname, mid, i, 'Drag always marks',                                                  -- Drag always marks
                                    'toggle_drag_always_marks' ||
                                    \1'Every drag starts a new mark (avoid the ''Text already marked'' msg)',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_unmarkaftermove', i);
+   buildmenuitem menuname, mid, i, 'Unmark after move',                                                  -- Unmark after move
+                                   'toggle_unmark_after_move' ||
+                                   \1'Unmark after doing a move mark',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
 
    i = i + 1; call SetAVar( 'mid_marginsandtabs', i);
@@ -2681,6 +2686,11 @@ defc menuinit_markingsettings
    SetMenuAttribute( GetAVar('mid_shiftmarkextends'),   MIA_CHECKED, not (on & not cua_marking_switch))
    SetMenuAttribute( GetAVar('mid_shiftmarkextends'),   MIA_DISABLED, not cua_marking_switch)
 
+   KeyPath = '\NEPMD\User\Mark\UnmarkAfterMove'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_unmarkaftermove'),    MIA_CHECKED, not (on & not cua_marking_switch))
+   SetMenuAttribute( GetAVar('mid_unmarkaftermove'),    MIA_DISABLED, not cua_marking_switch)
+
    KeyPath = '\NEPMD\User\Mark\MouseStyle'
    style = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if (style <> 1 | cua_marking_switch) then
@@ -3318,6 +3328,16 @@ defc toggle_shift_mark_extends
    on = not on
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_shiftmarkextends'), MIA_CHECKED, not on)
+
+; ---------------------------------------------------------------------------
+; Flags: permanent, nepmd.ini
+defc toggle_unmark_after_move
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Mark\UnmarkAfterMove'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   SetMenuAttribute( GetAVar('mid_unmarkaftermove'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
 ; Flags: permanent, nepmd.ini
