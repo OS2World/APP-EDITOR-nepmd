@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: config.hil,v 1.1 2002-10-18 18:36:36 cla Exp $
+; $Id: config.hil,v 1.2 2005-09-29 22:56:01 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -33,6 +33,10 @@
 [OPERATOR]
  ,
  =
+
+[SPECIAL]
+ ;
+ +
 
 [DRIVER]
 ; --- driver statements
@@ -80,7 +84,6 @@ VIDEO_DEVICES
 ; --- SET variable options
 CONNECTIONS
 FOLDERS
-NO
 PROGRAMS
 STARTUPFOLDERSONLY
 TASKLIST
