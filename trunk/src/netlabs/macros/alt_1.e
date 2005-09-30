@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.10 2005-09-29 17:58:40 aschn Exp $
+* $Id: alt_1.e,v 1.11 2005-09-30 21:43:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -454,15 +454,21 @@ compile endif  -- HOST_SUPPORT
 /******************************************************************************/
 ; should work with any preprocesor, filetype, past  to future
 ; set 'ESEARCH' to search other directories
-                                                         -- todo: support spaces in filenames and pathes
 ; (The previous version of include support is commented out by /** ... **/ pairs.)
    CurMode = NepmdGetMode()
    parse value lowcase( line) with word1 word2 .
-   if rightstr( word1, 7) = 'include' then        -- if first word ends in "include"
-      if pos( leftstr( word2, 1), "'" || '"<') > 0 then
-         file = substr( word2, 2, length( word2) - 2) -- file has delimiters
+   if rightstr( word1, 7) = 'include' then           -- if first word ends in "include"
+      delim = leftstr( word2, 1)
+      fTryCurFirst = 1
+      if pos( delim, "'" || '"') > 0 then            -- file has quote delimiters?
+         parse value line with . (delim) filename (delim) .
+      elseif delim = '<' then
+         parse value line with . '<' filename '>' .
+         if CurMode = 'C' then
+            fTryCurFirst = 0
+         endif
       else
-         file = word2     -- file has no delimiters, eg. MAK !include  file
+         filename = word2     -- file has no delimiters, eg. MAK !include  file
       endif
       if CurMode = 'E' then
          path = 'EPMPATH'  /* For E macros */
@@ -479,12 +485,10 @@ compile endif  -- HOST_SUPPORT
       else
          path = 'INCLUDE'  /* For C RC DLG MAK etc, all others PPWIZARD etc */
       endif
-      call a1load( file, path)
-      if rc <> 0 then
-         sayerror 'Include file "'file'" not found'
+      call a1load( filename, path, fTryCurFirst)
+      if rc = 0 then
+         return
       endif
-      return
-; Really stop here, even when file was not found?
    endif
 
 ; ----------------------------------------------------------------------------- *.use *.xrf
@@ -757,23 +761,6 @@ compile endif  -- HOST_SUPPORT
 
       fTryCurFirst = 1  -- 1 ==> search in current dir first
       call a1load( Spec, PathVar, fTryCurFirst)
-/**
-compile if C_INCLUDE
-   -- This section may not be correct.  Just because a C file may have an
-   -- embedded file name does not mean that a search for this file should
-   -- take place on the INCLUDE path. The code for what may be a more
-   -- appropriate search for include files can be found below under
-   -- "Try a special case..."   JBS
-/*
-      -- If that fails, try INCLUDE path.
-      if rc <> 0 then
-         PathVar = 'INCLUDE'
-         fTryCurFirst = 0
-         call a1load( Spec, PathVar, fTryCurFirst)
-      endif
-*/
-compile endif
-**/
    endif
 /**
    if fWordFound = 0 or rc <> 0 then
@@ -787,8 +774,7 @@ compile endif
             (delim = "'" or delim = '"') then
             Spec = strip(word2, 'B', delim)
             fWordFound = 1
-            call a1load(Spec, 'EPMPATH', fTryCurFirst)    /* For E files */
-compile if C_INCLUDE
+            call a1load(Spec, 'EPMPATH', fTryCurFirst)    -- For E files
          else
             if (CurMode = 'C' or CurMode = 'RC') and word1 = '#include' and
                (delim = '"' or delim = "'" or delim = '<') then
@@ -798,9 +784,8 @@ compile if C_INCLUDE
                   parse value word2 with '<'Spec'>'
                   fTryCurFirst = 0                 -- reset on C/C++ #include <...>
                endif
-               call a1load(Spec, 'INCLUDE', fTryCurFirst)    /* For C/C++ files */
+               call a1load(Spec, 'INCLUDE', fTryCurFirst)    -- For C/C++ file
             endif
-compile endif
          endif
       endif
    endif
@@ -836,7 +821,7 @@ defproc a1load( FileName, PathVar)
       if YES_CHAR <> askyesno( WILDCARD_WARNING__MSG, '', filename) then
          return
       endif
-      'edit' FileName
+      'edit "'FileName'"'
 
    else
       -- Every check for existing names returns always 0 for wildcards in name.
@@ -875,7 +860,7 @@ defproc a1load( FileName, PathVar)
          FullName = NepmdQueryFullname( LoadName)
          parse value FullName with 'ERROR:'rc
          if rc = '' then
-            'edit' FullName
+            'edit "'FullName'"'
          endif
       endif
    endif
