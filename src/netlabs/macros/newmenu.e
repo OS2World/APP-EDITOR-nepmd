@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.19 2005-09-29 20:39:17 aschn Exp $
+* $Id: newmenu.e,v 1.20 2005-10-02 16:39:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2334,7 +2334,7 @@ compile if SUPPORT_USERS_GUIDE
                                    MIS_TEXT + MIS_SUBMENU /*+ MIS_SYSCOMMAND*/, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
    i = i + 1; call SetAVar( 'mid_usersguide', i);
    buildmenuitem menuname, mid, i, VIEW_USERS_MENU__MSG,                                                 -- View User's Guide
-                                   'view epmusers' ||
+                                   'start view epmusers' ||
                                    VIEW_USERS_MENUP__MSG,
                                    0, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
    i = i + 1;
@@ -2344,7 +2344,7 @@ compile if SUPPORT_USERS_GUIDE
                                    0, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, VIEW_USERS_SUMMARY_MENU__MSG,                                         -- Summary
-                                   'view epmusers Summary' ||
+                                   'start view epmusers Summary' ||
                                    VIEW_USERS_SUMMARY_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_HELP_USERS_GUIDE, 0)
 compile endif
@@ -2356,7 +2356,7 @@ compile if SUPPORT_TECHREF
                                    MIS_TEXT + MIS_SUBMENU /*+ MIS_SYSCOMMAND*/, mpfrom2short(HP_HELP_TECHREF, 0)
    i = i + 1; call SetAVar( 'mid_technicalreference', i);
    buildmenuitem menuname, mid, i, VIEW_TECHREF_MENU__MSG,                                              -- View Technical Reference
-                                   'view epmtech' ||
+                                   'start view epmtech' ||
                                    VIEW_TECHREF_MENUP__MSG,
                                    0, mpfrom2short(HP_HELP_TECHREF, 0)
    i = i + 1;
