@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.20 2005-07-31 19:13:07 aschn Exp $
+* $Id: epmenv.c,v 1.21 2005-10-08 18:47:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -601,7 +601,14 @@ return rc;
 }
 
 //      #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
-
+// Extends the environment with internal NEPMD vars and parsed contents (by
+// _readEnvFile) of the .env file(s). The EPM executable is searched after that
+// first extension of the environment. After that, its env var is set and the
+// environment is extended a second time.
+// The LIBPATH is extended via BEGINLIBPATH and ENDLIBPATH env vars, like
+// supported by cmd.exe.
+// If pszBuffer was supplied, it will be set to the value of the EPM
+// executable.
 APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc  = NO_ERROR;
@@ -616,7 +623,7 @@ APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv, PSZ pszBuffer, UL
          CHAR           *pszPathVar;
 
          CHAR           szInstallVar[ _MAX_PATH + 30];
-         PSZ            apszVar[ 7]; // increase size of array if more vars required !!!
+         PSZ            apszVar[ 6]; // increase size of array if more vars required !!!
 
          PSZ           *ppszEnv;
          PSZ            pszVar;
@@ -644,9 +651,11 @@ do
    // default to make no changes
    *ppszNewEnv = NULL;
 
-#if 1
+#if 0
    // get loader executable (current file)
    szLoaderExecutable[ 0] = 0;
+   // _searchLoaderExecutable can be deleted, if this block will
+   // stay commented out:
    rc = _searchLoaderExecutable( szLoaderExecutable, sizeof( szLoaderExecutable));
 #endif
 
@@ -731,7 +740,6 @@ do
          {
          apszVar[ 1] = strdup( szInstallVar);
          ADDVAR( apszVar[ 1]);
-DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
          }
 
       // --- > set environment variable for NEPMD language
@@ -760,7 +768,7 @@ DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
 
       // search EpmExecutable after the environment is expanded
 
-#if 1
+#if 0
       // --- > set environment variable for EPM loader
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=%s", ENV_NEPMD_LOADEREXECUTABLE, szLoaderExecutable);
@@ -799,30 +807,30 @@ DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
 
       }  // fEnvAlreadySet == 0
 
-   // search EPM executable after PATH was extended
-   // the loader executable is here not required
-   szEpmExecutable[ 0] = 0;
-   szLoaderExecutable[ 0] = 0;
-   rc = _searchEpmExecutable( szEpmExecutable,    sizeof( szEpmExecutable),
-                              szLoaderExecutable, sizeof( szLoaderExecutable));
+      // search EPM executable after PATH was extended
+      // the loader executable is here not required, if it was processed already before
+      szEpmExecutable[ 0] = 0;
+      szLoaderExecutable[ 0] = 0;
+      rc = _searchEpmExecutable( szEpmExecutable,    sizeof( szEpmExecutable),
+                                 szLoaderExecutable, sizeof( szLoaderExecutable));
 
-   // hand over name of executable, if buffer supplied
-   if (pszBuffer)
-      {
-      // if executable is requested, react on error
-      if (rc != NO_ERROR)
-         break;
-
-      if (strlen( szEpmExecutable) + 1 > ulBuflen)
+      // hand over name of executable, if buffer supplied
+      if (pszBuffer)
          {
-         rc = ERROR_BUFFER_OVERFLOW;
-         break;
-         }
-      DPRINTF(( "Found executable: %s\n", szEpmExecutable));
-      strcpy( pszBuffer, szEpmExecutable);
-      }
+         // if executable is requested, react on error
+         if (rc != NO_ERROR)
+            break;
 
-   // set the next vars after _searchEPMExecutable was called
+         if (strlen( szEpmExecutable) + 1 > ulBuflen)
+            {
+            rc = ERROR_BUFFER_OVERFLOW;
+            break;
+            }
+         DPRINTF(( "Found executable: %s\n", szEpmExecutable));
+         strcpy( pszBuffer, szEpmExecutable);
+         }
+
+   // --- > set the next vars after _searchEPMExecutable was called
    if (fEnvAlreadySet == 0)
       {
       // set NEPMD_EPMEXECUTABLE
@@ -831,25 +839,54 @@ DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
       apszVar[ 5] = strdup( szInstallVar);
       ADDVAR( apszVar[ 5]);
 
-#if 0
+#if 1
+      // this can be set before the first evironment extension as well,
+      // therefore exchange "#if 0" with "#if 1"
       // set NEPMD_LOADEREXECUTABLE
-      // this can be set before the evironment extension as well
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=%s", ENV_NEPMD_LOADEREXECUTABLE, szLoaderExecutable);
       apszVar[ 6] = strdup( szInstallVar);
-      DPRINTF(( "EPMENV: %s\n", apszVar[ 6]));
-      // ADDVAR doesn't work here, although DPRINTF shows, that apszVar[ 6] has the right value
-      // why?
       ADDVAR( apszVar[ 6]);
 #endif
 
-//       DPRINTF(( "EPMENV: ### %s\n", apszVar[ 0]));
-//       DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
-//       DPRINTF(( "EPMENV: ### %s\n", apszVar[ 2]));
-//       DPRINTF(( "EPMENV: ### %s\n", apszVar[ 3]));
-//       DPRINTF(( "EPMENV: ### %s\n", apszVar[ 4]));
-//       DPRINTF(( "EPMENV: ### %s\n", apszVar[ 5]));
-//       DPRINTF(( "EPMENV: ### %s\n", apszVar[ 6]));
+      // quick & dirty: simply repeat extension of the environment,
+      // but this time with added values for the executables
+      pszEnv = malloc( ulEnvSize);
+      if (!pszEnv)
+         {
+         rc = ERROR_NOT_ENOUGH_MEMORY;
+         break;
+         }
+      memset( pszEnv, 0x0, ulEnvSize);
+
+      // read env into memory block
+      pszName = pszEnvNameList;
+      pszVar = pszEnv;
+      while (*pszName)
+         {
+         // copy var
+         sprintf( pszVar, "%s=%s",  pszName, getenv( pszName));
+
+         // copy next var
+         pszVar = NEXTSTR( pszVar);
+         pszName = NEXTSTR( pszName);
+         }
+
+      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 0]));
+      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
+      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 2]));
+      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 3]));
+      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 4]));
+      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 5]));
+      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 6]));
+
+      // close name list
+      *pszName = 0;
+
+      *pszVar = 0;
+
+      // hand over result
+      *ppszNewEnv = pszEnv;
 
       // extend LIBPATH
       pszPathVar = getenv( "BEGINLIBPATH");
@@ -862,14 +899,6 @@ DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
          {
          DosSetExtLIBPATH( pszPathVar, END_LIBPATH);
          }
-
-      // close name list
-      *pszName = 0;
-
-      *pszVar = 0;
-
-      // hand over result
-      *ppszNewEnv = pszEnv;
 
       }  // fEnvAlreadySet == 0
 
