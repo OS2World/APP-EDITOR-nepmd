@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.9 2005-09-12 13:51:18 aschn Exp $
+* $Id: dosutil.e,v 1.10 2005-10-12 17:53:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -313,15 +313,12 @@ defc os2
    endif
 
 defproc dos_command=
-universal vTEMP_FILENAME
-compile if RING_OPTIONAL
+   universal vTEMP_FILENAME
    universal ring_enabled
    if not ring_enabled then
       'ring_toggle'
    endif
-compile endif
    -- Used to always do:  arg(1) '>'
-/*
    -- but "set foo" is different than "set foo " (trailing space), so now we
    -- only insert the space if the argument ends with a number and so could
    -- be confused with redirection of a file handle.
@@ -330,10 +327,8 @@ compile endif
    else
       quietshell 'dos' arg(1)'>'vTEMP_FILENAME '2>&1'
    endif
-*/
-   quietshell 'dos' arg(1) '1>'vTEMP_FILENAME '2>&1'
 
-   'e' argsep'D' argsep'Q' vTEMP_FILENAME
+   'e /D /Q' vTEMP_FILENAME
    if not rc then .filename = '.DOS' arg(1); endif
    call erasetemp(vTEMP_FILENAME)
 
