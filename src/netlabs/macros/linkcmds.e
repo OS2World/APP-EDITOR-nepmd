@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.27 2005-09-24 08:48:17 aschn Exp $
+* $Id: linkcmds.e,v 1.28 2005-10-15 17:31:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1052,23 +1052,33 @@ defc RecompileNew
             next = Md5Comp( ExFile, CurExFile)
             if next = 1 then
                fReplaceExFile = 1
-               next2 = Md5Comp( ExFile, NetlabsExFile)
-               if next2 = 0 then
-                  if upcase( CurExFile) <> upcase( NetlabsExFile) then
+               if NetlabsExFileTime > '' then
+                  next2 = Md5Comp( ExFile, NetlabsExFile)
+                  if next2 = 0 then
+                     if upcase( CurExFile) <> upcase( NetlabsExFile) then
+                        if not fCheckOnly then
+                           fDeleteExFile = 1
+                           WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to current but equal to Netlabs .EX file')
+                        else
+                           WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different to current but equal to Netlabs .EX file')
+                           cWarning = cWarning + 1
+                           fCheckOnlyNotCopied = 1
+                        endif
+                     endif
+                  else
                      if not fCheckOnly then
-                        fDeleteExFile = 1
-                        WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to current but equal to Netlabs .EX file')
+                        WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to current and Netlabs .EX file')
                      else
-                        WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different to current but equal to Netlabs .EX file')
+                        WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different to current and Netlabs .EX file')
                         cWarning = cWarning + 1
                         fCheckOnlyNotCopied = 1
                      endif
                   endif
                else
                   if not fCheckOnly then
-                     WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to current and Netlabs .EX file')
+                     WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to current .EX file')
                   else
-                     WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different to current and Netlabs .EX file')
+                     WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different to current .EX file')
                      cWarning = cWarning + 1
                      fCheckOnlyNotCopied = 1
                   endif
