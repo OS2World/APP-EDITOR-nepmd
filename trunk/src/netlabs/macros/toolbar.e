@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.4 2005-10-10 18:17:32 aschn Exp $
+* $Id: toolbar.e,v 1.5 2005-10-16 13:10:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -140,6 +140,55 @@ defc load_actions
    activatefile ActiveFileID
 
 ; ---------------------------------------------------------------------------
+; Generic macro for adding toolbar definitions easily. Here is an example
+; for its usage:
+;    defc TB_Shell
+;       ExFile  = 'newbar'      -- Name of the .ex file where this defc is defined.
+;       Action  = 'TB_Shell'    -- Name of the defc. Appears in the list of selectable actions.
+;       Command = 'Shell'       -- Command to be executed after release of the button.
+;       Prompt  = SHELL_PROMPT  -- Prompt, that appears on the messageline, while the button is pressed.
+;       Help    = ''            -- Additional prompt or a help panel id for F1 action while the button is pressed.
+;       Title   = ''            -- Title of the help message box (if no help panel id).
+;       call ToolbarAction( arg(1), Exfile, Action, Command, Prompt, Help, Title)
+; Additionally, a line must be added to
+;    defc <ExFile>_actionlist
+;       'TB_Shell ACTIONLIST'
+; to make that definition appear in the listbox, where an action can be
+; selected from.
+defproc ToolbarAction
+   universal ActionsList_FileID
+   Exfile  = arg(2)
+   Action  = arg(3)
+   Command = arg(4)
+   Prompt  = arg(5)
+   Help    = arg(6)
+   Title   = arg(7)
+   if Title = '' then
+      Title =  Action 'from "'upcase( ExFile)'"'
+   endif
+   if upcase( arg(1)) = 'ACTIONLIST' then
+      insertline \1''Action''\1''Prompt''\1''ExFile''\1,
+                 ActionsList_FileID.last + 1, ActionsList_FileID
+   else
+      if arg(1) = 'S' then
+         sayerror 0
+         Command
+      elseif arg(1) = 'I' then
+        display -8
+        sayerror Prompt
+        display 8
+      elseif arg(1) = 'H' then
+         if words( Help) = 1 & isnum( Help) then
+            'helpmenu' Help
+         else
+            call winmessagebox( Title,
+                                Prompt''Help,
+                                MB_OK + MB_INFORMATION + MB_MOVEABLE)
+         endif
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
 ;  ExecuteAction
 ;     This defc is called to resolve UCMENU actions.
 ;     It is called with the first parameter being the action name,
@@ -201,7 +250,9 @@ defproc list_toolbars( list_title, list_prompt, help_panel, msgid)
       insertline BarName, .last+1
    enddo
    if browse_mode then call browse(1); endif  -- restore browse state
-   if listbox_buffer_from_file( startfid, bufhndl, noflines, usedsize) then return; endif
+   if listbox_buffer_from_file( startfid, bufhndl, noflines, usedsize) then
+      return
+   endif
    parse value listbox( list_title,
                         \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                         '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
@@ -211,14 +262,19 @@ defproc list_toolbars( list_title, list_prompt, help_panel, msgid)
                         gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(help_panel) ||
                         list_prompt) with button 2 BarName \0
    call buffer( FREEBUF, bufhndl)
-   if button <> \1 then return; endif
-   call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME), msgid, app_hini, put_in_buffer( BarName))
+   if button <> \1 then
+      return
+   endif
+   call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
+                       msgid,
+                       app_hini,
+                       put_in_buffer( BarName))
    if msgid = 5916 then
       toolbar_loaded = BarName
    endif
 
 defc delete_toolbar
-   call list_toolbars(DELETE_TOOLBAR__MSG, SELECT_TOOLBAR__MSG, 7001, 5919)
+   call list_toolbars( DELETE_TOOLBAR__MSG, SELECT_TOOLBAR__MSG, 7001, 5919)
 
 compile endif  -- 0 ---------------------------------------------------------
 
@@ -342,7 +398,7 @@ defc deletetemplate, DeleteToolbar
                       put_in_buffer( BarName))
 
 ; ---------------------------------------------------------------------------
-; Activate default toolbar from EPM.INI.
+; Activate last saved toolbar from EPM.INI.
 defc default_toolbar, ReloadToolbar
    universal app_hini
    universal appname
@@ -474,8 +530,19 @@ defc ImportToolbar
    if (BarFile > '' & upcase( rightstr( BarFile, 4)) <> '.BAR') then
       BarFile = BarFile'.bar'
    endif
-   if not NepmdFileExists( BarFile) then
-      rc = 2
+   if NepmdFileExists( BarFile) then
+      next = NepmdQueryPathInfo( BarFile, 'SIZE')
+      parse value next with 'ERROR:'rc
+      if rc = '' then
+         Size = next
+         if Size > 1599 then
+            sayerror 'File longer than 1599 chars. Cannot import toolbar with this defc. Use the settings dialog instead.'
+            rc = 24  -- ERROR_BAD_LENGTH
+            return
+         endif
+      endif
+   else
+      rc = 2  -- ERROR_FILE_NOT_FOUND
       return
    endif
 
@@ -490,13 +557,16 @@ defc ImportToolbar
          if l = 1 then
             if not leftstr( Bar, length( TOOLBAR_SIG)) = TOOLBAR_SIG then
                'xcom quit'
-               rc = 13
+               rc = 13  -- ERROR_INVALID_DATA
                return
             endif
          else
          endif
       end
       'xcom quit'
+   else
+      rc = 5  -- ERROR_ACCESS_DENIED
+      return
    endif
 
    -- Get default name from file
@@ -522,25 +592,58 @@ defc ImportToolbar
 ; ---------------------------------------------------------------------------
 defc ExportToolbar
    universal app_hini
-   universal toolbar_loaded
 
-   -- Check if changed:?
-   -- Get current toolbar?
-   -- Compare both?
-   ------------------------------> Todo
+   -- Save current toolbar to a tmp name first
+   TmpBarName = '.TmpBar'
+   call windowmessage( 0, getpminfo( EPMINFO_EDITFRAME),
+                       5915,
+                       app_hini,
+                       put_in_buffer( TmpBarName))
+
+   -- Execute the rest after ini key was saved
+   'postme ExportToolbar2' TmpBarName
+
+defc ExportToolbar2
+   universal app_hini
+   universal toolbar_loaded
+   TmpBarName = arg(1)
 
    -- Get name of active toolbar from ini
-   BarName = queryprofile( app_hini, 'EPM', 'DEFTOOLBAR')
+   BarName = toolbar_loaded  -- query current toolbar name
+   if BarName = \1 then      -- \1 means: default toolbar is active
+      BarName = queryprofile( app_hini, 'EPM', 'DEFTOOLBAR')  -- query last saved toolbar name
+   endif
 
-   -- Save current toolbar fist
-   -- Temporary: Don't ask for a name, just use previous name
-   'SaveToolbar' BarName
+   IniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
+   IniAppl = 'UCMenu_Templates'
 
+   'rx Toolbar EXPORT' IniFile IniAppl BarName TmpBarName
+   if rc = 0 then
+      -- sayerror 'Success. rc = 'rc
+   elseif rc = 1 then
+      -- sayerror 'Export canceled by user. rc = 'rc
+   else
+      sayerror 'Error. Toolbar not exported. rc = 'rc
+   endif
+
+   -- Delete temporary saved toolbar
+   call setprofile( app_hini, 'UCMenu_Templates', TmpBarName, '')
+
+/*
    -- Get toolbar saved in ini
-   Bar     = queryprofile( app_hini, 'UCMenu_Templates', BarName)
+   fStop = 0
+   Bar = queryprofile( app_hini, 'UCMenu_Templates', TmpBarName)  -- Strings are limited to 1599 chars!
+   if length( Bar) > 1599 then
+      sayerror 'Ini entry longer than 1599 chars. Cannot export toolbar with this defc. Use the settings dialog instead.'
+      fStop = 1
+   endif
 
-   -- Strip pathes, if bmps in EPMPATH
-   ------------------------------> Todo
+   -- Delete temporary saved toolbar
+   call setprofile( app_hini, 'UCMenu_Templates', TmpBarName, '')
+   if fStop = 1 then
+      rc = 24  -- ERROR_BAD_LENGTH
+      return
+   endif
 
    -- Get filename from BarName
    UserDir = strip( Get_Env( 'NEPMD_USERDIR'), 't', '\')
@@ -557,6 +660,7 @@ defc ExportToolbar
    'SaveAs_Dlg'  -- open SaveAs dialog
    .modify = 0
    'xcom quit'
+*/
 
 ; ---------------------------------------------------------------------------
 ; From: Larry Margolis (margoli@ibm.net)
