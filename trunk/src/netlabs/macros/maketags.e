@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: maketags.e,v 1.8 2004-12-31 02:38:24 aschn Exp $
+* $Id: maketags.e,v 1.9 2005-10-16 19:06:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -60,16 +60,18 @@ const
    EA_comment 'This defines the MAKETAGS command; it is intended to be executed directly.'
 compile endif
 
+const
 compile if not defined(SHOW_EACH_PROCEDURE)
-   const SHOW_EACH_PROCEDURE = 0
+   SHOW_EACH_PROCEDURE = 0
 compile endif
-
 compile if not defined(TRACE_TIMES)
-   const TRACE_TIMES = 0
+   TRACE_TIMES = 0
 compile endif
-
 compile if not defined(LOG_TAG_MATCHES)
-   const LOG_TAG_MATCHES = 0
+   LOG_TAG_MATCHES = 0
+compile endif
+compile if not defined(MAKETAGS_ADD_ONLY)  -- new behavior is to always create a new tags file
+   MAKETAGS_ADD_ONLY = 0                   -- for standard EPM behavior this must be set to 1
 compile endif
 
 defmain
@@ -130,7 +132,29 @@ compile if LOG_TAG_MATCHES
    .modify = 0
 compile endif
 
-   'xcom e /d' tags_filename()
+   TagsFile = tags_filename()
+   dprintf( 'TAGS', 'TagsFile = 'TagsFile)
+
+compile if MAKETAGS_ADD_ONLY = 0
+   -- delete TagsFile first
+   call EraseTemp( TagsFile)
+   -- quit TagsFile, if in ring
+   if tags_fileid then
+      getfileid cur_fid
+      display -2  -- turn off messages
+      activatefile tags_fileid
+      display 2
+      if rc then
+         tags_fileid = ''
+      else
+         .modify = 0
+         'xcom quit'
+      endif
+      activatefile cur_fid
+   endif
+compile endif
+
+   'xcom e /d' TagsFile
    if rc <> 0 & rc <> -282 then  -- if error, -282 = sayerror("New file")
       return
    endif
