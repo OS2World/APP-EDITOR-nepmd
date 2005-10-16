@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: maketags.e,v 1.9 2005-10-16 19:06:43 aschn Exp $
+* $Id: maketags.e,v 1.10 2005-10-16 22:12:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -70,9 +70,6 @@ compile endif
 compile if not defined(LOG_TAG_MATCHES)
    LOG_TAG_MATCHES = 0
 compile endif
-compile if not defined(MAKETAGS_ADD_ONLY)  -- new behavior is to always create a new tags file
-   MAKETAGS_ADD_ONLY = 0                   -- for standard EPM behavior this must be set to 1
-compile endif
 
 defmain
    'maketags' arg(1)
@@ -132,29 +129,7 @@ compile if LOG_TAG_MATCHES
    .modify = 0
 compile endif
 
-   TagsFile = tags_filename()
-   dprintf( 'TAGS', 'TagsFile = 'TagsFile)
-
-compile if MAKETAGS_ADD_ONLY = 0
-   -- delete TagsFile first
-   call EraseTemp( TagsFile)
-   -- quit TagsFile, if in ring
-   if tags_fileid then
-      getfileid cur_fid
-      display -2  -- turn off messages
-      activatefile tags_fileid
-      display 2
-      if rc then
-         tags_fileid = ''
-      else
-         .modify = 0
-         'xcom quit'
-      endif
-      activatefile cur_fid
-   endif
-compile endif
-
-   'xcom e /d' TagsFile
+   'xcom e /d' tags_filename()
    if rc <> 0 & rc <> -282 then  -- if error, -282 = sayerror("New file")
       return
    endif
@@ -184,9 +159,12 @@ compile endif
    .autosave = 0
    .modify = 0
    getfileid tag_fid
-   list_fid = ''; list_stack = ''
+   list_fid = ''
+   list_stack = ''
    status = 0
-   filecount = 0; skipped = 0
+   filecount = 0
+   skipped = 0
+   deleted = 0
    path_prefix = ''
    loop
       if list_fid <> '' then  -- We're processing a file containing a list of files
@@ -285,7 +263,7 @@ compile endif
                verb = 'Adding'
             else
                parse_tagline( temp_proc, temp_name, temp_line, temp_date)
-               if temp_date=filedate then  -- Up-to-date
+               if temp_date = filedate then  -- Up-to-date
                   verb = 'Skipping'
                   skipped = skipped + 1
                else
@@ -310,9 +288,12 @@ compile if TRACE_TIMES
          endif
 compile endif
 
+/*
+         -- output of filenames slows processing down
          display -8
          sayerror verb "'"filename"'..."
          display 8
+*/
 
 compile if LOG_TAG_MATCHES
          insertline '', TAG_LOG_FID.last+1, TAG_LOG_FID
@@ -358,6 +339,23 @@ compile endif
          filedate = ltoa(substr( resultbuf, 13, 4), 16)
       endloop
 
+      -- Find entries for non-existing files and remove them
+      if oldfile then
+         activatefile tag_fid
+         '1'
+         do while .line <= .last
+            parse value textline( .line) with keyword filename line tstamp
+            if not Exist( filename) then
+               deleteline
+               deleted = deleted + 1
+            elseif .line = .last then
+               leave
+            else
+               '+1'
+            endif
+         enddo
+      endif
+
       if status then
          leave
       endif
@@ -380,9 +378,10 @@ compile endif
    endif
 
    if not .last then
-      sayerror 'No tags found.'
+      msg = 'No tags found'
+      sayerror msg
 compile if LOG_TAG_MATCHES
-      insertline 'No tags found.', TAG_LOG_FID.last + 1, TAG_LOG_FID
+      insertline msg, TAG_LOG_FID.last + 1, TAG_LOG_FID
       TAG_LOG_FID.modify = 0
 compile endif
       return 1
@@ -390,7 +389,9 @@ compile endif
 
    tagcount = .last
    if tag_fid.modify then
+/*
       sayerror 'Sorting' .last 'tags...'
+*/
       call sort( 1, .last, 1, 40, tag_fid, 'i')
       call delete_ea('EPM.TAGSARGS')
       'add_ea EPM.TAGSARGS' original_arg
@@ -416,24 +417,27 @@ compile endif
       endif
    else
       'xcom quit'  -- Must be an old tags file here, or we would have said "No tags found" above.
-      sayerror 'Tags file was up-to-date.  (Scanned' filecount 'files; skipped' skipped')'
+      msg = 'Tags file was up-to-date.  (Scanned' filecount 'files; skipped' skipped')'
+      sayerror msg
 compile if LOG_TAG_MATCHES
-      insertline 'Tags file was up-to-date.  (Scanned' filecount 'files; skipped' skipped')', TAG_LOG_FID.last + 1, TAG_LOG_FID
+      insertline msg, TAG_LOG_FID.last + 1, TAG_LOG_FID
       TAG_LOG_FID.modify = 0
 compile endif
       return rc
    endif
 
    if oldfile then
-      sayerror 'Scanned' filecount 'files; skipped' skipped'; total number of tags now' tagcount '(was' oldfile')'
+      msg = 'Scanned' filecount 'files; skipped' skipped'; deleted' deleted'; total number of tags now' tagcount '(was' oldfile')'
+      sayerror msg
 compile if LOG_TAG_MATCHES
-      insertline 'Scanned' filecount 'files; skipped' skipped'; total number of tags now' tagcount '(was' oldfile')', TAG_LOG_FID.last + 1, TAG_LOG_FID
+      insertline msg, TAG_LOG_FID.last + 1, TAG_LOG_FID
       TAG_LOG_FID.modify = 0
 compile endif
    else
-      sayerror 'Found' tagcount 'tags in' filecount 'files.'
+      msg = 'Found' tagcount 'tags in' filecount 'files'
+      sayerror msg
 compile if LOG_TAG_MATCHES
-      insertline 'Found' tagcount 'tags in' filecount 'files.', TAG_LOG_FID.last + 1, TAG_LOG_FID
+      insertline msg, TAG_LOG_FID.last + 1, TAG_LOG_FID
       TAG_LOG_FID.modify = 0
 compile endif
    endif
