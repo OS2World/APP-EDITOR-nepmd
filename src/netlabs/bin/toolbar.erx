@@ -1,0 +1,150 @@
+/****************************** Module Header *******************************
+*
+* Module Name: toolbar.erx
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: toolbar.erx,v 1.1 2005-10-16 13:06:11 aschn Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
+/* EPM REXX                                                                */
+/* This helper macros meet the limitation of E strings, whose maximum      */
+/* length is 1599 chars only. Pathes from bitmap filenames are stripped.   */
+/* Therefore im- and export with this macros works properly compared with  */
+/* EPM's standard actions via the settings dialog.                         */
+/*                                                                         */
+/* Toolbar export:                                                         */
+/*                                                                         */
+/*    Syntax:                                                              */
+/*       rx toolbar EXPORT IniFile IniAppl CurToolbarName TmpToolbarName   */
+/*                                                                         */
+/*       CurToolbarName = name of active toolbar, saved to ini             */
+/*       TmpToolbarName = name to which current toolbar is saved first     */
+/*                        in order to compare it with CurToolbar and ask   */
+/*                        user if it shall be saved                        */
+/*                                                                         */
+/*    Returns:                                                             */
+/*       0  on success                                                     */
+/*       1  canceled by user                                               */
+/*      13  data not found in ini                                          */
+
+env = 'OS2ENVIRONMENT'
+
+call RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+call SysLoadFuncs
+
+parse arg Action IniFile IniAppl CurToolbarName TmpToolbarName .
+
+if Action = 'EXPORT' then
+do
+   /* Query toolbars from ini */
+   next = SysIni( IniFile, IniAppl, CurToolbarName)
+   if next = 'ERROR:' then
+      return 13
+   else
+      CurToolbar = strip( next, 't', '00'x)
+   next = SysIni( IniFile, IniAppl, TmpToolbarName)
+   if next = 'ERROR:' then
+      return 13
+   else
+      TmpToolbar = strip( next, 't', '00'x)
+
+   /* Remove pathes from bitmaps */
+   CurToolbar = StripBmpPathes( CurToolbar)
+   TmpToolbar = StripBmpPathes( TmpToolbar)
+
+   ExportToolbar = CurToolbar
+   /* Check if equal */
+   if CurToolbar <> TmpToolbar then
+   do
+      /* Ask if toolbar shall be saved */
+      MsgText    = 'Current toolbar is modified. Save it first?'
+      MsgTitle   = 'Modified toolbar "'CurToolbarName'"'
+      MsgButtons = 'YESNOCANCEL'
+      MsgBitmap  = 'QUESTION'
+      ret = RxMessageBox( MsgText, MsgTitle, MsgButtons, MsgBitmap)
+      /* If answer = yes, save it to ini */
+      if ret = 6 then     /* YES */
+         next = SysIni( IniFile, IniAppl, CurToolbarName, TmpToolbar'00'x)
+      else
+         if ret = 2 then  /* CANCEL */
+            return 1
+      ExportToolbar = TmpToolbar
+   end
+
+   /* Write .bar file to %NEPMD_USERDIR%\bar */
+   UserDir = strip( value( 'NEPMD_USERDIR', , env), 't', '\')
+   BarFile = UserDir'\bar\'CurToolbarName'.bar'
+   'SaveUserstring'
+   'FileDlg Select a filename for toolbar export, SetUserstring,' BarFile
+   'extract /userstring'
+   if Userstring.1 = '' then  /* CANCEL */
+      return 1
+   else
+      BarFile = Userstring.1
+   'RestoreUserstring'
+   call SysFileDelete BarFile
+   call charout BarFile, ExportToolbar
+   call stream BarFile, 'c', 'close'
+   'sayerror Toolbar exported to' BarFile
+   ret = 0
+end
+
+return ret
+
+
+/****************************************************************************
+* Remove all pathes from toolbar data. EPM saves a toolbar with pathes for
+* its bitmaps. That leads to problems for exporting toolbars to other
+* systems.
+****************************************************************************/
+StripBmpPathes:  procedure
+   Toolbar = arg(1)
+   startpos = 1
+   endpos = length( Toolbar)
+   NewToolbar = ''
+   do while startpos < endpos
+      new = ''
+      bmppos = pos( '.BMP', translate( Toolbar), startpos )
+      if bmppos > 0 then
+      do
+         /* next = chars until next occurence of ".BMP" */
+         /* new = next without path */
+         next = substr( Toolbar, startpos, bmppos + 3 - startpos + 1)
+         startpos = startpos + length( next)
+         tabpos = lastpos( '09'x, next)
+         lbslpos = lastpos( '\', next)
+         if lbslpos > tabpos then
+         do
+            new = substr( next, 1, tabpos)''substr( next, lbslpos + 1)
+            /*say substr( next, tabpos + 1)' --> 'substr( next, lbslpos + 1)*/
+         end
+         else
+         do
+            new = next
+            /*say substr( next, tabpos + 1 )*/
+         end
+      end
+      else
+      do
+         /* new = rest, end of loop */
+         new = substr( Toolbar, startpos)
+         startpos = endpos + 1
+      end
+      /* append new to NewToolbar */
+      NewToolbar = NewToolbar''new
+   end
+   return NewToolbar
+
+
