@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.25 2005-09-12 13:52:52 aschn Exp $
+* $Id: edit.e,v 1.26 2005-10-16 12:25:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -608,7 +608,7 @@ defc OpenBinDlg
    filemask = '*.exe;*.dll'
    title    = 'Select a binary file'
    title    = '"'title'"'  -- filedlg exspects title in "..."
-   "o 'filedlg "title" "cmd" "filemask"'"
+   "o 'filedlg "title", "cmd", "filemask"'"
 
 ; ---------------------------------------------------------------------------
 ; Finds EPM macro files <basename>.e in Dir of arg(1) and EPMMACROPATH.
