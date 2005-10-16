@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.8 2005-10-16 19:01:54 aschn Exp $
+* $Id: tags.e,v 1.9 2005-10-16 22:15:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -808,23 +808,24 @@ defproc e_proc_search( var proc_name, find_first)
 compile if LOG_TAG_MATCHES
    universal TAG_LOG_FID
 compile endif
+compile if E_TAGS_ANYWHERE
+   LeadingSpace = ':o'
+compile else
+   LeadingSpace = ''
+compile endif
    display -2
    proc_len = length( proc_name)
    if find_first then
       if proc_name == '' then
-         --proc_name = '[A-Z_]'
-         --proc_name = '[A-Z_][A-Z0-9_]'
-         --proc_name = '[A-Z_][A-Z0-9_],*'
-         proc_name = '[A-Z_][A-Z0-9_]*[:o,:o[A-Z_][A-Z0-9_]*]*'  -- support "defc xxx, yyy"
+         identifier = '[A-Z_][A-Z0-9_]*'
+         search1 = 'DEF(PROC|KEYS):w'identifier
+         search2 = 'DEFC:w'identifier'[:o,:o'identifier']*'
+         search = '^'LeadingSpace'('search1'|'search2')'
+      else
+         search = 'DEF(C|KEYS|PROC):w'proc_name
+         search = '^'LeadingSpace''search
       endif
-      keywords = 'DEF(C|KEYS|PROC)'
-compile if E_TAGS_ANYWHERE
-      --'xcom l ^:oDEFPROC:w'proc_name'cx'
-      'xcom l ^:o'keywords':w'proc_name'cx'
-compile else
-      --'xcom l ^DEFPROC:w'proc_name'cx'
-      'xcom l ^'keywords':w'proc_name'cx'
-compile endif
+      'xcom l 'search'cx'
    else
       repeat_find
    endif
