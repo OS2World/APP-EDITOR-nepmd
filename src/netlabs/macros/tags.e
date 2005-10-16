@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.7 2004-07-04 21:39:23 aschn Exp $
+* $Id: tags.e,v 1.8 2005-10-16 19:01:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,7 +35,7 @@
 ;           tag_case()        Returns 'e' for case sensitive languages and
 ;                            'c' for case insensitive languages.
 ;
-;     xxxxx_proc_search(var proc_name,find_first)
+;     xxxxx_proc_search( var proc_name, find_first)
 ;                             If proc_name is null, this function searches
 ;                             for a valid procedure in the current buffer. If
 ;                             successful, proc_name is set to the procedure
@@ -706,8 +706,6 @@ compile endif
       end_line; repeat_find
    endloop
 
-
-
 defproc pas_proc_search(var proc_name,find_first)
    tc=arg(3)
    if tc='' then  /* pascal search?*/
@@ -806,20 +804,26 @@ compile if LOG_TAG_MATCHES
 compile endif
    return rc
 
-defproc e_proc_search(var proc_name, find_first)
+defproc e_proc_search( var proc_name, find_first)
 compile if LOG_TAG_MATCHES
    universal TAG_LOG_FID
 compile endif
    display -2
-   proc_len = length(proc_name)
+   proc_len = length( proc_name)
    if find_first then
-      if proc_name=='' then
-          proc_name='[A-Z_]'
+      if proc_name == '' then
+         --proc_name = '[A-Z_]'
+         --proc_name = '[A-Z_][A-Z0-9_]'
+         --proc_name = '[A-Z_][A-Z0-9_],*'
+         proc_name = '[A-Z_][A-Z0-9_]*[:o,:o[A-Z_][A-Z0-9_]*]*'  -- support "defc xxx, yyy"
       endif
+      keywords = 'DEF(C|KEYS|PROC)'
 compile if E_TAGS_ANYWHERE
-      'xcom l ^:oDEFPROC:w'proc_name'cx'
+      --'xcom l ^:oDEFPROC:w'proc_name'cx'
+      'xcom l ^:o'keywords':w'proc_name'cx'
 compile else
-      'xcom l ^DEFPROC:w'proc_name'cx'
+      --'xcom l ^DEFPROC:w'proc_name'cx'
+      'xcom l ^'keywords':w'proc_name'cx'
 compile endif
    else
       repeat_find
@@ -830,10 +834,15 @@ compile endif
          return rc
       endif
       parse value translate(textline(.line), ' ', \t) with . proc_name .
+      parse value proc_name with proc_name '='
       parse value proc_name with proc_name '('
+      parse value proc_name with proc_name ','
+      --------------------------------------------------------------- Todo: handle defc xxx, yyy
       if proc_len then
-         if length(proc_name)<>proc_len then  -- a substring of something else
-            end_line; repeat_find; iterate
+         if length(proc_name) <> proc_len then  -- a substring of something else
+            end_line
+            repeat_find
+            iterate
          endif
       endif
 compile if LOG_TAG_MATCHES
@@ -933,76 +942,84 @@ defc make_tags
    'maketags' arg(1)
 
 defproc find_matching_paren
-   n=1
-   GETSEARCH search_command -- Save user's search command.
+   n = 1
+   getsearch search_command -- Save user's search command.
    display -2
-   'xcom L /[\(\)]/ex+F'
+   'xcom l /[\(\)]/ex+F'
    loop
       repeatfind
-      if rc then leave; endif
-      if substr(textline(.line), .col, 1) = '(' then n=n+1; else n=n-1; endif
-      if n=0 then leave; endif
+      if rc then
+         leave
+      endif
+      if substr( textline(.line), .col, 1) = '(' then
+         n = n + 1
+      else
+         n = n - 1
+      endif
+      if n = 0 then
+         leave
+      endif
    endloop
    display 2
-   SETSEARCH search_command -- Restores user's command so Ctrl-F works.
+   setsearch search_command -- Restores user's command so Ctrl-F works.
    return rc  /* 0 if found, else sayerror('String not found') */
 
 defproc get_file_date(filename)
-         pathname = filename\0
-         resultbuf = copies(\0,30)
-         ca = dynalink32('DOSCALLS',      /* dynamic link library name       */
-                         '#223',           /* ordinal value for DOS32QueryPathInfo  */
-                         address(pathname)         ||  -- pathname to be queried
-                         atol(1)                   ||  -- PathInfoLevel
-                         address(resultbuf)        ||  -- buffer where info is to be returned
-                         atol(length(resultbuf)) )     -- size of buffer
-         return ltoa(substr(resultbuf, 9, 4), 16)
+   pathname = filename\0
+   resultbuf = copies( \0, 30)
+   ca = dynalink32( 'DOSCALLS',      /* dynamic link library name       */
+                    '#223',           /* ordinal value for DOS32QueryPathInfo  */
+                    address(pathname)         ||  -- pathname to be queried
+                    atol(1)                   ||  -- PathInfoLevel
+                    address(resultbuf)        ||  -- buffer where info is to be returned
+                    atol( length(resultbuf)))     -- size of buffer
+   return ltoa( substr( resultbuf, 9, 4), 16)
 
 defc QueryTagsFiles
    universal app_hini
    parse arg hwnd .
    App = INI_TAGSFILES\0
-   inidata = copies(' ', MAXCOL)
-   l = dynalink32('PMSHAPI',
-                  '#115',               -- PRF32QUERYPROFILESTRING
-                  atol(app_hini)    ||  -- HINI_PROFILE
-                  address(App)      ||  -- pointer to application name
-                  atol(0)           ||  -- Key name is NULL; returns all keys
-                  atol(0)           ||  -- Default return string is NULL
-                  address(inidata)  ||  -- pointer to returned string buffer
-                  atol(MAXCOL), 2)      -- max length of returned string
+   inidata = copies( ' ', MAXCOL)
+   l = dynalink32( 'PMSHAPI',
+                   '#115',               -- PRF32QUERYPROFILESTRING
+                   atol(app_hini)    ||  -- HINI_PROFILE
+                   address(App)      ||  -- pointer to application name
+                   atol(0)           ||  -- Key name is NULL; returns all keys
+                   atol(0)           ||  -- Default return string is NULL
+                   address(inidata)  ||  -- pointer to returned string buffer
+                   atol(MAXCOL), 2)      -- max length of returned string
 
    if not l then  -- No tagsfiles saved
-      if tags_filename()<>'' then
-         maketags_parm = checkini(0, 'MAKETAGS_PARM', '')
+      if tags_filename() <> '' then
+         maketags_parm = checkini( 0, 'MAKETAGS_PARM', '')
          if maketags_parm <> '' then
-            call windowmessage(0,  hwnd,
-                               32,               -- WM_COMMAND - 0x0020
-                               mpfrom2short(1, 4),  -- This is the default (and only one)
-                               put_in_buffer(tags_filename()) )
+            call windowmessage( 0, hwnd,
+                                32,               -- WM_COMMAND - 0x0020
+                                mpfrom2short( 1, 4),  -- This is the default (and only one)
+                                put_in_buffer( tags_filename()))
 ;           'querytagsfilelist' hwnd tags_filename()
          endif
       endif
       return
    endif
-   inidata=leftstr(inidata,l)
+   inidata = leftstr( inidata, l)
 
-   tagsfileU = upcase(tags_filename())  -- loop invariant
-   do while inidata<>''
+   tagsfileU = upcase( tags_filename())  -- loop invariant
+   do while inidata <> ''
       parse value inidata with tagsname \0 inidata
-      call windowmessage(0,  hwnd,
-                         32,               -- WM_COMMAND - 0x0020
-                         mpfrom2short((upcase(tagsname)=tagsfileU), 4),
-                         put_in_buffer(tagsname) )
-            'querytagsfilelist' hwnd tagsname
+      call windowmessage( 0, hwnd,
+                          32,               -- WM_COMMAND - 0x0020
+                          mpfrom2short( (upcase( tagsname) = tagsfileU), 4),
+                          put_in_buffer( tagsname))
+      'querytagsfilelist' hwnd tagsname
    enddo
 
 defc QueryTagsFileList
    parse arg hwnd tagsname
-   call windowmessage(0,  hwnd,
-                      32,               -- WM_COMMAND - 0x0020
-                      5,
-                      put_in_buffer(TagsFileList(tagsname)))
+   call windowmessage( 0, hwnd,
+                       32,               -- WM_COMMAND - 0x0020
+                       5,
+                       put_in_buffer( TagsFileList( tagsname)))
 
 defproc TagsFileList(tagsname)
    universal app_hini
