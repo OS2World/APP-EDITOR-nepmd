@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: maketags.e,v 1.10 2005-10-16 22:12:20 aschn Exp $
+* $Id: maketags.e,v 1.11 2005-10-16 22:27:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -344,7 +344,10 @@ compile endif
          activatefile tag_fid
          '1'
          do while .line <= .last
-            parse value textline( .line) with keyword filename line tstamp
+            call parse_tagline( keyword, filename, line, tstamp)
+            if leftstr( filename, 1) = '"' & rightstr( filename, 1) = '"' then
+               filename = substr( filename, 2, length( filename) - 2)
+            endif
             if not Exist( filename) then
                deleteline
                deleted = deleted + 1
