@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.8 2005-08-14 22:07:35 aschn Exp $
+* $Id: file.e,v 1.9 2005-10-16 12:25:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -848,8 +848,14 @@ compile if WPS_SUPPORT
 compile endif
 
 ; ---------------------------------------------------------------------------
-; Syntax: filedlg ["title"] [cmd [filemask [flags]]]
-; Open a standard WinFileDlg and execute cmd filename
+; Syntax: filedlg title[, cmd[, filemask[, flags]]]
+; Open a standard WinFileDlg and execute cmd filename.
+; For interaction with EPM REXX commands, the cmd can be specified as
+; "SetUserstring" (not case-sensitive). Then the selected filename is set to
+; the .userstring field value. It can be extracted with 'extract /userstring'
+; and then processed further with userstring.1 by an EPM REXX command.
+; Used by:
+;    EDIT.E: defc OpenBinDlg
 defc filedlg
    if getpminfo(EPMINFO_EDITFRAME) then
       handle = EPMINFO_EDITFRAME
@@ -857,12 +863,12 @@ defc filedlg
       handle = EPMINFO_EDITCLIENT
    endif
 
-   parse arg '"'title'"' rest
-   if title = '' then
-      parse arg rest
-      title = 'Open'
-   endif
-   parse value rest with cmd filemask flags
+   parse arg title ',' cmd ',' filemask ',' flags
+   title    = strip( title)
+   cmd      = strip( cmd)
+   filemask = strip( filemask)
+   flags    = strip( flags)
+
    if cmd = '' then
       cmd = 'e'
    endif
@@ -905,8 +911,17 @@ defc filedlg
       parse value substr( filedlg, 53) with filename \0
       --sayerror 'Button =' ltoa( substr( fileDlg, 13, 4), 10)'; file = "'filename'"'
       Button = ltoa( substr( fileDlg, 13, 4), 10)
-      if Button = 1 & filename <> '' then
-         cmd filename
+      if upcase( cmd) = 'SETUSERSTRING' then
+         -- For interaction with .erx files: set selected filename to .userstring
+         if Button = 1 & filename <> '' then
+            .userstring = filename
+         else
+            .userstring = ''
+         endif
+      else
+         if Button = 1 & filename <> '' then
+            cmd filename
+         endif
       endif
    else
       sayerror 'Error: WinFileDlg returned rc =' ltoa( substr( fileDlg, 17, 4), 10)
@@ -1518,7 +1533,7 @@ defproc qfilemode( filename, var attrib)
 
 ; ---------------------------------------------------------------------------
 ; arg(1) = drive, e.g.: X:
-; Returns e.g.: HPFS | CDFS | JFS | FAT
+; Returns e.g.: HPFS | CDFS | JFS | FAT | LAN | RAM?
 defproc QueryFileSys(Drive)
    dev_name = Drive\0
    ordinal = 0
