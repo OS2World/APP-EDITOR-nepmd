@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.erx,v 1.1 2005-10-16 13:06:11 aschn Exp $
+* $Id: toolbar.erx,v 1.2 2005-10-16 14:39:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -38,16 +38,27 @@
 /*       0  on success                                                     */
 /*       1  canceled by user                                               */
 /*      13  data not found in ini                                          */
+/*                                                                         */
+/* Toolbar import:                                                         */
+/*                                                                         */
+/*    Syntax:                                                              */
+/*       rx toolbar IMPORT IniFile IniAppl ToolbarName BarFile             */
+/*                                                                         */
+/*    Returns:                                                             */
+/*       0  on success                                                     */
+/*       1  on error (data not written)                                    */
 
 env = 'OS2ENVIRONMENT'
+ret = 1
 
 call RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
 call SysLoadFuncs
 
-parse arg Action IniFile IniAppl CurToolbarName TmpToolbarName .
+parse arg Action .
 
 if Action = 'EXPORT' then
 do
+   parse arg Action IniFile IniAppl CurToolbarName TmpToolbarName .
    /* Query toolbars from ini */
    next = SysIni( IniFile, IniAppl, CurToolbarName)
    if next = 'ERROR:' then
@@ -101,6 +112,27 @@ do
    ret = 0
 end
 
+if action = 'IMPORT' then
+do
+   parse arg Action IniFile IniAppl ToolbarName BarFile
+
+   /* Read toolbar from file */
+   call stream BarFile, 'c', 'open read'
+   BarLength = stream( BarFile, 'c', 'query size')
+   ImportToolbar = charin( BarFile, 1, BarLength)
+   call stream BarFile, 'c', 'close'
+
+   /* Remove pathes from bitmaps */
+   ImportToolbar = StripBmpPathes( ImportToolbar)
+
+   /* Write toolbar to ini */
+   next = SysIni( IniFile, IniAppl, ToolbarName, ImportToolbar'00'x)
+   if next = 'ERROR:' then
+      ret = 1
+   else
+      ret = 0
+end
+
 return ret
 
 
@@ -146,5 +178,4 @@ StripBmpPathes:  procedure
       NewToolbar = NewToolbar''new
    end
    return NewToolbar
-
 

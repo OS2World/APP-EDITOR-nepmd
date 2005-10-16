@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.5 2005-10-16 13:10:09 aschn Exp $
+* $Id: toolbar.e,v 1.6 2005-10-16 14:39:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -531,6 +531,8 @@ defc ImportToolbar
       BarFile = BarFile'.bar'
    endif
    if NepmdFileExists( BarFile) then
+      -- Since a REXX macro is used, no check is required anymore.
+/*
       next = NepmdQueryPathInfo( BarFile, 'SIZE')
       parse value next with 'ERROR:'rc
       if rc = '' then
@@ -541,12 +543,13 @@ defc ImportToolbar
             return
          endif
       endif
+*/
    else
       rc = 2  -- ERROR_FILE_NOT_FOUND
       return
    endif
 
-   -- Read .bar file
+   -- Read .bar file (to check for signature only)
    'xcom e /t /64 /bin /d' BarFile
    if rc = 0 then
       .visible = 0
@@ -573,14 +576,43 @@ defc ImportToolbar
    lp = lastpos( '\', BarFile)
    BarName = upcase( substr( BarFile, lp + 1, 1))lowcase( substr( BarFile, lp + 2))
    parse value BarName with BarName '.' rest
+
    -- Ask user for name
-   ------------------------------> Todo
+   Title = 'Import toolbar'
+   Text  = 'Enter new toolbar name:'
+   Text  = Text''copies( ' ', max( 50 - length(Text), 0))
+   Entry = BarName
+   parse value entrybox( Title,
+                         '',
+                         Entry,
+                         0,
+                         240,
+                         atoi(1) || atoi(0) || atol(0) ||
+                         Text) with button 2 next \0
+   next = strip( next)
+   if button = \1 & next <> '' then
+      BarName = next
+   else
+      return
+   endif
 
-   -- Check for pathes in bitmap names
-   -- Ask user, if they shall be removed
-   -- Remove pathes from bitmaps in order to make toolbar exchangable between systems
-   ------------------------------> Todo
+   IniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
+   IniAppl = 'UCMenu_Templates'
 
+   'rx toolbar IMPORT' IniFile IniAppl BarName BarFile
+   if rc = 0 then
+      -- Activate
+      'postme load_toolbar' BarName
+      if rc = 0 then
+         sayerror 'Toolbar "'BarName'" activated'
+      else
+         sayerror 'Error. Toolbar "'BarName'" not saved. rc = 'rc
+      endif
+   else
+      'Error. Toolbar not saved. rc = 'rc
+   endif
+
+/*
    -- Save to ini
    call setprofile( app_hini, 'UCMenu_Templates', BarName, Bar)
    -- Make it default
@@ -588,6 +620,7 @@ defc ImportToolbar
    -- Activate
    'load_toolbar' BarName
    rc = 0
+*/
 
 ; ---------------------------------------------------------------------------
 defc ExportToolbar
