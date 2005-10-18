@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.9 2005-09-29 20:39:15 aschn Exp $
+* $Id: keys.e,v 1.10 2005-10-18 21:31:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1720,8 +1720,11 @@ compile endif
       endif
 compile if not WANT_TAB_INSERTION_TO_SPACE
       if insertstate() & stream_mode then
+compile else
+      if insertstate() then
+compile endif
          numspc=.col-oldcol
- compile if WANT_DBCS_SUPPORT
+compile if WANT_DBCS_SUPPORT
          if ondbcs then                                           -- If we're on DBCS,
             if not (matchtab_on and .line>1) then  -- and didn't do a matchtab,
                if words(.tabs) > 1 then
@@ -1735,16 +1738,15 @@ compile if not WANT_TAB_INSERTION_TO_SPACE
                   endif
                elseif (.col // .tabs) <> 1 then
                   numspc = .tabs - (oldcol+.tabs-1) // .tabs
-               endif  -- words(.tabs) > 1
+               endif
             endif
          endif  -- ondbcs
- compile endif  -- WANT_DBCS_SUPPORT
+compile endif  -- WANT_DBCS_SUPPORT
          if numspc>0 then
             .col=oldcol
             keyin substr('',1,numspc)
          endif
       endif  -- insertstate()
-compile endif  -- WANT_TAB_INSERTION_TO_SPACE
    endif  -- TAB_KEY
 
 
