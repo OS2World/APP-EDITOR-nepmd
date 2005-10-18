@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.21 2004-11-30 22:06:39 aschn Exp $
+# $Id: makefile,v 1.22 2005-10-18 00:06:32 aschn Exp $
 #
 # ===========================================================================
 #
@@ -90,6 +90,7 @@ $(CMPEXDIR)\fonts.ex\
 $(CMPEXDIR)\groups.ex\
 $(CMPEXDIR)\jot.ex\
 $(CMPEXDIR)\makeactn.ex\
+$(CMPEXDIR)\newbar.ex\
 $(CMPEXDIR)\reflow.ex\
 $(CMPEXDIR)\sampactn.ex\
 $(CMPEXDIR)\stylebut.ex\
