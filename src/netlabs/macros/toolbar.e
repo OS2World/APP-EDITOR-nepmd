@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.6 2005-10-16 14:39:51 aschn Exp $
+* $Id: toolbar.e,v 1.7 2005-10-18 00:03:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -601,6 +601,8 @@ defc ImportToolbar
 
    'rx toolbar IMPORT' IniFile IniAppl BarName BarFile
    if rc = 0 then
+      -- Make it default
+      call setprofile( app_hini, 'EPM', 'DEFTOOLBAR', BarName)
       -- Activate
       'postme load_toolbar' BarName
       if rc = 0 then
