@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.erx,v 1.2 2005-10-16 14:39:52 aschn Exp $
+* $Id: toolbar.erx,v 1.3 2005-11-02 19:42:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -146,26 +146,27 @@ StripBmpPathes:  procedure
    startpos = 1
    endpos = length( Toolbar)
    NewToolbar = ''
+   Sep = '09'x  /* .bmp filenames are enclosed in tab chars */
    do while startpos < endpos
       new = ''
-      bmppos = pos( '.BMP', translate( Toolbar), startpos )
+      bmppos = pos( '.BMP'Sep, translate( Toolbar), startpos )
       if bmppos > 0 then
       do
-         /* next = chars until next occurence of ".BMP" */
+         /* next = chars until next occurence of ".BMP"\9, including ".BMP" */
          /* new = next without path */
          next = substr( Toolbar, startpos, bmppos + 3 - startpos + 1)
          startpos = startpos + length( next)
-         tabpos = lastpos( '09'x, next)
+         seppos = lastpos( Sep, next)
          lbslpos = lastpos( '\', next)
-         if lbslpos > tabpos then
+         if lbslpos > seppos then
          do
-            new = substr( next, 1, tabpos)''substr( next, lbslpos + 1)
-            /*say substr( next, tabpos + 1)' --> 'substr( next, lbslpos + 1)*/
+            new = substr( next, 1, seppos)''substr( next, lbslpos + 1)
+            /*say substr( next, seppos + 1)' --> 'substr( next, lbslpos + 1)*/
          end
          else
          do
             new = next
-            /*say substr( next, tabpos + 1 )*/
+            /*say substr( next, seppos + 1 )*/
          end
       end
       else
