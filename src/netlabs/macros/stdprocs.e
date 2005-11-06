@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.12 2004-07-09 13:42:17 aschn Exp $
+* $Id: stdprocs.e,v 1.13 2005-11-06 14:28:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,19 +29,19 @@
 ; EPM 5.15:  Now uses WinMessageBox to get Yes, No buttons.  [\toolktxx\c\include\pmwin.h]
 ; 93/12/15:  Added optional 3rd arg for messagebox title.
 defproc askyesno
-   prompt=arg(1)
+   prompt = arg(1)
    if not arg(2) then
-      prompt=prompt\13 || ARE_YOU_SURE__MSG
+      prompt = prompt\13 || ARE_YOU_SURE__MSG
    endif
-   return substr(YES_CHAR || NO_CHAR, winmessagebox( arg(3),
-                                                     prompt,
-                                                     16388) - 5,
-                                                     1)  -- YESNO + MOVEABLE
+   return substr( YES_CHAR || NO_CHAR, winmessagebox( arg(3),
+                                                      prompt,
+                                                      16388) - 5,
+                                                      1)  -- YESNO + MOVEABLE
 
 ; Does an atol of its argument, then a word reversal and returns the result.
-defproc atol_swap(num)
-   hwnd=atol(num)
-   return rightstr(hwnd,2) || leftstr(hwnd,2)
+defproc atol_swap( num)
+   hwnd = atol( num)
+   return rightstr( hwnd, 2) || leftstr( hwnd, 2)
 
 ; Common routine, save space.  from Jim Hurley.
 ; Check if current file is marked. If not, stop further processing of
@@ -65,52 +65,69 @@ defproc check_mark_on_screen =
    getmark first_mark_line, last_mark_line, first_mark_col, last_mark_col
    first_screen_line = .line - .cursory + 1
    last_screen_line = .line - .cursory + .windowheight
-   if last_mark_line < first_screen_line then return 0; endif
-   if first_mark_line > last_screen_line then return 0; endif
-   no_char_overlap = marktype()<>'CHAR' or first_mark_line=last_mark_line
+   if last_mark_line < first_screen_line then
+      return 0
+   endif
+   if first_mark_line > last_screen_line then
+      return 0
+   endif
+   no_char_overlap = marktype() <> 'CHAR' or first_mark_line=last_mark_line
    if last_mark_col < .col - .cursorx + 1 and
-      (no_char_overlap or last_mark_line=first_screen_line)
-   then return 0; endif
+      (no_char_overlap or last_mark_line=first_screen_line) then
+      return 0
+   endif
    if first_mark_col > .col - .cursorx + .windowwidth and
-      (no_char_overlap or first_mark_line=last_screen_line)
-   then return 0; endif
+      (no_char_overlap or first_mark_line=last_screen_line) then
+      return 0
+   endif
    return 1
 
 ; Tests whether the "filename" is actually a printer
 ; device, so we'll know whether to test printer readiness first.
 ; Called by savefile() in SAVELOAD.E.  Returns 0 if not, else printer number.
-defproc check_for_printer(name)
+defproc check_for_printer( name)
    if not name then return 0; endif
-   if leftstr(name,1)='"' & rightstr(name,1)='"' then
-      name=substr(name,2,length(name)-2)
+   if leftstr( name, 1) = '"' & rightstr( name, 1) = '"' then
+      name = substr( name, 2, length( name) - 2)
    endif
-   if rightstr(name,1) = ':' then  -- a device
-      name = leftstr(name,length(name)-1)
+   if rightstr( name, 1) = ':' then  -- a device
+      name = leftstr( name, length( name) - 1)
    else       -- Might be a full pathspec, C:\EDIT\PRN, and still go to a device!
-      indx = lastpos('\',name)
-      if not indx then indx = lastpos(':',name) endif
-      if indx then name=substr(name,indx+1) endif
-      indx = pos('.',name)
-      if indx then name=substr(name,1,indx-1) endif
+      indx = lastpos( '\',name)
+      if not indx then
+         indx = lastpos( ':', name)
+      endif
+      if indx then
+         name = substr( name, indx + 1)
+      endif
+      indx = pos( '.',name)
+      if indx then
+         name = substr( name, 1, indx - 1)
+      endif
    endif
-   if upcase(name)='PRN' then return 1; endif
-   return (4+pos('.'upcase(name)'.','.LPT1.LPT2.LPT3.LPT4.LPT5.LPT6.LPT7.LPT8.LPT9.COM1.COM2.COM3.COM4.')) % 5
+   if upcase(name) = 'PRN' then
+      return 1
+   endif
+   ports = '.LPT1.LPT2.LPT3.LPT4.LPT5.LPT6.LPT7.LPT8.LPT9.COM1.COM2.COM3.COM4.'
+   return (4 + pos( '.'upcase(name)'.', ports))%5
 
-defproc dec_to_string(string)    -- for dynalink usage
+defproc dec_to_string( string)    -- for dynalink usage
    line = ''
-   for i = 1 to length(string)
-     line= line || asc(substr(string,i,1)) || ' '
+   for i = 1 to length( string)
+     line= line''asc( substr( string, i, 1))' '
    endfor
    return line
 
 defproc default_printer
-compile if defined(my_printer)
+compile if defined( my_printer)
    return MY_PRINTER
 compile else
    parse value queryprofile(HINI_PROFILE, 'PM_SPOOLER', 'PRINTER') with printername ';'
-   if printername<>'' then
+   if printername <> '' then
       parse value queryprofile(HINI_PROFILE, 'PM_SPOOLER_PRINTER', printername) with dev ';'
-      if dev<>'' then return dev; endif
+      if dev <> '' then
+         return dev
+      endif
    endif
 compile endif
    return 'LPT1'
@@ -123,7 +140,7 @@ compile endif
 defproc fixup_cursor()
 compile if DYNAMIC_CURSOR_STYLE
    universal cursordimensions
-   parse value word(cursordimensions, insert_state()+1) with cursorw '.' cursorh
+   parse value word( cursordimensions, insert_state() + 1) with cursorw '.' cursorh
 compile else
  compile if UNDERLINE_CURSOR
    cursorh = 3 - 67*insert_state()         -- 0 -> 3; 1 -> -64
@@ -147,49 +164,52 @@ defproc GetUnnamedFileName
 ; Returns true if parameter given is a number.
 ; Leading and trailing spaces are ignored.
 defproc isnum
-   zzi=pos('-',arg(1))           -- Optional minus sign?
+   zzi=pos( '-',arg(1))          -- Optional minus sign?
    if zzi then                   -- If there is one,
       parse arg zz1 '-' zz zz2   --   zz1 <- before it, zz <- number, zz2 <- after
    else
       parse arg zz zz1 zz2       --   zz <- number; zz1, zz2 <- after it
    endif
-   zz=strip(zz)                  -- Delete leading & trailing spaces.
-   if zz1||zz2 <> '' or          -- If there were more tokens on the line
-      zz==''                     -- or if the result is null
-   then return 0 endif           -- then not a number.
-   if pos(DECIMAL,zz) <> lastpos(DECIMAL,zz) then return 0 endif
-                                 -- Max. of one decimal point.
-   return not verify(zz,'0123456789'DECIMAL)
+   zz = strip( zz)               -- Delete leading & trailing spaces.
+   if zz1''zz2 <> '' or          -- If there were more tokens on the line
+      zz == '' then              -- or if the result is null
+      return 0                   -- then not a number.
+   endif
+   if pos( DECIMAL, zz) <> lastpos( DECIMAL, zz) then
+      return 0
+   endif
+   return not verify( zz, '0123456789'DECIMAL)  -- Max. of one decimal point.
 
-defproc isoption(var cmdline,optionletter)
-   i=pos(argsep||upcase(optionletter),upcase(cmdline))
+defproc isoption( var cmdline, optionletter)
+   i = pos( argsep''upcase( optionletter), upcase( cmdline))
    if i then
-      cmdline=delstr(cmdline,i,2)
+      cmdline = delstr( cmdline, i, 2)
       return 1
    endif
 
 defproc joinlines()
-   if .line<.last and .line then
+   if .line < .last and .line then
       oldcol = .col
-      down                   -- ensure one space at start of second line
+      down                    -- ensure one space at start of second line
       call pfirst_nonblank()
       col2 = .col
       .col = 1
       getsearch savesearch
       if col2 >= 2 then       -- Shift line left if >2, or replace possible leading tab w/ space if ==2.
-;           LAM:  Following line is wrong now that pfirst_nonblank() also skips tabs.
-;        'xcom c/'copies(' ',col2-2)'//'  -- Change first n-1 blanks to null
-         'xcom c/'leftstr(textline(.line), col2-1)'/ /'  -- Change leading blanks/tabs to a single space
-      elseif col2=1 then     -- Shift line right
-;        'xcom c/^/ /g'         -- insert a space at beginning of line
-         i=insert_state()
+         -- LAM:  Following line is wrong now that pfirst_nonblank() also skips tabs.
+         --'xcom c/'copies(' ',col2-2)'//'  -- Change first n-1 blanks to null
+         --'xcom c/'leftstr(textline(.line), col2-1)'/ /'  -- Change leading blanks/tabs to a single space
+         'xcom c '\1''leftstr( textline( .line), col2 - 1)\1' '\1  -- Change leading blanks/tabs to a single space
+      elseif col2 = 1 then    -- Shift line right
+         -- 'xcom c/^/ /g'    -- insert a space at beginning of line
+         i = insert_state()
          if not i then insert_toggle endif
          keyin ' '
          if not i then insert_toggle endif
       endif
       setsearch savesearch
-      up                     -- ensure no spaces at end of first line
-      .col = length(strip(textline(.line),'T')) + 1
+      up                      -- ensure no spaces at end of first line
+      .col = length( strip( textline( .line), 'T')) + 1
       erase_end_line
       .col = oldcol
       join
@@ -197,10 +217,12 @@ defproc joinlines()
 
 ; Moved file defs to FILE.E.
 
-defproc max(a,b)  -- Support as many arguments as E3 will allow.
-   maximum=a
-   do i=2 to arg()
-      if maximum<arg(i) then maximum=arg(i); endif
+defproc max( a, b)  -- Support as many arguments as E3 will allow.
+   maximum = a
+   do i = 2 to arg()
+      if maximum < arg(i) then
+         maximum = arg(i)
+      endif
    end
    return maximum
 
@@ -222,10 +244,12 @@ defproc messageNwait
    display 4
    activatefile zzfileid
 
-defproc min(a,b)  -- Support as many arguments as E3 will allow.
+defproc min( a, b)  -- Support as many arguments as E3 will allow.
    minimum = a
    do i = 2 to arg()
-      if minimum > arg(i) then minimum = arg(i); endif
+      if minimum > arg(i) then
+         minimum = arg(i)
+      endif
    end
    return minimum
 
@@ -241,13 +265,13 @@ defproc pbegin_mark
       sayerror NO_MARK_HERE__MSG
       stop
    endif
-   getmark  firstline,lastline,firstcol,lastcol,fileid
+   getmark firstline, lastline, firstcol, lastcol, fileid
    activatefile fileid
-   firstline
-   if marktype()<>'LINE' then
-      .col=firstcol
+   --firstline
+   .lineg = firstline  -- .lineg suppresses scrolling, if cursor in window
+   if marktype() <> 'LINE' then
+      .col = firstcol
    endif
-
 
 ; PBEGIN_WORD: moves the cursor to the beginning of the word if the cursor is on
 ; this word.  If it's not on a word, it's moved to the beginning of the first
@@ -277,7 +301,6 @@ defproc pbegin_word
          .col = lastpos( ' ', line, .col) + 1
       endif
    endif
-
 
 ; PBLOCK_REFLOW: reflow the text in the marked area.  Then the destination block
 ; area must be selected and a second call to this procedure reflow the source
@@ -334,7 +357,7 @@ defproc pblock_reflow( option, var spc, var tempofid)
          endfor
       else
          call pset_mark( firstline1, lastline1, firstcol1, lastcol1, usedmk, fileid1)
-         call pfill_mark(' ')
+         call pfill_mark( ' ')
       endif
       call pset_mark( firstline2, lastline2, firstcol2, lastcol2, 'BLOCK', fileid2)
       delete_mark
@@ -378,7 +401,6 @@ defproc pblock_reflow( option, var spc, var tempofid)
       sayerror 1
     endif
 
-
 ; PCENTER_MARK: center the strings between the block marks
 defproc pcenter_mark
    if  marktype() = 'BLOCK' then
@@ -402,37 +424,35 @@ defproc pcenter_mark
       replaceline strip(overlay( center( inblock, sz), line, firstcol), 'T'), i, fileid
    endfor
 
-
 compile if 0    -- The following two routines are unused; why waste space??  LAM
 ; PDISPLAY_MARGINS: put the margins mark on the current line
 defproc pdisplay_margins()
-   i=insert_state()
+   i = insert_state()
    if i then insert_toggle endif
-   call psave_pos(save_pos)
+   call psave_pos( save_pos)
    insert
    parse value pmargins() with lm rm pm .
-   .col=lm;keyin'L';.col=pm;keyin'P';.col=rm;keyin'R'
+   .col = lm; keyin 'L'; .col = pm; keyin 'P'; .col = rm; keyin 'R'
    begin_line
-   call prestore_pos(save_pos)
+   call prestore_pos( save_pos)
    if i then insert_toggle endif
    return 0
-
 
 ; PDISPLAY_TABS: put the tab stops on the current line
 defproc pdisplay_tabs()
    i=insert_state()
    if i then insert_toggle endif
-   call psave_pos(save_pos)
+   call psave_pos( save_pos)
    insert
    tabstops = ptabs()
    do forever
       parse value tabstops with tabx tabstops
       if tabx = '' then leave endif
-      .col=tabx
-      keyin'T'
+      .col = tabx
+      keyin 'T'
    end
    begin_line
-   call prestore_pos(save_pos)
+   call prestore_pos( save_pos)
    if i then insert_toggle endif
    return 0
 compile endif
@@ -446,107 +466,108 @@ compile endif
       sayerror NO_MARK_HERE__MSG
       stop
    endif
-   getmark  firstline,lastline,firstcol,lastcol,fileid
+   getmark firstline, lastline, firstcol, lastcol, fileid
    activatefile fileid
-   if marktype()<>'LINE' then
-      .col=lastcol
+   if marktype() <> 'LINE' then
+      .col = lastcol
 compile if WANT_DBCS_SUPPORT
       if ondbcs then
          if .col > lastcol then -- Must have been in the middle of a DBC.
-             .col = lastcol - 1
+            .col = lastcol - 1
          endif
       endif
 compile endif
    endif
-   lastline
+   --lastline
+   .lineg = lastline  -- .lineg suppresses scrolling, if cursor is in window
 
 ; PEND_WORD: moves the cursor to the end of the word if the cursor is on this
 ; word.  If it's not on a word, it's moved to the end of the first word on the
 ; right.  If there is no word on the right it's moved to the end of the word on
 ; the left.  If the line is empty the cursor doesn't move.
 defproc pend_word
-   getline line,.line
-   if  substr(line,.col,1)=' '  then
-      if substr(line,.col)=' ' then
-         if  line<> ' ' then
-            for i=.col to 2 by -1
-               if substr(line,i-1,1)<>' ' then leave endif
+   getline line, .line
+   if  substr( line, .col, 1) = ' ' then
+      if substr( line, .col) = ' ' then
+         if  line <> ' ' then
+            for i = .col to 2 by -1
+               if substr( line, i - 1, 1) <> ' ' then
+                  leave
+               endif
             endfor
-           .col=i-1
+           .col = i - 1
          endif
       else
-         p=verify(line,' ','',.col)
-         p=verify(line' ',' ','M',p)
-         .col=p-1
+         p = verify( line,    ' ', '', .col)
+         p = verify( line' ', ' ','M', p)
+         .col = p - 1
       endif
    else
-      if .col<>MAXCOL then
-         i=pos(' ',line,.col)
+      if .col <> MAXCOL then
+         i = pos( ' ', line, .col)
          if i then
-            .col=i-1
+            .col = i - 1
          else
-            .col=length(line)
+            .col = length( line)
          endif
       endif
    endif
-
 
 ; Check if file already exists in ring
 defproc pfile_exists
-   if substr(arg(1),2,1)=':'  then
-      /* parse off drive specifier and try again */
-      getfileid zzfileid,substr(arg(1),3)
+   if substr( arg(1), 2, 1) = ':' then
+      -- parse off drive specifier and try again
+      getfileid zzfileid, substr( arg(1), 3)
    else
-      getfileid zzfileid,arg(1)
+      getfileid zzfileid, arg(1)
    endif
-   return zzfileid<>''
+   return zzfileid <> ''
 
 ; Find first blank line after the current one.  Make that the new current
 ; line.  If no such line is found before the end of file, don't change the
 ; current line.
 defproc pfind_blank_line
-   for i = .line+1 to .last
-      getline line,i
+   for i = .line + 1 to .last
+      getline line, i
       -- Ver 3.11:  Modified to respect GML tags:  stop at first blank line
       -- or first line with a period or a colon (".:") in column 1.
-      if line='' or not verify(substr(line,1,1), ".:" ) then
-         i
+      if line = '' or not verify( substr( line, 1, 1), '.:') then
+         --i
+         .lineg = i  -- .lineg suppresses scrolling, if cursor is in window
          leave
       endif
    endfor
 
+; different from PE
 defproc pfirst_nonblank
-   /* different from PE */
    if not .line then .col=1
    else
       getline line
-      .col=max(1,verify(line,' '\t))
+      .col = max( 1, verify( line, ' '\t))
    endif
-
 
 ; PLOWERCASE: force to lowercase the marked area
 defproc plowercase
    call checkmark()
-   /* invoke pinit_extract, pextract_string, pput_string_back to do the job */
-   call psave_pos(save_pos)
+   -- invoke pinit_extract, pextract_string, pput_string_back to do the job
+   call psave_pos( save_pos)
    call pinit_extract()
    do forever
-      code = pextract_string(string)
+      code = pextract_string( string)
       if code = 1 then leave; endif
       if code = 0 then
-         string = lowcase(string)
-         call pput_string_back(string)
+         string = lowcase( string)
+         call pput_string_back( string)
       endif
    end
-   call prestore_pos(save_pos)
-
+   call prestore_pos( save_pos)
 
 ; PMARGINS: return the current margins setting. (Uses pcommon_tab_margin)
 defproc pmargins
    return .margins
 
 ; ---------------------------------------------------------------------------
-; Check if current or a specific file is marked. Return 1 or 0.
+; Check if current file or a specified filename is marked. Return 1 or 0.
 ; marktype() returns true, if any file is marked.
 defproc FileIsMarked
    file = arg(1)
@@ -561,10 +582,9 @@ defproc FileIsMarked
       return 0
    endif
 
-
 ; PMARK: mark at the cursor position (mark type received as argument).  Used by
 ; pset_mark
-defproc pmark(mt)
+defproc pmark( mt)
    if mt= 'LINE' then
       mark_line
    elseif mt = 'CHAR' then
@@ -572,7 +592,6 @@ defproc pmark(mt)
    else
       mark_block
    endif
-
 
 ; PMARK_WORD: mark the word pointed at by the cursor.  If the cursor is on a
 ; space, the word at the right is marked.  If there is no word on the right, the
@@ -597,28 +616,25 @@ compile if WORD_MARK_TYPE = 'CHAR'
 compile else
    mark_block
 compile endif
-  'Copy2SharBuff'       /* Copy mark to shared text buffer */
-
+  'Copy2SharBuff'  -- Copy mark to shared text buffer
 
 ; PRESTORE_MARK: restore the current marks (cannot be used as a stack) See also
 ; psave_mark
-defproc prestore_mark(savemark)
+defproc prestore_mark( savemark)
    unmark
    parse value savemark with savefirstline savelastline savefirstcol savelastcol savemkfileid savemt
-   if savemt<>'' then
-      call pset_mark(savefirstline,savelastline,savefirstcol,savelastcol,savemt,savemkfileid)
+   if savemt <> '' then
+      call pset_mark( savefirstline, savelastline, savefirstcol, savelastcol, savemt, savemkfileid)
    endif
-
 
 ; PRESTORE_POS: restore the cursor position (cannot be used as a stack) See
 ; also psave_pos()
-defproc prestore_pos(save_pos)
+defproc prestore_pos( save_pos)
    parse value save_pos with svline svcol svcx svcy
    .cursory = svcy                          -- set .cursory
-   min(svline, .last)                       -- set .line
+   min( svline, .last)                      -- set .line
    .col = MAXCOL; .col = svcol - svcx + 1   -- set left edge of window
    .col = svcol                             -- set .col
-
 
 ;  Printer_ready( printer_number ) tests whether printer is ready.
 ;
@@ -634,63 +650,56 @@ defproc prestore_pos(save_pos)
 ;
 ;  If we're on OS/2 we don't check because the spooler protects us from
 ;  a hang if the printer's off-line.  We always return "ready" on OS/2.
-;
 defproc printer_ready
    return 1
 
-
 ; PSAVE_MARK: save the current marks (cannot be used as a stack) See also
 ; prestore_pos()
-defproc psave_mark(var savemark)
-   savemt=marktype()
+defproc psave_mark( var savemark)
+   savemt = marktype()
    if savemt then
-      getmark  savefirstline,savelastline,savefirstcol,savelastcol,savemkfileid
+      getmark savefirstline, savelastline, savefirstcol, savelastcol, savemkfileid
       unmark
-      savemark=savefirstline savelastline savefirstcol savelastcol savemkfileid savemt
+      savemark = savefirstline savelastline savefirstcol savelastcol savemkfileid savemt
    else
-      savemark=''
+      savemark = ''
    endif
-
 
 ; PSAVE_POS: save the cursor position (cannot be used as a stack) See also
 ; prestore_pos()
-defproc psave_pos(var save_pos)
-   save_pos=.line .col .cursorx .cursory
+defproc psave_pos( var save_pos)
+   save_pos = .line .col .cursorx .cursory
 
-
-defproc pset_mark(firstline,lastline,firstcol,lastcol,mt,fileid)
-   setmark firstline,lastline,firstcol,lastcol,wordpos(mt,'LINE CHAR BLOCK CHARG BLOCKG')-1,fileid
+defproc pset_mark( firstline, lastline, firstcol, lastcol, mt, fileid)
+   mtnum = wordpos( mt, 'LINE CHAR BLOCK CHARG BLOCKG') - 1
+   setmark firstline, lastline, firstcol, lastcol, mtnum, fileid
 
 ; PTABS: return the current tabs setting. (Uses pcommon_tab_margin)
-
 defproc ptabs
    return .tabs
 
-
 ; PUPPERCASE: force to uppercase the marked area
-
 defproc puppercase
    call checkmark()
-   /* invoke pinit_extract, pextract_string, pput_string_back to do the job */
-   call psave_pos(save_pos)
+   -- invoke pinit_extract, pextract_string, pput_string_back to do the job
+   call psave_pos( save_pos)
    call pinit_extract()
    do forever
-      code = pextract_string(string)
+      code = pextract_string( string)
       if code = 1 then leave endif
       if code = 0 then
-         string = upcase(string)
-         call pput_string_back(string)
+         string = upcase( string)
+         call pput_string_back( string)
       endif
    end
-   call prestore_pos(save_pos)
+   call prestore_pos( save_pos)
 
+; This is no longer used by any file in standard E.  Use strip()
+; instead.  But left here for compatibility with older procs. -> No.
 ;defproc remove_trailing_spaces
-;   /* This is no longer used by any file in standard E.  Use strip()  */
-;   /* instead.  But left here for compatibility with older procs.     */
-;   return strip(arg(1),'T')
+;   return strip( arg(1), 'T')
 
 ; Moved resolve_key to KEYS.E.
-
 
 define
    MSGC = 'color'
@@ -705,16 +714,16 @@ compile endif
    color = sayat_color()
 compile if WANT_DBCS_SUPPORT
    if ondbcs then
-      middle = substr('',1,length(arg(1)),\x06)
-      sayat '  '\x01\x06||middle||\x06\x02'  ',1,2, $MSGC
-      sayat '  '\x05' 'arg(1)' '\x05'  ',2,2, $MSGC
-      sayat '  '\x03\x06||middle\x06\x04'  ',3,2, $MSGC
+      middle = substr( '', 1, length( arg(1)), \x06)
+      sayat '  '\x01\x06||middle||\x06\x02'  ', 1, 2, $MSGC
+      sayat '  '\x05' 'arg(1)' '\x05'  ', 2, 2, $MSGC
+      sayat '  '\x03\x06||middle\x06\x04'  ', 3, 2, $MSGC
    else
 compile endif
-      middle = substr('',1,length(arg(1)),'Õ')
-      sayat '  …Õ'middle'Õª  ',1,2, $MSGC
-      sayat '  ∫ 'arg(1)' ∫  ',2,2, $MSGC
-      sayat '  »Õ'middle'Õº  ',3,2, $MSGC
+      middle = substr( '', 1, length( arg(1)), 'Õ')
+      sayat '  …Õ'middle'Õª  ', 1, 2, $MSGC
+      sayat '  ∫ 'arg(1)' ∫  ', 2, 2, $MSGC
+      sayat '  »Õ'middle'Õº  ', 3, 2, $MSGC
 compile if WANT_DBCS_SUPPORT
    endif
 compile endif
@@ -732,63 +741,69 @@ defproc sayat_color =          -- Pick a color for SAYAT that doesn't conflict w
    endif
    return GREEN                  -- Final fallback is green.
 
-
 defproc splitlines()
    if .line then
       split
-      oldcol=.col
+      oldcol = .col
       call pfirst_nonblank()
-      blanks = leftstr(textline(.line), .col - 1)
+      blanks = leftstr( textline( .line), .col - 1)
       down
       getsearch savesearch
       .col = 1
       -- Can use Extended GREP
-      'xcom c/^[ \t]*'||'/'blanks'/x'
+      --'xcom c/^[ \t]*/'blanks'/x'
+      'xcom c '\1'^[ \t]*'\1''blanks''\1'x'
       -- GREP would skip a blank line in the first case...
       setsearch savesearch
       up
-      .col=oldcol
+      .col = oldcol
    endif
 
+defproc swapwords( num)
+   return substr( num, 3, 2) || substr( num, 1, 2)
 
-defproc swapwords(num)
-   return substr(num,3,2) || substr(num,1,2)
-
-
--- Standard text reflow, moved from Alt+P definition in STDKEYS.E.
--- Only called from Alt+P if no mark exists; users wishing to call
--- this from their own code must save & restore the mark themselves
--- if that's desired.
+; Standard text reflow, moved from Alt+P definition in STDKEYS.E.
+; Only called from Alt+P if no mark exists; users wishing to call
+; this from their own code must save & restore the mark themselves
+; if that's desired.
 defproc text_reflow
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Reflow\Next'
    ReflowNext = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if .line then
       getline line
-      if line<>'' then  -- If currently on a blank line, don't reflow.
-         oldcursory=.cursory;oldcursorx=.cursorx; oldline=.line;oldcol=.col;
-         unmark;mark_line
+      if line <> '' then  -- If currently on a blank line, don't reflow.
+         oldcursory = .cursory
+         oldcursorx = .cursorx
+         oldline = .line
+         oldcol  = .col
+         unmark
+         mark_line
          call pfind_blank_line()
          -- Ver 3.11:  slightly revised test works better with GML sensitivity.
-         if .line<>oldline then
+         if .line <> oldline then
             up
          else
             bottom
          endif
          mark_line
          reflow
-
-         if ReflowNext then   /* position on next paragraph (like PE) */
-            down                       /* Thanks to Doug Short. */
-            for i=.line+1 to .last
-               getline line,i
-               if line<>'' then i; leave; endif
+         if ReflowNext then   -- position on next paragraph (like PE)
+            down              -- Thanks to Doug Short
+            for i = .line + 1 to .last
+               getline line, i
+               if line <> '' then i
+                  leave
+               endif
             endfor
          else
-            /* or like old E */
-            getmark firstline,lastline
+            -- or like old E
+            getmark firstline, lastline
             firstline
-            .cursory=oldcursory;.cursorx=oldcursorx; oldline;.col=oldcol
+            .cursory = oldcursory
+            .cursorx = oldcursorx
+            oldline
+            .col = oldcol
          endif
          unmark
       endif
@@ -801,12 +816,11 @@ defproc text_reflow
 ;  If we're passed a floating point number with a decimal point in it,
 ;  like "4.0", drop the decimal part.
 ;  If we're passed an exponential-format number like "6E3", fatal error.
-defproc trunc(num)
-   if not verify('E',upcase(num)) then
+defproc trunc( num)
+   if not verify( 'E', upcase( num)) then
       sayerror NO_FLOAT__MSG num
       stop
    endif
    parse value num with whole'.'.
    return whole
-
 
