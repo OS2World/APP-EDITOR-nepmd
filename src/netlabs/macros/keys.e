@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.10 2005-10-18 21:31:05 aschn Exp $
+* $Id: keys.e,v 1.11 2005-11-06 14:31:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1454,6 +1454,13 @@ defc UndoLine
 defc NextFile
    nextfile
 
+defc BeginLine  -- standard Home
+   universal CUA_marking_switch
+   if CUA_marking_switch then
+      unmark
+   endif
+   begin_line
+
 defc BeginLineOrText  -- Home
    universal nepmd_hini
    universal CUA_marking_switch
@@ -1474,9 +1481,16 @@ defc BeginLineOrText  -- Home
       begin_line
    endif
 
+defc MarkBeginLine  -- standard Sh+Home
+   startline = .line
+   startcol  = .col
+   begin_line
+   call extend_mark( startline, startcol, 0)
+
 defc MarkBeginLineOrText  -- Sh+Home
    universal nepmd_hini
-   startline = .line; startcol = .col
+   startline = .line
+   startcol  = .col
    KeyPath = '\NEPMD\User\Keys\Home\ToggleBeginLineText'
    Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if Enabled = 1 then
@@ -1490,8 +1504,7 @@ defc MarkBeginLineOrText  -- Sh+Home
    else
       begin_line
    endif
-   call extend_mark(startline, startcol, 0)
-
+   call extend_mark( startline, startcol, 0)
 
 defc InsertToggle
    insert_toggle
