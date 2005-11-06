@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.10 2005-10-12 17:53:48 aschn Exp $
+* $Id: dosutil.e,v 1.11 2005-11-06 14:38:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -25,16 +25,17 @@
 -- Date and time --------------------------------------------------------------
 ; Note: FileDateTime procs can be found in FILE.E.
 
+; ---------------------------------------------------------------------------
 defc qd,qdate=
-   parse value getdate(1) with today';' .  /* Discard MonthNum. */
+   parse value getdate(1) with today';' .  -- Discard MonthNum
    sayerror TODAY_IS__MSG today'.'
 
-
+; ---------------------------------------------------------------------------
 defc qt,qtime=
-   parse value gettime(1) with now';' .    /* Discard Hour24. */
+   parse value gettime(1) with now';' .    -- Discard Hour24
    sayerror THE_TIME_IS__MSG now'.'
 
-
+; ---------------------------------------------------------------------------
 defproc getdatetime
    datetime = substr( '', 1, 20)
    call dynalink32( 'DOSCALLS',          -- dynamic link library name
@@ -43,6 +44,7 @@ defproc getdatetime
    return dec_to_string(datetime)
    --> Hour24 Minutes Seconds Hund Day MonthNum Year0 Year1 TZ0 TZ1 WeekdayNum
 
+; ---------------------------------------------------------------------------
 defproc getdate
 compile if WANT_DBCS_SUPPORT
    universal countryinfo
@@ -58,98 +60,31 @@ compile if WANT_DBCS_SUPPORT
 compile endif
    return WeekDay Month Day',' Year';'MonthNum
 
+; ---------------------------------------------------------------------------
 defproc gettime
 compile if WANT_DBCS_SUPPORT
    universal countryinfo
 compile endif
    parse value getdatetime() with Hour24 Minutes Seconds Hund .
-   AmPm = AM__MSG; Hour = Hour24
+   AmPm = AM__MSG
+   Hour = Hour24
    if Hour >= 12 then
-      Hour = Hour - 12; AmPm = PM__MSG
+      Hour = Hour - 12
+      AmPm = PM__MSG
    endif
-   if not Hour then Hour=12 endif
-   Hund = rightstr(Hund,2,'0')
-   Minutes = rightstr(Minutes,2,'0')
-   Seconds = rightstr(Seconds,2,'0')
+   if not Hour then
+      Hour = 12
+   endif
+   Hund    = rightstr( Hund, 2, '0')
+   Minutes = rightstr( Minutes, 2, '0')
+   Seconds = rightstr( Seconds, 2, '0')
 compile if WANT_DBCS_SUPPORT
    if arg(1) then
-      time_sep = substr(countryinfo,24,1)
+      time_sep = substr( countryinfo, 24, 1)
       return Hour || time_sep || Minutes || time_sep || Seconds AmPm';'Hour24':'Hund
    endif
 compile endif
    return Hour':'Minutes':'Seconds AmPm';'Hour24':'Hund
-
-; ---------------------------------------------------------------------------
-; APPEND is not used in OS/2. This is left in here for compatibility
-; and should be replaced. Remove it from defc edit as well.
-; Ver. 3.10:  New routine by Ken Kahn.
-; Ver. 3.11:  Support added for /E option of append.  This will also now work
-;    for any user of DOS 3.0 or above that uses the DOS command SET APPEND,
-;    whether or not they actually have the APPEND command installed.
-compile if USE_APPEND
-defproc Append_Path(FileName)
-/**********************************************************************
- *                                                                    *
- *     Name : Append_Path                                             *
- *                                                                    *
- * Function : For files accessed via the DOS 3.3 APPEND facility      *
- *            this routine will search the APPEND search string and   *
- *            return the path name the file is found on.              *
- *                                                                    *
- *    Input : FileName = File name to search for                      *
- *                                                                    *
- *   Output : - If the APPEND facility is not installed and the       *
- *              filename cannot be found on any of the paths in the   *
- *              APPEND string a null value will be returned.          *
- *                                                                    *
- *            - Otherwise the path name (path\) will be returned.     *
- *                                                                    *
- **********************************************************************/
-   return search_path_ptr( Get_Env( 'DPATH',1), FileName)  -- If OS/2 protect mode, then use DPATH
-compile endif  -- USE_APPEND
-
-compile if USE_APPEND | WANT_SEARCH_PATH
-; Don't use this!
-; Replace it by the filefind statement or by
-; defproc FindFileInList( File, PathList) below.
-; Example: FullExName = FindFileInList( 'fold.ex', Get_Env( 'EPMEXPATH'))
-; Ver. 3.12 - split off from Append_Path so can be called by other routines.
-defproc search_path( AppendPath, FileName)
-   do while AppendPath <> ''
-      parse value AppendPath with TryDir ';' AppendPath
-      if check_path_piece( trydir, filename) then
-         return trydir
-      endif
-   enddo
-
-defproc search_path_ptr( AppendPathPtr, FileName)
-   parse value AppendPathPtr with env_seg env_ofs .
-   if env_ofs = '' then return; endif
-   trydir = ''
-   do forever
-      ch = peek(env_seg, env_ofs, 1)
-      env_ofs = env_ofs + 1
-      if ch = ';' | ch = \0 then
-         if check_path_piece( trydir, filename) then
-            return trydir
-         endif
-         if ch = \0 then return; endif
-         trydir = ''
-      else
-         trydir = trydir || ch
-      endif
-   enddo
-
-defproc check_path_piece( var trydir, filename)
-   if trydir = '' then return; endif
-   lastch = rightstr( TryDir, 1)
-   if lastch <> '\' & lastch <> ':' then
-      TryDir = TryDir||'\'
-   endif
-   if exist(TryDir||FileName) then
-      return TryDir
-   endif
-compile endif  -- USE_APPEND
 
 ; ---------------------------------------------------------------------------
 ; Optional arg(2) is flag to return pointer to value instead of the value itself.
@@ -203,14 +138,8 @@ defproc NepmdResolveEnvVars(Spec)
    enddo  -- forever
    return Spec
 
-/***
-defc testap=                     /* for testing:  testap <filename> */
-   res = append_path(arg(1))
-   if res then sayerror res else sayerror 'none' endif
-***/
-
--------------------------------------------------------------------------------
-/* Useful if you want the cursor keys to act differently with ScrollLock on. */
+; ---------------------------------------------------------------------------
+; Useful if you want the cursor keys to act differently with ScrollLock on.
 defproc scroll_lock
    /* fix this later -- odd means toggled */
    ks = getkeystate(VK_SCRLLOCK)
@@ -242,17 +171,17 @@ RIGHT_SHIFT    EQU   01H  =   1  ; Right shift key depressed
      endif
 ***/
 
--------------------------------------------------------------------------------
-
-defproc beep   -- Version 4.02
--- Two optional arguments:  pitch, duration.
--- We make them optional by not declaring them in the DEFPROC, then retrieving
--- them with the arg() function.  We do this because DOS has no use for the
--- arguments.  (The alternative would be to declare them --
--- defproc beep(pitch, duration) -- and ignore them on DOS, but that would use
--- more p-code space.)
---
--- If the arguments are omitted on OS/2 we pick DOS-like values.
+; ---------------------------------------------------------------------------
+; Version 4.02
+; Two optional arguments:  pitch, duration.
+; We make them optional by not declaring them in the DEFPROC, then retrieving
+; them with the arg() function.  We do this because DOS has no use for the
+; arguments.  (The alternative would be to declare them --
+; defproc beep(pitch, duration) -- and ignore them on DOS, but that would use
+; more p-code space.)
+;
+; If the arguments are omitted on OS/2 we pick DOS-like values.
+defproc beep
    if arg()=2 then
       pitch   = arg(1)
       duration= arg(2)
@@ -273,9 +202,9 @@ defc testbeep=
    call beep( pitch, duration)
 ***/
 
--- New for EPM ----------------------------------------------------------------
-;  jbl 12/30/88:  Provide DIR and other DOS-style query commands by redirecting
-;  output to a file.
+; ---------------------------------------------------------------------------
+; jbl 12/30/88:  Provide DIR and other DOS-style query commands by redirecting
+; output to a file.
 defc dir =
    parse arg fspec
    call parse_filename( fspec, .filename)
@@ -283,6 +212,7 @@ defc dir =
    sayerror ALT_1_LOAD__MSG
    'postme monofont'
 
+; ---------------------------------------------------------------------------
 defc attrib =
    parse arg fspec
    call parse_filename(fspec,.filename)
@@ -295,23 +225,13 @@ defc attrib =
       dos_command('attrib' fspec)    --   user wants to see results.
    endif
 
+; ---------------------------------------------------------------------------
 defc set   = dos_command('set' arg(1))
 defc vol   = dos_command('vol' arg(1))
 defc path  = dos_command('path')
 defc dpath = dos_command('dpath')
 
-defc os2
-   -- Create a OS/2 windowed cmd prompt & execute a command in it.
-   command = arg(1)
-   if command = '' then    -- prompt user for command
-      command = entrybox(ENTER_CMD__MSG)
-      if command = '' then return; endif
-   endif
-   'start /win 'command
-   if rc = 1 then
-      sayerror sayerrortext(-274) command
-   endif
-
+; ---------------------------------------------------------------------------
 defproc dos_command=
    universal vTEMP_FILENAME
    universal ring_enabled
@@ -328,10 +248,24 @@ defproc dos_command=
       quietshell 'dos' arg(1)'>'vTEMP_FILENAME '2>&1'
    endif
 
-   'e /D /Q' vTEMP_FILENAME
+   'xcom e /D /Q' vTEMP_FILENAME
    if not rc then .filename = '.DOS' arg(1); endif
    call erasetemp(vTEMP_FILENAME)
 
+; ---------------------------------------------------------------------------
+; Create a OS/2 windowed cmd prompt & execute a command in it.
+defc os2
+   command = arg(1)
+   if command = '' then    -- prompt user for command
+      command = entrybox(ENTER_CMD__MSG)
+      if command = '' then return; endif
+   endif
+   'start /win 'command
+   if rc = 1 then
+      sayerror sayerrortext(-274) command
+   endif
+
+; ---------------------------------------------------------------------------
 defc del, erase =
    earg = arg(1)
    if parse_filename( earg, .filename) then
@@ -367,67 +301,6 @@ defproc QueryCodepage
       codepage_no = strip(ltoa( codepage, 10))
       return codepage_no
    endif
-
-; ---------------------------------------------------------------------------
-; Poor!
-; Slow: uses quietshell and a temporary file, that is parsed in EPM.
-; Don't use this defc!
-; Note: filename and destfilename are interchanged, compared to the
-; useful findfile statement.
-;
-; As of EPM 5.18, this command supports use of the DOS or OS/2 ATTRIB command,
-; so non-IBM users can also use the LIST command.  Note that installing SUBDIR
-; (DOS) or FILEFIND (OS/2) is still preferred, since it's not necessary to
-; "clean up" their output.  Also, ATTRIB before DOS 3.? doesn't support the /S
-; option we need to search subdirectories.
-; Moved from STDCMDS.E.
-defc list, findfile, filefind=
-   universal vTEMP_FILENAME
-   /* If I say "list c:\util" I mean the whole util directory.  But we */
-   /* have to tell SubDir that explicitly by appending "\*.*".         */
-   spec = arg(1)
-   call parse_filename( spec, .filename)
-   src = subdir( spec' >'vTEMP_FILENAME)  -- Moved /Q option to defproc subdir
-
-   'e' argsep'd' argsep'q' vTEMP_FILENAME
-   call erasetemp(vTEMP_FILENAME)
-   if .last then
-      .filename = '.DIR 'spec
-      if .last <= 2 & substr( textline(.last), 1, 8) = 'SYS0002:' then
-         'xcom q'
-         sayerror FILE_NOT_FOUND__MSG
-      endif
-   else
-      'xcom q'
-      sayerror FILE_NOT_FOUND__MSG
-   endif
-
-; ---------------------------------------------------------------------------
-; Poor!
-; Slow, because /s is specified here. Better use NepmdGetNextFile to resolve
-; the filemask and NepmdGetNextDir, called in a loop, to get the entire tree.
-; Moved from STDPROCS.E.
-defproc subdir
-   quietshell 'dir /b /s /a:-D' arg(1)
-
-; ---------------------------------------------------------------------------
-; Note: EPMTECH.INF is wrong in the syntax description of findfile.
-; Correct is:
-; FINDFILE filename , destfilename [, environment_path_variable, (P|D)]
-; Searches for destfilename in the current directory and returns its entire
-; pathname in filename.
-
-; ---------------------------------------------------------------------------
-; Poor!
-; Syntax : find_routine( file [options])
-; Returns: fullname options
-; Doesn't handle spaces in filenames.
-; Moved from STDPROCS.E.
-defproc find_routine(utility)
-   parse arg util opts         -- take first word, so can pass options too.
-   findfile fully_qualified, util, 'PATH', 'P'
-   if rc then return -1 endif
-   return fully_qualified opts
 
 ; ---------------------------------------------------------------------------
 ; Search file or dir in a path specification, pathes separated by ";".
@@ -473,5 +346,4 @@ defproc dos_version()
 ;     major = ltoa(leftstr(verbuf,4),10)
 ;     minor = ltoa(rightstr(verbuf,4),10)
       return 100*ltoa(leftstr(verbuf,4),10) + ltoa(rightstr(verbuf,4),10)
-
 
