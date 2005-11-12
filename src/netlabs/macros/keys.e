@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.11 2005-11-06 14:31:28 aschn Exp $
+* $Id: keys.e,v 1.12 2005-11-12 14:19:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -344,8 +344,11 @@ defproc DefineCharAccels
          cmd = 'dokey a+'name
       endif
       if cmd <> '' then
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT, key, i             -- Alt+<key>
+         if not IsNum( name) then  -- Exclude Alt+0 ... Alt+9 to make Alt+<keypad-num> work properly.
+                                   -- These keys are now definable via def a_0 ... def a_9 only.
+            i = i + 1
+            buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT, key, i             -- Alt+<key>
+         endif
       endif
       if isadefc('Key_a_s_'name) then
          cmd = 'Key_a_s_'name
@@ -1040,6 +1043,9 @@ defc ReflowBlock
    alt_R_active = queryframecontrol(2)         -- Remember if messageline on or off
    'toggleframe 2 1'                    -- Force it on
    'setmessageline' BLOCK_REFLOW__MSG
+
+defc Split
+   split
 
 defc SplitLines
    call splitlines()
