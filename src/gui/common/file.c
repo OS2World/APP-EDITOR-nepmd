@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: file.c,v 1.7 2005-05-01 20:51:35 aschn Exp $
+* $Id: file.c,v 1.8 2005-11-12 17:16:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -274,7 +274,7 @@ do
 
 // cleanup
 if (phdir)
-   if (rc == ERROR_NO_MORE_FILES)
+   if (rc != NO_ERROR)  //(rc == ERROR_NO_MORE_FILES)
       DosFindClose( *phdir);
 
 return rc;
@@ -360,7 +360,7 @@ do
 
 // cleanup
 if (phdir)
-   if (rc == ERROR_NO_MORE_FILES)
+   if (rc != NO_ERROR)  //(rc == ERROR_NO_MORE_FILES)
       DosFindClose( *phdir);
 
 return rc;
