@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.9 2005-10-16 12:25:54 aschn Exp $
+* $Id: file.e,v 1.10 2005-11-12 18:15:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -403,8 +403,9 @@ compile endif
 
       'postme AddToHistory SAVE' .filename
    endif
-   rc = src
-   return
+   -- A defc must use "return myrc" or use "rc = myrc" to set the
+   -- global var rc. When "return" is used only, rc would be set to empty.
+   return src
 
 ; ---------------------------------------------------------------------------
 ; Specify a list of save options, that won't get executed on save,
@@ -583,9 +584,9 @@ defc SaveAll
    'postme activatefile' startfid
    --'postme display' 3
    if m > 0 then
-      sayerror f' file(s) saved successfully'
+      sayerror f' file(s) saved'
    else
-      sayerror 'No file modified or just temp files'
+      sayerror 'No file modified or just temp files in the ring'
    endif
    return
 
