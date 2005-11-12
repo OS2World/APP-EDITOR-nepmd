@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.13 2005-11-12 14:34:37 aschn Exp $
+* $Id: epmshell.e,v 1.14 2005-11-12 17:23:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -867,7 +867,6 @@ defc ShellFncInit
          else
             --dprintf( 'TabComplete', 'Dir: FileMask = ['FileMask'], Found 'f' filenames.')
             --handle = 0  -- handle must be reset to 0 before the next search
-            call NepmdGetNextClose( handle)
             f = 0
          endif
       endif
@@ -896,7 +895,6 @@ defc ShellFncInit
                if fAppendExeMask & words( FNC_EXE_MASK_LIST) > m then
                   -- Initiate a new search with the next ExeMask
                   --handle = 0  -- handle must be reset to 0 before the next search
-                  call NepmdGetNextClose( handle)
                   iterate
                endif
             endif
