@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.19 2005-09-29 18:55:34 aschn Exp $
+* $Id: locate.e,v 1.20 2005-11-12 18:40:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -58,23 +58,10 @@ defmodify             -- This stops the modification dialog for grep output "fil
 ; Added a new search option: 'U'. This will replace any occurance of
 ; 'T' and 'B' in default_search_options for this locate command.
 ;
-; Standard commands that don't change rc (are there more?):
-;    'locate', 'edit'
-; This is fixed in NEPMD.
-; Therefore 'locate' now calls the proc locate, that sets rc correctly.
-; The standard commands 'quit', 'save', 'name',... do change rc.
 ; Moved from STDCMDS.E
 ; Note:  this DEFC also gets executed by the slash ('/') command and by the
 ; search dialog. The search dialog adds option 'D'.
 defc l, locate =
-   parse arg args
-   call locate( args)
-
-; A new proc is defined here, in order to be able to check the rc. In EPM some
-; non-internal commands won't set the standard rc anymore. But when called
-; from a proc, rc is set correctly. As a result the command 'locate' will set
-; rc now as well, because it calls the proc and doesn't change rc.
-defproc locate
    universal default_search_options
    universal search_len
    universal lastsearchargs
@@ -275,7 +262,6 @@ defproc locate
    endif
 
    rc = lrc  -- does hightlight_match change rc?
-   return
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
@@ -528,8 +514,6 @@ compile endif
       call prestore_pos(savepos)  -- required for 'B' or 'T'
    endif
 
-   return
-
 ; ---------------------------------------------------------------------------
 ; Moved from STDPROCS.E
 ; Highlight a "hit" after a Locate command or Repeat_find operation.
@@ -636,7 +620,6 @@ defc searchdlg
                           0,
                           put_in_buffer(default_search_options))
    endif
-   return
 
 ; ---------------------------------------------------------------------------
 ; From EPMSMP\GLOBFIND.E
@@ -672,7 +655,7 @@ defc ringfind, ringf, ringlocate, ringl, globalfind, globalfindnext
    -- First repeat-find in current file in case we don't have to move.
    'FindNext'  -- if first search since start, get lastsearchargs from ini
    if rc = 0 then  -- if found
-      return
+      return rc
    endif
    fileid = StartFileID
    loop
@@ -725,7 +708,6 @@ defc ringfind, ringf, ringlocate, ringl, globalfind, globalfindnext
       endif
    endloop
    activatefile fileid
-   return
 
 ; ---------------------------------------------------------------------------
 ; Returns '+' or '-'.
@@ -935,7 +917,6 @@ compile endif
    display -8
    sayerror 'String changed in' change_count files
    display 8
-   return
 
 ; ---------------------------------------------------------------------------
 const
@@ -1184,7 +1165,6 @@ defproc CallGrep
       sayerror 'Use Alt+1 to load the file under cursor.'
    endif
    --display 8
-   return
 
 ; ---------------------------------------------------------------------------
 ; Added directory line in Gnu grep's output for ALt_1.
@@ -1282,7 +1262,6 @@ defc GfcCurrentFile
    endif
 
    'start /f gfc 'GfcParams
-   return
 
 ; ---------------------------------------------------------------------------
 ; The internal repeat_find statement is not used anymore. We better use
