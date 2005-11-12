@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.25 2005-09-25 08:51:42 aschn Exp $
+* $Id: kwhelp.e,v 1.26 2005-11-12 14:34:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -333,6 +333,7 @@ defproc pBuild_Helpfile(ft)
             Filename = NepmdGetNextFile(  FileMask, address(Handle) )
             parse value Filename with 'ERROR:'rc
             if (rc > '') then
+               call NepmdGetNextClose( handle)
                leave
             endif
 
