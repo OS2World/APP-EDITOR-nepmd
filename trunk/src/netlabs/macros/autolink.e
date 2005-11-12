@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: autolink.e,v 1.6 2005-11-12 14:34:36 aschn Exp $
+* $Id: autolink.e,v 1.7 2005-11-12 17:23:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -45,7 +45,6 @@ defproc NepmdAutolink() =
      Filename = NepmdGetNextFile(  FileMask, AddressOfHandle);
      parse value Filename with 'ERROR:'rc;
      if (rc > '') then
-        call NepmdGetNextClose( handle)
         leave;
      endif
 

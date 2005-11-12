@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.29 2005-11-12 14:34:40 aschn Exp $
+* $Id: linkcmds.e,v 1.30 2005-11-12 17:23:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -523,7 +523,6 @@ defc RecompileAll
          ListFile = NepmdGetNextFile( FileMask, address(Handle))
          parse value ListFile with 'ERROR:'rc
          if (rc > '') then
-            call NepmdGetNextClose( handle)
             leave
          -- Append if not already in list
          elseif pos( upcase(ListFile)';', upcase(ListFiles)';') = 0 then
@@ -641,7 +640,6 @@ defc RecompileNew
          ListFile = NepmdGetNextFile( FileMask, address( Handle))
          parse value ListFile with 'ERROR:'rc
          if (rc > '') then
-            call NepmdGetNextClose( handle)
             leave
          -- Append if not already in list
          else

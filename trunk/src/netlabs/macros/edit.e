@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.27 2005-11-12 14:34:36 aschn Exp $
+* $Id: edit.e,v 1.28 2005-11-12 17:23:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -82,7 +82,6 @@ defproc NepmdLoadFile( Spec, Options)
          Filename = NepmdGetNextFile( Spec, address( Handle))
          parse value Filename with 'ERROR:'rc
          if rc > '' then
-            call NepmdGetNextClose( handle)
             leave
          endif
          filestoload = filestoload + 1
