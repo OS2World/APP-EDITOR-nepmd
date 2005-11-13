@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.20 2005-10-02 16:39:11 aschn Exp $
+* $Id: newmenu.e,v 1.21 2005-11-13 01:57:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -205,7 +205,7 @@ definit
    -- Keep this list in sync with the 'menuinit_'name defcs!
    -- (Otherwise 'processmenuinit' will never execute that defc.)
    call SetAVar( 'definedsubmenus', 'file edit mark format search view options run project help' ||
-                                    ' fileproperties markpos cursorpos bookmarks' ||
+                                    ' fileproperties markatcursor goto markstack cursorstack bookmarks' ||
                                     ' mainsettings framecontrols editoptions saveoptions searchoptions' ||
                                     ' recordkeys openfolder treecommands reflowsettings autorestore' ||
                                     ' accelsettings marginsandtabs readonlyandlock menubarsandcolors' ||
@@ -674,12 +674,12 @@ compile endif
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_startrecording', i);
    buildmenuitem menuname, mid, i, 'Start/end ~recording'\9 || CTRL_KEY__MSG'+R',                        -- Start recording
-                                   'dokey c_r' ||
+                                   'RecordKeys' ||
                                    \1'',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_playback', i);
    buildmenuitem menuname, mid, i, '~Playback'\9 || CTRL_KEY__MSG'+T',                                   -- Playback
-                                   'dokey c_t' ||
+                                   'PlaybackKeys' ||
                                    \1'',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
 
@@ -775,6 +775,64 @@ defproc add_mark_menu(menuname)
                                    MIS_TEXT, mpfrom2short(HP_EDIT_ADJUST, 0)
 ;   endif
 
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_markatcursor', i);
+   buildmenuitem menuname, mid, i, 'Mar~k at cursor',                                              -- Mark   >
+                                   '' ||
+                                   \1'Mark text at cursor position in different ways',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_markchars', i);
+   buildmenuitem menuname, mid, i, 'Mark ~chars'\9 || ALT_KEY__MSG'+Z',                                  -- Mark chars
+                                   'MarkChar' ||
+                                   \1'Create a char mark between two cursor positions',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_markblock', i);
+   buildmenuitem menuname, mid, i, 'Mark ~block'\9 || ALT_KEY__MSG'+B',                                  -- Mark block
+                                   'MarkBlock' ||
+                                   \1'Create a block mark between two cursor positions',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_marklines', i);
+   buildmenuitem menuname, mid, i, 'Mark ~lines'\9 || ALT_KEY__MSG'+L',                                  -- Mark lines
+                                   'MarkLine' ||
+                                   \1'Create a line mark between two cursor positions',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_markword', i);
+   buildmenuitem menuname, mid, i, 'Mark ~word'\9 || ALT_KEY__MSG'+W',                                   -- Mark word
+                                   'MarkWord' ||
+                                   \1'Mark word under cursor',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_marktoken', i);
+   buildmenuitem menuname, mid, i, 'Mark ~identifier'\9,                                                 -- Mark identifier
+                                   'MarkToken' ||
+                                   \1'Mark identifier (C-style word) under cursor',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_marksentence', i);
+   buildmenuitem menuname, mid, i, 'Mark ~sentence'\9,                                                   -- Mark sentence
+                                   'MarkSentence' ||
+                                   \1'Mark sentence around mouse pointer',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_extendsentence', i);
+   buildmenuitem menuname, mid, i, '~Extend sentence'\9,                                                 -- Extend sentence
+                                   'ExtendSentence' ||
+                                   \1'Extend character mark through end of next sentence',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_markparagraph', i);
+   buildmenuitem menuname, mid, i, 'Mark ~paragraph'\9,                                                  -- Mark paragraph
+                                   'MarkParagraph' ||
+                                   \1'Mark paragraph around mouse pointer',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_extendparagraph', i);
+   buildmenuitem menuname, mid, i, 'E~xtend paragraph'\9,                                                -- Extend paragraph
+                                   'ExtendParagraph' ||
+                                   \1'Extend character mark through end of next paragraph',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -1088,15 +1146,29 @@ defproc add_search_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_markpos', i);
-   buildmenuitem menuname, mid, i, 'Mar~k',                                                        -- Mark   >
-                                   \1'Save and restore a marked area',
+   i = i + 1; call SetAVar( 'mid_goto', i);
+   buildmenuitem menuname, mid, i, 'Go ~to',                                                       -- Go to   >
+                                   \1'',
                                    MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Line'\9,                                                            -- Go to line
+                                   'GotoLineBox' ||
+                                   \1'Change line and optionally column',
+                                   MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_gotomark', i);
-   buildmenuitem menuname, mid, i, '~Go to mark'\9 || ALT_KEY__MSG'+Y',                                  -- Go to mark
-                                   'dokey a+y' ||
+   buildmenuitem menuname, mid, i, '~Mark'\9 || ALT_KEY__MSG'+Y',                                        -- Go to mark
+                                   'BeginMark' ||
                                    \1'Position cursor on begin of marked area',
                                    MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Show ~cursor'\9 || SHIFT_KEY__MSG'+F5, 'ALT_KEY__MSG'+-',            -- Show cursor
+                                   'mc /centerline/highlightcursor' ||
+                                   \1'Center line with cursor',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_markstack', i);
+   buildmenuitem menuname, mid, i, 'Mar~k stack',                                                  -- Mark stack   >
+                                   \1'Save and restore a marked area',
+                                   MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_savemark', i);
    buildmenuitem menuname, mid, i, PUSH_MARK_MENU__MSG\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+'DOWN_KEY__MSG,  -- Save mark
                                    'pushmark' ||
@@ -1112,15 +1184,10 @@ defproc add_search_menu(menuname)
                                    'swapmark' ||
                                    SWAP_MARK_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_EDIT_SWAPMARK, MIA_DISABLED)
-   i = i + 1; call SetAVar( 'mid_cursorpos', i);
-   buildmenuitem menuname, mid, i, 'C~ursor',                                                      -- Cursor   >
+   i = i + 1; call SetAVar( 'mid_cursorstack', i);
+   buildmenuitem menuname, mid, i, 'C~ursor stack',                                                -- Cursor stack   >
                                    \1'Save and restore cursor position',
                                    MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Sho~w cursor'\9 || SHIFT_KEY__MSG'+F5, 'ALT_KEY__MSG'+-',            -- Highlight cursor
-                                   'mc /centerline/highlightcursor' ||
-                                   \1'Center line with cursor',
-                                   MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_savecursor', 1);
    buildmenuitem menuname, mid, i, PUSH_CURSOR_MENU__MSG\9 || CTRL_KEY__MSG'+'DOWN_KEY__MSG,             -- Save cursor
                                    'pushpos' ||
@@ -1136,6 +1203,10 @@ defproc add_search_menu(menuname)
                                    'swappos' ||
                                    SWAP_CURSOR_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_EDIT_SWAPPOS, MIA_DISABLED)
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_bookmarks', i);
    buildmenuitem menuname, mid, i, BOOKMARKS_MENU__MSG,                                            -- Bookmarks   >
                                    \1'Set and jump to bookmarks',
@@ -2507,6 +2578,16 @@ defc menuinit_mark
    call update_paste_menu_text()
    call update_mark_menu_text()
 
+--------------------------------------------- Menu id x -- Mark at cursor --------------
+defc menuinit_markatcursor
+   universal CUA_marking_switch
+   on = (FileIsMarked() & marktype() = 'CHAR' & not CUA_marking_switch)
+   SetMenuAttribute( GetAVar('mid_extendsentence'),  MIA_DISABLED, on)
+   SetMenuAttribute( GetAVar('mid_extendparagraph'), MIA_DISABLED, on)
+   SetMenuAttribute( GetAVar('mid_markchars'),       MIA_DISABLED, not CUA_marking_switch)
+   SetMenuAttribute( GetAVar('mid_markblock'),       MIA_DISABLED, not CUA_marking_switch)
+   SetMenuAttribute( GetAVar('mid_marklines'),       MIA_DISABLED, not CUA_marking_switch)
+
 --------------------------------------------- Menu id 8 -- Edit -------------------------
 defc menuinit_edit
    universal DMbuf_handle
@@ -2567,17 +2648,21 @@ defc menuinit_search
    on = (GetSearchDirection() = '-')
    SetMenuAttribute( GetAVar('mid_searchbackwards'), MIA_CHECKED, not on)
 
---------------------------------------------- Item id 309 -- Mark -----------------------
-defc menuinit_markpos
-   universal mark_stack
+--------------------------------------------- Item id x -- Mark stack -------------------
+defc menuinit_goto
    on = FileIsMarked()
    SetMenuAttribute( GetAVar('mid_gotomark'),      MIA_DISABLED, on)
+
+--------------------------------------------- Item id 309 -- Mark stack -----------------
+defc menuinit_markstack
+   universal mark_stack
+   on = FileIsMarked()
    SetMenuAttribute( GetAVar('mid_savemark'),      MIA_DISABLED, on)
    SetMenuAttribute( GetAVar('mid_restoremark'),   MIA_DISABLED, mark_stack <> '')
    SetMenuAttribute( GetAVar('mid_swapmark'),      MIA_DISABLED, on & mark_stack <> '')
 
---------------------------------------------- Item id 314 -- Cursor ---------------------
-defc menuinit_cursorpos
+--------------------------------------------- Item id 314 -- Cursor stack ---------------
+defc menuinit_cursorstack
    universal position_stack
    SetMenuAttribute( GetAVar('mid_restorecursor'), MIA_DISABLED, position_stack <> '')
    SetMenuAttribute( GetAVar('mid_swapcursor'),    MIA_DISABLED, position_stack <> '')
