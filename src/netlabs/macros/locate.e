@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.20 2005-11-12 18:40:10 aschn Exp $
+* $Id: locate.e,v 1.21 2005-11-13 01:57:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1399,5 +1399,23 @@ defc SetScrollAfterLocate
       return
    elseif Button = \4 then
       return
+   endif
+
+; ---------------------------------------------------------------------------
+defc GotoLineBox
+   Title = 'Go to line'
+   Text  = 'Enter linenumber and optionally a column number:'
+   --Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+   Entry = ''
+   parse value entrybox( Title,
+                         '',
+                         Entry,
+                         0,
+                         240,
+                         atoi(1) || atoi(0) || atol(0) ||
+                         Text) with button 2 NewLine \0
+   NewLine = strip( NewLine)
+   if button = \1 & NewLine <> '' then
+      'goto' NewLine
    endif
 
