@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.7 2005-09-29 18:10:39 aschn Exp $
+* $Id: infoline.e,v 1.8 2005-11-15 17:29:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,17 +19,56 @@
 *
 ****************************************************************************/
 
+; Macros for enhanced titleline and statusline
+
 ; Contains defmodify. Therefore it should not be linked, because any
 ; occurance of defmodify in a linked module would replace all other
 ; so-far-defined defmodify event defs.
 
-/*
-Todo:
--  If file was altered by another file, then the old date is shown in title
-   if file was selected by ring_more dialog.  -> won't (can't) fix.
--  'file' should not redetermine <datetimemodified> to make 'quit' process
-   faster
-*/
+; The check, if an update is required, is a little bit opaque: Every
+; title- or statusline <field> defines a <flag> with it in order to
+; determine at several events, if a line must be updated or not.
+;
+; The advantage of this is, that a (maybe external) defproc or defc
+; can simply call RefreshInfoLine <flag>. A line is only refreshed,
+; if a <field> with a matching <flag> is defined for that line.
+;
+; The title- and statusline defs are parsed by defproc
+; ResolveInfoFields. There, for every <field>, GetInfoFieldValue is
+; called, that returns not only the resolved value, but also the
+; defined <flag> for it. This <flag> is compared with the submitted
+; arg of RefreshInfoLine.
+;
+; If any <field> requires an update, the entire line is updated.
+
+; The refresh of additional (compared to standard EPM) statusline and
+; titleline fields is done via E macros and therefore not quite good in
+; performance. If problems occur during execution of a macro, the refresh
+; can be disabled and enabled after the execution with a universal var:
+;
+;    InfolineRefresh = 0  ==> disabled
+;    InfolineRefresh <> 0 ==> enabled (default is empty after startup
+;                             for universal vars)
+; The refresh is already disabled for hidden files.
+;
+; To use it in your macros:
+; defc MyMacro
+;    universal InfolineRefresh
+;    saved_modify   = .modify
+;    saved_autosave = .autosave
+;    .autosave = 0
+;    InfolineRefresh = 0
+;       <specify some critical code here>
+;       <e.g. commands, that act on many files or use many loops like reflow>
+;    InfolineRefresh = 1
+;    if .modify > saved_modify
+;       .modify = saved_modify + 1
+;    endif
+;    .autosave = saved_autosave
+
+; Bugs:
+;    o  If file was altered by another file, then the old date is shown in title
+;    o  If file was selected by ring_more dialog.  -> won't (can't) fix.
 
 const
 compile if not defined(NEPMD_MODIFIED_STATUSCOLOR)
@@ -47,7 +86,8 @@ compile endif
 defc RefreshInfoLine
    universal StatusFieldFlags
    universal TitleFieldFlags
-   if .visible then
+   universal InfolineRefresh  -- disable refresh of infolines if = 0
+   if .visible & not (InfolineRefresh = 0) then
       Flags = arg(1)
       -- Todo: 'FILE' should not redetermine <datetimemodified> to make 'quit'
       --       process faster
@@ -76,7 +116,7 @@ defc RefreshInfoLine
    endif
 
 ; ---------------------------------------------------------------------------
-; refreshstatusline refreshes the statusline with the current values.
+; RefreshStatusLine refreshes the statusline with the current values.
 ;
 ; This defc is required, if the statusbar template should contain
 ; non-standard fields (without a '%'). Then it doesn't suffice to set the
@@ -439,22 +479,25 @@ defmodify
    -- when a modified file is selected after a non-modified file
    -- when a non-modified file is selected after a modified file
    universal lastselectedfid
+   universal InfolineRefresh  -- disable refresh of infolines if = 0
    getfileid fid
    if lastselectedfid = '' then
       -- if this is the first selected file
       lastselectedfid = fid
    endif
-   ModifiedChanged = 0
-   ret = GetDateTimeModified()  -- get last saved value of array var
-   -- no need for a refresh if modified state hasn't changed
-   if ((ret <> 'Modified' & .modify > 0) | (ret = 'Modified' & .modify = 0)) then
-      ModifiedChanged = 1
+   if not (InfolineRefresh = 0) then
+      ModifiedChanged = 0
+      ret = GetDateTimeModified()  -- get last saved value of array var
+      -- no need for a refresh if modified state hasn't changed
+      if ((ret <> 'Modified' & .modify > 0) | (ret = 'Modified' & .modify = 0)) then
+         ModifiedChanged = 1
+      endif
+      if ModifiedChanged then
+         'ResetDateTimeModified FORCE'
+         'RefreshInfoLine MODIFIED'
+         'SetStatusLine'  -- update color of statusline
+      endif
    endif
-   if ModifiedChanged then
-      'ResetDateTimeModified FORCE'
-      'RefreshInfoLine MODIFIED'
-      'SetStatusLine'  -- update color of statusline
-    endif
 
 ; ---------------------------------------------------------------------------
 ; Executed by ProcessSelect, using the afterselect hook.
@@ -514,18 +557,29 @@ defc RefreshTitleText
    'SetTitleText 'GetTitleFields()
 
 ; ---------------------------------------------------------------------------
+const
+compile if not defined( SLOW_DRIVES)
+   SLOW_DRIVES = 'A: B:'
+compile endif
+compile if not defined( SLOW_FILESYSTEMS)
+   SLOW_FILESYSTEMS = 'CDFS UDF'
+compile endif
+
 defc ResetDateTimeModified
+   universal InfolineRefresh  -- disable refresh of infolines if = 0
    do i = 1 to 1
-      if arg(1) = 'FORCE' then
+      if InfolineRefresh = 0 then
+         leave
+      elseif arg(1) = 'FORCE' then
          -- force reset; no checks; used by defmodify
       -- Don't act on files from slow drives or if file is readonly
       elseif .readonly then
          leave
       elseif browse() then
          leave
-      elseif wordpos( upcase( substr( .filename, 1, 2)), 'A: B:') then
+      elseif wordpos( upcase( substr( .filename, 1, 2)), SLOW_DRIVES) then
          leave
-      elseif wordpos( QueryFileSys( substr( .filename, 2)), 'CDFS UDF') then
+      elseif wordpos( QueryFileSys( substr( .filename, 2)), SLOW_FILESYSTEMS) then
          leave
       else
          -- if .readonly is deactivated (standard in EPM)
@@ -675,5 +729,4 @@ defc ConfigFrame
    if not rc then
       Cmd
    endif
-
 
