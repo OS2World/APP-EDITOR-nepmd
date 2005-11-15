@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: popup.e,v 1.4 2005-07-18 19:12:18 aschn Exp $
+* $Id: popup.e,v 1.5 2005-11-15 16:14:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -220,12 +220,12 @@ compile if WANT_TEXT_PROCS
 compile endif -- WANT_TEXT_PROCS
       buildmenuitem menuname, 80, 8011, SHIFT_MENU__MSG,   ''SHIFT_MENUP__MSG, 17, mpfrom2short(HP_POPUP_SHIFT, gray_if_charmark)
       nodismiss_gifc = gray_if_charmark + 32  -- 32 = MIA_NODISMISS
-      buildmenuitem menuname, 80, 8012, SHIFTLEFT_MENU__MSG\9'Ctrl+F7',   'key 1 a+F7'SHIFTLEFT_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8013, SHIFTLEFT3_MENU__MSG,             'key 3 a+F7'SHIFTLEFT3_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT3, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8014, SHIFTLEFT8_MENU__MSG,             'key 8 a+F7'SHIFTLEFT8_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT8, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8015, SHIFTRIGHT_MENU__MSG\9'Ctrl+F8',  'key 1 a+F8'SHIFTRIGHT_MENUP__MSG, 2049, mpfrom2short(HP_POPUP_SHIFTRIGHT, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8016, SHIFTRIGHT3_MENU__MSG,            'key 3 a+F8'SHIFTRIGHT3_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTRIGHT3, nodismiss_gifc)
-      buildmenuitem menuname, 80, 8017, SHIFTRIGHT8_MENU__MSG,            'key 8 a+F8'SHIFTRIGHT8_MENUP__MSG, 32769, mpfrom2short(HP_POPUP_SHIFTRIGHT8, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8012, SHIFTLEFT_MENU__MSG\9'Ctrl+F7',   'key 1 c+F7'SHIFTLEFT_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8013, SHIFTLEFT3_MENU__MSG,             'key 3 c+F7'SHIFTLEFT3_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT3, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8014, SHIFTLEFT8_MENU__MSG,             'key 8 c+F7'SHIFTLEFT8_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTLEFT8, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8015, SHIFTRIGHT_MENU__MSG\9'Ctrl+F8',  'key 1 c+F8'SHIFTRIGHT_MENUP__MSG, 2049, mpfrom2short(HP_POPUP_SHIFTRIGHT, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8016, SHIFTRIGHT3_MENU__MSG,            'key 3 c+F8'SHIFTRIGHT3_MENUP__MSG, 1, mpfrom2short(HP_POPUP_SHIFTRIGHT3, nodismiss_gifc)
+      buildmenuitem menuname, 80, 8017, SHIFTRIGHT8_MENU__MSG,            'key 8 c+F8'SHIFTRIGHT8_MENUP__MSG, 32769, mpfrom2short(HP_POPUP_SHIFTRIGHT8, nodismiss_gifc)
       buildmenuitem menuname, 80, 8018, CENTER_MARK_MENU__MSG\9'Alt+T',   'key 1 a+t'CENTER_MARK_MENUP__MSG, 0, mpfrom2short(HP_POPUP_CENTERMARK, gray_if_charmark)
       buildmenuitem menuname, 80, 8019, \0,                               '',          4, 0
       buildmenuitem menuname, 80, 8020, CLIP_COPY_MENU__MSG\9 || CTRL_KEY__MSG'+'INSERT_KEY__MSG ,  'Copy2Clip'CLIP_COPY_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPY, 0)
