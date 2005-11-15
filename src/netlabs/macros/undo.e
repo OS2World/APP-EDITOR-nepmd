@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: undo.e,v 1.4 2004-06-29 20:50:20 aschn Exp $
+* $Id: undo.e,v 1.5 2005-11-15 17:08:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,10 +21,10 @@
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
-defc processundo
+defc ProcessUndo
    --undoaction 1, PresentState;
    --undoaction 2, OldestState;
-   CurrentUndoState=arg(1)
+   CurrentUndoState = arg(1)
    --
    --if CurrentUndoState<OldestState then
    --  return
@@ -35,45 +35,84 @@ defc processundo
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
-defc restoreundo
-   action=1
-   undoaction 5, action;
+defc RestoreUndo
+   call EnableUndoRec()
+
+; ---------------------------------------------------------------------------
+; Restore standard undo recording. Some commands have to disable that
+; in order to not clutter the record list, e.g. when a command is used
+; repeatedly.
+; Values for action:
+;    0: at every keystroke (not default)
+;    1: at every command (default)
+;    2: when moving the cursor from a modified line (default, but not
+;       changed by any command, so far)
+; This is used by following key defcs and events:
+; Space, Return, defselect, ProcessOtherKeys
+defproc EnableUndoRec
+   --action = 0  -- action, the 2nd param of undoaction, must be a var
+   --undoaction 4, action  -- 4: disable undo recording at action
+   action = 1  -- action, the 2nd param of undoaction, must be a var
+   undoaction 5, action  -- 5: enable undo recording at action
+   action = 2  -- action, the 2nd param of undoaction, must be a var
+   undoaction 5, action  -- 5: enable undo recording at action
+   return
+
+; ---------------------------------------------------------------------------
+; Disable undo recording. This is used by several key defcs, e.g.:
+; Space, Tab, TypeTab, ShiftLeft, ShiftRight, DeleteChar, BackSpace
+defproc DisableUndoRec
+   --action = 0  -- action, the 2nd param of undoaction, must be a var
+   --undoaction 4, action  -- 4: disable undo recording at action
+   action = 1  -- action, the 2nd param of undoaction, must be a var
+   undoaction 4, action  -- 4: disable undo recording at action
+   action = 2  -- action, the 2nd param of undoaction, must be a var
+   undoaction 4, action  -- 4: disable undo recording at action
+   return
+
+; ---------------------------------------------------------------------------
+; Create a new undo record and restore standard undo behaviour
+defproc NewUndoRec
+   undoaction 1, junk  -- 1: Create a new state
+   call EnableUndoRec()
+   return
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
-defc renderundoinfo
+defc RenderUndoInfo
     undoaction 1, PresentState        -- Do to fix range, not for value.
 ;   undoaction 2, OldestState;
 ;   statestr=PresentState OldestState \0
     undoaction 6, StateRange               -- query range
     parse value staterange with oldeststate neweststate
-    statestr=newestState oldeststate\0
-    action=1
+    statestr = newestState oldeststate\0
+    action = 1
     undoaction 4, action
     -- sayerror '<'statestr'>'
-    call windowmessage(1,  arg(1),   -- send message back to dialog
-                       32,               -- WM_COMMAND - 0x0020
-                       9999,
-                       ltoa(offset(statestr) || selector(statestr), 10) )
+    call windowmessage( 1, arg(1),   -- send message back to dialog
+                        32,               -- WM_COMMAND - 0x0020
+                        9999,
+                        ltoa( offset( statestr) || selector( statestr), 10))
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
-defc undodlg
+defc UndoDlg
 ;   undoaction 1, PresentState        -- Do to fix range, not for value.
 ;   undoaction 6, StateRange               -- query range
 ;   parse value staterange with oldeststate neweststate
-;   if oldeststate=neweststate  then
+;   if oldeststate = neweststate  then
 ;      sayerror 'No other undo states recorded.'
 ;   else
-       call windowmessage(0,  getpminfo(APP_HANDLE),
-                         5131,               -- EPM_POPUNDODLG
-                         0,
-                         0)
+       call windowmessage( 0,  getpminfo(APP_HANDLE),
+                           5131,               -- EPM_POPUNDODLG
+                           0,
+                           0)
 ;   endif
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
-defc undo = undo
+defc Undo
+   undo
 
 ; ---------------------------------------------------------------------------
 ; From EPMSMP\UNDOREDO.E
@@ -101,7 +140,7 @@ to stop recording changes on keystrokes, and it's not clear how you'd
 figure out when to turn it back on.
                                          by:  Larry Margolis  */
 
-defc undo1 =
+defc Undo1 =
    universal current_undo_state
    universal undo1_key
    universal redo1_key
@@ -133,7 +172,7 @@ defc undo1 =
    display 8
    return
 
-defc redo1 =
+defc Redo1 =
    universal current_undo_state
    universal undo1_key
    universal redo1_key
