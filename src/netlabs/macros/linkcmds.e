@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.30 2005-11-12 17:23:29 aschn Exp $
+* $Id: linkcmds.e,v 1.31 2005-11-15 17:34:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1452,22 +1452,19 @@ defc RecompileNewMsgBox
    UserDirName = substr( NepmdUserDir, lastpos( '\', NepmdUserDir) + 1)
    LogFile = NepmdUserDir'\ex\recompilenew.log'
    parse arg cWarning cRecompile cDelete cRelink fRestart fCheckOnly
-   cWarning   = strip( cWarning)
-   cRecompile = strip( cRecompile)
-   cDelete    = strip( cDelete)
-   cRelink    = strip( cRelink)  -- strip required, why?
    Bul = \7
    Text = ''
    if fCheckOnly then
       Text = Text || 'RecompileNew CHECKONLY:'\n\n
    else
       Text = Text || 'RecompileNew:'\n\n
-      Text = Text || '       'Bul\9''cRecompile' file(s) recompiled'\n
-      Text = Text || '       'Bul\9''cDelete' file(s) deleted'\n
+      Text = Text || '       'Bul\9''cRecompile'  file(s) recompiled'\n
+      Text = Text || '       'Bul\9''cDelete'  file(s) deleted'\n
       if fRestart then
          Text = Text || '       'Bul\9'EPM restarted because'\n
          Text = Text ||             \9'recompilation of EPM.EX'\n\n
       else
+         -- EPM/PM? bug: the doubled \n at the end adds 1 additional space after cRelink:
          Text = Text || '       'Bul\9''cRelink' file(s) relinked'\n\n
       endif
    endif
