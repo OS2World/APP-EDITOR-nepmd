@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.26 2005-05-16 21:04:42 aschn Exp $
+* $Id: stdctrl.e,v 1.27 2005-11-15 17:39:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -194,6 +194,12 @@ defproc listbox( title, listbuf)
    endif
 
    x = .fontwidth * col                    /* convert row and column into...*/
+-----------------------> Bug: determining y doesnot work properly in most cases
+   -- .windowy and .windowx are always 0 in EPM
+   -- screenheight() and screenwidth() return the sreen resolution in pixels
+   -- .fontheight and .fontwidth are values in pixel, e.g. for 12.System VIO: 16x8
+   -- .cursory is 1 when cursor is on top and .windowheight when cursor is on bottom, values in lines
+   -- .cursorx is 1 when cursor is at the left and .windowwidth when cursor is at the right edge, values in lines
    y = .windowy + screenheight() - .fontheight*(row + 1) - 4  /* (Add a fudge factor temporarily */
 
    if arg() > 7 then                       /* New way!                       */
