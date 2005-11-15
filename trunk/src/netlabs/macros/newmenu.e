@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.21 2005-11-13 01:57:08 aschn Exp $
+* $Id: newmenu.e,v 1.22 2005-11-15 17:49:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -228,7 +228,7 @@ compile endif
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³What's it called  : loaddefaultmenu                                          ³
 ³                                                                             ³
-³What does it do   : used by stdcnf.e to setup default EPM action bar         ³
+³What does it do   : used by stdcnf.e to setup default EPM menu bar          ³
 ³                    (Note: a menu id of 0 halts the interpreter when         ³
 ³                     selected.)                                              ³
 ³                                                                             ³
@@ -278,28 +278,28 @@ defproc add_file_menu(menuname)
                                 0, mpfrom2short(HP_FILE, 0)  -- MIS must be 0 for submenu
    if ring_enabled then
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Add ~new',                                                      -- Add new
+   buildmenuitem menuname, mid, i, 'Add ~new',                                                     -- Add new
                                    'xcom e /n' ||
                                    \1'Edit a new, empty file in this window',
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'A~dd...'\9'F8',                                                 -- Add...
+   buildmenuitem menuname, mid, i, 'A~dd...'\9'F8',                                                -- Add...
                                    'opendlg EDIT' ||
                                    ADD_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
    endif
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open n~ew',                                                     -- Open new
+   buildmenuitem menuname, mid, i, 'Open n~ew'\9CTRL_KEY__MSG'+N',                                 -- Open new
                                    "open ''" ||
                                    OPEN_NEW_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_OPEN_NEW, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, OPEN_MENU__MSG\9 || 'F5 | 'CTRL_KEY__MSG'+O',                   -- Open...
+   buildmenuitem menuname, mid, i, OPEN_MENU__MSG\9'F5 | 'CTRL_KEY__MSG'+O',                       -- Open...
                                    'opendlg' ||
                                    OPEN_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_OPEN, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open ~bin...',                                                  -- Open bin...
+   buildmenuitem menuname, mid, i, 'Open ~bin...',                                                 -- Open bin...
                                    'OpenBinDlg' ||
                                    \1'Select a binary file to edit',
                                    MIS_TEXT, 0
@@ -558,44 +558,8 @@ defproc add_file_menu(menuname)
 
 
 ; -------------------------------------------------------------------------------------- Edit -------------------------
-/*
-Edit
-   ---------------------------
-     Undo line
-     Undo...
-     Recover mark delete
-   ---------------------------
-     Spell check            >
-   ---------------------------
-     Style...
-     Remove all attributes
-     Insert pagebreak
-   ---------------------------
-     Record keys            >
-   ---------------------------
-     Draw lines
-     Sort
-   ---------------------------
-     Case word/mark        [>]     o Toggle | Upper | Lower
-   ---------------------------
-     Recode                 >
-   ---------------------------
-     Reflow                 >    (could also be called 'Format')
-   ---------------------------
-     Comment
-     Uncomment
-   ---------------------------
-     Indent lines/block
-     Undent lines/block
-     Shift left
-     Shift right
-   ---------------------------
-     Insert module header
-     Insert function header
-     Insert comment block
-   ---------------------------
-*/
 defproc add_edit_menu(menuname)
+   universal nodismiss
 compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
 compile endif
@@ -620,11 +584,111 @@ compile endif
                                    'GetDMBuff' ||
                                    RECOVER_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_RECOVER, 0)
-   i = i + 1;; call SetAVar( 'mid_discardchanges', i);
+   i = i + 1; call SetAVar( 'mid_discardchanges', i);
    buildmenuitem menuname, mid, i, '~Discard changes',                                              -- Discard changes
                                    'DiscardChanges' ||
                                    \1'Reset modified state',
                                    MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Duplicate line'\9CTRL_KEY__MSG'+K',                            -- Duplicate line
+                                   'DuplicateLine' ||
+                                   \1'Duplicate current line (insert below)',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Insert',                                                       -- Insert   >
+                                   \1'Insert text',
+                                   MIS_TEXT + MIS_SUBMENU, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~New line after'\9ALT_KEY__MSG'+N',                                  -- New line after
+                                   'NewLineAfter' ||
+                                   \1'Insert empty line after current',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'New ~line before'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+N',                -- New line before
+                                   'NewLineBefore' ||
+                                   \1'Insert empty line before current',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Char from above'\9ALT_KEY__MSG'+G',                                 -- Char from above
+                                   'InsertCharAbove' ||
+                                   \1'Copy char above to cursor position',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Char from ~below'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+G',                -- Char from below
+                                   'InsertCharBelow' ||
+                                   \1'Copy char below to cursor position',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Move',                                                         -- Move   >
+                                   \1'Move current text',
+                                   MIS_TEXT + MIS_SUBMENU, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Line ~up'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+'UP_KEY__MSG,              -- Line up
+                                   'MoveLineUp' ||
+                                   \1'Move current line up',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Line ~down'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+'DOWN_KEY__MSG,          -- Line down
+                                   'MoveLineDown' ||
+                                   \1'Move current line down',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Char ~left'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+Left',                   -- Char left
+                                   'MoveCharLeft' ||
+                                   \1'Move current line left',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Char ~right'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+Right',                 -- Char right
+                                   'MoveCharRight' ||
+                                   \1'Move current char right',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Delete line'\9CTRL_KEY__MSG'+'BACKSPACE_KEY__MSG,              -- Delete line
+                                   'DeleteLine' ||
+                                   \1'Delete current line',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Delete rest of line'\9CTRL_KEY__MSG'+'DELETE_KEY__MSG,         -- Delete rest of line
+                                   'DeleteUntilEndLine' ||
+                                   \1'Delete from cursor until end of line',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Delete up to next word'\9CTRL_KEY__MSG'+D',                    -- Delete up to next word
+                                   'DeleteUntilNextWord' ||
+                                   \1'Delete from cursor until begin of next word',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+;
+; x      Box   used in: CustEpm
+; x      Draw  used in: CustEpm
+;        Fill
+;        Center
+; x      Sort
+; x      Sum
+;        ?Math
+; x      Expand > First
+; x      Expand > Second
+;        Syntax expansion in header
+;
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -656,7 +720,7 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Select ~dictionaries...',                                             -- Select dictionaries...
+   buildmenuitem menuname, mid, i, 'Select ~dictionaries...',                                            -- Select dictionaries...
                                    'DictLang' ||
                                    \1'Select a set of Netscape 4.6.1 dictionaries',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -668,7 +732,7 @@ compile if CHECK_FOR_LEXAM
    endif
 compile endif
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Key ~recorder',                                                 -- Key recorder   >
+   buildmenuitem menuname, mid, i, 'Key ~recorder',                                                -- Key recorder   >
                                    '' ||
                                    \1'Record and playback keys',
                                    MIS_TEXT + MIS_SUBMENU, 0
@@ -683,24 +747,10 @@ compile endif
                                    \1'',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
 
-/*
--   Swap lines/chars/       (menu items missing)
-!   Swap words/wordblock    (cmds missing)
-!   Box   used in: CustEpm  (menu items missing)
-!   Draw  used in: CustEpm  (menu items missing)
-!   Sort                    (menu items missing)
-!   Sum                     (menu items missing)
--   Syntax expansion in header
-!   Case                    (menu items missing)
-!   Center                  (menu items missing)
-!   Fill                    (menu items missing)
-!   Keyword help            (menu items missing)
-*/
    return
 
 
 ; -------------------------------------------------------------------------------------- Mark -------------------------
-
 define  -- Prepare for some conditional tests
    maybe_ring_accel = "' ' <"  -- Will be true for any letter
 compile if defined(ACTIONS_ACCEL__L)  -- For CUSTEPM support
@@ -709,12 +759,6 @@ compile else
    maybe_actions_accel = "' ' <"  -- Will be true for any letter
 compile endif
 
-/*
-Mark
-   ---------------------------
-     Mark                    >       Chars, Lines, Block, Word, Identifier, Sentence, Paragraph, Function block
-   ---------------------------
-*/
 defproc add_mark_menu(menuname)
    universal CUA_marking_switch
 
@@ -868,6 +912,7 @@ defproc add_mark_menu(menuname)
 
 ; -------------------------------------------------------------------------------------- Format -----------------------
 defproc add_format_menu(menuname)
+universal nodismiss
 
    mid = GetAVar('mid_format')
    i = mid'00'
@@ -996,6 +1041,43 @@ defproc add_format_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
+   buildmenuitem menuname, mid, i, 'C~ase',                                                        -- Case   >
+                                   \1'Change case of text',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Word ~toggle'\9CTRL_KEY__MSG'+F1',                                   -- Word toggle
+                                   'CaseWord' ||
+                                   \1'Toggle word through mixed, upper and lower cases',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Word ~uppercase'\9,                                                  -- Word uppercase
+                                   'UppercaseWord' ||
+                                   \1'Change word to uppercase',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Word ~lowercase'\9CTRL_KEY__MSG'+F2',                                -- Word lowercase
+                                   'LowercaseWord' ||
+                                   \1'Change word to uppercase',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Mark u~ppercase'\9CTRL_KEY__MSG'+F3',                                -- Mark uppercase
+                                   'UppercaseMark' ||
+                                   \1'Change mark to uppercase',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Mark l~owercase'\9CTRL_KEY__MSG'+F4',                                -- Mark lowercase
+                                   'LowercaseMark' ||
+                                   \1'Change mark to lowercase',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
    buildmenuitem menuname, mid, i, '~Comment'\9 || ALT_KEY__MSG'+K',                               -- Comment
                                    'comment' ||
                                    \1'Comment marked lines',
@@ -1022,12 +1104,12 @@ defproc add_format_menu(menuname)
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Shift ~left'\9 || CTRL_KEY__MSG'+F7',                          -- Shift left
                                    'key 1 c_f7' ||
-                                   'Shift marked text left 1 character',
+                                   \1'Shift marked text left 1 character',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Shift right'\9 || CTRL_KEY__MSG'+F8',                         -- Shift right
                                    'key 1 c_f8' ||
-                                   'Shift marked text right 1 character',
+                                   \1'Shift marked text right 1 character',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
@@ -1151,7 +1233,7 @@ defproc add_search_menu(menuname)
                                    \1'',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Line'\9,                                                            -- Go to line
+   buildmenuitem menuname, mid, i, '~Line...'\9,                                                         -- Go to line
                                    'GotoLineBox' ||
                                    \1'Change line and optionally column',
                                    MIS_TEXT, 0
@@ -1362,12 +1444,12 @@ compile endif
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Select menu...',                                                     -- Select menu
+   buildmenuitem menuname, mid, i, 'Select ~menu...',                                                    -- Select menu
                                    'ChangeMenu' ||
                                    \1'Open a listbox and change or refresh the menu',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_nodismiss', i);
-   buildmenuitem menuname, mid, i, 'Nodismiss menus',                                                    -- Nodismiss menus
+   buildmenuitem menuname, mid, i, '~Nodismiss menus',                                                   -- Nodismiss menus
                                    'toggle_nodismiss' ||
                                    \1'Keep menu open after selecting menu items',
                                    MIS_TEXT, nodismiss
@@ -1376,22 +1458,22 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Configure titlebar...',                                              -- Configure titlebar...
+   buildmenuitem menuname, mid, i, 'Configure ~titlebar...',                                             -- Configure titlebar...
                                    'ConfigFrame TITLE' ||
                                    \1'Change layout of titletext',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_showlongname', i);
-   buildmenuitem menuname, mid, i, 'Show .LONGNAME'IMP,                                                  -- Show .LONGNAME
+   buildmenuitem menuname, mid, i, 'Show .~LONGNAME'IMP,                                                 -- Show .LONGNAME
                                    'toggle_longname' ||
                                    \1'Show .LONGNAME EA as filename in titlebar',
                                    MIS_TEXT, nodismiss
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Configure statusbar...',                                             -- Configure statusbar...
+   buildmenuitem menuname, mid, i, 'Configure ~statusbar...',                                            -- Configure statusbar...
                                    'ConfigFrame STATUS' ||
                                    \1'Change layout of statusline',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Configure separator...',                                             -- Configure separator...
+   buildmenuitem menuname, mid, i, 'Configure se~parator...',                                            -- Configure separator...
                                    'ConfigFrame SEP' ||
                                    \1'Change layout of separator for titletext and statusline',
                                    MIS_TEXT, 0
@@ -1400,9 +1482,9 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Configure highlighting colors...',                                   -- Configure highlighting colors...
+   buildmenuitem menuname, mid, i, 'Change ~color palette...',                                           -- Configure highlighting colors...
                                    'os2 epmchgpal.cmd' ||
-                                   \1'Use OS/2 palette objects to specify highlighting colors',
+                                   \1'Use WPS palette objects to specify highlighting colors',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
@@ -1910,7 +1992,7 @@ compile endif
                                    \1'Configure Alt key combinations to execute menu items',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_blockactionbaraccelerators', i);
-   buildmenuitem menuname, mid, i, 'Block action bar accels'IMP,                                         -- Block action bar accels (i)
+   buildmenuitem menuname, mid, i, 'Block menu bar accels'IMP,                                           -- Block menu bar accels (i)
                                    'accel_toggle' ||
                                    \1'Keep Alt+<key>s for mark operations (Ctrl+Alt works for menu)',
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_CUAACCEL, nodismiss)
@@ -2235,7 +2317,7 @@ defproc add_run_menu(menuname)
                                 \1'Menus to execute commands',
                                 0, 0  -- MIS must be 0 for submenu
    i = i + 1
-   buildmenuitem menuname, mid, i, COMMANDLINE_MENU__MSG\9 || CTRL_KEY__MSG'+I',                   -- Command dialog...
+   buildmenuitem menuname, mid, i, COMMANDLINE_MENU__MSG\9 || CTRL_KEY__MSG'+I | 'ESCAPE_KEY__MSG,  -- Command dialog...
                                    'commandline' ||
                                    COMMANDLINE_MENUP__MSG,
                                    0, mpfrom2short(HP_COMMAND_CMD, 0)
@@ -2466,26 +2548,61 @@ compile endif
                                    'viewword neprg%NEPMD_LANGUAGE%' ||
                                    \1'',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_keywordhelp', i);
+   buildmenuitem menuname, mid, i, 'Key~word help',                                                -- Keyword help
+                                   '' ||
+                                   \1'View documentation for a keyword (defined via .ndx files)',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_keywordhelpcurrentword', i);
+   buildmenuitem menuname, mid, i, '~Current word'\9CTRL_KEY__MSG'+H',                                   -- Current word
+                                   'kwhelp' ||
+                                   \1'View documentation for keyword under cursor',
+                                   0, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Word...',                                                           -- Word...
+                                   'kwhelp ?' ||  ------------------------- todo
+                                   \1'Prompt for a keyword, then view documentation for it',
+                                   0, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_usenewview', i);
+   buildmenuitem menuname, mid, i, 'Use ~NewView if found',                                              -- Use NewView if found
+                                   '' ||  ------------------------- todo
+                                   \1'Msg',
+                                   0, 0
+   i = i + 1; call SetAVar( 'mid_usenewviewsextendedsearch', i);
+   buildmenuitem menuname, mid, i, 'Use NewView''s ~extended search',                                    -- Use NewView's extended search
+                                   '' ||  ------------------------- todo
+                                   \1'Msg',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
    return
 
 ; ---------------------------------------------------------------------------
+; Syntax for adding menu itens:
+;    'cascade_menu' <submenu_mid> [<default menuitem_mid>]
+; Better use the optional executed-as-default submenu id here, to have that
+; submenu item checked automatically.
+; Otherwise the 1st submenu item is executed, but MIA_CHECKED is missing.
 defc add_cascade_menus
-   -- Better use the optional executed-as-default submenu id here,
-   -- to have that submenu item checked automatically.
-   -- Otherwise the 1st submenu item is executed, but MIA_CHECKED
-   -- is missing.
-   'cascade_menu' GetAVar('mid_openfolder') GetAVar('mid_openfolder_defaultview')          -- Open folder
+   'cascade_menu' GetAVar('mid_openfolder') GetAVar('mid_openfolder_defaultview')                -- File -> Open folder
 compile if SUPPORT_USERS_GUIDE
-   'cascade_menu' GetAVar('mid_viewusersguide') GetAVar('mid_usersguide')                  -- Help -> View User's Guide
+   'cascade_menu' GetAVar('mid_viewusersguide') GetAVar('mid_usersguide')                        -- Help -> View User's Guide
 compile endif
 compile if SUPPORT_TECHREF
-   'cascade_menu' GetAVar('mid_viewtechnicalreference') GetAVar('mid_technicalreference')  -- Help -> View Technical Reference
+   'cascade_menu' GetAVar('mid_viewtechnicalreference') GetAVar('mid_technicalreference')        -- Help -> View Technical Reference
 compile endif
    'cascade_menu' GetAVar('mid_viewnepmdusersguide') GetAVar('mid_nepmdusersguide')              -- Help -> NEPMD User Guide
    'cascade_menu' GetAVar('mid_viewnepmdprogrammingguide') GetAVar('mid_nepmdprogrammingguide')  -- Help -> NEPMD Programming Guide
+   'cascade_menu' GetAVar('mid_keywordhelp') GetAVar('mid_keywordhelpcurrentword')               -- Help -> Keyword help
    -- CUSTEPM package
 compile if defined(CUSTEPM_DEFAULT_SCREEN)
-   'cascade_menu' 3700 (CUSTEPM_DEFAULT_SCREEN + 3700)  -- Host screen -> Screen ?
+   'cascade_menu' 3700 (CUSTEPM_DEFAULT_SCREEN + 3700)                                           -- Host screen -> Screen ?
 compile elseif defined(HAVE_CUSTEPM)
    'cascade_menu' 3700 3701  -- ensure, that the MIA_CHECKED is painted; 1st item is default automatically
 compile endif

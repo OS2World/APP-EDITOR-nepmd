@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.21 2005-11-13 01:57:07 aschn Exp $
+* $Id: locate.e,v 1.22 2005-11-15 17:49:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1404,7 +1404,7 @@ defc SetScrollAfterLocate
 ; ---------------------------------------------------------------------------
 defc GotoLineBox
    Title = 'Go to line'
-   Text  = 'Enter linenumber and optionally a column number:'
+   Text  = 'Enter line number and optionally a column number:'
    --Text  = Text''copies( ' ', max( 100 - length(Text), 0))
    Entry = ''
    parse value entrybox( Title,
