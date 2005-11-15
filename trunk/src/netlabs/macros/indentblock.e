@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: indentblock.e,v 1.6 2005-05-16 20:53:02 aschn Exp $
+* $Id: indentblock.e,v 1.7 2005-11-15 17:14:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,6 +30,7 @@ compile endif
 defc indentblock
    universal indent  -- current syntaxindent
 
+   call DisableUndoRec()
    parse arg direction
    if abbrev( upcase(direction), 'U') then
       IndentMode = 'UNDENT'
@@ -37,21 +38,25 @@ defc indentblock
       IndentMode = 'INDENT'
    endif
 
+   SyntaxIndent = indent
+   if SyntaxIndent = '' then
+      SyntaxIndent = word( .tabs, 1)
+   endif
+
    call psave_pos(savedpos)
-   WasMarked = 0
+   fWasMarked = 0
    getmark firstline, lastline, firstcol, lastcol, fid
    getfileid curfid
    mt = marktype()
    --getmark firstLine, lastLine, firstCol, lastCol, fId
    --sayerror firstLine',' lastLine',' firstCol',' lastCol',' mt
-   mt = strip( mt, 't', 'G')
    if mt = '' then  -- check if any file is marked
-      WasMarked = 0
+      fWasMarked = 0
    elseif mt <> '' & curfid <> fid then  -- check if another file in ring is marked
-      WasMarked = 0
+      fWasMarked = 0
       unmark
    elseif mt = 'LINE' or mt = 'BLOCK' then
-      WasMarked = 1
+      fWasMarked = 1
    elseif mt = 'CHAR' then
       if lastCol = 0 then
          lastLine = lastLine - 1
@@ -59,21 +64,19 @@ defc indentblock
       --sayerror 'Line or block mark required. Or unmark text to indent block at cursor.'
       --return
       -- Better change to line mark
-      WasMarked = 1
+      fWasMarked = 1
       unmark
       call pset_mark( firstLine, lastLine, 1, 1599, 'LINE', fid)
    endif
 
-   -- no additional undo state supression required
-
-   if WasMarked = 0 then
+   if fWasMarked = 0 then
       -- Get indent of current line
       call pfirst_nonblank()
       StartIndent = .col - 1
       StartL      = .line
       mark_line  -- mark first line
       -- Find next line with same indent, try down
-      SearchUp = 0
+      fSearchUp = 0
       NextIndent = ''
       EndL = StartL
       l = StartL
@@ -98,7 +101,7 @@ defc indentblock
          else
             if NextIndent = '' then
                -- Reverse search direction if indent of first line >= StartIndent
-               SearchUp = 1
+               fSearchUp = 1
                leave
             else
                -- NextIndent was already set ==> current line is 1 line after EndL
@@ -110,7 +113,7 @@ defc indentblock
 
       -- Find next line with same indent, try up
       l = StartL
-      if SearchUp then
+      if fSearchUp then
          do forever
             l = l - 1
             if l = 0 then
@@ -135,9 +138,9 @@ defc indentblock
       endif
    endif
 
-   do i = 1 to indent
+   do i = 1 to SyntaxIndent
       if IndentMode = 'UNDENT' then
-         if WasMarked = 0 then
+         if fWasMarked = 0 then
             if i > StartIndent then
                leave
             endif
@@ -150,7 +153,7 @@ defc indentblock
 
    call prestore_pos(savedpos)
 /*
-   if WasMarked = 1 then
+   if fWasMarked = 1 then
       call pset_mark( firstLine, lastLine, firstCol, lastCol, mt, fid)
    endif
 */
