@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.22 2005-09-12 14:29:24 aschn Exp $
+* $Id: stdkeys.e,v 1.23 2005-11-15 16:27:32 aschn Exp $
 *
 * ===========================================================================
 *
@@ -45,8 +45,8 @@ def pgdn          'PageDown'            -- Go to next page (Shift marks)
 ;def c_pgdn       'EndScreen'           -- Go to last line on screen
 def c_down        'PushPos'             -- Add current cursor pos. to cursor stack
 def c_up          'PopPos'              -- Go to last pos. of cursor stack
-def c_equal       'SwapPos'             -- Exchange current sursor pos. with last pos. of stack
-def c_0           'SwapPos'             -- Exchange current sursor pos. with last pos. of stack
+def c_equal       'SwapPos'             -- Exchange current cursor pos. with last pos. of stack
+def c_0           'SwapPos'             -- Exchange current cursor pos. with last pos. of stack
 def a_minus       'HighlightCursor'     -- Draw a circle around cursor
 def a_e           'EndMark'             -- Go to end of mark
 def a_y           'BeginMark'           -- Go to begin of mark
@@ -151,12 +151,13 @@ def c_9           'TypeOpeningBrace'    -- Type a {
 def c_4           'TypePound'           -- Type a cent char › (\155)
 def c_tab         'TypeTab'             -- Type a tab char (\9)
 
-; ---- Switch files ----
+; ---- Window and switch files ----
 def f11           'PrevFile'            -- Switch to previous file
 def c_p           'PrevFile'            -- Switch to previous file
 def f12           'NextFile'            -- Switch to next file
-def c_n           'NextFile'            -- Switch to next file
+;def c_n          'NextFile'            -- Switch to next file
 def a_f12         'NextView'            -- Switch to next view of current file
+def c_n           'Open'                -- Open new EPM window
 defc Key_c_s_f12  'Next_Win'            -- Switch to next EPM window
 def c_g           'Ring_More'           -- Open a dialog to select a file of the ring
 
@@ -200,6 +201,7 @@ def f6            'StartDraw'           -- Message about available draw chars an
 
 ; ---- Tags ----
 def s_f6          'FindTag'             -- Find procedure under cursor via tags file
+defc Key_c_s_f6   'mc ;MakeTags =;FindTag'  -- Refresh current tags file, then find procedure under cursor via tags file
 def s_f7          'FindTag *'           -- Open entrybox to enter a procedure to find via tags file
 def s_f8          'TagsFile'            -- Open entrybox to select a tags file
 def s_f9          'MakeTags *'          -- Open entrybox to enter list of files to scan for to create a tags file
@@ -281,11 +283,15 @@ def otherkeys 'ProcessOtherKeys'
                         -- The rest is documentation --
 
 ; ---------------------------------------------------------------------------
+; Not up-to-date:
 ; Following definitions are changed, compared to standard EPM:
 ;    c_pgup
 ;    c_pgdn
 ;    c_a
+;    c_n
 ;    c_w
+;    c_0
+;    a_0
 ; Following definitions are added, compared to standard EPM:
 ;    a_f2
 ;    c_f9
