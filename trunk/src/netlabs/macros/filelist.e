@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.8 2005-09-25 08:44:21 aschn Exp $
+* $Id: filelist.e,v 1.9 2005-11-15 17:37:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -492,13 +492,25 @@ defc History
           ' press "Open" to edit it in a new window.'
    -- Default selected item
    Selection = 1
-
+   -- Window coordinates in lines and columns (0 or '' are default values)
+   top_lines    = 0 --5
+                  -- doc says: default is under cursor, but that is wrong
+   left_cols    = 0 --5
+                  -- default is at cursor
+   -- top_lines = 0 and left_cols = 0 defaults to:
+                  -- Try to open the window at cursor, within the edit window.
+                  -- This gives the best result for larger windows, even for
+                  -- 10.System Proportional as dialog font.
+   height_lines = min( 20, .windowheight)
+                  -- default is 4 visible entries in listbox
+   width_cols   = min( 80, .windowwidth)
+                  -- default depends on max. width of Title, Text, buttons
    refresh
    select = listbox( Title,
                      HistoryList,
                      '/~Add/~Open/A~dd.../O~pen.../Open ~folder of/~Cancel',   -- buttons
-                     15, 10,  -- top, left,
-                     20, 80,  -- height, width
+                     top_lines, left_cols,
+                     height_lines, width_cols,
                      gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(0) ||
                      Text\0)
    refresh
