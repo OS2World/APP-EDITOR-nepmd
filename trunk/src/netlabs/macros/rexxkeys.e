@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.10 2005-01-12 19:32:18 aschn Exp $
+* $Id: rexxkeys.e,v 1.11 2005-11-15 16:29:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -95,16 +95,15 @@ defproc StripBlanks( in)
 
 defkeys rexx_keys
 
-def space=
+def space
    universal expand_on
    if expand_on then
       if not rex_first_expansion() then
-         keyin ' '
+         'Space'
       endif
    else
-      keyin ' '
+      'Space'
    endif
-   undoaction 1, junk                -- Create a new state
 
 compile if ASSIST_TRIGGER = 'ENTER'
 def enter=

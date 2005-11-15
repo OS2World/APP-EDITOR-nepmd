@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.10 2005-05-16 21:00:53 aschn Exp $
+* $Id: ckeys.e,v 1.11 2005-11-15 16:29:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -247,16 +247,15 @@ compile endif
 
 defkeys c_keys
 
-def space=
+def space
    universal expand_on
    if expand_on then
-      if  not c_first_expansion() then
-         keyin ' '
+      if not c_first_expansion() then
+         'Space'
       endif
    else
-      keyin ' '
+      'Space'
    endif
-   undoaction 1, junk                -- Create a new state
 
 compile if ASSIST_TRIGGER = 'ENTER'
 def enter=
