@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.24 2005-05-16 22:15:06 aschn Exp $
+* $Id: stdmenu.e,v 1.25 2005-11-15 17:43:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -351,41 +351,6 @@ defproc add_search_menu(menuname)
    buildsubmenu menuname, 3, SEARCH_BAR__MSG, ''SEARCH_BARP__MSG, 0 , mpfrom2short(HP_SEARCH, 0)
       buildmenuitem menuname, 3, 300, SEARCH_MENU__MSG\9 || CTRL_KEY__MSG'+S',      'SEARCHDLG'SEARCH_MENUP__MSG,   0, mpfrom2short(HP_SEARCH_SEARCH, 0)
       buildmenuitem menuname, 3, 301, \0,                           '',            4, 0
-      buildmenuitem menuname, 3, 360, 'Search options',                             ''\1'View/change default search options', 17, 0
-         buildmenuitem menuname, 3, 361, '+'\9'down: top to bottom*',               '', 1, 32
-         buildmenuitem menuname, 3, 362, '-'\9'up: bottom to top',                  '', 1, 32
-         buildmenuitem menuname, 3, 363, \0,                        '',            4, 0
-         buildmenuitem menuname, 3, 364, 'F'\9'foreward: left to right*',           '', 1, 32
-         buildmenuitem menuname, 3, 365, 'R'\9'reverse: right to left',             '', 1, 32
-         buildmenuitem menuname, 3, 366, \0,                        '',            4, 0
-         buildmenuitem menuname, 3, 367, ''\9'start at cursor*',                    '', 1, 32
-         buildmenuitem menuname, 3, 368, 'B'\9'start at bottom of file',            '', 1, 32
-         buildmenuitem menuname, 3, 369, 'T'\9'start at top of file',               '', 1, 32
-         buildmenuitem menuname, 3, 370, \0,                        '',            4, 0
-         buildmenuitem menuname, 3, 371, 'A'\9'all: in the whole file*',            '', 1, 32
-         buildmenuitem menuname, 3, 372, 'M'\9'mark: in mark only',                 '', 1, 32
-         buildmenuitem menuname, 3, 373, \0,                        '',            4, 0
-         buildmenuitem menuname, 3, 374, 'E'\9'case-sensitive',                     '', 1, 32
-         buildmenuitem menuname, 3, 375, 'C'\9'ignore case*',                       '', 1, 32
-         buildmenuitem menuname, 3, 376, \0,                        '',            4, 0
-         buildmenuitem menuname, 3, 377, ''\9'including search*',                   '', 1, 32
-         buildmenuitem menuname, 3, 378, '^'\9'excluding search',                   '', 1, 32
-         buildmenuitem menuname, 3, 379, \0,                        '',            4, 0
-         buildmenuitem menuname, 3, 380, ''\9'text*',                               '', 1, 32
-         buildmenuitem menuname, 3, 381, 'G'\9'grep',                               '', 1, 32
-         buildmenuitem menuname, 3, 382, 'X'\9'egrep',                              '', 1, 32
-         buildmenuitem menuname, 3, 383, 'W'\9'words',                              '', 1, 32
-         buildmenuitem menuname, 3, 384, \0,                        '',            4, 0
-         buildmenuitem menuname, 3, 385, ''\9'change: replace sets case*',          '', 1, 32
-         buildmenuitem menuname, 3, 386, 'K'\9'change: keep case of search',        '', 1, 32
-         buildmenuitem menuname, 3, 387, \0,                        '',            4, 0
-         buildmenuitem menuname, 3, 388, ''\9'change next only*',                   '', 1, 32
-         buildmenuitem menuname, 3, 389, '*'\9'change all',                         '', 1, 32
-         buildmenuitem menuname, 3, 390, \0,                        '',            4, 0
-         buildmenuitem menuname, 3, 391, \9'Set as new default!',                   '', 1, 0
-         buildmenuitem menuname, 3, 392, \9'Reset to NEPMD default!',               '', 1 + 32768, 0
-
-      buildmenuitem menuname, 3, 353, \0,                           '',            4, 0
       buildmenuitem menuname, 3, 302, FIND_NEXT_MENU__MSG\9 || CTRL_KEY__MSG'+F',   'SEARCHDLG F'FIND_NEXT_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_FIND, 0)
       buildmenuitem menuname, 3, 303, CHANGE_NEXT_MENU__MSG\9 || CTRL_KEY__MSG'+C', 'SEARCHDLG C'CHANGE_NEXT_MENUP__MSG, 0, mpfrom2short(HP_SEARCH_CHANGE, 0)
       buildmenuitem menuname, 3, 350, 'Global find next'\9 || CTRL_KEY__MSG'+V',    'globalfind'\1'Repeat previous Locate command for all files in the ring', 0, 0
