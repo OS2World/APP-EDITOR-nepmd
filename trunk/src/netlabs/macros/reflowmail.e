@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.5 2005-09-12 14:01:57 aschn Exp $
+* $Id: reflowmail.e,v 1.6 2005-11-15 17:29:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -323,6 +323,7 @@ defproc Mail_IsListItem( sline, var ListIndentLevel)
 ;                    or just keep the indent (and remove only 1 optional space after the prev '>')
 defc reflowmail
    universal nepmd_hini
+   universal InfolineRefresh
    prevLineIsBlank    = 0
    prevLineIsVerbatim = 0
    prevQuoteLevel     = 0
@@ -347,6 +348,7 @@ defc reflowmail
    saved_modify = .modify
    saved_autosave = .autosave
    .autosave = 0
+   InfolineRefresh = 0
 
    .line = 1
    .col = 1
@@ -529,6 +531,7 @@ compile endif
       deleteline .last
    enddo
 
+   InfolineRefresh = 1
    if .modify > saved_modify then
       .modify = saved_modify + 1
    endif

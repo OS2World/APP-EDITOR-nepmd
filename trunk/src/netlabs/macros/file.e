@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.10 2005-11-12 18:15:38 aschn Exp $
+* $Id: file.e,v 1.11 2005-11-15 17:29:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -653,10 +653,12 @@ defc xcom_quit
 ; ---------------------------------------------------------------------------
 ; Save and quit.
 defc f, file=
+   universal InfolineRefresh
 compile if SUPPORT_USER_EXITS
    universal isa_file_cmd
    isa_file_cmd = 1         -- So user's presave / postsave exits can differentiate...
 compile endif
+   InfolineRefresh = 0
    's 'arg(1)
 compile if SUPPORT_USER_EXITS
    isa_file_cmd = ''
@@ -666,6 +668,7 @@ compile endif
       'q'
       call select_edit_keys()
    endif
+   InfolineRefresh = 1
 
 ; ---------------------------------------------------------------------------
 /*
@@ -1534,7 +1537,7 @@ defproc qfilemode( filename, var attrib)
 
 ; ---------------------------------------------------------------------------
 ; arg(1) = drive, e.g.: X:
-; Returns e.g.: HPFS | CDFS | JFS | FAT | LAN | RAM?
+; Returns e.g.: HPFS | CDFS | JFS | FAT | LAN | RAMFS
 defproc QueryFileSys(Drive)
    dev_name = Drive\0
    ordinal = 0
