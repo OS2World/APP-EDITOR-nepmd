@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.14 2005-11-12 17:23:26 aschn Exp $
+* $Id: epmshell.e,v 1.15 2005-11-15 17:40:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -300,6 +300,7 @@ defc NowCanReadShell
       sayerror 'NowCanReadShell:  'INVALID_ARG__MSG '"'arg(1)'"'
       return
    endif
+   call DisableUndoRec()
    lastline = ''
    rc = get_array_value( EPM_utility_array_ID, 'Shell_f'shellnum, shellfid)
    rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellhandle)
@@ -376,6 +377,7 @@ compile endif -- EPM_SHELL_PROMPT
    endif
    getfileid fid
    call SetAVar( 'ShellAppWaiting.'fid, ShellAppWaiting)  -- save
+   call EnableUndoRec()
 
 ; ---------------------------------------------------------------------------
 ; Write user input to the shell if EPM prompt is in current line.
@@ -580,16 +582,6 @@ defproc SUE_break(shell_handle)
    return dynalink32( ERES_DLL,
                       'SUE_break',
                       shell_handle)
-
-; ---------------------------------------------------------------------------
-defselect
-   event = 2
-   Mode = NepmdGetMode()
-   if Mode = 'SHELL' then
-      undoaction 4, event  -- disable
-   else
-      undoaction 5, event  -- enable
-   endif
 
 ; ---------------------------------------------------------------------------
 ; Reset modified state to avoid the dialog on quit.

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: enter.e,v 1.6 2004-11-30 21:05:47 aschn Exp $
+* $Id: enter.e,v 1.7 2005-11-15 17:40:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -43,7 +43,6 @@ compile if NEPMD_STREAM_INDENTED
 ;    Additionally the chars from the line above are copied instead of
 ; filling the space in the new line with spaces, so it works with
 ; Tabs too.
-; ---------------------------------------------------------------------
 defproc nepmd_stream_indented_split_line
    old_col = .col
    call pfirst_nonblank()
@@ -99,13 +98,21 @@ defproc einsert_line
 
 ; ---------------------------------------------------------------------
 defproc enter_common(action)
-   universal CUA_marking_switch
+   universal cua_marking_switch
    universal stream_mode
+
+   k  = lastkey()
+   pk = lastkey(1)
+   if pk = k then
+      call EnableUndoRec()
+   else
+      call NewUndoRec()
+   endif
 
    -- Definition for stream mode
    if stream_mode then
       if .line then
-         if CUA_marking_switch then
+         if cua_marking_switch then
             if not process_mark_like_cua() and   -- There was no mark
                not insert_state() then           -- & we're in replace mode
                delete_char    -- Delete the character, to emulate replacing the
@@ -132,19 +139,30 @@ defproc enter_common(action)
    endif
 
    -- Definition for line mode
+   -- 1 = 'ADDLINE'   Add a new line after cursor, preserving indentation
+   -- 2 = 'NEXTLINE'  Move to beginning of next line
+   -- 3 = 'ADDATEND'  Like (2), but add a line if at end of file
+   -- 4 = 'DEPENDS'   Add a line if in insert mode, else move to next
+   -- 5 = 'DEPENDS+'  Like (4), but always add a line if on last line.
+   -- 6 = 'STREAM'    Split line at cursor
+   -- 7               Add a new line, move to left or paragraph margin
+   -- 8               Add a new line, move to paragraph margin
+   -- 9               Add a new line, move to column 1
    is_lastline = (.line = .last)
-   if is_lastline  & (action = 3 | action = 5) then  -- 'ADDATEND' | 'DEPENDS+'
+   if is_lastline  & (action = 3 | action = 5) then
+   --                 'ADDATEND' | 'DEPENDS+'
       call einsert_line()
       down                       -- This keeps the === Bottom === line visible.
       return
    endif
-;     'NEXTLINE' 'ADDATEND'                        'DEPENDS'  'DEPENDS+'
    if action = 2 | action = 3 | (not insert_state() & (action = 4 | action = 5)) then
+   -- 'NEXTLINE' | 'ADDATEND'                          'DEPENDS'  | 'DEPENDS+'
       down                          -- go to next line
       begin_line
       return
    endif
    if action = 6 then
+   -- 'STREAM'
       call splitlines()
       call pfirst_nonblank()
       down
@@ -159,17 +177,23 @@ defproc enter_common(action)
       else
          .col = leftcol
       endif
-      if is_lastline then down; endif  -- This keeps the === Bottom === line visible.
+      if is_lastline then  -- This keeps the === Bottom === line visible.
+         down
+      endif
       return
    endif
    if action = 9 then
       insert
       begin_line
-      if is_lastline then down; endif  -- This keeps the === Bottom === line visible.
+      if is_lastline then  -- This keeps the === Bottom === line visible.
+         down
+      endif
       return
    endif
    call einsert_line()           -- insert a line
-   if is_lastline then down; endif  -- This keeps the === Bottom === line visible.
+   if is_lastline then  -- This keeps the === Bottom === line visible.
+      down
+   endif
 
 -----------------------------------------------------------------------
 defc enter =
@@ -196,5 +220,4 @@ defc c_padenter =
 defc s_padenter =
    universal s_padenterkey
    call enter_common(s_padenterkey)
-
 

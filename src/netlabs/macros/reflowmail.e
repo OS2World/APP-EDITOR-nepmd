@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.6 2005-11-15 17:29:47 aschn Exp $
+* $Id: reflowmail.e,v 1.7 2005-11-15 17:40:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -340,14 +340,14 @@ defc reflowmail
    KeyPath = '\NEPMD\User\Reflow\Mail\IndentedIsVerbatim'
    IndentedIsVerbatim = NepmdQueryConfigValue( nepmd_hini, KeyPath)
 
-   -- no additional undo state supression required
    if marktype() then
       unmark
    endif
 
-   saved_modify = .modify
    saved_autosave = .autosave
    .autosave = 0
+   call NewUndoRec()
+   call DisableUndoRec()
    InfolineRefresh = 0
 
    .line = 1
@@ -532,8 +532,6 @@ compile endif
    enddo
 
    InfolineRefresh = 1
-   if .modify > saved_modify then
-      .modify = saved_modify + 1
-   endif
    .autosave = saved_autosave
+   call NewUndoRec()
 

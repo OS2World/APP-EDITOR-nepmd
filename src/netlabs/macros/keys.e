@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.12 2005-11-12 14:19:16 aschn Exp $
+* $Id: keys.e,v 1.13 2005-11-15 17:40:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,7 +19,7 @@
 *
 ****************************************************************************/
 
-; Definitions for the 'enter_keys' keyset. Turned all key defs into defcs
+; Definitions for the 'edit_keys' keyset. Turned all key defs into defcs
 ; to make keys configurable.
 
 definit
@@ -37,8 +37,16 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 defc ProcessOtherKeys
-   k = lastkey()
+   pk = lastkey(1)  -- previous key
+   k  = lastkey()   -- current key
    call process_key(k)
+   if k <> pk then
+      call EnableUndoRec()
+   endif
+
+; ---------------------------------------------------------------------------
+defselect
+   call EnableUndoRec()
 
 ; ---------------------------------------------------------------------------
 ; defines can be changed/extended (but iterations aren't possible).
@@ -185,14 +193,14 @@ defc loadaccel
 
    -- Don't want Alt or AltGr switch to menu (PM-defined key F10 does the same)
    KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey'
-   Blocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Blocked = 1 then
+   fBlocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if fBlocked = 1 then
       i = i + 1
       buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALT, i  -- Alt
    endif
    KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockRightAltKey'
-   Blocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Blocked = 1 then
+   fBlocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if fBlocked = 1 then
       i = i + 1
       buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALTGRAF, i  -- AltGr
    endif
@@ -456,6 +464,12 @@ defc deleteaccel
    deleteaccel curaccel
 
 ; ---------------------------------------------------------------------------
+; Used for accelerator key def only.
+; Syntax: alt_enter <num>
+; <num> = 1: Alt+Enter
+; <num> = 2: Alt+PadEnter
+; <num> = 3: Sh+Eenter
+; <num> = 4: Sh+PadEenter
 defc alt_enter =
 compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''  -- define each key separately
    universal a_enterkey, a_padenterkey, s_enterkey, s_padenterkey
@@ -499,9 +513,9 @@ defproc resolve_key(k)
    ku = upcase(k)
 
    -- Get prefix
-   C_Prefix = 0
-   A_Prefix = 0
-   S_Prefix = 0
+   fC_Prefix = 0
+   fA_Prefix = 0
+   fS_Prefix = 0
    done = 0
    rest = ku
    do while (done = 0 & length(ku) > 2)
@@ -509,11 +523,11 @@ defproc resolve_key(k)
       if p & pos( substr( ku, 2, 1), '_-+') then
          ku = substr( ku, 3)
          if p = 1 then
-            C_Prefix = 1
+            fC_Prefix = 1
          elseif p = 2 then
-            A_Prefix = 1
+            fA_Prefix = 1
          elseif p = 3 then
-            S_Prefix = 1
+            fS_Prefix = 1
          endif
       else
          done = 1
@@ -523,31 +537,31 @@ defproc resolve_key(k)
 
    wv = wordpos( ku, VIRTUAL_NAMES)
    wc = wordpos( ku, CHAR_NAMES)
-   --dprintf( 'resolve_key', 'k = 'k', ku = 'ku', Ctrl = 'C_Prefix', Alt = 'A_Prefix', Sh = 'S_Prefix', Virtual = 'wv', Char = 'wc)
+   --dprintf( 'resolve_key', 'k = 'k', ku = 'ku', Ctrl = 'fC_Prefix', Alt = 'fA_Prefix', Sh = 'fS_Prefix', Virtual = 'wv', Char = 'wc)
    if wv then
-      if C_Prefix then
+      if fC_Prefix then
          suffix = \18
-      elseif A_Prefix then
+      elseif fA_Prefix then
          suffix = \34
-      elseif S_Prefix then
+      elseif fS_Prefix then
          suffix = \10
       else
          suffix = \2
       endif
       k = chr(word( VIRTUAL_IDS, wv))''suffix
    elseif wc then
-      if C_Prefix then
+      if fC_Prefix then
          suffix = \16
          k = word( CHAR_LIST, wc)''suffix
-      elseif A_Prefix then
+      elseif fA_Prefix then
          suffix = \32
          k = word( CHAR_LIST, wc)''suffix
       endif
    else
-      if C_Prefix then
+      if fC_Prefix then
          suffix = \16
          k = lowcase(ku)''suffix  -- letters must be lowercase for executekey
-      elseif A_Prefix then
+      elseif fA_Prefix then
          suffix = \32
          k = lowcase(ku)''suffix  -- letters must be lowercase for executekey
       endif
@@ -557,11 +571,11 @@ defproc resolve_key(k)
 
 ; ---------------------------------------------------------------------------
 defproc process_key(k)
-   universal CUA_marking_switch
+   universal cua_marking_switch
    --sayerror 'process_key: k = 'k
    if length(k) = 1 & k <> \0 then
       i_s = insert_state()
-      if CUA_marking_switch then
+      if cua_marking_switch then
          had_mark = process_mark_like_cua()
          if not i_s & had_mark then
             insert_toggle  -- Turn on insert mode because the key should replace
@@ -575,6 +589,7 @@ defproc process_key(k)
       endif
    endif
 
+; ---------------------------------------------------------------------------
 defproc process_mark_like_cua()
    if marktype() then
       getmark firstline, lastline, firstcol, lastcol, markfileid
@@ -589,38 +604,48 @@ defproc process_mark_like_cua()
 ;compile if WANT_DM_BUFFER
          'Copy2DMBuff'     -- see clipbrd.e for details
 ;compile endif  -- WANT_DM_BUFFER
-         firstline; .col = firstcol
-         undoaction 1, junk                -- Create a new state
+         firstline
+         .col = firstcol
+         call NewUndoRec()
          call pdelete_mark()
          'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
          return 1
       endif
    endif
 
+; ---------------------------------------------------------------------------
 defproc shifted
    ks = getkeystate(VK_SHIFT)
-   return ks<>3 & ks<>4
+   return ks <> 3 & ks <> 4
 
-defproc updownkey(down_flag)
+; ---------------------------------------------------------------------------
+defproc updownkey( down_flag)
    universal save_cursor_column
    universal stream_mode
    if stream_mode then
       lk = lastkey(1)
-      updn = pos(leftstr(lk,1),\x18\x16) & pos(substr(lk,2,1),\x02\x0A\x12)   -- VK_DOWN or VK_UP, plain or Shift or Ctrl
-      if not updn then save_cursor_column = .col; endif
+      updn = pos( leftstr( lk, 1), \x18\x16) & pos( substr( lk, 2, 1), \x02\x0A\x12)   -- VK_DOWN or VK_UP, plain or Shift or Ctrl
+      if not updn then
+         save_cursor_column = .col
+      endif
    endif
 
-   if down_flag then down; else up; endif
+   if down_flag then
+      down
+   else
+      up
+   endif
 
    if .line & stream_mode then
-      l = length(textline(.line))
-      if updn & l>=save_cursor_column then
+      l = length( textline(.line))
+      if updn & l >= save_cursor_column then
          .col = save_cursor_column
-      elseif updn | l<.col then
+      elseif updn | l < .col then
          end_line
       endif
    endif
 
+; ---------------------------------------------------------------------------
 define CHARG_MARK = 'CHARG'
 
 defproc extend_mark( startline, startcol, forward)
@@ -673,26 +698,43 @@ defproc extend_mark( startline, startcol, forward)
       call pset_mark( lastline, .line, lastcol, .col, CHARG_MARK, curfileid)
    endif
 
+; ---------------------------------------------------------------------------
 ; c_home, c_end, c_left & c_right do different things if the shift key is depressed.
 ; The logic is extracted here mainly due to the complexity of the COMPILE IF's
 defproc begin_shift( var startline, var startcol, var shift_flag)
-   universal CUA_marking_switch
+   universal cua_marking_switch
    shift_flag = shifted()
-   if shift_flag or not CUA_marking_switch then
+   if shift_flag or not cua_marking_switch then
       startline = .line; startcol = .col
    else
       unmark
    endif
 
-defproc end_shift(startline, startcol, shift_flag, forward_flag)
+; ---------------------------------------------------------------------------
+defproc end_shift( startline, startcol, shift_flag, forward_flag)
 ; Let's let this work regardless of which marking mode is active.
 compile if 0 -- WANT_CUA_MARKING = 'SWITCH'
-   universal CUA_marking_switch
-   if shift_flag & CUA_marking_switch then
+   universal cua_marking_switch
+   if shift_flag & cua_marking_switch then
 compile else
    if shift_flag then
 compile endif
-      call extend_mark(startline, startcol, forward_flag)
+      call extend_mark( startline, startcol, forward_flag)
+   endif
+
+; ---------------------------------------------------------------------------
+defc space
+   universal cua_marking_switch
+   if cua_marking_switch then
+      call process_mark_like_cua()
+   endif
+   pk = lastkey(1)
+   if pk = ' ' then
+      call DisableUndoRec()
+   endif
+   keyin ' '
+   if pk <> ' ' then
+      call NewUndoRec()
    endif
 
 ; We now distribute a standard front end for the DIR command, which redirects
@@ -852,13 +894,16 @@ def a_1= /* edit filename on current text line */
 */
 
 defc AdjustMark
+   call NewUndoRec()
 compile if WANT_CHAR_OPS
    call pcommon_adjust_overlay('A')
 compile else
    adjustblock
 compile endif
+   call NewUndoRec()
 
 defc OverlayMark
+   call NewUndoRec()
    if marktype() then
 compile if WANT_CHAR_OPS
       call pcommon_adjust_overlay('O')
@@ -868,16 +913,20 @@ compile endif
    else                 /* If no mark, look to in Shared Text buffer */
       'GetSharBuff O'   /* see clipbrd.e for details                 */
    endif
+   call NewUndoRec()
 
 defc CopyMark
+   call NewUndoRec()
    if marktype() then
       call pcopy_mark()
    else                 /* If no mark, look to in Shared Text buffer */
       'GetSharBuff'     /* see clipbrd.e for details                 */
    endif
+   call NewUndoRec()
 
 defc MoveMark
    universal nepmd_hini
+   call NewUndoRec()
    call pmove_mark()
    KeyPath = '\NEPMD\User\Mark\UnmarkAfterMove'
    UnmarkAfterMove = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -885,52 +934,106 @@ defc MoveMark
       unmark
       'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
    endif
+   call NewUndoRec()
 
 defc DeleteMark
+   call NewUndoRec()
 ;compile if WANT_DM_BUFFER
    'Copy2DMBuff'     -- see clipbrd.e for details
 ;compile endif
    call pdelete_mark()
    'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
+   call NewUndoRec()
 
 defc unmark
+   call EnableUndoRec()
    unmark
    'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
 
 defc BeginMark
+   call EnableUndoRec()
    call pbegin_mark()
 
 defc EndMark
+   call EnableUndoRec()
    call pend_mark()
-   if substr(marktype(),1,1)<>'L' then
+   if substr( marktype(), 1, 1) <> 'L' then
       right
    endif
 
 defc FillMark /* Now accepts key from macro. */
+   call NewUndoRec()
    call checkmark()
    call pfill_mark()
+   call NewUndoRec()
 
 defc TypeFrameChars
+   call NewUndoRec()
    keyin 'º Ì É È Ê Í Ë ¼ » ¹ Î ³ Ã Ú À Á Ä Â Ù ¿ ´ Å Û ² ± °'
+   call NewUndoRec()
 
 defc ShiftLeft   -- Can't use the old A_F7 in EPM.  PM uses it as an accelerator key.
+   mt = marktype()
+   if not mt then
+      return
+   endif
+   getmark firstline, lastline, firstcol, lastcol, fid
+   getfileid curfid
+   if curfid <> fid then
+      unmark
+      sayerror MARKED_OTHER__MSG
+      return
+   endif
+   if mt = 'CHAR' then
+      -- Change to line mark
+      if lastCol = 0 then
+         lastLine = lastLine - 1
+      endif
+      firstcol = 1
+      lastcol = MAXCOL
+      unmark
+      call pset_mark( firstline, lastline, firstcol, lastcol, 'LINE', fid)
+   endif
+   call DisableUndoRec()
    shift_left
 compile if SHIFT_BLOCK_ONLY
-   if marktype()='BLOCK' then  -- code by Bob Langer
-      getmark fl,ll,fc,lc,fid
-      call pset_mark(fl,ll,lc,MAXCOL,'BLOCK',fid)
+   if marktype() = 'BLOCK' then  -- code by Bob Langer
+      getmark fl, ll, fc, lc, fid
+      call pset_mark( fl, ll, lc, MAXCOL, 'BLOCK', fid)
       shift_right
-      call pset_mark(fl,ll,fc,lc,'BLOCK',fid)
+      call pset_mark( fl, ll, fc, lc, 'BLOCK', fid)
    endif
 compile endif
 
 defc ShiftRight   -- Can't use the old A_F8 in EPM.  PM uses it as an accelerator key.
+   mt = marktype()
+   if not mt then
+      return
+   endif
+   getmark firstline, lastline, firstcol, lastcol, fid
+   getfileid curfid
+   if curfid <> fid then
+      unmark
+      sayerror MARKED_OTHER__MSG
+      return
+   endif
+   if mt = 'CHAR' then
+      -- Change to line mark
+      if lastCol = 0 then
+         lastLine = lastLine - 1
+      endif
+      firstcol = 1
+      lastcol = MAXCOL
+      unmark
+      call pset_mark( firstline, lastline, firstcol, lastcol, 'LINE', fid)
+   endif
+   call DisableUndoRec()
 compile if SHIFT_BLOCK_ONLY
-   if marktype()='BLOCK' then  -- code by Bob Langer
-      getmark fl,ll,fc,lc,fid
-      call pset_mark(fl,ll,lc,MAXCOL,'BLOCK',fid)
+   if marktype() = 'BLOCK' then  -- code by Bob Langer
+      getmark fl, ll, fc, lc, fid
+      call pset_mark( fl, ll, lc, MAXCOL, 'BLOCK', fid)
       shift_left
-      call pset_mark(fl,ll,fc,lc,'BLOCK',fid)
+      call pset_mark( fl, ll, fc, lc, 'BLOCK', fid)
    endif
 compile endif
    shift_right
@@ -941,9 +1044,12 @@ defc prevfile  -- a_F10 is usual E default; F11 for enh. kbd, c_P for EPM.
    prevfile
 
 defc JoinLines
+   call NewUndoRec()
    call joinlines()
+   call NewUndoRec()
 
 defc MarkBlock
+   call EnableUndoRec()
    getmark firstline, lastline, firstcol, lastcol, markfileid
    getfileid fileid
    if fileid <> markfileid then
@@ -957,6 +1063,7 @@ defc MarkBlock
    'Copy2SharBuff'       /* Copy mark to shared text buffer */
 
 defc MarkLine
+   call EnableUndoRec()
    getmark firstline, lastline, firstcol, lastcol, markfileid
    getfileid fileid
    if fileid <> markfileid then
@@ -970,6 +1077,7 @@ defc MarkLine
    'Copy2SharBuff'       /* Copy mark to shared text buffer */
 
 defc MarkChar
+   call EnableUndoRec()
    getmark firstline, lastline, firstcol, lastcol, markfileid
    getfileid fileid
    if fileid <> markfileid then
@@ -983,7 +1091,7 @@ defc MarkChar
    'Copy2SharBuff'       /* Copy mark to shared text buffer */
 
 defc HighlightCursor
-   circleit 5, .line, .col-1, .col+1, 16777220
+   circleit 5, .line, .col - 1, .col + 1, 16777220
 
 defc TypeFileName  /* Type the full name of the current file. */
   keyin .filename
@@ -991,28 +1099,28 @@ defc TypeFileName  /* Type the full name of the current file. */
 defc ReflowPar
    /* Protect the user from accidentally reflowing a marked  */
    /* area not in the current file, and give a good message. */
-   mt = substr(marktype(), 1, 1)
-   if mt='B' or mt='L' then
-      getmark firstline,lastline,firstcol,lastcol,markfileid
+   mt = substr( marktype(), 1, 1)
+   if mt = 'B' or mt = 'L' then
+      getmark firstline, lastline, firstcol, lastcol, markfileid
       getfileid fileid
-      if fileid<>markfileid then
+      if fileid <> markfileid then
          sayerror CANT_REFLOW__MSG'  'OTHER_FILE_MARKED__MSG
          return
       endif
    endif
 
-   if mt<>' ' then
+   if mt <> ' ' then
       if not check_mark_on_screen() then
          sayerror MARK_OFF_SCREEN__MSG
          stop
       endif
    endif
 
-   if mt='B' then
+   if mt = 'B' then
       'box r'
-   elseif mt='C' then
+   elseif mt = 'C' then
       sayerror WRONG_MARK__MSG
-   elseif mt='L' then
+   elseif mt = 'L' then
       reflow
    else  -- Standard text reflow split into a separate routine.
       call text_reflow()
@@ -1026,14 +1134,14 @@ defc ReflowBlock
    universal alt_R_active,tempofid
    universal alt_R_space
 
-   if alt_R_active<>'' then
-      call pblock_reflow(1,alt_R_space,tempofid)     -- Complete the reflow.
+   if alt_R_active <> '' then
+      call pblock_reflow( 1, alt_R_space, tempofid)     -- Complete the reflow.
       'setmessageline '\0
       'toggleframe 2 'alt_R_active           -- Restore status of messageline.
       alt_R_active = ''
       return
    endif
-   if pblock_reflow(0,alt_R_space,tempofid) then
+   if pblock_reflow( 0, alt_R_space, tempofid) then
       sayerror PBLOCK_ERROR__MSG      /* HurleyJ */
       return
    endif
@@ -1055,15 +1163,23 @@ defc CenterMark
 
 defc BackSpace
    universal stream_mode
-   universal CUA_marking_switch
-   if CUA_marking_switch then
-      if process_mark_like_cua() then return; endif
+   universal cua_marking_switch
+   if cua_marking_switch then
+      if process_mark_like_cua() then
+         return
+      endif
    endif
-   if .col=1 & .line>1 & stream_mode then
+   k  = lastkey()
+   pk = lastkey(1)
+   if pk <> k then
+      call NewUndoRec()
+   endif
+   call DisableUndoRec()
+   if .col = 1 & .line > 1 & stream_mode then
       up
-      l=length(textline(.line))
+      l = length( textline(.line))
       join
-      .col=l+1
+      .col = l + 1
    else
       old_level = .levelofattributesupport
       if old_level & not (old_level bitand 2) then
@@ -1122,35 +1238,35 @@ defc TypeCent
    keyin '›'                 -- C_4 enters a cents sign
 
 defc DeleteLine
-   undoaction 1, junk                -- Create a new state
+   call NewUndoRec()
    if .levelofattributesupport then
-      if (.line==.last and .line<>1) then       -- this is the last line
-         destinationLine=.line-1                -- and there is a previous line to store attributes on
-         getline prevline,DestinationLine
-         DestinationCol=length(prevline)+1      -- start search parameters
+      if (.line == .last and .line <> 1) then   -- this is the last line
+         destinationLine = .line - 1            -- and there is a previous line to store attributes on
+         getline prevline, DestinationLine
+         DestinationCol = length(prevline) + 1  -- start search parameters
                                                 -- destination of attributes
-         findoffset=-300                        -- start at the begin of the attr list
-         findline=.line                         -- of the first char on this line
-         findcolumn=1
+         findoffset = -300                      -- start at the begin of the attr list
+         findline = .line                       -- of the first char on this line
+         findcolumn = 1
 
          do forever        -- search until no more attr's (since this is last line)
-            FINDCLASS=0          -- 0 is anyclass
+            findclass = 0          -- 0 is anyclass
             Attribute_action FIND_NEXT_ATTR_SUBOP, findclass, findoffset, findcolumn, findline
-            if not findclass or (findline<>.line) then  -- No attribute, or not on this line
+            if not findclass or (findline <> .line) then  -- No attribute, or not on this line
                leave
             endif
-            query_attribute theclass,thevalue, thepush, findoffset, findcolumn, findline   -- push or pop?
+            query_attribute theclass, thevalue, thepush, findoffset, findcolumn, findline   -- push or pop?
             if not thePush then       -- ..if its a pop attr and ..
-               matchClass=theClass
-               MatchOffset=FindOffset
-               MatchLine=FindLine
-               MatchColumn=FindColumn  -- ..and if its match is not on this line or at the destination
+               matchClass = theClass
+               MatchOffset = FindOffset
+               MatchLine = FindLine
+               MatchColumn = FindColumn  -- ..and if its match is not on this line or at the destination
                Attribute_Action FIND_MATCH_ATTR_SUBOP, MatchClass, MatchOffset, Matchcolumn, MatchLine
-               if ((Matchline==DestinationLine) and (Matchcolumn==destinationcol)) then
+               if ((Matchline == DestinationLine) and (Matchcolumn == destinationcol)) then
                   -- then there is a cancellation of attributes
                   Attribute_action Delete_ATTR_SUBOP, theclass, Findoffset, Findcolumn, Findline
                   Attribute_action Delete_ATTR_SUBOP, Matchclass, Matchoffset, Matchcolumn, Matchline
-               elseif (MatchLine<>.line)  then
+               elseif (MatchLine <> .line)  then
                   -- .. then move attribute to destination (before attributes which have been scanned so its OK.)
                   -- insert attr at the end of the attr list (offset=0)
                   Insert_Attribute theclass, thevalue, 0, 0, DestinationCol, DestinationLine
@@ -1160,49 +1276,50 @@ defc DeleteLine
          enddo  -- end search for attr's
       elseif .line < .last then  -- put the attributes after the line since there may not
                                  -- be a line before this line (as when .line==1)
-         DestinationCol=1
-         DestinationLine=.line+1         -- error point since this puts attr's after last line if .line=.last
-         findoffset=0                    -- cant make it .line-1 cause then present attributes there become
-         findline=.line                  -- after these attributes which is wrong
-         findcolumn=MAXCOL
+         DestinationCol = 1
+         DestinationLine = .line + 1     -- error point since this puts attr's after last line if .line=.last
+         findoffset = 0                  -- cant make it .line-1 cause then present attributes there become
+         findline = .line                -- after these attributes which is wrong
+         findcolumn = MAXCOL
 
          do forever
-            FINDCLASS=0
+            findclass = 0
             Attribute_action FIND_PREV_ATTR_SUBOP, findclass, findoffset, findcolumn, findline
-            if not findclass or (findline<>.line) then  -- No attribute, or not on this line
+            if not findclass or (findline <> .line) then  -- No attribute, or not on this line
                leave
             endif
              /* Move Attribute */
-            query_attribute theclass,thevalue, thepush, findoffset, findcolumn, findline
+            query_attribute theclass, thevalue, thepush, findoffset, findcolumn, findline
             -- only move push/pop model attributes (tags are just deleted)
-            if ((thepush==0) or (thepush==1)) then
+            if ((thepush == 0) or (thepush == 1)) then
                -- move attribute to destination, if cancellation delete both attributes
-               FastMoveAttrToBeg(theclass, thevalue, thepush, DestinationCol, DestinationLine, findcolumn, findline, findoffset)
-               findoffset=findoffset+1  -- since the attr rec was deleted and all attr rec's were shifted to fill the vacancy
-                                        -- and search is exclusive
+               FastMoveAttrToBeg( theclass, thevalue, thepush, DestinationCol, DestinationLine, findcolumn, findline, findoffset)
+               findoffset = findoffset + 1  -- since the attr rec was deleted and all attr rec's were shifted to fill the vacancy
+                                            -- and search is exclusive
             endif
          enddo
       endif -- endif .line=.last and .line=1
    endif -- .levelofattributesupport
    deleteline
-   undoaction 1, junk                -- Create a new state
+   call NewUndoRec()
 
 ; Ctrl-D = word delete, thanks to Bill Brantley.
 defc DeleteUntilNextword /* delete from cursor until beginning of next word, UNDOable */
+   call EnableUndoRec()
    getline line
-   begcur=.col
-   lenLine=length(line)
+   begcur = .col
+   lenLine = length(line)
    if lenLine >= begcur then
       for i = begcur to lenLine /* delete remainder of word */
-         if substr(Line,i,1)<>' ' then
-            deleteChar
+         if substr( Line, i, 1) <> ' ' then
+            deletechar
          else
             leave
          endif
       endfor
       for j = i to lenLine /* delete delimiters following word */
-         if substr(Line,j,1)==' ' then
-            deleteChar
+         if substr( Line, j, 1) == ' ' then
+            deletechar
          else
             leave
          endif
@@ -1210,24 +1327,31 @@ defc DeleteUntilNextword /* delete from cursor until beginning of next word, UND
    endif
 
 defc DeleteUntilEndLine
+   call NewUndoRec()
    erase_end_line  -- Ctrl-Del is the PM way.
+   call NewUndoRec()
 
 defc EndFile
    universal stream_mode
-   call begin_shift(startline, startcol, shift_flag)
+   call EnableUndoRec()
+   call begin_shift( startline, startcol, shift_flag)
    if stream_mode then
-      bottom; endline
+      bottom
+      endline
    else
-      if .line=.last and .line then endline; endif
+      if .line = .last and .line then
+         endline
+      endif
       bottom
    endif
-   call end_shift(startline, startcol, shift_flag, 1)
+   call end_shift( startline, startcol, shift_flag, 1)
 
 ; Moved def c_enter, c_pad_enter= to ENTER.E
 ; Moved def c_f to LOCATE.E
 
 ; c_f1 is not definable in EPM.
 defc UppercaseWord
+   call EnableUndoRec()
    call psave_pos(save_pos)
    call psave_mark(save_mark)
    call pmark_word()
@@ -1235,6 +1359,7 @@ defc UppercaseWord
    call prestore_mark(save_mark)
 
 defc LowercaseWord
+   call EnableUndoRec()
    call psave_pos(save_pos)
    call psave_mark(save_mark)
    call pmark_word()
@@ -1243,34 +1368,43 @@ defc LowercaseWord
    call prestore_pos(save_pos)
 
 defc UppercaseMark
+   call NewUndoRec()
    call puppercase()
+   call NewUndoRec()
 
 defc LowercaseMark
+   call NewUndoRec()
    call plowercase()
+   call NewUndoRec()
 
 defc BeginWord
+   call EnableUndoRec()
    call pbegin_word()
 
 defc EndWord
+   call EnableUndoRec()
    call pend_word()
-
-; def c_f7  -- is defined as shift left
-; def c_f8  -- is defined as shift right
 
 defc BeginFile
    universal stream_mode
-   call begin_shift(startline, startcol, shift_flag)
+   call EnableUndoRec()
+   call begin_shift( startline, startcol, shift_flag)
    if stream_mode then
-      top; begin_line
+      top
+      begin_line
    else
-      if .line=1 then begin_line endif
+      if .line = 1 then
+         begin_line
+      endif
       top
    endif
-   call end_shift(startline, startcol, shift_flag, 0)
+   call end_shift( startline, startcol, shift_flag, 0)
 
 defc DuplicateLine      -- Duplicate a line
-  getline line
-  insertline line,.line+1
+   call NewUndoRec()
+   getline line
+   insertline line,.line+1
+   call NewUndoRec()
 
 defc CommandDlgLine
    if .line then
@@ -1280,50 +1414,55 @@ defc CommandDlgLine
 
 defc PrevWord
    universal stream_mode
-   call begin_shift(startline, startcol, shift_flag)
+   call EnableUndoRec()
+   call begin_shift( startline, startcol, shift_flag)
    if not .line then
       begin_line
-   elseif .line>1 & .col=max(1,verify(textline(.line),' ')) & stream_mode then
-      up; end_line
+   elseif (.line > 1) & (.col = max( 1,verify(textline(.line),' '))) & stream_mode then
+      up
+      end_line
    endif
    backtab_word
-   call end_shift(startline, startcol, shift_flag, 0)
+   call end_shift( startline, startcol, shift_flag, 0)
 
 defc BeginScreen
-   call begin_shift(startline, startcol, shift_flag)
-   .cursory=1
-   call end_shift(startline, startcol, shift_flag, 0)
+   call EnableUndoRec()
+   call begin_shift( startline, startcol, shift_flag)
+   .cursory = 1
+   call end_shift( startline, startcol, shift_flag, 0)
 
 defc EndScreen
-   call begin_shift(startline, startcol, shift_flag)
-   .cursory=.windowheight
-   call end_shift(startline, startcol, shift_flag, 1)
+   call EnableUndoRec()
+   call begin_shift( startline, startcol, shift_flag)
+   .cursory = .windowheight
+   call end_shift( startline, startcol, shift_flag, 1)
 
 defc RecordKeys
+   call NewUndoRec()
    -- Query to see if we are already in recording
-   if windowmessage(1,  getpminfo(EPMINFO_EDITCLIENT),
-                    5393,
-                    0,
-                    0)
+   if windowmessage( 1, getpminfo(EPMINFO_EDITCLIENT),
+                     5393,
+                     0,
+                     0)
    then
-      call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),
-                         5392,
-                         0,
-                         0)
+      call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
+                          5392,
+                          0,
+                          0)
       sayerror REMEMBERED__MSG
    else
       sayerror CTRL_R__MSG
-      call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),
-                         5390,
-                         0,
-                         0)
+      call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
+                          5390,
+                          0,
+                          0)
    endif
 
 defc NextWord
    universal stream_mode
-   call begin_shift(startline, startcol, shift_flag)
+   call begin_shift( startline, startcol, shift_flag)
    getline line
-   if not .line | lastpos(' ',line)<.col & .line<.last & stream_mode then
+   if not .line | (lastpos( ' ',line) < .col) & (.line < .last) & stream_mode then
       down
       call pfirst_nonblank()
    else
@@ -1333,32 +1472,36 @@ defc NextWord
 
 
 defc PlaybackKeys
-   call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),
-                      5392,
-                      0,
-                      0)
-   call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),
-                      5391,
-                      0,
-                      0)
+   call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
+                       5392,
+                       0,
+                       0)
+   call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
+                       5391,
+                       0,
+                       0)
 
 defc TypeTab
+   call DisableUndoRec()
    keyin \9
 
 defc DeleteChar
    universal stream_mode
-   universal CUA_marking_switch
-   if marktype() & CUA_marking_switch then    -- If there's a mark, then
-      if process_mark_like_cua() then return; endif
+   universal cua_marking_switch
+   if marktype() & cua_marking_switch then    -- If there's a mark, then
+      if process_mark_like_cua() then
+         return
+      endif
    endif
+   call DisableUndoRec()
    if .line then
-      l=length(textline(.line))
+      l = length( textline( .line))
    else
-      l=.col    -- make the following IF fail
+      l = .col    -- make the following IF fail
    endif
-   if .col>l & stream_mode then
+   if .col > l & stream_mode then
       join
-      .col=l+1
+      .col = l + 1
    else
       old_level = .levelofattributesupport
       if old_level & not (old_level bitand 2) then
@@ -1370,8 +1513,9 @@ defc DeleteChar
    endif
 
 defc Down
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
 compile if RESPECT_SCROLL_LOCK
@@ -1386,28 +1530,33 @@ compile if RESPECT_SCROLL_LOCK
 compile endif
 
 defc MarkDown
-   universal CUA_marking_switch
+   universal cua_marking_switch
+   call EnableUndoRec()
    startline = .line; startcol = .col
    call updownkey(1)
 ;compile if WANT_CUA_MARKING = 'SWITCH'
-;  if CUA_marking_switch then
+;  if cua_marking_switch then
 ;compile endif
-   if startline then call extend_mark(startline, startcol, 1); endif
+   if startline then
+      call extend_mark( startline, startcol, 1)
+   endif
 ;compile if WANT_CUA_MARKING = 'SWITCH'
 ;  endif
 ;compile endif
 
 defc EndLine
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
    end_line
 
 defc MarkEndLine
+   call EnableUndoRec()
    startline = .line; startcol = .col
    end_line
-   call extend_mark(startline, startcol, 1)
+   call extend_mark( startline, startcol, 1)
 
 defc ProcessEscape
    universal ESCAPE_KEY
@@ -1461,16 +1610,18 @@ defc NextFile
    nextfile
 
 defc BeginLine  -- standard Home
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
    begin_line
 
 defc BeginLineOrText  -- Home
    universal nepmd_hini
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
    KeyPath = '\NEPMD\User\Keys\Home\ToggleBeginLineText'
@@ -1488,6 +1639,7 @@ defc BeginLineOrText  -- Home
    endif
 
 defc MarkBeginLine  -- standard Sh+Home
+   call EnableUndoRec()
    startline = .line
    startcol  = .col
    begin_line
@@ -1495,6 +1647,7 @@ defc MarkBeginLine  -- standard Sh+Home
 
 defc MarkBeginLineOrText  -- Sh+Home
    universal nepmd_hini
+   call EnableUndoRec()
    startline = .line
    startcol  = .col
    KeyPath = '\NEPMD\User\Keys\Home\ToggleBeginLineText'
@@ -1517,8 +1670,9 @@ defc InsertToggle
    call fixup_cursor()
 
 defc PrevChar
-   universal CUA_marking_switch
+   universal cua_marking_switch
    universal stream_mode
+   call EnableUndoRec()
 /*
 -- Don't like hscroll
 compile if RESPECT_SCROLL_LOCK
@@ -1527,34 +1681,45 @@ compile if RESPECT_SCROLL_LOCK
    else
 compile endif
 */
-      if .line>1 & .col=1 & stream_mode then up; end_line; else left; endif
+      if .line > 1 & .col = 1 & stream_mode then
+         up
+         end_line
+      else
+         left
+      endif
 /*
 -- Don't like hscroll
 compile if RESPECT_SCROLL_LOCK
    endif
 compile endif
 */
-   if CUA_marking_switch then
+   if cua_marking_switch then
       unmark
    endif
 
-
 defc MarkPrevChar
+   call EnableUndoRec()
    startline = .line; startcol = .col
-   if .line>1 & .col=1 then up; end_line; else left; endif
-   call extend_mark(startline, startcol, 0)
-
+   if .line > 1 & .col = 1 then
+      up
+      end_line
+   else
+      left
+   endif
+   call extend_mark( startline, startcol, 0)
 
 defc PrevPage, PageUp
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
    page_up
 
 defc NextPage, PageDown
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
    page_down
@@ -1563,24 +1728,35 @@ defc MarkPageUp
 compile if TOP_OF_FILE_VALID = 'STREAM'
    universal stream_mode
 compile endif
+   call EnableUndoRec()
    startline = .line; startcol = .col
    page_up
-   if .line then call extend_mark(startline, startcol, 0); endif
+   if .line then
+      call extend_mark( startline, startcol, 0)
+   endif
 compile if TOP_OF_FILE_VALID = 'STREAM'
-   if not .line & stream_mode then '+1'; endif
+   if not .line & stream_mode then
+      '+1'
+   endif
 compile elseif not TOP_OF_FILE_VALID
-   if not .line then '+1'; endif
+   if not .line then
+      '+1'
+   endif
 compile endif
 
 defc MarkPageDown
+   call EnableUndoRec()
    startline = .line; startcol = .col
    page_down
-   if startline then call extend_mark(startline, startcol, 1); endif
+   if startline then
+      call extend_mark( startline, startcol, 1)
+   endif
 
 defc NextChar
    universal stream_mode
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
 /*
@@ -1591,10 +1767,16 @@ compile if RESPECT_SCROLL_LOCK
    else
 compile endif
 */
-      if .line then l=length(textline(.line)); else l=.col; endif
-      if .line<.last & .col>l & stream_mode then
-         down; begin_line
-      elseif .line=.last & .col>l & stream_mode then   -- nop
+      if .line then
+         l = length( textline(.line))
+      else
+         l = .col
+      endif
+      if (.line < .last) & (.col > l) & stream_mode then
+         down
+         begin_line
+      elseif (.line = .last) & (.col > l) & stream_mode then
+         -- nop
       else
          right
       endif
@@ -1606,87 +1788,97 @@ compile endif
 */
 
 defc MarkNextChar
+   call EnableUndoRec()
    startline = .line; startcol = .col
-   if .line then l=length(textline(.line)); else l=.col; endif
-   if .line<.last & .col>l then
-      down; begin_line
-   elseif .line<>.last | .col<=l then
+   if .line then
+      l = length( textline(.line))
+   else
+      l = .col
+   endif
+   if .line < .last & .col > l then
+      down
+      begin_line
+   elseif .line <> .last | .col <= l then
       right
    endif
-   call extend_mark(startline, startcol, 1)
-
+   call extend_mark( startline, startcol, 1)
 
 defc ScrollLeft
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   if cua_marking_switch then
       unmark
    endif
-   oldcursorx=.cursorx
-   if .col-.cursorx then
-      .col=.col-.cursorx
-      .cursorx=oldcursorx
-   elseif .cursorx>1 then
+   oldcursorx = .cursorx
+   if .col - .cursorx then
+      .col = .col - .cursorx
+      .cursorx = oldcursorx
+   elseif .cursorx > 1 then
       left
    endif
 
 defc ScrollRight
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
    oldcursorx=.cursorx
-   a=.col+.windowwidth-.cursorx+1
-   if a<=MAXCOL then
-      .col=a
-      .cursorx=oldcursorx
-   elseif .col<MAXCOL then
+   a = .col + .windowwidth - .cursorx + 1
+   if a <= MAXCOL then
+      .col = a
+      .cursorx = oldcursorx
+   elseif .col < MAXCOL then
       right
    endif
 
 defc ScrollUp
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
-   oldcursory=.cursory
-   if .line-.cursory>-1 then
-      .cursory=1
+   oldcursory = .cursory
+   if .line - .cursory > -1 then
+      .cursory = 1
       up
-      .cursory=oldcursory
+      .cursory = oldcursory
    elseif .line then
       up
    endif
 
 defc ScrollDown
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
-   oldcursory=.cursory
-   if .line -.cursory+.windowheight<.last then
-      .cursory=.windowheight
+   oldcursory = .cursory
+   if .line - .cursory + .windowheight < .last then
+      .cursory = .windowheight
       down
-      .cursory=oldcursory
-   elseif .line<.last then
+      .cursory = oldcursory
+   elseif .line < .last then
       down
    endif
 
 defc CenterLine
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
-   oldline=.line
-   .cursory=.windowheight%2
+   oldline = .line
+   .cursory = .windowheight%2
    oldline
 
 defc BackTab
    universal matchtab_on
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
-   if matchtab_on & .line>1 then
+   if matchtab_on & .line > 1 then
       up
       backtab_word
       down
@@ -1694,43 +1886,33 @@ defc BackTab
       backtab
    endif
 
-defc space
-   universal CUA_marking_switch
-   if CUA_marking_switch then
-      call process_mark_like_cua()
-   endif
-   k=lastkey(1)
-   keyin ' '
-   if k<>' ' then
-      undoaction 1, junk                -- Create a new state
-   endif
-
-defc tab
+defc Tab
    universal stream_mode
    universal matchtab_on
-   universal TAB_KEY
-   universal CUA_marking_switch
+   universal tab_key
+   universal cua_marking_switch
 compile if WANT_DBCS_SUPPORT
    universal ondbcs
 compile endif
                   -------Start of logic:
-   if TAB_KEY then
-      if CUA_marking_switch then
+   call DisableUndoRec()
+   if tab_key then
+      if cua_marking_switch then
           process_key(\9)
       else
          keyin \9
-      endif  -- CUA_marking_switch
-   else  -- TAB_KEY
-      if CUA_marking_switch then
+      endif  -- cua_marking_switch
+   else  -- tab_key
+      if cua_marking_switch then
          unmark
-      endif  -- CUA_marking_switch
+      endif  -- cua_marking_switch
       oldcol=.col
       if matchtab_on and .line>1 then
          up
 ;;       c=.col  -- Unused ???
          tab_word
-         if oldcol>=.col then
-            .col=oldcol
+         if oldcol >= .col then
+            .col = oldcol
             tab
          endif
          down
@@ -1742,39 +1924,39 @@ compile if not WANT_TAB_INSERTION_TO_SPACE
 compile else
       if insertstate() then
 compile endif
-         numspc=.col-oldcol
+         numspc = .col - oldcol
 compile if WANT_DBCS_SUPPORT
-         if ondbcs then                                           -- If we're on DBCS,
-            if not (matchtab_on and .line>1) then  -- and didn't do a matchtab,
-               if words(.tabs) > 1 then
-                  if not wordpos(.col, .tabs) then                   -- check if on a tab col.
-                     do i=1 to words(.tabs)              -- If we got shifted due to being inside a DBC,
-                        if word(.tabs, i) > oldcol then  -- find the col we *should* be in, and
-                           numspc = word(.tabs, i) - oldcol  -- set numspc according to that.
+         if ondbcs then                                       -- If we're on DBCS,
+            if not (matchtab_on and .line > 1) then           -- and didn't do a matchtab,
+               if words( .tabs) > 1 then
+                  if not wordpos( .col, .tabs) then           -- check if on a tab col.
+                     do i = 1 to words( .tabs)                -- If we got shifted due to being inside a DBC,
+                        if word( .tabs, i) > oldcol then      -- find the col we *should* be in, and
+                           numspc = word( .tabs, i) - oldcol  -- set numspc according to that.
                            leave
                         endif
                      enddo
                   endif
                elseif (.col // .tabs) <> 1 then
-                  numspc = .tabs - (oldcol+.tabs-1) // .tabs
+                  numspc = .tabs - (oldcol + .tabs - 1) // .tabs
                endif
             endif
          endif  -- ondbcs
 compile endif  -- WANT_DBCS_SUPPORT
-         if numspc>0 then
-            .col=oldcol
-            keyin substr('',1,numspc)
+         if numspc > 0 then
+            .col = oldcol
+            keyin substr( '', 1, numspc)
          endif
       endif  -- insertstate()
-   endif  -- TAB_KEY
-
+   endif  -- tab_key
 
 defc PrevLine, Up
 compile if TOP_OF_FILE_VALID = 'STREAM'
    universal stream_mode
 compile endif
-   universal CUA_marking_switch
-   if CUA_marking_switch then
+   universal cua_marking_switch
+   call EnableUndoRec()
+   if cua_marking_switch then
       unmark
    endif
 compile if RESPECT_SCROLL_LOCK
@@ -1788,36 +1970,48 @@ compile if RESPECT_SCROLL_LOCK
    endif
 compile endif
 compile if TOP_OF_FILE_VALID = 'STREAM'
-   if not .line & stream_mode then '+1'; endif
+   if not .line & stream_mode then
+      '+1'
+   endif
 compile elseif not TOP_OF_FILE_VALID
-   if not .line then '+1'; endif
+   if not .line then
+      '+1'
+   endif
 compile endif
 
 defc MarkUp
 compile if TOP_OF_FILE_VALID = 'STREAM'
    universal stream_mode
 compile endif
-   universal CUA_marking_switch
+   universal cua_marking_switch
+   call EnableUndoRec()
    startline = .line; startcol = .col
    call updownkey(0)
 ;compile if WANT_CUA_MARKING = 'SWITCH'
-;  if CUA_marking_switch then
+;  if cua_marking_switch then
 ;compile endif
-   if .line then call extend_mark(startline, startcol, 0); endif
+   if .line then
+      call extend_mark( startline, startcol, 0)
+   endif
 ;compile if WANT_CUA_MARKING = 'SWITCH'
 ;  endif
 ;compile endif
 compile if TOP_OF_FILE_VALID = 'STREAM'
-   if not .line & stream_mode then '+1'; endif
+   if not .line & stream_mode then
+      '+1'
+   endif
 compile elseif not TOP_OF_FILE_VALID
-   if not .line then '+1'; endif
+   if not .line then
+      '+1'
+   endif
 compile endif
 
 defc DefaultPaste
    universal nepmd_hini
-   universal CUA_marking_switch
+   universal cua_marking_switch
+   call NewUndoRec()
    KeyPath = '\NEPMD\User\Mark\DefaultPaste'
-   next = substr( upcase(NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
+   next = substr( upcase( NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
    if next = 'L' then
       style = 'L'
    elseif next = 'B' then
@@ -1825,16 +2019,18 @@ defc DefaultPaste
    else
       style = 'C'
    endif
-   if CUA_marking_switch then
+   if cua_marking_switch then
       call process_mark_like_cua()
    endif
    'paste' style
+   call NewUndoRec()
 
 defc AlternatePaste
    universal nepmd_hini
-   universal CUA_marking_switch
+   universal cua_marking_switch
+   call NewUndoRec()
    KeyPath = '\NEPMD\User\Mark\DefaultPaste'
-   next = substr( upcase(NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
+   next = substr( upcase( NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
    if next = 'L' then
       altstyle = 'C'
    elseif next = 'B' then
@@ -1842,10 +2038,11 @@ defc AlternatePaste
    else
       altstyle = 'L'
    endif
-   if CUA_marking_switch then
+   if cua_marking_switch then
       call process_mark_like_cua()
    endif
    'paste' altstyle
+   call NewUndoRec()
 
 ; Insert the char from the line above at cursor position.
 ; May get executed repeatedly to copy an entire expression without
@@ -1853,11 +2050,11 @@ defc AlternatePaste
 ; From Luc van Bogaert.
 defc InsertCharAbove
    if .line > 1 then
-      saved_modify = .modify
+      -- suppress autosave and undo (for during repeated use)
       saved_autosave = .autosave
       .autosave = 0
-      action = 1
-      undoaction 4, action  -- disable undo recording at every command
+      call DisableUndoRec()
+
       -- force overwrite mode
       i_s = insert_state()
       if i_s then
@@ -1871,14 +2068,8 @@ defc InsertCharAbove
       if i_s then
          insert_toggle
       endif
-      if lastkey(2) = lastkey(3) & saved_modify > 0 then  -- reset to last .modify if key was repeated
-         .modify = saved_modify
-      else
-         .modify = saved_modify + 1
-      endif
+
       .autosave = saved_autosave
-      -- Must be disabled to take effect!
-      --undoaction 5, action  -- enable undo recording at every command
    endif
 
 ; Insert the char from the line below at cursor position.
@@ -1887,11 +2078,11 @@ defc InsertCharAbove
 ; From Luc van Bogaert.
 defc InsertCharBelow
    if .line < .last then
-      saved_modify = .modify
+      -- suppress autosave and undo (for during repeated use)
       saved_autosave = .autosave
       .autosave = 0
-      action = 1
-      undoaction 4, action  -- disable undo recording at every command
+      call DisableUndoRec()
+
       -- force overwrite mode
       i_s = insert_state()
       if i_s then
@@ -1905,14 +2096,8 @@ defc InsertCharBelow
       if i_s then
          insert_toggle
       endif
-      if lastkey(2) = lastkey(3) & saved_modify > 0 then  -- reset to last .modify if key was repeated
-         .modify = saved_modify
-      else
-         .modify = saved_modify + 1
-      endif
+
       .autosave = saved_autosave
-      -- Must be disabled to take effect!
-      --undoaction 5, action  -- enable undo recording at every command
    endif
 
 ; Add a new line before the current, move to it, keep col.
