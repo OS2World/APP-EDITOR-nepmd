@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.11 2005-11-06 14:38:37 aschn Exp $
+* $Id: dosutil.e,v 1.12 2005-11-16 16:17:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -85,6 +85,13 @@ compile if WANT_DBCS_SUPPORT
    endif
 compile endif
    return Hour':'Minutes':'Seconds AmPm';'Hour24':'Hund
+
+; ---------------------------------------------------------------------------
+defproc DateTime
+   parse value getdatetime() with Hour24 Minutes Seconds . Day MonthNum Year0 Year1 .
+   Date = rightstr( Year0 + 256*Year1, 4, 0)'-'rightstr( monthnum, 2, 0)'-'rightstr( Day, 2, 0)
+   Time = rightstr( hour24, 2)':'rightstr( Minutes, 2, '0')':'rightstr( Seconds, 2, '0')
+   return Date Time
 
 ; ---------------------------------------------------------------------------
 ; Optional arg(2) is flag to return pointer to value instead of the value itself.
