@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: e.hil,v 1.4 2005-11-16 16:54:30 aschn Exp $
+; $Id: e.hil,v 1.5 2005-11-16 17:19:18 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -448,6 +448,8 @@ delstr
 delword
 directory
 dynafree
+dynalink
+dynalinkc
 dynalink32
 filecompare
 filesinring
@@ -481,8 +483,11 @@ memcpyx
 offset
 ofs
 overlay
+peek
 peek32
+peekz
 peekz32
+poke
 poke32
 pos
 queryaccelstring
@@ -504,8 +509,12 @@ repeatfind
 replaceline
 return
 rubout
+sayat
 ; sayerror(<error_msg>) exists beneath the sayerror statement
 sayerrortext
+screenheight
+screenwidth
+screenxysize
 seg
 selector
 setprofile
@@ -531,18 +540,10 @@ windowmessage
 ;centersearch
 ;do_overlaywindows
 ;do_tblocking
-;dynalink
-;dynalinkc
 ;join_after_wrap
 ;joinafterwrap
 ;other
-;peek
-;peekz
-;poke
 ;say_error
-;sayat
-;screenheight
-;screenwidth
 ;set
 ;two_spaces
 ;twospaces
@@ -769,9 +770,6 @@ savefile
 savefilewithtabs
 sayat_color
 sayatbox
-screenheight
-screenwidth
-screenxysize
 scroll_lock
 search_path
 search_path_ptr
@@ -940,6 +938,7 @@ CUA_marking_switch
 CurEditCmd
 CurrentHLPFiles
 DICTIONARY_FILENAME
+DMbuf_handle
 EPM_utility_array_ID
 ESCAPE_KEY
 LEXAM_is_available
@@ -949,10 +948,13 @@ SHOW_LONGNAMES
 TAB_KEY
 a_enterkey
 a_padenterkey
+activeaccel
+activemenu
 app_hini
 appname
 bitmap_present
 bkm_avail
+bm_filename
 c_enterkey
 c_padenterkey
 cursordimensions
@@ -960,6 +962,8 @@ default_edit_options
 default_font
 default_save_options
 default_search_options
+default_stream_mode
+default_tab_key
 defaultmenu
 defload_profile_name
 edithwnd
@@ -968,22 +972,36 @@ expand_on
 font
 hostcopy
 last_append_file
+lastchangeargs
 load_ext
 load_var
+mark_stack
 matchtab_on
 menu_prompt
+menuloaded
+msgfont
 nepmd_hini
+nodismiss
+ondbcs
+optflag_extrastuff
 padenterkey
+position_stack
 reflowmargins
 ring_enabled
 s_enterkey
 s_padenterkey
+save_cursor_column
 ;save_with_tabs  --
+saveoptions_auto
+savepath
 shell_index
 should_showwindow
 stack_cmds
+statfont
 stay
 stream_mode
+toolbar_loaded
+toolbar_present
 vAUTOSAVE_PATH
 vDEFAULT_AUTOSAVE
 vDEFAULT_MARGINS
@@ -995,20 +1013,6 @@ vSTATUSCOLOR
 vTEMP_FILENAME
 vTEMP_PATH
 wpshell_handle
-optflag_extrastuff
-toolbar_present
-statfont
-msgfont
-bm_filename
-activeaccel
-activemenu
-lastchangeargs
-mark_stack
-position_stack
-ondbcs
-save_cursor_column
-savepath
-toolbar_loaded
 
 ; --- predefined universal vars (no universal required)
 rc
