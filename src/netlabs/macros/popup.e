@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: popup.e,v 1.5 2005-11-15 16:14:00 aschn Exp $
+* $Id: popup.e,v 1.6 2005-11-16 16:25:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -36,7 +36,7 @@ const
 
 const
  compile if not defined(WANT_TEXT_PROCS)
-   WANT_TEXT_PROCS = 1
+   WANT_TEXT_PROCS   = 1
  compile endif
  compile if not defined(CHECK_FOR_LEXAM)
    CHECK_FOR_LEXAM = 0
@@ -44,8 +44,9 @@ const
  compile if not defined(VANILLA)
    VANILLA = 0
  compile endif
-
-const
+ compile if not defined( WANT_DYNAMIC_PROMPTS)
+    WANT_DYNAMIC_PROMPTS = 1  -- required for ENGLISH.E only
+ compile endif
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
@@ -162,9 +163,11 @@ defc MH_popup
    deletemenu menuname, 0, 0, 0
    'BuildPopupMenu' menuname
    showmenu menuname, 1
-   --'add_cascade_popupmenu'       -- without postme: works only for the first menu creation
-   'postme add_cascade_popupmenu'  -- the square around the arrow of the submenu
-                                   -- is not painted correctly
+   -- Cascade menu now replaced by inline menu items, because it doesnot work:
+;    --'add_cascade_popupmenu'       -- without postme: works only for the first menu creation
+;                                    -- the square around the arrow of the submenu
+;                                    -- is not painted correctly
+;    'postme add_cascade_popupmenu'
 
 --defproc BuildPopupMenu
 defc BuildPopupMenu
@@ -270,72 +273,77 @@ compile endif -- WANT_TEXT_PROCS
       buildmenuitem menuname, 80, 8009, \0,                       '',          4, 0
       buildmenuitem menuname, 80, 8010, CENTER_LINE_MENU__MSG\9'Shift+F5', 'key 1 s+f5'CENTER_LINE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_CENTERLINE, 0)
       buildmenuitem menuname, 80, 8011, TOP_LINE_MENU__MSG,                'newtop'TOP_LINE_MENUP__MSG, 0, mpfrom2short(HP_POPUP_TOP, 0)
-      buildmenuitem menuname, 80, 8012, PASTE_C_MENU__MSG,    PASTE_C_MENUP__MSG,   17+64, mpfrom2short(HP_EDIT_PASTEMENU, 0)
-      buildmenuitem menuname, 80, 8013, PASTE_C_MENU__MSG,   'Paste C'PASTE_C_MENUP__MSG,   0, mpfrom2short(HP_EDIT_PASTEC, 0)
+      -- Cascade menu now replaced by inline menu items, because it doesnot work:
+;       buildmenuitem menuname, 80, 8012, PASTE_C_MENU__MSG,    PASTE_C_MENUP__MSG,   17+64, mpfrom2short(HP_EDIT_PASTEMENU, 0)
+;       buildmenuitem menuname, 80, 8013, PASTE_C_MENU__MSG,   'Paste C'PASTE_C_MENUP__MSG,   0, mpfrom2short(HP_EDIT_PASTEC, 0)
+;       buildmenuitem menuname, 80, 8014, PASTE_L_MENU__MSG,   'Paste'PASTE_L_MENUP__MSG,     0, mpfrom2short(HP_EDIT_PASTE, 0)
+;       buildmenuitem menuname, 80, 8015, PASTE_B_MENU__MSG,   'Paste B'PASTE_B_MENUP__MSG,   32769, mpfrom2short(HP_EDIT_PASTEB, 0)
+      buildmenuitem menuname, 80, 8012, \0,                       '',          4, 0
+      buildmenuitem menuname, 80, 8013, PASTE_C_MENU__MSG\9'Sh+Ins',       'Paste C'PASTE_C_MENUP__MSG,   0, mpfrom2short(HP_EDIT_PASTEC, 0)
       buildmenuitem menuname, 80, 8014, PASTE_L_MENU__MSG,   'Paste'PASTE_L_MENUP__MSG,     0, mpfrom2short(HP_EDIT_PASTE, 0)
-      buildmenuitem menuname, 80, 8015, PASTE_B_MENU__MSG,   'Paste B'PASTE_B_MENUP__MSG,   32769, mpfrom2short(HP_EDIT_PASTEB, 0)
+      buildmenuitem menuname, 80, 8015, PASTE_B_MENU__MSG\9'Ctrl+Sh+Ins',  'Paste B'PASTE_B_MENUP__MSG,   0, mpfrom2short(HP_EDIT_PASTEB, 0)
    endif
 compile if not VANILLA
 tryinclude 'mymsemnu.e'  -- For user-added configuration
 compile endif
    return
 
-defc add_cascade_popupmenu
-   universal nepmd_hini
-
-   KeyPath = "\NEPMD\User\Mouse\Mark\DefaultPaste"
-   DefaultPaste = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if DefaultPaste = 'C' then
-      AlternatePaste = 'L'
-   else
-      AlternatePaste = 'C'
-   endif
-   if DefaultPaste = 'L' then    -- arg for defc paste maybe 'C', 'B' or ''
-      DefaultPaste = ''
-   endif
-   if AlternatePaste = 'L' then  -- arg for defc paste maybe 'C', 'B' or ''
-      AlternatePaste = ''
-   endif
-
-   if DefaultPaste = 'C' then
-      'cascade_popupmenu 8012 8013'  -- Paste cascade; default is Paste (character mark)
-   elseif DefaultPaste = 'B' then
-      'cascade_popupmenu 8012 8015'  -- Paste cascade; default is Paste Block
-   else
-      'cascade_popupmenu 8012 8014'  -- Paste cascade; default is Paste Lines
-   endif
-
-#define ETK_FID_POPUP          50
-
-; similar to defc cascade_menu in MENU.E, but another hwndp
-defc cascade_popupmenu
-   parse arg menuid defmenuid .
-   menuitem = copies( \0, 16)  -- 2 bytes ea. pos'n, style, attribute, identity; 4 bytes submenu hwnd, long item
-   hwndp= dynalink32( 'PMWIN',
-                      '#899',                -- ordinal for Win32WindowFromID
-                      gethwndc(EPMINFO_EDITCLIENT) ||
-                      atol(ETK_FID_POPUP) )
-   if not windowmessage( 1,
-                         hwndp,
-                         386,                  -- x182, MM_QueryItem
-                         menuid + 65536,
-                         ltoa(offset(menuitem) || selector(menuitem), 10))
-   then
-      return
-   endif
-   hwnd = substr( menuitem, 9, 4)
-
-   call dynalink32( 'PMWIN',
-                    '#874',     -- Win32SetWindowBits
-                     hwnd         ||
-                     atol(-2)     ||  -- QWL_STYLE
-                     atol(64)     ||  -- MS_CONDITIONALCASCADE
-                     atol(64))        -- MS_CONDITIONALCASCADE
-   if defmenuid <> '' then  -- Default menu item
-      call windowmessage( 1,
-                          ltoa( hwnd,10),
-                          1074,                  -- x432, MM_SETDEFAULTITEMID
-                          defmenuid, 0)  -- Make arg(2) the default menu item
-   endif
-
+  -- Cascade menu now replaced by inline menu items, because it doesnot work:
+; defc add_cascade_popupmenu
+;    universal nepmd_hini
+;
+;    KeyPath = "\NEPMD\User\Mouse\Mark\DefaultPaste"
+;    DefaultPaste = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+;    if DefaultPaste = 'C' then
+;       AlternatePaste = 'L'
+;    else
+;       AlternatePaste = 'C'
+;    endif
+;    if DefaultPaste = 'L' then    -- arg for defc paste maybe 'C', 'B' or ''
+;       DefaultPaste = ''
+;    endif
+;    if AlternatePaste = 'L' then  -- arg for defc paste maybe 'C', 'B' or ''
+;       AlternatePaste = ''
+;    endif
+;
+;    if DefaultPaste = 'C' then
+;       'cascade_popupmenu 8012 8013'  -- Paste cascade; default is Paste (character mark)
+;    elseif DefaultPaste = 'B' then
+;       'cascade_popupmenu 8012 8015'  -- Paste cascade; default is Paste Block
+;    else
+;       'cascade_popupmenu 8012 8014'  -- Paste cascade; default is Paste Lines
+;    endif
+;
+; #define ETK_FID_POPUP          50
+;
+; ; similar to defc cascade_menu in MENU.E, but another hwndp
+; defc cascade_popupmenu
+;    parse arg menuid defmenuid .
+;    menuitem = copies( \0, 16)  -- 2 bytes ea. pos'n, style, attribute, identity; 4 bytes submenu hwnd, long item
+;    hwndp= dynalink32( 'PMWIN',
+;                       '#899',                -- ordinal for Win32WindowFromID
+;                       gethwndc(EPMINFO_EDITCLIENT) ||
+;                       atol(ETK_FID_POPUP) )
+;    if not windowmessage( 1,
+;                          hwndp,
+;                          386,                  -- x182, MM_QueryItem
+;                          menuid + 65536,
+;                          ltoa(offset(menuitem) || selector(menuitem), 10))
+;    then
+;       return
+;    endif
+;    hwnd = substr( menuitem, 9, 4)
+;
+;    call dynalink32( 'PMWIN',
+;                     '#874',     -- Win32SetWindowBits
+;                      hwnd         ||
+;                      atol(-2)     ||  -- QWL_STYLE
+;                      atol(64)     ||  -- MS_CONDITIONALCASCADE
+;                      atol(64))        -- MS_CONDITIONALCASCADE
+;    if defmenuid <> '' then  -- Default menu item
+;       call windowmessage( 1,
+;                           ltoa( hwnd,10),
+;                           1074,                  -- x432, MM_SETDEFAULTITEMID
+;                           defmenuid, 0)  -- Make arg(2) the default menu item
+;    endif
 
