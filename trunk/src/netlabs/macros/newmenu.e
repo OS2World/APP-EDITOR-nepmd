@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.22 2005-11-15 17:49:27 aschn Exp $
+* $Id: newmenu.e,v 1.23 2005-11-16 16:47:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -205,11 +205,17 @@ definit
    -- Keep this list in sync with the 'menuinit_'name defcs!
    -- (Otherwise 'processmenuinit' will never execute that defc.)
    call SetAVar( 'definedsubmenus', 'file edit mark format search view options run project help' ||
-                                    ' fileproperties markatcursor goto markstack cursorstack bookmarks' ||
-                                    ' mainsettings framecontrols editoptions saveoptions searchoptions' ||
-                                    ' recordkeys openfolder treecommands reflowsettings autorestore' ||
-                                    ' accelsettings marginsandtabs readonlyandlock menubarsandcolors' ||
-                                    ' macros markingsettings workdir opendlgdir impermanentoptions')
+                    /* File */      ' openfolder fileproperties' ||
+                    /* Edit */      ' recordkeys' ||
+                    /* Mark */      ' markatcursor' ||
+                    /* Format */    ' reflowmargins reflow' ||
+                    /* Search */    ' goto markstack cursorstack bookmarks' ||
+                    /* View */      ' framecontrols menubarsandcolors' ||
+                    /* Options */   ' editoptions saveoptions searchoptions' ||
+                                    ' mainsettings markingsettings marginsandtabs accelsettings' ||
+                                    ' readonlyandlock autorestore' ||
+                                    ' opendlgdir workdir macros impermanentoptions' ||
+                    /* Run */       ' treecommands')
 
    KeyPath = '\NEPMD\User\Menu\NoDismiss'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
@@ -266,6 +272,10 @@ defc loaddefaultmenu
    call add_help_menu(menuname)      -- id = 6 (keep this)
    -- Note: showmenu_activemenu() must be called separately.
    menuloaded = 1
+
+   -- Respect files' margins if this is selected for use as reflowmargins
+   -- (Found no better place when to execute the hook.)
+   'HookAdd select ReflowMarginsInit'
 
 ; -------------------------------------------------------------------------------------- File -------------------------
 defproc add_file_menu(menuname)
@@ -601,17 +611,17 @@ compile endif
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Insert',                                                       -- Insert   >
                                    \1'Insert text',
-                                   MIS_TEXT + MIS_SUBMENU, nodismiss
+                                   MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~New line after'\9ALT_KEY__MSG'+N',                                  -- New line after
                                    'NewLineAfter' ||
                                    \1'Insert empty line after current',
-                                   MIS_TEXT, 0
+                                   MIS_TEXT, nodismiss
    i = i + 1;
    buildmenuitem menuname, mid, i, 'New ~line before'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+N',                -- New line before
                                    'NewLineBefore' ||
                                    \1'Insert empty line before current',
-                                   MIS_TEXT, 0
+                                   MIS_TEXT, nodismiss
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
@@ -620,11 +630,25 @@ compile endif
    buildmenuitem menuname, mid, i, '~Char from above'\9ALT_KEY__MSG'+G',                                 -- Char from above
                                    'InsertCharAbove' ||
                                    \1'Copy char above to cursor position',
-                                   MIS_TEXT, 0
+                                   MIS_TEXT, nodismiss
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Char from ~below'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+G',                -- Char from below
                                    'InsertCharBelow' ||
                                    \1'Copy char below to cursor position',
+                                   MIS_TEXT, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Filename',                                                          -- Filename
+                                   'TypeFilename' ||
+                                   \1'Insert current filename at cursor position',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Date Time (ISO)',                                                   -- Date Time (ISO)
+                                   'TypeDateTime' ||
+                                   \1'Insert current date and time at cursor position',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Move',                                                         -- Move   >
@@ -673,10 +697,10 @@ compile endif
                                    'DeleteUntilNextWord' ||
                                    \1'Delete from cursor until begin of next word',
                                    MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
+;   i = i + 1;
+;   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+;                                   '',
+;                                   MIS_SEPARATOR, 0
 ;
 ; x      Box   used in: CustEpm
 ; x      Draw  used in: CustEpm
@@ -912,37 +936,55 @@ defproc add_mark_menu(menuname)
 
 ; -------------------------------------------------------------------------------------- Format -----------------------
 defproc add_format_menu(menuname)
-universal nodismiss
+   universal nodismiss
+   universal reflowmargins
 
    mid = GetAVar('mid_format')
    i = mid'00'
    buildsubmenu  menuname, mid, 'Form~at',                                                         -- Format ---------
                                 \1'Menus related to formatting operations',
                                 0, 0  -- MIS must be 0 for submenu
+   i = i + 1; call SetAVar( 'mid_reflowmargins', i); call SetAVar( 'mtxt_reflowmargins', 'Reflowmargins []');
+   buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins'),                                 -- Reflowmargins   >
+                                   \1'Margins/rightmargin for wrap and reflow actions',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_reflowmargins1', i); call SetAVar( 'mtxt_reflowmargins1', '1: reflowmargins []');
+   buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins1'),                                      -- 1:
+                                   'ReflowmarginsSelect 1' ||
+                                   \1'Select specified value(s) as reflowmargins',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_reflowmargins2', i); call SetAVar( 'mtxt_reflowmargins2', '2: reflowmargins []');
+   buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins2'),                                      -- 2:
+                                   'ReflowmarginsSelect 2' ||
+                                   \1'Select specified value(s) as reflowmargins',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_reflowmargins3', i); call SetAVar( 'mtxt_reflowmargins3', '3: current margins []');
+   buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins3'),                                            -- 3: rightmargin
+                                   'ReflowmarginsSelect 3' ||
+                                   \1'Select file''s margins as reflowmargins',
+                                   MIS_TEXT, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_reflowmarginsconfig', i);
+   buildmenuitem menuname, mid, i, 'Configure selected...',                                              -- Configure selected...
+                                   'set_ReflowMargins' ||
+                                   \1'Configure selected reflowmargins item...',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Wrap',                                                        -- Wrap   >
-                                   '' ||
                                    \1'Reformat all: add linebreaks',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Keepindent 79',                                                      -- Keepindent 79
-                                   'wrap KEEPINDENT 79' ||
-                                   \1'Split lines while keeping indent of line above, column = 79',
+   buildmenuitem menuname, mid, i, 'All to reflowmargins, keep indent',
+                                   'wrap KEEPINDENT' ||                                                  -- All to reflowmargins, keep indent
+                                   \1'Wrap lines at reflowmargins, keep indent of line above',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Keepindent...',                                                      -- Keepindent...
-                                   'wrap KEEPINDENT *' ||
-                                   \1'Split lines while keeping indent of line above, enter colum',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Split 79',                                                           -- Split 79
-                                   'wrap SPLIT 79' ||
-                                   \1'Split lines, colum = 79',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Split...',                                                           -- Split...
-                                   'wrap SPLIT *' ||
-                                   \1'Split lines, enter colum',
+   buildmenuitem menuname, mid, i, 'All to reflowmargins, split',
+                                   'wrap SPLIT' ||                                                       -- All to reflowmargins, split
+                                   \1'Wrap lines at reflowmargins, split only',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
@@ -963,30 +1005,73 @@ universal nodismiss
                                    '' ||
                                    \1'Reformat paragraph, mark or all',
                                    MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1; call SetAVar( 'mid_reflowpartomargins', i);
-   buildmenuitem menuname, mid, i, 'Par to margins'\9 || ALT_KEY__MSG'+P',                               -- Par to margins
-                                   'dokey a_p' ||
-                                   \1'Reformat mark or paragraph to fit the current margins',
+/*
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Par to reflowmargins',                                               -- Par to reflowmargins
+                                   'flow' reflowmargins ||
+                                   \1'Reformat lines from cursor to par end',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Lines to margins...',                                                -- Lines to margins...
-                                   'commandline flow 1 79 1' ||
+   buildmenuitem menuname, mid, i, 'Par to margins...',                                                  -- Par to margins...
+                                   'commandline flow' reflowmargins ||
                                    \1'Reformat lines from cursor to par end, enter margins',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Par to window',                                                      -- Par to window
-                                   'reflow' ||
-                                   \1'Reformat paragraph to fit the current window',
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+*/
+   i = i + 1; call SetAVar( 'mid_reflowpartoreflowmargins', i); call SetAVar( 'mtxt_reflowpartoreflowmargins', 'Par to reflowmargins'\9 || ALT_KEY__MSG'+P');
+   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_reflowpartoreflowmargins'),                            -- Mark/Par to reflowmargins
+                                   'ReflowPar2Reflowmargins' ||
+                                   \1'Reformat mark or paragraph to reflowmargins',
                                    MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_reflowpartomargins', i); call SetAVar( 'mtxt_reflowpartomargins', 'Par to margins'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+P');
+   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_reflowpartomargins*'),                                 -- Mark/Par to margins
+                                   'ReflowPar' ||
+                                   \1'Reformat mark or paragraph to fit the current margins',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'All to reflowmargins'\9 || CTRL_KEY__MSG'+P',                        -- All to reflowmargins
+                                   'ReflowAll2Reflowmargins' ||
+                                   \1'Reformat all to reflowmargins',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'All to margins'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+P',             -- All to margins
+                                   'ReflowAll' ||
+                                   \1'Reformat all to fit the current margins',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_reflowblock', i);
    buildmenuitem menuname, mid, i, 'Block'\9 || ALT_KEY__MSG'+R',                                        -- Block
-                                   'dokey a_r' ||
+                                   'ReflowBlock' ||
                                    \1'Mark lines or block first, then mark new block size',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'All to margins',                                                     -- All to margins
-                                   'reflow_all' ||
-                                   \1'Reformat all to fit the current margins',
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Par to window',                                                      -- Par to window
+                                   'Reflow' ||
+                                   \1'Reformat paragraph to fit the current window',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Par to size...',                                                     -- Par to size...
+                                   'Reflow *' ||
+                                   \1'Reformat paragraph, prompt for a size',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Par to last size',                                                   -- Par to last size
+                                   'Reflow =' ||
+                                   \1'Reformat paragraph, use last specified size',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
@@ -1001,7 +1086,31 @@ universal nodismiss
    buildmenuitem menuname, mid, i, 'Wordproc (all)',                                                     -- Wordproc (all)
                                    'wordproc' ||
                                    \1'Rejoin lines to prepare for export to a word processor',
-                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_twospaces', i);
+   buildmenuitem menuname, mid, i, 'Two spaces',                                                         -- Two spaces
+                                   'Toggle_Two_Spaces' ||
+                                   \1'Put 2 spaces after periods etc.',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_mailindentedisverbatim', i);
+   buildmenuitem menuname, mid, i, 'Mail: indented is verbatim',                                         -- Mail: indented is verbatim
+                                   'toggle_mail_indented_verb' ||
+                                   \1'Indented lines will not be reflowed',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_reflownext', i);
+   buildmenuitem menuname, mid, i, 'Reflow next',                                                        -- Reflow next
+                                   'Toggle_Reflow_Next' ||
+                                   \1'Move cursor to next par after reflow',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_joinafterwrap', i);
+   buildmenuitem menuname, mid, i, 'Join after wrap',                                                    -- Join after wrap
+                                   'Toggle_Join_After_Wrap' ||
+                                   \1'Join next line with wrapped part',
+                                   MIS_TEXT + MIS_ENDSUBMENU, nodismiss
    i = i + 1; call SetAVar( 'mid_moreformatting', i);
    buildmenuitem menuname, mid, i, '~More formatting',                                             -- More formatting   >
                                    '' ||
@@ -2027,30 +2136,6 @@ compile endif
                                    'toggle_lock_on_modify' ||
                                    \1'Toggle deny write access if file was modified',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
-   i = i + 1; call SetAVar( 'mid_reflowsettings', i);
-   buildmenuitem menuname, mid, i, 'Re~flow settings',                                             -- Reflow settings   >
-                                   '',
-                                   MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1; call SetAVar( 'mid_twospaces', i);
-   buildmenuitem menuname, mid, i, 'Two spaces',                                                         -- Two spaces
-                                   'Toggle_Two_Spaces' ||
-                                   \1'Toggle put 2 spaces after periods etc.',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_mailindentedisverbatim', i);
-   buildmenuitem menuname, mid, i, 'Mail: indented is verbatim',                                         -- Mail: indented is verbatim
-                                   'toggle_mail_indented_verb' ||
-                                   \1'Toggle every indented line will not be reflowed',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_reflownext', i);
-   buildmenuitem menuname, mid, i, 'Reflow next',                                                        -- Reflow next
-                                   'Toggle_Reflow_Next' ||
-                                   \1'Toggle move cursor to next par after reflow',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_joinafterwrap', i);
-   buildmenuitem menuname, mid, i, 'Join after wrap',                                                    -- Join after wrap
-                                   'Toggle_Join_After_Wrap' ||
-                                   \1'Toggle join next line with wrapped part',
-                                   MIS_TEXT + MIS_ENDSUBMENU, nodismiss
    i = i + 1; call SetAVar( 'mid_autorestore', i);
    buildmenuitem menuname, mid, i, '~Auto-restore settings',                                       -- Auto-restore settings  >
                                    '',
@@ -2165,7 +2250,7 @@ compile endif
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_macros', i)
    buildmenuitem menuname, mid, i, '~Macros',                                                      -- Macros   >
-                                   ''\1'Compile EPM macro files',
+                                   \1'Compile EPM macro files',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Open Recompile utility...',                                          -- Open Recompile utiliy...
@@ -2566,7 +2651,7 @@ compile endif
    buildmenuitem menuname, mid, i, '~Word...',                                                           -- Word...
                                    'kwhelp ?' ||  ------------------------- todo
                                    \1'Prompt for a keyword, then view documentation for it',
-                                   0, 0
+                                   0, MIA_DISABLED
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
@@ -2575,12 +2660,12 @@ compile endif
    buildmenuitem menuname, mid, i, 'Use ~NewView if found',                                              -- Use NewView if found
                                    '' ||  ------------------------- todo
                                    \1'Msg',
-                                   0, 0
+                                   0, MIA_DISABLED
    i = i + 1; call SetAVar( 'mid_usenewviewsextendedsearch', i);
    buildmenuitem menuname, mid, i, 'Use NewView''s ~extended search',                                    -- Use NewView's extended search
                                    '' ||  ------------------------- todo
                                    \1'Msg',
-                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+                                   MIS_TEXT + MIS_ENDSUBMENU, MIA_DISABLED
    return
 
 ; ---------------------------------------------------------------------------
@@ -2716,13 +2801,71 @@ defc menuinit_edit
    SetMenuAttribute( GetAVar('mid_undo'),        MIA_DISABLED, oldeststate <> neweststate)  -- Set to 1 if different
    SetMenuAttribute( GetAVar('mid_discardchanges'), MIA_DISABLED, .modify > 0)
 
---------------------------------------------- Menu id 5 -- View -------------------------
+--------------------------------------------- Menu id ? -- Format -----------------------
 defc menuinit_format
-   if FileIsMarked() then
-      SetMenuText( GetAVar('mid_reflowpartomargins'), 'Mark to margins'\9 || ALT_KEY__MSG'+P')
+   universal nepmd_hini
+   universal reflowmargins
+   KeyPath = '\NEPMD\User\Reflow\MarginsItem'
+   i   = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if i = 3 then
+      reflowmargins = .margins
    else
-      SetMenuText( GetAVar('mid_reflowpartomargins'), 'Par to margins'\9 || ALT_KEY__MSG'+P')
+      KeyPath = '\NEPMD\User\Reflow\Margins'i
+      new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+      reflowmargins = new
    endif
+   parse value GetAVar('mtxt_reflowmargins') with next'['x']'rest
+   SetMenuText( GetAVar('mid_reflowmargins'), next'['reflowmargins']'rest)
+
+--------------------------------------------- Menu id ? -- Reflowmargins ----------------
+defc menuinit_reflowmargins
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Reflow\Margins1'
+   new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   parse value GetAVar('mtxt_reflowmargins1') with next'['x']'rest
+   SetMenuText( GetAVar('mid_reflowmargins1'), next'['new']'rest)
+
+   KeyPath = '\NEPMD\User\Reflow\Margins2'
+   new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   parse value GetAVar('mtxt_reflowmargins2') with next'['x']'rest
+   SetMenuText( GetAVar('mid_reflowmargins2'), next'['new']'rest)
+
+   parse value GetAVar('mtxt_reflowmargins3') with next'['x']'rest
+   SetMenuText( GetAVar('mid_reflowmargins3'), next'['.margins']'rest)
+
+   KeyPath = '\NEPMD\User\Reflow\MarginsItem'
+   i   = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_reflowmargins1'), MIA_CHECKED, not (i = 1))
+   SetMenuAttribute( GetAVar('mid_reflowmargins2'), MIA_CHECKED, not (i = 2))
+   SetMenuAttribute( GetAVar('mid_reflowmargins3'), MIA_CHECKED, not (i = 3))
+
+--------------------------------------------- Menu id ? -- Reflow -----------------------
+defc menuinit_reflow
+   universal twospaces
+   universal join_after_wrap
+   universal nepmd_hini
+
+   SetMenuAttribute( GetAVar('mid_twospaces'),              MIA_CHECKED, not twospaces)
+   KeyPath = '\NEPMD\User\Reflow\Mail\IndentedIsVerbatim'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_mailindentedisverbatim'), MIA_CHECKED, not on)
+   KeyPath = '\NEPMD\User\Reflow\Next'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_reflownext'),             MIA_CHECKED, not on)
+   SetMenuAttribute( GetAVar('mid_joinafterwrap'),          MIA_CHECKED, not join_after_wrap)
+
+   if FileIsMarked() then
+      text = 'Mark'
+   else
+      text = 'Par'
+   endif
+   parse value GetAVar('mtxt_reflowpartoreflowmargins') with next rest
+   SetMenuText( GetAVar('mid_reflowpartoreflowmargins'), text rest)
+   parse value GetAVar('mtxt_reflowpartomargins*') with next rest
+   SetMenuText( GetAVar('mid_reflowpartomargins*'), text rest)
+   parse value GetAVar('mtxt_reflowpartomargins') with next rest
+   SetMenuText( GetAVar('mid_reflowpartomargins'), text rest)
+
    SetMenuAttribute( GetAVar('mid_reflowblock'), MIA_DISABLED, FileIsMarked())
 
 --------------------------------------------- Menu id 5 -- View -------------------------
@@ -2807,6 +2950,18 @@ defc menuinit_options
    new = default_search_options
    parse value GetAVar('mtxt_searchoptions') with next'['x']'rest
    SetMenuText( GetAVar('mid_searchoptions'), next'['new']'rest)
+
+--------------------------------------------- Menu id x -- Options / Edit options -------
+defc menuinit_editoptions
+   'seteditoptions MENUINIT'
+
+--------------------------------------------- Menu id x -- Options / Save options -------
+defc menuinit_saveoptions
+   'setsaveoptions MENUINIT'
+
+--------------------------------------------- Menu id x -- Options / Search options -----
+defc menuinit_searchoptions
+   'setsearchoptions MENUINIT'
 
 --------------------------------------------- Menu id x -- Options / Main settings ------
 defc menuinit_mainsettings
@@ -2930,20 +3085,6 @@ defc menuinit_readonlyandlock
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_lockonmodify'),    MIA_CHECKED, not on)
 
- --------------------------------------------- Menu id x -- Options / Reflow settings ----
-defc menuinit_reflowsettings
-   universal twospaces
-   universal join_after_wrap
-   universal nepmd_hini
-   SetMenuAttribute( GetAVar('mid_twospaces'),              MIA_CHECKED, not twospaces)
-   KeyPath = '\NEPMD\User\Reflow\Mail\IndentedIsVerbatim'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_mailindentedisverbatim'), MIA_CHECKED, not on)
-   KeyPath = '\NEPMD\User\Reflow\Next'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_reflownext'),             MIA_CHECKED, not on)
-   SetMenuAttribute( GetAVar('mid_joinafterwrap'),          MIA_CHECKED, not join_after_wrap)
-
 --------------------------------------------- Menu id x -- Options / Restore ring settings
 defc menuinit_autorestore
    universal nepmd_hini
@@ -2985,18 +3126,6 @@ defc menuinit_framecontrols
    SetMenuAttribute( GetAVar('mid_backgroundbitmap'), MIA_CHECKED, not bitmap_present)
    SetMenuAttribute( GetAVar('mid_infoattop'),        MIA_CHECKED, not queryframecontrol(32))
    SetMenuAttribute( GetAVar('mid_prompting'),        MIA_CHECKED, not menu_prompt)
-
---------------------------------------------- Menu id x -- Options / Edit options -------
-defc menuinit_editoptions
-   'seteditoptions MENUINIT'
-
---------------------------------------------- Menu id x -- Options / Save options -------
-defc menuinit_saveoptions
-   'setsaveoptions MENUINIT'
-
---------------------------------------------- Menu id x -- Options / Search options -----
-defc menuinit_searchoptions
-   'setsearchoptions MENUINIT'
 
 --------------------------------------------- Menu id x -- Options / Menu bars and colors
 defc menuinit_menubarsandcolors
@@ -4003,6 +4132,80 @@ defc set_OpenDlgDir
    SetMenuAttribute( GetAVar('mid_opendlgdirprev'), MIA_CHECKED, (opt = 1 | opt = 2))
    SetMenuAttribute( GetAVar('mid_opendlgdirwork'), MIA_CHECKED, not (opt = 1))
    SetMenuAttribute( GetAVar('mid_opendlgdirfile'), MIA_CHECKED, not (opt = 2))
+
+; ---------------------------------------------------------------------------
+defc set_ReflowMargins
+   universal nepmd_hini
+   universal reflowmargins
+   args = strip( arg(1))
+   parse value args with lma rma parma
+   if lma > '' then
+      if rma = '' then
+         args = 1 args  -- default value for lma is 1
+      endif
+      if parma = '' then
+         args = args 1  -- default value for parma is 1
+      endif
+   endif
+
+   KeyPath = '\NEPMD\User\Reflow\MarginsItem'
+   i   = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if i = 3 then
+      new = args
+      if new = '' then
+         'ma'  -- Open commandline with current .margins value
+         return
+      endif
+      reflowmargins = .margins
+   else
+      KeyPath = '\NEPMD\User\Reflow\Margins'i
+      new = args
+      if new = '' then
+         old = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+         'commandline set_ReflowMargins' old  -- Open commandline with current value
+         return
+      endif
+      call NepmdWriteConfigValue( nepmd_hini, KeyPath, new)
+      reflowmargins = new
+   endif
+   parse value GetAVar('mtxt_reflowmargins'i) with next'['x']'rest
+   SetMenuText( GetAVar('mid_reflowmargins'i), next'['reflowmargins']'rest)
+
+   parse value GetAVar('mtxt_reflowmargins') with next'['x']'rest
+   SetMenuText( GetAVar('mid_reflowmargins'), next'['reflowmargins']'rest)
+
+; ---------------------------------------------------------------------------
+defc ReflowmarginsSelect
+   universal nepmd_hini
+   universal reflowmargins
+   i = strip( arg(1))
+   KeyPath = '\NEPMD\User\Reflow\MarginsItem'
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, i)
+   if i = 3 then
+      reflowmargins = .margins
+   else
+      KeyPath = '\NEPMD\User\Reflow\Margins'i
+      reflowmargins = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   endif
+   SetMenuAttribute( GetAVar('mid_reflowmargins1'), MIA_CHECKED, not (i = 1))
+   SetMenuAttribute( GetAVar('mid_reflowmargins2'), MIA_CHECKED, not (i = 2))
+   SetMenuAttribute( GetAVar('mid_reflowmargins3'), MIA_CHECKED, not (i = 3))
+   parse value GetAVar('mtxt_reflowmargins') with next'['x']'rest
+   SetMenuText( GetAVar('mid_reflowmargins'), next'['reflowmargins']'rest)
+
+; ---------------------------------------------------------------------------
+; Used to set the universal var.
+defc ReflowmarginsInit
+   universal nepmd_hini
+   universal reflowmargins
+   KeyPath = '\NEPMD\User\Reflow\MarginsItem'
+   i = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if i = 3 then
+      reflowmargins = .margins
+   else
+      KeyPath = '\NEPMD\User\Reflow\Margins'i
+      reflowmargins = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Change edit options and set menu attributes.

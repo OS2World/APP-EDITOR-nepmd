@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.13 2005-11-15 17:40:44 aschn Exp $
+* $Id: keys.e,v 1.14 2005-11-16 16:46:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1093,19 +1093,84 @@ defc MarkChar
 defc HighlightCursor
    circleit 5, .line, .col - 1, .col + 1, 16777220
 
-defc TypeFileName  /* Type the full name of the current file. */
+defc TypeFileName  -- Type the full name of the current file
   keyin .filename
 
+defc TypeDateTime  -- Type the current date and time
+  keyin DateTime()
+
+defc select_all =
+   getfileid fid
+   call pset_mark(1, .last, 1, length(textline(.last)), 'CHAR' , fid)
+   'Copy2SharBuff'       /* Copy mark to shared text buffer */
+
+defc ReflowAll2ReflowMargins
+   universal reflowmargins
+   'ReflowAll' reflowmargins
+
+; Syntax: reflow_all [<margins>]
+defc reflow_all, ReflowAll
+   saved_margins = .margins
+   if arg(1) > '' then
+      .margins = arg(1)
+   endif
+   call psave_mark(savemark)
+   call psave_pos(savepos)
+   call DisableUndoRec()
+   display -1
+   stopit = 0
+   top
+   do forever
+      getline line
+      do while line='' |                              -- Skip over blank lines or
+               (lastpos(':',line)=1 & pos('.',line)=length(line)) |  -- lines containing only a GML tag or
+               substr(line,1,1)='.'                                  -- SCRIPT commands
+         if .line=.last then stopit=1; leave; endif
+         down
+         getline line
+      enddo
+      if stopit then leave; endif
+      startline = .line
+      unmark; mark_line
+      call pfind_blank_line()
+      if .line<>startline then
+         up
+      else
+         bottom
+      endif
+      mark_line
+      reflow
+      getmark firstline,lastline
+      if lastline=.last then leave; endif
+      lastline+1
+   enddo
+   display 1
+   call NewUndoRec()
+   call prestore_mark(savemark)
+   call prestore_pos(savepos)
+   if arg(1) > '' then
+      .margins = saved_margins
+   endif
+
+defc ReflowPar2ReflowMargins
+   universal reflowmargins
+   'ReflowPar' reflowmargins
+
+; Syntax: ReflowPar [<margins>]
 defc ReflowPar
    /* Protect the user from accidentally reflowing a marked  */
    /* area not in the current file, and give a good message. */
    mt = substr( marktype(), 1, 1)
-   if mt = 'B' or mt = 'L' then
+;  if mt = 'B' or mt = 'L' then
+   if mt > '' then
       getmark firstline, lastline, firstcol, lastcol, markfileid
       getfileid fileid
       if fileid <> markfileid then
-         sayerror CANT_REFLOW__MSG'  'OTHER_FILE_MARKED__MSG
-         return
+;        sayerror CANT_REFLOW__MSG'  'OTHER_FILE_MARKED__MSG
+;        return
+         unmark
+         sayerror MARKED_OTHER__MSG
+         mt = ''
       endif
    endif
 
@@ -1116,6 +1181,13 @@ defc ReflowPar
       endif
    endif
 
+   saved_margins = .margins
+   if arg(1) > '' then
+      .margins = arg(1)
+   endif
+   call DisableUndoRec()
+   display -1
+
    if mt = 'B' then
       'box r'
    elseif mt = 'C' then
@@ -1124,6 +1196,63 @@ defc ReflowPar
       reflow
    else  -- Standard text reflow split into a separate routine.
       call text_reflow()
+   endif
+
+   display 1
+   call NewUndoRec()
+   if arg(1) > '' then
+      .margins = saved_margins
+   endif
+
+; Standard text reflow, moved from Alt+P definition in STDKEYS.E.
+; Only called from Alt+P if no mark exists; users wishing to call
+; this from their own code must save & restore the mark themselves
+; if that's desired.
+defproc text_reflow
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Reflow\Next'
+   ReflowNext = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if .line then
+      getline line
+      if line <> '' then  -- If currently on a blank line, don't reflow.
+         oldcursory = .cursory
+         oldcursorx = .cursorx
+         oldline = .line
+         oldcol  = .col
+         unmark
+         mark_line
+         call pfind_blank_line()
+         -- Ver 3.11:  slightly revised test works better with GML sensitivity.
+         if .line <> oldline then
+            up
+         else
+            bottom
+         endif
+         mark_line
+         reflow
+         if ReflowNext then   -- position on next paragraph (like PE)
+            call pfind_blank_line()
+            for i = .line + 1 to .last
+               getline line, i
+               if line <> '' then
+                  .lineg = i
+                  .col = 1
+                  .cursory = oldcursory
+                  .line = i
+                  leave
+               endif
+            endfor
+         else
+            -- or like old E
+            getmark firstline, lastline
+            firstline
+            .cursory = oldcursory
+            .cursorx = oldcursorx
+            oldline
+            .col = oldcol
+         endif
+         unmark
+      endif
    endif
 
 definit                         -- Variable is null if alt_R is not active.

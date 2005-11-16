@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.20 2004-07-02 10:06:09 aschn Exp $
+* $Id: stdcmds.e,v 1.21 2005-11-16 16:47:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -674,43 +674,6 @@ defc qs,quietshell,quiet_shell=
 defc rc=
    arg(1)
    sayerror 'RC='rc''
-
-defc reflow_all
-   call psave_mark(savemark)
-   call psave_pos(savepos)
-   stopit = 0
-   top
-   do forever
-      getline line
-      do while line='' |                              -- Skip over blank lines or
-               (lastpos(':',line)=1 & pos('.',line)=length(line)) |  -- lines containing only a GML tag or
-               substr(line,1,1)='.'                                  -- SCRIPT commands
-         if .line=.last then stopit=1; leave; endif
-         down
-         getline line
-      enddo
-      if stopit then leave; endif
-      startline = .line
-      unmark; mark_line
-      call pfind_blank_line()
-      if .line<>startline then
-         up
-      else
-         bottom
-      endif
-      mark_line
-      reflow
-      getmark firstline,lastline
-      if lastline=.last then leave; endif
-      lastline+1
-   enddo
-   call prestore_mark(savemark)
-   call prestore_pos(savepos)
-
-defc select_all =
-   getfileid fid
-   call pset_mark(1, .last, 1, length(textline(.last)), 'CHAR' , fid)
-   'Copy2SharBuff'       /* Copy mark to shared text buffer */
 
 compile if SETSTAY='?'
 defc stay=

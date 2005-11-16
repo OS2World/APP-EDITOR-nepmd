@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wrap.e,v 1.8 2005-08-14 22:07:36 aschn Exp $
+* $Id: wrap.e,v 1.9 2005-11-16 16:47:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -327,38 +327,45 @@ defc unwrap
 ;            default = 'KEEPINDENT'
 defc wrap
    universal vEPM_POINTER
+   universal reflowmargins
 
-   defaultlimit = 79
-   defaultstyle = 'KEEPINDENT'
+   parse value reflowmargins with . defaultlimit .
+   style = 'KEEPINDENT'
 
-   parse arg arg1 arg2
-   if arg2 = '' then
-      if (isnum(arg1) | arg1 = '*') then
-         limit = arg1
-      else
-         limit = defaultlimit
-      endif
-      style = defaultstyle
-   else
-      if (isnum(arg1) | arg1 = '*') then
-         limit = arg1
-         style = arg2
-      else
-         style = arg1
-         limit = arg2
-      endif
+   args = strip( upcase( arg(1)))
+
+   wp = wordpos( 'KEEPINDENT', args)
+   if wp > 0 then
+      args = delword( args, wp)
+      style = 'KEEPINDENT'
    endif
-   style = upcase(style)
-   if not wordpos( style, 'KEEPINDENT SPLIT') then
-      sayerror 'WRAP: "'style'" is not a valid style.'
+   wp = wordpos( 'SPLIT', args)
+   if wp > 0 then
+      args = delword( args, wp)
+      style = 'SPLIT'
+   endif
+
+   wp = wordpos( '*', args)
+   if wp > 0 then
+      args = delword( args, wp)
+      'commandline' strip( 'wrap 'style) defaultlimit
       return
    endif
-   if not ((isnum(limit) & limit > 0) | limit = '*') then
+
+   if args = '' then
+      args = defaultlimit
+   endif
+
+   -- Allow to specify a margin parameter as limit
+   parse value args with lma rma parma
+   if rma > '' then
+      limit = rma
+   elseif lma > '' then
+      limit = lma
+   endif
+
+   if not isnum( limit) then
       sayerror 'WRAP: "'limit'" is not a column number'
-      return
-   endif
-   if limit = '*' then
-      'commandline wrap 'style' 'defaultlimit
       return
    endif
 

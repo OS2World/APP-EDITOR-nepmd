@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.23 2005-11-15 16:27:32 aschn Exp $
+* $Id: stdkeys.e,v 1.24 2005-11-16 16:47:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,24 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+; Note: Alt+<num> definitions via defc Key_a_<num> are disabled, in order
+;       to make Alt+<num-pad> keys insert ASCII code chars.
+;
+;       This does not affect def a_<num> definitions. They can be used as
+;       usual, because PM definitions always overwrite EPM def definitions,
+;       unless EPM defines them as PM accelerator keys, which is the case
+;       for all defc Key_* definitions.
+;
+;       Order of key definitions:
+;          1. (highest) PM accelerator keys, e.g. via defc Key_*
+;          2.           Standard PM-defined keys, like Alt+F4
+;          3. (lowest)  EPM's keyset definitions via def
+;
+;       Usually every def definition is defined automatically as PM
+;       acceleator key as well. That ensures, that only the def definition
+;       has to specified, if it exists. This does not apply to def a_<num>
+;       definitions, because of the upper described behaviour.
 
 ; ---------------------------------------------------------------------------
 ; Define the keyset "EDIT_KEYS". All following key defs will belong to this
@@ -148,12 +166,12 @@ def c_2           'TypeNull'            -- Type a null char (\0)
 def c_6           'TypeNot'             -- Type a not char ª (\170)
 def c_9           'TypeOpeningBrace'    -- Type a {
 ;def c_0          'TypeClosingBrace'    -- Type a }
-def c_4           'TypePound'           -- Type a cent char › (\155)
+def c_4           'TypeCent'            -- Type a cent char › (\155)
 def c_tab         'TypeTab'             -- Type a tab char (\9)
 
 ; ---- Window and switch files ----
 def f11           'PrevFile'            -- Switch to previous file
-def c_p           'PrevFile'            -- Switch to previous file
+;def c_p          'PrevFile'            -- Switch to previous file
 def f12           'NextFile'            -- Switch to next file
 ;def c_n          'NextFile'            -- Switch to next file
 def a_f12         'NextView'            -- Switch to next view of current file
@@ -164,7 +182,10 @@ def c_g           'Ring_More'           -- Open a dialog to select a file of the
 ; ---- Reflow ----
 def a_j           'JoinLines'           -- Join current with next line
 def a_s           'SplitLines'          -- Split line at cursor pos., keeping the indent
-def a_p           'ReflowPar'           -- Reflow current paragraph, starting at cursor, using margins
+def a_p           'ReflowPar2ReflowMargins'   -- Reflow current mark or paragraph, starting at cursor, using reflowmargins
+defc Key_a_s_p    'ReflowPar'                 -- Reflow current mark or paragraph, starting at cursor, using current margins
+def c_p           'ReflowAll2ReflowMargins'   -- Reflow all, starting at cursor, using  reflowmargins
+defc Key_c_s_p    'ReflowAll'                 -- Reflow all, starting at cursor, using current margins
 def a_r           'ReflowBlock'         -- Reflow marked block to a new block size
 
 ; ---- Case ----
@@ -181,6 +202,10 @@ def c_t           'PlaybackKeys'        -- Stop recording and execute recorded k
 ; ---- Bookmarks ----
 def c_b           'ListMark'            -- Open a dialog to select a bookmark
 def c_m           'SetMark'             -- Open a dialog to save position as bookmark
+def a_slash       'NextBookmark'        -- Go to next bookmark (german keyboard: Alt+Sh+7)
+defc Key_c_7      'NextBookmark'        -- Go to next bookmark
+def a_backslash   'NextBookmark P'      -- Go to previous bookmark (german keyboard: Alt+AltGr+Beta)
+defc Key_c_a_7    'NextBookmark P'      -- Go to previous bookmark
 
 ; ---- Help ----
 def c_h           'kwhelp'              -- Lookup current word in a help file
@@ -277,7 +302,6 @@ define ALL_KEY = 'c_Q'                  -- 'All' search: toggle between .ALL and
 
 ; ---- OtherKeys ----
 def otherkeys 'ProcessOtherKeys'
-
 
 
                         -- The rest is documentation --
