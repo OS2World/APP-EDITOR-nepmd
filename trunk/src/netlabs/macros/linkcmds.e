@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.31 2005-11-15 17:34:04 aschn Exp $
+* $Id: linkcmds.e,v 1.32 2005-11-16 16:17:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -615,9 +615,7 @@ defc RecompileNew
       fNoMsg = 1  -- no output on the MsgLine, if MsgBox will pop up
    endif
 
-   parse value getdatetime() with Hour24 Minutes Seconds . Day MonthNum Year0 Year1 .
-   Date = rightstr(Year0 + 256*Year1, 4, 0)'-'rightstr(monthnum, 2, 0)'-'rightstr(Day, 2, 0)
-   Time = rightstr(hour24, 2)':'rightstr(Minutes,2,'0')':'rightstr(Seconds,2,'0')
+   parse value DateTime() with Date Time
 
    if not fCheckOnly then
       'RingCheckModify'
