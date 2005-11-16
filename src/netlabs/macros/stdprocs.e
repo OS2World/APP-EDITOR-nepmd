@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.13 2005-11-06 14:28:44 aschn Exp $
+* $Id: stdprocs.e,v 1.14 2005-11-16 16:47:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -761,53 +761,6 @@ defproc splitlines()
 
 defproc swapwords( num)
    return substr( num, 3, 2) || substr( num, 1, 2)
-
-; Standard text reflow, moved from Alt+P definition in STDKEYS.E.
-; Only called from Alt+P if no mark exists; users wishing to call
-; this from their own code must save & restore the mark themselves
-; if that's desired.
-defproc text_reflow
-   universal nepmd_hini
-   KeyPath = '\NEPMD\User\Reflow\Next'
-   ReflowNext = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if .line then
-      getline line
-      if line <> '' then  -- If currently on a blank line, don't reflow.
-         oldcursory = .cursory
-         oldcursorx = .cursorx
-         oldline = .line
-         oldcol  = .col
-         unmark
-         mark_line
-         call pfind_blank_line()
-         -- Ver 3.11:  slightly revised test works better with GML sensitivity.
-         if .line <> oldline then
-            up
-         else
-            bottom
-         endif
-         mark_line
-         reflow
-         if ReflowNext then   -- position on next paragraph (like PE)
-            down              -- Thanks to Doug Short
-            for i = .line + 1 to .last
-               getline line, i
-               if line <> '' then i
-                  leave
-               endif
-            endfor
-         else
-            -- or like old E
-            getmark firstline, lastline
-            firstline
-            .cursory = oldcursory
-            .cursorx = oldcursorx
-            oldline
-            .col = oldcol
-         endif
-         unmark
-      endif
-   endif
 
 ;  A truncate function to maintain compatibility of macros between this
 ;  version and the OS/2 version which will have floating point.  Two
