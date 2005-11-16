@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: undo.e,v 1.5 2005-11-15 17:08:50 aschn Exp $
+* $Id: undo.e,v 1.6 2005-11-16 16:29:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -47,7 +47,7 @@ defc RestoreUndo
 ;    1: at every command (default)
 ;    2: when moving the cursor from a modified line (default, but not
 ;       changed by any command, so far)
-; This is used by following key defcs and events:
+; This is used by following key defcs and events, e.g.:
 ; Space, Return, defselect, ProcessOtherKeys
 defproc EnableUndoRec
    --action = 0  -- action, the 2nd param of undoaction, must be a var
@@ -73,8 +73,10 @@ defproc DisableUndoRec
 ; ---------------------------------------------------------------------------
 ; Create a new undo record and restore standard undo behaviour
 defproc NewUndoRec
-   undoaction 1, junk  -- 1: Create a new state
-   call EnableUndoRec()
+   if .modify then
+      undoaction 1, junk  -- 1: Create a new state
+      call EnableUndoRec()
+   endif
    return
 
 ; ---------------------------------------------------------------------------
