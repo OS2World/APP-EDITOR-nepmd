@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflow.e,v 1.8 2005-11-15 17:40:50 aschn Exp $
+* $Id: reflow.e,v 1.9 2005-11-16 16:20:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -87,12 +87,16 @@ const
 
 defc reflow =
    universal last_reflow_width
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Reflow\Next'
+   ReflowNext = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+
    par_width = arg(1)
    units_width = ''
    if par_width = '=' then
       par_width = last_reflow_width
    endif
-   if par_width='*' then
+   if par_width = '*' then
       'compiler_help_add REFLOW.hlp'  -- Have to make sure help file is loaded, just in case...
       parse value entrybox( 'Paragraph width',
                             '/'OK__MSG'/'Cancel__MSG'/'Help__MSG'/',
@@ -100,11 +104,15 @@ defc reflow =
                             '',
                             200,
                             atoi(1) || atoi(32101) || gethwndc(APP_HANDLE) ||
-                            'Enter a width; leave blank to reflow to window.' ) with button 2 par_width \0
-      if button<>\1 then return; endif
+                            'Enter a width; leave blank to reflow to window.') with button 2 par_width \0
+      if button <> \1 then
+         return
+      endif
+      last_reflow_width = par_width
    endif
    save_width = par_width  -- Save original units
-   if par_width='' then
+
+   if par_width = '' then  -- query current window width
       swpFrame     = copies(\0, 36)
       swpScrollbar = copies(\0, 36)
       call dynalink32( 'PMWIN',
@@ -170,6 +178,8 @@ defc reflow =
    endif
    display -1
    call DisableUndoRec()
+   oldcursory = .cursory
+
    start_col = .col
    do forever
       x = .line; y = 1
@@ -219,7 +229,9 @@ defc reflow =
          .col = y
          if substr( line, y, 1) <> ' ' then
             backtab_word
-            if .col = 1 then .col = y; endif
+            if .col = 1 then
+               .col = y
+            endif
          endif
          call splitlines()
          '+1'
@@ -227,6 +239,21 @@ defc reflow =
    enddo
    call NewUndoRec()
    .margins = oldmargins
-   .col = start_col
+   if ReflowNext then   -- position on next paragraph (like PE)
+      call pfind_blank_line()
+      for i = .line + 1 to .last
+         getline line, i
+         if line <> '' then
+            .lineg = i
+            .col = 1
+            .cursory = oldcursory
+            .line = i
+            leave
+         endif
+      endfor
+   else
+      .col = start_col
+   endif
+
 
 EA_comment 'This defines the REFLOW command; it can be linked or executed directly.  This is also a toolbar "actions" file.'
