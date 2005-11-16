@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.7 2005-11-15 17:40:51 aschn Exp $
+* $Id: reflowmail.e,v 1.8 2005-11-16 16:22:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,6 +21,15 @@
 
 /*
 Todo:
+
+-  Fix bugs:
+   Sometimes, mostly at longer textes, the execution stops with a msg:
+   No area marked. In fact, the entire text is marked and all quote chars
+   are removed. It's not possible then to do any mark operation with that
+   buffer, but undo works. In most cases, saving the buffer to any, maybe
+   temporary file, (after undoing to the unformatted version, of course)
+   will workaround that problem.
+   Additionally, it's not possible to format more than about 600 lines.
 
 -  How to determine verbatim text?  Then: Ask the user if current par is
    a verbatim par?
@@ -349,6 +358,7 @@ defc reflowmail
    call NewUndoRec()
    call DisableUndoRec()
    InfolineRefresh = 0
+   display -1
 
    .line = 1
    .col = 1
@@ -531,6 +541,7 @@ compile endif
       deleteline .last
    enddo
 
+   display 1
    InfolineRefresh = 1
    .autosave = saved_autosave
    call NewUndoRec()
