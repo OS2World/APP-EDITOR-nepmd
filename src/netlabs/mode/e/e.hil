@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: e.hil,v 1.3 2005-09-29 21:25:00 aschn Exp $
+; $Id: e.hil,v 1.4 2005-11-16 16:54:30 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -769,6 +769,8 @@ savefile
 savefilewithtabs
 sayat_color
 sayatbox
+screenheight
+screenwidth
 screenxysize
 scroll_lock
 search_path
@@ -972,6 +974,7 @@ matchtab_on
 menu_prompt
 nepmd_hini
 padenterkey
+reflowmargins
 ring_enabled
 s_enterkey
 s_padenterkey
