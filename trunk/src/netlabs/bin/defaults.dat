@@ -11,7 +11,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.12 2005-08-07 19:55:59 aschn Exp $
+; $Id: defaults.dat,v 1.13 2005-11-18 15:46:46 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -74,6 +74,9 @@
 "\NEPMD\User\AutoRestore\Ring\MaxRings" = "1"
 
 ; Reflow
+"\NEPMD\User\Reflow\MarginsItem" = "1"
+"\NEPMD\User\Reflow\Margins1" = "1 79 1"
+"\NEPMD\User\Reflow\Margins2" = "1 70 1"
 "\NEPMD\User\Reflow\TwoSpaces" = "0"
 "\NEPMD\User\Reflow\JoinAfterWrap" = "0"
 "\NEPMD\User\Reflow\Next" = "1"
