@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.21 2005-10-08 18:47:51 aschn Exp $
+* $Id: epmenv.c,v 1.22 2005-11-19 15:26:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -609,6 +609,9 @@ return rc;
 // supported by cmd.exe.
 // If pszBuffer was supplied, it will be set to the value of the EPM
 // executable.
+
+//#define SetLoaderAtFirstPart
+
 APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc  = NO_ERROR;
@@ -651,7 +654,7 @@ do
    // default to make no changes
    *ppszNewEnv = NULL;
 
-#if 0
+#ifdef SetLoaderAtFirstPart
    // get loader executable (current file)
    szLoaderExecutable[ 0] = 0;
    // _searchLoaderExecutable can be deleted, if this block will
@@ -671,11 +674,14 @@ do
       //break;
       }
 
+   // **************** Part 1 ****************
+
    if (fEnvAlreadySet == 0)
       {
-      // ------- ------------------------------------------
 
-      // search environment file - ignore errors!
+      // ------- search environment files -----------------
+
+      // ignore errors!
       _searchNepmdEnvironmentFiles( szMainEnvFile, sizeof( szMainEnvFile),
                                     szUserEnvFile, sizeof( szUserEnvFile));
 
@@ -713,11 +719,10 @@ do
          ppszEnv++;
          }
 
-      // ------- ------------------------------------------
+      // ------- set internal env vars --------------------
 
-
-      // -------- set internal var(s) first, use a different buffer for each
-      //          as putvar only passes a pointer to the environment list !!!
+      // set internal var(s) first, use a different buffer for each
+      // as putvar only passes a pointer to the environment list!!!
 
       // --- > set environment variable for NEPMD install directory
       memset( szInstallVar, 0, sizeof( szInstallVar));
@@ -768,7 +773,7 @@ do
 
       // search EpmExecutable after the environment is expanded
 
-#if 0
+#ifdef SetLoaderAtFirstPart
       // --- > set environment variable for EPM loader
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=%s", ENV_NEPMD_LOADEREXECUTABLE, szLoaderExecutable);
@@ -776,11 +781,12 @@ do
       ADDVAR( apszVar[ 6]);
 #endif
 
-      // ------- ------------------------------------------
+      // ------- read env files ---------------------------
 
-      // read env files
       if (strlen( szMainEnvFile)) _readEnvFile( szMainEnvFile, &ulEnvSize, &pszName, pszEnvNameList);
       if (strlen( szUserEnvFile)) _readEnvFile( szUserEnvFile, &ulEnvSize, &pszName, pszEnvNameList);
+
+      // ------- set environment --------------------------
 
       // get memory with updated env size
    // DPRINTF(( "estimated new size is: %u\n", ulEnvSize));
@@ -805,49 +811,88 @@ do
          pszName = NEXTSTR( pszName);
          }
 
+      // ------- end of Part 1 ----------------------------
+
       }  // fEnvAlreadySet == 0
 
-      // search EPM executable after PATH was extended
-      // the loader executable is here not required, if it was processed already before
-      szEpmExecutable[ 0] = 0;
-      szLoaderExecutable[ 0] = 0;
-      rc = _searchEpmExecutable( szEpmExecutable,    sizeof( szEpmExecutable),
-                                 szLoaderExecutable, sizeof( szLoaderExecutable));
+   // ------- search EPM executable and get loader -----
 
-      // hand over name of executable, if buffer supplied
-      if (pszBuffer)
+   // search EPM executable after PATH was extended
+   // the loader executable is here not required, if it was processed already before
+   szEpmExecutable[ 0] = 0;
+   szLoaderExecutable[ 0] = 0;
+   rc = _searchEpmExecutable( szEpmExecutable,    sizeof( szEpmExecutable),
+                              szLoaderExecutable, sizeof( szLoaderExecutable));
+
+   // hand over name of executable, if buffer supplied
+   if (pszBuffer)
+      {
+      // if executable is requested, react on error
+      if (rc != NO_ERROR)
+         break;
+
+      if (strlen( szEpmExecutable) + 1 > ulBuflen)
          {
-         // if executable is requested, react on error
-         if (rc != NO_ERROR)
-            break;
-
-         if (strlen( szEpmExecutable) + 1 > ulBuflen)
-            {
-            rc = ERROR_BUFFER_OVERFLOW;
-            break;
-            }
-         DPRINTF(( "Found executable: %s\n", szEpmExecutable));
-         strcpy( pszBuffer, szEpmExecutable);
+         rc = ERROR_BUFFER_OVERFLOW;
+         break;
          }
+      DPRINTF(( "Found executable: %s\n", szEpmExecutable));
+      strcpy( pszBuffer, szEpmExecutable);
+      }
 
-   // --- > set the next vars after _searchEPMExecutable was called
+   // **************** Part 2 ****************
+
+   // set the next vars after _searchEPMExecutable was called
+   // and after env files are processed
    if (fEnvAlreadySet == 0)
       {
-      // set NEPMD_EPMEXECUTABLE
+
+      // ------- set LIBPATH ------------------------------
+
+// ------>  todo: fix this (but works somehow)
+
+      // This works here, after the first extension of the
+      // environment and after env files are processed.
+      // But %BEGINLIBPATH% is currently not resolved.
+      // Additionally, processing BEGIN/ENDLIBPATH instead of
+      // EPMBEGIN/ENDLIBPATH would make refuse any later change
+      // of them. That must have to do with the 2nd extension of
+      // the environment.
+
+      //pszPathVar = getenv( "BEGINLIBPATH");
+      pszPathVar = getenv( "EPMBEGINLIBPATH");
+      if (pszPathVar != NULL)
+         {
+         DosSetExtLIBPATH( pszPathVar, BEGIN_LIBPATH);
+         }
+      //pszPathVar = getenv( "ENDLIBPATH");
+      pszPathVar = getenv( "EPMENDLIBPATH");
+      if (pszPathVar != NULL)
+         {
+         DosSetExtLIBPATH( pszPathVar, END_LIBPATH);
+         }
+
+      // ------- set internal env vars --------------------
+
+      // --- > set NEPMD_EPMEXECUTABLE
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=%s", ENV_NEPMD_EPMEXECUTABLE, szEpmExecutable);
       apszVar[ 5] = strdup( szInstallVar);
       ADDVAR( apszVar[ 5]);
 
-#if 1
+#ifndef SetLoaderAtFirstPart
+      // --- > set NEPMD_LOADEREXECUTABLE
       // this can be set before the first evironment extension as well,
-      // therefore exchange "#if 0" with "#if 1"
-      // set NEPMD_LOADEREXECUTABLE
+      // therefore activate #define SetLoaderAtFirstPart
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=%s", ENV_NEPMD_LOADEREXECUTABLE, szLoaderExecutable);
       apszVar[ 6] = strdup( szInstallVar);
       ADDVAR( apszVar[ 6]);
 #endif
+
+      // ------- set environment --------------------------
+
+// ------>  todo: fix this (but works somehow)
 
       // quick & dirty: simply repeat extension of the environment,
       // but this time with added values for the executables
@@ -872,6 +917,11 @@ do
          pszName = NEXTSTR( pszName);
          }
 
+      // setting BEGIN/ENDLIBPATH would work here, but then
+      // these pseudo env vars can't be changed later!?!
+
+      // ------- rest of Part 2 ---------------------------
+
       DPRINTF(( "EPMENV: ### %s\n", apszVar[ 0]));
       DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
       DPRINTF(( "EPMENV: ### %s\n", apszVar[ 2]));
@@ -887,18 +937,6 @@ do
 
       // hand over result
       *ppszNewEnv = pszEnv;
-
-      // extend LIBPATH
-      pszPathVar = getenv( "BEGINLIBPATH");
-      if (pszPathVar != NULL)
-         {
-         DosSetExtLIBPATH( pszPathVar, BEGIN_LIBPATH);
-         }
-      pszPathVar = getenv( "ENDLIBPATH");
-      if (pszPathVar != NULL)
-         {
-         DosSetExtLIBPATH( pszPathVar, END_LIBPATH);
-         }
 
       }  // fEnvAlreadySet == 0
 
