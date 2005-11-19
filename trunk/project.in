@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: project.in,v 1.13 2002-11-04 22:45:20 cla Exp $
+# $Id: project.in,v 1.14 2005-11-19 16:44:22 aschn Exp $
 #
 # ===========================================================================
 #
@@ -137,7 +137,7 @@ WPIDEPLIST=\
  $(CMPDIR)\base\netlabs\install\* \
  $(CMPDIR)\base\netlabs\mode\* \
  $(CMPDIR)\base\netlabs\macros\* \
- $(BINDIR)\\base\netlabs\dll\* \
+ $(BINDIR)\base\netlabs\dll\* \
  $(BINDIR)\epmcall\netlabs\bin\* \
  $(BINDIR)\recomp\netlabs\bin\*
 
