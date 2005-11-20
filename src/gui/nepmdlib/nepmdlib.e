@@ -1,6 +1,3 @@
-/*
-- Cosmetic changes.
-*/
 /****************************** Module Header *******************************
 *
 * Module Name: nepmdlib.e
@@ -10,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.40 2005-07-17 15:41:52 aschn Exp $
+* $Id: nepmdlib.e,v 1.41 2005-11-20 15:34:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +51,7 @@ compile if not defined(NEPMD_LIB_DEBUG)
 compile endif
 -------- End of configuration constants for MYCNF.E ----------
 
-   NEPMD_MAXLEN_ESTRING    = 1600;
+   NEPMD_MAXLEN_ESTRING    = 1599;
 
    NEPMD_INI_APPNAME       = 'NEPMD';
    NEPMD_INI_KEY_PATH      = 'Path';
@@ -103,22 +100,23 @@ defproc helperNepmdGetlibfile =
 
 /* --------------------------------- */
 
-defproc helperNepmdCheckliberror (LibFile, rc) =
+defproc helperNepmdCheckliberror (LibFile, ret)
+   -- Never use rc as standard var!
 
-   /* complain if library not available */
-   if (rc > 2147483647) then
-      /* call  winmessagebox( ERRMSG_ERROR_TITLE, ERRMSG_CANNOT_LOAD, ERRMSG_BOXSTYLE); */
-      sayerror ERRMSG_CANNOT_LOAD;
-      stop;
+   if ret < 0 then
+      ErrorText = ERRMSG_CANNOT_LOAD
+      sayerror ErrorText' ('sayerrortext(ret)')'
    endif
 
-   /* allow easy debugging - release DLL instantly */
+   -- allow easy debugging - release DLL instantly
    if (NEPMD_LIB_DEBUG) then
-      /* use different rc  - don't overwrite rc from dynalink32 call */
-      rcx = dynafree( LibFile);
+      -- use different rc  - don't overwrite rc from dynalink32 call
+      rcx = dynafree( LibFile)
    endif
 
-   return;
+   -- Restore rc of the calling proc
+   rc = ret
+   return
 
 /* --------------------------------- */
 compile if NEPMD_LIB_TEST
