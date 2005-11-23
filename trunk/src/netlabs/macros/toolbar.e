@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.8 2005-11-23 22:57:19 aschn Exp $
+* $Id: toolbar.e,v 1.9 2005-11-23 23:05:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -256,7 +256,7 @@ compile endif
 compile if SAVE_TOOLBAR_NAME_IN_EPM_INI
    call setprofile( app_hini, appname, INI_DEF_TOOLBAR, BarName)
 compile else
-   KeyPath = '\NEPMD\User\Toolbar\SelectedName'
+   KeyPath = '\NEPMD\User\Toolbar\Name'
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, BarName)
 compile endif
    return
@@ -279,7 +279,7 @@ compile endif
 compile if SAVE_TOOLBAR_NAME_IN_EPM_INI
    BarName = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
 compile else
-   KeyPath = '\NEPMD\User\Toolbar\SelectedName'
+   KeyPath = '\NEPMD\User\Toolbar\Name'
    BarName = NepmdQueryConfigValue( nepmd_hini, KeyPath)
 compile endif
    if BarName = '' then
