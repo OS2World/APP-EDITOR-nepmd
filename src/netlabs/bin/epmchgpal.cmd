@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2003
 *
-* $Id: epmchgpal.cmd,v 1.5 2005-07-17 15:41:54 aschn Exp $
+* $Id: epmchgpal.cmd,v 1.6 2005-11-23 22:44:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -628,12 +628,49 @@ FindLibPath:
    DllFullName = ''
    BootDrive = GetBootDrive()
    LibpathDirs = GetIniValue( BootDrive'\config.sys', '', 'LIBPATH')
-   BeginLibpathDirs = value( 'BEGINLIBPATH', , env)
-   EndLibpathDirs   = value( 'ENDLIBPATH', , env)
+   /*BeginLibpathDirs = value( 'BEGINLIBPATH', , env)*/
+   /*EndLibpathDirs   = value( 'ENDLIBPATH', , env)*/
+
+   fFunctionFound = 0
+   /*if \RxFuncQuery( 'SysQueryExtLIBPATH') then*/
+   if \RxFuncQuery( 'SYSQUERYEXTLIBPATH') then
+      fFunctionFound = 1
+
+   if fFunctionFound = 1 then
+      BeginLibpathDirs = SysQueryExtLIBPATH( 'B')
+   else
+   do
+      '@CALL RXQUEUE /CLEAR'
+      '@SET BEGINLIBPATH|RXQUEUE /FIFO'
+      parse pull BeginLibpathDirs
+      parse value BeginLibpathDirs with . '=' BeginLibpathDirs
+   end
+   if BeginLibpathDirs = '(null)' then
+      BeginLibpathDirs = ''
+
+   if fFunctionFound = 1 then
+      EndLibpathDirs = SysQueryExtLIBPATH( 'E')
+   else
+   do
+      '@CALL RXQUEUE /CLEAR'
+      '@SET ENDLIBPATH|RXQUEUE /FIFO'
+      parse pull EndLibpathDirs
+      parse value EndLibpathDirs with . '=' EndLibpathDirs
+   end
+   if EndLibpathDirs = '(null)' then
+      EndLibpathDirs = ''
+
+   if \(fFunctionFound = 1) then
+      '@CALL RXQUEUE /CLEAR'
+
+   /*say 'BeginLIBPATH = ['BeginLibPathDirs']'; '@pause'*/
+   /*say 'EndLIBPATH = ['EndLibPathDirs']'; '@pause'*/
+
    if BeginLibpathDirs > '' then
       LibpathDirs = strip( BeginLibpathDirs, 'T', ';')';'LibpathDirs
    if EndLibpathDirs > '' then
       LibpathDirs = strip( LibpathDirs, 'T', ';')';'EndLibpathDirs
+
    rest = LibpathDirs
    do while rest <> ''
       parse value rest with Dir';'rest
@@ -649,15 +686,10 @@ FindLibPath:
 
 
 GetBootDrive:
-   GetOS2BootDrive: procedure
-   signal on syntax name GetBootDrive2
-   BootDrive = SysBootDrive()
-GetBootDrive2:
-   if BootDrive = '' then
-      do
-         Path = value( 'PATH', , env)
-         parse upper value Path with '\OS2\SYSTEM' -2 BootDrive +2
-      end
+   if \RxFuncQuery( 'SysBootDrive') then
+      BootDrive = SysBootDrive()
+   else
+      parse upper value value( 'PATH', , env) with ':\OS2\SYSTEM' -1 BootDrive +2
    return BootDrive
 
 
@@ -847,7 +879,10 @@ OverwriteDll:
             end
 */
       end
-   say 'Patch applied and DLL copied over. Restart EPM to see the colors changed.'
+   say 'Patch applied and DLL copied over. Restarting EPM.'
+   "start EPM /r 'Restart'"
+   say 'Note: If more than one EPM window is open, you have to close'
+   say '      them all manually in order to reload the DLL.'
    return 0
 
 
