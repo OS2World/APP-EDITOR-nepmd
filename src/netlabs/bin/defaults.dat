@@ -11,7 +11,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.13 2005-11-18 15:46:46 aschn Exp $
+; $Id: defaults.dat,v 1.14 2005-11-23 23:07:08 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -105,6 +105,9 @@
 ; Menu
 "\NEPMD\User\Menu\NoDismiss" = "1"
 "\NEPMD\User\Menu\Name" = "Newmenu"
+
+; Toolbar
+"\NEPMD\User\Toolbar\Name" = "Newbar"
 
 ; Readonly
 "\NEPMD\User\Readonly" = "1"
