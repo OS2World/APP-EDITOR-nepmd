@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.32 2005-11-23 23:49:51 aschn Exp $
+* $Id: main.e,v 1.33 2005-11-23 23:56:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -91,6 +91,7 @@ defmain
    universal unnamedfilename
    universal defmainprocessed
    universal loadstate
+   universal CurEditCmd
    universal firstloadedfid  -- first file for the 'xcom e /n' cmd
    universal firstinringfid  -- first file in the ring
    loadstate = 0
