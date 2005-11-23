@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.32 2005-11-16 16:17:49 aschn Exp $
+* $Id: linkcmds.e,v 1.33 2005-11-23 22:39:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -450,9 +450,6 @@ defc RecompileEpm
 ; ---------------------------------------------------------------------------
 ; Check for a modified file in ring. If not, restart current EPM window.
 ; Keep current directory.
-; Doesn't work really reliable everytime (but even though useful):
-;    -  Sometimes EPM.EX is not reloaded.
-;    -  Sometimes EPM crashes on 'SaveRing' or on executing arg(1).
 defc Restart
    if arg(1) = '' then
       cmd = 'RestoreRing'
@@ -461,8 +458,18 @@ defc Restart
    endif
    'RingCheckModify'
    'SaveRing'
-   "postme Open '"cmd"'"
+   EpmArgs = "'"cmd"'"
+compile if 0
+   -- Doesn't work really reliable everytime (but even though useful):
+   -- o  Sometimes EPM.EX is not reloaded.
+   -- o  Sometimes EPM crashes on 'SaveRing' or on executing arg(1).
+   'postme Open' EpmArgs
+compile else
+   -- Using external .cmd now:
+   EpmExe = Get_Env( 'NEPMD_LOADEREXECUTABLE')
+   'postme start /c /min epmlast' EpmExe EpmArgs
    'postme Close'
+compile endif
 
 ; ---------------------------------------------------------------------------
 ; When a non-temporary file (except .Untitled) in ring is modified, then
@@ -1444,6 +1451,7 @@ defc CheckEpmMacros
 
 ; ---------------------------------------------------------------------------
 ; Show a MsgBox with the result of RecompileNew, submitted as arg(1).
+; Syntax: RecompileNewMsgBox cWarning cRecompile cDelete cRelink fRestart fCheckOnly
 ; Todo: use different text for fCheckOnly = 1, cRecompile > 0, cRelink > 0
 defc RecompileNewMsgBox
    NepmdUserDir = Get_Env('NEPMD_USERDIR')
