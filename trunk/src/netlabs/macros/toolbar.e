@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.7 2005-10-18 00:03:12 aschn Exp $
+* $Id: toolbar.e,v 1.8 2005-11-23 22:57:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,15 +19,23 @@
 *
 ****************************************************************************/
 
+const
+; Use EPM.INI or NEPMD.INI for saving the active toolbar name?
+; This option is useful, because standard EPM doesn't has access
+; to the .bmp files in the NEPMD tree.
+compile if not defined( SAVE_TOOLBAR_NAME_IN_EPM_INI)
+   SAVE_TOOLBAR_NAME_IN_EPM_INI = 0
+compile endif
+
 ; Moved from STDCTRL.E
 
 ; ---------------------------------------------------------------------------
 ;  load_actions
 ;     This defc is called by the etke*.dll to generate the list of actions
 ;     for UCMENUS in the hidden file called actlist.
-;     If called with a pointer parameter a buffer is create in which
-;     the list of actions are placed. If called without any parameter
-;     the actlist file is generated.
+;     If called with a pointer parameter a buffer is created in which
+;     the list of actions are placed (used for toolbar buffet creation).
+;     If called without any parameter the .actlist file is generated.
 ;     John Ponzo 8/93
 ;     Optimized by LAM
 defc load_actions
@@ -122,6 +130,7 @@ defc load_actions
    -- If called with a parameter send EFRAME_ACTIONSLIST message to the frame
    -- of the edit window. mp1 is a buffer containing all of the actions loaded
    -- in the hidden file actlist.
+   -- Called with an arg when the toolbar buffet shall be created.
    if arg(1) then
       activatefile ActionsList_FileID
       buflen = filesize() + .last + 1
@@ -131,12 +140,19 @@ defc load_actions
          return
       endif
       call buffer( PUTBUF, bufhandle, 1, ActionsList_FileID.last, NOHEADER + FINALNULL + APPENDCR)
-      if word(arg(1),1) <> 'ITEMCHANGED' then
-         windowmessage( 0, getpminfo(EPMINFO_EDITFRAME), 5913, bufhandle, arg(1))
+      if word( arg(1), 1) <> 'ITEMCHANGED' then
+         windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
+                        5913,
+                        bufhandle,
+                        arg(1))
       else
-         windowmessage( 0, getpminfo(EPMINFO_EDITFRAME), 5918, bufhandle, subword( arg(1), 2))
+         windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
+                        5918,
+                        bufhandle,
+                        subword( arg(1), 2))
       endif
    endif
+
    activatefile ActiveFileID
 
 ; ---------------------------------------------------------------------------
@@ -216,78 +232,76 @@ defc ExecuteAction
       endif
    endif
 
-compile if 0 -- No longer used ----------------------------------------------
-
-defc load_toolbar
-   call list_toolbars( LOAD_TOOLBAR__MSG, SELECT_TOOLBAR__MSG, 7000, 5916)
-
-defproc list_toolbars( list_title, list_prompt, help_panel, msgid)
+; ---------------------------------------------------------------------------
+; Save active toolbar name to ini. If arg is specified, use that name.
+; Syntax: call SetDefaultToolbar( [<toolbar_name>])
+; Use NEPMD.INI now, because Newbar's .bmps are not available for standard
+; EPM. In order to make standard EPM open with a valid toolbar, it should
+; better keep the old setting alone.
+defproc SetDefaultToolbar
+compile if SAVE_TOOLBAR_NAME_IN_EPM_INI
    universal app_hini
+   universal appname
+compile else
+   universal nepmd_hini
    universal toolbar_loaded
-;  l = dynalink32('PMSHAPI',
-;                 '#115',               -- PRF32QUERYPROFILESTRING
-;                 atol(app_hini)    ||  -- HINI_PROFILE
-;                 address(App)      ||  -- pointer to application name
-;                 atol(0)           ||  -- Key name is NULL; returns all keys
-;                 atol(0)           ||  -- Default return string is NULL
-;                 address(inidata)  ||  -- pointer to returned string buffer
-;                 atol(1600), 2)        -- max length of returned string
-   inidata = queryprofile( app_hini, INI_UCMENU_APP, '')
-   l = length( inidata)
-
-   if not l then sayerror NO_TOOLBARS__MSG; return; endif
-   getfileid startfid
-   'xcom e /c /q tempfile'
-   if rc <> -282 then  -- sayerror('New file')
-      sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
-      return
+compile endif
+   BarName = arg(1)
+   if BarName = '' then  -- use current name if no name specified
+      BarName = toolbar_loaded
    endif
-   .autosave = 0
-   browse_mode = browse()     -- query current state
-   if browse_mode then call browse(0); endif
-   do while inidata <> ''
-      parse value inidata with BarName \0 inidata
-      insertline BarName, .last+1
-   enddo
-   if browse_mode then call browse(1); endif  -- restore browse state
-   if listbox_buffer_from_file( startfid, bufhndl, noflines, usedsize) then
-      return
+   if wordpos( \1' STANDARD', BarName) then
+      BarName = ''  -- delete ini key for default toolbar
    endif
-   parse value listbox( list_title,
-                        \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
-                        '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
-                        1, 5,
-                        min(noflines,12),
-                        0,
-                        gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(help_panel) ||
-                        list_prompt) with button 2 BarName \0
-   call buffer( FREEBUF, bufhndl)
-   if button <> \1 then
-      return
-   endif
-   call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
-                       msgid,
-                       app_hini,
-                       put_in_buffer( BarName))
-   if msgid = 5916 then
-      toolbar_loaded = BarName
-   endif
-
-defc delete_toolbar
-   call list_toolbars( DELETE_TOOLBAR__MSG, SELECT_TOOLBAR__MSG, 7001, 5919)
-
-compile endif  -- 0 ---------------------------------------------------------
+compile if SAVE_TOOLBAR_NAME_IN_EPM_INI
+   call setprofile( app_hini, appname, INI_DEF_TOOLBAR, BarName)
+compile else
+   KeyPath = '\NEPMD\User\Toolbar\SelectedName'
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, BarName)
+compile endif
+   return
 
 ; ---------------------------------------------------------------------------
-; Save current toolbar in EPM.INI.
+; Query saved toolbar name from ini and set universal var toolbar_loaded.
+; Return Barname, but not required, because the universal var is set.
+; Syntax: BarName = GetDefaultToolbar() or call GetDefaultToolbar()
+; Use NEPMD.INI now, because Newbar's .bmps are not available for standard
+; EPM. In order to make standard EPM open with a valid toolbar, it should
+; better keep the old setting alone.
+defproc GetDefaultToolbar
+compile if SAVE_TOOLBAR_NAME_IN_EPM_INI
+   universal app_hini
+   universal appname
+compile else
+   universal nepmd_hini
+   universal toolbar_loaded
+compile endif
+compile if SAVE_TOOLBAR_NAME_IN_EPM_INI
+   BarName = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
+compile else
+   KeyPath = '\NEPMD\User\Toolbar\SelectedName'
+   BarName = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+compile endif
+   if BarName = '' then
+      toolbar_loaded = \1
+   else
+      toolbar_loaded = BarName
+   endif
+   return BarName
+
+; ---------------------------------------------------------------------------
+; Save current toolbar to EPM.INI.
+; Syntax: SaveToolbar [<bar_name>]
+; Default <bar_name> is current name.
 defc save_toolbar, SaveToolbar
-   universal app_hini, appname
+   universal app_hini
+   universal appname
    universal toolbar_loaded
    BarName = strip( arg(1))
    if BarName = '' then
       tb = toolbar_loaded
-      if tb=\1 then
-         tb=''
+      if tb = \1 then  -- \1 is defined to represent the built-in toolbar
+         tb = ''
       endif
       parse value entrybox( SAVEBAR__MSG,
                             '/'SAVE__MSG'/'Cancel__MSG'/'Help__MSG'/',
@@ -295,8 +309,10 @@ defc save_toolbar, SaveToolbar
                             '', 200,
                             atoi(1) || atoi(7010) || gethwndc( APP_HANDLE) ||
                             SAVEBAR_PROMPT__MSG) with button 2 BarName \0
-      if button <> \1 then return; endif
-      if BarName='' then
+      if button <> \1 then
+         return
+      endif
+      if BarName = '' then
          sayerror NOTHING_ENTERED__MSG
          return
 ;        BarName = 'Default'
@@ -310,9 +326,24 @@ defc save_toolbar, SaveToolbar
    toolbar_loaded = BarName
 
 ; ---------------------------------------------------------------------------
+; Delete a toolbar.
+defc deletetemplate, DeleteToolbar
+   universal app_hini
+   parse arg BarName
+;  if BarName = '' then
+;     BarName = 'Default'
+;  endif
+   call windowmessage(0, getpminfo(EPMINFO_EDITFRAME),
+                      5919,
+                      app_hini,
+                      put_in_buffer( BarName))
+
+; ---------------------------------------------------------------------------
 ; Activate built-in toolbar.
-defc LoadDefaultToolbar
-   universal activeucmenu, toolbar_loaded
+; LoadDefaultToolbar should be avoided (default means from ini)!
+defc LoadDefaultToolbar, LoadStandardToolbar
+   universal activeucmenu
+   universal toolbar_loaded
    if activeucmenu = 'Toolbar' then  -- Already used, delete it to be safe.
       deletemenu activeucmenu
    else
@@ -385,19 +416,6 @@ defc LoadDefaultToolbar
    toolbar_loaded = \1
 
 ; ---------------------------------------------------------------------------
-; Delete a toolbar.
-defc deletetemplate, DeleteToolbar
-   universal app_hini
-   parse arg BarName
-;  if BarName = '' then
-;     BarName = 'Default'
-;  endif
-   call windowmessage(0, getpminfo(EPMINFO_EDITFRAME),
-                      5919,
-                      app_hini,
-                      put_in_buffer( BarName))
-
-; ---------------------------------------------------------------------------
 ; Activate last saved toolbar from EPM.INI.
 defc default_toolbar, ReloadToolbar
    universal app_hini
@@ -413,7 +431,8 @@ compile if WPS_SUPPORT
       if toolbar_loaded <> newtoolbar then
          toolbar_loaded = newtoolbar
          if toolbar_loaded = \1 then
-            'loaddefaulttoolbar'
+            --'loaddefaulttoolbar'
+            'LoadStandardToolbar'
          else
             call windowmessage( 0, getpminfo( EPMINFO_EDITFRAME),
                                 5916,
@@ -425,21 +444,32 @@ compile if WPS_SUPPORT
       endif
    else
 compile endif
-      def_tb = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
-;     if def_tb = '' then def_tb = 'Default'; endif
+      newcmd = ''
+      --def_tb = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
+      def_tb = GetDefaultToolbar()
       if def_tb <> '' then
+         -- check if present, data is not used
          newcmd = queryprofile( app_hini, INI_UCMENU_APP, def_tb)
-      else
-         newcmd = ''
+         -- If not found in ini, try to import it from a .bar file
+         if newcmd = '' then
+            barfile = ''
+            findfile barfile, def_tb'.bar', 'EPMBARPATH'
+            if barfile > '' then
+               'ImportToolbar' barfile','def_tb
+               if rc = 0 then  -- if data of def_tb'.bar' successful written to ini
+                  newcmd = 1
+               endif
+            endif
+         endif
       endif
-      if newcmd <> '' then
+      if newcmd <> '' then  -- load it
          toolbar_loaded = def_tb
          call windowmessage( 0, getpminfo( EPMINFO_EDITFRAME),
                              5916,
                              app_hini,
                              put_in_buffer( toolbar_loaded))
       else
-         'loaddefaulttoolbar'
+         'LoadStandardToolbar'
       endif
 compile if WPS_SUPPORT
    endif
@@ -459,23 +489,30 @@ defc load_toolbar, LoadToolbar
    universal app_hini
    universal toolbar_loaded
    BarName = arg(1)
-   if BarName='' then  -- List all toolbars
-      inidata = queryprofile(app_hini, INI_UCMENU_APP, '')
-      if not length(inidata) then sayerror NO_TOOLBARS__MSG; return; endif
+   if BarName = '' then  -- List all toolbars
+      inidata = queryprofile( app_hini, INI_UCMENU_APP, '')
+      if not length( inidata) then
+         sayerror NO_TOOLBARS__MSG
+         return
+      endif
       getfileid startfid
       'xcom e /c /q tempfile'
-      if rc<>-282 then  -- sayerror('New file')
+      if rc <> -282 then  -- sayerror('New file')
          sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
          return
       endif
       .autosave = 0
-      browse_mode = browse()     -- query current state
-      if browse_mode then call browse(0); endif
-      do while inidata<>''
+      browse_mode = browse()  -- query current state
+      if browse_mode then
+         call browse(0)
+      endif
+      do while inidata <> ''
          parse value inidata with BarName \0 inidata
-         insertline BarName, .last+1
+         insertline BarName, .last + 1
       enddo
-      if browse_mode then call browse(1); endif  -- restore browse state
+      if browse_mode then
+         call browse(1)       -- restore browse state
+      endif
       if listbox_buffer_from_file( startfid,
                                    bufhndl,
                                    noflines,
@@ -486,7 +523,7 @@ defc load_toolbar, LoadToolbar
                            \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                            '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
                            1, 5,
-                           min(noflines,12),
+                           min( noflines, 12),
                            0,
                            gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(7000) ||
                            SELECT_TOOLBAR__MSG) with button 2 BarName \0
@@ -518,20 +555,24 @@ const
 
 ; This command can be used for dragdrop processing of .bar files:
 ; If rc = 13, then the file should be loaded normally.
+; Syntax: ImportToolbar <full_filename> [, <barname>]
 defc ImportToolbar
    universal app_hini
+   universal toolbar_loaded
 
    -- Get .bar file
-   BarFile = arg(1)
+   parse arg BarFile ',' BarName
+   BarFile = strip( BarFile)
+   BarName = strip( BarName)
    if BarFile = '' then
-      BarFile = 'f:\apps\nepmd\netlabs\bar\newbar.bar'
+      return 87  -- ERROR_INVALID_PARAMETER
    endif
    -- Append extension, if not specified
    if (BarFile > '' & upcase( rightstr( BarFile, 4)) <> '.BAR') then
       BarFile = BarFile'.bar'
    endif
    if NepmdFileExists( BarFile) then
-      -- Since a REXX macro is used, no check is required anymore.
+      -- Since a REXX macro is used, no check for size is required anymore.
 /*
       next = NepmdQueryPathInfo( BarFile, 'SIZE')
       parse value next with 'ERROR:'rc
@@ -539,14 +580,12 @@ defc ImportToolbar
          Size = next
          if Size > 1599 then
             sayerror 'File longer than 1599 chars. Cannot import toolbar with this defc. Use the settings dialog instead.'
-            rc = 24  -- ERROR_BAD_LENGTH
-            return
+            return 24  -- ERROR_BAD_LENGTH
          endif
       endif
 */
    else
-      rc = 2  -- ERROR_FILE_NOT_FOUND
-      return
+      return 2  -- ERROR_FILE_NOT_FOUND
    endif
 
    -- Read .bar file (to check for signature only)
@@ -560,58 +599,62 @@ defc ImportToolbar
          if l = 1 then
             if not leftstr( Bar, length( TOOLBAR_SIG)) = TOOLBAR_SIG then
                'xcom quit'
-               rc = 13  -- ERROR_INVALID_DATA
-               return
+               return 13  -- ERROR_INVALID_DATA
             endif
          else
          endif
       end
       'xcom quit'
    else
-      rc = 5  -- ERROR_ACCESS_DENIED
-      return
+      return 5  -- ERROR_ACCESS_DENIED
    endif
 
-   -- Get default name from file
-   lp = lastpos( '\', BarFile)
-   BarName = upcase( substr( BarFile, lp + 1, 1))lowcase( substr( BarFile, lp + 2))
-   parse value BarName with BarName '.' rest
+   if BarName = '' then
+      -- Get default name from file
+      lp = lastpos( '\', BarFile)
+      BarName = upcase( substr( BarFile, lp + 1, 1))lowcase( substr( BarFile, lp + 2))
+      parse value BarName with BarName '.' rest
 
-   -- Ask user for name
-   Title = 'Import toolbar'
-   Text  = 'Enter new toolbar name:'
-   Text  = Text''copies( ' ', max( 50 - length(Text), 0))
-   Entry = BarName
-   parse value entrybox( Title,
-                         '',
-                         Entry,
-                         0,
-                         240,
-                         atoi(1) || atoi(0) || atol(0) ||
-                         Text) with button 2 next \0
-   next = strip( next)
-   if button = \1 & next <> '' then
-      BarName = next
-   else
-      return
+      -- Ask user for name
+      Title = 'Import toolbar'
+      Text  = 'Enter new toolbar name:'
+      Text  = Text''copies( ' ', max( 50 - length(Text), 0))
+      Entry = BarName
+      parse value entrybox( Title,
+                            '',
+                            Entry,
+                            0,
+                            240,
+                            atoi(1) || atoi(0) || atol(0) ||
+                            Text) with button 2 next \0
+      next = strip( next)
+      if button = \1 & next <> '' then
+         BarName = next
+      else
+         return 31  -- ERROR_GEN_FAILURE
+      endif
    endif
 
    IniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
    IniAppl = 'UCMenu_Templates'
 
+   -- Write toolbar data from BarFile to IniFile -> IniAppl -> BarName
    'rx toolbar IMPORT' IniFile IniAppl BarName BarFile
+
    if rc = 0 then
+      toolbar_loaded = BarName
       -- Make it default
-      call setprofile( app_hini, 'EPM', 'DEFTOOLBAR', BarName)
+      --call setprofile( app_hini, 'EPM', 'DEFTOOLBAR', BarName)
+      call SetDefaultToolbar()
       -- Activate
       'postme load_toolbar' BarName
       if rc = 0 then
-         sayerror 'Toolbar "'BarName'" activated'
+         sayerror 'Toolbar "'BarName'" imported and activated'
       else
-         sayerror 'Error. Toolbar "'BarName'" not saved. rc = 'rc
+         sayerror 'Error. Toolbar "'BarName'" not activated. rc = 'rc
       endif
    else
-      'Error. Toolbar not saved. rc = 'rc
+      'Error. Toolbar "'BarName'" not imported. rc = 'rc
    endif
 
 /*
@@ -646,7 +689,8 @@ defc ExportToolbar2
    -- Get name of active toolbar from ini
    BarName = toolbar_loaded  -- query current toolbar name
    if BarName = \1 then      -- \1 means: default toolbar is active
-      BarName = queryprofile( app_hini, 'EPM', 'DEFTOOLBAR')  -- query last saved toolbar name
+      --BarName = queryprofile( app_hini, 'EPM', 'DEFTOOLBAR')  -- query last saved toolbar name
+      BarName = GetDefaultToolbar()  -- query last saved toolbar name
    endif
 
    IniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
@@ -661,7 +705,7 @@ defc ExportToolbar2
       sayerror 'Error. Toolbar not exported. rc = 'rc
    endif
 
-   -- Delete temporary saved toolbar
+   -- Delete temporarily saved toolbar
    call setprofile( app_hini, 'UCMenu_Templates', TmpBarName, '')
 
 /*
@@ -673,11 +717,10 @@ defc ExportToolbar2
       fStop = 1
    endif
 
-   -- Delete temporary saved toolbar
+   -- Delete temporarily saved toolbar
    call setprofile( app_hini, 'UCMenu_Templates', TmpBarName, '')
    if fStop = 1 then
-      rc = 24  -- ERROR_BAD_LENGTH
-      return
+      return 24  -- ERROR_BAD_LENGTH
    endif
 
    -- Get filename from BarName
@@ -698,6 +741,69 @@ defc ExportToolbar2
 */
 
 ; ---------------------------------------------------------------------------
+compile if 0 -- No longer used ----------------------------------------------
+
+defc load_toolbar
+   call list_toolbars( LOAD_TOOLBAR__MSG, SELECT_TOOLBAR__MSG, 7000, 5916)
+
+defproc list_toolbars( list_title, list_prompt, help_panel, msgid)
+   universal app_hini
+   universal toolbar_loaded
+;  l = dynalink32('PMSHAPI',
+;                 '#115',               -- PRF32QUERYPROFILESTRING
+;                 atol(app_hini)    ||  -- HINI_PROFILE
+;                 address(App)      ||  -- pointer to application name
+;                 atol(0)           ||  -- Key name is NULL; returns all keys
+;                 atol(0)           ||  -- Default return string is NULL
+;                 address(inidata)  ||  -- pointer to returned string buffer
+;                 atol(1600), 2)        -- max length of returned string
+   inidata = queryprofile( app_hini, INI_UCMENU_APP, '')
+   l = length( inidata)
+
+   if not l then sayerror NO_TOOLBARS__MSG; return; endif
+   getfileid startfid
+   'xcom e /c /q tempfile'
+   if rc <> -282 then  -- sayerror('New file')
+      sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
+      return
+   endif
+   .autosave = 0
+   browse_mode = browse()     -- query current state
+   if browse_mode then call browse(0); endif
+   do while inidata <> ''
+      parse value inidata with BarName \0 inidata
+      insertline BarName, .last+1
+   enddo
+   if browse_mode then call browse(1); endif  -- restore browse state
+   if listbox_buffer_from_file( startfid, bufhndl, noflines, usedsize) then
+      return
+   endif
+   parse value listbox( list_title,
+                        \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
+                        '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
+                        1, 5,
+                        min(noflines,12),
+                        0,
+                        gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(help_panel) ||
+                        list_prompt) with button 2 BarName \0
+   call buffer( FREEBUF, bufhndl)
+   if button <> \1 then
+      return
+   endif
+   call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
+                       msgid,
+                       app_hini,
+                       put_in_buffer( BarName))
+   if msgid = 5916 then
+      toolbar_loaded = BarName
+   endif
+
+defc delete_toolbar
+   call list_toolbars( DELETE_TOOLBAR__MSG, SELECT_TOOLBAR__MSG, 7001, 5919)
+
+compile endif  -- 0 ---------------------------------------------------------
+
+; ---------------------------------------------------------------------------
 ; From: Larry Margolis (margoli@ibm.net)
 ; Subject: Re: change EPM toolbar dynamically
 ; Newsgroups:comp.os.os2.programmer.tools
@@ -713,6 +819,7 @@ defc loadtb    -- I don't like the built-in default; here's mine:
    else
       activeucmenu = 'Toolbar'
    endif
+   --                              # button text # button bitmap # command # parameters # .ex file
    buildsubmenu activeucmenu,  1, "#Msgs#1100#a_Messages##sampactn", '', 0, 0
    buildsubmenu activeucmenu,  2, '', '', 16401, 0  -- MIS_SPACER
    buildsubmenu activeucmenu,  3, "#Add New#1101#a_Add_New##sampactn", '', 0, 0
@@ -727,6 +834,7 @@ defc loadtb    -- I don't like the built-in default; here's mine:
    toolbar_loaded = \1  -- "Built-in"
 
 defc addtb  -- Sample command to add a button to the toolbar defined above
+            -- This can be used to overwrite a button as well.
    universal activeucmenu, toolbar_loaded
    activeucmenu = 'Toolbar'
    buildsubmenu activeucmenu, 11, "#OS/2 win#os2win.bmp#cmd_os2win##commands", '', 0, 0
@@ -735,7 +843,7 @@ defc addtb  -- Sample command to add a button to the toolbar defined above
 defc deltb  -- Sample command to delete the Settings button from the toolbar defined above
    universal activeucmenu, toolbar_loaded
    activeucmenu = 'Toolbar'
-   deletemenu activeucmenu, 7, 0, 0
+   deletemenu activeucmenu, 6, 0, 0
    showmenu activeucmenu, 3
 
 compile endif  -- 0

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.5 2004-11-30 21:16:57 aschn Exp $
+* $Id: config.e,v 1.6 2005-11-23 22:57:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -71,14 +71,36 @@ defc configdlg
 compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
 compile endif
-   if upcase(arg(1)) = 'SYS' then
+
+   args = arg(1)
+   wp = wordpos( 'SYS', upcase( args))
+   if wp then
+      args = delword( args, wp, 1)
       msgid = 5147  -- EPM_POPSYSCONFIGDLG
    else
       msgid = 5129  -- EPM_POPCONFIGDLG
    endif
+
+   omit = 0
+   if isnum( args) then
+      omit = args
+   endif
+   -- omit: from 0 to 1023
+   --    0: all pages
+   --    1: without page  1  Margins
+   --    2: without page  2  Colors
+   --    4: without page  3  Pathes
+   --    8: without page  4  Auto-save
+   --   16: without page  5  Fonts
+   --   32: without page  6  Keys
+   --   64: without page  7  Window
+   --  128: without page  8  Misc.
+   --  256: without page  9  Toolbar style
+   --  512: without page 10  Toolbar
+
    call windowmessage( 0, getpminfo(APP_HANDLE),
                        msgid,
-                       0,           -- Omit no pages
+                       omit,           -- 0 = Omit no pages
 compile if CHECK_FOR_LEXAM
                        not LEXAM_is_available)
 compile else
@@ -375,13 +397,29 @@ compile endif
       if tempstr = '' then
          tempstr = \1'8'\1'32'\1'32'\1'8.Helv'\1'16777216'\1'16777216'\1
       endif
-      call send_config_data(hndle, tempstr, 22, help_panel)
+      call send_config_data( hndle, tempstr, 22, help_panel)
 
    elseif page = 13 then  ---------------- Page 13 is Toolbar name & on/off
       active_toolbar = toolbar_loaded
-      if active_toolbar = \1 then active_toolbar = ''; endif
-      call send_config_data( hndle, checkini( send_default, INI_DEF_TOOLBAR, active_toolbar, ''), 20, help_panel)
+      if active_toolbar = \1 then
+         active_toolbar = ''
+      endif
+;      checkini( send_default, INI_DEF_TOOLBAR, active_toolbar, '')
+      send_toolbar = active_toolbar  -- current setting
+      if send_default then
+         if send_default = 1 then
+            send_toolbar = ''        -- standard setting
+         endif
+      else
+         next = GetDefaultToolbar()
+         if next > '' then
+            send_toolbar = next      -- default setting from ini
+         endif
+      endif
+      call send_config_data( hndle, send_toolbar, 20, help_panel)
       call send_config_data( hndle, queryframecontrol(EFRAMEF_TOOLBAR), 21, help_panel)
+      -- The list of toolbars and all the button actions on this page are not configurable
+      -- with E commands.
 
    endif  -- page = 1
 
@@ -685,7 +723,8 @@ compile endif
    elseif configid = 20 then
       if newcmd = '' then  -- Null string; use compiled-in toolbar
          if toolbar_loaded <> \1 then
-            'loaddefaulttoolbar'
+            --'loaddefaulttoolbar'
+            'LoadStandardToolbar'
          endif
       elseif newcmd <> toolbar_loaded then
          call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
@@ -694,7 +733,8 @@ compile endif
          toolbar_loaded = newcmd
       endif
       if perm then
-         call setprofile( app_hini, appname, INI_DEF_TOOLBAR, newcmd)
+         --call setprofile( app_hini, appname, INI_DEF_TOOLBAR, newcmd)
+         call SetDefaultToolbar()
       endif
 
    elseif configid = 21 then
@@ -1012,7 +1052,8 @@ compile if WPS_SUPPORT
 compile endif
 
    if toolbar_present then
-      'default_toolbar'
+      --'default_toolbar'
+      'ReloadToolbar'
 ;  else
 ;     'toggleframe' EFRAMEF_TOOLBAR toolbar_present
    endif
@@ -1312,7 +1353,8 @@ defc refresh_config  -- for WPS_SUPPORT only
       newcmd = peekz( peek32( wpshell_handle, 80, 4))
       if newcmd = '' then  -- Null string; use compiled-in toolbar
          if toolbar_loaded <> \1 then
-            'loaddefaulttoolbar'
+            --'loaddefaulttoolbar'
+            'LoadStandardToolbar'
          endif
       elseif newcmd <> toolbar_loaded then
          call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
@@ -1439,6 +1481,7 @@ defc savecolor
 
    call setprofile( app_hini, appname, INI_DTCOLOR, vDESKTOPColor)
    call setprofile( app_hini, appname, INI_STUFF, .textcolor .markcolor vstatuscolor vmessagecolor)
+   -- Note: vnepmd_modified_statuscolor is still missing.
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
