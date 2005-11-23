@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.26 2005-09-29 20:39:20 aschn Exp $
+* $Id: stdcnf.e,v 1.27 2005-11-23 22:46:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -853,6 +853,7 @@ compile endif
 -- By default, in EPM we block the action of action bar mnemonics being
 -- automatic accelerators.  Some users might not want this.  Can be 'SWITCH'.
 compile if not defined(BLOCK_ACTIONBAR_ACCELERATORS)
+; obsolete
    --BLOCK_ACTIONBAR_ACCELERATORS = 1  -- changed by aschn
    BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
 compile endif
@@ -860,6 +861,7 @@ compile endif
 -- Define the default PASTE action for Shift+Ins.  Can be '' (for Paste Lines),
 -- 'B' (for Paste Block), or 'C' (for standard PM character mark).
 compile if not defined(DEFAULT_PASTE)
+; obsolete
    DEFAULT_PASTE = 'C'
 compile endif
 
