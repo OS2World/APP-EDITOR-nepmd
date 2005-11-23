@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.11 2005-11-15 17:29:44 aschn Exp $
+* $Id: file.e,v 1.12 2005-11-23 23:49:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1219,7 +1219,8 @@ defc RestorePosFromEa
          --    loading with DDE doesn't use the 'edit' cmd.
          -- 3) ACDATASEEKER uses the <filename> '<line_no>' syntax.
                                     -- no pos restore for these cmds
-         NoRestorePosWords        = 'L LOCATE / C CHANGE GOTO SETPOS RESTOREPOS TOP BOT BOTTOM LOADGROUP'
+         NoRestorePosWords        = 'L LOCATE / C CHANGE GOTO SETPOS RESTOREPOS' ||
+                                    ' TOP BOT BOTTOM LOADGROUP RESTORERING'
                                     -- no pos restore if a cmd word starts with these strings
                                     -- (that handles the '/<search_string>' cmd correctly)
          NoRestorePosStartStrings = '/'

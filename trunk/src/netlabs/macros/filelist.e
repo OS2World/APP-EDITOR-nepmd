@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.9 2005-11-15 17:37:36 aschn Exp $
+* $Id: filelist.e,v 1.10 2005-11-23 23:49:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -207,7 +207,7 @@ defc RestoreRing
       if LastNumber = 0 then
          do r = MaxRings to 1 by -1
             KeyPath = '\NEPMD\User\SavedRings\'r
-            Entries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries' )
+            Entries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries')
             parse value Entries with 'ERROR:'rc
             if rc > '' then
                iterate
@@ -219,7 +219,7 @@ defc RestoreRing
    endif
    -- Get last amount of entries
    KeyPath = '\NEPMD\User\SavedRings\'LastNumber
-   LastEntries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries' )
+   LastEntries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries')
 
    IsEmptyFileOnly = (.filename = GetUnnamedFileName() & filesinring() = 1 & .modify = 0)
    emptyfid = ''
@@ -227,8 +227,8 @@ defc RestoreRing
       getfileid emptyfid
    endif
    do j = 1 to LastEntries
-      filename = NepmdQueryConfigValue( nepmd_hini, KeyPath'\File'j )
-      savedpos = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Posn'j )
+      filename = NepmdQueryConfigValue( nepmd_hini, KeyPath'\File'j)
+      savedpos = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Posn'j)
       OpenNewWindow = 0
       --OpenNewWindow = 1
 /*
@@ -249,7 +249,7 @@ defc RestoreRing
          if pos( ' ', filename) then
             filename = '"'filename'"'
          endif
-         CurEditCmd = 'RESTOREPOS'
+         CurEditCmd = 'RESTORERING'
          'e 'filename
          if rc = 0 then
             getfileid lastfid
@@ -257,6 +257,11 @@ defc RestoreRing
          endif
       endif
    enddo
+   WorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath'\WorkDir')
+   if NepmdDirExists( LastWorkDir) = 1 then
+      call directory( '\')
+      call directory( WorkDir)
+   endif
 
    RingWriteFilePositionDisabled = ''
    RestorePosDisabled = ''
