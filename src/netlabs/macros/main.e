@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.31 2005-08-07 19:56:41 aschn Exp $
+* $Id: main.e,v 1.32 2005-11-23 23:49:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -171,14 +171,16 @@ compile endif
    endif
 
 ;  Maybe change to previous work dir ----------------------------------------
-   KeyPath = '\NEPMD\User\ChangeWorkDir'
-   ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if ChangeWorkDir = 1 then
-      KeyPath = '\NEPMD\User\ChangeWorkDir\Last'
-      LastWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-      if NepmdDirExists( LastWorkDir) = 1 then
-         call directory( '\')
-         call directory( LastWorkDir)
+   if not CurEditCmd = 'RESTORERING' then
+      KeyPath = '\NEPMD\User\ChangeWorkDir'
+      ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+      if ChangeWorkDir = 1 then
+         KeyPath = '\NEPMD\User\ChangeWorkDir\Last'
+         LastWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+         if NepmdDirExists( LastWorkDir) = 1 then
+            call directory( '\')
+            call directory( LastWorkDir)
+         endif
       endif
    endif
 

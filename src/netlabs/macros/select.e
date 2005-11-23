@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.11 2005-09-29 18:35:01 aschn Exp $
+* $Id: select.e,v 1.12 2005-11-23 23:49:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -107,7 +107,7 @@ defc AfterLoad
 
 ;  Write position and name of all files in the ring to NEPMD.INI ------------
    -- Don't process if files loaded by Recompile or 'groups loadgroup'
-   if wordpos( CurEditCmd, 'SETPOS LOADGROUP') = 0 then
+   if wordpos( CurEditCmd, 'SETPOS LOADGROUP RESTORERING') = 0 then
       -- see FILELIST.E
       -- must not execute 'postme activatefile' at this point
       call RingAutoWriteFilePosition()
