@@ -11,7 +11,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.14 2005-11-23 23:07:08 aschn Exp $
+; $Id: defaults.dat,v 1.15 2005-11-23 23:09:08 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -56,6 +56,7 @@
 ;    MouseStyle =  1: MB1 = block marking, MB3 = char marking, MB2 = line marking
 ;    MouseStyle <> 1: MB3 = block marking, MB1 = char marking, MB2 = line marking
 "\NEPMD\User\Mark\MouseStyle" = "2"
+"\NEPMD\User\Mark\UnmarkAfterMove" = "0"
 
 ; Mouse (subject to change)
 "\NEPMD\User\Mouse\Mark\Workaround" = "1"
