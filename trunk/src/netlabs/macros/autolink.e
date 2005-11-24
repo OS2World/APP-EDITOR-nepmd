@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: autolink.e,v 1.7 2005-11-12 17:23:24 aschn Exp $
+* $Id: autolink.e,v 1.8 2005-11-24 20:41:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,36 +22,36 @@
 *
 ****************************************************************************/
 
-defc autolink =
-   call NepmdAutolink();
+defc Autolink
+   call Autolink()
 
-defproc NepmdAutolink() =
+defproc Autolink
 
-  /* determine autolink directory */
-  UserDir = NepmdQueryInstValue( 'USERDIR');
-  parse value UserDir with 'ERROR:'rc;
-  if (rc > '') then
-     return rc;
-  endif
-  AutoLinkDir = UserDir'\autolink';
+    -- determine autolink directory
+    UserDir = NepmdQueryInstValue( 'USERDIR')
+    parse value UserDir with 'ERROR:'rc
+    if (rc > '') then
+       return rc
+    endif
+    AutoLinkDir = UserDir'\autolink'
 
-  -- loop through all .ex files
+    -- loop through all .ex files
 
-  Handle          = 0;                 -- always create a new handle !
-  AddressOfHandle = address( Handle);
-  FileMask        = AutoLinkDir'\*.ex';
+    Handle          = 0                 -- always create a new handle!
+    AddressOfHandle = address( Handle)
+    FileMask        = AutoLinkDir'\*.ex'
 
-  do while (1)
-     Filename = NepmdGetNextFile(  FileMask, AddressOfHandle);
-     parse value Filename with 'ERROR:'rc;
-     if (rc > '') then
-        leave;
-     endif
+    do while (1)
+       Filename = NepmdGetNextFile( FileMask, AddressOfHandle)
+       parse value Filename with 'ERROR:'rc
+       if (rc > '') then
+          leave
+       endif
 
-     --'link' Filename;
-     link Filename;  -- message would slow startup down
-  end;
-  rc = 0;  -- no error from here
+       --'link' Filename;
+       link Filename  -- message would slow startup down
+    enddo
+    rc = 0  -- no error from here
 
-  return rc;
+    return rc
 

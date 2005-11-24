@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.34 2005-11-24 19:40:04 aschn Exp $
+* $Id: mode.e,v 1.35 2005-11-24 20:41:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -103,8 +103,8 @@ defproc NepmdGetMode
 ; ---------------------------------------------------------------------------
 ; Extra procedure for getting the CheckFlag to allow using a universal var
 ; during the defload event.
-; HiliteModeList is reset by defproc NepmdResetHiliteModeList, called by defc edit.
-defproc NepmdGetHiliteCheckFlag
+; HiliteModeList is reset by defproc ResetHiliteModeList, called by defc edit.
+defproc GetHiliteCheckFlag
    universal HiliteModeList
    Mode = arg(1)
 
@@ -121,7 +121,7 @@ defproc NepmdGetHiliteCheckFlag
 ; ---------------------------------------------------------------------------
 ; Deletes the HiliteModeList.
 ; Called by defc edit.
-defproc NepmdResetHiliteModeList
+defproc ResetHiliteModeList
    universal HiliteModeList
 
    HiliteModeList = ''
@@ -189,8 +189,7 @@ defc ResetMode
 ;           ==> Don't try to write the EA EPM.MODE immediately.
 ;    arg1 and arg2 are caseless.
 ;    If no arg specified, then a listbox is opened for selecting a mode.
-defc mode
-   universal EPM_utility_array_ID
+defc Mode
    parse arg NewMode Options
    NewMode = upcase(NewMode)
    NewMode = strip(NewMode)
@@ -204,7 +203,7 @@ defc mode
 
    if NewMode = '' then
       -- Ask user to set a mode
-      NewMode = upcase( NepmdSelectMode())
+      NewMode = upcase( SelectMode())
    endif
 
    if wordpos( NewMode, '0 OFF DEFAULT -DEFAULT-') > 0 then
@@ -235,7 +234,7 @@ defc mode
 
       -- Save default mode in an array var for the statusline and for hili
       getfileid fid
-      do_array 2, EPM_utility_array_ID, 'mode.'fid, NewMode
+      call SetAVar( 'mode.'fid, NewMode)
 
       -- Process all mode specific settings
       'ResetFileSettings'
@@ -244,7 +243,7 @@ defc mode
 
       -- Save mode in an array var for the statusline and for hili
       getfileid fid
-      do_array 2, EPM_utility_array_ID, 'mode.'fid, NewMode
+      call SetAVar( 'mode.'fid, NewMode)
 
       IsATempFile = leftstr( .filename, 1) = '.'
       HasReadOnly = 0
@@ -275,7 +274,7 @@ defc mode
 ; ---------------------------------------------------------------------
 ; Opens a listbox to select a mode.
 ; Called by defc mode if no arg specified.
-defproc NepmdSelectMode()
+defproc SelectMode()
 
    -- determine current mode
    CurMode = get_EAT_ASCII_value('EPM.MODE')

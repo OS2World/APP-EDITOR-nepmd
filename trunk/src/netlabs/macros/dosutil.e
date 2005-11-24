@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.12 2005-11-16 16:17:48 aschn Exp $
+* $Id: dosutil.e,v 1.13 2005-11-24 20:41:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -114,7 +114,7 @@ defproc get_env(varname)
 ; Todo: resolve '=' as well
 ; Resolves environment variables in a string
 ; Returns converted string
-defproc NepmdResolveEnvVars(Spec)
+defproc ResolveEnvVars(Spec)
    startp = 1
    do forever
       -- We don't use parse here, because if only 1 % char is present, it will

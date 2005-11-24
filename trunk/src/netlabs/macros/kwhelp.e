@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.27 2005-11-12 17:23:28 aschn Exp $
+* $Id: kwhelp.e,v 1.28 2005-11-24 20:41:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -167,7 +167,7 @@ defproc pHelp_C_identifier
       endloop
 
       -- Resolve environment vars in line
-      line = NepmdResolveEnvVars( line )  -- defined in EDIT.E
+      line = ResolveEnvVars( line )  -- defined in EDIT.E
 
       -- Parse line
       parse value line with cmd arg1 arg2
@@ -471,7 +471,7 @@ defc viewword  -- arg(1) is name of .inf file
    if find_token( startcol, endcol) then
       InfFile = arg(1)
       -- resolve OS/2 environment vars
-      InfFile = NepmdResolveEnvVars(InfFile)
+      InfFile = ResolveEnvVars( InfFile)
       --sayerror 'InfFile = 'arg(1)', InfFile with EnvVars resolved = 'InfFile
       -- specifying the extension is optional
       if upcase( rightstr( InfFile, 4)) <> '.INF' then

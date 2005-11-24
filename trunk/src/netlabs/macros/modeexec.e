@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.11 2005-11-24 19:40:05 aschn Exp $
+* $Id: modeexec.e,v 1.12 2005-11-24 20:41:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -171,7 +171,7 @@ defc ProcessLoadSettings
                         -- has probably changed? Therefore Mode is submitted as arg.
    endif
    if loadstate then
-      HiliteCheckFlag = NepmdGetHiliteCheckFlag(Mode)
+      HiliteCheckFlag = GetHiliteCheckFlag(Mode)
    else
       HiliteCheckFlag = ''
    endif
@@ -319,7 +319,7 @@ defc ProcessSelectSettings
 
 ; ---------------------------------------------------------------------------
 ; Add cmd to the select hook. This hook will be executed by HookExecute, by
-; defc ProcessSelect at AfterLoad and/or defselect.
+; defc ProcessSelect at ProcessAfterLoad and/or defselect.
 ; (The defc ProcessLoadSettings is executed directly, without the HookExecute
 ; command. This is required to process these settings for the correct file.)
 definit
@@ -348,7 +348,7 @@ defc ModeExecute, ModeExec
    endif
    if wordpos( upcase(Cmd), upcase(SelectSettingsList)) then
       -- These settings don't stick with the current file.
-      -- Execute them during afterload and at/or defselect.
+      -- Execute them during ProcessAfterload and at/or defselect.
       'HookChange select_'lowcase(Mode) Cmd Args
       -- Save a list of used defselect settings for every mode
       call AddAVar('usedsettings_'lowcase(Mode), Cmd)
@@ -537,7 +537,7 @@ defc SetHighlight
    -- Process setting
    Mode = GetMode()
    if (CheckFlag = '') & loadstate then
-      CheckFlag = NepmdGetHiliteCheckFlag(Mode)
+      CheckFlag = GetHiliteCheckFlag(Mode)
    endif
    call NepmdActivateHighlight( on, Mode, CheckFlag)
 
