@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.61 2005-05-01 20:51:33 aschn Exp $
+* $Id: nepmdlib.c,v 1.62 2005-11-24 21:58:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1119,6 +1119,7 @@ do
          CHAR           szNotInstalled[ 32];
 
          CHAR           szNepmdRootdir[ _MAX_PATH];
+         CHAR           szUserdir[ _MAX_PATH];
          CHAR           szLanguage[ 10];
          CHAR           szNepmdInitfile[ _MAX_PATH];
 
@@ -1137,6 +1138,7 @@ do
 
    // get main config values
    rc = QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, szNepmdRootdir, sizeof( szNepmdRootdir));
+   QueryInstValue( NEPMD_INSTVALUE_USERDIR, szUserdir, sizeof( szUserdir));
    QueryInstValue( NEPMD_INSTVALUE_LANGUAGE, szLanguage, sizeof( szLanguage));
    QueryInstValue( NEPMD_INSTVALUE_INIT, szNepmdInitfile, sizeof( szNepmdInitfile));
 
@@ -1156,7 +1158,7 @@ do
 
    // insert the result
    _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_DYNCFG",
-                   szNepmdRootdir, pszLoaderExecutable, pszEpmExecutable,
+                   szNepmdRootdir, szUserdir, pszLoaderExecutable, pszEpmExecutable,
                    szLanguage, szNepmdInitfile, szMessageFile,
                    pszMainEnvFile, pszUserEnvFile);
    _executeEPMCommand( hwndClient, "mc /bot/-1");
