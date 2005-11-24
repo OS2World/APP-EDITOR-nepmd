@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: hooks.e,v 1.5 2005-09-12 13:59:28 aschn Exp $
+* $Id: hooks.e,v 1.6 2005-11-24 01:36:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -51,6 +51,10 @@
 ;                     for user additions as well
 ; -  selectonce       user additions, deleted after execution
 ; -  afterselect      usually contains ProcessRefreshInfoLine
+; -  modify           executed at every defmodify event
+; -  modifyonce       executed once at every defmodify event
+; -  quit             executed before a file is quit
+; -  quitonce         executed once before a file is quit
 ; -  addmenu          executed by loaddefaultmenu, when the menu is built,
 ;                     before the help menu.
 ;                     (can be used for user's submenus)
@@ -204,7 +208,7 @@ defc HookDelAll
 
 ; ---------------------------------------------------------------------------
 ; Deletes every Cmd from a hook array, that is in the list. Specifying just
-; an abbriviation for Cmd matches a stored hook definition as well.
+; an abbreviation for Cmd matches a stored hook definition as well.
 ; Syntax: HookDel <HookName> <Cmd>
 defc HookDel
    universal EPM_utility_array_ID
@@ -357,4 +361,56 @@ defc HookShow
    endif
    sayerror HookName' = 'next
    return
+
+
+; ---------------------------------------------------------------------------
+; Some useful commands, that can be used as parameters for program objects
+; or in PROFILE.ERX.
+; Examples:
+;    'AtLoad UserCmd'
+;    'AtStartup UserCmd'
+;    'mc ;AtLoad UserCmd1 ;AtStartup UserCmd2'
+
+; ---------------------------------------------------------------------------
+; Syntax: AtInit <UserCmd>
+; <UserCmd> is executed after the first initialization, before the to EPM
+; submitted files and commands are processed.
+defc AtInit
+   'HookAdd init' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtLoad <UserCmd>
+; <UserCmd> is executed for every file that is loaded at the end of
+; processing the defload event.
+; Note that some commands must executed postme'd to work properly. Therefore
+; try to put the postme command in front of your command, if it doesn't
+; work as expected.
+defc AtLoad
+   'HookAdd load' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtStartup <UserCmd>
+; <UserCmd> is executed after the EPM window was opened and after all load
+; actions are processed. After execution, the hook is deleted, so that is
+; executed at the first defselect event only.
+defc AtStartup
+   'HookAdd selectonce postme' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtSelect <UserCmd>
+; <UserCmd> is executed at the end of every defselect event.
+defc AtSelect
+   'HookAdd select' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtModify <UserCmd>
+; <UserCmd> is executed at every defmodify event.
+defc AtModify
+   'HookAdd modify' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtQuit <UserCmd>
+; <UserCmd> is executed before a file is quit.
+defc AtQuit
+   'HookAdd quit' arg(1)
 
