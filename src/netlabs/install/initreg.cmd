@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: initreg.cmd,v 1.2 2005-07-17 15:41:56 aschn Exp $
+* $Id: initreg.cmd,v 1.3 2005-11-24 02:09:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -49,7 +49,7 @@
  NEPMD_INI_KEYNAME_USERDIRNAME = "UserDirName"
  NEPMD_INI_KEYNAME_USEHOME     = "UseHomeForUserDir"
 
- /* defaults */
+ /* defaults and further consts */
  rc = 0;
  ErrorQueueName  = VALUE( 'NEPMD_RXQUEUE', , env);
  ErrorMessage    = '';
@@ -62,8 +62,8 @@
  DO UNTIL (TRUE)
 
     /* get the base directory of the NEPMD installation */
-    PARSE VALUE SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_ROOTDIR) WITH InstallPath'00'x;
-    IF (InstallPath = 'ERROR:') THEN
+    PARSE VALUE SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_ROOTDIR) WITH RootDir'00'x;
+    IF (RootDir = 'ERROR:') THEN
     DO
        ErrorMessage = 'Error: NEPMD configuration not found.';
        rc = 3; /* ERROR_PATH_NOT_FOUND */
