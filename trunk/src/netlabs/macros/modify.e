@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modify.e,v 1.6 2005-05-16 20:59:56 aschn Exp $
+* $Id: modify.e,v 1.7 2005-11-24 01:36:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -73,11 +73,15 @@ defmodify
       endif
    endif
 
+   -- Execute user macros
 compile if INCLUDE_BMS_SUPPORT
    if isadefproc('BMS_defmodify_exit') then
       call BMS_defmodify_exit()
    endif
 compile endif
+   'HookExecute modify'
+   'HookExecute modifyonce'
+
 
 ; Other used defmodifies, so far:
 ; FILE.E       -  lock on modify

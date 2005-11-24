@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.12 2005-11-23 23:49:48 aschn Exp $
+* $Id: file.e,v 1.13 2005-11-24 01:36:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,7 +30,8 @@
 ; ---------------------------------------------------------------------------
 ; Called after MB2 dclick on titlebar and Enter.
 ; Fixed to work with enhanced titletext.
-defc processname =
+; ProcessName triggers a defselect event.
+defc ProcessName =
    -- Find (old) .filename in (old) .titletext
    sep = GetFieldSep()
    rest = upcase(.titletext) sep
@@ -228,7 +229,7 @@ defc s, save=
       return
    endif
 
-   -- Try to unlock file if it is locked (only successfully if locked by the current EPM window)
+   -- Try to unlock file if it is locked (only successful if locked by the current EPM window)
    if .lockhandle then
       'unlock'
    endif
@@ -237,6 +238,8 @@ defc s, save=
    OldMode = NepmdGetMode()
 
    -- Call presave_exit hooks
+   'HookExecute save'
+   'HookExecute saveonce'
 compile if SUPPORT_USER_EXITS
    if isadefproc('presave_exit') then
       call presave_exit( Name, options, save_as)
@@ -614,24 +617,26 @@ compile if SPELL_SUPPORT
       'dynaspell'                  -- toggle it off.
    endif
 compile endif
+
+   -- Execute user macros
+   'HookExecute quit'
+   'HookExecute quitonce'
+compile if SUPPORT_USER_EXITS
+   if isadefproc('quit_exit') then
+      call quit_exit(.filename)
+   endif
+compile endif
+compile if INCLUDE_BMS_SUPPORT
+   if isadefproc('BMS_quit_exit') then
+      call BMS_quit_exit(.filename)
+   endif
+compile endif
+
    if IsAShell then
       .modify = 0                             -- so no "Are you sure?"
       'shell_kill'
       --return
-   endif
-
-compile if SUPPORT_USER_EXITS
-      if isadefproc('quit_exit') then
-         call quit_exit(.filename)
-      endif
-compile endif
-compile if INCLUDE_BMS_SUPPORT
-      if isadefproc('BMS_quit_exit') then
-         call BMS_quit_exit(.filename)
-      endif
-compile endif
-
-   if not IsAShell then
+   else
       call quitfile()
    endif
 
@@ -1199,6 +1204,26 @@ defc browse =
 
 ; ---------------------------------------------------------------------------
 ; Restore cursor position from EPM.POS EA
+; Only restore pos if doscmdline/CurEditCmd doesn't position the cursor itself.
+; CurEditCmd is set by defc e,ed,edit,epm in EDIT.E or defc recomp in RECOMP.E.
+; 1) PMSEEK uses the <filename> 'L <string_to_search>' syntax.
+; 2) defc Recompile in src\gui\recompile\recomp.e
+;    If CurEditCmd was set to 'SETPOS', then the pos will not be
+;    restored from EA 'EPM.POS' at defload (LOAD.E).
+;    Usually CurEditCmd is set to doscmdline (MAIN.E), but file
+;    loading with DDE doesn't use the 'edit' cmd.
+; 3) ACDATASEEKER uses the <filename> '<line_no>' syntax.
+const
+compile if not defined( NO_RESTORE_POS_WORDS)
+   -- no pos restore for these cmds
+   NO_RESTORE_POS_WORDS = 'L LOCATE / C CHANGE GOTO SETPOS RESTOREPOS TOP BOT BOTTOM LOADGROUP RESTORERING'
+compile endif
+compile if not defined( NO_RESTORE_POS_START_STRINGS)
+   -- no pos restore if a cmd word starts with these strings
+   -- (that handles the '/<search_string>' cmd correctly)
+   NO_RESTORE_POS_START_STRINGS = '/'
+compile endif
+
 defc RestorePosFromEa
    universal nepmd_hini
    universal RestorePosDisabled
@@ -1208,49 +1233,38 @@ defc RestorePosFromEa
    RestorePos = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if RestorePos = 1 then
       if RestorePosDisabled <> 1 then
-         RestorePosFlag = 1
-         -- Only restore pos if doscmdline/CurEditCmd doesn't position the cursor itself.
-         -- CurEditCmd is set by defc e,ed,edit,epm in EDIT.E or defc recomp in RECOMP.E.
-         -- 1) PMSEEK uses the <filename> 'L <string_to_search>' syntax.
-         -- 2) defc Recompile in src\gui\recompile\recomp.e
-         --    If CurEditCmd was set to 'SETPOS', then the pos will not be
-         --    restored from EA 'EPM.POS' at defload (LOAD.E).
-         --    Usually CurEditCmd is set to doscmdline (MAIN.E), but file
-         --    loading with DDE doesn't use the 'edit' cmd.
-         -- 3) ACDATASEEKER uses the <filename> '<line_no>' syntax.
-                                    -- no pos restore for these cmds
-         NoRestorePosWords        = 'L LOCATE / C CHANGE GOTO SETPOS RESTOREPOS' ||
-                                    ' TOP BOT BOTTOM LOADGROUP RESTORERING'
-                                    -- no pos restore if a cmd word starts with these strings
-                                    -- (that handles the '/<search_string>' cmd correctly)
-         NoRestorePosStartStrings = '/'
+
+         WordList   = upcase( NO_RESTORE_POS_WORDS)
+         StringList = upcase( NO_RESTORE_POS_START_STRINGS)
+         CurCmd     = upcase( CurEditCmd)
          -- Todo:
          -- 1) This doesn't handle mc cmds yet.
 
-         -- check number (positions cursor on line)
-         if isnum(CurEditCmd) then
-            RestorePosFlag = 0
-         endif
-         -- check NoRestorePosWords
-         if RestorePosFlag = 1 then
-            do w = 1 to words(NoRestorePosWords)
-               CurWord = word( NoRestorePosWords, w)
-               if wordpos( translate(CurWord), translate(CurEditCmd)) > 0 then
-                  RestorePosFlag = 0
-                  leave
-               endif
-            enddo
-         endif
-         -- check NoRestorePosStartStrings if RestorePosFlag = 1
-         if RestorePosFlag = 1 then
-            do w = 1 to words(NoRestorePosStartStrings)
-               CurWord = word( NoRestorePosStartStrings, w)
-               if abbrev( translate(CurEditCmd), translate(CurWord)) > 0 then
-                  RestorePosFlag = 0
-                  leave
-               endif
-            enddo
-         endif
+         RestorePosFlag = 1
+         do forever
+            -- check number command (positions cursor on line)
+            if isnum(CurEditCmd) then
+               RestorePosFlag = 0
+               leave
+            endif
+            -- check Words
+            if wordpos( CurCmd, WordList) > 0 then
+               RestorePosFlag = 0
+               leave
+            endif
+            -- check StartStrings
+            if RestorePosFlag = 1 then
+               do w = 1 to words( StringList)
+                  CurString = word( StringList, w)
+                  if abbrev( CurCmd, CurString) > 0 then
+                     RestorePosFlag = 0
+                     leave
+                  endif
+               enddo
+            endif
+            leave
+         enddo
+
          -- restore pos if RestorePosFlag = 1
          if RestorePosFlag = 1 then
             save_pos = get_EAT_ASCII_value('EPM.POS')
@@ -1258,6 +1272,7 @@ defc RestorePosFromEa
                call prestore_pos(save_pos)
             endif
          endif
+
       endif  -- RestorePosDisabled <> 1
    endif  -- RestorePos = 1
 
