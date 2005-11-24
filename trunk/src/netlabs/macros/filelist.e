@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.11 2005-11-24 00:51:57 aschn Exp $
+* $Id: filelist.e,v 1.12 2005-11-24 01:29:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -33,7 +33,7 @@ Todo:
 defproc RingAutoWriteFilePosition
    universal nepmd_hini
    universal RingWriteFilePositionDisabled
-   universal RingWriteFilePositionMaxFilesReached  -- used only here
+   universal RingWriteFilePositionMaxFilesReached  -- used only here, maybe set by a previous call
 
    -- Don't overwite old ring if Disabled flag set (e.g. by RestoreRing)
    if RingWriteFilePositionDisabled = 1 then return; endif
@@ -72,7 +72,7 @@ defproc RingAutoWriteFilePosition
 
 ; ---------------------------------------------------------------------------
 ; RingWriteFilePosition is called by RingAutoWiteFilePosition and by defc
-; RingWriteFilePosition, used by the menuitem 'Save as last ring'.
+; SaveRing, used by the menuitem 'Save as last ring', by defc Restart etc.
 defproc RingWriteFilePosition
    universal nepmd_hini
 
@@ -170,7 +170,7 @@ defproc RingWriteFilePosition
    enddo
 
    ---- Write 'Entries' (ammount of 'File'j and 'Posn'j) --------------------
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', j )
+   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', j)
 
    -- Check if file to be activated is still in ring
    if wordpos( ValidateFileid(startfid), '1 2') then
@@ -204,7 +204,7 @@ defc RestoreRing
 
    hwnd = '0x'ltoa( gethwndc(6), 16)   -- EPMINFO_EDITFRAME
    KeyPath = '\NEPMD\User\SavedRings\'LastNumber
-   LastNumberHwnd = NepmdQueryConfigValue( nepmd_hini, KeyPath'\hwnd')
+   LastNumberhwnd = NepmdQueryConfigValue( nepmd_hini, KeyPath'\hwnd')
    if hwnd = LastNumberhwnd then
       LastNumber = LastNumber - 1
       if LastNumber = 0 then
@@ -224,11 +224,13 @@ defc RestoreRing
    KeyPath = '\NEPMD\User\SavedRings\'LastNumber
    LastEntries = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Entries')
 
+/*
    IsEmptyFileOnly = (.filename = GetUnnamedFileName() & filesinring() = 1 & .modify = 0)
    emptyfid = ''
    if IsEmptyFileOnly then
       getfileid emptyfid
    endif
+*/
    do j = 1 to LastEntries
       filename = NepmdQueryConfigValue( nepmd_hini, KeyPath'\File'j)
       savedpos = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Posn'j)
@@ -336,7 +338,7 @@ defc RingMaxFiles
    endif
 
 ; ---------------------------------------------------------------------------
-; Called by afterload if filestoloadmax less than a limit.
+; Called by ProcessAfterload if filestoloadmax is less than a limit.
 defproc RingAddToHistory
    universal nepmd_hini  -- often forgotten
 
@@ -346,8 +348,8 @@ defproc RingAddToHistory
       return
    endif
 
-   --MaxLength = 65536
-   MaxLength = 1599  -- apparently
+   --MaxLength = 65536  -- for ini entry
+   MaxLength = 1599     -- for ETK strings
    MaxItems  = 200
    Delim = \1  -- \0 doesn't work for NepmdWriteConfigValue
 
@@ -371,22 +373,25 @@ defproc RingAddToHistory
       NewItem = .filename
       rest = History
       -- Skip temp files
-      fIgnore = ((leftstr( NewItem, 1) = '.') | (not .visible))
+      fIgnore = ((leftstr( NewItem, 1) = '.') | (not .visible) |
+                 NepmdFileExists( NewItem) = 0)
       if not fIgnore then
          -- Add NewItem
          i = 1
-         History = NewItem''Delim
-         StopList = 0
-         do while (rest <> '' & StopList = 0)
+         History = NewItem''Delim  -- first item is NewItem
+         fStopList = 0
+         do while (rest <> '' & fStopList = 0)
+            -- Maybe append next item
             parse value rest with next (Delim) rest
-            -- Check length of string first
             NewHistory = History''next''Delim
+            -- Check length of string first
             len = length(NewHistory) + 1
             if i >= MaxItems then
-               StopList = 1
+               fStopList = 1
             elseif len > MaxLength then
-               StopList = 1
-            elseif upcase(NewItem) <> upcase(next) then
+               fStopList = 1
+            -- Append current item only if <> NewItem
+            elseif upcase(next) <> upcase(NewItem) then
                -- Add next
                i = i + 1
                History = NewHistory
@@ -395,7 +400,9 @@ defproc RingAddToHistory
       endif  -- not fIgnore
       next_file
       getfileid fid
-      if fid = firstfid then leave; endif
+      if fid = firstfid then
+         leave
+      endif
    enddo  -- f = 1 to filesinring()
    activatefile startfid  -- required
 
@@ -413,52 +420,54 @@ defproc AddToHistory( Listname, NewItem)
       return
    endif
 
-   --MaxLength = 65536
-   MaxLength = 1599
+   --MaxLength = 65536  -- for ini entry
+   MaxLength = 1599     -- for ETK strings
    MaxItems  = 200
    Delim = \1
 
    ListName = upcase( Listname)
 
+   fIgnore = 1
    if ListName = 'LOAD' then
       KeyPath = '\NEPMD\User\History\Load'
-      Ignore = (leftstr( NewItem, 1) = '.')
+      fIgnore = (leftstr( NewItem, 1) = '.')
    elseif ListName = 'SAVE' then
       KeyPath = '\NEPMD\User\History\Save'
-      Ignore = (leftstr( NewItem, 1) = '.')
+      fIgnore = (leftstr( NewItem, 1) = '.')
    elseif ListName = 'EDIT' then
       KeyPath = '\NEPMD\User\History\Edit'
-      Ignore = 0
-   else
+      fIgnore = 0
+   endif
+   if fIgnore then
       return
    endif
 
    History = NepmdQueryConfigValue( nepmd_hini, KeyPath)
 
    rest = History
-   if not Ignore then
-      -- Add NewItem
-      f = 1
-      History = NewItem''Delim
-      StopList = 0
-      do while (rest <> '' & StopList = 0)
-         parse value rest with next (Delim) rest
-         -- Check length of string first
-         NewHistory = History''next''Delim
-         len = length(NewHistory) + 1
-         if f >= MaxItems then
-            StopList = 1
-         elseif len > MaxLength then
-            StopList = 1
-         elseif upcase(NewItem) <> upcase(next) then
-            -- Add next
-            f = f + 1
-            History = NewHistory
-         endif
-      enddo  -- while
+   -- Add NewItem
+   i = 1
+   History = NewItem''Delim  -- first item is NewItem
+   fStopList = 0
+   do while (rest <> '' & fStopList = 0)
+      -- Maybe append next item
+      parse value rest with next (Delim) rest
+      NewHistory = History''next''Delim
+      -- Check length of string first
+      len = length(NewHistory) + 1
+      if i >= MaxItems then
+         fStopList = 1
+      elseif len > MaxLength then
+         fStopList = 1
+      -- Append current item only if <> NewItem
+      elseif upcase(next) <> upcase(NewItem) then
+         -- Add next
+         i = i + 1
+         History = NewHistory
+      endif
+   enddo  -- while
 
-      call NepmdWriteConfigValue( nepmd_hini, KeyPath, History)
-   endif  -- not Ignore
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, History)
    return
 
 ; ---------------------------------------------------------------------------
@@ -549,7 +558,7 @@ defc History
    endif
 
 ; ---------------------------------------------------------------------------
-; RingWriteFileNumber is called by 'quit' and NepmdAfterLoad.
+; RingWriteFileNumber is called by 'quit' and ProcessAfterLoad.
 ; The firstinringfid is checked. If not valid anymore (e.g. if file was
 ; quit), then it is set to the lowest FileNumber of all files in the ring.
 ; At the end all FileNumbers are rewritten, starting with firstinringfid.
@@ -563,7 +572,6 @@ defc History
 ; files are ordered according to their fileids.
 defproc RingWriteFileNumber
    universal firstinringfid
-   universal EPM_utility_array_ID
    universal nepmd_hini
 
    -- Process only, when a <file> field is present
@@ -584,44 +592,64 @@ defproc RingWriteFileNumber
    activatefile firstinringfid
    display 2   -- turn on messages
 
+   -- If firstinringfid is not in ring anymore
    if rc = -260 then  -- Invalid fileid
-      -- if firstinringfid is not in ring anymore
+      -- Redetermine first loaded file (file with lowest FileNumber, if any)
       dprintf( 'WRITE_FILE_NUMBER', 'startfid not found in ring, redetermining lowest file number.')
-      -- redetermine first loaded file (file with lowest FileNumber)
-      LowestFileNumber = filesinring()
-      getfileid lowestnumfid  -- initialize
-      do i = 1 to filesinring()
-         getfileid fid
-         numrc = get_array_value( EPM_utility_array_ID, 'filenumber.'fid, next )
-         --next = GetFileNumber()  -- doesn't work if firstinringfid not set
-         dprintf( 'WRITE_FILE_NUMBER', 'i = 'i', FileNumber = 'next', FileName = '.filename)
-         if next <= LowestFileNumber & next <> '' then
-            LowestFileNumber = next
-            lowestnumfid = fid
+
+      activatefile startfid
+      nextfile              -- only useful in case no FileNumber exists in the ring
+      getfileid firstfid    -- start at the following file (usually the last loaded is on top)
+
+      fid = firstfid
+      firstinringfid = fid  -- initialize to current file
+      LowestFileNumber = filesinring()  -- initialize to upper limit
+      do i = 1 to filesinring()  -- just as an upper limit
+         -- Check if FileNumber was set by a previous call to RingWriteFileNumber
+         -- and get the lowest
+
+         ThisFileNumber = GetAVar( 'filenumber.'fid)
+         dprintf( 'WRITE_FILE_NUMBER', 'i = 'i', FileNumber = 'ThisFileNumber', FileName = '.filename)
+         if ThisFileNumber <= LowestFileNumber & ThisFileNumber <> '' then
+            LowestFileNumber = ThisFileNumber
+            firstinringfid = fid
          endif
+
          nextfile
+         getfileid fid
+         if fid = firstfid then
+            leave
+         endif
       enddo
-      -- set firstinringfid
-      firstinringfid = lowestnumfid
+
    endif
 
    dprintf( 'WRITE_FILE_NUMBER', 'firstinringfid = 'firstinringfid.filename)
 
-   -- Set FileNumbers for all files in the ring, start with LowestFId
+   -- Set FileNumbers for all files in the ring, start with firstinringfid
    FileNumber = 0
    activatefile firstinringfid
-   do i = 1 to filesinring()
-      getfileid fid
+   fid = firstinringfid
+   do i = 1 to filesinring()  -- just as an upper limit
       FileNumber = FileNumber + 1
-      -- arg(2) and arg(4) of do_array must be vars!
-      do_array 2, EPM_utility_array_ID, 'filenumber.'fid, FileNumber
-      'RefreshInfoLine FILELIST'  -- Critical? If this would be processed only on defselect, the field for
-                                  -- a file, selected by the internal ask-before-quit-if-modified routine
-                                  -- is not updated, when it gets selected.
-                                  -- (But the ring can be updated before the ring_more dialog is opened.)
-                                  -- Maybe refreshing the ring should be processed on the next defselect.
+
+      -- Save FileNumber in an array var
+      call SetAVar( 'filenumber.'fid, FileNumber)
+
+      -- Critical? If this would be processed only on defselect, the field for
+      -- a file, selected by the internal ask-before-quit-if-modified routine
+      -- is not updated, when it gets selected.
+      -- (But the ring can be updated before the ring_more dialog is opened.)
+      -- Maybe refreshing the ring should be processed on the next defselect.
+      'RefreshInfoLine FILELIST'
+
       nextfile
+      getfileid fid
+      if fid = firstinringfid then
+         leave
+      endif
    enddo
+
    activatefile startfid
    return
 
@@ -632,10 +660,9 @@ defc RingWriteFileNumber
 ; ---------------------------------------------------------------------------
 ; Called by defproc GetInfoFieldValue('FILE').
 defproc GetFileNumber
-   universal EPM_utility_array_ID
    -- Get FileNumber for Filename by querying an array var
    getfileid fid
-   rc = get_array_value( EPM_utility_array_ID, 'filenumber.'fid, FileNumber )
+   FileNumber = GetAVar( 'filenumber.'fid)
    return FileNumber
 
 ; ---------------------------------------------------------------------------

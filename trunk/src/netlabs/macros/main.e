@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.34 2005-11-24 00:51:58 aschn Exp $
+* $Id: main.e,v 1.35 2005-11-24 01:27:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -85,11 +85,8 @@ compile endif
 ;     current .EX file. For EPM.EX this is handled by MAIN.E.
 defmain
    universal rexx_profile
-   universal should_showwindow
    universal nepmd_hini
-   universal app_hini
    universal unnamedfilename
-   universal defmainprocessed
    universal loadstate
    universal CurEditCmd
    universal firstloadedfid  -- first file for the 'xcom e /n' cmd
@@ -215,9 +212,10 @@ compile endif
          dprintf( 'DEFMAIN_EMPTY_FILE', 'load a new empty file...')
          'xcom e /n'
          getfileid newfid
-         -- Set the universal vars to make afterload happy.
-         -- At this point they are initialized to unnamedfid.
-         firstloadedfid = newfid
+         -- xcom edit doesn't call defc edit, therefore set the following
+         -- universal vars to make afterload happy.
+         -- Usually they are set by defc edit.
+         firstloadedfid = newfid  -- first file for this edit cmd
          firstinringfid = newfid  -- first file in the ring
          dprintf( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
       endif
