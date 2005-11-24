@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: saveold.cmd,v 1.2 2005-03-06 09:24:37 aschn Exp $
+* $Id: saveold.cmd,v 1.3 2005-11-24 01:58:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -45,7 +45,11 @@
  fRecoursive = 0;  /* recoursive not required */
  fUseZip = 1;
 
- PARSE VALUE TRANSLATE( VALUE('PATH',,env)) WITH '\OS2;' -2 BootDrive +2;
+ /* Get BootDrive */
+ IF \RxFuncQuery( 'SysBootDrive') THEN
+    BootDrive = SysBootDrive()
+ ELSE
+    PARSE UPPER VALUE VALUE( 'PATH', , env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
 
  /* get the base directory of the NEPMD installation */
  PARSE Source . . CallName;
@@ -62,7 +66,7 @@
        LEAVE;
 
     /* get a list file */
-    ListFile = SysTempFilename( VALUE( 'TMP',,'OS2ENVIRONMENT')'\nepmd.???');
+    ListFile = SysTempFilename( VALUE( 'TMP', , 'OS2ENVIRONMENT')'\nepmd.???');
 
     /* get EPM.INI */
     next = SysIni( 'USER', 'EPM', 'EPMIniPath');

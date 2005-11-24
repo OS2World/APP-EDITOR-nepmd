@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.6 2005-07-17 15:41:56 aschn Exp $
+* $Id: dyncfg.cmd,v 1.7 2005-11-24 01:58:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -62,7 +62,7 @@
  IF \RxFuncQuery( 'SysBootDrive') THEN
     BootDrive = SysBootDrive()
  ELSE
-    PARSE UPPER VALUE VALUE( 'PATH', env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
+    PARSE UPPER VALUE VALUE( 'PATH', , env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
 
  DO UNTIL (TRUE)
 
@@ -114,7 +114,7 @@
     END;
 
     /* determine original EPM.EXE along the path */
-    PathList = VALUE( 'PATH',,env);
+    PathList = VALUE( 'PATH', , env);
     fOs2DirPassed = FALSE;
     fEpmFound     = FALSE;
     DO WHILE (PathList \= '')
