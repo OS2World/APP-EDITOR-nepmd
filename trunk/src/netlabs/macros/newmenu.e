@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.23 2005-11-16 16:47:00 aschn Exp $
+* $Id: newmenu.e,v 1.24 2005-11-24 01:07:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -234,9 +234,10 @@ compile endif
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³What's it called  : loaddefaultmenu                                          ³
 ³                                                                             ³
-³What does it do   : used by stdcnf.e to setup default EPM menu bar          ³
+³What does it do   : used by stdcnf.e to setup default EPM menu bar           ³
 ³                    (Note: a menu id of 0 halts the interpreter when         ³
 ³                     selected.)                                              ³
+³                    Really? The id, that doesn't work, is 1, not 0!          ³
 ³                                                                             ³
 ³Who and When      : Jerry C.     2/25/89                                     ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
@@ -274,6 +275,8 @@ defc loaddefaultmenu
    menuloaded = 1
 
    -- Respect files' margins if this is selected for use as reflowmargins
+   -- This sets the universal var reflowmargins to initial values, queried
+   -- from NEPMD.INI.
    -- (Found no better place when to execute the hook.)
    'HookAdd select ReflowMarginsInit'
 
@@ -4125,7 +4128,7 @@ defc set_OpenDlgDir
       new = Filename
    endif
    -- Keep, delete or change last selected file.
-   -- The Open dialog will start with it's dir.
+   -- The Open dialog will start with its dir.
    if new <> -1 then
       call setprofile( app_hini, 'ERESDLGS', 'LASTFILESELECTED', new)
    endif
