@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.14 2005-11-24 13:25:21 aschn Exp $
+* $Id: file.e,v 1.15 2005-11-24 19:40:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -141,7 +141,7 @@ defc rename
 ; Save <filename>         save, keep old filename loaded
 ; Name <filename>, Save   save, change to new filename
 defc s, save=
-   universal default_save_options
+   universal save_with_tabs, default_save_options
    universal nepmd_hini
    save_as = 0
    SpecifiedName = arg(1)
@@ -235,7 +235,7 @@ defc s, save=
    endif
 
    -- Get mode before saving
-   OldMode = NepmdGetMode()
+   OldMode = GetMode()
 
    -- Call presave_exit hooks
    'HookExecute save'
@@ -264,6 +264,13 @@ compile endif
       call psave_pos(save_pos)   -- get EA value
       call delete_ea('EPM.POS')  -- that affects only .eaarea, EA is written on file writing
       'add_ea EPM.POS' save_pos  -- that affects only .eaarea, EA is written on file writing
+   endif
+
+   -- 4.10:  Saving with tab compression is built in now.  No need for
+   -- the make-do proc savefilewithtabs().
+   -- 4.10 new feature:  if save_with_tabs is true, always specify /t.
+   if save_with_tabs then
+      options = '/t' options
    endif
 
    -- Remove e.g. lineend options that can cause file damage after operations

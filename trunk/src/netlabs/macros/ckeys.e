@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.11 2005-11-15 16:29:34 aschn Exp $
+* $Id: ckeys.e,v 1.12 2005-11-24 19:39:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -414,7 +414,7 @@ compile endif
 defproc ExpandJava
    java = 0
 compile if JAVA_SYNTAX_ASSIST
-   java = (NepmdGetMode() = 'JAVA')
+   java = (GetMode() = 'JAVA')
 compile endif -- JAVA_SYNTAX_ASSIST
    return java
 
@@ -422,7 +422,7 @@ compile endif -- JAVA_SYNTAX_ASSIST
 defproc ExpandCpp
    cpp = 0
 compile if CPP_SYNTAX_ASSIST
-   cpp = (NepmdGetMode() = 'C') & (wordpos( filetype(), CPP_EXTENSIONS))
+   cpp = (GetMode() = 'C') & (wordpos( filetype(), CPP_EXTENSIONS))
 compile endif -- CPP_SYNTAX_ASSIST
    return cpp
 

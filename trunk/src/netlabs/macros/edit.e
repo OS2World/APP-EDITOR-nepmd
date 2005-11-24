@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.29 2005-11-24 01:32:16 aschn Exp $
+* $Id: edit.e,v 1.30 2005-11-24 19:39:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -116,7 +116,7 @@ defproc NepmdLoadFile( Spec, Options)
          endif
       endif
 
-      -- NepmdGetMode doesn't work here, because it tries to write the 'mode.'fid
+      -- GetMode doesn't work here, because it tries to write the 'mode.'fid
       -- array var. At this time the file is not loaded, so the fileid is not set.
       -- But calling NepmdQueryDefaultMode(Filename) would work.
       -- We should better determine the mode here, save it in a array var with the
@@ -548,7 +548,7 @@ compile endif
    endif
    -- Valid EPM commandline options are always regnized, even when they
    -- are enclosed in '...' to signalize the submitted command part.
-   if NepmdGetMode() = 'BIN' then
+   if GetMode() = 'BIN' then
       -- prepend 'binedit'
       fn = "'binedit "fn"'"
    endif

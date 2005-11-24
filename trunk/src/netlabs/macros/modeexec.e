@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.10 2005-11-24 19:22:33 aschn Exp $
+* $Id: modeexec.e,v 1.11 2005-11-24 19:40:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -167,8 +167,8 @@ defc ProcessLoadSettings
    calling_fid = strip(calling_fid)
 
    if Mode = '' then
-      Mode = NepmdGetMode()  -- Doesn't work properly during file loading, because current file
-                             -- has probably changed? Therefore Mode is submitted as arg.
+      Mode = GetMode()  -- Doesn't work properly during file loading, because current file
+                        -- has probably changed? Therefore Mode is submitted as arg.
    endif
    if loadstate then
       HiliteCheckFlag = NepmdGetHiliteCheckFlag(Mode)
@@ -264,7 +264,7 @@ defc ProcessSelectSettings
    -- Execute mode-specific settings
    -- Standard definition for HookExecute, extended with a check, if
    -- config is set by the file instead of the mode.
-   Mode = NepmdGetMode()
+   Mode = GetMode()
    prefix = 'hook.'
    HookName = 'select_'lowcase(Mode)
    imax = GetAVar(prefix''HookName'.0')
@@ -393,7 +393,7 @@ defc RingRefreshSetting
          if next = 'DEFAULT' | next = '' then  -- unset if setting was not changed by any modeexecute
             Cmd 'REFRESHDEFAULT' Args  -- execute arg(1) with 'REFRESHDEFAULT' parameter prepended
          endif
-      elseif Mode = NepmdGetMode() then
+      elseif Mode = GetMode() then
          'ResetFileSettings'  -- all settings (reset of a single setting is not implemented)
          --Cmd 'REFRESH' Args  -- execute arg(1) with 'REFRESH' parameter prepended
       endif
@@ -475,7 +475,7 @@ defc RingDumpSettings
       --endif
       insertline .filename, tmpfid.last + 1, tmpfid
       -- Add mode
-      insertline '   'leftstr( 'mode', max( length('mode'), 20))' = 'NepmdGetMode(), tmpfid.last + 1, tmpfid
+      insertline '   'leftstr( 'mode', max( length('mode'), 20))' = 'GetMode(), tmpfid.last + 1, tmpfid
       do w = 1 to words(SettingsList)
          wrd = word( SettingsList, w)
          next = lowcase(wrd)
@@ -535,7 +535,7 @@ defc SetHighlight
    endif
 
    -- Process setting
-   Mode = NepmdGetMode()
+   Mode = GetMode()
    if (CheckFlag = '') & loadstate then
       CheckFlag = NepmdGetHiliteCheckFlag(Mode)
    endif
