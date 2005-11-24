@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.24 2005-11-24 01:07:04 aschn Exp $
+* $Id: newmenu.e,v 1.25 2005-11-24 08:50:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1099,10 +1099,10 @@ defproc add_format_menu(menuname)
                                    'Toggle_Two_Spaces' ||
                                    \1'Put 2 spaces after periods etc.',
                                    MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_mailindentedisverbatim', i);
-   buildmenuitem menuname, mid, i, 'Mail: indented is verbatim',                                         -- Mail: indented is verbatim
-                                   'toggle_mail_indented_verb' ||
-                                   \1'Indented lines will not be reflowed',
+   i = i + 1; call SetAVar( 'mid_mailindentedlines', i);
+   buildmenuitem menuname, mid, i, 'Mail: reflow indented lines',                                        -- Mail: reflow indented lines
+                                   'toggle_mail_indented' ||
+                                   \1'Include indented lines (e.g. list items)',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_reflownext', i);
    buildmenuitem menuname, mid, i, 'Reflow next',                                                        -- Reflow next
@@ -2848,14 +2848,14 @@ defc menuinit_reflow
    universal join_after_wrap
    universal nepmd_hini
 
-   SetMenuAttribute( GetAVar('mid_twospaces'),              MIA_CHECKED, not twospaces)
-   KeyPath = '\NEPMD\User\Reflow\Mail\IndentedIsVerbatim'
+   SetMenuAttribute( GetAVar('mid_twospaces'),         MIA_CHECKED, not twospaces)
+   KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_mailindentedisverbatim'), MIA_CHECKED, not on)
+   SetMenuAttribute( GetAVar('mid_mailindentedlines'), MIA_CHECKED, not on)
    KeyPath = '\NEPMD\User\Reflow\Next'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_reflownext'),             MIA_CHECKED, not on)
-   SetMenuAttribute( GetAVar('mid_joinafterwrap'),          MIA_CHECKED, not join_after_wrap)
+   SetMenuAttribute( GetAVar('mid_reflownext'),        MIA_CHECKED, not on)
+   SetMenuAttribute( GetAVar('mid_joinafterwrap'),     MIA_CHECKED, not join_after_wrap)
 
    if FileIsMarked() then
       text = 'Mark'
@@ -3838,14 +3838,14 @@ defc toggle_join_after_wrap
 
 ; ---------------------------------------------------------------------------
 ; Flags: permanent, nepmd.ini
-defc toggle_mail_indented_verb
+defc toggle_mail_indented
    universal nepmd_hini
-   KeyPath = '\NEPMD\User\Reflow\Mail\IndentedIsVerbatim'
+   KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    on = not on
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
-   SetMenuAttribute( GetAVar('mid_mailindentedisverbatim'), MIA_CHECKED, not on)
+   SetMenuAttribute( GetAVar('mid_mailindentedlines'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
 ; Flags: permanent, nepmd.ini
