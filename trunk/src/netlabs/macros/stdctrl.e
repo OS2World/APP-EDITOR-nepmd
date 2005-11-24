@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.27 2005-11-15 17:39:08 aschn Exp $
+* $Id: stdctrl.e,v 1.28 2005-11-24 01:19:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -142,16 +142,16 @@ defproc listbox( title, listbuf)
       liststuff = substr( listbuf, 2, 8)
       flags = substr( listbuf, 10)
    else
-      listbuf=listbuf \0
-      liststuff = atol(length(listbuf) - 1)    ||   /* length of list                */
-                  address(listbuf)                  /* list                          */
+      listbuf = listbuf\0
+      liststuff = atol( length( listbuf) - 1)    ||   /* length of list                */
+                  address( listbuf)                   /* list                          */
       flags = ''
    endif
-   title = title \0
+   title = title\0
 
    if arg(3) <> '' then                      /* button names were specified    */
       parse value arg(3) with delim 2 but1 (delim) but2 (delim) but3 (delim) but4 (delim) but5 (delim) but6 (delim) but7 (delim)
-      nb=0
+      nb = 0
       if but1 <> '' then but1 = but1\0; nb = nb + 1; else sayerror 'LISTBOX:' BUTTON_ERROR__MSG; return 0; endif
       if but2 <> '' then but2 = but2\0; nb = nb + 1; else but2 = \0; endif
       if but3 <> '' then but3 = but3\0; nb = nb + 1; else but3 = \0; endif
@@ -208,8 +208,8 @@ defproc listbox( title, listbuf)
       selectbuf = copies( \0, 255)  -- Was 85     /* null terminate return buffer  */
    endif
 
-   if flags='' then
-      flags=3   -- bit 0=position below pts, bit 1=map to desktop
+   if flags = '' then
+      flags = 3   -- bit 0=position below pts, bit 1=map to desktop
    endif
 
    if getpminfo(EPMINFO_EDITFRAME) then
@@ -863,17 +863,70 @@ defc DeleteAllAttributes, DelAttribs
    endwhile
    call prestore_mark(savemark)
 
-defc monofont
+const
+compile if not defined( MONOFONT_STRINGS)
+   MONOFONT_STRINGS = 'MONO VIO FIX COURIER LETTER MINCHO TYPEWRITER'
+compile endif
+
+defproc IsMonoFont
    parse value queryfont(.font) with fontname '.' fontsize '.'
-   if fontname <> 'Courier' & fontname <> 'System Monospaced' then
-      if rightstr(fontsize,2) = 'BB' then  -- Bitmapped font
+
+   fMonoFont = 0
+
+   StringList = upcase( MONOFONT_STRINGS)
+   Name       = upcase( fontname)
+   -- Ignore MONOTYPE, because it's a brand name
+   wp = wordpos( 'MONOTYPE', Name)
+   if wp > 0 then
+      Name = delword( Name, wp, 1)
+   endif
+   do w = 1 to words( StringList)
+      String = word( StringList, w)
+      if pos( String, Name) > 0 then
+         fMonoFont = 1
+         leave
+      endif
+   enddo
+
+   if fMonoFont = 0 then
+      if rightstr( fontsize, 2) = 'BB' then  -- Bitmapped font
          parse value fontsize with 'DD' decipoints 'WW' width 'HH' height 'BB'
          if width & height then  -- It's fixed pitch
-            return
+            fMonoFont = 1
          endif
       endif
-      --.font = registerfont( 'System Monospaced', SYS_MONOSPACED_SIZE, 0)
-      .font = registerfont( 'System VIO', 'DD120HH16WW8BB', 0)
+   endif
+
+   return fMonoFont
+
+const
+compile if not defined( STD_MONOFONT)
+;  STD_MONOFONT = SYS_MONOSPACED_SIZE'.System Monospaced'
+   STD_MONOFONT = '12.System VIO' -- 'DD120HH16WW8BB'
+compile endif
+
+defc Monofont
+   universal app_hini
+   NewFont = ''
+   -- Query Monofont from font styles and always use it, if defined
+   MonoFontList = 'MonoFont Monofont MONOFONT monofont'
+   do w = 1 to words( MonoFontList)
+      Wrd = word( MonoFontList, w)
+      next = queryprofile( app_hini, 'Style', Wrd)  -- case-sensitive
+      if next > '' then
+         -- Strip color attributes
+         parse value next with name'.'size'.'attrib'.'fgcol'.'bgcol
+         NewFont = next'.'size'.'attrib
+         leave
+      endif
+   enddo
+   -- If Monofont style is not defined, take default Monofont, but only
+   -- if current font is not already a monospaced font.
+   if not IsMonofont() then
+      NewFont = DEFAULT_MONOFONT
+   endif
+   if NewFont > '' then
+      'SetTextFont' NewFont  -- SetTextFont is defined in MODEEXEC.E
    endif
 
 /*
@@ -1331,7 +1384,7 @@ defproc showwindow
 �                                                                            �
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
-defproc winmessagebox(caption, text)
+defproc winmessagebox( caption, text)
 
 ; msgtype = 4096                                        -- must be system modal.
 ; if arg(3) then
@@ -1593,7 +1646,7 @@ defc beep =
    a = arg(1)
    do while a <> ''
       parse value a with pitch duration a
-      call beep(pitch, duration)
+      call beep( pitch, duration)
    enddo
 ;compile endif
 
