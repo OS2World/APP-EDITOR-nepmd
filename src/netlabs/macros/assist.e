@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.10 2005-11-24 19:39:53 aschn Exp $
+* $Id: assist.e,v 1.11 2005-11-24 20:41:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -468,7 +468,7 @@ compile endif
 ; I.e. finding \begin {mygroup} and \end {mygroup} for LaTeX is planned and
 ; will be added here, when the passist function was extended.
 
-defproc NepmdDefineBalanceChar(char)
+defproc DefineBalanceChar(char)
    keyin char
    call psave_pos(saved_pos)
    left
@@ -482,28 +482,28 @@ defproc NepmdDefineBalanceChar(char)
    return
 
 def '('=
-   NepmdDefineBalanceChar('(')
+   DefineBalanceChar('(')
 
 def ')'=
-   NepmdDefineBalanceChar(')')
+   DefineBalanceChar(')')
 
 def '['=
-   NepmdDefineBalanceChar('[')
+   DefineBalanceChar('[')
 
 def ']'=
-   NepmdDefineBalanceChar(']')
+   DefineBalanceChar(']')
 
 def '{'=
-   NepmdDefineBalanceChar('{')
+   DefineBalanceChar('{')
 
 def '}'=
-   NepmdDefineBalanceChar('}')
+   DefineBalanceChar('}')
 
 def '<'=
-   NepmdDefineBalanceChar('<')
+   DefineBalanceChar('<')
 
 def '>'=
-   NepmdDefineBalanceChar('>')
+   DefineBalanceChar('>')
 */
 ; ---------------------------------------------------------------------------
 

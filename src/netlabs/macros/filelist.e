@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.12 2005-11-24 01:29:50 aschn Exp $
+* $Id: filelist.e,v 1.13 2005-11-24 20:41:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,7 +29,7 @@ Todo:
 ; -  History definitions to track commands or files from EDIT, LOAD and SAVE
 
 ; ---------------------------------------------------------------------------
-; RingAutoWriteFilePosition is called by 'quit' and 'Afterload'.
+; RingAutoWriteFilePosition is called by 'quit' and 'ProcessAfterload'.
 defproc RingAutoWriteFilePosition
    universal nepmd_hini
    universal RingWriteFilePositionDisabled

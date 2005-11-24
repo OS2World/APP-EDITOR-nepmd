@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.30 2005-11-24 19:39:56 aschn Exp $
+* $Id: edit.e,v 1.31 2005-11-24 20:41:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -199,7 +199,7 @@ compile endif
                              -- the unknown file was loaded (via xcom edit).
 
    getfileid startfid  -- save fid of topmost file before current edit cmd
-   call NepmdResetHiliteModeList()
+   call ResetHiliteModeList()
    -- Set current edit cmd to let other commands differ between several ways
    -- of file loading.
    -- Other commands, that execute 'Edit', can set this universal var before
@@ -406,10 +406,10 @@ compile endif
    -- If 1 or more files are loaded by the current edit cmd (or if loadfile has returned rc = 0):
    if first_file_loaded <> '' then
 
-      -- activatefile is now executed in NepmdAfterLoad with postme.
+      -- activatefile is now executed in ProcessAfterLoad with postme.
       -- This finally works properly. With activatefile here the ring would get messed.
       --activatefile first_file_loaded
-      -- Set fid for NepmdAfterLoad:
+      -- Set fid for ProcessAfterLoad:
       firstloadedfid = first_file_loaded
 
       -- Initialize firstinringfid if not already set by a previous edit command:
@@ -860,7 +860,7 @@ defproc parse_filename2( var wrd, sourcefile)
 
    -- replace environment variables
    if pos( '%', wrd) then
-      wrd = NepmdResolveEnvVars(wrd)
+      wrd = ResolveEnvVars(wrd)
    endif
 
    -- replace ?: with bootdrive

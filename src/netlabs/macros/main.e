@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.35 2005-11-24 01:27:35 aschn Exp $
+* $Id: main.e,v 1.36 2005-11-24 20:41:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -126,7 +126,7 @@ compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVE
 compile endif
 
 ;  Automatically link .ex files from <UserDir>\autolink ---------------------
-   call NepmdAutoLink()
+   call Autolink()
 
 ;  Process 'init' hook ------------------------------------------------------
    -- The 'init' hook is a comfortable way to overwrite or add some
@@ -213,7 +213,7 @@ compile endif
          'xcom e /n'
          getfileid newfid
          -- xcom edit doesn't call defc edit, therefore set the following
-         -- universal vars to make afterload happy.
+         -- universal vars to make ProcessAfterload happy.
          -- Usually they are set by defc edit.
          firstloadedfid = newfid  -- first file for this edit cmd
          firstinringfid = newfid  -- first file in the ring

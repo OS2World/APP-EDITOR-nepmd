@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.26 2005-11-24 19:40:06 aschn Exp $
+* $Id: newmenu.e,v 1.27 2005-11-24 20:41:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -3170,7 +3170,7 @@ defc menuinit_run
 defc menuinit_macros
    universal rexx_profile
    SetMenuAttribute( GetAVar('mid_activateprofile'),  MIA_CHECKED, not rexx_profile)
-   file = NepmdResolveEnvVars('%NEPMD_USERDIR%\bin\profile.erx')
+   file = ResolveEnvVars('%NEPMD_USERDIR%\bin\profile.erx')
    file_exist = exist(file)
    SetMenuAttribute( GetAVar('mid_activateprofile'),  MIA_DISABLED, file_exist)
    if file_exist then
@@ -3178,21 +3178,21 @@ defc menuinit_macros
    else
       SetMenuText( GetAVar('mid_editprofile'), 'Create PROFILE.ERX')
    endif
-   file = NepmdResolveEnvVars('%NEPMD_USERDIR%\macros\modecnf.e')
+   file = ResolveEnvVars('%NEPMD_USERDIR%\macros\modecnf.e')
    file_exist = exist(file)
    if file_exist then
       SetMenuText( GetAVar('mid_editmodecnf'), 'Edit MODECNF.E')
    else
       SetMenuText( GetAVar('mid_editmodecnf'), 'Create MODECNF.E')
    endif
-   file = NepmdResolveEnvVars('%NEPMD_USERDIR%\macros\mycnf.e')
+   file = ResolveEnvVars('%NEPMD_USERDIR%\macros\mycnf.e')
    file_exist = exist(file)
    if file_exist then
       SetMenuText( GetAVar('mid_editmycnf'), 'Edit MYCNF.E')
    else
       SetMenuText( GetAVar('mid_editmycnf'), 'Create MYCNF.E')
    endif
-   file = NepmdResolveEnvVars('%NEPMD_USERDIR%\macros\mystuff.e')
+   file = ResolveEnvVars('%NEPMD_USERDIR%\macros\mystuff.e')
    file_exist = exist(file)
    if file_exist then
       SetMenuText( GetAVar('mid_editmystuff'), 'Edit MYSTUFF.E')
