@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.6 2005-11-23 22:57:15 aschn Exp $
+* $Id: config.e,v 1.7 2005-11-24 19:22:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -111,7 +111,7 @@ compile endif
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called:  renderconfig                                            ³
-³           syntax:  renderconfig reply_window_hwnd page SEND_DEFAULT        ³
+³           syntax:  renderconfig reply_window_hwnd page fsend_default       ³
 ³                                                                            ³
 ³ what does it do : Upon the request of a external window, sent configuration³
 ³                   information in the form of special WM_COMMAND messages   ³
@@ -147,7 +147,7 @@ compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
 compile endif
    universal default_font
-   universal vMESSAGECOLOR, vSTATUSCOLOR
+   universal vmessagecolor, vstatuscolor
    universal statfont, msgfont
    universal bm_filename
    universal bitmap_present
@@ -161,24 +161,24 @@ compile endif
 compile if WPS_SUPPORT
    universal wpshell_handle
 compile endif
-   universal vEPM_POINTER, cursordimensions
+   universal vepm_pointer, cursordimensions
 
-   parse arg hndle page send_default .
+   parse arg hndle page fsend_default .  --  Usually fsend_default is = 2 at this point
 
    --------------------------------------------------------------------------
-   -- The following will open the settings dialog with values from EPM.INI,
-   -- not from the current file. (Usually send_default is = 2.)
-   -- But setconfig (called when the dialog is closed) will compare
-   -- these settings with the current file's settings. If different,
-   -- the settings for the current file will be changed, what is
-   -- probably not intended.
-   -- Ok, disabled in defc setconfig the update of current file's
-   -- margins and tabs now.
-   -- Settings notebook will change only default or global settings now.
+   -- Overwrite fsend_default to open the settings dialog with standard
+   -- settings (from EPM.INI), not with settings of the current file.
+   -- In standard EPM defc SetConfig (called when the dialog is closed)
+   -- compares these settings with the current file's settings. If different,
+   -- the settings for the current file are changed, what is not intended
+   -- now.
+   -- Therefore in defc SetConfig the update of current file's margins and
+   -- tabs is diabled now.
+   -- The settings notebook will change only default or global settings now.
 compile if CONFIGDLG_START_WITH_CURRENT_FILE_SETTINGS = 0  -- new default
-   send_default = 0
+   fsend_default = 0
 compile elseif CONFIGDLG_START_WITH_CURRENT_FILE_SETTINGS = 1
-   send_default = 2
+   fsend_default = 2
 compile endif
    -- else use submitted flag (normally = 2)
 
@@ -194,36 +194,36 @@ compile if WPS_SUPPORT
 compile endif
 
    if page = 1 then  --------------------- Page 1 is tabs -------------
-      if send_default = 2 then tempstr = .tabs
-      else tempstr = checkini( send_default, INI_TABS, DEFAULT_TABS)
+      if fsend_default = 2 then tempstr = .tabs
+      else tempstr = checkini( fsend_default, INI_TABS, DEFAULT_TABS)
       endif
       call send_config_data( hndle, tempstr, 3, help_panel)
       tempstr = 0
-      if not send_default then    -- 0: Use values from .ini file
+      if not fsend_default then      -- 0: Use values from .ini file
          newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if words(newcmd) >= 14 then
             tempstr = word(newcmd, 14)
          endif
-      elseif send_default = 2 then  -- 2: Use current values
+      elseif fsend_default = 2 then  -- 2: Use current values
          tempstr = tab_key
       endif
       call send_config_data( hndle, tempstr, 19, help_panel)
 
    elseif page = 2 then  ----------------- Page 2 is margins ----------
-      if send_default = 2 then      -- 2: Use current values
+      if fsend_default = 2 then    -- 2: Use current values
          tempstr = .margins
-      else                        -- 0|1: Use values from .ini file or default values
-         tempstr = checkini( send_default, INI_MARGINS, DEFAULT_MARGINS)
+      else                         -- 0|1: Use values from .ini file or default values
+         tempstr = checkini( fsend_default, INI_MARGINS, DEFAULT_MARGINS)
       endif
       call send_config_data( hndle, tempstr, 1, 5301)
 
    elseif page = 3 then  ----------------- Page 3 is colors -----------
-      if send_default = 2 then    -- 2: Use current values
+      if fsend_default = 2 then    -- 2: Use current values
          tempstr = .textcolor .markcolor vSTATUSCOLOR vMESSAGECOLOR
       else
-         if send_default then     -- 1: Use default values
+         if fsend_default then     -- 1: Use default values
             tempstr = ''
-         else                     -- 0: Use values from .ini file
+         else                      -- 0: Use values from .ini file
             tempstr = queryprofile( app_hini, appname, INI_STUFF)
          endif
          if tempstr = '' | tempstr = 1 then
@@ -250,39 +250,39 @@ compile endif
 compile if WPS_SUPPORT
       endif
 compile endif
-      call send_config_data( hndle, checkini( send_default, INI_TEMPPATH, vTEMP_PATH, TEMP_PATH), 10, help_panel)
+      call send_config_data( hndle, checkini( fsend_default, INI_TEMPPATH, vTEMP_PATH, TEMP_PATH), 10, help_panel)
 compile if CHECK_FOR_LEXAM
       if lexam_is_available then
 compile endif
-         call send_config_data( hndle, checkini( send_default, INI_DICTIONARY, dictionary_filename), 11, help_panel)
-         call send_config_data( hndle, checkini( send_default, INI_ADDENDA, addenda_filename), 12, help_panel)
+         call send_config_data( hndle, checkini( fsend_default, INI_DICTIONARY, dictionary_filename), 11, help_panel)
+         call send_config_data( hndle, checkini( fsend_default, INI_ADDENDA, addenda_filename), 12, help_panel)
 compile if CHECK_FOR_LEXAM
       endif
 compile endif
 
    elseif page = 5 then  ----------------- Page 5 is autosave ---------
-      if send_default = 2 then      -- 2: Use current values
+      if fsend_default = 2 then      -- 2: Use current values
          tempstr = .autosave
-      else                          -- 0|1: Use values from .ini file or default values
-         tempstr = checkini( send_default, INI_AUTOSAVE, DEFAULT_AUTOSAVE)
+      else                           -- 0|1: Use values from .ini file or default values
+         tempstr = checkini( fsend_default, INI_AUTOSAVE, DEFAULT_AUTOSAVE)
       endif
       call send_config_data( hndle, tempstr, 2, help_panel)
-      call send_config_data( hndle, checkini( send_default, INI_AUTOSPATH, vAUTOSAVE_PATH, AUTOSAVE_PATH), 9, help_panel)
+      call send_config_data( hndle, checkini( fsend_default, INI_AUTOSPATH, vAUTOSAVE_PATH, AUTOSAVE_PATH), 9, help_panel)
 
    elseif page = 6 then  ----------------- Page 6 is fonts ------------
-      fontid = word( default_font 0 .font, send_default + 1)
+      fontid = word( default_font 0 .font, fsend_default + 1)
       call send_config_data( hndle, queryfont(fontid)'.'trunc(.textcolor//16)'.'.textcolor%16, 24, help_panel)
-      if not send_default then    -- 0: Use values from .ini file
-         tempstr = checkini( send_default, INI_STATUSFONT, '')
+      if not fsend_default then    -- 0: Use values from .ini file
+         tempstr = checkini( fsend_default, INI_STATUSFONT, '')
          if tempstr then
             parse value tempstr with ptsize'.'facename'.'attr
             tempstr = facename'.'ptsize'.'attr
          else
             tempstr = queryfont(0)
          endif
-      elseif send_default = 1 then  -- 1: Use default values
+      elseif fsend_default = 1 then  -- 1: Use default values
          tempstr = queryfont(0)
-      else                          -- 2: Use current values
+      else                           -- 2: Use current values
          if statfont then
             parse value statfont with ptsize'.'facename'.'attr
             tempstr = facename'.'ptsize'.'attr
@@ -291,17 +291,17 @@ compile endif
          endif
       endif
       call send_config_data( hndle, tempstr'.'trunc(vSTATUSCOLOR//16)'.'vSTATUSCOLOR%16, 25, help_panel)
-      if not send_default then    -- 0: Use values from .ini file
-         tempstr = checkini( send_default, INI_MESSAGEFONT, '')
+      if not fsend_default then      -- 0: Use values from .ini file
+         tempstr = checkini( fsend_default, INI_MESSAGEFONT, '')
          if tempstr then
             parse value tempstr with ptsize'.'facename'.'attr
             tempstr = facename'.'ptsize'.'attr
          else
             tempstr = queryfont(0)
          endif
-      elseif send_default = 1 then  -- 1: Use default values
+      elseif fsend_default = 1 then  -- 1: Use default values
          tempstr = queryfont(0)
-      else                          -- 2: Use current values
+      else                           -- 2: Use current values
          if msgfont then
             parse value msgfont with ptsize'.'facename'.'attr
             tempstr = facename'.'ptsize'.'attr
@@ -312,7 +312,7 @@ compile endif
       call send_config_data(hndle, tempstr'.'trunc(vMESSAGECOLOR//16)'.'vMESSAGECOLOR%16, 26, help_panel)
 
    elseif page = 7 then  ----------------- Page 7 is enter keys -------
-      if send_default = 1 then      -- 1: Use default values
+      if fsend_default = 1 then      -- 1: Use default values
  compile if ENTER_ACTION = '' | ENTER_ACTION = 'ADDLINE'  -- The default
          ek = \1
  compile elseif ENTER_ACTION = 'NEXTLINE'
@@ -340,29 +340,29 @@ compile endif
          c_ek = \6
  compile endif
          tempstr = ek || ek || c_ek || ek || ek || ek || c_ek || ek
-      else                        -- 0|2: Use values from .ini file or current values
+      else                           -- 0|2: Use values from .ini file or current values
          tempstr = chr(enterkey) || chr(a_enterkey) || chr(c_enterkey) || chr(s_enterkey) || chr(padenterkey) || chr(a_padenterkey) || chr(c_padenterkey) || chr(s_padenterkey)
       endif
       call send_config_data(hndle, tempstr, 14, help_panel)
 
    elseif page = 8 then  ----------------- Page 8 is Frame controls ---
       tempstr = '1111010'  -- StatWnd, MsgWnd, hscroll, vscroll, extrawnd, bgbitmap, drop
-      if not send_default then    -- 0: Use values from .ini file
+      if not fsend_default then      -- 0: Use values from .ini file
          newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
             parse value newcmd with statflg msgflg vscrollflg hscrollflg . . extraflg . . . . . . . new_bitmap . drop_style .
             tempstr = statflg || msgflg || hscrollflg || vscrollflg || extraflg || new_bitmap || drop_style
          endif
-      elseif send_default = 2 then  -- 2: Use current values
+      elseif fsend_default = 2 then  -- 2: Use current values
          tempstr = queryframecontrol(1) || queryframecontrol(2) || queryframecontrol(16) ||
                    queryframecontrol(8) || queryframecontrol(32) || bitmap_present || queryframecontrol(8192)
       endif
       call send_config_data( hndle, tempstr, 15, help_panel)
-      call send_config_data( hndle, checkini( send_default, INI_BITMAP, bm_filename, ''), 16, help_panel)
+      call send_config_data( hndle, checkini( fsend_default, INI_BITMAP, bm_filename, ''), 16, help_panel)
 
    elseif page = 9 then  ----------------- Page 9 is Misc. ------------
       tempstr = '0000100'  -- CUA marking, stream mode, Rexx profile, longnames, I-beam pointer, underline cursor, menu accelerators
-      if not send_default then    -- 0: Use values from .ini file
+      if not fsend_default then    -- 0: Use values from .ini file
          newcmd = queryprofile( app_hini, appname, INI_OPT2FLAGS)
          if newcmd <> '' then
             parse value newcmd with pointer_style cursor_shape .
@@ -382,16 +382,16 @@ compile endif
             tempstr = markflg || streamflg || profile || longnames ||                      -- fixed 1: exchanged show_longnames and rexx_profile
                       pointer_style || cursor_shape || menu_accel
          endif
-      elseif send_default = 2 then  -- 2: Use current values
+      elseif fsend_default = 2 then  -- 2: Use current values
          tempstr = cua_marking_switch || stream_mode || rexx_profile || show_longnames ||
                    (vEPM_POINTER = 2) || (cursordimensions = '-128.3 -128.-64') || cua_menu_accel
       endif
       call send_config_data( hndle, tempstr, 18, help_panel)
 
    elseif page = 12 then  ---------------- Page 12 is Toolbar config --
-      if send_default = 1         -- 1: Use default values
+      if fsend_default = 1           -- 1: Use default values
          then tempstr = ''
-      else                        -- 0|2: Use values from .ini file or current values
+      else                           -- 0|2: Use values from .ini file or current values
          tempstr = queryprofile( app_hini, 'UCMenu', 'ConfigInfo')
       endif
       if tempstr = '' then
@@ -404,10 +404,10 @@ compile endif
       if active_toolbar = \1 then
          active_toolbar = ''
       endif
-;      checkini( send_default, INI_DEF_TOOLBAR, active_toolbar, '')
+;      checkini( fsend_default, INI_DEF_TOOLBAR, active_toolbar, '')
       send_toolbar = active_toolbar  -- current setting
-      if send_default then
-         if send_default = 1 then
+      if fsend_default then
+         if fsend_default = 1 then   -- 1: Use default values
             send_toolbar = ''        -- standard setting
          endif
       else
@@ -428,7 +428,7 @@ defproc send_config_data( hndle, strng, i, help_panel)
    call windowmessage( 1, hndle,
                        32,               -- WM_COMMAND - 0x0020
                        mpfrom2short( help_panel, i),
-                       ltoa(offset(strng) || selector(strng), 10))
+                       ltoa( offset(strng) || selector(strng), 10))
 
 defc enterkeys =
    universal enterkey, a_enterkey, c_enterkey, s_enterkey
@@ -436,17 +436,18 @@ defc enterkeys =
    universal appname, app_hini
    parse arg perm enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey
    if perm then
-      call setprofile(app_hini, appname,INI_ENTERKEYS, enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey)
+      call setprofile( app_hini, appname, INI_ENTERKEYS,
+                       enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey)
    endif
 
-; send_default is a flag that says we're reverting to the default product options.
+; fsend_default is a flag that says we're reverting to the default product options.
 ; defaultdata is the value to be used as the window default if INIKEY isn't found
 ; in the EPM.INI; it will also be used as the product default if no fourth parameter
 ; is given.
-defproc checkini( send_default, inikey, defaultdata)
+defproc CheckIni( fsend_default, inikey, defaultdata)
    universal appname, app_hini
-   if send_default then
-      if send_default = 1 & arg() > 3 then
+   if fsend_default then
+      if fsend_default = 1 & arg() > 3 then
          return arg(4)
       endif
       return defaultdata
@@ -459,7 +460,7 @@ defproc checkini( send_default, inikey, defaultdata)
 
 ; 5.21 lets you apply without saving, so we add an optional 3rd parameter.
 ; If omitted, assume the old way - save.  If present, only save if 1.
-defproc setini( inikey, inidata)
+defproc SetIni( inikey, inidata)
    universal appname, app_hini
    if arg() >= 3 then
       perm = arg(3)
@@ -482,7 +483,7 @@ defproc setini( inikey, inidata)
 ³ who and when    : Jerry C. & LAM  7/20/89                                  ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
-defc setconfig
+defc SetConfig
    universal addenda_filename
    universal dictionary_filename
    universal vTEMP_FILENAME, vTEMP_PATH
@@ -490,7 +491,6 @@ defc setconfig
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE
    universal appname, app_hini
    universal vMESSAGECOLOR, vSTATUSCOLOR
-   universal statfont, msgfont
    universal bm_filename
    universal bitmap_present
    universal toolbar_loaded
@@ -788,12 +788,12 @@ compile endif
 */
 ; The menu defs like togglecontrol, toggleframe, ... must be already defined
 ; before initconfig is executed.
-defc initconfig
+defc InitConfig
    universal addenda_filename
    universal dictionary_filename
    universal vTEMP_FILENAME, vTEMP_PATH
    universal vAUTOSAVE_PATH
-   universal appname, app_hini, font, bitmap_present, optflag_extrastuff
+   universal appname, app_hini, bitmap_present, optflag_extrastuff
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE
    universal statfont, msgfont, bm_filename
    universal default_font
@@ -837,18 +837,18 @@ compile endif
       if newcmd then
          parse value newcmd with ttextcolor tmarkcolor tstatuscolor tmessagecolor .
          .textcolor = ttextcolor; .markcolor = tmarkcolor
-         if tstatuscolor <> '' & tstatuscolor <> vSTATUSCOLOR then
-            vSTATUSCOLOR = tstatuscolor
+         if tstatuscolor <> '' & tstatuscolor <> vstatuscolor then
+            vstatuscolor = tstatuscolor
             'setstatusline'
          endif
-         if tmessagecolor <> '' & tmessagecolor <> vMESSAGECOLOR then
-            vMESSAGECOLOR = tmessagecolor
+         if tmessagecolor <> '' & tmessagecolor <> vmessagecolor then
+            vmessagecolor = tmessagecolor
             'setmessageline'
          endif
          newcmd = queryprofile( app_hini, appname, INI_MARGINS)
          if newcmd then
             .margins = newcmd
-            vDEFAULT_MARGINS = newcmd
+            vdefault_margins = newcmd
          endif
          newcmd = queryprofile( app_hini, appname, INI_AUTOSAVE)
          if newcmd <> '' then
@@ -857,7 +857,7 @@ compile endif
          endif
          newcmd = queryprofile( app_hini, appname, INI_TABS)
          if newcmd then
-            .tabs = newcmd; vDEFAULT_TABS = newcmd
+            .tabs = newcmd; vdefault_tabs = newcmd
          endif
          newcmd = queryprofile( app_hini, appname, INI_TEMPPATH)
          if newcmd then
@@ -1029,8 +1029,8 @@ compile if WPS_SUPPORT
    endif  -- not wpshell_handle
 compile endif
    if pointer_style <> '' then
-      vEPM_POINTER = 1 + pointer_style
-      mouse_setpointer vEPM_POINTER
+      vepm_pointer = 1 + pointer_style
+      mouse_setpointer vepm_pointer
    endif
 compile if not defined(my_CURSORDIMENSIONS)
    if cursor_shape <> '' then
@@ -1060,10 +1060,10 @@ compile endif
 
    newcmd = queryprofile( app_hini, appname, INI_DTCOLOR)
    if newcmd <> '' then
-      vDESKTOPColor = newcmd
+      vdesktopcolor = newcmd
       call windowmessage( 0,  getpminfo(EPMINFO_EDITCLIENT),  -- post
                           5497,      -- EPM_EDIT_SETDTCOLOR
-                          vDESKTOPColor,
+                          vdesktopcolor,
                           0)
    endif
 
@@ -1443,6 +1443,8 @@ compile if SUPPORT_USER_EXITS
    endif
 compile endif
 
+; ---------------------------------------------------------------------------
+; Called when a font is dropped on a window, after SetPresParam.
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: savefont                                                 ³
@@ -1451,10 +1453,11 @@ compile endif
 ³ who&when : GLS  09/16/93                                                   ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
-defc savefont
+defc SaveFont
    universal appname, app_hini, bitmap_present, optflag_extrastuff
    universal statfont, msgfont
-
+   --dprintf( 'SaveFont', 'arg(1) = ['arg(1)']')
+   -- arg(1) = 'EDIT' | 'MSG' | 'STAT'
    parse value upcase(arg(1)) with prefix
    if prefix == 'EDIT' then
       call setini( INI_FONT, queryfont(.font), 1)
@@ -1464,6 +1467,8 @@ defc savefont
       call setprofile(app_hini, appname, INI_MESSAGEFONT, msgfont)
    endif
 
+; ---------------------------------------------------------------------------
+; Called when a color is dropped on a window, after SetPresParam.
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: savecolor                                                ³
@@ -1472,17 +1477,21 @@ defc savefont
 ³ who&when : GLS  09/16/93                                                   ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
-defc savecolor
+defc SaveColor
    universal appname, app_hini
    universal vstatuscolor, vmessagecolor, vDESKTOPCOLOR
+   --dprintf( 'SaveColor', 'arg(1) = ['arg(1)']')
+   -- arg(1) = 'EDIT' | 'MSG' | 'STAT'
 
 -- for now we save the mark edit status and message color in one block
 -- (INI_STUFF topic in the ini file)
 
    call setprofile( app_hini, appname, INI_DTCOLOR, vDESKTOPColor)
    call setprofile( app_hini, appname, INI_STUFF, .textcolor .markcolor vstatuscolor vmessagecolor)
-   -- Note: vnepmd_modified_statuscolor is still missing.
+   -- Note: vmodifiedstatuscolor is still missing.
 
+; ---------------------------------------------------------------------------
+; Never executed?
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: savewindowsize                                           ³
@@ -1491,9 +1500,11 @@ defc savecolor
 ³ who did it&when : GLS 09/15/93                                             ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
-defc savewindowsize
+defc SaveWindowSize
+   dprintf( 'SaveWindowSize', 'arg(1) = ['arg(1)']')
    call windowmessage( 0, getpminfo(APP_HANDLE),
-                       62, 0, 0)               -- x'003E' = WM_SAVEAPPLICATION
+                       62,                     -- x'003E' = WM_SAVEAPPLICATION
+                       0, 0)
 
 ; ---------------------------------------------------------------------------
 defc DefaultMargins

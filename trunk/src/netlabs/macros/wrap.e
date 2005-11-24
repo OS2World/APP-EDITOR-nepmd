@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wrap.e,v 1.9 2005-11-16 16:47:09 aschn Exp $
+* $Id: wrap.e,v 1.10 2005-11-24 19:22:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,15 +35,8 @@ const
 ; ---------------------------------------------------------------------------
 ; Query wrapped state of current file. Returns 1 or 0.
 defproc GetWrapped
-   universal EPM_utility_array_ID
-   -- Save wrapped state in an array var
    getfileid fid
-   rc = get_array_value( EPM_utility_array_ID, 'wrapped.'fid, Wrapped)
-   if rc = 0 then
-      return Wrapped
-   else
-      return 0
-   endif
+   return (GetAVar( 'wrapped.'fid) = 1)
 
 ; ---------------------------------------------------------------------------
 ; Wrap or umwrap current file depending on the wrapped state.
@@ -65,8 +58,6 @@ defc ToggleWrap
 ; For mode = CONFIGSYS: Try to wrap at ';' or '+' first. If found, then the
 ; next line will have a ';' or a '+' at col 1.
 defc softwrap2win, softwrap
-   universal EPM_utility_array_ID
-
    -- Check if already wrapped
    if GetWrapped() then
       -- Unwrap first
@@ -76,27 +67,9 @@ defc softwrap2win, softwrap
    -- Check if monospaced
    parse value queryfont(.font) with fontname '.' fontsize '.'
    if .levelofattributesupport bitand 4 then  -- Mixed fonts?
-      monospaced = 0                          -- Can't assume monospaced regardless of font
+      fMonospaced = 0                          -- Can't assume monospaced regardless of font
    else
-      monospaced = 1
-      MonoStrings = 'COURIER MONO VIO TYPEWRITER'
-      Match = 0
-      do w = 1 to words(MonoStrings)
-         wrd = word( MonoStrings, w)
-         if pos( upcase(wrd), upcase(fontname)) then
-            Match = 1
-            leave
-         endif
-      enddo
-      if Match = 0 then
-      --if fontname<>'Courier' & fontname<>'System Monospaced' & then
-         if rightstr( fontsize, 2) = 'BB' then  -- Bitmapped font
-            parse value fontsize with 'DD' decipoints 'WW' width 'HH' height 'BB'
-            if not (width & height) then  -- It's fixed pitch
-               monospaced = 0
-            endif
-         endif
-      endif  -- fontname
+      fMmonospaced = IsMonoFont()
    endif  -- .levelofattributesupport
 
    swp1 = copies( \0, 36)
@@ -107,7 +80,7 @@ defc softwrap2win, softwrap
    par_width = ltoa( substr( swp1, 9, 4), 10)
 
    -- Calculate limit = split col for a monospaced font
-   if monospaced then  -- Calculate once, outside of the loop
+   if fMonospaced then  -- Calculate once, outside of the loop
       x = 1; y = 1
       map_point map_LCOToDoc, x, y  -- Get y position of current line.
       x = par_width
@@ -136,7 +109,7 @@ defc softwrap2win, softwrap
       getline line, l
 
       -- Calculate limit = split col for a proportional font
-      if not monospaced then  -- Have to calculate for each line individually
+      if not fMonospaced then  -- Have to calculate for each line individually
          x = l; y = 1
          map_point map_LCOToDoc, x, y  -- Get y position of current line.
          x = par_width
@@ -192,17 +165,17 @@ defc softwrap2win, softwrap
    endif
    -- Save wrapped state in an array var
    if w > 0 then
-      Wrapped = 1
-      sayerror 'Wrapped 'w' lines without changing the number of lines on file save.'
+      fWrapped = 1
+      sayerror 'Wrapped 'w' lines (restored on file save)'
       'AvoidSaveOptions /o /l'
    else
-      Wrapped = 0
+      fWrapped = 0
       sayerror 'No wrap required'
    endif
    undotime = 2
    undoaction 5, undotime  -- Enable state recording at specified time
    .modify = saved_modify
-   do_array 2, EPM_utility_array_ID, 'wrapped.'fid, Wrapped
+   call SetAVar( 'wrapped.'fid, fWrapped)
 
 ; ---------------------------------------------------------------------------
 ; Soft-unwrap lines of current file. Determine line terminators of type
@@ -213,8 +186,6 @@ defc softwrap2win, softwrap
 ; unterminated. This enables to unwrap lines, the user has added in wrapped
 ; status.
 defc unwrap
-   universal EPM_utility_array_ID
-
    getfileid fid
    client_fid = gethwndc(EPMINFO_EDITCLIENT) || atol(fid)
    -- no additional undo state supression required
@@ -311,8 +282,8 @@ defc unwrap
    undoaction 5, undotime  -- Enable state recording at specified time
    .modify = saved_modify
    -- Save wrapped state in an array var
-   Wrapped = 0
-   do_array 2, EPM_utility_array_ID, 'wrapped.'fid, Wrapped
+   fWrapped = 0
+   call SetAVar( 'wrapped.'fid, Wrapped)
 
 ; ---------------------------------------------------------------------------
 ; Hard wrap: split lines. Try to split at words first.

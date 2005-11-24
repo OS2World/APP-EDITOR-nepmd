@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.9 2005-11-24 01:23:28 aschn Exp $
+* $Id: modeexec.e,v 1.10 2005-11-24 19:22:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -995,28 +995,26 @@ defc SetInsertMode
    -- Update of infoline field is handled internally
 
 ; ---------------------------------------------------------------------------
-; Syntax:  <size>.<name>[.<attrib1>[ <attrib2>]]  or  <name>.<size>[.<attrib[ <attrib2>]]
-;          Any following specifications, separated by a period are ignored.
-defc SetTextFont
-   universal appname
-   universal app_hini
-   universal lastfont
-   arg1 = upcase(arg(1))
-   if arg1 = '' | arg1 = 'DEFAULT' then
-      new = queryprofile( app_hini, appname, 'FONT')
-      if new = '' then
-         new = '12.System VIO'
-      endif
-   else
-      new = arg(1)
-   endif
-   parse value new with name'.'size'.'attriblist'.'
+; Syntax:
+; Font = ConvertFont( <size>.<name>[[[.<attrib1>[ <attrib2>]].fgcolor].bgcolor])
+;          or
+; Font = ConvertFont( <name>.<size>[[[.<attrib[ <attrib2>]].fgcolor].bgcolor])
+; Both font specs are valid: '12.System VIO' or 'System VIO.DD120HH16WW8BB'
+; + or <space> are allowed as separator for <attribs>. <attribs> can be
+; specified as number or as name.
+; Different from SetTextColor and SetMarkColor, the appended values for
+; colors must be separated by a period and go both from 0 to 15.
+; The returned syntax is used as arg for ProcessFontRequest and could be used
+; for style settings.
+; Note: registerfont uses a different syntax: <name>.<DDsize>.<attrib_num>
+defproc ConvertFont
+   parse arg name'.'size'.'attriblist'.'fgcol'.'bgcol
    next = upcase(size)
    next = translate( next, '', 'XDHWB', '0')
    if not isnum(next) then
       --sayerror 'size = "'size'" is num, arg(1) = 'arg(1)
       -- toggle name and size
-      parse value new with size'.'name'.'
+      parse arg size'.'name'.'
    endif
    --sayerror 'name = "'name'", size = "'size'", next = "'next'", arg(1) = 'arg(1)
    parse value upcase(size) with h'X'w
@@ -1046,11 +1044,40 @@ defc SetTextFont
          endif
       endif
    enddo
+   if fgcol = '' then
+      fgcol = 0
+   elseif not isnum( fgcol) then
+      fgcol = ConvertColor( fgcol)
+   endif
+   if bgcol = '' then
+      bgcol = 0
+   elseif not isnum( bgcol) then
+      bgcol = ConvertColor( bgcol)
+   endif
+   return name'.'size'.'attrib'.'fgcol'.'bgcol
+
+; ---------------------------------------------------------------------------
+; Syntax: SetTextFont <size>.<name>[.<attrib1>[ <attrib2>]]  or
+;         SetTextFont <name>.<size>[.<attrib[ <attrib2>]]
+; Any following specifications, separated by a period are ignored.
+defc SetTextFont
+   universal appname
+   universal app_hini
+   universal lastfont
+   arg1 = upcase(arg(1))
+   if arg1 = '' | arg1 = 'DEFAULT' then
+      new = queryprofile( app_hini, appname, 'FONT')
+      if new = '' then
+         new = '12.System VIO'
+      endif
+   else
+      new = arg(1)
+   endif
+   new = ConvertFont( new)
    if new <> lastfont then
-      new = name'.'size'.'attrib'.0.0'
    --sayerror 'newfont = 'new
    --'processfontrequest' new
-      'postme processfontrequest' new
+      'postme processfontrequest' new  -- must be posted (why?)
       lastfont = new  -- save it in a universal var, because .font holds only an id
                       -- It would be much better to avoid the processfontrequest
                       -- and execute simply: .font = <font_id>. Therefore the
@@ -1067,63 +1094,10 @@ defc SetTextFont
    endif
 
 ; ---------------------------------------------------------------------------
-defc SetTextColor
-   universal appname
-   universal app_hini
-   arg1 = upcase(arg(1))
-   if arg1 = '' | arg1 = 'DEFAULT' then
-      colors = queryprofile( app_hini, appname, 'STUFF')
-      if colors = '' then
-         new = 120
-      else
-         new = subword( colors, 1, 1)
-      endif
-      color = arg(1)
-   else
-      new = GetColorFromName(arg(1))
-      color = new
-   endif
-   if new <> .textcolor then  -- the color is set but needs activation
-      .textcolor = new
-   endif
-   -- Save the value in an array var, to determine 'DEFAULT' state later
-   getfileid fid
-   if GetAVar( 'textcolor.'fid) <> color then
-      call SetAVar( 'textcolor.'fid, color)
-      if not wordpos( upcase('SetTextColor'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetTextColor')
-      endif
-   endif
-
-; ---------------------------------------------------------------------------
-defc SetMarkColor
-   universal appname
-   universal app_hini
-   arg1 = upcase(arg(1))
-   if arg1 = '' | arg1 = 'DEFAULT' then
-      colors = queryprofile( app_hini, appname, 'STUFF')
-      if colors = '' then
-         new = 113
-      else
-         new = subword( colors, 2, 1)
-      endif
-   else
-      new = GetColorFromName(arg(1))
-   endif
-   if new <> .markcolor then  -- the color is set but needs activation
-      .markcolor = new
-   endif
-   -- Save the value in an array var, to determine 'DEFAULT' state later
-   getfileid fid
-   if GetAVar( 'markcolor.'fid) <> new then
-      call SetAVar( 'markcolor.'fid, new)
-      if not wordpos( upcase('SetMarkColor'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetMarkColor')
-      endif
-   endif
-
-; ---------------------------------------------------------------------------
-defproc GetColorFromName(args)
+; Syntax: Color = ConvertColor( <color1> [+ <color2>])
+; <colors> are color names or numbers. The resulting Color is the summed
+; value of all.
+defproc ConvertColor( args)
    List = '' ||
       '/BLACK'          || '/0'   ||
       '/BLUE'           || '/1'   ||
@@ -1195,4 +1169,59 @@ defproc GetColorFromName(args)
 
    return color
 
+; ---------------------------------------------------------------------------
+defc SetTextColor
+   universal appname
+   universal app_hini
+   arg1 = upcase(arg(1))
+   if arg1 = '' | arg1 = 'DEFAULT' then
+      colors = queryprofile( app_hini, appname, 'STUFF')
+      if colors = '' then
+         new = 120
+      else
+         new = subword( colors, 1, 1)
+      endif
+      color = arg(1)
+   else
+      new = ConvertColor( arg(1))
+      color = new
+   endif
+   if new <> .textcolor then  -- the color is set but needs activation
+      .textcolor = new
+   endif
+   -- Save the value in an array var, to determine 'DEFAULT' state later
+   getfileid fid
+   if GetAVar( 'textcolor.'fid) <> color then
+      call SetAVar( 'textcolor.'fid, color)
+      if not wordpos( upcase('SetTextColor'), upcase(GetAVar('lastusedsettings'))) then
+         call AddAVar( 'lastusedsettings', ' SetTextColor')
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+defc SetMarkColor
+   universal appname
+   universal app_hini
+   arg1 = upcase(arg(1))
+   if arg1 = '' | arg1 = 'DEFAULT' then
+      colors = queryprofile( app_hini, appname, 'STUFF')
+      if colors = '' then
+         new = 113
+      else
+         new = subword( colors, 2, 1)
+      endif
+   else
+      new = ConvertColor(arg(1))
+   endif
+   if new <> .markcolor then  -- the color is set but needs activation
+      .markcolor = new
+   endif
+   -- Save the value in an array var, to determine 'DEFAULT' state later
+   getfileid fid
+   if GetAVar( 'markcolor.'fid) <> new then
+      call SetAVar( 'markcolor.'fid, new)
+      if not wordpos( upcase('SetMarkColor'), upcase(GetAVar('lastusedsettings'))) then
+         call AddAVar( 'lastusedsettings', ' SetMarkColor')
+      endif
+   endif
 

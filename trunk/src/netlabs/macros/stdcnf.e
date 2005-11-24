@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.27 2005-11-23 22:46:44 aschn Exp $
+* $Id: stdcnf.e,v 1.28 2005-11-24 19:22:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1205,7 +1205,8 @@ compile endif
 compile if RING_OPTIONAL
    universal ring_enabled
 compile endif
-   universal EPM_utility_array_ID, defaultmenu, font
+   universal EPM_utility_array_ID, defaultmenu
+;   universal font
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE
    universal  ADDENDA_FILENAME
    universal  DICTIONARY_FILENAME
@@ -1248,9 +1249,9 @@ compile endif
 compile if TOGGLE_TAB
    universal tab_key
 compile endif
-   universal save_with_tabs
+;   universal save_with_tabs
 ;   universal default_edit_options, default_save_options, default_search_options
-   universal last_append_file
+;   universal last_append_file
 ;compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
 ;   universal cua_menu_accel
 ;compile endif
@@ -1502,11 +1503,11 @@ compile endif
 -- If you want ALL files saved with tab compression, without specifying
 -- the '/t', set this to 1.
 ; obsolete
-compile if defined(my_save_with_tabs)
-   save_with_tabs = my_save_with_tabs
-compile else
-   save_with_tabs = 0
-compile endif
+;compile if defined(my_save_with_tabs)
+;   save_with_tabs = my_save_with_tabs
+;compile else
+;   save_with_tabs = 0
+;compile endif
 
 ;compile if EVERSION < 5
 ;-- Four function_key_text strings now for four shift states.
@@ -1808,14 +1809,15 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 ;      tilde = '~'
 ;   endif
 ;compile endif
-compile if defined(my_FONT)
-   font = my_FONT
+;compile if defined(my_FONT)
+; obsolete
+;   font = my_FONT
 ;  compile if EVERSION < 5.21
 ;   if not my_FONT then call setfont(0, 0); endif  -- If FALSE then Togglefont
 ;  compile endif
-compile else
-   font = TRUE                         -- default font is large
-compile endif
+;compile else
+;   font = TRUE                         -- default font is large
+;compile endif
 ;compile if RING_OPTIONAL
  compile if defined(my_RING_ENABLED)
     ring_enabled = my_RING_ENABLED
@@ -1859,13 +1861,13 @@ compile endif
 ; compile if defined(my_MENU_PROMPT)
 ;   menu_prompt = my_MENU_PROMPT
 ; compile else
-;  menu_prompt = 0       -- Default is to not have it (at least, internally).
-   menu_prompt = 1       -- (Start with it on for now, to get it beta tested.)
+   menu_prompt = 1
 ; compile endif
 ;compile endif  -- DYNAMIC_PROMPTS
 ;compile endif  -- EVERSION >= 5
 
-   last_append_file = ''   -- Initialize for DEFC APPEND.
+; obsolete
+;   last_append_file = ''   -- Initialize for DEFC APPEND.
 
 ;compile if not EPM
 ;
@@ -1966,11 +1968,17 @@ compile endif
 ;compile if EVERSION >= '5.50'
   -- default editor font
   -- .font=registerfont('Courier', 12, 0)
-compile if WANT_SYS_MONOSPACED
-   default_font = registerfont('System Monospaced', SYS_MONOSPACED_SIZE, 0)
-compile else
-   default_font = 1
-compile endif
+;compile if WANT_SYS_MONOSPACED
+;   default_font = registerfont('System Monospaced', SYS_MONOSPACED_SIZE, 0)
+;compile else
+;   default_font = 1
+;compile endif
+ compile if defined(STD_MONOFONT)
+   parse value STD_MONOFONT with ptsize'.'name
+ compile else
+   parse value '12.System VIO' with ptsize'.'name
+ compile endif
+   default_font = registerfont( name, 'DD'ptsize'0WW0HH0BB', 0)
 
 ;compile if DYNAMIC_CURSOR_STYLE
  compile if defined(my_CURSORDIMENSIONS)
