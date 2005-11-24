@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.9 2005-11-24 19:40:03 aschn Exp $
+* $Id: infoline.e,v 1.10 2005-11-24 21:06:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -70,15 +70,13 @@
 ;    o  If file was altered by another file, then the old date is shown in title
 ;    o  If file was selected by ring_more dialog.  -> won't (can't) fix.
 
+compile if not defined(MODIFIED_STATUSCOLOR)
 const
-compile if not defined(NEPMD_MODIFIED_STATUSCOLOR)
-   NEPMD_MODIFIED_STATUSCOLOR = LIGHT_GREYB + MAGENTA
+   MODIFIED_STATUSCOLOR = LIGHT_GREYB + MAGENTA
 compile endif
-compile if defined(NEPMD_MODIFIED_STATUSCOLOR)
 definit
-   universal vNEPMD_MODIFIED_STATUSCOLOR
-   vNEPMD_MODIFIED_STATUSCOLOR = NEPMD_MODIFIED_STATUSCOLOR
-compile endif
+   universal vmodifiedstatuscolor
+   vmodifiedstatuscolor = modifiedstatuscolor
 
 ; ---------------------------------------------------------------------------
 ; Compare args with StatusFieldFlags and TitleFieldFlags. If they match,
@@ -446,28 +444,28 @@ defproc GetInfoFieldValue(FVar, var FFlag)
 ; Called with a string to set the statusline text to that string; with no argument
 ; to just set the statusline color.
 defc SetStatusLine
-   universal vSTATUSCOLOR, current_status_template
-compile if defined(NEPMD_MODIFIED_STATUSCOLOR)
-   universal vNEPMD_MODIFIED_STATUSCOLOR
+   universal vstatuscolor
+   universal vmodifiedstatuscolor
+   universal current_status_template
    if .modify = 0 then
-      newSTATUSCOLOR = vSTATUSCOLOR
+      newstatuscolor = vstatuscolor
    else
-      newSTATUSCOLOR = vNEPMD_MODIFIED_STATUSCOLOR
+      newstatuscolor = vmodifiedstatuscolor
    endif
 compile else
-   newSTATUSCOLOR = vSTATUSCOLOR
+   newstatuscolor = vstatuscolor
 compile endif
    if arg(1) then
       current_status_template = arg(1)
-      template=atoi(length(current_status_template)) || current_status_template
-      template_ptr=put_in_buffer(template)
+      template = atoi( length( current_status_template)) || current_status_template
+      template_ptr = put_in_buffer( template)
    else
       template_ptr=0
    endif
-   call windowmessage( 1,  getpminfo(EPMINFO_EDITCLIENT),
+   call windowmessage( 1, getpminfo(EPMINFO_EDITCLIENT),
                        5431,      -- EPM_FRAME_STATUSLINE
                        template_ptr,
-                       newSTATUSCOLOR )
+                       newstatuscolor )
    return
 
 ; ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: enter.e,v 1.7 2005-11-15 17:40:39 aschn Exp $
+* $Id: enter.e,v 1.8 2005-11-24 21:06:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -26,6 +26,9 @@
 ; WANT_STREAM_MODE = 'SWITCH'
 ; ENTER_ACTION = 'STREAM'
 ; NEPMD_STREAM_INDENTED = 1
+
+; Todo: Replace consts with ini settings, at least the standard enter
+; code for stream mode.
 
 const
 compile if not defined(NEPMD_STREAM_INDENTED)
