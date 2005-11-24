@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.28 2005-11-24 19:22:34 aschn Exp $
+* $Id: stdcnf.e,v 1.29 2005-11-24 21:06:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1187,9 +1187,9 @@ definit
    universal CurrentHLPFiles
 ; compile endif
 ; compile if EVERSION >= '5.21'
-   universal vSTATUSCOLOR, vMESSAGECOLOR
+   universal vstatuscolor, vmessagecolor
 ;  compile if EVERSION >= '5.60'
-   universal vDESKTOPCOLOR
+   universal vdesktopcolor
 ;  compile endif
 ; compile endif
 ;compile if CHECK_FOR_LEXAM
@@ -1900,10 +1900,10 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 ;   .messagecolor = MESSAGECOLOR
 
 ;compile else
-   vSTATUSCOLOR  = STATUSCOLOR
-   vMESSAGECOLOR = MESSAGECOLOR
+   vstatuscolor  = STATUSCOLOR
+   vmessagecolor = MESSAGECOLOR
 ; compile if EVERSION >= '5.60'
-   vDESKTOPCOLOR = DESKTOPCOLOR
+   vdesktopcolor = DESKTOPCOLOR
 ; compile endif
 ;;compile if defined(STATUS_TEMPLATE)
 ;  compile if 0 -- EVERSION >= 6

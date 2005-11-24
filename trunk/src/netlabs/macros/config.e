@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.7 2005-11-24 19:22:31 aschn Exp $
+* $Id: config.e,v 1.8 2005-11-24 21:06:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -219,7 +219,7 @@ compile endif
 
    elseif page = 3 then  ----------------- Page 3 is colors -----------
       if fsend_default = 2 then    -- 2: Use current values
-         tempstr = .textcolor .markcolor vSTATUSCOLOR vMESSAGECOLOR
+         tempstr = .textcolor .markcolor vstatuscolor vmessagecolor
       else
          if fsend_default then     -- 1: Use default values
             tempstr = ''
@@ -290,7 +290,7 @@ compile endif
             tempstr = queryfont(0)
          endif
       endif
-      call send_config_data( hndle, tempstr'.'trunc(vSTATUSCOLOR//16)'.'vSTATUSCOLOR%16, 25, help_panel)
+      call send_config_data( hndle, tempstr'.'trunc(vstatuscolor//16)'.'vstatuscolor%16, 25, help_panel)
       if not fsend_default then      -- 0: Use values from .ini file
          tempstr = checkini( fsend_default, INI_MESSAGEFONT, '')
          if tempstr then
@@ -309,7 +309,7 @@ compile endif
             tempstr = queryfont(0)
          endif
       endif
-      call send_config_data(hndle, tempstr'.'trunc(vMESSAGECOLOR//16)'.'vMESSAGECOLOR%16, 26, help_panel)
+      call send_config_data(hndle, tempstr'.'trunc(vmessagecolor//16)'.'vmessagecolor%16, 26, help_panel)
 
    elseif page = 7 then  ----------------- Page 7 is enter keys -------
       if fsend_default = 1 then      -- 1: Use default values
@@ -488,9 +488,9 @@ defc SetConfig
    universal dictionary_filename
    universal vTEMP_FILENAME, vTEMP_PATH
    universal vAUTOSAVE_PATH
-   universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE
+   universal vdefault_tabs, vdefault_margins, vdefault_autosave
    universal appname, app_hini
-   universal vMESSAGECOLOR, vSTATUSCOLOR
+   universal vmessagecolor, vstatuscolor
    universal bm_filename
    universal bitmap_present
    universal toolbar_loaded
@@ -502,7 +502,7 @@ defc SetConfig
    universal tab_key
    universal default_tab_key
    universal cua_menu_accel
-   universal vEPM_POINTER, cursordimensions
+   universal vepm_pointer, cursordimensions
 
    ChangeFileSettings = CONFIGDLG_CHANGE_FILE_SETTINGS  -- standard was 1
    AskReflow          = CONFIGDLG_ASK_REFLOW
@@ -522,13 +522,13 @@ defc SetConfig
       elseif ChangeFileSettings = 'REFRESHDEFAULT' then   -- change setting of all files in
          'RingRefreshSetting DEFAULT SetMargins 'newcmd   -- the ring with default settings
       endif
-      vDEFAULT_MARGINS = setini( INI_MARGINS, newcmd, perm)
+      vdefault_margins = setini( INI_MARGINS, newcmd, perm)
       'RefreshInfoLine MARGINS'
 ------------------------------------------------------
 
    elseif configid = 2 then
       .autosave = setini( INI_AUTOSAVE, newcmd, perm)
-      vDEFAULT_AUTOSAVE = newcmd
+      vdefault_autosave = newcmd
 
    elseif configid = 3 then
 ------------------------------------------------------
@@ -540,7 +540,7 @@ defc SetConfig
       elseif ChangeFileSettings = 'REFRESHDEFAULT' then   -- change setting of all files in
          'RingRefreshSetting DEFAULT SetTabs 'newcmd      -- the ring with default settings
       endif
-      vDEFAULT_TABS = setini( INI_TABS, newcmd, perm)
+      vdefault_tabs = setini( INI_TABS, newcmd, perm)
       'RefreshInfoLine TABS'
 ------------------------------------------------------
 
@@ -550,12 +550,12 @@ defc SetConfig
    elseif configid = 5 then
       .markcolor = newcmd
 
-   elseif configid = 6 & newcmd <> vSTATUSCOLOR then
-      vSTATUSCOLOR = newcmd
+   elseif configid = 6 & newcmd <> vstatuscolor then
+      vstatuscolor = newcmd
       'setstatusline'
 
-   elseif configid = 7 & newcmd <> vMESSAGECOLOR then
-      vMESSAGECOLOR = newcmd
+   elseif configid = 7 & newcmd <> vmessagecolor then
+      vmessagecolor = newcmd
       'setmessageline'
 
    elseif configid = 9 then
@@ -633,8 +633,8 @@ defc SetConfig
 
    elseif configid = 18 then
       parse value newcmd with markflg 2 streamflg 3 profile 4 longnames 5 pointer_style 6 cursor_shape 7 menu_accel 8
-      vEPM_POINTER = 1 + pointer_style
-      mouse_setpointer vEPM_POINTER
+      vepm_pointer = 1 + pointer_style
+      mouse_setpointer vepm_pointer
 compile if not defined(my_CURSORDIMENSIONS)
       'cursor_style' (cursor_shape + 1)
 compile endif
@@ -794,7 +794,7 @@ defc InitConfig
    universal vTEMP_FILENAME, vTEMP_PATH
    universal vAUTOSAVE_PATH
    universal appname, app_hini, bitmap_present, optflag_extrastuff
-   universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE
+   universal vdefault_tabs, vdefault_margins, vdefault_autosave
    universal statfont, msgfont, bm_filename
    universal default_font
    universal cua_marking_switch
@@ -802,8 +802,8 @@ defc InitConfig
 compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined(my_SAVEPATH)
    universal savepath
 compile endif
-   universal vMESSAGECOLOR, vSTATUSCOLOR
-   universal vDESKTOPColor
+   universal vmessagecolor, vstatuscolor
+   universal vdesktopcolor
    universal enterkey, a_enterkey, c_enterkey, s_enterkey
    universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
    universal stream_mode
@@ -814,7 +814,7 @@ compile endif
 ;   universal escape_key  -- Disabled
    universal tab_key
    universal default_tab_key
-   universal vEPM_POINTER, cursordimensions
+   universal vepm_pointer, cursordimensions
    universal appname
    universal stack_cmds
    universal cua_menu_accel

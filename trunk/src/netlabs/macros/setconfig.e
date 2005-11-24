@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setconfig.e,v 1.5 2003-08-31 22:14:02 aschn Exp $
+* $Id: setconfig.e,v 1.6 2005-11-24 21:06:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -113,7 +113,7 @@ OPT2FLAGS:
    Bit              Setting
         for value = 1      for value = 0
    ---  ----------------   -------------------
-    1   I-beam pointer     arrow pointer       1 = (vEPM_POINTER=2)
+    1   I-beam pointer     arrow pointer       1 = (vepm_pointer = 2)
     2   underline cursor   bar cursor          1 = (cursordimensions = '-128.3 -128.-64')
 */
 defc NepmdDefaultControls
@@ -135,7 +135,7 @@ defc NepmdDefaultControls
    inidata = '07'\0
    call setprofile(app_hini, appname, inikey, inidata)
    inikey  = 'STUFF'
-   inidata = '240 113 112 252'\0  --.textcolor .markcolor vSTATUSCOLOR vMESSAGECOLOR
+   inidata = '240 113 112 252'\0  --.textcolor .markcolor vstatuscolor vmessagecolor
    call setprofile(app_hini, appname, inikey, inidata)
    -- set fonts
    inikey  = 'FONT'
