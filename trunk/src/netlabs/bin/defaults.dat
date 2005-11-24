@@ -11,7 +11,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.15 2005-11-23 23:09:08 aschn Exp $
+; $Id: defaults.dat,v 1.16 2005-11-24 08:50:12 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -81,7 +81,7 @@
 "\NEPMD\User\Reflow\TwoSpaces" = "0"
 "\NEPMD\User\Reflow\JoinAfterWrap" = "0"
 "\NEPMD\User\Reflow\Next" = "1"
-"\NEPMD\User\Reflow\Mail\IndentedIsVerbatim" = "1"
+"\NEPMD\User\Reflow\Mail\IndentedLines" = "0"
 
 ; History
 "\NEPMD\User\History" = "1"
