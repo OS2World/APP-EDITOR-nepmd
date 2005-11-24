@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.10 2005-11-24 21:06:23 aschn Exp $
+* $Id: infoline.e,v 1.11 2005-11-24 21:55:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -76,7 +76,7 @@ const
 compile endif
 definit
    universal vmodifiedstatuscolor
-   vmodifiedstatuscolor = modifiedstatuscolor
+   vmodifiedstatuscolor = MODIFIED_STATUSCOLOR
 
 ; ---------------------------------------------------------------------------
 ; Compare args with StatusFieldFlags and TitleFieldFlags. If they match,
@@ -452,9 +452,6 @@ defc SetStatusLine
    else
       newstatuscolor = vmodifiedstatuscolor
    endif
-compile else
-   newstatuscolor = vstatuscolor
-compile endif
    if arg(1) then
       current_status_template = arg(1)
       template = atoi( length( current_status_template)) || current_status_template
