@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.12 2005-11-23 23:49:51 aschn Exp $
+* $Id: select.e,v 1.13 2005-11-24 01:05:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -62,7 +62,8 @@ defselect
    if loadstate = 1 then  -- if a defload was processed before
       loadstate = 2
       JustLoaded = 1
-      'AfterLoad'  -- executes multiple ring commands that sometimes leave the wrong file on top
+      'ProcessAfterLoad'  -- executes multiple ring commands that sometimes
+                          -- leave the wrong file on top
       'postme activatefile' fid  -- postme required, but doesn't work in some rare cases
       loadstate = 0
    endif
@@ -88,7 +89,7 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 ; This cmd is called once after all files were loaded by defselect.
-defc AfterLoad
+defc ProcessAfterLoad
    universal CurEditCmd
    universal filestoloadmax   -- set in NepmdLoadFile, only used for RingAddToHistory('LOAD')
 
