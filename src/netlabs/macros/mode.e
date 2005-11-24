@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.33 2004-07-03 08:29:14 aschn Exp $
+* $Id: mode.e,v 1.34 2005-11-24 19:40:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,7 +32,7 @@ compile endif
 ; Get mode from array var 'mode.'fid.
 ; If mode not set: get mode from EA 'EPM.MODE'.
 ; If mode not set: get default mode.
-defproc NepmdGetMode
+defproc GetMode
    universal EPM_utility_array_ID
    Filename = arg(1)
    if Filename = '' then
@@ -96,6 +96,10 @@ compile endif
 
    return CurMode
 
+defproc NepmdGetMode
+   parse arg args
+   return GetMode( args)
+
 ; ---------------------------------------------------------------------------
 ; Extra procedure for getting the CheckFlag to allow using a universal var
 ; during the defload event.
@@ -143,14 +147,14 @@ defc ResetMode
    universal EPM_utility_array_ID
    OldMode = arg(1)
 
-   -- Set 'mode.'fid to an empty string to make NepmdGetMode redetermine
+   -- Set 'mode.'fid to an empty string to make GetMode redetermine
    -- the current mode
    getfileid fid
    ResetMode = ''
    call SetAVar( 'mode.'fid, ResetMode)
 
    -- Get current mode
-   CurMode = NepmdGetMode()
+   CurMode = GetMode()
 
    -- does it differ from old mode ?
    -- if not, skip

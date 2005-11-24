@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.21 2005-07-17 15:52:38 aschn Exp $
+* $Id: load.e,v 1.22 2005-11-24 19:40:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -81,7 +81,7 @@ compile endif
    load_var = 0
    load_ext = filetype()  -- Extension for the current file. To be used only
                           -- until the next file gets loaded. Probably not used
-                          -- anymore, because replaced by NepmdGetMode().
+                          -- anymore, because replaced by GetMode().
    keys edit_keys    -- defaults for non-special filetypes
 
    .tabs     = vDEFAULT_TABS
@@ -134,7 +134,7 @@ compile endif  -- WANT_EBOOKIE
    'RestorePosFromEa'
 
 ;  Set mode -----------------------------------------------------------------
-   Mode = NepmdGetMode(Filename)
+   Mode = GetMode(Filename)
 
 ;  Process all mode dependent settings for defload --------------------------
    -- It's important to process them near the end of defload, otherwise EPM

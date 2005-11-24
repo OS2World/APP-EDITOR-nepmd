@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: hooks.e,v 1.6 2005-11-24 01:36:23 aschn Exp $
+* $Id: hooks.e,v 1.7 2005-11-24 19:40:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -81,7 +81,7 @@
 ;                 mode      --> An array var mode.<fileid> exists. Its value
 ;                               can be queried with the get_array_value
 ;                               proc together with the fileid or easier with
-;                               the NepmdGetMode procedure. Because the mode
+;                               the GetMode procedure. Because the mode
 ;                               causes (sticky) settings changes at defload
 ;                               usually, there's no need to query the mode
 ;                               at defselect again, except if it is shown in

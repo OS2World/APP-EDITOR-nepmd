@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.9 2004-06-29 20:53:55 aschn Exp $
+* $Id: assist.e,v 1.10 2005-11-24 19:39:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -163,7 +163,7 @@ defproc passist
       endif
 
 -- begin addition for TeX
-      CurMode = NepmdGetMode()
+      CurMode = GetMode()
       if CurMode = 'TEX' then
          getline line -- ...move cursor right if it is on \backslash
          if substr(line,.col,1)='\' then right endif

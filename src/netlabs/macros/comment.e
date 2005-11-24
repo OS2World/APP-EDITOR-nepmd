@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comment.e,v 1.7 2005-05-16 20:53:01 aschn Exp $
+* $Id: comment.e,v 1.8 2005-11-24 19:39:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -91,7 +91,7 @@ defproc CommentMarkedLines
 
    -- no additional undo state supression required
 
-   mode = NepmdGetMode()
+   mode = GetMode()
 
    if abbrev( 'U', upcase(arg(2))) then
       action = 'UNCOMMENT'

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wrap.e,v 1.10 2005-11-24 19:22:40 aschn Exp $
+* $Id: wrap.e,v 1.11 2005-11-24 19:40:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -122,7 +122,7 @@ defc softwrap2win, softwrap
          -- Split line
          p = 0
          -- First process special features for some modes
-         Mode = NepmdGetMode()
+         Mode = GetMode()
 
          -- CONFIG.SYS: try to break line at ';' or '+' first
          -- The next line will have that char at col 1 than.
@@ -251,7 +251,7 @@ defc unwrap
 
       else  -- termid = 1
          -- Process special features for some modes
-         Mode = NepmdGetMode()
+         Mode = GetMode()
 
          if Mode = 'CONFIGSYS' then
             -- Check for ';' or '+' in col 1. Maybe the user has added a line

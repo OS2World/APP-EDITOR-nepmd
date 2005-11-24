@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sampactn.e,v 1.5 2005-05-16 22:15:05 aschn Exp $
+* $Id: sampactn.e,v 1.6 2005-11-24 19:40:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -335,7 +335,7 @@ defc a_togl_hilit
                                     0)
       new_hili = (current_hili = 0)
       -- Toggle keyword highlighting
-      call NepmdActivateHighlight( new_hili, NepmdGetMode() )
+      call NepmdActivateHighlight( new_hili, GetMode() )
    elseif arg(1) = 'I' then   -- button Initialized
       display -8
       sayerror a_Toggle_Hilight_PROMPT

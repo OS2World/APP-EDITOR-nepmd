@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.25 2005-11-24 08:50:13 aschn Exp $
+* $Id: newmenu.e,v 1.26 2005-11-24 19:40:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2738,7 +2738,7 @@ compile endif
    SetMenuAttribute( GetAVar('mid_locked'),              MIA_DISABLED, Exist(.filename))
    SetMenuAttribute( GetAVar('mid_wpsproperties'),       MIA_DISABLED, Exist(.filename))
 
-   new = NepmdGetMode()
+   new = GetMode()
    parse value GetAVar('mtxt_mode') with next'['x']'rest
    SetMenuText( GetAVar('mid_mode'), next'['new']'rest)
    new = .tabs

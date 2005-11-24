@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: revert.e,v 1.3 2004-06-03 23:32:30 aschn Exp $
+* $Id: revert.e,v 1.4 2005-11-24 19:40:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -83,7 +83,7 @@ compile endif
       return
    endif
 ;   display -8
-   Mode = NepmdGetMode()
+   Mode = GetMode()
    if Mode = 'BIN' then
       Filename = .filename
       --sayerror 'o ''be "'Filename'"'''

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.8 2005-11-15 17:29:46 aschn Exp $
+* $Id: infoline.e,v 1.9 2005-11-24 19:40:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -399,7 +399,7 @@ defproc GetInfoFieldValue(FVar, var FFlag)
                                          FFlag  = 'FILELIST'
    elseif FVar = 'FILES'            then FValue = filesinring()
                                          FFlag  = 'FILELIST'
-   elseif FVar = 'MODE'             then FValue = NepmdGetMode()
+   elseif FVar = 'MODE'             then FValue = GetMode()
                                          FFlag  = 'MODE'
    elseif FVar = 'MA'               then FValue = .margins
                                          FFlag  = 'MARGINS'

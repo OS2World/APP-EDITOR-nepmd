@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.15 2005-11-15 17:40:40 aschn Exp $
+* $Id: epmshell.e,v 1.16 2005-11-24 19:39:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -591,7 +591,7 @@ defproc SUE_break(shell_handle)
 defmodify
    getfileid fid
    ShellOrgCmd = GetAVar( 'ShellOrgCmd.'fid)
-   Mode = NepmdGetMode()
+   Mode = GetMode()
    if Mode = 'SHELL' then
       p = PromptPos()
       if p then
