@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.11 2005-09-30 21:43:04 aschn Exp $
+* $Id: alt_1.e,v 1.12 2005-11-24 19:45:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -455,7 +455,7 @@ compile endif  -- HOST_SUPPORT
 ; should work with any preprocesor, filetype, past  to future
 ; set 'ESEARCH' to search other directories
 ; (The previous version of include support is commented out by /** ... **/ pairs.)
-   CurMode = NepmdGetMode()
+   CurMode = GetMode()
    parse value lowcase( line) with word1 word2 .
    if rightstr( word1, 7) = 'include' then           -- if first word ends in "include"
       delim = leftstr( word2, 1)
@@ -717,7 +717,7 @@ compile endif  -- HOST_SUPPORT
 ; ----------------------------------------------------------------------------- word under cursor
                                                          -- todo: support spaces in filenames and pathes
 
-   CurMode = NepmdGetMode()
+   CurMode = GetMode()
    StartCol = 0
    EndCol   = 0
    SeparatorList = '"'||"'"||'(){}[]<>,;|+ '\9'#='
