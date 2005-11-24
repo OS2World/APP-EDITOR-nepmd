@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.28 2005-11-12 17:23:25 aschn Exp $
+* $Id: edit.e,v 1.29 2005-11-24 01:32:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -193,8 +193,10 @@ compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') & not SMALL
    universal fto                -- Need this passed to loadfile...
 compile endif
    universal CurEditCmd
-   universal firstloadedfid  -- first file for this edit cmd
-   universal firstinringfid  -- first file in the ring
+   universal firstloadedfid  -- first file for this edit cmd, set here
+   universal firstinringfid  -- first file in the ring, set by defmain
+                             -- Both values are set by defmain, if only
+                             -- the unknown file was loaded (via xcom edit).
 
    getfileid startfid  -- save fid of topmost file before current edit cmd
    call NepmdResetHiliteModeList()
@@ -219,7 +221,20 @@ compile endif
    'postme postme AddToHistory EDIT' args
 
    options = default_edit_options
-   parse value '0 0' with files_loaded new_files_loaded new_files not_found bad_paths truncated access_denied invalid_drive error_reading error_opening first_file_loaded
+
+   files_loaded      = 0  -- number of loaded files
+   new_files_loaded  = 0  -- number of new files created (maybe because not found on disk)
+   first_file_loaded = ''
+
+; Todo: rewrite that horrible message stuff:
+   new_files = ''
+   not_found = ''
+   bad_paths = ''
+   truncated = ''
+   access_denied = ''
+   invalid_drive = ''
+   error_reading = ''
+   error_opening = ''
    --  bad_paths     --> Non-existing path specified.
    --  truncated     --> File contained lines longer than 255 characters.
    --  access_denied --> If user tried to edit a subdirectory.
@@ -362,9 +377,15 @@ compile endif
 
    if files_loaded > 1 then  -- If only one file, leave E3's message
       if new_files_loaded > 1 then p = 'New files:'; else p = 'New file:'; endif
-      multiple_errors = (new_files || bad_paths || not_found || truncated || access_denied || error_reading || error_opening || invalid_drive <>
-                         invalid_drive || error_opening || error_reading || access_denied || truncated || not_found || bad_paths || new_files ) &
-                   '' <> new_files || bad_paths || not_found || truncated || access_denied || error_reading || error_opening || invalid_drive
+      multiple_errors = (new_files || bad_paths || not_found || truncated ||
+                         access_denied || error_reading || error_opening ||
+                         invalid_drive <>
+                         invalid_drive || error_opening || error_reading ||
+                         access_denied || truncated || not_found ||
+                         bad_paths || new_files ) &
+                        ('' <>
+                         new_files || bad_paths || not_found || truncated || access_denied ||
+                         error_reading || error_opening || invalid_drive)
 
       if new_files then sayerror NEW_FILE__MSG substr(new_files,2); endif
       if not_found then sayerror FILE_NOT_FOUND__MSG':' substr(not_found,2); endif
@@ -391,7 +412,7 @@ compile endif
       -- Set fid for NepmdAfterLoad:
       firstloadedfid = first_file_loaded
 
-      -- Initialize firstinringfid if not already set:
+      -- Initialize firstinringfid if not already set by a previous edit command:
       if firstinringfid = '' then
          firstinringfid = firstloadedfid
       endif
