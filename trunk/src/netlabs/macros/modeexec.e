@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.8 2005-05-16 20:58:50 aschn Exp $
+* $Id: modeexec.e,v 1.9 2005-11-24 01:23:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -89,7 +89,7 @@
 ;                           (<font_size> and <font_name> can be exchanged.
 ;                           Any EPM font specification syntax will be accepted
 ;                           as well. The args are case-sensitive.)
-;         SetToolbar        <toolbar_name> | BUILDIN
+;         SetToolbar        <toolbar_name> | STANDARD
 ;                           (case-sensitive, must be defined in EPM.INI)
 ;         SetDynaspell      0 | 1
 ;                           (means spell-checking while typing)
@@ -98,7 +98,9 @@
 ;         SetSearchOptions  see description of Locate and Replace commands
 ;                           (plus undocumented TB options)
 ;         SetKeys           <keyset_name>
-
+;
+; Additional option for <args> : DEFAULT
+; That means, that the setting is reset to EPM's current standard values.
 /*
 ; maybe planned sometime
 - SetBackupFiles
@@ -734,24 +736,25 @@ defc SetDynaSpell  -- defc dynaspell exists and is used here
 defc SetToolbar
    universal toolbar_loaded
    universal current_toolbar
-   universal appname
-   universal app_hini
+   --universal appname
+   --universal app_hini
    arg1 = upcase(arg(1))
    if current_toolbar = '' then
       current_toolbar = toolbar_loaded
    endif
    if upcase(current_toolbar) <> arg1 then
       if arg1 = '' | arg1 = 'DEFAULT' then
-         def_toolbar = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
+         --def_toolbar = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
+         def_toolbar = GetDefaultToolbar()
          if def_toolbar <> '' then
-            'postme load_toolbar 'def_toolbar
+            'postme LoadToolbar 'def_toolbar
             current_toolbar = def_toolbar
          endif
-      elseif arg1 = \1 | pos( 'BUILDIN', arg1) then
-         'postme loaddefaulttoolbar'  -- built-in toolbar
-         current_toolbar = 'BUILDIN'
+      elseif arg1 = \1 | wordpos( arg1, 'BUILTIN STANDARD') then
+         'postme LoadStandardToolbar'  -- built-in toolbar
+         current_toolbar = 'STANDARD'
       else
-         'postme load_toolbar 'arg(1)
+         'postme LoadToolbar 'arg(1)
          current_toolbar = arg(1)
       endif
    endif
