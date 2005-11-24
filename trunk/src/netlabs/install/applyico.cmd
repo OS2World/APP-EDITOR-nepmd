@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.8 2005-07-17 15:41:56 aschn Exp $
+* $Id: applyico.cmd,v 1.9 2005-11-24 01:58:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -59,7 +59,7 @@
  IF \RxFuncQuery( 'SysBootDrive') THEN
     BootDrive = SysBootDrive()
  ELSE
-    PARSE UPPER VALUE VALUE( 'PATH', env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
+    PARSE UPPER VALUE VALUE( 'PATH', , env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
 
  /* Read Syslevel file(s) */
  DO 1
