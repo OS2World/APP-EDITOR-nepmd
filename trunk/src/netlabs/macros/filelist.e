@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.10 2005-11-23 23:49:49 aschn Exp $
+* $Id: filelist.e,v 1.11 2005-11-24 00:51:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -86,6 +86,7 @@ defproc RingWriteFilePosition
 
    -- Get EPM EFrame window handle
    hwnd = '0x'ltoa( gethwndc(6), 16)   -- EPMINFO_EDITFRAME
+   WorkDir = directory()
 
    ---- Search hwnd in SavedRings -------------------------------------------
    FoundRing = 0
@@ -135,6 +136,8 @@ defproc RingWriteFilePosition
       -- end workaround
       rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\hwnd', hwnd)
    endif
+   ---- Write WorkDir -------------------------------------------------------
+   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\WorkDir', WorkDir)
 
    ---- Delete old 'File'i and 'Posn'i --------------------------------------
    do i = 1 to 1000  -- just an upper limit to prevent looping forever
@@ -258,7 +261,7 @@ defc RestoreRing
       endif
    enddo
    WorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath'\WorkDir')
-   if NepmdDirExists( LastWorkDir) = 1 then
+   if NepmdDirExists( WorkDir) = 1 then
       call directory( '\')
       call directory( WorkDir)
    endif

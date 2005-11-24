@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.33 2005-11-23 23:56:35 aschn Exp $
+* $Id: main.e,v 1.34 2005-11-24 00:51:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -172,16 +172,14 @@ compile endif
    endif
 
 ;  Maybe change to previous work dir ----------------------------------------
-   if not CurEditCmd = 'RESTORERING' then
-      KeyPath = '\NEPMD\User\ChangeWorkDir'
-      ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-      if ChangeWorkDir = 1 then
-         KeyPath = '\NEPMD\User\ChangeWorkDir\Last'
-         LastWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-         if NepmdDirExists( LastWorkDir) = 1 then
-            call directory( '\')
-            call directory( LastWorkDir)
-         endif
+   KeyPath = '\NEPMD\User\ChangeWorkDir'
+   ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if ChangeWorkDir = 1 then
+      KeyPath = '\NEPMD\User\ChangeWorkDir\Last'
+      LastWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+      if NepmdDirExists( LastWorkDir) = 1 then
+         call directory( '\')
+         call directory( LastWorkDir)
       endif
    endif
 
@@ -191,7 +189,7 @@ compile endif
    KeyPath = '\NEPMD\User\AutoRestore\Ring\LoadLast'
    Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if (arg(1) = '' & Enabled) then
-      'restorering'
+      'RestoreRing'
    else
       doscmdline
    endif
