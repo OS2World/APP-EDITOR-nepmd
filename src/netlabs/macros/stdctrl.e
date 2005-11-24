@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.29 2005-11-24 02:52:56 aschn Exp $
+* $Id: stdctrl.e,v 1.30 2005-11-24 19:22:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -601,13 +601,14 @@ defc processfontrequest
    universal default_font
    universal statfont, msgfont
    universal appname, app_hini
-   parse value arg(1) with fontname '.' fontsize '.' fontsel '.' setfont '.' markedonly '.' fg '.' bg
+   --dprintf( 'ProcessFontRequest', 'arg(1) = ['arg(1)']')
+   parse value arg(1) with fontname '.' fontsize '.' fontsel '.' fsetfont '.' markedonly '.' fg '.' bg
    -- sayerror 'Fontname=' fontname ' Fontsize=' fontsize 'Fontsel=' fontsel 'arg(1)="'arg(1)'"'
    if markedonly = 2 then  -- Statusline font
       statfont = fontsize'.'fontname'.'fontsel
       "setstatface" getpminfo(EPMINFO_EDITSTATUSHWND) fontname
       "setstatptsize" getpminfo(EPMINFO_EDITSTATUSHWND) fontsize
-      if setfont then
+      if fsetfont then
          call setprofile( app_hini, appname, INI_STATUSFONT, statfont)
       endif
       return
@@ -616,7 +617,7 @@ defc processfontrequest
       msgfont = fontsize'.'fontname'.'fontsel
       "setstatface" getpminfo(EPMINFO_EDITMSGHWND) fontname
       "setstatptsize" getpminfo(EPMINFO_EDITMSGHWND) fontsize
-      if setfont then
+      if fsetfont then
          call setprofile( app_hini, appname, INI_MESSAGEFONT, msgfont)
       endif
       return
@@ -624,10 +625,10 @@ defc processfontrequest
 
    fontid = registerfont(fontname, fontsize, fontsel)
 
-   if setfont & not markedonly then
-compile if WANT_APPLICATION_INI_FILE
+   if fsetfont & not markedonly then
+      -- Save font to ini
       call setini( INI_FONT, fontname'.'fontsize'.'fontsel, 1)
-compile endif
+      -- Apply font to all files in the ring that have the default font
       getfileid startid
       display -1
       do i = 1 to filesinring(1)
@@ -641,7 +642,7 @@ compile endif
       activatefile startid  -- Make sure we're back where we started (in case was .HIDDEN)
       display 1
       default_font = fontid
-   endif  -- setfont & not markedonly
+   endif  -- fsetfont & not markedonly
 
    if markedonly then
      -- insert font attribute within marked area only!
@@ -693,7 +694,6 @@ compile endif
    endif  -- markedonly
 
 defc Process_Style
-compile if WANT_APPLICATION_INI_FILE
    universal app_hini
    universal EPM_utility_array_ID
    call checkmark()     -- verify there is a marked area,
@@ -741,12 +741,8 @@ compile if WANT_APPLICATION_INI_FILE
    Insert_Attribute_Pair(14, styleindex, fstline, lstline, fstcol, lstcol, mkfileid)
    call attribute_on(8)  -- "Save attributes" flag
    .modify = oldmod + 1
-compile else
-   sayerror 'WANT_APPLICATION_INI_FILE = 0'
-compile endif -- WANT_APPLICATION_INI_FILE
 
 defc ChangeStyle
-compile if WANT_APPLICATION_INI_FILE
    universal app_hini
    universal EPM_utility_array_ID
    parse arg stylename  -- Can include spaces
@@ -789,12 +785,8 @@ compile if WANT_APPLICATION_INI_FILE
       if curfile = startid then leave; endif
    enddo  -- Loop through all files in ring
    activatefile startid  -- Make sure we're back where we started (in case was .HIDDEN)
-compile else
-   sayerror 'WANT_APPLICATION_INI_FILE = 0'
-compile endif -- WANT_APPLICATION_INI_FILE
 
 defc Delete_Style
-compile if WANT_APPLICATION_INI_FILE
    universal app_hini
    universal EPM_utility_array_ID
    stylename = arg(1)
@@ -845,9 +837,6 @@ compile if WANT_APPLICATION_INI_FILE
       if curfile = startid then leave; endif
    enddo  -- Loop through all files in ring
    activatefile startid  -- Make sure we're back where we started (in case was .HIDDEN)
-compile else
-   sayerror 'WANT_APPLICATION_INI_FILE = 0'
-compile endif -- WANT_APPLICATION_INI_FILE
 
 ; Delete all attributes of current file.
 ; Taken from Martin Lafaix' MLEPM package (defc munhighlightfile).
@@ -1756,11 +1745,22 @@ defc processbeginscroll
    endif
 ;compile endif  -- KEEP_CURSOR_ON_SCREEN
 
-; unused
-defc setpresparam
-   universal statfont, msgfont
-   universal vSTATUSCOLOR, vMESSAGECOLOR, vDESKTOPColor
+; ---------------------------------------------------------------------------
+; Called when a color or a font is dropped on a window.
+defc SetPresParam
+   universal statfont
+   universal msgfont
+   universal vstatuscolor
+   universal vmessagecolor
+   universal vdesktopcolor
+   --dprintf( 'SETPRESPARAM', 'arg(1) = ['arg(1)']')
+   -- SETPRESPARAM: arg(1) = [MSGBGCOLOR hwnd=-2147483054 x=175 y=12 rgb=16777215 clrattr=15 oldfgattr=3 oldbgattr=7]
+   -- SETPRESPARAM: arg(1) = [MSGFONTSIZENAME hwnd=-2147483054 x=41 y=8 string=10.Helv]
+   -- SETPRESPARAM: arg(1) = [STATFONTSIZENAME hwnd=-2147483058 x=636 y=9 string=10.System Proportional Non-ISO]
+   -- SETPRESPARAM: arg(1) = [EDITFONTSIZENAME hwnd=-2147483047 x=676 y=179 string=12.System VIO]
    parse value arg(1) with whichctrl " hwnd="hwnd " x="x "y="y rest
+
+   -- Font: statusbar, messagebar
    if (whichctrl == "STATFONTSIZENAME") or (whichctrl == "MSGFONTSIZENAME") then
       parse value rest with "string="psize"."facename"."attr
       -- psize is pointsize, facename is facename, attr is "Bold" etc
@@ -1772,45 +1772,57 @@ defc setpresparam
          msgfont = substr(rest,8)
          sayerror MESSAGELINE_FONT__MSG
       endif
+
+   -- Foreground color: statusbar, messagebar
    elseif (whichctrl == "STATFGCOLOR") or (whichctrl == "MSGFGCOLOR") then
       parse value rest with "rgb="rgb "clrattr="clrattr "oldfgattr="oldfgattr "oldbgattr="oldbgattr
-      call windowmessage(0,  hwnd,
-                         4099,      -- STATWNDM_SETCOLOR
-                         clrattr,
-                         oldbgattr)
+      call windowmessage( 0, hwnd,
+                          4099,      -- STATWNDM_SETCOLOR
+                          clrattr,
+                          oldbgattr)
       if leftstr( whichctrl, 1) = 'M' then
          sayerror MESSAGELINE_FGCOLOR__MSG
-         vMESSAGECOLOR = clrattr + 16 * oldbgattr
+         vmessagecolor = clrattr + 16 * oldbgattr
       else
-         vSTATUSCOLOR = clrattr  + 16 * oldbgattr
+         vstatuscolor = clrattr  + 16 * oldbgattr
       endif
+
+   -- Background color: statusbar, messagebar
    elseif (whichctrl == "STATBGCOLOR") or (whichctrl == "MSGBGCOLOR") then
       parse value rest with "rgb="rgb "clrattr="clrattr "oldfgattr="oldfgattr "oldbgattr="oldbgattr
-      call windowmessage( 0,  hwnd,
+      call windowmessage( 0, hwnd,
                           4099,      -- STATWNDM_SETCOLOR
                           oldfgattr,
                           clrattr)
       if leftstr( whichctrl, 1) = 'M' then
          sayerror MESSAGELINE_BGCOLOR__MSG
-         vMESSAGECOLOR = clrattr * 16 + oldfgattr
+         vmessagecolor = clrattr * 16 + oldfgattr
       else
-         vSTATUSCOLOR = clrattr  * 16 + oldfgattr
+         vstatuscolor = clrattr  * 16 + oldfgattr
       endif
+
+   -- Background color: editwindow
    elseif (whichctrl == "EDITBGCOLOR") then
       parse value rest with "rgb="rgb "clrattr="clrattr "oldfgattr="oldfgattr "oldbgattr="oldbgattr
       map_point 5, x, y, off, comment;  -- map screen to line
       if x < 1 | x > .last then
-         vDESKTOPColor = clrattr
+         vdesktopcolor = clrattr
          call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
                              5497,
                              clrattr,
                              0)
       else
+         -- Todo: set .markcolor if dropped on a marked area
          .textcolor = (.textcolor // 16) + 16 * clrattr;
       endif
+
+   -- Foreground color: editwindow
    elseif (whichctrl == "EDITFGCOLOR") then
       parse value rest with "rgb="rgb "clrattr="clrattr "oldfgattr="oldfgattr "oldbgattr="oldbgattr
+      -- Todo: set .markcolor if dropped on a marked area
       .textcolor = .textcolor - (.textcolor // 16) + clrattr;
+
+   -- Font: editwindow
    elseif whichctrl == "EDITFONTSIZENAME" then
       parse value rest with "string="psize"."facename"."attr
       -- psize is pointsize, facename is facename, attr is "Bold" etc
@@ -1825,13 +1837,15 @@ defc setpresparam
          endif
       enddo
       .font = registerfont( facename ,psize, fontsel)
+
    else
-      sayerror UNKNOWN_PRESPARAM__MSG  whichctrl
-      return;
+      sayerror UNKNOWN_PRESPARAM__MSG whichctrl
+      return
    endif
 ;   sayerror "set presparm with" hwnd " as the window" arg(1);
 
-; unused
+; ---------------------------------------------------------------------------
+; Called by SetPresParam for message- or statusbar fontname.
 defc setstatface
    parse value arg(1) with hwnd face
    return windowmessage( 0,  hwnd /*getpminfo(EPMINFO_EDITFRAME)*/,   -- Post message to edit client
@@ -1839,7 +1853,8 @@ defc setstatface
                          put_in_buffer(face),
                          1);  -- COMMAND_FREESEL
 
-; unused
+; ---------------------------------------------------------------------------
+; Called by SetPresParam for message- or statusbar fontsize.
 defc setstatptsize
    parse value arg(1) with hwnd ptsize
    if leftstr( ptsize, 1) = 'D' then  -- Decipoints
