@@ -11,7 +11,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.16 2005-11-24 08:50:12 aschn Exp $
+; $Id: defaults.dat,v 1.17 2005-12-07 18:49:00 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -121,4 +121,17 @@
 
 ; Open dialog start dir
 "\NEPMD\User\OpenDlg\UseCurrentDir" = "0"
+
+; Colors
+"\NEPMD\User\Colors\Text" = "240"
+"\NEPMD\User\Colors\Mark" = "113"
+"\NEPMD\User\Colors\Background" = "7"
+"\NEPMD\User\Colors\Message" = "252"
+"\NEPMD\User\Colors\Status" = "112"
+"\NEPMD\User\Colors\ModifiedStatus" = "117"
+
+; Fonts
+"\NEPMD\User\Fonts\Text" = "12.Sytem VIO"
+"\NEPMD\User\Fonts\Message" = "10.Helv"
+"\NEPMD\User\Fonts\Status" = "10.System Proportional Non-ISO"
 
