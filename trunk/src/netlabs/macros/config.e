@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.8 2005-11-24 21:06:20 aschn Exp $
+* $Id: config.e,v 1.9 2005-12-07 18:43:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -86,7 +86,7 @@ compile endif
       omit = args
    endif
    -- omit: from 0 to 1023
-   --    0: all pages
+   --    0: show all pages
    --    1: without page  1  Margins
    --    2: without page  2  Colors
    --    4: without page  3  Pathes
@@ -141,6 +141,7 @@ defc renderconfig
    universal vAUTOSAVE_PATH, vTEMP_PATH
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE
    universal appname, app_hini
+   universal nepmd_hini
    universal enterkey, a_enterkey, c_enterkey, s_enterkey
    universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
 compile if CHECK_FOR_LEXAM
@@ -224,7 +225,13 @@ compile endif
          if fsend_default then     -- 1: Use default values
             tempstr = ''
          else                      -- 0: Use values from .ini file
-            tempstr = queryprofile( app_hini, appname, INI_STUFF)
+            --tempstr = queryprofile( app_hini, appname, INI_STUFF)
+            KeyPath = '\NEPMD\User\Colors'
+            textcol    = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Text')
+            markcol    = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Mark')
+            statuscol  = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Status')
+            messagecol = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Message')
+            tempstr = textcol markcol statuscol messagecol
          endif
          if tempstr = '' | tempstr = 1 then
             tempstr = TEXTCOLOR MARKCOLOR STATUSCOLOR MESSAGECOLOR
@@ -270,75 +277,74 @@ compile endif
       call send_config_data( hndle, checkini( fsend_default, INI_AUTOSPATH, vAUTOSAVE_PATH, AUTOSAVE_PATH), 9, help_panel)
 
    elseif page = 6 then  ----------------- Page 6 is fonts ------------
+                         ----------------- Text
       fontid = word( default_font 0 .font, fsend_default + 1)
       call send_config_data( hndle, queryfont(fontid)'.'trunc(.textcolor//16)'.'.textcolor%16, 24, help_panel)
-      if not fsend_default then    -- 0: Use values from .ini file
-         tempstr = checkini( fsend_default, INI_STATUSFONT, '')
-         if tempstr then
-            parse value tempstr with ptsize'.'facename'.'attr
-            tempstr = facename'.'ptsize'.'attr
-         else
-            tempstr = queryfont(0)
-         endif
-      elseif fsend_default = 1 then  -- 1: Use default values
-         tempstr = queryfont(0)
-      else                           -- 2: Use current values
-         if statfont then
-            parse value statfont with ptsize'.'facename'.'attr
-            tempstr = facename'.'ptsize'.'attr
-         else
-            tempstr = queryfont(0)
-         endif
-      endif
-      call send_config_data( hndle, tempstr'.'trunc(vstatuscolor//16)'.'vstatuscolor%16, 25, help_panel)
+                         ----------------- Status
+      -- All fonts are saved now as psize'.'facename['.'attr], like OS/2 font specs
       if not fsend_default then      -- 0: Use values from .ini file
-         tempstr = checkini( fsend_default, INI_MESSAGEFONT, '')
-         if tempstr then
-            parse value tempstr with ptsize'.'facename'.'attr
-            tempstr = facename'.'ptsize'.'attr
-         else
-            tempstr = queryfont(0)
-         endif
+         --tempstr = checkini( fsend_default, INI_STATUSFONT, '')
+         KeyPath = '\NEPMD\User\Fonts\Status'
+         tempstr = NepmdQueryConfigValue( nepmd_hini, KeyPath)
       elseif fsend_default = 1 then  -- 1: Use default values
          tempstr = queryfont(0)
       else                           -- 2: Use current values
-         if msgfont then
-            parse value msgfont with ptsize'.'facename'.'attr
-            tempstr = facename'.'ptsize'.'attr
-         else
-            tempstr = queryfont(0)
-         endif
+         --if statfont then
+         --   parse value statfont with ptsize'.'facename'.'attr
+         --   tempstr = facename'.'ptsize'.'attr
+         --else
+         --   tempstr = queryfont(0)
+         --endif
+         tempstr = statfont
       endif
-      call send_config_data(hndle, tempstr'.'trunc(vmessagecolor//16)'.'vmessagecolor%16, 26, help_panel)
-
+      tempstr = ConvertToEFont( tempstr)
+      call send_config_data( hndle, tempstr'.'trunc(vstatuscolor//16)'.'vstatuscolor%16, 25, help_panel)
+                         ----------------- Message
+      if not fsend_default then      -- 0: Use values from .ini file
+         --tempstr = checkini( fsend_default, INI_MESSAGEFONT, '')
+         KeyPath = '\NEPMD\User\Fonts\Message'
+         tempstr = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+      elseif fsend_default = 1 then  -- 1: Use default values
+         tempstr = queryfont(0)
+      else                           -- 2: Use current values
+         --if msgfont then
+         --   parse value msgfont with ptsize'.'facename'.'attr
+         --   tempstr = facename'.'ptsize'.'attr
+         --else
+         --   tempstr = queryfont(0)
+         --endif
+         tempstr = msgfont
+      endif
+      tempstr = ConvertToEFont( tempstr)
+      call send_config_data( hndle, tempstr'.'trunc(vmessagecolor//16)'.'vmessagecolor%16, 26, help_panel)
    elseif page = 7 then  ----------------- Page 7 is enter keys -------
       if fsend_default = 1 then      -- 1: Use default values
- compile if ENTER_ACTION = '' | ENTER_ACTION = 'ADDLINE'  -- The default
+compile if ENTER_ACTION = '' | ENTER_ACTION = 'ADDLINE'  -- The default
          ek = \1
- compile elseif ENTER_ACTION = 'NEXTLINE'
+compile elseif ENTER_ACTION = 'NEXTLINE'
          ek = \2
- compile elseif ENTER_ACTION = 'ADDATEND'
+compile elseif ENTER_ACTION = 'ADDATEND'
          ek = \3
- compile elseif ENTER_ACTION = 'DEPENDS'
+compile elseif ENTER_ACTION = 'DEPENDS'
          ek = \4
- compile elseif ENTER_ACTION = 'DEPENDS+'
+compile elseif ENTER_ACTION = 'DEPENDS+'
          ek = \5
- compile elseif ENTER_ACTION = 'STREAM'
+compile elseif ENTER_ACTION = 'STREAM'
          ek = \6
- compile endif
- compile if C_ENTER_ACTION = 'ADDLINE'
+compile endif
+compile if C_ENTER_ACTION = 'ADDLINE'
          c_ek = \1
- compile elseif C_ENTER_ACTION = '' | C_ENTER_ACTION = 'NEXTLINE'  -- The default
+compile elseif C_ENTER_ACTION = '' | C_ENTER_ACTION = 'NEXTLINE'  -- The default
          c_ek = \2
- compile elseif C_ENTER_ACTION = 'ADDATEND'
+compile elseif C_ENTER_ACTION = 'ADDATEND'
          c_ek = \3
- compile elseif C_ENTER_ACTION = 'DEPENDS'
+compile elseif C_ENTER_ACTION = 'DEPENDS'
          c_ek = \4
- compile elseif C_ENTER_ACTION = 'DEPENDS+'
+compile elseif C_ENTER_ACTION = 'DEPENDS+'
          c_ek = \5
- compile elseif C_ENTER_ACTION = 'STREAM'
+compile elseif C_ENTER_ACTION = 'STREAM'
          c_ek = \6
- compile endif
+compile endif
          tempstr = ek || ek || c_ek || ek || ek || ek || c_ek || ek
       else                           -- 0|2: Use values from .ini file or current values
          tempstr = chr(enterkey) || chr(a_enterkey) || chr(c_enterkey) || chr(s_enterkey) || chr(padenterkey) || chr(a_padenterkey) || chr(c_padenterkey) || chr(s_padenterkey)
@@ -506,6 +512,7 @@ defc SetConfig
 
    ChangeFileSettings = CONFIGDLG_CHANGE_FILE_SETTINGS  -- standard was 1
    AskReflow          = CONFIGDLG_ASK_REFLOW
+   --dprintf( 'SETCONFIG', arg(1))
 
    parse value arg(1) with configid perm newcmd
 
@@ -544,19 +551,31 @@ defc SetConfig
       'RefreshInfoLine TABS'
 ------------------------------------------------------
 
-   elseif configid = 4 then
+   elseif configid = 4 & newcmd <> .textcolor then
       .textcolor = newcmd
+      if perm then
+         'SaveColor TEXT'
+      endif
 
-   elseif configid = 5 then
+   elseif configid = 5 & newcmd <> .markcolor then
       .markcolor = newcmd
+      if perm then
+         'SaveColor MARK'
+      endif
 
    elseif configid = 6 & newcmd <> vstatuscolor then
       vstatuscolor = newcmd
-      'setstatusline'
+      'SetStatusline'
+      if perm then
+         'SaveColor STATUS'
+      endif
 
    elseif configid = 7 & newcmd <> vmessagecolor then
       vmessagecolor = newcmd
-      'setmessageline'
+      'SetMessageline'
+      if perm then
+         'SaveColor MESSAGE'
+      endif
 
    elseif configid = 9 then
       if newcmd <> '' & rightstr( newcmd, 1) <> '\' then
@@ -606,12 +625,11 @@ defc SetConfig
          if newcmd <> '' then
             parse value newcmd with . . . . w1 w2 . w3 w4 w5 w6 w7 w8 w9 . w10 . rest
             call setprofile( app_hini, appname, INI_OPTFLAGS,
-               queryframecontrol(1) queryframecontrol(2) queryframecontrol(8) || ' ' ||          -- damned space-separated
-               queryframecontrol(16) w1 w2 queryframecontrol(32) w3 w4 w5 w6 w7 w8 w9 || ' ' ||  -- parameter lists!
+               queryframecontrol(1) queryframecontrol(2) queryframecontrol(8) || ' ' ||
+               queryframecontrol(16) w1 w2 queryframecontrol(32) w3 w4 w5 w6 w7 w8 w9 || ' ' ||
                bitmap_present w10 queryframecontrol(8192) rest)
-               -- man, what's that space shit good for?
          else
-            'saveoptions OptOnly'
+            'SaveOptions OptOnly'
          endif
       endif
 
@@ -685,7 +703,7 @@ compile endif
             call setprofile( app_hini, appname, INI_OPTFLAGS,
                              w1 w2 w3 w4 w5 w6 w7 markflg w8 streamflg profile longnames rest)  -- fixed 1: exchanged show_longname and rexx_profile
          else
-            'saveoptions OptOnly'
+            'SaveOptions OptOnly'
          endif
          call setprofile( app_hini, appname, INI_OPT2FLAGS, pointer_style cursor_shape)
          call setprofile( app_hini, appname, INI_CUAACCEL, menu_accel)
@@ -716,7 +734,7 @@ compile endif
             call setprofile( app_hini, appname, INI_OPTFLAGS,
                              subword( newcmd, 1, 13) on subword( newcmd, 15))
          else
-            'saveoptions OptOnly'
+            'SaveOptions OptOnly'
          endif
       endif
 
@@ -747,7 +765,7 @@ compile endif
             call setprofile( app_hini, appname, INI_OPTFLAGS,
                              subword( temp, 1, 15) newcmd subword( temp, 17))
          else
-            'saveoptions OptOnly'  -- Possible synch problem?
+            'SaveOptions OptOnly'  -- Possible synch problem?
          endif
       endif
 
@@ -772,9 +790,17 @@ compile else
 compile endif
 
    elseif configid = 0 then
-      call setprofile( app_hini, appname, INI_STUFF,
-                       .textcolor .markcolor vstatuscolor vmessagecolor)
-
+; This doesn't work. "SetConfig 0" is always executed when the dialog is
+; closed, after all other SetConfig calls and always just with "0" as
+; parameter, without perm.
+;      if perm then
+;         'SaveColor'
+;      endif
+      --dprintf('setconfig', 'configid = 0')
+; In standard EPM the font was always saved:
+;       call setprofile( app_hini, appname, INI_STUFF,
+;                        .textcolor .markcolor vstatuscolor vmessagecolor)
+      'SaveFont'
    endif
 
 /*
@@ -835,16 +861,16 @@ compile endif
 
       newcmd = queryprofile( app_hini, appname, INI_STUFF)
       if newcmd then
-         parse value newcmd with ttextcolor tmarkcolor tstatuscolor tmessagecolor .
-         .textcolor = ttextcolor; .markcolor = tmarkcolor
-         if tstatuscolor <> '' & tstatuscolor <> vstatuscolor then
-            vstatuscolor = tstatuscolor
-            'setstatusline'
-         endif
-         if tmessagecolor <> '' & tmessagecolor <> vmessagecolor then
-            vmessagecolor = tmessagecolor
-            'setmessageline'
-         endif
+;          parse value newcmd with ttextcolor tmarkcolor tstatuscolor tmessagecolor .
+;          .textcolor = ttextcolor; .markcolor = tmarkcolor
+;          if tstatuscolor <> '' & tstatuscolor <> vstatuscolor then
+;             vstatuscolor = tstatuscolor
+;             'setstatusline'
+;          endif
+;          if tmessagecolor <> '' & tmessagecolor <> vmessagecolor then
+;             vmessagecolor = tmessagecolor
+;             'setmessageline'
+;          endif
          newcmd = queryprofile( app_hini, appname, INI_MARGINS)
          if newcmd then
             .margins = newcmd
@@ -996,20 +1022,20 @@ compile endif
       if newcmd<>'' then
          parse value newcmd with enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey .
       endif
-      newcmd = queryprofile( app_hini, appname, INI_STATUSFONT)
-      if newcmd<>'' then
-         statfont = newcmd  -- Need to keep?
-         parse value newcmd with psize"."facename"."attr
-         "setstatface" getpminfo(EPMINFO_EDITSTATUSHWND) facename
-         "setstatptsize" getpminfo(EPMINFO_EDITSTATUSHWND) psize
-      endif
-      newcmd = queryprofile( app_hini, appname, INI_MESSAGEFONT)
-      if newcmd<>'' then
-         msgfont = newcmd   -- Need to keep?
-         parse value newcmd with psize"."facename"."attr
-         "setstatface" getpminfo(EPMINFO_EDITMSGHWND) facename
-         "setstatptsize" getpminfo(EPMINFO_EDITMSGHWND) psize
-      endif
+;       newcmd = queryprofile( app_hini, appname, INI_STATUSFONT)
+;       if newcmd<>'' then
+;          statfont = newcmd  -- Need to keep?
+;          parse value newcmd with psize"."facename"."attr
+;          "setstatface" getpminfo(EPMINFO_EDITSTATUSHWND) facename
+;          "setstatptsize" getpminfo(EPMINFO_EDITSTATUSHWND) psize
+;       endif
+;       newcmd = queryprofile( app_hini, appname, INI_MESSAGEFONT)
+;       if newcmd<>'' then
+;          msgfont = newcmd   -- Need to keep?
+;          parse value newcmd with psize"."facename"."attr
+;          "setstatface" getpminfo(EPMINFO_EDITMSGHWND) facename
+;          "setstatptsize" getpminfo(EPMINFO_EDITMSGHWND) psize
+;       endif
       newcmd = queryprofile( app_hini, appname, INI_BITMAP)
       if newcmd<>'' then
          bm_filename = newcmd  -- Need to keep?
@@ -1038,18 +1064,18 @@ compile if not defined(my_CURSORDIMENSIONS)
    endif
 compile endif -- not defined(my_CURSORDIMENSIONS)
 
-compile if WPS_SUPPORT
-   if not (wpshell_handle & useWPS) then
-compile endif
-      newcmd = queryprofile( app_hini, appname, INI_FONT)
-      parse value newcmd with fontname '.' fontsize '.' fontsel
-      if newcmd <> '' then
-         .font = registerfont( fontname, fontsize, fontsel)
-         default_font = .font
-      endif
-compile if WPS_SUPPORT
-   endif  -- not wpshell_handle
-compile endif
+; compile if WPS_SUPPORT
+;    if not (wpshell_handle & useWPS) then
+; compile endif
+;       newcmd = queryprofile( app_hini, appname, INI_FONT)
+;       parse value newcmd with fontname '.' fontsize '.' fontsel
+;       if newcmd <> '' then
+;          .font = registerfont( fontname, fontsize, fontsel)
+;          default_font = .font
+;       endif
+; compile if WPS_SUPPORT
+;    endif  -- not wpshell_handle
+; compile endif
 
    if toolbar_present then
       --'default_toolbar'
@@ -1058,14 +1084,14 @@ compile endif
 ;     'toggleframe' EFRAMEF_TOOLBAR toolbar_present
    endif
 
-   newcmd = queryprofile( app_hini, appname, INI_DTCOLOR)
-   if newcmd <> '' then
-      vdesktopcolor = newcmd
-      call windowmessage( 0,  getpminfo(EPMINFO_EDITCLIENT),  -- post
-                          5497,      -- EPM_EDIT_SETDTCOLOR
-                          vdesktopcolor,
-                          0)
-   endif
+;    newcmd = queryprofile( app_hini, appname, INI_DTCOLOR)
+;    if newcmd <> '' then
+;       vdesktopcolor = newcmd
+;       call windowmessage( 0,  getpminfo(EPMINFO_EDITCLIENT),  -- post
+;                           5497,      -- EPM_EDIT_SETDTCOLOR
+;                           vdesktopcolor,
+;                           0)
+;    endif
 
 ; Moved from MENUACEL.E (file deleted now, formerly included by definit)
 compile if defined(my_STACK_CMDS)
@@ -1136,6 +1162,13 @@ defc initconfig2
    universal expand_on
    universal matchtab_on
    universal join_after_wrap
+   universal vdesktopcolor
+   universal vmessagecolor
+   universal vstatuscolor
+   universal vmodifiedstatuscolor
+   universal default_font  -- a number (= .font), not a font spec
+   universal msgfont
+   universal statfont
 
    KeyPath = '\NEPMD\User\Reflow\TwoSpaces'
    twospaces = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -1161,6 +1194,40 @@ defc initconfig2
 
    KeyPath = '\NEPMD\User\Reflow\JoinAfterWrap'
    join_after_wrap = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+
+   KeyPath = '\NEPMD\User\Colors'
+   .textcolor           = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Text')
+   .markcolor           = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Mark')
+   vdesktopcolor        = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Background')
+   vmessagecolor        = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Message')
+   vstatuscolor         = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Status')
+   vmodifiedstatuscolor = NepmdQueryConfigValue( nepmd_hini, KeyPath'\ModifiedStatus')
+   call windowmessage( 0,  getpminfo(EPMINFO_EDITCLIENT),  -- post
+                       5497,      -- EPM_EDIT_SETDTCOLOR
+                       vdesktopcolor,
+                       0)
+   'SetMessageline'   -- update the color
+   --'SetStatusline'  -- update the color, not required, done by RefreshStatusLine
+
+   KeyPath = '\NEPMD\User\Fonts'
+   next = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Text')
+   next = ConvertToEFont( next)
+   parse value next with fontname'.'fontsize'.'fontsel
+   .font = registerfont( fontname, fontsize, fontsel)
+   default_font = .font
+
+   -- All fonts are saved now as psize'.'facename['.'attr], like OS/2 font specs
+   msgfont = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Message')
+   parse value ConvertToEFont( msgfont) with fontname'.'fontsize'.'fontsel
+   --parse value msgfont with fontname'.'fontsize'.'fontsel
+   'SetStatFace' getpminfo( EPMINFO_EDITMSGHWND) fontname
+   'SetStatPtsize' getpminfo( EPMINFO_EDITMSGHWND) fontsize
+
+   statfont = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Status')
+   parse value ConvertToEFont( statfont)  with fontname'.'fontsize'.'fontsel
+   'SetStatFace' getpminfo( EPMINFO_EDITSTATUSHWND) fontname
+   'SetStatPtsize' getpminfo( EPMINFO_EDITSTATUSHWND) fontsize
+
 
 compile if WPS_SUPPORT
 defproc load_wps_config(shared_mem)
@@ -1282,7 +1349,8 @@ defproc load_wps_config(shared_mem)
 /** call winmessagebox('load_wps_config('shared_memx')', '25th pointer -> "'peekz(this_ptr)'"', 16432) */
    parse value peekz(this_ptr) with fontname '.' fontsize '.' fontsel '.'
 /*  sayerror 'data = "'peekz(this_ptr)'"; fontname = "'fontname'"; fontsize = "'fontsize'"; fontsel = "'fontsel'"'  */
-   statfont = fontsize'.'fontname'.'fontsel
+   --statfont = fontsize'.'fontname'.'fontsel
+   statfont = fontname'.'fontsize'.'fontsel
    "setstatface" getpminfo(EPMINFO_EDITSTATUSHWND) fontname
    "setstatptsize" getpminfo(EPMINFO_EDITSTATUSHWND) fontsize
 ; Key 26
@@ -1290,7 +1358,8 @@ defproc load_wps_config(shared_mem)
 /** call winmessagebox('load_wps_config('shared_memx')', '26th pointer -> "'peekz(this_ptr)'"', 16432) */
    parse value peekz(this_ptr) with fontname '.' fontsize '.' fontsel '.'
 /*  sayerror 'data = "'peekz(this_ptr)'"; fontname = "'fontname'"; fontsize = "'fontsize'"; fontsel = "'fontsel'"'  */
-   msgfont = fontsize'.'fontname'.'fontsel
+   --msgfont = fontsize'.'fontname'.'fontsel
+   msgfont = fontname'.'fontsize'.'fontsel
    "setstatface" getpminfo(EPMINFO_EDITMSGHWND) fontname
    "setstatptsize" getpminfo(EPMINFO_EDITMSGHWND) fontsize
 
@@ -1384,7 +1453,7 @@ compile endif  -- WPS_SUPPORT
 �                                                                            �
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
-defc saveoptions
+defc SaveOptions
    universal appname, app_hini, bitmap_present, optflag_extrastuff, toolbar_present
    universal statfont, msgfont
    universal bm_filename
@@ -1398,6 +1467,7 @@ defc saveoptions
    universal tab_key
    universal cua_menu_accel
    universal cua_marking_switch
+   --dprintf( 'SaveOptions', 'arg(1) = ['arg(1)']')
 
   -- Save values in key EPM -> OPTFLAGS
    call setprofile( app_hini, appname, INI_OPTFLAGS,
@@ -1426,12 +1496,12 @@ defc saveoptions
    call setprofile( app_hini, appname, INI_RINGENABLED,    ring_enabled)
    call setprofile( app_hini, appname, INI_STACKCMDS,      stack_cmds)
    call setprofile( app_hini, appname, INI_CUAACCEL,       cua_menu_accel)
-   if statfont <> '' then
-      call setprofile( app_hini, appname, INI_STATUSFONT,  statfont)
-   endif
-   if msgfont <> '' then
-      call setprofile( app_hini, appname, INI_MESSAGEFONT, msgfont)
-   endif
+;    if statfont <> '' then
+;       call setprofile( app_hini, appname, INI_STATUSFONT,  statfont)
+;    endif
+;    if msgfont <> '' then
+;       call setprofile( app_hini, appname, INI_MESSAGEFONT, msgfont)
+;    endif
 ;  if bm_filename <> '' then  -- Set even if null, so Toggle_Bitmap can remove dropped background.
       call setprofile( app_hini, appname, INI_BITMAP,      bm_filename)
 ;  endif
@@ -1444,7 +1514,10 @@ compile if SUPPORT_USER_EXITS
 compile endif
 
 ; ---------------------------------------------------------------------------
-; Called when a font is dropped on a window, after SetPresParam.
+; Internally called when a font is dropped on a window, after SetPresParam.
+; Then the standard args are 'EDIT' | 'MSG' | 'STAT'. They are replaced
+; with words of KeyList. If no word of KeyList is specified as arg, then all
+; fonts are saved.
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
 � what's it called: savefont                                                 �
@@ -1454,21 +1527,71 @@ compile endif
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defc SaveFont
-   universal appname, app_hini, bitmap_present, optflag_extrastuff
-   universal statfont, msgfont
+   --universal appname, app_hini, bitmap_present, optflag_extrastuff
+   universal nepmd_hini
+   universal msgfont
+   universal statfont
    --dprintf( 'SaveFont', 'arg(1) = ['arg(1)']')
    -- arg(1) = 'EDIT' | 'MSG' | 'STAT'
-   parse value upcase(arg(1)) with prefix
-   if prefix == 'EDIT' then
-      call setini( INI_FONT, queryfont(.font), 1)
-   elseif prefix == 'STAT' & statfont <> '' then
-      call setprofile(app_hini, appname, INI_STATUSFONT, statfont)
-   elseif prefix == 'MSG' & msgfont <> '' then
-      call setprofile(app_hini, appname, INI_MESSAGEFONT, msgfont)
+
+   --parse value upcase(arg(1)) with prefix
+   --if prefix == 'EDIT' then
+   --   call setini( INI_FONT, queryfont(.font), 1)
+   --elseif prefix == 'STAT' & statfont <> '' then
+   --   call setprofile(app_hini, appname, INI_STATUSFONT, statfont)
+   --elseif prefix == 'MSG' & msgfont <> '' then
+   --   call setprofile(app_hini, appname, INI_MESSAGEFONT, msgfont)
+   --endif
+
+   KeyList = 'Text Message Status'
+   -- Font specs have spaces. Therefore they are separated with \1
+   ValList = ConvertToOs2Font( queryfont(.font))''\1''msgfont''\1''statfont''\1
+   args = upcase( arg(1))
+
+   -- Replace EDIT, MSG, STAT
+   new = ''
+   do w = 1 to words( args)
+      next = word( args, w)
+      if next = 'EDIT' then
+         new = new 'TEXT'
+      elseif next = 'MSG' then
+         new = new 'MESSAGE'
+      elseif next = 'STAT' then
+         new = new 'STATUS'
+      else
+         wp2 = wordpos( next, upcase( KeyList))
+         if wp2 then
+            new = new next
+         endif
+      endif
+   enddo
+   args = strip( new)
+
+   if args = '' then
+      args = upcase( KeyList)
    endif
 
+   KeyPath = '\NEPMD\User\Fonts'
+   rest = args
+   do w = 1 to words( args)
+      next = word( args, w)
+      wp = wordpos( next, upcase( KeyList))
+      if wp then
+         rest = ValList
+         do i = 1 to wp
+            parse value rest with Val \1 rest
+         enddo
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'word( KeyList, wp), Val)
+         --dprintf( 'SAVEFONT', KeyPath'\'word( KeyList, wp)' = 'Val)
+      endif
+   enddo
+
 ; ---------------------------------------------------------------------------
-; Called when a color is dropped on a window, after SetPresParam.
+; Internally called when a color is dropped on a window, after SetPresParam.
+; Then the standard args are 'EDIT' | 'MSG' | 'STAT'. They are not precise
+; enough and any occurence of it causes now ignoration of that call.
+; They are replaced by calls of SaveColor from SetPresParam. If no word of
+; KeyList is specified as arg, then all colors are saved.
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
 � what's it called: savecolor                                                �
@@ -1478,17 +1601,56 @@ defc SaveFont
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defc SaveColor
-   universal appname, app_hini
-   universal vstatuscolor, vmessagecolor, vDESKTOPCOLOR
-   --dprintf( 'SaveColor', 'arg(1) = ['arg(1)']')
-   -- arg(1) = 'EDIT' | 'MSG' | 'STAT'
+   --universal appname, app_hini
+   universal nepmd_hini
+   universal vdesktopcolor
+   universal vmessagecolor
+   universal vstatuscolor
+   universal vmodifiedstatuscolor
+   --dprintf( 'SAVECOLOR', 'arg(1) = ['arg(1)']')
 
--- for now we save the mark edit status and message color in one block
--- (INI_STUFF topic in the ini file)
+   -- for now we save the mark edit status and message color in one block
+   -- (INI_STUFF topic in the ini file)
+   --call setprofile( app_hini, appname, INI_DTCOLOR, vdesktopcolor)
+   --call setprofile( app_hini, appname, INI_STUFF, .textcolor .markcolor vstatuscolor vmessagecolor)
+   -- default: 240 113 7  252 112 117
 
-   call setprofile( app_hini, appname, INI_DTCOLOR, vDESKTOPColor)
-   call setprofile( app_hini, appname, INI_STUFF, .textcolor .markcolor vstatuscolor vmessagecolor)
-   -- Note: vmodifiedstatuscolor is still missing.
+   IgnoreList = 'EDIT MSG STAT'
+   KeyList = 'Text Mark Background Message Status ModifiedStatus'
+   ValList = .textcolor .markcolor vdesktopcolor vmessagecolor vstatuscolor vmodifiedstatuscolor
+   args = upcase( arg(1))
+
+   -- Ignore EDIT, MSG, STAT (and unknown words), since they are not precise enough
+   new = ''
+   do w = 1 to words( args)
+      next = word( args, w)
+      wp1 = wordpos( next, IgnoreList)
+      if wp1 then
+         return  -- don't process this, since SetPresParam calls SaveColor itself
+      endif
+      wp2 = wordpos( next, upcase( KeyList))
+      if wp2 then
+         new = new'\'next
+      endif
+   enddo
+   args = strip( new)
+
+   -- Default args if no words of KeyList specified
+   if args = '' then
+      args = upcase( KeyList)
+   endif
+
+   KeyPath = '\NEPMD\User\Colors'
+   rest = args
+   do w = 1 to words( args)
+      next = word( args, w)
+      wp = wordpos( next, upcase( KeyList))
+      if wp then
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'word( KeyList, wp),
+                                     word( ValList, wp))
+         --dprintf( 'SAVECOLOR', KeyPath'\'word( KeyList, wp)' = 'word( ValList, wp))
+      endif
+   enddo
 
 ; ---------------------------------------------------------------------------
 ; Never executed?
@@ -1501,7 +1663,7 @@ defc SaveColor
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defc SaveWindowSize
-   dprintf( 'SaveWindowSize', 'arg(1) = ['arg(1)']')
+   --dprintf( 'SaveWindowSize', 'arg(1) = ['arg(1)']')
    call windowmessage( 0, getpminfo(APP_HANDLE),
                        62,                     -- x'003E' = WM_SAVEAPPLICATION
                        0, 0)
