@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.14 2005-11-16 16:47:08 aschn Exp $
+* $Id: stdprocs.e,v 1.15 2005-12-07 18:42:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -582,6 +582,36 @@ defproc FileIsMarked
       return 0
    endif
 
+; ---------------------------------------------------------------------------
+; Syntax: fInMark = InMark( [line], [col])
+defproc InMark
+   x = arg(1)
+   y = arg(2)
+   if x = '' then
+      x = .line
+   endif
+   if y = '' then
+      y = .col
+   endif
+   fInMark = 0
+   mt = marktype()
+   if mt then
+      getfileid fid
+      getmark firstline, lastline, firstcol, lastcol, markfid
+      if fid = markfid & x >= firstline & x <= lastline then
+         -- assert:  at this point the only case where the text is outside
+         --          the selected area is on a single line char mark and a
+         --          block mark.  Any place else is a valid selection
+         if not ((mt = 'CHAR' & (firstline = x & y < firstcol) |
+                                (lastline = x & y > lastcol)) |
+                 (mt = 'BLOCK' & (y < firstcol | y > lastcol))) then
+            fInMark = 1
+         endif
+      endif
+   endif
+   return fInMark
+
+; ---------------------------------------------------------------------------
 ; PMARK: mark at the cursor position (mark type received as argument).  Used by
 ; pset_mark
 defproc pmark( mt)
