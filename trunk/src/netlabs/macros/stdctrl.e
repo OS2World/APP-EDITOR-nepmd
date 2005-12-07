@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.30 2005-11-24 19:22:37 aschn Exp $
+* $Id: stdctrl.e,v 1.31 2005-12-07 18:43:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -597,28 +597,35 @@ defc fontlist
                       put_in_buffer(queryfont(.font)'.'trunc(.textcolor//16)'.'.textcolor%16),
                       0)
 
-defc processfontrequest
+; ---------------------------------------------------------------------------
+; Called internally by the config dialog, when a font was changed.
+; Called internally by the style dialog.
+defc ProcessFontRequest
    universal default_font
    universal statfont, msgfont
    universal appname, app_hini
-   --dprintf( 'ProcessFontRequest', 'arg(1) = ['arg(1)']')
+   --dprintf( 'PROCESSFONTREQUEST', 'arg(1) = ['arg(1)']')
    parse value arg(1) with fontname '.' fontsize '.' fontsel '.' fsetfont '.' markedonly '.' fg '.' bg
    -- sayerror 'Fontname=' fontname ' Fontsize=' fontsize 'Fontsel=' fontsel 'arg(1)="'arg(1)'"'
    if markedonly = 2 then  -- Statusline font
-      statfont = fontsize'.'fontname'.'fontsel
+      --statfont = fontsize'.'fontname'.'fontsel
+      statfont = ConvertToOs2Font( fontsize'.'fontname'.'fontsel)
       "setstatface" getpminfo(EPMINFO_EDITSTATUSHWND) fontname
       "setstatptsize" getpminfo(EPMINFO_EDITSTATUSHWND) fontsize
       if fsetfont then
-         call setprofile( app_hini, appname, INI_STATUSFONT, statfont)
+      --   call setprofile( app_hini, appname, INI_STATUSFONT, statfont)
+         'SaveFont STATUS'
       endif
       return
    endif  -- markedonly = 2
    if markedonly = 3 then  -- Messageline font
-      msgfont = fontsize'.'fontname'.'fontsel
+      --msgfont = fontsize'.'fontname'.'fontsel
+      msgfont = ConvertToOs2Font( fontsize'.'fontname'.'fontsel)
       "setstatface" getpminfo(EPMINFO_EDITMSGHWND) fontname
       "setstatptsize" getpminfo(EPMINFO_EDITMSGHWND) fontsize
       if fsetfont then
-         call setprofile( app_hini, appname, INI_MESSAGEFONT, msgfont)
+      --   call setprofile( app_hini, appname, INI_MESSAGEFONT, msgfont)
+         'SaveFont MESSAGE'
       endif
       return
    endif  -- markedonly = 3
@@ -897,6 +904,8 @@ compile endif
 defc Monofont
    universal app_hini
    NewFont = ''
+   getfileid fid
+   call SetAVar( 'monofont.'fid, 1)
    -- Query Monofont from font styles and always use it, if defined
    MonoFontList = 'MonoFont Monofont MONOFONT monofont'
    do w = 1 to words( MonoFontList)
@@ -1284,9 +1293,9 @@ defc messagebox  -- The application will free the buffer allocated by this macro
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 ; unused (with WPS anyway)
-defc processdragdrop
+defc ProcessDragDrop
    parse arg cmdid hwnd
-;call NepmdPmPrintf('PROCESSDRAGDROP: cmdid = 'cmdid', hwnd = 'hwnd)
+call NepmdPmPrintf('PROCESSDRAGDROP: cmdid = 'cmdid', hwnd = 'hwnd)
 ;  hwnd = atol_swap(hwnd)
 
    if cmdid = 10 then
@@ -1721,7 +1730,7 @@ compile endif
 -- position to which it is moved should correspond to the location of the
 -- cursor (relative to the window) at the time when the scroll began.
 
-defc processendscroll
+defc ProcessEndScroll
    universal beginscroll_x, beginscroll_y;
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
@@ -1734,7 +1743,7 @@ defc processendscroll
       endif
    endif
 
-defc processbeginscroll
+defc ProcessBeginScroll
    universal beginscroll_x, beginscroll_y;
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
@@ -1746,13 +1755,19 @@ defc processbeginscroll
 ;compile endif  -- KEEP_CURSOR_ON_SCREEN
 
 ; ---------------------------------------------------------------------------
-; Called when a color or a font is dropped on a window.
+; Internally called when a color or a font is dropped on a window.
+; This is always followed by a SaveFont or SaveColor command. The internally
+; defined SaveColor command will be ignored, because its standard args EDIT,
+; MSG or STAT are not precise enough. Therefore SaveColor is executed from
+; here additionally.
 defc SetPresParam
-   universal statfont
    universal msgfont
-   universal vstatuscolor
+   universal statfont
    universal vmessagecolor
+   universal vstatuscolor
+   universal vmodifiedstatuscolor
    universal vdesktopcolor
+   fModified = (.modify > 0)
    --dprintf( 'SETPRESPARAM', 'arg(1) = ['arg(1)']')
    -- SETPRESPARAM: arg(1) = [MSGBGCOLOR hwnd=-2147483054 x=175 y=12 rgb=16777215 clrattr=15 oldfgattr=3 oldbgattr=7]
    -- SETPRESPARAM: arg(1) = [MSGFONTSIZENAME hwnd=-2147483054 x=41 y=8 string=10.Helv]
@@ -1766,10 +1781,11 @@ defc SetPresParam
       -- psize is pointsize, facename is facename, attr is "Bold" etc
       "setstatface" hwnd facename
       "setstatptsize" hwnd psize
+      newfont = substr( rest, 8)
       if leftstr( whichctrl, 1) = 'S' then  -- "STATFONTSIZENAME"
-         statfont = substr(rest,8)
+         statfont = newfont
       else                                  -- "MSGFONTSIZENAME"
-         msgfont = substr(rest,8)
+         msgfont = newfont
          sayerror MESSAGELINE_FONT__MSG
       endif
 
@@ -1780,11 +1796,20 @@ defc SetPresParam
                           4099,      -- STATWNDM_SETCOLOR
                           clrattr,
                           oldbgattr)
+      newcolor = clrattr + 16 * oldbgattr
       if leftstr( whichctrl, 1) = 'M' then
          sayerror MESSAGELINE_FGCOLOR__MSG
-         vmessagecolor = clrattr + 16 * oldbgattr
+         --dprintf( 'SETPRESPARAM', 'MsgFgColor')
+         vmessagecolor = newcolor
+         'SaveColor MESSAGE'
+      elseif not fModified then
+         --dprintf( 'SETPRESPARAM', 'StatFgColor, not modified')
+         vstatuscolor = newcolor
+         'SaveColor STATUS'
       else
-         vstatuscolor = clrattr  + 16 * oldbgattr
+         --dprintf( 'SETPRESPARAM', 'StatFgColor, modified')
+         vmodifiedstatuscolor = newcolor
+         'SaveColor MODIFIEDSTATUS'
       endif
 
    -- Background color: statusbar, messagebar
@@ -1794,11 +1819,20 @@ defc SetPresParam
                           4099,      -- STATWNDM_SETCOLOR
                           oldfgattr,
                           clrattr)
+      newcolor = oldfgattr + clrattr * 16
       if leftstr( whichctrl, 1) = 'M' then
          sayerror MESSAGELINE_BGCOLOR__MSG
-         vmessagecolor = clrattr * 16 + oldfgattr
+         --dprintf( 'SETPRESPARAM', 'MsgBgColor')
+         vmessagecolor = newcolor
+         'SaveColor MESSAGE'
+      elseif not fModified then
+         --dprintf( 'SETPRESPARAM', 'StatBgColor, not modified')
+         vstatuscolor = newcolor
+         'SaveColor STATUS'
       else
-         vstatuscolor = clrattr  * 16 + oldfgattr
+         --dprintf( 'SETPRESPARAM', 'StatBgColor, modified')
+         vmodifiedstatuscolor = newcolor
+         'SaveColor MODIFIEDSTATUS'
       endif
 
    -- Background color: editwindow
@@ -1806,21 +1840,38 @@ defc SetPresParam
       parse value rest with "rgb="rgb "clrattr="clrattr "oldfgattr="oldfgattr "oldbgattr="oldbgattr
       map_point 5, x, y, off, comment;  -- map screen to line
       if x < 1 | x > .last then
+         --dprintf( 'SETPRESPARAM', 'EditBgColor, background')
          vdesktopcolor = clrattr
          call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
                              5497,
                              clrattr,
                              0)
+         'SaveColor BACKGROUND'
       else
-         -- Todo: set .markcolor if dropped on a marked area
-         .textcolor = (.textcolor // 16) + 16 * clrattr;
+         if InMark( x, y) then
+            --dprintf( 'SETPRESPARAM', 'EditBgColor, text, in mark')
+            .markcolor = (.markcolor // 16) + 16 * clrattr
+            'SaveColor MARK'
+         else
+            --dprintf( 'SETPRESPARAM', 'EditBgColor, text, not in mark')
+            .textcolor = (.textcolor // 16) + 16 * clrattr
+            'SaveColor TEXT'
+         endif
       endif
 
    -- Foreground color: editwindow
    elseif (whichctrl == "EDITFGCOLOR") then
       parse value rest with "rgb="rgb "clrattr="clrattr "oldfgattr="oldfgattr "oldbgattr="oldbgattr
-      -- Todo: set .markcolor if dropped on a marked area
-      .textcolor = .textcolor - (.textcolor // 16) + clrattr;
+      map_point 5, x, y, off, comment;  -- map screen to line
+      if InMark( x, y) then
+         --dprintf( 'SETPRESPARAM', 'EditFgColor, text, in mark')
+         .markcolor = .markcolor - (.markcolor // 16) + clrattr;
+         'SaveColor MARK'
+      else
+         --dprintf( 'SETPRESPARAM', 'EditFgColor, text, not in mark')
+         .textcolor = .textcolor - (.textcolor // 16) + clrattr;
+         'SaveColor TEXT'
+      endif
 
    -- Font: editwindow
    elseif whichctrl == "EDITFONTSIZENAME" then
@@ -1836,7 +1887,7 @@ defc SetPresParam
          elseif thisattr = 'Bold'       then fontsel = fontsel + 32
          endif
       enddo
-      .font = registerfont( facename ,psize, fontsel)
+      .font = registerfont( facename, psize, fontsel)
 
    else
       sayerror UNKNOWN_PRESPARAM__MSG whichctrl
@@ -1866,6 +1917,276 @@ defc setstatptsize
                          4106,        -- STATWNDM_PREFFONTPTSIZE
                          ptsize,
                          0);
+
+; ---------------------------------------------------------------------------
+; Syntax:
+; Font = Convert2EFont( <size>.<name>[[[.<attrib1>[ <attrib2>]].fgcolor].bgcolor])
+;          or
+; Font = Convert2EFont( <name>.<size>[[[.<attrib[ <attrib2>]].fgcolor].bgcolor])
+; Both font specs are valid: '12.System VIO' or 'System VIO.DD120HH16WW8BB'
+; + or <space> are allowed as separator for <attribs>. <attribs> can be
+; specified as number or as name.
+; Different from SetTextColor and SetMarkColor, the appended values for
+; colors must be separated by a period and go both from 0 to 15.
+; The returned syntax is used as arg for ProcessFontRequest and could be used
+; for style settings.
+; Notes: registerfont uses a different syntax: <name>.<DDsize>.<attrib_num>
+;        fgcol'.'bgcol for e.g. .textcolor can be converted with
+;        trunc(.textcolor//16)'.'.textcolor%16
+defproc ConvertToEFont
+   --dprintf( 'CONVERTTOEFONT', 'arg(1) = 'arg(1))
+   parse arg name '.' size '.' rest
+
+   next = upcase(size)
+   next = translate( next, '', 'XDHWB', '0')
+   if not isnum(next) then
+      --sayerror 'size = "'size'" is num, arg(1) = 'arg(1)
+      -- toggle name and size
+      parse arg size '.' name '.'
+   endif
+   --sayerror 'name = "'name'", size = "'size'", next = "'next'", arg(1) = 'arg(1)
+   parse value upcase(size) with h 'X' w
+   if h <> '' & w <> '' then
+      size = 'HH'h'WW'w
+   endif
+
+   attrib = 0
+   fIsColor = 0
+   fgcol = 0
+   bgcol = 0
+   do while rest > ''
+
+      if fIsColor then
+         --dprintf( 'CONVERTTOEFONT', 'colors = 'rest)
+         parse value rest with fgcol '.' bgcol
+
+         if fgcol = '' then
+         elseif not isnum( fgcol) then
+            fgcol = ConvertColor( fgcol)
+            if rc then
+               fgcol = ''
+            endif
+         endif
+
+         if bgcol = '' then
+         elseif not isnum( bgcol) then
+            bgcol = ConvertColor( bgcol)
+            if rc then
+               bgcol = ''
+            endif
+         endif
+
+         if (not isnum( fgcol)) | (not isnum( bgcol)) then
+            fIsColor = 0  -- don't append font segments on error
+         endif
+         leave
+
+      else
+         parse value rest with segment '.' rest
+         attriblist = translate( segment, ' ', '+')  -- allow '+' as separator
+         --dprintf( 'CONVERTTOEFONT', 'attriblist = 'attriblist)
+
+         do a = 1 to words( attriblist)
+            next = word( attriblist, a)
+            if isnum( next) then
+               attrib = attrib + next
+            elseif next = 'Normal' then
+               -- attrib = attrib + 0
+            elseif next = 'Italic' then
+               attrib = attrib + 1
+            elseif next = 'Underscore' then
+               attrib = attrib + 2
+            elseif next = 'Outline' then
+               attrib = attrib + 8
+            elseif next = 'Strikeout' then
+               attrib = attrib + 16
+            elseif next = 'Bold' then
+               attrib = attrib + 32
+            endif
+         enddo
+
+         -- Check following segment for another attribut name
+         parse value rest with test '.' junk
+         if test = '' then
+            leave
+         elseif wordpos( test, 'Normal Italic Underscore Strikeout Bold') then
+         else
+            fIsColor = 1  -- try to resolve the following segments as colors
+            --dprintf( 'CONVERTTOEFONT', 'test = 'test', fIsColor = 'fIsColor)
+         endif
+         iterate
+
+      endif
+   enddo
+
+   if fIsColor then
+      EFont = name'.'size'.'attrib'.'fgcol'.'bgcol
+   else
+      EFont = name'.'size'.'attrib
+   endif
+   --dprintf( 'CONVERTTOEFONT', 'EFont = 'EFont)
+   return EFont
+
+; ---------------------------------------------------------------------------
+defproc ConvertToOs2Font
+dprintf( 'CONVERTTOOS2FONT', 'arg(1) = 'arg(1))
+   parse arg name'.'size'.'attriblist
+
+   next = upcase(size)
+   next = translate( next, '', 'XDHWB', '0')
+   if not isnum(next) then
+      -- toggle name and size
+      parse arg size'.'name'.'
+   endif
+   if leftstr( size, 1) = 'D' then  -- Decipoints
+      parse value size with 'DD' size 'HH'
+      parse value size with size 'WW'
+      size = size % 10   -- convert decipoints to points
+   endif
+
+   if attriblist = 0 then
+      attriblist = ''
+   endif
+   if attriblist > '' then
+      attriblist = upcase(attriblist)
+      attriblist = translate( attriblist, '  ', '+.')  -- allow '+' or '.' as separator
+      attrib = 0
+      do a = 1 to words(attriblist)
+         next = word( attriblist, a)
+         if isnum(next) then
+            attrib = attrib + next
+         else
+            if next = 'NORMAL' then
+               -- attrib = attrib + 0
+            elseif wordpos( next, 'ITALIC OBLIQUE SLANTED') then
+               attrib = attrib + 1
+            elseif next = 'UNDERSCORE' then
+               attrib = attrib + 2
+            elseif next = 'OUTLINE' then
+               attrib = attrib + 8
+            elseif next = 'STRIKEOUT' then
+               attrib = attrib + 16
+            elseif next = 'BOLD' then
+               attrib = attrib + 32
+            endif
+         endif
+      enddo
+
+      attriblist = ''
+      rest = attrib
+      next = rest - 32
+      if next >= 0 then
+         attriblist = attriblist'.Bold'
+         rest = next
+      endif
+      next = rest - 16
+      if next >= 0 then
+         attriblist = attriblist'.Strikeout'
+         rest = next
+      endif
+      next = rest - 8
+      if next >= 0 then
+         attriblist = attriblist'.Outline'
+         rest = next
+      endif
+      next = rest - 2
+      if next >= 0 then
+         attriblist = attriblist'.Underscore'
+         rest = next
+      endif
+      next = rest - 1
+      if next >= 0 then
+         attriblist = attriblist'.Italic'
+         rest = next
+      endif
+
+   endif
+   Os2Font = size'.'name''attriblist
+dprintf( 'CONVERTTOOS2FONT', 'Os2Font = 'Os2Font)
+   return Os2Font
+
+; ---------------------------------------------------------------------------
+; Syntax: Color = ConvertColor( <color1> [+ <color2>])
+; <colors> are color names or numbers. The resulting Color is the summed
+; value of all.
+; Sets rc = 0 if color was resolved, else rc = 1.
+defproc ConvertColor( args)
+   rc = 0
+   List = '' ||
+      'BLACK'          || '/' ||   '0' || '/' ||
+      'BLUE'           || '/' ||   '1' || '/' ||
+      'GREEN'          || '/' ||   '2' || '/' ||
+      'CYAN'           || '/' ||   '3' || '/' ||
+      'RED'            || '/' ||   '4' || '/' ||
+      'MAGENTA'        || '/' ||   '5' || '/' ||
+      'BROWN'          || '/' ||   '6' || '/' ||
+      'GREY'           || '/' ||   '7' || '/' ||
+      'DARK_GREY'      || '/' ||   '8' || '/' ||
+      'LIGHT_BLUE'     || '/' ||   '9' || '/' ||
+      'LIGHT_GREEN'    || '/' ||  '10' || '/' ||
+      'LIGHT_CYAN'     || '/' ||  '11' || '/' ||
+      'LIGHT_RED'      || '/' ||  '12' || '/' ||
+      'LIGHT_MAGENTA'  || '/' ||  '13' || '/' ||
+      'YELLOW'         || '/' ||  '14' || '/' ||
+      'WHITE'          || '/' ||  '15' || '/'
+
+   -- Some synonyms
+   List = List ||
+      'DARK_BLUE'      || '/' ||   '1' || '/' ||
+      'DARK_GREEN'     || '/' ||   '2' || '/' ||
+      'DARK_CYAN'      || '/' ||   '3' || '/' ||
+      'DARK_RED'       || '/' ||   '4' || '/' ||
+      'DARK_MAGENTA'   || '/' ||   '5' || '/' ||
+      'LIGHT_GREY'     || '/' ||   '7' || '/'
+
+   Color = 0
+   if isnum(args) then
+      color = args
+   else
+      names = upcase(args)
+      do while names <> ''
+         -- Parse every arg at '+' boundaries
+         parse value names with name '+' names
+         fFound = 0
+         -- Add underscore after 'LIGHT' or 'DARK', if missing
+         parse value name with 'LIGHT'col
+         if col <> '' & leftstr( col, 1) <> '_' then
+            name = 'LIGHT_'col
+         else
+            parse value name with 'DARK'col
+            if col <> '' & leftstr( col, 1) <> '_' then
+               name = 'DARK_'col
+            endif
+         endif
+         if isnum( name) then
+            Color = Color + name  -- add
+            fFound = 1
+            iterate
+         endif
+         -- Parse list
+         rest = List
+         do while rest <> ''
+            parse value rest with next1'/'next2'/'rest
+            -- Compare: name or number
+            if name = next1 then
+               Color = Color + next2  -- add foreground color
+               fFound = 1
+               leave
+            elseif name = next1'B' then
+               Color = Color + 16 * next2  -- add background color
+               fFound = 1
+               leave
+            endif
+         enddo
+         if fFound = 0 then
+            --sayerror 'Unknown color specification "'name'"'
+            dprintf( 'Unknown color specification "'name'"')
+            rc = 1
+         endif
+      enddo
+   endif
+
+   return color
 
 
 defproc Thunk(pointer)
