@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.12 2005-11-24 20:41:46 aschn Exp $
+* $Id: modeexec.e,v 1.13 2005-12-07 18:42:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -370,13 +370,15 @@ defc ModeExecute, ModeExec
    endif
 
 ; ---------------------------------------------------------------------------
-; Refresh specified setting for those files in the ring, whose setting were
-; not changed with a Set* command of MODEEXEC.E. Should be executed by
+; Syntax: RingRefreshSetting <mode> <cmd> <args>
+; Refresh specified setting for those files in the ring, whose settings were
+; not changed with a Set* command of MODEEXEC.E before. Should be executed
+; by
 ;    -  any command, that changes default defload settings
 ;       currently, these are: SetHighlight, SetMargins, SetTabs
 ;       not effected: SetKeys SetDynaSpell (only saved as field var)
 ;    -  a modeexecuterefresh command, if executed by hand, after file is loaded.
-; The command must have the name of the array var plus 'Set' prepended.
+; <cmd> must have the name of the array var plus 'Set' prepended.
 defc RingRefreshSetting
    universal StatusFieldFlags
    universal TitleFieldFlags
@@ -995,69 +997,7 @@ defc SetInsertMode
    -- Update of infoline field is handled internally
 
 ; ---------------------------------------------------------------------------
-; Syntax:
-; Font = ConvertFont( <size>.<name>[[[.<attrib1>[ <attrib2>]].fgcolor].bgcolor])
-;          or
-; Font = ConvertFont( <name>.<size>[[[.<attrib[ <attrib2>]].fgcolor].bgcolor])
-; Both font specs are valid: '12.System VIO' or 'System VIO.DD120HH16WW8BB'
-; + or <space> are allowed as separator for <attribs>. <attribs> can be
-; specified as number or as name.
-; Different from SetTextColor and SetMarkColor, the appended values for
-; colors must be separated by a period and go both from 0 to 15.
-; The returned syntax is used as arg for ProcessFontRequest and could be used
-; for style settings.
-; Note: registerfont uses a different syntax: <name>.<DDsize>.<attrib_num>
-defproc ConvertFont
-   parse arg name'.'size'.'attriblist'.'fgcol'.'bgcol
-   next = upcase(size)
-   next = translate( next, '', 'XDHWB', '0')
-   if not isnum(next) then
-      --sayerror 'size = "'size'" is num, arg(1) = 'arg(1)
-      -- toggle name and size
-      parse arg size'.'name'.'
-   endif
-   --sayerror 'name = "'name'", size = "'size'", next = "'next'", arg(1) = 'arg(1)
-   parse value upcase(size) with h'X'w
-   if h <> '' & w <> '' then
-      size = 'HH'h'WW'w
-   endif
-   attriblist = upcase(attriblist)
-   attriblist = translate( attriblist, ' ', '+')  -- allow '+' as separator
-   attrib = 0
-   do a = 1 to words(attriblist)
-      next = word( attriblist, a)
-      if isnum(next) then
-         attrib = attrib + next
-      else
-         if next = 'NORMAL' then
-            -- attrib = attrib + 0
-         elseif wordpos( next, 'ITALIC OBLIQUE SLANTED') then
-            attrib = attrib + 1
-         elseif next = 'UNDERSCORE' then
-            attrib = attrib + 2
-         elseif next = 'OUTLINE' then
-            attrib = attrib + 8
-         elseif next = 'STRIKEOUT' then
-            attrib = attrib + 16
-         elseif next = 'BOLD' then
-            attrib = attrib + 32
-         endif
-      endif
-   enddo
-   if fgcol = '' then
-      fgcol = 0
-   elseif not isnum( fgcol) then
-      fgcol = ConvertColor( fgcol)
-   endif
-   if bgcol = '' then
-      bgcol = 0
-   elseif not isnum( bgcol) then
-      bgcol = ConvertColor( bgcol)
-   endif
-   return name'.'size'.'attrib'.'fgcol'.'bgcol
-
-; ---------------------------------------------------------------------------
-; Syntax: SetTextFont <size>.<name>[.<attrib1>[ <attrib2>]]  or
+; Syntax: SetTextFont <size>[.<name>[.<attrib1>[ <attrib2>]]]  or
 ;         SetTextFont <name>.<size>[.<attrib[ <attrib2>]]
 ; Any following specifications, separated by a period are ignored.
 defc SetTextFont
@@ -1066,23 +1006,36 @@ defc SetTextFont
    universal lastfont
    arg1 = upcase(arg(1))
    if arg1 = '' | arg1 = 'DEFAULT' then
-      new = queryprofile( app_hini, appname, 'FONT')
-      if new = '' then
-         new = '12.System VIO'
-      endif
+      --new = queryprofile( app_hini, appname, 'FONT')
+      --if new = '' then
+      --   new = '12.System VIO'
+      --endif
+      KeyPath = '\NEPMD\User\Fonts\Text'
+      new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    else
-      new = arg(1)
+      new = arg1
+      parse value new with size '.' rest
+      if not isnum( size) then
+         sayerror 'Unknown font specification "'arg1'"'
+         return
+      endif
+      if rest = '' then
+         parse value queryfont(.font) with fontname '.' fontsize '.' fontsel
+         new = size'.'fontname
+         if fontsel > 0 then
+            new = size'.'fontname'.'fontsel
+         endif
+      endif
    endif
-   new = ConvertFont( new)
    if new <> lastfont then
-   --sayerror 'newfont = 'new
-   --'processfontrequest' new
-      'postme processfontrequest' new  -- must be posted (why?)
       lastfont = new  -- save it in a universal var, because .font holds only an id
                       -- It would be much better to avoid the processfontrequest
                       -- and execute simply: .font = <font_id>. Therefore the
                       -- font_id would have been saved, after it was registered:
                       -- .font = registerfont(fontname, fontsize, fontsel)
+      new = ConvertToEFont( new)
+      --'processfontrequest' new
+      'postme processfontrequest' new  -- must be posted (why?)
    endif
    -- Save the value in an array var, because no field var exists
    getfileid fid
@@ -1094,105 +1047,35 @@ defc SetTextFont
    endif
 
 ; ---------------------------------------------------------------------------
-; Syntax: Color = ConvertColor( <color1> [+ <color2>])
-; <colors> are color names or numbers. The resulting Color is the summed
-; value of all.
-defproc ConvertColor( args)
-   List = '' ||
-      '/BLACK'          || '/0'   ||
-      '/BLUE'           || '/1'   ||
-      '/GREEN'          || '/2'   ||
-      '/CYAN'           || '/3'   ||
-      '/RED'            || '/4'   ||
-      '/MAGENTA'        || '/5'   ||
-      '/BROWN'          || '/6'   ||
-      '/LIGHT_GREY'     || '/7'   ||
-      '/DARK_GREY'      || '/8'   ||
-      '/LIGHT_BLUE'     || '/9'   ||
-      '/LIGHT_GREEN'    || '/10'  ||
-      '/LIGHT_CYAN'     || '/11'  ||
-      '/LIGHT_RED'      || '/12'  ||
-      '/LIGHT_MAGENTA'  || '/13'  ||
-      '/YELLOW'         || '/14'  ||
-      '/WHITE'          || '/15'  ||
-      '/BLACKB'         || '/0'   ||
-      '/BLUEB'          || '/16'  ||
-      '/GREENB'         || '/32'  ||
-      '/CYANB'          || '/48'  ||
-      '/REDB'           || '/64'  ||
-      '/MAGENTAB'       || '/80'  ||
-      '/BROWNB'         || '/96'  ||
-      '/GREYB'          || '/112' ||
-      '/LIGHT_GREYB'    || '/112' ||
-      '/DARK_GREYB'     || '/128' ||
-      '/LIGHT_BLUEB'    || '/144' ||
-      '/LIGHT_GREENB'   || '/160' ||
-      '/LIGHT_CYANB'    || '/176' ||
-      '/LIGHT_REDB'     || '/192' ||
-      '/LIGHT_MAGENTAB' || '/208' ||
-      '/YELLOWB'        || '/224' ||
-      '/WHITEB'         || '/240'
-
-   if isnum(args) then
-      color = args
-   else
-      Color = 0
-      names = upcase(args)
-      do while names <> ''
-         -- Parse every arg at '+' boundaries
-         parse value names with name '+' names
-         -- Add underscore after 'LIGHT' or 'DARK', if missing
-         parse value name with 'LIGHT'col
-         if col <> '' & leftstr( col, 1) <> '_' then
-            name = 'LIGHT_'col
-         else
-            parse value name with 'DARK'col
-            if col <> '' & leftstr( col, 1) <> '_' then
-               name = 'DARK_'col
-            endif
-         endif
-         -- Parse list
-         rest = List
-         do while rest <> ''
-            parse value rest with '/'next1'/'next2'/' -1 rest
-            if next2 = '' then  -- required: the last rest is '/'
-               leave
-            endif
-            -- Compare: name or number
-            if name = next1 | name = next2 then
-               Color = Color + next2  -- add
-               leave
-            endif
-         enddo
-      enddo
-   endif
-
-   return color
-
-; ---------------------------------------------------------------------------
 defc SetTextColor
-   universal appname
-   universal app_hini
+   --universal appname
+   --universal app_hini
+   universal nepmd_hini
    arg1 = upcase(arg(1))
    if arg1 = '' | arg1 = 'DEFAULT' then
-      colors = queryprofile( app_hini, appname, 'STUFF')
-      if colors = '' then
-         new = 120
-      else
-         new = subword( colors, 1, 1)
-      endif
-      color = arg(1)
+      --colors = queryprofile( app_hini, appname, 'STUFF')
+      --if colors = '' then
+      --   new = 120
+      --else
+      --   new = subword( colors, 1, 1)
+      --endif
+      KeyPath = '\NEPMD\User\Colors\Text'
+      new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    else
       new = ConvertColor( arg(1))
-      color = new
+      if rc <> 0 then
+         return
+      endif
    endif
-   if new <> .textcolor then  -- the color is set but needs activation
+   if new = '' then
+      return
+   elseif new <> .textcolor then  -- the color is set but needs activation
       .textcolor = new
    endif
    -- Save the value in an array var, to determine 'DEFAULT' state later
    getfileid fid
-   if GetAVar( 'textcolor.'fid) <> color then
-      call SetAVar( 'textcolor.'fid, color)
+   if GetAVar( 'textcolor.'fid) <> new then
+      call SetAVar( 'textcolor.'fid, new)
       if not wordpos( upcase('SetTextColor'), upcase(GetAVar('lastusedsettings'))) then
          call AddAVar( 'lastusedsettings', ' SetTextColor')
       endif
@@ -1200,20 +1083,28 @@ defc SetTextColor
 
 ; ---------------------------------------------------------------------------
 defc SetMarkColor
-   universal appname
-   universal app_hini
+   --universal appname
+   --universal app_hini
+   universal nepmd_hini
    arg1 = upcase(arg(1))
    if arg1 = '' | arg1 = 'DEFAULT' then
-      colors = queryprofile( app_hini, appname, 'STUFF')
-      if colors = '' then
-         new = 113
-      else
-         new = subword( colors, 2, 1)
-      endif
+      --colors = queryprofile( app_hini, appname, 'STUFF')
+      --if colors = '' then
+      --   new = 113
+      --else
+      --   new = subword( colors, 2, 1)
+      --endif
+      KeyPath = '\NEPMD\User\Colors\Mark'
+      new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    else
       new = ConvertColor(arg(1))
+      if rc <> 0 then
+         return
+      endif
    endif
-   if new <> .markcolor then  -- the color is set but needs activation
+   if new = '' then
+      return
+   elseif new <> .markcolor then  -- the color is set but needs activation
       .markcolor = new
    endif
    -- Save the value in an array var, to determine 'DEFAULT' state later
