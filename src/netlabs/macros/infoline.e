@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.11 2005-11-24 21:55:07 aschn Exp $
+* $Id: infoline.e,v 1.12 2005-12-07 18:44:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -70,13 +70,16 @@
 ;    o  If file was altered by another file, then the old date is shown in title
 ;    o  If file was selected by ring_more dialog.  -> won't (can't) fix.
 
-compile if not defined(MODIFIED_STATUSCOLOR)
-const
-   MODIFIED_STATUSCOLOR = LIGHT_GREYB + MAGENTA
-compile endif
+--compile if not defined(MODIFIED_STATUSCOLOR)
+--const
+--   MODIFIED_STATUSCOLOR = LIGHT_GREYB + MAGENTA
+--compile endif
 definit
    universal vmodifiedstatuscolor
-   vmodifiedstatuscolor = MODIFIED_STATUSCOLOR
+   --vmodifiedstatuscolor = MODIFIED_STATUSCOLOR
+   KeyPath = '\NEPMD\User\DefaultColors'
+   Colors = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   vmodifiedstatuscolor = word( Colors, 6)
 
 ; ---------------------------------------------------------------------------
 ; Compare args with StatusFieldFlags and TitleFieldFlags. If they match,
