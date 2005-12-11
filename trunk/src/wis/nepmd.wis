@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.37 2005-07-17 15:42:06 aschn Exp $
+# $Id: nepmd.wis,v 1.38 2005-12-11 22:50:05 aschn Exp $
 #
 # ===========================================================================
 #
@@ -35,7 +35,7 @@
      PACKAGEID="Netlabs\Netlabs EPM Distribution\Base Application Support\%ID_VERSION_NEPMD%"
      TARGET="$(WARPIN_DEFAULTAPPSPATH)\NEPMD"
      BASE
-     REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
+     <!--REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"-->
      SELECT
      NODESELECT
      TITLE="%PCK_1_TITLE%"
