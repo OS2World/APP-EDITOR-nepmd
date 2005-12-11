@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.9 2005-12-07 18:43:07 aschn Exp $
+* $Id: config.e,v 1.10 2005-12-11 10:49:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1531,6 +1531,7 @@ defc SaveFont
    universal nepmd_hini
    universal msgfont
    universal statfont
+   universal default_font
    --dprintf( 'SaveFont', 'arg(1) = ['arg(1)']')
    -- arg(1) = 'EDIT' | 'MSG' | 'STAT'
 
@@ -1577,12 +1578,17 @@ defc SaveFont
       next = word( args, w)
       wp = wordpos( next, upcase( KeyList))
       if wp then
+         Key = word( KeyList, wp)
          rest = ValList
          do i = 1 to wp
             parse value rest with Val \1 rest
          enddo
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'word( KeyList, wp), Val)
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'Key, Val)
          --dprintf( 'SAVEFONT', KeyPath'\'word( KeyList, wp)' = 'Val)
+         -- Set default_font to take change immediately for the next loaded files
+         if Key = 'Text' then
+            default_font = .font
+         endif
       endif
    enddo
 
