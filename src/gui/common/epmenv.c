@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.22 2005-11-19 15:26:35 aschn Exp $
+* $Id: epmenv.c,v 1.23 2005-12-11 10:42:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -398,7 +398,7 @@ do
       // find end
       pszEndPos = strchr( pszStartPos + 1, chDelimiter);
 
-      // no end found, cut of to end of string
+      // no end found, cut off to end of string
       if (!pszEndPos)
          {
          *pszStartPos = 0;
@@ -411,12 +411,17 @@ do
          memcpy( szVarName, pszStartPos + 1, ulNameLen);
          szVarName[ ulNameLen] = 0;
 
-
          // first of all, elimintate the variable
          strcpy( pszStartPos, pszEndPos + 1);
 
          // get value
-         pszVarValue = getenv( szVarName);
+         if (!stricmp( szVarName, "beginlibpath"))
+            DosQueryExtLIBPATH( pszVarValue, BEGIN_LIBPATH);
+         else if (!stricmp( szVarName, "endlibpath"))
+            DosQueryExtLIBPATH( pszVarValue, END_LIBPATH);
+         else
+            pszVarValue = getenv( szVarName);
+
          if (pszVarValue)
             {
             // embedd new value
@@ -853,24 +858,18 @@ do
 
       // This works here, after the first extension of the
       // environment and after env files are processed.
-      // But %BEGINLIBPATH% is currently not resolved.
-      // Additionally, processing BEGIN/ENDLIBPATH instead of
+      // Processing BEGIN/ENDLIBPATH instead of
       // EPMBEGIN/ENDLIBPATH would make refuse any later change
-      // of them. That must have to do with the 2nd extension of
-      // the environment.
+      // of them in a cmd.exe child process.
 
       //pszPathVar = getenv( "BEGINLIBPATH");
       pszPathVar = getenv( "EPMBEGINLIBPATH");
       if (pszPathVar != NULL)
-         {
          DosSetExtLIBPATH( pszPathVar, BEGIN_LIBPATH);
-         }
       //pszPathVar = getenv( "ENDLIBPATH");
       pszPathVar = getenv( "EPMENDLIBPATH");
       if (pszPathVar != NULL)
-         {
          DosSetExtLIBPATH( pszPathVar, END_LIBPATH);
-         }
 
       // ------- set internal env vars --------------------
 
