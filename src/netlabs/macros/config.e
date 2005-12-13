@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.10 2005-12-11 10:49:06 aschn Exp $
+* $Id: config.e,v 1.11 2005-12-13 19:34:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,9 +34,9 @@
 ; BLOCK_ACTIONBAR_ACCELERATORS, WANT_STACK_CMDS, RING_OPTIONAL,
 ; WANT_STREAM_MODE, WANT_TOOLBAR, SPELL_SUPPORT, WANT_APPLICATION_INI_FILE,
 ; ENHANCED_ENTER_KEYS, WANT_LONGNAMES, WANT_PROFILE TOGGLE_ESCAPE,
-; TOGGLE_TAB, DYNAMIC_CURSOR_STYLE
+; TOGGLE_TAB, DYNAMIC_CURSOR_STYLE, WPS_SUPPORT
 ; Remaining consts:
-; CHECK_FOR_LEXAM, WPS_SUPPORT, ENTER_ACTION, C_ENTER_ACTION, HOST_SUPPORT
+; CHECK_FOR_LEXAM, ENTER_ACTION, C_ENTER_ACTION, HOST_SUPPORT
 ; my_CURSORDIMENSIONS, my_SAVEPATH, WANT_BITMAP_BACKGROUND, INITIAL_TOOLBAR,
 ; my_STACK_CMDS, my_CUA_MENU_ACCEL, SUPPORT_USER_EXITS
 
@@ -159,9 +159,6 @@ compile endif
    universal cua_marking_switch
    universal tab_key
    universal cua_menu_accel
-compile if WPS_SUPPORT
-   universal wpshell_handle
-compile endif
    universal vepm_pointer, cursordimensions
 
    parse arg hndle page fsend_default .  --  Usually fsend_default is = 2 at this point
@@ -184,15 +181,7 @@ compile endif
    -- else use submitted flag (normally = 2)
 
    -- Notebook control ----------------------------------------------
-compile if WPS_SUPPORT
-   if wpshell_handle then
-      help_panel = 5350 + page
-   else
-compile endif
-      help_panel = 5300 + page
-compile if WPS_SUPPORT
-    endif
-compile endif
+   help_panel = 5300 + page
 
    if page = 1 then  --------------------- Page 1 is tabs -------------
       if fsend_default = 2 then tempstr = .tabs
@@ -244,17 +233,11 @@ compile endif
       call send_config_data( hndle, tmessagecolor, 7, help_panel)
 
    elseif page = 4 then  ----------------- Page 4 is paths ------------
-compile if WPS_SUPPORT
-      if not wpshell_handle then
-compile endif
 compile if CHECK_FOR_LEXAM
       if lexam_is_available then
 compile endif
          help_panel = 5390  -- Different help panel
 compile if CHECK_FOR_LEXAM
-      endif
-compile endif
-compile if WPS_SUPPORT
       endif
 compile endif
       call send_config_data( hndle, checkini( fsend_default, INI_TEMPPATH, vTEMP_PATH, TEMP_PATH), 10, help_panel)
@@ -847,79 +830,55 @@ compile endif
 compile if CHECK_FOR_LEXAM
    universal lexam_is_available
 compile endif
-compile if WPS_SUPPORT  -- if Epm class is used
-   universal wpshell_handle
-compile endif
 
-compile if WPS_SUPPORT  -- if Epm class is used
-   useWPS = upcase(arg(1)) <> 'NOWPS'
-   if wpshell_handle & useWPS then  -- read config data from WPS object
-      load_wps_config(wpshell_handle)
-      newcmd = 1  -- For a later IF
-   else                             -- read config data from EPM.INI
-compile endif
-
-      newcmd = queryprofile( app_hini, appname, INI_STUFF)
+   newcmd = queryprofile( app_hini, appname, INI_STUFF)
+   if newcmd then
+      newcmd = queryprofile( app_hini, appname, INI_MARGINS)
       if newcmd then
-;          parse value newcmd with ttextcolor tmarkcolor tstatuscolor tmessagecolor .
-;          .textcolor = ttextcolor; .markcolor = tmarkcolor
-;          if tstatuscolor <> '' & tstatuscolor <> vstatuscolor then
-;             vstatuscolor = tstatuscolor
-;             'setstatusline'
-;          endif
-;          if tmessagecolor <> '' & tmessagecolor <> vmessagecolor then
-;             vmessagecolor = tmessagecolor
-;             'setmessageline'
-;          endif
-         newcmd = queryprofile( app_hini, appname, INI_MARGINS)
-         if newcmd then
-            .margins = newcmd
-            vdefault_margins = newcmd
+         .margins = newcmd
+         vdefault_margins = newcmd
+      endif
+      newcmd = queryprofile( app_hini, appname, INI_AUTOSAVE)
+      if newcmd <> '' then
+         .autosave = newcmd
+         vDEFAULT_AUTOSAVE = newcmd
+      endif
+      newcmd = queryprofile( app_hini, appname, INI_TABS)
+      if newcmd then
+         .tabs = newcmd; vdefault_tabs = newcmd
+      endif
+      newcmd = queryprofile( app_hini, appname, INI_TEMPPATH)
+      if newcmd then
+         vTEMP_PATH = newcmd
+         if rightstr( vTemp_Path, 1) <> '\' then
+            vTemp_Path = vTemp_Path'\'          -- Must end with a backslash.
          endif
-         newcmd = queryprofile( app_hini, appname, INI_AUTOSAVE)
-         if newcmd <> '' then
-            .autosave = newcmd
-            vDEFAULT_AUTOSAVE = newcmd
+         if not verify( vTEMP_FILENAME, ':\', 'M') then   -- if not fully qualified
+            vTEMP_FILENAME = vTEMP_PATH||vTEMP_FILENAME
          endif
-         newcmd = queryprofile( app_hini, appname, INI_TABS)
-         if newcmd then
-            .tabs = newcmd; vdefault_tabs = newcmd
+      endif
+      newcmd = queryprofile( app_hini, appname, INI_AUTOSPATH)
+      if newcmd then
+         vAUTOSAVE_PATH = newcmd
+         if rightstr( vAUTOSAVE_Path, 1) <> '\' then
+            vAUTOSAVE_Path = vAUTOSAVE_Path'\'  -- Must end with a backslash.
          endif
-         newcmd = queryprofile( app_hini, appname, INI_TEMPPATH)
-         if newcmd then
-            vTEMP_PATH = newcmd
-            if rightstr( vTemp_Path, 1) <> '\' then
-               vTemp_Path = vTemp_Path'\'          -- Must end with a backslash.
-            endif
-            if not verify( vTEMP_FILENAME, ':\', 'M') then   -- if not fully qualified
-               vTEMP_FILENAME = vTEMP_PATH||vTEMP_FILENAME
-            endif
-         endif
-         newcmd = queryprofile( app_hini, appname, INI_AUTOSPATH)
-         if newcmd then
-            vAUTOSAVE_PATH = newcmd
-            if rightstr( vAUTOSAVE_Path, 1) <> '\' then
-               vAUTOSAVE_Path = vAUTOSAVE_Path'\'  -- Must end with a backslash.
-            endif
 compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined(my_SAVEPATH)
-            savepath = vAUTOSAVE_PATH
+         savepath = vAUTOSAVE_PATH
 compile endif
-         endif
-         newcmd = queryprofile( app_hini, appname, INI_DICTIONARY)
-         if newcmd then
-            dictionary_filename = newcmd
-         endif
-         newcmd = queryprofile( app_hini, appname, INI_ADDENDA)
-         if newcmd then
-            addenda_filename = newcmd
-         endif
-      endif  -- newcmd
+      endif
+      newcmd = queryprofile( app_hini, appname, INI_DICTIONARY)
+      if newcmd then
+         dictionary_filename = newcmd
+      endif
+      newcmd = queryprofile( app_hini, appname, INI_ADDENDA)
+      if newcmd then
+         addenda_filename = newcmd
+      endif
+   endif  -- newcmd
 
           -- Options from Option pulldown
-      newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
-compile if WPS_SUPPORT
-   endif  -- wpshell_handle
-compile endif
+   newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
    if newcmd = '' then
       optflag_extrastuff = ''
 compile if not defined(WANT_BITMAP_BACKGROUND)
@@ -934,19 +893,7 @@ compile else
       toolbar_present = 1
 compile endif
    else
-compile if WPS_SUPPORT
-   if wpshell_handle & useWPS then  -- Keys 15, 18 & 19
-      parse value peekz( peek32( wpshell_handle, 60, 4)) with statflg 2 msgflg 3 hscrollflg 4 vscrollflg 5 extraflg 6 new_bitmap 7 drop_style 8
-      parse value peekz( peek32( wpshell_handle, 72, 4)) with markflg 2 streamflg 3 profile 4 longnames 5 pointer_style 6 cursor_shape 7
-      parse value peekz( peek32( wpshell_handle, 76, 4)) with tabkey 2
-      parse value peekz( peek32( wpshell_handle, 84, 4)) with toolbar_present 2
-      rotflg = 1
-   else
-compile endif
       parse value newcmd with statflg msgflg vscrollflg hscrollflg fileiconflg rotflg extraflg markflg menu_prompt streamflg profile longnames escapekey tabkey new_bitmap toolbar_present drop_style optflag_extrastuff  -- fixed 3: exchanged show_longname and rexx_profile
-compile if WPS_SUPPORT
-   endif  -- wpshell_handle
-compile endif
       'toggleframe 1' statflg
       'toggleframe 2' msgflg
       'toggleframe 8' vscrollflg
@@ -1012,48 +959,22 @@ compile endif -- not defined(WANT_BITMAP_BACKGROUND)
 ------------------------------------------------------------------
    endif  /* INI_OPTFLAGS 1/3 */ -- Settings dlg, not as part of Save Options
 
-compile if WPS_SUPPORT
-   if not (wpshell_handle & useWPS) then
-compile endif
-      if bitmap_present <> new_bitmap then
-         'toggle_bitmap'
+   if bitmap_present <> new_bitmap then
+      'toggle_bitmap'
+   endif
+   newcmd = queryprofile( app_hini, appname, INI_ENTERKEYS)
+   if newcmd<>'' then
+      parse value newcmd with enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey .
+   endif
+   newcmd = queryprofile( app_hini, appname, INI_BITMAP)
+   if newcmd<>'' then
+      bm_filename = newcmd  -- Need to keep?
+      if bitmap_present then
+         'load_dt_bitmap' bm_filename
       endif
-      newcmd = queryprofile( app_hini, appname, INI_ENTERKEYS)
-      if newcmd<>'' then
-         parse value newcmd with enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey .
-      endif
-;       newcmd = queryprofile( app_hini, appname, INI_STATUSFONT)
-;       if newcmd<>'' then
-;          statfont = newcmd  -- Need to keep?
-;          parse value newcmd with psize"."facename"."attr
-;          "setstatface" getpminfo(EPMINFO_EDITSTATUSHWND) facename
-;          "setstatptsize" getpminfo(EPMINFO_EDITSTATUSHWND) psize
-;       endif
-;       newcmd = queryprofile( app_hini, appname, INI_MESSAGEFONT)
-;       if newcmd<>'' then
-;          msgfont = newcmd   -- Need to keep?
-;          parse value newcmd with psize"."facename"."attr
-;          "setstatface" getpminfo(EPMINFO_EDITMSGHWND) facename
-;          "setstatptsize" getpminfo(EPMINFO_EDITMSGHWND) psize
-;       endif
-      newcmd = queryprofile( app_hini, appname, INI_BITMAP)
-      if newcmd<>'' then
-         bm_filename = newcmd  -- Need to keep?
-         if bitmap_present then
-            'load_dt_bitmap' bm_filename
-         endif
-      endif
-compile if WPS_SUPPORT
-   endif  -- not wpshell_handle
-compile endif
+   endif
 
-compile if WPS_SUPPORT
-   if not (wpshell_handle & useWPS) then
-compile endif
-      parse value queryprofile( app_hini, appname, INI_OPT2FLAGS) with pointer_style cursor_shape .
-compile if WPS_SUPPORT
-   endif  -- not wpshell_handle
-compile endif
+   parse value queryprofile( app_hini, appname, INI_OPT2FLAGS) with pointer_style cursor_shape .
    if pointer_style <> '' then
       vepm_pointer = 1 + pointer_style
       mouse_setpointer vepm_pointer
@@ -1064,34 +985,12 @@ compile if not defined(my_CURSORDIMENSIONS)
    endif
 compile endif -- not defined(my_CURSORDIMENSIONS)
 
-; compile if WPS_SUPPORT
-;    if not (wpshell_handle & useWPS) then
-; compile endif
-;       newcmd = queryprofile( app_hini, appname, INI_FONT)
-;       parse value newcmd with fontname '.' fontsize '.' fontsel
-;       if newcmd <> '' then
-;          .font = registerfont( fontname, fontsize, fontsel)
-;          default_font = .font
-;       endif
-; compile if WPS_SUPPORT
-;    endif  -- not wpshell_handle
-; compile endif
-
    if toolbar_present then
       --'default_toolbar'
       'ReloadToolbar'
 ;  else
 ;     'toggleframe' EFRAMEF_TOOLBAR toolbar_present
    endif
-
-;    newcmd = queryprofile( app_hini, appname, INI_DTCOLOR)
-;    if newcmd <> '' then
-;       vdesktopcolor = newcmd
-;       call windowmessage( 0,  getpminfo(EPMINFO_EDITCLIENT),  -- post
-;                           5497,      -- EPM_EDIT_SETDTCOLOR
-;                           vdesktopcolor,
-;                           0)
-;    endif
 
 ; Moved from MENUACEL.E (file deleted now, formerly included by definit)
 compile if defined(my_STACK_CMDS)
@@ -1100,40 +999,21 @@ compile else
    --stack_cmds = 0  -- changed by aschn
    stack_cmds = 1
 compile endif
-compile if WPS_SUPPORT
-   if wpshell_handle then
-; Key 16
-;     this_ptr = peek32(shared_mem+64, 4); -- if this_ptr = \0\0\0\0 then return; endif
-;     parse value peekz(this_ptr) with ? stack_cmds ?
-      stack_cmds = substr( peekz( peek32( wpshell_handle, 64, 4)), 6, 1)
-   else
-compile endif
    newcmd = queryprofile( app_hini, appname, INI_STACKCMDS)
    if newcmd <> '' then
       stack_cmds = newcmd
    endif
-compile if WPS_SUPPORT
-   endif  -- wpshell_handle
-compile endif
 compile if defined(my_CUA_MENU_ACCEL)
    cua_menu_accel = my_CUA_MENU_ACCEL
 compile else
    cua_menu_accel = 0
 compile endif
-compile if WPS_SUPPORT
-   if wpshell_handle then
-      cua_menu_accel = substr( peekz( peek32( wpshell_handle, 72, 4)), 7, 1)
-   else
-compile endif
-      newcmd = queryprofile( app_hini, appname, INI_CUAACCEL)
-      if newcmd <> '' then
-         cua_menu_accel = newcmd
-      endif
-compile if WPS_SUPPORT
-   endif  -- wpshell_handle
-compile endif
+   newcmd = queryprofile( app_hini, appname, INI_CUAACCEL)
+   if newcmd <> '' then
+      cua_menu_accel = newcmd
+   endif
 compile if CHECK_FOR_LEXAM
-    LEXAM_is_available = (lexam(-1) <> '')
+   LEXAM_is_available = (lexam( -1) <> '')
 compile endif  -- CHECK_FOR_LEXAM
 
 ;   KeyPath = '\NEPMD\User\Reflow\TwoSpaces'
@@ -1228,223 +1108,6 @@ defc initconfig2
    'SetStatFace' getpminfo( EPMINFO_EDITSTATUSHWND) fontname
    'SetStatPtsize' getpminfo( EPMINFO_EDITSTATUSHWND) fontsize
 
-
-compile if WPS_SUPPORT
-defproc load_wps_config(shared_mem)
-   universal vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE, vDEFAULT_TABS, vSTATUSCOLOR, vMESSAGECOLOR, vAUTOSAVE_PATH
-   universal vTEMP_PATH, vTEMP_FILENAME, DICTIONARY_FILENAME, ADDENDA_FILENAME
-   universal default_font
- compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL')
-   universal savepath
- compile endif
-   universal enterkey, a_enterkey, c_enterkey, s_enterkey
-   universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
-   universal bitmap_present, bm_filename
-/* shared_memx = "x'"ltoa(atol(shared_mem), 16)"'"                                                                                                                                        */
-/*    thisptr = ''                                                                                                                                                                        */
-/*    do i = 1 to 14                                                                                                                                                                        */
-/*         thisptr = thisptr i" = x'"ltoa(peek32(shared_mem, i*4, 4), 16)"'"                                                                                                                */
-/*    enddo                                                                                                                                                                               */
-/* call winmessagebox('load_wps_config('shared_memx') pointers', thisptr, 16432) -- MB_OK + MB_INFORMATION + MB_MOVEABLE                                                                  */
-;  if rc then
-;     messageNwait('DosGetSharedMem' ERROR__MSG rc)
-;     return
-;  endif
-
-; Key 1
-   this_ptr = peek32( shared_mem, 4, 4);  -- if this_ptr = \0\0\0\0 then return; endif
-/** call winmessagebox('load_wps_config('shared_memx')', "First pointer = x'"ltoa(this_ptr, 16)"'", 16432)*/
-/** call winmessagebox('load_wps_config('shared_memx')', 'First pointer -> "'peekz(this_ptr)'"', 16432)*/
-   .margins = peekz(this_ptr); vDEFAULT_MARGINS = .margins
-/** sayerror '1:  Margins set OK:' peekz(this_ptr)  */
-; Key 2
-   this_ptr = peek32( shared_mem, 8, 4);  -- if this_ptr = \0\0\0\0 then return; endif
-/** call winmessagebox('load_wps_config('shared_memx')', "Second pointer = x'"ltoa(this_ptr, 16)"'", 16432) */
-/** call winmessagebox('load_wps_config('shared_memx')', 'Second pointer -> "'peekz(this_ptr)'"', 16432) */
-   .autosave = peekz(this_ptr); vDEFAULT_AUTOSAVE = .autosave
-/** sayerror '2:  Autosave set OK:' peekz(this_ptr) */
-; Key 3
-   this_ptr = peek32( shared_mem, 12, 4);  -- if this_ptr = \0\0\0\0 then return; endif
-   .tabs = peekz(this_ptr); vDEFAULT_TABS = .tabs
-/** sayerror '3:  Tabs set OK:' peekz(this_ptr) */
-; Key 4
-   this_ptr = peek32( shared_mem, 16, 4); -- if this_ptr = \0\0\0\0 then return; endif
-   .textcolor = peekz(this_ptr)
-/** sayerror '4:  Textcolor set OK:' peekz(this_ptr) */
-; Key 5
-   this_ptr = peek32( shared_mem, 20, 4); -- if this_ptr = \0\0\0\0 then return; endif
-   .markcolor = peekz(this_ptr)
-/** sayerror '5:  Markcolor set OK:' peekz(this_ptr) */
-; Key 6
-   this_ptr = peek32( shared_mem, 24, 4); -- if this_ptr = \0\0\0\0 then return; endif
-   vSTATUSCOLOR = peekz(this_ptr); 'setstatusline'
-/** sayerror '6:  Statuscolor set OK:' peekz(this_ptr) */
-; Key 7
-   this_ptr = peek32( shared_mem, 28, 4); -- if this_ptr = \0\0\0\0 then return; endif
-   vMESSAGECOLOR = peekz(this_ptr); 'setmessageline'
-/** sayerror '7:  Messagecolor set OK:' peekz(this_ptr) */
-; Key 9
-   this_ptr = peek32( shared_mem, 36, 4); -- if this_ptr = \0\0\0\0 then return; endif
-   vAUTOSAVE_PATH = peekz(this_ptr)
-   if vAUTOSAVE_PATH & rightstr( vAUTOSAVE_Path, 1) <> '\' then
-      vAUTOSAVE_Path = vAUTOSAVE_Path'\'  -- Must end with a backslash.
-   endif
-  compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined(my_SAVEPATH)
-   savepath = vAUTOSAVE_PATH
-  compile endif
-/** sayerror '9:  AutosavePath set OK:' peekz(this_ptr) */
-; Key 10
-   this_ptr = peek32( shared_mem, 40, 4); -- if this_ptr = \0\0\0\0 then return; endif
-   vTEMP_PATH = peekz(this_ptr)
-   if rightstr(vTemp_Path,1)<>'\' then
-      vTemp_Path = vTemp_Path'\'          -- Must end with a backslash.
-   endif
-   if not verify(vTEMP_FILENAME,':\','M') then   -- if not fully qualified
-      vTEMP_FILENAME = vTEMP_PATH||vTEMP_FILENAME
-   endif
-/** sayerror '10:  TempPath set OK:' peekz(this_ptr) */
-; Key 11
-   this_ptr = peek32( shared_mem, 44, 4); -- if this_ptr = \0\0\0\0 then return; endif
-   dictionary_filename = peekz(this_ptr)
-/** sayerror '11:  Dictionary set OK:' peekz(this_ptr) */
-; Key 12
-   this_ptr = peek32( shared_mem, 48, 4); -- if this_ptr = \0\0\0\0 then return; endif
-   addenda_filename = peekz(this_ptr)
-/** sayerror '12:  Addenda file set OK:' peekz(this_ptr) */
-; Key 15
-      parse value peekz( peek32( shared_mem, 60, 4)) with 6 new_bitmap 7
-   if bitmap_present <> new_bitmap then
-      'toggle_bitmap'
-   endif
-; Key 16
-   if bm_filename <> peekz( peek32( shared_mem, 64, 4)) then
-      bm_filename = peekz( peek32( shared_mem, 64, 4))
-      if bitmap_present then
-         'load_dt_bitmap' bm_filename
-      endif
-   endif
-; Key 24
-   this_ptr = peek32( shared_mem, 96, 4); -- if this_ptr = \0\0\0\0 then return; endif
-/** call winmessagebox('load_wps_config('shared_memx')', '13th pointer -> "'peekz(this_ptr)'"', 16432) */
-   parse value peekz(this_ptr) with fontname '.' fontsize '.' fontsel '.'
-/*  sayerror 'data = "'peekz(this_ptr)'"; fontname = "'fontname'"; fontsize = "'fontsize'"; fontsel = "'fontsel'"'  */
-   .font = registerfont( fontname, fontsize, fontsel); default_font = .font
-/*  sayerror '24:  Font set OK:' peekz(this_ptr) '.font = ' default_font  */
-; Key 14
-   this_ptr = peek32( shared_mem, 56, 4); -- if this_ptr = \0\0\0\0 then return; endif
-/** call winmessagebox('load_wps_config('shared_memx')', '14th pointer -> "'peekz(this_ptr)'"', 16432) */
-   tempstr = peekz(this_ptr)
-   enterkey      = asc( substr( tempstr, 1, 1))
-   a_enterkey    = asc( substr( tempstr, 2, 1))
-   c_enterkey    = asc( substr( tempstr, 3, 1))
-   s_enterkey    = asc( substr( tempstr, 4, 1))
-   padenterkey   = asc( substr( tempstr, 5, 1))
-   a_padenterkey = asc( substr( tempstr, 6, 1))
-   c_padenterkey = asc( substr( tempstr, 7, 1))
-   s_padenterkey = asc( substr( tempstr, 8, 1))
-/** sayerror '14:  Enter keys set OK:' peekz(this_ptr) */
-/** call winmessagebox('load_wps_config('shared_memx')', 'All done!', 16432)  */
-; Key 25
-   this_ptr = peek32( shared_mem, 100, 4); -- if this_ptr = \0\0\0\0 then return; endif
-/** call winmessagebox('load_wps_config('shared_memx')', '25th pointer -> "'peekz(this_ptr)'"', 16432) */
-   parse value peekz(this_ptr) with fontname '.' fontsize '.' fontsel '.'
-/*  sayerror 'data = "'peekz(this_ptr)'"; fontname = "'fontname'"; fontsize = "'fontsize'"; fontsel = "'fontsel'"'  */
-   --statfont = fontsize'.'fontname'.'fontsel
-   statfont = fontname'.'fontsize'.'fontsel
-   "setstatface" getpminfo(EPMINFO_EDITSTATUSHWND) fontname
-   "setstatptsize" getpminfo(EPMINFO_EDITSTATUSHWND) fontsize
-; Key 26
-   this_ptr = peek32( shared_mem, 104, 4); -- if this_ptr = \0\0\0\0 then return; endif
-/** call winmessagebox('load_wps_config('shared_memx')', '26th pointer -> "'peekz(this_ptr)'"', 16432) */
-   parse value peekz(this_ptr) with fontname '.' fontsize '.' fontsel '.'
-/*  sayerror 'data = "'peekz(this_ptr)'"; fontname = "'fontname'"; fontsize = "'fontsize'"; fontsel = "'fontsel'"'  */
-   --msgfont = fontsize'.'fontname'.'fontsel
-   msgfont = fontname'.'fontsize'.'fontsel
-   "setstatface" getpminfo(EPMINFO_EDITMSGHWND) fontname
-   "setstatptsize" getpminfo(EPMINFO_EDITMSGHWND) fontsize
-
-;defproc ppeek32(longaddr, offst, len)
-;   parse value atol(longaddr+offst) with hex_ofs 3 hex_seg
-;   return peek(ltoa(hex_seg\0\0, 10), ltoa(hex_ofs\0\0, 10), len)
-
-defc refresh_config  -- for WPS_SUPPORT only
-   universal app_hini
-   universal wpshell_handle
-   universal toolbar_loaded
-   universal cua_marking_switch
-   universal stream_mode
-   universal ring_enabled
-   universal show_longnames
-   universal escape_key
-   universal tab_key
-   universal rexx_profile
-   universal menu_prompt
-   universal cua_menu_accel
-   universal bitmap_present, bm_filename
-   universal cursordimensions
-   universal vEPM_POINTER
-   if wpshell_handle then
-      load_wps_config(wpshell_handle)
-; Key 15
-      parse value peekz( peek32( wpshell_handle, 60, 4)) with statflg 2 msgflg 3 hscrollflg 4 vscrollflg 5 extraflg 6 new_bitmap 7
-      'toggleframe 1' statflg
-      'toggleframe 2' msgflg
-      'toggleframe 8' vscrollflg
-      'toggleframe 16' hscrollflg
-      'toggleframe 32' extraflg
-;  if bitmap_present <> new_bitmap then
-;     'toggle_bitmap'
-;  endif
-; Key 18
-      parse value peekz( peek32( wpshell_handle, 72, 4)) with markflg 2 streamflg 3 rexx_profile 4 longnames 5 pointer_style 6 cursor_shape 7 menu_accel 8
-      if markflg <> cua_marking_switch then
-         'CUA_mark_toggle'
-      endif
-      if streamflg <> stream_mode then
-         'stream_toggle'
-      endif
-      show_longnames = longnames
-      vEPM_POINTER = 1 + pointer_style
-      mouse_setpointer vEPM_POINTER
- compile if not defined(my_CURSORDIMENSIONS)
-      'cursor_style' (cursor_shape + 1)
- compile endif -- not defined(my_CURSORDIMENSIONS)
-      if cua_menu_accel <> menu_accel then
-         'accel_toggle'
-      endif
-; Key 19
-      parse value peekz( peek32( wpshell_handle, 76, 4)) with TAB_KEY 2
-;     parse value peekz(peek32(wpshell_handle, 68, 4)) with rexx_profile 2 menu_prompt 3 new_bitmap 4
-;     if new_bitmap <> bitmap_present then
-;        'toggle_bitmap'
-;     endif
-; Key 20
-      newcmd = peekz( peek32( wpshell_handle, 80, 4))
-      if newcmd = '' then  -- Null string; use compiled-in toolbar
-         if toolbar_loaded <> \1 then
-            --'loaddefaulttoolbar'
-            'LoadStandardToolbar'
-         endif
-      elseif newcmd <> toolbar_loaded then
-         call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
-                             5916,
-                             app_hini,
-                             put_in_buffer(newcmd))
-         toolbar_loaded = newcmd
-      endif
-; Key 21
-      parse value peekz( peek32( wpshell_handle, 84, 4)) with toolbar_flg 2
-      if toolbar_flg <> queryframecontrol(EFRAMEF_TOOLBAR) then
-         'toggleframe' EFRAMEF_TOOLBAR toolbar_flg
-      endif
-; Key 22
-      call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
-                          5921,
-                          put_in_buffer( peekz( peek32( wpshell_handle, 88, 4))),
-                          0)
-   endif -- wpshell_handle
-compile endif  -- WPS_SUPPORT
-
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
 � what's it called: saveoptions                                              �
@@ -1496,12 +1159,6 @@ defc SaveOptions
    call setprofile( app_hini, appname, INI_RINGENABLED,    ring_enabled)
    call setprofile( app_hini, appname, INI_STACKCMDS,      stack_cmds)
    call setprofile( app_hini, appname, INI_CUAACCEL,       cua_menu_accel)
-;    if statfont <> '' then
-;       call setprofile( app_hini, appname, INI_STATUSFONT,  statfont)
-;    endif
-;    if msgfont <> '' then
-;       call setprofile( app_hini, appname, INI_MESSAGEFONT, msgfont)
-;    endif
 ;  if bm_filename <> '' then  -- Set even if null, so Toggle_Bitmap can remove dropped background.
       call setprofile( app_hini, appname, INI_BITMAP,      bm_filename)
 ;  endif

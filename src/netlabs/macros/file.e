@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.15 2005-11-24 19:40:00 aschn Exp $
+* $Id: file.e,v 1.16 2005-12-13 19:34:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -807,9 +807,6 @@ defc opendlg
 compile if RING_OPTIONAL
    universal ring_enabled
 compile endif
-compile if WPS_SUPPORT
-   universal wpshell_handle
-compile endif
    universal app_hini
    universal nepmd_hini
 
@@ -836,25 +833,14 @@ compile endif
       style = 0  -- OPEN
    endif
 
-compile if WPS_SUPPORT
-   if wpshell_handle & not arg(1) then
-      call windowmessage( 0, getpminfo(APP_HANDLE),
-                          5160,               -- EPM_WPS_OPENFILEDLG
-                          getpminfo(EPMINFO_EDITCLIENT),
-                          0)
-   else
-compile endif
-      call windowmessage( 0, getpminfo(APP_HANDLE),
-                          5126,               -- EPM_POPOPENDLG
+   call windowmessage( 0, getpminfo(APP_HANDLE),
+                       5126,               -- EPM_POPOPENDLG
 compile if RING_OPTIONAL
                           ring_enabled,
 compile else
                           1,
 compile endif
                           style * 65536)  -- OPEN = 0; EDIT = 1; GET = 2
-compile if WPS_SUPPORT
-   endif
-compile endif
 
 ; ---------------------------------------------------------------------------
 ; Syntax: filedlg title[, cmd[, filemask[, flags]]]
