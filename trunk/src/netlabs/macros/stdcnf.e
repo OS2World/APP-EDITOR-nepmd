@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.29 2005-11-24 21:06:25 aschn Exp $
+* $Id: stdcnf.e,v 1.30 2005-12-13 19:34:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1077,6 +1077,11 @@ compile endif
 compile if not defined(WPS_SUPPORT)
 ; obsolete
    --WPS_SUPPORT = EPM32  -- changed by aschn
+   -- That never worked reliable for 6.03b (maybe just for 6.03a).
+   -- Although we haven't removed WPS_SUPPORT parts, it never worked in
+   -- NEPMD.
+   -- We won't support it any further and clean up the code for readability
+   -- now (Dec. 2005).
    WPS_SUPPORT = 0
 compile endif
 
@@ -1256,9 +1261,9 @@ compile endif
 ;   universal cua_menu_accel
 ;compile endif
 ;compile if EPM
-compile if WPS_SUPPORT
-   universal wpshell_handle
-compile endif
+;compile if WPS_SUPPORT
+;   universal wpshell_handle
+;compile endif
 
    CurMenu = ''
 ;  Link NEPMDLIB.EX if not already linked in DEFINIT ------------------------
@@ -1332,18 +1337,18 @@ compile if LINK_MENU
 ; compile endif
 compile endif
 
-compile if WPS_SUPPORT
-   wpshell_handle = windowmessage( 1,  getpminfo(EPMINFO_OWNERFRAME),
-                                   5152,    -- EPM_QUERY_CONFIG
-                                   getpminfo(EPMINFO_EDITCLIENT),
-                                   0)
-   if wpshell_handle then
-      call dynalink32( 'DOSCALLS',
-                       '#302',  -- Dos32GetSharedMem
-                       atol(wpshell_handle) ||  -- Base address
-                       atol(1))             -- PAG_READ
-   endif
-compile endif
+;compile if WPS_SUPPORT
+;   wpshell_handle = windowmessage( 1,  getpminfo(EPMINFO_OWNERFRAME),
+;                                   5152,    -- EPM_QUERY_CONFIG
+;                                   getpminfo(EPMINFO_EDITCLIENT),
+;                                   0)
+;   if wpshell_handle then
+;      call dynalink32( 'DOSCALLS',
+;                       '#302',  -- Dos32GetSharedMem
+;                       atol(wpshell_handle) ||  -- Base address
+;                       atol(1))             -- PAG_READ
+;   endif
+;compile endif
 ;compile endif
 
 ;-- set automatic syntax expansion 0/1
@@ -1758,14 +1763,14 @@ compile endif  -- SPELL_SUPPORT
 ;compile endif
 
 ;compile if EVERSION >= 5
-   vDEFAULT_TABS    = DEFAULT_TABS
-   vDEFAULT_MARGINS = DEFAULT_MARGINS
-   vDEFAULT_AUTOSAVE= DEFAULT_AUTOSAVE
+   vDEFAULT_TABS     = DEFAULT_TABS
+   vDEFAULT_MARGINS  = DEFAULT_MARGINS
+   vDEFAULT_AUTOSAVE = DEFAULT_AUTOSAVE
 
-compile if defined(my_APPNAME)
-   appname=my_APPNAME
+compile if defined( my_APPNAME)
+   appname = my_APPNAME
 compile else
-   appname=leftstr(getpminfo(EPMINFO_EDITEXSEARCH),3)  -- Get the .ex search path
+   appname = leftstr( getpminfo(EPMINFO_EDITEXSEARCH), 3)  -- Get the .ex search path
                                  -- name (this should be a reliable way to get a
                                  -- unique application under which to to store
                                  -- data in os2.ini.  I.e. EPM (EPMPATH) would be
@@ -1819,30 +1824,32 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 ;   font = TRUE                         -- default font is large
 ;compile endif
 ;compile if RING_OPTIONAL
- compile if defined(my_RING_ENABLED)
+ compile if defined( my_RING_ENABLED)
     ring_enabled = my_RING_ENABLED
  compile else
     ring_enabled = 1
  compile endif
- compile if WANT_APPLICATION_INI_FILE
-  compile if WPS_SUPPORT
-   if wpshell_handle then
+; compile if WANT_APPLICATION_INI_FILE
+;  compile if WPS_SUPPORT
+;   if wpshell_handle then
 ; Key 18
 ;     this_ptr = peek32(shared_mem+72, 4); -- if this_ptr = \0\0\0\0 then return; endif
 ;     parse value peekz(this_ptr) with ? ring_enabled ?
 ;compile if 0  -- LAM/JP
 ;      ring_enabled = substr(peekz(peek32(wpshell_handle+64, 4)), 8, 1)
 ;compile else
-      ring_enabled = 1
+;      ring_enabled = 1
 ;compile endif
-   else
-  compile endif
-      newcmd=queryprofile( app_hini, appname, INI_RINGENABLED)
-      if newcmd<>'' then ring_enabled = newcmd; endif
-  compile if WPS_SUPPORT
-   endif  -- wpshell_handle
-  compile endif
- compile endif  -- WANT_APPLICATION_INI_FILE
+;   else
+;  compile endif
+   newcmd = queryprofile( app_hini, appname, INI_RINGENABLED)
+   if newcmd <> '' then
+      ring_enabled = newcmd
+   endif
+;  compile if WPS_SUPPORT
+;   endif  -- wpshell_handle
+;  compile endif
+; compile endif  -- WANT_APPLICATION_INI_FILE
    if not ring_enabled then
 ;  compile if EVERSION < '5.53'
 ;      'togglecontrol 20 0'
@@ -2055,6 +2062,8 @@ compile endif
    -- Set universal vars. Doing this with a definit in MODEEXEC.E comes too
    -- late.
    'InitFileSettings'
+
+   -- The rest of initialization is done in InitConfig, called in MAIN.E.
 
 -----------------  End of DEFINIT  ------------------------------------------
 

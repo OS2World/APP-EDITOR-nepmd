@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.9 2005-11-23 23:05:49 aschn Exp $
+* $Id: toolbar.e,v 1.10 2005-12-13 19:34:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -421,59 +421,33 @@ defc default_toolbar, ReloadToolbar
    universal app_hini
    universal appname
    universal toolbar_loaded
-compile if WPS_SUPPORT
-   universal wpshell_handle
-   if wpshell_handle then
-      newtoolbar = peekz( peek32( wpshell_handle, 80, 4))
-      if newtoolbar='' then
-         newtoolbar = \1
-      endif
-      if toolbar_loaded <> newtoolbar then
-         toolbar_loaded = newtoolbar
-         if toolbar_loaded = \1 then
-            --'loaddefaulttoolbar'
-            'LoadStandardToolbar'
-         else
-            call windowmessage( 0, getpminfo( EPMINFO_EDITFRAME),
-                                5916,
-                                app_hini,
-                                put_in_buffer( toolbar_loaded))
-         endif
-      else  -- Else we're already set up; make sure toolbar is turned on
-         'toggleframe' EFRAMEF_TOOLBAR 1
-      endif
-   else
-compile endif
-      newcmd = ''
-      --def_tb = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
-      def_tb = GetDefaultToolbar()
-      if def_tb <> '' then
-         -- check if present, data is not used
-         newcmd = queryprofile( app_hini, INI_UCMENU_APP, def_tb)
-         -- If not found in ini, try to import it from a .bar file
-         if newcmd = '' then
-            barfile = ''
-            findfile barfile, def_tb'.bar', 'EPMBARPATH'
-            if barfile > '' then
-               'ImportToolbar' barfile','def_tb
-               if rc = 0 then  -- if data of def_tb'.bar' successful written to ini
-                  newcmd = 1
-               endif
+   newcmd = ''
+   --def_tb = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
+   def_tb = GetDefaultToolbar()
+   if def_tb <> '' then
+      -- check if present, data is not used
+      newcmd = queryprofile( app_hini, INI_UCMENU_APP, def_tb)
+      -- If not found in ini, try to import it from a .bar file
+      if newcmd = '' then
+         barfile = ''
+         findfile barfile, def_tb'.bar', 'EPMBARPATH'
+         if barfile > '' then
+            'ImportToolbar' barfile','def_tb
+            if rc = 0 then  -- if data of def_tb'.bar' successful written to ini
+               newcmd = 1
             endif
          endif
       endif
-      if newcmd <> '' then  -- load it
-         toolbar_loaded = def_tb
-         call windowmessage( 0, getpminfo( EPMINFO_EDITFRAME),
-                             5916,
-                             app_hini,
-                             put_in_buffer( toolbar_loaded))
-      else
-         'LoadStandardToolbar'
-      endif
-compile if WPS_SUPPORT
    endif
-compile endif
+   if newcmd <> '' then  -- load it
+      toolbar_loaded = def_tb
+      call windowmessage( 0, getpminfo( EPMINFO_EDITFRAME),
+                          5916,
+                          app_hini,
+                          put_in_buffer( toolbar_loaded))
+   else
+      'LoadStandardToolbar'
+   endif
 
 ; ---------------------------------------------------------------------------
 ; From EPMSMP\LOADTB.E
