@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.14 2005-11-16 16:46:57 aschn Exp $
+* $Id: keys.e,v 1.15 2005-12-13 19:43:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -161,7 +161,7 @@ defc Key_a_f10 = 'sayerror a_f10'
 ; CHAR_NAMES) or any virtual key (see const VIRTUAL_NAMES).
 compile if not defined( NEWVIEW_HELP_WORKAROUND)
 const
-   NEWVIEW_HELP_WORKAROUND=1
+   NEWVIEW_HELP_WORKAROUND=0
 compile endif
 
 defc loadaccel
