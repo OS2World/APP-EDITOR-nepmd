@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.11 2005-12-13 19:34:23 aschn Exp $
+* $Id: config.e,v 1.12 2005-12-13 20:27:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,10 +34,14 @@
 ; BLOCK_ACTIONBAR_ACCELERATORS, WANT_STACK_CMDS, RING_OPTIONAL,
 ; WANT_STREAM_MODE, WANT_TOOLBAR, SPELL_SUPPORT, WANT_APPLICATION_INI_FILE,
 ; ENHANCED_ENTER_KEYS, WANT_LONGNAMES, WANT_PROFILE TOGGLE_ESCAPE,
-; TOGGLE_TAB, DYNAMIC_CURSOR_STYLE, WPS_SUPPORT
+; TOGGLE_TAB, DYNAMIC_CURSOR_STYLE, WANT_BITMAP_BACKGROUND, INITIAL_TOOLBAR
+
+; Removed, but must be checked in other files:
+; WPS_SUPPORT
+
 ; Remaining consts:
 ; CHECK_FOR_LEXAM, ENTER_ACTION, C_ENTER_ACTION, HOST_SUPPORT
-; my_CURSORDIMENSIONS, my_SAVEPATH, WANT_BITMAP_BACKGROUND, INITIAL_TOOLBAR,
+; my_CURSORDIMENSIONS, my_SAVEPATH,
 ; my_STACK_CMDS, my_CUA_MENU_ACCEL, SUPPORT_USER_EXITS
 
 ; Provide some consts, for the case a user really wants to change this:
@@ -181,7 +185,7 @@ compile endif
    -- else use submitted flag (normally = 2)
 
    -- Notebook control ----------------------------------------------
-   help_panel = 5300 + page
+      help_panel = 5300 + page
 
    if page = 1 then  --------------------- Page 1 is tabs -------------
       if fsend_default = 2 then tempstr = .tabs
@@ -790,7 +794,7 @@ compile endif
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: initconfig                                               ³
 ³                                                                            ³
-³ what does it do : Set universal variables according to the  values         ³
+³ what does it do : Set universal variables according to the values          ³
 ³                   previously saved in the EPM.INI file.                    ³
 ³                                                                            ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
@@ -831,150 +835,186 @@ compile if CHECK_FOR_LEXAM
    universal lexam_is_available
 compile endif
 
-   newcmd = queryprofile( app_hini, appname, INI_STUFF)
-   if newcmd then
-      newcmd = queryprofile( app_hini, appname, INI_MARGINS)
-      if newcmd then
-         .margins = newcmd
-         vdefault_margins = newcmd
-      endif
-      newcmd = queryprofile( app_hini, appname, INI_AUTOSAVE)
-      if newcmd <> '' then
-         .autosave = newcmd
-         vDEFAULT_AUTOSAVE = newcmd
-      endif
-      newcmd = queryprofile( app_hini, appname, INI_TABS)
-      if newcmd then
-         .tabs = newcmd; vdefault_tabs = newcmd
-      endif
-      newcmd = queryprofile( app_hini, appname, INI_TEMPPATH)
-      if newcmd then
-         vTEMP_PATH = newcmd
-         if rightstr( vTemp_Path, 1) <> '\' then
-            vTemp_Path = vTemp_Path'\'          -- Must end with a backslash.
-         endif
-         if not verify( vTEMP_FILENAME, ':\', 'M') then   -- if not fully qualified
-            vTEMP_FILENAME = vTEMP_PATH||vTEMP_FILENAME
-         endif
-      endif
-      newcmd = queryprofile( app_hini, appname, INI_AUTOSPATH)
-      if newcmd then
-         vAUTOSAVE_PATH = newcmd
-         if rightstr( vAUTOSAVE_Path, 1) <> '\' then
-            vAUTOSAVE_Path = vAUTOSAVE_Path'\'  -- Must end with a backslash.
-         endif
-compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined(my_SAVEPATH)
-         savepath = vAUTOSAVE_PATH
-compile endif
-      endif
-      newcmd = queryprofile( app_hini, appname, INI_DICTIONARY)
-      if newcmd then
-         dictionary_filename = newcmd
-      endif
-      newcmd = queryprofile( app_hini, appname, INI_ADDENDA)
-      if newcmd then
-         addenda_filename = newcmd
-      endif
-   endif  -- newcmd
+   next = queryprofile( app_hini, appname, INI_MARGINS)
+   if next = '' then
+      next = '1' MAXMARGIN '1'
+      call setprofile( app_hini, appname, INI_MARGINS, next)
+   endif
+   .margins = next
+   vdefault_margins = next
 
-          -- Options from Option pulldown
-   newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
-   if newcmd = '' then
-      optflag_extrastuff = ''
-compile if not defined(WANT_BITMAP_BACKGROUND)
-      new_bitmap = 1
-compile else
-      new_bitmap = WANT_BITMAP_BACKGROUND
-compile endif -- not defined(WANT_BITMAP_BACKGROUND)
-      drop_style = 0
-compile if defined(INITIAL_TOOLBAR)
-      toolbar_present = INITIAL_TOOLBAR
-compile else
-      toolbar_present = 1
+   next = queryprofile( app_hini, appname, INI_AUTOSAVE)
+   if next = '' then
+      next = 100
+      call setprofile( app_hini, appname, INI_AUTOSAVE, next)
+   endif
+   .autosave = next
+   vDEFAULT_AUTOSAVE = next
+
+   next = queryprofile( app_hini, appname, INI_TABS)
+   if next = '' then
+      next = 8
+      call setprofile( app_hini, appname, INI_TABS, next)
+   endif
+   .tabs = next
+   vdefault_tabs = next
+
+   next = queryprofile( app_hini, appname, INI_TEMPPATH)
+   if next = '' then
+      do while next = ''
+         next = Get_Env( 'TMP')
+         if next > '' then
+            leave
+         endif
+         next = Get_Env( 'TEMP')
+         if next > '' then
+            leave
+         endif
+         next = directory()
+         leave
+      enddo
+      if rightstr( next, 1) <> '\' then
+         next = next'\'          -- Must end with a backslash.
+      endif
+      call setprofile( app_hini, appname, INI_TEMPPATH, next)
+   endif
+   vTEMP_PATH = next
+   if rightstr( vTemp_Path, 1) <> '\' then
+      vTemp_Path = vTemp_Path'\'          -- Must end with a backslash.
+   endif
+   if not verify( vTEMP_FILENAME, ':\', 'M') then   -- if not fully qualified
+      vTEMP_FILENAME = vTEMP_PATH||vTEMP_FILENAME
+   endif
+
+   next = queryprofile( app_hini, appname, INI_AUTOSPATH)
+   if next = '' then
+      next = vTemp_Path
+      call setprofile( app_hini, appname, INI_AUTOSPATH, next)
+   endif
+   vAUTOSAVE_PATH = next
+   if rightstr( vAUTOSAVE_Path, 1) <> '\' then
+      vAUTOSAVE_Path = vAUTOSAVE_Path'\'  -- Must end with a backslash.
+   endif
+compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined( my_SAVEPATH)
+   savepath = vAUTOSAVE_PATH
 compile endif
-   else
-      parse value newcmd with statflg msgflg vscrollflg hscrollflg fileiconflg rotflg extraflg markflg menu_prompt streamflg profile longnames escapekey tabkey new_bitmap toolbar_present drop_style optflag_extrastuff  -- fixed 3: exchanged show_longname and rexx_profile
-      'toggleframe 1' statflg
-      'toggleframe 2' msgflg
-      'toggleframe 8' vscrollflg
-      'toggleframe 16' hscrollflg
-      if ring_enabled then
-         'toggleframe 4' rotflg
-      endif
-      'toggleframe 32' extraflg
-      if drop_style <> '' then
-         'toggleframe 8192' drop_style
-      endif
-      if new_bitmap = '' then
-compile if not defined(WANT_BITMAP_BACKGROUND)
-         new_bitmap = 1
-compile else
-         new_bitmap = WANT_BITMAP_BACKGROUND
-compile endif -- not defined(WANT_BITMAP_BACKGROUND)
-      endif
+
+   next = queryprofile( app_hini, appname, INI_DICTIONARY)
+--------> todo?
+   if next then
+      dictionary_filename = next
+   endif
+
+   next = queryprofile( app_hini, appname, INI_ADDENDA)
+--------> todo?
+   if next then
+      addenda_filename = next
+   endif
+
+   -- Options from Option pulldown
+   next = queryprofile( app_hini, appname, INI_OPTFLAGS)
+   if words( next) < 17 then
+      next = '1 1 1 1 1 1 0 0 1 1 1 1 1 0 1 1 0 '
+      --        1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8
+      --  1 Status line
+      --  2 Message line
+      --  3 Vertical scrollbar
+      --  4 Horizontal scrollbar
+      --  5 File icon (unused in EPM 6)
+      --  6 Rotate buttons
+      --  7 Info at top
+      --  8 CUA marking
+      --  9 Menu item hints
+      -- 10 Stream mode
+      -- 11 REXX profile
+      -- 12 Show .LONGNAME in titletext
+      -- 13 Esc opens commandline
+      -- 14 Tabkey
+      -- 15 Background bitmap
+      -- 16 Toolbar
+      -- 17 Drop style (0 = edit, 1 = import)
+      -- 18 ?
+      -- Several commands now change only their specific bit instead of saving
+      -- the entire string. Therefore the other bits must exist to change the
+      -- correct bit/word.
+      call setprofile( app_hini, appname, INI_OPTFLAGS, next)
+   endif
+   parse value next with statflg msgflg vscrollflg hscrollflg fileiconflg rotflg extraflg markflg menu_prompt streamflg profile longnames escapekey tabkey new_bitmap toolbar_present drop_style optflag_extrastuff  -- fixed 3: exchanged show_longname and rexx_profile
+   'toggleframe 1' statflg
+   'toggleframe 2' msgflg
+   'toggleframe 8' vscrollflg
+   'toggleframe 16' hscrollflg
+   if ring_enabled then
+      'toggleframe 4' rotflg
+   endif
+   'toggleframe 32' extraflg
+   'toggleframe 8192' drop_style
 ------------------------------------------------------------------
-      cua_marking_switch = 0
-      if markflg <> '' then
-         if markflg <> cua_marking_switch then
-            'CUA_mark_toggle'
+   cua_marking_switch = 0
+   if markflg <> '' then
+      if markflg <> cua_marking_switch then
+         'CUA_mark_toggle'
+      endif
+   endif
+------------------------------------------------------------------
+   default_stream_mode = 1
+   if streamflg <> '' then
+      if streamflg <> default_stream_mode then
+         if isadefc('toggle_default_stream') then
+            'toggle_default_stream'  -- requires newmenu
+         else
+            'stream_toggle'  -- old definition
          endif
       endif
+   endif
+   stream_mode = default_stream_mode
 ------------------------------------------------------------------
-      default_stream_mode = 1
-      if streamflg <> '' then
-         if streamflg <> default_stream_mode then
-            if isadefc('toggle_default_stream') then
-               'toggle_default_stream'  -- requires newmenu
-            else
-               'stream_toggle'  -- old definition
-            endif
-         endif
-      endif
-      stream_mode = default_stream_mode
+   show_longnames = 1
+   if longnames <> '' then
+      show_longnames = longnames
+   endif
 ------------------------------------------------------------------
-      show_longnames = 1
-      if longnames <> '' then
-         show_longnames = longnames
-      endif
-------------------------------------------------------------------
-      rexx_profile = 1
-      if profile <> '' then
-         rexx_profile = profile
-      endif
+   rexx_profile = 1
+   if profile <> '' then
+      rexx_profile = profile
+   endif
 ------------------------------------------------------------------
 /*
 -- Disabled; should remain on; can still be configured via PROFILE.ERX:
 -- 'escapekey 0'
-      escape_key = 1
-      if escapekey <> '' then
-         escape_key = escapekey
-      endif
+   escape_key = 1
+   if escapekey <> '' then
+      escape_key = escapekey
+   endif
 */
 ------------------------------------------------------------------
-      default_tab_key = 0
-      if tabkey <> '' then
-         default_tab_key = tabkey
-      endif
-      tab_key = default_tab_key
+   default_tab_key = 0
+   if tabkey <> '' then
+      default_tab_key = tabkey
+   endif
+   tab_key = default_tab_key
 ------------------------------------------------------------------
-   endif  /* INI_OPTFLAGS 1/3 */ -- Settings dlg, not as part of Save Options
-
    if bitmap_present <> new_bitmap then
       'toggle_bitmap'
    endif
-   newcmd = queryprofile( app_hini, appname, INI_ENTERKEYS)
-   if newcmd<>'' then
-      parse value newcmd with enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey .
+
+   next = queryprofile( app_hini, appname, INI_ENTERKEYS)
+--------> todo?
+   if next <> '' then
+      parse value next with enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey .
    endif
-   newcmd = queryprofile( app_hini, appname, INI_BITMAP)
-   if newcmd<>'' then
-      bm_filename = newcmd  -- Need to keep?
+
+   next = queryprofile( app_hini, appname, INI_BITMAP)
+--------> todo?
+   if next <> '' then
+      bm_filename = next  -- Need to keep?
       if bitmap_present then
          'load_dt_bitmap' bm_filename
       endif
    endif
 
    parse value queryprofile( app_hini, appname, INI_OPT2FLAGS) with pointer_style cursor_shape .
+--------> todo?
    if pointer_style <> '' then
       vepm_pointer = 1 + pointer_style
       mouse_setpointer vepm_pointer
@@ -999,21 +1039,25 @@ compile else
    --stack_cmds = 0  -- changed by aschn
    stack_cmds = 1
 compile endif
-   newcmd = queryprofile( app_hini, appname, INI_STACKCMDS)
-   if newcmd <> '' then
-      stack_cmds = newcmd
+   next = queryprofile( app_hini, appname, INI_STACKCMDS)
+--------> todo?
+   if next <> '' then
+      stack_cmds = next
    endif
+
 compile if defined(my_CUA_MENU_ACCEL)
    cua_menu_accel = my_CUA_MENU_ACCEL
 compile else
    cua_menu_accel = 0
 compile endif
-   newcmd = queryprofile( app_hini, appname, INI_CUAACCEL)
-   if newcmd <> '' then
-      cua_menu_accel = newcmd
+   next = queryprofile( app_hini, appname, INI_CUAACCEL)
+--------> todo?
+   if next <> '' then
+      cua_menu_accel = next
    endif
+
 compile if CHECK_FOR_LEXAM
-   LEXAM_is_available = (lexam( -1) <> '')
+   LEXAM_is_available = (lexam(-1) <> '')
 compile endif  -- CHECK_FOR_LEXAM
 
 ;   KeyPath = '\NEPMD\User\Reflow\TwoSpaces'
@@ -1108,6 +1152,7 @@ defc initconfig2
    'SetStatFace' getpminfo( EPMINFO_EDITSTATUSHWND) fontname
    'SetStatPtsize' getpminfo( EPMINFO_EDITSTATUSHWND) fontsize
 
+
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: saveoptions                                              ³
@@ -1192,15 +1237,6 @@ defc SaveFont
    --dprintf( 'SaveFont', 'arg(1) = ['arg(1)']')
    -- arg(1) = 'EDIT' | 'MSG' | 'STAT'
 
-   --parse value upcase(arg(1)) with prefix
-   --if prefix == 'EDIT' then
-   --   call setini( INI_FONT, queryfont(.font), 1)
-   --elseif prefix == 'STAT' & statfont <> '' then
-   --   call setprofile(app_hini, appname, INI_STATUSFONT, statfont)
-   --elseif prefix == 'MSG' & msgfont <> '' then
-   --   call setprofile(app_hini, appname, INI_MESSAGEFONT, msgfont)
-   --endif
-
    KeyList = 'Text Message Status'
    -- Font specs have spaces. Therefore they are separated with \1
    ValList = ConvertToOs2Font( queryfont(.font))''\1''msgfont''\1''statfont''\1
@@ -1271,12 +1307,6 @@ defc SaveColor
    universal vstatuscolor
    universal vmodifiedstatuscolor
    --dprintf( 'SAVECOLOR', 'arg(1) = ['arg(1)']')
-
-   -- for now we save the mark edit status and message color in one block
-   -- (INI_STUFF topic in the ini file)
-   --call setprofile( app_hini, appname, INI_DTCOLOR, vdesktopcolor)
-   --call setprofile( app_hini, appname, INI_STUFF, .textcolor .markcolor vstatuscolor vmessagecolor)
-   -- default: 240 113 7  252 112 117
 
    IgnoreList = 'EDIT MSG STAT'
    KeyList = 'Text Mark Background Message Status ModifiedStatus'
@@ -1466,8 +1496,4 @@ defproc GetMatchtab
    getfileid fid
    on = (GetAVar( 'matchtab.'fid) = 1)
    return on
-
-; ---------------------------------------------------------------------------
-
-
 
