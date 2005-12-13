@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.25 2005-11-15 17:43:00 aschn Exp $
+* $Id: stdmenu.e,v 1.26 2005-12-13 20:09:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,7 +23,7 @@
 Not removed consts (compared to NEWMENU.E):
 - WANT_DYNAMIC_PROMPTS,
   ALLOW_PROMPTING_AT_TOP, BLOCK_ACTIONBAR_ACCELERATORS, WANT_STACK_CMDS,
-  RING_OPTIONAL, WANT_STREAM_MODE, WANT_BOOKMARKS, WANT_TAGS
+  WANT_STREAM_MODE, WANT_BOOKMARKS, WANT_TAGS
   WANT_EPM_SHELL, WANT_TOOLBAR, SPELL_SUPPORT, ENHANCED_PRINT_SUPPORT,
   WANT_DM_BUFFER, WANT_APPLICATION_INI_FILE, SUPPORT_BOOK_ICON
 Menu ids are still hard-coded.
@@ -73,9 +73,6 @@ const
  compile endif
  compile if not defined(WANT_STACK_CMDS)
    WANT_STACK_CMDS = 'SWITCH'
- compile endif
- compile if not defined(RING_OPTIONAL)
-   RING_OPTIONAL = 1
  compile endif
  compile if not defined(WANT_STREAM_MODE)
    WANT_STREAM_MODE = 'SWITCH'
@@ -162,21 +159,15 @@ defc loaddefaultmenu
    call add_help_menu(menuname)
 
 defproc add_file_menu(menuname)
-compile if RING_OPTIONAL
    universal ring_enabled
-compile endif
    buildsubmenu menuname, 2, FILE_BAR__MSG, FILE_BARP__MSG, 0 , mpfrom2short(HP_FILE, 0)
       buildmenuitem menuname, 2, 198, NEW_MENU__MSG,            'NEW'NEW_MENUP__MSG,     0, mpfrom2short(HP_FILE_NEW, 0)
       buildmenuitem menuname, 2, 199, OPEN_NEW_MENU__MSG,       "OPEN ''"OPEN_NEW_MENUP__MSG,     0, mpfrom2short(HP_FILE_OPEN_NEW, 0)
       buildmenuitem menuname, 2, 200, OPEN_MENU__MSG\9 || CTRL_KEY__MSG'+O', 'OPENDLG'OPEN_MENUP__MSG,          0, mpfrom2short(HP_FILE_OPEN, 0)
       buildmenuitem menuname, 2, 201, GET_MENU__MSG,            'OPENDLG GET'GET_MENUP__MSG,      0, mpfrom2short(HP_FILE_GET , 0)
-compile if RING_OPTIONAL
    if ring_enabled then
-compile endif
       buildmenuitem menuname, 2, 202, ADD_MENU__MSG\9'F8', 'OPENDLG EDIT'ADD_MENUP__MSG,     0, mpfrom2short(HP_FILE_EDIT, 0)
-compile if RING_OPTIONAL
    endif
-compile endif
       buildmenuitem menuname, 2, 203, \0,                          '',                 4, 0
       buildmenuitem menuname, 2, 204, RENAME_MENU__MSG\9'F7',   'rename'RENAME_MENUP__MSG,0, mpfrom2short(HP_FILE_NAME, 0)
       buildmenuitem menuname, 2, 212, 'Revert',                 'revert'\1'Reload file from disk, ask if modified',0, 0
@@ -193,15 +184,12 @@ compile endif
       buildmenuitem menuname, 2, 205, \0,                          '',                 4, 0
       buildmenuitem menuname, 2, 206, SAVE_MENU__MSG\9'F2',     'SAVE'SAVE_MENUP__MSG,             0, mpfrom2short(HP_FILE_SAVE, 0)
       buildmenuitem menuname, 2, 208, SAVEAS_MENU__MSG,         'SAVEAS_DLG'SAVEAS_MENUP__MSG, 0, mpfrom2short(HP_FILE_SAVEAS, 0)
-compile if RING_OPTIONAL
    if ring_enabled then
-compile endif         -- Note:  207 used in LaMail; keep ID the same.
+      -- Note:  207 used in LaMail; keep ID the same.
       buildmenuitem menuname, 2, 207, FILE_MENU__MSG\9'F4',     'FILE'FILE_MENUP__MSG,             0, mpfrom2short(HP_FILE_FILE, 0)
-compile if RING_OPTIONAL
    else
       buildmenuitem menuname, 2, 207, SAVECLOSE_MENU__MSG\9'F4',     'FILE'FILE_MENUP__MSG,        0, mpfrom2short(HP_FILE_FILE, 0)
    endif
-compile endif
       buildmenuitem menuname, 2, 209, QUIT_MENU__MSG\9'F3',     'QUIT'QUIT_MENUP__MSG,             0, mpfrom2short(HP_FILE_QUIT, 0)
       buildmenuitem menuname, 2, 210, \0,                           '',                 4, 0
 compile if ENHANCED_PRINT_SUPPORT
@@ -395,7 +383,7 @@ compile elseif WANT_STACK_CMDS = 'SWITCH'
    STREAM__ATTRIB = 0
    RING__ATTRIB   = 0
    STACK__ATTRIB  = 32769
-compile elseif RING_OPTIONAL
+compile elseif 1  -- RING_OPTIONAL
    ENTER__ATTRIB  = 0
    MARK__ATTRIB   = 0
    STREAM__ATTRIB = 0
@@ -420,23 +408,17 @@ define
 compile endif -- WANT_NODISMISS_MENUS
 
 defproc add_options_menu(menuname)
-compile if RING_OPTIONAL
    universal ring_enabled
-compile endif
    universal font
 compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
 compile endif
 
    buildsubmenu menuname, 4, OPTIONS_BAR__MSG, OPTIONS_BARP__MSG, 0 , mpfrom2short(HP_OPTIONS, 0)
-compile if RING_OPTIONAL
    if ring_enabled then
-compile endif
       buildmenuitem menuname, 4, 410, LIST_FILES_MENU__MSG\9 || CTRL_KEY__MSG'+G',     'Ring_More'LIST_FILES_MENUP__MSG,  0 , mpfrom2short(HP_OPTIONS_LIST, 0)
       buildmenuitem menuname, 4, 411, \0,                       '',           4, 0
-compile if RING_OPTIONAL
    endif
-compile endif
 compile if SPELL_SUPPORT
  compile if CHECK_FOR_LEXAM
    if LEXAM_is_available then
@@ -466,9 +448,7 @@ compile endif
 compile if WANT_STREAM_MODE = 'SWITCH'
          buildmenuitem menuname, 4, 442, STREAMMODE_MENU__MSG,  'stream_toggle'STREAMMODE_MENUP__MSG,  STREAM__ATTRIB, mpfrom2short(HP_OPTIONS_STREAM, NODISMISS)
 compile endif
-compile if RING_OPTIONAL
          buildmenuitem menuname, 4, 443, RINGENABLED_MENU__MSG,    'ring_toggle'RINGENABLED_MENUP__MSG,  RING__ATTRIB, mpfrom2short(HP_OPTIONS_RINGENABLE, NODISMISS)
-compile endif
 compile if WANT_STACK_CMDS = 'SWITCH'
          buildmenuitem menuname, 4, 445, STACKCMDS_MENU__MSG,      'stack_toggle'STACKCMDS_MENUP__MSG,  STACK__ATTRIB, mpfrom2short(HP_OPTIONS_STACKCMDS, NODISMISS)
 compile endif
@@ -604,157 +584,140 @@ compile endif
 
 --------------------------------------------- Menu id 8 -- Edit -------------------------
 defc menuinit_8
- compile if WANT_STACK_CMDS
+compile if WANT_STACK_CMDS
    universal mark_stack, position_stack
-  compile if WANT_STACK_CMDS = 'SWITCH'
+ compile if WANT_STACK_CMDS = 'SWITCH'
    universal stack_cmds
-  compile endif
- compile endif  -- WANT_STACK_CMDS
-      SetMenuAttribute( 816, 16384, isadirtyline())
-      undoaction 1, PresentState        -- Do to fix range, not for value.
-      undoaction 6, StateRange               -- query range
-      parse value staterange with oldeststate neweststate .
-      SetMenuAttribute( 818, 16384, oldeststate<>neweststate )  -- Set to 1 if different
-      paste = clipcheck(format) & (format = 1024) & not (browse() | .readonly)
-      SetMenuAttribute( 810, 16384, paste)
-      SetMenuAttribute( 811, 16384, paste)
-      SetMenuAttribute( 812, 16384, paste)
-      on = marktype()<>''
-      buf_flag = 0
-      if not on then                             -- Only check buffer if no mark
-         bufhndl = buffer(OPENBUF, EPMSHAREDBUFFER)
-         if bufhndl then                         -- If the buffer exists, check the
-            buf_flag = itoa(peek(bufhndl,2,2),10)  -- amount of used space in buffer
-            call buffer(FREEBUF, bufhndl)        -- then free it.
-         endif
+ compile endif
+compile endif  -- WANT_STACK_CMDS
+   SetMenuAttribute( 816, 16384, isadirtyline())
+   undoaction 1, PresentState        -- Do to fix range, not for value.
+   undoaction 6, StateRange               -- query range
+   parse value staterange with oldeststate neweststate .
+   SetMenuAttribute( 818, 16384, oldeststate<>neweststate )  -- Set to 1 if different
+   paste = clipcheck(format) & (format = 1024) & not (browse() | .readonly)
+   SetMenuAttribute( 810, 16384, paste)
+   SetMenuAttribute( 811, 16384, paste)
+   SetMenuAttribute( 812, 16384, paste)
+   on = marktype()<>''
+   buf_flag = 0
+   if not on then                             -- Only check buffer if no mark
+      bufhndl = buffer(OPENBUF, EPMSHAREDBUFFER)
+      if bufhndl then                         -- If the buffer exists, check the
+         buf_flag = itoa(peek(bufhndl,2,2),10)  -- amount of used space in buffer
+         call buffer(FREEBUF, bufhndl)        -- then free it.
       endif
-      SetMenuAttribute( 800, 16384, on | buf_flag)  -- Can copy if mark or buffer has data
-      SetMenuAttribute( 801, 16384, on)
-      SetMenuAttribute( 802, 16384, on | buf_flag)  -- Ditto for Overlay mark
-      SetMenuAttribute( 803, 16384, on)
-      SetMenuAttribute( 805, 16384, on)
-      SetMenuAttribute( 806, 16384, on)
-      SetMenuAttribute( 808, 16384, on)
-      SetMenuAttribute( 809, 16384, on)
-      SetMenuAttribute( 814, 16384, on)
- compile if WANT_STACK_CMDS
-  compile if WANT_STACK_CMDS = 'SWITCH'
+   endif
+   SetMenuAttribute( 800, 16384, on | buf_flag)  -- Can copy if mark or buffer has data
+   SetMenuAttribute( 801, 16384, on)
+   SetMenuAttribute( 802, 16384, on | buf_flag)  -- Ditto for Overlay mark
+   SetMenuAttribute( 803, 16384, on)
+   SetMenuAttribute( 805, 16384, on)
+   SetMenuAttribute( 806, 16384, on)
+   SetMenuAttribute( 808, 16384, on)
+   SetMenuAttribute( 809, 16384, on)
+   SetMenuAttribute( 814, 16384, on)
+compile if WANT_STACK_CMDS
+ compile if WANT_STACK_CMDS = 'SWITCH'
    if stack_cmds then
-  compile endif
+ compile endif
       SetMenuAttribute( 820, 16384, on)
       SetMenuAttribute( 821, 16384, mark_stack<>'')
       SetMenuAttribute( 822, 16384, on & mark_stack<>'')
       SetMenuAttribute( 824, 16384, position_stack<>'')
       SetMenuAttribute( 825, 16384, position_stack<>'')
-  compile if WANT_STACK_CMDS = 'SWITCH'
+ compile if WANT_STACK_CMDS = 'SWITCH'
    endif
-  compile endif
- compile endif  -- WANT_STACK_COMMANDS
+ compile endif
+compile endif  -- WANT_STACK_COMMANDS
 
 --------------------------------------------- Menu id 4 -- Options ---------------------
 defc menuinit_4
- compile if RING_OPTIONAL
    universal ring_enabled
- compile endif
- compile if CHECK_FOR_LEXAM
+compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
+compile endif
+   if ring_enabled then
+      SetMenuAttribute( 410, 16384, filesinring()>1)
+   endif
+compile if SPELL_SUPPORT
+ compile if CHECK_FOR_LEXAM
+   if LEXAM_is_available then
  compile endif
- compile if RING_OPTIONAL
-      if ring_enabled then
- compile endif
-         SetMenuAttribute( 410, 16384, filesinring()>1)
- compile if RING_OPTIONAL
-      endif
- compile endif
- compile if SPELL_SUPPORT
-  compile if CHECK_FOR_LEXAM
-    if LEXAM_is_available then
-  compile endif
       SetMenuAttribute( 450, 8192, .keyset <> 'SPELL_KEYS')
-  compile if CHECK_FOR_LEXAM
-    endif
-  compile endif
- compile endif  -- SPELL_SUPPORT
+ compile if CHECK_FOR_LEXAM
+   endif
+ compile endif
+compile endif  -- SPELL_SUPPORT
 
 --------------------------------------------- Menu id 400 -- Options / Preferences -------
 defc menuinit_400
    universal stack_cmds
    universal CUA_marking_switch
-  compile if WANT_STREAM_MODE = 'SWITCH'
+compile if WANT_STREAM_MODE = 'SWITCH'
    universal stream_mode
-  compile endif
-  compile if RING_OPTIONAL
+compile endif
    universal ring_enabled
-  compile endif
-  compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
+compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
    universal CUA_MENU_ACCEL
-  compile endif
-      SetMenuAttribute( 441, 8192, CUA_marking_switch)
-  compile if WANT_STREAM_MODE = 'SWITCH'
-      SetMenuAttribute( 442, 8192, not stream_mode)
-  compile endif
-  compile if RING_OPTIONAL
-      SetMenuAttribute( 443, 8192, not ring_enabled)
-  compile endif
-  compile if WANT_STACK_CMDS = 'SWITCH'
-      SetMenuAttribute( 445, 8192, not stack_cmds)
-  compile endif
-  compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
-    SetMenuAttribute( 446, 8192, not CUA_MENU_ACCEL)
-  compile endif
+compile endif
+   SetMenuAttribute( 441, 8192, CUA_marking_switch)
+compile if WANT_STREAM_MODE = 'SWITCH'
+   SetMenuAttribute( 442, 8192, not stream_mode)
+compile endif
+   SetMenuAttribute( 443, 8192, not ring_enabled)
+compile if WANT_STACK_CMDS = 'SWITCH'
+   SetMenuAttribute( 445, 8192, not stack_cmds)
+compile endif
+compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
+   SetMenuAttribute( 446, 8192, not CUA_MENU_ACCEL)
+compile endif
 
 --------------------------------------------- Menu id 425 -- Options / Frame controls  ---
 defc menuinit_425
    universal bitmap_present
- compile if RING_OPTIONAL
-      universal ring_enabled
- compile endif
- compile if WANT_DYNAMIC_PROMPTS
-      universal menu_prompt
- compile endif
-      SetMenuAttribute( 413, 8192, not queryframecontrol(1) )
-      SetMenuAttribute( 414, 8192, not queryframecontrol(2) )
-      SetMenuAttribute( 415, 8192, not queryframecontrol(16))
- compile if RING_OPTIONAL
-      if ring_enabled then
- compile endif
-         SetMenuAttribute( 417, 8192, not queryframecontrol(4))
- compile if WANT_TOOLBAR
-         SetMenuAttribute( 430, 8192, not queryframecontrol(EFRAMEF_TOOLBAR))
- compile endif
-         SetMenuAttribute( 437, 8192, not bitmap_present)
- compile if RING_OPTIONAL
-      else
-         SetMenuAttribute( 417, 16384, 1)  -- Grey out Rotate Buttons if ring not enabled
-      endif
- compile endif
-      SetMenuAttribute( 421, 8192, not queryframecontrol(32))
- compile if WANT_DYNAMIC_PROMPTS
-      SetMenuAttribute( 422, 8192, not menu_prompt)
- compile endif
+   universal ring_enabled
+compile if WANT_DYNAMIC_PROMPTS
+   universal menu_prompt
+compile endif
+   SetMenuAttribute( 413, 8192, not queryframecontrol(1) )
+   SetMenuAttribute( 414, 8192, not queryframecontrol(2) )
+   SetMenuAttribute( 415, 8192, not queryframecontrol(16))
+   if ring_enabled then
+      SetMenuAttribute( 417, 8192, not queryframecontrol(4))
+compile if WANT_TOOLBAR
+      SetMenuAttribute( 430, 8192, not queryframecontrol(EFRAMEF_TOOLBAR))
+compile endif
+      SetMenuAttribute( 437, 8192, not bitmap_present)
+   else
+      SetMenuAttribute( 417, 16384, 1)  -- Grey out Rotate Buttons if ring not enabled
+   endif
+   SetMenuAttribute( 421, 8192, not queryframecontrol(32))
+compile if WANT_DYNAMIC_PROMPTS
+   SetMenuAttribute( 422, 8192, not menu_prompt)
+compile endif
 
 --------------------------------------------- Menu id 3 -- Search -----------------------
 defc menuinit_3
-      universal lastchangeargs
-      getsearch strng
-      parse value strng with . c .       -- blank, 'c', or 'l'
-      SetMenuAttribute( 302, 16384, c<>'')               -- Find next OK if not blank
-      SetMenuAttribute( 303, 16384, lastchangeargs<>'')  -- Change next only if 'c'
-      SetMenuAttribute( 350, 16384, c<>'')               -- Global find next OK if not blank
-      SetMenuAttribute( 351, 16384, lastchangeargs<>'')  -- Global change next only if 'c'
-      SetMenuAttribute( 352, 16384, c<>'')               -- Toggle direction OK if not blank
+   universal lastchangeargs
+   getsearch strng
+   parse value strng with . c .       -- blank, 'c', or 'l'
+   SetMenuAttribute( 302, 16384, c<>'')               -- Find next OK if not blank
+   SetMenuAttribute( 303, 16384, lastchangeargs<>'')  -- Change next only if 'c'
+   SetMenuAttribute( 350, 16384, c<>'')               -- Global find next OK if not blank
+   SetMenuAttribute( 351, 16384, lastchangeargs<>'')  -- Global change next only if 'c'
+   SetMenuAttribute( 352, 16384, c<>'')               -- Toggle direction OK if not blank
 
- compile if WANT_BOOKMARKS
+compile if WANT_BOOKMARKS
 --------------------------------------------- Menu id 3 -- Bookmarks --------------------
 defc menuinit_305
-      universal EPM_utility_array_ID
-      --do_array 3, EPM_utility_array_ID, 'bmi.0', bmcount          -- Index says how many bookmarks there are
-      rc = get_array_value( EPM_utility_array_ID, 'bmi.0', bmcount )          -- Index says how many bookmarks there are
-      SetMenuAttribute( 306, 16384, not (browse() | .readonly))  -- Set
-      SetMenuAttribute( 308, 16384, bmcount>0)   -- List
-      SetMenuAttribute( 311, 16384, bmcount>0)   -- Next
-      SetMenuAttribute( 312, 16384, bmcount>0)   -- Prev
- compile endif  -- WANT_BOOKMARKS
+   universal EPM_utility_array_ID
+   rc = get_array_value( EPM_utility_array_ID, 'bmi.0', bmcount )          -- Index says how many bookmarks there are
+   SetMenuAttribute( 306, 16384, not (browse() | .readonly))  -- Set
+   SetMenuAttribute( 308, 16384, bmcount>0)   -- List
+   SetMenuAttribute( 311, 16384, bmcount>0)   -- Next
+   SetMenuAttribute( 312, 16384, bmcount>0)   -- Prev
+compile endif  -- WANT_BOOKMARKS
 
 ; Also will need to handle 204 (Name) on File menu if 5.60 & LaMail...
 
@@ -1112,7 +1075,6 @@ defc stream_toggle
  compile endif  -- WANT_NODISMISS_MENUS
 compile endif
 
-compile if RING_OPTIONAL
 defc ring_toggle
    universal ring_enabled
    universal activemenu, defaultmenu
@@ -1123,7 +1085,6 @@ defc ring_toggle
    deletemenu defaultmenu, 4, 0, 1                  -- Delete the options menu
    call add_options_menu(defaultmenu, dos_version() >= 1020)
    call maybe_show_menu()
-compile endif
 
 compile if WANT_STACK_CMDS = 'SWITCH'
 defc stack_toggle
