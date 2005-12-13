@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.16 2005-12-13 19:34:26 aschn Exp $
+* $Id: file.e,v 1.17 2005-12-13 20:09:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -804,9 +804,7 @@ defproc saveas_dlg( var name, var type)
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defc opendlg
-compile if RING_OPTIONAL
    universal ring_enabled
-compile endif
    universal app_hini
    universal nepmd_hini
 
@@ -835,12 +833,8 @@ compile endif
 
    call windowmessage( 0, getpminfo(APP_HANDLE),
                        5126,               -- EPM_POPOPENDLG
-compile if RING_OPTIONAL
-                          ring_enabled,
-compile else
-                          1,
-compile endif
-                          style * 65536)  -- OPEN = 0; EDIT = 1; GET = 2
+                       ring_enabled,
+                       style * 65536)  -- OPEN = 0; EDIT = 1; GET = 2
 
 ; ---------------------------------------------------------------------------
 ; Syntax: filedlg title[, cmd[, filemask[, flags]]]
@@ -1324,9 +1318,7 @@ defproc dosmove( oldfile, newfile)
 ; ---------------------------------------------------------------------------
 defc autosave=
    universal vAUTOSAVE_PATH
-compile if RING_OPTIONAL
    universal ring_enabled
-compile endif
    uparg = upcase(arg(1))
    if uparg = ON__MSG then                  /* If only says AUTOSAVE ON,  */
 compile if DEFAULT_AUTOSAVE > 0
@@ -1343,34 +1335,19 @@ compile endif
    elseif uparg = '' then
       'commandline autosave' .autosave
    elseif uparg = '?' then
-compile if RING_OPTIONAL
       if ring_enabled then
-compile endif
-compile if 0
-         do forever
-            retvalue=winmessagebox( AUTOSAVE__MSG,
-                                    CURRENT_AUTOSAVE__MSG||.autosave\10||NAME_IS__MSG||MakeTempName()\10\10LIST_DIR__MSG,
-                                    24628)  -- YESNO + MB_INFORMATION + MOVEABLE + HELP
-            if retvalue<>8 then leave; endif    -- MBID_HELP = 8
-            'helpmenu 2045'
-         enddo
-         if 6=retvalue then  -- MBID_YES
-compile else
          if 6=winmessagebox( AUTOSAVE__MSG,
                              CURRENT_AUTOSAVE__MSG||.autosave\10||NAME_IS__MSG||MakeTempName()\10\10LIST_DIR__MSG,
                              16436)  -- YESNO + MB_INFORMATION + MOVEABLE
             then
-compile endif
            'dir' vAUTOSAVE_PATH
          endif
-compile if RING_OPTIONAL
       else
          call winmessagebox( AUTOSAVE__MSG,
                              CURRENT_AUTOSAVE__MSG||.autosave\10||NAME_IS__MSG||MakeTempName()\10\10NO_LIST_DIR__MSG,
                              16432)  -- OK + MB_INFORMATION + MOVEABLE
       endif  -- ring_enabled
-compile endif
-         return
+      return
    else
       sayerror AUTOSAVE_PROMPT__MSG
       return

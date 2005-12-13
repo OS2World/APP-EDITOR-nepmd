@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.16 2005-11-24 19:39:58 aschn Exp $
+* $Id: epmshell.e,v 1.17 2005-12-13 20:09:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -61,9 +61,7 @@ defc sendshell =
 ; Therefore ECHO ON must be executed _after_ every call of 4OS2.EXE.
 defc Shell
    universal shell_index, EPM_utility_array_ID
-compile if RING_OPTIONAL
    universal ring_enabled
-compile endif
 compile if WANT_EPM_SHELL='HIDDEN' & not defined(STD_MENU_NAME)
    universal activemenu, defaultmenu
    if not shell_index then
@@ -72,20 +70,14 @@ compile if WANT_EPM_SHELL='HIDDEN' & not defined(STD_MENU_NAME)
       buildmenuitem defaultmenu, 1, 103, WRITE_SHELL_MENU__MSG,        'shell_write'WRITE_SHELL_MENUP__MSG, 0, mpfrom2short(HP_COMMAND_SHELL, 16384)
 ;     buildmenuitem defaultmenu, 1, 104, KILL_SHELL_MENU__MSG,         'shell_kill'KILL_SHELL_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_SHELL, 16384)
       buildmenuitem defaultmenu, 1, 104, SHELL_BREAK_MENU__MSG,        'shell_break'SHELL_BREAK_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_SHELL, 16384)
- compile if RING_OPTIONAL  -- if not ring_enabled then ring_toggle will do the showmenu.
       if activemenu = defaultmenu & ring_enabled then
          call showmenu_activemenu()  -- show the updated EPM menu
       endif
- compile else
-      call maybe_show_menu()
- compile endif
    endif
 compile endif
-compile if RING_OPTIONAL
    if not ring_enabled then
       'ring_toggle'
    endif
-compile endif
 
    fCreateNew = 0
    args = arg(1)

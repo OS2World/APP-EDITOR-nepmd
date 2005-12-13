@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.30 2005-12-13 19:34:27 aschn Exp $
+* $Id: stdcnf.e,v 1.31 2005-12-13 20:09:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -771,11 +771,11 @@ compile endif
 -- file in the ring.  Pretty useless, but the CUA people insisted on it.
 -- Most people will want this to be set to 0, so that you always can load as
 -- many files as you like.
-compile if not defined(RING_OPTIONAL)
+;compile if not defined(RING_OPTIONAL)
 ; obsolete
    --RING_OPTIONAL = 0  -- changed by aschn
    RING_OPTIONAL = 1
-compile endif
+;compile endif
 
 -- SUPPORT_BOOK_ICON specifies whether or not the "Book icon" entry is on
 -- the Options pulldown.  Another useless one for internals.
@@ -1207,9 +1207,9 @@ compile if ENHANCED_ENTER_KEYS
    universal enterkey, a_enterkey, c_enterkey, s_enterkey
    universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
 compile endif
-compile if RING_OPTIONAL
+;compile if RING_OPTIONAL
    universal ring_enabled
-compile endif
+;compile endif
    universal EPM_utility_array_ID, defaultmenu
 ;   universal font
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE
