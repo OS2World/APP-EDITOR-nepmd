@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fevshmnu.e,v 1.11 2005-05-16 22:14:58 aschn Exp $
+* $Id: fevshmnu.e,v 1.12 2005-12-13 20:17:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -76,9 +76,6 @@ const
  compile endif
  compile if not defined(WANT_STACK_CMDS)
    WANT_STACK_CMDS = 'SWITCH'
- compile endif
- compile if not defined(RING_OPTIONAL)
-   RING_OPTIONAL = 1
  compile endif
  compile if not defined(WANT_DM_BUFFER)
    WANT_DM_BUFFER = 1
@@ -160,36 +157,26 @@ defc loaddefaultmenu
    call add_help_menu(menuname)
 
 defproc add_file_menu(menuname)
-compile if RING_OPTIONAL
    universal ring_enabled
-compile endif
    buildsubmenu menuname, 1, FILE_BAR__MSG, FILE_BARP__MSG, 0 , mpfrom2short(HP_FILE, 0)
-compile if RING_OPTIONAL
    if ring_enabled then
-compile endif
       buildmenuitem menuname, 1, 100, OPENNOAS_MENU__MSG,         OPENAS_MENUP__MSG,     17+64, mpfrom2short(HP_FILE_OPENAS, 0)
          buildmenuitem menuname, 1, 101, NEWWIN_MENU__MSG\9 || CTRL_KEY__MSG'+O', 'OPENDLG'OPEN_MENUP__MSG,  0, mpfrom2short(HP_FILE_NEWWIN, 0)
          buildmenuitem menuname, 1, 102, SAMEWIN_MENU__MSG\9'F8', 'OPENDLG EDIT'ADD_MENUP__MSG,     0, mpfrom2short(HP_FILE_SAMEWIN, 0)
          buildmenuitem menuname, 1, 103, COMMAND_SHELL_MENU__MSG,  'shell new'CREATE_SHELL_MENUP__MSG,       32769, mpfrom2short(HP_COMMAND_SHELL, 0)
-compile if RING_OPTIONAL
    else
       buildmenuitem menuname, 1, 100, NEWWIN_MENU__MSG\9 || CTRL_KEY__MSG'+O', 'OPENDLG'OPEN_MENUP__MSG,  0, mpfrom2short(HP_FILE_NEWWIN, 0)
    endif
-compile endif
       buildmenuitem menuname, 1, 105, CONFIG_MENU__MSG,         'configdlg'CONFIG_MENUP__MSG,  0, mpfrom2short(HP_OPTIONS_CONFIG, 0)
       buildmenuitem menuname, 1, 106, 'Select menu...',         'ChangeMenu'\1'Open a listbox and change or refresh the menu', 0, 0
       buildmenuitem menuname, 1, 107, \0,                           '',                 4, 0
       buildmenuitem menuname, 1, 110, SAVE_MENU__MSG\9'F2',     'SAVE'SAVE_MENUP__MSG,             0, mpfrom2short(HP_FILE_SAVE, 0)
       buildmenuitem menuname, 1, 120, SAVEAS_MENU__MSG,         'SAVEAS_DLG'SAVEAS_MENUP__MSG, 0, mpfrom2short(HP_FILE_SAVEAS, 0)
-compile if RING_OPTIONAL
    if ring_enabled then
-compile endif
       buildmenuitem menuname, 1, 130, FILE_MENU__MSG\9'F4',     'FILE'FILE_MENUP__MSG,             0, mpfrom2short(HP_FILE_FILE, 0)
-compile if RING_OPTIONAL
    else
       buildmenuitem menuname, 1, 130, SAVECLOSE_MENU__MSG\9'F4',     'FILE'FILE_MENUP__MSG,        0, mpfrom2short(HP_FILE_FILE, 0)
    endif
-compile endif
       buildmenuitem menuname, 1, 135, \0,                           '',                 4, 0
       buildmenuitem menuname, 1, 140, COMMAND_BAR__MSG, COMMAND_BARP__MSG, 17+64, mpfrom2short(HP_COMMAND, 0)
          buildmenuitem menuname, 1, 141, COMMANDLINE_MENU__MSG\9 || CTRL_KEY__MSG'+I', 'commandline'COMMANDLINE_MENUP__MSG,   0, mpfrom2short(HP_COMMAND_CMD, 0)
@@ -207,14 +194,10 @@ compile if ENHANCED_PRINT_SUPPORT
 compile else
       buildmenuitem menuname, 1, 160, PRINT_MENU__MSG,       'xcom save /s /ne' default_printer()PRT_FILE_MENUP__MSG,   0, mpfrom2short(HP_FILE_PRINT, 0)
 compile endif
-compile if RING_OPTIONAL
    if ring_enabled then
-compile endif
       buildmenuitem menuname, 1, 165, \0,           '',                       4, 0
       buildmenuitem menuname, 1, 170, QUIT_MENU__MSG\9'F3',     'QUIT'QUIT_MENUP__MSG,             0, mpfrom2short(HP_FILE_QUIT, 0)
-compile if RING_OPTIONAL
    endif
-compile endif
 
 
 
@@ -258,9 +241,7 @@ compile endif
 
 
 defproc add_edit_menu(menuname)
-compile if RING_OPTIONAL
    universal ring_enabled
-compile endif
 compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
 compile endif
@@ -316,9 +297,7 @@ compile if SPELL_SUPPORT
 compile endif
 
 defproc add_view_menu(menuname)
-compile if RING_OPTIONAL
    universal ring_enabled
-compile endif
 compile if WANT_STACK_CMDS = 'SWITCH'
    universal stack_cmds
 compile endif
@@ -346,13 +325,9 @@ compile if WANT_TAGS
          buildmenuitem menuname, 3, 330, SCAN_TAGS_MENU__MSG,  'tagscan'SCAN_TAGS_MENUP__MSG, 32769, mpfrom2short(HP_SEARCH_TAGS, 0)
 compile endif
       buildmenuitem menuname, 3, 335, \0,                               '',          4, 0
-compile if RING_OPTIONAL
    if ring_enabled then
-compile endif
       buildmenuitem menuname, 3, 340, FILE_LIST_MENU__MSG\9 || CTRL_KEY__MSG'+G',     'Ring_More'LIST_FILES_MENUP__MSG,  0 , mpfrom2short(HP_OPTIONS_LIST, 0)
-compile if RING_OPTIONAL
    endif
-compile endif
       buildmenuitem menuname, 3, 341, MESSAGES_MENU__MSG,       'messagebox'MESSAGES_MENUP__MSG, 0, mpfrom2short(HP_OPTIONS_MESSAGES, 0)
 compile if WANT_STACK_CMDS
  compile if WANT_STACK_CMDS = 'SWITCH'
@@ -465,18 +440,12 @@ compile endif
 ; ---------------------------------------------------------------------------
 defc add_cascade_menus
    -- This command is called by defproc showmmenu_activemenu with 'postme'.
-compile if RING_OPTIONAL
    universal ring_enabled
-compile endif
-compile if RING_OPTIONAL
    if ring_enabled then
-compile endif
       'cascade_menu 100 102' -- If ring is enabled, the default is Open as Same Window
-compile if RING_OPTIONAL
    else
       'cascade_menu 100 101' -- If ring is not enabled, the default is Open as New Window
    endif
-compile endif
    'cascade_menu 140 141'  -- Command cascade; default is Command Dialog
    'cascade_menu 200 202'  -- Undo cascade; default is Undo Dialog
    'cascade_menu 230 231'  -- Paste cascade; default is Paste (character mark)
@@ -830,16 +799,10 @@ compile if WANT_STACK_CMDS
    universal stack_cmds
  compile endif
 compile endif
-compile if RING_OPTIONAL
    universal ring_enabled
-compile endif
-compile if RING_OPTIONAL
    if ring_enabled then
-compile endif
       SetMenuAttribute( 340, 16384, filesinring()>1)  -- List ring
-compile if RING_OPTIONAL
    endif
-compile endif
 compile if WANT_STACK_CMDS
  compile if WANT_STACK_CMDS = 'SWITCH'
    if stack_cmds then
@@ -1014,13 +977,11 @@ defc stream_toggle
    'RefreshInfoLine STREAMMODE'
 compile endif
 
-compile if RING_OPTIONAL
 defc ring_toggle
    universal ring_enabled
    universal activemenu, defaultmenu
    ring_enabled = not ring_enabled
    'toggleframe 4' ring_enabled
-compile endif
 
 compile if WANT_STACK_CMDS = 'SWITCH'
 defc stack_toggle
