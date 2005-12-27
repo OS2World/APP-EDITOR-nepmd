@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.41 2005-11-20 15:34:53 aschn Exp $
+* $Id: nepmdlib.e,v 1.42 2005-12-27 18:11:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -79,28 +79,37 @@ compile if NEPMD_LIB_TEST
 compile endif
 
 /* ------------------------------------------------------------- */
-/*   generic routine for library file and string handling        */
+/*   generic routines for library file and string handling       */
 /* ------------------------------------------------------------- */
 
-defproc helperNepmdGetlibfile =
-
-   /* use default */
-   LibFile =  NEPMD_LIBRARY_BASENAME;
-
-   /* check if DLL is available in NEPMD subdirectory */
-   InstallPath = queryprofile( , NEPMD_INI_APPNAME, NEPMD_INI_KEY_PATH);
-   if (InstallPath <> '') then
-      CheckFile = InstallPath'\'NEPMD_SUBPATH_BINDLLDIR'\'NEPMD_LIBRARY_BASENAME'.dll';
-      if exist( CheckFile) then
-         LibFile = CheckFile;
+defproc helperNepmdGetLibFile
+compile if 0
+   universal nepmdlibfile
+   if nepmdlibfile > '' then  -- search only once
+      LibFile = nepmdlibfile  -- get LibFile from universal var
+   else
+      -- use default
+      LibFile =  NEPMD_LIBRARY_BASENAME
+      -- check if DLL is available in NEPMD subdirectory
+      InstallPath = queryprofile( '', NEPMD_INI_APPNAME, NEPMD_INI_KEY_PATH)
+      if (InstallPath <> '') then
+         CheckFile = InstallPath'\'NEPMD_SUBPATH_BINDLLDIR'\'NEPMD_LIBRARY_BASENAME'.dll'
+         if exist( CheckFile) then
+            LibFile = CheckFile
+            nepmdlibfile = LibFile  -- save LibFile to a universal var
+         endif
       endif
    endif
+compile else
+   -- nepmdlib.dll must be accessable via LIBPATH or extended LIBPATH
+   LibFile =  NEPMD_LIBRARY_BASENAME
+compile endif
 
-   return LibFile;
+   return LibFile
 
 /* --------------------------------- */
 
-defproc helperNepmdCheckliberror (LibFile, ret)
+defproc helperNepmdCheckLibError( LibFile, ret)
    -- Never use rc as standard var!
 
    if ret < 0 then
@@ -121,7 +130,7 @@ defproc helperNepmdCheckliberror (LibFile, ret)
 /* --------------------------------- */
 compile if NEPMD_LIB_TEST
 
-defproc helperNepmdCreateDumpfile (FunctionName, Parms) =
+defproc helperNepmdCreateDumpFile( FunctionName, Parms)
 
    TestcaseTitle = strip( FunctionName Parms);
    Separator     = copies( '-', length(TestcaseTitle));
@@ -139,7 +148,7 @@ compile endif
 /* --------------------------------- */
 
 defproc makerexxstring( asciizstring)
-   return substr( asciizstring, 1, pos( atoi(0), asciizstring) - 1);
+   return substr( asciizstring, 1, pos( \0, asciizstring) - 1);
 
 /* ------------------------------------------------------------- */
 /*   include functions                                           */
