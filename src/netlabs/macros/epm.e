@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.33 2005-09-12 14:07:25 aschn Exp $
+* $Id: epm.e,v 1.34 2005-12-30 00:50:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -48,10 +48,6 @@ include        'debug.e'       -- Write to a PmPrintf pipe for several debug cas
 
 compile if WANT_DBCS_SUPPORT
    include     'epmdbcs.e'
-compile endif
-
-compile if not LINK_NEPMDLIB
-   include     'nepmdlib.e'    -- NEPMD library procedures, standard is to link it at definit
 compile endif
 
 include        'main.e'        -- This contains the DEFMAIN for the main .ex file

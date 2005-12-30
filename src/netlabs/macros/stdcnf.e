@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.31 2005-12-13 20:09:42 aschn Exp $
+* $Id: stdcnf.e,v 1.32 2005-12-30 00:50:32 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1156,12 +1156,6 @@ compile if not defined(DIRECTORYOF_STRING)
    DIRECTORYOF_STRING = DIR_OF__MSG
 compile endif
 
--- Standard is to link the NEPMD library at definit. Other possibilities:
--- 'DEFMAIN' or 0 (included not linked).
-compile if not defined(LINK_NEPMDLIB)
-   LINK_NEPMDLIB = 'DEFINIT'
-compile endif
-
 -- New standard is to link a menu file in order to save space in EPM.EX
 -- (String Area Size = 64k max).
 compile if not defined(LINK_MENU)
@@ -1266,9 +1260,7 @@ compile endif
 ;compile endif
 
    CurMenu = ''
-;  Link NEPMDLIB.EX if not already linked in DEFINIT ------------------------
-compile if LINK_NEPMDLIB = 'DEFINIT'  -- LINK_NEPMDLIB = 'DEFINIT' is default
-; --- Link the NEPMD library. Open a MessageBox if .ex file not found. ------
+;  -- Link the NEPMD library. Open a MessageBox if .ex file not found. ------
    'linkverify nepmdlib.ex'
 
 ;  Open NEPMD.INI and save the returned handle ------------------------------
@@ -1277,6 +1269,22 @@ compile if LINK_NEPMDLIB = 'DEFINIT'  -- LINK_NEPMDLIB = 'DEFINIT' is default
    if (rc > 0) then
       sayerror 'Configuration repository could not be opened, rc='rc;
    endif
+
+;  All settings are saved now to NEPMD.INI. EPM.INI is not touched anymore.
+;  Open EPM.INI and save the returned handle --------------------------------
+   -- This is required in order to open the first EPM correctly configured
+   -- while a new NEPMD.INI is created.
+   app_hini = dynalink32( ERES2_DLL,
+                          'ERESQueryHini',
+                          gethwndc(EPMINFO_EDITCLIENT), 2)
+   if not app_hini then
+      call WinMessageBox( 'Bogus Ini File Handle', '.ini file handle =' app_hini, 16416)
+   endif
+
+;  Use NEPMD.INI for all settings controlled by E macros --------------------
+;  (Turning to NEPMD.INI for all C windows as well requires temporary
+;  changing of OS2.INI -> EPM -> EPMIniPath to the filename of NEPMD.INI.)
+   app_hini = nepmd_hini  -- not really required, both should be equal here
 
 ;  Process NEPMD.INI initialization -----------------------------------------
    -- Write default values from nepmd\netlabs\bin\defaults.dat to NEPMD.INI,
@@ -1291,7 +1299,6 @@ compile if LINK_NEPMDLIB = 'DEFINIT'  -- LINK_NEPMDLIB = 'DEFINIT' is default
       KeyPath = '\NEPMD\User\Menu\Name'
       CurMenu = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    endif
-compile endif
 
 ;  Create array -------------------------------------------------------------
 ;  Before this, array vars can't be used. (Therefore: moved this some lines
@@ -1326,7 +1333,7 @@ compile endif
 ;  already be usable to make the menu's definit work, which is executed
 ;  directly after linking.
 compile if LINK_MENU
-   if CurMenu = '' then  -- CurMenu is not set if LINK_NEPMDLIB <> 'DEFINIT'
+   if CurMenu = '' then  -- CurMenu is only defined if NEPMDLIB is already linked
       CurMenu = 'newmenu'
    endif
    'linkverify 'CurMenu'.ex'
@@ -1788,19 +1795,22 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 
 ;compile if EVERSION >= 5
 ; compile if EVERSION >= '5.20'
+
+; Moved opening of EPM.INI to the top of definit
 ;compile if WANT_APPLICATION_INI_FILE
 ;   compile if EVERSION >= '6.00'
-   app_hini = dynalink32( ERES2_DLL, 'ERESQueryHini', gethwndc(EPMINFO_EDITCLIENT), 2)
+-- app_hini = dynalink32( ERES2_DLL, 'ERESQueryHini', gethwndc(EPMINFO_EDITCLIENT), 2)
 ;   compile elseif EVERSION >= '5.53'
 ;   app_hini=dynalink(ERES2_DLL, 'ERESQUERYHINI', gethwnd(EPMINFO_EDITCLIENT) ,2)
 ;   compile else
 ;   app_hini=getpminfo(EPMINFO_HINI)
 ;   compile endif  -- 6.00 / 5.53
-   if not app_hini then
-      call WinMessageBox( 'Bogus Ini File Handle', '.ini file handle =' app_hini, 16416)
+-- if not app_hini then
+--    call WinMessageBox( 'Bogus Ini File Handle', '.ini file handle =' app_hini, 16416)
 ;;    'postme inifileupdate 1'  -- Don't think this is a problem any more.
-   endif
+-- endif
 ;compile endif  -- WANT_APPLICATION_INI_FILE
+
    CurrentHLPFiles = 'epm.hlp'
 ; compile endif  -- 5.20
 ;compile if defined(my_TILDE)
