@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.12 2005-12-13 20:27:41 aschn Exp $
+* $Id: config.e,v 1.13 2005-12-30 00:50:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -102,6 +102,31 @@ compile endif
    --  256: without page  9  Toolbar style
    --  512: without page 10  Toolbar
 
+   -- Change entry of OS2.INI -> EPM -> EPMIniPath to filename of NEPMD.INI
+   -- in order to keep the ini file for standard EPM unchanged.
+   -- NEPMD.INI is used now for all settings, that otherwise would be written
+   -- to EPM.INI:
+   --    o  window positions
+   --    o  remaining settings, that are still not replaced by NEPMD settings
+   --    o  settings from external packages
+   -- For the ConfigDlg the entry has to be changed before its startup by E
+   -- macros separately.
+
+   fRestore = 0
+   -- Save old entry of OS2.INI to restore it after ConfigDlg's startup
+   EpmIniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
+   --dprintf( 'ConfigDlg', 'EpmIniFile = 'EpmIniFile)
+   next = NepmdQueryInstValue( 'INIT')
+   parse value next with 'ERROR:'rc
+   if rc = '' then
+      if upcase( next) <> upcase( EPmIniFile) then
+         -- Write filename of NEPMD.INI to OS2.INI
+         call setprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath', next)
+         --dprintf( 'ConfigDlg', 'Write new value: EPMIniPath = 'next)
+         fRestore = 1
+      endif
+   endif
+
    call windowmessage( 0, getpminfo(APP_HANDLE),
                        msgid,
                        omit,           -- 0 = Omit no pages
@@ -111,6 +136,16 @@ compile else
                        0)
 compile endif
 
+   -- Restore old entry in OS2.INI
+   if fRestore then
+      'postme RestoreEpmIniFile' EpmIniFile
+   endif
+
+defc RestoreEpmIniFile
+   EpmIniFile = arg(1)
+   -- Write back previous ini value on first call to RenderConfig by the dialog
+   call setprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath', EpmIniFile)
+   --dprintf( 'ConfigDlg', 'Write old value back: EPMIniPath = 'EpmIniFile)
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
@@ -915,7 +950,7 @@ compile endif
    next = queryprofile( app_hini, appname, INI_OPTFLAGS)
    if words( next) < 17 then
       next = '1 1 1 1 1 1 0 0 1 1 1 1 1 0 1 1 0 '
-      --        1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8
+      --      1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8
       --  1 Status line
       --  2 Message line
       --  3 Vertical scrollbar
@@ -939,7 +974,7 @@ compile endif
       -- correct bit/word.
       call setprofile( app_hini, appname, INI_OPTFLAGS, next)
    endif
-   parse value next with statflg msgflg vscrollflg hscrollflg fileiconflg rotflg extraflg markflg menu_prompt streamflg profile longnames escapekey tabkey new_bitmap toolbar_present drop_style optflag_extrastuff  -- fixed 3: exchanged show_longname and rexx_profile
+   parse value next with statflg msgflg vscrollflg hscrollflg fileiconflg rotflg extraflg markflg menu_prompt streamflg profile longnames escapekey tabkey new_bitmap tb_present drop_style optflag_extrastuff  -- fixed 3: exchanged show_longname and rexx_profile
    'toggleframe 1' statflg
    'toggleframe 2' msgflg
    'toggleframe 8' vscrollflg
@@ -1025,11 +1060,15 @@ compile if not defined(my_CURSORDIMENSIONS)
    endif
 compile endif -- not defined(my_CURSORDIMENSIONS)
 
-   if toolbar_present then
+   Setup = queryprofile( app_hini, 'UCMenu', 'ConfigInfo')
+   if Setup = '' then
+      Setup = \1''120''\1''26''\1''26''\1'9.WarpSans'\1'16777216'\1'16777216'\1
+      call setprofile( app_hini, 'UCMenu', 'ConfigInfo', Setup)
+      fApplyToolbarStyle = 1
+   endif
+   if tb_present then
       --'default_toolbar'
       'ReloadToolbar'
-;  else
-;     'toggleframe' EFRAMEF_TOOLBAR toolbar_present
    endif
 
 ; Moved from MENUACEL.E (file deleted now, formerly included by definit)
@@ -1204,9 +1243,9 @@ defc SaveOptions
    call setprofile( app_hini, appname, INI_RINGENABLED,    ring_enabled)
    call setprofile( app_hini, appname, INI_STACKCMDS,      stack_cmds)
    call setprofile( app_hini, appname, INI_CUAACCEL,       cua_menu_accel)
-;  if bm_filename <> '' then  -- Set even if null, so Toggle_Bitmap can remove dropped background.
+   if bm_filename <> '' then
       call setprofile( app_hini, appname, INI_BITMAP,      bm_filename)
-;  endif
+   endif
    call windowmessage( 0, getpminfo(APP_HANDLE),
                        62, 0, 0)               -- x'003E' = WM_SAVEAPPLICATION
 compile if SUPPORT_USER_EXITS

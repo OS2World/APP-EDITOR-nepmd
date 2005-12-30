@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.18 2005-04-30 14:41:45 aschn Exp $
+* $Id: epmcall.c,v 1.19 2005-12-30 00:50:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -53,7 +53,6 @@ APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
          ULONG          ulSession;
          STARTDATA      startdata;
 
-
          CHAR           szExecutable[ _MAX_PATH];
          CHAR           szProgramArgs[ _MAX_PATH * 4];
          CHAR           szEnv[ _MAX_PATH * 4];
@@ -68,6 +67,11 @@ APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
          ULONG          ulDataLength;
          BYTE           bElemPriority;
          BOOL           fAsync = TRUE;  // default is to start EPM asynchronously
+
+         CHAR           szEpmIniFile[ _MAX_PATH];
+         CHAR           szIniFile[ _MAX_PATH];
+         BOOL           fIniFileWritten = FALSE;
+         BOOL           fEpmStarted = FALSE;
 
 do
    {
@@ -143,14 +147,14 @@ do
    memset( &startdata, 0, sizeof( startdata));
    startdata.Length      = sizeof( startdata);
    if (fAsync == FALSE)
-   {
-   startdata.Related     = SSF_RELATED_CHILD;
-   startdata.TermQ       = szTermQueueName;
-   }
+      {
+      startdata.Related     = SSF_RELATED_CHILD;
+      startdata.TermQ       = szTermQueueName;
+      }
    else
-   {
-   startdata.Related     = SSF_RELATED_INDEPENDENT;
-   }
+      {
+      startdata.Related     = SSF_RELATED_INDEPENDENT;
+      }
    startdata.InheritOpt  = SSF_INHERTOPT_PARENT;
    startdata.SessionType = SSF_TYPE_PM;
    startdata.FgBg        = SSF_FGBG_FORE;
@@ -158,32 +162,87 @@ do
    startdata.PgmInputs   = szProgramArgs;
    startdata.Environment = pszEnv;
 
+   // Change entry of OS2.INI -> EPM -> EPMIniPath to filename of NEPMD.INI
+   // in order to keep the ini file for standard EPM unchanged.
+   // NEPMD.INI is used now for all settings, that otherwise would be written
+   // to EPM.INI:
+   //    o  window positions
+   //    o  remaining settings, that are still not replaced by NEPMD settings
+   //    o  settings from external packages
+   // For the ConfigDlg the entry has to be changed before its startup by E
+   // macros separately.
+
+   // Save old entry in NEPMD.INI to restore it after EPM's startup:
+   strcpy( szEpmIniFile, "");
+   strcpy( szIniFile, "");
+   rc = PrfQueryProfileString( HINI_USER, "EPM", "EPMIniPath", NULL,
+                               szEpmIniFile, sizeof( szEpmIniFile));
+   DPRINTF(( "CallEPM: EpmIniFile = %s, length = %u\n", szEpmIniFile, rc));
+   // Note: EPM adds the default entry automatically if not present
+
+   // determine name of NEPMD.INI
+   rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szIniFile, sizeof( szIniFile));
+   DPRINTF(( "CallEPM: IniFile = %s, rc = %u\n", szIniFile, rc));
+   if (rc == NO_ERROR)
+      {
+      // check if no other process has changed it or if restored before
+      if (stricmp( szEpmIniFile, szIniFile))  // if not already changed
+         {
+         rc = PrfWriteProfileString( HINI_USER, "EPM", "EPMIniPath", szIniFile);
+         if (rc == TRUE)  // on success
+            fIniFileWritten = TRUE;
+         DPRINTF(( "CallEPM: Write new value: EPMIniPath = %s, rc = %u\n", szIniFile, rc));
+         }
+      else
+         DPRINTF(( "CallEPM: EPMIniPath already changed\n"));
+
+      }
+
    rc = DosStartSession( &startdata, &ulSession, &pid);
    DPRINTF(( "call: %s\n   %s\nrc=%u\n", startdata.PgmName, startdata.PgmInputs, rc));
-   if ((rc != NO_ERROR) && (rc != ERROR_SMG_START_IN_BACKGROUND))
+   if ((rc == NO_ERROR) || (rc == ERROR_SMG_START_IN_BACKGROUND))
+      fEpmStarted = TRUE;
+
+   // write back previous ini value, before a possible break
+   if (fIniFileWritten == TRUE)
+      {
+      DosSleep( 1000L);  // delay of 1 s mostly required
+      // keep previous rc here
+      PrfWriteProfileString( HINI_USER, "EPM", "EPMIniPath", szEpmIniFile);
+      DPRINTF(( "CallEPM: Restore old value: EPMIniPath = %s\n", szEpmIniFile));
+      }
+
+   // Maybe a problem:
+   // If OrgEPMIniPath is not deleted, maybe because of a crash,
+   // the old value for EPMIniPath is never restored.
+
+   if (fEpmStarted != TRUE)
       break;
 
    if (fAsync == FALSE)
-   {
-   // wait for the program to terminate
-   rc = DosReadQueue( hqTermQueue,
-                      &requestdata,
-                      &ulDataLength,
-                      (PPVOID) &presc,
-                      0,
-                      DCWW_WAIT,
-                      &bElemPriority,
-                      0L);
+      {
+      // wait for the program to terminate
+      rc = DosReadQueue( hqTermQueue,
+                         &requestdata,
+                         &ulDataLength,
+                         (PPVOID) &presc,
+                         0,
+                         DCWW_WAIT,
+                         &bElemPriority,
+                         0L);
 
-   DosCloseQueue( hqTermQueue);
-   if (rc != NO_ERROR)
-      break;
+      DosCloseQueue( hqTermQueue);
+      if (rc != NO_ERROR)
+         break;
 
-   // return rc from child
-   // BUG: seems to be always NO_ERROR (rc=0)
-   rc = presc->codeResult;
-   DPRINTF(( "session result: %u\n", rc));
-   }
+      // return rc from child
+      // BUG: seems to be always NO_ERROR (rc=0)
+      rc = presc->codeResult;
+      DPRINTF(( "session result: %u\n", rc));
+      }
+   else
+      // close unused termination queue
+      DosCloseQueue( hqTermQueue);  // ignore errors here
 
    } while (FALSE);
 

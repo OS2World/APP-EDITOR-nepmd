@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.36 2005-11-24 20:41:45 aschn Exp $
+* $Id: main.e,v 1.37 2005-12-30 00:50:32 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,49 +18,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
-; ---------------------------------------------------------------------------
-; Put the test stuff into an extra command.
-defc TestLinkAtDefmain
-   universal nepmd_hini
-
-;  Link NEPMDLIB.EX if not already linked in DEFINIT ------------------------
-compile if LINK_NEPMDLIB = 'DEFMAIN'  -- default is to link NepmdLib at DEFINIT
-   if not isadefproc('NepmdOpenConfig') then
-      -- Link the NEPMD library. Open a MessageBox if .ex file not found.
-      'linkverify nepmdlib.ex'
-   endif
-compile endif
-
-compile if LINK_NEPMDLIB <> 'DEFINIT'  -- default is to link NepmdLib at DEFINIT
-;  Open NEPMD.INI and save the returned handle ------------------------------
-   nepmd_hini = NepmdOpenConfig()
-   parse value nepmd_hini with 'ERROR:'rc;
-   if (rc > 0) then
-      sayerror 'Configuration repository could not be opened, rc='rc;
-   endif
-
-;  Process NEPMD.INI initialization -----------------------------------------
-   -- Write default values from nepmd\netlabs\bin\defaults.dat to NEPMD.INI,
-   -- application 'RegDefaults', if 'RegDefaults' was not found
-   rc = NepmdInitConfig(nepmd_hini)
-   parse value rc with 'ERROR:'rc;
-   if (rc > 0) then
-      sayerror 'Configuration repository could not be initialized, rc='rc;
-   endif
-
-;  Link the menu ------------------------------------------------------------
-   if isadefproc('NepmdQueryConfigValue') then
-      KeyPath = '\NEPMD\User\Menu\Name'
-      CurMenu = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   endif
- compile if LINK_MENU
-   if CurMenu = '' then  -- CurMenu is not set if LINK_NEPMDLIB <> 'DEFINIT'
-      CurMenu = 'newmenu'
-   endif
-   'linkverify 'CurMenu'.ex'
- compile endif
-compile endif
 
 ; ---------------------------------------------------------------------------
 ;  -  DEFINIT and DEFMAIN are processed whenever the .ex file is linked.
@@ -97,9 +54,6 @@ defmain
    doscmdline = 'e 'arg(1) /* Can do special processing of DOS command line.*/
 
    dprintf( 'DEFMAIN', 'arg(1) = ['arg(1)']')
-
-;  Usually NEPMDLIB and the menu are linked at definit ----------------------
-   'TestLinkAtDefmain'
 
 ;  Process settings from EPM.INI and load menu ------------------------------
    -- This should be processed after NepmdInitConfig, because now there are
@@ -251,5 +205,4 @@ compile endif
       -- Reset ini key
       call SetProfile( nepmd_hini, App, Key, 0)
    endif
-
 

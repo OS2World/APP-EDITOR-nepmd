@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.10 2005-12-13 19:34:29 aschn Exp $
+* $Id: toolbar.e,v 1.11 2005-12-30 00:50:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,16 +18,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
-const
-; Use EPM.INI or NEPMD.INI for saving the active toolbar name?
-; This option is useful, because standard EPM doesn't has access
-; to the .bmp files in the NEPMD tree.
-compile if not defined( SAVE_TOOLBAR_NAME_IN_EPM_INI)
-   SAVE_TOOLBAR_NAME_IN_EPM_INI = 0
-compile endif
-
-; Moved from STDCTRL.E
 
 ; ---------------------------------------------------------------------------
 ;  load_actions
@@ -239,26 +229,17 @@ defc ExecuteAction
 ; EPM. In order to make standard EPM open with a valid toolbar, it should
 ; better keep the old setting alone.
 defproc SetDefaultToolbar
-compile if SAVE_TOOLBAR_NAME_IN_EPM_INI
-   universal app_hini
-   universal appname
-compile else
    universal nepmd_hini
    universal toolbar_loaded
-compile endif
    BarName = arg(1)
    if BarName = '' then  -- use current name if no name specified
       BarName = toolbar_loaded
    endif
-   if wordpos( \1' STANDARD', BarName) then
+   if wordpos( BarName, \1' STANDARD' ) then
       BarName = ''  -- delete ini key for default toolbar
    endif
-compile if SAVE_TOOLBAR_NAME_IN_EPM_INI
-   call setprofile( app_hini, appname, INI_DEF_TOOLBAR, BarName)
-compile else
    KeyPath = '\NEPMD\User\Toolbar\Name'
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, BarName)
-compile endif
    return
 
 ; ---------------------------------------------------------------------------
@@ -268,21 +249,14 @@ compile endif
 ; Use NEPMD.INI now, because Newbar's .bmps are not available for standard
 ; EPM. In order to make standard EPM open with a valid toolbar, it should
 ; better keep the old setting alone.
+; Returns '' if saved toolbar name is the standard toolbar.
 defproc GetDefaultToolbar
-compile if SAVE_TOOLBAR_NAME_IN_EPM_INI
-   universal app_hini
-   universal appname
-compile else
    universal nepmd_hini
    universal toolbar_loaded
-compile endif
-compile if SAVE_TOOLBAR_NAME_IN_EPM_INI
-   BarName = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
-compile else
    KeyPath = '\NEPMD\User\Toolbar\Name'
+   StandardName = 'Standard'
    BarName = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-compile endif
-   if BarName = '' then
+   if BarName = '' | BarName = StandardName then
       toolbar_loaded = \1
    else
       toolbar_loaded = BarName
@@ -315,8 +289,6 @@ defc save_toolbar, SaveToolbar
       if BarName = '' then
          sayerror NOTHING_ENTERED__MSG
          return
-;        BarName = 'Default'
-;        call setprofile(app_hini, appname, INI_DEF_TOOLBAR, '')
       endif
    endif
    call windowmessage( 0, getpminfo( EPMINFO_EDITFRAME),
@@ -329,14 +301,19 @@ defc save_toolbar, SaveToolbar
 ; Delete a toolbar.
 defc deletetemplate, DeleteToolbar
    universal app_hini
+   universal nepmd_hini
+   universal toolbar_loaded
+   KeyPath = '\NEPMD\User\Toolbar\Name'
+   StandardName = 'Standard'
+
    parse arg BarName
-;  if BarName = '' then
-;     BarName = 'Default'
-;  endif
-   call windowmessage(0, getpminfo(EPMINFO_EDITFRAME),
-                      5919,
-                      app_hini,
-                      put_in_buffer( BarName))
+   call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
+                       5919,
+                       app_hini,
+                       put_in_buffer( BarName))
+   if BarName = toolbar_loaded then  -- delete the selected name, too
+      call NepmdWriteConfigValue( nepmd_hini, KeyPath, StandardName)
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Activate built-in toolbar.
@@ -421,25 +398,24 @@ defc default_toolbar, ReloadToolbar
    universal app_hini
    universal appname
    universal toolbar_loaded
-   newcmd = ''
-   --def_tb = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
+   inidata = ''
    def_tb = GetDefaultToolbar()
    if def_tb <> '' then
       -- check if present, data is not used
-      newcmd = queryprofile( app_hini, INI_UCMENU_APP, def_tb)
+      inidata = queryprofile( app_hini, INI_UCMENU_APP, def_tb)
       -- If not found in ini, try to import it from a .bar file
-      if newcmd = '' then
+      if inidata = '' then
          barfile = ''
          findfile barfile, def_tb'.bar', 'EPMBARPATH'
          if barfile > '' then
             'ImportToolbar' barfile','def_tb
             if rc = 0 then  -- if data of def_tb'.bar' successful written to ini
-               newcmd = 1
+               inidata = 1
             endif
          endif
       endif
    endif
-   if newcmd <> '' then  -- load it
+   if inidata <> '' then  -- load it
       toolbar_loaded = def_tb
       call windowmessage( 0, getpminfo( EPMINFO_EDITFRAME),
                           5916,
@@ -609,7 +585,7 @@ defc ImportToolbar
       endif
    endif
 
-   IniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
+   IniFile = NepmdQueryInstValue( 'INIT')
    IniAppl = 'UCMenu_Templates'
 
    -- Write toolbar data from BarFile to IniFile -> IniAppl -> BarName
@@ -667,7 +643,7 @@ defc ExportToolbar2
       BarName = GetDefaultToolbar()  -- query last saved toolbar name
    endif
 
-   IniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
+   IniFile = NepmdQueryInstValue( 'INIT')
    IniAppl = 'UCMenu_Templates'
 
    'rx Toolbar EXPORT' IniFile IniAppl BarName TmpBarName
