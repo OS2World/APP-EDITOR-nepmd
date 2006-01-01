@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.19 2005-12-30 00:50:29 aschn Exp $
+* $Id: epmcall.c,v 1.20 2006-01-01 17:29:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -38,6 +38,9 @@
 
 #define QUEUENAMEBASE "\\QUEUES\\EPMCALL\\"
 #define LOADSTRING(m,t)           GetMessage( NULL, 0, t, sizeof( t), m, &ulMessageLen)
+
+#define INI_APP_EPM "EPM"
+#define INI_KEY_EPMINIPATH "EPMIniPath"
 
 // -----------------------------------------------------------------------------
 
@@ -72,6 +75,7 @@ APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
          CHAR           szIniFile[ _MAX_PATH];
          BOOL           fIniFileWritten = FALSE;
          BOOL           fEpmStarted = FALSE;
+         FILE          *pfile = NULL;
 
 do
    {
@@ -171,50 +175,80 @@ do
    //    o  settings from external packages
    // For the ConfigDlg the entry has to be changed before its startup by E
    // macros separately.
-
-   // Save old entry in NEPMD.INI to restore it after EPM's startup:
-   strcpy( szEpmIniFile, "");
-   strcpy( szIniFile, "");
-   rc = PrfQueryProfileString( HINI_USER, "EPM", "EPMIniPath", NULL,
-                               szEpmIniFile, sizeof( szEpmIniFile));
-   DPRINTF(( "CallEPM: EpmIniFile = %s, length = %u\n", szEpmIniFile, rc));
-   // Note: EPM adds the default entry automatically if not present
-
-   // determine name of NEPMD.INI
-   rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szIniFile, sizeof( szIniFile));
-   DPRINTF(( "CallEPM: IniFile = %s, rc = %u\n", szIniFile, rc));
-   if (rc == NO_ERROR)
+   do
       {
-      // check if no other process has changed it or if restored before
-      if (stricmp( szEpmIniFile, szIniFile))  // if not already changed
-         {
-         rc = PrfWriteProfileString( HINI_USER, "EPM", "EPMIniPath", szIniFile);
-         if (rc == TRUE)  // on success
-            fIniFileWritten = TRUE;
-         DPRINTF(( "CallEPM: Write new value: EPMIniPath = %s, rc = %u\n", szIniFile, rc));
-         }
-      else
-         DPRINTF(( "CallEPM: EPMIniPath already changed\n"));
 
-      }
+      // Save old entry in NEPMD.INI to restore it after EPM's startup:
+      strcpy( szEpmIniFile, "");
+      strcpy( szIniFile, "");
+      rc = PrfQueryProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, NULL,
+                                  szEpmIniFile, sizeof( szEpmIniFile));
+      //DPRINTF(( "CallEPM: EpmIniFile = %s, length = %u\n", szEpmIniFile, rc));
+      // Note: EPM adds the default entry automatically if not present
+
+      // determine name of NEPMD.INI
+      rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szIniFile, sizeof( szIniFile));
+      //DPRINTF(( "CallEPM: IniFile = %s, rc = %u\n", szIniFile, rc));
+      if (rc != NO_ERROR)
+         break;
+
+      // check if no other process has already changed it
+      if (stricmp( szEpmIniFile, szIniFile) == 0)
+         {
+         //DPRINTF(( "CallEPM: EPMIniPath already changed\n"));
+         break;
+         }
+
+      // write filename of NEPMD.INI
+      rc = PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szIniFile);
+      //DPRINTF(( "CallEPM: Write new value: EPMIniPath = %s, rc = %u\n", szIniFile, rc));
+      if (rc == TRUE)  // on success
+         fIniFileWritten = TRUE;
+      else
+         break;
+
+      // Bug in ETK:
+      // On startup of EPM, when the ini doesnot exist on disk (but in
+      // memory, because it was opened and new values are already written),
+      // EPM reads values from the default ini file \OS2\EPM.INI (or maybe
+      // with the path of EPM.EXE).
+      // Even E code returns the wrong value then:
+      //    NepmdIni = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
+      //    -> The filename of EPM.INI is always returned, if NEPMD.INI
+      //       was not already written to disk.
+      // Following values, used by C functions only, are effected:
+      //    EPM.INI -> EPM -> DEFAULTSWP     (EPM window position)
+      //    EPM.INI -> UCMenu -> ConfigInfo  (toolbar style)
+      // The 2nd startup is always ok then.
+
+      // create a zero byte file immediately
+      if (FileExists( szIniFile))
+         break;
+      pfile = fopen( strupr( szIniFile), "a+b");
+      if (pfile)
+         {
+         fclose( pfile);
+         //DPRINTF(( "CallEPM: Empty ini file written\n"));
+         }
+
+      } while (FALSE);
 
    rc = DosStartSession( &startdata, &ulSession, &pid);
    DPRINTF(( "call: %s\n   %s\nrc=%u\n", startdata.PgmName, startdata.PgmInputs, rc));
    if ((rc == NO_ERROR) || (rc == ERROR_SMG_START_IN_BACKGROUND))
       fEpmStarted = TRUE;
 
-   // write back previous ini value, before a possible break
+   // restore previous ini value, before a possible break
    if (fIniFileWritten == TRUE)
       {
-      DosSleep( 1000L);  // delay of 1 s mostly required
+      DosSleep( 1000L);  // delay of 10ms, on ini creation about 100ms mostly required
       // keep previous rc here
-      PrfWriteProfileString( HINI_USER, "EPM", "EPMIniPath", szEpmIniFile);
-      DPRINTF(( "CallEPM: Restore old value: EPMIniPath = %s\n", szEpmIniFile));
+      PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szEpmIniFile);
+      //DPRINTF(( "CallEPM: Restore old value: EPMIniPath = %s\n", szEpmIniFile));
       }
 
-   // Maybe a problem:
-   // If OrgEPMIniPath is not deleted, maybe because of a crash,
-   // the old value for EPMIniPath is never restored.
+   // Could be a problem: In case of a crash, the old value for EPMIniPath is
+   // never restored.
 
    if (fEpmStarted != TRUE)
       break;
