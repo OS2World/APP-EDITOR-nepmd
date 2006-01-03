@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.20 2006-01-01 17:29:45 aschn Exp $
+* $Id: epmcall.c,v 1.21 2006-01-03 22:26:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -73,6 +73,8 @@ APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
 
          CHAR           szEpmIniFile[ _MAX_PATH];
          CHAR           szIniFile[ _MAX_PATH];
+         CHAR           szTmp[ _MAX_PATH];
+         ULONG          ulLen = 0;
          BOOL           fIniFileWritten = FALSE;
          BOOL           fEpmStarted = FALSE;
          FILE          *pfile = NULL;
@@ -147,25 +149,6 @@ do
 
       }
 
-   // start program - fill STARTDATA
-   memset( &startdata, 0, sizeof( startdata));
-   startdata.Length      = sizeof( startdata);
-   if (fAsync == FALSE)
-      {
-      startdata.Related     = SSF_RELATED_CHILD;
-      startdata.TermQ       = szTermQueueName;
-      }
-   else
-      {
-      startdata.Related     = SSF_RELATED_INDEPENDENT;
-      }
-   startdata.InheritOpt  = SSF_INHERTOPT_PARENT;
-   startdata.SessionType = SSF_TYPE_PM;
-   startdata.FgBg        = SSF_FGBG_FORE;
-   startdata.PgmName     = szExecutable;
-   startdata.PgmInputs   = szProgramArgs;
-   startdata.Environment = pszEnv;
-
    // Change entry of OS2.INI -> EPM -> EPMIniPath to filename of NEPMD.INI
    // in order to keep the ini file for standard EPM unchanged.
    // NEPMD.INI is used now for all settings, that otherwise would be written
@@ -181,10 +164,20 @@ do
       // Save old entry in NEPMD.INI to restore it after EPM's startup:
       strcpy( szEpmIniFile, "");
       strcpy( szIniFile, "");
-      rc = PrfQueryProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, NULL,
-                                  szEpmIniFile, sizeof( szEpmIniFile));
-      //DPRINTF(( "CallEPM: EpmIniFile = %s, length = %u\n", szEpmIniFile, rc));
-      // Note: EPM adds the default entry automatically if not present
+      strcpy( szTmp, "");
+
+      // EPM adds the default entry automatically if no key/entry, if a null string
+      // entry or if file not found.
+      // Bug: That value would be not zero-terminated then.
+
+      ulLen = PrfQueryProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, NULL,
+                                     szEpmIniFile, sizeof( szEpmIniFile));
+
+      // cut off junk if entry is not zero-terminated
+      //DPRINTF(( "CallEPM: length = %u, EpmIniFile = %s\n", ulLen, szEpmIniFile));
+      strncat( szTmp, &szEpmIniFile[0], ulLen);  // always appends a '\0'
+      strcpy( szEpmIniFile, szTmp);
+      //DPRINTF(( "CallEPM: EpmIniFile = %s\n", szEpmIniFile));
 
       // determine name of NEPMD.INI
       rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szIniFile, sizeof( szIniFile));
@@ -233,6 +226,25 @@ do
 
       } while (FALSE);
 
+   // start program - fill STARTDATA
+   memset( &startdata, 0, sizeof( startdata));
+   startdata.Length      = sizeof( startdata);
+   if (fAsync == FALSE)
+      {
+      startdata.Related     = SSF_RELATED_CHILD;
+      startdata.TermQ       = szTermQueueName;
+      }
+   else
+      {
+      startdata.Related     = SSF_RELATED_INDEPENDENT;
+      }
+   startdata.InheritOpt  = SSF_INHERTOPT_PARENT;
+   startdata.SessionType = SSF_TYPE_PM;
+   startdata.FgBg        = SSF_FGBG_FORE;
+   startdata.PgmName     = szExecutable;
+   startdata.PgmInputs   = szProgramArgs;
+   startdata.Environment = pszEnv;
+
    rc = DosStartSession( &startdata, &ulSession, &pid);
    DPRINTF(( "call: %s\n   %s\nrc=%u\n", startdata.PgmName, startdata.PgmInputs, rc));
    if ((rc == NO_ERROR) || (rc == ERROR_SMG_START_IN_BACKGROUND))
@@ -244,7 +256,7 @@ do
       DosSleep( 1000L);  // delay of 10ms, on ini creation about 100ms mostly required
       // keep previous rc here
       PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szEpmIniFile);
-      //DPRINTF(( "CallEPM: Restore old value: EPMIniPath = %s\n", szEpmIniFile));
+      DPRINTF(( "CallEPM: Restore old value: EPMIniPath = %s\n", szEpmIniFile));
       }
 
    // Could be a problem: In case of a crash, the old value for EPMIniPath is
