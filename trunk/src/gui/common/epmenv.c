@@ -2,12 +2,12 @@
 *
 * Module Name: epmenv.c
 *
-* Generic routine to load the NEPMD environment file for
-* EPM and NEPDM utilities
+* Generic routine to load the NEPMD environment file for EPM and NEPMD
+* utilities
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.23 2005-12-11 10:42:28 aschn Exp $
+* $Id: epmenv.c,v 1.24 2006-01-07 23:28:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -610,8 +610,8 @@ return rc;
 // _readEnvFile) of the .env file(s). The EPM executable is searched after that
 // first extension of the environment. After that, its env var is set and the
 // environment is extended a second time.
-// The LIBPATH is extended via BEGINLIBPATH and ENDLIBPATH env vars, like
-// supported by cmd.exe.
+// The LIBPATH is extended via EPMBEGINLIBPATH and EPMENDLIBPATH env vars,
+// almost like supported by cmd.exe.
 // If pszBuffer was supplied, it will be set to the value of the EPM
 // executable.
 
@@ -631,7 +631,7 @@ APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv, PSZ pszBuffer, UL
          CHAR           *pszPathVar;
 
          CHAR           szInstallVar[ _MAX_PATH + 30];
-         PSZ            apszVar[ 6]; // increase size of array if more vars required !!!
+         PSZ            apszVar[ 26]; // increase size of array if more vars required!!!
 
          PSZ           *ppszEnv;
          PSZ            pszVar;
@@ -729,7 +729,7 @@ do
       // set internal var(s) first, use a different buffer for each
       // as putvar only passes a pointer to the environment list!!!
 
-      // --- > set environment variable for NEPMD install directory
+      // --- > set environment variable for NEPMD install directory (# 0)
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=", ENV_NEPMD_ROOTDIR);
       rc = QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
@@ -742,7 +742,7 @@ do
          // don't report error from here
          rc = NO_ERROR;
 
-      // --- > set environment variable for user directory
+      // --- > set environment variable for user directory (# 1)
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=", ENV_NEPMD_USERDIR);
       rc = QueryInstValue( NEPMD_INSTVALUE_USERDIR, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
@@ -752,14 +752,14 @@ do
          ADDVAR( apszVar[ 1]);
          }
 
-      // --- > set environment variable for NEPMD language
+      // --- > set environment variable for NEPMD language (# 2)
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=", ENV_NEPMD_LANGUAGE);
       QueryInstValue( NEPMD_INSTVALUE_LANGUAGE, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
       apszVar[ 2] = strdup( szInstallVar);
       ADDVAR( apszVar[ 2]);
 
-      // --- > set environment variables for env files
+      // --- > set environment variables for env files (# 3, 4)
       if (strlen( szMainEnvFile))
          {
          memset( szInstallVar, 0, sizeof( szInstallVar));
@@ -776,10 +776,10 @@ do
          ADDVAR( apszVar[ 4]);
          }
 
-      // search EpmExecutable after the environment is expanded
+      // search EpmExecutable after the environment is expanded (# 5)
 
 #ifdef SetLoaderAtFirstPart
-      // --- > set environment variable for EPM loader
+      // --- > set environment variable for EPM loader (# 6)
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=%s", ENV_NEPMD_LOADEREXECUTABLE, szLoaderExecutable);
       apszVar[ 6] = strdup( szInstallVar);
@@ -873,14 +873,14 @@ do
 
       // ------- set internal env vars --------------------
 
-      // --- > set NEPMD_EPMEXECUTABLE
+      // --- > set NEPMD_EPMEXECUTABLE (# 5)
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=%s", ENV_NEPMD_EPMEXECUTABLE, szEpmExecutable);
       apszVar[ 5] = strdup( szInstallVar);
       ADDVAR( apszVar[ 5]);
 
 #ifndef SetLoaderAtFirstPart
-      // --- > set NEPMD_LOADEREXECUTABLE
+      // --- > set NEPMD_LOADEREXECUTABLE (# 6)
       // this can be set before the first evironment extension as well,
       // therefore activate #define SetLoaderAtFirstPart
       memset( szInstallVar, 0, sizeof( szInstallVar));
