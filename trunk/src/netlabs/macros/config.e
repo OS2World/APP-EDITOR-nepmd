@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.13 2005-12-30 00:50:30 aschn Exp $
+* $Id: config.e,v 1.14 2006-01-07 23:22:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,15 +19,80 @@
 *
 ****************************************************************************/
 
-; Configuration and ini file definitions. Thats's the 2nd part of
-; initialization, concerning with settings queried from EPM.INI.
+; Configuration and ini file definitions.
+;
+; The 1st part of initialization is done in STDCNF.E by setting universal
+; vars to values of consts and defining definit. definit is called before
+; defmain at linking of EPM.EX. initconfig is called by defmain.
+;
+; Thats's the 2nd part of initialization. It concerns with settings queried
+; from EPM.INI and with definitions for the settings dialog. It defines
+; following commands (among others):
+;
+;    initconfig      Read values from ini and change configuration of
+;                    current EPM window. This overwrites values previously
+;                    initialized to values of consts, if their ini entries
+;                    are present. Called by defmain.
+;
+;    renderconfig    Send values to config dialog, either
+;                    -  default values defined by consts or
+;                    -  values read from ini or
+;                    -  current values.
+;                    Called by configdlg at its startup.
+;
+;    setconfig       Change configuration of current EPM window according
+;                    to the changes by the user. Called by configdlg at its
+;                    closing.
 ;
 ; While some universals are set at definit, defc initconfig is called at
 ; defmain. It's quite important for performance and stability, at which time
-; during the start all the init stuff is processed. This applies not only to
+; during startup all the init stuff is processed. This applies not only to
 ; getting values from the ini, but also to the creation of menu and making
 ; the window visible.
-; Moved from STDCTRL.E.
+
+; Configuration changes, that must be written to the ini, can be made by
+;    o  settings dialog
+;    o  menu items
+;    o  drap and drop from color and font palettes
+;    o  additional commands
+
+; Instead of using EPM.INI, only NEPMD.INI is used now.
+
+; In order to always process all those ways equal, it's sometimes tricky to
+; move settings to NEPMD.INI. E.g. for the color and font settings special
+; commands are called after a color or font change, except for the toolbar.
+;
+; So every setting can be moved to NEPMD.INI, except the following (so far):
+;    o  initial setup of toolbar after its startup (but can be changed
+;       afterwards)
+;    o  position of EPM window and others
+;    o  list of toolbar names used by the standard config dialog
+;    o  toolbar setup string (aka toolbar template), saved by the standard
+;       config dialog (dialog will be replaced sometime)
+;    o  toolbar im- and export, made by the standard config dialog (dialog
+;       will be replaced sometime)
+;    o  toolbar font changed via font palette
+;    o  toolbar color changed via color palette (not important)
+; All these issues can be handled by changing the entry for OS2.INI -> EPM
+; -> EPMIniPath before EPM's startup or opening the config dialog
+; and resetting it after the action, because the path for EPM.INI is read
+; only once at EPM's startup, excluding for ConfigDlg!
+
+; The entry for UCMenu -> ConfigInfo changes to some strange values after
+; a font is dropped on the toolbar.
+; Before:
+;    832328.Helv1677721616777216
+; After:
+;    270401576262612.System VIO1355361413553614
+;    27040157626269.WarpSans1355361413553614
+; The color values are:
+;    16777216 = 0x1000000  (means default color?)
+;    13553614 = 0xCECFCE   (CE = 205, CF = 206)
+;    light gray = 204-204-204, values above are probably just not precise.
+; Maybe the 1st segment is the window handle?
+
+; At startup the font value from UCMenu -> ConfigInfo should be copied
+; to NEPMD.INI?
 
 ; Removed consts:
 ; INCLUDE_MENU_SUPPORT, INCLUDE_STD_MENUS, WANT_DYNAMIC_PROMPTS,
@@ -35,8 +100,6 @@
 ; WANT_STREAM_MODE, WANT_TOOLBAR, SPELL_SUPPORT, WANT_APPLICATION_INI_FILE,
 ; ENHANCED_ENTER_KEYS, WANT_LONGNAMES, WANT_PROFILE TOGGLE_ESCAPE,
 ; TOGGLE_TAB, DYNAMIC_CURSOR_STYLE, WANT_BITMAP_BACKGROUND, INITIAL_TOOLBAR
-
-; Removed, but must be checked in other files:
 ; WPS_SUPPORT
 
 ; Remaining consts:
@@ -44,6 +107,7 @@
 ; my_CURSORDIMENSIONS, my_SAVEPATH,
 ; my_STACK_CMDS, my_CUA_MENU_ACCEL, SUPPORT_USER_EXITS
 
+; ---------------------------------------------------------------------------
 ; Provide some consts, for the case a user really wants to change this:
 const
 compile if not defined(CONFIGDLG_START_WITH_CURRENT_FILE_SETTINGS)
@@ -57,6 +121,7 @@ compile if not defined(CONFIGDLG_ASK_REFLOW)
    CONFIGDLG_ASK_REFLOW = 0                           -- previous standard would have been 1
 compile endif
 
+; ---------------------------------------------------------------------------
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: configdlg       syntax:   configdlg                      ³
@@ -71,13 +136,13 @@ compile endif
 ³ who and when    : Jerry C.   7/20/89                                       ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
-defc configdlg
+defc ConfigDlg
 compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
 compile endif
 
    args = arg(1)
-   wp = wordpos( 'SYS', upcase( args))
+   wp = wordpos( 'SYS', upcase( args))  -- SYS not used by EPM. Used by Epm class?
    if wp then
       args = delword( args, wp, 1)
       msgid = 5147  -- EPM_POPSYSCONFIGDLG
@@ -86,6 +151,7 @@ compile endif
    endif
 
    omit = 0
+   --omit = 512
    if isnum( args) then
       omit = args
    endif
@@ -102,30 +168,7 @@ compile endif
    --  256: without page  9  Toolbar style
    --  512: without page 10  Toolbar
 
-   -- Change entry of OS2.INI -> EPM -> EPMIniPath to filename of NEPMD.INI
-   -- in order to keep the ini file for standard EPM unchanged.
-   -- NEPMD.INI is used now for all settings, that otherwise would be written
-   -- to EPM.INI:
-   --    o  window positions
-   --    o  remaining settings, that are still not replaced by NEPMD settings
-   --    o  settings from external packages
-   -- For the ConfigDlg the entry has to be changed before its startup by E
-   -- macros separately.
-
-   fRestore = 0
-   -- Save old entry of OS2.INI to restore it after ConfigDlg's startup
-   EpmIniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
-   --dprintf( 'ConfigDlg', 'EpmIniFile = 'EpmIniFile)
-   next = NepmdQueryInstValue( 'INIT')
-   parse value next with 'ERROR:'rc
-   if rc = '' then
-      if upcase( next) <> upcase( EPmIniFile) then
-         -- Write filename of NEPMD.INI to OS2.INI
-         call setprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath', next)
-         --dprintf( 'ConfigDlg', 'Write new value: EPMIniPath = 'next)
-         fRestore = 1
-      endif
-   endif
+   'ChangeEpmIniPath'
 
    call windowmessage( 0, getpminfo(APP_HANDLE),
                        msgid,
@@ -136,17 +179,80 @@ compile else
                        0)
 compile endif
 
-   -- Restore old entry in OS2.INI
-   if fRestore then
-      'postme RestoreEpmIniFile' EpmIniFile
+; ---------------------------------------------------------------------------
+; Change entry of OS2.INI -> EPM -> EPMIniPath to filename of NEPMD.INI
+; in order to keep the ini file for standard EPM unchanged.
+; NEPMD.INI is used now for all settings, that otherwise would be written
+; to EPM.INI:
+;    o  window positions
+;    o  remaining settings, that are still not replaced by NEPMD settings
+;    o  settings from external packages
+; For the ConfigDlg the entry has to be changed before its startup by E
+; macros separately.
+defc ChangeEpmIniPath
+   universal nepmd_hini
+   EpmIniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
+   --dprintf( 'ConfigDlg', 'EpmIniFile = 'EpmIniFile)
+
+   next = NepmdQueryInstValue( 'INIT')
+   parse value next with 'ERROR:'rc
+   if rc = '' then
+      if upcase( next) <> upcase( EpmIniFile) then
+
+         -- Write filename of NEPMD.INI to OS2.INI
+         call setprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath', next)
+         --dprintf( 'ConfigDlg', 'Write new value: EPMIniPath = 'next)
+
+         -- Save old entry of OS2.INI to restore it after ConfigDlg's startup
+         -- by SetConfig
+         KeyPath = '\NEPMD\System\SavedEPMIniPath'
+         -- This always terminates the entry with a zero
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath, EpmIniFile)
+
+      endif
    endif
 
-defc RestoreEpmIniFile
-   EpmIniFile = arg(1)
-   -- Write back previous ini value on first call to RenderConfig by the dialog
-   call setprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath', EpmIniFile)
-   --dprintf( 'ConfigDlg', 'Write old value back: EPMIniPath = 'EpmIniFile)
+; ---------------------------------------------------------------------------
+; Restore previous ini value, temporary changed in defc ConfigDlg.
+; This is executed on the first call to SetConfig by the dialog.
+; It would be possible to restore it just after the dialog was opened (by
+; ConfigDlg, but then the last page of the dialog (toolbar) would read its
+; values for the list of toolbar names from EPM.INI, so that the toolbar page
+; might be omitted then.
+defc RestoreEpmIniPath
+   universal nepmd_hini
 
+   next = NepmdQueryInstValue( 'INIT')
+   EpmIniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
+   -- Process this only once (on first call to SetConfig by the dialog)
+   if next <> EpmIniFile then  -- if already reset
+      return
+   endif
+
+   KeyPath = '\NEPMD\System\SavedEPMIniPath'
+   next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   --dprintf( 'RestoreEpmIniPath', 'SavedEPMIniPath = 'next)
+   parse value next with 'ERROR:'rc
+   if rc = '' then
+      EpmIniFile = next
+   else
+      return rc
+   endif
+
+   parse value next with 'ERROR:'rc
+   if rc = '' then
+
+      -- Restore previous ini value
+      -- This always terminates the entry with a zero
+      call setprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath', EpmIniFile)
+      --dprintf( 'RestoreEpmIniPath, called by SetConfig', 'Restore old value: EPMIniPath = 'EpmIniFile)
+
+      -- Delete entry
+      call NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+
+   endif
+
+; ---------------------------------------------------------------------------
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called:  renderconfig                                            ³
@@ -231,6 +337,7 @@ compile endif
       if not fsend_default then      -- 0: Use values from .ini file
          newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if words(newcmd) >= 14 then
+            -- OPTFLAGS:   14
             tempstr = word(newcmd, 14)
          endif
       elseif fsend_default = 2 then  -- 2: Use current values
@@ -379,6 +486,7 @@ compile endif
          newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
             parse value newcmd with statflg msgflg vscrollflg hscrollflg . . extraflg . . . . . . . new_bitmap . drop_style .
+            -- OPTFLAGS:            1       2      3          4              7                      15           17
             tempstr = statflg || msgflg || hscrollflg || vscrollflg || extraflg || new_bitmap || drop_style
          endif
       elseif fsend_default = 2 then  -- 2: Use current values
@@ -389,6 +497,7 @@ compile endif
       call send_config_data( hndle, checkini( fsend_default, INI_BITMAP, bm_filename, ''), 16, help_panel)
 
    elseif page = 9 then  ----------------- Page 9 is Misc. ------------
+      -- dialog has longnames and profile bits exchanged, compared to OPTFLAGS
       tempstr = '0000100'  -- CUA marking, stream mode, Rexx profile, longnames, I-beam pointer, underline cursor, menu accelerators
       if not fsend_default then    -- 0: Use values from .ini file
          newcmd = queryprofile( app_hini, appname, INI_OPT2FLAGS)
@@ -406,8 +515,9 @@ compile endif
 
          newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
-            parse value newcmd with . . . . . . . markflg . streamflg profile longnames .  -- fixed 1: exchanged show_longnames and rexx_profile
-            tempstr = markflg || streamflg || profile || longnames ||                      -- fixed 1: exchanged show_longnames and rexx_profile
+            parse value newcmd with . . . . . . . markflg . streamflg longnames profile .
+            -- OPTFLAGS:                          8         10        11        12
+            tempstr = markflg || streamflg || profile || longnames ||
                       pointer_style || cursor_shape || menu_accel
          endif
       elseif fsend_default = 2 then  -- 2: Use current values
@@ -423,7 +533,8 @@ compile endif
          tempstr = queryprofile( app_hini, 'UCMenu', 'ConfigInfo')
       endif
       if tempstr = '' then
-         tempstr = \1'8'\1'32'\1'32'\1'8.Helv'\1'16777216'\1'16777216'\1
+         --tempstr = \1'8'\1'32'\1'32'\1'8.Helv'\1'16777216'\1'16777216'\1  -- internal default if no entry in EPM.INI
+         tempstr = \1'120'\1'32'\1'32'\1'9.WarpSans'\1'16777216'\1'16777216'\1  -- internal default if no entry in EPM.INI
       endif
       call send_config_data( hndle, tempstr, 22, help_panel)
 
@@ -451,6 +562,7 @@ compile endif
 
    endif  -- page = 1
 
+; ---------------------------------------------------------------------------
 defproc send_config_data( hndle, strng, i, help_panel)
    strng = strng\0          -- null terminate (asciiz)
    call windowmessage( 1, hndle,
@@ -458,7 +570,8 @@ defproc send_config_data( hndle, strng, i, help_panel)
                        mpfrom2short( help_panel, i),
                        ltoa( offset(strng) || selector(strng), 10))
 
-defc enterkeys =
+; ---------------------------------------------------------------------------
+defc enterkeys
    universal enterkey, a_enterkey, c_enterkey, s_enterkey
    universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
    universal appname, app_hini
@@ -468,6 +581,7 @@ defc enterkeys =
                        enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey)
    endif
 
+; ---------------------------------------------------------------------------
 ; fsend_default is a flag that says we're reverting to the default product options.
 ; defaultdata is the value to be used as the window default if INIKEY isn't found
 ; in the EPM.INI; it will also be used as the product default if no fourth parameter
@@ -486,6 +600,7 @@ defproc CheckIni( fsend_default, inikey, defaultdata)
    endif
    return defaultdata
 
+; ---------------------------------------------------------------------------
 ; 5.21 lets you apply without saving, so we add an optional 3rd parameter.
 ; If omitted, assume the old way - save.  If present, only save if 1.
 defproc SetIni( inikey, inidata)
@@ -500,6 +615,7 @@ defproc SetIni( inikey, inidata)
    endif
    return inidata
 
+; ---------------------------------------------------------------------------
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: setconfig       syntax:   setconfig configid  newvalue   ³
@@ -537,6 +653,10 @@ defc SetConfig
    --dprintf( 'SETCONFIG', arg(1))
 
    parse value arg(1) with configid perm newcmd
+
+   'RestoreEpmIniPath'  -- The toolbar notebook page queries the EPMIniPath value itself,
+                        -- therefore it cannot be restored by defc ConfigDlg itself.
+                        -- SetConfig is *always* called by the config dialog.
 
    if     configid = 1 then
 ------------------------------------------------------
@@ -646,10 +766,26 @@ defc SetConfig
          newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
             parse value newcmd with . . . . w1 w2 . w3 w4 w5 w6 w7 w8 w9 . w10 . rest
+            -- OPTFLAGS:                    5  6    8  9  10 11 12 13 14   16
             call setprofile( app_hini, appname, INI_OPTFLAGS,
-               queryframecontrol(1) queryframecontrol(2) queryframecontrol(8) || ' ' ||
-               queryframecontrol(16) w1 w2 queryframecontrol(32) w3 w4 w5 w6 w7 w8 w9 || ' ' ||
-               bitmap_present w10 queryframecontrol(8192) rest)
+               queryframecontrol(1)    || ' ' ||
+               queryframecontrol(2)    || ' ' ||
+               queryframecontrol(8)    || ' ' ||
+               queryframecontrol(16)   || ' ' ||
+               w1                      || ' ' ||
+               w2                      || ' ' ||
+               queryframecontrol(32)   || ' ' ||
+               w3                      || ' ' ||
+               w4                      || ' ' ||
+               w5                      || ' ' ||
+               w6                      || ' ' ||
+               w7                      || ' ' ||
+               w8                      || ' ' ||
+               w9                      || ' ' ||
+               bitmap_present          || ' ' ||
+               w10                     || ' ' ||
+               queryframecontrol(8192) || ' ' ||
+               rest)
          else
             'SaveOptions OptOnly'
          endif
@@ -657,13 +793,14 @@ defc SetConfig
 
    elseif configid = 16 then
       if bm_filename <> newcmd then
-         bm_filename = newcmd
+;         bm_filename = newcmd
          if bitmap_present then
             if bm_filename = '' then  -- Need to turn off & back on to get default bitmap
                'toggle_bitmap'
                'toggle_bitmap'
             else
-               'load_dt_bitmap' bm_filename
+;               'load_dt_bitmap' bm_filename
+               'load_dt_bitmap' newcmd
             endif
          endif
       endif
@@ -722,8 +859,21 @@ compile endif
          newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
             parse value newcmd with w1 w2 w3 w4 w5 w6 w7 . w8 . . . rest
+            -- OPTFLAGS:            1  2  3  4  5  6  7    9
             call setprofile( app_hini, appname, INI_OPTFLAGS,
-                             w1 w2 w3 w4 w5 w6 w7 markflg w8 streamflg profile longnames rest)  -- fixed 1: exchanged show_longname and rexx_profile
+                             w1        || ' ' ||
+                             w2        || ' ' ||
+                             w3        || ' ' ||
+                             w4        || ' ' ||
+                             w5        || ' ' ||
+                             w6        || ' ' ||
+                             w7        || ' ' ||
+                             markflg   || ' ' ||
+                             w8        || ' ' ||
+                             streamflg || ' ' ||
+                             longnames || ' ' ||
+                             profile   || ' ' ||
+                             rest)
          else
             'SaveOptions OptOnly'
          endif
@@ -753,6 +903,7 @@ compile endif
       if perm then
          newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
+            -- OPTFLAGS:   14
             call setprofile( app_hini, appname, INI_OPTFLAGS,
                              subword( newcmd, 1, 13) on subword( newcmd, 15))
          else
@@ -783,6 +934,7 @@ compile endif
       endif
       if perm then
          temp = queryprofile( app_hini, appname, INI_OPTFLAGS)
+         -- OPTFLAGS:   16
          if temp <> '' then
             call setprofile( app_hini, appname, INI_OPTFLAGS,
                              subword( temp, 1, 15) newcmd subword( temp, 17))
@@ -825,6 +977,7 @@ compile endif
       'SaveFont'
    endif
 
+; ---------------------------------------------------------------------------
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: initconfig                                               ³
@@ -949,7 +1102,7 @@ compile endif
    -- Options from Option pulldown
    next = queryprofile( app_hini, appname, INI_OPTFLAGS)
    if words( next) < 17 then
-      next = '1 1 1 1 1 1 0 0 1 1 1 1 1 0 1 1 0 '
+      next = '1 1 1 1 1 1 0 0 1 1 1 1 1 0 0 1 0 '
       --      1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8
       --  1 Status line
       --  2 Message line
@@ -961,8 +1114,8 @@ compile endif
       --  8 CUA marking
       --  9 Menu item hints
       -- 10 Stream mode
-      -- 11 REXX profile
-      -- 12 Show .LONGNAME in titletext
+      -- 11 Show .LONGNAME in titletext
+      -- 12 REXX profile
       -- 13 Esc opens commandline
       -- 14 Tabkey
       -- 15 Background bitmap
@@ -974,7 +1127,7 @@ compile endif
       -- correct bit/word.
       call setprofile( app_hini, appname, INI_OPTFLAGS, next)
    endif
-   parse value next with statflg msgflg vscrollflg hscrollflg fileiconflg rotflg extraflg markflg menu_prompt streamflg profile longnames escapekey tabkey new_bitmap tb_present drop_style optflag_extrastuff  -- fixed 3: exchanged show_longname and rexx_profile
+   parse value next with statflg msgflg vscrollflg hscrollflg fileiconflg rotflg extraflg markflg menu_prompt streamflg longnames profile escapekey tabkey new_bitmap toolbar_present drop_style optflag_extrastuff
    'toggleframe 1' statflg
    'toggleframe 2' msgflg
    'toggleframe 8' vscrollflg
@@ -1061,13 +1214,26 @@ compile if not defined(my_CURSORDIMENSIONS)
 compile endif -- not defined(my_CURSORDIMENSIONS)
 
    Setup = queryprofile( app_hini, 'UCMenu', 'ConfigInfo')
-   if Setup = '' then
-      Setup = \1''120''\1''26''\1''26''\1'9.WarpSans'\1'16777216'\1'16777216'\1
+   -- count \1 values in tempstr
+   rest = Setup
+   startp = 1
+   i = 1
+   do forever
+      p = pos( \1, rest, startp)
+      if p = 0 then
+         leave
+      endif
+      i = i + 1
+      startp = startp + 1
+   enddo
+   fWriteDefaultString = (i < 7)
+   if fWriteDefaultString then
+      --Setup = \1'8'\1'32'\1'32'\1'8.Helv'\1'16777216'\1'16777216'\1  -- internal default if no entry in EPM.INI
+      Setup = \1'56'\1'32'\1'32'\1'9.WarpSans'\1'16777216'\1'16777216'\1  -- new default if no entry in EPM.INI
       call setprofile( app_hini, 'UCMenu', 'ConfigInfo', Setup)
-      fApplyToolbarStyle = 1
    endif
-   if tb_present then
-      --'default_toolbar'
+
+   if toolbar_present then
       'ReloadToolbar'
    endif
 
@@ -1114,6 +1280,7 @@ compile endif  -- CHECK_FOR_LEXAM
    'loaddefaultmenu'
    'loadaccel'
 
+; ---------------------------------------------------------------------------
 ; These settings are not changed by the standard settings dialog.
 ; They were set to the values of consts previously.
 defc initconfig2
@@ -1191,7 +1358,7 @@ defc initconfig2
    'SetStatFace' getpminfo( EPMINFO_EDITSTATUSHWND) fontname
    'SetStatPtsize' getpminfo( EPMINFO_EDITSTATUSHWND) fontsize
 
-
+; ---------------------------------------------------------------------------
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: saveoptions                                              ³
@@ -1228,8 +1395,8 @@ defc SaveOptions
                     cua_marking_switch                 || ' ' ||  --  8 CUA marking
                     menu_prompt                        || ' ' ||  --  9 Menu item hints
                     stream_mode                        || ' ' ||  -- 10 Stream mode
-                    rexx_profile                       || ' ' ||  -- 11 REXX profile                fixed 2: exchanged show_longname and rexx_profile
-                    show_longnames                     || ' ' ||  -- 12 Show .LONGNAME in titletext
+                    show_longnames                     || ' ' ||  -- 11 Show .LONGNAME in titletext
+                    rexx_profile                       || ' ' ||  -- 12 REXX profile
                     escape_key                         || ' ' ||  -- 13 Esc opens commandline
                     tab_key                            || ' ' ||  -- 14 Tabkey
                     bitmap_present                     || ' ' ||  -- 15 Background bitmap
@@ -1259,6 +1426,8 @@ compile endif
 ; Then the standard args are 'EDIT' | 'MSG' | 'STAT'. They are replaced
 ; with words of KeyList. If no word of KeyList is specified as arg, then all
 ; fonts are saved.
+; Called as well by the config dialog on close, if the "Save settings"
+; checkbox was checked.
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³ what's it called: savefont                                                 ³
@@ -1362,7 +1531,7 @@ defc SaveColor
       endif
       wp2 = wordpos( next, upcase( KeyList))
       if wp2 then
-         new = new'\'next
+         new = new next
       endif
    enddo
    args = strip( new)
