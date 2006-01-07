@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.21 2006-01-03 22:26:50 aschn Exp $
+* $Id: epmcall.c,v 1.22 2006-01-07 23:25:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -46,9 +46,9 @@
 
 #define EPM_SWITCH_CHARS "/"
 
-APIRET CallEPM(  INT argc, PSZ  argv[], PSZ  envv[])
+APIRET CallEPM( INT argc, PSZ argv[], PSZ envv[])
 {
-         APIRET         rc  = NO_ERROR;
+         APIRET         rc = NO_ERROR;
          ULONG          i;
          PSZ            pszEnv = NULL;
 
@@ -126,6 +126,9 @@ do
          pszMask = "\"%s\" ";
       else
          pszMask = "%s ";
+      // Minor bug: "'...'" is submitted to EPM as "'..."', but that doesn't
+      // matter, because EPM strips every " char before args are processed by
+      // its EDIT command.
 
       sprintf( _EOS( szProgramArgs), pszMask, argv[ i]);
 
@@ -300,7 +303,7 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-INT main ( INT argc, PSZ  argv[], PSZ  envv[])
+INT main ( INT argc, PSZ argv[], PSZ envv[])
 {
 
          APIRET         rc  = NO_ERROR;
