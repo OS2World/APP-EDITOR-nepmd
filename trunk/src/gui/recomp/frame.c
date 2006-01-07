@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: frame.c,v 1.7 2002-08-24 20:07:40 cla Exp $
+* $Id: frame.c,v 1.8 2006-01-07 23:30:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -395,7 +395,7 @@ return hmodResource;
 
 // ---------------------------------------------------------------------
 
-APIRET ExecuteFrame( HAB hab, INT argc, PSZ  argv[], PSZ envp[])
+APIRET ExecuteFrame( HAB hab, INT argc, PSZ argv[], PSZ envp[])
 {
          APIRET         rc = NO_ERROR;
 
