@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.14 2006-01-08 18:26:02 aschn Exp $
+* $Id: toolbar.e,v 1.15 2006-01-08 22:44:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -678,7 +678,7 @@ defc ToolbarSize
    Text    = 'Enter x-size y-size (default: 26 26):'
    DefaultButton = 1
    parse value entrybox( Title,
-                         '/~Set/~Reset/~Cancel',  -- max. 4 buttons
+                         '/~Set/~Reset/'CANCEL__MSG,  -- max. 4 buttons
                          Cx Cy,
                          '',
                          260,
