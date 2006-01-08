@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.29 2006-01-08 12:36:31 aschn Exp $
+* $Id: newmenu.e,v 1.30 2006-01-08 18:25:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -203,7 +203,7 @@ definit
                     /* Mark */      ' markatcursor' ||
                     /* Format */    ' reflowmargins reflow' ||
                     /* Search */    ' goto markstack cursorstack bookmarks' ||
-                    /* View */      ' menu infobars toolbar backgroundbitmap' ||
+                    /* View */      ' menu infobars toolbar toolbarstyle backgroundbitmap' ||
                     /* Options */   ' editoptions saveoptions searchoptions' ||
                                     ' mainsettings markingsettings marginsandtabs accelsettings' ||
                                     ' readonlyandlock autorestore' ||
@@ -1748,15 +1748,15 @@ defproc add_view_menu(menuname)
                                    'ToggleToolbarAutoSize' ||
                                    \1'Adjust button sizes to the .bmp sizes',
                                    MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_toolbarsize', i);
-   buildmenuitem menuname, mid, i, '~Size: [x]...',                                                            -- Size: [26x26]...
-                                   'ToolbarSizeBox' ||
+   i = i + 1; call SetAVar( 'mid_toolbarsize', i); call SetAVar( 'mtxt_toolbarsize', '~Size: [x]...')
+   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_toolbarsize'),                                               -- Size: [26x26]...
+                                   'ToolbarSize' ||
                                    \1'Default = 26x26, add 4x4 to the .bmp size',
                                    MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_toolbarscaling', i);
-   buildmenuitem menuname, mid, i, 'S~caling: []',                                                             -- Scaling: [delete]
+   i = i + 1; call SetAVar( 'mid_toolbarscaling', i); call SetAVar( 'mtxt_toolbarscaling', 'S~caling: []')
+   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_toolbarscaling'),                                            -- Scaling: [and]
                                    'ToggleToolbarScaling' ||
-                                   \1'In most cases "delete" looks best',
+                                   \1'In most cases "and" looks best',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
@@ -1781,39 +1781,6 @@ defproc add_view_menu(menuname)
                                    'ExportToolbar' ||
                                    \1'',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
-/*
-    View -> Toolbar -> Select...
-    View -> Toolbar -> ---------
-    View -> Toolbar -> Style ->
-    View -> Toolbar -> Style -> ( ) Automatic size                  Title: Enter size in WxH for toolbar buttons
-    View -> Toolbar -> Style ->     Size [26x26]...                  Text: The size should be 4x4 larger than the bmp size to avoid scaling
-    View -> Toolbar -> Style ->     Scale mode [delete|or|and]         or: (default = 26x26, add 4x4 to the bmp size)
-    View -> Toolbar -> Style ->     ---------
-    View -> Toolbar -> Style -> ( ) Show title
-
-;   View -> Toolbar -> Style ->     Title font [9.Warp Sans]...
-;   View -> Toolbar -> Style ->     Background color [...]...
-;   View -> Toolbar -> Style ->     Button color [...]...
-
-    View -> Toolbar -> ---------
-    View -> Toolbar -> Save                  Only enabled, if current toolbar has changed, all other items are disabled then!
-    View -> Toolbar -> Discard                "            Todo: extend Rexx macro to be able to just compare 2 toolbars
-    View -> Toolbar -> ---------
-    View -> Toolbar -> Import
-    View -> Toolbar -> Export
-
-    6026268.Helv1677721616777216
-     |               |        |
-     --------------- color    color
-     delete = 8
-     and    = 40 (*)
-     or     = 100
-     ---------------
-     title  = 4
-     ---------------
-     auto-size = 16
-     ---------------
-*/
    i = i + 1; call SetAVar( 'mid_backgroundbitmap', i);
    buildmenuitem menuname, mid, i, '~Background bitmap',                                           -- Background bitmap   >
                                    '',
@@ -1828,12 +1795,6 @@ defproc add_view_menu(menuname)
                                    'SetBackgroundBitmap SELECT' ||
                                    \1'Select a background bitmap',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
-/*
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-*/
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Color palette',                                               -- Color palette...
                                    '' ||
@@ -2979,9 +2940,10 @@ compile endif
    SetMenuAttribute( GetAVar('mid_tabkey'),              MIA_CHECKED, not tab_key)
    SetMenuAttribute( GetAVar('mid_matchtab'),            MIA_CHECKED, not matchtab_on)
 
-   SetMenuAttribute( GetAVar('mid_readonly'),            MIA_DISABLED, Exist(.filename))
-   SetMenuAttribute( GetAVar('mid_locked'),              MIA_DISABLED, Exist(.filename))
-   SetMenuAttribute( GetAVar('mid_wpsproperties'),       MIA_DISABLED, Exist(.filename))
+   new = Exist(.filename)
+   SetMenuAttribute( GetAVar('mid_readonly'),            MIA_DISABLED, new)
+   SetMenuAttribute( GetAVar('mid_locked'),              MIA_DISABLED, new)
+   SetMenuAttribute( GetAVar('mid_wpsproperties'),       MIA_DISABLED, new)
 
    new = GetMode()
    parse value GetAVar('mtxt_mode') with next'['x']'rest
@@ -3193,6 +3155,32 @@ defc menuinit_infobars
 
 defc menuinit_toolbar
    SetMenuAttribute( GetAVar('mid_toolbarenabled'), MIA_CHECKED, not queryframecontrol(EFRAMEF_TOOLBAR))
+
+defc menuinit_toolbarstyle
+   parse value GetToolbarSetup() with \1 Style \1 Cx \1 Cy \1 .
+   fText     = not (Style bitand 16)
+   fAutosize = not (Style bitand 4)
+   fFlat     = not (Style bitand 8)
+   fScaleDel = (not (Style bitand 32)) and (not (Style bitand 64))
+   fScaleOr  = (Style bitand 32) and (Style bitand 64)
+   fScaleAnd = (Style bitand 32) and (not (Style bitand 64))
+
+   SetMenuAttribute( GetAVar('mid_toolbartext'),     MIA_CHECKED, not fText)
+   SetMenuAttribute( GetAVar('mid_toolbarautosize'), MIA_CHECKED, not fAutosize)
+   SetMenuAttribute( GetAVar('mid_toolbarsize'),     MIA_DISABLED, not fAutosize)
+   SetMenuAttribute( GetAVar('mid_toolbarscaling'),  MIA_DISABLED, not fAutosize)
+   new = Cx'x'Cy
+   parse value GetAVar('mtxt_toolbarsize') with next'['x']'rest
+   SetMenuText( GetAVar('mid_toolbarsize'), next'['new']'rest)
+   if fScaleDel then
+      new = 'delete'
+   elseif fScaleOr then
+      new = 'or'
+   else
+      new = 'and'
+   endif
+   parse value GetAVar('mtxt_toolbarscaling') with next'['x']'rest
+   SetMenuText( GetAVar('mid_toolbarscaling'), next'['new']'rest)
 
 defc menuinit_backgroundbitmap
    universal bitmap_present
@@ -3634,6 +3622,91 @@ defc toggle_toolbar
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
       new = subword( old, 1, 15)' 'on' 'subword( old, 17)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
+   endif
+
+; ---------------------------------------------------------------------------
+defc ToggleToolbarText
+   universal menuloaded
+   parse value GetToolbarSetup() with \1 Style \1 SetupRest
+   fText     = not (Style bitand 16)
+   fAutosize = not (Style bitand 4)
+   fFlat     = not (Style bitand 8)
+   fScaleDel = (not (Style bitand 32)) and (not (Style bitand 64))
+   fScaleOr  = (Style bitand 32) and (Style bitand 64)
+   fScaleAnd = (Style bitand 32) and (not (Style bitand 64))
+
+   fText = not fText
+
+   Style = 16*(not fText) + 4*(not fAutosize) + 8*(not fFlat) +
+           32*(fScaleAnd) + 96*(fScaleOr)
+   call SetToolbarSetup( \1''Style\1''SetupRest)
+
+   if menuloaded then
+      SetMenuAttribute( GetAVar('mid_toolbartext'), MIA_CHECKED, not fText)
+   endif
+
+; ---------------------------------------------------------------------------
+defc ToggleToolbarAutosize
+   universal menuloaded
+   parse value GetToolbarSetup() with \1 Style \1 SetupRest
+   fText     = not (Style bitand 16)
+   fAutosize = not (Style bitand 4)
+   fFlat     = not (Style bitand 8)
+   fScaleDel = (not (Style bitand 32)) and (not (Style bitand 64))
+   fScaleOr  = (Style bitand 32) and (Style bitand 64)
+   fScaleAnd = (Style bitand 32) and (not (Style bitand 64))
+
+   fAutosize = not fAutosize
+
+   Style = 16*(not fText) + 4*(not fAutosize) + 8*(not fFlat) +
+           32*(fScaleAnd) + 96*(fScaleOr)
+   call SetToolbarSetup( \1''Style\1''SetupRest)
+
+   if menuloaded then
+      SetMenuAttribute( GetAVar('mid_toolbarautosize'), MIA_CHECKED, not fAutosize)
+      SetMenuAttribute( GetAVar('mid_toolbarsize'),     MIA_DISABLED, not fAutosize)
+      SetMenuAttribute( GetAVar('mid_toolbarscaling'),  MIA_DISABLED, not fAutosize)
+   endif
+
+; ---------------------------------------------------------------------------
+defc ToggleToolbarScaling
+   universal menuloaded
+   parse value GetToolbarSetup() with \1 Style \1 SetupRest
+   fText     = not (Style bitand 16)
+   fAutosize = not (Style bitand 4)
+   fFlat     = not (Style bitand 8)
+   fScaleDel = (not (Style bitand 32)) and (not (Style bitand 64))
+   fScaleOr  = (Style bitand 32) and (Style bitand 64)
+   fScaleAnd = (Style bitand 32) and (not (Style bitand 64))
+
+   if fScaleAnd then
+      fScaleDel = 1
+      fScaleOr  = 0
+      fScaleAnd = 0
+   elseif fScaleDel then
+      fScaleDel = 0
+      fScaleOr  = 1
+      fScaleAnd = 0
+   else
+      fScaleDel = 0
+      fScaleOr  = 0
+      fScaleAnd = 1
+   endif
+
+   Style = 16*(not fText) + 4*(not fAutosize) + 8*(not fFlat) +
+           32*(fScaleAnd) + 96*(fScaleOr)
+   call SetToolbarSetup( \1''Style\1''SetupRest)
+
+   if menuloaded then
+      if fScaleDel then
+         new = 'delete'
+      elseif fScaleOr then
+         new = 'or'
+      else
+         new = 'and'
+      endif
+      parse value GetAVar('mtxt_toolbarscaling') with next'['x']'rest
+      SetMenuText( GetAVar('mid_toolbarscaling'), next'['new']'rest)
    endif
 
 ; ---------------------------------------------------------------------------

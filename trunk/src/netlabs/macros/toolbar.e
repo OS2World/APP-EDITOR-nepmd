@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.13 2006-01-08 12:36:37 aschn Exp $
+* $Id: toolbar.e,v 1.14 2006-01-08 18:26:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -563,54 +563,58 @@ defc load_toolbar, LoadToolbar
    call setprofile( app_hini, appname, INI_OPTFLAGS, new)
 
 ; ---------------------------------------------------------------------------
-defc SetToolbarStyle
-   Setup = strip( arg(1))
-   dprintf( 'SetToolbarStyle', 'Setup = 'Setup)
-   if pos( \1, Setup) = 0 then
-      Style = Setup
-      Setup = ''
-      if Style = '' then
-         Style = 60
+; Return current setup string. Colors are always reset.
+defproc GetToolbarSetup
+   universal app_hini
+   Setup = queryprofile( app_hini, 'UCMenu', 'ConfigInfo')
+   -- count \1 values in tempstr
+   rest = Setup
+   startp = 1
+   i = 1
+   do forever
+      p = pos( \1, rest, startp)
+      if p = 0 then
+         leave
       endif
+      i = i + 1
+      startp = startp + 1
+   enddo
+   fWriteDefaultString = (i < 7)
+   if fWriteDefaultString then
+      --Setup = \1'8'\1'32'\1'32'\1'8.Helv'\1'16777216'\1'16777216'\1  -- internal default if no entry in EPM.INI
+      Setup = \1'56'\1'26'\1'26'\1'9.WarpSans'\1'16777216'\1'16777216'\1  -- new default if no entry in EPM.INI
+      call setprofile( app_hini, 'UCMenu', 'ConfigInfo', Setup)
    endif
-   if Setup = '' then
-      /*
-      6026268.Helv1677721616777216
-       |               |        |
-       --------------- color    color
-       delete = 8
-       and    = 40 (*)
-       or     = 100
-       ---------------
-       title  = 4
-       ---------------
-       auto-size = 16...20
-       ---------------
-       flat buttons + auto-size = 16...18
-       flat buttons + auto-size + title = 32
-       flat buttons + ? + title = 36
-       flat buttons + delete = 52
-      */
-      Setup = \1'24'\1'26'\1'26'\1'8.Helv'\1'16777216'\1'16777216'\1
-      Setup = \1'64'\1'26'\1'26'\1'9.WarpSans'\1'16777216'\1'16777216'\1
-      Setup = \1''Style\1'20'\1'20'\1'9.WarpSans'\1'16777216'\1'16777216'\1
-   endif
-;   else
-;      Setup = \1''tb_style\1''tb_cx\1''tb_cy\1''tb_font\1''tb_color\1''tb_itemcolor\1
-;   endif
+   -- Always reset background colors, because any other color then PM's
+   -- default looks ugly and apparantly the determination of the
+   -- resulting color is buggy.
+   -- Note: background colors can be changed via the color palette.
+   parse value Setup with \1 Style \1 Cx \1 Cy \1 TbFont \1 Color \1 ItemColor \1
+   Setup = \1''Style\1''Cx\1''Cy\1''TbFont\1'16777216'\1'16777216'\1  -- always reset colors
+   return Setup
+
+; ---------------------------------------------------------------------------
+; Write specified setup string to ini.
+defproc SetToolbarSetup
+   universal app_hini
+   Setup = arg(1)
+   call setprofile( app_hini, 'UCMenu', 'ConfigInfo', Setup)
    call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
                        5921,
                        put_in_buffer( Setup), 0)
+   return
 
+; ---------------------------------------------------------------------------
+; Toolbar style:
 /*
 fText     = not (Style bitand 16)
 fAutosize = not (Style bitand 4)
 fFlat     = not (Style bitand 8)
 fScaleDel = (not (Style bitand 32)) and (not (Style bitand 96))
-fScaleOr  = Style bitand 32
-fScaleAnd = Style bitand 96
+fScaleOr  = Style bitand 96
+fScaleAnd = Style bitand 32
 
-Value   Text    Auto    Delete  And     Or
+Value   Text    Auto    Delete  Or      And
 -------------------------------------------
 
 8       1       1       1
@@ -634,11 +638,12 @@ Value   Text    Auto    Delete  And     Or
 4   0x04  0000 0100  no Auto
 8   0x08  0000 1000  Border
 16  0x10  0001 0000  no Text
-32  0x20  0010 0000  Or
+32  0x20  0010 0000  And
 64  0x40  0100 0000  (unused)
-96  0x60  0110 0000  And = 32 + 64
+96  0x60  0110 0000  Or = 32 + 64
 */
 
+/*
 defc testbitand
    Style = arg(1)
 
@@ -646,13 +651,51 @@ defc testbitand
    fAutosize = not (Style bitand 4)
    fFlat     = not (Style bitand 8)
    fScaleDel = (not (Style bitand 32)) and (not (Style bitand 64))
-   fScaleAnd = (Style bitand 32) and (Style bitand 64)
-   fScaleOr  = (Style bitand 32) and (not (Style bitand 64))
+   fScaleOr  = (Style bitand 32) and (Style bitand 64)
+   fScaleAnd = (Style bitand 32) and (not (Style bitand 64))
 
    next = 16*(not fText) + 4*(not fAutosize) + 8*(not fFlat) +
-          32*(fScaleOr) + 96*(fScaleAnd)
+          32*(fScaleAnd) + 96*(fScaleOr)
 
-   sayerror Style'['next']: 'fText fAutosize fScaleDel fScaleAnd fScaleOr
+   sayerror Style'['next']: 'fText fAutosize fScaleDel fScaleOr fScaleAnd
+*/
+
+; ---------------------------------------------------------------------------
+; Syntax: ToolbarSize [cx cy]
+defc ToolbarSize
+   parse value GetToolbarSetup() with \1 Style \1 Cx \1 Cy \1 SetupRest
+   -- if executed with an arg
+   arg1 = upcase( arg(1))
+   if arg1 <> '' then
+      parse value arg1 with newx newy
+      if IsNum( newx) & IsNum( newy) then
+         call SetToolbarSetup( \1''Style\1''newx\1''newy\1''SetupRest)
+         return
+      endif
+   endif
+   -- else open entrybox
+   Title   = 'Configure toolbar button size'
+   Text    = 'Enter x-size y-size (default: 26 26):'
+   DefaultButton = 1
+   parse value entrybox( Title,
+                         '/~Set/~Reset/~Cancel',  -- max. 4 buttons
+                         Cx Cy,
+                         '',
+                         260,
+                         atoi(DefaultButton)  ||
+                         atoi(0000)           ||  -- help id
+                         gethwndc(APP_HANDLE) ||
+                         Text) with Button 2 NewValue \0
+   NewValue = strip(NewValue)
+   if Button = \1 then
+      'ToolbarSize' NewValue
+      return
+   elseif Button = \2 then
+      'ToolbarSize 26 26'
+      return
+   elseif Button = \3 then
+      return
+   endif
 
 ; ---------------------------------------------------------------------------
 defc DragDrop_BAR
