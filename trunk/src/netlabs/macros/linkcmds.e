@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.33 2005-11-23 22:39:16 aschn Exp $
+* $Id: linkcmds.e,v 1.34 2006-01-08 00:21:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -33,20 +33,48 @@ const SITE_CONFIG = 'SITECNF.E'
  compile endif
 
 const
- compile if not defined(WANT_ET_COMMAND)
-   WANT_ET_COMMAND = 1
- compile endif
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
    include NLS_LANGUAGE'.e'
 compile endif
 
+----------> Todo: move workaround with HideMenuItems to a defproc, to make
+----------        it usable by other defs
+----------> Todo: option QUIET or better:
+----------        suppress all normal output until the EPM window is shown
+----------        or the menu is created (where a universal already exists
+----------        for) or better:
+--                Suppress all non-critical msgs at definit and activate it
+--                in defmain, after the menu is shown.
+----------> Todo: Provide array vars to specify ExFile names with huge menus
 ; ---------------------------------------------------------------------------
-; Syntax: link [<path>][<modulename>][.ex]          Example:  link draw
-; A simple front end to the link statement to allow command-line invocation.
+; A front end to the link statement. This command should always be used in
+; preference to the link statement.
+; The QUIET option suppresses messages, when linking was successful or
+; module was already linked.
+; Unfortunately no E command is processed, when an .EX file is dropped onto
+; the edit window. That file is processed by the internally defined link
+; statement only.
+; Syntax: link [QUIET] [<path>][<modulename>][.ex]         Example: link draw
+; Returns:
+;     -1  not linked, because already linked
+;    <-1  error (message is shown, even for QUIET option)
+;    >=0  linked successfully, the linked module number is returned, starting
+;         with 0 for EPM.EX, followed by 1 etc.
 defc link
-   modulename = arg(1)
+   universal nepmd_hini
+   universal menuloaded  -- only defined in newmenu yet
+
+   args = arg(1)
+   wp = wordpos( 'QUIET', upcase( args))
+   fQuiet = (wp > 0) |
+            (menuloaded <> 1)  -- quiet if menu not already loaded
+   if wp then
+      args = delword( args, wp, 1)  -- remove 'QUIET' from args
+   endif
+
+   modulename = args
    if modulename = '' then                           -- If no name given,
       p = lastpos( '.', .filename)
       if upcase( substr( .filename, p)) <> '.E' then
@@ -57,32 +85,65 @@ defc link
       p2 = lastpos( '\', modulename)
       modulename = substr( modulename, p2 + 1)       -- strip path
    endif
-   waslinkedrc = linked(modulename)
-   if waslinkedrc >= 0 then
-      sayerror 'Module "'modulename'" already linked as module #'waslinkedrc'.'
-      rc = -1
-      return
-   endif
-   display -2  -- Turn non-critical messages off, we give our own message.
-   link modulename
-   linkrc = rc
-   display 2
-   if linkrc >= 0 then
-      --sayerror LINK_COMPLETED__MSG RC
-      sayerror LINK_COMPLETED__MSG''linkrc' "'modulename'"'
-   elseif linkrc = -307 then
-      sayerror 'Module "'modulename'" not linked, file not found'
-   elseif linkrc < 0 then
-      -- Sometimes is linkrc = empty, therefore check it again
-      linkedrc = linked(modulename)
-      if linkedrc < 0 then
-         sayerror 'Module "'modulename'" not linked, rc = 'linkrc', linkedrc = 'linkedrc
-      elseif waslinkedrc < 0 then
-         sayerror LINK_COMPLETED__MSG''linkedrc' "'modulename'"'
+
+   waslinkedrc = linked( modulename)
+   if waslinkedrc >= 0 then  -- >= 0, then it's the number in the link history
+      if not fQuiet then
+         sayerror 'Module "'modulename'" already linked as module #'waslinkedrc'.'
+      endif
+
+   else
+      if isadefproc( 'BeforeLink') then
+         call BeforeLink( modulename)
+      endif
+
+      display -2  -- Turn non-critical messages off, we give our own message.
+      link modulename
+      linkrc = rc    -- save value
+      linkedrc = rc  -- initialize only
+      display 2
+
+      -- Link always returns rc = 0 if successful, different to linked()
+      if linkrc = -307 then
+         sayerror 'Module "'modulename'" not linked, file not found'
+      elseif linkrc = -308 then
+         sayerror 'Module "'modulename'" not linked, invalid filename'
       else
-         sayerror 'Module "'modulename'": linkedrc = 'linkedrc
+         -- Bug of Link: Sometimes linkrc = empty, therefore check it again with linked()
+         linkedrc = linked( modulename)
+         if linkedrc < 0 then  -- any other rc values than -307 or -308?
+            sayerror 'Module "'modulename'" not linked, rc = 'linkrc', linkedrc = 'linkedrc
+         else
+            if not fQuiet then
+               sayerror LINK_COMPLETED__MSG''linkedrc' "'modulename'"'
+            endif
+         endif
+      endif
+   endif  -- waslinkedrc >= 0 else
+
+   if waslinkedrc >= 0 then
+      savedrc = -1        -- if already linked
+   else
+      if linkrc = '' | linkrc = 0 then
+         savedrc = linkedrc  -- on success: return the link number (0, 1, ...)
+      else
+         savedrc = linkrc    -- E error code (< 0)
+      endif
+
+      if isadefproc( 'AfterLink') then
+         call AfterLink( savedrc)
       endif
    endif
+
+   rc = savedrc
+
+; ---------------------------------------------------------------------------
+; The following doesn't work. Dropping .ex files is always processed internally.
+; defc DragDrop_EX
+;    'link' arg(1)  -- better use the defc
+;
+; defc DrgDrpTyp_EX_FILE
+;    'link' arg(1)  -- better use the defc
 
 ; ---------------------------------------------------------------------------
 ; Syntax: unlink [<path>][<modulename>][.ex]        Example:  unlink draw
@@ -597,9 +658,9 @@ defc RecompileAll
 
 ; ---------------------------------------------------------------------------
 ; Walk through all files in .LST files (like RecompileAll). Recompile all
-; files, whose E sources are newer then their EX files.
+; files, whose E sources are newer than their EX files.
 ; Could be a problem: the ini entry for epm\EFileTimes has currently 1341
-; byte. Apparently in ETK every string is limitted to 1599 byte.
+; byte. Apparently in ETK every string is limited to 1599 byte.
 ; Syntax: RecompileNew [RESET] | [CHECKONLY] [NOMSG] [NOMSGBOX]
 defc RecompileNew
    universal nepmd_hini
@@ -624,14 +685,14 @@ defc RecompileNew
 
    parse value DateTime() with Date Time
 
-   if not fCheckOnly then
+   if not fCheckOnly & not fReset then
       'RingCheckModify'
    endif
 
    Path = NepmdScanEnv('EPMEXPATH')
    parse value Path with 'ERROR:'rc
    if (rc > '') then
-      return
+      return rc
    endif
 
    ListFiles = ''
@@ -771,10 +832,11 @@ defc RecompileNew
       NewExFileTime     = ''
       NetlabsExFileTime = ''
       LastCheckTime     = ''
-      KeyPath1 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\LastCheckTime'
-      KeyPath2 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\Time'
-      KeyPath3 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\EFiles'     -- EFiles     = base.ext;...
-      KeyPath4 = '\NEPMD\User\ExFiles\'lowcase(BaseName)'\EFileTimes' -- EFileTimes = date time;...
+      KeyPath  = '\NEPMD\System\ExFiles\'lowcase(BaseName)
+      KeyPath1 = KeyPath'\LastCheckTime'
+      KeyPath2 = KeyPath'\Time'
+      KeyPath3 = KeyPath'\EFiles'     -- EFiles     = base.ext;...
+      KeyPath4 = KeyPath'\EFileTimes' -- EFileTimes = date time;...
 
       if fReset then
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath1)
@@ -800,12 +862,7 @@ defc RecompileNew
          next = NepmdQueryPathInfo( CurExFile, 'MTIME')
          parse value next with 'ERROR:'rc
          if rc = '' then
-            parse value next with hh':'junk
-            if length( hh) < 2 then
-               CurExFileTime = '0'next
-            else
-               CurExFileTime = next
-            endif
+            CurExFileTime = next
             next = NepmdQueryConfigValue( nepmd_hini, KeyPath2)
             if next <> CurExFileTime then
                fCompExFile = 1
@@ -816,12 +873,7 @@ defc RecompileNew
                next = NepmdQueryPathInfo( NetlabsExFile, 'MTIME')
                parse value next with 'ERROR:'rc
                if rc = '' then
-                  parse value next with hh':'junk
-                  if length( hh) < 2 then
-                     NetlabsExFileTime = '0'next
-                  else
-                     NetlabsExFileTime = next
-                  endif
+                  NetlabsExFileTime = next
                   if upcase(CurExFile) <> upcase(NetlabsExFile) then  -- if different pathnames
                      fCompCurExFile = 1
                   endif
@@ -843,6 +895,7 @@ defc RecompileNew
                      if fFoundMd5 = 1 then
                         WriteLog( LogFile, '         'BaseName' - comparing current .EX file "'CurExFile'" with Netlabs .EX file')
                         comprc = Md5Comp( CurExFile, NetlabsExFile)
+                        delrc = ''
                         if comprc = 0 then
                            WriteLog( LogFile, '         'BaseName' - current .EX file "'CurExFile'" equal to Netlabs .EX file')
                            if not fCheckOnly then
@@ -930,12 +983,7 @@ defc RecompileNew
                next = NepmdQueryPathInfo( FullEFile, 'MTIME')
                parse value next with 'ERROR:'rc
                if rc = '' then
-                  parse value next with hh':'junk
-                  if length( hh) < 2 then
-                     EFileTime = '0'next
-                  else
-                     EFileTime = next
-                  endif
+                  EFileTime = next
                   -- Compare time of EFile with LastCheckTime and CurExFileTime
                   if not fCheckOnly then
                      if EFileTime > max( LastCheckTime, CurExFileTime) then
@@ -955,12 +1003,7 @@ defc RecompileNew
                   next = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
                   parse value next with 'ERROR:'rc
                   if rc = '' then
-                     parse value next with hh':'junk
-                     if length( hh) < 2 then
-                        NetlabsEFileTime = '0'next
-                     else
-                        NetlabsEFileTime = next
-                     endif
+                     NetlabsEFileTime = next
                      if EFileTime < NetlabsEFileTime then
                         WriteLog( LogFile, 'WARNING: 'BaseName' - .E file "'FullEFile'" older than Netlabs .E file')
                         cWarning = cWarning + 1
@@ -991,12 +1034,7 @@ defc RecompileNew
                next = NepmdQueryPathInfo( FullEFile, 'MTIME')
                parse value next with 'ERROR:'rc
                if rc = '' then
-                  parse value next with hh':'junk
-                  if length( hh) < 2 then
-                     EFileTime = '0'next
-                  else
-                     EFileTime = next
-                  endif
+                  EFileTime = next
                endif
                NewEFileTimes = NewEFileTimes''EFileTime';'
                -- Check E files here (after etpm) if not already done above
@@ -1007,12 +1045,7 @@ defc RecompileNew
                      next = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
                      parse value next with 'ERROR:'rc
                      if rc = '' then
-                        parse value next with hh':'junk
-                        if length( hh) < 2 then
-                           NetlabsEFileTime = '0'next
-                        else
-                           NetlabsEFileTime = next
-                        endif
+                        NetlabsEFileTime = next
                         if EFileTime < NetlabsEFileTime then
                            WriteLog( LogFile, 'WARNING: 'BaseName' - .E file "'FullEFile'" older than Netlabs .E file')
                            cWarning = cWarning + 1
@@ -1024,18 +1057,13 @@ defc RecompileNew
          else
             rc = etpmrc
             WriteLog( LogFile, 'ERROR:   'BaseName' - ETPM returned rc =' rc)
-            return
+            return rc
          endif
          -- Get time of new ExFile
          next = NepmdQueryPathInfo( ExFile, 'MTIME')
          parse value next with 'ERROR:'rc
          if rc = '' then
-            parse value next with hh':'junk
-            if length( hh) < 2 then
-               NewExFileTime = '0'next
-            else
-               NewExFileTime = next
-            endif
+            NewExFileTime = next
          endif
       endif
 
@@ -1135,8 +1163,6 @@ defc RecompileNew
          endif
       endif
 
-      --<----------------------------- Todo: Reset NewExFileTime if temp ExFile is equal.
-      --<----------------------------- Todo: Compare myepm with netlabs ExFile. Delete myepm ExFile if equal.
       if NewExFileTime > '' then
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath1)
          call NepmdWriteConfigValue( nepmd_hini, KeyPath1, NewExFileTime)
@@ -1160,7 +1186,7 @@ defc RecompileNew
       if not fNoMsg then
          sayerror 'All RecompileNew entries deleted from NEPMD.INI'
       endif
-      return
+      return 0
    endif
    if fCheckOnly then
       if cWarning > 0 then
@@ -1550,5 +1576,4 @@ defc StartRecompile
       sayerror 'Environment var NEPMD_ROOTDIR not set'
    endif
    return
-
 
