@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.14 2006-01-07 23:22:46 aschn Exp $
+* $Id: config.e,v 1.15 2006-01-08 12:36:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1127,7 +1127,7 @@ compile endif
       -- correct bit/word.
       call setprofile( app_hini, appname, INI_OPTFLAGS, next)
    endif
-   parse value next with statflg msgflg vscrollflg hscrollflg fileiconflg rotflg extraflg markflg menu_prompt streamflg longnames profile escapekey tabkey new_bitmap toolbar_present drop_style optflag_extrastuff
+   parse value next with statflg msgflg vscrollflg hscrollflg fileiconflg rotflg extraflg markflg menu_prompt streamflg longnames profile escapekey tabkey bm_present toolbar_present drop_style optflag_extrastuff
    'toggleframe 1' statflg
    'toggleframe 2' msgflg
    'toggleframe 8' vscrollflg
@@ -1182,23 +1182,18 @@ compile endif
    endif
    tab_key = default_tab_key
 ------------------------------------------------------------------
-   if bitmap_present <> new_bitmap then
-      'toggle_bitmap'
+
+   bm_filename = queryprofile( app_hini, appname, INI_BITMAP)
+   if next <> '' then
+      if bm_present then
+         'load_dt_bitmap' bm_filename
+      endif
    endif
 
    next = queryprofile( app_hini, appname, INI_ENTERKEYS)
 --------> todo?
    if next <> '' then
       parse value next with enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey .
-   endif
-
-   next = queryprofile( app_hini, appname, INI_BITMAP)
---------> todo?
-   if next <> '' then
-      bm_filename = next  -- Need to keep?
-      if bitmap_present then
-         'load_dt_bitmap' bm_filename
-      endif
    endif
 
    parse value queryprofile( app_hini, appname, INI_OPT2FLAGS) with pointer_style cursor_shape .

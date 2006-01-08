@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.12 2006-01-08 00:17:31 aschn Exp $
+* $Id: toolbar.e,v 1.13 2006-01-08 12:36:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -435,6 +435,7 @@ defc default_toolbar, ReloadToolbar
    endif
 
 ; ---------------------------------------------------------------------------
+; Todo: merge this with defc toggle_toolbar.
 ; From EPMSMP\LOADTB.E
 ; Command to load a previously-saved toolbar, by Larry Margolis
 
@@ -448,6 +449,7 @@ defc load_toolbar, LoadToolbar
    universal app_hini
    universal toolbar_loaded
    universal nepmd_hini
+   universal appname
 
    KeyPath = '\NEPMD\User\Toolbar\Name'
    StandardName = 'Standard'
@@ -530,6 +532,7 @@ defc load_toolbar, LoadToolbar
       if button = \2 then  -- Delete
          'DeleteToolbar' BarName
          'postme LoadToolbar'  -- Select a new one or delete another
+         return
       endif
       if button <> \1 then  -- Delete or Cancel
          return
@@ -554,6 +557,10 @@ defc load_toolbar, LoadToolbar
       toolbar_loaded = BarName
    endif
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, BarName)
+   -- Save toolbar activation bit
+   old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+   new = subword( old, 1, 15)' 1 'subword( old, 17)
+   call setprofile( app_hini, appname, INI_OPTFLAGS, new)
 
 ; ---------------------------------------------------------------------------
 defc SetToolbarStyle

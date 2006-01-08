@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.28 2006-01-08 00:24:49 aschn Exp $
+* $Id: newmenu.e,v 1.29 2006-01-08 12:36:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -210,14 +210,24 @@ definit
                                     ' opendlgdir workdir macros' ||
                     /* Run */       ' treecommands')
 
-   call AddOnceAVar( 'hidemenunames', 'KENHT HTM')
+   -- Define a list of abbreviations for linked .ex filenames, that add a
+   -- large amount of menu items. These .ex files will cause a decrease of
+   -- NewMenu items (in Options, View) when they are linked via the Link
+   -- command (not the Link statement).
+   -- EPM's amount of menu items is limited to about 600. NewMenu uses
+   -- already the half of them. Trying to link a menu with more items would
+   -- make EPM crash.
+-- Todo: replace abbrev with resolving wildcards
+   call AddOnceAVar( 'hidemenunames', 'KENHT HTM SGML LATEX GML EPMPRT GETHOST')
+   -- Define a list of abbreviations that won't cause a decrease of NewMenu
+   -- items, even when their abbreviations match the list above.
    call AddOnceAVar( 'unhidemenunames', 'HTMPOP')
 
    'InitMenuSettings'
 
 ; ---------------------------------------------------------------------------
-; Better don't use NepmdQueryConfigValue at definit, because this can cause the
-; definit to stop sometimes.
+; Better don't use NepmdQueryConfigValue at definit, because this can cause
+; stop of the definit processing sometimes.
 defc InitMenuSettings
    universal nodismiss
 
@@ -226,6 +236,8 @@ defc InitMenuSettings
    nodismiss = 32*on
 
 ; ---------------------------------------------------------------------------
+; Called by defc Link, if defined.
+; Hide some NewMenu items before linking several external menu additions.
 defproc BeforeLink
    universal MenuItemsHidden
    modulename = arg(1)
@@ -250,6 +262,7 @@ defproc BeforeLink
    fHide = 0
    do w = 1 to words( HideList)
       next = word( HideList, w)
+-- Todo: replace abbrev with resolving wildcards
       if abbrev( name, next) then
          fHide = 1
          leave
@@ -258,6 +271,7 @@ defproc BeforeLink
    if fHide then
       do w = 1 to words( UnHideList)
          next = word( UnHideList, w)
+-- Todo: replace abbrev with resolving wildcards
          if abbrev( name, next) then
             fHide = 0
             leave
@@ -273,6 +287,8 @@ defproc BeforeLink
    endif
 
 ; ---------------------------------------------------------------------------
+; Called by defc Link, if defined.
+; Used to check if the linking was successful. If not, unhide the menu items.
 defproc AfterLink
    universal MenuItemsHidden
    linkrc = arg(1)
@@ -3577,7 +3593,7 @@ defc toggle_profile
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
       SetMenuAttribute( GetAVar('mid_activateprofile'), MIA_CHECKED, not rexx_profile)
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-      new = subword( old, 1, 11)' 'rexx_profile' 'subword( old, 13)\0
+      new = subword( old, 1, 11)' 'rexx_profile' 'subword( old, 13)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
@@ -3596,11 +3612,12 @@ defc toggleprompt, toggle_prompt
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
       SetMenuAttribute( GetAVar('mid_prompting'), MIA_CHECKED, not menu_prompt)
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-      new = subword( old, 1, 8)' 'menu_prompt' 'subword( old, 10)\0
+      new = subword( old, 1, 8)' 'menu_prompt' 'subword( old, 10)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
 ; ---------------------------------------------------------------------------
+; Todo: merge this with defc LoadToolbar.
 ; Flags: toggleframe, epm.ini
 defc toggle_toolbar
    universal toolbar_loaded
@@ -3612,10 +3629,10 @@ defc toggle_toolbar
    if not toolbar_loaded then
       'default_toolbar'
    endif
-   toolbar_on = queryframecontrol(EFRAMEF_TOOLBAR)
+   on = queryframecontrol(EFRAMEF_TOOLBAR)
    if menuloaded then
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-      new = subword( old, 1, 15)' 'toolbar_on' 'subword( old, 17)\0
+      new = subword( old, 1, 15)' 'on' 'subword( old, 17)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
@@ -3629,29 +3646,13 @@ defc setscrolls
 ; ---------------------------------------------------------------------------
 ; Flags: universal, toggleframe, epm.ini
 defc toggle_bitmap
-   universal bitmap_present, bm_filename
+   universal bitmap_present
    universal menuloaded
-   universal app_hini
-   universal appname
-   bitmap_present = not bitmap_present
-   fLoad = 0
-   if bitmap_present & bm_filename > '' then
-      if substr( bm_filename, 2, 2) = ':\' & IsOs2Bmp( BmpFile) then  -- if fully qualified and valid
-         fLoad = 1
-      endif
-   endif
-   if fLoad then
-      'load_dt_bitmap' bm_filename
-   else
-      call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
-                          5498 - (44 * bitmap_present), 0, 0)
-   endif
+   'SetBackgroundBitmap TOGGLE'
+   on = bitmap_present
    if menuloaded then
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
-      SetMenuAttribute( GetAVar('mid_backgroundbitmapenabled'), MIA_CHECKED, not bitmap_present)
-      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-      new = subword( old, 1, 14)' 'bitmap_present' 'subword( old, 16)\0
-      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
+      SetMenuAttribute( GetAVar('mid_backgroundbitmapenabled'), MIA_CHECKED, not on)
    endif
 
 ; ---------------------------------------------------------------------------
@@ -3810,7 +3811,7 @@ defc toggle_cua_mark, cua_mark_toggle
    'RefreshInfoLine MARKINGMODE'
    if menuloaded then
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-      new = subword( old, 1, 7)' 'cua_marking_switch' 'subword( old, 9)\0
+      new = subword( old, 1, 7)' 'cua_marking_switch' 'subword( old, 9)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
       -- Set nmenu attributes and text for the case MIA_NODISMISS attribute is on
       'menuinit_markingsettings'
@@ -3960,7 +3961,7 @@ defc toggle_default_tabkey
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
       SetMenuAttribute( GetAVar('mid_defaulttabkey'), MIA_CHECKED, not default_tab_key)
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-      new = subword( old, 1, 13)' 'default_tab_key' 'subword( old, 15)\0
+      new = subword( old, 1, 13)' 'default_tab_key' 'subword( old, 15)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 /*
@@ -4169,7 +4170,7 @@ defc toggle_default_stream
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
       SetMenuAttribute( GetAVar('mid_defaultstreammode'), MIA_CHECKED, not default_stream_mode)
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-      new = subword( old, 1, 9)' 'default_stream_mode' 'subword( old, 11)\0
+      new = subword( old, 1, 9)' 'default_stream_mode' 'subword( old, 11)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
@@ -4260,7 +4261,7 @@ defc toggle_longname
       SetMenuAttribute( GetAVar('mid_showlongname'), MIA_CHECKED, not show_longnames)
       'RefreshInfoLine FILE'
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-      new = subword( old, 1, 10)' 'show_longnames' 'subword( old, 12)\0
+      new = subword( old, 1, 10)' 'show_longnames' 'subword( old, 12)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
