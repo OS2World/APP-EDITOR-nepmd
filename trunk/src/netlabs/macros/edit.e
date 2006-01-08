@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.32 2005-12-13 19:34:25 aschn Exp $
+* $Id: edit.e,v 1.33 2006-01-08 00:04:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -435,13 +435,27 @@ compile endif
 ;  a completely new instance of E.DLL, with its own window and data.  We do it
 ;  by posting a message to the executive, the top-level E application.
 defc o, open=
+compile if WPS_SUPPORT
+   universal wpshell_handle
+compile endif
    fname = strip(arg(1))                    -- Remove excess spaces
    call parse_filename( fname, .filename)   -- Resolve '=', if any
 
-   call windowmessage( 0,  getpminfo(APP_HANDLE),
-                       5386,                   -- EPM_EDIT_NEWFILE
-                       put_in_buffer(fname),
-                       1)                      -- Tell EPM to free the buffer.
+compile if WPS_SUPPORT
+   if wpshell_handle then
+      call windowmessage( 0,  getpminfo(APP_HANDLE),
+                          5159,                   -- EPM_WPS_OPENNEWFILE
+                          getpminfo(EPMINFO_EDITCLIENT),
+                          put_in_buffer(fname))
+   else
+compile endif
+      call windowmessage( 0,  getpminfo(APP_HANDLE),
+                          5386,                   -- EPM_EDIT_NEWFILE
+                          put_in_buffer(fname),
+                          1)                      -- Tell EPM to free the buffer.
+compile if WPS_SUPPORT
+   endif
+compile endif
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
@@ -611,11 +625,11 @@ defc bme, binmaxedit
 ; Open a file dialog to select a file for binary editing in a new edit
 ; window. No args.
 defc OpenBinDlg
-   cmd      = 'be'
    filemask = '*.exe;*.dll'
    title    = 'Select a binary file'
-   title    = '"'title'"'  -- filedlg exspects title in "..."
-   "o 'filedlg "title", "cmd", "filemask"'"
+   "o 'filedlg "title", be, "filemask"'"  -- works, but Cancel opens an empty window
+   --"filedlg "title", o 'be', "filemask
+   -- A command that returns the hwnd of the newly opened window is needed.
 
 ; ---------------------------------------------------------------------------
 ; Finds EPM macro files <basename>.e in Dir of arg(1) and EPMMACROPATH.
