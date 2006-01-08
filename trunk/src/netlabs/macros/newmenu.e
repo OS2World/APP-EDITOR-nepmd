@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.27 2005-11-24 20:41:48 aschn Exp $
+* $Id: newmenu.e,v 1.28 2006-01-08 00:24:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -81,11 +81,6 @@ const
    include 'menuhelp.h'
    EA_comment 'This defines the menu.'
 
-compile endif
-
-const
-compile if not defined(IMPERMANENT_OPTIONS)
-   IMPERMANENT_OPTIONS = 0
 compile endif
 
 ; ---------------------------------------------------------------------------
@@ -178,8 +173,6 @@ compile endif
 ; EPM_utility_array_id must already exist at this point.
 definit
    universal nepmd_hini
-   universal nodismiss
-   universal saveoptions_auto
    call SetAVar( 'mids', '')        -- reset list of used mids
 
    call SetAVar( 'mid_file'   , 2)
@@ -210,23 +203,148 @@ definit
                     /* Mark */      ' markatcursor' ||
                     /* Format */    ' reflowmargins reflow' ||
                     /* Search */    ' goto markstack cursorstack bookmarks' ||
-                    /* View */      ' framecontrols menubarsandcolors' ||
+                    /* View */      ' menu infobars toolbar backgroundbitmap' ||
                     /* Options */   ' editoptions saveoptions searchoptions' ||
                                     ' mainsettings markingsettings marginsandtabs accelsettings' ||
                                     ' readonlyandlock autorestore' ||
-                                    ' opendlgdir workdir macros impermanentoptions' ||
+                                    ' opendlgdir workdir macros' ||
                     /* Run */       ' treecommands')
+
+   call AddOnceAVar( 'hidemenunames', 'KENHT HTM')
+   call AddOnceAVar( 'unhidemenunames', 'HTMPOP')
+
+   'InitMenuSettings'
+
+; ---------------------------------------------------------------------------
+; Better don't use NepmdQueryConfigValue at definit, because this can cause the
+; definit to stop sometimes.
+defc InitMenuSettings
+   universal nodismiss
 
    KeyPath = '\NEPMD\User\Menu\NoDismiss'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
    nodismiss = 32*on
 
-compile if IMPERMANENT_OPTIONS
-   KeyPath = '\NEPMD\User\Menu\SaveOptions'
-   saveoptions_auto = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
-compile else
-   saveoptions_auto = 1
-compile endif
+; ---------------------------------------------------------------------------
+defproc BeforeLink
+   universal MenuItemsHidden
+   modulename = arg(1)
+   dPrintf( 'BEFORELINK', modulename)
+   if not isadefc( 'HideMenuItems') then
+      return
+   elseif MenuItemsHidden <> 0 then  -- 0 means: not hidden
+      return                         -- 1 means: already hidden before
+   endif
+
+   -- KenHTepm.ex uses too many menu items, together with Newmenu.
+   -- EPM has a limit at about 600 items. KenHTepm uses already 290 of them!
+   -- Therefore Newmenu's Options menu is deleted before linking.
+
+   p2 = lastpos( '\', modulename)
+   name = upcase( substr( modulename, p2 + 1))       -- strip path
+
+   -- Provide array vars to specify ExFile names with huge menus, in order to
+   -- let the user change the list. Match an abbreviation.
+   HideList   = upcase( GetAVar( 'hidemenunames'))
+   UnHideList = upcase( GetAVar( 'unhidemenunames'))
+   fHide = 0
+   do w = 1 to words( HideList)
+      next = word( HideList, w)
+      if abbrev( name, next) then
+         fHide = 1
+         leave
+      endif
+   enddo
+   if fHide then
+      do w = 1 to words( UnHideList)
+         next = word( UnHideList, w)
+         if abbrev( name, next) then
+            fHide = 0
+            leave
+         endif
+      enddo
+   endif
+
+   if fHide then
+      'HideMenuItems'
+      if MenuItemsHidden = 1 then
+         MenuItemsHidden = 2         -- 2 means: just hidden
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+defproc AfterLink
+   universal MenuItemsHidden
+   linkrc = arg(1)
+   -- Restore Options menu if kenHTepm wasn't linked
+   if not isadefc( 'HideMenuItems') then
+      return
+   elseif MenuItemsHidden <> 2 then  -- 2 means: just hidden
+      return                         -- 1 means: already hidden before -> ignore
+   endif
+   -- reset var from 2 to 1
+   if MenuItemsHidden = 2 then
+      MenuItemsHidden = 1
+   endif
+   -- unhide if not linked
+   if linkrc < 0 then
+      'HideMenuItems 0'
+   endif
+
+; ---------------------------------------------------------------------------
+; KenHTepm.ex uses too many menu items, together with Newmenu. The same
+; applies to HTMLTAGS.EX.
+; EPM has a limit at about 600 items. KenHTepm uses already 290 of them!
+; Therefore Newmenu's Options menu items and some of the View menu items
+; can be deleted before linking these .ex files.
+defc HideMenuItems
+   universal defaultmenu
+   universal nepmd_hini
+   universal menuloaded                   -- for to check if menu is already built
+   universal MenuItemsHidden
+
+   KeyPath = '\NEPMD\User\Menu\HideItems'
+
+   arg1 = upcase( arg(1))
+   if arg1 = 'INIT' then
+      MenuItemsHidden = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
+      return rc
+   elseif arg1 = 'TOGGLE' then
+      new = not (MenuItemsHidden = 1)
+   elseif wordpos( arg1, '0 OFF') then
+      new = 0
+   else
+      new = 1
+   endif
+
+   if new = MenuItemsHidden then  -- nothing to do
+      return rc
+   endif
+
+   MenuItemsHidden = new
+
+   -- Save new value to ini
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, MenuItemsHidden)
+
+   if MenuItemsHidden then
+      -- Delete some menu items
+      mid = GetAVar( 'mid_view')
+      deletemenu defaultmenu, mid, 0, 1
+      call add_view_menu( defaultmenu)
+
+      mid = GetAVar( 'mid_options')
+      deletemenu defaultmenu, mid, 0, 1
+      call add_options_menu( defaultmenu)
+
+   else
+      -- Better get rid of all added menus and rebuild the entire menu
+      deletemenu defaultmenu
+      'loaddefaultmenu'
+   endif
+
+   -- Show menu and add cascade menu item styles.
+   -- (After processing showmenu, the cascade menu defs must always be reapplied.)
+   call showmenu_activemenu()
 
 ; ---------------------------------------------------------------------------
 ; Called by defmain -> initconfig, STDCTRL.E (formerly by definit, MENUACCEL.E).
@@ -246,12 +364,18 @@ compile endif
 defc loaddefaultmenu
    universal activemenu, defaultmenu
    universal menuloaded                   -- for to check if menu is already built
+   universal MenuItemsHidden
+   universal nepmd_hini
 
    parse arg menuname .
    if menuname = '' then                  -- Initialization call
       menuname = 'default'
       defaultmenu = menuname              -- default menu name
       activemenu  = defaultmenu
+   endif
+
+   if MenuItemsHidden = '' then
+      'HideMenuItems INIT'
    endif
 
    call add_file_menu(menuname)      -- id = 2
@@ -278,7 +402,9 @@ defc loaddefaultmenu
    -- This sets the universal var reflowmargins to initial values, queried
    -- from NEPMD.INI.
    -- (Found no better place when to execute the hook.)
-   'HookAdd select ReflowMarginsInit'
+;##############################################
+'HookAdd select ReflowMarginsInit'  -------------------------------- Todo
+;##############################################
 
 ; -------------------------------------------------------------------------------------- File -------------------------
 defproc add_file_menu(menuname)
@@ -1488,71 +1614,18 @@ defproc add_search_menu(menuname)
                                    MIS_TEXT, 0
    return
 
-
 ; -------------------------------------------------------------------------------------- View -------------------------
 defproc add_view_menu(menuname)
    universal nodismiss
    universal ring_enabled
-compile if IMPERMANENT_OPTIONS
-   IMP = ' (i)'
-compile else
-   IMP = ''
-compile endif
+   universal MenuItemsHidden
    mid = GetAVar('mid_view')
    i = mid'00'
    buildsubmenu  menuname, mid, '~View',                                                           -- View ------------
                                 \1'Menus related to views, cursor pos and windows',
                                 0, 0  -- MIS must be 0 for submenu
-   i = i + 1; call SetAVar( 'mid_framecontrols', i);
-   buildmenuitem menuname, mid, i, FRAME_CTRLS_MENU__MSG,                                          -- Frame controls   >
-                                   FRAME_CTRLS_MENUP__MSG,
-                                   MIS_TEXT + MIS_SUBMENU, mpfrom2short(HP_OPTIONS_FRAME, 0)
-   i = i + 1; call SetAVar( 'mid_statusline', i);
-   buildmenuitem menuname, mid, i, STATUS_LINE_MENU__MSG''IMP,                                           -- Status line (i)
-                                   'toggleframe 1' ||
-                                   STATUS_LINE_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_FRAME_STATUS, nodismiss)
-   i = i + 1; call SetAVar( 'mid_messageline', i);
-   buildmenuitem menuname, mid, i, MSG_LINE_MENU__MSG''IMP,                                              -- Message line (i)
-                                   'toggleframe 2' ||
-                                   MSG_LINE_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_FRAME_MESSAGE, nodismiss)
-   i = i + 1; call SetAVar( 'mid_scrollbars', i);
-   buildmenuitem menuname, mid, i, SCROLL_BARS_MENU__MSG''IMP,                                           -- Scroll bars (i)
-                                   'setscrolls' ||
-                                   SCROLL_BARS_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_FRAME_SCROLL, nodismiss)
-   i = i + 1; call SetAVar( 'mid_rotatebuttons', i);
-   buildmenuitem menuname, mid, i, ROTATEBUTTONS_MENU__MSG''IMP,                                         -- Rotate buttons (i)
-                                   'toggleframe 4' ||
-                                   ROTATEBUTTONS_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_FRAME_ROTATE, nodismiss)
-   i = i + 1; call SetAVar( 'mid_toolbar', i);
-   buildmenuitem menuname, mid, i, TOGGLETOOLBAR_MENU__MSG''IMP,                                         -- Toolbar (i)
-                                   'toggle_toolbar' ||
-                                   TOGGLETOOLBAR_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_TOOLBAR_TOGGLE, nodismiss)
-   i = i + 1; call SetAVar( 'mid_backgroundbitmap', i);
-   buildmenuitem menuname, mid, i, TOGGLEBITMAP_MENU__MSG''IMP,                                          -- Background bitmap (i)
-                                   'toggle_bitmap' ||
-                                   TOGGLEBITMAP_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_FRAME_BITMAP, nodismiss)
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_infoattop', i);
-   buildmenuitem menuname, mid, i, INFOATTOP_MENU__MSG''IMP,                                             -- Info at top (i)
-                                   'toggleframe 32' ||
-                                   INFOATTOP_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_FRAME_EXTRAPOS, nodismiss)
-   i = i + 1; call SetAVar( 'mid_prompting', i);
-   buildmenuitem menuname, mid, i, PROMPTING_MENU__MSG''IMP,                                             -- Prompting (i)
-                                   'toggleprompt' ||
-                                   PROMPTING_MENUP__MSG,
-                                   MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_FRAME_PROMPT, nodismiss)
-   i = i + 1; call SetAVar( 'mid_menubarsandcolors', i);
-   buildmenuitem menuname, mid, i, 'Menu, ~bars and colors',                                        -- Menu, bars and colors   >
+   i = i + 1; call SetAVar( 'mid_menu', i);
+   buildmenuitem menuname, mid, i, '~Menu',                                                        -- Menu   >
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
@@ -1569,35 +1642,212 @@ compile endif
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
                                    MIS_SEPARATOR, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Configure ~titlebar...',                                             -- Configure titlebar...
-                                   'ConfigFrame TITLE' ||
-                                   \1'Change layout of titletext',
-                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_hidemenuitems', i);
+   buildmenuitem menuname, mid, i, 'Hide ~Options and View menu items',                                  -- Hide Options and View menu items
+                                   'HideMenuItems TOGGLE' ||
+                                   \1'Required to add menus like HTMLTAGS',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+ if not MenuItemsHidden then
+   i = i + 1; call SetAVar( 'mid_infobars', i);
+   buildmenuitem menuname, mid, i, '~Info bars',                                                   -- Info bars   >
+                                   '',
+                                   MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_showlongname', i);
-   buildmenuitem menuname, mid, i, 'Show .~LONGNAME'IMP,                                                 -- Show .LONGNAME
+   buildmenuitem menuname, mid, i, 'Show .~LONGNAME',                                                    -- Show .LONGNAME
                                    'toggle_longname' ||
                                    \1'Show .LONGNAME EA as filename in titlebar',
                                    MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_messageline', i);
+   buildmenuitem menuname, mid, i, MSG_LINE_MENU__MSG,                                                   -- Message line
+                                   'toggleframe 2' ||
+                                   MSG_LINE_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_FRAME_MESSAGE, nodismiss)
+   i = i + 1; call SetAVar( 'mid_statusbar', i);
+   buildmenuitem menuname, mid, i, 'Status ~bar',                                                        -- Status bar
+                                   'toggleframe 1' ||
+                                   STATUS_LINE_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_FRAME_STATUS, nodismiss)
+   i = i + 1; call SetAVar( 'mid_infoattop', i);
+   buildmenuitem menuname, mid, i, INFOATTOP_MENU__MSG,                                                  -- Info at top
+                                   'toggleframe 32' ||
+                                   INFOATTOP_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_FRAME_EXTRAPOS, nodismiss)
+   i = i + 1; call SetAVar( 'mid_prompting', i);
+   buildmenuitem menuname, mid, i, PROMPTING_MENU__MSG,                                                  -- Prompting
+                                   'toggleprompt' ||
+                                   PROMPTING_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_FRAME_PROMPT, nodismiss)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Configure ~statusbar...',                                            -- Configure statusbar...
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Configure ~title bar...',                                            -- Configure title bar...
+                                   'ConfigFrame TITLE' ||
+                                   \1'Change layout of titletext',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Configure ~status bar...',                                           -- Configure status bar...
                                    'ConfigFrame STATUS' ||
-                                   \1'Change layout of statusline',
+                                   \1'Change layout of status bar',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Configure se~parator...',                                            -- Configure separator...
                                    'ConfigFrame SEP' ||
-                                   \1'Change layout of separator for titletext and statusline',
+                                   \1'Change layout of separator for title and status bar',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_toolbar', i);
+   buildmenuitem menuname, mid, i, '~Toolbar',                                                     -- Toolbar   >
+                                   '',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_toolbarenabled', i);
+   buildmenuitem menuname, mid, i, '~Enabled',                                                           -- Enabled
+                                   'toggle_toolbar' ||
+                                   TOGGLETOOLBAR_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_TOOLBAR_TOGGLE, nodismiss)
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Select...',                                                         -- Select...
+                                   'LoadToolbar' ||
+                                   \1'Open a listbox and load, reload or delete a toolbar',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_toolbarstyle', i);
+   buildmenuitem menuname, mid, i, 'St~yle',                                                             -- Style   >
+                                   \1'Configure toolbar style',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_toolbartext', i);
+   buildmenuitem menuname, mid, i, '~Text',                                                                    -- Text
+                                   'ToggleToolbarText' ||
+                                   \1'Show button text',
+                                   MIS_TEXT, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                         --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_toolbarautosize', i);
+   buildmenuitem menuname, mid, i, '~Automatic size',                                                          -- Automatic size
+                                   'ToggleToolbarAutoSize' ||
+                                   \1'Adjust button sizes to the .bmp sizes',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_toolbarsize', i);
+   buildmenuitem menuname, mid, i, '~Size: [x]...',                                                            -- Size: [26x26]...
+                                   'ToolbarSizeBox' ||
+                                   \1'Default = 26x26, add 4x4 to the .bmp size',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_toolbarscaling', i);
+   buildmenuitem menuname, mid, i, 'S~caling: []',                                                             -- Scaling: [delete]
+                                   'ToggleToolbarScaling' ||
+                                   \1'In most cases "delete" looks best',
+                                   MIS_TEXT + MIS_ENDSUBMENU, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Save ~as...',                                                        -- Save as...
+                                   'SaveToolbar' ||
+                                   \1'',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Change ~color palette...',                                           -- Configure highlighting colors...
-                                   'os2 epmchgpal.cmd' ||
-                                   \1'Use WPS palette objects to specify highlighting colors',
+   buildmenuitem menuname, mid, i, '~Import...',                                                         -- Import...
+                                   'ImportToolbar' ||
+                                   \1'',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'E~xport...',                                                         -- Export...
+                                   'ExportToolbar' ||
+                                   \1'',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
+/*
+    View -> Toolbar -> Select...
+    View -> Toolbar -> ---------
+    View -> Toolbar -> Style ->
+    View -> Toolbar -> Style -> ( ) Automatic size                  Title: Enter size in WxH for toolbar buttons
+    View -> Toolbar -> Style ->     Size [26x26]...                  Text: The size should be 4x4 larger than the bmp size to avoid scaling
+    View -> Toolbar -> Style ->     Scale mode [delete|or|and]         or: (default = 26x26, add 4x4 to the bmp size)
+    View -> Toolbar -> Style ->     ---------
+    View -> Toolbar -> Style -> ( ) Show title
+
+;   View -> Toolbar -> Style ->     Title font [9.Warp Sans]...
+;   View -> Toolbar -> Style ->     Background color [...]...
+;   View -> Toolbar -> Style ->     Button color [...]...
+
+    View -> Toolbar -> ---------
+    View -> Toolbar -> Save                  Only enabled, if current toolbar has changed, all other items are disabled then!
+    View -> Toolbar -> Discard                "            Todo: extend Rexx macro to be able to just compare 2 toolbars
+    View -> Toolbar -> ---------
+    View -> Toolbar -> Import
+    View -> Toolbar -> Export
+
+    6026268.Helv1677721616777216
+     |               |        |
+     --------------- color    color
+     delete = 8
+     and    = 40 (*)
+     or     = 100
+     ---------------
+     title  = 4
+     ---------------
+     auto-size = 16
+     ---------------
+*/
+   i = i + 1; call SetAVar( 'mid_backgroundbitmap', i);
+   buildmenuitem menuname, mid, i, '~Background bitmap',                                           -- Background bitmap   >
+                                   '',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_backgroundbitmapenabled', i);
+   buildmenuitem menuname, mid, i, '~Enabled',                                                           -- Enabled
+                                   'toggle_bitmap' ||
+                                   TOGGLEBITMAP_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_FRAME_BITMAP, nodismiss)
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Select...',                                                         -- Select...
+                                   'SetBackgroundBitmap SELECT' ||
+                                   \1'Select a background bitmap',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+/*
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+*/
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Color palette',                                               -- Color palette...
+                                   '' ||
+                                   \1'Modify EPM''s 16-color palette (e.g. used for highlighting)',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Create palette objects...',                                         -- Create palette objects...
+                                   'start /c /f epmchgpal.cmd 1' ||
+                                   \1'Use MyColors for your own colors',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~View palette objects...',                                           -- View palette objects...
+                                   'rx Open %NEPMD_USERDIR%\bin' ||
+                                   \1'Open folder of palette objects',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Read palette objects...',                                           -- Read palette objects...
+                                   'start /c /f epmchgpal.cmd 2' ||
+                                   \1'Write colors to EPMColor.ini',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Select color palette...',                                           -- Select color palette...
+                                   'start /k /f epmchgpal.cmd 3' ||
+                                   \1'Select from EPMcolor.ini, then patch dll',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+ endif  -- not MenuItemsHidden
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -1691,11 +1941,7 @@ defproc add_options_menu(menuname)
    universal ring_enabled
    universal font
    universal nodismiss
-compile if IMPERMANENT_OPTIONS
-   IMP = ' (i)'
-compile else
-   IMP = ''
-compile endif
+   universal MenuItemsHidden
    UserDir = Get_Env( 'NEPMD_USERDIR')
    UserDirName = substr( UserDir, lastpos( '\', UserDir) + 1)
 
@@ -1704,6 +1950,7 @@ compile endif
    buildsubmenu  menuname, mid, OPTIONS_BAR__MSG,                                                  -- Options ---------
                                 \1'Menus related to global and default editor settings',
                                 0, mpfrom2short(HP_OPTIONS, 0)  -- MIS must be 0 for submenu
+ if not MenuItemsHidden then
    -- Since we have more than 99 menu items here, we use a separate id for the edit/save/search options
    saved_i = i
    i = GetAVar('mid_editsavesearchoptions')'00'
@@ -1979,11 +2226,13 @@ compile endif
                                    MIS_SEPARATOR, 0
    -- Returning to the standard menu id:
    i = saved_i
+ endif  -- not MenuItemsHidden
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Default settings dialog...',                                  -- Default settings dialog...
                                    'configdlg' ||
                                    CONFIG_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_CONFIG, 0)
+ if not MenuItemsHidden then
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -2002,7 +2251,7 @@ compile endif
 ;                                   CONFIG_MENUP__MSG,
 ;                                   MIS_TEXT, mpfrom2short(HP_OPTIONS_CONFIG, 0)
    i = i + 1; call SetAVar( 'mid_defaultstreammode', i);
-   buildmenuitem menuname, mid, i, 'Default stream mode'IMP,                                             -- Default stream mode (i)
+   buildmenuitem menuname, mid, i, 'Default stream mode',                                                -- Default stream mode
                                    'toggle_default_stream' ||
                                    STREAMMODE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_STREAM, nodismiss)
@@ -2017,7 +2266,7 @@ compile endif
                                    \1'Switch keyword highlighting on',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_ringenabled', i);
-   buildmenuitem menuname, mid, i, RINGENABLED_MENU__MSG'!'IMP,                                          -- Ring enabled! (i)
+   buildmenuitem menuname, mid, i, RINGENABLED_MENU__MSG'!',                                             -- Ring enabled!
                                    'ring_toggle' ||
                                    RINGENABLED_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_RINGENABLE, 0)
@@ -2037,7 +2286,7 @@ compile endif
                                    \1'',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_advancedmarking', i);
-   buildmenuitem menuname, mid, i, 'Advanced marking'IMP,                                                -- Default advanced marking (i)
+   buildmenuitem menuname, mid, i, 'Advanced marking',                                                   -- Default advanced marking
                                    'toggle_cua_mark' ||
                                    ADVANCEDMARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_CUATOGGLE, nodismiss)
@@ -2082,7 +2331,7 @@ compile endif
                                    \1'Change default tabs',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_defaulttabkey', i);
-   buildmenuitem menuname, mid, i, 'Default tabkey'IMP,                                                  -- Default Tabkey
+   buildmenuitem menuname, mid, i, 'Default tabkey',                                                     -- Default Tabkey
                                    'toggle_default_tabkey' ||
                                    \1'Tabkey enters a tab char instead of spaces',
                                    MIS_TEXT, nodismiss
@@ -2104,7 +2353,7 @@ compile endif
                                    \1'Configure Alt key combinations to execute menu items',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_blockactionbaraccelerators', i);
-   buildmenuitem menuname, mid, i, 'Block menu bar accels'IMP,                                           -- Block menu bar accels (i)
+   buildmenuitem menuname, mid, i, 'Block menu bar accels',                                              -- Block menu bar accels
                                    'accel_toggle' ||
                                    \1'Keep Alt+<key>s for mark operations (Ctrl+Alt works for menu)',
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_CUAACCEL, nodismiss)
@@ -2227,26 +2476,6 @@ compile endif
                                    'set_OpenDlgDir 2' ||
                                    \1'Start at dir of current file',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
-compile if IMPERMANENT_OPTIONS
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_impermanentoptions', i)
-   buildmenuitem menuname, mid, i, 'Impermanent ~options (i)',                                     -- Impermanent options (i)  >
-                                   ''\1'Options marked with (i) are impermanent',
-                                   MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Save now',                                                           -- Save now
-                                   'saveoptions' ||
-                                   \1'Make current (i) options the default',
-                                   0, mpfrom2short(HP_OPTIONS_SAVE, 0)
-   i = i + 1; call SetAVar( 'mid_saveoptionsautomatically', i)
-   buildmenuitem menuname, mid, i, 'Save automatically',                                                 -- Save automatically
-                                   'toggle_save_options' ||
-                                   \1'Save options made out of the menu immediately',
-                                   MIS_TEXT + MIS_ENDSUBMENU, nodismiss
-compile endif
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -2307,10 +2536,10 @@ compile endif
                                    \1'Edit or create REXX configuration file',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_activateprofile', i);
-   buildmenuitem menuname, mid, i, 'Activate PROFILE.ERX'IMP,                                            -- Activate PROFILE.ERX
+   buildmenuitem menuname, mid, i, 'Activate PROFILE.ERX',                                               -- Activate PROFILE.ERX
                                    'toggle_profile' ||
                                    \1'Activate REXX configuration file',
-                                   MIS_TEXT, 0
+                                   MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_editmodecnf', i);
    buildmenuitem menuname, mid, i, 'Edit MODECNF.E',                                                     -- Edit MODECNF.E
                                    'e %NEPMD_USERDIR%\macros\modecnf.e' ||
@@ -2383,6 +2612,7 @@ compile endif
    if (i - m) > 99 then
       messageNwait('Error: menuid 'mid' ran out of unique menu item ids. You used 'mid'01 to 'i' out of 'mid'99. Change your menu definition!')
    endif
+ endif
    return
 
 
@@ -2704,13 +2934,12 @@ compile endif
 ; is selected. The defc must exist and must be added to the 'definedsubmenus' array var,
 ; see the SetAVar('definedsubmenus', <list of names>) definition at the top.
 
---------------------------------------------- Menu id 2 -- File -------------------------
+; ------------------------------------ File ---------------------------------
 defc menuinit_file
    SetMenuAttribute( GetAVar('mid_importfile'),  MIA_DISABLED, .readonly = 0)
    SetMenuAttribute( GetAVar('mid_save'),        MIA_DISABLED, .readonly = 0)
    SetMenuAttribute( GetAVar('mid_saveandquit'), MIA_DISABLED, .readonly = 0)
 
---------------------------------------------- Menu id x -- File properties --------------
 defc menuinit_fileproperties
    universal stream_mode
    universal expand_on
@@ -2748,7 +2977,18 @@ compile endif
    parse value GetAVar('mtxt_margins') with next'['x']'rest
    SetMenuText( GetAVar('mid_margins'), next'['new']'rest)
 
---------------------------------------------- Menu id ? -- Mark -------------------------
+; ------------------------------------ Edit ---------------------------------
+defc menuinit_edit
+   universal DMbuf_handle
+   SetMenuAttribute( GetAVar('mid_recovermarkdelete'), MIA_DISABLED, DMbuf_handle)
+   SetMenuAttribute( GetAVar('mid_undoline'),    MIA_DISABLED, isadirtyline())
+   undoaction 1, presentstate         -- Do to fix range, not for value.
+   undoaction 6, staterange           -- query range
+   parse value staterange with oldeststate neweststate .
+   SetMenuAttribute( GetAVar('mid_undo'),        MIA_DISABLED, oldeststate <> neweststate)  -- Set to 1 if different
+   SetMenuAttribute( GetAVar('mid_discardchanges'), MIA_DISABLED, .modify > 0)
+
+; ------------------------------------ Mark ---------------------------------
 defc menuinit_mark
    universal DMbuf_handle
    universal CUA_marking_switch
@@ -2783,7 +3023,6 @@ defc menuinit_mark
    call update_paste_menu_text()
    call update_mark_menu_text()
 
---------------------------------------------- Menu id x -- Mark at cursor --------------
 defc menuinit_markatcursor
    universal CUA_marking_switch
    on = (FileIsMarked() & marktype() = 'CHAR' & not CUA_marking_switch)
@@ -2793,18 +3032,7 @@ defc menuinit_markatcursor
    SetMenuAttribute( GetAVar('mid_markblock'),       MIA_DISABLED, not CUA_marking_switch)
    SetMenuAttribute( GetAVar('mid_marklines'),       MIA_DISABLED, not CUA_marking_switch)
 
---------------------------------------------- Menu id 8 -- Edit -------------------------
-defc menuinit_edit
-   universal DMbuf_handle
-   SetMenuAttribute( GetAVar('mid_recovermarkdelete'), MIA_DISABLED, DMbuf_handle)
-   SetMenuAttribute( GetAVar('mid_undoline'),    MIA_DISABLED, isadirtyline())
-   undoaction 1, presentstate         -- Do to fix range, not for value.
-   undoaction 6, staterange           -- query range
-   parse value staterange with oldeststate neweststate .
-   SetMenuAttribute( GetAVar('mid_undo'),        MIA_DISABLED, oldeststate <> neweststate)  -- Set to 1 if different
-   SetMenuAttribute( GetAVar('mid_discardchanges'), MIA_DISABLED, .modify > 0)
-
---------------------------------------------- Menu id ? -- Format -----------------------
+; ------------------------------------ Format -------------------------------
 defc menuinit_format
    universal nepmd_hini
    universal reflowmargins
@@ -2820,7 +3048,6 @@ defc menuinit_format
    parse value GetAVar('mtxt_reflowmargins') with next'['x']'rest
    SetMenuText( GetAVar('mid_reflowmargins'), next'['reflowmargins']'rest)
 
---------------------------------------------- Menu id ? -- Reflowmargins ----------------
 defc menuinit_reflowmargins
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Reflow\Margins1'
@@ -2842,7 +3069,6 @@ defc menuinit_reflowmargins
    SetMenuAttribute( GetAVar('mid_reflowmargins2'), MIA_CHECKED, not (i = 2))
    SetMenuAttribute( GetAVar('mid_reflowmargins3'), MIA_CHECKED, not (i = 3))
 
---------------------------------------------- Menu id ? -- Reflow -----------------------
 defc menuinit_reflow
    universal twospaces
    universal join_after_wrap
@@ -2871,13 +3097,6 @@ defc menuinit_reflow
 
    SetMenuAttribute( GetAVar('mid_reflowblock'), MIA_DISABLED, FileIsMarked())
 
---------------------------------------------- Menu id 5 -- View -------------------------
-defc menuinit_view
-   SetMenuAttribute( GetAVar('mid_softwrap'), MIA_CHECKED, GetWrapped() = 0)
-   SetMenuAttribute( GetAVar('mid_nextview'), MIA_DISABLED, .currentview_of_file <> .nextview_of_file)
-   SetMenuAttribute( GetAVar('mid_listring'), MIA_DISABLED, filesinring() > 1)
-
---------------------------------------------- Menu id x -- Record keys -----------------
 defc menuinit_recordkeys
    recordmode = windowmessage( 1, getpminfo(EPMINFO_EDITCLIENT),
                                5393,
@@ -2891,7 +3110,7 @@ defc menuinit_recordkeys
       SetMenuText( GetAVar('mid_playback'),       '~Playback'\9 || CTRL_KEY__MSG'+T')
    endif
 
---------------------------------------------- Menu id 3 -- Search -----------------------
+; ------------------------------------ Search -------------------------------
 defc menuinit_search
    universal lastchangeargs
    getsearch strng
@@ -2911,12 +3130,10 @@ defc menuinit_search
    on = (GetSearchDirection() = '-')
    SetMenuAttribute( GetAVar('mid_searchbackwards'), MIA_CHECKED, not on)
 
---------------------------------------------- Item id x -- Mark stack -------------------
 defc menuinit_goto
    on = FileIsMarked()
    SetMenuAttribute( GetAVar('mid_gotomark'),      MIA_DISABLED, on)
 
---------------------------------------------- Item id 309 -- Mark stack -----------------
 defc menuinit_markstack
    universal mark_stack
    on = FileIsMarked()
@@ -2924,13 +3141,11 @@ defc menuinit_markstack
    SetMenuAttribute( GetAVar('mid_restoremark'),   MIA_DISABLED, mark_stack <> '')
    SetMenuAttribute( GetAVar('mid_swapmark'),      MIA_DISABLED, on & mark_stack <> '')
 
---------------------------------------------- Item id 314 -- Cursor stack ---------------
 defc menuinit_cursorstack
    universal position_stack
    SetMenuAttribute( GetAVar('mid_restorecursor'), MIA_DISABLED, position_stack <> '')
    SetMenuAttribute( GetAVar('mid_swapcursor'),    MIA_DISABLED, position_stack <> '')
 
---------------------------------------------- Item id 319 -- Bookmarks ------------------
 defc menuinit_bookmarks
    universal EPM_utility_array_ID
    rc = get_array_value( EPM_utility_array_ID, 'bmi.0', bmcount)  -- Index says how many bookmarks there are
@@ -2939,7 +3154,35 @@ defc menuinit_bookmarks
    SetMenuAttribute( GetAVar('mid_bookmarks_next'),     MIA_DISABLED, bmcount > 0)   -- Next
    SetMenuAttribute( GetAVar('mid_bookmarks_previous'), MIA_DISABLED, bmcount > 0)   -- Previous
 
---------------------------------------------- Menu id x -- Options ----------------------
+; ------------------------------------ View ---------------------------------
+defc menuinit_view
+   SetMenuAttribute( GetAVar('mid_softwrap'), MIA_CHECKED, GetWrapped() = 0)
+   SetMenuAttribute( GetAVar('mid_nextview'), MIA_DISABLED, .currentview_of_file <> .nextview_of_file)
+   SetMenuAttribute( GetAVar('mid_listring'), MIA_DISABLED, filesinring() > 1)
+
+defc menuinit_menu
+   universal nodismiss
+   universal MenuItemsHidden
+   SetMenuAttribute( GetAVar('mid_nodismiss'), MIA_CHECKED, not (nodismiss = 32))
+   SetMenuAttribute( GetAVar('mid_hidemenuitems'), MIA_CHECKED, not MenuItemsHidden)
+
+defc menuinit_infobars
+   universal show_longnames
+   universal menu_prompt
+   SetMenuAttribute( GetAVar('mid_showlongname'), MIA_CHECKED, not show_longnames)
+   SetMenuAttribute( GetAVar('mid_messageline'),  MIA_CHECKED, not queryframecontrol(2))
+   SetMenuAttribute( GetAVar('mid_statusbar'),    MIA_CHECKED, not queryframecontrol(1))
+   SetMenuAttribute( GetAVar('mid_infoattop'),    MIA_CHECKED, not queryframecontrol(32))
+   SetMenuAttribute( GetAVar('mid_prompting'),    MIA_CHECKED, not menu_prompt)
+
+defc menuinit_toolbar
+   SetMenuAttribute( GetAVar('mid_toolbarenabled'), MIA_CHECKED, not queryframecontrol(EFRAMEF_TOOLBAR))
+
+defc menuinit_backgroundbitmap
+   universal bitmap_present
+   SetMenuAttribute( GetAVar('mid_backgroundbitmapenabled'), MIA_CHECKED, not bitmap_present)
+
+; ------------------------------------ Options ------------------------------
 defc menuinit_options
    universal default_edit_options
    universal default_save_options
@@ -2954,19 +3197,15 @@ defc menuinit_options
    parse value GetAVar('mtxt_searchoptions') with next'['x']'rest
    SetMenuText( GetAVar('mid_searchoptions'), next'['new']'rest)
 
---------------------------------------------- Menu id x -- Options / Edit options -------
 defc menuinit_editoptions
    'seteditoptions MENUINIT'
 
---------------------------------------------- Menu id x -- Options / Save options -------
 defc menuinit_saveoptions
    'setsaveoptions MENUINIT'
 
---------------------------------------------- Menu id x -- Options / Search options -----
 defc menuinit_searchoptions
    'setsearchoptions MENUINIT'
 
---------------------------------------------- Menu id x -- Options / Main settings ------
 defc menuinit_mainsettings
    universal ring_enabled
    universal nepmd_hini
@@ -2993,7 +3232,6 @@ defc menuinit_mainsettings
    parse value GetAVar('mtxt_scrollafterlocate') with next'['x']'rest
    SetMenuText( GetAVar('mid_scrollafterlocate'), next'['new']'rest)
 
---------------------------------------------- Menu id x -- Options / Margins and tabs settings
 defc menuinit_marginsandtabs
    universal app_hini
    universal appname
@@ -3022,7 +3260,6 @@ defc menuinit_marginsandtabs
    parse value GetAVar('mtxt_defaulttabs') with next'['x']'rest
    SetMenuText( GetAVar('mid_defaulttabs'), next'['new']'rest)
 
---------------------------------------------- Menu id x -- Options / Accelerator key settings
 defc menuinit_accelsettings
    universal cua_menu_accel
    universal nepmd_hini
@@ -3034,7 +3271,6 @@ defc menuinit_accelsettings
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_blockrightaltkey'),           MIA_CHECKED, not on)
 
---------------------------------------------- Menu id x -- Options / Marking settings
 defc menuinit_markingsettings
    universal nepmd_hini
    universal cua_marking_switch
@@ -3078,7 +3314,6 @@ defc menuinit_markingsettings
    SetMenuAttribute( GetAVar('mid_dragalwaysmarks'),    MIA_CHECKED, not (on | cua_marking_switch))
    SetMenuAttribute( GetAVar('mid_dragalwaysmarks'),    MIA_DISABLED, not cua_marking_switch)
 
---------------------------------------------- Menu id x -- Options / Readonly and lock settings
 defc menuinit_readonlyandlock
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Readonly'
@@ -3088,7 +3323,6 @@ defc menuinit_readonlyandlock
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_lockonmodify'),    MIA_CHECKED, not on)
 
---------------------------------------------- Menu id x -- Options / Restore ring settings
 defc menuinit_autorestore
    universal nepmd_hini
    KeyPath = '\NEPMD\User\AutoRestore\CursorPos'
@@ -3112,32 +3346,6 @@ defc menuinit_autorestore
    parse value GetAVar('mtxt_maxfilessavering') with next'['x']'rest
    SetMenuText( GetAVar('mid_maxfilessavering'), next'['new']'rest)
 
---------------------------------------------- Menu id x -- Options / Frame controls -----
-defc menuinit_framecontrols
-   universal bitmap_present
-   universal ring_enabled
-   universal menu_prompt
-   SetMenuAttribute( GetAVar('mid_statusline'),       MIA_CHECKED, not queryframecontrol(1))
-   SetMenuAttribute( GetAVar('mid_messageline'),      MIA_CHECKED, not queryframecontrol(2))
-   SetMenuAttribute( GetAVar('mid_scrollbars'),       MIA_CHECKED, not queryframecontrol(16))
-   if ring_enabled then
-   SetMenuAttribute( GetAVar('mid_rotatebuttons'),    MIA_CHECKED, not queryframecontrol(4))
-   else
-   SetMenuAttribute( GetAVar('mid_rotatebuttons'),    MIA_DISABLED, 0)  -- Grey out Rotate Buttons if ring not enabled
-   endif
-   SetMenuAttribute( GetAVar('mid_toolbar'),          MIA_CHECKED, not queryframecontrol(EFRAMEF_TOOLBAR))
-   SetMenuAttribute( GetAVar('mid_backgroundbitmap'), MIA_CHECKED, not bitmap_present)
-   SetMenuAttribute( GetAVar('mid_infoattop'),        MIA_CHECKED, not queryframecontrol(32))
-   SetMenuAttribute( GetAVar('mid_prompting'),        MIA_CHECKED, not menu_prompt)
-
---------------------------------------------- Menu id x -- Options / Menu bars and colors
-defc menuinit_menubarsandcolors
-   universal show_longnames
-   universal nodismiss
-   SetMenuAttribute( GetAVar('mid_showlongname'), MIA_CHECKED, not show_longnames)
-   SetMenuAttribute( GetAVar('mid_nodismiss')   , MIA_CHECKED, not (nodismiss = 32))
-
---------------------------------------------- Menu id x -- Options / Directory settings / Set work dir
 defc menuinit_workdir
    universal nepmd_hini
    KeyPath = '\NEPMD\User\ChangeWorkDir'
@@ -3146,7 +3354,6 @@ defc menuinit_workdir
    SetMenuAttribute( GetAVar('mid_workdirprev'),    MIA_CHECKED, not (opt = 1))
    SetMenuAttribute( GetAVar('mid_workdirfile'),    MIA_CHECKED, not (opt = 2))
 
---------------------------------------------- Menu id x -- Options / Directory settings / Start Edit/Open dialog at
 defc menuinit_opendlgdir
    universal nepmd_hini
    KeyPath = '\NEPMD\User\OpenDlg\UseCurrentDir'
@@ -3155,18 +3362,6 @@ defc menuinit_opendlgdir
    SetMenuAttribute( GetAVar('mid_opendlgdirwork'), MIA_CHECKED, not (opt = 1))
    SetMenuAttribute( GetAVar('mid_opendlgdirfile'), MIA_CHECKED, not (opt = 2))
 
---------------------------------------------- Menu id x -- Options / Impermanent options
-defc menuinit_impermanentoptions
-   universal saveoptions_auto
-   SetMenuAttribute( GetAVar('mid_saveoptionsautomatically'), MIA_CHECKED, not saveoptions_auto)
-
---------------------------------------------- Menu id 0 -- Run --------------------------
-defc menuinit_run
-   is_shell = leftstr(.filename, 15) = ".command_shell_"
-   SetMenuAttribute( GetAVar('mid_writetoshell'),     MIA_DISABLED, is_shell)
-   SetMenuAttribute( GetAVar('mid_sendbreaktoshell'), MIA_DISABLED, is_shell)
-
---------------------------------------------- Menu id x -- Run / Macros -----------------
 defc menuinit_macros
    universal rexx_profile
    SetMenuAttribute( GetAVar('mid_activateprofile'),  MIA_CHECKED, not rexx_profile)
@@ -3200,13 +3395,18 @@ defc menuinit_macros
       SetMenuText( GetAVar('mid_editmystuff'), 'Create MYSTUFF.E')
    endif
 
---------------------------------------------- Menu id x -- Tree commands ----------------
+; ------------------------------------ Run ----------------------------------
+defc menuinit_run
+   is_shell = leftstr(.filename, 15) = ".command_shell_"
+   SetMenuAttribute( GetAVar('mid_writetoshell'),     MIA_DISABLED, is_shell)
+   SetMenuAttribute( GetAVar('mid_sendbreaktoshell'), MIA_DISABLED, is_shell)
+
 defc menuinit_treecommands
    is_tree = leftstr(.filename, 5) = ".tree"
    SetMenuAttribute( GetAVar('mid_treesort'), MIA_DISABLED, is_tree)
    SetMenuAttribute( GetAVar('mid_treeit')  , MIA_DISABLED, is_tree)
 
-; The above is all part of ProcessMenuInit cmd on old versions.  -----------------
+; The above is all part of ProcessMenuInit cmd on old versions.  ------------
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
@@ -3256,6 +3456,7 @@ defc menuinit_treecommands
 */
 ; Flags: helper
 defc togglecontrol
+   universal menuloaded
    forceon = 0
    parse arg controlid fon
    if fon <> '' then
@@ -3269,19 +3470,21 @@ defc togglecontrol
                        controlid + forceon,
                        0)
 
-   -- Set MIA_CHECKED attributes for the case MIA_NODISMISS attribute is on
-   ControlIdList = ''     ||
-     24 'streammode'      || ' ' ||  -- stream_mode
-     25 'advancedmarking' || ' ' ||  -- not cua_marking_switch
-     26 'internalkeys'    || ' ' ||  -- should be off
-     ''
-   p = wordpos( controlid, ControlIdList)
-   if p then
-      midtext = word( ControlIdList, p + 1)
-      mid = GetAVar('mid_'midtext)
-      -- Check if mid exists, because 'initconfig' sets some controls before the menu
-      if mid > '' then
-         SetMenuAttribute( mid, MIA_CHECKED, not fon)
+   if menuloaded then
+      -- Set MIA_CHECKED attributes for the case MIA_NODISMISS attribute is on
+      ControlIdList = ''     ||
+        24 'streammode'      || ' ' ||  -- stream_mode
+        25 'advancedmarking' || ' ' ||  -- not cua_marking_switch
+        26 'internalkeys'    || ' ' ||  -- should be off
+        ''
+      p = wordpos( controlid, ControlIdList)
+      if p then
+         midtext = word( ControlIdList, p + 1)
+         mid = GetAVar('mid_'midtext)
+         -- Check if mid exists, because 'initconfig' sets some controls before the menu
+         if mid > '' then
+            SetMenuAttribute( mid, MIA_CHECKED, not fon)
+         endif
       endif
    endif
 
@@ -3302,6 +3505,7 @@ defc togglecontrol
 ; Flags: helper
 defc toggleframe
    universal menu_prompt
+   universal menuloaded
    forceon = 0
    parse arg controlid fon
    if fon <> '' then
@@ -3319,32 +3523,38 @@ defc toggleframe
    if controlid = 32 then
       if fon then  -- 1=top; 0=bottom.  If now top, turn off.
          menu_prompt = 0
-         -- Set MIA_CHECKED attributes for the case MIA_NODISMISS attribute is on
-         mid = GetAVar('mid_prompting')
-         -- Check if mid exists, because 'initconfig' sets some controls before the menu
-         if mid > '' then
-            SetMenuAttribute( mid, MIA_CHECKED, 1)
+         if menuloaded then
+            -- Set MIA_CHECKED attributes for the case MIA_NODISMISS attribute is on
+            mid = GetAVar('mid_prompting')
+            -- Check if mid exists, because 'initconfig' sets some controls before the menu
+            if mid > '' then
+               SetMenuAttribute( mid, MIA_CHECKED, 1)
+            endif
          endif
       endif
    endif
 
-   -- Set MIA_CHECKED attributes for the case MIA_NODISMISS attribute is on
-   ControlIdList = ''   ||
-      1 'statusline'    || ' ' ||
-      2 'messageline'   || ' ' ||
-      4 'rotatebuttons' || ' ' ||
-     16 'scrollbars'    || ' ' ||  -- acts on hscrollbar change only, menuitem for h and vscrollbars
-     32 'infoattop'     || ' ' ||
-   2048 'toolbar'
+   if menuloaded then
+      -- Set MIA_CHECKED attributes for the case MIA_NODISMISS attribute is on
+      ControlIdList = ''    ||
+         1 'statusbar'      || ' ' ||
+         2 'messageline'    || ' ' ||
+         4 'rotatebuttons'  || ' ' ||
+        16 'scrollbars'     || ' ' ||  -- acts on hscrollbar change only, menuitem for h and vscrollbars
+        32 'infoattop'      || ' ' ||
+      2048 'toolbarenabled'
 
-   p = wordpos( controlid, ControlIdList)
-   if p then
-      midtext = word( ControlIdList, p + 1)
-      mid = GetAVar('mid_'midtext)
-      -- Check if mid exists, because 'initconfig' sets some controls before the menu
-      if mid > '' then
-         SetMenuAttribute( mid, MIA_CHECKED, not fon)
+      p = wordpos( controlid, ControlIdList)
+      if p then
+         midtext = word( ControlIdList, p + 1)
+         mid = GetAVar('mid_'midtext)
+         -- Check if mid exists, because 'initconfig' sets some controls before the menu
+         if mid > '' then
+            SetMenuAttribute( mid, MIA_CHECKED, not fon)
+         endif
       endif
+
+      'SaveOptions OptOnly'
    endif
 
 ; ---------------------------------------------------------------------------
@@ -3356,30 +3566,26 @@ defproc queryframecontrol(controlid)
                          1)
 
 ; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, universal, epm.ini
+; Flags: universal, epm.ini
 defc toggle_profile
    universal rexx_profile
    universal menuloaded
-   universal saveoptions_auto
    universal app_hini
    universal appname
    rexx_profile = not rexx_profile
    if menuloaded then
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
       SetMenuAttribute( GetAVar('mid_activateprofile'), MIA_CHECKED, not rexx_profile)
-      if saveoptions_auto then
-         old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-         new = subword( old, 1, 11)' 'rexx_profile' 'subword( old, 13)\0
-         call setprofile( app_hini, appname, INI_OPTFLAGS, new)
-      endif
+      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+      new = subword( old, 1, 11)' 'rexx_profile' 'subword( old, 13)\0
+      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, universal, toggleframe, epm.ini
+; Flags: universal, toggleframe, epm.ini
 defc toggleprompt, toggle_prompt
    universal menu_prompt
    universal menuloaded
-   universal saveoptions_auto
    universal app_hini
    universal appname
    menu_prompt = not menu_prompt
@@ -3389,19 +3595,16 @@ defc toggleprompt, toggle_prompt
    if menuloaded then
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
       SetMenuAttribute( GetAVar('mid_prompting'), MIA_CHECKED, not menu_prompt)
-      if saveoptions_auto then
-         old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-         new = subword( old, 1, 8)' 'menu_prompt' 'subword( old, 10)\0
-         call setprofile( app_hini, appname, INI_OPTFLAGS, new)
-      endif
+      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+      new = subword( old, 1, 8)' 'menu_prompt' 'subword( old, 10)\0
+      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, toggleframe, epm.ini
+; Flags: toggleframe, epm.ini
 defc toggle_toolbar
    universal toolbar_loaded
    universal menuloaded
-   universal saveoptions_auto
    universal app_hini
    universal appname
    --fon = queryframecontrol(EFRAMEF_TOOLBAR)  -- Query now, since toggling is asynch.
@@ -3411,11 +3614,9 @@ defc toggle_toolbar
    endif
    toolbar_on = queryframecontrol(EFRAMEF_TOOLBAR)
    if menuloaded then
-      if saveoptions_auto then
-         old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-         new = subword( old, 1, 15)' 'toolbar_on' 'subword( old, 17)\0
-         call setprofile( app_hini, appname, INI_OPTFLAGS, new)
-      endif
+      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+      new = subword( old, 1, 15)' 'toolbar_on' 'subword( old, 17)\0
+      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
 ; ---------------------------------------------------------------------------
@@ -3426,28 +3627,35 @@ defc setscrolls
    'toggleframe 16' on
 
 ; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, universal, toggleframe, epm.ini
+; Flags: universal, toggleframe, epm.ini
 defc toggle_bitmap
    universal bitmap_present, bm_filename
    universal menuloaded
-   universal saveoptions_auto
    universal app_hini
    universal appname
    bitmap_present = not bitmap_present
-   call windowmessage(0, getpminfo(EPMINFO_EDITCLIENT),
-                       5498 - (44*bitmap_present), 0, 0)
+   fLoad = 0
+   if bitmap_present & bm_filename > '' then
+      if substr( bm_filename, 2, 2) = ':\' & IsOs2Bmp( BmpFile) then  -- if fully qualified and valid
+         fLoad = 1
+      endif
+   endif
+   if fLoad then
+      'load_dt_bitmap' bm_filename
+   else
+      call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
+                          5498 - (44 * bitmap_present), 0, 0)
+   endif
    if menuloaded then
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
-      SetMenuAttribute( GetAVar('mid_backgroundbitmap'), MIA_CHECKED, not bitmap_present)
-      if saveoptions_auto then
-         old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-         new = subword( old, 1, 14)' 'bitmap_present' 'subword( old, 16)\0
-         call setprofile( app_hini, appname, INI_OPTFLAGS, new)
-      endif
+      SetMenuAttribute( GetAVar('mid_backgroundbitmapenabled'), MIA_CHECKED, not bitmap_present)
+      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+      new = subword( old, 1, 14)' 'bitmap_present' 'subword( old, 16)\0
+      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: file, permanent, fieldvar, attrib
+; Flags: file, fieldvar, attrib
 defc toggle_readonly
    on = GetReadonly()
    on = not on
@@ -3457,7 +3665,7 @@ defc toggle_readonly
    SetMenuAttribute( GetAVar('mid_readonly'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: file, permanent, fieldvar, dosopen
+; Flags: file, fieldvar, dosopen
 defc toggle_locked
    if .lockhandle then
       'unlock'
@@ -3469,7 +3677,7 @@ defc toggle_locked
    SetMenuAttribute( GetAVar('mid_locked'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_restore_pos
    universal nepmd_hini
    KeyPath = '\NEPMD\User\AutoRestore\CursorPos'
@@ -3479,7 +3687,7 @@ defc toggle_restore_pos
    SetMenuAttribute( GetAVar('mid_restorecursorpos'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_history
    universal nepmd_hini
    KeyPath = '\NEPMD\User\History'
@@ -3489,7 +3697,7 @@ defc toggle_history
    SetMenuAttribute( GetAVar('mid_trackhistorylists'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_save_ring
    universal nepmd_hini
    KeyPath = '\NEPMD\User\AutoRestore\Ring\SaveLast'
@@ -3500,7 +3708,7 @@ defc toggle_save_ring
    SetMenuAttribute( GetAVar('mid_autosavelastring'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_restore_ring
    universal nepmd_hini
    KeyPath = '\NEPMD\User\AutoRestore\Ring\LoadLast'
@@ -3511,7 +3719,7 @@ defc toggle_restore_ring
    SetMenuAttribute( GetAVar('mid_autoloadlastring'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, universal, nepmd.ini
+; Flags: universal, nepmd.ini
 defc toggle_two_spaces
    universal nepmd_hini
    universal twospaces
@@ -3522,14 +3730,14 @@ defc toggle_two_spaces
    SetMenuAttribute( GetAVar('mid_twospaces'), MIA_CHECKED, not twospaces)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent
+; Flags:
 defc toggle_search_backward
    'ToggleSearchDirection'
    on = (GetSearchDirection() = '-')
    SetMenuAttribute( GetAVar('mid_searchbackwards'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: file, mode, impermanent, arrayvar
+; Flags: file, mode, arrayvar
 defc toggle_highlight
    on = GetHighlight()
    on = not on
@@ -3539,7 +3747,7 @@ defc toggle_highlight
    SetMenuAttribute( GetAVar('mid_keywordhighlighting'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini, refreshring
+; Flags: nepmd.ini, refreshring
 defc toggle_default_highlight
    universal nepmd_hini
    KeyPath = '\NEPMD\User\KeywordHighlighting'
@@ -3553,7 +3761,7 @@ defc toggle_default_highlight
    'RingRefreshSetting DEFAULT SetHighlight 'on opt
 
 ; ---------------------------------------------------------------------------
-; Flags: file, mode, impermanent, universal
+; Flags: file, mode, universal
 defc toggle_expand
    universal menuloaded
    universal expand_on
@@ -3566,7 +3774,7 @@ defc toggle_expand
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini, refreshcurrent
+; Flags: nepmd.ini, refreshcurrent
 defc toggle_default_expand
    universal menuloaded
    universal nepmd_hini
@@ -3588,12 +3796,11 @@ defc toggle_default_expand
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, universal, epm.ini, refreshcurrent
+; Flags: universal, epm.ini, refreshcurrent
 defc toggle_cua_mark, cua_mark_toggle
    universal cua_marking_switch
    universal menuloaded
    universal defaultmenu
-   universal saveoptions_auto
    universal app_hini
    universal appname
 
@@ -3602,17 +3809,15 @@ defc toggle_cua_mark, cua_mark_toggle
    call MH_set_mouse()
    'RefreshInfoLine MARKINGMODE'
    if menuloaded then
-      if saveoptions_auto then
-         old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-         new = subword( old, 1, 7)' 'cua_marking_switch' 'subword( old, 9)\0
-         call setprofile( app_hini, appname, INI_OPTFLAGS, new)
-      endif
+      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+      new = subword( old, 1, 7)' 'cua_marking_switch' 'subword( old, 9)\0
+      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
       -- Set nmenu attributes and text for the case MIA_NODISMISS attribute is on
       'menuinit_markingsettings'
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_mousestyle
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Mark\MouseStyle'
@@ -3630,7 +3835,7 @@ defc toggle_mousestyle
   'mouse_init'  -- refresh the register_mousehandler defs
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_default_paste
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Mark\DefaultPaste'
@@ -3654,7 +3859,7 @@ defc toggle_default_paste
    'loadaccel'
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_shift_mark_extends
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Mark\ShiftMarkExtends'
@@ -3664,7 +3869,7 @@ defc toggle_shift_mark_extends
    SetMenuAttribute( GetAVar('mid_shiftmarkextends'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_unmark_after_move
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Mark\UnmarkAfterMove'
@@ -3674,7 +3879,7 @@ defc toggle_unmark_after_move
    SetMenuAttribute( GetAVar('mid_unmarkaftermove'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_drag_always_marks
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Mark\DragAlwaysMarks'
@@ -3685,7 +3890,7 @@ defc toggle_drag_always_marks
   'mouse_init'  -- refresh the register_mousehandler defs
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_keep_cursor_on_screen
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
@@ -3696,7 +3901,7 @@ defc toggle_keep_cursor_on_screen
    SetMenuAttribute( GetAVar('mid_keepcursoronscreen'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_block_left_alt_key
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey'
@@ -3709,7 +3914,7 @@ defc toggle_block_left_alt_key
    'loadaccel'
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_block_right_alt_key
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockRightAltKey'
@@ -3722,7 +3927,7 @@ defc toggle_block_right_alt_key
    'loadaccel'
 
 ; ---------------------------------------------------------------------------
-; Flags: file, mode, impermanent, universal, arrayvar
+; Flags: file, mode, universal, arrayvar
 defc toggle_tabkey
    universal tab_key
    universal menuloaded
@@ -3735,12 +3940,11 @@ defc toggle_tabkey
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, universal, nepmd.ini, refreshcurrent
+; Flags: universal, nepmd.ini, refreshcurrent
 defc toggle_default_tabkey
    universal default_tab_key
    universal tab_key
    universal menuloaded
-   universal saveoptions_auto
    universal app_hini
    universal appname
 
@@ -3755,11 +3959,9 @@ defc toggle_default_tabkey
    if menuloaded then
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
       SetMenuAttribute( GetAVar('mid_defaulttabkey'), MIA_CHECKED, not default_tab_key)
-      if saveoptions_auto then
-         old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-         new = subword( old, 1, 13)' 'default_tab_key' 'subword( old, 15)\0
-         call setprofile( app_hini, appname, INI_OPTFLAGS, new)
-      endif
+      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+      new = subword( old, 1, 13)' 'default_tab_key' 'subword( old, 15)\0
+      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 /*
    universal nepmd_hini
@@ -3770,7 +3972,7 @@ defc toggle_default_tabkey
 */
 
 ; ---------------------------------------------------------------------------
-; Flags: file, mode, impermanent, universal, arrayvar
+; Flags: file, mode, universal, arrayvar
 defc toggle_matchtab
    universal menuloaded
    universal nepmd_hini
@@ -3784,7 +3986,7 @@ defc toggle_matchtab
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, universal, nepmd.ini, refreshcurrent
+; Flags: universal, nepmd.ini, refreshcurrent
 defc toggle_default_matchtab
    universal menuloaded
    universal nepmd_hini
@@ -3805,7 +4007,7 @@ defc toggle_default_matchtab
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, internal, nepmd.ini
+; Flags: internal, nepmd.ini
 defc toggle_tabglyph
    universal nepmd_hini
    on = tabglyph()
@@ -3817,7 +4019,7 @@ defc toggle_tabglyph
    SetMenuAttribute( GetAVar('mid_showtabs'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: file, mode, impermanent, fieldvar, arrayvar
+; Flags: file, mode, fieldvar, arrayvar
 defc toggle_dynaspell
    on = (.keyset = 'SPELL_KEYS')
    on = not on
@@ -3826,7 +4028,7 @@ defc toggle_dynaspell
    SetMenuAttribute( GetAVar('mid_autospellcheck'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, universal, nepmd.ini
+; Flags: universal, nepmd.ini
 defc toggle_join_after_wrap
    universal nepmd_hini
    universal join_after_wrap
@@ -3837,7 +4039,7 @@ defc toggle_join_after_wrap
    SetMenuAttribute( GetAVar('mid_joinafterwrap'), MIA_CHECKED, not join_after_wrap)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_mail_indented
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
@@ -3848,7 +4050,7 @@ defc toggle_mail_indented
    SetMenuAttribute( GetAVar('mid_mailindentedlines'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc toggle_reflow_next
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Reflow\Next'
@@ -3859,7 +4061,7 @@ defc toggle_reflow_next
    SetMenuAttribute( GetAVar('mid_reflownext'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini, refreshring
+; Flags: nepmd.ini, refreshring
 defc toggle_respect_readonly
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Readonly'
@@ -3871,7 +4073,7 @@ defc toggle_respect_readonly
    'ring enable_readonly 'on
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini, refreshring
+; Flags: nepmd.ini, refreshring
 defc toggle_lock_on_modify
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Lock\OnModify'
@@ -3883,7 +4085,7 @@ defc toggle_lock_on_modify
    'ring lock_on_modify 'on
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, universal, nepmd.ini
+; Flags: universal, nepmd.ini
 defc toggle_nodismiss
    universal nepmd_hini
    universal nodismiss
@@ -3905,7 +4107,7 @@ OPTFLAGS:
    Bit              Setting
         for value = 1      for value = 0
    ---  ----------------   -------------------
-    1   statusline on      statusline off
+    1   status bar on      status bar off
     2   msgline on         msgline off
     3   vscrollbar on      vscrollbar off
     4   hscrollbar on      hscrollbar off
@@ -3933,7 +4135,7 @@ OPT2FLAGS:
 */
 
 ; ---------------------------------------------------------------------------
-; Flags: file, mode, impermanent, universal, fieldvar, arrayvar
+; Flags: file, mode, universal, fieldvar, arrayvar
 defc toggle_stream, stream_toggle
    universal stream_mode
    universal menuloaded
@@ -3947,12 +4149,11 @@ defc toggle_stream, stream_toggle
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, universal, epm.ini, refreshcurrent
+; Flags: universal, epm.ini, refreshcurrent
 defc toggle_default_stream
    universal default_stream_mode
    universal stream_mode
    universal menuloaded
-   universal saveoptions_auto
    universal app_hini
    universal appname
    default_stream_mode = not default_stream_mode
@@ -3967,20 +4168,18 @@ defc toggle_default_stream
    if menuloaded then
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
       SetMenuAttribute( GetAVar('mid_defaultstreammode'), MIA_CHECKED, not default_stream_mode)
-      if saveoptions_auto then
-         old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-         new = subword( old, 1, 9)' 'default_stream_mode' 'subword( old, 11)\0
-         call setprofile( app_hini, appname, INI_OPTFLAGS, new)
-      endif
+      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+      new = subword( old, 1, 9)' 'default_stream_mode' 'subword( old, 11)\0
+      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, universal, epm.ini
+; unused
+; Flags: universal, epm.ini
 defc toggle_ring, ring_toggle
    universal ring_enabled
    universal activemenu, defaultmenu
    universal menuloaded
-   universal saveoptions_auto
    universal app_hini
    universal appname
 
@@ -3996,9 +4195,7 @@ defc toggle_ring, ring_toggle
    -- MIA_NODISMISS attribute has no effect anymore.
    call maybe_show_menu()
    if menuloaded then
-      if saveoptions_auto then
-         call setprofile( app_hini, appname, INI_RINGENABLED, ring_enabled)
-      endif
+      call setprofile( app_hini, appname, INI_RINGENABLED, ring_enabled)
    endif
 /*
    if menuloaded then
@@ -4021,12 +4218,11 @@ defc stack_toggle
 */
 
 ; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, universal, epm.ini
+; Flags: universal, epm.ini
 defc toggle_accel, accel_toggle
    universal cua_menu_accel
    universal activemenu, defaultmenu
    universal menuloaded
-   universal saveoptions_auto
    universal app_hini
    universal appname
 
@@ -4047,17 +4243,14 @@ compile endif
    if menuloaded then
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
       SetMenuAttribute( GetAVar('mid_blockactionbaraccelerators'), MIA_CHECKED, cua_menu_accel)
-      if saveoptions_auto then
-         call setprofile( app_hini, appname, INI_CUAACCEL, cua_menu_accel)
-      endif
+      call setprofile( app_hini, appname, INI_CUAACCEL, cua_menu_accel)
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: impermanent|savable|permanent, universal, epm.ini
+; Flags: universal, epm.ini
 defc toggle_longname
    universal show_longnames
    universal menuloaded
-   universal saveoptions_auto
    universal app_hini
    universal appname
    show_longnames = not show_longnames
@@ -4066,25 +4259,13 @@ defc toggle_longname
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
       SetMenuAttribute( GetAVar('mid_showlongname'), MIA_CHECKED, not show_longnames)
       'RefreshInfoLine FILE'
-      if saveoptions_auto then
-         old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-         new = subword( old, 1, 10)' 'show_longnames' 'subword( old, 12)\0
-         call setprofile( app_hini, appname, INI_OPTFLAGS, new)
-      endif
+      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+      new = subword( old, 1, 10)' 'show_longnames' 'subword( old, 12)\0
+      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, universal, nepmd.ini
-defc toggle_save_options
-   universal nepmd_hini
-   universal saveoptions_auto
-   saveoptions_auto = not saveoptions_auto
-   KeyPath = '\NEPMD\User\Menu\SaveOptions'
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, saveoptions_auto)
-   SetMenuAttribute( GetAVar('mid_saveoptionsautomatically'), MIA_CHECKED, not saveoptions_auto)
-
-; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc set_ChangeWorkDir
    universal nepmd_hini
    opt = arg(1)
@@ -4110,7 +4291,7 @@ defc set_ChangeWorkDir
    SetMenuAttribute( GetAVar('mid_workdirfile'),    MIA_CHECKED, not (opt = 2))
 
 ; ---------------------------------------------------------------------------
-; Flags: permanent, nepmd.ini
+; Flags: nepmd.ini
 defc set_OpenDlgDir
    universal app_hini
    universal nepmd_hini
@@ -4213,7 +4394,7 @@ defc ReflowmarginsInit
 ; ---------------------------------------------------------------------------
 ; Change edit options and set menu attributes.
 ; Some options exclude each other, see ExcludeList. The last option wins.
-; Flags: impermanent|extra_savable|reset, universal, nepmd.ini
+; Flags: universal, nepmd.ini
 defc seteditoptions
    universal nepmd_hini
    universal default_edit_options
@@ -4290,7 +4471,7 @@ defc seteditoptions
 ; ---------------------------------------------------------------------------
 ; Change save options and set menu attributes.
 ; Some options exclude each other, see ExcludeList. The last option wins.
-; Flags: impermanent|extra_savable|reset, universal, nepmd.ini
+; Flags: universal, nepmd.ini
 defc setsaveoptions
    universal nepmd_hini
    universal default_save_options
@@ -4384,7 +4565,7 @@ defc setsaveoptions
 ; ---------------------------------------------------------------------------
 ; Change search options and set menu attributes.
 ; Some options exclude each other, see ExcludeList. The last option wins.
-; Flags: impermanent|extra_savable|reset, universal, nepmd.ini
+; Flags: universal, nepmd.ini
 defc setsearchoptions
    universal nepmd_hini
    universal default_search_options
