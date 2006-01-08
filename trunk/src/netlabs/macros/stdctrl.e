@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.31 2005-12-07 18:43:59 aschn Exp $
+* $Id: stdctrl.e,v 1.32 2006-01-08 00:12:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -486,21 +486,74 @@ defproc entrybox(title)
 
 defc load_dt_bitmap
    universal bm_filename
+   universal bitmap_present
    BmpFile = arg(1)
-   if pos( ':\', BmpFile) & exist(BmpFile) then  -- if fully qualified and valid
+   if substr( bm_filename, 2, 2) = ':\' & IsOs2Bmp( BmpFile) then  -- if fully qualified and valid
       call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
                           5499,            -- EPM_EDIT_SETDTBITMAPFROMFILE
                           put_in_buffer(BmpFile),
                           0)
+      bitmap_present = 1
+      bm_filename = BmpFile
    else
-      bm_filename = ''
-      sayerror 'Filename for background bitmap not valid (must be fully qualified and 31 chars max)'
+      sayerror 'Filename for background bitmap not valid'
    endif
 
+; Doesn't work with eCS, ...?
 defc drop_bitmap
    universal bm_filename
    parse arg x y bm_filename
    'load_dt_bitmap' bm_filename
+
+; ---------------------------------------------------------------------------
+defc SetBackgroundBitmap
+   universal bitmap_present
+   universal bm_filename
+   universal app_hini
+   universal appname
+   arg1 = strip( arg(1))
+   fSetBmp = 0
+   if upcase( arg1) = 'SELECT' then
+      BootDrive = NepmdQuerySysInfo( 'BOOTDRIVE')
+      'FileDlg Select a background bitmap file, SetBackgroundBitmap, 'BootDrive'\os2\bitmap\*.bmp'
+      return
+   elseif wordpos( upcase( arg1), '0 OFF') then
+      bitmap_present = 0
+      fSetBmp = 1
+   elseif wordpos( upcase( arg1), '1 ON') then
+      bitmap_present = 1
+      fSetBmp = 1
+   elseif wordpos( upcase( arg1), 'TOGGLE') then
+      bitmap_present = not bitmap_present
+      fSetBmp = 1
+   elseif IsOs2Bmp( arg1) then
+      bm_filename = arg1
+      'load_dt_bitmap' bm_filename
+      call setprofile( app_hini, appname, INI_BITMAP, bm_filename)
+   elseif arg1 > '' then
+      sayerror '"'arg1'" is not an OS/2 bitmap'
+   endif
+
+   if fSetBmp = 1 then
+      call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
+                          5498 - (44*bitmap_present), 0, 0)
+      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+      new = subword( old, 1, 14)' 'bitmap_present' 'subword( old, 16)\0
+      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
+   endif
+
+; ---------------------------------------------------------------------------
+defproc IsOs2Bmp
+   Sig = 'BMN'
+   arg1 = strip( arg(1))
+   ret = 0
+   if rightstr( upcase( arg1), 4) = '.BMP' then
+      if Exist( arg1) then
+         -- Todo: load file and check for Sig
+         ret = 1
+      endif
+   endif
+   return ret
 
 defproc querycontrol(controlid)
    return windowmessage( 1, getpminfo(EPMINFO_EDITCLIENT),   -- Send message to edit client
@@ -604,7 +657,7 @@ defc ProcessFontRequest
    universal default_font
    universal statfont, msgfont
    universal appname, app_hini
-   --dprintf( 'PROCESSFONTREQUEST', 'arg(1) = ['arg(1)']')
+   --dprintf( 'ProcessFontRequest', 'arg(1) = ['arg(1)']')
    parse value arg(1) with fontname '.' fontsize '.' fontsel '.' fsetfont '.' markedonly '.' fg '.' bg
    -- sayerror 'Fontname=' fontname ' Fontsize=' fontsize 'Fontsel=' fontsel 'arg(1)="'arg(1)'"'
    if markedonly = 2 then  -- Statusline font
@@ -914,7 +967,7 @@ defc Monofont
       if next > '' then
          -- Strip color attributes
          parse value next with name'.'size'.'attrib'.'fgcol'.'bgcol
-         NewFont = next'.'size'.'attrib
+         NewFont = name'.'size'.'attrib
          leave
       endif
    enddo
@@ -1295,7 +1348,7 @@ defc messagebox  -- The application will free the buffer allocated by this macro
 ; unused (with WPS anyway)
 defc ProcessDragDrop
    parse arg cmdid hwnd
-call NepmdPmPrintf('PROCESSDRAGDROP: cmdid = 'cmdid', hwnd = 'hwnd)
+   --dprintf( 'ProcessDragDrop', 'cmdid = 'cmdid', hwnd = 'hwnd)
 ;  hwnd = atol_swap(hwnd)
 
    if cmdid = 10 then
@@ -1479,7 +1532,7 @@ defc qprint
    parse arg what queue_name
    w = wordpos( upcase(what), 'M M! F F! !')
    if w then
-      flags =           word('1 3  0 2  2', w)
+      flags =           word( '1 3  0 2  2', w)
    else                   -- Not a flag;
       queue_name = arg(1)  -- assume part of the queue name
       flags = 0            -- and use default options.
@@ -2029,7 +2082,7 @@ defproc ConvertToEFont
 
 ; ---------------------------------------------------------------------------
 defproc ConvertToOs2Font
-dprintf( 'CONVERTTOOS2FONT', 'arg(1) = 'arg(1))
+   --dprintf( 'CONVERTTOOS2FONT', 'arg(1) = 'arg(1))
    parse arg name'.'size'.'attriblist
 
    next = upcase(size)
@@ -2102,7 +2155,7 @@ dprintf( 'CONVERTTOOS2FONT', 'arg(1) = 'arg(1))
 
    endif
    Os2Font = size'.'name''attriblist
-dprintf( 'CONVERTTOOS2FONT', 'Os2Font = 'Os2Font)
+   --dprintf( 'CONVERTTOOS2FONT', 'Os2Font = 'Os2Font)
    return Os2Font
 
 ; ---------------------------------------------------------------------------
@@ -2180,7 +2233,7 @@ defproc ConvertColor( args)
          enddo
          if fFound = 0 then
             --sayerror 'Unknown color specification "'name'"'
-            dprintf( 'Unknown color specification "'name'"')
+            --dprintf( 'Unknown color specification "'name'"')
             rc = 1
          endif
       enddo
