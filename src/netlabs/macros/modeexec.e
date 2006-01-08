@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.13 2005-12-07 18:42:36 aschn Exp $
+* $Id: modeexec.e,v 1.14 2006-01-08 23:05:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,22 +41,34 @@
 ; ---------------------------------------------------------------------------
 ; Remaining configuration constants:
 /*
-; Syntax expansion:
-   TERMINATE_COMMENTS = 0
-   WANT_END_COMMENTED = 1
+;  Syntax expansion:                                 replaced by universals:
+   TERMINATE_COMMENTS = 0                            newline_terminate_comment
+   WANT_END_COMMENTED = 1                            END_add_comment
 
-   REXX_SYNTAX_CASE = 'lower' ('Mixed' | 'UPPER')
-   REXX_SYNTAX_FORCE_CASE = 1
-   REXX_SYNTAX_NO_ELSE = 1
+   REXX_SYNTAX_CASE = 'lower' ('Mixed' | 'UPPER')    rexx_case
+   REXX_SYNTAX_FORCE_CASE = 1                        rexx_force_case
+   REXX_SYNTAX_NO_ELSE = 1                           rexx_IF_add_ELSE
 
-   I_like_my_cases_under_my_switch = 1
-   I_like_a_semicolon_supplied_after_default = 0
-   ADD_BREAK_AFTER_DEFAULT = 1
-   WANT_BRACE_BELOW_STATEMENT = 0
-   WANT_BRACE_BELOW_STATEMENT_INDENTED = 0
-   USE_ANSI_C_NOTATION = 1  -- 1 means use shorter ANSI C notation on MAIN.
+   I_like_my_cases_under_my_switch = 1               c_CASE_under_SWITCH
+   I_like_a_semicolon_supplied_after_default = 0     c_DEFAULT_add_semicolon
+   ADD_BREAK_AFTER_DEFAULT = 1                       c_DEFAULT_add_BREAK
+   WANT_BRACE_BELOW_STATEMENT = 0                    c_brace_below           or  c_brace_style 0 (appended),
+   WANT_BRACE_BELOW_STATEMENT_INDENTED = 0           c_brace_below_indented                    1 (below), 2 (indented)
+   USE_ANSI_C_NOTATION = 1                           c_MAIN_use_ansi
    JAVA_SYNTAX_ASSIST = 0
    CPP_EXTENSIONS = 'CPP HPP CXX HXX SQX JAV JAVA'
+
+   WANT_SPACE_AFTER_PAREN = 1                        opening_paren_add_space
+   C_HEADER_LENGTH = 77                              c_header_length (or use reflowmargin)
+   C_HEADER_STYLE = 1  -- (1 | 2), 1 = not indented  c_header_body_indented
+   REXX_DO_STYLE = 'NO_INDENT_AFTER_IF'  -- 'APPEND' | 'INDENT_AFTER_IF' | 'NO_INDENT_AFTER_IF'
+                                             0          2                   1
+                                                     rexx_DO_style
+
+   Todo: as alternative use simple expansion of
+         { (indent current/next line) and
+         } (unindent current/next line).
+
 
 ; Others:
    Are there any?
@@ -1115,4 +1127,38 @@ defc SetMarkColor
          call AddAVar( 'lastusedsettings', ' SetMarkColor')
       endif
    endif
+
+; ---------------------------------------------------------------------------
+; Commands for coding styles
+; Example for MEODECNF.E:
+;    'AddCodingStyle K+R SetIndent 3'
+;    'AddCodingStyle K+R SetTabs 3'
+;    'AddCodingStyle K+R SetBracesIndented 1'
+;    'AddCodingStyle K+R SetBracesBelow 1'
+;    'ModeExecute C SetCodingStyle K+R'
+
+; ---------------------------------------------------------------------------
+; Delete the hook (to be executed before overwriting an entire hook instead
+; of changing the values).
+; Syntax: ResetCodingStyle <name>
+defc DelCodingStyle
+    parse arg name
+    'HookDelAll codingstyle.'name
+
+; ---------------------------------------------------------------------------
+; Add a command to the hook. Command should be a Set* command, defined in
+; this file. If command was already added to the hook, it is removed first,
+; so that a command is present only once.
+; Syntax: AddCodingStyle <name> <command>
+defc AddCodingStyle
+    parse arg name command
+    'HookChange codingstyle.'name command
+
+; ---------------------------------------------------------------------------
+; Execute the hook. Useful for execution at defselect.
+; Syntax: ModeExecute <mode> SetCodingStyle <name>
+;     or: SetCodingStyle <name>  (for file specific settings)
+defc SetCodingStyle
+    parse arg name
+    'HookExecute codingstyle.'name
 
