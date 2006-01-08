@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.30 2006-01-08 18:25:57 aschn Exp $
+* $Id: newmenu.e,v 1.31 2006-01-08 22:48:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -208,7 +208,8 @@ definit
                                     ' mainsettings markingsettings marginsandtabs accelsettings' ||
                                     ' readonlyandlock autorestore' ||
                                     ' opendlgdir workdir macros' ||
-                    /* Run */       ' treecommands')
+                    /* Run */       ' treecommands' ||
+                    /* Help */      ' keywordhelp')
 
    -- Define a list of abbreviations for linked .ex filenames, that add a
    -- large amount of menu items. These .ex files will cause a decrease of
@@ -1736,7 +1737,7 @@ defproc add_view_menu(menuname)
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_toolbartext', i);
    buildmenuitem menuname, mid, i, '~Text',                                                                    -- Text
-                                   'ToggleToolbarText' ||
+                                   'toggle_toolbar_text' ||
                                    \1'Show button text',
                                    MIS_TEXT, nodismiss
    i = i + 1;
@@ -1745,7 +1746,7 @@ defproc add_view_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_toolbarautosize', i);
    buildmenuitem menuname, mid, i, '~Automatic size',                                                          -- Automatic size
-                                   'ToggleToolbarAutoSize' ||
+                                   'toggle_toolbar_autosize' ||
                                    \1'Adjust button sizes to the .bmp sizes',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_toolbarsize', i); call SetAVar( 'mtxt_toolbarsize', '~Size: [x]...')
@@ -1755,7 +1756,7 @@ defproc add_view_menu(menuname)
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_toolbarscaling', i); call SetAVar( 'mtxt_toolbarscaling', 'S~caling: []')
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_toolbarscaling'),                                            -- Scaling: [and]
-                                   'ToggleToolbarScaling' ||
+                                   'toggle_toolbar_scaling' ||
                                    \1'In most cases "and" looks best',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
    i = i + 1;
@@ -2717,6 +2718,7 @@ defproc add_run_menu(menuname)
 
 ; -------------------------------------------------------------------------------------- Help -------------------------
 defproc add_help_menu(menuname)
+   universal nodismiss
    mid = GetAVar('mid_help')
    i = mid'00'
    buildsubmenu  menuname, mid, HELP_BAR__MSG,                                                     -- Help ------------
@@ -2859,23 +2861,23 @@ compile endif
                                    0, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Word...',                                                           -- Word...
-                                   'kwhelp ?' ||  ------------------------- todo
+                                   'kwhelp ?' ||
                                    \1'Prompt for a keyword, then view documentation for it',
-                                   0, MIA_DISABLED
+                                   0, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_usenewview', i);
    buildmenuitem menuname, mid, i, 'Use ~NewView if found',                                              -- Use NewView if found
-                                   '' ||  ------------------------- todo
-                                   \1'Msg',
-                                   0, MIA_DISABLED
-   i = i + 1; call SetAVar( 'mid_usenewviewsextendedsearch', i);
+                                   'toggle_use_newview' ||
+                                   \1'NiewView.exe is searched in PATH and used if found',
+                                   0, nodismiss
+   i = i + 1; call SetAVar( 'mid_usenewviewxsearch', i);
    buildmenuitem menuname, mid, i, 'Use NewView''s ~extended search',                                    -- Use NewView's extended search
-                                   '' ||  ------------------------- todo
-                                   \1'Msg',
-                                   MIS_TEXT + MIS_ENDSUBMENU, MIA_DISABLED
+                                   'toggle_newview_xsearch' ||
+                                   \1'Search in text instead of just a topic search',
+                                   MIS_TEXT + MIS_ENDSUBMENU, nodismiss
    return
 
 ; ---------------------------------------------------------------------------
@@ -3410,6 +3412,16 @@ defc menuinit_treecommands
    SetMenuAttribute( GetAVar('mid_treesort'), MIA_DISABLED, is_tree)
    SetMenuAttribute( GetAVar('mid_treeit')  , MIA_DISABLED, is_tree)
 
+; ------------------------------------ Keyword help -------------------------
+defc menuinit_keywordhelp
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\KeywordHelp\NewView\UseIfFound'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   SetMenuAttribute( GetAVar('mid_usenewview'),        MIA_CHECKED, not on)
+   SetMenuAttribute( GetAVar('mid_usenewviewxsearch'), MIA_DISABLED, on)
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   SetMenuAttribute( GetAVar('mid_usenewviewxsearch'), MIA_CHECKED, not on)
+
 ; The above is all part of ProcessMenuInit cmd on old versions.  ------------
 
 ; ---------------------------------------------------------------------------
@@ -3625,7 +3637,7 @@ defc toggle_toolbar
    endif
 
 ; ---------------------------------------------------------------------------
-defc ToggleToolbarText
+defc toggle_toolbar_text
    universal menuloaded
    parse value GetToolbarSetup() with \1 Style \1 SetupRest
    fText     = not (Style bitand 16)
@@ -3646,7 +3658,7 @@ defc ToggleToolbarText
    endif
 
 ; ---------------------------------------------------------------------------
-defc ToggleToolbarAutosize
+defc toggle_toolbar_autosize
    universal menuloaded
    parse value GetToolbarSetup() with \1 Style \1 SetupRest
    fText     = not (Style bitand 16)
@@ -3669,7 +3681,7 @@ defc ToggleToolbarAutosize
    endif
 
 ; ---------------------------------------------------------------------------
-defc ToggleToolbarScaling
+defc toggle_toolbar_scaling
    universal menuloaded
    parse value GetToolbarSetup() with \1 Style \1 SetupRest
    fText     = not (Style bitand 16)
@@ -4336,6 +4348,31 @@ defc toggle_longname
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
       new = subword( old, 1, 10)' 'show_longnames' 'subword( old, 12)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
+   endif
+
+; ---------------------------------------------------------------------------
+defc toggle_use_newview
+   universal menuloaded
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\KeywordHelp\NewView\UseIfFound'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   if menuloaded then
+      SetMenuAttribute( GetAVar('mid_usenewview'),        MIA_CHECKED, not on)
+      SetMenuAttribute( GetAVar('mid_usenewviewxsearch'), MIA_DISABLED, on)
+   endif
+
+; ---------------------------------------------------------------------------
+defc toggle_newview_xsearch
+   universal menuloaded
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\KeywordHelp\NewView\ExtendedSearch'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   if menuloaded then
+      SetMenuAttribute( GetAVar('mid_usenewviewxsearch'), MIA_CHECKED, not on)
    endif
 
 ; ---------------------------------------------------------------------------

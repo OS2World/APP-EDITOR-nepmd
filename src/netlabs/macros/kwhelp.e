@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.28 2005-11-24 20:41:43 aschn Exp $
+* $Id: kwhelp.e,v 1.29 2006-01-08 22:48:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -79,24 +79,56 @@ compile if not defined(GENERAL_NOCASE_TYPES)
 compile endif
 
 ; ---------------------------------------------------------------------------
-defc kwhelp = call pHelp_C_identifier()
+defc KwhelpSelect
+      Title   = 'Keyword help'
+      Text    = 'Select a keyword to perform a helpfile search on:'
+      DefaultButton = 1
+      -- The following must be posted in some cases, e.g. when a nodismiss
+      -- menu item was toggled before:
+      parse value entrybox( Title,
+                            '/'OK__MSG'/'CANCEL__MSG,  -- max. 4 buttons
+                            '',
+                            '',
+                            260,
+                            atoi(DefaultButton)  ||
+                            atoi(0000)           ||  -- help id
+                            gethwndc(APP_HANDLE) ||
+                            Text) with Button 2 NewValue \0
+      NewValue = strip(NewValue)
+      if Button = \1 & NewValue <> '' then
+         Identifier = NewValue
+         'postme kwhelp' Identifier
+         return
+      else
+         return
+      endif
 
 ; ---------------------------------------------------------------------------
-defproc pHelp_C_identifier
-   universal savetype, helpindex_id
+defc Kwhelp
+   universal savetype
+   universal helpindex_id
+   universal nepmd_hini
+
    ft = filetype()    --<---------------------------------------------------- Todo
 ;  if savetype = '' then              /* initialize file type so we know when it changes */
 ;     savetype = ft
 ;  endif
 
-   if not find_token(startcol, endcol) then   /* only look for keywords if cursor is on a word */
+   Identifier = arg(1)
+   if Identifier = '?' then
+      -- open entrybox
+      'postme KwhelpSelect'
       return
-   endif
-
-   call pGet_Identifier(identifier, startcol, endcol, ft)        /* locate the keyword in question */
-   if identifier = '' then
-      sayerror 'Unable to identify help subject from cursor position in source file'
-      return
+   elseif Identifier = '' then
+      -- get identifier under cursor
+      if not find_token( startcol, endcol) then   /* only look for keywords if cursor is on a word */
+         return
+      endif
+      call pGet_Identifier( Identifier, startcol, endcol, ft)        /* locate the keyword in question */
+      if Identifier = '' then
+         sayerror 'Unable to identify help subject from cursor position in source file'
+         return
+      endif
    endif
 
    call psave_pos(savedpos)
@@ -177,11 +209,16 @@ defproc pHelp_C_identifier
 
       -- Search the file, if the command is a view
       if (upcase(cmd) = 'VIEW') then
+
          -- Use NewView, if found in PATH
-         next = NepmdSearchPath( 'newview.exe')
-         parse value next with 'ERROR:' rc
-         if rc = '' then
-            cmd = 'newview'
+         KeyPath = '\NEPMD\User\KeywordHelp\NewView\UseIfFound'
+         next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+         if next <> 0 then
+            next = NepmdSearchPath( 'newview.exe')
+            parse value next with 'ERROR:' rc
+            if rc = '' then
+               cmd = 'newview'
+            endif
          endif
 
          -- Second word is the file.
@@ -221,6 +258,7 @@ defproc pHelp_C_identifier
          -- Re-build the line with a file list containing only found files.
          CheckedFileList = strip( CheckedFileList, 'B', '+' )
          line = cmd CheckedFileList arg2
+dprintf( 'KWHELP', 'line = 'line)
 
       endif
 
@@ -240,7 +278,12 @@ defproc pHelp_C_identifier
             if leftstr( key, 1) = '"' then
                key = key'"'
             endif
-            line = 'newview 'inf' /s:'key
+            -- Use NewView's extended search
+            KeyPath = '\NEPMD\User\KeywordHelp\NewView\ExtendedSearch'
+            next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+            if next <> 0 then
+               line = 'newview 'inf' /s:'key
+            endif
          endif
          if wordpos( upcase( word( line, 1)), 'START QS QUIETSHELL DOS OS2') then
             -- Omit the 'dos' or 'start' command if specified in .ndx file or
