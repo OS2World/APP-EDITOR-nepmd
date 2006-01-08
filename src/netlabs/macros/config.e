@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.16 2006-01-08 13:33:10 aschn Exp $
+* $Id: config.e,v 1.17 2006-01-08 18:25:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1232,25 +1232,8 @@ compile if not defined(my_CURSORDIMENSIONS)
    endif
 compile endif -- not defined(my_CURSORDIMENSIONS)
 
-   Setup = queryprofile( app_hini, 'UCMenu', 'ConfigInfo')
-   -- count \1 values in tempstr
-   rest = Setup
-   startp = 1
-   i = 1
-   do forever
-      p = pos( \1, rest, startp)
-      if p = 0 then
-         leave
-      endif
-      i = i + 1
-      startp = startp + 1
-   enddo
-   fWriteDefaultString = (i < 7)
-   if fWriteDefaultString then
-      --Setup = \1'8'\1'32'\1'32'\1'8.Helv'\1'16777216'\1'16777216'\1  -- internal default if no entry in EPM.INI
-      Setup = \1'56'\1'32'\1'32'\1'9.WarpSans'\1'16777216'\1'16777216'\1  -- new default if no entry in EPM.INI
-      call setprofile( app_hini, 'UCMenu', 'ConfigInfo', Setup)
-   endif
+   -- Maybe correct ini entry, returned value not used
+   Setup = GetToolbarSetup()
 
    if toolbar_present then
       'ReloadToolbar'
@@ -1613,7 +1596,7 @@ defc DefaultMargins
    endif
    -- else open entrybox
    Title   = 'Configure default margins'
-   Text    = 'Enter leftma rightma parma (default: 1 1599 1)'
+   Text    = 'Enter leftma rightma parma (default: 1 1599 1):'
    IniValue = queryprofile( app_hini, 'EPM', INI_MARGINS)
    IniValue = strip(IniValue)
    DefaultButton = 1
@@ -1654,7 +1637,7 @@ defc DefaultTabs
    endif
    -- else open entrybox
    Title   = 'Configure default tabs'
-   Text    = 'Enter a single number for a fixed tab interval, or a list of explicit tab positions. (default: 8)'
+   Text    = 'Enter a single number for a fixed tab interval, or a list of explicit tab positions (default: 8):'
    IniValue = queryprofile( app_hini, 'EPM', INI_TABS)
    IniValue = strip(IniValue)
    DefaultButton = 1
