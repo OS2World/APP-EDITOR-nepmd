@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.32 2006-01-08 00:12:08 aschn Exp $
+* $Id: stdctrl.e,v 1.33 2006-01-08 12:36:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -484,21 +484,39 @@ defproc entrybox(title)
 
 ; Moved toggle defs to MENU.E
 
+; ---------------------------------------------------------------------------
+; This loads or activates a background bitmap. Checks for valid filename
+; added, because otherwise initialization on EPM's startup would stop on a
+; non-valid OS/2 file.
 defc load_dt_bitmap
    universal bm_filename
    universal bitmap_present
    BmpFile = arg(1)
-   if substr( bm_filename, 2, 2) = ':\' & IsOs2Bmp( BmpFile) then  -- if fully qualified and valid
+   if BmpFile = '' then
+      -- load default file
+   elseif substr( BmpFile, 2, 2) = ':\' & IsOs2Bmp( BmpFile) then  -- if fully qualified and valid
+      -- load specified file
+   else
+      sayerror 'Filename for background bitmap not valid'
+      BmpFile = ''
+      -- load default file
+   endif
+
+   if BmpFile = '' then
+      -- load the default bitmap
+      call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
+                          5454, 0, 0)
+   else
+      -- load an external bitmap
       call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
                           5499,            -- EPM_EDIT_SETDTBITMAPFROMFILE
                           put_in_buffer(BmpFile),
                           0)
-      bitmap_present = 1
-      bm_filename = BmpFile
-   else
-      sayerror 'Filename for background bitmap not valid'
    endif
+   bm_filename = BmpFile
+   bitmap_present = 1
 
+; ---------------------------------------------------------------------------
 ; Doesn't work with eCS, ...?
 defc drop_bitmap
    universal bm_filename
@@ -513,9 +531,18 @@ defc SetBackgroundBitmap
    universal appname
    arg1 = strip( arg(1))
    fSetBmp = 0
+   fNewBmp = 0
    if upcase( arg1) = 'SELECT' then
-      BootDrive = NepmdQuerySysInfo( 'BOOTDRIVE')
-      'FileDlg Select a background bitmap file, SetBackgroundBitmap, 'BootDrive'\os2\bitmap\*.bmp'
+      BitmapDir = ''
+      if bm_filename > '' then
+         lp = lastpos( '\', bm_filename)
+         BitmapDir = substr( bm_filename, 1, lp - 1)
+      endif
+      if NepmdDirExists( BitmapDir) <> 1 then
+         BootDrive = NepmdQuerySysInfo( 'BOOTDRIVE')
+         BitmapDir = BootDrive'\os2\bitmap'
+      endif
+      'FileDlg Select a background bitmap file, SetBackgroundBitmap, 'BitmapDir'\*.bmp'
       return
    elseif wordpos( upcase( arg1), '0 OFF') then
       bitmap_present = 0
@@ -526,19 +553,31 @@ defc SetBackgroundBitmap
    elseif wordpos( upcase( arg1), 'TOGGLE') then
       bitmap_present = not bitmap_present
       fSetBmp = 1
-   elseif IsOs2Bmp( arg1) then
-      bm_filename = arg1
-      'load_dt_bitmap' bm_filename
-      call setprofile( app_hini, appname, INI_BITMAP, bm_filename)
-   elseif arg1 > '' then
-      sayerror '"'arg1'" is not an OS/2 bitmap'
+   else
+      fNewBmp = 1
    endif
 
-   if fSetBmp = 1 then
-      call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
-                          5498 - (44*bitmap_present), 0, 0)
+   if fSetBmp then
+      if bitmap_present then
+         -- activate it
+         'load_dt_bitmap' bm_filename
+      else
+         -- deactivate it
+         call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
+                             5498, 0, 0)
+      endif
+   endif
+
+   if fNewBmp then
+      'load_dt_bitmap' arg(1)
+      if bitmap_present then
+         call setprofile( app_hini, appname, INI_BITMAP, bm_filename)
+      endif
+   endif
+
+   if fSetBmp | fNewBmp then
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-      new = subword( old, 1, 14)' 'bitmap_present' 'subword( old, 16)\0
+      new = subword( old, 1, 14)' 'bitmap_present' 'subword( old, 16)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
    endif
 
