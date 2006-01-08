@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.15 2006-01-08 12:36:29 aschn Exp $
+* $Id: config.e,v 1.16 2006-01-08 13:33:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -106,6 +106,30 @@
 ; CHECK_FOR_LEXAM, ENTER_ACTION, C_ENTER_ACTION, HOST_SUPPORT
 ; my_CURSORDIMENSIONS, my_SAVEPATH,
 ; my_STACK_CMDS, my_CUA_MENU_ACCEL, SUPPORT_USER_EXITS
+
+; Remaining standard ini keys (now moved to NEPMD.INI):
+; (i) means: internally defined, by non-available C code.
+;            Todo: All other keys should be moved to NEPMD's RegContainer.
+;    EPM -> ADDENDA
+;           AUTOSAVE
+;           AUTOSPATH
+;           CommandBox (i)
+;           CUA_ACCEL
+;           DEFAULTSWP (i)
+;           DICTIONARY
+;           ENTERKEYS
+;           MARGINS
+;           MsgBox (i)
+;           OpenBox (i)
+;           OPT2FLAGS
+;           OPTFLAGS
+;           RING
+;           STACK
+;           TABS
+;           TEMPPATH
+;    ERESDLGS -> * (i)
+;    UCMenu -> ConfigInfo (i)
+;    UCMenu_Templates -> * (i)
 
 ; ---------------------------------------------------------------------------
 ; Provide some consts, for the case a user really wants to change this:
