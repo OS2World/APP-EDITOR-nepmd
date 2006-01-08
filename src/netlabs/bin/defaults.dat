@@ -11,7 +11,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.18 2005-12-11 19:31:41 aschn Exp $
+; $Id: defaults.dat,v 1.19 2006-01-08 22:53:17 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -134,4 +134,8 @@
 "\NEPMD\User\Fonts\Text" = "12.System VIO"
 "\NEPMD\User\Fonts\Message" = "10.Helv"
 "\NEPMD\User\Fonts\Status" = "10.System Proportional Non-ISO"
+
+; Keyword help
+"\NEPMD\User\KeywordHelp\NewView\UseIfFound" = "1"
+"\NEPMD\User\KeywordHelp\NewView\ExtendedSearch" = "1"
 
