@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.18 2006-01-08 22:38:32 aschn Exp $
+* $Id: config.e,v 1.19 2006-01-08 22:42:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1601,7 +1601,7 @@ defc DefaultMargins
    IniValue = strip(IniValue)
    DefaultButton = 1
    parse value entrybox( Title,
-                         '/~Set/~Reset/Cancel',  -- max. 4 buttons
+                         '/~Set/~Reset/'CANCEL__MSG,  -- max. 4 buttons
                          IniValue,
                          '',
                          260,
@@ -1642,7 +1642,7 @@ defc DefaultTabs
    IniValue = strip(IniValue)
    DefaultButton = 1
    parse value entrybox( Title,
-                         '/~Set/~Reset/Cancel',  -- max. 4 buttons
+                         '/~Set/~Reset/'CANCEL__MSG,  -- max. 4 buttons
                          IniValue,
                          '',
                          260,
