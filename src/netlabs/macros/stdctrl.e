@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.33 2006-01-08 12:36:35 aschn Exp $
+* $Id: stdctrl.e,v 1.34 2006-01-08 13:34:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -695,15 +695,15 @@ defc fontlist
 defc ProcessFontRequest
    universal default_font
    universal statfont, msgfont
-   universal appname, app_hini
+   --universal appname, app_hini
    --dprintf( 'ProcessFontRequest', 'arg(1) = ['arg(1)']')
    parse value arg(1) with fontname '.' fontsize '.' fontsel '.' fsetfont '.' markedonly '.' fg '.' bg
    -- sayerror 'Fontname=' fontname ' Fontsize=' fontsize 'Fontsel=' fontsel 'arg(1)="'arg(1)'"'
    if markedonly = 2 then  -- Statusline font
       --statfont = fontsize'.'fontname'.'fontsel
       statfont = ConvertToOs2Font( fontsize'.'fontname'.'fontsel)
-      "setstatface" getpminfo(EPMINFO_EDITSTATUSHWND) fontname
-      "setstatptsize" getpminfo(EPMINFO_EDITSTATUSHWND) fontsize
+      "setstatface" getpminfo( EPMINFO_EDITSTATUSHWND) fontname
+      "setstatptsize" getpminfo( EPMINFO_EDITSTATUSHWND) fontsize
       if fsetfont then
       --   call setprofile( app_hini, appname, INI_STATUSFONT, statfont)
          'SaveFont STATUS'
@@ -713,8 +713,8 @@ defc ProcessFontRequest
    if markedonly = 3 then  -- Messageline font
       --msgfont = fontsize'.'fontname'.'fontsel
       msgfont = ConvertToOs2Font( fontsize'.'fontname'.'fontsel)
-      "setstatface" getpminfo(EPMINFO_EDITMSGHWND) fontname
-      "setstatptsize" getpminfo(EPMINFO_EDITMSGHWND) fontsize
+      "setstatface" getpminfo( EPMINFO_EDITMSGHWND) fontname
+      "setstatptsize" getpminfo( EPMINFO_EDITMSGHWND) fontsize
       if fsetfont then
       --   call setprofile( app_hini, appname, INI_MESSAGEFONT, msgfont)
          'SaveFont MESSAGE'
@@ -722,25 +722,28 @@ defc ProcessFontRequest
       return
    endif  -- markedonly = 3
 
-   fontid = registerfont(fontname, fontsize, fontsel)
+   fontid = registerfont( fontname, fontsize, fontsel)
 
    if fsetfont & not markedonly then
-      -- Save font to ini
-      call setini( INI_FONT, fontname'.'fontsize'.'fontsel, 1)
       -- Apply font to all files in the ring that have the default font
-      getfileid startid
+      getfileid startfid
       display -1
       do i = 1 to filesinring(1)
          if .font = default_font then
             .font = fontid
          endif
          next_file
-         getfileid curfile
-         if curfile = startid then leave; endif
+         getfileid curfid
+         if curfid = startfid then
+            leave
+         endif
       enddo  -- Loop through all files in ring
-      activatefile startid  -- Make sure we're back where we started (in case was .HIDDEN)
+      activatefile startfid  -- Make sure we're back where we started (in case was .HIDDEN)
       display 1
       default_font = fontid
+      -- Save font to ini
+      --call setini( INI_FONT, fontname'.'fontsize'.'fontsel, 1)
+      'SaveFont TEXT'
    endif  -- fsetfont & not markedonly
 
    if markedonly then
@@ -769,22 +772,22 @@ defc ProcessFontRequest
       if themarktype = 'BLOCK' then
          do i = fstline to lstline
             if addfont then
-               Insert_Attribute_Pair(16, fontid, i, i, fstcol, lstcol, mkfileid)
+               Insert_Attribute_Pair( 16, fontid, i, i, fstcol, lstcol, mkfileid)
             endif
             if bg<>'' then
-               Insert_Attribute_Pair(1, fg, i, i, fstcol, lstcol, mkfileid)
+               Insert_Attribute_Pair( 1, fg, i, i, fstcol, lstcol, mkfileid)
             endif
          enddo
       else
          if themarktype = 'LINE' then
             getline line, lstline, mkfileid
-            lstcol = length(line)
+            lstcol = length( line)
          endif
          if addfont then
-            Insert_Attribute_Pair(16, fontid, fstline, lstline, fstcol, lstcol, mkfileid)
+            Insert_Attribute_Pair( 16, fontid, fstline, lstline, fstcol, lstcol, mkfileid)
          endif
          if bg<>'' then
-            Insert_Attribute_Pair(1, fg, fstline, lstline, fstcol, lstcol, mkfileid)
+            Insert_Attribute_Pair( 1, fg, fstline, lstline, fstcol, lstcol, mkfileid)
          endif
       endif  -- themarktype = 'BLOCK'
       call attribute_on(8)  -- "Save attributes" flag
