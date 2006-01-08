@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.13 2005-11-24 20:41:41 aschn Exp $
+* $Id: filelist.e,v 1.14 2006-01-08 00:02:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -126,20 +126,17 @@ defproc RingWriteFilePosition
             ThisNumber = LastNumber + 1
          endif
       endif
-      ---- Write LastNumber -------------------------------------------------
-      KeyPath = '\NEPMD\User\SavedRings\LastNumber'
-      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, ThisNumber)
-      ---- Set KeyPath and write hwnd ---------------------------------------
-      KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
-      -- begin workaround
-      rc = setprofile( nepmd_hini, 'RegContainer', KeyPath, '')
-      -- end workaround
-      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\hwnd', hwnd)
    endif
-   ---- Write WorkDir -------------------------------------------------------
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\WorkDir', WorkDir)
+
+   KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
+-- begin workaround
+   -- Delete possible garbage in RegContainer (not required if
+   -- NepmdDeleteConfigValue would work more reliable)
+   rc = setprofile( nepmd_hini, 'RegContainer', KeyPath, '')
+-- end workaround
 
    ---- Delete old 'File'i and 'Posn'i --------------------------------------
+   -- This is always required.
    do i = 1 to 1000  -- just an upper limit to prevent looping forever
       rc1 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\File'i)
       rc2 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Posn'i)
@@ -147,6 +144,20 @@ defproc RingWriteFilePosition
          leave
       endif
    enddo
+
+-- begin more workaround: always (re)write LastNumber, hwnd, WorkDir,
+   -- even if last values are reused to avoid garbage in RegContainer
+   rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\hwnd')
+   rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\WorkDir')
+   ---- Write LastNumber -------------------------------------------------
+   KeyPath = '\NEPMD\User\SavedRings\LastNumber'
+   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, ThisNumber)
+   ---- Set KeyPath and write hwnd ---------------------------------------
+   KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
+   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\hwnd', hwnd)
+   ---- Write WorkDir -------------------------------------------------------
+   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\WorkDir', WorkDir)
+-- end more workaround
 
    ---- Write new 'File'i and 'Posn'i ---------------------------------------
    getfileid startfid
@@ -161,8 +172,8 @@ defproc RingWriteFilePosition
       if not Ignore then
          -- Write 'File'j and 'Posn'j for every file
          j = j + 1
-         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\File'j, .filename )
-         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Posn'j, .line .col .cursorx .cursory )
+         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\File'j, .filename)
+         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Posn'j, .line .col .cursorx .cursory)
       endif
       next_file
       getfileid fid
@@ -525,7 +536,7 @@ defc History
    refresh
    select = listbox( Title,
                      HistoryList,
-                     '/~Add/~Open/A~dd.../O~pen.../Open ~folder of/~Cancel',   -- buttons
+                     '/~Add/~Open/A~dd.../O~pen.../Open ~folder of/Cancel',   -- buttons
                      top_lines, left_cols,
                      height_lines, width_cols,
                      gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(0) ||
