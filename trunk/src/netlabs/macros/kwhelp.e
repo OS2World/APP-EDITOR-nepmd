@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.29 2006-01-08 22:48:21 aschn Exp $
+* $Id: kwhelp.e,v 1.30 2006-01-09 19:02:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -66,7 +66,7 @@ const
 include NLS_LANGUAGE'.e'
 
 defmain
-   'kwhelp'
+   'kwhelp' arg(1)
 compile endif  -- not defined(SMALL)
 
 const
@@ -81,7 +81,7 @@ compile endif
 ; ---------------------------------------------------------------------------
 defc KwhelpSelect
       Title   = 'Keyword help'
-      Text    = 'Select a keyword to perform a helpfile search on:'
+      Text    = 'Enter a keyword to perform a helpfile search on:'
       DefaultButton = 1
       -- The following must be posted in some cases, e.g. when a nodismiss
       -- menu item was toggled before:
@@ -97,7 +97,7 @@ defc KwhelpSelect
       NewValue = strip(NewValue)
       if Button = \1 & NewValue <> '' then
          Identifier = NewValue
-         'postme kwhelp' Identifier
+         'kwhelp' Identifier
          return
       else
          return
@@ -116,8 +116,14 @@ defc Kwhelp
 
    Identifier = arg(1)
    if Identifier = '?' then
-      -- open entrybox
-      'postme KwhelpSelect'
+      -- Open entrybox
+      -- 1) Executing the contents of KwhelpSelect here directly would lead to
+      --    "Invalid argument".
+      -- 2) The following works. Apparently after linking an .ex file, an
+      --    entrybox must be opened from a separate command.
+      'KwhelpSelect'
+      -- 3) Postme here would lead to "Unknown command "KwhelpSelect"".
+      --'postme KwhelpSelect'
       return
    elseif Identifier = '' then
       -- get identifier under cursor
