@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.34 2006-01-08 00:21:00 aschn Exp $
+* $Id: linkcmds.e,v 1.35 2006-01-09 18:55:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1150,7 +1150,7 @@ defc RecompileNew
          if upcase( BaseName) = 'EPM' then
             fRestartEpm = 1
          elseif fRestartEpm = 0 then
-            if linked( BaseName) then
+            if linked( BaseName) >= 0 then  -- <0 means error or not linked
                'unlink' BaseName
                'link' BaseName
                WriteLog( LogFile, '         'BaseName' - relinked .EX file')
