@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.11 2005-11-15 16:29:36 aschn Exp $
+* $Id: rexxkeys.e,v 1.12 2006-01-14 17:47:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -93,62 +93,8 @@ defproc StripBlanks( in)
    endif
    return next
 
+; ---------------------------------------------------------------------------
 defkeys rexx_keys
-
-def space
-   universal expand_on
-   if expand_on then
-      if not rex_first_expansion() then
-         'Space'
-      endif
-   else
-      'Space'
-   endif
-
-compile if ASSIST_TRIGGER = 'ENTER'
-def enter=
- compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
-   universal enterkey
- compile endif
-compile else
-def c_enter=
- compile if ENHANCED_ENTER_KEYS & c_ENTER_ACTION <> ''
-   universal c_enterkey
- compile endif
-compile endif
-   universal expand_on
-
-   if expand_on then
-      if not rex_second_expansion() then
-compile if ASSIST_TRIGGER = 'ENTER'
- compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
-         call enter_common(enterkey)
- compile else
-         call my_enter()
- compile endif
-compile else  -- ASSIST_TRIGGER
- compile if ENHANCED_ENTER_KEYS & c_ENTER_ACTION <> ''
-         call enter_common(c_enterkey)
- compile else
-         call my_c_enter()
- compile endif
-compile endif -- ASSIST_TRIGGER
-      endif
-   else
-compile if ASSIST_TRIGGER = 'ENTER'
- compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
-      call enter_common(enterkey)
- compile else
-      call my_enter()
- compile endif
-compile else  -- ASSIST_TRIGGER
- compile if ENHANCED_ENTER_KEYS & c_ENTER_ACTION <> ''
-      call enter_common(c_enterkey)
- compile else
-      call my_c_enter()
- compile endif
-compile endif -- ASSIST_TRIGGER
-   endif
 
 def c_x=       -- Force expansion if we don't have it turned on automatic
    if not rex_first_expansion() then
@@ -212,6 +158,9 @@ defproc RexxSyntaxCase
    return out
 
 ; ---------------------------------------------------------------------------
+defc RexxFirstExpansion
+   rc = (rex_first_expansion() = 0)
+
 ; This is the definition for syntax expansion with <space>.
 ; If 0 is returned then
 ;    a normal <space> is processed,
@@ -272,6 +221,9 @@ compile endif
    return retc
 
 ; ---------------------------------------------------------------------------
+defc RexxSecondExpansion
+   rc = (rex_second_expansion() = 0)
+
 ; This is the definition for syntax expansion with <enter>.
 ; If 0 is returned then
 ;    a normal <enter> is processed,

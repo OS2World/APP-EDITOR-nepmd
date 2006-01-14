@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ekeys.e,v 1.8 2005-11-15 16:29:35 aschn Exp $
+* $Id: ekeys.e,v 1.9 2006-01-14 17:47:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -39,62 +39,8 @@ compile endif
 ;  with the rest of the keyset function.  (what a concept!)
 -- Moved defload to MODE.E
 
+; ---------------------------------------------------------------------------
 defkeys e_keys
-
-def space
-   universal expand_on
-   if expand_on then
-      if not e_first_expansion() then
-         'Space'
-      endif
-   else
-      'Space'
-   endif
-
-compile if ASSIST_TRIGGER = 'ENTER'
-def enter=
- compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
-   universal enterkey
- compile endif
-compile else
-def c_enter=
- compile if ENHANCED_ENTER_KEYS & c_ENTER_ACTION <> ''
-   universal c_enterkey
- compile endif
-compile endif
-   universal expand_on
-
-   if expand_on then
-      if not e_second_expansion() then
-compile if ASSIST_TRIGGER = 'ENTER'
- compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
-         call enter_common(enterkey)
- compile else
-         call my_enter()
- compile endif
-compile else  -- ASSIST_TRIGGER
- compile if ENHANCED_ENTER_KEYS & c_ENTER_ACTION <> ''
-         call enter_common(c_enterkey)
- compile else
-         call my_c_enter()
- compile endif
-compile endif -- ASSIST_TRIGGER
-      endif
-   else
-compile if ASSIST_TRIGGER = 'ENTER'
- compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
-      call enter_common(enterkey)
- compile else
-      call my_enter()
- compile endif
-compile else  -- ASSIST_TRIGGER
- compile if ENHANCED_ENTER_KEYS & c_ENTER_ACTION <> ''
-      call enter_common(c_enterkey)
- compile else
-      call my_c_enter()
- compile endif
-compile endif -- ASSIST_TRIGGER
-   endif
 
 /* Taken out, interferes with some people's c_enter. */
 ;def c_enter=   /* I like Ctrl-Enter to finish the comment field also. */
@@ -129,9 +75,11 @@ compile endif
    endif
    return ind
 
+; ---------------------------------------------------------------------------
+defc EFirstExpansion
+   rc = (e_first_expansion() = 0)
 
 defproc e_first_expansion
-   /*  up;down */
    retc = 1
    if .line then
       getline line
@@ -145,43 +93,43 @@ defproc e_first_expansion
       if w <> lw then
          retc = 0
 
-      elseif wrd='FOR' then
+      elseif wrd = 'FOR' then
          replaceline w' =  to'
-         insertline substr(wrd,1,length(wrd)-3)'endfor',.line+1
+         insertline substr( wrd, 1, length(wrd) - 3)'endfor', .line+1
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
          endif
          keyin ' '
-      elseif wrd='IF' then
+      elseif wrd = 'IF' then
          replaceline w' then'
-         insertline substr(wrd,1,length(wrd)-2)'else',.line+1
-         insertline substr(wrd,1,length(wrd)-2)'endif',.line+2
+         insertline substr( wrd, 1, length(wrd) - 2)'else', .line + 1
+         insertline substr( wrd, 1, length(wrd) - 2)'endif', .line + 2
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
          endif
          keyin ' '
-      elseif wrd='ELSEIF' then
+      elseif wrd = 'ELSEIF' then
          replaceline w' then'
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
          endif
          keyin ' '
-      elseif wrd='WHILE' then
+      elseif wrd = 'WHILE' then
          replaceline w' do'
-         insertline substr(wrd,1,length(wrd)-5)'endwhile',.line+1
+         insertline substr( wrd, 1, length(wrd) - 5)'endwhile', .line + 1
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
          endif
          keyin ' '
-      elseif wrd='LOOP' then
+      elseif wrd = 'LOOP' then
          replaceline w
-         insertline substr(wrd,1,length(wrd)-4)'endloop',.line+1
+         insertline substr( wrd, 1, length(wrd) - 4)'endloop', .line + 1
          call einsert_line()
-         .col=.col+GetEIndent()
+         .col = .col + GetEIndent()
 ;     elseif wrd='DO' then
 ;        replaceline w
 ;        insertline substr(wrd,1,length(wrd)-2)'enddo',.line+1
@@ -195,45 +143,50 @@ defproc e_first_expansion
    endif
    return retc
 
+; ---------------------------------------------------------------------------
+defc ESecondExpansion
+   rc = (e_second_expansion() = 0)
+
 defproc e_second_expansion
-   retc=1
+   retc = 1
    if .line then
       getline line
       --parse value line with wrd rest
       -- Set wrd only to text left from the cursor
-      line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
+      line_l = substr( line, 1, .col - 1) -- split line into two parts at cursor
       parse value line_l with wrd rest
 
-      firstword=upcase(wrd)
-      if firstword='FOR' then
+      firstword = upcase(wrd)
+      if firstword = 'FOR' then
          /* do tabs to fields of pascal for statement */
          parse value upcase(line) with a '='
-         if length(a)>=.col then
-            .col=length(a)+3
+         if length(a) >= .col then
+            .col = length(a) + 3
          else
             parse value upcase(line) with a 'TO'
-            if length(a)>=.col then
-               .col=length(a)+4
+            if length(a) >= .col then
+               .col = length(a) + 4
             else
                call einsert_line()
-               .col=.col+GetEIndent()
+               .col = .col + GetEIndent()
             endif
          endif
       elseif wordpos(firstword, 'IF ELSEIF ELSE WHILE LOOP DO DEFC DEFPROC DEFLOAD DEF DEFMODIFY DEFSELECT DEFMAIN DEFINIT DEFEXIT') then
-         if pos('END'firstword, upcase(line)) then
+         if pos( 'END'firstword, upcase(line)) then
             retc = 0
          else
             call einsert_line()
-            .col=.col+GetEIndent()
+            .col = .col + GetEIndent()
             if /* firstword='LOOP' | */ firstword='DO' then
-               insertline substr(line,1,.col-GetEIndent()-1)'end'lowcase(wrd), .line+1
+               insertline substr( line, 1, .col - GetEIndent() - 1)'end'lowcase(wrd), .line + 1
             endif
          endif
 compile if TERMINATE_COMMENTS
-      elseif pos('/*',line) then
+      elseif pos( '/*', line) then
 ;     elseif substr(firstword,1,2)='/*' then  /* see speed requirements */
-         if not pos('*/',line) then
-            end_line;keyin' */'
+         if not pos( '*/', line) then
+            end_line
+            keyin ' */'
          endif
          call einsert_line()
 compile endif
