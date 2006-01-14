@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.9 2006-01-08 00:26:10 aschn Exp $
+* $Id: reflowmail.e,v 1.10 2006-01-14 10:02:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -346,8 +346,8 @@ defc reflowmail
    prevIndentLevel = 0
    ListStart = 0
 
-   KeyPath = '\NEPMD\User\Reflow\Mail\IndentedIsVerbatim'
-   IndentedIsVerbatim = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
+   IndentedIsVerbatim = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 1)
 
    -- Unmark first, if any marked file in ring
    if marktype() then
@@ -366,7 +366,23 @@ defc reflowmail
    display -1
 
    .line = 1
-   .col = 1
+   .col  = 1
+   'select_all'  -- select_all also copies mark to the shared buffer
+   delete_mark   -- this always creates a new undo state, no chance to avoid it
+   getfileid mailfid
+
+   -- Use a temp file (buffer) now for to work with. Let's see if that can fix
+   -- the "No area marked" bug.
+   'xcom e /n'
+   if rc <> -282 then
+      return rc
+   endif
+   getfileid tmpfid
+   .visible = 0
+   .autosave = 0
+   'getsharbuff'
+   unmark
+   -- (If still not fixed, then the temp file should be saved to disk here.)
 
    -- add a blank line after last to make reflow of the last par easy
    insertline '', .last + 1
@@ -545,6 +561,18 @@ compile endif
    do while textline(.last) = ''
       deleteline .last
    enddo
+
+   -- Copy all and quit temp file
+   'select_all'  -- select_all also copies mark to the shared buffer
+   .modify = 0
+   'xcom q'
+
+   -- Back to the original file
+   activatefile mailfid
+   .line = 1
+   .col  = 1
+   'getsharbuff'
+   unmark
 
    display 1
    InfolineRefresh = 1
