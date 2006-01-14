@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.10 2006-01-14 10:02:50 aschn Exp $
+* $Id: reflowmail.e,v 1.11 2006-01-14 17:39:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -349,6 +349,7 @@ defc reflowmail
    KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
    IndentedIsVerbatim = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 1)
 
+/*
    -- Unmark first, if any marked file in ring
    if marktype() then
       getfileid fid
@@ -357,9 +358,10 @@ defc reflowmail
       unmark
       activatefile fid
    endif
-
+*/
    saved_autosave = .autosave
    .autosave = 0
+   saved_modify = .modify
    call NewUndoRec()
    call DisableUndoRec()
    InfolineRefresh = 0
@@ -577,5 +579,8 @@ compile endif
    display 1
    InfolineRefresh = 1
    .autosave = saved_autosave
+   if .modify > saved_modify then
+      .modify = saved_modify + 1
+   endif
    call NewUndoRec()
 
