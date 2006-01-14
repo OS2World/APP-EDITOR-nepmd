@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.24 2005-11-16 16:47:07 aschn Exp $
+* $Id: stdkeys.e,v 1.25 2006-01-14 17:47:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -242,8 +242,7 @@ def c_pgdn        'Redo1'               -- Scroll through next undo states (keep
 ; ---- Enter ----
 ; For Line mode, these keys are configurable via the settings dialog.
 ; In Stream mode, all enter defcs behave the same.
-; Redefined by several keysets for programming languages to do 2nd syntax expansion, if activated.
-def enter         'enter'
+def enter         'ExpandSecond enter'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
 def a_enter       'a_enter'             -- Alt+Enter and Alt+Sh+Enter not definable in EPM?
 def c_enter       'c_enter'
 def s_enter       's_enter'
@@ -270,8 +269,7 @@ def tab           'Tab'                 -- Insert tab char or spaces
 def s_tab         'BackTab'             -- Go back one tabstop
 
 ; ---- Space ----
-; Redefined by several keysets for programming languages to do 1st syntax expansion, if activated.
-def space         'Space'
+def space         'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
 def s_space       'Space'
 def c_space       'Space'
 

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.15 2005-12-13 19:43:09 aschn Exp $
+* $Id: keys.e,v 1.16 2006-01-14 17:47:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -721,6 +721,40 @@ compile else
 compile endif
       call extend_mark( startline, startcol, forward_flag)
    endif
+
+; ---------------------------------------------------------------------------
+; Example: def space 'ExpandFirst Space'
+defc ExpandFirst
+   call ExpandFirstSecond( 0, arg(1))
+
+; ---------------------------------------------------------------------------
+; Example: def c_enter 'ExpandFirst C_Enter'
+defc ExpandSecond
+   call ExpandFirstSecond( 1, arg(1))
+
+; ---------------------------------------------------------------------------
+; Process syntax expansion, if defined and if success, otherwise execute
+; StdDef.
+defproc ExpandFirstSecond( fSecond, StdDef)
+   universal expand_on
+   fExpanded = 0
+   if expand_on then
+      Keyset = .keyset
+      parse value upcase( Keyset) with Keyset'_KEYS'  -- strip "_KEYS" from keyset name
+      if fSecond then
+         ExpandCmd = Keyset'SecondExpansion'
+      else
+         ExpandCmd = Keyset'FirstExpansion'
+      endif
+      if isadefc( ExpandCmd) then   -- todo: REXXKEYS.E defines defproc rex_fist_expansion
+         ExpandCmd                  -- todo: better use rc = 0 on success
+         fExpanded = (rc = 0)
+      endif
+   endif
+   if not fExpanded then
+      StdDef
+   endif
+   return
 
 ; ---------------------------------------------------------------------------
 defc space

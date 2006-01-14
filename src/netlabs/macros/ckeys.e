@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.12 2005-11-24 19:39:54 aschn Exp $
+* $Id: ckeys.e,v 1.13 2006-01-14 17:47:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -145,6 +145,14 @@ ok for ( xxx; xxx; xxx|) { + <Enter>    -->   for ( xxx; xxx; xxx) {
 
 -  don't split line in line mode
 
+!  don't add a new line after current -> examples?
+
+; /*| <Enter>             -->   /*
+;  *                      -->    * |
+;  */                     -->    */
+;                                *
+; (/*)                           */
+
 -- <Return> on line with keyword --------------------------------------------
    -- before opening paren in stream and line mode
 ?  } whi|le (); + <Return>       -->   } while (|);
@@ -245,63 +253,8 @@ compile endif
 ;  with the rest of the keyset function.  (what a concept!)
 -- Moved defload to MODE.E
 
+; ---------------------------------------------------------------------------
 defkeys c_keys
-
-def space
-   universal expand_on
-   if expand_on then
-      if not c_first_expansion() then
-         'Space'
-      endif
-   else
-      'Space'
-   endif
-
-compile if ASSIST_TRIGGER = 'ENTER'
-def enter=
- compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
-   universal enterkey
- compile endif
-compile else
-def c_enter=
- compile if ENHANCED_ENTER_KEYS & c_ENTER_ACTION <> ''
-   universal c_enterkey
- compile endif
-compile endif
-   universal expand_on
-
-   if expand_on then
-      if not c_second_expansion() then
-compile if ASSIST_TRIGGER = 'ENTER'
- compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
-         call enter_common(enterkey)
- compile else
-         call my_enter()
- compile endif
-compile else  -- ASSIST_TRIGGER
- compile if ENHANCED_ENTER_KEYS & c_ENTER_ACTION <> ''
-         call enter_common(c_enterkey)
- compile else
-         call my_c_enter()
- compile endif
-compile endif -- ASSIST_TRIGGER
-      endif
-   else
-compile if ASSIST_TRIGGER = 'ENTER'
- compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
-      call enter_common(enterkey)
- compile else
-      call my_enter()
- compile endif
-compile else  -- ASSIST_TRIGGER
- compile if ENHANCED_ENTER_KEYS & c_ENTER_ACTION <> ''
-      call enter_common(c_enterkey)
- compile else
-      call my_c_enter()
- compile endif
-compile endif -- ASSIST_TRIGGER
-   endif
-
 
 def '{'
    keyin '{}'
@@ -355,6 +308,7 @@ def c_x=       /* Force expansion if we don't have it turned on automatic */
       call c_second_expansion()
    endif
 
+; ---------------------------------------------------------------------------
 define
 compile if WANT_END_COMMENTED = '//'
    END_CATCH  = ' // endcatch'
@@ -382,7 +336,6 @@ compile else
    END_WHILE  = ''
 compile endif
 
-; ---------------------------------------------------------------------------
 defproc GetCIndent
    universal indent
 compile if defined(C_SYNTAX_INDENT)
@@ -428,8 +381,11 @@ compile endif -- CPP_SYNTAX_ASSIST
 
 
 ; ---------------------------------------------------------------------------
+defc CFirstExpansion
+   rc = (c_first_expansion() = 0)
+
 defproc c_first_expansion
-   retc = 1
+   retc = 1  -- 1 = processed
    if .line then
       getline line
       line = strip( line, 'T')
@@ -626,8 +582,11 @@ compile endif -- JAVA_SYNTAX_ASSIST
    return retc
 
 ; ---------------------------------------------------------------------------
+defc CSecondExpansion
+   rc = (c_second_expansion() = 0)
+
 defproc c_second_expansion
-   retc = 1
+   retc = 1  -- 1 = processed
    if .line then
       getline line                                               -- line = current line
 
