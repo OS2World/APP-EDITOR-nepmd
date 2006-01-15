@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: run.erx,v 1.3 2005-07-17 15:41:55 aschn Exp $
+* $Id: run.erx,v 1.4 2006-01-15 11:14:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -100,7 +100,7 @@ select
 
    /* other EPM macro files */
    when UpExt = 'E' then
-      action = 'RecompileNew'
+      action = 'postme RecompileNew'
 
    /* TeX source files */
    when wordpos( UpExt, 'TEX TEXI TEXINFO') > 0 then
@@ -114,11 +114,15 @@ select
    when UpExt = 'C' then
       /*action = 'os2 /k wcc386 'filename.1*/
       /*action = 'os2 /k /f gcc 'filename.1*/
-      action = 'shell nmake /nologo clean & nmake /nologo all'
+      action = 'shell nmake /nologo clean all'
 
    /* REXX files */
    when Mode = 'REXX' & UpExt = 'ERX' then
       action = 'postme rx 'filename.2
+
+   /* HTML files */
+   when Mode = 'HTML' then
+      action = 'StartBrowser 'filename.2
 
    otherwise
    do
