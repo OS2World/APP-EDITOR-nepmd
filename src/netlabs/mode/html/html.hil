@@ -5,12 +5,9 @@
 ; Definitons of the Netlabs EPM Distribution Project
 ; for the syntax highlighting of the EPM mode "HTML"
 ;
-; Among others these definitions implement the definitions of
-; the respective epmkwds definitions file of the EPMBBS distributiuon.
+; Copyright (c) Netlabs EPM Distribution Project 2003
 ;
-; Copyright (c) Netlabs EPM Distribution Project 2002
-;
-; $Id: html.hil,v 1.1 2002-10-18 18:36:38 cla Exp $
+; $Id: html.hil,v 1.2 2006-01-15 10:39:29 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -25,21 +22,605 @@
 ;
 ; **************************************************************************/
 
+; Sources:
+; http://www.w3.org/TR/1999/REC-html401-19991224/index/elements.html
+; http://www.w3.org/TR/1999/REC-html401-19991224/index/attributes.html
+; http://www.w3schools.com/tags/ref_byfunc.asp
+; http://www.w3schools.com/tags/ref_standardattributes.asp
+; http://www.w3schools.com/tags/ref_eventattributes.asp
+; http://www.w3schools.com/tags/ref_colornames.asp
+; http://www.w3schools.com/tags/ref_ascii.asp
+; http://www.w3schools.com/tags/ref_entities.asp
+
 [COMMENT]
 ; Start   End     Escape    StartPos
 ; string  string  character
-  <!--     -->
+  <!--    -->
+  <!      >
 
-[KEYWORD]
-; Start   End     Escape
+[LITERAL]
+; Start   End     Escape    StartPos
 ; string  string  character
-  <        >
-
-[MACRO]
-; Start   End     Escape
-; string  string  character
-  &        ;
+  "       "
+[OPERATOR]
+=
+{
+}
 
 [SPECIAL]
-\
+; Tags are defined as SPECIAL in order to highlight "<a" but not "a".
+; Note: ENDCHAR and BREAKCHAR can never be used to highlight opening
+;       *and* closing tags correctly for HTML (define < and >) or TEX
+;       (define \ { }). Therefore they are not used anywhere.
+;       Additionally, these keywords have to be defined as SPECIAL to
+;       work when multiple keywords are not separated by a char not
+;       defined in CHARSET (e.g.: <tbody><tr>).
+; Note: The appended TAG keyword highlights the keyword as if it were
+;       listed in the TAG section. We have to use SPECIAL, because there
+;       every char is allowed, not only chars from CHARSET.
+
+; --- Start tags (elements) ---
+<A              TAG
+<ABBR           TAG
+<ACRONYM        TAG
+<ADDRESS        TAG
+<APPLET         OBSOLETE
+<AREA           TAG
+<B              TAG
+<BASE           TAG
+<BASEFONT       OBSOLETE
+<BDO            TAG
+<BIG            TAG
+<BLOCKQUOTE     TAG
+<BODY           SECTIONTAG
+<BR             TAG
+<BUTTON         TAG
+<CAPTION        TAG
+<CENTER         OBSOLETE
+<CITE           TAG
+<CODE           TAG
+<COL            TAG
+<COLGROUP       TAG
+<DD             TAG
+<DEL            TAG
+<DFN            TAG
+<DIR            OBSOLETE
+<DIV            SECTIONTAG
+<DL             SECTIONTAG
+<DT             TAG
+<EM             TAG
+<FIELDSET       TAG
+<FONT           OBSOLETE
+<FORM           SECTIONTAG
+<FRAME          SECTIONTAG
+<FRAMESET       SECTIONTAG
+<H1             SECTIONTAG
+<H2             SECTIONTAG
+<H3             SECTIONTAG
+<H4             SECTIONTAG
+<H5             SECTIONTAG
+<H6             SECTIONTAG
+<HEAD           SECTIONTAG
+<HR             TAG
+<HTML           SECTIONTAG
+<I              TAG
+<IFRAME         OBSOLETE
+<IMG            TAG
+<INPUT          TAG
+<INS            TAG
+<ISINDEX        OBSOLETE
+<KBD            TAG
+<LABEL          TAG
+<LEGEND         TAG
+<LI             TAG
+<LINK           TAG
+<MAP            TAG
+<MENU           OBSOLETE
+<META           TAG
+<NOFRAMES       TAG
+<NOSCRIPT       TAG
+<OBJECT         TAG
+<OL             SECTIONTAG
+<OPTGROUP       TAG
+<OPTION         TAG
+<P              TAG
+<PARAM          TAG
+<PRE            SECTIONTAG
+<Q              TAG
+<S              OBSOLETE
+<SAMP           TAG
+<SCRIPT         SECTIONTAG
+<SELECT         TAG
+<SMALL          TAG
+<SPAN           SECTIONTAG
+<STRIKE         OBSOLETE
+<STRONG         TAG
+<STYLE          TAG
+<SUB            TAG
+<SUP            TAG
+<TABLE          SECTIONTAG
+<TBODY          TAG
+<TD             TAG
+<TEXTAREA       TAG
+<TFOOT          TAG
+<TH             TAG
+<THEAD          TAG
+<TITLE          SECTIONTAG
+<TR             TAG
+<TT             TAG
+<U              OBSOLETE
+<UL             SECTIONTAG
+<VAR            TAG
+
+; --- End tags (elements) ---
+>               TAG
+</A>            TAG
+</ABBR>         TAG
+</ACRONYM>      TAG
+</ADDRESS>      TAG
+</APPLET>       OBSOLETE
+</B>            TAG
+</BDO>          TAG
+</BIG>          TAG
+</BLOCKQUOTE>   TAG
+</BODY>         SECTIONTAG
+</BUTTON>       TAG
+</CAPTION>      TAG
+</CENTER>       OBSOLETE
+</CITE>         TAG
+</CODE>         TAG
+</COLGROUP>     TAG
+</DD>           TAG
+</DEL>          TAG
+</DFN>          TAG
+</DIR>          OBSOLETE
+</DIV>          SECTIONTAG
+</DL>           SECTIONTAG
+</DT>           TAG
+</EM>           TAG
+</FIELDSET>     TAG
+</FONT>         OBSOLETE
+</FORM>         SECTIONTAG
+</FRAMESET>     SECTIONTAG
+</H1>           SECTIONTAG
+</H2>           SECTIONTAG
+</H3>           SECTIONTAG
+</H4>           SECTIONTAG
+</H5>           SECTIONTAG
+</H6>           SECTIONTAG
+</HEAD>         SECTIONTAG
+</HTML>         SECTIONTAG
+</I>            TAG
+</IFRAME>       OBSOLETE
+</INS>          TAG
+</KBD>          TAG
+</LABEL>        TAG
+</LEGEND>       TAG
+</LI>           TAG
+</MAP>          TAG
+</MENU>         OBSOLETE
+</NOFRAMES>     TAG
+</NOSCRIPT>     TAG
+</OBJECT>       TAG
+</OL>           SECTIONTAG
+</OPTGROUP>     TAG
+</OPTION>       TAG
+</P>            TAG
+</PRE>          SECTIONTAG
+</Q>            TAG
+</S>            OBSOLETE
+</SAMP>         TAG
+</SCRIPT>       SECTIONTAG
+</SELECT>       TAG
+</SMALL>        TAG
+</SPAN>         SECTIONTAG
+</STRIKE>       OBSOLETE
+</STRONG>       TAG
+</STYLE>        TAG
+</SUB>          TAG
+</SUP>          TAG
+</TABLE>        SECTIONTAG
+</TBODY>        TAG
+</TD>           TAG
+</TEXTAREA>     TAG
+</TFOOT>        TAG
+</TH>           TAG
+</THEAD>        TAG
+</TITLE>        SECTIONTAG
+</TR>           TAG
+</TT>           TAG
+</U>            OBSOLETE
+</UL>           SECTIONTAG
+</VAR>          TAG
+
+; --- entities ---
+; ASCII Entities with new Entity Names
+&quot;          MACRO
+&#34;           MACRO
+&apos;          MACRO
+&#39;           MACRO
+&amp;           MACRO
+&#38;           MACRO
+&lt;            MACRO
+&#60;           MACRO
+&gt;            MACRO
+&#62;           MACRO
+; ISO 8859-1 Symbol Entities
+&nbsp;          MACRO
+&#160;          MACRO
+&iexcl;         MACRO
+&#161;          MACRO
+&curren;        MACRO
+&#164;          MACRO
+&cent;          MACRO
+&#162;          MACRO
+&pound;         MACRO
+&#163;          MACRO
+&yen;           MACRO
+&#165;          MACRO
+&brvbar;        MACRO
+&#166;          MACRO
+&sect;          MACRO
+&#167;          MACRO
+&uml;           MACRO
+&#168;          MACRO
+&copy;          MACRO
+&#169;          MACRO
+&ordf;          MACRO
+&#170;          MACRO
+&laquo;         MACRO
+&#171;          MACRO
+&not;           MACRO
+&#172;          MACRO
+&shy;           MACRO
+&#173;          MACRO
+&reg;           MACRO
+&#174;          MACRO
+&trade;         MACRO
+&#8482;         MACRO
+&macr;          MACRO
+&#175;          MACRO
+&deg;           MACRO
+&#176;          MACRO
+&plusmn;        MACRO
+&#177;          MACRO
+&sup2;          MACRO
+&#178;          MACRO
+&sup3;          MACRO
+&#179;          MACRO
+&acute;         MACRO
+&#180;          MACRO
+&micro;         MACRO
+&#181;          MACRO
+&para;          MACRO
+&#182;          MACRO
+&middot;        MACRO
+&#183;          MACRO
+&cedil;         MACRO
+&#184;          MACRO
+&sup1;          MACRO
+&#185;          MACRO
+&ordm;          MACRO
+&#186;          MACRO
+&raquo;         MACRO
+&#187;          MACRO
+&frac14;        MACRO
+&#188;          MACRO
+&frac12;        MACRO
+&#189;          MACRO
+&frac34;        MACRO
+&#190;          MACRO
+&iquest;        MACRO
+&#191;          MACRO
+&times;         MACRO
+&#215;          MACRO
+&divide;        MACRO
+&#247;          MACRO
+; ISO 8859-1 Character Entities
+&Agrave;        MACRO
+&#192;          MACRO
+&Aacute;        MACRO
+&#193;          MACRO
+&Acirc;         MACRO
+&#194;          MACRO
+&Atilde;        MACRO
+&#195;          MACRO
+&Auml;          MACRO
+&#196;          MACRO
+&Aring;         MACRO
+&#197;          MACRO
+&AElig;         MACRO
+&#198;          MACRO
+&Ccedil;        MACRO
+&#199;          MACRO
+&Egrave;        MACRO
+&#200;          MACRO
+&Eacute;        MACRO
+&#201;          MACRO
+&Ecirc;         MACRO
+&#202;          MACRO
+&Euml;          MACRO
+&#203;          MACRO
+&Igrave;        MACRO
+&#204;          MACRO
+&Iacute;        MACRO
+&#205;          MACRO
+&Icirc;         MACRO
+&#206;          MACRO
+&Iuml;          MACRO
+&#207;          MACRO
+&ETH;           MACRO
+&#208;          MACRO
+&Ntilde;        MACRO
+&#209;          MACRO
+&Ograve;        MACRO
+&#210;          MACRO
+&Oacute;        MACRO
+&#211;          MACRO
+&Ocirc;         MACRO
+&#212;          MACRO
+&Otilde;        MACRO
+&#213;          MACRO
+&Ouml;          MACRO
+&#214;          MACRO
+&Oslash;        MACRO
+&#216;          MACRO
+&Ugrave;        MACRO
+&#217;          MACRO
+&Uacute;        MACRO
+&#218;          MACRO
+&Ucirc;         MACRO
+&#219;          MACRO
+&Uuml;          MACRO
+&#220;          MACRO
+&Yacute;        MACRO
+&#221;          MACRO
+&THORN;         MACRO
+&#222;          MACRO
+&szlig;         MACRO
+&#223;          MACRO
+&agrave;        MACRO
+&#224;          MACRO
+&aacute;        MACRO
+&#225;          MACRO
+&acirc;         MACRO
+&#226;          MACRO
+&atilde;        MACRO
+&#227;          MACRO
+&auml;          MACRO
+&#228;          MACRO
+&aring;         MACRO
+&#229;          MACRO
+&aelig;         MACRO
+&#230;          MACRO
+&ccedil;        MACRO
+&#231;          MACRO
+&egrave;        MACRO
+&#232;          MACRO
+&eacute;        MACRO
+&#233;          MACRO
+&ecirc;         MACRO
+&#234;          MACRO
+&euml;          MACRO
+&#235;          MACRO
+&igrave;        MACRO
+&#236;          MACRO
+&iacute;        MACRO
+&#237;          MACRO
+&icirc;         MACRO
+&#238;          MACRO
+&iuml;          MACRO
+&#239;          MACRO
+&eth;           MACRO
+&#240;          MACRO
+&ntilde;        MACRO
+&#241;          MACRO
+&ograve;        MACRO
+&#242;          MACRO
+&oacute;        MACRO
+&#243;          MACRO
+&ocirc;         MACRO
+&#244;          MACRO
+&otilde;        MACRO
+&#245;          MACRO
+&ouml;          MACRO
+&#246;          MACRO
+&oslash;        MACRO
+&#248;          MACRO
+&ugrave;        MACRO
+&#249;          MACRO
+&uacute;        MACRO
+&#250;          MACRO
+&ucirc;         MACRO
+&#251;          MACRO
+&uuml;          MACRO
+&#252;          MACRO
+&yacute;        MACRO
+&#253;          MACRO
+&thorn;         MACRO
+&#254;          MACRO
+&yuml;          MACRO
+&#255;          MACRO
+; Some Other Entities supported by HTML
+&OElig;         MACRO
+&#338;          MACRO
+&oelig;         MACRO
+&#339;          MACRO
+&Scaron;        MACRO
+&#352;          MACRO
+&scaron;        MACRO
+&#353;          MACRO
+&Yuml;          MACRO
+&#376;          MACRO
+&circ;          MACRO
+&#710;          MACRO
+&tilde;         MACRO
+&#732;          MACRO
+&ensp;          MACRO
+&#8194;         MACRO
+&emsp;          MACRO
+&#8195;         MACRO
+&thinsp;        MACRO
+&#8201;         MACRO
+&zwnj;          MACRO
+&#8204;         MACRO
+&zwj;           MACRO
+&#8205;         MACRO
+&lrm;           MACRO
+&#8206;         MACRO
+&rlm;           MACRO
+&#8207;         MACRO
+&ndash;         MACRO
+&#8211;         MACRO
+&mdash;         MACRO
+&#8212;         MACRO
+&lsquo;         MACRO
+&#8216;         MACRO
+&rsquo;         MACRO
+&#8217;         MACRO
+&sbquo;         MACRO
+&#8218;         MACRO
+&ldquo;         MACRO
+&#8220;         MACRO
+&rdquo;         MACRO
+&#8221;         MACRO
+&bdquo;         MACRO
+&#8222;         MACRO
+&dagger;        MACRO
+&#8224;         MACRO
+&Dagger;        MACRO
+&#8225;         MACRO
+&hellip;        MACRO
+&#8230;         MACRO
+&permil;        MACRO
+&#8240;         MACRO
+&lsaquo;        MACRO
+&#8249;         MACRO
+&rsaquo;        MACRO
+&#8250;         MACRO
+&euro;          MACRO
+&#8364;         MACRO
+
+[KEYWORD]
+; chars belong to CHARSET
+abbr
+accept-charset
+accept
+accesskey
+action
+align
+alink
+alt
+archive
+axis
+background      OBSOLETE
+bgcolor         OBSOLETE
+border
+cellpadding
+cellspacing
+char
+charoff
+charset
+checked
+cite
+class
+classid
+clear           OBSOLETE
+code            OBSOLETE
+codebase
+codetype
+color
+cols
+colspan
+compact         OBSOLETE
+content
+coords
+data
+datetime
+declare
+defer
+dir
+disabled
+enctype
+face            OBSOLETE
+for
+frame
+frameborder
+headers
+height
+href            URL
+hreflang
+hspace          OBSOLETE
+http-equiv
+id
+ismap
+label
+lang
+language        OBSOLETE
+link            OBSOLETE
+longdesc
+marginheight
+marginwidth
+maxlength
+media
+method
+multiple
+name
+nohref
+noresize
+noshade         OBSOLETE
+nowrap          OBSOLETE
+object          OBSOLETE
+onblur
+onchange
+onclick
+ondblclick
+onfocus
+onkeydown
+onkeypress
+onkeyup
+onload
+onmousedown
+onmousemove
+onmouseout
+onmouseover
+onmouseup
+onreset
+onselect
+onsubmit
+onunload
+onunload
+profile
+prompt          OBSOLETE
+readonly
+rel
+rev
+rows
+rowspan
+rules
+scheme
+scope
+scrolling
+selected
+shape
+size
+span
+src             URL
+standby
+start           OBSOLETE
+style
+summary
+tabindex
+target
+text            OBSOLETE
+title
+type
+usemap
+valign
+value
+valuetype
+version         OBSOLETE
+vlink           OBSOLETE
+vspace          OBSOLETE
+width
 
