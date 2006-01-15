@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.15 2005-12-07 18:42:06 aschn Exp $
+* $Id: stdprocs.e,v 1.16 2006-01-15 12:59:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -487,6 +487,7 @@ compile endif
 ; the left.  If the line is empty the cursor doesn't move.
 defproc pend_word
    getline line, .line
+   line = translate( line, ' ', \9)  -- handle tabs correctly
    if  substr( line, .col, 1) = ' ' then
       if substr( line, .col) = ' ' then
          if  line <> ' ' then
@@ -499,7 +500,7 @@ defproc pend_word
          endif
       else
          p = verify( line,    ' ', '', .col)
-         p = verify( line' ', ' ','M', p)
+         p = verify( line' ', ' ', 'M', p)
          .col = p - 1
       endif
    else
