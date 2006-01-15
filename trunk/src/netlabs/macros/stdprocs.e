@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.16 2006-01-15 12:59:27 aschn Exp $
+* $Id: stdprocs.e,v 1.17 2006-01-15 13:06:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -278,7 +278,8 @@ defproc pbegin_mark
 ; word on the left.  If there is no word on the left it's moved to the beginning
 ; of the word on the right.  If the line is empty the cursor doesn't move.
 defproc pbegin_word
-   getline line,.line
+   getline line, .line
+   line = translate( line, ' ', \9)  -- handle tabs correctly
    if substr( line, .col, 1) = ' ' then
       p = verify( line, ' ')     /* 1st case: the cursor on a space */
       if p >= .col then
@@ -288,9 +289,13 @@ defproc pbegin_word
             q = p
             loop
                p = verify( line, ' ', 'M', p)
-               if not p or p >. col then leave endif
+               if not p or p > .col then
+                  leave
+               endif
                p = verify( line, ' ', '', p)
-               if not p or p > .col then leave endif
+               if not p or p > .col then
+                  leave
+               endif
                q = p
             endloop
             .col = q
