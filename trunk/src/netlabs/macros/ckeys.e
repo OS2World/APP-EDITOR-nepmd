@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.13 2006-01-14 17:47:23 aschn Exp $
+* $Id: ckeys.e,v 1.14 2006-01-21 17:03:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -767,9 +767,15 @@ compile endif
          if rightstr( stline_l, 1) = '{' and not this_is_obrace and
             (WANT_BRACE_BELOW_STATEMENT or ws = 0) then  -- ws = indent of current line; braces for
                                                          -- functions should be put on a separate line
-            -- put '{' on next line
-            replaceline leftstr( stline_l, length( stline_l) - 1), .line
-            insertline ws'{', .line + 1; down; endline
+            LeftPart = leftstr( stline_l, length(stline_l) - 1)
+            if strip( translate( LeftPart, '', \9)) = '' then  -- if no string before {
+               -- let '{' on this line
+               replaceline ws'{', .line; endline
+            else
+               -- put '{' on next line
+               replaceline LeftPart, .line
+               insertline ws'{', .line + 1; down; endline
+            endif
          endif
          sline_r =  strip( strip( strip( line_r), 'b', \t))  -- strip spaces and tabs
          if rightstr( sline_r, 1) = '}' then
