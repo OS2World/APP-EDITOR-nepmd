@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.16 2006-01-14 17:47:24 aschn Exp $
+* $Id: keys.e,v 1.17 2006-02-26 17:31:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -728,7 +728,7 @@ defc ExpandFirst
    call ExpandFirstSecond( 0, arg(1))
 
 ; ---------------------------------------------------------------------------
-; Example: def c_enter 'ExpandFirst C_Enter'
+; Example: def c_enter 'ExpandSecond C_Enter'
 defc ExpandSecond
    call ExpandFirstSecond( 1, arg(1))
 
@@ -746,8 +746,8 @@ defproc ExpandFirstSecond( fSecond, StdDef)
       else
          ExpandCmd = Keyset'FirstExpansion'
       endif
-      if isadefc( ExpandCmd) then   -- todo: REXXKEYS.E defines defproc rex_fist_expansion
-         ExpandCmd                  -- todo: better use rc = 0 on success
+      if isadefc( ExpandCmd) then
+         ExpandCmd
          fExpanded = (rc = 0)
       endif
    endif
@@ -771,6 +771,89 @@ defc space
       call NewUndoRec()
    endif
 
+; ---------------------------------------------------------------------------
+;def '{'
+defc OpeningBrace
+   universal match_chars
+   keyin '{'
+   wp = wordpos( '{', match_chars)
+   if wp then
+      match = word( match_chars, wp + 1)
+      keyin match
+      do l = 1 to length( match)
+         left
+      enddo
+   endif
+
+;def '('
+defc OpeningParen
+   universal match_chars
+   keyin '('
+   wp = wordpos( '(', match_chars)
+   if wp then
+      match = word( match_chars, wp + 1)
+      keyin match
+      do l = 1 to length( match)
+         left
+      enddo
+   endif
+
+;def '['
+defc OpeningBracket
+   universal match_chars
+   keyin '['
+   wp = wordpos( '[', match_chars)
+   if wp then
+      match = word( match_chars, wp + 1)
+      keyin match
+      do l = 1 to length( match)
+         left
+      enddo
+   endif
+
+;def '<'
+defc OpeningAngle
+   universal match_chars
+   keyin '<'
+   wp = wordpos( '<', match_chars)
+   if wp then
+      match = word( match_chars, wp + 1)
+      keyin match
+      do l = 1 to length( match)
+         left
+      enddo
+   endif
+
+;def '}'
+defc ClosingBrace
+   universal closing_brace_auto_indent
+   if closing_brace_auto_indent then
+      -- check if line is blank, before typing }
+      LineIsBlank = (verify( textline(.line), ' '\t) = 0)
+      if LineIsBlank then
+         l = 0
+         PrevIndent = 0
+         do l = 1 to 100 -- upper limit
+            getline line0, .line - l             -- line0 = line before }
+            p0 = max( 1, verify( line0, ' '\t))  -- p0     = pos of first non-blank in line 0
+            if length(line0) > p0 - 1 then  -- if not a blank line
+               PrevIndent = p0 - 1
+               -- check if last non-empty line is a {
+               if rightstr( strip( line0), 1) = '{' then
+                  NewIndent = PrevIndent
+               else
+                  NewIndent = PrevIndent - GetCIndent()
+               endif
+               leave
+            endif
+         enddo
+         .col = max( 1, NewIndent + 1)  -- unindent
+      endif
+   endif
+   -- type } and highlight matching {
+   'balance }'
+
+; ---------------------------------------------------------------------------
 ; We now distribute a standard front end for the DIR command, which redirects
 ; the output to a file named ".dos dir <dirspec>".  The third line should be
 ; "Directory of <dirname>".  If so, we use it.  If not, we use DIRSPEC from the

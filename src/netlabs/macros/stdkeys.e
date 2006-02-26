@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.25 2006-01-14 17:47:27 aschn Exp $
+* $Id: stdkeys.e,v 1.26 2006-02-26 17:31:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -213,13 +213,17 @@ def c_h           'kwhelp'              -- Lookup current word in a help file
 ; ---- Syntax Assistant ----
 def a_h           'MyAssist'            -- ASSIST.E: insert code for abbreviations left from cursor
 
-; ---- Bracket matching ----
+; ---- Bracket matching or expansion ----
 def c_leftbracket 'passist'             -- Move cursor on matching bracket or statement
 def c_rightbracket 'passist'            -- Move cursor on matching bracket or statement
 def c_8           'passist'             -- Move cursor on matching bracket or statement
+def '('           'OpeningParen'        -- Add ) while typing ( if defined as match_chars
+def '['           'OpeningBracket'      -- Add ] while typing [ if defined as match_chars
+def '{'           'OpeningBrace'        -- Add } while typing { if defined as match_chars
+def '<'           'OpeningAngle'        -- Add > while typing < if defined as match_chars
 def ')'           'balance )'           -- Mark matching ( while typing )
 def ']'           'balance ]'           -- Mark matching [ while typing ]
-def '}'           'balance }'           -- Mark matching { while typing }
+def '}'           'ClosingBrace'        -- Auto-indent } to indent of { if activated. Mark matching { while typing }
 
 ; ---- Draw ----
 def f6            'StartDraw'           -- Message about available draw chars and Commandline to typein a char, then use cursor chars

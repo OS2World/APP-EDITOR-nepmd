@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modecnf.e,v 1.4 2005-07-17 15:42:02 aschn Exp $
+* $Id: modecnf.e,v 1.5 2006-02-26 17:31:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -70,24 +70,73 @@ View Netlabs' default mode configuration file:
 ;         SetTabkey         0 | 1
 ;         SetMatchTab       0 | 1
 ;         SetMargins        <left> <right> <par>
-;         SetExpand         0 | 1
-;         SetIndent         <number> (default = const, if defined,
-;                           e.g. REXX_INDENT; else first number of tabs)
-;         SetTextColor      number (with PROFILE.ERX, or const, see COLORS.E)
-;         SetMarkColor      number (with PROFILE.ERX, or const, see COLORS.E)
+;         SetTextColor      <number> or <color_name> (see COLORS.E)
+;         SetMarkColor      <number> or <color_name> (see COLORS.E)
 ;                           (Hint: place cursor on COLORS.E and press Alt+1 to
 ;                                  load the file)
-;         SetTextFont       <font_size>.<font_name>[.<font_sel>]  (<font_size>
-;                           and <font_name> can be exchanged. Any EPM font
-;                           specification syntax will be accepted as well. The
-;                           args are case-sensitive.)
-;         SetToolbar        <toolbar_name> (must be defined in EPM.INI)
+;         SetTextFont       <font_size>.<font_name>[.<font_sel>]
+;                              <font_size> and <font_name> can be exchanged.
+;                              Any EPM font specification syntax is
+;                              accepted as well. The args are case-sensitive.
+;         SetToolbar        <toolbar_name> (must be defined in NEPMD.INI)
 ;         SetDynaspell      0 | 1
 ;         SetEditOptions    see description of EDIT command
 ;         SetSaveOptions    see description of SAVE command
 ;         SetSearchOptions  see description of LOCATE and REPLACE commands
 ;                           (plus undocumented TB options)
 ;         SetKeys           <keyset_name>
+;
+;      Settings for syntax expansion:
+;         SetExpand         0 | 1
+;         SetIndent         <number> (default = first number of tabs)
+;         SetHeaderStyle    1 | 2
+;                              HeaderStyle 1 (default):
+;                              /********************
+;                              * |
+;                              ********************/
+;                              HeaderStyle 2:
+;                              /********************
+;                               * |
+;                               *******************/
+;         SetHeaderLength      <-- header_length --> (default = 77)
+;         SetEndCommented   0 | 1
+;         SetMatchChars     <space-separated list of pairs> (default = '')
+;                              list of possible pairs: '{ } [ ] ( ) < >'
+;         SetCommentAutoTerminate
+;                           0 | 1 (default = 0)
+;         SetFunctionSpacing
+;                           'N' | 'C' | 'SC' | 'SCE' (default = 'C')
+;                               'N' no spaces
+;                               'C' space after a comma in a parameter list
+;                               'S' space after start (opening parenthesis) of a parameter list
+;                               'E' space before end (closing parenthesis) of a parameter list
+;         SetClosingBraceAutoIndent
+;                           0 | 1 (default = 0)
+;         SetCodingStyle    <coding_style>
+;                              Coding styles can be defined with the
+;                              AddCodingStyle command, even in PROFILE.ERX
+;
+;      Settings for keyset C_KEYS:
+;         SetCBraceStyle    'BELOW' | 'APPEND' | 'INDENT' | 'HALFINDENT'
+;                              (default = 'BELOW')
+;         SetCCaseStyle     'INDENT' | 'BELOW' (style of "case" statement,
+;                              default = 'INDENT')
+;         SetCDefaultStyle  'INDENT' | 'BELOW' (style of "default" statement,
+;                              default = 'INDENT')
+;         SetCMainStyle     'STANDARD' | 'SHORT' (style of "main" statement,
+;                              default = 'SHORT')
+;         SetCCommentStyle  'CPP' | 'C' (use either // ... or /* ... */, if
+;                              EndCommented = 1, default = 'CPP')
+
+;      Settings for keyset REXX_KEYS:
+;         SetRexxDoStyle    'APPEND' | 'INDENT' | 'BELOW' (style of "do"
+;                              statement, default = 'BELOW')
+;         SetRexxIfStyle    'ADDELSE' | 'NOELSE' (style of "if" statement,
+;                              default = 'NOELSE')
+;         SetRexxCase       'LOWER' | 'MIXED' | 'UPPER' (default = 'LOWER')
+;         SetRexxForceCase  0 | 1 (default = 1)
+;                              1 means: change case of typed statements as
+;                              well, not only of the added statements
 ;
 ; Any <set_cmd> can also be executed in EPM's commandline. Then it will
 ; affect only the current file.
@@ -106,42 +155,140 @@ View Netlabs' default mode configuration file:
 ;   Mode rexx     (change mode to REXX and apply all REXX-specific settings)
 
 ; ---------------------------------------------------------------------------
-; Omit DEFINIT when you put the following lines in your PROFILE.ERX.
-definit
+; Omit the next line when you put the following lines in your PROFILE.ERX.
+defc InitModeCnf
 
-/* 'ModeExecute CLEAR' removes all prior ModeExecute definitions. */
-/* Use it, if you want to overwrite all NEPMD's defaults, without */
-/* creating your own %NEPMD_USERDIR%\MACROS\MODECNF.E file.       */
+/* ----------------------------------------------------------------------- */
+/* Coding styles                                                           */
+/* ----------------------------------------------------------------------- */
+
+/* K&R */
+'AddCodingStyle K&R SetIndent 4'
+'AddCodingStyle K&R SetTabs 4'
+'AddCodingStyle K&R SetTabKey 0'
+'AddCodingStyle K&R SetCBraceStyle APPEND'
+'AddCodingStyle K&R SetCCaseStyle INDENT'
+
+/* K&R8 */
+'AddCodingStyle K&R8 SetIndent 8'
+'AddCodingStyle K&R8 SetTabs 8'
+'AddCodingStyle K&R8 SetTabKey 0'
+'AddCodingStyle K&R8 SetCBraceStyle APPEND'
+'AddCodingStyle K&R8 SetCCaseStyle INDENT'
+
+/* K&R3 */
+'AddCodingStyle K&R3 SetIndent 3'
+'AddCodingStyle K&R3 SetTabs 3'
+'AddCodingStyle K&R3 SetTabKey 0'
+'AddCodingStyle K&R3 SetCBraceStyle APPEND'
+'AddCodingStyle K&R3 SetCCaseStyle INDENT'
+
+/* Linux = Gnome */
+/* use tabs for indent -> convert spaces to tabs before save */
+'AddCodingStyle Linux SetIndent 8'
+'AddCodingStyle Linux SetTabs 8'
+'AddCodingStyle Linux SetTabKey 1'
+'AddCodingStyle Linux SetCBraceStyle APPEND'
+'AddCodingStyle Linux SetCCaseStyle INDENT'
+
+/* BSD = Allman */
+'AddCodingStyle BSD SetIndent 8'
+'AddCodingStyle BSD SetTabs 8'
+'AddCodingStyle BSD SetTabKey 0'
+'AddCodingStyle BSD SetCBraceStyle BELOW'
+'AddCodingStyle BSD SetCCaseStyle INDENT'
+
+/* BSD4 = XWP */
+'AddCodingStyle BSD4 SetIndent 4'
+'AddCodingStyle BSD4 SetTabs 4'
+'AddCodingStyle BSD4 SetTabKey 0'
+'AddCodingStyle BSD4 SetCBraceStyle BELOW'
+'AddCodingStyle BSD4 SetCCaseStyle INDENT'
+
+/* BSD3 */
+'AddCodingStyle BSD3 SetIndent 3'
+'AddCodingStyle BSD3 SetTabs 3'
+'AddCodingStyle BSD3 SetTabKey 0'
+'AddCodingStyle BSD3 SetCBraceStyle BELOW'
+'AddCodingStyle BSD3 SetCCaseStyle INDENT'
+
+/* GNU */
+'AddCodingStyle GNU SetIndent 4'
+'AddCodingStyle GNU SetTabs 4'
+'AddCodingStyle GNU SetTabKey 0'
+'AddCodingStyle GNU SetCBraceStyle HALFINDENT'
+'AddCodingStyle GNU SetCCaseStyle INDENT'
+
+/* Whitesmith */
+'AddCodingStyle Whitesmith SetIndent 8'
+'AddCodingStyle Whitesmith SetTabs 8'
+'AddCodingStyle Whitesmith SetTabKey 0'
+'AddCodingStyle Whitesmith SetCBraceStyle INDENT'
+'AddCodingStyle Whitesmith SetCCaseStyle INDENT'
+
+/* JAVA */
+'AddCodingStyle JAVA SetIndent 4'
+'AddCodingStyle JAVA SetTabs 8'
+'AddCodingStyle JAVA SetTabKey 0'
+'AddCodingStyle JAVA SetCBraceStyle APPEND'
+'AddCodingStyle JAVA SetCCaseStyle INDENT'
+
+/* ----------------------------------------------------------------------- */
+/* 'ModeExecute CLEAR' removes all prior ModeExecute definitions.          */
+/* Use it, if you want to overwrite all NEPMD's defaults, without          */
+/* creating your own %NEPMD_USERDIR%\MACROS\MODECNF.E file.                */
+/* ----------------------------------------------------------------------- */
 /*
 'ModeExecute CLEAR'
 */
 
+/* ----------------------------------------------------------------------- */
+/* Settings for all modes, if no ModeExecute command exists.               */
+/* These settings are not accessable via the Options menu,                 */
+/* therefore a DEFAULT pseudo mode is defined for them.                    */
+/* ----------------------------------------------------------------------- */
+'ModeExecute DEFAULT SetHeaderStyle 1'
+'ModeExecute DEFAULT SetHeaderLength 77'
+'ModeExecute DEFAULT SetMatchChars'
+'ModeExecute DEFAULT SetFunctionSpacing C'
+'ModeExecute DEFAULT SetClosingBraceAutoIndent 1'
+
+/* ----------------------------------------------------------------------- */
+/* Settings for special modes                                              */
+/* ----------------------------------------------------------------------- */
 'ModeExecute Shell SetKeys Shell_keys'
 
 'ModeExecute E SetKeys E_keys'
 'ModeExecute E SetTabs 3'
-'ModeExecute E SetMargins 1 1599 1'
 'ModeExecute E SetIndent 3'
+'ModeExecute E SetMargins 1 1599 1'
 
 'ModeExecute REXX SetKeys REXX_keys'
+'ModeExecute REXX SetRexxDoStyle INDENT'
+'ModeExecute REXX SetRexxIfStyle ADDELSE'
+'ModeExecute REXX SetRexxCase LOWER'
+'ModeExecute REXX SetRexxForceCase 1'
 'ModeExecute REXX SetTabs 3'
-'ModeExecute REXX SetMargins 1 1599 1'
 'ModeExecute REXX SetIndent 3'
+'ModeExecute REXX SetMargins 1 1599 1'
 
 'ModeExecute C SetKeys C_keys'
-'ModeExecute C SetTabs 3'
+'ModeExecute C SetCodingStyle BSD4'
+'ModeExecute C SetMatchChars { } ( ) [ ]'
 'ModeExecute C SetMargins 1 1599 1'
-'ModeExecute C SetIndent 3'
 
 'ModeExecute JAVA SetKeys C_keys'
-'ModeExecute JAVA SetTabs 3'
+'ModeExecute JAVA SetCodingStyle JAVA'
+'ModeExecute JAVA SetMatchChars { } ( ) [ ]'
 'ModeExecute JAVA SetMargins 1 1599 1'
-'ModeExecute JAVA SetIndent 3'
 
 'ModeExecute PASCAL SetKeys Pas_keys'
 'ModeExecute PASCAL SetTabs 3'
-'ModeExecute PASCAL SetMargins 1 1599 1'
 'ModeExecute PASCAL SetIndent 3'
+'ModeExecute PASCAL SetMargins 1 1599 1'
+
+'ModeExecute HTML SetMatchChars < >'
+'ModeExecute HTML SetMargins 1 1599 1'
 
 
 
