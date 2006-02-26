@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.13 2006-02-26 17:31:23 aschn Exp $
+* $Id: rexxkeys.e,v 1.14 2006-02-26 17:50:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,52 +18,23 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-/**********************************************************************/
-/*                             REXKEYS.E                              */
-/*                                                                    */
-/* The c_enter and space bar keys have been defined to do specific    */
-/* REXX syntax structures.                                            */
-/*                                                                    */
-/* Based on EKEYS.E (part of the base E3 code)                        */
-/* Written by B. Thompson, 22 Sep 1987                                */
-/*                                                                    */
-/**********************************************************************/
-/*  Updated by Larry Margolis for EOS2 and EPM.  To include, set in   */
-/*  your MYCNF.E:   REXX_SYNTAX_ASSIST = 1                            */
-/*                                                                    */
-/**********************************************************************/
 
-const
-;compile if not defined(REXX_SYNTAX_INDENT)
-;   REXX_SYNTAX_INDENT = SYNTAX_INDENT
-;compile endif
-;compile if not defined(TERMINATE_COMMENTS)
-;   TERMINATE_COMMENTS = 0
-;compile endif
-;compile if not defined(WANT_END_COMMENTED)
-;   WANT_END_COMMENTED = 0
-;compile endif
-;compile if not defined(REXX_SYNTAX_CASE)
-;   REXX_SYNTAX_CASE = 'LOWER'  -- 'LOWER' | 'MIXED' | 'UPPER'
-;compile endif
-;compile if not defined(REXX_SYNTAX_FORCE_CASE)
-;   REXX_SYNTAX_FORCE_CASE = 1
-;compile endif
-;compile if not defined(REXX_SYNTAX_NO_ELSE)
-;   REXX_SYNTAX_NO_ELSE = 0
-;compile endif
-;compile if not defined(REXX_DO_STYLE)
-;   REXX_DO_STYLE = 'NO_INDENT_AFTER_IF'  -- 'APPEND' | 'INDENT_AFTER_IF' | 'NO_INDENT_AFTER_IF'
-;compile endif
-
+; Todo:
+;
+; New procs: Tabs2Spaces and Spaces2Tabs for strings for expansion using Tabs
+;
+; New proc: Get indent of a line
+;
+; New proc: Find closing expression?
+; Better use locate?
+; Determine, if 'end' should be added.
 
 ; ---------------------------------------------------------------------------
 ; Set* commands for mode REXX
 ; ---------------------------------------------------------------------------
 definit
    call AddAVar( 'selectsettingslist',
-                        'RexxDoStyle RexxIfStyle RexxCase' ||
-                        ' RexxForceCase')
+                        'RexxDoStyle RexxIfStyle RexxCase RexxForceCase')
 
 ; Expand "do" statement.
 defc SetRexxDoStyle
@@ -109,18 +80,6 @@ defc SetRexxForceCase
    rexx_force_case = arg1
    call UseSetting( 'RexxForceCase', arg(1))
 
--- Moved defload to MODE.E
-
-; Todo:
-;
-; New procs: Tabs2Spaces and Spaces2Tabs for strings for expansion using Tabs
-;
-; New proc: Get indent of a line
-;
-; New proc: Find closing expression?
-; Better use locate?
-; Determine, if 'end' should be added.
-
 ; ---------------------------------------------------------------------------
 ; Todo: move in order to make that available for other modes as well.
 ; Almost like strip: strip leading/trailing blanks (spaces and tabs).
@@ -158,16 +117,7 @@ def c_x
 ; ---------------------------------------------------------------------------
 defproc GetRexxIndent
    universal indent
-;compile if defined(REXX_SYNTAX_INDENT)
-;   ind = REXX_SYNTAX_INDENT  -- this const has priority, it is normally undefined
-;compile else
    ind = indent  -- will be changed at defselect for every mode, if defined
-;compile endif
-;   if ind = '' | ind = 0 then
-;compile if defined(SYNTAX_INDENT)
-;      ind = SYNTAX_INDENT
-;compile endif
-;   endif
    if ind = '' | ind = 0 then
       ind = 3
    endif
@@ -178,7 +128,6 @@ defproc GetRexxIndent
 defproc RexxSyntaxCase
    universal rexx_case
    in = arg(1)
-   --sayerror 'RexxSyntaxCase: in = ['in']'
    out = in
    p = verify( out, ' '\t, 'N')                   -- find first word
    startp = p
@@ -194,7 +143,6 @@ defproc RexxSyntaxCase
       else
          next = substr( out, startp, p - startp)  -- next word incl. trailing blanks
       endif
-      --sayerror 'RexxSyntaxCase: next = ['next']'
       if rexx_case = 'LOWER' then
          next = lowcase( next)
       elseif rexx_case = 'UPPER' then
@@ -209,7 +157,6 @@ defproc RexxSyntaxCase
       endif
       startp = p
    enddo
-   --sayerror 'RexxSyntaxCase: out = ['out']'
    return out
 
 ; ---------------------------------------------------------------------------
@@ -222,6 +169,7 @@ defproc rex_first_expansion
    universal END_commented
 
    retc = 0  -- 0 = processed, otherwise 1 is returned
+             -- (exchanged compared to standard EPM)
    if END_commented = 1 then
       END_DO = ' /* do */'
    else
@@ -292,6 +240,7 @@ defproc rex_second_expansion
    universal header_style
 
    retc = 0  -- 0 = processed, otherwise 1 is returned
+             -- (exchanged compared to standard EPM)
    if END_commented = 1 then
       END_DO     = ' /* do */'
       END_SELECT = ' /* select */'

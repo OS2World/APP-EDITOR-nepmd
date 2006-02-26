@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.15 2006-02-26 17:31:18 aschn Exp $
+* $Id: ckeys.e,v 1.16 2006-02-26 17:50:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -240,13 +240,6 @@ defc SetCCommentStyle
 ;    CPP_EXTENSIONS = 'CPP HPP CXX HXX SQX JAV JAVA'
 ; compile endif
 
-;  Keyset selection is now done once at file load time, not every time
-;  the file is selected.  And because the DEFLOAD procedures don't have to be
-;  kept together in the macros (ET will concatenate all the DEFLOADs the
-;  same way it does DEFINITs), we can put the DEFLOAD here where it belongs,
-;  with the rest of the keyset function.  (what a concept!)
--- Moved defload to MODE.E
-
 ; ---------------------------------------------------------------------------
 defkeys c_keys
 
@@ -332,6 +325,7 @@ defproc c_first_expansion
    universal c_comment_style
 
    retc = 0  -- 0 = processed, otherwise 1 is returned
+             -- (exchanged compared to standard EPM)
    if END_commented = 1 then
       if c_comment_style = 'CPP' then
          END_CATCH  = ' // endcatch'
@@ -476,9 +470,6 @@ defproc c_first_expansion
             replaceline w' {'
             insertline ws'} while ();'END_DO, .line + 1
          endif
-         --call einsert_line()
-         --replaceline ws1  -- better append real spaces, instead of just setting .col
-         --.col = p + GetCindent()    -- indent for new line, don't indent it twice
          insertline ws1, .line + 1; down; endline
 
       elseif wrd = 'SWITCH' then
@@ -502,12 +493,11 @@ defproc c_first_expansion
             insert_toggle
             call fixup_cursor()
          endif
-         .col = .col + 2    /* move cursor between parentheses of switch ()*/
+         .col = .col + 2    -- move cursor between parentheses of switch ()
 
       elseif wrd = 'MAIN' | (subword( wrd, 1, 1) = 'INT' & subword( wrd, 2, 1) = 'MAIN') then
          call enter_main_heading()
 
-;compile if CPP_SYNTAX_ASSIST
       elseif wrd = 'TRY' /*& ExpandCpp()*/ then
          if c_brace_style = 'INDENT' then
             insertline ws1'{', .line + 1
@@ -560,9 +550,7 @@ defproc c_first_expansion
             call fixup_cursor()
          endif
          .col = .col + 2 + length( GetSSpc())
-;compile endif -- CPP_SYNTAX_ASSIST
 
-;compile if JAVA_SYNTAX_ASSIST
       elseif wrd = 'PRINTLN(' & ExpandJava() then
          replaceline ws'System.out.println('GetSSpc()''GetESpc()');'
          if not insert_state() then
@@ -571,7 +559,6 @@ defproc c_first_expansion
          endif
          end_line
          .col = .col - 2 - length( GetESpc())
-;compile endif -- JAVA_SYNTAX_ASSIST
 
       else
          retc = 1
@@ -597,14 +584,12 @@ defproc c_second_expansion
    if .line then
       getline line                                               -- line = current line
 
-; From REXXKEYS.E:
       -- *word functions and parse don't recognize tab chars as word boundaries.
       -- tline = uppercase line, with converted tabs
       tline = translate( upcase(line) ' ', \t)
 
       -- Set firstword only to text left from the cursor
       tline_l = substr( tline, 1, .col - 1) -- split tline into two parts at cursor
-; firstword is currently overwritten by the old code
       parse value tline_l with firstword rest
       -- firstword is uppercase, because line is already upcased.
       if firstword > ' ' then
@@ -619,8 +604,6 @@ defproc c_second_expansion
 -- doesn't handle Tabs near the end correctly:
       ind0 =  substr( ind, 1, max( length(ind) - GetCIndent(), 0))     -- ind0 = ind minus 1 level indented
 
-;      parse value upcase(line) with '{' +0 a                     -- a    = part of line starting with '{', upcase
-;      a = strip(a)
       pobrace = pos( '{', line)
       sline = strip( strip( strip( textline( .line)), 'b', \t))
       this_is_obrace = (sline = '{')
@@ -680,11 +663,8 @@ defproc c_second_expansion
       enddo
 
       if firstword = 'FOR' then
-         /* do tabs to fields of C for statement */
-         --cp = pos( ';', line, .col)
          cp = pos( ';', line, .col + 1)
          if cp and cp >= .col then
-            --.col = cp + 2
             .col = cp
          else
             cp = pos( ';', line, .col)
@@ -702,7 +682,7 @@ defproc c_second_expansion
 
       elseif firstword = 'CASE' or firstword = 'DEFAULT' then
          insertline ws1, .line + 1; down; endline
-         -- get rid of line containing just a ;
+         -- Get rid of line containing just a ;
          if firstword = 'DEFAULT' and .line < .last then
             getline line1, .line + 1
             line1 = strip( line1, 'b')
@@ -727,8 +707,8 @@ defproc c_second_expansion
             insertline ws2'break;', .line + 1
          endif
 
-         /* look at the next line to see if this is the first time */
-         /* the user typed enter on this switch statement */
+         -- Look at the next line to see if this is the first time
+         -- the user typed enter on this switch statement
          if .line <= (.last - 2) then
             getline line2, .line + 2
             line2 = strip( line2, 't')
@@ -766,9 +746,9 @@ defproc c_second_expansion
          endif
 
       elseif n > 0 then
-         -- todo: don't split in line mode
-         -- todo: support c_brace_style = 'INDENT' (not for functions)
-         -- split line at cursor: replace current line with left part
+         -- Todo: don't split in line mode
+         -- Todo: support c_brace_style = 'INDENT' (not for functions)
+         -- Split line at cursor: replace current line with left part
          stline_l =  strip( strip( strip( line_l, 't'), 't', \t), 't')  -- strip trailing spaces and tabs
          replaceline stline_l, .line
          if rightstr( stline_l, 1) = '{' and not this_is_obrace and
@@ -776,10 +756,10 @@ defproc c_second_expansion
                                                          -- functions should be put on a separate line
             LeftPart = leftstr( stline_l, length(stline_l) - 1)
             if strip( translate( LeftPart, '', \9)) = '' then  -- if no string before {
-               -- let '{' on this line
+               -- Let '{' on this line
                replaceline ws'{', .line; endline
             else
-               -- put '{' on next line
+               -- Put '{' on next line
                replaceline LeftPart, .line
                insertline ws'{', .line + 1; down; endline
             endif
