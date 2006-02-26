@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.37 2005-12-30 00:50:32 aschn Exp $
+* $Id: main.e,v 1.38 2006-02-26 17:31:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -55,10 +55,13 @@ defmain
 
    dprintf( 'DEFMAIN', 'arg(1) = ['arg(1)']')
 
+;  Process settings from MODECNF.E --------------------------------------------
+   'InitModeCnf'
+
 ;  Process settings from EPM.INI and load menu ------------------------------
    -- This should be processed after NepmdInitConfig, because now there are
    -- values from NEPMD.INI queried as well.
-   'initconfig'
+   'InitConfig'
 
 ;  Get the .Untitled filename, defined in the DLLs, NLS-dependent. ----------
    -- For the language-specific versions of the EPM binaries (W4+) all

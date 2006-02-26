@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.12 2006-01-14 17:47:26 aschn Exp $
+* $Id: rexxkeys.e,v 1.13 2006-02-26 17:31:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -37,24 +37,77 @@ const
 ;compile if not defined(REXX_SYNTAX_INDENT)
 ;   REXX_SYNTAX_INDENT = SYNTAX_INDENT
 ;compile endif
-compile if not defined(TERMINATE_COMMENTS)
-   TERMINATE_COMMENTS = 0
-compile endif
-compile if not defined(WANT_END_COMMENTED)
-   WANT_END_COMMENTED = 0
-compile endif
-compile if not defined(REXX_SYNTAX_CASE)
-   REXX_SYNTAX_CASE = 'LOWER'  -- 'LOWER' | 'MIXED' | 'UPPER'
-compile endif
-compile if not defined(REXX_SYNTAX_FORCE_CASE)
-   REXX_SYNTAX_FORCE_CASE = 1
-compile endif
-compile if not defined(REXX_SYNTAX_NO_ELSE)
-   REXX_SYNTAX_NO_ELSE = 0
-compile endif
-compile if not defined(REXX_DO_STYLE)
-   REXX_DO_STYLE = 'NO_INDENT_AFTER_IF'  -- 'APPEND' | 'INDENT_AFTER_IF' | 'NO_INDENT_AFTER_IF'
-compile endif
+;compile if not defined(TERMINATE_COMMENTS)
+;   TERMINATE_COMMENTS = 0
+;compile endif
+;compile if not defined(WANT_END_COMMENTED)
+;   WANT_END_COMMENTED = 0
+;compile endif
+;compile if not defined(REXX_SYNTAX_CASE)
+;   REXX_SYNTAX_CASE = 'LOWER'  -- 'LOWER' | 'MIXED' | 'UPPER'
+;compile endif
+;compile if not defined(REXX_SYNTAX_FORCE_CASE)
+;   REXX_SYNTAX_FORCE_CASE = 1
+;compile endif
+;compile if not defined(REXX_SYNTAX_NO_ELSE)
+;   REXX_SYNTAX_NO_ELSE = 0
+;compile endif
+;compile if not defined(REXX_DO_STYLE)
+;   REXX_DO_STYLE = 'NO_INDENT_AFTER_IF'  -- 'APPEND' | 'INDENT_AFTER_IF' | 'NO_INDENT_AFTER_IF'
+;compile endif
+
+
+; ---------------------------------------------------------------------------
+; Set* commands for mode REXX
+; ---------------------------------------------------------------------------
+definit
+   call AddAVar( 'selectsettingslist',
+                        'RexxDoStyle RexxIfStyle RexxCase' ||
+                        ' RexxForceCase')
+
+; Expand "do" statement.
+defc SetRexxDoStyle
+   universal rexx_DO_style
+   ValidArgs = 'APPEND INDENT BELOW'
+   arg1 = strip( upcase( arg(1)))
+   if not wordpos( arg1, ValidArgs) then
+      arg1 = 'BELOW'
+   endif
+   rexx_DO_style = arg1
+   call UseSetting( 'RexxDoStyle', arg(1))
+
+; Expand "if" statement.
+defc SetRexxIfStyle
+   universal rexx_IF_style
+   ValidArgs = 'ADDELSE NOELSE'
+   arg1 = strip( upcase( arg(1)))
+   if not wordpos( arg1, ValidArgs) then
+      arg1 = 'NOELSE'
+   endif
+   rexx_IF_style = arg1
+   call UseSetting( 'RexxIfStyle', arg(1))
+
+; Select syntax case.
+defc SetRexxCase
+   universal rexx_case
+   ValidArgs = 'LOWER MIXED UPPER'
+   arg1 = strip( upcase( arg(1)))
+   if not wordpos( arg1, ValidArgs) then
+      arg1 = 'LOWER'
+   endif
+   rexx_case = arg1
+   call UseSetting( 'RexxCase', arg(1))
+
+; Replace or keep case of statements already present.
+defc SetRexxForceCase
+   universal rexx_force_case
+   ValidArgs = '0 1'
+   arg1 = strip( upcase( arg(1)))
+   if not wordpos( arg1, ValidArgs) then
+      arg1 = '1'
+   endif
+   rexx_force_case = arg1
+   call UseSetting( 'RexxForceCase', arg(1))
 
 -- Moved defload to MODE.E
 
@@ -96,24 +149,25 @@ defproc StripBlanks( in)
 ; ---------------------------------------------------------------------------
 defkeys rexx_keys
 
-def c_x=       -- Force expansion if we don't have it turned on automatic
-   if not rex_first_expansion() then
+; Force expansion if we don't have it turned on automatic
+def c_x
+   if rex_first_expansion() then
       call rex_second_expansion()
    endif
 
 ; ---------------------------------------------------------------------------
 defproc GetRexxIndent
    universal indent
-compile if defined(REXX_SYNTAX_INDENT)
-   ind = REXX_SYNTAX_INDENT  -- this const has priority, it is normally undefined
-compile else
+;compile if defined(REXX_SYNTAX_INDENT)
+;   ind = REXX_SYNTAX_INDENT  -- this const has priority, it is normally undefined
+;compile else
    ind = indent  -- will be changed at defselect for every mode, if defined
-compile endif
-   if ind = '' | ind = 0 then
-compile if defined(SYNTAX_INDENT)
-      ind = SYNTAX_INDENT
-compile endif
-   endif
+;compile endif
+;   if ind = '' | ind = 0 then
+;compile if defined(SYNTAX_INDENT)
+;      ind = SYNTAX_INDENT
+;compile endif
+;   endif
    if ind = '' | ind = 0 then
       ind = 3
    endif
@@ -122,6 +176,7 @@ compile endif
 ; ---------------------------------------------------------------------------
 ; Convert case of a string, word by word. Keep spaces and Tabs.
 defproc RexxSyntaxCase
+   universal rexx_case
    in = arg(1)
    --sayerror 'RexxSyntaxCase: in = ['in']'
    out = in
@@ -140,11 +195,11 @@ defproc RexxSyntaxCase
          next = substr( out, startp, p - startp)  -- next word incl. trailing blanks
       endif
       --sayerror 'RexxSyntaxCase: next = ['next']'
-      if upcase( substr( REXX_SYNTAX_CASE, 1, 1)) = 'L' then
+      if rexx_case = 'LOWER' then
          next = lowcase( next)
-      elseif upcase( substr( REXX_SYNTAX_CASE, 1, 1)) = 'U' then
+      elseif rexx_case = 'UPPER' then
          next = upcase( next)
-      elseif upcase( substr( REXX_SYNTAX_CASE, 1, 1)) = 'M' then
+      elseif rexx_case = 'MIXED' then
          next = lowcase( next)
          next = upcase( substr( next, 1, 1))''substr( next, 2)
       endif
@@ -159,15 +214,20 @@ defproc RexxSyntaxCase
 
 ; ---------------------------------------------------------------------------
 defc RexxFirstExpansion
-   rc = (rex_first_expansion() = 0)
+   rc = rex_first_expansion()  -- (rc = 0) = processed
 
-; This is the definition for syntax expansion with <space>.
-; If 0 is returned then
-;    a normal <space> is processed,
-; else
-;    the keystroke was aleady processed by this procedure.
 defproc rex_first_expansion
-   retc = 0                            -- Default: don't expanded, enter a space
+   universal rexx_force_case
+   universal rexx_IF_style
+   universal END_commented
+
+   retc = 0  -- 0 = processed, otherwise 1 is returned
+   if END_commented = 1 then
+      END_DO = ' /* do */'
+   else
+      END_DO = ''
+   endif
+
    if .line then
       getline line
       sline = StripBlanks( line, 'T')
@@ -178,59 +238,68 @@ defproc rex_first_expansion
       -- Skip expansion if word before cursor is not a keyword or if some string follows
       if not (length(sline) = .col - 1) then
          -- cursor is not behind the last word: skip expansion
+         retc = 1
       elseif wrd = '' then
          -- empty line: skip expansion
+         retc = 1
 
       elseif wrd = 'IF' then
-compile if REXX_SYNTAX_FORCE_CASE
-         replaceline ind''RexxSyntaxCase( 'if  then')
-compile else
-         replaceline sline''RexxSyntaxCase( '  then')
-compile endif
-compile if not REXX_SYNTAX_NO_ELSE
-         insertline ind''RexxSyntaxCase( 'else'), .line + 1
-compile endif
+         if rexx_force_case then
+            replaceline ind''RexxSyntaxCase( 'if  then')
+         else
+            replaceline sline''RexxSyntaxCase( '  then')
+         endif
+         if rexx_IF_style = 'ADDELSE' then
+            insertline ind''RexxSyntaxCase( 'else'), .line + 1
+         endif
          .col = col + 1
-         retc = 1
 
       elseif wrd = 'WHEN' then
-compile if REXX_SYNTAX_FORCE_CASE
-         replaceline ind''RexxSyntaxCase( 'when  then')
-compile else
-         replaceline sline''RexxSyntaxCase( '  then')
-compile endif
+         if rexx_force_case then
+            replaceline ind''RexxSyntaxCase( 'when  then')
+         else
+            replaceline sline''RexxSyntaxCase( '  then')
+         endif
          .col = col + 1
-         retc = 1
 
       elseif wrd = 'DO' then
-compile if REXX_SYNTAX_FORCE_CASE
-         replaceline ind''RexxSyntaxCase( 'do ')
-compile else
-         replaceline sline' '
-compile endif
-compile if WANT_END_COMMENTED
-         insertline ind''RexxSyntaxCase( 'end /* do */'),.line+1
-compile else
-         insertline ind''RexxSyntaxCase( 'end'),.line+1
-compile endif
+         if rexx_force_case then
+            replaceline ind''RexxSyntaxCase( 'do ')
+         else
+            replaceline sline' '
+         endif
+         insertline ind''RexxSyntaxCase( 'end'END_DO), .line + 1
          .col = col + 1
-         retc = 1
 
+      else
+         retc = 1
       endif  -- sline <> line_l
+   else
+      retc = 1
    endif  -- .line
    return retc
 
 ; ---------------------------------------------------------------------------
 defc RexxSecondExpansion
-   rc = (rex_second_expansion() = 0)
+   rc = rex_second_expansion()  -- (rc = 0) = processed
 
-; This is the definition for syntax expansion with <enter>.
-; If 0 is returned then
-;    a normal <enter> is processed,
-; else
-;    the keystroke was aleady processed by this procedure.
 defproc rex_second_expansion
-   retc = 0                               -- Default:, don't expanded, insert a line
+   universal rexx_force_case
+   universal comment_auto_terminate
+   universal END_commented
+   universal rexx_DO_style
+   universal header_length
+   universal header_style
+
+   retc = 0  -- 0 = processed, otherwise 1 is returned
+   if END_commented = 1 then
+      END_DO     = ' /* do */'
+      END_SELECT = ' /* select */'
+   else
+      END_DO     = ''
+      END_SELECT = ''
+   endif
+
    if .line then
       getline line
       -- *word functions and parse don't recognize tab chars as word boundaries.
@@ -258,46 +327,39 @@ defproc rex_second_expansion
          p = pos( 'ELSE DO', tline)  -- Don't be faked out by 'else doc = 5'
          if not p then
             p = pos( 'THEN DO', tline)
-compile if REXX_SYNTAX_FORCE_CASE
-            s1 = 'then do'
+            if rexx_force_case then
+               s1 = 'then do'
+            endif
          else
-            s1 = 'else do'
-compile endif
+            if rexx_force_case then
+               s1 = 'else do'
+            endif
          endif
          -- Skip expansion, if THEN DO or ELSE DO is not followed by a semicolon or space.
          -- Lineend is handled as space in EPM's edit window.
          if p & not pos( substr( tline, p + 7, 1), ' ;') then
-            return 0
+            retc = 1
+            return retc
          endif
 -- Todo: skip expansion, if matching END found.
-compile if REXX_SYNTAX_FORCE_CASE
-         replaceline overlay( RexxSyntaxCase( s1), line, p)
-compile endif
+         if rexx_force_case then
+            replaceline overlay( RexxSyntaxCase( s1), line, p)
+         endif
          insertline ind1'', .line + 1
-compile if WANT_END_COMMENTED
-         insertline ind''RexxSyntaxCase( 'end /* do */'), .line + 2
-compile else
-         insertline ind''RexxSyntaxCase( 'end'), .line + 2
-compile endif
+         insertline ind''RexxSyntaxCase( 'end'END_DO), .line + 2
          '+1'
          endline
-         retc = 1
 
       elseif firstword = 'SELECT' then
-compile if REXX_SYNTAX_FORCE_CASE
-         replaceline overlay( RexxSyntaxCase( 'select'), line, firstp)
-compile endif
+         if rexx_force_case then
+            replaceline overlay( RexxSyntaxCase( 'select'), line, firstp)
+         endif
          insertline ind1''RexxSyntaxCase( 'when  then'), .line + 1
          insertline ind''RexxSyntaxCase( 'otherwise'), .line + 2
-compile if WANT_END_COMMENTED
-         insertline ind''RexxSyntaxCase( 'end /* select */'), .line + 3
-compile else
-         insertline ind''RexxSyntaxCase( 'end'), .line + 3
-compile endif
+         insertline ind''RexxSyntaxCase( 'end'END_SELECT), .line + 3
          '+1'                             -- Move to When clause
          endline
          .col = .col - 5
-         retc = 1
 
       elseif firstword = 'DO' then
          lastind = ind
@@ -305,7 +367,7 @@ compile endif
          endl = 0
          endp = 0
          appendl = 0
-         if wordpos( upcase(REXX_DO_STYLE), 'APPEND NO_INDENT_AFTER_IF') then
+         if wordpos( rexx_DO_style, 'APPEND BELOW') then
             -- Check for previous line with a trailing 'THEN' and get its indent
             if .line > 1 then
                -- Inspect previous line
@@ -315,7 +377,7 @@ compile endif
                   -- Get indent of line before with IF|WHEN|OTHERWISE
                   -- Re-indent DO line: take indent of line before
                   -- or append DO and the rest to THEN line
-                  if upcase(REXX_DO_STYLE) = 'APPEND' then
+                  if rexx_DO_style = 'APPEND' then
                      appendl = .line - 1
                   endif
                   startl = .line - 1
@@ -338,7 +400,7 @@ compile endif
                   -- Re-indent DO line: take indent of line before
                   -- or append DO and the rest to ELSE line
                   l = .line - 1
-                  if upcase(REXX_DO_STYLE) = 'APPEND' then
+                  if rexx_DO_style = 'APPEND' then
                      appendl = l
                   endif
                   getline linel, l
@@ -369,18 +431,18 @@ compile endif
          -- Re-indent END line
          -- must come first
          if endp > 0 then
-compile if REXX_SYNTAX_FORCE_CASE
-            next = overlay( RexxSyntaxCase( 'end'), textline(endl), endp)
-            replaceline lastind''substr( next, endp), endl  -- re-indent END line
-compile else
-            replaceline lastind''substr( textline(endl), endp), endl  -- re-indent END line
-compile endif
+            if rexx_force_case then
+               next = overlay( RexxSyntaxCase( 'end'), textline(endl), endp)
+               replaceline lastind''substr( next, endp), endl  -- re-indent END line
+            else
+               replaceline lastind''substr( textline(endl), endp), endl  -- re-indent END line
+            endif
          endif
-compile if REXX_SYNTAX_FORCE_CASE
-         next = overlay( RexxSyntaxCase( 'do'), line, firstp)
-compile else
-         next = line
-compile endif
+         if rexx_force_case then
+            next = overlay( RexxSyntaxCase( 'do'), line, firstp)
+         else
+            next = line
+         endif
          --sayerror 'next = '.line' ['next']'
          if appendl > 0 then
             -- Append DO line
@@ -395,66 +457,70 @@ compile endif
          insertline nextind, .line + 1
          '+1'
          endline
-         retc = 1
 
       elseif firstword = 'IF' then
-compile if REXX_SYNTAX_FORCE_CASE
-         replaceline overlay( RexxSyntaxCase( 'if'), line, firstp)
-compile endif
+         if rexx_force_case then
+            replaceline overlay( RexxSyntaxCase( 'if'), line, firstp)
+         endif
          insertline ind1'', .line + 1
          '+1'
          endline
-         retc = 1
 
       elseif firstword = 'WHEN' then
-compile if REXX_SYNTAX_FORCE_CASE
-         replaceline overlay( RexxSyntaxCase( 'when'), line, firstp)
-compile endif
+         if rexx_force_case then
+            replaceline overlay( RexxSyntaxCase( 'when'), line, firstp)
+         endif
          insertline ind1, .line + 1
          '+1'
          endline
-         retc = 1
 
       elseif firstword = 'OTHERWISE' then
-compile if REXX_SYNTAX_FORCE_CASE
-         replaceline overlay( RexxSyntaxCase( 'otherwise'), line, firstp)
-compile endif
+         if rexx_force_case then
+            replaceline overlay( RexxSyntaxCase( 'otherwise'), line, firstp)
+         endif
          insertline ind1, .line + 1
          '+1'
          endline
-         retc = 1
 
       elseif firstword = 'ELSE' then
-compile if REXX_SYNTAX_FORCE_CASE
-         replaceline overlay( RexxSyntaxCase( 'else'), line, firstp)
-compile endif
+         if rexx_force_case then
+            replaceline overlay( RexxSyntaxCase( 'else'), line, firstp)
+         endif
          insertline ind1, .line + 1
          '+1'
          endline
-         retc = 1
 
-      elseif firstword = '/*' then
+      elseif (firstword = '/*' | firstword = '/**') & words( tline) = 1 then
+         insertline ind' * ', .line + 1
+         insertline ind' */', .line + 2
+         '+1'
+         endline
+
+      elseif firstword = '/*H' then
          if words( tline) = 1 then
-            insertline ind' * ', .line + 1
-            insertline ind' */', .line + 2
+            -- Style 1:
+            -- /***************
+            -- * |
+            -- ***************/
+            -- Style 2:
+            -- /***************
+            --  * |
+            --  **************/
+            replaceline '/'copies( '*', header_length - 1)
+            if header_style = 1 then
+               insertline '* ', .line + 1
+               insertline copies( '*', header_length - 1)'/', .line + 2
+            else
+               insertline ' * ', .line + 1
+               insertline ' 'copies( '*', header_length - 2)'/', .line + 2
+            endif
             '+1'
             endline
-            retc = 1
-         endif
-
-      elseif firstword = '/**' then
-         if words( tline) = 1 then
-            replaceline '/'copies( '*', 76)
-            insertline '* ', .line + 1
-            insertline copies( '*', 76)'/', .line + 2
-            '+1'
-            endline
-            retc = 1
          endif
 
       elseif firstword = '*' then
          -- Search for opening comment /*
-         Found = 0
+         fFound = 0
          startl = .line - 1
          do l = startl to 1 by -1
             if l < startl - 100 then  -- search only 100 next lines
@@ -466,13 +532,13 @@ compile endif
             if next = '*' then
                iterate
             elseif substr( next, 1, 2) = '/*' then
-               Found = 1
+               fFound = 1
                leave
             else
                leave
             endif
          enddo
-         if Found = 1 then
+         if fFound = 1 then
             if firstp = 1 then
                insertline '* ', .line + 1
             else
@@ -480,20 +546,22 @@ compile endif
             endif
             '+1'
             endline
+         else
             retc = 1
          endif
 
-compile if TERMINATE_COMMENTS
-      elseif pos('/*',line) then        -- Annoying to me, as I don't always
-         if not pos('*/',line) then     -- want a comment closed on that line
-            end_line                    -- Enable if you wish by uncommenting
+      elseif pos( '/*', line) & comment_auto_terminate then
+         if not pos( '*/', line) then
+            end_line
             keyin ' */'
          endif
          call einsert_line()
-         retc = 1
-compile endif
 
+      else
+         retc = 1
       endif  -- firstword =
+   else
+      retc = 1
    endif  -- .line
    return retc
 

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.14 2006-01-21 17:03:06 aschn Exp $
+* $Id: ckeys.e,v 1.15 2006-02-26 17:31:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,13 +23,6 @@ Todo:
 
 -- Expand <Enter> -----------------------------------------------------------
 
-WANT_BRACE_BELOW_STATEMENT_INDENTED
-WANT_BRACE_BELOW_STATEMENT
-WANT_BRACE_BELOW_PROC
-WANT_BRACE_BELOW_JAVA_STATEMENT
-WANT_BRACE_BELOW_JAVA_PROC
-
-
 ok xxxxx (xxx) {xxx}|   -->   xxxxx (xxx) {xxx}
                         -->   |
 
@@ -41,14 +34,6 @@ ok xxxxx (xxx) {|xxx}   -->   xxxxx (xxx)       for WANT_BRACE_BELOW_STATEMENT =
                         -->   {
                         -->      |xxx
                         -->   }
-
------------
-
-
-
-
-
-
 
 ok xxxx {|              -->   xxxxx {
                         -->      |
@@ -81,6 +66,9 @@ ok while (xxx) {|}      -->   while (xxx) {
                         -->      xxx
                         -->      |
                         -->   }
+
+ok } else {|            -->   } else {
+                        -->      |
 
 -- <Enter> on line with non-closed paren ------------------------------------
    -- this will not respect current indent
@@ -137,6 +125,7 @@ ok do| + <Space>        -->   do {
 
 ok for + <Space>                        -->   for (|; ; ) {
                                         -->   }
+
 ok fo|r ( xxx; xxx; xxx) { + <Enter>    -->   for ( xxx|; xxx; xxx) {
 ok for ( xxx; x|xx; xxx) { + <Enter>    -->   for ( xxx; xxx|; xxx) {
 ok for ( xxx; xxx|; xxx) { + <Enter>    -->   for ( xxx; xxx; xxx|) {
@@ -149,9 +138,11 @@ ok for ( xxx; xxx; xxx|) { + <Enter>    -->   for ( xxx; xxx; xxx) {
 
 ; /*| <Enter>             -->   /*
 ;  *                      -->    * |
-;  */                     -->    */
+;  */                     -->    */      <-- bug: additional closing comment added
 ;                                *
 ; (/*)                           */
+
+!  unindent "public:" and "private:" in CPP files to the level of the opening brace
 
 -- <Return> on line with keyword --------------------------------------------
    -- before opening paren in stream and line mode
@@ -174,77 +165,80 @@ ok for ( xxx; xxx; xxx|) { + <Enter>    -->   for ( xxx; xxx; xxx) {
 -  Ignore comments when determining indent of last line
 
 -- Expand ; -----------------------------------------------------------------
--  add ; and a new, unindented line
+-  add ; and a new, maybe unindented line
 
 */
 
-/*                    C keys                            */
-/*                                                      */
-/* The enter and space bar keys have been defined to do */
-/* specific C editing features.                         */
+; ---------------------------------------------------------------------------
+; Set* commands for mode C
+; ---------------------------------------------------------------------------
 
-CONST
-compile if not defined(I_like_my_cases_under_my_switch)
-   --I_like_my_cases_under_my_switch = 1
-   I_like_my_cases_under_my_switch = 0  --  changed aschn
-compile endif
-compile if not defined(I_like_a_semicolon_supplied_after_default)
-   I_like_a_semicolon_supplied_after_default = 0
-compile endif
-compile if not defined(ADD_BREAK_AFTER_DEFAULT)
-   ADD_BREAK_AFTER_DEFAULT = 1
-compile endif
-compile if not defined(WANT_BRACE_BELOW_STATEMENT)
-   --WANT_BRACE_BELOW_STATEMENT = 0
-   WANT_BRACE_BELOW_STATEMENT = 1  -- changed aschn
-compile endif
-compile if not defined(WANT_BRACE_BELOW_STATEMENT_INDENTED)
-   WANT_BRACE_BELOW_STATEMENT_INDENTED = 0
-compile endif
-compile if not defined(USE_ANSI_C_NOTATION)
-   USE_ANSI_C_NOTATION = 1  -- 1 means use shorter ANSI C notation on MAIN.
-compile endif
-compile if not defined(TERMINATE_COMMENTS)
-   TERMINATE_COMMENTS = 0
-compile endif
-compile if not defined(WANT_END_COMMENTED)
- compile if defined(WANT_END_BRACE_COMMENTED)
-   WANT_END_COMMENTED = WANT_END_BRACE_COMMENTED
- compile else
-   --WANT_END_COMMENTED = 1
-   WANT_END_COMMENTED = 0  -- changed aschn
- compile endif
-compile endif
-compile if not defined(JAVA_SYNTAX_ASSIST)
-   --JAVA_SYNTAX_ASSIST = 0
-   JAVA_SYNTAX_ASSIST = 1   -- changed aschn
-compile endif
+definit
+   call AddAVar( 'selectsettingslist',
+                        'CBraceStyle CCaseStyle CDefaultStyle CMainStyle' ||
+                        ' CCommentStyle')
 
-;compile if not defined(GetCIndent())
-;   C_SYNTAX_INDENT = SYNTAX_INDENT
-;compile endif
+defc SetCBraceStyle
+   universal c_brace_style
+   ValidArgs = 'BELOW APPEND INDENT HALFINDENT'
+   arg1 = strip( upcase( arg(1)))
+   if not wordpos( arg1, ValidArgs) then
+      arg1 = 'BELOW'
+   endif
+   c_brace_style = arg1
+   call UseSetting( 'CBraceStyle', arg(1))
 
-; Now defined in mode\c\default.ini:
-;compile if not defined(C_EXTENSIONS)  -- Keep in sync with TAGS.E
-;   C_EXTENSIONS = 'C H SQC'
-;compile endif
+; Expand "case" statement. Place "case" statements below "switch" statement
+; or indented.
+defc SetCCaseStyle
+   universal c_CASE_style
+   ValidArgs = 'INDENT BELOW'
+   arg1 = strip( upcase( arg(1)))
+   if not wordpos( arg1, ValidArgs) then
+      arg1 = 'INDENT'
+   endif
+   c_CASE_style = arg1
+   call UseSetting( 'CCaseStyle', arg(1))
 
-; Now used only to distinguish between C and C++:
-compile if not defined(CPP_EXTENSIONS)  -- Keep in sync with TAGS.E
-   CPP_EXTENSIONS = 'CPP HPP CXX HXX SQX JAV JAVA'
-compile endif
+; Expand "default" statement. Add a semicolon or a "break" statement.
+defc SetCDefaultStyle
+   universal c_DEFAULT_style
+   ValidArgs = 'ADDSEMICOLON ADDBREAK'
+   arg1 = strip( upcase( arg(1)))
+   if not wordpos( arg1, ValidArgs) then
+      arg1 = 'ADDSEMICOLON'
+   endif
+   c_DEFAULT_style = arg1
+   call UseSetting( 'CDefaultStyle', arg(1))
 
+; Expand "main" statement.
+defc SetCMainStyle
+   universal c_MAIN_style
+   ValidArgs = 'STANDARD SHORT'
+   arg1 = strip( upcase( arg(1)))
+   if not wordpos( arg1, ValidArgs) then
+      arg1 = 'SHORT'
+   endif
+   c_MAIN_style = arg1
+   call UseSetting( 'CMainStyle', arg(1))
 
-; Want a space after '(', an opening parenthesis?
-compile if not defined(WANT_SPACE_AFTER_PAREN)
-   WANT_SPACE_AFTER_PAREN = 1                            -- new
-compile endif
-compile if not defined(C_HEADER_LENGTH)
-   C_HEADER_LENGTH = 77
-compile endif
-compile if not defined(C_HEADER_STYLE)
-   C_HEADER_STYLE = 1  -- (1 | 2), 1 = not indented
-compile endif
+; Used if END_commented = 1. Append either "// ..." or "/* ... */".
+defc SetCCommentStyle
+   universal c_comment_style
+   ValidArgs = 'CPP C'
+   arg1 = strip( upcase( arg(1)))
+   if not wordpos( arg1, ValidArgs) then
+      arg1 = 'CPP'
+   endif
+   c_comment_style = arg1
+   call UseSetting( 'CCommentStyle', arg(1))
+
+; ---------------------------------------------------------------------------
+; const
+; ; Now used only to distinguish between C and C++:
+; compile if not defined(CPP_EXTENSIONS)  -- Keep in sync with TAGS.E
+;    CPP_EXTENSIONS = 'CPP HPP CXX HXX SQX JAV JAVA'
+; compile endif
 
 ;  Keyset selection is now done once at file load time, not every time
 ;  the file is selected.  And because the DEFLOAD procedures don't have to be
@@ -256,136 +250,116 @@ compile endif
 ; ---------------------------------------------------------------------------
 defkeys c_keys
 
-def '{'
-   keyin '{}'
-   left
-
-def '('
-   keyin '()'
-   left
-
-def '['
-   keyin '[]'
-   left
-
-def '}'
-   -- check if line is blank, before typing }
-   LineIsBlank = (verify( textline(.line), ' '\t) = 0)
-   if LineIsBlank then
-      l = 0
-      PrevIndent = 0
-      do l = 1 to 100 -- upper limit
-         getline line0, .line - l             -- line0 = line before }
-         p0 = max( 1, verify( line0, ' '\t))  -- p0     = pos of first non-blank in line 0
-         if length(line0) > p0 - 1 then  -- if not a blank line
-            PrevIndent = p0 - 1
-            -- check if last non-empty line is a {
-            if rightstr( strip( line0), 1) = '{' then
-               NewIndent = PrevIndent
-            else
-               NewIndent = PrevIndent - GetCIndent()
-            endif
-            leave
-         endif
-      enddo
-      .col = max( 1, NewIndent + 1)  -- unindent
-   endif
-   -- type } and highlight matching {
-   'balance }'
-
 /* Taken out, interferes with some people's c_enter. */
-;def c_enter=   /* I like Ctrl-Enter to finish the comment field also. */
+; I like Ctrl-Enter to finish the comment field also.
+;def c_enter
 ;   getline line
-;   if pos('/*',line) then
-;      if not pos('*/',line) then
-;         end_line;keyin' */'
+;   if pos( '/*', line) then
+;      if not pos( '*/', line) then
+;         end_line
+;         keyin ' */'
 ;      endif
 ;   endif
-;   down;begin_line
+;   down
+;   begin_line
 
-def c_x=       /* Force expansion if we don't have it turned on automatic */
-   if not c_first_expansion() then
+; Force expansion if we don't have it turned on automatic
+def c_x
+   if c_first_expansion() then
       call c_second_expansion()
    endif
 
 ; ---------------------------------------------------------------------------
-define
-compile if WANT_END_COMMENTED = '//'
-   END_CATCH  = ' // endcatch'
-   END_DO     = ' // enddo'
-   END_FOR    = ' // endfor'
-   END_IF     = ' // endif'
-   END_SWITCH = ' // endswitch'
-   END_TRY    = ' // endtry'
-   END_WHILE  = ' // endwhile'
-compile elseif WANT_END_COMMENTED
-   END_CATCH  = ' /* endcatch */'
-   END_DO     = ' /* enddo */'
-   END_FOR    = ' /* endfor */'
-   END_IF     = ' /* endif */'
-   END_SWITCH = ' /* endswitch */'
-   END_TRY    = ' /* endtry */'
-   END_WHILE  = ' /* endwhile */'
-compile else
-   END_CATCH  = ''
-   END_DO     = ''
-   END_FOR    = ''
-   END_IF     = ''
-   END_SWITCH = ''
-   END_TRY    = ''
-   END_WHILE  = ''
-compile endif
-
 defproc GetCIndent
    universal indent
-compile if defined(C_SYNTAX_INDENT)
-   ind = C_SYNTAX_INDENT  -- this const has priority, it is normally undefined
-compile else
    ind = indent  -- will be changed at defselect for every mode, if defined
-compile endif
-   if ind = '' | ind = 0 then
-compile if defined(SYNTAX_INDENT)
-      ind = SYNTAX_INDENT
-compile endif
-   endif
    if ind = '' | ind = 0 then
       ind = 3
    endif
    return ind
 
 ; ---------------------------------------------------------------------------
-; Want a space after opening parenthesis '(' of a function?
-; Inserts a space or nothing
-defproc GetPSpc
-   ret = ''
-compile if WANT_SPACE_AFTER_PAREN
-   ret = ' '
-compile endif
+; Want a space after starting parenthesis '(' of a function?
+; Returns a space or nothing
+defproc GetSSpc
+   universal function_spacing
+   if pos( 'S', function_spacing) then
+      ret = ' '
+   else
+      ret = ''
+   endif
+   return ret
+
+; Want a space between parameters, after a comma of a function?
+; Returns a space or nothing
+defproc GetCSpc
+   universal function_spacing
+   if pos( 'C', function_spacing) then
+      ret = ' '
+   else
+      ret = ''
+   endif
+   return ret
+
+; Want a space before ending parenthesis ')' of a function?
+; Returns a space or nothing
+defproc GetESpc
+   universal function_spacing
+   if pos( 'E', function_spacing) then
+      ret = ' '
+   else
+      ret = ''
+   endif
    return ret
 
 ; ---------------------------------------------------------------------------
 defproc ExpandJava
-   java = 0
-compile if JAVA_SYNTAX_ASSIST
-   java = (GetMode() = 'JAVA')
-compile endif -- JAVA_SYNTAX_ASSIST
-   return java
+   fjava = (GetMode() = 'JAVA')
+   return fjava
 
 ; ---------------------------------------------------------------------------
-defproc ExpandCpp
-   cpp = 0
-compile if CPP_SYNTAX_ASSIST
-   cpp = (GetMode() = 'C') & (wordpos( filetype(), CPP_EXTENSIONS))
-compile endif -- CPP_SYNTAX_ASSIST
-   return cpp
-
+; defproc ExpandCpp
+;    fcpp = (GetMode() = 'C') & (wordpos( filetype(), CPP_EXTENSIONS))
+;    return fcpp
 
 ; ---------------------------------------------------------------------------
 defc CFirstExpansion
-   rc = (c_first_expansion() = 0)
+   rc = c_first_expansion()  -- (rc = 0) = processed
 
 defproc c_first_expansion
-   retc = 1  -- 1 = processed
+   universal c_brace_style
+   universal END_commented
+   universal c_comment_style
+
+   retc = 0  -- 0 = processed, otherwise 1 is returned
+   if END_commented = 1 then
+      if c_comment_style = 'CPP' then
+         END_CATCH  = ' // endcatch'
+         END_DO     = ' // enddo'
+         END_FOR    = ' // endfor'
+         END_IF     = ' // endif'
+         END_SWITCH = ' // endswitch'
+         END_TRY    = ' // endtry'
+         END_WHILE  = ' // endwhile'
+      else
+         END_CATCH  = ' /* endcatch */'
+         END_DO     = ' /* enddo */'
+         END_FOR    = ' /* endfor */'
+         END_IF     = ' /* endif */'
+         END_SWITCH = ' /* endswitch */'
+         END_TRY    = ' /* endtry */'
+         END_WHILE  = ' /* endwhile */'
+      endif
+   else
+      END_CATCH  = ''
+      END_DO     = ''
+      END_FOR    = ''
+      END_IF     = ''
+      END_SWITCH = ''
+      END_TRY    = ''
+      END_WHILE  = ''
+   endif
+
    if .line then
       getline line
       line = strip( line, 'T')
@@ -396,28 +370,33 @@ defproc c_first_expansion
       wrd = strip(wrd)
       ws  = substr( line, 1, max( verify( line, ' '\9) - 1, 0))  -- ws  = indent of current line
       ws1 = ws''substr( '', 1, GetCIndent())                     -- ws1 = indent of current line plus syntax indent
+      wsh = ws''substr( '', 1, GetCIndent()%2)                   -- wsh = indent of current line plus half syntax indent
       p   = pos( wrd, upcase( line))                             -- p   = startpos of wrd in line
 
       -- Skip expansion when cursor is not at line end
       line_l = substr( line, 1, .col - 1) -- split line into two parts at cursor
       lw = strip( line_l, 'T')
       if w <> lw then
-         retc = 0
+         retc = 1
+         return retc
 
       elseif wrd = 'FOR' then
-compile if WANT_BRACE_BELOW_STATEMENT
-         replaceline w' (; ; )'
- compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws1'{', .line + 1
-         insertline ws1'}'END_FOR, .line + 2
- compile else
-         insertline ws'{', .line + 1
-         insertline ws'}'END_FOR, .line + 2
- compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
-compile else
-         replaceline w' (; ; ) {'
-         insertline ws'}'END_FOR, .line + 1
-compile endif -- WANT_BRACE_BELOW_STATEMENT
+         if c_brace_style = 'INDENT' then
+            replaceline w' (; ; )'
+            insertline ws1'{', .line + 1
+            insertline ws1'}'END_FOR, .line + 2
+         elseif c_brace_style = 'HALFINDENT' then
+            replaceline w' (; ; )'
+            insertline wsh'{', .line + 1
+            insertline wsh'}'END_FOR, .line + 2
+         elseif c_brace_style = 'BELOW' then
+            replaceline w' (; ; )'
+            insertline ws'{', .line + 1
+            insertline ws'}'END_FOR, .line + 2
+         else
+            replaceline w' (; ; ) {'
+            insertline ws'}'END_FOR, .line + 1
+         endif
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
@@ -425,28 +404,32 @@ compile endif -- WANT_BRACE_BELOW_STATEMENT
          .col = .col + 2
 
       elseif wrd = 'IF' then
-compile if WANT_BRACE_BELOW_STATEMENT
-         replaceline w' ()'
- compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws1'{', .line + 1
-         insertline ws1'}', .line + 2
- compile else
-         insertline ws'{', .line + 1
-         insertline ws'}', .line + 2
- compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws'else', .line + 3
- compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws1'{', .line + 4
-         insertline ws1'}'END_IF, .line + 5
- compile else
-         insertline ws'{', .line + 4
-         insertline ws'}'END_IF, .line + 5
- compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
-compile else
-         replaceline w' () {'
-         insertline ws'} else {', .line + 1
-         insertline ws'}'END_IF, .line + 2
-compile endif -- WANT_BRACE_BELOW_STATEMENT
+         if c_brace_style = 'INDENT' then
+            replaceline w' ()'
+            insertline ws1'{', .line + 1
+            insertline ws1'}', .line + 2
+            insertline ws'else', .line + 3
+            insertline ws1'{', .line + 4
+            insertline ws1'}'END_IF, .line + 5
+         elseif c_brace_style = 'HALFINDENT' then
+            replaceline w' ()'
+            insertline wsh'{', .line + 1
+            insertline wsh'}', .line + 2
+            insertline ws'else', .line + 3
+            insertline wsh'{', .line + 4
+            insertline wsh'}'END_IF, .line + 5
+         elseif c_brace_style = 'BELOW' then
+            replaceline w' ()'
+            insertline ws'{', .line + 1
+            insertline ws'}', .line + 2
+            insertline ws'else', .line + 3
+            insertline ws'{', .line + 4
+            insertline ws'}'END_IF, .line + 5
+         else
+            replaceline w' () {'
+            insertline ws'} else {', .line + 1
+            insertline ws'}'END_IF, .line + 2
+         endif
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
@@ -454,19 +437,22 @@ compile endif -- WANT_BRACE_BELOW_STATEMENT
          .col = .col + 2
 
       elseif wrd = 'WHILE' then
-compile if WANT_BRACE_BELOW_STATEMENT
-         replaceline w' ()'
- compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws1'{', .line + 1
-         insertline ws1'}'END_WHILE, .line + 2
- compile else
-         insertline ws'{', .line + 1
-         insertline ws'}'END_WHILE, .line + 2
- compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
-compile else
-         replaceline w' () {'
-         insertline ws'}'END_WHILE, .line + 1
-compile endif -- WANT_BRACE_BELOW_STATEMENT
+         if c_brace_style = 'INDENT' then
+            replaceline w' ()'
+            insertline ws1'{', .line + 1
+            insertline ws1'}'END_WHILE, .line + 2
+         elseif c_brace_style = 'HALFINDENT' then
+            replaceline w' ()'
+            insertline wsh'{', .line + 1
+            insertline wsh'}'END_WHILE, .line + 2
+         elseif c_brace_style = 'BELOW' then
+            replaceline w' ()'
+            insertline ws'{', .line + 1
+            insertline ws'}'END_WHILE, .line + 2
+         else
+            replaceline w' () {'
+            insertline ws'}'END_WHILE, .line + 1
+         endif
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
@@ -474,38 +460,44 @@ compile endif -- WANT_BRACE_BELOW_STATEMENT
          .col = .col + 2
 
       elseif wrd = 'DO' then
-compile if WANT_BRACE_BELOW_STATEMENT
- compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws1'{', .line + 1
-         insertline ws1'} while ();'END_DO, .line + 2
- compile else
-         insertline ws'{', .line + 1
-         insertline ws'} while ();'END_DO, .line + 2
- compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
-         down
-compile else
-         replaceline w' {'
-         insertline ws'} while ();'END_DO, .line + 1
-compile endif -- WANT_BRACE_BELOW_STATEMENT
+         if c_brace_style = 'INDENT' then
+            insertline ws1'{', .line + 1
+            insertline ws1'} while ();'END_DO, .line + 2
+            down
+         elseif c_brace_style = 'HALFINDENT' then
+            insertline wsh'{', .line + 1
+            insertline wsh'} while ();'END_DO, .line + 2
+            down
+         elseif c_brace_style = 'BELOW' then
+            insertline ws'{', .line + 1
+            insertline ws'} while ();'END_DO, .line + 2
+            down
+         else
+            replaceline w' {'
+            insertline ws'} while ();'END_DO, .line + 1
+         endif
          --call einsert_line()
          --replaceline ws1  -- better append real spaces, instead of just setting .col
          --.col = p + GetCindent()    -- indent for new line, don't indent it twice
          insertline ws1, .line + 1; down; endline
 
       elseif wrd = 'SWITCH' then
-compile if WANT_BRACE_BELOW_STATEMENT
-         replaceline w' ()'
- compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws1'{', .line + 1
-         insertline ws1'}'END_SWITCH, .line + 2
- compile else
-         insertline ws'{', .line + 1
-         insertline ws'}'END_SWITCH, .line + 2
- compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
-compile else
-         replaceline w' () {'
-         insertline ws'}'END_SWITCH, .line + 1
-compile endif -- WANT_BRACE_BELOW_STATEMENT
+         if c_brace_style = 'INDENT' then
+            replaceline w' ()'
+            insertline ws1'{', .line + 1
+            insertline ws1'}'END_SWITCH, .line + 2
+         elseif c_brace_style = 'HALFINDENT' then
+            replaceline w' ()'
+            insertline wsh'{', .line + 1
+            insertline wsh'}'END_SWITCH, .line + 2
+         elseif c_brace_style = 'BELOW' then
+            replaceline w' ()'
+            insertline ws'{', .line + 1
+            insertline ws'}'END_SWITCH, .line + 2
+         else
+            replaceline w' () {'
+            insertline ws'}'END_SWITCH, .line + 1
+         endif
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
@@ -515,78 +507,93 @@ compile endif -- WANT_BRACE_BELOW_STATEMENT
       elseif wrd = 'MAIN' | (subword( wrd, 1, 1) = 'INT' & subword( wrd, 2, 1) = 'MAIN') then
          call enter_main_heading()
 
-compile if CPP_SYNTAX_ASSIST
-      elseif wrd = 'TRY' & ExpandCpp() then
- compile if WANT_BRACE_BELOW_STATEMENT
-  compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws1'{', .line + 1
-         insertline ws1'}'END_TRY, .line + 2
-  compile else
-         insertline ws'{', .line + 1
-         insertline ws'}'END_TRY, .line + 2
-  compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws'catch ()', .line + 3
-  compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws1'{', .line + 4
-         insertline ws1'}'END_CATCH, .line + 5
-  compile else
-         insertline ws'{', .line + 4
-         insertline ws'}'END_CATCH, .line + 5
-  compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
-         down
- compile else
-         replaceline w' {'
-         insertline ws'}'END_TRY, .line + 1
-         insertline ws'catch () {', .line + 2
-         insertline ws'}'END_CATCH, .line + 3
- compile endif -- WANT_BRACE_BELOW_STATEMENT
+;compile if CPP_SYNTAX_ASSIST
+      elseif wrd = 'TRY' /*& ExpandCpp()*/ then
+         if c_brace_style = 'INDENT' then
+            insertline ws1'{', .line + 1
+            insertline ws1'}'END_TRY, .line + 2
+            insertline ws'catch ()', .line + 3
+            insertline ws1'{', .line + 4
+            insertline ws1'}'END_CATCH, .line + 5
+            down
+         elseif c_brace_style = 'HALFINDENT' then
+            insertline wsh'{', .line + 1
+            insertline wsh'}'END_TRY, .line + 2
+            insertline ws'catch ()', .line + 3
+            insertline wsh'{', .line + 4
+            insertline wsh'}'END_CATCH, .line + 5
+            down
+         elseif c_brace_style = 'BELOW' then
+            insertline ws'{', .line + 1
+            insertline ws'}'END_TRY, .line + 2
+            insertline ws'catch ()', .line + 3
+            insertline ws'{', .line + 4
+            insertline ws'}'END_CATCH, .line + 5
+            down
+         else
+            replaceline w' {'
+            insertline ws'}'END_TRY, .line + 1
+            insertline ws'catch () {', .line + 2
+            insertline ws'}'END_CATCH, .line + 3
+         endif
          insertline ws1, .line + 1; down; endline
 
-      elseif ExpandCpp() & wrd = 'CATCH' then
- compile if WANT_BRACE_BELOW_STATEMENT
-         replaceline w' ('GetPSpc()')'
-  compile if WANT_BRACE_BELOW_STATEMENT_INDENTED
-         insertline ws1'{', .line + 1
-         insertline ws1'}'END_CATCH, .line + 2
-  compile else
-         insertline ws'{', .line + 1
-         insertline ws'}'END_CATCH, .line + 2
-  compile endif -- WANT_BRACE_BELOW_STATEMENT_INDENTED
- compile else
-         replaceline w' () {'
-         insertline ws'}'END_CATCH, .line + 1
- compile endif -- WANT_BRACE_BELOW_STATEMENT
+      elseif wrd = 'CATCH' /*& ExpandCpp()*/ then
+         if c_brace_style = 'INDENT' then
+            replaceline w' ('GetSSpc()''GetESpc()')'
+            insertline ws1'{', .line + 1
+            insertline ws1'}'END_CATCH, .line + 2
+         elseif c_brace_style = 'HALFINDENT' then
+            replaceline w' ('GetSSpc()''GetESpc()')'
+            insertline wsh'{', .line + 1
+            insertline wsh'}'END_CATCH, .line + 2
+         elseif c_brace_style = 'BELOW' then
+            replaceline w' ('GetSSpc()''GetESpc()')'
+            insertline ws'{', .line + 1
+            insertline ws'}'END_CATCH, .line + 2
+         else
+            replaceline w' () {'
+            insertline ws'}'END_CATCH, .line + 1
+         endif
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
          endif
-         .col = .col + 3
-compile endif -- CPP_SYNTAX_ASSIST
+         .col = .col + 2 + length( GetSSpc())
+;compile endif -- CPP_SYNTAX_ASSIST
 
-compile if JAVA_SYNTAX_ASSIST
+;compile if JAVA_SYNTAX_ASSIST
       elseif wrd = 'PRINTLN(' & ExpandJava() then
-         replaceline ws'System.out.println( );'
+         replaceline ws'System.out.println('GetSSpc()''GetESpc()');'
          if not insert_state() then
             insert_toggle
             call fixup_cursor()
          endif
-         tab_word
-compile endif -- JAVA_SYNTAX_ASSIST
+         end_line
+         .col = .col - 2 - length( GetESpc())
+;compile endif -- JAVA_SYNTAX_ASSIST
 
       else
-         retc = 0
+         retc = 1
       endif
    else
-      retc = 0
+      retc = 1
    endif
    return retc
 
 ; ---------------------------------------------------------------------------
 defc CSecondExpansion
-   rc = (c_second_expansion() = 0)
+   rc = c_second_expansion()  -- (rc = 0) = processed
 
 defproc c_second_expansion
-   retc = 1  -- 1 = processed
+   universal c_CASE_style
+   universal c_DEFAULT_style
+   universal c_brace_style
+   universal header_length
+   universal header_style
+   universal comment_auto_terminate
+
+   retc = 0  -- 0 = processed, otherwise 1 is returned
    if .line then
       getline line                                               -- line = current line
 
@@ -657,7 +664,7 @@ defproc c_second_expansion
       do forever
          p1 = pos( '{', rest)
          p2 = pos( '}', rest)
-         if p1 > 0 & (p1 < p2 | p2 = 0) then
+         if p1 > 0 /*& (p1 < p2 | p2 = 0)*/ then
             cobrace = cobrace + 1
             n = n + 1
             rest = substr( rest, p1 + 1)
@@ -712,13 +719,13 @@ defproc c_second_expansion
 
       elseif firstword = 'SWITCH' then
          if not pobrace and next_is_obrace then down; endif
-compile if I_like_my_cases_under_my_switch
-         insertline ws'case :', .line + 1; down; endline; left
-         insertline ws1'break;', .line + 1
-compile else
-         insertline ws1'case :', .line + 1; down; endline; left
-         insertline ws2'break;', .line + 1
-compile endif
+         if c_CASE_style = 'BELOW' then
+            insertline ws'case :', .line + 1; down; endline; left
+            insertline ws1'break;', .line + 1
+         else
+            insertline ws1'case :', .line + 1; down; endline; left
+            insertline ws2'break;', .line + 1
+         endif
 
          /* look at the next line to see if this is the first time */
          /* the user typed enter on this switch statement */
@@ -728,26 +735,26 @@ compile endif
             line2 = strip( line2, 't', \9)
             line2 = strip( line2, 't')
             if substr( line2, length(line2), 1) = '}' then
-compile if I_like_my_cases_under_my_switch
-               insertline ws'default:', .line + 2
- compile if ADD_BREAK_AFTER_DEFAULT
-               insertline ws1'break;', .line + 3
- compile elseif I_like_a_semicolon_supplied_after_default then
-               insertline ws';', .line + 3
- compile endif
-compile else
-               insertline ws1'default:', .line + 2
- compile if ADD_BREAK_AFTER_DEFAULT
-               insertline ws2'break;', .line + 3
- compile elseif I_like_a_semicolon_supplied_after_default then
-               insertline ws1';', .line + 3
- compile endif
-compile endif
+               if c_CASE_style = 'BELOW' then
+                  insertline ws'default:', .line + 2
+                  if c_DEFAULT_style = 'ADDBREAK' then
+                     insertline ws1'break;', .line + 3
+                  elseif c_DEFAULT_style = 'ADDSEMICOLON' then
+                     insertline ws';', .line + 3
+                  endif
+               else
+                  insertline ws1'default:', .line + 2
+                  if c_DEFAULT_style = 'ADDBREAK' then
+                     insertline ws2'break;', .line + 3
+                  elseif c_DEFAULT_style = 'ADDSEMICOLON' then
+                     insertline ws1';', .line + 3
+                  endif
+               endif
             endif
          endif
 
-      elseif ExpandCpp() & firstword = 'CATCH' then
-         cp = pos( '(  )', line, .col)
+      elseif firstword = 'CATCH' /*& ExpandCpp()*/ then
+         cp = pos( '('GetSSpc()''GetESpc()')', line, .col)
          if cp then
             .col = cp + 2
             if not insert_state() then insert_toggle
@@ -760,12 +767,12 @@ compile endif
 
       elseif n > 0 then
          -- todo: don't split in line mode
-         -- todo: support WANT_BRACE_BELOW_STATEMENT_INDENTED = 1 (not for functions)
+         -- todo: support c_brace_style = 'INDENT' (not for functions)
          -- split line at cursor: replace current line with left part
          stline_l =  strip( strip( strip( line_l, 't'), 't', \t), 't')  -- strip trailing spaces and tabs
          replaceline stline_l, .line
          if rightstr( stline_l, 1) = '{' and not this_is_obrace and
-            (WANT_BRACE_BELOW_STATEMENT or ws = 0) then  -- ws = indent of current line; braces for
+            (c_brace_style = 'INDENT' or c_brace_style = 'BELOW' or ws = 0) then  -- ws = indent of current line; braces for
                                                          -- functions should be put on a separate line
             LeftPart = leftstr( stline_l, length(stline_l) - 1)
             if strip( translate( LeftPart, '', \9)) = '' then  -- if no string before {
@@ -793,7 +800,7 @@ compile endif
          endif
 
       elseif (wordpos( firstword, 'DO IF ELSE WHILE') |
-              (ExpandCpp() & wordpos( firstword, 'TRY'))) then
+              (wordpos( firstword, 'TRY') /*& ExpandCpp()*/)) then
          if not pobrace and next_is_obrace then down; endif
          insertline ws1, .line + 1; down; endline
 
@@ -804,20 +811,14 @@ compile endif
          down
          insertline ws1, .line + 1; down; endline
 
+      elseif (firstword = '/*' | firstword = '/**') & words( tline) = 1 then
+         insertline ind' * ', .line + 1
+         insertline ind' */', .line + 2
+         '+1'
+         endline
 
-      elseif firstword = '/*' then
+      elseif firstword = '/*H' then
          if words( tline) = 1 then
-            insertline ind' * ', .line + 1
-            insertline ind' */', .line + 2
-            '+1'
-            endline
-            retc = 1
-         endif
-
-      elseif firstword = '/**' then
-         if words( tline) = 1 then
-            headerlength = C_HEADER_LENGTH
-            headerstyle  = C_HEADER_STYLE
             -- Style 1:
             -- /***************
             -- * |
@@ -826,22 +827,21 @@ compile endif
             -- /***************
             --  * |
             --  **************/
-            replaceline '/'copies( '*', headerlength - 1)
-            if headerstyle = 1 then
+            replaceline '/'copies( '*', header_length - 1)
+            if header_style = 1 then
                insertline '* ', .line + 1
-               insertline copies( '*', headerlength - 1)'/', .line + 2
+               insertline copies( '*', header_length - 1)'/', .line + 2
             else
                insertline ' * ', .line + 1
-               insertline ' 'copies( '*', headerlength - 2)'/', .line + 2
+               insertline ' 'copies( '*', header_length - 2)'/', .line + 2
             endif
             '+1'
             endline
-            retc = 1
          endif
 
       elseif firstword = '*' then
          -- Search for opening comment /*
-         Found = 0
+         fFound = 0
          startl = .line - 1
          do l = startl to 1 by -1
             if l < startl - 100 then  -- search only 100 next lines
@@ -853,13 +853,13 @@ compile endif
             if next = '*' then
                iterate
             elseif substr( next, 1, 2) = '/*' then
-               Found = 1
+               fFound = 1
                leave
             else
                leave
             endif
          enddo
-         if Found = 1 then
+         if fFound = 1 then
             if firstp = 1 then
                insertline '* ', .line + 1
             else
@@ -867,54 +867,54 @@ compile endif
             endif
             '+1'
             endline
+         else
             retc = 1
          endif
 
-compile if TERMINATE_COMMENTS
-      elseif pos( '/*', line) then
+      elseif pos( '/*', line) & comment_auto_terminate then
          if not pos( '*/', line) then
             end_line; keyin ' */'
          endif
          call einsert_line()  -- respect user's style
-compile endif
 
       else
-         retc = 0
+         retc = 1
       endif
    else
-      retc = 0
+      retc = 1
    endif
    return retc
 
 ; ---------------------------------------------------------------------------
 defproc enter_main_heading
+   universal c_MAIN_style
    getline w
    w = strip( w, 't')
-compile if not USE_ANSI_C_NOTATION     -- Use standard notation
-   ind = substr( '', 1, GetCIndent())  /* indent spaces */
-   replaceline w'('GetPSpc()'argc, argv, envp)'
-   insertline ind'int argc;', .line + 1         /* double indent */
-   insertline ind'char *argv[];', .line + 2
-   insertline ind'char *envp[];', .line + 3
-   insertline '{', .line + 4
-   insertline '', .line + 5
-   mainline = .line
-   if .cursory < 7 then
-      .cursory = 7
+   if c_MAIN_style = 'STANDARD' then  -- Use standard notation
+      ind = substr( '', 1, GetCIndent())    -- indent spaces
+      replaceline w'('GetSSpc()'argc,'GetCSpc()'argv,'GetCSpc()'envp'GetESpc()')'
+      insertline ind'int argc;', .line + 1  -- double indent
+      insertline ind'char *argv[];', .line + 2
+      insertline ind'char *envp[];', .line + 3
+      insertline '{', .line + 4
+      insertline '', .line + 5
+      mainline = .line
+      if .cursory < 7 then
+         .cursory = 7
+      endif
+      mainline + 5
+      .col = GetCIndent() + 1
+      insertline '}', .line + 1
+   else                               -- Use shorter ANSII notation
+      replaceline w'('GetSSpc()'int argc,'GetCSpc()'char *argv[],'GetCSpc()'char *envp[]'GetESpc()')'
+      insertline '{', .line + 1
+      insertline '', .line + 2
+      .col = GetCIndent() + 1
+      insertline '}', .line + 3
+      mainline = .line
+      if .cursory < 4 then
+         .cursory = 4
+      endif
+      mainline + 2
    endif
-   mainline + 5
-   .col = GetCIndent() + 1
-   insertline '}', .line + 1
-compile else                           -- Use shorter ANSII notation
-   replaceline w'('GetPSpc()'int argc, char *argv[], char *envp[])'
-   insertline '{', .line + 1
-   insertline '', .line + 2
-   .col = GetCIndent() + 1
-   insertline '}', .line + 3
-   mainline = .line
-   if .cursory < 4 then
-      .cursory = 4
-   endif
-   mainline + 2
-compile endif
 

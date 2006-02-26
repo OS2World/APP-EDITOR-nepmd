@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.14 2006-01-08 23:05:12 aschn Exp $
+* $Id: modeexec.e,v 1.15 2006-02-26 17:31:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -39,42 +39,9 @@
 ; settings re-applied after that.
 
 ; ---------------------------------------------------------------------------
-; Remaining configuration constants:
-/*
-;  Syntax expansion:                                 replaced by universals:
-   TERMINATE_COMMENTS = 0                            newline_terminate_comment
-   WANT_END_COMMENTED = 1                            END_add_comment
-
-   REXX_SYNTAX_CASE = 'lower' ('Mixed' | 'UPPER')    rexx_case
-   REXX_SYNTAX_FORCE_CASE = 1                        rexx_force_case
-   REXX_SYNTAX_NO_ELSE = 1                           rexx_IF_add_ELSE
-
-   I_like_my_cases_under_my_switch = 1               c_CASE_under_SWITCH
-   I_like_a_semicolon_supplied_after_default = 0     c_DEFAULT_add_semicolon
-   ADD_BREAK_AFTER_DEFAULT = 1                       c_DEFAULT_add_BREAK
-   WANT_BRACE_BELOW_STATEMENT = 0                    c_brace_below           or  c_brace_style 0 (appended),
-   WANT_BRACE_BELOW_STATEMENT_INDENTED = 0           c_brace_below_indented                    1 (below), 2 (indented)
-   USE_ANSI_C_NOTATION = 1                           c_MAIN_use_ansi
-   JAVA_SYNTAX_ASSIST = 0
-   CPP_EXTENSIONS = 'CPP HPP CXX HXX SQX JAV JAVA'
-
-   WANT_SPACE_AFTER_PAREN = 1                        opening_paren_add_space
-   C_HEADER_LENGTH = 77                              c_header_length (or use reflowmargin)
-   C_HEADER_STYLE = 1  -- (1 | 2), 1 = not indented  c_header_body_indented
-   REXX_DO_STYLE = 'NO_INDENT_AFTER_IF'  -- 'APPEND' | 'INDENT_AFTER_IF' | 'NO_INDENT_AFTER_IF'
-                                             0          2                   1
-                                                     rexx_DO_style
-
-   Todo: as alternative use simple expansion of
-         { (indent current/next line) and
-         } (unindent current/next line).
-
-
-; Others:
-   Are there any?
-*/
-; ---------------------------------------------------------------------------
-
+; You may want to reset all prior used ModeExecute defs with
+; 'ModeExecute CLEAR'.
+;
 ; Syntax: ModeExecute <mode> <set_cmd> <args>
 ;
 ;         <set_cmd>         <args>
@@ -82,39 +49,96 @@
 ;         SetStreamMode     0 | 1
 ;         SetInsertMode     0 | 1
 ;         SetHighlight      0 | 1
-;         SetTabs           <number> | <list of numbers>
+;         SetTabs           <number> or <list of numbers>
 ;         SetTabkey         0 | 1
 ;         SetMatchTab       0 | 1
 ;         SetMargins        <left> <right> <par>
-;         SetExpand         0 | 1
-;                           (means syntax expansion)
-;         SetIndent         <number>
-;                           (default = const, if defined, e.g. REXX_INDENT
-;                           else first number of tabs)
-;         SetTextColor      number | const
-;                           (see COLORS.E or defproc GetColorFromName)
-;         SetMarkColor      number | const
-;                           (see COLORS.E or defproc GetColorFromName)
+;         SetTextColor      <number> or <color_name> (see COLORS.E)
+;         SetMarkColor      <number> or <color_name> (see COLORS.E)
 ;                           (Hint: place cursor on COLORS.E and press Alt+1 to
 ;                                  load the file)
 ;         SetTextFont       <font_size>.<font_name>[.<font_sel>]
-;                           (<font_size> and <font_name> can be exchanged.
-;                           Any EPM font specification syntax will be accepted
-;                           as well. The args are case-sensitive.)
-;         SetToolbar        <toolbar_name> | STANDARD
-;                           (case-sensitive, must be defined in EPM.INI)
+;                              <font_size> and <font_name> can be exchanged.
+;                              Any EPM font specification syntax is
+;                              accepted as well. The args are case-sensitive.
+;         SetToolbar        <toolbar_name> (must be defined in NEPMD.INI)
 ;         SetDynaspell      0 | 1
-;                           (means spell-checking while typing)
-;         SetEditOptions    see description of Edit command
-;         SetSaveOptions    see description of Save command
-;         SetSearchOptions  see description of Locate and Replace commands
+;         SetEditOptions    see description of EDIT command
+;         SetSaveOptions    see description of SAVE command
+;         SetSearchOptions  see description of LOCATE and REPLACE commands
 ;                           (plus undocumented TB options)
 ;         SetKeys           <keyset_name>
 ;
-; Additional option for <args> : DEFAULT
-; That means, that the setting is reset to EPM's current standard values.
+;      Settings for syntax expansion:
+;         SetExpand         0 | 1
+;         SetIndent         <number> (default = first number of tabs)
+;         SetHeaderStyle    1 | 2
+;                              HeaderStyle 1 (default):
+;                              /********************
+;                              * |
+;                              ********************/
+;                              HeaderStyle 2:
+;                              /********************
+;                               * |
+;                               *******************/
+;         SetHeaderLength      <-- header_length --> (default = 77)
+;         SetEndCommented   0 | 1
+;         SetMatchChars     <space-separated list of pairs> (default = '')
+;                              list of possible pairs: '{ } [ ] ( ) < >'
+;         SetCommentAutoTerminate
+;                           0 | 1 (default = 0)
+;         SetFunctionSpacing
+;                           'N' | 'C' | 'SC' | 'SCE' (default = 'C')
+;                               'N' no spaces
+;                               'C' space after a comma in a parameter list
+;                               'S' space after start (opening parenthesis) of a parameter list
+;                               'E' space before end (closing parenthesis) of a parameter list
+;         SetClosingBraceAutoIndent
+;                           0 | 1 (default = 0)
+;         SetCodingStyle    <coding_style>
+;                              Coding styles can be defined with the
+;                              AddCodingStyle command, even in PROFILE.ERX
+;
+;      Settings for keyset C_KEYS:
+;         SetCBraceStyle    'BELOW' | 'APPEND' | 'INDENT' | 'HALFINDENT'
+;                              (default = 'BELOW')
+;         SetCCaseStyle     'INDENT' | 'BELOW' (style of "case" statement,
+;                              default = 'INDENT')
+;         SetCDefaultStyle  'INDENT' | 'BELOW' (style of "default" statement,
+;                              default = 'INDENT')
+;         SetCMainStyle     'STANDARD' | 'SHORT' (style of "main" statement,
+;                              default = 'SHORT')
+;         SetCCommentStyle  'CPP' | 'C' (use either // ... or /* ... */, if
+;                              EndCommented = 1, default = 'CPP')
+
+;      Settings for keyset REXX_KEYS:
+;         SetRexxDoStyle    'APPEND' | 'INDENT' | 'BELOW' (style of "do"
+;                              statement, default = 'BELOW')
+;         SetRexxIfStyle    'ADDELSE' | 'NOELSE' (style of "if" statement,
+;                              default = 'NOELSE')
+;         SetRexxCase       'LOWER' | 'MIXED' | 'UPPER' (default = 'LOWER')
+;         SetRexxForceCase  0 | 1 (default = 1)
+;                              1 means: change case of typed statements as
+;                              well, not only of the added statements
+;
+; Any <set_cmd> can also be executed in EPM's commandline. Then it will
+; affect only the current file.
+;
+;   SetTextColor 31     (31 = (15 = white) + (16 = blue background))
+
+; Specify DEFAULT as <args>, if you want to reset a setting to NEPMD's
+; default value.
+;
+;   SetTextColor default
+
+; If you want to reset all settings of the current file to the default
+; settings for a mode, then use the mode command:
+;
+;   Mode 0        (redetermine mode and apply mode-specific settings)
+;   Mode rexx     (change mode to REXX and apply all REXX-specific settings)
+
 /*
-; maybe planned sometime
+; maybe planned some time
 - SetBackupFiles
 - SetBackupPath
 - autosave?
@@ -129,36 +153,43 @@
 */
 
 ; ---------------------------------------------------------------------------
-; This should be executed by definit. Doing this here comes too late. This
-; would cause 'ModeExecute: "SetMargins 1 1599 1" is an invalid setting.'...
-defc InitFileSettings
-   universal SelectSettingsList
-   universal LoadSettingsList
-;define
-   SelectSettingsList = 'SetToolbar SetExpand SetMatchtab SetTabkey' ||
-                        ' SetEditOptions SetSaveOptions SetSearchOptions' ||
-                        ' SetStreamMode SetInsertMode' ||
-                        ' SetTextFont SetTextColor SetMarkColor SetIndent'
-   LoadSettingsList   = 'SetHighlight SetMargins SetTabs' ||
-                        ' SetKeys SetDynaSpell'
+; Every defined setting name must be added to either the 'loadsettingslist'
+; or the 'selectsettingslist' array var to make the setting take effect on
+; defload or defselect.
+; In order to make these list extendible easily by additional macro files,
+; array vars are used.
+; The lists must be built before 'InitModeCnf', defined in MODECNF.E is
+; executed at defmain. Therefore definit is a good choice for that.
+; At all places here settings have the prefix 'Set' stripped before being
+; added to lists. But when a setting is saved with a value, it's always
+; saved with the prefix to make the string executable directly.
+definit
+   call AddAVar( 'loadsettingslist',
+                        'Highlight Margins Tabs Keys DynaSpell')
+   call AddAVar( 'selectsettingslist',
+                        'Toolbar Expand Matchtab Tabkey' ||
+                        ' EditOptions SaveOptions SearchOptions' ||
+                        ' StreamMode InsertMode' ||
+                        ' TextFont TextColor MarkColor Indent' ||
+                        ' HeaderStyle HeaderLength EndCommented' ||
+                        ' MatchChars CommentAutoTerminate' ||
+                        ' FunctionSpacing ClosingBraceAutoIndent')
 
 ; ---------------------------------------------------------------------------
 defc ResetFileSettings
-   universal SelectSettingsList
-   universal LoadSettingsList
+   LoadSettingsList   = GetAVar( 'loadsettingslist')
+   SelectSettingsList = GetAVar( 'selectsettingslist')
    -- Set all <setting>.<fid> array vars to empty
    getfileid fid
    SettingsList = LoadSettingsList SelectSettingsList
    do w = 1 to words(SettingsList)
       wrd = word( SettingsList, w)
-      parse value lowcase(wrd) with 'set' rest  -- strip leading 'set'
-      call SetAVar( rest'.'fid, '')
+      call SetAVar( lowcase(wrd)'.'fid, '')
    enddo
-   call SetAVar('modesettingsapplied.'fid, 0)
+   call SetAVar( 'modesettingsapplied.'fid, 0)
    -- Process settings
    'ProcessLoadSettings'
    'ProcessSelectSettings'
-   return
 
 ; ---------------------------------------------------------------------------
 ; Processes all mode specific defload settings.
@@ -166,13 +197,14 @@ defc ResetFileSettings
 ; (defc Mode and ResetMode call ResetFileSettings when the mode has changed.)
 defc ProcessLoadSettings
    universal nepmd_hini
-   universal loadstate
-   universal SelectSettingsList
-   universal LoadSettingsList
+   universal loadstate  -- 1: defload is running
+                        -- 2: defload processed
+                        -- 0: afterload processed
 
    if not .visible then
       return
    endif
+   LoadSettingsList   = GetAVar( 'loadsettingslist')
 
    parse arg Mode calling_fid
    Mode = strip(Mode)
@@ -182,11 +214,19 @@ defc ProcessLoadSettings
       Mode = GetMode()  -- Doesn't work properly during file loading, because current file
                         -- has probably changed? Therefore Mode is submitted as arg.
    endif
-   if loadstate then
-      HiliteCheckFlag = GetHiliteCheckFlag(Mode)
+
+   KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
+   refresh_on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if refresh_on then
+      if loadstate then
+         HiliteCheckFlag = GetHiliteCheckFlag(Mode)
+      else
+         HiliteCheckFlag = ''
+      endif
    else
-      HiliteCheckFlag = ''
+      HiliteCheckFlag = 'N'
    endif
+
    KeyPath = '\NEPMD\User\KeywordHighlighting'
    default_on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
 
@@ -203,68 +243,59 @@ defc ProcessLoadSettings
    -- so slow, that file to be processed is not on top anymore.
    prefix = 'hook.'
    HookName = 'load_'lowcase(Mode)
-   imax = GetAVar(prefix''HookName'.0')
+   imax = GetAVar( prefix''HookName'.0')
    if imax = '' then
       imax = 0
    endif
    do i = 1 to imax
-      Cmd = GetAVar(prefix''HookName'.'i)
-      parse value Cmd with wrd SettingsValue
+      Cmd = GetAVar( prefix''HookName'.'i)
       Cmd  -- execute command
    enddo
 
-   if loadstate then
+   if loadstate then  -- during defload processing
       -- Activate keyword highlighting, if not already done by load_<mode> hook
-      next = GetAVar('highlight.'fid)  -- get file setting
+      next = GetAVar( 'highlight.'fid)  -- get file setting
       if next = '' | next = 'DEFAULT' then
-         -- Bug in NepmdActivateHighlight:
-         -- Execution suppresses defselect after defload, if EPM is already
-         -- open and a new file is added to the ring.
          call NepmdActivateHighlight( default_on, Mode, HiliteCheckFlag)
       endif
-   else
+
+   else               -- when changing a mode
       List = LoadSettingsList
-      do w = 1 to words(List)  -- Only LoadSettings need to be reset for default mode
+      do w = 1 to words( List)  -- Only LoadSettings need to be reset for default mode
          wrd = word( List, w)
-         parse value lowcase(wrd) with 'set' rest
-         next = GetAVar(rest'.'fid)  -- get file setting
+         next = GetAVar( lowcase(wrd)'.'fid)  -- get file setting
          if next = '' | next = 'DEFAULT' then
-            wrd 'DEFAULT'
+            'Set'wrd 'DEFAULT'  -- execute load setting with 'DEFAULT'
          endif
       enddo
-   endif
-
-   -- Maybe the load and load_once hook should here be executed as well?
-
-   -- Refresh the mode field on statusline
-   if not loadstate then
-      -- don't process this on defload, because it's already executed there
+      -- Refresh the mode field on statusline.
+      -- Don't process this on defload, because it's already executed there.
       'RefreshInfoLine MODE'
+      -- Maybe the load and load_once hook should here be executed as well?
+
    endif
-   return
 
 ; ---------------------------------------------------------------------------
 ; Executed by defc ProcessSelect, using the select hook
 ; and by defc ResetFileSettings.
 ; (defc Mode and ResetMode call ResetFileSettings when the mode has changed.)
 defc ProcessSelectSettings
-   universal SelectSettingsList
-   universal LoadSettingsList
    if not .visible then
       return
    endif
+   SelectSettingsList = GetAVar('selectsettingslist')
 
    -- Get file-specific setting names
    -- Check if a setting is set as array var (maybe as a file setting)
    getfileid fid
    UsedFileSettings = ''
    -- Check if mode settings already overtaken from the hook to current file's array var
-   ModeSettingsApplied = GetAVar('modesettingsapplied.'fid)
-   if ModeSettingsApplied then
+   fModeSettingsApplied = GetAVar('modesettingsapplied.'fid)
+   if fModeSettingsApplied then
       do w = 1 to words(SelectSettingsList)
          wrd = word( SelectSettingsList, w)
-         parse value lowcase(wrd) with 'set' rest  -- strip leading 'set'
-         SettingsValue = GetAVar( rest'.'fid)
+         wrd = lowcase( wrd)
+         SettingsValue = GetAVar(wrd'.'fid)
          if SettingsValue <> '' & SettingsValue <> 'DEFAULT' then
             UsedFileSettings = UsedFileSettings wrd
          endif
@@ -274,7 +305,7 @@ defc ProcessSelectSettings
 ;   call NepmdPmPrintf('UsedFileSettings = 'UsedFileSettings)
 
    -- Execute mode-specific settings
-   -- Standard definition for HookExecute, extended with a check, if
+   -- Using the standard definition for HookExecute, extended with a check, if
    -- config is set by the file instead of the mode.
    Mode = GetMode()
    prefix = 'hook.'
@@ -287,6 +318,9 @@ defc ProcessSelectSettings
    do i = 1 to imax
       Cmd = GetAVar(prefix''HookName'.'i)
       parse value Cmd with wrd SettingsValue
+      if leftstr( upcase(wrd), 3) = 'SET' then
+         wrd = substr( wrd, 4)  -- strip 'Set'
+      endif
       if not wordpos( upcase(wrd), upcase(UsedFileSettings)) then
 ;         call NepmdPmPrintf('MODE: 'Cmd' -- '.filename)
          Cmd  -- execute command
@@ -294,19 +328,15 @@ defc ProcessSelectSettings
       endif
    enddo
    UsedModeSettings = strip(UsedModeSettings)
-   if not ModeSettingsApplied then
+   if not fModeSettingsApplied then
       call SetAVar( 'modesettingsapplied.'fid, 1)
    endif
 
    -- Execute file-specific settings
    do w = 1 to words(UsedFileSettings)
       wrd = word( UsedFileSettings, w)
-      parse value lowcase(wrd) with 'set' rest  -- strip leading 'set'
-                                                -- To be changed, if commands will miss the 'Set' some time.
-                                                -- Currently there are some commands, that require the 'Set' and
-                                                -- the standard (without 'Set') versions.
-      SettingsValue = GetAVar( rest'.'fid)
-      Cmd = wrd SettingsValue
+      SettingsValue = GetAVar(lowcase( wrd)'.'fid)
+      Cmd = 'Set'wrd SettingsValue
 ;      call NepmdPmPrintf('FILE: 'Cmd' -- '.filename)
       Cmd  -- execute command
    enddo
@@ -320,14 +350,12 @@ defc ProcessSelectSettings
    do w = 1 to words(LastSettings)
       wrd = word( LastSettings, w)
       if wordpos( upcase(wrd), upcase(CurSettings)) = 0 then
-         Cmd = wrd 'DEFAULT'  -- execute setting with 'DEFAULT'
+         Cmd = 'Set'wrd 'DEFAULT'  -- execute select setting with 'DEFAULT'
 ;         call NepmdPmPrintf('RESET: 'Cmd' -- '.filename)
          Cmd  -- execute command
       endif
    enddo
    call SetAVar( 'lastusedsettings', CurSettings)
-
-   return
 
 ; ---------------------------------------------------------------------------
 ; Add cmd to the select hook. This hook will be executed by HookExecute, by
@@ -339,39 +367,69 @@ definit
 
 ; ---------------------------------------------------------------------------
 ; Determine on which stack the cmd should be put on or delete the stacks.
+; Syntax:
+;    ModeExecute <mode> <set_cmd> <value>   to define a <value> for
+;                                           <set_cmd>, that is used for files
+;                                           with mode <mode>
+;    ModeExecute DEFAULT <set_cmd> <value>  to define the default <value>
+;                                           for <set_cmd> (only possible for
+;                                           some syntax expansion settings)
+;    ModeExecute CLEAR                      to clear all existing settings,
+;                                           but default <values> are not
+;                                           effected
 ; /*To change settings of already loaded files, too, use ModeExecuteRefresh.*/
 defc ModeExecute, ModeExec
-   universal SelectSettingsList
-   universal LoadSettingsList
-   universal loadstate
+   universal loadstate  -- 1: defload is running
+                        -- 2: defload processed
+                        -- 0: afterload processed
+   LoadSettingsList   = GetAVar( 'loadsettingslist')
+   SelectSettingsList = GetAVar( 'selectsettingslist')
    parse value arg(1) with Mode Cmd Args
    Mode = strip(Mode)
    Cmd  = strip(Cmd)
    Args = strip(Args)
    Mode = upcase(Mode)
+
    if Mode = 'CLEAR' then
-      List = GetAVar('usedsettings_modes', Mode)
+      -- Clear existing load_<mode> and select_<mode> hooks
+      List = GetAVar('usedsettings_modes')
       do w = 1 to words(List)
          wrd = word( List, w)
          'HookDelAll load_'lowcase(wrd)
          'HookDelAll select_'lowcase(wrd)
       enddo
-      return
+      return 0
+   elseif Mode = 'DEFAULT' then
+      Cmd 'DEFINEDEFAULT' Args
+      return 0
    endif
-   if wordpos( upcase(Cmd), upcase(SelectSettingsList)) then
+
+   -- Execute the SetCodingStyle <set_cmd> immediately
+   if upcase( Cmd) = 'SETCODINGSTYLE' then
+      call ExecuteCodingStyle( Mode, Args)
+      return 0
+   endif
+
+   wrd = Cmd
+   if leftstr( upcase( wrd), 3) = 'SET' then
+      wrd = substr( wrd, 4)  -- strip 'Set'
+   endif
+
+   if wordpos( upcase(wrd), upcase(SelectSettingsList)) then
       -- These settings don't stick with the current file.
       -- Execute them during ProcessAfterload and at/or defselect.
       'HookChange select_'lowcase(Mode) Cmd Args
       -- Save a list of used defselect settings for every mode
-      call AddAVar('usedsettings_'lowcase(Mode), Cmd)
-   elseif wordpos( upcase(Cmd), upcase(LoadSettingsList)) then
+      call AddAVar('usedsettings_'lowcase(Mode), wrd)
+   elseif wordpos( upcase(wrd), upcase(LoadSettingsList)) then
       -- These settings stick with the current file and don't need additional
       -- handling at defselect.
       -- Execute them at defload only.
       'HookChange load_'lowcase(Mode) Cmd Args
    else
-      sayerror 'ModeExecute: "'Cmd Args'" is an invalid setting.'
-      return
+      sayerror 'ModeExecute: "'Cmd Args'" is an invalid setting. Add "'wrd ||
+               '" to the select/loadsettingslist array var.'
+      return 1
    endif
    if not loadstate then
       'RingRefreshSetting' arg(1)
@@ -421,7 +479,6 @@ defc RingRefreshSetting
    'postme RefreshInfoLine' StatusFieldFlags TitleFieldFlags  --refresh all
    -- Little bug: InsertMode is not refreshed here.
    'postme display' 3
-   return
 
 ; ---------------------------------------------------------------------------
 /*
@@ -432,14 +489,29 @@ defc ModeExecuteRefresh, ModeExecRefresh
 */
 
 ; ---------------------------------------------------------------------------
+; Add file-specific setting name and its value to the array.
+; Add setting name to list of lastusedsettings.
+; This is used by several select setting defs.
+defproc UseSetting
+   SettingName = arg(1)
+   SettingValue = arg(2)
+   getfileid fid
+   if GetAVar( lowcase( SettingName)'.'fid) <> SettingValue then
+      call SetAVar( lowcase( SettingName)'.'fid, SettingValue)
+      if not wordpos( upcase(SettingName), upcase(GetAVar('lastusedsettings'))) then
+         call AddAVar( 'lastusedsettings', SettingName)
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
 ; Refresh specified setting for those files in the ring, whose setting were
 ; not changed with a Set* command of MODEEXEC.E.
 ; The command must be
 defc RingDumpSettings
-   universal SelectSettingsList
-   universal LoadSettingsList
+   LoadSettingsList   = GetAVar( 'loadsettingslist')
+   SelectSettingsList = GetAVar( 'selectsettingslist')
    SettingsList = LoadSettingsList SelectSettingsList
-   SettingsList = SettingsList' setmodesettingsapplied'  -- append system var
+   SettingsList = SettingsList' modesettingsapplied'  -- append system var
    TmpFileName = '.FILE_SETTINGS'
    getfileid startfid
    display -3
@@ -468,6 +540,9 @@ defc RingDumpSettings
          line = line wrd
       endif
    enddo
+   if line > '' then
+      insertline line, .last + 1
+   endif
    varname =  '   Defselect settings           ='
    line = varname
    do w = 1 to words(SelectSettingsList)
@@ -479,6 +554,9 @@ defc RingDumpSettings
          line = line wrd
       endif
    enddo
+   if line > '' then
+      insertline line, .last + 1
+   endif
    insertline '   Defselect usedsettings_modes = 'GetAVar( 'usedsettings_modes'), .last + 1
    insertline '   Defselect lastusedsettings   = 'GetAVar( 'lastusedsettings'), .last + 1
    activatefile startfid
@@ -489,13 +567,12 @@ defc RingDumpSettings
       --endif
       insertline .filename, tmpfid.last + 1, tmpfid
       -- Add mode
-      insertline '   'leftstr( 'mode', max( length('mode'), 20))' = 'GetMode(), tmpfid.last + 1, tmpfid
+      insertline '   'leftstr( 'mode', max( length('mode'), 22))' = 'GetMode(), tmpfid.last + 1, tmpfid
       do w = 1 to words(SettingsList)
          wrd = word( SettingsList, w)
-         next = lowcase(wrd)
-         parse value next with 'set' SettingName  -- strip leading 'set'
+         SettingName = lowcase(wrd)
          SettingValue = GetAVar( SettingName'.'fid)  -- query file setting
-         insertline '   'leftstr( SettingName, max( length(SettingName), 20))' = 'SettingValue, tmpfid.last + 1, tmpfid
+         insertline '   'leftstr( SettingName, max( length(SettingName), 22))' = 'SettingValue, tmpfid.last + 1, tmpfid
       enddo
       nextfile
       getfileid fid
@@ -508,8 +585,14 @@ defc RingDumpSettings
    activatefile tmpfid
    .line = savedlast + 1
    display 3
-   return
 
+; ---------------------------------------------------------------------------
+; Set* commands
+; These commands can be used with the ModeExecute command. Then they set the
+; value for all files of a mode. If a <set_cmd> is used alone, only the
+; current activated file is effected.
+; Syntax:
+;    <set_cmd> <value>
 ; ---------------------------------------------------------------------------
 ; Execute this only at defload or -- when file has default setting -- after
 ; changing the default value. In that case use the parameter
@@ -532,7 +615,7 @@ defc SetHighlight
    wp = wordpos( 'N', arg1)
    if wp > 0 then
       CheckFlag = 'N'
-      arg1 = delword( arg1, wp, 1)  -- remove 'REFRESHDEFAULT' from arg1
+      arg1 = delword( arg1, wp, 1)  -- remove 'N' from arg1
    endif
 
    if arg1 = 'DEFAULT' then
@@ -550,9 +633,21 @@ defc SetHighlight
 
    -- Process setting
    Mode = GetMode()
-   if (CheckFlag = '') & loadstate then
-      CheckFlag = GetHiliteCheckFlag(Mode)
+   KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
+   refresh_on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if refresh_on then
+      if (CheckFlag = '') & loadstate then
+         CheckFlag = GetHiliteCheckFlag(Mode)
+      endif
+   else
+      CheckFlag = 'N'
    endif
+   -- Todo: Add option to force reload of temp epmkwds file (call
+   --       toggle_parse with parameter 2 instead of 1).
+   --       Currently it is always reloaded, what is a huge waste.
+   --       Note: When an entire ring should be refreshed, the epmkwds
+   --             file needs to be reloaded only once per mode.
+   --       Related: defc toggle_parse in STDCTRL.E.
    call NepmdActivateHighlight( on, Mode, CheckFlag)
 
    -- Save the value in an array var, to determine 'DEFAULT' state later
@@ -750,8 +845,6 @@ defc SetDynaSpell  -- defc dynaspell exists and is used here
 defc SetToolbar
    universal toolbar_loaded
    universal current_toolbar
-   --universal appname
-   --universal app_hini
    arg1 = upcase(arg(1))
    if current_toolbar = '' then
       current_toolbar = toolbar_loaded
@@ -773,13 +866,7 @@ defc SetToolbar
       endif
    endif
    -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'toolbar.'fid) <> arg(1) then
-      call SetAVar( 'toolbar.'fid, arg(1))
-      if not wordpos( upcase('SetToolbar'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetToolbar')
-      endif
-   endif
+   call UseSetting( 'ToolBar', arg(1))
 
 ; ---------------------------------------------------------------------------
 defc SetExpand  -- defc expand exists
@@ -798,13 +885,7 @@ defc SetExpand  -- defc expand exists
    -- Set universal var
    expand_on = on
    -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'expand.'fid) <> arg(1) then
-      call SetAVar( 'expand.'fid, arg(1))
-      if not wordpos( upcase('SetExpand'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetExpand')
-      endif
-   endif
+   call UseSetting( 'Expand', arg(1))
    if not loadstate then
       'refreshinfoline EXPAND'
    endif
@@ -821,13 +902,7 @@ defc SetIndent
    -- Set universal var
    indent = new
    -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'indent.'fid) <> arg(1) then
-      call SetAVar( 'indent.'fid, arg(1))
-      if not wordpos( upcase('SetIndent'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetIndent')
-      endif
-   endif
+   call UseSetting( 'Indent', arg(1))
 
 ; ---------------------------------------------------------------------------
 defc SetMatchTab  -- defc matchtab exists
@@ -846,13 +921,7 @@ defc SetMatchTab  -- defc matchtab exists
    -- Set universal var
    matchtab_on = on
    -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'matchtab.'fid) <> arg(1) then
-      call SetAVar( 'matchtab.'fid, arg(1))
-      if not wordpos( upcase('SetMatchTab'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetMatchTab')
-      endif
-   endif
+   call UseSetting( 'MatchTab', arg(1))
    if not loadstate then
       'refreshinfoline MATCHTAB'
    endif
@@ -876,13 +945,7 @@ defc SetEditOptions
    -- Set universal var
    default_edit_options = new
    -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'editoptions.'fid) <> arg(1) then
-      call SetAVar( 'editoptions.'fid, arg(1))
-      if not wordpos( upcase('SetEditOptions'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetEditOptions')
-      endif
-   endif
+   call UseSetting( 'EditOptions', arg(1))
 
 ; ---------------------------------------------------------------------------
 defc SetSaveOptions
@@ -898,13 +961,7 @@ defc SetSaveOptions
    -- Set universal var
    default_save_options = new
    -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'saveoptions.'fid) <> arg(1) then
-      call SetAVar( 'saveoptions.'fid, arg(1))
-      if not wordpos( upcase('SetSaveOptions'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetSaveOptions')
-      endif
-   endif
+   call UseSetting( 'SaveOptions', arg(1))
 
 ; ---------------------------------------------------------------------------
 defc SetSearchOptions
@@ -920,13 +977,7 @@ defc SetSearchOptions
    -- Set universal var
    default_search_options = new
    -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'searchoptions.'fid) <> arg(1) then
-      call SetAVar( 'searchoptions.'fid, arg(1))
-      if not wordpos( upcase('SetSearchOptions'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetSearchOptions')
-      endif
-   endif
+   call UseSetting( 'SearchOptions', arg(1))
 
 ; ---------------------------------------------------------------------------
 defc SetTabKey  -- defc tabkey exists
@@ -944,13 +995,7 @@ defc SetTabKey  -- defc tabkey exists
    -- Set universal var
    tab_key = on
    -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'tabkey.'fid) <> arg(1) then
-      call SetAVar( 'tabkey.'fid, arg(1))
-      if not wordpos( upcase('SetTabKey'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetTabKey')
-      endif
-   endif
+   call UseSetting( 'TabKey', arg(1))
    if not loadstate then
       'refreshinfoline TABKEY'
    endif
@@ -972,13 +1017,7 @@ defc SetStreamMode
    stream_mode = on
    'togglecontrol 24' stream_mode
    -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'streammode.'fid) <> arg(1) then
-      call SetAVar( 'streammode.'fid, arg(1))
-      if not wordpos( upcase('SetStreamMode'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetStreamMode')
-      endif
-   endif
+   call UseSetting( 'StreamMode', arg(1))
    if not loadstate then
       'refreshinfoline STREAMMODE'
    endif
@@ -999,13 +1038,7 @@ defc SetInsertMode
       --'postme inserttoggle'
    endif
    -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'insertmode.'fid) <> arg(1) then
-      call SetAVar( 'insertmode.'fid, arg(1))
-      if not wordpos( upcase('SetInsertMode'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetInsertMode')
-      endif
-   endif
+   call UseSetting( 'InsertMode', arg(1))
    -- Update of infoline field is handled internally
 
 ; ---------------------------------------------------------------------------
@@ -1050,13 +1083,7 @@ defc SetTextFont
       'postme processfontrequest' new  -- must be posted (why?)
    endif
    -- Save the value in an array var, because no field var exists
-   getfileid fid
-   if GetAVar( 'textfont.'fid) <> arg(1) then
-      call SetAVar( 'textfont.'fid, arg(1))
-      if not wordpos( upcase('SetTextFont'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetTextFont')
-      endif
-   endif
+   call UseSetting( 'TextFont', arg(1))
 
 ; ---------------------------------------------------------------------------
 defc SetTextColor
@@ -1076,7 +1103,7 @@ defc SetTextColor
    else
       new = ConvertColor( arg(1))
       if rc <> 0 then
-         return
+         return rc
       endif
    endif
    if new = '' then
@@ -1085,13 +1112,7 @@ defc SetTextColor
       .textcolor = new
    endif
    -- Save the value in an array var, to determine 'DEFAULT' state later
-   getfileid fid
-   if GetAVar( 'textcolor.'fid) <> new then
-      call SetAVar( 'textcolor.'fid, new)
-      if not wordpos( upcase('SetTextColor'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetTextColor')
-      endif
-   endif
+   call UseSetting( 'TextColor', arg(1))
 
 ; ---------------------------------------------------------------------------
 defc SetMarkColor
@@ -1120,30 +1141,208 @@ defc SetMarkColor
       .markcolor = new
    endif
    -- Save the value in an array var, to determine 'DEFAULT' state later
-   getfileid fid
-   if GetAVar( 'markcolor.'fid) <> new then
-      call SetAVar( 'markcolor.'fid, new)
-      if not wordpos( upcase('SetMarkColor'), upcase(GetAVar('lastusedsettings'))) then
-         call AddAVar( 'lastusedsettings', ' SetMarkColor')
+   call UseSetting( 'MarkColor', arg(1))
+
+; ---------------------------------------------------------------------------
+; Common Set* commands for syntax expansion
+; For these commands a DEFINEDEFAULT parameter exists, as long as the
+; default value is not configurable via the menu or a settings dialog.
+; DEFINEDEFAULT is added by ModeExecute, when it is called with the DEFAULT
+; pseudo mode.
+; Syntax:
+;    <set_cmd> <value>                to set a <value> for <set_cmd>
+;    <set_cmd> DEFINEDEFAULT <value>  to set the default <value>, that is
+;                                     used if no <set_cmd> exists for a mode
+;                                     or a file
+; ---------------------------------------------------------------------------
+; Used in: CKEYS.E, REXXKEYS.E
+defc SetHeaderStyle
+   universal header_style
+   universal default_header_style
+   ValidArgs = '1 2'
+   arg1 = strip( upcase( arg(1)))
+   parse value arg1 with next rest
+   if next = 'DEFINEDEFAULT' then
+      if header_style = default_header_style then
+         header_style = rest  -- init
       endif
+      default_header_style = rest
+   else
+      if not wordpos( arg1, ValidArgs) then
+         if default_header_style = '' then
+            default_header_style = 1
+         endif
+         arg1 = default_header_style
+      endif
+      header_style = arg1
+      -- Save the value in an array var, because no field var exists
+      call UseSetting( 'HeaderStyle', arg(1))
+   endif
+
+; ---------------------------------------------------------------------------
+; Used in: CKEYS.E, REXXKEYS.E
+defc SetHeaderLength
+   universal header_length
+   universal default_header_length
+   arg1 = strip( upcase( arg(1)))
+   parse value arg1 with next rest
+   if next = 'DEFINEDEFAULT' then
+      if header_length = default_header_length then
+         header_length = rest  -- init
+      endif
+      default_header_length = rest
+   else
+      if not IsNum( arg1) then
+         if default_header_length = '' then
+            default_header_length = 77
+         endif
+         arg1 = default_header_length
+      endif
+      header_length = arg1
+      -- Save the value in an array var, because no field var exists
+      call UseSetting( 'HeaderLength', arg(1))
+   endif
+
+; ---------------------------------------------------------------------------
+; Used in: CKEYS.E, REXXKEYS.E
+; Auto-comment an 'end' statement
+defc SetEndCommented
+   universal END_commented
+   universal default_END_commented
+   ValidArgs = '0 1'
+   arg1 = strip( upcase( arg(1)))
+   parse value arg1 with next rest
+   if next = 'DEFINEDEFAULT' then
+      if END_commented = default_END_commented then
+         END_commented = rest  -- init
+      endif
+      default_END_commented = rest
+   else
+      if not wordpos( arg1, ValidArgs) then
+         if default_END_commented = '' then
+            default_END_commented = 0
+         endif
+         arg1 = default_END_commented
+      endif
+      END_commented = arg1
+      -- Save the value in an array var, because no field var exists
+      call UseSetting( 'EndCommented', arg(1))
+   endif
+
+; ---------------------------------------------------------------------------
+; Used in: STDKEYS.E/KEYS.E
+; Define pairs of matching chars. The closing char is added while typing the
+; opening char.
+defc SetMatchChars
+   universal match_chars
+   universal default_match_chars
+   arg1 = strip( upcase( arg(1)))
+   parse value arg1 with next rest
+   if next = 'DEFINEDEFAULT' then
+      if match_chars = default_match_chars then
+         match_chars = rest  -- init
+      endif
+      default_match_chars = rest
+   else
+      if arg1 = '' | arg1 = 'DEFAULT' then
+         if default_match_chars = '' then
+            default_match_chars = ''
+         endif
+         arg1 = default_match_chars
+      endif
+      match_chars = arg1
+      -- Save the value in an array var, because no field var exists
+      call UseSetting( 'MatchChars', arg(1))
+   endif
+
+; ---------------------------------------------------------------------------
+; Used in: CKEYS.E, REXXKEYS.E
+; Append "*/" automatically if comment was opened on current line
+defc SetCommentAutoTerminate
+   universal comment_auto_terminate
+   universal default_comment_auto_terminate
+   ValidArgs = '0 1'
+   arg1 = strip( upcase( arg(1)))
+   parse value arg1 with next rest
+   if next = 'DEFINEDEFAULT' then
+      if comment_auto_terminate = default_comment_auto_terminate then
+         comment_auto_terminate = rest  -- init
+      endif
+      default_comment_auto_terminate = rest
+   else
+      if not wordpos( arg1, ValidArgs) then
+         if default_comment_auto_terminate = '' then
+            default_comment_auto_terminate = 0
+         endif
+         arg1 = default_comment_auto_terminate
+      endif
+      comment_auto_terminate = arg1
+      -- Save the value in an array var, because no field var exists
+      call UseSetting( 'CommentAutoTerminate', arg(1))
+   endif
+
+; ---------------------------------------------------------------------------
+; Used in: CKEYS.E
+; Spaces at Start/Comma/End of parameter list
+defc SetFunctionSpacing
+   universal function_spacing
+   universal default_function_spacing
+   ValidArgs = 'N C SC SCE'  -- No spaces, space at Start/Comma/End of parameter list
+   arg1 = strip( upcase( arg(1)))
+   parse value arg1 with next rest
+   if next = 'DEFINEDEFAULT' then
+      if function_spacing = default_function_spacing then
+         function_spacing = rest  -- init
+      endif
+      default_function_spacing = rest
+   else
+      if not wordpos( arg1, ValidArgs) then
+         if default_function_spacing = '' then
+            default_function_spacing = 'C'
+         endif
+         arg1 = default_function_spacing
+      endif
+      function_spacing = arg1
+      -- Save the value in an array var, because no field var exists
+      call UseSetting( 'FunctionSpacing', arg(1))
+   endif
+
+; ---------------------------------------------------------------------------
+; Used in: CKEYS.E
+; (Un)indent line with "}" to the indent of "{"
+defc SetClosingBraceAutoIndent
+   universal closing_brace_auto_indent
+   universal default_closing_brace_auto_indent
+   ValidArgs = '0 1'
+   arg1 = strip( upcase( arg(1)))
+   parse value arg1 with next rest
+   if next = 'DEFINEDEFAULT' then
+      if closing_brace_auto_indent = default_closing_brace_auto_indent then
+         closing_brace_auto_indent = rest  -- init
+      endif
+      default_closing_brace_auto_indent = rest
+   else
+      if not wordpos( arg1, ValidArgs) then
+         if default_closing_brace_auto_indent = '' then
+            default_closing_brace_auto_indent = 0
+         endif
+         arg1 = default_closing_brace_auto_indent
+      endif
+      closing_brace_auto_indent = arg1
+      -- Save the value in an array var, because no field var exists
+      call UseSetting( 'ClosingBraceAutoIndent', arg(1))
    endif
 
 ; ---------------------------------------------------------------------------
 ; Commands for coding styles
-; Example for MEODECNF.E:
-;    'AddCodingStyle K+R SetIndent 3'
-;    'AddCodingStyle K+R SetTabs 3'
-;    'AddCodingStyle K+R SetBracesIndented 1'
-;    'AddCodingStyle K+R SetBracesBelow 1'
-;    'ModeExecute C SetCodingStyle K+R'
-
 ; ---------------------------------------------------------------------------
 ; Delete the hook (to be executed before overwriting an entire hook instead
 ; of changing the values).
-; Syntax: ResetCodingStyle <name>
+; Syntax: DelCodingStyle <name>
 defc DelCodingStyle
-    parse arg name
-    'HookDelAll codingstyle.'name
+   parse arg name
+   name = lowcase( name)
+   'HookDelAll codingstyle.'name
 
 ; ---------------------------------------------------------------------------
 ; Add a command to the hook. Command should be a Set* command, defined in
@@ -1151,14 +1350,46 @@ defc DelCodingStyle
 ; so that a command is present only once.
 ; Syntax: AddCodingStyle <name> <command>
 defc AddCodingStyle
-    parse arg name command
-    'HookChange codingstyle.'name command
+   parse arg name command
+   name = lowcase( name)
+   'HookChange codingstyle.'name command
 
 ; ---------------------------------------------------------------------------
-; Execute the hook. Useful for execution at defselect.
 ; Syntax: ModeExecute <mode> SetCodingStyle <name>
 ;     or: SetCodingStyle <name>  (for file specific settings)
+; This defc is only executed when used as a file setting. When used by
+; a ModeExecute command, it is resolved directly by ModeExecute.
 defc SetCodingStyle
-    parse arg name
-    'HookExecute codingstyle.'name
+   call ExecuteCodingStyle( 0, arg(1))
+
+; ---------------------------------------------------------------------------
+; Apply the coding style by executing the hook.
+; Syntax:
+;    ExecuteCodingStyle( <mode>, <name>)
+; If called with <mode> = 0, then it is handled as a file setting, otherwise
+; as a mode setting.
+; Because the SetCodingStyle command is executed/resolved immediately, it
+; doesn't need to be added to the loadsettingslist, selectsettingslist or
+; lastusedsettings.
+defproc ExecuteCodingStyle
+   Mode = arg(1)
+   Name = arg(2)
+   Name = lowcase( Name)
+   Prefix = 'hook.'
+   HookName = 'codingstyle.'Name
+   -- Execute the hook, maybe with "'ModeExecute' Mode" prepended
+   imax = GetAVar( prefix''HookName'.0')
+   if IsNum( imax) then
+      do i = 1 to imax
+         Cmd = GetAVar( prefix''HookName'.'i)
+         if Mode = 0 then
+            -- Execute the file setting
+            Cmd
+         else
+            -- Execute the mode setting
+            'ModeExecute' Mode Cmd
+         endif
+      enddo
+   endif
+   return
 
