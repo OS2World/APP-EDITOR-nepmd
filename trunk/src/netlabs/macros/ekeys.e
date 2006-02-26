@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ekeys.e,v 1.9 2006-01-14 17:47:24 aschn Exp $
+* $Id: ekeys.e,v 1.10 2006-02-26 20:30:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,41 +18,23 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-/*                    E      keys                       */
-/*                                                      */
-/* The enter and space bar keys have been defined to do */
-/* specific E3 syntax structures.                       */
-
-const
-;compile if not defined(E_SYNTAX_INDENT)
-;   E_SYNTAX_INDENT = SYNTAX_INDENT
-;compile endif
-compile if not defined(TERMINATE_COMMENTS)
-   TERMINATE_COMMENTS = 0
-compile endif
-
-
-;  Keyset selection is now done once at file load time, not every time
-;  the file is selected.  And because the DEFLOAD procedures don't have to be
-;  kept together in the macros (ET will concatenate all the DEFLOADs the
-;  same way it does DEFINITs), we can put the DEFLOAD here where it belongs,
-;  with the rest of the keyset function.  (what a concept!)
--- Moved defload to MODE.E
 
 ; ---------------------------------------------------------------------------
 defkeys e_keys
 
 /* Taken out, interferes with some people's c_enter. */
-;def c_enter=   /* I like Ctrl-Enter to finish the comment field also. */
+;def c_enter  -- I like Ctrl-Enter to finish the comment field also.
 ;   getline line
-;   if pos('/*',line) then
-;      if not pos('*/',line) then
-;         end_line;keyin' */'
+;   if pos( '/*', line) then
+;      if not pos( '*/', line) then
+;         end_line
+;         keyin ' */'
 ;      endif
 ;   endif
-;   down;begin_line
+;   down
+;   begin_line
 
-def c_x=       /* Force expansion if we don't have it turned on automatic */
+def c_x  -- Force expansion if we don't have it turned on automatic
    if not e_first_expansion() then
       call e_second_expansion()
    endif
@@ -60,16 +42,7 @@ def c_x=       /* Force expansion if we don't have it turned on automatic */
 ; ---------------------------------------------------------------------------
 defproc GetEIndent
    universal indent
-compile if defined(E_SYNTAX_INDENT)
-   ind = E_SYNTAX_INDENT  -- this const has priority, it is normally undefined
-compile else
    ind = indent  -- will be changed at defselect for every mode, if defined
-compile endif
-   if ind = '' | ind = 0 then
-compile if defined(SYNTAX_INDENT)
-      ind = SYNTAX_INDENT
-compile endif
-   endif
    if ind = '' | ind = 0 then
       ind = 3
    endif
@@ -77,21 +50,22 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 defc EFirstExpansion
-   rc = (e_first_expansion() = 0)
+   rc = e_first_expansion()  -- (rc = 0) = processed
 
 defproc e_first_expansion
-   retc = 1
+   retc = 0  -- 0 = processed, otherwise 1 is returned
+             -- (exchanged compared to standard EPM)
    if .line then
       getline line
-      line = strip( line, 'T' )
+      line = strip( line, 'T')
       w = line
       wrd = upcase(w)
 
       -- Skip expansion when cursor is not at line end
-      line_l = substr( line, 1, .col - 1 ) -- split line into two parts at cursor
-      lw = strip( line_l, 'T' )
+      line_l = substr( line, 1, .col - 1) -- split line into two parts at cursor
+      lw = strip( line_l, 'T')
       if w <> lw then
-         retc = 0
+         retc = 1
 
       elseif wrd = 'FOR' then
          replaceline w' =  to'
@@ -101,6 +75,7 @@ defproc e_first_expansion
             call fixup_cursor()
          endif
          keyin ' '
+
       elseif wrd = 'IF' then
          replaceline w' then'
          insertline substr( wrd, 1, length(wrd) - 2)'else', .line + 1
@@ -110,6 +85,7 @@ defproc e_first_expansion
             call fixup_cursor()
          endif
          keyin ' '
+
       elseif wrd = 'ELSEIF' then
          replaceline w' then'
          if not insert_state() then
@@ -117,6 +93,7 @@ defproc e_first_expansion
             call fixup_cursor()
          endif
          keyin ' '
+
       elseif wrd = 'WHILE' then
          replaceline w' do'
          insertline substr( wrd, 1, length(wrd) - 5)'endwhile', .line + 1
@@ -125,40 +102,45 @@ defproc e_first_expansion
             call fixup_cursor()
          endif
          keyin ' '
+
       elseif wrd = 'LOOP' then
          replaceline w
          insertline substr( wrd, 1, length(wrd) - 4)'endloop', .line + 1
          call einsert_line()
          .col = .col + GetEIndent()
-;     elseif wrd='DO' then
+
+;     elseif wrd = 'DO' then
 ;        replaceline w
-;        insertline substr(wrd,1,length(wrd)-2)'enddo',.line+1
+;        insertline substr( wrd, 1, length(wrd) - 2)'enddo', .line + 1
 ;        call einsert_line()
-;        .col=.col+GetEIndent()
+;        .col = .col + GetEIndent()
+
       else
-         retc=0
+         retc = 1
       endif
    else
-      retc=0
+      retc = 1
    endif
    return retc
 
 ; ---------------------------------------------------------------------------
 defc ESecondExpansion
-   rc = (e_second_expansion() = 0)
+   rc = e_second_expansion()  -- (rc = 0) = processed
 
 defproc e_second_expansion
-   retc = 1
+   universal comment_auto_terminate
+
+   retc = 0  -- 0 = processed, otherwise 1 is returned
+             -- (exchanged compared to standard EPM)
    if .line then
       getline line
-      --parse value line with wrd rest
       -- Set wrd only to text left from the cursor
       line_l = substr( line, 1, .col - 1) -- split line into two parts at cursor
       parse value line_l with wrd rest
 
       firstword = upcase(wrd)
+
       if firstword = 'FOR' then
-         /* do tabs to fields of pascal for statement */
          parse value upcase(line) with a '='
          if length(a) >= .col then
             .col = length(a) + 3
@@ -171,9 +153,10 @@ defproc e_second_expansion
                .col = .col + GetEIndent()
             endif
          endif
+
       elseif wordpos(firstword, 'IF ELSEIF ELSE WHILE LOOP DO DEFC DEFPROC DEFLOAD DEF DEFMODIFY DEFSELECT DEFMAIN DEFINIT DEFEXIT') then
          if pos( 'END'firstword, upcase(line)) then
-            retc = 0
+            retc = 1
          else
             call einsert_line()
             .col = .col + GetEIndent()
@@ -181,20 +164,19 @@ defproc e_second_expansion
                insertline substr( line, 1, .col - GetEIndent() - 1)'end'lowcase(wrd), .line + 1
             endif
          endif
-compile if TERMINATE_COMMENTS
-      elseif pos( '/*', line) then
-;     elseif substr(firstword,1,2)='/*' then  /* see speed requirements */
+
+      elseif pos( '/*', line) & comment_auto_terminate then
          if not pos( '*/', line) then
             end_line
             keyin ' */'
          endif
          call einsert_line()
-compile endif
+
       else
-         retc=0
+         retc = 1
       endif
    else
-      retc=0
+      retc = 1
    endif
    return retc
 

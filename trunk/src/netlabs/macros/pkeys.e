@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pkeys.e,v 1.8 2006-01-14 17:47:26 aschn Exp $
+* $Id: pkeys.e,v 1.9 2006-02-26 20:30:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,43 +18,23 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-/*                    PASCAL keys                       */
-/*                                                      */
-/* The enter and space bar keys have been defined to do */
-/* specific Pascal syntax structures.                   */
-
-const
-;compile if not defined(P_SYNTAX_INDENT)
-;   P_SYNTAX_INDENT = SYNTAX_INDENT
-;compile endif
-compile if not defined(TERMINATE_COMMENTS)
-   TERMINATE_COMMENTS = 0
-compile endif
-compile if not defined(WANT_END_COMMENTED)
-   WANT_END_COMMENTED = 1
-compile endif
-
-;  Keyset selection is now done once at file load time, not every time
-;  the file is selected.  And because the DEFLOAD procedures don't have to be
-;  kept together in the macros (ET will concatenate all the DEFLOADs the
-;  same way it does DEFINITs), we can put the DEFLOAD here where it belongs,
-;  with the rest of the keyset function.  (what a concept!)
--- Moved defload to MODE.E
 
 ; ---------------------------------------------------------------------------
 defkeys pas_keys
 
 /* Taken out, interferes with some people's c_enter. */
-;def c_enter=   /* I like Ctrl-Enter to finish the comment field also. */
+;def c_enter  -- I like Ctrl-Enter to finish the comment field also.
 ;   getline line
-;   if pos('{',line) then
-;      if not pos('}',line) then
-;         end_line;keyin' }'
+;   if pos( '{', line) then
+;      if not pos( '}', line) then
+;         end_line;
+;         keyin ' }'
 ;      endif
 ;   endif
-;   down;begin_line
+;   down;
+;   begin_line
 
-def c_x=       /* Force expansion if we don't have it turned on automatic */
+def c_x=       -- Force expansion if we don't have it turned on automatic
    if not pas_first_expansion() then
       call pas_second_expansion()
    endif
@@ -62,16 +42,7 @@ def c_x=       /* Force expansion if we don't have it turned on automatic */
 ; ---------------------------------------------------------------------------
 defproc GetPIndent
    universal indent
-compile if defined(P_SYNTAX_INDENT)
-   ind = P_SYNTAX_INDENT  -- this const has priority, it is normally undefined
-compile else
    ind = indent  -- will be changed at defselect for every mode, if defined
-compile endif
-   if ind = '' | ind = 0 then
-compile if defined(SYNTAX_INDENT)
-      ind = SYNTAX_INDENT
-compile endif
-   endif
    if ind = '' | ind = 0 then
       ind = 3
    endif
@@ -79,10 +50,27 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 defc PasFirstExpansion
-   rc = (pas_first_expansion() = 0)
+   rc = pas_first_expansion()  -- (rc = 0) = processed
 
 defproc pas_first_expansion
-   retc=1
+   universal END_commented
+
+   retc = 0  -- 0 = processed, otherwise 1 is returned
+             -- (exchanged compared to standard EPM)
+   if END_commented = 1 then
+      END_FOR     = ' {endfor}'
+      END_IF      = ' {endif}'
+      END_WHILE   = ' {endwhile}'
+      END_REPEAT  = ' {endrepeat}'
+      END_CASE    = ' {endcase}'
+   else
+      END_FOR     = ''
+      END_IF      = ''
+      END_WHILE   = ''
+      END_REPEAT  = ''
+      END_CASE    = ''
+   endif
+
    if .line then
       getline line
       line = strip( line, 'T')
@@ -97,79 +85,69 @@ defproc pas_first_expansion
 
       elseif wrd = 'FOR' then
          replaceline w' :=  to  do begin'
-compile if WANT_END_COMMENTED
-         insertline substr( wrd, 1, length(wrd) - 3)'end; {endfor}', .line + 1
-compile else
-         insertline substr( wrd, 1, length(wrd) - 3)'end;', .line + 1
-compile endif
+         insertline substr( wrd, 1, length(wrd) - 3)'end;'END_FOR, .line + 1
          if not insert_state() then insert_toggle
              call fixup_cursor()
          endif
          keyin ' '
+
       elseif wrd = 'IF' then
          replaceline w' then begin'
          insertline substr( wrd, 1, length(wrd) - 2)'end else begin', .line + 1
-compile if WANT_END_COMMENTED
-         insertline substr( wrd, 1, length(wrd) - 2)'end; {endif}', .line + 2
-compile else
-         insertline substr( wrd, 1, length(wrd) - 2)'end;', .line + 2
-compile endif
+         insertline substr( wrd, 1, length(wrd) - 2)'end;'END_IF, .line + 2
          if not insert_state() then insert_toggle
              call fixup_cursor()
          endif
          keyin ' '
+
      elseif wrd = 'WHILE' then
          replaceline w' do begin'
-compile if WANT_END_COMMENTED
-         insertline substr( wrd, 1, length(wrd) - 5)'end; {endwhile}', .line + 1
-compile else
-         insertline substr( wrd, 1, length(wrd) - 5)'end;', .line + 1
-compile endif
+         insertline substr( wrd, 1, length(wrd) - 5)'end;'END_WHILE, .line + 1
          if not insert_state() then insert_toggle
              call fixup_cursor()
          endif
          keyin ' '
+
       elseif wrd = 'REPEAT' then
          replaceline w
-compile if WANT_END_COMMENTED
-         insertline substr( wrd, 1, length(wrd) - 6)'until  ; {endrepeat}', .line + 1
-compile else
-         insertline substr( wrd, 1, length(wrd) - 6)'until  ;', .line + 1
-compile endif
+         insertline substr( wrd, 1, length(wrd) - 6)'until  ;'END_REPEAT, .line + 1
          call einsert_line()
          .col = .col + GetPIndent()
+
       elseif wrd = 'CASE' then
          replaceline w' of'
-compile if WANT_END_COMMENTED
-         insertline substr( wrd, 1, length(wrd) - 4)'end; {endcase}', .line + 1
-compile else
-         insertline substr( wrd, 1, length(wrd) - 4)'end;', .line + 1
-compile endif
+         insertline substr( wrd, 1, length(wrd) - 4)'end;'END_CASE, .line + 1
          if not insert_state() then insert_toggle
              call fixup_cursor()
          endif
          keyin ' '
+
       else
-         retc=0
+         retc = 1
       endif
    else
-      retc=0
+      retc = 1
    endif
    return retc
 
 ; ---------------------------------------------------------------------------
 defc PasSecondExpansion
-   rc = (pas_second_expansion() = 0)
+   rc = pas_second_expansion()  -- (rc = 0) = processed
 
 defproc pas_second_expansion
-   retc = 1
+   universal comment_auto_terminate
+   universal END_commented
+
+   retc = 0  -- 0 = processed, otherwise 1 is returned
+             -- (exchanged compared to standard EPM)
+
    if .line then
       getline line
-      parse value upcase(line) with 'BEGIN' +0 a /* get stuff after begin */
+      parse value upcase(line) with 'BEGIN' +0 a  -- get stuff after begin
       parse value line with wrd rest
       firstword=upcase(wrd)
+
       if firstword='FOR' then
-         /* do tabs to fields of pascal for statement */
          parse value upcase(line) with a ':='
          if length(a) >= .col then
             .col = length(a) + 4
@@ -182,101 +160,111 @@ defproc pas_second_expansion
                .col = .col + GetPIndent()
             endif
          endif
-      elseif a = 'BEGIN' or firstword = 'BEGIN' or firstword = 'CASE' or firstword = 'REPEAT' then  /* firstword or last word begin?*/
+
+      elseif a = 'BEGIN' or firstword = 'BEGIN' or firstword = 'CASE' or firstword = 'REPEAT' then  -- firstword or last word begin?
 ;        if firstword='BEGIN' then
-;           replaceline  wrd rest
-;           insert;.col=GetPIndent()+1
+;           replaceline wrd rest
+;           insert
+;           .col = GetPIndent() + 1
 ;        else
             call einsert_line()
             .col = .col + GetPIndent()
 ;        endif
+
       elseif firstword = 'VAR' or firstword = 'CONST' or firstword = 'TYPE' or firstword = 'LABEL' then
          if substr( line, 1, 2) <> '  ' or substr( line, 1, 3) = '   ' then
             getline line2
-            replaceline substr( '', 1, GetPIndent())||wrd rest  -- <indent> spaces
+            replaceline substr( '', 1, GetPIndent())''wrd rest  -- <indent> spaces
             call einsert_line()
             .col = .col + GetPIndent()
          else
             call einsert_line()
          endif
+
       elseif firstword = 'PROGRAM' then
-         /* make up a nice program block */
          parse value rest with name ';'
+         if END_commented = 1 then
+            END_NAME = ' { 'name' }'
+         else
+            END_NAME = ''
+         endif
          getline bottomline, .last
          parse value bottomline with lastname .
          if lastname = 'end.' then
-            retc= 0     /* no expansion */
+            retc= 1
+            return retc
          else
-;           replaceline  wrd rest
             call einsert_line()
-compile if WANT_END_COMMENTED
-            insertline 'begin {' name '}', .last + 1
-            insertline 'end. {' name '}', .last + 1
-compile else
-            insertline 'begin', .last + 1
-            insertline 'end.', .last + 1
-compile endif
+            insertline 'begin'END_NAME, .last + 1
+            insertline 'end.'END_NAME, .last + 1
          endif
+
       elseif firstword = 'UNIT' then       -- Added by M. Such
-         /* make up a nice unit block */
          parse value rest with name ';'
+         if END_commented = 1 then
+            END_NAME = ' { 'name' }'
+         else
+            END_NAME = ''
+         endif
          getline bottomline, .last
          parse value bottomline with lastname .
          if  lastname = 'end.' then
-            retc = 0     /* no expansion */
+            retc = 1
+            return retc
          else
-;           replaceline  wrd rest
             call einsert_line()
             insertline 'interface', .last + 1
             insertline 'implementation', .last + 1
-compile if WANT_END_COMMENTED
-            insertline 'end. {' name '}', .last + 1
-compile else
-            insertline 'end.', .last + 1
-compile endif
+            insertline 'end.'END_NAME, .last + 1
          endif
+
       elseif firstword = 'PROCEDURE' then
-         /* make up a nice program block */
          name = getheading_name(rest)
-;        replaceline  wrd rest
+         if END_commented = 1 then
+            END_NAME = ' { 'name' }'
+         else
+            END_NAME = ''
+         endif
          call einsert_line()
-compile if WANT_END_COMMENTED
-         insertline 'begin {' name '}', .line + 1
-         insertline 'end; {' name '}', .line + 2
-compile else
-         insertline 'begin', .line + 1
-         insertline 'end;', .line + 2
-compile endif
+         insertline 'begin'END_NAME, .line + 1
+         insertline 'end;'END_NAME, .line + 2
+
       elseif firstword = 'FUNCTION' then
-         /* make up a nice program block */
          name = getheading_name(rest)
-;        replaceline  wrd rest
+         if END_commented = 1 then
+            END_NAME = ' { 'name' }'
+         else
+            END_NAME = ''
+         endif
          call einsert_line()
-compile if WANT_END_COMMENTED
-         insertline 'begin {' name '}', .line + 1
-         insertline 'end; {' name '}', .line + 2
-compile else
-         insertline 'begin', .line + 1
-         insertline 'end;', .line + 2
-compile endif
-compile if TERMINATE_COMMENTS
-      elseif pos( '{', line) then
+         insertline 'begin'END_NAME, .line + 1
+         insertline 'end;'END_NAME, .line + 2
+
+      elseif pos( '(*', line) & comment_auto_terminate then
+         if not pos( '*)', line) then
+            end_line
+            keyin ' *)'
+         endif
+         call einsert_line()
+
+      elseif pos( '{', line) & comment_auto_terminate then
          if not pos( '}', line) then
             end_line
             keyin ' }'
          endif
          call einsert_line()
-compile endif
+
       else
-         retc = 0
+         retc = 1
       endif
    else
-      retc = 0
+      retc = 1
    endif
    return retc
 
 ; ---------------------------------------------------------------------------
-defproc getheading_name          /*  (heading ) name of heading */
+; name of heading
+defproc getheading_name
    afterheadingp = verify( upcase(arg(1)), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789')
    len = max( 0, afterheadingp - 1)
    return substr( arg(1), 1, len)
