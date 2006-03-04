@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ekeys.e,v 1.10 2006-02-26 20:30:29 aschn Exp $
+* $Id: ekeys.e,v 1.11 2006-03-04 16:05:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,7 +35,7 @@ defkeys e_keys
 ;   begin_line
 
 def c_x  -- Force expansion if we don't have it turned on automatic
-   if not e_first_expansion() then
+   if e_first_expansion() then
       call e_second_expansion()
    endif
 
