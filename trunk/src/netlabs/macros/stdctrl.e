@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.34 2006-01-08 13:34:58 aschn Exp $
+* $Id: stdctrl.e,v 1.35 2006-03-04 16:22:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2303,6 +2303,9 @@ defc echoback
 
 defc toggle_parse
    universal EPM_utility_array_ID
+   universal loadstate  -- 1: defload is running
+                        -- 2: defload processed
+                        -- 0: afterload processed
    parse arg parseon kwfilename
    if parseon & .levelofattributesupport//2 = 0  then  -- the first bit of .levelofattributesupport is for color attributes
       call attribute_on(1) -- toggles color attributes mode
@@ -2310,7 +2313,11 @@ defc toggle_parse
    if kwfilename = '' then
       kwfilename = 'epmkwds.c'
    endif
-   if parseon then
+   if parseon then  -- if 1 or 2
+      -- Don't reload epmkwds file during file loading
+      if loadstate then
+         parseon = 1  -- limit to 1: highlight without reloading, if already loaded
+      endif
       findfile destfilename, kwfilename, 'EPMPATH'
       if rc then
          sayerror FILE_NOT_FOUND__MSG '-' kwfilename
