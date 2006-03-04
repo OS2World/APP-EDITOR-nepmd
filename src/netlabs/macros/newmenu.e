@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.31 2006-01-08 22:48:22 aschn Exp $
+* $Id: newmenu.e,v 1.32 2006-03-04 16:11:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1381,7 +1381,7 @@ defproc add_format_menu(menuname)
                                    STYLE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_STYLE, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Apply style...',                                                    -- Apply style...
+   buildmenuitem menuname, mid, i, '~Apply style...'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+Y',            -- Apply style...
                                    'linkexec stylebut apply_style S' ||
                                    \1'Select font style to apply on mark or all',
                                    MIS_TEXT, 0
