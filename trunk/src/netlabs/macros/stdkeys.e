@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.26 2006-02-26 17:31:23 aschn Exp $
+* $Id: stdkeys.e,v 1.27 2006-03-04 16:07:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -112,6 +112,7 @@ def a_f           'FillMark'            -- Open dialog to specify a char as fill
 def c_f7          'ShiftLeft'           -- Move text in mark 1 col left
 def c_f8          'ShiftRight'          -- Move text in mark 1 col right
 def c_y           'FontList'            -- Open style dialog to add font attributes to mark
+defc Key_c_s_y    'linkexec stylebut apply_style S'  -- Open list box for selecting a style
 
 ; ---- Delete ----
 def del           'DeleteChar'          -- Delete current char
