@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pkeys.e,v 1.9 2006-02-26 20:30:30 aschn Exp $
+* $Id: pkeys.e,v 1.10 2006-03-04 16:05:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,7 +35,7 @@ defkeys pas_keys
 ;   begin_line
 
 def c_x=       -- Force expansion if we don't have it turned on automatic
-   if not pas_first_expansion() then
+   if pas_first_expansion() then
       call pas_second_expansion()
    endif
 
