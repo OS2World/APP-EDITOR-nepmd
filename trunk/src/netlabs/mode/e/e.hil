@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: e.hil,v 1.5 2005-11-16 17:19:18 aschn Exp $
+; $Id: e.hil,v 1.6 2006-03-05 15:06:53 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -46,8 +46,9 @@
 [SPECIAL]
  ;
  ,
-; &
-; |
+ ||   OPERATOR
+ &    KEYWORD
+ |    KEYWORD
 ; (
 ; )
 
