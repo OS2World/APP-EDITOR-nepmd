@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.11 2006-01-14 17:39:21 aschn Exp $
+* $Id: reflowmail.e,v 1.12 2006-03-05 15:50:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -333,6 +333,7 @@ defproc Mail_IsListItem( sline, var ListIndentLevel)
 defc reflowmail
    universal nepmd_hini
    universal InfolineRefresh
+   universal vTemp_Path
    prevLineIsBlank    = 0
    prevLineIsVerbatim = 0
    prevQuoteLevel     = 0
@@ -369,6 +370,7 @@ defc reflowmail
 
    .line = 1
    .col  = 1
+/*
    'select_all'  -- select_all also copies mark to the shared buffer
    delete_mark   -- this always creates a new undo state, no chance to avoid it
    getfileid mailfid
@@ -383,8 +385,11 @@ defc reflowmail
    .visible = 0
    .autosave = 0
    'getsharbuff'
+*/
    unmark
    -- (If still not fixed, then the temp file should be saved to disk here.)
+   TmpFile = vTemp_Path'mail.tmp'
+   'xcom s' TmpFile
 
    -- add a blank line after last to make reflow of the last par easy
    insertline '', .last + 1
@@ -564,6 +569,7 @@ compile endif
       deleteline .last
    enddo
 
+/*
    -- Copy all and quit temp file
    'select_all'  -- select_all also copies mark to the shared buffer
    .modify = 0
@@ -575,6 +581,10 @@ compile endif
    .col  = 1
    'getsharbuff'
    unmark
+*/
+   if Exist( TmpFile) then
+      call EraseTemp( TmpFile)
+   endif
 
    display 1
    InfolineRefresh = 1
