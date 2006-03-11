@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.15 2006-03-11 19:04:42 aschn Exp $
+* $Id: alt_1.e,v 1.16 2006-03-11 19:08:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -760,6 +760,30 @@ compile endif  -- HOST_SUPPORT
                        -- todo: handle URLs here, start browser
       -- convert slashes to backslashes
       Spec = translate( Spec, '\', '/')
+
+      -- parse at trailing ':' and maybe appended linenum
+--> Todo: interpret ':' always as separator, unless it is followed by a '\' (done!)
+-->       and use the part under the cursor (todo!)
+      startp = 1
+      do forever
+         p1 = pos( ':', Spec, startp)
+         if p1 = 0 then
+            leave
+         elseif substr( Spec, p1, 2) = ':\' then
+            startp = p1 + 1
+            iterate
+         else
+            parse value substr( Spec, p1) with ':' next ':'
+            if next = '' then
+               parse value substr( Spec, p1) with ':' next
+            endif
+            if isnum( next) then
+               linenum = next
+            endif
+            Spec = substr( Spec, 1, p1 - 1)
+            leave
+         endif
+      enddo
 
       SpecExt = ''
       lp = lastpos( '.', Spec)
