@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modecnf.e,v 1.5 2006-02-26 17:31:21 aschn Exp $
+* $Id: modecnf.e,v 1.6 2006-03-11 21:15:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -56,9 +56,6 @@ View Netlabs' default mode configuration file:
    e %NEPMD_ROOTDIR%\netlabs\macros\modecnf.e
 
 */
-; You may want to reset all prior used ModeExecute defs with
-; 'ModeExecute CLEAR'.
-;
 ; Syntax: ModeExecute <mode> <set_cmd> <args>
 ;
 ;         <set_cmd>         <args>
@@ -72,8 +69,8 @@ View Netlabs' default mode configuration file:
 ;         SetMargins        <left> <right> <par>
 ;         SetTextColor      <number> or <color_name> (see COLORS.E)
 ;         SetMarkColor      <number> or <color_name> (see COLORS.E)
-;                           (Hint: place cursor on COLORS.E and press Alt+1 to
-;                                  load the file)
+;                           (Hint: place cursor on COLORS.E and press Alt+1
+;                                  to load the file)
 ;         SetTextFont       <font_size>.<font_name>[.<font_sel>]
 ;                              <font_size> and <font_name> can be exchanged.
 ;                              Any EPM font specification syntax is
@@ -108,8 +105,10 @@ View Netlabs' default mode configuration file:
 ;                           'N' | 'C' | 'SC' | 'SCE' (default = 'C')
 ;                               'N' no spaces
 ;                               'C' space after a comma in a parameter list
-;                               'S' space after start (opening parenthesis) of a parameter list
-;                               'E' space before end (closing parenthesis) of a parameter list
+;                               'S' space after start (opening parenthesis)
+;                                   of a parameter list
+;                               'E' space before end (closing parenthesis)
+;                                   of a parameter list
 ;         SetClosingBraceAutoIndent
 ;                           0 | 1 (default = 0)
 ;         SetCodingStyle    <coding_style>
@@ -139,7 +138,7 @@ View Netlabs' default mode configuration file:
 ;                              well, not only of the added statements
 ;
 ; Any <set_cmd> can also be executed in EPM's commandline. Then it will
-; affect only the current file.
+; effect only the current file.
 ;
 ;   SetTextColor 31     (31 = (15 = white) + (16 = blue background))
 
@@ -155,7 +154,10 @@ View Netlabs' default mode configuration file:
 ;   Mode rexx     (change mode to REXX and apply all REXX-specific settings)
 
 ; ---------------------------------------------------------------------------
-; Omit the next line when you put the following lines in your PROFILE.ERX.
+; InitModeCnf is executed by defmain, before a file is loaded and before
+; PROFILE.ERX is called.
+; Omit the "defc" line when you put the following lines in your PROFILE.ERX.
+; The rest of the file is valid REXX and E code.
 defc InitModeCnf
 
 /* ----------------------------------------------------------------------- */
@@ -233,6 +235,13 @@ defc InitModeCnf
 'AddCodingStyle JAVA SetCBraceStyle APPEND'
 'AddCodingStyle JAVA SetCCaseStyle INDENT'
 
+/* You may want to create your own REXX style. Therefore copy some (or     */
+/* all) of the "ModeExecute REXX ..." settings below here, use             */
+/* "AddCodingStyle MYREXX ..." commands and configure the Set* command     */
+/* values. Then specify "ModeExecute REXX SetCodingStyle MYREXX" in the    */
+/* "ModeExecute REXX" block below.                                         */
+
+
 /* ----------------------------------------------------------------------- */
 /* 'ModeExecute CLEAR' removes all prior ModeExecute definitions.          */
 /* Use it, if you want to overwrite all NEPMD's defaults, without          */
@@ -247,15 +256,18 @@ defc InitModeCnf
 /* These settings are not accessable via the Options menu,                 */
 /* therefore a DEFAULT pseudo mode is defined for them.                    */
 /* ----------------------------------------------------------------------- */
+
 'ModeExecute DEFAULT SetHeaderStyle 1'
 'ModeExecute DEFAULT SetHeaderLength 77'
 'ModeExecute DEFAULT SetMatchChars'
 'ModeExecute DEFAULT SetFunctionSpacing C'
 'ModeExecute DEFAULT SetClosingBraceAutoIndent 1'
 
+
 /* ----------------------------------------------------------------------- */
 /* Settings for special modes                                              */
 /* ----------------------------------------------------------------------- */
+
 'ModeExecute Shell SetKeys Shell_keys'
 
 'ModeExecute E SetKeys E_keys'
