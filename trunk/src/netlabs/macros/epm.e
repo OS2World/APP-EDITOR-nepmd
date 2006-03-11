@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.34 2005-12-30 00:50:31 aschn Exp $
+* $Id: epm.e,v 1.35 2006-03-11 18:45:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -143,8 +143,6 @@ include        'put.e'         -- Append the contents of current file to another
 include        'enter.e'       -- Enter definitions
 
 include        'undo.e'        -- Undo definitions
-
-include        'alt_1.e'       -- Load filename under cursor with Alt+1
 
 include        'caseword.e'    -- Change case of word/identifier under cursor
 
