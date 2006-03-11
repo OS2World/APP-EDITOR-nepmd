@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.17 2005-12-13 20:09:39 aschn Exp $
+* $Id: file.e,v 1.18 2006-03-11 21:02:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1257,27 +1257,61 @@ defc RestorePosFromEa
    endif  -- RestorePos = 1
 
 ; ---------------------------------------------------------------------------
-defc cd
-   universal nepmd_hini
-   rc = 0
-   if arg(1) = '' then
-      dir = directory()
-   else
-      dir = directory(arg(1))
+; Change drive and directory.
+defc cdd
+   arg1 = arg(1)
+   if arg1 > '' then
+      if substr( arg1, 2, 1) = ':' then
+         NewDrive = substr( arg1, 1, 2)
+         call directory( NewDrive)
+      endif
    endif
-   if not rc then
-      sayerror CUR_DIR_IS__MSG dir
-      if arg(1) <> '' then
-         KeyPath = '\NEPMD\User\ChangeWorkDir'
-         ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-         if ChangeWorkDir = 1 then
-            KeyPath = '\NEPMD\User\ChangeWorkDir\Last'
-            call NepmdWriteConfigValue( nepmd_hini, KeyPath, dir)
+   'cd' arg1
+
+; ---------------------------------------------------------------------------
+; Change drive and directory. Release previous directory first (change to
+; root dir).
+; This should be used e.g. to change the directory on every defselect.
+defc xcd
+   arg1 = arg(1)
+   if arg1 > '' then
+      if substr( arg1, 2, 1) = ':' then
+         CurDrive = upcase( substr( directory(), 1, 2))
+         NewDrive = upcase( substr( arg1, 1, 2))
+         if NewDrive <> CurDrive then
+            call directory( '\')
+            call directory( NewDrive)
          endif
       endif
    endif
+   'cd' arg1
 
 ; ---------------------------------------------------------------------------
+; Changed: give only a message if called without arg. Remember new
+; directory for restoring path, if activated.
+defc cd
+   universal nepmd_hini
+   rc = 0
+   arg1 = arg(1)
+   if arg1 > '' then
+      NewDir = directory( arg1)
+      if not rc then
+         if arg1 <> '' then
+            KeyPath = '\NEPMD\User\ChangeWorkDir'
+            ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+            if ChangeWorkDir = 1 then
+               KeyPath = '\NEPMD\User\ChangeWorkDir\Last'
+               call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewDir)
+            endif
+         endif
+      endif
+   else
+      sayerror CUR_DIR_IS__MSG directory()
+   endif
+
+; ---------------------------------------------------------------------------
+; Change drive and directory. Release previous directory first (change to
+; root dir). Give a message.
 defc cdbox
    CurDir = directory()
    Title = 'Enter new work directory'
@@ -1293,7 +1327,12 @@ defc cdbox
                          Text) with button 2 NewDir \0
    NewDir = strip( NewDir)
    if button = \1 & NewDir <> '' & NewDir <> CurDir then
-      'cd' NewDir
+      'xcd' NewDir
+      if rc then
+         sayerror 'Directory not changed. rc = 'rc
+      else
+         'cd'         -- show current dir
+      endif
    endif
 
 ; ---------------------------------------------------------------------------
