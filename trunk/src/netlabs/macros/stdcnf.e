@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.32 2005-12-30 00:50:32 aschn Exp $
+* $Id: stdcnf.e,v 1.33 2006-03-11 20:38:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1266,24 +1266,34 @@ compile endif
 ;  Open NEPMD.INI and save the returned handle ------------------------------
    nepmd_hini = NepmdOpenConfig()
    parse value nepmd_hini with 'ERROR:'rc;
-   if (rc > 0) then
+   if (rc > '') then
       sayerror 'Configuration repository could not be opened, rc='rc;
+   else
+      --dprintf( 'DEFINIT', 'Current ini entry: 'queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath'))
+      IniFile = NepmdQueryInstValue( 'INIT')
+      if not Exist( IniFile) then
+         dprintf( 'DEFINIT', 'NEPMD.INI doesnot exist')
+      endif
    endif
 
-;  All settings are saved now to NEPMD.INI. EPM.INI is not touched anymore.
+; All settings are saved to NEPMD.INI now. EPM.INI is not touched anymore.
+; Therefore OS2.INI -> EPM -> EPMIniPath is changed temporary to the filename
+; of NEPMD.INI during EPM's startup by th EPM loader.
+/*
 ;  Open EPM.INI and save the returned handle --------------------------------
    -- This is required in order to open the first EPM correctly configured
    -- while a new NEPMD.INI is created.
    app_hini = dynalink32( ERES2_DLL,
                           'ERESQueryHini',
                           gethwndc(EPMINFO_EDITCLIENT), 2)
+      -- That should return the value of nepmd_hini, since the ini handle
+      -- is saved by C code on opening the EPM window, while the OS2.INI
+      -- entry was changed temporary.
    if not app_hini then
       call WinMessageBox( 'Bogus Ini File Handle', '.ini file handle =' app_hini, 16416)
    endif
-
+*/
 ;  Use NEPMD.INI for all settings controlled by E macros --------------------
-;  (Turning to NEPMD.INI for all C windows as well requires temporary
-;  changing of OS2.INI -> EPM -> EPMIniPath to the filename of NEPMD.INI.)
    app_hini = nepmd_hini  -- not really required, both should be equal here
 
 ;  Process NEPMD.INI initialization -----------------------------------------
@@ -1291,7 +1301,7 @@ compile endif
    -- application 'RegDefaults', if 'RegDefaults' was not found
    rc = NepmdInitConfig( nepmd_hini)
    parse value rc with 'ERROR:'rc;
-   if (rc > 0) then
+   if (rc > '') then
       sayerror 'Configuration repository could not be initialized, rc='rc;
    endif
 
@@ -2068,10 +2078,6 @@ compile endif
 compile if WANT_KEYWORD_HELP = 'LINK'
    'linkverify kwhelp'      -- Keyword help. Standard is WANT_KEYWORD_HELP = 'DYNALINK'
 compile endif
-
-   -- Set universal vars. Doing this with a definit in MODEEXEC.E comes too
-   -- late.
-   'InitFileSettings'
 
    -- The rest of initialization is done in InitConfig, called in MAIN.E.
 
