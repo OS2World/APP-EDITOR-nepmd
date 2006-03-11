@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.17 2004-11-30 21:17:41 aschn Exp $
+* $Id: mouse.e,v 1.18 2006-03-11 21:05:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -750,6 +750,30 @@ defc StartBrowser
       endif
    endif  -- Url <> ''
    rc = browser_rc
+
+; ---------------------------------------------------------------------------
+const
+compile if not defined( VALIDATE_HTML_UPLOAD)
+   VALIDATE_HTML_UPLOAD='http://validator.w3.org/file-upload.html'
+compile endif
+;compile if not defined( VALIDATE_HTML_CHECK)
+;   -- file uris aren't accepted:
+;   VALIDATE_HTML_CHECK='http://validator.w3.org/check?uri=file:///'
+;compile endif
+compile if not defined( VALIDATE_CSS_UPLOAD)
+   VALIDATE_CSS_UPLOAD='http://jigsaw.w3.org/css-validator/validator-upload'
+compile endif
+
+; ---------------------------------------------------------------------------
+defc ValidateHtml
+   'CheckModify'
+   'StartBrowser' VALIDATE_HTML_UPLOAD
+;   'StartBrowser' VALIDATE_HTML_CHECK''translate( .filename, '/', '\')
+
+; ---------------------------------------------------------------------------
+defc ValidateCss
+   'CheckModify'
+   'StartBrowser' VALIDATE_CSS_UPLOAD
 
 ; ---------------------------------------------------------------------------
 ; CUA marking
