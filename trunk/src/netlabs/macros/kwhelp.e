@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.30 2006-01-09 19:02:12 aschn Exp $
+* $Id: kwhelp.e,v 1.31 2006-03-11 20:47:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,9 +21,6 @@
 
 /*
 Todo:
--  Change NEPMD_KEYWORD_HELP_COMMAND to an ini key
-   -> Ok, const not supported anymore: Now use NewView, if found in PATH.
-      (Newview does a much better search than View.)
 -  Implement MODE to replace filetype() and the EXTENSIONS: keyword in .ndx
    files. But EXTENSIONS has still to be supported, because e.g. .erx files
    use other .inf files than .cmd REXX files.
