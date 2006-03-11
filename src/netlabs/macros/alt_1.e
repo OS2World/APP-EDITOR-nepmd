@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.17 2006-03-11 19:43:33 aschn Exp $
+* $Id: alt_1.e,v 1.18 2006-03-11 19:57:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -593,8 +593,8 @@ compile if HOST_SUPPORT
                return
             else
                getline line
-               if (uid =
-                   substr( line, lastpos( 'by ', line) + 3, length(uid))) then
+               if (uid = substr( line, lastpos( 'by ', line) + 3,
+                                 length(uid))) then
                   sayerror proc' macro added by 'uid' on 'date
                   beginline                      -- Move to beginning.
                   return
