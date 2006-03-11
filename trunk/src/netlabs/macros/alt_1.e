@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.13 2006-03-11 18:45:07 aschn Exp $
+* $Id: alt_1.e,v 1.14 2006-03-11 18:58:32 aschn Exp $
 *
 * ===========================================================================
 *
@@ -161,17 +161,15 @@ compile endif
    if leftstr( .filename, 15) = '.command_shell_' then
       -- search (reverse) in command shell window for the prompt and retrieve the current directory and
       --    the cmd and its parameters
-      call psave_pos(save_pos)
-      getsearch oldsearch
-compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-      'xcom l /^epm\: .*>:o/-x'
-      parse value textline(.line) with 'epm: 'curdir' >'cmd Params
-compile else  -- else EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
-      'xcom l /^\[epm\: .*\]:o/-x'
-      parse value textline(.line) with '[epm: 'curdir' ]'cmd Params
-compile endif -- EPM_SHELL_PROMPT
-      setsearch oldsearch
-      call prestore_pos(save_pos)
+      -- goto previous prompt line
+      ret = ShellGotoNextPrompt( 'P')
+      curdir = ''
+      cmd = ''
+      Params = ''
+      if not ret then
+         call ShellParsePromptLine( curdir, cmd)
+         parse value cmd with cmd Params
+      endif
    elseif upcase( leftstr( .filename, 8)) = '.DOS DIR' then
       -- if a .DOS DIR window,
       parse value upcase(.filename) with '.DOS DIR' Params  -- retrieve params from the title
@@ -226,11 +224,9 @@ compile endif -- EPM_SHELL_PROMPT
                   if rc <> 0 then  -- if prompt not found
                      leave
                   endif
-compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-                  parse value textline(.line) with 'epm: 'next' >'rest
-compile else
-                  parse value textline(.line) with '[epm: 'next' ]'rest
-compile endif -- EPM_SHELL_PROMPT
+                  next = ''
+                  rest = ''
+                  call ShellParsePromptLine( next, rest)
                   parse value upcase( strip( rest)) with 'CD'cdparam
                   if strip( cdparam) > '' then
                      parse value strip( rest) with 3 cdparam  -- get case back
@@ -593,7 +589,7 @@ compile if HOST_SUPPORT
                return
             else
                getline line
-               if (uid = 
+               if (uid =
                    substr( line, lastpos( 'by ', line) + 3, length(uid))) then
                   sayerror proc' macro added by 'uid' on 'date
                   beginline                      -- Move to beginning.
@@ -627,7 +623,7 @@ compile endif  -- HOST_SUPPORT
          endif
       endif
    endif
-   
+
    -------------------------------------------------------------------------- .Output from grep (Gnu)
    -- Handle Gnu GREP output like  full_specified_filename:lineno:text
    if fGnuGrep = 1 then

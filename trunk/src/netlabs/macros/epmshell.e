@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.17 2005-12-13 20:09:38 aschn Exp $
+* $Id: epmshell.e,v 1.18 2006-03-11 18:58:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -380,9 +380,9 @@ compile endif -- EPM_SHELL_PROMPT
 defproc ShellEnterWrite
    shellnum = substr( .filename, 16)
    ret = 1
-   if PromptPos() then
+   x = ShellPromptPos()
+   if x then
       getline line
-      x = PromptPos()
       Text = substr( line, x + 1)
       Text = strip( Text, 'L')
 
@@ -460,7 +460,7 @@ defc ShellRestoreOrgCmd
    if line = l then
       saved_line = .line
       .lineg = l
-      x = PromptPos()
+      x = ShellPromptPos()
       replaceline substr( textline( l), 1, x)''cmd, l
       .lineg = saved_line
    endif
@@ -585,7 +585,7 @@ defmodify
    ShellOrgCmd = GetAVar( 'ShellOrgCmd.'fid)
    Mode = GetMode()
    if Mode = 'SHELL' then
-      p = PromptPos()
+      p = ShellPromptPos()
       if p then
          parse value ShellOrgCmd with line .
          if (line <> .line) & (.line <> .last) then
@@ -631,7 +631,7 @@ defc shell_commandline
 ; ---------------------------------------------------------------------------
 ; Returns 0 if not a shell,
 ; otherwise the .col for the end of the prompt (> or ]).
-defproc PromptPos
+defproc ShellPromptPos
    shellnum = ''
    if leftstr( .filename, 15) = '.command_shell_' then
       shellnum = substr( .filename, 16)
@@ -646,20 +646,47 @@ compile if not (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@p
    return 1
 compile endif
 compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-   x = pos( '>',line)
+   p = pos( '>',line)
 compile else
-   x = pos( ']',line)
+   p = pos( ']',line)
 compile endif
-   text = substr( line, x + 1)
+   text = substr( line, p + 1)
 compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-   if leftstr( line, 5)='epm: ' & x & shellnum /*& text<>''*/ then
+   if leftstr( line, 5)='epm: ' & p & shellnum /*& text<>''*/ then
 compile else
-   if leftstr( line, 6)='[epm: ' & x & shellnum /*& text<>''*/ then
+   if leftstr( line, 6)='[epm: ' & p & shellnum /*& text<>''*/ then
 compile endif
-      return x
+      return p
    else
       return 0
    endif
+
+; ---------------------------------------------------------------------------
+; Move cursor to the start of the next prompt line. The prompt line must
+; have a command behind the prompt.
+; Optional arg is P (find previous prompt) to search backwards.
+defproc ShellGotoNextPrompt
+   if upcase( arg(1) = 'P') then
+      direction = '-r'
+   else
+      direction = ''
+   endif
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
+   'xcom l /^epm\: .*>:o./x'direction
+compile else  -- else EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
+   'xcom l /^\[epm\: .*\]:o./x'direction
+compile endif -- EPM_SHELL_PROMPT
+   return rc
+
+; ---------------------------------------------------------------------------
+; Parse current line and set Dir and Cmd via call by reference
+defproc ShellParsePromptLine( var Dir, var Cmd)
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
+   parse value textline(.line) with 'epm:' Dir '>' Cmd
+compile else
+   parse value textline(.line) with 'epm:' Dir ']' Cmd
+compile endif -- EPM_SHELL_PROMPT
+   return
 
 ; ---------------------------------------------------------------------------
 ; Filename completion like in 4os2.
@@ -682,17 +709,17 @@ defc ShellFncInit
    else
       return
    endif
-   x = PromptPos()
-   if not x then
+   p = ShellPromptPos()
+   if not p then
       return
    endif
    getline Line
-   Prompt = leftstr( Line, x)
-   PromptChar = substr( Prompt, x, 1)
+   Prompt = leftstr( Line, p)
+   PromptChar = substr( Prompt, p, 1)
    parse value Prompt with 'epm:' ShellDir (PromptChar)
    ShellDir = strip( ShellDir)
    -- Get the part of the line between prompt and cursor
-   Text = substr( Line, x + 1, .col - 1 - x)
+   Text = substr( Line, p + 1, .col - 1 - p)
    -- Strip leading spaces only, because a trailing space identifies the word before
    -- to have ended:
    --    > dir |   ->   dir *
