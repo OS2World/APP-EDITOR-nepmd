@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.35 2006-01-09 18:55:11 aschn Exp $
+* $Id: linkcmds.e,v 1.36 2006-03-11 21:03:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -546,13 +546,8 @@ defc RingCheckModify
    do i = 1 to filesinring()  -- omit hidden files
       if (substr( .filename, 1, 1) = '.') & (.filename <> GetUnnamedFilename()) then
          .modify = 0
-      elseif .modify then
-         rc = 1
-         -- let this file on top
-         activatefile fid
-         sayerror 'Current file is modified. Save it or discard changes first.'
-         stop  -- Stops further processing of current and calling command or
-               -- procedure. Advantage: no check for rc required.
+      else
+         'CheckModify'
       endif
       nextfile
       getfileid fid
@@ -560,6 +555,17 @@ defc RingCheckModify
          leave
       endif
    enddo
+
+; ---------------------------------------------------------------------------
+defc CheckModify
+   parse arg
+   if .modify then
+      rc = 1
+      -- let this file on top
+      sayerror 'Current file is modified. Save it or discard changes first.'
+      stop  -- Stops further processing of current and calling command or
+            -- procedure. Advantage: no check for rc required.
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Recompile all files, whose names found in .lst files in EPMEXPATH.
