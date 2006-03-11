@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.32 2006-03-04 16:11:18 aschn Exp $
+* $Id: newmenu.e,v 1.33 2006-03-11 21:11:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1281,11 +1281,21 @@ defproc add_format_menu(menuname)
    buildmenuitem menuname, mid, i, '~Singlespace',                                                       -- Singlespace
                                    'singlespace' ||
                                    \1'Remove duplicated line ends',
-                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+                                   MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
                                    MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Validate HTML...',                                                  -- Validate HTML
+                                   'ValidateHtml' ||
+                                   \1'Check syntax of a HTML file',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'V~alidate CSS...',                                                   -- Validate CSS
+                                   'ValidateCss' ||
+                                   \1'Check syntax of a CSS file',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Reco~de...',                                                   -- Recode...
                                    'recode' ||
