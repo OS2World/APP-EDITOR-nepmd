@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.14 2006-03-11 18:58:32 aschn Exp $
+* $Id: alt_1.e,v 1.15 2006-03-11 19:04:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -817,9 +817,10 @@ compile endif  -- HOST_SUPPORT
       -- from Spec or concatenate every path of the tree with
       -- Spec (should be resolved by NepmdQueryFullname).
    else
-      linenum  -- jbl 11/15/88, go to specified linenum if any.
-      if col <> '' then
-         .col = col
+      if linenum > '' & col > '' then
+         'postme goto' linenum col
+      elseif linenum > '' then
+         'postme goto' linenum
       endif
    endif
 
