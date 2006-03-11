@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.16 2006-03-11 19:08:45 aschn Exp $
+* $Id: alt_1.e,v 1.17 2006-03-11 19:43:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -157,6 +157,8 @@ compile endif
 
    -------------------------------------------------------------------------- shell or .DOS DIR
    -- todo: enable saved .command_shells as well  <-- also for mode = SHELL, to re-use them
+   call psave_pos(save_pos)
+   getsearch oldsearch
    cmd = ''
    if leftstr( .filename, 15) = '.command_shell_' then
       -- search (reverse) in command shell window for the prompt and retrieve the current directory and
@@ -170,6 +172,8 @@ compile endif
          call ShellParsePromptLine( curdir, cmd)
          parse value cmd with cmd Params
       endif
+      setsearch oldsearch
+      call prestore_pos(save_pos)
    elseif upcase( leftstr( .filename, 8)) = '.DOS DIR' then
       -- if a .DOS DIR window,
       parse value upcase(.filename) with '.DOS DIR' Params  -- retrieve params from the title
@@ -556,8 +560,8 @@ compile endif  -- HOST_SUPPORT
 compile if HOST_SUPPORT
    fn = .filename
    parse value .filename with filename filetyp fmode .  -- Not as crude, TJR
-   if ('INDEX' = filetyp & 'PROCS' = rightstr( filename, 5) then
-      if vmfile( fn, ft)) then
+   if ('INDEX' = filetyp & 'PROCS' = rightstr( filename, 5)) then
+      if vmfile( fn, ft) then
          parse value line with proc fn ft uid node date .
          if ('PROCS' <> ft) then                 -- Is the current line an entry?
             getline line, .line - 1              -- Go back one line and try again.
