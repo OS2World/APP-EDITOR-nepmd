@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.12 2005-11-24 19:45:11 aschn Exp $
+* $Id: alt_1.e,v 1.13 2006-03-11 18:45:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -94,9 +94,39 @@
 -- "stat" (the containing function) and then "statement".  I don't trust the
 -- line numbers to stay constant.
 -- I turn on this feature if the filetype is "USE" or "XRF".
--------------------------------------------------------------------------------
 
-const                             -- These are Alt-1.e -specific constants.
+; ---------------------------------------------------------------------------
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
+define INCLUDING_FILE = 'ALT_1.E'
+const
+   tryinclude 'MYCNF.E'        -- the user's configuration customizations.
+
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
+ compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+const
+ compile if not defined(NLS_LANGUAGE)
+   NLS_LANGUAGE = 'ENGLISH'
+ compile endif
+   include NLS_LANGUAGE'.e'
+   include 'stdconst.e'
+   EA_comment 'This defines the Alt_1 command.'
+
+ compile if not defined(HOST_SUPPORT)
+   HOST_SUPPORT = ''
+ compile endif
+
+defmain
+   'alt_1'
+
+compile endif
+
+; ---------------------------------------------------------------------------
+const                          -- These are ALT_1.E-specific constants.
 compile if not defined(AltOnePathVar)
    AltOnePathVar= 'ESEARCH'    -- the name of the environment variable
 compile endif
@@ -115,17 +145,17 @@ compile endif
 ;define
 ;   QUOTED_DIR_STRING ='"'DIRECTORYOF_STRING'"'
 
-
-defc a_1
+; ---------------------------------------------------------------------------
+defc alt_1, a_1
    universal host_LT                    -- Used with LAMPDQ.E
-compile if HOST_SUPPORT='EMUL' or HOST_SUPPORT='SRPI'
+compile if HOST_SUPPORT
    universal hostdrive
 compile endif
-   /* edit filename on current text line */
+   -- edit filename on current text line
    getline line
    orig_line = line
 
-; ----------------------------------------------------------------------------- shell or .DOS DIR
+   -------------------------------------------------------------------------- shell or .DOS DIR
    -- todo: enable saved .command_shells as well  <-- also for mode = SHELL, to re-use them
    cmd = ''
    if leftstr( .filename, 15) = '.command_shell_' then
@@ -154,7 +184,7 @@ compile endif -- EPM_SHELL_PROMPT
       Mask     = ''
       Dir      = ''
       FullName = ''
-      call ParseDirParams( Params, Flags, Mask)  -- parse Params and DIRCMD env var, set Flags and Mask
+      call Alt1ParseDirParams( Params, Flags, Mask)  -- parse Params and DIRCMD env var, set Flags and Mask
 
       if pos( 'B', Flags) then  -- if DIR /B, lines are filenames only and there is no "Directory of" line
          Name = line
@@ -287,7 +317,7 @@ compile endif -- EPM_SHELL_PROMPT
 
          if FullName = '' then
             if verify( word( line, 1), DIR_DATETIME_CHARS) = 0 &            -- date
-               VerifyTime( word( line, 2), DIR_DATETIME_CHARS) then         -- time
+               Alt1VerifyTime( word( line, 2), DIR_DATETIME_CHARS) then     -- time
                -- probably a dir listing, not FAT
                NameIsDir = (word( line, 3) = '<DIR>')
                if verify( word( line, 3), DIR_SIZE_CHARS) = 0 |             -- size
@@ -307,7 +337,7 @@ compile endif -- EPM_SHELL_PROMPT
                   --sayerror 'non-FAT size is invalid'
                endif
             elseif verify( word( line, words(line) - 1), DIR_DATETIME_CHARS) = 0 &  -- date
-               VerifyTime( word( line, words(line)), DIR_DATETIME_CHARS) then       -- time
+               Alt1VerifyTime( word( line, words(line)), DIR_DATETIME_CHARS) then   -- time
                -- probably a dir listing, FAT
                --sayerror 'passed FAT code date/time verify'
                NameIsDir = (word( line, words(line) - 2) = '<DIR>')
@@ -395,12 +425,13 @@ compile endif -- EPM_SHELL_PROMPT
 
    endif -- if DIR command
 
-; ----------------------------------------------------------------------------- .tree
+   -------------------------------------------------------------------------- .tree
    if .filename = '.tree' then
-      if substr(line,5,1)substr(line,8,1)substr(line,15,1)substr(line,18,1) = '--::' then
-         name = substr(line, 52)
-         if substr(line,31,1)='>' then
-            if isadefc('tree_dir') then
+      if substr( line, 5, 1)''substr( line, 8, 1)''substr( line, 15, 1) ||
+         substr( line, 18, 1) = '--::' then
+         name = substr( line, 52)
+         if substr( line, 31, 1) = '>' then
+            if isadefc( 'tree_dir') then
                'tree_dir "'name'\*.*"'
             else
                'dir' name
@@ -412,10 +443,8 @@ compile endif -- EPM_SHELL_PROMPT
       return
    endif
 
-; ----------------------------------------------------------------------------- Host: abbrev(LISTFILE) OUTPUT
-/******************************************************************************/
-/***       LAMPDQ support for LISTFILE output                               ***/
-/******************************************************************************/
+   -------------------------------------------------------------------------- Host: abbrev(LISTFILE) OUTPUT
+   -- LAMPDQ support for LISTFILE output
 compile if HOST_SUPPORT
    -- 5/11/88:  make Alt-1 work on lists of host files. */
    -- This works best with Larry Margolis's PDQ support (SLPDQ), and only
@@ -427,40 +456,37 @@ compile if HOST_SUPPORT
    -- LIST, and ignore extra spaces on left and info on right [e.g., output
    -- from LISTFILE (ALLOC ].
    parse value .filename with file ext .
-   if ext='OUTPUT' & file=substr('LISTFILE',1,length(file)) then
+   if ext = 'OUTPUT' & file = substr( 'LISTFILE', 1, length( file)) then
       parse value line with fn ft fm .
       parse value .userstring with '[lt:'lt']'
-      if lt='' then lt=host_lt; endif
-      'e 'substr(hostdrive,1,1) || lt':'fn ft fm
+      if lt = '' then
+         lt = host_lt
+      endif
+      'e 'substr( hostdrive, 1, 1)''lt':'fn ft fm
       return
    endif
 compile endif  -- HOST_SUPPORT
 
-; ----------------------------------------------------------------------------- LaMail .ndx
-/******************************************************************************/
-/***       LaMail index support                                             ***/
-/******************************************************************************/
-   if upcase(rightstr(.filename, 4))='.NDX' then
+   -------------------------------------------------------------------------- LaMail .ndx
+   -- LaMail index support
+   if upcase( rightstr( .filename, 4)) = '.NDX' then
       parse value orig_line with 28 fn ft . 84 ext
       if pos(\1, ext) then
-         'e' substr(.filename, 1, length(.filename)-4)'\'fn'.'ft
+         'e' substr( .filename, 1, length( .filename) - 4)'\'fn'.'ft
          return
       endif
    endif
 
-; ----------------------------------------------------------------------------- include
-/******************************************************************************/
-/***       include support                                                  ***/
-/******************************************************************************/
-; should work with any preprocesor, filetype, past  to future
-; set 'ESEARCH' to search other directories
-; (The previous version of include support is commented out by /** ... **/ pairs.)
+   -------------------------------------------------------------------------- include
+   -- include support
+   -- should work with any preprocesor, filetype, past  to future
+   -- set 'ESEARCH' to search other directories
    CurMode = GetMode()
    parse value lowcase( line) with word1 word2 .
-   if rightstr( word1, 7) = 'include' then           -- if first word ends in "include"
+   if rightstr( word1, 7) = 'include' then  -- if first word ends in "include"
       delim = leftstr( word2, 1)
       fTryCurFirst = 1
-      if pos( delim, "'" || '"') > 0 then            -- file has quote delimiters?
+      if pos( delim, "'" || '"') > 0 then   -- file has quote delimiters?
          parse value line with . (delim) filename (delim) .
       elseif delim = '<' then
          parse value line with . '<' filename '>' .
@@ -468,22 +494,22 @@ compile endif  -- HOST_SUPPORT
             fTryCurFirst = 0
          endif
       else
-         filename = word2     -- file has no delimiters, eg. MAK !include  file
+         filename = word2   -- file has no delimiters, eg. MAK !include  file
       endif
       if CurMode = 'E' then
-         path = 'EPMPATH'  /* For E macros */
+         path = 'EPMPATH'   -- for E macros
       elseif CurMode = 'MAKE' then
-         path = 'PATH'  /* For make files */
+         path = 'PATH'      -- for make files
 /*
 ; This TeX support is not very useful:
 ;   o  emTeX pathes may have "!" for recusive search appended.
 ;   o  VTeX has become the standard OS/2 TeX system in the meantime.
 ;   o  VTeX uses an ini, not env vars.
       elseif CurMode = 'TEX' then
-         path = 'TEXINPUT'  /* For TEX files */
+         path = 'TEXINPUT'  -- for TEX files
 */
       else
-         path = 'INCLUDE'  /* For C RC DLG MAK etc, all others PPWIZARD etc */
+         path = 'INCLUDE'   -- for C RC DLG MAK etc, all others PPWIZARD etc.
       endif
       call a1load( filename, path, fTryCurFirst)
       if rc = 0 then
@@ -491,46 +517,40 @@ compile endif  -- HOST_SUPPORT
       endif
    endif
 
-; ----------------------------------------------------------------------------- *.use *.xrf
-/******************************************************************************/
-/***       C-USED support                                                   ***/
-/******************************************************************************/
-
+   -------------------------------------------------------------------------- *.use *.xrf
+   -- C-USED support
    -- If the filetype is USE or XRF, do C-USED feature.
-   ext=substr(upcase(.filename),lastpos('.',upcase(.filename))+1)
-   if ext='USE' or ext='XRF' then
-      if substr(line,1,1)=' ' then  -- child line
+   ext = substr( upcase( .filename), lastpos( '.', upcase( .filename)) + 1)
+   if ext = 'USE' or ext = 'XRF' then
+      if substr( line, 1, 1) = ' ' then  -- child line
          parse value line with . infunc linenum file
-         for i = .line-1 to 1 by -1   -- search upward for parent line
-            getline line,i
-            if substr(line,1,1) <> ' ' then
+         for i = .line - 1 to 1 by -1    -- search upward for parent line
+            getline line, i
+            if substr( line, 1, 1) <> ' ' then
                parse value line with func .
                leave
             endif
          endfor
-         call a1load(file,AltOnePathVar,1)
+         call a1load( file, AltOnePathVar, 1)
          top
          'L /'infunc; if rc then return; endif
          'L /'func;   if rc then return; endif
          sayerror 'Found 'func' in 'infunc' in 'file'.'
-      else                          -- parent line
+      else                               -- parent line
          parse value line with func linenum file
-         if linenum='#' then        -- might have a '#' in 2nd column
+         if linenum = '#' then           -- might have a '#' in 2nd column
             parse value file with linenum file
          endif
-         call a1load(file,AltOnePathVar,1)
+         call a1load( file, AltOnePathVar, 1)
          top
          'L /'func; if rc then return; endif
          sayerror 'Found 'func' in 'file'.'
       endif
       return
-   endif    -- C-USED feature
+   endif
 
-; ----------------------------------------------------------------------------- Host: procs*.index
-/******************************************************************************/
-/***       E3PROCS index support                                            ***/
-/******************************************************************************/
-
+   -------------------------------------------------------------------------- Host: procs*.index
+   -- E3PROCS index support
    -- 11/10/88: Load Files Directly From The INDEX File.  By TJR
    --           Now loads files from the E3PROCS INDEX hostfile.  It is
    --           assumed that someday there will be an EOS2PROCS INDEX of
@@ -540,55 +560,57 @@ compile endif  -- HOST_SUPPORT
 compile if HOST_SUPPORT
    fn = .filename
    parse value .filename with filename filetyp fmode .  -- Not as crude, TJR
-   if ('INDEX'=filetyp & 'PROCS'=rightstr(filename, 5) &
-        vmfile(fn,ft)) then
-      parse value line with proc fn ft uid node date .
-      if ('PROCS'<>ft) then                   -- Is the current line an entry?
-         getline line, .line-1                -- Go back one line and try again.
+   if ('INDEX' = filetyp & 'PROCS' = rightstr( filename, 5) then
+      if vmfile( fn, ft)) then
          parse value line with proc fn ft uid node date .
-         if ('PROCS'<>ft) then                -- One more time. . . .
-            sayerror'Sorry, cursor is not at a PROCS index entry!  No file loaded!'
-            return
-         endif
-      endif                                   -- If we're here, must be an entry!
- compile if HOST_SUPPORT='EMUL' or HOST_SUPPORT='SRPI'
-      if substr(.filename, 3, 1)=':' then
-         lt = substr(.filename, 2, 1)
-      else
-         lt = host_lt
-      endif
-      'e' hostdrive || lt':'fn ft fmode
- compile else
-      'e' HOSTDRIVE || fn ft fmode
- compile endif
-      top                                     -- Goto top of file.
-      do forever
-         getsearch oldsearch
-         'xcom l ž'date'ž'                    -- Try to get the procedure.
-         setsearch oldsearch
-         if rc then
-            sayerror proc' macro added by 'uid' on 'date' was not found!'
-            TOP                               -- Go back to the top.
-            BEGINLINE                         -- Move to beginning.
-            return
+         if ('PROCS' <> ft) then                 -- Is the current line an entry?
+            getline line, .line - 1              -- Go back one line and try again.
+            parse value line with proc fn ft uid node date .
+            if ('PROCS' <> ft) then              -- One more time. . . .
+               sayerror'Sorry, cursor is not at a PROCS index entry!  No file loaded!'
+               return
+            endif
+         endif                                   -- If we're here, must be an entry!
+ compile if HOST_SUPPORT = 'EMUL' or HOST_SUPPORT = 'SRPI'
+         if substr( .filename, 3, 1) = ':' then
+            lt = substr( .filename, 2, 1)
          else
-            getline line
-            if (uid = substr(line, lastpos('by ', line)+3, length(uid))) then
-               sayerror proc' macro added by 'uid' on 'date
-               BEGINLINE                      -- Move to beginning.
+            lt = host_lt
+         endif
+         'e' hostdrive''lt':'fn ft fmode
+ compile else
+         'e' hostdrive''fn ft fmode
+ compile endif
+         top                                     -- Goto top of file.
+         do forever
+            getsearch oldsearch
+            'xcom l ž'date'ž'                    -- Try to get the procedure.
+            setsearch oldsearch
+            if rc then
+               sayerror proc' macro added by 'uid' on 'date' was not found!'
+               top                               -- Go back to the top.
+               beginline                         -- Move to beginning.
                return
             else
-               '+1'
+               getline line
+               if (uid = 
+                   substr( line, lastpos( 'by ', line) + 3, length(uid))) then
+                  sayerror proc' macro added by 'uid' on 'date
+                  beginline                      -- Move to beginning.
+                  return
+               else
+                  '+1'
+               endif
             endif
-         endif
-      enddo
+         enddo
+      endif
    endif
    -- End of TJR's INDEX file modifications.
 compile endif  -- HOST_SUPPORT
 
-/******************************************************************************/
-/***       GREP support                                                     ***/
-/******************************************************************************/
+   --------------------------------------------------------------------------
+   -- GREP support
+   -- Determine grep version: Gnu or Ralph Yozzo's grep
    fGnuGrep = ''
    -- Support reloaded grep outputs: <path>.Output from grep ...
    lp = lastpos( '\', word( .filename, 1))
@@ -605,9 +627,10 @@ compile endif  -- HOST_SUPPORT
          endif
       endif
    endif
-   if fGnuGrep = 1 then
-; ----------------------------------------------------------------------------- .Output from grep (Gnu)
+   
+   -------------------------------------------------------------------------- .Output from grep (Gnu)
    -- Handle Gnu GREP output like  full_specified_filename:lineno:text
+   if fGnuGrep = 1 then
       -- New: get current dir from line 1 to handle relative pathes.
       parse value textline(1) with 'Current directory = 'CurDir
 
@@ -635,16 +658,15 @@ compile endif  -- HOST_SUPPORT
       endif
    endif
 
-; ----------------------------------------------------------------------------- .Output from grep (RY)
+   -------------------------------------------------------------------------- .Output from grep (RY)
    -- 11/03/88: Open file specified by GREP and move to current line!  TJR
    -- Use the name ".grep" as the signature, so I can load multiple grep lists.
    -- See GREP.E.  jbl.
    if substr( .filename, 1, 5) = ".grep" |                            -- TJR's GREP
       fGnuGrep = 0 then                                               -- LAM's GREP
-;      substr( .filename, 1, 17) = ".Output from grep" then            -- LAM's GREP
       getsearch oldsearch
       call psave_pos(save_pos)
-      'xcom l .   File #. -'          /* Find previous file           */
+      'xcom l .   File #. -'          -- Find previous file
          setsearch oldsearch
       if rc then
          sayerror 'No files found!'
@@ -684,7 +706,7 @@ compile endif  -- HOST_SUPPORT
    endif
    -- End of TJRs 11/03/88 Modifications!
 
-; ----------------------------------------------------------------------------- .Output from gsee
+   ---------------------------------------------------------------------------- .Output from gsee
    if substr(.filename,1,17)=".Output from gsee" then            -- LAM's GSEE
       parse value line with name '.' ext 13 52 path
       if substr(line,9,1)='.' & substr(line,53,1)=':' then
@@ -694,7 +716,7 @@ compile endif  -- HOST_SUPPORT
       endif
    endif
 
-; ----------------------------------------------------------------------------- icc
+   -------------------------------------------------------------------------- icc
    -- jbl 11/15/88:  The C compiler error line can have a line number in
    -- parentheses, like "/epm/i/iproto.h(196)".  Get the number.
 
@@ -714,8 +736,8 @@ compile endif  -- HOST_SUPPORT
       endif
    endif
 
-; ----------------------------------------------------------------------------- word under cursor
-                                                         -- todo: support spaces in filenames and pathes
+   -------------------------------------------------------------------------- word under cursor
+   -- todo: support spaces in filenames and pathes
 
    CurMode = GetMode()
    StartCol = 0
@@ -866,7 +888,7 @@ defproc a1load( FileName, PathVar)
    endif
 
 ; ---------------------------------------------------------------------------
-defproc ParseDirParams( Params, var Flags, var Mask)
+defproc Alt1ParseDirParams( Params, var Flags, var Mask)
    -- parse DIRCMD into Flags
    DirCmd = Get_Env( 'DIRCMD')
    temp = DirCmd
@@ -916,7 +938,7 @@ defproc ParseDirParams( Params, var Flags, var Mask)
    return
 
 ; ---------------------------------------------------------------------------
-defproc VerifyTime
+defproc Alt1VerifyTime
    TimeWord = arg(1)
    DateTimeChars = arg(2)
    BadTimeCharPos = verify( TimeWord, DateTimeChars)

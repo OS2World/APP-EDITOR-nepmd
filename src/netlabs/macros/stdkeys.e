@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.27 2006-03-04 16:07:03 aschn Exp $
+* $Id: stdkeys.e,v 1.28 2006-03-11 18:45:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -279,7 +279,7 @@ def s_space       'Space'
 def c_space       'Space'
 
 ; ---- Load file ----
-def a_1           'a_1'                 -- Load file under cursor
+def a_1           'alt_1'               -- Load file under cursor
 
 ; ---- Indent ----
 def a_i           'IndentBlock'         -- Indent current mark or block 1 indent level
