@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.9 2005-11-24 01:58:43 aschn Exp $
+* $Id: applyico.cmd,v 1.10 2006-03-12 13:35:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -166,15 +166,17 @@
 
 
  /* set EPM program objects */
+ rc = SysSetObjectData( '<NEPMD_EPM_E>',,
+                        'ICONFILE='CallDir'\ico\nepmd_e.ico;');
+ rc = SysSetObjectData( '<NEPMD_EPM_ERX>',,
+                        'ICONFILE='CallDir'\ico\nepmd_erx.ico;');
+ rc = SysSetObjectData( '<NEPMD_EPM_TEX>',,
+                        'ICONFILE='CallDir'\ico\nepmd_tex.ico;');
+ rc = SysSetObjectData( '<NEPMD_EPM_EDIT_MACROFILE>',,
+                        'ICONFILE='CallDir'\ico\nepmd_ex.ico;');
 
-/* Disabled, because the icon is not used here (already added as resource to the loader).
- * rc = SysSetObjectData( '<NEPMD_EXECUTE>', 'ICONFILE='CallDir'\ico\nepmd.ico;');
- */
-
-/* Disabled, better don't touch the standard EPM object.
- * rc = SysSetObjectData( '<WP_EPM>',,
- *                        'ICONFILE='CallDir'\ico\epm4.ico;');
- */
+ /* delete obsolete object from v1.00 if present */
+ rc = SysDestroyObject( '<NEPMD_EXECUTABLE>');
 
  EXIT( 0);
 
