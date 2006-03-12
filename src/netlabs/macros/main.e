@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.38 2006-02-26 17:31:20 aschn Exp $
+* $Id: main.e,v 1.39 2006-03-12 10:41:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -42,13 +42,16 @@
 ;     current .EX file. For EPM.EX this is handled by MAIN.E.
 defmain
    universal rexx_profile
-   universal nepmd_hini
-   universal unnamedfilename
-   universal loadstate
-   universal CurEditCmd
-   universal firstloadedfid  -- first file for the 'xcom e /n' cmd
-   universal firstinringfid  -- first file in the ring
-   loadstate = 0
+   universal unnamedfilename  -- use NLS-dependent string from EPMMRI.DLL or
+                              -- ETKE603.DLL, not the one from ENGLISH.E
+   universal CurEditCmd       -- used to maybe disable cursor restoring,
+                              -- just init it here to ''
+   universal loadstate        -- init loadstate here
+   loadstate = 0  -- This universal var can be used to check if there occured
+                  -- a defload event after the last afterload was processed.
+                  --    1: defload is running
+                  --    2: defload processed
+                  --    0: afterload processed
 
 ;  Get args and make it a parameter for the edit cmd ------------------------
    doscmdline = 'e 'arg(1) /* Can do special processing of DOS command line.*/
@@ -64,6 +67,7 @@ defmain
    'InitConfig'
 
 ;  Get the .Untitled filename, defined in the DLLs, NLS-dependent. ----------
+   -- EPM always starts with an .Untitled file.
    -- For the language-specific versions of the EPM binaries (W4+) all
    -- resources moved to epmmri.dll. The .Untitled name is stringtable item
    -- 54.
@@ -124,6 +128,24 @@ compile endif
          'rx' Profile arg(1)
       endif
    endif
+
+   'postme main2' unnamedfid','doscmdline
+
+; ---------------------------------------------------------------------------
+; When PROFILE.ERX is processed, it often takes a longer time. In order to
+; keep the order of the further steps (e.g. afterload) right, moving the rest
+; of defmain to a posted defc should delay it until PROFILE.ERX processing
+; is fully completed. Fortunally the single postme doesn't cause much
+; overhead here.
+defc main2
+   universal nepmd_hini
+                             -- following universals are initialized to the
+                             -- fileid of the file after execution of the
+                             -- 'xcom e /n' command:
+   universal firstloadedfid  -- first loaded file
+   universal firstinringfid  -- first file in the ring
+
+   parse arg unnamedfid ',' doscmdline
 
 ;  Maybe change to previous work dir ----------------------------------------
    KeyPath = '\NEPMD\User\ChangeWorkDir'
