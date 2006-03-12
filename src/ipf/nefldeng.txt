@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nefldeng.txt,v 1.3 2006-03-12 13:44:35 aschn Exp $
+.. $Id: nefldeng.txt,v 1.4 2006-03-12 19:05:30 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -51,20 +51,23 @@ This icon represents the folder of the [=TITLE].
 See the *[=USRTITLE]* within that folder for more details.
 
 .. =============================================================================
-.2 Help for EPM v6.03b
+.2 Help for EPM
 .. =============================================================================
 .an IDPNL_ICON_EPM
 .res 101
 .
 This icon launches the *EPM* with the additions of the
 [=TITLE]. Several *EPM* program objects exist with different
-associations and icons.
+parameters, associations and icons. Use the object called "EPM"
+as your new standard *EPM* program object.
 
-In order to use the standard EPM after installation of the [=TITLE],
+For comparism with the old *EPM* after installation of the [=TITLE],
 you can use the standard *Enhanced Editor* object, that was created
-by your operating system's installation.
+by your operating system's installation. Therefore you have to close
+all other *NEPMD EPM* objects before.
 
-See the *[=USRTITLE]* for more details.
+See the *[=USRTITLE]* for more details and an alternative how to use
+both *EPM* versions simultanously.
 
 .. =============================================================================
 .2 Help for [=USRTITLE]
@@ -83,7 +86,7 @@ information about *EPM* and the [=TITLE] and its extensions.
 .
 This icon launches the *[=PRGTITLE]*, containing
 additional information about the [=TITLE], concerning
-the extensions applied to the *EPM executable.
+the extensions applied to the *EPM* executable.
 
 See also the *[=USRTITLE]* for more details.
 
@@ -100,7 +103,7 @@ the [=TITLE]. Using this program the recompilation of the
 See also the *[=USRTITLE]* for more details.
 
 .. =============================================================================
-.2 Help for myepm
+.2 Help for myepm folder
 .. =============================================================================
 .an IDPNL_ICON_MYEPM
 .res 105
@@ -108,7 +111,7 @@ See also the *[=USRTITLE]* for more details.
 This icon represents the *myepm* directory
 below the installation directory of the [=TITLE].
 All user extensions are intended to be placed within this
-directory
+directory.
 
 See also the *[=USRTITLE]*,
 .ul compact
@@ -126,7 +129,7 @@ This icon launches the *EPM* Users Guide.
 
 [=NOTE]
 .ul compact
-- due to extensions introduced by the [=TITLE],
+- Due to extensions introduced by the [=TITLE],
   some of the information provided in this online document
   may be outdated.
 
@@ -143,7 +146,7 @@ This icon launches the *EPM* Technical Reference
 
 [=NOTE]
 .ul compact
-- due to extensions introduced by the [=TITLE],
+- Due to extensions introduced by the [=TITLE],
   some of the information provided in this online document
   may be outdated.
 
@@ -183,7 +186,7 @@ This icon launches the *EPM* C macro Readme
 .an IDPNL_ICON_RMACREADME
 .res 111
 .
-This icon launches the *EPM* REXX macro Readme
+This icon launches the *EPM* REXX macro Readme.
 
 .. =============================================================================
 .2 Help for Start EPM Speech Support
@@ -208,4 +211,23 @@ This icon is a shadow of the *System Startup* folder.
 It is intended to give you quick access to the Startup folder
 where the installation program of the [=TITLE] creates a shadow
 of the icon for to start the [.IDPNL_ICON_SPEECH  *EPM* Speech Support].
+
+.. =============================================================================
+.2 Help for NEPMD folder
+.. =============================================================================
+.an IDPNL_ICON_NEPMD
+.res 114
+.
+This icon represents the installation directory
+of the [=TITLE]. It contains three main trees:
+.ul compact
+- *netlabs* (additions from the NEPMD project)
+- *myepm* (user files go here)
+- *epmbbs* (mostly for comparism only)
+
+See also the *[=USRTITLE]*,
+.ul compact
+- Appendix: The [=TITLE] Installation
+.el
+for more details about the *extended directory structure*.
 

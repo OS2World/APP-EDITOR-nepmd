@@ -2,12 +2,12 @@
 ..
 .. Module Name: titleeng.inc
 ..
-.. include file defining major variables for sources for INF files
-.. Requires HyperText/2 package to compile
+.. Include file defining major variables for sources for INF files.
+.. Requires HyperText/2 package to compile.
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: titleeng.inc,v 1.4 2002-11-04 22:49:13 cla Exp $
+.. $Id: titleeng.inc,v 1.5 2006-03-12 19:05:30 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -23,7 +23,7 @@
 .. ***************************************************************************
 
 .set DOCTITLE=Netlabs EPM Distribution
-.set USRTITLE=[=DOCTITLE] User Guide
+.set USRTITLE=[=DOCTITLE] User's Guide
 .set PRGTITLE=[=DOCTITLE] Programming Guide
 .set FLDTITLE=[=DOCTITLE] Folder Help
 .set DISTDIR=netlabs
