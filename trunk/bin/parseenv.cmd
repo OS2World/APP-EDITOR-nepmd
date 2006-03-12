@@ -35,7 +35,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: parseenv.cmd,v 1.4 2002-08-06 20:15:47 cla Exp $
+* $Id: parseenv.cmd,v 1.5 2006-03-12 10:50:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +54,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.4 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.5 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -305,32 +305,40 @@ FileExist: PROCEDURE
  RETURN(STREAM(Filename, 'C', 'QUERY EXISTS') > '');
 
 /* ------------------------------------------------------------------------- */
+/* Resolve environment vars.                                                 */
+/* Don't process WPS %-params.                                               */
 ParseLine: PROCEDURE EXPOSE env
  PARSE ARG ThisLine
 
- Delimiter = '%';
+ Delim    = '%';
+ NoDelim  = '%*';
 
- ThisLineCopy = '';
- CurrentPos   = 1;
+ startp = 1;
+ DO WHILE 1 > 0
+    p1 = pos( Delim, ThisLine, startp);
+    IF p1 = 0 THEN
+       LEAVE;
 
- VarStart = POS(Delimiter, ThisLine);
- DO WHILE (VarStart > 0)
+    IF pos( NoDelim, ThisLine, p1) = p1 THEN
+    DO
+       startp = startp + LENGTH( NoDelim);
+       ITERATE;
+    END;
 
-    VarEnd       = Pos(Delimiter, ThisLine, VarStart + 1);
-    ThisVar      = SUBSTR(ThisLine, VarStart + 1, VarEnd - VarStart - 1);
-    ThisVarValue = VALUE(ThisVar,,env);
+    p2 = pos( Delim, ThisLine, p1 + 1);
+    IF p2 = 0 THEN
+       LEAVE;
 
-    ThisLineCopy = ThisLineCopy||,
-                   SUBSTR(ThisLine, CurrentPos, VarStart - CurrentPos)||,
-                   ThisVarValue;
-    CurrentPos   = VarEnd + 1;
+    LeftPart  = SUBSTR( ThisLine, 1, p1 - 1);
+    RightPart = SUBSTR( ThisLine, p2 + 1);
+    ThisVar   = SUBSTR( ThisLine, p1 + 1, p2 - p1 - 1);
+    Resolved  = VALUE( ThisVar, , env);
+    startp    = LENGTH( LeftPart) + LENGTH( Resolved) + 1;
 
-    VarStart = POS(Delimiter, ThisLine, CurrentPos);
+    ThisLine  = LeftPart''Resolved''RightPart;
  END;
 
- ThisLineCopy = ThisLineCopy||SUBSTR(ThisLine, CurrentPos);
-
- RETURN(ThisLineCopy);
+ RETURN( ThisLine);
 
 /* ========================================================================= */
 StrReplace: PROCEDURE
