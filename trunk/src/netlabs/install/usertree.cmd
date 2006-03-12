@@ -3,14 +3,16 @@
 * Module Name: usertree.cmd
 *
 * Helper batch for to create all directories of the personal subdirectory
-* tree (a WarpIn package cannot include empty directories)
+* tree (a WarpIn package cannot include empty directories).
+* 
+* Additionally, it creates shadow objects for the user and the root folder.
 *
-* This program is intended to be called by NLSETUP.EXE only during
-* installation of the Netlabs EPM Distribution.
+* This program is intended to be called by NLSETUP.EXE during installation
+* of the Netlabs EPM Distribution.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: usertree.cmd,v 1.10 2005-07-17 15:41:56 aschn Exp $
+* $Id: usertree.cmd,v 1.11 2006-03-12 19:05:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +26,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
 
  /* ##############   Maintainer: modify directory list here ######################## */
 
@@ -131,10 +132,11 @@
        LEAVE;
     END
 
+    /* apply help panel to UserDir folder */
+    rcx = SysSetObjectData( UserDir, 'DEFAULTVIEW=TREE;HELPLIBRARY='RootDir'\netlabs\help\nefldeng.hlp;HELPPANEL=105;');
     /* create shadow of UserDir folder in NEPMD folder */
     ObjectId = ObjectIdStart''TRANSLATE( UserDirName)''ObjectIdEnd;
     rcx = SysCreateObject( 'WPShadow', '.', FolderId, 'SHADOWID='UserDir';OBJECTID='ObjectId';', 'U');
-    rcx = SysSetObjectData( UserDir, 'DEFAULTVIEW=TREE;HELPLIBRARY='RootDir'\netlabs\help\nefldeng.hlp;HELPPANEL=105;');
 
     /* create directories here - ignore errors */
     DO WHILE (UserDirList \= '')
@@ -144,6 +146,12 @@
        rcx = SysSetObjectData( FullPath, 'DEFAULTVIEW=ICON;');
     END;
  END
+
+ /* apply help panel to RootDir folder */
+ rcx = SysSetObjectData( RootDir, 'DEFAULTVIEW=TREE;HELPLIBRARY='RootDir'\netlabs\help\nefldeng.hlp;HELPPANEL=114;');
+ /* create shadow of RootDir folder in NEPMD folder */
+ ObjectId = ObjectIdStart''TRANSLATE( RootDirName)''ObjectIdEnd;
+ rcx = SysCreateObject( 'WPShadow', '.', FolderId, 'SHADOWID='RootDir';OBJECTID='ObjectId';', 'U');
 
  /* report error message */
  SELECT
