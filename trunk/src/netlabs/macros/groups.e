@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.12 2006-03-19 17:45:28 aschn Exp $
+* $Id: groups.e,v 1.13 2006-03-19 17:49:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -368,7 +368,7 @@ compile endif
          endif
          parse value listbox( 'Select group name',
                               \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
-                              '/~Load/~Delete/'Cancel__MSG,  -- buttons
+                              '/~Load/~Delete.../'Cancel__MSG,  -- buttons
                               1, 35,                         -- row, col,
                               min( noflines, 12), 0,         -- height, width
                               gethwndc(APP_HANDLE) || atoi(1) || atoi(1) ||
