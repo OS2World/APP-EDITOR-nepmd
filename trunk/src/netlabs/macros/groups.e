@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.10 2005-09-15 17:58:41 aschn Exp $
+* $Id: groups.e,v 1.11 2006-03-19 15:40:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -56,9 +56,16 @@ defmain
    ''arg(1)
 compile endif  -- not defined(SMALL)
 
+; ---------------------------------------------------------------------------
 const
+; Ask to create a WPS object on the desktop?
 compile if not defined(INCLUDE_DESKTOP_SUPPORT)
    INCLUDE_DESKTOP_SUPPORT = 1
+compile endif
+; Save groups in ini as cluttered as standard EPM does or use NEPMD's
+; registry?
+compile if not defined(GROUPS_USE_STANDARD_INI_DEST)
+   GROUPS_USE_STANDARD_INI_DEST = 0
 compile endif
    CO_FAILIFEXISTS    = 0
    CO_REPLACEIFEXISTS = 1
@@ -69,19 +76,16 @@ compile endif
    GR_LOAD_PROMPT = 'Load a previously saved group.'
    GR_DELETE_PROMPT = 'OK to delete group:'
    GR_NONE_FOUND = 'No saved groups found!'
-compile if not defined(NEPMD_DEBUG)
-   NEPMD_DEBUG = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_LOADGROUP)
-   NEPMD_DEBUG_LOADGROUP = 0
-compile endif
-
+; ---------------------------------------------------------------------------
+; Toolbar actions
+; ---------------------------------------------------------------------------
 defc groups_actionlist
 universal ActionsList_FileID  -- This is the fileid that gets the line(s)
 
 insertline '|group_savegroup|'GR_SAVE_PROMPT'  'GR_SAVE_PROMPT2'|groups|', ActionsList_FileID.last+1, ActionsList_FileID
 insertline '|group_loadgroup|'GR_LOAD_PROMPT'|groups|', ActionsList_FileID.last+1, ActionsList_FileID
 
+; ---------------------------------------------------------------------------
 defc group_savegroup
    parse arg action_letter parms
    if action_letter = 'S' then       -- button Selected
@@ -97,6 +101,7 @@ defc group_savegroup
 ;;    sayerror 0
    endif
 
+; ---------------------------------------------------------------------------
 defc group_loadgroup
    parse arg action_letter parms
    if action_letter = 'S' then       -- button Selected
@@ -112,6 +117,7 @@ defc group_loadgroup
 ;;    sayerror 0
    endif
 
+; ---------------------------------------------------------------------------
 compile if not defined(SMALL)  -- If being separately compiled separately, LOADGROUP command
                                -- might not be known - execute via our DEFMAIN.
    define loadgroup_cmd = 'groups loadgroup'
@@ -119,14 +125,19 @@ compile else
    define loadgroup_cmd = 'loadgroup'
 compile endif
 
+; ---------------------------------------------------------------------------
 defc savegroup =
    universal app_hini
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Groups'
+
    getfileid startfid
    do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       if .filename = GetUnnamedFilename() then
          if .last <> 1 or textline(1) <> '' then
             activatefile startfid
-            sayerror 'An unnamed file exists in the ring; it must have a name to save the ring.'
+            sayerror 'An unnamed file exists in the ring;' ||
+                     ' it must have a name to save the ring.'
             return
          endif
       endif
@@ -138,13 +149,21 @@ defc savegroup =
    enddo  -- Loop through all files in ring
 
    group_name = arg(1)
-   if group_name='' then
+   if group_name = '' then
       group_name = entrybox('Group name')
    endif
-   if group_name='' then
+   if group_name = '' then
       return
    endif
+compile if GROUPS_USE_STANDARD_INI_DEST
    tempstr = queryprofile( app_hini,  group_name, 'ENTRIES')
+compile else
+   tempstr = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\ENTRIES')
+   parse value tempstr with 'ERROR:'rc
+   if rc > '' then
+      tempstr = ''
+   endif
+compile endif
    if tempstr <> '' then
       if MBID_OK <> winmessagebox( 'Save Group',
                                    'Group already exists.  OK to replace it?',
@@ -157,45 +176,65 @@ defc savegroup =
    next_file
    getfileid firstfid
    -- Write all FILEi and POSNi to EPM.INI
+   n = 0
    do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
-      call NepmdPmPrintf( '.filename = '.filename)
-      call setprofile( app_hini, group_name, 'FILE'i, .filename)
-      call setprofile( app_hini, group_name, 'POSN'i, .line .col .cursorx .cursory)
+      Ignore = ((leftstr( .filename, 1) = '.') | (not .visible))
+      if not Ignore then
+         n = n + 1
+compile if GROUPS_USE_STANDARD_INI_DEST
+         call setprofile( app_hini, group_name, 'FILE'n, .filename)
+         call setprofile( app_hini, group_name, 'POSN'n, .line .col .cursorx .cursory)
+compile else
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\FILE'n, .filename)
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\POSN'n, .line .col .cursorx .cursory)
+compile endif
+      endif
       next_file
       getfileid curfid
       if curfid = firstfid then
          leave
       endif
    enddo  -- Loop through all files in ring
-   call setprofile( app_hini, group_name, 'ENTRIES', i)
+compile if GROUPS_USE_STANDARD_INI_DEST
+   call setprofile( app_hini, group_name, 'ENTRIES', n)
+compile else
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\ENTRIES', n)
+compile endif
    activatefile startfid
 
    -- Remove the rest
    if (tempstr <> '') & (tempstr > i) then
-      do j = i + 1 to tempstr
+      do j = n + 1 to tempstr
+compile if GROUPS_USE_STANDARD_INI_DEST
          call setprofile( app_hini, group_name, 'FILE'j, '')
          call setprofile( app_hini, group_name, 'POSN'j, '')
+compile else
+         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\FILE'j)
+         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\POSN'j)
+compile endif
       enddo
    endif
 
 compile if INCLUDE_DESKTOP_SUPPORT -- Ask whether to include on Desktop?
    if MBID_YES = winmessagebox( 'Save Group',
-                                'Add a program object to the OS/2 desktop for this group?',
+                                'Add a program object to the OS/2 desktop' ||
+                                ' for this group?',
                                 16404) then  -- MB_YESNO + MB_ICONQUESTION + MB_MOVEABLE
 /*
-      tib_ptr = 1234                /* 4-byte place to put a far pointer */
+      tib_ptr = 1234                -- 4-byte place to put a far pointer
       pib_ptr = 1234
-      call dynalink32('DOSCALLS',           /* dynamic link library name   */
-                    '#312',               /* ordinal value for DOS32GETINFOBLOCKS */
+      call dynalink32( 'DOSCALLS',  -- dynamic link library name
+                       '#312',      -- ordinal value for DOS32GETINFOBLOCKS
                     address(tib_ptr) ||
                     address(pib_ptr) )
 ;     sayerror 'tib_ptr =' c2x(tib_ptr) 'pib_ptr =' c2x(pib_ptr)
-      pib = peek(itoa(rightstr(pib_ptr,2),10), itoa(leftstr(pib_ptr,2),10), 28)
-      epm_cmd = peekz(substr(pib, 13, 4))
+      pib = peek( itoa( rightstr( pib_ptr, 2), 10),
+                  itoa( leftstr( pib_ptr, 2), 10), 28)
+      epm_cmd = peekz( substr( pib, 13, 4))
 */
       epm_cmd = 'EPM.EXE'  -- No path required
       class_name = "WPProgram"\0
-                      /* ^ = ASCII 94 = 'hat' */
+                      -- ^ = ASCII 94 = 'hat'
       title = "EPM Group:^"group_name\0
       setup_string = "EXENAME="epm_cmd";"        ||
                      "PROGTYPE=PM;"              ||
@@ -203,13 +242,13 @@ compile if INCLUDE_DESKTOP_SUPPORT -- Ask whether to include on Desktop?
                      "PARAMETERS='"loadgroup_cmd group_name"';"\0
       location = "<WP_DESKTOP>"\0
       rc = 0
-      hobj=dynalink32('PMWP',           /* dynamic link library name   */
-                      '#281',           -- 'WinCreateObject'
-                      address(class_name)   ||
-                      address(title)        ||
-                      address(setup_string) ||
-                      address(location)     ||
-                      atol(CO_REPLACEIFEXISTS), 2)
+      hobj = dynalink32( 'PMWP',      -- dynamic link library name
+                         '#281',      -- 'WinCreateObject'
+                         address(class_name)   ||
+                         address(title)        ||
+                         address(setup_string) ||
+                         address(location)     ||
+                         atol(CO_REPLACEIFEXISTS), 2)
 ;     if rc then hobj = hobj'; rc = 'rc '-' sayerrortext(rc); endif
 ;     sayerror 'hobject =' hobj
       if not hobj then
@@ -218,22 +257,37 @@ compile if INCLUDE_DESKTOP_SUPPORT -- Ask whether to include on Desktop?
    endif
 compile endif  -- INCLUDE_DESKTOP_SUPPORT
 
+; ---------------------------------------------------------------------------
 defc loadgroup =
    universal app_hini
+   universal nepmd_hini
    universal CurEditCmd
+   KeyPath = '\NEPMD\User\Groups'
+
    getfileid startfid
    group_name = arg(1)
+
    if (group_name = '') | (group_name = '?') then
+/*
+      -- Entry box disabled. Always start with the list box now.
       if group_name = '' then
          parse value entrybox( 'Group name',
                                '/'OK__MSG'/'LIST__MSG'/'Cancel__MSG'/',
-                               '', '', 64,                -- Entrytext, cols, maxchars
-                               atoi(1) || atoi(0000) || gethwndc(APP_HANDLE)) with button 2 group_name \0
+                               '', '', 64,   -- Entrytext, cols, maxchars
+                               atoi(1) ||
+                               atoi(0000) ||
+                               gethwndc(APP_HANDLE)) with button 2 group_name \0
       else
+*/
          button = \2
+/*
       endif
+*/
+
       if button = \2 then -- User asked for a list
-         bufhndl = buffer(CREATEBUF, 'groups', MAXBUFSIZE, 1 )  -- Create a private buffer
+         bufhndl = buffer( CREATEBUF, 'groups', MAXBUFSIZE, 1)  -- Create a private buffer
+
+compile if GROUPS_USE_STANDARD_INI_DEST
          retlen = \0\0\0\0
          l = dynalink32( 'PMSHAPI',
                          '#115',               -- PRF32QUERYPROFILESTRING
@@ -242,34 +296,65 @@ defc loadgroup =
                          atol(0)           ||  -- Key name
                          atol(0)           ||  -- Default return string is NULL
                          atoi(0) || atoi(bufhndl)  ||  -- pointer to returned string buffer
-                         atol(65535)       ||       -- max length of returned string
-                         address(retlen), 2)         -- length of returned string
+                         atol(65535)       ||  -- max length of returned string
+                         address(retlen), 2)   -- length of returned string
          poke bufhndl, 65535, \0
-         if not l then sayerror 'Nothing in .INI file???'; return; endif
+
+         if not l then
+            sayerror 'Nothing in .INI file'
+            return
+         endif
+compile else
+         next = ''
+         next = NepmdGetNextConfigKey( nepmd_hini, KeyPath, next, 'B')
+         parse value next with 'ERROR:'rc
+         if rc > '' then
+            sayerror 'Nothing in .INI file'
+            return
+         endif
+compile endif
+
          'xcom e /c /q tempfile'
          if rc <> -282 then  -- sayerror('New file')
             sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
-            call buffer(FREEBUF, bufhndl)
+            call buffer( FREEBUF, bufhndl)
             return
          endif
          .autosave = 0
          browse_mode = browse()     -- query current state
-         if browse_mode then call browse(0); endif
+         if browse_mode then
+            call browse(0)
+         endif
+compile if GROUPS_USE_STANDARD_INI_DEST
          buf_ofs = 0
          do while buf_ofs < l
-            this_group = peekz(bufhndl, buf_ofs)
-            entries = queryprofile(app_hini, this_group, 'ENTRIES')
+            this_group = peekz( bufhndl, buf_ofs)
+            entries = queryprofile( app_hini, this_group, 'ENTRIES')
             if entries <> '' then
-               insertline this_group, .last+1
+               insertline this_group, .last + 1
             endif
             buf_ofs = buf_ofs + length(this_group) + 1
          enddo
-         call buffer(FREEBUF, bufhndl)
+         call buffer( FREEBUF, bufhndl)
+compile else
+         do forever
+            insertline next, .last + 1
+            next = NepmdGetNextConfigKey( nepmd_hini, KeyPath, next, 'C')
+            parse value next with 'ERROR:'rc
+            if rc > '' then
+               leave
+            endif
+         enddo
+compile endif
+
          if .last > 2 then
             getfileid fileid
-            call sort(2, .last, 1, 40, fileid, 'I')
+            call sort( 2, .last, 1, 40, fileid, 'I')
          endif
-         if browse_mode then call browse(1); endif  -- restore browse state
+         if browse_mode then
+            call browse(1)
+         endif  -- restore browse state
+
          if .last = 1 then
             'xcom quit'
             call winmessagebox( GROUPS__MSG,
@@ -278,29 +363,64 @@ defc loadgroup =
             return
          endif
 
-         if listbox_buffer_from_file(startfid, bufhndl, noflines, usedsize) then return; endif
+         if listbox_buffer_from_file( startfid, bufhndl, noflines, usedsize) then
+            return
+         endif
          parse value listbox( 'Select group name',
                               \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
-                              '/~Load/~Delete.../'Cancel__MSG, 1, 35, min(noflines,12), 0,   -- Buttons, row, col, height, width
-                              gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(0000)) with button 2 group_name \0
-         call buffer(FREEBUF, bufhndl)
+                              '/~Load/~Delete.../'Cancel__MSG,  -- buttons
+                              1, 35,                            -- row, col,
+                              min( noflines, 12), 0,            -- height, width
+                              gethwndc(APP_HANDLE) || atoi(1) || atoi(1) ||
+                              atoi(0000)) with button 2 group_name \0
+         call buffer( FREEBUF, bufhndl)
+
          if button = \2 then -- 'Delete' selected
             if MBID_OK <> winmessagebox( GROUPS__MSG,
                                          GR_DELETE_PROMPT\10 group_name,
                                          MB_OKCANCEL + MB_QUERY + MB_MOVEABLE) then
                return
             endif
+compile if GROUPS_USE_STANDARD_INI_DEST
             call setprofile( app_hini, group_name, '', '')
-         endif
-      endif  -- button = \2
+compile else
+            -- Delete KeyPath'\'group_name from nepmd_hini
+            -- Query all sub-pathes and delete them first
+            do forever
+               next2 = ''  -- always restart the query, since list was changed by the deletion
+               next2 = NepmdGetNextConfigKey( nepmd_hini, KeyPath'\'group_name, next2, 'K')
+               parse value next2 with 'ERROR:'rc1
+               if rc1 > '' then
+                  leave
+               endif
+               rc2 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\'next2)
+            enddo
+compile endif
+            -- Open list box again
+            'postme groups loadgroup ?'
+            return
+         endif  -- button = 2 (Delete)
+      endif  -- button = \2 (List)
+
       if button <> \1 then
          return
       endif
    endif
+
    if group_name = '' then
       return
    endif
+
+compile if GROUPS_USE_STANDARD_INI_DEST
    howmany = queryprofile( app_hini,  group_name, 'ENTRIES')
+compile else
+   howmany = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\ENTRIES')
+   parse value howmany with 'ERROR:'rc
+   if rc > '' then
+      sayerror 'Group unknown.'
+      return
+   endif
+compile endif
    if howmany = '' then
       sayerror 'Group unknown.'
       return
@@ -309,8 +429,13 @@ defc loadgroup =
       display -8
       sayerror 'Loading file' i 'of' howmany
       display 8
+compile if GROUPS_USE_STANDARD_INI_DEST
       this_file = queryprofile( app_hini, group_name, 'FILE'i)
-compile if NEPMD_DEBUG_LOADGROUP and NEPMD_DEBUG
+compile else
+      this_file = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\FILE'i)
+compile endif
+
+compile if 0
       call NepmdPmPrintf( 'LOADGROUP: file 'i': 'this_file)
       call NepmdPmPrintf( 'LOADGROUP:         FilesInRing = 'filesinring())
       getfileid curfid
@@ -326,8 +451,9 @@ compile if NEPMD_DEBUG_LOADGROUP and NEPMD_DEBUG
       enddo
       activatefile curfid
 compile endif
-      if leftstr(this_file, 5) = '.DOS ' then
-         subword(this_file, 2)  -- execute the command
+
+      if leftstr( this_file, 5) = '.DOS ' then
+         subword( this_file, 2)  -- execute the command
       elseif this_file = GetUnnamedFilename() then
          'xcom e /n'
       else
@@ -335,16 +461,28 @@ compile endif
          CurEditCmd = 'LOADGROUP'  -- must follow the 'edit' cmd
       endif
       if not rc | rc = sayerror('Lines truncated') then
-         call prestore_pos(queryprofile(app_hini, group_name, 'POSN'i))
+compile if GROUPS_USE_STANDARD_INI_DEST
+         this_posn = queryprofile( app_hini, group_name, 'POSN'i)
+compile else
+         this_posn = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\POSN'i)
+compile endif
+         call prestore_pos(this_posn)
       endif
    enddo
 
+; ---------------------------------------------------------------------------
 defc listgroups =
    universal app_hini
    groups = ''
+compile if GROUPS_USE_STANDARD_INI_DEST
+compile else
+compile endif
    applications = queryprofile( app_hini, '', '')
    do while applications <> ''
       parse value applications with app \0 applications
+compile if GROUPS_USE_STANDARD_INI_DEST
+compile else
+compile endif
       group_entries =  queryprofile( app_hini, app, 'ENTRIES')
       if group_entries <> '' then
          groups = groups app
@@ -352,14 +490,20 @@ defc listgroups =
    enddo
    sayerror 'List of groups is:' groups
 
+; ---------------------------------------------------------------------------
 defc killgroup =
    universal app_hini
    parse arg group
+compile if GROUPS_USE_STANDARD_INI_DEST
+compile else
+compile endif
    group_entries =  queryprofile( app_hini, group, 'ENTRIES')
    if group_entries = '' then  -- Make sure we don't delete something important!
       sayerror 'Not a group.'
       return
    endif
+compile if GROUPS_USE_STANDARD_INI_DEST
+compile else
+compile endif
    call setprofile( app_hini, group, '', '')  -- Delete the entire application
-
 
