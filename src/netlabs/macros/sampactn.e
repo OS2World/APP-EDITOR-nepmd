@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sampactn.e,v 1.6 2005-11-24 19:40:12 aschn Exp $
+* $Id: sampactn.e,v 1.7 2006-03-19 11:30:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -127,7 +127,7 @@ defc sampactn_actionlist
 ; EPM.HLP.
 
 defc a_Messages
-   a_common_action(arg(1), 'messagebox', MESSAGES_MENUP__MSG, HP_OPTIONS_MESSAGES)
+   a_common_action( arg(1), 'messagebox', MESSAGES_MENUP__MSG, HP_OPTIONS_MESSAGES)
 
 defc a_Add_New
    parse arg action_letter parms
@@ -140,22 +140,24 @@ defc a_Add_New
       'xcom e /n'                       -- execute action
    elseif action_letter = 'H' then   -- button Help
 ;;    'helpmenu' ???                     -- No help panel for this; use a messagebox
-      call winmessagebox(a_Add_New__MSG, a_Add_New_PROMPT, MB_OK + MB_INFORMATION + MB_MOVEABLE)
+      call winmessagebox( a_Add_New__MSG,
+                          a_Add_New_PROMPT,
+                          MB_OK + MB_INFORMATION + MB_MOVEABLE)
    elseif action_letter = 'E' then   -- button End
 ;;    sayerror 0                        -- (We don't do anything for this one; get lots of them.)
    endif
 
 defc a_Add_File
-   a_common_action(arg(1), 'opendlg EDIT', ADD_MENUP__MSG, HP_FILE_EDIT)
+   a_common_action( arg(1), 'opendlg EDIT', ADD_MENUP__MSG, HP_FILE_EDIT)
 
 defc a_Open_empty
-   a_common_action(arg(1), 'open', a_Open_empty_PROMPT, HP_FILE_OPEN_NEW)
+   a_common_action( arg(1), 'open', a_Open_empty_PROMPT, HP_FILE_OPEN_NEW)
 
 defc a_NewWindow
-   a_common_action(arg(1), 'newwindow', a_NewWindow_PROMPT, 1990)
+   a_common_action( arg(1), 'newwindow', a_NewWindow_PROMPT, 1990)
 
 defc a_Settings
-   a_common_action(arg(1), 'configdlg', CONFIG_MENUP__MSG, HP_OPTIONS_CONFIG)
+   a_common_action( arg(1), 'configdlg', CONFIG_MENUP__MSG, HP_OPTIONS_CONFIG)
 
 defc a_Time
 ;compile if WANT_DBCS_SUPPORT
@@ -174,7 +176,7 @@ defc a_Time
       else
 ;compile if WANT_DBCS_SUPPORT  -- We're not including MYCNF.E...
         if countryinfo then    -- Instead, see if countryinfo has been set.
-         time_sep = substr(countryinfo,24,1)
+         time_sep = substr( countryinfo, 24, 1)
         else
          time_sep = ':'
         endif
@@ -222,10 +224,10 @@ defc a_Date
    endif
 
 defc a_TimeStamp
-   a_common_action(arg(1), 'TimeStamp', a_TimeStamp_PROMPT, 0)
+   a_common_action( arg(1), 'TimeStamp', a_TimeStamp_PROMPT, 0)
 
 defc a_Quit
-   a_common_action(arg(1), 'quit', QUIT_MENUP__MSG, HP_FILE_QUIT)
+   a_common_action( arg(1), 'quit', QUIT_MENUP__MSG, HP_FILE_QUIT)
 
 defc a_MonoFont
    universal default_font
@@ -252,7 +254,7 @@ defc a_Shell
    parse arg action_letter parms
    if action_letter = 'I' then       -- button Initialized
       display -8
-      sayerror substr(CREATE_SHELL_MENUP__MSG, 2)
+      sayerror substr( CREATE_SHELL_MENUP__MSG, 2)
       display 8
    elseif action_letter = 'S' then   -- button Selected
       if isadefc('shell') then
@@ -268,7 +270,7 @@ defc a_Shell
    endif
 
 defc a_List_Ring
-   a_common_action(arg(1), 'ring_more', LIST_FILES_MENUP__MSG, HP_OPTIONS_LIST)
+   a_common_action( arg(1), 'ring_more', LIST_FILES_MENUP__MSG, HP_OPTIONS_LIST)
 
 defc a_Compiler_Help
    parse arg action_letter parms
@@ -281,7 +283,9 @@ defc a_Compiler_Help
       'compiler_help'                   -- execute action
    elseif action_letter = 'H' then   -- button Help
 ;;    'helpmenu' ???                     -- No help panel for this; use a messagebox
-      call winmessagebox(DESCRIBE_COMPILER_MENU__MSG, DESCRIBE_COMPILER_MENUP__MSG, MB_OK + MB_INFORMATION + MB_MOVEABLE)
+      call winmessagebox( DESCRIBE_COMPILER_MENU__MSG,
+                          DESCRIBE_COMPILER_MENUP__MSG,
+                          MB_OK + MB_INFORMATION + MB_MOVEABLE)
    elseif action_letter = 'E' then   -- button End
 ;;    sayerror 0                        -- (We don't do anything for this one; get lots of them.)
    endif
@@ -290,14 +294,16 @@ defc a_Compiler_Next
    parse arg action_letter parms
    if action_letter = 'I' then       -- button Initialized
       display -8
-      sayerror substr(NEXT_COMPILER_MENUP__MSG, 2)
+      sayerror substr( NEXT_COMPILER_MENUP__MSG, 2)
       display 8
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0                        -- Clear prompt
       'nextbookmark N 16'               -- execute action
    elseif action_letter = 'H' then   -- button Help
 ;;    'helpmenu' ???                     -- No help panel for this; use a messagebox
-      call winmessagebox(NEXT_COMPILER_MENU__MSG, NEXT_COMPILER_MENUP__MSG, MB_OK + MB_INFORMATION + MB_MOVEABLE)
+      call winmessagebox( NEXT_COMPILER_MENU__MSG,
+                          NEXT_COMPILER_MENUP__MSG,
+                          MB_OK + MB_INFORMATION + MB_MOVEABLE)
    elseif action_letter = 'E' then   -- button End
 ;;    sayerror 0                        -- (We don't do anything for this one; get lots of them.)
    endif
@@ -306,23 +312,25 @@ defc a_Compiler_Prev
    parse arg action_letter parms
    if action_letter = 'I' then       -- button Initialized
       display -8
-      sayerror substr(PREV_COMPILER_MENUP__MSG, 2)
+      sayerror substr( PREV_COMPILER_MENUP__MSG, 2)
       display 8
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0                        -- Clear prompt
       'nextbookmark P 16'               -- execute action
    elseif action_letter = 'H' then   -- button Help
 ;;    'helpmenu' ???                     -- No help panel for this; use a messagebox
-      call winmessagebox(PREV_COMPILER_MENU__MSG, PREV_COMPILER_MENUP__MSG, MB_OK + MB_INFORMATION + MB_MOVEABLE)
+      call winmessagebox( PREV_COMPILER_MENU__MSG,
+                          PREV_COMPILER_MENUP__MSG,
+                          MB_OK + MB_INFORMATION + MB_MOVEABLE)
    elseif action_letter = 'E' then   -- button End
 ;;    sayerror 0                        -- (We don't do anything for this one; get lots of them.)
    endif
 
 defc a_Proof
-   a_common_action(arg(1), 'proof', PROOF_MENUP__MSG, HP_OPTIONS_PROOF)
+   a_common_action( arg(1), 'proof', PROOF_MENUP__MSG, HP_OPTIONS_PROOF)
 
 defc a_Synonym
-   a_common_action(arg(1), 'syn', SYNONYM_MENUP__MSG, HP_OPTIONS_SYN)
+   a_common_action( arg(1), 'syn', SYNONYM_MENUP__MSG, HP_OPTIONS_SYN)
 
 defc a_togl_hilit
    if arg(1) = 'S' then       -- button Selected
@@ -335,28 +343,37 @@ defc a_togl_hilit
                                     0)
       new_hili = (current_hili = 0)
       -- Toggle keyword highlighting
-      call NepmdActivateHighlight( new_hili, GetMode() )
+      --    The following makes EPM crash during repeated toggeling for about
+      --    100 .e files in the ring:
+      --call NepmdActivateHighlight( new_hili, GetMode())
+      --    A command is probably executed somewhat delayed, compared to a
+      --    proc, so that the following fixes it:
+      'ActivateHighlighting' new_hili
+      --    postme not required:
+      --'postme ActivateHighlighting' new_hili
    elseif arg(1) = 'I' then   -- button Initialized
       display -8
       sayerror a_Toggle_Hilight_PROMPT
       display 8
    elseif arg(1) = 'H' then   -- button Help
-      call winmessagebox(a_Toggle_Hilight__MSG, a_Toggle_Hilight_PROMPT, MB_OK + MB_INFORMATION + MB_MOVEABLE)
+      call winmessagebox( a_Toggle_Hilight__MSG,
+                          a_Toggle_Hilight_PROMPT,
+                          MB_OK + MB_INFORMATION + MB_MOVEABLE)
    elseif arg(1) = 'E' then   -- button End
 ;;    sayerror 0
    endif
 
 defc a_print
-   a_common_action(arg(1), 'printdlg', ENHPRT_FILE_MENUP__MSG, HP_FILE_ENHPRINT)
+   a_common_action( arg(1), 'printdlg', ENHPRT_FILE_MENUP__MSG, HP_FILE_ENHPRINT)
 
 defc a_save
-   a_common_action(arg(1), 'save', SAVE_MENUP__MSG, HP_FILE_SAVE)
+   a_common_action( arg(1), 'save', SAVE_MENUP__MSG, HP_FILE_SAVE)
 
 defc a_searchdlg
-   a_common_action(arg(1), 'searchdlg', SEARCH_MENUP__MSG, HP_SEARCH_SEARCH)
+   a_common_action( arg(1), 'searchdlg', SEARCH_MENUP__MSG, HP_SEARCH_SEARCH)
 
 defc a_undodlg
-   a_common_action(arg(1), 'undodlg', UNDO_REDO_MENUP__MSG, HP_EDIT_UNDOREDO)
+   a_common_action( arg(1), 'undodlg', UNDO_REDO_MENUP__MSG, HP_EDIT_UNDOREDO)
 
 defc a_match_brackets
    parse value arg(1) with action_letter parms
@@ -368,16 +385,18 @@ defc a_match_brackets
       sayerror 0
       call passist()
    elseif action_letter = 'H' then   -- button Help
-      call winmessagebox(Generic_toolbar_help_title, a_Match_Brackets_PROMPT a_Match_Brackets_PROMPT2, MB_OK + MB_INFORMATION + MB_MOVEABLE)
+      call winmessagebox( Generic_toolbar_help_title,
+                          a_Match_Brackets_PROMPT a_Match_Brackets_PROMPT2,
+                          MB_OK + MB_INFORMATION + MB_MOVEABLE)
 ;; elseif action_letter = 'E' then   -- button End
 ;;    sayerror 0
    endif
 
-defproc a_common_action(arg1, command, prompt, panel)
+defproc a_common_action( arg1, command, prompt, panel)
    parse value arg1 with action_letter parms
    if action_letter = 'I' then       -- button Initialized
       display -8
-      sayerror substr(prompt, 2)  -- All the prompts in ENGLISH.E start with an ASCII 1.
+      sayerror substr( prompt, 2)    -- All the prompts in ENGLISH.E start with an ASCII 1.
       display 8
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0
@@ -386,7 +405,9 @@ defproc a_common_action(arg1, command, prompt, panel)
       if panel then
          'helpmenu' panel
       else
-         call winmessagebox(Generic_toolbar_help_title, substr(prompt, 2)\n\n || EXECUTES_COMMAND\ncommand, MB_OK + MB_INFORMATION + MB_MOVEABLE)
+         call winmessagebox( Generic_toolbar_help_title,
+                             substr( prompt, 2)\n\n || EXECUTES_COMMAND\ncommand,
+                             MB_OK + MB_INFORMATION + MB_MOVEABLE)
       endif
 ;; elseif action_letter = 'E' then   -- button End
 ;;    sayerror 0
