@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.22 2005-11-15 17:49:26 aschn Exp $
+* $Id: locate.e,v 1.23 2006-03-26 12:28:32 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1055,8 +1055,9 @@ defc Grep
    fGnu = GetGrepVersion( 'INIT')
    if fGnu = 2 then
       sayerror 'Error: 'GREP_EXE' not found in PATH'
+      rc = 2
    else
-      call callgrep( fGnu, arg(1))
+      rc = callgrep( fGnu, arg(1))
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1069,7 +1070,7 @@ defc GrepBox
       fGnu = GetGrepVersion( 'INIT')
       if fGnu = 2 then
          sayerror 'Error: 'GREP_EXE' not found in PATH'
-         return
+         return 2
       endif
    endif
    -- Options:
@@ -1094,8 +1095,8 @@ defc GrepBox
                          Text) with Button 2 NewValue \0
    NewValue = strip(NewValue)
    if Button = \1 then
-      call CallGrep( fGnu, NewValue)
-      return
+      rc = CallGrep( fGnu, NewValue)
+      return 2
    elseif Button = \2 then
       return
    elseif Button = \3 then
@@ -1111,12 +1112,17 @@ defc GrepBox
    endif
 
 ; ---------------------------------------------------------------------------
-; Syntax: callgrep( fGnu[, GrepArgs])
+; Syntax: callgrep( fGnu[, GrepArgs[, fVerbose]])
 ; If GrepArgs doesnot contain options, the default options, either
 ; GNU_GREP_OPTIONS or RY_GREP_OPTIONS, depending on fGnu are prepended to
 ; GrepArgs.
 defproc CallGrep
    fGnu = (arg(1) = 1)
+   if arg(3) = '' then
+      fVerbose = 1
+   else
+      fVerbose = (arg(3) = 1)
+   endif
 
    -- Options:
    if fGnu then
@@ -1148,7 +1154,9 @@ defproc CallGrep
    endif
 
    if words( grepargs) > 1 then
-      sayerror 'Scanning files...'
+      if fVerbose then
+         sayerror 'Scanning files...'
+      endif
    elseif fGnu then
       -- Show Gnu help
       grepargs = '--help'
@@ -1157,13 +1165,14 @@ defproc CallGrep
       grepargs = ''
    endif
 
-   call redirect_grep( fGnu, GREP_EXE, grepargs, directory())
+   rc = redirect_grep( fGnu, GREP_EXE, grepargs, directory())
 
    if words( grepargs) < 2 then
       sayerror 'Syntax: grep [options] pattern filemask  (default options = 'defaultgrepopt')'
-   else
+   elseif fVerbose then
       sayerror 'Use Alt+1 to load the file under cursor.'
    endif
+   return rc
    --display 8
 
 ; ---------------------------------------------------------------------------
@@ -1185,9 +1194,9 @@ defproc redirect_grep( fGnu, Cmd)
 
    'edit' outfile
    if rc = -282 then 'xcom quit'  -- sayerror('New file')
-      return
+      return -282
    elseif rc <> 0 then
-      return
+      return rc
    endif
    .autosave = 0
    .filename = '.Output from grep' arg(3)
@@ -1201,7 +1210,7 @@ defproc redirect_grep( fGnu, Cmd)
 
    .modify = 0
    call erasetemp(outfile)
-   return
+   return 0
 
 ; ---------------------------------------------------------------------------
 defc findmark
