@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.33 2006-01-08 00:04:25 aschn Exp $
+* $Id: edit.e,v 1.34 2006-03-26 21:40:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -28,8 +28,10 @@ Todo:
 */
 
 ; ---------------------------------------------------------------------------
-; Load files from a filespec, remove REXX EAs before loading
-defproc NepmdLoadFile( Spec, Options)
+; Pre-processing before calling the LoadFile defproc.
+; Checks a filespec, even wildcards to remove REXX EAs before loading.
+; Calls LoadFile, that is defined in SLNOHOST.E/SAVELOAD.E/E3EMUL.E.
+defproc PreLoadFile( Spec, Options)
    universal filestoload
    universal filestoloadmax  -- still used for 'xcom e' and afterload
    if filestoload = '' then
@@ -96,7 +98,7 @@ defproc NepmdLoadFile( Spec, Options)
       endif
 
       --sayerror 'Spec = 'Spec', Filename = 'Filename
-      dprintf( 'EDIT', 'NepmdLoadFile: Spec = 'Spec', Filename = 'Filename)
+      dprintf( 'EDIT', 'PreLoadFile: Spec = 'Spec', Filename = 'Filename)
 
       -- Remove REXX EAs if extension is found in RexxEaExtensions.
       -- Use the extension here instead of the mode to avoid determining the
@@ -332,7 +334,7 @@ compile endif
             filespec = '"'filespec'"'
          endif
 
-         rc = NepmdLoadFile( filespec, options)
+         rc = PreLoadFile( filespec, options)
          edit_rc = rc  -- restore this rc at the end
 
 ; Todo: rewrite that horrible message stuff:

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.13 2005-11-24 01:05:40 aschn Exp $
+* $Id: select.e,v 1.14 2006-03-26 21:40:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -91,7 +91,7 @@ compile endif
 ; This cmd is called once after all files were loaded by defselect.
 defc ProcessAfterLoad
    universal CurEditCmd
-   universal filestoloadmax   -- set in NepmdLoadFile, only used for RingAddToHistory('LOAD')
+   universal filestoloadmax   -- set in PreLoadFile, only used for RingAddToHistory('LOAD')
 
    dprintf( 'AFTERLOAD', .filename', CurEditCmd = 'CurEditCmd)
 
