@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sampactn.e,v 1.7 2006-03-19 11:30:23 aschn Exp $
+* $Id: sampactn.e,v 1.8 2006-03-26 11:54:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -346,11 +346,12 @@ defc a_togl_hilit
       --    The following makes EPM crash during repeated toggeling for about
       --    100 .e files in the ring:
       --call NepmdActivateHighlight( new_hili, GetMode())
-      --    A command is probably executed somewhat delayed, compared to a
-      --    proc, so that the following fixes it:
-      'ActivateHighlighting' new_hili
-      --    postme not required:
-      --'postme ActivateHighlighting' new_hili
+      --    A command is probably executed somehow delayed, compared to a
+      --    proc, so that the following fixes it in more cases:
+      --'ActivateHighlighting' new_hili
+      --    Postme is required, when highlighting is toggled quickly for a
+      --    huge ring:
+      'postme ActivateHighlighting' new_hili
    elseif arg(1) = 'I' then   -- button Initialized
       display -8
       sayerror a_Toggle_Hilight_PROMPT
