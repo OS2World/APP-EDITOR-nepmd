@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.34 2006-03-26 10:09:41 aschn Exp $
+* $Id: newmenu.e,v 1.35 2006-03-26 11:34:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -422,14 +422,6 @@ defc loaddefaultmenu
    call add_help_menu(menuname)      -- id = 6 (keep this)
    -- Note: showmenu_activemenu() must be called separately.
    menuloaded = 1
-
-   -- Respect files' margins if this is selected for use as reflowmargins
-   -- This sets the universal var reflowmargins to initial values, queried
-   -- from NEPMD.INI.
-   -- (Found no better place when to execute the hook.)
-;##############################################
-'HookAdd select ReflowMarginsInit'  -------------------------------- Todo
-;##############################################
 
 ; -------------------------------------------------------------------------------------- File -------------------------
 defproc add_file_menu(menuname)
@@ -4505,20 +4497,6 @@ defc ReflowmarginsSelect
    SetMenuAttribute( GetAVar('mid_reflowmargins3'), MIA_CHECKED, not (i = 3))
    parse value GetAVar('mtxt_reflowmargins') with next'['x']'rest
    SetMenuText( GetAVar('mid_reflowmargins'), next'['reflowmargins']'rest)
-
-; ---------------------------------------------------------------------------
-; Used to set the universal var.
-defc ReflowmarginsInit
-   universal nepmd_hini
-   universal reflowmargins
-   KeyPath = '\NEPMD\User\Reflow\MarginsItem'
-   i = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if i = 3 then
-      reflowmargins = .margins
-   else
-      KeyPath = '\NEPMD\User\Reflow\Margins'i
-      reflowmargins = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   endif
 
 ; ---------------------------------------------------------------------------
 ; Change edit options and set menu attributes.

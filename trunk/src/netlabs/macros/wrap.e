@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wrap.e,v 1.11 2005-11-24 19:40:13 aschn Exp $
+* $Id: wrap.e,v 1.12 2006-03-26 11:35:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -31,6 +31,31 @@ const
    map_LCO2Win     = 6  -- l, c, o in; x, y    out
 
    MAXLNSIZE_UNTERMINATED = 1
+
+; ---------------------------------------------------------------------------
+; Used to set the universal var on defselect.
+; Configurable via Newmenu. reflowmargins is used by defc Wrap, defc
+; ReflowAll2ReflowMargins and defc ReflowPar2ReflowMargins.
+defc ReflowmarginsInit
+   universal nepmd_hini
+   universal reflowmargins
+   KeyPath = '\NEPMD\User\Reflow\MarginsItem'
+   i = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if i = 3 then
+      reflowmargins = .margins
+   else
+      KeyPath = '\NEPMD\User\Reflow\Margins'i
+      reflowmargins = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   endif
+
+definit
+   -- Respect files' margins if this is selected for use as reflowmargins
+   -- This sets the universal var reflowmargins to initial values, queried
+   -- from NEPMD.INI.
+   -- (Found no better place when to execute the hook.)
+;##############################################
+   'HookAdd select ReflowMarginsInit'  -------------------------------- Todo
+;##############################################
 
 ; ---------------------------------------------------------------------------
 ; Query wrapped state of current file. Returns 1 or 0.
