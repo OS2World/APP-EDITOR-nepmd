@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.33 2006-03-11 20:38:22 aschn Exp $
+* $Id: stdcnf.e,v 1.34 2006-03-26 12:18:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2043,6 +2043,8 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 ;compile if MOUSE_SUPPORT = 'LINK'
 ;   'linkverify MOUSE'  -- doesn't work
 ;compile endif
+
+   'linkverify recompile'  -- several recompile/relink/restart commands
 
 compile if WANT_BOOKMARKS = 'LINK'
    'linkverify bookmark'

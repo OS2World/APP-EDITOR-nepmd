@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2004
 ;
-; $Id: exfiles.lst,v 1.6 2006-03-11 18:45:10 aschn Exp $
+; $Id: exfiles.lst,v 1.7 2006-03-26 12:18:01 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -44,10 +44,11 @@ maketags
 newmenu
 next_win
 ovshmenu
-recode
-reflowmail
 popup
 ;put
+recode
+recompile
+reflowmail
 showu
 singlespace
 stdmenu
