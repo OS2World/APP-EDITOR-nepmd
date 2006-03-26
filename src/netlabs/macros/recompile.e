@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.1 2006-03-26 12:17:59 aschn Exp $
+* $Id: recompile.e,v 1.2 2006-03-26 12:43:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -668,7 +668,7 @@ defc RecompileNew
                                  cWarning = cWarning + 1
                                  WriteLog( LogFile, 'WARNING: 'BaseName' - cannot delete current .EX file "'CurExFile'", rc = 'rc)
                               else
-                                 WriteLog( LogFile, '         'BaseName' - deleted current .EX file "'CurExFile'"')
+                                 WriteLog( LogFile, '    DEL: 'BaseName' - deleted current .EX file "'CurExFile'"')
                                  cDelete = cDelete + 1
                               endif
                            endif
@@ -896,7 +896,7 @@ defc RecompileNew
                cWarning = cWarning + 1
                WriteLog( LogFile, 'WARNING: 'BaseName' - can''t delete .EX file "'CurExFile'", rc = 'rc)
             else
-               WriteLog( LogFile, '         'BaseName' - deleted .EX file "'CurExFile'"')
+               WriteLog( LogFile, '    DEL: 'BaseName' - deleted .EX file "'CurExFile'"')
             endif
             cDelete = cDelete + 1
          else
@@ -905,7 +905,7 @@ defc RecompileNew
                cWarning = cWarning + 1
                WriteLog( LogFile, 'WARNING: 'BaseName' - can''t copy .EX file to "'DestDir'", rc = 'rc)
             else
-               WriteLog( LogFile, '         'BaseName' - copied .EX file to "'DestDir'"')
+               WriteLog( LogFile, '    NEW: 'BaseName' - copied .EX file to "'DestDir'"')
                fCopiedExFile = 1
             endif
             quietshell 'copy' EtpmLogFile DestDir
