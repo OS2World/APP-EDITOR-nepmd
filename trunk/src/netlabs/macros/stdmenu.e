@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.26 2005-12-13 20:09:43 aschn Exp $
+* $Id: stdmenu.e,v 1.27 2006-03-26 10:09:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -121,6 +121,12 @@ compile if not defined(CORE_stuff)
 ; This determines whether the CORE-specific commands (DEFINE)
 ; are included in the menus.
 const CORE_STUFF=0
+compile endif
+
+; Make that configurable for testing or emergency cases:
+compile if not defined(OLD_ACCEL_KEY_DEFS)
+const
+   OLD_ACCEL_KEY_DEFS = 0
 compile endif
 
 /*
@@ -743,7 +749,23 @@ compile endif
 
 ; The above is all part of ProcessMenuInit cmd on old versions.  -----------------
 
+; ---------------------------------------------------------------------------
+definit
+   -- Sometimes the rc for a module's definit overwrites the link rc.
+   -- Therefore a linkable module with code in definit, that changes rc,
+   -- should save it at the begin of definit and restore it at the end.
+   save_rc = rc
 
+   -- Define a list of used menu accelerators, that can't be used as standard
+   -- accelerator keys combined with Alt anymore, when 'Menu accelerators' is
+   -- activated.
+   -- Maybe someone has already defined something here at definit,
+   -- so better add it to the array var if not already.
+   call AddOnceAVar( 'usedmenuaccelerators', 'F E S O C H')
+
+   rc = save_rc  -- don't change rc of the link statement by definit code
+
+compile if OLD_ACCEL_KEY_DEFS  -- following is disabled #####################
 defproc build_menu_accelerators(activeaccel)
 compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
    universal CUA_MENU_ACCEL
@@ -868,6 +890,7 @@ compile if BLOCK_ACTIONBAR_ACCELERATORS
    endif -- CUA_MENU_ACCEL
  compile endif
 compile endif -- BLOCK_ACTIONBAR_ACCELERATORS
+compile endif -- OLD_ACCEL_KEY_DEFS  ########################################
 
 compile if BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
 define  -- Prepare for some conditional tests
@@ -1116,5 +1139,4 @@ defc accel_toggle
    SetMenuAttribute( 446, 8192, not CUA_MENU_ACCEL)
  compile endif  -- WANT_NODISMISS_MENUS
 compile endif
-
 

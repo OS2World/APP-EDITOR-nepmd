@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.33 2006-03-11 21:11:06 aschn Exp $
+* $Id: newmenu.e,v 1.34 2006-03-26 10:09:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -173,6 +173,11 @@ compile endif
 ; EPM_utility_array_id must already exist at this point.
 definit
    universal nepmd_hini
+   -- Sometimes the rc for a module's definit overwrites the link rc.
+   -- Therefore a linkable module with code in definit, that changes rc,
+   -- should save it at the begin of definit and restore it at the end.
+   save_rc = rc
+
    call SetAVar( 'mids', '')        -- reset list of used mids
 
    call SetAVar( 'mid_file'   , 2)
@@ -226,9 +231,12 @@ definit
 
    'InitMenuSettings'
 
+   rc = save_rc  -- don't change rc of the link statement by definit code
+
 ; ---------------------------------------------------------------------------
 ; Better don't use NepmdQueryConfigValue at definit, because this can cause
-; stop of the definit processing sometimes.
+; stop of the definit processing sometimes. Executing this from a command is
+; processed delayed, after definit is completed.
 defc InitMenuSettings
    universal nodismiss
 
