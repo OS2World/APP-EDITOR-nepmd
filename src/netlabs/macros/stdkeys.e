@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.28 2006-03-11 18:45:09 aschn Exp $
+* $Id: stdkeys.e,v 1.29 2006-03-26 12:02:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,7 +35,7 @@
 ;       Usually every def definition is defined automatically as PM
 ;       acceleator key as well. That ensures, that only the def definition
 ;       has to specified, if it exists. This does not apply to def a_<num>
-;       definitions, because of the upper described behaviour.
+;       definitions, because of the above described behaviour.
 
 ; ---------------------------------------------------------------------------
 ; Define the keyset "EDIT_KEYS". All following key defs will belong to this
@@ -123,9 +123,6 @@ def c_d           'DeleteUntilNextWord' -- Delete from cursor until beginning of
 def c_del         'DeleteUntilEndLine'  -- Delete from cursor until end of line
 def c_e           'DeleteUntilEndLine'  -- Delete from cursor until end of line
 
-; ---- Duplicate ----
-def c_k           'DuplicateLine'       -- Duplicate a line
-
 ; ---- Search ----
 def c_s           'SearchDlg'           -- Open search dialog
 def c_f           'FindNext'            -- Find next
@@ -179,6 +176,7 @@ def a_f12         'NextView'            -- Switch to next view of current file
 def c_n           'Open'                -- Open new EPM window
 defc Key_c_s_f12  'Next_Win'            -- Switch to next EPM window
 def c_g           'Ring_More'           -- Open a dialog to select a file of the ring
+def s_esc         'Ring_More'           -- Open a dialog to select a file of the ring
 
 ; ---- Reflow ----
 def a_j           'JoinLines'           -- Join current with next line
@@ -295,6 +293,9 @@ defc Key_a_s_right 'MoveCharRight'      -- Move char right
 defc Key_a_s_up   'MoveLineUp'          -- Exchange previous and current line
 defc Key_a_s_down 'MoveLineDown'        -- Exchange next and previous line
 
+; ---- Popup menu (redefinition of PM key) ----
+def s_f10         'MH_popup'            -- Show the popup menu
+
 ; ---- Auto-spellcheck ----
 ; This key belongs to "SPELL_KEYS". Therefore it is defined here with define.
 define DYNASPELL_KEY = 'c_A'            -- Open Proof Word dialog for alternatives
@@ -310,36 +311,11 @@ def otherkeys 'ProcessOtherKeys'
                         -- The rest is documentation --
 
 ; ---------------------------------------------------------------------------
-; Not up-to-date:
-; Following definitions are changed, compared to standard EPM:
-;    c_pgup
-;    c_pgdn
-;    c_a
-;    c_n
-;    c_w
-;    c_0
-;    a_0
-; Following definitions are added, compared to standard EPM:
-;    a_f2
-;    c_f9
-;    c_f10
-;    c_f11
-;    c_f12
-;    a_h
-;    a_i     (Shift)
-;    a_k     (Shift)
-;    a_v
-;    c_v
-;    c_minus
-; (Some others are extended.)
-
-; ---------------------------------------------------------------------------
-; Unused
+; Unused key defs
 ;    s_f11
 ;    s_f12
 ;    a_f3
 ;    a_f6
-;    a_g
 ;    a_q
 ;    a_x
 ;    a_2
@@ -356,7 +332,6 @@ def otherkeys 'ProcessOtherKeys'
 ;    c_1
 ;    c_3
 ;    c_5
-;    c_7
 ;    c_8
 ;    c_backslash
 ;    a_leftbracket
@@ -365,7 +340,10 @@ def otherkeys 'ProcessOtherKeys'
 ;    c_rightbracket
 
 ; Note: All char-producing keys can be redefined with a def statement:
-;    def '{'
+;       def '{'
+; Note: Many via standard key defs not definable multi-alternated key
+;       definitions (like Ctrl+Shift+Z) are unused as well. They are
+;       definable via "defc Key_*" commands, e.g. "defc Key_c_s_z".
 
 ; ---------------------------------------------------------------------------
 ; PM keys. These keys are not definable in EPM. But they could be defined
@@ -378,7 +356,7 @@ def otherkeys 'ProcessOtherKeys'
 */
 ;    f1           Help
 ;    f10          Menu
-;    s_f10        Popup menu
+;    s_f10        Popup menu (redefinable in EPM)
 ;    padplus      not definable as key def in EPM
 ;    c_padplus    not definable as key def in EPM
 ;    c_padstar    not definable as key def in EPM
@@ -405,6 +383,9 @@ def otherkeys 'ProcessOtherKeys'
 ; This is made in KEYS.E. (Every key definition is now additionally defined
 ; as accelerator key.)
 ;
+; Note: If a standard EPM key def exists, then it is highlighted. If not,
+;       then a "defc Key_*" command must be used.
+;
 ; Every Sh combination is now definable via a Key_* command. The order of
 ; the prefixes must be respected: c_ a_ s_.
 ; Example: defc Key_c_a_s_p 'mycommand'  defines Ctrl+Alt+Sh+P as
@@ -418,5 +399,4 @@ def otherkeys 'ProcessOtherKeys'
 ; extending UPPERCASE_LETTER_LIST and LOWERCASE_LETTER_LIST.
 ; Non-existing accelerator defs for additional chars can be added by
 ; extending CHAR_LIST, CHAR_NAMES and NO_DEF_CHAR_LIST.
-
 
