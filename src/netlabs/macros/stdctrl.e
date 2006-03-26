@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.35 2006-03-04 16:22:26 aschn Exp $
+* $Id: stdctrl.e,v 1.36 2006-03-26 10:09:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1030,7 +1030,7 @@ defc Monofont
 ³                   value in VALUE.  The result returned for the function    ³
 ³                   is the return code from the array lookup - 0 if          ³
 ³                   successful.  If the index wasn't found, VALUE will       ³
-³                   contain the null string.                                 ³
+³                   contain the null string and rc = -330 will be returned.  ³
 ³                                                                            ³
 ³ who and when    : Larry M.   9/12/91                                       ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
@@ -1059,6 +1059,10 @@ defproc GetAVar( varname)
    varname = lowcase( arg(1))
    varvalue = ''
    rc = get_array_value( EPM_utility_array_ID, varname, varvalue)  -- sets rc
+   if rc = -330 then  -- rc = -330: "Invalid third parameter"
+      -- Return no error, if var doesn't exist already
+      rc = 0
+   endif
    return varvalue
 
 defc getavar, showavar

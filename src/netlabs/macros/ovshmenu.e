@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ovshmenu.e,v 1.11 2005-12-13 20:09:40 aschn Exp $
+* $Id: ovshmenu.e,v 1.12 2006-03-26 10:09:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -455,6 +455,11 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 definit
+   -- Sometimes the rc for a module's definit overwrites the link rc.
+   -- Therefore a linkable module with code in definit, that changes rc,
+   -- should save it at the begin of definit and restore it at the end.
+   save_rc = rc
+
    -- Define a list of used menu accelerators, that can't be used as standard
    -- accelerator keys combined with Alt anymore, when 'Menu accelerators' is
    -- activated.
@@ -462,6 +467,7 @@ definit
    -- so better add it to the array var if not already.
    call AddOnceAVar( 'usedmenuaccelerators', 'F V S H')
 
+   rc = save_rc  -- don't change rc of the link statement by definit code
 
 compile if OLD_ACCEL_KEY_DEFS  -- following is disabled #####################
 defproc build_menu_accelerators(activeaccel)
@@ -988,5 +994,4 @@ defc accel_toggle
   compile endif
    endif
 compile endif
-
 
