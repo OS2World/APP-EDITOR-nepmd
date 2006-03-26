@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: e.hil,v 1.6 2006-03-05 15:06:53 aschn Exp $
+; $Id: e.hil,v 1.7 2006-03-26 22:37:28 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -471,6 +471,7 @@ lasterror
 lastkey
 lastpos
 lastword
+leftstr
 length
 lexam
 linked
@@ -499,6 +500,7 @@ regexpcomp
 regexpexec
 registerfont
 reverse
+rightstr
 qprint
 query_attribute
 quiet_shell
@@ -555,7 +557,7 @@ windowmessage
 AMU_addenda_addition_processing
 AMU_addenda_processing
 AMU_script_verification
-Append_Path
+;Append_Path
 EHLLAPI_SEND_RECEIVE
 Exist
 FastMoveATTRtoBeg
@@ -584,7 +586,7 @@ add_help_menu
 add_help_menu
 add_options_menu
 add_options_menu
-add_ring_menu
+;add_ring_menu
 add_search_menu
 add_tags
 already_in_ring
@@ -602,7 +604,7 @@ c_second_expansion
 check_for_host_file
 check_for_printer
 check_mark_on_screen
-check_path_piece
+;check_path_piece
 check_savepath
 checkini
 checkmark
@@ -638,7 +640,7 @@ extend_mark
 filetype
 find_ea
 find_matching_paren
-find_routine
+;find_routine
 find_token
 fixup_cursor
 get_EAT_ASCII_value
@@ -654,7 +656,7 @@ gethwndc
 gettime
 hex2dec
 hidden_info
-init_operation_on_comma
+;init_operation_on_comma
 isa_mvs_filename
 isa_pc_filename
 isa_vm_filename
@@ -673,29 +675,29 @@ listbox
 listmark
 load_host_file
 load_lexam
-load_wps_config
+;load_wps_config
 loadfile
 lock
 mathcommon
 max
-maybe_autosave
+;maybe_autosave
 maybe_save_addenda
 maybe_show_menu
 message
 messageNwait
-mgetkey
+;mgetkey
 min
 mouse_in_mark
-move_results_to_command
+;move_results_to_command
 mpfrom2short
-my_c_enter
-my_enter
+;my_c_enter
+;my_enter
 namefile
 next_sym
 no_char_mark
 pBuild_Helpfile
 pGet_Identifier
-pHelp_C_identifier
+;pHelp_C_identifier
 parse_file
 parse_file_n_opts
 parse_filename
@@ -710,9 +712,9 @@ pbegin_word
 pblock_reflow
 pc_chars
 pcenter_mark
-pcommand_state
+;pcommand_state
 pcommon_adjust_overlay
-pcommon_tab_margin
+;pcommon_tab_margin
 pcopy_mark
 pdelete_mark
 pdisplay_margins
@@ -730,7 +732,7 @@ pmargins
 pmark
 pmark_word
 pmove_mark
-ppeek32
+;ppeek32
 prec
 prestore_mark
 prestore_pos
@@ -758,22 +760,22 @@ reduce_dualop
 register_mousehandler
 repaint_window
 resolve_key
-restore_command_state
+;restore_command_state
 rex_first_expansion
 rex_second_expansion
 rexxfunctionregister
 rexxsubcomdrop
 rexxsubcomregister
-save_command_state
+;save_command_state
 save_host_file
 saveas_dlg
 savefile
-savefilewithtabs
+;savefilewithtabs
 sayat_color
 sayatbox
 scroll_lock
-search_path
-search_path_ptr
+;search_path
+;search_path_ptr
 select_edit_keys
 setLT
 set_FTO
@@ -781,7 +783,7 @@ setfont
 setini
 settitletext
 shifted
-show_modify
+;show_modify
 showwindow
 simple_HLLAPI_call
 skip_spaces
@@ -791,7 +793,7 @@ spellword2
 spellwordd
 splitlines
 strippunct
-subdir
+;subdir
 swapwords
 synonym
 tag_case
@@ -804,7 +806,7 @@ unary_exp
 unlock
 up_down
 update_edit_menu_text
-updateringmenu
+;updateringmenu
 updownkey
 user_FTO
 verify_buffer_size
@@ -813,8 +815,7 @@ whatisit
 windowsize1
 winmessagebox
 ; --- other functions
-rightstr
-BMS_defload_exit
+;BMS_defload_exit
 listbox_buffer_from_file
 add_view_menu
 find_epm_exec
@@ -827,12 +828,12 @@ SUE_break
 add_selected_menu
 fonts_common_action
 highlight_match
-redirect
+;redirect
 makea_common_action
 mk_parse_errline_default
 pput_string_back
 a_common_action
-; --- NEPMD functions
+; --- NEPMD library functions
 NepmdCloseConfig
 NepmdDeleteConfigValue
 NepmdGetNextConfigKey
