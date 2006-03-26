@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.42 2005-12-27 18:11:34 aschn Exp $
+* $Id: nepmdlib.e,v 1.43 2006-03-26 11:21:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,24 +22,9 @@
 *
 ****************************************************************************/
 
-; This file may be included in epm.e (e.g. for testing) as well. But it's
-; intended to be compiled separately and linked later on to save space
-; in epm.ex.
-
 /* ------------------------------------------------------------- */
 /*   avoid include of stdconst.e if compiled separately          */
 /* ------------------------------------------------------------- */
-compile if not defined(SMALL)  -- SMALL is undefined if an .e file is compiled separately without EPM.E
-const                          -- (added because many users omit from MYCNF.)
-tryinclude     'mycnf.e'       -- User configuration goes here.
-
- compile if not defined(SITE_CONFIG)  -- Did user's MYCNF.E set a SITE_CONFIG file?
-   const SITE_CONFIG = 'sitecnf.e'    -- If not, use the default
- compile endif
- compile if SITE_CONFIG               -- If SITE_CONFIG file was not set to null,
-   tryinclude  SITE_CONFIG            -- include the site configuration file.
- compile endif
-compile endif
 
 const
 -------- Start of configuration constants for MYCNF.E --------
