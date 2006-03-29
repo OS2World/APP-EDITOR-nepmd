@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.37 2006-03-26 12:17:57 aschn Exp $
+* $Id: linkcmds.e,v 1.38 2006-03-29 22:36:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,29 +19,22 @@
 *
 ****************************************************************************/
 
-----------> Todo: option QUIET or better:
-----------        suppress all normal output until the EPM window is shown
-----------        or the menu is created (where a universal already exists
-----------        for) or better:
---                Suppress all non-critical msgs at definit and activate it
---                in defmain, after the menu is shown.
-
 ; ---------------------------------------------------------------------------
 ; A front end to the link statement. This command should always be used in
 ; preference to the link statement.
+; Without a given modulename, it tries to link the corresponding .ex file
+; of the current viewed .e file.
 ; The QUIET option suppresses messages, when linking was successful or
 ; module was already linked.
-; Unfortunately no E command is processed, when an .EX file is dropped onto
-; the edit window. That file is processed by the internally defined link
-; statement only.
+; The Link command is also executed, when an .EX file is dropped onto the
+; edit window.
 ; Syntax: link [QUIET] [<path>][<modulename>][.ex]         Example: link draw
-; Returns:
-;     -1  not linked, because already linked
-;    <-1  error (message is shown, even for QUIET option)
+; Sets rc:
+;     -1  not linked, because already linked or of an other error
+;    <-1  error, rc = -307|-308 (message is shown, even for QUIET option)
 ;    >=0  linked successfully, the linked module number is returned, starting
 ;         with 0 for EPM.EX, followed by 1 etc.
 defc link
-   universal nepmd_hini
    universal menuloaded  -- only defined in newmenu yet
 
    args = arg(1)
@@ -53,67 +46,89 @@ defc link
    endif
 
    modulename = args
-   if modulename = '' then                           -- If no name given,
+   if modulename = '' then                       -- If no name given,
       p = lastpos( '.', .filename)
       if upcase( substr( .filename, p)) <> '.E' then
          sayerror 'Not an .E file'
          return
       endif
-      modulename = substr( .filename, 1, p - 1)      -- current file without extension
+      modulename = substr( .filename, 1, p - 1)  -- current file without extension
       p2 = lastpos( '\', modulename)
-      modulename = substr( modulename, p2 + 1)       -- strip path
+      modulename = substr( modulename, p2 + 1)   -- strip path
    endif
+
+   ErrorText = link_common( modulename)  -- sets rc
+
+   if (rc < 0) | (not fQuiet & rc >= 0) then
+      sayerror ErrorText
+   endif
+
+; ---------------------------------------------------------------------------
+; Like defc link, but in case of an error a MessageBox pops up, where the
+; user has to press 'Ok' in order to continue. Other messages are always
+; suppressed. Additionally, the modulename must be given.
+defc linkverify
+   modulename = arg(1)
+
+   ErrorText = link_common( modulename)  -- sets rc
+
+   if rc < 0 then
+      call winmessagebox( UNABLE_TO_LINK__MSG modulename,
+                          ErrorText,
+                          16416)  -- OK + ICON_EXCLAMATION + MB+MOVEABLE
+   endif
+
+; ---------------------------------------------------------------------------
+defproc link_common( modulename)
 
    waslinkedrc = linked( modulename)
    if waslinkedrc >= 0 then  -- >= 0, then it's the number in the link history
-      if not fQuiet then
-         sayerror 'Module "'modulename'" already linked as module #'waslinkedrc'.'
-      endif
+      ErrorText = 'Module "'modulename'" already linked as module #'waslinkedrc
+      xrc = -1        -- if already linked
 
    else
+      -- NewMenu uses this to remove some of its menu items, before
+      -- an external package with a huge menu is linked.
       if isadefproc( 'BeforeLink') then
          call BeforeLink( modulename)
       endif
 
       display -2  -- Turn non-critical messages off, we give our own message.
       link modulename
-      linkrc = rc    -- save value
-      linkedrc = rc  -- initialize only
+      linkrc = rc
+      -- Maybe rc of the link statement was changed by the module's
+      -- definit code before rc is queried after the link line above.
+      -- Therefore it's checked again with linked().
+      linkedrc = linked( modulename)
       display 2
 
       -- Link always returns rc = 0 if successful, different to linked()
-      if linkrc = -307 then
-         sayerror 'Module "'modulename'" not linked, file not found'
-      elseif linkrc = -308 then
-         sayerror 'Module "'modulename'" not linked, invalid filename'
+      if linkedrc = -307 then
+         ErrorText = 'Module "'modulename'" not linked, file not found'
+      elseif linkedrc = -308 then
+         ErrorText = 'Module "'modulename'" not linked, invalid filename'
+      elseif linkedrc < 0 then
+         -- Use linkrc, because it's more detailed. linked() returns only
+         -- >=0, -1, -307, -308, while link returns some more like -290.
+         ErrorText = 'Module "'modulename'" not linked, 'sayerrortext(linkrc)
       else
-         -- Bug of Link: Sometimes linkrc = empty, therefore check it again with linked()
-         linkedrc = linked( modulename)
-         if linkedrc < 0 then  -- any other rc values than -307 or -308?
-            sayerror 'Module "'modulename'" not linked, rc = 'linkrc', linkedrc = 'linkedrc
-         else
-            if not fQuiet then
-               sayerror LINK_COMPLETED__MSG''linkedrc' "'modulename'"'
-            endif
-         endif
+         ErrorText = LINK_COMPLETED__MSG''linkedrc' "'modulename'"'
       endif
+
+      if linkrc < 0 then
+         xrc = linkrc    -- use the more detailed rc from link
+      else
+         xrc = linkedrc  -- use the linked module # from linked()
+      endif
+      -- NewMenu uses this to re-add some of its menu items, after
+      -- an external package with a huge menu was not linked successfully.
+      if isadefproc( 'AfterLink') then
+         call AfterLink( xrc)
+      endif
+
    endif  -- waslinkedrc >= 0 else
 
-   if waslinkedrc >= 0 then
-      savedrc = -1        -- if already linked
-   else
-      if linkrc = '' | linkrc = 0 then
-         savedrc = linkedrc  -- on success: return the link number (0, 1, ...)
-      else
-         savedrc = linkrc    -- E error code (< 0)
-      endif
-
-      if isadefproc( 'AfterLink') then
-         call AfterLink( savedrc)
-      endif
-   endif
-
-   rc = savedrc
+   rc = xrc
 
 ; ---------------------------------------------------------------------------
 ; The following doesn't work. Dropping .ex files is always processed internally.
@@ -125,7 +140,7 @@ defc link
 
 ; ---------------------------------------------------------------------------
 ; Syntax: unlink [<path>][<modulename>][.ex]        Example:  unlink draw
-; A simple front end to the unlink statement to allow command-line invocation.
+; A front end to the unlink statement to allow command-line invocation.
 ; The standard unlink statement doesn't search in EPMPATH and DPATH like the
 ; link statement does. This is added here. ExFile is searched in
 ; .;%EPMPATH%;%DPATH% until the linked file is found.
@@ -228,38 +243,11 @@ defc qlink, qlinked, ql
    endif
 
 ; ---------------------------------------------------------------------------
-defc linkverify
-   module = arg(1)
-   link module
-   -- Sometimes the rc for a module's definit overwrites the link rc.
-   -- Therefore a linkable module with code in definit, that changes rc,
-   -- should save it at the begin of definit and restore it at the end.
-   if rc < 0 then
-      if rc = -290 then  -- sayerror('Invalid EX file or incorrect version')
-         -- Get full pathname for a better error msg
-         if filetype(module) <> '.EX' then
-            module = module'.ex'              -- link does this by itself
-         endif
-         findfile module1, module, EPATH      -- link does this by itself
-         if rc then
-            findfile module1, module, 'PATH'  -- why search in PATH?
-         endif
-         if not rc then
-            module = module1
-         endif
-         rc = -290
-      endif
-      call winmessagebox( UNABLE_TO_LINK__MSG module,
-                          sayerrortext(rc),
-                          16416)  -- OK + ICON_EXCLAMATION + MB+MOVEABLE
-   endif
-
-; ---------------------------------------------------------------------------
 ; Routine to link an .ex file, then execute a command in that file.
 defproc link_exec( ex_file, cmd_name)
    'linkverify' ex_file
-   if RC >= 0 then
-      cmd_name arg(3)
+   if rc >= 0 then
+      cmd_name arg(3)  -- execute cmd_name with optional args
    else
       sayerror UNABLE_TO_EXECUTE__MSG cmd_name
    endif
