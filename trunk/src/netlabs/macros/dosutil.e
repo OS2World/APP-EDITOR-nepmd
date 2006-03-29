@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.13 2005-11-24 20:41:35 aschn Exp $
+* $Id: dosutil.e,v 1.14 2006-03-29 22:37:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -111,10 +111,24 @@ defproc get_env(varname)
    endif
 
 ; ---------------------------------------------------------------------------
+defproc StripPath( Spec)
+   lp = lastpos( '\', Spec)
+   Spec = substr( Spec, lp + 1)
+   return Spec
+
+; ---------------------------------------------------------------------------
+defproc StripExt( Spec)
+   lp = lastpos( '.', Spec)
+   if lp > 1 then
+      Spec = substr( Spec, 1, lp - 1)
+   endif
+   return Spec
+
+; ---------------------------------------------------------------------------
 ; Todo: resolve '=' as well
 ; Resolves environment variables in a string
 ; Returns converted string
-defproc ResolveEnvVars(Spec)
+defproc ResolveEnvVars( Spec)
    startp = 1
    do forever
       -- We don't use parse here, because if only 1 % char is present, it will
