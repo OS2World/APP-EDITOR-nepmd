@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.31 2006-03-11 20:47:15 aschn Exp $
+* $Id: kwhelp.e,v 1.32 2006-03-29 22:35:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -260,8 +260,10 @@ defc Kwhelp
 
          -- Re-build the line with a file list containing only found files.
          CheckedFileList = strip( CheckedFileList, 'B', '+' )
+         if CheckedFileList = '' then
+            return
+         endif
          line = cmd CheckedFileList arg2
-dprintf( 'KWHELP', 'line = 'line)
 
       endif
 
