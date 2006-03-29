@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.28 2006-03-26 11:29:08 aschn Exp $
+* $Id: stdmenu.e,v 1.29 2006-03-29 23:08:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -136,12 +136,14 @@ compile endif
 */
 
 defc loaddefaultmenu
-   universal activemenu,defaultmenu
+   universal activemenu
+   universal defaultmenu
+   universal menuloaded             -- for to check if menu is already built
 
    parse arg menuname .
-   if menuname = '' then                  -- Initialization call
+   if menuname = '' then            -- Initialization call
       menuname = 'default'
-      defaultmenu = menuname              -- default menu name
+      defaultmenu = menuname        -- default menu name
       activemenu  = defaultmenu
    endif
 
@@ -157,6 +159,7 @@ defc loaddefaultmenu
    endif
 
    call add_help_menu(menuname)
+   menuloaded = 1
 
 defproc add_file_menu(menuname)
    universal ring_enabled
@@ -735,7 +738,7 @@ defc menuinit_0
 compile if WANT_EPM_SHELL
    universal shell_index
    if shell_index then
-      is_shell = leftstr(.filename, 15) = ".command_shell_"
+      is_shell = IsAShell()
       SetMenuAttribute( 103, 16384, is_shell)  -- 'shell_write'
       SetMenuAttribute( 104, 16384, is_shell)  -- 'shell_break'
    endif  -- shell_index
@@ -745,7 +748,7 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 definit
-   -- Sometimes the rc for a module's definit overwrites the link rc.
+   -- Sometimes the rc for a module's definit overrides the link rc.
    -- Therefore a linkable module with code in definit, that changes rc,
    -- should save it at the begin of definit and restore it at the end.
    save_rc = rc
