@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.21 2005-11-16 16:47:05 aschn Exp $
+* $Id: stdcmds.e,v 1.22 2006-03-29 23:05:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,7 +23,7 @@
 ; STDCMDS.E            Alphabetized by command name.
 ;
 
-defc alter =
+defc alter
    parse value upcase(arg(1)) with c1 c2 cnt .
    if length(c1)<>1 then
       if length(c1)<>2 | verify(c1, HEXCHARS) then
@@ -53,10 +53,10 @@ defc alter =
 
 ; Moved file defs to FILE.E
 
-defc app, append =            -- With linking, PUT can be an external module.
-   'put' arg(1)               -- Collect the names; the module is named PUT.EX.
+defc app, append            -- With linking, PUT can be an external module.
+   'put' arg(1)             -- Collect the names; the module is named PUT.EX.
 
-defc asc=
+defc asc
    parse arg i '=' .
    if i='' then
       getline line
@@ -74,7 +74,7 @@ defc asc=
 ; Users who have very long path-search times might prefer to execute
 ; "autoshell 0" somewhere in their start-up sequence.
 
-defc autoshell=
+defc autoshell
    uparg=upcase(arg(1))
    if uparg=ON__MSG or uparg=1 then
       .autoshell = 1
@@ -84,25 +84,24 @@ defc autoshell=
       sayerror 'AUTOSHELL =' .AUTOSHELL
    endif
 
-defc bottom,bot=
+defc bottom, bot
    bottom
 
 ; Moved defc c,change to LOCATE.E
 
-defc center=
+defc center
    call pcenter_mark()
 
-defc chr=
+defc chr
    parse arg i '=' .
    sayerror 'chr 'i'='chr(i)''
 
-defc close=
+defc close
    call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
                        41,                 -- WM_CLOSE
                        0,
                        0)
 
-compile if DYNAMIC_CURSOR_STYLE
 defc cursor_style
    universal cursordimensions
    if arg(1)=1 then  -- Vertical bar
@@ -118,26 +117,26 @@ defc cursor_style
       endif
    endif
    call fixup_cursor()
-compile endif
 
 ;  This command is the same function that has been attached to
 ;  the key Alt-equal.  Moved here as a separate command to make key
 ;  binding more flexible.  And to allow execution without a key binding.
 ;  In EPM, no getkey() prompt.  Cancel at first error.
-defc dolines=
-   if marktype()='LINE' then
-      getmark firstline,lastline,i,i,fileid
-      if firstline<>lastline | firstline<>.line then
-         k=substr('0000'YES_CHAR || NO_CHAR, winmessagebox( 'Dolines',
-                                                            EX_ALL__MSG,
-                                                            16389) - 1, 1)  -- YESNOCANCEL + MOVEABLE
+defc dolines
+   if marktype() = 'LINE' then
+      getmark firstline, lastline, i, i, fileid
+      if firstline <> lastline | firstline <> .line then
+         k = substr( '0000'YES_CHAR || NO_CHAR,
+                     winmessagebox( 'Dolines',
+                                    EX_ALL__MSG,
+                                    16389) - 1, 1)  -- YESNOCANCEL + MOVEABLE
          if not k then return ''; endif  -- 'Y'=Yes; 'N'=No; '0'=Cancel
       else  -- If only current line is marked, no need to ask...
-         k=NO_CHAR
+         k = NO_CHAR
       endif
-      if k=YES_CHAR then
-         for i=firstline to lastline
-            getline line,i,fileid
+      if k = YES_CHAR then
+         for i = firstline to lastline
+            getline line, i, fileid
             line
          endfor
          sayerror 0
@@ -155,60 +154,57 @@ defc dolines=
 
 ; jbl 1/12/89:  The syntax of ECHO is revised to be like browse().  It's
 ; a function so a macro can test its current value.
-defc echo =
-   uparg=upcase(arg(1))
-   if uparg=ON__MSG or uparg=1 then
+defc echo
+   uparg = upcase( arg(1))
+   if uparg = ON__MSG or uparg = 1 then
       call echo(1)
-   elseif uparg=OFF__MSG or uparg='0' then
+   elseif uparg = OFF__MSG or uparg = '0' then
       call echo(0)
    elseif isnum(uparg) then
       call echo(uparg)
    else
-      if echo()<2 then
-         sayerror ECHO_IS__MSG word(OFF__MSG ON__MSG, echo()+1)
+      if echo() < 2 then
+         sayerror ECHO_IS__MSG word( OFF__MSG ON__MSG, echo() + 1)
       else
          sayerror ECHO_IS__MSG echo()
       endif
    endif
 
-compile if TOGGLE_ESCAPE
-defc ESCAPEKEY
-   universal ESCAPE_KEY
-   uparg=upcase(arg(1))
-   if uparg=ON__MSG or uparg=1 then
-      ESCAPE_KEY = 1
-   elseif uparg=OFF__MSG or uparg=0 then
-      ESCAPE_KEY = 0
+defc escapekey
+   universal escape_key
+   uparg = upcase( arg(1))
+   if uparg = ON__MSG or uparg = 1 then
+      escape_key = 1
+   elseif uparg = OFF__MSG or uparg = 0 then
+      escape_key = 0
    else
-      sayerror 'EscapeKey' word(OFF__MSG ON__MSG, ESCAPE_KEY+1)
+      sayerror 'EscapeKey =' word( OFF__MSG ON__MSG, escape_key + 1)
    endif
-compile endif
 
 ; Moved defc et,etpm to LINKCMDS.E
 
 defc expand=
    universal expand_on
-   uparg=upcase(arg(1))
-   if uparg=ON__MSG then
+   uparg = upcase( arg(1))
+   if uparg = ON__MSG then
       expand_on = 1
       call select_edit_keys()
-   elseif uparg=OFF__MSG then
+   elseif uparg = OFF__MSG then
       expand_on = 0
       call select_edit_keys()
-   elseif uparg='' then
-      sayerror 'EXPAND:' word(OFF__MSG ON__MSG, expand_on+1)
+   elseif uparg = '' then
+      sayerror 'Expand =' word( OFF__MSG ON__MSG, expand_on + 1)
    else
       sayerror INVALID_ARG__MSG ON_OFF__MSG')'
       stop
    endif
 
 ;  EPM's replacement for Alt-F.  "FILL <character>".
-defc fill=
+defc fill
    call checkmark()
-   call pfill_mark(arg(1))
+   call pfill_mark( arg(1))
 
-
-defc flow =
+defc flow
    parse arg l r p .
    if l='' then parse value '1 73 1' with l r p
    elseif r = '' then r=l; l=1; p=1;
@@ -225,14 +221,14 @@ defc flow =
    endif
    .margins = oldmarg
 
-defc goto =
+defc goto
    parse arg line col .
    line
    if col<>'' then .col = col; endif
 
 /* Uses findfile statement to search EPATH for the helpfile.              */
 /* Its syntax: findfile destfilename,searchfilename[,envpathvar][,['P']]  */
-defc help=
+defc help
    helpfile = HELPFILENAME
 
    -- 4.02:  search EPATH/DPATH for the help file.  New 'D' option on findfile.
@@ -252,7 +248,7 @@ defc help=
 
 ; In EPM we don't do a getkey() to ask you for the key.  You must supply it
 ; as part of the command, as in "key 80 =".
-defc key=
+defc key
    parse value arg(1) with number k .
    if upcase(number) = 'RC' then
       til_rc = 1
@@ -283,20 +279,18 @@ defc key=
 ; Moved defc l, locate to LOCATE.E
 ; Moved defc list, findfile, filefind to DOSUTIL.E
 
-compile if WANT_LONGNAMES='SWITCH'
 defc longnames
-   universal SHOW_LONGNAMES
-   uparg=upcase(arg(1))
-   if uparg=ON__MSG or uparg=1 then
-      SHOW_LONGNAMES = 1
-   elseif uparg=OFF__MSG or uparg=0 then
-      SHOW_LONGNAMES = 0
+   universal show_longnames
+   uparg = upcase( arg(1))
+   if uparg = ON__MSG or uparg = 1 then
+      show_longnames = 1
+   elseif uparg = OFF__MSG or uparg = 0 then
+      show_longnames = 0
    else
-      sayerror LONGNAMES_IS__MSG word(OFF__MSG ON__MSG, SHOW_LONGNAMES+1)
+      sayerror LONGNAMES_IS__MSG word( OFF__MSG ON__MSG, show_longnames + 1)
    endif
-compile endif
 
-defc loopkey=
+defc loopkey
    parse value arg(1) with finish k .
    if upcase(finish)='ALL' then
       finish= .last-.line+1
@@ -313,7 +307,7 @@ defc loopkey=
    endif
    sayerror 0
 
-defc lowercase=
+defc lowercase
    call plowercase()
 
 ; In EOS2 you could query the margins by typing "margins" with no argument.
@@ -405,15 +399,15 @@ defc margins, ma
       'postme maybe_reflow_all'
    endif
 
-defc matchtab=
+defc matchtab
    universal matchtab_on
-   uparg=upcase(arg(1))
-   if uparg=ON__MSG then
+   uparg = upcase(arg(1))
+   if uparg = ON__MSG then
       matchtab_on = 1
-   elseif uparg=OFF__MSG then
+   elseif uparg = OFF__MSG then
       matchtab_on = 0
-   elseif uparg='' then
-      sayerror 'MATCHTAB:' word(OFF__MSG ON__MSG, matchtab_on+1)
+   elseif uparg = '' then
+      sayerror 'MATCHTAB =' word( OFF__MSG ON__MSG, matchtab_on + 1)
    else
       sayerror INVALID_ARG__MSG ON_OFF__MSG')'
       stop
@@ -423,17 +417,20 @@ defc matchtab=
 ; like XEDIT's SET LINEND, but you specify the delimiter as part of the
 ; command so there's never a conflict.  Example, using ';' as delimiter:
 ;   mc ; top; c /begin/{/ *; top; c/end/}/ *; top
-defc mc =
+defc mc
    parse value strip(arg(1),'L') with delim 2 rest
    do while rest <> ''
       parse value rest with cmd (delim) rest
       cmd
    enddo
 
-defc newtop = l=.line; .cursory=1; l
+defc newtop
+   l = .line
+   .cursory = 1
+   l
 
 defc restorepos
-   saved_pos = strip( arg(1) )
+   saved_pos = strip( arg(1))
    if saved_pos <> '' then
       call prestore_pos(saved_pos)
    endif
@@ -526,7 +523,7 @@ compile endif
 
 ;  Print just the marked area, if there is one.  Defaults to printing on LPT1.
 ;  Optional argument specifies printer.
-defc print=  /* Save the users current file to the printer */
+defc print  /* Save the users current file to the printer */
    parse arg prt ':'                             -- Optional printer name
    if not prt then prt=default_printer(); endif  -- Default
    prtnum = check_for_printer(prt)
@@ -572,35 +569,28 @@ defc processbreak  -- executed if Ctrl+Break was pressed
    if dictionary_loaded then
       call drop_dictionary()
    endif
-compile if WANT_EPM_SHELL
-   is_shell = ( leftstr(.filename, 15) = ".command_shell_" )
-   if is_shell then
+   if IsAShell() then
       'shell_break'
    else
-compile endif -- WANT_EPM_SHELL
       sayerror MACRO_HALTED__MSG
-compile if WANT_EPM_SHELL
    endif
-compile endif -- WANT_EPM_SHELL
 
-compile if WANT_PROFILE='SWITCH'
-defc PROFILE
-   universal REXX_PROFILE
-   uparg=upcase(arg(1))
-   if uparg=ON__MSG or uparg=1 then
-      REXX_PROFILE = 1
-   elseif uparg=OFF__MSG or uparg=0 then
-      REXX_PROFILE = 0
+defc profile
+   universal rexx_profile
+   uparg = upcase( arg(1))
+   if uparg = ON__MSG or uparg = 1 then
+      rexx_profile = 1
+   elseif uparg = OFF__MSG or uparg = 0 then
+      rexx_profile = 0
    else
-      sayerror 'Profile' word(OFF__MSG ON__MSG, REXX_PROFILE+1)
+      sayerror 'Profile' word( OFF__MSG ON__MSG, rexx_profile + 1)
    endif
-compile endif
 
-compile if WANT_STACK_CMDS
-definit
-   universal mark_stack, position_stack
-   mark_stack = ''
-   position_stack = ''
+; Not required: all universals are automatically initialized to ''
+; definit
+;    universal mark_stack, position_stack
+;    mark_stack = ''
+;    position_stack = ''
 
 defc popmark
    universal mark_stack
@@ -666,60 +656,59 @@ defc swappos
       return
    endif
    position_stack = fid saveposition'/'position_stack
-compile endif  -- WANT_STACK_CMDS
 
-defc qs,quietshell,quiet_shell=
+defc qs, quietshell, quiet_shell
    quietshell arg(1)
 
-defc rc=
+defc rc
    arg(1)
    sayerror 'RC='rc''
 
-compile if SETSTAY='?'
-defc stay=
+defc stay
    universal stay
-   parse arg arg1; arg1=upcase(arg1)
-   if arg1='' then sayerror 'Stay =' word(OFF__MSG ON__MSG, stay+1)
-   elseif arg1='1' | arg1=ON__MSG then stay=1
-   elseif arg1='0' | arg1=OFF__MSG then stay=0
-   else sayerror INVALID_ARG__MSG ON_OFF__MSG')'
+   uparg = upcase( arg(1))
+   if uparg = '' then
+      sayerror 'Stay =' word( OFF__MSG ON__MSG, stay + 1)
+   elseif uparg = '1' | uparg = ON__MSG then
+      stay = 1
+   elseif uparg = '0' | uparg = OFF__MSG then
+      stay = 0
+   else
+      sayerror INVALID_ARG__MSG ON_OFF__MSG')'
    endif
-compile endif
 
-defc strip =
+defc strip
    parse arg firstline lastline .
-   if firstline='' then firstline=1; endif
-   if lastline='' then lastline=.last; endif
-   do i=firstline to lastline
+   if firstline = '' then firstline = 1; endif
+   if lastline = '' then lastline = .last; endif
+   do i = firstline to lastline
       getline line, i
-      if length(line) & rightstr(line,1) == ' ' then
-         replaceline strip(line, 'T'), i
+      if length(line) & rightstr( line, 1) == ' ' then
+         replaceline strip( line, 'T'), i
       endif
    enddo
 
-compile if TOGGLE_TAB
-defc TABKEY
-   universal TAB_KEY
-   uparg=upcase(arg(1))
-   if uparg=ON__MSG or uparg=1 then
-      TAB_KEY = 1
-   elseif uparg=OFF__MSG or uparg=0 then
-      TAB_KEY = 0
+defc tabkey
+   universal tab_key
+   uparg = upcase( arg(1))
+   if uparg = ON__MSG or uparg = 1 then
+      tab_key = 1
+   elseif uparg = OFF__MSG or uparg = 0 then
+      tab_key = 0
    else
-      sayerror 'TabKey' word(OFF__MSG ON__MSG, TAB_KEY+1)
+      sayerror 'TabKey =' word( OFF__MSG ON__MSG, tab_key + 1)
    endif
    'refreshinfoline TABKEY'   -- Update statusline if tabkey status displayed
-compile endif
 
-defc tabglyph =
-   uparg=upcase(arg(1))
-   if uparg=ON__MSG or uparg=1 then
+defc tabglyph
+   uparg = upcase(arg(1))
+   if uparg = ON__MSG or uparg = 1 then
       call tabglyph(1)
-   elseif uparg=OFF__MSG or uparg='0' then
+   elseif uparg = OFF__MSG or uparg = '0' then
       call tabglyph(0)
-   elseif uparg='' or uparg='?' then
+   elseif uparg = '' or uparg = '?' then
       cb = tabglyph()     -- query current state
-      sayerror TABGLYPH_IS__MSG word(OFF__MSG ON__MSG, cb+1)
+      sayerror TABGLYPH_IS__MSG word( OFF__MSG ON__MSG, cb + 1)
    else
       sayerror INVALID_ARG__MSG ON_OFF__MSG'/?)'
    endif
@@ -785,8 +774,7 @@ defc tabs
       endif
    endif
 
-
-defc timestamp =
+defc timestamp
 compile if WANT_DBCS_SUPPORT
    universal countryinfo
 compile endif
@@ -800,13 +788,13 @@ compile else  -- no DBCS
          rightstr(hour24, 2)':'rightstr(Minutes,2,'0')':'rightstr(Seconds,2,'0')'  '
 compile endif
 
-defc top=
+defc top
    top
 
-defc uppercase=
+defc uppercase
    call puppercase()
 
-defc ver =
+defc ver
    sayerror EDITOR_VER__MSG ver(0)
 
 ; ---------------------------------------------------------------------------
