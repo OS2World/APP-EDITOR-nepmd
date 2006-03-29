@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.18 2006-03-11 18:58:34 aschn Exp $
+* $Id: epmshell.e,v 1.19 2006-03-29 22:51:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,19 +35,95 @@
 ; http://home.foni.net/~tiemannj/epm/index.html
 ; See his pages for documentation.
 
-
-compile if WANT_EPM_SHELL='HIDDEN' & not defined(HP_COMMAND_SHELL)
-   include 'MENUHELP.H'
-compile endif
+; ---------------------------------------------------------------------------
+defproc IsAShell
+   ret = 0
+   Filename = arg(1)
+   if Filename = '' then
+      Filename = .filename
+   endif
+   getfileid fid, Filename
+   ShellNum = GetAVar( 'ShellNum.'fid)
+   if ShellNum > '' then
+      ShellHandle = GetAVar( 'Shell_h'ShellNum)
+      if ShellHandle > '' then
+         ret = 1
+      endif
+   endif
+   return ret
 
 ; ---------------------------------------------------------------------------
-; Write to current shell the text of current line, starting at cursor
-defc sendshell =
-   if leftstr( .filename, 15) <> '.command_shell_' then
-      sayerror NOT_IN_SHELL__MSG
-      return
+defproc IsAShellFilename
+   ret = 0
+   Filename = arg(1)
+   if Filename = '' then
+      Filename = .filename
    endif
-   'shell_write' substr( .filename, 16) substr( textline(.line), .col)
+   Name = StripPath( Filename)
+   if leftstr( Name, 15) = '.command_shell_' then
+      ret = 1
+   endif
+   return ret
+
+; ---------------------------------------------------------------------------
+; Reactivate a shell window, if no ShellHandle exists.
+; Process that at defselect rather than at defload to save file loading time.
+definit
+   'HookAdd select MaybeStartShell'
+
+; ---------------------------------------------------------------------------
+; Starts a new shell for the current file, if not already done and if Mode =
+; SHELL. Can be used to "reactivate" a shell, whose .command_shell_ output
+; was saved before and then gets reloaded.
+defc MaybeStartShell
+   universal shell_index
+   Mode = GetMode()
+   if Mode = 'SHELL' then
+      if not IsAShell() then
+         if IsAShellFilename() then
+            'monofont'
+            shell_index = shell_index + 1
+            ShellHandle  = '????'
+            retval = SUE_new( ShellHandle, shell_index)
+            if retval then
+               sayerror ERROR__MSG retval SHELL_ERROR1__MSG
+            else
+               getfileid ShellFid
+               sayerror 'Shell handle with number' shell_index 'created'
+               .autosave = 0
+               call SetAVar( 'Shell_f'shell_index, ShellFid)
+               call SetAVar( 'Shell_h'shell_index, ShellHandle)
+               call SetAVar( 'ShellNum.'ShellFid, shell_index)
+               InitCmd = ''
+compile if EPM_SHELL_PROMPT <> ''
+               InitCmd = EPM_SHELL_PROMPT
+compile endif
+               if InitCmd > '' then
+                  'shell_write' shell_index InitCmd
+               endif
+
+               -- Determine previous work dir
+               call psave_pos( save_pos)
+               display -1
+               .lineg = .last
+               endline
+               fFound = (ShellGotoNextPrompt( 'P') = 0)
+               Dir = ''
+               Cmd = ''
+               if fFound then
+                  call ShellParsePromptLine( Dir, Cmd)
+               else
+                  call prestore_pos( '')
+               endif
+               display 1
+               if Dir > '' then
+                  CdCmd = 'cdd' Dir
+                  'shell_write' shell_index CdCmd
+               endif
+            endif
+         endif
+      endif
+   endif
 
 -------------------------------------------------------------Shell-----------------------
 ; Starts a new shell object or re-uses the last shell (default).
@@ -60,21 +136,9 @@ defc sendshell =
 ; won't work (CMD.EXE) or the command is deleted (4OS2.EXE).
 ; Therefore ECHO ON must be executed _after_ every call of 4OS2.EXE.
 defc Shell
-   universal shell_index, EPM_utility_array_ID
+   universal shell_index
    universal ring_enabled
-compile if WANT_EPM_SHELL='HIDDEN' & not defined(STD_MENU_NAME)
-   universal activemenu, defaultmenu
-   if not shell_index then
-      buildmenuitem defaultmenu, 1, 101, \0,                      '',            4, 0
-      buildmenuitem defaultmenu, 1, 102, CREATE_SHELL_MENU__MSG,       'shell new'CREATE_SHELL_MENUP__MSG,       0, mpfrom2short(HP_COMMAND_SHELL, 0)
-      buildmenuitem defaultmenu, 1, 103, WRITE_SHELL_MENU__MSG,        'shell_write'WRITE_SHELL_MENUP__MSG, 0, mpfrom2short(HP_COMMAND_SHELL, 16384)
-;     buildmenuitem defaultmenu, 1, 104, KILL_SHELL_MENU__MSG,         'shell_kill'KILL_SHELL_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_SHELL, 16384)
-      buildmenuitem defaultmenu, 1, 104, SHELL_BREAK_MENU__MSG,        'shell_break'SHELL_BREAK_MENUP__MSG,  0, mpfrom2short(HP_COMMAND_SHELL, 16384)
-      if activemenu = defaultmenu & ring_enabled then
-         call showmenu_activemenu()  -- show the updated EPM menu
-      endif
-   endif
-compile endif
+
    if not ring_enabled then
       'ring_toggle'
    endif
@@ -86,12 +150,13 @@ compile endif
       fCreateNew = 1
       args = delword( args, wp, 1)
    endif
-   cmd = strip( args)
+   Cmd = strip( args)
+
    if fCreateNew = 0 then
-      getfileid shellfid, '.command_shell_'shell_index
+      getfileid ShellFid, '.command_shell_'shell_index
       if shell_index < 1 then
          fCreateNew = 1
-      elseif not shellfid then
+      elseif not ShellFid then
          fCreateNew = 1
       endif
    endif
@@ -108,11 +173,12 @@ compile endif
             sayerror ERROR__MSG rc SHELL_ERROR2__MSG
             stop
          endif
-         getfileid shellfid
+         getfileid ShellFid
          .filename = '.command_shell_'shell_index
          .autosave = 0
-         do_array 2, EPM_utility_array_ID, 'Shell_f'shell_index, shellfid
-         do_array 2, EPM_utility_array_ID, 'Shell_h'shell_index, shellHandle
+         call SetAVar( 'Shell_f'shell_index, ShellFid)
+         call SetAVar( 'Shell_h'shell_index, ShellHandle)
+         call SetAVar( 'ShellNum.'ShellFid, shell_index)
          'postme monofont'
 compile if EPM_SHELL_PROMPT <> ''
          InitCmd = EPM_SHELL_PROMPT
@@ -121,43 +187,58 @@ compile endif
       endif
 ;;    sayerror "shellhandle=0x" || ltoa(ShellHandle, 16) || "  newObject.retval="retval;
    else
-      activatefile shellfid
+      activatefile ShellFid
    endif
-   if cmd then
-      'shell_write' shell_index cmd
+   if Cmd then
+      'shell_write' shell_index Cmd
    endif
 
 -------------------------------------------------------------Shell_Kill------------------
 ; Destroys a shell object.
 ; Syntax: shell_kill [<shellnum>]
 defc Shell_Kill
-   universal EPM_utility_array_ID
-   parse arg shellnum .
-   if shellnum = '' & leftstr( .filename, 15) = '.command_shell_' then
-      shellnum = substr( .filename, 16)
+   parse arg ShellNum .
+   if ShellNum = '' & IsAShell() then
+      getfileid ShellFid
+      ShellNum = GetAVar( 'ShellNum.'ShellFid)
    endif
-   if shellnum = '' then
+   if ShellNum = '' then
       sayerror NOT_IN_SHELL__MSG
       return
    endif
-   rc = get_array_value( EPM_utility_array_ID, 'Shell_f'shellnum, shellfid )
-   rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle )
-   null=''
-   if shellhandle <> '' then
-      retval = SUE_free(ShellHandle);
-      if retval then sayerror ERROR__MSG retval SHELL_ERROR3__MSG; endif
-      do_array 2, EPM_utility_array_ID, 'Shell_h'shellnum, null
+   ShellFid     = GetAVar( 'Shell_f'ShellNum)
+   ShellHandle  = GetAVar( 'Shell_h'ShellNum)
+   if ShellHandle <> '' then
+      retval = SUE_free( ShellHandle)
+      if retval then
+         sayerror ERROR__MSG retval SHELL_ERROR3__MSG
+      endif
+      call SetAVar( 'Shell_h'ShellNum, '')
    endif
-   if shellfid <> '' then
+   if ShellFid <> '' then
       getfileid curfid
-      activatefile shellfid
-      .modify=0
+      activatefile ShellFid
+      .modify = 0
       'xcom quit'
-      do_array 2, EPM_utility_array_ID, 'Shell_f'shellnum, null
-      if curfid <> shellfid then
+
+      call SetAVar( 'Shell_f'ShellNum, '')
+      call SetAVar( 'Shell_h'ShellNum, '')
+      call SetAVar( 'ShellNum.'ShellFid, '')
+      if curfid <> ShellFid then
          activatefile curfid
       endif
    endif
+
+; ---------------------------------------------------------------------------
+; Write to current shell the text of current line, starting at cursor
+defc sendshell
+   if not IsAShell() then
+      sayerror NOT_IN_SHELL__MSG
+      return
+   endif
+   getfileid ShellFid
+   ShellNum = GetAVar( 'ShellNum.'ShellFid)
+   'shell_write' ShellNum substr( textline(.line), .col)
 
 -------------------------------------------------------------Shell_Write-----------------
 ; Syntax: shell_write [<shellnum>] [<text>]
@@ -165,20 +246,20 @@ defc Shell_Kill
 ; If <text> is missing, the 'Write to shell' EntryBox opens.
 defc Shell_Write
    universal ShellHandle
-   universal EPM_utility_array_ID
    universal Shell_lastwrite
-   parse arg shellnum text
-   if not isnum(shellnum) & leftstr( .filename, 15) = '.command_shell_' then
-      shellnum = substr( .filename, 16)
-      parse arg text
+   parse arg ShellNum Text
+   if not isnum( ShellNum) & IsAShell() then
+      getfileid ShellFid
+      ShellNum = GetAVar( 'ShellNum.'ShellFid)
+      parse arg Text
    endif
-   if shellnum = '' then
+   if ShellNum = '' then
       sayerror NOT_IN_SHELL__MSG
       return
    endif
    getfileid fid
-   ShellAppWaiting = GetAVar( 'ShellAppWaiting.'fid)
-   rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle)
+   ShellAppWaiting = GetAVar( 'ShellAppWaiting.'ShellFid)
+   ShellHandle = GetAVar( 'Shell_h'ShellNum)
    if shellhandle <> '' then
       if text = '' & words( ShellAppWaiting) < 2 then  -- disable this silly box for Return in a waiting shell
          shell_title = strip( WRITE_SHELL_MENU__MSG, 'T', '.')  -- '~Write to shell...'
@@ -196,7 +277,7 @@ compile endif
                                   Shell_lastwrite,              -- entrytext
                                   '', 254,                      -- cols, maxchars
                                   atoi(1) || atoi(0000) || gethwndc(APP_HANDLE) ||
-                                  SHELL_PROMPT__MSG shellnum) with button 2 text \0
+                                  SHELL_PROMPT__MSG ShellNum) with button 2 text \0
 compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
             if button=\2 then -- User asked for a list
                getfileid shell_fileid
@@ -283,20 +364,19 @@ defc NowCanWriteShell
 ; additional data to be read.
 ; Fixed to handle LF-terminated lines correctly.
 ; Recognize if an app is waiting for user input (then last line is not the EPM prompt).
-; Set ShellAppWaitung to 0 or to line and col.
+; Set ShellAppWaiting to 0 or to line and col.
 ; Right margin setting of current shell is not respected.
 defc NowCanReadShell
-   universal EPM_utility_array_ID
    parse arg shellnum .
    if not isnum(shellnum) then
       sayerror 'NowCanReadShell:  'INVALID_ARG__MSG '"'arg(1)'"'
       return
    endif
-   call DisableUndoRec()
+   call DisableUndoRec()  -- no effect
    lastline = ''
-   rc = get_array_value( EPM_utility_array_ID, 'Shell_f'shellnum, shellfid)
-   rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellhandle)
-   bytesmoved = 1;
+   ShellFid    = GetAVar( 'Shell_f'shellnum)
+   ShellHandle = GetAVar( 'Shell_h'shellnum)
+   bytesmoved = 1
    while bytesmoved do
       readbuf = copies( ' ', MAXCOL)
       retval = SUE_readln( ShellHandle, readbuf, bytesmoved);
@@ -337,11 +417,11 @@ defc NowCanReadShell
                replaceline oldline''next, shellfid.last, shellfid
             endif
          endif
-         getline lastline, shellfid.last, shellfid
-         shellfid.line = shellfid.last
-         shellfid.col = min( MAXCOL, length(lastline) + 1)
-         -- Following added because "do while rest <> ''" was too slow:
          if rest = '' then
+            getline lastline, shellfid.last, shellfid
+            shellfid.line = shellfid.last
+            shellfid.col = min( MAXCOL, length(lastline) + 1)
+            -- Following added because "do while rest <> ''" was too slow:
             leave
          endif
       enddo
@@ -376,76 +456,77 @@ compile endif -- EPM_SHELL_PROMPT
 ; Enhanced for filename completion. Prepend 'cd ' to input if a directory.
 ; Remove trailing \ from directories for 'cd'.
 ; Works with spaces in filenames and surrounding "...".
+; This is the defproc called by the Enter key def.
 ; Returns 0 on success; 1 when not on a EPM prompt line.
+; If 1 is returned, then ShellEnterWriteToApp() should be called by the
+; Enter key def.
 defproc ShellEnterWrite
-   shellnum = substr( .filename, 16)
    ret = 1
+   getfileid ShellFid
+   ShellNum = GetAVar( 'ShellNum.'ShellFid)
    x = ShellPromptPos()
    if x then
       getline line
       Text = substr( line, x + 1)
       Text = strip( Text, 'L')
 
-      -- Get last word or "..."
-      CmdWord = ''
-      CmdPiece = ''
-      FilePiece = ''
-      lp = ''
-      if rightstr( Text, 1) = '"' then
-         -- FilePiece is last word in "..."
-         next = leftstr( Text, length( Text) - 1)  -- strip last "
-         lp = lastpos( '"', next)
-         FilePiece = substr( Text, lp + 1, length( Text) - lp - 1)
-         if lp > 1 then
-            CmdPiece = leftstr( Text, lp - 1)
-            if pos( ' ', strip( CmdPiece)) then
-               CmdWord = word( Text, 1)
-            endif
-         endif
+      -- Parse Text into CmdWord and CmdArgs
+      if leftstr( Text, 1) = '"' then
+         parse value Text with '"'CmdWord'"' CmdArgs
       else
-         -- FilePiece is last word
-         if words( Text) = 1 then
-            -- No CmdWord
-            FilePiece = Text
-         elseif words( Text) > 1 then
-            CmdWord   = word( Text, 1)
-            FilePiece = lastword( Text)
-            lp = wordindex( Text, words( Text))
-            CmdPiece  = leftstr( Text, lp - 1)
+         parse value Text with CmdWord CmdArgs
+      endif
+
+      CmdName = upcase( StripExt( StripPath( CmdWord)))
+
+      -- Re-surround CmdWord with "..." if spaces
+      if pos( ' ', CmdWord) then
+         CmdWord = '"'CmdWord'"'
+      endif
+
+      if CmdName = 'CD' then
+         -- Strip "..." from CmdArgs
+         if leftstr( CmdArgs, 1) = '"' then
+            parse value CmdArgs with '"'CmdArgs'"'
+         endif
+         -- Strip trailing \ from CmdArgs
+         if rightstr( CmdArgs, 1) = '\' then
+            parse value CmdArgs with CmdArgs'\'
+         endif
+         -- Surround with "..." if spaces from CmdArgs
+         if pos( ' ', CmdArgs) then
+            CmdArgs = '"'CmdArgs'"'
          endif
       endif
-      --dprintf( 'ShellEnter', 'CmdWord = ['CmdWord'], CmdPiece = ['CmdPiece'], FilePiece = ['FilePiece'], lp = 'lp)
-      if upcase( CmdWord) = 'CD' then
-         -- Remove trailing \ for cd command
-         if (rightstr( FilePiece, 2, 2) <> ':\') &
-            (rightstr( FilePiece, 1) = '\') &
-            (FilePiece <> '\') then
-            FilePiece = leftstr( FilePiece, length( FilePiece) - 1)
-         endif
-      elseif CmdWord = '' then
-         -- Add cd command
-         -- Remove trailing \ for cd command
-         if (rightstr( FilePiece, 2, 2) <> ':\') &
-            (rightstr( FilePiece, 1) = '\') &
-            (upcase( FilePiece) <> 'CD\') then
-            FilePiece = leftstr( FilePiece, length( FilePiece) - 1)
-            CmdPiece = 'cd '
+
+      if CmdName = '4OS2' then
+         -- Insert "echo on" when 4os2 is called
+         if CmdArgs = '' then
+            CmdArgs = 'echo on'
+         else
+            CmdArgs = 'echo on&'CmdArgs
          endif
       endif
-      if pos( ' ', FilePiece) then
-         FilePiece = '"'FilePiece'"'
+
+      Text = CmdWord
+      if CmdArgs > '' then
+         Text = Text CmdArgs
       endif
-      Text = CmdPiece''FilePiece
 
       if .line = .last then
-         .col = x + 1
-         erase_end_line
+         --.col = x + 1
+         .col = x + 2    -- Prompt || Space
+         erase_end_line  -- Delete the rest, because echo is on to avoid
+                         -- doubled Cmd.
+                         -- Echo off, executed in CMD.EXE, would suppress the
+                         -- prompt as well.
       else
-          -- The Undo statement doesn't restore line well (only last change,
-          -- depending on .modify)
+          -- The Undo statement doesn't restore the prompt line well (only
+          -- last change, depending on .modify). Therefore the line is
+          -- restored by an array var, set by the defproc for the Enter key.
          'postme ShellRestoreOrgCmd' .line
       endif
-      'shell_write' shellnum text
+      'shell_write' ShellNum Text
       ret = 0
    endif
    return ret
@@ -461,7 +542,7 @@ defc ShellRestoreOrgCmd
       saved_line = .line
       .lineg = l
       x = ShellPromptPos()
-      replaceline substr( textline( l), 1, x)''cmd, l
+      replaceline substr( textline( l), 1, x)' 'cmd, l  -- Prompt || Space || Cmd
       .lineg = saved_line
    endif
 
@@ -471,13 +552,13 @@ defc ShellRestoreOrgCmd
 ; object to the EPM window, set in defc NowCanReadShell.
 ; Returns 0 on success; 1 when no app is waiting.
 defproc ShellEnterWriteToApp
-   shellnum = substr( .filename, 16)
    ret = 1
-   getfileid fid
-   ShellAppWaiting = GetAVar( 'ShellAppWaiting.'fid)
+   getfileid ShellFid
+   ShellNum = GetAVar( 'ShellNum.'ShellFid)
+   ShellAppWaiting = GetAVar( 'ShellAppWaiting.'ShellFid)
    if words( ShellAppWaiting) = 2 then
       parse value ShellAppWaiting with lastl lastc
-      text = ''
+      Text = ''
       l = lastl
       do while l <= .line
          getline line, l
@@ -486,7 +567,7 @@ defproc ShellEnterWriteToApp
          else
             startc = 1
          endif
-         text = text''substr( line, startc)
+         Text = Text''substr( line, startc)
          if l = .last then
             insertline '', .last + 1
             leave
@@ -494,7 +575,7 @@ defproc ShellEnterWriteToApp
             l = l + 1
          endif
       enddo
-      'shell_write' shellnum text
+      'shell_write' ShellNum Text
       ret = 0
    endif
    return ret
@@ -502,69 +583,68 @@ defproc ShellEnterWriteToApp
 -------------------------------------------------------------SUE_new---------------------
 ; Called from Shell command
 defproc SUE_new( var shell_handle, shellnum)
-   thandle = '????';
+   thandle = '????'
 ;; sayerror "address=0x" || ltoa(taddr, 16) || "  hwnd=0x"ltoa(hwnd, 16);
-   result  = dynalink32( ERES_DLL,
+   result = dynalink32( ERES_DLL,
                          'SUE_new',
                          address(thandle)             ||
                          gethwndc(EPMINFO_EDITCLIENT) ||
-                         atol(shellnum) );
-   shell_handle = thandle;
-   return result;
+                         atol(shellnum))
+   shell_handle = thandle
+   return result
 
 -------------------------------------------------------------SUE_free--------------------
 ; Called from Shell_Kill command
 defproc SUE_free( var shell_handle)
-   thandle = shell_handle;
-   result  = dynalink32( ERES_DLL,
-                         'SUE_free',
-                         address(thandle) )
-   shell_handle = thandle;
-   return result;
+   thandle = shell_handle
+   result = dynalink32( ERES_DLL,
+                        'SUE_free',
+                        address(thandle))
+   shell_handle = thandle
+   return result
 
 -------------------------------------------------------------SUE_readln------------------
 ; Called from NowCanReadShell cmd
 defproc SUE_readln( shell_handle, var buffe, var bytesmoved)
-   bufstring = buffe;  -- just to insure the same amount of space is available
+   bufstring = buffe  -- just to insure the same amount of space is available
    bm        = "??"
-   result  = dynalink32( ERES_DLL,
-                         'SUE_readln',
-                         shell_handle               ||
-                         address(bufstring)         ||
-                         atol(length(bufstring))    ||
-                         address(bm))
-   bytesmoved = itoa( bm,10);
-   buffe      = bufstring;
-   return result;
+   result = dynalink32( ERES_DLL,
+                        'SUE_readln',
+                        shell_handle            ||
+                        address(bufstring)      ||
+                        atol(length(bufstring)) ||
+                        address(bm))
+   bytesmoved = itoa( bm, 10)
+   buffe      = bufstring
+   return result
 
 -------------------------------------------------------------SUE_write-------------------
 ; Called from Shell_Write command
 defproc SUE_write( shell_handle, buffe, var bytesmoved)
-   bm        = "??"
-   result  = dynalink32( ERES_DLL,
-                         'SUE_write',
-                         shell_handle                     ||
-                         address(buffe)                   ||
-                         atol(length(buffe))              ||
-                         address(bm))
+   bm     = "??"
+   result = dynalink32( ERES_DLL,
+                        'SUE_write',
+                        shell_handle        ||
+                        address(buffe)      ||
+                        atol(length(buffe)) ||
+                        address(bm))
    bytesmoved = itoa( bm, 10);
    return result;
 
 -------------------------------------------------------------Shell_Break-----------------
 ; Sends a Break to a shell object
 defc shell_break
-   universal EPM_utility_array_ID
    parse arg shellnum .
-   if shellnum = '' & leftstr( .filename, 15) = '.command_shell_' then
-      shellnum = substr(.filename,16)
+   if ShellNum = '' & IsAShell() then
+      getfileid ShellFid
+      ShellNum = GetAVar( 'ShellNum.'ShellFid)
    endif
-   if shellnum = '' then
+   if ShellNum = '' then
       sayerror NOT_IN_SHELL__MSG
       return
    endif
-   rc = get_array_value( EPM_utility_array_ID, 'Shell_f'shellnum, shellfid)
-   rc = get_array_value( EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle)
-   if shellhandle <> '' then
+   ShellHandle = GetAVar( 'Shell_h'ShellNum)
+   if ShellHandle <> '' then
       retval = SUE_break(ShellHandle);
       if retval then sayerror ERROR_NUMBER__MSG retval; endif
    endif
@@ -581,33 +661,33 @@ defproc SUE_break(shell_handle)
 ; saved before. The array var 'ShellOrgCmd.'fid is used later by
 ; ShellRestoreOrgCmd, called by ShellEnterWrite.
 defmodify
-   getfileid fid
-   ShellOrgCmd = GetAVar( 'ShellOrgCmd.'fid)
-   Mode = GetMode()
-   if Mode = 'SHELL' then
-      p = ShellPromptPos()
-      if p then
+   if IsAShell() then
+      if .line <> .last then  -- last line has only the prompt, never a Cmd
+         getfileid fid
+         ShellOrgCmd = GetAVar( 'ShellOrgCmd.'fid)
          parse value ShellOrgCmd with line .
-         if (line <> .line) & (.line <> .last) then
-            -- Get OldCmd only if new text was entered
-            NewCmd = substr( textline( .line), p + 1)
-            if strip( NewCmd) <> '' then
-               undoaction 1, junk
-               undoaction 6, StateRange               -- query range
-               parse value StateRange with oldeststate neweststate
-               prevstate = max( neweststate - 1, oldeststate)
-               undoaction 7, prevstate
-               OldCmd = strip( substr( textline( .line), p + 1), 'l')
-               if OldCmd > '' then
-                  ShellOrgCmd = .line substr( textline( .line), p + 1)
-                  call SetAVar( 'ShellOrgCmd.'fid, ShellOrgCmd)
+         if line <> .line then
+            p = ShellPromptPos()
+            if p then
+               -- Get OldCmd only if new text was entered
+               NewCmd = substr( textline( .line), p + 1)
+               if strip( NewCmd) <> '' then
+                  undoaction 1, junk
+                  undoaction 6, StateRange               -- query range
+                  parse value StateRange with oldeststate neweststate
+                  prevstate = max( neweststate - 1, oldeststate)
+                  undoaction 7, prevstate
+                  OldCmd = strip( substr( textline( .line), p + 1), 'l')
+                  if OldCmd > '' then
+                     ShellOrgCmd = .line OldCmd
+                     call SetAVar( 'ShellOrgCmd.'fid, ShellOrgCmd)
+                  endif
+                  undoaction 7, neweststate
                endif
-               undoaction 7, neweststate
             endif
          endif
       endif
       .modify = 0
-      .autosave = 0
       'ResetDateTimeModified'
       'refreshinfoline MODIFIED'
    endif
@@ -616,26 +696,23 @@ defmodify
 ; This command can be used as key command, maybe for Esc.
 ; Syntax: shell_commandline [<shellnum>] [<text>]
 defc shell_commandline
-   universal EPM_utility_array_ID
-   parse arg shellnum text
-   if not isnum(shellnum) & leftstr( .filename, 15) = '.command_shell_' then
-      shellnum = substr( .filename, 16)
-      parse arg text
+   parse arg ShellNum text
+   if not isnum( ShellNum) & IsAShell() then
+      getfileid ShellFid
+      ShellNum = GetAVar( 'ShellNum.'ShellFid)
+      parse arg Text
    endif
-   if shellnum = '' then
+   if ShellNum = '' then
       sayerror NOT_IN_SHELL__MSG
       return
    endif
-   'commandline shell_write 'shellnum' 'text
+   'commandline shell_write 'ShellNum' 'Text
 
 ; ---------------------------------------------------------------------------
 ; Returns 0 if not a shell,
 ; otherwise the .col for the end of the prompt (> or ]).
 defproc ShellPromptPos
-   shellnum = ''
-   if leftstr( .filename, 15) = '.command_shell_' then
-      shellnum = substr( .filename, 16)
-   else
+   if not IsAShell() then
       return 0
    endif
    line = arg(1)
@@ -652,9 +729,9 @@ compile else
 compile endif
    text = substr( line, p + 1)
 compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-   if leftstr( line, 5)='epm: ' & p & shellnum /*& text<>''*/ then
+   if leftstr( line, 5)='epm: ' & p then
 compile else
-   if leftstr( line, 6)='[epm: ' & p & shellnum /*& text<>''*/ then
+   if leftstr( line, 6)='[epm: ' & p then
 compile endif
       return p
    else
@@ -686,6 +763,8 @@ compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
 compile else
    parse value textline(.line) with 'epm:' Dir ']' Cmd
 compile endif -- EPM_SHELL_PROMPT
+   Dir = strip( Dir)
+   Cmd = strip( Cmd)
    return
 
 ; ---------------------------------------------------------------------------
@@ -704,8 +783,9 @@ compile if not defined(FNC_FILE_ONLY_CMD_LIST)
 compile endif
 
 defc ShellFncInit
-   if leftstr( .filename, 15) = '.command_shell_' then
-      shellnum = substr( .filename, 16)
+   if IsAShell() then
+      getfileid ShellFid
+      ShellNum = GetAVar( 'ShellNum.'ShellFid)
    else
       return
    endif
@@ -859,8 +939,6 @@ defc ShellFncInit
    c = 0  -- number of found names
    m = 0  -- item number of ExeMaskList
    f = 0  -- number of found items per FileMask, only used for debugging
-   CurDir = directory()
-   call directory( ShellDir)
    do forever
       Name = ''
       if rc1 = '' & wordpos( upcase( CmdWord), FNC_FILE_ONLY_CMD_LIST) = 0 then
@@ -949,11 +1027,12 @@ defc ShellFncInit
 defc ShellFncComplete
    fForeward = ( arg(1) <> '-')
    -- Check shell
-   next     = GetAVar( 'FncShellNum')
    ShellNum = ''
-   if leftstr( .filename, 15) = '.command_shell_' then
-      ShellNum = substr( .filename, 16)
+   if IsAShell() then
+      getfileid ShellFid
+      ShellNum = GetAVar( 'ShellNum.'ShellFid)
    endif
+   next = GetAVar( 'FncShellNum')
    if ShellNum = '' | ShellNum <> next then
       return
    endif
@@ -1011,24 +1090,22 @@ defc ShellFncComplete
 /***************************************************************************/
 
 defc Shell_History
-   universal ShellHandle
-   universal EPM_utility_array_ID
    universal Shell_lastwrite
 
-   parse arg shellnum text
-   if shellnum = '' & leftstr( .filename, 15) = '.command_shell_' then
-      shellnum = substr( .filename, 16)
+   parse arg ShellNum Text
+   if ShellNum = '' & IsAShell() then
+      getfileid ShellFid
+      ShellNum = GetAVar( 'ShellNum.'ShellFid)
    endif
-
-   if shellnum = '' then
+   if ShellNum = '' then
       sayerror NOT_IN_SHELL__MSG
       return
    endif
 
-   do_array 3, EPM_utility_array_ID, 'Shell_h'shellnum, shellHandle
+   ShellHandle = GetAVar( 'Shell_h'ShellNum)
 
-   if shellhandle <> '' then
-   if text <> '' then Shell_lastwrite = text; endif
+   if ShellHandle <> '' then
+      if Text <> '' then Shell_lastwrite = Text; endif
 
       shell_title = strip( WRITE_SHELL_MENU__MSG, 'T', '.')  -- '~Write to shell...'
       tilde = pos( '~', shell_title)
@@ -1086,10 +1163,10 @@ defc Shell_History
                               1, 35,
                               min(12,18), 0,
                               gethwndc(APP_HANDLE) ||
-                              atoi(1) || atoi(1) || atoi(0000)) with button 2 text \0
-         call buffer(FREEBUF, bufhndl)
-         if button = \2 then -- 'Edit' selected
-            Shell_lastwrite = text
+                              atoi(1) || atoi(1) || atoi(0000)) with Button 2 Text \0
+         call buffer( FREEBUF, bufhndl)
+         if Button = \2 then -- 'Edit' selected
+            Shell_lastwrite = Text
             parse value entrybox( shell_title,                  -- Title,
        compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
                                   '/'OK__MSG'/'LIST__MSG'/'Cancel__MSG'/',  -- Buttons
@@ -1099,18 +1176,18 @@ defc Shell_History
                                   Shell_lastwrite,              -- Entrytext
                                   '', 254,                      -- cols, maxchars
                                   atoi(1) || atoi(0000) || gethwndc(APP_HANDLE) ||
-                                  SHELL_PROMPT__MSG shellnum) with button 2 text \0
-            if button = \2 then -- User asked for a list
+                                  SHELL_PROMPT__MSG ShellNum) with Button 2 Text \0
+            if Button = \2 then -- User asked for a list
                iterate -- do forever
             endif -- button 2 - 'List' in Edit Menu
 
-         endif --button 2 - 'Edit' in List menu
-         if button <> \1 then return; endif
+         endif -- button 2 - 'Edit' in List menu
+         if Button <> \1 then return; endif
 
          leave -- do forever
       enddo -- do forever
 
-      writebuf = text\13\10
+      writebuf = Text\13\10
       retval   = SUE_write( ShellHandle, writebuf, bytesmoved);
       if retval or bytesmoved <> length(writebuf) then
          sayerror 'write.retval='retval'  byteswritten=' bytesmoved 'of' length(writebuf)
@@ -1126,19 +1203,23 @@ defc Shell_History
 /********************************************************************************/
 
 defc Shell_Input
-   universal ShellHandle
    universal Shell_lastwrite
-   parse arg text
-   if leftstr( .filename, 15) = '.command_shell_' then
-      shellnum = substr( .filename, 16)
+   parse arg Text
+   ShellNum = ''
+   if IsAShell() then
+      getfileid ShellFid
+      ShellNum = GetAVar( 'ShellNum.'ShellFid)
    endif
-   if shellnum = '' then
+   if ShellNum = '' then
       sayerror NOT_IN_SHELL__MSG
       return
    endif
-   if shellhandle <> '' then
-      if text <> '' then Shell_lastwrite = text; endif
-      writebuf = text\13\10  -- input text + CRLF
+
+   ShellHandle = GetAVar( 'Shell_h'ShellNum)
+
+   if ShellHandle <> '' then
+      if Text <> '' then Shell_lastwrite = Text; endif
+      writebuf = Text\13\10  -- input text + CRLF
       retval   = SUE_write( ShellHandle, writebuf, bytesmoved);
       if retval or bytesmoved <> length(writebuf) then
          sayerror 'Shell_Input: write.retval='retval', byteswritten=' bytesmoved 'of' length(writebuf)
@@ -1153,19 +1234,25 @@ defc Shell_Input
 /******************************************************************/
 
 defc Shell_SendKey
-   universal ShellHandle
-   parse arg text
-   if text = '' then
-      sayerror 'Shell_SendKey: no key to send to shell specified'
-      return
+   parse arg Text
+   ShellNum = ''
+   if IsAShell() then
+      getfileid ShellFid
+      ShellNum = GetAVar( 'ShellNum.'ShellFid)
    endif
-   shellnum = substr( .filename, 16)
-   if shellnum='' then
+   if ShellNum = '' then
       sayerror NOT_IN_SHELL__MSG
       return
    endif
-   if shellhandle <> '' then
-      writebuf = text  -- just the pure text w/o CRLF
+   if Text = '' then
+      sayerror 'Shell_SendKey: no key to send to shell specified'
+      return
+   endif
+
+   ShellHandle = GetAVar( 'Shell_h'ShellNum)
+
+   if ShellHandle <> '' then
+      writebuf = Text  -- just the pure text w/o CRLF
       retval   = SUE_write( ShellHandle, writebuf, bytesmoved);
       if retval or bytesmoved <> length(writebuf) then
          sayerror 'Shell_SendKey: write.retval='retval'  byteswritten=' bytesmoved 'of' length(writebuf)
