@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.18 2006-03-11 21:02:18 aschn Exp $
+* $Id: file.e,v 1.19 2006-03-29 23:54:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -252,11 +252,9 @@ compile if INCLUDE_BMS_SUPPORT
 compile endif
 
    -- Handle EAs
-compile if WANT_BOOKMARKS
    if .levelofattributesupport bitand 8 then
       'saveattributes'
    endif
-compile endif
    KeyPath = '\NEPMD\User\AutoRestore\CursorPos'
    RestorePos = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if RestorePos = 1 then
@@ -602,21 +600,19 @@ defc q, quit=
       return
    endif
 
-   IsATempFile = (substr( .filename, 1, 1) = '.')
-   IsAShell    = (substr( .filename, 1, 15) = '.command_shell_')
+   fTempFile = (substr( .filename, 1, 1) = '.')
+   fShell    = IsAShell()
    getfileid quitfileid
 
 compile if TRASH_TEMP_FILES
-   if IsATempFile then     -- a temporary file
-      .modify = 0          -- so no "Are you sure?"
+   if fTempFile then  -- a temporary file
+      .modify = 0     -- so no "Are you sure?"
    endif
 compile endif
 
-compile if SPELL_SUPPORT
    if .keyset = 'SPELL_KEYS' then  -- Dynamic spell-checking is on for this file;
       'dynaspell'                  -- toggle it off.
    endif
-compile endif
 
    -- Execute user macros
    'HookExecute quit'
@@ -632,10 +628,8 @@ compile if INCLUDE_BMS_SUPPORT
    endif
 compile endif
 
-   if IsAShell then
-      .modify = 0                             -- so no "Are you sure?"
+   if fShell then
       'shell_kill'
-      --return
    else
       call quitfile()
    endif
@@ -646,7 +640,7 @@ compile endif
 
    call RingWriteFileNumber()
 
-   if not IsATempFile then
+   if not fTempFile then
       call RingAutoWriteFilePosition()
    endif
 
@@ -691,9 +685,7 @@ compile endif
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defc saveas_dlg
-compile if WANT_LONGNAMES = 'SWITCH'
    universal show_longnames
-compile endif
    if .lockhandle then
       'unlock'
    endif
@@ -708,15 +700,6 @@ compile endif
       .filename = name
       if get_EAT_ASCII_value('.LONGNAME') <> '' & upcase(oldname) <> upcase(name) then
          call delete_ea('.LONGNAME')
-; compile if WANT_LONGNAMES
-;  compile if WANT_LONGNAMES = 'SWITCH'
-;          if show_longnames then
-;  compile endif
-;             .titletext = ''
-;  compile if WANT_LONGNAMES = 'SWITCH'
-;          endif
-;  compile endif
-; compile endif  -- WANT_LONGNAMES
       endif
 compile if SUPPORT_USER_EXITS
       if isadefproc('rename_exit') then
@@ -1355,35 +1338,36 @@ defproc dosmove( oldfile, newfile)
                       address(newfile), 2)
 
 ; ---------------------------------------------------------------------------
-defc autosave=
-   universal vAUTOSAVE_PATH
+defc autosave
+   universal vautosave_path
+   universal vdefault_autosave
    universal ring_enabled
    uparg = upcase(arg(1))
-   if uparg = ON__MSG then                  /* If only says AUTOSAVE ON,  */
-compile if DEFAULT_AUTOSAVE > 0
-      .autosave = DEFAULT_AUTOSAVE
-compile else
-      .autosave = 10                     /* default is every 10 mods. */
-compile endif
+   if uparg = ON__MSG then
+      .autosave = vdefault_autosave
    elseif uparg = OFF__MSG then
       .autosave = 0
-   elseif isnum(uparg) then            /* Check whether numeric argument. */
+   elseif isnum(uparg) then
       .autosave = uparg
    elseif uparg = 'DIR' then
-      'dir' vAUTOSAVE_PATH
+      'dir' vautosave_path
    elseif uparg = '' then
       'commandline autosave' .autosave
    elseif uparg = '?' then
       if ring_enabled then
-         if 6=winmessagebox( AUTOSAVE__MSG,
-                             CURRENT_AUTOSAVE__MSG||.autosave\10||NAME_IS__MSG||MakeTempName()\10\10LIST_DIR__MSG,
-                             16436)  -- YESNO + MB_INFORMATION + MOVEABLE
+         if 6 = winmessagebox( AUTOSAVE__MSG,
+                               CURRENT_AUTOSAVE__MSG || .autosave\10 ||
+                               NAME_IS__MSG || MakeTempName()\10\10  ||
+                               LIST_DIR__MSG,
+                               16436)  -- YESNO + MB_INFORMATION + MOVEABLE
             then
            'dir' vAUTOSAVE_PATH
          endif
       else
          call winmessagebox( AUTOSAVE__MSG,
-                             CURRENT_AUTOSAVE__MSG||.autosave\10||NAME_IS__MSG||MakeTempName()\10\10NO_LIST_DIR__MSG,
+                             CURRENT_AUTOSAVE__MSG || .autosave\10 ||
+                             NAME_IS__MSG || MakeTempName()\10\10  ||
+                             NO_LIST_DIR__MSG,
                              16432)  -- OK + MB_INFORMATION + MOVEABLE
       endif  -- ring_enabled
       return
@@ -1391,7 +1375,7 @@ compile endif
       sayerror AUTOSAVE_PROMPT__MSG
       return
    endif  -- uparg = ON__MSG
-   sayerror CURRENT_AUTOSAVE__MSG||.autosave', 'NAME_IS__MSG||MakeTempName()
+   sayerror CURRENT_AUTOSAVE__MSG || .autosave', 'NAME_IS__MSG || MakeTempName()
 
 ; ---------------------------------------------------------------------------
 defc deleteautosavefile

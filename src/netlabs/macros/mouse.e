@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.18 2006-03-11 21:05:00 aschn Exp $
+* $Id: mouse.e,v 1.19 2006-03-29 23:54:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -310,24 +310,12 @@ defc MH_gotoposition
 ;;   .cursory = .mousey
 ;;   .cursorx = .mousex
 ;;
-compile if TOP_OF_FILE_VALID = 'STREAM' & WANT_STREAM_MODE = 'SWITCH'
- compile if UNDERLINE_CURSOR
-   ml = MouseLineColOff( MouseLine, MouseCol, MouseOff, stream_mode, '', 1)
- compile else
+compile if TOP_OF_FILE_VALID = 'STREAM'
    ml = MouseLineColOff( MouseLine, MouseCol, MouseOff, stream_mode)
- compile endif
 compile elseif TOP_OF_FILE_VALID
- compile if UNDERLINE_CURSOR
    ml = MouseLineColOff( MouseLine, MouseCol, MouseOff, 0, '', 1)
- compile else
-   ml = MouseLineColOff( MouseLine, MouseCol, MouseOff, 0)
- compile endif
 compile else
- compile if UNDERLINE_CURSOR
-   ml = MouseLineColOff( MouseLine, MouseCol, MouseOff, 1, '', 1)
- compile else
    ml = MouseLineColOff( MouseLine, MouseCol, MouseOff, 1)
- compile endif
 compile endif
    oldsx = .scrollx;
    .lineg = MouseLine
@@ -527,7 +515,6 @@ defc markword
    endif
    call pmark_word()
 
-compile if WANT_TEXT_PROCS
 ; ---------------------------------------------------------------------------
 defc marksentence
    -- If arg(1) specified and > 0: Set cursor to pos of pointer.
@@ -553,8 +540,6 @@ defc extendsentence
 ; ---------------------------------------------------------------------------
 defc extendparagraph
    call mark_through_next_paragraph()
-
-compile endif -- WANT_TEXT_PROCS
 
 ; ---------------------------------------------------------------------------
 defc marktoken
@@ -1052,12 +1037,10 @@ compile endif
       call register_mousehandler( 1, '2 SECONDCLK 0', 'markword 1')
       call register_mousehandler( 1, '2 SECONDCLK 2', 'marktoken 1')     -- Ctrl
       call register_mousehandler( 1, '2 SECONDCLK 1', 'findword 1')      -- Shift
-compile if WANT_TEXT_PROCS
       call register_mousehandler( 1, '2 SECONDCLK 4', 'marksentence 1')  -- Alt
       call register_mousehandler( 1, '2 SECONDCLK 6', 'markparagraph 1') -- Ctrl+Alt
       call register_mousehandler( 1, '2 SECONDCLK 5', 'extendsentence')  -- Alt+Shift
       call register_mousehandler( 1, '2 SECONDCLK 7', 'extendparagraph') -- Ctrl+Alt+shift
-compile endif -- WANT_TEXT_PROCS
       call register_mousehandler( 1, '1 SECONDCLK 2', 'kwhelp')
 
    endif  -- CUA_marking_switch ---------------------------------------

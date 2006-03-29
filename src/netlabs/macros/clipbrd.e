@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: clipbrd.e,v 1.7 2004-11-30 21:14:45 aschn Exp $
+* $Id: clipbrd.e,v 1.8 2006-03-29 23:54:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -392,7 +392,6 @@ compile endif  -- REFLOW_AFTER_PASTE
                     '#304',            -- DosFreeSeg
                     ltoa( atoi(0) || atoi(result), 10))
 
-compile if WANT_DM_BUFFER
 definit
    universal DMbuf_handle
    DMbuf_handle = 0
@@ -486,7 +485,6 @@ defc GetDMBuff
    call psave_mark(savemark)                              -- Save the user's mark
    call GetBuffCommon(DMbuf_handle, NO_TEXT_RECOVERED__MSG)  -- (This marks what's recovered)
    call prestore_mark(savemark)                           -- Restore the user's mark
-compile endif  -- WANT_DM_BUFFER
 
 
 /*
@@ -557,11 +555,7 @@ defproc GetBuffCommon(bufhndl, errormsg)
    activatefile activefid               -- activate destination file
    rc=0                                 -- clear return code before copy
    if arg(3)='O' then
-compile if WANT_CHAR_OPS
       call pcommon_adjust_overlay('O')  -- copy mark
-compile else
-      overlay_block
-compile endif
    else
       if split_end then split; endif
       if split_start then split; '+1'; begin_line; endif

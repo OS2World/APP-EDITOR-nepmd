@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.17 2006-01-15 13:06:09 aschn Exp $
+* $Id: stdprocs.e,v 1.18 2006-03-29 23:54:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -138,18 +138,8 @@ compile endif
 ; Moved defproc enter_common(action) to ENTER.E
 
 defproc fixup_cursor()
-compile if DYNAMIC_CURSOR_STYLE
    universal cursordimensions
    parse value word( cursordimensions, insert_state() + 1) with cursorw '.' cursorh
-compile else
- compile if UNDERLINE_CURSOR
-   cursorh = 3 - 67*insert_state()         -- 0 -> 3; 1 -> -64
-   cursorw = '-128'
- compile else
-   cursorw = 2 - 130*(not insert_state())  -- 0 -> -128; 1 -> 2
-   cursorh = '-128'
- compile endif
-compile endif
    cursor_dimensions cursorw, cursorh
 
 ; ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: menu.e,v 1.4 2004-07-12 19:51:55 aschn Exp $
+* $Id: menu.e,v 1.5 2006-03-29 23:54:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -46,29 +46,19 @@ defc dupmark
       endif
    elseif mt = 'O' then
       if marktype() then
-compile if WANT_CHAR_OPS
          call pcommon_adjust_overlay('O')
-compile else
-         overlay_block
-compile endif
       else                 -- If no mark, look in Shared Text buffer
          'GetSharBuff O'   -- See clipbrd.e for details
       endif
    elseif mt = 'A' then
-compile if WANT_CHAR_OPS
       call pcommon_adjust_overlay('A')
-compile else
-      adjustblock
-compile endif
    elseif mt = 'U' then
       unmark
       'ClearSharBuff'
    elseif mt = 'U2' then  -- Unmark w/o clearing buffer, for drag/drop
       unmark
    elseif mt = 'D' then  -- Normal delete mark
-compile if WANT_DM_BUFFER
       'Copy2DMBuff'        -- See clipbrd.e for details
-compile endif  -- WANT_DM_BUFFER
       call pdelete_mark()
       'ClearSharBuff'
    elseif mt = 'D2' then  -- special for drag/drop; only deletes mark w/o touching buffers
