@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.35 2006-03-26 11:34:56 aschn Exp $
+* $Id: newmenu.e,v 1.36 2006-03-29 22:57:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -250,7 +250,7 @@ defc InitMenuSettings
 defproc BeforeLink
    universal MenuItemsHidden
    modulename = arg(1)
-   dPrintf( 'BEFORELINK', modulename)
+   --dPrintf( 'BEFORELINK', modulename)
    if not isadefc( 'HideMenuItems') then
       return
    elseif MenuItemsHidden <> 0 then  -- 0 means: not hidden
@@ -325,7 +325,7 @@ defproc AfterLink
 defc HideMenuItems
    universal defaultmenu
    universal nepmd_hini
-   universal menuloaded                   -- for to check if menu is already built
+   universal menuloaded             -- for to check if menu is already built
    universal MenuItemsHidden
 
    KeyPath = '\NEPMD\User\Menu\HideItems'
@@ -388,14 +388,14 @@ defc HideMenuItems
 
 defc loaddefaultmenu
    universal activemenu, defaultmenu
-   universal menuloaded                   -- for to check if menu is already built
+   universal menuloaded             -- for to check if menu is already built
    universal MenuItemsHidden
    universal nepmd_hini
 
    parse arg menuname .
-   if menuname = '' then                  -- Initialization call
+   if menuname = '' then            -- Initialization call
       menuname = 'default'
-      defaultmenu = menuname              -- default menu name
+      defaultmenu = menuname        -- default menu name
       activemenu  = defaultmenu
    endif
 
@@ -412,7 +412,7 @@ defc loaddefaultmenu
    call add_options_menu(menuname)   -- id = 4
 ;   call add_command_menu(menuname)  -- replaced with add_run_menu
    call add_run_menu(menuname)       -- id = 0 (menuitem ids = 1xx)
-;   call add_project_menu(menuname)   -- id = 9 (= TeX, epmprt)
+;   call add_project_menu(menuname)  -- id = 9 (= TeX, epmprt)
 
    -- Process hook: add a user-defined submenu
    if isadefc('HookExecute') then
@@ -3413,7 +3413,7 @@ defc menuinit_macros
 
 ; ------------------------------------ Run ----------------------------------
 defc menuinit_run
-   is_shell = leftstr(.filename, 15) = ".command_shell_"
+   is_shell = IsAShell()
    SetMenuAttribute( GetAVar('mid_writetoshell'),     MIA_DISABLED, is_shell)
    SetMenuAttribute( GetAVar('mid_sendbreaktoshell'), MIA_DISABLED, is_shell)
 
