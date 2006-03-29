@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.24 2006-03-26 12:18:02 aschn Exp $
+# $Id: makefile,v 1.25 2006-03-29 23:34:13 aschn Exp $
 #
 # ===========================================================================
 #
@@ -52,6 +52,7 @@ FILESTOCLEAN=\
 EMODULELIST=\
 $(CMPEXDIR)\epm.ex \
 $(CMPEXDIR)\alt_1.ex\
+$(CMPEXDIR)\assist.ex\
 $(CMPEXDIR)\bookmark.ex\
 $(CMPEXDIR)\box.ex\
 $(CMPEXDIR)\dict.ex\

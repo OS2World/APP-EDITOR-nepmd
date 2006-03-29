@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.11 2005-11-24 20:41:34 aschn Exp $
+* $Id: assist.e,v 1.12 2006-03-29 23:31:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -89,12 +89,12 @@ Todo:
 ; Added c_8 for german keyboards.
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled.
- define INCLUDING_FILE = 'ASSIST.E'
+define INCLUDING_FILE = 'ASSIST.E'
 const
-   tryinclude 'MYCNF.E'        -- the user's configuration customizations.
+ tryinclude 'MYCNF.E'        -- the user's configuration customizations.
 
  compile if not defined(SITE_CONFIG)
-    const SITE_CONFIG = 'SITECNF.E'
+const SITE_CONFIG = 'SITECNF.E'
  compile endif
  compile if SITE_CONFIG
     tryinclude SITE_CONFIG
@@ -104,9 +104,12 @@ const
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
-include NLS_LANGUAGE'.e'
+ include NLS_LANGUAGE'.e'
 
-   EA_comment 'Linkable bracket-matching routines.'
+ EA_comment 'Linkable bracket-matching routines.'
+
+defmain
+   call passist()
 compile endif  -- not defined(SMALL)
 
 const GOLD = '(){}[]<>'  -- Parens, braces, brackets & angle brackets.
@@ -120,7 +123,7 @@ compile if not defined(LOCATE_CIRCLE_COLOR2)
    LOCATE_CIRCLE_COLOR2 = 16777218
 compile endif
 
-defc passist
+defc assist, passist
    call passist()
 
 ; ---------------------------------------------------------------------------
