@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.15 2006-02-26 17:31:21 aschn Exp $
+* $Id: modeexec.e,v 1.16 2006-03-29 22:30:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -177,6 +177,24 @@ definit
 
 ; ---------------------------------------------------------------------------
 defc ResetFileSettings
+   fProcessLoad   = 0
+   fProcessSelect = 0
+   args = arg(1)
+   if args = '' then
+      fProcessLoad   = 1
+      fProcessSelect = 1
+   else
+      wp = wordpos( 'LOAD', upcase( args))
+      if wp then
+         fProcessLoad = 1
+         args = delword( args, wp, 1)
+      endif
+      wp = wordpos( 'SELECT', upcase( args))
+      if wp then
+         fProcessSelect = 1
+         args = delword( args, wp, 1)
+      endif
+   endif
    LoadSettingsList   = GetAVar( 'loadsettingslist')
    SelectSettingsList = GetAVar( 'selectsettingslist')
    -- Set all <setting>.<fid> array vars to empty
@@ -188,8 +206,12 @@ defc ResetFileSettings
    enddo
    call SetAVar( 'modesettingsapplied.'fid, 0)
    -- Process settings
-   'ProcessLoadSettings'
-   'ProcessSelectSettings'
+   if fProcessLoad then
+      'ProcessLoadSettings'
+   endif
+   if fProcessSelect then
+      'ProcessSelectSettings'
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Processes all mode specific defload settings.
@@ -466,7 +488,11 @@ defc RingRefreshSetting
             Cmd 'REFRESHDEFAULT' Args  -- execute arg(1) with 'REFRESHDEFAULT' parameter prepended
          endif
       elseif Mode = GetMode() then
-         'ResetFileSettings'  -- all settings (reset of a single setting is not implemented)
+         if i = 1 then
+            'ResetFileSettings'  -- all settings (reset of a single setting is not implemented)
+         else
+            'ResetFileSettings LOAD'  -- all load settings (reset of a single setting is not implemented)
+         endif
          --Cmd 'REFRESH' Args  -- execute arg(1) with 'REFRESH' parameter prepended
       endif
       nextfile
@@ -854,14 +880,14 @@ defc SetToolbar
          --def_toolbar = queryprofile( app_hini, appname, INI_DEF_TOOLBAR)
          def_toolbar = GetDefaultToolbar()
          if def_toolbar <> '' then
-            'postme LoadToolbar 'def_toolbar
+            'postme LoadToolbar NOSAVE' def_toolbar
             current_toolbar = def_toolbar
          endif
       elseif arg1 = \1 | wordpos( arg1, 'BUILTIN STANDARD') then
-         'postme LoadStandardToolbar'  -- built-in toolbar
+         'postme LoadStandardToolbar'  -- built-in toolbar, NOSAVE not required
          current_toolbar = 'STANDARD'
       else
-         'postme LoadToolbar 'arg(1)
+         'postme LoadToolbar NOSAVE' arg(1)
          current_toolbar = arg(1)
       endif
    endif
@@ -1046,8 +1072,7 @@ defc SetInsertMode
 ;         SetTextFont <name>.<size>[.<attrib[ <attrib2>]]
 ; Any following specifications, separated by a period are ignored.
 defc SetTextFont
-   universal appname
-   universal app_hini
+   universal nepmd_hini
    universal lastfont
    arg1 = upcase(arg(1))
    if arg1 = '' | arg1 = 'DEFAULT' then
@@ -1058,7 +1083,7 @@ defc SetTextFont
       KeyPath = '\NEPMD\User\Fonts\Text'
       new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    else
-      new = arg1
+      new = arg(1)
       parse value new with size '.' rest
       if not isnum( size) then
          sayerror 'Unknown font specification "'arg1'"'
@@ -1079,8 +1104,8 @@ defc SetTextFont
                       -- font_id would have been saved, after it was registered:
                       -- .font = registerfont(fontname, fontsize, fontsel)
       new = ConvertToEFont( new)
-      --'processfontrequest' new
-      'postme processfontrequest' new  -- must be posted (why?)
+      'processfontrequest' new
+      --'postme processfontrequest' new  -- must be posted (why?) -- apparently not!
    endif
    -- Save the value in an array var, because no field var exists
    call UseSetting( 'TextFont', arg(1))
