@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.34 2006-03-26 21:40:16 aschn Exp $
+* $Id: edit.e,v 1.35 2006-03-29 22:54:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -437,27 +437,13 @@ compile endif
 ;  a completely new instance of E.DLL, with its own window and data.  We do it
 ;  by posting a message to the executive, the top-level E application.
 defc o, open=
-compile if WPS_SUPPORT
-   universal wpshell_handle
-compile endif
    fname = strip(arg(1))                    -- Remove excess spaces
    call parse_filename( fname, .filename)   -- Resolve '=', if any
 
-compile if WPS_SUPPORT
-   if wpshell_handle then
-      call windowmessage( 0,  getpminfo(APP_HANDLE),
-                          5159,                   -- EPM_WPS_OPENNEWFILE
-                          getpminfo(EPMINFO_EDITCLIENT),
-                          put_in_buffer(fname))
-   else
-compile endif
       call windowmessage( 0,  getpminfo(APP_HANDLE),
                           5386,                   -- EPM_EDIT_NEWFILE
                           put_in_buffer(fname),
                           1)                      -- Tell EPM to free the buffer.
-compile if WPS_SUPPORT
-   endif
-compile endif
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
@@ -510,15 +496,13 @@ defc new
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
-defc newwindow=
+defc newwindow
    if leftstr(.filename, 5)='.DOS ' then
       fn = "'"substr(.filename, 6)"'"
-compile if WANT_TREE
    elseif .filename = '.tree' then
       parse value .titletext with cmd ': ' args
       fn = "'"cmd args"'"
-compile endif
-   elseif leftstr( .filename, 14 ) = '.command_shell' then
+   elseif IsAShell() then
       shell_dir = directory()
       fn = "'mc +cd "shell_dir" +shell'"
    elseif leftstr( .filename, 1 ) = '.' then  -- other temp file
