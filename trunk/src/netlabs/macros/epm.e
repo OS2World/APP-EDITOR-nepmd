@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.35 2006-03-11 18:45:09 aschn Exp $
+* $Id: epm.e,v 1.36 2006-03-29 23:54:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -86,18 +86,12 @@ compile endif  -- not VANILLA
 include        'modify.e'      -- New defmodify event processor.
 
 include        'keys.e'        -- Definitions for key combinations
+
 include        STDKEYS_NAME'.e'  -- Key bindings
 
-compile if    WANT_BRACKET_MATCHING
-   include     'assist.e'      -- Find matching identifier
-   include     'balance.e'     -- Highlight matching identifier while typing
-compile endif
+include        'balance.e'     -- Highlight matching identifier while typing
 
-compile if MOUSE_SUPPORT = 1
-   include     'mouse.e'       -- Mouse definition, only for EPM.
-compile else
-   defc processmouse = sayerror 'Mouse support missing.'
-compile endif
+include        'mouse.e'       -- Mouse definition, only for EPM.
 
 include        'stdprocs.e'    -- Standard functions and procedures.
 
@@ -108,9 +102,7 @@ include        'locate.e'      -- Find and replace definitions
 include        'markfilt.e'    -- Procedures for filtering a block, line or char. mark.
 include        'charops.e'     -- Mark operations for character marks.
 
-compile if WANT_TEXT_PROCS
-   include     'textproc.e'
-compile endif
+include        'textproc.e'
 
 compile if HOST_SUPPORT = 'STD'
    include     'saveload.e'    -- Save/load routines with host support
@@ -158,56 +150,30 @@ include        'comment.e'     -- Comment and uncomment marked lines
 
 include        'wrap.e'        -- Wrap and unwrap lines
 
-compile if WANT_DRAW
-  compile if (WANT_DRAW='F6' | WANT_DRAW=F6)
-   include     'drawkey.e'     -- If you still want F6=Draw in linking version.
-  compile endif
-compile endif
-
-compile if WANT_ALL
-   include     'all.e'         -- Shows all occurrences of a string.
-compile endif
-
-compile if WANT_TREE = 1
-   include     'tree.e'        -- Tree command
-compile endif
+-----------------------> Todo: always implicitly link draw, remove drawkey
+include        'drawkey.e'     -- If you still want F6=Draw in linking version.
 
 include        'linkcmds.e'    -- Useful new commands for the linking version.
+
 include        'autolink.e'    -- Link all .ex files found in <UserDir>\autolink
 
 include        'stdctrl.e'     -- PM controls for EPM.
 
 include        'config.e'      -- Ini definitions
-include        'setconfig.e'   -- Temporary definitions to change NEPMD.INI
+-----------------------> Todo: remove the following
+;include        'setconfig.e'   -- Temporary definitions to change NEPMD.INI
 
 include        'infoline.e'    -- Statusline and Titletext definitions
 
+-----------------------> Todo: make the following separately compilable
 include        'filelist.e'    -- Save/restore ring and provide 'File 3 of 28' field
 
+-----------------------> Todo: make the following separately compilable
 include        'toolbar.e'     -- Toolbar definitions
 
 include        'menu.e'        -- Common menu definitions
-compile if not LINK_MENU       -- New standard is to link a menu file in order to save space in EPM.EX.
-                               -- New default STD_MENU_NAME is 'NEWMENU.E'.
- compile if defined(STD_MENU_NAME) & STD_MENU_NAME <> ''
-  compile if STD_MENU_NAME = 'STDMENU.E'
-    *** Error:  Leave STD_MENU_NAME undefined to use the original menu layout (STDMENU.E).
-  compile else
-   include     STD_MENU_NAME   -- Action bar menus for EPM.
-  compile endif
- compile else
-   include     'stdmenu.e'     -- File/Edit/Search/Options/Command/Help menu
- compile endif
-compile endif  -- not LINK_MENU
 
 tryinclude     'clipbrd.e'     -- Clipboard interface and mark <--> buffer routines
-compile if WANT_BOOKMARKS = 1
-   include     'bookmark.e'    -- Set and find bookmarks
-compile endif
-compile if WANT_TAGS = 1
-   include     'tags.e'        -- Build tag list to find functions in files
-   include     'maketags.e'    -- Build tag list to find functions in files
-compile endif
 
 -- Put all new includes after this line (preferably in MYSTUFF.E). -------------
 compile if not VANILLA
@@ -227,56 +193,34 @@ compile endif  -- not VANILLA
 
 include        'dosutil.e'     -- DOSUTIL is now required.
 
-compile if WANT_MATH = '?'     -- Try to include it.
-   tryinclude  'math.e'
-compile elseif WANT_MATH = 1   -- Definitely include it.
-   include     'math.e'
-compile endif
+include        'math.e'
 
-compile if SORT_TYPE
-   include     'sort'SORT_TYPE'.e' -- SORTEPM, SORTE, SORTG, SORTF, SORTGW, SORTDLL, SORTDOS.E.
-compile endif
+include        'sortepm.e'     -- SORTEPM, SORTE, SORTG, SORTF, SORTGW, SORTDLL, SORTDOS.E.
 
-compile if WANT_EPM_SHELL
-   include     'epmshell.e'    -- EPM shell
-compile endif
+include        'epmshell.e'    -- EPM shell
 
-compile if WANT_KEYWORD_HELP = 1
-   include     'kwhelp.e'      -- Keyword help. Standard is WANT_KEYWORD_HELP = 'DYNALINK'
-compile endif
+include        'callrexx.e'    -- REXX support and defcs that previously existed only as defprocs
 
-compile if WANT_REXX
-   include     'callrexx.e'    -- REXX support
-compile endif
-
+-----------------------> Todo: make the following syntax expansion defs separately compilable
 -- Put all new includes above this line. --------------------------------------
 -- (The following files define additional keysets)
 
-compile if SPELL_SUPPORT = 1
-   include     'epmlex.e'      -- Spell checking
-compile endif
+;compile if SPELL_SUPPORT = 1
+;   include     'epmlex.e'      -- Spell checking
+;compile endif
 
 -- Put the programming keys last.  Any keys redefined above will stay in
 -- effect regardless of filetype.  These redefine only space and enter.
-compile if WANT_EBOOKIE = 1
-   include     'bkeys.e'
-compile endif
+;compile if WANT_EBOOKIE = 1
+;   include     'bkeys.e'
+;compile endif
 
-   include     'shellkeys.e'   -- Syntax-assist for EPM command shells
+include        'shellkeys.e'   -- Syntax-assist for EPM command shells
 
-compile if ALTERNATE_KEYSETS
- compile if C_SYNTAX_ASSIST
-   tryinclude  'ckeys.e'       -- Syntax-assist for C programmers.
- compile endif
- compile if E_SYNTAX_ASSIST
-   tryinclude  'ekeys.e'       -- Syntax-assist for E programmers.
- compile endif
- compile if REXX_SYNTAX_ASSIST
-   tryinclude  'rexxkeys.e'    -- Syntax-assist for Rexx programmers.
- compile endif
- compile if P_SYNTAX_ASSIST
-   tryinclude  'pkeys.e'       -- Syntax-assist for Pascal programmers.
- compile endif
+tryinclude     'ckeys.e'       -- Syntax-assist for C programmers.
+tryinclude     'ekeys.e'       -- Syntax-assist for E programmers.
+tryinclude     'rexxkeys.e'    -- Syntax-assist for Rexx programmers.
+tryinclude     'pkeys.e'       -- Syntax-assist for Pascal programmers.
 
  compile if not VANILLA
   compile if defined(SITE_KEYSET)
@@ -289,20 +233,4 @@ compile if ALTERNATE_KEYSETS
 compile endif  -- ALTERNATE_KEYSETS
 
 EA_comment 'This is the base .ex file for EPM, compiled with ETPM version' EVERSION
-
-compile if EXTRA_EX
-   compiler_msg EXTRA_EX is set; not needed for EPM 6.00.  You might want to modify
-   compiler_msg your MYCNF.E.  Don't forget to recompile EXTRA if appropriate.
-compile endif
-compile if LINK_HOST_SUPPORT
-   compiler_msg LINK_HOST_SUPPORT is set; not needed for EPM 6.00.  You might want to
-   compiler_msg modify your MYCNF.E.
- compile if HOST_SUPPORT = 'EMUL'
-   compiler_msg Don't forget to recompile E3EMUL if appropriate.
- compile elseif HOST_SUPPORT = 'SRPI'
-   compiler_msg Don't forget to recompile SLSRPI if appropriate.
- compile else
-   compiler_msg Don't forget to recompile your host support if appropriate.
- compile endif
-compile endif
 

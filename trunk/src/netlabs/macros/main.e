@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.39 2006-03-12 10:41:46 aschn Exp $
+* $Id: main.e,v 1.40 2006-03-29 23:54:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -82,7 +82,7 @@ defmain
    getfileid unnamedfid
 
 ;  Host support -------------------------------------------------------------
-compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH) or DELAY_SAVEPATH_CHECK
+compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH)
    call check_savepath()
 compile endif
 
@@ -90,7 +90,7 @@ compile endif
    call Autolink()
 
 ;  Process 'init' hook ------------------------------------------------------
-   -- The 'init' hook is a comfortable way to overwrite or add some
+   -- The 'init' hook is a comfortable way to override or add some
    -- general settings as an extension to NepmdInitConfig or initconfig.
    -- It can be used for configurations by other linked .ex files without
    -- the use of PROFILE.ERX.

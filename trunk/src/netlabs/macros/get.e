@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: get.e,v 1.4 2004-06-03 21:54:39 aschn Exp $
+* $Id: get.e,v 1.5 2006-03-29 23:54:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -81,11 +81,9 @@ defc get=
       return
    endif
    call psave_mark(save_mark)
-compile if WANT_BOOKMARKS
    if not .levelofattributesupport then
       'loadattributes'
    endif
-compile endif
    get_file_attrib = .levelofattributesupport
    top
    mark_line

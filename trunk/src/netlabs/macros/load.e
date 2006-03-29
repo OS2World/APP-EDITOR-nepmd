@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.22 2005-11-24 19:40:04 aschn Exp $
+* $Id: load.e,v 1.23 2006-03-29 23:54:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -111,11 +111,9 @@ compile endif
 ;  Restore tabs from EPM.TABS -----------------------------------------------
 ;  Restore margins from EPM.MARGINS -----------------------------------------
 ;  Restore bookmarks and styles from EPM.ATTRIBUTES -------------------------
-compile if WANT_BOOKMARKS
    if .levelofattributesupport < 2 then  -- If not already set (e.g., NAME does a DEFLOAD)
       'loadattributes'
    endif
-compile endif
 
 ;  Ebookie support: init bkm ------------------------------------------------
 ;     supports tag languages: BookMaster, GML, FOILS5, APAFOIL, IPF
@@ -145,7 +143,7 @@ compile endif  -- WANT_EBOOKIE
    'ProcessLoadSettings' Mode fid
 
 ;  Process hooks ------------------------------------------------------------
-   -- The 'load' and 'loadonce' hook is a comfortable way to overwrite
+   -- The 'load' and 'loadonce' hook is a comfortable way to override
    -- some file properties while a file is loaded. These properties were
    -- set by defload, e.g.: margins, tabs, keyset, mode.
    -- Example: 'HookAdd loadonce tabs 2'  -- no postme required anymore!

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: english.e,v 1.5 2002-09-16 16:22:39 aschn Exp $
+* $Id: english.e,v 1.6 2006-03-29 23:54:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,35 +41,15 @@
 ;     NLS_LANGUAGE = 'ENGLISH'
 
 const
+
+; Now uses only 1 additional const for compile-ifs: HOST_SUPPORT
+compile if not defined(HOST_SUPPORT)
+   HOST_SUPPORT = 0
+compile endif
+
 ; The following constants are defined in STDCNF.E; if they're not set by the
 ; time we get here, then we're being included by some external file, so their
 ; value isn't important.
-
-compile if not defined(WANT_DYNAMIC_PROMPTS)
-   WANT_DYNAMIC_PROMPTS = 0
-compile endif
-compile if not defined(WANT_BOOKMARKS)
-   WANT_BOOKMARKS = 0
-compile endif
-;   Now included tags consts everytime to let tags.e compile alone
-;compile if not defined(WANT_TAGS)
-;   WANT_TAGS = 0
-;compile endif
-compile if not defined(SPELL_SUPPORT)
-   SPELL_SUPPORT = 0
-compile endif
-compile if not defined(CHECK_FOR_LEXAM)
-   CHECK_FOR_LEXAM = 0
-compile endif
-compile if not defined(HOST_SUPPORT)
-   HOST_SUPPORT = 'STD'
-compile endif
-compile if not defined(WANT_STACK_CMDS)
-   WANT_STACK_CMDS = 0
-compile endif
-compile if not defined(WANT_TOOLBAR)  -- Different logic than is in STDCNF.E, but
-   WANT_TOOLBAR = 0                   -- if not set by STDCNF or EXTRA, NLS stuff not needed.
-compile endif
 
 ;; Box.e  -- Try to keep P, C, A, E, R & S the same; otherwise requires macro changes
    BOX_ARGS__MSG =        'Args: 1=³ 2=º 3=| 4=Û 5=Ø 6=× B=Spc /Any  P=Pas C=C A=Asm E=Erase R=Reflow S=Scr'
@@ -319,7 +299,6 @@ compile endif
      QUIT_MENU__MSG =       '~Quit file'
      PRT_FILE_MENU__MSG =   '~Print file'
 
-compile if WANT_DYNAMIC_PROMPTS
    FILE_BARP__MSG =        \1'Menus related to operations on files'
      NEW_MENUP__MSG =        \1'Replace current file with an empty .Untitled file'
      OPEN_NEW_MENUP__MSG =   \1'Open a new, empty, edit window'
@@ -333,21 +312,6 @@ compile if WANT_DYNAMIC_PROMPTS
      QUIT_MENUP__MSG =       \1'Quit this file'
      ENHPRT_FILE_MENUP__MSG =\1'Bring up print dialog'
      PRT_FILE_MENUP__MSG =   \1'Print this file on default printer'
-compile else
-   FILE_BARP__MSG =        ''
-     NEW_MENUP__MSG =        ''
-     OPEN_NEW_MENUP__MSG =   ''
-     OPEN_MENUP__MSG =       ''
-     GET_MENUP__MSG =        ''
-     ADD_MENUP__MSG =        ''
-     RENAME_MENUP__MSG =     ''
-     SAVE_MENUP__MSG =       ''
-     SAVEAS_MENUP__MSG =     ''
-     FILE_MENUP__MSG =       ''
-     QUIT_MENUP__MSG =       ''
-     ENHPRT_FILE_MENUP__MSG =''
-     PRT_FILE_MENUP__MSG =   ''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
    EDIT_BAR__MSG =        '~Edit '
      UNDO_MENU__MSG =       'Undo ~line'
@@ -381,7 +345,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
      PRT_MARK_MENU__MSG =   'Pr~int mark'
      RECOVER_MARK_MENU__MSG='~Recover mark delete'
 
-compile if WANT_DYNAMIC_PROMPTS
    EDIT_BARP__MSG =        \1'Menus related to Undo, marks, and the clipboard'
      UNDO_MENUP__MSG =       \1'Undo changes to current line'
      UNDO_REDO_MENUP__MSG =  \1'Activate Undo/Redo dialog, to step through changes to file.'
@@ -406,45 +369,16 @@ compile if WANT_DYNAMIC_PROMPTS
      ENHPRT_MARK_MENUP__MSG =\1'Bring up print dialog to print the marked text'
      PRT_MARK_MENUP__MSG =   \1'Print the marked text on the default printer'
      RECOVER_MARK_MENUP__MSG=\1'Paste a copy of the most recently deleted mark after the cursor'
-compile else
-   EDIT_BARP__MSG =        ''
-     UNDO_MENUP__MSG =       ''
-     UNDO_REDO_MENUP__MSG =  ''
-     STYLE_MENUP__MSG =      ''
-     COPY_MARK_MENUP__MSG =  ''
-     MOVE_MARK_MENUP__MSG =  ''
-     OVERLAY_MARK_MENUP__MSG=''
-     ADJUST_MARK_MENUP__MSG= ''
-     UNMARK_MARK_MENUP__MSG= ''
-     DELETE_MARK_MENUP__MSG= ''
-     PUSH_MARK_MENUP__MSG =  ''
-     POP_MARK_MENUP__MSG =   ''
-     SWAP_MARK_MENUP__MSG =  ''
-     PUSH_CURSOR_MENUP__MSG =''
-     POP_CURSOR_MENUP__MSG = ''
-     SWAP_CURSOR_MENUP__MSG= ''
-     CLIP_COPY_MENUP__MSG =  ''
-     CUT_MENUP__MSG =        ''
-     PASTE_C_MENUP__MSG =    ''
-     PASTE_L_MENUP__MSG =    ''
-     PASTE_B_MENUP__MSG =    ''
-     ENHPRT_MARK_MENUP__MSG =''
-     PRT_MARK_MENUP__MSG =   ''
-     RECOVER_MARK_MENUP__MSG=''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
    SEARCH_BAR__MSG =      '~Search '
      SEARCH_MENU__MSG =     '~Search...'
      FIND_NEXT_MENU__MSG =  '~Find next'
      CHANGE_NEXT_MENU__MSG= '~Change next'
-compile if WANT_BOOKMARKS
      BOOKMARKS_MENU__MSG =  '~Bookmarks'     -- Pull-right
        SET_MARK_MENU__MSG =   '~Set...'
        LIST_MARK_MENU__MSG =  '~List...'
        NEXT_MARK_MENU__MSG =  '~Next'
        PREV_MARK_MENU__MSG =  '~Previous'
-compile endif -- WANT_BOOKMARKS
-;compile if WANT_TAGS
      TAGS_MENU__MSG =       '~Tags'          -- Pull-right
        TAGSDLG_MENU__MSG =    '~Tags dialog...'
        FIND_TAG_MENU__MSG =   '~Find current procedure'
@@ -452,25 +386,16 @@ compile endif -- WANT_BOOKMARKS
        TAGFILE_NAME_MENU__MSG='Tags file ~name...'
        MAKE_TAGS_MENU__MSG =  '~Make tags file...'
        SCAN_TAGS_MENU__MSG =  '~Scan current file...'
-;compile endif -- WANT_TAGS
 
-compile if WANT_DYNAMIC_PROMPTS
- compile if WANT_BOOKMARKS & not defined(STD_MENU_NAME)
-   SEARCH_BARP__MSG =      \1'Menus related to searching and changing text, and to bookmarks'
- compile else
    SEARCH_BARP__MSG =      \1'Menus related to searching and changing text'
- compile endif
      SEARCH_MENUP__MSG =     \1'Activate search/replace dialog'
      FIND_NEXT_MENUP__MSG =  \1'Repeat previous Locate command'
      CHANGE_NEXT_MENUP__MSG= \1'Repeat previous Change command'
- compile if WANT_BOOKMARKS
      BOOKMARKS_MENUP__MSG=   \1'Cascaded menu for manipulating bookmarks'
      SET_MARK_MENUP__MSG =   \1'Place a bookmark at the cursor position'
      LIST_MARK_MENUP__MSG =  \1'List bookmarks; can go to or delete a bookmark from the list'
      NEXT_MARK_MENUP__MSG =  \1'Go to next bookmark in this file'
      PREV_MARK_MENUP__MSG =  \1'Go to previous bookmark in this file'
- compile endif -- WANT_BOOKMARKS
-; compile if WANT_TAGS
      TAGS_MENUP__MSG =       \1'Cascaded menu for using a "tags" file'
      TAGSDLG_MENUP__MSG =    \1'Activate tags dialog'
      FIND_TAG_MENUP__MSG =   \1'Find the definition for the procedure name under the cursor'
@@ -478,29 +403,6 @@ compile if WANT_DYNAMIC_PROMPTS
      TAGFILE_NAME_MENUP__MSG=\1'Check or set the name of the tags file'
      MAKE_TAGS_MENUP__MSG =  \1'Create or update a tags file'
      SCAN_TAGS_MENUP__MSG =  \1'Search current file for procedures & present them in a list'
-; compile endif -- WANT_TAGS
-compile else
-   SEARCH_BARP__MSG =      ''
-     SEARCH_MENUP__MSG =     ''
-     FIND_NEXT_MENUP__MSG =  ''
-     CHANGE_NEXT_MENUP__MSG= ''
- compile if WANT_BOOKMARKS
-     BOOKMARKS_MENUP__MSG =  ''
-     SET_MARK_MENUP__MSG =   ''
-     LIST_MARK_MENUP__MSG =  ''
-     NEXT_MARK_MENUP__MSG =  ''
-     PREV_MARK_MENUP__MSG =  ''
- compile endif -- WANT_BOOKMARKS
-; compile if WANT_TAGS
-     TAGS_MENUP__MSG =       ''
-     TAGSDLG_MENUP__MSG =    ''
-     FIND_TAG_MENUP__MSG =   ''
-     FIND_TAG2_MENUP__MSG =  ''
-     TAGFILE_NAME_MENUP__MSG=''
-     MAKE_TAGS_MENUP__MSG =  ''
-     SCAN_TAGS_MENUP__MSG =  ''
-; compile endif -- WANT_TAGS
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
    OPTIONS_BAR__MSG         = '~Options '
      LIST_FILES_MENU__MSG     = '~List ring...'
@@ -529,25 +431,17 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
        SCROLL_BARS_MENU__MSG    = 'Scroll~bars'
        FILEICON_MENU__MSG       = '~File symbol'
        ROTATEBUTTONS_MENU__MSG  = '~Rotate buttons'
-compile if WANT_TOOLBAR
        TOOLBAR_MENU__MSG        = '~Toolbar'
        TOGGLETOOLBAR_MENU__MSG  = '~Toolbar'  -- Was 'Toggle'; the other 3 not used any more.
        LOADTOOLBAR_MENU__MSG    = '~Load...'
        DELETETOOLBAR_MENU__MSG  = '~Delete...'
-compile endif -- WANT_TOOLBAR
        TOGGLEBITMAP_MENU__MSG   = 'B~ackground bitmap'
        INFOATTOP_MENU__MSG      = '~Info at top'
        PROMPTING_MENU__MSG      = '~Prompting'
      SAVE_OPTS_MENU__MSG      = 'Save ~options'
      TO_BOOK_MENU__MSG        = '~Book icon'
-;     TO_DESKTOP_MENU__MSG     = 'LaMa~il desktop'
 
-compile if WANT_DYNAMIC_PROMPTS
- compile if SPELL_SUPPORT & not CHECK_FOR_LEXAM
-   OPTIONS_BARP__MSG         = \1'Menus related to spell checking, and configuring the editor'
- compile else
    OPTIONS_BARP__MSG         = \1'Menus related to configuring the editor'
- compile endif
      LIST_FILES_MENUP__MSG     = \1'List files in the edit ring'
      PROOF_MENUP__MSG          = \1'Initiate a spell-check of the file'
      PROOF_WORD_MENUP__MSG     = \1'Verify the spelling of the word at the cursor'
@@ -572,64 +466,18 @@ compile if WANT_DYNAMIC_PROMPTS
        STATUS_LINE_MENUP__MSG    = \1'Toggle display of status line on and off'
        MSG_LINE_MENUP__MSG       = \1'Toggle display of message line on and off'
        SCROLL_BARS_MENUP__MSG    = \1'Toggle display of scroll bars on and off'
-;;;;   PARTIALTEXT_MENUP__MSG    = \1'Toggle display of partial text on and off'  -- Unused
        FILEICON_MENUP__MSG       = \1'Toggle display of drag/drop file symbol on and off'
        ROTATEBUTTONS_MENUP__MSG  = \1'Toggle display of rotate buttons on and off'
- compile if WANT_TOOLBAR
        TOOLBAR_MENUP__MSG        = \1'Cascaded menu for actions related to the Toolbar'
          TOGGLETOOLBAR_MENUP__MSG  = \1'Toggle toolbar on or off'
          LOADTOOLBAR_MENUP__MSG    = \1'Load a previously saved toolbar'
          SAVETOOLBAR_MENUP__MSG    = \1'Save a customized toolbar'
          DELETETOOLBAR_MENUP__MSG  = \1'Delete a named toolbar'
- compile endif -- WANT_TOOLBAR
        TOGGLEBITMAP_MENUP__MSG   = \1'Toggle bitmap behind text window on or off'
        INFOATTOP_MENUP__MSG      = \1'Toggle status & message lines between top & bottom of window'
        PROMPTING_MENUP__MSG      = \1'Toggle dynamic menu help on and off'
      SAVE_OPTS_MENUP__MSG      = \1'Makes current modes and frame settings the default'
      TO_BOOK_MENUP__MSG        = \1'Switch to the EPM book icon or desktop'
-;     TO_DESKTOP_MENUP__MSG     = \1'Switch to the LaMail desktop window'
-compile else
-   OPTIONS_BARP__MSG         = ''
-     LIST_FILES_MENUP__MSG     = ''
-     PROOF_MENUP__MSG          = ''
-     PROOF_WORD_MENUP__MSG     = ''
-     SYNONYM_MENUP__MSG        = ''
-     DYNASPELL_MENUP__MSG      = ''
-     DEFINE_WORD_MENUP__MSG    = ''
-     PREFERENCES_MENUP__MSG    = ''
-       CONFIG_MENUP__MSG         = ''
-       SETENTER_MENUP__MSG       = ''
-       ADVANCEDMARK_MENUP__MSG   = ''
-       STREAMMODE_MENUP__MSG     = ''
-       RINGENABLED_MENUP__MSG    = ''
-       STACKCMDS_MENUP__MSG      = ''
-       CUAACCEL_MENUP__MSG       = ''
-     AUTOSAVE_MENUP__MSG       = ''
-     MESSAGES_MENUP__MSG       = ''
-     CHANGE_FONT_MENUP__MSG    = ''
-     SMALL_FONT_MENUP__MSG     = ''
-     LARGE_FONT_MENUP__MSG     = ''
-     FRAME_CTRLS_MENUP__MSG    = ''
-       STATUS_LINE_MENUP__MSG    = ''
-       MSG_LINE_MENUP__MSG       = ''
-       SCROLL_BARS_MENUP__MSG    = ''
-;;;;   PARTIALTEXT_MENUP__MSG    = ''  -- Unused
-       FILEICON_MENUP__MSG       = ''
-       ROTATEBUTTONS_MENUP__MSG  = ''
- compile if WANT_TOOLBAR
-       TOOLBAR_MENUP__MSG        = ''
-         TOGGLETOOLBAR_MENUP__MSG  = ''
-         LOADTOOLBAR_MENUP__MSG    = ''
-         SAVETOOLBAR_MENUP__MSG    = ''
-         DELETETOOLBAR_MENUP__MSG  = ''
- compile endif -- WANT_TOOLBAR
-       TOGGLEBITMAP_MENUP__MSG   = ''
-       INFOATTOP_MENUP__MSG      = ''
-       PROMPTING_MENUP__MSG      = ''
-     SAVE_OPTS_MENUP__MSG      = ''
-     TO_BOOK_MENUP__MSG        = ''
-;     TO_DESKTOP_MENUP__MSG     = ''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
    RING_BAR__MSG =        '~Ring '
 
@@ -641,7 +489,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
      KILL_SHELL_MENU__MSG =  '~Destroy shell'
      SHELL_BREAK_MENU__MSG = 'Send ~break to shell'
 
-compile if WANT_DYNAMIC_PROMPTS
    COMMAND_BARP__MSG =     \1'Enter or halt a command',
      COMMANDLINE_MENUP__MSG = \1'Activate command line dialog to enter editor or OS/2 commands'
      HALT_COMMAND_MENUP__MSG= \1'Stop execution of the current command'
@@ -649,15 +496,6 @@ compile if WANT_DYNAMIC_PROMPTS
      WRITE_SHELL_MENUP__MSG = \1"Write a string to the shell's standard input"
      KILL_SHELL_MENUP__MSG =  \1'Kill the shell process and delete the edit file'
      SHELL_BREAK_MENUP__MSG = \1'Send a Ctrl+Break message to the shell process'
-compile else
-   COMMAND_BARP__MSG =     '',
-     COMMANDLINE_MENUP__MSG = ''
-     HALT_COMMAND_MENUP__MSG= ''
-     CREATE_SHELL_MENUP__MSG= ''
-     WRITE_SHELL_MENUP__MSG = ''
-     KILL_SHELL_MENUP__MSG =  ''
-     SHELL_BREAK_MENUP__MSG = ''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
    HELP_BAR__MSG =        '~Help '
      HELP_HELP_MENU__MSG =   '~Using help'  -- was '~Help for help'
@@ -675,7 +513,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
        VIEW_TECHREF_MENU__MSG =  "~View Technical Reference"
        VIEW_IN_TECHREF_MENU__MSG="~Current word"
 
-compile if WANT_DYNAMIC_PROMPTS
    HELP_BARP__MSG =         \1'Menus to access Help panels and copyright information'
      HELP_HELP_MENUP__MSG =   \1'Help about the help manager'
      EXT_HELP_MENUP__MSG =    \1'Bring up main editor help panel'
@@ -691,23 +528,6 @@ compile if WANT_DYNAMIC_PROMPTS
      TECHREF_MENUP__MSG =     \1"View EPM Technical Reference, or look up a word in it"
        VIEW_TECHREF_MENUP__MSG=   \1"Call View to read EPM Technical Reference"
        VIEW_IN_TECHREF_MENUP__MSG=\1"Look up current word in EPM Technical Reference"
-compile else
-   HELP_BARP__MSG =         ''
-     HELP_HELP_MENUP__MSG =   ''
-     EXT_HELP_MENUP__MSG =    ''
-     KEYS_HELP_MENUP__MSG =   ''
-     COMMANDS_HELP_MENUP__MSG=''
-     HELP_INDEX_MENUP__MSG =  ''
-     HELP_BROWSER_MENUP__MSG= ''
-     HELP_PROD_MENUP__MSG=    ''
-     USERS_GUIDE_MENUP__MSG = ''
-       VIEW_USERS_MENUP__MSG =  ''
-       VIEW_IN_USERS_MENUP__MSG=''
-       VIEW_USERS_SUMMARY_MENUP__MSG=''
-     TECHREF_MENUP__MSG =     ''
-       VIEW_TECHREF_MENUP__MSG=   ''
-       VIEW_IN_TECHREF_MENUP__MSG=''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
    COMPILER_BAR__MSG =           'Co~mpiler'
      NEXT_COMPILER_MENU__MSG =     '~Next error'
@@ -717,7 +537,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
      END_DDE_SESSION_MENU__MSG =   '~End DDE session'
      REMOVE_COMPILER_MENU__MSG =   '~Remove compiler menu'
 
-compile if WANT_DYNAMIC_PROMPTS
    COMPILER_BARP__MSG =           \1'Compiler-related selections'
      NEXT_COMPILER_MENUP__MSG =     \1'Move to next compiler error'
      PREV_COMPILER_MENUP__MSG =     \1'Move to previous compiler error'
@@ -725,15 +544,6 @@ compile if WANT_DYNAMIC_PROMPTS
      CLEAR_ERRORS_MENUP__MSG =      \1'Remove highlighting and bookmarks for compiler errors'
      END_DDE_SESSION_MENUP__MSG =    \1'End the DDE session with the Workframe'
      REMOVE_COMPILER_MENUP__MSG =    \1'Remove the compiler menu from the action bar'
-compile else
-   COMPILER_BARP__MSG =          ''
-     NEXT_COMPILER_MENUP__MSG =    ''
-     PREV_COMPILER_MENUP__MSG =    ''
-     DESCRIBE_COMPILER_MENUP__MSG = ''
-     CLEAR_ERRORS_MENUP__MSG =     ''
-     END_DDE_SESSION_MENUP__MSG =  ''
-     REMOVE_COMPILER_MENUP__MSG =  ''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
 ;  (End of pull-downs)
 ; Now, define the lower and upper case accelerators for the above
@@ -786,7 +596,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
      SELECT_ALL_MENU__MSG = 'Select ~all'
      DESELECT_ALL_MENU__MSG = 'D~eselect all'
 
-compile if WANT_DYNAMIC_PROMPTS
      OPENAS_MENUP__MSG  =       \1'Open a file or edit object settings'
      NEWWIN_MENUP__MSG =        \1'Replace current file with an empty .Untitled file'
      UNDO__MENUP__MSG =         \1'Menus related to Undo, marks, and the clipboard'
@@ -794,15 +603,6 @@ compile if WANT_DYNAMIC_PROMPTS
 
    VIEW_BARP__MSG =        \1'Menus related to searching, tags, bookmarks, commands, etc.'
    SELECTED_BARP__MSG =         \1'Menus related to selected text'
-compile else
-     OPENAS_MENUP__MSG  =       ''
-     NEWWIN_MENUP__MSG =        ''
-     UNDO__MENUP__MSG =         ''
-     SELECT_ALL_MENUP__MSG =    ''
-
-   VIEW_BARP__MSG =        ''
-   SELECTED_BARP__MSG =    ''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
 ; End of additions for OVSH menus.
 
@@ -817,7 +617,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
    NO_QUEUE__MSG =        'has no queue associated with it.'
    EDITOR__MSG =          "EPM Editor - Product Information"
    EDITOR_VER__MSG =      "Editor version" -- nnn
-;   LAMAIL_VER__MSG =      "LaMail version" -- nnn
    MACROS_VER__MSG =      "Macros version" -- nnn
    COPYRIGHT__MSG =       "(C) Copyright IBM Corporation 1989, 1993, 1994, 1995, 1996"
    OVERLAPPING_ATTRIBS__MSG = 'Overlapping attributes; nothing changed.' /*NLS*/
@@ -1070,7 +869,6 @@ compile endif
    MODIFIED_PROMPT__MSG =   'Current file has been modified.  Save changes?'
    NOT_ON_DISK__MSG =       'does not exist on disk - can not proceed.'   -- Preceded by:  '"'filename'"'
 
-
 ; The following are used in key names, like 'Ctrl+O', 'Alt+Bkspc', etc.
 ; Note that some are abbreviated to take up less room on the menus.
 
@@ -1097,11 +895,8 @@ compile endif
    PROOF_ERROR1__MSG =     'Unexpected error on line'
    PROOF_ERROR2__MSG =     '- skipping to next line.'
 
-compile if WANT_STACK_CMDS
    STACK_FULL__MSG =        'No room in stack.'
    STACK_EMPTY__MSG =       'Stack is empty.'
-compile endif
-;compile if WANT_TAGS
    TAGSNAME__MSG = 'Tags file name'     -- Entry box title
    TAGSNAME_PROMPT__MSG = 'Enter the file name for the tags file'
    FINDTAG__MSG = 'Find Procedure'      -- Entry box title
@@ -1109,7 +904,6 @@ compile endif
    NO_TAGS__MSG = 'No tags found in tags file.'
    LIST_TAGS__MSG = 'List tags'         -- Listbox title
    BUILDING_LIST__MSG = 'Building list...'  -- Processing message
-;compile endif
    LIST__MSG = '~List...'               -- Button
    MAKETAGS__MSG = 'Make tags file'
    MAKETAGS_PROMPT__MSG = 'Enter one or more filenames (wildcards OK) or @lists.'
@@ -1119,7 +913,6 @@ compile endif
    MESSAGELINE_BGCOLOR__MSG = 'Messageline background color changed.'
    TABGLYPH_IS__MSG = 'TABGLYPH is' -- on/off
 
-compile if WANT_TOOLBAR
 ;  NO_TOOLBARS__MSG =     'No saved toolbars to select from.'
 ;  LOAD_TOOLBAR__MSG =    'Load Toolbar'  -- Dialog box title
 ;  DELETE_TOOLBAR__MSG =  'Delete Toolbar'  -- Dialog box title
@@ -1128,7 +921,6 @@ compile if WANT_TOOLBAR
 ;  SAVEBAR_PROMPT__MSG =  'Enter a name, or leave blank to save as default.'
    SAVEBAR_PROMPT__MSG =  'Enter a name for the toolbar.'
    SAVE__MSG =            'Save'          -- Dialog button
-compile endif -- WANT_TOOLBAR
    WILDCARD_WARNING__MSG = 'Filename contains wildcards.'  -- followed by ARE_YOU_SURE__MSG
 
 ;; ASSSIST.E
@@ -1136,3 +928,4 @@ compile endif -- WANT_TOOLBAR
    UNBALANCED_TOKEN__MSG = 'Unbalanced token.'
 
    WIDE_PASTE__MSG =       'Pasted text is wider than margins.  Reflow?'
+

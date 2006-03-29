@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: charops.e,v 1.4 2003-08-31 19:03:20 aschn Exp $
+* $Id: charops.e,v 1.5 2006-03-29 23:54:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,7 +24,6 @@
 쿯or the character and line marks.                                             �
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
-compile if WANT_CHAR_OPS
 defproc pcommon_adjust_overlay(letter)
    call checkmark()
    mt=marktype()
@@ -44,7 +43,6 @@ defproc pcommon_adjust_overlay(letter)
       call pset_mark(firstline,lastline,firstcol,lastcol,mt,mkfileid)
       if leftstr(mt, 1)='L' then 'strip' firstline lastline; endif
    endif
-compile endif
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
@@ -123,7 +121,6 @@ defproc pfill_mark
    else
        k=substr(arg(1),1,1)
    endif
-compile if WANT_CHAR_OPS
    if marktype() = 'CHAR' then
       call psave_pos(save_pos)
       call pinit_extract()
@@ -138,13 +135,8 @@ compile if WANT_CHAR_OPS
       call prestore_pos(save_pos)
       sayerror 0
    else
-compile else
-   call no_char_mark()
-compile endif
       fill_mark k
-compile if WANT_CHAR_OPS
    endif
-compile endif
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
@@ -153,14 +145,6 @@ compile endif
 */
 defproc pmove_mark
    move_mark
-
-compile if WANT_CHAR_OPS = 0
-defproc no_char_mark
-   if marktype()='CHAR' then
-      sayerror NO_CHAR_SUPPORT__MSG
-      stop
-   endif
-compile endif
 
 defproc FastMoveATTRtoBeg(theclass, thevalue, thepush, DestinationCol, DestinationLine, scol, slin, soff)
    if thepush<>1 then      -- an end attribute cannot cancel any attribute
@@ -183,3 +167,4 @@ defproc FastMoveATTRtoBeg(theclass, thevalue, thepush, DestinationCol, Destinati
          Attribute_action DELETE_ATTR_SUBOP, theclass, soff, scol, slin
       endif
    endif
+

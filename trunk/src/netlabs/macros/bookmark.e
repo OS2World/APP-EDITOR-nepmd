@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: bookmark.e,v 1.8 2004-02-01 19:00:10 aschn Exp $
+* $Id: bookmark.e,v 1.9 2006-03-29 23:53:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -33,15 +33,6 @@ tryinclude 'MYCNF.E'
  compile if SITE_CONFIG
     tryinclude SITE_CONFIG
  compile endif
- compile if not defined(INCLUDE_WORKFRAME_SUPPORT)
-   const INCLUDE_WORKFRAME_SUPPORT = 1
- compile endif
- compile if not defined(INCLUDE_STD_MENUS)
-   const INCLUDE_STD_MENUS = 1
- compile endif
- compile if not defined(WANT_APPLICATION_INI_FILE)
-   const WANT_APPLICATION_INI_FILE = 1
- compile endif
  compile if not defined(NLS_LANGUAGE)
   const NLS_LANGUAGE = 'ENGLISH'
  compile endif
@@ -49,13 +40,16 @@ include NLS_LANGUAGE'.e'
 compile endif
 
 const
-   COLOR_CLASS      =  1
+   COLOR_CLASS     =  1
    PAGEBREAK_CLASS =  6
    BOOKMARK_CLASS  = 13
-   STYLE_CLASS      = 14
-   FONT_CLASS       = 16
+   STYLE_CLASS     = 14
+   FONT_CLASS      = 16
    EAT_ASCII    = \253\255    -- FFFD
    EAT_MVST     = \222\255    -- FFDE
+compile if not defined(INCLUDE_WORKFRAME_SUPPORT)
+   INCLUDE_WORKFRAME_SUPPORT = 1
+compile endif
 compile if not defined(COMPILER_ERROR_COLOR)
    COMPILER_ERROR_COLOR = 244  -- red + whiteb = 4 + 240
 compile endif
@@ -66,7 +60,7 @@ compile if not defined(SORT_BOOKMARKS)
    SORT_BOOKMARKS = 0
 compile endif
 
-compile if 0  -- Menu now added in STDCTRL.E
+compile if 0  -- Menu now added in STDCTRL.E (standard EPM) or *MENU.E (NEPMD)
 definit
    universal defaultmenu, activemenu
    buildsubmenu defaultmenu, 29, 'Bookmarks',             '',               0, 0
@@ -167,14 +161,8 @@ defc compiler_error
    call attribute_on(1)  -- Colors flag
    if perm=16 then
       if not attribute_on(16) then  -- Was attribute 16 off?
- compile if    defined(C_KEYWORD_HIGHLIGHTING)
-  compile if C_KEYWORD_HIGHLIGHTING
          'toggle_parse 0'
-  compile endif
- compile endif
- compile if INCLUDE_STD_MENUS
          deletemenu defaultmenu, 6, 0, 0                -- Delete the Help menu
- compile endif
          buildsubmenu defaultmenu, 16, COMPILER_BAR__MSG, COMPILER_BARP__MSG, 0, 0
              buildmenuitem defaultmenu, 16, 1601, NEXT_COMPILER_MENU__MSG, 'nextbookmark N 16'NEXT_COMPILER_MENUP__MSG, 1, 0
              buildmenuitem defaultmenu, 16, 1602, PREV_COMPILER_MENU__MSG, 'nextbookmark P 16'PREV_COMPILER_MENUP__MSG, 1, 0
@@ -184,9 +172,7 @@ defc compiler_error
              buildmenuitem defaultmenu, 16, 1606, CLEAR_ERRORS_MENU__MSG, 'compiler_clear'CLEAR_ERRORS_MENUP__MSG,     1, 0
              buildmenuitem defaultmenu, 16, 1607, END_DDE_SESSION_MENU__MSG, 'end_dde'END_DDE_SESSION_MENUP__MSG,     1, 0
              buildmenuitem defaultmenu, 16, 1608, REMOVE_COMPILER_MENU__MSG, 'compiler_dropmenu'REMOVE_COMPILER_MENUP__MSG,     1, 0
- compile if INCLUDE_STD_MENUS
          call add_help_menu(defaultmenu, 1)
- compile endif
          call maybe_show_menu()
       endif  -- "Added Compiler" flag
    endif
@@ -514,18 +500,16 @@ defc saveattributes
          l = l bmname
       elseif class=COLOR_CLASS then  -- don't save if out of range
 ;;       if val>255 then iterate; endif
-compile if not defined(COMPILING_FOR_ULTIMAIL)
-         if line=style_line & col=style_col & (offst=style_offst+1 | offst=style_offst+2) then iterate; endif
- compile if    INCLUDE_WORKFRAME_SUPPORT
+         if line=style_line & col=style_col & (offst=style_offst+1 | offst=style_offst+2) then
+            iterate
+         endif
+compile if INCLUDE_WORKFRAME_SUPPORT
          if compiler_errors_on & val=COMPILER_ERROR_COLOR then iterate; endif
- compile endif
-compile endif -- not defined(COMPILING_FOR_ULTIMAIL)
+compile endif
 ;;       if line=style_line & col=style_col & offst=style_offst+2 then iterate; endif
       elseif class=FONT_CLASS then  -- get font info
 ;;       if val>255 then iterate; endif
-compile if not defined(COMPILING_FOR_ULTIMAIL)
          if line=style_line & col=style_col & offst=style_offst+1 then iterate; endif
-compile endif -- not defined(COMPILING_FOR_ULTIMAIL)
          l = l queryfont(val)
          found_font = 1
       elseif class=STYLE_CLASS then  -- get style info
@@ -545,11 +529,7 @@ compile endif -- not defined(COMPILING_FOR_ULTIMAIL)
                deleteline  -- Delete the empty line
             endif
             style_list = style_list || chr(val)
-compile if WANT_APPLICATION_INI_FILE
             insertline stylename || \0 || queryprofile(app_hini, 'Style', stylename), style_fid.last+1, style_fid
-compile else
-            insertline stylename || \0 , style_fid.last+1, style_fid
-compile endif
          endif  -- new style
       endif  -- class=STYLE_CLASS
       insertline class val ispush offst col l, attrib_fid.last+1, attrib_fid
@@ -595,11 +575,9 @@ defc loadattributes
          do i=1 to num
             len = itoa(peek(ea_seg, ea_ptr2, 2), 10)
             parse value peek(ea_seg, ea_ptr2 + 2, len) with stylename \0 stylestuff
-compile if WANT_APPLICATION_INI_FILE
             if queryprofile(app_hini, 'Style', stylename)='' then  -- Don't have as a local style?
                call setprofile(app_hini, 'Style', stylename, stylestuff)  -- Add it.
             endif
-compile endif
             ea_ptr2 = ea_ptr2 + len + 2
          enddo
       endif
@@ -646,12 +624,9 @@ compile endif
                endif
                need_fonts = 1
             elseif class=STYLE_CLASS then  -- Set style info
-compile if WANT_APPLICATION_INI_FILE
                parse value rest with stylename .
                stylestuff = queryprofile(app_hini, 'Style', stylename)
-compile if not defined(COMPILING_FOR_ULTIMAIL)
                if stylestuff='' then iterate; endif  -- Shouldn't happen
-compile endif -- not defined(COMPILING_FOR_ULTIMAIL)
                parse value stylestuff with fontname '.' fontsize '.' fontsel '.' fg '.' bg
                if get_array_value(EPM_utility_array_ID, 'sn.'stylename, val) then  -- Don't have it; add:
                   stylecount = stylecount + 1                                 -- Increment index
@@ -659,12 +634,8 @@ compile endif -- not defined(COMPILING_FOR_ULTIMAIL)
                   do_array 2, EPM_utility_array_ID, 'sn.'stylename, stylecount  -- Save name.index
                   val = stylecount
                endif
-compile else
-               iterate
-compile endif
             endif
             insert_attribute class, val, ispush, 0, col, line
-compile if WANT_APPLICATION_INI_FILE
             if class=STYLE_CLASS then  -- Set style info
                if fontsel<>'' then
                   fontid=registerfont(fontname, fontsize, fontsel)
@@ -678,7 +649,6 @@ compile if WANT_APPLICATION_INI_FILE
                   need_colors = 1
                endif
             endif  -- class=STYLE_CLASS
-compile endif  -- WANT_APPLICATION_INI_FILE
          enddo
          do_array 2, EPM_utility_array_ID, 'bmi.0', bmcount          -- Store back the new number
          do_array 2, EPM_utility_array_ID, 'si.0', stylecount

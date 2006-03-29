@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.14 2006-03-26 21:40:17 aschn Exp $
+* $Id: select.e,v 1.15 2006-03-29 23:54:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +54,7 @@ defproc select_edit_keys()
 defselect
    universal lastselectedfid
    universal loadstate
-   universal vEPM_POINTER
+   universal vepm_pointer
    getfileid fid
    dprintf('SELECT', 'DEFSELECT for '.filename', loadstate = 'loadstate)
 
@@ -80,11 +80,7 @@ defselect
 ;                          correct pointer after a new edit window was opened
 ;     defined in defc initconfig, STDCTRL.E
    if JustLoaded then
-compile if EPM_POINTER = 'SWITCH'
-      'postme setmousepointer 'vEPM_POINTER
-compile else
-      'postme setmousepointer 'EPM_POINTER
-compile endif
+      'postme setmousepointer 'vepm_pointer
    endif
 
 ; ---------------------------------------------------------------------------

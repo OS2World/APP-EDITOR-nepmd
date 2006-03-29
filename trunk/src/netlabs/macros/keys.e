@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.17 2006-02-26 17:31:19 aschn Exp $
+* $Id: keys.e,v 1.18 2006-03-29 23:54:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -88,14 +88,14 @@ compile if not defined(VIRTUAL_LIST)
    -- more: SPACE, ENTER, PADENTER
 compile endif
 
-   -- PM_LIST    = don't overwrite <key>, because they are standard PM keys
+   -- PM_LIST    = don't override <key>, because they are standard PM keys
 compile if not defined(PM_LIST)
    -- Tab must be excluded, because otherwise lastkey(2) and lastkey(3) would
    -- return wrong values for Tab. lastkey() for Tab doesn't work in EPM!
    PM_LIST       = 'F1 F10 TAB'
 compile endif
 
-   -- PM_ALT_LIST = don't overwrite Alt+<key>, because they are standard PM keys
+   -- PM_ALT_LIST = don't override Alt+<key>, because they are standard PM keys
 compile if not defined(PM_ALT_LIST)
    PM_ALT_LIST    = 'SPACE TAB ESC F4 F5 F6 F7 F8 F9 F10 F11'
 compile endif
@@ -471,12 +471,8 @@ defc deleteaccel
 ; <num> = 3: Sh+Eenter
 ; <num> = 4: Sh+PadEenter
 defc alt_enter =
-compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''  -- define each key separately
    universal a_enterkey, a_padenterkey, s_enterkey, s_padenterkey
    call enter_common( substr( a_enterkey||a_padenterkey||s_enterkey||s_padenterkey, arg(1), 1))
-compile else
-   executekey enter
-compile endif
 
 ; ---------------------------------------------------------------------------
 defc dokey
@@ -854,179 +850,16 @@ defc ClosingBrace
    'balance }'
 
 ; ---------------------------------------------------------------------------
-; We now distribute a standard front end for the DIR command, which redirects
-; the output to a file named ".dos dir <dirspec>".  The third line should be
-; "Directory of <dirname>".  If so, we use it.  If not, we use DIRSPEC from the
-; .filename instead, but note that the latter might contain wildcards.
-define
-   QUOTED_DIR_STRING ='"'DIRECTORYOF_STRING'"'
-
-/*
-; Unused, we include ALT_1.E
-def a_1= /* edit filename on current text line */
-   getline line
-   if leftstr(.filename, 15) = ".command_shell_" then
-      if substr(line, 13, 1) = ' ' then  -- old format DIR, or not a DIR line
-         flag = substr(line, 1, 1) <> ' ' &
-                (isnum(substr(line, 14, 8)) | substr(line, 14, 8)='<DIR>') &
-                length(line) < 40 &
-                isnum(substr(line, 24, 2) || substr(line, 27, 2) || substr(line, 30, 2)) &
-                substr(line, 26, 1) = substr(line, 29, 1) &
-                pos(substr(line, 26, 1), '/x.-')
-         filename=strip(substr(line,1,8))
-         word2=strip(substr(line,10,3))
-         if word2<>'' then filename=filename'.'word2; endif
-      else                               -- new format DIR, or not a DIR line
-         flag = substr(line, 41, 1) <> ' ' &
-                (isnum(substr(line, 18, 9)) | substr(line, 18, 9)='<DIR>') &
-                isnum(substr(line, 1, 2) || substr(line, 4, 2) || substr(line, 7, 2)) &
-                substr(line, 3, 1) = substr(line, 6, 1) &
-                pos(substr(line, 3, 1), '/x.-')
-         filename=substr(line,41)
-         if substr(line, 39, 1)=' ' & substr(line, 40, 1)<>' ' then  -- OS/2 2.11 is misaligned...
-            filename=substr(line,40)
-         endif
-      endif
-      if flag then
-         call psave_pos(save_pos)
-         getsearch oldsearch
-         display -2
-         'xcom l /'DIRECTORYOF_STRING'/c-'
-         dir_rc = rc
-         if not rc then
-            getline word3
-            parse value word3 with $QUOTED_DIR_STRING word3
-;;          parse value word3 with . . word3 .
-            if verify(word3,'?*','M') then  -- If wildcards - must be 4OS2 or similar shell
-               word3 = substr(word3, 1, lastpos(word3, '\')-1)
-            endif
-            word3 = strip(word3)
-         endif
-         display 2
-         setsearch oldsearch
-         call prestore_pos(save_pos)
-         if not dir_rc then
-            name=word3 ||                            -- Start with the path.
-                 leftstr('\',                        -- Append a '\', but only if path
-                         '\'<>rightstr(word3,1)) ||  -- doesn't end with one.
-                 filename                            -- Finally, the filename
-;           if pos(' ',name) then  -- enquote
-            if verify(name, ' =', 'M') then  -- enquote
-               name = '"'name'"'
-            endif
-            if pos('<DIR>',line) then
-               'dir 'name
-            else
-               'e 'name
-            endif
-            return
-         endif
-      endif
-   endif  -- leftstr(.filename, 15) = ".command_shell_"
-   parse value .filename with word1 word2 word3 .
-   if upcase(word1 word2) = '.DOS DIR' then
-      call psave_pos(save_pos)
-      getsearch oldsearch
-      'xcom l /'DIRECTORYOF_STRING'/c-'
-      if not rc then
-         getline word3
-         parse value word3 with $QUOTED_DIR_STRING word3
-;        parse value word3 with . . word3 .
-         if verify(word3,'?*','M') then  -- If wildcards - must be 4OS2 or similar shell
-            word3 = substr(word3, 1, lastpos(word3, '\')-1)
-         endif
-         word3 = strip(word3)
-      endif
-      setsearch oldsearch
-      call prestore_pos(save_pos)
-      filename=substr(line,41)                 -- Support HPFS.  FAT dir's end at 40
-      if substr(line, 39, 1)=' ' & substr(line, 40, 1)<>' ' then  -- OS/2 2.11 is misaligned...
-         filename=substr(line,40)
-      endif
-      if filename='' then                      -- Must be FAT.
-         filename=strip(substr(line,1,8))
-         word2=strip(substr(line,10,3))
-         if word2<>'' then filename=filename'.'word2; endif
-      endif
-      name=word3 ||                            -- Start with the path.
-           leftstr('\',                        -- Append a '\', but only if path
-                   '\'<>rightstr(word3,1)) ||  -- doesn't end with one.
-           filename                            -- Finally, the filename
-;     if pos(' ',name) then  -- enquote
-      if verify(name, ' =', 'M') then  -- enquote
-         name = '"'name'"'
-      endif
-      if pos('<DIR>',line) then
-         'dir 'name
-      else
-         'e 'name
-      endif
-;compile if WANT_TREE
-   elseif .filename = '.tree' then
-      if substr(line,5,1)substr(line,8,1)substr(line,15,1)substr(line,18,1) = '--::' then
-         name = substr(line, 52)
-         if substr(line,31,1)='>' then
-;           if isadefc('tree_dir') then
-               'tree_dir "'name'\*.*"'
-;           else
-;              'dir' name
-;           endif
-         else
-            'e "'name'"'
-         endif
-      endif
-;compile endif  -- WANT_TREE
-   else  -- Not a DIR or TREE listing
-      parse value line with w1 rest
-      p=lastpos('(', w1)
- compile if HOST_SUPPORT = 'EMUL' & defined(MVS)
-  compile if MVS
-      if p & rightstr(w1, 1)<>"'" then
-  compile else
-      if p then
-  compile endif
- compile else
-      if p then
- compile endif
-         filename = substr(w1, 1, p-1)
-         parse value substr(w1, p+1) with line ')'
-         parse value line with line ':' col
-         if pos('*', filename) then
-            if YES_CHAR<>askyesno(WILDCARD_WARNING__MSG, '', filename) then
-               return
-            endif
-         endif
-         'e 'filename
-         line
-         if col<>'' then .col = col; endif
-      else
-         if pos('*', line) then
-            if YES_CHAR<>askyesno(WILDCARD_WARNING__MSG, '', line) then
-               return
-            endif
-         endif
-         'e 'line
-      endif  -- p
-   endif  -- upcase(word1 word2) = '.DOS DIR'
-*/
 
 defc AdjustMark
    call NewUndoRec()
-compile if WANT_CHAR_OPS
    call pcommon_adjust_overlay('A')
-compile else
-   adjustblock
-compile endif
    call NewUndoRec()
 
 defc OverlayMark
    call NewUndoRec()
    if marktype() then
-compile if WANT_CHAR_OPS
       call pcommon_adjust_overlay('O')
-compile else
-      overlay_block
-compile endif
    else                 /* If no mark, look to in Shared Text buffer */
       'GetSharBuff O'   /* see clipbrd.e for details                 */
    endif

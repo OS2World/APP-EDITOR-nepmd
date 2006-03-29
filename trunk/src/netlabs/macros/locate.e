@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.23 2006-03-26 12:28:32 aschn Exp $
+* $Id: locate.e,v 1.24 2006-03-29 23:54:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -275,9 +275,7 @@ defc c, change =
    universal lastsearchfid
    universal lastsearchpos
    universal nepmd_hini
-compile if SETSTAY = '?'
    universal stay  -- if 1, then restore pos even after a successful change
-compile endif
 
    call psave_pos(savepos)
 
@@ -500,16 +498,10 @@ compile endif
       lastsearchpos = lastchangepos
       --call highlight_match()  -- gives wrong col
       call highlight_match( .line .col search_len)
-      -- Restore pos after change command if (SETSTAY = '?' & stay = 1) or SETSTAY = 1
-compile if SETSTAY = '?'
+      -- Restore pos after change command if stay = 1
       if stay then
-compile endif
-compile if SETSTAY
          call prestore_pos(savepos)
-compile endif
-compile if SETSTAY = '?'
       endif
-compile endif
    else            -- if not found
       call prestore_pos(savepos)  -- required for 'B' or 'T'
    endif
@@ -806,9 +798,7 @@ defc ringchange, ringc, globchng, globalchange, gchange, gc
 ;                                --<-------------------------------  todo: rewrite
    universal lastchangeargs
    universal default_search_options
-compile if SETSTAY = '?'
    universal stay
-compile endif
 
    args = strip( arg(1), 'L')
    if args = '' then  -- If no args, query lastchangeargs
@@ -890,15 +880,9 @@ compile endif
          change_count = change_count + 1
          'ResetDateTimeModified'  -- required?
          'RefreshInfoLine MODIFIED'
-compile if SETSTAY='?'
          if stay then
-compile endif
-compile if SETSTAY
             call prestore_pos(save_pos)
-compile endif
-compile if SETSTAY='?'
          endif
-compile endif
       else
          /* no match in file - restore file location */
          call prestore_pos(save_pos)
