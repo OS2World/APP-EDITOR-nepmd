@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.15 2006-01-08 22:44:08 aschn Exp $
+* $Id: toolbar.e,v 1.16 2006-03-29 22:30:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -264,7 +264,7 @@ defproc GetDefaultToolbar
    universal nepmd_hini
    universal toolbar_loaded
    KeyPath = '\NEPMD\User\Toolbar\Name'
-   StandardName = 'Standard'
+   StandardName = 'STANDARD'
    BarName = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if BarName = '' | BarName = StandardName then
       toolbar_loaded = \1
@@ -314,7 +314,7 @@ defc deletetemplate, DeleteToolbar
    universal nepmd_hini
    universal toolbar_loaded
    KeyPath = '\NEPMD\User\Toolbar\Name'
-   StandardName = 'Standard'
+   StandardName = 'STANDARD'
 
    parse arg BarName
    call windowmessage(0, getpminfo(EPMINFO_EDITFRAME),
@@ -435,6 +435,12 @@ defc default_toolbar, ReloadToolbar
    endif
 
 ; ---------------------------------------------------------------------------
+; Syntax: LoadToolbar [NOSAVE] [<toolbar_name>]
+; If <toolbar_name> is not specified, then a ListBox with all previously
+; imported toolbar names is opened. "Imported" means: their binary data
+; must be written to the ini.
+; If NOSAVE is specified, then the name will not be saved in ini as the new
+; default toolbar. This is used for mode settings.
 ; Todo: merge this with defc toggle_toolbar.
 ; From EPMSMP\LOADTB.E
 ; Command to load a previously-saved toolbar, by Larry Margolis
@@ -452,13 +458,19 @@ defc load_toolbar, LoadToolbar
    universal appname
 
    KeyPath = '\NEPMD\User\Toolbar\Name'
-   StandardName = 'Standard'
+   StandardName = 'STANDARD'
    LoadedName = toolbar_loaded
    if toolbar_loaded = \1 then
       LoadedName = StandardName
    endif
 
    BarName = arg(1)
+   wp = wordpos( 'NOSAVE', upcase( BarName))
+   fSave = 1
+   if wp then
+      fSave = 0
+      BarName = delword( BarName, wp, 1)
+   endif
 
    if BarName = '' then  -- List all toolbars
       inidata = queryprofile( app_hini, INI_UCMENU_APP, '')
@@ -556,11 +568,14 @@ defc load_toolbar, LoadToolbar
                           put_in_buffer( BarName))
       toolbar_loaded = BarName
    endif
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, BarName)
-   -- Save toolbar activation bit
-   old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-   new = subword( old, 1, 15)' 1 'subword( old, 17)
-   call setprofile( app_hini, appname, INI_OPTFLAGS, new)
+
+   if fSave then
+      call NepmdWriteConfigValue( nepmd_hini, KeyPath, BarName)
+      -- Save toolbar activation bit
+      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+      new = subword( old, 1, 15)' 1 'subword( old, 17)
+      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Return current setup string. Colors are always reset.

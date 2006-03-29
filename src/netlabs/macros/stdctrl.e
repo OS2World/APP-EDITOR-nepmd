@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.36 2006-03-26 10:09:47 aschn Exp $
+* $Id: stdctrl.e,v 1.37 2006-03-29 22:30:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1015,8 +1015,10 @@ defc Monofont
    enddo
    -- If Monofont style is not defined, take default Monofont, but only
    -- if current font is not already a monospaced font.
-   if not IsMonofont() then
-      NewFont = STD_MONOFONT
+   if NewFont = '' then
+      if not IsMonofont() then
+         NewFont = STD_MONOFONT
+      endif
    endif
    if NewFont > '' then
       'SetTextFont' NewFont  -- SetTextFont is defined in MODEEXEC.E
