@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: shellkeys.e,v 1.3 2005-03-29 20:49:06 aschn Exp $
+* $Id: shellkeys.e,v 1.4 2006-03-29 23:02:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -102,22 +102,20 @@ defkeys shell_keys overlay  -- we want to keep old key defs
 
 ; Moved from ENTER.E:
 
-compile if ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''  -- define each key separately
-
-def enter =
+def enter
    universal enterkey
  compile if (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
    call shell_enter_routine(enterkey)
  compile endif
 
-def padenter =
+def padenter
    universal padenterkey
  compile if (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
    call shell_enter_routine(padenterkey)
  compile endif
 
 defproc shell_enter_routine(xxx_enterkey)
-   if leftstr(.filename, 15) = ".command_shell_" then
+   if IsAShell() then
       rc = ShellEnterWrite()
       if rc then
          rc = ShellEnterWriteToApp()
@@ -128,21 +126,6 @@ defproc shell_enter_routine(xxx_enterkey)
    else
       call enter_common(xxx_enterkey)
    endif
-
-compile else
-
-def enter, pad_enter, a_enter, a_pad_enter, s_enter, s_padenter
-   if leftstr( .filename, 15) = '.command_shell_' then
-      rc = ShellEnterWrite()
-      if rc then
-         rc = ShellEnterWriteToApp()
-      endif
-      if rc then
-         call my_enter()
-      endif
-   endif
-
-compile endif  -- ENHANCED_ENTER_KEYS & ENTER_ACTION <> ''
 
 ; Not used anymore, since we can always write directly into the shell window:
 ;def esc
