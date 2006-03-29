@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fevshmnu.e,v 1.14 2006-03-26 11:29:06 aschn Exp $
+* $Id: fevshmnu.e,v 1.15 2006-03-29 23:14:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -129,12 +129,14 @@ compile endif
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
 defc loaddefaultmenu
-   universal activemenu,defaultmenu
+   universal activemenu
+   universal defaultmenu
+   universal menuloaded             -- for to check if menu is already built
 
    parse arg menuname .
-   if menuname = '' then                  -- Initialization call
+   if menuname = '' then            -- Initialization call
       menuname = 'default'
-      defaultmenu = menuname              -- default menu name
+      defaultmenu = menuname        -- default menu name
       activemenu  = defaultmenu
    endif
 
@@ -149,6 +151,7 @@ defc loaddefaultmenu
    endif
 
    call add_help_menu(menuname)
+   menuloaded = 1
 
 defproc add_file_menu(menuname)
    universal ring_enabled
@@ -464,7 +467,7 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 definit
-   -- Sometimes the rc for a module's definit overwrites the link rc.
+   -- Sometimes the rc for a module's definit overrides the link rc.
    -- Therefore a linkable module with code in definit, that changes rc,
    -- should save it at the begin of definit and restore it at the end.
    save_rc = rc
