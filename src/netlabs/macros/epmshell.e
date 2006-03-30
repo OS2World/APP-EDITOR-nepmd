@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.19 2006-03-29 22:51:29 aschn Exp $
+* $Id: epmshell.e,v 1.20 2006-03-30 10:22:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -257,11 +257,11 @@ defc Shell_Write
       sayerror NOT_IN_SHELL__MSG
       return
    endif
-   getfileid fid
+   getfileid ShellFid
    ShellAppWaiting = GetAVar( 'ShellAppWaiting.'ShellFid)
    ShellHandle = GetAVar( 'Shell_h'ShellNum)
-   if shellhandle <> '' then
-      if text = '' & words( ShellAppWaiting) < 2 then  -- disable this silly box for Return in a waiting shell
+   if ShellHandle <> '' then
+      if Text = '' & words( ShellAppWaiting) < 2 then  -- disable this silly box for Return in a waiting shell
          shell_title = strip( WRITE_SHELL_MENU__MSG, 'T', '.')  -- '~Write to shell...'
          tilde = pos( '~', shell_title)
          if tilde then
@@ -327,10 +327,10 @@ compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt
                                     1, 35,
                                     min(noflines,12), 0,
                                     gethwndc(APP_HANDLE) || atoi(1) || atoi(1) ||
-                                    atoi(0000)) with button 2 text \0
+                                    atoi(0000)) with button 2 Text \0
                call buffer( FREEBUF, bufhndl)
                if button = \2 then -- 'Edit' selected
-                  Shell_lastwrite = text
+                  Shell_lastwrite = Text
                   iterate
                endif
             endif
@@ -339,8 +339,8 @@ compile endif
             leave
          enddo
       endif  -- text = ''
-;     if text = '' then return; endif
-      if text <> '' then Shell_lastwrite = text; endif
+;     if Text = '' then return; endif
+      if Text <> '' then Shell_lastwrite = text; endif
       writebuf = text\13\10
       retval   = SUE_write( ShellHandle, writebuf, bytesmoved);
       if retval or bytesmoved <> length(writebuf) then
@@ -548,8 +548,11 @@ defc ShellRestoreOrgCmd
 
 ; ---------------------------------------------------------------------------
 ; Write user input to a prompting (waiting) app.
-; Use ShellAppWaiting, that holds line and col from last write of the shell
-; object to the EPM window, set in defc NowCanReadShell.
+; For differing the output that comes from the app from the user input, the
+; array var "ShellAppWaiting" is used. It holds line and col from the last
+; write of the shell object to the EPM window, set in defc NowCanReadShell.
+; In case of a terminated app the EPM prompt was the last output and
+; ShellAppWaiting holds the value 0.
 ; Returns 0 on success; 1 when no app is waiting.
 defproc ShellEnterWriteToApp
    ret = 1
