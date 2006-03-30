@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.20 2006-03-30 10:22:58 aschn Exp $
+* $Id: epmshell.e,v 1.21 2006-03-30 12:34:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -104,7 +104,7 @@ compile endif
 
                -- Determine previous work dir
                call psave_pos( save_pos)
-               display -1
+               display -3
                .lineg = .last
                endline
                fFound = (ShellGotoNextPrompt( 'P') = 0)
@@ -113,9 +113,9 @@ compile endif
                if fFound then
                   call ShellParsePromptLine( Dir, Cmd)
                else
-                  call prestore_pos( '')
+                  call prestore_pos( save_pos)
                endif
-               display 1
+               display 3
                if Dir > '' then
                   CdCmd = 'cdd' Dir
                   'shell_write' shell_index CdCmd
