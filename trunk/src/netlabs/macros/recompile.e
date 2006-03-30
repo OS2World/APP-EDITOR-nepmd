@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.2 2006-03-26 12:43:40 aschn Exp $
+* $Id: recompile.e,v 1.3 2006-03-30 11:34:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -563,7 +563,7 @@ defc RecompileNew
       parse value rest with next';'rest
       WriteLog( LogFile, '   'next)
    enddo
-   WriteLog( LogFile, 'Note: Other unlisted .E/.EX files are not checked here.')
+   WriteLog( LogFile, 'Note: Other not-listed .E/.EX files are not checked here.')
    WriteLog( LogFile, '      In order to recompile them')
    WriteLog( LogFile, '         o  create your own .LST list file in the 'upcase(UserDirName)'\EX directory,')
    WriteLog( LogFile, '            name it maybe MYEXFILES.LST or')
@@ -579,7 +579,7 @@ defc RecompileNew
    rest = BaseNames
    BaseNames = ''
    WriteLog( LogFile, '')
-   WriteLog( LogFile, 'Checking for old (existing) .EX files and new .E files...')
+   WriteLog( LogFile, 'Checking old (existing) user .EX files and included .E files...')
    do while rest <> ''
       -- For every ExFile...
       parse value rest with BaseName';'rest
@@ -1265,7 +1265,7 @@ defc RecompileNewMsgBox
       endif
    endif
    if cWarning > 0 then
-      Text = Text || 'Warning(s) occurred during comparism of 'upcase(UserDirName)' files'
+      Text = Text || 'Warning(s) occurred during comparison of 'upcase(UserDirName)' files'
       Text = Text || ' with NETLABS files. See log file'
       Text = Text || ' 'upcase(UserDirName)'\EX\RECOMPILENEW.LOG'\n\n
       Text = Text || 'In order to use all the newly installed NETLABS files,'
@@ -1282,7 +1282,7 @@ defc RecompileNewMsgBox
       Text = Text || 'Do you want to load the log file now?'
       Style = MB_YESNO+MB_WARNING+MB_DEFBUTTON1+MB_MOVEABLE
    else
-      Text = Text || 'No warning(s) occurred during comparism of 'upcase(UserDirName)' files'
+      Text = Text || 'No warning(s) occurred during comparison of 'upcase(UserDirName)' files'
       Text = Text || ' with NETLABS files.'\n\n
       Text = Text || 'If you have added own macro files to your MYEPM tree,'
       Text = Text || ' then they are newer than the files in the NETLABS tree.'
