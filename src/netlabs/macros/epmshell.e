@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.21 2006-03-30 12:34:24 aschn Exp $
+* $Id: epmshell.e,v 1.22 2006-03-30 17:59:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -752,9 +752,9 @@ defproc ShellGotoNextPrompt
       direction = ''
    endif
 compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
-   'xcom l /^epm\: .*>:o./x'direction
+   'xcom l /^epm\: .*>:o/x'direction
 compile else  -- else EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
-   'xcom l /^\[epm\: .*\]:o./x'direction
+   'xcom l /^\[epm\: .*\]:o/x'direction
 compile endif -- EPM_SHELL_PROMPT
    return rc
 
