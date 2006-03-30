@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.35 2005-11-24 20:41:46 aschn Exp $
+* $Id: mode.e,v 1.36 2006-03-30 16:50:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -43,7 +43,7 @@ defproc GetMode
    endif
 
    IsATempFile  = (leftstr( Filename, 1 ) = '.')
-   IsAShellFile = (leftstr( Filename, 15 ) = '.command_shell_')
+   IsAShellFile = IsAShellFilename( Filename)
 
    -- Get CurMode for Filename by querying an array var
    -- arg(2) and arg(4) of do_array must be vars!
