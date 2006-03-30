@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.18 2006-03-11 19:57:57 aschn Exp $
+* $Id: alt_1.e,v 1.19 2006-03-30 16:50:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -160,7 +160,7 @@ compile endif
    call psave_pos(save_pos)
    getsearch oldsearch
    cmd = ''
-   if leftstr( .filename, 15) = '.command_shell_' then
+   if IsAShellFilename() then
       -- search (reverse) in command shell window for the prompt and retrieve the current directory and
       --    the cmd and its parameters
       -- goto previous prompt line
