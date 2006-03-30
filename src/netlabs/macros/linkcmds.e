@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.39 2006-03-30 13:12:59 aschn Exp $
+* $Id: linkcmds.e,v 1.40 2006-03-30 16:00:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,8 +30,8 @@
 ; edit window.
 ; Syntax: link [QUIET] [<path>][<modulename>][.ex]         Example: link draw
 ; Sets rc:
-;     -1  not linked, because already linked or of an other error
-;    <-1  error, rc = -307|-308 (message is shown, even for QUIET option)
+;      0  not linked, because already linked or because of another error
+;     <0  error, rc = -307|-308 (message is shown, even for QUIET option)
 ;    >=0  linked successfully, the linked module number is returned, starting
 ;         with 0 for EPM.EX, followed by 1 etc.
 defc link
@@ -79,13 +79,13 @@ defc linkverify
    endif
 
 ; ---------------------------------------------------------------------------
-; Returns ErrorText. Sets rc. rc = -1 if already linked. rc >= 0 on success.
+; Returns ErrorText. Sets rc. rc = 0 if already linked. rc >= 0 on success.
 defproc link_common( modulename)
 
    waslinkedrc = linked( modulename)
    if waslinkedrc >= 0 then  -- >= 0, then it's the number in the link history
       ErrorText = 'Module "'modulename'" already linked as module #'waslinkedrc
-      xrc = -1        -- if already linked
+      xrc = 0        -- if already linked
 
    else
       -- NewMenu uses this to remove some of its menu items, before
