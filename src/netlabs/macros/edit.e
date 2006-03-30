@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.35 2006-03-29 22:54:50 aschn Exp $
+* $Id: edit.e,v 1.36 2006-03-30 18:00:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -495,6 +495,7 @@ defc new
    endif
 
 ; ---------------------------------------------------------------------------
+; Move current file to a newly opened EPM window.
 ; Moved from STDCMDS.E
 defc newwindow
    if leftstr(.filename, 5)='.DOS ' then
@@ -503,8 +504,25 @@ defc newwindow
       parse value .titletext with cmd ': ' args
       fn = "'"cmd args"'"
    elseif IsAShell() then
-      shell_dir = directory()
-      fn = "'mc +cd "shell_dir" +shell'"
+      epmdir = directory()
+      call psave_pos(save_pos)
+      getsearch oldsearch
+      -- search (reverse) in command shell window for the prompt and
+      -- retrieve the current directory
+      -- goto previous prompt line
+      ret = ShellGotoNextPrompt( 'P')
+      curdir = ''
+      cmd = ''
+      if not ret then
+         call ShellParsePromptLine( curdir, cmd)
+      endif
+      shellcmd = 'shell'
+      if curdir > '' then
+         shellcmd = shellcmd 'cdd' curdir
+      endif
+      setsearch oldsearch
+      call prestore_pos(save_pos)
+      fn = "'mc +cd "epmdir"+"shellcmd"'"
    elseif leftstr( .filename, 1 ) = '.' then  -- other temp file
       fn = ''
    else
