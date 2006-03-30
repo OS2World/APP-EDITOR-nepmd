@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.38 2006-03-29 22:36:54 aschn Exp $
+* $Id: linkcmds.e,v 1.39 2006-03-30 13:12:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -79,6 +79,7 @@ defc linkverify
    endif
 
 ; ---------------------------------------------------------------------------
+; Returns ErrorText. Sets rc. rc = -1 if already linked. rc >= 0 on success.
 defproc link_common( modulename)
 
    waslinkedrc = linked( modulename)
@@ -129,6 +130,7 @@ defproc link_common( modulename)
    endif  -- waslinkedrc >= 0 else
 
    rc = xrc
+   return ErrorText
 
 ; ---------------------------------------------------------------------------
 ; The following doesn't work. Dropping .ex files is always processed internally.
