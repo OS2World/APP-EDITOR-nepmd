@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.36 2006-03-30 18:00:42 aschn Exp $
+* $Id: edit.e,v 1.37 2006-03-31 23:35:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -28,9 +28,56 @@ Todo:
 */
 
 ; ---------------------------------------------------------------------------
-; Pre-processing before calling the LoadFile defproc.
-; Checks a filespec, even wildcards to remove REXX EAs before loading.
-; Calls LoadFile, that is defined in SLNOHOST.E/SAVELOAD.E/E3EMUL.E.
+; EPM bug during heavy processing, e.g. file loading:
+;
+; When too many procs are nested, esp. when changing between C and E code
+; permanently, sometimes E or C code will not be executed.
+;
+; That was first seen when the call of NepmdActivateHighlight suppressed the
+; usually following select event after all files are loaded.
+; (Instead of letting the C function NepmdActivateHighlight execute the
+; toggle_parse command, now NepmdQueryHighlightArgs is used to retrieve
+; only the args for toggle_parse. toggle_parse is executed from E code now.)
+;
+; To workaround that bug, one has to change the code processing:
+;
+;    o  Try to avoid too many nested procs.
+;
+;    o  Try to avoid executing E commands from C code.
+;
+;    o  Split the E code before the critical point to an additional defc.
+;       An additional defproc won't help here. Apparently the previous code
+;       is always completed, when a new command is executed, at least most
+;       of the times. To ensure that any previous code is completed, the
+;       additional command must be executed with postme.
+
+; ---------------------------------------------------------------------------
+; Slow processing caused by specific code:
+;
+; The file load processing can easily be slowed down. It is extremely
+; vulnerable to following code:
+;
+;    o   sayerror statement or command
+;
+;    o   postme command or other posted window messages.
+;
+; Therefore these should be avoided during file loading, if possible.
+
+; ---------------------------------------------------------------------------
+; Unreliable sayerrors:
+;
+; During heavy processing, sayerror statements are often gobbled, appear in
+; the wrong order or even doubled in the message list. Therefore better use
+; the NepmdPmPrintf proc or the dprintf proc, together with a PmPrintf
+; application for debugging.
+
+; ---------------------------------------------------------------------------
+; Pre-processing before calling the LoadFile defproc. Same syntax as
+; LoadFile. Calls itself LoadFile at the end. (LoadFile is defined in
+; SLNOHOST.E/SAVELOAD.E/E3EMUL.E. Without HOST_SUPPORT, always SLNOHOST.E is
+; included.)
+; Checks a filespec, even wildcards, to remove REXX EAs before loading.
+; Called by defc Edit.
 defproc PreLoadFile( Spec, Options)
    universal filestoload
    universal filestoloadmax  -- still used for 'xcom e' and afterload
@@ -40,47 +87,25 @@ defproc PreLoadFile( Spec, Options)
    if filestoloadmax = '' then
       filestoloadmax = 0
    endif
-   RexxEaExtensions = 'CMD ERX'
 
    Spec = strip( Spec, 'B', '"')
 
-   -- Experimental URL support using wget
+   -- Experimental URL support, configurable via URL_LOAD_TEMPLATE.
+   -- Default is to use wget for downloading it.
    if pos( '://', Spec) > 0 then
-      p1 = lastpos( '/', Spec)
-      Name = substr( Spec, p1 + 1)
-      next = Get_env( 'TMP')
-      if next > '' then
-         Tmp = next
-      else
-         next = Get_env( 'TEMP')
-         if next > '' then
-            Tmp = next
-         else
-            Tmp = leftstr( directory(), 3)
-         endif
-      endif
-      TmpFile = strip( Tmp, 'T', '\')'\'Name
-      if exist( TmpFile) then
-         erasetemp( TmpFile)
-      endif
-      --'os2 wget "'Spec'" -O 'TmpFile'&&start epm /r' TmpFile  -- doesn't wait for fist cmd to end
-      --'cmd /c wget "'Spec'" -O 'TmpFile'&&start epm /r' TmpFile
-      --'shell wget "'Spec'" -O 'TmpFile'&&start epm /r' TmpFile
-      'shell wget "'Spec'" -O 'TmpFile'&&start epm /r ''mc ;quit;e 'TmpFile''''
-      stop
+      rc = LoadUrl( Spec, Options)
+      return rc
    endif
 
-   ContainsWildcard = (pos( '*', Spec) + pos( '?', Spec) > 0);
+   fWildcard = (pos( '*', Spec) + pos( '?', Spec) > 0);
 
    -- Resolve wildcards in Spec to delete REXX EAs for every REXX file
-   ProcessOnce = 0
+   -- and for setting universal vars
    Handle = 0
-   do forever
-       if not .visible then
-          leave
-       endif
-      if (ContainsWildcard) then
-         -- if Spec contains wildcards then find Filenames
+   fStop = 0
+   do while fStop <> 1
+      if fWildcard then
+         -- If Spec contains wildcards then find Filenames
          Filename = NepmdGetNextFile( Spec, address( Handle))
          parse value Filename with 'ERROR:'rc
          if rc > '' then
@@ -89,34 +114,18 @@ defproc PreLoadFile( Spec, Options)
          filestoload = filestoload + 1
          filestoloadmax = filestoload
       else
-         -- if Spec doesn't contain wildcards then set Filename to enable the
-         -- edit command adding a not existing file to the edit ring
+         -- If Spec doesn't contain wildcards then set Filename to make the
+         -- edit command add a file to the ring, even when it doesn't exist
          Filename = Spec
          filestoload = 1
          filestoloadmax = filestoload
-         ProcessOnce = 1
+         fStop = 1
       endif
-
       --sayerror 'Spec = 'Spec', Filename = 'Filename
       dprintf( 'EDIT', 'PreLoadFile: Spec = 'Spec', Filename = 'Filename)
 
-      -- Remove REXX EAs if extension is found in RexxEaExtensions.
-      -- Use the extension here instead of the mode to avoid determining the
-      -- mode twice: here and at defload.
-      -- Note: The use of array vars containing the fileid to become file-specific
-      -- does only work properly at or after defload. Therefore the mode should be
-      -- determined at defload.
-      p1 = lastpos( '\', Filename)
-      p2 = lastpos( '.', Filename)
-      if p2 > p1 + 1 then
-         Ext = translate( substr( Filename, p2 + 1))
-         if wordpos( Ext, RexxEaExtensions) then
-            if exist(Filename) then
-               --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
-               call NepmdDeleteRexxEa( Filename)
-            endif
-         endif
-      endif
+      -- Delete REXX EAs if extension is found in RexxEaExtensions.
+      call PreloadDeleteRexxEas( Filename)
 
       -- GetMode doesn't work here, because it tries to write the 'mode.'fid
       -- array var. At this time the file is not loaded, so the fileid is not set.
@@ -125,57 +134,179 @@ defproc PreLoadFile( Spec, Options)
       -- .filename as identifier, and replace the identifier with the fileid later
       -- at defload (or replace the array var with the final one).
 
-      /*
-      -- Experimental codepage support (the .codepage field var exists, but is not used yet)
-      Codepage = NepmdQueryStringEa( Filename, 'EPM.CODEPAGE')
-      parse value Codepage with 'ERROR:'rc
-      if rc = '' then
-         Codepage = upcase(Codepage)
-         if Codepage = 'CP1004' then
-            Codepage = 'latin-1'
-         endif
-         -- Note: GNU Recode deletes all EAs
-         'dos recode 'Codepage':cp850 'Filename
-         -- Delete EA, because it will not be reset on save yet
-         --call NepmdDeleteStringEa( Filename, 'EPM.CODEPAGE')
-      endif
-      */
+compile if 0
+      -- Experimentell codepage support
+      call PreloadProcessCodepage( Filename)
+compile endif
 
-      if ProcessOnce = 1 then
-         leave
-      endif
-   enddo  -- forever
+   enddo
 
-   -- load the file
-   -- add "..." here to enable loading file names with spaces and
-   -- use Spec instead of FileName to keep the loading of host files unchanged
+   -- Load the file.
+   -- Add "..." here to enable loading file names with spaces and
+   -- use Spec instead of Filename to keep the loading of host files unchanged
    if pos( ' ', Spec) > 0 then
       Spec = '"'Spec'"'
    endif
-   call loadfile( Spec, Options)
-   loadrc = rc
-   -- Set standard rc here. Since in EPM some non-internal commands won't change
-   -- the standard rc anymore, the calling 'edit' command will overtake it.
-   -- Standard commands that don't change rc (are there more?):
-   --    'locate', 'edit'
-   -- This is fixed in NEPMD.
-   -- The standard commands 'quit', 'save', 'name',... do change rc.
-   -- As a result, we can check the rc for the 'edit' cmd now, without having
-   -- to use 'xcom edit', which is an internal command.
-   rc = loadrc
+   call LoadFile( Spec, Options)
    return rc
 
 ; ---------------------------------------------------------------------------
-; Moved from STDCMDS.E
-; This DEFC EDIT eventually calls the built-in edit command, by calling
-; loadfile(), but does additional processing for messy-desk windowing (moves
-; each file to its own window), and ends by calling select_edit_keys().
+const
+compile if not defined( URL_LOAD_TEMPLATE)
+   -- Command to execute for URL filespecs (that contain "://")
+   -- %u = URL spec, %t = tempfile, %o = load options
+   URL_LOAD_TEMPLATE = 'os2 /c wget "%u" -O %t^&^&start epm /r %o %t'
+   --URL_LOAD_TEMPLATE = 'start epm ''shell wget "%u" -O %t&&start epm /r %o %t'''
+   --URL_LOAD_TEMPLATE = 'o ''shell wget "%u" -O %t&&start epm /r %o %t'''
+compile endif
+
+; Experimental URL support using wget
+; Dragging a URL from Mozilla onto an EPM program object loads the
+; downloaded file into EPM, unless it contains following chars: [ ] ?
+; They would cause an entrybox to popup for entering parameters.
+; With DragText installed, support for dropping text onto the titlebar
+; should better be disabled. EPM handles that itself:
+; o  Dropping it onto the EPM edit window inserts the URL.
+; o  Dropping it onto the EPM title bar adds a new file with the URL.
+; o  Ctrl-dropping it onto the EPM edit window won't load the file
+;    and says: 'File is empty: "<tempfile>"'
+; o  Ctrl-dropping it onto the EPM title bar adds an empty <tempfile>,
+;    reverting it after the download will load it.
+defproc LoadUrl( Spec, Options)
+   rc = 0
+   p1 = lastpos( '/', Spec)
+   Name = substr( Spec, p1 + 1)
+   next = Get_env( 'TMP')
+   if next > '' then
+      Tmp = next
+   else
+      next = Get_env( 'TEMP')
+      if next > '' then
+         Tmp = next
+      else
+         Tmp = leftstr( directory(), 3)
+      endif
+   endif
+   TmpFile = strip( Tmp, 'T', '\')'\'Name
+   if exist( TmpFile) then
+      call erasetemp( TmpFile)
+   endif
+   sayerror 'Downloading 'Spec
+
+   -- Resolve the template
+   rest = URL_LOAD_TEMPLATE
+   Cmd = ''
+   do while rest > ''
+      parse value rest with next'%'rest
+      if rest = '' then
+         Cmd = Cmd''next
+         leave
+      endif
+      ch = upcase( leftstr( rest, 1))
+      if ch = 'U' then
+         Cmd = Cmd''next''Spec
+         rest = substr( rest, 2)
+      elseif ch = 'T' then
+         Cmd = Cmd''next''TmpFile
+         rest = substr( rest, 2)
+      elseif ch = 'O' then
+         Cmd = Cmd''next''Options
+         rest = substr( rest, 2)
+      endif
+   enddo
+
+   --dprintf( 'PreLodFile', Cmd)
+   Cmd
+   --'os2 /c wget "'Spec'" -O 'TmpFile'^&^&start epm /r' TmpFile
+   return rc
+
+; ---------------------------------------------------------------------------
+const
+compile if not defined( REXX_EA_EXTENSIONS)
+   -- Extensions, whose REXX EAs shall be removed before loading
+   -- to workaround the EPM bug that it can't load EAs > 32KB.
+   REXX_EA_EXTENSIONS = 'CMD ERX'
+compile endif
+
+; Delete REXX EAs if extension is found in RexxEaExtensions.
+; Use the extension here instead of the mode to avoid determining the
+; mode twice: here and at defload.
+; Note: The use of array vars containing the fileid to become file-specific
+; does only work properly at or after defload. Therefore the mode should be
+; determined at defload.
+; Syntax: rc = PreloadDeleteRexxEas( Filename)
+defproc PreloadDeleteRexxEas( Filename)
+   rc = 0
+   p = lastpos( '\', Filename)
+   Name = substr( Filename, p + 1)  -- strip path
+   p = lastpos( '.', Name)
+   if p > 1 then
+      Ext = translate( substr( Name, p + 1))
+      if wordpos( Ext, REXX_EA_EXTENSIONS) then
+compile if 0
+         -- Calling here another proc doesn't always work reliable.
+         if GetReadOnly( Filename) = 0 then  -- if it exists and if not readonly
+compile else
+         -- Inserting the code here directly always works.
+         fReadonly = 0
+         attr = NepmdQueryPathInfo( Filename, 'ATTR')
+         parse value attr with 'ERROR:'rc
+         if rc > '' then  -- file doesn't exist
+            --sayerror 'Attributes for "'Filename'" can''t be retrieved, rc = 'rc
+            return rc
+         elseif length(attr) = 5 then
+            fReadonly = (substr( attr, 5, 1) = 'R')
+         endif
+         -- dprintf( 'PreloadDeleteRexxEas', Filename' - 'attr', fReadonly = 'fReadonly)
+         if not fReadonly then
+compile endif
+            --sayerror 'Removing REXX EAs with NepmdLib from 'Filename
+            next = NepmdDeleteRexxEa( Filename)
+            parse value next with 'ERROR:'rc
+            if rc = '' then
+               rc = 0
+            endif
+         endif
+      endif
+   endif
+   return rc
+
+; ---------------------------------------------------------------------------
+; Experimental codepage support.
+; The .codepage field var exists, but is not yet used.
+; Drawback: deletes every EA.
+defproc PreloadProcessCodepage( Filename)
+   rc = 0
+   Codepage = NepmdQueryStringEa( Filename, 'EPM.CODEPAGE')
+   parse value Codepage with 'ERROR:'rc
+   if rc = '' then
+      Codepage = upcase(Codepage)
+      if Codepage = 'CP1004' then
+         Codepage = 'latin-1'
+      endif
+      -- Note: GNU Recode deletes all EAs
+      quietshell 'recode 'Codepage':cp850 'Filename
+      -- Delete EA, because it will not be reset on save yet
+      --call NepmdDeleteStringEa( Filename, 'EPM.CODEPAGE')
+   endif
+   return rc
+
+; ---------------------------------------------------------------------------
+; This DEFC EDIT eventually calls the built-in edit command (xcom edit), by
+; calling PreLoadFile -> LoadFile, that does additional processing before
+; the file(s) is/are loaded.
+;
+; The EDIT command can not only be executed from EPM's commandline, but is
+; also prepended to the submitted args when EPM is started. Before that,
+; EPM removes the options that it knows. The rest of the arg string is always
+; submitted to the EDIT command. (Main arg processing is done in MAIN.E.)
+;
 ; Parse off each file individually.  Files can optionally be followed by one
 ; or more commands, each in quotes.  The first file that follows a host file
 ; must be separated by a comma, an option, or a (possibly null) command.
 ;
-; EPM doesn't give error messages from XCOM EDIT, so we have to handle that for
-; it.
+; EPM doesn't give error messages from XCOM EDIT, so we have to handle that
+; for it.
 
 ;compile if LINK_HOST_SUPPORT & (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL')
 ; compile if not defined(MVS)
@@ -248,6 +379,7 @@ compile endif
    do while rest <> ''
       rest = strip( rest, 'L')
       -- Remove leading ',' from rest
+      -- A ',' separates multiple <filespec> '<command>' segments.
       if substr( rest, 1, 1) = ',' then
          rest = strip( substr( rest, 2), 'L')
       endif
@@ -309,7 +441,8 @@ compile if HOST_SUPPORT & not SMALL
                rest = more substr( rest, p)
             else
 compile endif
-               -- Remove ',' from filespec (DOS and VM)
+               -- Parse at next ','. Removes ',' from filespec (DOS and VM)
+               -- A ',' separates multiple <filespec> '<command>' segments.
                parse value rest with filespec rest2
                if pos( ',', filespec) then
                   parse value rest with filespec ',' rest
@@ -334,6 +467,7 @@ compile endif
             filespec = '"'filespec'"'
          endif
 
+         -- Load the file
          rc = PreLoadFile( filespec, options)
          edit_rc = rc  -- restore this rc at the end
 
@@ -422,7 +556,7 @@ compile endif
       if firstloadedfid = startfid then
          -- If previous topmost file should be loaded again as first loaded file,
          -- check if file was altered by another application.
-         -- Note: Required, because no defselect, no defload will be triggered than.
+         -- Note: Required, because no defselect, no defload will be triggered then.
          --       This enables a check for altered-on-disk.
          'ResetDateTimeModified'
          'RefreshInfoLine MODIFIED'
@@ -771,7 +905,7 @@ defc EditMacroFile
 ; ---------------------------------------------------------------------------
 ; unused
 ; Moved from STDCTRL.E
-defc edit_list =
+defc edit_list
    getfileid startfid
    firstloaded = startfid
    parse arg list_sel list_ofs .
@@ -804,7 +938,7 @@ compile endif
 ; gives source for = when used for path or fileid.  RC is 0 if successful, or
 ; position of "=" in first arg if no second arg given but was needed.
 ; New: Quotes, doublequotes and spaces are handled correctly.
-;      Avoid duplicated '\' between path and name.
+;      Duplicated '\' between path and name are avoided.
 ;      Environment vars are resolved.
 ;      ?: is replaced with the bootdrive.
 ;      Works now with temp files (starting with '.') as well.
