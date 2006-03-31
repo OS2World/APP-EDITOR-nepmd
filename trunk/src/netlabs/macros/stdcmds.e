@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.22 2006-03-29 23:05:44 aschn Exp $
+* $Id: stdcmds.e,v 1.23 2006-03-31 23:38:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -310,92 +310,103 @@ defc loopkey
 defc lowercase
    call plowercase()
 
-; In EOS2 you could query the margins by typing "margins" with no argument.
-; It typed them into the command line.  In EPM have to do this in the macros.
-; Changed: made rightmargin and/or parmargin values optional.
+; ---------------------------------------------------------------------------
 ; Syntax:
 ;
 ;    ma [[<leftmargin>] <rightmargin> [<parmargin>]] [noea] [reflow]
 ;
+; Changed:
+;    Made rightmargin and/or parmargin values optional.
 ;    Added the optional arg 'noea' anywhere in the arg list to avoid setting
 ;    EPM.MARGINS.
 ;    Added the optional arg 'reflow' anywhere in the arg list to enable
-;    the maybe reflow MsgBox.
+;    the maybe-reflow MsgBox.
 defc margins, ma
    universal app_hini
    arg1 = strip( arg(1))
    arg1 = upcase(arg1)
-   -- if executed without arg
+   -- If executed without arg
    if arg1 = '' then
-      'commandline margins' .margins  -- Open commandline with current values
+      'commandline margins' .margins  -- open commandline with current values
       return
    endif
 
-   -- else set margins for current file
-   SetEa = 1
-   DeleteEaOnly = 0
+   -- Write EA?
+   fSetEa = 1  -- default value
    wp = wordpos( 'NOEA', arg1)
    if wp > 0 then
-      arg1 = delword( arg1, wp, 1)
-      SetEa = 0
-   endif
-   if SetEa then
-      if (.readonly | not exist(.filename) | leftstr( .filename, 1) = '.') then
-         SetEa = 0
-      endif
+      arg1 = strip( delword( arg1, wp, 1))
+      fSetEa = 0
    endif
 
-   AskReflow = 0
+   -- Write EA later, maybe on save-as?
+   fReadonly = 0  -- default value
+   if (.readonly | leftstr( .filename, 1) = '.') then
+      fReadonly = 1
+   elseif GetReadonly( .filename) <> 0 then  -- returns '' if file doesn't exist
+      fReadonly = 1
+   endif
+
+   -- Ask to reflow?
+   fAskReflow = 0  -- default value
    wp = wordpos( 'REFLOW', arg1)
    if wp > 0 then
-      arg1 = delword( arg1, wp, 1)
-      AskReflow = 1
+      arg1 = strip( delword( arg1, wp, 1))
+      fAskReflow = 1
    endif
 
    if wordpos( arg1, '0 OFF DEFAULT' ) > 0 then
+      -- Get default value for NewMargins
       DefaultMargins = queryprofile( app_hini, 'EPM', 'MARGINS')
       if DefaultMargins = '' then
          DefaultMargins = '1 1599 1'
       endif
       NewMargins = DefaultMargins
-      DeleteEaOnly = 1
+
+      -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
+      -- This will delete the EA on save-as if the source file was readonly.
+      call delete_ea('EPM.MARGINS')
+      if fSetEa then
+         if not fReadonly then
+            -- Delete the EA 'EPM.MARGINS' immediately
+            rc = NepmdDeleteStringEa( .filename, 'EPM.MARGINS')
+            if (rc > 0) then
+               sayerror 'EA "EPM.MARGINS" not deleted, rc = 'rc
+            endif
+         endif
+      endif
+
    else
+      -- Parse arg1 to determine NewMargins
       parse value arg1 with leftm rightm parm
-      if rightm = '' then  -- if only 1 arg specified
+      if rightm = '' then  -- if only 1 value specified, take it as rightm
          rightm = arg1
          leftm  = 1
       endif
-      if parm = '' then    -- if parmargin not specified
+      if parm = '' then    -- if parm not specified, use leftm
          parm = leftm
       endif
       NewMargins = leftm rightm parm
-   endif
-   'xcom margins' NewMargins  -- pass it to the old internal margins command.
-   'refreshinfoline MARGINS'  -- Update statusline if margins displayed
 
-   if SetEa then
       -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
-      -- This will write the EA on save-as if the source file was readonly.
       call delete_ea('EPM.MARGINS')
-      if DeleteEaOnly then
-         -- Delete the EA 'EPM.MARGINS' immediately
-         rc = NepmdDeleteStringEa( .filename, 'EPM.MARGINS')
-         if (rc > 0) then
-            sayerror 'EA "EPM.MARGINS" not deleted, rc = 'rc
-         endif
-      else
-         -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
+      if fSetEa then
          -- This will write the EA on save-as if the source file was readonly.
          'add_ea EPM.MARGINS' NewMargins
-         -- Set the EA 'EPM.MARGINS' immediately
-         rc = NepmdWriteStringEa( .filename, 'EPM.MARGINS', NewMargins)
-         if (rc > 0) then
-            sayerror 'EA "EPM.MARGINS" not set, rc = 'rc
+         if not fReadonly then
+            -- Set the EA 'EPM.MARGINS' immediately
+            rc = NepmdWriteStringEa( .filename, 'EPM.MARGINS', NewMargins)
+            if (rc > 0) then
+               sayerror 'EA "EPM.MARGINS" not set, rc = 'rc
+            endif
          endif
-      endif  -- DeleteEaOnly
-   endif -- SetEa
+      endif
+   endif
 
-   if AskReflow then
+   -- Process
+   'xcom margins' NewMargins  -- pass it to the old internal margins command.
+   'refreshinfoline MARGINS'  -- Update statusline if margins displayed
+   if fAskReflow then
       'postme maybe_reflow_all'
    endif
 
@@ -713,66 +724,77 @@ defc tabglyph
       sayerror INVALID_ARG__MSG ON_OFF__MSG'/?)'
    endif
 
-; In EOS2 you could query the tabs by typing "tabs" with no argument.
-; It typed them into the command line.
+; ---------------------------------------------------------------------------
 defc tabs
    universal app_hini
    arg1 = strip( arg(1))
    arg1 = upcase(arg1)
-   -- if executed without an arg
+   -- If executed without an arg
    if arg1 = '' then
-      'commandline tabs' .tabs  -- Open commandline with current values
+      'commandline tabs' .tabs  -- open commandline with current values
       return
    endif
 
-   -- else set tabs for current file
-   SetEa = 1
-   DeleteEaOnly = 0
+   -- Write EA?
+   fSetEa = 1  -- default value
    wp = wordpos( 'NOEA', arg1)
    if wp > 0 then
       arg1 = strip( delword( arg1, wp, 1))
-      SetEa = 0
+      fSetEa = 0
    endif
-   if SetEa then
-      if (.readonly | not exist(.filename) | leftstr( .filename, 1) = '.') then
-         SetEa = 0
-      endif
+
+   -- Write EA later, maybe on save-as?
+   fReadonly = 0  -- default value
+   if (.readonly | leftstr( .filename, 1) = '.') then
+      fReadonly = 1
+   elseif GetReadonly( .filename) <> 0 then  -- returns '' if file doesn't exist
+      fReadonly = 1
    endif
 
    if wordpos( arg1, '0 OFF DEFAULT' ) > 0 then
+      -- Get default value for NewTabs
       DefaultTabs = queryprofile( app_hini, 'EPM', 'TABS')
       if DefaultTabs = '' then
          DefaultTabs = '8'
       endif
       NewTabs = DefaultTabs
-      DeleteEaOnly = 1
-   else
-      NewTabs = arg1
-   endif
-   'xcom tabs' NewTabs     -- pass it to the old internal tabs command.
-   'refreshinfoline TABS'  -- Update statusline if tabs displayed
 
-   if SetEa then
       -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
-      -- This will write the EA on save-as if the source file was readonly.
+      -- This will delete the EA on save-as if the source file was readonly.
       call delete_ea('EPM.TABS')
-      if DeleteEaOnly then
-         -- Delete the EA 'EPM.TABS' immediately
-         rc = NepmdDeleteStringEa( .filename, 'EPM.TABS')
-         if (rc > 0) then
-            sayerror 'EA "EPM.TABS" not deleted, rc = 'rc
-         endif
-      else
-         -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
-         -- This will write the EA on save-as if the source file was readonly.
-         'add_ea EPM.TABS' NewTabs
-         -- Set the EA 'EPM.TABS' immediately
-         rc = NepmdWriteStringEa( .filename, 'EPM.TABS', NewTabs)
-         if (rc > 0) then
-            sayerror 'EA "EPM.TABS" not set, rc = 'rc
+      if fSetEa then
+         if not fReadonly then
+            -- Delete the EA 'EPM.TABS' immediately
+            rc = NepmdDeleteStringEa( .filename, 'EPM.TABS')
+            if (rc > 0) then
+               sayerror 'EA "EPM.TABS" not deleted, rc = 'rc
+            endif
          endif
       endif
+
+   else
+      -- Take arg1
+      NewTabs = arg1
+
+      -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
+      call delete_ea('EPM.TABS')
+      if fSetEa then
+         -- This will write the EA on save-as if the source file was readonly.
+         'add_ea EPM.TABS' NewTabs
+         if not fReadonly then
+            -- Set the EA 'EPM.TABS' immediately
+            rc = NepmdWriteStringEa( .filename, 'EPM.TABS', NewTabs)
+            if (rc > 0) then
+               sayerror 'EA "EPM.TABS" not set, rc = 'rc
+            endif
+         endif
+      endif
+
    endif
+
+   -- Process
+   'xcom tabs' NewTabs     -- pass it to the old internal tabs command.
+   'refreshinfoline TABS'  -- Update statusline if tabs displayed
 
 defc timestamp
 compile if WANT_DBCS_SUPPORT

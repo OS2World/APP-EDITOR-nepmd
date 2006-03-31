@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.36 2006-03-30 16:50:12 aschn Exp $
+* $Id: mode.e,v 1.37 2006-03-31 23:38:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -46,8 +46,7 @@ defproc GetMode
    IsAShellFile = IsAShellFilename( Filename)
 
    -- Get CurMode for Filename by querying an array var
-   -- arg(2) and arg(4) of do_array must be vars!
-   rc = get_array_value( EPM_utility_array_ID, 'mode.'fid, CurMode )
+   CurMode = GetAVar( 'mode.'fid)
    -- Save this value as SavedMode
    SavedMode = CurMode
 
@@ -90,8 +89,7 @@ compile endif
 
    -- Update array var 'mode.'fid if CurMode has changed
    if CurMode <> SavedMode then
-      -- arg(2) and arg(4) of do_array must be vars!
-      do_array 2, EPM_utility_array_ID, 'mode.'fid, CurMode
+      call SetAVar( 'mode.'fid, CurMode)
    endif
 
    return CurMode
@@ -132,6 +130,7 @@ defproc ResetHiliteModeList
 ; Processes settings for current mode only if current mode <> old mode.
 ; arg(1) = old mode.
 ; Called by defc s,save.
+;
 ; Use a command for to call it with 'postme' from defc s,save
 ; Otherwise a MessageBox (defined in ETK) will pop up when
 ;    -  the window should be closed and
@@ -139,6 +138,7 @@ defproc ResetHiliteModeList
 ;    -  the file was saved.
 ; The file *was* saved but the MessageBox says that there has
 ; occured an error saving the file.
+;
 ; Another possibility could be to disable every internal switching
 ; of files in the ring. Especially selecting files from the 'ring_more'
 ; ListBox temporarily will not update the Statusline. It was
@@ -163,13 +163,11 @@ defc ResetMode
       'ResetFileSettings'
    endif
 
-   return
-
 ; ---------------------------------------------------------------------------
 ; Changes the current mode.
 ;
 ; This command uses the NEPMDLIB EA functions to change the EA 'EPM.MODE'
-; immediately if NEPMD_RESTORE_MODE_FROM_EA = 1.
+; immediately.
 ;
 ; With the E functions only the EA area is changed. The EAs would only be saved
 ; when the file is saved.
@@ -181,49 +179,42 @@ defc ResetMode
 ; the array var 'mode.'fid. This is called by commands that have mode dependent
 ; setting: hili, refreshstatusline
 ;
-; Syntax: mode [arg1 [arg2]]
+; Syntax: mode [arg1 [noea]]
 ;
-;    arg1 = (NewMode|0|OFF|RESET|-RESET-|DEFAULT|-DEFAULT-)
-;            NewMode can be any mode.
-;    arg2 = NOEA
+;    arg1 = (NewMode|0|OFF|DEFAULT)
+;           NewMode can be any mode.
 ;           ==> Don't try to write the EA EPM.MODE immediately.
-;    arg1 and arg2 are caseless.
+;    args are caseless. It doesn't matter, which comes first.
 ;    If no arg specified, then a listbox is opened for selecting a mode.
 defc Mode
-   parse arg NewMode Options
-   NewMode = upcase(NewMode)
-   NewMode = strip(NewMode)
-   Options = upcase(Options)
-   Options = strip(Options)
+   arg1 = upcase( arg(1))
 
-   SetEa = 1
-   if Options = 'NOEA' then
-      SetEa = 0
+   -- Write EA?
+   fSetEa = 1  -- default value
+   wp = wordpos( 'NOEA', arg1)
+   if wp > 0 then
+      arg1 = strip( delword( arg1, wp, 1))
+      fSetEa = 0
    endif
 
+   -- Write EA later, maybe on save-as?
+   fReadonly = 0  -- default value
+   if (.readonly | leftstr( .filename, 1) = '.') then
+      fReadonly = 1
+   elseif GetReadonly( .filename) <> 0 then  -- returns '' if file doesn't exist
+      fReadonly = 1
+   endif
+
+   NewMode = arg1
    if NewMode = '' then
       -- Ask user to set a mode
       NewMode = upcase( SelectMode())
    endif
 
-   if wordpos( NewMode, '0 OFF DEFAULT -DEFAULT-') > 0 then
+   if NewMode = '' then
+      return 87  -- ERROR_INVALID_PARAMETER
 
-      if SetEa then
-         if (.readonly | not exist(.filename) | leftstr( .filename, 1) = '.') then
-            SetEa = 0
-         else
-            -- Delete the EA 'EPM.MODE' immediately
-            rc = NepmdDeleteStringEa( .filename, 'EPM.MODE' )
-            if (rc > 0) then
-               sayerror 'EA "EPM.MODE" not deleted, rc = 'rc
-            endif
-         endif
-      endif
-
-      -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value.
-      -- This will write the EA on save-as if the source file was readonly.
-      call delete_ea('EPM.MODE')
-
+   elseif wordpos( NewMode, '0 OFF DEFAULT') > 0 then
       -- Get the default mode
       NewMode =  NepmdQueryDefaultMode(.filename)
       parse value NewMode with 'ERROR:'rc
@@ -232,44 +223,41 @@ defc Mode
          NewMode = ''
       endif
 
-      -- Save default mode in an array var for the statusline and for hili
-      getfileid fid
-      call SetAVar( 'mode.'fid, NewMode)
-
-      -- Process all mode specific settings
-      'ResetFileSettings'
-
-   elseif NewMode <> '' then
-
-      -- Save mode in an array var for the statusline and for hili
-      getfileid fid
-      call SetAVar( 'mode.'fid, NewMode)
-
-      IsATempFile = leftstr( .filename, 1) = '.'
-      HasReadOnly = 0
-      ret = qfilemode( .filename, attrib)  -- DosQFileMode
-      if not ret then
-         HasReadOnly = (attrib // 2)
-      endif
-      if SetEa & not IsATempFile & not HasReadOnly then
-         -- Set the EA 'EPM.MODE' immediately
-         rc = NepmdWriteStringEa( .filename, 'EPM.MODE', NewMode)
-         if (rc > 0) then
-            sayerror 'EA "EPM.MODE" not set, rc = 'rc
+      -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value.
+      -- This will delete the EA on save-as if the source file was readonly.
+      call delete_ea('EPM.MODE')
+      if fSetEa then
+         if not fReadonly then
+            -- Delete the EA 'EPM.MODE' immediately
+            rc = NepmdDeleteStringEa( .filename, 'EPM.MODE' )
+            if (rc > 0) then
+               sayerror 'EA "EPM.MODE" not deleted, rc = 'rc
+            endif
          endif
       endif
 
+   else
       -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value.
-      -- This will write the EA on save-as if the source file was readonly.
       call delete_ea('EPM.MODE')
-      'add_ea EPM.MODE' NewMode
+      if fSetEa then
+         -- This will write the EA on save-as if the source file was readonly.
+         'add_ea EPM.MODE' NewMode
+         if not fReadonly then
+            -- Set the EA 'EPM.MODE' immediately
+            rc = NepmdWriteStringEa( .filename, 'EPM.MODE', NewMode)
+            if (rc > 0) then
+               sayerror 'EA "EPM.MODE" not set, rc = 'rc
+            endif
+         endif
+      endif
+   endif
 
-      -- Process all mode specific settings
-      'ResetFileSettings'
+   -- Save mode in an array var for the statusline and for hili
+   getfileid fid
+   call SetAVar( 'mode.'fid, NewMode)
 
-   endif  -- wordpos( NewMode, '0 OFF DEFAULT -DEFAULT-') > 0
-
-   return
+   -- Process all mode specific settings
+   'ResetFileSettings'
 
 ; ---------------------------------------------------------------------
 ; Opens a listbox to select a mode.
@@ -289,17 +277,16 @@ defproc SelectMode()
    endif
 
    -- check mode list and add default entry
-   ModeList = NepmdQueryModeList();
-   parse value ModeList with 'ERROR:'rc;
+   ModeList = NepmdQueryModeList()
+   parse value ModeList with 'ERROR:'rc
    if (rc > '') then
-      sayerror 'error: list of EPM modes could not be determined, rc='rc;
-      stop;
+      sayerror 'List of EPM modes could not be determined, rc = 'rc
+      stop
    endif
-   ModeList = ModeList
 
    -- determine default selection
-   Selection = wordpos( SelectedMode, ModeList);
-   Title = 'Mode selection';
+   Selection = wordpos( SelectedMode, ModeList)
+   Title = 'Mode selection'
 
    refresh
    ret = ''
