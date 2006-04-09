@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.40 2006-03-29 23:54:07 aschn Exp $
+* $Id: main.e,v 1.41 2006-04-09 00:02:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -129,6 +129,14 @@ compile endif
       endif
    endif
 
+;  Show menu and window -----------------------------------------------------
+   call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
+   -- see also: STDCNF.E for menu
+   call showwindow('ON')
+   mouse_setpointer WAIT_POINTER
+   refresh     -- force to show the window, without a file loaded
+   display -1  -- disable screen refresh, re-enabled in defselect
+
    'postme main2' unnamedfid','doscmdline
 
 ; ---------------------------------------------------------------------------
@@ -206,11 +214,6 @@ defc main2
    endif
    dprintf( 'DEFMAIN_EMPTY_FILE', 'activating newfid = 'newfid', filename = 'newfid.filename)
    activatefile newfid
-
-;  Show menu and window -----------------------------------------------------
-   call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
-   -- see also: STDCNF.E for menu
-   call showwindow('ON')
 
 ;  Execute just-installed stuff, if any -------------------------------------
    App = 'RegDefaults'

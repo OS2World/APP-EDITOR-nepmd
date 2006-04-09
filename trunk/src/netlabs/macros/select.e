@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.15 2006-03-29 23:54:10 aschn Exp $
+* $Id: select.e,v 1.16 2006-04-09 00:02:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -81,6 +81,10 @@ defselect
 ;     defined in defc initconfig, STDCTRL.E
    if JustLoaded then
       'postme setmousepointer 'vepm_pointer
+      'postme display 1'  -- re-enable screen updates, show the loaded files
+      -- Bug to find? display 2 here would cause on defmodify the msg:
+      -- Invalid third parameter, most likely coming from a do_array
+      -- statement or Get/SetAVar call.
    endif
 
 ; ---------------------------------------------------------------------------
