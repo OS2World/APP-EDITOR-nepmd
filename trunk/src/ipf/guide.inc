@@ -6,11 +6,11 @@
 .. Unlike the nepmd.inf, the makfile.inf is compiled to the bin subdirectory
 .. and checked in to make it always available right after checking out.
 ..
-.. So when updating this file, commit also the changed INF file !!!
+.. So when updating this file, commit also the changed INF file!
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: guide.inc,v 1.2 2002-04-26 09:40:18 cla Exp $
+.. $Id: guide.inc,v 1.3 2006-04-15 11:38:56 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -27,7 +27,7 @@
 
 
 .. =============================================================================
-.2 archive guidelines
+.2 Archive guidelines
 .. =============================================================================
 .an IDPNL_CVSGUIDE
 .
@@ -35,24 +35,24 @@
 .su V30
 
 .. -----------------------------------------------------------------------------
-.3 adding new files to the archive
+.3 Adding new files to the archive
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_ADDNEW
 .
-When adding source files to the [=TITLE] archive, please comply to the following 
+When adding source files to the [=TITLE] archive, please comply to the following
 rules when committing a file for the very first time:
 
 .ul compact
-- if you are about to add a *modified version* of a source created by someone 
-  else (e.g. the EPMBBS package), proceed as follows 
+- if you are about to add a *modified version* of a source created by someone
+  else (e.g. the EPMBBS package), proceed as follows
   - first of all add the _*original*_ version of the file to the archive.
-     - this original file should not be modified at all (e.g. do not add the 
+     - this original file should not be modified at all (e.g. do not add the
        appropriate [.IDPNL_CVSGUIDE_GNUHEADER GNU header] yet.
      - commit with comment *First revision*
   - add the *GNU header* to the original file and commit
     that as first change
      - commit with comment *Added GNU header*
-  - commit your modified version as first update to the archive including the 
+  - commit your modified version as first update to the archive including the
     very same *GNU header* that you added to the original before
 .
 - if you are about to add a *completely new file*
@@ -61,26 +61,26 @@ rules when committing a file for the very first time:
 
 
 .. -----------------------------------------------------------------------------
-.3 using the GNU headers
+.3 Using the GNU headers
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_GNUHEADER
 .
 All non-binary source files are to include a GNU header at its top in the
 comment style according to the filetype. See the available header templates
-for different file types in subdirectory [.IDPNL_DEVTREE src\header], it 
-contains headers for all currently used filetypes. As *CVS* cannot handle 
+for different file types in subdirectory [.IDPNL_DEVTREE src\header], it
+contains headers for all currently used filetypes. As *CVS* cannot handle
 true OS/2 filetypes, files can be distrinct between by filename extensions only.
 
 When you copy a header template to a file
 .ul compact
 - add the module name (with parameters, if applicable)
-- enter a description in between the line *Module Name* and the Copyright line
+- enter a description in between the line *Module Name* and the Copyright line.
 
 [=NOTE]
 .ul compact
 .at fc=red
-- if a header file for a given file type does not exist, and you want to
-   commit a file of that type to the archive, *you are responsible* to add an 
+- If a header file for a given file type does not exist, and you want to
+   commit a file of that type to the archive, *you are responsible* to add an
    appropriate file to the directory *src\header* before or right after
    you check in the new file.
 .at
@@ -88,19 +88,19 @@ When you copy a header template to a file
    - create a copy of an existing template with the new filename extension
    - modify it to your needs, if neccessary (there may exist already an appropriate one)
    - test it with the new source file first
-   - commit the new template to the archive
+   - commit the new template to the archive.
 
 .. -----------------------------------------------------------------------------
-.3 write meaningful commit comments
+.3 Write meaningful commit comments
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_COMCOMMENTS
 .
-The title says it all: try to find a way not to write to little or too much.
+The title says it all: try to find a way not to write too little or too much.
 Moreover, dont write what you changed (example: changed sixth parameter to DosOpen)
 but what you intended with the change (example: let acces to file fail if it exists).
 
-Moreover, things get easier if you commit changes as often as possible (see also 
-very important section [.IDPNL_CVSGUIDE_SMALLUNITS] in order to keep the changelog 
+Moreover, things get easier if you commit changes as often as possible (see also
+very important section [.IDPNL_CVSGUIDE_SMALLUNITS] in order to keep the changelog
 short!).
 
 If you commit changes, please always layout the commit comment as a bullet list.
@@ -138,13 +138,13 @@ date: 2002/04/16 21:21:00;  author: cla;  state: Exp;  lines: +15 -9
   here included a bullet. Furthermore I kept the layout accross lines.
 
 .. -----------------------------------------------------------------------------
-.3 start clean away
+.3 Start clean away
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_STARTCLEAN
 .
-It is good practise to start every modification task either with 
+It is good practise to start every modification task either with
 .ul compact
-- a clean working directory (well, at least this is easy as long the 
+- a clean working directory (well, at least this is easy as long the
   [=TITLE] archive is that small)
 - an updated working directory. When calling *cvs co .* in your working
   directory, no line should be preceeded by a *?* except for the compile
@@ -153,27 +153,27 @@ It is good practise to start every modification task either with
   (then it is time to "clean up")
 
 It is also good practise to finish work with an update operation *cvs co .*
-This helps you to mak sure that all code changes that you may have applied, are 
-committed to the archive. Don't leave uncommitted code on you hardfile any 
+This helps you to mak sure that all code changes that you may have applied, are
+committed to the archive. Don't leave uncommitted code on you hardfile any
 longer as necessary, or you run into merge operations.
 
 If you fear to commit non-working code though, either
 .ul compact
 - you did not plan your work well  or
-- your modification task may be too large or takte too much time to code or test 
+- your modification task may be too large or takte too much time to code or test
   for a normal development cycle. So you may need a [.IDPNL_CVSGUIDE_BRANCHES CVS branch]
   in order to develop separately from the  main development path. But using branches
-  to separate different development paths are mostly used on large *CVS* archives 
+  to separate different development paths are mostly used on large *CVS* archives
   only, likely the [=TITLE] archive is yet too small to really require this...
 
 .. -----------------------------------------------------------------------------
-.3 commit working code only
+.3 Commit working code only
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_WORKINGCODE
 .
 It is very bad practise to commit non-working code to the archive.
 
-Wherever that is not possible to avoid or where you are not sure 
+Wherever that is not possible to avoid or where you are not sure
 about wether your changes work well, try either to
 .ul compact
 - comment out or *##ifdef* the code you are not sure about
@@ -183,17 +183,17 @@ about wether your changes work well, try either to
 .at hi
 [=NOTE]
 .ul compact
-- at all costs avoid code that will not even compile !
+- at all costs avoid code that will not even compile!
 .at
 
 .. -----------------------------------------------------------------------------
-.3 commit every small changes and/or fast (small units of work)
+.3 Commit every small changes and/or fast (small units of work)
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_SMALLUNITS
 .
 In order to allow somebody else (or even yourself after some time) to figure
-out, what changes have been committed to the archive, check in as often and as 
-fast as possible. Tht requires that you well separate tasks from each other 
+out, what changes have been committed to the archive, check in as often and as
+fast as possible. Tht requires that you well separate tasks from each other
 and as a benefit do not run into merge operations when commiting your changes.
 
 So commit little changes and commit fast, or at least one
@@ -201,16 +201,16 @@ of that. This is called having *small units of work*.
 
 A good thumbrule for that is:
 .ul compact
-- commit as few modifications together as possible. If two modification tasks 
-  (not code changes!) can be logically separated from each other, commit separately !
-- if you require to change several files for one modification, commit them together 
-  after that! 
+- commit as few modifications together as possible. If two modification tasks
+  (not code changes!) can be logically separated from each other, commit separately!
+- if you require to change several files for one modification, commit them together
+  after that!
   - Only that will result in all changed files appearing in one entry of the change log
     (even commiting different files with the same change comment in spearate steps will
     result in several change log entries due to the different timestamp).
-  - as a good side this forces you to restrict your units or work to only one or few 
+  - as a good side this forces you to restrict your units or work to only one or few
     modification tasks at a time that concern all te files checked in together
-- if you make changes to only one file, you may commit changes for several 
+- if you make changes to only one file, you may commit changes for several
   modification tasks at a time, resulting in multiple items within the commit comment,
   but that is no good practise. The command *cvs diff* is used to diff (compare)
   revisions with each other - if you commit changes for more than two larger modifications,
@@ -219,13 +219,13 @@ A good thumbrule for that is:
 
 So the very best way is to
 .ul compact
-- get the last revision (or last revision of desired branch) of all files 
+- get the last revision (or last revision of desired branch) of all files
 - make the changes for a given modification
 - test the modifications
-- commit all modified files in one step, writing a meaningful commit comment
+- commit all modified files in one step, writing a meaningful commit comment.
 
 .. -----------------------------------------------------------------------------
-.3 do not create branches
+.3 Do not create branches
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_BRANCHES
 .
@@ -234,20 +234,20 @@ So the very best way is to
 - shipping a release, allowing fixes on the release version without affecting
   the development
 - making modifications to base modules of a product that require so much
-  time (let's say weeks) that you will definitely run into merge operations 
+  time (let's say weeks) that you will definitely run into merge operations
   (see also section [.IDPNL_CVSGUIDE_SMALLUNITS])
 
 It is project policy that
 .ul compact
-- generally only the release maintainer is to create branches for releases 
-- while the [=TITLE] archive has no basic module requiring larger development 
+- generally only the release maintainer is to create branches for releases
+- while the [=TITLE] archive has no basic module requiring larger development
   cycles no branches are required for this
 - if you ever think you require branches, ask the release maintiner for it
 
-So as a thumb rule: DON'T CREATE BRANCHES YOURSELF !
+So as a thumb rule: DON'T CREATE BRANCHES YOURSELF!
 
 .. -----------------------------------------------------------------------------
-.3 how to ship a release 
+.3 How to ship a release
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_RELEASE
 .
@@ -261,13 +261,13 @@ everybody an overview. A release is packed as follows:
   in order to checkout a complete release later on
 - the package is built and tested
 - if necessary, the release maintainer creates
-  [.IDPNL_CVSGUIDE_FIXRELEASE fixes for the relase], 
+  [.IDPNL_CVSGUIDE_FIXRELEASE fixes for the relase],
   if possible (else in cooperation with the responsible developer)
 - the resulting package is previewed by selected developers
 - the package is shipped
 
 .. -----------------------------------------------------------------------------
-.3 how to apply a fix to a release
+.3 How to apply a fix to a release
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_FIXRELEASE
 .
@@ -285,8 +285,8 @@ A release fix is applied as follows:
 
 [=NOTE]
 .ul compact
-- it is project policy to avoid fixes to publicly released packages, as 
-  always the complete *WarpIn* package is to be shipped. So normally 
-  the fix procedure can only be used while a release is not yet 
+- it is project policy to avoid fixes to publicly released packages, as
+  always the complete *WarpIN* package is to be shipped. So normally
+  the fix procedure can only be used while a release is not yet
   published to the public, otherwise it is like releasing a new version.
 
