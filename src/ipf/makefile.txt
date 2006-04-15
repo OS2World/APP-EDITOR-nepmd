@@ -8,11 +8,11 @@
 .. Unlike the nepmd.inf, the makfile.inf is compiled to the bin subdirectory
 .. and checked in to make it always available right after checking out.
 ..
-.. So when updating this file, commit also the changed INF file !!!
+.. So when updating this file, commit also the changed INF file!
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.30 2005-08-01 19:54:33 aschn Exp $
+.. $Id: makefile.txt,v 1.31 2006-04-15 11:38:55 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -51,7 +51,7 @@
 .su 1
 
 .. -----------------------------------------------------------------------------
-.2 makefile pseudotargets
+.2 Makefile pseudotargets
 .. -----------------------------------------------------------------------------
 .an IDPNL_TARGETS
 .
@@ -59,7 +59,7 @@
 .su V30
 
 .. .............................................................................
-.3 main makefile
+.3 Main makefile
 .. .............................................................................
 .an IDPNL_TARGETS_MAIN
 .
@@ -68,62 +68,62 @@ within the project working directory (root of the development tree).
 
 [=NOTE]
 .ul compact
-- edit configure.in to your needs before executing nmake
-- targets marked with (**) require a working internet connection
+- Edit configure.in to your needs before executing nmake.
+- Targets marked with (**) require a working internet connection
   for to download the EPM packages, if they are not available within the directory
   specified by the macro *ZIPSRCDIR* in the file *configure.in*.
 
 The following pseudotargets are available:
 .pl bold compact break=none tsize=20
 - nmake [[help]]
-= show this INF file (if outdated, this compiles the INF before). This calls the
+= Show this INF file (if outdated, this compiles the INF before). This calls the
   makefile within the *src\ipf* directory with the target *showhelp*.
 .
 - nmake all
-= build all modules and thus the complete package (**)
+= Build all modules and thus the complete package. (**)
 .
-  This is achieved ba calling all makefiles below the *src* subdirectory, of which
-  the subdirectories are listed in the macro *MODULELIST*
+  This is achieved by calling all makefiles below the *src* subdirectory, of which
+  the subdirectories are listed in the macro *MODULELIST*.
 .
-  This results in the *WarpIn* WPI package file created
+  This results in the *WarpIN* WPI package file created
   either in the *debug* or *release* directory, depending on the value of
-  the *DEBUG* environment variable (**)
+  the *DEBUG* environment variable. (**)
 .
 - nmake inst
-= like *nmake all*, but also starts the WPI file (**)
+= Like *nmake all*, but also starts the WPI file. (**)
 - nmake remove
-= quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIn* GUI.
-  This is intended for testing purposes only !
+= Quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIN* GUI.
+  This is intended for testing purposes only!
 .
   [=NOTE]
 .ul compact
-  - the revision numbers from the *WarpIn* script are ignored, but
-    the vendor name, package name and component name must match exactly
-  - all files and WPS objects are removed
-  - no *INI* entries or *CONFIG.SYS* entries are removed
-  - no dependencies are checked!
+  - The revision numbers from the *WarpIN* script are ignored, but
+    the vendor name, package name and component name must match exactly.
+  - All files and WPS objects are removed.
+  - No *INI* entries or *CONFIG.SYS* entries are removed.
+  - No dependencies are checked!
 .
 - nmake gui
-= build GUI components only
+= Build GUI components only.
 - nmake rungui
-= build and run selected GUI components
+= Build and run selected GUI components.
 .
 - nmake inf
-= build all INF files of the whole project
+= Build all INF files of the whole project.
 - nmake show
-= build NEPMD INF only and show it
+= Build NEPMD INF only and show it.
 .
 - nmake clean
-= remove the *compile* and binary (both *debug* and *release*) directories
+= Remove the *compile* and binary (both *debug* and *release*) directories.
 .
 - nmake NLS [[NLS=xxx]]
 =
 .
-(re)set NLS language identifier to default or the specified
+(Re)set NLS language identifier to default or the specified
   [.IDPNL_APPENDIX_LANGIDS three letter language identifier].
   To make things easier, the makefile allows also to set the language identifier
   by just speficying the symbol *NLS=xxx* without any target.
-  .
+.
   [=NOTE]
 .ul compact
   - This is only intended for testing purposes, as normally the language information
@@ -138,34 +138,34 @@ The following makefile pseudotargets are available for the makefile within the
 *src\ipf* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
-= build both the makefile INF and the project documentation INFs, but show none
+= Build both the makefile INF and the project documentation INFs, but show none.
 .
 - nmake showhelp
-= build and show this INF file (if outdated, this compiles the INF before). This is used
+= Build and show this INF file (if outdated, this compiles the INF before). This is used
   by the [.IDPNL_TARGETS_MAIN main makefile] in order to bring up help if called with no
-  target specified
+  target specified.
 - nmake neusr
-= build and show the user guide INF
+= Build and show the user guide INF.
 - nmake neprg
-= build and show the programming guide INF
+= Build and show the programming guide INF.
 - nmake nefld
-= build and show the folder HLP
+= Build and show the folder HLP.
 .
 - nmake helpinf
-= build this makefile in the *bin* subdirectory !
+= Build this makefile in the *bin* subdirectory!
 - nmake neusrinf
-= build the user guide INF in the *compile\netlabs\book* directory
+= Build the user guide INF in the *compile\netlabs\book* directory.
 - nmake neusrinf
-= build the programming guide INF in the *compile\netlabs\book* directory
+= Build the programming guide INF in the *compile\netlabs\book* directory.
 - nmake nefldhlp
-= build the folder HLP file in the *compile\netlabs\help* directory
+= Build the folder HLP file in the *compile\netlabs\help* directory.
 .
 - nmake clean
-= remove the files created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+= Remove the files created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
 .
  [=NOTE]
 .ul compact
-  - directories are not removed by this pseudotarget. For a complete cleanup, call
+  - Directories are not removed by this pseudotarget. For a complete cleanup, call
     *nmake clean* within the project working directory (root of the development tree).
 
 .. .............................................................................
@@ -177,14 +177,14 @@ The following makefile pseudotargets are available for the makefile within the
 *src\rexx* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
-= create NLSETUP.EXE in the *compile\netlabs\install directory*
+= Create NLSETUP.EXE in the *compile\netlabs\install* directory.
 .
 - nmake clean
-= remove the file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+= Remove the file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
 .
  [=NOTE]
 .ul compact
-  - directories are not removed by this pseudotarget. For a complete cleanup, call
+  - Directories are not removed by this pseudotarget. For a complete cleanup, call
     *nmake clean* within the project working directory (root of the development tree).
 
 .. .............................................................................
@@ -196,20 +196,20 @@ The following makefile pseudotargets are available for the makefile within the
 *src\netlabs* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
-= copy all modified files below the *src\netlabs* directory to the *compile\netlabs* directory
+= Copy all modified files below the *src\netlabs* directory to the *compile\netlabs* directory.
 .
 - nmake checksrc
-= check only if some files have been modified. If not, the flag file *compile\srccopy.txt*
+= Check only if some files have been modified. If not, the flag file *compile\srccopy.txt*
   is created, otherwise it is deleted.
 - nmake srccopy
-= copy modified files anyway
+= Copy modified files anyway.
 .
 - nmake clean
-= remove the flag file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+= Remove the flag file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
 .
  [=NOTE]
 .ul compact
-  - directories are not removed by this pseudotarget. For a complete cleanup, call
+  - Directories are not removed by this pseudotarget. For a complete cleanup, call
     *nmake clean* within the project working directory (root of the development tree).
 
 .. .............................................................................
@@ -223,7 +223,7 @@ the main makefile by executing
 .sl compact
 -  *nmake all*
 
-in the project working root directory instead.
+in the project root directory instead.
 .
 This ensures that all other makefiles from within the *src* directory are called
 before and with that all required files are available for building the WPI package.
@@ -237,41 +237,41 @@ The following makefile pseudotargets are available for the makefile within the
 *src\wis* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
-= downloads and unpacks files from Hobbes and build complete package.
-  This results in the *WarpIn* WPI package file created
+= Downloads and unpacks files from Hobbes and build complete package.
+  This results in the *WarpIN* WPI package file created
   either in the *debug* or *release* directory, depending on the value of
-  the *DEBUG* environment variable (**)
+  the *DEBUG* environment variable. (**)
 .
 - nmake inst
-= like *nmake all*, but also starts the WPI file (**)
+= Like *nmake all*, but also starts the WPI file. (**)
 - nmake remove
-= quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIn* GUI.
-  This is intended for testing purposes only !
+= Quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIN* GUI.
+  This is intended for testing purposes only!
 .
   See pseudotarget *remove* of the [.IDPNL_TARGETS_MAIN] for further details.
 .
 - nmake prepare
-= only downloads EPMBBS zip files from Hobbes and unpacks (**)
+= Only downloads EPMBBS zip files from Hobbes and unpacks. (**)
 - nmake check
-= check prepared files for
+= Check prepared files for
 .ul compact
   - SYSxxxx errors during unpack
-  - zero byte files, making WIC trap (thanks god !).
-    pkunzip2 does not unpack properly sometimes (zero byte files)
+  - zero byte files, making WIC trap (thanks god!)
+  - pkunzip2 does not unpack properly sometimes (zero byte files).
 .el
 .
 - nmake clean
-= remove the flag file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
+= Remove the flag file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
 .
  [=NOTE]
 .ul compact
-  - directories are not removed by this pseudotarget. For a complete cleanup, call
+  - Directories are not removed by this pseudotarget. For a complete cleanup, call
     *nmake clean* within the project working directory (root of the development tree).
 
 [=NOTE]
 .ul compact
-- edit configure.in to your needs before executing nmake
-- targets marked with (**) require a working internet connection
+- Edit configure.in to your needs before executing nmake.
+- Targets marked with (**) require a working internet connection
   for to download the EPM packages, if they are not available within the directory
   specified by the macro *ZIPSRCDIR* in the file *configure.in*.
 
@@ -309,8 +309,10 @@ Workplace Shell should be increased by.
 .ul compact
 - The environment variable *SHELLHANDLESINC* must be set in CONFIG.SYS,
   so it requires a reboot to activate it.
+- WarpIN versions up to V1.0.5 left all packed files open. Apparently using
+  V1.0.6 or later avoids the need for adding *SHELLHANDLESINC*.
 
-_*Example:*_
+*Example:*
 .fo off
 SET SHELLHANDLESINC=60
 .fo on
@@ -387,7 +389,7 @@ As *pkunzip2.exe* comes as part of *MPTS*, it is available on OS/2 Warp Systems 
 Network or Internet Access Kit installed.
 
 .. .............................................................................
-.3 unzip.exe of Info-Zip
+.3 UNZIP.EXE of Info-Zip
 .. .............................................................................
 .an IDPNL_REQUIREMENTS_UNZIP2
 .
@@ -404,7 +406,7 @@ as it supports the "deflated" method used for some text files, this is not suppo
 - *unzip.exe* must be accessible by the PATH statement.
 
 .. .............................................................................
-.3 wget
+.3 WGET
 .. .............................................................................
 .an IDPNL_REQUIREMENTS_WGET
 .
@@ -533,45 +535,50 @@ For packing the executables of the [=TITLE], the *lxlite* utility is used.
 .. -----------------------------------------------------------------------------
 .an IDPNL_DEVTREE
 .
-The following directories currently exist in the CVS development tree
+The following directories currently exist in the CVS development tree:
 .
-(the *CVS* maintenance directories are not included here):
+(The *CVS* maintenance directories are not included here.)
 .pl compact break=none tsize=15
 .fo off
 <working dir>
-ÃÄheader       GNU header for all used filetypes
-ÃÄipf          HypeText/2 sources for the NEPMD INF files
-³ ÀÄbmp        bitmaps for INF files
-ÃÄ[=DISTDIR]      base directory for sources simoly copied to compile\[=DISTDIR]
-³ ÀÄinstall    installation related files
-³     ÀÄico    NEPMD related icons for installation
-ÃÄrexx         REXX sources being compiled for NEPMD
-ÀÄwis          WarpIn script
+ÃÄheader        GNU header for all used filetypes
+ÃÄipf           HypeText/2 sources for the NEPMD INF files
+³ ÀÄbmp         bitmaps for INF files
+ÃÄ[=DISTDIR]       base directory for sources simoly copied to compile\[=DISTDIR]
+³ ÀÄinstall     installation related files
+³     ÀÄico     NEPMD related icons for installation
+ÃÄrexx          REXX sources being compiled for NEPMD
+ÀÄwis           WarpIN script
 .fo on
 
-The following _temporary_ directory trees are created when building the *WarpIn* package:
+The following _temporary_ directory trees are created when building the *WarpIN* package:
 .fo off
 <working dir>
-ÃÄcompile      holds temporary files being the same for debug or
-³  ³           release version
-³  ÀÄ[=DISTDIR]   directory tree to be packed into the WarpIn package
-³    ÀÄinstall holding copies of files of src\[=DISTDIR]
-³      ÀÄico   or compiled binaries
+ÃÄcompile       holds temporary files being the same for debug or
+³  ³            release version
+³  ÀÄ[=DISTDIR]    directory tree to be packed into the WarpIN package
+³    ÀÄinstall  holding copies of files of src\[=DISTDIR]
+³      ÀÄico    or compiled binaries
 ³
-ÀÄ<binary dir> the name of this directory is either *debug* or *release*
-   ³           Among others it holds the resulting WarpIn package file.
-   ÀÄ[=DISTDIR]   directory tree to be packed into the WarpIn package
-     ÀÄbin     holding copies of selected executables being compiled to
-               <binary dir>
+ÃÄ<binary dir>  the name of this directory is either *debug* or *release*
+³  ³            Among others it holds the resulting WarpIN package file.
+³  ÀÄ[=DISTDIR]    directory tree to be packed into the WarpIN package
+³    ÀÄbin      holding copies of selected executables being compiled to
+³               <binary dir>
+³
+ÃÄzip           holds downloaded EPMBBS ZIP files
+³
+ÀÄepm.packages  holds unpacked EPMBBS files before they were added to the
+                WarpIN package
 .fo on
 
 [=NOTE]
 .ul compact
-- the temporary directory trees can be completely cleaned up (deleted) with
-  executing *nmake clean* in the working root directory.
+- The temporary directory trees, except *zip* and *epm.packages*, can be completely
+  cleaned up (deleted) with executing *nmake clean* in the working root directory.
 
 .. -----------------------------------------------------------------------------
-.2 configuring the make process
+.2 Configuring the make process
 .. -----------------------------------------------------------------------------
 .an IDPNL_CONFIGMAKE
 .
@@ -579,14 +586,14 @@ The following _temporary_ directory trees are created when building the *WarpIn*
 .su V30
 
 .. .............................................................................
-.3 general settings in configure.in
+.3 General settings in configure.in
 .. .............................................................................
 .an IDPNL_CONFIGMAKE_CONFIGUREIN
 .
 The *src\wis\makefile* requires several lists values, of which some have to be
 configured before executing *nmake* to build the complete package.
 
-_*values to be configured by everybody*_
+_*Values to be configured by everybody*_
 .pl bold
 - BASEURL
 = specifies the location from where the original ZIP files of the EPMBBS
@@ -595,7 +602,7 @@ _*values to be configured by everybody*_
 .
 [=NOTE]
 .ul compact
-  - It will generally not be necessary to modify that value !
+  - It will generally not be necessary to modify that value!
   - You can predefine that value also as an environment variable before calling *nmake*
 .el
 - ZIPSRCDIR
@@ -607,46 +614,48 @@ _*values to be configured by everybody*_
 .
 [=NOTE]
 .ul compact
-  - the directory may not exist, but at least directory above
-    must exist (that is not tested for !)
-  - if you don't modify the value, the directory *zip* is created within your
-    working directory and used for that purpose
-  - You can predefine that value also as an environment variable before calling *nmake*
+  - The directory may not exist, but at least the directory above
+    must exist (that is not tested for).
+  - If you don't modify the value, the directory *zip* is created within your
+    project root directory and used for that purpose.
+  - You can predefine that value also as an environment variable before calling *nmake*.
 .el
 - UNZIPPEDDIR
 = specifies an empty or non-existant directory of your choice where
-  to put unpacked files
+  to put unpacked files.
 .
 .
 [=NOTE]
 .ul compact
-  - the directory may not exist, but at least directory above must exist
-    (that is not tested for !)
-  - if you don't modify the value, the directory *epm.packages* is created within your
-    working directory and used for that purpose
-  - the contents of that directory (if any) is completely deleted
-    before unpacking the EPMBBS package files
-  - You can predefine that value also as an environment variable before calling *nmake*
+  - The directory may not exist, but at least the directory above must exist
+    (that is not tested for).
+  - If you don't modify the value, the directory *epm.packages* is created within your
+    project root directory and used for that purpose.
+  - The contents of that directory (if any) is completely deleted
+    before unpacking the EPMBBS package files.
+  - You can predefine that value also as an environment variable before calling *nmake*.
 .el
 
 
-_*values to be configured by release maintainer only*_
+_*Values to be configured by release maintainer only*_
 .pl bold
 - STEM
-= specifies the id of the project, used within some filenames
+= specifies the id of the project, used within some filenames.
 - VERSION
-= specifies the current version, used in the name of the WPI package file
+= specifies the current version, used in the name of the WPI package file.
 - ID__VERSION__NEPMD
-= specifies the current version and revision as to be used within the *WarpIn* script.
+= specifies the current version and revision as to be used within the *WarpIN* script.
+.
 .
   [=NOTE]
 .ul compact
-  - Keep in sync with the major and minor version used in *VERSION* !!!
-  - This value has to be specified in the *WapIn* package ID style: <major>\<minor>\<revision>
+  - Keep in sync with the major and minor version used in *VERSION*!
+  - This value has to be specified in the *WarpIN* package ID style: <major>\<minor>\<revision>
 .el
 - ID__VERSION__REQ__WARPIN
-= specifies the version and revision of *WarpIn* that the resulting WPI package should
+= specifies the version and revision of *WarpIN* that the resulting WPI package should
   be restricted to as a minimum for installation.
+.
 .
   [=NOTE]
 .ul compact
@@ -721,7 +730,7 @@ The following language identifiers are currently used within the project:
 .su V30
 
 .. .............................................................................
-.3 doc comments in general
+.3 Doc comments in general
 .. .............................................................................
 .an IDPNL_APPENDIX_DOCCOMMENTS_GENERAL
 .
@@ -742,7 +751,7 @@ the information about the function is automatically inlcuded in the functions
 reference.
 
 .. .............................................................................
-.3 format of doc comments
+.3 Format of doc comments
 .. .............................................................................
 .an IDPNL_APPENDIX_DOCCOMMENTS_FORMAT
 .
@@ -794,7 +803,7 @@ The following rules apply to documentation comments:
   is followed either by the next one or an [.IDPNL_APPENDIX_DOCCOMMENTS_ENDMARKER].
 
 .. .............................................................................
-.3 linking to sections created by doc comments
+.3 Linking to sections created by doc comments
 .. .............................................................................
 .an IDPNL_APPENDIX_DOCCOMMENTS_LINKAGE
 .
@@ -920,7 +929,7 @@ should be included.
 [=NOTE]
 .ul compact
 - this comment does not specifiy text, but instead requires the category
-  name appended to the comment name !
+  name appended to the comment name!
 - The main source file fo the online help must include a .SET command to
   define the title for a category, where the name of the setting must be
   *CATEGORY__*#categoryname#
@@ -954,7 +963,7 @@ of the function.
 
 [=NOTE]
 .ul compact
-- this comment requires the parameter name appended to the comment name !
+- this comment requires the parameter name appended to the comment name!
 - make sure that it matches identically the parameters in the
   [.IDPNL_APPENDIX_DOCCOMMENTS_PROTOTYPE] comment, so that a link from the
   prototype to the parameter section is automatically created
@@ -1048,7 +1057,7 @@ snippet for usage of the specified function.
 
 
 .. .............................................................................
-.3 documention comment end marker
+.3 Documention comment end marker
 .. .............................................................................
 .an IDPNL_APPENDIX_DOCCOMMENTS_ENDMARKER
 .
