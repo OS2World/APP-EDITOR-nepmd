@@ -4,15 +4,37 @@
 : Module Name: setenv.cmd
 :
 : Set the environment for the making of NEPMD
-
+:
 : This file sets the user-specific vars before setenv2.cmd is called.
 :
-: Usage: Copy this file to the main project directory and adjust the
-:        environment variables below.
+: Requirements : See makefile.inf, section "Requirements".
+:
+: Prerequisite : The project files must be already checked-out. (Most likely
+:                you have already done that when you are reading this.)
+:
+: Configuration: Copy this file to the main project directory (the parent
+:                directory of bin) and adjust the environment variables
+:                below.
+:
+: Note         : Using these environment files avoids the need to edit your
+:                CONFIG.SYS. Because pathes were altered by prepending the
+:                here configured parts, it is possible to have the C compiler
+:                and the Toolkit properly installed as well.
+:
+: Usage        : 1) Open a VIO window or an EPM shell in the main project
+:                   directory.
+:
+:                2) Execute
+:
+:                      setenv
+:                      nmake [/nologo] [clean] all
+:
+:                   Instead of "all" you can also specify "inst" to start
+:                   WarpIN after compilation.
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: setenv.cmd,v 1.1 2006-04-15 18:28:40 aschn Exp $
+: $Id: setenv.cmd,v 1.2 2006-04-25 21:01:32 aschn Exp $
 :
 : ===========================================================================
 :
@@ -32,15 +54,15 @@
 : ---------------------------------------------------------------------------
 :
 : ---- Project env vars
-: adjust timestamps of compiled files?
-: (comment that out if you use 4os2 as shell)
+:      adjust timestamps of compiled files?
+:      (comment that out if you use 4os2 as shell)
 SET TOUCH=1
-: create a debug or release version?
-: (comment the next line out to create a release version)
+:      create a debug or release version?
+:      (comment the next line out to create a release version)
 SET DEBUG=1
-: default is to use <main_project_dir>\zip
+:      download directory, default is to use <main_project_dir>\zip
 : SET ZIPSRCDIR=f:\zip
-: default is to use <main_project_dir>\epm.packages
+:      unpack directory, default is to use <main_project_dir>\epm.packages
 : SET UNZIPPEDDIR=f:\epm.packages
 :
 : ---- Enlarge the VIO window
@@ -49,26 +71,30 @@ SET DEBUG=1
 : ---- Of course we use EPM for writing cvs commit comments
 SET CVSEDITOR=EPM /M
 :
-: ---- Visual Age C++ v3.08 and C Set/2 v2.1 are supported
-SET DIR_COMPILER=e:\dev\ibmcpp308
-
 : ---- Specify either VAC308 or CSET2
 : SET USED_COMPILER=CSET2
 SET USED_COMPILER=VAC308
-
-: ---- Toolkits 3/4/4.5 are supported
+:
+: ---- Specify the main path for the C compiler
+:      (Visual Age C++ v3.08 and C Set/2 v2.1 are supported)
+SET DIR_COMPILER=f:\dev\ibmcpp308
+:
+: ---- Specify the main path for the C compiler
+:      (Toolkits 3/4/4.5 are supported)
 SET DIR_TOOLKIT=f:\dev\toolkt45
 :
 : ---- Following env vars must be set
+:      (probably they are in your CONFIG.SYS)
 : SET TMP=...
 : SET TZ=...
+: SET HOME=...
 :
 : ---------------------------------------------------------------------------
 : End of user-configurable part
 : ---------------------------------------------------------------------------
 :
 : ---- Execute the environment file
-
+:
 : Check if this file is executed from the main project directory
 : In order to not overwrite the user's changes the user should copy it
 : to the main project directory and adjust that version.
