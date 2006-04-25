@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.31 2006-04-15 11:38:55 aschn Exp $
+.. $Id: makefile.txt,v 1.32 2006-04-25 21:00:59 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -306,7 +306,7 @@ of file handles that the amount of file handles available for the
 Workplace Shell should be increased by.
 
 [=NOTE]
-.ul compact
+.ul
 - The environment variable *SHELLHANDLESINC* must be set in CONFIG.SYS,
   so it requires a reboot to activate it.
 - WarpIN versions up to V1.0.5 left all packed files open. Apparently using
@@ -324,7 +324,7 @@ SET SHELLHANDLESINC=60
 .an IDPNL_REQUIREMENTS_WARPIN
 .
 The *WarpIN* Installer is used to create the installation package.
-As a minimum version 0.9.18 is required.
+As a minimum version 0.9.19 is required.
 
 [=NOTE]
 .ul
@@ -341,7 +341,7 @@ As a minimum version 0.9.18 is required.
 .
 As compiler the following are supported
 .ul compact
-- *IBM CSet/2* (debugger seems not to cope with the debug version...)
+- *IBM C Set/2* (debugger seems not to cope with the debug version...)
 - *IBM VAC 3.08* (much better debugger).
 
 [=NOTE]
@@ -355,9 +355,9 @@ As compiler the following are supported
 .
 As toolkit one of the following is required:
 .ul compact
-- *OS/2 Warp 3 Developers Toolkit*
-- *OS/2 Warp 4 Developers Toolkit*
-- *OS/2 Warp 4.5 Developers Toolkit*
+- *OS/2 Warp 3 Developer's Toolkit*
+- *OS/2 Warp 4 Developer's Toolkit*
+- *OS/2 Warp 4.5 Developer's Toolkit*
 
 .. .............................................................................
 .3 EPM Macro Compiler
@@ -420,7 +420,7 @@ as it supports the "deflated" method used for some text files, this is not suppo
 .
     (search "wget" at hobbes.nmsu.edu)
 - *wget.exe* must be accessible by the PATH statement.
-- when sitting behind a firewall, create/modify a wget resource file in order
+- When sitting behind a firewall, create/modify a wget resource file in order
   to use an FTP proxy. Insert or add the following entries to the file
   %home%\.wgetrc and replace the bold printed values as required:
 .fo off
@@ -530,6 +530,29 @@ For packing the executables of the [=TITLE], the *lxlite* utility is used.
     (search "lxlt" at hobbes.nmsu.edu)
 - *lxlite.exe*, together with its *lxlite.cfg* must be accessible by the PATH statement.
 
+.. .............................................................................
+.3 TOUCH
+.. .............................................................................
+.an IDPNL_REQUIREMENTS_TOUCH
+.
+For aligning the timestamps of the compiled files before they were packed into
+the WarpIN package the *touch* utility out of the *GNU file utilities* is used.
+
+[=NOTE]
+.ul
+- The *touch* utility is only required if you adjust the timestamps. In order
+  to do that, either
+.ul compact
+  - specify *TOUCH=1* as parameter to *nmmake* or
+  - set the environment variable *TOUCH=1* before calling *nmake*.
+- You can download the *GNU file utilities* from
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=GNU+file+utilities The Hobbes File Archive]
+.
+    (search "GNU file utilities" at hobbes.nmsu.edu)
+- *touch* must be accessible by the PATH statement.
+- Don't set *TOUCH=1* if you want to compile in a *4os2* shell, because it has
+  its own *touch*, that is not compatible with the GNU version.
+
 .. -----------------------------------------------------------------------------
 .2 CVS development tree overview
 .. -----------------------------------------------------------------------------
@@ -538,38 +561,91 @@ For packing the executables of the [=TITLE], the *lxlite* utility is used.
 The following directories currently exist in the CVS development tree:
 .
 (The *CVS* maintenance directories are not included here.)
-.pl compact break=none tsize=15
+.pl compact break=none tsize=18
 .fo off
 <working dir>
-ÃÄheader        GNU header for all used filetypes
-ÃÄipf           HypeText/2 sources for the NEPMD INF files
-³ ÀÄbmp         bitmaps for INF files
-ÃÄ[=DISTDIR]       base directory for sources simoly copied to compile\[=DISTDIR]
-³ ÀÄinstall     installation related files
-³     ÀÄico     NEPMD related icons for installation
-ÃÄrexx          REXX sources being compiled for NEPMD
-ÀÄwis           WarpIN script
+³
+ÃÄbin             helpers and documentation for compilation
+³
+ÃÄsrc
+³ ³
+³ ÃÄdoc           several additional docs
+³ ³ ÃÄannounce
+³ ³ ÃÄtestfiles
+³ ³ ÀÄwse2002
+³ ³
+³ ÃÄgui           GUI and other files for compilation
+³ ³ ÃÄcommon
+³ ³ ÃÄepmcall     EPM loader
+³ ³ ÃÄetk         E Toolkit header files
+³ ³ ÃÄnepmdlib    NEPMD library
+³ ³ ³ ÀÄmacros    E macros as interface for the library (not shipped in the release)
+³ ³ ÃÄrecomp      Recomp utility
+³ ³ ³ ÀÄtestcase
+³ ³ ÀÄtest
+³ ³
+³ ÃÄheader        GNU headers for all used filetypes
+³ ³
+³ ÃÄipf           HyperText/2 sources for the NEPMD INF files
+³ ³ ÀÄbmp         bitmaps for INF files
+³ ³
+³ ÃÄ[=DISTDIR]       base directory for sources simply copied to compile\[=DISTDIR]
+³ ³ ÃÄbar         toolbars
+³ ³ ÃÄbin         binary and executable files
+³ ³ ÃÄbmp         toolbar bitmaps
+³ ³ ÃÄdll         dlls
+³ ³ ÃÄex          LST files used by toolbar macros and RecompileNew
+³ ³ ÃÄinstall     installation related files
+³ ³ ³ ÀÄico       NEPMD related icons for installation
+³ ³ ÃÄmacros      E macros
+³ ³ ÃÄmode        definition files for keyword highlighting
+³ ³ ³ ÃÄ<mode>
+³ ³ ³ ÀÄ<mode>
+³ ³ ÀÄndx         keyword help files
+³ ³
+³ ÃÄnls           base directory for all NLS files
+³ ³ ÃÄnetlabs
+³ ³ ³ ÀÄbin       Text Message File
+³ ³ ÃÄrecomp      NLS files for Recomp
+³ ³ ÀÄwis         NLS files for building the WarpIN package
+³ ³
+³ ÃÄold           unused files - for comparison only
+³ ³
+³ ÃÄrexx          installation files being executed after unpacking
+³ ³               (these files are converted to EXE files just for avoiding
+³ ³               the annoying VIO window being popupped otherwise)
+³ ÃÄstatus        outdated project status list
+³ ³ ÀÄdb
+³ ³
+³ ÀÄwis           WarpIN package creation files
+..
 .fo on
-
-The following _temporary_ directory trees are created when building the *WarpIN* package:
+The following #temporary# directory trees are created when building the *WarpIN* package:
 .fo off
 <working dir>
-ÃÄcompile       holds temporary files being the same for debug or
-³  ³            release version
-³  ÀÄ[=DISTDIR]    directory tree to be packed into the WarpIN package
-³    ÀÄinstall  holding copies of files of src\[=DISTDIR]
-³      ÀÄico    or compiled binaries
 ³
-ÃÄ<binary dir>  the name of this directory is either *debug* or *release*
-³  ³            Among others it holds the resulting WarpIN package file.
-³  ÀÄ[=DISTDIR]    directory tree to be packed into the WarpIN package
-³    ÀÄbin      holding copies of selected executables being compiled to
-³               <binary dir>
+ÃÄcompile         holds temporary files being the same for debug or
+³ ³               release version
+³ ÃÄbase
+³ ³ ÀÄ[=DISTDIR]     directory tree to be packed into the WarpIN package
+³ ÃÄepmcall
+³ ³ ÀÄ[=DISTDIR]     directory tree to be packed into the WarpIN package
+³ ÀÄrecomp
+³   ÀÄ[=DISTDIR]     directory tree to be packed into the WarpIN package
 ³
-ÃÄzip           holds downloaded EPMBBS ZIP files
+ÃÄ<binary dir>    the name of this directory is either *debug* or *release*
+³ ³               (among others it holds the resulting WarpIN package file)
+³ ÃÄbase
+³ ³ ÀÄ[=DISTDIR]     directory tree to be packed into the WarpIN package
+³ ÃÄepmcall
+³ ³ ÀÄ[=DISTDIR]     directory tree to be packed into the WarpIN package
+³ ÀÄrecomp
+³   ÀÄ[=DISTDIR]     directory tree to be packed into the WarpIN package
 ³
-ÀÄepm.packages  holds unpacked EPMBBS files before they were added to the
-                WarpIN package
+ÃÄzip             holds downloaded EPMBBS ZIP files
+³
+ÃÄepm.packages    holds unpacked EPMBBS files before they were added to the
+³                 WarpIN package
 .fo on
 
 [=NOTE]
@@ -586,6 +662,21 @@ The following _temporary_ directory trees are created when building the *WarpIN*
 .su V30
 
 .. .............................................................................
+.3 Setting up the build environment
+.. .............................................................................
+.an IDPNL_CONFIGMAKE_SETENV
+.
+In order to setup the build environment you can use *setenv.cmd*:
+.ul
+- Copy *bin\setenv.cmd* to your main project directory. (That is the parent
+  directory of *bin*.)
+- Configure *setenv.cmd*. See the included comments for details.
+- It will call *bin\setenv2.cmd*, that will setup the environment for either
+  C Set/2 V2.1 or Visual Age C++ V3.08 and a Developer's Toolkit.
+- The use of *setenv.cmd* normally avoids the need to configure *configure.in*,
+  unless you want to alter version numbers.
+
+.. .............................................................................
 .3 General settings in configure.in
 .. .............................................................................
 .an IDPNL_CONFIGMAKE_CONFIGUREIN
@@ -593,7 +684,10 @@ The following _temporary_ directory trees are created when building the *WarpIN*
 The *src\wis\makefile* requires several lists values, of which some have to be
 configured before executing *nmake* to build the complete package.
 
-_*Values to be configured by everybody*_
+.pl break=none italic tsize=3
+- Values to be configured by everybody
+......................................
+.
 .pl bold
 - BASEURL
 = specifies the location from where the original ZIP files of the EPMBBS
@@ -635,9 +729,12 @@ _*Values to be configured by everybody*_
     before unpacking the EPMBBS package files.
   - You can predefine that value also as an environment variable before calling *nmake*.
 .el
-
-
-_*Values to be configured by release maintainer only*_
+.el
+..
+..
+- Values to be configured by release maintainer only
+....................................................
+.
 .pl bold
 - STEM
 = specifies the id of the project, used within some filenames.
@@ -683,8 +780,8 @@ The following entries are written to *OS2.INI*:
 .pl bold tsize=3
 .. -------------------------------------------
 - 'NEPMD' - 'Language'
-=
-.pl compact bold break=none tsize=9
+..=
+.pl compact bold break=none tsize=10
 - description
 = language information used by several programs
 - originator
@@ -692,12 +789,27 @@ The following entries are written to *OS2.INI*:
 - value
 = a [.IDPNL_APPENDIX_LANGIDS three letter language identification]
 - type
-= alpha string (may be zero terminated)
+= alpha string (should be zero terminated)
 .el
+.
+.. -------------------------------------------
+- 'NEPMD' - 'RootDir'
+..=
+.pl compact bold break=none tsize=10
+- description
+= main installation directory used by several programs
+- originator
+= installation of [=TITLE]
+- value
+= a directory specification
+- type
+= alpha string (should be zero terminated)
+.el
+.
 .. -------------------------------------------
 - 'recomp' - 'CONFIGDATA'
-=
-.pl compact bold break=none tsize=9
+..=
+.pl compact bold break=none tsize=10
 - description
 = configuration data
 - originator
@@ -709,7 +821,7 @@ The following entries are written to *OS2.INI*:
 .el
 
 .. -----------------------------------------------------------------------------
-.2 Appendix: language identifiers overview
+.2 Appendix: Language identifiers overview
 .. -----------------------------------------------------------------------------
 .an IDPNL_APPENDIX_LANGIDS
 .
@@ -722,7 +834,7 @@ The following language identifiers are currently used within the project:
 = deutsch (german)
 
 .. -----------------------------------------------------------------------------
-.2 Appendix: documentation comments for E functions
+.2 Appendix: Documentation comments for E functions
 .. -----------------------------------------------------------------------------
 .an IDPNL_APPENDIX_DOCCOMMENTS
 .
