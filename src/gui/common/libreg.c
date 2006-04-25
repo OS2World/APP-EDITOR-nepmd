@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.17 2002-10-07 19:30:47 cla Exp $
+* $Id: libreg.c,v 1.18 2006-04-25 18:21:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -209,7 +209,26 @@ do
       {
       if (ulInsertType == SEARCH_STRING)
          {
-         lResult = strcmp( pszResult, pszSearch);
+         //lResult = strcmp( pszResult, pszSearch);
+         // Since lResult may become > 0, the following won't work for
+         // uppercase pszSearch strings that come after a lowercase
+         // string in pszzStr. Fortunately using the code from the
+         // SEARCH_INSERTPOS section below fixes that.
+
+         // compare strings case insensitive
+         // Value             Meaning
+         // Less than 0       string1 less than string2
+         // 0                 string1 identical to string2
+         // Greater than 0    string1 greater than string2.
+
+         lResult = stricmp( pszResult, pszSearch);
+//       DPRINTF(( "LIBREG: diff: %s %s: %i\n", pszResult, pszSearch, lResult));
+
+         // only if strings are equal, compare also case sensitive
+         // - this places uppercase before lowercase
+         if (!lResult)
+            lResult = strcmp( pszResult, pszSearch);
+
          // break on equal strings only
          if (!lResult)
             break;
@@ -222,15 +241,15 @@ do
             pszResult = pszResult + strlen( pszResult);
             break;
             }
-
          }
+
       else if (ulInsertType == SEARCH_INSERTPOS)
          {
          // compare strings case insensitive
-         // Value             Meaning 
-         // Less than 0       string1 less than string2 
-         // 0                 string1 identical to string2 
-         // Greater than 0    string1 greater than string2. 
+         // Value             Meaning
+         // Less than 0       string1 less than string2
+         // 0                 string1 identical to string2
+         // Greater than 0    string1 greater than string2.
 
          lResult = stricmp( pszResult, pszSearch);
 //       DPRINTF(( "LIBREG: diff: %s %s: %i\n", pszResult, pszSearch, lResult));
@@ -1004,7 +1023,7 @@ do
             rc = ERROR_OPEN_FAILED;
             break;
             }
-      
+
          while (!feof( pfile))
             {
             // read line and skip empty lines
@@ -1014,29 +1033,29 @@ do
                continue;
             if (szLine[ 0] == ';')
                continue;
-   
+
             // check for delimter
             pszDelimiter = strchr( szLine, '=');
             if (!pszDelimiter)
                continue;
-      
+
             // prepare fields and write them to the ini file
             *pszDelimiter = 0;
             pszPath  = _stripquotes( _stripblanks( szLine));
             pszValue = _stripquotes( _stripblanks( pszDelimiter + 1));
-      
+
             if (!PrfWriteProfileString( hconfig, pszAppRegDefaults, pszPath, pszValue))
                {
                rc = LASTERROR;
                break;
                }
-   
+
             } // while (!feof( pfile))
-   
+
          if (rc != NO_ERROR)
             break;
-   
-         } 
+
+         }
 
       } // if (pszDefaultsFilename)
 
