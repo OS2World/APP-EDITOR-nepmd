@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.9 2005-10-16 22:15:33 aschn Exp $
+* $Id: tags.e,v 1.10 2006-04-25 19:46:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,7 +30,7 @@
 ; completion for tagged function names.
 ;
 ; To add support for another language, update tag_case() if it's a case-sensitive
-; language, update tags_supported to indicate what file extensions are supported,
+; language, update tags_supported to indicate what file modes are supported
 ; and update proc_search to call the procedure search routine for that language.
 ;           tag_case()        Returns 'e' for case sensitive languages and
 ;                            'c' for case insensitive languages.
@@ -73,43 +73,40 @@ const
 compile endif
 
 define
-compile if not defined(C_EXTENSIONS)  -- Keep in sync with CKEYS.E
-   C_EXTENSIONS = 'C H SQC'
-compile endif
-
 compile if not defined(CPP_EXTENSIONS)  -- Keep in sync with CKEYS.E
-   CPP_EXTENSIONS = 'CPP HPP CXX HXX SQX JAV JAVA'
-compile endif
-
-compile if not defined(REXX_EXTENSIONS)  -- Keep in sync with REXXKEYS.E
-   REXX_EXTENSIONS = 'BAT CMD ERX EXC EXEC XEDIT REX REXX VRX'
+   CPP_EXTENSIONS = 'CC CPP HPP CXX HXX SQX'
 compile endif
 
 /****  The following is all that needs to be modified for adding other languages. *****/
 
+
 defproc tag_case(filename)
-   ext=filetype(filename)
-   if wordpos(ext, C_EXTENSIONS CPP_EXTENSIONS ) then   /* Case sensitive language? */
+   file_mode = NepmdGetMode()
+   if wordpos(file_mode, 'C JAVA MODULA') then   /* Case sensitive language? */
       return 'e'
    endif
    return 'c'  /* Case insensitive language? */
 
-defproc tags_supported(ext)
-   return wordpos(ext, C_EXTENSIONS CPP_EXTENSIONS  'E ASM PAS PASCAL MODULA' REXX_EXTENSIONS)
+defproc tags_supported(mode)
+   return wordpos(mode, 'C JAVA E ASM REXX PASCAL MODULA REXX CMD')
 
-defproc proc_search(var proc_name, first_flag, ext)
-   if wordpos(ext, C_EXTENSIONS CPP_EXTENSIONS ) then
+defproc proc_search(var proc_name, first_flag, mode, ext)
+   if mode = 'C' then
       return c_proc_search(proc_name, first_flag, ext)
-   elseif ext = 'ASM' then
+   elseif mode = 'JAVA' then
+      return c_proc_search(proc_name, first_flag, ext)
+   elseif mode = 'ASM' then
       return asm_proc_search(proc_name, first_flag)
-   elseif ext = 'PAS' | ext = 'PASCAL' then
+   elseif mode = 'PASCAL' then
       return pas_proc_search(proc_name, first_flag)
-   elseif ext = 'MOD' | ext = 'MODULA' then
+   elseif mode = 'MODULA' then
       return pas_proc_search(proc_name, first_flag, 'e')
-   elseif ext = 'E' then
+   elseif mode = 'E' then
       return e_proc_search(proc_name, first_flag)
-   elseif wordpos(ext, REXX_EXTENSIONS) then
+   elseif mode = 'REXX' then
       return rexx_proc_search(proc_name, first_flag)
+   elseif mode = 'CMD' then
+      return cmd_proc_search(proc_name, first_flag)
    else
       return 1
    endif
@@ -214,10 +211,13 @@ compile endif
    dprintf( 'TAGS', 'FIND_TAG: arg(1) = 'arg(1))
    button = ''
    file_type = filetype()
+   file_mode = NepmdGetMode()
+
    if arg(1)='' then
       /* Try to find the procedure at the cursor. */
       if substr(textline(.line), .col, 1)='(' then left; endif  -- If on paren, shift
-      if wordpos(file_type, REXX_EXTENSIONS) then
+
+      if file_mode = "REXX" then
          token_separators = ' ~`$%^&*()-+=][{}|\:;/><,''"'\t  -- Rexx accepts '!' & '?' as part of the proc name.
       else
          token_separators = ''  -- Use the default defined in find_token()
@@ -225,7 +225,9 @@ compile endif
       if not find_token(startcol, endcol, token_separators) then
          return 1
       endif
-      if wordpos(file_type, CPP_EXTENSIONS) then
+
+      -- We cannot avoid to use file extensions in the case of C++, since we do not have a seperate mode for it.
+      if (wordpos(file_type, CPP_EXTENSIONS) > 0) | (file_mode = "JAVA" ) then
          if substr(textline(.line), endcol+1, 2)='::' & pos(upcase(substr(textline(.line), endcol+3, 1)), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ$_') then
             savecol = .col
             .col = endcol+3
@@ -507,7 +509,7 @@ compile if 0  -- We already checked if the line # was good; the date no longer m
          display 8
          fileline                               -- so we can jump right to the line.
          .col = 1
-         call proc_search(proc_name, 1, file_type)
+         call proc_search(proc_name, 1, file_mode, file_type)
          return
       endif
    endif
@@ -517,7 +519,7 @@ compile endif
    display -8
    sayerror 'Searching for routine.'  /**/
    display 8
-   rc=proc_search(proc_name,1,file_type)
+   rc=proc_search(proc_name, 1, file_mode, file_type)
    --sayerror 'Using proc_search for 'proc_name', filename = '.filename
    if rc then
       if already_loaded='' then 'quit' endif
@@ -797,6 +799,32 @@ compile endif
    endif
    display 2
    parse value translate(textline(.line), ' ', \t) with proc_name .
+compile if LOG_TAG_MATCHES
+   if TAG_LOG_FID and not rc then
+      insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
+   endif
+compile endif
+   return rc
+
+defproc cmd_proc_search(var proc_name, find_first)
+compile if LOG_TAG_MATCHES
+   universal TAG_LOG_FID
+compile endif
+   LeadingSpace = ':o'
+   display -2
+   if find_first then
+      if proc_name == '' then
+         identifier = '[A-Z_][A-Z0-9_]*'
+         search = '^'LeadingSpace'\:'identifier
+      else
+         search = '^'LeadingSpace'\:'proc_name
+      endif
+      'xcom l 'search'cx'
+   else
+      repeat_find
+   endif
+   display 2
+   parse value translate(textline(.line), ' ', \t) with ':'proc_name .
 compile if LOG_TAG_MATCHES
    if TAG_LOG_FID and not rc then
       insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
@@ -1092,9 +1120,10 @@ defc delete_tags_info
    call setprofile(app_hini, INI_TAGSFILES, upcase(arg(1)), '')
 
 defc tagscan
-   ext=filetype()
-   if not tags_supported(ext) then
-      sayerror "Don't know how to do tags for file of type '"ext"'"
+   file_type = filetype()
+   file_mode = NepmdGetMode()
+   if not tags_supported(file_mode) then
+      sayerror "Don't know how to do tags for file of mode '"file_mode"'"
       return 1
    endif
    call psave_pos(savepos)
@@ -1113,12 +1142,12 @@ defc tagscan
    activatefile sourcefid
    proc_name=''
    sayerror 'Searching for procedures...'
-   rc=proc_search(proc_name, 1, ext)
+   rc=proc_search(proc_name, 1, file_mode, file_type)
    while not rc do
       insertline proc_name '('.line')', lb_fid.last+1, lb_fid
       proc_name=''
       end_line
-      rc=proc_search(proc_name, 0, ext)
+      rc=proc_search(proc_name, 0, file_mode, file_type)
    endwhile
    call prestore_pos(savepos)
    if browse_mode then call browse(1); endif  -- restore browse state
@@ -1132,14 +1161,17 @@ defc tagscan
    endif
    sayerror 0
    if listbox_buffer_from_file(sourcefid, bufhndl, noflines, usedsize) then return; endif
-   parse value listbox( LIST_TAGS__MSG,
-                        \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
-                        '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
-                        1,
-                        5,
-                        min(noflines,12),
-                        0,
-                        gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6012)) with button 2 proc_name \0
+   parse value listbox( LIST_TAGS__MSG,      -- title
+                        \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),  -- buffer
+                        '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,               -- buttons
+                        25,                  -- top, 0 = at cursor
+                        15,                  -- left, 0 = at cursor
+                        min( noflines, 20),  -- height
+                        0,                   -- width, 0 = auto
+                        gethwndc(APP_HANDLE) ||
+                        atoi(1) ||           -- default item
+                        atoi(1) ||           -- default button
+                        atoi(6012)) with button 2 proc_name \0  -- help panel id
    call buffer(FREEBUF, bufhndl)
    if button<>\1 then
       return
