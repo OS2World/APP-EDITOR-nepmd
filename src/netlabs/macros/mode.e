@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.37 2006-03-31 23:38:59 aschn Exp $
+* $Id: mode.e,v 1.38 2006-05-07 14:47:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -43,7 +43,6 @@ defproc GetMode
    endif
 
    IsATempFile  = (leftstr( Filename, 1 ) = '.')
-   IsAShellFile = IsAShellFilename( Filename)
 
    -- Get CurMode for Filename by querying an array var
    CurMode = GetAVar( 'mode.'fid)
@@ -61,13 +60,13 @@ defproc GetMode
 
    if CurMode = '' then
       -- if it's a temp filename starting with '.'
-      -- set DefaultMode here to not have NepmdQueryDefaultMode go trough
+      -- set DefaultMode here to not have NepmdQueryDefaultMode go through
       -- all ini files in the mode dirs
       CurMode = 'TEXT' -- general default mode
       -- call NepmdQueryDefaultMode only
       --    -  if filename doesn't start with a '.' or
       --    -  if file is a command shell
-      if (not IsATempFile) or IsAShellFile then
+      if (not IsATempFile) or IsAShellFileName() then
 compile if NEPMD_WANT_MODE_DETERMINATION
          -- Get default mode
          if isadefproc('NepmdQueryDefaultMode') then
@@ -144,7 +143,6 @@ defproc ResetHiliteModeList
 ; ListBox temporarily will not update the Statusline. It was
 ; only updated after the ListBox was closed.
 defc ResetMode
-   universal EPM_utility_array_ID
    OldMode = arg(1)
 
    -- Set 'mode.'fid to an empty string to make GetMode redetermine

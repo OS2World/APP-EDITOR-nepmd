@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.22 2006-03-30 17:59:18 aschn Exp $
+* $Id: epmshell.e,v 1.23 2006-05-07 14:47:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -36,6 +36,8 @@
 ; See his pages for documentation.
 
 ; ---------------------------------------------------------------------------
+; This should always be used in preference to query if current file is a
+; shell.
 defproc IsAShell
    ret = 0
    Filename = arg(1)
@@ -53,6 +55,7 @@ defproc IsAShell
    return ret
 
 ; ---------------------------------------------------------------------------
+; Used by defproc GetMode only to determine the default mode for it.
 defproc IsAShellFilename
    ret = 0
    Filename = arg(1)
@@ -80,46 +83,44 @@ defc MaybeStartShell
    Mode = GetMode()
    if Mode = 'SHELL' then
       if not IsAShell() then
-         if IsAShellFilename() then
-            'monofont'
-            shell_index = shell_index + 1
-            ShellHandle  = '????'
-            retval = SUE_new( ShellHandle, shell_index)
-            if retval then
-               sayerror ERROR__MSG retval SHELL_ERROR1__MSG
-            else
-               getfileid ShellFid
-               sayerror 'Shell handle with number' shell_index 'created'
-               .autosave = 0
-               call SetAVar( 'Shell_f'shell_index, ShellFid)
-               call SetAVar( 'Shell_h'shell_index, ShellHandle)
-               call SetAVar( 'ShellNum.'ShellFid, shell_index)
-               InitCmd = ''
+         'monofont'
+         shell_index = shell_index + 1
+         ShellHandle  = '????'
+         retval = SUE_new( ShellHandle, shell_index)
+         if retval then
+            sayerror ERROR__MSG retval SHELL_ERROR1__MSG
+         else
+            getfileid ShellFid
+            --sayerror 'Shell handle with number' shell_index 'created'
+            .autosave = 0
+            call SetAVar( 'Shell_f'shell_index, ShellFid)
+            call SetAVar( 'Shell_h'shell_index, ShellHandle)
+            call SetAVar( 'ShellNum.'ShellFid, shell_index)
+            InitCmd = ''
 compile if EPM_SHELL_PROMPT <> ''
-               InitCmd = EPM_SHELL_PROMPT
+            InitCmd = EPM_SHELL_PROMPT
 compile endif
-               if InitCmd > '' then
-                  'shell_write' shell_index InitCmd
-               endif
+            if InitCmd > '' then
+               'shell_write' shell_index InitCmd
+            endif
 
-               -- Determine previous work dir
-               call psave_pos( save_pos)
-               display -3
-               .lineg = .last
-               endline
-               fFound = (ShellGotoNextPrompt( 'P') = 0)
-               Dir = ''
-               Cmd = ''
-               if fFound then
-                  call ShellParsePromptLine( Dir, Cmd)
-               else
-                  call prestore_pos( save_pos)
-               endif
-               display 3
-               if Dir > '' then
-                  CdCmd = 'cdd' Dir
-                  'shell_write' shell_index CdCmd
-               endif
+            -- Determine previous work dir
+            call psave_pos( save_pos)
+            display -3
+            .lineg = .last
+            endline
+            fFound = (ShellGotoNextPrompt( 'P') = 0)
+            Dir = ''
+            Cmd = ''
+            if fFound then
+               call ShellParsePromptLine( Dir, Cmd)
+            else
+               call prestore_pos( save_pos)
+            endif
+            display 3
+            if Dir > '' then
+               CdCmd = 'cdd' Dir
+               'shell_write' shell_index CdCmd
             endif
          endif
       endif
@@ -690,9 +691,13 @@ defmodify
             endif
          endif
       endif
-      .modify = 0
-      'ResetDateTimeModified'
-      'refreshinfoline MODIFIED'
+      -- Avoid the dialog on quitting only for newly created shell windows,
+      -- not for reactivated ones
+      if leftstr( .filename, 1) = '.' then
+         .modify = 0
+         'ResetDateTimeModified'
+         'refreshinfoline MODIFIED'
+      endif
    endif
 
 ; ---------------------------------------------------------------------------
