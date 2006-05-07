@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.37 2006-03-29 22:30:41 aschn Exp $
+* $Id: stdctrl.e,v 1.38 2006-05-07 19:24:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2308,7 +2308,6 @@ defc echoback
 ; Moved all toolbar definitions to TOOLBAR.E
 
 defc toggle_parse
-   universal EPM_utility_array_ID
    universal loadstate  -- 1: defload is running
                         -- 2: defload processed
                         -- 0: afterload processed
@@ -2320,10 +2319,6 @@ defc toggle_parse
       kwfilename = 'epmkwds.c'
    endif
    if parseon then  -- if 1 or 2
-      -- Don't reload epmkwds file during file loading
-      if loadstate then
-         parseon = 1  -- limit to 1: highlight without reloading, if already loaded
-      endif
       findfile destfilename, kwfilename, 'EPMPATH'
       if rc then
          sayerror FILE_NOT_FOUND__MSG '-' kwfilename
@@ -2335,8 +2330,9 @@ defc toggle_parse
    -- Save keyword file in an array var
    -- (needed for a workaround for marking keyword-highlighted text in mouse.e)
    if parseon then
-      do_array 2, EPM_utility_array_ID, 'kwfile.'fid, kwfilename
+      call SetAVar( 'kwfile.'fid, kwfilename)
    endif
+   DPRINTF( '### HILITE', GetMode()': options: 'parseon kwfilename' filename: '.filename)
 
    call windowmessage( 0,  getpminfo(EPMINFO_EDITFRAME),
                        5502,               -- EPM_EDIT_TOGGLEPARSE
