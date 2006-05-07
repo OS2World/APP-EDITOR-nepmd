@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.41 2006-04-09 00:02:34 aschn Exp $
+* $Id: main.e,v 1.42 2006-05-07 15:04:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,7 +21,7 @@
 
 ; ---------------------------------------------------------------------------
 ;  -  DEFINIT and DEFMAIN are processed whenever the .ex file is linked.
-;     For the main .ex file this is equivalent to 'for every new opened EPM
+;     For the main .ex file this is equivalent to 'for every newly opened EPM
 ;     window'. For other linked packages DEFMAIN is only executed, if
 ;     the package is called by the command/DEFMAIN trick: If a command
 ;     is executed, also .ex files are searched. If an .ex file with the
@@ -54,7 +54,7 @@ defmain
                   --    0: afterload processed
 
 ;  Get args and make it a parameter for the edit cmd ------------------------
-   doscmdline = 'e 'arg(1) /* Can do special processing of DOS command line.*/
+   EpmArgs = 'e 'arg(1)
 
    dprintf( 'DEFMAIN', 'arg(1) = ['arg(1)']')
 
@@ -81,6 +81,25 @@ defmain
    unnamedfilename = .filename
    getfileid unnamedfid
 
+;  Process PROFILE.ERX ------------------------------------------------------
+   -- Changed: profile.erx is now processed before any file is loaded. In
+   --          order to change file settings, the 'load' or 'loadonce' hook
+   --          must be used now.
+   -- Note: E.g. switching highlighting on for the original EPM with
+   --       'toggle_parse 1 epmkwds.<ext>' from profile.erx didn't work for
+   --       every loaded file. Any file stuff didn't work properly there.
+   --       Using the new load hooks, one can execute something for every
+   --       loaded file -- easily and properly.
+   if rexx_profile then
+      ProfileName = 'profile.erx'
+      -- REXX profile is not searched anymore. It must be placed in
+      -- %NEPMD_USERDIR%\bin with the name PROFILE.ERX now.
+      Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
+      if exist(Profile) then
+         'rx' Profile arg(1)
+      endif
+   endif
+
 ;  Host support -------------------------------------------------------------
 compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH)
    call check_savepath()
@@ -102,42 +121,21 @@ compile endif
 ;  Execute a user procedure if defined --------------------------------------
 compile if SUPPORT_USER_EXITS
    if isadefproc('defmain_exit') then
-      call defmain_exit(doscmdline)
+      call defmain_exit(EpmArgs)
    endif
 compile endif
 
-;  Process PROFILE.ERX ------------------------------------------------------
-   -- Changed: profile.erx is now processed before any file is loaded. In
-   --          order to change file settings, the 'load' or 'loadonce' hook
-   --          must be used now.
-   -- Note: E.g. switching highlighting on for the original EPM with
-   --       'toggle_parse 1 epmkwds.<ext>' from profile.erx didn't work for
-   --       every loaded file. Any file stuff didn't work properly there.
-   --       Using the new load hooks, one can execute something for every
-   --       loaded file -- easily and properly.
-   if rexx_profile then
-      ProfileName = 'profile.erx'
-      -- REXX profile is not searched anymore. It must be placed in
-      -- %NEPMD_USERDIR%\bin with the name PROFILE.ERX now.
-      Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
-      if exist(Profile) then
-;      -- REXX_PROFILE is now searched in .;%PATH%;%EPMPATH% instead of .;%EPMPATH%;%PATH%
-;      findfile Profile, ProfileName, 'PATH'
-;      if rc then findfile Profile, ProfileName, EPATH; endif
-;      if not rc then
-         'rx' Profile arg(1)
-      endif
-   endif
-
 ;  Show menu and window -----------------------------------------------------
    call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
+                               -- showmenu_activemenu is not required anymore,
+                               -- omitting it here won't change anything
    -- see also: STDCNF.E for menu
    call showwindow('ON')
    mouse_setpointer WAIT_POINTER
-   refresh     -- force to show the window, without a file loaded
+   refresh     -- force to show the window, with the empty file loaded
    display -1  -- disable screen refresh, re-enabled in defselect
 
-   'postme main2' unnamedfid','doscmdline
+   'postme main2' unnamedfid','EpmArgs
 
 ; ---------------------------------------------------------------------------
 ; When PROFILE.ERX is processed, it often takes a longer time. In order to
@@ -153,7 +151,7 @@ defc main2
    universal firstloadedfid  -- first loaded file
    universal firstinringfid  -- first file in the ring
 
-   parse arg unnamedfid ',' doscmdline
+   parse arg unnamedfid ',' EpmArgs
 
 ;  Maybe change to previous work dir ----------------------------------------
    KeyPath = '\NEPMD\User\ChangeWorkDir'
@@ -167,15 +165,15 @@ defc main2
       endif
    endif
 
-;  Execute the doscmdline (edit command) ------------------------------------
-   dprintf( 'DEFMAIN', 'doscmdline = 'doscmdline)
+;  Execute the EpmArgs (edit command) ---------------------------------------
+   dprintf( 'DEFMAIN', 'EpmArgs = 'EpmArgs)
    -- Restore last edit ring if started without args
    KeyPath = '\NEPMD\User\AutoRestore\Ring\LoadLast'
    Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if (arg(1) = '' & Enabled) then
       'RestoreRing'
    else
-      doscmdline
+      EpmArgs
    endif
 
 ;  Quit automatically loaded empty file -------------------------------------
@@ -183,7 +181,7 @@ defc main2
    -- If user specified file(s) to edit, get rid of the empty file.
    -- This must be processed at defmain, because this file is the only one,
    -- that won't trigger a defload event.
-   -- Get fileid after processing of doscmdline.
+   -- Get fileid after processing of EpmArgs.
    getfileid newfid
    dprintf( 'DEFMAIN_EMPTY_FILE', 'filesinring = 'filesinring()', filename = '.filename)
    if validatefileid(unnamedfid) <> 0 then
@@ -227,7 +225,8 @@ defc main2
       if rc > 0 then
          -- Execute defc JustInst
          if isadefc('JustInst') then
-            'postme JustInst'
+            --'postme JustInst'
+            'AtStartup JustInst'
          endif
       endif
       -- Reset ini key
