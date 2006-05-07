@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.29 2006-03-26 12:02:33 aschn Exp $
+* $Id: stdkeys.e,v 1.30 2006-05-07 19:12:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -245,9 +245,13 @@ def c_pgdn        'Redo1'               -- Scroll through next undo states (keep
 ; ---- Enter ----
 ; For Line mode, these keys are configurable via the settings dialog.
 ; In Stream mode, all enter defcs behave the same.
+;      Expansion with Enter, no expansion with Ctrl+Enter:
 def enter         'ExpandSecond enter'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
-def a_enter       'a_enter'             -- Alt+Enter and Alt+Sh+Enter not definable in EPM?
 def c_enter       'c_enter'
+;      Expansion with Ctrl+Enter, no expansion with Enter:
+;def c_enter      'ExpandSecond enter'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
+;def enter        'enter'
+def a_enter       'a_enter'             -- Alt+Enter and Alt+Sh+Enter not definable in EPM?
 def s_enter       's_enter'
 def padenter      'padenter'
 def a_padenter    'a_padenter'
@@ -272,9 +276,13 @@ def tab           'Tab'                 -- Insert tab char or spaces
 def s_tab         'BackTab'             -- Go back one tabstop
 
 ; ---- Space ----
-def space         'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
+;      Expansion with Space, no expansion with Ctrl+Space:
+def space        'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
+def c_space      'Space'
+;      Expansion with Ctrl+Space, no expansion with Space:
+;def c_space      'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
+;def space        'Space'
 def s_space       'Space'
-def c_space       'Space'
 
 ; ---- Load file ----
 def a_1           'alt_1'               -- Load file under cursor
