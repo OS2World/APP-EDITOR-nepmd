@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.13 2006-03-19 17:49:50 aschn Exp $
+* $Id: groups.e,v 1.14 2006-05-07 14:48:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -71,11 +71,11 @@ compile endif
    CO_REPLACEIFEXISTS = 1
    CO_UPDATEIFEXISTS  = 2
    GROUPS__MSG =    'Groups'  -- Messagebox title
-   GR_SAVE_PROMPT = 'Save edit ring as a group - optionally to the desktop.'
-   GR_SAVE_PROMPT2 = 'The names and cursor positions of all files loaded will be saved..'
-   GR_LOAD_PROMPT = 'Load a previously saved group.'
+   GR_SAVE_PROMPT = 'Save edit ring as a group - optionally to the desktop'
+   GR_SAVE_PROMPT2 = 'The names and cursor positions of all files loaded will be saved'
+   GR_LOAD_PROMPT = 'Load a previously saved group'
    GR_DELETE_PROMPT = 'OK to delete group:'
-   GR_NONE_FOUND = 'No saved groups found!'
+   GR_NONE_FOUND = 'No saved groups found'
 ; ---------------------------------------------------------------------------
 ; Toolbar actions
 ; ---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ defc savegroup =
 compile if GROUPS_USE_STANDARD_INI_DEST
    tempstr = queryprofile( app_hini,  group_name, 'ENTRIES')
 compile else
-   tempstr = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\ENTRIES')
+   tempstr = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\Entries')
    parse value tempstr with 'ERROR:'rc
    if rc > '' then
       tempstr = ''
@@ -167,7 +167,7 @@ compile endif
    if tempstr <> '' then
       if MBID_OK <> winmessagebox( 'Save Group',
                                    'Group already exists.  OK to replace it?',
-                                   16417) then  -- MB_OKCANCEL + MB_ICONEXCLAMATION + MB_MOVEABLE
+                                   MB_OKCANCEL + MB_ICONEXCLAMATION + MB_MOVEABLE) then
          return
       endif
    endif
@@ -185,8 +185,8 @@ compile if GROUPS_USE_STANDARD_INI_DEST
          call setprofile( app_hini, group_name, 'FILE'n, .filename)
          call setprofile( app_hini, group_name, 'POSN'n, .line .col .cursorx .cursory)
 compile else
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\FILE'n, .filename)
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\POSN'n, .line .col .cursorx .cursory)
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\File'n, .filename)
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\Posn'n, .line .col .cursorx .cursory)
 compile endif
       endif
       next_file
@@ -198,7 +198,7 @@ compile endif
 compile if GROUPS_USE_STANDARD_INI_DEST
    call setprofile( app_hini, group_name, 'ENTRIES', n)
 compile else
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\ENTRIES', n)
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath'\'group_name'\Entries', n)
 compile endif
    activatefile startfid
 
@@ -209,8 +209,8 @@ compile if GROUPS_USE_STANDARD_INI_DEST
          call setprofile( app_hini, group_name, 'FILE'j, '')
          call setprofile( app_hini, group_name, 'POSN'j, '')
 compile else
-         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\FILE'j)
-         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\POSN'j)
+         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\File'j)
+         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'group_name'\Posn'j)
 compile endif
       enddo
    endif
@@ -230,13 +230,13 @@ compile if INCLUDE_DESKTOP_SUPPORT -- Ask whether to include on Desktop?
 ;     sayerror 'tib_ptr =' c2x(tib_ptr) 'pib_ptr =' c2x(pib_ptr)
       pib = peek( itoa( rightstr( pib_ptr, 2), 10),
                   itoa( leftstr( pib_ptr, 2), 10), 28)
-      epm_cmd = peekz( substr( pib, 13, 4))
+      epm_exe = peekz( substr( pib, 13, 4))  -- that's the EPM executable, but we need the loader
 */
-      epm_cmd = 'EPM.EXE'  -- No path required
+      epm_exe = 'EPM.EXE'  -- No path required
       class_name = "WPProgram"\0
                       -- ^ = ASCII 94 = 'hat'
       title = "EPM Group:^"group_name\0
-      setup_string = "EXENAME="epm_cmd";"        ||
+      setup_string = "EXENAME="epm_exe";"        ||
                      "PROGTYPE=PM;"              ||
                      "STARTUPDIR="directory()";" ||
                      "PARAMETERS='"loadgroup_cmd group_name"';"\0
@@ -252,7 +252,7 @@ compile if INCLUDE_DESKTOP_SUPPORT -- Ask whether to include on Desktop?
 ;     if rc then hobj = hobj'; rc = 'rc '-' sayerrortext(rc); endif
 ;     sayerror 'hobject =' hobj
       if not hobj then
-         sayerror 'Unable to create the program object in the Desktop folder'
+         sayerror 'Unable to create the program object on the Desktop'
       endif
    endif
 compile endif  -- INCLUDE_DESKTOP_SUPPORT
@@ -271,7 +271,7 @@ defc loadgroup =
 /*
       -- Entry box disabled. Always start with the list box now.
       if group_name = '' then
-         parse value entrybox( 'Group name',
+         parse value entrybox( 'Specify a group name    ',
                                '/'OK__MSG'/'LIST__MSG'/'Cancel__MSG'/',
                                '', '', 64,   -- Entrytext, cols, maxchars
                                atoi(1) ||
@@ -288,6 +288,7 @@ defc loadgroup =
          bufhndl = buffer( CREATEBUF, 'groups', MAXBUFSIZE, 1)  -- Create a private buffer
 
 compile if GROUPS_USE_STANDARD_INI_DEST
+         -- Get all saved group names
          retlen = \0\0\0\0
          l = dynalink32( 'PMSHAPI',
                          '#115',               -- PRF32QUERYPROFILESTRING
@@ -301,19 +302,21 @@ compile if GROUPS_USE_STANDARD_INI_DEST
          poke bufhndl, 65535, \0
 
          if not l then
-            sayerror 'Nothing in .INI file'
+            sayerror GR_NONE_FOUND
             return
          endif
 compile else
+         -- Get first saved group name for testing only
          next = ''
-         next = NepmdGetNextConfigKey( nepmd_hini, KeyPath, next, 'B')
+         next = NepmdGetNextConfigKey( nepmd_hini, KeyPath, next, 'C')
          parse value next with 'ERROR:'rc
          if rc > '' then
-            sayerror 'Nothing in .INI file'
+            sayerror GR_NONE_FOUND
             return
          endif
 compile endif
 
+         -- Create a tmp file
          'xcom e /c /q tempfile'
          if rc <> -282 then  -- sayerror('New file')
             sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
@@ -325,7 +328,9 @@ compile endif
          if browse_mode then
             call browse(0)
          endif
+
 compile if GROUPS_USE_STANDARD_INI_DEST
+         -- Write all group names to the tmp file
          buf_ofs = 0
          do while buf_ofs < l
             this_group = peekz( bufhndl, buf_ofs)
@@ -337,9 +342,11 @@ compile if GROUPS_USE_STANDARD_INI_DEST
          enddo
          call buffer( FREEBUF, bufhndl)
 compile else
+         -- Get all saved group names and write them to the tmp file
          do forever
             insertline next, .last + 1
-            next = NepmdGetNextConfigKey( nepmd_hini, KeyPath, next, 'C')
+            last = next  -- save previous element
+            next = NepmdGetNextConfigKey( nepmd_hini, KeyPath, last, 'C')
             parse value next with 'ERROR:'rc
             if rc > '' then
                leave
@@ -347,7 +354,7 @@ compile else
          enddo
 compile endif
 
-         if .last > 2 then
+         if .last > 2 then  -- E always creates a file with an empty line
             getfileid fileid
             call sort( 2, .last, 1, 40, fileid, 'I')
          endif
@@ -363,6 +370,7 @@ compile endif
             return
          endif
 
+         -- Fill buffer with and quit tmp file
          if listbox_buffer_from_file( startfid, bufhndl, noflines, usedsize) then
             return
          endif
@@ -399,7 +407,7 @@ compile endif
             -- Open list box again
             'postme groups loadgroup ?'
             return
-         endif  -- button = 2 (Delete)
+         endif  -- button = \2 (Delete)
       endif  -- button = \2 (List)
 
       if button <> \1 then
@@ -414,15 +422,15 @@ compile endif
 compile if GROUPS_USE_STANDARD_INI_DEST
    howmany = queryprofile( app_hini,  group_name, 'ENTRIES')
 compile else
-   howmany = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\ENTRIES')
+   howmany = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\Entries')
    parse value howmany with 'ERROR:'rc
    if rc > '' then
-      sayerror 'Group unknown.'
+      sayerror 'Group unknown'
       return
    endif
 compile endif
    if howmany = '' then
-      sayerror 'Group unknown.'
+      sayerror 'Group unknown'
       return
    endif
    do i = 1 to howmany
@@ -432,24 +440,7 @@ compile endif
 compile if GROUPS_USE_STANDARD_INI_DEST
       this_file = queryprofile( app_hini, group_name, 'FILE'i)
 compile else
-      this_file = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\FILE'i)
-compile endif
-
-compile if 0
-      call NepmdPmPrintf( 'LOADGROUP: file 'i': 'this_file)
-      call NepmdPmPrintf( 'LOADGROUP:         FilesInRing = 'filesinring())
-      getfileid curfid
-      next_file
-      getfileid firstfid
-      do f = 1 to filesinring()
-         call NepmdPmPrintf( 'LOADGROUP:         file 'f' in ring: '.filename)
-         next_file
-         getfileid fid
-         if fid = firstfid then
-            leave
-         endif
-      enddo
-      activatefile curfid
+      this_file = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\File'i)
 compile endif
 
       if leftstr( this_file, 5) = '.DOS ' then
@@ -464,7 +455,7 @@ compile endif
 compile if GROUPS_USE_STANDARD_INI_DEST
          this_posn = queryprofile( app_hini, group_name, 'POSN'i)
 compile else
-         this_posn = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\POSN'i)
+         this_posn = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'group_name'\Posn'i)
 compile endif
          call prestore_pos(this_posn)
       endif
@@ -499,7 +490,7 @@ compile else
 compile endif
    group_entries =  queryprofile( app_hini, group, 'ENTRIES')
    if group_entries = '' then  -- Make sure we don't delete something important!
-      sayerror 'Not a group.'
+      sayerror 'Not a group'
       return
    endif
 compile if GROUPS_USE_STANDARD_INI_DEST
