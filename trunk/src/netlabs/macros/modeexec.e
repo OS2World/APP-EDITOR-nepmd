@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.16 2006-03-29 22:30:40 aschn Exp $
+* $Id: modeexec.e,v 1.17 2006-05-07 19:24:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -241,12 +241,12 @@ defc ProcessLoadSettings
    refresh_on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if refresh_on then
       if loadstate then
-         HiliteCheckFlag = GetHiliteCheckFlag(Mode)
+         CheckFlag = GetHiliteCheckFlag(Mode)
       else
-         HiliteCheckFlag = ''
+         CheckFlag = ''
       endif
    else
-      HiliteCheckFlag = 'N'
+      CheckFlag = 'N'
    endif
 
    KeyPath = '\NEPMD\User\KeywordHighlighting'
@@ -278,7 +278,7 @@ defc ProcessLoadSettings
       -- Activate keyword highlighting, if not already done by load_<mode> hook
       next = GetAVar( 'highlight.'fid)  -- get file setting
       if next = '' | next = 'DEFAULT' then
-         call NepmdActivateHighlight( default_on, Mode, HiliteCheckFlag)
+         call NepmdActivateHighlight( default_on, Mode, CheckFlag)
       endif
 
    else               -- when changing a mode
@@ -474,12 +474,19 @@ defc ModeExecute, ModeExec
 defc RingRefreshSetting
    universal StatusFieldFlags
    universal TitleFieldFlags
+;    universal nepmd_hini
    parse value arg(1) with Mode Cmd Args
    Mode = upcase(Mode)
    parse value lowcase(Cmd) with 'set' SettingName  -- Strip leading 'set'
    getfileid startfid
-   display -3
+   display -1
    fid = startfid
+;    KeyPath = '\NEPMD\User\KeywordHighlighting'
+;    hili_on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+;    --hili_on = GetHighlight()
+;    if hili_on then
+;       'RingRefreshSetting DEFAULT SetHighlight 'not hili_on 'N'
+;    endif
    do i = 1 to filesinring()  -- omit hidden files and prevent looping forever
       Execute = 0
       if Mode = 'DEFAULT' then
@@ -504,7 +511,10 @@ defc RingRefreshSetting
    'postme activatefile' startfid  -- postme required for some Cmds, e.g. SetHighlight
    'postme RefreshInfoLine' StatusFieldFlags TitleFieldFlags  --refresh all
    -- Little bug: InsertMode is not refreshed here.
-   'postme display' 3
+;    if hili_on then
+;       'RingRefreshSetting DEFAULT SetHighlight 'hili_on 'N'
+;    endif
+   'postme display' 1
 
 ; ---------------------------------------------------------------------------
 /*
@@ -627,7 +637,6 @@ defc SetHighlight
    universal nepmd_hini
    universal loadstate
    SettingName  = 'highlight'
-   KeyPath = '\NEPMD\User\KeywordHighlighting' -- for default value if arg1 = 'DEFAULT' or empty
 
    getfileid fid
    SettingValue = GetAVar( SettingName'.'fid)
@@ -644,6 +653,17 @@ defc SetHighlight
       arg1 = delword( arg1, wp, 1)  -- remove 'N' from arg1
    endif
 
+   if CheckFlag = '' then
+      if loadstate then
+         KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
+         refresh_on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+         if refresh_on then
+            CheckFlag = GetHiliteCheckFlag(Mode)
+         endif
+      endif
+   endif
+
+   KeyPath = '\NEPMD\User\KeywordHighlighting' -- for default value if arg1 = 'DEFAULT' or empty
    if arg1 = 'DEFAULT' then
       on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    elseif arg1 = 0 then
@@ -659,21 +679,6 @@ defc SetHighlight
 
    -- Process setting
    Mode = GetMode()
-   KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
-   refresh_on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if refresh_on then
-      if (CheckFlag = '') & loadstate then
-         CheckFlag = GetHiliteCheckFlag(Mode)
-      endif
-   else
-      CheckFlag = 'N'
-   endif
-   -- Todo: Add option to force reload of temp epmkwds file (call
-   --       toggle_parse with parameter 2 instead of 1).
-   --       Currently it is always reloaded, what is a huge waste.
-   --       Note: When an entire ring should be refreshed, the epmkwds
-   --             file needs to be reloaded only once per mode.
-   --       Related: defc toggle_parse in STDCTRL.E.
    call NepmdActivateHighlight( on, Mode, CheckFlag)
 
    -- Save the value in an array var, to determine 'DEFAULT' state later

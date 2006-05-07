@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.36 2006-03-29 22:57:20 aschn Exp $
+* $Id: newmenu.e,v 1.37 2006-05-07 19:24:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -173,7 +173,7 @@ compile endif
 ; EPM_utility_array_id must already exist at this point.
 definit
    universal nepmd_hini
-   -- Sometimes the rc for a module's definit overwrites the link rc.
+   -- Sometimes the rc for a module's definit overrides the link rc.
    -- Therefore a linkable module with code in definit, that changes rc,
    -- should save it at the begin of definit and restore it at the end.
    save_rc = rc
@@ -210,7 +210,8 @@ definit
                     /* Search */    ' goto markstack cursorstack bookmarks' ||
                     /* View */      ' menu infobars toolbar toolbarstyle backgroundbitmap' ||
                     /* Options */   ' editoptions saveoptions searchoptions' ||
-                                    ' mainsettings markingsettings marginsandtabs accelsettings' ||
+                                    ' mainsettings highlighting markingsettings' ||
+                                    ' marginsandtabs accelsettings' ||
                                     ' readonlyandlock autorestore' ||
                                     ' opendlgdir workdir macros' ||
                     /* Run */       ' treecommands' ||
@@ -250,7 +251,7 @@ defc InitMenuSettings
 defproc BeforeLink
    universal MenuItemsHidden
    modulename = arg(1)
-   --dPrintf( 'BEFORELINK', modulename)
+   dPrintf( 'BEFORELINK', modulename)
    if not isadefc( 'HideMenuItems') then
       return
    elseif MenuItemsHidden <> 0 then  -- 0 means: not hidden
@@ -325,7 +326,7 @@ defproc AfterLink
 defc HideMenuItems
    universal defaultmenu
    universal nepmd_hini
-   universal menuloaded             -- for to check if menu is already built
+   universal menuloaded                   -- for to check if menu is already built
    universal MenuItemsHidden
 
    KeyPath = '\NEPMD\User\Menu\HideItems'
@@ -388,14 +389,14 @@ defc HideMenuItems
 
 defc loaddefaultmenu
    universal activemenu, defaultmenu
-   universal menuloaded             -- for to check if menu is already built
+   universal menuloaded                   -- for to check if menu is already built
    universal MenuItemsHidden
    universal nepmd_hini
 
    parse arg menuname .
-   if menuname = '' then            -- Initialization call
+   if menuname = '' then                  -- Initialization call
       menuname = 'default'
-      defaultmenu = menuname        -- default menu name
+      defaultmenu = menuname              -- default menu name
       activemenu  = defaultmenu
    endif
 
@@ -412,7 +413,7 @@ defc loaddefaultmenu
    call add_options_menu(menuname)   -- id = 4
 ;   call add_command_menu(menuname)  -- replaced with add_run_menu
    call add_run_menu(menuname)       -- id = 0 (menuitem ids = 1xx)
-;   call add_project_menu(menuname)  -- id = 9 (= TeX, epmprt)
+;   call add_project_menu(menuname)   -- id = 9 (= TeX, epmprt)
 
    -- Process hook: add a user-defined submenu
    if isadefc('HookExecute') then
@@ -2248,11 +2249,13 @@ defproc add_options_menu(menuname)
                                    'toggle_default_expand' ||
                                    \1'Let space and enter do syntax expansion',
                                    MIS_TEXT, nodismiss
+/**
    i = i + 1; call SetAVar( 'mid_defaultkeywordhighlighting', i);
    buildmenuitem menuname, mid, i, 'Default keyword highlighting',                                       -- Default keyword highlighting
                                    'toggle_default_highlight' ||
                                    \1'Switch keyword highlighting on',
                                    MIS_TEXT, nodismiss
+**/
    i = i + 1; call SetAVar( 'mid_ringenabled', i);
    buildmenuitem menuname, mid, i, RINGENABLED_MENU__MSG'!',                                             -- Ring enabled!
                                    'ring_toggle' ||
@@ -2267,6 +2270,26 @@ defproc add_options_menu(menuname)
    buildmenuitem menuname, mid, i, GetAVar('mtxt_scrollafterloacate'),                                   -- Scroll after locate []...
                                    'SetScrollAfterLocate' ||
                                    \1'View found string at a special v-pos.',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+
+   i = i + 1; call SetAVar( 'mid_highlighting', i);
+   buildmenuitem menuname, mid, i, '~Highlighting settings',                                       -- Highlighting settings  >
+                                   'Configure highlighting settings',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_defaultkeywordhighlighting', i);
+   buildmenuitem menuname, mid, i, '~Default keyword highlighting',                                      -- Default keyword highlighting
+                                   'toggle_default_highlight' ||
+                                   \1'Switch keyword highlighting on',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_autorefreshmodefiles', i);
+   buildmenuitem menuname, mid, i, '~Auto-check mode files',                                   -- Auto-refresh highlighting files
+                                   'toggle_modefiles_autorefresh' ||
+                                   \1'Check for altered .hil/.ini files on file loading',
+                                   MIS_TEXT, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Check mode files now',                                      -- Refresh highlighting files now
+                                   'ActivateHighlighting' ||
+                                   \1'Check for altered .hil/.ini files for current mode now',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
 
    i = i + 1; call SetAVar( 'mid_markingsettings', i);
@@ -3232,10 +3255,11 @@ defc menuinit_mainsettings
    KeyPath = '\NEPMD\User\SyntaxExpansion'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_defaultsyntaxexpansion'),     MIA_CHECKED, not on)
-
+/**
    KeyPath = '\NEPMD\User\KeywordHighlighting'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_defaultkeywordhighlighting'), MIA_CHECKED, not on)
+**/
 
    SetMenuAttribute( GetAVar('mid_ringenabled'),                MIA_CHECKED, not ring_enabled)
 
@@ -3247,6 +3271,17 @@ defc menuinit_mainsettings
    new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    parse value GetAVar('mtxt_scrollafterlocate') with next'['x']'rest
    SetMenuText( GetAVar('mid_scrollafterlocate'), next'['new']'rest)
+
+defc menuinit_highlighting
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\KeywordHighlighting'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_defaultkeywordhighlighting'), MIA_CHECKED, not on)
+
+   KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_autorefreshmodefiles'), MIA_CHECKED, not on)
 
 defc menuinit_marginsandtabs
    universal app_hini
@@ -3413,7 +3448,7 @@ defc menuinit_macros
 
 ; ------------------------------------ Run ----------------------------------
 defc menuinit_run
-   is_shell = IsAShell()
+   is_shell = leftstr(.filename, 15) = ".command_shell_"
    SetMenuAttribute( GetAVar('mid_writetoshell'),     MIA_DISABLED, is_shell)
    SetMenuAttribute( GetAVar('mid_sendbreaktoshell'), MIA_DISABLED, is_shell)
 
@@ -3855,6 +3890,21 @@ defc toggle_default_highlight
    opt = 'N'  -- 'N' = don't check for changed .hil and .ini files to make it more stable for a huge ring
    -- Change highlight for every file with default setting
    'RingRefreshSetting DEFAULT SetHighlight 'on opt
+   -- Todo: Define a new command, that processes the ring.
+   --       Note: When an entire ring should be refreshed, the epmkwds
+   --             file needs to be reloaded only once per mode (used by
+   --             defc toggle_default_highlight in NEWMENU.E).
+
+; ---------------------------------------------------------------------------
+; Flags: nepmd.ini, refreshring
+defc toggle_modefiles_autorefresh
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
+   SetMenuAttribute( GetAVar('mid_autorefreshmodefiles'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
 ; Flags: file, mode, universal
