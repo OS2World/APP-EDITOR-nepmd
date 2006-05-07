@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: hooks.e,v 1.7 2005-11-24 19:40:02 aschn Exp $
+* $Id: hooks.e,v 1.8 2006-05-07 22:14:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -394,7 +394,8 @@ defc AtLoad
 ; actions are processed. After execution, the hook is deleted, so that is
 ; executed at the first defselect event only.
 defc AtStartup
-   'HookAdd selectonce postme' arg(1)
+   --'HookAdd selectonce postme' arg(1)
+   'HookAdd afterloadonce' arg(1)
 
 ; ---------------------------------------------------------------------------
 ; Syntax: AtSelect <UserCmd>
