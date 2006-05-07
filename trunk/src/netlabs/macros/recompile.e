@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.3 2006-03-30 11:34:30 aschn Exp $
+* $Id: recompile.e,v 1.4 2006-05-07 14:53:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -273,7 +273,7 @@ defc Restart
    if arg(1) = '' then
       cmd = 'RestoreRing'
    else
-      cmd = 'mc ;Restorering;postme 'arg(1)
+      cmd = 'mc ;Restorering;AtStartup 'arg(1)
    endif
    'RingCheckModify'
    'SaveRing'
@@ -425,7 +425,13 @@ defc RecompileAll
 ; files, whose E sources are newer than their EX files.
 ; Could be a problem: the ini entry for epm\EFileTimes has currently 1341
 ; byte. Apparently in ETK every string is limited to 1599 byte.
+;
 ; Syntax: RecompileNew [RESET] | [CHECKONLY] [NOMSG] [NOMSGBOX]
+;
+; Minor bugs:
+;    o  When user .ex files are deleted, a 2nd run is required to compare the
+;       user macros with the Netlabs macros.
+;    o  User macros are never deleted, even if they are equal.
 defc RecompileNew
    universal nepmd_hini
 
@@ -1001,11 +1007,7 @@ defc RecompileNew
    endif
    if not fNoMsgBox then
       args = cWarning cRecompile cDelete cRelink fRestartEpm fCheckOnly
-      if fRestartEpm then
-         Cmd = Cmd 'postme postme RecompileNewMsgBox' args
-      else
-         Cmd = Cmd 'RecompileNewMsgBox' args
-      endif
+      Cmd = Cmd 'RecompileNewMsgBox' args
    endif
    Cmd = strip( Cmd)
    Cmd
@@ -1063,7 +1065,7 @@ defproc CallEtpm( MacroFile, CompileDir, var ExFile, var EtpmLogFile)
    elseif etpmrc then
       call ec_position_on_error( EtpmLogFile)
    else
-      dprintf( '', '  'BaseName' compiled successfully')
+      --dprintf( 'CallEtpm', '  'BaseName' compiled successfully to 'ExFile)
    endif
    return etpmrc
 
