@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.16 2006-04-09 00:02:35 aschn Exp $
+* $Id: select.e,v 1.17 2006-05-07 14:58:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -85,6 +85,13 @@ defselect
       -- Bug to find? display 2 here would cause on defmodify the msg:
       -- Invalid third parameter, most likely coming from a do_array
       -- statement or Get/SetAVar call.
+
+;  Process hooks ------------------------------------------------------------
+;     Posted afterload hooks works here better than executed from
+;     ProcessAfterLoad
+      'postme HookExecute afterload'
+      'postme postme HookExecuteOnce afterloadonce'
+      dprintf( 'AFTERLOAD', 'HookExecute afterload, afterloadonce')
    endif
 
 ; ---------------------------------------------------------------------------
@@ -113,11 +120,6 @@ defc ProcessAfterLoad
       -- must not execute 'postme activatefile' at this point
       call RingAutoWriteFilePosition()
    endif
-
-;  Process hooks ------------------------------------------------------------
-   'HookExecute afterload'          -- no need for 'postme' here?
-   'HookExecuteOnce afterloadonce'  -- no need for 'postme' here?
-   dprintf( 'AFTERLOAD', 'HookExecute afterload, afterloadonce')
 
 ; ---------------------------------------------------------------------------
 ; Executed by defselect
