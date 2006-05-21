@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.14 2006-01-08 00:02:47 aschn Exp $
+* $Id: filelist.e,v 1.15 2006-05-21 18:56:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -199,6 +199,7 @@ defc RestoreRing
    universal CurEditCmd
    universal RestorePosDisabled
    universal RingWriteFilePositionDisabled
+   universal SelectDisabled
 
    KeyPath = '\NEPMD\User\AutoRestore\Ring\MaxRings'
    MaxRings = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -242,7 +243,17 @@ defc RestoreRing
       getfileid emptyfid
    endif
 */
+
+   if LastEntries = 0 then
+      SelectDisabled = 0
+   else
+      SelectDisabled = 1
+   endif
    do j = 1 to LastEntries
+      if j = LastEntries then
+         SelectDisabled = 0
+      endif
+
       filename = NepmdQueryConfigValue( nepmd_hini, KeyPath'\File'j)
       savedpos = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Posn'j)
       OpenNewWindow = 0

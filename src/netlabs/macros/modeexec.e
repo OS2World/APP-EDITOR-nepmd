@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.17 2006-05-07 19:24:15 aschn Exp $
+* $Id: modeexec.e,v 1.18 2006-05-21 18:56:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -219,7 +219,8 @@ defc ResetFileSettings
 ; (defc Mode and ResetMode call ResetFileSettings when the mode has changed.)
 defc ProcessLoadSettings
    universal nepmd_hini
-   universal loadstate  -- 1: defload is running
+   universal loadstate  -- empty: before loading
+                        -- 1: defload is running
                         -- 2: defload processed
                         -- 0: afterload processed
 
@@ -240,7 +241,7 @@ defc ProcessLoadSettings
    KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
    refresh_on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if refresh_on then
-      if loadstate then
+      if loadstate then  -- during file loading
          CheckFlag = GetHiliteCheckFlag(Mode)
       else
          CheckFlag = ''
@@ -274,14 +275,14 @@ defc ProcessLoadSettings
       Cmd  -- execute command
    enddo
 
-   if loadstate then  -- during defload processing
+   if loadstate then          -- during defload processing
       -- Activate keyword highlighting, if not already done by load_<mode> hook
       next = GetAVar( 'highlight.'fid)  -- get file setting
       if next = '' | next = 'DEFAULT' then
          call NepmdActivateHighlight( default_on, Mode, CheckFlag)
       endif
 
-   else               -- when changing a mode
+   elseif loadstate = 0 then  -- when changing a mode
       List = LoadSettingsList
       do w = 1 to words( List)  -- Only LoadSettings need to be reset for default mode
          wrd = word( List, w)
@@ -401,7 +402,8 @@ definit
 ;                                           effected
 ; /*To change settings of already loaded files, too, use ModeExecuteRefresh.*/
 defc ModeExecute, ModeExec
-   universal loadstate  -- 1: defload is running
+   universal loadstate  -- empty: before loading
+                        -- 1: defload is running
                         -- 2: defload processed
                         -- 0: afterload processed
    LoadSettingsList   = GetAVar( 'loadsettingslist')
@@ -453,7 +455,8 @@ defc ModeExecute, ModeExec
                '" to the select/loadsettingslist array var.'
       return 1
    endif
-   if not loadstate then
+   if loadstate = 0 then  -- after afterload
+      dprintf( 'MODEEXECUTE', 'loadstate = 'loadstate', calling RingRefreshSettings' arg(1))
       'RingRefreshSetting' arg(1)
    endif
    -- Save a list of used modes to be able to delete all settings
@@ -726,14 +729,14 @@ defc SetMargins  -- defc margins exist
    if arg1 = 'DEFAULT' | arg1 = 0 then
       if loadstate & SetFromEa then
          arg1 = .margins
-      else
+      elseif loadstate = 0 then
          'margins' 0  -- reset, maybe delete EPM.MARGINS
          arg1 = 'DEFAULT'
       endif
-   elseif SetFromEa = 0 then  -- Overwrite only if not already set from EA
+   elseif SetFromEa = 0 then  -- Override only if not already set from EA
       if loadstate | RefreshDefault | (ModeSettingsApplied <> 1) then
          .margins = arg1
-      else  -- User has executed this command
+      elseif loadstate = 0 then  -- User has executed this command
          'margins' arg1  -- set EPM.MARGINS
       endif
    else
@@ -746,7 +749,7 @@ defc SetMargins  -- defc margins exist
       call SetAVar( SettingName'.'fid, arg1)
    endif
    -- Refresh titletext or statusline
-   if (not loadstate) & (not RefreshDefault) then  -- not at afterload and not for RefreshDefault
+   if (loadstate = 0) & (not RefreshDefault) then  -- after afterload and not for RefreshDefault
       'refreshinfoline' InfolineName
    endif
 
@@ -789,14 +792,14 @@ defc SetTabs  -- defc tabs exist
    if arg1 = 'DEFAULT' | arg1 = 0 then
       if loadstate & SetFromEa then
          arg1 = .tabs
-      else
+      elseif loadstate = 0 then
          'tabs' 0  -- reset, maybe delete EPM.TABS
          arg1 = 'DEFAULT'
       endif
-   elseif not SetFromEa then  -- Overwrite only if not already set from EA
+   elseif not SetFromEa then  -- Override only if not already set from EA
       if loadstate | RefreshDefault | (ModeSettingsApplied <> 1) then
          .tabs = arg1
-      else  -- User has executed this command
+      elseif loadstate = 0 then  -- User has executed this command
          'tabs' arg1  -- set EPM.TABS
       endif
    else
@@ -809,7 +812,7 @@ defc SetTabs  -- defc tabs exist
       call SetAVar( SettingName'.'fid, arg1)
    endif
    -- Refresh titletext or statusline
-   if (not loadstate) & (not RefreshDefault) then  -- not at afterload and not for RefreshDefault
+   if (loadstate = 0) & (not RefreshDefault) then  -- after afterload and not for RefreshDefault
       'refreshinfoline' InfolineName
    endif
 
@@ -845,7 +848,7 @@ defc SetKeys
    -- Save the value in an array var, to determine 'DEFAULT' state later
    getfileid fid
    call SetAVar( 'keys.'fid, arg1)
-   if not loadstate then
+   if loadstate = 0 then
       'refreshinfoline KEYS'
    endif
 
@@ -868,7 +871,7 @@ defc SetDynaSpell  -- defc dynaspell exists and is used here
    -- Save the value in an array var, to determine 'DEFAULT' state later
    getfileid fid
    call SetAVar( 'dynaspell.'fid, arg(1))
-   if not loadstate then
+   if loadstate = 0 then
       'refreshinfoline KEYS'
    endif
 
@@ -917,7 +920,7 @@ defc SetExpand  -- defc expand exists
    expand_on = on
    -- Save the value in an array var, because no field var exists
    call UseSetting( 'Expand', arg(1))
-   if not loadstate then
+   if loadstate = 0 then
       'refreshinfoline EXPAND'
    endif
 
@@ -953,7 +956,7 @@ defc SetMatchTab  -- defc matchtab exists
    matchtab_on = on
    -- Save the value in an array var, because no field var exists
    call UseSetting( 'MatchTab', arg(1))
-   if not loadstate then
+   if loadstate = 0 then
       'refreshinfoline MATCHTAB'
    endif
 
@@ -1027,7 +1030,7 @@ defc SetTabKey  -- defc tabkey exists
    tab_key = on
    -- Save the value in an array var, because no field var exists
    call UseSetting( 'TabKey', arg(1))
-   if not loadstate then
+   if loadstate = 0 then
       'refreshinfoline TABKEY'
    endif
 
@@ -1049,7 +1052,7 @@ defc SetStreamMode
    'togglecontrol 24' stream_mode
    -- Save the value in an array var, because no field var exists
    call UseSetting( 'StreamMode', arg(1))
-   if not loadstate then
+   if loadstate = 0 then
       'refreshinfoline STREAMMODE'
    endif
 

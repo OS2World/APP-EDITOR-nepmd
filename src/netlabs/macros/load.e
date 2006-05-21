@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.23 2006-03-29 23:54:06 aschn Exp $
+* $Id: load.e,v 1.24 2006-05-21 18:56:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -94,11 +94,13 @@ compile endif
 
    loadstate = 1  -- This universal var can be used to check if there occured
                   -- a defload event after the last afterload was processed.
+                  --    empty: before loading
                   --    1: defload is running
                   --    2: defload processed
                   --    0: afterload processed
    Filename = .filename
    getfileid fid
+   dprintf( 'LOAD', Filename)
 
 ;  Set .readonly from file attributes ---------------------------------------
    'ReadonlyFromAttrib'

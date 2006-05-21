@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.37 2006-03-31 23:35:04 aschn Exp $
+* $Id: edit.e,v 1.38 2006-05-21 18:56:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -350,8 +350,9 @@ compile endif
       return 0
    endif
 
-   --call AddToHistory( 'EDIT', args)
-   'postme postme AddToHistory EDIT' args
+   if CurEditCmd <> 'RESTORERING' then
+      'AtStartup AddToHistory EDIT' args
+   endif
 
    options = default_edit_options
 
