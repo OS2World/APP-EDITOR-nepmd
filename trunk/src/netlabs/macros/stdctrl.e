@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.39 2006-05-21 18:04:21 aschn Exp $
+* $Id: stdctrl.e,v 1.40 2006-05-21 19:08:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1271,12 +1271,12 @@ defc commandline  -- The application will free the buffer allocated by this macr
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defproc PostCmdToEditWindow( cmd, winhndl)
-   if arg(3)<>'' then
+   if arg(3) <> '' then
       mp2 = arg(3)
    else
       mp2 = 1
    endif
-   call windowmessage( 0,  winhndl,
+   call windowmessage( 0, winhndl,
                        5377,               -- EPM_EDIT_COMMAND
                        put_in_buffer( cmd, arg(4)),
                        mp2)
@@ -1299,7 +1299,16 @@ defproc PostCmdToEditWindow( cmd, winhndl)
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defc PostMe
-   call PostCmdToEditWindow( arg(1), getpminfo(EPMINFO_EDITCLIENT))
+   -- Workaround for posted '*defload*' commands: Execute 'AtNextLoad'
+   -- instead of 'postme', because 'postme' causes a defload action being
+   -- executed at the following defselect only. Applies to e.g. TeX Front
+   -- End's defload.
+   if pos( 'DEFLOAD', upcase( arg(1))) then
+      'AtNextLoad' arg(1)
+   else
+      call PostCmdToEditWindow( arg(1), getpminfo(EPMINFO_EDITCLIENT))
+      dprintf( 'POSTME', arg(1))
+   endif
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
