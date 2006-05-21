@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.17 2006-05-07 14:58:07 aschn Exp $
+* $Id: select.e,v 1.18 2006-05-21 18:57:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,12 +23,6 @@ compile if not defined(LOCAL_MOUSE_SUPPORT)
    LOCAL_MOUSE_SUPPORT = 0
 compile endif
    TransparentMouseHandler = "TransparentMouseHandler"
-compile if not defined(NEPMD_DEBUG)
-   NEPMD_DEBUG = 0  -- General debug const
-compile endif
-compile if not defined(NEPMD_DEBUG_SELECT)
-   NEPMD_DEBUG_SELECT = 0
-compile endif
 
 ;  SELECT.E                                                 Bryan Lewis 1/2/89
 ;
@@ -51,12 +45,40 @@ defproc select_edit_keys()
    /* Dummy proc for compatibility.  Select_edit_keys() isn't used any more.*/
 
 ; ---------------------------------------------------------------------------
+; Suppress select processing during startup
+
+defc DisableSelect
+   universal SelectDisabled
+   SelectDisabled = 1
+
+defc EnableSelect
+   universal SelectDisabled
+   SelectDisabled = 0
+
+; ---------------------------------------------------------------------------
 defselect
+   universal SelectDisabled
+   if SelectDisabled <> 1 then
+      'ProcessSelect'
+   endif
+
+; ---------------------------------------------------------------------------
+defc ProcessSelect
    universal lastselectedfid
    universal loadstate
    universal vepm_pointer
+   universal SelectDisabled
+   universal DisplayDisabled
+
+   -- Suppress too early select events
+   if loadstate = '' then
+      return
+   endif
+
+   SelectDisabled = 0  -- always reenable it
+
    getfileid fid
-   dprintf('SELECT', 'DEFSELECT for '.filename', loadstate = 'loadstate)
+   dprintf( 'SELECT', 'DEFSELECT for '.filename', loadstate = 'loadstate)
 
    JustLoaded = 0
    if loadstate = 1 then  -- if a defload was processed before
@@ -65,33 +87,15 @@ defselect
       'ProcessAfterLoad'  -- executes multiple ring commands that sometimes
                           -- leave the wrong file on top
       'postme activatefile' fid  -- postme required, but doesn't work in some rare cases
+      'postme ProcessAfterload2'  -- final processing, therefore posted
       loadstate = 0
    endif
 
    if fid = lastselectedfid then
-      -- nop, ProcessSelect was already executed for this file
+      -- nop, ProcessSelect2 was already executed for this file
    else
-      'ProcessSelect'
+      'ProcessSelect2'
       lastselectedfid = fid
-   endif
-
-;  Change EPM pointer from standard arrow to text pointer -------------------
-;     bug fix (hopefully): even standard EPM doesn't show everytime the
-;                          correct pointer after a new edit window was opened
-;     defined in defc initconfig, STDCTRL.E
-   if JustLoaded then
-      'postme setmousepointer 'vepm_pointer
-      'postme display 1'  -- re-enable screen updates, show the loaded files
-      -- Bug to find? display 2 here would cause on defmodify the msg:
-      -- Invalid third parameter, most likely coming from a do_array
-      -- statement or Get/SetAVar call.
-
-;  Process hooks ------------------------------------------------------------
-;     Posted afterload hooks works here better than executed from
-;     ProcessAfterLoad
-      'postme HookExecute afterload'
-      'postme postme HookExecuteOnce afterloadonce'
-      dprintf( 'AFTERLOAD', 'HookExecute afterload, afterloadonce')
    endif
 
 ; ---------------------------------------------------------------------------
@@ -122,8 +126,30 @@ defc ProcessAfterLoad
    endif
 
 ; ---------------------------------------------------------------------------
+; This cmd is posted once after all files were loaded by defselect.
+defc ProcessAfterLoad2
+   universal vepm_pointer
+   universal DisplayDisabled
+
+   dprintf( 'AFTERLOAD', 'ProcessAfterload2 for '.filename)
+
+   'setmousepointer 'vepm_pointer
+
+   if DisplayDisabled then
+      DisplayDisabled = 0
+      'display 1'  -- reenable screen updates, show the loaded files
+   endif
+   -- Bug to find? display 2 here would cause on defmodify the msg:
+   -- Invalid third parameter, most likely coming from a do_array
+   -- statement or Get/SetAVar call.
+
+   dprintf( 'AFTERLOAD', 'HookExecute afterload, afterloadonce')
+   'HookExecute afterload'
+   'postme HookExecuteOnce afterloadonce'
+
+; ---------------------------------------------------------------------------
 ; Executed by defselect
-defc ProcessSelect
+defc ProcessSelect2
    universal nepmd_hini
 compile if LOCAL_MOUSE_SUPPORT
    universal LMousePrefix
@@ -133,7 +159,7 @@ compile if WANT_EBOOKIE = 'DYNALINK'
    universal bkm_avail
 compile endif
 
-   dprintf( 'SELECT', 'PROCESSSELECT for '.filename)
+   dprintf( 'SELECT', 'ProcessSelect2 for '.filename)
 
    -- moved the SetMenuAttribute stuff for command shell windows to STDCTRL.E, defc menuinit_0
 

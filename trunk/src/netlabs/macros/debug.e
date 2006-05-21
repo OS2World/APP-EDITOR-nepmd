@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: debug.e,v 1.5 2005-09-25 08:44:21 aschn Exp $
+* $Id: debug.e,v 1.6 2006-05-21 18:56:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -31,14 +31,17 @@ define
 compile if not defined(NEPMD_DEBUG)
    NEPMD_DEBUG = 0  -- General debug const
 compile endif
-compile if not defined(NEPMD_DEBUG_DEFMAIN)
-   NEPMD_DEBUG_DEFMAIN = 0
+compile if not defined(NEPMD_DEBUG_MAIN)
+   NEPMD_DEBUG_MAIN = 0
 compile endif
-compile if not defined(NEPMD_DEBUG_DEFMAIN_EMPTY_FILE)
-   NEPMD_DEBUG_DEFMAIN_EMPTY_FILE = 0
+compile if not defined(NEPMD_DEBUG_MAIN_EMPTY_FILE)
+   NEPMD_DEBUG_MAIN_EMPTY_FILE = 0
 compile endif
 compile if not defined(NEPMD_DEBUG_EDIT)
    NEPMD_DEBUG_EDIT = 0
+compile endif
+compile if not defined(NEPMD_DEBUG_LOAD)
+   NEPMD_DEBUG_LOAD = 0
 compile endif
 compile if not defined(NEPMD_DEBUG_AFTERLOAD)
    NEPMD_DEBUG_AFTERLOAD = 0
@@ -72,16 +75,20 @@ compile if NEPMD_DEBUG
    msg    = arg(2)
    WriteMsg = 0
 
-   if type = 'DEFMAIN' then
-      if NEPMD_DEBUG_DEFMAIN then
+   if type = 'MAIN' then
+      if NEPMD_DEBUG_MAIN then
          WriteMsg = 1
       endif
-   elseif type = 'DEFMAIN_EMPTY_FILE' then
-      if NEPMD_DEBUG_DEFMAIN_EMPTY_FILE then
+   elseif type = 'MAIN_EMPTY_FILE' then
+      if NEPMD_DEBUG_MAIN_EMPTY_FILE then
          WriteMsg = 1
       endif
    elseif type = 'EDIT' then
       if NEPMD_DEBUG_EDIT then
+         WriteMsg = 1
+      endif
+   elseif type = 'LOAD' then
+      if NEPMD_DEBUG_LOAD then
          WriteMsg = 1
       endif
    elseif type = 'AFTERLOAD' then

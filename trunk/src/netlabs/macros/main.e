@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.42 2006-05-07 15:04:39 aschn Exp $
+* $Id: main.e,v 1.43 2006-05-21 18:56:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -46,9 +46,11 @@ defmain
                               -- ETKE603.DLL, not the one from ENGLISH.E
    universal CurEditCmd       -- used to maybe disable cursor restoring,
                               -- just init it here to ''
+   universal DisplayDisabled  -- suppress screen refresh during file loading
    universal loadstate        -- init loadstate here
-   loadstate = 0  -- This universal var can be used to check if there occured
+                  -- This universal var can be used to check if there occured
                   -- a defload event after the last afterload was processed.
+                  --    empty: before a file is loaded
                   --    1: defload is running
                   --    2: defload processed
                   --    0: afterload processed
@@ -56,7 +58,7 @@ defmain
 ;  Get args and make it a parameter for the edit cmd ------------------------
    EpmArgs = 'e 'arg(1)
 
-   dprintf( 'DEFMAIN', 'arg(1) = ['arg(1)']')
+   dprintf( 'MAIN', 'arg(1) = ['arg(1)']')
 
 ;  Process settings from MODECNF.E --------------------------------------------
    'InitModeCnf'
@@ -80,25 +82,6 @@ defmain
    -- universal var or of the proc GetUnnamedFilename().
    unnamedfilename = .filename
    getfileid unnamedfid
-
-;  Process PROFILE.ERX ------------------------------------------------------
-   -- Changed: profile.erx is now processed before any file is loaded. In
-   --          order to change file settings, the 'load' or 'loadonce' hook
-   --          must be used now.
-   -- Note: E.g. switching highlighting on for the original EPM with
-   --       'toggle_parse 1 epmkwds.<ext>' from profile.erx didn't work for
-   --       every loaded file. Any file stuff didn't work properly there.
-   --       Using the new load hooks, one can execute something for every
-   --       loaded file -- easily and properly.
-   if rexx_profile then
-      ProfileName = 'profile.erx'
-      -- REXX profile is not searched anymore. It must be placed in
-      -- %NEPMD_USERDIR%\bin with the name PROFILE.ERX now.
-      Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
-      if exist(Profile) then
-         'rx' Profile arg(1)
-      endif
-   endif
 
 ;  Host support -------------------------------------------------------------
 compile if (HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL') and not defined(my_SAVEPATH)
@@ -125,6 +108,25 @@ compile if SUPPORT_USER_EXITS
    endif
 compile endif
 
+;  Process PROFILE.ERX ------------------------------------------------------
+   -- Changed: profile.erx is now processed before any file is loaded. In
+   --          order to change file settings, the 'load' or 'loadonce' hook
+   --          must be used now.
+   -- Note: E.g. switching highlighting on for the original EPM with
+   --       'toggle_parse 1 epmkwds.<ext>' from profile.erx didn't work for
+   --       every loaded file. Any file stuff didn't work properly there.
+   --       Using the new 'load' hook or the 'AtLoad' command, one can
+   --       execute something for every loaded file -- easily and properly.
+   if rexx_profile then
+      ProfileName = 'profile.erx'
+      -- REXX profile is not searched anymore. It must be placed in
+      -- %NEPMD_USERDIR%\bin with the name PROFILE.ERX now.
+      Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
+      if exist(Profile) then
+         'rx' Profile arg(1)
+      endif
+   endif
+
 ;  Show menu and window -----------------------------------------------------
    call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
                                -- showmenu_activemenu is not required anymore,
@@ -132,8 +134,9 @@ compile endif
    -- see also: STDCNF.E for menu
    call showwindow('ON')
    mouse_setpointer WAIT_POINTER
-   refresh     -- force to show the window, with the empty file loaded
+   --refresh     -- force to show the window, with the empty file loaded
    display -1  -- disable screen refresh, re-enabled in defselect
+   DisplayDisabled = 1
 
    'postme main2' unnamedfid','EpmArgs
 
@@ -166,7 +169,7 @@ defc main2
    endif
 
 ;  Execute the EpmArgs (edit command) ---------------------------------------
-   dprintf( 'DEFMAIN', 'EpmArgs = 'EpmArgs)
+   dprintf( 'MAIN', 'EpmArgs = 'EpmArgs)
    -- Restore last edit ring if started without args
    KeyPath = '\NEPMD\User\AutoRestore\Ring\LoadLast'
    Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -183,7 +186,7 @@ defc main2
    -- that won't trigger a defload event.
    -- Get fileid after processing of EpmArgs.
    getfileid newfid
-   dprintf( 'DEFMAIN_EMPTY_FILE', 'filesinring = 'filesinring()', filename = '.filename)
+   dprintf( 'MAIN_EMPTY_FILE', 'filesinring = 'filesinring()', filename = '.filename)
    if validatefileid(unnamedfid) <> 0 then
       activatefile unnamedfid
       -- Check if other files in ring
@@ -194,7 +197,7 @@ defc main2
          -- triggered.
          -- Load a new empty file, for that the defload event will
          -- process.
-         dprintf( 'DEFMAIN_EMPTY_FILE', 'load a new empty file...')
+         dprintf( 'MAIN_EMPTY_FILE', 'load a new empty file...')
          'xcom e /n'
          getfileid newfid
          -- xcom edit doesn't call defc edit, therefore set the following
@@ -202,15 +205,15 @@ defc main2
          -- Usually they are set by defc edit.
          firstloadedfid = newfid  -- first file for this edit cmd
          firstinringfid = newfid  -- first file in the ring
-         dprintf( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
+         dprintf( 'MAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
       endif
       -- Get rid of the automatically created empty file
-      dprintf( 'DEFMAIN_EMPTY_FILE', 'quit internally loaded empty file... unnamedfid = 'unnamedfid)
+      dprintf( 'MAIN_EMPTY_FILE', 'quit internally loaded empty file... unnamedfid = 'unnamedfid)
       activatefile unnamedfid
       'xcom q'
-      dprintf( 'DEFMAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
+      dprintf( 'MAIN_EMPTY_FILE', 'now filesinring = 'filesinring())
    endif
-   dprintf( 'DEFMAIN_EMPTY_FILE', 'activating newfid = 'newfid', filename = 'newfid.filename)
+   dprintf( 'MAIN_EMPTY_FILE', 'activating newfid = 'newfid', filename = 'newfid.filename)
    activatefile newfid
 
 ;  Execute just-installed stuff, if any -------------------------------------
