@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddereload.c,v 1.7 2004-07-02 11:39:38 aschn Exp $
+* $Id: ddereload.c,v 1.8 2006-05-21 19:05:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -238,7 +238,8 @@ switch (msg)
       // load EPM with first file, but call macro separately
       // (otherwise it will not work if only one file loaded)
       prd->ulFilesLoaded = 1;
-      sprintf( szArgs, "\"%s\"", szFilename);
+      //sprintf( szArgs, "\"%s\"", szFilename);
+      sprintf( szArgs, "\'MC ;DisableSelect;Edit \"%s\"\'", szFilename);
       DPRINTF(( "DDERELOAD: start EPM with: %s\n", szArgs));
 
       // connect to that instance
@@ -279,7 +280,7 @@ switch (msg)
       // execute macro separately. This triggers also load of next file
       DPRINTF(( "DDERELOAD: list %u, file %u: %s (%s)\n", prd->ulListIndex + 1,
                 prd->ulFilesLoaded, szFilename, szCurPos));
-      sprintf( szArgs, "MC ;link %s;recomp SETPOS %s;", prd->pszMacroFile, szCurPos);
+      sprintf( szArgs, "MC ;Link %s;Recomp SETPOS %s;", prd->pszMacroFile, szCurPos);
       if (!_reloadExecuteEPMCommand( hwnd, prd->hwndServer, szArgs))
          ABORT_LOADING;
 
@@ -292,7 +293,14 @@ switch (msg)
       // end of list ? then we are done
       if (prd->ulFilesLoaded >= prd->ulFileCount)
          {
-         DPRINTF(( "DDERELOAD: no more files in list\n"));
+         // Reactivate defselect (deactivated at EPM startup) and execute it now
+         DPRINTF(( "DDERELOAD: no more files in list, executing ProcessSelect\n"));
+         sprintf( szArgs, "ProcessSelect");
+         if (!_reloadExecuteEPMCommand( hwnd, prd->hwndServer, szArgs))
+            {
+            WinAlarm( HWND_DESKTOP, WA_ERROR);
+            ABORT_LOADING;
+            }
 
          prd->rc = NO_ERROR;
          ABORT_LOADING;
@@ -310,8 +318,7 @@ switch (msg)
       // load next file and take care for position
       DPRINTF(( "DDERELOAD: list %u, file %u: %s (%s)\n", prd->ulListIndex + 1,
                 prd->ulFilesLoaded, szFilename, szCurPos));
-      //sprintf( szArgs, "MC ;EDIT \"%s\";link %s;recomp SETPOS %s;", szFilename, prd->pszMacroFile, szCurPos);
-      sprintf( szArgs, "MC ;EDIT \"%s\";recomp SETPOS %s;", szFilename, szCurPos);
+      sprintf( szArgs, "MC ;DisableSelect;Edit \"%s\";Recomp SETPOS %s;", szFilename, szCurPos);
       if (!_reloadExecuteEPMCommand( hwnd, prd->hwndServer, szArgs))
          {
          WinAlarm( HWND_DESKTOP, WA_ERROR);
