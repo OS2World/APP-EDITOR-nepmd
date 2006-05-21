@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.38 2006-05-07 19:24:21 aschn Exp $
+* $Id: stdctrl.e,v 1.39 2006-05-21 18:04:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2332,7 +2332,7 @@ defc toggle_parse
    if parseon then
       call SetAVar( 'kwfile.'fid, kwfilename)
    endif
-   DPRINTF( '### HILITE', GetMode()': options: 'parseon kwfilename' filename: '.filename)
+   --DPRINTF( '### HILITE', GetMode()': options: 'parseon kwfilename' filename: '.filename)
 
    call windowmessage( 0,  getpminfo(EPMINFO_EDITFRAME),
                        5502,               -- EPM_EDIT_TOGGLEPARSE

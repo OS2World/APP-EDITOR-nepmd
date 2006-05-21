@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.29 2004-09-12 13:45:40 aschn Exp $
+* $Id: hilite.c,v 1.30 2006-05-21 18:04:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1170,7 +1170,7 @@ do
             // still linvalid line ?
             if (pszInvalid)
                {
-               DPRINTF(( "HILITE: error: skipping invalid line %u, ivalid token %s\n", ulLineCount, pszInvalid));
+               DPRINTF(( "HILITE: error: skipping invalid line %u, invalid token %s\n", ulLineCount, pszInvalid));
                continue;
                }
 
@@ -1289,8 +1289,8 @@ do
    // write one line with the comment char only
    pszCurrent = pszHiliteContents;
    sprintf( pszCurrent, "%s\r\n"
-                        "%s NEPMD syntax hihlighting definition - Files used :\r\n"
-                        "%s ==================================================\r\n",
+                        "%s NEPMD syntax highlighting definition - Files used\r\n"
+                        "%s =================================================\r\n",
                         szCommentChar, szCommentChar, szCommentChar);
    pszCurrent = _EOS( pszCurrent);
    strcat( pszCurrent, pszFileInfoList);
@@ -1375,8 +1375,8 @@ do
    // add file infolist as extended attribute
    rc = WriteStringEa( szKeywordFile, pszFileInfoListEaName, pszFileInfoList);
 // DPRINTF(( "\n"
-//           "HILITE: used files for generation:\n"
-//           "----------------------------------\n"
+//           "HILITE: used files for generation\n"
+//           "---------------------------------\n"
 //           "%s\n", pszFileInfoList));
 
    } while (FALSE);
@@ -1432,7 +1432,7 @@ do
       break;
       }
 
-   DPRINTF(( "### HILITE: %s: options: %08x\n", pszEpmMode, ulOptions));
+// DPRINTF(( "### HILITE: %s: options: %08x\n", pszEpmMode, ulOptions));
 
    // search mode files
    rc = _assembleKeywordFile( pszEpmMode, ulOptions, pfReload, szValue, sizeof( szValue));
