@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: hooks.e,v 1.8 2006-05-07 22:14:25 aschn Exp $
+* $Id: hooks.e,v 1.9 2006-05-21 18:08:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -382,11 +382,15 @@ defc AtInit
 ; Syntax: AtLoad <UserCmd>
 ; <UserCmd> is executed for every file that is loaded at the end of
 ; processing the defload event.
-; Note that some commands must executed postme'd to work properly. Therefore
-; try to put the postme command in front of your command, if it doesn't
-; work as expected.
 defc AtLoad
    'HookAdd load' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtNextLoad <UserCmd>
+; <UserCmd> is executed for the next loaded file only at the end of
+; processing the defload event.
+defc AtNextLoad
+   'HookAdd loadonce' arg(1)
 
 ; ---------------------------------------------------------------------------
 ; Syntax: AtStartup <UserCmd>
