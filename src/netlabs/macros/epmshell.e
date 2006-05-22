@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.23 2006-05-07 14:47:52 aschn Exp $
+* $Id: epmshell.e,v 1.24 2006-05-22 21:38:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -345,7 +345,8 @@ compile endif
       writebuf = text\13\10
       retval   = SUE_write( ShellHandle, writebuf, bytesmoved);
       if retval or bytesmoved <> length(writebuf) then
-         sayerror 'Shell_Write: write.retval='retval'  byteswritten=' bytesmoved 'of' length(writebuf)
+         sayerror 'Shell_Write: rc =' retval', byteswritten =' bytesmoved 'of' length(writebuf)
+         'Shell_Break'
       endif
    endif
    --
@@ -648,9 +649,98 @@ defc shell_break
       return
    endif
    ShellHandle = GetAVar( 'Shell_h'ShellNum)
-   if ShellHandle <> '' then
-      retval = SUE_break(ShellHandle);
-      if retval then sayerror ERROR_NUMBER__MSG retval; endif
+   if ShellHandle = '' then
+      return
+   endif
+
+   -- Confirm on a prompt line
+   if ShellPromptPos() then
+      refresh
+      if MBID_OK <> winmessagebox( 'Sending a Break signal not required',  -- title
+                                   'Apparently you are on a prompt line and there is'\n ||
+                                   'no action to send a Break to.'\n\n                  ||
+                                   'Do you really want to send a Break signal?',
+                                   MB_OKCANCEL + MB_QUERY + MB_DEFBUTTON1 + MB_MOVEABLE)
+      then
+         return
+      endif
+   endif
+
+   -- Send a break signal to the shell object
+   retval = SUE_break( ShellHandle)
+   if retval then
+      if retval = 162 then
+         sayerror 'A signal is already pending, rc = 'retval' from SUE_break'
+      else
+         -- rc = 184 here means either: No process to break or Break not possible.
+         sayerror ERROR__MSG retval 'sending break to 'SHELL_OBJECT__MSG
+      endif
+
+      -- Pop up a MsgBox and ask the user before killing the shell
+      -- Sideeffect: the command is paused.
+      refresh
+      if MBID_OK <> winmessagebox( 'Error sending Break signal',  -- title
+                                   'The Break signal, sent to the shell object, was'\n ||
+                                   'not successfully, at least not immediately.'\n\n   ||
+                                   'Do you want to restart the shell object?'\n        ||
+                                   '(The path will be restored, but any special'\n     ||
+                                   'environment will be lost.)',
+                                   MB_OKCANCEL + MB_QUERY + MB_DEFBUTTON1 + MB_MOVEABLE)
+      then
+         return
+      endif
+
+      -- Kill the shell
+      -- Sending the kill signal will force a kill immediately
+      retval = SUE_free( ShellHandle)
+      if retval then
+         if retval = 162 then
+            sayerror 'A signal is already pending, rc = 'retval' from SUE_free'
+         elseif retval = 184 then
+            sayerror 'Shell object is already killed, rc = 'retval' from SUE_free'
+         else
+            sayerror ERROR__MSG retval SHELL_ERROR3__MSG
+         endif
+         -- Ignore errors here, most likely the shell object will be killed delayed
+      else
+         sayerror 'Shell object was killed successfully'
+      endif
+
+      -- Create a new shell object, keeping ShellNum
+      ShellHandle  = '????'
+      retval = SUE_new( ShellHandle, ShellNum)
+      if retval then
+         sayerror ERROR__MSG retval SHELL_ERROR1__MSG
+      else
+         call SetAVar( 'Shell_h'ShellNum, ShellHandle)
+         InitCmd = ''
+compile if EPM_SHELL_PROMPT <> ''
+         InitCmd = EPM_SHELL_PROMPT
+compile endif
+         if InitCmd > '' then
+            'shell_write' ShellNum InitCmd
+         endif
+
+         -- Determine previous work dir
+         call psave_pos( save_pos)
+         display -3
+         .lineg = .last
+         endline
+         fFound = (ShellGotoNextPrompt( 'P') = 0)
+         Dir = ''
+         Cmd = ''
+         if fFound then
+            call ShellParsePromptLine( Dir, Cmd)
+         else
+            call prestore_pos( save_pos)
+         endif
+         display 3
+         if Dir > '' then
+            CdCmd = 'cdd' Dir
+            'shell_write' ShellNum CdCmd
+         endif
+      endif
+
    endif
 
 -------------------------------------------------------------SUE_break-------------------
