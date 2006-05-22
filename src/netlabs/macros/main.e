@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.44 2006-05-22 10:03:37 aschn Exp $
+* $Id: main.e,v 1.45 2006-05-22 10:08:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,7 +32,9 @@
 ;     DEFINIT actions (e.g. set default values) are finished.
 ;  -  DEFMAIN is not processed, if EPM.EXE is started with option /r.
 ;     /r opens first a new EPM thread, but if an EPM window is already
-;     present, all args will be passed to that window.
+;     present, all args will be passed to that EPM window (or the topmost
+;     EPM window). Exception: An EPM window, started with option /m (multiple
+;     instances), is ignored therefore.
 ;  -  Only 1 DEFMAIN is allowed per .ex file.
 ;  -  Every .ex file defines its own DEFINIT, DEFMAIN and DEFEXIT.
 ;  -  DEFEXIT is not processed for the main .ex file. For other linked
@@ -44,7 +46,7 @@ defmain
    universal rexx_profile
    universal unnamedfilename  -- use NLS-dependent string from EPMMRI.DLL or
                               -- ETKE603.DLL, not the one from ENGLISH.E
-   universal CurEditCmd       -- used to maybe disable cursor restoring,
+   universal CurEditCmd       -- used to maybe disable cursor RestoreRing,
                               -- just init it here to ''
    universal DisplayDisabled  -- suppress screen refresh during file loading
    universal loadstate        -- init loadstate here
@@ -56,6 +58,9 @@ defmain
                   --    0: afterload processed
 
 ;  Get args -----------------------------------------------------------------
+   -- arg(1) contains all args, that where submitted to EPM.EXE, after
+   -- stripping the known EPM command line options off. These args will be
+   -- submitted later to the Edit command.
    EpmArgs = arg(1)
    dprintf( 'MAIN', 'arg(1) = ['arg(1)']')
 
