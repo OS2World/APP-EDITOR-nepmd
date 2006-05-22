@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.43 2006-05-21 18:56:57 aschn Exp $
+* $Id: main.e,v 1.44 2006-05-22 10:03:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -55,9 +55,8 @@ defmain
                   --    2: defload processed
                   --    0: afterload processed
 
-;  Get args and make it a parameter for the edit cmd ------------------------
-   EpmArgs = 'e 'arg(1)
-
+;  Get args -----------------------------------------------------------------
+   EpmArgs = arg(1)
    dprintf( 'MAIN', 'arg(1) = ['arg(1)']')
 
 ;  Process settings from MODECNF.E --------------------------------------------
@@ -103,9 +102,9 @@ compile endif
 
 ;  Execute a user procedure if defined --------------------------------------
 compile if SUPPORT_USER_EXITS
-   if isadefproc('defmain_exit') then
-      call defmain_exit(EpmArgs)
-   endif
+   if isadefproc('defmain_exit') then  -- Change compared to standard EPM:
+      call defmain_exit(EpmArgs)       -- EpmArgs doesn't include the
+   endif                               -- prepended 'e' command
 compile endif
 
 ;  Process PROFILE.ERX ------------------------------------------------------
@@ -123,7 +122,7 @@ compile endif
       -- %NEPMD_USERDIR%\bin with the name PROFILE.ERX now.
       Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
       if exist(Profile) then
-         'rx' Profile arg(1)
+         'rx' Profile EpmArgs
       endif
    endif
 
@@ -168,15 +167,16 @@ defc main2
       endif
    endif
 
-;  Execute the EpmArgs (edit command) ---------------------------------------
+;  Execute the EpmArgs (Edit command) ---------------------------------------
    dprintf( 'MAIN', 'EpmArgs = 'EpmArgs)
-   -- Restore last edit ring if started without args
    KeyPath = '\NEPMD\User\AutoRestore\Ring\LoadLast'
    Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if (arg(1) = '' & Enabled) then
+   if (EpmArgs = '' & Enabled) then
+      -- Restore last edit ring if started without args
       'RestoreRing'
    else
-      EpmArgs
+      -- Make EpmArgs a parameter for the Edit command and execute it
+      'e' EpmArgs
    endif
 
 ;  Quit automatically loaded empty file -------------------------------------
