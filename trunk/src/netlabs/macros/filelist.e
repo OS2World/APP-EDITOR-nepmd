@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.15 2006-05-21 18:56:54 aschn Exp $
+* $Id: filelist.e,v 1.16 2006-06-03 20:50:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,12 +32,17 @@ Todo:
 ; RingAutoWriteFilePosition is called by 'quit' and 'ProcessAfterload'.
 defproc RingAutoWriteFilePosition
    universal nepmd_hini
+   universal CurEditCmd
    universal RingWriteFilePositionDisabled
    universal RingWriteFilePositionMaxFilesReached  -- used only here, maybe set by a previous call
 
-   -- Don't overwite old ring if Disabled flag set (e.g. by RestoreRing)
+   -- Don't overwrite old ring if Disabled flag set (e.g. by RestoreRing)
    if RingWriteFilePositionDisabled = 1 then return; endif
 
+   -- Don't overwrite old ring if only .Untitled added
+   if CurEditCmd = '' then return; endif
+
+   -- The CurEditCmd check avoids that situation already, but it won't hurt:
    -- Don't overwite old ring if only .Untitled in ring
    IsUnnamed = (.filename = GetUnnamedFileName())
    if filesinring() = 1 & IsUnnamed then return; endif
@@ -67,6 +72,7 @@ defproc RingAutoWriteFilePosition
       RingWriteFilePositionMaxFilesReached = 0
    endif
 
+   dprintf( 'RESTORE_RING', 'call RingWriteFilePosition from RingAutoWriteFilePosition')
    call RingWriteFilePosition()
    return
 
@@ -88,7 +94,9 @@ defproc RingWriteFilePosition
    hwnd = '0x'ltoa( gethwndc(6), 16)   -- EPMINFO_EDITFRAME
    WorkDir = directory()
 
-   ---- Search hwnd in SavedRings -------------------------------------------
+   ThisNumber = 1
+   LastNumber = ''
+   -- Search hwnd in SavedRings
    FoundRing = 0
    do r = 1 to MaxRings
       -- Search hwnd in '\NEPMD\User\SavedRings\'r'\hwnd'
@@ -105,8 +113,9 @@ defproc RingWriteFilePosition
          leave
       endif
    enddo
+
    if FoundRing = 0 then  -- if current hwnd not found
-      ---- Get ThisNumber ---------------------------------------------------
+      -- Get ThisNumber
       KeyPath = '\NEPMD\User\SavedRings\LastNumber'
       LastNumber = NepmdQueryConfigValue( nepmd_hini, KeyPath)
       parse value LastNumber with 'ERROR:'rc
@@ -129,13 +138,8 @@ defproc RingWriteFilePosition
    endif
 
    KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
--- begin workaround
-   -- Delete possible garbage in RegContainer (not required if
-   -- NepmdDeleteConfigValue would work more reliable)
-   rc = setprofile( nepmd_hini, 'RegContainer', KeyPath, '')
--- end workaround
 
-   ---- Delete old 'File'i and 'Posn'i --------------------------------------
+   -- Delete old 'File'i and 'Posn'i
    -- This is always required.
    do i = 1 to 1000  -- just an upper limit to prevent looping forever
       rc1 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\File'i)
@@ -145,46 +149,47 @@ defproc RingWriteFilePosition
       endif
    enddo
 
--- begin more workaround: always (re)write LastNumber, hwnd, WorkDir,
-   -- even if last values are reused to avoid garbage in RegContainer
-   rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\hwnd')
-   rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\WorkDir')
-   ---- Write LastNumber -------------------------------------------------
-   KeyPath = '\NEPMD\User\SavedRings\LastNumber'
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, ThisNumber)
-   ---- Set KeyPath and write hwnd ---------------------------------------
-   KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\hwnd', hwnd)
-   ---- Write WorkDir -------------------------------------------------------
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\WorkDir', WorkDir)
--- end more workaround
+   if ThisNumber <> LastNumber then
+      -- Write LastNumber
+      KeyPath = '\NEPMD\User\SavedRings\LastNumber'
+      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, ThisNumber)
+   endif
 
-   ---- Write new 'File'i and 'Posn'i ---------------------------------------
+   KeyPath = '\NEPMD\User\SavedRings\'ThisNumber
+
+   if FoundRing = 0 then
+      -- Set KeyPath and write hwnd
+      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\hwnd', hwnd)
+   endif
+   -- Write WorkDir
+   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\WorkDir', WorkDir)
+
+   -- Write new 'File'i and 'Posn'i
    getfileid startfid
    -- Select next file to make current file topmost after restore
    next_file
    getfileid firstfid
-   j = 0
+   i = 0
    -- Loop through all files in ring
-   do i = 1 to filesinring()  -- Provide an upper limit; prevent looping forever
+   do f = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       -- Skip temp. files
-      Ignore = ((leftstr( .filename, 1) = '.') | (not .visible))
-      if not Ignore then
-         -- Write 'File'j and 'Posn'j for every file
-         j = j + 1
-         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\File'j, .filename)
-         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Posn'j, .line .col .cursorx .cursory)
+      fIgnore = ((leftstr( .filename, 1) = '.') | (not .visible))
+      if not fIgnore then
+         -- Write 'File'i and 'Posn'i for every file
+         i = i + 1
+         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\File'i, .filename)
+         rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Posn'i, .line .col .cursorx .cursory)
       endif
       next_file
       getfileid fid
       if fid = firstfid then leave; endif
    enddo
 
-   ---- Write 'Entries' (ammount of 'File'j and 'Posn'j) --------------------
-   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', j)
+   -- Write 'Entries' (ammount of 'File'i and 'Posn'i)
+   rc = NepmdWriteConfigValue( nepmd_hini, KeyPath'\Entries', i)
 
    -- Check if file to be activated is still in ring
-   if wordpos( ValidateFileid(startfid), '1 2') then
+   if wordpos( ValidateFileid( startfid), '1 2') then
       activatefile startfid
    endif
    return
@@ -249,17 +254,17 @@ defc RestoreRing
    else
       SelectDisabled = 1
    endif
-   do j = 1 to LastEntries
-      if j = LastEntries then
+   do i = 1 to LastEntries
+      if i = LastEntries then
          SelectDisabled = 0
       endif
 
-      filename = NepmdQueryConfigValue( nepmd_hini, KeyPath'\File'j)
-      savedpos = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Posn'j)
+      filename = NepmdQueryConfigValue( nepmd_hini, KeyPath'\File'i)
+      savedpos = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Posn'i)
       OpenNewWindow = 0
       --OpenNewWindow = 1
 /*
-      if j = 1 then
+      if i = 1 then
          OpenNewWindow = 1
          if IsEmptyFileOnly then
             OpenNewWindow = 0
@@ -267,12 +272,12 @@ defc RestoreRing
       endif
 */
       if OpenNewWindow = 1 then
-         dprintf( 'RESTORE_RING', "j = "j", o 'restorering "LastNumber"'")
+         dprintf( 'RESTORE_RING', "i = "i", o 'restorering "LastNumber"'")
 -- Problems here:
          "o 'restorering "LastNumber"'"
          return
       else
-         dprintf( 'RESTORE_RING', 'j = 'j', e "'filename'"'||" 'restorepos "savedpos"'")
+         dprintf( 'RESTORE_RING', 'i = 'i', e "'filename'"'||" 'restorepos "savedpos"'")
          if pos( ' ', filename) then
             filename = '"'filename'"'
          endif
@@ -305,7 +310,8 @@ defc DelSavedRings
    do r = 1 to 1000  -- just an upper limit to prevent looping forever
       rc1 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\Entries')
       rc2 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\hwnd')
-      if (rc1 <> 0) & (rc2 <> 0) then
+      rc3 = NepmdDeleteConfigValue( nepmd_hini, KeyPath'\'r'\WorkDir')
+      if (rc1 <> 0) & (rc2 <> 0) & (rc3 <> 0) then
          iterate
       endif
       do i = 1 to 1000  -- just an upper limit to prevent looping forever
@@ -315,15 +321,7 @@ defc DelSavedRings
             leave
          endif
       enddo  -- i
-
-      -- begin workaround
-      rc = setprofile( nepmd_hini, 'RegContainer', KeyPath'\'r, '')
-      -- end workaround
    enddo  -- r
-
-   -- begin workaround
-   rc = setprofile( nepmd_hini, 'RegContainer', KeyPath, '')
-   -- end workaround
 
 ; ---------------------------------------------------------------------------
 defc RingMaxFiles
@@ -391,18 +389,20 @@ defproc RingAddToHistory
    next_file
    getfileid firstfid
    -- Loop through all files in ring
-   do f = 1 to filesinring()  -- Provide an upper limit; prevent looping forever
+   do f = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       NewItem = .filename
       rest = History
       -- Skip temp files
       fIgnore = ((leftstr( NewItem, 1) = '.') | (not .visible) |
                  NepmdFileExists( NewItem) = 0)
       if not fIgnore then
+
          -- Add NewItem
          i = 1
          History = NewItem''Delim  -- first item is NewItem
          fStopList = 0
          do while (rest <> '' & fStopList = 0)
+
             -- Maybe append next item
             parse value rest with next (Delim) rest
             NewHistory = History''next''Delim
@@ -418,7 +418,9 @@ defproc RingAddToHistory
                i = i + 1
                History = NewHistory
             endif
+
          enddo  -- while
+
       endif  -- not fIgnore
       next_file
       getfileid fid
@@ -626,12 +628,12 @@ defproc RingWriteFileNumber
       fid = firstfid
       firstinringfid = fid  -- initialize to current file
       LowestFileNumber = filesinring()  -- initialize to upper limit
-      do i = 1 to filesinring()  -- just as an upper limit
+      do f = 1 to filesinring(1)  -- just as an upper limit
          -- Check if FileNumber was set by a previous call to RingWriteFileNumber
          -- and get the lowest
 
          ThisFileNumber = GetAVar( 'filenumber.'fid)
-         dprintf( 'WRITE_FILE_NUMBER', 'i = 'i', FileNumber = 'ThisFileNumber', FileName = '.filename)
+         dprintf( 'WRITE_FILE_NUMBER', 'f = 'f', FileNumber = 'ThisFileNumber', FileName = '.filename)
          if ThisFileNumber <= LowestFileNumber & ThisFileNumber <> '' then
             LowestFileNumber = ThisFileNumber
             firstinringfid = fid
@@ -652,7 +654,7 @@ defproc RingWriteFileNumber
    FileNumber = 0
    activatefile firstinringfid
    fid = firstinringfid
-   do i = 1 to filesinring()  -- just as an upper limit
+   do f = 1 to filesinring(1)  -- just as an upper limit
       FileNumber = FileNumber + 1
 
       -- Save FileNumber in an array var
@@ -721,8 +723,10 @@ defc Ring
    endif
    display -3
    getfileid startfid
-   do i = 1 to filesinring()  -- omit hidden files
-      arg(1)  -- execute arg(1)
+   do f = 1 to filesinring(1)  -- just as an upper limit
+      if .visible then
+         arg(1)  -- execute arg(1)
+      endif
       nextfile
       getfileid fid
       if fid = startfid then
