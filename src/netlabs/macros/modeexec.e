@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.18 2006-05-21 18:56:58 aschn Exp $
+* $Id: modeexec.e,v 1.19 2006-06-03 20:50:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -490,7 +490,7 @@ defc RingRefreshSetting
 ;    if hili_on then
 ;       'RingRefreshSetting DEFAULT SetHighlight 'not hili_on 'N'
 ;    endif
-   do i = 1 to filesinring()  -- omit hidden files and prevent looping forever
+   do f = 1 to filesinring(1)  -- prevent looping forever, hidden files must be included
       Execute = 0
       if Mode = 'DEFAULT' then
          next = GetAVar( SettingName'.'fid)  -- query file setting
@@ -498,7 +498,7 @@ defc RingRefreshSetting
             Cmd 'REFRESHDEFAULT' Args  -- execute arg(1) with 'REFRESHDEFAULT' parameter prepended
          endif
       elseif Mode = GetMode() then
-         if i = 1 then
+         if f = 1 then
             'ResetFileSettings'  -- all settings (reset of a single setting is not implemented)
          else
             'ResetFileSettings LOAD'  -- all load settings (reset of a single setting is not implemented)
@@ -600,19 +600,18 @@ defc RingDumpSettings
    insertline '   Defselect lastusedsettings   = 'GetAVar( 'lastusedsettings'), .last + 1
    activatefile startfid
    fid = startfid
-   do i = 1 to filesinring()  -- omit hidden files
-      --if fid = tmpfid then    -- omit tmp file
-      --   iterate  -- iterate doesn't work - why?
-      --endif
-      insertline .filename, tmpfid.last + 1, tmpfid
-      -- Add mode
-      insertline '   'leftstr( 'mode', max( length('mode'), 22))' = 'GetMode(), tmpfid.last + 1, tmpfid
-      do w = 1 to words(SettingsList)
-         wrd = word( SettingsList, w)
-         SettingName = lowcase(wrd)
-         SettingValue = GetAVar( SettingName'.'fid)  -- query file setting
-         insertline '   'leftstr( SettingName, max( length(SettingName), 22))' = 'SettingValue, tmpfid.last + 1, tmpfid
-      enddo
+   do f = 1 to filesinring(1)  -- just an upper limit
+      if .visible then  -- omit hidden files
+         insertline .filename, tmpfid.last + 1, tmpfid
+         -- Add mode
+         insertline '   'leftstr( 'mode', max( length('mode'), 22))' = 'GetMode(), tmpfid.last + 1, tmpfid
+         do w = 1 to words(SettingsList)
+            wrd = word( SettingsList, w)
+            SettingName = lowcase(wrd)
+            SettingValue = GetAVar( SettingName'.'fid)  -- query file setting
+            insertline '   'leftstr( SettingName, max( length(SettingName), 22))' = 'SettingValue, tmpfid.last + 1, tmpfid
+         enddo
+      endif
       nextfile
       getfileid fid
       if fid = startfid then

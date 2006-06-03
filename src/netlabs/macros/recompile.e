@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.4 2006-05-07 14:53:08 aschn Exp $
+* $Id: recompile.e,v 1.5 2006-06-03 20:50:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -273,7 +273,7 @@ defc Restart
    if arg(1) = '' then
       cmd = 'RestoreRing'
    else
-      cmd = 'mc ;Restorering;AtStartup 'arg(1)
+      cmd = 'mc ;Restorering;AtStartup' arg(1)
    endif
    'RingCheckModify'
    'SaveRing'
@@ -301,8 +301,9 @@ defc RingCheckModify
    rc = 0
    getfileid fid
    startfid = fid
-   do i = 1 to filesinring()  -- omit hidden files
-      if (substr( .filename, 1, 1) = '.') & (.filename <> GetUnnamedFilename()) then
+   do i = 1 to filesinring(1)  -- just as an upper limit
+      fIgnore = (not .visible) | ((substr( .filename, 1, 1) = '.') & (.filename <> GetUnnamedFilename()))
+      if fIgnore then
          .modify = 0
       else
          'CheckModify'
