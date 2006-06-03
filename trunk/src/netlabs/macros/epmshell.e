@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.24 2006-05-22 21:38:26 aschn Exp $
+* $Id: epmshell.e,v 1.25 2006-06-03 20:49:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -375,6 +375,7 @@ defc NowCanReadShell
       return
    endif
    call DisableUndoRec()  -- no effect
+
    lastline = ''
    ShellFid    = GetAVar( 'Shell_f'shellnum)
    ShellHandle = GetAVar( 'Shell_h'shellnum)
@@ -451,7 +452,10 @@ compile endif -- EPM_SHELL_PROMPT
    endif
    getfileid fid
    call SetAVar( 'ShellAppWaiting.'fid, ShellAppWaiting)  -- save
-   call EnableUndoRec()
+
+   -- This is done automatically after a command has finished, maybe
+   -- avoiding it here can help to reduce undo states:
+   --call EnableUndoRec()
 
 ; ---------------------------------------------------------------------------
 ; Write user input to the shell if EPM prompt is in current line.
