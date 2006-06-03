@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.18 2006-05-21 18:57:02 aschn Exp $
+* $Id: select.e,v 1.19 2006-06-03 20:52:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -66,12 +66,11 @@ defselect
 defc ProcessSelect
    universal lastselectedfid
    universal loadstate
-   universal vepm_pointer
    universal SelectDisabled
-   universal DisplayDisabled
 
    -- Suppress too early select events
    if loadstate = '' then
+      dprintf( 'SELECT', 'suppress DEFSELECT for '.filename', loadstate = 'loadstate)
       return
    endif
 
@@ -86,7 +85,7 @@ defc ProcessSelect
       JustLoaded = 1
       'ProcessAfterLoad'  -- executes multiple ring commands that sometimes
                           -- leave the wrong file on top
-      'postme activatefile' fid  -- postme required, but doesn't work in some rare cases
+      --'postme activatefile' fid  -- postme required, but doesn't work in some rare cases
       'postme ProcessAfterload2'  -- final processing, therefore posted
       loadstate = 0
    endif
@@ -106,24 +105,28 @@ defc ProcessAfterLoad
 
    dprintf( 'AFTERLOAD', .filename', CurEditCmd = 'CurEditCmd)
 
-;  Write number for all files in the ring to an array var -------------------
+   -- Write number for all files in the ring to an array var
    -- see FILELIST.E
    -- must not execute 'postme activatefile' at this point
    call RingWriteFileNumber()
 
-;  Write name of all files in the ring to NEPMD.INI -------------------------
-   -- We want do this only for single files, not for wildcards in filespec
+   -- Write name of all files in the ring to NEPMD.INI
+   -- Do this only for single files, not for wildcards in filespec
    if filestoloadmax <= 1 then
       call RingAddToHistory('LOAD')
    endif
 
-;  Write position and name of all files in the ring to NEPMD.INI ------------
+   -- Write position and name of all files in the ring to NEPMD.INI
    -- Don't process if files loaded by Recompile or 'groups loadgroup'
    if wordpos( CurEditCmd, 'SETPOS LOADGROUP RESTORERING') = 0 then
       -- see FILELIST.E
       -- must not execute 'postme activatefile' at this point
       call RingAutoWriteFilePosition()
    endif
+
+   -- Reset CurEditCmd to enable saving the ring list for the next 'edit'
+   -- or 'quit' action
+   CurEditCmd = ''
 
 ; ---------------------------------------------------------------------------
 ; This cmd is posted once after all files were loaded by defselect.
@@ -133,19 +136,41 @@ defc ProcessAfterLoad2
 
    dprintf( 'AFTERLOAD', 'ProcessAfterload2 for '.filename)
 
-   'setmousepointer 'vepm_pointer
+   mouse_setpointer vepm_pointer
 
    if DisplayDisabled then
       DisplayDisabled = 0
-      'display 1'  -- reenable screen updates, show the loaded files
+      display 1
+      --'display 1'  -- reenable screen updates, show the loaded files
+      --refresh
    endif
    -- Bug to find? display 2 here would cause on defmodify the msg:
    -- Invalid third parameter, most likely coming from a do_array
    -- statement or Get/SetAVar call.
 
-   dprintf( 'AFTERLOAD', 'HookExecute afterload, afterloadonce')
+;   'postme ProcessAfterLoad3'
+;
+;defc ProcessAfterLoad3
+   dprintf( 'AFTERLOAD', 'HookExecute afterload: 'HookGet( 'afterload'))
    'HookExecute afterload'
-   'postme HookExecuteOnce afterloadonce'
+   dprintf( 'AFTERLOAD', 'HookExecute afterloadonce: 'HookGet( 'afterloadonce'))
+   'HookExecuteOnce afterloadonce'
+
+; ---------------------------------------------------------------------------
+defproc HookGet
+   universal EPM_utility_array_ID
+   prefix = 'hook.'
+   parse arg HookName
+   HookName = strip( lowcase(HookName))
+   next = ''
+   if not get_array_value( EPM_utility_array_ID, prefix''HookName'.0', imax) then  -- if imax set
+      next = '|'
+      do i = 1 to imax
+         rc = get_array_value( EPM_utility_array_ID, prefix''HookName'.'i, Cmd)
+         next = next''Cmd'|'
+      enddo
+   endif
+   return next
 
 ; ---------------------------------------------------------------------------
 ; Executed by defselect
