@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.45 2006-05-22 10:08:20 aschn Exp $
+* $Id: main.e,v 1.46 2006-06-03 20:53:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -132,9 +132,7 @@ compile endif
    endif
 
 ;  Show menu and window -----------------------------------------------------
-   call showmenu_activemenu()  -- show the EPM menu (before the window is shown)
-                               -- showmenu_activemenu is not required anymore,
-                               -- omitting it here won't change anything
+   call showmenu_activemenu()  -- show the EPM menu
    -- see also: STDCNF.E for menu
    call showwindow('ON')
    mouse_setpointer WAIT_POINTER
