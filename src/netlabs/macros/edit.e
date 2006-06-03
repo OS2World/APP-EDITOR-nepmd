@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.38 2006-05-21 18:56:52 aschn Exp $
+* $Id: edit.e,v 1.39 2006-06-03 20:49:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -442,11 +442,14 @@ compile if HOST_SUPPORT & not SMALL
                rest = more substr( rest, p)
             else
 compile endif
-               -- Parse at next ','. Removes ',' from filespec (DOS and VM)
-               -- A ',' separates multiple <filespec> '<command>' segments.
+               -- Recogniation of ',' as segement parser is changed from ','
+               -- to ', ' (at least 1 space after the comma) in order to
+               -- support filenames like: "filename.ext,v", as created by CVS.
+               -- Parse at next ', '. Removes ', ' from filespec (DOS and VM)
+               -- A ', ' separates multiple <filespec> '<command>' segments.
                parse value rest with filespec rest2
-               if pos( ',', filespec) then
-                  parse value rest with filespec ',' rest
+               if pos( ', ', filespec) then
+                  parse value rest with filespec ', ' rest
                else
                   rest = rest2
                endif
