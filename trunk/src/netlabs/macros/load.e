@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.24 2006-05-21 18:56:56 aschn Exp $
+* $Id: load.e,v 1.25 2006-06-03 20:53:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -100,7 +100,7 @@ compile endif
                   --    0: afterload processed
    Filename = .filename
    getfileid fid
-   dprintf( 'LOAD', Filename)
+   dprintf( 'LOAD', 'fid = 'fid', 'Filename)
 
 ;  Set .readonly from file attributes ---------------------------------------
    'ReadonlyFromAttrib'
