@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.19 2006-01-08 22:42:56 aschn Exp $
+* $Id: config.e,v 1.20 2006-06-03 20:48:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1223,8 +1223,10 @@ compile endif
    parse value queryprofile( app_hini, appname, INI_OPT2FLAGS) with pointer_style cursor_shape .
 --------> todo?
    if pointer_style <> '' then
+      -- Just set the universal var here
       vepm_pointer = 1 + pointer_style
-      mouse_setpointer vepm_pointer
+      -- The pointer is set now by ProcessAfterLoad2
+      --mouse_setpointer vepm_pointer
    endif
 compile if not defined(my_CURSORDIMENSIONS)
    if cursor_shape <> '' then
