@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.30 2006-05-07 19:12:42 aschn Exp $
+* $Id: stdkeys.e,v 1.31 2006-06-03 20:53:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -56,6 +56,8 @@ def right         'NextChar'            -- Go to next char (Shift marks)
 def up            'Up'                  -- Go to previous line (Shift marks)
 def down          'Down'                -- Go to next line (Shift marks)
 def home          'BeginLineOrText'     -- Go to begin of line or text (Shift marks)
+defc Key_a_home   'BeginLine'           -- Go to begin of line
+defc Key_a_s_home 'MarkBeginLine'       -- Mark to begin of line
 def end           'EndLine'             -- Go to end of line (Shift marks)
 def pgup          'PageUp'              -- Go to previous page (Shift marks)
 def pgdn          'PageDown'            -- Go to next page (Shift marks)
@@ -189,6 +191,7 @@ def a_r           'ReflowBlock'         -- Reflow marked block to a new block si
 
 ; ---- Case ----
 ;def c_f1         'UppercaseWord'       -- Change word to uppercase
+defc Key_c_s_f2   'UppercaseWord'       -- Change word to uppercase
 def c_f1          'CaseWord'            -- Toggle word through mixed, upper and lower cases
 def c_f2          'LowercaseWord'       -- Change word to lowercase
 def c_f3          'UppercaseMark'       -- Change mark to uppercase
