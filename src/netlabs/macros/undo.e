@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: undo.e,v 1.6 2005-11-16 16:29:03 aschn Exp $
+* $Id: undo.e,v 1.7 2006-06-03 20:48:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,26 +34,22 @@ defc ProcessUndo
    --refresh;
 
 ; ---------------------------------------------------------------------------
-; Moved from STDCTRL.E
-defc RestoreUndo
-   call EnableUndoRec()
-
-; ---------------------------------------------------------------------------
 ; Restore standard undo recording. Some commands have to disable that
 ; in order to not clutter the record list, e.g. when a command is used
 ; repeatedly.
 ; Values for action:
 ;    0: at every keystroke (not default)
-;    1: at every command (default)
-;    2: when moving the cursor from a modified line (default, but not
-;       changed by any command, so far)
+;    1: at every command (not default)
+;    2: when moving the cursor from a modified line (default)
 ; This is used by following key defcs and events, e.g.:
 ; Space, Return, defselect, ProcessOtherKeys
 defproc EnableUndoRec
    --action = 0  -- action, the 2nd param of undoaction, must be a var
    --undoaction 4, action  -- 4: disable undo recording at action
-   action = 1  -- action, the 2nd param of undoaction, must be a var
-   undoaction 5, action  -- 5: enable undo recording at action
+
+   --action = 1  -- action, the 2nd param of undoaction, must be a var
+   --undoaction 5, action  -- 5: enable undo recording at action
+
    action = 2  -- action, the 2nd param of undoaction, must be a var
    undoaction 5, action  -- 5: enable undo recording at action
    return
@@ -62,8 +58,8 @@ defproc EnableUndoRec
 ; Disable undo recording. This is used by several key defcs, e.g.:
 ; Space, Tab, TypeTab, ShiftLeft, ShiftRight, DeleteChar, BackSpace
 defproc DisableUndoRec
-   --action = 0  -- action, the 2nd param of undoaction, must be a var
-   --undoaction 4, action  -- 4: disable undo recording at action
+   action = 0  -- action, the 2nd param of undoaction, must be a var
+   undoaction 4, action  -- 4: disable undo recording at action
    action = 1  -- action, the 2nd param of undoaction, must be a var
    undoaction 4, action  -- 4: disable undo recording at action
    action = 2  -- action, the 2nd param of undoaction, must be a var
@@ -78,6 +74,17 @@ defproc NewUndoRec
       call EnableUndoRec()
    endif
    return
+
+; ---------------------------------------------------------------------------
+; Commands for accessing undo procs from REXX and C
+defc RestoreUndo, EnableUndoRec
+   call EnableUndoRec()
+
+defc DisableUndoRec
+   call DisableUndoRec()
+
+defc NewUndoRec
+   call NewUndoRec()
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
