@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sampactn.e,v 1.9 2006-05-07 19:24:20 aschn Exp $
+* $Id: sampactn.e,v 1.10 2006-06-03 20:53:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -151,7 +151,8 @@ defc a_Add_File
    a_common_action( arg(1), 'opendlg EDIT', ADD_MENUP__MSG, HP_FILE_EDIT)
 
 defc a_Open_empty
-   a_common_action( arg(1), 'open', a_Open_empty_PROMPT, HP_FILE_OPEN_NEW)
+   -- Changed 'open' to 'open ""' in order to avoid RestoreRing, if activated
+   a_common_action( arg(1), 'open ""', a_Open_empty_PROMPT, HP_FILE_OPEN_NEW)
 
 defc a_NewWindow
    a_common_action( arg(1), 'newwindow', a_NewWindow_PROMPT, 1990)
