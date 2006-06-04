@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.19 2006-06-03 20:52:45 aschn Exp $
+* $Id: select.e,v 1.20 2006-06-04 17:54:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -85,7 +85,7 @@ defc ProcessSelect
       JustLoaded = 1
       'ProcessAfterLoad'  -- executes multiple ring commands that sometimes
                           -- leave the wrong file on top
-      --'postme activatefile' fid  -- postme required, but doesn't work in some rare cases
+      'postme activatefile' fid  -- postme required, but doesn't work in some rare cases
       'postme ProcessAfterload2'  -- final processing, therefore posted
       loadstate = 0
    endif
