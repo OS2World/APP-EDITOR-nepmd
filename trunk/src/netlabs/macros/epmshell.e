@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.28 2006-06-04 10:54:51 aschn Exp $
+* $Id: epmshell.e,v 1.29 2006-06-04 10:56:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -490,7 +490,7 @@ defproc ShellEnterWrite
          CmdWord = '"'CmdWord'"'
       endif
 
-      -- Prepend "cd" if no CmdName given (true for a leading '\')
+      -- Prepend "cd" if no CmdName given (true for a trailing '\')
       if CmdName = '' & CmdWord <> '' & CmdArgs = '' then
          CmdArgs = CmdWord
          CmdWord = 'cd'
