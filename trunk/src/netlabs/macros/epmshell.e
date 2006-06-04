@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.26 2006-06-04 10:19:33 aschn Exp $
+* $Id: epmshell.e,v 1.27 2006-06-04 10:31:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -496,10 +496,12 @@ defproc ShellEnterWrite
             parse value CmdArgs with '"'CmdArgs'"'
          endif
          -- Strip trailing \ from CmdArgs
-         if rightstr( CmdArgs, 1) = '\' then
+         if rightstr( CmdArgs, 1) = '\' &
+            CmdArgs <> '\' &
+            rightstr( CmdArgs, 2) <> ':\' then
             CmdArgs = strip( CmdArgs, 'T', '\')
          endif
-         -- Surround with "..." if spaces from CmdArgs
+         -- Surround with "..." if CmdArgs contains spaces
          if pos( ' ', CmdArgs) then
             CmdArgs = '"'CmdArgs'"'
          endif
