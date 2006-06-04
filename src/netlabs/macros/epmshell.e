@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.27 2006-06-04 10:31:55 aschn Exp $
+* $Id: epmshell.e,v 1.28 2006-06-04 10:54:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -488,6 +488,13 @@ defproc ShellEnterWrite
       -- Re-surround CmdWord with "..." if spaces
       if pos( ' ', CmdWord) then
          CmdWord = '"'CmdWord'"'
+      endif
+
+      -- Prepend "cd" if no CmdName given (true for a leading '\')
+      if CmdName = '' & CmdWord <> '' & CmdArgs = '' then
+         CmdArgs = CmdWord
+         CmdWord = 'cd'
+         CmdName = 'CD'
       endif
 
       if CmdName = 'CD' then
