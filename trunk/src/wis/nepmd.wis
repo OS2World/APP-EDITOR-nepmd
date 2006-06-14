@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.43 2006-05-07 22:30:54 aschn Exp $
+# $Id: nepmd.wis,v 1.44 2006-06-14 07:29:18 aschn Exp $
 #
 # ===========================================================================
 #
@@ -101,12 +101,16 @@
      ><TINCLUDE name="..\nls\wis\desc4%NLS%.xml"/></PCK>
 
 <PCK INDEX=99
-     PACKAGEID="Netlabs\Netlabs EPM Distribution\Base Application\%ID_VERSION_NEPMD%"
-     TARGET="$(1)"
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Base Application\1\0\0"
+     <!--TARGET="$(1)"-->
+     TARGET="$(WARPIN_DEFAULTAPPSPATH)\NEPMD"
      REQUIRES="1"
      EXTERNAL="nepmd_epmbase.wpp"
-     TITLE="%PCK_99_TITLE%"
-     ><TINCLUDE name="..\nls\wis\desc99%NLS%.xml"/></PCK>
+     TITLE="EPMBBS Base Application (use with OS/2 Warp 3 only!)"
+     >This package installs the EPM base application for users of OS/2 Warp 3 and EPM V5.51.
+
+NOTE:
+    This should not be installed by users of OS/2 Warp 4 or eComStation. They should instead have installed or install the much newer EPM V6.03b coming with their operating system, being heavily fixed compared to the files in this package.</PCK>
 
 </HEAD>
 
