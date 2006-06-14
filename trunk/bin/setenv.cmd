@@ -34,7 +34,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: setenv.cmd,v 1.2 2006-04-25 21:01:32 aschn Exp $
+: $Id: setenv.cmd,v 1.3 2006-06-14 19:03:25 aschn Exp $
 :
 : ===========================================================================
 :
@@ -66,7 +66,7 @@ SET DEBUG=1
 : SET UNZIPPEDDIR=f:\epm.packages
 :
 : ---- Enlarge the VIO window
-: MODE CO120,50
+: MODE CO 1>nul 2>&1 & IF NOT ERRORLEVEL 436 MODE CO120,50
 :
 : ---- Of course we use EPM for writing cvs commit comments
 SET CVSEDITOR=EPM /M
@@ -98,7 +98,7 @@ SET DIR_TOOLKIT=f:\dev\toolkt45
 : Check if this file is executed from the main project directory
 : In order to not overwrite the user's changes the user should copy it
 : to the main project directory and adjust that version.
-IF EXIST .\bin\setenv2.cmd CALL .\bin\setenv2.cmd&GOTO :END
+IF EXIST .\bin\setenv2.cmd CALL .\bin\setenv2.cmd & GOTO :END
 :
 ECHO Error: This cmd file should not be executed out of the bin directory.
 ECHO.

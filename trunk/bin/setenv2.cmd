@@ -12,7 +12,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: setenv2.cmd,v 1.1 2006-04-15 18:28:40 aschn Exp $
+: $Id: setenv2.cmd,v 1.2 2006-06-14 19:03:25 aschn Exp $
 :
 : ===========================================================================
 :
@@ -28,11 +28,10 @@
 : **************************************************************************/
 :
 : ---- Check presence of env vars and validate dirs
-IF .%USED_COMPILER%==. ECHO Error: This file should be called by setenv.cmd only&GOTO :END
-IF NOT EXIST %DIR_COMPILER% ECHO Error: directory %DIR_COMPILER% doesn't exist&GOTO :END
-IF NOT EXIST %DIR_TOOLKIT% ECHO Error: directory %DIR_TOOLKIT% doesn't exist&GOTO :END
+IF .%USED_COMPILER%==. ECHO Error: This file should be called by setenv.cmd only & GOTO :END
+IF NOT EXIST %DIR_COMPILER% ECHO Error: directory %DIR_COMPILER% doesn't exist & GOTO :END
+IF NOT EXIST %DIR_TOOLKIT% ECHO Error: directory %DIR_TOOLKIT% doesn't exist & GOTO :END
 GOTO :%USED_COMPILER%
-GOTO :END
 
 
 :VAC308
