@@ -2,15 +2,15 @@
 #
 # Module Name: makefile
 #
-# global makefile for creating a WarpIn package for EPM
+# Global makefile for creating a WarpIn package for EPM.
 #
-# Configure the makefile process by editing configure.in before executing
+# Configure the makefile process by editing configure.in before executing.
 #
-# NOTE: calling without target will bring up the makefile.inf
+# Note: Calling without target will bring up the makefile.inf.
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.27 2002-11-05 20:30:19 cla Exp $
+# $Id: makefile,v 1.28 2006-06-14 17:07:36 aschn Exp $
 #
 # ===========================================================================
 #
@@ -25,25 +25,25 @@
 #
 # ***************************************************************************
 
-# --- include main definitions
+# --- Include main definitions
 
 BASEDIR=.
 !include $(BASEDIR)\rules.in
 
-# --- module list
-#     NOTE:
+# --- Module list
+#     Note:
 #      - module names must be identical to the subdirectory below
 #        src directory
 #      - keep module gui\common before all other gui submodules
 #      - keep module wis last in order to have all required
-#        files available !
+#        files available!
 
 GUIMODULELIST=gui\common gui\recomp gui\epmcall gui\nepmdlib
 MODULELIST=ipf rexx netlabs nls $(GUIMODULELIST) wis
 
-# --- default targets
+# --- Default targets
 
-# - generic default target for building a module
+# - Generic default target for building a module
 
 !ifdef MODULE
 SPACER=--------------
@@ -65,35 +65,35 @@ QUIET:
 
 !else
 
-# - default target for to set languagwe
+# - Default target for to set language
 
 !ifdef NLS
 DEFAULT:
   @setnls $(NLS)
 !else
 
-# - default target for normal operation
+# - Default target for normal operation
 
 DEFAULT: HELP
 !endif
 !endif
 
-# --- other pseudotargets
+# --- Other pseudotargets
 
 ALL:
-  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL
+  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL||exit
 
 GUI:
-  @for %%a in ($(GUIMODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL
+  @for %%a in ($(GUIMODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL||exit
 
 RUNGUI: GUI
   @$(MAKE) QUIET ARG=RUN MODULE=gui\recomp CALLED=1
 
 REL:
-  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a NDEBUG=1 ARG=ALL
+  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a NDEBUG=1 ARG=ALL||exit
 
 TOUCHREL:
-  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a NDEBUG=1 ARG="ALL TOUCH=1"
+  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a NDEBUG=1 ARG="ALL TOUCH=1"||exit
 
 HELP:
   @$(MAKE) QUIET ARG=SHOWHELP MODULE=ipf CALLED=1
