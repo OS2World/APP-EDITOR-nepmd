@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: hooks.e,v 1.9 2006-05-21 18:08:00 aschn Exp $
+* $Id: hooks.e,v 1.10 2006-06-18 20:23:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -47,6 +47,7 @@
 ;                     only)
 ; -  afterload        executed after all defloads are finished
 ; -  afterloadonce    executed once after all defloads are finished
+; -  afterload2once   executed once after afterloadonce
 ; -  select           usually contains ProcessSelectSettings, to be used
 ;                     for user additions as well
 ; -  selectonce       user additions, deleted after execution
@@ -395,11 +396,21 @@ defc AtNextLoad
 ; ---------------------------------------------------------------------------
 ; Syntax: AtStartup <UserCmd>
 ; <UserCmd> is executed after the EPM window was opened and after all load
-; actions are processed. After execution, the hook is deleted, so that is
+; actions are processed. After execution, the hook is deleted, so that it's
 ; executed at the first defselect event only.
 defc AtStartup
    --'HookAdd selectonce postme' arg(1)
    'HookAdd afterloadonce' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtPostStartup <UserCmd>
+; <UserCmd> is posted after the EPM window was opened and after all load
+; actions are processed. Before execution, the screen is refreshed to ensure
+; that all pending paintings are done. After execution, the hook is deleted,
+; so that it's executed at the first defselect event only.
+defc AtPostStartup
+   --'HookAdd selectonce postme' arg(1)
+   'HookAdd afterload2once' arg(1)
 
 ; ---------------------------------------------------------------------------
 ; Syntax: AtSelect <UserCmd>
