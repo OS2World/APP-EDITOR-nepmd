@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.39 2006-06-03 20:49:13 aschn Exp $
+* $Id: edit.e,v 1.40 2006-06-18 20:46:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -351,6 +351,9 @@ compile endif
    endif
 
    if CurEditCmd <> 'RESTORERING' then
+; Todo:
+;    Here: Write args to an array var
+;    AtStartup: Write contents of array to history
       'AtStartup AddToHistory EDIT' args
    endif
 
@@ -596,20 +599,30 @@ defc o, open=
 ;              include additional arguments for the E command.  E.g.,
 ;                 ep mycnf.e . '/spell'
 defc ep, epath=
-   parse arg filename pathname rest
-   if pathname = '' | pathname = '.' then
-      if filetype(filename) = 'CMD' then
-         pathname = 'PATH'
+   parse arg Filename Pathname Rest
+   if Pathname = '' | Pathname = '.' then
+      if filetype( Filename) = 'CMD' then
+         PathnameList = 'PATH'
       else
-         pathname = EPATH
+         PathnameList = EPATH 'PATH'
       endif
+   else
+      PathnameList = Pathname
    endif
-   call parse_filename( filename, substr( .filename, lastpos( '\', .filename) + 1))
-   findfile newfile, filename, pathname
-   if rc then
-      newfile = filename
+   do w = 1 to words( PathnameList)
+      Pathname = word( PathnameList, w)
+      call parse_filename( Filename,
+                           substr( .filename, lastpos( '\', .filename) + 1))
+      findfile Newfile, Filename, Pathname  -- find Filename in Pathname env var
+      if not rc then  -- if found
+         leave
+      endif
+   enddo
+   if rc then  -- use specified Filename if not found
+      Newfile = Filename
    endif
-   'e 'newfile rest
+   Cmd = strip( 'e' Newfile Rest)
+   Cmd
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
