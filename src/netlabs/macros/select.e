@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.20 2006-06-04 17:54:40 aschn Exp $
+* $Id: select.e,v 1.21 2006-06-18 20:23:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -140,21 +140,21 @@ defc ProcessAfterLoad2
 
    if DisplayDisabled then
       DisplayDisabled = 0
-      display 1
-      --'display 1'  -- reenable screen updates, show the loaded files
-      --refresh
+      display 1  -- reenable screen updates, show the loaded files
    endif
    -- Bug to find? display 2 here would cause on defmodify the msg:
    -- Invalid third parameter, most likely coming from a do_array
    -- statement or Get/SetAVar call.
 
-;   'postme ProcessAfterLoad3'
-;
-;defc ProcessAfterLoad3
    dprintf( 'AFTERLOAD', 'HookExecute afterload: 'HookGet( 'afterload'))
    'HookExecute afterload'
-   dprintf( 'AFTERLOAD', 'HookExecute afterloadonce: 'HookGet( 'afterloadonce'))
+   dprintf( 'AFTERLOAD', 'HookExecuteOnce afterloadonce: 'HookGet( 'afterloadonce'))
    'HookExecuteOnce afterloadonce'
+   if HookIsDefined( 'afterload2once') then
+      refresh
+      'postme HookExecuteOnce afterload2once'
+      dprintf( 'AFTERLOAD', 'HookExecuteOnce afterload2once: 'HookGet( 'afterload2once'))
+   endif
 
 ; ---------------------------------------------------------------------------
 defproc HookGet
