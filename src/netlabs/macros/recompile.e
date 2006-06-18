@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.5 2006-06-03 20:50:27 aschn Exp $
+* $Id: recompile.e,v 1.6 2006-06-18 20:49:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -273,7 +273,7 @@ defc Restart
    if arg(1) = '' then
       cmd = 'RestoreRing'
    else
-      cmd = 'mc ;Restorering;AtStartup' arg(1)
+      cmd = 'mc ;Restorering;AtPostStartup' arg(1)
    endif
    'RingCheckModify'
    'SaveRing'
