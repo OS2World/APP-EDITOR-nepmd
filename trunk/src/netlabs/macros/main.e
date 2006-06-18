@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.47 2006-06-18 20:27:58 aschn Exp $
+* $Id: main.e,v 1.48 2006-06-18 20:58:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,11 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+const
+compile if not defined( SHOW_WINDOW_EARLY)
+   SHOW_WINDOW_EARLY = 0  -- 0 is safer
+compile endif
 
 ; ---------------------------------------------------------------------------
 ;  -  DEFINIT and DEFMAIN are processed whenever the .ex file is linked.
@@ -132,11 +137,13 @@ compile endif
    endif
 
 ;  Show menu and window -----------------------------------------------------
+compile if SHOW_WINDOW_EARLY
    call showmenu_activemenu()  -- show the EPM menu
    -- see also: STDCNF.E for menu
    call showwindow('ON')
    mouse_setpointer WAIT_POINTER
    --refresh     -- force to show the window, with the empty file loaded
+compile endif
    display -1  -- disable screen refresh, re-enabled in defselect
    DisplayDisabled = 1
 
@@ -172,6 +179,7 @@ defc main2
 
 ;  Execute the EpmArgs (Edit command) ---------------------------------------
    dprintf( 'MAIN', 'EpmArgs = 'EpmArgs)
+
    KeyPath = '\NEPMD\User\AutoRestore\Ring\LoadLast'
    Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if (EpmArgs = '' & Enabled) then
@@ -237,4 +245,11 @@ defc main2
       -- Reset ini key
       call SetProfile( nepmd_hini, App, Key, 0)
    endif
+
+compile if not SHOW_WINDOW_EARLY
+;  Otinally show menu and window later --------------------------------------
+   call showmenu_activemenu()  -- show the EPM menu
+   -- see also: STDCNF.E for menu
+   call showwindow('ON')
+compile endif
 
