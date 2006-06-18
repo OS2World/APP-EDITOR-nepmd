@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.32 2006-03-29 22:35:02 aschn Exp $
+* $Id: kwhelp.e,v 1.33 2006-06-18 20:08:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -261,9 +261,12 @@ defc Kwhelp
          -- Re-build the line with a file list containing only found files.
          CheckedFileList = strip( CheckedFileList, 'B', '+' )
          if CheckedFileList = '' then
-            return
+            line = ''  -- Don't try to execute a line but execute
+                       -- "activatefile" at the end. .HELPFILE is currently
+                       -- active and would become visible on a "return" here.
+         else
+            line = cmd CheckedFileList arg2
          endif
-         line = cmd CheckedFileList arg2
 
       endif
 
