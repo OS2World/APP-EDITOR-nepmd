@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: callrexx.e,v 1.4 2004-06-04 00:08:31 aschn Exp $
+* $Id: callrexx.e,v 1.5 2006-06-18 20:37:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -125,7 +125,7 @@ defc epmrexx,rx=
 
 ;  .autoshell = saveautoshell
    rc = rexxsubcomdrop()
-      if rc then
+      if rc & rc <> 30 then  -- rc = 30, when 'rx' is executed from another .erx file
          sayerror RX_SUBCOM_FAIL__MSG rc
 ;;       return
       endif
@@ -324,6 +324,10 @@ defc register_mouse
 ; ---------------------------------------------------------------------------
 defc display
    display arg(1)
+
+; ---------------------------------------------------------------------------
+defc refresh
+   refresh
 
 ; ---------------------------------------------------------------------------
 defc universal

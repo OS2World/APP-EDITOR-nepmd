@@ -2,9 +2,42 @@
 *
 * Module Name: run.erx
 *
+* EPM REXX
+* Execute an action for the current file in EPM, depending on its mode
+* or extension.
+*
+* This REXX command is called when the menu item "Run -> Run current file"
+* or the toolbar button "Run" was pressed.
+*
+* This is coded in REXX to let users adjust it to their needs easily:
+*
+*    o  Copy this file to your %NEPMD_USERDIR%\bin directory.
+*    o  Change or extend the "select" expression below.
+*    o  In your "when" block, set the var "Action" to the command that
+*       shall be executed.
+*    o  In your "when" block, set the var "Msg" to override the default
+*       message.
+*
+* Available vars:
+*
+*    Filename.1   current filename
+*    Filename.2   like Filename.1, but enclosed in doublequotes if it
+*                 contains spaces
+*    Filename.3   like Filename.1, but without path
+*    Path         path of Filename.1, including the trailing backslash
+*    Basename     like Filename.3, but without extension
+*    Ext          extension, without the dot
+*    UpExt        extension in uppercase
+*    Mode         mode for Filename.1
+*
+* Notes:
+*
+*    o  Temporary files, starting with a dot, are ignored.
+*    o  If current file is modified, it will be saved first.
+*
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: run.erx,v 1.4 2006-01-15 11:14:20 aschn Exp $
+* $Id: run.erx,v 1.5 2006-06-18 20:37:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,134 +51,124 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-/* EPM REXX                                                                */
-/* Execute an action for the current file in EPM, depending on its mode    */
-/* or extension.                                                           */
-/*                                                                         */
-/* This REXX command is called when the menu item Run -> Run current file  */
-/* is selected.                                                            */
-/*                                                                         */
-/* This is coded in REXX to let users adjust it to their needs easily:     */
-/*                                                                         */
-/*    o  Copy this file to your %NEPMD_USERDIR%\bin directory.             */
-/*                                                                         */
-/*    o  Change or extend the select expression below.                     */
 
-/* Get .filename and .modify fields */
-'extract /filename/modify'
-
-/* Don't act on temp files */
-if left( filename.1, 1) = '.' then
-   return
-
-/* Get current cmd file */
-parse source . . ThisFile
-/* Avoid endless loop when ThisFile executes itself */
-if translate(ThisFile) = translate(filename.1) then
-   return
-
-/* Get mode array field */
-Mode = GetMode()
-
-/* Save current file if modified */
-if modify.1 > 0 then
-   'save'
-
-/* Change to dir of current file */
-SavedDir = directory()
-call directory '\'
-call directory filename.1'\..'
-
-/* Get extension (when mode doesn't suffice to determine an action) */
-lp1 = lastpos( '\', filespec( 'NAME', FullBaseName))
-Name = substr( filename.1, lp1 + 1)
-lp2 = lastpos( '.', filename.1)
-if lp2 > lp1 + 1 then
-do
-   FullBaseName = left( filename.1, lp2 - 1)
-   Ext = substr( filename.1, lp2 + 1)
-end
-else
-do
-   FullBaseName = filename.1
-   Ext = ''
-end
-BaseName = substr( FullBasename, lp1 + 1)
-UpExt = translate(Ext)
-
-/*'sayerror Mode for "'filename.1'" = "'Mode'", UpExt = "'UpExt'"'*/
-
-/* filename.2: add ".." for spaces in filename.1 */
-If pos( ' ', filename.1) > 0 then
-   filename.2 = '"'filename.1'"'
-else
-   filename.2 = filename.1
-
-/* filename.3: strip path, use name only */
-lp = lastpos( '\', filename.1)
-filename.3 = substr( filename.1, lp + 1)
+call Init
 
 /* Determine action from mode or extension */
-msg = ''
+Msg = ''
+Action = ''
 select
 
    /* CMD and REXX files */
    when Mode = 'CMD' | UPExt = 'CMD' then
-      /*action = 'os2 /k /f 'filename.2*/
-      action = 'shell 'filename.2
+      /*Action = 'os2 /k /f 'filename.2*/
+      Action = 'Shell 'Filename.2
 
-   /* main EPM macro file */
-   when translate( filespec( 'NAME', filename.1)) = 'EPM.E' then
-      action = 'start /f recomp.exe'
-
-   /* other EPM macro files */
+   /* EPM macro files */
    when UpExt = 'E' then
-      action = 'postme RecompileNew'
+      Action = 'Postme RecompileNew'
 
    /* TeX source files */
    when wordpos( UpExt, 'TEX TEXI TEXINFO') > 0 then
-      action = 'shell vlatex.cmd 'filename.3
+      Action = 'Shell vlatex.cmd 'Filename.3
 
    /* LaTeX macro documentation source files */
    when wordpos( UpExt, 'DRV DTX FDD') > 0 then
-      action = 'shell vlatex.cmd 'filename.3
+      Action = 'Shell vlatex.cmd 'Filename.3
 
    /* C files */
    when UpExt = 'C' then
-      /*action = 'os2 /k wcc386 'filename.1*/
-      /*action = 'os2 /k /f gcc 'filename.1*/
-      action = 'shell nmake /nologo clean all'
+      /*Action = 'os2 /k /f wcc386 'Filename.1*/
+      /*Action = 'os2 /k /f gcc 'Filename.1*/
+      Action = 'Shell nmake /nologo clean all'
 
-   /* REXX files */
+   /* EPM REXX files */
    when Mode = 'REXX' & UpExt = 'ERX' then
-      action = 'postme rx 'filename.2
+      Action = 'Postme Rx 'Filename.2
 
    /* HTML files */
    when Mode = 'HTML' then
-      action = 'StartBrowser 'filename.2
+      Action = 'StartBrowser 'Filename.2
 
    otherwise
    do
-      msg = 'RUN.ERX: For this mode is no action defined. Executing OPEN.ERX...'
-      /*action = 'start /c /min open 'filename.2*/
-      action = call open '"'filename.2'"'
+      Msg = 'RUN.ERX: No action defined for this mode. Executing OPEN.ERX...'
+      /* "call open" to call open.erx doesn't work (reliable?) in EPM-REXX */
+      Action = 'rx open' Filename.2
    end
 
 end  /* select */
 
 /* Execute action */
-if msg <> '' then
-   'sayerror 'msg
+if Msg <> '' then
+   'sayerror 'Msg
 else
-   'sayerror RUN.ERX: Executing 'action
-action
+   'sayerror RUN.ERX: Executing 'Action
+Action
 
 /* Restore directory */
 call directory '\'
-call directory saved_dir
+call directory SavedDir
 
-return
+exit
 
+
+/*-------------------------------------------------------------------------*/
+Init:
+
+   /* Get .filename and .modify fields */
+   'Extract /filename/modify'
+
+   /* Don't act on temp files */
+   if left( Filename.1, 1) = '.' then
+      exit
+
+   /* Save current file if modified */
+   if modify.1 > 0 then
+      'mc ;Save;Refresh'  /* refresh the bars before further actions */
+
+   /* Get current .erx file */
+   parse source . . ThisFile
+   /* Avoid endless loop when ThisFile executes itself */
+   if translate(ThisFile) = translate(Filename.1) then
+      exit
+
+   /* Get mode array field */
+   Mode = GetMode()
+
+   /* Change to dir of current file */
+   SavedDir = directory()
+   call directory '\'
+   call directory Filename.1'\..'
+
+   /* Filename.2: add ".." for spaces in Filename.1 */
+   if pos( ' ', Filename.1) > 0 then
+      Filename.2 = '"'Filename.1'"'
+   else
+      Filename.2 = Filename.1
+
+   /* Filename.3: strip Path, use name only */
+   lp = lastpos( '\', Filename.1)
+   Filename.3 = substr( Filename.1, lp + 1)
+   Path = substr( Filename.1, 1, lp)
+
+   /* Ext and Basename */
+   p = pos( '.', Filename.3)
+   if p > 1 then
+   do
+      Ext = substr( Filename.3, p + 1)
+      Basename = substr( Filename.3, 1, p - 1)
+   end
+   else
+   do
+      Ext = ''
+      Basename = Filename.3
+   end
+   UpExt = translate( Ext)
+
+   /*'sayerror Mode for "'Filename.1'" = "'Mode'", UpExt = "'UpExt'"'*/
+
+   return
 
 /*-------------------------------------------------------------------------*/
 GetMode:  procedure
