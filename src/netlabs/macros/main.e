@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.46 2006-06-03 20:53:01 aschn Exp $
+* $Id: main.e,v 1.47 2006-06-18 20:27:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -231,8 +231,7 @@ defc main2
       if rc > 0 then
          -- Execute defc JustInst
          if isadefc('JustInst') then
-            --'postme JustInst'
-            'AtStartup JustInst'
+            'AtPostStartup JustInst'
          endif
       endif
       -- Reset ini key
