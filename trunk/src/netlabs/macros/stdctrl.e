@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.40 2006-05-21 19:08:36 aschn Exp $
+* $Id: stdctrl.e,v 1.41 2006-06-18 20:03:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -193,14 +193,19 @@ defproc listbox( title, listbuf)
       width = 0                            /* default: 0=use listbox default */
    endif
 
+-----------------------> Bug: determining x and y doesnot work properly
    x = .fontwidth * col                    /* convert row and column into...*/
------------------------> Bug: determining y doesnot work properly in most cases
-   -- .windowy and .windowx are always 0 in EPM
-   -- screenheight() and screenwidth() return the sreen resolution in pixels
-   -- .fontheight and .fontwidth are values in pixel, e.g. for 12.System VIO: 16x8
-   -- .cursory is 1 when cursor is on top and .windowheight when cursor is on bottom, values in lines
-   -- .cursorx is 1 when cursor is at the left and .windowwidth when cursor is at the right edge, values in lines
    y = .windowy + screenheight() - .fontheight*(row + 1) - 4  /* (Add a fudge factor temporarily */
+   -- o  .windowy and .windowx are always 0 in EPM
+   --    screenheight() and screenwidth() return the sreen resolution in pixels
+   -- o  .fontheight and .fontwidth are values in pixel, e.g. for 12.System
+   --    VIO: 16x8
+   -- o  Of course the dialog font differs from the edit window font and
+   --    .fontheight and .fontwidth return the size of the edit window font
+   -- o  .cursory is 1 when cursor is on top and .windowheight when cursor is
+   --    on bottom, values in lines
+   -- o  .cursorx is 1 when cursor is at the left and .windowwidth when cursor
+   --    is at the right edge, values in cols
 
    if arg() > 7 then                       /* New way!                       */
       selectbuf = leftstr( arg(8), 255, \0)
@@ -2222,6 +2227,7 @@ defproc ConvertToOs2Font
 ; Sets rc = 0 if color was resolved, else rc = 1.
 defproc ConvertColor( args)
    rc = 0
+   -- These are the standard EPM color names (note GREY instead of GRAY)
    List = '' ||
       'BLACK'          || '/' ||   '0' || '/' ||
       'BLUE'           || '/' ||   '1' || '/' ||
@@ -2247,7 +2253,10 @@ defproc ConvertColor( args)
       'DARK_CYAN'      || '/' ||   '3' || '/' ||
       'DARK_RED'       || '/' ||   '4' || '/' ||
       'DARK_MAGENTA'   || '/' ||   '5' || '/' ||
-      'LIGHT_GREY'     || '/' ||   '7' || '/'
+      'LIGHT_GREY'     || '/' ||   '7' || '/' ||
+      'GRAY'           || '/' ||   '7' || '/' ||
+      'DARK_GRAY'      || '/' ||   '8' || '/' ||
+      'LIGHT_GRAY'     || '/' ||   '7' || '/'
 
    Color = 0
    if isnum(args) then
