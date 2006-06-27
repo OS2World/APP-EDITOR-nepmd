@@ -6,7 +6,7 @@
 ;
 ; Text Message file for language specific symbols and text messages
 ;
-; $Id: nepmdeng.tmf,v 1.10 2005-11-24 21:58:45 aschn Exp $
+; $Id: nepmdeng.tmf,v 1.11 2006-06-27 20:39:20 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -23,7 +23,7 @@
 
 <--MSG_INFO_HEADER-->:
             Netlabs EPM Distribution - Runtime Information
-       Copyright (c) Netlabs EPM Distribution Project 2002-2005
+       Copyright (c) Netlabs EPM Distribution Project 2002-2006
                        http://nepmd.netlabs.org
 <--MSG_INFO_BODY_VERSIONS-->:
 Versions
