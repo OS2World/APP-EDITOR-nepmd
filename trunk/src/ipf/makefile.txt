@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.32 2006-04-25 21:00:59 aschn Exp $
+.. $Id: makefile.txt,v 1.33 2006-07-06 18:46:55 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -51,7 +51,7 @@
 .su 1
 
 .. -----------------------------------------------------------------------------
-.2 Makefile pseudotargets
+.2 Makefile pseudo targets
 .. -----------------------------------------------------------------------------
 .an IDPNL_TARGETS
 .
@@ -63,8 +63,8 @@
 .. .............................................................................
 .an IDPNL_TARGETS_MAIN
 .
-This section describes the makefile pseudotargets that are available for the main makefile
-within the project working directory (root of the development tree).
+This section describes the makefile pseudo targets that are available for the main
+makefile within the project working directory (root of the development tree).
 
 [=NOTE]
 .ul compact
@@ -73,7 +73,7 @@ within the project working directory (root of the development tree).
   for to download the EPM packages, if they are not available within the directory
   specified by the macro *ZIPSRCDIR* in the file *configure.in*.
 
-The following pseudotargets are available:
+The following pseudo targets are available:
 .pl bold compact break=none tsize=20
 - nmake [[help]]
 = Show this INF file (if outdated, this compiles the INF before). This calls the
@@ -134,7 +134,7 @@ The following pseudotargets are available:
 .. .............................................................................
 .an IDPNL_TARGETS_IPF
 .
-The following makefile pseudotargets are available for the makefile within the
+The following makefile pseudo targets are available for the makefile within the
 *src\ipf* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
@@ -165,7 +165,7 @@ The following makefile pseudotargets are available for the makefile within the
 .
  [=NOTE]
 .ul compact
-  - Directories are not removed by this pseudotarget. For a complete cleanup, call
+  - Directories are not removed by this pseudo target. For a complete cleanup, call
     *nmake clean* within the project working directory (root of the development tree).
 
 .. .............................................................................
@@ -173,7 +173,7 @@ The following makefile pseudotargets are available for the makefile within the
 .. .............................................................................
 .an IDPNL_TARGETS_REXX
 .
-The following makefile pseudotargets are available for the makefile within the
+The following makefile pseudo targets are available for the makefile within the
 *src\rexx* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
@@ -184,7 +184,7 @@ The following makefile pseudotargets are available for the makefile within the
 .
  [=NOTE]
 .ul compact
-  - Directories are not removed by this pseudotarget. For a complete cleanup, call
+  - Directories are not removed by this pseudo target. For a complete cleanup, call
     *nmake clean* within the project working directory (root of the development tree).
 
 .. .............................................................................
@@ -192,7 +192,7 @@ The following makefile pseudotargets are available for the makefile within the
 .. .............................................................................
 .an IDPNL_TARGETS_NETLABS
 .
-The following makefile pseudotargets are available for the makefile within the
+The following makefile pseudo targets are available for the makefile within the
 *src\netlabs* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
@@ -209,7 +209,7 @@ The following makefile pseudotargets are available for the makefile within the
 .
  [=NOTE]
 .ul compact
-  - Directories are not removed by this pseudotarget. For a complete cleanup, call
+  - Directories are not removed by this pseudo target. For a complete cleanup, call
     *nmake clean* within the project working directory (root of the development tree).
 
 .. .............................................................................
@@ -228,12 +228,12 @@ in the project root directory instead.
 This ensures that all other makefiles from within the *src* directory are called
 before and with that all required files are available for building the WPI package.
 
-Nevertheless the pseudotargets provided by *[=.IDPNL_TARGETS_WIS]* are described here,
+Nevertheless the pseudo targets provided by *[=.IDPNL_TARGETS_WIS]* are described here,
 for testing purposes you may still call the makefile directly by specifying the symbol
 *CALLED=1*.
 .at
 
-The following makefile pseudotargets are available for the makefile within the
+The following makefile pseudo targets are available for the makefile within the
 *src\wis* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
@@ -248,7 +248,7 @@ The following makefile pseudotargets are available for the makefile within the
 = Quickly deinstalls all packages installed from the [=TITLE] without using the *WarpIN* GUI.
   This is intended for testing purposes only!
 .
-  See pseudotarget *remove* of the [.IDPNL_TARGETS_MAIN] for further details.
+  See pseudo target *remove* of the [.IDPNL_TARGETS_MAIN] for further details.
 .
 - nmake prepare
 = Only downloads EPMBBS zip files from Hobbes and unpacks. (**)
@@ -256,7 +256,7 @@ The following makefile pseudotargets are available for the makefile within the
 = Check prepared files for
 .ul compact
   - SYSxxxx errors during unpack
-  - zero byte files, making WIC trap (thanks god!)
+  - zero byte files, making WIC trap (fixed in newer WarpIN versions)
   - pkunzip2 does not unpack properly sometimes (zero byte files).
 .el
 .
@@ -265,7 +265,7 @@ The following makefile pseudotargets are available for the makefile within the
 .
  [=NOTE]
 .ul compact
-  - Directories are not removed by this pseudotarget. For a complete cleanup, call
+  - Directories are not removed by this pseudo target. For a complete cleanup, call
     *nmake clean* within the project working directory (root of the development tree).
 
 [=NOTE]
@@ -359,6 +359,24 @@ As toolkit one of the following is required:
 - *OS/2 Warp 4 Developer's Toolkit*
 - *OS/2 Warp 4.5 Developer's Toolkit*
 
+[=NOTE]
+.ul
+- Some 5.xx versions of *RC.EXE* are quite buggy and cause problems.
+  Therefore you have to replace the *RC.EXE*, that comes with Toolkit 4.5x.
+  Older versions are ok.
+.
+- You can use the Toolkit 4 version of *RC.EXE*, as
+  recommended by the Warpzilla project:
+  - [ftp://ftp.software.ibm.com/ps/products/warpzilla/os2tk40rc.zip]
+.
+- The version can be checked with *exehdr <path>\rc.exe*
+  That shows the correct version number: 4.00.005, while just typing
+  *rc* shows the one from the message file only: 5.00.006.
+.
+- Or rename bin\rc16.exe to rc.exe. That one works without the message
+  file, but is the 16 bit version. The version, that comes with Warp 4.x
+  and with eCSMT is also a 16 bit version and should work as well.
+
 .. .............................................................................
 .3 EPM Macro Compiler
 .. .............................................................................
@@ -410,7 +428,7 @@ as it supports the "deflated" method used for some text files, this is not suppo
 .. .............................................................................
 .an IDPNL_REQUIREMENTS_WGET
 .
-*wget* is used to download of the original zip files, if not present
+*wget* is used to download the original zip files, if not present
 (currently tested with wget v1.7).
 
 [=NOTE]
@@ -495,7 +513,7 @@ For checking unpacked EPM files the *grep* utility is used.
 
 [=NOTE]
 .ul
-- The *grep* utility is only required if you run *src\wis\makefile* with pseudotarget
+- The *grep* utility is only required if you run *src\wis\makefile* with pseudo target
   *check*. It is not mandandory in order to create the package itself.
 - You can download *Grep v2.0* from
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=grep20 The Hobbes File Archive]
@@ -522,7 +540,7 @@ For packing the executables of the [=TITLE], the *lxlite* utility is used.
   [=TITLE] executables, which is the default. In order to build the debug versions
   instead, either
 .ul compact
-  - specify *DEBUG=1* as parameter to *nmmake* or
+  - specify *DEBUG=1* as parameter to *nmake* or
   - set the environment variable *DEBUG=1* before calling *nmake*.
 - You can download *lxlite* from
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=lxlt The Hobbes File Archive]
