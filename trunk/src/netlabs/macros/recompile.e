@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.6 2006-06-18 20:49:37 aschn Exp $
+* $Id: recompile.e,v 1.7 2006-07-06 17:50:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -162,11 +162,8 @@ defc et,etpm=
       BaseName = Name
    endif
    NepmdUserDir = Get_Env('NEPMD_USERDIR')
-   AutolinkDir  = NepmdUserDir'\autolink'  -- search in <UserDir>\autolink first
    ProjectDir   = NepmdUserDir'\project'   -- search in <UserDir>\project second
-   if exist( AutolinkDir'\'BaseName'.ex') then
-      DestDir = AutolinkDir
-   elseif exist( ProjectDir'\'BaseName'.ex') then
+   if exist( ProjectDir'\'BaseName'.ex') then
       DestDir = ProjectDir
    else
       DestDir = NepmdUserDir'\ex'
@@ -1101,7 +1098,6 @@ defproc GetEtpmFilesFromLog( EtpmLogFile)
 ; name.
 defproc FindExFile( ExFile)
    NepmdUserDir = Get_Env('NEPMD_USERDIR')
-   AutolinkDir  = NepmdUserDir'\autolink'  -- search in <UserDir>\autolink first
    ProjectDir   = NepmdUserDir'\project'   -- search in <UserDir>\project second
    FullExFile = ''
    -- strip path
@@ -1110,9 +1106,7 @@ defproc FindExFile( ExFile)
    if rightstr( upcase( ExFile), 3) <> '.EX' then
       ExFile = ExFile'.ex'
    endif
-   if exist( AutolinkDir'\'ExFile) then
-      FullExFile = AutolinkDir'\'ExFile
-   elseif exist( ProjectDir'\'ExFile) then
+   if exist( ProjectDir'\'ExFile) then
       FullExFile = ProjectDir'\'ExFile
    else
       FullExFile = FindFileInList( ExFile, Get_Env( 'EPMEXPATH'))
@@ -1130,7 +1124,6 @@ defproc FindExFile( ExFile)
 ; name.
 defproc GetExFileDestDir( ExFile)
    NepmdUserDir = Get_Env('NEPMD_USERDIR')
-   AutolinkDir  = NepmdUserDir'\autolink'  -- search in <UserDir>\autolink first
    ProjectDir   = NepmdUserDir'\project'   -- search in <UserDir>\project second
    DestDir = ''
    -- strip path
@@ -1139,9 +1132,7 @@ defproc GetExFileDestDir( ExFile)
    if rightstr( upcase( ExFile), 3) <> '.EX' then
       ExFile = ExFile'.ex'
    endif
-   if exist( AutolinkDir'\'ExFile) then
-      DestDir = AutolinkDir
-   elseif exist( ProjectDir'\'ExFile) then
+   if exist( ProjectDir'\'ExFile) then
       DestDir = ProjectDir
    else
       DestDir = NepmdUserDir'\ex'
