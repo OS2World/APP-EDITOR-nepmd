@@ -1,10 +1,10 @@
 /****************************** Module Header *******************************
 *
-* Module Name: linkcmds.e
+* Module Name: recompile.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.7 2006-07-06 17:50:57 aschn Exp $
+* $Id: recompile.e,v 1.8 2006-07-06 17:52:09 aschn Exp $
 *
 * ===========================================================================
 *
