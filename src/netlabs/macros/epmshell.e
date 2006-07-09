@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.29 2006-06-04 10:56:30 aschn Exp $
+* $Id: epmshell.e,v 1.30 2006-07-09 10:03:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1066,7 +1066,7 @@ defc ShellFncInit
             f = f + 1
          else
             --dprintf( 'TabComplete', 'Dir: FileMask = ['FileMask'], Found 'f' filenames.')
-            --handle = 0  -- handle must be reset to 0 before the next search
+            handle = 0  -- handle must be reset to 0 before the next search
             f = 0
          endif
       endif
