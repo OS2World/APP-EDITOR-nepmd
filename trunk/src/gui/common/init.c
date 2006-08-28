@@ -6,14 +6,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: init.c,v 1.2 2002-10-01 14:23:02 cla Exp $
+* $Id: init.c,v 1.3 2006-08-28 16:52:50 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -674,7 +674,8 @@ do
 
    // check memory for temporary fields
    pszLine    = malloc( MAX_LINESIZE);
-   pszComment = malloc( 2 * MAX_LINESIZE);
+//   pszComment = malloc( 2 * MAX_LINESIZE);     <--- Bug: pszComment is concatenated and is set to an entire header
+   pszComment = malloc( 20 * MAX_LINESIZE);  // quick and dirty
    if ((!pszLine) || (!pszComment))
       {
       rc = ERROR_NOT_ENOUGH_MEMORY;
@@ -887,14 +888,14 @@ do
          }
 
       // take care for multiline values, being enclosed in double quotes
-      if (*pkey->pszKeyValue == '"') 
+      if (*pkey->pszKeyValue == '"')
          while (*(pkey->pszKeyValue + strlen( pkey->pszKeyValue) - 1) != '"')
             {
             // read next line
             if (!fgets( pszLine, MAX_LINESIZE, pinit->pfile))
                break;
             _stripblanks( pszLine);
-   
+
             pkey->pszKeyValue = realloc( pkey->pszKeyValue, strlen( pkey->pszKeyValue) + strlen( pszLine) + 1);
             strcat( pkey->pszKeyValue, pszLine);
             }
