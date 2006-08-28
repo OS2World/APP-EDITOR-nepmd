@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.30 2006-05-21 18:04:24 aschn Exp $
+* $Id: hilite.c,v 1.31 2006-08-28 16:59:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1205,9 +1205,7 @@ do
 
                case SECTION_COMMENT:
                case SECTION_LITERAL:
-                  // if break string is specified, a definition will not work in the
-                  // DELIMI section, but only in the DELIM section ! maybe bug in EPM ?
-                  p = ((pszBreakStr) || (fCaseSensitive)) ?
+                  p = (fCaseSensitive) ?
                          pszCurrentDelimiter : pszCurrentDelimiteri;
 
                   sprintf( p, "%s %s",
@@ -1220,7 +1218,7 @@ do
                      sprintf( _EOS( p), " %s", pszStartPos);
                   strcat( p, "\r\n");
 
-                  if ((pszBreakStr) || (fCaseSensitive))
+                  if (fCaseSensitive)
                      pszCurrentDelimiter = _EOS( pszCurrentDelimiter);
                   else
                      pszCurrentDelimiteri = _EOS( pszCurrentDelimiteri);
