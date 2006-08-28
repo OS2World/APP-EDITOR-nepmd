@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.14 2006-02-26 17:50:51 aschn Exp $
+* $Id: rexxkeys.e,v 1.15 2006-08-28 16:40:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -441,7 +441,28 @@ defproc rex_second_expansion
 
       elseif (firstword = '/*' | firstword = '/**') & words( tline) = 1 then
          insertline ind' * ', .line + 1
-         insertline ind' */', .line + 2
+         -- Search for closing comment */
+         fFound = 0
+         startl = .line + 1
+         do l = startl to .last
+            if l > startl + 100 then  -- search only 100 next lines
+               leave
+            endif
+            getline linel, l
+            next = word( linel, 1)
+            -- Search for first word
+            if next = '*' then
+               iterate
+            elseif substr( next, 1, 2) = '*/' then
+               fFound = 1
+               leave
+            else
+               leave
+            endif
+         enddo
+         if fFound = 0 then
+            insertline ind' */', .line + 2
+         endif
          '+1'
          endline
 
@@ -488,10 +509,12 @@ defproc rex_second_expansion
             endif
          enddo
          if fFound = 1 then
+            RestLine = strip( substr( line, .col), 'L')
+            erase_end_line
             if firstp = 1 then
-               insertline '* ', .line + 1
+               insertline '* 'RestLine, .line + 1
             else
-               insertline ind'* ', .line + 1
+               insertline ind'* 'RestLine, .line + 1
             endif
             '+1'
             endline
