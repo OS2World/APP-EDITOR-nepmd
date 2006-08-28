@@ -1,0 +1,141 @@
+; ***************************** Module Header ******************************\
+;
+; Module Name: htext.hil
+;
+; Definitons for the syntax highlighting of the EPM mode "HTEXT".
+; This filetype is read by the HyperText/2 compiler by Christian Langanke
+; to produce IPF files.
+;
+; Among others these definitions implement the definitions of
+; the respective epmkwds definitions file of the EPMBBS distributiuon.
+;
+; Copyright (c) Netlabs EPM Distribution Project 2002
+;
+; $Id: htext.hil,v 1.1 2006-08-28 19:49:44 aschn Exp $
+;
+; ===========================================================================
+;
+; This file is part of the Netlabs EPM Distribution package and is free
+; software.  You can redistribute it and/or modify it under the terms of the
+; GNU General Public License as published by the Free Software
+; Foundation, in version 2 as it comes in the "COPYING" file of the
+; Netlabs EPM Distribution.  This library is distributed in the hope that it
+; will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
+;
+; **************************************************************************/
+
+[KEYWORD]
+; Start       End     Escape    Start
+; string      string  character pos
+.             NONE:   NONE:     1
+..            NONE:   NONE:     1     COMMENT
+...           NONE:   NONE:     1     TEXT
+.1            NONE:   NONE:     1
+.2            NONE:   NONE:     1
+.3            NONE:   NONE:     1
+.4            NONE:   NONE:     1
+.5            NONE:   NONE:     1
+.6            NONE:   NONE:     1
+.ALIAS        NONE:   NONE:     1
+.AL           NONE:   NONE:     1
+.ANCHOR       NONE:   NONE:     1
+.AN           NONE:   NONE:     1
+.ATTRIBUTE    NONE:   NONE:     1
+.ATTRIB       NONE:   NONE:     1
+.ATTR         NONE:   NONE:     1
+.AT           NONE:   NONE:     1
+.BITMAP       NONE:   NONE:     1
+.BI           NONE:   NONE:     1
+.CINCLUDE     NONE:   NONE:     1     PREPROCESSOR
+.DIMENSIONS   NONE:   NONE:     1
+.DI           NONE:   NONE:     1
+.ELIST        NONE:   NONE:     1
+.EL           NONE:   NONE:     1
+.ELSE         NONE:   NONE:     1     PREPROCESSOR
+.ENDIF        NONE:   NONE:     1     PREPROCESSOR
+.EXIT         NONE:   NONE:     1     PREPROCESSOR
+.FORMAT       NONE:   NONE:     1
+.FO           NONE:   NONE:     1
+.FN           NONE:   NONE:     1
+.HCLEAR       NONE:   NONE:     1
+.HC           NONE:   NONE:     1
+.HIDE         NONE:   NONE:     1
+.HID          NONE:   NONE:     1
+.HINDEX       NONE:   NONE:     1
+.HI           NONE:   NONE:     1
+.HTRACE       NONE:   NONE:     1
+.HT           NONE:   NONE:     1
+.IF           NONE:   NONE:     1     PREPROCESSOR
+.IFDEF        NONE:   NONE:     1     PREPROCESSOR
+.IFNDEF       NONE:   NONE:     1     PREPROCESSOR
+.INCLUDE      NONE:   NONE:     1     PREPROCESSOR
+.INDEX        NONE:   NONE:     1
+.IN           NONE:   NONE:     1
+.LMARGIN      NONE:   NONE:     1
+.LM           NONE:   NONE:     1
+.MIRROR       NONE:   NONE:     1
+.MI           NONE:   NONE:     1
+.OLIST        NONE:   NONE:     1
+.OL           NONE:   NONE:     1
+.PLIST        NONE:   NONE:     1
+.PL           NONE:   NONE:     1
+.RESID        NONE:   NONE:     1
+.RE           NONE:   NONE:     1
+.RMARGIN      NONE:   NONE:     1
+.RM           NONE:   NONE:     1
+.SET          NONE:   NONE:     1     PREPROCESSOR
+.SLIST        NONE:   NONE:     1
+.SL           NONE:   NONE:     1
+.TABLE        NONE:   NONE:     1
+.TA           NONE:   NONE:     1
+.TEXTINCLUDE  NONE:   NONE:     1     PREPROCESSOR
+.SUBLINKS     NONE:   NONE:     1
+.SU           NONE:   NONE:     1
+.TITLE        NONE:   NONE:     1
+.TI           NONE:   NONE:     1
+.TRACE        NONE:   NONE:     1
+.TR           NONE:   NONE:     1
+.ULIST        NONE:   NONE:     1
+.UL           NONE:   NONE:     1
+; ---- new with 1.08 ----
+.:            NONE:   NONE:     1
+.HNUMBERING   NONE:   NONE:     1
+.HN           NONE:   NONE:     1
+.HTOC         NONE:   NONE:     1
+.LP           NONE:   NONE:     1
+.LINES        NONE:   NONE:     1
+.LI           NONE:   NONE:     1
+.MONOESCAPECHAR NONE: NONE:     1
+.MO           NONE:   NONE:     1
+.NOTE         NONE:   NONE:     1
+.NT           NONE:   NONE:     1
+.PAR          NONE:   NONE:     1
+.PA           NONE:   NONE:     1
+.P            NONE:   NONE:     1
+
+[URL]
+; Start   End     Escape     Start
+; string  string  character  position
+  http://   NONE:
+  https://  NONE:
+  ftp://    NONE:
+  mailto:   NONE:
+  www.      NONE:
+  ftp.      NONE:
+
+[BRACKET]
+; Start   End     Escape     Start
+; string  string  character  position
+  <         >
+  [         ]
+  {         }
+
+[LITERAL]
+; Start   End     Escape     Start
+; string  string  character  position
+  '         '
+  "         "
+  (         )
+
