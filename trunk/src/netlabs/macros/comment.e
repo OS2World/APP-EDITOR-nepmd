@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comment.e,v 1.8 2005-11-24 19:39:56 aschn Exp $
+* $Id: comment.e,v 1.9 2006-08-28 17:03:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -134,7 +134,7 @@ defproc CommentMarkedLines
    -- Case         : (0|1) for uncomment only: respect case when locating SLC string in line
 
    if arg(1) > '' then  -- if a single line comment char was submitted as arg(1)
-      SLC1         = arg(1)
+      SLC1         = strip( arg(1))
       SLC1AddSpace = (rightstr( arg(1), 1) == ' ')  -- add a space if none was specified
 
    elseif     mode = 'C' | mode = 'JAVA' | mode = 'RC' then ----------- C JAVA RC
