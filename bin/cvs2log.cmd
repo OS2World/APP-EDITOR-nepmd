@@ -1,5 +1,5 @@
 /*
-** $Id: cvs2log.cmd,v 1.1 2006-05-07 19:46:09 aschn Exp $
+** $Id: cvs2log.cmd,v 1.2 2006-09-15 20:15:51 aschn Exp $
 **
 ** CVS to ChangeLog generator.
 **
@@ -50,6 +50,9 @@
 **                Improved readability by removing ||.
 **                Reformated "* <file1>, <file2>: <short comment>" lines to
 **                add linebreaks after *every* file.  [Andreas Schnellbacher]
+**    2006-09-15  Fixed: After a first checkout, subdirs where not processed,
+**                because the Entries.log file wasn't read.  [Andreas
+**                Schnellbacher]
 **    todo:
 **          -  maybe remove repository path and show only subpathes
 **          -  maybe indent "* <file>" line just by a half tabwidth
@@ -440,6 +443,35 @@ read_entries: procedure expose (globals) entries.
 			i = entries.0+1
 			entries.i = dir
 			entries.0 = i
+		end
+	end
+	call stream filename, 'c', 'close'
+	filename = dir'CVS/Entries.log'
+	if stream(filename, 'c', 'open read') = 'READY:' then
+	do while lines(filename) > 0
+		line = linein(filename)
+		parse var line 'A D/' dir '/'
+		if dir \= '' then do
+			i = entries.0+1
+			entries.i = dir
+			entries.0 = i
+			iterate
+		end
+		parse var line 'R D/' dir '/'
+		if dir \= '' then do
+			ffound = 1
+			emax = entries.0
+			do e = 1 to emax
+				if ffound = 0 & entries.e = dir then
+					ffound = 1
+				if ffound = 1 then do
+					if e = emax then
+					   leave
+					n = e+1
+					entries.e = entries.n
+					entries.0 = e
+				end
+			end
 		end
 	end
 	call stream filename, 'c', 'close'
