@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.43 2006-03-26 11:21:55 aschn Exp $
+* $Id: nepmdlib.e,v 1.44 2006-09-15 20:48:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -68,6 +68,11 @@ compile endif
 /* ------------------------------------------------------------- */
 
 defproc helperNepmdGetLibFile
+   -- For loading of concurrent DLL versions via LIBPATHSTRICT=T,
+   -- it is required to specify the DLL name without extension or
+   -- with extension ".dll": Specifying mixed or uppercase
+   -- variants for the extension wont load another DLL, if one
+   -- with the same basename is already loaded.
 compile if 0
    universal nepmdlibfile
    if nepmdlibfile > '' then  -- search only once
