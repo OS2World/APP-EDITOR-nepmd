@@ -1,5 +1,5 @@
 /*
-** $Id: cvs2log.cmd,v 1.2 2006-09-15 20:15:51 aschn Exp $
+** $Id: cvs2log.cmd,v 1.3 2006-09-15 20:33:06 aschn Exp $
 **
 ** CVS to ChangeLog generator.
 **
@@ -459,7 +459,7 @@ read_entries: procedure expose (globals) entries.
 		end
 		parse var line 'R D/' dir '/'
 		if dir \= '' then do
-			ffound = 1
+			ffound = 0
 			emax = entries.0
 			do e = 1 to emax
 				if ffound = 0 & entries.e = dir then
