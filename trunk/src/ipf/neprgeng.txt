@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neprgeng.txt,v 1.6 2002-11-04 16:10:11 cla Exp $
+.. $Id: neprgeng.txt,v 1.7 2006-10-04 21:27:18 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -61,7 +61,7 @@
 .su V30
 
 .. -----------------------------------------------------------------------------
-.3 hierarchical namespace
+.3 Hierarchical namespace
 .. -----------------------------------------------------------------------------
 .an IDPNL_REGISTRY_NAMESPACE
 .
@@ -81,7 +81,7 @@ registry API, the API to access the configuration repository of the
 when keys are created and deleted.
 
 .. -----------------------------------------------------------------------------
-.3 explicit open/close of the repository
+.3 Explicit open/close of the repository
 .. -----------------------------------------------------------------------------
 .an IDPNL_REGISTRY_EXPLICITOPEN
 .
@@ -108,7 +108,7 @@ in the following order:
 - call [.IDPNL_EFUNC_NEPMDCLOSECONFIG] to close the repository
 
 .. -----------------------------------------------------------------------------
-.3 implicit open/close of the repository
+.3 Implicit open/close of the repository
 .. -----------------------------------------------------------------------------
 .an IDPNL_REGISTRY_IMPLICITOPEN
 .
@@ -130,7 +130,7 @@ implicitely. As soon as you perform more than one action in a row, the
 overhead.
 
 .. -----------------------------------------------------------------------------
-.3 default keys used by the [=DOCTITLE]
+.3 Default keys used by the [=DOCTITLE]
 .. -----------------------------------------------------------------------------
 .an IDPNL_REGISTRY_KEYLIST
 .
@@ -149,7 +149,7 @@ the defaults available to the runtime.
 .fo on
 
 .. =============================================================================
-.2 EPM Syntax highlighting support
+.2 EPM keyword highlighting support
 .. =============================================================================
 .an IDPNL_HILITE
 .
@@ -157,11 +157,11 @@ the defaults available to the runtime.
 .su V30
 
 .. -----------------------------------------------------------------------------
-.3 standard E toolkit syntax highlighting files
+.3 Standard E toolkit keyword highlighting files
 .. -----------------------------------------------------------------------------
 .an IDPNL_HILITE_FILES
 .
-This section descibes the format of the files that *EPM* uses to support syntax
+This section descibes the format of the files that *EPM* uses to support keyword
 highliting. This method is used with the *EPM* of the
 [.IDPNL_EPMBBS EPMBBS distribution] and the *EPM* shipped with *OS/2 Warp*.
 
@@ -171,33 +171,23 @@ hilite definition files described here. For downwards compatibility,
 the old scheme can still be used, provided that for a given file no *EPM mode*
 is defined.
 
-The syntax highlighting files are searched along the *EPMPATH* and are
+The keyword highlighting files are searched along the *EPMPATH* and are
 named *epmkwds.***. Moreover, the files must be #known# by the code in
 *EPM.EX*, since the names are hardcoded in the macro source file *load.e*.
 
-[=NOTE]
-.ul compact
-- the [=TITLE] will soon provide a superior configuration mechanism
-  for syntax highliting in a forthcoming, which will allow easier
-  configuration. It will provide a new method for the definition of
-  keywords to be highlighted and the colors to be used for this.
-- the new method will be able to still use the old style of definition
-  files, as long as definitions of the newstyle do not exist for a given
-  file type.
-
 .. -----------------------------------------------------------------------------
-.3 format of the EPM syntax highlighting file
+.3 Format of the EPM keyword highlighting file
 .. -----------------------------------------------------------------------------
 .an IDPNL_HILITE_FORMAT
 .
-The following rules apply to the format of the syntax highlighting files
+The following rules apply to the format of the keyword highlighting files
 of the *EPM*:
 
 [=TOPICS]
 .su 1 H50
 
 .. .............................................................................
-.4 special comment character
+.4 Special comment character
 .. .............................................................................
 .an IDPNL_HILITE_COMMENTCHAR
 .
@@ -206,7 +196,7 @@ If it appears at the beginning of a line after, it is
 either followed by a space and marks then a comment, or
 by any other character and is then a section name.
 
-_*Example:*_
+*Example:*
 .fo off
 @ this fist line defines the 'at' character as being
 @ the comment char
@@ -217,16 +207,16 @@ _*Example:*_
 .fo on
 
 .. .............................................................................
-.4 section DELIM
+.4 Section DELIM
 .. .............................................................................
 .an IDPNL_HILITE_DELIM
 .
 The format in this section is:
 .fo off
-"start string" "end string" "bg color" "fg color" "escape character" "column"
+"start string" "bg color" "fg color" "end string" "escape character" "column"
 .fo on
 
-The definitions in this section are mostly used to define syntax highlighting
+The definitions in this section are mostly used to define keyword highlighting
 for comments and quoted literal definitions.
 
 The following rules apply to definitions within this section:
@@ -245,7 +235,7 @@ The following rules apply to definitions within this section:
 - The special character can be used as a placeholder, eg if you want a column
   but no escape character
 
-_*Examples:*_
+*Examples:*
 
 The following entries specify that all literals enclosed in single
 or double quotes are displayed in green on default backgound, where
@@ -263,7 +253,7 @@ the backslash is the escape character (line in the C language syntax):
 The following entries specify that all C and C++ style comments
 are displayed in blue on default backgound. Note that C style
 comments are not higlighted when they are spanning mutliple lines,
-since the syntax hilghlighting of *EPM* does not support this:
+since the keyword hilghlighting of *EPM* does not support this:
 
 .fo off
 @DELIM
@@ -275,7 +265,7 @@ since the syntax hilghlighting of *EPM* does not support this:
 .fo on
 
 .. .............................................................................
-.4 section DELIMI
+.4 Section DELIMI
 .. .............................................................................
 .an IDPNL_HILITE_DELIMI
 .
@@ -290,20 +280,21 @@ insensitive.
   instead!
 
 .. .............................................................................
-.4 section KEYWORDS
+.4 Section KEYWORDS
 .. .............................................................................
 .an IDPNL_HILITE_KEYWORDS
 .
 The format in this section is:
 .fo off
-"start string" "end string" "bg color" "fg color" "escape character" "column"
+"start string" "bg color" "fg color"
 .fo on
 
 The definitions in this section define keywords to be highlighted.
 
-They must include only characters specified in the CHARSET section, case sensitive.
+They must include only characters specified in the
+[.IDPNL_HILITE_CHARSET CHARSET] section, case sensitive.
 
-_*Example:*_
+*Example:*
 
 The following entries specify some keywords to be displayed in magenta
 on default backgound. For that the keywords must match in case.
@@ -323,7 +314,7 @@ on default backgound. For that the keywords must match in case.
 .fo on
 
 .. .............................................................................
-.4 section INSENSITIVE
+.4 Section INSENSITIVE
 .. .............................................................................
 .an IDPNL_HILITE_INSENSITIVE
 .
@@ -332,7 +323,7 @@ This section contains identical definitions to the
 insensitive.
 
 .. .............................................................................
-.4 section CHARSET
+.4 Section CHARSET
 .. .............................................................................
 .an IDPNL_HILITE_CHARSET
 .
@@ -346,7 +337,7 @@ all the characters that may be used in the keywords defined
 in the sections [.IDPNL_HILITE_KEYWORDS KEYWORDS] and
 [.IDPNL_HILITE_INSENSITIVE INSENSITIVE].
 
-_*Example:*_
+*Example:*
 
 The following entry specify all characters that may be used in keywords
 specified in the sections [.IDPNL_HILITE_KEYWORDS KEYWORDS] and
@@ -357,13 +348,13 @@ abcdefghijklmnopqrstuvwxyz__##ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
 .fo on
 
 .. .............................................................................
-.4 section SPECIAL
+.4 Section SPECIAL
 .. .............................................................................
 .an IDPNL_HILITE_SPECIAL
 .
 The format in this section is:
 .fo off
-"name" "fg color" "bg color"
+"name" "bg color" "fg color"
 .fo on
 
 The definitions in this section define keywords to be highlighted, just as
@@ -372,10 +363,10 @@ definitions in the section [.IDPNL_HILITE_KEYWORDS KEYWORDS].
 In contrast to the *KEYWORDS* section the keywords specified here
 can include any character.
 
-_*Example:*_
+*Example:*
 
 The following entries specify special strings for the *C* language
-syntax highlighting to be displayed in light red on default backgound:
+keyword highlighting to be displayed in light red on default backgound:
 .fo off
 @SPECIAL
 @
@@ -388,7 +379,7 @@ syntax highlighting to be displayed in light red on default backgound:
 .fo on
 
 .. .............................................................................
-.4 section SPECIALI
+.4 Section SPECIALI
 .. .............................................................................
 .an IDPNL_HILITE_SPECIALI
 .
@@ -397,13 +388,13 @@ This section contains identical definitions to the
 insensitive.
 
 .. .............................................................................
-.4 section BREAKCHAR
+.4 Section BREAKCHAR
 .. .............................................................................
 .an IDPNL_HILITE_BREAKCHAR
 .
 The format in this section is:
 .fo off
-"character" "fg color" "bg color"
+"character" "bg color" "fg color"
 .fo on
 
 The characters specified in the entries of this section are considered as
@@ -412,10 +403,10 @@ or [.IDPNL_HILITE_INSENSITIVE INSENSITIVE] are looked for. If
 colors are specified, a break at the beginning of a keyword will have its
 own color, else it will have the same color as the keyword.
 
-_*Example:*_
+*Example:*
 
 The following entries specify some break characters for the *Tex* language
-syntax highlighting to be displayed in the color of the keyword being used
+keyword highlighting to be displayed in the color of the keyword being used
 with, except for the last break character, this is always displayed in red on
 default backgound:
 .fo off
@@ -427,13 +418,13 @@ $
 .fo on
 
 .. .............................................................................
-.4 section ENDCHAR
+.4 Section ENDCHAR
 .. .............................................................................
 .an IDPNL_HILITE_ENDCHAR
 .
 The format in this section is:
 .fo off
-"character" "fg color" "bg color"
+"character" "bg color" "fg color"
 .fo on
 
 The characters specified in the entries of this section are considered as
@@ -445,10 +436,10 @@ own color, else it will have the same color as the keyword.
 An end character at the end of a keyword in [.IDPNL_HILITE_KEYWORDS KEYWORDS] or
 [.IDPNL_HILITE_INSENSITIVE INSENSITIVE] is hilited with its own color.
 
-_*Example:*_
+*Example:*
 
 The following entry specifies an end character for the *Tex* language
-syntax highlighting to be displayed always displayed in red on
+keyword highlighting to be displayed always displayed in red on
 default backgound:
 .fo off
 @ENDCHAR
@@ -456,7 +447,7 @@ default backgound:
 .fo on
 
 .. .............................................................................
-.4 color definitions
+.4 Color definitions
 .. .............................................................................
 .an IDPNL_HILITE_COLORS
 .
@@ -506,7 +497,7 @@ The background and foreground color values apply to the folowing scheme
 .su V30
 
 .. -----------------------------------------------------------------------------
-.3 changes to the EPMBBS code
+.3 Changes to the EPMBBS code
 .. -----------------------------------------------------------------------------
 .an IDPNL_REWORKED_GENERAL
 .
@@ -517,7 +508,7 @@ been completed yet, but
 See the following sections for details.
 
 .. -----------------------------------------------------------------------------
-.3 remove obsolete code
+.3 Remove obsolete code
 .. -----------------------------------------------------------------------------
 .an IDPNL_REWORKED_COMPILEIF
 .
@@ -541,7 +532,7 @@ EPM 6.03b. If you want to clean-up your own code, see the beginning of
 STDCONST.E for the meaning of the constants.
 
 .. -----------------------------------------------------------------------------
-.3 maintain small file sizes
+.3 Maintain small file sizes
 .. -----------------------------------------------------------------------------
 .an IDPNL_REWORKED_SMALLFILES
 .
@@ -554,7 +545,7 @@ with similar themes is collected. See locate.e for an example. The file
 stdctrl.e could be reduced from 5600 to 4000 lines (yet to do).
 
 .. -----------------------------------------------------------------------------
-.3 replace configuration constants
+.3 Replace configuration constants
 .. -----------------------------------------------------------------------------
 .an IDPNL_REWORKED_COSNTANTS
 .
