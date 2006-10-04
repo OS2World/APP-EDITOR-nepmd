@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.23 2006-03-31 23:38:59 aschn Exp $
+* $Id: stdcmds.e,v 1.24 2006-10-04 21:24:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -821,7 +821,9 @@ defc ver
 
 ; ---------------------------------------------------------------------------
 defc ActivateHighlighting
-   call NepmdActivateHighlight(arg(1))
+   universal nepmd_hini
+   parse arg on Mode Opt
+   call NepmdActivateHighlight( strip( on), strip( Mode), strip( Opt), nepmd_hini)
 
 ; ---------------------------------------------------------------------------
 defc ActivateFile
