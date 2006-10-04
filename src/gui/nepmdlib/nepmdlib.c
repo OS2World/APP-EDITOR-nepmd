@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.62 2005-11-24 21:58:42 aschn Exp $
+* $Id: nepmdlib.c,v 1.63 2006-10-04 01:09:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1746,7 +1746,7 @@ do
       }
 
    // create result of SWP
-   sprintf( szResult, "%u %u %u %u", swp.x, swp.y, swp.cx, swp.cy);
+   sprintf( szResult, "%d %d %d %d", swp.x, swp.y, swp.cx, swp.cy);
 
    // check result buffer
    if (strlen( szResult) + 1 > ulBuflen)
