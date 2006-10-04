@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.h,v 1.3 2002-10-20 12:13:04 cla Exp $
+* $Id: hilite.h,v 1.4 2006-10-04 21:24:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -27,7 +27,9 @@
 #define HILITE_NOOUTDATECHECK 0x00000001
 
 // prototypes
-APIRET QueryHilightFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfReload, PSZ pszBuffer, ULONG ulBuflen);
+APIRET QueryHilightFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfReload,
+                         HCONFIG hconfig,
+                         PSZ pszBuffer, ULONG ulBuflen);
 
 #endif // HILITE_H
 

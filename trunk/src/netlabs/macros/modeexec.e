@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.19 2006-06-03 20:50:25 aschn Exp $
+* $Id: modeexec.e,v 1.20 2006-10-04 21:24:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -279,7 +279,7 @@ defc ProcessLoadSettings
       -- Activate keyword highlighting, if not already done by load_<mode> hook
       next = GetAVar( 'highlight.'fid)  -- get file setting
       if next = '' | next = 'DEFAULT' then
-         call NepmdActivateHighlight( default_on, Mode, CheckFlag)
+         call NepmdActivateHighlight( default_on, Mode, CheckFlag, nepmd_hini)
       endif
 
    elseif loadstate = 0 then  -- when changing a mode
@@ -681,7 +681,7 @@ defc SetHighlight
 
    -- Process setting
    Mode = GetMode()
-   call NepmdActivateHighlight( on, Mode, CheckFlag)
+   call NepmdActivateHighlight( on, Mode, CheckFlag, nepmd_hini)
 
    -- Save the value in an array var, to determine 'DEFAULT' state later
    -- Process the following not at RefreshDefault

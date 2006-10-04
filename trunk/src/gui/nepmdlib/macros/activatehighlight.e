@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: activatehighlight.e,v 1.9 2004-08-01 13:32:52 aschn Exp $
+* $Id: activatehighlight.e,v 1.10 2006-10-04 21:24:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,26 +24,29 @@
 
 /*
 @@NepmdActivateHighlight@PROTOTYPE
-rc = NepmdActivateHighlight( ActivateFlag, EpmMode, HiliteOptions);
+rc = NepmdActivateHighlight( ActivateFlag, EpmMode, HiliteOptions, Handle);
 
 @@NepmdActivateHighlight@CATEGORY@MODE
 
 @@NepmdActivateHighlight@SYNTAX
-This function activates or deactivates the syntax highlighting for
-the loaded file.
+This function activates or deactivates the keyword highlighting for
+the loaded file. On activating, mode files are checked for changes.
+When they were changed, the temporary standard EPM keyword file is
+rebuilt. Additionally, mode settings from the GLOBAL section are always
+written to NEPMD.INI on activating as well.
 
 @@NepmdActivateHighlight@PARM@ActivateFlag
-This parameter specifies wether the syntax highlighting should be
+This parameter specifies wether the keyword highlighting should be
 activated or deactivated,
 
 Specifiy one of the following values:
 .pl compact tsize=5
 - *0* or *OFF*
-= deactivate syntax highlighting
+= deactivate keyword highlighting
 - *1* or *ON*
-= activate syntax highlighting
+= activate keyword highlighting
 
-The default value is to activate syntax highlighting.
+The default value is to activate keyword highlighting.
 
 @@NepmdActivateHighlight@PARM@EpmMode
 This optional parameter specifies the mode to be used. If no mode
@@ -59,6 +62,14 @@ Specifiy one of the following values:
   The file is nevertheless newly generated, if it does not yet exist
 
 By default no options are used.
+
+@@NepmdActivateHighlight@PARM@Handle
+This optional parameter determines the handle obtained by a previous call
+to [.IDPNL_EFUNC_NEPMDOPENCONFIG].
+
+You may pass a *zero* or an *empty string* to
+[.IDPNL_REGISTRY_IMPLICITOPEN implicitely open and close]
+the configuration repository before and after this call.
 
 @@NepmdActivateHighlight@RETURNS
 *NepmdActivateHighlight* returns an OS/2 error code or zero for no error.
@@ -93,22 +104,23 @@ defc NepmdActivateHighlight, ActivateHighlight =
 
  EpmMode = translate( word( arg( 1), 2));
 
+ NewStatus = 1
  if (wordpos( ActivateFlag, 'ON 1') > 0) then
     NewStatus = 'activated';
  elseif (wordpos( ActivateFlag, 'OFF 0') > 0) then
     NewStatus = 'deactivated';
  else
-    sayerror 'Wrong parameter "'ActivateFlag'" specified !';
+    sayerror 'Wrong parameter "'ActivateFlag'" specified!';
     return;
  endif
 
- rc = NepmdActivateHighlight( ActivateFlag, EpmMode);
+ rc = NepmdActivateHighlight( ActivateFlag, EpmMode, 0, NewStatus);
  if (rc > 0) then
-    sayerror 'syntax highlighting could not be' NewStatus ', rc='rc;
+    sayerror 'Keyword highlighting could not be' NewStatus ', rc='rc;
     return;
  endif
 
- sayerror 'syntax highlighting was' NewStatus 'successfully.';
+ sayerror 'Keyword highlighting was' NewStatus 'successfully.';
 
  return;
 
@@ -121,7 +133,8 @@ compile endif
 /* .e Syntax:                                                    */
 /*    rc = NepmdActivateHighlight( ActivateFlag,                 */
 /*                                 Mode,                         */
-/*                                 HiliteOptions)                */
+/*                                 HiliteOptions,                */
+/*                                 Handle)                       */
 /*                                                               */
 /*   windowId is one of the EPMINFO_* values of stdconst.e       */
 /* ------------------------------------------------------------- */
@@ -129,7 +142,8 @@ compile endif
 /*  APIRET EXPENTRY NepmdActivateHighlight(  HWND hwndClient,    */
 /*                                           PSZ pszActivateFlag,*/
 /*                                           PSZ pszEpmMode,     */
-/*                                           PSZ pszOptions);    */
+/*                                           PSZ pszOptions,     */
+/*                                           HCONFIG hconfig);   */
 /* ------------------------------------------------------------- */
 
 defproc NepmdActivateHighlight( ActivateFlag)
@@ -139,7 +153,12 @@ defproc NepmdActivateHighlight( ActivateFlag)
  if (EpmMode = '') then
     EpmMode = NepmdGetMode();
  endif
- HiliteOptions = arg( 3);
+ -- use zero as handle if none specified
+ Handle = arg( 3)
+ if (strip( Handle) = '') then
+    Handle = 0;
+ endif
+ HiliteOptions = arg( 4);
 
  /* prepare parameters for C routine */
  ActivateFlag  = ActivateFlag''atoi( 0);
@@ -153,7 +172,8 @@ defproc NepmdActivateHighlight( ActivateFlag)
                   gethwndc( EPMINFO_EDITCLIENT) ||
                   address( ActivateFlag)        ||
                   address( EpmMode)             ||
-                  address( HiliteOptions));
+                  address( HiliteOptions)       ||
+                  atol( Handle));
 
  helperNepmdCheckliberror( LibFile, rc);
 
@@ -166,13 +186,15 @@ defproc NepmdActivateHighlight( ActivateFlag)
 /* .e Syntax:                                                    */
 /*    rc = NepmdActivateHighlight( ActivateFlag,                 */
 /*                                 Mode,                         */
-/*                                 HiliteOptions)                */
+/*                                 HiliteOptions,                */
+/*                                 Handle)                       */
 /*                                                               */
 /* ------------------------------------------------------------- */
 /* C prototype:                                                  */
 /*  APIRET EXPENTRY NepmdQueryHighlightArgs( PSZ pszActivateFlag,*/
 /*                                           PSZ pszEpmMode,     */
 /*                                           PSZ pszOptions,     */
+/*                                           HCONFIG hconfig,    */
 /*                                           PSZ pszBuffer,      */
 /*                                           ULONG ulBuflen);    */
 /* ------------------------------------------------------------- */
@@ -181,9 +203,17 @@ defproc NepmdActivateHighlight( ActivateFlag)
    -- get mode of current file, if not specified
    EpmMode = arg( 2)
    if (EpmMode = '') then
-      EpmMode = NepmdGetMode()
+      EpmMode = GetMode()
    endif
+
    HiliteOptions = arg( 3)
+
+   -- use zero as handle if none specified
+   Handle = arg( 4)
+   if (strip( Handle) = '') then
+      Handle = 0;
+   endif
+
    ActivateFlag  = ActivateFlag\0
    EpmMode       = EpmMode\0
    HiliteOptions = HiliteOptions\0
@@ -196,6 +226,7 @@ defproc NepmdActivateHighlight( ActivateFlag)
                     address( ActivateFlag)        ||
                     address( EpmMode)             ||
                     address( HiliteOptions)       ||
+                    atol( Handle)                 ||
                     address( HighlightArgs)       ||
                     atol( BufLen))
 

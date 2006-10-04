@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.63 2006-10-04 01:09:45 aschn Exp $
+* $Id: nepmdlib.c,v 1.64 2006-10-04 21:24:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -42,9 +42,9 @@
 #include "eas.h"
 #include "epmenv.h"
 #include "file.h"
+#include "libreg.h"
 #include "hilite.h"
 #include "instval.h"
-#include "libreg.h"
 #include "module.h"
 #include "tmf.h"
 #include "mode.h"
@@ -362,13 +362,14 @@ return rc;
 // suppressed, if an EPM command is executed at this time
 
 APIRET EXPENTRY NepmdActivateHighlight( HWND hwndClient, PSZ pszActivateFlag,
-                                        PSZ pszEpmMode, PSZ pszOptions)
+                                        PSZ pszEpmMode, PSZ pszOptions, HCONFIG hconfig)
 {
          APIRET         rc = NO_ERROR;
          CHAR           szHilightFile[ _MAX_PATH];
 
          BOOL           fReload   = 1;
          ULONG          ulOptions = 0;
+         BOOL           fImplicitOpen = FALSE;
 
 FUNCENTER;
 
@@ -387,6 +388,15 @@ do
       pszOptions = "";
    if ((!pszActivateFlag) || (!*pszActivateFlag))
       pszActivateFlag = "1";
+
+   // implicit open if handle is zero
+   if (!hconfig)
+      {
+      rc = _openConfig( &hconfig);
+      if (rc != NO_ERROR)
+         break;
+      fImplicitOpen = TRUE;
+      }
 
    // handle options
    strupr( pszOptions);
@@ -410,8 +420,10 @@ do
 
    if (*pszActivateFlag == '1')
       {
-      // query / create hilite file
-      rc = QueryHilightFile( pszEpmMode, ulOptions, &fReload, szHilightFile, sizeof( szHilightFile));
+      // query/create hilite file and write mode settings to NEPMD.INI
+      rc = QueryHilightFile( pszEpmMode, ulOptions, &fReload,
+                             hconfig,
+                             szHilightFile, sizeof( szHilightFile));
       if (rc != NO_ERROR)
          break;
 //    DPRINTF(( "NEPMDLIB: hilite file is %s\n", szHilightFile));
@@ -440,6 +452,8 @@ do
 
    } while (FALSE);
 
+// cleanup
+if (fImplicitOpen) CloseConfig( hconfig);
 FUNCEXITRC;
 return rc;
 }
@@ -449,7 +463,7 @@ return rc;
 // of executing it
 
 APIRET EXPENTRY NepmdQueryHighlightArgs( PSZ pszActivateFlag, PSZ pszEpmMode,
-                                         PSZ pszOptions,
+                                         PSZ pszOptions, HCONFIG hconfig,
                                          PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
@@ -458,6 +472,7 @@ APIRET EXPENTRY NepmdQueryHighlightArgs( PSZ pszActivateFlag, PSZ pszEpmMode,
 
          BOOL           fReload   = 1;
          ULONG          ulOptions = 0;
+         BOOL           fImplicitOpen = FALSE;
 
 FUNCENTER;
 
@@ -475,6 +490,15 @@ do
       break;
       }
 
+   // implicit open if handle is zero
+   if (!hconfig)
+      {
+      rc = _openConfig( &hconfig);
+      if (rc != NO_ERROR)
+         break;
+      fImplicitOpen = TRUE;
+      }
+
    // set defaults
    if ((!pszOptions) || (!*pszOptions))
       pszOptions = "";
@@ -485,6 +509,7 @@ do
    strupr( pszOptions);
    if (strchr( pszOptions, 'N'))
       ulOptions |= HILITE_NOOUTDATECHECK;
+   else
 
    // handle activate strings
    if (!strcmp( "0",    pszActivateFlag))
@@ -504,8 +529,10 @@ do
    // 2nd param for toggle_parse
    if (*pszActivateFlag == '1')
       {
-      // query / create hilite file
-      rc = QueryHilightFile( pszEpmMode, ulOptions, &fReload, szHilightFile, sizeof( szHilightFile));
+      // query/create hilite file and write mode settings to NEPMD.INI
+      rc = QueryHilightFile( pszEpmMode, ulOptions, &fReload,
+                             hconfig,
+                             szHilightFile, sizeof( szHilightFile));
       if (rc != NO_ERROR)
          break;
       }
@@ -529,6 +556,8 @@ do
 
    } while (FALSE);
 
+// cleanup
+if (fImplicitOpen) CloseConfig( hconfig);
 FUNCEXITRC;
 return _getRexxError( rc, pszBuffer, ulBuflen);
 }

@@ -2,11 +2,11 @@
 *
 * Module Name: hilite.c
 *
-* Generic routines to support extended syntax hilighting
+* Generic routines to support extended keyword hilighting
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.31 2006-08-28 16:59:55 aschn Exp $
+* $Id: hilite.c,v 1.32 2006-10-04 21:24:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,8 +34,8 @@
 
 #include "macros.h"
 #include "nepmd.h"
-#include "hilite.h"
 #include "libreg.h"
+#include "hilite.h"
 #include "init.h"
 #include "instval.h"
 #include "file.h"
@@ -68,14 +68,16 @@
 #define CHAR_SECTION_START   '['
 #define CHAR_SECTION_END     ']'
 
+// default values
 #define STR_KWDSCOMMENT      "þ"
+#define STR_CASESENSITIVE    "0"
 
 // global string vars
 static   PSZ            pszEnvnameEpmModepath = "EPMMODEPATH";
 static   PSZ            pszEnvnameEpmPath     = "EPMPATH";
 
 static   PSZ            pszGlobalSection  = "GLOBAL";
-static   PSZ            pszColorsSection  =  "COLORS";
+static   PSZ            pszColorsSection  = "COLORS";
 static   PSZ            pszSymbolsSection = "SYMBOLS";
 
 static   PSZ            pszFileInfoListEaName = "NEPMD.FileListInfo";
@@ -90,6 +92,45 @@ static   PSZ            pszKeywordNone    = "NONE:";
 #define SEARCHMASK_DEFAULTINI  "%s\\default.ini"
 #define SEARCHMASK_CUSTOMINI   "%s\\custom.ini"
 #define SEARCHMASK_EPMKWDS     "epmkwds.%s"
+
+// --- keyword strings for the GLOBAL section of DEFAULT.INI and CUSTOM.INI
+
+// comment char for .hil files (undocumented)
+#define KEY_HILCOMMENTCHAR        "HILCOMMENTCHAR"
+// used for mode determination and for building EPM highlighting files
+#define KEY_CHARSET               "CHARSET"
+#define KEY_ADD_CHARSET           "ADD_CHARSET"
+#define KEY_CASESENSITIVE         "CASESENSITIVE"
+#define KEY_DEFEXTENSIONS         "DEFEXTENSIONS"
+#define KEY_ADD_DEFEXTENSIONS     "ADD_DEFEXTENSIONS"
+#define KEY_DEFNAMES              "DEFNAMES"
+#define KEY_ADD_DEFNAMES          "ADD_DEFNAMES"
+// the following keys can hold word list, not only single words
+#define KEY_LINECOMMENT               "LINECOMMENT"
+#define KEY_LINECOMMENTPOS            "LINECOMMENTPOS"
+#define KEY_LINECOMMENTOVERRIDEMULTI  "LINECOMMENTOVERRIDEMULTI"
+#define KEY_LINECOMMENTADDSPACE       "LINECOMMENTADDSPACE"       // for defc comment
+#define KEY_LINECOMMENTPREFERRED      "LINECOMMENTPREFERRED"      // for defc comment
+#define KEY_MULTILINECOMMENTSTART     "MULTILINECOMMENTSTART"
+#define KEY_MULTILINECOMMENTEND       "MULTILINECOMMENTEND"
+#define KEY_MULTILINECOMMENTNESTED    "MULTILINECOMMENTNESTED"
+
+// --- keyword strings for NEPMD.INI (these settings are written to NEPMD.INI)
+
+// also used for mode determination and for building EPM highlighting files
+#define REGKEY_CHARSET               "CharSet"
+#define REGKEY_CASESENSITIVE         "CaseSensitive"
+#define REGKEY_DEFEXTENSIONS         "DefExtensions"
+#define REGKEY_DEFNAMES              "DefNames"
+// the following keys can hold word list, not only single words
+#define REGKEY_LINECOMMENT               "LineComment"
+#define REGKEY_LINECOMMENTPOS            "LineCommentPos"
+#define REGKEY_LINECOMMENTOVERRIDEMULTI  "LineCommentOverrideMulti"
+#define REGKEY_LINECOMMENTADDSPACE       "LineCommentAddSpace"       // for defc comment
+#define REGKEY_LINECOMMENTPREFERRED      "LineCommentPreferred"      // for defc comment
+#define REGKEY_MULTILINECOMMENTSTART     "MultiLineCommentStart"
+#define REGKEY_MULTILINECOMMENTEND       "MultiLineCommentEnd"
+#define REGKEY_MULTILINECOMMENTNESTED    "MultiLineCommentNested"
 
 // ----------------------------------------------------------------------
 
@@ -289,7 +330,7 @@ do
       break;
       }
 
-   // allocate dynamic memory fro file list
+   // allocate dynamic memory from file list
    ALLOCATEMEMORYFILE( pszFileList, 16384);
 
    // go through all keyword directories
@@ -410,7 +451,7 @@ do
    pszKey = szKeyList;
    while (*pszKey)
       {
-      // does entry exist in the old array ? then skip
+      // does entry exist in the old array? then skip
       fSkip = FALSE;
       if (pva)
          {
@@ -454,7 +495,7 @@ do
       pszKey = szKeyList;
       while (*pszKey)
          {
-         // can entry be found in old array ? if yes, mark it as deleted
+         // can entry be found in old array? if yes, mark it as deleted
          ppszOldAnchor = (PVOID)lfind( (PSZ)&pszKey, (PSZ)pva->apszValue, (PUINT)&pva->ulCount, sizeof( PSZ), _compareValue);
          if (ppszOldAnchor)
             {
@@ -586,9 +627,49 @@ printf( "%u entries\n\n", i);
 }
 
 // #############################################################################
+// Determine the filename for a tmp EPM kwds file. Compare EA of the existing
+// EPM kwds file with the mode's INI and HIL file data. If outdated, rebuild it
+// using these files. The EPM kwds file is created in a tmp dir. Therefore
+// following env vars are queried, while one must exist: EPMKWDSTMP, TMP, TEMP.
+// A subdir "nepmd" is created in the tmp dir, holding the kwds files with the
+// filename = mode.
+//
+// Reads:
+//    pszEpmMode  mode
+//    ulOptions   1 if ckecking for outdated files should be suppressed; also
+//                used to control the 1st word of the parm for toggle_parse
+// Returns/alters via call by reference:
+//    pfReload    1 if tmp EPM kwds file was rebuilt; used to determine the
+//                1st word of the parm for toggle_parse
+//    pszBuffer   fully qualified tmp EPM kwds filename
+// Returns:
+//    rc          0 if no error
+//
+// Called by NepmdActivateHighlight (E proc):
+//    NepmdQueryHighlightArgs         (NEPMDLIB.C)
+//       QueryHilightFile             (HILITE.C)
+//          _assembleKeywordFile      (HILITE.C)
+//
+// E calls:
+//    a_togl_hilit                    (SAMPACTN.E)
+//       ActivateHighlighting         (STDCMDS.E)
+//          NepmdActivateHighlight    (ACTIVATEHIGHLIGHT.E)
+//    toggle_highlight, toggle_default_highlight  (NEWMENU.E)
+//       SetHighlight                 (MODEEXECUTE.E)
+//          NepmdActivateHighlight    (ACTIVATEHIGHLIGHT.E)
+//    ProcessLoadSettings             (MODEEXECUTE.E)
+//       NepmdActivateHighlight       (ACTIVATEHIGHLIGHT.E)
+//
+// NepmdActivateHighlight uses the toggle_parse command (STDCTRL.E) to execute
+// the highlighting. toggle_parse accepts 0, 1 or 2 as the first word of its
+// parm:
+//    0   unhighlight
+//    1   highlight, load the kwds file if not already loaded
+//    2   highlight and force reloading of the kwds file to reparse it
 
-
-static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfReload, PSZ pszBuffer, ULONG ulBuflen)
+static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfReload,
+                                    HCONFIG hconfig,
+                                    PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
          ULONG          i;
@@ -603,7 +684,6 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfRel
          PSZ           *ppszSymbolValue;
          CHAR           szValue[ _MAX_PATH];
          CHAR           szCustomValue[ _MAX_PATH];
-         PSZ            pszModeCopy = NULL;
 
          // ----------------------------------
 
@@ -621,8 +701,42 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfRel
          CHAR           szCharset[ _MAX_PATH];
          CHAR           szDefExtensions[ _MAX_PATH];
          CHAR           szDefNames[ _MAX_PATH];
-         CHAR           szCommentChar[ 20];
+         CHAR           szHilCommentChar[ 20];
          BOOL           fCaseSensitive = FALSE;
+
+         // ----------------------------------
+
+         CHAR           szCustomDefExtensions[ _MAX_PATH];
+         CHAR           szCustomDefNames[ _MAX_PATH];
+         CHAR           szCustomAddDefExtensions[ _MAX_PATH];
+         CHAR           szCustomAddDefNames[ _MAX_PATH];
+
+         CHAR           szCaseSensitive[ 5];
+         CHAR           szCustomCaseSensitive[ 5];
+         ULONG          ulCaseSensitive;
+         ULONG          ulInfoSize;
+
+         CHAR           szLineComment[ _MAX_PATH];
+         CHAR           szLineCommentPos[ 5];
+         CHAR           szLineCommentOverrideMulti[ 5];
+         CHAR           szLineCommentAddSpace[ 5];
+         CHAR           szLineCommentPreferred[ 5];
+         CHAR           szMultiLineCommentStart[ _MAX_PATH];
+         CHAR           szMultiLineCommentEnd[ _MAX_PATH];
+         CHAR           szMultiLineCommentNested[ 5];
+
+         CHAR           szCustomLineComment[ _MAX_PATH];
+         CHAR           szCustomLineCommentPos[ 5];
+         CHAR           szCustomLineCommentOverrideMulti[ 5];
+         CHAR           szCustomLineCommentAddSpace[ 5];
+         CHAR           szCustomLineCommentPreferred[ 5];
+         CHAR           szCustomMultiLineCommentStart[ _MAX_PATH];
+         CHAR           szCustomMultiLineCommentEnd[ _MAX_PATH];
+         CHAR           szCustomMultiLineCommentNested[ 5];
+
+static   PSZ            pszRegPathTemplate = "\\NEPMD\\User\\Mode\\%s\\%s";
+         CHAR           szRegPath[ _MAX_PATH];
+         BOOL           fImplicitOpen = FALSE;
 
          // ----------------------------------
 
@@ -682,7 +796,7 @@ static   PSZ            pszHeaderMask = "\r\n%s%s\r\n";
          CHAR           szEntryColors[32];
          BOOL           fEntryColors;
 
-// keep these definitions in sync !!!
+// keep these definitions in sync!!!
          ULONG          ulSectionIndex;
          PSZ            apszSpecialSections[] = {"", "COMMENT", "LITERAL", "SPECIAL", "OPERATOR", "BREAKCHAR", "ENDCHAR"};
 #define  COUNT_SPECIALSECTION (sizeof( apszSpecialSections) / sizeof( PSZ))
@@ -728,19 +842,24 @@ do
       }
 
    // check env
-   pszTmpDir = getenv( "EPMKWDSTMP");
+   do
+      {
+      pszTmpDir = getenv( "EPMKWDSTMP");
+      if (pszTmpDir)
+         break;
+
+      pszTmpDir = getenv( "TMP");
+      if (pszTmpDir)
+         break;
+
+      pszTmpDir = getenv( "TEMP");
+
+      } while (FALSE);
+
    if (!pszTmpDir)
       {
-      pszTmpDir = getenv( "TMP");
-      if (!pszTmpDir)
-         {
-         pszTmpDir = getenv( "TEMP");
-         if (!pszTmpDir)
-            {
-            rc = ERROR_ENVVAR_NOT_FOUND;
-            break;
-            }
-         }
+      rc = ERROR_ENVVAR_NOT_FOUND;
+      break;
       }
 
    // init target vars
@@ -750,10 +869,6 @@ do
    // -----------------------------------------------
 
    // get the name and date of the temporary file
-
-   // init some vars
-   pszModeCopy = strdup( pszEpmMode);
-   strupr( pszModeCopy);
 
    // get keywordfile
    strupr( pszEpmMode);
@@ -781,8 +896,7 @@ do
    // hand over result
    strcpy( pszBuffer, szKeywordFile);
 
-
-   // if no uptdate check, return filename if file exists
+   // if no update check, return filename if file exists
    if ((ulOptions && HILITE_NOOUTDATECHECK) &&
        (FileExists( szKeywordFile)))
       {
@@ -818,10 +932,22 @@ do
    if (rc != NO_ERROR)
       break;
 
-      QUERYINITVALUE( hinitDefault, pszGlobalSection, "CHARSET",        szCharset);
-      QUERYINITVALUE( hinitDefault, pszGlobalSection, "CASESENSITIVE",  szValue);
-   // comment char for tmp EPM kwds file (yet undocumented)
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, "COMMENTCHAR",    szCommentChar, STR_KWDSCOMMENT);
+   // read default values for highlighting
+   // only the next key is required to define a mode
+   QUERYINITVALUE( hinitDefault,    pszGlobalSection, KEY_CHARSET,        szCharset);
+   // read optional comment char for tmp EPM kwds file (yet undocumented)
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_HILCOMMENTCHAR, szHilCommentChar, STR_KWDSCOMMENT);
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_DEFEXTENSIONS,  szDefExtensions,  "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_DEFNAMES,       szDefNames,       "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_CASESENSITIVE,  szCaseSensitive,  STR_CASESENSITIVE);
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENT,              szLineComment,              "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTPOS,           szLineCommentPos,           "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTOVERRIDEMULTI, szLineCommentOverrideMulti, "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTADDSPACE,      szLineCommentAddSpace,      "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTPREFERRED,     szLineCommentPreferred,     "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_MULTILINECOMMENTSTART,    szMultiLineCommentStart,    "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_MULTILINECOMMENTEND,      szMultiLineCommentEnd,      "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_MULTILINECOMMENTNESTED,   szMultiLineCommentNested,   "");
 
    // - read customs of the mode - optional - so ignore errors here
    rc = _openInitFile( &hinitCustom, pszEnvnameEpmModepath, SEARCHMASK_CUSTOMINI, pszEpmMode,
@@ -831,26 +957,106 @@ do
       // note that we found the custom ini
       fCustomLoaded = TRUE;
 
-      // read optional values - other values are read in mode.c !
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, "CASESENSITIVE",   szCustomValue, "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, "CHARSET",         szCustomCharset, "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, "ADD_CHARSET",     szCustomAddCharset, "");
+      // read optional values for highlighting
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_CHARSET,       szCustomCharset,    "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_ADD_CHARSET,   szCustomAddCharset, "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_DEFEXTENSIONS,     szCustomDefExtensions,    "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_ADD_DEFEXTENSIONS, szCustomAddDefExtensions, "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_DEFNAMES,          szCustomDefNames,         "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_ADD_DEFNAMES,      szCustomAddDefNames,      "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_CASESENSITIVE,     szCustomCaseSensitive,    "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENT,              szCustomLineComment,              "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTPOS,           szCustomLineCommentPos,           "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTOVERRIDEMULTI, szCustomLineCommentOverrideMulti, "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTADDSPACE,      szCustomLineCommentAddSpace,      "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTPREFERRED,     szCustomLineCommentPreferred,     "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_MULTILINECOMMENTSTART,    szCustomMultiLineCommentStart,    "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_MULTILINECOMMENTEND,      szCustomMultiLineCommentEnd,      "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_MULTILINECOMMENTNESTED,   szCustomMultiLineCommentNested,   "");
 
       // replace settings from DEFAULT.INI, if present
       if (strlen( szCustomCharset))
          strcpy( szCharset, szCustomCharset);
-      if (strlen( szCustomValue))
-         strcpy( szValue, szCustomValue);
+      if (strlen( szCustomDefExtensions))
+         strcpy( szDefExtensions, szCustomDefExtensions);
+      if (strlen( szCustomDefNames))
+         strcpy( szDefNames, szCustomDefNames);
+      if (strlen( szCustomCaseSensitive))
+         strcpy( szCaseSensitive, szCustomCaseSensitive);
+      if (strlen( szCustomLineComment))
+         strcpy( szLineComment, szCustomLineComment);
+      if (strlen( szCustomLineCommentPos))
+         strcpy( szLineCommentPos, szCustomLineCommentPos);
+      if (strlen( szCustomLineCommentOverrideMulti))
+         strcpy( szLineCommentOverrideMulti, szCustomLineCommentOverrideMulti);
+      if (strlen( szCustomLineCommentAddSpace))
+         strcpy( szLineCommentAddSpace, szCustomLineCommentAddSpace);
+      if (strlen( szCustomMultiLineCommentStart))
+         strcpy( szMultiLineCommentStart, szCustomMultiLineCommentStart);
+      if (strlen( szCustomMultiLineCommentEnd))
+         strcpy( szMultiLineCommentEnd, szCustomMultiLineCommentEnd);
+      if (strlen( szCustomMultiLineCommentNested))
+         strcpy( szMultiLineCommentNested, szCustomMultiLineCommentNested);
 
-      // append these settings to the ones already read
+      // append "ADD_" settings to the ones already read
       if (strlen( szCustomAddCharset))
          strcat( szCharset, szCustomAddCharset);
+      if (strlen( szCustomAddDefExtensions))
+         {
+         strcat( szDefExtensions, " ");
+         strcat( szDefExtensions, szCustomAddDefExtensions);
+         }
+      if (strlen( szCustomAddDefNames))
+         {
+         strcat( szDefNames, " ");
+         strcat( szDefNames, szCustomAddDefNames);
+         }
+
+      // make several values uppercase
+      strupr( szDefExtensions);
+      strupr( szDefNames);
       }
 
    else
       rc = NO_ERROR;
 
-   fCaseSensitive = atol( szValue);
+   fCaseSensitive = atol( szCaseSensitive);
+
+   // -----------------------------------------------
+   // write settings to NEPMD.INI
+   // even empty values are written to enable keyword "deletion"
+
+   // Extensions
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_DEFEXTENSIONS);
+   rc = WriteConfigValue( hconfig, szRegPath, szDefExtensions);
+
+   // Names
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_DEFNAMES);
+   rc = WriteConfigValue( hconfig, szRegPath, szDefNames);
+
+   // Casesensitive
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_CASESENSITIVE);
+   rc = WriteConfigValue( hconfig, szRegPath, szCaseSensitive);
+
+   // Line comments
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENT);
+   rc = WriteConfigValue( hconfig, szRegPath, szLineComment);
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTPOS);
+   rc = WriteConfigValue( hconfig, szRegPath, szLineCommentPos);
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTOVERRIDEMULTI);
+   rc = WriteConfigValue( hconfig, szRegPath, szLineCommentOverrideMulti);
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTADDSPACE);
+   rc = WriteConfigValue( hconfig, szRegPath, szLineCommentAddSpace);
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTPREFERRED);
+   rc = WriteConfigValue( hconfig, szRegPath, szLineCommentPreferred);
+
+   // Multi-line comments
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_MULTILINECOMMENTSTART);
+   rc = WriteConfigValue( hconfig, szRegPath, szMultiLineCommentStart);
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_MULTILINECOMMENTEND);
+   rc = WriteConfigValue( hconfig, szRegPath, szMultiLineCommentEnd);
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_MULTILINECOMMENTNESTED);
+   rc = WriteConfigValue( hconfig, szRegPath, szMultiLineCommentNested);
 
    // -----------------------------------------------
 
@@ -949,7 +1155,7 @@ do
             break;
          }
       else
-         // EA not found, just proceed !
+         // EA not found, just proceed!
          rc = NO_ERROR;
       }
 
@@ -959,13 +1165,13 @@ do
 
    // first of all add info of init files to file list
    pszSourceFile = szInitGlobalFilename;
-   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
    pszSourceFile = szInitDefaultFilename;
-   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+   sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
    if (fCustomLoaded)
       {
       pszSourceFile = szInitCustomFilename;
-      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
       }
 
    // loop thru all files
@@ -974,19 +1180,19 @@ do
            ulCurrentFile++, pszSourceFile += _MAX_PATH)
       {
       // add file to the info list
-      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
+      sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
       }
 
    // now check the file list, if old one is present
-   // if it is equal (including timestamps !)
+   // if it is equal (including timestamps!)
    // break with no error
    if (pszOldFileInfoList)
       {
       if (!strcmp( pszOldFileInfoList, pszFileInfoList))
          {
 //       DPRINTF(( "HILITE: file has not changed!\n"
-//                 "files used for last generation:\n"
-//                 "-------------------------------\n"
+//                 "files used for last generation\n"
+//                 "------------------------------\n"
 //                 "%s\n", pszOldFileInfoList));
 
          *pfReload = FALSE;
@@ -1037,12 +1243,12 @@ do
             pszLine = szLine;
             ulLineCount++;
 
-            // skip comments - the comment char must be on the first column !
+            // skip comments - the comment char must be on the first column!
             if ((*pszLine == CHAR_HILCOMMENT) ||
                 (*pszLine == 0))
                continue;
 
-            // check for section start before stipping blanks !
+            // check for section start before stipping blanks!
             fSectionStart = (*pszLine == CHAR_SECTION_START);
 
             // skip leading blanks anyway (also trailing newline)
@@ -1146,7 +1352,7 @@ do
 
                   // use comment char if special keyword is specified
                   if (!strcmp( pszKeywordNone, pszLine))
-                     pszLine = szCommentChar;
+                     pszLine = szHilCommentChar;
 
                   // store all other values
                   if (!pszStopStr)
@@ -1167,7 +1373,7 @@ do
                pszLine = strtok( NULL, " ");
                }
 
-            // still linvalid line ?
+            // still linvalid line?
             if (pszInvalid)
                {
                DPRINTF(( "HILITE: error: skipping invalid line %u, invalid token %s\n", ulLineCount, pszInvalid));
@@ -1284,18 +1490,18 @@ do
 // DPRINTF(( "- allocated buffer at 0x%08x, len %u, end address 0x%08x\n",
 //           pszHiliteContents, ulHiliteContentsLen, pszHiliteContents + ulHiliteContentsLen));
 
-   // write one line with the comment char only
+   // write one line with the comment char only, followed by header and FileInfoList
    pszCurrent = pszHiliteContents;
    sprintf( pszCurrent, "%s\r\n"
-                        "%s NEPMD syntax highlighting definition - Files used\r\n"
-                        "%s =================================================\r\n",
-                        szCommentChar, szCommentChar, szCommentChar);
+                        "%s NEPMD keyword highlighting definition - Files used\r\n"
+                        "%s ==================================================\r\n",
+                        szHilCommentChar, szHilCommentChar, szHilCommentChar);
    pszCurrent = _EOS( pszCurrent);
    strcat( pszCurrent, pszFileInfoList);
    pszCurrent = _EOS( pszCurrent);
 
    // first of all write CHARSET
-   sprintf( pszCurrent, pszHeaderMask, szCommentChar, "CHARSET");
+   sprintf( pszCurrent, pszHeaderMask, szHilCommentChar, "CHARSET");
 // DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
    pszCurrent = _EOS( pszCurrent);
    sprintf( pszCurrent, "%s\r\n", szCharset);
@@ -1304,7 +1510,7 @@ do
    // add all sections, if something in it
    if (pszCurrentDelimiter - pszSectionDelimiter)
       {
-      sprintf( pszCurrent, pszHeaderMask, szCommentChar, "DELIM");
+      sprintf( pszCurrent, pszHeaderMask, szHilCommentChar, "DELIM");
 //    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionDelimiter);
@@ -1313,7 +1519,7 @@ do
 
    if (pszCurrentDelimiteri - pszSectionDelimiteri)
       {
-      sprintf( pszCurrent, pszHeaderMask, szCommentChar, "DELIMI");
+      sprintf( pszCurrent, pszHeaderMask, szHilCommentChar, "DELIMI");
 //    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionDelimiteri);
@@ -1322,7 +1528,7 @@ do
 
    if (pszCurrentKeywords  - pszSectionKeywords)
       {
-      sprintf( pszCurrent, pszHeaderMask, szCommentChar, (fCaseSensitive) ? "KEYWORDS" : "INSENSITIVE");
+      sprintf( pszCurrent, pszHeaderMask, szHilCommentChar, (fCaseSensitive) ? "KEYWORDS" : "INSENSITIVE");
 //    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionKeywords);
@@ -1331,7 +1537,7 @@ do
 
    if (pszCurrentSpecial   - pszSectionSpecial)
       {
-      sprintf( pszCurrent,  pszHeaderMask, szCommentChar, (fCaseSensitive) ? "SPECIAL"  : "SPECIALI");
+      sprintf( pszCurrent,  pszHeaderMask, szHilCommentChar, (fCaseSensitive) ? "SPECIAL"  : "SPECIALI");
 //    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionSpecial);
@@ -1340,7 +1546,7 @@ do
 
    if (pszCurrentBreakChar - pszSectionBreakChar)
       {
-      sprintf( pszCurrent,  pszHeaderMask, szCommentChar, "BREAK");
+      sprintf( pszCurrent,  pszHeaderMask, szHilCommentChar, "BREAK");
 //    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionBreakChar);
@@ -1349,7 +1555,7 @@ do
 
    if (pszCurrentEndChar   - pszSectionEndChar)
       {
-      sprintf( pszCurrent,  pszHeaderMask, szCommentChar, "ENDCHAR");
+      sprintf( pszCurrent,  pszHeaderMask, szHilCommentChar, "ENDCHAR");
 //    DPRINTF(( "-  at 0x%08x adding header for %s\n", pszCurrent, pszCurrent));
       pszCurrent = _EOS( pszCurrent);
       strcpy( pszCurrent, pszSectionEndChar);
@@ -1383,7 +1589,6 @@ do
 
 if (pvaColors)           free( pvaColors);
 if (pvaSymbols)          free( pvaSymbols);
-if (pszModeCopy)         free( pszModeCopy);
 if (pszOldFileInfoList)  free( pszOldFileInfoList);
 
 if (pszFileList)          FREEMEMORYFILE( pszFileList);
@@ -1407,7 +1612,9 @@ return rc;
 
 // #############################################################################
 
-APIRET QueryHilightFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfReload, PSZ pszBuffer, ULONG ulBuflen)
+APIRET QueryHilightFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfReload,
+                         HCONFIG hconfig,
+                         PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc = NO_ERROR;
          CHAR           szValue[ _MAX_PATH];
@@ -1433,7 +1640,7 @@ do
 // DPRINTF(( "### HILITE: %s: options: %08x\n", pszEpmMode, ulOptions));
 
    // search mode files
-   rc = _assembleKeywordFile( pszEpmMode, ulOptions, pfReload, szValue, sizeof( szValue));
+   rc = _assembleKeywordFile( pszEpmMode, ulOptions, pfReload, hconfig, szValue, sizeof( szValue));
    if (rc == NO_ERROR)
       {
       // disable reload if HighlightFlag <> 0
