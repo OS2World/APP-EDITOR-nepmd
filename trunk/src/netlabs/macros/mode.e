@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.40 2006-10-07 18:16:52 aschn Exp $
+* $Id: mode.e,v 1.41 2006-10-07 19:11:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -328,4 +328,38 @@ defproc QueryModeKey( Mode, Key)
    else
       return ''
    endif
+
+; ---------------------------------------------------------------------------
+; For debugging: remove all mode keys from NEPMD.INI.
+defc DelAllModeKeys
+   universal nepmd_hini
+   ModeList = NepmdQueryModeList()
+   KeyList = 'CharSet CaseSensitive' ||
+             ' DefExtensions DefNames' ||
+             ' LineComment LineCommentPos LineCommentOverrideMulti'||
+             ' LineCommentAddSpace LineCommentPreferred' ||
+             ' MultiLineCommentStart MultiLineCommentEnd' ||
+             ' MultiLineCommentNested'
+   parse value ModeList with 'ERROR:'rc
+   if (rc > '') then
+      sayerror 'List of EPM modes could not be determined, rc = 'rc
+      return rc
+   endif
+   MainPath = '\NEPMD\User\Mode'
+   ErrorModes = ''
+   rest = ModeList
+   do while rest > ''
+      parse value rest with Mode rest
+      if Mode > '' then
+         ModePath = MainPath'\'Mode
+         do w = 1 to words( KeyList)
+            Key = word( KeyList, w)
+            KeyPath = ModePath'\'Key
+            rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+         enddo
+      else
+         iterate
+      endif
+   enddo
+   sayerror 'Settings for all modes deleted.'
 
