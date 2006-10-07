@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.24 2006-03-29 23:54:06 aschn Exp $
+* $Id: locate.e,v 1.25 2006-10-07 18:35:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -908,10 +908,11 @@ compile if not defined( GREP_EXE)
    GREP_EXE = 'grep.exe'
 compile endif
 compile if not defined( GNU_GREP_OPTIONS)
+   -- -E  extended grep
    -- -i  case insensitive
    -- -n  show line numbers
    -- -H  force print filename (path is missing, if file is located in current directory)
-   GNU_GREP_OPTIONS = '-inH'
+   GNU_GREP_OPTIONS = '-EinH'
 compile endif
 compile if not defined( RY_GREP_OPTIONS)
    -- /y  case insensitive
@@ -1043,6 +1044,7 @@ defc Grep
    else
       rc = callgrep( fGnu, arg(1))
    endif
+;   sayerror 'rc from defc Grep = 'rc
 
 ; ---------------------------------------------------------------------------
 ; For use as menu item.
@@ -1195,6 +1197,17 @@ defproc redirect_grep( fGnu, Cmd)
    .modify = 0
    call erasetemp(outfile)
    return 0
+
+; ---------------------------------------------------------------------------
+; Search all NEPMD E macros for a string
+; input:  a string to search for
+; output: a grep window showing all matches suitable for use with ALT+1
+defc MacGrep
+   RootDir = NepmdScanEnv( 'NEPMD_ROOTDIR')
+   UserDir = NepmdScanEnv( 'NEPMD_ROOTDIR')
+   FileMask = RootDir'\netlabs\macros\*.e' UserDir'\macros\*.e'
+   'grep' GNU_GREP_OPTIONS arg(1) FileMask
+   sayerror 'rc from grep = 'rc
 
 ; ---------------------------------------------------------------------------
 defc findmark
