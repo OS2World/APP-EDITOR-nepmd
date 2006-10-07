@@ -2,12 +2,12 @@
 ..
 .. Module Name: nefldeng.txt
 ..
-.. source file for the folder HLP file
-.. Requires HyperText/2 package to compile
+.. Source file for the folder HLP file.
+.. Requires HyperText/2 package to compile.
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nefldeng.txt,v 1.4 2006-03-12 19:05:30 aschn Exp $
+.. $Id: nefldeng.txt,v 1.5 2006-10-07 20:20:17 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -61,7 +61,7 @@ This icon launches the *EPM* with the additions of the
 parameters, associations and icons. Use the object called "EPM"
 as your new standard *EPM* program object.
 
-For comparism with the old *EPM* after installation of the [=TITLE],
+For comparison with the old *EPM* after installation of the [=TITLE],
 you can use the standard *Enhanced Editor* object, that was created
 by your operating system's installation. Therefore you have to close
 all other *NEPMD EPM* objects before.
@@ -223,7 +223,7 @@ of the [=TITLE]. It contains three main trees:
 .ul compact
 - *netlabs* (additions from the NEPMD project)
 - *myepm* (user files go here)
-- *epmbbs* (mostly for comparism only)
+- *epmbbs* (mostly for comparison only)
 
 See also the *[=USRTITLE]*,
 .ul compact
