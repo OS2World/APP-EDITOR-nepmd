@@ -3,7 +3,7 @@
 # Module Name: configure.in
 #
 # make include file to configure src\wis\makefile and the script files
-# called by it. This makefile is automatically called by exexuting
+# called by it. This makefile is automatically called by executing
 #    nmake all
 # in the project working root directory after having build and copied all
 # other required files to the appropriate subdirectories of the compile
@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.11 2006-04-15 11:38:54 aschn Exp $
+# $Id: configure.in,v 1.12 2006-10-07 20:49:23 aschn Exp $
 #
 # ===========================================================================
 #
@@ -30,33 +30,33 @@
 # ***************************************************************************
 
 
-# --- modify the following variables to your needs here
+# --- Modify the following variables to your needs here
 #     or predefine values as environment variable before
-#     executing make
+#     executing make:
 
-# set base URL for epm603b.zip and epm603bupd.zip
+# Set base URL for epm603b.zip and epm603bupd.zip
 # There is no other location known to me where these
-# two ZIPs are packed like assumed in prepare.cmd !
+# two ZIPs are packed like assumed in prepare.cmd!
 
 !ifndef BASEURL
 # BASEURL=ftp://ftp.leo.org/pub/comp/os/os2/leo/editors
 BASEURL=ftp://hobbes.nmsu.edu/pub/os2/apps/editors/epm
 !endif
 
-# a directory of your choice either empty or already holding
+# A directory of your choice either empty or already holding
 # the ZIP files of the EPMBBS package (epm603b.zip and epm603bupd.zip).
 # If files are not present, they are downloaded from LEO
 # from the base URL - see setting BASEURL above
 # - the directory may not exist, but at least directory above
-#   must exist (that is not tested for !)
+#   must exist (that is not tested for!)
 
 !ifndef ZIPSRCDIR
 ZIPSRCDIR=$(BASEDIR)\zip
 !endif
 
-# directory where to put unpacked files
+# Directory where to put unpacked files
 # - directory may not exist, but at least directory above
-#   must exist (that is not tested for !)
+#   must exist (that is not tested for!)
 # - the contents of that directory (if any) is completely deleted
 #   before unpacking the EPMBBS package files
 # - names including blanks are not supported by all
@@ -67,28 +67,46 @@ UNZIPPEDDIR=$(BASEDIR)\epm.packages
 !endif
 
 
-# --- DON'T MODIFY THE FOLLOWING VALUES
-#     Modification by package maintainer only !!!
+# Append date to the basename of the .wpi file for the debug versions?
+# Set this to 1 if you want to have multiple .wpi files for comparison.
 
-# project id
+!ifndef APPEND_DATE_TO_WPIFILE
+#!ifdef DEBUG
+APPEND_DATE_TO_WPIFILE=1
+#!endif
+!endif
+
+
+# --- DON'T MODIFY THE FOLLOWING VALUES
+#     Modification by package maintainer only!
+
+# Project id
 
 STEM=nepmd
 
-# three to four digit version number included in name of package
+# Three to four digit version number included in name of package
 
-VERSION=100
+VERSION=111
 
 
-# version number for the NEPMD WarpIn package version
+# Version number for the NEPMD WarpIn package version
 # NOTE:
 #  - keep major and minor version number in sync with
-#    above version number !!!
+#    above version number!
 #  - must be specified in WarpIn package ID style
+#  - keep in sync with (use Alt+1 to load files under cursor):
+#       NEPMD const in src\netlabs\macros\stdconst.e
+#       src\gui\recomp\common.h
+#       src\gui\recomp\resource.def
+#       src\gui\epmcall\common.h
+#       src\gui\epmcall\epmcall.def
+#       src\gui\nepmdlib\nepmdlib.h
+#       src\gui\nepmdlib\nepmdlib.def
 
-ID_VERSION_NEPMD=1\0\0
+ID_VERSION_NEPMD=1\1\1
 
 
-# version number for the WarpIn version that the resulting
+# Version number for the WarpIn version that the resulting
 # WPI package should be restricted to for installation
 # NOTE:
 #  - must be specified in WarpIn package ID style
