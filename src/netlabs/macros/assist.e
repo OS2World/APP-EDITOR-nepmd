@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.13 2006-05-06 11:20:47 aschn Exp $
+* $Id: assist.e,v 1.14 2006-10-07 18:44:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -20,8 +20,16 @@
 ****************************************************************************/
 
 /*
+Changed:
+-  Moved external procs.
+-  Reactivated highlighting of the found string (by using 'l' instead of
+   'xcom l').
+-  Return rc for passist proc.
+
 Todo:
--  Fix bug for LaTeX: \begin {...} is not recognized.
+-  Speed improvement: Better search for both, the opening and clothing
+   string. If the found string is the same as the string under cursor, then
+   stop, because the string under cursor must be unmatched.
 -  Optional: if corresponding string is not on screen, just give a msg
    like in defproc balance. When 'just a msg' is selected, then give the
    user the possibility to go (with a special key combination) to that
@@ -111,79 +119,82 @@ compile endif  -- not defined(SMALL)
 --        in the odd positions and the right "brackets" in the even positions.
 const GOLD = '(){}[]<>'  -- Parens, braces, brackets & angle brackets.
 
-INCLUDE_NMAKE32 = 1   -- 0 means do not accept NMAKE32-specific directives
+PASSIST_RC_MLC_MATCHED                    = -1
+PASSIST_RC_NO_ERROR                       = 0
+PASSIST_RC_IN_ONELINE_COMMENT             = 1
+PASSIST_RC_IN_MULTILINE_COMMENT           = 2
+PASSIST_RC_IN_LITERAL                     = 3
+PASSIST_RC_NOT_ON_A_TOKEN                 = 4
+PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN     = 5
+PASSIST_RC_BAD_FORTRAN_CURSOR             = 6
+
+EGREP_METACHARACTERS = '\[]()?+*^$.|'    -- JBSQ: This may need to changed if the grep code
+                                         -- ever supports {, } and possibly other egrep metacharacters
+
+-- JBSQ: COMM_VER is used to determine which version of my "determine where the multi-line
+--       comments are" code. If we need to revert back to an earlier version we will need
+--       the code from my hard drive I removed the two earlier versions from this file
+--       because they were taking up too much space. Do you want me to put this earlier
+--       code back? Once the comment code is "established" we can delete this and the
+--       conditional compilation which uses COMM_VER.
+COMM_VER          = 3   -- 3 array, 2 "new, broken nested" code, 1 = "old, almost working nested code
+
+-- JBSQ: The following constants 'hard-code' the versions of NMAKE and FORTRAN for which
+--       passist works. Perhaps there is a better way that would allow this to be
+--       selected by the user?
+USE_NMAKE32       = 1   -- 0 means do not accept NMAKE32-specific directives
+USE_FORTRAN90_SLC = 1   -- 0 means disregard FORTRAN90 SLC: '!'
 
 defc assist, passist
    call passist()
-
-;
-;  a temporary cmd to dynamically set the global variable 'jbsdbglist' which is
-;  used by the jbsdprintf proc below
-;
-defc t8
-   universal jbsdbglist
-   string = arg(1)
-;    if jbsdbglist = '' then
-;       if string <> '' then
-;          'os2 pmprintf'
-;       endif
-;    endif
-   jbsdbglist = string
-
-defproc jbsdprintf(routine, msg)
-; ---------------------------------------------------------------------------
-;  This routine will call dprintf only for "routines" (i.e. first param being
-;  sent to dprintf.  This means that calls to dprintf turned on and off by
-;  simply adding or deleting the "routine" from the list below (instead of
-;  adding or removing/commenting the various calls.  The calls to jbsdprintf
-;  can be left in until all debugging is complete.
-; ---------------------------------------------------------------------------
-   universal jbsdbglist
-   --jbsdbglist = 'comm lit2 1line passist array'
-   --jbsdbglist = '1line'
-   --jbsdbglist = 'passist'
-   if wordpos(routine, jbsdbglist) then
-      call dprintf(routine, msg)
-   endif
 
 ; ---------------------------------------------------------------------------
 ; id            = found word under cursor (or beneath the cursor in some cases)
 ; fIntermediate = set to 1 if id is an intermediate conditional token
 ;                 (e.g. 'else', but not 'if' or 'endif')
-; clist         = a space delimited list of substrings to match on
+; clist         = a space delimited list of substrings to match on. Usually this
+;                 is a single substring. An example of multiple substrings in
+;                 clist would be that an "end" in REXX mode can match up with
+;                 either a "do" or a "select" statement. If fForward = 1 then
+;                 these substrings should identify the starting token(s) of the
+;                 bracketed code. If fForward = 0 then these substrings should
+;                 identify the ending token(s).
 ; clen          = the length of the substrings in clist
 ; coffset       = offset from cursor pos to substring to match
 ; fForward      = a flag to indicate which direction to search
 ;                 1 = forward, 0 = backward
 ; search        = string for locate command, without seps and options,
 ;                 egrep will be used
-defproc passist
-   call psave_pos(savepos)
-   getsearch search_command -- Save user's search command.
-   call jbsdprintf("passist", "Initial cursor: ".line",".col)
+; ---------------------------------------------------------------------------
 
-   passist_rc = inside_comment2(comment_data)
-   call jbsdprintf("passist", "comment return:" passist_rc comment_data)
-   if passist_rc = 2 then
+defproc passist
+   call psave_pos(savepos)                  -- Save the cursor location
+   getsearch search_command                 -- Save user's search command.
+   call dprintf("passist", "Initial cursor: ".line",".col)
+
+   CurMode      = NepmdGetMode()
+   passist_rc = inside_comment2(CurMode, comment_data)
+   call dprintf("passist", "comment return:" passist_rc comment_data)
+   if passist_rc = PASSIST_RC_IN_MULTILINE_COMMENT then
       parse value comment_data with CommentStartLine CommentStartCol CommentStartLen CommentEndLine CommentEndCol CommentEndLen
       if .line = CommentStartLine and .col - CommentStartCol < CommentStartLen then   -- if cursor on start
          .line = CommentEndLine                                                       -- move to the end
          .col  = CommentEndCol
-         passist_rc = -1                    -- rc = -1 means cursor on the endpint of an MLC
+         passist_rc = PASSIST_RC_MLC_MATCHED
       elseif .line = CommentEndLine and .col >= CommentEndCol then                    -- if cursor on end
          .line = CommentStartLine                                                     -- move to the start
          .col  = CommentStartCol
-         passist_rc = -1                    -- rc = -1 means cursor on the endpint of an MLC
+         passist_rc = PASSIST_RC_MLC_MATCHED
       endif
    endif
 
    if not passist_rc then
-      if inside_literal2() then
-         passist_rc = 3
+      if inside_literal2(CurMode) then
+         passist_rc = PASSIST_RC_IN_LITERAL
       endif
    endif
 
-   if not passist_rc then
+   if not passist_rc then                   -- if not in a literal or comment, proceed
       -- get c = char at cursor
       c = substr(textline(.line), .col, 1)
       -- JBSQ: Why this code??  It moves the cursor.
@@ -193,22 +204,16 @@ defproc passist
          c = substr(textline(.line),.col,1)
       endif
 
---    id           = ''
-      n             = 1
-      fCase         = 1                                          -- respect case is default
-      coffset       = 0                                          -- default
-      clen          = 1                                          -- default
-      fIntermediate = 0                                          -- default
+      case          = 'e'                                         -- respect case is default
+      coffset       = 0                                           -- default
+      clen          = 1                                           -- default
+      fIntermediate = 0                                           -- default
+      fForward      = 1                                           -- default
+      n             = 1                                           -- default
 
-      clist    = ''
-      id       = ''
-      fForward = 1
-      search   = ''
-      startcol = 1
-      endcol   = 1
-
-
-      CurMode      = GetMode()
+--    id            = ''                                          -- token under cursor
+      startcol      = 1                                           -- start column of id/token
+      endcol        = 1                                           -- end column of id/token
 
       if pos(c, '{}') and CurMode = 'RC' then  -- Braces, '{}', can be matched with
          k = 0                                 -- BEGIN and END in RC files.  So they
@@ -226,52 +231,940 @@ defproc passist
          endif
          clist = c
          fForward = k // 2
-      else
-         NumArgs = fForward fCase fIntermediate StartCol EndCol cLen cOffset n
-         passist_rc = Assist2( NumArgs, id, cList, search)
-         parse value NumArgs with fForward fCase fIntermediate StartCol EndCol cLen cOffset n
+      else              -- if not a bracket char
+         getline line
+         -- build the separator list for find_token
+
+         if CurMode = 'FORTRAN' then
+            seps = "+-*/=().,':$"
+         else
+            seps = ' ~`!.%^&*()-+=][{}|\;?<>,''"'\t
+         endif
+         -- JBSQ: Add '.' to default token_separators & remove ':' for GML markup?
+
+         if CurMode = 'TEX' then
+            if substr(line, .col, 1) = '\' then
+               right
+            endif   -- ...move cursor right if it is on \backslash
+         endif
+
+         -- get the word under cursor and return startcol and endcol
+         -- stop at separators = arg(3)
+         -- stop at double char separators = arg(4)
+         if not find_token(startcol, endcol,  seps, '/* */') then
+            passist_rc = PASSIST_RC_NOT_ON_A_TOKEN
+         else
+            call dprintf("passist", "Initial token start,end: "startcol","endcol)
+            if startcol > 1 then
+               prevchar = substr(line, startcol-1, 1)
+               if prevchar = '<' then
+                  if CurMode = 'HTML' or CurMode = 'WARPIN' /* or CurMode = 'XML' */ then
+                     -- add '<' to found word if it is on the left side of it
+                     -- this assumes ALL balanceable tokens for HTML and WARPIN start with '<'
+                     startcol = startcol - 1
+                  endif
+               elseif prevchar = '\' then
+                  if CurMode = 'TEX' then
+                     --//PM TeX macros are preceded by \backslash which is also separator
+                     -- add '\' to found word if it is on the left side of it
+                     startcol = startcol - 1
+                  endif
+               endif
+            elseif startcol = 1 then            -- if cursor is on the first column of a MAKE directive
+               if leftstr(line, 1) = '!' then   -- "shift" the id to the following token
+                  if CurMode = 'MAKE' then
+                     newstart = verify(line, ' ' || \t, 'N', 2)  -- skip to next non-whitespace
+                     if newstart then
+                        newend = verify(line || ' ', '}', 'M', newstart)
+                        if newend then
+                           startcol = newstart
+                           endcol   = newend - 1
+                        endif
+                     endif
+                  endif
+               endif
+            endif
+            -- id = found word
+            id = substr(line, startcol, (endcol-startcol)+1)
+            call dprintf("passist", "Token after preprocessing : '"id"' Startcol: "startcol" Endcol: "endcol)
+
+            -- JBSQ: What mode is the following for?
+            --> IPF tags start with ':' and end with '.'
+            -- if id = '.', then go 1 col left and search again
+            if id='.' & .col > 1 then
+               sayerror "id = '.'"
+               left
+               if find_token(startcol, endcol) then
+                  id = substr(line, startcol, (endcol-startcol)+1)
+               endif --test
+            endif
+
+            if 0 then
+               -- just a placeholder so the following elseif's can be freely reordered
+
+            -- Mode(s): E                     --------------------------------------------------------------
+            elseif CurMode = 'E' then
+               if startcol > 1 then
+                  if substr(line, startcol - 1, 2) = '*/' then  -- allow */ just before token
+                     startcol = startcol + 1
+                     id = substr(line, startcol, (endcol - startcol + 1))
+                  /* test */endif/* test */               -- Apparently E allow comments as "word" delimiters
+               endif;
+               if endcol < length(line) then
+                  temp = substr(line, endcol, 2)
+                  if temp = '/*' then                     -- allow /* after token
+                     id = substr(line, startcol, (endcol-startcol))
+                     endcol = endcol - 1
+                  endif--test
+               endif
+               --call dprintf("passist", "E Token after : '"id"'")
+               case = 'c'                                 -- Case insensitive for all E tokens
+               id = lowcase(id)
+               line = lowcase(line)
+               if 0 then
+                  -- another placeholder
+               ---- E conditions: if, else, elseif, endif --------------------------------------------------
+               elseif wordpos( id, 'if endif else elseif') then
+                  search = '(^|[ \t]|(\*/))\c(end)?if([; \t]|(--)|(/\*)|$)'
+                  clist = leftstr(id, 1)
+                  fForward = (clist <> 'e')
+                  if fForward then  -- move to beginning
+                     .col = startcol
+                  else       -- move to end, so first Locate will hit this instance.
+                     .col = endcol
+                  endif
+                  fIntermediate = (substr(id, 2, 1) = 'l')
+               ---- E loop keywords 1: loop, endloop     --------------------------------------------------
+               elseif wordpos( id, 'loop endloop') then
+                  search = '(^|[ \t]|(\*/))\c(end)?loop([; \t]|(--)|(/\*)|$)'
+                  clist = leftstr( id, 1)
+                  fForward = (clist <> 'e')
+                  if fForward then  -- move to beginning
+                     .col = startcol
+                  else       -- move to end, so first Locate will hit this instance.
+                     .col = endcol
+                  endif
+               ---- E loop keywords 2: for, endfor       --------------------------------------------------
+               elseif wordpos( id, 'for endfor') then
+                  search = '(^|[ \t]|(\*/))\c(end)?for([; \t]|(--)|(/\*)|$)'
+                  clist = leftstr( id, 1)
+                  fForward = (clist <> 'e')
+                  if fForward then  -- move to beginning
+                     .col = startcol
+                  else       -- move to end, so first Locate will hit this instance.
+                     .col = endcol
+                  endif
+               ---- E loop keywords 3: do, while, end, enddo, endwhile  -----------------------------------
+               elseif wordpos( id, 'do while end enddo endwhile') then
+                  if     (id = 'end') then
+                     search = '(^|[ \t]|(\*/))\c(do|end|enddo)([; \t]|(--)|(/\*)|$)'
+                  elseif (id = 'enddo') then
+                     search = '(^|[ \t]|(\*/))\c(do|end|enddo)([; \t]|(--)|(/\*)|$)'
+                  elseif (id = 'endwhile') then
+                     search = '(^|[ \t]|(\*/))\c(end)?while([; \t]|(--)|(/\*)|$)'
+                  else                                    -- check for do and/or while
+                     whilepos = wordpos('while', line)
+                     dopos    = wordpos('do', line)
+                     if (not dopos) or (whilepos and (whilepos < dopos)) then -- while or while ... do?
+                        search = '(^|[ \t]|(\*/))\c(end)?while([; \t]|(--)|(/\*)|$)'
+                        startcol = whilepos
+                        endcol = whilepos + 4
+                     else                                      --    do or do ... while
+                        search = '(^|[ \t]|(\*/))\c(do|end|enddo)([; \t]|(--)|(/\*)|$)'
+                        startcol = dopos
+                        endcol   = dopos + 1
+                     endif
+compile if 0
+                     if whilepos and dopos then           -- if both
+                        if whilepos < dopos then          --    while ... do ?
+                           search = '(^|[ \t]|(\*/))\c(end)?while([; \t]|(--)|(/\*)|$)'
+                           startcol = whilepos
+                           endcol = whilepos + 4
+                        else                              --    do ... while
+                           search = '(^|[ \t]|(\*/))\c(do|end|enddo)([; \t]|(--)|(/\*)|$)'
+                           startcol = dopos
+                           endcol   = dopos + 1
+                        endif
+                     else
+                        if dopos then                     -- do
+                           search = '(^|[ \t]|(\*/))\c(do|end|enddo)([; \t]|(--)|(/\*)|$)'
+                        else                              -- while
+                           search = '(^|[ \t]|(\*/))\c(end)?while([; \t]|(--)||(/\*)$)'
+                        endif
+                     endif
+compile endif
+                     call dprintf("passist", "Whilepos: "whilepos "Dopos: "dopos "Search: "search)
+                  endif
+                  clist = leftstr( id, 1)
+                  call dprintf("passist", "clist: "clist)
+                  fForward = (clist <> 'e')
+                  if fForward then  -- move to beginning
+                     .col = startcol
+                  else       -- move to end, so first Locate will hit this instance.
+                     .col = endcol
+                  endif
+               ---- E loop keywords 4: leave, iterate    --------------------------------------------------
+               elseif wordpos( id, 'leave iterate') then
+                  search = '(^|[ \t]|(\*/))\c(do|end|enddo|loop|endloop|for|endfor|endwhile)([; \t]|(--)|(/\*)|$)'
+                  fForward = 0
+                  clist = 'e'
+                  clen = 1
+                  .col = endcol
+                  fIntermediate = 1
+               ---- E compiler directives: compile if, compile else, compile elseif, compile endif ---------
+               elseif id = 'compile' then
+                  temp = (substr(line, pos(id, line)))
+                  call dprintf("passist", "Initial temp: "temp)
+                  do while (pos('/*', temp) > 0) and (pos('*/', temp) > 0)
+                     temp = substr(temp, pos('*/', temp))
+                     call dprintf("passist", "Intermediate temp: "temp)
+                  enddo
+                  call dprintf("passist", "Final temp: "temp)
+                  if (words(temp) = 0) then
+                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                  else
+                     lcword2 = word(temp, 2)
+                     call dprintf("passist", "lcword2: "lcword2)
+                     if wordpos(lcword2, 'if endif else elseif') then
+                        search = '^[ \t]*compile[ \t]*(/\*.*\*/)*[ \t]*\c(end)?if([; \t]|(--)|(/\*)|$)'
+                        clist = leftstr(lcword2, 1)
+                        fForward = (clist <> 'e')
+                        if fForward then  -- move to beginning
+                           .col = startcol
+                        else       -- move to end, so first Locate will hit this instance.
+                           end_line
+                        endif
+                        fIntermediate = (substr(lcword2, 2, 1) = 'l')
+                     else
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                     endif
+                  endif
+               else -- not a known balanceable E token
+                  passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+               endif
+
+            -- Mode(s): C, JAVA and RC     --------------------------------------------------------------
+            elseif Curmode = 'C' or CurMode = 'JAVA' or CurMode = 'RC' then
+               if 0 then
+                  --placeholder
+               ---- Keyword(s): do, try    ----------------------------------------------------
+               elseif wordpos(id, 'do try') then
+                  --  this code might be expanded to <anytoken> { .... }
+                  if CurMode <> 'RC' then
+                     setsearch 'xcom l /[{;]/xe+F'   -- does following a '{' precede a ';'?
+                     passist_rc = passist_search(CurMode, '{ ;', 'e', 0, 1, /* stop on first 'hit' */ -1)
+                     if passist_rc then
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                     else
+                        call dprintf("passist", "token {} '{;' search found: "substr(textline(.line), .col, 1))
+                        if substr(textline(.line), .col, 1) = '{' then -- found the braces
+                           search  = '[{}]'
+                           fForward = 1
+                           clist = '{'
+                        else
+                           passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN   -- token without braces
+                        endif
+                     endif
+                  else
+                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                  endif
+               ---- Keyword(s): while      ----------------------------------------------------
+               elseif id = 'while' then
+                  if CurMode <> 'RC' then
+                     setsearch 'xcom l /[()]/xe+F'     -- find the end of the conditional
+                     passist_rc = passist_search(CurMode, '(', 'e', 0, 1, 0)
+                     if passist_rc then                -- no conditional??
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                     else
+                        nextchar = next_nonblank_noncomment_nonliteral(CurMode)
+                        if not nextchar then
+                           passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                        else
+                           call dprintf("passist", "while {; search found: "nextchar)
+                           if nextchar = '{' then      -- must be while loop (i.e. NOT do/while) with braces
+                              search  = '[{}]'
+                              fForward = 1
+                              clist   = '{'
+                           elseif nextchar = ';'  then -- cursor is on the 'while' of a do/while loop
+                              -- search  = '\{|\}|((^|[ \t])\cdo([ \t]|$))'
+                              search  = '[{}]|((^|[ \t])\cdo([ \t]|$))'
+                              fForward = 0
+                              clist   = '}'
+                              n = 2
+                           else                        -- cursor is on a one-statement while loop
+                              passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN   -- no braces follow, so JBSQ: unbalanceable?
+                           endif
+                        endif
+                     endif
+                  endif
+               ---- Directive(s): #if #ifdef #ifndef #endif #else #elif    ---------------------
+               elseif wordpos(id, '#if #ifdef #ifndef #endif #else #elif') then
+                  if CurMode <> 'JAVA' then
+                     search = '\#((if((n?def)?))|endif)([ \t]|$)'
+                     if CurMode = 'C' then
+                        search = '^[ \t]*\c' || search
+                     elseif startcol = 1 then  -- RC directives must start in column one
+                        search = '^' || search
+                     else
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                     endif
+                     clist = substr(id, 2, 1)
+                     fForward = (clist <> 'e')
+                     if fForward then  -- move to beginning
+                        .col = startcol
+                     else       -- move to end, so first Locate will hit this instance.
+                        .col = endcol
+                     endif
+                     coffset = 1
+                     fIntermediate = (substr(id, 3, 1) = 'l')
+                  else
+                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                  endif
+/*
+   JBSQ: The following code should work for break/continue statements within nested do and for loops
+   which have braces.  Problems arise if there are do's or for's without braces between the
+   break/continue and the enclosing loop.  Also problems arise if the enclosing loop is a
+   while loop.
+
+   The solution, if it is worth it, is to code the entire search here so that these different
+   variations of loops can be handled correctly.
+
+               ---- Keyword(s): break continue                                      ---------------------
+               elseif wordpos(id, 'break continue' then
+                  if CurMode <> 'RC' then
+                     search       = '([{}])|((^|[ \t])\c(do|for)([ \t]|$))'
+                     fForward      = 0
+                     clist        = '}'
+                     fIntermediate = 1
+                  else
+                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                  endif
+*/
+               elseif CurMode = 'RC' then
+                  -- All remaining RC tokens here
+                  case = 'c'   -- RC files are case insensitive, except for direcives (#if, #define, etc.)
+                  id = lowcase(id)
+                  if wordpos(id, '{ } begin end') then
+                     search = '[{}]|((^|[ \t])\c(begin|end)([ \t;]|$))'
+                     fForward = (wordpos(id, '{ begin') > 0)
+                     if fForward then  -- move to beginning          begin
+                        .col = startcol
+                        clist = '{ b'
+                     else       -- move to end, so first Locate will hit this instance.
+                        .col = endcol
+                        clist = '} e'
+                     endif
+                  else
+                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                  endif
+               else
+                  -- All remaining C/JAVA tokens here
+                  idlist = 'case default default:'
+                  if CurMode = 'JAVA' then
+                     idlist = idlist 'finally'
+                  endif
+                  if wordpos(id, idlist) then
+                     search = '[{}]'
+                     fForward = 0
+                     clist = '}'
+                     fIntermediate = 1
+                  else
+                     -- This code seems to handle matching the beginning and end of
+                     --    a) functions when the cursor is on a token preceding the parameter list
+                     --    b) 'if' when the 'if' has following braces
+                     --    c) 'for' when the 'for' has following braces
+                     --    d) 'switch' statements
+                     --    e) anything of the structure: token (    )  { ... }
+                     --        e.g. catch (    ) { ... }
+
+                     -- JBSQ: Check for next_nonblank_noncomemnt_nonliteral(CurMode) = '(' first?
+                     -- (This would force the cursor to actually be on the function name.
+                     -- The current code allows the cursor on any nonblank, noncomment,
+                     -- nonliteral character preceding the parameter list.)
+                     setsearch 'xcom l /[();]/xe+F'     -- find the ending ')' or ;
+                     passist_rc = passist_search(CurMode, '(', 'e', 0, 1, 0)
+                     if not passist_rc and substr(textline(.line), .col, 1) = ')' then -- no conditional??
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                        nextchar = next_nonblank_noncomment_nonliteral(CurMode)
+                        if nextchar then
+                           call dprintf("passist", "Generic token () {; search found: "nextchar)
+                           if nextchar = '{' then      -- structure is: token (    ) { ... }
+                              search = '[{}]'
+                              fForward = 1
+                              clist = '{'
+                              passist_rc = PASSIST_RC_NO_ERROR
+                           endif
+                        endif
+                     else
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                     endif
+                  endif
+               endif
+
+            -- Mode(s): REXX
+            elseif CurMode = 'REXX' then
+            ---- REXX conditions: if, else --------------------------------------------------------------
+               case = 'c'                      -- Case insensitive for all REXX tokens
+               id = lowcase(id)
+               if 0 then
+                  -- another placeholder
+               elseif wordpos( id, 'do end select when otherwise') then
+                  search = '(^|[ \t])\c(do|end|select)([; \t]|$)'
+                  fForward = (wordpos(id, 'do select') > 0)
+                  if fForward then  -- move to beginning
+                     clist = 'do se'
+                     .col = startcol
+                  else       -- move to end, so first Locate will hit this instance.
+                     clist = 'en'
+                     .col = endcol
+                  endif
+                  clen  = 2
+                  fIntermediate = ((id = 'when') or (id = 'otherwise'))
+               elseif id = 'else' then
+                  .col = startcol
+                  pchar = next_nonblank_noncomment_nonliteral(CurMode, '-R')
+                  call dprintf("passist", 'Previous char:' pchar)
+                  if lowcase(pchar) = 'd' then
+                     if .col > 2 then
+                        .col = .col - 2
+                        pword = lowcase(substr(textline(.line), .col, 3))
+                        if .col > 1 and substr(textline(.line), .col - 1, 1) <> ' ' then
+                           --
+                        else
+                           call dprintf("passist", 'Previous word:' pword)
+                           if pword = 'end' then
+                              display -1
+                              call passist()
+                              display 1
+                              endcol = .col
+                           endif
+                        endif
+                     endif
+                  endif
+                  search = '(^|[ \t])\cif([ \t]|$)'
+                  clist = 'i'
+                  fForward = 0
+                  fIntermediate = 1
+                  .col = endcol
+                  n = -1
+compile if 0
+               elseif wordpos( id, 'if else') then
+                  -- JBSQ: How is this supposed to work?  If's don't always have else's
+                  search = '(^|[ \t])(if|else)([ \t]|$)'
+                  clist = leftstr( id, 1)
+                  fForward = (clist <> 'e')
+                  if fForward then  -- move to beginning
+                     .col = startcol
+                  else       -- move to end, so first Locate will hit this instance.
+                     .col = endcol
+                  endif
+compile endif
+               else -- not a known balanceable REXX token
+                  passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+               endif
+
+            -- Mode(s): IPF
+            elseif CurMode = 'IPF' then
+;                if wordpos(lowcase(id), ':ol :eol :ul :eul :sl :esl :dl :edl :parml :eparml') &
+;                    pos(substr(line, endcol+1, 1), '. ') then
+               if pos(':', id) > 1 then  -- <text>:tag, separate the :tag
+                  id = substr(id, pos(':', id))
+               endif
+               if length(line) > endcol then
+                  if (pos(substr(line, endcol+1, 1), '. ')) then
+                     IPFBeginTags = ':artlink :caution :cgraphic :ctrldef :fn :hide'
+                     IPFBeginTags = IPFBegintags ':hp1 :hp2 :hp3 :hp4 :hp5 :hp6 :hp7 :hp8 :hp9'
+                     IPFBeginTags = IPFBegintags ':lines :link :nt :userdoc :warning :xmp'
+                     IPFEndTags   = ':eartlink :ecaution :ecgraphic :ectrldef :efn :ehide'
+                     IPFEndTags   = IPFEndTags ':ehp1 :ehp2 :ehp3 :ehp4 :ehp5 :ehp6 :ehp7 :ehp8 :ehp9'
+                     IPFEndTags   = IPFEndTags ':elines :elink :ent :euserdoc :ewarning :exmp'
+                     IPFTags      = IPFBeginTags IPFEndTags
+                     call dprintf("passist", "IPF ID wordpos: "wordpos(id, IPFTags))
+                     call dprintf("passist", "IPF Tags: "IPFTags)
+                     if wordpos(id, IPFTags) then
+                        clist = substr(id, 2, 1)  -- Character to check to see if it's an end tag
+                        fForward = (clist <> 'e')          -- fForward = 1 if searching forward; 0 if backwards
+                        if fForward then  -- move to beginning
+                           .col = startcol
+                           id = substr(id, 2)
+                        else       -- move to end, so first Locate will hit this instance.
+                           .col = endcol+1
+                           id = substr(id, 3)
+                        endif
+                        search = '\:\ce?'id'(\.| )'
+                     elseif wordpos(id, ':ol :ul :sl :eol :eul :esl :li :lp') then
+                        fIntermediate = (id = ':li' or id = ':lp')
+                        fForward = (wordpos(id, ':ol :ul :sl') > 0)    -- fForward = 1 if searching forward; 0 if backwards
+                        if fForward then  -- move to beginning
+                           .col = startcol
+                           id = substr(id, 2)
+                           clist = 'ol ul sl'
+                           clen = 2
+                        else       -- move to end, so first Locate will hit this instance.
+                           .col = endcol+1
+                           id = substr(id, 3)
+                           clist = 'eol eul esl'
+                           clen  = 3
+                        endif
+                        search = '\:\ce?(o|u|s)l(\.| )'
+                     elseif wordpos(id, ':table :etable :row :c') then
+                        fIntermediate = (id = ':row' or id = ':c')
+                        fForward = (id = ':table')         -- fForward = 1 if searching forward; 0 if backwards
+                        if fForward then  -- move to beginning
+                           .col = startcol
+                           clist = 'table'
+                           clen = 5
+                           id = substr(id, 2)
+                        else       -- move to end, so first Locate will hit this instance.
+                           .col = endcol+1
+                           clist = 'etable'
+                           clen = 6
+                           id = substr(id, 3)
+                        endif
+                        search = '\:\ce?table(\.| )'
+                     elseif wordpos(id, ':parml :eparml :pt :pd') then
+                        fIntermediate = (id = ':pt' or id = ':pd')
+                        fForward = (id = ':parml')          -- fForward = 1 if searching forward; 0 if backwards
+                        if fForward then  -- move to beginning
+                           .col = startcol
+                           id = substr(id, 2)
+                           clist = 'parml'
+                           clen  = 5
+                        else       -- move to end, so first Locate will hit this instance.
+                           .col = endcol+1
+                           id = substr(id, 3)
+                           clist = 'eparml'
+                           clen = 6
+                        endif
+                        search = '\:\ce?parml(\.| )'
+                     elseif wordpos(id, ':dl :dthd :ddhd :dt :dd :edl') then
+                        fIntermediate = (wordpos(id, ':dthd :ddhd :dt :dd') > 0)
+                        fForward = (id = ':dl')            -- fForward = 1 if searching forward; 0 if backwards
+                        if fForward then  -- move to beginning
+                           .col = startcol
+                           id = substr(id, 2)
+                           clist = 'dl'
+                           clen = 2
+                        else       -- move to end, so first Locate will hit this instance.
+                           .col = endcol+1
+                           id = substr(id, 3)
+                           clist = 'edl'
+                           clen = 3
+                        endif
+                        search = '\:\ce?dl(\.| )'
+                     elseif wordpos(id, ':fig :efig :figcap') then
+                        fIntermediate = (id = ':figcap')
+                        fForward = (id = ':fig')          -- fForward = 1 if searching forward; 0 if backwards
+                        if fForward then  -- move to beginning
+                           .col = startcol
+                           id = substr(id, 2)
+                        else       -- move to end, so first Locate will hit this instance.
+                           .col = endcol+1
+                           id = substr(id, 3)
+                        endif
+                        search = '\:\ce?fig(\.| )'
+                     else  -- not a known balanceable IPF token
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                     endif
+                  else  -- not a known balanceable IPF token
+                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                  endif
+               else  -- not a known balanceable IPF token
+                  passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+               endif
+
+            -- Mode(s): HTML, WARPIN
+            elseif (CurMode = 'HTML' or CurMode = 'WARPIN') then
+               case = 'c'                      -- Case insensitive for all HTML tokens  (JBSQ: WARPIN, too?)
+               if 0 then
+                  -- placeholder
+               ---- HTML tags: <...,</...> -----------------------------------------------------------------
+               elseif leftstr(id, 1) = '<' then
+                  clist = substr(id, 2, 1)     -- Character to check to see if it's the same or the other
+                  fForward = (clist <> '/')           -- fForward = 1 if searching forward; 0 if backwards
+                  if fForward then  -- move to beginning
+                     id = substr(id, 2)  -- Strip off the '<'
+                     clist = id
+                     .col = startcol
+                  else       -- move to end, so first Locate will hit this instance.
+                     id = substr(id, 3)  -- Strip off the '</'
+                     clist = '/' || id
+                     .col = endcol + 1   -- +1 for the '>' after the tag
+                  endif
+                  search = '<\c/?'id'(>| )'  -- Use \c to not put cursor on angle bracket.
+                  clen   = length(clist)
+               else  -- not a known balanceable HTML token
+                  passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+               endif
+
+            -- Mode(s): MAKE
+            elseif CurMode = 'MAKE' then
+               case = 'c'                      -- Case insensitive for all MAKE tokens
+               id = lowcase(id)
+               -- Currently ALL balanceable MAKE tokens must be on a line with '!' in column 1
+               -- and if there are any characters between the '!' and the token they must
+               -- be whitespace.
+               if leftstr(line, 1) = '!' then
+                  if startcol > 2 then         -- Are there characters between '!' and token?
+                     if verify(substr(line, 2, startcol - 2), ' ' || \t) then
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                        id = ''                -- Disable further processing
+                     endif
+                  endif
+                  if 0 then
+                     -- placeholder
+compile if USE_NMAKE32
+                  elseif wordpos(id, 'if ifdef ifndef endif else elif elseif') then
+compile else
+                  elseif wordpos(id, 'if ifdef ifndef endif else') then
+compile endif
+                     search = '^![ \t]*\c(if((n?def)?)|endif)([ \t]|$)'
+                     clist = leftstr(id, 1)
+                     fForward = (clist = 'i')
+                     if fForward then  -- move to beginning
+                        .col = 1
+                     else       -- move to end, so first Locate will hit this instance.
+                        .col = endcol
+                     endif
+compile if USE_NMAKE32
+                     fIntermediate = (wordpos(id, 'else elif elseif') > 0)
+compile else
+                     fIntermediate = (id = 'else')
+compile endif
+compile if USE_NMAKE32
+                  elseif wordpos(id, 'foreach endfor') then               -- NMAKE32
+                     search = '^![ \t]*\c(foreach|endfor)([ \t]|$)'
+                     clist = leftstr(id, 1)
+                     fForward = (clist = 'f')
+                     if fForward then  -- move to beginning
+                        .col = 1
+                     else       -- move to end, so first Locate will hit this instance.
+                        .col = endcol
+                     endif
+                     fIntermediate = (wordpos(id, 'else elif elseif') > 0)
+compile endif
+                  else
+                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                  endif
+               else
+                  passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+               endif
+
+            -- Mode(s): Pascal
+            elseif Curmode = 'PASCAL' then
+               case = 'c'               -- case insensitive for PASCAL
+               id = lowcase(id)
+               --PascalStartBlockTokens = 'begin record try asm object class interface'
+               PascalStartBlockTokens = 'begin record try asm'    -- object?, class, interface?
+;   JBSQ: use case?  Case is used both for a switch-like statements and in variant records
+;              PascalStartBlockTokens = PascalStartTokens 'case'
+               if wordpos(id, PascalStartBlockTokens 'end except finally') then
+                  search = '(^|[^a-zA_Z0-9_])\c(' || translate(PascalStartBlockTokens, '|', ' ') || '|end)([; \t]|$)'
+                  fForward = (wordpos(id, PascalStartBlockTokens) > 0)
+                  clen = 3
+                  if fForward then
+                     .col = startcol
+                     clist = ''
+                     do i = 1 to words(PascalStartBlockTokens)
+                        clist = clist leftstr(word(PascalStartBlockTokens, i), 3)
+                     enddo
+                  else
+                     .col = endcol
+                     clist = 'end'
+                  endif
+                  fIntermediate = (id = 'except' or id = 'finally')
+               elseif wordpos(id, 'repeat until') then
+                  search = '(^|[ \t])\c(repeat|until)([ \t]|$)'
+                  fForward = (id = 'repeat')
+                  if fForward then
+                     .col = startcol
+                     clist = 'r'
+                  else
+                     .col = endcol
+                     clist = 'u'
+                  endif
+               elseif wordpos(id, 'while for') then
+                  -- check for begin before ';' (i.e a block loop instead of a single statement loop)
+                  setsearch 'xcom l /[ \t]\cdo([ \t]|$)/x' || case || 'c+F'  -- find the end of following 'do'
+                  passist_rc = passist_search(CurMode, 'd', case, 0, 1, -1)
+                  if passist_rc then                -- no 'do'??
+                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                  else
+                     .col = .col + 2
+                     nextchar = next_nonblank_noncomment_nonliteral(CurMode)
+                     if not nextchar then
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                     else
+                        call dprintf("passist", "while/for 'do' search found: "nextchar)
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN     -- assume bad
+                        if lowcase(nextchar) = 'b' then
+                           tmpline = textline(.line)
+                           tmpline_len = length(tmpline)
+                           call dprintf("passist", "col: ".col "len: "tmpline_len "line: "tmpline)
+                           if tmpline_len >= .col + 4 then
+                              if lowcase(substr(tmpline, .col, 5)) = 'begin' then
+                                 if (tmpline_len > .col + 4) then
+                                    nextchar = substr(tmpline, .col + 5, 1)
+                                    call dprintf("passist", "charafter: '"nextxhar"'")
+                                    if nextchar = ' ' or nextchar = \9 then
+                                       passist_rc = PASSIST_RC_NO_ERROR
+                                    endif
+                                 else
+                                    passist_rc = PASSIST_RC_NO_ERROR
+                                 endif
+                                 if not passist_rc then
+                                    search = '(^|[ \t])\cbegin|end([; \t]|$)'
+                                    fForward = 1
+                                    clist = 'b'
+                                 endif
+                              endif
+                           endif
+                        endif
+                     endif
+                  endif
+               else
+                  passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+               endif
+
+            -- Mode(s): (La)TEX
+            elseif Curmode = 'TEX' then
+            -- begin addition for TeX
+            -- NOTE: There is some special code for \begin and \end which depends on 'clist'
+            --       being set to 'be' or 'en'. If it becomes necessary to use these values
+            --       for 'clist' for other TEX tokens, then the special code for \begin and
+            --       end will break.
+               coffset = 1                -- most TEX tokens use this offset
+               tex_env = ''               -- default
+            -- //PM additions: balanceable tokens for (La)TeX
+
+            ---- TeX conditions: \if, \else, \fi --------------------------------------------------------
+               if substr(id,1,3) = '\if' or wordpos(id, '\else \fi') then --// \if.. \else \fi
+                  search = '\\(if|fi)'
+                  clist = substr(id, 2, 1)
+                  fForward = (clist = 'i') -- fForward=1: forward, fForward=0 backward search
+                  if fForward then   -- move cursor so that the first Locate will hit this instance
+                     .col = startcol -- \if: move to beginning
+                  else
+                     .col = endcol   -- \else,\fi: move to end
+                  endif
+                  fIntermediate = (id = '\else')
+
+               ---- TeX environment: \begin..., \end... ----------------------------------------------------
+               elseif id = '\begin' or id = '\end' then --// \begin.. \end..
+                  search = '\\(begin|end)[ \t]*'
+                  ---- LaTeX environment: \begin{...}, \end{...} -------------------------------------------
+                  .col = endcol
+                  temp = next_nonblank_noncomment_nonliteral(CurMode)
+                  call dprintf("passist", "TEX: next nonblank...:" temp)
+                  if temp /* next_nonblank_noncomment_nonliteral(CurMode) */ == '{' then
+                     call dprintf('passist', 'TEX: found } at '.line .col)
+                     temp = substr(textline(.line), .col)
+                     p = pos('}', temp)
+                     if p > 0 then
+                        tex_env = leftstr(temp, p)
+                     endif
+                  endif
+                  call prestore_pos(savepos)
+                  clist    = substr(id, 2, 2)
+                  clen     = 2
+                  fForward = (clist = 'be')
+                  if fForward then
+                     .col = startcol
+                  else
+                     .col = endcol
+                  endif
+
+               elseif wordpos(id, '\bgroup \begingroup \endgroup \egroup') > 0 then
+                  search = '\\(b(egin)?group|e(nd)?group)'
+                  clist = substr(id, 2, 1)
+                  fForward = (clist = 'b')
+                  if fForward then
+                     .col = startcol
+                  else
+                     .col = endcol
+                  endif
+
+               elseif id = '\makeatletter' or id = '\makeatother' then
+                  search = '\\makeat(letter|other)'
+                  clist = substr(id, 8, 1)
+                  fForward = (clist = 'l')
+                  if fForward then
+                     .col = startcol
+                  else
+                     .col = endcol
+                  endif
+                  coffset = 7
+
+               elseif id = '\[' or id = '\]' then
+                  search = '\\(\[|\])'
+                  clist = substr(id, 2, 1)
+                  fForward = (clist = '[')
+                  if fForward then
+                     .col = startcol
+                  else
+                     .col = endcol
+                  endif
+
+               elseif id = '\(' or id = '\)' then
+                  search = '\\(\(|\))'
+                  clist = substr(id, 2, 1)
+                  fForward = (clist = '(')
+                  if fForward then
+                     .col = startcol
+                  else
+                     .col = endcol
+                  endif
+
+               ---- TeX math -------------------------------------------------------------------------------
+               elseif wordpos(id,'\left \right') then
+                  search = '\\(left|right)'
+                  clist = substr(id, 2, 1)
+                  fForward = (clist = 'l')
+                  if fForward then
+                     .col = startcol
+                  else
+                     .col = endcol
+                  endif
+               else -- not a known balanceable 'TEX' token
+                  passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+               endif
+
+            -- Mode(s): FORTRAN
+            elseif (CurMode = 'FORTRAN') then
+               -- This code disregards the "token" and allows the cursor anywhere within
+               -- columns 7-72
+               if .col > 6 and .col < 73 then
+                  statement = fortran_extract_text()
+                  do i = .line + 1 to .last
+                     temp = textline(i)
+                     if pos(substr(temp, 6, 1), ' 0') then
+                        leave
+                     elseif not pos(leftstr(temp, 1), 'C*') then
+                        statement = statement || fortran_extract_text()
+                     endif
+                  enddo
+                  statement = fortran_remove_spaces(statement)
+                  call dprintf("passist", "Fortran statement: "statement)
+                  if leftstr(statement, 2) = 'DO' then
+                     equalpos = pos('=', statement, 7)
+                     commapos = pos(',', statement, 7)
+                     if equalpos and commapos then    -- DO loop of some kind?
+                        fForward = 1
+                        clist = 'D'
+                        .col = pos('D', line, 7)
+                        p = verify(substr(statement, 3, 1), '0123456789', 'N', 3)
+                        if p > 3 then   -- DO <labelnum>,...      loop
+                           label = leftstr(substr(temp, 3, verify(temp, '0123456789', 'N', 3) - 3), 5, ' ')
+                           search = '^('label'~[ 0][ ]*\c)|([ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\cD[ ]*O[ ]*[0-9].*=.*,)'
+                           call dprintf("passist", "DO <label> search: "search)
+                        else            -- DO var = xx,limit      loop
+                           search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\c((D[ ]*O[ ]*[A-Z][A-Z0-9]*[ ]*=.+,)|(E[ ]*N[ ]*D[ ]*D[ ]*O))'
+                        endif
+                     else
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                     endif
+                  elseif statement = 'ENDDO' then
+                     search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\c((D[ ]*O[ ]*[A-Z][A-Z0-9]*[ ]*=.+,)|(E[ ]*N[ ]*D[ ]*D[ ]*O))'
+                     fForward = 0
+                     clist = 'E'
+                     .col = pos('E', line, 7)
+                  elseif leftstr(statement, 3) = 'IF(' then
+                     if pos('(THEN', statement) then       -- Assume '(THEN' is NOT in a literal?
+                        search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\c((I[ ]*F[ ]*(.*)[ ]*T[ ]*H[ ]*E[ ]*N)|(E[ ]*N[ ]*D[ ]*I[ ]*F))'
+                        fForward = 1
+                        clist = 'I'
+                        .col = pos('I', line, 7)
+                     else
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN  -- IF without THEN is unbalanceable
+                     endif
+                  elseif leftstr(statement, 7) = 'ELSEIF(' then
+                     if pos('(THEN', statement) then       -- Assume '(THEN' is NOT in a literal?
+                        search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\c((I[ ]*F[ ]*(.*)[ ]*T[ ]*H[ ]*E[ ]*N)|(E[ ]*N[ ]*D[ ]*I[ ]*F))'
+                        fForward = 0
+                        fIntermediate = 1
+                        clist = 'E'
+                        .col = pos('E', line, 7)
+                     else
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN  -- ELSEIF without THEN is unbalanceable
+                     endif
+                  elseif statement = 'ENDIF' then
+                     search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\c((I[ ]*F[ ]*(.*)[ ]*T[ ]*H[ ]*E[ ]*N)|(E[ ]*N[ ]*D[ ]*I[ ]*F))'
+                     fForward = 0
+                     clist = 'E'
+                     .col = pos('E', line, 7)
+                  elseif not pos('=', statement) then  -- remaining matchable tokens require this
+                     function_pos = pos('FUNCTION', statement)
+                     punc_pos     = verify(statement, "+-*/=().,':$!", 'M')
+                     function_statement = (function_pos > 0 and (punc_pos = 0 or function_pos < punc_pos))
+                     if leftstr(statement, 7)  = 'PROGRAM'    or
+                        leftstr(statement, 10) = 'SUBROUTINE' or
+                        leftstr(statement, 9)  = 'BLOCKDATA'  or
+                        function_statement                    or
+                        strip(statement)       = 'END'        then
+                        search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*((('
+                        search = search || '(\cP[ ]*R[ ]*O[ ]*G[ ]*R[ ]*A[ ]*M)|'
+                        search = search || '(\cS[ ]*U[ ]*B[ ]*R[ ]*O[ ]*U[ ]*T[ ]*I[ ]*N[ ]*E)|'
+                        search = search || '(\cB[ ]*L[ ]*O[ ]*C[ ]*K[ ]*D[ ]*A[ ]*T[ ]*A)|'
+                        search = search || '([A-Z][A-Z0-9]*[ ]*\cF[ ]*U[ ]*N[ ]*C[ ]*T[ ]*I[ ]*O[ ]*N))'
+                        search = search || '[ ]*(~[=])*)|(\cE[ ]*N[ ]*D[ ]*$))'
+                        fForward = (strip(statement) <> 'END')
+                        if function_statement then
+                           .col = pos('FUNCTION', line, 7)
+                        else
+                           .col = verify(line, ' ', 'N', 7)
+                        endif
+                        if fForward then
+                           clist = 'P S B F'
+                        else
+                           clist = 'E'
+                        endif
+                     else
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                     endif
+                  else
+                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                  endif
+               else
+                  passist_rc = PASSIST_RC_BAD_FORTRAN_CURSOR -- Cursor before col 7 or after col 72
+               endif
+            else -- not a known balanceable token
+               passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+            endif
+         endif -- if find_token/not find_token
       endif -- if GOLD/not gold
 
       if not passist_rc then
-         if fCase then
-            case = 'e'  -- case-sensitive
-         else
-            case = 'c'  -- not case-sensitive
-         endif
-         if fForward then
-            direction = '+F'
-         else
-            direction = '-R'
-         endif
-         call jbsdprintf("passist", "id clist fForward fIntermediate:" id "'"clist"'" fForward fIntermediate)
-         call jbsdprintf("passist", 'search: xcom l /'search'/x'case||direction)
+         if fForward then direction='+F'; else direction='-R'; endif
+         call dprintf("passist", "id clist fForward fIntermediate:" id "'"clist"'" fForward fIntermediate)
+         call dprintf("passist", 'search: xcom l %'search'%x'case||direction)
 
          if fIntermediate then
             -- search begin of condition
             setsearch 'xcom l '\1 || search || \1 || 'x' || case || direction
-            'postme circleit' .line startcol endcol
+            --'postme circleit' .line startcol endcol
          else
             --'L '\1 || search\1'x'case||direction
-            'xcom l '\1 || search || \1 || 'x' || case || direction
+            --'xcom l '\1 || search || \1 || 'x' || case || direction
+            'l '\1''search\1'x'case''direction
             --'postme circleit' .line startcol endcol  -- this one should not be highlighted
             -- designed for function_name(...)  <-- function_name is highlighted, not the ( and ).
          endif
 
-         passist_rc = passist_search( clist, case, coffset, clen, n)
+         passist_rc = passist_search(CurMode, clist, case, coffset, clen, n, tex_env)
       endif                                 -- if OK to search
    endif
 
    if passist_rc > 0 then
       call prestore_pos(savepos)
-      if passist_rc = 1 then
+      if passist_rc = PASSIST_RC_IN_ONELINE_COMMENT then
          sayerror "Invalid: One-line comment starts in column "comment_data
-      elseif passist_rc = 2 then
+      elseif passist_rc = PASSIST_RC_IN_MULTILINE_COMMENT then
          sayerror "Invalid: Multi-line comment starting at "CommentStartLine","CommentStartCol" and ending at "CommentEndLIne","CommentEndCol
-      elseif passist_rc = 3 then
+      elseif passist_rc = PASSIST_RC_IN_LITERAL then
          sayerror "Invalid: Cursor located within a literal."
-      elseif passist_rc = 4 then
-         sayerror "Invalid: Cursor located on an unknown token."
-      elseif passist_rc = 5 then
+      elseif passist_rc = PASSIST_RC_NOT_ON_A_TOKEN then
+         sayerror "Invalid: Cursor is not located on a token."
+      elseif passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN then
          sayerror UNBALANCED_TOKEN__MSG
       else
          sayerror "Unknown rc: "passist_rc
@@ -281,796 +1174,105 @@ defproc passist
       newline = .line; newcol = .col
       call prestore_pos(savepos)
       .col = newcol
-      .lineg = newline  -- go to line newline without scrolling
-      .line  = newline  -- scroll when outside of window
-      --right; left                      -- scroll_to_cursor
+      .lineg = newline
+      right; left                      -- scroll_to_cursor
    endif
    call prune_assist_array()
    setsearch search_command           -- Restores user's command so Ctrl-F works.
-   return
-
-; ---------------------------------------------------------------------------
-; id            = found word under cursor (or beneath the cursor in some cases)
-; fIntermediate = set to 1 if id is an intermediate conditional token
-;                 (e.g. 'else', but not 'if' or 'endif')
-; clist         = a space delimited list of substrings to match on
-; clen          = the length of the substrings in clist
-; coffset       = offset from cursor pos to substring to match
-; fForward      = a flag to indicate which direction to search
-;                 1 = forward, 0 = backward
-; search        = string for locate command, without seps and options,
-;                 egrep will be used
-defproc Assist2( var NumArgs, var id, var cList, var search)
-
-   passist_rc = 0
-   parse value NumArgs with fForward fCase fIntermediate StartCol EndCol cLen cOffset n
-   CurMode = GetMode()
-
-   getline line
-   -- if not a bracket char
-                  -- Add '.' to default token_separators & remove ':' for GML markup.
-   -- build the separator list for find_token
-
-;     The following 4 of 5 lines are commented out because, with the new comment-handling
-;     code above, they should no longer be relevant
-;  if pos(c, '*/') then
-;     seps = '/*'
-;  else
-      seps = ' ~`!.%^&*()-+=][{}|\;?<>,''"'\t
-;  endif
-
--- begin addition for TeX
-   if CurMode = 'TEX' then
-      if substr(line, .col, 1) = '\' then right endif   -- ...move cursor right if it is on \backslash
-   endif
--- end addition for TeX
-
-   -- get the word under cursor and return startcol and endcol
-   -- stop at separators = arg(3)
-   -- stop at double char separators = arg(4)
-   if not find_token(startcol, endcol,  seps, '/* */') then
-      passist_rc = 4
-   else
-      call jbsdprintf("passist", "Initial token start,end: "startcol","endcol)
-      if startcol > 1 then
-         prevchar = substr(line, startcol-1, 1)
-         if prevchar = '<' then
-            -- add '<' to found word if it is on the left side of it
-            -- JBSQ: Why?  Is this for HTML tags like <SCRIPT and </SCRIPT>, <TD and </TD>, etc.?
-            startcol = startcol - 1
-         elseif prevchar = '\' then
-            if CurMode = 'TEX' then
-               --//PM TeX macros are preceded by \backslash which is also separator
-               -- add '\' to found word if it is on the left side of it
-               startcol = startcol - 1
-            endif
-         endif
-      elseif startcol = 1 then            -- if cursor is on the first column of a MAKE directive
-         if leftstr(line, 1) = '!' then   -- "shift" the id to the following token
-            if CurMode = 'MAKE' then
-               newstart = verify(line, ' ' || \t, 'N', 2)
-               if newstart then
-                  newend = verify(line || ' ', seps, 'M', newstart)  -- JBSQ: Should find_token be called again here instead?
-                  if newend then
-                     startcol = newstart
-                     endcol   = newend - 1
-                  endif
-               endif
-            endif
-         endif
-      endif
-      -- id = found word
-      id = substr(line, startcol, (endcol-startcol)+1)
-      --call jbsdprintf("passist", "'Processed' token start,end: "startcol","endcol)
-      call jbsdprintf("passist", "Initial token : '"id"'")
-
-      -- JBSQ: What is this for?
-      -- if id = '.', then go 1 col left and search again
-      if id='.' & .col > 1 then
-         sayerror "id = '.'"
-         left
-         if find_token(startcol, endcol) then
-            id = substr(line, startcol, (endcol-startcol)+1)
-         endif --test
-      endif
-
-      if 0 then
-         -- just a placeholder so the following elseif's can be freely reordered
-
-      ---------------------------------------------------------------------------------------------
-      elseif CurMode = 'E' then
-         if startcol > 1 then
-            if substr(line, startcol - 1, 2) = '*/' then  -- allow */ just before token
-               startcol = startcol + 1
-               id = substr(line, startcol, (endcol - startcol + 1))
-            /* test */endif/* test */           -- JBSQ: Apparently E allow comments as "word" delimiters
-         endif
-         if rightstr(id, 1) = ';' then              -- allow ; just after token
-            id = substr(line, startcol, (endcol-startcol))
-         elseif endcol < length(line) then
-            temp = substr(line, endcol, 2)
-            if temp = '/*' or temp = '--' then      -- allow /* or -- just after token
-               id = substr(line, startcol, (endcol-startcol))
-               endcol = endcol - 1
-            endif
-         endif
-         --call jbsdprintf("passist", "E Token after : '"id"'")
-         fCase = 0                                 -- Case insensitive for all E tokens
-         id = lowcase(id)
-         line = lowcase(line)
-         if 0 then
-            -- another placeholder
-
-         ---- E conditions: if, else, elseif, endif --------------------------------------------------
-         elseif wordpos( id, 'if endif else elseif') then
-            search = '(^|[ \t]|(\*/))\c(end)?if([; \t]|(--)|(/\*)|$)'
-            clist= leftstr(id, 1)
-            fForward = (clist <> 'e')
-             if fForward then  -- move to beginning
-                .col = startcol
-             else       -- move to end, so first Locate will hit this instance.
-                .col = endcol
-             endif
-            fIntermediate = (substr(id, 2, 1) = 'l')
-
-         elseif wordpos( id, 'loop endloop') then
-            search = '(^|[ \t]|(\*/))\c(end)?loop([; \t]|(--)|(/\*)|$)'
-            clist = leftstr( id, 1)
-            fForward = (clist <> 'e')
-            if fForward then  -- move to beginning
-               .col = startcol
-            else       -- move to end, so first Locate will hit this instance.
-               .col = endcol
-            endif
-
-         elseif wordpos( id, 'for endfor') then
-            search = '(^|[ \t]|(\*/))\c(end)?for([; \t]|(--)|(/\*)|$)'
-            clist = leftstr( id, 1)
-            fForward = (clist <> 'e')
-            if fForward then  -- move to beginning
-               .col = startcol
-            else       -- move to end, so first Locate will hit this instance.
-               .col = endcol
-            endif
-
-         ---- E compiler directives: compile if, compile else, compile elseif, compile endif ---------
-         elseif id = 'compile' then
-            temp = (substr(line, pos(id, line)))
-            call jbsdprintf("passist", "Initial temp: "temp)
-            do while (pos('/*', temp) > 0) and (pos('*/', temp) > 0)
-               temp = substr(temp, pos('*/', temp))
-               call jbsdprintf("passist", "Intermediate temp: "temp)
-            enddo
-            call jbsdprintf("passist", "Final temp: "temp)
-            if (words(temp) = 0) then
-               passist_rc = 5
-            else
-               lcword2 = word(temp, 2)
-               call jbsdprintf("passist", "lcword2: "lcword2)
-               if wordpos(lcword2, 'if endif else elseif') then
-                  search = '^[ \t]*compile[ \t]*(/\*.*\*/)*[ \t]*\c(end)?if([; \t]|(--)|(/\*)|$)'
-                  clist = leftstr(lcword2, 1)
-                  fForward = (clist <> 'e')
-                  if fForward then  -- move to beginning
-                     .col = startcol
-                  else       -- move to end, so first Locate will hit this instance.
-                     end_line
-                  endif
-                  fIntermediate = (substr(lcword2, 2, 1) = 'l')
-               else
-                  passist_rc = 5
-               endif
-            endif
-
-         elseif wordpos( id, 'do while end enddo endwhile') then
-            if     (id = 'end') then
-               search = '(^|[ \t]|(\*/))\c(do|end|enddo)([; \t]|(--)|(/\*)|$)'
-            elseif (id = 'enddo') then
-               search = '(^|[ \t]|(\*/))\c(do|end|enddo)([; \t]|(--)|(/\*)|$)'
-            elseif (id = 'endwhile') then
-               search = '(^|[ \t]|(\*/))\c(end)?while([; \t]|(--)|(/\*)|$)'
-            else                                    -- check for do and/or while
-               whilepos = wordpos('while', line)
-               dopos    = wordpos('do', line)
-               if (not dopos) or (whilepos and (whilepos < dopos)) then -- while or while ... do?
-                  search = '(^|[ \t]|(\*/))\c(end)?while([; \t]|(--)|(/\*)|$)'
-                  startcol = whilepos
-                  endcol = whilepos + 4
-               else                                      --    do or do ... while
-                  search = '(^|[ \t]|(\*/))\c(do|end|enddo)([; \t]|(--)|(/\*)|$)'
-                  startcol = dopos
-                  endcol   = dopos + 1
-               endif
-compile if 0
-               if whilepos and dopos then           -- if both
-                  if whilepos < dopos then          --    while ... do ?
-                     search = '(^|[ \t]|(\*/))\c(end)?while([; \t]|(--)|(/\*)|$)'
-                     startcol = whilepos
-                     endcol = whilepos + 4
-                  else                              --    do ... while
-                     search = '(^|[ \t]|(\*/))\c(do|end|enddo)([; \t]|(--)|(/\*)|$)'
-                     startcol = dopos
-                     endcol   = dopos + 1
-                  endif
-               else
-                  if dopos then                     -- do
-                     search = '(^|[ \t]|(\*/))\c(do|end|enddo)([; \t]|(--)|(/\*)|$)'
-                  else                              -- while
-                     search = '(^|[ \t]|(\*/))\c(end)?while([; \t]|(--)||(/\*)$)'
-                  endif
-               endif
-compile endif
-               call jbsdprintf("passist", "Whilepos: "whilepos "Dopos: "dopos "Search: "search)
-            endif
-            clist = leftstr( id, 1)
-            call jbsdprintf("passist", "clist: "clist)
-            fForward = (clist <> 'e')
-            if fForward then  -- move to beginning
-               .col = startcol
-            else       -- move to end, so first Locate will hit this instance.
-               .col = endcol
-            endif
-
-         elseif wordpos( id, 'leave iterate') then
-            search = '(^|[ \t]|(\*/))\c(do|end|enddo|loop|endloop|for|endfor|endwhile)([; \t]|(--)|(/\*)|$)'
-            fForward = 0
-            clist = 'e'
-            clen = 1
-            .col = endcol
-            fIntermediate = 1
-         else -- not a known balanceable E token
-            passist_rc = 4
-         endif
-
-      ---------------------------------------------------------------------------------------------
-      elseif Curmode = 'C' or CurMode = 'JAVA' or CurMode = 'RC' then
-         if 0 then
-            --placeholder
-
-         elseif wordpos(id, 'do try') then
-            --  this code might be expanded to <anytoken> { .... }
-            if CurMode <> 'RC' then
-               setsearch 'xcom l /[{;]/xe+F'   -- does following a '{' precede a ';'?
-               passist_rc = passist_search('{ ;', 'e', 0, 1, /* stop on first 'hit' */ -1)
-               if passist_rc then
-                  passist_rc = 5
-               else
-                  call jbsdprintf("passist", "token {} '{;' search found: "substr(textline(.line), .col, 1))
-                  if substr(textline(.line), .col, 1) = '{' then -- found the braces
-                     search  = '[{}]'
-                     fForward = 1
-                     clist = '{'
-                  else
-                     passist_rc = 5           -- token without braces
-                  endif
-               endif
-            else
-               passist_rc = 4
-            endif
-
-         elseif id = 'while' then
-            if CurMode <> 'RC' then
-               setsearch 'xcom l /[()]/xe+F'     -- find the end of the conditional
-               passist_rc = passist_search('(', 'e', 0, 1, 0)
-               if passist_rc then                -- no conditional??
-                  passist_rc = 5
-               else
-                  nextchar = next_nonblank_noncomment_nonliteral()
-                  if not nextchar then
-                     passist_rc = 5
-                  else
-                     call jbsdprintf("passist", "while {; search found: "nextchar)
-                     if nextchar = '{' then      -- must be while loop (i.e. NOT do/while) with braces
-                        search  = '[{}]'
-                        fForward = 1
-                        clist   = '{'
-                     elseif nextchar = ';'  then -- cursor is on the 'while' of a do/while loop
-                        search  = '\{|\}|(($|[ \t])\cdo([ \t]|$))'
-                        fForward = 0
-                        clist   = '}'
-                        n = 2
-                     else                        -- cursor is on a one-statement while loop
-                        passist_rc = 5           -- no braces follow, so JBSQ: unbalanceable?
-                     endif
-                  endif
-               endif
-            endif
-
-         elseif wordpos(id, '#if #ifdef #ifndef #endif #else #elif') then
-            if CurMode <> 'JAVA' then
-               search = '\#((if((n?def)?))|endif)([ \t]|$)'
-               if CurMode = 'C' then
-                  search = '^[ \t]*\c' || search
-               elseif startcol = 1 then  -- RC directives must start in column one
-                  search = '^' || search
-               else
-                  passist_rc = 5
-               endif
-               clist = substr(id, 2, 1)
-               fForward = (clist <> 'e')
-               if fForward then  -- move to beginning
-                  .col = startcol
-               else       -- move to end, so first Locate will hit this instance.
-                  .col = endcol
-               endif
-               coffset = 1
-               fIntermediate = (substr(id, 3, 1) = 'l')
-            else
-               passist_rc = 5
-            endif
-/*
-   The following code should work for break/continue statements within nested do and for loops
-   which have braces.  Problems arise if there are do's or for's without braces between the
-   break/continue and the enclosing loop.  Also problems arise if the enclosing loop is a
-   while loop.
-
-   The solution, if it is worth it, is to code the entire search here so that these different
-   variations of loops can be handled correctly.
-
-         elseif wordpos(id, 'break continue' then
-            if CurMode <> 'RC' then
-               search       = '([{}])|((^|[ \t])\c(do|for)([ \t]|$))'
-               fForward      = 0
-               clist        = '}'
-               fIntermediate = 1
-            else
-               passist_rc = 4
-            endif
-*/
-         elseif CurMode = 'RC' then
-            -- All remaining RC tokens here
-            fCase = 0   -- RC files are case insensitive, except for direcives (#if, #define, etc.)
-            id = lowcase(id)
-            if wordpos(id, '{ } begin end') then
-               search = '(\{|\}|((^|[ \t])(begin|end)([ \t;]|$))'
-               fForward = (wordpos(id, '{ begin') > 0)
-               if fForward then  -- move to beginning
-                  .col = startcol
-                  clist = '{ b'
-               else       -- move to end, so first Locate will hit this instance.
-                  .col = endcol
-                  clist = '} e'
-               endif
-            else
-               passist_rc = 5
-            endif
-
-         else
-            -- All remaining C/JAVA tokens here
-            idlist = 'case default default:'
-            if CurMode = 'JAVA' then
-               idlist = idlist 'finally'
-            endif
-            if wordpos(id, idlist) then
-               search = '[{}]'
-               fForward = 0
-               clist = '}'
-               fIntermediate = 1
-            else
-               -- This code seems to handle matching the beginning and end of
-               --    a) functions when the cursor is on a token preceding the parameter list
-               --    b) 'if' when the 'if' has following braces
-               --    c) 'for' when the 'for' has following braces
-               --    d) 'switch' statements
-               --    e) anything of the structure: token (    )  { ... }
-               --        e.g. catch (    ) { ... }
-
-               -- Check for next_nonblank_noncomemnt_nonliteral() = '(' first?
-               -- (This would force the cursor to actually be on the function name.
-               -- The current code allows the cursor on any nonblank, noncomment,
-               -- nonliteral character preceding the parameter list.)
-               setsearch 'xcom l /[();]/xe+F'     -- find the ending ')' or ;
-               passist_rc = passist_search('(', 'e', 0, 1, 0)
-               if not passist_rc and substr(textline(.line), .col, 1) = ')' then -- no conditional??
-                  passist_rc = 4
-                  nextchar = next_nonblank_noncomment_nonliteral()
-                  if nextchar then
-                     call jbsdprintf("passist", "Generic token () {; search found: "nextchar)
-                     if nextchar = '{' then      -- structure is: token (    ) { ... }
-                        search = '[{}]'
-                        fForward = 1
-                        clist = '{'
-                        passist_rc = 0
-                     endif
-                  endif
-               else
-                  passist_rc = 4
-               endif
-            endif
-         endif
-
-      ---------------------------------------------------------------------------------------------
-      elseif CurMode = 'MAKE' then
-         fCase = 0                      -- Case insensitive for all MAKE tokens
-         id = lowcase(id)
-         -- Currently ALL balanceable MAKE must be on a line with '!' in column 1
-         -- and if there are any characters between the '!' and the token that they
-         -- be whitespace.
-         if leftstr(line, 1) = '!' then
-            if startcol > 2 then         -- Are there characters between '!' and token?
-               if verify(substr(line, 2, startcol - 2), ' ' || \t) then
-                  passist_rc = 4
-                  id = ''                -- Disable further processing
-               endif
-            endif
-            if 0 then
-               -- placeholder
-compile if INCLUDE_NMAKE32
-            elseif wordpos(id, 'if ifdef ifndef endif else elif elseif') then
-compile else
-            elseif wordpos(id, 'if ifdef ifndef endif else') then
-compile endif
-               search = '^![ \t]*\c(if((n?def)?)|endif)([ \t]|$)'
-               clist = leftstr(id, 1)
-               fForward = (clist = 'i')
-               if fForward then  -- move to beginning
-                  .col = 1
-               else       -- move to end, so first Locate will hit this instance.
-                  .col = endcol
-               endif
-compile if INCLUDE_NMAKE32
-               fIntermediate = (wordpos(id, 'else elif elseif') > 0)
-compile else
-               fIntermediate = (id = 'else')
-compile endif
-compile if INCLUDE_NMAKE32
-            elseif wordpos(id, 'foreach endfor') then               -- NMAKE32
-               search = '^![ \t]*\c(foreach|endfor)([ \t]|$)'
-               clist = leftstr(id, 1)
-               fForward = (clist = 'f')
-               if fForward then  -- move to beginning
-                  .col = 1
-               else       -- move to end, so first Locate will hit this instance.
-                  .col = endcol
-               endif
-               fIntermediate = (wordpos(id, 'else elif elseif') > 0)
-compile endif
-            else
-               passist_rc = 4
-            endif
-         else
-            passist_rc = 4
-         endif
-
-      ---------------------------------------------------------------------------------------------
-      elseif CurMode = 'REXX' then
-      ---- REXX conditions: if, else --------------------------------------------------------------
-         fCase = 0                      -- Case insensitive for all REXX tokens
-         id = lowcase(id)
-         if 0 then
-            -- another placeholder
-         elseif wordpos( id, 'do end select when otherwise') then
-            search = '(^|[ \t])\c(do|end|select)([ \t]|$)'
-            fForward = (wordpos(id, 'do select') > 0)
-            if fForward then  -- move to beginning
-               clist = 'do se'
-               .col = startcol
-            else       -- move to end, so first Locate will hit this instance.
-               clist = 'en'
-               .col = endcol
-            endif
-            clen  = 2
-            fIntermediate = (wordpos(id, 'when otherwise') > 0)
-         elseif wordpos( id, 'if else') then
-            -- JBSQ: How is this supposed to work?  If's don't always have else's
-            search = '(^|[ \t])(if|else)([ \t)|$)'
-            clist = leftstr( id, 1)
-            fForward = (clist <> 'e')
-            if fForward then  -- move to beginning
-               .col = startcol
-            else       -- move to end, so first Locate will hit this instance.
-               .col = endcol
-            endif
-         else -- not a known balanceable REXX token
-            passist_rc = 4
-         endif
-
-      ---------------------------------------------------------------------------------------------
-      elseif CurMode = 'IPF' then
-;          if wordpos(lowcase(id), ':ol :eol :ul :eul :sl :esl :dl :edl :parml :eparml') &
-;              pos(substr(line, endcol+1, 1), '. ') then
-         if pos(':', id) > 1 then  -- <text>:tag, separate the :tag
-            id = substr(id, pos(':', id))
-         endif
-         if length(line) > endcol then
-            if (pos(substr(line, endcol+1, 1), '. ')) then
-               IPFBeginTags = ':artlink :caution :cgraphic :ctrldef :fn :hide'
-               IPFBeginTags = IPFBegintags ':hp1 :hp2 :hp3 :hp4 :hp5 :hp6 :hp7 :hp8 :hp9'
-               IPFBeginTags = IPFBegintags ':lines :link :nt :userdoc :warning :xmp'
-               IPFEndTags   = ':eartlink :ecaution :ecgraphic :ectrldef :efn :ehide'
-               IPFEndTags   = IPFEndTags ':ehp1 :ehp2 :ehp3 :ehp4 :ehp5 :ehp6 :ehp7 :ehp8 :ehp9'
-               IPFEndTags   = IPFEndTags ':elines :elink :ent :euserdoc :ewarning :exmp'
-               IPFTags      = IPFBeginTags IPFEndTags
-               call jbsdprintf("passist", "IPF ID wordpos: "wordpos(id, IPFTags))
-               call jbsdprintf("passist", "IPF Tags: "IPFTags)
-               if wordpos(id, IPFTags) then
-                  clist = substr(id, 2, 1)  -- Character to check to see if it's an end tag
-                  fForward = (clist <> 'e')          -- fForward = 1 if searching forward; 0 if backwards
-                  if fForward then  -- move to beginning
-                     .col = startcol
-                     id = substr(id, 2)
-                  else       -- move to end, so first Locate will hit this instance.
-                     .col = endcol+1
-                     id = substr(id, 3)
-                  endif
-                  search = '\:\ce?'id'(\.| )'
-               elseif wordpos(id, ':ol :ul :sl :eol :eul :esl :li :lp') then
-                  fIntermediate = (wordpos(id, ':li :lp') > 0)
-                  fForward = (wordpos(id, ':ol :ul :sl') > 0)    -- fForward = 1 if searching forward; 0 if backwards
-                  if fForward then  -- move to beginning
-                     .col = startcol
-                     id = substr(id, 2)
-                     clist = 'ol ul sl'
-                     clen = 2
-                  else       -- move to end, so first Locate will hit this instance.
-                     .col = endcol+1
-                     id = substr(id, 3)
-                     clist = 'eol eul esl'
-                     clen  = 3
-                  endif
-                  search = '\:\ce?(o|u|s)l(\.| )'
-               elseif wordpos(id, ':table :etable :row :c') then
-                  fIntermediate = (wordpos(id, ':row :c') > 0)
-                  fForward = (id = ':table')         -- fForward = 1 if searching forward; 0 if backwards
-                  if fForward then  -- move to beginning
-                     .col = startcol
-                     clist = 'table'
-                     clen = 5
-                     id = substr(id, 2)
-                  else       -- move to end, so first Locate will hit this instance.
-                     .col = endcol+1
-                     clist = 'etable'
-                     clen = 6
-                     id = substr(id, 3)
-                  endif
-                  search = '\:\ce?table(\.| )'
-               elseif wordpos(id, ':parml :eparml :pt :pd') then
-                  fIntermediate = (wordpos(id, ':pt :pd') > 0)
-                  fForward = (id = ':parml')          -- fForward = 1 if searching forward; 0 if backwards
-                  if fForward then  -- move to beginning
-                     .col = startcol
-                     id = substr(id, 2)
-                     clist = 'parml'
-                     clen  = 5
-                  else       -- move to end, so first Locate will hit this instance.
-                     .col = endcol+1
-                     id = substr(id, 3)
-                     clist = 'eparml'
-                     clen = 6
-                  endif
-                  search = '\:\ce?parml(\.| )'
-               elseif wordpos(id, ':dl :dthd :ddhd :dt :dd :edl') then
-                  fIntermediate = (wordpos(id, ':dthd :ddhd :dt :dd') > 0)
-                  fForward = (id = ':dl')            -- fForward = 1 if searching forward; 0 if backwards
-                  if fForward then  -- move to beginning
-                     .col = startcol
-                     id = substr(id, 2)
-                     clist = 'dl'
-                     clen = 2
-                  else       -- move to end, so first Locate will hit this instance.
-                     .col = endcol+1
-                     id = substr(id, 3)
-                     clist = 'edl'
-                     clen = 3
-                  endif
-                  search = '\:\ce?dl(\.| )'
-               elseif wordpos(id, ':fig :efig :figcap') then
-                  fIntermediate = (id = ':figcap')
-                  fForward = (id = ':fig')          -- fForward = 1 if searching forward; 0 if backwards
-                  if fForward then  -- move to beginning
-                     .col = startcol
-                     id = substr(id, 2)
-                  else       -- move to end, so first Locate will hit this instance.
-                     .col = endcol+1
-                     id = substr(id, 3)
-                  endif
-                  search = '\:\ce?fig(\.| )'
-               else  -- not a known balanceable IPF token
-                  passist_rc = 4
-               endif
-            else  -- not a known balanceable IPF token
-               passist_rc = 4
-            endif
-         else  -- not a known balanceable IPF token
-            passist_rc = 4
-         endif
-
-      ---------------------------------------------------------------------------------------------
-      elseif CurMode = 'HTML' then
-         fCase = 0                      -- Case insensitive for all HTML tokens
-         if 0 then
-            -- placeholder
-         ---- HTML tags: <...,</...> -----------------------------------------------------------------
-         elseif leftstr(id, 1) = '<' then
-            clist = substr(id, 2, 1)     -- Character to check to see if it's the same or the other
-            fForward = (clist <> '/')           -- fForward = 1 if searching forward; 0 if backwards
-            if fForward then  -- move to beginning
-               id = substr(id, 2)  -- Strip off the '<'
-               clist = id
-               .col = startcol
-            else       -- move to end, so first Locate will hit this instance.
-               id = substr(id, 3)  -- Strip off the '</'
-               clist = '/' || id
-               .col = endcol + 1   -- +1 for the '>' after the tag
-            endif
-            search = '<\c/?'id'(>| )'  -- Use \c to not put cursor on angle bracket.
-            clen   = length(clist)
-         else  -- not a known balanceable HTML token
-            passist_rc = 4
-         endif
-
-      ---------------------------------------------------------------------------------------------
-      elseif Curmode = 'TEX' then
-      -- begin addition for TeX
-      -- //PM additions: balanceable tokens for (La)TeX
-
-      ---- TeX conditions: \if, \else, \fi --------------------------------------------------------
-         if substr(id,1,3) = '\if' or wordpos(id, '\else \fi') then --// \if.. \else \fi
-            search = '\\(if|fi)'
-            clist = substr(id, 2, 1)
-            fForward = (clist = 'i') -- fForward=1: forward, fForward=0 backward search
-            if fForward then -- move cursor so that the first Locate will hit this instance
-               .col = startcol -- \if: move to beginning
-            else
-               .col = endcol -- \else,\if: move to end
-            endif
-            coffset = 1
-            fIntermediate = substr(id, 3, 1) = 'l' -- fIntermediate=1 for \else
-
-         ---- TeX environment: \begin..., \end... ----------------------------------------------------
-         elseif substr(id,1,6)='\begin' or substr(id,1,4)='\end' then --// \begin.. \end..
-            search = '\\(begin|end)'
-            ---- LaTeX environment: \begin{...}, \end{...} -------------------------------------------
-         ----> bug   \begin {...} is not recognized!
-            if substr(line,endcol+1,1) = '{' then -- isn't it LaTeX's \begin{sth} ?
-compile if 1
-               -- first version: searches pairs \begin{theenvironment} .. \end{theenvironment}
-               i = pos( '}', substr(line,startcol) )
-               if i > 0 then
-                  search = substr(line,endcol+1, (i-endcol))
-                  search = '\\(begin'search'|end'search')'
-                  endcol = i+startcol-1
-               endif
-compile else
-               -- second version: searches pairs \begin{ .. \end{   thus can find also
-               -- unbalanced environments
-               search = search'{'
-               endcol = endcol+1
-compile endif
-            endif
-            clist = substr(id, 2, 1)
-            fForward = (clist = 'b')
-            if fForward then
-               .col = startcol
-            else
-               .col = endcol
-            endif
-            coffset = 1
-
-         ---- TeX math -------------------------------------------------------------------------------
-         elseif wordpos(id,'\left \right') then --// \left \right
-            search = '\\(left|right)'
-            clist = substr(id, 2, 1)
-            fForward = (clist = 'l')
-            if fForward then
-               .col = startcol
-            else
-               .col = endcol
-            endif
-            coffset = 1
-   -- end addition for TeX
-         else -- not a known balanceable 'TEX' token
-            passist_rc = 4
-         endif
-
-      ---------------------------------------------------------------------------------------------
-      else -- not a known balanceable token
-         passist_rc = 4
-      endif--test
-   endif -- if find_token/not find_token
-
-   NumArgs = fForward fCase fIntermediate StartCol EndCol cLen cOffset n
    return passist_rc
 
-
 ; ---------------------------------------------------------------------------
-defproc passist_search( clist, case, coffset, clen, n)
+;  passist_search: perform the actual search for the matching token (which is
+;     NOT located within a comment or literal).
+; ---------------------------------------------------------------------------
+defproc passist_search(mode, clist, case, coffset, clen, n)
+   tex_env = arg(7)
    loop
-      call jbsdprintf("passist", "before search pos: ".line",".col "n = "n)
+      call dprintf("passist", "before search pos: ".line",".col "n = "n)
       repeatfind
       if rc then leave; endif
-      call jbsdprintf("passist", "Match at ".line",".col)
-      if inside_comment() then
+      call dprintf("passist", "Match at ".line",".col)
+      if inside_comment(mode) then
          iterate
       endif
-      if inside_literal2() then
+      if inside_literal2(mode) then
          iterate
       endif
-      call jbsdprintf("passist", "line# ".line" col: ".col" text: "textline(.line))
+      call dprintf("passist", "line# ".line" col: ".col" text: "textline(.line))
       cword  = substr(textline(.line), .col + coffset, clen)
       if case = 'c' then
          cword = lowcase(cword)
       endif
-      call jbsdprintf("passist", "Cword: "cword "Coffset: "coffset "CLen: "clen)
+      call dprintf("passist", "CList: "clist "Cword: "cword "Coffset: "coffset "CLen: "clen)
       if wordpos(cword, clist) then
          n = n + 1;
       else
-         n = n - 1;
+         n = n - 1
       endif
 
-      call jbsdprintf("passist", 'after n = 'n)
+      call dprintf("passist", 'after n = 'n)
+      retval = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN * (rc = sayerror('String not found'))
       if n=0 then
          leave
       endif
    endloop
-   return 5 * (rc = sayerror('String not found'))
-
-; ---------------------------------------------------------------------------
-; Commented out: currently the def's from balance.e work better
-/*
-; Balance:
-; While typing an opening or closing expression the corresponding expression
-; is seached and highlighted.
-;
-; Compared to EPMSMP\BALANCE.E the existing function passist is used. passist
-; can be expanded to find matching expressions for other languages then C.
-; I.e. finding \begin {mygroup} and \end {mygroup} for LaTeX is planned and
-; will be added here, when the passist function was extended.
-
-defproc NepmdDefineBalanceChar(char)
-   keyin char
-   call psave_pos(saved_pos)
-   left
-   sayerror 0  -- reset messageline
-   display -8  -- disable saving messages for the messagebox
-   call passist()
-   call passist()
-   display 8   -- enable saving messages for the messagebox
-   right
-   call prestore_pos(saved_pos)
-   return
-
-def '('=
-   NepmdDefineBalanceChar('(')
-
-def ')'=
-   NepmdDefineBalanceChar(')')
-
-def '['=
-   NepmdDefineBalanceChar('[')
-
-def ']'=
-   NepmdDefineBalanceChar(']')
-
-def '{'=
-   NepmdDefineBalanceChar('{')
-
-def '}'=
-   NepmdDefineBalanceChar('}')
-
-def '<'=
-   NepmdDefineBalanceChar('<')
-
-def '>'=
-   NepmdDefineBalanceChar('>')
-*/
-; ---------------------------------------------------------------------------
-
-; ---------------------------------------------------------------------------
-defproc inside_literal()
-   if inside_comment() then
-      retval = 0
-   else
-      retval = inside_literal2()
+   if retval = 0 and mode == 'TEX' and (clist = 'be' or clist = 'en') then
+      call psave_pos(texsavepos)
+      if clist = 'be' then
+         .col = .col + 3
+      else
+         .col = .col + 5
+      endif
+      nextchar = next_nonblank_noncomment_nonliteral(mode)
+      call dprintf("passist", "TEX env: "tex_env" NextChar: "nextchar)
+      if tex_env <> '' then
+         if nextchar == '{' then
+            call dprintf("passist", "TEX env found { at ".line .col)
+            if substr(textline(.line), .col, length(tex_env)) == tex_env then
+               call dprintf("passist", "TEX env matched")
+            else
+               retval = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+            endif
+         else
+            retval = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+         endif
+      else
+         if nextchar = '{' then
+            retval = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+         endif
+      endif
+      call prestore_pos(texsavepos)
    endif
    return retval
 
 ; ---------------------------------------------------------------------------
-defproc inside_literal2()
-   call jbsdprintf("lit2", "Entry: ".line .col)
+;  inside_literal: determine if the cursor is within a literal. This routine
+;     first determines if the cursor is within a comment (since literals
+;     within comments are not "real" literals). Return values:
+;        0:     the cursor is NOT within a literal.
+;        other: the cursor IS within a literal.
+; ---------------------------------------------------------------------------
+defproc inside_literal(mode)
+   if inside_comment(mode) then
+      retval = 0
+   else
+      retval = inside_literal2(mode)
+   endif
+   return retval
+
+; ---------------------------------------------------------------------------
+;  inside_literal2: determine if the cursor is within a literal. Unlike
+;     inside_literal, this routine does not first determine if the cursor
+;     is within a comment. This is called by inside_literal and can be
+;     called directly if the test for the presence of a comment is unneeded.
+;     Return values:
+;        0:     the cursor is NOT within a literal.
+;        other: the cursor IS within a literal.
+; ---------------------------------------------------------------------------
+defproc inside_literal2(mode)
+   call dprintf("lit2", "Entry: ".line .col)
    call psave_pos(savepos2)
    getsearch search_command2  -- Save caller's search command.
-   mode = NepmdGetMode()      -- JBSQ: should this be a parameter instead?
    curline  = .line
    curcol  = .col
    line = textline( .line )
@@ -1080,7 +1282,7 @@ defproc inside_literal2()
       endpos = 0
       loop
          startpos = verify(line, StartLitChars, 'M', endpos + 1)
-         call jbsdprintf("lit2", "startpos curcol line: "startpos curcol line)
+         call dprintf("lit2", "startpos curcol line: "startpos curcol line)
          if not startpos then
             leave
          elseif startpos >= curcol then
@@ -1093,31 +1295,31 @@ defproc inside_literal2()
          endpos     = startpos
          loop
             endpos     = verify(line, endq, 'M', endpos + 1)
-            call jbsdprintf("lit2", "startq startpos endq endpos escapechar: "startq startpos endq endpos escapechar)
+            call dprintf("lit2", "startq startpos endq endpos escapechar: "startq startpos endq endpos escapechar)
             if endpos >= curcol then         -- JBSQ: Disregard escape and assume a valid close "quote"?
                retval = 1
                leave
             elseif not endpos then           -- No end "qupte"??
                sayerror "Unmatched start-of-literal character: "startq "at "curline","startpos
-               call jbsdprintf("lit2", "Unmatched start-of-literal character: "startq "at "curline","startpos)
+               call dprintf("lit2", "Unmatched start-of-literal character: "startq "at "curline","startpos)
                retval = 1                    -- JBSQ: Return true on unmatched "quote"?
                leave
             elseif endq = escapechar then    -- escaped "quote" case 1: doubled-"quote"s
                if length(line) > endpos then
                   if substr(line, endpos + 1, 1) = endq then      -- doubled-"quote" escape sequence?
                      endpos = endpos + 1
-                     call jbsdprintf("lit2", "Doubled-quote")
+                     call dprintf("lit2", "Doubled-quote")
                      iterate
                   else                       -- not escaped and endpos < curcol
                      leave                   --     literal starts and ends before cursor col
                   endif
                else
                   retval = 1                 -- this shouldn't happen after initial if endpos >= curcol
-                  call jbsdprintf("lit2", 'Reached "unreachable" code.')
+                  call dprintf("lit2", 'Reached "unreachable" code.')
                   leave
                endif
             elseif substr(line, endpos - 1, 1) = escapechar then  -- escaped "quote" case 2, preceding escape char
-               call jbsdprintf("lit2", "Escaped quote")
+               call dprintf("lit2", "Escaped quote")
                iterate
             else  -- endpos > 0 and endpos < curcol, i.e. literal starts and ends before curcol
                leave
@@ -1128,80 +1330,21 @@ defproc inside_literal2()
          endif
       endloop
    endif
-compile if 0
-   if 1 /* or mode = 'REXX' or mode = 'E' or mode = 'C' */ then
-      dq = '"'
-      sq = "'"
-      startliterals = '"'''   -- get these from mode def, instead of hard-coding?
-      endliterals   = '"'''   -- get these from mode def, instead of hard-coding?
-      call jbsdprintf( "lit2", "line# ".line": "line)
-      p2 = 0
-      loop
-         pdq = pos(dq, line, p2 + 1)
-         psq = pos(sq, line, p2 + 1)
-         call jbsdprintf( "lit2", "psq pdq" psq pdq)
-         if psq = 0 and pdq = 0 then
-            leave
-         elseif psq = 0 then
-            p = pdq
-         elseif pdq = 0 then
-            p = psq
-         elseif psq < pdq then
-            p = psq
-         else
-            p = pdq
-         endif
-         if p > curcol then
-            leave
-         endif
-         endquotechar = substr(line, p, 1)
-         startcol = p + 1
-         loop
-            p2 = pos(endquotechar, line, startcol)
-            if p2 > 0 then
-               call jbsdprintf( "lit2", "endquotechar pos "endquotechar p2)
-               --
-               -- Handle "escaped" quotes here
-               --
-               if mode = 'C' then
-                  if substr(line, p2 - 1, 1) = '\' then
-                     startcol = startcol + 1
-                     iterate
-                  endif
-               elseif mode = 'E' then
-                  if (p2 < (length(line) - 1)) then -- quote found before end-of-line?
-                     if substr(line, p2 + 1, 1) = endquotechar then -- double quoted?, skip to next
-                        startcol = p2 + 2
-                        iterate
-                     endif
-                  endif
-               else
-                  -- assume no escape chars??
-               endif
-            endif
-            leave
-         endloop
-         if p2 = 0 then
-            if p < curcol then
-               sayerror "Unpaired quote found at ".line","p     -- JBSQ: after beginning quote which has no end?
-            endif
-            leave
-         elseif p < curcol and (p2 >= curcol) then
-            retval = 1
-            leave
-         endif
-      endloop
-   else
-      call jbsdprintf("lit2", "Error: unknown mode: "mode)
-   endif
-compile endif
    setsearch search_command2 -- Restores user's command so Ctrl-F works.
    call prestore_pos(savepos2)
-   call jbsdprintf("lit2", "Exit: "retval .line .col)
+   call dprintf("lit2", "Exit: "retval .line .col)
    return retval
 
 ; ---------------------------------------------------------------------------
-defproc getLitChars(mode)
+;  GetLitChars: a routine which, given a mode, returns the start-of-literal,
+;     end-of-literal and escape characters for that mode. The return value
+;     is three "words". Each character of the first "word" is a start-of-literal
+;     character. The corresponding character in the second "word" is the
+;     corresponding end-of-literal character. The third "word is a list of the
+;     escape characters, if any, which allow a literal to include a start-of-literal,
+;     end-of-literal or itself in a literal.
+; ---------------------------------------------------------------------------
+defproc GetLitChars(mode)
    SingleQuote = "'"
    DoubleQuote = '"'
    StartLitChars = DoubleQuote || SingleQuote
@@ -1213,7 +1356,7 @@ defproc getLitChars(mode)
       EscapeChars = StartLitChars
    elseif mode = 'REXX' then
       EscapeChars = StartLitChars
-   elseif mode = 'MAKE' or mode = 'RC' then
+   elseif mode = 'MAKE' or mode = 'RC' or mode = 'WARPIN' then
       StartLitChars = DoubleQuote
       EndLitChars   = StartLitChars
       if mode = 'RC'then
@@ -1225,52 +1368,69 @@ defproc getLitChars(mode)
       StartLitChars = StartLitChars || '`'
       EndLitChars   = StartLitChars
       EscapeChars   = '\\\'
-   elseif mode = 'ADA' then
-      StartLitChars = DoubleQuote || '%'
-      EndLitChars   = StartLitChars
-      EscapeChars   = \0\0
-   elseif mode = 'DEF' then
+;    elseif mode = 'ADA' then               -- JBSQ: ADA strings and chars are default: (" " and ' ')?
+;       StartLitChars = DoubleQuote || '%'
+;       EndLitChars   = StartLitChars
+;       EscapeChars   = \0\0                -- JBSQ: Escape Chars?
+   elseif mode = 'DEF' or mode = 'PASCAL' or mode = 'FORTRAN' then
       StartLitChars = SingleQuote
       EndLitChars   = StartLitChars
-      EscapeChars   = \0                 -- JBSQ: No escape chars for DEF?
-      -- other modes here
+      if mode = 'DEF' then
+         EscapeChars   = \0
+      else
+         EscapeChars   = "'"
+      endif
+   -- other modes here
    endif
    return StartLitChars EndLitChars EscapeChars
 
 ; ---------------------------------------------------------------------------
-defproc inside_comment()          -- JBSQ: Do we need a parameterless version?
-   return inside_comment2(dummy)
+;  InsideComment: a front-end call to InsideComment2. This is used when the
+;     location of the comment, returned by inside_comment2, is not needed.
+; ---------------------------------------------------------------------------
+defproc inside_comment(mode)
+   return inside_comment2(mode, dummy)
 
 ; ---------------------------------------------------------------------------
-;  inside_comment2
+;  InsideComment2: determines if the cursor is located within a comment,
+;     multi-line or single-line. The input is the mode and a "var" variable
+;     (named "comment_data") in which the location of the comment is returned
+;     to the caller.
+;
 ;     return value 0 => cursor is NOT within a comment
 ;        and comment_data is meaningless
 ;     return value 1 => cursor IS within a one-line comment
-;        and comment_data is set to the column of the one-line comment
+;        and comment_data is set to the column of the start of one-line comment
 ;     return value 2 => cursor IS within a multi-line comment
 ;        and comment_data is set to 6 blank-separated words:
-;           The line, col and length of the starting token and
-;           the line, col and length of the ending token.
-defproc inside_comment2(var comment_data)
+;           The line, col and length of the starting MLC token and
+;           the line, col and length of the ending MLC token.
+; ---------------------------------------------------------------------------
+defproc inside_comment2(mode, var comment_data)
    display -2
-   call jbsdprintf("comm", "Entry: ".line .col)
+   call dprintf("comm", "Entry: ".line .col)
    call psave_pos(savepos2)
    getsearch search_command2  -- Save caller's search command.
    retval = 0
    comment_data = ""
-   mode = NepmdGetMode()      -- JBSQ: should this be a parameter instead?
    curline  = .line
    curcol  = .col
    line = textline(.line)
    MLCCase = 'c'              -- JBSQ: Ignore case for ALL MLC's?
+compile if     COMM_VER = 3
    MLCData =  locateMLC(mode, curline, curcol)
    parse value MLCData with BestMLCStartLine BestMLCStartCol BestMLCStartLen BestMLCEndLine BestMLCEndCol BestMLCEndLen
    if BestMLCStartLine > 0 then
       retval = 2
    endif
-   call jbsdprintf("comm", "Retval on exit of outer MLC loop: "retval "cursor: ".line",".col)
+compile elseif COMM_VER = 2
+   -- Broken, non-array code in jbs assist.e.v4
+compile elseif COMM_VER = 1
+   -- Old, slightly broken MLC code in jbs assist.e.v3.4
+compile endif   -- end of MLC conditionals
+   call dprintf("comm", "Retval on exit of outer MLC loop: "retval "cursor: ".line",".col)
    if retval = 0 then
-      SLCPosition = inside_oneline_comment(line, mode)
+      SLCPosition = inside_oneline_comment(mode)
       comment_data = SLCPosition
       retval = (SLCPosition > 0)
    else
@@ -1278,13 +1438,26 @@ defproc inside_comment2(var comment_data)
    endif
    setsearch search_command2 -- Restores user's command so Ctrl-F works.
    display 2
-   call jbsdprintf( "comm", "MLC rc: "retval comment_data)
+   call dprintf( "comm", "MLC rc: "retval comment_data)
    return retval
 
+compile if COMM_VER = 3
+
+; ---------------------------------------------------------------------------
+;  locateMLC: Determine if provided location (line, col) is within a multi-line
+;     comment (MLC) for the provided mode. The return value is six space-separated
+;     numbers representing:
+;        Start line of MLC
+;        Start col of MLC
+;        Length of the Start MLC token
+;        End line of MLC
+;        End col of MLC
+;        Length of the End MLC token
+;     All zeroes indicate that the given line, col is NOT within an MLC.
 ; ---------------------------------------------------------------------------
 defproc locateMLC(mode, line, col)
    MLCCount = buildMLCArray(mode)
-   call jbsdprintf("array", "locateMLC mode: "mode line","col "MLCCount: "MLCCount)
+   call dprintf("array", "locateMLC mode: "mode line","col "MLCCount: "MLCCount)
    getfileid fid
    listindexbase = 'assist.'fid'.'
    BestMLCStartLine = 0
@@ -1295,19 +1468,19 @@ defproc locateMLC(mode, line, col)
    BestMLCEndLen    = 0
    do i = 1 to MLCCount
       MLCListcount = GetAVar(listindexbase || i'.List.0')
-      call jbsdprintf("array", "Listcount #"i": "MLCListCount)
+      call dprintf("array", "Listcount #"i": "MLCListCount)
       do j = 1 to MLCListCount
          MLCEntry = GetAVar(listindexbase || i'.List.'j)
-         call jbsdprintf("array", "MLCEntry: "MLCEntry)
+         call dprintf("array", "MLCEntry: "MLCEntry)
          parse value MLCEntry with MLCStartLine MLCStartCol MLCStartLen MLCEndLine MLCEndCol MLCEndLen
-         call jbsdprintf("array", "test1: "((MLCEndLine > line) or (MLCEndLine = line and (MLCEndCol + MLCEndLen) > col)))
-         call jbsdprintf("array", "test2: "((MLCStartLine < line) or (MLCStartLine = line and MLCStartCol <= col)))
-         call jbsdprintf("array", "test3: "((MLCStartLine > BestMLCStartLine)  or (MLCStartLine = BestMLCStartLine and MLCStartCol > BestMLCStartCol)))
+         call dprintf("array", "test1: "((MLCEndLine > line) or (MLCEndLine = line and (MLCEndCol + MLCEndLen) > col)))
+         call dprintf("array", "test2: "((MLCStartLine < line) or (MLCStartLine = line and MLCStartCol <= col)))
+         call dprintf("array", "test3: "((MLCStartLine > BestMLCStartLine)  or (MLCStartLine = BestMLCStartLine and MLCStartCol > BestMLCStartCol)))
          if (MLCEndLine > line) or (MLCEndLine = line and (MLCEndCol + MLCEndLen) > col) then
             if (MLCStartLine < line) or (MLCStartLine = line and MLCStartCol <= col) then
                if (MLCStartLine > BestMLCStartLine)  or (MLCStartLine = BestMLCStartLine and MLCStartCol > BestMLCStartCol) then
                   parse value MLCEntry with BestMLCStartLine BestMLCStartCol BestMLCStartLen BestMLCEndLine BestMLCEndCol BestMLCEndLen
-                  call jbsdprintf("array", "   Best, so far" MLCEntry)
+                  call dprintf("array", "   Best, so far" MLCEntry)
                   leave   -- LISTCOMM: with current buildMLC logic, first should be "best"
                endif
             endif
@@ -1316,6 +1489,9 @@ defproc locateMLC(mode, line, col)
    enddo
    return BestMLCStartLine BestMLCStartCol BestMLCStartLen BestMLCEndLine BestMLCEndCol BestMLCEndLen
 
+; ---------------------------------------------------------------------------
+;  buildMLC: Build an array containing the start and end points of all multi-line
+;     comments in the current file.
 ; ---------------------------------------------------------------------------
 defproc buildMLCArray(mode)
    call psave_pos(savepos)
@@ -1334,11 +1510,11 @@ defproc buildMLCArray(mode)
          call SetAVar(modeindexbase || i || '.MLCNest' , word(MLCNestList, i ))
       enddo
    endif
-   call jbsdprintf("array", "Build mode: "mode "MLCCount: "modeMLCCount)
+   call dprintf("array", "Build mode: "mode "MLCCount: "modeMLCCount)
    if modeMLCCount > 0 then
-      call jbsdprintf("array", "Extracted Starts: "MLCStartChars "Ends: "MLCEndChars "Nests: "MLCNestList "Count: "modeMLCCount)
+      call dprintf("array", "Extracted Starts: "MLCStartChars "Ends: "MLCEndChars "Nests: "MLCNestList "Count: "modeMLCCount)
       Rebuild = GetAVar(listindexbase'Rebuild')
-      call jbsdprintf("array", "Rebuild: '"rebuild"'")
+      call dprintf("array", "Rebuild: '"rebuild"'")
       if Rebuild = 1 then
          /* delete the old data here? */
          -- MLCListCount = GetAVar(listindexbase
@@ -1351,11 +1527,11 @@ defproc buildMLCArray(mode)
             MLCStart = GetAVar(modeindexbase || i || '.MLCStart')
             MLCEnd   = GetAVar(modeindexbase || i || '.MLCEnd'  )
             MLCNest  = GetAVar(modeindexbase || i || '.MLCNest' )
-            call jbsdprintf("comm", "MLC data: "MLCStart MLCEnd MLCNest)
+            call dprintf("array", "MLC data: "MLCStart MLCEnd MLCNest)
             MLCStartSearch   = escape_search_chars(MLCStart)
             MLCEndSearch     = escape_search_chars(MLCEnd)
-            call jbsdprintf("comm", ""MLCStart "search = "MLCStartSearch)
-            call jbsdprintf("comm", ""MLCEnd "search = "MLCEndSearch)
+            call dprintf("array", ""MLCStart "search = "MLCStartSearch)
+            call dprintf("array", ""MLCEnd "search = "MLCEndSearch)
             MLCStartLine = curline
             MLCStartCol  = curcol   + 1
             MLCStartLen  = length(MLCStart)
@@ -1373,40 +1549,40 @@ defproc buildMLCArray(mode)
                'xcom l ' || \1 || MLCStartSearch || \1 || 'x' || MLCCase || '+F'
                MLCFindRC = rc
                if MLCFindRC = 0 then
-                  if inside_oneline_comment(textline(.line), mode) then
+                  if inside_oneline_comment(mode) then
                      right
                      iterate
                   endif
-                  if inside_literal2() then
+                  if inside_literal2(mode) then
                      right
                      iterate
                   endif
                   MLCStartLine = .line
                   MLCStartCol  = .col
-                  call jbsdprintf("comm", MLCStart "found at" MLCStartLine MLCStartCol)
+                  call dprintf("comm", MLCStart "found at" MLCStartLine MLCStartCol)
                   NestedStartsList = MLCStartLine MLCStartCol NestedStartsList
                   if MLCNest then
                      setsearch 'xcom l ' || \1 || '(' || MLCStartSearch || '|' || MLCEndSearch || ')' || \1 || 'x' || MLCCase || '+F'
                   else
                      setsearch 'xcom l ' || \1 || MLCEndSearch || \1 || 'x' || MLCCase || '+F'
                   endif
-                  right
+--                right          the repeatfind does the "right"
                   do while ((MLCFindRC = 0) and (NestedStartsList <> ''))
-                     call jbsdprintf("comm", "MLCEnd, presearch loc: ".line",".col)
+                     call dprintf("comm", "MLCEnd, presearch loc: ".line",".col)
                      repeatfind
                      MLCFindRC = rc
                      if MLCFindRC then leave; endif
-                     call jbsdprintf("comm", "MLCEnd, postsearch loc: ".line",".col)
-                     SLCPosition = inside_oneline_comment(leftstr(textline(.line), .col), mode, 1)
+                     call dprintf("comm", "MLCEnd, postsearch loc: ".line",".col)
+                     SLCPosition = inside_oneline_comment(mode, 1)
                      if SLCPosition then
                         right
                         iterate
                      endif
---                   MLC's "in-progress" can't be in literals?
---                   if inside_literal2() then
+--                   JBSQ: MLC's "in-progress" can't be in literals?
+--                   if inside_literal2(mode) then
 --                      iterate
 --                   endif
-                     call jbsdprintf("comm", "line# ".line" col: ".col" text: "textline(.line))
+                     call dprintf("comm", "line# ".line" col: ".col" text: "textline(.line))
                      if substr(textline(.line), .col, MLCEndLen) = MLCEnd then
                         parse value NestedStartsList with MLCStartLine MLCStartCol NestedStartsList
                         array_index  = array_index + 1
@@ -1416,7 +1592,7 @@ defproc buildMLCArray(mode)
                         -- this code should only be reached if MLCNest = 1 and MLCStart was matched
                         NestedStartsList = .line .col NestedStartsList
                      endif
-                     call jbsdprintf("comm", 'after Nestlist: 'NestedStartsList)
+                     call dprintf("comm", 'after Nestlist: 'NestedStartsList)
                   enddo
                   if MLCFindRC then
                      sayerror "Unmatched MLC's: "NestedStartsList
@@ -1432,13 +1608,27 @@ defproc buildMLCArray(mode)
    call prestore_pos(savepos)
    return modeMLCCount
 
+compile endif
+
+; ---------------------------------------------------------------------------
+;  GetMLCCHars: Return the tokens which start and end multi-line comments
+;     for the given mode. Also returned is whether the MLC can be nested
+;     within another MLC. These values are returned through three "var"
+;     parameters. Each "word" of each these parameters represents the
+;     start token, the end token and a flag indicating if theat MLC can
+;     be nested within another.
+;
+;     Eventually this code will retrieve this information from an outside
+;     source.
 ; ---------------------------------------------------------------------------
 defproc GetMLCChars(mode, var MLCStartChars, var MLCEndChars, var MLCNestFLags)
    MLCStartChars = ''         -- return indicating NO MLC's
-   if mode = 'REXX' or mode = 'E' or mode = 'C' | mode = 'JAVA' | mode = 'RC' | mode= 'CSS' /* | mode = 'PERL' JBSQ: NOT Perl?? */ then
+   if 0 then
+   -- placeholder
+   elseif mode = 'REXX' or mode = 'E' or mode = 'C' | mode = 'JAVA' | mode = 'RC' | mode= 'CSS' then
       MLCStartChars = '/*'    -- get these from mode def, instead of hard-coding
       MLCEndChars   = '*/'
-      if mode = 'C' or mode = 'RC' then
+      if mode = 'C' or mode = 'RC' or mode = 'REXX' then
          MLCNestFLags = '0'
       else
          MLCNestFlags = '1'
@@ -1446,7 +1636,7 @@ defproc GetMLCChars(mode, var MLCStartChars, var MLCEndChars, var MLCNestFLags)
    elseif mode = 'PASCAL' then
       MLCStartChars = '(* {'
       MLCEndChars   = '*) }'
-      MLCNestFlags  = '1 1'        -- JBSQ: ??
+      MLCNestFlags  = '1 1'
    elseif mode = 'TEX' then --------------------------------------- TEX
       MLCStartChars = '\iffalse'
       MLCEndChars   = '\fi'
@@ -1463,14 +1653,16 @@ defproc GetMLCChars(mode, var MLCStartChars, var MLCEndChars, var MLCNestFLags)
    return
 
 ; ---------------------------------------------------------------------------
-;  The following routine assumes that the search string parameter is simply the string which
-;  is desired, i.e. no metacharacters like ^ for start-of-line, [] for sets, etc.
+;  escape_search_chars: this routine takes a "search-for-this" search string
+;     and it inserts escape characters in front of any extended grep
+;     metacharacters. For example if the search string is "(abc)" (i.e.
+;     find "(abc)" the this routine returns "\(abc\)" because "(" and ")"
+;     are extended grep metacharacters and so they must be "escaped" with "\"
+; ---------------------------------------------------------------------------
 defproc escape_search_chars(search_string)
-   --chars_to_escape = '\[]()?+*^$.-'
-   chars_to_escape = '\[]()?+*^$.|{}'    -- pulled from perl docs
    p = -1
    loop
-      p = verify(search_string, chars_to_escape, 'M', p + 2)
+      p = verify(search_string, EGREP_METACHARACTERS, 'M', p + 2)
       if not p then
          leave
       else
@@ -1479,16 +1671,19 @@ defproc escape_search_chars(search_string)
    endloop
    return search_string
 
-
 ; ---------------------------------------------------------------------------
-;  inside_oneline_comment
-;     returns the column of the start of the comment (0 if no one-line comment)
-defproc inside_oneline_comment(line, mode)
-   call jbsdprintf("1line", "Entry: ".line .col "Mode = "mode)
-   if arg(3) == '' then
+;  inside_oneline_comment: determines if the cursor is located within a
+;     single line comment. Returns the column of the start of the comment.
+;     A value of 0 is returned if no one-line comment is found. An optional
+;     second parameter is used to indicate that a MLC is "in-progress".
+; ---------------------------------------------------------------------------
+defproc inside_oneline_comment(mode)
+   line = textline(.line)
+   call dprintf("1line", "Entry: ".line .col "Mode = "mode)
+   if arg(2) == '' then
       MLCInProgress = 0
    else
-      MLCInProgress = arg(3)
+      MLCInProgress = arg(2)
    endif
    retval = 0
    indexbase = 'assist.mode.'mode'.'
@@ -1496,7 +1691,7 @@ defproc inside_oneline_comment(line, mode)
    if SLCCount = '' then
       call GetSLCChars(mode, SLCCharList, SLCPosList, SLCAddList, SLCOverrideMLCList)
       SLCCount = words(SLCCharList)
-      call jbsdprintf("1line", "SLCCount: "SLCCount)
+      call dprintf("1line", "SLCCount: "SLCCount)
       call SetAVar(indexbase || 'SLC.0', SLCCount)
       do i = 1 to SLCCount
          call SetAVar(indexbase || 'SLC.'            || i, word(SLCCharList, i))
@@ -1515,9 +1710,16 @@ defproc inside_oneline_comment(line, mode)
       SLC    = GetAVar(indexbase || 'SLC.'    || SLCIndex)
       SLCPos = GetAVar(indexbase || 'SLCPos.' || SLCIndex)
       SLCAdd = GetAVar(indexbase || 'SLCAdd.' || SLCIndex)
-      call jbsdprintf("1line", "SLC/Pos/Add: "SLC"/"SLCPos"/"SLCAdd)
+      call dprintf("1line", "SLC/Pos/Add: "SLC"/"SLCPos"/"SLCAdd)
       if SLCAdd <> '0' then
          SLC = SLC || ' '
+      endif
+      if SLCPos < 0 then
+         if .col = -SLCPos then
+            return 0
+         else
+            SLCPos = '0'           -- SLC is in an acceptable column so treat it as any other '0'-type
+         endif
       endif
       if SLCPos = '0' then
          savecol = .col
@@ -1533,7 +1735,7 @@ defproc inside_oneline_comment(line, mode)
                leave
             endif
             .col = p
-            if not inside_literal2() then
+            if not inside_literal2(mode) then
                leave
             endif
          endloop
@@ -1541,33 +1743,49 @@ defproc inside_oneline_comment(line, mode)
          if (p and p <= .col) then                     -- if found before cursor location
             if (retval = 0 or (retval > 0 and p < retval)) then
                retval = p
-               call jbsdprintf("1line", "Found "SLC" comment")
+               call dprintf("1line", "Found "SLC" comment")
             endif
          endif
       elseif SLCPos = 'F' then
-         call jbsdprintf("1line", "PosF "leftstr(word(line, 1), length(SLC)))
+         call dprintf("1line", "PosF "leftstr(word(line, 1), length(SLC)))
          if leftstr(word(line, 1), length(SLC)) = SLC then
-            call jbsdprintf("1line", "Found '"SLC"' comm")
+            call dprintf("1line", "Found '"SLC"' comm")
             p = pos(SLC, line)
             if (retval = 0) or (p < retval) then
                retval = p
             endif
          endif
       elseif SLCPos = '1' then
-         call jbsdprintf("1line", "Pos1 "leftstr(line, length(SLC)))
+         call dprintf("1line", "Pos1 "leftstr(line, length(SLC)))
          if leftstr(line, length(SLC)) = SLC then
-            call jbsdprintf("1line", "Found '"SLC"' comm")
+            call dprintf("1line", "Found '"SLC"' comm")
             retval = 1
             leave
          endif
       endif
    enddo
-   call jbsdprintf("1line", "Exit: "retval .line .col)
+   call dprintf("1line", "Exit: "retval .line .col)
    return retval
 
 ; ---------------------------------------------------------------------------
+;  GetSLCChars: Returns the single-line comment data for the given mode
+;     For each possible SLC the following is returned:
+;        The token which initiates the SLC (SLCCharlist)
+;        A flag indicating any positional requirements (SLCPosList)
+;           0: SLC can start anywhere on a line
+;           1: SLC MUST start in column 1
+;           F: SLC must be the first non-blank on the line
+;        A flag indicating if the token must be followed by a blank (SLCAddList)
+;           0: No (i.e. ANY character may follow the start token
+;           1: A blank must follow the token
+;        A flag indicating if the SLC will "comment out" a closing MLC token (SLCOverrideMLCList)
+;           0: No
+;           1: Yes
+;
+;     Eventually this information will be retrieved from an external source.
+; ---------------------------------------------------------------------------
 defproc GetSLCChars(mode, var SLCCharList, var SLCPosList, var SLCAddList, var SLCOverrideMLCList)
-   SLCCharList        = ''      -- return value for "no SLC's"
+   SLCCharList        = ''      -- default (return value for "no SLC's")
    SLCPosList         = '0'     -- default
    SLCAddList         = '0'     -- default
    SLCOverrideMLCList = '0'     -- default
@@ -1576,9 +1794,11 @@ defproc GetSLCChars(mode, var SLCCharList, var SLCPosList, var SLCAddList, var S
       SLCPosList   = '1 0'
       SLCAddList   = '0 0'
       SLCOverrideMLCList = '1 0'
-   elseif mode = 'C' | mode = 'JAVA' | mode = 'RC' | mode = 'PASCAL' then
+   elseif mode = 'C' | mode = 'JAVA' | mode = 'RC' then
       SLCCharList  = '//'
       SLCOverrideMLCList = '1'
+   elseif mode = 'PASCAL' then
+      SLCCharList  = '//'
    elseif mode = 'DEF' then
       SLCCharList  = ';'
    elseif mode = 'MAKE' then
@@ -1602,13 +1822,19 @@ defproc GetSLCChars(mode, var SLCCharList, var SLCPosList, var SLCAddList, var S
       SLCPosList   = 'F'
    elseif     mode = 'PERL' then -------------------------------------- PERL
       SLCCharList  = '#'
-      SLCAddList   = '1'
+      SLCAddList   = '1'                      -- JBSQ: or 'F'?
    elseif     mode = 'ADA' then --------------------------------------- ADA
       SLCCharList  = '--'
    elseif     mode = 'FORTRAN' then ----------------------------------- FORTRAN
+compile if USE_FORTRAN90_SLC = 1
       SLCCharList  = 'c * !'
       SLCPosList   = '1 1 0'
-      SLCAddList   = '1 0 0'
+      SLCAddList   = '0 0 0'
+compile else
+      SLCCharList  = 'c *'
+      SLCPosList   = '1 1'
+      SLCAddList   = '0 0'
+compile endif
       SLCOverrideMLCList = '0 0 0'
    elseif     mode = 'TEX' then --------------------------------------- TEX
       SLCCharList  = '%'
@@ -1624,68 +1850,155 @@ defproc GetSLCChars(mode, var SLCCharList, var SLCPosList, var SLCAddList, var S
    endif
    return
 
+compile if COMM_VER = 2
+defproc cursorleft()
+   if .col > 1 then
+      left
+   else
+      if .line > 1 then
+         .line = .line - 1
+         endline
+      endif
+   endif
+compile endif
+
+compile if COMM_VER = 3
+
+; ---------------------------------------------------------------------------
+;  prune_assist_array: Clear the comment array
 ; ---------------------------------------------------------------------------
 defproc prune_assist_array()
    getfileid fid
    call SetAVar("assist."fid".Rebuild", 1)
    return
 
+compile endif
 
-
-
-defc t5
-   sayerror 'in t5'
-   mode = 'E'
-   MLCCount = buildMLCArray(mode)
-   getfileid fid
-   listindexbase = 'assist.'fid'.'
-   modeindexbase = 'assist.mode.'mode'.'
-   call jbsdprintf("array", "Dump MLC array.  Count = "MLCCount)
-   do i = 1 to MLCCount
-      MLCStart = GetAVar(modeindexbase || i'.MLCStart')
-      MLCEnd = GetAVar(modeindexbase || i'.MLCEnd' )
-      MLCNest = GetAVar(modeindexbase || i'.MLCNest')
-      MLCListCount = GetAVar(listindexbase || i'.List.0')
-      call jbsdprintf("array", "MLC #"i": Start: '"MLCStart"' End: '"MLCEnd"' Nest: "MLCNest "MLCListCount: "MLCListCount)
-      do j = 1 to MLCListCount
-         MLCEntry = GetAVar(listindexbase || i'.List.'j)
-         call jbsdprintf("array", "   Comment  "rightstr(j, 2, '0')':' MLCEntry)
-      enddo
-   enddo
-
-defc t6
-   position = arg(1)
-   parse value position with tline tcol
-   getfileid fid
-   comment = locateMLC('E', tline, tcol)
-   parse value comment with sl .
-   if sl = 0 then
-      sayerror tline","tcol" is NOT in a comment."
-   else
-      sayerror tline","tcol "is in comment: "comment
+; ---------------------------------------------------------------------------
+;  next_nonblank_noncomment_nonliteral: repositions the cursor as the name
+;     of the routine describes.
+; ---------------------------------------------------------------------------
+defproc next_nonblank_noncomment_nonliteral(mode)
+   direction = arg(2)
+   if direction = '' or not wordpos(direction, '+F -R') then
+      direction = '+F'
    endif
+   getsearch savesearch
+   setsearch 'xcom l /[^ \t]+/x'direction    -- find the next non-blank
+   loop
+      repeatfind
+      if not rc then
+         comment_rc = inside_comment2(mode, comment_data)
+         --call dprintf("passist", "next pos: ".line",".col "Char: '"substr(textline(.line), .col, 1)'"' "comment_rc: "comment_rc)
+         if not comment_rc then
+            return (substr(textline(.line), .col, 1))
+         elseif comment_rc = 1 then
+            if direction = '+F' then
+               endline
+            else
+               .col  = word(comment_data, 1)
+            endif
+         else
+            parse value comment_data with MLCStartLine MLCStartCol . MLCEndLine MLCEndCol MLCEndLen
+            --call dprintf("passist", "next comment data: "MLCEndLine MLCEndCol MLCEndLen)
+            if direction = '+F' then
+               .line = MLCEndLine
+               .col  = MLCEndCol + MLCEndLen - 1
+            else
+               .line = MLCStartLine
+               .col  = MLCStartCol
+            endif
+         endif
+      else
+         return ''
+      /*          */endif
+   endloop
+   setsearch savesearch
+   return
+; ---------------------------------------------------------------------------
+;  fortran_extract_text: In FORTRAN the text of interest to passist is
+;     located only in columns 6-72.  (An exception is when FORTRAN90-style
+;     SLC's are supported.) This routine extracts and returns the text of
+;     interest to the passist routine.
+; ---------------------------------------------------------------------------
+defproc fortran_extract_text(linenum)
+   text = substr(textline(linenum), 7, 66)     -- columns 7 -72
+compile if USE_FORTRAN90_SLC = 1
+   if pos("!", text) then
+      call psave_pos(savepos3)
+      .line = linenum
+      .col  = 7
+      setsearch 'xcom l /!/xe+F'
+      fortran90_rc = passist_search('FORTRAN', '!', 'e', 0, 1, -1)
+      if not rc then
+         if .line = linenum and .col > 6 then
+            if .col = 7 then
+               text = ''
+            else
+               text = substr(linenum, 7, .col - 6)
+            endif
+         endif
+      endif
+      call prestore_pos(savepos3)
+   endif
+compile endif
+   return text
+
+; ---------------------------------------------------------------------------
+;  fortran_remove_spaces: In FORTRAN spaces which are not located within a
+;     literal are irrelevant. This routine removes these insignificant spaces,
+;     if any.
+; ---------------------------------------------------------------------------
+defproc fortran_remove_spaces(text)
+   if pos(' ', text) then
+      getfileid fid
+      'e .temp_fortran'
+      insertline text
+      .col = 1
+      loop
+         p = pos(' ', textline(1), .col)
+         if p then
+            .col = p
+            if not inside_literal2('FORTRAN') then
+               'DeleteChar'
+            endif
+         else
+            leave
+         endif
+      endloop
+      getline text
+      .modify = 0
+      'quit'
+      activatefile fid
+   endif
+   return text
 
 
-def a_backslash
-   'nextbookmark P'
-def a_slash
-   'nextbookmark'
+; ---------------------------------------------------------------------------
+;  Test routines not needed for normal operation of passist()
+; ---------------------------------------------------------------------------
 
-defc t1
+compile if NEPMD_DEBUG
+;  t1: test if the cursor is in a single-line comment
+defc t1                          -- test code
    sayerror "1line result: "inside_oneline_comment(textline(.line), NepmdGetMode())
+compile endif
 
+compile if NEPMD_DEBUG
+;  t2: test to see if cursor in in a comment, a literal or neither
 defc t2
-   if inside_comment() then
+   mode = NepmdGetMode()
+   if inside_comment(mode) then
       sayerror "Comment"
-   elseif inside_literal2() then
+   elseif inside_literal2(mode) then
       sayerror "Literal"
    else
       sayerror "Neither"
    endif
+compile endif
 
-
-defc t4
-   -- Andreas just try CTRL+]/CTRL+8 below to see the problem I mentioned in my email
+compile if NEPMD_DEBUG
+defc t4  -- unfinished, proof-of-concept code to read MED syntax/highlight file
    'e d:\utils\editors\medo126e\med.syn'
    .line = 1
    parse arg ext
@@ -1742,114 +2055,62 @@ defc t4
       endif
    endif
    'quit'
-
-defc macgrep
-   rootdir = NepmdScanEnv('NEPMD_ROOTDIR')
-   filemask = rootdir || '\netlabs\macros\*.e' rootdir || '\myepm\macros\*.e'
-   'grep -EinH ' arg(1) filemask
-
-compile if 0
-;
-; Notes on mixed MLC and SLC in E code
-;
-   /*  test              */
---  /*        OK
--- */         OK
-;     /*      OK, alone, together and in either order
-;     */
-/*  --  */    OK
--- /*      */ OK
-/*            NOT OK
---  *^/
-*/
-
-/*            NOT OK
-;    *^/
-*/
-
-/*            NOT OK, nested comments require matching /* */, THIS /* is unmatched  */
---    /^*
-*/
---  Even though in compile if, the incomplete nest above comments out the compile endif
-
-               -- handle /*   <cursor>    /*   */               */???
-               /*           test
-               -- handle      <cursor>    /*   */
-                  ??? */
-
-         compile if 0
-                  if/* test */c <> 'zxc' then
-                     sayerror "ytrdy"
-                  endif
-                  /*
-
-         */ compixle /* test */ ixf 0
-            test = b123
-            compixle /* test2 */ exndif;
-            compixle     ixf 0
-            test = b123
-            compilxe            endxif
-
-         compile else
-            dummyloop = 2
-         compile endif
 compile endif
 
+compile if NEPMD_DEBUG
+;  t5: test buildMLC code
+defc t5
+   't8 array'
+   mode = 'E'
+   MLCCount = buildMLCArray(mode)
+   getfileid fid
+   listindexbase = 'assist.'fid'.'
+   modeindexbase = 'assist.mode.'mode'.'
+   call dprintf("array", "Dump MLC array.  Count = "MLCCount)
+   do i = 1 to MLCCount
+      MLCStart = GetAVar(modeindexbase || i'.MLCStart')
+      MLCEnd = GetAVar(modeindexbase || i'.MLCEnd' )
+      MLCNest = GetAVar(modeindexbase || i'.MLCNest')
+      MLCListCount = GetAVar(listindexbase || i'.List.0')
+      call dprintf("array", "MLC #"i": Start: '"MLCStart"' End: '"MLCEnd"' Nest: "MLCNest "MLCListCount: "MLCListCount)
+      do j = 1 to MLCListCount
+         MLCEntry = GetAVar(listindexbase || i'.List.'j)
+         call dprintf("array", "   Comment  "rightstr(j, 2, '0')':' MLCEntry)
+      enddo
+   enddo
+compile endif
 
-defproc next_nonblank_noncomment_nonliteral()
-   direction = arg(1)
-   if direction = '' or not wordpos(direction, '+F -R') then
-      direction = '+F'
+;  t6: test locateMLC code
+defc t6
+compile if NEPMD_DEBUG
+   position = arg(1)
+   parse value position with tline tcol
+   getfileid fid
+   comment = locateMLC('E', tline, tcol)
+   parse value comment with sl .
+   if sl = 0 then
+      sayerror tline","tcol" is NOT in a comment."
+   else
+      sayerror tline","tcol "is in comment: "comment
    endif
-   getsearch savesearch
-   setsearch 'xcom l /[^ \t]+/x'direction    -- find the next non-blank
-   loop
-      repeatfind
-      if not rc then
-         comment_rc = inside_comment2(comment_data)
-         --call jbsdprintf("passist", "next pos: ".line",".col "Char: '"substr(textline(.line), .col, 1)'"' "comment_rc: "comment_rc)
-         if not comment_rc then
-            return (substr(textline(.line), .col, 1))
-         elseif comment_rc = 1 then
-            if direction = '+F' then
-               endline
-            else
-               .col  = word(comment_data, 1)
-            endif
-         else
-            parse value comment_data with MLCStartLine MLCStartCol . MLCEndLine MLCEndCol MLCEndLen
-            --call jbsdprintf("passist", "next comment data: "MLCEndLine MLCEndCol MLCEndLen)
-            if direction = '+F' then
-               .line = MLCEndLine
-               .col  = MLCEndCol + MLCEndLen - 1
-            else
-               .line = MLCStartLine
-               .col  = MLCStartCol
-            endif
-         endif
-      else
-         return ''
-      /*          */endif
-   endloop
+compile endif
 
+compile if NEPMD_DEBUG
+; t7: test next_nonblank_noncomment_nonliteral
 defc t7
    dir = arg(1)
    if dir = '' then
       dir = '+F'
    endif
-   sayerror "next... returned: '"next_nonblank_noncomment_nonliteral(dir)"'"
+   sayerror "next... returned: '"next_nonblank_noncomment_nonliteral(CurMode, dir)"'"
+compile endif
 
-defc t9
-   't8 lit2'
-   curline  = .line
-   curcol  = .col
-   line = textline( .line )
-   retval = 0
-   parse value GetLitChars(mode) with StartLitChars EndLitChars EscapeChars
-   call jbsdprintf("lit2", "GetLitchars return: "StartLitChars EndLitChars EscapeChars)
-   if StartLitChars then
-      endpos = 0
-         startpos = verify(line, StartLitChars, 'M', endpos + 1)
-         call jbsdprintf("lit2", "startpos: "startpos)
-   endif
+; ---------------------------------------------------------------------------
+;  t8: Dynamically set the array variable 'debuglist' which is used by
+;  the dprintf proc.
+; ---------------------------------------------------------------------------
+compile if NEPMD_DEBUG
+defc t8
+   SetAVar( 'debuglist', arg(1))
+compile endif
 
