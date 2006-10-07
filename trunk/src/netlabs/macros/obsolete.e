@@ -1,8 +1,28 @@
+/****************************** Module Header *******************************
+*
+* Module Name: obsolete.e
+*
+* Copyright (c) Netlabs EPM Distribution Project 2004
+*
+* $Id: obsolete.e,v 1.2 2006-10-07 19:59:14 aschn Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
 
 ; Obsolete consts, that were deleted from NEPMD files. They are redefined
 ; here for compatibility: That saves a user from editing his E source, if
 ; he still uses them in his own code or in an additional package.
-; Additionally, it's a good place to lookup for all consts, that can be
+; Additionally, it's a good place to lookup for all consts that can be
 ; removed, if he wants that.
 
 const
