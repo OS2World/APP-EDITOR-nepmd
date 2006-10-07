@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stylebut.e,v 1.3 2002-08-21 11:54:18 aschn Exp $
+* $Id: stylebut.e,v 1.4 2006-10-07 18:16:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -92,11 +92,13 @@ defc apply_style
             inidata = leftstr(inidata, lastpos(\0, inidata))
          endif
          inidata = \1 || translate(strip(inidata, 'T'), \1, \0)  -- Change nulls to ASCII 1's for listbox delimiter.
-         parse value listbox(STYLEBUT__MSG,
-                             inidata,
-                             '/'APPLY__MSG'/'Cancel__MSG,1,5,min(count(\1, inidata)-1,12),0,
-                             gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(0) ||
-                             STYLEBUT_PROMPT__MSG) with button 2 stylename \0
+         parse value listbox( STYLEBUT__MSG,
+                              inidata,
+                              '/'APPLY__MSG'/'Cancel__MSG,
+                              0, 0,  -- 1, 5,
+                              min( count( \1, inidata) - 1, 12), 0,
+                              gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(0) ||
+                              STYLEBUT_PROMPT__MSG) with button 2 stylename \0
          if button <> \1 then
             return
          endif

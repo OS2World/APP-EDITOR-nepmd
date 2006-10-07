@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.39 2006-10-05 18:00:17 aschn Exp $
+* $Id: mode.e,v 1.40 2006-10-07 18:16:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -291,8 +291,8 @@ defproc SelectMode()
    select = listbox( Title,
                      ModeList,
                      '/~Set/~Reset/Cancel',          -- buttons
-                     5, 5,                           -- Top, Left,
-                     min( words(ModeList), 12), 25,  -- Height, Width
+                     0, 0,  --5, 5,                  -- top, left,
+                     min( words(ModeList), 12), 25,  -- height, width
                      gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(0) ||
                      Text\0 )
    refresh

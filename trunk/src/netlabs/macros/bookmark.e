@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: bookmark.e,v 1.9 2006-03-29 23:53:59 aschn Exp $
+* $Id: bookmark.e,v 1.10 2006-10-07 18:16:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -87,23 +87,27 @@ defc bm, setmark
       return
    endif
    parse arg markname perm line col .
-   if not line then line=.line; endif
-   if not col then col=.col; endif
+   if not line then line = .line; endif
+   if not col then col = .col; endif
    if not markname then  -- Following uses a new dialog, so no NLS xlation
-      parse value entrybox(SETMARK__MSG,'/'Set__MSG'/'Setp__MSG'/'Cancel__MSG'/'Help__MSG'/',\0,'',200,
-             atoi(1) || atoi(6020) || gethwndc(APP_HANDLE) ||
-             SETMARK_PROMPT__MSG) with button 2 markname \0
-      if button=\0 | button=\3 then return; endif  -- Esc or Cancel
-      perm = asc(button)+2  --> temp is 3; perm is 4
+      parse value entrybox( SETMARK__MSG,
+                            '/'Set__MSG'/'Setp__MSG'/'Cancel__MSG'/'Help__MSG'/',
+                            \0,
+                            '',
+                            200,
+                            atoi(1) || atoi(6020) || gethwndc(APP_HANDLE) ||
+                            SETMARK_PROMPT__MSG) with button 2 markname \0
+      if button = \0 | button = \3 then return; endif  -- Esc or Cancel
+      perm = asc(button) + 2  --> temp is 3; perm is 4
       if not markname then
          sayerror NOTHING_ENTERED__MSG
          return
       endif
    endif
 compile if NO_DUPLICATE_BOOKMARKS
-   rc = get_array_value(EPM_utility_array_ID, 'bmn.'markname, bmindex)  -- Find that bookmark name
+   rc = get_array_value( EPM_utility_array_ID, 'bmn.'markname, bmindex)  -- Find that bookmark name
    parse value bmindex with bmindex fid .
-   if not (rc | fid='') then  -- FID='' means previously deleted.
+   if not (rc | fid = '') then  -- FID='' means previously deleted.
       empty = ''
       getfileid startid
       display -2
@@ -112,11 +116,11 @@ compile if NO_DUPLICATE_BOOKMARKS
       if rc then
          do_array 2, EPM_utility_array_ID, 'bmi.'bmindex, empty  -- Delete the name
       else
-         line=0; col=1; offst=0
+         line = 0; col = 1; offst = 0
          do forever
             class = BOOKMARK_CLASS
             attribute_action 1, class, offst, col, line -- 1=FIND NEXT ATTR
-            if class=0 then leave; endif
+            if class = 0 then leave; endif
             query_attribute class, val, IsPush, offst, col, line
             if val=bmindex then  -- Found!
                leave
@@ -135,9 +139,9 @@ compile endif -- NO_DUPLICATE_BOOKMARKS
    do_array 2, EPM_utility_array_ID, 'bmi.0', bmcount          -- Store back the new number
    do_array 2, EPM_utility_array_ID, 'bmi.'bmcount, markname -- Store the new name at this index position
    oldmod = .modify
-   if not isnum(perm) then perm=3; endif
+   if not isnum(perm) then perm = 3; endif
    insert_attribute BOOKMARK_CLASS, bmcount, perm, 0, col, line
-   if perm=4 then
+   if perm = 4 then
       call attribute_on(8)  -- "Save attributes" flag
    else
       .modify = oldmod
@@ -151,12 +155,12 @@ defc compiler_error
    universal EPM_utility_array_ID
    universal defaultmenu, activemenu
    parse arg markname perm line col .
-   if not line then line=.line; endif
+   if not line then line = .line; endif
    'bm' markname perm line col
    color = COMPILER_ERROR_COLOR
    oldmod = .modify
    getfileid fid
-   Insert_Attribute_Pair(COLOR_CLASS, color, line, line, 1, length(textline(line)), fid)
+   Insert_Attribute_Pair( COLOR_CLASS, color, line, line, 1, length( textline( line)), fid)
    .modify = oldmod
    call attribute_on(1)  -- Colors flag
    if perm=16 then
@@ -172,7 +176,7 @@ defc compiler_error
              buildmenuitem defaultmenu, 16, 1606, CLEAR_ERRORS_MENU__MSG, 'compiler_clear'CLEAR_ERRORS_MENUP__MSG,     1, 0
              buildmenuitem defaultmenu, 16, 1607, END_DDE_SESSION_MENU__MSG, 'end_dde'END_DDE_SESSION_MENUP__MSG,     1, 0
              buildmenuitem defaultmenu, 16, 1608, REMOVE_COMPILER_MENU__MSG, 'compiler_dropmenu'REMOVE_COMPILER_MENUP__MSG,     1, 0
-         call add_help_menu(defaultmenu, 1)
+         call add_help_menu( defaultmenu, 1)
          call maybe_show_menu()
       endif  -- "Added Compiler" flag
    endif
@@ -183,62 +187,67 @@ defc compiler_help
    do forever
       class = BOOKMARK_CLASS
       attribute_action 1, class, offst, col, line  -- 1=FIND NEXT ATTR
-      if class=0 | line<>.line then
+      if class = 0 | line <> .line then
          sayerror NO_COMPILER_ERROR__MSG
          return
       endif
       query_attribute class, val, IsPush, offst, col, line
-      if IsPush<>16 then iterate; endif  -- If not a compiler error class, skip
-      call get_array_value(EPM_utility_array_ID, 'bmi.'val, markname)  -- Get name for mark
-      if leftstr(markname,9)<>'WB_ERROR_' then iterate; endif  -- ?  Curious...
+      if IsPush <> 16 then iterate; endif  -- If not a compiler error class, skip
+      call get_array_value( EPM_utility_array_ID, 'bmi.'val, markname)  -- Get name for mark
+      if leftstr( markname, 9) <> 'WB_ERROR_' then iterate; endif  -- ?  Curious...
       leave
    enddo
-   parse value substr(markname,10) with linenum '_' errornum
-   bufhndl = buffer(CREATEBUF, 'COMPILER', MAXBUFSIZE, 1 )  -- create a private buffer
-   if not bufhndl then sayerror 'CREATEBUF' ERROR_NUMBER__MSG RC; return; endif
-   call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),   -- Post message to edit client
-                      5444,               -- get compiler error messages for this line
-                      linenum,
-                      mpfrom2short(bufhndl,0) )
+   parse value substr( markname, 10) with linenum '_' errornum
+   bufhndl = buffer( CREATEBUF, 'COMPILER', MAXBUFSIZE, 1)  -- create a private buffer
+   if not bufhndl then
+      sayerror 'CREATEBUF' ERROR_NUMBER__MSG RC
+      return
+   endif
+   call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),   -- Post message to edit client
+                       5444,               -- get compiler error messages for this line
+                       linenum,
+                       mpfrom2short( bufhndl, 0))
 
 defc compiler_message
    parse arg numlines bufsize emsgbuffer .
-   emsgbufptr = atol(emsgbuffer)
-   emsgbufseg = itoa(substr(emsgbufptr,3),10)
-   call listbox(DESCRIBE_ERROR__MSG,
-                \0 || atol(bufsize) || emsgbufptr || 7,
-                '/'DETAILS__MSG'/'Cancel__MSG'/'Help__MSG,0,1,min(numlines,12),0,
-                gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6090) ||
-                SELECT_ERROR__MSG)
-   call buffer(FREEBUF, emsgbufseg)
+   emsgbufptr = atol( emsgbuffer)
+   emsgbufseg = itoa( substr( emsgbufptr, 3), 10)
+   call listbox( DESCRIBE_ERROR__MSG,
+                 \0 || atol(bufsize) || emsgbufptr || 7,
+                 '/'DETAILS__MSG'/'Cancel__MSG'/'Help__MSG,
+                 0, 0,  -- 0, 1,
+                 min( numlines, 12), 0,
+                 gethwndc( APP_HANDLE) || atoi(1) || atoi(1) || atoi(6090) ||
+                 SELECT_ERROR__MSG)
+   call buffer( FREEBUF, emsgbufseg)
 
 defc compiler_help_add
    universal CurrentHLPFiles
-   hlpfile = upcase(word(arg(1),1))
-   if not wordpos(hlpfile, upcase(CurrentHLPFiles)) then
-      hwndHelpInst = windowmessage(1,  getpminfo(APP_HANDLE),
-                         5429,      -- EPM_Edit_Query_Help_Instance
-                         0,
-                         0)
-      if hwndHelpInst==0 then
+   hlpfile = upcase( word( arg(1), 1))
+   if not wordpos( hlpfile, upcase( CurrentHLPFiles)) then
+      hwndHelpInst = windowmessage( 1, getpminfo(APP_HANDLE),
+                                    5429,  -- EPM_Edit_Query_Help_Instance
+                                    0,
+                                    0)
+      if hwndHelpInst == 0 then
          -- there isn't a help instance deal with.
-         Sayerror NO_HELP_INSTANCE__MSG
+         sayerror NO_HELP_INSTANCE__MSG
          return
       endif
 
       newlist2 = CurrentHLPFiles hlpfile \0
-      retval = windowmessage(1,  hwndHelpInst,
-                          557,    -- HM_SET_HELP_LIBRARY_NAME
-                          ltoa(offset(newlist2) || selector(newlist2), 10),
-                          0)
+      retval = windowmessage( 1, hwndHelpInst,
+                              557,  -- HM_SET_HELP_LIBRARY_NAME
+                              ltoa( offset( newlist2) || selector( newlist2), 10),
+                              0)
       if retval then
          sayerror ERROR__MSG retval ERROR_ADDING_HELP__MSG hlpfile
             -- revert to the previous version of the HLP list.
          newlist2 = CurrentHLPFiles\0
-         retval2 = windowmessage(1,  hwndHelpInst,
-                             557,    -- HM_SET_HELP_LIBRARY_NAME
-                             ltoa(offset(newlist2) || selector(newlist2), 10),
-                             0)
+         retval2 = windowmessage( 1, hwndHelpInst,
+                                  557,  -- HM_SET_HELP_LIBRARY_NAME
+                                  ltoa( offset( newlist2) || selector( newlist2), 10),
+                                  0)
          if retval2 then
             sayerror ERROR__MSG retval ERROR_REVERTING__MSG CurrentHLPFiles
          endif
@@ -250,29 +259,29 @@ defc compiler_help_add
 
 defc compiler_clear
    universal EPM_utility_array_ID
-   line=0; col=1; offst=0; empty = ''
+   line = 0; col = 1; offst = 0; empty = ''
    oldmod = .modify
    do forever
       class = BOOKMARK_CLASS
       attribute_action 1, class, offst, col, line -- 1=FIND NEXT ATTR
-      if class=0 then leave; endif  -- No more of that class
+      if class = 0 then leave; endif  -- No more of that class
       query_attribute class, val, IsPush, offst, col, line
-      if IsPush=16 then
+      if IsPush = 16 then
          attribute_action 16, class, offst, col, line -- 16=Delete attribute
-         if not get_array_value(EPM_utility_array_ID, 'bmi.'val, markname) then  -- Found that bookmark's name
+         if not get_array_value( EPM_utility_array_ID, 'bmi.'val, markname) then  -- Found that bookmark's name
             display -2
             do_array 2, EPM_utility_array_ID, 'bmi.'val, empty  -- Delete the name
             do_array 2, EPM_utility_array_ID, 'bmn.'markname, empty -- Delete the index
             display 2
          endif
          class = COLOR_CLASS
-         offst=-300
+         offst = -300
          col = 1
          line2 = line
          attribute_action 1, class, offst, col, line2 -- 1=FIND NEXT ATTR
          if class=0 | line2<>line then iterate; endif  -- No color class
          query_attribute class, val, IsPush, offst, col, line
-         if val<>COMPILER_ERROR_COLOR then iterate; endif  -- Not the right color
+         if val <> COMPILER_ERROR_COLOR then iterate; endif  -- Not the right color
          offst2 = offst; col2 = col
          attribute_action 3, class, offst2, col2, line2 -- 3=FIND MATCH ATTR
          if class then
@@ -290,14 +299,18 @@ defc compiler_dropmenu
    call maybe_show_menu()
 
 defc end_dde =
-   call windowmessage(0,  getpminfo(EPMINFO_EDITCLIENT),   -- Post message to edit client
-                      5501,                                -- EPM_EDIT_ENDWFDDE
-                      0,
-                      0)
+   call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),   -- Post message to edit client
+                       5501,  -- EPM_EDIT_ENDWFDDE
+                       0,
+                       0)
 compile endif  -- INCLUDE_WORKFRAME_SUPPORT
 
 defc setmarkp  -- Following uses a new dialog, so no NLS xlation
-   markname = entrybox(SETMARK_PROMPT__MSG, '/'Setp__MSG'/'Cancel__MSG,\0,'',200)
+   markname = entrybox( SETMARK_PROMPT__MSG,
+                        '/'Setp__MSG'/'Cancel__MSG,
+                        \0,
+                        '',
+                        200)
    if markname then
       'setmark' markname 4
    endif
@@ -308,9 +321,9 @@ defc go, gomark
    if not markname then
       sayerror NEED_BM_NAME__MSG; return
    endif
-   rc = get_array_value(EPM_utility_array_ID, 'bmn.'markname, bmindex)  -- Find that bookmark name
+   rc = get_array_value( EPM_utility_array_ID, 'bmn.'markname, bmindex)  -- Find that bookmark name
    parse value bmindex with bmindex fid .
-   if rc | fid='' then  -- FID='' means previously deleted.
+   if rc | fid='' then  -- FID = '' means previously deleted.
       sayerror UNKNOWN_BOOKMARK__MSG
       return
    endif
@@ -325,15 +338,16 @@ defc go, gomark
       return
    endif
 ;  call psave_pos(savepos)
-   line=0; col=1; offst=0
+   line = 0; col = 1; offst = 0
    do forever
       class = BOOKMARK_CLASS
-      attribute_action 1, class, offst, col, line -- 1=FIND NEXT ATTR
-      if class=0 then leave; endif
+      attribute_action 1, class, offst, col, line -- 1 = FIND NEXT ATTR
+      if class = 0 then leave; endif
       query_attribute class, val, IsPush, offst, col, line
-      if val=bmindex then
-         .cursory=.windowheight%2
-         line; .col=col
+      if val = bmindex then
+         .cursory = .windowheight % 2
+         line
+         .col = col
          return
       endif
    enddo
@@ -345,10 +359,13 @@ defc go, gomark
 defc listmark
    universal EPM_utility_array_ID
    do_array 3, EPM_utility_array_ID, 'bmi.0', bmcount          -- Index says how many bookmarks there are
-   if bmcount = 0 then sayerror NO_BOOKMARKS__MSG; return; endif
+   if bmcount = 0 then
+      sayerror NO_BOOKMARKS__MSG
+      return
+   endif
    getfileid startfid
    'xcom e /c bookmark'
-   if rc<>-282 then  -- -282 = sayerror("New file")
+   if rc <> -282 then  -- -282 = sayerror("New file")
       sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
       return
    endif
@@ -358,11 +375,11 @@ defc listmark
    getfileid bmfid
    empty = ''
    display -2
-   do i=1 to bmcount
+   do i = 1 to bmcount
       do_array 3, EPM_utility_array_ID, 'bmi.'i, markname   -- Get name number i
       if markname='' then iterate; endif  -- has been deleted
        -- Find that bookmark name
-      if get_array_value(EPM_utility_array_ID, 'bmn.'markname, bmindex) then  -- Unexpected; ignore it & continue
+      if get_array_value( EPM_utility_array_ID, 'bmn.'markname, bmindex) then  -- Unexpected; ignore it & continue
          iterate
       endif
       parse value bmindex with bmindex fid .
@@ -377,8 +394,8 @@ defc listmark
    enddo
    activatefile bmfid
 compile if SORT_BOOKMARKS
-   if .last>2 then
-      call sort(2, .last, 1, 40, bmfid, 'I')
+   if .last > 2 then
+      call sort( 2, .last, 1, 40, bmfid, 'I')
    endif
 compile endif -- SORT_BOOKMARKS
    if browse_mode then call browse(1); endif  -- restore browse state
@@ -388,15 +405,17 @@ compile endif -- SORT_BOOKMARKS
       'xcom quit'
       return
    endif
-   if listbox_buffer_from_file(startfid, bufhndl, noflines, usedsize) then return; endif
-   parse value listbox(LIST_BOOKMARKS__MSG,
-                       \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
-                       '/'GOMARK__MSG'/'DELETEMARK__MSG'/'Cancel__MSG'/'Help__MSG,1,5,min(noflines,12),0,
-                       gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6030)) with button 2 markname \0
-   call buffer(FREEBUF, bufhndl)
-   if button=\1 then  -- Go to
+   if listbox_buffer_from_file( startfid, bufhndl, noflines, usedsize) then return; endif
+   parse value listbox( LIST_BOOKMARKS__MSG,
+                        \0 || atol( usedsize) || atoi( 32) || atoi( bufhndl),
+                        '/'GOMARK__MSG'/'DELETEMARK__MSG'/'Cancel__MSG'/'Help__MSG,
+                        0, 0,  -- 1, 5,
+                        min( noflines, 12), 0,
+                        gethwndc( APP_HANDLE) || atoi(1) || atoi(1) || atoi( 6030)) with button 2 markname \0
+   call buffer( FREEBUF, bufhndl)
+   if button = \1 then  -- Go to
       'gomark' markname
-   elseif button=\2 then
+   elseif button = \2 then
       'deletebm' markname
    endif
 
@@ -423,16 +442,16 @@ defc deletebm
    if rc then  -- File no longer in ring - all done.
       return
    endif
-   line=0; col=1; offst=0
+   line = 0; col = 1; offst = 0
    do forever
       class = BOOKMARK_CLASS
       attribute_action 1, class, offst, col, line -- 1=FIND NEXT ATTR
-      if class=0 then leave; endif
+      if class = 0 then leave; endif
       query_attribute class, val, IsPush, offst, col, line
-      if val=bmindex then
+      if val = bmindex then
          oldmod = .modify
          attribute_action 16, class, offst, col, line -- 16=Delete attribute
-         if perm<>4 then .modify=oldmod; endif
+         if perm <> 4 then .modify = oldmod; endif
          leave
       endif
    enddo
@@ -608,27 +627,27 @@ defc loadattributes
                endif
                bmcount = bmcount + 1
                do_array 2, EPM_utility_array_ID, 'bmi.'bmcount, rest -- Store the name at this index position
-               if IsPush<2 then IsPush=4; endif  -- Update old-style bookmarks
+               if IsPush < 2 then IsPush = 4; endif  -- Update old-style bookmarks
                stuff = bmcount fid IsPush  -- flag as permanent
                do_array 2, EPM_utility_array_ID, 'bmn.'rest, stuff -- Store the index & fileid under this name
                val = bmcount  -- Don't care what the old index was.
             elseif class=COLOR_CLASS then
                need_colors = 1
-            elseif class=FONT_CLASS then
+            elseif class = FONT_CLASS then
                parse value rest with fontname '.' fontsize '.' fontsel
-               if fontsel='' then iterate; endif  -- Bad value; discard it
-               val=registerfont(fontname, fontsize, fontsel)  -- Throw away old value
-               if line=-1 then
+               if fontsel = '' then iterate; endif  -- Bad value; discard it
+               val = registerfont( fontname, fontsize, fontsel)  -- Throw away old value
+               if line = -1 then
                   .font = val
                   iterate
                endif
                need_fonts = 1
-            elseif class=STYLE_CLASS then  -- Set style info
+            elseif class = STYLE_CLASS then  -- Set style info
                parse value rest with stylename .
-               stylestuff = queryprofile(app_hini, 'Style', stylename)
-               if stylestuff='' then iterate; endif  -- Shouldn't happen
+               stylestuff = queryprofile( app_hini, 'Style', stylename)
+               if stylestuff = '' then iterate; endif  -- Shouldn't happen
                parse value stylestuff with fontname '.' fontsize '.' fontsel '.' fg '.' bg
-               if get_array_value(EPM_utility_array_ID, 'sn.'stylename, val) then  -- Don't have it; add:
+               if get_array_value( EPM_utility_array_ID, 'sn.'stylename, val) then  -- Don't have it; add:
                   stylecount = stylecount + 1                                 -- Increment index
                   do_array 2, EPM_utility_array_ID, 'si.'stylecount, stylename  -- Save index.name
                   do_array 2, EPM_utility_array_ID, 'sn.'stylename, stylecount  -- Save name.index
@@ -636,16 +655,16 @@ defc loadattributes
                endif
             endif
             insert_attribute class, val, ispush, 0, col, line
-            if class=STYLE_CLASS then  -- Set style info
-               if fontsel<>'' then
-                  fontid=registerfont(fontname, fontsize, fontsel)
-                  if fontid<>.font then  -- Only insert font change for style if different from base font.
+            if class = STYLE_CLASS then  -- Set style info
+               if fontsel <> '' then
+                  fontid = registerfont( fontname, fontsize, fontsel)
+                  if fontid <> .font then  -- Only insert font change for style if different from base font.
                      insert_attribute FONT_CLASS, fontid, ispush, 0, col, line
                      need_fonts = 1
                   endif
                endif
-               if bg<>'' then
-                  insert_attribute COLOR_CLASS, bg*16 + fg, ispush, 0, col, line
+               if bg <> '' then
+                  insert_attribute COLOR_CLASS, bg * 16 + fg, ispush, 0, col, line
                   need_colors = 1
                endif
             endif  -- class=STYLE_CLASS
@@ -670,18 +689,18 @@ defc loadattributes
 defc nextbookmark
    parse arg next bmclass .
    class = BOOKMARK_CLASS
-   col = .col; line=.line; offst=0
-   if next='P' then col=col-1; endif
+   col = .col; line = .line; offst = 0
+   if next = 'P' then col = col - 1; endif
    do forever
-      attribute_action 1+(next='P'), class, offst, col, line -- 1=FIND NEXT ATTR; 2=FIND PREV ATTR
-      if class=0 then
+      attribute_action 1 + (next = 'P'), class, offst, col, line -- 1 = FIND NEXT ATTR; 2 = FIND PREV ATTR
+      if class = 0 then
          sayerror BM_NOT_FOUND__MSG
          return
       endif
       query_attribute class, val, IsPush, offst, col, line
-      if IsPush=bmclass | bmclass='' then
-         .cursory=.windowheight%2
-         line; .col=col
+      if IsPush = bmclass | bmclass = '' then
+         .cursory = .windowheight % 2
+         line; .col = col
          return
       endif
    enddo

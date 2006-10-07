@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: dict.e,v 1.4 2005-09-12 14:22:01 aschn Exp $
+* $Id: dict.e,v 1.5 2006-10-07 18:16:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -147,9 +147,9 @@ defc SelectDictLang
    refresh
    ret = listbox( Title,
                   LangList,
-                  '/~Set/~New/C~onfigure/~Delete/~Cancel',   -- Buttons
-                  '5', '5',  -- Top, Left,
-                  4, 50,     -- Height, Width
+                  '/~Set/~New/C~onfigure/~Delete/~Cancel',    -- buttons
+                  0, 0,                                       -- top, left,
+                  min( count( Delim, LangList) - 1, 12), 50,  -- height, width
                   gethwnd(APP_HANDLE) || atoi(Selection) || atoi(DefButton) || atoi(HelpId) ||
                   Text\0)
    refresh

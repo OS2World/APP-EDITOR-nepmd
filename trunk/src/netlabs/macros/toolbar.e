@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.16 2006-03-29 22:30:44 aschn Exp $
+* $Id: toolbar.e,v 1.17 2006-10-07 18:16:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -534,9 +534,8 @@ defc load_toolbar, LoadToolbar
       parse value listbox( Title,
                            \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                            '/'OK__MSG'/~Delete/'CANCEL__MSG,  --'/'OK__MSG'/'CANCEL__MSG'/'HELP__MSG,
-                           1, 5,
-                           min( noflines, 12),
-                           0,
+                           0, 0,
+                           min( noflines, 12), 0,
                            gethwndc(APP_HANDLE) || atoi(Selected) || atoi(1) || atoi(HelpPanel) ||
                            Text) with button 2 BarName \0
       call buffer( FREEBUF, bufhndl)
@@ -780,10 +779,8 @@ defc ImportToolbarSelect
    parse value listbox( Title''copies( ' ', 20),
                         \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                         '/~Import/~File dialog.../'Cancel__MSG,
-                        1,
-                        5,
-                        min( noflines, 12),
-                        0,
+                        0, 0,
+                        min( noflines, 12), 0,
                         gethwndc(APP_HANDLE) || atoi(1) || atoi(1) ||
                         atoi(HelpPanel)) with Button 2 BarFile \0
    call buffer( FREEBUF, bufhndl)
@@ -1036,9 +1033,8 @@ defproc list_toolbars( list_title, list_prompt, help_panel, msgid)
    parse value listbox( list_title,
                         \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                         '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
-                        1, 5,
-                        min(noflines,12),
-                        0,
+                        0, 0,
+                        min( noflines,12), 0,
                         gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(help_panel) ||
                         list_prompt) with button 2 BarName \0
    call buffer( FREEBUF, bufhndl)
@@ -1115,10 +1111,8 @@ defc SelectToolbar
    parse value listbox( Title''copies( ' ', 20),
                         \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                         '/'OK__MSG'/'Cancel__MSG,
-                        1,
-                        5,
-                        min( noflines, 12),
-                        0,
+                        0, 0,
+                        min( noflines, 12), 0,
                         gethwndc(APP_HANDLE) || atoi(1) || atoi(1) ||
                         atoi(HelpPanel) || Text) with Button 2 BarName \0
    call buffer( FREEBUF, bufhndl)
