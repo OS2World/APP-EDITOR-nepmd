@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.30 2006-07-09 10:03:24 aschn Exp $
+* $Id: epmshell.e,v 1.31 2006-10-07 18:16:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -325,8 +325,8 @@ compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt
                parse value listbox( shell_title,
                                     \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                                     '/'OK__MSG'/'EDIT__MSG'/'Cancel__MSG,
-                                    1, 35,
-                                    min(noflines,12), 0,
+                                    0, 0,  -- 1, 35,
+                                    min( noflines, 12), 0,
                                     gethwndc(APP_HANDLE) || atoi(1) || atoi(1) ||
                                     atoi(0000)) with button 2 Text \0
                call buffer( FREEBUF, bufhndl)
@@ -1271,8 +1271,8 @@ defc Shell_History
          parse value listbox( shell_title,
                               \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                               '/'OK__MSG'/'EDIT__MSG'/'Cancel__MSG,
-                              1, 35,
-                              min(12,18), 0,
+                              0, 0,  -- 1, 35,
+                              min( 12, 18), 0,
                               gethwndc(APP_HANDLE) ||
                               atoi(1) || atoi(1) || atoi(0000)) with Button 2 Text \0
          call buffer( FREEBUF, bufhndl)

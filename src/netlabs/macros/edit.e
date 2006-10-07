@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.40 2006-06-18 20:46:08 aschn Exp $
+* $Id: edit.e,v 1.41 2006-10-07 18:16:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -903,8 +903,8 @@ defc EditMacroFile
       select = listbox( Title,
                         ItemList,
                         ButtonList,        -- buttons
-                        5, 5,              -- Top, Left,
-                        Height, Width,     -- Height, Width,
+                        0, 0,              -- top, left,
+                        Height, Width,     -- height, width,
                         gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(0) ||
                         TextZ )
       parse value select with button 2 select \0  -- get button and (select = selected item)

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.10 2006-04-25 19:46:10 aschn Exp $
+* $Id: tags.e,v 1.11 2006-10-07 18:16:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -332,10 +332,8 @@ compile endif
       parse value listbox( LIST_TAGS__MSG,
                            \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                            '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
-                           1,
-                           5,
-                           min(noflines,12),
-                           0,
+                           0, 0,  --1, 5,
+                           min( noflines, 12), 0,
                            gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6012)) with button 2 proc_name \0
       call buffer(FREEBUF, bufhndl)
       if button<>\1 then
@@ -428,10 +426,8 @@ compile endif
             parse value listbox( 'Select a file',
                                  \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                                  '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
-                                 0,
-                                 0,
-                                 min(noflines,12),
-                                 60,
+                                 0, 0,
+                                 min( noflines, 12), 60,
                                  gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6015) ||
 ;;                               "'"name"' appears in multiple files.") with button 2 filename \0
                                  "'"name"' appears in multiple files.") with button 2 i '.' \0
@@ -1161,24 +1157,24 @@ defc tagscan
    endif
    sayerror 0
    if listbox_buffer_from_file(sourcefid, bufhndl, noflines, usedsize) then return; endif
-   parse value listbox( LIST_TAGS__MSG,      -- title
+   parse value listbox( LIST_TAGS__MSG,        -- title
                         \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),  -- buffer
                         '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,               -- buttons
-                        25,                  -- top, 0 = at cursor
-                        15,                  -- left, 0 = at cursor
-                        min( noflines, 20),  -- height
-                        0,                   -- width, 0 = auto
+                        0, 0,  -- 25, 15       -- top (0 = at cursor), left (0 = at cursor)
+                        min( noflines, 20), 0  -- height, width (0 = auto)
                         gethwndc(APP_HANDLE) ||
-                        atoi(1) ||           -- default item
-                        atoi(1) ||           -- default button
+                        atoi(1) ||             -- default item
+                        atoi(1) ||             -- default button
                         atoi(6012)) with button 2 proc_name \0  -- help panel id
    call buffer(FREEBUF, bufhndl)
    if button<>\1 then
       return
    endif
-   parse value proc_name with procname ' (' linenum ')'
+   -- Determine procname from list item, strip indent and linenum
+   parse value strip( proc_name) with procname ' (' linenum ')'
    linenum; .col = 1
-   --'/'procname
-   -- don't use the user's search options
+   -- Locate procname in line, don't use the user's search options and suppress msgs
+   display -2
    'xcom l '\1''procname
+   display 2
 

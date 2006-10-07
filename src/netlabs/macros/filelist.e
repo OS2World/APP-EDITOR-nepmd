@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.16 2006-06-03 20:50:47 aschn Exp $
+* $Id: filelist.e,v 1.17 2006-10-07 18:16:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -535,7 +535,7 @@ defc History
    Selection = 1
    -- Window coordinates in lines and columns (0 or '' are default values)
    top_lines    = 0 --5
-                  -- doc says: default is under cursor, but that is wrong
+                  -- default is below or above cursor
    left_cols    = 0 --5
                   -- default is at cursor
    -- top_lines = 0 and left_cols = 0 defaults to:

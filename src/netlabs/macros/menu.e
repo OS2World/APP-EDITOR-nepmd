@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: menu.e,v 1.5 2006-03-29 23:54:07 aschn Exp $
+* $Id: menu.e,v 1.6 2006-10-07 18:16:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -142,8 +142,8 @@ defc ChangeMenu
       select = listbox( Title,
                         MenuList,
                         '/~Set/~Cancel',                -- buttons
-                        5, 5,                           -- Top, Left,
-                        min( words(MenuList), 12), 25,  -- Height, Width
+                        0, 0,  --5, 5,                  -- top, left,
+                        min( words(MenuList), 12), 25,  -- height, width
                         gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(0) ||
                         Text\0 )
       refresh
