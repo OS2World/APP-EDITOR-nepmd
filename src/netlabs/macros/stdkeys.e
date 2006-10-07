@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.31 2006-06-03 20:53:46 aschn Exp $
+* $Id: stdkeys.e,v 1.32 2006-10-07 19:16:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -132,6 +132,7 @@ def c_c           'Change'              -- Change next
 def c_v           'GlobalFind'          -- Find next in all files of the ring
 def c_minus       'ToggleSearchDirection'  -- Toggle search direction
 def c_w           'FindWord'            -- Find current word, separators according to C syntax
+defc Key_c_s_d    'FindDef'             -- Find definition for current word
 
 ; ---- Clipboard ----
 def s_del         'Cut'                 -- Copy mark to clipboard and delete
