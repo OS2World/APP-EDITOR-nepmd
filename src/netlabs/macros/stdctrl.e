@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.41 2006-06-18 20:03:29 aschn Exp $
+* $Id: stdctrl.e,v 1.42 2006-10-07 17:48:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1057,10 +1057,13 @@ defproc get_array_value( array_ID, array_index, var array_value)
 ; universal vars, but 'universal' must not be specified. Maybe array vars
 ; are slower than universal vars, but on a 2Mhz CPU there's no noticable
 ; difference.
+; Varnames are converted to lowercase, so every case can be used. In procs,
+; where the var value is searched for a specific word, the search is done
+; caseless.
+; ---------------------------------------------------------------------------
 ; Only the proc GetAVar returns a value. Therefore these procs can be used
 ; without 'call'. rc will be set by do_array, so it can be checked, if the
 ; operation was successful.
-; Varnames are converted to lowercase, so every case can be used.
 defproc GetAVar( varname)
    universal EPM_utility_array_ID
    varname = lowcase( arg(1))
@@ -1077,6 +1080,8 @@ defc getavar, showavar
    -- a cmd can't return anything, therefore just give a msg
    sayerror varname' = 'GetAVar(varname)
 
+; ---------------------------------------------------------------------------
+; Set varname to varvalue
 defproc SetAVar( varname, varvalue)
    universal EPM_utility_array_ID
    varname = lowcase( varname)
@@ -1088,6 +1093,7 @@ defc setavar
    parse value args with varname varvalue
    call SetAVar( varname, varvalue)
 
+; ---------------------------------------------------------------------------
 ; Append varvalue as additional word to varname.
 defproc AddAVar( varname, varvalue)
    oldvalue = GetAVar(varname)
@@ -1101,13 +1107,15 @@ defc addavar
    parse value args with varname varvalue
    call AddAVar( varname, varvalue)
 
-; Check for every word if already present; add if not present; else nothing.
+; ---------------------------------------------------------------------------
+; Check for every word of varvalue if already present in varname; add if not
+; present; else nothing.
 defproc AddOnceAVar( varname, varvalue)
    oldvalue = GetAVar(varname)
    newvalue = oldvalue
    do w = 1 to words( varvalue)
       wrd = word( varvalue, w)
-      if not wordpos( wrd, oldvalue) then
+      if not wordpos( upcase( wrd), upcase( oldvalue)) then
          newvalue = newvalue' 'wrd  -- verify, there's a space between
       endif
    enddo
@@ -1119,7 +1127,33 @@ defc addonceavar
    parse value args with varname varvalue
    call AddOnceAVar( varname, varvalue)
 
+; ---------------------------------------------------------------------------
+; Remove every word of varvalue from varname
+defproc DelAVar( varname, varvalue)
+   oldvalue = GetAVar(varname)
+   if oldvalue = '' then
+      return
+   endif
+   newvalue = oldvalue
+   do w = 1 to words( varvalue)
+      wrd = word( varvalue, w)
+      do forever
+         wp = wordpos( upcase( wrd), upcase( newvalue))
+         if wp = 0 then
+            leave
+         endif
+         newvalue = delword( newvalue, wp, 1)
+      enddo
+   enddo
+   call SetAVar( varname, newvalue)
+   return
 
+defc DelAVar
+   args = strip( arg(1))
+   parse value args with varname varvalue
+   call DelAVar( varname, varvalue)
+
+; ---------------------------------------------------------------------------
 defproc Insert_Attribute_Pair( attribute, val, fstline, lstline, fstcol, lstcol, fileid)
    universal EPM_utility_array_ID
 ;sayerror 'Insert_Attribute_Pair('attribute',' val',' fstline',' lstline',' fstcol',' lstcol',' fileid')'
