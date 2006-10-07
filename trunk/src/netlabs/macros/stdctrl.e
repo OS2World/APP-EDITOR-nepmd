@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.42 2006-10-07 17:48:00 aschn Exp $
+* $Id: stdctrl.e,v 1.43 2006-10-07 18:02:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -52,7 +52,8 @@
 ³ List Box Functions:                                                        ³
 ³                                                                            ³
 ³      listbox()                                                             ³
-³      listboxdemo()                                                         ³
+³      listdemo()                                                            ³
+³      listdemo2()                                                           ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
 
@@ -136,16 +137,36 @@ Larry Margolis / John Ponzo 6/91
 
 ****************************************************************************/
 
+/***************************************************************************
+Correction/clarification of FLAGS description of bits 0 and 1:
+   bit 0
+      0: y = bottom of listbox
+      1: y = top of listbox
+   bit 1
+      0: map x,y to the desktop
+      1: map x,y relative to EPM window
+
+When caller does not pass a valid FLAGS an artifical, temporary value is set: -2.
+When FLAGS is -2 the code will
+   a) determine if there is more space above or below the ROW
+   b) Set FLAGS, and Y so that the listbox will appear just above or just
+      below ROW depending on where there is more room
+
+****************************************************************************/
+
 defproc listbox( title, listbuf)
    universal app_hini
    if leftstr( listbuf, 1) = \0 then
       liststuff = substr( listbuf, 2, 8)
       flags = substr( listbuf, 10)
+      if not isnum(flags) then
+         flags = -2                 -- artificial value indicating "don't care"
+      endif
    else
       listbuf = listbuf\0
       liststuff = atol( length( listbuf) - 1)    ||   /* length of list                */
                   address( listbuf)                   /* list                          */
-      flags = ''
+      flags = -2                    -- artificial value indicating "don't care"
    endif
    title = title\0
 
@@ -172,19 +193,22 @@ defproc listbox( title, listbuf)
    if arg() > 3 then                       /* were row and column specified  */
       row = arg(4); col = arg(5)           /* row and col were passed        */
       if not row then                      /* zero means current cursor pos  */
-         row = .cursory - 1
+         row = .cursory
       endif
       if not col then
          col = .cursorx
       endif
    else
-      col = .cursorx; row = .cursory - 1   /* default: current cursor pos    */
+      col = .cursorx; row = .cursory       /* default: current cursor pos    */
    endif
 
    if arg() > 5 then                       /* were height and width specified*/
       height = arg(6)                      /* height was passed   */
    else
       height = 0                           /* default: 0=use listbox default */
+   endif
+   if height < 4 then
+      height = 4                           -- internal default is to show 4 lines
    endif
 
    if arg() > 6 then                       /* were height and width specified*/
@@ -193,11 +217,24 @@ defproc listbox( title, listbuf)
       width = 0                            /* default: 0=use listbox default */
    endif
 
------------------------> Bug: determining x and y doesnot work properly
-   x = .fontwidth * col                    /* convert row and column into...*/
-   y = .windowy + screenheight() - .fontheight*(row + 1) - 4  /* (Add a fudge factor temporarily */
+   if arg() > 7 then                       /* New way!                       */
+      selectbuf = leftstr( arg(8), 255, \0)
+   else
+      selectbuf = copies( \0, 255)  -- Was 85     /* null terminate return buffer  */
+   endif
+
+;    parse value entrybox('Enter row col addl heightadjust') with row col jbsu hadj
+;    parse value entrybox('Enter row col adj') with row col jbsu
+;  't8 listbox'
+   call dprintf('listbox', ' ')
+   call dprintf('listbox', 'curx cury: '.cursorx .cursory)
+   call dprintf('listbox', 'col row: 'col row)
+;    call listbox2(title, listbuf, arg(3), row, col, arg(6), arg(7))
+;    parse value entrybox('Enter comment') with msg
+;    call dprintf('listbox', 'Comment: 'msg)
    -- o  .windowy and .windowx are always 0 in EPM
-   --    screenheight() and screenwidth() return the sreen resolution in pixels
+   -- o  screenheight() and screenwidth() return the window dimensions in
+   --    pixels
    -- o  .fontheight and .fontwidth are values in pixel, e.g. for 12.System
    --    VIO: 16x8
    -- o  Of course the dialog font differs from the edit window font and
@@ -207,21 +244,115 @@ defproc listbox( title, listbuf)
    -- o  .cursorx is 1 when cursor is at the left and .windowwidth when cursor
    --    is at the right edge, values in cols
 
-   if arg() > 7 then                       /* New way!                       */
-      selectbuf = leftstr( arg(8), 255, \0)
+   -- JBSQ: "flags" does not seem to work as documented.
+   --       Bits 0 and 1 seem to work as follows:
+   --       00:   x,y mapped to desktop, listbox kept on screen
+   --       01:   x mapped to desktop, y = ?, listbox can go off top of screen
+   --       10:   x,y mapped relative to EPM window, listbox stays on screen
+   --       11:   x,y mapped relative to EPM window, y measured down from bottom of EPM window?
+   --    Conclusion: only 00 and 10 (0 and 2 in decimal) seem to work predictably
+
+   -- Determining the x coordinate works very well using the standard method:
+   x = .fontwidth * col                    /* convert row and column into...*/
+
+   -- The y coordinate depends on the height of the dialog font. The old
+   -- method gives bad results:
+   -- y = .windowy + screenheight() - .fontheight * (row + 1) - 4  /* (Add a fudge factor temporarily */
+
+   -- Correct row for 9.WarpSans (standard was either 10.System Proportional
+   -- or 10.System Monospaced). row and .cursory are counted in number of
+   -- lines from the top.
+   desktop_cy = NepmdQuerySysInfo('CYSCREEN')
+   parse value desktop_cy with 'ERROR:'errcode
+   if errcode <> '' then
+      sayerror 'Error query system screen resolution: 'errcode
+      return   'Error query system screen resolution: 'errcode
+   endif
+   call dprintf('listbox', 'Desktop height /2 = 'desktop_cy (desktop_cy/2))
+   win_data = NepmdQueryWindowPos(EPMINFO_EDITFRAME)
+   parse value win_data with 'ERROR:'errcode
+   if errcode <> '' then
+      sayerror 'Error query frame  position: 'errcode
+      return   'Error query frame  position: 'errcode
+   endif
+   parse value win_data with fwindowx fwindowy fwindowcx fwindowcy
+   call dprintf("listbox", 'SWP F: 'fwindowx fwindowy fwindowcx fwindowcy)
+   win_data = NepmdQueryWindowPos(EPMINFO_EDITCLIENT)
+   parse value win_data with 'ERROR:'errcode
+   if errcode <> '' then
+      sayerror 'Error query client position: 'errcode
+      return   'Error query client position: 'errcode
+   endif
+   parse value win_data with cwindowx cwindowy cwindowcx cwindowcy  -- the x and y are relative to the frame
+   windowx = cwindowx + fwindowx     -- so add in the frame x to get absolute client x
+   windowy = cwindowy + fwindowy     -- so add in the frame y to get absolute client y
+   call dprintf('listbox', 'SWP C: 'cwindowx cwindowy cwindowcx cwindowcy)
+
+
+   -- Estimate the height of the entire listbox dialog
+   -- The height of additional dialog controls takes about 7 lines of
+   -- 9.WarpSans (same height as 12.System VIO, which has 16x8).
+;  addpixels = 102 + (50 * (nb > 4))
+   addpixels = 122 + (40 * (nb > 4))  -- 40 per row of buttons + 122 for other "overhead" pixels
+   boxfontheight = 16  -- value in pels = pixels
+   boxcy = height * ( boxfontheight ) + addpixels
+   call dprintf('listbox', 'wdwhgt hgt boxcy addl: '.windowheight height boxcy addpixels)
+
+   row_y = .fontheight * (.windowheight - (row - 1))
+   SpaceBelowCursor = windowy + row_y
+   call dprintf('listbox', 'row_y Spcbelow: 'row_y SpaceBelowCursor)
+   if flags < 0 then
+      if  SpaceBelowCursor < (desktop_cy / 2) then
+         -- Position listbox window above row, col
+         wanty =  row_y
+         topofwin = 0
+         too_much = 0
+         if flags < 0 then
+            topofwin = wanty + boxcy + windowy
+            too_much = topofwin - desktop_cy
+            if too_much > 0 then
+               height = height - (too_much + boxfontheight - 1) % boxfontheight
+            endif
+            flags = 0
+         endif
+         call dprintf('listbox', 'Above cursor::wanty top too adjh: 'wanty topofwin too_much height)
+      else
+         -- Position listbox window below row, col
+         wanty = row_y - .fontheight
+         if flags < 0 then
+            too_much = wanty + windowy - boxcy -- - 10 -- fudge factor
+            if too_much < 0 then
+               height = (boxcy + too_much - addpixels) % boxfontheight
+            endif
+            flags = 1
+         endif
+         call dprintf('listbox', 'Below cursor::wanty adjh too_much: 'wanty height too_much)
+      endif
+   endif
+   call dprintf('listbox', 'flags bit1 winy: 'flags ((flags % 2) // 2) windowy)
+   if ((flags % 2) // 2) then
+      y = wanty
    else
-      selectbuf = copies( \0, 255)  -- Was 85     /* null terminate return buffer  */
+      x = x + windowx
+      y = wanty + windowy
+   endif
+   -- Prevent corrupted window diplays because the cursor is offscreen
+   if (flags < 2) and (x <= -windowx) then
+      x = 1 - windowx
    endif
 
-   if flags = '' then
-      flags = 3   -- bit 0=position below pts, bit 1=map to desktop
-   endif
+   -- With this coordinate determination, the listbox window may be placed
+   -- outside of the frame window. That is intended, since we don't have a
+   -- MDI window. Limiting the listbox window to screen values is done
+   -- automatically by the LISTBOX function.
 
    if getpminfo(EPMINFO_EDITFRAME) then
       handle = EPMINFO_EDITFRAME
    else                   -- If frame handle is 0, use edit client instead.
       handle = EPMINFO_EDITCLIENT
    endif
+;do forever
+   call dprintf('listbox', 'final::flags col row x y: 'flags col row x y)
    call dynalink32( ERES_DLL,               /* list box control in EDLL dyna */
                     'LISTBOX',                      /* function name                 */
                     gethwndc(handle)           ||   /* edit frame handle             */
@@ -243,6 +374,12 @@ defproc listbox( title, listbuf)
                     address(selectbuf)         ||   /* return string buffer          */
                     atol(app_hini))                 /* Handle to INI file            */
 
+;    parse value entrybox('Enter comment') with y flags msg
+;    call dprintf('listbox', 'Comment: 'msg)
+; if y = -1000  then
+;    leave
+; endif
+; enddo
    button = asc(leftstr( selectbuf, 1))
    if arg() > 7 then              -- New way
       return selectbuf
@@ -260,6 +397,7 @@ defproc listbox( title, listbuf)
    return substr( selectbuf, 2, EOS - 2)
 
 /*********** Sample command that uses the old list box function *********
+**/
 defc listdemo
    select = listbox( 'My List',
                      '/Bryan/Jason/Jerry Cuomo/Ralph/Larry/Richard/');
@@ -268,9 +406,9 @@ defc listdemo
    else
       sayerror 'list box selection =<' select '>'
    endif
-**/
 /*********** Sample command that uses the new list box function *********
-defc listdemo
+**/
+defc listdemo2
    sayerror 'Selected entry 3; default button 2; help panel 9300.'
    selectbuf = listbox( 'My List',
                         '/One/Two/Three',
@@ -286,7 +424,6 @@ defc listdemo
       select= substr( selectbuf, 2, EOS - 2)
       sayerror 'Button' button 'was pressed; string =' select
    endif
-**/
 
 /*
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
@@ -1057,13 +1194,11 @@ defproc get_array_value( array_ID, array_index, var array_value)
 ; universal vars, but 'universal' must not be specified. Maybe array vars
 ; are slower than universal vars, but on a 2Mhz CPU there's no noticable
 ; difference.
-; Varnames are converted to lowercase, so every case can be used. In procs,
-; where the var value is searched for a specific word, the search is done
-; caseless.
 ; ---------------------------------------------------------------------------
 ; Only the proc GetAVar returns a value. Therefore these procs can be used
 ; without 'call'. rc will be set by do_array, so it can be checked, if the
 ; operation was successful.
+; Varnames are converted to lowercase, so every case can be used.
 defproc GetAVar( varname)
    universal EPM_utility_array_ID
    varname = lowcase( arg(1))
