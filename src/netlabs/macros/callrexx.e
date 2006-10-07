@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: callrexx.e,v 1.5 2006-06-18 20:37:29 aschn Exp $
+* $Id: callrexx.e,v 1.6 2006-10-07 18:00:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -410,19 +410,31 @@ defc attribute_on
    endif
 
 ; ---------------------------------------------------------------------------
+;                          .userstring commands
+;                see getmode.erx for an example and descriptions
+; ---------------------------------------------------------------------------
 defc saveuserstring
    universal saveduserstring
    saveduserstring = .userstring
 
+; ---------------------------------------------------------------------------
 defc restoreuserstring
    universal saveduserstring
    .userstring = saveduserstring
 
-defc field2userstring
+; ---------------------------------------------------------------------------
+defc FileAVar2Userstring, field2userstring
    universal EPM_utility_array_id
-   fieldname = arg(1)
+   AVarName = arg(1)
    getfileid fid
-   rc = get_array_value( EPM_utility_array_ID, fieldname'.'fid, CurValue)
+   rc = get_array_value( EPM_utility_array_id, AVarName'.'fid, CurValue)
+   .userstring = CurValue
+
+; ---------------------------------------------------------------------------
+defc AVar2Userstring
+   universal EPM_utility_array_id
+   AVarName = arg(1)
+   rc = get_array_value( EPM_utility_array_id, AVarName, CurValue)
    .userstring = CurValue
 
 

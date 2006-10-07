@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getmode.erx,v 1.1 2004-06-04 00:31:40 aschn Exp $
+* $Id: getmode.erx,v 1.2 2006-10-07 18:00:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,16 +30,16 @@
 /*                                                                         */
 /* Following E commands, defined as an interface for REXX, are used:       */
 /*                                                                         */
-/*    saveuserstring       Save the current value for the ".userstring"    */
+/*    SaveUserstring       Save the current value for the ".userstring"    */
 /*                         field var.                                      */
-/*    restoreuserstring    Restore the old value for the ".userstring"     */
+/*    RestoreUserstring    Restore the old value for the ".userstring"     */
 /*                         field var.                                      */
-/*    field2userstring <fieldname>                                         */
+/*    FileAVar2Userstring <arrayvarname>                                   */
 /*                         Query the value for the array var               */
-/*                         "<fieldname>.fid" (fid = fileid),               */
-/*                         e.g. 'mode.'fid.                                */
-/*                         Set the ".userstring" field var to this value   */
-/*                         to make it querible from REXX with the          */
+/*                         "<arrayvarname>.fid" (fid = fileid), e.g.       */
+/*                         'mode.'fid.                                     */
+/*                         The ".userstring" field var is set to this      */
+/*                         value to make it querible from REXX with the    */
 /*                         "extract" command.                              */
 /*                                                                         */
 /* Background: Field vars (starting with a '.') are defined internally.    */
@@ -49,12 +49,32 @@
 /*             must be parsed before its value gets usable and maybe users */
 /*             even replace its value with their own stuff instead of      */
 /*             extending it (maybe with a key1="value1";... list).         */
+/*                                                                         */
+/* More related E commands:                                                */
+/*                                                                         */
+/*    AVar2Userstring <arrayvarname>                                       */
+/*                         Query the value for the array var               */
+/*                         "<arrayvarname>", e.g. 'menulist'.              */
+/*                         The ".userstring" field var is set to this      */
+/*                         value to make it querible from REXX with the    */
+/*                         "extract" command.                              */
+/*                                                                         */
+/*    SetAVar <arrayvarname> <value>                                       */
+/*                         Set "<arrayvarname>" to the value "<value>",    */
+/*                         e.g. 'SetAVar menulist newmenu stdmenu feshmnu  */
+/*                                                ovshmenu mymenu'         */
+/*                                                                         */
+/* Compared to universal vars, array vars are accessable via REXX when     */
+/* these interface commands are used.                                      */
+/*                                                                         */
+/* Names for array vars are case-sensitive!                                */
+/*                                                                         */
 
-'saveuserstring'
-'field2userstring mode'
+'SaveUserstring'
+'FileAVar2Userstring mode'
 'extract /userstring/filename'
 Mode = userstring.1
-'restoreuserstring'
+'RestoreUserstring'
 
 'sayerror Mode for "'filename.1'" = 'Mode
 return Mode

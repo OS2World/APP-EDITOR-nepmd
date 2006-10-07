@@ -37,7 +37,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: run.erx,v 1.5 2006-06-18 20:37:30 aschn Exp $
+* $Id: run.erx,v 1.6 2006-10-07 18:00:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -172,11 +172,11 @@ Init:
 
 /*-------------------------------------------------------------------------*/
 GetMode:  procedure
-   'saveuserstring'
-   'field2userstring mode'
+   'SaveUserstring'
+   'FileAVar2Userstring mode'
    'extract /userstring'
    Mode = userstring.1
-   'restoreuserstring'
+   'RestoreUserstring'
    return Mode
 
 
