@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.11 2006-10-07 18:16:53 aschn Exp $
+* $Id: tags.e,v 1.12 2006-10-07 18:18:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -88,7 +88,7 @@ defproc tag_case(filename)
    return 'c'  /* Case insensitive language? */
 
 defproc tags_supported(mode)
-   return wordpos(mode, 'C JAVA E ASM REXX PASCAL MODULA REXX CMD')
+   return wordpos(mode, 'C JAVA E ASM REXX PASCAL MODULA REXX CMD HTEXT')
 
 defproc proc_search(var proc_name, first_flag, mode, ext)
    if mode = 'C' then
@@ -107,6 +107,8 @@ defproc proc_search(var proc_name, first_flag, mode, ext)
       return rexx_proc_search(proc_name, first_flag)
    elseif mode = 'CMD' then
       return cmd_proc_search(proc_name, first_flag)
+   elseif mode = 'HTEXT' then
+      return htext_proc_search(proc_name, first_flag)
    else
       return 1
    endif
@@ -821,6 +823,40 @@ compile endif
    endif
    display 2
    parse value translate(textline(.line), ' ', \t) with ':'proc_name .
+compile if LOG_TAG_MATCHES
+   if TAG_LOG_FID and not rc then
+      insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
+   endif
+compile endif
+   return rc
+
+defproc htext_proc_search(var proc_name, find_first)
+compile if LOG_TAG_MATCHES
+   universal TAG_LOG_FID
+compile endif
+   Spc = ':o'
+   display -2
+   if find_first then
+      if proc_name == '' then
+         identifier = '[1-6]'
+         search = '^\.'identifier''Spc
+         'xcom l 'search'cx'
+      endif
+   else
+      repeat_find
+   endif
+   display 2
+   -- Indent line according to the section type in order to give a better
+   -- overview of the structure.
+   proc_name = strip( textline(.line))
+   parse value word( proc_name, 1) with '.'sectiontype
+   if isnum( sectiontype) then
+      -- Omit section type itself
+      proc_name = subword( proc_name, 2)
+      -- Indent line according to the section type
+      ind = copies( ' ', 8)
+      proc_name = copies( ind, sectiontype - 1)''proc_name
+   endif
 compile if LOG_TAG_MATCHES
    if TAG_LOG_FID and not rc then
       insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
