@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.h,v 1.9 2002-09-07 13:28:12 cla Exp $
+* $Id: nepmdlib.h,v 1.10 2006-10-07 19:34:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,7 +22,7 @@
 #ifndef NEPMDLIB_H
 #define NEPMDLIB_H
 
-#define NEPMDLIB_VERSION          "1.00"
+#define NEPMDLIB_VERSION          "1.11"
 
 #define NEPMDLIB_STR_TITLE        "Netlabs EPM Distribution Library - Runtime Information"
 #define NEPMDLIB_STR_FILENAME     "Filename: "

@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: common.h,v 1.2 2002-09-20 15:06:58 cla Exp $
+* $Id: common.h,v 1.3 2006-10-07 19:34:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,8 +32,8 @@
 
 #define __APPNAME__                    "Netlabs EPM Distribution executable loader"
 #define __PROGSTEM__                   "epmcall"
-#define __VERSION__                    "V1.00"
-#define __YEAR__                       "2002"
+#define __VERSION__                    "v1.11"
+#define __YEAR__                       "2006"
 
 #endif // COMMON_H
 

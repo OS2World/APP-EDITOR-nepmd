@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: common.h,v 1.8 2002-09-02 09:36:23 cla Exp $
+* $Id: common.h,v 1.9 2006-10-07 19:34:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,8 +32,8 @@
 
 #define __APPNAME__                    "RECOMP"
 #define __PROGSTEM__                   "recomp"
-#define __VERSION__                    "V1.00"
-#define __YEAR__                       "2002"
+#define __VERSION__                    "v1.11"
+#define __YEAR__                       "2006"
 
 // define parameters
 #define PARM_START             "Start"
