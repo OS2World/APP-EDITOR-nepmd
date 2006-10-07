@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.12 2006-10-07 18:18:43 aschn Exp $
+* $Id: tags.e,v 1.13 2006-10-07 20:32:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1193,14 +1193,14 @@ defc tagscan
    endif
    sayerror 0
    if listbox_buffer_from_file(sourcefid, bufhndl, noflines, usedsize) then return; endif
-   parse value listbox( LIST_TAGS__MSG,        -- title
+   parse value listbox( LIST_TAGS__MSG,         -- title
                         \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),  -- buffer
                         '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,               -- buttons
-                        0, 0,  -- 25, 15       -- top (0 = at cursor), left (0 = at cursor)
-                        min( noflines, 20), 0  -- height, width (0 = auto)
+                        0, 0,  -- 25, 15        -- top (0 = at cursor), left (0 = at cursor)
+                        min( noflines, 20), 0,  -- height, width (0 = auto)
                         gethwndc(APP_HANDLE) ||
-                        atoi(1) ||             -- default item
-                        atoi(1) ||             -- default button
+                        atoi(1) ||              -- default item
+                        atoi(1) ||              -- default button
                         atoi(6012)) with button 2 proc_name \0  -- help panel id
    call buffer(FREEBUF, bufhndl)
    if button<>\1 then
