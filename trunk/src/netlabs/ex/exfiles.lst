@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2004
 ;
-; $Id: exfiles.lst,v 1.9 2006-09-13 18:55:16 aschn Exp $
+; $Id: exfiles.lst,v 1.10 2006-10-07 18:43:06 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -36,6 +36,7 @@ draw
 epmcomp
 epmlex
 fevshmnu
+finddef
 ftpload
 ftpsave
 ;get

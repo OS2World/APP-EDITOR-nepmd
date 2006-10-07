@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.26 2006-09-13 18:55:17 aschn Exp $
+# $Id: makefile,v 1.27 2006-10-07 18:43:04 aschn Exp $
 #
 # ===========================================================================
 #
@@ -61,6 +61,7 @@ $(CMPEXDIR)\draw.ex\
 $(CMPEXDIR)\epmcomp.ex\
 $(CMPEXDIR)\epmlex.ex\
 $(CMPEXDIR)\fevshmnu.ex\
+$(CMPEXDIR)\finddef.ex\
 $(CMPEXDIR)\ftpload.ex\
 $(CMPEXDIR)\ftpsave.ex\
 #$(CMPEXDIR)\get.ex\
