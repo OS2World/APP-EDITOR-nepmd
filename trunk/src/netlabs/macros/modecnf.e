@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modecnf.e,v 1.6 2006-03-11 21:15:10 aschn Exp $
+* $Id: modecnf.e,v 1.7 2006-10-07 18:45:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -235,6 +235,33 @@ defc InitModeCnf
 'AddCodingStyle JAVA SetCBraceStyle APPEND'
 'AddCodingStyle JAVA SetCCaseStyle INDENT'
 
+/* Default REXX style */
+'AddCodingStyle REXX_std SetRexxDoStyle INDENT'
+'AddCodingStyle REXX_std SetRexxIfStyle ADDELSE'
+'AddCodingStyle REXX_std SetRexxCase LOWER'
+'AddCodingStyle REXX_std SetRexxForceCase 1'
+'AddCodingStyle REXX_std SetTabs 2'
+'AddCodingStyle REXX_std SetIndent 2'
+'AddCodingStyle REXX_std SetFunctionSpacing C'
+
+/* Christan Langanke's REXX style */
+'AddCodingStyle REXX_cla SetRexxDoStyle BELOW'
+'AddCodingStyle REXX_cla SetRexxIfStyle ADDELSE'
+'AddCodingStyle REXX_cla SetRexxCase UPPER'
+'AddCodingStyle REXX_cla SetRexxForceCase 1'
+'AddCodingStyle REXX_cla SetTabs 3'  /* for first indent use 1 space */
+'AddCodingStyle REXX_cla SetIndent 3'
+'AddCodingStyle REXX_cla SetFunctionSpacing CS'
+
+/* Andreas Schnellbacher's REXX style */
+'AddCodingStyle REXX_aschn SetRexxDoStyle BELOW'
+'AddCodingStyle REXX_aschn SetRexxIfStyle ADDELSE'
+'AddCodingStyle REXX_aschn SetRexxCase LOWER'
+'AddCodingStyle REXX_aschn SetRexxForceCase 1'
+'AddCodingStyle REXX_aschn SetTabs 3'
+'AddCodingStyle REXX_aschn SetIndent 3'
+'AddCodingStyle REXX_aschn SetFunctionSpacing CS'
+
 /* You may want to create your own REXX style. Therefore copy some (or     */
 /* all) of the "ModeExecute REXX ..." settings below here, use             */
 /* "AddCodingStyle MYREXX ..." commands and configure the Set* command     */
@@ -276,12 +303,7 @@ defc InitModeCnf
 'ModeExecute E SetMargins 1 1599 1'
 
 'ModeExecute REXX SetKeys REXX_keys'
-'ModeExecute REXX SetRexxDoStyle INDENT'
-'ModeExecute REXX SetRexxIfStyle ADDELSE'
-'ModeExecute REXX SetRexxCase LOWER'
-'ModeExecute REXX SetRexxForceCase 1'
-'ModeExecute REXX SetTabs 3'
-'ModeExecute REXX SetIndent 3'
+'ModeExecute REXX SetCodingStyle REXX_std'
 'ModeExecute REXX SetMargins 1 1599 1'
 
 'ModeExecute C SetKeys C_keys'
