@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: debug.e,v 1.6 2006-05-21 18:56:51 aschn Exp $
+* $Id: debug.e,v 1.7 2006-10-07 17:54:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -20,108 +20,53 @@
 ****************************************************************************/
 
 ; Define the dprintf proc, that pipes a message to PmPrintf, if the
-; corresponding const is set = 1. One can simply use now
+; general debug const is set = 1 and if msgtype was added to the array var
+; "debuglist". One can simply use now
 ;    dprintf( msgtype, msg)
 ; instead of that "compile if" stuff, which makes code much more readable.
-; The consts are to be extended.
-; All PmPrintf messages can be disabled by setting NEPMD_DEBUG to 0, which
-; is the default.
 
 define
 compile if not defined(NEPMD_DEBUG)
    NEPMD_DEBUG = 0  -- General debug const
 compile endif
-compile if not defined(NEPMD_DEBUG_MAIN)
-   NEPMD_DEBUG_MAIN = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_MAIN_EMPTY_FILE)
-   NEPMD_DEBUG_MAIN_EMPTY_FILE = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_EDIT)
-   NEPMD_DEBUG_EDIT = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_LOAD)
-   NEPMD_DEBUG_LOAD = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_AFTERLOAD)
-   NEPMD_DEBUG_AFTERLOAD = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_SELECT)
-   NEPMD_DEBUG_SELECT = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_RESTORE_POS)
-   NEPMD_DEBUG_RESTORE_POS = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_TAGS)
-   NEPMD_DEBUG_TAGS = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_RESTORE_RING)
-   NEPMD_DEBUG_RESTORE_RING = 0
-compile endif
-compile if not defined(NEPMD_DEBUG_WRITE_FILE_NUMBER)
-   NEPMD_DEBUG_WRITE_FILE_NUMBER = 0
-compile endif
 
 ; ---------------------------------------------------------------------------
-; Syntax: dprintf( <type>, <message>)
-; Pipes <type>': '<message> to PmPrintf.
-; This can be disabled for specific <type>s with corresponding
-; configuration consts. The main config const NEPMD_DEBUG must be
-; set to 1 to enable output generally.
+; Syntax: dprintf( [Type,] Msg)
+; Pipes Type': 'Msg to PmPrintf. This can be enabled for specific Types by
+; adding Type to the array var "debuglist". Example:
+;    AddAVar( 'debuglist', 'TESTPROC')
+;    dprintf( 'TESTPROC', 'This is my debug output')
+; It can be removed from "debuglist" with
+;    DelAVar( 'debuglist', 'TESTPROC')
+; The array var "debuglist" is also accessable from EPM-REXX via the
+; SaveUserstring, AVar2Userstring, RestoreUserstring, SetAVar, AddOnceAVar
+; and DelAVar commands.
+; The dprintf macro produces only output, when the constant NEPMD_DEBUG
+; was set to > 0 in MYCNF.E, with:
+;   const
+;      NEPMD_DEBUG = 1
 defproc dprintf
 compile if NEPMD_DEBUG
-   type   = arg(1)
-   uptype = upcase(type)
-   msg    = arg(2)
-   WriteMsg = 0
-
-   if type = 'MAIN' then
-      if NEPMD_DEBUG_MAIN then
-         WriteMsg = 1
+   Type = arg(1)
+   Msg  = arg(2)
+   if Msg = '' then
+      Msg  = arg(1)
+      call NepmdPmPrintf( Msg)
+   else
+      Type = upcase( Type)
+      DebugList = GetAVar( 'debuglist')
+      if wordpos( upcase( Type), upcase( DebugList)) then
+         call NepmdPmPrintf( Type': 'Msg)
       endif
-   elseif type = 'MAIN_EMPTY_FILE' then
-      if NEPMD_DEBUG_MAIN_EMPTY_FILE then
-         WriteMsg = 1
-      endif
-   elseif type = 'EDIT' then
-      if NEPMD_DEBUG_EDIT then
-         WriteMsg = 1
-      endif
-   elseif type = 'LOAD' then
-      if NEPMD_DEBUG_LOAD then
-         WriteMsg = 1
-      endif
-   elseif type = 'AFTERLOAD' then
-      if NEPMD_DEBUG_AFTERLOAD then
-         WriteMsg = 1
-      endif
-   elseif type = 'SELECT' then
-      if NEPMD_DEBUG_SELECT then
-         WriteMsg = 1
-      endif
-   elseif type = 'RESTORE_POS' then
-      if NEPMD_DEBUG_RESTORE_POS then
-         WriteMsg = 1
-      endif
-   elseif type = 'TAGS' then
-      if NEPMD_DEBUG_TAGS then
-         WriteMsg = 1
-      endif
-   elseif type = 'RESTORE_RING' then
-      if NEPMD_DEBUG_RESTORE_RING then
-         WriteMsg = 1
-      endif
-   elseif type = 'WRITE_FILE_NUMBER' then
-      if NEPMD_DEBUG_WRITE_FILE_NUMBER then
-         WriteMsg = 1
-      endif
-   else  -- type is undefined
-      WriteMsg = 1
    endif
-
-   if WriteMsg = 1 then
-      call NepmdPmPrintf( type': 'msg)
-   endif
-compile endif  -- NEPMD_DEBUG
+compile endif
    return
+
+; ---------------------------------------------------------------------------
+; For use from EPM-REXX macros
+defc dprintf
+compile if NEPMD_DEBUG
+   Msg  = arg(1)
+   call NepmdPmPrintf( Msg)
+compile endif
 
