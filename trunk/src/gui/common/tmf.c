@@ -1,3 +1,25 @@
+/****************************** Module Header *******************************
+*
+* Module Name: tmf.c
+*
+* Source for text message file functions
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: tmf.c,v 1.7 2006-10-07 19:53:40 aschn Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
 
 /*
  todo:
@@ -613,7 +635,7 @@ do
 
          // first of all, elimintate the variable
          strcpy( pszStartPos, pszVarNum + 1);
-   
+
          // get value
          pszVarValue = apszParms[ ulParmIndex - 1];
          if (pszVarValue)
