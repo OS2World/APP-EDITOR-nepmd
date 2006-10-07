@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.14 2006-10-07 18:44:22 aschn Exp $
+* $Id: assist.e,v 1.15 2006-10-07 20:31:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -109,6 +109,11 @@ const
    include NLS_LANGUAGE'.e'
 
    EA_comment 'Linkable bracket-matching routines.'
+
+define
+ compile if not defined(NEPMD_DEBUG)
+   NEPMD_DEBUG = 0  -- General debug const
+ compile endif
 
 defmain
    call passist()
