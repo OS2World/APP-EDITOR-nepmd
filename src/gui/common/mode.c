@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.c,v 1.7 2004-09-12 13:34:49 aschn Exp $
+* $Id: mode.c,v 1.8 2006-10-09 00:12:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -133,7 +133,7 @@ do
          // skip blanks
          while (*p == ' ') {  p++; }
 
-         // does name contain the wildcard char ?
+         // does name contain the wildcard char?
          w = strchr( p, GLOBSEARCH_WILDCARD);
          if (!w)
             break;
@@ -297,7 +297,7 @@ do
          continue;
       strupr( szLine);
 
-      // check first word - it must be EXTPROC !
+      // check first word - it must be EXTPROC!
       p = strtok( szLine, " ");
       if (strcmp( p, "EXTPROC"))
          break;
@@ -307,7 +307,7 @@ do
       if (!p)
          break;
 
-      // strip of path and extension
+      // strip off path and extension
       pszExtproc = Filespec( p, FILESPEC_NAME);
       p = Filespec( p, FILESPEC_EXTENSION);
       if (p)
@@ -566,7 +566,7 @@ do
       // check for .INI files
       if (!strcmp( pszExtension, "INI"))
          {
-         // dont act on true OS/2 INI Files !
+         // dont act on true OS/2 INI Files!
          //if (_checkSpecialFile( pszFilename, (PBYTE)&ulIniSig, sizeof( ulIniSig)))
          if (_checkSpecialFile( pszFilename, pszIniSig, strlen( pszIniSig)))
             //rc = ERROR_PATH_NOT_FOUND;  // this would cause mode = INI as well
@@ -575,7 +575,7 @@ do
             pszExtMode = strdup( "INI");
          }
 
-      // search default file just to make sure that mode definition exists !
+      // search default file just to make sure that mode definition exists!
       if (pszExtMode)
          {
          rc = _searchFile( pszEnvnameEpmModepath, szIniFile,
@@ -629,7 +629,7 @@ do
             if (rc != NO_ERROR)
                break;
 
-            // did we use that mode already ?
+            // did we use that mode already?
             pszDirName = Filespec( szDir, FILESPEC_NAME);
             strupr( pszDirName);
             if (!strwrd( szModeList, pszDirName))
@@ -667,7 +667,7 @@ do
 
                }  // if (!strstr( szModeList, szModeTag))
 
-           // extension mode found ? then break here
+           // extension mode found? then break here
            if (pszExtMode)
               break;
 

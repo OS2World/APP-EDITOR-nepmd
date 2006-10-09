@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.22 2006-01-07 23:25:41 aschn Exp $
+* $Id: epmcall.c,v 1.23 2006-10-09 00:12:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -37,7 +37,7 @@
 #include "instval.h"
 
 #define QUEUENAMEBASE "\\QUEUES\\EPMCALL\\"
-#define LOADSTRING(m,t)           GetMessage( NULL, 0, t, sizeof( t), m, &ulMessageLen)
+//#define LOADSTRING(m,t)           GetMessage( NULL, 0, t, sizeof( t), m, &ulMessageLen)
 
 #define INI_APP_EPM "EPM"
 #define INI_KEY_EPMINIPATH "EPMIniPath"
@@ -79,6 +79,8 @@ APIRET CallEPM( INT argc, PSZ argv[], PSZ envv[])
          BOOL           fEpmStarted = FALSE;
          FILE          *pfile = NULL;
 
+         CHAR           szMessage[ 1024];
+
 do
    {
 
@@ -100,18 +102,18 @@ do
    // get extended environment
    szExecutable[ 0] = 0;
    rc = GetExtendedEPMEnvironment( envv, &pszEnv, szExecutable, sizeof( szExecutable));
-   if ((rc == ERROR_FILE_NOT_FOUND) && (!strlen( szExecutable)))
-      {
-         ULONG          ulMessageLen;
-         CHAR           szMessage[ 1024];
 
-      rc = LOADSTRING( "ERR_EPM_NOT_FOUND", szMessage);
-      if (rc != NO_ERROR)
-         sprintf( szMessage,
-                  "Fatal error: cannot determine NEPMD message file, rc=%u\n\n",
-                  rc);
+   // path errors are already checked by GetExtendedEPMEnvironment
+   if (rc != NO_ERROR)
+      break;
+   else if (!strlen( szExecutable))
+      {
+      sprintf( szMessage,
+               "Fatal error #1: Cannot find the EPM executable.\n\n"
+               "Install EPM via Selective Install of your OS!\n\n");
 
       SHOWFATALERROR( HWND_DESKTOP, szMessage);
+      break;
       }
 
    // concatenate parms
@@ -176,17 +178,27 @@ do
       ulLen = PrfQueryProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, NULL,
                                      szEpmIniFile, sizeof( szEpmIniFile));
 
-      // cut off junk if entry is not zero-terminated
-      //DPRINTF(( "CallEPM: length = %u, EpmIniFile = %s\n", ulLen, szEpmIniFile));
-      strncat( szTmp, &szEpmIniFile[0], ulLen);  // always appends a '\0'
-      strcpy( szEpmIniFile, szTmp);
+      // handle also non-zero-terminated strings
+      szEpmIniFile[ ulLen] = 0;
       //DPRINTF(( "CallEPM: EpmIniFile = %s\n", szEpmIniFile));
 
       // determine name of NEPMD.INI
       rc = QueryInstValue( NEPMD_INSTVALUE_INIT, szIniFile, sizeof( szIniFile));
       //DPRINTF(( "CallEPM: IniFile = %s, rc = %u\n", szIniFile, rc));
       if (rc != NO_ERROR)
+         {
+         sprintf( szMessage,
+                  "Fatal error #2: filename for NEPMD.INI"
+                  " could not be determined, rc = %u.\n\n"
+                  "NEPMD is not properly installed,"
+                  " repeat the installation via WarpIN!\n\n"
+                  "If that problem still persists, check"
+                  " if your UserDir (e.g. \"NEPMD\\myepm\") and"
+                  " its subdirectory \"bin\" exist and if they"
+                  " are writable.\n\n", rc);
+         SHOWFATALERROR( HWND_DESKTOP, szMessage);
          break;
+         }
 
       // check if no other process has already changed it
       if (stricmp( szEpmIniFile, szIniFile) == 0)
@@ -197,7 +209,7 @@ do
 
       // write filename of NEPMD.INI
       rc = PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szIniFile);
-      //DPRINTF(( "CallEPM: Write new value: EPMIniPath = %s, rc = %u\n", szIniFile, rc));
+      DPRINTF(( "CallEPM: write new value: EPMIniPath = %s, rc = %u\n", szIniFile, rc));
       if (rc == TRUE)  // on success
          fIniFileWritten = TRUE;
       else
@@ -217,17 +229,81 @@ do
       //    EPM.INI -> UCMenu -> ConfigInfo  (toolbar style)
       // The 2nd startup is always ok then.
 
-      // create a zero byte file immediately
+      // check if dir exists
+      strcpy( szTmp, szIniFile);
+      // isolate path of IniFile
+      strcpy( strrchr( szTmp, '\\'), "");
+      rc = NO_ERROR;
+      if (!DirExists( szTmp))
+         {
+         rc = ERROR_PATH_NOT_FOUND;
+         sprintf( szMessage,
+                  "Fatal error #3: the directory"
+                  " \"%s\" doesn\'t exist.\n\n"
+                  "NEPMD is not properly installed,"
+                  " repeat the installation via WarpIN!\n\n"
+                  "If that problem still persists, check"
+                  " if your UserDir (e.g. \"NEPMD\\myepm\") and"
+                  " its subdirectory \"bin\" exist and if they"
+                  " are writable.\n\n", szTmp);
+         SHOWFATALERROR( HWND_DESKTOP, szMessage);
+         break;
+         }
+
       if (FileExists( szIniFile))
          break;
+
+      // create a zero byte file immediately
       pfile = fopen( strupr( szIniFile), "a+b");
+
       if (pfile)
          {
          fclose( pfile);
-         //DPRINTF(( "CallEPM: Empty ini file written\n"));
+         DPRINTF(( "CallEPM: empty ini file created\n"));
+         break;
+         }
+      else
+         {
+         rc = ERROR_PATH_NOT_FOUND;
+         sprintf( szMessage,
+                  "Fatal error #4: \"%s\""
+                  " could not be created, probably because the"
+                  " drive is read-only.\n\n"
+                  "NEPMD is not properly installed,"
+                  " repeat the installation via WarpIN!\n\n"
+                  "If that problem still persists, check"
+                  " if your UserDir (e.g. \"NEPMD\\myepm\") and"
+                  " its subdirectory \"bin\" exist and if they"
+                  " are writable.\n\n", szIniFile);
+         SHOWFATALERROR( HWND_DESKTOP, szMessage);
+         break;
          }
 
       } while (FALSE);
+
+   // don't start EPM on error, to avoid hidden and partly initiated window
+   if (rc != NO_ERROR)
+      break;
+
+   // check if dir exists, this 2nd time is required - why?
+   strcpy( szTmp, szIniFile);
+   // isolate path of IniFile
+   strcpy( strrchr( szTmp, '\\'), "");
+   if (!DirExists( szTmp))
+      {
+      rc = ERROR_PATH_NOT_FOUND;
+      sprintf( szMessage,
+               "Fatal error #5: the directory"
+               " \"%s\" doesn\'t exist.\n\n"
+               "NEPMD is not properly installed,"
+               " repeat the installation via WarpIN!\n\n"
+               "If that problem still persists, check"
+               " if your UserDir (e.g. \"NEPMD\\myepm\") and"
+               " its subdirectory \"bin\" exist and if they"
+               " are writable.\n\n", szTmp);
+      SHOWFATALERROR( HWND_DESKTOP, szMessage);
+      break;
+      }
 
    // start program - fill STARTDATA
    memset( &startdata, 0, sizeof( startdata));
@@ -249,7 +325,7 @@ do
    startdata.Environment = pszEnv;
 
    rc = DosStartSession( &startdata, &ulSession, &pid);
-   DPRINTF(( "call: %s\n   %s\nrc=%u\n", startdata.PgmName, startdata.PgmInputs, rc));
+   DPRINTF(( "CallEPM: call %s\n   params = %s\n   rc = %u (457 = ERROR_SMG_START_IN_BACKGROUND)\n", startdata.PgmName, startdata.PgmInputs, rc));
    if ((rc == NO_ERROR) || (rc == ERROR_SMG_START_IN_BACKGROUND))
       fEpmStarted = TRUE;
 
@@ -259,7 +335,7 @@ do
       DosSleep( 1000L);  // delay of 10ms, on ini creation about 100ms mostly required
       // keep previous rc here
       PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szEpmIniFile);
-      DPRINTF(( "CallEPM: Restore old value: EPMIniPath = %s\n", szEpmIniFile));
+      DPRINTF(( "CallEPM: restore old value: EPMIniPath = %s\n", szEpmIniFile));
       }
 
    // Could be a problem: In case of a crash, the old value for EPMIniPath is
@@ -338,7 +414,7 @@ do
 if (hmq) WinDestroyMsgQueue( hmq);
 if (hab) WinTerminate( hab);
 
-DPRINTF(( ">>> rc=%u/0x%04x\n", rc, rc));
+DPRINTF(( "CallEPM: >>> rc = %u/0x%04x\n", rc, rc));
 
 return rc;
 

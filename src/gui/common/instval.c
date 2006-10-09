@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.15 2005-07-31 21:41:35 aschn Exp $
+* $Id: instval.c,v 1.16 2006-10-09 00:12:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -89,11 +89,33 @@ do
       break;
       }
 
-   // get path of this DLL and cut off name
+   // get path of current DLL or EXE and cut off name
    rc = GetModuleName( szModulePath, sizeof( szModulePath));
    if (rc != NO_ERROR)
       break;
    strcpy( strrchr( szModulePath, '\\'), "");
+   //DPRINTF(( "INSTVAL: szModulePath = %s\n", szModulePath));
+
+//   strcpy( p1, szModulePath);
+//   p1 = Filespec( p1, FILESPEC_PATHNAME);
+//   p2 = Filespec( p1, FILESPEC_NAME);
+//   if (!stricmp( p2, "netlabs"))
+//      {
+//      p1 = Filespec( p1, FILESPEC_PATHNAME);
+//      strcpy( szDefaultRootDir, p1);
+//      }
+//   DPRINTF(( "INSTVAL: p2 = %s, szDefaultRootDir = %s\n", p2, szDefaultRootDir));
+
+// Todo:
+// Maybe set default RootDir, if entry not found to enable starting
+// an uninstalled NEPMD, e.g. from a service partition, from a CD or
+// during installation.
+// Therefore:
+//    -  get parent dir of szModulePath (NEPMD\netlabs\bin or
+//       NEPMD\netlabs\dll)
+//    -  check if last segment of that parent dir is "netlabs"
+//       if yes: set the parent of that "netlabs" dir as RootDir
+//       else: prompt user for RootDir
 
    // get name of EPM.EXE in NEPMD path
    memset( szRootDir, 0, sizeof( szRootDir));
@@ -104,6 +126,7 @@ do
                           szRootDir,
                           sizeof( szRootDir));
    fNepmdInstalled = (szRootDir[ 0] > 0);
+   //DPRINTF(( "INSTVAL: fNepmdInstalled = %u\n", fNepmdInstalled));
 
    // Get user's path
    //    1. Query NEPMD -> UserDir. If not set:
@@ -113,7 +136,11 @@ do
    //       UserDir = %HOME%"\"UserDirName.
    //       Else:
    //    4. UserDir = RootDir"\"UserDirName.
-   // Todo: check if %HOME% or RootDir is writable.
+
+// Todo:
+// Check if %HOME% or RootDir is writable.
+// if not: prompt user
+
    do
       {
       memset( szUserDir, 0, sizeof( szUserDir));
@@ -163,6 +190,11 @@ do
          }
 
       // use %NEPMD_ROOTDIR%
+      if (!fNepmdInstalled)
+         {
+         rc = ERROR_PATH_NOT_FOUND;
+         break;
+         }
       sprintf( szUserDir, "%s\\%s", szRootDir, szUserDirName);
       //DPRINTF(( "INSTVAL: "NEPMD_INI_KEYNAME_USERDIR" (built) = %s\n", szUserDir));
 
@@ -197,8 +229,16 @@ do
       }
 
    else if (!stricmp( pszValueTag, NEPMD_INSTVALUE_USERDIR))
+      {
+      if ( strlen( szUserDir) == 0)
+         {
+         rc = ERROR_PATH_NOT_FOUND;
+         break;
+         }
+
       // determine user path
       strcpy( szValue, szUserDir);
+      }
 
    else if (!stricmp( pszValueTag, NEPMD_INSTVALUE_LANGUAGE))
       // determine installation language
@@ -308,7 +348,6 @@ APIRET GetMessage
          APIRET         rc = NO_ERROR;
 static   BOOL           fInitialized = FALSE;
 static   CHAR           szMessageFile[ _MAX_PATH];
-
 
 do
    {
