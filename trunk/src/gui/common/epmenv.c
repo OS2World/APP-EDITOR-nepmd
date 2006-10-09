@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.24 2006-01-07 23:28:55 aschn Exp $
+* $Id: epmenv.c,v 1.25 2006-10-09 00:12:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -37,6 +37,8 @@
 #include "instval.h"
 
 #include "epmenv.h"
+
+#define __APPNAMESHORT__ "NEPMD"
 
 // -----------------------------------------------------------------------------
 
@@ -230,6 +232,8 @@ static APIRET _searchNepmdEnvironmentFiles( PSZ pszMainEnvFile, ULONG ulMainBufl
          CHAR           szMainEnvFile[ _MAX_PATH];
          CHAR           szUserEnvFile[ _MAX_PATH];
 
+         CHAR           szMessage[ 1024];
+
 static  PSZ            pszNepmdExecDirMask = "%s\\"NEPMD_SUBPATH_BINBINDIR"\\%s"NEPMD_FILENAMEEXT_ENV;
 static  PSZ            pszUserExecDirMask  = "%s\\"NEPMD_SUBPATH_USERBINDIR"\\%s"NEPMD_FILENAMEEXT_ENV;
 
@@ -268,6 +272,9 @@ do
 
    do
       {
+      // reset rc here
+      rc == NO_ERROR;
+
       // <executable_path>\<exename>.env
       sprintf( szMainEnvFile, "%s\\%s"NEPMD_FILENAMEEXT_ENV, szExecutablePath, szBasename);
       DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
@@ -289,13 +296,28 @@ do
             break;
          }
       else
-         DPRINTF(( "EPMENV: NEPMD not installed, skip main env file\n"));
+         {
+         rc = ERROR_PATH_NOT_FOUND;
+         //DPRINTF(( "EPMENV: NEPMD not installed, skip main env file\n"));
+         sprintf( szMessage,
+                  "Fatal error: RootDir could not be determined.\n\n"
+                  "NEPMD is not properly installed,"
+                  " repeat the installation via WarpIN!\n\n"
+                  "If that problem still persists, check"
+                  " NEPMD -> RootDir in OS2.INI.\n\n");
+         SHOWFATALERROR( HWND_DESKTOP, szMessage);
+         break;
+         }
 
       } while (FALSE);
 
    // delete filename if not found
    if (!fFound)
       szMainEnvFile[ 0] = 0;
+
+   // cannot break here - why?
+   // if (rc = ERROR_PATH_NOT_FOUND)
+   //    break;
 
    // ----- check for user env file loaded
 
@@ -322,7 +344,18 @@ do
             break;
          }
       else
-         DPRINTF(( "EPMENV: NEPMD not installed, skip user env file\n"));
+         {
+         //DPRINTF(( "EPMENV: NEPMD not installed, skip user env file\n"));
+         sprintf( szMessage,
+                  "Fatal error: UserDir could not be determined.\n\n"
+                  "NEPMD is not properly installed,"
+                  " repeat the installation via WarpIN!\n\n"
+                  "If that problem still persists, check"
+                  " if your UserDir (e.g. NEPMD\\myepm)"
+                  " exists and is writable.\n\n");
+         SHOWFATALERROR( HWND_DESKTOP, szMessage);
+         break;
+         }
 
       } while (FALSE);
 
@@ -583,7 +616,7 @@ do
          pszNewLine = _expandEnvVar( pszLine);
          if (pszNewLine)
             {
-            DPRINTF(( "EPMENV: added: %s\n", pszNewLine));
+            //DPRINTF(( "EPMENV: added: %s\n", pszNewLine));
             ADDVARX( pszNewLine);
             }
          else
@@ -733,24 +766,29 @@ do
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=", ENV_NEPMD_ROOTDIR);
       rc = QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
+//DPRINTF(( "QueryInstValue for NEPMD_INSTVALUE_ROOTDIR: rc = %u\n", rc ));
       if (rc == NO_ERROR)
          {
          apszVar[ 0] = strdup( szInstallVar);
          ADDVAR( apszVar[ 0]);
          }
       else
-         // don't report error from here
-         rc = NO_ERROR;
+//         // don't report error from here
+//         rc = NO_ERROR;
+         break;
 
       // --- > set environment variable for user directory (# 1)
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=", ENV_NEPMD_USERDIR);
       rc = QueryInstValue( NEPMD_INSTVALUE_USERDIR, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
+//DPRINTF(( "QueryInstValue for NEPMD_INSTVALUE_USERDIR: rc = %u\n", rc ));
       if (rc == NO_ERROR)
          {
          apszVar[ 1] = strdup( szInstallVar);
          ADDVAR( apszVar[ 1]);
          }
+      else
+         break;
 
       // --- > set environment variable for NEPMD language (# 2)
       memset( szInstallVar, 0, sizeof( szInstallVar));
@@ -841,7 +879,7 @@ do
          rc = ERROR_BUFFER_OVERFLOW;
          break;
          }
-      DPRINTF(( "Found executable: %s\n", szEpmExecutable));
+      DPRINTF(( "EPMENV: found executable: %s\n", szEpmExecutable));
       strcpy( pszBuffer, szEpmExecutable);
       }
 
@@ -921,13 +959,13 @@ do
 
       // ------- rest of Part 2 ---------------------------
 
-      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 0]));
-      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
-      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 2]));
-      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 3]));
-      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 4]));
-      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 5]));
-      DPRINTF(( "EPMENV: ### %s\n", apszVar[ 6]));
+      //DPRINTF(( "EPMENV: ### %s\n", apszVar[ 0]));
+      //DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
+      //DPRINTF(( "EPMENV: ### %s\n", apszVar[ 2]));
+      //DPRINTF(( "EPMENV: ### %s\n", apszVar[ 3]));
+      //DPRINTF(( "EPMENV: ### %s\n", apszVar[ 4]));
+      //DPRINTF(( "EPMENV: ### %s\n", apszVar[ 5]));
+      //DPRINTF(( "EPMENV: ### %s\n", apszVar[ 6]));
 
       // close name list
       *pszName = 0;

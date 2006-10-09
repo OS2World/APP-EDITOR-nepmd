@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: common.h,v 1.3 2006-10-07 19:34:05 aschn Exp $
+* $Id: common.h,v 1.4 2006-10-09 00:12:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -31,6 +31,7 @@
 #include "nepmd.h"
 
 #define __APPNAME__                    "Netlabs EPM Distribution executable loader"
+#define __APPNAMESHORT__               "NEPMD executable loader"  // for title of error msg
 #define __PROGSTEM__                   "epmcall"
 #define __VERSION__                    "v1.11"
 #define __YEAR__                       "2006"
