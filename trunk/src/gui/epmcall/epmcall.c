@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.23 2006-10-09 00:12:43 aschn Exp $
+* $Id: epmcall.c,v 1.24 2006-10-10 19:15:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -75,7 +75,7 @@ APIRET CallEPM( INT argc, PSZ argv[], PSZ envv[])
          CHAR           szIniFile[ _MAX_PATH];
          CHAR           szTmp[ _MAX_PATH];
          ULONG          ulLen = 0;
-         BOOL           fIniFileWritten = FALSE;
+         BOOL           fEpmIniPathChanged = FALSE;
          BOOL           fEpmStarted = FALSE;
          FILE          *pfile = NULL;
 
@@ -211,7 +211,7 @@ do
       rc = PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szIniFile);
       DPRINTF(( "CallEPM: write new value: EPMIniPath = %s, rc = %u\n", szIniFile, rc));
       if (rc == TRUE)  // on success
-         fIniFileWritten = TRUE;
+         fEpmIniPathChanged = TRUE;
       else
          break;
 
@@ -237,6 +237,14 @@ do
       if (!DirExists( szTmp))
          {
          rc = ERROR_PATH_NOT_FOUND;
+         // on error, restore previous ini value
+         if (fEpmIniPathChanged == TRUE)
+            {
+            // keep previous rc here
+            PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szEpmIniFile);
+            fEpmIniPathChanged = FALSE;
+            DPRINTF(( "CallEPM: restore old value: EPMIniPath = %s\n", szEpmIniFile));
+            }
          sprintf( szMessage,
                   "Fatal error #3: the directory"
                   " \"%s\" doesn\'t exist.\n\n"
@@ -265,6 +273,14 @@ do
       else
          {
          rc = ERROR_PATH_NOT_FOUND;
+         // on error, restore previous ini value
+         if (fEpmIniPathChanged == TRUE)
+            {
+            // keep previous rc here
+            PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szEpmIniFile);
+            fEpmIniPathChanged = FALSE;
+            DPRINTF(( "CallEPM: restore old value: EPMIniPath = %s\n", szEpmIniFile));
+            }
          sprintf( szMessage,
                   "Fatal error #4: \"%s\""
                   " could not be created, probably because the"
@@ -283,7 +299,17 @@ do
 
    // don't start EPM on error, to avoid hidden and partly initiated window
    if (rc != NO_ERROR)
+      {
+      // on error, restore previous ini value
+      if (fEpmIniPathChanged == TRUE)
+         {
+         // keep previous rc here
+         PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szEpmIniFile);
+         fEpmIniPathChanged = FALSE;
+         DPRINTF(( "CallEPM: restore old value: EPMIniPath = %s\n", szEpmIniFile));
+         }
       break;
+      }
 
    // check if dir exists, this 2nd time is required - why?
    strcpy( szTmp, szIniFile);
@@ -292,6 +318,14 @@ do
    if (!DirExists( szTmp))
       {
       rc = ERROR_PATH_NOT_FOUND;
+      // on error, restore previous ini value
+      if (fEpmIniPathChanged == TRUE)
+         {
+         // keep previous rc here
+         PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szEpmIniFile);
+         fEpmIniPathChanged = FALSE;
+         DPRINTF(( "CallEPM: restore old value: EPMIniPath = %s\n", szEpmIniFile));
+         }
       sprintf( szMessage,
                "Fatal error #5: the directory"
                " \"%s\" doesn\'t exist.\n\n"
@@ -330,11 +364,12 @@ do
       fEpmStarted = TRUE;
 
    // restore previous ini value, before a possible break
-   if (fIniFileWritten == TRUE)
+   if (fEpmIniPathChanged == TRUE)
       {
       DosSleep( 1000L);  // delay of 10ms, on ini creation about 100ms mostly required
       // keep previous rc here
       PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szEpmIniFile);
+      fEpmIniPathChanged = FALSE;
       DPRINTF(( "CallEPM: restore old value: EPMIniPath = %s\n", szEpmIniFile));
       }
 
@@ -370,6 +405,15 @@ do
       DosCloseQueue( hqTermQueue);  // ignore errors here
 
    } while (FALSE);
+
+// on error, restore previous ini value, if not already
+if (fEpmIniPathChanged == TRUE)
+   {
+   // keep previous rc here
+   PrfWriteProfileString( HINI_USER, INI_APP_EPM, INI_KEY_EPMINIPATH, szEpmIniFile);
+   fEpmIniPathChanged = FALSE;
+   DPRINTF(( "CallEPM: restore old value: EPMIniPath = %s\n", szEpmIniFile));
+   }
 
 // cleanup
 if (pszEnv) free( pszEnv);
