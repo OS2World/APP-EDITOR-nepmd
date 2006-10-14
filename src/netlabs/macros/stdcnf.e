@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.35 2006-03-29 23:54:10 aschn Exp $
+* $Id: stdcnf.e,v 1.36 2006-10-14 23:36:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -740,7 +740,7 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 
    'linkverify recompile'  -- several recompile/relink/restart commands
 
-   'linkverify assist'  -- provides instring and inliteral defprocs as well
+;   'linkverify assist'  -- provides instring and inliteral defprocs as well
 
    'linkverify bookmark'
 

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sampactn.e,v 1.10 2006-06-03 20:53:29 aschn Exp $
+* $Id: sampactn.e,v 1.11 2006-10-14 23:36:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -385,7 +385,7 @@ defc a_match_brackets
       display 8
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0
-      call passist()
+      'assist'
    elseif action_letter = 'H' then   -- button Help
       call winmessagebox( Generic_toolbar_help_title,
                           a_Match_Brackets_PROMPT a_Match_Brackets_PROMPT2,
