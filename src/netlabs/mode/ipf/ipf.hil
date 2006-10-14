@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: ipf.hil,v 1.2 2002-10-19 14:36:27 cla Exp $
+; $Id: ipf.hil,v 1.3 2006-10-14 21:44:59 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -35,6 +35,16 @@
 ; string  string  character   Col.
   &        .
 
+[URL]
+; Start   End     Escape     Start
+; string  string  character  position
+  http://   NONE:
+  https://  NONE:
+  ftp://    NONE:
+  mailto:   NONE:
+  www.      NONE:
+  ftp.      NONE:
+
 [ENDCHAR]
  .
 
@@ -47,43 +57,43 @@
 ; them as part of INSENSITIVE, so we'll have to call them SPECIAL
 ; using the colors for macros
 ; --- IPF control words
-.br DIRECTIVE
-.im DIRECTIVE
+.br         DIRECTIVE
+.im         DIRECTIVE
 
 ; --- keywords with attributes
-:acviewport .
-:artwork    .
-:caution    .
-:color      .
-:ctrl       .
-:ddf        .
-:dl         .
-:docprof    .
-:font       .
-:fn         .
-:h1         .
-:h2         .
-:h3         .
-:h4         .
-:h5         .
-:h6         .
-:hide       .
-:i1         .
-:i2         .
-:isyn       .
-:lines      .
-:link       .
-:lm         .
-:note       .
-:nt         .
-:ol         .
-:parml      .
-:pbutton    .
-:rm         .
-:sl         .
-:table      .
-:ul         .
-:warning    .
+:acviewport
+:artwork
+:caution
+:color
+:ctrl
+:ddf
+:dl
+:docprof
+:font
+:fn         SECTION
+:h1         DOCUMENT
+:h2         SECTION
+:h3         SECTION
+:h4         SECTION
+:h5         SECTION
+:h6         SECTION
+:hide
+:i1
+:i2
+:isyn
+:lines
+:link
+:lm
+:note
+:nt
+:ol
+:parml
+:pbutton
+:rm
+:sl
+:table
+:ul
+:warning
 
 ; --- keywords without attributes
 :artlink.
@@ -119,7 +129,7 @@
 :esl.
 :etable.
 :eul.
-:euserdoc.
+:euserdoc.  DOCUMENT
 :ewarning.
 :exmp.
 :fig.
@@ -140,6 +150,6 @@
 :pd.
 :pt.
 :row.
-:title.
-:userdoc.
+:title.     DOCUMENT
+:userdoc.   DOCUMENT
 :xmp.
