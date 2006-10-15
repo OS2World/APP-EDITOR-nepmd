@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.32 2006-10-07 19:16:36 aschn Exp $
+* $Id: stdkeys.e,v 1.33 2006-10-15 08:00:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -217,9 +217,9 @@ def c_h           'kwhelp'              -- Lookup current word in a help file
 def a_h           'MyAssist'            -- ASSIST.E: insert code for abbreviations left from cursor
 
 ; ---- Bracket matching or expansion ----
-def c_leftbracket 'passist'             -- Move cursor on matching bracket or statement
-def c_rightbracket 'passist'            -- Move cursor on matching bracket or statement
-def c_8           'passist'             -- Move cursor on matching bracket or statement
+def c_leftbracket 'Assist'              -- Move cursor on matching bracket or statement
+def c_rightbracket 'Assist'             -- Move cursor on matching bracket or statement
+def c_8           'Assist'              -- Move cursor on matching bracket or statement
 def '('           'OpeningParen'        -- Add ) while typing ( if defined as match_chars
 def '['           'OpeningBracket'      -- Add ] while typing [ if defined as match_chars
 def '{'           'OpeningBrace'        -- Add } while typing { if defined as match_chars
