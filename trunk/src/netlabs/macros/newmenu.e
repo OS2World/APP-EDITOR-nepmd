@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.37 2006-05-07 19:24:16 aschn Exp $
+* $Id: newmenu.e,v 1.38 2006-10-15 08:00:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1487,7 +1487,7 @@ defproc add_search_menu(menuname)
 */
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Find b~racket'\9 || CTRL_KEY__MSG'+[ | 'CTRL_KEY__MSG'+8',     -- Find bracket
-                                   'passist' ||
+                                   'Assist' ||
                                    \1'Find matching environment expression',
                                    MIS_TEXT, 0
    i = i + 1;
