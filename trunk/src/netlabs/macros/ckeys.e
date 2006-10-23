@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.17 2006-08-28 16:40:35 aschn Exp $
+* $Id: ckeys.e,v 1.18 2006-10-23 16:41:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -845,7 +845,7 @@ defproc c_second_expansion
          fFound = 0
          startl = .line - 1
          do l = startl to 1 by -1
-            if l < startl - 100 then  -- search only 100 next lines
+            if l < startl - 200 then  -- search only 200 next lines
                leave
             endif
             getline linel, l
