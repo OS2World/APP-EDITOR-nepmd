@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.15 2006-08-28 16:40:37 aschn Exp $
+* $Id: rexxkeys.e,v 1.16 2006-10-23 16:38:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -368,11 +368,18 @@ defproc rex_second_expansion
                endif
                getline linel, l
                next = word( translate( upcase(linel), ' ', \t), 1)
+               -- Ignore empty lines
+               if next = '' then
+                  iterate
                -- Search for first word
-               if wordpos( word( next, 1), 'END END;') then
+               elseif wordpos( word( next, 1), 'END END;') then
                   endl = l
                   endp = pos( 'END', translate(linel))
                   --sayerror 'end line = 'endl' ['linel']'
+                  leave
+               -- Break if next found word is not END (then it can't come
+               -- from DO's first expansion, which adds an END just after DO).
+               else
                   leave
                endif
             enddo
@@ -445,7 +452,7 @@ defproc rex_second_expansion
          fFound = 0
          startl = .line + 1
          do l = startl to .last
-            if l > startl + 100 then  -- search only 100 next lines
+            if l > startl + 200 then  -- search only 200 next lines
                leave
             endif
             getline linel, l
