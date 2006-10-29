@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.20 2006-05-07 14:47:51 aschn Exp $
+* $Id: alt_1.e,v 1.21 2006-10-29 23:53:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -154,31 +154,37 @@ compile endif
    -- edit filename on current text line
    getline line
    orig_line = line
+   SearchPath = '%INCLUDE%;%PATH%'  -- default search path
+   CurMode = GetMode()
+   if CurMode = 'E' then
+      SearchPath = '%EPMPATH%'   -- for E macros
+   endif
 
    -------------------------------------------------------------------------- shell or .DOS DIR
    -- todo: enable saved .command_shells as well  <-- also for mode = SHELL, to re-use them
    call psave_pos(save_pos)
    getsearch oldsearch
-   cmd = ''
+   Cmd = ''
    if IsAShell() then
       -- search (reverse) in command shell window for the prompt and retrieve the current directory and
       --    the cmd and its parameters
       -- goto previous prompt line
       ret = ShellGotoNextPrompt( 'P')
-      curdir = ''
-      cmd = ''
+      ShellDir = ''
       Params = ''
       if not ret then
-         call ShellParsePromptLine( curdir, cmd)
-         parse value cmd with cmd Params
+         call ShellParsePromptLine( ShellDir, Cmd)
+         parse value Cmd with Cmd Params
       endif
+      -- search in shell dir
+      SearchPath = ShellDir';%PATH%'
       setsearch oldsearch
       call prestore_pos(save_pos)
    elseif upcase( leftstr( .filename, 8)) = '.DOS DIR' then
       -- if a .DOS DIR window,
       parse value upcase(.filename) with '.DOS DIR' Params  -- retrieve params from the title
-      cmd = 'DIR'
-      curdir = directory() -- set current directory
+      Cmd = 'DIR'
+      CurDir = directory() -- set current directory
    endif
 
    if upcase(cmd) = 'DIR' then  -- if "dir" executed as last cmd in .command_shell_ or if .DOS DIR
@@ -283,7 +289,9 @@ compile endif
          endif
 
          -- Build FullName from Dir and Name
-         if rightstr( Dir, 1) = ':' then  -- if drive without a path
+         if substr( Name, 2, 2) = ':\' | substr( Name, 1, 2) = '\\' then  -- if fully qualified
+            FullName = Name
+         elseif rightstr( Dir, 1) = ':' then  -- if drive without a path
             FullName = Dir''Name
          else
             FullName = strip( Dir, 'T', '\')'\'Name
@@ -481,7 +489,6 @@ compile endif  -- HOST_SUPPORT
    -- include support
    -- should work with any preprocesor, filetype, past  to future
    -- set 'ESEARCH' to search other directories
-   CurMode = GetMode()
    parse value lowcase( line) with word1 word2 .
    if rightstr( word1, 7) = 'include' then  -- if first word ends in "include"
       delim = leftstr( word2, 1)
@@ -492,26 +499,18 @@ compile endif  -- HOST_SUPPORT
          parse value line with . '<' filename '>' .
          if CurMode = 'C' then
             fTryCurFirst = 0
+;             if lowcase('  ' || rightstr(filename, 2)) <> '.h' then  JBSQ: Support new C++ includes w/o '.h'?
+;                filename = filename || '.h'
+;             endif
          endif
       else
          filename = word2   -- file has no delimiters, eg. MAK !include  file
       endif
-      if CurMode = 'E' then
-         path = 'EPMPATH'   -- for E macros
-      elseif CurMode = 'MAKE' then
-         path = 'PATH'      -- for make files
-/*
-; This TeX support is not very useful:
-;   o  emTeX pathes may have "!" for recusive search appended.
-;   o  VTeX has become the standard OS/2 TeX system in the meantime.
-;   o  VTeX uses an ini, not env vars.
-      elseif CurMode = 'TEX' then
-         path = 'TEXINPUT'  -- for TEX files
-*/
-      else
-         path = 'INCLUDE'   -- for C RC DLG MAK etc, all others PPWIZARD etc.
+
+      if AltOnePathVar > '' then
+         SearchPath = SearchPath';%'AltOnePathVar'%'
       endif
-      call a1load( filename, path, fTryCurFirst)
+      call a1load( filename, SearchPath, fTryCurFirst)
       if rc = 0 then
          return
       endif
@@ -531,19 +530,19 @@ compile endif  -- HOST_SUPPORT
                leave
             endif
          endfor
-         call a1load( file, AltOnePathVar, 1)
+         call a1load( file, SearchPath, 1)
          top
-         'L /'infunc; if rc then return; endif
-         'L /'func;   if rc then return; endif
+         'xcom l /'infunc; if rc then return; endif
+         'xcom l /'func;   if rc then return; endif
          sayerror 'Found 'func' in 'infunc' in 'file'.'
       else                               -- parent line
          parse value line with func linenum file
          if linenum = '#' then           -- might have a '#' in 2nd column
             parse value file with linenum file
          endif
-         call a1load( file, AltOnePathVar, 1)
+         call a1load( file, SearchPath, 1)
          top
-         'L /'func; if rc then return; endif
+         'xcom l /'func; if rc then return; endif
          sayerror 'Found 'func' in 'file'.'
       endif
       return
@@ -675,7 +674,7 @@ compile endif  -- HOST_SUPPORT
          getline newline
          call prestore_pos(save_pos)
          parse value newline with "==> " filename " <=="
-         call a1load( filename, AltOnePathVar, 1)
+         call a1load( filename, SearchPath, 1)
 ;;compile if 1                                                -- LAM:  I use /L
 ;  Now supports both; if line starts with a number, assume /L; if not, do search.
          parse value orig_line with num ')'
@@ -695,7 +694,7 @@ compile endif  -- HOST_SUPPORT
          parse value orig_line with "==>" tempstr
          if tempstr = ''  then
             -- Let it be hilighted by the built-in stuff...
-            'postme l '\158''orig_line\158'eaf+'          /* ALT-158 is the search delim */
+            'postme xcom l '\158''orig_line\158'eaf+'          /* ALT-158 is the search delim */
             if rc then
                sayerror substr( line, 1, 60)'. . . Not Found!'
             endif
@@ -711,7 +710,7 @@ compile endif  -- HOST_SUPPORT
       parse value line with name '.' ext 13 52 path
       if substr(line,9,1)='.' & substr(line,53,1)=':' then
          if length(path) > 3 then path = path'\'; endif
-         call a1load(path || strip(name)'.'ext,AltOnePathVar,0)
+         call a1load( path''strip(name)'.'ext, SearchPath, 0)
          return
       endif
    endif
@@ -739,7 +738,6 @@ compile endif  -- HOST_SUPPORT
    -------------------------------------------------------------------------- word under cursor
    -- todo: support spaces in filenames and pathes
 
-   CurMode = GetMode()
    StartCol = 0
    EndCol   = 0
    SeparatorList = '"'||"'"||'(){}[]<>,;|+ '\9'#='
@@ -798,15 +796,8 @@ compile endif  -- HOST_SUPPORT
          SpecExt = upcase(SpecExt)
       endif
 
-      PathVar = 'PATH'
-      if CurMode = 'E' | wordpos( SpecExt, 'E') > 0 then
-         PathVar = 'EPMPATH'
-      elseif CurMode = 'TEX' | wordpos( SpecExt, 'TEX') > 0 then
-         PathVar = 'TEXINPUT'
-      endif
-
       fTryCurFirst = 1  -- 1 ==> search in current dir first
-      call a1load( Spec, PathVar, fTryCurFirst)
+      call a1load( Spec, SearchPath, fTryCurFirst)
    endif
 /**
    if fWordFound = 0 or rc <> 0 then
@@ -820,9 +811,8 @@ compile endif  -- HOST_SUPPORT
             (delim = "'" or delim = '"') then
             Spec = strip(word2, 'B', delim)
             fWordFound = 1
-            call a1load(Spec, 'EPMPATH', fTryCurFirst)    -- For E files
-         else
-            if (CurMode = 'C' or CurMode = 'RC') and word1 = '#include' and
+            call a1load(Spec, '%EPMPATH%', fTryCurFirst)    -- For E files
+         elseif (CurMode = 'C' or CurMode = 'RC') and word1 = '#include' and
                (delim = '"' or delim = "'" or delim = '<') then
                Spec = strip(word2, 'B', delim)
                fWordFound = 1
@@ -830,7 +820,7 @@ compile endif  -- HOST_SUPPORT
                   parse value word2 with '<'Spec'>'
                   fTryCurFirst = 0                 -- reset on C/C++ #include <...>
                endif
-               call a1load(Spec, 'INCLUDE', fTryCurFirst)    -- For C/C++ file
+               call a1load(Spec, '%INCLUDE%', fTryCurFirst)    -- For C/C++ file
             endif
          endif
       endif
@@ -840,7 +830,13 @@ compile endif  -- HOST_SUPPORT
       sayerror 'No filename under cursor'
    elseif rc <> 0 then
       -- Todo: give a better msg using a standard OS/2 rc.
-      sayerror 'File "'Spec'" cannot be found or loaded.'
+;       sayerror 'File "'Spec'" cannot be found or loaded.'
+      if NepmdDirExists(Spec) then
+         'dir "'Spec'"'
+      else
+         sayerror 'File "'Spec'" cannot be found or loaded.'
+      endif
+
       -- Todo: search in tree and remove maybe relative path
       -- from Spec or concatenate every path of the tree with
       -- Spec (should be resolved by NepmdQueryFullname).
@@ -856,11 +852,12 @@ compile endif  -- HOST_SUPPORT
 ; Sets rc > 0 for a standard error code, rc < 0 for an ETK error code, set
 ; by defc edit, or rc = 0 on success.
 ; FileName can be a name, including wildcards.
-; PathVar must be a name for a path, e.g. 'PATH'.
+; SearchPath may be a list of pathes, separated by ";". Env vars like
+; %INCLUDE% are resolved.
 ; fTryCurFirst as optional 3rd arg specifies, if current directory shall be
 ;    searched first (fTryCurFirst = 1). Default is to omit the search in
 ;    current dir.
-defproc a1load( FileName, PathVar)
+defproc a1load( FileName, SearchPath)
    fTryCurFirst = (arg(3) = 1)
    WildcardPos = verify( FileName, '*?', 'M')
 
@@ -887,7 +884,7 @@ defproc a1load( FileName, PathVar)
             endif
          endif
 
-         next = FindFileInList( FileName, Get_Env( PathVar))
+         next = FindFileInList( FileName, ResolveEnvVars( SearchPath))
          if next > '' then
             LoadName = next
             leave
