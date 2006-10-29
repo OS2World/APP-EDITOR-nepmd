@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.41 2006-10-07 19:11:09 aschn Exp $
+* $Id: mode.e,v 1.42 2006-10-29 23:41:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -319,14 +319,15 @@ defproc SelectMode()
 defproc QueryModeKey( Mode, Key)
    universal nepmd_hini
 
+   default_value = arg(3)
    PathPrefix = '\NEPMD\User\Mode'
    KeyPath = PathPrefix'\'Mode'\'Key
-   next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   next = strip( NepmdQueryConfigValue( nepmd_hini, KeyPath), 'T', \0)
    parse value next with 'ERROR:'rcx
    if rcx = '' then
       return next
    else
-      return ''
+      return default_value
    endif
 
 ; ---------------------------------------------------------------------------
