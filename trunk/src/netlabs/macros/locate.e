@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.25 2006-10-07 18:35:57 aschn Exp $
+* $Id: locate.e,v 1.26 2006-10-29 23:33:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -682,7 +682,7 @@ defc ringfind, ringf, ringlocate, ringl, globalfind, globalfindnext
          'highlightmatch'  -- postme not required, command instead of proc makes it
          display -8
          if fileid = StartFileID then
-            sayerror "String only found in this file"
+            sayerror "String only found in this file."
          else
             sayerror 0
          endif
@@ -694,7 +694,7 @@ defc ringfind, ringf, ringlocate, ringl, globalfind, globalfindnext
       endif
       if fileid = StartFileID then
          display -8
-         sayerror "String not found in any file of the ring"
+         sayerror "String not found in any file of the ring."
          display 8
          leave
       endif
@@ -783,11 +783,11 @@ defc ToggleSearchDirection
    if Minuspos > Pluspos then  -- in searchoptions: the last option wins
       s_user_options = s_user_options'+F'
       c_user_options = c_user_options'+F'
-      sayerror 'Changed search direction to: forward'
+      sayerror 'Changed search direction to: forward.'
    else
       s_user_options = s_user_options'-R'
       c_user_options = c_user_options'-R'
-      sayerror 'Changed search direction to: backward'
+      sayerror 'Changed search direction to: backward.'
    endif
    lastsearchargs = s_delim''s_search_string''s_delim''s_user_options
    lastchangeargs = c_delim''c_search_string''c_delim''c_replace_string''c_delim''c_user_options
@@ -1039,7 +1039,7 @@ defproc GetGrepVersion
 defc Grep
    fGnu = GetGrepVersion( 'INIT')
    if fGnu = 2 then
-      sayerror 'Error: 'GREP_EXE' not found in PATH'
+      sayerror 'Error: 'GREP_EXE' not found in PATH.'
       rc = 2
    else
       rc = callgrep( fGnu, arg(1))
@@ -1055,7 +1055,7 @@ defc GrepBox
    else
       fGnu = GetGrepVersion( 'INIT')
       if fGnu = 2 then
-         sayerror 'Error: 'GREP_EXE' not found in PATH'
+         sayerror 'Error: 'GREP_EXE' not found in PATH.'
          return 2
       endif
    endif
@@ -1066,7 +1066,7 @@ defc GrepBox
       DefaultGrepOpt = RY_GREP_OPTIONS
    endif
    Title = 'Scan for text in files'
-   Text  = 'Enter string (in quotes if it contains spaces) and file spec.'
+   Text  = 'Enter string (in quotes if it contains spaces) and file spec:'
    DefaultValue  = DefaultGrepOpt' '
    DefaultButton = 1
 
@@ -1156,7 +1156,9 @@ defproc CallGrep
    if words( grepargs) < 2 then
       sayerror 'Syntax: grep [options] pattern filemask  (default options = 'defaultgrepopt')'
    elseif fVerbose then
-      sayerror 'Use Alt+1 to load the file under cursor.'
+      display -8  -- Messages go to the messageline only, they were not saved
+      sayerror ALT_1_LOAD__MSG
+      display 8
    endif
    return rc
    --display 8
@@ -1179,11 +1181,13 @@ defproc redirect_grep( fGnu, Cmd)
    endif
 
    'edit' outfile
-   if rc = -282 then 'xcom quit'  -- sayerror('New file')
-      return -282
-   elseif rc <> 0 then
+   if rc = -282 then
+      'xcom quit'  -- sayerror('New file')
+   endif
+   if rc <> 0 then
       return rc
    endif
+
    .autosave = 0
    .filename = '.Output from grep' arg(3)
 
@@ -1204,10 +1208,16 @@ defproc redirect_grep( fGnu, Cmd)
 ; output: a grep window showing all matches suitable for use with ALT+1
 defc MacGrep
    RootDir = NepmdScanEnv( 'NEPMD_ROOTDIR')
-   UserDir = NepmdScanEnv( 'NEPMD_ROOTDIR')
-   FileMask = RootDir'\netlabs\macros\*.e' UserDir'\macros\*.e'
+   UserDir = NepmdScanEnv( 'NEPMD_USERDIR')
+   FileMask = UserDir'\macros\*.e' RootDir'\netlabs\macros\*.e'
    'grep' GNU_GREP_OPTIONS arg(1) FileMask
-   sayerror 'rc from grep = 'rc
+   if rc > 0 then
+      sayerror 'rc from grep = 'rc
+   else
+      display -8  -- Messages go to the messageline only, they were not saved
+      sayerror ALT_1_LOAD__MSG
+      display 8
+   endif
 
 ; ---------------------------------------------------------------------------
 defc findmark
@@ -1239,14 +1249,14 @@ defc GfcCurrentFile
    RootDir = NepmdScanEnv('NEPMD_ROOTDIR')
    parse value RootDir with 'ERROR:'rc1
    if rc1 > '' then
-      sayerror 'Environment var NEPMD_ROOTDIR not set'
+      sayerror 'Environment var NEPMD_ROOTDIR not set.'
    endif
    NetlabsDir = RootDir'\netlabs'
 
    UserDir = NepmdScanEnv('NEPMD_USERDIR')
    parse value UserDir with 'ERROR:'rc2
    if rc2 > '' then
-      sayerror 'Environment var NEPMD_USERPATH not set'
+      sayerror 'Environment var NEPMD_USERPATH not set.'
    endif
 
    NetlabsDir = strip( NetlabsDir, 't', '\')
