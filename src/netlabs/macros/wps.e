@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wps.e,v 1.3 2004-06-04 00:13:45 aschn Exp $
+* $Id: wps.e,v 1.4 2006-10-29 23:35:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,14 +35,34 @@ defc OpenFolder
    if SetupString = '' then
       SetupString = 'OPEN=DEFAULT'
    endif
-   Filename = .filename
-   -- Get Dir of Filename
-   p = lastpos( '\', Filename)
-   if p > 1 then
-      Dir = substr( Filename, 1, p - 1)
-   else
-      Dir = Filename'\..'
+   Dir = ''
+
+   if IsAShell() then
+      call psave_pos(save_pos)
+      -- search (reverse) in command shell window for the prompt and
+      -- retrieve the current directory
+      -- goto previous prompt line
+      ret = ShellGotoNextPrompt( 'P')
+      ShellDir = ''
+      Cmd = ''
+      if not ret then
+         call ShellParsePromptLine( ShellDir, Cmd)
+      endif
+      Dir = ShellDir
+      call prestore_pos(save_pos)
    endif
+
+   if Dir = '' then
+      Filename = .filename
+      -- Get Dir of Filename
+      p = lastpos( '\', Filename)
+      if p > 1 then
+         Dir = substr( Filename, 1, p - 1)
+      else
+         Dir = Filename'\..'
+      endif
+   endif
+
    'rx open 'Dir','SetupString
    return
 
