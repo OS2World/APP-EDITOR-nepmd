@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.14 2006-03-29 22:37:42 aschn Exp $
+* $Id: dosutil.e,v 1.15 2006-10-30 00:26:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -226,12 +226,33 @@ defc testbeep=
 ; ---------------------------------------------------------------------------
 ; jbl 12/30/88:  Provide DIR and other DOS-style query commands by redirecting
 ; output to a file.
-defc dir =
+defc dir
    parse arg fspec
    call parse_filename( fspec, .filename)
    dos_command('dir' fspec)
+   display -8  -- Messages go to the messageline only, they were not saved
    sayerror ALT_1_LOAD__MSG
+   display 8
    'postme monofont'
+
+; ---------------------------------------------------------------------------
+; Search a file spec in current dir recoursively and without dirs. List
+; output to load a found file with ALT+1.
+; Don't mix it up with the internally defined findfile procedure!
+defc list, findfile, filefind
+   spec = arg(1)
+   call parse_filename( spec, .filename)
+   'dir /b /s /a:-D' spec
+   if .last then
+      --.filename = '.DIR 'spec  -- disabled, better use complete call as title
+      if .last <= 2 & substr( textline(.last), 1, 8) = 'SYS0002:' then
+         'xcom q'
+         sayerror FILE_NOT_FOUND__MSG
+      endif
+   else
+      'xcom q'
+      sayerror FILE_NOT_FOUND__MSG
+   endif
 
 ; ---------------------------------------------------------------------------
 defc attrib =
