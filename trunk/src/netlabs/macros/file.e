@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.19 2006-03-29 23:54:03 aschn Exp $
+* $Id: file.e,v 1.20 2006-10-30 00:10:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -192,7 +192,16 @@ defc s, save=
          p2 = pos( '\', fn, p1 + 2)
          next = substr( fn, p1 + 2, max( p2 - p1 - 2, 0))
          if wordpos( upcase(next), 'NETLABS EPMBBS') then
+            newdir = UserDir || substr(fn, p2, lastpos('\', fn) - p2)
             newname = UserDir''substr( fn, p2)
+            p = length(UserDir)
+            while NepmdDirExists(newdir) = 0 do
+               p = pos('\', newdir || '\', p + 1)
+               dir = leftstr(newdir, p - 1)
+               if NepmdDirExists(dir) == 0 then
+                  rcx = MakeDirectory(dir)
+               endif
+            endwhile
             sayerror 'Better use the user tree for your own files'
             oldname = .filename
             .filename = newname               -- saveas_dlg starts with .filename
@@ -1569,4 +1578,12 @@ defproc QueryFileSys(Drive)
       return szFSDName
    endif
 
+defproc MakeDirectory(dirname)
+   dirname = dirname || \0
+   peaop2 = copies(\0, 4)
+   rc = dynalink32( 'DOSCALLS',             -- dynamic link library name
+                    '#270',                 -- ordinal value for Dos32CreateDir
+                    address(dirname)  ||    -- device name
+                    peaop2)
+   return rc
 
