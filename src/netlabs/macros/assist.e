@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.15 2006-10-07 20:31:23 aschn Exp $
+* $Id: assist.e,v 1.16 2006-10-30 00:05:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -89,6 +89,18 @@ Todo:
 ; Included TeX extensions for the passist procedure by Petr Mikulik from his
 ; PMCSTeX package.
 ; Added c_8 for german keyboards.
+
+;
+;    2006 changes: JBS
+;
+;    A major rework of the code
+;       Bugs were fixed
+;       More tokens are balanced, including the start and end points of multi-line comments
+;       More modes supported (PASCAL, FORTRAN, JAVA, WARPIN)
+;       Added initial stages of support for ADA, CSS, PERL, PHP
+;       Code was added to ensure tokens found within comments or literals were not matched
+;       Better variable names and code documentation
+;
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled.
    define INCLUDING_FILE = 'ASSIST.E'
@@ -256,7 +268,7 @@ defproc passist
          -- get the word under cursor and return startcol and endcol
          -- stop at separators = arg(3)
          -- stop at double char separators = arg(4)
-         if not find_token(startcol, endcol,  seps, '/* */') then
+         if not find_token(startcol, endcol,  seps, '/* */') then  -- JBSQ: Should /* */ be used for ALL modes?
             passist_rc = PASSIST_RC_NOT_ON_A_TOKEN
          else
             call dprintf("passist", "Initial token start,end: "startcol","endcol)
@@ -293,8 +305,8 @@ defproc passist
             id = substr(line, startcol, (endcol-startcol)+1)
             call dprintf("passist", "Token after preprocessing : '"id"' Startcol: "startcol" Endcol: "endcol)
 
-            -- JBSQ: What mode is the following for?
             --> IPF tags start with ':' and end with '.'
+            -- JBSQ: Since this is for IPF only, should it ne moved to the IPF portion of the code?
             -- if id = '.', then go 1 col left and search again
             if id='.' & .col > 1 then
                sayerror "id = '.'"
@@ -450,8 +462,40 @@ compile endif
 
             -- Mode(s): C, JAVA and RC     --------------------------------------------------------------
             elseif Curmode = 'C' or CurMode = 'JAVA' or CurMode = 'RC' then
+               -- JBSQ: Was this "if" left out on purpose?
+               if CurMode = 'C' then
+                  if wordpos(id, 'if ifdef ifndef endif else elif') > 0 then -- Check for "#   if", etc.
+                     .col = startcol
+                     if next_nonblank_noncomment_nonliteral(mode, '-R') = '#' then
+                        id = '#' || id
+                        startcol = .col
+                     endif
+                     call prestore_pos(savepos)
+                  endif
+               endif
                if 0 then
                   --placeholder
+               ---- Directive(s): #if #ifdef #ifndef #endif #else #elif    ---------------------
+               elseif wordpos(id, '#if #ifdef #ifndef #endif #else #elif') then
+                  if CurMode <> 'JAVA' then
+                     search = '\#[ \t]*\c((if((n?def)?))|endif)([ \t]|$)'
+                     if CurMode = 'C' then
+                        search = '^[ \t]*\c' || search
+                     elseif startcol = 1 then  -- RC directives must start in column one
+                        search = '^' || search
+                     else
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                     endif
+                     clist = substr(id, 2, 1)
+                     fForward = (clist = 'i')
+                     if fForward then  -- move to beginning
+                        .col = startcol
+                     else       -- move to end, so first Locate will hit this instance.
+                        .col = endcol
+                     endif
+                     -- coffset = 1
+                     fIntermediate = (substr(id, 3, 1) = 'l')
+                  endif
                ---- Keyword(s): do, try    ----------------------------------------------------
                elseif wordpos(id, 'do try') then
                   --  this code might be expanded to <anytoken> { .... }
@@ -959,9 +1003,7 @@ compile endif
                   search = '\\(begin|end)[ \t]*'
                   ---- LaTeX environment: \begin{...}, \end{...} -------------------------------------------
                   .col = endcol
-                  temp = next_nonblank_noncomment_nonliteral(CurMode)
-                  call dprintf("passist", "TEX: next nonblank...:" temp)
-                  if temp /* next_nonblank_noncomment_nonliteral(CurMode) */ == '{' then
+                  if next_nonblank_noncomment_nonliteral(CurMode) == '{' then
                      call dprintf('passist', 'TEX: found } at '.line .col)
                      temp = substr(textline(.line), .col)
                      p = pos('}', temp)
@@ -979,8 +1021,18 @@ compile endif
                      .col = endcol
                   endif
 
-               elseif wordpos(id, '\bgroup \begingroup \endgroup \egroup') > 0 then
-                  search = '\\(b(egin)?group|e(nd)?group)'
+               elseif id = '\bgroup' or id = '\egroup' then
+                  search = '\\(bgroup|egroup)'
+                  clist = substr(id, 2, 1)
+                  fForward = (clist = 'b')
+                  if fForward then
+                     .col = startcol
+                  else
+                     .col = endcol
+                  endif
+
+               elseif id = '\begingroup' or id = '\endgroup' then
+                  search = '\\(begingroup|endgroup)'
                   clist = substr(id, 2, 1)
                   fForward = (clist = 'b')
                   if fForward then
@@ -1145,12 +1197,13 @@ compile endif
 
          if fIntermediate then
             -- search begin of condition
-            setsearch 'xcom l '\1 || search || \1 || 'x' || case || direction
+            setsearch 'xcom l '\1''search\1'x'case''direction
             --'postme circleit' .line startcol endcol
          else
-            --'L '\1 || search\1'x'case||direction
-            --'xcom l '\1 || search || \1 || 'x' || case || direction
-            'l '\1''search\1'x'case''direction
+            'xcom l '\1''search\1'x'case''direction
+            if rc = 0 then  -- if found
+               call highlight_match()
+            endif
             --'postme circleit' .line startcol endcol  -- this one should not be highlighted
             -- designed for function_name(...)  <-- function_name is highlighted, not the ( and ).
          endif
@@ -1622,38 +1675,12 @@ compile endif
 ;     parameters. Each "word" of each these parameters represents the
 ;     start token, the end token and a flag indicating if theat MLC can
 ;     be nested within another.
-;
-;     Eventually this code will retrieve this information from an outside
-;     source.
 ; ---------------------------------------------------------------------------
 defproc GetMLCChars(mode, var MLCStartChars, var MLCEndChars, var MLCNestFLags)
-   MLCStartChars = ''         -- return indicating NO MLC's
-   if 0 then
-   -- placeholder
-   elseif mode = 'REXX' or mode = 'E' or mode = 'C' | mode = 'JAVA' | mode = 'RC' | mode= 'CSS' then
-      MLCStartChars = '/*'    -- get these from mode def, instead of hard-coding
-      MLCEndChars   = '*/'
-      if mode = 'C' or mode = 'RC' or mode = 'REXX' then
-         MLCNestFLags = '0'
-      else
-         MLCNestFlags = '1'
-      endif
-   elseif mode = 'PASCAL' then
-      MLCStartChars = '(* {'
-      MLCEndChars   = '*) }'
-      MLCNestFlags  = '1 1'
-   elseif mode = 'TEX' then --------------------------------------- TEX
-      MLCStartChars = '\iffalse'
-      MLCEndChars   = '\fi'
-      MLCNestFlags  = '1'
-   elseif mode = 'HTML' | mode = 'WARPIN' then -------------------- HTML WARPIN
-      MLCStartChars = '<!--'
-      MLCEndChars   = '-->'
-      MLCNestFlags  = '1'
-   elseif mode = 'PHP' then --------------------------------------- PHP
-      MLCStartChars = '<!-- /*'
-      MLCEndChars   = '--> */'
-      MLCNestFlags  = '1'
+   MLCStartChars = QueryModeKey(mode, 'MultiLineCommentStart')
+   if MLCStartChars <> '' then
+      MLCEndChars = QueryModeKey(mode, 'MultiLineCommentEnd')
+      MLCNestFlags = QueryModeKey(mode, 'MultiLineCommentNested', '0')
    endif
    return
 
@@ -1780,80 +1807,24 @@ defproc inside_oneline_comment(mode)
 ;           0: SLC can start anywhere on a line
 ;           1: SLC MUST start in column 1
 ;           F: SLC must be the first non-blank on the line
+;           <negative_number> : SLC must NOT start in this column (-6 mean SLC must NOT
+;              start in column 6)
 ;        A flag indicating if the token must be followed by a blank (SLCAddList)
 ;           0: No (i.e. ANY character may follow the start token
 ;           1: A blank must follow the token
 ;        A flag indicating if the SLC will "comment out" a closing MLC token (SLCOverrideMLCList)
 ;           0: No
 ;           1: Yes
-;
-;     Eventually this information will be retrieved from an external source.
 ; ---------------------------------------------------------------------------
 defproc GetSLCChars(mode, var SLCCharList, var SLCPosList, var SLCAddList, var SLCOverrideMLCList)
-   SLCCharList        = ''      -- default (return value for "no SLC's")
-   SLCPosList         = '0'     -- default
-   SLCAddList         = '0'     -- default
-   SLCOverrideMLCList = '0'     -- default
-   if mode = 'E' then
-      SLCCharList  = '; --'
-      SLCPosList   = '1 0'
-      SLCAddList   = '0 0'
-      SLCOverrideMLCList = '1 0'
-   elseif mode = 'C' | mode = 'JAVA' | mode = 'RC' then
-      SLCCharList  = '//'
-      SLCOverrideMLCList = '1'
-   elseif mode = 'PASCAL' then
-      SLCCharList  = '//'
-   elseif mode = 'DEF' then
-      SLCCharList  = ';'
-   elseif mode = 'MAKE' then
-      SLCCharList  = '#'
-      SLCPosList         = '1'
-      SLCOverrideMLCList = '1'
-   elseif mode = 'CMD' then
-      SLCCharList  = ': :: REM'
-      SLCPosList   = 'F F F'
-      SLCAddList   = '1 0 1'
-      SLCOverrideMLCList = '0 0 0'
-   elseif mode = 'CONFIGSYS' then
-      SLCCharList  = 'REM'
-      SLCPosList   = 'F'
-      SLCAddList   = '1'
-   elseif mode = 'INI' | mode = 'OBJGEN' then
-      SLCCharList  = ';'
-      SLCPosList   = 'F'
-   elseif mode = 'IPF' | mode = 'SCRIPT' then --------------------- IPF SCRIPT
-      SLCCharList  = '.*'
-      SLCPosList   = 'F'
-   elseif     mode = 'PERL' then -------------------------------------- PERL
-      SLCCharList  = '#'
-      SLCAddList   = '1'                      -- JBSQ: or 'F'?
-   elseif     mode = 'ADA' then --------------------------------------- ADA
-      SLCCharList  = '--'
-   elseif     mode = 'FORTRAN' then ----------------------------------- FORTRAN
-compile if USE_FORTRAN90_SLC = 1
-      SLCCharList  = 'c * !'
-      SLCPosList   = '1 1 0'
-      SLCAddList   = '0 0 0'
-compile else
-      SLCCharList  = 'c *'
-      SLCPosList   = '1 1'
-      SLCAddList   = '0 0'
-compile endif
-      SLCOverrideMLCList = '0 0 0'
-   elseif     mode = 'TEX' then --------------------------------------- TEX
-      SLCCharList  = '%'
-   elseif     mode = 'PHP' then --------------------------------------- PHP
-      SLCCharList  = '// #'
-      SLCPosList   = '0 0'
-      SLCOverrideMLCList = '0 0'
-   elseif     mode = 'BASIC' then ------------------------------------- BASIC
-      SLCCharList  = "' REM"
-      SLCPosList   = '1 1'
-      SLCAddList   = '0 1'
-      SLCOverrideMLCList = '0 0'
+   SLCCharList = QueryModeKey(mode, 'LineComment', '')
+   if SLCCharList <> '' then
+      SLCAddList = QueryModeKey(mode, 'LineCommentAddSpace', '0')
+      SLCPosList = QueryModeKey(mode, 'LineCommentPos', '0')
+      SLCOverrideMLCList = QueryModeKey(mode, 'LineCommentOverrideMulti', '0')
    endif
    return
+
 
 compile if COMM_VER = 2
 defproc cursorleft()
@@ -1896,7 +1867,8 @@ defproc next_nonblank_noncomment_nonliteral(mode)
          comment_rc = inside_comment2(mode, comment_data)
          --call dprintf("passist", "next pos: ".line",".col "Char: '"substr(textline(.line), .col, 1)'"' "comment_rc: "comment_rc)
          if not comment_rc then
-            return (substr(textline(.line), .col, 1))
+            retval = (substr(textline(.line), .col, 1))
+            leave
          elseif comment_rc = 1 then
             if direction = '+F' then
                endline
@@ -1915,11 +1887,13 @@ defproc next_nonblank_noncomment_nonliteral(mode)
             endif
          endif
       else
-         return ''
-      /*          */endif
+         retval = ''
+         leave
+      endif
    endloop
    setsearch savesearch
-   return
+   return retval
+
 ; ---------------------------------------------------------------------------
 ;  fortran_extract_text: In FORTRAN the text of interest to passist is
 ;     located only in columns 6-72.  (An exception is when FORTRAN90-style
@@ -2119,3 +2093,6 @@ defc t8
    SetAVar( 'debuglist', arg(1))
 compile endif
 
+defc jbst9
+   call GetSLCChars('E', a , b, c, d)
+   call GetMLCChars('E', a , b, c)
