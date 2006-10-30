@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.38 2006-10-15 08:00:12 aschn Exp $
+* $Id: newmenu.e,v 1.39 2006-10-30 00:23:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1487,7 +1487,7 @@ defproc add_search_menu(menuname)
 */
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Find b~racket'\9 || CTRL_KEY__MSG'+[ | 'CTRL_KEY__MSG'+8',     -- Find bracket
-                                   'Assist' ||
+                                   'passist' ||
                                    \1'Find matching environment expression',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -1653,7 +1653,7 @@ defproc add_view_menu(menuname)
                                 \1'Menus related to views, cursor pos and windows',
                                 0, 0  -- MIS must be 0 for submenu
    i = i + 1; call SetAVar( 'mid_menu', i);
-   buildmenuitem menuname, mid, i, '~Menu',                                                        -- Menu   >
+   buildmenuitem menuname, mid, i, 'M~enu',                                                        -- Menu   >
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
