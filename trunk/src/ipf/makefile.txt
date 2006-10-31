@@ -5,14 +5,14 @@
 .. source file for the INF file providing help for makefile
 .. Requires HyperText/2 package to compile
 ..
-.. Unlike the nepmd.inf, the makfile.inf is compiled to the bin subdirectory
+.. Unlike the nepmd.inf, the makefile.inf is compiled to the bin subdirectory
 .. and checked in to make it always available right after checking out.
 ..
 .. So when updating this file, commit also the changed INF file!
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.33 2006-07-06 18:46:55 aschn Exp $
+.. $Id: makefile.txt,v 1.34 2006-10-31 18:36:55 jbs Exp $
 ..
 .. ===========================================================================
 ..
@@ -122,7 +122,7 @@ The following pseudo targets are available:
 (Re)set NLS language identifier to default or the specified
   [.IDPNL_APPENDIX_LANGIDS three letter language identifier].
   To make things easier, the makefile allows also to set the language identifier
-  by just speficying the symbol *NLS=xxx* without any target.
+  by just specifying the symbol *NLS=xxx* without any target.
 .
   [=NOTE]
 .ul compact
@@ -353,7 +353,7 @@ As compiler the following are supported
 .. .............................................................................
 .an IDPNL_REQUIREMENTS_TOOLKIT
 .
-As toolkit one of the following is required:
+As toolkit, one of the following is required:
 .ul compact
 - *OS/2 Warp 3 Developer's Toolkit*
 - *OS/2 Warp 4 Developer's Toolkit*
@@ -363,7 +363,7 @@ As toolkit one of the following is required:
 .ul
 - Some 5.xx versions of *RC.EXE* are quite buggy and cause problems.
   Therefore you have to replace the *RC.EXE*, that comes with Toolkit 4.5x.
-  Older versions are ok.
+  Older versions are OK.
 .
 - You can use the Toolkit 4 version of *RC.EXE*, as
   recommended by the Warpzilla project:
@@ -497,7 +497,7 @@ For creating dependency files the FastDep utility is used.
 .ul
 - You can download *FastDep* from the *XWorkplace* project being hosted on the
   *Netlabs CVS Archive Server*. Get the *XWPHelpers* project files with a CVS client.
-  A binary is contained in the *xwhelpers* directory.
+  A binary is contained in the *xwphelpers* directory.
 - As an alternative, download a snapshot from
   - [ftp://ftp.netlabs.org/pub/snapshots/xwphelpers Netlabs ftp server]
 .
@@ -514,7 +514,7 @@ For checking unpacked EPM files the *grep* utility is used.
 [=NOTE]
 .ul
 - The *grep* utility is only required if you run *src\wis\makefile* with pseudo target
-  *check*. It is not mandandory in order to create the package itself.
+  *check*. It is not mandatory in order to create the package itself.
 - You can download *Grep v2.0* from
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=grep20 The Hobbes File Archive]
 .
@@ -523,7 +523,7 @@ For checking unpacked EPM files the *grep* utility is used.
 .
   This version has the advantage that it does not require the *EMX* runtime.
 - Any other version of *Gnu grep* should work as well, if a recent version of
-  *EMX* runtime is installed. (BTW: since v2.5 recoursive search is possible.)
+  *EMX* runtime is installed. (BTW: since v2.5 recursive search is possible.)
 - The IBM version, contained in the CSTEPM package, doesn't work.
 - *grep.exe* must be accessible by the PATH statement.
 
@@ -561,7 +561,7 @@ the WarpIN package the *touch* utility out of the *GNU file utilities* is used.
 - The *touch* utility is only required if you adjust the timestamps. In order
   to do that, either
 .ul compact
-  - specify *TOUCH=1* as parameter to *nmmake* or
+  - specify *TOUCH=1* as parameter to *nmake* or
   - set the environment variable *TOUCH=1* before calling *nmake*.
 - You can download the *GNU file utilities* from
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=GNU+file+utilities The Hobbes File Archive]
@@ -630,7 +630,7 @@ The following directories currently exist in the CVS development tree:
 ³ ÃÄold           unused files - for comparison only
 ³ ³
 ³ ÃÄrexx          installation files being executed after unpacking
-³ ³               (these files are converted to EXE files just for avoiding
+³ ³               (these files are converted to EXE files to avoiding
 ³ ³               the annoying VIO window being popupped otherwise)
 ³ ÃÄstatus        outdated project status list
 ³ ³ ÀÄdb
@@ -774,7 +774,7 @@ configured before executing *nmake* to build the complete package.
 .
   [=NOTE]
 .ul compact
-  - This value has to be specified in the *WapIn* package ID style: <major>\<minor>\<revision>
+  - This value has to be specified in the *WarpIn* package ID style: <major>\<minor>\<revision>
 .el
 .
 
@@ -922,9 +922,9 @@ The following rules apply to documentation comments:
     hyperlinks. In order to use those characters within the example code,
     just repeat the character, as each escape character escapes itself.
   - also make sure that no line begins with a dot,
-    because that may be interpretet as a HyperText command.
+    because that may be interpreted as a HyperText command.
   - for to print text in non-formatted style, you may want to use the .FORMAT
-    command of HyperText/2, switching formating off and later on again.
+    command of HyperText/2, switching formatting off and later on again.
 .at
 - the last comment is closed with the [.IDPNL_APPENDIX_DOCCOMMENTS_ENDMARKER],
   that is one word with two *@* characters
@@ -938,7 +938,7 @@ The following rules apply to documentation comments:
 .an IDPNL_APPENDIX_DOCCOMMENTS_LINKAGE
 .
 It may be very useful to link between panels created by documentation
-comments. Wehn doing this, keep in mind that the text included in these
+comments. When doing this, keep in mind that the text included in these
 panels must be compatible to the [.IDPNL_REQUIREMENTS_HTEXT] syntax,
 so that a link is easily created by the following syntax:
 .fo off
@@ -949,11 +949,11 @@ so that a link is easily created by the following syntax:
 where *anchorname* is the name of the anchor being set for a panel
 by the *.ANCHOR* command that has been generated by
 [.IDPNL_APPENDIX_DOCCOMMENTS_GENERAL escansrc.cmd].
-The above example would look likethis (here with a dead link though):
+The above example would look like this (here with a dead link though):
 
 This is a link to a panel: [.IDPNL_APPENDIX_DOCCOMMENTS_LINKAGE linktext as much as you want]
 
-The anchor names being used for the generated part of the online help cosinst
+The anchor names being used for the generated part of the online help consist
 of the following:
 .ul compact
 - the basename *IDPNL__EFUNC__*
@@ -961,12 +961,12 @@ of the following:
 - the type name of the comment (like [.IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX],
   [.IDPNL_APPENDIX_DOCCOMMENTS_PARM], .etc.)
 - if it is a link to a dedicated parameter section, an additional underscore
-  plus the name of the parameter un uppercase characters
+  plus the name of the parameter in uppercase characters
 
 The following examples show you how to write a link in [.IDPNL_REQUIREMENTS_HTEXT] syntax,
 but without specifying a link text (so these examples would display the title of the linked
 panel instead, which would mostly not be useful in this case). Just include the link text
-beween the anchorname (sparated by a space character) and the closing square bracket:
+between the anchorname (separated by a space character) and the closing square bracket:
 .pl tsize=3
 - [[.IDPNL__EFUNC__NEPMDWRITESTRINGEA]]
 = links main panel of function NepmdWriteStringEa
@@ -1024,11 +1024,11 @@ ResultValue = MyFunction( Parm1, Parm2, Parm3);
 .. .............................................................................
 .an IDPNL_APPENDIX_DOCCOMMENTS_SYNTAX
 .
-The syntax comment specifies the text to be displayed in the *Syntax* supanel for
+The syntax comment specifies the text to be displayed in the *Syntax* panel for
 the specified function.
 
 Please don't take the text in the below example too serious, your explanation for
-a function should be much more senseful.
+a function should be much more sensible.
 
 If you have very important remarks to state, you may want to insert these also here,
 but for remarks longer than one sentence you should use the optional
@@ -1058,9 +1058,9 @@ should be included.
 
 [=NOTE]
 .ul compact
-- this comment does not specifiy text, but instead requires the category
+- this comment does not specify text, but instead requires the category
   name appended to the comment name!
-- The main source file fo the online help must include a .SET command to
+- The main source file for the online help must include a .SET command to
   define the title for a category, where the name of the setting must be
   *CATEGORY__*#categoryname#
 
@@ -1187,7 +1187,7 @@ snippet for usage of the specified function.
 
 
 .. .............................................................................
-.3 Documention comment end marker
+.3 Documentation comment end marker
 .. .............................................................................
 .an IDPNL_APPENDIX_DOCCOMMENTS_ENDMARKER
 .
@@ -1201,7 +1201,7 @@ at the end of the last documentation comment.
 
 @@MyFunction@RETURNS
 This is the last documentation comment and has to be
-followed by a documention comment end marker of
+followed by a documentation comment end marker of
 two @ characters, see following line:
 @@
 
