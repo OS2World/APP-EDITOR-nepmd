@@ -1,16 +1,16 @@
 ..
 .. Module Name: guide.inc
 ..
-.. source inlude file for the INF file providing help for makefile
+.. source include file for the INF file providing help for makefile
 ..
-.. Unlike the nepmd.inf, the makfile.inf is compiled to the bin subdirectory
+.. Unlike the nepmd.inf, the makefile.inf is compiled to the bin subdirectory
 .. and checked in to make it always available right after checking out.
 ..
 .. So when updating this file, commit also the changed INF file!
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: guide.inc,v 1.3 2006-04-15 11:38:56 aschn Exp $
+.. $Id: guide.inc,v 1.4 2006-10-31 18:36:56 jbs Exp $
 ..
 .. ===========================================================================
 ..
@@ -69,7 +69,7 @@ All non-binary source files are to include a GNU header at its top in the
 comment style according to the filetype. See the available header templates
 for different file types in subdirectory [.IDPNL_DEVTREE src\header], it
 contains headers for all currently used filetypes. As *CVS* cannot handle
-true OS/2 filetypes, files can be distrinct between by filename extensions only.
+true OS/2 filetypes, files can be distinct between by filename extensions only.
 
 When you copy a header template to a file
 .ul compact
@@ -86,7 +86,7 @@ When you copy a header template to a file
 .at
    For that within the directory *src\header*
    - create a copy of an existing template with the new filename extension
-   - modify it to your needs, if neccessary (there may exist already an appropriate one)
+   - modify it to your needs, if necessary (there may exist already an appropriate one)
    - test it with the new source file first
    - commit the new template to the archive.
 
@@ -96,15 +96,15 @@ When you copy a header template to a file
 .an IDPNL_CVSGUIDE_COMCOMMENTS
 .
 The title says it all: try to find a way not to write too little or too much.
-Moreover, dont write what you changed (example: changed sixth parameter to DosOpen)
-but what you intended with the change (example: let acces to file fail if it exists).
+Moreover, don't write what you changed (example: changed sixth parameter to DosOpen)
+but what you intended with the change (example: let access to file fail if it exists).
 
 Moreover, things get easier if you commit changes as often as possible (see also
 very important section [.IDPNL_CVSGUIDE_SMALLUNITS] in order to keep the changelog
 short!).
 
 If you commit changes, please always layout the commit comment as a bullet list.
-To make the changelog look better, even inlcude a bullet when there is only one
+To make the changelog look better, even include a bullet when there is only one
 list item. For example the log of bin\create.cmd
 contains
 .fo off
@@ -135,32 +135,32 @@ date: 2002/04/16 21:21:00;  author: cla;  state: Exp;  lines: +15 -9
 - For revision 1.3 I committed only one modification, but still included
   a bullet to keep the layout
 - For revision 1.8 I also committed only one modification and also
-  here included a bullet. Furthermore I kept the layout accross lines.
+  here included a bullet. Furthermore I kept the layout across lines.
 
 .. -----------------------------------------------------------------------------
 .3 Start clean away
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_STARTCLEAN
 .
-It is good practise to start every modification task either with
+It is good practice to start every modification task either with
 .ul compact
 - a clean working directory (well, at least this is easy as long the
   [=TITLE] archive is that small)
 - an updated working directory. When calling *cvs co .* in your working
-  directory, no line should be preceeded by a *?* except for the compile
-  directory and absolutely no filename should be preceeded by a *M*, meaning
+  directory, no line should be preceded by a *?* except for the compile
+  directory and absolutely no filename should be proceeded by a *M*, meaning
   that still a modified version of the file is sitting on your hardfile
   (then it is time to "clean up")
 
-It is also good practise to finish work with an update operation *cvs co .*
-This helps you to mak sure that all code changes that you may have applied, are
+It is also good practice to finish work with an update operation *cvs co .*
+This helps you to make sure that all code changes that you may have applied, are
 committed to the archive. Don't leave uncommitted code on you hardfile any
 longer as necessary, or you run into merge operations.
 
 If you fear to commit non-working code though, either
 .ul compact
 - you did not plan your work well  or
-- your modification task may be too large or takte too much time to code or test
+- your modification task may be too large or take too much time to code or test
   for a normal development cycle. So you may need a [.IDPNL_CVSGUIDE_BRANCHES CVS branch]
   in order to develop separately from the  main development path. But using branches
   to separate different development paths are mostly used on large *CVS* archives
@@ -171,10 +171,10 @@ If you fear to commit non-working code though, either
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_WORKINGCODE
 .
-It is very bad practise to commit non-working code to the archive.
+It is very bad practice to commit non-working code to the archive.
 
 Wherever that is not possible to avoid or where you are not sure
-about wether your changes work well, try either to
+about whether your changes work well, try either to
 .ul compact
 - comment out or *##ifdef* the code you are not sure about
 - tell project members via mail
@@ -193,26 +193,26 @@ about wether your changes work well, try either to
 .
 In order to allow somebody else (or even yourself after some time) to figure
 out, what changes have been committed to the archive, check in as often and as
-fast as possible. Tht requires that you well separate tasks from each other
-and as a benefit do not run into merge operations when commiting your changes.
+fast as possible. This requires that you well separate tasks from each other
+and as a benefit do not run into merge operations when committing your changes.
 
 So commit little changes and commit fast, or at least one
 of that. This is called having *small units of work*.
 
-A good thumbrule for that is:
+A good rule of thumb:
 .ul compact
 - commit as few modifications together as possible. If two modification tasks
   (not code changes!) can be logically separated from each other, commit separately!
 - if you require to change several files for one modification, commit them together
   after that!
   - Only that will result in all changed files appearing in one entry of the change log
-    (even commiting different files with the same change comment in spearate steps will
+    (even committing different files with the same change comment in separate steps will
     result in several change log entries due to the different timestamp).
   - as a good side this forces you to restrict your units or work to only one or few
-    modification tasks at a time that concern all te files checked in together
+    modification tasks at a time that concern all the files checked in together
 - if you make changes to only one file, you may commit changes for several
   modification tasks at a time, resulting in multiple items within the commit comment,
-  but that is no good practise. The command *cvs diff* is used to diff (compare)
+  but that is not good practice. The command *cvs diff* is used to diff (compare)
   revisions with each other - if you commit changes for more than two larger modifications,
   only you may be able to know which code change applies to which modification when
   using *cvs diff*.
@@ -242,9 +242,9 @@ It is project policy that
 - generally only the release maintainer is to create branches for releases
 - while the [=TITLE] archive has no basic module requiring larger development
   cycles no branches are required for this
-- if you ever think you require branches, ask the release maintiner for it
+- if you ever think you require branches, ask the release maintainer for it
 
-So as a thumb rule: DON'T CREATE BRANCHES YOURSELF!
+So as a rule of thumb: DON'T CREATE BRANCHES YOURSELF!
 
 .. -----------------------------------------------------------------------------
 .3 How to ship a release
@@ -261,7 +261,7 @@ everybody an overview. A release is packed as follows:
   in order to checkout a complete release later on
 - the package is built and tested
 - if necessary, the release maintainer creates
-  [.IDPNL_CVSGUIDE_FIXRELEASE fixes for the relase],
+  [.IDPNL_CVSGUIDE_FIXRELEASE fixes for the release],
   if possible (else in cooperation with the responsible developer)
 - the resulting package is previewed by selected developers
 - the package is shipped
@@ -285,7 +285,7 @@ A release fix is applied as follows:
 
 [=NOTE]
 .ul compact
-- it is project policy to avoid fixes to publicly released packages, as
+- It is project policy to avoid fixes to publicly released packages, as
   always the complete *WarpIN* package is to be shipped. So normally
   the fix procedure can only be used while a release is not yet
   published to the public, otherwise it is like releasing a new version.
