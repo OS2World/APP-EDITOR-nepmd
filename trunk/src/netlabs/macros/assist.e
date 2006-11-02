@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.16 2006-10-30 00:05:03 aschn Exp $
+* $Id: assist.e,v 1.17 2006-11-02 14:54:48 jbs Exp $
 *
 * ===========================================================================
 *
@@ -22,12 +22,11 @@
 /*
 Changed:
 -  Moved external procs.
--  Reactivated highlighting of the found string (by using 'l' instead of
-   'xcom l').
+-  Reactivated highlighting of the found string (by using highlight_mark)
 -  Return rc for passist proc.
 
 Todo:
--  Speed improvement: Better search for both, the opening and clothing
+-  Speed improvement: Better search for both, the opening and closing
    string. If the found string is the same as the string under cursor, then
    stop, because the string under cursor must be unmatched.
 -  Optional: if corresponding string is not on screen, just give a msg
@@ -162,6 +161,7 @@ COMM_VER          = 3   -- 3 array, 2 "new, broken nested" code, 1 = "old, almos
 USE_NMAKE32       = 1   -- 0 means do not accept NMAKE32-specific directives
 USE_FORTRAN90_SLC = 1   -- 0 means disregard FORTRAN90 SLC: '!'
 
+
 defc assist, passist
    call passist()
 
@@ -188,9 +188,8 @@ defproc passist
    call psave_pos(savepos)                  -- Save the cursor location
    getsearch search_command                 -- Save user's search command.
    call dprintf("passist", "Initial cursor: ".line",".col)
-
-   CurMode      = NepmdGetMode()
-   passist_rc = inside_comment2(CurMode, comment_data)
+   CurMode     = NepmdGetMode()
+   passist_rc  = inside_comment2(CurMode, comment_data)
    call dprintf("passist", "comment return:" passist_rc comment_data)
    if passist_rc = PASSIST_RC_IN_MULTILINE_COMMENT then
       parse value comment_data with CommentStartLine CommentStartCol CommentStartLen CommentEndLine CommentEndCol CommentEndLen
@@ -460,8 +459,8 @@ compile endif
                   passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                endif
 
-            -- Mode(s): C, JAVA and RC     --------------------------------------------------------------
-            elseif Curmode = 'C' or CurMode = 'JAVA' or CurMode = 'RC' then
+            -- Mode(s): C, JAVA JAVASCRIPT and RC    -------------------------------------------
+            elseif wordpos(Curmode, 'C JAVA RC JAVASCRIPT') > 0 then
                -- JBSQ: Was this "if" left out on purpose?
                if CurMode = 'C' then
                   if wordpos(id, 'if ifdef ifndef endif else elif') > 0 then -- Check for "#   if", etc.
@@ -477,7 +476,7 @@ compile endif
                   --placeholder
                ---- Directive(s): #if #ifdef #ifndef #endif #else #elif    ---------------------
                elseif wordpos(id, '#if #ifdef #ifndef #endif #else #elif') then
-                  if CurMode <> 'JAVA' then
+                  if CurMode <> 'JAVA' and CurMode <> 'JAVASCRIPT' then
                      search = '\#[ \t]*\c((if((n?def)?))|endif)([ \t]|$)'
                      if CurMode = 'C' then
                         search = '^[ \t]*\c' || search
@@ -493,8 +492,9 @@ compile endif
                      else       -- move to end, so first Locate will hit this instance.
                         .col = endcol
                      endif
-                     -- coffset = 1
                      fIntermediate = (substr(id, 3, 1) = 'l')
+                  else
+                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                   endif
                ---- Keyword(s): do, try    ----------------------------------------------------
                elseif wordpos(id, 'do try') then
@@ -546,29 +546,6 @@ compile endif
                         endif
                      endif
                   endif
-               ---- Directive(s): #if #ifdef #ifndef #endif #else #elif    ---------------------
-               elseif wordpos(id, '#if #ifdef #ifndef #endif #else #elif') then
-                  if CurMode <> 'JAVA' then
-                     search = '\#((if((n?def)?))|endif)([ \t]|$)'
-                     if CurMode = 'C' then
-                        search = '^[ \t]*\c' || search
-                     elseif startcol = 1 then  -- RC directives must start in column one
-                        search = '^' || search
-                     else
-                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
-                     endif
-                     clist = substr(id, 2, 1)
-                     fForward = (clist <> 'e')
-                     if fForward then  -- move to beginning
-                        .col = startcol
-                     else       -- move to end, so first Locate will hit this instance.
-                        .col = endcol
-                     endif
-                     coffset = 1
-                     fIntermediate = (substr(id, 3, 1) = 'l')
-                  else
-                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
-                  endif
 /*
    JBSQ: The following code should work for break/continue statements within nested do and for loops
    which have braces.  Problems arise if there are do's or for's without braces between the
@@ -607,9 +584,9 @@ compile endif
                      passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                   endif
                else
-                  -- All remaining C/JAVA tokens here
+                  -- All remaining C/JAVA/JAVASCRIPT tokens here
                   idlist = 'case default default:'
-                  if CurMode = 'JAVA' then
+                  if CurMode <> 'C' then
                      idlist = idlist 'finally'
                   endif
                   if wordpos(id, idlist) then
@@ -630,8 +607,9 @@ compile endif
                      -- (This would force the cursor to actually be on the function name.
                      -- The current code allows the cursor on any nonblank, noncomment,
                      -- nonliteral character preceding the parameter list.)
-                     setsearch 'xcom l /[();]/xe+F'     -- find the ending ')' or ;
+                     setsearch 'xcom l /[()]/xe+F'     -- find the ending ')' or ;
                      passist_rc = passist_search(CurMode, '(', 'e', 0, 1, 0)
+                     call dprintf('passist', 'last chance c,... srch_rc line col' passist_rc .line .col)
                      if not passist_rc and substr(textline(.line), .col, 1) = ')' then -- no conditional??
                         passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                         nextchar = next_nonblank_noncomment_nonliteral(CurMode)
@@ -1339,45 +1317,46 @@ defproc inside_literal2(mode)
    if StartLitChars then
       endpos = 0
       loop
-         startpos = verify(line, StartLitChars, 'M', endpos + 1)
+         startpos = verify(line, StartLitChars, 'M', endpos + 1)  -- find first start-of-literal
          call dprintf("lit2", "startpos curcol line: "startpos curcol line)
-         if not startpos then
+         if not startpos then                                     -- if none, exit
             leave
-         elseif startpos >= curcol then
+         elseif startpos >= curcol then                           -- if past cursor position, exit
             leave
          endif
-         startq     = substr(line, startpos, 1)
-         qpos       = pos(startq, StartLitChars)
-         escapechar = substr(EscapeChars, qpos, 1)
-         endq       = substr(EndLitChars, qpos, 1)
+         startq     = substr(line, startpos, 1)     -- extract start-of-literal char
+         qpos       = pos(startq, StartLitChars)    -- determine which start-of-literal char
+         escapechar = substr(EscapeChars, qpos, 1)  -- select matching escape char
+         endq       = substr(EndLitChars, qpos, 1)  -- select matching end-of-literal char
          endpos     = startpos
          loop
-            endpos     = verify(line, endq, 'M', endpos + 1)
+            endpos  = verify(line, endq || escapechar, 'M', endpos + 1)  -- find next end-of-literal or escape char
             call dprintf("lit2", "startq startpos endq endpos escapechar: "startq startpos endq endpos escapechar)
-            if endpos >= curcol then         -- JBSQ: Disregard escape and assume a valid close "quote"?
+            if endpos >= curcol then         -- JBSQ: Don't care if literal is properly closed?
                retval = 1
                leave
-            elseif not endpos then           -- No end "qupte"??
+            elseif not endpos then           -- No end "quote"??
                sayerror "Unmatched start-of-literal character: "startq "at "curline","startpos
                call dprintf("lit2", "Unmatched start-of-literal character: "startq "at "curline","startpos)
                retval = 1                    -- JBSQ: Return true on unmatched "quote"?
                leave
-            elseif endq = escapechar then    -- escaped "quote" case 1: doubled-"quote"s
+            elseif endq = escapechar then    -- escape "quote"s case 1: doubled "quotes"
                if length(line) > endpos then
-                  if substr(line, endpos + 1, 1) = endq then      -- doubled-"quote" escape sequence?
-                     endpos = endpos + 1
+                  if substr(line, endpos + 1, 1) = endq then  -- doubled-"quote" escape sequence?
+                     endpos = endpos + 1                      -- "jump" past doubled "quote"
                      call dprintf("lit2", "Doubled-quote")
                      iterate
                   else                       -- not escaped and endpos < curcol
                      leave                   --     literal starts and ends before cursor col
                   endif
-               else
-                  retval = 1                 -- this shouldn't happen after initial if endpos >= curcol
-                  call dprintf("lit2", 'Reached "unreachable" code.')
+               else                          -- end-of-literal at end-of-line
+                  retval = 1
                   leave
                endif
-            elseif substr(line, endpos - 1, 1) = escapechar then  -- escaped "quote" case 2, preceding escape char
-               call dprintf("lit2", "Escaped quote")
+            elseif substr(line, endpos, 1) = escapechar then  -- escaped char
+               -- JBSQ: Don't care which char and assume not at end of line?
+               endpos = endpos + 1
+               call dprintf("lit2", "Escaped char")
                iterate
             else  -- endpos > 0 and endpos < curcol, i.e. literal starts and ends before curcol
                leave
@@ -2090,9 +2069,23 @@ compile endif
 ; ---------------------------------------------------------------------------
 compile if NEPMD_DEBUG
 defc t8
+-- AddAVar( 'debuglist', str)
    SetAVar( 'debuglist', arg(1))
 compile endif
 
-defc jbst9
+compile if NEPMD_DEBUG
+defc t9
+   call GetSLCChars('E', a , b, c, d)
    call GetSLCChars('E', a , b, c, d)
    call GetMLCChars('E', a , b, c)
+compile endif
+
+; defproc dprintf(routine, msg)
+;    'dprintf 'routine msg
+
+compile if NEPMD_DEBUG
+defc t10
+   list = GetAVar( 'debuglist')
+   sayerror 'debuglist (b4): 'list
+compile endif
+
