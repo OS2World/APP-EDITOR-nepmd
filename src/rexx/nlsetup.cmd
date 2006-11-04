@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.6 2004-05-09 12:57:57 aschn Exp $
+* $Id: nlsetup.cmd,v 1.7 2006-11-04 16:33:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -57,10 +57,12 @@
 
  /* call all modules required */
  DO UNTIL (1)
-    'CALL USERTREE'; IF (rc \= 0) THEN LEAVE;
-    'CALL APPLYICO'; IF (rc \= 0) THEN LEAVE;
-    'CALL DYNCFG';   IF (rc \= 0) THEN LEAVE;
-    'CALL INITREG';  IF (rc \= 0) THEN LEAVE;
+    'CALL USERTREE';    IF (rc \= 0) THEN LEAVE;
+    'CALL APPLYICO';    IF (rc \= 0) THEN LEAVE;
+    'CALL DYNCFG';      IF (rc \= 0) THEN LEAVE;
+    'CALL INITREG';     IF (rc \= 0) THEN LEAVE;
+    /* The "NEPMD" param avoids the prompt */
+    'CALL REMEX NEPMD'; IF (rc \= 0) THEN LEAVE;
  END;
 
  IF ((rc \= 0) & (QUEUED() > 0)) THEN
