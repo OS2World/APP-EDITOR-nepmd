@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.32 2006-10-04 21:24:40 aschn Exp $
+* $Id: hilite.c,v 1.33 2006-11-04 17:43:28 jbs Exp $
 *
 * ===========================================================================
 *
@@ -106,11 +106,12 @@ static   PSZ            pszKeywordNone    = "NONE:";
 #define KEY_DEFNAMES              "DEFNAMES"
 #define KEY_ADD_DEFNAMES          "ADD_DEFNAMES"
 // the following keys can hold word list, not only single words
-#define KEY_LINECOMMENT               "LINECOMMENT"
-#define KEY_LINECOMMENTPOS            "LINECOMMENTPOS"
-#define KEY_LINECOMMENTOVERRIDEMULTI  "LINECOMMENTOVERRIDEMULTI"
 #define KEY_LINECOMMENTADDSPACE       "LINECOMMENTADDSPACE"       // for defc comment
 #define KEY_LINECOMMENTPREFERRED      "LINECOMMENTPREFERRED"      // for defc comment
+#define KEY_LINECOMMENT               "LINECOMMENT"
+#define KEY_LINECOMMENTPOS            "LINECOMMENTPOS"
+#define KEY_LINECOMMENTNEEDSPACE      "LINECOMMENTNEEDSPACE"
+#define KEY_LINECOMMENTOVERRIDEMULTI  "LINECOMMENTOVERRIDEMULTI"
 #define KEY_MULTILINECOMMENTSTART     "MULTILINECOMMENTSTART"
 #define KEY_MULTILINECOMMENTEND       "MULTILINECOMMENTEND"
 #define KEY_MULTILINECOMMENTNESTED    "MULTILINECOMMENTNESTED"
@@ -123,11 +124,12 @@ static   PSZ            pszKeywordNone    = "NONE:";
 #define REGKEY_DEFEXTENSIONS         "DefExtensions"
 #define REGKEY_DEFNAMES              "DefNames"
 // the following keys can hold word list, not only single words
-#define REGKEY_LINECOMMENT               "LineComment"
-#define REGKEY_LINECOMMENTPOS            "LineCommentPos"
-#define REGKEY_LINECOMMENTOVERRIDEMULTI  "LineCommentOverrideMulti"
 #define REGKEY_LINECOMMENTADDSPACE       "LineCommentAddSpace"       // for defc comment
 #define REGKEY_LINECOMMENTPREFERRED      "LineCommentPreferred"      // for defc comment
+#define REGKEY_LINECOMMENT               "LineComment"
+#define REGKEY_LINECOMMENTPOS            "LineCommentPos"
+#define REGKEY_LINECOMMENTNEEDSPACE      "LineCommentNeedSpace"
+#define REGKEY_LINECOMMENTOVERRIDEMULTI  "LineCommentOverrideMulti"
 #define REGKEY_MULTILINECOMMENTSTART     "MultiLineCommentStart"
 #define REGKEY_MULTILINECOMMENTEND       "MultiLineCommentEnd"
 #define REGKEY_MULTILINECOMMENTNESTED    "MultiLineCommentNested"
@@ -711,28 +713,30 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfRel
          CHAR           szCustomAddDefExtensions[ _MAX_PATH];
          CHAR           szCustomAddDefNames[ _MAX_PATH];
 
-         CHAR           szCaseSensitive[ 5];
-         CHAR           szCustomCaseSensitive[ 5];
+         CHAR           szCaseSensitive[ _MAX_PATH];
+         CHAR           szCustomCaseSensitive[ _MAX_PATH];
          ULONG          ulCaseSensitive;
          ULONG          ulInfoSize;
 
          CHAR           szLineComment[ _MAX_PATH];
-         CHAR           szLineCommentPos[ 5];
-         CHAR           szLineCommentOverrideMulti[ 5];
-         CHAR           szLineCommentAddSpace[ 5];
-         CHAR           szLineCommentPreferred[ 5];
+         CHAR           szLineCommentPos[ _MAX_PATH];
+         CHAR           szLineCommentOverrideMulti[ _MAX_PATH];
+         CHAR           szLineCommentNeedSpace[ _MAX_PATH];
+         CHAR           szLineCommentAddSpace[ _MAX_PATH];
+         CHAR           szLineCommentPreferred[ _MAX_PATH];
          CHAR           szMultiLineCommentStart[ _MAX_PATH];
          CHAR           szMultiLineCommentEnd[ _MAX_PATH];
-         CHAR           szMultiLineCommentNested[ 5];
+         CHAR           szMultiLineCommentNested[ _MAX_PATH];
 
          CHAR           szCustomLineComment[ _MAX_PATH];
-         CHAR           szCustomLineCommentPos[ 5];
-         CHAR           szCustomLineCommentOverrideMulti[ 5];
-         CHAR           szCustomLineCommentAddSpace[ 5];
-         CHAR           szCustomLineCommentPreferred[ 5];
+         CHAR           szCustomLineCommentPos[ _MAX_PATH];
+         CHAR           szCustomLineCommentOverrideMulti[ _MAX_PATH];
+         CHAR           szCustomLineCommentAddSpace[ _MAX_PATH];
+         CHAR           szCustomLineCommentNeedSpace[ _MAX_PATH];
+         CHAR           szCustomLineCommentPreferred[ _MAX_PATH];
          CHAR           szCustomMultiLineCommentStart[ _MAX_PATH];
          CHAR           szCustomMultiLineCommentEnd[ _MAX_PATH];
-         CHAR           szCustomMultiLineCommentNested[ 5];
+         CHAR           szCustomMultiLineCommentNested[ _MAX_PATH];
 
 static   PSZ            pszRegPathTemplate = "\\NEPMD\\User\\Mode\\%s\\%s";
          CHAR           szRegPath[ _MAX_PATH];
@@ -944,6 +948,7 @@ do
    QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTPOS,           szLineCommentPos,           "");
    QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTOVERRIDEMULTI, szLineCommentOverrideMulti, "");
    QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTADDSPACE,      szLineCommentAddSpace,      "");
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTNEEDSPACE,     szLineCommentNeedSpace,     "");
    QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTPREFERRED,     szLineCommentPreferred,     "");
    QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_MULTILINECOMMENTSTART,    szMultiLineCommentStart,    "");
    QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_MULTILINECOMMENTEND,      szMultiLineCommentEnd,      "");
@@ -969,6 +974,7 @@ do
       QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTPOS,           szCustomLineCommentPos,           "");
       QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTOVERRIDEMULTI, szCustomLineCommentOverrideMulti, "");
       QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTADDSPACE,      szCustomLineCommentAddSpace,      "");
+      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTNEEDSPACE,     szCustomLineCommentNeedSpace,     "");
       QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTPREFERRED,     szCustomLineCommentPreferred,     "");
       QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_MULTILINECOMMENTSTART,    szCustomMultiLineCommentStart,    "");
       QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_MULTILINECOMMENTEND,      szCustomMultiLineCommentEnd,      "");
@@ -991,6 +997,8 @@ do
          strcpy( szLineCommentOverrideMulti, szCustomLineCommentOverrideMulti);
       if (strlen( szCustomLineCommentAddSpace))
          strcpy( szLineCommentAddSpace, szCustomLineCommentAddSpace);
+      if (strlen( szCustomLineCommentNeedSpace))
+         strcpy( szLineCommentNeedSpace, szCustomLineCommentNeedSpace);
       if (strlen( szCustomMultiLineCommentStart))
          strcpy( szMultiLineCommentStart, szCustomMultiLineCommentStart);
       if (strlen( szCustomMultiLineCommentEnd))
@@ -1047,6 +1055,8 @@ do
    rc = WriteConfigValue( hconfig, szRegPath, szLineCommentOverrideMulti);
    sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTADDSPACE);
    rc = WriteConfigValue( hconfig, szRegPath, szLineCommentAddSpace);
+   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTNEEDSPACE);
+   rc = WriteConfigValue( hconfig, szRegPath, szLineCommentNeedSpace);
    sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTPREFERRED);
    rc = WriteConfigValue( hconfig, szRegPath, szLineCommentPreferred);
 
