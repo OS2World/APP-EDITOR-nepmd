@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: remex.cmd,v 1.1 2006-11-04 16:13:51 aschn Exp $
+* $Id: remex.cmd,v 1.2 2006-11-04 16:29:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -90,13 +90,13 @@
     DO l = HelpStartLine TO HelpEndLine
        SAY SUBSTR( SOURCELINE( l), 3);
     END
+   SAY;
+   SAY 'Do you want to continue? (Y/N)';
+   PULL Answer;
+   Answer = STRIP( Answer);
+   IF (ANSWER <> 'Y') THEN
+      EXIT( ERROR.GEN_FAILURE);
  END;
- SAY;
- SAY 'Do you want to continue? (Y/N)';
- PULL Answer;
- Answer = STRIP( Answer);
- IF (ANSWER <> 'Y') THEN
-    EXIT( ERROR.GEN_FAILURE);
 
  /* Get BootDrive */
  IF \RxFuncQuery( 'SysBootDrive') THEN
