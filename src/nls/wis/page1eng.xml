@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: page1eng.xml,v 1.4 2006-11-05 15:50:31 aschn Exp $
+# $Id: page1eng.xml,v 1.5 2006-11-05 15:53:26 aschn Exp $
 #
 # ===========================================================================
 #
@@ -22,7 +22,7 @@
 #
 # ***************************************************************************
 -->
-Welcome to the Netlabs EPM Distribution Package (nepmd.netlabs.org)
+Welcome to the Netlabs EPM Distribution Package (nepmd.netlabs.org)!
 
 This package installs support files for the Enhanced Editor (EPM) including macro and REXX support, additional macros, extended keyword hilighting support, extended recompile support and many more.
 
