@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.12 2006-11-05 14:02:06 aschn Exp $
+* $Id: applyico.cmd,v 1.13 2006-11-05 16:59:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -169,6 +169,19 @@
  rc = SysSetObjectData( '<NEPMD_RECOMP>', 'PARAMETERS='UserDir'\ex');
 
  /* set icons for EPM program objects */
+ /* (required only for showing the icon immediately after install) */
+ rc = SysSetObjectData( '<NEPMD_EPM>',,
+                        'ICONFILE='CallDir'\ico\nepmd.ico;');
+ rc = SysSetObjectData( '<NEPMD_EPM_NEW_SAME_WINDOW>',,
+                        'ICONFILE='CallDir'\ico\nepmd.ico;');
+ rc = SysSetObjectData( '<NEPMD_EPM_SHELL>',,
+                        'ICONFILE='CallDir'\ico\nepmd.ico;');
+ rc = SysSetObjectData( '<NEPMD_EPM_TURBO>',,
+                        'ICONFILE='CallDir'\ico\nepmd.ico;');
+ rc = SysSetObjectData( '<NEPMD_EPM_BIN>',,
+                        'ICONFILE='CallDir'\ico\nepmd.ico;');
+
+ /* set special icons for EPM program objects */
  rc = SysSetObjectData( '<NEPMD_EPM_E>',,
                         'ICONFILE='CallDir'\ico\nepmd_e.ico;');
  rc = SysSetObjectData( '<NEPMD_EPM_EDIT_MACROFILE>',,
