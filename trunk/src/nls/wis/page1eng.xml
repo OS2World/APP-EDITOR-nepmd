@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: page1eng.xml,v 1.3 2006-11-05 15:46:12 aschn Exp $
+# $Id: page1eng.xml,v 1.4 2006-11-05 15:50:31 aschn Exp $
 #
 # ===========================================================================
 #
@@ -29,7 +29,7 @@ This package installs support files for the Enhanced Editor (EPM) including macr
 Notes:
      Installed files of EPM coming with OS/2 Warp 4 or eComStation are not removed!
 
-     For users of Warp 3 or for test purposes the "EPMBBS Base Application" package has to be installed as well. In that case activate it on the "Packages" pages.
+     For users of Warp 3 the "EPMBBS Base Application" package has to be installed as well. In that case and maybe for testing purposes activate it on the "Packages" page.
 
      Although this package is incompatible to the outdated EPM V5.51 of OS/2 Warp 3, it can be left installed in most cases.
 
