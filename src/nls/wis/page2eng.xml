@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: page2eng.xml,v 1.6 2004-12-17 23:36:05 aschn Exp $
+# $Id: page2eng.xml,v 1.7 2006-11-05 15:46:13 aschn Exp $
 #
 # ===========================================================================
 #
@@ -29,12 +29,10 @@ consists of files from
      EPM was developed by IBM T. J.Watson Research Center
 - additional macros
 - lots of additional features like
-     extended syntax highlighting support
-- this WarpIn package for easy and smooth installation
+     extended keyword highlighting support
+- this WarpIN package for easy and smooth installation.
 
-This package was compiled by the Netlabs EPM Distribution Project Team, see the online help and nepmd.netlabs.org for more information about the project team and contributors to the project.
-
-See the online help for more information about the project team and contributors to the project and further credits.
+This package was compiled by the Netlabs EPM Distribution Project Team. See the online help and nepmd.netlabs.org for more information about the project team and contributors to the project.
 
 Select "Next" to continue.
 Select "Cancel" to abort installation.

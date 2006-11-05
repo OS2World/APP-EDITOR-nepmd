@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: page1eng.xml,v 1.2 2002-11-04 13:39:12 cla Exp $
+# $Id: page1eng.xml,v 1.3 2006-11-05 15:46:12 aschn Exp $
 #
 # ===========================================================================
 #
@@ -24,14 +24,14 @@
 -->
 Welcome to the Netlabs EPM Distribution Package (nepmd.netlabs.org)
 
-This package installs support files for the Enhanced Editor (EPM) including macro and REXX support, additional macros, extended syntax hilighting support, extended recompile support and many more.
+This package installs support files for the Enhanced Editor (EPM) including macro and REXX support, additional macros, extended keyword hilighting support, extended recompile support and many more.
 
-Note:
+Notes:
      Installed files of EPM coming with OS/2 Warp 4 or eComStation are not removed!
 
-     Either the EPM V6.03b coming with your OS/2 Warp 4 or eComStation or the EPM BBS package must be installed, otherwise this package is useless!
+     For users of Warp 3 or for test purposes the "EPMBBS Base Application" package has to be installed as well. In that case activate it on the "Packages" pages.
 
-     This package is incompatible to and currently cannot be used with the outdated EPM V5.51 of OS/2 Warp 3. This may be adressed in a forthcoming version, allowing to also install the V6.03b base application in such cases.
+     Although this package is incompatible to the outdated EPM V5.51 of OS/2 Warp 3, it can be left installed in most cases.
 
 Select "Next" to continue.
 Select "Cancel" to abort installation.

@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.46 2006-11-05 14:02:05 aschn Exp $
+# $Id: nepmd.wis,v 1.47 2006-11-05 15:46:13 aschn Exp $
 #
 # ===========================================================================
 #
@@ -130,15 +130,17 @@ NOTE:
 
 <!--  ------------------------------ page 2: credits pages ----------------------------------->
 <PAGE INDEX=2 TYPE=TEXT>
-<NEXTBUTTON TARGET=3>%BUTTON_NEXT%</NEXTBUTTON>
+<NEXTBUTTON TARGET=4>%BUTTON_NEXT%</NEXTBUTTON>
 <TEXT><TINCLUDE name="..\nls\wis\page2%NLS%.xml"></TEXT>
 </PAGE>
 
+<!--
 <!--  ------------------------------ page 3: Warpin restriction page ------------------------->
 <PAGE INDEX=3 TYPE=TEXT>
 <NEXTBUTTON TARGET=4>%BUTTON_NEXT%</NEXTBUTTON>
 <TEXT><TINCLUDE name="..\nls\wis\page3%NLS%.xml"></TEXT>
 </PAGE>
+-->
 
 <!--  ------------------------------ page 4: show package container --------------------------->
 <!-- The TYPE=CONTAINER will list the packages which can be installed. -->
