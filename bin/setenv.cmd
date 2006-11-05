@@ -34,7 +34,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: setenv.cmd,v 1.3 2006-06-14 19:03:25 aschn Exp $
+: $Id: setenv.cmd,v 1.4 2006-11-05 16:58:01 aschn Exp $
 :
 : ===========================================================================
 :
@@ -56,7 +56,7 @@
 : ---- Project env vars
 :      adjust timestamps of compiled files?
 :      (comment that out if you use 4os2 as shell)
-SET TOUCH=1
+: SET TOUCH=1
 :      create a debug or release version?
 :      (comment the next line out to create a release version)
 SET DEBUG=1
@@ -66,7 +66,9 @@ SET DEBUG=1
 : SET UNZIPPEDDIR=f:\epm.packages
 :
 : ---- Enlarge the VIO window
-: MODE CO 1>nul 2>&1 & IF NOT ERRORLEVEL 436 MODE CO120,50
+: CMD.EXE bug? for non-VIO mode: the next line can only be disabled with a REM,
+: the colon doesn't work:
+REM MODE CO 1>nul 2>&1 & IF NOT ERRORLEVEL 436 MODE CO120,50
 :
 : ---- Of course we use EPM for writing cvs commit comments
 SET CVSEDITOR=EPM /M
@@ -79,7 +81,7 @@ SET USED_COMPILER=VAC308
 :      (Visual Age C++ v3.08 and C Set/2 v2.1 are supported)
 SET DIR_COMPILER=f:\dev\ibmcpp308
 :
-: ---- Specify the main path for the C compiler
+: ---- Specify the main path for the Developer's Toolkit
 :      (Toolkits 3/4/4.5 are supported)
 SET DIR_TOOLKIT=f:\dev\toolkt45
 :
