@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: nepmd.lst,v 1.15 2005-11-25 01:01:31 aschn Exp $
+: $Id: nepmd.lst,v 1.16 2006-11-05 13:48:17 aschn Exp $
 :
 : ===========================================================================
 :
@@ -27,7 +27,6 @@
 : --- package 1: application with Netlabs distribution extensions
 
 APP              1 %UNZIPPEDDIR%\epmapp          epmbbs\*
-HLP              1 %UNZIPPEDDIR%\epmhlp          epmbbs\*
 BK               1 %UNZIPPEDDIR%\epmbk           epmbbs\*
 BMP              1 %UNZIPPEDDIR%\epmbmps         epmbbs\*
 NEPMD_EPMCALL    1 %BINDIR%\epmcall              netlabs\bin\*

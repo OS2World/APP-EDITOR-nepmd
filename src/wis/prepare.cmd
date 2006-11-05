@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution 2002
 :
-: $Id: prepare.cmd,v 1.9 2004-12-25 11:01:00 aschn Exp $
+: $Id: prepare.cmd,v 1.10 2006-11-05 13:48:18 aschn Exp $
 :
 : ===========================================================================
 :
@@ -150,18 +150,6 @@
 
  %DEBUG% -- EPMHLP
  %UNZ% %UNZIPPEDDIR%\epmhlp  %UNZIPPEDDIR%\EPMHLP\EPMBBS\HELP                  >>%LOGFILE% 2>&1
- %CHECKERROR%
-
- SET TARGET=%UNZIPPEDDIR%\EPMHLP
- MD %TARGET%.base
- %CHECKERROR%
- MD %TARGET%.base\EPMBBS
- %CHECKERROR%
- MD %TARGET%.base\EPMBBS\help
- %CHECKERROR%
- %MOV% %TARGET%\EPMBBS\help\ETKUCMS.HLP %TARGET%.base\EPMBBS\help              >>%LOGFILE% 2>&1
- %CHECKERROR%
- %MOV% %TARGET%\EPMBBS\help\EPM.HLP %TARGET%.base\EPMBBS\help                  >>%LOGFILE% 2>&1
  %CHECKERROR%
 
  %DEBUG% -- EPMBK
