@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.11 2006-03-12 19:05:31 aschn Exp $
+* $Id: applyico.cmd,v 1.12 2006-11-05 14:02:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -30,7 +30,8 @@
 
  /* ##############   Maintainer: modify object id list here ######################## */
 
- FolderObjectIdList = '<NEPMD_FOLDER> <NEPMD_SAMPLES_FOLDER>';
+ FolderObjectIdList = '<NEPMD_FOLDER> <NEPMD_SAMPLES_FOLDER>' ||,
+                      ' <NEPMD_MORE_OBJECTS_FOLDER>';
 
  /* ################################################################################# */
 
@@ -167,8 +168,7 @@
  /* set parameter for "Recompile EPM", created by WarpIN (WarpIN doesn't know UserDir) */
  rc = SysSetObjectData( '<NEPMD_RECOMP>', 'PARAMETERS='UserDir'\ex');
 
-
- /* set EPM program objects */
+ /* set icons for EPM program objects */
  rc = SysSetObjectData( '<NEPMD_EPM_E>',,
                         'ICONFILE='CallDir'\ico\nepmd_e.ico;');
  rc = SysSetObjectData( '<NEPMD_EPM_EDIT_MACROFILE>',,
@@ -177,6 +177,18 @@
                         'ICONFILE='CallDir'\ico\nepmd_erx.ico;');
  rc = SysSetObjectData( '<NEPMD_EPM_TEX>',,
                         'ICONFILE='CallDir'\ico\nepmd_tex.ico;');
+
+ rc = SysSetObjectData( '<NEPMD_TOGGLE_CCVIEW>',,
+                        'ICONFILE='CallDir'\ico\recomp.ico;');
+ rc = SysSetObjectData( '<NEPMD_CHANGE_STARTUPDIR>',,
+                        'ICONFILE='CallDir'\ico\recomp.ico;');
+ rc = SysSetObjectData( '<NEPMD_TOGGLE_DEFASSOCS>',,
+                        'ICONFILE='CallDir'\ico\recomp.ico;');
+
+ rc = SysSetObjectData( '<NEPMD_RECOMPILE_NEW>',,
+                        'ICONFILE='CallDir'\ico\recomp.ico;');
+ rc = SysSetObjectData( '<NEPMD_CHECK_USER_MACROS>',,
+                        'ICONFILE='CallDir'\ico\recomp.ico;');
 
  /* delete obsolete object from v1.00 if present */
  rc = SysDestroyObject( '<NEPMD_EXECUTABLE>');
