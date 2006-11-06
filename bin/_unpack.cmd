@@ -11,7 +11,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: _unpack.cmd,v 1.4 2004-07-03 12:36:52 aschn Exp $
+* $Id: _unpack.cmd,v 1.5 2006-11-06 16:21:35 jbs Exp $
 *
 * ===========================================================================
 *
@@ -37,7 +37,7 @@
  DO
     SAY;
     MakePath( Target);
-    '@PKUNZIP2 -o' Source '-d' Target;
+    '@PKUNZIP2.EXE -o' Source '-d' Target;
     SAY;
     SAY 'errorcode is' rc;
     SAY;
