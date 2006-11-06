@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.49 2006-11-05 16:26:49 aschn Exp $
+# $Id: nepmd.wis,v 1.50 2006-11-06 16:36:21 jbs Exp $
 #
 # ===========================================================================
 #
@@ -135,7 +135,7 @@
 
 <!--  ------------------------------ page 2: credits pages ----------------------------------->
 <PAGE INDEX=2 TYPE=TEXT>
-<NEXTBUTTON TARGET=4>%BUTTON_NEXT%</NEXTBUTTON>
+<NEXTBUTTON TARGET=3>%BUTTON_NEXT%</NEXTBUTTON>
 <TEXT><TINCLUDE name="..\nls\wis\page2%NLS%.xml"></TEXT>
 </PAGE>
 
