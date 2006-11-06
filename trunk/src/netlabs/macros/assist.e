@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.17 2006-11-02 14:54:48 jbs Exp $
+* $Id: assist.e,v 1.18 2006-11-06 04:55:03 jbs Exp $
 *
 * ===========================================================================
 *
@@ -33,6 +33,7 @@ Todo:
    like in defproc balance. When 'just a msg' is selected, then give the
    user the possibility to go (with a special key combination) to that
    pos although (and back again). So we can get rid of BALANCE.E.
+-  Add support for FORTRAN90?
 */
 
 /*****************************************************************************/
@@ -95,7 +96,7 @@ Todo:
 ;    A major rework of the code
 ;       Bugs were fixed
 ;       More tokens are balanced, including the start and end points of multi-line comments
-;       More modes supported (PASCAL, FORTRAN, JAVA, WARPIN)
+;       More modes supported (PASCAL, FORTRAN77, JAVA, WARPIN)
 ;       Added initial stages of support for ADA, CSS, PERL, PHP
 ;       Code was added to ensure tokens found within comments or literals were not matched
 ;       Better variable names and code documentation
@@ -142,20 +143,13 @@ PASSIST_RC_IN_MULTILINE_COMMENT           = 2
 PASSIST_RC_IN_LITERAL                     = 3
 PASSIST_RC_NOT_ON_A_TOKEN                 = 4
 PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN     = 5
-PASSIST_RC_BAD_FORTRAN_CURSOR             = 6
+PASSIST_RC_BAD_FORTRAN77_CURSOR           = 6
+PASSIST_RC_MODE_NOT_SUPPORTED             = 7
 
 EGREP_METACHARACTERS = '\[]()?+*^$.|'    -- JBSQ: This may need to changed if the grep code
                                          -- ever supports {, } and possibly other egrep metacharacters
 
--- JBSQ: COMM_VER is used to determine which version of my "determine where the multi-line
---       comments are" code. If we need to revert back to an earlier version we will need
---       the code from my hard drive I removed the two earlier versions from this file
---       because they were taking up too much space. Do you want me to put this earlier
---       code back? Once the comment code is "established" we can delete this and the
---       conditional compilation which uses COMM_VER.
-COMM_VER          = 3   -- 3 array, 2 "new, broken nested" code, 1 = "old, almost working nested code
-
--- JBSQ: The following constants 'hard-code' the versions of NMAKE and FORTRAN for which
+-- JBSQ: The following constants 'hard-code' the versions of NMAKE and FORTRAN77 for which
 --       passist works. Perhaps there is a better way that would allow this to be
 --       selected by the user?
 USE_NMAKE32       = 1   -- 0 means do not accept NMAKE32-specific directives
@@ -251,7 +245,7 @@ defproc passist
          getline line
          -- build the separator list for find_token
 
-         if CurMode = 'FORTRAN' then
+         if CurMode = 'FORTRAN77' then
             seps = "+-*/=().,':$"
          else
             seps = ' ~`!.%^&*()-+=][{}|\;?<>,''"'\t
@@ -291,7 +285,7 @@ defproc passist
                   if CurMode = 'MAKE' then
                      newstart = verify(line, ' ' || \t, 'N', 2)  -- skip to next non-whitespace
                      if newstart then
-                        newend = verify(line || ' ', '}', 'M', newstart)
+                        newend = verify(line || ' ', ' ', 'M', newstart)
                         if newend then
                            startcol = newstart
                            endcol   = newend - 1
@@ -339,17 +333,78 @@ defproc passist
                line = lowcase(line)
                if 0 then
                   -- another placeholder
-               ---- E conditions: if, else, elseif, endif --------------------------------------------------
-               elseif wordpos( id, 'if endif else elseif') then
-                  search = '(^|[ \t]|(\*/))\c(end)?if([; \t]|(--)|(/\*)|$)'
-                  clist = leftstr(id, 1)
-                  fForward = (clist <> 'e')
-                  if fForward then  -- move to beginning
-                     .col = startcol
-                  else       -- move to end, so first Locate will hit this instance.
-                     .col = endcol
+               ---- E compiler directives: compile if, compile else, compile elseif, compile endif ---------
+               elseif id = 'compile' then
+                  temp = (substr(line, pos(id, line)))
+                  call dprintf("passist", "Initial temp: "temp)
+                  do while (pos('/*', temp) > 0) and (pos('*/', temp) > 0)
+                     temp = substr(temp, pos('*/', temp))
+                     call dprintf("passist", "Intermediate temp: "temp)
+                  enddo
+                  call dprintf("passist", "Final temp: "temp)
+                  if (words(temp) = 0) then
+                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                  else
+                     lcword2 = word(temp, 2)
+                     call dprintf("passist", "lcword2: "lcword2)
+                     if wordpos(lcword2, 'if endif else elseif') then
+--                      compile if/... code (when cursor is on compile
+                        search = '^[ \t]*compile[ \t]*(/\*.*\*/)*[ \t]*\c(end)?if([; \t]|(--)|(/\*)|$)'
+                        clist = leftstr(lcword2, 1)
+                        fForward = (clist <> 'e')
+                        if fForward then  -- move to beginning
+                           .col = startcol
+                        else       -- move to end, so first Locate will hit this instance.
+                           end_line
+                        endif
+                        fIntermediate = (substr(lcword2, 2, 1) = 'l')
+                     else
+                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                     endif
                   endif
-                  fIntermediate = (substr(id, 2, 1) = 'l')
+               ---- E conditions: (compile) if, (compile) else, (compile) elseif, (compile) endif --------
+               elseif wordpos( id, 'if endif else elseif') then
+                  if pos('compile', line) <= startcol then
+                     parse value line with part1 'compile' part2 (id) part3
+                     call dprintf('passist', 'E if parse: "'part1'"compile"'part2'"'id'"'part3'"')
+                     part1 = strip(part1)
+                     part2 = strip(part2)
+                     if (part1 = '' or ((length(part1) >= 4) and (leftstr(part1, 2) = '/*') and (rightstr(part1, 2) = '*/'))) and
+                        (part2 = '' or ((length(part2) >= 4) and (leftstr(part2, 2) = '/*') and (rightstr(part2, 2) = '*/'))) then
+--                      compile if/... code (when cursor is on if/...
+                        search = '^[ \t]*compile[ \t]*(/\*.*\*/)*[ \t]*\c(end)?if([; \t]|(--)|(/\*)|$)'
+                        clist = leftstr(id, 1)
+                        fForward = (clist <> 'e')
+                        if fForward then  -- move to beginning
+                           .col = length(part1) + 1
+                        else       -- move to end, so first Locate will hit this instance.
+                           end_line
+                        endif
+                        fIntermediate = (substr(lcword2, 2, 1) = 'l')
+                     else
+--                      /* compile */ if/... code
+                        search = '(^|[ \t]|(\*/))\c(end)?if([; \t]|(--)|(/\*)|$)'
+                        clist = leftstr(id, 1)
+                        fForward = (clist <> 'e')
+                        if fForward then  -- move to beginning
+                           .col = startcol
+                        else       -- move to end, so first Locate will hit this instance.
+                           .col = endcol
+                        endif
+                        fIntermediate = (substr(id, 2, 1) = 'l')
+                     endif
+                  else
+--                   plain if/... code
+                     search = '(^|[ \t]|(\*/))\c(end)?if([; \t]|(--)|(/\*)|$)'
+                     clist = leftstr(id, 1)
+                     fForward = (clist <> 'e')
+                     if fForward then  -- move to beginning
+                        .col = startcol
+                     else       -- move to end, so first Locate will hit this instance.
+                        .col = endcol
+                     endif
+                     fIntermediate = (substr(id, 2, 1) = 'l')
+                  endif
                ---- E loop keywords 1: loop, endloop     --------------------------------------------------
                elseif wordpos( id, 'loop endloop') then
                   search = '(^|[ \t]|(\*/))\c(end)?loop([; \t]|(--)|(/\*)|$)'
@@ -427,34 +482,6 @@ compile endif
                   clen = 1
                   .col = endcol
                   fIntermediate = 1
-               ---- E compiler directives: compile if, compile else, compile elseif, compile endif ---------
-               elseif id = 'compile' then
-                  temp = (substr(line, pos(id, line)))
-                  call dprintf("passist", "Initial temp: "temp)
-                  do while (pos('/*', temp) > 0) and (pos('*/', temp) > 0)
-                     temp = substr(temp, pos('*/', temp))
-                     call dprintf("passist", "Intermediate temp: "temp)
-                  enddo
-                  call dprintf("passist", "Final temp: "temp)
-                  if (words(temp) = 0) then
-                     passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
-                  else
-                     lcword2 = word(temp, 2)
-                     call dprintf("passist", "lcword2: "lcword2)
-                     if wordpos(lcword2, 'if endif else elseif') then
-                        search = '^[ \t]*compile[ \t]*(/\*.*\*/)*[ \t]*\c(end)?if([; \t]|(--)|(/\*)|$)'
-                        clist = leftstr(lcword2, 1)
-                        fForward = (clist <> 'e')
-                        if fForward then  -- move to beginning
-                           .col = startcol
-                        else       -- move to end, so first Locate will hit this instance.
-                           end_line
-                        endif
-                        fIntermediate = (substr(lcword2, 2, 1) = 'l')
-                     else
-                        passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
-                     endif
-                  endif
                else -- not a known balanceable E token
                   passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                endif
@@ -853,11 +880,7 @@ compile endif
                      else       -- move to end, so first Locate will hit this instance.
                         .col = endcol
                      endif
-compile if USE_NMAKE32
-                     fIntermediate = (wordpos(id, 'else elif elseif') > 0)
-compile else
-                     fIntermediate = (id = 'else')
-compile endif
+                     fIntermediate = (substr(id, 2, 1) = 'l')
 compile if USE_NMAKE32
                   elseif wordpos(id, 'foreach endfor') then               -- NMAKE32
                      search = '^![ \t]*\c(foreach|endfor)([ \t]|$)'
@@ -1064,47 +1087,88 @@ compile endif
                   passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                endif
 
-            -- Mode(s): FORTRAN
-            elseif (CurMode = 'FORTRAN') then
+            -- Mode(s): FORTRAN77
+            elseif (CurMode = 'FORTRAN77') then
                -- This code disregards the "token" and allows the cursor anywhere within
                -- columns 7-72
                if .col > 6 and .col < 73 then
-                  statement = fortran_extract_text()
+                  statement = fortran77_extract_text(.line)
                   do i = .line + 1 to .last
                      temp = textline(i)
                      if pos(substr(temp, 6, 1), ' 0') then
                         leave
                      elseif not pos(leftstr(temp, 1), 'C*') then
-                        statement = statement || fortran_extract_text()
+                        statement = statement || fortran77_extract_text(i)
                      endif
                   enddo
-                  statement = fortran_remove_spaces(statement)
-                  call dprintf("passist", "Fortran statement: "statement)
+                  statement = fortran77_remove_spaces(statement)
                   if leftstr(statement, 2) = 'DO' then
-                     equalpos = pos('=', statement, 7)
-                     commapos = pos(',', statement, 7)
+                     equalpos = pos('=', statement, 4)
+                     commapos = pos(',', statement, 6)
                      if equalpos and commapos then    -- DO loop of some kind?
                         fForward = 1
                         clist = 'D'
                         .col = pos('D', line, 7)
-                        p = verify(substr(statement, 3, 1), '0123456789', 'N', 3)
+                        p = verify(statement, '0123456789', 'N', 3)
                         if p > 3 then   -- DO <labelnum>,...      loop
-                           label = leftstr(substr(temp, 3, verify(temp, '0123456789', 'N', 3) - 3), 5, ' ')
-                           search = '^('label'~[ 0][ ]*\c)|([ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\cD[ ]*O[ ]*[0-9].*=.*,)'
+                           label = substr(statement, 3, p - 3)
+                           call dprintf('passist', 'label as string: 'label)
+                           label = label + 0
+                           call dprintf('passist', 'label as number: 'label)
+                           temp = ''
+                           do i = length(label) to 4
+                              temp = temp || '[ 0]?'
+                           enddo
+                           search = '^('temp || label'[ 0]?[ ]*\c[^0])'
                            call dprintf("passist", "DO <label> search: "search)
+                           'xcom l /'search'/x'
+                           if rc = 0 then
+                              passist_rc = -1
+                           else
+                              passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+                           endif
+                           call dprintf('passist', 'F77 search rc: 'rc)
+compile if 0
+DO/ENDDO is not FORTRAN77 but the code (esp. the regex search string) for future use
                         else            -- DO var = xx,limit      loop
                            search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\c((D[ ]*O[ ]*[A-Z][A-Z0-9]*[ ]*=.+,)|(E[ ]*N[ ]*D[ ]*D[ ]*O))'
+compile else
+                        else
+                           passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+compile endif
                         endif
                      else
                         passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                      endif
+compile if 0
+DO/ENDDO is not FORTRAN77 but the code (esp. the regex search string) for future use
                   elseif statement = 'ENDDO' then
                      search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\c((D[ ]*O[ ]*[A-Z][A-Z0-9]*[ ]*=.+,)|(E[ ]*N[ ]*D[ ]*D[ ]*O))'
                      fForward = 0
                      clist = 'E'
                      .col = pos('E', line, 7)
+compile endif
+compile if 0
+; - FORTRAN77 support (beyond the generic ()[]{} matching and do <label> ...) is disabled.
+; - The code below tries to match "Block" IF's (i.e. IF(<condiiton>)THEN ... ENDIF)
+; - But FORTRAN allows statements to be contiued. This means that for "IF (confition) THEN"
+; the IF and the THEN might be on different lines.
+; - For long conditions the use of continuations can make stylistic sense. For example:
+;           IF( CARDS(I)(2:2) .EQ. 'J'
+;      1   .OR. CARDS(I)(2:2) .EQ. 'Q'
+;      2   .OR. CARDS(I)(2:2) .EQ. 'K' )THEN
+; - Unless grep searches start supporting searches across multiple lines, the only way to
+; implement matching with this kind of code is
+; 1) Create a temporary file
+; 2) Rewrite the original file in to the temp file, "merging" the continuation lines in the process
+; 3) Somehow keep track of which columns of the merged lines came from which lines and columns of the original file
+; 4) Perform a search on the temp file
+; 5) Use the data from #3 to map the location of the "found" string back into the original file
+; 6) Discard the temp file
+; - At this time the effort need to make this work was deemed not worth the "value" of matching
+; "Block" IF's in FORTRAN.
                   elseif leftstr(statement, 3) = 'IF(' then
-                     if pos('(THEN', statement) then       -- Assume '(THEN' is NOT in a literal?
+                     if pos(')THEN', statement) then       -- Assume ')THEN' is NOT in a literal?
                         search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\c((I[ ]*F[ ]*(.*)[ ]*T[ ]*H[ ]*E[ ]*N)|(E[ ]*N[ ]*D[ ]*I[ ]*F))'
                         fForward = 1
                         clist = 'I'
@@ -1113,7 +1177,7 @@ compile endif
                         passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN  -- IF without THEN is unbalanceable
                      endif
                   elseif leftstr(statement, 7) = 'ELSEIF(' then
-                     if pos('(THEN', statement) then       -- Assume '(THEN' is NOT in a literal?
+                     if pos(')THEN', statement) then       -- Assume ')THEN' is NOT in a literal?
                         search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\c((I[ ]*F[ ]*(.*)[ ]*T[ ]*H[ ]*E[ ]*N)|(E[ ]*N[ ]*D[ ]*I[ ]*F))'
                         fForward = 0
                         fIntermediate = 1
@@ -1123,10 +1187,14 @@ compile endif
                         passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN  -- ELSEIF without THEN is unbalanceable
                      endif
                   elseif statement = 'ENDIF' then
-                     search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\c((I[ ]*F[ ]*(.*)[ ]*T[ ]*H[ ]*E[ ]*N)|(E[ ]*N[ ]*D[ ]*I[ ]*F))'
+;                    search =  ^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9].[ ]*\c((I[ ]*F[ ]*(.*)[ ]*T[ ]*H[ ]*E[ ]*N)|(E[ ]*N[ ]*D[ ]*I[ ]*F))'
+                     search = '^[ 0-9][ 0-9][ 0-9][ 0-9][ 0-9][ 0]+\c((I[ ]*F[ ]*\(.*\)T[ ]*H[ ]*E[ ]*N)|(E[ ]*N[ ]*D[ ]*I[ ]*F))'
                      fForward = 0
                      clist = 'E'
                      .col = pos('E', line, 7)
+compile endif
+compile if 0
+FORTRAN77 does not require END (of program/subroutine/function statements, nor is a PROGRAM statement require
                   elseif not pos('=', statement) then  -- remaining matchable tokens require this
                      function_pos = pos('FUNCTION', statement)
                      punc_pos     = verify(statement, "+-*/=().,':$!", 'M')
@@ -1156,14 +1224,15 @@ compile endif
                      else
                         passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                      endif
+compile endif
                   else
                      passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                   endif
                else
-                  passist_rc = PASSIST_RC_BAD_FORTRAN_CURSOR -- Cursor before col 7 or after col 72
+                  passist_rc = PASSIST_RC_BAD_FORTRAN77_CURSOR -- Cursor before col 7 or after col 72
                endif
-            else -- not a known balanceable token
-               passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+            else -- not a known balanceable token or a mode that is not yet supported
+               passist_rc = PASSIST_RC_MODE_NOT_SUPPORTED
             endif
          endif -- if find_token/not find_token
       endif -- if GOLD/not gold
@@ -1202,6 +1271,8 @@ compile endif
          sayerror "Invalid: Cursor is not located on a token."
       elseif passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN then
          sayerror UNBALANCED_TOKEN__MSG
+      elseif passist_rc = PASSIST_RC_MODE_NOT_SUPPORTED then
+         sayerror "Toaken balancing not yet supported for mode: "CurMode
       else
          sayerror "Unknown rc: "passist_rc
       endif
@@ -1409,13 +1480,13 @@ defproc GetLitChars(mode)
 ;       StartLitChars = DoubleQuote || '%'
 ;       EndLitChars   = StartLitChars
 ;       EscapeChars   = \0\0                -- JBSQ: Escape Chars?
-   elseif mode = 'DEF' or mode = 'PASCAL' or mode = 'FORTRAN' then
+   elseif wordpos(mode, 'DEF PASCAL FORTRAN77') > 0 then
       StartLitChars = SingleQuote
-      EndLitChars   = StartLitChars
+      EndLitChars   = SingleQuote
       if mode = 'DEF' then
          EscapeChars   = \0
       else
-         EscapeChars   = "'"
+         EscapeChars   = SingleQuote
       endif
    -- other modes here
    endif
@@ -1454,17 +1525,11 @@ defproc inside_comment2(mode, var comment_data)
    curcol  = .col
    line = textline(.line)
    MLCCase = 'c'              -- JBSQ: Ignore case for ALL MLC's?
-compile if     COMM_VER = 3
    MLCData =  locateMLC(mode, curline, curcol)
    parse value MLCData with BestMLCStartLine BestMLCStartCol BestMLCStartLen BestMLCEndLine BestMLCEndCol BestMLCEndLen
    if BestMLCStartLine > 0 then
       retval = 2
    endif
-compile elseif COMM_VER = 2
-   -- Broken, non-array code in jbs assist.e.v4
-compile elseif COMM_VER = 1
-   -- Old, slightly broken MLC code in jbs assist.e.v3.4
-compile endif   -- end of MLC conditionals
    call dprintf("comm", "Retval on exit of outer MLC loop: "retval "cursor: ".line",".col)
    if retval = 0 then
       SLCPosition = inside_oneline_comment(mode)
@@ -1477,8 +1542,6 @@ compile endif   -- end of MLC conditionals
    display 2
    call dprintf( "comm", "MLC rc: "retval comment_data)
    return retval
-
-compile if COMM_VER = 3
 
 ; ---------------------------------------------------------------------------
 ;  locateMLC: Determine if provided location (line, col) is within a multi-line
@@ -1645,8 +1708,6 @@ defproc buildMLCArray(mode)
    call prestore_pos(savepos)
    return modeMLCCount
 
-compile endif
-
 ; ---------------------------------------------------------------------------
 ;  GetMLCCHars: Return the tokens which start and end multi-line comments
 ;     for the given mode. Also returned is whether the MLC can be nested
@@ -1804,21 +1865,6 @@ defproc GetSLCChars(mode, var SLCCharList, var SLCPosList, var SLCAddList, var S
    endif
    return
 
-
-compile if COMM_VER = 2
-defproc cursorleft()
-   if .col > 1 then
-      left
-   else
-      if .line > 1 then
-         .line = .line - 1
-         endline
-      endif
-   endif
-compile endif
-
-compile if COMM_VER = 3
-
 ; ---------------------------------------------------------------------------
 ;  prune_assist_array: Clear the comment array
 ; ---------------------------------------------------------------------------
@@ -1826,8 +1872,6 @@ defproc prune_assist_array()
    getfileid fid
    call SetAVar("assist."fid".Rebuild", 1)
    return
-
-compile endif
 
 ; ---------------------------------------------------------------------------
 ;  next_nonblank_noncomment_nonliteral: repositions the cursor as the name
@@ -1874,20 +1918,20 @@ defproc next_nonblank_noncomment_nonliteral(mode)
    return retval
 
 ; ---------------------------------------------------------------------------
-;  fortran_extract_text: In FORTRAN the text of interest to passist is
+;  fortran77_extract_text: In FORTRAN the text of interest to passist is
 ;     located only in columns 6-72.  (An exception is when FORTRAN90-style
 ;     SLC's are supported.) This routine extracts and returns the text of
 ;     interest to the passist routine.
 ; ---------------------------------------------------------------------------
-defproc fortran_extract_text(linenum)
+defproc fortran77_extract_text(linenum)
    text = substr(textline(linenum), 7, 66)     -- columns 7 -72
-compile if USE_FORTRAN90_SLC = 1
+compile if 0 /* USE_FORTRAN90_SLC = 1 */
    if pos("!", text) then
       call psave_pos(savepos3)
       .line = linenum
       .col  = 7
       setsearch 'xcom l /!/xe+F'
-      fortran90_rc = passist_search('FORTRAN', '!', 'e', 0, 1, -1)
+      fortran90_rc = passist_search('FORTRAN90', '!', 'e', 0, 1, -1)
       if not rc then
          if .line = linenum and .col > 6 then
             if .col = 7 then
@@ -1903,22 +1947,26 @@ compile endif
    return text
 
 ; ---------------------------------------------------------------------------
-;  fortran_remove_spaces: In FORTRAN spaces which are not located within a
+;  fortran77_remove_spaces: In FORTRAN spaces which are not located within a
 ;     literal are irrelevant. This routine removes these insignificant spaces,
 ;     if any.
 ; ---------------------------------------------------------------------------
-defproc fortran_remove_spaces(text)
+defproc fortran77_remove_spaces(text)
    if pos(' ', text) then
       getfileid fid
       'e .temp_fortran'
       insertline text
+      p = 0
       .col = 1
+      .line = 1
       loop
-         p = pos(' ', textline(1), .col)
+         p = pos(' ', textline(1), p + 1)
          if p then
             .col = p
-            if not inside_literal2('FORTRAN') then
-               'DeleteChar'
+            if not inside_literal2('FORTRAN77') then
+               delete_char
+               p = 0
+               .col = 1
             endif
          else
             leave
@@ -1933,137 +1981,6 @@ defproc fortran_remove_spaces(text)
 
 
 ; ---------------------------------------------------------------------------
-;  Test routines not needed for normal operation of passist()
-; ---------------------------------------------------------------------------
-
-compile if NEPMD_DEBUG
-;  t1: test if the cursor is in a single-line comment
-defc t1                          -- test code
-   sayerror "1line result: "inside_oneline_comment(textline(.line), NepmdGetMode())
-compile endif
-
-compile if NEPMD_DEBUG
-;  t2: test to see if cursor in in a comment, a literal or neither
-defc t2
-   mode = NepmdGetMode()
-   if inside_comment(mode) then
-      sayerror "Comment"
-   elseif inside_literal2(mode) then
-      sayerror "Literal"
-   else
-      sayerror "Neither"
-   endif
-compile endif
-
-compile if NEPMD_DEBUG
-defc t4  -- unfinished, proof-of-concept code to read MED syntax/highlight file
-   'e d:\utils\editors\medo126e\med.syn'
-   .line = 1
-   parse arg ext
-   'l /^[ \t]*files\:[ \t]+.*\.'ext'/x'
-   if rc then
-      sayerror "Unable to find E section of med.syn"
-   else
-      call dprintf("t4", '"Mode": 'substr(textline(.line), wordindex(textline(.line), 2)))
-      SLC = ''
-      SLCPos = -1
-      SLCColor = 'Dummy'
-      MLCStart = ''
-      MLCEnd   = ''
-      do l = .line + 1 to .last
-         down
-         line = strip(textline(.line))
-         if line <> "" then
-            word1 = word(line, 1)
-            if leftstr(word1, 1) <> '#' then
-               if word1 = 'color:' then
-                  parse value line with . (word1) color
-               elseif word1 = 'eolCom:' then
-                  if SLC <> '' then
-                     call dprintf("t4", "SLC: "SLC  "SLCPos: "SLCPos  "SLCColor: "SLCColor)
-                  endif
-                  SLC = word(line, 2)
-                  SLCColor = color
-                  if SLCPos < 0 then
-                     SLCPos = 0
-                  endif
-               elseif word1 = 'comCol:' then
-                  SLCPos = word(line, 2)
-               elseif word1 = 'openCom:' then
-                  MLCStart = word(line, 2)
-               elseif word1 = 'closeCom:' then
-                  MLCEnd = word(line, 2)
-                  call dprintf("t4", "MLCStart: "MLCStart  "MLCEnd: "MLCEnd  "Color: "color)
-               elseif word1 = 'string:' then
-                  call dprintf("t4", "String delimiter: "word(line, 2)  "Color:" color)
-               elseif word1 = 'char:' then
-                  call dprintf("t4", "Char delimiter: "word(line, 2)  "Color:" color)
-               elseif word1 = 'token:' then
-                  do w = 2 to words(line)
-                     call dprintf("t4", "Token: "word(line, w)  "Color:" color)
-                  enddo
-               elseif word1 = 'files:' then
-                  l = .last
-               endif
-            endif
-         endif
-      enddo
-      if SLC <> '' then
-         call dprintf("t4", "SLC: "SLC  "SLCPos: "SLCPos  "SLCColor: "SLCColor)
-      endif
-   endif
-   'quit'
-compile endif
-
-compile if NEPMD_DEBUG
-;  t5: test buildMLC code
-defc t5
-   't8 array'
-   mode = 'E'
-   MLCCount = buildMLCArray(mode)
-   getfileid fid
-   listindexbase = 'assist.'fid'.'
-   modeindexbase = 'assist.mode.'mode'.'
-   call dprintf("array", "Dump MLC array.  Count = "MLCCount)
-   do i = 1 to MLCCount
-      MLCStart = GetAVar(modeindexbase || i'.MLCStart')
-      MLCEnd = GetAVar(modeindexbase || i'.MLCEnd' )
-      MLCNest = GetAVar(modeindexbase || i'.MLCNest')
-      MLCListCount = GetAVar(listindexbase || i'.List.0')
-      call dprintf("array", "MLC #"i": Start: '"MLCStart"' End: '"MLCEnd"' Nest: "MLCNest "MLCListCount: "MLCListCount)
-      do j = 1 to MLCListCount
-         MLCEntry = GetAVar(listindexbase || i'.List.'j)
-         call dprintf("array", "   Comment  "rightstr(j, 2, '0')':' MLCEntry)
-      enddo
-   enddo
-compile endif
-
-;  t6: test locateMLC code
-defc t6
-compile if NEPMD_DEBUG
-   position = arg(1)
-   parse value position with tline tcol
-   getfileid fid
-   comment = locateMLC('E', tline, tcol)
-   parse value comment with sl .
-   if sl = 0 then
-      sayerror tline","tcol" is NOT in a comment."
-   else
-      sayerror tline","tcol "is in comment: "comment
-   endif
-compile endif
-
-compile if NEPMD_DEBUG
-; t7: test next_nonblank_noncomment_nonliteral
-defc t7
-   dir = arg(1)
-   if dir = '' then
-      dir = '+F'
-   endif
-   sayerror "next... returned: '"next_nonblank_noncomment_nonliteral(CurMode, dir)"'"
-compile endif
-
-; ---------------------------------------------------------------------------
 ;  t8: Dynamically set the array variable 'debuglist' which is used by
 ;  the dprintf proc.
 ; ---------------------------------------------------------------------------
@@ -2071,13 +1988,6 @@ compile if NEPMD_DEBUG
 defc t8
 -- AddAVar( 'debuglist', str)
    SetAVar( 'debuglist', arg(1))
-compile endif
-
-compile if NEPMD_DEBUG
-defc t9
-   call GetSLCChars('E', a , b, c, d)
-   call GetSLCChars('E', a , b, c, d)
-   call GetMLCChars('E', a , b, c)
 compile endif
 
 ; defproc dprintf(routine, msg)
