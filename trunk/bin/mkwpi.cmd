@@ -35,7 +35,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkwpi.cmd,v 1.7 2006-11-04 22:10:55 jbs Exp $
+* $Id: mkwpi.cmd,v 1.8 2006-11-06 14:44:03 jbs Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +54,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.7 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.8 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -248,10 +248,10 @@
        HHMM    = LEFT(HHMM, 2) || SUBSTR(HHMM, 4, 2);
        SAY;
        SAY 'APPEND_DATE_TO_WPIFILE == 1'
-       TargetName = LEFT(WpiFile, LENGTH(WpiFile) - 4) || '_' || Today || HHMM || '.wpi';
+       TargetName = LEFT(WpiFile, LENGTH(WpiFile) - 4) || '_' || Today || HHMM || right(WpiFile, 4)
        SAY '   Copying' WpiFile  'to' TargetName;
        'COPY' WpiFile  TargetName;
-       TargetName = LEFT(LogFile, LENGTH(LogFile) - 4) || '_' || Today || HHMM || '.log';
+       TargetName = LEFT(LogFile, LENGTH(LogFile) - 4) || '_' || Today || HHMM || right(LogFile, 4)
        SAY '   Copying' LogFile  'to' TargetName;
        'COPY' LogFile  TargetName;
     END;
