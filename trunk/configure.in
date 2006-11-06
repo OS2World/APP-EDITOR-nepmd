@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.14 2006-11-05 04:34:32 aschn Exp $
+# $Id: configure.in,v 1.15 2006-11-06 04:02:40 jbs Exp $
 #
 # ===========================================================================
 #
@@ -45,8 +45,8 @@ BASEURL=ftp://hobbes.nmsu.edu/pub/os2/apps/editors/epm
 
 # A directory of your choice either empty or already holding
 # the ZIP files of the EPMBBS package (epm603b.zip and epm603bupd.zip).
-# If files are not present, they are downloaded from LEO
-# from the base URL - see setting BASEURL above
+# If files are not present, they are downloaded using the setting
+# for BASEURL - see above
 # - the directory may not exist, but at least directory above
 #   must exist (that is not tested for!)
 
