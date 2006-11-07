@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.25 2006-10-09 00:12:40 aschn Exp $
+* $Id: epmenv.c,v 1.26 2006-11-07 23:09:22 jbs Exp $
 *
 * ===========================================================================
 *
@@ -37,6 +37,8 @@
 #include "instval.h"
 
 #include "epmenv.h"
+
+static PSZ _QueryExtLIBPATH(ULONG);
 
 #define __APPNAMESHORT__ "NEPMD"
 
@@ -394,7 +396,6 @@ return rc;
 }
 
 // -----------------------------------------------------------------------------
-
 static PSZ _expandEnvVar( PSZ pszStr)
 {
          PSZ      pszResult = NULL;
@@ -406,6 +407,7 @@ static PSZ _expandEnvVar( PSZ pszStr)
 
          CHAR     szVarName[ 128];
          ULONG    ulNameLen;
+         PSZ      pszLibpath = NULL;
          PSZ      pszVarValue;
 
          PSZ      pszNewResult;
@@ -449,9 +451,9 @@ do
 
          // get value
          if (!stricmp( szVarName, "beginlibpath"))
-            DosQueryExtLIBPATH( pszVarValue, BEGIN_LIBPATH);
+            pszVarValue = pszLibpath = _QueryExtLIBPATH(BEGIN_LIBPATH);
          else if (!stricmp( szVarName, "endlibpath"))
-            DosQueryExtLIBPATH( pszVarValue, END_LIBPATH);
+            pszVarValue = pszLibpath = _QueryExtLIBPATH(END_LIBPATH);
          else
             pszVarValue = getenv( szVarName);
 
@@ -483,8 +485,38 @@ do
 
 
    } while (FALSE);
+   if (pszLibpath)
+   {
+       free(pszLibpath);
+   }
 
 return pszResult;
+}
+
+// -----------------------------------------------------------------------------
+
+static PSZ _QueryExtLIBPATH(ULONG ulWhichPath)
+{
+    APIRET  rc;
+    ULONG   ulBufferSize = 0;
+    PVOID   pBuffer = NULL;
+    do
+    {
+        if (pBuffer)
+        {
+            free(pBuffer);
+        }
+        ulBufferSize += 128;
+        pBuffer = malloc(ulBufferSize);
+        // JBSQ: Assume allocation OK?
+        rc = DosQueryExtLIBPATH(pBuffer, ulWhichPath);
+    } while (rc == ERROR_INSUFFICIENT_BUFFER);
+    if (rc != NO_ERROR)
+    {
+        free(pBuffer);
+        pBuffer = NULL;
+    };
+    return pBuffer;
 }
 
 // -----------------------------------------------------------------------------
