@@ -43,7 +43,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: setenv.cmd,v 1.5 2006-11-07 23:18:07 jbs Exp $
+: $Id: setenv.cmd,v 1.6 2006-11-07 23:22:51 jbs Exp $
 :
 : ===========================================================================
 :
@@ -77,11 +77,7 @@ SET USER_SETENV_COMPLETE=1
 
 :----------------
 :
-: ---- Execute the environment file
-:
-: Check if this file is executed from the main project directory
-: In order to not overwrite the user's changes the user should copy it
-: to the main project directory and adjust that version.
+: ---- Execute appropriate the environment file
 :
 : Normal processing
 IF EXIST .\bin\setenv2.cmd CALL .\bin\setenv2.cmd & GOTO :END
