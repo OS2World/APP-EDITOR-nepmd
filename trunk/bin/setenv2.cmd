@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setenv2.cmd,v 1.4 2006-11-08 21:04:29 aschn Exp $
+* $Id: setenv2.cmd,v 1.5 2006-11-08 21:36:00 jbs Exp $
 *
 * ===========================================================================
 *
@@ -30,6 +30,8 @@
 /*
  * To do
  *    - Improve support for GCC, OpenWatcom and CSET2
+ *    - Implement a default NULL value for TOUCH?
+ *    - Check w/ Christian about TZ. Needed for ???
  *    - Research SOM settings and correct code, if necessary
  *    - If this file is newer than user's setenv (..\setenv.cmd), then
  *      prompt for replacement of user's setenv?
@@ -309,9 +311,34 @@ exitcode:
 call directory(cfg.curdir)
 return retval
 
+env_substitution: procedure expose (globals)
+   parse arg newvalue
+   newvalue = ' ' || newvalue || ' '      /* Make sure code below doesn't fail */
+   p = 0
+   do forever
+      if p >= length(newvalue) then
+         leave
+      p = pos('%', newvalue, p + 1)
+      if p == 0 then
+         leave
+      if translate(substr(newvalue, p - 1, 4)) \= '\%N;' then
+         do
+            p2 = pos('%', newvalue, p + 1)
+            if p2 > 0 then
+               do
+                  varname = substr(newvalue, p + 1, p2 - p - 1)
+                  varvalue = value(varname,, cfg.env)
+                  if varvalue \= '' then
+                     newvalue = left(newvalue, p - 1) || varvalue || substr(newvalue, p2 + 1)
+               end
+         end
+   end
+   return strip(newvalue)
+
 add2env: procedure expose (globals)
    parse arg varname, addition
    varname = translate(varname)
+   addition = env_substitution(addition)
    add_to_end = 1
    if arg(3) \= '' then
       if translate(left(arg(3), 1)) == 'B' then
@@ -706,14 +733,14 @@ GetSettingsFromUser: procedure expose (globals)
       end
       say
       say 'The value(s) can be provided in any of the following ways:'
-      say '   1) Exit this program, set the value(s) manually and then restart.'
-      say '   2) Exit this program, create/edit YOUR setenv program:'
+      say '   1. Exit this program, set the value(s) manually and then restart.'
+      say '   2. Exit this program, create/edit YOUR setenv program:'
       say '         'work_user_setenv_file
       say '      and then run it.'
       if cfg.user_setenv_file \= '' then
-         say '   3) Recommended: Let this program prompt you for values and create'
+         say '   3. Recommended: Let this program prompt you for values and create'
       else
-         say '   3) Recommended: Let this program prompt you for values and recreate'
+         say '   3. Recommended: Let this program prompt you for values and recreate'
       say '      YOUR setenv program.'
       say
       say 'If you choose option 2 or 3, run your SETENV in the future.'
