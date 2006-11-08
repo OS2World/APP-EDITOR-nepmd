@@ -2,12 +2,12 @@
 #
 # Module Name: makefile
 #
-# makefile to copy modified source files to the appropriate cmpile
+# makefile to copy modified source files to the appropriate compile
 # subdirectories. All files of this subdirectory tree are copied unmodified.
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.27 2006-10-07 18:43:04 aschn Exp $
+# $Id: makefile,v 1.28 2006-11-08 21:41:20 jbs Exp $
 #
 # ===========================================================================
 #
