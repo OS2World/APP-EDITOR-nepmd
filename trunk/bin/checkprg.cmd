@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: checkprg.cmd,v 1.2 2002-06-12 09:54:30 cla Exp $
+* $Id: checkprg.cmd,v 1.3 2006-11-08 21:13:45 jbs Exp $
 *
 * ===========================================================================
 *
@@ -37,7 +37,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.2 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.3 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -98,7 +98,7 @@
     /* file not there: nothing to check */
     IF (\FileExist( ListFile)) THEN
     DO
-       /* handle EXTPROC bug in CMD.EXDE */
+       /* handle EXTPROC bug in CMD.EXE */
        CheckFile = CheckExtProcCall( ListFile);
        IF (CheckFile \= '') THEN
           ListFile = CheckFile;
@@ -167,7 +167,7 @@
           rc = ERROR.FILE_NOT_FOUND;
        END;
 
-       WHEN (fPackageMissing) THEN
+       WHEN (fSyntaxError) THEN
           rc = ERROR.INVALID_DATA;
 
        OTHERWISE NOP;
