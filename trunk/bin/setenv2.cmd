@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setenv2.cmd,v 1.3 2006-11-07 23:18:08 jbs Exp $
+* $Id: setenv2.cmd,v 1.4 2006-11-08 21:04:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -297,6 +297,13 @@ SET DPATH=F:\emx\book;%DPATH%
 /*    SET BEGINLIBPATH=%SOMBASE%\LIB;%BEGINLIBPATH%       */
       call add2env 'BEGINLIBPATH', som_base || '\LIB;'
 
+
+/*    General definitions      */
+/*    SET INCLUDE=.;%INCLUDE%  */
+/*    In order to ensure that '.;' comes first it is added at the end */
+      call add2env 'INCLUDE', '.;', 'B'
+
+
 /* :END  */
 exitcode:
 call directory(cfg.curdir)
@@ -421,7 +428,7 @@ Init: procedure expose (globals)
 
    i                    = i + 1
    compiler.i.name      = 'CSET2'
-   compiler.i.desc      = 'C Set/2 v??'
+   compiler.i.desc      = 'C Set/2 v2.1'
 
    i                    = i + 1
    compiler.i.name      = 'OW13'
@@ -545,7 +552,7 @@ Init: procedure expose (globals)
    envvar.i.desc.6      = 'directory.'
    envvar.i.desc.0      = 6
    envvar.i.default     = directory(thispgmdir || '\..') || '\zip'
-   envvar.i.default_txt = 'please a name of another directory for the EPM zip files.'
+   envvar.i.default_txt = 'please provide the name of another directory for the EPM zip files.'
    envvar.i.cfgin       = 1
 
    i                    = i + 1
@@ -699,8 +706,8 @@ GetSettingsFromUser: procedure expose (globals)
       end
       say
       say 'The value(s) can be provided in any of the following ways:'
-      say '   1. Exit this program, set the value(s) manually and then restart.'
-      say '   2. Exit this program, create/edit the YOUR setenv program:'
+      say '   1) Exit this program, set the value(s) manually and then restart.'
+      say '   2) Exit this program, create/edit YOUR setenv program:'
       say '         'work_user_setenv_file
       say '      and then run it.'
       if cfg.user_setenv_file \= '' then
