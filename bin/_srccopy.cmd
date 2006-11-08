@@ -1,22 +1,23 @@
 /****************************** Module Header *******************************
 *
-* Module Name: _srccopy action flagfile basedir targetdir
+* Module Name: _srccopy action flagfile sourcedir targetdir
 *
-*   action    - CHECK: check all files in source dir for being newer
-*                      if outdated, delete flagfile
+*   action    - CHECK: check all files in sourcedir, if any are newer
+*                      than the flagfile from the previous copy, delete
+*                      the flagfile
 *               COPY:  copy all files to target dir and write flagfile
-*   flagfile  - zero byte file being written on copy
-*   basedir   - a directory within the CVS tree part
+*   flagfile  - zero byte file written during a copy
+*   sourcedir - a directory within the CVS tree part
 *   targetdir - a directory below subdirectory compile
 *
-* Helper batch for to copy sources to compile directory without CVS
-* directories in order to prevent then from being packed
+* Helper batch which copies sources to compile directory. CVS
+* directories are excluded in order to prevent them from being packed.
 *
 * NOTE: targetdir must exist !
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: _srccopy.cmd,v 1.3 2002-09-19 18:09:19 cla Exp $
+* $Id: _srccopy.cmd,v 1.4 2006-11-08 21:14:40 jbs Exp $
 *
 * ===========================================================================
 *
