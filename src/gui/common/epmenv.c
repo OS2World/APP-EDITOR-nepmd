@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.26 2006-11-07 23:09:22 jbs Exp $
+* $Id: epmenv.c,v 1.27 2006-11-09 23:23:42 jbs Exp $
 *
 * ===========================================================================
 *
@@ -506,11 +506,13 @@ static PSZ _QueryExtLIBPATH(ULONG ulWhichPath)
         {
             free(pBuffer);
         }
-        ulBufferSize += 128;
+        ulBufferSize += 4096;
         pBuffer = malloc(ulBufferSize);
-        // JBSQ: Assume allocation OK?
-        rc = DosQueryExtLIBPATH(pBuffer, ulWhichPath);
-    } while (rc == ERROR_INSUFFICIENT_BUFFER);
+        if (pBuffer)
+        {
+            rc = DosQueryExtLIBPATH(pBuffer, ulWhichPath);
+        }
+    } while (rc == ERROR_INSUFFICIENT_BUFFER && pBuffer);
     if (rc != NO_ERROR)
     {
         free(pBuffer);
