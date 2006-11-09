@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setenv2.cmd,v 1.5 2006-11-08 21:36:00 jbs Exp $
+* $Id: setenv2.cmd,v 1.6 2006-11-09 03:25:34 jbs Exp $
 *
 * ===========================================================================
 *
@@ -405,12 +405,7 @@ set: procedure expose (globals)
    parse var setcmd . varname '=' varvalue
    if value(varname, , cfg.env) == '' then
       do
-         /* The following replaces embedded env vars, if any, with their values */
-         /* NOTE: This code will fail if varvalue has an odd number of  '%'s like NLSPATH */
-         do while (pos('%', varvalue) \= lastpos('%', varvalue))
-            parse var varvalue part1 '%' subvarname '%' part2
-            varvalue = part1 || value(subvarname,, cfg.env) || part2
-         end
+         varvalue = env_substitution(varvalue)
          call value varname, varvalue, cfg.env
       end
    return
