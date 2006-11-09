@@ -1,5 +1,5 @@
 /*
-** $Id: cvs2log.cmd,v 1.3 2006-09-15 20:33:06 aschn Exp $
+** $Id: cvs2log.cmd,v 1.4 2006-11-09 15:52:20 jbs Exp $
 **
 ** CVS to ChangeLog generator.
 **
@@ -246,7 +246,7 @@ parse_changelog: procedure expose (globals) tz dateval
 	parse arg dir
 	dateval = datearg
 	filename = dir''changelog_name
-	if stream(filename, 'c', 'query size') = 0 then
+	if stream(filename, 'c', 'query size') = '' then
 		return FALSE
 	call stream filename, 'c', 'open read'
 	do while lines(filename) > 0
@@ -276,13 +276,18 @@ is_directory: procedure expose (globals)
 
 do_directory: procedure expose (globals) dateval tz text.
 	parse arg dir, filelist, repository
-        call do_files dir, filelist, repository
+	if translate(right(dir, 9)) == '/CVSROOT/' then
+	  return
+   call do_files dir, filelist, repository
 	if filelist = '*' & recursive then do
 		call read_entries dir
 		do i = 1 to entries.0
 			pdir = dir''entries.i'/'
-			say "Interim: "pdir
-			call do_directory pdir, '*', repository
+      	if translate(right(pdir, 9)) \= '/CVSROOT/' then
+            do
+   			   say "Interim: "pdir
+			      call do_directory pdir, '*', repository
+			   end
 		end
 	end
 	return
@@ -438,10 +443,10 @@ read_entries: procedure expose (globals) entries.
 	entries. = ''; entries.0 = 0
 	do while lines(filename) > 0
 		line = linein(filename)
-		parse var line 'D/' dir '/'
-		if dir \= '' then do
+		parse var line 'D/' dir2 '/'
+		if dir2 \= '' then do
 			i = entries.0+1
-			entries.i = dir
+			entries.i = dir2
 			entries.0 = i
 		end
 	end
@@ -450,15 +455,16 @@ read_entries: procedure expose (globals) entries.
 	if stream(filename, 'c', 'open read') = 'READY:' then
 	do while lines(filename) > 0
 		line = linein(filename)
-		parse var line 'A D/' dir '/'
-		if dir \= '' then do
+		parse var line 'A D/' dir2 '/'
+		if dir2 \= '' then do
 			i = entries.0+1
-			entries.i = dir
+			entries.i = dir2
 			entries.0 = i
 			iterate
 		end
-		parse var line 'R D/' dir '/'
-		if dir \= '' then do
+		parse var line 'R D/' dir2 '/'
+		if dir2 \= '' then do
+/*
 			ffound = 0
 			emax = entries.0
 			do e = 1 to emax
@@ -472,8 +478,19 @@ read_entries: procedure expose (globals) entries.
 					entries.0 = e
 				end
 			end
-		end
-	end
+*/
+         do e = 1 to entries.0
+            if entries.e = dir2 then do
+               do e1 = e to entries.0 - 1
+                  e2 = e1 + 1
+                  entries.e1 = entries.e2
+               end
+               entries.0 = entries.0 - 1
+               leave
+            end
+         end
+      end
+   end
 	call stream filename, 'c', 'close'
 	return
 
