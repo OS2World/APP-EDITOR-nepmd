@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2006
 *
-* $Id: finddef.e,v 1.1 2006-10-07 18:43:05 aschn Exp $
+* $Id: finddef.e,v 1.2 2006-11-09 00:25:27 jbs Exp $
 *
 * ===========================================================================
 *
@@ -93,6 +93,7 @@ defproc ModeFindDef
    nFiles = 0
    fTruncated = 0
    getfileid grepfid
+   sayerror 'grepfid.last: 'grepfid.last
    if grepfid.last > 1 then  -- found something?
 
       -- Create a temp. file
@@ -156,7 +157,9 @@ defproc ModeFindDef
 
    activatefile grepfid
    'quit'                -- quit the grep window
-   activatefile tempfid
+   if nFiles > 0 then
+      activatefile tempfid
+   endif
 
    return nFiles','FileList
 
@@ -216,6 +219,7 @@ defc FindDef
    -- ModeFindDef creates a temp. file, that is read by
    -- Listbox_Buffer_From_File
    next = ModeFindDef( Mode, Keyword)
+   sayerror 'next: 'next
    parse value next with nFiles ',' FileList
    fTruncated = 0
    if leftstr( nFiles, 1) = '!' then
