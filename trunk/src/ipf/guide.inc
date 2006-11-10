@@ -10,7 +10,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: guide.inc,v 1.4 2006-10-31 18:36:56 jbs Exp $
+.. $Id: guide.inc,v 1.5 2006-11-10 21:55:33 jbs Exp $
 ..
 .. ===========================================================================
 ..
@@ -35,43 +35,19 @@
 .su V30
 
 .. -----------------------------------------------------------------------------
-.3 Adding new files to the archive
-.. -----------------------------------------------------------------------------
-.an IDPNL_CVSGUIDE_ADDNEW
-.
-When adding source files to the [=TITLE] archive, please comply to the following
-rules when committing a file for the very first time:
-
-.ul compact
-- if you are about to add a *modified version* of a source created by someone
-  else (e.g. the EPMBBS package), proceed as follows
-  - first of all add the _*original*_ version of the file to the archive.
-     - this original file should not be modified at all (e.g. do not add the
-       appropriate [.IDPNL_CVSGUIDE_GNUHEADER GNU header] yet.
-     - commit with comment *First revision*
-  - add the *GNU header* to the original file and commit
-    that as first change
-     - commit with comment *Added GNU header*
-  - commit your modified version as first update to the archive including the
-    very same *GNU header* that you added to the original before
-.
-- if you are about to add a *completely new file*
-  - add the appropriate *GNU header* to your file and
-     - commit with comment *First revision*
-
-
-.. -----------------------------------------------------------------------------
 .3 Using the GNU headers
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_GNUHEADER
 .
 All non-binary source files are to include a GNU header at its top in the
-comment style according to the filetype. See the available header templates
-for different file types in subdirectory [.IDPNL_DEVTREE src\header], it
-contains headers for all currently used filetypes. As *CVS* cannot handle
-true OS/2 filetypes, files can be distinct between by filename extensions only.
-
-When you copy a header template to a file
+comment style according to the filetype. There are header templates
+for for all currently used filetypes in subdirectory [.IDPNL_DEVTREE src\header].
+.
+.
+As *CVS* cannot handle true OS/2 filetypes, types are determined by filename extensions only.
+.
+.
+When you insert a header template into a file
 .ul compact
 - add the module name (with parameters, if applicable)
 - enter a description in between the line *Module Name* and the Copyright line.
@@ -80,42 +56,74 @@ When you copy a header template to a file
 .ul compact
 .at fc=red
 - If a header file for a given file type does not exist, and you want to
-   commit a file of that type to the archive, *you are responsible* to add an
-   appropriate file to the directory *src\header* before or right after
-   you check in the new file.
+commit a file of that type to the archive, *you are responsible*
+.at fc=red
+to add an appropriate file to the *src\header*
+.at fc=red
+directory:
 .at
-   For that within the directory *src\header*
+.ol compact
    - create a copy of an existing template with the new filename extension
-   - modify it to your needs, if necessary (there may exist already an appropriate one)
+   - modify it to your needs
    - test it with the new source file first
    - commit the new template to the archive.
+.el
+.el
+
+.. -----------------------------------------------------------------------------
+.3 Adding new files to the archive
+.. -----------------------------------------------------------------------------
+.an IDPNL_CVSGUIDE_ADDNEW
+.
+When adding source files to the [=TITLE] archive, please comply to the following
+rules when committing a file for the very first time:
+
+.ul compact
+- If you are about to add a *modified version* of a source created by someone
+  else (e.g. the EPMBBS package), proceed as follows
+.ol compact
+- Add the _*original*_ version of the file to the archive. This original file
+    should not be modified at all (e.g. do not add the appropriate
+    [.IDPNL_CVSGUIDE_GNUHEADER GNU header] yet.)
+- Commit with comment *First revision*
+- Insert the *GNU header* at the top of the original file. (See [.IDPNL_CVSGUIDE_GNUHEADER GNU Headers]
+  for more information.)
+- Commit with comment *Added GNU header*
+- Make you modifications to the file
+- Commit your modified version as first update to the archive
+.el
+- If you are about to add a *completely new file*
+.ol compact
+  - Insert the appropriate *GNU header* at the top of your file. (See [.IDPNL_CVSGUIDE_GNUHEADER GNU Headers]
+  for more information.)
+  - Commit with comment *First revision*
+.el
+
 
 .. -----------------------------------------------------------------------------
 .3 Write meaningful commit comments
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_COMCOMMENTS
 .
-The title says it all: try to find a way not to write too little or too much.
+The title says it all: try not to write too little or too much.
 Moreover, don't write what you changed (example: changed sixth parameter to DosOpen)
 but what you intended with the change (example: let access to file fail if it exists).
 
-Moreover, things get easier if you commit changes as often as possible (see also
-very important section [.IDPNL_CVSGUIDE_SMALLUNITS] in order to keep the changelog
-short!).
+Commit changes as often as possible in order to keep the changelog short! (See also
+very important section [.IDPNL_CVSGUIDE_SMALLUNITS] ).
 
 If you commit changes, please always layout the commit comment as a bullet list.
 To make the changelog look better, even include a bullet when there is only one
-list item. For example the log of bin\create.cmd
-contains
+list item. For example the following is an edited excerpt of a log:
 .fo off
 ----------------------------
 revision 1.8
 date: 2002/04/22 14:44:29;  author: cla;  state: Exp;  lines: +7 -10
 - moved files of current package NEPMD "Netlabs Distribution Extensions"
   into package "Base Application"
- .
- .
- .
+  .
+  .
+  .
 ----------------------------
 revision 1.3
 date: 2002/04/18 17:01:36;  author: cla;  state: Exp;  lines: +5 -5
@@ -147,44 +155,45 @@ It is good practice to start every modification task either with
 - a clean working directory (well, at least this is easy as long the
   [=TITLE] archive is that small)
 - an updated working directory. When calling *cvs co .* in your working
-  directory, no line should be preceded by a *?* except for the compile
-  directory and absolutely no filename should be proceeded by a *M*, meaning
-  that still a modified version of the file is sitting on your hardfile
+  directory,
+  - no line should be preceded by a *?* except for
+    - Directories: compile, epm.packages, zip, release, debug
+    - Files: mysetenv.cnd
+  - no filename should be proceeded by a *M*, meaning that still a modified
+  version of the file is sitting on your hardfile
   (then it is time to "clean up")
 
-It is also good practice to finish work with an update operation *cvs co .*
-This helps you to make sure that all code changes that you may have applied, are
+Then make your modifications and commit your work. (See [.IDPNL_CVSGUIDE_WORKINGCODE].)
+
+After committing files, it is good practice to finish work with an update operation *cvs co .*
+This helps you to make sure that all your code changes have been
 committed to the archive. Don't leave uncommitted code on you hardfile any
 longer as necessary, or you run into merge operations.
 
-If you fear to commit non-working code though, either
-.ul compact
-- you did not plan your work well  or
-- your modification task may be too large or take too much time to code or test
-  for a normal development cycle. So you may need a [.IDPNL_CVSGUIDE_BRANCHES CVS branch]
-  in order to develop separately from the  main development path. But using branches
-  to separate different development paths are mostly used on large *CVS* archives
-  only, likely the [=TITLE] archive is yet too small to really require this...
+..If you fear to commit non-working code though, either
+...ul compact
+..- you did not plan your work well  or
+..- your modification task may be too large or take too much time to code or test
+..  for a normal development cycle. So you may need a [.IDPNL_CVSGUIDE_BRANCHES CVS branch]
+..  in order to develop separately from the  main development path. But using branches
+..  to separate different development paths are mostly used on large *CVS* archives
+..  only, likely the [=TITLE] archive is yet too small to really require this...
 
 .. -----------------------------------------------------------------------------
 .3 Commit working code only
 .. -----------------------------------------------------------------------------
 .an IDPNL_CVSGUIDE_WORKINGCODE
 .
-It is very bad practice to commit non-working code to the archive.
-
-Wherever that is not possible to avoid or where you are not sure
-about whether your changes work well, try either to
+.ul
+- *DO NOT COMMIT CODE THAT WILL NOT COMPILE!*
+- It is also very bad practice to commit code which compiles but does not work to the archive.
+If this is unavoisable or if you are not sure how well your code works, do one or more of the following:
 .ul compact
-- comment out or *##ifdef* the code you are not sure about
-- tell project members via mail
-- note expected side effects in the comment log
-
-.at hi
-[=NOTE]
-.ul compact
-- at all costs avoid code that will not even compile!
-.at
+   - comment out or *##ifdef* the code you are not sure about
+   - tell project members via email
+   - note possible side effects in the comment log
+.el
+.el
 
 .. -----------------------------------------------------------------------------
 .3 Commit every small changes and/or fast (small units of work)
@@ -192,32 +201,28 @@ about whether your changes work well, try either to
 .an IDPNL_CVSGUIDE_SMALLUNITS
 .
 In order to allow somebody else (or even yourself after some time) to figure
-out, what changes have been committed to the archive, check in as often and as
-fast as possible. This requires that you well separate tasks from each other
-and as a benefit do not run into merge operations when committing your changes.
+out what changes have been committed to the archive, check in as often and as
+frequently as possible. This requires that you separate tasks from each other.
+As a side benefit of doing this, merge operations will be avoided.
 
-So commit little changes and commit fast, or at least one
+So commit little changes and commit frequently, or at least one
 of that. This is called having *small units of work*.
 
-A good rule of thumb:
+A good rules of thumb:
 .ul compact
-- commit as few modifications together as possible. If two modification tasks
+- Commit as few modifications together as possible. If two modification tasks
   (not code changes!) can be logically separated from each other, commit separately!
-- if you require to change several files for one modification, commit them together
-  after that!
-  - Only that will result in all changed files appearing in one entry of the change log
+- If one modification requires changes to several files, commit them together.
+  - This will result in all changed files appearing in one entry of the change log
     (even committing different files with the same change comment in separate steps will
     result in several change log entries due to the different timestamp).
-  - as a good side this forces you to restrict your units or work to only one or few
-    modification tasks at a time that concern all the files checked in together
-- if you make changes to only one file, you may commit changes for several
-  modification tasks at a time, resulting in multiple items within the commit comment,
-  but that is not good practice. The command *cvs diff* is used to diff (compare)
-  revisions with each other - if you commit changes for more than two larger modifications,
-  only you may be able to know which code change applies to which modification when
-  using *cvs diff*.
+  - As a positive side effect of this, you will restrict your units of work to the
+    modification tasks which concern all the files checked in together.
+- If you make changes to only one file, you may commit changes for several
+  modification tasks at a time, resulting in multiple items within the commit comment.
+  - This should be avoided unless the changes can be considered a "unit".
 
-So the very best way is to
+In summary:
 .ul compact
 - get the last revision (or last revision of desired branch) of all files
 - make the changes for a given modification
@@ -232,7 +237,7 @@ So the very best way is to
 *CVS* branches are mostly used when
 .ul compact
 - shipping a release, allowing fixes on the release version without affecting
-  the development
+  the latest development version
 - making modifications to base modules of a product that require so much
   time (let's say weeks) that you will definitely run into merge operations
   (see also section [.IDPNL_CVSGUIDE_SMALLUNITS])
@@ -240,11 +245,11 @@ So the very best way is to
 It is project policy that
 .ul compact
 - generally only the release maintainer is to create branches for releases
-- while the [=TITLE] archive has no basic module requiring larger development
-  cycles no branches are required for this
-- if you ever think you require branches, ask the release maintainer for it
+- as long as the [=TITLE] archive has no basic module requiring larger development
+  cycles, no branches are required
+- if you ever think you require branches, request them from the release maintainer.
 
-So as a rule of thumb: DON'T CREATE BRANCHES YOURSELF!
+*DON'T CREATE BRANCHES YOURSELF!*
 
 .. -----------------------------------------------------------------------------
 .3 How to ship a release
