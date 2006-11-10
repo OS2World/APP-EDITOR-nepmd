@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.28 2006-11-10 01:29:41 jbs Exp $
+* $Id: epmenv.c,v 1.29 2006-11-10 21:50:49 jbs Exp $
 *
 * ===========================================================================
 *
@@ -38,7 +38,7 @@
 
 #include "epmenv.h"
 
-static PSZ _QueryExtLIBPATH( ULONG);
+//static PSZ _QueryExtLIBPATH( ULONG);
 
 #define __APPNAMESHORT__ "NEPMD"
 
@@ -396,6 +396,15 @@ return rc;
 }
 
 // -----------------------------------------------------------------------------
+
+static PSZ _queryExtLIBPATH( PSZ pBuffer, ULONG ulWhichPath)
+{
+   APIRET  rc;
+   rc = DosQueryExtLIBPATH( pBuffer, ulWhichPath);
+   return ((rc == NO_ERROR) ? pBuffer : NULL);
+}
+
+// -----------------------------------------------------------------------------
 static PSZ _expandEnvVar( PSZ pszStr)
 {
          PSZ      pszResult = NULL;
@@ -409,6 +418,9 @@ static PSZ _expandEnvVar( PSZ pszStr)
          ULONG    ulNewResultLen;
 
          CHAR     szVarName[ 128];
+// Several sources say DosQueryExtLIBPATH will never return
+// more than 1024 bytes.
+         CHAR     szLibPath[ 1025];       // +1 for safe measure
 static   CHAR     chDelimiter = '%';
 
 do
@@ -447,9 +459,9 @@ do
 
          // get value
          if (!stricmp( szVarName, "beginlibpath"))
-            pszVarValue = pszLibpath = _QueryExtLIBPATH( BEGIN_LIBPATH);
+            pszVarValue = _queryExtLIBPATH( szLibPath, BEGIN_LIBPATH);
          else if (!stricmp( szVarName, "endlibpath"))
-            pszVarValue = pszLibpath = _QueryExtLIBPATH( END_LIBPATH);
+            pszVarValue = _queryExtLIBPATH( szLibPath, END_LIBPATH);
          else
             pszVarValue = getenv( szVarName);
 
@@ -481,29 +493,8 @@ do
 
 
    } while (FALSE);
-   if (pszLibpath)
-   {
-       free( pszLibpath);
-   }
 
 return pszResult;
-}
-
-// -----------------------------------------------------------------------------
-
-static PSZ _QueryExtLIBPATH( ULONG ulWhichPath)
-{
-    APIRET  rc;
-    size_t  cbBufferSize = 1025;  /* strlen(Max return string) = 1024 + 1 for safety */
-    PVOID   pBuffer = malloc( cbBufferSize);
-
-    rc = DosQueryExtLIBPATH( pBuffer, ulWhichPath);
-    if (rc != NO_ERROR)
-    {
-        free( pBuffer);
-        pBuffer = NULL;
-    };
-    return pBuffer;
 }
 
 // -----------------------------------------------------------------------------
