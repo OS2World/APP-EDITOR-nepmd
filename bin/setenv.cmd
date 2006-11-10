@@ -12,18 +12,17 @@
 : Prerequisite : The project files must be already checked-out. (Most likely
 :                you have already done that when you are reading this.)
 :
-: Configuration: Option 1: If there is no setenv.cmd in the main project
+: Configuration: Option 1: If there is no mysetenv.cmd in the main project
 :                   directory, then run this program or setenv2.cmd. You
 :                   will be prompted for settings and your sentenv.cmd
 :                   file will be created for you.
 :                Option 2: To change customizations in an existing
-:                   setenv.cmd (in the main project directory.):
+:                   mysetenv.cmd (in the main project directory.):
 :                   a) Manually edit the existing file; or
-:                   b1) Run the existing setenv
-:                   b2) Delete the existing file
-:                   b3) Run bin\setenv or bin\setenv2 which will allow you
-:                       to change your existing settings and create a new
-:                       setenv.cmd
+:                   b1) SET USED_COMPILER=xxx
+:                   b2) Run bin\setenv.cmd (or bin\setenv2.cmd) which will
+:                       allow you to change your existing settings and
+:                       create a new mysetenv.cmd.
 :
 : Note         : Using these environment files avoids the need to edit your
 :                CONFIG.SYS. Because paths were altered by prepending the
@@ -43,7 +42,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: setenv.cmd,v 1.6 2006-11-07 23:22:51 jbs Exp $
+: $Id: setenv.cmd,v 1.7 2006-11-10 22:54:39 jbs Exp $
 :
 : ===========================================================================
 :
@@ -84,22 +83,18 @@ IF EXIST .\bin\setenv2.cmd CALL .\bin\setenv2.cmd & GOTO :END
 :
 : Must be running from bin dir, run the user-customized version
 : of this file, if any
-IF EXIST ..\setenv.cmd cd .. & CALL setenv.cmd & GOTO :END
+IF EXIST ..\mysetenv.cmd cd .. & CALL mysetenv.cmd & GOTO :END
 :
-echo : Must be running from bin dir and there is no user-customized version so
+: Must be running from bin dir and there is no user-customized version so
 : run setenv2 to prompt user to create a user-customized version of this file.
 IF EXIST .\setenv2.cmd CALL .\setenv2.cmd & GOTO :END
 :
 cls
 ECHO.
-ECHO %0
-ECHO.
-ECHO Error 1: This cmd file should not be executed directly. A file with this
-ECHO    name should be created and customized in the main project directory
-ECHO    and run from there.
+ECHO Error 1: This cmd file should not be executed directly.
 ECHO.
 ECHO Error 2: This cmd file was unable to find its companion program: SETENV2.CMD.
-ECHO    Check to make sure you have the complete 'bin' directory from the CVS.
+ECHO    Check to make sure you have the complete 'bin' directory from the CVS
 ECHO    repository.
 ECHO.
 :

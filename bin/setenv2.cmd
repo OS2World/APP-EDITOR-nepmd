@@ -6,14 +6,14 @@
 * Derived from Christian Langanke's TOOLENV package
 * Change to REXX and enhanced by John Small
 *
-* Usage: This file is intended to be called by setenv.cmd in the main project
+* Usage: This file is intended to be called by MYSETENV.CMD in the main project
 *        directory. If there is no such file then running this program or
 *        bin\setenv.cmd will prompt you to create and configure his own
-*        annotated setenv.cmd in the main project directory.
+*        annotated MYSETENV.CMD in the main project directory.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setenv2.cmd,v 1.6 2006-11-09 03:25:34 jbs Exp $
+* $Id: setenv2.cmd,v 1.7 2006-11-10 22:54:39 jbs Exp $
 *
 * ===========================================================================
 *
@@ -33,7 +33,7 @@
  *    - Implement a default NULL value for TOUCH?
  *    - Check w/ Christian about TZ. Needed for ???
  *    - Research SOM settings and correct code, if necessary
- *    - If this file is newer than user's setenv (..\setenv.cmd), then
+ *    - If this file is newer than user's setenv (..\mysetenv.cmd), then
  *      prompt for replacement of user's setenv?
  */
 '@ECHO OFF'
@@ -415,7 +415,7 @@ Init: procedure expose (globals)
    parse source . cfg.called_as cfg.thispgm
    cfg.thispgmdir           = left(cfg.thispgm, lastpos('\', cfg.thispgm) - 1)
 
-   cfg.user_setenv_file = stream(cfg.thispgmdir || '\..\setenv.cmd', 'c', 'query exists')
+   cfg.user_setenv_file = stream(cfg.thispgmdir || '\..\mysetenv.cmd', 'c', 'query exists')
    if cfg.user_setenv_file \= '' then
       cfg.user_setenv_complete = value('USER_SETENV_COMPLETE', '', cfg.env)
    else
@@ -425,7 +425,7 @@ Init: procedure expose (globals)
          call SysCls
          say
          say
-         say 'You have your own SETENV.CMD file and it has not been run.'
+         say 'You have your own MYSETENV.CMD file and it has not been run.'
          say 'Please run it, "'cfg.user_setenv_file'", instead of this'
          say 'program: "'cfg.thispgm'"'
          say
@@ -445,16 +445,19 @@ Init: procedure expose (globals)
    compiler.i.desc      = 'VisualAge C++ v3.08'
 
    i                    = i + 1
-   compiler.i.name      = 'GCC'
-   compiler.i.desc      = 'GNU Compiler v??'
-
-   i                    = i + 1
    compiler.i.name      = 'CSET2'
    compiler.i.desc      = 'C Set/2 v2.1'
 
-   i                    = i + 1
-   compiler.i.name      = 'OW13'
-   compiler.i.desc      = 'Open Watcom v1.3'
+   if value('ALLOW_NEW_COMPILERS',, cfg.env) == '1' then
+      do
+         i                    = i + 1
+         compiler.i.name      = 'GCC'
+         compiler.i.desc      = 'GNU Compiler v??'
+
+         i                    = i + 1
+         compiler.i.name      = 'OW13'
+         compiler.i.desc      = 'Open Watcom v1.3'
+      end
 
    compiler.0           = i
 
@@ -700,13 +703,12 @@ GetSettingsFromEnv: procedure expose (globals)
 return retval
 
 GetSettingsFromUser: procedure expose (globals)
-
    if cfg.user_setenv_file \= '' then
       work_user_setenv_file = cfg.user_setenv_file
    else
       do
-         '@copy 'cfg.thispgm cfg.thispgmdir'\..\setenv.cmd >NUL 2>NUL'
-         work_user_setenv_file = stream(cfg.thispgmdir'\..\setenv.cmd', 'c', 'query exists')
+         '@copy 'cfg.thispgm cfg.thispgmdir'\..\mysetenv.cmd >NUL 2>NUL'
+         work_user_setenv_file = stream(cfg.thispgmdir'\..\mysetenv.cmd', 'c', 'query exists')
          '@del 'work_user_setenv_file' >NUL 2>NUL'
       end
    call SysCls
@@ -840,7 +842,7 @@ GetSettingsFromUser: procedure expose (globals)
       call SysCls
       say
       say
-      parse value SysTextScreenSize() with cols rows
+      parse value SysTextScreenSize() with rows cols
       say 'Your current screen is 'rows' rows and 'cols' columns.'
       say
       say 'If you would like the screen dimensions to be changed automatically'
@@ -856,8 +858,8 @@ GetSettingsFromUser: procedure expose (globals)
       say 'If you want the current dimensions, just press the ENTER key.'
       say
       dimensions = strip(linein())
-      newrows = 1000  /* fake values */
-      newcols = 1000
+      newrows = rows
+      newcols = cols
       if dimensions == '' then
          leave
       else
@@ -879,18 +881,18 @@ GetSettingsFromUser: procedure expose (globals)
                      end
             end
    end
-   if (dimensions \= '' & (newrows \= rows | newcols \= cols)) then
-      do
-         '@MODE CO 1>nul 2>&1 & IF NOT ERRORLEVEL 436 MODE CO'newcols','newrows
-         call lineout work_user_setenv_file, ''
-         call lineout work_user_setenv_file, ''
-         call lineout work_user_setenv_file, 'REM   Setting new screen size'
-         call lineout work_user_setenv_file, ''
-         call lineout work_user_setenv_file, '@MODE CO 1>nul 2>&1 & IF NOT ERRORLEVEL 436 MODE CO'newcols','newrows
-         call lineout work_user_setenv_file, ''
-         call lineout work_user_setenv_file, ''
-         call lineout work_user_setenv_file, separator_line
-      end
+   mode_cmd = '@MODE CO 1>nul 2>&1 & IF NOT ERRORLEVEL 436 MODE CO'newcols','newrows
+   if (dimensions == '' | (newrows == rows & newcols == cols)) then
+      mode_cmd = 'REM 'mode_cmd
+   else
+      mode_cmd
+   call lineout work_user_setenv_file, 'REM'
+   call lineout work_user_setenv_file, 'REM   Setting new screen size'
+   call lineout work_user_setenv_file, 'REM'
+   call lineout work_user_setenv_file, mode_cmd
+   call lineout work_user_setenv_file, 'REM'
+   call lineout work_user_setenv_file, ''
+   call lineout work_user_setenv_file, separator_line
    call lineout work_user_setenv_file, ''
    write = 0
    line = ''
