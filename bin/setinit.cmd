@@ -10,13 +10,13 @@
 *   NEPMD version
 *
 *   NOTE: Running this script will of course corrupt any true NEPMD
-*         installation !!! To make a true installation work again,
+*         installation! To make a true installation work again,
 *         you will have to reinstall the base NEPMD package again
 *         to restore the INI vars to it.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setinit.cmd,v 1.2 2002-08-22 15:40:09 cla Exp $
+* $Id: setinit.cmd,v 1.3 2006-11-12 12:53:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -37,7 +37,7 @@
 
  /* defaults */
  IniApp         = 'NEPMD';
- IniKeyPath     = 'Path';
+ IniKeyPath     = 'RootDir';
 
  /* determine call directory */
  PARSE SOURCE . . CallName;
