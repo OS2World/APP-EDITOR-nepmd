@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: ipfcprep.hil,v 1.2 2006-11-12 11:30:14 aschn Exp $
+; $Id: ipfcprep.hil,v 1.3 2006-11-12 12:13:54 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -25,12 +25,19 @@
 ;
 ; **************************************************************************/
 
-[MACRO2]
+[DIRECTIVE]
 ; Start   End     Escape      Start
 ; string  string  character   Col.
-; --- keywords with attributes
-; --- IPFCPREP control words
-.config   .
-.imd      .
-.when     .
+; --- IPFCPREP (IPF preprocessor) control words with attributes
+.config   NONE:   NONE:       1
+.imd      NONE:   NONE:       1
+.nameit   NONE:   NONE:       1
+.when     NONE:   NONE:       1
+.dm       NONE:   NONE:       1
+.gs       NONE:   NONE:       1
+.aa       NONE:   NONE:       1
+#define   NONE:   NONE:       1
+#ifdef    NONE:   NONE:       1
+#ifndef   NONE:   NONE:       1
+#else     NONE:   NONE:       1
 

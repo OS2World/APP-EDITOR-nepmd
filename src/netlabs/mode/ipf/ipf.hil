@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: ipf.hil,v 1.4 2006-11-12 11:30:13 aschn Exp $
+; $Id: ipf.hil,v 1.5 2006-11-12 12:13:54 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -63,7 +63,7 @@
 :lines      .
 :link       .  MACRO2
 :lm         .  MACRO2
-.nameit     .  MACRO2
+:nameit     .  MACRO2
 :note       .
 :nt         .
 :ol         .
@@ -74,6 +74,13 @@
 :table      .
 :ul         .
 :warning    .
+
+[DIRECTIVE]
+; Start   End     Escape      Start
+; string  string  character   Col.
+.br       NONE:   NONE:       1
+.im       NONE:   NONE:       1
+.ce       NONE:   NONE:       1
 
 [URL]
 ; Start   End     Escape     Start
@@ -92,14 +99,6 @@
  :
 
 [SPECIAL]
-; Because the following start with an END character, we can't have
-; them as part of INSENSITIVE, so we'll have to call them SPECIAL
-; using the colors for macros
-; --- IPF control words
-.br         DIRECTIVE
-.im         DIRECTIVE
-.ce         DIRECTIVE
-
 ; --- keywords without attributes
 :artlink.   MACRO2
 :c.
@@ -157,3 +156,4 @@
 :title.     DOCUMENT
 :userdoc.   DOCUMENT
 :xmp.
+
