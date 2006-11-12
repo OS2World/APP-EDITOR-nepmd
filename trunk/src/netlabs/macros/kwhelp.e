@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.33 2006-06-18 20:08:35 aschn Exp $
+* $Id: kwhelp.e,v 1.34 2006-11-12 13:13:38 jbs Exp $
 *
 * ===========================================================================
 *
@@ -75,6 +75,9 @@ compile if not defined(GENERAL_NOCASE_TYPES)
    GENERAL_NOCASE_TYPES = 'CMD SYS BAT E'         --<---------------------------------------------------- Todo
 compile endif
 
+compile if not defined(GETNEXT_CREATE_NEW_HANDLE)
+include 'STDCONST.E'
+compile endif
 ; ---------------------------------------------------------------------------
 defc KwhelpSelect
       Title   = 'Keyword help'
@@ -379,7 +382,7 @@ defproc pBuild_Helpfile(ft)
 
          -- search all ndx files in this directory of the Ndx shelf path
          Filemask = NepmdQueryFullname( NdxDir)'\*.ndx'
-         Handle = 0  /* always create a new handle ! */
+         Handle = GETNEXT_CREATE_NEW_HANDLE  -- always create a new handle!
          do forever
             Filename = NepmdGetNextFile(  FileMask, address(Handle) )
             parse value Filename with 'ERROR:'rc

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.17 2006-10-07 18:16:54 aschn Exp $
+* $Id: toolbar.e,v 1.18 2006-11-12 13:13:45 jbs Exp $
 *
 * ===========================================================================
 *
@@ -740,7 +740,7 @@ defc ImportToolbarSelect
    RootDir = strip( Get_Env( 'NEPMD_ROOTDIR'), 't', '\')
    UserDir = strip( Get_Env( 'NEPMD_USERDIR'), 't', '\')
    do i = 1 to 3
-      handle = 0  -- handle must be reset to 0 before the search
+      handle = GETNEXT_CREATE_NEW_HANDLE    -- handle must be reset before the search
       if i = 1 then
          UserFileMask = UserDir'\bar\*.bar'
          FileMask = UserFileMask
