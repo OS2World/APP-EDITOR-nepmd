@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.44 2006-09-15 20:48:50 aschn Exp $
+* $Id: nepmdlib.e,v 1.45 2006-11-12 13:18:59 jbs Exp $
 *
 * ===========================================================================
 *
@@ -35,7 +35,7 @@ compile if not defined(NEPMD_LIB_DEBUG)
    NEPMD_LIB_DEBUG = 0  -- Activate debug for this package?
 compile endif
 -------- End of configuration constants for MYCNF.E ----------
-
+include 'STDCONST.E'
    NEPMD_MAXLEN_ESTRING    = 1599;
 
    NEPMD_INI_APPNAME       = 'NEPMD';
@@ -48,11 +48,13 @@ compile endif
    ERRMSG_CANNOT_LOAD      = 'Error: cannot load NEPMD library file NEPMDLIB.DLL!';
    ERRMSG_BOXSTYLE         = 16454; -- CANCEL + ICONHAND + MOVEABLE
 
+compile if 0
 compile if not defined(EPMINFO_EDITCLIENT)
    EPMINFO_EDITCLIENT      = 5; /* avoid include of stdconst.e */
 compile endif
 compile if not defined(EPMINFO_EDITFRAME)
    EPMINFO_EDITFRAME       = 6;
+compile endif
 compile endif
 
 compile if NEPMD_LIB_TEST
