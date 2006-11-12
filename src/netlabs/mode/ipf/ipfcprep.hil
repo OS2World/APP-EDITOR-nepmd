@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: ipfcprep.hil,v 1.1 2002-10-18 18:36:39 cla Exp $
+; $Id: ipfcprep.hil,v 1.2 2006-11-12 11:30:14 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -25,15 +25,12 @@
 ;
 ; **************************************************************************/
 
-[SPECIAL]
+[MACRO2]
+; Start   End     Escape      Start
+; string  string  character   Col.
+; --- keywords with attributes
 ; --- IPFCPREP control words
-
-; Because the following start with an END character, we can't have
-; them as part of INSENSITIVE, so we'll have to call them SPECIAL
-; using the colors for macros
-
-.config MACRO
-.imd    MACRO
-.nameit MACRO
-.when   MACRO
+.config   .
+.imd      .
+.when     .
 
