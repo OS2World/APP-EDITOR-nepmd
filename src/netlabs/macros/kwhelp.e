@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.34 2006-11-12 13:13:38 jbs Exp $
+* $Id: kwhelp.e,v 1.35 2006-11-12 15:04:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -381,7 +381,7 @@ defproc pBuild_Helpfile(ft)
          parse value SearchShelf with NdxDir';'SearchShelf
 
          -- search all ndx files in this directory of the Ndx shelf path
-         Filemask = NepmdQueryFullname( NdxDir)'\*.ndx'
+         Filemask = NepmdQueryFullname( NdxDir'\*.ndx')
          Handle = GETNEXT_CREATE_NEW_HANDLE  -- always create a new handle!
          do forever
             Filename = NepmdGetNextFile(  FileMask, address(Handle) )
