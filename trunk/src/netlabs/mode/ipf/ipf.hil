@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: ipf.hil,v 1.3 2006-10-14 21:44:59 aschn Exp $
+; $Id: ipf.hil,v 1.4 2006-11-12 11:30:13 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -35,6 +35,46 @@
 ; string  string  character   Col.
   &        .
 
+[MACRO]
+; Start   End     Escape      Start
+; string  string  character   Col.
+; --- keywords with attributes
+:acviewport .  MACRO2
+:artwork    .
+:caution    .
+:color      .  MACRO2
+:ctrl       .  MACRO2
+:ddf        .
+:dl         .
+:docprof    .  MACRO2
+:font       .  MACRO2
+:fn         .  SECTION5
+:h1         .  DOCUMENT
+:h2         .  SECTION2
+:h3         .  SECTION3
+:h4         .  SECTION4
+:h5         .  SECTION5
+:h6         .  SECTION5
+:hide       .  MACRO2
+:i1         .  MACRO2
+:i2         .  MACRO2
+:icmd       .  MACRO2
+:isyn       .  MACRO2
+:lines      .
+:link       .  MACRO2
+:lm         .  MACRO2
+.nameit     .  MACRO2
+:note       .
+:nt         .
+:ol         .
+:parml      .
+:pbutton    .
+:rm         .  MACRO2
+:sl         .
+:table      .
+:ul         .
+:warning    .
+
 [URL]
 ; Start   End     Escape     Start
 ; string  string  character  position
@@ -50,7 +90,6 @@
 
 [BREAKCHAR]
  :
- ;
 
 [SPECIAL]
 ; Because the following start with an END character, we can't have
@@ -59,70 +98,36 @@
 ; --- IPF control words
 .br         DIRECTIVE
 .im         DIRECTIVE
-
-; --- keywords with attributes
-:acviewport
-:artwork
-:caution
-:color
-:ctrl
-:ddf
-:dl
-:docprof
-:font
-:fn         SECTION
-:h1         DOCUMENT
-:h2         SECTION
-:h3         SECTION
-:h4         SECTION
-:h5         SECTION
-:h6         SECTION
-:hide
-:i1
-:i2
-:isyn
-:lines
-:link
-:lm
-:note
-:nt
-:ol
-:parml
-:pbutton
-:rm
-:sl
-:table
-:ul
-:warning
+.ce         DIRECTIVE
 
 ; --- keywords without attributes
-:artlink.
+:artlink.   MACRO2
 :c.
 :cgraphic.
-:ctrldef.
+:ctrldef.   MACRO2
 :dd.
 :ddhd.
 :dt.
 :dthd.
-:eartlink.
+:eartlink.  MACRO2
 :ecaution.
 :ecgraphic.
-:ectrldef.
+:ectrldef.  MACRO2
 :edl.
 :efig.
 :efn.
-:ehide.
-:ehp1.
-:ehp2.
-:ehp3.
-:ehp4.
-:ehp5.
-:ehp6.
-:ehp7.
-:ehp8.
-:ehp9.
+:ehide.     MACRO2
+:ehp1.      MACRO2
+:ehp2.      MACRO2
+:ehp3.      MACRO2
+:ehp4.      MACRO2
+:ehp5.      MACRO2
+:ehp6.      MACRO2
+:ehp7.      MACRO2
+:ehp8.      MACRO2
+:ehp9.      MACRO2
 :elines.
-:elink.
+:elink.     MACRO2
 :ent.
 :eol.
 :eparml.
@@ -134,16 +139,15 @@
 :exmp.
 :fig.
 :figcap.
-:hp1.
-:hp2.
-:hp3.
-:hp4.
-:hp5.
-:hp6.
-:hp7.
-:hp8.
-:hp9.
-:icmd.
+:hp1.       MACRO2
+:hp2.       MACRO2
+:hp3.       MACRO2
+:hp4.       MACRO2
+:hp5.       MACRO2
+:hp6.       MACRO2
+:hp7.       MACRO2
+:hp8.       MACRO2
+:hp9.       MACRO2
 :li.
 :lp.
 :p.
