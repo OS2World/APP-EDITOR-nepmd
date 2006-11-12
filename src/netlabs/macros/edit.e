@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.41 2006-10-07 18:16:47 aschn Exp $
+* $Id: edit.e,v 1.42 2006-11-12 13:13:39 jbs Exp $
 *
 * ===========================================================================
 *
@@ -101,7 +101,7 @@ defproc PreLoadFile( Spec, Options)
 
    -- Resolve wildcards in Spec to delete REXX EAs for every REXX file
    -- and for setting universal vars
-   Handle = 0
+   Handle = GETNEXT_CREATE_NEW_HANDLE    -- always create a new handle!
    fStop = 0
    do while fStop <> 1
       if fWildcard then

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.8 2006-07-06 17:52:09 aschn Exp $
+* $Id: recompile.e,v 1.9 2006-11-12 13:13:43 jbs Exp $
 *
 * ===========================================================================
 *
@@ -348,7 +348,7 @@ defc RecompileAll
       parse value rest with next';'rest
       -- Search in every piece of Path for .lst files
       FileMask = next'\*.lst'
-      Handle = 0
+      Handle = GETNEXT_CREATE_NEW_HANDLE    -- always create a new handle!
       do forever
          ListFile = NepmdGetNextFile( FileMask, address(Handle))
          parse value ListFile with 'ERROR:'rc
@@ -469,7 +469,7 @@ defc RecompileNew
       parse value rest with next';'rest
       -- Search in every piece of Path for .lst files
       FileMask = next'\*.lst'
-      Handle = 0
+      Handle = GETNEXT_CREATE_NEW_HANDLE    -- always create a new handle!
       do forever
          ListFile = NepmdGetNextFile( FileMask, address( Handle))
          parse value ListFile with 'ERROR:'rc

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: autolink.e,v 1.8 2005-11-24 20:41:35 aschn Exp $
+* $Id: autolink.e,v 1.9 2006-11-12 13:13:45 jbs Exp $
 *
 * ===========================================================================
 *
@@ -37,7 +37,7 @@ defproc Autolink
 
     -- loop through all .ex files
 
-    Handle          = 0                 -- always create a new handle!
+    Handle          = GETNEXT_CREATE_NEW_HANDLE    -- always create a new handle!
     AddressOfHandle = address( Handle)
     FileMask        = AutoLinkDir'\*.ex'
 

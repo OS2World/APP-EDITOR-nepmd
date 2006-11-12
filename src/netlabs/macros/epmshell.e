@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.31 2006-10-07 18:16:48 aschn Exp $
+* $Id: epmshell.e,v 1.32 2006-11-12 13:13:41 jbs Exp $
 *
 * ===========================================================================
 *
@@ -1046,7 +1046,7 @@ defc ShellFncInit
    -- Find dirs and files
    rc1 = ''
    rc2 = ''
-   handle = 0  -- handle must be reset to 0 before the search
+   handle = GETNEXT_CREATE_NEW_HANDLE    0  -- handle must be reset before the search
    c = 0  -- number of found names
    m = 0  -- item number of ExeMaskList
    f = 0  -- number of found items per FileMask, only used for debugging
