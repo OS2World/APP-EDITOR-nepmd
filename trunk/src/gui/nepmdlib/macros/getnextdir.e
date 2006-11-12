@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextdir.e,v 1.13 2003-08-30 16:01:00 aschn Exp $
+* $Id: getnextdir.e,v 1.14 2006-11-12 13:19:00 jbs Exp $
 *
 * ===========================================================================
 *
@@ -108,10 +108,11 @@ _*Example:*_
 /*   allow editor command to call function                       */
 /* ------------------------------------------------------------- */
 compile if NEPMD_LIB_TEST
+include 'STDCONST.E'
 
 defc NepmdGetNextDir, GetNextDir =
 
- Handle   = 0;  /* always create a new handle ! */
+ Handle   = GETNEXT_CREATE_NEW_HANDLE
  AddressOfHandle = address( Handle);
 
  DirMask = arg( 1);

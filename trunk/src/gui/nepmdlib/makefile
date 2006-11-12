@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.7 2004-07-03 10:40:37 aschn Exp $
+# $Id: makefile,v 1.8 2006-11-12 13:18:58 jbs Exp $
 #
 # ===========================================================================
 #
@@ -20,9 +20,6 @@
 # General Public License for more details.
 #
 # ***************************************************************************
-
-# --- extend EPMPATH to find include files in subdirectory
-EPMPATH=macros;$(EPMPATH)
 
 # - create utilitiy
 #   NOTE: compile with multithread support,
@@ -39,6 +36,9 @@ BASEDIR=..\..\..
 !include $(BASEDIR)\rules.in
 # overwrite possible empty PMPRINTF to make it available even for !ifndef DEBUG
 PMPRINTF=$(BINDIR)\printf.obj
+# --- extend EPMPATH to find include files in subdirectory
+#     and from the main macros subdirectory (for STCCONST.E)
+EPMPATH=macros;$(BASEDIR)\src\netlabs\macros;$(EPMPATH)
 
 # --- some file definitions for this makefile
 
