@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdconst.e,v 1.7 2006-10-07 19:34:07 aschn Exp $
+* $Id: stdconst.e,v 1.8 2006-11-12 13:21:41 jbs Exp $
 *
 * ===========================================================================
 *
@@ -444,3 +444,7 @@ compile endif
    MIA_DISABLED        = 16384  -- 0x4000
    MIA_HILITED         = 32768  -- 0x8000
 
+   -- NepmdGetNextFile and NepmdGetNextDir write the created handle back to the E handle
+   -- variable. The handle passed to NepmdGetNextFile/Dir must start with '0' and be
+   -- at least 14 bytes long.
+   GETNEXT_CREATE_NEW_HANDLE = '00000000000000'
