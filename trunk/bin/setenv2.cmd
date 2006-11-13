@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setenv2.cmd,v 1.7 2006-11-10 22:54:39 jbs Exp $
+* $Id: setenv2.cmd,v 1.8 2006-11-13 23:29:57 jbs Exp $
 *
 * ===========================================================================
 *
@@ -55,7 +55,8 @@ if all_required_are_set == 0 then
    select
       when envvar.used_compiler.value == 'VAC308' then
          do         /* VAC308 */
-            say 'Setting environment for 'compiler.used_compiler.desc' in 'envvar.dir_compiler.value
+            i = wordpos(envvar.used_compiler.value, envvar.used_compiler.list)
+            say 'Setting environment for 'compiler.i.desc' in 'envvar.dir_compiler.value
 
 /*          CONFIG.SYS settings which this code can't handle
             DEVICE=%envvar.dir_compiler.value%\SYS\CPPOPA3.SYS
@@ -128,7 +129,8 @@ if all_required_are_set == 0 then
          do
             /* CSET2 */
 /*          ECHO Setting environment for CSET2 in %DIR_COMPILER%     */
-            say 'Setting environment for 'compiler.used_compiler.desc' in 'envvar.dir_compiler.value
+            i = wordpos(envvar.used_compiler.value, envvar.used_compiler.list)
+            say 'Setting environment for 'compiler.i.desc' in 'envvar.dir_compiler.value
 
 /*          CONFIG.SYS settings which this code can't handle
             DEVICE=%DIR_COMPILER%\DDE4XTRA.SYS
@@ -155,7 +157,8 @@ if all_required_are_set == 0 then
          end
       when envvar.used_compiler.value = 'GCC' then
          do
-            say 'Setting environment for 'compiler.used_compiler.desc' in 'envvar.dir_compiler.value
+            i = wordpos(envvar.used_compiler.value, envvar.used_compiler.list)
+            say 'Setting environment for 'compiler.i.desc' in 'envvar.dir_compiler.value
             /*    some GNU definitions       */
 /*          SET C_INCLUDE_PATH=%C_INCLUDE_PATH%;%DIR_TOOLKIT%\H;%DIR_TOOLKIT45%\IDL;   */
             call add2env 'C_INCLUDE_PATH', translate(dir_toolkit '\H;' || dir_toolkit /* 45 ?? */ || '\IDL;'. '/', '\')
@@ -207,7 +210,8 @@ SET DPATH=F:\emx\book;%DPATH%
          end
       when envvar.used_compiler.value = 'OW13' then
          do
-            say 'Setting environment for 'compiler.used_compiler.desc' in 'envvar.dir_compiler.value
+            i = wordpos(envvar.used_compiler.value, envvar.used_compiler.list)
+            say 'Setting environment for 'compiler.i.desc' in 'envvar.dir_compiler.value
             call set 'SET WATCOM='envvar.dir_compiler.value
             call add2env 'PATH', envvar.dir_compiler.value || '\BINP;' || envvar.dir_compiler.value || '\BINW;','B'
             call add2env 'BEGINLIBPATH', envvar.dir_compiler.value || '\BINP;'
