@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: nepmd.lst,v 1.16 2006-11-05 13:48:17 aschn Exp $
+: $Id: nepmd.lst,v 1.17 2006-11-13 07:12:39 aschn Exp $
 :
 : ===========================================================================
 :
@@ -38,6 +38,7 @@ NEPMD_EX         1 %CMPDIR%\base                 netlabs\ex\*
 NEPMD_DLL        1 %BINDIR%\base                 netlabs\dll\*
 NEPMD_DLL        1 %CMPDIR%\base                 netlabs\dll\*
 NEPMD_MODE       1 %CMPDIR%\base                 netlabs\mode\*
+NEPMD_NDX        1 %CMPDIR%\base                 netlabs\ndx\*
 NEPMD_BAR        1 %CMPDIR%\base                 netlabs\bar\*
 NEPMD_BMP        1 %CMPDIR%\base                 netlabs\bmp\*
 
