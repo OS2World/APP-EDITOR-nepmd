@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comment.e,v 1.9 2006-08-28 17:03:05 aschn Exp $
+* $Id: comment.e,v 1.10 2006-11-13 13:59:40 jbs Exp $
 *
 * ===========================================================================
 *
@@ -244,6 +244,13 @@ defproc CommentMarkedLines
       SLC2         = 'REM '
 ;     SLC2Col      = 1
       SLC2AddSpace = 0
+      SLCPreferred = 1
+      Case         = 0
+
+   elseif     mode = 'HTEXT' then ------------------------------------- HTEXT
+      SLC1         = ".."
+      SLC1Col      = 1
+      SLC1AddSpace = 1
       SLCPreferred = 1
       Case         = 0
 
