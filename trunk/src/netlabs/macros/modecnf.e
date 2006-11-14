@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modecnf.e,v 1.7 2006-10-07 18:45:40 aschn Exp $
+* $Id: modecnf.e,v 1.8 2006-11-14 13:37:48 jbs Exp $
 *
 * ===========================================================================
 *
@@ -37,7 +37,7 @@
 ;    following.
 ;
 ;    As an alternative, you simply may want to specify the here used commands
-;    in your %NEPMD_USERDIR%\PROFILE.ERX. The commands from PROFILE.ERX will
+;    in your %NEPMD_USERDIR%\BIN\PROFILE.ERX. The commands from PROFILE.ERX will
 ;    be executed after the ones from this file, so you're able to overwrite
 ;    the following.
 ;
