@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.42 2006-10-29 23:41:18 aschn Exp $
+* $Id: mode.e,v 1.43 2006-11-15 15:07:06 jbs Exp $
 *
 * ===========================================================================
 *
@@ -324,7 +324,7 @@ defproc QueryModeKey( Mode, Key)
    KeyPath = PathPrefix'\'Mode'\'Key
    next = strip( NepmdQueryConfigValue( nepmd_hini, KeyPath), 'T', \0)
    parse value next with 'ERROR:'rcx
-   if rcx = '' then
+   if rcx = '' and next <> '' then
       return next
    else
       return default_value
@@ -338,7 +338,9 @@ defc DelAllModeKeys
    KeyList = 'CharSet CaseSensitive' ||
              ' DefExtensions DefNames' ||
              ' LineComment LineCommentPos LineCommentOverrideMulti'||
-             ' LineCommentAddSpace LineCommentPreferred' ||
+             ' LineCommentAddSpace LineCommentNeedSpace' ||
+             ' PreferredComment' ||
+             ' LineCommentPreferred' ||      -- LineCommentPreferred soon to be obsolete
              ' MultiLineCommentStart MultiLineCommentEnd' ||
              ' MultiLineCommentNested'
    parse value ModeList with 'ERROR:'rc
