@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.18 2006-11-06 04:55:03 jbs Exp $
+* $Id: assist.e,v 1.19 2006-11-15 15:04:10 jbs Exp $
 *
 * ===========================================================================
 *
@@ -1761,14 +1761,14 @@ defproc inside_oneline_comment(mode)
    indexbase = 'assist.mode.'mode'.'
    SLCCount = GetAVar(indexbase || 'SLC.0')
    if SLCCount = '' then
-      call GetSLCChars(mode, SLCCharList, SLCPosList, SLCAddList, SLCOverrideMLCList)
+      call GetSLCChars(mode, SLCCharList, SLCPosList, SLCNeedList, SLCOverrideMLCList)
       SLCCount = words(SLCCharList)
       call dprintf("1line", "SLCCount: "SLCCount)
       call SetAVar(indexbase || 'SLC.0', SLCCount)
       do i = 1 to SLCCount
          call SetAVar(indexbase || 'SLC.'            || i, word(SLCCharList, i))
          call SetAVar(indexbase || 'SLCPos.'         || i, word(SLCPosList, i))
-         call SetAVar(indexbase || 'SLCAdd.'         || i, word(SLCAddList, i))
+         call SetAVar(indexbase || 'SLCNeed.'        || i, word(SLCNeedList, i))
          call SetAVar(indexbase || 'SLCOverrideMLC.' || i, word(SLCOverrideMLCList, i))
       enddo
    endif
@@ -1779,11 +1779,11 @@ defproc inside_oneline_comment(mode)
             iterate
          endif
       endif
-      SLC    = GetAVar(indexbase || 'SLC.'    || SLCIndex)
-      SLCPos = GetAVar(indexbase || 'SLCPos.' || SLCIndex)
-      SLCAdd = GetAVar(indexbase || 'SLCAdd.' || SLCIndex)
-      call dprintf("1line", "SLC/Pos/Add: "SLC"/"SLCPos"/"SLCAdd)
-      if SLCAdd <> '0' then
+      SLC      = GetAVar(indexbase || 'SLC.'     || SLCIndex)
+      SLCPos   = GetAVar(indexbase || 'SLCPos.'  || SLCIndex)
+      SLCNeed  = GetAVar(indexbase || 'SLCNeed.' || SLCIndex)
+      call dprintf("1line", "SLC/Pos/Need: "SLC"/"SLCPos"/"SLCNeed)
+      if SLCNeed = 1 then
          SLC = SLC || ' '
       endif
       if SLCPos < 0 then
@@ -1849,17 +1849,17 @@ defproc inside_oneline_comment(mode)
 ;           F: SLC must be the first non-blank on the line
 ;           <negative_number> : SLC must NOT start in this column (-6 mean SLC must NOT
 ;              start in column 6)
-;        A flag indicating if the token must be followed by a blank (SLCAddList)
+;        A flag indicating if the token must be followed by a blank (SLCNeedList)
 ;           0: No (i.e. ANY character may follow the start token
 ;           1: A blank must follow the token
 ;        A flag indicating if the SLC will "comment out" a closing MLC token (SLCOverrideMLCList)
 ;           0: No
 ;           1: Yes
 ; ---------------------------------------------------------------------------
-defproc GetSLCChars(mode, var SLCCharList, var SLCPosList, var SLCAddList, var SLCOverrideMLCList)
+defproc GetSLCChars(mode, var SLCCharList, var SLCPosList, var SLCNeedList, var SLCOverrideMLCList)
    SLCCharList = QueryModeKey(mode, 'LineComment', '')
    if SLCCharList <> '' then
-      SLCAddList = QueryModeKey(mode, 'LineCommentAddSpace', '0')
+      SLCNeedList = QueryModeKey(mode, 'LineCommentNeedSpace', '0')
       SLCPosList = QueryModeKey(mode, 'LineCommentPos', '0')
       SLCOverrideMLCList = QueryModeKey(mode, 'LineCommentOverrideMulti', '0')
    endif
