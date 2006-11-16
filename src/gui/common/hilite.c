@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.33 2006-11-04 17:43:28 jbs Exp $
+* $Id: hilite.c,v 1.34 2006-11-16 20:50:01 jbs Exp $
 *
 * ===========================================================================
 *
@@ -106,8 +106,6 @@ static   PSZ            pszKeywordNone    = "NONE:";
 #define KEY_DEFNAMES              "DEFNAMES"
 #define KEY_ADD_DEFNAMES          "ADD_DEFNAMES"
 // the following keys can hold word list, not only single words
-#define KEY_LINECOMMENTADDSPACE       "LINECOMMENTADDSPACE"       // for defc comment
-#define KEY_LINECOMMENTPREFERRED      "LINECOMMENTPREFERRED"      // for defc comment
 #define KEY_LINECOMMENT               "LINECOMMENT"
 #define KEY_LINECOMMENTPOS            "LINECOMMENTPOS"
 #define KEY_LINECOMMENTNEEDSPACE      "LINECOMMENTNEEDSPACE"
@@ -115,6 +113,10 @@ static   PSZ            pszKeywordNone    = "NONE:";
 #define KEY_MULTILINECOMMENTSTART     "MULTILINECOMMENTSTART"
 #define KEY_MULTILINECOMMENTEND       "MULTILINECOMMENTEND"
 #define KEY_MULTILINECOMMENTNESTED    "MULTILINECOMMENTNESTED"
+// additional keys to support COMMENT.E
+#define KEY_LINECOMMENTADDSPACE       "LINECOMMENTADDSPACE"       // for defc comment
+// #define KEY_LINECOMMENTPREFERRED      "LINECOMMENTPREFERRED"      // for defc comment
+#define KEY_PREFERREDCOMMENT          "PREFERREDCOMMENT"          // for defc comment
 
 // --- keyword strings for NEPMD.INI (these settings are written to NEPMD.INI)
 
@@ -124,8 +126,6 @@ static   PSZ            pszKeywordNone    = "NONE:";
 #define REGKEY_DEFEXTENSIONS         "DefExtensions"
 #define REGKEY_DEFNAMES              "DefNames"
 // the following keys can hold word list, not only single words
-#define REGKEY_LINECOMMENTADDSPACE       "LineCommentAddSpace"       // for defc comment
-#define REGKEY_LINECOMMENTPREFERRED      "LineCommentPreferred"      // for defc comment
 #define REGKEY_LINECOMMENT               "LineComment"
 #define REGKEY_LINECOMMENTPOS            "LineCommentPos"
 #define REGKEY_LINECOMMENTNEEDSPACE      "LineCommentNeedSpace"
@@ -133,6 +133,10 @@ static   PSZ            pszKeywordNone    = "NONE:";
 #define REGKEY_MULTILINECOMMENTSTART     "MultiLineCommentStart"
 #define REGKEY_MULTILINECOMMENTEND       "MultiLineCommentEnd"
 #define REGKEY_MULTILINECOMMENTNESTED    "MultiLineCommentNested"
+// additional keys to support COMMENT.E
+#define REGKEY_LINECOMMENTADDSPACE       "LineCommentAddSpace"       // Word list
+// #define REGKEY_LINECOMMENTPREFERRED      "LineCommentPreferred"
+#define REGKEY_PREFERREDCOMMENT          "PreferredComment"          // single "word"
 
 // ----------------------------------------------------------------------
 
@@ -638,7 +642,7 @@ printf( "%u entries\n\n", i);
 //
 // Reads:
 //    pszEpmMode  mode
-//    ulOptions   1 if ckecking for outdated files should be suppressed; also
+//    ulOptions   1 if checking for outdated files should be suppressed; also
 //                used to control the 1st word of the parm for toggle_parse
 // Returns/alters via call by reference:
 //    pfReload    1 if tmp EPM kwds file was rebuilt; used to determine the
@@ -691,56 +695,8 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfRel
 
          HINIT          hinitGlobals = NULLHANDLE;
          CHAR           szInitGlobalFilename[ _MAX_PATH];
-
-         PVALUEARRAY    pvaColors = NULL;
-         PVALUEARRAY    pvaSymbols = NULL;
-
-         // ----------------------------------
-
          HINIT          hinitDefault = NULLHANDLE;
          CHAR           szInitDefaultFilename[ _MAX_PATH];
-
-         CHAR           szCharset[ _MAX_PATH];
-         CHAR           szDefExtensions[ _MAX_PATH];
-         CHAR           szDefNames[ _MAX_PATH];
-         CHAR           szHilCommentChar[ 20];
-         BOOL           fCaseSensitive = FALSE;
-
-         // ----------------------------------
-
-         CHAR           szCustomDefExtensions[ _MAX_PATH];
-         CHAR           szCustomDefNames[ _MAX_PATH];
-         CHAR           szCustomAddDefExtensions[ _MAX_PATH];
-         CHAR           szCustomAddDefNames[ _MAX_PATH];
-
-         CHAR           szCaseSensitive[ _MAX_PATH];
-         CHAR           szCustomCaseSensitive[ _MAX_PATH];
-         ULONG          ulCaseSensitive;
-         ULONG          ulInfoSize;
-
-         CHAR           szLineComment[ _MAX_PATH];
-         CHAR           szLineCommentPos[ _MAX_PATH];
-         CHAR           szLineCommentOverrideMulti[ _MAX_PATH];
-         CHAR           szLineCommentNeedSpace[ _MAX_PATH];
-         CHAR           szLineCommentAddSpace[ _MAX_PATH];
-         CHAR           szLineCommentPreferred[ _MAX_PATH];
-         CHAR           szMultiLineCommentStart[ _MAX_PATH];
-         CHAR           szMultiLineCommentEnd[ _MAX_PATH];
-         CHAR           szMultiLineCommentNested[ _MAX_PATH];
-
-         CHAR           szCustomLineComment[ _MAX_PATH];
-         CHAR           szCustomLineCommentPos[ _MAX_PATH];
-         CHAR           szCustomLineCommentOverrideMulti[ _MAX_PATH];
-         CHAR           szCustomLineCommentAddSpace[ _MAX_PATH];
-         CHAR           szCustomLineCommentNeedSpace[ _MAX_PATH];
-         CHAR           szCustomLineCommentPreferred[ _MAX_PATH];
-         CHAR           szCustomMultiLineCommentStart[ _MAX_PATH];
-         CHAR           szCustomMultiLineCommentEnd[ _MAX_PATH];
-         CHAR           szCustomMultiLineCommentNested[ _MAX_PATH];
-
-static   PSZ            pszRegPathTemplate = "\\NEPMD\\User\\Mode\\%s\\%s";
-         CHAR           szRegPath[ _MAX_PATH];
-         BOOL           fImplicitOpen = FALSE;
 
          // ----------------------------------
 
@@ -750,6 +706,27 @@ static   PSZ            pszRegPathTemplate = "\\NEPMD\\User\\Mode\\%s\\%s";
 
          CHAR           szCustomCharset[ _MAX_PATH];
          CHAR           szCustomAddCharset[ _MAX_PATH];
+
+         // ----------------------------------
+
+         ULONG          ulCaseSensitive;
+         ULONG          ulInfoSize;
+         BOOL           fCaseSensitive = FALSE;
+
+         // ----------------------------------
+
+         PVALUEARRAY    pvaColors = NULL;
+         PVALUEARRAY    pvaSymbols = NULL;
+
+         // ----------------------------------
+
+         CHAR           szHilCommentChar[ 20];
+
+         // ----------------------------------
+
+static   PSZ            pszRegPathTemplate = "\\NEPMD\\User\\Mode\\%s\\%s";
+         CHAR           szRegPath[ _MAX_PATH];
+         BOOL           fImplicitOpen = FALSE;
 
          // ----------------------------------
 
@@ -765,9 +742,9 @@ static   PSZ            pszRegPathTemplate = "\\NEPMD\\User\\Mode\\%s\\%s";
 
          PSZ            pszOldFileInfoList = NULL;
 
+static   PSZ            pszFileInfoMask = "%s %s %u %u\r\n";
          PSZ            pszFileInfoList = NULL;
          ULONG          ulInfoListSize  = 0;
-static   PSZ            pszFileInfoMask = "%s %s %u %u\r\n";
 
          // ----------------------------------
 
@@ -830,6 +807,34 @@ static   PSZ            pszHeaderMask = "\r\n%s%s\r\n";
          PSZ            pszHiliteContents = NULL;
          ULONG          ulHiliteContentsLen;
          PSZ            pszCurrent;
+
+         CHAR           szCharset[ _MAX_PATH];
+         CHAR           szFileBuffer[ 2* _MAX_PATH + 1];
+         CHAR           szAddFileBuffer[ _MAX_PATH];
+
+         PSZ   apszKeys[] =
+         {
+    // used for mode determination and for building EPM highlighting files
+    // Each line is a set of 3 related keys:
+    //       File key                        Registry key                     "ADD_" file key
+             KEY_CHARSET,                    REGKEY_CHARSET,                  KEY_ADD_CHARSET,
+             KEY_DEFEXTENSIONS,              REGKEY_DEFEXTENSIONS,            KEY_ADD_DEFEXTENSIONS,
+             KEY_DEFNAMES,                   REGKEY_DEFNAMES,                 KEY_ADD_DEFNAMES,
+             KEY_CASESENSITIVE,              REGKEY_CASESENSITIVE,            "",
+             // the following keys can hold word list, not only single words
+             KEY_LINECOMMENT,                REGKEY_LINECOMMENT,              "",
+             KEY_LINECOMMENTPOS,             REGKEY_LINECOMMENTPOS,           "",
+             KEY_LINECOMMENTNEEDSPACE,       REGKEY_LINECOMMENTNEEDSPACE,     "",
+             KEY_LINECOMMENTOVERRIDEMULTI,   REGKEY_LINECOMMENTOVERRIDEMULTI, "",
+             KEY_MULTILINECOMMENTSTART,      REGKEY_MULTILINECOMMENTSTART,    "",
+             KEY_MULTILINECOMMENTEND,        REGKEY_MULTILINECOMMENTEND,      "",
+             KEY_MULTILINECOMMENTNESTED,     REGKEY_MULTILINECOMMENTNESTED,   "",
+             // additional keys to support COMMENT.E
+             KEY_LINECOMMENTADDSPACE,        REGKEY_LINECOMMENTADDSPACE,      "",
+             KEY_PREFERREDCOMMENT,           REGKEY_PREFERREDCOMMENT,         ""
+         };
+
+#define NUM_KEYS     (sizeof(apszKeys)/sizeof(PSZ))
 
 FUNCENTER;
 
@@ -926,6 +931,7 @@ do
    if (rc != NO_ERROR)
       break;
 
+   DPRINTF(("Global Filename: '%s'\n", szInitGlobalFilename));
    pvaColors  = _maintainInitValueArray( hinitGlobals, pszColorsSection, NULL);
    pvaSymbols = _maintainInitValueArray( hinitGlobals, pszSymbolsSection, NULL);
 
@@ -936,137 +942,91 @@ do
    if (rc != NO_ERROR)
       break;
 
-   // read default values for highlighting
-   // only the next key is required to define a mode
-   QUERYINITVALUE( hinitDefault,    pszGlobalSection, KEY_CHARSET,        szCharset);
-   // read optional comment char for tmp EPM kwds file (yet undocumented)
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_HILCOMMENTCHAR, szHilCommentChar, STR_KWDSCOMMENT);
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_DEFEXTENSIONS,  szDefExtensions,  "");
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_DEFNAMES,       szDefNames,       "");
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_CASESENSITIVE,  szCaseSensitive,  STR_CASESENSITIVE);
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENT,              szLineComment,              "");
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTPOS,           szLineCommentPos,           "");
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTOVERRIDEMULTI, szLineCommentOverrideMulti, "");
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTADDSPACE,      szLineCommentAddSpace,      "");
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTNEEDSPACE,     szLineCommentNeedSpace,     "");
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_LINECOMMENTPREFERRED,     szLineCommentPreferred,     "");
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_MULTILINECOMMENTSTART,    szMultiLineCommentStart,    "");
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_MULTILINECOMMENTEND,      szMultiLineCommentEnd,      "");
-   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_MULTILINECOMMENTNESTED,   szMultiLineCommentNested,   "");
-
+   DPRINTF(("Default Filename: '%s'\n", szInitDefaultFilename));
    // - read customs of the mode - optional - so ignore errors here
    rc = _openInitFile( &hinitCustom, pszEnvnameEpmModepath, SEARCHMASK_CUSTOMINI, pszEpmMode,
                        szInitCustomFilename, sizeof( szInitCustomFilename));
    if (rc == NO_ERROR)
-      {
+   {
       // note that we found the custom ini
       fCustomLoaded = TRUE;
-
-      // read optional values for highlighting
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_CHARSET,       szCustomCharset,    "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_ADD_CHARSET,   szCustomAddCharset, "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_DEFEXTENSIONS,     szCustomDefExtensions,    "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_ADD_DEFEXTENSIONS, szCustomAddDefExtensions, "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_DEFNAMES,          szCustomDefNames,         "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_ADD_DEFNAMES,      szCustomAddDefNames,      "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_CASESENSITIVE,     szCustomCaseSensitive,    "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENT,              szCustomLineComment,              "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTPOS,           szCustomLineCommentPos,           "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTOVERRIDEMULTI, szCustomLineCommentOverrideMulti, "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTADDSPACE,      szCustomLineCommentAddSpace,      "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTNEEDSPACE,     szCustomLineCommentNeedSpace,     "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_LINECOMMENTPREFERRED,     szCustomLineCommentPreferred,     "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_MULTILINECOMMENTSTART,    szCustomMultiLineCommentStart,    "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_MULTILINECOMMENTEND,      szCustomMultiLineCommentEnd,      "");
-      QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, KEY_MULTILINECOMMENTNESTED,   szCustomMultiLineCommentNested,   "");
-
-      // replace settings from DEFAULT.INI, if present
-      if (strlen( szCustomCharset))
-         strcpy( szCharset, szCustomCharset);
-      if (strlen( szCustomDefExtensions))
-         strcpy( szDefExtensions, szCustomDefExtensions);
-      if (strlen( szCustomDefNames))
-         strcpy( szDefNames, szCustomDefNames);
-      if (strlen( szCustomCaseSensitive))
-         strcpy( szCaseSensitive, szCustomCaseSensitive);
-      if (strlen( szCustomLineComment))
-         strcpy( szLineComment, szCustomLineComment);
-      if (strlen( szCustomLineCommentPos))
-         strcpy( szLineCommentPos, szCustomLineCommentPos);
-      if (strlen( szCustomLineCommentOverrideMulti))
-         strcpy( szLineCommentOverrideMulti, szCustomLineCommentOverrideMulti);
-      if (strlen( szCustomLineCommentAddSpace))
-         strcpy( szLineCommentAddSpace, szCustomLineCommentAddSpace);
-      if (strlen( szCustomLineCommentNeedSpace))
-         strcpy( szLineCommentNeedSpace, szCustomLineCommentNeedSpace);
-      if (strlen( szCustomMultiLineCommentStart))
-         strcpy( szMultiLineCommentStart, szCustomMultiLineCommentStart);
-      if (strlen( szCustomMultiLineCommentEnd))
-         strcpy( szMultiLineCommentEnd, szCustomMultiLineCommentEnd);
-      if (strlen( szCustomMultiLineCommentNested))
-         strcpy( szMultiLineCommentNested, szCustomMultiLineCommentNested);
-
-      // append "ADD_" settings to the ones already read
-      if (strlen( szCustomAddCharset))
-         strcat( szCharset, szCustomAddCharset);
-      if (strlen( szCustomAddDefExtensions))
-         {
-         strcat( szDefExtensions, " ");
-         strcat( szDefExtensions, szCustomAddDefExtensions);
-         }
-      if (strlen( szCustomAddDefNames))
-         {
-         strcat( szDefNames, " ");
-         strcat( szDefNames, szCustomAddDefNames);
-         }
-
-      // make several values uppercase
-      strupr( szDefExtensions);
-      strupr( szDefNames);
-      }
-
+      DPRINTF(( "CustomLoaded == TRUE\n"));
+   }
    else
+   {
       rc = NO_ERROR;
+   }
+   DPRINTF(("Custom Filename: '%s'\n", szInitCustomFilename));
+   for ( i = 0; i < NUM_KEYS; i += 3)
+   {
+      PSZ pszDefaultValue;
+      szFileBuffer[0] = '\0';
+      if (fCustomLoaded)
+      {
+         QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, apszKeys[i], szFileBuffer,    "");
+         DPRINTF(( "Custom. Key '%s' Value '%s'\n", apszKeys, szFileBuffer));
+         if (*(apszKeys[i+2]))
+         {
+            szAddFileBuffer[0] = '\0';
+            QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, apszKeys[i+2], szAddFileBuffer, "");
+            DPRINTF(( "Custom addl. Key '%s' Value '%s'\n", apszKeys[i+2], szFileBuffer));
+            if (szAddFileBuffer[0])
+            {
+               if (apszKeys[i] == KEY_CHARSET)
+               {
+                  strcat( szFileBuffer, szAddFileBuffer);
+               }
+               else // if not charset, must be "word" list
+               {
+                  strcat( szFileBuffer, " ");
+                  strcat( szFileBuffer, szAddFileBuffer);
+                  strupr( szFileBuffer);
+               }
+            }
+         }
+      }
+      if (!szFileBuffer[0]) // If not set from custom, read from default.ini
+      {
+         DPRINTF(("Addr1 Addr2 string %08x %08x %s\n", apszKeys[i], KEY_CHARSET, apszKeys[i]));
+         if (!strcmp( apszKeys[i], KEY_CHARSET))
+         {
+            QUERYINITVALUE( hinitDefault, pszGlobalSection, apszKeys[i], szFileBuffer);
+            pszDefaultValue = STR_CASESENSITIVE;
+            DPRINTF(( "Default charset. Key '%s' Value '%s'\n", apszKeys[i], szFileBuffer));
+         }
+         else
+         {
+            if (!strcmp( apszKeys[i], KEY_CASESENSITIVE))
+            {
+               pszDefaultValue = STR_CASESENSITIVE;
+            }
+            else
+            {
+               pszDefaultValue = "";
+            }
+            QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, apszKeys[i], szFileBuffer, pszDefaultValue);
+            DPRINTF(( "Default. Key '%s' Value '%s'\n", apszKeys[i], szFileBuffer));
+         }
+      }
+      sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, apszKeys[i+1]);
+      DPRINTF(( "Regpath. Key '%s' Full path '%s'\n", apszKeys[i+1], szRegPath));
+      rc = WriteConfigValue( hconfig, szRegPath, szFileBuffer);
+      DPRINTF(( "Regupd rc %d Value '%s'\n", rc, szFileBuffer));
+      if (!strcmp( apszKeys[i],  KEY_CASESENSITIVE))
+      {
+         fCaseSensitive = atol( szFileBuffer);
+         DPRINTF(( "Case sensitive: %d\n", fCaseSensitive));
 
-   fCaseSensitive = atol( szCaseSensitive);
-
-   // -----------------------------------------------
-   // write settings to NEPMD.INI
-   // even empty values are written to enable keyword "deletion"
-
-   // Extensions
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_DEFEXTENSIONS);
-   rc = WriteConfigValue( hconfig, szRegPath, szDefExtensions);
-
-   // Names
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_DEFNAMES);
-   rc = WriteConfigValue( hconfig, szRegPath, szDefNames);
-
-   // Casesensitive
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_CASESENSITIVE);
-   rc = WriteConfigValue( hconfig, szRegPath, szCaseSensitive);
-
-   // Line comments
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENT);
-   rc = WriteConfigValue( hconfig, szRegPath, szLineComment);
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTPOS);
-   rc = WriteConfigValue( hconfig, szRegPath, szLineCommentPos);
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTOVERRIDEMULTI);
-   rc = WriteConfigValue( hconfig, szRegPath, szLineCommentOverrideMulti);
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTADDSPACE);
-   rc = WriteConfigValue( hconfig, szRegPath, szLineCommentAddSpace);
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTNEEDSPACE);
-   rc = WriteConfigValue( hconfig, szRegPath, szLineCommentNeedSpace);
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_LINECOMMENTPREFERRED);
-   rc = WriteConfigValue( hconfig, szRegPath, szLineCommentPreferred);
-
-   // Multi-line comments
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_MULTILINECOMMENTSTART);
-   rc = WriteConfigValue( hconfig, szRegPath, szMultiLineCommentStart);
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_MULTILINECOMMENTEND);
-   rc = WriteConfigValue( hconfig, szRegPath, szMultiLineCommentEnd);
-   sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, REGKEY_MULTILINECOMMENTNESTED);
-   rc = WriteConfigValue( hconfig, szRegPath, szMultiLineCommentNested);
+      }
+      else
+      {
+         if (!strcmp( apszKeys[i], KEY_CHARSET))
+         {
+            strcpy(szCharset, szFileBuffer);
+            DPRINTF(( "Charset: %s\n", szCharset));
+         }
+      }
+   }
 
    // -----------------------------------------------
 
@@ -1173,7 +1133,7 @@ do
    ulInfoListSize = ulFileCount * (_MAX_PATH + 32);
    ALLOCATEMEMORYFILE( pszFileInfoList, ulInfoListSize);
 
-   // first of all add info of init files to file list
+   QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_HILCOMMENTCHAR, szHilCommentChar, STR_KWDSCOMMENT);   // first of all add info of init files to file list
    pszSourceFile = szInitGlobalFilename;
    sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
    pszSourceFile = szInitDefaultFilename;
@@ -1484,7 +1444,7 @@ do
                          (pszCurrentSpecial    - pszSectionSpecial)    +
                          (pszCurrentBreakChar  - pszSectionBreakChar)  +
                          (pszCurrentEndChar    - pszSectionEndChar)    +
-                         (strlen( szCharset) + 32);
+                         (strlen(szCharset) + 32);
 
 // DPRINTF(( "HILITE: assembling %u bytes to hilite file: %s\n", ulHiliteContentsLen, szKeywordFile));
 
