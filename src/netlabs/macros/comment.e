@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comment.e,v 1.10 2006-11-13 13:59:40 jbs Exp $
+* $Id: comment.e,v 1.11 2006-11-16 21:00:21 jbs Exp $
 *
 * ===========================================================================
 *
@@ -70,6 +70,7 @@ defc ucom, uncomment
 ;    -  Restores marked area.
 ;    -  Doesn't remove multi line comments, that appear on every line.
 defproc CommentMarkedLines
+   universal nepmd_hini
    psave_pos(saved_pos)
    getmark firstline, lastline, firstcol, lastcol, fid
    getfileid curfid
@@ -78,8 +79,12 @@ defproc CommentMarkedLines
 
    first = firstline  -- use these for further processing
    last  = lastline   -- and *line and *col for mark restore
-   if curfid <> fid | mt = '' then  -- check if current file is marked
-      sayerror 'No area marked'
+;  if curfid <> fid | mt = '' then  -- check if current file is marked
+   if mt = '' then
+      first = .line
+      last = .line
+   elseif curfid <> fid then
+      sayerror 'No area marked in current file'
       return
    elseif firstline = lastline & lastcol = 0 then  -- a mark action was started, but no char is marked
       sayerror 'No area marked'
@@ -99,6 +104,229 @@ defproc CommentMarkedLines
       action = 'COMMENT'
    endif
 
+   -- SLC?         : single line comment char(s), ? = 1...3
+   -- SLC?Col      : column for the SLC, 0 means: allowed at every column, not used here
+   -- SLC?AddSpace : (0|1) shall a space be added/removed after the SLC
+   -- SLCPreferred : (1|2|3) used SLC?, only for action = 'COMMENT'
+   -- MLC?Start    : multi line comment char(s), ? = 1...2, start string
+   -- MLC?End      : multi line comment char(s), ? = 1...2, end string
+   -- MLCPreferred : (1|2) used MLC?, only for action = 'COMMENT'
+   -- Case         : (0|1) for uncomment only: respect case when locating SLC string in line
+
+   KeyPrefix      = '\NEPMD\User\Mode\'mode'\'
+   Case           = NepmdQueryConfigValue( nepmd_hini, KeyPrefix'CaseSensitive')
+   if Case == '' then
+      Case        = 1  -- default is case-sensitive
+   endif
+
+   if arg(1) > '' then  -- if a single line comment char was submitted as arg(1)
+      SLC1         = strip( arg(1))
+      SLC1AddSpace = (rightstr( arg(1), 1) == ' ')  -- add a space if none was specified
+   else
+      PreferredComment = NepmdQueryConfigValue( nepmd_hini, KeyPrefix'PreferredComment')
+      if PreferredComment = '' then
+         /* Handle no def here */
+         SLC = word( NepmdQueryConfigValue( nepmd_hini, KeyPrefix'LineComment'), 1)
+         if SLC = '' then
+            MLCStart = word( NepmdQueryConfigValue( nepmd_hini, KeyPrefix'MultiLineCommentStart'), 1)
+            MLCEnd   = word( NepmdQueryConfigValue( nepmd_hini, KeyPrefix'MultiLineCommentEnd'  ), 1)
+         else
+            SLCAddSpace = word( NepmdQueryConfigValue( nepmd_hini, KeyPrefix'LineCommentAddSpace'), 1)
+         endif
+      else
+         PreferredCommentType = upcase( leftstr( PreferredComment, 1))
+         PreferredCommentNum  = substr( PreferredComment, 2)
+         if PreferredCommentType = 'S' then
+            SLC = word( NepmdQueryConfigValue( nepmd_hini, KeyPrefix'LineComment'), PreferredCommentNum)
+            SLCAddSpace = word( NepmdQueryConfigValue( nepmd_hini, KeyPrefix'LineCommentAddSpace'), PreferredCommentNum)
+         else
+            MLCStart = word( NepmdQueryConfigValue( nepmd_hini, KeyPrefix'MultiLineCommentStart'), PreferredCommentNum)
+            MLCEnd   = word( NepmdQueryConfigValue( nepmd_hini, KeyPrefix'MultiLineCommentEnd'  ), PreferredCommentNum)
+         endif
+      endif
+   endif
+
+   if action = 'COMMENT' then
+
+      -- Single line comments are preferred to multi line comments
+      if SLC <> '' then  -- if a single line comment is defined
+
+         -- Add a single line comment
+compile if COMMENT_ADD_SPACE = 1 or COMMENT_ADD_SPACE = 0
+         -- overwrite the mode-specific settings
+         SCLAddSpace = COMMENT_ADD_SPACE
+         -- SLCAddSpace = 1  -- add a space after SLC too per default, not regarding
+                             -- how SLC?AddSpace is defined
+         -- SLCAddSpace = 0  -- never add a space after SLC too per default, not regarding
+                             -- how SLC?AddSpace is defined
+compile endif
+         if SLCAddSpace then SLC = SLC' '; endif
+         do l = first to last
+            .line = l
+            Oldline = textline(.line)
+            Newline = SLC''Oldline
+            replaceline Newline
+         enddo
+
+      elseif MLCStart <> '' & MLCEnd <> '' then  -- if a multi line comment is defined
+
+         -- Add a new line and the comment start
+         .line = first        -- go to first marked line
+         insertline MLCStart  -- insertline adds a line before the current
+
+         -- Add a new line and the comment end
+         .line = last + 1     -- go to last marked line (respect that a line was added before)
+         end_line; split      -- this inserts a new line after the current
+         .line = .line + 1    -- go to new line
+         replaceline MLCEnd
+
+         -- Restore mark
+         call pset_mark( firstline + 1, lastline + 1, firstcol, lastcol, mt, fid)
+
+      endif
+
+   else  -- UNCOMMENT
+
+      -- Remove single line comments
+      SLCprocessed = 0
+      SLCList = NepmdQueryConfigValue( nepmd_hini, KeyPrefix'LineComment')
+      SLCAddSpaceList = NepmdQueryConfigValue( nepmd_hini, KeyPrefix'LineCommentAddSpace')
+      do i = 1 to words(SLCList)  -- try every possible single line comment
+         iterate_i = 0
+         SLC         = word( SLCList, i)
+         SLCAddSpace = word( SLCAddSpaceList, i)
+         SLCSpace    = SLC' '
+         len         = length(SLC)
+         lenSpace    = length(SLCSpace)
+
+         -- First run: check if all lines are commented and if there's a space after every SLC
+compile if COMMENT_ADD_SPACE = 1 or COMMENT_ADD_SPACE = 0
+         SCLAddSpace = COMMENT_ADD_SPACE
+         -- SLCAddSpace = 1  -- remove a space after SLC too per default, not reagarding
+                             -- how SLC?AddSpace is defined
+         -- SLCAddSpace = 0  -- never remove a space after SLC too per default, not reagarding
+                             -- how SLC?AddSpace is defined
+compile endif
+         do l = first to last
+            .line = l
+            Oldline = textline(.line)
+            if Case = 0 then
+               CaseOldline  = upcase(Oldline)
+               CaseSLCSpace = upcase(SLCSpace)
+               CaseSLC      = upcase(SLC)
+            else
+               CaseOldline  = Oldline
+               CaseSLCSpace = SLCSpace
+               CaseSLC      = SLC
+            endif
+            if leftstr( CaseOldline, lenSpace) <> CaseSLCSpace then
+               -- Try SLC without space.
+               if leftstr( CaseOldline, len) = CaseSLC then
+                  if CaseOldline <> CaseSLC then
+                     -- Reset it only if this is not a blank commented line
+                     SLCAddSpace = 0
+                  endif
+               else
+                  -- Uncommented line in mark, try next comment char
+                  iterate_i = 1
+                  leave
+               endif
+            endif
+         enddo  -- l
+         if iterate_i = 1 then iterate; endif
+         if SLCAddSpace = 1 then
+            len = lenSpace  -- add 1 to amount of chars removed
+         endif
+
+         -- Second run: remove comments
+         -- At this point we are sure, that every line is commented.
+         do l = first to last
+            .line = l
+            Oldline = textline(.line)
+            if Case = 0 then
+               CaseOldline  = upcase(Oldline)
+               CaseSLC      = upcase(SLC)
+            else
+               CaseOldline  = Oldline
+               CaseSLC      = SLC
+            endif
+            if CaseOldline = CaseSLC then  -- for commented blank lines missing the space
+               Newline = ''
+            elseif length(Oldline) > len then
+               Newline = substr( Oldline, len + 1)
+            else
+               Newline = ''
+            endif
+            replaceline Newline
+         enddo  -- l
+         SLCProcessed = 1
+         leave
+
+      enddo  -- i = 1 to 3
+
+      -- Remove multi line comments
+      if SLCprocessed = 0 then
+
+         -- possible extension here: remove multi line comments if they are found in every line
+
+         MLCStartList   = NepmdQueryConfigValue( nepmd_hini, KeyPrefix'MultiLineCommentStart')
+         MLCEndList     = NepmdQueryConfigValue( nepmd_hini, KeyPrefix'MultiLineCommentEnd')
+         do i = 1 to words(MLCStartList)
+            MLCStart = word( MLCStartList, i)
+            MLCEnd   = word( MLCEnd, i)
+            FoundStart = 0
+            FoundEnd = 0
+            .line = first
+            line = textline(.line)
+            if strip( line, 't' ) = MLCStart then
+               FoundStart = 1
+            else
+               .line = .line - 1
+               line = textline(.line)
+               if strip( line, 't' ) = MLCStart then
+                  FoundStart = 1
+                  firstline = firstline - 1  -- for mark restore
+               endif
+            endif
+            if FoundStart = 0 then
+               --sayerror 'Comment start "'MLCStart'" not found in mark or at the line before'
+            else
+               deleteline  --<------------------------------------------------ todo: better do it only if also FoundEnd = 1
+               .line = last - 1
+               line = textline(.line)
+               if strip( line, 't' ) = MLCEnd then
+                  FoundEnd = 1
+                  lastline = lastline - 1  -- for mark restore
+                  lastcol = 0              -- for mark restore
+               else
+                  .line = .line + 1
+                  line = textline(.line)
+                  if strip( line, 't' ) = MLCEnd then
+                     FoundEnd = 1
+                     lastline = lastline - 1 -- for mark restore
+                  endif
+               endif
+               if FoundEnd = 0 then
+                  --sayerror 'Comment end "'MLCEnd'" not found in mark or at the line after'
+               else
+                  deleteline
+               endif
+            endif
+            if FoundStart = 1 and FoundEnd = 1 then
+               call pset_mark( firstline, lastline, firstcol, lastcol, mt, fid)
+               leave
+            endif
+         enddo  -- i = 1 to 2
+
+      endif  -- SLCprocessed = 0
+
+   endif  -- action = 'COMMENT'
+
+   prestore_pos(saved_pos)
+
+   return
+
+compile if 0
    -- default values:
       SLC1         = ''
 ;     SLC1Col      = 0  -- not used here
@@ -277,6 +505,8 @@ defproc CommentMarkedLines
          MLCEnd       = MLC2End
       endif
 
+   if action = 'COMMENT' then
+
       -- Single line comments are preferred to multi line comments
       if SLC <> '' then  -- if a single line comment is defined
 
@@ -284,9 +514,9 @@ defproc CommentMarkedLines
 compile if COMMENT_ADD_SPACE = 1 or COMMENT_ADD_SPACE = 0
          -- overwrite the mode-specific settings
          SCLAddSpace = COMMENT_ADD_SPACE
-         -- SLCAddSpace = 1  -- add a space after SLC too per default, not reagarding
+         -- SLCAddSpace = 1  -- add a space after SLC too per default, not regarding
                              -- how SLC?AddSpace is defined
-         -- SLCAddSpace = 0  -- never add a space after SLC too per default, not reagarding
+         -- SLCAddSpace = 0  -- never add a space after SLC too per default, not regarding
                              -- how SLC?AddSpace is defined
 compile endif
          if SLCAddSpace then SLC = SLC' '; endif
@@ -462,7 +692,4 @@ compile endif
 
    endif  -- action = 'COMMENT'
 
-   prestore_pos(saved_pos)
-
-   return
-
+compile endif
