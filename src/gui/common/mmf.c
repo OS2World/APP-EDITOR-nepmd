@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mmf.c,v 1.11 2002-10-11 15:12:01 cla Exp $
+* $Id: mmf.c,v 1.12 2006-11-19 22:46:03 jbs Exp $
 *
 * ===========================================================================
 *
@@ -532,7 +532,7 @@ do
    if (pmmfCheck)
       {
       DPRINTF_ALLOCACTION(( "MMF: initialize: handler already for pid %u tid %u\n",
-                            pmmfCheck->pid, pmmfCheck->Tid));
+                            pmmfCheck->pid, pmmfCheck->tid));
       rc = ERROR_ACCESS_DENIED;
       break;
       }
