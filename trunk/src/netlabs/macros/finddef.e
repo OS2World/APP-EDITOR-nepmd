@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2006
 *
-* $Id: finddef.e,v 1.2 2006-11-09 00:25:27 jbs Exp $
+* $Id: finddef.e,v 1.3 2006-11-19 22:57:18 jbs Exp $
 *
 * ===========================================================================
 *
@@ -73,6 +73,15 @@ defproc ModeFindDef
       else
          GrepArgs = '"^def[[:alnum:] ,_]*[ ,]"'Keyword'"\>" 'FileMask
       endif
+
+   elseif Mode = 'C' then
+      -- Add DPATH directories, too?
+      -- Add other directories?
+      FileMask = directory() || '\*.c'
+      -- The following search string works only if the entire parameter list
+      -- and the return type is on the same line as the function name.
+      search = '"^([ \t]*[[:alpha:]_]+[[:alnum:]_]*)*[* \t]*' || Keyword || '[ \t]*\((\n|.*)\)[ \t]*\{?[ \t]*$"'
+      GrepArgs = '-EnH' search FileMask
 
    --elseif Mode = '...' then
 
