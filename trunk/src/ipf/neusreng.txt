@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.15 2004-12-17 23:36:03 aschn Exp $
+.. $Id: neusreng.txt,v 1.16 2006-11-21 15:41:56 jbs Exp $
 ..
 .. ===========================================================================
 ..
@@ -458,10 +458,10 @@ the filename extension in hardcoded lists.
 ..type name is not language specific.
 .. For future releases support for XWorkplace's extended associations is planned.
 
-The following attributes are currently attached to the *EPM* mode:
+The *EPM* mode defines the following attributes:
 .ul compact
-- the filename extensions and/or basenames of the files that a given mode
-  is to be used for
+- the filename extensions and/or basenames of the files to be
+  associated with that mode
 - syntax highlighting definitions
 
 The *EPM* mode for a file is determined at load of the file in the following
@@ -472,25 +472,24 @@ order
 .. - if some of the recognized OS/2 filetype attributes are set for the loaded file,
 ..   the mode is set according to a table.
 .
-- if the file name and/or extension matches the attributes of any of the
-  configurated modes, then the mode is set.
+- if the file name and/or extension matches the basename or extension for any of the
+  configured modes, then the mode is set.
 .
-.
-  Some extensions are handled in a special case:
-.pl break=none bold tsize=4
-  - **.CMD
-.ul compact
+- Some extensions are handled in a special case:
+.. .pl break=none bold tsize=4
+  - ***.CMD*
+.. .ul compact
     - the mode *REXX* is set for REXX scripts
     - the mode is recognized for EXTPROC scripts, if the name
       of the external command processor matches any of the
-      configurated *EPM* modes
+      configured *EPM* modes
     - otherwise the mode is set to *CMD*
-.el
-  - **.INI
-  = The mode *INI* is set for text ini files only, as *EPM* does not
+.. .el
+  - ***.INI*
+      - The mode *INI* is set for text ini files only, as *EPM* does not
     make sense to edit OS/2 binary INI files.
-.el
-- Otherwise: The mode is set to TEXT.
+.. .el
+- If none of the above apply, the mode is set to TEXT.
 
 .. -----------------------------------------------------------------------------
 .3 mode command
@@ -498,46 +497,50 @@ order
 .an IDPNL_MODE_CMD
 .
 The mode can be changed manually with the MODE command in order
-to override the default mode being determined by *EPM*.
+to override the default mode determined by *EPM*.
 For that execute the command:
 .fo off
    mode [[#new__mode#]]
 .fo on
 
 The optional #new__mode# parameter string is not case-sensitive.
-If no parameter is specified, then a dialog allows to either
-choose a new mode or reset to the default mode again.
+If no parameter is specified, then a dialog is displayed which allows a choice
+of setting a new mode or resetting to the default mode.
 
 A newly selected mode will be saved as the extended file attribute EPM.MODE
 or deletes this attribute, if the mode is to be reset to default.
 
 [=NOTE]
 .ul compact
-- this change is done immediately and not only when the file is saved
-- this does not work if the file is stored on readonly storage media
-  as e.g. CD-ROM
+- This change is made immediately and not only when the file is saved
+- Modes other than the default are saved as extended attributes. Do the file
+  must not be stored on readonly storage media (e.g. CD-ROM)
 
-You can easily check wether a given file already has the mode
-previously set manually. If so, at the top of the mode dialog
-the string
+The current mode for a file is displayed on the statusline.
+
+To determine if a mode is the default mode for that file, execute the
+*mode* command. At the top of the dialog it will read
 .sl compact.
 - Selected mode: <mode>
 
-is being displayed, otherwise
+or
 .sl compact
 - Default mode: <mode>
 
-shows that no mode has been set manually before.
+"Selected  mode" indicates that the mode is not the default.
 
-If a mode has been set manually before, this setting can
-be removed with the last item in the list *-DEFAULT-* or
-by calling *mode 0*.
+A non-default mode can be removed by executing the command
+*mode 0* or by executing the command *mode* and then
+selecting "Reset" in the mode dialog. This will return the
+mode to the default for that file.
 
 After the mode is determined or reset, all mode attributes
-attached to a given movde are activated. Until now the only
-attributes are extended keyword highlighting and selecting
-a keyset. In addition to that the statusline is updated with the
-name of the newly activated mode.
+attached to a given mode are activated. These include:
+.ul compact
+- extended keyword highlighting
+- mode-specific keyset
+- mode-specific margin, tab and indent settings
+- mode-specific syntax assist
 
 .. -----------------------------------------------------------------------------
 .3 predefined EPM modes
@@ -550,7 +553,7 @@ installation path:
 .sl compact
 - *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode*
 
-In this directory you find also the file [.IDPNL_FORMAT_GLOBALINI], defining
+In this directory you find also the file [.IDPNL_FORMAT_GLOBALINI], which defines
 global default settings being used by all modes.
 
 Below this directory, you find directories per mode, e.g.
@@ -558,40 +561,38 @@ for the mode *C* the following directories exist:
 .sl compact
 - *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode\c*
 
-The following files define the settings per mode, these files are provided
-by the [=TITLE] and should not be modified, if they exist.
+The following files define the default settings per mode, these files are provided
+by the [=TITLE] and *should not be modified*.
 .ul compact
 - [.IDPNL_FORMAT_DEFAULTINI]
 - [.IDPNL_FORMAT_NETLABSHIL]
 
 [=NOTE]
 .ul compact
-- it is highly recommended to not
-  - modify files provided with the [=TITLE] in order to extend a predefined
-    *EPM* mode. See the following section for details:
-    - [.IDPNL_MODE_EXTEND]
-  - create files for a new *EPM* mode in the
-    *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode* directory tree.
-    See the following section for details:
-    - [.IDPNL_MODE_NEW]
+- To customize a mode to suit your needs:
+  - Do not modify or create files under the *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]* directory.
+  - Follow the directions in [.IDPNL_MODE_EXTEND].
+- To add a new mode:
+  - Do not create files or directories under the *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]* directory.
+  - Follow the directions in [.IDPNL_MODE_NEW].
 
 .. -----------------------------------------------------------------------------
 .3 extend predefined EPM modes
 .. -----------------------------------------------------------------------------
 .an IDPNL_MODE_EXTEND
 .
-*EPM* modes coming with the [=TITLE] can easily be extended
+*EPM* modes supplied with the [=TITLE] can easily be extended
 by the user. In order to do so,
 .ol
-- create the directory *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<?>*,
-  where *<?>* is the name of the *EPM* mode
-- if required, create the file [.IDPNL_FORMAT_CUSTOMINI] to extend the
-  per-mode definition. This will extend settings defined in
-  [.IDPNL_FORMAT_DEFAULTINI]
-- if required, create files [.IDPNL_FORMAT_MYEPMHIL] to add new keyword definitions
+- Create the directory *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<mode-name>*,
+  where *<mode-name>* is the name of the *EPM* mode.
+- If required, create the file [.IDPNL_FORMAT_CUSTOMINI] to extend the
+  mode definition. This will extend settings defined in
+  [.IDPNL_FORMAT_DEFAULTINI].
+- If required, create files [.IDPNL_FORMAT_MYEPMHIL] to add new keyword definitions
   for the *EPM* mode, but take care that you use a filename (with the filename
   extension .hil) that does not yet exist within the directory
-  *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode\<?>*
+  *[.IDPNL_INSTADDITIONS_DIRTREE_NEPMD netlabs]\mode\<mode-name>*.
 
 .. -----------------------------------------------------------------------------
 .3 create new user-defined modes
@@ -600,12 +601,12 @@ by the user. In order to do so,
 .
 if you intend to create an own *EPM* mode,
 .ol
-- create the directory *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<?>*,
-  where *<?>* is the name of the *EPM* mode
-- create the file [.IDPNL_FORMAT_DEFAULTINI] to define the basic settings
-  for your mode
-- create files [.IDPNL_FORMAT_MYEPMHIL] to add keyword definitions for the
-  new *EPM* mode.
+- Create the directory *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<mode-name>*,
+  where *<mode-name>* is the name of the *EPM* mode
+- Create the *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<mode-name>\default.ini* file
+  to define the basic settings for your mode
+- Create one or more *[.IDPNL_INSTADDITIONS_DIRTREE_USER myepm]\mode\<mode-name>\**.hil* files
+  to add keyword definitions for the new *EPM* mode.
 
 .. =============================================================================
 .2 How can I ... ?
@@ -1962,12 +1963,12 @@ ENDCHAR      = DEFAULT DEFAULT
 .fo on
 
 .. -----------------------------------------------------------------------------
-.3 netlabs\mode\<?>\default.ini
+.3 netlabs\mode\<mode-name>\default.ini
 .. -----------------------------------------------------------------------------
 .an IDPNL_FORMAT_DEFAULTINI
 .
-The file *netlabs\mode\<?>\default.ini* defines settings
-used for a given mode, where *<?>* is the name of the *EPM* mode.
+The file *netlabs\mode\<mode-name>\default.ini* defines settings
+used for a given mode, where *<mode-name>* is the name of the *EPM* mode.
 The following settings are defined here:
 .su H50
 
@@ -1976,8 +1977,8 @@ If you intend to extend the definitions for an existing mode,
 it is recommended to _*NOT*_
 .at
 .ul compact
-- modify the file *netlabs\mode\<?>\default.ini*
-- create the file *myepm\mode\<?>\default.ini* (would hide the above file !)
+- modify the file *netlabs\mode\<mode-name>\default.ini*
+- create the file *myepm\mode\<mode-name>\default.ini* (would hide the above file !)
 .el
 
 In this case create the file [.IDPNL_FORMAT_CUSTOMINI] instead.
@@ -2040,18 +2041,18 @@ OS2KEYWORDS  = DEFAULT RED
 .fo on
 
 .. -----------------------------------------------------------------------------
-.3 myepm\mode\<?>\custom.ini
+.3 myepm\mode\<mode-name>\custom.ini
 .. -----------------------------------------------------------------------------
 .an IDPNL_FORMAT_CUSTOMINI
 .
-The file *myepm\mode\<?>\custom.ini* defines user-defined
-extensions to a given mode, where *<?>* is the name of the *EPM* mode.
+The file *myepm\mode\<mode-name>\custom.ini* defines user-defined
+extensions to a given mode, where *<mode-name>* is the name of the *EPM* mode.
 The following settings may be defined here:
 .su H50
 
 .at fc=red
 If you intend to create a completely new mode definition,
-you need to create the file *myepm\mode\<?>\default.ini* instead.
+you need to create the file *myepm\mode\<mode-name>\default.ini* instead.
 .at
 
 .. .............................................................................
@@ -2090,15 +2091,15 @@ NEWSYMBOL    = DEFAULT GREEN
 .fo on
 
 .. -----------------------------------------------------------------------------
-.3 netlabs\mode\<?>\**.hil
+.3 netlabs\mode\<mode-name>\**.hil
 .. -----------------------------------------------------------------------------
 .an IDPNL_FORMAT_NETLABSHIL
 .
-The files *netlabs\mode\<?>\**.hil* provide NEPMD definitions
+The files *netlabs\mode\<mode-name>\**.hil* provide NEPMD definitions
 for keywords to be highlighted. All files with the filename extension
 *.hil* in this mode directory are used for the syntax highlighting, given
-that in the *myepm\mode\<?>* directory no file with the same name
-exists, hiding the same file in the *netlabs\mode\<?>* directory.
+that in the *myepm\mode\<mode-name>* directory no file with the same name
+exists, hiding the same file in the *netlabs\mode\<mode-name>* directory.
 
 See also the
 .su H50
@@ -2170,14 +2171,14 @@ The following keyword type symbols are treated specially:
   to override the color for one entry
 
 .. -----------------------------------------------------------------------------
-.3 myepm\mode\<?>\**.hil
+.3 myepm\mode\<mode-name>\**.hil
 .. -----------------------------------------------------------------------------
 .an IDPNL_FORMAT_MYEPMHIL
 .
-The file *myepm\mode\<?>\**.hil* contain user-defined keywords to be highlighted.
+The file *myepm\mode\<mode-name>\**.hil* contain user-defined keywords to be highlighted.
 All files with the filename extension *.hil* in a mode directory are used
-for the syntax highlighting, Note that a file in the *myepm\mode\<?>* directory
-hides a file with the same name in the *netlabs\mode\<?>* directory
+for the syntax highlighting, Note that a file in the *myepm\mode\<mode-name>* directory
+hides a file with the same name in the *netlabs\mode\<mode-name>* directory
 
 See also the
 .su H50
