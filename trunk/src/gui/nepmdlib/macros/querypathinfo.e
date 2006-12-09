@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.12 2003-08-30 16:01:03 aschn Exp $
+* $Id: querypathinfo.e,v 1.13 2006-12-09 17:57:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -49,7 +49,7 @@ The following keywords are supported:
 = returns the creation time
 - SIZE
 = returns the size of the file
-- SIZE
+- EASIZE
 = returns the size of the extended attributes attached to the file
 - ATTR
 = returns the file attributes
