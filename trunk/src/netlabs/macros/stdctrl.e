@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.43 2006-10-07 18:02:20 aschn Exp $
+* $Id: stdctrl.e,v 1.44 2006-12-09 19:36:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1229,23 +1229,9 @@ defc setavar
    call SetAVar( varname, varvalue)
 
 ; ---------------------------------------------------------------------------
-; Append varvalue as additional word to varname.
-defproc AddAVar( varname, varvalue)
-   oldvalue = GetAVar(varname)
-   newvalue = oldvalue' 'strip( varvalue)  -- verify, there's a space between
-   newvalue = strip(newvalue)
-   call SetAVar( varname, newvalue)
-   return
-
-defc addavar
-   args = strip( arg(1))
-   parse value args with varname varvalue
-   call AddAVar( varname, varvalue)
-
-; ---------------------------------------------------------------------------
 ; Check for every word of varvalue if already present in varname; add if not
 ; present; else nothing.
-defproc AddOnceAVar( varname, varvalue)
+defproc AddAVar( varname, varvalue)
    oldvalue = GetAVar(varname)
    newvalue = oldvalue
    do w = 1 to words( varvalue)
@@ -1257,10 +1243,10 @@ defproc AddOnceAVar( varname, varvalue)
    call SetAVar( varname, newvalue)
    return
 
-defc addonceavar
+defc addavar
    args = strip( arg(1))
    parse value args with varname varvalue
-   call AddOnceAVar( varname, varvalue)
+   call AddAVar( varname, varvalue)
 
 ; ---------------------------------------------------------------------------
 ; Remove every word of varvalue from varname

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ovshmenu.e,v 1.14 2006-03-29 23:13:39 aschn Exp $
+* $Id: ovshmenu.e,v 1.15 2006-12-09 19:36:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -461,7 +461,7 @@ definit
    -- activated.
    -- Maybe someone has already defined something here at definit,
    -- so better add it to the array var if not already.
-   call AddOnceAVar( 'usedmenuaccelerators', 'F V S H')
+   call AddAVar( 'usedmenuaccelerators', 'F V S H')
 
    rc = save_rc  -- don't change rc of the link statement by definit code
 
