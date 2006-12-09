@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmchangestartupdir.cmd,v 1.1 2006-10-07 20:16:46 aschn Exp $
+* $Id: epmchangestartupdir.cmd,v 1.2 2006-12-09 18:01:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -59,13 +59,15 @@
 /*
  * For Obj.i, specify either an object id or a full pathname.
  */
- Obj.1 = '<NEPMD_EPM_NEW_SAME_WINDOW>';
- Obj.2 = '<NEPMD_EPM>';
- Obj.3 = '<NEPMD_EPM_E>';
- Obj.4 = '<NEPMD_EPM_ERX>';
- Obj.5 = '<NEPMD_EPM_TEX>';
- Obj.6 = '<NEPMD_EPM_EDIT_MACROFILE>';
- Obj.0 = 6;
+ i = 0
+ i = i + 1; Obj.i = '<NEPMD_EPM_NEW_SAME_WINDOW>';
+ i = i + 1; Obj.i = '<NEPMD_EPM>';
+ i = i + 1; Obj.i = '<NEPMD_EPM_E>';
+ i = i + 1; Obj.i = '<NEPMD_EPM_ERX>';
+ i = i + 1; Obj.i = '<NEPMD_EPM_TEX>';
+ i = i + 1; Obj.i = '<NEPMD_EPM_EDIT_MACROFILE>';
+ i = i + 1; Obj.i = '<NEPMD_EPM_TURBO>';
+ Obj.0 = i;
 /* -------------------------------------------- */
 
  rc = ERROR.NO_ERROR;
