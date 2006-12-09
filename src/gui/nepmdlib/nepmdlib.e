@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.e,v 1.45 2006-11-12 13:18:59 jbs Exp $
+* $Id: nepmdlib.e,v 1.46 2006-12-09 17:59:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,10 +22,6 @@
 *
 ****************************************************************************/
 
-/* ------------------------------------------------------------- */
-/*   avoid include of stdconst.e if compiled separately          */
-/* ------------------------------------------------------------- */
-
 const
 -------- Start of configuration constants for MYCNF.E --------
 compile if not defined(NEPMD_LIB_TEST)
@@ -35,34 +31,38 @@ compile if not defined(NEPMD_LIB_DEBUG)
    NEPMD_LIB_DEBUG = 0  -- Activate debug for this package?
 compile endif
 -------- End of configuration constants for MYCNF.E ----------
-include 'STDCONST.E'
-   NEPMD_MAXLEN_ESTRING    = 1599;
 
-   NEPMD_INI_APPNAME       = 'NEPMD';
-   NEPMD_INI_KEY_PATH      = 'Path';
-
-   NEPMD_LIBRARY_BASENAME  = 'nepmdlib';
-   NEPMD_SUBPATH_BINDLLDIR = 'netlabs\dll';
-
-   ERRMSG_ERROR_TITLE      = 'Netlabs EPM Distribution';
-   ERRMSG_CANNOT_LOAD      = 'Error: cannot load NEPMD library file NEPMDLIB.DLL!';
-   ERRMSG_BOXSTYLE         = 16454; -- CANCEL + ICONHAND + MOVEABLE
-
-compile if 0
-compile if not defined(EPMINFO_EDITCLIENT)
-   EPMINFO_EDITCLIENT      = 5; /* avoid include of stdconst.e */
+compile if 1
+   -- STDCONST.E is also required for GETNEXT_CREATE_NEW_HANDLE
+   include 'STDCONST.E'
+compile else
+   -- Avoid include of stdconst.e if compiled separately
+ compile if not defined(EPMINFO_EDITCLIENT)
+   EPMINFO_EDITCLIENT      = 5
+ compile endif
+ compile if not defined(EPMINFO_EDITFRAME)
+   EPMINFO_EDITFRAME       = 6
+ compile endif
 compile endif
-compile if not defined(EPMINFO_EDITFRAME)
-   EPMINFO_EDITFRAME       = 6;
-compile endif
-compile endif
+
+   NEPMD_MAXLEN_ESTRING    = 1599
+
+   NEPMD_INI_APPNAME       = 'NEPMD'
+   NEPMD_INI_KEY_ROOTDIR   = 'RootDir'
+
+   NEPMD_LIBRARY_BASENAME  = 'nepmdlib'
+   NEPMD_SUBPATH_BINDLLDIR = 'netlabs\dll'
+
+   ERRMSG_ERROR_TITLE      = 'Netlabs EPM Distribution'
+   ERRMSG_CANNOT_LOAD      = 'Error: cannot load NEPMD library file NEPMDLIB.DLL.'
+   ERRMSG_BOXSTYLE         = 16454  -- CANCEL + ICONHAND + MOVEABLE
 
 compile if NEPMD_LIB_TEST
-   NEPMD_TEST_EANAME       = 'NEPMD._TestStringEa';
-   NEPMD_TEST_EAVALUE      = 'This is a test value for the NepmdWriteStringEa API!';
+   NEPMD_TEST_EANAME       = 'NEPMD._TestStringEa'
+   NEPMD_TEST_EAVALUE      = 'This is a test value for the NepmdWriteStringEa API.'
 
-   NEPMD_TEST_CONFIGPATH   = '\NEPMD\Test\Nepmdlib\TestKey';
-   NEPMD_TEST_CONFIGVALUE  = 'This is a test value for the Nepmd*Config* APIs!';
+   NEPMD_TEST_CONFIGPATH   = '\NEPMD\Test\Nepmdlib\TestKey'
+   NEPMD_TEST_CONFIGVALUE  = 'This is a test value for the Nepmd*Config* APIs.'
 compile endif
 
 /* ------------------------------------------------------------- */
@@ -83,7 +83,7 @@ compile if 0
       -- use default
       LibFile =  NEPMD_LIBRARY_BASENAME
       -- check if DLL is available in NEPMD subdirectory
-      InstallPath = queryprofile( '', NEPMD_INI_APPNAME, NEPMD_INI_KEY_PATH)
+      InstallPath = queryprofile( '', NEPMD_INI_APPNAME, NEPMD_INI_KEY_ROOTDIR)
       if (InstallPath <> '') then
          CheckFile = InstallPath'\'NEPMD_SUBPATH_BINDLLDIR'\'NEPMD_LIBRARY_BASENAME'.dll'
          if exist( CheckFile) then
@@ -124,23 +124,23 @@ compile if NEPMD_LIB_TEST
 
 defproc helperNepmdCreateDumpFile( FunctionName, Parms)
 
-   TestcaseTitle = strip( FunctionName Parms);
-   Separator     = copies( '-', length(TestcaseTitle));
+   TestcaseTitle = strip( FunctionName Parms)
+   Separator     = copies( '-', length(TestcaseTitle))
 
-   'xcom e /c .TEST_'translate( FunctionName);
-   .autosave = 0;
-   insertline '';
-   insertline TestcaseTitle;
-   insertline Separator;
-   insertline '';
+   'xcom e /c .TEST_'translate( FunctionName)
+   .autosave = 0
+   insertline ''
+   insertline TestcaseTitle
+   insertline Separator
+   insertline ''
 
-   return;
+   return
 
 compile endif
 /* --------------------------------- */
 
 defproc makerexxstring( asciizstring)
-   return substr( asciizstring, 1, pos( \0, asciizstring) - 1);
+   return substr( asciizstring, 1, pos( \0, asciizstring) - 1)
 
 /* ------------------------------------------------------------- */
 /*   include functions                                           */
