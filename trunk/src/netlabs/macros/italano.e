@@ -1,4 +1,24 @@
-; This file defines the various text constants as ITALIAN strings. (TENTATIVE ONLY)
+/****************************** Module Header *******************************
+*
+* Module Name: italano.e
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: italano.e,v 1.2 2006-12-09 18:19:26 aschn Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
+; This file defines the various text constants as German strings.
 ; The comments (after the '--' are examples of how the string is used, and need not
 ; be translated.  For example,
            --      'Got' number 'bytes from a' number'-byte buffer'  number 'lines'
@@ -18,43 +38,19 @@
 ;  of "ENGLISH.E", the French one would be "FRANCAIS.E", the Spanish one
 ;  "ESPANOL.E", etc.)
 
-;     NLS_LANGUAGE = 'ITALIANO'           -- A.S. 18 Jan 1996 
+;     NLS_LANGUAGE = 'ITALANO'
 
 const
-; The following constants are defined in STDCNF.E; if they're not set by the
-; time we get here, then we're being included by some external file, so their
-; value isn't important.
 
-compile if not defined(WANT_DYNAMIC_PROMPTS)
-   WANT_DYNAMIC_PROMPTS = 0
-compile endif
-compile if not defined(WANT_BOOKMARKS)
-   WANT_BOOKMARKS = 0
-compile endif
-compile if not defined(WANT_TAGS)
-   WANT_TAGS = 0
-compile endif
-compile if not defined(SPELL_SUPPORT)
-   SPELL_SUPPORT = 0
-compile endif
-compile if not defined(CHECK_FOR_LEXAM)
-   CHECK_FOR_LEXAM = 0
-compile endif
+; Now uses only 1 additional const for compile-ifs: HOST_SUPPORT
 compile if not defined(HOST_SUPPORT)
-   HOST_SUPPORT = 'STD'
-compile endif
-compile if not defined(WANT_STACK_CMDS)
-   WANT_STACK_CMDS = 0
-compile endif
-compile if not defined(WANT_TOOLBAR)  -- Different logic than is in STDCNF.E, but
-   WANT_TOOLBAR = 0                   -- if not set by STDCNF or EXTRA, NLS stuff not needed.
+   HOST_SUPPORT = 0
 compile endif
 
 ;; Box.e  -- Try to keep P, C, A, E, R & S the same; otherwise requires macro changes
    BOX_ARGS__MSG =        'Arg: 1=³ 2=º 3=| 4=Û 5=Ø 6=× B=Spz /Car P=Pas C=C A=Asm E=Canc R=Formatta S=Scr'
    BOX_MARK_BAD__MSG =    "Area marcata non all'interno di un riquadro"
 
-compile if EVERSION >=4
 ;; Buff.e
    CREATEBUF_HELP__MSG =  ' CREATEBUF  crea il buffer EBUF; "CREATEBUF 1" per un buffer privato.'
    PUTBUF_HELP__MSG =     ' PUTBUF     inserisce nel buffer il file, dalla riga corrente alla fine.'
@@ -74,9 +70,7 @@ compile if EVERSION >=4
              --      'Eccedenza buffer? Poteva contenere solo' noflines 'righe.'
    ONLY_ACCEPTED__MSG =   'Eccedenza buffer? Poteva contenere solo'
    CAN_NOT_OPEN__MSG =    'Impossibile aprire un buffer denominato'
-compile endif
 
-compile if EVERSION >= 5
 ;; Clipbrd.e
    NO_MARK_NO_BUFF__MSG = 'Nessuna area marcata; buffer condiviso vuoto.'
    CLIPBOARD_EMPTY__MSG = 'Il notes Š vuoto'
@@ -90,17 +84,14 @@ compile if EVERSION >= 5
    ONLY__MSG =            'Solo'
    LINES_OF__MSG =        "righe dell'originale"
    RECOVERED__MSG =       'sono state recuperate.'
-   TOO_MUCH_FOR_CLIPBD__MSG= 'Troppo testo selezionato per il buffer del notes.'  
+   TOO_MUCH_FOR_CLIPBD__MSG= 'Troppo testo selezionato per il buffer del notes.'
    CLIPBOARD_VIEW_NAME =  '.Notes'  -- file name; initial '.' marks it as a temp file
-compile endif
 
 ;; Modify.e
    AUTOSAVING__MSG =      'Salvataggio automatico...'
 
-compile if EVERSION >= 5
 ;; Mouse.e
    UNKNOWN_MOUSE_ERROR__MSG = "Errore sconosciuto durante elaborazione eventi mouse: "
-compile endif
 
 ;; Dosutil.e
    TODAY_IS__MSG =        'Oggi Š il'
@@ -134,7 +125,7 @@ compile endif
 
 ;; Main.e
 ;;   The following name starts with a '.' to indicate that it's a temporary file:
-;; UNNAMED_FILE_NAME =    '.File Unnamed'  -- Not any more; now:
+;; UNNAMED_FILE_NAME =    '.Unnamed file'  -- Not any more; now:
    UNNAMED_FILE_NAME =    '.Senza nome'
 
 ;; Mathlib.e
@@ -158,7 +149,6 @@ compile endif
    FILL__MSG =            'Riempimento'  -- Title
    NO_CHAR_SUPPORT__MSG = "E' stato omesso il supporto per la marcatura dei caratteri."
 
-compile if EVERSION >= 4
 ;; Exit.e
    ABOUT_TO_EXIT__MSG =   'Uscita da E. '
 
@@ -171,7 +161,6 @@ compile if EVERSION >= 4
    LINKED_AS__MSG =       'Š collegato come modulo n.' -- sayerror module' Š collegato come modulo # 'result'.'
    UNABLE_TO_LINK__MSG =  'Impossibile collegare:'
    UNABLE_TO_EXECUTE__MSG='Impossibile eseguire il comando:'
-compile endif
 
 ;; Math.e
    NO_NUMBER__MSG =       "Nessun numero trovato (dalla posizione del cursore fino alla fine del file)"
@@ -199,7 +188,6 @@ compile endif
    CMD_STACK_CLEAR__MSG= 'Area di stack dei comandi azzerata.'
    CMD_STACK_EMPTY__MSG= 'Area di stack dei comandi vuota.'
 
-compile if EVERSION >= 5
 ;; Help.e
    HELP_BROWSER__MSG =   'Visualizzazione aiuto'  -- Message box title
    HELP_STATUS__MSG =    ' Tasti validi ->  RitPg e AvPg      F3,ESC=Chiude finestra aiuto'
@@ -209,13 +197,11 @@ compile if EVERSION >= 5
              -- 'Errore' err_no 'assegnando un segmento di memoria; comando interrotto.'
    ALLOC_HALTED__MSG =   'assegnando un segmento di memoria; comando interrotto.'
    QUICK_REF__MSG =      'Riferimento rapido'  -- Window title
-compile endif
 
 ;; All.e
    NO_ALL_FILE__MSG =    'File .ALL non presente nel ciclo.'
    BAD_ALL_LINE__MSG =   'Numero di riga mancante o non valido nel file .ALL.'
 
-compile if EVERSION >= 4
 ;; Eos2lex.e
    EOS2LEX_PROMPT1__MSG = 'Spazio=Visualizzare elenco     Esc=Passare a     F3 o F10=Interrompere'
    SPELLED_OK__MSG =      'l''ortografia della parola Š esatta'
@@ -231,9 +217,7 @@ compile if EVERSION >= 4
    INIT_ERROR__MSG =      'Errore di inizializzazione.'
                      -- 'Errore nel caricamento del dizionario personale' addenda_filename
    BAD_ADDENDA__MSG =     'Errore nel caricamento del dizionario personale'
-compile endif
 
-compile if EVERSION >= 5
 ;; Shell.e           -- 'Errore' rc 'durante la creazione di un oggetto interfaccia comandi.'
    SHELL_ERROR1__MSG =    'durante creazione interfaccia comandi.'
    SHELL_ERROR2__MSG =    'durante creazione file di editazione per interfaccia comandi.'
@@ -244,7 +228,6 @@ compile if EVERSION >= 5
                      -- 'oggetto della finestra per comandi' number 'pu• accettare altri dati...'
    SHELL_OBJECT__MSG =    'La finestra comandi'
    SHELL_READY__MSG =     'pu• accettare dati...'
-compile endif
 
 ;; Stdprocs.e
    ARE_YOU_SURE_YN__MSG = '  Si Š sicuri (S/N)? '  -- Keep spaces
@@ -260,11 +243,10 @@ compile endif
    INVALID_NUMBER__MSG =  'Argomento numero non valido'
    CANT_FIND_PROG__MSG =  "Impossibile trovare il programma"  -- progname
    NO_FLOAT__MSG =        'Numero a virgola mobile non consentito:' -- number
-   NEED_BLOCK_MARK__MSG = 'Necessaria marcatura blocco'  
+   NEED_BLOCK_MARK__MSG = 'Necessaria marcatura blocco'
                -- Error <nn> editing temp file:  <error_message>
    BAD_TMP_FILE__MSG =    'editing temp file:'
 
-compile if EVERSION > 5
 ;; Stdctrl.e
    BUTTON_ERROR__MSG =    'errore tasto'
                     -- Button names.  ~ precedes accelerator char; Cancel doesn't get one.
@@ -292,18 +274,14 @@ compile if EVERSION > 5
 
 ; Before 5.21, we didn't have accelerator keys, so we didn't want the Tilde to
 ; appear on the action bar.
-compile if EVERSION < '5.21'
-   TILDE_CHAR = ''
-compile else
    TILDE_CHAR = '~'
-compile endif
 
 ; Lots of fun here.  This is the editor's action bar.  xxx_BAR__MSG means xxx is on the
 ; action bar.  yyy_MENU__MSG means that yyy is on a pull-down or pull-right.  The tildes
 ; precede the accelerator letter; those letters must be unique in each group (pulldown
 ; or pullright).  Followed by a 'P' means it's the dynamic help prompt for that BAR or
 ; MENU item.  Note that each prompt must start with \1.
-   FILE_BAR__MSG =        TILDE_CHAR'File '
+   FILE_BAR__MSG =        '~File '
      NEW_MENU__MSG =        '~Nuovo'
      OPEN_MENU__MSG =       '~Aprire...'
      OPEN_NEW_MENU__MSG =   'Aprire .S~enza nome'
@@ -317,7 +295,6 @@ compile endif
      QUIT_MENU__MSG =       '~Uscire'
      PRT_FILE_MENU__MSG =   'Stam~pare file'
 
-compile if WANT_DYNAMIC_PROMPTS
    FILE_BARP__MSG =        \1'Menu relativi alle operazioni sui file'
      NEW_MENUP__MSG =        \1'Sostituisce il file corrente con un file .Senza nome vuoto'
      OPEN_NEW_MENUP__MSG =   \1'Apre una nuova finestra di editazione vuota'
@@ -331,55 +308,39 @@ compile if WANT_DYNAMIC_PROMPTS
      QUIT_MENUP__MSG =       \1'Esce da questo file'
      ENHPRT_FILE_MENUP__MSG =\1'Visualizza la finestra di stampa'
      PRT_FILE_MENUP__MSG =   \1'Stampa questo file sulla stampante assunta'
-compile else
-   FILE_BARP__MSG =        ''
-     NEW_MENUP__MSG =        ''
-     OPEN_NEW_MENUP__MSG =   ''
-     OPEN_MENUP__MSG =       ''
-     GET_MENUP__MSG =        ''
-     ADD_MENUP__MSG =        ''
-     RENAME_MENUP__MSG =     ''
-     SAVE_MENUP__MSG =       ''
-     SAVEAS_MENUP__MSG =     ''
-     FILE_MENUP__MSG =       ''
-     QUIT_MENUP__MSG =       ''
-     ENHPRT_FILE_MENUP__MSG =''
-     PRT_FILE_MENUP__MSG =   ''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   EDIT_BAR__MSG =        TILDE_CHAR'Editare '
-     ADJUST_MARK_MENU__MSG= 'Spostare e sovra~pporre marcatura'
-     ADJUST_MRK_MENU__MSG=  '~Aggiusta'
-     CLIP_COPY_MENU__MSG =  'Co~piare'
-     COPY_MARK_MENU__MSG =  'Copiare ~marcatura'
-     COPY_MRK_MENU__MSG =   '~Copia'
-     CUT_MENU__MSG =        'Es~trarre'
-     DELETE_MARK_MENU__MSG= 'Ca~ncellare marcatura'
-     DELETE_MENU__MSG=      'Cance~lla'
-     MOVE_MARK_MENU__MSG =  '~Spostare marcatura'
-     MOVE_MRK_MENU__MSG =   '~Muovi'
-     OVERLAY_MARK_MENU__MSG='So~vrapporre marcatura'
-     OVERLAY_MRK_MENU__MSG= 'S~ovrapponi'
-     PASTE_B_MENU__MSG =    'Inserire ~blocco'
-     PASTE_C_MENU__MSG =    '~Inserire'
-     PASTE_L_MENU__MSG =    'Inserire rig~he'
-     POP_CURSOR_MENU__MSG = 'Ripristinare posizione cursore'
-     POP_MARK_MENU__MSG =   'Ripristinare posizione marcatura'
-     POP_MRK_MENU__MSG =    'Ripristina'
-     PRT_MARK_MENU__MSG =   'Stampa~re marcatura'
-     PUSH_CURSOR_MENU__MSG ='Memorizzare posizione cursore'
-     PUSH_MARK_MENU__MSG =  'Memorizzare posizione marcatura'
-     PUSH_MRK_MENU__MSG =   'Salva'
-     RECOVER_MARK_MENU__MSG='Ripristinare marcatura cancellata'
-     STYLE_MENU__MSG =      'Stil~e...'
-     SWAP_CURSOR_MENU__MSG= 'Scambiare posizione cursore'
-     SWAP_MARK_MENU__MSG =  'Scambiare posizione marcatura'
-     SWAP_MRK_MENU__MSG =   'Scambia'
+   EDIT_BAR__MSG =        '~Editare '
      UNDO_MENU__MSG =       'Regredire riga'
      UNDO_REDO_MENU__MSG =  'Re~gredire...'
+     STYLE_MENU__MSG =      'Stil~e...'
+     COPY_MARK_MENU__MSG =  'Copiare ~marcatura'
+     MOVE_MARK_MENU__MSG =  '~Spostare marcatura'
+     OVERLAY_MARK_MENU__MSG='So~vrapporre marcatura'
+     ADJUST_MARK_MENU__MSG= 'Spostare e sovra~pporre marcatura'
+     COPY_MRK_MENU__MSG =   '~Copia'
+     MOVE_MRK_MENU__MSG =   '~Muovi'
+     OVERLAY_MRK_MENU__MSG= 'S~ovrapponi'
+     ADJUST_MRK_MENU__MSG=  '~Aggiusta'
      UNMARK_MARK_MENU__MSG= 'Eliminare marcatura'
+     DELETE_MARK_MENU__MSG= 'Ca~ncellare marcatura'
+     DELETE_MENU__MSG=      'Cance~lla'
+     PUSH_MARK_MENU__MSG =  'Memorizzare posizione marcatura'
+     POP_MARK_MENU__MSG =   'Ripristinare posizione marcatura'
+     SWAP_MARK_MENU__MSG =  'Scambiare posizione marcatura'
+     PUSH_MRK_MENU__MSG =   'Salva'
+     POP_MRK_MENU__MSG =    'Ripristina'
+     SWAP_MRK_MENU__MSG =   'Scambia'
+     PUSH_CURSOR_MENU__MSG ='Memorizzare posizione cursore'
+     POP_CURSOR_MENU__MSG = 'Ripristinare posizione cursore'
+     SWAP_CURSOR_MENU__MSG= 'Scambiare posizione cursore'
+     CLIP_COPY_MENU__MSG =  'Co~piare'
+     CUT_MENU__MSG =        'Es~trarre'
+     PASTE_C_MENU__MSG =    '~Inserire'
+     PASTE_L_MENU__MSG =    'Inserire rig~he'
+     PASTE_B_MENU__MSG =    'Inserire ~blocco'
+     PRT_MARK_MENU__MSG =   'Stampa~re marcatura'
+     RECOVER_MARK_MENU__MSG='Ripristinare marcatura cancellata'
 
-compile if WANT_DYNAMIC_PROMPTS
    EDIT_BARP__MSG =        \1'Menu relativi a Regredire, marcature e notes'
      UNDO_MENUP__MSG =       \1'Annulla le modifiche apportate alla riga corrente'
      UNDO_REDO_MENUP__MSG =  \1'Attiva la finestra Regredire per visualizzare le modifiche dei file.'
@@ -404,45 +365,16 @@ compile if WANT_DYNAMIC_PROMPTS
      ENHPRT_MARK_MENUP__MSG =\1'Visualizza la finestra per la stampa del testo marcato'
      PRT_MARK_MENUP__MSG =   \1'Stampa il testo marcato sulla stampante assunta'
      RECOVER_MARK_MENUP__MSG=\1'Inserisce dopo il cursore una copia dell''ultimo testo marcato cancellato'
-compile else
-   EDIT_BARP__MSG =        ''
-     UNDO_MENUP__MSG =       ''
-     UNDO_REDO_MENUP__MSG =  ''
-     STYLE_MENUP__MSG =      ''
-     COPY_MARK_MENUP__MSG =  ''
-     MOVE_MARK_MENUP__MSG =  ''
-     OVERLAY_MARK_MENUP__MSG=''
-     ADJUST_MARK_MENUP__MSG= ''
-     UNMARK_MARK_MENUP__MSG= ''
-     DELETE_MARK_MENUP__MSG= ''
-     PUSH_MARK_MENUP__MSG =  ''
-     POP_MARK_MENUP__MSG =   ''
-     SWAP_MARK_MENUP__MSG =  ''
-     PUSH_CURSOR_MENUP__MSG =''
-     POP_CURSOR_MENUP__MSG = ''
-     SWAP_CURSOR_MENUP__MSG= ''
-     CLIP_COPY_MENUP__MSG =  ''
-     CUT_MENUP__MSG =        ''
-     PASTE_C_MENUP__MSG =    ''
-     PASTE_L_MENUP__MSG =    ''
-     PASTE_B_MENUP__MSG =    ''
-     ENHPRT_MARK_MENUP__MSG =''
-     PRT_MARK_MENUP__MSG =   ''
-     RECOVER_MARK_MENUP__MSG=''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   SEARCH_BAR__MSG =      TILDE_CHAR'Ricercare '
+   SEARCH_BAR__MSG =      '~Ricercare '
      SEARCH_MENU__MSG =     '~Ricercare...'
      FIND_NEXT_MENU__MSG =  '~Trovare successivo'
      CHANGE_NEXT_MENU__MSG= '~Modificare successivo'
-compile if WANT_BOOKMARKS
      BOOKMARKS_MENU__MSG =  '~Segnalibri'     -- Pull-right
        SET_MARK_MENU__MSG =   '~Collocare...'
        LIST_MARK_MENU__MSG =  '~Elencare...'
        NEXT_MARK_MENU__MSG =  '~Successivo'
        PREV_MARK_MENU__MSG =  '~Precedente'
-compile endif -- WANT_BOOKMARKS
-compile if WANT_TAGS
      TAGS_MENU__MSG =       '~Tags'          -- Pull-right
        TAGSDLG_MENU__MSG =    '~dialogo Tags..'
        FIND_TAG_MENU__MSG =   '~Trova procedura attuale'
@@ -450,25 +382,16 @@ compile if WANT_TAGS
        TAGFILE_NAME_MENU__MSG='~nome.Tags file...'
        MAKE_TAGS_MENU__MSG =  '~Crea tags file...'
        SCAN_TAGS_MENU__MSG =  'Cerca il file ~attuale...'
-compile endif -- WANT_TAGS
 
-compile if WANT_DYNAMIC_PROMPTS
- compile if WANT_BOOKMARKS & not defined(STD_MENU_NAME)
    SEARCH_BARP__MSG =      \1'Menu relativi alla ricerca e modifica del testo ed ai segnalibri'
- compile else
-   SEARCH_BARP__MSG =      \1'Menu relativi alla ricerca e modifica del testo'
- compile endif
      SEARCH_MENUP__MSG =     \1'Attiva la finestra per la ricerca e la sostituzione del testo'
      FIND_NEXT_MENUP__MSG =  \1'Ripete il precedente comando di ricerca'
      CHANGE_NEXT_MENUP__MSG= \1'Ripete il precedente comando di modifica'
- compile if WANT_BOOKMARKS
      BOOKMARKS_MENUP__MSG=   \1'Menu concatenato per la gestione dei segnalibri'
      SET_MARK_MENUP__MSG =   \1'Colloca un segnalibro in corrispondenza del cursore'
      LIST_MARK_MENUP__MSG =  \1'Elenca i segnalibri; si pu• passare ad un segnalibro o cancellarlo'
      NEXT_MARK_MENUP__MSG =  \1'Passa al successivo segnalibro in questo file'
      PREV_MARK_MENUP__MSG =  \1'Passa al precedente segnalibro in questo file'
- compile endif -- WANT_BOOKMARKS
- compile if WANT_TAGS
      TAGS_MENUP__MSG =       \1'Menu a tendina per usare un "tags" file'
      TAGSDLG_MENUP__MSG =    \1'Attiva un dialogo "tags"'
      FIND_TAG_MENUP__MSG =   \1'Trova la definizione per la procedura puntata dal cursore'
@@ -476,31 +399,8 @@ compile if WANT_DYNAMIC_PROMPTS
      TAGFILE_NAME_MENUP__MSG=\1'Controlla o imposta il nome del tags file'
      MAKE_TAGS_MENUP__MSG =  \1'Crea o aggiorna un tags file'
      SCAN_TAGS_MENUP__MSG =  \1'Cerca il file attuale per una procedura & presentala in una lista'
- compile endif -- WANT_TAGS
-compile else
-   SEARCH_BARP__MSG =      ''
-     SEARCH_MENUP__MSG =     ''
-     FIND_NEXT_MENUP__MSG =  ''
-     CHANGE_NEXT_MENUP__MSG= ''
- compile if WANT_BOOKMARKS
-     BOOKMARKS_MENUP__MSG =  ''
-     SET_MARK_MENUP__MSG =   ''
-     LIST_MARK_MENUP__MSG =  ''
-     NEXT_MARK_MENUP__MSG =  ''
-     PREV_MARK_MENUP__MSG =  ''
- compile endif -- WANT_BOOKMARKS
- compile if WANT_TAGS
-     TAGS_MENUP__MSG =       ''
-     TAGSDLG_MENUP__MSG =    ''
-     FIND_TAG_MENUP__MSG =   ''
-     FIND_TAG2_MENUP__MSG =  ''
-     TAGFILE_NAME_MENUP__MSG=''
-     MAKE_TAGS_MENUP__MSG =  ''
-     SCAN_TAGS_MENUP__MSG =  ''
- compile endif -- WANT_TAGS
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   OPTIONS_BAR__MSG         = TILDE_CHAR'Opzioni '
+   OPTIONS_BAR__MSG         = '~Opzioni '
      LIST_FILES_MENU__MSG     = '~Elenco file nel ciclo...'
      FILE_LIST_MENU__MSG      = 'lista ~Files...'
      PROOF_MENU__MSG          = '~Controllo ortografico'
@@ -527,25 +427,17 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
        SCROLL_BARS_MENU__MSG    = '~Barre di scorrimento'
        FILEICON_MENU__MSG       = 'Simbolo file'
        ROTATEBUTTONS_MENU__MSG  = 'P~ulsanti di direzione'
-compile if WANT_TOOLBAR
        TOOLBAR_MENU__MSG        = '~Toolbar'
        TOGGLETOOLBAR_MENU__MSG  = '~Toolbar'  -- Era 'Toggle'; gli altri 3 non vengono pi— usati.
        LOADTOOLBAR_MENU__MSG    = '~Carica...'
        DELETETOOLBAR_MENU__MSG  = '~Elimina...'
-compile endif -- WANT_TOOLBAR
        TOGGLEBITMAP_MENU__MSG   = 'bitmap di ~Sfondo '
        INFOATTOP_MENU__MSG      = 'Informa~zioni in alto'
        PROMPTING_MENU__MSG      = '~Aiuto dinamico'
      SAVE_OPTS_MENU__MSG      = 'Salvare op~zioni'
      TO_BOOK_MENU__MSG        = '~Icona EPM'
-     TO_DESKTOP_MENU__MSG     = 'Scrivania La~Mail'
 
-compile if WANT_DYNAMIC_PROMPTS
- compile if SPELL_SUPPORT & not CHECK_FOR_LEXAM
    OPTIONS_BARP__MSG         = \1'Menu relativi al controllo ortografico e alla configurazione dell''editor'
- compile else
-   OPTIONS_BARP__MSG         = \1'Menu relativi alla configurazione dell''editor'
- compile endif
      LIST_FILES_MENUP__MSG     = \1'Elenca i file nel ciclo di editazione'
      PROOF_MENUP__MSG          = \1'Attiva il controllo ortografico del file'
      PROOF_WORD_MENUP__MSG     = \1'Verifica l''ortografia della parola in corrispondenza del cursore'
@@ -570,68 +462,22 @@ compile if WANT_DYNAMIC_PROMPTS
        STATUS_LINE_MENUP__MSG    = \1'Attiva o disattiva la visualizzazione della riga di stato'
        MSG_LINE_MENUP__MSG       = \1'Attiva o disattiva la visualizzazione della riga dei messaggi'
        SCROLL_BARS_MENUP__MSG    = \1'Attiva/disattiva la visualizzazione delle barre di scorrimento'
-;;;;   PARTIALTEXT_MENUP__MSG    = \1'Attiva o disattiva la visualizzazione di testo parziale' -- Unused
        FILEICON_MENUP__MSG       = \1'Attiva o disattiva il simbolo di trascinamento e rilascio file'
        ROTATEBUTTONS_MENUP__MSG  = \1'Attiva/disattiva la visualizzazione dei pulsanti di direzione'
- compile if WANT_TOOLBAR
        TOOLBAR_MENUP__MSG        = \1'Men— a tendina per azioni relative alla Toolbar'
          TOGGLETOOLBAR_MENUP__MSG  = \1'Scambia toolbar ON/OFF'
          LOADTOOLBAR_MENUP__MSG    = \1'Carica una toolbar salvata precedentemente'
          SAVETOOLBAR_MENUP__MSG    = \1'Salva una toolbar personalizzata'
          DELETETOOLBAR_MENUP__MSG  = \1'Elimina una data toolbar'
- compile endif -- WANT_TOOLBAR
        TOGGLEBITMAP_MENUP__MSG   = \1'Toggle bitmap behind text window on or off'
        INFOATTOP_MENUP__MSG      = \1'Cambia la posizione della riga di stato e dei messaggi'
        PROMPTING_MENUP__MSG      = \1'Attiva o disattiva l''aiuto dinamico per i menu'
      SAVE_OPTS_MENUP__MSG      = \1'Rende assunte le impostazioni correnti dei modi e della cornice'
      TO_BOOK_MENUP__MSG        = \1'Passa all''icona EPM o alla scrivania'
-     TO_DESKTOP_MENUP__MSG     = \1'Passa alla finestra della scrivania LaMail'
-compile else
-   OPTIONS_BARP__MSG         = ''
-     LIST_FILES_MENUP__MSG     = ''
-     PROOF_MENUP__MSG          = ''
-     PROOF_WORD_MENUP__MSG     = ''
-     SYNONYM_MENUP__MSG        = ''
-     DYNASPELL_MENUP__MSG      = ''
-     DEFINE_WORD_MENUP__MSG    = ''
-     PREFERENCES_MENUP__MSG    = ''
-       CONFIG_MENUP__MSG         = ''
-       SETENTER_MENUP__MSG       = ''
-       ADVANCEDMARK_MENUP__MSG   = ''
-       STREAMMODE_MENUP__MSG     = ''
-       RINGENABLED_MENUP__MSG    = ''
-       STACKCMDS_MENUP__MSG      = ''
-       CUAACCEL_MENUP__MSG       = ''
-     AUTOSAVE_MENUP__MSG       = ''
-     MESSAGES_MENUP__MSG       = ''
-     CHANGE_FONT_MENUP__MSG    = ''
-     SMALL_FONT_MENUP__MSG     = ''
-     LARGE_FONT_MENUP__MSG     = ''
-     FRAME_CTRLS_MENUP__MSG    = ''
-       STATUS_LINE_MENUP__MSG    = ''
-       MSG_LINE_MENUP__MSG       = ''
-       SCROLL_BARS_MENUP__MSG    = ''
-;;;;   PARTIALTEXT_MENUP__MSG    = ''  -- Unused
-       FILEICON_MENUP__MSG       = ''
-       ROTATEBUTTONS_MENUP__MSG  = ''
- compile if WANT_TOOLBAR
-       TOOLBAR_MENUP__MSG        = ''
-         TOGGLETOOLBAR_MENUP__MSG  = ''
-         LOADTOOLBAR_MENUP__MSG    = ''
-         SAVETOOLBAR_MENUP__MSG    = ''
-         DELETETOOLBAR_MENUP__MSG  = ''
- compile endif -- WANT_TOOLBAR
-       TOGGLEBITMAP_MENUP__MSG   = ''
-       INFOATTOP_MENUP__MSG      = ''
-       PROMPTING_MENUP__MSG      = ''
-     SAVE_OPTS_MENUP__MSG      = ''
-     TO_BOOK_MENUP__MSG        = ''
-     TO_DESKTOP_MENUP__MSG     = ''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   RING_BAR__MSG =        'C'TILDE_CHAR'iclo '
+   RING_BAR__MSG =        'C~iclo '
 
-   COMMAND_BAR__MSG =     TILDE_CHAR'Comando '
+   COMMAND_BAR__MSG =     '~Comando '
      COMMANDLINE_MENU__MSG = 'Finestra co~mandi...'
      HALT_COMMAND_MENU__MSG= '~Arrestare comando'
      CREATE_SHELL_MENU__MSG= 'Creare ~interfaccia comandi'
@@ -639,7 +485,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
      KILL_SHELL_MENU__MSG =  '~Eliminare interfaccia comandi'
      SHELL_BREAK_MENU__MSG = 'Manda un ~break alla shell'
 
-compile if WANT_DYNAMIC_PROMPTS
    COMMAND_BARP__MSG =     \1'Immette o arresta un comando',
      COMMANDLINE_MENUP__MSG = \1"Attiva la finestra per immettere comandi dell'editor o OS/2"
      HALT_COMMAND_MENUP__MSG= \1'Interrompe l''esecuzione del comando corrente'
@@ -647,17 +492,8 @@ compile if WANT_DYNAMIC_PROMPTS
      WRITE_SHELL_MENUP__MSG = \1"Scrive una stringa sulla riga comandi dell'interfaccia comandi"
      KILL_SHELL_MENUP__MSG =  \1"Elimina l'interfaccia comandi e cancella il file di editazione"
      SHELL_BREAK_MENUP__MSG = \1'Manda un messaggio di Ctrl+Break alla shell'
-compile else
-   COMMAND_BARP__MSG =     '',
-     COMMANDLINE_MENUP__MSG = ''
-     HALT_COMMAND_MENUP__MSG= ''
-     CREATE_SHELL_MENUP__MSG= ''
-     WRITE_SHELL_MENUP__MSG = ''
-     KILL_SHELL_MENUP__MSG =  ''
-     SHELL_BREAK_MENUP__MSG = ''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   HELP_BAR__MSG =        TILDE_CHAR'Aiuto '
+   HELP_BAR__MSG =        '~Aiuto '
      HELP_HELP_MENU__MSG =   '~Uso dell''aiuto'  -- was '~Aiuto per l''aiuto'
      EXT_HELP_MENU__MSG =    'Aiuto ~generico'  -- was 'Aiuto ~esteso...'
      KEYS_HELP_MENU__MSG =   'Aiuto per ~tasti funzione'
@@ -673,7 +509,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
        VIEW_TECHREF_MENU__MSG =  "~Visualizza Technical Reference"
        VIEW_IN_TECHREF_MENU__MSG="~Parola attuale"
 
-compile if WANT_DYNAMIC_PROMPTS
    HELP_BARP__MSG =         \1'Menu di accesso ai pannelli di aiuto e alle informazioni sul copyright'
      HELP_HELP_MENUP__MSG =   \1'Aiuto sulla gestione dell''aiuto'
      EXT_HELP_MENUP__MSG =    \1'Visualizza il pannello di aiuto principale dell''editor'
@@ -689,49 +524,22 @@ compile if WANT_DYNAMIC_PROMPTS
      TECHREF_MENUP__MSG =     \1"Visualizza il Technical Reference, o cerca una parola in esso"
        VIEW_TECHREF_MENUP__MSG=   \1"Chiama il visualizzatore per leggere il Technical Reference"
        VIEW_IN_TECHREF_MENUP__MSG=\1"Cerca la parola attuale nel Technical Reference"
-compile else
-   HELP_BARP__MSG =         ''
-     HELP_HELP_MENUP__MSG =   ''
-     EXT_HELP_MENUP__MSG =    ''
-     KEYS_HELP_MENUP__MSG =   ''
-     COMMANDS_HELP_MENUP__MSG=''
-     HELP_INDEX_MENUP__MSG =  ''
-     HELP_BROWSER_MENUP__MSG= ''
-     HELP_PROD_MENUP__MSG=    ''
-     USERS_GUIDE_MENUP__MSG = ''
-       VIEW_USERS_MENUP__MSG =  ''
-       VIEW_IN_USERS_MENUP__MSG=''
-       VIEW_USERS_SUMMARY_MENUP__MSG=''
-     TECHREF_MENUP__MSG =     ''
-       VIEW_TECHREF_MENUP__MSG=   ''
-       VIEW_IN_TECHREF_MENUP__MSG=''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
-   COMPILER_BAR__MSG =           'Co'TILDE_CHAR'mpilatore'
+   COMPILER_BAR__MSG =           'Co~mpilatore'
      NEXT_COMPILER_MENU__MSG =     'Errore ~successivo'
      PREV_COMPILER_MENU__MSG =     'Errore ~precedente'
      DESCRIBE_COMPILER_MENU__MSG = '~Descrizione errori'
-     CLEAR_ERRORS_MENU__MSG =      '~Correzione errori'  
+     CLEAR_ERRORS_MENU__MSG =      '~Correzione errori'
      END_DDE_SESSION_MENU__MSG =   '~Fine sessione DDE'
      REMOVE_COMPILER_MENU__MSG =   '~Rimuovi il men— del compilatore'
 
-compile if WANT_DYNAMIC_PROMPTS
    COMPILER_BARP__MSG =           \1'Selezioni relative al compilatore'
      NEXT_COMPILER_MENUP__MSG =     \1'Passa al successivo errore del compilatore'
      PREV_COMPILER_MENUP__MSG =     \1'Passa al precedente errore del compilatore'
      DESCRIBE_COMPILER_MENUP__MSG = \1'Elenca gli errori della riga corrente ed opzionalmente richiama l''aiuto.'
-     CLEAR_ERRORS_MENUP__MSG =      \1'Rimuove evidenziazione e segnalibro per errori del compilatore'  
+     CLEAR_ERRORS_MENUP__MSG =      \1'Rimuove evidenziazione e segnalibro per errori del compilatore'
      END_DDE_SESSION_MENUP__MSG =    \1'Termina la sessione DDE con il Workframe'
      REMOVE_COMPILER_MENUP__MSG =    \1'Rimuovi il men— del compilatoree dalla barra delle Azioni'
-compile else
-   COMPILER_BARP__MSG =          ''
-     NEXT_COMPILER_MENUP__MSG =    ''
-     PREV_COMPILER_MENUP__MSG =    ''
-     DESCRIBE_COMPILER_MENUP__MSG = ''
-     CLEAR_ERRORS_MENUP__MSG =      ''
-     END_DDE_SESSION_MENUP__MSG =  ''
-     REMOVE_COMPILER_MENUP__MSG =  ''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
 ;  (End of pull-downs)
 ; Now, define the lower and upper case accelerators for the above
@@ -784,7 +592,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
      SELECT_ALL_MENU__MSG = 'Seleziona ~Tutto'
      DESELECT_ALL_MENU__MSG = 'D~eseleziona tutto'
 
-compile if WANT_DYNAMIC_PROMPTS
      OPENAS_MENUP__MSG  =       \1'Apri un file or edit object settings'
      NEWWIN_MENUP__MSG =        \1'Rimpiazza il file attuale con uno vuoto .Untitled file'
      UNDO__MENUP__MSG =         \1'Men— relativi ad Undo, marca, e lavagna'
@@ -792,15 +599,6 @@ compile if WANT_DYNAMIC_PROMPTS
 
    VIEW_BARP__MSG =        \1'Men— relativi a ricerca, tags, bookmarks, commandi, etc.'
    SELECTED_BARP__MSG =         \1'Men— relativi al testo selezionato'
-compile else
-     OPENAS_MENUP__MSG  =       ''
-     NEWWIN_MENUP__MSG =        ''
-     UNDO__MENUP__MSG =         ''
-     SELECT_ALL_MENUP__MSG =    ''
-
-   VIEW_BARP__MSG =        ''
-   SELECTED_BARP__MSG =    ''
-compile endif  -- WANT_DYNAMIC_PROMPTS
 
 ; End of additions for OVSH menus.
 
@@ -815,7 +613,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
    NO_QUEUE__MSG =        'non Š associata alcuna coda.'
    EDITOR__MSG =          "Editor EPM - Informazioni sul prodotto"
    EDITOR_VER__MSG =      "Versione Editor" -- nnn
-   LAMAIL_VER__MSG =      "Versione LaMail" -- nnn
    MACROS_VER__MSG =      "Versione Macro" -- nnn
    COPYRIGHT__MSG =       "(C) Copyright IBM Corporation 1989, 1992"
    OVERLAPPING_ATTRIBS__MSG = 'Sovrapposizione attributi; nulla cambiato.'       /*NLS*/
@@ -847,7 +644,6 @@ compile endif  -- WANT_DYNAMIC_PROMPTS
    DICT_REMAINS__MSG =    'il dizionario rimane:'
              -- "Nothing found for <bad_word>".  Used in a dialog;
    WORD_NOT_FOUND__MSG =  'Non ho trovato niente'     --  try to keep this short.
-compile endif  -- EVERSION > 5
 
 ;; Stdkeys.e
    MARKED_OTHER__MSG =    "You had a marked area in another file; it has been unmarked."
@@ -880,9 +676,7 @@ compile endif  -- EVERSION > 5
    AUTOSAVE__MSG =        'Salvataggio automatico'  -- messagebox title
    AUTOSAVE_PROMPT__MSG = 'Immettere AUTOSAVE <numero> per impostare il numero di modifiche tra i salvataggi. 0 = off.'
    BROWSE_IS__MSG =       'Il modo visualizzazione Š' -- on/off
-compile if EVERSION >= '6.03'
    READONLY_IS__MSG =     'il flag di Read-only Š' -- on/off
-compile endif
    NO_REP__MSG =          'Non Š stata specificata alcuna stringa di sostituzione'
    CUR_DIR_IS__MSG =      'L''indirizzario corrente Š'
    EX_ALL__MSG =          'Eseguire tutte le righe marcate?'
@@ -922,23 +716,21 @@ compile endif
    IS_SYSTEM__MSG =       'Il file ha l''attributo "sistema".'
    IS_HIDDEN__MSG =       'Il file ha l''attributo "nascosto".'
    MAYBE_LOCKED__MSG =    'Il file potrebbe essere bloccato da un''altra applicazione.'
-compile if EVERSION >= 6
    ONLY_VIEW__MSG =       'Questa Š la sola vista di questo file'
-compile endif
 
 ;; SLnohost.e
    INVALID_FILENAME__MSG= 'Nome file non valido.'
    QUIT_PROMPT1__MSG =    'Eliminare modifiche? Premere S, N oppure il tasto File'
    QUIT_PROMPT2__MSG =    'Eliminare modifiche? Premere S o N'
    PRESS_A_KEY__MSG =     'Premere un tasto...'
-   LONGNAMES_IS__MSG =    'Il modo LONGNAMES Š' 
+   LONGNAMES_IS__MSG =    'Il modo LONGNAMES Š'
 
 compile if HOST_SUPPORT <> ''
 ;; SaveLoad.e
-   BAD_FILENAME_CHARS__MSG='Caratteri nel nome file non previsti'
-   LOADING_PROMPT__MSG =   'Caricamento di'  -- filename
-   SAVING_PROMPT__MSG =    'Salvataggio di'  -- filename
-   HOST_NOT_FOUND__MSG =   'File del sistema centrale non trovato.'
+   BAD_FILENAME_CHARS__MSG = 'Caratteri nel nome file non previsti'
+   LOADING_PROMPT__MSG =    'Caricamento di'  -- filename
+   SAVING_PROMPT__MSG =     'Salvataggio di'  -- filename
+   HOST_NOT_FOUND__MSG =    'File del sistema centrale non trovato.'
       --  'Errore 'rc' di sistema centrale; il salvataggio su sistema centrale Š stato annullato. Il file Š stato salvato in 'vTEMP_PATH'eeeeeeee.'hostfileid
    HOST_ERROR__MSG =        'Errore sistema centrale'
    HOST_CANCEL__MSG =       'salvataggio su sistema centrale annullato. File salvato in'
@@ -949,7 +741,7 @@ compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
    OVERLAY_TEMP1__MSG =     'Eseguendo il caricamento, il file temporaneo su PC verr… ricoperto - Si desidera continuare? (S,N)'
          -- Loading <filename> with <options>
    WITH__MSG =              'con'
-   FILE_TRANSFER_ERROR__MSG='Errore trasferimento file'  -- RC
+   FILE_TRANSFER_ERROR__MSG ='Errore trasferimento file'  -- RC
    SAVED_LOCALLY_AS__MSG =  'Salvato su PC come'  -- filename
    SAVE_LOCALLY__MSG =      'Si desidera salvare questo file su PC? (S,N)'
    OVERLAY_TEMP2__MSG =     'esiste gi…. Premere S per ricoprire, N per interrompere.'
@@ -957,10 +749,10 @@ compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
    ALREADY_EDITING__MSG =   'E'' gi… in corso l''editazione di un file con questo nome - modifica negata'
    NO_SPACES__MSG =         'Non Š possibile usare spazi in un nome di file'
    LOOKS_VM__MSG =          'potrebbe essere un file VM, ma'  -- <filename> 'looked like VM, but' <one of the following:>
-     NO_HOST_DRIVE__MSG =     'manca l''unit… del sistema centrale'
-     HOST_DRIVELETTER__MSG =    'l''identificativo unit… di sistema centrale'  -- host drive specifier <X> <problem>
-       IS_TOO_LONG__MSG =       'Š troppo lungo'
-       INVALID__MSG =           'non Š valido'
+     NO_HOST_DRIVE__MSG =   'manca l''unit… del sistema centrale'
+     HOST_DRIVELETTER__MSG = 'l''identificativo unit… di sistema centrale'  -- host drive specifier <X> <problem>
+       IS_TOO_LONG__MSG =   'Š troppo lungo'
+       INVALID__MSG =       'non Š valido'
      HOST_LT__MSG =         'l''identificativo terminale logico'  -- host logical terminal <X> invalid
      NO_LT__MSG =           'manca il terminale logico'
      FM__MSG =              'l''identificativo del disco' -- <X> is too long
@@ -972,28 +764,28 @@ compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
      FN__MSG =              'il nome file' -- <X> is too long
      BAD_FN__MSG =          'il nome file contiene caratteri non validi'  -- <filename>
    MVS_ERROR__MSG =         '(Errore MVS)'  -- followed by <one of the following:>
-     DSN_TOO_LONG__MSG =      'Nome del data set pi— lungo di 44 caratteri'
+     DSN_TOO_LONG__MSG =    'Nome del data set pi— lungo di 44 caratteri'
                    --  'qualifier #' 1 '('XXXXXXXXX')' <problem>
-     QUAL_NUM__MSG =          'il qualificatore n.'
-       QUAL_TOO_LONG__MSG =     'Š pi— lungo di 8 caratteri'
-       QUAL_INVALID__MSG =      'contiene un carattere non consentito'
-     GENERATION_NAME__MSG =   'Il nome generazione'
-     MEMBER__MSG =            'il membro'
-     INVALID_MEMBER__MSG =    'il membro contiene caratteri non validi'
-     DSN_PARENS__MSG =        'il DSN contiene parentesi ma non membro/generazione'
+     QUAL_NUM__MSG =        'il qualificatore n.'
+       QUAL_TOO_LONG__MSG = 'Š pi— lungo di 8 caratteri'
+       QUAL_INVALID__MSG =  'contiene un carattere non consentito'
+     GENERATION_NAME__MSG = 'Il nome generazione'
+     MEMBER__MSG =          'il membro'
+     INVALID_MEMBER__MSG =  'il membro contiene caratteri non validi'
+     DSN_PARENS__MSG =      'il DSN contiene parentesi ma non membro/generazione'
    LOOKS_PC__MSG =          'potrebbe essere un file PC, ma'  -- <filename> 'looked like PC, but' <one of the following:>
-     PC_DRIVESPEC__MSG =      'l''identificativo di unit… PC'  -- PC drive specifier <X> <problem>
-       LONGER_THAN_ONE__MSG =   'Š pi— lungo di 1 carattere'
-       IS_NOT_ALPHA__MSG =      'non Š alfabetico'
-     INVALID_PATH__MSG =      'non Š valido il percorso'  -- followed by <filename>
-     INVALID_FNAME__MSG =     'non Š valido il nome file PC'  -- followed by <filename>
-     INVALID_EXT__MSG =       'non Š valida l''estensione PC'  -- followed by <extension>
+     PC_DRIVESPEC__MSG =    'l''identificativo di unit… PC'  -- PC drive specifier <X> <problem>
+       LONGER_THAN_ONE__MSG = 'Š pi— lungo di 1 carattere'
+       IS_NOT_ALPHA__MSG =  'non Š alfabetico'
+     INVALID_PATH__MSG =    'non Š valido il percorso'  -- followed by <filename>
+     INVALID_FNAME__MSG =   'non Š valido il nome file PC'  -- followed by <filename>
+     INVALID_EXT__MSG =     'non Š valida l''estensione PC'  -- followed by <extension>
    SAVEPATH_NULL__MSG =     'SAVEPATH nullo - verr… usato l''indirizzario corrente.'
 ;        'Savepath attempting to use invalid' bad '- will use current directory.'
    SAVEPATH_INVALID1__MSG = 'Tentativo di Savepath di usare'
    SAVEPATH_INVALID2__MSG = '- verr… usato l''indirizzario corrente.'
    BACKUP_PATH_INVALID_NO_BACKSLASH__MSG= "BACKUP_PATH invalido manca '\' alla fine."
-   NO_BACKUPS__MSG= "le copie di Backup NON saranno salvate."
+   NO_BACKUPS__MSG=         "le copie di Backup NON saranno salvate."
    BACKUP_PATH_INVALID1__MSG = 'il BACKUP_PATH che si sta cercando di usare Š invalido'
    DRIVE__MSG =             'un''unit… non valida'
    PATH__MSG =              'un percorso non valido'
@@ -1001,7 +793,7 @@ compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
    LT_NOW__MSG =            '; (finestra 3270 attualmente = '
    EMULATOR__MSG =          'Emulazione'
    HOSTDRIVE_NOW__MSG =     'Unit… sistema centrale impostata a'
-   IS_INVALID_OPTS_ARE__MSG='non valida. Le opzioni sono:'
+   IS_INVALID_OPTS_ARE__MSG = 'non valida. Le opzioni sono:'
    TRY_AGAIN__MSG =         'Riprovare'
    LT_SET_TO__MSG =         'Terminale logico impostato a'  -- set to A, to B, etc.
    LT_SET_NULL__MSG =       'Terminale logico impostato a NULL'
@@ -1009,10 +801,9 @@ compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
    FTO_WARN__MSG =          'La correttezza delle opzioni per il trasferimento file NON viene verificata!'
    BIN_WARN__MSG =          'La correttezza delle opzioni per il trasferimento file in binario NON viene verificata!'
    FROM_HLLAPI__MSG =       'restituito da chiamata collegamento dinamico HLLAPI.'  -- Error nnn from...
-   FILE_TRANSFER_CMD_UNKNOWN='comando di File transfer sconosciuto:'
+   FILE_TRANSFER_CMD_UNKNOWN = 'comando di File transfer sconosciuto:'
 compile endif
 
-compile if EVERSION >=5
 ;; EPM_EA.e
    TYPE_TITLE__MSG =        'Tipo'  -- Title of a messagebox or listbox for file type
    NO_FILE_TYPE__MSG =      'Al file non corrisponde alcun tipo. Si desidera impostarne uno?'
@@ -1031,9 +822,7 @@ compile if EVERSION >=5
 ; Only translate if the .TYPE EA is NLS-specific.  First character is the delimiter between
 ; types; can be any otherwise-unused character.  (It's a '-' here.)
    TYPE_LIST__MSG =         '-Plain Text-OS/2 Command File-DOS Command File-C Code-Pascal Code-BASIC Code-COBOL Code-FORTRAN Code-Assembler Code-'
-compile endif  -- EVERSION >=5
 
-compile if EVERSION >=5
 ;; BOOKMARK.E
    NEED_BM_NAME__MSG =      'Nome segnalibro mancante.'
    NEED_BM_CLASS__MSG =     'Classe segnalibro mancante.'
@@ -1053,7 +842,7 @@ compile if EVERSION >=5
    SETMARK__MSG =           'Collocare segnalibro'  -- Title
    SETMARK_PROMPT__MSG =    'Immettere un nome per la posizione corrente del cursore'
    RENAME__MSG =            'Rinominare'  -- Title
-   NOTHING_ENTERED__MSG =   'Nessun dato immesso; funzione annullata.'     
+   NOTHING_ENTERED__MSG =   'Nessun dato immesso; funzione annullata.'
    NO_COMPILER_ERROR__MSG = 'Nessun errore trovato sulla riga corrente.'
    DESCRIBE_ERROR__MSG =    'Descrizione errore'  -- Listbox title
    DETAILS__MSG =           '~Dettagli'  -- Button
@@ -1063,9 +852,9 @@ compile if EVERSION >=5
    ERROR_REVERTING__MSG =   'cercando di ritornare al file di aiuto'  -- 'Error' nn 'attempting to revert to help file' x.hlp
    BM_ALREADY_EXISTS__MSG = 'Esiste gi… un bookmark con quel nome.'
    LONG_EA_TITLE__MSG =     "EA's troppo lungo"  -- Messagebox title
-   LONG_EA__MSG =           "Extended Attributes dovrebbero essere pi— di 64k; il file non pu• essere salvato.  Remuovi alcuni stili e riprova."
+   LONG_EA__MSG =           "Extended Attributes dovrebbero essere pi— di 64k; il file non pu• essere salvato. Remuovi alcuni stili e riprova."
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;  New stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;; stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    FILE_GONE__MSG =         'Il file non si trova pi— nel ciclo.'
    NO_RING__MSG =           'Ciclo disabilitato; impossibile aggiungere un altro file al ciclo di editazione.'
    NO_RING_CMD__MSG =       'Quando il ciclo Š disattivato non Š possibile usare il comando'  -- followed by command name
@@ -1073,7 +862,8 @@ compile if EVERSION >=5
    RX_PROMPT__MSG =         'Un nome di macro deve essere specificato come un parametro (e.g,, EPMREXX ERXMACRO)'
    RX_SUBCOM_FAIL__MSG =    'Registrazione sottocomando Rexx non riuscita -- RC'
    RX_FUNC_FAIL__MSG =      'Registrazione funzione Rexx non riuscita -- RC'
-
+   MODIFIED_PROMPT__MSG =   'Current file has been modified. Save changes?'    ------------------------------------- to be translated ---------------------------------
+   NOT_ON_DISK__MSG =       'does not exist on disk - can not proceed.'   -- Preceded by:  '"'filename'"'
 
 ; The following are used in key names, like 'Ctrl+O', 'Alt+Bkspc', etc.
 ; Note that some are abbreviated to take up less room on the menus.
@@ -1089,57 +879,49 @@ compile if EVERSION >=5
    ESCAPE_KEY__MSG =    'Esc'
    UP_KEY__MSG =        'S—'
    DOWN_KEY__MSG =      'Gi—'
-compile endif  -- EVERSION >=5
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;  New stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    MARK_OFF_SCREEN2__MSG =  "Hai un area marcata fuori dallo schermo."
-   LINES_TRUNCATED_WNG__MSG = 'Una o pi— linee sono state spezzate alla colonna 255; il  file pu• essere danneggiato se salvato.'
+   LINES_TRUNCATED_WNG__MSG = 'Una o pi— linee sono state spezzate alla colonna 255; il file pu• essere danneggiato se salvato.'
    DYNASPEL_NORECALL__MSG = 'Nessuna parola misspelled .'
 ;                         The following two combine to form one message.
-   DYNASPEL_PROMPT1__MSG = 'La parola sconosciuta era was '
-   DYNASPEL_PROMPT2__MSG = ' - premi Ctrl+A per alternative.'
+   DYNASPEL_PROMPT1__MSG =  'La parola sconosciuta era was '
+   DYNASPEL_PROMPT2__MSG =  ' - premi Ctrl+A per alternative.'
 ;                         The following two combine to form one message.
-   PROOF_ERROR1__MSG =     'errore inaspettatoalla linea'
-   PROOF_ERROR2__MSG =     '- salto alla prossima linea'
+   PROOF_ERROR1__MSG =      'errore inaspettatoalla linea'
+   PROOF_ERROR2__MSG =      '- salto alla prossima linea'
 
-compile if WANT_STACK_CMDS
    STACK_FULL__MSG =        'Area di stack piena.'
    STACK_EMPTY__MSG =       'Area di Stack vuota.'
-compile endif
-compile if WANT_TAGS
-   TAGSNAME__MSG = 'nome file di Tags'     -- Entry box title
-   TAGSNAME_PROMPT__MSG = 'Immetti il nome file per il tags file'
-   FINDTAG__MSG = 'Trova la procedura'      -- Entry box title
-   FINDTAG_PROMPT__MSG = 'Immetti il nome della procedura da trovare.'
-   NO_TAGS__MSG = 'Non ho trovato Tags nel file tags.'
-   LIST_TAGS__MSG = 'Lista delle tags'         -- Listbox title
-   BUILDING_LIST__MSG = 'Sto creando la lista...'  -- Processing message
-compile endif
-   LIST__MSG = '~List...'               -- Button
-compile if EVERSION >= '5.60'
-   MAKETAGS__MSG = 'Crea tags file'
-   MAKETAGS_PROMPT__MSG = 'Immetti uno o pi— nomi di file (wildcards OK) o @lists.'
+   TAGSNAME__MSG =          'nome file di Tags'     -- Entry box title
+   TAGSNAME_PROMPT__MSG =   'Immetti il nome file per il tags file'
+   FINDTAG__MSG =           'Trova la procedura'      -- Entry box title
+   FINDTAG_PROMPT__MSG =    'Immetti il nome della procedura da trovare.'
+   NO_TAGS__MSG =           'Non ho trovato Tags nel file tags.'
+   LIST_TAGS__MSG =         'Lista delle tags'         -- Listbox title
+   BUILDING_LIST__MSG =     'Sto creando la lista...'  -- Processing message
+   LIST__MSG =              '~List...'               -- Button
+   MAKETAGS__MSG =          'Crea tags file'
+   MAKETAGS_PROMPT__MSG =   'Immetti uno o pi— nomi di file (wildcards OK) o @lists.'
    MAKETAGS_PROCESSING__MSG = 'MAKETAGS in elaborazione - controllo source files.'
-   MESSAGELINE_FONT__MSG = 'font di Messageline cambiati'
+   MESSAGELINE_FONT__MSG =  'font di Messageline cambiati'
    MESSAGELINE_FGCOLOR__MSG = 'colori di foreground Messageline cambiati.'
    MESSAGELINE_BGCOLOR__MSG = 'colori di background Messageline cambiati.'
-   TABGLYPH_IS__MSG = 'TABGLYPH Š' -- on/off
-compile endif
+   TABGLYPH_IS__MSG =       'TABGLYPH Š' -- on/off
 
-compile if WANT_TOOLBAR
-;  NO_TOOLBARS__MSG =     'Non ci sono toolbars salvate da selezionare.'
-;  LOAD_TOOLBAR__MSG =    'Carica Toolbar'  -- Dialog box title
-;  DELETE_TOOLBAR__MSG =  'Rimuovi Toolbar'  -- Dialog box title
-;  SELECT_TOOLBAR__MSG =  'Seleziona un set di men— Toolbar'
-   SAVEBAR__MSG =         'Salva Toolbar'  -- Dialog box title
-;  SAVEBAR_PROMPT__MSG =  'Immetti un nome, o lascia blank per salvare come default.'
-   SAVEBAR_PROMPT__MSG =  'Immetti un nome per la toolbar.'
-   SAVE__MSG =            'Salva'          -- Dialog button
-compile endif -- WANT_TOOLBAR
-   WILDCARD_WARNING__MSG = 'il Filename contiene dei caratteri wildcards.'  -- followed by ARE_YOU_SURE__MSG
+;  NO_TOOLBARS__MSG =       'Non ci sono toolbars salvate da selezionare.'
+;  LOAD_TOOLBAR__MSG =      'Carica Toolbar'  -- Dialog box title
+;  DELETE_TOOLBAR__MSG =    'Rimuovi Toolbar'  -- Dialog box title
+;  SELECT_TOOLBAR__MSG =    'Seleziona un set di men— Toolbar'
+   SAVEBAR__MSG =           'Salva Toolbar'  -- Dialog box title
+;  SAVEBAR_PROMPT__MSG =    'Immetti un nome, o lascia blank per salvare come default.'
+   SAVEBAR_PROMPT__MSG =    'Immetti un nome per la toolbar.'
+   SAVE__MSG =              'Salva'          -- Dialog button
+   WILDCARD_WARNING__MSG =  'il Filename contiene dei caratteri wildcards.'  -- followed by ARE_YOU_SURE__MSG
 
 ;; ASSSIST.E
-   NOT_BALANCEABLE__MSG =  'Non Š un carattere bilanciabile.'
-   UNBALANCED_TOKEN__MSG = 'Unbalanced token.'
+   NOT_BALANCEABLE__MSG =   'Non Š un carattere bilanciabile.'
+   UNBALANCED_TOKEN__MSG =  'Unbalanced token.'
 
-   WIDE_PASTE__MSG =       'Pasted text is wider than margins.  Reflow?'
+   WIDE_PASTE__MSG =        'Pasted text is wider than margins. Reflow?'
+
