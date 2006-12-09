@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.44 2006-12-09 19:36:23 aschn Exp $
+* $Id: stdctrl.e,v 1.45 2006-12-09 19:37:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -226,7 +226,7 @@ defproc listbox( title, listbuf)
 ;    parse value entrybox('Enter row col addl heightadjust') with row col jbsu hadj
 ;    parse value entrybox('Enter row col adj') with row col jbsu
 ;  't8 listbox'
-   call dprintf('listbox', ' ')
+;   call dprintf('listbox', ' ')
    call dprintf('listbox', 'curx cury: '.cursorx .cursory)
    call dprintf('listbox', 'col row: 'col row)
 ;    call listbox2(title, listbuf, arg(3), row, col, arg(6), arg(7))
