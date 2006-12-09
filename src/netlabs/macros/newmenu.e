@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.39 2006-10-30 00:23:06 aschn Exp $
+* $Id: newmenu.e,v 1.40 2006-12-09 19:36:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -197,7 +197,7 @@ definit
    -- activated.
    -- Maybe someone has already defined something here at definit,
    -- so better add it to the array var if not already.
-   call AddOnceAVar( 'usedmenuaccelerators', 'F E M A S V O R H')
+   call AddAVar( 'usedmenuaccelerators', 'F E M A S V O R H')
 
    -- Define a list of names for which 'menuinit_'name defcs are defined.
    -- Keep this list in sync with the 'menuinit_'name defcs!
@@ -225,10 +225,10 @@ definit
    -- already the half of them. Trying to link a menu with more items would
    -- make EPM crash.
 -- Todo: replace abbrev with resolving wildcards
-   call AddOnceAVar( 'hidemenunames', 'KENHT HTM SGML LATEX GML EPMPRT GETHOST')
+   call AddAVar( 'hidemenunames', 'KENHT HTM SGML LATEX GML EPMPRT GETHOST')
    -- Define a list of abbreviations that won't cause a decrease of NewMenu
    -- items, even when their abbreviations match the list above.
-   call AddOnceAVar( 'unhidemenunames', 'HTMPOP')
+   call AddAVar( 'unhidemenunames', 'HTMPOP')
 
    'InitMenuSettings'
 

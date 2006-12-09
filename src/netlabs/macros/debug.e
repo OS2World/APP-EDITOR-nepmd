@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: debug.e,v 1.7 2006-10-07 17:54:21 aschn Exp $
+* $Id: debug.e,v 1.8 2006-12-09 19:36:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -39,7 +39,7 @@ compile endif
 ; It can be removed from "debuglist" with
 ;    DelAVar( 'debuglist', 'TESTPROC')
 ; The array var "debuglist" is also accessable from EPM-REXX via the
-; SaveUserstring, AVar2Userstring, RestoreUserstring, SetAVar, AddOnceAVar
+; SaveUserstring, AVar2Userstring, RestoreUserstring, SetAVar, AddAVar
 ; and DelAVar commands.
 ; The dprintf macro produces only output, when the constant NEPMD_DEBUG
 ; was set to > 0 in MYCNF.E, with:
@@ -49,7 +49,7 @@ defproc dprintf
 compile if NEPMD_DEBUG
    Type = arg(1)
    Msg  = arg(2)
-   if Msg = '' then
+   if Msg == '' then
       Msg  = arg(1)
       call NepmdPmPrintf( Msg)
    else

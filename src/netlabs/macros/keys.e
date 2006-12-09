@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.18 2006-03-29 23:54:04 aschn Exp $
+* $Id: keys.e,v 1.19 2006-12-09 19:36:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -26,13 +26,13 @@ definit
    universal blockreflowflag
    blockreflowflag = 0
 compile if defined(ACTIONS_ACCEL__L)  -- For CUSTEPM support
-   call AddOnceAVar( 'usedmenuaccelerators', 'A')
+   call AddAVar( 'usedmenuaccelerators', 'A')
 compile endif
 compile if defined(TEX_BAR__MSG)  -- For TFE or EPMTeX support
-   call AddOnceAVar( 'usedmenuaccelerators', 'T')
+   call AddAVar( 'usedmenuaccelerators', 'T')
 compile endif
 compile if defined(ECO_MENU__MSG)  -- For ECO support
-   call AddOnceAVar( 'usedmenuaccelerators', 'I')
+   call AddAVar( 'usedmenuaccelerators', 'I')
 compile endif
 
 ; ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tree.e,v 1.4 2004-06-03 22:08:40 aschn Exp $
+* $Id: tree.e,v 1.5 2006-12-09 19:36:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -288,7 +288,7 @@ compile endif
                         atol(2), 2)             -- File info level 2 requested
 
 compile if not DEBUG_TREE
-      if result & result<>18 then  -- unexpected error, skip remaining masks.
+      if result & result <> 18 & result <> 3 then  -- unexpected error, skip remaining masks.
 sayerror 'result' result 'from DosFindFirst' filename
          return result
       endif
@@ -306,7 +306,7 @@ compile else  -- debug
          elseif result = 206 then msg = 'FILENAME EXCED RANGE'
          endif
          debug_message( 'Error' result '('msg') for "'filename'"')
-         if result<>2 & result<>18 then return result; endif
+         if result <> 2 & result <> 18 & result <> 3 then return result; endif
       endif
 compile endif
       if not result then
