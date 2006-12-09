@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.34 2006-11-16 20:50:01 jbs Exp $
+* $Id: hilite.c,v 1.35 2006-12-09 17:51:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -448,8 +448,8 @@ do
    // read the key list
    QUERYINITVALUE( hinit, pszSection, NULL, szKeyList);
 
-   if (pva)
-      DPRINTF_ARRAY(( "\nmaintaining symbols array at 0x%08x:\n", pva));
+// if (pva)
+//    DPRINTF_ARRAY(( "\nmaintaining symbols array at 0x%08x:\n", pva));
 
    // count items and its size
    ulBuflen = sizeof( VALUEARRAY);
@@ -505,7 +505,7 @@ do
          ppszOldAnchor = (PVOID)lfind( (PSZ)&pszKey, (PSZ)pva->apszValue, (PUINT)&pva->ulCount, sizeof( PSZ), _compareValue);
          if (ppszOldAnchor)
             {
-            DPRINTF_ARRAY(( "HILITE: delete entry %s\n", *ppszOldAnchor));
+//          DPRINTF_ARRAY(( "HILITE: delete entry %s\n", *ppszOldAnchor));
             **ppszOldAnchor = 0;
             }
 
@@ -530,21 +530,21 @@ do
             continue;
             }
 
-         DPRINTF_ARRAY(( "HILITE: transfer entry 0x%08x / 0x%08x: %s - %s\n",
-                         pszOldEntry, NEXTSTR( pszOldEntry),
-                         pszOldEntry, NEXTSTR( pszOldEntry)));
+//       DPRINTF_ARRAY(( "HILITE: transfer entry 0x%08x / 0x%08x: %s - %s\n",
+//                       pszOldEntry, NEXTSTR( pszOldEntry),
+//                       pszOldEntry, NEXTSTR( pszOldEntry)));
 
          *ppszAnchor = pszEntry;
          strcpy( pszEntry, pszOldEntry);
 
-         DPRINTF_ARRAY(( "HILITE:      new entry 0x%08x / 0x%08x: %s - ",
-                         pszEntry, NEXTSTR( pszEntry), pszEntry));
+//       DPRINTF_ARRAY(( "HILITE:      new entry 0x%08x / 0x%08x: %s - ",
+//                       pszEntry, NEXTSTR( pszEntry), pszEntry));
 
          pszEntry = NEXTSTR( pszEntry);
          pszOldEntry = NEXTSTR( pszOldEntry);
 
          strcpy( pszEntry, pszOldEntry);
-         DPRINTF_ARRAY(( "%s\n", pszEntry));
+//       DPRINTF_ARRAY(( "%s\n", pszEntry));
 
          pszEntry = NEXTSTR( pszEntry);
          }
@@ -560,13 +560,13 @@ do
 
       strcpy( pszEntry, pszKey);
       QUERYINITVALUE( hinit, pszSection, pszKey, szKeyValue);
-      DPRINTF_ARRAY(( "HILITE: add entry %s - %s\n", pszEntry, szKeyValue));
+//    DPRINTF_ARRAY(( "HILITE: add entry %s - %s\n", pszEntry, szKeyValue));
       pszEntry = NEXTSTR( pszEntry);
 
       strcpy( pszEntry, szKeyValue);
       pszEntry = NEXTSTR( pszEntry);
 
-      DPRINTF_ARRAY(( "HILITE: array: store %s=%s\n", pszKey, szKeyValue));
+//    DPRINTF_ARRAY(( "HILITE: array: store %s=%s\n", pszKey, szKeyValue));
 
       // next key
       ppszAnchor++;
@@ -688,24 +688,24 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfRel
          PSZ            pszEntry;
          PSZ            pszSymbol;
          PSZ           *ppszSymbolValue;
-         CHAR           szValue[ _MAX_PATH];
-         CHAR           szCustomValue[ _MAX_PATH];
+         CHAR           szValue[ _MAX_PATH] = "";
+         CHAR           szCustomValue[ _MAX_PATH] = "";
 
          // ----------------------------------
 
          HINIT          hinitGlobals = NULLHANDLE;
-         CHAR           szInitGlobalFilename[ _MAX_PATH];
+         CHAR           szInitGlobalFilename[ _MAX_PATH] = "";
          HINIT          hinitDefault = NULLHANDLE;
-         CHAR           szInitDefaultFilename[ _MAX_PATH];
+         CHAR           szInitDefaultFilename[ _MAX_PATH] = "";
 
          // ----------------------------------
 
          HINIT          hinitCustom = NULLHANDLE;
-         CHAR           szInitCustomFilename[ _MAX_PATH];
+         CHAR           szInitCustomFilename[ _MAX_PATH] = "";
          BOOL           fCustomLoaded = FALSE;
 
-         CHAR           szCustomCharset[ _MAX_PATH];
-         CHAR           szCustomAddCharset[ _MAX_PATH];
+         CHAR           szCustomCharset[ _MAX_PATH] = "";
+         CHAR           szCustomAddCharset[ _MAX_PATH] = "";
 
          // ----------------------------------
 
@@ -720,17 +720,17 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfRel
 
          // ----------------------------------
 
-         CHAR           szHilCommentChar[ 20];
+         CHAR           szHilCommentChar[ 20] = "";
 
          // ----------------------------------
 
 static   PSZ            pszRegPathTemplate = "\\NEPMD\\User\\Mode\\%s\\%s";
-         CHAR           szRegPath[ _MAX_PATH];
+         CHAR           szRegPath[ _MAX_PATH] = "";
          BOOL           fImplicitOpen = FALSE;
 
          // ----------------------------------
 
-         CHAR           szKeywordFile[ _MAX_PATH];
+         CHAR           szKeywordFile[ _MAX_PATH] = "";
          ULONG          ulKeywordFileDate;
          BOOL           fOutdated = FALSE;
 
@@ -769,10 +769,10 @@ static   PSZ            pszHeaderMask = "\r\n%s%s\r\n";
          PSZ            pszSourceFile;
          FILE          *pfile = NULL;
          ULONG          ulLineCount;
-         CHAR           szLine[ 1024];
+         CHAR           szLine[ 1024] = "";
          BOOL           fSectionStart;
          PSZ            pszLine;
-         CHAR           szCurrentSection[ 64];
+         CHAR           szCurrentSection[ 64] = "";
          PSZ            pszCurrentSectionColors;
          CHAR           szEntryColors[32];
          BOOL           fEntryColors;
@@ -808,9 +808,9 @@ static   PSZ            pszHeaderMask = "\r\n%s%s\r\n";
          ULONG          ulHiliteContentsLen;
          PSZ            pszCurrent;
 
-         CHAR           szCharset[ _MAX_PATH];
-         CHAR           szFileBuffer[ 2* _MAX_PATH + 1];
-         CHAR           szAddFileBuffer[ _MAX_PATH];
+         CHAR           szCharset[ _MAX_PATH] = "";
+         CHAR           szFileBuffer[ 2* _MAX_PATH + 1] = "";
+         CHAR           szAddFileBuffer[ _MAX_PATH] = "";
 
          PSZ   apszKeys[] =
          {
@@ -931,7 +931,7 @@ do
    if (rc != NO_ERROR)
       break;
 
-   DPRINTF(("Global Filename: '%s'\n", szInitGlobalFilename));
+// DPRINTF(("Global Filename: '%s'\n", szInitGlobalFilename));
    pvaColors  = _maintainInitValueArray( hinitGlobals, pszColorsSection, NULL);
    pvaSymbols = _maintainInitValueArray( hinitGlobals, pszSymbolsSection, NULL);
 
@@ -942,91 +942,91 @@ do
    if (rc != NO_ERROR)
       break;
 
-   DPRINTF(("Default Filename: '%s'\n", szInitDefaultFilename));
+// DPRINTF(("Default Filename: '%s'\n", szInitDefaultFilename));
    // - read customs of the mode - optional - so ignore errors here
    rc = _openInitFile( &hinitCustom, pszEnvnameEpmModepath, SEARCHMASK_CUSTOMINI, pszEpmMode,
                        szInitCustomFilename, sizeof( szInitCustomFilename));
    if (rc == NO_ERROR)
-   {
+      {
       // note that we found the custom ini
       fCustomLoaded = TRUE;
-      DPRINTF(( "CustomLoaded == TRUE\n"));
-   }
+//    DPRINTF(( "CustomLoaded == TRUE\n"));
+      }
    else
-   {
+      {
       rc = NO_ERROR;
-   }
-   DPRINTF(("Custom Filename: '%s'\n", szInitCustomFilename));
-   for ( i = 0; i < NUM_KEYS; i += 3)
-   {
+      }
+// DPRINTF(("Custom Filename: '%s'\n", szInitCustomFilename));
+   for (i = 0; i < NUM_KEYS; i += 3)
+      {
       PSZ pszDefaultValue;
       szFileBuffer[0] = '\0';
       if (fCustomLoaded)
-      {
-         QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, apszKeys[i], szFileBuffer,    "");
-         DPRINTF(( "Custom. Key '%s' Value '%s'\n", apszKeys, szFileBuffer));
-         if (*(apszKeys[i+2]))
          {
+         QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, apszKeys[i], szFileBuffer,    "");
+//       DPRINTF(( "Custom. Key '%s' Value '%s'\n", apszKeys, szFileBuffer));
+         if (*(apszKeys[i+2]))
+            {
             szAddFileBuffer[0] = '\0';
             QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, apszKeys[i+2], szAddFileBuffer, "");
-            DPRINTF(( "Custom addl. Key '%s' Value '%s'\n", apszKeys[i+2], szFileBuffer));
+//          DPRINTF(( "Custom addl. Key '%s' Value '%s'\n", apszKeys[i+2], szFileBuffer));
             if (szAddFileBuffer[0])
-            {
+               {
                if (apszKeys[i] == KEY_CHARSET)
-               {
+                  {
                   strcat( szFileBuffer, szAddFileBuffer);
-               }
+                  }
                else // if not charset, must be "word" list
-               {
+                  {
                   strcat( szFileBuffer, " ");
                   strcat( szFileBuffer, szAddFileBuffer);
                   strupr( szFileBuffer);
+                  }
                }
             }
          }
-      }
       if (!szFileBuffer[0]) // If not set from custom, read from default.ini
-      {
-         DPRINTF(("Addr1 Addr2 string %08x %08x %s\n", apszKeys[i], KEY_CHARSET, apszKeys[i]));
-         if (!strcmp( apszKeys[i], KEY_CHARSET))
          {
+//       DPRINTF(("Addr1 Addr2 string %08x %08x %s\n", apszKeys[i], KEY_CHARSET, apszKeys[i]));
+         if (!strcmp( apszKeys[i], KEY_CHARSET))
+            {
             QUERYINITVALUE( hinitDefault, pszGlobalSection, apszKeys[i], szFileBuffer);
             pszDefaultValue = STR_CASESENSITIVE;
-            DPRINTF(( "Default charset. Key '%s' Value '%s'\n", apszKeys[i], szFileBuffer));
-         }
+//          DPRINTF(( "Default charset. Key '%s' Value '%s'\n", apszKeys[i], szFileBuffer));
+            }
          else
-         {
+            {
             if (!strcmp( apszKeys[i], KEY_CASESENSITIVE))
-            {
+               {
                pszDefaultValue = STR_CASESENSITIVE;
-            }
+               }
             else
-            {
+               {
                pszDefaultValue = "";
-            }
+               }
             QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, apszKeys[i], szFileBuffer, pszDefaultValue);
-            DPRINTF(( "Default. Key '%s' Value '%s'\n", apszKeys[i], szFileBuffer));
+//          DPRINTF(( "Default. Key '%s' Value '%s'\n", apszKeys[i], szFileBuffer));
+            }
          }
-      }
       sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, apszKeys[i+1]);
-      DPRINTF(( "Regpath. Key '%s' Full path '%s'\n", apszKeys[i+1], szRegPath));
+//      DPRINTF(( "Regpath. Key '%s' Full path '%s'\n", apszKeys[i+1], szRegPath));
       rc = WriteConfigValue( hconfig, szRegPath, szFileBuffer);
-      DPRINTF(( "Regupd rc %d Value '%s'\n", rc, szFileBuffer));
+//      DPRINTF(( "Regupd rc %d Value '%s'\n", rc, szFileBuffer));
       if (!strcmp( apszKeys[i],  KEY_CASESENSITIVE))
-      {
-         fCaseSensitive = atol( szFileBuffer);
-         DPRINTF(( "Case sensitive: %d\n", fCaseSensitive));
-
-      }
-      else
-      {
-         if (!strcmp( apszKeys[i], KEY_CHARSET))
          {
+         fCaseSensitive = atol( szFileBuffer);
+//       DPRINTF(( "Case sensitive: %d\n", fCaseSensitive));
+
+         }
+      else
+         {
+         if (!strcmp( apszKeys[i], KEY_CHARSET))
+            {
             strcpy(szCharset, szFileBuffer);
-            DPRINTF(( "Charset: %s\n", szCharset));
+//          DPRINTF(( "Charset: %s\n", szCharset));
+            }
          }
       }
-   }
 
    // -----------------------------------------------
 
@@ -1246,7 +1246,7 @@ do
 //                DPRINTF(( "HILITE: - process section %s with colors: %s\n", szCurrentSection, pszCurrentSectionColors));
                   }
                else
-                  DPRINTF(( "HILITE: - error: skipping invalid section %s from line %u on\n", pszLine, ulLineCount));
+                  DPRINTF(( "HILITE: - error: skipping invalid section = %s from line %u on, filename = %s\n", pszLine, ulLineCount, pszSourceFile));
 
                // check if the values of the current symbol belong to a special section
                ulSectionIndex = 0;
@@ -1346,7 +1346,7 @@ do
             // still linvalid line?
             if (pszInvalid)
                {
-               DPRINTF(( "HILITE: error: skipping invalid line %u, invalid token %s\n", ulLineCount, pszInvalid));
+               DPRINTF(( "HILITE: error: skipping invalid line %u, invalid token = %s, filename = %s\n", ulLineCount, pszInvalid, pszSourceFile));
                continue;
                }
 
