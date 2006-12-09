@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pmprintf.e,v 1.5 2004-07-03 13:22:34 aschn Exp $
+* $Id: pmprintf.e,v 1.6 2006-12-09 17:56:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -78,15 +78,15 @@ compile if NEPMD_LIB_TEST
 
 defc NepmdPmPrintf, PmPrintf =
 
- Text = arg( 1);
- if (Text = '') then
-    sayerror 'error: no text specified.';
-    return;
- endif
+   Text = arg( 1)
+   if (Text = '') then
+      sayerror 'Error: no text specified.'
+      return
+   endif
 
- call NepmdPmPrintf( Text);
+   call NepmdPmPrintf( Text)
 
- return;
+   return
 
 compile endif
 
@@ -100,18 +100,25 @@ compile endif
 /*  APIRET EXPENTRY NepmdPmPrintf( PSZ pszText);                 */
 /* ------------------------------------------------------------- */
 
-defproc NepmdPmPrintf( Text) =
+defproc NepmdPmPrintf( Text)
 
- /* prepare parameters for C routine */
- Text = Text\0;
+   -- save previous rc
+   -- (required for not to change rc by helperNepmdCheckliberror)
+   saved_rc = rc
 
- /* call C routine */
- LibFile = helperNepmdGetlibfile();
- ret = dynalink32( LibFile,
-                   "NepmdPmPrintf",
-                   address( Text));
+   -- prepare parameters for C routine
+   Text = Text\0;
 
- helperNepmdCheckliberror( LibFile, ret);  -- not required anymore
+   -- call C routine
+   LibFile = helperNepmdGetlibfile()
+   ret = dynalink32( LibFile,
+                     'NepmdPmPrintf',
+                     address( Text))
 
- return;
+   -- The following sets rc to the value of its 2nd param
+   helperNepmdCheckliberror( LibFile, ret)   -- not required anymore
+
+   rc = saved_rc
+
+   return
 
