@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.64 2006-10-04 21:24:42 aschn Exp $
+* $Id: nepmdlib.c,v 1.65 2006-12-09 17:48:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -268,7 +268,7 @@ do
    if (rc != NO_ERROR)
       break;
 
-   DPRINTF(( "%s: handle: %u, fullname: %s\n", pszModuleName, hmodule, szFullname));
+// DPRINTF(( "%s: handle: %u, fullname: %s\n", pszModuleName, hmodule, szFullname));
    // FILESTATUS3
    sprintf( szFilestamp, "%u/%02u/%02u %2u:%02u:%02u",
             fs3.fdateLastWrite.year + 1980,
