@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: english.e,v 1.6 2006-03-29 23:54:01 aschn Exp $
+* $Id: english.e,v 1.7 2006-12-09 18:19:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -46,10 +46,6 @@ const
 compile if not defined(HOST_SUPPORT)
    HOST_SUPPORT = 0
 compile endif
-
-; The following constants are defined in STDCNF.E; if they're not set by the
-; time we get here, then we're being included by some external file, so their
-; value isn't important.
 
 ;; Box.e  -- Try to keep P, C, A, E, R & S the same; otherwise requires macro changes
    BOX_ARGS__MSG =        'Args: 1=³ 2=º 3=| 4=Û 5=Ø 6=× B=Spc /Any  P=Pas C=C A=Asm E=Erase R=Reflow S=Scr'
@@ -723,18 +719,18 @@ compile endif
    ONLY_VIEW__MSG =       'This is the only view of the file.'
 
 ;; SLnohost.e
-   INVALID_FILENAME__MSG= 'Invalid filename.'
-   QUIT_PROMPT1__MSG =    'Throw away changes?  Press Y, N or File key'
-   QUIT_PROMPT2__MSG =    'Throw away changes?  Press Y or N'
-   PRESS_A_KEY__MSG =     'Press a key...'
-   LONGNAMES_IS__MSG =    'LONGNAMES mode is' -- on/off
+   INVALID_FILENAME__MSG = 'Invalid filename.'
+   QUIT_PROMPT1__MSG =     'Throw away changes?  Press Y, N or File key'
+   QUIT_PROMPT2__MSG =     'Throw away changes?  Press Y or N'
+   PRESS_A_KEY__MSG =      'Press a key...'
+   LONGNAMES_IS__MSG =     'LONGNAMES mode is' -- on/off
 
 compile if HOST_SUPPORT <> ''
 ;; SaveLoad.e
-   BAD_FILENAME_CHARS__MSG='Characters in filename not supported'
-   LOADING_PROMPT__MSG =   'Loading'  -- filename
-   SAVING_PROMPT__MSG =    'Saving'  -- filename
-   HOST_NOT_FOUND__MSG =   'Assuming host file not found.'
+   BAD_FILENAME_CHARS__MSG = 'Characters in filename not supported'
+   LOADING_PROMPT__MSG =    'Loading'  -- filename
+   SAVING_PROMPT__MSG =     'Saving'  -- filename
+   HOST_NOT_FOUND__MSG =    'Assuming host file not found.'
       --  'Host error 'rc'; host save cancelled.  File saved in 'vTEMP_PATH'eeeeeeee.'hostfileid
    HOST_ERROR__MSG =        'Host error'
    HOST_CANCEL__MSG =       'host save cancelled.  File saved in'
@@ -753,10 +749,10 @@ compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
    ALREADY_EDITING__MSG =   'Already editing a file of this name - change denied'
    NO_SPACES__MSG =         'Spaces not supported in file names'
    LOOKS_VM__MSG =          'looked like VM, but'  -- <filename> 'looked like VM, but' <one of the following:>
-     NO_HOST_DRIVE__MSG =     'missing host drive'
-     HOST_DRIVELETTER__MSG =    'host drive letter'  -- host drive specifier <X> <problem>
-       IS_TOO_LONG__MSG =       'is too long'
-       INVALID__MSG =           'invalid'
+     NO_HOST_DRIVE__MSG =   'missing host drive'
+     HOST_DRIVELETTER__MSG = 'host drive letter'  -- host drive specifier <X> <problem>
+       IS_TOO_LONG__MSG =   'is too long'
+       INVALID__MSG =       'invalid'
      HOST_LT__MSG =         'host LT'  -- host logical terminal <X> invalid
      NO_LT__MSG =           'missing logical terminal'
      FM__MSG =              'file mode' -- <X> is too long
@@ -768,22 +764,22 @@ compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
      FN__MSG =              'file name' -- <X> is too long
      BAD_FN__MSG =          'invalid chars in filename'  -- <filename>
    MVS_ERROR__MSG =         '(MVS Error)'  -- followed by <one of the following:>
-     DSN_TOO_LONG__MSG =      'Data Set name is greater than 44 characters'
+     DSN_TOO_LONG__MSG =    'Data Set name is greater than 44 characters'
                    --  'qualifier #' 1 '('XXXXXXXXX')' <problem>
-     QUAL_NUM__MSG =          'qualifier #'
-       QUAL_TOO_LONG__MSG =     'is longer than 8 characters'
-       QUAL_INVALID__MSG =      'contains an illegal character'
-     GENERATION_NAME__MSG =   'Generation name'
-     MEMBER__MSG =            'member'
-     INVALID_MEMBER__MSG =    'invalid chars in member'
-     DSN_PARENS__MSG =        'DSN has parens but no member/generation'
+     QUAL_NUM__MSG =        'qualifier #'
+       QUAL_TOO_LONG__MSG = 'is longer than 8 characters'
+       QUAL_INVALID__MSG =  'contains an illegal character'
+     GENERATION_NAME__MSG = 'Generation name'
+     MEMBER__MSG =          'member'
+     INVALID_MEMBER__MSG =  'invalid chars in member'
+     DSN_PARENS__MSG =      'DSN has parens but no member/generation'
    LOOKS_PC__MSG =          'looked like PC, but'  -- <filename> 'looked like PC, but' <one of the following:>
-     PC_DRIVESPEC__MSG =      'PC drive specifier'  -- PC drive specifier <X> <problem>
-       LONGER_THAN_ONE__MSG =   'is longer than 1 char'
-       IS_NOT_ALPHA__MSG =      'is not alpha'
-     INVALID_PATH__MSG =      'invalid path'  -- followed by <filename>
-     INVALID_FNAME__MSG =     'invalid PC filename'  -- followed by <filename>
-     INVALID_EXT__MSG =       'invalid PC extension'  -- followed by <extension>
+     PC_DRIVESPEC__MSG =    'PC drive specifier'  -- PC drive specifier <X> <problem>
+       LONGER_THAN_ONE__MSG = 'is longer than 1 char'
+       IS_NOT_ALPHA__MSG =  'is not alpha'
+     INVALID_PATH__MSG =    'invalid path'  -- followed by <filename>
+     INVALID_FNAME__MSG =   'invalid PC filename'  -- followed by <filename>
+     INVALID_EXT__MSG =     'invalid PC extension'  -- followed by <extension>
    SAVEPATH_NULL__MSG =     'SAVEPATH is null - will use current directory.'
 ;        'Savepath attempting to use invalid' bad '- will use current directory.'
    SAVEPATH_INVALID1__MSG = 'Savepath attempting to use invalid'
@@ -889,43 +885,43 @@ compile endif
    LINES_TRUNCATED_WNG__MSG = 'One or more lines were split at column 255; file may be damaged if saved.'
    DYNASPEL_NORECALL__MSG = 'No misspelled word remembered.'
 ;                         The following two combine to form one message.
-   DYNASPEL_PROMPT1__MSG = 'Unknown word was '
-   DYNASPEL_PROMPT2__MSG = ' - press Ctrl+A for alternates.'
+   DYNASPEL_PROMPT1__MSG =  'Unknown word was '
+   DYNASPEL_PROMPT2__MSG =  ' - press Ctrl+A for alternates.'
 ;                         The following two combine to form one message.
-   PROOF_ERROR1__MSG =     'Unexpected error on line'
-   PROOF_ERROR2__MSG =     '- skipping to next line.'
+   PROOF_ERROR1__MSG =      'Unexpected error on line'
+   PROOF_ERROR2__MSG =      '- skipping to next line.'
 
    STACK_FULL__MSG =        'No room in stack.'
    STACK_EMPTY__MSG =       'Stack is empty.'
-   TAGSNAME__MSG = 'Tags file name'     -- Entry box title
-   TAGSNAME_PROMPT__MSG = 'Enter the file name for the tags file'
-   FINDTAG__MSG = 'Find Procedure'      -- Entry box title
-   FINDTAG_PROMPT__MSG = 'Enter the name of the procedure to be found.'
-   NO_TAGS__MSG = 'No tags found in tags file.'
-   LIST_TAGS__MSG = 'List tags'         -- Listbox title
-   BUILDING_LIST__MSG = 'Building list...'  -- Processing message
-   LIST__MSG = '~List...'               -- Button
-   MAKETAGS__MSG = 'Make tags file'
-   MAKETAGS_PROMPT__MSG = 'Enter one or more filenames (wildcards OK) or @lists.'
+   TAGSNAME__MSG =          'Tags file name'     -- Entry box title
+   TAGSNAME_PROMPT__MSG =   'Enter the file name for the tags file'
+   FINDTAG__MSG =           'Find Procedure'      -- Entry box title
+   FINDTAG_PROMPT__MSG =    'Enter the name of the procedure to be found.'
+   NO_TAGS__MSG =           'No tags found in tags file.'
+   LIST_TAGS__MSG =         'List tags'         -- Listbox title
+   BUILDING_LIST__MSG =     'Building list...'  -- Processing message
+   LIST__MSG =              '~List...'               -- Button
+   MAKETAGS__MSG =          'Make tags file'
+   MAKETAGS_PROMPT__MSG =   'Enter one or more filenames (wildcards OK) or @lists.'
    MAKETAGS_PROCESSING__MSG = 'MAKETAGS in process - parsing source files.'
-   MESSAGELINE_FONT__MSG = 'Messageline font changed.'
+   MESSAGELINE_FONT__MSG =  'Messageline font changed.'
    MESSAGELINE_FGCOLOR__MSG = 'Messageline foreground color changed.'
    MESSAGELINE_BGCOLOR__MSG = 'Messageline background color changed.'
-   TABGLYPH_IS__MSG = 'TABGLYPH is' -- on/off
+   TABGLYPH_IS__MSG =       'TABGLYPH is' -- on/off
 
-;  NO_TOOLBARS__MSG =     'No saved toolbars to select from.'
-;  LOAD_TOOLBAR__MSG =    'Load Toolbar'  -- Dialog box title
-;  DELETE_TOOLBAR__MSG =  'Delete Toolbar'  -- Dialog box title
-;  SELECT_TOOLBAR__MSG =  'Select a Toolbar menu set'
-   SAVEBAR__MSG =         'Save Toolbar'  -- Dialog box title
-;  SAVEBAR_PROMPT__MSG =  'Enter a name, or leave blank to save as default.'
-   SAVEBAR_PROMPT__MSG =  'Enter a name for the toolbar.'
-   SAVE__MSG =            'Save'          -- Dialog button
-   WILDCARD_WARNING__MSG = 'Filename contains wildcards.'  -- followed by ARE_YOU_SURE__MSG
+;  NO_TOOLBARS__MSG =       'No saved toolbars to select from.'
+;  LOAD_TOOLBAR__MSG =      'Load Toolbar'  -- Dialog box title
+;  DELETE_TOOLBAR__MSG =    'Delete Toolbar'  -- Dialog box title
+;  SELECT_TOOLBAR__MSG =    'Select a Toolbar menu set'
+   SAVEBAR__MSG =           'Save Toolbar'  -- Dialog box title
+;  SAVEBAR_PROMPT__MSG =    'Enter a name, or leave blank to save as default.'
+   SAVEBAR_PROMPT__MSG =    'Enter a name for the toolbar.'
+   SAVE__MSG =              'Save'          -- Dialog button
+   WILDCARD_WARNING__MSG =  'Filename contains wildcards.'  -- followed by ARE_YOU_SURE__MSG
 
 ;; ASSSIST.E
-   NOT_BALANCEABLE__MSG =  'Not a balanceable character.'
-   UNBALANCED_TOKEN__MSG = 'Unbalanced token.'
+   NOT_BALANCEABLE__MSG =   'Not a balanceable character.'
+   UNBALANCED_TOKEN__MSG =  'Unbalanced token.'
 
-   WIDE_PASTE__MSG =       'Pasted text is wider than margins.  Reflow?'
+   WIDE_PASTE__MSG =        'Pasted text is wider than margins.  Reflow?'
 
