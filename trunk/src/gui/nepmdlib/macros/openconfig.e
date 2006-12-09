@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: openconfig.e,v 1.3 2003-08-30 16:01:01 aschn Exp $
+* $Id: openconfig.e,v 1.4 2006-12-09 17:55:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -90,26 +90,26 @@ defc NepmdOpenConfig, OpenConfig =
 
  TestPath  = '\NEPMD\NepmdLib\Testcase';
  TestValue = 'This is a testvalue';
- Hnalde    = 0;
+ Handle    = 0;
 
  Handle = NepmdOpenConfig();
  parse value Handle with 'ERROR:'rc;
  if (rc > 0) then
-    sayerror 'configuration repository could not be opened, rc='rc;
+    sayerror 'Configuration repository could not be opened, rc = 'rc'.';
     return;
  endif
 
  rc = NepmdWriteConfigValue( Handle, TestPath, TestValue);
  if (rc > 0) then
-    sayerror 'config value "'TestPath'" cout not be written, rc='rc;
+    sayerror 'Config value "'TestPath'" cout not be written, rc = 'rc'.';
  else
     QueriedValue  = NepmdQueryConfigValue( Handle, TestPath);
     if (rc > 0) then
-       sayerror 'value of "'TestPath'" could not be read.';
+       sayerror 'Value of "'TestPath'" could not be read.';
     else
        rc = NepmdDeleteConfigValue( Handle, TestPath);
        if (rc > 0) then
-          sayerror 'config value  "'TestPath'" could not be deleted.';
+          sayerror 'Config value "'TestPath'" could not be deleted.';
        endif
     endif
     rc2 = NepmdCloseConfig( Handle);
@@ -146,7 +146,7 @@ compile endif
 defproc NepmdOpenConfig( ) =
 
  BufLen = 20;
- Handle = copies( atoi( 0), BufLen);
+ Handle = copies( \0, BufLen);
 
  /* call C routine */
  LibFile = helperNepmdGetlibfile();
