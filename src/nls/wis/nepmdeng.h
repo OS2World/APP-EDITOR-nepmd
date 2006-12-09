@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdeng.h,v 1.11 2006-11-05 15:46:11 aschn Exp $
+* $Id: nepmdeng.h,v 1.12 2006-12-09 18:07:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -51,13 +51,14 @@
 #define TITLE_NEPMD_TOGGLE_DEFASSOCS             "EPM - Toggle default assocs"
 #define TITLE_STANDARD_EPM                       "Standard EPM"
 
-#define TITLE_NEPMD_VIEW_NEUSR                   "Netlabs^EPM Distribution^User's Guide"
-#define TITLE_NEPMD_VIEW_NEPRG                   "Netlabs^EPM Distribution^Programming Guide"
-#define TITLE_NEPMD_VIEW_EPMUSERS                "EPM User's Guide"
-#define TITLE_NEPMD_VIEW_EPMTECH                 "EPM Technical Reference"
+#define TITLE_NEPMD_VIEW_NEUSR                   "NEPMD User's Guide"
+#define TITLE_NEPMD_VIEW_NEPRG                   "NEPMD Programming Guide"
+#define TITLE_NEPMD_VIEW_EPMUSERS                "EPMBBS User's Guide"
+#define TITLE_NEPMD_VIEW_EPMTECH                 "EPMBBS Technical Reference"
+#define TITLE_NEPMD_VIEW_EPMHELP                 "EPM Help"
 
 #define TITLE_NEPMD_RECOMP                       "Recompile EPM.E"
-#define TITLE_NEPMD_NEPMD_SAMPLES_FOLDER         "EPM Programming Samples"
+#define TITLE_NEPMD_NEPMD_SAMPLES_FOLDER         "EPMBBS Programming Samples"
 #define TITLE_NEPMD_NEPMD_VIEW_EPMTK             "Programmers Guide to the EPM Toolkit"
 #define TITLE_NEPMD_NEPMD_VIEW_EPMCM_README      "EPM C macro Readme"
 #define TITLE_NEPMD_NEPMD_VIEW_EPMRM_README      "EPM REXX macro Readme"
