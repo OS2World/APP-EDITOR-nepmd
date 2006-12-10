@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2006
 *
-* $Id: finddef.e,v 1.3 2006-11-19 22:57:18 jbs Exp $
+* $Id: finddef.e,v 1.4 2006-12-10 11:07:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -45,6 +45,7 @@ compile endif
 defproc ModeFindDef
    Mode = arg(1)
    Keyword = arg(2)
+   getfileid startfid
 
    -- First check, if a grep search string for the given Mode is defined.
    if Mode = 'E' then
@@ -77,11 +78,42 @@ defproc ModeFindDef
    elseif Mode = 'C' then
       -- Add DPATH directories, too?
       -- Add other directories?
-      FileMask = directory() || '\*.c'
+      --FileMask = strip( directory(), 't', '\')'\*.c'
+
+      fRecursive = (GetGrepVersion() >= 2.5)
+      if fRecursive then
+         -- Parent dir of current file and recursive
+         next = NepmdQueryFullName( .filename'\..\..')  -- needs recursive option
+         parse value next with 'ERROR:'rcx
+         if rcx <> '' then
+            return -3
+         endif
+         --FileMask = strip( next, 't', '\')'\*.c'
+         -- GREP bug: -r stops when file mask (*.c) doesn't match a dir name.
+         -- Therefore todo: add recursive feature here with NepmdGetNextDir.
+         FileMask = strip( next, 't', '\')'\*'
+         GrepOpt = '-EnHr'
+      else
+         -- Dir of current file
+         next = NepmdQueryFullName( .filename'\..')
+         parse value next with 'ERROR:'rcx
+         if rcx <> '' then
+            return -3
+         endif
+         FileMask = strip( next, 't', '\')'\*.c'
+         GrepOpt = '-EnH'
+      endif
       -- The following search string works only if the entire parameter list
       -- and the return type is on the same line as the function name.
-      search = '"^([ \t]*[[:alpha:]_]+[[:alnum:]_]*)*[* \t]*' || Keyword || '[ \t]*\((\n|.*)\)[ \t]*\{?[ \t]*$"'
-      GrepArgs = '-EnH' search FileMask
+      --search = '"^([ \t]*[[:alpha:]_]+[[:alnum:]_]*)*[* \t]*'Keyword'[ \t]*\((\n|.*)\)[ \t]*\{?[ \t]*$"'
+      -- The following
+      --    o  needs only the opening parenthesis
+      --    o  skips expressions with a trailing comma after the closing parenthesis
+      --    o  allows static and extern keywords
+      --    o  allows #define definitions
+      --    o  allows "* function" definitions
+      search = '"^([ \t]*(((static|extern)[ \t]+)?[[:alpha:]_]+[[:alnum:]_]*)|#define)+[\* \t]+'Keyword'[ \t]*\(.*(\)[ \t]*~,)?$"'
+      GrepArgs = GrepOpt search FileMask
 
    --elseif Mode = '...' then
 
@@ -90,20 +122,24 @@ defproc ModeFindDef
       -- mode-specific FileMask.
 
    else         -- Modes not yet supported by FINDDEF
-      return '-1,dummy'
+      return '-1,dummy'  -- -1 means: mode not supported
    endif
 
    fVerbose = 0
    fGnu = 1  -- only GNU grep is supported
-   rc = CallGrep( fGnu, GrepArgs, fVerbose)  -- stops on error
+   greprc = CallGrep( fGnu, GrepArgs, fVerbose)  -- gives error msg, if any
+   if greprc = 2 then
+      greprc = 0
+   endif
 
    Delim = \1
    Filelist = ''
    nFiles = 0
    fTruncated = 0
+   fTempfileCreated = 0
    getfileid grepfid
-   sayerror 'grepfid.last: 'grepfid.last
-   if grepfid.last > 1 then  -- found something?
+   --sayerror 'grepfid.last: 'grepfid.last
+   if greprc = 0 & grepfid.last > 1 then  -- found something?
 
       -- Create a temp. file
       'xcom e /c /q .tempfile'
@@ -111,6 +147,7 @@ defproc ModeFindDef
          sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
          return
       endif
+      fTempfileCreated = 1
       getfileid tempfid
       .autosave = 0
       browse_mode = browse()  -- query current state
@@ -127,13 +164,14 @@ defproc ModeFindDef
          activatefile tempfid
          p1 = pos( ':', Line, 3)
          p2 = pos( ':', Line, p1 + 1)
-         if p1 = 0 | p2 = 0 then
-            leave
+         p3 = pos( 'grep:', Line, p1 + 1)  -- ignore grep error lines, e.g. for dirs
+         if p1 = 0 | p3 = 1 then
+            iterate
          endif
-         FileName = leftstr( Line, p1 - 1)
+         FileName = translate( leftstr( Line, p1 - 1), '\', '/')
          LineNum = substr( Line, p1 + 1, p2 - p1 - 1)
          if not IsNum( LineNum) then
-            leave
+            iterate
          endif
          next = FileName '('LineNum')'
 
@@ -163,11 +201,19 @@ defproc ModeFindDef
       -- Add ! as truncated mark
       nFiles = '!'nFiles
    endif
+   if greprc = 1 | greprc = 2 then
+      nFiles = 0  -- means: not found or other error
+   elseif greprc > 1 then
+      nFiles = -2  -- means: Grep error
+   endif
 
    activatefile grepfid
    'quit'                -- quit the grep window
-   if nFiles > 0 then
+   if fTempfileCreated then
       activatefile tempfid
+      if nFiles < 1 then
+         'xcom quit'
+      endif
    endif
 
    return nFiles','FileList
@@ -196,7 +242,13 @@ defc FindDef
    Keyword = strip( Keyword)
    Mode = upcase( strip( Mode))
    if Mode = '' then
-      Mode = GetMode()
+      lp = lastpos( '.', .filename)
+      Ext = substr( upcase( .filename), lp + 1)
+      if Ext = 'ERX' then
+         Mode = 'E'
+      else
+         Mode = GetMode()
+      endif
    endif
 
    if Keyword = '' then
@@ -216,7 +268,7 @@ defc FindDef
    endif
 
    rcx = GetGrepVersion( 'INIT')
-   if rcx = 2 then
+   if rcx = -1 then
       sayerror 'Error: Grep not found in PATH.'
       return
    elseif rcx = 0 then
@@ -228,7 +280,6 @@ defc FindDef
    -- ModeFindDef creates a temp. file, that is read by
    -- Listbox_Buffer_From_File
    next = ModeFindDef( Mode, Keyword)
-   sayerror 'next: 'next
    parse value next with nFiles ',' FileList
    fTruncated = 0
    if leftstr( nFiles, 1) = '!' then
@@ -237,10 +288,15 @@ defc FindDef
    endif
 
    if nFiles < 1 then
-      if nFiles = 0 | length( FileList) < 2 then
+      if nFiles = -2 then
+         -- -2 means: error from Grep,
+         --           message was already given by redirect_grep
+      elseif nFiles = 0 | length( FileList) < 2 then
          sayerror '"'Keyword'" not found in source files. Used mode: 'Mode'.'
-      else
+      elseif nFiles = -1 then
          sayerror 'Mode "'Mode'" is not yet supported by FINDDEF.'
+      else
+          sayerror 'Error: ModeFindDef( 'Mode', 'Keyword') returned rc = 'rc'.'
       endif
       return
    endif
