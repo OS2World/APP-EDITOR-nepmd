@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.48 2006-06-18 20:58:02 aschn Exp $
+* $Id: main.e,v 1.49 2006-12-10 09:55:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -131,7 +131,9 @@ compile endif
       -- REXX profile is not searched anymore. It must be placed in
       -- %NEPMD_USERDIR%\bin with the name PROFILE.ERX now.
       Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
-      if exist(Profile) then
+      next = NepmdQueryPathInfo( Profile, 'SIZE')
+      parse value next with 'ERROR:'rcx
+      if rcx = '' & next > 0 then
          'rx' Profile EpmArgs
       endif
    endif
@@ -232,6 +234,8 @@ defc main2
    Key = '\NEPMD\User\JustInstalled'
    JustInstalled = QueryProfile( nepmd_hini, App, Key)
    if JustInstalled = 1 then
+      -- Remove outdated entries
+      'AtPostStartup RecompileNew RESET'
       -- Link JustInst.ex if present
       display -2
       link 'justinst'
@@ -247,7 +251,7 @@ defc main2
    endif
 
 compile if not SHOW_WINDOW_EARLY
-;  Otinally show menu and window later --------------------------------------
+;  Optinally show menu and window later -------------------------------------
    call showmenu_activemenu()  -- show the EPM menu
    -- see also: STDCNF.E for menu
    call showwindow('ON')
