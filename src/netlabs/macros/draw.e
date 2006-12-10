@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: draw.e,v 1.5 2005-05-16 20:53:02 aschn Exp $
+* $Id: draw.e,v 1.6 2006-12-10 11:33:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -49,6 +49,9 @@ memory.
 
 compile if not defined(SMALL)  -- If being externally compiled...
    define INCLUDING_FILE = 'DRAW.E'
+
+   include 'stdconst.e'
+
 const
    tryinclude 'MYCNF.E'
  compile if not defined(SITE_CONFIG)
@@ -57,28 +60,27 @@ const
  compile if SITE_CONFIG
    tryinclude SITE_CONFIG
  compile endif
+
 const
- compile if not defined(WANT_DBCS_SUPPORT)
-   WANT_DBCS_SUPPORT = 0
- compile endif
  compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
  compile endif
    include NLS_LANGUAGE'.e'
-;include 'stdconst.e'     -- Don't waste time including just to define MAXCOL...
+
    EA_comment 'This defines the DRAW command; it can be linked or executed directly.'
 compile endif  -- not defined(SMALL)
 
-compile if not defined(MAXCOL)  -- Predefined constant starting in 5.60
-   const MAXCOL = 255           -- If it's *not* predefined, we know it's 255.
+const
+compile if not defined(WANT_DBCS_SUPPORT)
+   WANT_DBCS_SUPPORT = 1
 compile endif
 
-
+; ---------------------------------------------------------------------------
 defmain     --  We want to start executing as soon as we're linked.
    'draw' arg(1)
 
-
-defc draw
+; ---------------------------------------------------------------------------
+defc Draw
    universal boxtab1,boxtab2,boxtab3,boxtab4
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
 compile if WANT_DBCS_SUPPORT
@@ -102,6 +104,8 @@ compile endif
 compile if WANT_DBCS_SUPPORT
       endif
 compile endif
+      -- Open commandline to typein the missing arg and call Draw again
+      'commandline draw '
       return
    endif
 
@@ -146,6 +150,7 @@ compile endif
    cursor_mode = internalkeys istate
    'togglecontrol 26 0'  -- don't use internal key definitions
 
+; ---------------------------------------------------------------------------
 -- Make it a BASE CLEAR keyset so the only keys that do anything are
 -- the ones we explicitly define.  Without the CLEAR, the standard ASCII keys
 -- like 'a'-'z' would be automatically included.
@@ -221,6 +226,7 @@ def otherkeys, F3, Esc =
 
 -- End of EPM mods. ----------------------------------------------------------
 
+; ---------------------------------------------------------------------------
 defproc get_char
    universal linepos,colpos,target
    colpos=.col
@@ -228,6 +234,7 @@ defproc get_char
    getline target
    return substr(target,.col,1)
 
+; ---------------------------------------------------------------------------
 defproc draw_up      /* draw logic for the up key */
    universal last,l,r,u,d,boxtab1,linepos,colpos
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
@@ -268,7 +275,7 @@ defproc draw_up      /* draw logic for the up key */
       endif
    last='u'
 
-
+; ---------------------------------------------------------------------------
 defproc draw_down /* Draw logic for the Down key */
    universal last,l,r,u,d,boxtab2,linepos,colpos
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
@@ -309,7 +316,7 @@ defproc draw_down /* Draw logic for the Down key */
       endif
    last='d'
 
-
+; ---------------------------------------------------------------------------
 defproc left_right   /* Check character left and right of cursor position */
    universal last,l,r,boxtab3,boxtab4,lpos,rpos,target,colpos
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
@@ -321,7 +328,7 @@ defproc left_right   /* Check character left and right of cursor position */
    l=not verify(l,boxtab4) /*if verify(l,boxtab4)==0 then l=1 else l=0 endif*/
    r=not verify(r,boxtab3) /*if verify(r,boxtab3)==0 then r=1 else r=0 endif*/
 
-
+; ---------------------------------------------------------------------------
 defproc draw_left    /* Draw logic for the Left key */
    universal last,u,d,boxtab3
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
@@ -368,7 +375,7 @@ compile endif
    endif
    last='l'
 
-
+; ---------------------------------------------------------------------------
 defproc draw_right   /* Draw logic for the Right key */
    universal last,u,d,boxtab4,colpos
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
@@ -409,7 +416,7 @@ defproc draw_right   /* Draw logic for the Right key */
    last='r'
    if colpos = MAXCOL then left endif
 
-
+; ---------------------------------------------------------------------------
 defproc up_down   /* Check character above and below cursor position */
    universal u,d,boxtab1,boxtab2,linepos,colpos,dpos,upos,target
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
