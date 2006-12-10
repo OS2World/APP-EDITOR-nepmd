@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.20 2006-10-30 00:10:31 aschn Exp $
+* $Id: file.e,v 1.21 2006-12-10 09:52:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,9 +23,62 @@
 ; Moved from STDCMDS.E, STDPROCS.E.
 ; See also: SLNOHOST.E/SAVELOAD.E/E3EMUL.E.
 
-; Contains defmodify. Therefore it should not be linked, because any
-; occurance of defmodify in a linked module would replace all other
-; so-far-defined defmodify event defs.
+; ---------------------------------------------------------------------------
+
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
+define INCLUDING_FILE = 'FILE.E'
+
+const
+   tryinclude 'MYCNF.E'        -- the user's configuration customizations.
+
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
+ compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+const
+ compile if not defined(NLS_LANGUAGE)
+   NLS_LANGUAGE = 'ENGLISH'
+ compile endif
+   include NLS_LANGUAGE'.e'
+   include 'stdconst.e'
+
+   EA_comment 'This defines macros for file operations.'
+compile endif
+
+const
+-- jbl 1/89 new feature.  Set this to some non-blank directory name if you want
+-- a backup copy of your file upon saving.  E will copy the previous file
+-- to this directory before writing the new one.  Typical values are:
+--    ''             empty string to disable this feature (as in old E)
+--    '.\'           for current directory (don't forget the last backslash)
+--    'C:\OLDFILES\' to put them all in one place
+compile if not defined(BACKUP_PATH)
+; #### Todo: replace ########################################################
+   BACKUP_PATH = ''
+compile endif
+
+-- Include support for calling user exits in DEFMAIN, SAVE, NAME, and QUIT.
+-- (EPM 5.51+ only; requires isadefproc() ).
+compile if not defined(SUPPORT_USER_EXITS)
+   --SUPPORT_USER_EXITS = 0  -- changed by aschn
+; #### Todo: obsolete since hooks exist #####################################
+   SUPPORT_USER_EXITS = 1
+compile endif
+
+compile if not defined(INCLUDE_BMS_SUPPORT)
+   INCLUDE_BMS_SUPPORT = 0
+compile endif
+
+-- Lets you quit temporary files regardless of the state of the .modify bit.
+-- Temporary files are assumed to be any file where the first character of the
+-- .filename is a period.  If set to 1, you won't get the "Throw away changes?"
+-- prompt when trying to quit one of these files.
+compile if not defined(TRASH_TEMP_FILES)
+   TRASH_TEMP_FILES = 0
+compile endif
 
 ; ---------------------------------------------------------------------------
 ; Called after MB2 dclick on titlebar and Enter.
@@ -167,6 +220,8 @@ defc s, save=
       endif
    endif
 
+   refresh
+
    -- Set name if not already or resolve it if specified
    if Name = '' then
       Name = .filename
@@ -246,9 +301,7 @@ defc s, save=
    -- Get mode before saving
    OldMode = GetMode()
 
-   -- Call presave_exit hooks
-   'HookExecute save'
-   'HookExecute saveonce'
+   -- Execute pre-save hooks
 compile if SUPPORT_USER_EXITS
    if isadefproc('presave_exit') then
       call presave_exit( Name, options, save_as)
@@ -259,6 +312,8 @@ compile if INCLUDE_BMS_SUPPORT
       call BMS_presave_exit( Name, options, save_as)
    endif
 compile endif
+   'HookExecute save'
+   'HookExecuteOnce saveonce'
 
    -- Handle EAs
    if .levelofattributesupport bitand 8 then
@@ -287,6 +342,7 @@ compile endif
    -- Do the save
    display -2  -- suppress non-critical errors
    src = savefile( Name, Options)
+   rc = src
    display 2
 
    -- Save failed: Handle filenames on FAT drives or give a better error msg.
@@ -360,6 +416,7 @@ compile if INCLUDE_BMS_SUPPORT
    endif
 compile endif
 
+   -- Give success or error message
    if not src & not isoption( Options, 'q') then
       -- Give success msg
       -- Don't overwrite message from FatSave
@@ -395,6 +452,7 @@ compile endif
    endif
 
    -- On successs: refresh InfoLines, re-determine mode and add to Save history
+   rc = src
    if src = 0 then
       if fatsrc <> 0 then  -- this is not required if file was reloaded by FatSave
          'ResetDateTimeModified'
@@ -408,13 +466,25 @@ compile endif
          --    -  the file was saved.
          -- The file *was* saved but the MessageBox says that there has
          -- occured an error saving the file.
-         'postme ResetMode 'OldMode
+         'ResetMode 'OldMode
       endif
-
       'postme AddToHistory SAVE' .filename
    endif
+   'HookExecute aftersave'
+   'HookExecuteOnce aftersaveonce'
+   -- A refresh is required here. Otherwise an ETK MessageBox pops up
+   -- with the message 'Error on file saving'. But the file was saved.
+   -- This can be reproduced on closing of the EPM window while an unsaved
+   -- file (not the current) is in the ring. Then a first ETK MessageBox
+   -- lets one save the unsaved file, but the 2nd ETK MessageBox comes
+   -- then with the wrong error message.
+   -- The refresh statement doesn't suffice. The refresh command does,
+   -- while the postme'd version doesn't.
+   'refresh'
+
    -- A defc must use "return myrc" or use "rc = myrc" to set the
    -- global var rc. When "return" is used only, rc would be set to empty.
+   rc = src
    return src
 
 ; ---------------------------------------------------------------------------
@@ -509,13 +579,14 @@ defproc SaveFat( name, options)
    else
       base_ext = base
    endif
-   -- convert invalid FAT chars
-   invalidchars = '.+,"/\[]:|<>=;'
-   replacechars = '_!!!!!!!!!!!!!'
+   -- convert invalid FAT chars and space
+   invalidchars = '.+,"/\[]:|<>=;*?'
+   tmp = \0\1\2\3\4\5\6\7\8\9\10\11\12\13\14\15
+   tmp = tmp\16\17\18\19\20\21\22\23\24\25\26\27\28\29\30\31\32
+   invalidchars = invalidchars''tmp
+   replacechars = copies( '_', length( invalidchars))
    base_ext = translate( base_ext, replacechars, invalidchars)
    shortname = pathbsl''base_ext
-   -- convert spaces, also in path
-   shortname = translate( shortname, '_', ' ')
    --call NepmdPmPrintf( 'defc save: src = 'src', shortname = |'shortname'|')
    -- try again to write the file                       <----------------------- doesn't check if file already exists
    src = savefile( shortname, options)
@@ -625,7 +696,7 @@ compile endif
 
    -- Execute user macros
    'HookExecute quit'
-   'HookExecute quitonce'
+   'HookExecuteOnce quitonce'
 compile if SUPPORT_USER_EXITS
    if isadefproc('quit_exit') then
       call quit_exit(.filename)
@@ -1578,6 +1649,7 @@ defproc QueryFileSys(Drive)
       return szFSDName
    endif
 
+; ---------------------------------------------------------------------------
 defproc MakeDirectory(dirname)
    dirname = dirname || \0
    peaop2 = copies(\0, 4)
