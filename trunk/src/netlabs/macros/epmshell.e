@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.32 2006-11-12 13:13:41 jbs Exp $
+* $Id: epmshell.e,v 1.33 2006-12-10 10:23:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,15 +19,55 @@
 *
 ****************************************************************************/
 
-; Contains defmodify. Therefore it should not be linked, because any
-; occurance of defmodify in a linked module would replace all other
-; so-far-defined defmodify event defs.
-
 ; Todo:
 ; defc Shell
 ;    Add an optional param <workdir> before <command>. Workdir must be fully
 ;    qualified or start with . or .. or \ to get recognized. Enable spaces
 ;    in workdir.
+
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
+define INCLUDING_FILE = 'FINDDEF.E'
+
+const
+   tryinclude 'MYCNF.E'        -- the user's configuration customizations.
+
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
+ compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+include 'stdconst.e'
+EA_comment 'This defines the EPM shell window.'
+
+const
+ compile if not defined(NLS_LANGUAGE)
+   NLS_LANGUAGE = 'ENGLISH'
+ compile endif
+   include NLS_LANGUAGE'.e'
+
+compile endif
+
+const
+-- Specify a string to be written whenever a new EPM command shell window
+-- is opened.  Normally a prompt command, but can be anything.  If the
+-- string is one of the ones shown below, then the Enter key can be used
+-- to do a write-to-shell of the text following the prompt, and a listbox
+-- can be generated showing all the commands which were entered in the
+-- current shell window.  If a different prompt is used, EPM won't know
+-- how to parse the line to distinguish between the prompt and the command
+-- that follows, so those features will be omitted.
+compile if not defined(EPM_SHELL_PROMPT)
+   EPM_SHELL_PROMPT = '@prompt epm: $p $g '
+;  EPM_SHELL_PROMPT = '@prompt [epm: $p ] '  -- Also supported
+compile endif
+compile if not defined( TRASH_ALL_SHELL_FILES)
+   TRASH_ALL_SHELL_FILES = 0
+compile endif
+compile if not defined( TRASH_TEMP_FILES)
+   TRASH_TEMP_FILES = 0
+compile endif
 
 ; ---------------------------------------------------------------------------
 ; Some ShellKram macros added. See SHELLKEYS.E for key definitions.
@@ -131,11 +171,6 @@ compile endif
 ; Syntax: shell [new] [<command>]
 ; shell_index is the number of the last created shell, <shellnum>.
 ; The array var 'Shell_f'<shellnum> holds the fileid, 'Shell_h'<shellnum> the handle.
-;
-; ECHO must be ON. That is the default setting in CMD.EXE, but not in 4OS2.EXE.
-; Otherwise no prompt is inserted after the command execution and further commands
-; won't work (CMD.EXE) or the command is deleted (4OS2.EXE).
-; Therefore ECHO ON must be executed _after_ every call of 4OS2.EXE.
 defc Shell
    universal shell_index
    universal ring_enabled
@@ -358,8 +393,9 @@ compile endif
 -------------------------------------------------------------NowCanWriteShell------------
 ; Shell object sends this command to inform the editor that there is
 ; room for additional data to be written.
+; Still used?
 defc NowCanWriteShell
-   sayerror SHELL_OBJECT__MSG arg(1) SHELL_READY__MSG -- Use Shell_Write with argumentstring'
+   sayerror SHELL_OBJECT__MSG arg(1) SHELL_READY__MSG -- Use Shell_Write with argumentstring
 
 -------------------------------------------------------------NowCanReadShell-------------
 ; Shell object sends this command to inform the editor that there is
@@ -466,6 +502,11 @@ compile endif -- EPM_SHELL_PROMPT
 ; Returns 0 on success; 1 when not on a EPM prompt line.
 ; If 1 is returned, then ShellEnterWriteToApp() should be called by the
 ; Enter key def.
+;
+; ECHO must be ON. That is the default setting in CMD.EXE, but not in 4OS2.EXE.
+; Otherwise no prompt is inserted after the command execution and further commands
+; won't work (CMD.EXE) or the command is deleted (4OS2.EXE).
+; Therefore ECHO ON must be executed _after_ every call of 4OS2.EXE.
 defproc ShellEnterWrite
    ret = 1
    getfileid ShellFid
@@ -694,7 +735,7 @@ defc shell_break
       refresh
       if MBID_OK <> winmessagebox( 'Error sending Break signal',  -- title
                                    'The Break signal, sent to the shell object, was'\n ||
-                                   'not successfully, at least not immediately.'\n\n   ||
+                                   'not successful, at least not immediately.'\n\n     ||
                                    'Do you want to restart the shell object?'\n        ||
                                    '(The path will be restored, but any special'\n     ||
                                    'environment will be lost.)',
@@ -757,7 +798,7 @@ compile endif
    endif
 
 -------------------------------------------------------------SUE_break-------------------
-defproc SUE_break(shell_handle)
+defproc SUE_break( shell_handle)
    return dynalink32( ERES_DLL,
                       'SUE_break',
                       shell_handle)
@@ -795,8 +836,8 @@ defmodify
          endif
       endif
       -- Avoid the dialog on quitting only for newly created shell windows,
-      -- not for reactivated ones
-      if leftstr( .filename, 1) = '.' then
+      -- not for reactivated ones, optionally (via consts) for these as well
+      if leftstr( .filename, 1) = '.' | TRASH_ALL_SHELL_FILES | TRASH_TEMP_FILES then
          .modify = 0
          'ResetDateTimeModified'
          'refreshinfoline MODIFIED'
@@ -918,58 +959,58 @@ defc ShellFncInit
    Text = strip( Text, 'L')
 
    -- Todo:
-   -- Find expression starting with ':\' or '\\' (FilePieth may be part of a parameter,
+   -- Find expression starting with ':\' or '\\' (FilePart may be part of a parameter,
    -- e.g. -dd:\os2\apps or -d:d:\os2\apps)
 
-   CmdPiece  = ''
-   CmdWord   = ''
-   FilePiece = ''
-   -- Parse into CmdPiece and FilePiece
+   CmdPart  = ''
+   CmdWord  = ''
+   FilePart = ''
+   -- Parse into CmdPart and FilePart
 ; Todo:
 ; Make options with filenames, not followed by a space, work
-; app.exe -d*  -> CmdPiece = 'app.exe -d', FilePiece = '*'
+; app.exe -d*  -> CmdPart = 'app.exe -d', FilePart = '*'
    if rightstr( Text, 1) == ' ' then
-      -- No FilePiece
+      -- No FilePart
       if words( Text) > 0 then
-         CmdWord   = word( Text, 1)
-         CmdPiece  = Text
+         CmdWord = word( Text, 1)
+         CmdPart = Text
       endif
    elseif rightstr( Text, 1) = '"' then
-      -- FilePiece is last word in "..."
+      -- FilePart is last word in "..."
       next = leftstr( Text, length( Text) - 1)  -- strip last "
       lp = lastpos( '"', next)
       --dprintf( 'TabComplete', 'Text = ['Text'], lp = 'lp)
-      FilePiece = substr( Text, lp + 1, length( Text) - lp - 1)
+      FilePart = substr( Text, lp + 1, length( Text) - lp - 1)
       if lp > 1 then
-         CmdPiece = leftstr( Text, lp - 1)
-         if pos( ' ', CmdPiece) then
+         CmdPart = leftstr( Text, lp - 1)
+         if pos( ' ', CmdPart) then
             CmdWord = word( Text, 1)
          endif
       endif
    else
-      -- FilePiece is last word
+      -- FilePart is last word
       if words( Text) = 1 then
          -- No CmdWord
-         FilePiece = Text
+         FilePart = Text
       elseif words( Text) > 1 then
          CmdWord   = word( Text, 1)
-         FilePiece = lastword( Text)
+         FilePart = lastword( Text)
          lp = wordindex( Text, words( Text))
-         CmdPiece  = leftstr( Text, lp - 1)
+         CmdPart  = leftstr( Text, lp - 1)
       endif
    endif
-   --dprintf( 'TabComplete', 'CmdWord = ['CmdWord'], CmdPiece = ['CmdPiece'], FilePiece = ['FilePiece']')
+   --dprintf( 'TabComplete', 'CmdWord = ['CmdWord'], CmdPart = ['CmdPart'], FilePart = ['FilePart']')
 
    -- Construct fully qualified dirname to avoid change of directories, that
    -- doesn't work for UNC names.
-   FileMask = FilePiece
+   FileMask = FilePart
    PrepMask = ''
-   if not (substr( FilePiece, 2, 2) = ':\' | leftstr( FilePiece, 2) = '\\') then
-      if leftstr( FilePiece, 1) = '\' then
+   if not (substr( FilePart, 2, 2) = ':\' | leftstr( FilePart, 2) = '\\') then
+      if leftstr( FilePart, 1) = '\' then
          -- Prepend drive
          if substr( ShellDir, 2, 2) = ':\' then
             PrepMask = leftstr( ShellDir, 2)
-            FileMask = PrepMask''FilePiece
+            FileMask = PrepMask''FilePart
 ;          -- Prepend host
 ;          elseif leftstr( ShellDir, 2) = '\\' then  -- not possible
 ;             parse value ShellDir with '\\'Server'\'Resource
@@ -977,12 +1018,12 @@ defc ShellFncInit
 ;                parse value Resource with Resource'\'rest
 ;             endif
 ;             PrepMask = '\\'Server'\'Resource
-;             FileMask = PrepMask''FilePiece
+;             FileMask = PrepMask''FilePart
          endif
       else
          -- Prepend ShellDir
          PrepMask = strip( ShellDir, 't', '\')'\'
-         FileMask = PrepMask''FilePiece
+         FileMask = PrepMask''FilePart
       endif
    endif
 
@@ -994,7 +1035,7 @@ defc ShellFncInit
    endif
 
    -- The here fully qualified filemask must be changed to a relative path later,
-   -- if FilePiece was relative before.
+   -- if FilePart was relative before.
 
    -- Rebuild array
    fAppendExeMask = 0
@@ -1101,7 +1142,7 @@ defc ShellFncInit
          endif
       endif
       if Name > '' then
-         -- Remove maybe previously added PrepMask if FilePiece was relative
+         -- Remove maybe previously added PrepMask if FilePart was relative
          l = length( PrepMask)
          if l > 0 then
             if leftstr( upcase(Name), l) == upcase(PrepMask) then
@@ -1120,11 +1161,11 @@ defc ShellFncInit
       call SetAVar( 'FncFound.last', '0')  -- use 0 as initial number
       sayerror c 'dirs/files found.'
    else
-      sayerror 'No match for "'FilePiece'".'
+      sayerror 'No match for "'FilePart'".'
    endif
    call SetAVar( 'FncShellNum', ShellNum)
    call SetAVar( 'FncPrompt', Prompt)
-   call SetAVar( 'FncCmdPiece', CmdPiece)
+   call SetAVar( 'FncCmdPart', CmdPart)
 
 ; ---------------------------------------------------------------------------
 ; Tab must not be defined as accelerator key, because otherwise
@@ -1148,10 +1189,10 @@ defc ShellFncComplete
       return
    endif
    -- Query array
-   Prompt   = GetAVar( 'FncPrompt')
-   CmdPiece = GetAVar( 'FncCmdPiece')
-   Name     = ''
-   cLast    = GetAVar( 'FncFound.last')
+   Prompt  = GetAVar( 'FncPrompt')
+   CmdPart = GetAVar( 'FncCmdPart')
+   Name    = ''
+   cLast   = GetAVar( 'FncFound.last')
    if cLast > '' then
       cTotal = GetAVar( 'FncFound.0')
       --sayerror cTotal 'files in array.'
@@ -1178,8 +1219,8 @@ defc ShellFncComplete
       endif
 ; Todo:
 ; Make -dName possible
-      if CmdPiece > '' then
-         NewLine = Prompt strip( CmdPiece) Name
+      if CmdPart > '' then
+         NewLine = Prompt strip( CmdPart) Name
       else
          NewLine = Prompt Name
       endif
@@ -1240,18 +1281,17 @@ defc Shell_History
          display -2
          getsearch oldsearch
          0
-
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
          'xcom l /^epm\: .*>:o./x'
-  compile else  -- else EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
+compile else  -- else EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
          'xcom l /^\[epm\: .*\]:o./x'
-  compile endif -- EPM_SHELL_PROMPT
+compile endif -- EPM_SHELL_PROMPT
          do while rc = 0
-  compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
             parse value textline(.line) with '>' cmd
-  compile else
+compile else
             parse value textline(.line) with ']' cmd
-  compile endif -- EPM_SHELL_PROMPT
+compile endif -- EPM_SHELL_PROMPT
            insertline strip( cmd, 'L'), lb_fid.last+1, lb_fid
            repeatfind
          enddo
@@ -1279,11 +1319,11 @@ defc Shell_History
          if Button = \2 then -- 'Edit' selected
             Shell_lastwrite = Text
             parse value entrybox( shell_title,                  -- Title,
-       compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
+compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]'
                                   '/'OK__MSG'/'LIST__MSG'/'Cancel__MSG'/',  -- Buttons
-       compile else
+compile else
                                   '/'OK__MSG'/'Cancel__MSG'/',  -- Buttons
-       compile endif
+compile endif
                                   Shell_lastwrite,              -- Entrytext
                                   '', 254,                      -- cols, maxchars
                                   atoi(1) || atoi(0000) || gethwndc(APP_HANDLE) ||
@@ -1301,7 +1341,7 @@ defc Shell_History
       writebuf = Text\13\10
       retval   = SUE_write( ShellHandle, writebuf, bytesmoved);
       if retval or bytesmoved <> length(writebuf) then
-         sayerror 'write.retval='retval'  byteswritten=' bytesmoved 'of' length(writebuf)
+         sayerror 'Shell_History: write.retval = 'retval', byteswritten = 'bytesmoved' of 'length( writebuf)
       endif
    endif
 
@@ -1333,7 +1373,7 @@ defc Shell_Input
       writebuf = Text\13\10  -- input text + CRLF
       retval   = SUE_write( ShellHandle, writebuf, bytesmoved);
       if retval or bytesmoved <> length(writebuf) then
-         sayerror 'Shell_Input: write.retval='retval', byteswritten=' bytesmoved 'of' length(writebuf)
+         sayerror 'Shell_Input: write.retval = 'retval', byteswritten = 'bytesmoved' of 'length(writebuf)
       endif
    endif
 
