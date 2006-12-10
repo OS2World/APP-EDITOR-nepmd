@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.42 2006-11-12 13:13:39 jbs Exp $
+* $Id: edit.e,v 1.43 2006-12-10 08:48:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -154,8 +154,15 @@ compile endif
 const
 compile if not defined( URL_LOAD_TEMPLATE)
    -- Command to execute for URL filespecs (that contain "://")
-   -- %u = URL spec, %t = tempfile, %o = load options
-   URL_LOAD_TEMPLATE = 'os2 /c wget "%u" -O %t^&^&start epm /r %o %t'
+   -- %u = URL spec
+   -- %t = tempfile      (downloaded file)
+   -- %o = load options  (if submitted as 2nd param for LoadUrl)
+   -- %l = logfile       (only useful when quietshell is used to see an error)
+
+;   URL_LOAD_TEMPLATE = 'os2 /c wget "%u" -O %t^&^&start epm /r %o %t'
+   URL_LOAD_TEMPLATE = 'os2 /k wget "%u" -O %t^&^&start epm /r %o %t^&^&exit'
+;   URL_LOAD_TEMPLATE = 'mc #qs wget "%u" -O %t 1>%l 2>&1 #e %o %l %t'
+;   URL_LOAD_TEMPLATE = 'shell wget "%u" -O %t&&start epm /r %o %t'
    --URL_LOAD_TEMPLATE = 'start epm ''shell wget "%u" -O %t&&start epm /r %o %t'''
    --URL_LOAD_TEMPLATE = 'o ''shell wget "%u" -O %t&&start epm /r %o %t'''
 compile endif
@@ -188,8 +195,12 @@ defproc LoadUrl( Spec, Options)
       endif
    endif
    TmpFile = strip( Tmp, 'T', '\')'\'Name
+   LogFile = strip( Tmp, 'T', '\')'\download.log'
    if exist( TmpFile) then
       call erasetemp( TmpFile)
+   endif
+   if exist( LogFile) then
+      call erasetemp( LogFile)
    endif
    sayerror 'Downloading 'Spec
 
@@ -211,6 +222,9 @@ defproc LoadUrl( Spec, Options)
          rest = substr( rest, 2)
       elseif ch = 'O' then
          Cmd = Cmd''next''Options
+         rest = substr( rest, 2)
+      elseif ch = 'L' then
+         Cmd = Cmd''next''LogFile
          rest = substr( rest, 2)
       endif
    enddo
@@ -274,20 +288,38 @@ compile endif
 ; ---------------------------------------------------------------------------
 ; Experimental codepage support.
 ; The .codepage field var exists, but is not yet used.
-; Drawback: deletes every EA.
 defproc PreloadProcessCodepage( Filename)
    rc = 0
+   CurCodepage = 'cp850'
    Codepage = NepmdQueryStringEa( Filename, 'EPM.CODEPAGE')
    parse value Codepage with 'ERROR:'rc
    if rc = '' then
+      rc = 0
       Codepage = upcase(Codepage)
       if Codepage = 'CP1004' then
          Codepage = 'latin-1'
       endif
+
       -- Note: GNU Recode deletes all EAs
-      quietshell 'recode 'Codepage':cp850 'Filename
+      lp = lastpos( '.', Filename)
+      if lp > 1 then
+         EaFile = leftstr( Filename, lp)'ea'
+      else
+         EaFile = Filename'.ea'
+      endif
+      StripEaCmd = 'eautil' Filename EaFile '/s'
+      JoinEaCmd  = 'eautil' Filename EaFile '/j /m'
+      RecodeCmd  = 'recode 'Codepage':'CurCodepage Filename
+
+      -- Executing all in one cmd doesn't work
+      --Cmd = StripEaCmd'&'RecodeCmd'&'JoinEaCmd
+      --quietshell Cmd
+
+      quietshell StripEaCmd
+      quietshell RecodeCmd
+      quietshell JoinEaCmd
       -- Delete EA, because it will not be reset on save yet
-      --call NepmdDeleteStringEa( Filename, 'EPM.CODEPAGE')
+      call NepmdDeleteStringEa( Filename, 'EPM.CODEPAGE')
    endif
    return rc
 
@@ -383,7 +415,7 @@ compile endif
    do while rest <> ''
       rest = strip( rest, 'L')
       -- Remove leading ',' from rest
-      -- A ',' separates multiple <filespec> '<command>' segments.
+      -- A ',' separates multiple <FileSpec> '<command>' segments.
       if substr( rest, 1, 1) = ',' then
          rest = strip( substr( rest, 2), 'L')
       endif
@@ -391,7 +423,7 @@ compile endif
       ch = substr( rest, 1, 1)
 
 compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') & not SMALL
- compile if MVS and not HOST_LT_REQUIRED  -- (MVS filespecs can start with '.)
+ compile if MVS and not HOST_LT_REQUIRED  -- (MVS FileSpecs can start with '.)
       if 0 then                           -- No-op
  compile else
       if ch = "'" then                    -- Command
@@ -417,7 +449,7 @@ compile endif
          if ch = '"' then
             p = pos( '"', rest, 2)
             if p then
-               filespec = substr( rest, 1, p)
+               FileSpec = substr( rest, 1, p)
                rest = substr( rest, p + 1)
             else
                sayerror INVALID_FILENAME__MSG
@@ -439,8 +471,8 @@ compile if HOST_SUPPORT & not SMALL
  compile else
             p = min( p1, p2, p3, p4)
  compile endif
-            filespec = substr( rest, 1, p - 1)
-            if VMfile( filespec, more) then    -- tricky - VMfile modifies file
+            FileSpec = substr( rest, 1, p - 1)
+            if VMfile( FileSpec, more) then    -- tricky - VMfile modifies file
                if p = p1 then p = p + 1; endif     -- Keep any except comma in string
                rest = more substr( rest, p)
             else
@@ -448,16 +480,16 @@ compile endif
                -- Recogniation of ',' as segement parser is changed from ','
                -- to ', ' (at least 1 space after the comma) in order to
                -- support filenames like: "filename.ext,v", as created by CVS.
-               -- Parse at next ', '. Removes ', ' from filespec (DOS and VM)
-               -- A ', ' separates multiple <filespec> '<command>' segments.
-               parse value rest with filespec rest2
-               if pos( ', ', filespec) then
-                  parse value rest with filespec ', ' rest
+               -- Parse at next ', '. Removes ', ' from FileSpec (DOS and VM)
+               -- A ', ' separates multiple <FileSpec> '<command>' segments.
+               parse value rest with FileSpec rest2
+               if pos( ', ', FileSpec) then
+                  parse value rest with FileSpec ', ' rest
                else
                   rest = rest2
                endif
 compile if HOST_SUPPORT & not SMALL
-            endif  -- VMfile( filespec, more)
+            endif  -- VMfile( FileSpec, more)
  compile if HOST_SUPPORT='EMUL' | HOST_SUPPORT='E3EMUL'
             if substr( strip( rest, 'L'), 1, 1) = '[' then
                parse value rest with '[' fto ']' rest
@@ -468,24 +500,31 @@ compile if HOST_SUPPORT & not SMALL
 compile endif
          endif  -- ch = '"' else (Remove doublequotes)
 
-         call parse_filename( filespec, .filename)
+         call parse_filename( FileSpec, .filename)
 
-         if (not pos( '"', filespec)) & pos( ' ', filespec) then
-            filespec = '"'filespec'"'
+         if (not pos( '"', FileSpec)) & pos( ' ', FileSpec) then
+            FileSpec = '"'FileSpec'"'
          endif
 
          -- Load the file
-         rc = PreLoadFile( filespec, options)
+         rc = PreLoadFile( FileSpec, options)
          edit_rc = rc  -- restore this rc at the end
 
-; Todo: rewrite that horrible message stuff:
+         if rc = -5 then  -- sayerror('Access denied')
+            if NepmdDirExists( strip( FileSpec, 'b', '"')) then
+               'dir 'FileSpec
+               rc = 0
+               edit_rc = rc
+            endif
+         endif
 
+; Todo: rewrite that horrible message stuff:
          if rc = -3 then        -- sayerror('Path not found')
-            bad_paths = bad_paths', 'filespec
+            bad_paths = bad_paths', 'FileSpec
          elseif rc = -2 then    -- sayerror('File not found')
-            not_found = not_found', 'filespec
+            not_found = not_found', 'FileSpec
          elseif rc = -282 then  -- sayerror('New file')
-            new_files = new_files', 'filespec
+            new_files = new_files', 'FileSpec
             new_files_loaded = new_files_loaded + 1
          elseif rc = -278 then  --sayerror('Lines truncated') <-- never happens for EPM 6
             getfileid truncid
@@ -496,13 +535,13 @@ compile endif
             truncated = truncated', '.filename
             .modify = 0
          elseif rc = -5 then  -- sayerror('Access denied')
-            access_denied = access_denied', 'filespec
+            access_denied = access_denied', 'FileSpec
          elseif rc = -15 then  -- sayerror('Invalid drive')
-            invalid_drive = invalid_drive', 'filespec
+            invalid_drive = invalid_drive', 'FileSpec
          elseif rc = -286 then  -- sayerror('Error reading file')
-            error_reading = error_reading', 'filespec
+            error_reading = error_reading', 'FileSpec
          elseif rc = -284 then  -- sayerror('Error opening file')
-            error_opening = error_opening', 'filespec
+            error_opening = error_opening', 'FileSpec
          endif  -- rc=-3
          --if first_file_loaded = '' then  -- useless: forever empty at this point
             if rc <> -3   &  -- sayerror('Path not found')
@@ -952,21 +991,22 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 ; A common routine to parse a DOS file name.  Optional second argument
-; gives source for = when used for path or fileid.  RC is 0 if successful, or
-; position of "=" in first arg if no second arg given but was needed.
+; gives source for = when used for path or fileid.
 ; New: Quotes, doublequotes and spaces are handled correctly.
 ;      Duplicated '\' between path and name are avoided.
 ;      Environment vars are resolved.
 ;      ?: is replaced with the bootdrive.
 ;      Works now with temp files (starting with '.') as well.
-; Currently this proc is only called if filename contains '='. This check
-; has to be removed in order to resolve environment vars.
+;      Always returns 0.
 defproc parse_filename( var filename)
 
    sourcefile = strip(arg(2))
-   p = pos( '=', filename)
-   if sourcefile = '' then  -- syntax error
-      return p              -- strange rc!
+   if sourcefile = '' then
+      if leftstr( .filename, 1) = '.' then
+         sourcefile = strip( directory(), 't', '\')'\.'
+      else
+         sourcefile = .filename
+      endif
    endif
 
    -- resolve every word separately
