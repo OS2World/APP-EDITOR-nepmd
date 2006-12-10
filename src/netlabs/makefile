@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.28 2006-11-08 21:41:20 jbs Exp $
+# $Id: makefile,v 1.29 2006-12-10 19:18:58 aschn Exp $
 #
 # ===========================================================================
 #
@@ -60,7 +60,9 @@ $(CMPEXDIR)\dict.ex\
 $(CMPEXDIR)\draw.ex\
 $(CMPEXDIR)\epmcomp.ex\
 $(CMPEXDIR)\epmlex.ex\
+$(CMPEXDIR)\epmshell.ex\
 $(CMPEXDIR)\fevshmnu.ex\
+$(CMPEXDIR)\file.ex\
 $(CMPEXDIR)\finddef.ex\
 $(CMPEXDIR)\ftpload.ex\
 $(CMPEXDIR)\ftpsave.ex\
@@ -68,7 +70,11 @@ $(CMPEXDIR)\ftpsave.ex\
 $(CMPEXDIR)\help.ex\
 $(CMPEXDIR)\indentblock.ex\
 $(CMPEXDIR)\kwhelp.ex\
+$(CMPEXDIR)\keys.ex\
+$(CMPEXDIR)\locate.ex\
 $(CMPEXDIR)\maketags.ex\
+$(CMPEXDIR)\modecnf.ex\
+$(CMPEXDIR)\modeexec.ex\
 $(CMPEXDIR)\newmenu.ex\
 $(CMPEXDIR)\next_win.ex\
 $(CMPEXDIR)\ovshmenu.ex\
@@ -82,6 +88,7 @@ $(CMPEXDIR)\singlespace.ex\
 $(CMPEXDIR)\stdmenu.ex\
 $(CMPEXDIR)\tags.ex\
 $(CMPEXDIR)\testkeys.ex\
+$(CMPEXDIR)\toolbar.ex\
 $(CMPEXDIR)\treeit.ex\
 $(CMPEXDIR)\unhtml.ex\
 $(CMPEXDIR)\wordproc.ex\
