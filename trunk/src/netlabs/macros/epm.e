@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.37 2006-12-10 11:33:45 aschn Exp $
+* $Id: epm.e,v 1.38 2006-12-10 18:25:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -83,9 +83,8 @@ compile if not VANILLA
    tryinclude  'myselect.e'    -- For user's defselects.  This doesn't have to come
                                -- immediately after select.e now.
 compile endif  -- not VANILLA
-include        'modify.e'      -- New defmodify event processor.
 
-include        'keys.e'        -- Definitions for key bindings
+include        'modify.e'
 
 include        STDKEYS_NAME'.e'  -- Key bindings
 
@@ -96,8 +95,6 @@ include        'mouse.e'       -- Mouse definition, only for EPM.
 include        'stdprocs.e'    -- Standard functions and procedures.
 
 include        'epm_ea.e'      -- Font attributes
-
-include        'locate.e'      -- Find and replace definitions
 
 include        'markfilt.e'    -- Procedures for filtering a block, line or char. mark.
 include        'charops.e'     -- Mark operations for character marks.
@@ -120,13 +117,9 @@ compile endif
 
 include        'edit.e'        -- Edit commands, must come after E3EMUL.E if activated.
 include        'mode.e'        -- Mode selection and basic mode defs
-include        'modecnf.e'     -- Definitions for mode-dependent settings
-include        'modeexec.e'    -- Definitions for user-configurable mode-dependent settings
 
 include        'stdcmds.e'     -- Standard commands (DEFC's).
                                -- (Edit cmd uses variables defined in host routines.)
-include        'file.e'        -- File definitions
-
 include        'hooks.e'       -- Hook cmds
 
 include        'get.e'         -- Insert the contents of another file into current
@@ -157,20 +150,14 @@ include        'autolink.e'    -- Link all .ex files found in <UserDir>\autolink
 include        'stdctrl.e'     -- PM controls for EPM.
 
 include        'config.e'      -- Ini definitions
------------------------> Todo: remove the following
-;include        'setconfig.e'   -- Temporary definitions to change NEPMD.INI
 
 include        'infoline.e'    -- Statusline and Titletext definitions
 
------------------------> Todo: make the following separately compilable
 include        'filelist.e'    -- Save/restore ring and provide 'File 3 of 28' field
-
------------------------> Todo: make the following separately compilable
-include        'toolbar.e'     -- Toolbar definitions
 
 include        'menu.e'        -- Common menu definitions
 
-tryinclude     'clipbrd.e'     -- Clipboard interface and mark <--> buffer routines
+include        'clipbrd.e'     -- Clipboard interface and mark <--> buffer routines
 
 -- Put all new includes after this line (preferably in MYSTUFF.E). -------------
 compile if not VANILLA
@@ -194,23 +181,13 @@ include        'math.e'
 
 include        'sortepm.e'     -- SORTEPM, SORTE, SORTG, SORTF, SORTGW, SORTDLL, SORTDOS.E.
 
-include        'epmshell.e'    -- EPM shell
-
 include        'callrexx.e'    -- REXX support and defcs that previously existed only as defprocs
 
------------------------> Todo: make the following syntax expansion defs separately compilable
 -- Put all new includes above this line. --------------------------------------
 -- (The following files define additional keysets)
 
-;compile if SPELL_SUPPORT = 1
-;   include     'epmlex.e'      -- Spell checking
-;compile endif
-
--- Put the programming keys last.  Any keys redefined above will stay in
--- effect regardless of filetype.  These redefine only space and enter.
-;compile if WANT_EBOOKIE = 1
-;   include     'bkeys.e'
-;compile endif
+-----------------------> Todo: make the following syntax expansion defs separately compilable
+--                             and link them only if required.
 
 include        'shellkeys.e'   -- Syntax-assist for EPM command shells
 
