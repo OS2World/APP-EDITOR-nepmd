@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.33 2006-10-15 08:00:11 aschn Exp $
+* $Id: stdkeys.e,v 1.34 2006-12-10 12:12:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -36,6 +36,17 @@
 ;       acceleator key as well. That ensures, that only the def definition
 ;       has to specified, if it exists. This does not apply to def a_<num>
 ;       definitions, because of the above described behaviour.
+
+; ---------------------------------------------------------------------------
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
+define INCLUDING_FILE = 'STDKEYS.E'
+
+EA_comment 'This defines the standard keyset.'
+
+; When being linked, the "defkeys edit_keys new clear" line must be added to
+; STDCNF.E, in order to include it in EPM.EX.
+
+compile endif
 
 ; ---------------------------------------------------------------------------
 ; Define the keyset "EDIT_KEYS". All following key defs will belong to this
@@ -84,6 +95,8 @@ def a_b           'MarkBlock'           -- Start/end block mark
 def a_l           'MarkLine'            -- Start/end line mark
 def a_z           'MarkChar'            -- Start/end char mark
 def a_w           'MarkWord'            -- Mark current word
+;def c_w          'MarkToken'           -- Mark current word, separators according to C syntax
+defc Key_a_s_w    'MarkToken'           -- Mark current word, separators according to C syntax
 def a_u           'UnMark'              -- Unmark all
 def c_backslash   'UnMark'              -- Unmark all
 defc Key_c_s_a    'UnMark'              -- Unmark all
@@ -97,7 +110,6 @@ def s_end         'MarkEndLine'         -- Mark from cursor to end of line
 def s_home        'MarkBeginLineOrText' -- Mark from cursor to begin of line or text
 def s_pgup        'MarkPageUp'          -- Mark from cursor page up
 def s_pgdn        'MarkPageDown'        -- Mark from cursor page down
-;def c_w          'MarkToken'           -- Mark current word, separators according to C syntax
 defc Key_c_s_down 'PushMark'            -- Save current mark to mark stack
 defc Key_c_s_up   'PopMark'             -- Restore last mark from stack (and remove it from stack)
 defc Key_c_s_equal 'SwapMark'           -- Exchange current mark with last mark from stack
@@ -170,7 +182,7 @@ def c_9           'TypeOpeningBrace'    -- Type a {
 def c_4           'TypeCent'            -- Type a cent char › (\155)
 def c_tab         'TypeTab'             -- Type a tab char (\9)
 
-; ---- Window and switch files ----
+; ---- Window and File switching ----
 def f11           'PrevFile'            -- Switch to previous file
 ;def c_p          'PrevFile'            -- Switch to previous file
 def f12           'NextFile'            -- Switch to next file
@@ -198,7 +210,7 @@ def c_f2          'LowercaseWord'       -- Change word to lowercase
 def c_f3          'UppercaseMark'       -- Change mark to uppercase
 def c_f4          'LowercaseMark'       -- Change mark to lowercase
 
-; ---- Record keys ----
+; ---- Key recording ----
 def c_r           'RecordKeys'          -- Start/stop recording keys
 def c_t           'PlaybackKeys'        -- Stop recording and execute recorded keys
 
@@ -229,7 +241,7 @@ def ']'           'balance ]'           -- Mark matching [ while typing ]
 def '}'           'ClosingBrace'        -- Auto-indent } to indent of { if activated. Mark matching { while typing }
 
 ; ---- Draw ----
-def f6            'StartDraw'           -- Message about available draw chars and Commandline to typein a char, then use cursor chars
+def f6            'Draw'                -- Message about available draw chars and Commandline to typein a char, then use cursor chars
 
 ; ---- Tags ----
 def s_f6          'FindTag'             -- Find procedure under cursor via tags file
@@ -249,23 +261,26 @@ def c_pgdn        'Redo1'               -- Scroll through next undo states (keep
 ; ---- Enter ----
 ; For Line mode, these keys are configurable via the settings dialog.
 ; In Stream mode, all enter defcs behave the same.
-;      Expansion with Enter, no expansion with Ctrl+Enter:
+
+;   1)  Expansion with Enter, no expansion with Ctrl+Enter:
 def enter         'ExpandSecond enter'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
 def c_enter       'c_enter'
-;      Expansion with Ctrl+Enter, no expansion with Enter:
+
+;   2)  Expansion with Ctrl+Enter, no expansion with Enter:
 ;def c_enter      'ExpandSecond enter'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
 ;def enter        'enter'
+
 def a_enter       'a_enter'             -- Alt+Enter and Alt+Sh+Enter not definable in EPM?
 def s_enter       's_enter'
 def padenter      'padenter'
 def a_padenter    'a_padenter'
 def c_padenter    'c_padenter'
 def s_padenter    's_padenter'
+def a_n           'NewLineAfter'        -- Add a new line after the current, move to it, keep col
+defc key_a_s_n    'NewLineBefore'       -- Add a new line below the current, move to it, keep col
 ; doesnot work:
 ;defc key_c_a_enter   'NewLineAfter'    -- Add a new line after the current, move to it, keep col
 ;defc key_c_s_a_enter 'NewLineBefore'   -- Add a new line below the current, move to it, keep col
-def a_n           'NewLineAfter'        -- Add a new line after the current, move to it, keep col
-defc key_a_s_n    'NewLineBefore'       -- Add a new line below the current, move to it, keep col
 
 ; ---- Duplicate ----
 def c_k           'DuplicateLine'       -- Duplicate a line
@@ -280,12 +295,15 @@ def tab           'Tab'                 -- Insert tab char or spaces
 def s_tab         'BackTab'             -- Go back one tabstop
 
 ; ---- Space ----
-;      Expansion with Space, no expansion with Ctrl+Space:
+
+;   1)  Expansion with Space, no expansion with Ctrl+Space:
 def space        'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
 def c_space      'Space'
-;      Expansion with Ctrl+Space, no expansion with Space:
+
+;   2)  Expansion with Ctrl+Space, no expansion with Space:
 ;def c_space      'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
 ;def space        'Space'
+
 def s_space       'Space'
 
 ; ---- Load file ----
