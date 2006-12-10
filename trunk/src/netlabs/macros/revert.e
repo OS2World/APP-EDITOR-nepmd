@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: revert.e,v 1.4 2005-11-24 19:40:11 aschn Exp $
+* $Id: revert.e,v 1.5 2006-12-10 10:05:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -79,8 +79,6 @@ compile endif
    call psave_pos(saved_pos)
    if .lockhandle then
       'unlock'
-      sayerror LOCKED__MSG
-      return
    endif
 ;   display -8
    Mode = GetMode()
