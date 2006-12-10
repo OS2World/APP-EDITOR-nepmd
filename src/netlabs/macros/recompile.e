@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.9 2006-11-12 13:13:43 jbs Exp $
+* $Id: recompile.e,v 1.10 2006-12-10 18:46:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -67,6 +67,8 @@ defc relink
       args = delword( args, wp, 1)  -- remove 'IFLINKED' from args
    endif
    modulename = args  -- new: path and ext optional
+   call parse_filename( modulename)
+
    if modulename = '' then                           -- If no name given,
       p = lastpos( '.', .filename)
       if upcase( substr( .filename, p)) <> '.E' then
@@ -96,6 +98,14 @@ defc relink
 
    -- Unlink and link module if linked
    if linkedrc >= 0 then  -- if linked
+
+      -- Handle a keyset-defining module specially
+      if rightstr( upcase( basename), 4) = 'KEYS' &
+         length( basename) > 4 then
+         curkeyset = .keyset
+         'UseKeys EDIT_KEYS'
+      endif
+
       'unlink' basename   -- 'unlink' gets full pathname now
       if rc < 0 then
          return
@@ -103,6 +113,13 @@ defc relink
    endif
    if linkedrc >= 0 | fIfLinked = 0 then
       'link' basename
+
+      -- Handle a keyset-defining module specially
+      if rightstr( upcase( basename), 4) = 'KEYS' &
+         length( basename) > 4 then
+         'UseKeys' curkeyset
+      endif
+
       -- Refresh menu if module is linked and defines a menu
       if rc >= 0 & upcase( rightstr( basename, 4)) = 'MENU' &
          length( basename) > 4 then
@@ -138,18 +155,16 @@ defc et,etpm=
    endif
    if InFile = '' then
       InFile = MAINFILE
-   elseif pos( '=', InFile) > 0 then
+   else
       call parse_filename( InFile, .filename)
    endif
-   if pos( '=', ExFile) > 0 then
-      call parse_filename( ExFile, .filename)
-      lp = lastpos( '.', ExFile)
-      if lp > 0 then
-         if translate( substr( ExFile, lp + 1)) = 'E' then
-            ExFile = substr( ExFile, 1, lp - 1)'.ex'
-         else
-            ExFile = ExFile'.ex'
-         endif
+   call parse_filename( ExFile, .filename)
+   lp = lastpos( '.', ExFile)
+   if lp > 0 then
+      if translate( substr( ExFile, lp + 1)) = 'E' then
+         ExFile = substr( ExFile, 1, lp - 1)'.ex'
+      else
+         ExFile = ExFile'.ex'
       endif
    endif
 
@@ -421,8 +436,8 @@ defc RecompileAll
 ; ---------------------------------------------------------------------------
 ; Walk through all files in .LST files (like RecompileAll). Recompile all
 ; files, whose E sources are newer than their EX files.
-; Could be a problem: the ini entry for epm\EFileTimes has currently 1341
-; byte. Apparently in ETK every string is limited to 1599 byte.
+; Could become a problem: the ini entry for epm\EFileTimes has currently
+; 1101 byte. In ETK every string is limited to 1599 byte.
 ;
 ; Syntax: RecompileNew [RESET] | [CHECKONLY] [NOMSG] [NOMSGBOX]
 ;
@@ -430,6 +445,9 @@ defc RecompileAll
 ;    o  When user .ex files are deleted, a 2nd run is required to compare the
 ;       user macros with the Netlabs macros.
 ;    o  User macros are never deleted, even if they are equal.
+;    o  Because the installation deletes all myepm\ex\*.ex files, the
+;       comparison list has to be rewritten. Therefore at EPM's first startup
+;       the RecompileNew RESET command is executed.
 defc RecompileNew
    universal nepmd_hini
 
@@ -915,12 +933,29 @@ defc RecompileNew
             quietshell 'copy' EtpmLogFile DestDir
             cRecompile = cRecompile + 1
          endif
-         if upcase( BaseName) = 'EPM' then
+         if wordpos( upcase( BaseName), 'EPM RECOMPILE') then
+            -- These EX files are in use, they can't be unlinked,
+            -- therefore EPM must be restarted
             fRestartEpm = 1
          elseif fRestartEpm = 0 then
             if linked( BaseName) >= 0 then  -- <0 means error or not linked
+
+               -- Handle a keyset-defining module specially
+               if rightstr( upcase( basename), 4) = 'KEYS' &
+                  length( basename) > 4 then
+                  curkeyset = .keyset
+                  'UseKeys DUMMY_KEYS'
+               endif
+
                'unlink' BaseName
                'link' BaseName
+
+               -- Handle a keyset-defining module specially
+               if rightstr( upcase( basename), 4) = 'KEYS' &
+                  length( basename) > 4 then
+                  'UseKeys' curkeyset
+               endif
+
                WriteLog( LogFile, '         'BaseName' - relinked .EX file')
                cRelink = cRelink + 1
                if upcase( rightstr( BaseName, 4)) = 'MENU' & length( BaseName) > 4 then
