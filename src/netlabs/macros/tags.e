@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.13 2006-10-07 20:32:58 aschn Exp $
+* $Id: tags.e,v 1.14 2006-12-10 11:10:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -88,27 +88,31 @@ defproc tag_case(filename)
    return 'c'  /* Case insensitive language? */
 
 defproc tags_supported(mode)
-   return wordpos(mode, 'C JAVA E ASM REXX PASCAL MODULA REXX CMD HTEXT')
+   return wordpos(mode, 'C JAVA E ASM REXX PASCAL MODULA REXX CMD HTEXT IPF TEX')
 
-defproc proc_search(var proc_name, first_flag, mode, ext)
+defproc proc_search( var proc_name, first_flag, mode, ext)
    if mode = 'C' then
-      return c_proc_search(proc_name, first_flag, ext)
+      return c_proc_search( proc_name, first_flag, ext)
    elseif mode = 'JAVA' then
-      return c_proc_search(proc_name, first_flag, ext)
+      return c_proc_search( proc_name, first_flag, ext)
    elseif mode = 'ASM' then
-      return asm_proc_search(proc_name, first_flag)
+      return asm_proc_search( proc_name, first_flag)
    elseif mode = 'PASCAL' then
-      return pas_proc_search(proc_name, first_flag)
+      return pas_proc_search( proc_name, first_flag)
    elseif mode = 'MODULA' then
-      return pas_proc_search(proc_name, first_flag, 'e')
+      return pas_proc_search( proc_name, first_flag, 'e')
    elseif mode = 'E' then
-      return e_proc_search(proc_name, first_flag)
+      return e_proc_search( proc_name, first_flag)
    elseif mode = 'REXX' then
-      return rexx_proc_search(proc_name, first_flag)
+      return rexx_proc_search( proc_name, first_flag)
    elseif mode = 'CMD' then
-      return cmd_proc_search(proc_name, first_flag)
+      return cmd_proc_search( proc_name, first_flag)
    elseif mode = 'HTEXT' then
-      return htext_proc_search(proc_name, first_flag)
+      return htext_proc_search( proc_name, first_flag)
+   elseif mode = 'IPF' then
+      return ipf_proc_search( proc_name, first_flag)
+   elseif mode = 'TEX' then
+      return tex_proc_search( proc_name, first_flag)
    else
       return 1
    endif
@@ -830,7 +834,7 @@ compile if LOG_TAG_MATCHES
 compile endif
    return rc
 
-defproc htext_proc_search(var proc_name, find_first)
+defproc htext_proc_search( var proc_name, find_first)
 compile if LOG_TAG_MATCHES
    universal TAG_LOG_FID
 compile endif
@@ -853,6 +857,74 @@ compile endif
    if isnum( sectiontype) then
       -- Omit section type itself
       proc_name = subword( proc_name, 2)
+      -- Indent line according to the section type
+      ind = copies( ' ', 8)
+      proc_name = copies( ind, sectiontype - 1)''proc_name
+   endif
+compile if LOG_TAG_MATCHES
+   if TAG_LOG_FID and not rc then
+      insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
+   endif
+compile endif
+   return rc
+
+defproc ipf_proc_search( var proc_name, find_first)
+compile if LOG_TAG_MATCHES
+   universal TAG_LOG_FID
+compile endif
+   Spc = ':o'
+   display -2
+   if find_first then
+      if proc_name == '' then
+         identifier = '[1-6]'
+         search = '^\:h'identifier''Spc'.*\.'
+         'xcom l 'search'cx'
+      endif
+   else
+      repeat_find
+   endif
+   display 2
+   -- Indent line according to the section type in order to give a better
+   -- overview of the structure.
+   line = strip( textline(.line))
+   parse value word( line, 1) with ':h'sectiontype rest
+   parse value sectiontype with sectiontype'.'
+   if isnum( sectiontype) then
+      proc_name = ''
+      -- find trailing dot
+      startl = .line
+      stopl  = startl + 2
+      do l = startl to stopl
+         p = pos( '.', line)
+         -- count quotes before '.'; if odd, then '.' must belong to a string
+         if p > 0 then
+            nQ = 0
+            pStartQ = 1
+            do while pStartQ < p
+               pQ = pos( "'", line, pStartQ)
+               if pQ = 0 | pQ > p then
+                  leave
+               endif
+               nQ = nQ + 1
+               pStartQ = pQ + 1
+            enddo
+            if (nQ // 2 = 0) then
+               -- this dot must end a tag
+               proc_name = substr( line, p + 1)
+            else
+               -- reset p
+               p = 0
+            endif
+         endif
+         if p = 0 then
+            -- append next line
+            line = line textline( l + 1)
+            iterate
+         endif
+      enddo
+      if p = 0 then
+         return 1
+      endif
       -- Indent line according to the section type
       ind = copies( ' ', 8)
       proc_name = copies( ind, sectiontype - 1)''proc_name
@@ -997,6 +1069,84 @@ compile if LOG_TAG_MATCHES
       endif
 compile endif
       return 0
+   endloop
+
+/** Additions by VK **/
+defproc tex_proc_search( var proc_name, find_first)
+   tc = ''
+   proc_len = length( proc_name)
+   display -2
+   if find_first then
+      keywords='\\(part|chapter|(|sub|subsub)section|(|sub)paragraph|label|caption)(|\*):o({|\[)'
+      if proc_name=='' then
+         'xcom l 'keywords'xc'
+      else
+         'xcom l 'proc_name''tc
+      endif
+   else
+      repeat_find
+   endif
+   loop
+      if rc then
+         display 2
+         return rc
+      endif
+      getline line
+      if proc_len then  -- Determine if match is a substring of something else
+         if .col > 1 then
+            c = upcase( substr( line, .col - 1, 1))
+            if (c >= 'A' & c <= 'Z') | (c >= '0' & c <= '9') | c = '$' | c = '_'  then
+               end_line
+               repeat_find
+               iterate
+            endif
+         endif
+         .col = .col + proc_len
+         c = upcase( substr( line, .col, 1))
+         if (c >= 'A' & c <= 'Z') | (c >= '0' & c <= '9') | c = '$' | c = '_'  then
+            end_line
+            repeat_find
+            iterate
+         endif
+      else
+         .col = pos( keywords, line, 1, 'x')
+      endif
+      line = translate( line, ' ', \t)
+      col = .col
+      if not pos( keywords, line, 1, 'x'/*||tc*/) then
+         end_line
+         repeat_find
+         iterate
+      endif
+      p = pos( '{', line, col)
+      if p then
+         if substr( line, p, 1) == '{' then
+            .col = p
+         endif
+         line = substr( line, col)
+         i = lastpos( '}', strip( translate( line, ' ' ,\t)))
+         if i then
+           proc_name = substr( line, 1, i + 1)
+         else
+           proc_name = line
+         endif
+         test = substr( proc_name, 2, 5)
+         if test == 'subse' then
+            proc_name = '   'proc_name
+         elseif test == 'subsu' then
+            proc_name = '      'proc_name
+         elseif (test == 'parag') | (test == 'subpa') then
+            proc_name = '       'proc_name
+         elseif test == 'capti' then
+            proc_name = '       'proc_name
+         elseif test == 'label' then
+            proc_name='         'proc_name
+         endif
+         display 2
+         return 0
+      endif
+      end_line
+      repeat_find
    endloop
 
 defc make_tags
