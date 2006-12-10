@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: tabsspaces.e,v 1.1 2004-06-29 22:39:26 aschn Exp $
+* $Id: tabsspaces.e,v 1.2 2006-12-10 12:14:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -28,6 +28,8 @@ defc Spaces2Tabs, TabsCompress
    else
       TabWidth = arg1
    endif
+   dummy = ''
+   Changed = 0
    do l = 1 to .last
       Line = textline(l)
       Line = ExpandLine( Line, TabWidth, dummy)
@@ -46,6 +48,7 @@ defc Tabs2Spaces, TabsExpand
    else
       TabWidth = arg1
    endif
+   Changed = 0
    do l = 1 to .last
       Line = textline(l)
       Line = ExpandLine( Line, TabWidth, Changed)
@@ -131,7 +134,7 @@ defproc ExpandLine( Line, TabWidth, var Changed)
 ; ---------------------------------------------------------------------------
 ; Check if position p is quoted in Line, '...' or "...".
 ; Line is at this point only the left part of Line.
-; If it contains a odd number of quotes or doublequotes, then 1 is returned.
+; If it contains an odd number of quotes or doublequotes, then 1 is returned.
 defproc IsInQuotes( Line)
    ret = 0
    if Line <> '' then
