@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.40 2006-12-09 19:36:14 aschn Exp $
+* $Id: newmenu.e,v 1.41 2006-12-10 19:04:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -172,7 +172,6 @@ compile endif
 ; after linking, before the rest of definit in STDCNF.E. Therefore the
 ; EPM_utility_array_id must already exist at this point.
 definit
-   universal nepmd_hini
    -- Sometimes the rc for a module's definit overrides the link rc.
    -- Therefore a linkable module with code in definit, that changes rc,
    -- should save it at the begin of definit and restore it at the end.
@@ -210,7 +209,7 @@ definit
                     /* Search */    ' goto markstack cursorstack bookmarks' ||
                     /* View */      ' menu infobars toolbar toolbarstyle backgroundbitmap' ||
                     /* Options */   ' editoptions saveoptions searchoptions' ||
-                                    ' mainsettings highlighting markingsettings' ||
+                                    ' mainsettings highlighting expansionsettings markingsettings' ||
                                     ' marginsandtabs accelsettings' ||
                                     ' readonlyandlock autorestore' ||
                                     ' opendlgdir workdir macros' ||
@@ -231,6 +230,9 @@ definit
    call AddAVar( 'unhidemenunames', 'HTMPOP')
 
    'InitMenuSettings'
+   'CheckRecode'
+   'CheckGrep'
+   'CheckGfc'
 
    rc = save_rc  -- don't change rc of the link statement by definit code
 
@@ -239,11 +241,45 @@ definit
 ; stop of the definit processing sometimes. Executing this from a command is
 ; processed delayed, after definit is completed.
 defc InitMenuSettings
+   universal nepmd_hini
    universal nodismiss
 
    KeyPath = '\NEPMD\User\Menu\NoDismiss'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
    nodismiss = 32*on
+
+; ---------------------------------------------------------------------------
+defc CheckRecode
+   universal recodefound
+   -- Find recode.exe in path
+   findfile File, 'recode.exe', 'PATH', 'P'
+   if File = '' then
+      recodefound = 0  -- File not found
+   else
+      recodefound = 1  -- File found
+   endif
+
+; ---------------------------------------------------------------------------
+defc CheckGrep
+   universal grepfound
+   -- Find grep.exe in path
+   findfile File, 'grep.exe', 'PATH', 'P'
+   if File = '' then
+      grepfound = 0  -- File not found
+   else
+      grepfound = 1  -- File found
+   endif
+
+; ---------------------------------------------------------------------------
+defc CheckGfc
+   universal gfcfound
+   -- Find gfc.exe in path
+   findfile File, 'gfc.exe', 'PATH', 'P'
+   if File = '' then
+      gfcfound = 0  -- File not found
+   else
+      gfcfound = 1  -- File found
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Called by defc Link, if defined.
@@ -793,6 +829,11 @@ compile endif
                                    \1'Insert current filename at cursor position',
                                    MIS_TEXT, 0
    i = i + 1;
+   buildmenuitem menuname, mid, i, 'F~ilename to clip',                                                  -- Filename to clip
+                                   'CopyFilename2Clip' ||
+                                   \1'Copy current filename to clipboard',
+                                   MIS_TEXT, 0
+   i = i + 1;
    buildmenuitem menuname, mid, i, '~Date Time (ISO)',                                                   -- Date Time (ISO)
                                    'TypeDateTime' ||
                                    \1'Insert current date and time at cursor position',
@@ -1020,7 +1061,7 @@ defproc add_mark_menu(menuname)
                                    \1'Mark word under cursor',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_marktoken', i);
-   buildmenuitem menuname, mid, i, 'Mark ~identifier'\9,                                                 -- Mark identifier
+   buildmenuitem menuname, mid, i, 'Mark ~identifier'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+W',            -- Mark identifier
                                    'MarkToken' ||
                                    \1'Mark identifier (C-style word) under cursor',
                                    MIS_TEXT, 0
@@ -1085,6 +1126,7 @@ defproc add_mark_menu(menuname)
 defproc add_format_menu(menuname)
    universal nodismiss
    universal reflowmargins
+   universal recodefound
 
    mid = GetAVar('mid_format')
    i = mid'00'
@@ -1246,7 +1288,12 @@ defproc add_format_menu(menuname)
    i = i + 1; call SetAVar( 'mid_mailindentedlines', i);
    buildmenuitem menuname, mid, i, 'Mail: reflow indented lines',                                        -- Mail: reflow indented lines
                                    'toggle_mail_indented' ||
-                                   \1'Include indented lines (e.g. list items)',
+                                   \1'Include indented lines',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_mailitemlines', i);
+   buildmenuitem menuname, mid, i, 'Mail: reflow the first line of list items',                          -- Mail: reflow the first line of list items
+                                   'toggle_mail_item' ||
+                                   \1'Include the first line of list items',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_reflownext', i);
    buildmenuitem menuname, mid, i, 'Reflow next',                                                        -- Reflow next
@@ -1258,6 +1305,10 @@ defproc add_format_menu(menuname)
                                    'Toggle_Join_After_Wrap' ||
                                    \1'Join next line with wrapped part',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_moreformatting', i);
    buildmenuitem menuname, mid, i, '~More formatting',                                             -- More formatting   >
                                    '' ||
@@ -1298,10 +1349,17 @@ defproc add_format_menu(menuname)
                                    \1'Check syntax of a CSS file',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
+   buildmenuitem menuname, mid, i, 'S~ort',                                                        -- Sort
+                                   'Sort' ||
+                                   \1'Sort marked lines (undo not possible)',
+                                   MIS_TEXT, 0
+if recodefound then
+   i = i + 1;
    buildmenuitem menuname, mid, i, 'Reco~de...',                                                   -- Recode...
                                    'recode' ||
                                    \1'Change codepage of current file and reload it, keep filedate',
                                    MIS_TEXT, 0
+endif
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -1316,7 +1374,7 @@ defproc add_format_menu(menuname)
                                    \1'Toggle word through mixed, upper and lower cases',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Word ~uppercase'\9,                                                  -- Word uppercase
+   buildmenuitem menuname, mid, i, 'Word ~uppercase'\9CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F2',               -- Word uppercase
                                    'UppercaseWord' ||
                                    \1'Change word to uppercase',
                                    MIS_TEXT, 0
@@ -1412,6 +1470,8 @@ defproc add_format_menu(menuname)
 ; -------------------------------------------------------------------------------------- Search -----------------------
 defproc add_search_menu(menuname)
    universal nodismiss
+   universal grepfound
+   universal gfcfound
    mid = GetAVar('mid_search')
    i = mid'00'
    buildsubmenu  menuname, mid, SEARCH_BAR__MSG,                                                   -- Search ----------
@@ -1455,6 +1515,7 @@ defproc add_search_menu(menuname)
                                    'toggle_search_backward' ||
                                    \1'Toggle back/forward for next locate/change commands',
                                    MIS_TEXT, nodismiss
+if grepfound then
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -1464,6 +1525,7 @@ defproc add_search_menu(menuname)
                                    'GrepBox' ||
                                    \1'Scan external files using regular expressions',
                                    MIS_TEXT, 0
+endif
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -1477,6 +1539,18 @@ defproc add_search_menu(menuname)
    buildmenuitem menuname, mid, i, 'Find ~mark/word',                                              -- Find mark
                                    'findmark' ||
                                    \1'Find marked string else word under cursor',
+                                   MIS_TEXT, 0
+if grepfound then
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Find ~definition'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+D',     -- Find definition
+                                   'finddef' ||
+                                   \1'Find def. in source files for identifier under cursor',
+                                   MIS_TEXT, 0
+endif
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Load file'\9 || ALT_KEY__MSG'+1',                             -- Load file
+                                   'alt_1' ||
+                                   \1'Load file under cursor',
                                    MIS_TEXT, 0
 /*
    i = i + 1;
@@ -1630,11 +1704,13 @@ defproc add_search_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
+if gfcfound then
    i = i + 1;
    buildmenuitem menuname, mid, i, 'GFC curr~ent file...',                                         -- GFC current file
                                    'GfcCurrentFile' ||
                                    \1'Compare current file with another',
                                    MIS_TEXT, 0
+endif
    i = i + 1;
    buildmenuitem menuname, mid, i, '~All /<string>...',                                            -- All /<string>...
                                    'commandline all /' ||
@@ -2226,36 +2302,15 @@ defproc add_options_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
-;   i = i + 1; call SetAVar( 'mid_preferences', i);
-;   buildmenuitem menuname, mid, i, PREFERENCES_MENU__MSG,                                          -- Preferences   >
-;                                   PREFERENCES_MENUP__MSG,
-;                                   MIS_TEXT + MIS_SUBMENU, mpfrom2short(HP_OPTIONS_PREFERENCES, 0)
    i = i + 1; call SetAVar( 'mid_mainsettings', i);
    buildmenuitem menuname, mid, i, 'Mai~n settings',                                               -- Main settings  >
                                    'Configure basic editor settings',
                                    MIS_TEXT + MIS_SUBMENU, mpfrom2short(HP_OPTIONS_PREFERENCES, 0)
-;   i = i + 1;
-;   buildmenuitem menuname, mid, i, CONFIG_MENU__MSG,                                                     -- Settings...
-;                                   'configdlg' ||
-;                                   CONFIG_MENUP__MSG,
-;                                   MIS_TEXT, mpfrom2short(HP_OPTIONS_CONFIG, 0)
    i = i + 1; call SetAVar( 'mid_defaultstreammode', i);
    buildmenuitem menuname, mid, i, 'Default stream mode',                                                -- Default stream mode
                                    'toggle_default_stream' ||
                                    STREAMMODE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_STREAM, nodismiss)
-   i = i + 1; call SetAVar( 'mid_defaultsyntaxexpansion', i);
-   buildmenuitem menuname, mid, i, 'Default syntax expansion',                                           -- Default syntax expansion
-                                   'toggle_default_expand' ||
-                                   \1'Let space and enter do syntax expansion',
-                                   MIS_TEXT, nodismiss
-/**
-   i = i + 1; call SetAVar( 'mid_defaultkeywordhighlighting', i);
-   buildmenuitem menuname, mid, i, 'Default keyword highlighting',                                       -- Default keyword highlighting
-                                   'toggle_default_highlight' ||
-                                   \1'Switch keyword highlighting on',
-                                   MIS_TEXT, nodismiss
-**/
    i = i + 1; call SetAVar( 'mid_ringenabled', i);
    buildmenuitem menuname, mid, i, RINGENABLED_MENU__MSG'!',                                             -- Ring enabled!
                                    'ring_toggle' ||
@@ -2282,14 +2337,29 @@ defproc add_options_menu(menuname)
                                    \1'Switch keyword highlighting on',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_autorefreshmodefiles', i);
-   buildmenuitem menuname, mid, i, '~Auto-check mode files',                                   -- Auto-refresh highlighting files
+   buildmenuitem menuname, mid, i, '~Auto-check mode files',                                             -- Auto-refresh highlighting files
                                    'toggle_modefiles_autorefresh' ||
                                    \1'Check for altered .hil/.ini files on file loading',
                                    MIS_TEXT, nodismiss
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Check mode files now',                                      -- Refresh highlighting files now
+   buildmenuitem menuname, mid, i, '~Check mode files now',                                              -- Refresh highlighting files now
                                    'ActivateHighlighting' ||
                                    \1'Check for altered .hil/.ini files for current mode now',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+
+   i = i + 1; call SetAVar( 'mid_expansionsettings', i);
+   buildmenuitem menuname, mid, i, 'Syntax e~xpansion settings',                                   -- Syntax expansion settings  >
+                                   'Configure syntax expansion settings',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_defaultsyntaxexpansion', i);
+   buildmenuitem menuname, mid, i, 'Default ~syntax expansion',                                          -- Default syntax expansion
+                                   'toggle_default_expand' ||
+                                   \1'Let space and enter do syntax expansion',
+                                   MIS_TEXT, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Select ~coding style...',                                            -- Select coding style...
+                                   'SelectCodingStyle' ||
+                                   \1'Select a previously defined coding style for current mode',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
 
    i = i + 1; call SetAVar( 'mid_markingsettings', i);
@@ -2651,6 +2721,8 @@ defproc add_run_menu(menuname)
                                    COMMANDLINE_MENUP__MSG,
                                    0, mpfrom2short(HP_COMMAND_CMD, 0)
    -- i must be 65535, no key info possible (Ctrl+Brk), executes 'processbreak'
+   -- Executing 'processbreak' via command call won't work while another command is
+   -- being processed.
    buildmenuitem menuname, mid, 65535, HALT_COMMAND_MENU__MSG,                                     -- Halt command
                                    '',
                                    0, mpfrom2short(HP_COMMAND_HALT, 0)
@@ -2937,7 +3009,7 @@ compile elseif defined(HAVE_CUSTEPM)
    'cascade_menu' 3700 3701  -- ensure, that the MIA_CHECKED is painted; 1st item is default automatically
 compile endif
    -- Execute hook for external packages
-   'HookExecute cascade_menu'
+   'HookExecute cascademenu'
 
 ; ---------------------------------------------------------------------------------------
 ; The following is individual commands on 5.51+; all part of ProcessMenuInit cmd on earlier versions.
@@ -3091,6 +3163,9 @@ defc menuinit_reflow
    KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_mailindentedlines'), MIA_CHECKED, not on)
+   KeyPath = '\NEPMD\User\Reflow\Mail\ItemLines'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_mailitemlines'),     MIA_CHECKED, not on)
    KeyPath = '\NEPMD\User\Reflow\Next'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_reflownext'),        MIA_CHECKED, not on)
@@ -3252,15 +3327,6 @@ defc menuinit_mainsettings
 
    SetMenuAttribute( GetAVar('mid_defaultstreammode'),          MIA_CHECKED, not default_stream_mode)
 
-   KeyPath = '\NEPMD\User\SyntaxExpansion'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_defaultsyntaxexpansion'),     MIA_CHECKED, not on)
-/**
-   KeyPath = '\NEPMD\User\KeywordHighlighting'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_defaultkeywordhighlighting'), MIA_CHECKED, not on)
-**/
-
    SetMenuAttribute( GetAVar('mid_ringenabled'),                MIA_CHECKED, not ring_enabled)
 
    KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
@@ -3282,6 +3348,13 @@ defc menuinit_highlighting
    KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_autorefreshmodefiles'), MIA_CHECKED, not on)
+
+defc menuinit_expansionsettings
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\SyntaxExpansion'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_defaultsyntaxexpansion'),     MIA_CHECKED, not on)
 
 defc menuinit_marginsandtabs
    universal app_hini
@@ -4194,6 +4267,17 @@ defc toggle_mail_indented
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_mailindentedlines'), MIA_CHECKED, not on)
+
+; ---------------------------------------------------------------------------
+; Flags: nepmd.ini
+defc toggle_mail_item
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Reflow\Mail\ItemLines'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
+   SetMenuAttribute( GetAVar('mid_mailitemlines'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
 ; Flags: nepmd.ini
