@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: caseword.e,v 1.5 2004-06-29 20:47:23 aschn Exp $
+* $Id: caseword.e,v 1.6 2006-12-10 12:06:32 aschn Exp $
 *
 * ===========================================================================
 *
@@ -58,6 +58,7 @@ compile if not defined(LOWERCHARS)
 compile endif
 
 defc CaseWord
+   call EnableUndoRec()
    call psave_pos(save_pos)
    -- find_token may return nothing, so we have to init the vars first
    startcol = 0
