@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sortepm.e,v 1.6 2005-05-16 20:53:03 aschn Exp $
+* $Id: sortepm.e,v 1.7 2006-12-10 11:35:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,19 +21,23 @@
 
 ; ---------------------------------------------------------------------------
 defproc sort( firstline, lastline, firstcol, lastcol, fileid)
+
    flags = (not verify( 'R', upcase( arg(6)))) bitor    -- Reverse
            (not verify( 'D', upcase( arg(6)))) bitor    -- Descending
         (2*(not verify( 'I', upcase( arg(6))))) bitor   -- case Insensitive
         (4*(not verify( 'C', upcase( arg(6)))))         -- Collating order
-   return dynalink32( E_DLL, 'EtkSort',
-                      gethwndc(5)     || atol(fileid)   ||
-                      atol(firstline) || atol(lastline) ||
-                      atol(firstcol)  || atol(lastcol)  ||
-                      atol(flags),
-                      2)
+
+   rcx = dynalink32( E_DLL, 'EtkSort',
+                     gethwndc(5)     || atol(fileid)   ||
+                     atol(firstline) || atol(lastline) ||
+                     atol(firstcol)  || atol(lastcol)  ||
+                     atol(flags),
+                     2)
+
+   return rcx
 
 ; ---------------------------------------------------------------------------
-defc sort =
+defc sort
    if browse() then
       sayerror BROWSE_IS__MSG ON__MSG
       return
@@ -58,26 +62,27 @@ defc sort =
       return
    endif
 
-   -- Bug in EtkSort?
-   -- Undo to previous states doesn't work after defproc sort.
-   -- defc treesort uses defproc sort as well and it correctly creates a new
-   -- undo state, after the file was sorted once.
-;   undotime = 2            -- 2 = when moving the cursor from a modified line
-;   undoaction 4, undotime  -- Disable state recording at specified time
+;   -- Bug in EtkSort?
+;   -- Undo to previous states doesn't work after defproc sort.
+;   -- defc treesort uses defproc sort as well and it correctly creates a new
+;   -- undo state, after the file was sorted once.
+;   action = 2            -- 2 = when moving the cursor from a modified line
+;   undoaction 4, action  -- Disable state recording at specified action
 
    sayerror SORTING__MSG lastline-firstline+1 LINES__MSG'...'
 
    -- Pass the sort switches "rc", if any, as a sixth argument to sort().
    result = sort( firstline, lastline, firstcol, lastcol, fileid, arg(1))
 
-;   undoaction 5, undotime  -- Enable state recording at specified time
-;   undoaction 1, junk      -- Create a new state
+;   undoaction 5, action  -- Enable state recording at specified action
+;   undoaction 1, junk    -- Create a new state
 
    if result then
       sayerror 'SORT' ERROR_NUMBER__MSG result
    else
       sayerror 0
    endif
+
 
 ; ---------------------------------------------------------------------------
 ; To sort a new-format directory listing by date & time, enter the command:
