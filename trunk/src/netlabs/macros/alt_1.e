@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.22 2006-12-10 10:17:19 aschn Exp $
+* $Id: alt_1.e,v 1.23 2006-12-10 13:22:51 jbs Exp $
 *
 * ===========================================================================
 *
@@ -629,10 +629,10 @@ compile endif  -- HOST_SUPPORT
    -------------------------------------------------------------------------- .Output from grep (Gnu)
    -- Handle Gnu GREP output like  full_specified_filename:lineno:text
    if fGnuGrep = 1 then
-      -- New: get current dir from line 1 to handle relative pathes.
+      -- New: get current dir from line 1 to handle relative paths.
       parse value textline(1) with 'Current directory = 'CurDir
 
-      if substr( line, 1, 2) = '\\' | substr( line, 2, 2) = ':\' then  -- full qualified
+      if substr( line, 1, 2) = '\\' | substr( line, 2, 2) = ':\' then  -- fully qualified
          parse value substr( line, 3) with next':'LineNumber':'rest
          FileName = substr( line, 1, 2 + length(next))
          FileName = translate( FileName, '\', '/')
