@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.40 2006-03-30 16:00:56 aschn Exp $
+* $Id: linkcmds.e,v 1.41 2006-12-10 12:20:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -73,7 +73,7 @@ defc linkverify
    ErrorText = link_common( modulename)  -- sets rc
 
    if rc < 0 then
-      call winmessagebox( UNABLE_TO_LINK__MSG modulename,
+      call winmessagebox( UNABLE_TO_LINK__MSG '"'modulename'", rc = 'rc,
                           ErrorText,
                           16416)  -- OK + ICON_EXCLAMATION + MB+MOVEABLE
    endif
@@ -81,6 +81,13 @@ defc linkverify
 ; ---------------------------------------------------------------------------
 ; Returns ErrorText. Sets rc. rc = 0 if already linked. rc >= 0 on success.
 defproc link_common( modulename)
+   universal nepmd_hini
+
+   if nepmd_hini <> '' then
+      -- NEPMDLIB.DLL is used to resolve the bootdrive.
+      -- Skip resolving if not already loaded.
+      call parse_filename( modulename)
+   endif
 
    waslinkedrc = linked( modulename)
    if waslinkedrc >= 0 then  -- >= 0, then it's the number in the link history
@@ -103,7 +110,8 @@ defproc link_common( modulename)
       linkedrc = linked( modulename)
       display 2
 
-      -- Link always returns rc = 0 if successful, different to linked()
+      -- Link returns rc >= 0 if successful, like linked(). But
+      -- sometimes also rc = (null) is returned on success.
       if linkedrc = -307 then
          ErrorText = 'Module "'modulename'" not linked, file not found'
       elseif linkedrc = -308 then
@@ -116,11 +124,12 @@ defproc link_common( modulename)
          ErrorText = LINK_COMPLETED__MSG''linkedrc' "'modulename'"'
       endif
 
-      if linkrc < 0 then
+      if linkrc < 0 & linkrc <> '' then
          xrc = linkrc    -- use the more detailed rc from link
       else
          xrc = linkedrc  -- use the linked module # from linked()
       endif
+
       -- NewMenu uses this to re-add some of its menu items, after
       -- an external package with a huge menu was not linked successfully.
       if isadefproc( 'AfterLink') then
@@ -149,6 +158,8 @@ defproc link_common( modulename)
 defc unlink
    FullPathName = ''
    ExFile = arg(1)
+
+   call parse_filename( ExFile)
 
    if substr( ExFile, 2, 2) =  ':\' or substr( ExFile, 1, 2) =  '\\' then
       FullPathName = ExFile
@@ -230,10 +241,12 @@ defc unlink
 ;                         sayerror("Link: invalid filename").
 defc qlink, qlinked, ql
    module = arg(1)
+   call parse_filename( module)
+
    if module = '' then
       sayerror QLINK_PROMPT__MSG
    else
-      result = linked(arg(1))
+      result = linked( module)
       if result = -307 or    -- sayerror("Link: file not found")
          result = -308 then  -- sayerror("Link: invalid filename")
          sayerror CANT_FIND1__MSG module CANT_FIND2__MSG
