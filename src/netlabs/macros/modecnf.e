@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modecnf.e,v 1.8 2006-11-14 13:37:48 jbs Exp $
+* $Id: modecnf.e,v 1.9 2006-12-10 08:53:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -154,8 +154,19 @@ View Netlabs' default mode configuration file:
 ;   Mode rexx     (change mode to REXX and apply all REXX-specific settings)
 
 ; ---------------------------------------------------------------------------
+
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
+define INCLUDING_FILE = 'MODECNF.E'
+
+EA_comment 'This sets mode-specific commands.'
+
+compile endif
+
+; ---------------------------------------------------------------------------
 ; InitModeCnf is executed by defmain, before a file is loaded and before
-; PROFILE.ERX is called.
+; PROFILE.ERX is called. Executing this in STDCNF.E, immediately after the
+; definitions from MODEEXEC.E were defined, won't work. Apparently these defs
+; need some time. Therefore the defs here are processed in MAIN.E.
 ; Omit the "defc" line when you put the following lines in your PROFILE.ERX.
 ; The rest of the file is valid REXX and E code.
 defc InitModeCnf
@@ -240,8 +251,8 @@ defc InitModeCnf
 'AddCodingStyle REXX_std SetRexxIfStyle ADDELSE'
 'AddCodingStyle REXX_std SetRexxCase LOWER'
 'AddCodingStyle REXX_std SetRexxForceCase 1'
-'AddCodingStyle REXX_std SetTabs 2'
-'AddCodingStyle REXX_std SetIndent 2'
+'AddCodingStyle REXX_std SetTabs 3'
+'AddCodingStyle REXX_std SetIndent 3'
 'AddCodingStyle REXX_std SetFunctionSpacing C'
 
 /* Christan Langanke's REXX style */
