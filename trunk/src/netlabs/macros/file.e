@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.21 2006-12-10 09:52:39 aschn Exp $
+* $Id: file.e,v 1.22 2006-12-10 13:11:12 jbs Exp $
 *
 * ===========================================================================
 *
@@ -1323,13 +1323,19 @@ defc RestorePosFromEa
 ; Change drive and directory.
 defc cdd
    arg1 = arg(1)
+   if NepmdDirExists(arg1) = 0 then
+      arg1 = leftstr(arg1, lastpos('\', arg1) - 1)
+   endif
+   if NepmdDirExists(arg1) = 0 then
+      arg1 = ''
+   endif
    if arg1 > '' then
       if substr( arg1, 2, 1) = ':' then
          NewDrive = substr( arg1, 1, 2)
          call directory( NewDrive)
       endif
+      'cd' arg1
    endif
-   'cd' arg1
 
 ; ---------------------------------------------------------------------------
 ; Change drive and directory. Release previous directory first (change to
