@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.12 2005-12-07 18:44:28 aschn Exp $
+* $Id: infoline.e,v 1.13 2006-12-10 10:22:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -20,10 +20,6 @@
 ****************************************************************************/
 
 ; Macros for enhanced titleline and statusline
-
-; Contains defmodify. Therefore it should not be linked, because any
-; occurance of defmodify in a linked module would replace all other
-; so-far-defined defmodify event defs.
 
 ; The check, if an update is required, is a little bit opaque: Every
 ; title- or statusline <field> defines a <flag> with it in order to
@@ -434,8 +430,15 @@ defproc GetInfoFieldValue(FVar, var FFlag)
                                          FFlag  = 'MARKINGMODE'
    elseif FVar = 'KEYS'             then FValue = .keyset                                -- show 'EDIT_KEYS' (default) or 'REXX_KEYS'
                                          FFlag  = 'KEYS'
+; not implemented (the coding style subdefs are always executed immediately,
+; a (mode) setting for that doesn't exist):
+;   elseif FVar = 'CODINGSTYLE'      then FValue = GetCodingStyle()
+;                                         FFlag  = 'MODE'
    elseif FVar = 'DYNASPELL'        then FValue = word( '- Spchk', (.keyset = 'SPELL_KEYS') + 1)  -- show '-' or 'Spchk'
                                          FFlag  = 'KEYS'
+; not implemented:
+;   elseif FVar = 'DICTLANG'        then FValue = GetDictLang()
+;                                         FFlag  = 'DICT'
 ; not implemented yet:
 ;  elseif FVar = 'SECTION'          then FValue = GetCurSection()                        -- shows current section or function
    endif
