@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: shellkeys.e,v 1.4 2006-03-29 23:02:51 aschn Exp $
+* $Id: shellkeys.e,v 1.5 2006-12-10 12:08:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,6 +32,25 @@
 ; Consts concerning with shell:
 ; EPM_SHELL_PROMPT = '@prompt epm: $p $g'
 ; WANT_EPM_SHELL = 1
+
+const
+; Shpuld Tab and Sh+Tab process filename completion in Shell windows?
+; Disable this if you want to use e.g. 4os2's own completion.
+compile if not defined( SHELL_FNC)
+   SHELL_FNC = 1
+compile endif
+-- Specify a string to be written whenever a new EPM command shell window
+-- is opened.  Normally a prompt command, but can be anything.  If the
+-- string is one of the ones shown below, then the Enter key can be used
+-- to do a write-to-shell of the text following the prompt, and a listbox
+-- can be generated showing all the commands which were entered in the
+-- current shell window.  If a different prompt is used, EPM won't know
+-- how to parse the line to distinguish between the prompt and the command
+-- that follows, so those features will be omitted.
+compile if not defined(EPM_SHELL_PROMPT)
+   EPM_SHELL_PROMPT = '@prompt epm: $p $g '
+;  EPM_SHELL_PROMPT = '@prompt [epm: $p ] '  -- Also supported
+compile endif
 
 ; ---------------------------------------------------------------------------
 ; Tab must not be defined as accelerator key, because otherwise
@@ -127,15 +146,18 @@ defproc shell_enter_routine(xxx_enterkey)
       call enter_common(xxx_enterkey)
    endif
 
-; Not used anymore, since we can always write directly into the shell window:
-;def esc
-;   'shell_commandline'
-
+; Activate filename completion for Tab and Sh+Tab
+compile if SHELL_FNC
 def tab
    'TabComplete'
 
 def s_tab
    'ShTabComplete'
+compile endif
+
+; Not used anymore, since we can always write directly into the shell window:
+;def esc
+;   'shell_commandline'
 
 ; From Joerg Tiemann's SHELLKRAM.E:
 
