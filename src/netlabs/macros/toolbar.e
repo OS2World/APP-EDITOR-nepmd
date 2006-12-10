@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.18 2006-11-12 13:13:45 jbs Exp $
+* $Id: toolbar.e,v 1.19 2006-12-10 11:21:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -25,6 +25,43 @@
 ;    default toolbar  = toolbar name from NEPMD.INI (maybe different to to
 ;                       the active toolbar)
 ;    standard toolbar = toolbar of standard EPM = builtin toolbar
+
+; ---------------------------------------------------------------------------
+
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
+define INCLUDING_FILE = 'TOOLBAR.E'
+
+const
+   tryinclude 'MYCNF.E'        -- the user's configuration customizations.
+
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
+ compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+const
+-- This provides a simple way to omit all user includes, for problem resolution.
+-- If you set VANILLA to 1 in MYCNF.E, then no MY*.E files will be included.
+compile if not defined(VANILLA)
+   VANILLA = 0
+compile endif
+
+-- Use the normal-sized or the tiny icons for the built-in toolbar?
+compile if not defined(WANT_TINY_ICONS)
+   WANT_TINY_ICONS = 0
+compile endif
+
+const
+ compile if not defined(NLS_LANGUAGE)
+   NLS_LANGUAGE = 'ENGLISH'
+ compile endif
+   include NLS_LANGUAGE'.e'
+   include 'stdconst.e'
+
+   EA_comment 'This defines toolbar macros.'
+compile endif
 
 ; ---------------------------------------------------------------------------
 ; This defc is called by the etke*.dll to generate the list of actions for
