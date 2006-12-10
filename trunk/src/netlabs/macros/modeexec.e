@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.20 2006-10-04 21:24:44 aschn Exp $
+* $Id: modeexec.e,v 1.21 2006-12-10 18:39:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -153,6 +153,33 @@
 */
 
 ; ---------------------------------------------------------------------------
+
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
+define INCLUDING_FILE = 'MODEEXEC.E'
+
+include 'stdconst.e'
+EA_comment 'This defines mode-specific commands.'
+
+;const
+; compile if not defined(NLS_LANGUAGE)
+;   NLS_LANGUAGE = 'ENGLISH'
+; compile endif
+;   include NLS_LANGUAGE'.e'
+
+compile endif
+
+const
+; Should a ModeExec command, being executed after startup, process all files
+; in the ring or just the current? (A ModeExec command applies always to
+; later-loaded files.)
+; Setting this to 1 would execute many commands and sometimes (maybe after
+; 10 times executing it) EPM crashes with a Memory Mapped File exception,
+; saying "not my memory".
+compile if not defined( MODEEXEC_PROCESS_RING)
+   MODEEXEC_PROCESS_RING = 0
+compile endif
+
+; ---------------------------------------------------------------------------
 ; Every defined setting name must be added to either the 'loadsettingslist'
 ; or the 'selectsettingslist' array var to make the setting take effect on
 ; defload or defselect.
@@ -164,6 +191,8 @@
 ; added to lists. But when a setting is saved with a value, it's always
 ; saved with the prefix to make the string executable directly.
 definit
+   saved_rc = rc
+   --call NepmdPmPrintf( 'MODEEXEC: definit executed, rc at definit start = 'rc)
    call AddAVar( 'loadsettingslist',
                         'Highlight Margins Tabs Keys DynaSpell')
    call AddAVar( 'selectsettingslist',
@@ -174,27 +203,34 @@ definit
                         ' HeaderStyle HeaderLength EndCommented' ||
                         ' MatchChars CommentAutoTerminate' ||
                         ' FunctionSpacing ClosingBraceAutoIndent')
+   --call NepmdPmPrintf( 'MODEEXEC: definit executed, rc at definit end   = 'rc)
+   -- Restore rc to make link/linkverify get the right rc, because definit
+   -- is executed immediately at linking and maybe changes the rc that link
+   -- sees.
+   rc = saved_rc
 
 ; ---------------------------------------------------------------------------
 defc ResetFileSettings
+   args = arg(1)
+
    fProcessLoad   = 0
    fProcessSelect = 0
-   args = arg(1)
-   if args = '' then
+   wp1 = wordpos( 'LOAD', upcase( args))
+   wp2 = wordpos( 'SELECT', upcase( args))
+   if wp1 then
+      fProcessLoad = 1
+      args = delword( args, wp1, 1)
+   endif
+   if wp2 then
+      fProcessSelect = 1
+      args = delword( args, wp2, 1)
+   endif
+   -- Default is to process both
+   if not wp1 & not wp2 then
       fProcessLoad   = 1
       fProcessSelect = 1
-   else
-      wp = wordpos( 'LOAD', upcase( args))
-      if wp then
-         fProcessLoad = 1
-         args = delword( args, wp, 1)
-      endif
-      wp = wordpos( 'SELECT', upcase( args))
-      if wp then
-         fProcessSelect = 1
-         args = delword( args, wp, 1)
-      endif
    endif
+
    LoadSettingsList   = GetAVar( 'loadsettingslist')
    SelectSettingsList = GetAVar( 'selectsettingslist')
    -- Set all <setting>.<fid> array vars to empty
@@ -206,6 +242,8 @@ defc ResetFileSettings
    enddo
    call SetAVar( 'modesettingsapplied.'fid, 0)
    -- Process settings
+   -- Todo: pass args to the following commands to process only these
+   -- and not the entire settings lists.
    if fProcessLoad then
       'ProcessLoadSettings'
    endif
@@ -214,7 +252,7 @@ defc ResetFileSettings
    endif
 
 ; ---------------------------------------------------------------------------
-; Processes all mode specific defload settings.
+; Processes all mode-specific defload settings.
 ; Executed by defload and defc ResetFileSettings.
 ; (defc Mode and ResetMode call ResetFileSettings when the mode has changed.)
 defc ProcessLoadSettings
@@ -223,11 +261,12 @@ defc ProcessLoadSettings
                         -- 1: defload is running
                         -- 2: defload processed
                         -- 0: afterload processed
+   args = arg(1)
 
    if not .visible then
       return
    endif
-   LoadSettingsList   = GetAVar( 'loadsettingslist')
+   LoadSettingsList = GetAVar( 'loadsettingslist')
 
    parse arg Mode calling_fid
    Mode = strip(Mode)
@@ -455,10 +494,26 @@ defc ModeExecute, ModeExec
                '" to the select/loadsettingslist array var.'
       return 1
    endif
+
    if loadstate = 0 then  -- after afterload
       dprintf( 'MODEEXECUTE', 'loadstate = 'loadstate', calling RingRefreshSettings' arg(1))
+compile if MODEEXEC_PROCESS_RING
+;      call NepmdPmPrintf( 'ModeExecute: RingRefreshSetting 'arg(1)' for '.filename)
       'RingRefreshSetting' arg(1)
+      -- Todo for SetCodingStyle:
+      --    o  Loop through all files only once, not once per subsetting.
+      --    o  Refresh only one setting, not all.
+      -- Until that is done, settings should only be executed for the
+      -- current file. Otherwise EPM would crash after executing ModeExecute
+      -- several times.
+compile else
+      if Mode = GetMode() then
+;         call NepmdPmPrintf( 'ModeExecute: 'arg(1)' for '.filename)
+         Cmd Args
+      endif
+compile endif
    endif
+
    -- Save a list of used modes to be able to delete all settings
    if not wordpos( Mode, GetAVar('usedsettings_modes', Mode)) then
       call AddAVar('usedsettings_modes', Mode)
@@ -477,21 +532,14 @@ defc ModeExecute, ModeExec
 defc RingRefreshSetting
    universal StatusFieldFlags
    universal TitleFieldFlags
-;    universal nepmd_hini
    parse value arg(1) with Mode Cmd Args
    Mode = upcase(Mode)
    parse value lowcase(Cmd) with 'set' SettingName  -- Strip leading 'set'
+
    getfileid startfid
-   display -1
+   display -3
    fid = startfid
-;    KeyPath = '\NEPMD\User\KeywordHighlighting'
-;    hili_on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-;    --hili_on = GetHighlight()
-;    if hili_on then
-;       'RingRefreshSetting DEFAULT SetHighlight 'not hili_on 'N'
-;    endif
    do f = 1 to filesinring(1)  -- prevent looping forever, hidden files must be included
-      Execute = 0
       if Mode = 'DEFAULT' then
          next = GetAVar( SettingName'.'fid)  -- query file setting
          if next = 'DEFAULT' | next = '' then  -- unset if setting was not changed by any modeexecute
@@ -499,11 +547,11 @@ defc RingRefreshSetting
          endif
       elseif Mode = GetMode() then
          if f = 1 then
-            'ResetFileSettings'  -- all settings (reset of a single setting is not implemented)
+            ResetCmd = 'ResetFileSettings'  -- all settings (reset of a single setting is not implemented)
          else
-            'ResetFileSettings LOAD'  -- all load settings (reset of a single setting is not implemented)
+            ResetCmd = 'ResetFileSettings LOAD'  -- all load settings (reset of a single setting is not implemented)
          endif
-         --Cmd 'REFRESH' Args  -- execute arg(1) with 'REFRESH' parameter prepended
+         ResetCmd Cmd Args  -- ResetFilesettings currently processes all settings
       endif
       nextfile
       getfileid fid
@@ -513,11 +561,8 @@ defc RingRefreshSetting
    enddo
    'postme activatefile' startfid  -- postme required for some Cmds, e.g. SetHighlight
    'postme RefreshInfoLine' StatusFieldFlags TitleFieldFlags  --refresh all
-   -- Little bug: InsertMode is not refreshed here.
-;    if hili_on then
-;       'RingRefreshSetting DEFAULT SetHighlight 'hili_on 'N'
-;    endif
-   'postme display' 1
+   -- Minor bug: InsertMode is not refreshed here.
+   'postme display' 3
 
 ; ---------------------------------------------------------------------------
 /*
@@ -543,9 +588,7 @@ defproc UseSetting
    endif
 
 ; ---------------------------------------------------------------------------
-; Refresh specified setting for those files in the ring, whose setting were
-; not changed with a Set* command of MODEEXEC.E.
-; The command must be
+; List all mode- and filespecific settings for all files in the ring.
 defc RingDumpSettings
    LoadSettingsList   = GetAVar( 'loadsettingslist')
    SelectSettingsList = GetAVar( 'selectsettingslist')
@@ -824,10 +867,12 @@ defc SetKeys
    universal loadstate
    arg1 = upcase(arg(1))
    if upcase(arg(1)) = 'DEFAULT' then
-      .keyset = 'EDIT_KEYS'
+      --.keyset = 'EDIT_KEYS'  -- This doesn't work if this file is linked
+      'UseKeys EDIT_KEYS'      -- This works, UseKeys is defined in STDCNF.E.
       arg1 = 'DEFAULT'
    else
-      .keyset = arg1
+       --.keyset = arg1  -- This doesn't work if this file is linked
+      'UseKeys' arg1     -- This works, UseKeys is defined in STDCNF.E.
       -- if rc = -321 then  -- CANNOT_FIND_KEYSET
    endif
    -- Bug in EPM's keyset handling:
@@ -845,10 +890,12 @@ defc SetKeys
    -- keyset is in use.
 
    -- Save the value in an array var, to determine 'DEFAULT' state later
-   getfileid fid
-   call SetAVar( 'keys.'fid, arg1)
-   if loadstate = 0 then
-      'refreshinfoline KEYS'
+   if rc = 0 then
+      getfileid fid
+      call SetAVar( 'keys.'fid, arg1)
+      if loadstate = 0 then
+         'refreshinfoline KEYS'
+      endif
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1375,6 +1422,7 @@ defc DelCodingStyle
    parse arg name
    name = lowcase( name)
    'HookDelAll codingstyle.'name
+   call DelAVar( 'CodingStyles', name)
 
 ; ---------------------------------------------------------------------------
 ; Add a command to the hook. Command should be a Set* command, defined in
@@ -1385,6 +1433,7 @@ defc AddCodingStyle
    parse arg name command
    name = lowcase( name)
    'HookChange codingstyle.'name command
+   call AddAVar( 'CodingStyles', name)
 
 ; ---------------------------------------------------------------------------
 ; Syntax: ModeExecute <mode> SetCodingStyle <name>
@@ -1424,4 +1473,169 @@ defproc ExecuteCodingStyle
       enddo
    endif
    return
+
+; ---------------------------------------------------------------------------
+; Open a listbox to select a coding style for the current or specified mode.
+; A line activating the selected style for the mode is appended to
+; PROFILE.ERX, while an old line with "ModeExec <mode> SetCodingStyle" for
+; <mode> = current mode is deleted.
+; After that, PROFILE.ERX is activated and the new line is executed take
+; effect immediately for the current and all later-loaded files.
+; For a beginner it's much easier to edit PROFILE.ERX automatically, so
+; this was added because the selection of a coding style is an essential
+; feature to use syntax expansion at all.
+defc SelectCodingStyle
+   universal rexx_profile
+   universal app_hini
+   universal appname
+
+   Mode = arg(1)
+   if Mode = '' then
+      Mode = GetMode()
+   endif
+
+   -- Open listbox to select settings
+   CodingStyles = GetAVar( 'CodingStyles')
+   DefaultItem = 1
+   DefaultButton = 1
+   HelpId = 0
+   Title = 'Select a coding style'copies( ' ', 20)
+   Text = '...for mode: 'Mode
+   Title = 'Select a coding style for mode 'Mode''copies( ' ', 40)
+   Text = 'Already loaded files, except the current, are not refreshed.'
+   Text = 'Applies on current and later-loaded files only.'
+
+   refresh
+   NewCodingStyle = ''
+   Result = listbox( Title,
+                     CodingStyles,
+                     '/~Set/Cancel',             -- buttons
+                     0, 0,  --5, 5,              -- top, left,
+                     min( words(CodingStyles), 12), 25,  -- height, width
+                     gethwnd(APP_HANDLE) || atoi(DefaultItem) ||
+                     atoi(DefaultButton) || atoi(HelpId) ||
+                     Text\0 )
+   refresh
+
+   -- Check result
+   button = asc( leftstr( Result, 1))
+   EOS = pos( \0, Result, 2)        -- CHR(0) signifies End Of String
+   if button = 1 then
+      NewCodingStyle = substr( Result, 2, EOS - 2)
+   else
+      return 1
+   endif
+   if NewCodingStyle = '' then
+      return 1
+   endif
+
+   --Cmd = "'ModeExecute "Mode" SetCodingStyle REXX_cla'"
+   Cmd = "ModeExecute "Mode" SetCodingStyle "NewCodingStyle
+
+   ProfileName = 'profile.erx'
+   Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
+
+   -- Read PROFILE.ERX and delete line(s) with "ModeExec <mode> SetCodingStyle"
+   -- for the current mode in it
+   display -3
+   'xcom e /d' Profile
+
+   if not wordpos( rc, '0 -282') then  -- no error or new file
+      display 3
+      return rc
+   endif
+
+   getfileid profid
+   .visible = 0
+
+   if rc = -282 then  -- if a new file
+      deleteline
+   else
+      c = 0  -- counter for open comments
+      lmax = .last
+      l = 1
+      do forever
+         .line = l
+         .col = 1
+         fDeleted = 0
+         Line = strip( translate( textline(l), ' ', \9))
+
+         -- Ignore comments in Line or when already in comment
+         rest = Line
+         Line = ''
+         do while length( rest) > 0
+            p1 = pos( '/*', rest)
+            p2 = pos( '*/', rest)
+            if p1 > 0 & (p1 < p2 | p2 = 0) then
+               parse value rest with next'/*'rest
+               if c = 0 then
+                  Line = Line''next
+               endif
+               c = c + 1
+            elseif p2 > 0 & (p2 < p1 | p1 = 0) then
+               c = c - 1
+               if c < 0 then
+                  sayerror 'Error: Unmatched ending comment in line 'l', column 'p2' of PROFILE.ERX.'
+                  'xcom quit'
+                  display 3
+                  return
+               endif
+               parse value rest with next'*/'rest
+            else
+               next = rest
+               rest = ''
+               if c = 0 then
+                  Line = Line''next
+               endif
+            endif
+         enddo
+
+         if strip( Line) <> '' then
+            -- Find ModeExec[ute] <mode> SetCodingStyle <style_name> for current mode
+            -- (Surrounding quotes or doublequotes are omitted here just for simpleness.)
+            Search = '(MODEEXEC|MODEEXECUTE):w'Mode':wSETCODINGSTYLE'
+            p = pos( Search, upcase(Line), 1, 'x')  -- using the egrep option for pos
+            if p > 0 then
+               deleteline l
+               --sayerror 'Line 'l' of PROFILE.ERX deleted: 'Line
+               fDeleted = 1
+            endif
+         endif
+
+         if .line = .last then
+            leave
+         elseif not fDeleted then
+            l = l + 1
+         endif
+      enddo
+   endif
+
+   -- Append line with new setting
+   insertline "'"Cmd"'", .last + 1
+   -- Save and quit
+   'xcom s'
+   if rc <> 0 then
+      display 3
+      return rc
+   endif
+   --sayerror 'Line appended to PROFILE.ERX: 'Cmd
+   'xcom quit'
+   display 3
+
+   -- Activate PROFILE.ERX
+   if not rexx_profile then
+      rexx_profile = 1
+      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
+      new = subword( old, 1, 11)' 'rexx_profile' 'subword( old, 13)
+      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
+   endif
+
+   -- Execute this setting
+   Cmd
+   if rc = 0 then
+      sayerror 'PROFILE.ERX changed and executed: 'Cmd
+   else
+      sayerror 'Error 'rc' on executing: 'Cmd
+   endif
+
 
