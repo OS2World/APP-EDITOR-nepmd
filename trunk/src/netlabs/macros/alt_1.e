@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.21 2006-10-29 23:53:47 aschn Exp $
+* $Id: alt_1.e,v 1.22 2006-12-10 10:17:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -161,16 +161,15 @@ compile endif
    endif
 
    -------------------------------------------------------------------------- shell or .DOS DIR
-   -- todo: enable saved .command_shells as well  <-- also for mode = SHELL, to re-use them
    call psave_pos(save_pos)
    getsearch oldsearch
    Cmd = ''
+   ShellDir = ''
    if IsAShell() then
-      -- search (reverse) in command shell window for the prompt and retrieve the current directory and
-      --    the cmd and its parameters
+      -- search (reverse) in command shell window for the prompt and retrieve
+      -- the current directory and the cmd and its parameters
       -- goto previous prompt line
       ret = ShellGotoNextPrompt( 'P')
-      ShellDir = ''
       Params = ''
       if not ret then
          call ShellParsePromptLine( ShellDir, Cmd)
@@ -252,7 +251,7 @@ compile endif
                         elseif thiscddir > '' then
                            cddir = strip( thiscddir, 'T', '\')'\'cddir
                         endif
-                        sayerror 'cddir = 'cddir
+                        --sayerror 'cddir = 'cddir
                      endif
                   elseif upcase( leftstr( next, 2)) = drive then  -- drive found in prompt
                      prevdir = next
@@ -304,7 +303,7 @@ compile endif
          if ret = '' then
             FullName = next
          else
-            sayerror 'defc a_1: QueryFullName: rc = 'ret
+            sayerror 'defc a_1: QueryFullName: rc = 'ret'.'
          endif
 
       elseif pos( 'F', flags) then  -- if DIR /F, then the line is the fully-qualified filename
@@ -406,7 +405,7 @@ compile endif
                   FullName = strip( Dir, 'T', '\')'\'Name
                endif
             else
-               sayerror 'Unable to parse file name from directory listing'
+               sayerror 'Unable to parse file name from directory listing.'
             endif
          endif -- if FullName = ''
 
@@ -566,7 +565,7 @@ compile if HOST_SUPPORT
             getline line, .line - 1              -- Go back one line and try again.
             parse value line with proc fn ft uid node date .
             if ('PROCS' <> ft) then              -- One more time. . . .
-               sayerror'Sorry, cursor is not at a PROCS index entry!  No file loaded!'
+               sayerror 'Sorry, cursor is not at a PROCS index entry.  No file loaded.'
                return
             endif
          endif                                   -- If we're here, must be an entry!
@@ -586,7 +585,7 @@ compile if HOST_SUPPORT
             'xcom l ž'date'ž'                    -- Try to get the procedure.
             setsearch oldsearch
             if rc then
-               sayerror proc' macro added by 'uid' on 'date' was not found!'
+               sayerror proc' macro added by 'uid' on 'date' was not found.'
                top                               -- Go back to the top.
                beginline                         -- Move to beginning.
                return
@@ -594,7 +593,7 @@ compile if HOST_SUPPORT
                getline line
                if (uid = substr( line, lastpos( 'by ', line) + 3,
                                  length(uid))) then
-                  sayerror proc' macro added by 'uid' on 'date
+                  sayerror proc' macro added by 'uid' on 'date'.'
                   beginline                      -- Move to beginning.
                   return
                else
@@ -622,7 +621,7 @@ compile endif  -- HOST_SUPPORT
          if next > '' then
             fGnuGrep = 1
          else
-            fGnuGrep = GetGrepVersion( 'INIT')
+            fGnuGrep = (GetGrepVersion( 'INIT') > 0)
          endif
       endif
    endif
@@ -668,7 +667,7 @@ compile endif  -- HOST_SUPPORT
       'xcom l .   File #. -'          -- Find previous file
          setsearch oldsearch
       if rc then
-         sayerror 'No files found!'
+         sayerror 'No files found.'
          return
       else
          getline newline
@@ -696,7 +695,7 @@ compile endif  -- HOST_SUPPORT
             -- Let it be hilighted by the built-in stuff...
             'postme xcom l '\158''orig_line\158'eaf+'          /* ALT-158 is the search delim */
             if rc then
-               sayerror substr( line, 1, 60)'. . . Not Found!'
+               sayerror substr( line, 1, 60)'. . . Not Found.'
             endif
          endif
          return
@@ -763,9 +762,39 @@ compile endif  -- HOST_SUPPORT
       -- convert slashes to backslashes
       Spec = translate( Spec, '\', '/')
 
-      -- parse at trailing ':' and maybe appended linenum
---> Todo: interpret ':' always as separator, unless it is followed by a '\' (done!)
--->       and use the part under the cursor (todo!)
+      -- Load URL
+      if pos( ':\\', Spec) then
+         Url = translate( Spec, '/', '\')
+         Title = 'Edit or browse URL'
+         Text  = 'Select how to open the following URL:'
+         Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+         Entry = Url
+         parse value entrybox( Title,
+                               '/~Download and Edit/Open in ~Browser/Cancel',
+                               Entry,
+                               0,
+                               240,
+                               atoi(1) || atoi(0) || atol(0) ||
+                               Text) with button 2 Url \0
+         Url = strip( Url)
+         if Url = '' then
+            -- nop
+         elseif button = \1 then
+            'Edit' Url
+            if rc <> 0 then
+               sayerror 'Error on downloading URL, rc = 'rc
+            endif
+         elseif button = \2 then
+            'StartBrowser' Url
+         else
+            rc = 1
+         endif
+         return rc
+      endif
+
+      -- Parse at trailing ':' and maybe appended linenum.
+      -- Interpret ':' always as separator, unless it is followed by a '\'.
+-->   Todo: use the part containing ':\' under the cursor
       startp = 1
       do forever
          p1 = pos( ':', Spec, startp)
@@ -827,19 +856,22 @@ compile endif  -- HOST_SUPPORT
    endif
 **/
    if fWordFound = 0 then
-      sayerror 'No filename under cursor'
+      sayerror 'No filename under cursor.'
    elseif rc <> 0 then
-      -- Todo: give a better msg using a standard OS/2 rc.
-;       sayerror 'File "'Spec'" cannot be found or loaded.'
-      if NepmdDirExists(Spec) then
+      call parse_filename( Spec)
+
+      rcx = A1FindSpecInTree( Spec, '', ShellDir)
+
+      -- Found by the last procs?
+      if NepmdFileExists( Spec) then
+         'edit "'Spec'"'
+      elseif NepmdDirExists( Spec) then
          'dir "'Spec'"'
       else
+         -- Todo: give a better msg using a standard OS/2 rc.
          sayerror 'File "'Spec'" cannot be found or loaded.'
       endif
 
-      -- Todo: search in tree and remove maybe relative path
-      -- from Spec or concatenate every path of the tree with
-      -- Spec (should be resolved by NepmdQueryFullname).
    else
       if linenum > '' & col > '' then
          'postme goto' linenum col
@@ -847,6 +879,99 @@ compile endif  -- HOST_SUPPORT
          'postme goto' linenum
       endif
    endif
+
+; ---------------------------------------------------------------------------
+defproc A1FindSpecInTree( var Spec)
+   StartDir = arg(2)
+   ShellDir = arg(3)
+   do forever
+      -- Process only if not fully qualified
+      if substr( Spec, 2, 2) = ':\' |     -- fully qualified local spec
+         substr( Spec, 1, 2) = '\\' then  -- fully qualified UNC spec
+         leave
+      endif
+
+      -- First check for Spec in dir of current file
+      ThisDir = NepmdQueryFullname( .filename'\..')
+      parse value ThisDir with 'ERROR:'rcx
+      if rcx <> '' then
+         return rcx
+      endif
+      ThisDir = strip( ThisDir, 'T', '\')
+      next = ThisDir'\'Spec
+      if Exist( ThisDir'\'Spec) then
+         Spec = next
+         leave
+      endif
+
+      -- Then check for Spec in dir of last prompt
+      if ShellDir <> '' then
+         ThisDir = ShellDir  -- was determined before
+         ThisDir = strip( ThisDir, 'T', '\')
+         next = ThisDir'\'Spec
+         if Exist( ThisDir'\'Spec) then
+            Spec = next
+            leave
+         endif
+      endif
+
+      -- Then check for Spec in StartDir
+      if StartDir <> '' then
+         next = StartDir'\'Spec
+         if Exist( StartDir'\'Spec) then
+            Spec = next
+            leave
+         endif
+      else
+         StartDir = ThisDir
+      endif
+
+      -- Search in tree and remove maybe relative path from Spec
+      lp = lastpos( '\', Spec)
+      SpecName = substr( Spec, lp + 1)
+
+      Dir = A1SelectTreeDir( StartDir, SpecName)
+      sayerror 'Dir = 'Dir
+      if Dir = '' then
+         return 13
+      endif
+
+      getfileid curfid
+      'tree 'strip( Dir, 't', '\')'\'SpecName
+      getfileid treefid
+      if treefid <> curfid then
+         -- file(s) found
+         stop
+      endif
+
+      leave
+   enddo
+   return 0
+
+; ---------------------------------------------------------------------------
+defproc A1SelectTreeDir
+   Entry = arg(1)
+   SpecName = arg(2)
+   Title = 'Find file "'SpecName'" in tree'
+   Text  = 'Start in directory:'
+   Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+   parse value entrybox( Title,
+                         '/~Ok/Change to ~work dir/Cancel',
+                         Entry,
+                         0,
+                         240,
+                         atoi(1) || atoi(0) || atol(0) ||
+                         Text) with button 2 Dir \0
+   Dir = strip( Dir)
+   if button = \1 then
+      return Dir
+   elseif button = \2 then
+      Dir = A1SelectTreeDir( directory(), SpecName)
+      return Dir
+   else
+      return
+   endif
+
 
 ; ---------------------------------------------------------------------------
 ; Sets rc > 0 for a standard error code, rc < 0 for an ETK error code, set
@@ -868,6 +993,8 @@ defproc a1load( FileName, SearchPath)
       'edit "'FileName'"'
 
    else
+      call parse_filename( FileName)
+
       -- Every check for existing names returns always 0 for wildcards in name.
       -- Currently NepmdFileExists, NepmdDirExists and Exist suppress a following
       -- sayerror going to the MsgLine, but it's written to the MsgBox. Any
