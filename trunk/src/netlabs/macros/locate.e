@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.26 2006-10-29 23:33:37 aschn Exp $
+* $Id: locate.e,v 1.27 2006-12-10 11:01:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,6 +23,49 @@
 ; display -8 ==> messages go only to the msg line, not to the msg box.
 ; display 8  ==> reenables messages from a previous display -8
 ; The rest is documented in epmtech.inf.
+
+; ---------------------------------------------------------------------------
+
+compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
+define INCLUDING_FILE = 'LOCATE.E'
+
+const
+   tryinclude 'MYCNF.E'        -- the user's configuration customizations.
+
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
+ compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+const
+compile if not defined(LOCATE_CIRCLE_STYLE)
+   --LOCATE_CIRCLE_STYLE = 1  -- changed by aschn
+   LOCATE_CIRCLE_STYLE = 5         -- (1)     filled oval
+compile endif
+compile if not defined(LOCATE_CIRCLE_COLOR1)
+   --LOCATE_CIRCLE_COLOR1 = 16777220  -- changed by aschn
+   LOCATE_CIRCLE_COLOR1 = 16777231 -- (16777220) complementary
+compile endif
+compile if not defined(LOCATE_CIRCLE_COLOR2)
+   -- for styles 2 and 4 only
+   --LOCATE_CIRCLE_COLOR2 = 16777218  -- changed by aschn
+   LOCATE_CIRCLE_COLOR2 = 16777216 -- (16777218) complementary
+compile endif
+compile if not defined(HIGHLIGHT_COLOR)
+   HIGHLIGHT_COLOR = 14            --         This must be set to enable circle colors
+compile endif
+
+const
+ compile if not defined(NLS_LANGUAGE)
+   NLS_LANGUAGE = 'ENGLISH'
+ compile endif
+   include NLS_LANGUAGE'.e'
+   include 'stdconst.e'
+
+   EA_comment 'This defines macros for saerch operations.'
+compile endif
 
 ; ---------------------------------------------------------------------------
 definit
@@ -743,8 +786,44 @@ defproc GetSearchDirection
 ;    Doesn't produce an error msg anymore if oldsearch = empty.
 defc ToggleSearchDirection
    universal lastsearchargs
+   universal default_search_options
+
+   args = lastsearchargs
+   s_delim = substr( args, 1, 1)  -- get 1st delimiter
+   parse value args with (s_delim)s_search_string(s_delim)s_user_options
+   s_user_options = strip( s_user_options, 'T', s_delim)
+
+   -- Analyze only last search options, not last change options
+   Minuspos = lastpos( '-', default_search_options''s_user_options)
+   Pluspos  = lastpos( '+', default_search_options''s_user_options)
+
+   -- Append +F or -R
+   if Minuspos > Pluspos then  -- in searchoptions: the last option wins
+      'SearchDirection F'
+      sayerror 'Changed search direction to: forward.'
+   else
+      'SearchDirection R'
+      sayerror 'Changed search direction to: backward.'
+   endif
+
+; ---------------------------------------------------------------------------
+; Set SearchDirection to foreward (arg = 'F' or '+') or backward (arg = 'R'
+; or '-').
+defc SearchDirection
+   universal lastsearchargs
    universal lastchangeargs
    universal default_search_options
+
+   if arg(1) = '' then
+      return
+   endif
+   if arg(1) = '+' then
+      Direction = 'F'
+   elseif arg(1) = '-' then
+      Direction = 'R'
+   else
+      Direction = upcase( arg(1))
+   endif
 
    args = lastsearchargs
    s_delim = substr( args, 1, 1)  -- get 1st delimiter
@@ -755,10 +834,6 @@ defc ToggleSearchDirection
    c_delim = substr( args, 1, 1)  -- get 1st delimiter
    parse value args with (c_delim)c_search_string(c_delim)c_replace_string(c_delim)c_user_options
    c_user_options = strip( c_user_options, 'T', c_delim)
-
-   -- Analyze only last search options, not last change options
-   Minuspos = lastpos( '-', default_search_options''s_user_options)
-   Pluspos  = lastpos( '+', default_search_options''s_user_options)
 
    -- Remove every ( |+|-|F|R) from user_options
    --    Note: translate doesn't allow '' as 4th parameter (pad).
@@ -780,14 +855,12 @@ defc ToggleSearchDirection
    enddo
 
    -- Append +F or -R
-   if Minuspos > Pluspos then  -- in searchoptions: the last option wins
+   if Direction = 'F' then
       s_user_options = s_user_options'+F'
       c_user_options = c_user_options'+F'
-      sayerror 'Changed search direction to: forward.'
-   else
+   elseif Direction = 'R' then
       s_user_options = s_user_options'-R'
       c_user_options = c_user_options'-R'
-      sayerror 'Changed search direction to: backward.'
    endif
    lastsearchargs = s_delim''s_search_string''s_delim''s_user_options
    lastchangeargs = c_delim''c_search_string''c_delim''c_replace_string''c_delim''c_user_options
@@ -923,32 +996,30 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 ; Determine version of grep.exe. Returns:
-; 0  Ralph Yozzo's version of grep (can be found in CSTEPM package)
-; 1  Gnu grep or any other version
-; 2  error: file not found
+; 0   Ralph Yozzo's version of grep (can be found in CSTEPM package)
+; 1   Gnu grep or any other version if Gnu grep version number n could not
+;     be determined
+; n   if Gnu grep version number n could be determined, something like 2.5a
+; -1  error: file not found
 defproc GetGrepVersion
    universal nepmd_hini
-;   universal grep_version_determined
    fInit = upcase( arg(1)) = 'INIT'
 
-   -- Get fGnu, Size, Time from ini
+   -- Get GrepVersion, Size, Time from ini
    KeyPath = '\NEPMD\User\GrepVersion'
    next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   parse value next with fLastGnu \1 LastSize \1 LastTime \1
+   parse value next with LastGrepVersion \1 LastSize \1 LastTime \1
 
    -- Default values
    Size = ''
    Time = ''
    File = ''
-   if (fLastGnu = 0 | fLastGnu = 1) then
-      fGnu = fLastGnu
+   if (LastGrepVersion = 0 | LastGrepVersion > 1) then  -- old format only returned 0 or 1
+      GrepVersion = LastGrepVersion
    else
       fInit = 1
-      fGnu = 1
+      GrepVersion = ''
    endif
-;   if grep_version_determined <> 1 then
-;      fInit = 1
-;   endif
 
    do i = 1 to 1
       if not fInit then
@@ -958,13 +1029,13 @@ defproc GetGrepVersion
       if substr( GREP_EXE, 2, 2) = ':\' | substr( GREP_EXE, 1, 2) = '\\' then
          File = GREP_EXE
          if Exist( File) then
-            return 2  -- File not found
+            return -1  -- File not found
          endif
       else
          -- Find grep.exe in path
          findfile File, GREP_EXE, 'PATH', 'P'
          if File = '' then
-            return 2  -- File not found
+            return -1  -- File not found
          endif
       endif
 
@@ -979,12 +1050,15 @@ defproc GetGrepVersion
       if rc > '' then
          leave
       endif
-      -- sayerror '1: 'fInit'-"'File'"-'fLastGnu'-'Size'-'Time
+      --sayerror '1: 'fInit'-"'File'"-'LastGrepVersion'-'Size'-'Time
 
-;      grep_version_determined = 1
       -- Compare Size and Time
       if Size = LastSize & Time = LastTime then
-         leave
+         -- Force to rewrite the ini string if GrepVersion = 1, because the old
+         -- format knew only 0 or 1
+         if LastGrepVersion <> 1 & isnum( leftstr( LastGrepVersion, 1)) then
+            leave
+         endif
       endif
 
       -- Different. Determine GnuFlag
@@ -1010,20 +1084,29 @@ defproc GetGrepVersion
          rc = e_rc
          leave
       endif
-      if textline(1) = RyString then
-         fGnu = 0
+      line = textline(1)
+      if line = RyString then
+         GrepVersion = 0
       else
-         fGnu = 1
+         parse value strip( lowcase( line)) with 'grep' rest
+         rest = strip( rest)
+         if leftstr( rest, 1) = '(' then
+            parse value rest with '(' next ')' rest
+         endif
+         GrepVersion = word( rest, 1)
+         if GrepVersion = '' then
+            GrepVersion = 1
+         endif
       endif
       'xcom quit'
       call EraseTemp( TmpFile)
-      -- Write fGnu, Size, Time to ini
-      KeyValue = fGnu\1''Size\1''Time\1
+      -- Write GrepVersion, Size, Time to ini
+      KeyValue = GrepVersion\1''Size\1''Time\1
       next = NepmdWriteConfigValue( nepmd_hini, KeyPath, KeyValue)
-      --sayerror '2: 'fInit'-"'File'"-'fGnu'-'Size'-'Time
+      --sayerror '2: 'fInit'-"'File'"-'GrepVersion'-'Size'-'Time
    enddo
-   --sayerror fInit'-'fGnu
-   return fGnu
+   --sayerror fInit'-'GrepVersion
+   return GrepVersion
 
 ; ---------------------------------------------------------------------------
 ; From EPMSMP\GREP.E
@@ -1037,12 +1120,12 @@ defproc GetGrepVersion
 ; If no grepoptions where specified, the defaultgrepopt are submitted to grep.
 ; Works with Gnu grep or Ralph Yozzo's grep (contained e.g. in CSTEPM).
 defc Grep
-   fGnu = GetGrepVersion( 'INIT')
-   if fGnu = 2 then
+   GrepVersion = GetGrepVersion( 'INIT')
+   if GrepVersion = -1 then
       sayerror 'Error: 'GREP_EXE' not found in PATH.'
       rc = 2
    else
-      rc = callgrep( fGnu, arg(1))
+      rc = callgrep( GrepVersion, arg(1))
    endif
 ;   sayerror 'rc from defc Grep = 'rc
 
@@ -1050,17 +1133,17 @@ defc Grep
 ; For use as menu item.
 defc GrepBox
    next = arg(1)
-   if next = 0 | next = 1 then
-      fGnu = next
+   if next > '' then
+      GrepVersion = next
    else
-      fGnu = GetGrepVersion( 'INIT')
-      if fGnu = 2 then
+      GrepVersion = GetGrepVersion( 'INIT')
+      if GrepVersion = -1 then
          sayerror 'Error: 'GREP_EXE' not found in PATH.'
          return 2
       endif
    endif
    -- Options:
-   if fGnu then
+   if GrepVersion > 0 then
       DefaultGrepOpt = GNU_GREP_OPTIONS
    else
       DefaultGrepOpt = RY_GREP_OPTIONS
@@ -1081,29 +1164,29 @@ defc GrepBox
                          Text) with Button 2 NewValue \0
    NewValue = strip(NewValue)
    if Button = \1 then
-      rc = CallGrep( fGnu, NewValue)
+      rc = CallGrep( GrepVersion, NewValue)
       return 2
    elseif Button = \2 then
       return
    elseif Button = \3 then
       -- Show help
-      if fGnu then
+      if GrepVersion > 0 then
          GrepArgs = '--help'
       else
          GrepArgs = ''
       endif
-      --call CallGrep( fGnu, GrepArgs)  -- opens too late
+      --call CallGrep( GrepVersion, GrepArgs)  -- opens too late
       "Open 'Grep "GrepArgs"'"  -- use an extra window to show Grep's help
-      'postme GrepBox' fGnu
+      'postme GrepBox' GrepVersion
    endif
 
 ; ---------------------------------------------------------------------------
-; Syntax: callgrep( fGnu[, GrepArgs[, fVerbose]])
+; Syntax: callgrep( GrepVersion[, GrepArgs[, fVerbose]])
 ; If GrepArgs doesnot contain options, the default options, either
-; GNU_GREP_OPTIONS or RY_GREP_OPTIONS, depending on fGnu are prepended to
-; GrepArgs.
+; GNU_GREP_OPTIONS or RY_GREP_OPTIONS, depending on GrepVersion are prepended
+; to GrepArgs.
 defproc CallGrep
-   fGnu = (arg(1) = 1)
+   GrepVersion = arg(1)
    if arg(3) = '' then
       fVerbose = 1
    else
@@ -1111,7 +1194,7 @@ defproc CallGrep
    endif
 
    -- Options:
-   if fGnu then
+   if GrepVersion > 0 then
       defaultgrepopt = GNU_GREP_OPTIONS
    else
       defaultgrepopt = RY_GREP_OPTIONS
@@ -1121,7 +1204,7 @@ defproc CallGrep
    grepargs = arg(2)
    -- Parse options, if user specified any
    grepopt  = ''
-   if fGnu then
+   if GrepVersion > 0 then
       optdelim = '-'
    else
       optdelim = '-/'
@@ -1143,7 +1226,7 @@ defproc CallGrep
       if fVerbose then
          sayerror 'Scanning files...'
       endif
-   elseif fGnu then
+   elseif GrepVersion > 0 then
       -- Show Gnu help
       grepargs = '--help'
    else
@@ -1151,33 +1234,38 @@ defproc CallGrep
       grepargs = ''
    endif
 
-   rc = redirect_grep( fGnu, GREP_EXE, grepargs, directory())
-
+   greprc = redirect_grep( GrepVersion, GREP_EXE, grepargs, directory())
    if words( grepargs) < 2 then
       sayerror 'Syntax: grep [options] pattern filemask  (default options = 'defaultgrepopt')'
+   elseif greprc <> 0 then
+
    elseif fVerbose then
       display -8  -- Messages go to the messageline only, they were not saved
       sayerror ALT_1_LOAD__MSG
       display 8
    endif
+   rc = greprc
    return rc
    --display 8
 
 ; ---------------------------------------------------------------------------
 ; Added directory line in Gnu grep's output for ALt_1.
-defproc redirect_grep( fGnu, Cmd)
+defproc redirect_grep( GrepVersion, Cmd)
    universal vTEMP_PATH
    outfile = vTEMP_PATH'grep____.out'
 
    quietshell Cmd arg(3) '>'outfile '2>&1'
+   cmdrc = rc
+   -- sets rc >= 1 on application error, rc < 0 on E error, otherwise rc = 0
+
+   if cmdrc = sayerror( 'Insufficient memory') or
+      cmdrc = sayerror( 'File Not found') then
+      stop
+   endif
 
    CurDir = arg(4)
    if arg(4) = '' then
       CurDir = directory()
-   endif
-   if rc = sayerror( 'Insufficient memory') or
-      rc = sayerror( 'File Not found') then
-      stop
    endif
 
    'edit' outfile
@@ -1188,19 +1276,32 @@ defproc redirect_grep( fGnu, Cmd)
       return rc
    endif
 
+   rc = cmdrc
    .autosave = 0
    .filename = '.Output from grep' arg(3)
+
+   if .last > 0 then
+      next = textline(1)
+   else
+      next = ''
+   endif
+   if leftstr( next, 3) = 'SYS' then
+      -- Check for DLL not found errors
+      -- SYS1804: Datei REGEX kann nicht gefunden werden.
+      parse value next with 'SYS'rc':' .
+      sayerror next
+   endif
 
    -- If current path is searched only, Gnu grep won't output the files' pathes.
    -- Additionally, the string "Current directory = " works now as markup for
    -- the following Alt+1 command to determine the grep version easily.
-   if fGnu then
+   if GrepVersion > 0 then
       insertline 'Current directory = 'CurDir
    endif
 
    .modify = 0
-   call erasetemp(outfile)
-   return 0
+   call erasetemp( outfile)
+   return rc
 
 ; ---------------------------------------------------------------------------
 ; Search all NEPMD E macros for a string
