@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: hooks.e,v 1.10 2006-06-18 20:23:11 aschn Exp $
+* $Id: hooks.e,v 1.11 2006-12-10 09:43:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -54,6 +54,10 @@
 ; -  afterselect      usually contains ProcessRefreshInfoLine
 ; -  modify           executed at every defmodify event
 ; -  modifyonce       executed once at every defmodify event
+; -  save             executed before a file is saved
+; -  saveonce         executed once before a file is saved
+; -  aftersave        executed after a file is saved
+; -  aftersaveonce    executed once after a file is saved
 ; -  quit             executed before a file is quit
 ; -  quitonce         executed once before a file is quit
 ; -  addmenu          executed by loaddefaultmenu, when the menu is built,
@@ -69,8 +73,9 @@
 ; file. If your stuff sticks, better use the 'load' hook to avoid loss
 ; of performance and stability.
 ;
-; Other events (definit, defselect, defmodify, defexit) are extendable
-; properly, so no hooks are required therefore.
+; Some events (definit, defselect, defmodify, defexit) are extendable
+; properly, so no hooks are required therefore. But hooks were added for
+; them to make them configurable from EPM REXX.
 ;
 ; Note: Settings executed at defload don't require additional refreshs if
 ;       field vars for these settings exist. They stick with the file. All
@@ -93,7 +98,7 @@
 ;                 toolbar   --> No array var exists. Create a new array var
 ;                               toolbar.<fileid> and use 'HookAdd load' to
 ;                               prepare the creation of the array var holding
-;                               the mode or extension specific name of a
+;                               the mode- or extension-specific name of a
 ;                               toolbar. The hook will be executed at
 ;                               defload and this will save the toolbar name.
 ;                               As a 2nd step, at every defselect the array
@@ -346,6 +351,24 @@ defproc HookIsDefined
    return (num > 0)
 
 ; ---------------------------------------------------------------------------
+; Returns value of specified HookName
+; Syntax: HookGet <HookName>
+defproc HookGet
+   universal EPM_utility_array_ID
+   prefix = 'hook.'
+   parse arg HookName
+   HookName = strip( lowcase(HookName))
+   next = ''
+   if not get_array_value( EPM_utility_array_ID, prefix''HookName'.0', imax) then  -- if imax set
+      next = '|'
+      do i = 1 to imax
+         rc = get_array_value( EPM_utility_array_ID, prefix''HookName'.'i, Cmd)
+         next = next''Cmd'|'
+      enddo
+   endif
+   return next
+
+; ---------------------------------------------------------------------------
 ; Shows all entries
 ; Syntax: HookShow <HookName>
 defc HookShow
@@ -363,6 +386,50 @@ defc HookShow
    sayerror HookName' = 'next
    return
 
+
+; ---------------------------------------------------------------------------
+defc HookShowAll
+   HookList = 'init main load loadonce afterload afterloadonce afterload2once' ||
+               ' select selectonce afterselect modify modifyonce' ||
+               ' save saveonce aftersave aftersaveonce quit quitonce' ||
+               ' addmenu cascademenu'
+   TmpFileName = '.HOOK_ARRAY_VARS'
+   getfileid startfid
+   display -3
+   if pfile_exists(TmpFileName) then
+      'xcom e /n' TmpFileName   -- activate tmp file
+   else
+      'xcom e /c' TmpFileName   -- create tmp file
+      if rc <> -282 then  -- NEW_FILE_RC
+         activatefile startfid
+         return 1
+      endif
+      deleteline                -- delete first line (EPM automatically creates line 1)
+   endif
+   savedlast = .last
+   .autosave = 0
+   parse value getdatetime() with Hour24 Minutes Seconds . Day MonthNum Year0 Year1 .
+   Date = rightstr(Year0 + 256*Year1, 4, 0)'-'rightstr(monthnum, 2, 0)'-'rightstr(Day, 2, 0)
+   Time = rightstr(hour24, 2)':'rightstr(Minutes,2,'0')':'rightstr(Seconds,2,'0')
+   insertline copies('-', 78), .last + 1
+   insertline 'Hook array vars - created on 'Date' 'Time, .last + 1
+   -- First, find longest hook name
+   len = 0
+   do w = 1 to words( HookList)
+      wrd = word( HookList, w)
+      len = max( length( wrd), len)
+   enddo
+   -- Next, write var = value lines
+   do w = 1 to words( HookList)
+      wrd = word( HookList, w)
+      line = leftstr( wrd, len)' = 'HookGet( wrd)
+      insertline line, .last + 1
+   enddo
+   insertline '', .last + 1
+   .modify = 0
+   .line = savedlast + 1
+   display 3
+   return 0
 
 ; ---------------------------------------------------------------------------
 ; Some useful commands, that can be used as parameters for program objects
@@ -396,20 +463,27 @@ defc AtNextLoad
 ; ---------------------------------------------------------------------------
 ; Syntax: AtStartup <UserCmd>
 ; <UserCmd> is executed after the EPM window was opened and after all load
+; actions are processed. If the EPM window was already open, <UserCmd> is
+; executed as well after all load actions are finished, at the first
+; defselect event after loading.
+defc AtPostLoad
+   'HookAdd afterload' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtNextPostLoad <UserCmd>
+; <UserCmd> is executed after the EPM window was opened and after all load
 ; actions are processed. After execution, the hook is deleted, so that it's
 ; executed at the first defselect event only.
-defc AtStartup
-   --'HookAdd selectonce postme' arg(1)
+defc AtStartup, AtNextPostLoad
    'HookAdd afterloadonce' arg(1)
 
 ; ---------------------------------------------------------------------------
-; Syntax: AtPostStartup <UserCmd>
+; Syntax: AtNextPostStartup <UserCmd>
 ; <UserCmd> is posted after the EPM window was opened and after all load
 ; actions are processed. Before execution, the screen is refreshed to ensure
 ; that all pending paintings are done. After execution, the hook is deleted,
-; so that it's executed at the first defselect event only.
-defc AtPostStartup
-   --'HookAdd selectonce postme' arg(1)
+; so that it's posted at the first defselect event only.
+defc AtPostStartup, AtNextPostPostLoad
    'HookAdd afterload2once' arg(1)
 
 ; ---------------------------------------------------------------------------
@@ -419,14 +493,69 @@ defc AtSelect
    'HookAdd select' arg(1)
 
 ; ---------------------------------------------------------------------------
+; Syntax: AtNextSelect <UserCmd>
+; <UserCmd> is executed at the end of the next defselect event.
+defc AtNextSelect
+   'HookAdd selectonce' arg(1)
+
+; ---------------------------------------------------------------------------
 ; Syntax: AtModify <UserCmd>
 ; <UserCmd> is executed at every defmodify event.
 defc AtModify
    'HookAdd modify' arg(1)
 
 ; ---------------------------------------------------------------------------
+; Syntax: AtNextModify <UserCmd>
+; <UserCmd> is executed at the next defmodify event only.
+defc AtNextModify
+   'HookAdd modifyonce' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtSave <UserCmd>
+; <UserCmd> is executed before a file is saved.
+defc AtSave
+   'HookAdd save' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtNextSave <UserCmd>
+; <UserCmd> is executed once before a file is saved.
+defc AtNextSave
+   'HookAdd saveonce' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtPostSave <UserCmd>
+; <UserCmd> is executed after a file is saved.
+defc AtPostSave
+   'HookAdd aftersave' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtNextPostSave <UserCmd>
+; <UserCmd> is executed once after a file is saved.
+defc AtNextPostSave
+   'HookAdd aftersaveonce' arg(1)
+
+; ---------------------------------------------------------------------------
 ; Syntax: AtQuit <UserCmd>
 ; <UserCmd> is executed before a file is quit.
 defc AtQuit
    'HookAdd quit' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtNextQuit <UserCmd>
+; <UserCmd> is executed once before a file is quit.
+defc AtNextQuit
+   'HookAdd quitonce' arg(1)
+
+; ---------------------------------------------------------------------------
+; Syntax: AtMenuLoad <UserCmd>
+; <UserCmd> is executed during menu loading, beforing the help menu is added.
+defc AtMenuLoad
+   'HookAdd addmenu' arg(1)
+
+; ---------------------------------------------------------------------------
+-- Todo: add this to other menus as well.
+; Syntax: AtCascadeMenuLoad <UserCmd>
+; <UserCmd> is executed during menu loading, beforing the help menu is added.
+defc AtCascadeMenuLoad
+   'HookAdd cascademenu' arg(1)
 

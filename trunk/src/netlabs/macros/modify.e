@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modify.e,v 1.7 2005-11-24 01:36:24 aschn Exp $
+* $Id: modify.e,v 1.8 2006-12-10 09:43:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -80,7 +80,7 @@ compile if INCLUDE_BMS_SUPPORT
    endif
 compile endif
    'HookExecute modify'
-   'HookExecute modifyonce'
+   'HookExecuteOnce modifyonce'
 
 
 ; Other used defmodifies, so far:
