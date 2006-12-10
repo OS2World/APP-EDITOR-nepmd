@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.24 2006-10-04 21:24:45 aschn Exp $
+* $Id: stdcmds.e,v 1.25 2006-12-10 11:38:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -275,6 +275,33 @@ defc key
       endif
    endif
    sayerror 0
+
+; Like Key, but a command instead of a key must be specified.
+defc DoCmd, DoCommand
+   parse value arg(1) with Num Cmd
+   Num = strip( Num)
+   Cmd = strip( Cmd)
+   if upcase( Num) = 'RC' then
+      til_rc = 1
+   else
+      til_rc = 0
+      if not isnum( Num) then
+         Num = 1
+         Cmd = strip( arg(1))
+      endif
+   endif
+   if til_rc then
+      do forever
+         Cmd
+         if rc then
+            leave
+         endif
+      end
+   else
+      for i = 1 to Num
+         Cmd
+      endfor
+   endif
 
 ; Moved defc l, locate to LOCATE.E
 ; Moved defc list, findfile, filefind to DOSUTIL.E
