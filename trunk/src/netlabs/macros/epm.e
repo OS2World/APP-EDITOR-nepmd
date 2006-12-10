@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.36 2006-03-29 23:54:02 aschn Exp $
+* $Id: epm.e,v 1.37 2006-12-10 11:33:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,7 @@ compile endif
 
 include        'stdcnf.e'      -- Standard configuration; shouldn't be modified.
                                -- Set consts if not already set, DEFINIT: set universal vars
-                               -- and link separately compiled packages if their consts = 'LINK'
+                               -- and link separately compiled packages
 
 include        'menuhelp.h'
 
@@ -85,7 +85,7 @@ compile if not VANILLA
 compile endif  -- not VANILLA
 include        'modify.e'      -- New defmodify event processor.
 
-include        'keys.e'        -- Definitions for key combinations
+include        'keys.e'        -- Definitions for key bindings
 
 include        STDKEYS_NAME'.e'  -- Key bindings
 
@@ -120,8 +120,8 @@ compile endif
 
 include        'edit.e'        -- Edit commands, must come after E3EMUL.E if activated.
 include        'mode.e'        -- Mode selection and basic mode defs
-include        'modecnf.e'     -- Definitions for mode dependent settings
-include        'modeexec.e'    -- Definitions for user-configurable mode dependent settings
+include        'modecnf.e'     -- Definitions for mode-dependent settings
+include        'modeexec.e'    -- Definitions for user-configurable mode-dependent settings
 
 include        'stdcmds.e'     -- Standard commands (DEFC's).
                                -- (Edit cmd uses variables defined in host routines.)
@@ -150,10 +150,7 @@ include        'comment.e'     -- Comment and uncomment marked lines
 
 include        'wrap.e'        -- Wrap and unwrap lines
 
------------------------> Todo: always implicitly link draw, remove drawkey
-include        'drawkey.e'     -- If you still want F6=Draw in linking version.
-
-include        'linkcmds.e'    -- Useful new commands for the linking version.
+include        'linkcmds.e'
 
 include        'autolink.e'    -- Link all .ex files found in <UserDir>\autolink
 
