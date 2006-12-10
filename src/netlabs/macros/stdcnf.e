@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.36 2006-10-14 23:36:27 aschn Exp $
+* $Id: stdcnf.e,v 1.37 2006-12-10 18:25:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -37,7 +37,7 @@ compile if not defined(BACKUP_PATH)
    BACKUP_PATH = ''
 compile endif
 
--- Set help filename
+-- Set filename for defc Help = Help -> Quick reference
 compile if not defined(HELPFILENAME)
    HELPFILENAME='epmhelp.qhl'
 compile endif
@@ -117,22 +117,6 @@ compile if not defined(C_ENTER_ACTION)
 compile endif
 
 
--- Ver.3.09:  Set this to 1 if you want the FILE key to quit rather than
--- save the file if the file was not modified.  Has the side effect that
--- the Name command sets .modify to 1.
-compile if not defined(SMARTFILE)
-   --SMARTFILE = 0  -- changed by aschn
-   SMARTFILE = 1
-compile endif
-
--- Set this to 1 if you want the Save key to prompt you if the file was not
--- modified.  the side effect that
-compile if not defined(SMARTSAVE)
-   --SMARTSAVE = 0  -- changed by aschn
-   SMARTSAVE = 1
-compile endif
-
-
 -- This is used as the decimal point in MATH.E.  Some users might prefer to
 -- use a comma.  Not used in DOS version, which only allows integers.
 compile if not defined(DECIMAL)
@@ -146,32 +130,18 @@ compile endif
  compile endif
 
 
--- Lets you quit temporary files regardless of the state of the .modify bit.
--- Temporary files are assumed to be any file where the first character of the
--- .filename is a period.  If set to 1, you won't get the "Throw away changes?"
--- prompt when trying to quit one of these files.
-compile if not defined(TRASH_TEMP_FILES)
-   TRASH_TEMP_FILES = 0
-compile endif
+;-- Lets you quit temporary files regardless of the state of the .modify bit.
+;-- Temporary files are assumed to be any file where the first character of the
+;-- .filename is a period.  If set to 1, you won't get the "Throw away changes?"
+;-- prompt when trying to quit one of these files.
+;compile if not defined(TRASH_TEMP_FILES)
+;   TRASH_TEMP_FILES = 0
+;compile endif
 
 -- This provides a simple way to omit all user includes, for problem resolution.
 -- If you set VANILLA to 1 in MYCNF.E, then no MY*.E files will be included.
 compile if not defined(VANILLA)
    VANILLA = 0
-compile endif
-
-
--- Specify a string to be written whenever a new EPM command shell window
--- is opened.  Normally a prompt command, but can be anything.  If the
--- string is one of the ones shown below, then the Enter key can be used
--- to do a write-to-shell of the text following the prompt, and a listbox
--- can be generated showing all the commands which were entered in the
--- current shell window.  If a different prompt is used, EPM won't know
--- how to parse the line to distinguish between the prompt and the command
--- that follows, so those features will be omitted.
-compile if not defined(EPM_SHELL_PROMPT)
-   EPM_SHELL_PROMPT = '@prompt epm: $p $g '
-;; EPM_SHELL_PROMPT = '@prompt [epm: $p ] '  -- Also supported
 compile endif
 
 -- Normally, when you shift a mark left or right, text to the right of the
@@ -282,26 +252,6 @@ compile if not defined(INCLUDE_BMS_SUPPORT)
    INCLUDE_BMS_SUPPORT = 0
 compile endif
 
-; Colors --------------------------------------------------------------------
-; #### Todo: move to LOCATE.E or replace ####################################
-compile if not defined(LOCATE_CIRCLE_STYLE)
-   --LOCATE_CIRCLE_STYLE = 1  -- changed by aschn
-   LOCATE_CIRCLE_STYLE = 5         -- (1)     filled oval
-compile endif
-compile if not defined(LOCATE_CIRCLE_COLOR1)
-   --LOCATE_CIRCLE_COLOR1 = 16777220  -- changed by aschn
-   LOCATE_CIRCLE_COLOR1 = 16777231 -- (16777220) complementary
-compile endif
-compile if not defined(LOCATE_CIRCLE_COLOR2)
-   -- for styles 2 and 4 only
-   --LOCATE_CIRCLE_COLOR2 = 16777218  -- changed by aschn
-   LOCATE_CIRCLE_COLOR2 = 16777216 -- (16777218) complementary
-compile endif
-compile if not defined(HIGHLIGHT_COLOR)
-   HIGHLIGHT_COLOR = 14            --         This must be set to enable circle colors
-compile endif
-
-
 -- Allow pressing tab in insert mode to insert spaces to next tab stop in
 -- line mode as well as in stream mode.
 compile if not defined(WANT_TAB_INSERTION_TO_SPACE)
@@ -310,22 +260,22 @@ compile if not defined(WANT_TAB_INSERTION_TO_SPACE)
 compile endif
 
 
--- Use the normal-sized or the tiny icons for the built-in toolbar?
-compile if not defined(WANT_TINY_ICONS)
-   WANT_TINY_ICONS = 0
-compile endif
+;-- Use the normal-sized or the tiny icons for the built-in toolbar?
+;compile if not defined(WANT_TINY_ICONS)
+;   WANT_TINY_ICONS = 0
+;compile endif
 
 
--- Respect the Scroll lock key?  If set to 1, Shift+F1 - Shift+F4 must not be
--- redefined.  (The cursor keys execute those keys directly, in order to
--- avoid duplicating code.)  Note that setting this flag turns off the internal
--- cursor key handling, so if WANT_CUA_MARKING = 'SWITCH',
--- WANT_STREAM_EDITING = 'SWITCH', and RESPECT_SCROLL_LOCK = 1, cursor movement
--- might be unacceptably slow.
-compile if not defined(RESPECT_SCROLL_LOCK)
-   --RESPECT_SCROLL_LOCK = 0  -- changed by aschn
-   RESPECT_SCROLL_LOCK = 1
-compile endif
+;-- Respect the Scroll lock key?  If set to 1, Shift+F1 - Shift+F4 must not be
+;-- redefined.  (The cursor keys execute those keys directly, in order to
+;-- avoid duplicating code.)  Note that setting this flag turns off the internal
+;-- cursor key handling, so if WANT_CUA_MARKING = 'SWITCH',
+;-- WANT_STREAM_EDITING = 'SWITCH', and RESPECT_SCROLL_LOCK = 1, cursor movement
+;-- might be unacceptably slow.
+;compile if not defined(RESPECT_SCROLL_LOCK)
+;   --RESPECT_SCROLL_LOCK = 0  -- changed by aschn
+;   RESPECT_SCROLL_LOCK = 1
+;compile endif
 
 compile if not defined(WORD_MARK_TYPE)
    -- Bug using 'BLOCK':
@@ -344,7 +294,26 @@ compile if not defined(STDKEYS_NAME)
    STDKEYS_NAME = 'STDKEYS'  -- filename without extension '.e'
 compile endif
 
--------------------------------------------------------------------------------
+
+; ---------------------------------------------------------------------------
+; Include this in EPM.EX to workaround a bug in EPM's keyset handling:
+; .keyset = '<new_keyset>' works only, if <new_keyset> was defined in the
+; same .EX file, from where the keyset should be changed.
+; Executing 'UseKeys <new_keyset>' instead from an separately compiled
+; module (e.g. MODECNF) switches to the specified keyset.
+; In contrast to setting a keyset with the field attribute, querying it
+; always works as expected: curkeyset = .keyset
+defc UseKeys
+   .keyset = arg(1)
+
+; ---------------------------------------------------------------------------
+; Define an empty keyset for to temporarily switch to. That enables unlinking
+; of a module that defines the keyset that is currently in use.
+defkeys dummy_keys new clear
+
+def otherkeys
+   return
+
 
 ; -------- Set universal vars and init misc, depending on consts --------
 ; (Initialization based on ini file values is made by InitConfig, defined
@@ -384,6 +353,7 @@ compile endif
    universal tab_key
 
    CurMenu = ''
+   nepmd_hini = ''
 ;  -- Link the NEPMD library. Open a MessageBox if .ex file not found. ------
    'linkverify nepmdlib.ex'
 
@@ -395,7 +365,8 @@ compile endif
    else
       dprintf( 'DEFINIT', 'Current ini entry: 'queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath'))
       IniFile = NepmdQueryInstValue( 'INIT')
-      if not Exist( IniFile) then
+      --if not Exist( IniFile) then
+      if not NepmdFileExists( IniFile) then
          dprintf( 'DEFINIT', 'NEPMD.INI doesnot exist')
          --fEpmIniRenamed = 1
       endif
@@ -477,9 +448,14 @@ compile endif
    do_array 2, EPM_utility_array_ID, 'bmi.0', zero    -- Index of 0 says there are no bookmarks
    do_array 2, EPM_utility_array_ID, 'si.0', zero     -- Set Style Index 0 to "no entries."
 
+;  Mode config defs ---------------------------------------------------------
+;  (Can only be linked after the array "array.EPM" was created.)
+   'linkverify modeexec.ex'  -- must be either included (in EPM.E) or linked before the menu
+   'linkverify modecnf.ex'   -- may be linked anywhere, but before processing defmain
+
 ;  Link the menu ------------------------------------------------------------
 ;  toggleframe and togglecontrol must be defined early in definit or before.
-;  Therefore NEWMENU.EX is now linked early in definit. array vars must
+;  Therefore NEWMENU.EX is now linked early in definit. Array vars must
 ;  already be usable to make the menu's definit work, which is executed
 ;  directly after linking.
    if CurMenu = '' then  -- CurMenu is only defined if NEPMDLIB is already linked
@@ -569,11 +545,11 @@ compile endif
 ;     Same as style 1, but button 1 drag = character mark rather than block.
 ;  3: A marking style of point-the-corners instead of drag-paint.
 ;     (Not done yet.)
-; will be overwritten later
+; will be overridden later
    MouseStyle = 1
 
 --------------------------------------------------------------
-   -- Will be overwritten later by ini settings, but set here as startup values
+   -- Will be overridden later by ini settings, but set here as startup values
    -- Todo: set NEPMD.INI startup values as well to keep both in sync.
    fFound = 0
 
@@ -619,7 +595,7 @@ compile endif
    addenda_filename = my_ADDENDA_FILENAME
  compile else
    --addenda_filename= 'c:\lexam\lexam.adl'
-   addenda_filename = NepmdQuerySysInfo('BOOTDRIVE')'\netscape\lexam.adl'
+   --addenda_filename = NepmdQuerySysInfo('BOOTDRIVE')'\netscape\lexam.adl'
    addenda_filename = NetscapeDicPath'user.add'
  compile endif
 
@@ -728,23 +704,30 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 
    call fixup_cursor()
 
-; -------- Link separately compiled macros if consts = 'LINK' --------
-; If the String Area Size gets too large (limited to 64 KB),
-; it could be useful to link some packages instead to include them in
-; EPM.E. To see the String Area Size in ETPM's log file, ETPM must be
-; called with /v.
+; -------- Link separately compilable modules -------------------------------
+;  Most of them were previously included in EPM.E. Linking instead of
+;  including reduces EPM.EX' String Area Size. That size has the limit of
+;  64k per EX file. At least NEPMDLIB, NEWMENU and a few others have to be
+;  linked to fall below that limit. See the output of "etpm /v epm".
+
+   -- NEWMENU.EX must be linked earlier, because the commands togglecontrol
+   -- and toggleframe are used above.
+
+   'linkverify keys'
+   --'linkverify' STDKEYS_NAME  -- link works, but the keyset is not processed
+   'linkverify file'
+   'linkverify locate'
+   'linkverify toolbar'
+   'linkverify recompile'  -- several recompile/relink/restart commands
+   'linkverify assist'     -- provides instring and inliteral defprocs as well
+   'linkverify bookmark'
+   'linkverify popup'      -- saves 4.2k in stringtable area
+   'linkverify all'        -- doesn't work reliable when being implicitely linked, so always link it
+   'linkverify epmshell'
 
 ;compile if MOUSE_SUPPORT = 'LINK'
 ;   'linkverify MOUSE'  -- doesn't work
 ;compile endif
-
-   'linkverify recompile'  -- several recompile/relink/restart commands
-
-;   'linkverify assist'  -- provides instring and inliteral defprocs as well
-
-   'linkverify bookmark'
-
-   'linkverify popup'  -- saves 4.2k in stringtable area
 
    -- The rest of initialization is done in InitConfig, called in MAIN.E.
 
@@ -752,6 +735,8 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 
 ; -------- Define commands here for the dynalink feature --------------------
 ; That avoids a link or even an include.
+; In contrast to the implicite linking, the linked EX file remains linked
+; after the command execution.
 
 defc syn       = link_exec( 'epmlex', 'syn', arg(1))
 defc proof     = link_exec( 'epmlex', 'proof', arg(1))
@@ -773,4 +758,8 @@ defc maketags    = link_exec( 'maketags', 'maketags',  arg(1))
 defc viewword = link_exec( 'kwhelp', 'viewword', arg(1))
 
 defc DictLang = link_exec( 'dict', 'DictLang', arg(1))      -- select language for dictionaries
+
+;if isadefc( 'InitModeCnf') then
+;   'InitModeCnf'
+;endif
 
