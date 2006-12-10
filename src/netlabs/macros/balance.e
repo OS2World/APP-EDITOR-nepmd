@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: balance.e,v 1.2 2004-06-29 20:51:57 aschn Exp $
+* $Id: balance.e,v 1.3 2006-12-10 11:18:32 aschn Exp $
 *
 * ===========================================================================
 *
@@ -257,7 +257,7 @@ compile if WANT_BALANCE_SHOW_SAYAT = 1
 compile else
    -- Better use highlighting instead of sayat, because the sayat marking is unstable
    x_endpos = x_pos + length(open_char) - 1
-   circleit LOCATE_CIRCLE_STYLE, y_pos, x_pos, x_endpos, LOCATE_CIRCLE_COLOR1, LOCATE_CIRCLE_COLOR2
+   'circleit 'y_pos x_pos x_endpos
 compile endif -- WANT_BALANCE_SHOW_SAYAT = 1
 
 
