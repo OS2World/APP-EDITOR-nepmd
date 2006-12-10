@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.21 2006-06-18 20:23:11 aschn Exp $
+* $Id: select.e,v 1.22 2006-12-10 09:43:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -140,7 +140,7 @@ defc ProcessAfterLoad2
 
    if DisplayDisabled then
       DisplayDisabled = 0
-      display 1  -- reenable screen updates, show the loaded files
+      display 1  -- re-enable screen updates, show the loaded files
    endif
    -- Bug to find? display 2 here would cause on defmodify the msg:
    -- Invalid third parameter, most likely coming from a do_array
@@ -155,22 +155,6 @@ defc ProcessAfterLoad2
       'postme HookExecuteOnce afterload2once'
       dprintf( 'AFTERLOAD', 'HookExecuteOnce afterload2once: 'HookGet( 'afterload2once'))
    endif
-
-; ---------------------------------------------------------------------------
-defproc HookGet
-   universal EPM_utility_array_ID
-   prefix = 'hook.'
-   parse arg HookName
-   HookName = strip( lowcase(HookName))
-   next = ''
-   if not get_array_value( EPM_utility_array_ID, prefix''HookName'.0', imax) then  -- if imax set
-      next = '|'
-      do i = 1 to imax
-         rc = get_array_value( EPM_utility_array_ID, prefix''HookName'.'i, Cmd)
-         next = next''Cmd'|'
-      enddo
-   endif
-   return next
 
 ; ---------------------------------------------------------------------------
 ; Executed by defselect
@@ -195,16 +179,16 @@ compile if LOCAL_MOUSE_SUPPORT
    -- to each file separately), it must be achieved by the use of an array var and must be
    -- switched on every defselect.
    getfileid fid
-   OldRC = Rc
-   rc = get_array_value(EPM_utility_array_ID, 'LocalMausSet.'fid, NewMSName)
-   if RC then
-      if rc=-330 then
+   OldRC = rc
+   rc = get_array_value( EPM_utility_array_ID, 'LocalMausSet.'fid, NewMSName)
+   if rc then
+      if rc = -330 then
          -- no mouseset bound to file yet, assume blank.
          LMousePrefix = TransparentMouseHandler'.'
       else
-         call messagenwait('RC='RC)
+         call messagenwait( 'RC = 'rc)
       endif
-      RC = OldRC
+      rc = OldRC
    else
       LMousePrefix = NewMSName'.'
    endif
