@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.c,v 1.35 2006-12-09 17:51:16 aschn Exp $
+* $Id: hilite.c,v 1.36 2006-12-10 12:48:46 jbs Exp $
 *
 * ===========================================================================
 *
@@ -71,6 +71,8 @@
 // default values
 #define STR_KWDSCOMMENT      "þ"
 #define STR_CASESENSITIVE    "0"
+#define MAX_INI_LINE        (_MAX_PATH)
+#define MAX_REG_PATH        (_MAX_PATH)
 
 // global string vars
 static   PSZ            pszEnvnameEpmModepath = "EPMMODEPATH";
@@ -290,7 +292,7 @@ static APIRET _getDefFileList( HMMF hmmf, PSZ pszEpmMode, ULONG ulKeywordFileDat
 {
 
          APIRET         rc = NO_ERROR;
-         PSZ            pszTmp;
+//       PSZ            pszTmp;
 
          PSZ            pszFileList = NULL;
          ULONG          ulListSize;
@@ -343,7 +345,7 @@ do
    pszKeywordDir = strtok( pszKeywordPath, ";");
    while (pszKeywordDir)
       {
-      // seatch all hilite files in that directory
+      // search all hilite files in that directory
       sprintf( szSearchMask, SEARCHMASK_HILITEFILES, pszKeywordDir, pszEpmMode);
 
       // store a filenames
@@ -688,7 +690,7 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfRel
          PSZ            pszEntry;
          PSZ            pszSymbol;
          PSZ           *ppszSymbolValue;
-         CHAR           szValue[ _MAX_PATH] = "";
+         CHAR           szValue[ MAX_INI_LINE] = "";
          CHAR           szCustomValue[ _MAX_PATH] = "";
 
          // ----------------------------------
@@ -709,7 +711,6 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfRel
 
          // ----------------------------------
 
-         ULONG          ulCaseSensitive;
          ULONG          ulInfoSize;
          BOOL           fCaseSensitive = FALSE;
 
@@ -725,7 +726,7 @@ static APIRET _assembleKeywordFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfRel
          // ----------------------------------
 
 static   PSZ            pszRegPathTemplate = "\\NEPMD\\User\\Mode\\%s\\%s";
-         CHAR           szRegPath[ _MAX_PATH] = "";
+         CHAR           szRegPath[ MAX_REG_PATH] = "";
          BOOL           fImplicitOpen = FALSE;
 
          // ----------------------------------
@@ -808,9 +809,9 @@ static   PSZ            pszHeaderMask = "\r\n%s%s\r\n";
          ULONG          ulHiliteContentsLen;
          PSZ            pszCurrent;
 
-         CHAR           szCharset[ _MAX_PATH] = "";
-         CHAR           szFileBuffer[ 2* _MAX_PATH + 1] = "";
-         CHAR           szAddFileBuffer[ _MAX_PATH] = "";
+         CHAR           szCharset[ MAX_INI_LINE] = "";
+         CHAR           szFileBuffer[ 2* MAX_INI_LINE + 1] = "";
+         CHAR           szAddFileBuffer[ MAX_INI_LINE] = "";
 
          PSZ   apszKeys[] =
          {
@@ -834,7 +835,7 @@ static   PSZ            pszHeaderMask = "\r\n%s%s\r\n";
              KEY_PREFERREDCOMMENT,           REGKEY_PREFERREDCOMMENT,         ""
          };
 
-#define NUM_KEYS     (sizeof(apszKeys)/sizeof(PSZ))
+#define NUM_KEY_ADDRESSES     (sizeof(apszKeys)/sizeof(PSZ))
 
 FUNCENTER;
 
@@ -946,25 +947,15 @@ do
    // - read customs of the mode - optional - so ignore errors here
    rc = _openInitFile( &hinitCustom, pszEnvnameEpmModepath, SEARCHMASK_CUSTOMINI, pszEpmMode,
                        szInitCustomFilename, sizeof( szInitCustomFilename));
-   if (rc == NO_ERROR)
-      {
-      // note that we found the custom ini
-      fCustomLoaded = TRUE;
-//    DPRINTF(( "CustomLoaded == TRUE\n"));
-      }
-   else
-      {
-      rc = NO_ERROR;
-      }
-// DPRINTF(("Custom Filename: '%s'\n", szInitCustomFilename));
-   for (i = 0; i < NUM_KEYS; i += 3)
+   rc = NO_ERROR;                         // Disregard errors on custom file
+   for ( i = 0; i < NUM_KEY_ADDRESSES; i += 3)
       {
       PSZ pszDefaultValue;
       szFileBuffer[0] = '\0';
-      if (fCustomLoaded)
+      if (hinitCustom)
          {
          QUERYOPTINITVALUE( hinitCustom, pszGlobalSection, apszKeys[i], szFileBuffer,    "");
-//       DPRINTF(( "Custom. Key '%s' Value '%s'\n", apszKeys, szFileBuffer));
+//       DPRINTF(( "Custom. File %s Key '%s' Value '%s'\n", szInitCustomFilename, apszKeys[i], szFileBuffer));
          if (*(apszKeys[i+2]))
             {
             szAddFileBuffer[0] = '\0';
@@ -1009,14 +1000,13 @@ do
             }
          }
       sprintf( szRegPath, pszRegPathTemplate, pszEpmMode, apszKeys[i+1]);
-//      DPRINTF(( "Regpath. Key '%s' Full path '%s'\n", apszKeys[i+1], szRegPath));
+//    DPRINTF(( "Regpath. Key '%s' Full path '%s'\n", apszKeys[i+1], szRegPath));
       rc = WriteConfigValue( hconfig, szRegPath, szFileBuffer);
-//      DPRINTF(( "Regupd rc %d Value '%s'\n", rc, szFileBuffer));
+//    DPRINTF(( "Regupd rc %d Value '%s'\n", rc, szFileBuffer));
       if (!strcmp( apszKeys[i],  KEY_CASESENSITIVE))
          {
          fCaseSensitive = atol( szFileBuffer);
 //       DPRINTF(( "Case sensitive: %d\n", fCaseSensitive));
-
          }
       else
          {
@@ -1042,7 +1032,7 @@ do
 
    DUMPINITVALUEARRAY( pvaSymbols);
 
-   if (fCustomLoaded)
+   if (hinitCustom)
       pvaSymbols = _maintainInitValueArray( hinitCustom, pszSymbolsSection, pvaSymbols);
 
    // -----------------------------------------------
@@ -1130,7 +1120,7 @@ do
       }
 
    // generate info list
-   ulInfoListSize = ulFileCount * (_MAX_PATH + 32);
+   ulInfoListSize = ulFileCount * (MAX_INI_LINE + 32);
    ALLOCATEMEMORYFILE( pszFileInfoList, ulInfoListSize);
 
    QUERYOPTINITVALUE( hinitDefault, pszGlobalSection, KEY_HILCOMMENTCHAR, szHilCommentChar, STR_KWDSCOMMENT);   // first of all add info of init files to file list
@@ -1138,7 +1128,7 @@ do
    sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
    pszSourceFile = szInitDefaultFilename;
    sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
-   if (fCustomLoaded)
+   if (hinitCustom)
       {
       pszSourceFile = szInitCustomFilename;
       sprintf( _EOS( pszFileInfoList), pszFileInfoMask, szHilCommentChar, pszSourceFile, QueryFileSize( pszSourceFile), FileDate( pszSourceFile));
@@ -1343,7 +1333,7 @@ do
                pszLine = strtok( NULL, " ");
                }
 
-            // still linvalid line?
+            // still invalid line?
             if (pszInvalid)
                {
                DPRINTF(( "HILITE: error: skipping invalid line %u, invalid token = %s, filename = %s\n", ulLineCount, pszInvalid, pszSourceFile));
@@ -1588,7 +1578,7 @@ APIRET QueryHilightFile( PSZ pszEpmMode, ULONG ulOptions, PBOOL pfReload,
 {
          APIRET         rc = NO_ERROR;
          CHAR           szValue[ _MAX_PATH];
-         CHAR           szDefaultsFile[ _MAX_PATH];
+//       CHAR           szDefaultsFile[ _MAX_PATH];
 
 
 do
