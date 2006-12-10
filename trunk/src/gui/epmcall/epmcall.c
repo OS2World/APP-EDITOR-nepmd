@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.24 2006-10-10 19:15:43 aschn Exp $
+* $Id: epmcall.c,v 1.25 2006-12-10 15:09:35 jbs Exp $
 *
 * ===========================================================================
 *
@@ -57,7 +57,7 @@ APIRET CallEPM( INT argc, PSZ argv[], PSZ envv[])
          STARTDATA      startdata;
 
          CHAR           szExecutable[ _MAX_PATH];
-         CHAR           szProgramArgs[ _MAX_PATH * 4];
+//          CHAR           szProgramArgs[ _MAX_PATH * 4];
          CHAR           szEnv[ _MAX_PATH * 4];
 
          CHAR           szTermQueueName[ 260 ];
@@ -78,6 +78,7 @@ APIRET CallEPM( INT argc, PSZ argv[], PSZ envv[])
          BOOL           fEpmIniPathChanged = FALSE;
          BOOL           fEpmStarted = FALSE;
          FILE          *pfile = NULL;
+         PPIB           ppibEPM;
 
          CHAR           szMessage[ 1024];
 
@@ -116,23 +117,41 @@ do
       break;
       }
 
-   // concatenate parms
-   szProgramArgs[ 0] = 0;
+   i = DosGetInfoBlocks(NULL, &ppibEPM);
+   if (i)
+   {
+       DPRINTF(("DosGetInfoBlocks error: %d\n", i));
+   }
+   else
+   {
+      if (ppibEPM->pib_pchcmd)
+      {
+         DPRINTF(("DosGetInfoBlocks parm 0: ###%s###\n", ppibEPM->pib_pchcmd));
+         DPRINTF(("DosGetInfoBlocks parm 1: ###%s###\n", ppibEPM->pib_pchcmd + strlen(ppibEPM->pib_pchcmd) + 1));
+      }
+      else
+      {
+         DPRINTF(("DosGetInfoBlocks: NO params!?\n"));
+      }
+   }
+//    szProgramArgs[ 0] = 0;
    for (i = 1; i < argc; i++)
       {
-               PSZ            pszMask;
-               PSZ            pszThisParm;
+//        PSZ            pszMask;
+          PSZ            pszThisParm;
 
       // take care for included blanks
-      if (strchr( argv[ i], ' '))
-         pszMask = "\"%s\" ";
-      else
-         pszMask = "%s ";
+//       if (strchr( argv[ i], ' '))
+//          pszMask = "\"%s\" ";
+//       else
+//          pszMask = "%s ";
+//       DPRINTF(( "CallEPM: parm %d: %s\n", i, argv[ i]));
+
       // Minor bug: "'...'" is submitted to EPM as "'..."', but that doesn't
       // matter, because EPM strips every " char before args are processed by
       // its EDIT command.
 
-      sprintf( _EOS( szProgramArgs), pszMask, argv[ i]);
+//       sprintf( _EOS( szProgramArgs), pszMask, argv[ i]);
 
       // search /M parm for starting EPM synchronously then
       pszThisParm = argv[i];
@@ -151,9 +170,9 @@ do
             fAsync = FALSE;
             }
          }
-
       }
 
+//    DPRINTF(( "CallEPM: Processed parms: %s\n", szProgramArgs));
    // Change entry of OS2.INI -> EPM -> EPMIniPath to filename of NEPMD.INI
    // in order to keep the ini file for standard EPM unchanged.
    // NEPMD.INI is used now for all settings, that otherwise would be written
@@ -167,9 +186,12 @@ do
       {
 
       // Save old entry in NEPMD.INI to restore it after EPM's startup:
-      strcpy( szEpmIniFile, "");
-      strcpy( szIniFile, "");
-      strcpy( szTmp, "");
+//       strcpy( szEpmIniFile, "");
+//       strcpy( szIniFile, "");
+//       strcpy( szTmp, "");
+      szEpmIniFile[0] = '\0';
+      szIniFile[0]    = '\0';
+      szTmp[0]        = '\0';
 
       // EPM adds the default entry automatically if no key/entry, if a null string
       // entry or if file not found.
@@ -355,11 +377,12 @@ do
    startdata.SessionType = SSF_TYPE_PM;
    startdata.FgBg        = SSF_FGBG_FORE;
    startdata.PgmName     = szExecutable;
-   startdata.PgmInputs   = szProgramArgs;
+//    startdata.PgmInputs   = szProgramArgs;
+   startdata.PgmInputs   = ppibEPM->pib_pchcmd + strlen(ppibEPM->pib_pchcmd) + 1;
    startdata.Environment = pszEnv;
 
    rc = DosStartSession( &startdata, &ulSession, &pid);
-   DPRINTF(( "CallEPM: call %s\n   params = %s\n   rc = %u (457 = ERROR_SMG_START_IN_BACKGROUND)\n", startdata.PgmName, startdata.PgmInputs, rc));
+   DPRINTF(( "CallEPM: call %s\n   params = >>%s<<\n   rc = %u (457 = ERROR_SMG_START_IN_BACKGROUND)\n", startdata.PgmName, startdata.PgmInputs, rc));
    if ((rc == NO_ERROR) || (rc == ERROR_SMG_START_IN_BACKGROUND))
       fEpmStarted = TRUE;
 
