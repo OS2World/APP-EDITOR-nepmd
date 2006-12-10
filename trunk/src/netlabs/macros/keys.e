@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.19 2006-12-09 19:36:12 aschn Exp $
+* $Id: keys.e,v 1.20 2006-12-10 19:50:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,6 +22,77 @@
 ; Definitions for the 'edit_keys' keyset. Turned all key defs into defcs
 ; to make keys configurable.
 
+compile if not defined(SMALL)  -- If being externally compiled...
+   define INCLUDING_FILE = 'KEYS.E'
+
+   include 'stdconst.e'
+
+const
+   tryinclude 'MYCNF.E'
+ compile if not defined(SITE_CONFIG)
+   const SITE_CONFIG = 'SITECNF.E'
+ compile endif
+ compile if SITE_CONFIG
+   tryinclude SITE_CONFIG
+ compile endif
+
+const
+ compile if not defined(NLS_LANGUAGE)
+   NLS_LANGUAGE = 'ENGLISH'
+ compile endif
+   include NLS_LANGUAGE'.e'
+
+   EA_comment 'This defines definitions for keysets.'
+compile endif  -- not defined(SMALL)
+
+const
+-- Normally, when you shift a mark left or right, text to the right of the
+-- marked area moves with it.  Bob Langer supplied code that lets us shift
+-- only what's inside the mark.  The default is the old behavior.
+compile if not defined(SHIFT_BLOCK_ONLY)
+   SHIFT_BLOCK_ONLY = 0
+compile endif
+;-- Respect the Scroll lock key?  If set to 1, Shift+F1 - Shift+F4 must not be
+;-- redefined.  (The cursor keys execute those keys directly, in order to
+;-- avoid duplicating code.)  Note that setting this flag turns off the internal
+;-- cursor key handling, so if WANT_CUA_MARKING = 'SWITCH',
+;-- WANT_STREAM_EDITING = 'SWITCH', and RESPECT_SCROLL_LOCK = 1, cursor movement
+;-- might be unacceptably slow.
+compile if not defined(RESPECT_SCROLL_LOCK)
+   RESPECT_SCROLL_LOCK = 1
+compile endif
+-- Ver.3.09:  Set this to 1 if you want the FILE key to quit rather than
+-- save the file if the file was not modified.  Has the side effect that
+-- the Name command sets .modify to 1.
+compile if not defined(SMARTFILE)
+   SMARTFILE = 1
+compile endif
+-- Set this to 1 if you want the Save key to prompt you if the file was not
+-- modified.
+compile if not defined(SMARTSAVE)
+   SMARTSAVE = 1
+compile endif
+-- For Toolkit developers - set to 0 if you don't want the user to be able
+-- to go to line 0.  Affects MH_gotoposition in MOUSE.E and Def Up in STDKEYS.E.
+-- Must be set to 1 in order to enable a copy line action to the top. (Copy line
+-- copies a line after the current line.)
+compile if not defined(TOP_OF_FILE_VALID)
+   -- Can be '0', '1', or 'STREAM' (dependant on STREAM_MODE)
+   TOP_OF_FILE_VALID = 1
+compile endif
+-- Determines if DBCS support should be included in the macros.  Note
+-- that EPM includes internal DBCS support; other versions of E do not.
+compile if not defined(WANT_DBCS_SUPPORT)
+   WANT_DBCS_SUPPORT = 1
+compile endif
+-- Allow pressing tab in insert mode to insert spaces to next tab stop in
+-- line mode as well as in stream mode.
+compile if not defined(WANT_TAB_INSERTION_TO_SPACE)
+   -- for line mode only
+   WANT_TAB_INSERTION_TO_SPACE = 0
+compile endif
+
+; ---------------------------------------------------------------------------
 definit
    universal blockreflowflag
    blockreflowflag = 0
