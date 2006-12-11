@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comment.e,v 1.12 2006-11-17 22:32:59 jbs Exp $
+* $Id: comment.e,v 1.13 2006-12-11 18:46:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -348,8 +348,8 @@ compile endif
    prestore_pos(saved_pos)
    .line    = .line + AdjLine
    .col     = .col  + AdjCol
-   .cursorx = .cursorx + AdjCol     -- JBSQ: Does this need adjustment? Is it the adj the same as for col?
-   .cursory = .cursory + AdjLine    -- JBSQ: Does this need adjustment? Is it the adj the same as for line?
+;  .cursorx = .cursorx + AdjCol     -- JBSQ: Does this need adjustment? Is it the adj the same as for col?
+;  .cursory = .cursory + AdjLine    -- JBSQ: Does this need adjustment? Is it the adj the same as for line?
 
    return
 
