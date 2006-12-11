@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.14 2006-12-09 18:03:03 aschn Exp $
+* $Id: applyico.cmd,v 1.15 2006-12-11 22:18:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -42,18 +42,13 @@
  /* (WarpIN can not set doublequotes)                                                 */
 
  Obj.1 = '<NEPMD_EPM_SHELL>'
- Set.1 = "'shell cdd ""%*"" '"
-         /* That will add following parameter list: 'shell cdd "%*" '                */
-         /* Notes: The doublequotes around %* are doubled for the REXX parser to add */
-         /*        a single doublequote, because the surrounding quote char is a     */
-         /*        doublequote as well.                                              */
-         /*        The space before the trailing quote char was added for the NEPMD  */
-         /*        parser to handle the enquoted string before correctly. It would   */
-         /*        not be required for standard EPM.                                 */
-         /*        The leading quote char must be followed immediately by an EPM     */
-         /*        command (here: shell). With a space between them, the EPM parser  */
-         /*        would handle "shell" as a filemask and would also prepend the     */
-         /*        current path.                                                     */
+ Set.1 = "PARAMETERS='shell cdd {""%*""}'"
+         /* { and } are replaced by NEPMD's MAIN.E to ". Otherwise     */
+         /* the EPM executable parser would remove the doublequotes.   */
+         /* The %* param is additionally surrounded with doublequotes, */
+         /* because when %* is resolved by the WPS and no parm was     */
+         /* specified, the char after %* is removed, if it's not a     */
+         /* doublequote. (That would work as well, but looks ugly.)    */
 
  Obj.0 = 1  /* number of objects */
 
@@ -227,16 +222,27 @@
  rc = SysSetObjectData( '<NEPMD_CHECK_USER_MACROS>',,
                         'ICONFILE='CallDir'\ico\recomp.ico;');
 
- /* delete obsolete object from v1.00 if present */
- rc = SysDestroyObject( '<NEPMD_EXECUTABLE>');
-
- /* delete obsolete mode files and dirs */
- rc = SysDestroyObject( NetlabsDir'\mode\fortran');
-
  /* set special object settings */
  DO i = 1 TO Obj.0
     rc = SysSetObjectData( Obj.i, Set.i);
  END;
+
+ /* delete obsolete object from v1.00 if present */
+ rc = SysDestroyObject( '<NEPMD_EXECUTABLE>');
+
+ /* delete obsolete files and dirs from v1.00 if present */
+ rc = SysDestroyObject( NetlabsDir'\mode\fortran');
+ rc = SysDestroyObject( NetlabsDir'\install\saveold.cmd');
+ rc = SysDestroyObject( NetlabsDir'\macros\drawkey.e');
+ rc = SysDestroyObject( NetlabsDir'\macros\menuacel.e');
+ rc = SysDestroyObject( NetlabsDir'\macros\setconfig.e');
+ rc = SysDestroyObject( NetlabsDir'\macros\small.e');
+ rc = SysDestroyObject( NetlabsDir'\macros\statline.e');
+ rc = SysDestroyObject( NetlabsDir'\macros\titletext.e');
+ rc = SysDestroyObject( NetlabsDir'\macros\xchgline.e');
+
+ /* remove obsolete ini key from v1.00 if present */
+ rc = SysIni( 'USER', 'NEPMD', 'Path', 'DELETE:')
 
  EXIT( 0);
 
