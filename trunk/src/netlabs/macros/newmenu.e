@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.41 2006-12-10 19:04:02 aschn Exp $
+* $Id: newmenu.e,v 1.42 2006-12-15 01:37:16 jbs Exp $
 *
 * ===========================================================================
 *
@@ -511,7 +511,7 @@ defproc add_file_menu(menuname)
                                    \1'Save current file list as last edit ring',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Load last rin~g',                                                    -- Load last ring
+   buildmenuitem menuname, mid, i, '~Load last ring',                                                    -- Load last ring
                                    'restorering' ||
                                    \1'Restore last saved edit ring',
                                    MIS_TEXT, 0
@@ -659,7 +659,7 @@ defproc add_file_menu(menuname)
                                    \1'',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_matchtab', i);
-   buildmenuitem menuname, mid, i, 'Mat~chtab',                                                          -- Matchtab
+   buildmenuitem menuname, mid, i, 'Matchta~b',                                                          -- Matchtab
                                    'toggle_matchtab' ||
                                    \1'',
                                    MIS_TEXT, nodismiss
@@ -787,12 +787,12 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Duplicate line'\9CTRL_KEY__MSG'+K',                            -- Duplicate line
+   buildmenuitem menuname, mid, i, 'Dupli~cate line'\9CTRL_KEY__MSG'+K',                            -- Duplicate line
                                    'DuplicateLine' ||
                                    \1'Duplicate current line (insert below)',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Insert',                                                       -- Insert   >
+   buildmenuitem menuname, mid, i, '~Insert',                                                       -- Insert   >
                                    \1'Insert text',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
@@ -829,17 +829,12 @@ compile endif
                                    \1'Insert current filename at cursor position',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'F~ilename to clip',                                                  -- Filename to clip
-                                   'CopyFilename2Clip' ||
-                                   \1'Copy current filename to clipboard',
-                                   MIS_TEXT, 0
-   i = i + 1;
    buildmenuitem menuname, mid, i, '~Date Time (ISO)',                                                   -- Date Time (ISO)
                                    'TypeDateTime' ||
                                    \1'Insert current date and time at cursor position',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Move',                                                         -- Move   >
+   buildmenuitem menuname, mid, i, 'Mo~ve',                                                         -- Move   >
                                    \1'Move current text',
                                    MIS_TEXT + MIS_SUBMENU, nodismiss
    i = i + 1;
@@ -871,17 +866,17 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Delete line'\9CTRL_KEY__MSG'+'BACKSPACE_KEY__MSG,              -- Delete line
+   buildmenuitem menuname, mid, i, 'D~elete line'\9CTRL_KEY__MSG'+'BACKSPACE_KEY__MSG,              -- Delete line
                                    'DeleteLine' ||
                                    \1'Delete current line',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Delete rest of line'\9CTRL_KEY__MSG'+'DELETE_KEY__MSG,         -- Delete rest of line
+   buildmenuitem menuname, mid, i, 'Delete rest of li~ne'\9CTRL_KEY__MSG'+'DELETE_KEY__MSG,         -- Delete rest of line
                                    'DeleteUntilEndLine' ||
                                    \1'Delete from cursor until end of line',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Delete up to next word'\9CTRL_KEY__MSG'+D',                    -- Delete up to next word
+   buildmenuitem menuname, mid, i, 'Delete up to ne~xt word'\9CTRL_KEY__MSG'+D',                    -- Delete up to next word
                                    'DeleteUntilNextWord' ||
                                    \1'Delete from cursor until begin of next word',
                                    MIS_TEXT, 0
@@ -944,7 +939,7 @@ compile if CHECK_FOR_LEXAM
    endif
 compile endif
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Key ~recorder',                                                -- Key recorder   >
+   buildmenuitem menuname, mid, i, '~Key recorder',                                                -- Key recorder   >
                                    '' ||
                                    \1'Record and playback keys',
                                    MIS_TEXT + MIS_SUBMENU, 0
@@ -1004,6 +999,11 @@ defproc add_mark_menu(menuname)
                                    'Paste B' ||
                                    PASTE_B_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_PASTEB, 0)
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Copy file~name to clip',                                                  -- Filename to clip
+                                   'CopyFilename2Clip' ||
+                                   \1'Copy current filename to clipboard',
+                                   MIS_TEXT, 0
 ;   if not CUA_marking_switch then  -- better add it everytime, to make toggling easier (nodismiss menues work then)
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
@@ -1137,17 +1137,17 @@ defproc add_format_menu(menuname)
    buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins'),                                 -- Reflowmargins   >
                                    \1'Margins/rightmargin for wrap and reflow actions',
                                    MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1; call SetAVar( 'mid_reflowmargins1', i); call SetAVar( 'mtxt_reflowmargins1', '1: reflowmargins []');
+   i = i + 1; call SetAVar( 'mid_reflowmargins1', i); call SetAVar( 'mtxt_reflowmargins1', '~1: reflowmargins []');
    buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins1'),                                      -- 1:
                                    'ReflowmarginsSelect 1' ||
                                    \1'Select specified value(s) as reflowmargins',
                                    MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_reflowmargins2', i); call SetAVar( 'mtxt_reflowmargins2', '2: reflowmargins []');
+   i = i + 1; call SetAVar( 'mid_reflowmargins2', i); call SetAVar( 'mtxt_reflowmargins2', '~2: reflowmargins []');
    buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins2'),                                      -- 2:
                                    'ReflowmarginsSelect 2' ||
                                    \1'Select specified value(s) as reflowmargins',
                                    MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_reflowmargins3', i); call SetAVar( 'mtxt_reflowmargins3', '3: current margins []');
+   i = i + 1; call SetAVar( 'mid_reflowmargins3', i); call SetAVar( 'mtxt_reflowmargins3', '~3: current margins []');
    buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins3'),                                            -- 3: rightmargin
                                    'ReflowmarginsSelect 3' ||
                                    \1'Select file''s margins as reflowmargins',
@@ -1157,7 +1157,7 @@ defproc add_format_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_reflowmarginsconfig', i);
-   buildmenuitem menuname, mid, i, 'Configure selected...',                                              -- Configure selected...
+   buildmenuitem menuname, mid, i, '~Configure selected...',                                              -- Configure selected...
                                    'set_ReflowMargins' ||
                                    \1'Configure selected reflowmargins item...',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -1166,12 +1166,12 @@ defproc add_format_menu(menuname)
                                    \1'Reformat all: add linebreaks',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'All to reflowmargins, keep indent',
+   buildmenuitem menuname, mid, i, 'All to reflowmargins, ~keep indent',
                                    'wrap KEEPINDENT' ||                                                  -- All to reflowmargins, keep indent
                                    \1'Wrap lines at reflowmargins, keep indent of line above',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'All to reflowmargins, split',
+   buildmenuitem menuname, mid, i, 'All to reflowmargins, s~plit',
                                    'wrap SPLIT' ||                                                       -- All to reflowmargins, split
                                    \1'Wrap lines at reflowmargins, split only',
                                    MIS_TEXT, 0
@@ -1180,7 +1180,7 @@ defproc add_format_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Split line'\9 || ALT_KEY__MSG'+S',                                   -- Split line
+   buildmenuitem menuname, mid, i, '~Split line'\9 || ALT_KEY__MSG'+S',                                   -- Split line
                                    'dokey a_s' ||
                                    \1'Split current line at cursor, keep indent',
                                    MIS_TEXT, 0
@@ -1225,12 +1225,12 @@ defproc add_format_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'All to reflowmargins'\9 || CTRL_KEY__MSG'+P',                        -- All to reflowmargins
+   buildmenuitem menuname, mid, i, 'All to ~reflowmargins'\9 || CTRL_KEY__MSG'+P',                        -- All to reflowmargins
                                    'ReflowAll2Reflowmargins' ||
                                    \1'Reformat all to reflowmargins',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'All to margins'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+P',             -- All to margins
+   buildmenuitem menuname, mid, i, 'All to ~margins'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+P',             -- All to margins
                                    'ReflowAll' ||
                                    \1'Reformat all to fit the current margins',
                                    MIS_TEXT, 0
@@ -1239,7 +1239,7 @@ defproc add_format_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_reflowblock', i);
-   buildmenuitem menuname, mid, i, 'Block'\9 || ALT_KEY__MSG'+R',                                        -- Block
+   buildmenuitem menuname, mid, i, '~Block'\9 || ALT_KEY__MSG'+R',                                        -- Block
                                    'ReflowBlock' ||
                                    \1'Mark lines or block first, then mark new block size',
                                    MIS_TEXT, 0
@@ -1248,17 +1248,17 @@ defproc add_format_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Par to window',                                                      -- Par to window
+   buildmenuitem menuname, mid, i, 'Par to ~window',                                                      -- Par to window
                                    'Reflow' ||
                                    \1'Reformat paragraph to fit the current window',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Par to size...',                                                     -- Par to size...
+   buildmenuitem menuname, mid, i, 'Par to si~ze...',                                                     -- Par to size...
                                    'Reflow *' ||
                                    \1'Reformat paragraph, prompt for a size',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Par to last size',                                                   -- Par to last size
+   buildmenuitem menuname, mid, i, 'Par to last ~size',                                                   -- Par to last size
                                    'Reflow =' ||
                                    \1'Reformat paragraph, use last specified size',
                                    MIS_TEXT, 0
@@ -1267,12 +1267,12 @@ defproc add_format_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Mail (all)',                                                         -- Mail (all)
+   buildmenuitem menuname, mid, i, 'Mai~l (all)',                                                         -- Mail (all)
                                    'reflowmail' ||
                                    \1'Reformat current mail (beta, correct indents by hand)',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Wordproc (all)',                                                     -- Wordproc (all)
+   buildmenuitem menuname, mid, i, 'Wordpro~c (all)',                                                     -- Wordproc (all)
                                    'wordproc' ||
                                    \1'Rejoin lines to prepare for export to a word processor',
                                    MIS_TEXT, 0
@@ -1281,27 +1281,27 @@ defproc add_format_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_twospaces', i);
-   buildmenuitem menuname, mid, i, 'Two spaces',                                                         -- Two spaces
+   buildmenuitem menuname, mid, i, '~Two spaces',                                                         -- Two spaces
                                    'Toggle_Two_Spaces' ||
                                    \1'Put 2 spaces after periods etc.',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_mailindentedlines', i);
-   buildmenuitem menuname, mid, i, 'Mail: reflow indented lines',                                        -- Mail: reflow indented lines
+   buildmenuitem menuname, mid, i, 'Mail: reflow ~indented lines',                                        -- Mail: reflow indented lines
                                    'toggle_mail_indented' ||
                                    \1'Include indented lines',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_mailitemlines', i);
    buildmenuitem menuname, mid, i, 'Mail: reflow the first line of list items',                          -- Mail: reflow the first line of list items
                                    'toggle_mail_item' ||
-                                   \1'Include the first line of list items',
+                                   \1'Inclu~de the first line of list items',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_reflownext', i);
-   buildmenuitem menuname, mid, i, 'Reflow next',                                                        -- Reflow next
+   buildmenuitem menuname, mid, i, 'Reflow ne~xt',                                                        -- Reflow next
                                    'Toggle_Reflow_Next' ||
                                    \1'Move cursor to next par after reflow',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_joinafterwrap', i);
-   buildmenuitem menuname, mid, i, 'Join after wrap',                                                    -- Join after wrap
+   buildmenuitem menuname, mid, i, '~Join after wrap',                                                    -- Join after wrap
                                    'Toggle_Join_After_Wrap' ||
                                    \1'Join next line with wrapped part',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
@@ -1542,7 +1542,7 @@ endif
                                    MIS_TEXT, 0
 if grepfound then
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Find ~definition'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+D',     -- Find definition
+   buildmenuitem menuname, mid, i, 'Find defi~nition'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+D',     -- Find definition
                                    'finddef' ||
                                    \1'Find def. in source files for identifier under cursor',
                                    MIS_TEXT, 0
@@ -1560,7 +1560,7 @@ endif
                                    MIS_TEXT, 0
 */
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Find b~racket'\9 || CTRL_KEY__MSG'+[ | 'CTRL_KEY__MSG'+8',     -- Find bracket
+   buildmenuitem menuname, mid, i, 'Find brac~ket'\9 || CTRL_KEY__MSG'+[ | 'CTRL_KEY__MSG'+8',     -- Find bracket
                                    'passist' ||
                                    \1'Find matching environment expression',
                                    MIS_TEXT, 0
@@ -1569,7 +1569,7 @@ endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_goto', i);
-   buildmenuitem menuname, mid, i, 'Go ~to',                                                       -- Go to   >
+   buildmenuitem menuname, mid, i, 'G~o to',                                                       -- Go to   >
                                    \1'',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
@@ -1588,7 +1588,7 @@ endif
                                    \1'Center line with cursor',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1; call SetAVar( 'mid_markstack', i);
-   buildmenuitem menuname, mid, i, 'Mar~k stack',                                                  -- Mark stack   >
+   buildmenuitem menuname, mid, i, '~Mark stack',                                                  -- Mark stack   >
                                    \1'Save and restore a marked area',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_savemark', i);
@@ -1667,12 +1667,12 @@ endif
                                    TAGSDLG_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_TAGS, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Select tags file...'\9 || SHIFT_KEY__MSG'+F8',                       -- Select tags file...
+   buildmenuitem menuname, mid, i, 'S~elect tags file...'\9 || SHIFT_KEY__MSG'+F8',                       -- Select tags file...
                                    'tagsfile' ||
                                    \1'Select a new tags file',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_TAGS, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Refresh tags file...'\9 || SHIFT_KEY__MSG'+F9',                      -- Refresh tags file...
+   buildmenuitem menuname, mid, i, '~Refresh tags file...'\9 || SHIFT_KEY__MSG'+F9',                      -- Refresh tags file...
                                    'maketags *' ||
                                    \1'Enter file masks for current tags file and rebuild it',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_TAGS, 0)
@@ -1791,12 +1791,12 @@ defproc add_view_menu(menuname)
                                    \1'Change layout of titletext',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Configure ~status bar...',                                           -- Configure status bar...
+   buildmenuitem menuname, mid, i, 'Configure status ~bar...',                                           -- Configure status bar...
                                    'ConfigFrame STATUS' ||
                                    \1'Change layout of status bar',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Configure se~parator...',                                            -- Configure separator...
+   buildmenuitem menuname, mid, i, 'Configure ~separator...',                                            -- Configure separator...
                                    'ConfigFrame SEP' ||
                                    \1'Change layout of separator for title and status bar',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -1870,7 +1870,7 @@ defproc add_view_menu(menuname)
                                    \1'',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1; call SetAVar( 'mid_backgroundbitmap', i);
-   buildmenuitem menuname, mid, i, '~Background bitmap',                                           -- Background bitmap   >
+   buildmenuitem menuname, mid, i, 'Bac~kground bitmap',                                           -- Background bitmap   >
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_backgroundbitmapenabled', i);
@@ -2072,7 +2072,7 @@ defproc add_options_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, ''\9'Reset to initial ~default (*)',
+   buildmenuitem menuname, mid, i, ''\9'~Reset to initial default (*)',
                                    'seteditoptions RESET',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -2307,7 +2307,7 @@ defproc add_options_menu(menuname)
                                    'Configure basic editor settings',
                                    MIS_TEXT + MIS_SUBMENU, mpfrom2short(HP_OPTIONS_PREFERENCES, 0)
    i = i + 1; call SetAVar( 'mid_defaultstreammode', i);
-   buildmenuitem menuname, mid, i, 'Default stream mode',                                                -- Default stream mode
+   buildmenuitem menuname, mid, i, '~Default stream mode',                                                -- Default stream mode
                                    'toggle_default_stream' ||
                                    STREAMMODE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_STREAM, nodismiss)
@@ -2317,7 +2317,7 @@ defproc add_options_menu(menuname)
                                    RINGENABLED_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_RINGENABLE, 0)
    i = i + 1; call SetAVar( 'mid_keepcursoronscreen', i);
-   buildmenuitem menuname, mid, i, 'Keep cursor on screen',                                              -- Keep cursor on screen
+   buildmenuitem menuname, mid, i, '~Keep cursor on screen',                                              -- Keep cursor on screen
                                    'toggle_keep_cursor_on_screen' ||
                                    \1'Synchronize cursor''s vertical pos. with screen',
                                    MIS_TEXT, nodismiss
@@ -2367,7 +2367,7 @@ defproc add_options_menu(menuname)
                                    \1'',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_advancedmarking', i);
-   buildmenuitem menuname, mid, i, 'Advanced marking',                                                   -- Default advanced marking
+   buildmenuitem menuname, mid, i, '~Advanced marking',                                                   -- Default advanced marking
                                    'toggle_cua_mark' ||
                                    ADVANCEDMARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_CUATOGGLE, nodismiss)
@@ -2377,7 +2377,7 @@ defproc add_options_menu(menuname)
                                    \1'Style for Sh+Ins/Alt+MB1, add Ctrl/Sh for alt. paste',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_shiftmarkextends', i);
-   buildmenuitem menuname, mid, i, 'Sh-mark always extends mark',                                        -- Sh-mark always extends mark
+   buildmenuitem menuname, mid, i, '~Sh-mark always extends mark',                                        -- Sh-mark always extends mark
                                    'toggle_shift_mark_extends' ||
                                    \1'Extend mark always or just at boundaries',
                                    MIS_TEXT, nodismiss
@@ -2387,12 +2387,12 @@ defproc add_options_menu(menuname)
                                    \1'Mark style for MB1, use Ctrl+MB1 or MB3 for alt. mark',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_dragalwaysmarks', i);
-   buildmenuitem menuname, mid, i, 'Drag always marks',                                                  -- Drag always marks
+   buildmenuitem menuname, mid, i, '~Drag always marks',                                                  -- Drag always marks
                                    'toggle_drag_always_marks' ||
                                    \1'Every drag starts a new mark (avoid the ''Text already marked'' msg)',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_unmarkaftermove', i);
-   buildmenuitem menuname, mid, i, 'Unmark after move',                                                  -- Unmark after move
+   buildmenuitem menuname, mid, i, '~Unmark after move',                                                  -- Unmark after move
                                    'toggle_unmark_after_move' ||
                                    \1'Unmark after doing a move mark',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
@@ -2412,17 +2412,17 @@ defproc add_options_menu(menuname)
                                    \1'Change default tabs',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_defaulttabkey', i);
-   buildmenuitem menuname, mid, i, 'Default tabkey',                                                     -- Default Tabkey
+   buildmenuitem menuname, mid, i, 'Default ~tabkey',                                                     -- Default Tabkey
                                    'toggle_default_tabkey' ||
                                    \1'Tabkey enters a tab char instead of spaces',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_defaultmatchtab', i);
-   buildmenuitem menuname, mid, i, 'Default matchtab',                                                   -- Default Matchtab
+   buildmenuitem menuname, mid, i, 'Default ~matchtab',                                                   -- Default Matchtab
                                    'toggle_default_matchtab' ||
                                    \1'Tabkey goes to word boundaries of prev. line',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_showtabs', i);
-   buildmenuitem menuname, mid, i, 'Show tabs',                                                          -- Show tabs
+   buildmenuitem menuname, mid, i, '~Show tabs',                                                          -- Show tabs
                                    'toggle_tabglyph' ||
                                    \1'Show a circle for every tab char',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
@@ -2434,17 +2434,17 @@ defproc add_options_menu(menuname)
                                    \1'Configure Alt key combinations to execute menu items',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_blockactionbaraccelerators', i);
-   buildmenuitem menuname, mid, i, 'Block menu bar accels',                                              -- Block menu bar accels
+   buildmenuitem menuname, mid, i, 'Block ~menu bar accels',                                              -- Block menu bar accels
                                    'accel_toggle' ||
                                    \1'Keep Alt+<key>s for mark operations (Ctrl+Alt works for menu)',
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_CUAACCEL, nodismiss)
    i = i + 1; call SetAVar( 'mid_blockleftaltkey', i);
-   buildmenuitem menuname, mid, i, 'Block left Alt key',                                                 -- Block left Alt key
+   buildmenuitem menuname, mid, i, 'Block ~left Alt key',                                                 -- Block left Alt key
                                    'toggle_block_left_alt_key' ||
                                    \1'Prevent left Alt from entering menu (use F10)',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_blockrightaltkey', i);
-   buildmenuitem menuname, mid, i, 'Block right Alt key',                                                -- Block right Alt key
+   buildmenuitem menuname, mid, i, 'Block ~right Alt key',                                                -- Block right Alt key
                                    'toggle_block_right_alt_key' ||
                                    \1'Prevent right Alt from entering menu (use F10)',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
@@ -2460,12 +2460,12 @@ defproc add_options_menu(menuname)
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_respectreadonly', i);
-   buildmenuitem menuname, mid, i, 'Respect readonly',                                                   -- Respect readonly
+   buildmenuitem menuname, mid, i, '~Respect readonly',                                                   -- Respect readonly
                                    'toggle_respect_readonly' ||
                                    \1'Toggle readonly file attribute disables edit mode',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_lockonmodify', i);
-   buildmenuitem menuname, mid, i, 'Lock on modify',                                                     -- Lock on modify
+   buildmenuitem menuname, mid, i, '~Lock on modify',                                                     -- Lock on modify
                                    'toggle_lock_on_modify' ||
                                    \1'Toggle deny write access if file was modified',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
@@ -2474,7 +2474,7 @@ defproc add_options_menu(menuname)
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_restorecursorpos', i);
-   buildmenuitem menuname, mid, i, 'Restore cursor position',                                            -- Restore cursor position
+   buildmenuitem menuname, mid, i, '~Restore cursor position',                                            -- Restore cursor position
                                    'toggle_restore_pos' ||
                                    \1'Toggle restore of cursor pos. from file''s last save',
                                    MIS_TEXT, nodismiss
@@ -2483,7 +2483,7 @@ defproc add_options_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_trackhistorylists', i);
-   buildmenuitem menuname, mid, i, 'Track additional history lists',                                     -- Track additional history lists
+   buildmenuitem menuname, mid, i, '~Track additional history lists',                                     -- Track additional history lists
                                    'Toggle_History' ||
                                    \1'Enable edit, load and save history',
                                    MIS_TEXT, nodismiss
@@ -2492,7 +2492,7 @@ defproc add_options_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_autosavelastring', i);
-   buildmenuitem menuname, mid, i, 'Auto-save last ring',                                                -- Auto-save last ring
+   buildmenuitem menuname, mid, i, 'Auto-~save last ring',                                                -- Auto-save last ring
                                    'Toggle_Save_Ring' ||
                                    \1'Toggle save of ring on load and quit',
                                    MIS_TEXT, nodismiss
@@ -2502,30 +2502,30 @@ defproc add_options_menu(menuname)
                                    \1'Set limit of files to enable auto-save',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_autoloadlastring', i);
-   buildmenuitem menuname, mid, i, 'Auto-load last ring',                                                -- Auto-load last ring
+   buildmenuitem menuname, mid, i, 'Auto-~load last ring',                                                -- Auto-load last ring
                                    'Toggle_Restore_Ring' ||
                                    \1'Toggle restore of ring if EPM is started without args',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
    i = i + 1; call SetAVar( 'mid_directories', i);
-   buildmenuitem menuname, mid, i, '~Directory settings',                                          -- Directory settings  >
+   buildmenuitem menuname, mid, i, 'Director~y settings',                                          -- Directory settings  >
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_workdir', i);
-   buildmenuitem menuname, mid, i, 'Set work dir',                                                       -- Set work dir  >
+   buildmenuitem menuname, mid, i, 'Set ~work dir',                                                       -- Set work dir  >
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_workdirprogram', i);
-   buildmenuitem menuname, mid, i, 'By program object',                                                        -- By program object
+   buildmenuitem menuname, mid, i, '~By program object',                                                        -- By program object
                                    'Set_ChangeWorkDir 0' ||
                                    \1'This is EPM''s default',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_workdirprev', i);
-   buildmenuitem menuname, mid, i, 'Use previous work dir',                                                    -- Use previous work dir
+   buildmenuitem menuname, mid, i, '~Use previous work dir',                                                    -- Use previous work dir
                                    'Set_ChangeWorkDir 1' ||
                                    \1'Keep work dir across EPM sessions',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_workdirfile', i);
-   buildmenuitem menuname, mid, i, 'To dir of selected file',                                                  -- To dir of selected file
+   buildmenuitem menuname, mid, i, 'To dir of ~selected file',                                                  -- To dir of selected file
                                    'Set_ChangeWorkDir 2' ||
                                    \1'Change to dir of current file',
                                    MIS_TEXT, nodismiss
@@ -2534,26 +2534,26 @@ defproc add_options_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'To...',                                                                    -- To...
+   buildmenuitem menuname, mid, i, '~To...',                                                                    -- To...
                                    'cdbox' ||
                                    \1'Show/change current work dir now',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1; call SetAVar( 'mid_opendlgdir', i);
-   buildmenuitem menuname, mid, i, 'Start Edit/Add file dialog at',                                      -- Start Edit/Add file dialog at  >
+   buildmenuitem menuname, mid, i, '~Start Edit/Add file dialog at',                                      -- Start Edit/Add file dialog at  >
                                    '',
                                    MIS_TEXT + MIS_SUBMENU + MIS_ENDSUBMENU, 0
    i = i + 1; call SetAVar( 'mid_opendlgdirprev', i);
-   buildmenuitem menuname, mid, i, 'Previous dir',                                                             -- Previous dir
+   buildmenuitem menuname, mid, i, '~Previous dir',                                                             -- Previous dir
                                    'set_OpenDlgDir 0' ||
                                    \1'Start at dir from last Open dialog',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_opendlgdirwork', i);
-   buildmenuitem menuname, mid, i, 'Work dir',                                                                 -- Work dir
+   buildmenuitem menuname, mid, i, '~Work dir',                                                                 -- Work dir
                                    'set_OpenDlgDir 1' ||
                                    \1'Start at work dir',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_opendlgdirfile', i);
-   buildmenuitem menuname, mid, i, 'Dir of current file',                                                      -- Dir of current file
+   buildmenuitem menuname, mid, i, '~Dir of current file',                                                      -- Dir of current file
                                    'set_OpenDlgDir 2' ||
                                    \1'Start at dir of current file',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
@@ -2566,43 +2566,43 @@ defproc add_options_menu(menuname)
                                    \1'Compile EPM macro files',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open Recompile utility...',                                          -- Open Recompile utiliy...
+   buildmenuitem menuname, mid, i, 'Open Recompile ~utility...',                                          -- Open Recompile utiliy...
                                    'StartRecompile' ||
                                    \1'Compile main macro file and restart all EPM windows',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Recompile all new macros',                                           -- Recompile all new
+   buildmenuitem menuname, mid, i, 'Recompile all ~new macros',                                           -- Recompile all new
                                    'RecompileNew' ||
                                    \1'Recompile all new macros and maybe restart EPM',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'More',                                                               -- More   >
+   buildmenuitem menuname, mid, i, '~More',                                                               -- More   >
                                    '' ||
                                    \1'Additional compile and link macros',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Recompile EPM.E',                                                          -- Recompile EPM.E
+   buildmenuitem menuname, mid, i, '~Recompile EPM.E',                                                          -- Recompile EPM.E
                                    'RecompileEpm' ||
                                    \1'Compile main macro file and restart current EPM window',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Restart EPM',                                                              -- Restart EPM
+   buildmenuitem menuname, mid, i, 'Restart ~EPM',                                                              -- Restart EPM
                                    'Restart' ||
                                    \1'Restart current EPM window (DLLs are not reloaded)',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Compile current .E file',                                                  -- Compile current .E file
+   buildmenuitem menuname, mid, i, '~Compile current .E file',                                                  -- Compile current .E file
                                    'etpm =' ||
                                    \1'Compile current macro file',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Relink current .E file',                                                   -- Relink current .E file
+   buildmenuitem menuname, mid, i, 'Re~link current .E file',                                                   -- Relink current .E file
                                    'relink' ||
                                    \1'Compile current macro file and unlink/link if linked before',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
 /*
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Recompile all',                                                            -- Recompile all
+   buildmenuitem menuname, mid, i, 'Recompile ~all',                                                            -- Recompile all
                                    'RecompileAll' ||
                                    \1'Recompile all macros and restart EPM',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -2612,27 +2612,27 @@ defproc add_options_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_editprofile', i);
-   buildmenuitem menuname, mid, i, 'Edit PROFILE.ERX',                                                   -- Edit PROFILE.ERX
+   buildmenuitem menuname, mid, i, 'Editjjj ~PROFILE.ERX',                                                   -- Edit PROFILE.ERX
                                    'e %NEPMD_USERDIR%\bin\profile.erx' ||
                                    \1'Edit or create REXX configuration file',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_activateprofile', i);
-   buildmenuitem menuname, mid, i, 'Activate PROFILE.ERX',                                               -- Activate PROFILE.ERX
+   buildmenuitem menuname, mid, i, '~Activate PROFILE.ERX',                                               -- Activate PROFILE.ERX
                                    'toggle_profile' ||
                                    \1'Activate REXX configuration file',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_editmodecnf', i);
-   buildmenuitem menuname, mid, i, 'Edit MODECNF.E',                                                     -- Edit MODECNF.E
+   buildmenuitem menuname, mid, i, 'Edit MODE~CNF.E',                                                     -- Edit MODECNF.E
                                    'e %NEPMD_USERDIR%\macros\modecnf.e' ||
                                    \1'Edit or create E configuration file for modes',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_editmycnf', i);
-   buildmenuitem menuname, mid, i, 'Edit MYCNF.E',                                                       -- Edit MYCNF.E
+   buildmenuitem menuname, mid, i, '~Edit MYCNF.E',                                                       -- Edit MYCNF.E
                                    'e %NEPMD_USERDIR%\macros\mycnf.e' ||
                                    \1'Edit or create E configuration file',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_editmystuff', i);
-   buildmenuitem menuname, mid, i, 'Edit MYSTUFF.E',                                                     -- Edit MYSTUFF.E
+   buildmenuitem menuname, mid, i, 'E~dit MYSTUFF.E',                                                     -- Edit MYSTUFF.E
                                    'e %NEPMD_USERDIR%\macros\mystuff.e' ||
                                    \1'Edit or create E additions',
                                    MIS_TEXT, 0
@@ -2641,12 +2641,12 @@ defproc add_options_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open NETLABS\MACROS\*.E',
+   buildmenuitem menuname, mid, i, 'Open NET~LABS\MACROS\*.E',
                                    'o %NEPMD_ROOTDIR%\netlabs\macros\*.e' ||
                                    \1,
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open 'upcase(UserDirName)'\MACROS\*.E',
+   buildmenuitem menuname, mid, i, 'Open 'upcase(UserDirName)'\MAC~ROS\*.E',
                                    'o %NEPMD_USERDIR%\macros\*.e' ||
                                    \1,
                                    MIS_TEXT, 0
@@ -2668,12 +2668,12 @@ defproc add_options_menu(menuname)
                                    MIS_TEXT, 0
 */
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open EPM.INI',
+   buildmenuitem menuname, mid, i, 'Open EPM.~INI',
                                    'rx open ?:\os2\epm.ini' ||
                                    \1,
                                    MIS_TEXT, 0 -- <-------- Todo: get EPM.INI from OS2.INI
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open NEPMD.INI',
+   buildmenuitem menuname, mid, i, '~Open NEPMD.INI',
                                    'rx open %NEPMD_USERDIR%\bin\nepmd.ini' ||
                                    \1,
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -2936,7 +2936,7 @@ compile endif
                                    \1'',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1; call SetAVar( 'mid_viewnepmdprogrammingguide', i);
-   buildmenuitem menuname, mid, i, 'View NEPMD ~Programming Guide',                                -- View NEPMD Programming Guide   >
+   buildmenuitem menuname, mid, i, 'View N~EPMD Programming Guide',                                -- View NEPMD Programming Guide   >
                                    '' ||
                                    \1'',
                                    MIS_TEXT + MIS_SUBMENU /*+ MIS_SYSCOMMAND*/, 0
@@ -3493,30 +3493,30 @@ defc menuinit_macros
    file_exist = exist(file)
    SetMenuAttribute( GetAVar('mid_activateprofile'),  MIA_DISABLED, file_exist)
    if file_exist then
-      SetMenuText( GetAVar('mid_editprofile'), 'Edit PROFILE.ERX')
+      SetMenuText( GetAVar('mid_editprofile'), 'Edit ~PROFILE.ERX')
    else
-      SetMenuText( GetAVar('mid_editprofile'), 'Create PROFILE.ERX')
+      SetMenuText( GetAVar('mid_editprofile'), 'Create ~PROFILE.ERX')
    endif
    file = ResolveEnvVars('%NEPMD_USERDIR%\macros\modecnf.e')
    file_exist = exist(file)
    if file_exist then
-      SetMenuText( GetAVar('mid_editmodecnf'), 'Edit MODECNF.E')
+      SetMenuText( GetAVar('mid_editmodecnf'), 'Edit MODE~CNF.E')
    else
-      SetMenuText( GetAVar('mid_editmodecnf'), 'Create MODECNF.E')
+      SetMenuText( GetAVar('mid_editmodecnf'), '~Create MODECNF.E')
    endif
    file = ResolveEnvVars('%NEPMD_USERDIR%\macros\mycnf.e')
    file_exist = exist(file)
    if file_exist then
-      SetMenuText( GetAVar('mid_editmycnf'), 'Edit MYCNF.E')
+      SetMenuText( GetAVar('mid_editmycnf'), '~Edit MYCNF.E')
    else
-      SetMenuText( GetAVar('mid_editmycnf'), 'Create MYCNF.E')
+      SetMenuText( GetAVar('mid_editmycnf'), 'Cr~eate MYCNF.E')
    endif
    file = ResolveEnvVars('%NEPMD_USERDIR%\macros\mystuff.e')
    file_exist = exist(file)
    if file_exist then
-      SetMenuText( GetAVar('mid_editmystuff'), 'Edit MYSTUFF.E')
+      SetMenuText( GetAVar('mid_editmystuff'), 'Edit MYSTU~FF.E')
    else
-      SetMenuText( GetAVar('mid_editmystuff'), 'Create MYSTUFF.E')
+      SetMenuText( GetAVar('mid_editmystuff'), 'Create MYSTU~FF.E')
    endif
 
 ; ------------------------------------ Run ----------------------------------
