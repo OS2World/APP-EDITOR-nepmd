@@ -4,15 +4,18 @@
 *
 * Change drive and directory
 *
-* Syntax: cdd [pathspec]
+* Syntax: cdd [filespec]
 *
-* If pathspec contains a drive, then the drive is changed as well.
+* If filespec contains a drive, then the drive is changed as well.
 *
-* If pathspec is not specified, then the current path is shown.
+* If filespec is a file, then the path is changed to the parent directory
+* of it.
+*
+* If filespec is not specified, then the current path is shown.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: cdd.cmd,v 1.1 2006-03-11 20:59:12 aschn Exp $
+* $Id: cdd.cmd,v 1.2 2006-12-17 21:38:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -27,19 +30,32 @@
 *
 ****************************************************************************/
 
-dir = arg(1)
+/* Initialize */
+call RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+call SysLoadFuncs
+
+FSpec = arg(1)
 
 /* Strip optional doublequotes */
-if left( dir, 1) = '"' then
-   parse value dir with '"' dir '"'
+if left( FSpec, 1) = '"' then
+   parse value FSpec with '"'FSpec'"'
 
-if dir > '' then
+if FSpec > '' then
 do
    /* Change drive */
-   if substr( dir, 2, 1) = ':' then
-      call directory substr( dir, 1, 2)
+   if substr( FSpec, 2, 1) = ':' then
+      call directory substr( FSpec, 1, 2)
+
+   /* Check if directory exists */
+   Found.0 = 0
+   rc = SysFileTree( FSpec, 'Found.', 'DO')
+   if Found.0 > 0 then
+      Dir = Found.1
+   else
+      Dir = strip( FSpec, 't', '\')'\..'
+
    /* Change directory */
-   call directory dir
+   call directory Dir
 end
 else
    say directory()
