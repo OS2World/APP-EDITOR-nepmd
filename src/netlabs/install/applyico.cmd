@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.15 2006-12-11 22:18:07 aschn Exp $
+* $Id: applyico.cmd,v 1.16 2006-12-17 18:26:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -40,17 +40,13 @@
 
  /* Additional objects that have doublequotes in their parameters                     */
  /* (WarpIN can not set doublequotes)                                                 */
-
+ /*
+ ---- Not required anymore, but left in as an example ----
  Obj.1 = '<NEPMD_EPM_SHELL>'
  Set.1 = "PARAMETERS='shell cdd {""%*""}'"
-         /* { and } are replaced by NEPMD's MAIN.E to ". Otherwise     */
-         /* the EPM executable parser would remove the doublequotes.   */
-         /* The %* param is additionally surrounded with doublequotes, */
-         /* because when %* is resolved by the WPS and no parm was     */
-         /* specified, the char after %* is removed, if it's not a     */
-         /* doublequote. (That would work as well, but looks ugly.)    */
+ */
 
- Obj.0 = 1  /* number of objects */
+ Obj.0 = 0  /* number of objects */
 
  /* ################################################################################# */
 
