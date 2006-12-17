@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.43 2006-12-10 08:48:50 aschn Exp $
+* $Id: edit.e,v 1.44 2006-12-17 23:35:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -510,9 +510,35 @@ compile endif
          rc = PreLoadFile( FileSpec, options)
          edit_rc = rc  -- restore this rc at the end
 
+         -- Handle dirs specially
          if rc = -5 then  -- sayerror('Access denied')
             if NepmdDirExists( strip( FileSpec, 'b', '"')) then
-               'dir 'FileSpec
+               fOpenDir = 1
+               if not pos( ' ', FileSpec) then
+                  MaybeStrippedFileSpec = strip( FileSpec, 'b', '"')
+               else
+                  MaybeStrippedFileSpec = FileSpec
+               endif
+               -- For Shell windows: enter current dir name
+               if IsAShell( .filename) then
+                  ShellDir = ''
+                  ShellCmd = ''
+                  call ShellParsePromptLine( ShellDir, ShellCmd)
+                  if length( ShellDir) > 0 then
+                     fOpenDir = 0
+                     if ShellCmd = '' then
+                        endline
+                        NewCmd = 'cdd' MaybeStrippedFileSpec
+                     else
+                        NewCmd = MaybeStrippedFileSpec
+                     endif
+                     keyin NewCmd
+                  endif
+               endif
+               -- If not a shell: open dir listing
+               if fOpenDir then
+                  'dir 'MaybeStrippedFileSpec
+               endif
                rc = 0
                edit_rc = rc
             endif
