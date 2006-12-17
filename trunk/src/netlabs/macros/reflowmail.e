@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.13 2006-12-17 18:01:52 aschn Exp $
+* $Id: reflowmail.e,v 1.14 2006-12-17 23:02:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -447,14 +447,20 @@ defc ReflowMail
 
          -- Check if this line is verbatim or list
          SavedBullet = ThisBullet
-         fIsListItem = Mail_IsListItem( sline, ThisListIndent, ThisBullet)
+         fIsNewListItem = Mail_IsListItem( sline, ThisListIndent, ThisBullet)
+         fIsContinuedListItem = (ThisListIndent > 0 &
+                                 -- indent for current line is last list indent
+                                 ((ThisIndent = ThisListIndent) |
+                                  -- allow 1 optional space after the quote chars
+                                  (ThisIndent = ThisListIndent + 1 & ThisQuoteLevel > 0)))
          fIsVerbatim = Mail_IsVerbatim( sline, fIndentedIsVerbatim)
+
          if fNoReflow then
             -- ignore
-         elseif fIsListItem then
+         elseif fIsNewListItem then
             fNewPar = 1
             dprintf( 'REFLOWMAIL', 'Line no '.line':  New list item: ThisListIndent = 'ThisListIndent)
-         elseif (ThisIndent = ThisListIndent) & ThisListIndent > 0 then
+         elseif fIsContinuedListItem then
             -- Continuing list item
             -- The bullet from the new item line must be restored, because the
             -- check for it has just reset it. The bullet char will be handled
