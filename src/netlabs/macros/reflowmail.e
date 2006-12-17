@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.12 2006-03-05 15:50:10 aschn Exp $
+* $Id: reflowmail.e,v 1.13 2006-12-17 18:01:52 aschn Exp $
 *
 * ===========================================================================
 *
@@ -26,9 +26,9 @@ Todo:
    Sometimes, mostly at longer textes, the execution stops with a msg:
    No area marked. In fact, the entire text is marked and all quote chars
    are removed. It's not possible then to do any mark operation with that
-   buffer, but undo works. In most cases, saving the buffer to any, maybe
-   temporary file, (after undoing to the unformatted version, of course)
-   will workaround that problem.
+   buffer, but undo works. In most cases, saving or renaming the buffer to
+   any, maybe temporary file, (after undoing to the unformatted version, of
+   course) will workaround that problem.
    Additionally, it's not possible to format more than about 600 lines.
 
 -  How to determine verbatim text?  Then: Ask the user if current par is
@@ -60,14 +60,14 @@ Todo:
 -  Replace tabs with spaces in normal text. Remove parindent (by reflow).
 
 -  Handle special text sections:
--> *  par (parindent should be replaced by parskip)
-   *  verbatim
--> *  lists (workaround now: every indented line is verbatim.)
--> *  tables
+?  *  par (maybe replace parindent by parskip?)
+ok *  verbatim
+ok *  lists
+-> *  tables (not recognized, must be indented)
 ok *  blank lines
-   *  multiple spaces
+ok *  multiple spaces
 ok *  trailing spaces
--> *  tabs
+-> *  tabs (currently converted to 1 space in lists, kept in verbatim parts)
    mail-specific:
 ok *  quote
 ok *  cite
@@ -92,27 +92,19 @@ ok *  signature
    where the indent is essential?
 
 -  Replace multiple spaces in verbatim regions with '~' to keep all
-   spaces in HTML forms.
+   spaces in HTML forums.
 */
 
-const
-compile if not defined(NEPMD_DEBUG)
-   NEPMD_DEBUG = 0  -- General debug const
-compile endif
-compile if not defined(NEPMD_DEBUG_MAILREFLOW)
-   NEPMD_DEBUG_MAILREFLOW = 0
-compile endif
-
 defmain
-   'reflowmail'
+   'ReflowMail'
 
 ; ---------------------------------------------------------------------------
-defproc Mail_GetQuoteLevel( line, var sLine, var QuoteLevel, var IndentLevel)
-   QuoteLevel  = 0
-   IndentLevel = 0
+defproc Mail_GetQuoteLevel( line, var sline, var ThisQuoteLevel, var ThisIndent)
+   ThisQuoteLevel = 0
+   ThisIndent = 0
    QuoteCharList = '> : %'
    DefaultQuoteChar = '>'  -- for XyZ> quotes
-   LastIsQuoteChar = 0
+   fLastIsQuoteChar = 0
    startp = 1
    col = 1
    do forever
@@ -123,25 +115,25 @@ defproc Mail_GetQuoteLevel( line, var sLine, var QuoteLevel, var IndentLevel)
       if next == '' then
          leave           -- Todo: don't change QuoteLevel if in signature
       elseif next == ' ' then  -- empty line or end of line
-         IndentLevel = IndentLevel + 1
+         ThisIndent = ThisIndent + 1
          col = col + 1
          -- Remove 1 possible space after QuoteChar
-         if LastIsQuoteChar then  -- if last char was a QuoteChar
+         if fLastIsQuoteChar then  -- if last char was a QuoteChar
             startp = col
-            LastIsQuoteChar = 0
+            fLastIsQuoteChar = 0
          endif
       elseif pos( next, QuoteCharList) then
-         QuoteLevel  = QuoteLevel + 1
-         IndentLevel = 0
+         ThisQuoteLevel  = ThisQuoteLevel + 1
+         ThisIndent = 0
          col = col + 1
          startp = col
-         LastIsQuoteChar = 1
+         fLastIsQuoteChar = 1
       else  -- for WXyZ> quote marks
          next = substr( line, col, 5)  -- 5: max 4 chars for name
          p1 = pos( DefaultQuoteChar, next)
          p2 = verify( '-=', next, 'M')    -- don't count arrows as quote chars
          if p1 & (p2 = 0) then
-            QuoteLevel = QuoteLevel + 1
+            ThisQuoteLevel = ThisQuoteLevel + 1
             col = col + p1 + 1
             startp = col
          else  -- standard text
@@ -153,170 +145,163 @@ defproc Mail_GetQuoteLevel( line, var sLine, var QuoteLevel, var IndentLevel)
    return
 
 ; ---------------------------------------------------------------------------
-defproc Mail_ReflowMarkedLines
-   rightMargin = 70
-   defaultQuoteChar = '>'
-   spaceAmount = 1
-   prevParQuoteLevel     = arg(1)
-   prevPrevParQuoteLevel = arg(2)  -- required for blank lines
-   enableReflow          = arg(3)
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-   call NepmdPmPrintf( 'Starting at line # '.line )
-compile endif
-   -- set margins for reflow, substract indent
-   if prevParQuoteLevel > 0 then
-      thisIndent = prevParQuoteLevel + spaceAmount
-   else
-      thisIndent = 0
+; Reflow previous paragraph.
+defproc Mail_ReflowMarkedLines( PrevParQuoteLevel, PrevPrevParQuoteLevel, PrevListIndent, PrevBullet, fEnableReflow)
+   QuoteChar = '>'
+   SpaceAmount = 1  -- Spaces after QuoteChar
+   RightMargin = 72 - length( QuoteChar) - SpaceAmount
+
+   -- Set margins to max to avoid any automatic line break
+   .margins = 1 1599 1
+   -- Go to begin mark
+   getmark FirstLine, LastLine, FirstCol, LastCol, Fid
+   .line = FirstLine
+   dprintf( 'REFLOWMAIL', 'Starting at line no '.line )
+
+   -- Remove bullet chars
+   if PrevBullet <> '' then
+      replaceline overlay( copies( ' ', length( PrevBullet)), textline( FirstLine)), FirstLine
    endif
-   rma = rightMargin - thisIndent
-   .margins = 1 rma 1
-   -- go to begin mark
-   getmark firstLine, lastLine, firstCol, lastCol, fId
-   .line = firstLine
-   if enableReflow = 1 then
-      -- reflow marked lines, starting at cursor
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-      call NepmdPmPrintf( '  Reflowing lines no 'firstLine' to 'lastLine)
-compile endif
+
+   -- Set margins for reflow, substract indent
+   if PrevParQuoteLevel > 0 then
+      PrevIndent = PrevParQuoteLevel + SpaceAmount
+   else
+      PrevIndent = 0
+   endif
+   lma = PrevListIndent + 1
+   rma = RightMargin - PrevIndent - PrevListIndent
+   .margins = lma rma lma
+
+   if fEnableReflow then
+      -- Reflow marked lines, starting at cursor
+      dprintf( 'REFLOWMAIL', '  Reflowing lines no 'FirstLine' to 'LastLine', Indent = 'PrevIndent', ListIndent = 'PrevListIndent', Bullet = ['PrevBullet']')
       reflow
    else
-      -- don't reflow marked lines, starting at cursor
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-      call NepmdPmPrintf( '  Not reflowing lines no 'firstLine' to 'lastLine)
-compile endif
+      -- Don't reflow marked lines, starting at cursor
+      dprintf( 'REFLOWMAIL', '  Not reflowing lines no 'FirstLine' to 'LastLine)
    endif
-   -- insert quote chars in every marked line
-   -- set margins to max to avoid any automatic line break
-   .margins = 1 1599 1
-   getmark firstLine, lastLine, firstCol, lastCol, fId
 
-   -- go back to start - 1 if prev line is a blank line to calc quote level and add quote chars
-   if firstLine > 1 then
-      .line = firstLine - 1
+   -- Set margins to max to avoid any automatic line break
+   .margins = 1 1599 1
+
+   getmark FirstLine, LastLine, FirstCol, LastCol, Fid
+   -- Re-add bullet chars
+   if PrevBullet <> '' then
+      replaceline overlay( PrevBullet, textline( FirstLine)), FirstLine
+   endif
+
+   -- Insert quote chars in every marked line
+   -- Go back to start - 1 if prev line is a blank line to calc quote level and add quote chars
+   if FirstLine > 1 then
+      .line = FirstLine - 1
       getline line
       if strip(line) <> '' then
-         .line = firstline
+         .line = Firstline
       endif
    endif
 
-   do forever --l = 1 to lastLine - firstLine
+   do forever --l = 1 to LastLine - FirstLine
       getline line
 
       if strip(line) = '' then
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-         call NepmdPmPrintf( '* QuoteLevel prevPar/prevPrevPar = 'prevParQuoteLevel'/'prevPrevParQuoteLevel)
-compile endif
-         blankLineQuoteLevel = min( prevParQuoteLevel, prevPrevParQuoteLevel )
-         if blankLineQuoteLevel > 0 then
-            replaceline copies( defaultQuoteChar, blankLineQuoteLevel)''copies( ' ', spaceAmount)''line
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-            call NepmdPmPrintf( '* line = |'line'|')
-compile endif
+         dprintf( 'REFLOWMAIL', '* QuoteLevel PrevPar/PrevPrevPar = 'PrevParQuoteLevel'/'PrevPrevParQuoteLevel)
+         BlankLineQuoteLevel = min( PrevParQuoteLevel, PrevPrevParQuoteLevel )
+         if BlankLineQuoteLevel > 0 then
+            replaceline copies( QuoteChar, BlankLineQuoteLevel)''copies( ' ', SpaceAmount)''line
+            dprintf( 'REFLOWMAIL', '* line = ['line']')
          endif
-;;        refresh; getline newline; messageNwait( .line': prevQuoteLevel = 'prevQuoteLevel', thisQuoteLevel = 'thisQuoteLevel', newline = |'newline'|' )
 
-      elseif prevParQuoteLevel > 0 then
-         -- prepend quote chars and space
-         replaceline copies( defaultQuoteChar, prevParQuoteLevel)''copies( ' ', spaceAmount)''line
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-         call NepmdPmPrintf( '* line = |'line'|')
-compile endif
+      elseif PrevParQuoteLevel > 0 then
+         -- Prepend quote chars and space
+         replaceline copies( QuoteChar, PrevParQuoteLevel)''copies( ' ', SpaceAmount)''line
+         dprintf( 'REFLOWMAIL', '* line = ['line']')
       endif
 
-      -- position cursor on line following mark or leave
+      -- Position cursor on line following the mark or leave
       if .line = .last then
          leave  -- return
-      elseif .line >= lastLine then
+      elseif .line >= LastLine then
          down   -- go back to line after mark
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-         call NepmdPmPrintf( 'Back on line # '.line )
-compile endif
+         dprintf( 'REFLOWMAIL', ' Back on next unmarked line no '.line': ['textline( .line)']')
          leave  -- return
       else
          down   -- go to next marked line
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-         call NepmdPmPrintf( 'Back on line # '.line )
-compile endif
+         dprintf( 'REFLOWMAIL', '  Going to next marked line no '.line': ['textline( .line)']')
       endif
 
    enddo
    return
 
 ; ---------------------------------------------------------------------------
-defproc Mail_IsVerbatim(sline)
+; Check if current line is verbatim.
+defproc Mail_IsVerbatim( sline)
    ssline = strip( sline, 'l')
    FirstChar  = substr( ssline, 1, 1)
-   SecondChar = substr( ssline, 2, 1)
-   ThirdChar  = substr( ssline, 3, 1)
-   FourthChar = substr( ssline, 4, 1)
-   Option = arg(2)  -- Flag; if 1: recognize every indented line as verbatim
-   IsVerbatim = 0
+   fIndentedIsVerbatim = (arg(2) = 1)  -- Flag; if 1: recognize every indented line as verbatim
+   fIsVerbatim = 0
 
-   -- empty line
+   -- Empty line
    if ssline = '' then
       -- not verbatim
 
-   -- signature line
-   elseif sline = '-- ' then
-      IsVerbatim = 1
-      -- todo: don't reformat the rest
-
-   -- external quotes
+   -- External quotes
    elseif FirstChar = '|' then
-      IsVerbatim = 1
+      fIsVerbatim = 1
 
-   -- indented line with indent > 1                                           <--------- Todo
-   --elseif substr( sline, 1, 2) = '  ' | substr( sline, 1, 1) = \9  | substr( sline, 1, 2) = ' '\9 then
-   elseif (substr( sline, 1, 1) = ' ' | substr( sline, 1, 1) = \9) & Option = 1 then
-      IsVerbatim = 1
-/*
-   -- numbered lists
-   elseif isnum( FirstChar) then
-      if pos( SecondChar, '.)' ) > 0 & pos( ThirdChar, ' '\13) > 0 then
-         IsVerbatim = 1
-      elseif isnum( SecondChar) & pos( ThirdChar, '.)') > 0 & pos( FourthChar, ' '\9) > 0 then
-         IsVerbatim = 1
-      endif
-      -- todo: keep indent for the rest of this item, reformat indent of items
-
-   -- bullet lists
-   elseif pos( FirstChar, '-o*') > 0 & pos( SecondChar, ' '\9) > 0 then
-      IsVerbatim = 1
-*/                                                    -- todo: keep indent for the rest of this item, reformat indent of items
+   -- Indented line with indent > 1
+   elseif (substr( sline, 1, 1) = ' ' | substr( sline, 1, 1) = \9) & fIndentedIsVerbatim then
+      fIsVerbatim = 1
    endif
-   return IsVerbatim
+   return fIsVerbatim
 
 ; ---------------------------------------------------------------------------
-defproc Mail_IsListItem( sline, var ListIndentLevel)
+; Check if current line starts a list item and set vars for it.
+defproc Mail_IsListItem( sline, var ThisListIndent, var ThisBullet)
    ssline = strip( sline, 'l')
    FirstChar  = substr( ssline, 1, 1)
    SecondChar = substr( ssline, 2, 1)
    ThirdChar  = substr( ssline, 3, 1)
    FourthChar = substr( ssline, 4, 1)
-   IsListItem = 0
+   fIsListItem = 0
+   ThisBullet = ''
+   SavedListIndent = ThisListIndent
 
-   -- numbered lists
+   -- Numbered lists
    if isnum( FirstChar) then
       if pos( SecondChar, '.)') > 0 & pos( ThirdChar, ' '\13) > 0 then
-         IsListItem = 1
-         ListIndentLevel = max( verify( substr( ssline, 3), ' '\9) - 1, 0) + 2
+         fIsListItem = 1
+         ThisBullet = FirstChar''SecondChar
       elseif isnum( SecondChar) & pos( ThirdChar, '.)') > 0 & pos( FourthChar, ' '\9) > 0 then
-         IsListItem = 1
-         ListIndentLevel = max( verify( substr( ssline, 3), ' '\9) - 1, 0) + 3
+         ThisBullet = FirstChar''SecondChar''ThirdChar
+         fIsListItem = 1
       endif
-      -- todo: keep indent for the rest of this item, reformat indent of items
+      -- Todo: keep indent for the rest of this item, reformat indent of items
 
-   -- bullet lists
+   -- Bullet lists
    elseif pos( FirstChar, '-o*' ) > 0 & pos( SecondChar, ' '\9) > 0 then
-      IsListItem = 1
-      ListIndentLevel = max( verify( substr( ssline, 2), ' '\9) - 1, 0) + 2
+      ThisBullet = FirstChar
+      fIsListItem = 1
    elseif pos( FirstChar, '-') > 0 & pos( SecondChar, '-') > 0 & pos( ThirdChar, ' '\9) > 0 then
-      IsListItem = 1
-      ListIndentLevel = max( verify( substr( ssline, 2), ' '\9) - 1, 0) + 3
-                       -- todo: keep indent for the rest of this item, reformat indent of items
+      ThisBullet = FirstChar''SecondChar
+      fIsListItem = 1
+      -- Todo: keep indent for the rest of this item, reformat indent of items
    endif
-   return IsListItem
+
+
+   if fIsListItem then
+      SpacesBeforeBullet = max( verify( sline, ' '\9) - 1, 0)
+      SpacesAfterBullet = max( verify( substr( ssline, length(ThisBullet) + 1), ' '\9) - 1, 0)
+
+      -- Indent bullet with spaces to the indent of the current line
+      ThisBullet = copies( ' ', SpacesBeforeBullet)''ThisBullet
+
+      ThisListIndent = length( ThisBullet) + SpacesAfterBullet
+   else
+      ThisListIndent = SavedListIndent
+   endif
+
+   return fIsListItem
 
 ; ---------------------------------------------------------------------------
 ; Get quote level for current line, ignore all spaces in between.
@@ -330,36 +315,32 @@ defproc Mail_IsListItem( sline, var ListIndentLevel)
 ; Strip blank lines.
 ; Handle parindents: add a blank line if one line has a different indent
 ;                    or just keep the indent (and remove only 1 optional space after the prev '>')
-defc reflowmail
+defc ReflowMail
    universal nepmd_hini
    universal InfolineRefresh
    universal vTemp_Path
-   prevLineIsBlank    = 0
-   prevLineIsVerbatim = 0
-   prevQuoteLevel     = 0
-   prevPrevQuoteLevel = 0
-   prevParQuoteLevel     = 0
-   prevPrevParQuoteLevel = 0
-   noReflow = 0
-   sigQuoteLevel = 0
-   thisListIndentLevel = 0
-   thisIndentLevel = 0
-   prevIndentLevel = 0
-   ListStart = 0
+   fPrevLineIsBlank    = 0
+   fPrevLineIsVerbatim = 0
+   PrevQuoteLevel     = 0
+   PrevPrevQuoteLevel = 0
+   PrevParQuoteLevel     = 0
+   PrevPrevParQuoteLevel = 0
+   fNoReflow = 0
+   fNewPar   = 0
+   SigQuoteLevel = 0
+   ThisIndent = 0
+   PrevIndent = 0
+   ThisQuoteLevel  = 0
+   fReflow = 0
+   fSig = 0
+   ThisBullet = ''
+   PrevBullet = ''
+   ThisListIndent = 0
+   PrevListIndent = 0
 
    KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
-   IndentedIsVerbatim = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 1)
+   fIndentedIsVerbatim = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 1)
 
-/*
-   -- Unmark first, if any marked file in ring
-   if marktype() then
-      getfileid fid
-      getmark mfirstline, mlastline, mfirstcol, mlastcol, mfid
-      activatefile mfid
-      unmark
-      activatefile fid
-   endif
-*/
    saved_autosave = .autosave
    .autosave = 0
    saved_modify = .modify
@@ -368,77 +349,64 @@ defc reflowmail
    InfolineRefresh = 0
    display -1
 
+   -- Temporarily rename file and see if it fixes the 'No text marked' bug
+   saved_filename = .filename
+   if leftstr( .filename, 1) = '.' then
+      'n .tempfile'
+   endif
+
    .line = 1
    .col  = 1
-/*
-   'select_all'  -- select_all also copies mark to the shared buffer
-   delete_mark   -- this always creates a new undo state, no chance to avoid it
-   getfileid mailfid
-
-   -- Use a temp file (buffer) now for to work with. Let's see if that can fix
-   -- the "No area marked" bug.
-   'xcom e /n'
-   if rc <> -282 then
-      return rc
-   endif
-   getfileid tmpfid
-   .visible = 0
-   .autosave = 0
-   'getsharbuff'
-*/
    unmark
-   -- (If still not fixed, then the temp file should be saved to disk here.)
-   TmpFile = vTemp_Path'mail.tmp'
-   'xcom s' TmpFile
 
-   -- add a blank line after last to make reflow of the last par easy
+   -- Add a blank line after last to make reflow of the last par easy
    insertline '', .last + 1
    i = 0
    do while i < 1000
       i = i + 1  -- Added only as emergency stop, for nothing else.
                  -- Maybe this will help to find the bug in it?
-      thisLineIsBlank    = 0
-      thisLineIsVerbatim = 0
+      fThisLineIsBlank    = 0
+      fThisLineIsVerbatim = 0
       getline line
-      -------------------------------------------------------------------------
+
       -- GetQuoteLevel() and strip quote chars from line
-      call Mail_GetQuoteLevel( line, sLine, thisQuoteLevel, thisIndentLevel)
-      -------------------------------------------------------------------------
-      -- strip off trailing spaces, except from signature mark
-      -- remove quoted signatures
-      if (thisQuoteLevel = sigQuoteLevel) & (sigQuoteLevel > 0) then
+      call Mail_GetQuoteLevel( line, sline, ThisQuoteLevel, ThisIndent)
+
+      -- Strip off trailing spaces, except from signature mark
+      -- Remove quoted signatures
+      if (ThisQuoteLevel = SigQuoteLevel) & (SigQuoteLevel > 0) then
          deleteline
          iterate
       endif
       if substr( sline, 1, 2) = '--' & length( sline) = 2 /*pos( substr( sline, 3, 1), '>-') = 0*/ then
-         sline = '-- '  -- correct stripped space if none
+         -- Correct stripped space if none
+         sline = '-- '
       endif
-      if substr( sline, 1, 3) = '-- ' then
-         noReflow = 1
-         sigQuoteLevel = thisQuoteLevel
-         if sigQuoteLevel > 0 then
+      if fSig then
+         fNoReflow = 1
+      elseif substr( sline, 1, 3) = '-- ' then
+         fNewPar = 1
+         fSig = 1
+         SigQuoteLevel = ThisQuoteLevel
+         if SigQuoteLevel > 0 then
             deleteline
             iterate
          endif
       else
-         noReflow = 0
+         fNoReflow = 0
          sline = strip( sline, 'T', ' ')
-         sigQuoteLevel = 0
+         SigQuoteLevel = 0
       endif
-      -------------------------------------------------------------------------
-      replaceline sLine
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-      call NepmdPmPrintf( 'Line no '.line':  #  prevLineIsBlank = 'prevLineIsBlank', QuoteLevel = 'thisQuoteLevel', line = |'line'|, sline = |'sline'|')
-compile endif
-      -------------------------------------------------------------------------
-      -- if a blank line
-      if sLine = '' then
-         if 0 /*.line = .last*/ then
-            deleteline
-            leave
-         ----------------------------------------------------------------------
-         -- if previous line is blank
-         elseif prevLineIsBlank then
+
+      -- Temp. write the line without the stripped quote chars
+      replaceline sline
+      dprintf( 'REFLOWMAIL', 'Line no '.line':  #  fPrevLineIsBlank = 'fPrevLineIsBlank', QuoteLevel = 'ThisQuoteLevel', line = ['line']')
+
+      -- If a blank line
+      if sline = '' then
+
+         -- If previous line is blank
+         if fPrevLineIsBlank then
 
             deleteline
             if .line = .last then
@@ -447,102 +415,86 @@ compile endif
                iterate
             endif
 
-            thisLineIsBlank = 1
-            newPar = 0
+            fThisLineIsBlank = 1
+            fNewPar = 0
 
-         ----------------------------------------------------------------------
-         -- if previous line is not blank
+         -- If previous line is not blank
          else
-            thisLineIsBlank = 1
-            newPar = 1  -- reflow prev par
-            -- blank line ends list item
-            thisListIndentLevel = 0
-            ListStart = 0
+            fThisLineIsBlank = 1
+            fNewPar = 1  -- reflow prev par
+            -- Keep previous list indent level to enable pars in list items
+            --ThisListIndent = 0
          endif
-      -------------------------------------------------------------------------
-      -- if not a blank line
+
+      -- If not a blank line
       else
 
-         ----------------------------------------------------------------------
-         -- reflow prev par if QuoteLevel has changed
-         if thisQuoteLevel <> prevQuoteLevel then
-            if prevLineIsBlank then
-               newPar = 0
+         -- Reflow prev par if QuoteLevel has changed
+         if ThisQuoteLevel <> PrevQuoteLevel then
+            if fPrevLineIsBlank then
+               fNewPar = 0
             else
                replaceline line  -- change back from sline to line
                insertline '', .line
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-               call NepmdPmPrintf( 'Line no '.line':  blank line inserted before current line')
-compile endif
+               dprintf( 'REFLOWMAIL', 'Line no '.line':  blank line inserted before current line')
                up
                iterate
             endif
-         ----------------------------------------------------------------------
-         -- if QuoteLevel hasn't changed
+         -- If QuoteLevel hasn't changed
          else
-            newPar = 0
+            fNewPar = 0
          endif
 
-         ----------------------------------------------------------------------
-         -- check if this line is verbatim or list
-         if Mail_IsVerbatim( sline, IndentedIsVerbatim) then  -- checks temp. also if indented     <--------- Todo
-            thisLineIsVerbatim = 1
-         elseif Mail_IsListItem( sline, thisListIndentLevel) then
-            ListStart = .line
-            newPar = 1
-            thisLineIsVerbatim = 1  -- temp. activated                        <--------- Todo
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-            call NepmdPmPrintf( 'Line no '.line':  New list item: thisLineIsVerbatim = 'thisLineIsVerbatim)
-compile endif
-         elseif (thisIndentLevel = thisListIndentLevel) & thisListIndentLevel > 0 then
-            -- continuing list item
-            thisLineIsVerbatim = 1  -- temp. activated                        <--------- Todo
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-            call NepmdPmPrintf( 'Line no '.line':  Continued list item: thisLineIsVerbatim = 'thisLineIsVerbatim)
-compile endif
-         elseif thisIndentLevel <> prevIndentLevel then
-            -- different indent ends list item and starts new par
-            thisListIndentLevel = 0
-            ListStart = 0
-            newPar = 1
+         -- Check if this line is verbatim or list
+         SavedBullet = ThisBullet
+         fIsListItem = Mail_IsListItem( sline, ThisListIndent, ThisBullet)
+         fIsVerbatim = Mail_IsVerbatim( sline, fIndentedIsVerbatim)
+         if fNoReflow then
+            -- ignore
+         elseif fIsListItem then
+            fNewPar = 1
+            dprintf( 'REFLOWMAIL', 'Line no '.line':  New list item: ThisListIndent = 'ThisListIndent)
+         elseif (ThisIndent = ThisListIndent) & ThisListIndent > 0 then
+            -- Continuing list item
+            -- The bullet from the new item line must be restored, because the
+            -- check for it has just reset it. The bullet char will be handled
+            -- specially for the first marked line only and if it's not empty.
+            ThisBullet = SavedBullet
+            dprintf( 'REFLOWMAIL', 'Line no '.line':  Continued list item: ThisListIndent = 'ThisListIndent)
+         elseif fIsVerbatim then
+            fThisLineIsVerbatim = 1
+            ThisListIndent = 0
+            dprintf( 'REFLOWMAIL', 'Line no '.line':  Verbatim line: fThisLineIsVerbatim = 'fThisLineIsVerbatim)
+         elseif ThisIndent <> PrevIndent | (ThisIndent <> PrevListIndent & PrevListIndent > 0) then
+            -- Different indent ends list item and starts new par
+            ThisListIndent = 0
+            fNewPar = 1
+            dprintf( 'REFLOWMAIL', 'Line no '.line':  Different indent: This/Prev/PrevList = 'ThisIndent'/'PrevIndent'/'PrevListIndent)
          endif
 
-         if prevLineIsBlank = 0 then
-            -------------------------------------------------------------------
-            -- reflow last par if this or prev line is a verbatim line
-            if thisLineIsVerbatim | prevLineIsVerbatim then
-               newPar = 1
-            --elseif  then
+         if fPrevLineIsBlank = 0 then
+            -- Reflow last par if this or prev line is a verbatim line
+            if fThisLineIsVerbatim | fPrevLineIsVerbatim then
+               fNewPar = 1
             endif
-            -- reflow last par if prev lines is a par of a list item or indented         <------ Missing
-            -- Save bullet chars. Mark lines. Set margins with indent = thisIndentLevel. Reformat par.
-            -- Overlay bullet chars. Unmark.
-
-            -------------------------------------------------------------------
          endif
 
       endif
-      -------------------------------------------------------------------------
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-      call NepmdPmPrintf( 'Line no '.line':  QuoteLevel this/prev/prevprev = 'thisQuoteLevel'/'prevQuoteLevel'/'prevPrevQuoteLevel', newPar = 'newPar', sline = |'sline'|')
-compile endif
+      dprintf( 'REFLOWMAIL', 'Line no '.line':  QuoteLevel this/prev/prevprev = 'ThisQuoteLevel'/'PrevQuoteLevel'/'PrevPrevQuoteLevel', fNewPar = 'fNewPar)
 
-      if newPar then
-         -- begin reflow prev par
-         -- reset only if a new par, not if a verbatim line
-         prevPrevParQuoteLevel = prevParQuoteLevel  -- quote level for prevprev par
-         prevParQuoteLevel     = prevQuoteLevel     -- quote level for prev par
+      -- Reflow previous par
+      if fNewPar then
+         PrevPrevParQuoteLevel = PrevParQuoteLevel  -- quote level for prevprev par
+         PrevParQuoteLevel     = PrevQuoteLevel     -- quote level for prev par
          if FileIsMarked() then  -- if marked
-compile if NEPMD_DEBUG_MAILREFLOW and NEPMD_DEBUG
-            call NepmdPmPrintf( 'Line no '.line':  prevLineIsVerbatim = 'prevLineIsVerbatim', noReflow = 'noReflow)
-compile endif
-            reflowFlag = (prevLineIsVerbatim = 0) bitand (noReflow = 0)
-            call Mail_ReflowMarkedLines( prevParQuoteLevel, prevPrevParQuoteLevel, reflowFlag)
+            dprintf( 'REFLOWMAIL', 'Line no '.line':  fPrevLineIsVerbatim = 'fPrevLineIsVerbatim', fNoReflow = 'fNoReflow)
+            fReflow = (fPrevLineIsVerbatim = 0) bitand (fNoReflow = 0)
+            call Mail_ReflowMarkedLines( PrevParQuoteLevel, PrevPrevParQuoteLevel, PrevListIndent, PrevBullet, fReflow)
             unmark
          endif
       endif
 
-      if thisLineIsBlank = 0 then
+      if fThisLineIsBlank = 0 then
          mark_line
       endif
 
@@ -553,37 +505,29 @@ compile endif
          .col = 1
       endif
 
-      prevLineIsBlank    = thisLineIsBlank
-      prevLineIsVerbatim = thisLineIsVerbatim
-      prevIndentLevel    = thisIndentLevel
+      -- Save vars for current line. In case of a reflow if a new par was
+      -- identied, these values are submitted to Mail_ReflowMarkedLines.
+      fPrevLineIsBlank    = fThisLineIsBlank
+      fPrevLineIsVerbatim = fThisLineIsVerbatim
+      PrevIndent          = ThisIndent
+      PrevListIndent      = ThisListIndent
+      PrevBullet          = ThisBullet
 
-      if thisLineIsBlank = 0 then
-         prevPrevQuoteLevel = prevQuoteLevel
-         prevQuoteLevel     = thisQuoteLevel
+      if fThisLineIsBlank = 0 then
+         PrevPrevQuoteLevel = PrevQuoteLevel
+         PrevQuoteLevel     = ThisQuoteLevel
       endif
 
    enddo  -- forever
 
-   -- remove last blank lines
+   -- Remove last blank lines
    do while textline(.last) = ''
       deleteline .last
    enddo
 
-/*
-   -- Copy all and quit temp file
-   'select_all'  -- select_all also copies mark to the shared buffer
-   .modify = 0
-   'xcom q'
-
-   -- Back to the original file
-   activatefile mailfid
-   .line = 1
-   .col  = 1
-   'getsharbuff'
-   unmark
-*/
-   if Exist( TmpFile) then
-      call EraseTemp( TmpFile)
+   -- Restore old filename
+   if saved_filename <> .filename then
+      .filename = saved_filename
    endif
 
    display 1
@@ -593,4 +537,5 @@ compile endif
       .modify = saved_modify + 1
    endif
    call NewUndoRec()
+
 

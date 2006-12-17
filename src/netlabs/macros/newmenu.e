@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.42 2006-12-15 01:37:16 jbs Exp $
+* $Id: newmenu.e,v 1.43 2006-12-17 18:01:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1000,7 +1000,7 @@ defproc add_mark_menu(menuname)
                                    PASTE_B_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_PASTEB, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Copy file~name to clip',                                                  -- Filename to clip
+   buildmenuitem menuname, mid, i, 'Copy file~name to clip',                                       -- Copy filename to clip
                                    'CopyFilename2Clip' ||
                                    \1'Copy current filename to clipboard',
                                    MIS_TEXT, 0
@@ -1269,7 +1269,7 @@ defproc add_format_menu(menuname)
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Mai~l (all)',                                                         -- Mail (all)
                                    'reflowmail' ||
-                                   \1'Reformat current mail (beta, correct indents by hand)',
+                                   \1'Reformat current email',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Wordpro~c (all)',                                                     -- Wordproc (all)
@@ -1289,11 +1289,6 @@ defproc add_format_menu(menuname)
    buildmenuitem menuname, mid, i, 'Mail: reflow ~indented lines',                                        -- Mail: reflow indented lines
                                    'toggle_mail_indented' ||
                                    \1'Include indented lines',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_mailitemlines', i);
-   buildmenuitem menuname, mid, i, 'Mail: reflow the first line of list items',                          -- Mail: reflow the first line of list items
-                                   'toggle_mail_item' ||
-                                   \1'Inclu~de the first line of list items',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_reflownext', i);
    buildmenuitem menuname, mid, i, 'Reflow ne~xt',                                                        -- Reflow next
@@ -3163,9 +3158,6 @@ defc menuinit_reflow
    KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_mailindentedlines'), MIA_CHECKED, not on)
-   KeyPath = '\NEPMD\User\Reflow\Mail\ItemLines'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_mailitemlines'),     MIA_CHECKED, not on)
    KeyPath = '\NEPMD\User\Reflow\Next'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_reflownext'),        MIA_CHECKED, not on)
@@ -4267,17 +4259,6 @@ defc toggle_mail_indented
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_mailindentedlines'), MIA_CHECKED, not on)
-
-; ---------------------------------------------------------------------------
-; Flags: nepmd.ini
-defc toggle_mail_item
-   universal nepmd_hini
-   KeyPath = '\NEPMD\User\Reflow\Mail\ItemLines'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
-   -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
-   SetMenuAttribute( GetAVar('mid_mailitemlines'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
 ; Flags: nepmd.ini
