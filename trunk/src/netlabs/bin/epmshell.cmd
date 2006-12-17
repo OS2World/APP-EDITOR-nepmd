@@ -30,7 +30,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2006
 *
-* $Id: epmshell.cmd,v 1.1 2006-12-17 18:06:12 aschn Exp $
+* $Id: epmshell.cmd,v 1.2 2006-12-17 21:40:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -46,6 +46,13 @@
 ****************************************************************************/
 
 parse arg args
-"@start epm 'shell cdd {"args"}'"
+args = strip( args)
+
+EpmCmd = 'shell'
+if length( strip( args, , '"')) > 0 then
+   EpmCmd = EpmCmd 'cdd {'args'}'
+
+"@start epm '"EpmCmd"'"
+
 exit
 
