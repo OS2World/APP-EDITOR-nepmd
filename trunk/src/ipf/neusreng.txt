@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.16 2006-11-21 15:41:56 jbs Exp $
+.. $Id: neusreng.txt,v 1.17 2006-12-20 19:36:13 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -792,7 +792,7 @@ First public release
 The following trademarks are used in this online help file:
 .ul compact
 - OS/2 is a trademark of IBM Corporation
-- eComStation is a trademark of Serenity Systems Inc.
+- eComStation is a trademark of Serenity Systems International
 
 .. =============================================================================
 .2 Credits
