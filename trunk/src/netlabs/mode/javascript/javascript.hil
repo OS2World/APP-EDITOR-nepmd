@@ -6,7 +6,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2005
 ;
-; $Id: javascript.hil,v 1.1 2006-10-29 22:51:36 aschn Exp $
+; $Id: javascript.hil,v 1.2 2006-12-21 00:30:14 jbs Exp $
 ;
 ; ===========================================================================
 ;
@@ -51,8 +51,13 @@
  <
  >
  *
+ =
 -
+^
+&
+|
 #
+~
 \b
 \f
 \n
@@ -60,6 +65,16 @@
 \'
 \"
 \\
+++
+==
+===
+!=
+!==
+>=
+;<=
+;<<
+;>>
+;>>>
 
 [DEFINITION]
 function
@@ -67,64 +82,6 @@ function
 [DIRECTIVE]
 
 [KEYWORD]
-
-; --- basic
-alert
-var
-void
-
-; --- basic keywords
-break
-case
-continue
-default
-delete
-export
-new
-null
-onerror
-
-; --- loops etc.
-if
-else
-do
-false
-return
-switch
-this
-true
-while
-with
-for
-in
-
-; --- browser
-self
-window
-history
-language
-navigator
-browserLanguage
-userAgen
-appCodeName
-appVersion
-product
-cookieEnabled
-oscpu
-javaEnabled
-mimeTypes
-platform
-plugins
-onunload
-defaultstatus
-status
-menbar
-resizable
-scrollbars
-top
-left
-width
-userAgent
 
 ; ---- Keywords ----
 break
@@ -186,28 +143,60 @@ throws
 transient
 volatile
 
+; --- literals
+null
+false
+true
+
+; --- ?????
+;onerror
+;alert
+
+; --- browser
+self
+window
+history
+language
+navigator
+browserLanguage
+userAgen
+appCodeName
+appVersion
+product
+cookieEnabled
+oscpu
+javaEnabled
+mimeTypes
+platform
+plugins
+onunload
+defaultstatus
+status
+menbar
+resizable
+scrollbars
+top
+left
+width
+userAgent
 
 [FUNCTION]
 
-; --- basic
-;typeof
+; --- Function properties of the Global object
+eval
+isFinite
+isNaN
+parseFloat
+parseInt
 
-; --- dates & maths
-getYeat
-getMonth
-getDate
-getTime
-getMinutes
-getSeconds
-getMilliseconds
-getTimezoneOffset
-serDate
-setMonth
-setMonth
-setHours
-setMinutes
-setFullYear
-Math
+; --- URI Handling Function Properties
+decodeURI
+decodeURIComponent
+encodeURI
+encodeURIComponent
+
+;  Function properties of the Math Object
+;Math
 abs
 acos
 asin
@@ -227,24 +216,67 @@ sin
 sqrt
 tan
 
-; --- strings
+; --- Properties of the Date Prototype Object
+getDate
+getDay
+getFullYear
+getHours
+getMilliseconds
+getMinutes
+getMonth
+getSeconds
+getTime
+getTimezoneOffset
+getUTCDate
+getUTCDay
+getUTCFullYear
+getUTCHours
+getUTCMilliseconds
+getUTCMinutes
+getUTCMonth
+getUTCSeconds
+getUTC
+setDate
+setFullYear
+setHours
+setMilliseconds
+setMinutes
+setMonth
+setSeconds
+setTime
+setUTCDate
+setUTCFullYear
+setUTCHours
+setUTCMilliseconds
+setUTCMonth
+setUTCSeconds
+
+; --- Properties of the String Prototype Object
 charAt
+charCodeAt
+concat
+;escape
 indexOf
+lastIndexOf
+length
+localeCompare
+match
+replace
+search
+slice
 split
 substring
-substr
-toString
+;substr
+toLocaleLowerCase
+toLocaleUpperCase
 toLowerCase
 toUpperCase
-length
-left
-right
-rtrim
-ltrim
-
-; --- misc
-parseFloat
-parseInt
+toString
+;left
+;right
+;rtrim
+;ltrim
+;unescape
 
 ; --- DOM stuff
 parent
