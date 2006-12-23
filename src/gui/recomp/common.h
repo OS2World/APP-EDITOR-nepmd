@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: common.h,v 1.10 2006-10-09 00:12:42 aschn Exp $
+* $Id: common.h,v 1.11 2006-12-23 21:38:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -33,7 +33,7 @@
 #define __APPNAME__                    "RECOMP"
 #define __APPNAMESHORT__               "RECOMP"  // for title of error msg
 #define __PROGSTEM__                   "recomp"
-#define __VERSION__                    "v1.11"
+#define __VERSION__                    "v1.12"
 #define __YEAR__                       "2006"
 
 // define parameters

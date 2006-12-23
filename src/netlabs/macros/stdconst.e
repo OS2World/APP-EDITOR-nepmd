@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdconst.e,v 1.8 2006-11-12 13:21:41 jbs Exp $
+* $Id: stdconst.e,v 1.9 2006-12-23 21:38:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,7 +35,7 @@ const
    EPM32   = EVERSION >= 6
    POWERPC = EVERSION >= 7
 
-   NEPMD   = 1.11
+   NEPMD   = 1.12
 
 ;compile if EPM & EVERSION < '5.20'
 ;*** The current macros don't support your extremely backlevel version of EPM.
