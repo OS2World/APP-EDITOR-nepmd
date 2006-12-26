@@ -15,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: cdd.cmd,v 1.2 2006-12-17 21:38:47 aschn Exp $
+* $Id: cdd.cmd,v 1.3 2006-12-26 17:50:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -42,20 +42,41 @@ if left( FSpec, 1) = '"' then
 
 if FSpec > '' then
 do
+
    /* Change drive */
    if substr( FSpec, 2, 1) = ':' then
       call directory substr( FSpec, 1, 2)
 
-   /* Check if directory exists */
-   Found.0 = 0
-   rc = SysFileTree( FSpec, 'Found.', 'DO')
-   if Found.0 > 0 then
-      Dir = Found.1
-   else
+   Dir = ''
+   do 1
+      /* Check for drive-only FSpec */
+      if substr( FSpec, 2) = ':' then
+         leave
+
+      /* Check for root dir (SysFileTree doesn't handle that correct) */
+      if right( FSpec, 2) = ':\' | FSpec = '\' then
+      do
+         Dir = FSpec
+         leave
+      end
+
+      /* Check if directory exists */
+      Found.0 = 0
+      rc = SysFileTree( FSpec, 'Found.', 'DO')
+      if Found.0 > 0 then
+      do
+         Dir = Found.1
+         leave
+      end
+
       Dir = strip( FSpec, 't', '\')'\..'
+      leave
+
+   end
 
    /* Change directory */
-   call directory Dir
+   if Dir <> '' then
+      call directory Dir
 end
 else
    say directory()
