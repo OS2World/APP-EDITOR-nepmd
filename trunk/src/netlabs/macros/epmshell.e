@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.33 2006-12-10 10:23:04 aschn Exp $
+* $Id: epmshell.e,v 1.34 2006-12-26 17:54:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -525,6 +525,13 @@ defproc ShellEnterWrite
       endif
 
       CmdName = upcase( StripExt( StripPath( CmdWord)))
+
+      -- Handle the silly M$ syntax extension for CD like "cd\", "cd.." etc.
+      if wordpos( leftstr( upcase( CmdWord), 3), 'CD\ CD.') then
+         CmdArgs = substr( CmdWord, 3)
+         CmdWord = 'cd'
+         CmdName = 'CD'
+      endif
 
       -- Re-surround CmdWord with "..." if spaces
       if pos( ' ', CmdWord) then
@@ -1054,24 +1061,8 @@ defc ShellFncInit
       fAppendAllMask = 1
    endif
    if fAppendExeMask | fAppendAllMask then
-      --dprintf( 'TabComplete', '3 (no wildcard): FileMask before = ['FileMask']')
-      -- Handling FAT different is not required:
-;       FileSys = ''
-;       if length( FileMask) > 1 then
-;          if substr( FileMask, 2, 1) = ':' then
-;             next = QueryFileSys( leftstr( FileMask, 2))
-;             parse value next with 'ERROR:'rc0
-;             if rc0 = '' then
-;                FileSys = next
-;             endif
-;          endif
-;       endif
-;       if FileSys = 'FAT' then
-;          FileMask = FileMask'*.*'
-;       else
          FileMask = FileMask'*'
-;       endif
-      --dprintf( 'TabComplete', '3 (no wildcard): FileMask after  = ['FileMask']')
+      --dprintf( 'TabComplete', '3 (no wildcard): FileMask = ['FileMask']')
    endif
 
    -- Delete old array
@@ -1087,7 +1078,7 @@ defc ShellFncInit
    -- Find dirs and files
    rc1 = ''
    rc2 = ''
-   handle = GETNEXT_CREATE_NEW_HANDLE    0  -- handle must be reset before the search
+   handle = GETNEXT_CREATE_NEW_HANDLE  -- handle must be reset before the search
    c = 0  -- number of found names
    m = 0  -- item number of ExeMaskList
    f = 0  -- number of found items per FileMask, only used for debugging
