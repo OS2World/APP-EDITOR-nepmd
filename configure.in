@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.16 2006-12-23 21:38:31 aschn Exp $
+# $Id: configure.in,v 1.17 2007-01-17 19:35:52 aschn Exp $
 #
 # ===========================================================================
 #
@@ -102,7 +102,7 @@ VERSION=112
 #       src\gui\nepmdlib\nepmdlib.h
 #       src\gui\nepmdlib\nepmdlib.def
 
-ID_VERSION_NEPMD=1\1\1
+ID_VERSION_NEPMD=1\1\2
 
 
 # Version number for the WarpIn version that the resulting
