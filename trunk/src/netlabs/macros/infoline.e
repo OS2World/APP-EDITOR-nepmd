@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.13 2006-12-10 10:22:08 aschn Exp $
+* $Id: infoline.e,v 1.14 2007-01-28 01:25:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,7 +19,7 @@
 *
 ****************************************************************************/
 
-; Macros for enhanced titleline and statusline
+; Macros for enhanced title bar and status bar
 
 ; The check, if an update is required, is a little bit opaque: Every
 ; title- or statusline <field> defines a <flag> with it in order to
@@ -66,13 +66,8 @@
 ;    o  If file was altered by another file, then the old date is shown in title
 ;    o  If file was selected by ring_more dialog.  -> won't (can't) fix.
 
---compile if not defined(MODIFIED_STATUSCOLOR)
---const
---   MODIFIED_STATUSCOLOR = LIGHT_GREYB + MAGENTA
---compile endif
 definit
    universal vmodifiedstatuscolor
-   --vmodifiedstatuscolor = MODIFIED_STATUSCOLOR
    KeyPath = '\NEPMD\User\DefaultColors'
    Colors = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    vmodifiedstatuscolor = word( Colors, 6)
@@ -143,8 +138,8 @@ defc RefreshInfoLine
 ; %X   displays the hexadecimal value of the current character
 ; %Z   displays the ASCII value of the current character
 ;
-; The default value if STATUS_TEMPLATE is not defined is:
-; 'Line %l of %s Column %c  %i   %m   %f'
+; In contrast to the docs, the default value if STATUS_TEMPLATE was
+; not defined as: 'Line %l of %s Column %c  %i   %m   %f'
 defc RefreshStatusLine
    if .visible then
       'setstatusline 'GetStatusFields()
@@ -578,14 +573,16 @@ defc ResetDateTimeModified
          leave
       elseif browse() then
          leave
+      elseif leftstr( .filename, 1) = '.' then
+         leave
       elseif wordpos( upcase( substr( .filename, 1, 2)), SLOW_DRIVES) then
          leave
       elseif wordpos( QueryFileSys( substr( .filename, 2)), SLOW_FILESYSTEMS) then
          leave
       else
          -- if .readonly is deactivated (standard in EPM)
-         rc = qfilemode( .filename, attrib)  -- DosQFileMode
-         if not rc then
+         rcx = qfilemode( .filename, attrib)  -- DosQFileMode
+         if not rcx then
             readonly = (attrib // 2)
             if readonly then
                leave
@@ -599,8 +596,6 @@ defc ResetDateTimeModified
 
 ; ---------------------------------------------------------------------------
 defproc GetDateTimeModified
-   universal EPM_utility_array_ID
-
    Flag = arg(1)
    getfileid fid
    msg = ''
@@ -609,7 +604,7 @@ defproc GetDateTimeModified
    filename = .filename
    next = ''
 
-   rc = get_array_value( EPM_utility_array_ID, 'datetimemodified.'fid, next)
+   next = GetAVar( 'datetimemodified.'fid)
    if next = '' | Flag = 'RESET' then
 
       ---- if modified ----
@@ -626,29 +621,29 @@ defproc GetDateTimeModified
             next = get_filedatehex( filename )
             --next = NepmdQueryPathInfo( .filename, 'MTIME')
             --DateTime = NlsDateTime(next)
-            parse value(next) with 'ERROR:'rc
-            if rc = '' then
+            parse value(next) with 'ERROR:'rcx
+            if rcx = '' then
                new_filedatehex = next
                cur_filedatehex = ltoa(substr(.fileinfo, 9, 4), 16)
                if new_filedatehex <> cur_filedatehex then
                   -- if file was altered by another application
-                  msg = 'Altered by another application'
+                  msg = 'Altered by another application.'
                else
                   --DateTime = NlsDateTime(next)
                   DateTime = filedatehex2datetime(new_filedatehex)
                endif
-            elseif rc = 2   then msg = 'File not found'
-            elseif rc = 3   then msg = 'Path not found'
-            elseif rc = 6   then msg = 'Invalid handle'
-            elseif rc = 15  then msg = 'Drive not valid'
-            elseif rc = 18  then msg = 'No more files'
-            elseif rc = 26  then msg = 'Unknown media type'
-            elseif rc = 87  then msg = 'Invalid parameter'
-            elseif rc = 108 then msg = 'Drive locked'
-            elseif rc = 111 then msg = 'Buffer overflow'
-            elseif rc = 113 then msg = 'No more search handles'
-            elseif rc = 206 then msg = 'Filename exceeds range'
-            else                 msg = 'DosQueryPathInfo: RC = 'rc
+            elseif rcx = 2   then msg = 'File not found.'
+            elseif rcx = 3   then msg = 'Path not found.'
+            elseif rcx = 6   then msg = 'Invalid handle.'
+            elseif rcx = 15  then msg = 'Drive not valid.'
+            elseif rcx = 18  then msg = 'No more files.'
+            elseif rcx = 26  then msg = 'Unknown media type.'
+            elseif rcx = 87  then msg = 'Invalid parameter.'
+            elseif rcx = 108 then msg = 'Drive locked.'
+            elseif rcx = 111 then msg = 'Buffer overflow.'
+            elseif rcx = 113 then msg = 'No more search handles.'
+            elseif rcx = 206 then msg = 'Filename exceeds range.'
+            else                  msg = 'DosQueryPathInfo: rc = 'rcx
             endif
             -- display text instead of DateTime
             if DateTime = '' then
@@ -671,8 +666,7 @@ defproc GetDateTimeModified
       else
          ArrayVal = 'New'
       endif
-      do_array 2, EPM_utility_array_ID, 'datetimemodified.'fid, ArrayVal
-
+      call SetAVar( 'datetimemodified.'fid, ArrayVal)
 
    elseif next = 'New' then
       DateTime = ''
@@ -680,7 +674,7 @@ defproc GetDateTimeModified
    else
       DateTime = next
 
-   endif  -- if ret = ''
+   endif
 
    return DateTime
 
@@ -689,30 +683,37 @@ defc ConfigFrame
    universal nepmd_hini
    Type = arg(1)
    if Type = 'TITLE' then
-      KeyPath = '\NEPMD\User\InfoLine\TitleFields'
-      Title   = 'Enter new string for titletext fields'
-      Text    = 'Put the field names in <...> chars.' ||
-                 ' Specify * as separator.'
-      Cmd     = 'mc /ResetTitleFields/RefreshTitleText'
+      KeyPath  = '\NEPMD\User\InfoLine\TitleFields'
+      Title    = 'Enter new string for titletext fields'
+      Text     = 'Put the field names in <...> chars.' ||
+                  ' Specify * as separator.'
+      Cmd      = 'mc /ResetTitleFields/RefreshTitleText'
+      -- The following uses only internally defined fields and
+      -- therefore avoids the overhead for additional refreshs
+      Standard = '<filename>'
    elseif Type = 'STATUS' then
-      KeyPath = '\NEPMD\User\InfoLine\StatusFields'
-      Title = 'Enter new string for statusline fields'
-      Text    = 'Put the field names in <...> chars.' ||
+      KeyPath  = '\NEPMD\User\InfoLine\StatusFields'
+      Title    = 'Enter new string for statusline fields'
+      Text     = 'Put the field names in <...> chars.' ||
                  ' Specify * as separator.'
-      Cmd     = 'mc /ResetStatusFields/RefreshStatusLine'
+      Cmd      = 'mc /ResetStatusFields/RefreshStatusLine'
+      -- The following uses only internally defined fields and
+      -- therefore avoids the overhead for additional refreshs
+      Standard = "Line <line> of <lines> * Col <col> * '<hex>'x/<dec> * <ins> * <modified>"
    elseif Type = 'SEP' then
-      KeyPath = '\NEPMD\User\InfoLine\Sep'
-      Title   = 'Enter new string as separator between fields'
-      Text    = 'Default char is \250.' ||
-                ' Surround it with spaces for a poportional font.'
-      Cmd     = 'mc /ResetFieldSep/RefreshTitleText/RefreshStatusLine'
+      KeyPath  = '\NEPMD\User\InfoLine\Sep'
+      Title    = 'Enter new string as separator between fields'
+      Text     = 'Default char is \250.' ||
+                 ' Surround it with spaces for a poportional font.'
+      Cmd      = 'mc /ResetFieldSep/RefreshTitleText/RefreshStatusLine'
+      Standard = ' '
    else
-      sayerror 'Unknown arg'
+      sayerror 'Unknown arg.'
       return
    endif
    IniValue = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    parse value entrybox( Title,
-                         '/~Set/~Reset/~Cancel/~Help',
+                         '/~Set/~Reset/Standard ~EPM/~Cancel',
                          IniValue,
                          400,
                          260,
@@ -725,6 +726,8 @@ defc ConfigFrame
    elseif Button = \2 then
       rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath)
    elseif Button = \3 then
+      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, Standard)
+   elseif Button = \4 then
       return
    endif
    if not rc then
