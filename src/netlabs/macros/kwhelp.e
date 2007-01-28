@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.35 2006-11-12 15:04:35 aschn Exp $
+* $Id: kwhelp.e,v 1.36 2007-01-28 01:20:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -104,6 +104,12 @@ defc KwhelpSelect
       endif
 
 ; ---------------------------------------------------------------------------
+const
+compile if not defined( NEWVIEW_VERSION)
+   --NEWVIEW_VERSION = '2.18'  -- for eCS 2.0b3 und before
+   NEWVIEW_VERSION = 2.19
+compile endif
+
 defc Kwhelp
    universal savetype
    universal helpindex_id
@@ -216,17 +222,6 @@ defc Kwhelp
       -- Search the file, if the command is a view
       if (upcase(cmd) = 'VIEW') then
 
-         -- Use NewView, if found in PATH
-         KeyPath = '\NEPMD\User\KeywordHelp\NewView\UseIfFound'
-         next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-         if next <> 0 then
-            next = NepmdSearchPath( 'newview.exe')
-            parse value next with 'ERROR:' rc
-            if rc = '' then
-               cmd = 'newview'
-            endif
-         endif
-
          -- Second word is the file.
          -- Convert a possible ViewFileList to CheckedFileList, in order
          -- to continue searching if an .inf file doesn't exist.
@@ -274,28 +269,88 @@ defc Kwhelp
       endif
 
       if (line  <> '') then
-         -- For newview: Execute a real search instead of just a lookup in the index.
-         if upcase( word( line, 1)) = 'NEWVIEW' then
+
+         -- For newview: Maybe execute a real search instead of just a lookup
+         -- in the index.
+         -- Unfortunately their is no reliable way to check the install state
+         -- nor the version of NewView, to handle its buggy command line
+         -- parsing.
+         if upcase( cmd) = 'VIEW' then
+
             parse value line with app inf key
-            -- Newview requires "..." for strings with spaces, View strips them.
-            if leftstr( key, 1) <> '"' then
-               parse value key with wrd rest
-               if rest > '' then
-                  key = '"'strip( key)'"'
-               endif
-            endif
-            -- Newview bug (still present with 2.16.4): needs doubled closing "
-            -- Reproducable with: start newview cmdref /s:"net view"
-            if leftstr( key, 1) = '"' then
-               key = key'"'
-            endif
-            -- Use NewView's extended search
-            KeyPath = '\NEPMD\User\KeywordHelp\NewView\ExtendedSearch'
+            key = strip( key)
+
+            -- Use NewView, if found in PATH
+            fUseNewView = 0
+            KeyPath = '\NEPMD\User\KeywordHelp\NewView\UseIfFound'
             next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
             if next <> 0 then
-               line = 'newview 'inf' /s:'key
+               -- If NewView was installed as View replacement, then
+               -- IBMVIEW.EXE exists
+               next = NepmdSearchPath( 'ibmview.exe')
+               parse value next with 'ERROR:' rcx
+               if rcx = '' then
+                  -- Better don't change 'VIEW', because NewView can re-use a file,
+                  -- that is already loaded, when its stub (renamed to VIEW.EXE)
+                  -- is used. Otherwise a new window is opened on every KwHelp.
+                  --cmd = 'newview'
+                  fUseNewView = 1
+               else
+                  -- If NewView was not installed as View replacement, then
+                  -- search for NEWVIEW.EXE in PATH
+                  next = NepmdSearchPath( 'newview.exe')
+                  parse value next with 'ERROR:' rcx
+                  if rcx = '' then
+                     fUseNewView = 1
+                     cmd = 'newview'
+                  endif
+               endif
             endif
-         endif
+            -- Use NewView's extended search?
+            fNewViewExtendedSearch = 0
+            if fUseNewView then
+               KeyPath = '\NEPMD\User\KeywordHelp\NewView\ExtendedSearch'
+               next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+               if next <> 0 then
+                  fNewViewExtendedSearch = 1
+               endif
+            endif
+
+            -- Testcases, press Alt+0 on a following line:
+            /*
+            start ibmview cmdref net view
+            start ibmview cmdref "net view"
+            start newview cmdref net view
+            start newview cmdref "net view"
+            start newview cmdref /s:net view
+            start newview cmdref /s:"net view"
+            start newview cmdref /s:"net view""
+            start newview cmdref /s:"""net view"""
+            start newview cmdref /s"""net view"""
+            */
+            if fUseNewView & leftstr( key, 1) <> '"' & pos( ' ', key) then
+               -- NewView before 2.19.b2 requires "..." for strings with spaces,
+               -- View strips them. Newer NewView versions can handle both, with
+               -- or without double quotes. So always add them.
+               key = '"'key'"'
+               -- NewView 2.19.b2 and up requires the doublequotes only for the
+               -- extended search with /s:key.
+            endif
+            if fNewViewExtendedSearch & leftstr( key, 1) = '"' then
+compile if NEWVIEW_VERSION < 2.19
+               -- Newview before 2.19.b2 needs a doubled closing double quote
+               key = key'"'
+compile elseif NEWVIEW_VERSION >= 2.19
+               -- NewView 2.19.b2 and up needs tripled double quotes
+               key = '""'key'""'
+compile endif
+            endif
+            if fNewViewExtendedSearch then
+               line = 'view 'inf' /s:'key
+            endif
+
+         endif  -- upcase( cmd) = 'VIEW'
+
          if wordpos( upcase( word( line, 1)), 'START QS QUIETSHELL DOS OS2') then
             -- Omit the 'dos' or 'start' command if specified in .ndx file or
             -- as an alternative VIEW command.
@@ -303,8 +358,10 @@ defc Kwhelp
          else
             cmd = 'start /f' line
          endif
+
          sayerror 'Invoking "'cmd'"'
          cmd  -- execute the command
+
       endif
 
    endif
