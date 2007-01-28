@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.19 2006-11-15 15:04:10 jbs Exp $
+* $Id: assist.e,v 1.20 2007-01-28 01:14:51 aschn Exp $
 *
 * ===========================================================================
 *
@@ -909,7 +909,7 @@ compile endif
 ;   JBSQ: use case?  Case is used both for a switch-like statements and in variant records
 ;              PascalStartBlockTokens = PascalStartTokens 'case'
                if wordpos(id, PascalStartBlockTokens 'end except finally') then
-                  search = '(^|[^a-zA_Z0-9_])\c(' || translate(PascalStartBlockTokens, '|', ' ') || '|end)([; \t]|$)'
+                  search = '(^|[^a-zA_Z0-9_])\c(' || translate(PascalStartBlockTokens, '|', ' ') || '|end)([;. \t]|$)'
                   fForward = (wordpos(id, PascalStartBlockTokens) > 0)
                   clen = 3
                   if fForward then
@@ -963,7 +963,7 @@ compile endif
                                     passist_rc = PASSIST_RC_NO_ERROR
                                  endif
                                  if not passist_rc then
-                                    search = '(^|[ \t])\cbegin|end([; \t]|$)'
+                                    search = '(^|[ \t])\cbegin|end([;. \t]|$)'
                                     fForward = 1
                                     clist = 'b'
                                  endif
