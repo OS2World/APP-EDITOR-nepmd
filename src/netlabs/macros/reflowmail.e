@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.14 2006-12-17 23:02:27 aschn Exp $
+* $Id: reflowmail.e,v 1.15 2007-01-28 01:18:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -122,7 +122,7 @@ defproc Mail_GetQuoteLevel( line, var sline, var ThisQuoteLevel, var ThisIndent)
             startp = col
             fLastIsQuoteChar = 0
          endif
-      elseif pos( next, QuoteCharList) then
+      elseif pos( next, QuoteCharList) & (ThisQuoteLevel > 0 | ThisIndent < 3) then
          ThisQuoteLevel  = ThisQuoteLevel + 1
          ThisIndent = 0
          col = col + 1
@@ -512,7 +512,7 @@ defc ReflowMail
       endif
 
       -- Save vars for current line. In case of a reflow if a new par was
-      -- identied, these values are submitted to Mail_ReflowMarkedLines.
+      -- indented, these values are submitted to Mail_ReflowMarkedLines.
       fPrevLineIsBlank    = fThisLineIsBlank
       fPrevLineIsVerbatim = fThisLineIsVerbatim
       PrevIndent          = ThisIndent
@@ -543,5 +543,4 @@ defc ReflowMail
       .modify = saved_modify + 1
    endif
    call NewUndoRec()
-
 
