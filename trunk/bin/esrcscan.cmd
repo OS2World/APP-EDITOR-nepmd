@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.16 2004-07-03 12:20:44 aschn Exp $
+* $Id: esrcscan.cmd,v 1.17 2007-02-04 16:49:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -766,8 +766,11 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
        DO WHILE (FunctionParms \= '')
           PARSE VAR FunctionParms ThisParm','FunctionParms;
           ThisParm = STRIP( Thisparm);
-          ThisParmId = TRANSLATE( ThisParm);
-          IF (DocComment.ThisFunction.ParmKey.ThisParm \= '') THEN
+          ThisParmFn = Thisparm;
+          IF (TRANSLATE( WORD( ThisParmFn, 1)) = 'VAR') THEN
+             ThisParmFn = WORD( ThisParmFn, 2);
+          ThisParmId = TRANSLATE( ThisParmFn);
+          IF (DocComment.ThisFunction.ParmKey.ThisParmFn \= '') THEN
              ThisParm = '[.'ThisId'_PARM_'ThisParmId ThisParm']';
           NewFunctionParms = NewFunctionParms',' ThisParm;
        END;
