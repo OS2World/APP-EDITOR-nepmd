@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdeng.h,v 1.12 2006-12-09 18:07:04 aschn Exp $
+* $Id: nepmdeng.h,v 1.13 2007-02-12 00:58:08 jbs Exp $
 *
 * ===========================================================================
 *
@@ -24,9 +24,10 @@
 #define BUTTON_NEXT "~Next"
 
 #define PCK_1_TITLE "Base Application Support"
-#define PCK_2_TITLE "Recompilation package"
-#define PCK_3_TITLE "Programming samples"
-#define PCK_4_TITLE "Speech Support (use with VoiceType only!)"
+#define PCK_2_TITLE "Custom icons for EPM"
+#define PCK_3_TITLE "Recompilation package"
+#define PCK_4_TITLE "Programming samples"
+#define PCK_5_TITLE "Speech Support (use with VoiceType only!)"
 #define PCK_99_TITLE "EPMBBS Base Application (use with OS/2 Warp 3 only!)"
 
 

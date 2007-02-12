@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: desc3eng.xml,v 1.1 2002-08-01 13:21:16 cla Exp $
+# $Id: desc3eng.xml,v 1.2 2007-02-12 00:58:08 jbs Exp $
 #
 # ===========================================================================
 #
@@ -22,6 +22,8 @@
 #
 # ***************************************************************************
 -->
-This package installs the programming samples and the EPM Toolkit.
+This package installs files required for to recompile the EPM.
 
-These files are required only if you intend to create own programs using EPM functionality using the EPM Toolkit, want to control EPM windows via DDE or create EPM macros using the C programming language.
+It contains the macros coming with the original EPM plus additional macro sources and utilities from the Netlabs EPM distribution.
+
+Note that with the Netlabs EPM Distribution it normally should not be necessary to recompile the EPM.
