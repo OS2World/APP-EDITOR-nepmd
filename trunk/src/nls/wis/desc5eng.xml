@@ -1,0 +1,27 @@
+<!--
+# ***************************** Module Header *******************************
+#
+# Module Name: desc5eng.xml
+#
+# WPI page include file in english language
+#
+# Copyright (c) Netlabs EPM Distribution Project 2002
+#
+# $Id: desc5eng.xml,v 1.1 2007-02-12 00:48:46 jbs Exp $
+#
+# ===========================================================================
+#
+# This file is part of the Netlabs EPM Distribution package and is free
+# software.  You can redistribute it and/or modify it under the terms of the
+# GNU General Public License as published by the Free Software
+# Foundation, in version 2 as it comes in the "COPYING" file of the
+# Netlabs EPM Distribution.  This library is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# ***************************************************************************
+-->
+This package installs Speech Support for EPM.
+
+This makes sense only if you also have installed VoiceType support coming with OS/2 Warp 4 and above.
