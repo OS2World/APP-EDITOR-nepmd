@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: nepmd.lst,v 1.17 2006-11-13 07:12:39 aschn Exp $
+: $Id: nepmd.lst,v 1.18 2007-02-12 01:06:06 jbs Exp $
 :
 : ===========================================================================
 :
@@ -41,26 +41,32 @@ NEPMD_MODE       1 %CMPDIR%\base                 netlabs\mode\*
 NEPMD_NDX        1 %CMPDIR%\base                 netlabs\ndx\*
 NEPMD_BAR        1 %CMPDIR%\base                 netlabs\bar\*
 NEPMD_BMP        1 %CMPDIR%\base                 netlabs\bmp\*
+COPYING          1 %CMPDIR%\base                 COPYING
 
-: --- package 2: macros
+: --- package 2: Custom icons
 
-MACROS           2 %UNZIPPEDDIR%\epmmac          epmbbs\*
-MACROS2          2 %UNZIPPEDDIR%\epmmac2         epmbbs\*
-MACROSAMPLES     2 %UNZIPPEDDIR%\epmsmp          epmbbs\*
-EBOOKE           2 %UNZIPPEDDIR%\ebooke          epmbbs\*
-MYASSIST         2 %UNZIPPEDDIR%\epmasi          epmbbs\*
-VMEXEC           2 %UNZIPPEDDIR%\lampdq          epmbbs\*
-NEPMD_RECOMP     2 %BINDIR%\recomp               netlabs\bin\*
-NEPMD_MACROS     2 %CMPDIR%\base                 netlabs\macros\*
+DUMMY            2 %CMPDIR%                      srccopy.txt
 
-: --- package 3: Programming Samples
+: --- package 3: macros
 
-DDESAMPLE        3 %UNZIPPEDDIR%\epmdde          epmbbs\*
-REXXSAMPLE       3 %UNZIPPEDDIR%\epmrex          epmbbs\*
-CSAMPLE          3 %UNZIPPEDDIR%\epmcsamp        epmbbs\*
-ATTR             3 %UNZIPPEDDIR%\epmatr          epmbbs\*
+MACROS           3 %UNZIPPEDDIR%\epmmac          epmbbs\*
+MACROS2          3 %UNZIPPEDDIR%\epmmac2         epmbbs\*
+MACROSAMPLES     3 %UNZIPPEDDIR%\epmsmp          epmbbs\*
+EBOOKE           3 %UNZIPPEDDIR%\ebooke          epmbbs\*
+MYASSIST         3 %UNZIPPEDDIR%\epmasi          epmbbs\*
+VMEXEC           3 %UNZIPPEDDIR%\lampdq          epmbbs\*
+NEPMD_RECOMP     3 %BINDIR%\recomp               netlabs\bin\*
+NEPMD_MACROS     3 %CMPDIR%\base                 netlabs\macros\*
 
-: --- package 4: Speech Support
+: --- package 4: Programming Samples
 
-SPEECH           4 %UNZIPPEDDIR%\epmspch         epmbbs\*
+DDESAMPLE        4 %UNZIPPEDDIR%\epmdde          epmbbs\*
+REXXSAMPLE       4 %UNZIPPEDDIR%\epmrex          epmbbs\*
+CSAMPLE          4 %UNZIPPEDDIR%\epmcsamp        epmbbs\*
+ATTR             4 %UNZIPPEDDIR%\epmatr          epmbbs\*
+
+
+: --- package 5: Speech Support
+
+SPEECH           5 %UNZIPPEDDIR%\epmspch         epmbbs\*
 
