@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.17 2006-12-17 21:30:00 aschn Exp $
+* $Id: applyico.cmd,v 1.18 2007-02-12 01:04:31 jbs Exp $
 *
 * ===========================================================================
 *
@@ -38,23 +38,15 @@
  env = 'OS2ENVIRONMENT';
  Sep = '01'x
 
- /* INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
- NEPMD_INI_APPNAME             = "NEPMD"
- NEPMD_INI_KEYNAME_LANGUAGE    = "Language"
- NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
- NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
- NEPMD_INI_KEYNAME_USERDIRNAME = "UserDirName"
- NEPMD_INI_KEYNAME_USEHOME     = "UseHomeForUserDir"
+ PARSE SOURCE . . CallName;
+ CallDir    = LEFT( CallName,   LASTPOS( '\', CallName) - 1);    /* NEPMD\netlabs\install */
 
  /* default values */
- fUseHome = 0
- UserDirName = 'myepm'
  EcsFlag = 1  /* default, if syslevel.os2 not found, is to use eCS icons */
 
  /* set global vars */
  CALL GetBootDrive
  CALL GetEcsFlag
- CALL GetNepmdDirs
 
  /* ##############   Maintainer: modify object id list here ######################## */
 
@@ -63,58 +55,6 @@
 
  /* ################################################################################# */
 
- /* Additional objects to be created with SysCreateObject                             */
-
- i = 0
- CreateClass. = ''
- CreateTitle. = ''
- CreateDest.  = ''
- CreateSetup. = ''
-
- /* Left in as an example */
-/*
- Language = 'eng'
- i = i + 1
- CreateClass.i = 'WPProgram'
- CreateTitle.i = 'EPM Shell'
- CreateDest.i  = '<NEPMD_FOLDER>'
- CreateSetup.i = 'PROGTYPE=PROG_WINDOWABLEVIO;EXENAME='RootDir'\netlabs\bin\epmshell.cmd;' ||,
-                 'PARAMETERS=%*;MINIMIZED=YES;' ||,
-                 'HELPLIBRARY='RootDir'\netlabs\help\nefld'Language'.hlp;HELPPANEL=101;' ||,
-                 'OBJECTID=<NEPMD_EPM_SHELL>;"'
-*/
-
- DestDir = GetCommandPromptsDir()
- IF DestDir > '' THEN
- DO
-    i = i + 1
-    CreateClass.i = 'WPShadow'
-    CreateTitle.i = '.'
-    CreateDest.i  = DestDir
-    CreateSetup.i = 'SHADOWID=<NEPMD_EPM_SHELL>;OBJECTID=<NEPMD_EPM_SHELL_SHADOW>;'
- END
-
- CreateObj.0 = i  /* number of objects */
-
- /* ################################################################################# */
-
- /* Additional settings for objects that have doublequotes in their parameters        */
- /* (WarpIN can not set doublequotes)                                                 */
-
- i = 0
- DataObj.   = ''
- DataSetup. = ''
-
- /* Left in as an example */
- /*
- i = i + 1
- DataObj.i   = '<NEPMD_EPM_SHELL>'
- DataSetup.i = 'EXENAME='RootDir'\netlabs\bin\epmshell.cmd;PARAMETERS=%*;'
- */
-
- DataObj.0 = i  /* number of objects */
-
- /* ################################################################################# */
 
  /* determine operating system version */
  SELECT
@@ -136,9 +76,6 @@
 
  /* set icon for root folder */
  rc = SysSetObjectData( RootDir, FolderIconSetup);
-
- /* set parameter for "Recompile EPM", created by WarpIN (WarpIN doesn't know UserDir) */
- rc = SysSetObjectData( '<NEPMD_RECOMP>', 'PARAMETERS='UserDir'\ex');
 
  /* set icons for EPM program objects */
  /* (required only for showing the icon immediately after install) */
@@ -175,32 +112,12 @@
  rc = SysSetObjectData( '<NEPMD_CHECK_USER_MACROS>',,
                         'ICONFILE='CallDir'\ico\recomp.ico;');
 
- /* create special objects */
- DO i = 1 TO CreateObj.0
-    rc = SysCreateObject( CreateClass.i, CreateTitle.i, CreateDest.i, CreateSetup.i, 'U');
- END;
+ rc = SysSetObjectData( '<NEPMD_VIEW_NEUSR>',,
+                        'ICONFILE='CallDir'\ico\help.ico;');
+ rc = SysSetObjectData( '<NEPMD_VIEW_NEPRG>',,
+                        'ICONFILE='CallDir'\ico\help.ico;');
 
- /* set special object settings */
- DO i = 1 TO DataObj.0
-    rc = SysSetObjectData( DataObj.i, DataSetup.i);
- END;
-
- /* delete obsolete object from v1.00 if present */
- rc = SysDestroyObject( '<NEPMD_EXECUTABLE>');
-
- /* delete obsolete files and dirs from v1.00 if present */
- rc = SysDestroyObject( NetlabsDir'\mode\fortran');
- rc = SysDestroyObject( NetlabsDir'\install\saveold.cmd');
- rc = SysDestroyObject( NetlabsDir'\macros\drawkey.e');
- rc = SysDestroyObject( NetlabsDir'\macros\menuacel.e');
- rc = SysDestroyObject( NetlabsDir'\macros\setconfig.e');
- rc = SysDestroyObject( NetlabsDir'\macros\small.e');
- rc = SysDestroyObject( NetlabsDir'\macros\statline.e');
- rc = SysDestroyObject( NetlabsDir'\macros\titletext.e');
- rc = SysDestroyObject( NetlabsDir'\macros\xchgline.e');
-
- /* remove obsolete ini key from v1.00 if present */
- rc = SysIni( 'USER', 'NEPMD', 'Path', 'DELETE:')
+ rc = SysDestroyObject( CallDir'\..\..\srccopy.txt');
 
  EXIT( 0);
 
@@ -251,63 +168,6 @@ GetEcsFlag: PROCEDURE EXPOSE (GlobalVars)
  RETURN
 
 /* ------------------------------------------------------------------------- */
-GetNepmdDirs: PROCEDURE EXPOSE (GlobalVars)
-
- /* get the root directory of the NEPMD installation */
- PARSE SOURCE . . CallName;
- CallDir    = LEFT( CallName,   LASTPOS( '\', CallName) - 1);    /* NEPMD\netlabs\install */
- NetlabsDir = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1);
- RootDir    = LEFT( NetlabsDir, LASTPOS( '\', NetlabsDir) - 1);  /* can be queried from Ini as well */
-
- /* get user directory */
- DO 1
-    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIR)
-    IF next <> 'ERROR:' then
-    DO
-       next = STRIP( next, 't', '00'x)
-       IF next > '' THEN
-       DO
-          UserDir = next
-          LEAVE
-       END
-    END
-
-    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIRNAME)
-    IF next <> 'ERROR:' then
-    DO
-       next = STRIP( next, 't', '00'x)
-       IF next > '' THEN
-          UserDirName = next
-    END
-
-    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USEHOME)
-    IF next <> 'ERROR:' then
-    DO
-       next = STRIP( next, 't', '00'x)
-       IF next > '' THEN
-          fUseHome = next
-    END
-    IF fUseHome = 1 THEN
-    DO
-       Home = VALUE( 'HOME', , env)
-       IF Home > '' THEN
-       DO
-          call SysFileTree Home, 'Found.', 'DO', '*+--*'  /* ADHRS */
-          IF Found.1 > '' THEN
-          DO
-             UserDir = Home'\'UserDirName
-             LEAVE
-          END
-       END
-    END
-
-    UserDir = RootDir'\'UserDirName
-    LEAVE
- END
-
- RETURN
-
-/* ------------------------------------------------------------------------- */
 /*
  * Syntax: String = QuerySysLevel(<syslevel_file>)
  *
@@ -331,42 +191,4 @@ QuerySysLevel: PROCEDURE EXPOSE (GlobalVars)
  END
  ELSE
     RETURN 2''Sep''Sep''Sep
-
-/* ------------------------------------------------------------------------- */
-GetCommandPromptsDir: PROCEDURE EXPOSE (GlobalVars)
- CommandPromptsDir = ''
-
- IF RxFuncQuery( 'WPToolsQueryObject') THEN
- DO
-    /* ensure that netlabs\dll is in BEGINLIBPATH */
-    'SET BEGINLIBPATH='RootDir'\netlabs\dll;'
-    CALL RxFuncAdd 'WPToolsLoadFuncs', 'WPTOOLS', 'WPToolsLoadFuncs';
-    CALL WPToolsLoadFuncs;
- END
-
- IF \RxFuncQuery( 'WPToolsQueryObject') THEN
- DO
-    /* get location of XWorkplace's OS/2 window object */
-    /* space-separated list of objects to search */
-    ObjList = '<XWP_OS2WIN>'
-    Rest = ObjList
-    DO WHILE LENGTH( Rest) > ''
-       PARSE VAR Rest Obj Rest
-       Obj = STRIP( Obj)
-       Rest = STRIP( Rest)
-       /* drop sometimes required, otherwise wrong objects were listed */
-       DROP Class;
-       DROP Title;
-       DROP Setup;
-       DROP Location;
-       rcx = WpToolsQueryObject( Obj, Class, Title, Setup, Location);
-       IF (rcx <> 1 & Location <> '') THEN
-          ITERATE;
-       CommandPromptsDir = Location
-       LEAVE
-    END
- END
-
- RETURN CommandPromptsDir
-
 
