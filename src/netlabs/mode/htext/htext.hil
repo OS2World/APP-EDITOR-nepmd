@@ -11,7 +11,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: htext.hil,v 1.4 2006-10-29 22:43:07 aschn Exp $
+; $Id: htext.hil,v 1.5 2007-02-26 17:57:45 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -103,24 +103,23 @@
 .ULIST        NONE:   NONE:     1
 .UL           NONE:   NONE:     1
 ; ---- new with 1.08 ----
-.:            .       NONE:     0
+.GET          NONE:   NONE:     1     PREPROCESSOR
+.GE           NONE:   NONE:     1     PREPROCESSOR
 .HNUMBERING   NONE:   NONE:     1
+.HNUM         NONE:   NONE:     1
 .HN           NONE:   NONE:     1
 .HTOC         NONE:   NONE:     1
-.LPART        NONE:   NONE:     1
-.LP           NONE:   NONE:     1
 .LINES        NONE:   NONE:     1
 .LI           NONE:   NONE:     1
-.MONOCHAR     NONE:   NONE:     1
-.MONOFONT     NONE:   NONE:     1
-.NOTE         NONE:   NONE:     1
-.NO           NONE:   NONE:     1
-.NT           NONE:   NONE:     1
+.NOTE         NONE:   NONE:     1     EMPHASIZED
+.NO           NONE:   NONE:     1     EMPHASIZED
 .PAR          NONE:   NONE:     1
 .PA           NONE:   NONE:     1
 .P            NONE:   NONE:     1
-.GET          NONE:   NONE:     1     PREPROCESSOR
-.GE           NONE:   NONE:     1     PREPROCESSOR
+.PSECTION     NONE:   NONE:     1     EMPHASIZED
+.PS           NONE:   NONE:     1     EMPHASIZED
+.TTCHAR       NONE:   NONE:     1
+.TTFONT       NONE:   NONE:     1
 
 [LINK]
 ; Start   End     Escape     Start
@@ -145,6 +144,7 @@
   [ftp.     ]
 ; ---- new with 1.08 ----
   [https:// ]
+  [irc:// ]
 ; The following anchor link need not to be defined explicitely, because
 ; the "." as the first char of <string> isn't an alpha-numeric char:
 ; [.        ]
