@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.45 2007-01-28 01:26:45 aschn Exp $
+* $Id: edit.e,v 1.46 2007-02-27 00:04:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -102,7 +102,8 @@ defproc PreLoadFile( Spec, Options)
    -- Resolve wildcards in Spec to delete REXX EAs for every REXX file
    -- and for setting universal vars
    Handle = GETNEXT_CREATE_NEW_HANDLE  -- always create a new handle!
-   do forever
+   fLoop = 1
+   do while fLoop = 1
       if fWildcard then
          -- If Spec contains wildcards then find Filenames
          Filename = NepmdGetNextFile( Spec, address( Handle))
@@ -118,7 +119,7 @@ defproc PreLoadFile( Spec, Options)
          Filename = Spec
          filestoload = 1
          filestoloadmax = filestoload
-         leave
+         fLoop = 0
       endif
       --sayerror 'Spec = 'Spec', Filename = 'Filename
       dprintf( 'EDIT', 'PreLoadFile: Spec = 'Spec', Filename = 'Filename)
