@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmnewsamewindow.cmd,v 1.2 2006-12-09 18:01:50 aschn Exp $
+* $Id: epmnewsamewindow.cmd,v 1.3 2007-03-01 21:32:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -117,7 +117,7 @@
  DO
     SAY ThisName;
     SAY;
-    SAY ' This script toggles the "concurrent view" behaviour of several NEPMD';
+    SAY ' This script toggles the "concurrent view" behavior of several NEPMD';
     SAY ' program objects: With parameter "/r", associated files are loaded into';
     SAY ' the same window. Without it, those files are opened in a new window.';
     SAY;
