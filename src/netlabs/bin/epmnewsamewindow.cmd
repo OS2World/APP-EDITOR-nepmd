@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmnewsamewindow.cmd,v 1.3 2007-03-01 21:32:17 aschn Exp $
+* $Id: epmnewsamewindow.cmd,v 1.4 2007-03-01 21:37:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -145,15 +145,15 @@
        LEAVE;
     END;
 
-    SAY 'Error: Setup string couldn''t be queried from 'Obj.2' or 'Obj.1'.'
+    SAY 'Error: Setup string couldn''t be queried from 'Obj.2' or 'Obj.1'.';
     EXIT( ERROR.FILE_NOT_FOUND);
  END;
 
- OldState = WORD( 'off on', fOldR + 1)
- SAY 'Current state of parameter "/r" is: 'OldState
+ OldState = WORD( 'off on', fOldR + 1);
+ SAY 'Current state of parameter "/r" is: 'OldState;
  IF Action = OldState THEN
  DO
-    SAY 'No changes.'
+    SAY 'No changes.';
     EXIT( rc);
  END;
 
@@ -161,29 +161,28 @@
 
  IF (fPrompt) THEN
  DO
-    NewState = WORD( 'off on', fNewR + 1)
-    SAY
-    SAY 'Do you want to set the state to 'NewState'? (Press Y <RETURN> to continue.)'
-    Key = LineIn()
+    NewState = WORD( 'off on', fNewR + 1);
+    SAY;
+    SAY 'Do you want to set the state to 'NewState'? (Press Y <RETURN> to continue.)';
+    Key = LineIn();
     Key = TRANSLATE( STRIP( Key));
     IF Key <> 'Y'  THEN
        EXIT( ERROR.GEN_FAILURE);
- END
+ END;
 
  i = 0;
  DO n = 2 to Obj.0
-    rcx = ToggleR( Obj.n, fNewR)
+    rcx = ToggleR( Obj.n, fNewR);
     IF (rcx = 1) THEN
        i = i + 1;
- END
- rcx = ToggleTitle( Obj.1, fNewR)
+ END;
+ rcx = ToggleTitle( Obj.1, fNewR);
  IF (rcx = 1) THEN
     i = i + 1;
 
- SAY 'Changed 'i' Object(s).'
+ SAY 'Changed 'i' Object(s).';
 
  EXIT( rc);
-
 
 /* ------------------------------------------------------------------------- */
 
@@ -195,7 +194,6 @@ CheckR: PROCEDURE
 
  RETURN( wp > 0);
 
-
 /* ------------------------------------------------------------------------- */
 
 CheckNew: PROCEDURE
@@ -205,7 +203,6 @@ CheckNew: PROCEDURE
  wp = WORDPOS( 'NEW', TRANSLATE( Title));
 
  RETURN( wp > 0);
-
 
 /* ------------------------------------------------------------------------- */
 
@@ -230,14 +227,13 @@ ToggleR: PROCEDURE EXPOSE (GlobalVars)
     /* Setting an empty parameter doesn't work */
     /* The doublequotes are required for filanames with spaces */
     IF Params = '' THEN
-       Params = '"%*"'
+       Params = '"%*"';
     Setup = First'PARAMETERS='Params';'Rest;
-    SAY Obj 'PARAMETERS='Params';',
+    SAY Obj 'PARAMETERS='Params';';
 
     rcx = SysSetObjectData( Obj, Setup);
- END
+ END;
  RETURN( rcx);
-
 
 /* ------------------------------------------------------------------------- */
 
@@ -256,10 +252,10 @@ ToggleTitle: PROCEDURE EXPOSE (GlobalVars)
        Title = Title.EPM_SAME_WINDOW;
 
     Setup = First'TITLE='Title';'Rest;
-    SAY Obj 'TITLE='Title';',
+    SAY Obj 'TITLE='Title';';
 
     rcx = SysSetObjectData( Obj, Setup);
- END
+ END;
  RETURN( rcx);
 
 /* ------------------------------------------------------------------------- */
