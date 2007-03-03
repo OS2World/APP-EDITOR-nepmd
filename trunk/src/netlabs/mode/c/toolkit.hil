@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: toolkit.hil,v 1.1 2002-10-18 18:36:35 cla Exp $
+; $Id: toolkit.hil,v 1.2 2007-03-03 16:01:47 jbs Exp $
 ;
 ; ===========================================================================
 ;
@@ -13236,6 +13236,7 @@ WinLoadFileIcon
 WinStoreWindowPos
 WinRestoreWindowPos
 WinShutdownSystem
+;
 VIO16ASSOCIATE
 VIO16CREATELOGFONT
 VIO16CREATEPS
@@ -14246,4 +14247,97 @@ DELETENOTIFY
 PDELETENOTIFY
 PAGESELECTNOTIFY
 PPAGESELECTNOTIFY
-
+;
+; Additional functions in PMWP.H
+WinCopyObject
+WinCreateShadow
+WinIsSOMDDReady
+WinIsWPDServerReady
+WinLoadFileIconN
+WinMessageBox2
+WinMoveObject
+WinOpenObject
+WinQueryActiveDesktopPathname
+WinQueryControlColors
+WinQueryObjectPath
+WinQueryVisibleRegion
+WinRestartSOMDD
+WinRestartWPDServer
+WinSaveObject
+WinSetControlColors
+WinSetFileIconN
+WinSetVisibleRegionNotify
+;  Additional functions from: h\bsedos.h
+Dos16QueryModFromCS
+Dos16SysTrace
+DosAcquireSpinLock
+DosAliasMem
+DosAliasPerfCtrs
+DosAllocThreadLocalMemory
+DosCancelLockRequestL
+DosConfigurePerf
+DosCreateSpinLock
+DosCreateThread2
+DosFreeSpinLock
+DosFreeThreadLocalMemory
+DosGetProcessorStatus
+DosListIO
+DosListIOL
+DosOpenL
+DosPerfSysCall
+DosProtectOpenL
+DosProtectSetFileLocksL
+DosProtectSetFilePtrL
+DosProtectSetFileSizeL
+DosQueryABIOSSupport
+DosQueryExtLIBPATH
+DosQueryMemState
+DosQueryModFromEIP
+DosQuerySysState
+DosQueryThreadAffinity
+DosQueryThreadContext
+DosReleaseSpinLock
+DosReplaceModule
+DosSetExtLIBPATH
+DosSetFileLocksL
+DosSetFilePtr
+DosSetFilePtrL
+DosSetFileSize
+DosSetFileSizeL
+DosSetProcessorStatus
+DosSetThreadAffinity
+DosTestPSD
+DosVerifyPidTid
+;  Additional functions from: h\dmiapi.h
+DmiCiInvoke
+DmiCiProcess
+DmiIndicate
+DmiInvoke
+;  Additional functions from: h\ftpapi.h
+ftpappend
+ftpcd
+ftpdelete
+ftpdir
+ftpget
+ftpls
+ftpmkd
+ftpping
+ftpproxy
+ftpput
+ftpputunique
+ftppwd
+ftpquote
+ftpremsize
+ftprename
+ftprestart
+ftprmd
+ftpsetconvertmode
+ftpsetdecodemode
+ftpsetencodemode
+ftpsite
+ftpsys
+ftptrcon
+ftpver
+ftpxferwnd
+ftpxlate
+;
