@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmdefassocs.cmd,v 1.2 2007-03-02 04:16:19 jbs Exp $
+* $Id: epmdefassocs.cmd,v 1.3 2007-03-05 22:39:58 jbs Exp $
 *
 * ===========================================================================
 *
@@ -128,6 +128,7 @@ Relist:
                do
                   /* Reset only if this is the default and there is more than one association */
                   if (wp == 1 & words(Objs.o.Assocs.AssocType.a.AssocObjs) > 1) then
+                     do
                         Objs.o.Assocs.AssocType.a.AssocObjs = substr(Objs.o.Assocs.AssocType.a.AssocObjs, wordindex(Objs.o.Assocs.AssocType.a.AssocObjs, 2)) || ObjHandle
                         rcx = SysIni(, 'PMWP_ASSOC_' || AssocType, Objs.o.Assocs.AssocType.a, translate(Objs.o.Assocs.AssocType.a.AssocObjs, '00'x, ' '))
                         if rcx \= '' then
@@ -202,9 +203,7 @@ ProcessArgs: procedure expose (GlobalVars)
    Objs.5.ID = '<NEPMD_EPM_TEX>'
    Objs.6.ID = '<NEPMD_EPM_BIN>'
    Objs.0    = 6
-   action = strip(action)
    interactive = TRUE
-   action = 'SET'                                     /* Set default values */
    defaultoption = 'N'
    if action \= '' then
       if wordpos(action, 'SET RESET') > 0 then
@@ -212,6 +211,11 @@ ProcessArgs: procedure expose (GlobalVars)
             interactive = FALSE
             defaultoption = 'Y'
          end
+      else
+         action = 'SET'
+   else
+      action = 'SET'
+
 return
 
 GetAssocs: procedure expose (GlobalVars)
