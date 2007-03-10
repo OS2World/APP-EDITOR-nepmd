@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.7 2005-11-24 01:58:44 aschn Exp $
+* $Id: dyncfg.cmd,v 1.8 2007-03-10 11:07:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -145,22 +145,22 @@
           rc = 5; /* ERROR_ACCESS_DENIED */
           LEAVE;
        END;
-
-       /* copy EPM.EXE of NEPMD */
-       'COPY' LoaderExe OS2Dir Redirection;
-       IF (rc \= 0) THEN
-       DO
-          ErrorMessage = 'Error: cannot write' CheckFile'.';
-          rc = 5; /* ERROR_ACCESS_DENIED */
-          LEAVE;
-       END;
-
-       /* mark EXE with special attribute (EAT_STRING) */
-       LoaderInfo = '1';
-       EaLen = REVERSE( RIGHT( D2C( LENGTH( LoaderInfo)), 2, D2C(0)));
-       EaValue = 'FDFF'x''EaLen''LoaderInfo;
-       rcx = SysPutEa( CheckFile, LoaderEaName, EaValue);
     END;
+
+    /* copy EPM.EXE of NEPMD */
+    'COPY' LoaderExe OS2Dir Redirection;
+    IF (rc \= 0) THEN
+    DO
+       ErrorMessage = 'Error: cannot write' CheckFile'.';
+       rc = 5; /* ERROR_ACCESS_DENIED */
+       LEAVE;
+    END;
+
+    /* mark EXE with special attribute (EAT_STRING) */
+    LoaderInfo = '1';
+    EaLen = REVERSE( RIGHT( D2C( LENGTH( LoaderInfo)), 2, D2C(0)));
+    EaValue = 'FDFF'x''EaLen''LoaderInfo;
+    rcx = SysPutEa( CheckFile, LoaderEaName, EaValue);
  END;
 
  /* report error message */
