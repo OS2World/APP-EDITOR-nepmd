@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.30 2006-12-09 17:48:48 aschn Exp $
+* $Id: epmenv.c,v 1.31 2007-04-09 18:13:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -519,7 +519,6 @@ ulNameLen = p - pszEntry;
 strncpy( szName, pszEntry, ulNameLen);
 szName[ ulNameLen] = 0;
 
-
 // check if name is already included
 p = pszBuffer;
 while (*p)
@@ -571,9 +570,13 @@ static APIRET _readEnvFile( PSZ szEnvFile, PULONG pulEnvSize, PSZ *ppszName, PSZ
          ULONG          ulAction;
          ULONG          ulBytesRead;
 
-         PSZ            pszLine;
-         PSZ            pszNewLine;
 static   PSZ            pszDelimiters = "\r\n";
+         PSZ            pszLine;
+         PSZ            pszCopyLine;
+         PSZ            pszUpCopyLine;
+         PSZ            p;
+         ULONG          ulNameLen;
+         PSZ            pszNewLine;
 
 do
    {
@@ -622,8 +625,28 @@ do
          if (*pszLine == ':')
             break;
 
+         // create copies to allow modification
+         pszCopyLine = strdup( pszLine);
+         pszUpCopyLine = strdup( pszLine);
+         strupr( pszUpCopyLine);
+
+         // make env var name uppercase, otherwise env var names
+         // containing lowercase chars won't work
+         p = strchr( pszLine, '=');
+         if (p)
+            {
+            ulNameLen = p - pszLine;
+            strncpy( pszCopyLine, pszUpCopyLine, ulNameLen);
+            }
+
+         // expand env vars
+         pszNewLine = _expandEnvVar( pszCopyLine);
+
+         // cleanup copies
+         if (pszCopyLine) free( pszCopyLine);
+         if (pszUpCopyLine) free( pszUpCopyLine);
+
          // add line to env
-         pszNewLine = _expandEnvVar( pszLine);
          if (pszNewLine)
             {
             //DPRINTF(( "EPMENV: added: %s\n", pszNewLine));
