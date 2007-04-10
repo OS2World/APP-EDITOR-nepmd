@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.43 2006-12-17 18:01:45 aschn Exp $
+* $Id: newmenu.e,v 1.44 2007-04-10 19:48:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1690,7 +1690,7 @@ endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, SCAN_TAGS_MENU__MSG,                                                  -- Scan current file...
+   buildmenuitem menuname, mid, i, SCAN_TAGS_MENU__MSG\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+T',          -- Scan current file...
                                    'tagscan' ||
                                    SCAN_TAGS_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_SEARCH_TAGS, 0)
