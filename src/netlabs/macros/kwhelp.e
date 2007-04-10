@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.36 2007-01-28 01:20:46 aschn Exp $
+* $Id: kwhelp.e,v 1.37 2007-04-10 19:57:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -106,7 +106,7 @@ defc KwhelpSelect
 ; ---------------------------------------------------------------------------
 const
 compile if not defined( NEWVIEW_VERSION)
-   --NEWVIEW_VERSION = '2.18'  -- for eCS 2.0b3 und before
+   --NEWVIEW_VERSION = '2.18'  -- for eCS 2.0b4 und before
    NEWVIEW_VERSION = 2.19
 compile endif
 
@@ -327,6 +327,11 @@ defc Kwhelp
             start newview cmdref /s:"net view""
             start newview cmdref /s:"""net view"""
             start newview cmdref /s"""net view"""
+            start newview cmdref /s net view
+            start newview cmdref /s "net view"
+            start newview cmdref /s "net view""
+            start newview cmdref /s """net view""
+            start newview cmdref /s """net view"""
             */
             if fUseNewView & leftstr( key, 1) <> '"' & pos( ' ', key) then
                -- NewView before 2.19.b2 requires "..." for strings with spaces,
@@ -334,19 +339,21 @@ defc Kwhelp
                -- or without double quotes. So always add them.
                key = '"'key'"'
                -- NewView 2.19.b2 and up requires the doublequotes only for the
-               -- extended search with /s:key.
+;               -- extended search with /s:key.
+               -- extended search with /s key.
             endif
             if fNewViewExtendedSearch & leftstr( key, 1) = '"' then
 compile if NEWVIEW_VERSION < 2.19
                -- Newview before 2.19.b2 needs a doubled closing double quote
                key = key'"'
-compile elseif NEWVIEW_VERSION >= 2.19
-               -- NewView 2.19.b2 and up needs tripled double quotes
-               key = '""'key'""'
+;compile elseif NEWVIEW_VERSION >= 2.19
+;               -- NewView 2.19.b2 and up needs tripled double quotes
+;               key = '""'key'""'
 compile endif
             endif
             if fNewViewExtendedSearch then
-               line = 'view 'inf' /s:'key
+;               line = 'view 'inf' /s:'key
+               line = 'view 'inf' /s 'key
             endif
 
          endif  -- upcase( cmd) = 'VIEW'
