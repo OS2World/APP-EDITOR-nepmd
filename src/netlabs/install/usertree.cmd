@@ -4,7 +4,7 @@
 *
 * Helper batch for to create all directories of the personal subdirectory
 * tree (a WarpIn package cannot include empty directories).
-* 
+*
 * Additionally, it creates shadow objects for the user and the root folder.
 *
 * This program is intended to be called by NLSETUP.EXE during installation
@@ -12,7 +12,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: usertree.cmd,v 1.11 2006-03-12 19:05:31 aschn Exp $
+* $Id: usertree.cmd,v 1.12 2007-04-11 22:19:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,7 +29,7 @@
 
  /* ##############   Maintainer: modify directory list here ######################## */
 
- UserDirList = 'bar bin bmp dll ex mode macros ndx autolink';
+ UserDirList = 'bar bin bmp dll ex mode macros ndx autolink spellchk';
  /* Additionally, the UserDir is created by this script */
 
  /* ################################################################################# */
