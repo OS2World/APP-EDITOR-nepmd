@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.20 2007-01-28 01:14:51 aschn Exp $
+* $Id: assist.e,v 1.21 2007-04-28 23:25:37 jbs Exp $
 *
 * ===========================================================================
 *
@@ -1272,7 +1272,7 @@ compile endif
       elseif passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN then
          sayerror UNBALANCED_TOKEN__MSG
       elseif passist_rc = PASSIST_RC_MODE_NOT_SUPPORTED then
-         sayerror "Toaken balancing not yet supported for mode: "CurMode
+         sayerror "Token balancing not yet supported for mode: "CurMode
       else
          sayerror "Unknown rc: "passist_rc
       endif
