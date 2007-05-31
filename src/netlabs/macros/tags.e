@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.14 2006-12-10 11:10:02 aschn Exp $
+* $Id: tags.e,v 1.15 2007-05-31 22:42:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -721,7 +721,7 @@ defproc pas_proc_search(var proc_name,find_first)
       if tc='e' then  /* Must be modula search */
          keywords='(PROCEDURE)'
       else
-         keywords='(overlay:b|)(pro(cedure|gram)|function)'
+         keywords='(overlay:w|)(pro(cedure|gram)|function)'
       endif
       if proc_name=='' then
           'xcom l ^:o'keywords':w:c[( \t;:]xc'
@@ -760,7 +760,7 @@ defproc pas_proc_search(var proc_name,find_first)
       if not pos(' 'keywords'[ \t]',' 'line,'','x'/*||tc*/) then
          end_line; repeat_find; iterate
       endif
-      p=pos('[(;:]',line,'','x')
+      p=pos('[\(;\:]',line,'','x')
       if p then
          if substr(line,p,1)=='(' then
             .col=p
