@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.37 2007-04-10 19:57:17 aschn Exp $
+* $Id: kwhelp.e,v 1.38 2007-05-31 22:05:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -353,7 +353,7 @@ compile endif
             endif
             if fNewViewExtendedSearch then
 ;               line = 'view 'inf' /s:'key
-               line = 'view 'inf' /s 'key
+               line = 'newview 'inf' /s 'key
             endif
 
          endif  -- upcase( cmd) = 'VIEW'
