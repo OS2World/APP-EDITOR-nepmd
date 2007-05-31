@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.21 2006-12-10 18:39:40 aschn Exp $
+* $Id: modeexec.e,v 1.22 2007-05-31 21:59:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -588,7 +588,76 @@ defproc UseSetting
    endif
 
 ; ---------------------------------------------------------------------------
-; List all mode- and filespecific settings for all files in the ring.
+; Query a setting for a mode. If no setting specified, all settings are
+; returned, separated by '|'
+defproc GetModeSetting
+   Setting = arg(1)
+   Mode    = arg(2)
+
+   -- Strip possible prepended 'Set'
+   if leftstr( upcase( Setting), 3) = 'SET' then
+      Setting = substr( Setting, 4)
+   endif
+
+   if Mode = '' then
+      Mode = GetMode()
+   endif
+
+   -- These setting names don't have 'Set' prepended.
+   LoadSettingsList   = GetAVar( 'loadsettingslist')
+   SelectSettingsList = GetAVar( 'selectsettingslist')
+
+   if pos( upcase( Setting), upcase( LoadSettingsList)) then
+      PrefixList = 'load_'
+   elseif pos( upcase( Setting), upcase( SelectSettingsList)) then
+      PrefixList = 'select_'
+   else
+      PrefixList = 'load_ select_'
+      -- Setting not found in any list, so reset it
+      Setting = ''
+   endif
+
+   Val = ''
+   do w = 1 to words( PrefixList)
+      Prefix = word( PrefixList, w)
+      -- Query mode setting
+      rest = HookGet( Prefix''lowcase( GetMode()))
+
+      if Setting = '' then
+         -- Return all settings, separated by '|'
+         -- These settings have 'Set' prepended. Some segments between '|'
+         -- chars are empty.
+         if Val = '' then
+            Val = rest
+         else
+            Val = Val'|'rest
+         endif
+      else
+         -- Find single setting
+         do while rest <> ''
+            parse value rest with next'|'rest
+            parse value next with ThisSetting ThisValue
+            if upcase( strip( ThisSetting)) = 'SET'upcase( Setting) then
+               Val = ThisValue
+               leave
+            endif
+         enddo
+      endif
+   enddo
+
+   return Val
+
+; ---------------------------------------------------------------------------
+defc ShowModeSetting
+   Val = GetModeSetting( arg(1))
+   if arg(1) <> '' then
+      sayerror 'Value for 'arg(1)' and current mode is: 'Val
+   else
+      sayerror 'ModeSettings for current mode: 'Val
+   endif
+
+; ---------------------------------------------------------------------------
+; List all mode- and file-specific settings for all files in the ring.
 defc RingDumpSettings
    LoadSettingsList   = GetAVar( 'loadsettingslist')
    SelectSettingsList = GetAVar( 'selectsettingslist')
@@ -779,7 +848,7 @@ defc SetMargins  -- defc margins exist
       if loadstate | RefreshDefault | (ModeSettingsApplied <> 1) then
          .margins = arg1
       elseif loadstate = 0 then  -- User has executed this command
-         'margins' arg1  -- set EPM.MARGINS
+         'margins NOEA' arg1  -- set EPM.MARGINS
       endif
    else
       --call NepmdPmPrintf( 'Margins not set: '.filename)
@@ -842,7 +911,7 @@ defc SetTabs  -- defc tabs exist
       if loadstate | RefreshDefault | (ModeSettingsApplied <> 1) then
          .tabs = arg1
       elseif loadstate = 0 then  -- User has executed this command
-         'tabs' arg1  -- set EPM.TABS
+         'tabs NOEA' arg1  -- set EPM.TABS
       endif
    else
       --call NepmdPmPrintf( 'Tabs not set: '.filename)
@@ -1485,9 +1554,6 @@ defproc ExecuteCodingStyle
 ; this was added because the selection of a coding style is an essential
 ; feature to use syntax expansion at all.
 defc SelectCodingStyle
-   universal rexx_profile
-   universal app_hini
-   universal appname
 
    Mode = arg(1)
    if Mode = '' then
@@ -1496,6 +1562,33 @@ defc SelectCodingStyle
 
    -- Open listbox to select settings
    CodingStyles = GetAVar( 'CodingStyles')
+   -- Append description to coding style names, if defined
+   Rest = CodingStyles
+   Sep = '/'
+   Entries = Sep
+   do w = 1 to words( Rest)
+      Next = word( Rest, w)
+      Prefix = 'hook.'
+      HookName = 'codingstyle.'Next
+      imax = GetAVar( prefix''HookName'.0')
+      Description = ''
+      if IsNum( imax) then
+         do i = 1 to imax
+            Cmd = GetAVar( prefix''HookName'.'i)
+            if upcase( leftstr( Cmd, 3)) = 'SET' then
+               Cmd = substr( Cmd, 4)
+            endif
+            if Description = '' then
+               Description = Cmd
+            else
+               Description = Description', 'Cmd
+            endif
+         enddo
+      endif
+      -- Tab chars are not expanded in a list box, so use some spaces
+      Entries = Entries''Next'  ('Description')'Sep
+   enddo
+
    DefaultItem = 1
    DefaultButton = 1
    HelpId = 0
@@ -1508,10 +1601,10 @@ defc SelectCodingStyle
    refresh
    NewCodingStyle = ''
    Result = listbox( Title,
-                     CodingStyles,
-                     '/~Set/Cancel',             -- buttons
-                     0, 0,  --5, 5,              -- top, left,
-                     min( words(CodingStyles), 12), 25,  -- height, width
+                     Entries,
+                     '/~Set/~Configure/Cancel',           -- buttons
+                     0, 0,  --5, 5,                       -- top, left,
+                     min( words(CodingStyles), 15), 100,  -- height, width
                      gethwnd(APP_HANDLE) || atoi(DefaultItem) ||
                      atoi(DefaultButton) || atoi(HelpId) ||
                      Text\0 )
@@ -1520,20 +1613,92 @@ defc SelectCodingStyle
    -- Check result
    button = asc( leftstr( Result, 1))
    EOS = pos( \0, Result, 2)        -- CHR(0) signifies End Of String
-   if button = 1 then
-      NewCodingStyle = substr( Result, 2, EOS - 2)
-   else
+   fEditProfile = 0
+   if button = 1 then      -- Set
+      fEditProfile = 1
+   elseif button = 2 then  -- Configure
+   else                    -- Cancel
       return 1
    endif
+   NewCodingStyle = substr( Result, 2, EOS - 2)
+   NewCodingStyle = word( NewCodingStyle, 1)  -- strip optional description
    if NewCodingStyle = '' then
       return 1
    endif
 
-   --Cmd = "'ModeExecute "Mode" SetCodingStyle REXX_cla'"
-   Cmd = "ModeExecute "Mode" SetCodingStyle "NewCodingStyle
+   if fEditProfile <> 1 then
+
+      ProfileName = 'profile.erx'
+      Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
+
+      -- Add PROFILE.ERX and search line with "ModeExec <mode> (Add|Set)CodingStyle"
+      -- for the current mode in it
+      'e' Profile
+
+      if not wordpos( rc, '0 -282') then  -- no error or new file
+         return rc
+      endif
+
+;      getsearch CurSearch
+      --Search = '(MODEEXEC|MODEEXECUTE):w'Mode':w(ADD|SET)CODINGSTYLE'
+      Search = '(ADD|SET)CODINGSTYLE:w'NewCodingStyle
+      --'postme mc !display -2!xcom l /'Search'/xt+fac!display 2!CenterLine'
+      'postme mc !xcom l /'Search'/xt+fac!CenterLine!Refresh'
+;      setsearch CurSearch
+
+      'postme SelectCSAskLoad' Search
+
+   else
+      'SelectCSEditProfile' Mode NewCodingStyle
+   endif
+
+; ---------------------------------------------------------------------------
+defc SelectCSAskLoad
+   parse arg Search
+
+   -- Find MODECNF.E
+   MacroFileName = 'modecnf.e'
+   Path = 'EPMMACROPATH'
+   MacroFile = FindFileInList( MacroFileName, Get_Env( Path))
+   if MacroFile = '' then
+      sayerror 'Macro file 'MacroFileName' not found in 'Path
+      return
+   endif
+
+   -- Maybe open MODECNF.E
+   Title = 'Additional help for PROFILE.ERX editing'
+   Text = ''
+   Text = Text || 'The standard coding styles for modes are defined'
+   Text = Text || ' via E macros. They can be used as example for'
+   Text = Text || ' user-definable coding styles for PROFILE.ERX,'
+   Text = Text || ' because it''s valid E and REXX code.'\n\n
+   Text = Text || 'Note, that after editing, you have to execute'
+   Text = Text || ' PROFILE.ERX to make the changes take effect.'
+   Text = Text || ' Therefore execute "Run" -> "Run current file"'
+   Text = Text || ' or press the "Run" button.'\n\n
+   Text = Text || 'Do you want to open the macro file now?'
+   Style = MB_YESNO+MB_ICONQUESTION+MB_DEFBUTTON1+MB_MOVEABLE
+   ret = winmessagebox( Title,
+                        Text,
+                        Style)
+   if ret = 6 then  -- Yes
+      --"o" MacroFile "'postme mc !sayerror "Search"!display -2!xcom l /"Search"/xt+fac'!display 2!CenterLine"
+      "o" MacroFile "'postme mc !xcom l /"Search"/xt+fac!CenterLine'"
+   elseif ret = 7 then  -- No
+   endif
+
+; ---------------------------------------------------------------------------
+defc SelectCSEditProfile
+   universal rexx_profile
+   universal app_hini
+   universal appname
+   parse arg Mode NewCodingStyle
 
    ProfileName = 'profile.erx'
    Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
+
+   --Cmd = "'ModeExecute "Mode" SetCodingStyle REXX_cla'"
+   Cmd = "ModeExecute "Mode" SetCodingStyle "NewCodingStyle
 
    -- Read PROFILE.ERX and delete line(s) with "ModeExec <mode> SetCodingStyle"
    -- for the current mode in it
@@ -1614,28 +1779,10 @@ defc SelectCodingStyle
    insertline "'"Cmd"'", .last + 1
    -- Save and quit
    'xcom s'
-   if rc <> 0 then
-      display 3
-      return rc
-   endif
-   --sayerror 'Line appended to PROFILE.ERX: 'Cmd
-   'xcom quit'
+   'xcom q'
    display 3
 
-   -- Activate PROFILE.ERX
-   if not rexx_profile then
-      rexx_profile = 1
-      old = queryprofile( app_hini, appname, INI_OPTFLAGS)
-      new = subword( old, 1, 11)' 'rexx_profile' 'subword( old, 13)
-      call setprofile( app_hini, appname, INI_OPTFLAGS, new)
-   endif
-
-   -- Execute this setting
+   -- Execute setting for this and newly loaded files of that mode
    Cmd
-   if rc = 0 then
-      sayerror 'PROFILE.ERX changed and executed: 'Cmd
-   else
-      sayerror 'Error 'rc' on executing: 'Cmd
-   endif
-
+   sayerror "Appended '"Cmd"' to PROFILE.ERX and applied setting."
 
