@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.25 2006-12-10 11:38:34 aschn Exp $
+* $Id: stdcmds.e,v 1.26 2007-05-31 22:01:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -384,10 +384,16 @@ defc margins, ma
 
    if wordpos( arg1, '0 OFF DEFAULT' ) > 0 then
       -- Get default value for NewMargins
-      DefaultMargins = queryprofile( app_hini, 'EPM', 'MARGINS')
-      if DefaultMargins = '' then
+      DefaultMargins = ''
+      do while DefaultMargins = ''
+         -- Query mode setting
+         DefaultMargins = GetModeSetting( 'margins')
+         if DefaultMargins <> '' then leave; endif
+         -- Query default setting
+         DefaultMargins = queryprofile( app_hini, 'EPM', 'MARGINS')
+         if DefaultMargins <> '' then leave; endif
          DefaultMargins = '1 1599 1'
-      endif
+      enddo
       NewMargins = DefaultMargins
 
       -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
@@ -780,10 +786,16 @@ defc tabs
 
    if wordpos( arg1, '0 OFF DEFAULT' ) > 0 then
       -- Get default value for NewTabs
-      DefaultTabs = queryprofile( app_hini, 'EPM', 'TABS')
-      if DefaultTabs = '' then
+      DefaultTabs = ''
+      do while DefaultTabs = ''
+         -- Query mode setting
+         DefaultTabs = GetModeSetting( 'tabs')
+         if DefaultTabs <> '' then leave; endif
+         -- Query default setting
+         DefaultTabs = queryprofile( app_hini, 'EPM', 'TABS')
+         if DefaultTabs <> '' then leave; endif
          DefaultTabs = '8'
-      endif
+      enddo
       NewTabs = DefaultTabs
 
       -- Update the EPM EA area to make get_EAT_ASCII_value show the actual value
