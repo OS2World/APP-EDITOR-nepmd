@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.44 2007-04-10 19:48:40 aschn Exp $
+* $Id: newmenu.e,v 1.45 2007-05-31 21:54:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -3529,6 +3529,7 @@ defc menuinit_keywordhelp
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    SetMenuAttribute( GetAVar('mid_usenewview'),        MIA_CHECKED, not on)
    SetMenuAttribute( GetAVar('mid_usenewviewxsearch'), MIA_DISABLED, on)
+   KeyPath = '\NEPMD\User\KeywordHelp\NewView\ExtendedSearch'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    SetMenuAttribute( GetAVar('mid_usenewviewxsearch'), MIA_CHECKED, not on)
 
