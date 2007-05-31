@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modecnf.e,v 1.9 2006-12-10 08:53:56 aschn Exp $
+* $Id: modecnf.e,v 1.10 2007-05-31 22:03:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -273,11 +273,42 @@ defc InitModeCnf
 'AddCodingStyle REXX_aschn SetIndent 3'
 'AddCodingStyle REXX_aschn SetFunctionSpacing CS'
 
-/* You may want to create your own REXX style. Therefore copy some (or     */
-/* all) of the "ModeExecute REXX ..." settings below here, use             */
-/* "AddCodingStyle MYREXX ..." commands and configure the Set* command     */
-/* values. Then specify "ModeExecute REXX SetCodingStyle MYREXX" in the    */
-/* "ModeExecute REXX" block below.                                         */
+/* ----------------------------------------------------------------------- */
+/* You may want to create your own REXX style, called e.g. "MYREXX".       */
+/*                                                                         */
+/* 1) In order to define your own style in your PROFILE.ERX, add some      */
+/*    (or all) of the 'ModeExecute REXX ...' settings below to it.         */
+/*    Instead of 'ModeExecute REXX ' prepend the lines with                */
+/*                                                                         */
+/*       'AddCodingStyle MYREXX '                                          */
+/*                                                                         */
+/*    and configure the Set* command values. As an alternate, you can also */
+/*    copy one of the REXX styles above and change the name to MYREXX.     */
+/*    After that, add the line                                             */
+/*                                                                         */
+/*       'ModeExecute REXX SetCodingStyle MYREXX'                          */
+/*                                                                         */
+/*    Then run your PROFILE.ERX via the "RUN" button or use the "Run" ->   */
+/*    "Run current file" menu item to make the changes take effect.        */
+/*                                                                         */
+/* 2) In order to define your own style in your MODECNF.E, copy some       */
+/*    (or all) of the 'ModeExecute REXX ...' settings below here.          */
+/*    Instead of 'ModeExecute REXX ' prepend the lines with                */
+/*                                                                         */
+/*       'AddCodingStyle MYREXX '                                          */
+/*                                                                         */
+/*    and configure the Set* command values. As an alternate, you can also */
+/*    copy one of the REXX styles above and change the name to MYREXX.     */
+/*    After that, edit the line starting with                              */
+/*    'ModeExecute REXX SetCodingStyle' in the 'ModeExecute REXX' block    */
+/*    below. Change it to                                                  */
+/*                                                                         */
+/*       'ModeExecute REXX SetCodingStyle MYREXX'                          */
+/*                                                                         */
+/*    Then recompile your MODECNF.E file, e.g. via the 'Relink' command or */
+/*    the "Run" button. EPM has to be restarted to make the changes take   */
+/*    effect.                                                              */
+/* ----------------------------------------------------------------------- */
 
 
 /* ----------------------------------------------------------------------- */
