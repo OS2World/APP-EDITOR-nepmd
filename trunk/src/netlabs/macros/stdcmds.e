@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.26 2007-05-31 22:01:47 aschn Exp $
+* $Id: stdcmds.e,v 1.27 2007-06-10 20:03:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -123,6 +123,7 @@ defc cursor_style
 ;  binding more flexible.  And to allow execution without a key binding.
 ;  In EPM, no getkey() prompt.  Cancel at first error.
 defc dolines
+   Mode = GetMode()
    if marktype() = 'LINE' then
       getmark firstline, lastline, i, i, fileid
       if firstline <> lastline | firstline <> .line then
@@ -137,6 +138,16 @@ defc dolines
       if k = YES_CHAR then
          for i = firstline to lastline
             getline line, i, fileid
+            line = strip( line)
+            -- For REXX files, strip quotes or double quotes
+            if Mode = 'REXX' then
+               if leftstr( line, 1) = "'" & rightstr( line, 1) = "'" then
+                  line = substr( line, 2, length( line) - 2)
+               elseif leftstr( line, 1) = '"' & rightstr( line, 1) = '"' then
+                  line = substr( line, 2, length( line) - 2)
+               endif
+            endif
+            -- Execute
             line
          endfor
          sayerror 0
@@ -145,6 +156,16 @@ defc dolines
    endif
    if .line then
       getline line
+      line = strip( line)
+      -- For REXX files, strip quotes or double quotes
+      if Mode = 'REXX' then
+         if leftstr( line, 1) = "'" & rightstr( line, 1) = "'" then
+            line = substr( line, 2, length( line) - 2)
+         elseif leftstr( line, 1) = '"' & rightstr( line, 1) = '"' then
+            line = substr( line, 2, length( line) - 2)
+         endif
+      endif
+      -- Execute
       line
    endif
 
@@ -492,7 +513,7 @@ defc nextview
 ; Moved defc o,open to EDIT.E
 
 defc openhelp
- compile if 0
+compile if 0
    rectangle = atol(4) || atol(75)  || atol(632) || atol(351)
 
    filename  = arg(1) \0
@@ -522,7 +543,7 @@ defc openhelp
                    '_EPM_EDITWINDOWCREATE',
                    address(params)    ||
                    address(rethwnd))
- compile else
+compile else
 
    -- send EPM icon window a help message.  It will take care of
    -- the correct setting up of the help window.
@@ -531,7 +552,7 @@ defc openhelp
                       5132,                   -- EPM_POPHELPBROWSER
                       put_in_buffer(arg(1)),
                       1)                      -- Tell EPM to free the buffer.
- compile endif
+compile endif
 
 defc pagebreak
    -- I put a form feed character there for the dual purpose of somewhat
@@ -608,8 +629,11 @@ defc print  /* Save the users current file to the printer */
    sayerror 0    /* clear 'printing' message */
 
 defc processbreak  -- executed if Ctrl+Break was pressed
+   universal vepm_pointer
    universal Dictionary_loaded
-   call showwindow('ON')             -- Make sure that the window is displayed.
+
+   mouse_setpointer vepm_pointer  -- Reset mouse pointer
+   call showwindow('ON')          -- Make sure that the window is displayed.
    if dictionary_loaded then
       call drop_dictionary()
    endif
