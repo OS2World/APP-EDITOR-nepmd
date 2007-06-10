@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: assist.e,v 1.21 2007-04-28 23:25:37 jbs Exp $
+* $Id: assist.e,v 1.22 2007-06-10 02:16:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -955,7 +955,7 @@ compile endif
                               if lowcase(substr(tmpline, .col, 5)) = 'begin' then
                                  if (tmpline_len > .col + 4) then
                                     nextchar = substr(tmpline, .col + 5, 1)
-                                    call dprintf("passist", "charafter: '"nextxhar"'")
+                                    call dprintf("passist", "charafter: '"nextchar"'")
                                     if nextchar = ' ' or nextchar = \9 then
                                        passist_rc = PASSIST_RC_NO_ERROR
                                     endif
