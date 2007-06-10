@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.15 2007-05-31 22:42:59 aschn Exp $
+* $Id: tags.e,v 1.16 2007-06-10 02:10:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -710,72 +710,76 @@ compile endif
       end_line; repeat_find
    endloop
 
-defproc pas_proc_search(var proc_name,find_first)
-   tc=arg(3)
-   if tc='' then  /* pascal search?*/
-      tc='c'  /* ignore case */
+defproc pas_proc_search( var proc_name, find_first)
+   case = arg(3)
+   if case = '' then  -- pascal search?
+      case = 'c'      -- ignore case
    endif
    proc_len = length(proc_name)
    display -2
    if find_first then
-      if tc='e' then  /* Must be modula search */
-         keywords='(PROCEDURE)'
+      if case = 'e' then  -- Must be modula search
+         Keywords = '(PROCEDURE)'
       else
-         keywords='(overlay:w|)(pro(cedure|gram)|function)'
+         Keywords = '(overlay:w|)(pro(cedure|gram)|function)'
       endif
-      if proc_name=='' then
-          'xcom l ^:o'keywords':w:c[( \t;:]xc'
+      if proc_name == '' then
+          PasIdentifier = '[a-zA-Z_$][a-zA-Z0-9_$.]*'
+          'xcom l ^:o'Keywords':w'PasIdentifier':o[\(;\:]x'case
       else
-         'xcom l 'proc_name''tc
+         'xcom l 'proc_name':o[\(;\:]x'case
       endif
    else
       repeat_find
    endif
-;  if tc='e' then /* pos function does not support allow e option*/
-      tc=''
-;  endif
    loop
       if rc then
          display 2
-         return(rc)
+         return rc
       endif
       getline line
       if proc_len then  -- Determine if match is a substring of something else
-         if .col>1 then
-            c = upcase(substr(line, .col-1, 1))
-            if (c>='A' & c<='Z') | (c>='0' & c<='9') | c='$' | c='_'  then
+         if .col > 1 then
+            c = upcase( substr( line, .col-1, 1))
+            if (c >= 'A' & c <= 'Z') | (c >= '0' & c <= '9') | c = '$' | c = '_' then
                end_line; repeat_find; iterate
             endif
          endif
          .col = .col + proc_len
-         c = upcase(substr(line, .col, 1))
-         if (c>='A' & c<='Z') | (c>='0' & c<='9') | c='$' | c='_'  then
+         c = upcase( substr( line, .col, 1))
+         if (c >= 'A' & c <= 'Z') | (c >= '0' & c <= '9') | c = '$' | c = '_'  then
             end_line; repeat_find; iterate
          endif
       else
-         .col = pos('(', line)
+         .col = pos( '(', line)
       endif
-      line=translate(line, ' ', \t)
-      col=.col
-      if not pos(' 'keywords'[ \t]',' 'line,'','x'/*||tc*/) then
+      line = translate( line, ' ', \t)
+      -- pos function does not support allow c or e option
+      if case = 'c' then
+         p = pos( ' 'upcase( keywords)'[ \t]', ' 'upcase( line), 1, 'x')
+      else
+         p = pos( ' 'keywords'[ \t]', ' 'line, 1, 'x')
+      endif
+      if not p then
          end_line; repeat_find; iterate
       endif
-      p=pos('[\(;\:]',line,'','x')
+      p = pos( '[\(;\:]', line, 1, 'x')
       if p then
-         if substr(line,p,1)=='(' then
-            .col=p
-            call psave_pos(save_pos)
+         if substr( line, p, 1) == '(' then
+            .col = p
+            call psave_pos( save_pos)
             if find_matching_paren() then
                end_line; repeat_find; iterate
             endif
-            call prestore_pos(save_pos)
+            call prestore_pos( save_pos)
          endif
-         if pos('forward;',textline(.line)) then
+         if pos( 'forward;', textline( .line)) then
             end_line; repeat_find; iterate
          endif
-         line=substr(line,1,p-1)
-         i=lastpos(' ',strip(translate(line,' ',\t)))
-         proc_name=substr(line,i+1)
+         line = substr( line, 1, p - 1)
+         sline = strip( line)
+         i = lastpos( ' ', sline)
+         proc_name = strip( substr( sline, i + 1))
          display 2
          return 0
       endif
