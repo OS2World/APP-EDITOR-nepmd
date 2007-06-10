@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: revert.e,v 1.5 2006-12-10 10:05:05 aschn Exp $
+* $Id: revert.e,v 1.6 2007-06-10 19:58:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -75,6 +75,8 @@ compile endif
          return -293  -- sayerror("has been modified")
       endif
    endif
+   'DisableLoad'
+   'DisableSelect'
    getfileid startfid
    call psave_pos(saved_pos)
    if .lockhandle then
@@ -107,5 +109,7 @@ compile endif
          --call prestore_pos(saved_pos)
          'postme restorepos 'saved_pos  -- postme required
    endif
+   'EnableLoad'
+   'EnableSelect'
 ;   display 8
 
