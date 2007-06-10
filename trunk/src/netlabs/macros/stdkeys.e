@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.34 2006-12-10 12:12:50 aschn Exp $
+* $Id: stdkeys.e,v 1.35 2007-06-10 20:01:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -67,7 +67,7 @@ def right         'NextChar'            -- Go to next char (Shift marks)
 def up            'Up'                  -- Go to previous line (Shift marks)
 def down          'Down'                -- Go to next line (Shift marks)
 def home          'BeginLineOrText'     -- Go to begin of line or text (Shift marks)
-defc Key_a_home   'BeginLine'           -- Go to begin of line
+;defc Key_a_home   'BeginLine'           -- Go to begin of line
 defc Key_a_s_home 'MarkBeginLine'       -- Mark to begin of line
 def end           'EndLine'             -- Go to end of line (Shift marks)
 def pgup          'PageUp'              -- Go to previous page (Shift marks)
