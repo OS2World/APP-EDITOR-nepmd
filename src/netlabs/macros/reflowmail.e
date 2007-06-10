@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.15 2007-01-28 01:18:09 aschn Exp $
+* $Id: reflowmail.e,v 1.16 2007-06-10 19:40:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -94,6 +94,11 @@ ok *  signature
 -  Replace multiple spaces in verbatim regions with '~' to keep all
    spaces in HTML forums.
 */
+
+
+compile if not defined(SMALL)  -- If being externally compiled...
+   include 'STDCONST.E'
+compile endif
 
 defmain
    'ReflowMail'
@@ -319,6 +324,8 @@ defc ReflowMail
    universal nepmd_hini
    universal InfolineRefresh
    universal vTemp_Path
+   universal vepm_pointer
+
    fPrevLineIsBlank    = 0
    fPrevLineIsVerbatim = 0
    PrevQuoteLevel     = 0
@@ -341,6 +348,7 @@ defc ReflowMail
    KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
    fIndentedIsVerbatim = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 1)
 
+   mouse_setpointer WAIT_POINTER
    saved_autosave = .autosave
    .autosave = 0
    saved_modify = .modify
@@ -543,4 +551,6 @@ defc ReflowMail
       .modify = saved_modify + 1
    endif
    call NewUndoRec()
+   mouse_setpointer vepm_pointer
+
 
