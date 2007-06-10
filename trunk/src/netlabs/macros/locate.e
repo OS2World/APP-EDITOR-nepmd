@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.27 2006-12-10 11:01:17 aschn Exp $
+* $Id: locate.e,v 1.28 2007-06-10 19:38:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1186,6 +1186,8 @@ defc GrepBox
 ; GNU_GREP_OPTIONS or RY_GREP_OPTIONS, depending on GrepVersion are prepended
 ; to GrepArgs.
 defproc CallGrep
+   universal vepm_pointer
+
    GrepVersion = arg(1)
    if arg(3) = '' then
       fVerbose = 1
@@ -1222,6 +1224,7 @@ defproc CallGrep
       grepargs = defaultgrepopt grepargs
    endif
 
+   mouse_setpointer WAIT_POINTER
    if words( grepargs) > 1 then
       if fVerbose then
          sayerror 'Scanning files...'
@@ -1244,6 +1247,7 @@ defproc CallGrep
       sayerror ALT_1_LOAD__MSG
       display 8
    endif
+   mouse_setpointer vepm_pointer
    rc = greprc
    return rc
    --display 8
