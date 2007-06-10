@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.23 2006-12-11 23:35:27 aschn Exp $
+* $Id: file.e,v 1.24 2007-06-10 19:51:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -122,9 +122,6 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 defc n, name
-;compile if WANT_LONGNAMES='SWITCH'
-;   universal show_longnames
-;compile endif
    -- Name with no args supplies current name.
    if arg(1) = '' then
       'commandline Name '.filename
@@ -138,15 +135,6 @@ defc n, name
       if oldname <> .filename then .modify = .modify + 1 endif
       if get_EAT_ASCII_value('.LONGNAME') <> '' then
          call delete_ea('.LONGNAME')
-;compile if WANT_LONGNAMES
-; compile if WANT_LONGNAMES='SWITCH'
-;         if show_longnames then
-; compile endif
-;            .titletext = ''
-; compile if WANT_LONGNAMES='SWITCH'
-;         endif
-; compile endif
-;compile endif  -- WANT_LONGNAMES
       endif  -- .LONGNAME EA exists
       -- Remove .readonly field if original file was .readonly and new file doesn't exist
       -- (If file exists, then the attrib is re-determined correctly.)
@@ -155,11 +143,7 @@ defc n, name
             .readonly = 0
          endif
       endif
-;compile if SHOW_MODIFY_METHOD = 'TITLE'
-;      call settitletext(.filename)
-;compile endif
       call dosmove(autosave_name, MakeTempName())  -- Rename the autosave file
-;      call select_edit_keys()
 compile if SUPPORT_USER_EXITS
       if isadefproc('rename_exit') then
          call rename_exit(oldname, .filename)
@@ -189,18 +173,23 @@ defc rename
    endif
 
 ; ---------------------------------------------------------------------------
-; Save                    save
-; Save (for a tempfile)   open Save-as dialog
-; Save <filename>         save, keep old filename loaded
-; Name <filename>, Save   save, change to new filename
-defc s, save=
+; Save                               save
+; Save (for a tempfile)              open Save-as dialog
+; Save <filename>                    save, keep old filename loaded
+; Name <filename> followed by Save   save, change to new filename
+; call Save( <filename>, 1)          used by SaveAs
+defc s, save
+   rc = Save( arg(1))
+
+defproc Save
    universal save_with_tabs, default_save_options
    universal nepmd_hini
-   save_as = 0
+   fNameChanged = 0
    SpecifiedName = arg(1)
    Name = SpecifiedName
    call parse_leading_options( Name, Options)  -- gets and sets Name and Options
    Options = default_save_options Options
+   fCalledBySaveAs = (arg(2) = 1)  -- optional 2nd arg to handle call specially
 
    -- Open file dialog (Save as) if filename = .Untitled
    IsTempFile = leftstr( .filename, 1) = '.'
@@ -215,7 +204,7 @@ defc s, save=
          'name' Name
          if not rc then
             Name = .filename
-            save_as = 1
+            fNameChanged = 1
          endif
       endif
    endif
@@ -230,46 +219,69 @@ defc s, save=
    endif
 
    -- Handle special NEPMD dirs: don't overwrite files of the NETLABS or EPMBBS tree
-   fn = Name
-   RootDir = NepmdScanEnv('NEPMD_ROOTDIR')
-   parse value RootDir with 'ERROR:'rc1
-   if rc1 > '' then
-      sayerror 'Environment var NEPMD_ROOTDIR not set'
-   endif
-   UserDir = NepmdScanEnv('NEPMD_USERDIR')
-   parse value UserDir with 'ERROR:'rc2
-   if rc2 > '' then
-      sayerror 'Environment var NEPMD_USERDIR not set'
-   endif
-   if rc1 = '' & rc2 = '' then
-      if abbrev( upcase(fn), upcase(RootDir)) then
-         p1 = length(RootDir)
-         p2 = pos( '\', fn, p1 + 2)
-         next = substr( fn, p1 + 2, max( p2 - p1 - 2, 0))
-         if wordpos( upcase(next), 'NETLABS EPMBBS') then
-            newdir = UserDir || substr(fn, p2, lastpos('\', fn) - p2)
-            newname = UserDir''substr( fn, p2)
-            p = length(UserDir)
-            while NepmdDirExists(newdir) = 0 do
-               p = pos('\', newdir || '\', p + 1)
-               dir = leftstr(newdir, p - 1)
-               if NepmdDirExists(dir) == 0 then
-                  rcx = MakeDirectory(dir)
+   if not fCalledBySaveAs then
+      fn = Name
+      RootDir = NepmdScanEnv('NEPMD_ROOTDIR')
+      parse value RootDir with 'ERROR:'rc1
+      if rc1 > '' then
+         sayerror 'Environment var NEPMD_ROOTDIR not set'
+      endif
+      UserDir = NepmdScanEnv('NEPMD_USERDIR')
+      parse value UserDir with 'ERROR:'rc2
+      if rc2 > '' then
+         sayerror 'Environment var NEPMD_USERDIR not set'
+      endif
+      if rc1 = '' & rc2 = '' then
+         if abbrev( upcase(fn), upcase(RootDir)) then
+            p1 = length(RootDir)
+            p2 = pos( '\', fn, p1 + 2)
+            next = substr( fn, p1 + 2, max( p2 - p1 - 2, 0))
+            if wordpos( upcase(next), 'NETLABS EPMBBS') then
+               newdir = UserDir || substr(fn, p2, lastpos('\', fn) - p2)
+               newname = UserDir''substr( fn, p2)
+               p = length(UserDir)
+               while NepmdDirExists(newdir) = 0 do
+                  p = pos('\', newdir || '\', p + 1)
+                  dir = leftstr(newdir, p - 1)
+                  if NepmdDirExists(dir) == 0 then
+                     rcx = MakeDirectory(dir)
+                  endif
+               endwhile
+               sayerror 'Better use the user tree for your own files'
+               -- First disable most load and select processing for the current
+               -- file. Always ensure that they were reenabled after that
+               -- command to be ready for processing the next file!
+               'DisableLoad'
+               'DisableSelect'
+               oldname = .filename
+               .filename = newname               -- saveas_dlg starts with .filename
+               result = saveas_dlg( Name, Type)  -- saveas_dlg will set both vars
+               if result <> 0 then
+                  .filename = oldname
+                  -- 'postme' makes the following commands be processed after
+                  -- defload and defselect are processed. That disables most
+                  -- load and select processing for the current file.
+                  'postme EnableLoad'
+                  'postme EnableSelect'
+                  return result
                endif
-            endwhile
-            sayerror 'Better use the user tree for your own files'
-            oldname = .filename
-            .filename = newname               -- saveas_dlg starts with .filename
-            result = saveas_dlg( Name, Type)  -- saveas_dlg will set both vars
-            if result <> 0 then
-               .filename = oldname
-               return result
-            endif
-            SpecifiedName = Name
-            'name' Name
-            if not rc then
-               Name = .filename
-               save_as = 1
+               SpecifiedName = Name
+               'name' Name
+               if not rc then  -- on success
+                  Name = .filename
+                  fNameChanged = 1
+                  -- The following commands enable all load and select
+                  -- processing for the current file, because they are
+                  -- executed before defload and defselect.
+                  'EnableLoad'
+                  'EnableSelect'
+               else
+                  -- 'postme' makes the following commands be processed after
+                  -- defload and defselect are processed. That disables most
+                  -- load and select processing for the current file.
+                  'postme EnableLoad'
+                  'postme EnableSelect'
+               endif
             endif
          endif
       endif
@@ -283,14 +295,14 @@ defc s, save=
          sayerror BROWSE_IS__MSG ON__MSG
       endif
       rc = -5  -- Access denied
-      return
+      return -5
    endif
    -- Check if readonly file attrib is set although .readonly field is not
    Attr = QueryPathInfo('ATTR')  -- show 'ADSHR' or '-----'
    if substr( Attr, 5, 1) = 'R' then
       sayerror READ_ONLY__MSG
       rc = -5  -- Access denied
-      return
+      return -5
    endif
 
    -- Try to unlock file if it is locked (only successful if locked by the current EPM window)
@@ -304,12 +316,12 @@ defc s, save=
    -- Execute pre-save hooks
 compile if SUPPORT_USER_EXITS
    if isadefproc('presave_exit') then
-      call presave_exit( Name, options, save_as)
+      call presave_exit( Name, options, fNameChanged)
    endif
 compile endif
 compile if INCLUDE_BMS_SUPPORT
    if isadefproc('BMS_presave_exit') then
-      call BMS_presave_exit( Name, options, save_as)
+      call BMS_presave_exit( Name, options, fNameChanged)
    endif
 compile endif
    'HookExecute save'
@@ -407,12 +419,12 @@ compile endif
    -- Call postsave_exit hooks
 compile if SUPPORT_USER_EXITS
    if isadefproc('postsave_exit') then
-      call postsave_exit(name, options, save_as, src)
+      call postsave_exit(name, options, fNameChanged, src)
    endif
 compile endif
 compile if INCLUDE_BMS_SUPPORT
    if isadefproc('BMS_postsave_exit') then
-      call BMS_postsave_exit(name, options, save_as, src)
+      call BMS_postsave_exit(name, options, fNameChanged, src)
    endif
 compile endif
 
@@ -447,7 +459,7 @@ compile endif
    endif
 
    -- Revert to .Unnamed if no success and if Name comes from a Save-as dialog
-   if src & save_as then
+   if src & fNameChanged then
       .filename = GetUnnamedFileName()
    endif
 
@@ -638,6 +650,7 @@ defc SaveAll
    getfileid startfid
    f = 0
    m = 0
+   dprintf( 'RINGCMD', 'SaveAll')
    do i = 1 to filesinring()  -- omit hidden files
       Filename = .filename
       IsATempFile = (substr( Filename, 1, 1) = '.')
@@ -674,6 +687,7 @@ defc SaveAll
 ; ---------------------------------------------------------------------------
 defc q, quit=
    universal firstloadedfid
+   universal LoadDisabledFid
 
    if not .visible then
       'xcom quit'
@@ -718,10 +732,12 @@ compile endif
       then firstloadedfid = ''
    endif
 
-   call RingWriteFileNumber()
-
-   if not fTempFile then
-      call RingAutoWriteFilePosition()
+   -- Don't process ring commands now when Load commands are disabled
+   if LoadDisabledFid < 1 then
+      call RingWriteFileNumber()
+      if not fTempFile then
+         call RingAutoWriteFilePosition()
+      endif
    endif
 
 ; ---------------------------------------------------------------------------
@@ -791,7 +807,9 @@ compile if INCLUDE_BMS_SUPPORT
          call BMS_rename_exit( oldname, .filename, 1)
       endif
 compile endif
-      'save'
+      -- Use a special flag as 2nd arg to bypass the
+      -- change-from-netlabs-to-user-tree feature
+      call Save( '', 1)
       if rc then  -- Problem saving?
          call dosmove( autosave_name, MakeTempName())  -- Rename the autosave file
       else
