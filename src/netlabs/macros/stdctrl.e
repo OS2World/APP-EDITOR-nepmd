@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.45 2006-12-09 19:37:34 aschn Exp $
+* $Id: stdctrl.e,v 1.46 2007-06-10 19:57:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -660,10 +660,12 @@ defc load_dt_bitmap
 
 ; ---------------------------------------------------------------------------
 ; Doesn't work with eCS, ...?
-defc drop_bitmap
+/*
+defc drop_bitmap, drgdrptyp_Bitmap, dragdrop_bmp
    universal bm_filename
    parse arg x y bm_filename
    'load_dt_bitmap' bm_filename
+*/
 
 ; ---------------------------------------------------------------------------
 defc SetBackgroundBitmap
@@ -870,6 +872,7 @@ defc ProcessFontRequest
       -- Apply font to all files in the ring that have the default font
       getfileid startfid
       display -1
+      dprintf( 'RINGCMD', 'ProcessFontRequest')
       do i = 1 to filesinring(1)
          if .font = default_font then
             .font = fontid
@@ -999,6 +1002,7 @@ defc ChangeStyle
    getfileid startid
    fontid = registerfont(fontname, fontsize, fontsel)
    fg = bg*16 + fg
+   dprintf( 'RINGCMD', 'ChangeStyle')
    do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       if .levelofattributesupport bitand 8 then  -- Is attribute 8 on?
                                                                  -- "Save attributes" flag
@@ -1044,6 +1048,7 @@ defc Delete_Style
    getfileid startid
 ;  fontid = registerfont(fontname, fontsize, fontsel)
 ;  fg = bg*16 + fg
+   dprintf( 'RINGCMD', 'DeleteStyle')
    do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       if .levelofattributesupport bitand 8 then  -- Is attribute 8 on?
                    -- "Save attributes" flag --> using styles in this file
