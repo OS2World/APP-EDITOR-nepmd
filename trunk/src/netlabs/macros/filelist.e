@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.17 2006-10-07 18:16:50 aschn Exp $
+* $Id: filelist.e,v 1.18 2007-06-10 19:53:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -171,6 +171,7 @@ defproc RingWriteFilePosition
    getfileid firstfid
    i = 0
    -- Loop through all files in ring
+   dprintf( 'RINGCMD', 'RingWriteFilePosition')
    do f = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       -- Skip temp. files
       fIgnore = ((leftstr( .filename, 1) = '.') | (not .visible))
@@ -361,6 +362,7 @@ defc RingMaxFiles
 ; Called by ProcessAfterload if filestoloadmax is less than a limit.
 defproc RingAddToHistory
    universal nepmd_hini  -- often forgotten
+   universal LoadDisabledFid
 
    KeyPath = '\NEPMD\User\History'
    Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -389,6 +391,7 @@ defproc RingAddToHistory
    next_file
    getfileid firstfid
    -- Loop through all files in ring
+   dprintf( 'RINGCMD', 'RingAddToHistory 'ListName', LoadDisabledFid = 'LoadDisabledFid)
    do f = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       NewItem = .filename
       rest = History
@@ -628,6 +631,7 @@ defproc RingWriteFileNumber
       fid = firstfid
       firstinringfid = fid  -- initialize to current file
       LowestFileNumber = filesinring()  -- initialize to upper limit
+      dprintf( 'RINGCMD', 'RingWriteFileNumber 1')
       do f = 1 to filesinring(1)  -- just as an upper limit
          -- Check if FileNumber was set by a previous call to RingWriteFileNumber
          -- and get the lowest
@@ -654,6 +658,7 @@ defproc RingWriteFileNumber
    FileNumber = 0
    activatefile firstinringfid
    fid = firstinringfid
+   dprintf( 'RINGCMD', 'RingWriteFileNumber 2')
    do f = 1 to filesinring(1)  -- just as an upper limit
       FileNumber = FileNumber + 1
 
@@ -690,6 +695,45 @@ defproc GetFileNumber
    return FileNumber
 
 ; ---------------------------------------------------------------------------
+; Swap current and next views to advance the current file position in the
+; ring. Original by Larry Margolis:
+; http://groups.google.com/group/comp.os.os2.apps/browse_thread/thread/c88c425bd33fcf0a
+; See also this message for an explanation why the Ring dialog shows the
+; files in another order.
+defc SwapView
+   universal firstinringfid
+
+   getfileid fid
+   this_view = fid.nextview_of_file
+   prev_view = this_view.prevview
+   next_view = this_view.nextview
+   if this_view = prev_view | this_view = next_view | prev_view = next_view then
+      sayerror 'Not enough views in the ring to swap.'
+      return
+   endif
+   nextnext_view = next_view.nextview
+
+   prev_view.nextview = next_view
+   nextnext_view.prevview = this_view
+   next_view.prevview = prev_view
+   next_view.nextview = this_view
+   this_view.prevview = next_view
+   this_view.nextview = nextnext_view
+
+   -- Must handle the first and last views specially:
+   -- change firstinringfid before calling RingWriteFileNumber
+   CurFileNumber = GetAVar( 'filenumber.'fid)
+   MaxFileNumber = filesinring()
+   if CurFileNumber >= MaxFileNumber then
+      firstinringfid = fid
+   elseif CurFileNumber = 1 then
+      firstinringfid = next_view
+   endif
+
+   -- Redetermine all file numbers
+   call RingWriteFileNumber()
+
+; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
@@ -723,6 +767,7 @@ defc Ring
    endif
    display -3
    getfileid startfid
+   dprintf( 'RINGCMD', 'Ring' arg(1))
    do f = 1 to filesinring(1)  -- just as an upper limit
       if .visible then
          arg(1)  -- execute arg(1)
