@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.22 2006-12-10 09:43:54 aschn Exp $
+* $Id: select.e,v 1.23 2007-06-10 19:49:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -45,7 +45,23 @@ defproc select_edit_keys()
    /* Dummy proc for compatibility.  Select_edit_keys() isn't used any more.*/
 
 ; ---------------------------------------------------------------------------
-; Suppress select processing during startup
+; Suppress select processing. Used for temporary .filename changes and to
+; avoid a load and select triggering, that otherwise would be executed on
+; canceling the action. Even executing .filename = newname triggers a load
+; and a followed select event.
+;    'DisableSelect'        Disable select processing for all files (e.g.
+;                           before a Name or SaveAs command).
+;    'EnableSelect'         Enable select processsing for all files (e.g.
+;                           after a Name or SaveAs command was successful.
+;                           The load and select events are internally posted,
+;                           so that the EnableSelect command will reset the
+;                           flag before it's been executed.
+;    'postme EnableSelect'  Enable select processsing for all files after
+;                           current command (e.g. Name or SaveAs) was
+;                           completely executed. That triggers defload and
+;                           after that, defselect before the disable flag
+;                           was reset. As a result, defselect will work
+;                           normally from the next processed file on.
 
 defc DisableSelect
    universal SelectDisabled
@@ -58,6 +74,9 @@ defc EnableSelect
 ; ---------------------------------------------------------------------------
 defselect
    universal SelectDisabled
+   if not .visible then  -- process following only if file is visible
+      return
+   endif
    if SelectDisabled <> 1 then
       'ProcessSelect'
    endif
@@ -79,14 +98,12 @@ defc ProcessSelect
    getfileid fid
    dprintf( 'SELECT', 'DEFSELECT for '.filename', loadstate = 'loadstate)
 
-   JustLoaded = 0
    if loadstate = 1 then  -- if a defload was processed before
       loadstate = 2
-      JustLoaded = 1
       'ProcessAfterLoad'  -- executes multiple ring commands that sometimes
-                          -- leave the wrong file on top
+                          -- left the wrong file on top
       'postme activatefile' fid  -- postme required, but doesn't work in some rare cases
-      'postme ProcessAfterload2'  -- final processing, therefore posted
+      'postme ProcessAfterload2' -- final processing, therefore posted
       loadstate = 0
    endif
 
@@ -98,7 +115,7 @@ defc ProcessSelect
    endif
 
 ; ---------------------------------------------------------------------------
-; This cmd is called once after all files were loaded by defselect.
+; This cmd is called once by defselect after all files were loaded.
 defc ProcessAfterLoad
    universal CurEditCmd
    universal filestoloadmax   -- set in PreLoadFile, only used for RingAddToHistory('LOAD')
@@ -129,7 +146,7 @@ defc ProcessAfterLoad
    CurEditCmd = ''
 
 ; ---------------------------------------------------------------------------
-; This cmd is posted once after all files were loaded by defselect.
+; This cmd is posted once by defselect after all files were loaded.
 defc ProcessAfterLoad2
    universal vepm_pointer
    universal DisplayDisabled
@@ -140,6 +157,9 @@ defc ProcessAfterLoad2
 
    if DisplayDisabled then
       DisplayDisabled = 0
+      'trim'  -- Trim window so it's an exact multiple of the font size
+              -- This should avoid scrolling caused by temp. cursor pos.
+              -- changes and restore.
       display 1  -- re-enable screen updates, show the loaded files
    endif
    -- Bug to find? display 2 here would cause on defmodify the msg:
