@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.25 2006-06-03 20:53:14 aschn Exp $
+* $Id: load.e,v 1.26 2007-06-10 19:48:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -68,6 +68,41 @@
 ;
 ;  Many other hooks exist, e.g. for adding a submenu beside the helpmenu.
 
+; ---------------------------------------------------------------------------
+; Suppress load processing. Used for temporary .filename changes and to
+; avoid a load and select triggering, that otherwise would be executed on
+; canceling the action. Even executing .filename = newname triggers a load
+; and a followed select event.
+;    'DisableLoad'          Disable load processing for current file (e.g.
+;                           before a Name or SaveAs command).
+;    'DisableLoad' fid      Disable load processing for file with file id
+;                           = fid.
+;    'DisableLoad' 1        Disable load processing for all files.
+;    'EnableLoad'           Enable load processsing for all files (e.g.
+;                           after a Name or SaveAs command was successful.
+;                           The load and select events are internally posted,
+;                           so that the EnableLoad command will reset the
+;                           flag before it's been executed.
+;    'postme EnableLoad'    Enable load processsing for all files after
+;                           current command (e.g. Name or SaveAs) was
+;                           completely executed. That triggers defload and
+;                           after that, defselect before the disable flag
+;                           was reset. As a result, defload will work
+;                           normally from the next processed file on.
+
+defc DisableLoad
+   universal LoadDisabledFid
+   fid = strip( arg(1))
+   if fid = '' then
+      getfileid fid
+   endif
+   LoadDisabledFid = fid
+
+defc EnableLoad
+   universal LoadDisabledFid
+   LoadDisabledFid = 0
+
+; ---------------------------------------------------------------------------
 defload
    universal load_ext
    universal defload_profile_name
@@ -77,6 +112,7 @@ compile endif
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE, load_var
    universal default_font
    universal loadstate
+   universal LoadDisabledFid
 
    load_var = 0
    load_ext = filetype()  -- Extension for the current file. To be used only
@@ -92,14 +128,20 @@ compile endif
       return             -- to avoid showing i.e. 'actlist' and '.HELPFILE' files
    endif
 
+   getfileid fid
+   Filename = .filename
+   if LoadDisabledFid = 1 then
+      return
+   elseif LoadDisabledFid = fid then
+      return
+   endif
+
    loadstate = 1  -- This universal var can be used to check if there occured
                   -- a defload event after the last afterload was processed.
                   --    empty: before loading
                   --    1: defload is running
                   --    2: defload processed
                   --    0: afterload processed
-   Filename = .filename
-   getfileid fid
    dprintf( 'LOAD', 'fid = 'fid', 'Filename)
 
 ;  Set .readonly from file attributes ---------------------------------------
@@ -113,8 +155,10 @@ compile endif
 ;  Restore tabs from EPM.TABS -----------------------------------------------
 ;  Restore margins from EPM.MARGINS -----------------------------------------
 ;  Restore bookmarks and styles from EPM.ATTRIBUTES -------------------------
+;  Restore cursor position from EPM.POS -------------------------------------
    if .levelofattributesupport < 2 then  -- If not already set (e.g., NAME does a DEFLOAD)
       'loadattributes'
+      'RestorePosFromEa'
    endif
 
 ;  Ebookie support: init bkm ------------------------------------------------
@@ -130,13 +174,10 @@ compile if WANT_EBOOKIE
  compile endif
 compile endif  -- WANT_EBOOKIE
 
-;  Restore cursor position from EPM.POS -------------------------------------
-   'RestorePosFromEa'
-
 ;  Set mode -----------------------------------------------------------------
    Mode = GetMode(Filename)
 
-;  Process all mode dependent settings for defload --------------------------
+;  Process all mode-dependent settings for defload --------------------------
    -- It's important to process them near the end of defload, otherwise EPM
    -- may crash if a huge number of files is loaded (still valid?).
    -- The load_<mode> hook is executed here.
@@ -161,7 +202,7 @@ compile if INCLUDE_BMS_SUPPORT
 compile endif
 
 ;  Process REXX defload profile  --------------------------------------------
-;  -- Better avoid this.
+;  -- Better avoid this, because it would slow file loading down
    if defload_profile_name then
       if not verify(defload_profile_name, ':\', 'M') then  -- Not fully qualified?  Search for it...
          findfile profile1, defload_profile_name, EPATH
