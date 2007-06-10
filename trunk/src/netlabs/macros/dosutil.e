@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.15 2006-10-30 00:26:35 aschn Exp $
+* $Id: dosutil.e,v 1.16 2007-06-10 19:46:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -240,9 +240,9 @@ defc dir
 ; output to load a found file with ALT+1.
 ; Don't mix it up with the internally defined findfile procedure!
 defc list, findfile, filefind
-   spec = arg(1)
-   call parse_filename( spec, .filename)
-   'dir /b /s /a:-D' spec
+   fspec = arg(1)
+   call parse_filename( fspec, .filename)
+   'dir /b /s /a:-D' fspec
    if .last then
       --.filename = '.DIR 'spec  -- disabled, better use complete call as title
       if .last <= 2 & substr( textline(.last), 1, 8) = 'SYS0002:' then
@@ -257,8 +257,8 @@ defc list, findfile, filefind
 ; ---------------------------------------------------------------------------
 defc attrib =
    parse arg fspec
-   call parse_filename(fspec,.filename)
-   if verify(fspec, '+-', 'M') then  -- Attempt to change attributes;
+   call parse_filename( fspec, .filename)
+   if verify( fspec, '+-', 'M') then  -- Attempt to change attributes;
       'dos' fspec
       if rc then                     --   only give message if attempt fails.
          sayerror 'RC =' rc
