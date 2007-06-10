@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.15 2006-10-07 18:16:51 aschn Exp $
+* $Id: groups.e,v 1.16 2007-06-10 19:54:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -132,6 +132,7 @@ defc savegroup =
    KeyPath = '\NEPMD\User\Groups'
 
    getfileid startfid
+   dprintf( 'RINGCMD', 'SaveGroup 1')
    do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       if .filename = GetUnnamedFilename() then
          if .last <> 1 or textline(1) <> '' then
@@ -177,6 +178,7 @@ compile endif
    getfileid firstfid
    -- Write all FILEi and POSNi to EPM.INI
    n = 0
+   dprintf( 'RINGCMD', 'SaveGroup 2')
    do i = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       Ignore = ((leftstr( .filename, 1) = '.') | (not .visible))
       if not Ignore then

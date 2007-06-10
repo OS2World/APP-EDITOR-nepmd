@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.22 2007-05-31 21:59:40 aschn Exp $
+* $Id: modeexec.e,v 1.23 2007-06-10 19:55:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -539,6 +539,7 @@ defc RingRefreshSetting
    getfileid startfid
    display -3
    fid = startfid
+   dprintf( 'RINGCMD', 'RingRefreshSetting')
    do f = 1 to filesinring(1)  -- prevent looping forever, hidden files must be included
       if Mode = 'DEFAULT' then
          next = GetAVar( SettingName'.'fid)  -- query file setting
@@ -712,6 +713,7 @@ defc RingDumpSettings
    insertline '   Defselect lastusedsettings   = 'GetAVar( 'lastusedsettings'), .last + 1
    activatefile startfid
    fid = startfid
+   dprintf( 'RINGCMD', 'RingDumpSettings')
    do f = 1 to filesinring(1)  -- just an upper limit
       if .visible then  -- omit hidden files
          insertline .filename, tmpfid.last + 1, tmpfid
