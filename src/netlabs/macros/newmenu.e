@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.45 2007-05-31 21:54:18 aschn Exp $
+* $Id: newmenu.e,v 1.46 2007-06-10 11:43:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2561,43 +2561,51 @@ defproc add_options_menu(menuname)
                                    \1'Compile EPM macro files',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open Recompile ~utility...',                                          -- Open Recompile utiliy...
-                                   'StartRecompile' ||
-                                   \1'Compile main macro file and restart all EPM windows',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Recompile all ~new macros',                                           -- Recompile all new
+   buildmenuitem menuname, mid, i, '~Recompile all new macros',                                          -- Recompile all new
                                    'RecompileNew' ||
                                    \1'Recompile all new macros and maybe restart EPM',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~More',                                                               -- More   >
-                                   '' ||
-                                   \1'Additional compile and link macros',
-                                   MIS_TEXT + MIS_SUBMENU, 0
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Recompile EPM.E',                                                          -- Recompile EPM.E
-                                   'RecompileEpm' ||
-                                   \1'Compile main macro file and restart current EPM window',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Restart ~EPM',                                                              -- Restart EPM
+   buildmenuitem menuname, mid, i, 'Re~start EPM',                                                       -- Restart EPM
                                    'Restart' ||
                                    \1'Restart current EPM window (DLLs are not reloaded)',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Compile current .E file',                                                  -- Compile current .E file
+   buildmenuitem menuname, mid, i, '~Compile current .E file',                                           -- Compile current .E file
                                    'etpm =' ||
                                    \1'Compile current macro file',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Re~link current .E file',                                                   -- Relink current .E file
+   buildmenuitem menuname, mid, i, 'Re~link current .E file',                                            -- Relink current .E file
                                    'relink' ||
                                    \1'Compile current macro file and unlink/link if linked before',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'M~ore',                                                              -- More   >
+                                   '' ||
+                                   \1'Additional compile and link macros',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Recompile ~EPM.E',                                                         -- Recompile EPM.E
+                                   'RecompileEpm' ||
+                                   \1'Compile main macro file and restart current EPM window',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Open ~Recompile utility...',                                               -- Open Recompile utiliy...
+                                   'StartRecompile' ||
+                                   \1'Compile main macro file and restart all EPM windows',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
 /*
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Recompile ~all',                                                            -- Recompile all
+   buildmenuitem menuname, mid, i, 'Recompile ~all',                                                           -- Recompile all
                                    'RecompileAll' ||
                                    \1'Recompile all macros and restart EPM',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -2607,27 +2615,27 @@ defproc add_options_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_editprofile', i);
-   buildmenuitem menuname, mid, i, 'Editjjj ~PROFILE.ERX',                                                   -- Edit PROFILE.ERX
+   buildmenuitem menuname, mid, i, 'Edit ~PROFILE.ERX',                                                  -- Edit PROFILE.ERX
                                    'e %NEPMD_USERDIR%\bin\profile.erx' ||
                                    \1'Edit or create REXX configuration file',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_activateprofile', i);
-   buildmenuitem menuname, mid, i, '~Activate PROFILE.ERX',                                               -- Activate PROFILE.ERX
+   buildmenuitem menuname, mid, i, '~Activate PROFILE.ERX',                                              -- Activate PROFILE.ERX
                                    'toggle_profile' ||
                                    \1'Activate REXX configuration file',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_editmodecnf', i);
-   buildmenuitem menuname, mid, i, 'Edit MODE~CNF.E',                                                     -- Edit MODECNF.E
+   buildmenuitem menuname, mid, i, 'Edit ~MODECNF.E',                                                    -- Edit MODECNF.E
                                    'e %NEPMD_USERDIR%\macros\modecnf.e' ||
                                    \1'Edit or create E configuration file for modes',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_editmycnf', i);
-   buildmenuitem menuname, mid, i, '~Edit MYCNF.E',                                                       -- Edit MYCNF.E
+   buildmenuitem menuname, mid, i, 'Edit MY~CNF.E',                                                      -- Edit MYCNF.E
                                    'e %NEPMD_USERDIR%\macros\mycnf.e' ||
                                    \1'Edit or create E configuration file',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_editmystuff', i);
-   buildmenuitem menuname, mid, i, 'E~dit MYSTUFF.E',                                                     -- Edit MYSTUFF.E
+   buildmenuitem menuname, mid, i, 'Edit MY~STUFF.E',                                                    -- Edit MYSTUFF.E
                                    'e %NEPMD_USERDIR%\macros\mystuff.e' ||
                                    \1'Edit or create E additions',
                                    MIS_TEXT, 0
@@ -2636,12 +2644,12 @@ defproc add_options_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open NET~LABS\MACROS\*.E',
+   buildmenuitem menuname, mid, i, 'Open ~NETLABS\MACROS\*.E',
                                    'o %NEPMD_ROOTDIR%\netlabs\macros\*.e' ||
                                    \1,
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open 'upcase(UserDirName)'\MAC~ROS\*.E',
+   buildmenuitem menuname, mid, i, 'Open 'upcase(UserDirName)'\MACROS\*.~E',
                                    'o %NEPMD_USERDIR%\macros\*.e' ||
                                    \1,
                                    MIS_TEXT, 0
@@ -2661,14 +2669,14 @@ defproc add_options_menu(menuname)
                                    'mc /rx open %NEPMD_USERDIR%\ex /rx open %NEPMD_USERDIR%\autolink' ||
                                    \1,
                                    MIS_TEXT, 0
-*/
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open EPM.~INI',
+   buildmenuitem menuname, mid, i, 'Open EPM.INI',
                                    'rx open ?:\os2\epm.ini' ||
                                    \1,
                                    MIS_TEXT, 0 -- <-------- Todo: get EPM.INI from OS2.INI
+*/
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Open NEPMD.INI',
+   buildmenuitem menuname, mid, i, 'Open NEPMD.~INI',
                                    'rx open %NEPMD_USERDIR%\bin\nepmd.ini' ||
                                    \1,
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -3492,23 +3500,23 @@ defc menuinit_macros
    file = ResolveEnvVars('%NEPMD_USERDIR%\macros\modecnf.e')
    file_exist = exist(file)
    if file_exist then
-      SetMenuText( GetAVar('mid_editmodecnf'), 'Edit MODE~CNF.E')
+      SetMenuText( GetAVar('mid_editmodecnf'), 'Edit ~MODECNF.E')
    else
-      SetMenuText( GetAVar('mid_editmodecnf'), '~Create MODECNF.E')
+      SetMenuText( GetAVar('mid_editmodecnf'), 'Create ~MODECNF.E')
    endif
    file = ResolveEnvVars('%NEPMD_USERDIR%\macros\mycnf.e')
    file_exist = exist(file)
    if file_exist then
-      SetMenuText( GetAVar('mid_editmycnf'), '~Edit MYCNF.E')
+      SetMenuText( GetAVar('mid_editmycnf'), 'Edit MY~CNF.E')
    else
-      SetMenuText( GetAVar('mid_editmycnf'), 'Cr~eate MYCNF.E')
+      SetMenuText( GetAVar('mid_editmycnf'), 'Create MY~CNF.E')
    endif
    file = ResolveEnvVars('%NEPMD_USERDIR%\macros\mystuff.e')
    file_exist = exist(file)
    if file_exist then
-      SetMenuText( GetAVar('mid_editmystuff'), 'Edit MYSTU~FF.E')
+      SetMenuText( GetAVar('mid_editmystuff'), 'Edit MY~STUFF.E')
    else
-      SetMenuText( GetAVar('mid_editmystuff'), 'Create MYSTU~FF.E')
+      SetMenuText( GetAVar('mid_editmystuff'), 'Create MY~STUFF.E')
    endif
 
 ; ------------------------------------ Run ----------------------------------
