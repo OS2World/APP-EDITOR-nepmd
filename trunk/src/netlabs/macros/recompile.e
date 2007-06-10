@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.10 2006-12-10 18:46:45 aschn Exp $
+* $Id: recompile.e,v 1.11 2007-06-10 19:44:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -313,6 +313,7 @@ defc RingCheckModify
    rc = 0
    getfileid fid
    startfid = fid
+   dprintf( 'RINGCMD', 'RingCheckModify')
    do i = 1 to filesinring(1)  -- just as an upper limit
       fIgnore = (not .visible) | ((substr( .filename, 1, 1) = '.') & (.filename <> GetUnnamedFilename()))
       if fIgnore then
@@ -450,6 +451,7 @@ defc RecompileAll
 ;       the RecompileNew RESET command is executed.
 defc RecompileNew
    universal nepmd_hini
+   universal vepm_pointer
 
    -- Following E files are tryincluded. When the user has added one of these
    -- since last check, that one is not listed in
@@ -481,6 +483,7 @@ defc RecompileNew
       return rc
    endif
 
+   mouse_setpointer WAIT_POINTER
    ListFiles = ''
    rest = Path
    do while rest <> ''
@@ -843,6 +846,7 @@ defc RecompileNew
          else
             rc = etpmrc
             WriteLog( LogFile, 'ERROR:   'BaseName' - ETPM returned rc =' rc)
+            mouse_setpointer vepm_pointer
             return rc
          endif
          -- Get time of new ExFile
@@ -989,6 +993,7 @@ defc RecompileNew
       if not fNoMsg then
          sayerror 'All RecompileNew entries deleted from NEPMD.INI'
       endif
+      mouse_setpointer vepm_pointer
       return 0
    endif
    if fCheckOnly then
@@ -1044,6 +1049,7 @@ defc RecompileNew
    endif
    Cmd = strip( Cmd)
    Cmd
+   mouse_setpointer vepm_pointer
 
    rc = ret
 
