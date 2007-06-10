@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.20 2006-12-10 19:50:56 aschn Exp $
+* $Id: keys.e,v 1.21 2007-06-10 19:59:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -167,8 +167,13 @@ compile if not defined(PM_LIST)
 compile endif
 
    -- PM_ALT_LIST = don't override Alt+<key>, because they are standard PM keys
+   -- Alt+Home is also disabled to keep Alt+Numpad7 working.
+   -- Same for: Alt+Up, Alt+Down, Alt+Left, Alt+Right, Alt+End, Alt+PgUp,
+   -- Alt+PgDown, Alt+Ins
 compile if not defined(PM_ALT_LIST)
    PM_ALT_LIST    = 'SPACE TAB ESC F4 F5 F6 F7 F8 F9 F10 F11'
+   PM_ALT_LIST    = PM_ALT_LIST || ' HOME UP DOWN LEFT RIGHT'
+   PM_ALT_LIST    = PM_ALT_LIST || ' END PAGEUP PAGEDOWN INSERT'
 compile endif
 
 /*
