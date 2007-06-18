@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdconst.e,v 1.9 2006-12-23 21:38:34 aschn Exp $
+* $Id: stdconst.e,v 1.10 2007-06-18 23:07:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,7 +35,7 @@ const
    EPM32   = EVERSION >= 6
    POWERPC = EVERSION >= 7
 
-   NEPMD   = 1.12
+   NEPMD   = 1.13
 
 ;compile if EPM & EVERSION < '5.20'
 ;*** The current macros don't support your extremely backlevel version of EPM.
@@ -448,3 +448,4 @@ compile endif
    -- variable. The handle passed to NepmdGetNextFile/Dir must start with '0' and be
    -- at least 14 bytes long.
    GETNEXT_CREATE_NEW_HANDLE = '00000000000000'
+
