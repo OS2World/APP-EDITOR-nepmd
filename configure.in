@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.17 2007-01-17 19:35:52 aschn Exp $
+# $Id: configure.in,v 1.18 2007-06-18 23:07:19 aschn Exp $
 #
 # ===========================================================================
 #
@@ -85,7 +85,7 @@ STEM=nepmd
 
 # Three to four digit version number included in name of package
 
-VERSION=112
+VERSION=113
 
 
 # Version number for the NEPMD WarpIn package version
@@ -102,7 +102,7 @@ VERSION=112
 #       src\gui\nepmdlib\nepmdlib.h
 #       src\gui\nepmdlib\nepmdlib.def
 
-ID_VERSION_NEPMD=1\1\2
+ID_VERSION_NEPMD=1\1\3
 
 
 # Version number for the WarpIn version that the resulting
