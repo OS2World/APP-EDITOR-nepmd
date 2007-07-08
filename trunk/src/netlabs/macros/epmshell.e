@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.34 2006-12-26 17:54:02 aschn Exp $
+* $Id: epmshell.e,v 1.35 2007-07-08 01:05:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1044,7 +1044,6 @@ defc ShellFncInit
    -- The here fully qualified filemask must be changed to a relative path later,
    -- if FilePart was relative before.
 
-   -- Rebuild array
    fAppendExeMask = 0
    fAppendAllMask = 0
    -- Append * to FileMask only, if no * or ? is present in last dir segment.
@@ -1061,7 +1060,7 @@ defc ShellFncInit
       fAppendAllMask = 1
    endif
    if fAppendExeMask | fAppendAllMask then
-         FileMask = FileMask'*'
+      FileMask = FileMask'*'
       --dprintf( 'TabComplete', '3 (no wildcard): FileMask = ['FileMask']')
    endif
 
@@ -1082,13 +1081,21 @@ defc ShellFncInit
    c = 0  -- number of found names
    m = 0  -- item number of ExeMaskList
    f = 0  -- number of found items per FileMask, only used for debugging
+   -- Should dirs be found?
+   fFindDirs = (wordpos( upcase( CmdWord), FNC_FILE_ONLY_CMD_LIST) = 0)
+   -- Should files be found?
+   fFindFiles = (wordpos( upcase( CmdWord), FNC_DIR_ONLY_CMD_LIST) = 0)
+   fGetNextFileMask = 1
    do forever
       Name = ''
-      if rc1 = '' & wordpos( upcase( CmdWord), FNC_FILE_ONLY_CMD_LIST) = 0 then
-         if f = 0 then
-            --dprintf( 'TabComplete', 'Dir: FileMask = ['FileMask']')
-         endif
-         -- Find dirs first
+
+      -- Find dirs first
+      if fFindDirs then
+
+         --if f = 0 then
+         --   dprintf( 'TabComplete', 'Dir: FileMask = ['FileMask']')
+         --endif
+
          next = NepmdGetNextDir( FileMask, address(handle))
          parse value next with 'ERROR:'rc1
          if rc1 = '' then
@@ -1098,40 +1105,52 @@ defc ShellFncInit
             f = f + 1
          else
             --dprintf( 'TabComplete', 'Dir: FileMask = ['FileMask'], Found 'f' filenames.')
-            handle = 0  -- handle must be reset to 0 before the next search
+            -- No more dirs, so reset flag, handle and counter
+            fFindDirs = 0
+            handle = GETNEXT_CREATE_NEW_HANDLE  -- handle must be reset before the next search
             f = 0
          endif
       endif
-      if rc1 > '' then
-         if fAppendExeMask then
-            -- Append executable masks
-            if ((m = 0 | rc2 > '') & words( FNC_EXE_MASK_LIST) > m) then
-               m = m + 1
-               FileMask = UnAppFileMask''word( FNC_EXE_MASK_LIST, m)
-               rc2 = ''
+
+      if not fFindDirs then
+         if fFindFiles then
+
+            if fAppendExeMask then
+               if fGetNextFileMask then
+                  -- Append executable masks
+                  if words( FNC_EXE_MASK_LIST) > m then
+                     m = m + 1
+                     FileMask = UnAppFileMask''word( FNC_EXE_MASK_LIST, m)
+                  endif
+               endif
             endif
-         endif
-         if rc2 = '' & wordpos( upcase( CmdWord), FNC_DIR_ONLY_CMD_LIST) = 0 then
-            if f = 0 then
-               --dprintf( 'TabComplete', 'File 'm': FileMask = ['FileMask']')
-            endif
+
+            --if f = 0 then
+            --   dprintf( 'TabComplete', 'File 'm': FileMask = ['FileMask']')
+            --endif
+
             -- Find files
             next = NepmdGetNextFile( FileMask, address(handle))
             parse value next with 'ERROR:'rc2
             if rc2 = '' then
                Name = next
                f = f + 1
+               fGetNextFileMask = 0
             else
-               --dprintf( 'TabComplete', 'File 'm': FileMask = ['FileMask'], Found 'f' filenames.')
+               ---dprintf( 'TabComplete', 'File 'm': FileMask = ['FileMask'], Found 'f' filenames.')
                f = 0
                if fAppendExeMask & words( FNC_EXE_MASK_LIST) > m then
                   -- Initiate a new search with the next ExeMask
-                  --handle = 0  -- handle must be reset to 0 before the next search
+                  fGetNextFileMask = 1
+                  handle = GETNEXT_CREATE_NEW_HANDLE  -- handle must be reset before the next search
                   iterate
                endif
             endif
+
          endif
       endif
+
+      -- Store name in array
       if Name > '' then
          -- Remove maybe previously added PrepMask if FilePart was relative
          l = length( PrepMask)
@@ -1140,13 +1159,15 @@ defc ShellFncInit
                Name = substr( Name, l + 1)
             endif
          endif
-         -- Add it to array
+         -- Add it
          c = c + 1
          call SetAVar( 'FncFound.'c, Name)
       else
          leave
       endif
+
    enddo
+
    if c > 0 then
       call SetAVar( 'FncFound.0', c)       -- number of found names
       call SetAVar( 'FncFound.last', '0')  -- use 0 as initial number
