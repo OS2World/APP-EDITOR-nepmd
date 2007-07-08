@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.50 2006-12-11 21:45:11 aschn Exp $
+* $Id: main.e,v 1.51 2007-07-08 18:36:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -70,37 +70,9 @@ defmain
    -- Most of the time dprintf doesn't work until MAIN2.
    --call NepmdPmPrintf( 'MAIN: arg(1) = ['arg(1)']')
 
-   -- Enable doublequote chars as part of an EPM command.
-   -- This is required since the EPM executable parser strips every
-   -- doublequote that is enclosured with single quotes, except when params
-   -- were passed as arg of EPM's Open command.
-   -- Convert masked chars: '{' and '}' to '"', '{{' to '{' and '}}' to '}'
-   Tmp = EpmArgs
-   startp = 1
-   do forever
-      p = verify( Tmp, '{}', 'M', startp)
-      if p then
-         ThisChar = substr( Tmp, p, 1)
-         if p < length( Tmp) then
-            NextChar = substr( Tmp, p + 1, 1)
-         else
-            NextChar = ''
-         endif
-         if wordpos( ThisChar''NextChar, '{{ }}') then
-            Tmp = delstr( Tmp, p, 1)  -- delete ThisChar
-            startp = p + 1
-         elseif wordpos( ThisChar, '{ }') then
-            Tmp = delstr( Tmp, p, 1)              -- delete ThisChar
-            Tmp = insertstr( '"', Tmp, p - 1, 1)  -- insert '"' before ThisChar pos
-            startp = p + 1
-         endif
-      else
-         leave
-      endif
-   enddo
-   EpmArgs = Tmp
-   --call NepmdPmPrintf( 'MAIN: arg(1) resolved = ['EpmArgs']')
-
+   -- Note: Double quote chars will be removed by the EPM executable.
+   --       Fortunately several NEPMD commands can handle filenames with
+   --       spaces (e.g. Shell). As a result, that won't matter.
 
 ;  Process settings from MODECNF.E --------------------------------------------
    'InitModeCnf'
@@ -268,7 +240,7 @@ defc main2
    JustInstalled = QueryProfile( nepmd_hini, App, Key)
    if JustInstalled = 1 then
       -- Remove outdated entries
-      'AtPostStartup RecompileNew RESET'
+      'AtPostStartup RecompileNew RESET NOMSG'
       -- Link JustInst.ex if present
       display -2
       link 'justinst'
