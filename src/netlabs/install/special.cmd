@@ -5,15 +5,15 @@
 * Helper batch for to
 *  - apply settings that depend on the UserDir.
 *  - remove obsolete objects.
-*  - set Parameters for program objects that contains doublequotes (WarpIN
-*    can not use doublequotes).
+*  - set Parameters for program objects that contains double quotes (WarpIN
+*    can not use double quotes).
 *
 * This program is intended to be called by NLSETUP.EXE only during
 * installation of the Netlabs EPM Distribution.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: special.cmd,v 1.1 2007-02-12 00:53:00 jbs Exp $
+* $Id: special.cmd,v 1.2 2007-07-08 18:55:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -75,14 +75,21 @@
  CreateClass.i = 'WPProgram'
  CreateTitle.i = 'EPM Shell'
  CreateDest.i  = '<NEPMD_FOLDER>'
- CreateSetup.i = 'PROGTYPE=PROG_WINDOWABLEVIO;EXENAME='RootDir'\netlabs\bin\epmshell.cmd;' ||,
-                 'PARAMETERS=%*;MINIMIZED=YES;' ||,
+ CreateSetup.i = 'PROGTYPE=PM;EXENAME=EXENAME=EPM.EXE;' ||,
+                 'PARAMETERS=''shell cdd %*'';' ||,
                  'HELPLIBRARY='RootDir'\netlabs\help\nefld'Language'.hlp;HELPPANEL=101;' ||,
                  'OBJECTID=<NEPMD_EPM_SHELL>;"'
 */
 
- DestDir = GetCommandPromptsDir()
- IF DestDir > '' THEN
+ /* SysCreateObject requires a title parameter even when being useless, eg. for */
+ /* shadow objects. Therefore in the following the title '.' is used.           */
+ /* There exists another special behavior of shadow objects together with       */
+ /* SysCreateObject: If the shadow should get an object id assigned and it      */
+ /* already exists, then the object is not created. For other objects, the old  */
+ /* objects looses its object id instead and the new object is created.         */
+
+ DestDir = '<WP_PROMPTS>'
+ IF (ObjectExists( DestDir)) THEN
  DO
     i = i + 1
     CreateClass.i = 'WPShadow'
@@ -91,12 +98,25 @@
     CreateSetup.i = 'SHADOWID=<NEPMD_EPM_SHELL>;OBJECTID=<NEPMD_EPM_SHELL_SHADOW>;'
  END
 
+ /* Get location of XWorkplace's OS/2 window object.                           */
+ /* GetObjectLocation accepts a space-separated list of objects to search for. */
+ /* It returns the Location for the first succesfully queried object.          */
+ DestDir = GetObjectLocation( '<XWP_OS2WIN>')
+ IF DestDir > '' THEN
+ DO
+    i = i + 1
+    CreateClass.i = 'WPShadow'
+    CreateTitle.i = '.'
+    CreateDest.i  = DestDir
+    CreateSetup.i = 'SHADOWID=<NEPMD_EPM_SHELL>;OBJECTID=<NEPMD_EPM_SHELL_SHADOW2>;'
+ END
+
  CreateObj.0 = i  /* number of objects */
 
  /* ################################################################################# */
 
- /* Additional settings for objects that have doublequotes in their parameters        */
- /* (WarpIN can not set doublequotes)                                                 */
+ /* Additional settings for objects that have double quotes in their parameters       */
+ /* (WarpIN can not set double quotes)                                                */
 
  i = 0
  DataObj.   = ''
@@ -106,7 +126,7 @@
  /*
  i = i + 1
  DataObj.i   = '<NEPMD_EPM_SHELL>'
- DataSetup.i = 'EXENAME='RootDir'\netlabs\bin\epmshell.cmd;PARAMETERS=%*;'
+ DataSetup.i = 'PARAMETERS=''shell cdd "%*"'';'
  */
 
  DataObj.0 = i  /* number of objects */
@@ -138,8 +158,11 @@
  rc = SysSetObjectData( '<NEPMD_RECOMP>', 'PARAMETERS='UserDir'\ex');
 
  /* create special objects */
+ URI = 'U'  /* Update | Replace | Ignore */
  DO i = 1 TO CreateObj.0
-    rc = SysCreateObject( CreateClass.i, CreateTitle.i, CreateDest.i, CreateSetup.i, 'U');
+    IF (POS( 'SHADOWID=', CreateSetup.i) > 0) THEN
+       URI = 'R'
+    rc = SysCreateObject( CreateClass.i, CreateTitle.i, CreateDest.i, CreateSetup.i, URI);
  END;
 
  /* set special object settings */
@@ -150,7 +173,7 @@
  /* delete obsolete object from v1.00 if present */
  rc = SysDestroyObject( '<NEPMD_EXECUTABLE>');
 
- /* delete obsolete files and dirs from v1.00 if present */
+ /* delete obsolete files and dirs from prior versions if present */
  rc = SysDestroyObject( NetlabsDir'\mode\fortran');
  rc = SysDestroyObject( NetlabsDir'\install\saveold.cmd');
  rc = SysDestroyObject( NetlabsDir'\macros\drawkey.e');
@@ -160,6 +183,7 @@
  rc = SysDestroyObject( NetlabsDir'\macros\statline.e');
  rc = SysDestroyObject( NetlabsDir'\macros\titletext.e');
  rc = SysDestroyObject( NetlabsDir'\macros\xchgline.e');
+ rc = SysDestroyObject( NetlabsDir'\bin\epmshell.cmd');
 
  /* remove obsolete ini key from v1.00 if present */
  rc = SysIni( 'USER', 'NEPMD', 'Path', 'DELETE:')
@@ -295,8 +319,15 @@ QuerySysLevel: PROCEDURE EXPOSE (GlobalVars)
     RETURN 2''Sep''Sep''Sep
 
 /* ------------------------------------------------------------------------- */
-GetCommandPromptsDir: PROCEDURE EXPOSE (GlobalVars)
- CommandPromptsDir = ''
+/* Check if object exists. Returns 1 if exists, otherwise 0 */
+ObjectExists: PROCEDURE
+ rc = SysSetObjectData( ARG(1), '')
+ RETURN rc
+
+/* ------------------------------------------------------------------------- */
+GetObjectLocation: PROCEDURE EXPOSE (GlobalVars)
+ PARSE ARG ObjList
+ ObjLoc = ''
 
  IF RxFuncQuery( 'WPToolsQueryObject') THEN
  DO
@@ -310,7 +341,6 @@ GetCommandPromptsDir: PROCEDURE EXPOSE (GlobalVars)
  DO
     /* get location of XWorkplace's OS/2 window object */
     /* space-separated list of objects to search */
-    ObjList = '<XWP_OS2WIN>'
     Rest = ObjList
     DO WHILE LENGTH( Rest) > ''
        PARSE VAR Rest Obj Rest
@@ -322,13 +352,12 @@ GetCommandPromptsDir: PROCEDURE EXPOSE (GlobalVars)
        DROP Setup;
        DROP Location;
        rcx = WpToolsQueryObject( Obj, Class, Title, Setup, Location);
-       IF (rcx <> 1 & Location <> '') THEN
+       IF (rcx <> 1 | Location = '') THEN
           ITERATE;
-       CommandPromptsDir = Location
+       ObjLoc = Location
        LEAVE
     END
  END
 
- RETURN CommandPromptsDir
-
+ RETURN ObjLoc
 
