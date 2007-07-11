@@ -2,7 +2,12 @@
 *
 * Module Name: epminit.cmd
 *
-* Syntax: epminit
+* Syntax: epminit [Language]
+*
+*         Default Language is "eng".
+*
+*         The other ini key value (RootDir) is determined from the path of
+*         this file.
 *
 * Helper batch for to write default values to OS2.INI without a reinstall.
 *
@@ -20,7 +25,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epminit.cmd,v 1.1 2007-07-08 03:33:00 aschn Exp $
+* $Id: epminit.cmd,v 1.2 2007-07-11 20:28:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -63,10 +68,16 @@
 
  DO UNTIL (TRUE)
 
+    PARSE ARG Args;
+    Args = STRIP( Args);
+    IF (Args = '') THEN
+       Language = DEFAULT_LANGUAGE
+    ELSE
+       Language = Args
+
     PARSE SOURCE . . ThisFile
 
     /* change to dir and drive of current file */
-    rcx = DIRECTORY( ThisFile'\..')
     IF (SUBSTR( ThisFile, 2, 1) = ':') THEN
        rcx = DIRECTORY( SUBSTR( ThisFile, 1, 2))
     rcx = DIRECTORY( ThisFile'\..')
@@ -89,7 +100,7 @@
     END;
 
     /* add application to OS2.INI */
-    rcx = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_LANGUAGE, DEFAULT_LANGUAGE'00'x);
+    rcx = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_LANGUAGE, Language'00'x);
     IF (rcx = '') THEN
        rcx = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_ROOTDIR, RootDir'00'x);
 
@@ -115,7 +126,7 @@
        END
        ELSE
        DO
-          ErrorMessage = 'Error: 'SETUP_EXE_NAME' cannot be found. Current dir is 'DIRECTORY();
+          ErrorMessage = 'Error: 'SETUP_NAME' cannot be found. Current dir is 'DIRECTORY();
           rc = 2; /* ERROR_FILE_NOT_FOUND */
           LEAVE;
        END;
