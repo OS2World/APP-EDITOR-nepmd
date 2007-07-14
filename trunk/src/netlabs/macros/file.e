@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.24 2007-06-10 19:51:55 aschn Exp $
+* $Id: file.e,v 1.25 2007-07-14 00:34:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -375,11 +375,9 @@ compile endif
       endif
 
       -- If standard Save failed (and for FAT drives: SaveFat failed as well)
-      -- Note: standard Save won't try to replace illegal chars and set
-      -- .LONGNAME instead, like SaveFat does.
       if fatsrc <> 0 then
          -- Compared to the 'save' cmd, which returns only -285 or 0,
-         -- defproc lock returns the (more usable) rc of DosOpen.
+         -- defproc lock returns the (more usable) rc from DosOpen.
          dosopenrc = lock('W')
          if dosopenrc = 0 then
             'unlock'
@@ -555,88 +553,94 @@ defproc ProcessAvoidSaveOptions( options)
    return options
 
 ; ---------------------------------------------------------------------------
+defproc ConvertToFatName
+   LongName = arg(1)
+
+   InvalidChars = '.+,"/\[]:|<>=;*?'
+   InvalidChars = InvalidChars\0\1\2\3\4\5\6\7\8\9\10\11\12\13\14\15
+   InvalidChars = InvalidChars\16\17\18\19\20\21\22\23\24\25\26\27\28\29\30\31\32
+   ReplaceChars = copies( '_', length( InvalidChars))
+
+   -- Parse into Base and Ext (Ext excludes the dot)
+   lp = lastpos( '.', LongName)
+   if lp > 1 then
+      Base = substr( LongName, 1, lp - 1)  -- at least 1 char
+      Ext  = substr( LongName, lp + 1)     -- extension without leading '.'
+   else
+      Base = LongName
+      Ext  = ''
+   endif
+
+   -- Maybe shorten Base and Ext to 8.3
+   if length( Base) > 8 then
+      Base = leftstr( Base, 8)
+   endif
+   if length( Ext) > 3 then
+      Ext  = leftstr( Ext, 3)
+   endif
+
+   -- Convert InvalidChars of Base and Ext separately
+   Base = translate( Base, ReplaceChars, InvalidChars)
+   Ext  = translate( Ext,  ReplaceChars, InvalidChars)
+
+   if Ext > '' then
+      ShortName = Base'.'Ext
+   else
+      ShortName = Base
+   endif
+
+   return ShortName
+
+; ---------------------------------------------------------------------------
 ; Change the submitted long (maybe full) filename into a FAT name and save
 ; current file. Write .LONGNAME EA.
-defproc SaveFat( name, options)
-   fullname = name  -- hints: '=' must already be resolved, fullname may miss the path
-   -- strip '"'...'"'
-   len = length(fullname)
-   if substr( fullname, 1, 1) = '"' & substr( fullname, len, 1) = '"' then
-      fullname = substr( fullname, 2, len - 2)
+defproc SaveFat( FullName, Options)
+
+   -- Strip double quotes
+   len = length( FullName)
+   if substr( FullName, 1, 1) = '"' & substr( Fullname, len, 1) = '"' then
+      FullName = substr( FullName, 2, len - 2)
    endif
-   -- build 8.3 name
-   p1 = lastpos( '\', fullname)
-   if p1 then
-      pathbsl = substr( fullname, 1, p1)   -- path with trailing '\'
+
+   -- Parse into PathBsl and LongName
+   lp = lastpos( '\', FullName)
+   if lp then
+      PathBsl = substr( FullName, 1, lp)   -- path with trailing '\'
    else
-      pathbsl = ''
+      PathBsl = ''
    endif
-   longname = substr( fullname, p1 + 1)    -- long name without pathbsl
-   p2 = lastpos( '.', longname )
-   if p2 > 1 then
-      base = substr( longname, 1, p2 - 1)  -- at least 1 char
-      ext = substr( longname, p2 + 1)      -- extension without leading '.'
-   else
-      base = longname
-      ext = ''
-   endif
-   if length(base) > 8 then
-      base = substr( base, 1, 8)
-   endif
-   if length(ext) > 3 then
-      ext = substr( ext, 1, 3)
-   endif
-   if ext > '' then
-      base_ext = base'.'ext
-   else
-      base_ext = base
-   endif
-   -- convert invalid FAT chars and space
-   invalidchars = '.+,"/\[]:|<>=;*?'
-   tmp = \0\1\2\3\4\5\6\7\8\9\10\11\12\13\14\15
-   tmp = tmp\16\17\18\19\20\21\22\23\24\25\26\27\28\29\30\31\32
-   invalidchars = invalidchars''tmp
-   replacechars = copies( '_', length( invalidchars))
-   base_ext = translate( base_ext, replacechars, invalidchars)
-   shortname = pathbsl''base_ext
-   --call NepmdPmPrintf( 'defc save: src = 'src', shortname = |'shortname'|')
-   -- try again to write the file                       <----------------------- doesn't check if file already exists
-   src = savefile( shortname, options)
+   LongName = substr( FullName, lp + 1)    -- long name without pathbsl
+
+   -- Convert
+   ShortName = PathBsl''ConvertToFatName( LongName)
+   -- Try again to write the file
+   src = savefile( ShortName, Options)
    if not src then
       sayerror 0  -- delete message
-      -- todo?: better use EPM functions here to update also .eaarea
       call delete_ea('.LONGNAME')
-      'add_ea .LONGNAME' longname
-      longnamerc = NepmdWriteStringEa( shortname, '.LONGNAME', longname)
+      'add_ea .LONGNAME' LongName
+      longnamerc = NepmdWriteStringEa( ShortName, '.LONGNAME', LongName)
       if longnamerc then
-         sayerror 'EA ".LONGNAME" not written to file "'shortname'"'
+         sayerror 'EA ".LONGNAME" not written to file "'ShortName'"'
       else
-         -- This doesn't handle the save <newfilename> cmd correctly.
-         -- Instead of just writing <newfilename> the current file will be replaced.
-         .filename = shortname
+         .filename = ShortName
 
-         -- Bug in .fileinfo, after saving a long name on a FAT drive?
-         cur_filedatehex = ltoa(substr(.fileinfo, 9, 4), 16)
-         -- sayerror 'DateTime from .fileinfo = 'filedatehex2datetime(cur_filedatehex)
-         -- shows then 2026-02-04 12:43:28
-         --if cur_filedatehex = '656e5c44' then   -- has sometimes other wrong values, so omit this check
-         if cur_filedatehex <> get_filedatehex( shortname) then
-            -- Quick & dirty...
-            getfileid oldfid
-            saved_rc = rc
-            'e /d 'shortname
-            if rc = 0 then
-               getfileid newfid
-               activatefile oldfid
-               .modify = 0
-               'xcom quit'
-               activatefile newfid
-            endif
-            rc = saved_rc
-            -- ...to avoid msg "File was altered by another"
+         -- Rewrite .fileinfo to avoid msg "File was altered by another"
+         PathName = ShortName\0
+         ResultBuf = copies( \0, 30)
+         xrc = dynalink32( 'DOSCALLS',      -- dynamic link library name
+                           '#223',          -- ordinal value for DOS32QueryPathInfo
+                           address( PathName)         ||  -- pathname to be queried
+                           atol(1)                    ||  -- PathInfoLevel
+                           address( ResultBuf)        ||  -- buffer where info is to be returned
+                           atol( length( ResultBuf)))     -- size of buffer
+         if not xrc then
+            .fileinfo = ResultBuf
+            sayerror SAVED_TO__MSG '"'ShortName'". EA ".LONGNAME" set to "'LongName'".'
+         else
+            src = xrc
+            sayerror 'File saved to "'ShortName'", but DosQueryPathInfo returned rc = 'xrc'.'
          endif
-
-         sayerror SAVED_TO__MSG '"'shortname'". EA ".LONGNAME" set to "'longname'".'
       endif
    endif
    return src
@@ -785,86 +789,103 @@ defc saveas_dlg
    if .lockhandle then
       'unlock'
    endif
-   AskIfExists = (arg(1) <> 0)-- new optional arg, 0 => no EXIST_OVERLAY__MSG, used by def f2 if SMARTSAVE
-   result = saveas_dlg( name, type, AskIfExists)
-   if result = 0 then
-      if leftstr( name, 1) = '"' & rightstr( name, 1) = '"' then
-         name = substr( name, 2, length(name) - 2)
-      endif
-      autosave_name = MakeTempName()
-      oldname = .filename
-      .filename = name
-      if get_EAT_ASCII_value('.LONGNAME') <> '' & upcase(oldname) <> upcase(name) then
-         call delete_ea('.LONGNAME')
+   fAskIfExists = (arg(1) <> 0)-- new optional arg, 0 => no EXIST_OVERLAY__MSG, used by def f2 if SMARTSAVE
+   rcx = saveas_dlg( Name, Type, fAskIfExists)
+   if rcx = 0 then
+      AutosaveName = MakeTempName()
+      OldName = .filename
+      .filename = Name
+      if get_EAT_ASCII_value( '.LONGNAME') <> '' & upcase( OldName) <> upcase( Name) then
+         call delete_ea( '.LONGNAME')
       endif
 compile if SUPPORT_USER_EXITS
-      if isadefproc('rename_exit') then
-         call rename_exit( oldname, .filename, 1)
+      if isadefproc( 'rename_exit') then
+         call rename_exit( OldName, .filename, 1)
       endif
 compile endif
 compile if INCLUDE_BMS_SUPPORT
-      if isadefproc('BMS_rename_exit') then
-         call BMS_rename_exit( oldname, .filename, 1)
+      if isadefproc( 'BMS_rename_exit') then
+         call BMS_rename_exit( OldName, .filename, 1)
       endif
 compile endif
       -- Use a special flag as 2nd arg to bypass the
       -- change-from-netlabs-to-user-tree feature
       call Save( '', 1)
       if rc then  -- Problem saving?
-         call dosmove( autosave_name, MakeTempName())  -- Rename the autosave file
+         call dosmove( AutosaveName, MakeTempName())  -- Rename the autosave file
       else
-         call erasetemp(autosave_name)
+         call erasetemp( AutosaveName)
       endif
    endif
 
 ; ---------------------------------------------------------------------------
-defproc saveas_dlg( var name, var type)
-   type = copies( \0, 255)
+defproc saveas_dlg( var Name, var Type)
+   Type = copies( \0, 255)
    if .filename = GetUnnamedFilename() then
-      name = type
+      Name = Type
    else
-      filename = GetFileName()  -- this respects .LONGNAME if activated
-      name = leftstr( filename, 255, \0)
+      FileName = GetFileName()  -- this respects .LONGNAME if activated
+      Name = leftstr( FileName, 255, \0)
    endif
-   AskIfExists = (arg(3) <> 0)  -- optional 3rd arg, 0: no EXIST_OVERLAY__MSG, used by def f2 if SMARTSAVE
+   fAskIfExists = (arg(3) <> 0)  -- optional 3rd arg, 0: no EXIST_OVERLAY__MSG, used by def f2 if SMARTSAVE
 
-   res = dynalink32( ERES2_DLL,                -- library name
+   rcx = dynalink32( ERES2_DLL,                -- library name
                      'ERESSaveas',              -- function name
-                     gethwndc(EPMINFO_EDITCLIENT)  ||
-                     gethwndc(APP_HANDLE)          ||
-                     address(name)                 ||
-                     address(type))
-; Return codes:  0 = OK; 1 = memory problem; 2 = bad string; 3 = couldn't load control from DLL
-   if res = 2 then      -- File dialog didn't like the .filename;
-      name = copies( \0, 255)  -- try again with no file name
-      res =  dynalink32( ERES2_DLL,                -- library name
+                     gethwndc( EPMINFO_EDITCLIENT)  ||
+                     gethwndc( APP_HANDLE)          ||
+                     address( Name)                 ||
+                     address( Type))
+   -- Return codes:  0 = OK; 1 = memory problem; 2 = bad string; 3 = couldn't load control from DLL
+   if rcx = 2 then      -- File dialog didn't like the .filename;
+      Name = copies( \0, 255)  -- try again with no file name
+      rcx =  dynalink32( ERES2_DLL,                -- library name
                          'ERESSaveas',              -- function name
-                         gethwndc(EPMINFO_EDITCLIENT)  ||
-                         gethwndc(APP_HANDLE)          ||
-                         address(name)                 ||
-                         address(type))
+                         gethwndc( EPMINFO_EDITCLIENT)  ||
+                         gethwndc( APP_HANDLE)          ||
+                         address( Name)                 ||
+                         address( Type))
    endif
-   parse value name with name \0
-   parse value type with type \0
-   if name = '' then
+   parse value Name with Name \0
+   parse value Type with Type \0
+   if Name = '' then
       return -275  -- sayerror('Missing filename')
    endif
-   if exist(name) & AskIfExists then
-      if 1 <> winmessagebox( SAVE_AS__MSG,
-                             name\10\10           ||
+   if leftstr( Name, 1) = '"' & rightstr( Name, 1) = '"' then
+      Name = substr( Name, 2, length( Name) - 2)
+   endif
+
+   FSys = QueryFileSys( substr( Name, 1, 2))
+   if FSys = 'FAT' then
+      -- Parse into PathBsl and LongName
+      lp = lastpos( '\', Name)
+      if lp then
+         PathBsl = substr( Name, 1, lp)   -- path with trailing '\'
+      else
+         PathBsl = ''
+      endif
+      LongName = substr( Name, lp + 1)    -- long name without pathbsl
+      -- Convert
+      CheckName = PathBsl''ConvertToFatName( LongName)
+   else
+      CheckName = Name
+   endif
+
+   if Exist( CheckName) & fAskIfExists then
+      if 1 <> WinMessageBox( SAVE_AS__MSG,
+                             CheckName\10\10        ||
                              EXISTS_OVERLAY__MSG,
                              16417) then -- OKCANCEL + CUANWARNING + MOVEABLE
          return -5  -- sayerror('Access denied')
       endif
    endif
-   if type then
+   if Type then
       call delete_ea('.TYPE')
-      'add_ea .TYPE' type
+      'add_ea .TYPE' Type
    endif
    if .readonly then
       .readonly = 0
    endif
-   return res
+   return rcx
 
 ; ---------------------------------------------------------------------------
 /*
@@ -1622,11 +1643,10 @@ defproc filedatehex2datetime(hexstr)
    return date time
 
 ; ---------------------------------------------------------------------------
-; Ver. 3.10:  Tells if a file exists.  DOS part from Ken Kahn.
-; Ver. 3.11a:  Use a temporary DTA for the FindFirst call.
+; Returns 1 if file exists, otherwise 0.
 defproc Exist(FileName)
-   cflag = qfilemode( filename, attrib)
-   return (cflag = 0)  -- if Carry flag = 0, file exists; return 1.
+   rcx = qfilemode( filename, attrib)
+   return (rcx = 0)
 
 ; ---------------------------------------------------------------------------
 defproc qfilemode( filename, var attrib)
@@ -1679,7 +1699,7 @@ defproc QueryFileSys(Drive)
 
 ; ---------------------------------------------------------------------------
 defproc MakeDirectory(dirname)
-   dirname = dirname || \0
+   dirname = dirname\0
    peaop2 = copies(\0, 4)
    rc = dynalink32( 'DOSCALLS',             -- dynamic link library name
                     '#270',                 -- ordinal value for Dos32CreateDir
