@@ -2,12 +2,15 @@
 *
 * Module Name: epminit.cmd
 *
-* Syntax: epminit [Language]
+* Syntax: epminit [keyword=value [keyword = value]]
 *
-*         Default Language is "eng".
+*         Following keywords exist:
 *
-*         The other ini key value (RootDir) is determined from the path of
-*         this file.
+*            RootDir           (default = ThisFile"\..\..\..")
+*            Language          (default = "eng")
+*            UserDir           (optional, useful if RootDir is read-only)
+*            UserDirName       (optional)
+*            UseHomeForUserDir (optional)
 *
 * Helper batch for to write default values to OS2.INI without a reinstall.
 *
@@ -25,7 +28,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epminit.cmd,v 1.2 2007-07-11 20:28:41 aschn Exp $
+* $Id: epminit.cmd,v 1.3 2007-07-14 13:16:53 aschn Exp $
 *
 * ===========================================================================
 *
@@ -65,15 +68,12 @@
  rc = 0;
  ErrorQueueName  = VALUE( 'NEPMD_RXQUEUE', , env);
  ErrorMessage    = '';
+ SetupName.      = '';
+ SetupName.0     = 0;
+
+ KeywordList = 'RootDir Language UserDir UserDirName UseHomeForUserDir'
 
  DO UNTIL (TRUE)
-
-    PARSE ARG Args;
-    Args = STRIP( Args);
-    IF (Args = '') THEN
-       Language = DEFAULT_LANGUAGE
-    ELSE
-       Language = Args
 
     PARSE SOURCE . . ThisFile
 
@@ -82,22 +82,89 @@
        rcx = DIRECTORY( SUBSTR( ThisFile, 1, 2))
     rcx = DIRECTORY( ThisFile'\..')
 
-    /* get RootDir, relative to this filename */
-    RootDir = ThisFile
-    DO Levels = 1 TO RELATIVE_ROOTDIR_UPLEVELS
-       lp = LASTPOS( '\', RootDir)
-       IF (lp > 3) THEN
-          RootDir = LEFT( RootDir, lp - 1)
-    END
+    /* set Keyword. stem var for easier handling */
+    rest = KeywordList;
+    k = 0
+    DO WHILE rest <> ''
+       PARSE VAR rest next rest;
+       k = k + 1;
+       /* set keyword name */
+       Keyword.k = next;
+       /* init kyword value to '' */
+       rcx = VALUE( Keyword.k, '');
+    END;
+    Keyword.0 = k;
+
+    /* parse arg string Keyword1=Value1 Keyword2=Value2 ..., */
+    /* values may be enclosed with double quotes             */
+    PARSE ARG Args;
+
+/* TODO */
+    /* if no Args specified, switch to interactive mode */
+    /* in interactive mode, fist list all existing ini keys, */
+    /* then ask for each value                               */
+
+    rest = Args;
+    DO WHILE rest <> ''
+       PARSE VAR rest next '=' rest;
+
+       rest = strip( rest);
+       IF (LEFT( rest, 1) = '"') THEN
+          PARSE VAR rest '"'Keyvalue'"' rest;
+       ELSE
+          PARSE VAR rest Keyvalue rest;
+
+       Upnext = TRANSLATE( STRIP( next));
+       DO k = 1 to Keyword.0
+          IF (Upnext = TRANSLATE( Keyword.k)) THEN
+          DO
+             rcx = VALUE( Keyword.k, Keyvalue);
+             LEAVE;
+          END
+       END;
+    END;
+
+    /* set Language, if empty */
+    IF (Language = '') THEN
+       Language = DEFAULT_LANGUAGE;
+
+    /* get RootDir, relative to this filename, if empty */
+    IF (RootDir = '') THEN
+    DO
+       RootDir = ThisFile;
+       DO Levels = 1 TO RELATIVE_ROOTDIR_UPLEVELS
+          lp = LASTPOS( '\', RootDir);
+          IF (lp > 3) THEN
+             RootDir = LEFT( RootDir, lp - 1);
+       END;
+    END;
+
+/* TODO */
+    /* RootDir maybe on a CD, then standard DirExist would return 0. */
+    /* Allow for a read-only RootDir, but then create the myepm tree */
+    /* somewhere else. On the next install, the ini keys UserDir,    */
+    /* UserDirName and UseHomeForUserDir should be deleted first.    */
 
     /* check if RootDir exists */
-    rcx = SysFileTree( RootDir, 'Found.', 'DO')
-    IF (Found.0 = 0) THEN
+    IF (\DirExist( RootDir)) THEN
     DO
        ErrorMessage = 'Error: NEPMD RootDir cannot be determined.';
        rc = 3; /* ERROR_PATH_NOT_FOUND */
        LEAVE;
     END;
+
+    /* determine name of loader executable before any action */
+    LoaderExe = RootDir'\netlabs\bin\epm.exe';
+    IF (\FileExist( LoaderExe)) THEN
+    DO
+       ErrorMessage = 'Error:' LoaderExe 'not found, NEPMD installation is not complete.';
+       rc = 2; /* ERROR_FILE_NOT_FOUND */
+       LEAVE;
+    END;
+
+/* TODO */
+    /* check if RootDir is writable before creation of RootDir'\myepm' */
+
 
     /* add application to OS2.INI */
     rcx = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_LANGUAGE, Language'00'x);
@@ -112,14 +179,11 @@
     END;
 
     /* search for SETUP_NAMES */
-    SetupName.  = ''
-    i           = 0
-    SetupName.0 = i
+    i = 0;
     rest = SETUP_NAMES
     DO WHILE rest <> ''
        PARSE VAR rest next rest
-       next = STREAM( next, 'c', 'query exist')
-       IF (next <> '') THEN
+       IF FileExist( next) THEN
        DO
           i = i + 1
           SetupName.i = next
@@ -166,4 +230,18 @@
  END
 
  EXIT( rc);
+
+/* ------------------------------------------------------------------------- */
+FileExist: PROCEDURE
+ PARSE ARG FileName;
+
+ RETURN( STREAM( Filename, 'C', 'QUERY EXISTS') <> '');
+
+/* ------------------------------------------------------------------------- */
+DirExist: PROCEDURE
+ PARSE ARG DirName;
+
+ Found.0 = 0
+ rcx = SysFileTree( DirName, 'Found.', 'DO');
+ RETURN( Found.0 > 0);
 
