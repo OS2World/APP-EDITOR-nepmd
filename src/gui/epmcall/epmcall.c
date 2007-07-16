@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.25 2006-12-10 15:09:35 jbs Exp $
+* $Id: epmcall.c,v 1.26 2007-07-16 18:47:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -117,41 +117,30 @@ do
       break;
       }
 
-   i = DosGetInfoBlocks(NULL, &ppibEPM);
-   if (i)
-   {
-       DPRINTF(("DosGetInfoBlocks error: %d\n", i));
-   }
+   // Use DosGetInfoBlocks to keep the parm as submitted.
+   // Parsing it with argv[i] doesn't always work correct for single quotes.
+   // Note: The EPM executable strips every double quote (it's a bug)!
+   rc = DosGetInfoBlocks( NULL, &ppibEPM);
+   if (rc != NO_ERROR)
+      {
+      DPRINTF(( "Error: DosGetInfoBlocks returned rc = %u\n", rc));
+      // don't break here
+      }
    else
-   {
+      {
       if (ppibEPM->pib_pchcmd)
-      {
-         DPRINTF(("DosGetInfoBlocks parm 0: ###%s###\n", ppibEPM->pib_pchcmd));
-         DPRINTF(("DosGetInfoBlocks parm 1: ###%s###\n", ppibEPM->pib_pchcmd + strlen(ppibEPM->pib_pchcmd) + 1));
-      }
+         {
+//         DPRINTF(( "DosGetInfoBlocks parm 0: ###%s###\n", ppibEPM->pib_pchcmd));
+//         DPRINTF(( "DosGetInfoBlocks parm 1: ###%s###\n", ppibEPM->pib_pchcmd + strlen( ppibEPM->pib_pchcmd) + 1));
+         }
       else
-      {
-         DPRINTF(("DosGetInfoBlocks: NO params!?\n"));
+         DPRINTF(( "Error: DosGetInfoBlocks returned no parms\n"));
       }
-   }
-//    szProgramArgs[ 0] = 0;
+
+   // use argv[i] do check for parm /M only
    for (i = 1; i < argc; i++)
       {
-//        PSZ            pszMask;
           PSZ            pszThisParm;
-
-      // take care for included blanks
-//       if (strchr( argv[ i], ' '))
-//          pszMask = "\"%s\" ";
-//       else
-//          pszMask = "%s ";
-//       DPRINTF(( "CallEPM: parm %d: %s\n", i, argv[ i]));
-
-      // Minor bug: "'...'" is submitted to EPM as "'..."', but that doesn't
-      // matter, because EPM strips every " char before args are processed by
-      // its EDIT command.
-
-//       sprintf( _EOS( szProgramArgs), pszMask, argv[ i]);
 
       // search /M parm for starting EPM synchronously then
       pszThisParm = argv[i];
@@ -172,7 +161,6 @@ do
          }
       }
 
-//    DPRINTF(( "CallEPM: Processed parms: %s\n", szProgramArgs));
    // Change entry of OS2.INI -> EPM -> EPMIniPath to filename of NEPMD.INI
    // in order to keep the ini file for standard EPM unchanged.
    // NEPMD.INI is used now for all settings, that otherwise would be written
@@ -186,9 +174,6 @@ do
       {
 
       // Save old entry in NEPMD.INI to restore it after EPM's startup:
-//       strcpy( szEpmIniFile, "");
-//       strcpy( szIniFile, "");
-//       strcpy( szTmp, "");
       szEpmIniFile[0] = '\0';
       szIniFile[0]    = '\0';
       szTmp[0]        = '\0';
@@ -375,14 +360,15 @@ do
       }
    startdata.InheritOpt  = SSF_INHERTOPT_PARENT;
    startdata.SessionType = SSF_TYPE_PM;
-   startdata.FgBg        = SSF_FGBG_FORE;
+   //startdata.FgBg        = SSF_FGBG_FORE;
+   startdata.FgBg        = SSF_FGBG_BACK;  // EPM starts hidden and brings itself to the top (see MAIN.E)
    startdata.PgmName     = szExecutable;
-//    startdata.PgmInputs   = szProgramArgs;
-   startdata.PgmInputs   = ppibEPM->pib_pchcmd + strlen(ppibEPM->pib_pchcmd) + 1;
+   startdata.PgmInputs   = ppibEPM->pib_pchcmd + strlen( ppibEPM->pib_pchcmd) + 1;
    startdata.Environment = pszEnv;
 
    rc = DosStartSession( &startdata, &ulSession, &pid);
-   DPRINTF(( "CallEPM: call %s\n   params = >>%s<<\n   rc = %u (457 = ERROR_SMG_START_IN_BACKGROUND)\n", startdata.PgmName, startdata.PgmInputs, rc));
+   // rc = 457 = ERROR_SMG_START_IN_BACKGROUND
+   DPRINTF(( "CallEPM: call %s\n   params = >>%s<<\n   rc = %u\n", startdata.PgmName, startdata.PgmInputs, rc));
    if ((rc == NO_ERROR) || (rc == ERROR_SMG_START_IN_BACKGROUND))
       fEpmStarted = TRUE;
 
