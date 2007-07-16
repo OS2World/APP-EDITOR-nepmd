@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tmf.c,v 1.7 2006-10-07 19:53:40 aschn Exp $
+* $Id: tmf.c,v 1.8 2007-07-16 01:17:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,10 +22,26 @@
 ****************************************************************************/
 
 /*
- todo:
-  - handle comments in messages
-  - reset write date !
-
+Notes:
+   -  A message text ends at the next message name start or at the
+      next comment (';' in col 1).
+   -  A message name end must follow its message name start on the
+      same line. Otherwise that message name start is ignored.
+   -  The string "<--" at line start is not allowed in a message.
+   -  Unlike XWorkplace's TMF implementation, leading spaces in the
+      message text are not ignored. That allows for text alignment
+      with spaces.
+   -  When the timestamp of the TMF file changes, the message table
+      is automatically recompiled. It consists of the message names
+      followed by their start position and length. Together with the
+      timestamp the data is written as EA to the TMF file.
+Todo:
+   -  Enable nested messages, referred to with e.g. %MSG_TEST%.
+   -  Allow for all '%' chars with %PERCENT% macro. (BTW: XWorkplace
+      uses the &macro; syntax.)
+   -  Don't crash when %1 is in message text, but message is
+      called without parm.
+   -  Handle 64k limit of EAs. (Option: use text files instead?)
 */
 
 #include <stdio.h>
@@ -48,10 +64,13 @@
 #define EA_TIMESTAMP "TMF.FILEINFO"
 #define EA_MSGTABLE  "TMF.MSGTABLE"
 
+#define MSG_NAME_START_TOF   "<--"
 #define MSG_NAME_START   "\r\n<--"
 #define MSG_NAME_END     "-->:"
 
 #define MSG_COMMENT_LINE "\r\n;"
+
+#define MSG_NEW_LINE     "\r\n"
 
 // internal prototypes
 APIRET _TmfCompileMsgTable( PSZ pszMessageFile, PBYTE * ppbTableData);
@@ -285,6 +304,9 @@ static APIRET _TmfCompileMsgTable
          ULONG          ulCurrentMessageLen;
          PSZ            pszNextNameStart;
          PSZ            pszEntry;
+         PSZ            pszNextMessageNameStart;
+         PSZ            pszNextCommentStart;
+         PSZ            pszLineEnd;
 
 do
    {
@@ -343,12 +365,12 @@ do
       // if no error occurred, we are finished
       if (rc == NO_ERROR)
          {
-         DPRINTF(( "TMF: using precompiled table of %s\n", pszMessageFile));
+//         DPRINTF(( "TMF: using precompiled table of %s\n", pszMessageFile));
          break;
          }
       }
 
-   DPRINTF(( "TMF: (re)compile table for %s\n", pszMessageFile));
+//   DPRINTF(( "TMF: (re)compile table for %s\n", pszMessageFile));
 
    // recompilation needed
    // get memory for file data
@@ -394,62 +416,71 @@ do
       break;
       }
 
-
-   // skip comment lines at beginning of file
-   pszCurrentNameStart = pbFileData;
-   if (*pbFileData == ';')
-      {
-      pszCommentLine = pbFileData;
-      while (pszCommentLine)
-         {
-         // save current ptr
-         pszCurrentNameStart = pszCommentLine;
-
-         // search next comment line
-         pszCommentLine = strstr( pszCommentLine + 1, MSG_COMMENT_LINE);
-         }
-      }
-   else
-      pszCurrentNameStart = pbFileData;
-
    // ------------------------------------------------------------------
 
+   // find first name start at beginning of file
+   pszCurrentNameStart = pbFileData;
 
-   // search first message name
-   if (*pszCurrentNameStart != '<')
-      {
-         pszCurrentNameStart = strstr( pszCurrentNameStart, MSG_NAME_START);
-
-      if (!pszCurrentNameStart)
-         {
-         rc = ERROR_INVALID_DATA;
-         break;
-         }
-      else
-         pszCurrentNameStart += strlen( MSG_NAME_START);
-      }
+   // top of file must be handled specially: search for MSG_NAME_START_TOF at the top
+   if (0 == strncmp( pszCurrentNameStart, MSG_NAME_START_TOF, strlen( MSG_NAME_START_TOF)))
+      pszCurrentNameStart += strlen( MSG_NAME_START_TOF);
    else
-      pszCurrentNameStart++;
-
-   // is first name complete ?
-   pszCurrentNameEnd = strstr( pszCurrentNameStart, MSG_NAME_END);
-   if (!pszCurrentNameEnd)
       {
-      rc = ERROR_INVALID_DATA;
-      break;
+      pszNextMessageNameStart = strstr( pbFileData, MSG_NAME_START);
+
+      if (pszNextMessageNameStart)
+         pszNextNameStart = pszNextMessageNameStart + strlen( MSG_NAME_START);
+      else
+         pszNextNameStart = NULL;
+
+      // adress next entry
+      pszCurrentNameStart = pszNextNameStart;
       }
+
+   // ------------------------------------------------------------------
 
    // scan through all names
    while ((pszCurrentNameStart) && (*pszCurrentNameStart))
       {
-      // search end of name, if not exist, skip end of file
-      pszCurrentNameEnd = strstr( pszCurrentNameStart, MSG_NAME_END);
-      if (!pszCurrentNameEnd)
-         break;
 
-      // search next name, if none, use end of string
-      pszCurrentMessageEnd = strstr( pszCurrentNameEnd, MSG_NAME_START);
+      // search name end on line of name start
+      while ((pszCurrentNameStart) && (*pszCurrentNameStart))
+         {
+         // search MSG_NAME_END and check if it comes on current line
+         pszLineEnd        = strstr( pszCurrentNameStart, MSG_NEW_LINE);
+         pszCurrentNameEnd = strstr( pszCurrentNameStart, MSG_NAME_END);
+
+         if (!pszCurrentNameEnd || (pszLineEnd < pszCurrentNameEnd))
+            {
+            // ignore CurrentNameStart and search next one
+            pszNextMessageNameStart = strstr( pszLineEnd, MSG_NAME_START);
+
+            if (pszNextMessageNameStart)
+               pszNextNameStart = pszNextMessageNameStart + strlen( MSG_NAME_START);
+            else
+               pszNextNameStart = NULL;
+
+            // adress next entry
+            pszCurrentNameStart = pszNextNameStart;
+            }
+         else
+            break;
+         }
+
+      // now search end of message, either next message name or next comment,
+      // if none, use end of string
+      pszNextMessageNameStart = strstr( pszCurrentNameEnd, MSG_NAME_START);
+      pszNextCommentStart     = strstr( pszCurrentNameEnd, MSG_COMMENT_LINE);
+
+      // the next of both ends the message
+      if ((pszNextCommentStart) &&
+          (pszNextCommentStart < pszNextMessageNameStart))
+         pszCurrentMessageEnd = pszNextCommentStart;
+      else
+         pszCurrentMessageEnd = pszNextMessageNameStart;
+
       if (!pszCurrentMessageEnd)
+         // no more MSG_NAME_START or MSG_COMMENT_LINE found (end of file reached)
          {
          pszCurrentMessageEnd = pszCurrentNameStart + strlen( pszCurrentNameStart);
          pszNextNameStart = NULL;
@@ -458,8 +489,11 @@ do
          if (*(PUSHORT) (pszCurrentMessageEnd - 2) == 0x0a0d)
             pszCurrentMessageEnd -=2;
          }
+
+      if (pszNextMessageNameStart)
+         pszNextNameStart = pszNextMessageNameStart + strlen( MSG_NAME_START);
       else
-         pszNextNameStart = pszCurrentMessageEnd + strlen( MSG_NAME_START);
+         pszNextNameStart = NULL;
 
       // calculate table entry data
       *pszCurrentNameEnd  = 0;
@@ -494,13 +528,15 @@ do
 
       } // while (pszCurrentNameStart)
 
-   // close file, so that we can use DosSetPathInfo to write Eas -
+   // ------------------------------------------------------------------
+
+   // close file, so that we can use DosSetPathInfo to write EAs -
    // this avoids reset of lastwritestamp when using DosSetFileInfo instead
    DosClose( hfileMessageFile);
    hfileMessageFile = NULL;
 
    // write EAs
-   // ### handle 64 kb limit here !!!
+   // ### handle 64 kb limit here!!!
    rc = WriteStringEa( pszMessageFile, EA_TIMESTAMP, szFileStampCurrent);
    if (rc != NO_ERROR)
       break;
