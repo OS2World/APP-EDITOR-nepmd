@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.65 2006-12-09 17:48:50 aschn Exp $
+* $Id: nepmdlib.c,v 1.66 2007-07-16 01:25:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -65,7 +65,7 @@
 // some useful macros
 #define EPMINSERTTEXT(t)          EtkInsertTextBuffer( hwndClient, 0, strlen( t), t, 0x100);
 #define LOADSTRING(m,t)           TmfGetMessage( NULL, 0, t, sizeof( t), m, szMessageFile, &ulMessageLen)
-#define STRING_INTERNALERROR      "\n\n>>> INTERNAL ERROR:"
+#define STRING_INTERNALERROR      "\n\n>>> Internal error: "
 #define EPMMODULEVERSION(m,t)     _queryModuleStamp( m, t, sizeof( t))
 
 #define INSERT_EPM_MODULEVERSION( h, f, m, mod) _insertModuleStamp( TRUE, h, f, m, mod)
@@ -1103,7 +1103,7 @@ do
    if (rc != NO_ERROR)
       {
       sprintf( szErrorMsg,
-               STRING_INTERNALERROR "Fatal error: cannot determine NEPMD message file, rc=%u\n\n",
+               STRING_INTERNALERROR "cannot determine NEPMD message file, rc=%u\n\n",
                rc);
       EPMINSERTTEXT( szErrorMsg);
       break;
