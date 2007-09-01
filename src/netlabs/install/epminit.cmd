@@ -26,9 +26,14 @@
 * After that, EPM can be used from command line. In order to create program
 * objects automatically, the WarpIN install has to be repeated.
 *
+* By default, this batch works in test mode only. In order to let it change
+* your OS2.INI, you have to set the following environment variable first:
+*
+*    SET TEST_MODE=0
+*
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epminit.cmd,v 1.3 2007-07-14 13:16:53 aschn Exp $
+* $Id: epminit.cmd,v 1.4 2007-09-01 12:20:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -64,6 +69,10 @@
  RELATIVE_ROOTDIR_UPLEVELS  = 3  /* RootDir filespec relative to this file */
  SETUP_NAMES                = 'usertree.cmd dyncfg.cmd'
 
+ fTestMode = VALUE( 'TEST_MODE',, env)
+ IF fTestMode <> FALSE THEN
+    fTestMode = TRUE
+
  /* defaults and further consts */
  rc = 0;
  ErrorQueueName  = VALUE( 'NEPMD_RXQUEUE', , env);
@@ -98,6 +107,9 @@
     /* parse arg string Keyword1=Value1 Keyword2=Value2 ..., */
     /* values may be enclosed with double quotes             */
     PARSE ARG Args;
+
+/* TODO */
+    /* process /? option and give TEST_MODE hint if activated */
 
 /* TODO */
     /* if no Args specified, switch to interactive mode */
@@ -165,20 +177,7 @@
 /* TODO */
     /* check if RootDir is writable before creation of RootDir'\myepm' */
 
-
-    /* add application to OS2.INI */
-    rcx = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_LANGUAGE, Language'00'x);
-    IF (rcx = '') THEN
-       rcx = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_ROOTDIR, RootDir'00'x);
-
-    IF (rcx <> '') THEN
-    DO
-       ErrorMessage = 'Error: default OS2.INI values not written.';
-       rc = 1; /* ERROR */
-       LEAVE;
-    END;
-
-    /* search for SETUP_NAMES */
+    /* search for SETUP_NAMES and set SetupName. stem var */
     i = 0;
     rest = SETUP_NAMES
     DO WHILE rest <> ''
@@ -199,6 +198,48 @@
        SetupName.0 = i
     ELSE
        LEAVE
+
+    /* all checks done, now write ini keys and call further install batches */
+
+    /* add application to OS2.INI */
+    DO k = 1 to Keyword.0
+       rcx = ''
+       Keyword  = Keyword.k
+       Keyvalue = VALUE( Keyword.k)
+       IF (fTestMode) THEN
+          SAY k': 'Keyword' = 'Keyvalue
+
+       IF Keyvalue = '' THEN
+       DO
+          /* delete keyword if no value and if keyword exists */
+          OldValue = SysIni( 'USER', NEPMD_INI_APPNAME, Keyword);
+          IF OldValue <> 'ERROR:' THEN
+          DO
+             IF (fTestMode) THEN
+                SAY "SysIni( 'USER', "NEPMD_INI_APPNAME", "Keyword", DELETE:)"
+             ELSE
+                rcx = SysIni( 'USER', NEPMD_INI_APPNAME, Keyword, 'DELETE:');
+          END
+       END
+       ELSE
+          /* write keyword */
+          DO
+             IF (fTestMode) THEN
+                SAY "SysIni( 'USER', "NEPMD_INI_APPNAME", "Keyword", "Keyvalue"'00'x)"
+             ELSE
+                rcx = SysIni( 'USER', NEPMD_INI_APPNAME, Keyword, Keyvalue'00'x);
+          END
+
+       IF (rcx <> '') THEN
+          LEAVE;
+    END;
+
+    IF (rcx <> '') THEN
+    DO
+       ErrorMessage = 'Error: default OS2.INI values not written.';
+       rc = 1; /* ERROR */
+       LEAVE;
+    END;
 
  END;
 
@@ -226,7 +267,10 @@
  /* call additional Setup CMD files */
  IF (rc = 0) THEN
  DO i = 1 TO SetupName.0
-    'CALL' SetupName.i
+    IF (fTestMode) THEN
+      SAY SetupName.i
+    ELSE
+       'CALL' SetupName.i
  END
 
  EXIT( rc);
