@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: load.e,v 1.26 2007-06-10 19:48:37 aschn Exp $
+* $Id: load.e,v 1.27 2007-09-01 10:54:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -159,6 +159,14 @@ compile endif
    if .levelofattributesupport < 2 then  -- If not already set (e.g., NAME does a DEFLOAD)
       'loadattributes'
       'RestorePosFromEa'
+   endif
+
+   -- Workaround for avoiding additional .scrollx offset
+   -- (see also defproc prestore_pos):
+   -- Scroll to full cols
+   DeltaScrollx = .scrollx//.fontwidth
+   if DeltaScrollx > 0 then
+      .scrollx = .scrollx - DeltaScrollx
    endif
 
 ;  Ebookie support: init bkm ------------------------------------------------

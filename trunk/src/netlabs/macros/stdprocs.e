@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.18 2006-03-29 23:54:12 aschn Exp $
+* $Id: stdprocs.e,v 1.19 2007-09-01 10:54:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -656,11 +656,24 @@ defproc prestore_mark( savemark)
 ; PRESTORE_POS: restore the cursor position (cannot be used as a stack) See
 ; also psave_pos()
 defproc prestore_pos( save_pos)
+   universal loadstate
+   universal lastscrollx
+
    parse value save_pos with svline svcol svcx svcy
    .cursory = svcy                          -- set .cursory
    min( svline, .last)                      -- set .line
    .col = MAXCOL; .col = svcol - svcx + 1   -- set left edge of window
    .col = svcol                             -- set .col
+
+   -- Workaround for avoiding additional .scrollx offset
+   -- (see also defload):
+   -- Restore .scrollx, if not processed during file loading
+   if loadstate = 0 then
+      if lastscrollx <> '' then
+         .scrollx = lastscrollx   -- set hidden pixels at the left
+      endif
+      -- .scrolly is always 0
+   endif
 
 ;  Printer_ready( printer_number ) tests whether printer is ready.
 ;
@@ -694,7 +707,23 @@ defproc psave_mark( var savemark)
 ; PSAVE_POS: save the cursor position (cannot be used as a stack) See also
 ; prestore_pos()
 defproc psave_pos( var save_pos)
-   save_pos = .line .col .cursorx .cursory
+   universal lastscrollx
+
+   -- For .fontwidth = 8 pixel:
+   -- .scollx = 0      means: .col - .cursorx = 0
+   -- .scollx = 1...8  means: .col - .cursorx = 1
+   -- .scollx = 9...16 means: .col - .cursorx = 2
+
+   -- Correct .cursorx value: count only full cols
+   DeltaScrollx = .scrollx//.fontwidth
+   if DeltaScrollx > 0 then
+      Cursorx = .cursorx - 1
+   else
+      Cursorx = .cursorx
+   endif
+
+   save_pos = .line .col Cursorx .cursory
+   lastscrollx = .scrollx
 
 defproc pset_mark( firstline, lastline, firstcol, lastcol, mt, fileid)
    mtnum = wordpos( mt, 'LINE CHAR BLOCK CHARG BLOCKG') - 1
