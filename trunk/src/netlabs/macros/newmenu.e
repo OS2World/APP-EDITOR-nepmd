@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.46 2007-06-10 11:43:09 aschn Exp $
+* $Id: newmenu.e,v 1.47 2007-09-01 10:58:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2582,7 +2582,7 @@ defproc add_options_menu(menuname)
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Re~link current .E file',                                            -- Relink current .E file
                                    'relink' ||
-                                   \1'Compile current macro file and unlink/link if linked before',
+                                   \1'Compile current macro file, unlink and link it',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
