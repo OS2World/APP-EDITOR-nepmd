@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.16 2007-06-10 02:10:20 aschn Exp $
+* $Id: tags.e,v 1.17 2007-09-01 10:59:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -561,6 +561,8 @@ compile endif
    display -2
    if find_first then
       if proc_name=='' then
+-- Todo: The opening parenthesis may occur everywhere after proc_name.
+--       ':f' finds only proc_names where '(' occurs on the same line.
 compile if C_TAGS_ANYWHERE
          'xcom l ^:fex'
 compile else
