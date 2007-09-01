@@ -15,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: cdd.cmd,v 1.3 2006-12-26 17:50:10 aschn Exp $
+* $Id: cdd.cmd,v 1.4 2007-09-01 20:49:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -61,14 +61,21 @@ do
       end
 
       /* Check if directory exists */
-      Found.0 = 0
-      rc = SysFileTree( FSpec, 'Found.', 'DO')
-      if Found.0 > 0 then
+      /* SysFileTree doesn't handle "\.." and "\." correctly, */
+      /* therefore use directory instead. */
+      CurDir = directory()
+      Found = directory( FSpec)
+      if Found <> '' then
       do
-         Dir = Found.1
+         Dir = Found
+         /* Change back to previous dir and drive */
+         call directory CurDir
+         if substr( CurDir, 2, 1) = ':' then
+            call directory left( CurDir, 2)
          leave
       end
 
+      /* Not a dir, then it may be a file, so try parent dir */
       Dir = strip( FSpec, 't', '\')'\..'
       leave
 
