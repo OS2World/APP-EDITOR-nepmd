@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.35 2006-11-10 21:55:31 jbs Exp $
+.. $Id: makefile.txt,v 1.36 2007-09-02 15:40:48 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -347,9 +347,19 @@ the WarpIN package the *touch* utility out of the *GNU file utilities* is used.
   - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=GNU+file+utilities The Hobbes File Archive]
 .
     (search "GNU file utilities" at hobbes.nmsu.edu)
-- *touch* must be accessible by the PATH statement.
-- Don't set *TOUCH=1* if you want to compile in a *4os2* shell, because it has
-  its own *touch*, that is not compatible with the GNU version.
+.el
+  (this packages requires the EMX runtime DLLs being installed)
+- or use a more complete and more recent *GNU core utilities* package from
+  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=coreutils The Hobbes File Archive]
+.
+    (search "coreutils" at hobbes.nmsu.edu)
+.el
+  together with the required Libc runtime DLL (libc**.dll). Libc DLLs can be
+  found as installable WPI packages at the
+  - [ftp://ftp.netlabs.org/pub/gcc netlabs.org FTP-Server]
+.
+    (e.g. ftp://ftp.netlabs.org/pub/gcc/libc-0__6__3-csd3.wpi)
+- *touch.exe* must be accessible by the PATH statement.
 
 .. -----------------------------------------------------------------------------
 .2 CVS development tree overview

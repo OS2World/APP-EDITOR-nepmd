@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: touchrel.cmd,v 1.3 2004-07-03 12:36:52 aschn Exp $
+* $Id: touchrel.cmd,v 1.4 2007-09-02 15:40:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -84,8 +84,9 @@ TouchFilesInDir: PROCEDURE
 
     /* process all directories */
     DO d = 1 TO Dir.0
-       IF (FileExist( Dir.d'\*')) THEN
-          'call touch -t' TimeStamp Dir.d'\*';
+       if (FileExist( Dir.d'\*')) THEN
+          /* added double quotes to make 4os2 search for an external file */
+          'call "touch" -t' TimeStamp Dir.d'\*';
     END;
  END;
  RETURN( 0);
