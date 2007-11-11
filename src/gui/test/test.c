@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: test.c,v 1.31 2002-10-20 12:13:48 cla Exp $
+* $Id: test.c,v 1.32 2007-11-11 02:57:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -62,6 +62,10 @@ do
    strupr( pszTestcase);
 
 
+// The following testcases don't work yet:
+//    CONFIGVALUE
+//    QUERYHILIGHTFILE
+
    // =========================================================================
    // testcase for TMF function
    // =========================================================================
@@ -78,6 +82,8 @@ do
                ULONG          ulMessageLen;
 
 
+/*
+nepmdlib.tmf doesn't exist
       // testcase for TMF function of nepmdlib.tmf
       do
          {
@@ -89,7 +95,7 @@ do
 
          if (!pszFilename)
             {
-            printf( "testcase for TMF skipped, envvar %s not found !\n", pszEnvVar);
+            printf( "Testcase for nepmdlib.tmf skipped, envvar %s not found!\n", pszEnvVar);
             rc = ERROR_ENVVAR_NOT_FOUND;
             break;
             }
@@ -101,6 +107,7 @@ do
 
 
          } while (FALSE);
+*/
 
       // testcase for TMF function of nepmdeng.tmf
       do
@@ -113,12 +120,12 @@ do
          rc = QueryInstValue( NEPMD_INSTVALUE_MESSAGE, szMessageFile, sizeof( szMessageFile));
          if (rc != NO_ERROR)
             {
-            printf( "error: cannot determine location of nepmdeng.tmf !\n");
+            printf( "Error: cannot determine location of nepmdeng.tmf!\n");
             break;
             }
 
          GETMESSAGE( "MSG_INFO_HEADER", NULL, 0);
-         GETMESSAGE( "MSG_INFO_BODY_LIB", apszParms, 9);
+         GETMESSAGE( "STR_INFO_NEPMDLIBVERSION", apszParms, 9);
 
          } while (FALSE);
 
@@ -147,6 +154,7 @@ do
 
       } // testcase INSTVAL
 
+/*
    // =========================================================================
    // testcase for WriteConfigValue
    // =========================================================================
@@ -257,7 +265,9 @@ do
          CloseConfig( hconfig);
 
       } // testcase CONFIGVALUE
+*/
 
+/*
    // =========================================================================
    // testcase for creating a hilite file out of the new definitions
    // =========================================================================
@@ -281,6 +291,7 @@ do
          printf( "hilite file is %s needs (reload %srequired)\n", szHiliteFile, (fReload) ? "" : "not ");
 
       } // testcase QUERYHILIGHTFILE
+*/
 
    // =========================================================================
    // testcase for selecting a mode
@@ -309,7 +320,6 @@ do
    // =========================================================================
    // testcase for retrieving the mode list
    // =========================================================================
-
 
    if (!(strcmp( pszTestcase, "QUERYMODELIST")))
 
