@@ -1,5 +1,5 @@
 /*
- *      TOUCHREL.CMD - C.Langanke for Netlabs EPM Distribution Project 2002
+ *      TOUCHREL.CMD - C.Langanke for Netlabs EPM Distribution Project 2002-2008
  *
  *      Syntax: touchrel dirname
  *
@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: touchrel.cmd,v 1.5 2008-01-16 20:32:49 cla Exp $
+* $Id: touchrel.cmd,v 1.6 2008-01-16 20:39:08 cla Exp $
 *
 * ===========================================================================
 *
@@ -97,7 +97,7 @@ TouchFiles: PROCEDURE
        DO
           /* explicitely call touch.exe to avoid 4os2 internal command */
           Command = 'call touch.exe -t' TimeStamp FileList;
-          '' Command 
+          '' Command
           FileList = '';
        END
     END;
@@ -120,9 +120,9 @@ GetTimeStamp: PROCEDURE
  /* determine timestamp parameter from help text of touch */
  QueueName = RXQUEUE('CREATE');
  rc        = RXQUEUE('SET', QueueName);
- 
+
  'touch --help | rxqueue' QueueName;
- 
+
  DO WHILE (QUEUED() > 0)
     PARSE PULL Line;
     SELECT
@@ -135,7 +135,7 @@ GetTimeStamp: PROCEDURE
        OTHERWISE NOP;
     END;
  END;
- 
+
  rc = RXQUEUE('DELETE', QueueName);
  rc = RXQUEUE('SET', 'SESSION');
 
