@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: touchrel.cmd,v 1.4 2007-09-02 15:40:47 aschn Exp $
+* $Id: touchrel.cmd,v 1.5 2008-01-16 20:32:49 cla Exp $
 *
 * ===========================================================================
 *
@@ -31,9 +31,9 @@
 *
 ****************************************************************************/
 
+ TRUE         = (1 = 1);
+ FALSE        = (0 = 1);
  '@ECHO OFF'
- call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
- call SysLoadFuncs
 
  /* get command parms */
  PARSE ARG Parms;
@@ -43,24 +43,18 @@
     EXIT( 87);
  END;
 
- /* check timestamp */
- PARSE VALUE DATE('S')  WITH Year +4 MonthDay;
- PARSE VALUE TIME( 'N') WITH Hours':'Mins':'Secs;
- Hours = RIGHT( Hours, 2, '0');
-
- IF (Mins > 30) THEN
-    Mins = '30';
- ELSE
-    Mins = '00';
- TimeStamp = MonthDay''Hours''Mins''Year'.00';
+ TimeStamp = GetTimeStamp();
 
  DO WHILE (Parms \= '')
-    PARSE VAR Parms ThisDir Parms;
-    SAY '- touching' ThisDir;
-    rcx = TouchFilesInDir( ThisDir,     TimeStamp);
-    rcx = TouchFilesInDir( ThisDir'\*', TimeStamp);
- END;
+    PARSE VAR Parms ThisParm Parms;
 
+    /* SAY '- touching' ThisParm; */
+
+    IF (FileExist( ThisParm)) THEN
+       rcx = TouchFiles( ThisParm, TimeStamp, FALSE);
+    ELSE
+       rcx = TouchFiles( ThisParm'\*', TimeStamp, TRUE);
+ END;
 
  EXIT( rc);
 
@@ -71,23 +65,79 @@ FileExist: PROCEDURE
  RETURN(STREAM(Filename, 'C', 'QUERY EXISTS') > '');
 
 /* ------------------------------------------------------------------------- */
-TouchFilesInDir: PROCEDURE
- PARSE ARG Parm, TimeStamp;
+TouchFiles: PROCEDURE
+ PARSE ARG Parm, TimeStamp, fRecursive;
 
- rc = SysFileTree( Parm, 'Dir.', 'DOS');
- IF (rc = 0) THEN
+ IF (fRecursive) THEN
  DO
-    /* add hase dir to stem */
-    d     = Dir.0 + 1;
-    Dir.d = ThisDir;
-    Dir.0 = d;
-
-    /* process all directories */
-    DO d = 1 TO Dir.0
-       if (FileExist( Dir.d'\*')) THEN
-          /* added double quotes to make 4os2 search for an external file */
-          'call "touch" -t' TimeStamp Dir.d'\*';
+    /* process subdirectories */
+    rc = SysFileTree( Parm, 'Dir.', 'DOS');
+    IF (rc = 0) THEN
+    DO
+       /* process all directories */
+       DO d = 1 TO Dir.0
+          rc = TouchFiles( Dir.d'\*', TimeStamp, fRecursive);
+       END;
     END;
  END;
+
+ /* touch files */
+ rc = SysFileTree( Parm, 'Files.', 'FO');
+ IF (rc = 0) THEN
+ DO
+    /* process all files */
+    /* - as newer versions of touch don't support  */
+    /*   wildcards we have to expand them here     */
+    /* - to reduce overhead, we collect some files */
+    /*   for each call to touch.exe                */
+    FileList = '';
+    DO f = 1 TO Files.0
+       FileList = FileList Files.f;
+       IF ((LENGTH( FileList) > 768) | (f = Files.0)) THEN
+       DO
+          /* explicitely call touch.exe to avoid 4os2 internal command */
+          Command = 'call touch.exe -t' TimeStamp FileList;
+          '' Command 
+          FileList = '';
+       END
+    END;
+ END;
+
  RETURN( 0);
+
+/* ------------------------------------------------------------------------- */
+GetTimeStamp: PROCEDURE
+
+ /* check timestamp */
+ PARSE VALUE DATE('S')  WITH Year +4 MonthDay;
+ PARSE VALUE TIME( 'N') WITH Hours':'Mins':'Secs;
+ Hours = RIGHT( Hours, 2, '0');
+ IF (Mins > 30) THEN
+    Mins = '30';
+ ELSE
+    Mins = '00';
+
+ /* determine timestamp parameter from help text of touch */
+ QueueName = RXQUEUE('CREATE');
+ rc        = RXQUEUE('SET', QueueName);
+ 
+ 'touch --help | rxqueue' QueueName;
+ 
+ DO WHILE (QUEUED() > 0)
+    PARSE PULL Line;
+    SELECT
+       WHEN (POS( 'MMDDhhmm[[CC]YY][.ss]', Line) > 0) THEN
+          TimeStamp = MonthDay''Hours''Mins''Year'.00';
+
+       WHEN (POS( '[[CC]YY]MMDDhhmm[.ss]', Line) > 0) THEN
+          TimeStamp = Year''MonthDay''Hours''Mins'.00';
+
+       OTHERWISE NOP;
+    END;
+ END;
+ 
+ rc = RXQUEUE('DELETE', QueueName);
+ rc = RXQUEUE('SET', 'SESSION');
+
+ RETURN( TimeStamp);
 
