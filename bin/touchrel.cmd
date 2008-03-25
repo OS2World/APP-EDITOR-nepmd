@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: touchrel.cmd,v 1.6 2008-01-16 20:39:08 cla Exp $
+* $Id: touchrel.cmd,v 1.7 2008-03-25 23:10:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,6 +34,8 @@
  TRUE         = (1 = 1);
  FALSE        = (0 = 1);
  '@ECHO OFF'
+ call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
+ call SysLoadFuncs;
 
  /* get command parms */
  PARSE ARG Parms;
@@ -109,7 +111,7 @@ TouchFiles: PROCEDURE
 GetTimeStamp: PROCEDURE
 
  /* check timestamp */
- PARSE VALUE DATE('S')  WITH Year +4 MonthDay;
+ PARSE VALUE DATE( 'S') WITH Year +4 MonthDay;
  PARSE VALUE TIME( 'N') WITH Hours':'Mins':'Secs;
  Hours = RIGHT( Hours, 2, '0');
  IF (Mins > 30) THEN
@@ -117,11 +119,15 @@ GetTimeStamp: PROCEDURE
  ELSE
     Mins = '00';
 
+ /* default timestamp format */
+ TimeStamp = MonthDay''Hours''Mins''Year'.00';
+
  /* determine timestamp parameter from help text of touch */
  QueueName = RXQUEUE('CREATE');
  rc        = RXQUEUE('SET', QueueName);
 
- 'touch --help | rxqueue' QueueName;
+ /* explicitely call touch.exe to avoid 4os2 internal command */
+ 'touch.exe --help | rxqueue' QueueName;
 
  DO WHILE (QUEUED() > 0)
     PARSE PULL Line;
