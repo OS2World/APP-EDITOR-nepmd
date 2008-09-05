@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: dict.e,v 1.5 2006-10-07 18:16:47 aschn Exp $
+* $Id: dict.e,v 1.6 2008-09-05 22:37:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -43,6 +43,9 @@ compile endif
 ; Syntax: DictLang <new_lang>
 ; The first found abbreviation matches.
 ; Accepts also 'delete' as arg to delete all entries.
+; Accepts also 'switch' as arg to switch to next entry.
+; When called without arg, the SelectDictLang command is called to
+; select/add/configure/delete a language.
 defc DictLang
    universal nepmd_hini  -- often forgotten
    universal dictionary_filename
@@ -52,63 +55,83 @@ defc DictLang
 
    KeyPath = '\NEPMD\User\Spellcheck'
 
-   parse arg opt
-   opt = strip(opt)
-   if opt = '' then
+   parse arg args
+   args = strip( args)
+   opt = upcase( args)
+   if args = '' then
       'SelectDictLang'
       return
    endif
 
+   SelectedKeyPath = KeyPath'\SelectedLanguage'
+   OldName = NepmdQueryConfigValue( nepmd_hini, SelectedKeyPath)
+
    Select       = ''
    SearchOption = 'C'
-   Container    = ''
+   CurName   = ''
+   FirstName = ''
+   fGetNext  = 0
+   fGetFirst = 1
    do forever
-      Container = NepmdGetNextConfigKey( nepmd_hini, KeyPath'\Language', Container, SearchOption)
-      parse value Container with 'ERROR:'ret
-      if (ret > '') then
+      CurName = NepmdGetNextConfigKey( nepmd_hini, KeyPath'\Language', CurName, SearchOption)
+      parse value CurName with 'ERROR:'ret
+      if ret <> '' then
+         if FirstName <> '' then
+            Select = FirstName
+         endif
          leave
       endif
-      if upcase(opt) = 'DELETE' then
-         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'Container'\Dictionary')
-         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'Container'\Addenda')
+      if Opt = 'DELETE' then
+         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'CurName'\Dictionary')
+         call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'CurName'\Addenda')
          Select = 'DELETE'
-         --iterate
+      elseif Opt = 'SWITCH' then
+         if fGetFirst then
+            FirstName = CurName
+            fGetFirst = 0
+         endif
+         if fGetNext then
+            Select = CurName
+            leave
+         endif
+         if CurName = OldName then
+            fGetNext = 1
+         endif
       else
-         if abbrev( upcase(Container), upcase(opt)) then
-            Select = Container
+         if abbrev( upcase( CurName), upcase( args)) then
+            Select = CurName
             leave
          endif
       endif
    enddo
 
-   if Select = 'DELETE' then
+   if Opt = 'DELETE' then
    elseif Select = '' then
-      sayerror 'Language "'opt'" not found.'
+      sayerror 'Language "'args'" not found.'
    else
       call NepmdWriteConfigValue( nepmd_hini, KeyPath'\SelectedLanguage', Select)
       dictionary_filename = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Language\'Select'\Dictionary')
       addenda_filename    = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Language\'Select'\Addenda')
-      -- Change entry in EPM.INI, too (temp.)
-      call SetProfile( app_hini, appname, INI_DICTIONARY, dictionary_filename)
-      call SetProfile( app_hini, appname, INI_ADDENDA, addenda_filename)
-      -- Toggle dynaspell off and on to overtake the new dicts
+      -- Toggle dynaspell off and on to activate the new dicts
       if .keyset = 'SPELL_KEYS' then
          'dynaspell'
          'dynaspell'
       endif
       sayerror 'Switched to language "'Select'"'
+      'RefreshInfoLine DICT'
    endif
    return
 
 ; ---------------------------------------------------------------------------
-; Accepts also 'delete' as arg.
 defc SelectDictLang
    universal nepmd_hini  -- often forgotten
+   universal dictionary_filename
+   universal addenda_filename
+   universal app_hini
+   universal appname
 
    KeyPath = '\NEPMD\User\Spellcheck'
-   NoEntry = '-no entry-'
-
-   parse arg opt
+   NoEntry = '-none-'
 
    CurLang  = NepmdQueryConfigValue( nepmd_hini, KeyPath'\SelectedLanguage')
    Selection    = 1
@@ -121,7 +144,7 @@ defc SelectDictLang
       i = i + 1
       Container = NepmdGetNextConfigKey( nepmd_hini, KeyPath'\Language', Container, SearchOption)
       parse value Container with 'ERROR:'ret
-      if (ret > '') then
+      if (ret <> '') then
          leave
       endif
       LangList = LangList''Delim''Container
@@ -147,9 +170,9 @@ defc SelectDictLang
    refresh
    ret = listbox( Title,
                   LangList,
-                  '/~Set/~New/C~onfigure/~Delete/~Cancel',    -- buttons
+                  '/~Set/~Add.../~Configure.../~Delete/Cancel',     -- buttons
                   0, 0,                                       -- top, left,
-                  min( count( Delim, LangList) - 1, 12), 50,  -- height, width
+                  min( count( Delim, LangList) - 1, 12), 70,  -- height, width
                   gethwnd(APP_HANDLE) || atoi(Selection) || atoi(DefButton) || atoi(HelpId) ||
                   Text\0)
    refresh
@@ -183,6 +206,8 @@ defc SelectDictLang
          call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\Language\'Select'\Addenda')
          if Select = CurLang then
             call NepmdDeleteConfigValue( nepmd_hini, KeyPath'\SelectedLanguage')
+            dictionary_filename = ''
+            addenda_filename = ''
          endif
       endif
       'SelectDictLang'  -- restart
@@ -205,6 +230,14 @@ defc ConfigDictLang
    i = 1
    KeyPath = '\NEPMD\User\Spellcheck'
    NoName = '-untitled-'
+   UserDir = NepmdQueryInstValue( 'USERDIR')
+   parse value UserDir with 'ERROR:'rcx
+   if rcx <> '' then
+      sayerror 'Error: UserDir not set'
+      return
+   endif
+   DefDir = UserDir'\spellchk'
+   DefAdd = DefDir'\user.add'
 
    parse arg Config DefLang
 ;sayerror 'ConfigDictLang: ['Config'] ['DefLang']'
@@ -213,26 +246,7 @@ defc ConfigDictLang
    Add  = ''
    Name = ''
    if DefLang = '' then
-      -- Get entry from EPM.INI as start values
-      OldDict = QueryProfile( app_hini, appname, INI_DICTIONARY)
-      OldAdd  = QueryProfile( app_hini, appname, INI_ADDENDA)
-      -- Check if file or file lists exist
-      rest = OldDict
-      do while rest <> ''
-         parse value rest with next rest
-         if exist(next) then
-            Dict = OldDict
-            leave
-         endif
-      enddo
-      rest = OldAdd
-      do while rest <> ''
-         parse value rest with next rest
-         if exist(next) then
-            Add = OldAdd
-            leave
-         endif
-      enddo
+      Add  = DefAdd
    else
       Dict = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Language\'DefLang'\Dictionary')
       Add  = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Language\'DefLang'\Addenda')
@@ -246,7 +260,7 @@ defc ConfigDictLang
    do while Again
       Again = 0
       -- Open EntryBox
-      -- No Linebreak allowed in Text
+      -- No line break allowed in Text
       if Config = 'CONFIG' then
          maxi = 2
       else
@@ -259,27 +273,27 @@ defc ConfigDictLang
       endif
 
       if i = 1 then
-         Text  = 'Enter a filename for a dictionary or a space-separated list:'
-         Buttons = '/~Next 'RightArrow'/~File dialog/~Cancel'
-         Back = 0; Next = 1; FileDlg = 2; Cancel = 3; Ok = 0
+         Text = 'Enter a filename for a dictionary or a space-separated list:'
+         Buttons = '/~Next 'RightArrow'/~File dialog/Cancel'
+         Back = 0; Next = 1; FileDlg = 2; Cancel = 3; OK = 0
          OldEntry = Dict
          DefButton = Next
       elseif i = 2 then
-         Text  = 'Enter a filename for an addendum or a space-separated list:'
+         Text = 'Enter a filename for an addendum or a space-separated list:'
          OldEntry = Add
          if Config = 'CONFIG' then
-            Buttons = '/'LeftArrow' ~Back/~Ok/~File dialog/~Cancel'
-            Back = 1; Next = 0; Ok = 2; FileDlg = 3; Cancel = 4
-            DefButton = Ok
+            Buttons = '/'LeftArrow' ~Back/~OK/~File dialog/Cancel'
+            Back = 1; Next = 0; OK = 2; FileDlg = 3; Cancel = 4
+            DefButton = OK
          else
-            Buttons = '/'LeftArrow' ~Back/~Next 'RightArrow'/~File dialog/~Cancel'
-            Back = 1; Next = 2; FileDlg = 3; Cancel = 4; Ok = 0
+            Buttons = '/'LeftArrow' ~Back/~Next 'RightArrow'/~File dialog/Cancel'
+            Back = 1; Next = 2; FileDlg = 3; Cancel = 4; OK = 0
             DefButton = Next
          endif
       else
-         Text  = 'Enter a name for the language:'
-         Buttons = '/'LeftArrow' ~Back/~Ok/~Cancel'
-         Back = 1; Next = 0; Ok = 2; FileDlg = 0; Cancel = 3
+         Text = 'Enter a name for the language:'
+         Buttons = '/'LeftArrow' ~Back/~OK/Cancel'
+         Back = 1; Next = 0; OK = 2; FileDlg = 0; Cancel = 3
          if Name = '' then
             -- get DictBasename
             if Dict <> '' then
@@ -293,7 +307,7 @@ defc ConfigDictLang
             endif
          endif
          OldEntry = Name
-         DefButton = Ok
+         DefButton = OK
       endif
       Title = leftstr( Title, 100)'.'  -- Add spaces to fit the text in titlebar
       HelpId = 0
@@ -332,7 +346,7 @@ defc ConfigDictLang
          endif
          Again = 1
          i = i - 1
-      elseif EntryButton = Ok then
+      elseif EntryButton = OK then
          -- todo: check if valid
          if i = 1 then
             Dict = NewEntry
@@ -347,25 +361,38 @@ defc ConfigDictLang
          endif
          call NepmdWriteConfigValue( nepmd_hini, KeyPath'\Language\'Name'\Dictionary', Dict)
          call NepmdWriteConfigValue( nepmd_hini, KeyPath'\Language\'Name'\Addenda', Add)
+         -- Automatically make the new language the selected one, if named and if none selected before
+         CurLang = NepmdQueryConfigValue( nepmd_hini, KeyPath'\SelectedLanguage')
+         if CurLang = '' and Name <> NoName then
+            dictionary_filename = Dict
+            addenda_filename = Add
+            call NepmdWriteConfigValue( nepmd_hini, KeyPath'\SelectedLanguage', Name)
+         endif
          'SelectDictLang'
          return
 
       elseif EntryButton = FileDlg then
          Again = 1
          if i = 1 then
-            FileDlgTitle = 'Select a dictionary'
+            FileDlgTitle = 'Select a dictionary (Netscape 4.6.1 or IBM Works type)'
             FileMask = '*.dic;*.dct'
             lp = lastpos( '\', Dict)
             if lp then
-               FileMask = substr( Dict, 1, lp)''FileMask
+               DefDictDir = substr( Dict, 1, lp)
+            else
+               DefDictDir = DefDir
             endif
+            FileMask = strip( DefDictDir, 't', '\')'\'FileMask
          else
-            FileDlgTitle = 'Select an addendum'
+            FileDlgTitle = 'Select an addendum (could be a new file)'
             FileMask = '*.add;*.adl'
             lp = lastpos( '\', Add)
             if lp then
-               FileMask = substr( Add, 1, lp)''FileMask
+               DefAddDir = substr( Add, 1, lp)
+            else
+               DefAddDir = DefDir
             endif
+            FileMask = strip( DefAddDir, 't', '\')'\'FileMask
          endif
          if getpminfo(EPMINFO_EDITFRAME) then
             handle = EPMINFO_EDITFRAME
@@ -449,5 +476,39 @@ defproc GetDefaultDictLangName(DictBasename)
       endif
    enddo
    return Name
+
+; ---------------------------------------------------------------------------
+defproc GetDictLang
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Spellcheck\SelectedLanguage'
+   Name = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   return Name
+
+; ---------------------------------------------------------------------------
+defproc GetDictBaseName
+   universal nepmd_hini
+   DictBaseName = ''
+   Dict = ''
+   KeyPath = '\NEPMD\User\Spellcheck'
+   Name = NepmdQueryConfigValue( nepmd_hini, KeyPath'\SelectedLanguage')
+   DictList = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Language\'Name'\Dictionary')
+   -- Get first filename
+   if leftstr( DictList, 1) = '"' then
+      parse value DictList with '"'Dict'"' .
+   else
+      parse value DictList with Dict .
+   endif
+   -- Strip Path
+   lp1 = lastpos( '\', Dict)
+   if lp1 > 0 then
+      DictBaseName = substr( Dict, lp1 + 1)
+      -- Strip extension
+      lp2 = lastpos( '.', DictBaseName)
+      if lp2 > 0 then
+         DictBaseName = leftstr( DictBaseName, lp2 - 1)
+         DictBaseName = lowcase( DictBaseName)
+      endif
+   endif
+   return DictBaseName
 
 
