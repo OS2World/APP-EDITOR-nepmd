@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.37 2006-12-10 18:25:41 aschn Exp $
+* $Id: stdcnf.e,v 1.38 2008-09-05 23:15:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -92,29 +92,27 @@ compile endif
 ; #### Todo: replace ########################################################
 EPATH = 'EPMPATH'
 
--- These constants specify what actions should be taken for the
--- Enter and C_Enter keys.  Possible values for ENTER_ACTION are:
---    'ADDLINE'   Insert a line after the current line.
---    'NEXTLINE'  Move to the next line without inserting a line.
---    'ADDATEND'  ADDLINE if on last line, else NEXTLINE.
---    'DEPENDS'   ADDLINE if in insert_mode, else NEXTLINE.
---    'DEPENDS+'  ADDLINE if on last line, else DEPENDS.
---    'STREAM'    Act like stream editors; Enter splits a line.
---    ''          Don't define; user will supply a routine (in MYSTUFF.E).
--- Possible values for C_ENTER_ACTION are the same, except that the action
--- taken for DEPENDS is reversed.  If ENTER_ACTION='STREAM', some other key
--- definitions are modified also - Delete past the end of a line, or Backspace
--- in column 1 will join the two lines as if it had deleted a CR/LF; Left and
--- Right will wrap from line to line.  Setting C_ENTER_ACTION='STREAM' doesn't
--- affect these other keys.
-compile if not defined(ENTER_ACTION)
-; #### Todo: replace ########################################################
-   ENTER_ACTION   = 'ADDLINE'
-compile endif
-compile if not defined(C_ENTER_ACTION)
-; #### Todo: replace ########################################################
-   C_ENTER_ACTION = 'NEXTLINE'
-compile endif
+;-- These constants specify what actions should be taken for the
+;-- Enter and C_Enter keys.  Possible values for ENTER_ACTION are:
+;--    'ADDLINE'   Insert a line after the current line.
+;--    'NEXTLINE'  Move to the next line without inserting a line.
+;--    'ADDATEND'  ADDLINE if on last line, else NEXTLINE.
+;--    'DEPENDS'   ADDLINE if in insert_mode, else NEXTLINE.
+;--    'DEPENDS+'  ADDLINE if on last line, else DEPENDS.
+;--    'STREAM'    Act like stream editors; Enter splits a line.
+;--    ''          Don't define; user will supply a routine (in MYSTUFF.E).
+;-- Possible values for C_ENTER_ACTION are the same, except that the action
+;-- taken for DEPENDS is reversed.  If ENTER_ACTION='STREAM', some other key
+;-- definitions are modified also - Delete past the end of a line, or Backspace
+;-- in column 1 will join the two lines as if it had deleted a CR/LF; Left and
+;-- Right will wrap from line to line.  Setting C_ENTER_ACTION='STREAM' doesn't
+;-- affect these other keys.
+;compile if not defined(ENTER_ACTION)
+;   ENTER_ACTION   = 'ADDLINE'
+;compile endif
+;compile if not defined(C_ENTER_ACTION)
+;   C_ENTER_ACTION = 'NEXTLINE'
+;compile endif
 
 
 -- This is used as the decimal point in MATH.E.  Some users might prefer to
@@ -158,15 +156,12 @@ compile if not defined(WANT_DBCS_SUPPORT)
    WANT_DBCS_SUPPORT = 1
 compile endif
 
-
--- WANT_STREAM_INDENTED lets you specify that if the Enter key splits a line,
--- the new line should be indented the same way the previous line was.
-compile if not defined(WANT_STREAM_INDENTED)
-   --WANT_STREAM_INDENTED = 0  -- changed by aschn
-; #### Todo: replace ########################################################
-   WANT_STREAM_INDENTED = 1
-compile endif
-
+;-- WANT_STREAM_INDENTED lets you specify that if the Enter key splits a line,
+;-- the new line should be indented the same way the previous line was.
+;compile if not defined(WANT_STREAM_INDENTED)
+;   --WANT_STREAM_INDENTED = 0  -- changed by aschn
+;   WANT_STREAM_INDENTED = 1
+;compile endif
 
 -- SUPPORT_BOOK_ICON specifies whether or not the "Book icon" entry is on
 -- the Options pulldown.  Another useless one for internals.
@@ -259,12 +254,10 @@ compile if not defined(WANT_TAB_INSERTION_TO_SPACE)
    WANT_TAB_INSERTION_TO_SPACE = 0
 compile endif
 
-
 ;-- Use the normal-sized or the tiny icons for the built-in toolbar?
 ;compile if not defined(WANT_TINY_ICONS)
 ;   WANT_TINY_ICONS = 0
 ;compile endif
-
 
 ;-- Respect the Scroll lock key?  If set to 1, Shift+F1 - Shift+F4 must not be
 ;-- redefined.  (The cursor keys execute those keys directly, in order to
@@ -313,7 +306,6 @@ defkeys dummy_keys new clear
 
 def otherkeys
    return
-
 
 ; -------- Set universal vars and init misc, depending on consts --------
 ; (Initialization based on ini file values is made by InitConfig, defined
@@ -464,11 +456,11 @@ compile endif
    'linkverify 'CurMenu'.ex'
 
 ;-- set automatic syntax expansion 0/1
-; will be overwritten later
+; will be overridden later
    expand_on        = 1
 
 ;-- set default matchtab to 0 or 1
-; will be overwritten later
+; will be overridden later
    matchtab_on      = 0
 
 -- This option JOIN_AFTER_WRAP specifies whether to join the
@@ -480,7 +472,7 @@ compile endif
 -- If join_after_wrap = 0, you'll get:
 --    wrap.
 --    -- (sample next line)
-; will be overwritten later
+; will be overridden later
    join_after_wrap = 1
 
 -- This option CENTER_SEARCH specifies how the cursor moves
@@ -503,16 +495,16 @@ compile if HOST_SUPPORT
 compile endif
 
 ; Init universal vars if the corresponding consts are defined to use variables
-; will be overwritten later
+; will be overridden later
    show_longnames = 1
 
-; will be overwritten later
+; will be overridden later
    rexx_profile = 1
 
 ; Now always enabled
    escape_key = 1
 
-; will be overwritten later
+; will be overridden later
    tab_key = 0
 
 ; stay = 0: After a change, move the cursor to the last changed string
@@ -528,10 +520,16 @@ compile endif
 ; temp_path to point to it).  The constants are used as default initialization,
 ; and for compatability with older macros.
    vtemp_filename = 'e.tmp'
-   vtemp_path = get_env( 'TMP')
-   if vtemp_path = '' then
+   do i = 1 to 1
+      vtemp_path = get_env( 'TMP')
+      if vtemp_path <> '' then
+         leave
+      endif
       vtemp_path =  get_env( 'TEMP')
-   endif
+      if vtemp_path <> '' then
+         leave
+      endif
+   enddo
    vtemp_path = strip( vtemp_path, 'T', '\')'\'  -- append a backslash
    vautosave_path = vtemp_path
 
@@ -548,64 +546,15 @@ compile endif
 ; will be overridden later
    MouseStyle = 1
 
---------------------------------------------------------------
-   -- Will be overridden later by ini settings, but set here as startup values
-   -- Todo: set NEPMD.INI startup values as well to keep both in sync.
-   fFound = 0
-
-   BootDrive = NepmdQuerySysInfo('BOOTDRIVE')
-   do forever
-      NetscapePath = queryprofile( HINI_USERPROFILE, 'Netscape', '4.6')
-      if NepmdDirExists(NetscapePath) then
-         leave
-      endif
-      NetscapePath = BootDrive'\programs\netscape'
-      if NepmdDirExists(NetscapePath) then
-         leave
-      endif
-      NetscapePath = BootDrive'\netscape'
-      leave
-   enddo
-
-   DicSubPath = 'PROGRAM\SPELLCHK'
-   do while fFound <> 1
-      next = NetscapePath'\'DicSubPath
-      if NepmdDirExists( next) then
-         fFound = 1
-         leave
-      endif
-      next = BootDrive'\programs\NETSCAPE\'DicSubPath
-      if NepmdDirExists( next) then
-         fFound = 1
-         leave
-      endif
-      next = BootDrive'\NETSCAPE\'DicSubPath
-      if NepmdDirExists( next) then
-         fFound = 1
-         leave
-      endif
-      leave
-   enddo
-   if fFound then
-      NetscapeDicPath = next'\'
-   else
-      NetscapeDicPath = ''
+   KeyPath = '\NEPMD\User\Spellcheck\SelectedLanguage'
+   DictLang = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if DictLang <> '' then
+      KeyPath = '\NEPMD\User\Spellcheck\Language'
+      Dict = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'DictLang'\Dictionary')
+      Add  = NepmdQueryConfigValue( nepmd_hini, KeyPath'\'DictLang'\Addenda')
    endif
- compile if defined( my_ADDENDA_FILENAME)  -- so can be overridden by CONFIG info.
-   addenda_filename = my_ADDENDA_FILENAME
- compile else
-   --addenda_filename= 'c:\lexam\lexam.adl'
-   --addenda_filename = NepmdQuerySysInfo('BOOTDRIVE')'\netscape\lexam.adl'
-   addenda_filename = NetscapeDicPath'user.add'
- compile endif
-
- compile if defined( my_DICTIONARY_FILENAME)
-   dictionary_filename = my_DICTIONARY_FILENAME
- compile else
-   --dictionary_filename= 'c:\lexam\us.dct'
-   dictionary_filename = NetscapeDicPath'us.dic'
- compile endif
---------------------------------------------------------------
+   dictionary_filename = Dict
+   addenda_filename    = Add
 
    shell_index = 0
 
@@ -655,33 +604,32 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
    vmessagecolor = MESSAGECOLOR
    vdesktopcolor = DESKTOPCOLOR
 
-; #### Todo: replace ########################################################
- compile if ENTER_ACTION='' | ENTER_ACTION='ADDLINE'  -- The default
-   enterkey=1; a_enterkey=1; s_enterkey=1; padenterkey=1; a_padenterkey=1; s_padenterkey=1
- compile elseif ENTER_ACTION='NEXTLINE'
-   enterkey=2; a_enterkey=2; s_enterkey=2; padenterkey=2; a_padenterkey=2; s_padenterkey=2
- compile elseif ENTER_ACTION='ADDATEND'
-   enterkey=3; a_enterkey=3; s_enterkey=3; padenterkey=3; a_padenterkey=3; s_padenterkey=3
- compile elseif ENTER_ACTION='DEPENDS'
-   enterkey=4; a_enterkey=4; s_enterkey=4; padenterkey=4; a_padenterkey=4; s_padenterkey=4
- compile elseif ENTER_ACTION='DEPENDS+'
-   enterkey=5; a_enterkey=5; s_enterkey=5; padenterkey=5; a_padenterkey=5; s_padenterkey=5
- compile elseif ENTER_ACTION='STREAM'
-   enterkey=6; a_enterkey=6; s_enterkey=6; padenterkey=6; a_padenterkey=6; s_padenterkey=6
- compile endif
- compile if C_ENTER_ACTION='ADDLINE'
-   c_enterkey=1; c_padenterkey=1;
- compile elseif C_ENTER_ACTION='' | C_ENTER_ACTION='NEXTLINE'  -- The default
-   c_enterkey=2; c_padenterkey=2;
- compile elseif C_ENTER_ACTION='ADDATEND'
-   c_enterkey=3; c_padenterkey=3;
- compile elseif C_ENTER_ACTION='DEPENDS'
-   c_enterkey=4; c_padenterkey=4;
- compile elseif C_ENTER_ACTION='DEPENDS+'
-   c_enterkey=5; c_padenterkey=5;
- compile elseif C_ENTER_ACTION='STREAM'
-   c_enterkey=6; c_padenterkey=6;
- compile endif
+;compile if ENTER_ACTION='' | ENTER_ACTION='ADDLINE'  -- The default
+;   enterkey=1; a_enterkey=1; s_enterkey=1; padenterkey=1; a_padenterkey=1; s_padenterkey=1
+;compile elseif ENTER_ACTION='NEXTLINE'
+;   enterkey=2; a_enterkey=2; s_enterkey=2; padenterkey=2; a_padenterkey=2; s_padenterkey=2
+;compile elseif ENTER_ACTION='ADDATEND'
+;   enterkey=3; a_enterkey=3; s_enterkey=3; padenterkey=3; a_padenterkey=3; s_padenterkey=3
+;compile elseif ENTER_ACTION='DEPENDS'
+;   enterkey=4; a_enterkey=4; s_enterkey=4; padenterkey=4; a_padenterkey=4; s_padenterkey=4
+;compile elseif ENTER_ACTION='DEPENDS+'
+;   enterkey=5; a_enterkey=5; s_enterkey=5; padenterkey=5; a_padenterkey=5; s_padenterkey=5
+;compile elseif ENTER_ACTION='STREAM'
+;   enterkey=6; a_enterkey=6; s_enterkey=6; padenterkey=6; a_padenterkey=6; s_padenterkey=6
+;compile endif
+;compile if C_ENTER_ACTION='ADDLINE'
+;   c_enterkey=1; c_padenterkey=1;
+;compile elseif C_ENTER_ACTION='' | C_ENTER_ACTION='NEXTLINE'  -- The default
+;   c_enterkey=2; c_padenterkey=2;
+;compile elseif C_ENTER_ACTION='ADDATEND'
+;   c_enterkey=3; c_padenterkey=3;
+;compile elseif C_ENTER_ACTION='DEPENDS'
+;   c_enterkey=4; c_padenterkey=4;
+;compile elseif C_ENTER_ACTION='DEPENDS+'
+;   c_enterkey=5; c_padenterkey=5;
+;compile elseif C_ENTER_ACTION='STREAM'
+;   c_enterkey=6; c_padenterkey=6;
+;compile endif
 
    stream_mode = 1
    'togglecontrol 24 1'
@@ -714,16 +662,27 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
    -- and toggleframe are used above.
 
    'linkverify keys'
-   --'linkverify' STDKEYS_NAME  -- link works, but the keyset is not processed
+
+;; Test for linking/unlinking the standard keyset.
+;; Link works, but the keyset is not processed.
+;compile if defined( LINK_STDKEYS)
+; compile if LINK_STDKEYS
+;   keys dummy_keys
+;   'linkverify' STDKEYS_NAME
+;   keys edit_keys
+; compile endif
+;compile endif
+
    'linkverify file'
    'linkverify locate'
    'linkverify toolbar'
    'linkverify recompile'  -- several recompile/relink/restart commands
    'linkverify assist'     -- provides instring and inliteral defprocs as well
    'linkverify bookmark'
-   'linkverify popup'      -- saves 4.2k in stringtable area
+   'linkverify popup'      -- saves 4.2 KIB in stringtable area
    'linkverify all'        -- doesn't work reliable when being implicitely linked, so always link it
    'linkverify epmshell'
+   'linkverify dict'       -- select language for dictionaries
 
 ;compile if MOUSE_SUPPORT = 'LINK'
 ;   'linkverify MOUSE'  -- doesn't work
@@ -756,8 +715,6 @@ defc poptagsdlg  = link_exec( 'tags', 'poptagsdlg',  arg(1))
 defc maketags    = link_exec( 'maketags', 'maketags',  arg(1))
 
 defc viewword = link_exec( 'kwhelp', 'viewword', arg(1))
-
-defc DictLang = link_exec( 'dict', 'DictLang', arg(1))      -- select language for dictionaries
 
 ;if isadefc( 'InitModeCnf') then
 ;   'InitModeCnf'
