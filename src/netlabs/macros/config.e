@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.20 2006-06-03 20:48:58 aschn Exp $
+* $Id: config.e,v 1.21 2008-09-05 22:36:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -53,7 +53,7 @@
 ; Configuration changes, that must be written to the ini, can be made by
 ;    o  settings dialog
 ;    o  menu items
-;    o  drap and drop from color and font palettes
+;    o  drag and drop from color and font palettes
 ;    o  additional commands
 
 ; Instead of using EPM.INI, only NEPMD.INI is used now.
@@ -100,24 +100,21 @@
 ; WANT_STREAM_MODE, WANT_TOOLBAR, SPELL_SUPPORT, WANT_APPLICATION_INI_FILE,
 ; ENHANCED_ENTER_KEYS, WANT_LONGNAMES, WANT_PROFILE TOGGLE_ESCAPE,
 ; TOGGLE_TAB, DYNAMIC_CURSOR_STYLE, WANT_BITMAP_BACKGROUND, INITIAL_TOOLBAR
-; WPS_SUPPORT
+; WPS_SUPPORT, ENTER_ACTION, C_ENTER_ACTION
 
 ; Remaining consts:
-; CHECK_FOR_LEXAM, ENTER_ACTION, C_ENTER_ACTION, HOST_SUPPORT
+; CHECK_FOR_LEXAM, HOST_SUPPORT
 ; my_CURSORDIMENSIONS, my_SAVEPATH,
 ; my_STACK_CMDS, my_CUA_MENU_ACCEL, SUPPORT_USER_EXITS
 
 ; Remaining standard ini keys (now moved to NEPMD.INI):
 ; (i) means: internally defined, by non-available C code.
 ;            Todo: All other keys should be moved to NEPMD's RegContainer.
-;    EPM -> ADDENDA
-;           AUTOSAVE
+;    EPM -> AUTOSAVE
 ;           AUTOSPATH
 ;           CommandBox (i)
 ;           CUA_ACCEL
 ;           DEFAULTSWP (i)
-;           DICTIONARY
-;           ENTERKEYS
 ;           MARGINS
 ;           MsgBox (i)
 ;           OpenBox (i)
@@ -126,7 +123,6 @@
 ;           RING
 ;           STACK
 ;           TABS
-;           TEMPPATH
 ;    ERESDLGS -> * (i)
 ;    UCMenu -> ConfigInfo (i)
 ;    UCMenu_Templates -> * (i)
@@ -175,6 +171,9 @@ compile endif
    endif
 
    omit = 0
+   omit = omit +   4  -- omit Paths page (outdated)
+   omit = omit +   8  -- omit Autosave page (outdated)
+   omit = omit +  32  -- omit Keys page (outdated)
    --omit = 512
    if isnum( args) then
       omit = args
@@ -183,8 +182,8 @@ compile endif
    --    0: show all pages
    --    1: without page  1  Margins
    --    2: without page  2  Colors
-   --    4: without page  3  Pathes
-   --    8: without page  4  Auto-save
+   --    4: without page  3  Paths
+   --    8: without page  4  Autosave
    --   16: without page  5  Fonts
    --   32: without page  6  Keys
    --   64: without page  7  Window
@@ -305,14 +304,15 @@ defc RestoreEpmIniPath
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defc renderconfig
-   universal addenda_filename
-   universal dictionary_filename
-   universal vAUTOSAVE_PATH, vTEMP_PATH
+;   universal addenda_filename
+;   universal dictionary_filename
+   universal vAUTOSAVE_PATH
+;   universal vTEMP_PATH
    universal vDEFAULT_TABS, vDEFAULT_MARGINS, vDEFAULT_AUTOSAVE
    universal appname, app_hini
    universal nepmd_hini
-   universal enterkey, a_enterkey, c_enterkey, s_enterkey
-   universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
+;   universal enterkey, a_enterkey, c_enterkey, s_enterkey
+;   universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
 compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
 compile endif
@@ -384,7 +384,6 @@ compile endif
          if fsend_default then     -- 1: Use default values
             tempstr = ''
          else                      -- 0: Use values from .ini file
-            --tempstr = queryprofile( app_hini, appname, INI_STUFF)
             KeyPath = '\NEPMD\User\Colors'
             textcol    = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Text')
             markcol    = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Mark')
@@ -403,22 +402,37 @@ compile endif
       call send_config_data( hndle, tmessagecolor, 7, help_panel)
 
    elseif page = 4 then  ----------------- Page 4 is paths ------------
-compile if CHECK_FOR_LEXAM
-      if lexam_is_available then
-compile endif
-         help_panel = 5390  -- Different help panel
-compile if CHECK_FOR_LEXAM
-      endif
-compile endif
-      call send_config_data( hndle, checkini( fsend_default, INI_TEMPPATH, vTEMP_PATH, TEMP_PATH), 10, help_panel)
-compile if CHECK_FOR_LEXAM
-      if lexam_is_available then
-compile endif
-         call send_config_data( hndle, checkini( fsend_default, INI_DICTIONARY, dictionary_filename), 11, help_panel)
-         call send_config_data( hndle, checkini( fsend_default, INI_ADDENDA, addenda_filename), 12, help_panel)
-compile if CHECK_FOR_LEXAM
-      endif
-compile endif
+; Page 4 is not compatible with the config via the Options menu.
+;compile if CHECK_FOR_LEXAM
+;      if lexam_is_available then
+;compile endif
+;         help_panel = 5390  -- Different help panel
+;compile if CHECK_FOR_LEXAM
+;      endif
+;compile endif
+;      call send_config_data( hndle, checkini( fsend_default, INI_TEMPPATH, vTEMP_PATH, TEMP_PATH), 10, help_panel)
+;compile if CHECK_FOR_LEXAM
+;      if lexam_is_available then
+;compile endif
+;/***
+;         call send_config_data( hndle, checkini( fsend_default, INI_DICTIONARY, dictionary_filename), 11, help_panel)
+;         call send_config_data( hndle, checkini( fsend_default, INI_DICTIONARY, addenda_filename), 12, help_panel)
+;***/
+;         if fsend_default then
+;            next = ''
+;         else
+;            next = dictionary_filename' (entry is read-only)'
+;         endif
+;         call send_config_data( hndle, next, 11, help_panel)
+;         if fsend_default then
+;            next = ''
+;         else
+;            next = addenda_filename' (entry is read-only)'
+;         endif
+;         call send_config_data( hndle, next, 12, help_panel)
+;compile if CHECK_FOR_LEXAM
+;      endif
+;compile endif
 
    elseif page = 5 then  ----------------- Page 5 is autosave ---------
       if fsend_default = 2 then      -- 2: Use current values
@@ -436,73 +450,61 @@ compile endif
                          ----------------- Status
       -- All fonts are saved now as psize'.'facename['.'attr], like OS/2 font specs
       if not fsend_default then      -- 0: Use values from .ini file
-         --tempstr = checkini( fsend_default, INI_STATUSFONT, '')
          KeyPath = '\NEPMD\User\Fonts\Status'
          tempstr = NepmdQueryConfigValue( nepmd_hini, KeyPath)
       elseif fsend_default = 1 then  -- 1: Use default values
          tempstr = queryfont(0)
       else                           -- 2: Use current values
-         --if statfont then
-         --   parse value statfont with ptsize'.'facename'.'attr
-         --   tempstr = facename'.'ptsize'.'attr
-         --else
-         --   tempstr = queryfont(0)
-         --endif
          tempstr = statfont
       endif
       tempstr = ConvertToEFont( tempstr)
       call send_config_data( hndle, tempstr'.'trunc(vstatuscolor//16)'.'vstatuscolor%16, 25, help_panel)
                          ----------------- Message
       if not fsend_default then      -- 0: Use values from .ini file
-         --tempstr = checkini( fsend_default, INI_MESSAGEFONT, '')
          KeyPath = '\NEPMD\User\Fonts\Message'
          tempstr = NepmdQueryConfigValue( nepmd_hini, KeyPath)
       elseif fsend_default = 1 then  -- 1: Use default values
          tempstr = queryfont(0)
       else                           -- 2: Use current values
-         --if msgfont then
-         --   parse value msgfont with ptsize'.'facename'.'attr
-         --   tempstr = facename'.'ptsize'.'attr
-         --else
-         --   tempstr = queryfont(0)
-         --endif
          tempstr = msgfont
       endif
       tempstr = ConvertToEFont( tempstr)
       call send_config_data( hndle, tempstr'.'trunc(vmessagecolor//16)'.'vmessagecolor%16, 26, help_panel)
+
    elseif page = 7 then  ----------------- Page 7 is enter keys -------
-      if fsend_default = 1 then      -- 1: Use default values
-compile if ENTER_ACTION = '' | ENTER_ACTION = 'ADDLINE'  -- The default
-         ek = \1
-compile elseif ENTER_ACTION = 'NEXTLINE'
-         ek = \2
-compile elseif ENTER_ACTION = 'ADDATEND'
-         ek = \3
-compile elseif ENTER_ACTION = 'DEPENDS'
-         ek = \4
-compile elseif ENTER_ACTION = 'DEPENDS+'
-         ek = \5
-compile elseif ENTER_ACTION = 'STREAM'
-         ek = \6
-compile endif
-compile if C_ENTER_ACTION = 'ADDLINE'
-         c_ek = \1
-compile elseif C_ENTER_ACTION = '' | C_ENTER_ACTION = 'NEXTLINE'  -- The default
-         c_ek = \2
-compile elseif C_ENTER_ACTION = 'ADDATEND'
-         c_ek = \3
-compile elseif C_ENTER_ACTION = 'DEPENDS'
-         c_ek = \4
-compile elseif C_ENTER_ACTION = 'DEPENDS+'
-         c_ek = \5
-compile elseif C_ENTER_ACTION = 'STREAM'
-         c_ek = \6
-compile endif
-         tempstr = ek || ek || c_ek || ek || ek || ek || c_ek || ek
-      else                           -- 0|2: Use values from .ini file or current values
-         tempstr = chr(enterkey) || chr(a_enterkey) || chr(c_enterkey) || chr(s_enterkey) || chr(padenterkey) || chr(a_padenterkey) || chr(c_padenterkey) || chr(s_padenterkey)
-      endif
-      call send_config_data(hndle, tempstr, 14, help_panel)
+; Page 7 is not compatible with the configuration via STDKEYS.E or MYKEYS.E.
+;      if fsend_default = 1 then      -- 1: Use default values
+;compile if ENTER_ACTION = '' | ENTER_ACTION = 'ADDLINE'  -- The default
+;         ek = \1
+;compile elseif ENTER_ACTION = 'NEXTLINE'
+;         ek = \2
+;compile elseif ENTER_ACTION = 'ADDATEND'
+;         ek = \3
+;compile elseif ENTER_ACTION = 'DEPENDS'
+;         ek = \4
+;compile elseif ENTER_ACTION = 'DEPENDS+'
+;         ek = \5
+;compile elseif ENTER_ACTION = 'STREAM'
+;         ek = \6
+;compile endif
+;compile if C_ENTER_ACTION = 'ADDLINE'
+;         c_ek = \1
+;compile elseif C_ENTER_ACTION = '' | C_ENTER_ACTION = 'NEXTLINE'  -- The default
+;         c_ek = \2
+;compile elseif C_ENTER_ACTION = 'ADDATEND'
+;         c_ek = \3
+;compile elseif C_ENTER_ACTION = 'DEPENDS'
+;         c_ek = \4
+;compile elseif C_ENTER_ACTION = 'DEPENDS+'
+;         c_ek = \5
+;compile elseif C_ENTER_ACTION = 'STREAM'
+;         c_ek = \6
+;compile endif
+;         tempstr = ek || ek || c_ek || ek || ek || ek || c_ek || ek
+;      else                           -- 0|2: Use values from .ini file or current values
+;         tempstr = chr(enterkey) || chr(a_enterkey) || chr(c_enterkey) || chr(s_enterkey) || chr(padenterkey) || chr(a_padenterkey) || chr(c_padenterkey) || chr(s_padenterkey)
+;      endif
+;      call send_config_data(hndle, tempstr, 14, help_panel)
 
    elseif page = 8 then  ----------------- Page 8 is Frame controls ---
       tempstr = '1111010'  -- StatWnd, MsgWnd, hscroll, vscroll, extrawnd, bgbitmap, drop
@@ -567,7 +569,6 @@ compile endif
       if active_toolbar = \1 then
          active_toolbar = ''
       endif
-;      checkini( fsend_default, INI_DEF_TOOLBAR, active_toolbar, '')
       send_toolbar = active_toolbar  -- current setting
       if fsend_default then
          if fsend_default = 1 then   -- 1: Use default values
@@ -595,15 +596,15 @@ defproc send_config_data( hndle, strng, i, help_panel)
                        ltoa( offset(strng) || selector(strng), 10))
 
 ; ---------------------------------------------------------------------------
-defc enterkeys
-   universal enterkey, a_enterkey, c_enterkey, s_enterkey
-   universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
-   universal appname, app_hini
-   parse arg perm enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey
-   if perm then
-      call setprofile( app_hini, appname, INI_ENTERKEYS,
-                       enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey)
-   endif
+;defc enterkeys
+;   universal enterkey, a_enterkey, c_enterkey, s_enterkey
+;   universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
+;   universal appname, app_hini
+;   parse arg perm enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey
+;   if perm then
+;      call setprofile( app_hini, appname, INI_ENTERKEYS,
+;                       enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey)
+;   endif
 
 ; ---------------------------------------------------------------------------
 ; fsend_default is a flag that says we're reverting to the default product options.
@@ -651,11 +652,13 @@ defproc SetIni( inikey, inidata)
 � who and when    : Jerry C. & LAM  7/20/89                                  �
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
+; This command executes the opposite if its name. It queries settings to
+; fill the settings dialog controls.
 defc SetConfig
-   universal addenda_filename
-   universal dictionary_filename
-   universal vTEMP_FILENAME, vTEMP_PATH
-   universal vAUTOSAVE_PATH
+;   universal addenda_filename
+;   universal dictionary_filename
+;   universal vTEMP_FILENAME, vTEMP_PATH
+;   universal vAUTOSAVE_PATH
    universal vdefault_tabs, vdefault_margins, vdefault_autosave
    universal appname, app_hini
    universal vmessagecolor, vstatuscolor
@@ -683,7 +686,6 @@ defc SetConfig
                         -- SetConfig is *always* called by the config dialog.
 
    if     configid = 1 then
-------------------------------------------------------
       if ChangeFileSettings = 1 then                      -- change current file's setting
          if .margins <> newcmd then
             .margins = newcmd
@@ -697,14 +699,12 @@ defc SetConfig
       endif
       vdefault_margins = setini( INI_MARGINS, newcmd, perm)
       'RefreshInfoLine MARGINS'
-------------------------------------------------------
 
    elseif configid = 2 then
       .autosave = setini( INI_AUTOSAVE, newcmd, perm)
       vdefault_autosave = newcmd
 
    elseif configid = 3 then
-------------------------------------------------------
       if ChangeFileSettings = 1 then                      -- change current file's setting
          if .tabs <> newcmd then
             .tabs = newcmd
@@ -715,16 +715,17 @@ defc SetConfig
       endif
       vdefault_tabs = setini( INI_TABS, newcmd, perm)
       'RefreshInfoLine TABS'
-------------------------------------------------------
 
    elseif configid = 4 & newcmd <> .textcolor then
       .textcolor = newcmd
+
       if perm then
          'SaveColor TEXT'
       endif
 
    elseif configid = 5 & newcmd <> .markcolor then
       .markcolor = newcmd
+
       if perm then
          'SaveColor MARK'
       endif
@@ -732,6 +733,7 @@ defc SetConfig
    elseif configid = 6 & newcmd <> vstatuscolor then
       vstatuscolor = newcmd
       'SetStatusline'
+
       if perm then
          'SaveColor STATUS'
       endif
@@ -739,38 +741,39 @@ defc SetConfig
    elseif configid = 7 & newcmd <> vmessagecolor then
       vmessagecolor = newcmd
       'SetMessageline'
+
       if perm then
          'SaveColor MESSAGE'
       endif
 
    elseif configid = 9 then
-      if newcmd <> '' & rightstr( newcmd, 1) <> '\' then
-         newcmd = newcmd'\'
-      endif
-      if rightstr( newcmd, 2) = '\\' then             -- Temp fix for dialog bug
-         newcmd = leftstr( newcmd, length(newcmd) - 1)
-      endif
-      vAUTOSAVE_PATH = setini( INI_AUTOSPATH, newcmd, perm)
+;      if newcmd <> '' & rightstr( newcmd, 1) <> '\' then
+;         newcmd = newcmd'\'
+;      endif
+;      if rightstr( newcmd, 2) = '\\' then             -- Temp fix for dialog bug
+;         newcmd = leftstr( newcmd, length(newcmd) - 1)
+;      endif
+;      vautosave_path = setini( INI_AUTOSPATH, newcmd, perm)
 
    elseif configid = 10 then
-      if newcmd <> '' & rightstr( newcmd, 1) <> '\' then
-         newcmd = newcmd'\'
-      endif
-      if rightstr( newcmd, 2) = '\\' then             -- Temp fix for dialog bug
-         newcmd = leftstr( newcmd, length(newcmd) - 1)
-      endif
-      if upcase(leftstr( vTEMP_FILENAME, length(vTEMP_PATH))) = upcase(vTEMP_PATH) then
-         vTEMP_FILENAME = newcmd||substr( vTEMP_FILENAME, length(vTEMP_PATH) + 1)
-      elseif not verify( vTEMP_FILENAME, ':\', 'M') then   -- if not fully qualified
-         vTEMP_FILENAME = newcmd||vTEMP_FILENAME
-      endif
-      vTEMP_PATH = setini( INI_TEMPPATH, newcmd, perm)
+;      if newcmd <> '' & rightstr( newcmd, 1) <> '\' then
+;         newcmd = newcmd'\'
+;      endif
+;      if rightstr( newcmd, 2) = '\\' then             -- Temp fix for dialog bug
+;         newcmd = leftstr( newcmd, length(newcmd) - 1)
+;      endif
+;      if upcase(leftstr( vtemp_filename, length(vtemp_path))) = upcase(vtemp_path) then
+;         vtemp_filename = newcmd||substr( vtemp_filename, length(vtemp_path) + 1)
+;      elseif not verify( vtemp_filename, ':\', 'M') then   -- if not fully qualified
+;         vtemp_filename = newcmd||vtemp_filename
+;      endif
+;      vtemp_path = setini( INI_TEMPPATH, newcmd, perm)
 
    elseif configid = 11 then
-      dictionary_filename = setini( INI_DICTIONARY, newcmd, perm)
+;      dictionary_filename = setini( INI_DICTIONARY, newcmd, perm)
 
    elseif configid = 12 then
-      addenda_filename = setini( INI_ADDENDA, newcmd, perm)
+;      addenda_filename = setini( INI_ADDENDA, newcmd, perm)
 
    elseif configid = 15 then
       parse value newcmd with statflg 2 msgflg 3 hscrollflg 4 vscrollflg 5 extraflg 6 new_bitmap 7 drop_style 8
@@ -780,12 +783,14 @@ defc SetConfig
       'toggleframe 16' hscrollflg
       'toggleframe 32' extraflg
       'toggleframe 8192' drop_style
+
       if bitmap_present <> new_bitmap then
          'toggle_bitmap'
          if bitmap_present then
             bm_filename = ''  -- Will be reset; want to ensure it's reloaded.
          endif
       endif
+
       if perm then
          newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
@@ -817,42 +822,35 @@ defc SetConfig
 
    elseif configid = 16 then
       if bm_filename <> newcmd then
-;         bm_filename = newcmd
          if bitmap_present then
             if bm_filename = '' then  -- Need to turn off & back on to get default bitmap
                'toggle_bitmap'
                'toggle_bitmap'
             else
-;               'load_dt_bitmap' bm_filename
                'load_dt_bitmap' newcmd
             endif
          endif
       endif
+
       if perm then
          call setprofile( app_hini, appname, INI_BITMAP, bm_filename)
       endif
 
    elseif configid = 18 then
       parse value newcmd with markflg 2 streamflg 3 profile 4 longnames 5 pointer_style 6 cursor_shape 7 menu_accel 8
+
       vepm_pointer = 1 + pointer_style
       mouse_setpointer vepm_pointer
+
 compile if not defined(my_CURSORDIMENSIONS)
       'cursor_style' (cursor_shape + 1)
 compile endif
-------------------------------------------------------
+
       if markflg <> cua_marking_switch then
          'CUA_mark_toggle'
          'postme RefreshInfoline MARKINGMODE' -- postme required? CUA_mark_toggle sets infoline already!
       endif
-------------------------------------------------------
-/*
-      if ChangeFileSettings then
-         if streamflg <> stream_mode then
-            'stream_toggle'
-         endif
-      endif
-*/
--- todo?
+
       if streamflg <> default_stream_mode then
          if ChangeFileSettings = 1 then                      -- change current file's setting
             'stream_toggle'  -- old definition
@@ -869,16 +867,18 @@ compile endif
          default_stream_mode = streamflg
       endif
 
-------------------------------------------------------
       if longnames <> '' then
          show_longnames = longnames
       endif
+
       if PROFILE <> '' then
          rexx_profile = PROFILE
       endif
+
       if cua_menu_accel <> menu_accel then
          'accel_toggle'
       endif
+
       if perm then
          newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
          if newcmd <> '' then
@@ -907,7 +907,6 @@ compile endif
 
    elseif configid = 19 then
       on = newcmd
-------------------------------------------------------
       if on <> default_tab_key then
          if ChangeFileSettings = 1 then                      -- change current file's setting
             tab_key = on -- old definition
@@ -922,7 +921,6 @@ compile endif
          endif
          default_tab_key = on
       endif
-------------------------------------------------------
 
       if perm then
          newcmd = queryprofile( app_hini, appname, INI_OPTFLAGS)
@@ -947,6 +945,7 @@ compile endif
                              app_hini, put_in_buffer(newcmd))
          toolbar_loaded = newcmd
       endif
+
       if perm then
          --call setprofile( app_hini, appname, INI_DEF_TOOLBAR, newcmd)
          call SetDefaultToolbar()
@@ -956,6 +955,7 @@ compile endif
       if newcmd <> queryframecontrol(EFRAMEF_TOOLBAR) then
          'toggleframe' EFRAMEF_TOOLBAR newcmd
       endif
+
       if perm then
          temp = queryprofile( app_hini, appname, INI_OPTFLAGS)
          -- OPTFLAGS:   16
@@ -1016,8 +1016,8 @@ compile endif
 defc InitConfig
    universal addenda_filename
    universal dictionary_filename
-   universal vTEMP_FILENAME, vTEMP_PATH
-   universal vAUTOSAVE_PATH
+   universal vtemp_filename, vtemp_path
+;   universal vautosave_path
    universal appname, app_hini, bitmap_present, optflag_extrastuff
    universal vdefault_tabs, vdefault_margins, vdefault_autosave
    universal statfont, msgfont, bm_filename
@@ -1029,8 +1029,8 @@ compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined(my_
 compile endif
    universal vmessagecolor, vstatuscolor
    universal vdesktopcolor
-   universal enterkey, a_enterkey, c_enterkey, s_enterkey
-   universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
+;   universal enterkey, a_enterkey, c_enterkey, s_enterkey
+;   universal padenterkey, a_padenterkey, c_padenterkey, s_padenterkey
    universal stream_mode
    universal default_stream_mode
    universal ring_enabled
@@ -1061,7 +1061,7 @@ compile endif
       call setprofile( app_hini, appname, INI_AUTOSAVE, next)
    endif
    .autosave = next
-   vDEFAULT_AUTOSAVE = next
+   vdefault_autosave = next
 
    next = queryprofile( app_hini, appname, INI_TABS)
    if next = '' then
@@ -1071,15 +1071,18 @@ compile endif
    .tabs = next
    vdefault_tabs = next
 
-   next = queryprofile( app_hini, appname, INI_TEMPPATH)
-   if next = '' then
+;   next = queryprofile( app_hini, appname, INI_TEMPPATH)
+   -- Always redetermine vtemp_path on startup, don't simply use previous
+   -- ini key, because that may have become not valid if TMP was changed.
+   next = ''
+;   if next = '' then
       do while next = ''
          next = Get_Env( 'TMP')
-         if next > '' then
+         if next <> '' then
             leave
          endif
          next = Get_Env( 'TEMP')
-         if next > '' then
+         if next <> '' then
             leave
          endif
          next = directory()
@@ -1088,40 +1091,42 @@ compile endif
       if rightstr( next, 1) <> '\' then
          next = next'\'          -- Must end with a backslash.
       endif
-      call setprofile( app_hini, appname, INI_TEMPPATH, next)
-   endif
-   vTEMP_PATH = next
-   if rightstr( vTemp_Path, 1) <> '\' then
-      vTemp_Path = vTemp_Path'\'          -- Must end with a backslash.
-   endif
-   if not verify( vTEMP_FILENAME, ':\', 'M') then   -- if not fully qualified
-      vTEMP_FILENAME = vTEMP_PATH||vTEMP_FILENAME
-   endif
-
-   next = queryprofile( app_hini, appname, INI_AUTOSPATH)
-   if next = '' then
-      next = vTemp_Path
-      call setprofile( app_hini, appname, INI_AUTOSPATH, next)
-   endif
-   vAUTOSAVE_PATH = next
-   if rightstr( vAUTOSAVE_Path, 1) <> '\' then
-      vAUTOSAVE_Path = vAUTOSAVE_Path'\'  -- Must end with a backslash.
-   endif
-compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined( my_SAVEPATH)
-   savepath = vAUTOSAVE_PATH
-compile endif
-
-   next = queryprofile( app_hini, appname, INI_DICTIONARY)
---------> todo?
-   if next then
-      dictionary_filename = next
+;      call setprofile( app_hini, appname, INI_TEMPPATH, next)
+;   endif
+   vtemp_path = next
+;   if rightstr( vtemp_path, 1) <> '\' then
+;      vtemp_path = vtemp_path'\'          -- Must end with a backslash.
+;   endif
+   if not verify( vtemp_filename, ':\', 'M') then   -- if not fully qualified
+      vtemp_filename = vtemp_path||vtemp_filename
    endif
 
-   next = queryprofile( app_hini, appname, INI_ADDENDA)
---------> todo?
-   if next then
-      addenda_filename = next
-   endif
+;   next = queryprofile( app_hini, appname, INI_AUTOSPATH)
+;   if next = '' then
+;      next = vtemp_path'autosave'
+;      call MakeTree( next)
+;      if rightstr( next, 1) <> '\' then
+;         next = next'\'          -- Must end with a backslash.
+;      endif
+;      call setprofile( app_hini, appname, INI_AUTOSPATH, next)
+;   endif
+;   vautosave_path = next
+;   if rightstr( vautosave_path, 1) <> '\' then
+;      vautosave_path = vautosave_path'\'  -- Must end with a backslash.
+;   endif
+;compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined( my_SAVEPATH)
+;   savepath = vautosave_path
+;compile endif
+
+;   next = queryprofile( app_hini, appname, INI_DICTIONARY)
+;   if next then
+;      dictionary_filename = next
+;   endif
+;
+;   next = queryprofile( app_hini, appname, INI_ADDENDA)
+;   if next then
+;      addenda_filename = next
+;   endif
 
    -- Options from Option pulldown
    next = queryprofile( app_hini, appname, INI_OPTFLAGS)
@@ -1161,14 +1166,14 @@ compile endif
    endif
    'toggleframe 32' extraflg
    'toggleframe 8192' drop_style
-------------------------------------------------------------------
+
    cua_marking_switch = 0
    if markflg <> '' then
       if markflg <> cua_marking_switch then
          'CUA_mark_toggle'
       endif
    endif
-------------------------------------------------------------------
+
    default_stream_mode = 1
    if streamflg <> '' then
       if streamflg <> default_stream_mode then
@@ -1180,17 +1185,17 @@ compile endif
       endif
    endif
    stream_mode = default_stream_mode
-------------------------------------------------------------------
+
    show_longnames = 1
    if longnames <> '' then
       show_longnames = longnames
    endif
-------------------------------------------------------------------
+
    rexx_profile = 1
    if profile <> '' then
       rexx_profile = profile
    endif
-------------------------------------------------------------------
+
 /*
 -- Disabled; should remain on; can still be configured via PROFILE.ERX:
 -- 'escapekey 0'
@@ -1199,13 +1204,12 @@ compile endif
       escape_key = escapekey
    endif
 */
-------------------------------------------------------------------
+
    default_tab_key = 0
    if tabkey <> '' then
       default_tab_key = tabkey
    endif
    tab_key = default_tab_key
-------------------------------------------------------------------
 
    bm_filename = queryprofile( app_hini, appname, INI_BITMAP)
    if next <> '' then
@@ -1214,11 +1218,10 @@ compile endif
       endif
    endif
 
-   next = queryprofile( app_hini, appname, INI_ENTERKEYS)
---------> todo?
-   if next <> '' then
-      parse value next with enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey .
-   endif
+;   next = queryprofile( app_hini, appname, INI_ENTERKEYS)
+;   if next <> '' then
+;      parse value next with enterkey a_enterkey c_enterkey s_enterkey padenterkey a_padenterkey c_padenterkey s_padenterkey .
+;   endif
 
    parse value queryprofile( app_hini, appname, INI_OPT2FLAGS) with pointer_style cursor_shape .
 --------> todo?
@@ -1303,6 +1306,33 @@ defc initconfig2
    universal default_font  -- a number (= .font), not a font spec
    universal msgfont
    universal statfont
+   universal vtemp_path
+   universal vautosave_path
+
+   KeyPath = '\NEPMD\User\AutoSave\Directory'
+   Dir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Dir = '' then
+      Dir = vtemp_path'nepmd\autosave'
+   endif
+   -- Trailing backslash required
+   if rightstr( Dir, 1) <> '\' then
+      vautosave_path = Dir'\'
+   else
+      vautosave_path = Dir
+   endif
+compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined( my_SAVEPATH)
+   savepath = vautosave_path
+compile endif
+   rcx = MakeTree( Dir)
+
+   KeyPath = '\NEPMD\User\Backup\Directory'
+   Dir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Dir <> '=' then
+      if Dir = '' then
+         Dir = vtemp_path'nepmd\backup'
+      endif
+      rcx = MakeTree( Dir)
+   endif
 
    KeyPath = '\NEPMD\User\Reflow\TwoSpaces'
    twospaces = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -1411,11 +1441,11 @@ defc SaveOptions
    if arg(1) = 'OptOnly' then  -- don't process the following
       return
    endif
-   call setprofile( app_hini, appname, INI_RINGENABLED,    ring_enabled)
-   call setprofile( app_hini, appname, INI_STACKCMDS,      stack_cmds)
-   call setprofile( app_hini, appname, INI_CUAACCEL,       cua_menu_accel)
+   call setprofile( app_hini, appname, INI_RINGENABLED, ring_enabled)
+   call setprofile( app_hini, appname, INI_STACKCMDS,   stack_cmds)
+   call setprofile( app_hini, appname, INI_CUAACCEL,    cua_menu_accel)
    if bm_filename <> '' then
-      call setprofile( app_hini, appname, INI_BITMAP,      bm_filename)
+      call setprofile( app_hini, appname, INI_BITMAP,   bm_filename)
    endif
    call windowmessage( 0, getpminfo(APP_HANDLE),
                        62, 0, 0)               -- x'003E' = WM_SAVEAPPLICATION
@@ -1708,4 +1738,15 @@ defproc GetMatchtab
    getfileid fid
    on = (GetAVar( 'matchtab.'fid) = 1)
    return on
+
+; ---------------------------------------------------------------------------
+; This command is exectued once after install if JustInstalled = 1.
+defc DelOldRegKeys
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\LastStuff\LastFindDefButton'
+   call NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+   KeyPath = '\NEPMD\User\LastStuff\LastSearchArgs'
+   call NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+   KeyPath = '\NEPMD\User\LastStuff\LastChangeArgs'
+   call NepmdDeleteConfigValue( nepmd_hini, KeyPath)
 
