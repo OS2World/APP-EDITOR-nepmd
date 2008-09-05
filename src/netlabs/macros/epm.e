@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.38 2006-12-10 18:25:40 aschn Exp $
+* $Id: epm.e,v 1.39 2008-09-05 22:45:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -166,7 +166,10 @@ compile if not VANILLA
    include     SITE_KEYS
   compile endif
  compile endif
+/*
+   -- This can now be added as an addition via the SelectKeyDefs dialog
    tryinclude  'mykeys.e'      -- User stuff containing key DEFs.
+*/
  compile if defined(SITE_STUFF)
   compile if SITE_STUFF
    include     SITE_STUFF
