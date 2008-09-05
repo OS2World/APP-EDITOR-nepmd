@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: slnohost.e,v 1.3 2002-08-21 11:55:41 aschn Exp $
+* $Id: slnohost.e,v 1.4 2008-09-05 23:14:05 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -44,10 +44,12 @@ defproc savefile(name)
       endif
       -- jbl 1/89 new feature.  Editors in the real marketplace keep at least
       -- one backup copy when a file is written.
-compile if BACKUP_PATH
-      quietshell 'copy' name MakeBakName() '1>nul 2>nul'
-compile endif
+      rc = MakeBackup( name)
+      if rc <> 0 then
+         return rc
+      endif
    endif
+
    'xcom s 'arg(2) name; src=rc
    if not rc and name_same then
       .modify=0

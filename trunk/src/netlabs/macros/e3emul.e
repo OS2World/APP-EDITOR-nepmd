@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: e3emul.e,v 1.5 2002-09-16 16:55:27 aschn Exp $
+* $Id: e3emul.e,v 1.6 2008-09-05 23:14:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -333,10 +333,11 @@ compile endif
                           -- transfer problems, or just paranoia :-)
 
 /* definit code */
-
+/*
 compile if defined(my_SAVEPATH) and not DELAY_SAVEPATH_CHECK
    call check_savepath()                 -- EPM does it in MAIN.E if no savepath defined, to pick up autosave path saved from Settings dialog.
 compile endif
+*/
    LT = strip(LT,'b',':')
 
 
@@ -488,9 +489,9 @@ compile endif
 
 defproc savefile(given_name)
    universal hostdrive, LT
-compile if BACKUP_PATH <> '' & BACKUP_PATH <> '='
+/*
    universal backup_path_ok
-compile endif
+*/
                                              -- prepare given arguments for use
    parse value given_name with name '[' fto ']'
    options=arg(2)
@@ -523,25 +524,25 @@ compile endif
       call message(1)
       return src
    endif                   --LAM: Don't need ELSE since THEN does a RETURN.
-   name=strip(given_name)  -- Allow for brackets in PC names
+   name = strip(given_name)  -- Allow for brackets in PC names
+/*
+   if backup_path_ok then
+*/
+      rc = MakeBackup( name)
+      if rc <> 0 then
+         return rc
+      endif
+/*
+   endif
+*/
+
    name_same = (name = .filename)
-   if pos(' ',name) & leftstr(name,1)<>'"' then
+   if pos( ' ', name) & leftstr( name, 1) <> '"' then
       name = '"'name'"'
    endif
-compile if BACKUP_PATH
-       -- jbl 1/89 new feature.  Editors in the real marketplace keep at least
-       -- one backup copy when a file is written.
- compile if BACKUP_PATH <> '='
-   if backup_path_ok then
- compile endif
-      quietshell 'copy' name MakeBakName() '1>nul 2>nul'
- compile if BACKUP_PATH <> '='
-   endif
- compile endif
-compile endif
-   'xcom s 'options name; src=rc    -- the save code for a vanilla PC file...
+   'xcom s 'options name; src = rc    -- the save code for a vanilla PC file...
    if not rc and name_same then
-      .modify=0
+      .modify = 0
       'deleteautosavefile'
    endif
    return src
@@ -1346,12 +1347,11 @@ compile if DEBUG
 compile endif
 
 
-
+/*
 defproc check_savepath()     -- Larry Margolis - MARGOLI at YORKTOWN
    universal savepath
-
-compile if BACKUP_PATH <> '' & BACKUP_PATH <> '='
    universal backup_path_ok
+
    if rightstr(BACKUP_PATH,1)<>'\' then
       messageNwait(BACKUP_PATH_INVALID_NO_BACKSLASH__MSG'  'NO_BACKUPS__MSG)
    else
@@ -1412,7 +1412,7 @@ compile endif  -- BACKUP_PATH
       call directory(relpath)
    endif
    call directory(curpath)  -- Restore original directory
-
+*/
 
 ; This procedure referenced only in SELECT.E - this one works with E3REXKEY
 ; to allow syntax directed editing for EXEC or XEDIT files.
@@ -1611,7 +1611,9 @@ defc savepath =
       'commandline SAVEPATH 'savepath
    else
       savepath = uparg
+/*
       call check_savepath(TRY_AGAIN__MSG)
+*/
    endif
 
 defc hostcopy =
