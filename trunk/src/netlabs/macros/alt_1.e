@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.23 2006-12-10 13:22:51 jbs Exp $
+* $Id: alt_1.e,v 1.24 2008-09-05 22:33:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -166,12 +166,12 @@ compile endif
    Cmd = ''
    ShellDir = ''
    if IsAShell() then
-      -- search (reverse) in command shell window for the prompt and retrieve
+      -- search (reverse) in command shell buffer for the prompt and retrieve
       -- the current directory and the cmd and its parameters
       -- goto previous prompt line
-      ret = ShellGotoNextPrompt( 'P')
+      rcx = ShellGotoNextPrompt( 'P')
       Params = ''
-      if not ret then
+      if not rcx then
          call ShellParsePromptLine( ShellDir, Cmd)
          parse value Cmd with Cmd Params
       endif
@@ -179,9 +179,8 @@ compile endif
       SearchPath = ShellDir';%PATH%'
       setsearch oldsearch
       call prestore_pos(save_pos)
-   elseif upcase( leftstr( .filename, 8)) = '.DOS DIR' then
-      -- if a .DOS DIR window,
-      parse value upcase(.filename) with '.DOS DIR' Params  -- retrieve params from the title
+   elseif upcase( leftstr( .filename, 8)) = '.DOS DIR' then  -- if a .DOS DIR buffer,
+      parse value upcase(.filename) with '.DOS DIR' Params   -- retrieve params from the title
       Cmd = 'DIR'
       CurDir = directory() -- set current directory
    endif
@@ -299,11 +298,11 @@ compile endif
          -- Doesn't check if file or dir exists.
          -- Note: DosQueryPathInfo can't handle trailing '\' if not a root dir.
          next = NepmdQueryFullName( FullName)
-         parse value next with 'ERROR:'ret
-         if ret = '' then
+         parse value next with 'ERROR:'rcx
+         if rcx = '' then
             FullName = next
          else
-            sayerror 'defc a_1: QueryFullName: rc = 'ret'.'
+            sayerror 'defc a_1: QueryFullName: rc = 'rcx'.'
          endif
 
       elseif pos( 'F', flags) then  -- if DIR /F, then the line is the fully-qualified filename
@@ -866,7 +865,8 @@ compile endif  -- HOST_SUPPORT
       if NepmdFileExists( Spec) then
          'edit "'Spec'"'
       elseif NepmdDirExists( Spec) then
-         'dir "'Spec'"'
+         --'dir "'Spec'"'
+         'rx open "'Spec'"'
       else
          -- Todo: give a better msg using a standard OS/2 rc.
          sayerror 'File "'Spec'" cannot be found or loaded.'
@@ -956,7 +956,7 @@ defproc A1SelectTreeDir
    Text  = 'Start in directory:'
    Text  = Text''copies( ' ', max( 100 - length(Text), 0))
    parse value entrybox( Title,
-                         '/~Ok/Change to ~work dir/Cancel',
+                         '/~OK/Change to ~work dir/Cancel',
                          Entry,
                          0,
                          240,
