@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.35 2007-07-08 01:05:41 aschn Exp $
+* $Id: epmshell.e,v 1.36 2008-09-05 22:47:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -39,7 +39,7 @@ const
  compile endif
 
 include 'stdconst.e'
-EA_comment 'This defines the EPM shell window.'
+EA_comment 'This defines the EPM shell buffer.'
 
 const
  compile if not defined(NLS_LANGUAGE)
@@ -50,12 +50,12 @@ const
 compile endif
 
 const
--- Specify a string to be written whenever a new EPM command shell window
+-- Specify a string to be written whenever a new EPM command shell buffer
 -- is opened.  Normally a prompt command, but can be anything.  If the
 -- string is one of the ones shown below, then the Enter key can be used
 -- to do a write-to-shell of the text following the prompt, and a listbox
 -- can be generated showing all the commands which were entered in the
--- current shell window.  If a different prompt is used, EPM won't know
+-- current shell buffer.  If a different prompt is used, EPM won't know
 -- how to parse the line to distinguish between the prompt and the command
 -- that follows, so those features will be omitted.
 compile if not defined(EPM_SHELL_PROMPT)
@@ -77,18 +77,30 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 ; This should always be used in preference to query if current file is a
-; shell.
+; shell. Return 0 (false) or 1 (true).
 defproc IsAShell
    ret = 0
    Filename = arg(1)
+
+   /*
+   if Filename = '' then
+      getfileid fid, Filename
+   else
+      Filename = .filename
+      getfileid fid  -- This doesn't work during select
+   endif
+   */
+   -- Must search for Filename in the ring. At shell creation, the new shell
+   -- window may not be the active one yet, while .filename is already set.
    if Filename = '' then
       Filename = .filename
    endif
    getfileid fid, Filename
+
    ShellNum = GetAVar( 'ShellNum.'fid)
-   if ShellNum > '' then
+   if ShellNum <> '' then
       ShellHandle = GetAVar( 'Shell_h'ShellNum)
-      if ShellHandle > '' then
+      if ShellHandle <> '' then
          ret = 1
       endif
    endif
@@ -96,6 +108,7 @@ defproc IsAShell
 
 ; ---------------------------------------------------------------------------
 ; Used by defproc GetMode only to determine the default mode for it.
+; Return 0 (false) or 1 (true).
 defproc IsAShellFilename
    ret = 0
    Filename = arg(1)
@@ -109,7 +122,7 @@ defproc IsAShellFilename
    return ret
 
 ; ---------------------------------------------------------------------------
-; Reactivate a shell window, if no ShellHandle exists.
+; Reactivate a shell buffer, if no ShellHandle exists.
 ; Process that at defselect rather than at defload to save file loading time.
 definit
    'HookAdd select MaybeStartShell'
@@ -136,12 +149,16 @@ defc MaybeStartShell
             call SetAVar( 'Shell_f'shell_index, ShellFid)
             call SetAVar( 'Shell_h'shell_index, ShellHandle)
             call SetAVar( 'ShellNum.'ShellFid, shell_index)
-            InitCmd = ''
-compile if EPM_SHELL_PROMPT <> ''
-            InitCmd = EPM_SHELL_PROMPT
-compile endif
-            if InitCmd > '' then
-               'shell_write' shell_index InitCmd
+
+            PromptCmd = EPM_SHELL_PROMPT
+            if PromptCmd <> '' then
+               'Shell_Write' shell_index PromptCmd
+            endif
+
+            KeyPath = '\NEPMD\User\Shell\InitCmd'
+            InitCmd = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+            if InitCmd <> '' then
+               'Shell_Write' shell_index InitCmd
             endif
 
             -- Determine previous work dir
@@ -158,7 +175,7 @@ compile endif
                call prestore_pos( save_pos)
             endif
             display 3
-            if Dir > '' then
+            if Dir <> '' then
                CdCmd = 'cdd' Dir
                'shell_write' shell_index CdCmd
             endif
@@ -166,72 +183,238 @@ compile endif
       endif
    endif
 
--------------------------------------------------------------Shell-----------------------
-; Starts a new shell object or re-uses the last shell (default).
+; ---------------------------------------------------------------------------
+const
+-- Maybe make that behavior configurable via menu?
+compile if not defined( SHELL_SWITCH_BUFFERS)
+   SHELL_SWITCH_BUFFERS = 1
+compile endif
+
+; Starts a new shell object or switches between shell buffers and a
+; (starting) non-shell buffer. If args were specified, then the last shell
+; is reused and the args are executed in that shell. If the optional keyword
+; "new" is specified as the first word of the args string, a new shell
+; buffer is created.
+;
 ; Syntax: shell [new] [<command>]
+;
 ; shell_index is the number of the last created shell, <shellnum>.
-; The array var 'Shell_f'<shellnum> holds the fileid, 'Shell_h'<shellnum> the handle.
+; The array var 'Shell_f'<shellnum> holds the fileid,
+; 'Shell_h'<shellnum> the handle.
+
 defc Shell
    universal shell_index
    universal ring_enabled
+   universal ShellStartFid
+   universal nepmd_hini
 
    if not ring_enabled then
       'ring_toggle'
    endif
 
-   fCreateNew = 0
-   args = arg(1)
-   wp = wordpos( 'NEW', upcase( args))
-   if wp then
-      fCreateNew = 1
-      args = delword( args, wp, 1)
-   endif
-   Cmd = strip( args)
+   args = strip( arg(1))
 
-   if fCreateNew = 0 then
-      getfileid ShellFid, '.command_shell_'shell_index
-      if shell_index < 1 then
-         fCreateNew = 1
-      elseif not ShellFid then
-         fCreateNew = 1
+   -- fSwitch activates shell1 -> shell2 -> startfile -> shell 1 -> ...
+   fSwitch = 0
+   if args = '' then
+      if SHELL_SWITCH_BUFFERS = 1 then
+         fSwitch = 1
       endif
    endif
 
-   if fCreateNew = 1 then
+   fCreateNew = 0
+   wp = wordpos( 'NEW', upcase( args))
+   if wp = 1 then
+      fCreateNew = 1
+      args = delword( args, wp, 1)
+   endif
+
+   Cmd = strip( args)
+
+   getfileid CurFid
+   ShellFid = ''
+   ShellNum = ''
+
+   fShellStartFidInRing = 0
+   -- Need to check if not empty
+   if ShellStartFid <> '' then
+      if validatefileid( ShellStartFid) then
+         fShellStartFidInRing = 1
+      endif
+   endif
+
+   if not fCreateNew then
+      if IsAShell() then
+         if fSwitch then
+            ShellNum = GetAVar( 'ShellNum.'CurFid) + 1
+
+            do forever
+               if ShellNum > shell_index then
+                  if fShellStartFidInRing then
+                     ShellFid = ShellStartFid
+                  else
+                     -- if only 1 buffer in the ring, create a new one
+                     -- if only shell buffers in the ring, switch to first/next shell buffer
+                     -- else switch to next non-shell buffer
+                     f = 0
+
+                     do forever
+                        prevfile
+                        getfileid Fid
+                        f = f + 1
+                        if Fid = CurFid then
+                           if f = 1 then
+                              fCreateNew = 1
+                           else
+                              ShellNum = 1
+                           endif
+                           leave
+                        endif
+                        if not IsAShell() then
+                           ShellFid = Fid
+                           leave
+                        endif
+                     enddo
+
+                  endif
+                  if fCreateNew or ShellFid <> '' then
+                     leave
+                  endif
+               endif
+               ShellFid = GetAVar( 'Shell_f'ShellNum)
+               if validatefileid( ShellFid) then
+                  leave
+               endif
+               ShellNum = ShellNum + 1
+            enddo
+
+         else
+            ShellFid = CurFid
+            ShellNum = GetAVar( 'ShellNum.'ShellFid)
+         endif
+
+      else
+         ShellStartFid = CurFid
+         if fSwitch then
+            -- Find first shell buffer
+            ShellNum = 1
+         else
+            -- Find last shell buffer to execute a command there
+            ShellNum = shell_index
+         endif
+
+         do forever
+            if ShellNum < 1 then
+               fCreateNew = 1
+               leave
+            endif
+            ShellFid = GetAVar( 'Shell_f'ShellNum)
+            if ShellFid = '' then
+               fCreateNew = 1
+               leave
+            elseif validatefileid( ShellFid) then
+               -- Found
+               leave
+            endif
+            -- Try next or previous shell num
+            if fSwitch then
+               -- Args specified, find the next shell
+               ShellNum = ShellNum + 1
+            else
+               -- No args specified, find the previous shell
+               ShellNum = ShellNum - 1
+            endif
+         enddo
+
+      endif
+   endif
+
+   if fCreateNew then
       shell_index = shell_index + 1
+      ShellNum = shell_index
       ShellHandle  = '????'
-      retval = SUE_new( ShellHandle, shell_index)
+      retval = SUE_new( ShellHandle, ShellNum)
       if retval then
          sayerror ERROR__MSG retval SHELL_ERROR1__MSG
       else
-         'xcom e /c .command_shell_'shell_index
+         'xcom e /c .command_shell_'ShellNum
          if rc <> sayerror( 'New file') then
             sayerror ERROR__MSG rc SHELL_ERROR2__MSG
             stop
          endif
          getfileid ShellFid
-         .filename = '.command_shell_'shell_index
+         .filename = '.command_shell_'ShellNum
          .autosave = 0
-         call SetAVar( 'Shell_f'shell_index, ShellFid)
-         call SetAVar( 'Shell_h'shell_index, ShellHandle)
-         call SetAVar( 'ShellNum.'ShellFid, shell_index)
+         call SetAVar( 'Shell_f'ShellNum, ShellFid)
+         call SetAVar( 'Shell_h'ShellNum, ShellHandle)
+         call SetAVar( 'ShellNum.'ShellFid, ShellNum)
          'postme monofont'
-compile if EPM_SHELL_PROMPT <> ''
-         InitCmd = EPM_SHELL_PROMPT
-         'shell_write' shell_index InitCmd
-compile endif
+
+         PromptCmd = EPM_SHELL_PROMPT
+         if PromptCmd <> '' then
+            'Shell_Write' ShellNum PromptCmd
+         endif
+
+         KeyPath = '\NEPMD\User\Shell\InitCmd'
+         InitCmd = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+         if InitCmd <> '' then
+            'Shell_Write' ShellNum InitCmd
+         endif
+
       endif
 ;;    sayerror "shellhandle=0x" || ltoa(ShellHandle, 16) || "  newObject.retval="retval;
    else
       activatefile ShellFid
    endif
+
    if Cmd then
-      'shell_write' shell_index Cmd
+      ShellAppWaiting = GetAVar( 'ShellAppWaiting.'ShellFid)
+      if words( ShellAppWaiting) < 2 then
+         'Shell_Write' ShellNum Cmd
+      else
+         sayerror 'Command canceled. Shell is waiting for user input.'
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+defc ShellSetInitCmd
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\Shell\InitCmd'
+   ret = NepmdWriteConfigValue( nepmd_hini, KeyPath, strip( arg(1)))
+
+; ---------------------------------------------------------------------------
+defc ShellInitCmdDialog
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\Shell\InitCmd'
+   InitCmd = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+
+   Title = 'Init command for shell windows'
+   Text  = 'Enter new value:'
+   Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+   Entry = InitCmd
+
+   parse value entrybox( Title,
+                         '',
+                         Entry,
+                         0,
+                         240,
+                         atoi(1) || atoi(0) || atol(0) ||
+                         Text) with button 2 NewInitCmd \0
+   NewInitCmd = strip( NewInitCmd)
+   if button = \1 & NewInitCmd <> InitCmd then
+      ret = NepmdWriteConfigValue( nepmd_hini, KeyPath, NewInitCmd)
    endif
 
 -------------------------------------------------------------Shell_Kill------------------
 ; Destroys a shell object.
 ; Syntax: shell_kill [<shellnum>]
+; Bug: On closing an EPM window with a shell that has another command
+;      processor called (like rexxtry), the CMD.EXE process is not closed.
+;      It causes 100% CPU usage instead. Apparently Shell_Kill or SUE_free
+;      is not called on closing EPM. In order to fix that, a PM hook has to
+;      be installed that filters WM_QUIT messages.
 defc Shell_Kill
    parse arg ShellNum .
    if ShellNum = '' & IsAShell() then
@@ -267,14 +450,14 @@ defc Shell_Kill
 
 ; ---------------------------------------------------------------------------
 ; Write to current shell the text of current line, starting at cursor
-defc sendshell
+defc SendShell
    if not IsAShell() then
       sayerror NOT_IN_SHELL__MSG
       return
    endif
    getfileid ShellFid
    ShellNum = GetAVar( 'ShellNum.'ShellFid)
-   'shell_write' ShellNum substr( textline(.line), .col)
+   'Shell_Write' ShellNum substr( textline(.line), .col)
 
 -------------------------------------------------------------Shell_Write-----------------
 ; Syntax: shell_write [<shellnum>] [<text>]
@@ -417,17 +600,18 @@ defc NowCanReadShell
    ShellHandle = GetAVar( 'Shell_h'shellnum)
    bytesmoved = 1
    while bytesmoved do
-      readbuf = copies( ' ', MAXCOL)
-      retval = SUE_readln( ShellHandle, readbuf, bytesmoved);
-      readbuf = leftstr( readbuf, bytesmoved)
-      if readbuf = \13
-         then iterate           -- ignore CR
+      ReadBuf = copies( ' ', MAXCOL)
+      retval = SUE_readln( ShellHandle, ReadBuf, bytesmoved);
+      ReadBuf = leftstr( ReadBuf, bytesmoved)
+      if ReadBuf = \13 then
+         iterate  -- ignore CR
       endif
       -- SUE_readln doesn't handle LF as line end, received from the app.
       -- It won't initiate a NowCanReadShell at Unix line ends.
       -- Therefore it must be parsed here again.
       -- BTW: MORE.COM has the same bug.
-      rest = readbuf
+      rest = ReadBuf
+
       -- "do while rest <> ''" is too slow here. It has caused following issue:
       -- The prompt after executing a start command (maybe "start epm config.sys")
       -- changed to "epm:F:\>" instead of "epm: F:\ >". This should be fixed now.
@@ -435,13 +619,30 @@ defc NowCanReadShell
       -- After a "start epm" command, SUE_readln sends all data very slowly, sometimes
       -- byte per byte. This can be checked by undoing the output of a "dir" command.
       -- A new undo state is created for every line of the dir output then.
+
+      -- Filter out ANSI Esc sequences.
+      -- This is not safe, because the stream could arrive split in between
+      -- the start and end of a sequence. But it works well so far.
+      do forever
+         pEscStart = pos( \27'[', rest)
+         if pEscStart = 0 then
+            leave
+         else
+            pEscEnd = verify( rest, 'ABCDHJKnfRhlmpsu', 'M', pEscStart + 1)
+            if pEscEnd = 0 then
+               leave
+            endif
+            rest = delstr( rest, pEscStart, pEscEnd - pEscStart + 1)
+         endif
+      enddo
+
       do forever
          -- Search for further <LF> chars; <LF> at pos 1 is handled
          -- by the original code itself
-         p = pos( \10, rest, 2)
-         if p > 0 then
-            next = leftstr( rest, p - 1)
-            rest = substr( rest, p)
+         pLF = pos( \10, rest, 2)
+         if pLF > 0 then
+            next = leftstr( rest, pLF - 1)
+            rest = substr( rest, pLF)
          else
             next = rest
             rest = ''
@@ -468,7 +669,7 @@ defc NowCanReadShell
 
    -- Check if last written line was the EPM prompt
    -- in order to accept input by a waiting application directly
-   -- in the shell window, not only in the Write to shell dialog.
+   -- in the shell buffer, not only in the Write to shell dialog.
 compile if EPM_SHELL_PROMPT = '@prompt epm: $p $g'
    p1 = leftstr( lastline, 5) = 'epm: '
    p2 = rightstr( strip( lastline, 't'), 1) = '>'
@@ -572,7 +773,7 @@ defproc ShellEnterWrite
       endif
 
       Text = CmdWord
-      if CmdArgs > '' then
+      if CmdArgs <> '' then
          Text = Text CmdArgs
       endif
 
@@ -614,7 +815,7 @@ defc ShellRestoreOrgCmd
 ; For differing the output that comes from the app from the user input, the
 ; array var "ShellAppWaiting" is used. It holds line and col from the last
 ; write of the shell object to the EPM window, set in defc NowCanReadShell.
-; In case of a terminated app the EPM prompt was the last output and
+; In case of a terminated app, the EPM prompt was the last output and
 ; ShellAppWaiting holds the value 0.
 ; Returns 0 on success; 1 when no app is waiting.
 defproc ShellEnterWriteToApp
@@ -645,6 +846,27 @@ defproc ShellEnterWriteToApp
       ret = 0
    endif
    return ret
+
+; ---------------------------------------------------------------------------
+; Resolves alias values for shell commands. Returns '' if no alias def found.
+defproc ShellGetAliasValue
+   ShortCmd = arg(1)
+   LongCmd = ''  -- default value
+/*
+   do
+
+   enddo
+*/
+   return LongCmd
+
+; ---------------------------------------------------------------------------
+; Loads alias values for commands. Process that only once.
+const
+SHELL_ALIAS_FILE = '%NEPMD_USERDIR%\bin\epmshell.alias'
+
+defproc ShellLoadAliasList
+   -- Parse file and load entries into an array
+   return
 
 -------------------------------------------------------------SUE_new---------------------
 ; Called from Shell command
@@ -699,7 +921,7 @@ defproc SUE_write( shell_handle, buffe, var bytesmoved)
 
 -------------------------------------------------------------Shell_Break-----------------
 ; Sends a Break to a shell object
-defc shell_break
+defc Shell_Break
    parse arg shellnum .
    if ShellNum = '' & IsAShell() then
       getfileid ShellFid
@@ -778,7 +1000,7 @@ defc shell_break
 compile if EPM_SHELL_PROMPT <> ''
          InitCmd = EPM_SHELL_PROMPT
 compile endif
-         if InitCmd > '' then
+         if InitCmd <> '' then
             'shell_write' ShellNum InitCmd
          endif
 
@@ -796,7 +1018,7 @@ compile endif
             call prestore_pos( save_pos)
          endif
          display 3
-         if Dir > '' then
+         if Dir <> '' then
             CdCmd = 'cdd' Dir
             'shell_write' ShellNum CdCmd
          endif
@@ -833,7 +1055,7 @@ defmodify
                   prevstate = max( neweststate - 1, oldeststate)
                   undoaction 7, prevstate
                   OldCmd = strip( substr( textline( .line), p + 1), 'l')
-                  if OldCmd > '' then
+                  if OldCmd <> '' then
                      ShellOrgCmd = .line OldCmd
                      call SetAVar( 'ShellOrgCmd.'fid, ShellOrgCmd)
                   endif
@@ -842,7 +1064,7 @@ defmodify
             endif
          endif
       endif
-      -- Avoid the dialog on quitting only for newly created shell windows,
+      -- Avoid the dialog on quitting only for newly created shell buffers,
       -- not for reactivated ones, optionally (via consts) for these as well
       if leftstr( .filename, 1) = '.' | TRASH_ALL_SHELL_FILES | TRASH_TEMP_FILES then
          .modify = 0
@@ -1066,7 +1288,7 @@ defc ShellFncInit
 
    -- Delete old array
    cTotal = GetAVar( 'FncFound.0')
-   if cTotal > '' then
+   if cTotal <> '' then
       do i = 1 to cTotal
          call SetAVar( 'FncFound.'i, '')
       enddo
@@ -1151,7 +1373,7 @@ defc ShellFncInit
       endif
 
       -- Store name in array
-      if Name > '' then
+      if Name <> '' then
          -- Remove maybe previously added PrepMask if FilePart was relative
          l = length( PrepMask)
          if l > 0 then
@@ -1205,7 +1427,7 @@ defc ShellFncComplete
    CmdPart = GetAVar( 'FncCmdPart')
    Name    = ''
    cLast   = GetAVar( 'FncFound.last')
-   if cLast > '' then
+   if cLast <> '' then
       cTotal = GetAVar( 'FncFound.0')
       --sayerror cTotal 'files in array.'
       if fForeward then
@@ -1225,13 +1447,13 @@ defc ShellFncComplete
       call SetAVar( 'FncFound.last', cLast)  -- save last used name number
    endif
 
-   if Name > '' then
+   if Name <> '' then
       if pos( ' ', Name) then
          Name = '"'Name'"'
       endif
 ; Todo:
 ; Make -dName possible
-      if CmdPart > '' then
+      if CmdPart <> '' then
          NewLine = Prompt strip( CmdPart) Name
       else
          NewLine = Prompt Name
