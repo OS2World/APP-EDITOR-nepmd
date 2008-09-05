@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.18 2007-06-10 19:53:54 aschn Exp $
+* $Id: filelist.e,v 1.19 2008-09-05 22:49:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,15 +29,15 @@ Todo:
 ; -  History definitions to track commands or files from EDIT, LOAD and SAVE
 
 ; ---------------------------------------------------------------------------
-; RingAutoWriteFilePosition is called by 'quit' and 'ProcessAfterload'.
-defproc RingAutoWriteFilePosition
+; RingAutoSavePos is called by 'quit' and 'ProcessAfterload'.
+defproc RingAutoSavePos
    universal nepmd_hini
    universal CurEditCmd
-   universal RingWriteFilePositionDisabled
-   universal RingWriteFilePositionMaxFilesReached  -- used only here, maybe set by a previous call
+   universal RingSavePosDisabled
+   universal RingSavePosMaxFilesReached  -- used only here, maybe set by a previous call
 
    -- Don't overwrite old ring if Disabled flag set (e.g. by RestoreRing)
-   if RingWriteFilePositionDisabled = 1 then return; endif
+   if RingSavePosDisabled = 1 then return; endif
 
    -- Don't overwrite old ring if only .Untitled added
    if CurEditCmd = '' then return; endif
@@ -61,25 +61,25 @@ defproc RingAutoWriteFilePosition
    if filesinring() > MaxFiles then
       -- Check if MaxFiles was already reached before for this edit window
       -- to suppress the msg for following files
-      if RingWriteFilePositionMaxFilesReached <> 1 then
+      if RingSavePosMaxFilesReached <> 1 then
          -- Give that msg only once
          sayerror 'Number of files in ring exceeds max = 'MaxFiles'.' ||
                   ' Ring not saved.'
-         RingWriteFilePositionMaxFilesReached = 1
+         RingSavePosMaxFilesReached = 1
       endif
       return
    else
-      RingWriteFilePositionMaxFilesReached = 0
+      RingSavePosMaxFilesReached = 0
    endif
 
-   dprintf( 'RESTORE_RING', 'call RingWriteFilePosition from RingAutoWriteFilePosition')
-   call RingWriteFilePosition()
+   dprintf( 'RESTORE_RING', 'call RingSavePos from RingAutoSavePos')
+   call RingSavePos()
    return
 
 ; ---------------------------------------------------------------------------
-; RingWriteFilePosition is called by RingAutoWiteFilePosition and by defc
-; SaveRing, used by the menuitem 'Save as last ring', by defc Restart etc.
-defproc RingWriteFilePosition
+; RingSavePos is called by RingAutoSavePos and by defc SaveRing, used by the
+; menuitem 'Save as last ring', by defc Restart etc.
+defproc RingSavePos
    universal nepmd_hini
 
    KeyPath = '\NEPMD\User\AutoRestore\Ring\MaxRings'
@@ -171,7 +171,7 @@ defproc RingWriteFilePosition
    getfileid firstfid
    i = 0
    -- Loop through all files in ring
-   dprintf( 'RINGCMD', 'RingWriteFilePosition')
+   dprintf( 'RINGCMD', 'RingSavePos')
    do f = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
       -- Skip temp. files
       fIgnore = ((leftstr( .filename, 1) = '.') | (not .visible))
@@ -196,15 +196,15 @@ defproc RingWriteFilePosition
    return
 
 ; ---------------------------------------------------------------------------
-defc SaveRing, RingWriteFilePosition
-   call RingWriteFilePosition()
+defc SaveRing, RingSavePos
+   call RingSavePos()
 
 ; ---------------------------------------------------------------------------
 defc RestoreRing
    universal nepmd_hini
    universal CurEditCmd
    universal RestorePosDisabled
-   universal RingWriteFilePositionDisabled
+   universal RingSavePosDisabled
    universal SelectDisabled
 
    KeyPath = '\NEPMD\User\AutoRestore\Ring\MaxRings'
@@ -213,7 +213,7 @@ defc RestoreRing
       MaxRings = 1
    endif
    RestorePosDisabled = 1
-   RingWriteFilePositionDisabled = 1
+   RingSavePosDisabled = 1
    LastNumber = arg(1)
    if LastNumber = '' then
       KeyPath = '\NEPMD\User\SavedRings\LastNumber'
@@ -296,7 +296,7 @@ defc RestoreRing
       call directory( WorkDir)
    endif
 
-   RingWriteFilePositionDisabled = ''
+   RingSavePosDisabled = ''
    RestorePosDisabled = ''
 
 ; ---------------------------------------------------------------------------
@@ -339,7 +339,7 @@ defc RingMaxFiles
    IniValue = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    DefaultButton = 1
    parse value entrybox( Title,
-                         '/~Set/~Reset/~Cancel',  -- max. 4 buttons
+                         '/~Set/~Reset/Cancel',   -- max. 4 buttons
                          IniValue,
                          '',
                          260,
@@ -396,8 +396,11 @@ defproc RingAddToHistory
       NewItem = .filename
       rest = History
       -- Skip temp files
-      fIgnore = ((leftstr( NewItem, 1) = '.') | (not .visible) |
-                 NepmdFileExists( NewItem) = 0)
+      -- Additional disk access in this loop makes EPM crash for
+      -- 110 files in the ring, so better avoid the exist check
+      --fIgnore = ((leftstr( NewItem, 1) = '.') | (not .visible) |
+      --           NepmdFileExists( NewItem) = 0)
+      fIgnore = ((leftstr( NewItem, 1) = '.') | (not .visible))
       if not fIgnore then
 
          -- Add NewItem
@@ -585,7 +588,7 @@ defc History
    endif
 
 ; ---------------------------------------------------------------------------
-; RingWriteFileNumber is called by 'quit' and ProcessAfterLoad.
+; RingSetFileNumber is called by 'quit' and ProcessAfterLoad.
 ; The firstinringfid is checked. If not valid anymore (e.g. if file was
 ; quit), then it is set to the lowest FileNumber of all files in the ring.
 ; At the end all FileNumbers are rewritten, starting with firstinringfid.
@@ -594,10 +597,10 @@ defc History
 ; fileids are assigned unsorted (but it looks like it's influenced by the
 ; file size). The use of firstinringfid, set by the first edit command
 ; together with redertermining it if not valid anymore by
-; RingWriteFileNumber ensures, that the first file in the ring gets the
+; RingSetFileNumber ensures, that the first file in the ring gets the
 ; FileNumber 1 assigned. The 'ring_more' dialog is filled internally, its
 ; files are ordered according to their fileids.
-defproc RingWriteFileNumber
+defproc RingSetFileNumber
    universal firstinringfid
    universal nepmd_hini
 
@@ -613,7 +616,7 @@ defproc RingWriteFileNumber
    endif
 
    getfileid startfid
-   dprintf( 'WRITE_FILE_NUMBER', 'startfile = 'startfid.filename)
+   dprintf( 'SET_FILE_NUMBER', 'startfile = 'startfid.filename)
 
    display -2  -- turn off messages
    activatefile firstinringfid
@@ -622,7 +625,7 @@ defproc RingWriteFileNumber
    -- If firstinringfid is not in ring anymore
    if rc = -260 then  -- Invalid fileid
       -- Redetermine first loaded file (file with lowest FileNumber, if any)
-      dprintf( 'WRITE_FILE_NUMBER', 'startfid not found in ring, redetermining lowest file number.')
+      dprintf( 'SET_FILE_NUMBER', 'startfid not found in ring, redetermining lowest file number.')
 
       activatefile startfid
       nextfile              -- only useful in case no FileNumber exists in the ring
@@ -631,13 +634,13 @@ defproc RingWriteFileNumber
       fid = firstfid
       firstinringfid = fid  -- initialize to current file
       LowestFileNumber = filesinring()  -- initialize to upper limit
-      dprintf( 'RINGCMD', 'RingWriteFileNumber 1')
+      dprintf( 'RINGCMD', 'RingSetFileNumber 1')
       do f = 1 to filesinring(1)  -- just as an upper limit
-         -- Check if FileNumber was set by a previous call to RingWriteFileNumber
+         -- Check if FileNumber was set by a previous call to RingSetFileNumber
          -- and get the lowest
 
          ThisFileNumber = GetAVar( 'filenumber.'fid)
-         dprintf( 'WRITE_FILE_NUMBER', 'f = 'f', FileNumber = 'ThisFileNumber', FileName = '.filename)
+         dprintf( 'SET_FILE_NUMBER', 'f = 'f', FileNumber = 'ThisFileNumber', FileName = '.filename)
          if ThisFileNumber <= LowestFileNumber & ThisFileNumber <> '' then
             LowestFileNumber = ThisFileNumber
             firstinringfid = fid
@@ -652,13 +655,13 @@ defproc RingWriteFileNumber
 
    endif
 
-   dprintf( 'WRITE_FILE_NUMBER', 'firstinringfid = 'firstinringfid.filename)
+   dprintf( 'SET_FILE_NUMBER', 'firstinringfid = 'firstinringfid.filename)
 
    -- Set FileNumbers for all files in the ring, start with firstinringfid
    FileNumber = 0
    activatefile firstinringfid
    fid = firstinringfid
-   dprintf( 'RINGCMD', 'RingWriteFileNumber 2')
+   dprintf( 'RINGCMD', 'RingSetFileNumber 2')
    do f = 1 to filesinring(1)  -- just as an upper limit
       FileNumber = FileNumber + 1
 
@@ -683,8 +686,8 @@ defproc RingWriteFileNumber
    return
 
 ; ---------------------------------------------------------------------------
-defc RingWriteFileNumber
-   call RingWriteFileNumber()
+defc RingSetFileNumber
+   call RingSetFileNumber()
 
 ; ---------------------------------------------------------------------------
 ; Called by defproc GetInfoFieldValue('FILE').
@@ -721,7 +724,7 @@ defc SwapView
    this_view.nextview = nextnext_view
 
    -- Must handle the first and last views specially:
-   -- change firstinringfid before calling RingWriteFileNumber
+   -- change firstinringfid before calling RingSetFileNumber
    CurFileNumber = GetAVar( 'filenumber.'fid)
    MaxFileNumber = filesinring()
    if CurFileNumber >= MaxFileNumber then
@@ -731,7 +734,7 @@ defc SwapView
    endif
 
    -- Redetermine all file numbers
-   call RingWriteFileNumber()
+   call RingSetFileNumber()
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
