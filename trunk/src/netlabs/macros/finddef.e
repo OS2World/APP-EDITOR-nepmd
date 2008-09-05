@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2006
 *
-* $Id: finddef.e,v 1.4 2006-12-10 11:07:29 aschn Exp $
+* $Id: finddef.e,v 1.5 2008-09-05 22:50:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -306,7 +306,7 @@ defc FindDef
    Title = 'Select a source file'
    Text = nFiles 'definition(s) found for "'Keyword'". Used mode: 'Mode'.'  -- no Linebreak possible
    DefaultItem = 1
-   KeyPath = '\NEPMD\User\LastStuff\LastFindDefButton'
+   KeyPath = '\NEPMD\User\Search\LastFindDefButton'
    DefaultButton = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if DefaultButton = '' then
       DefaultButton = 1
