@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.19 2006-03-29 23:54:08 aschn Exp $
+* $Id: mouse.e,v 1.20 2008-09-05 23:05:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -814,7 +814,7 @@ defc MH_double -- take care for doubleclicks on URLs
          unmark
          'ClearSharBuff'
       endif
-   endif  -- filename = (.DOS DIR | .tree)
+   endif
 
 ; ---------------------------------------------------------------------------
 defc MH_shiftclick
@@ -1043,9 +1043,17 @@ compile endif
       call register_mousehandler( 1, '2 SECONDCLK 7', 'extendparagraph') -- Ctrl+Alt+shift
       call register_mousehandler( 1, '1 SECONDCLK 2', 'kwhelp')
 
-   endif  -- CUA_marking_switch ---------------------------------------
+   endif  --  ---------------------------------------
 
    call register_mousehandler( 1, 'CHORD',     'Ring_More')
+
+/*
+; ################################################################################################ Test for Ctrl+MB3
+   call register_mousehandler( 1, '3 CLICK 2', 'sayerror MB3 click')
+   call register_mousehandler( 1, '3 SECONDCLK 2', 'sayerror MB3 double click')
+   call register_mousehandler( 1, '3 BEGINDRAG 2', 'sayerror MB3 begin drag')
+; ################################################################################################ Test for Ctrl+MB3
+*/
 
    -- NOP out the default action associated with user's context button
    res =  atol(dynalink32( 'PMWIN',
@@ -1176,7 +1184,8 @@ defc StatWndMouseCmd
    -- 1 CLICK 0 is not defined.
    --call NepmdPmPrintf('StatWndMouseCmd: arg(1) = 'arg(1))
    if arg(1) = '1 SECONDCLK 0' then
-      'versioncheck'
+      --'versioncheck'
+      'ConfigInfoLine STATUS'
    elseif arg(1) = 'CONTEXTMENU' then
       'configdlg'
    endif
