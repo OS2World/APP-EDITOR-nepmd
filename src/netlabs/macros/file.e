@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.25 2007-07-14 00:34:20 aschn Exp $
+* $Id: file.e,v 1.26 2008-09-05 22:48:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -84,7 +84,7 @@ compile endif
 ; Called after MB2 dclick on titlebar and Enter.
 ; Fixed to work with enhanced titletext.
 ; ProcessName triggers a defselect event.
-defc ProcessName =
+defc ProcessName
    -- Find (old) .filename in (old) .titletext
    sep = GetFieldSep()
    rest = upcase(.titletext) sep
@@ -191,11 +191,11 @@ defproc Save
    Options = default_save_options Options
    fCalledBySaveAs = (arg(2) = 1)  -- optional 2nd arg to handle call specially
 
-   -- Open file dialog (Save as) if filename = .Untitled
-   IsTempFile = leftstr( .filename, 1) = '.'
-   if SpecifiedName = '' & IsTempFile then
+   -- Open file dialog (Save as) if filename starts with a dot, e.g. .Untitled
+   fIsTempFile = (leftstr( .filename, 1) = '.')
+   if SpecifiedName = '' & fIsTempFile then
       Name = .filename
-      if IsTempFile then
+      if fIsTempFile then
          result = saveas_dlg( Name, Type)  -- gets and sets Name (and sets Type)
          if result <> 0 then
             return result
@@ -219,73 +219,82 @@ defproc Save
    endif
 
    -- Handle special NEPMD dirs: don't overwrite files of the NETLABS or EPMBBS tree
-   if not fCalledBySaveAs then
-      fn = Name
-      RootDir = NepmdScanEnv('NEPMD_ROOTDIR')
-      parse value RootDir with 'ERROR:'rc1
-      if rc1 > '' then
+   do i = 1 to 1
+
+      if not fIsTempFile & fCalledBySaveAs then
+         leave
+      endif
+
+      RootDir = NepmdScanEnv( 'NEPMD_ROOTDIR')
+      parse value RootDir with 'ERROR:'rcx
+      if rcx <> '' then
          sayerror 'Environment var NEPMD_ROOTDIR not set'
+         leave
       endif
-      UserDir = NepmdScanEnv('NEPMD_USERDIR')
-      parse value UserDir with 'ERROR:'rc2
-      if rc2 > '' then
+      UserDir = NepmdScanEnv( 'NEPMD_USERDIR')
+      parse value UserDir with 'ERROR:'rcx
+      if rcx <> '' then
          sayerror 'Environment var NEPMD_USERDIR not set'
+         leave
       endif
-      if rc1 = '' & rc2 = '' then
-         if abbrev( upcase(fn), upcase(RootDir)) then
-            p1 = length(RootDir)
-            p2 = pos( '\', fn, p1 + 2)
-            next = substr( fn, p1 + 2, max( p2 - p1 - 2, 0))
-            if wordpos( upcase(next), 'NETLABS EPMBBS') then
-               newdir = UserDir || substr(fn, p2, lastpos('\', fn) - p2)
-               newname = UserDir''substr( fn, p2)
-               p = length(UserDir)
-               while NepmdDirExists(newdir) = 0 do
-                  p = pos('\', newdir || '\', p + 1)
-                  dir = leftstr(newdir, p - 1)
-                  if NepmdDirExists(dir) == 0 then
-                     rcx = MakeDirectory(dir)
-                  endif
-               endwhile
-               sayerror 'Better use the user tree for your own files'
-               -- First disable most load and select processing for the current
-               -- file. Always ensure that they were reenabled after that
-               -- command to be ready for processing the next file!
-               'DisableLoad'
-               'DisableSelect'
-               oldname = .filename
-               .filename = newname               -- saveas_dlg starts with .filename
-               result = saveas_dlg( Name, Type)  -- saveas_dlg will set both vars
-               if result <> 0 then
-                  .filename = oldname
-                  -- 'postme' makes the following commands be processed after
-                  -- defload and defselect are processed. That disables most
-                  -- load and select processing for the current file.
-                  'postme EnableLoad'
-                  'postme EnableSelect'
-                  return result
-               endif
-               SpecifiedName = Name
-               'name' Name
-               if not rc then  -- on success
-                  Name = .filename
-                  fNameChanged = 1
-                  -- The following commands enable all load and select
-                  -- processing for the current file, because they are
-                  -- executed before defload and defselect.
-                  'EnableLoad'
-                  'EnableSelect'
-               else
-                  -- 'postme' makes the following commands be processed after
-                  -- defload and defselect are processed. That disables most
-                  -- load and select processing for the current file.
-                  'postme EnableLoad'
-                  'postme EnableSelect'
-               endif
-            endif
-         endif
+
+      -- RootDir contained in Name?
+      if not abbrev( upcase( Name), upcase( RootDir)) then
+         leave
       endif
-   endif
+
+      -- Check the following subdir after RootDir in Name
+      p1 = length( RootDir)
+      p2 = pos( '\', Name, p1 + 2)
+      SubDir = substr( Name, p1 + 2, max( p2 - p1 - 2, 0))
+      if not wordpos( upcase( SubDir), 'NETLABS EPMBBS') then
+         leave
+      endif
+
+      NewName = UserDir''substr( Name, p2)
+      lp = lastpos( '\', NewName)
+      Newdir = leftstr( NewName, lp - 1)
+
+      -- Create tree, if not existing
+      rcx = MakeTree( NewDir)
+
+      sayerror 'Better use the user tree for your own files'
+      -- First disable most load and select processing for the current
+      -- file. Always ensure that they were reenabled after that
+      -- command to be ready for processing the next file!
+      'DisableLoad'
+      'DisableSelect'
+      oldname = .filename
+      .filename = newname               -- saveas_dlg starts with .filename
+      result = saveas_dlg( Name, Type)  -- saveas_dlg will set both vars
+      if result <> 0 then
+         .filename = oldname
+         -- 'postme' makes the following commands be processed after
+         -- defload and defselect are processed. That disables most
+         -- load and select processing for the current file.
+         'postme EnableLoad'
+         'postme EnableSelect'
+         return result
+      endif
+      SpecifiedName = Name
+      'name' Name
+      if not rc then  -- on success
+         Name = .filename
+         fNameChanged = 1
+         -- The following commands enable all load and select
+         -- processing for the current file, because they are
+         -- executed before defload and defselect.
+         'EnableLoad'
+         'EnableSelect'
+      else
+         -- 'postme' makes the following commands be processed after
+         -- defload and defselect are processed. That disables most
+         -- load and select processing for the current file.
+         'postme EnableLoad'
+         'postme EnableSelect'
+      endif
+
+   enddo
 
    -- Check for .readonly field
    if SpecifiedName = '' & (browse() | .readonly) then
@@ -335,7 +344,7 @@ compile endif
    RestorePos = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if RestorePos = 1 then
       -- Write EPM.POS EA on save
-      call psave_pos(save_pos)   -- get EA value
+      call psave_pos(save_pos)   -- get current value
       call delete_ea('EPM.POS')  -- that affects only .eaarea, EA is written on file writing
       'add_ea EPM.POS' save_pos  -- that affects only .eaarea, EA is written on file writing
    endif
@@ -463,25 +472,34 @@ compile endif
 
    -- On successs: refresh InfoLines, re-determine mode and add to Save history
    rc = src
+   -- TODO #########################################################################
+   -- EPM crashes sometimes on save, after the file is saved. The culprit
+   -- has to be searched in the following, preferably on code that cause
+   -- many files loaded, like 'ResetMode' or on code that loops through the
+   -- ring, like 'AddToHistory SAVE'. Maybe using an extra command an/or
+   -- posting the commands may help.
+   -- TODO #########################################################################
    if src = 0 then
-      if fatsrc <> 0 then  -- this is not required if file was reloaded by FatSave
+
+      if fatsrc <> 0 then  -- this is not required if file was reloaded by SaveFat
          'ResetDateTimeModified'
          'RefreshInfoLine MODIFIED FILE'
+      endif
 
-         -- Explicitely redetermine mode (file contents may have changed).
-         -- Must be delayed with 'postme'.
-         -- Otherwise a MessageBox (defined in ETK) will pop up when
-         --    -  the window should be closed and
-         --    -  there is a modified file in the ring and
-         --    -  the file was saved.
-         -- The file *was* saved but the MessageBox says that there has
-         -- occured an error saving the file.
+      -- Explicitely redetermine mode (file contents may have changed).
+      --'ResetMode 'OldMode
+      -- Better do this only when the name has changed.
+      if fCalledBySaveAs then
          'ResetMode 'OldMode
       endif
+
+      -- Maybe reset mode only for modes that depend on the content, like REXX or CMD.
       'postme AddToHistory SAVE' .filename
+
+      'HookExecute aftersave'
+      'HookExecuteOnce aftersaveonce'
    endif
-   'HookExecute aftersave'
-   'HookExecuteOnce aftersaveonce'
+
    -- A refresh is required here. Otherwise an ETK MessageBox pops up
    -- with the message 'Error on file saving'. But the file was saved.
    -- This can be reproduced on closing of the EPM window while an unsaved
@@ -494,6 +512,9 @@ compile endif
 
    -- A defc must use "return myrc" or use "rc = myrc" to set the
    -- global var rc. When "return" is used only, rc would be set to empty.
+   -- A defproc may return its own rcx, without overriding the global rc.
+   -- BTW: This was turned into a defproc. Therefore the next line is not
+   --      required anymore, but the overnext:
    rc = src
    return src
 
@@ -689,7 +710,7 @@ defc SaveAll
    return
 
 ; ---------------------------------------------------------------------------
-defc q, quit=
+defc q, quit
    universal firstloadedfid
    universal LoadDisabledFid
 
@@ -738,9 +759,9 @@ compile endif
 
    -- Don't process ring commands now when Load commands are disabled
    if LoadDisabledFid < 1 then
-      call RingWriteFileNumber()
+      call RingSetFileNumber()
       if not fTempFile then
-         call RingAutoWriteFilePosition()
+         call RingAutoSavePos()
       endif
    endif
 
@@ -751,7 +772,7 @@ defc xcom_quit
 
 ; ---------------------------------------------------------------------------
 ; Save and quit.
-defc f, file=
+defc f, file
    universal InfolineRefresh
 compile if SUPPORT_USER_EXITS
    universal isa_file_cmd
@@ -820,9 +841,20 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 defproc saveas_dlg( var Name, var Type)
+   universal nepmd_hini
+
    Type = copies( \0, 255)
    if .filename = GetUnnamedFilename() then
+      KeyPath = '\NEPMD\User\History\Save'
       Name = Type
+      -- Reuse previous dir. Trailing backslash required.
+      KeyPath = '\NEPMD\User\History\Save'
+      SavedHistory = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+      SavedHistory = strip( SavedHistory, 't', \1)
+      parse value SavedHistory with LastSavedFile \1 .
+      lp = lastpos( '\', LastSavedFile)
+      LastSavedPath = leftstr( LastSavedFile, lp)
+      Name = leftstr( LastSavedPath, 255, \0)
    else
       FileName = GetFileName()  -- this respects .LONGNAME if activated
       Name = leftstr( FileName, 255, \0)
@@ -1192,23 +1224,35 @@ defproc unlock(fileid)
    return result
 
 ; ---------------------------------------------------------------------------
-defc readonly =
+defc Readonly
    uparg = upcase(arg(1))
    if (uparg = ON__MSG or uparg = 1) then
       .readonly = 1
-      quietshell 'dos attrib +r "'.filename'"'
    elseif (uparg = OFF__MSG or uparg = '0') then
       .readonly = 0
-      quietshell 'dos attrib -r "'.filename'"'
    elseif (uparg = '' or uparg = '?') then
-      sayerror READONLY_IS__MSG word( OFF__MSG ON__MSG, .readonly+1)
+      sayerror READONLY_IS__MSG word( OFF__MSG ON__MSG, .readonly + 1)
    else
       sayerror INVALID_ARG__MSG ON_OFF__MSG'/?)'
       stop
    endif
 
 ; ---------------------------------------------------------------------------
-defc enable_readonly
+defc ReadonlyAttrib
+   uparg = upcase(arg(1))
+   if (uparg = ON__MSG or uparg = 1) then
+      quietshell 'dos attrib +r "'.filename'"'
+   elseif (uparg = OFF__MSG or uparg = '0') then
+      quietshell 'dos attrib -r "'.filename'"'
+   elseif (uparg = '' or uparg = '?') then
+      sayerror 'Read-only file attribute is:' word( OFF__MSG ON__MSG, GetReadOnly() + 1)
+   else
+      sayerror INVALID_ARG__MSG ON_OFF__MSG'/?)'
+      stop
+   endif
+
+; ---------------------------------------------------------------------------
+defc EnableReadonly
    if wordpos( upcase(arg(1)), '0 OFF') then
       on = 0
    else
@@ -1221,7 +1265,7 @@ defc enable_readonly
    endif
 
 ; ---------------------------------------------------------------------------
-; Determine .readonly field from file attribute
+; Determine .readonly field from file attribute, if enabled
 defc ReadonlyFromAttrib
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Readonly'
@@ -1232,6 +1276,8 @@ defc ReadonlyFromAttrib
       -- status bar will show 'Read-only' and disables any modification,
       -- until 'readonly 0' or 'readonly off' is set.
       .readonly = GetReadonly()
+   else
+      .readonly = 0
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1403,11 +1449,11 @@ defc xcd
 ; directory for restoring path, if activated.
 defc cd
    universal nepmd_hini
-   rc = 0
+   rcx = 0
    arg1 = arg(1)
-   if arg1 > '' then
+   if arg1 <> '' then
       NewDir = directory( arg1)
-      if not rc then
+      if not rcx then
          if arg1 <> '' then
             KeyPath = '\NEPMD\User\ChangeWorkDir'
             ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -1420,11 +1466,12 @@ defc cd
    else
       sayerror CUR_DIR_IS__MSG directory()
    endif
+   rc = rcx
 
 ; ---------------------------------------------------------------------------
 ; Change drive and directory. Release previous directory first (change to
 ; root dir). Give a message.
-defc cdbox
+defc cddialog
    CurDir = directory()
    Title = 'Enter new work directory'
    Text  = CUR_DIR_IS__MSG CurDir
@@ -1445,6 +1492,26 @@ defc cdbox
       else
          'cd'         -- show current dir
       endif
+   endif
+
+; ---------------------------------------------------------------------------
+; Helper to set startup dir for WPS objects.
+defc StartupDirDialog
+   CurStartupDir = RxResult( 'chgstartupdir query')
+   Title = 'Enter new startup directory for WPS objects'
+   Text  = 'Current startup directory is 'CurStartupDir
+   Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+   Entry = ''
+   parse value entrybox( Title,
+                         '',
+                         Entry,
+                         0,
+                         240,
+                         atoi(1) || atoi(0) || atol(0) ||
+                         Text) with button 2 NewDir \0
+   NewDir = strip( NewDir)
+   if button = \1 & NewDir <> '' & NewDir <> CurStartupDir then
+      'rx chgstartupdir.erx' NewDir
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1517,39 +1584,312 @@ defc deleteautosavefile
    endif
 
 ; ---------------------------------------------------------------------------
-compile if BACKUP_PATH <> ''
-;  Procedure to pick a filename for backup purposes, like STDPROCS.E$.
+; arg(1) = number. Opens dialog if no arg.
+defc AutosaveNum
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\AutoSave\Number'
+   Num = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   CurNum = Num
+   NewNum = strip( arg(1))
+   if NewNum = '' then
+      if Num = '' then
+         Num = 100
+      endif
+      Title = 'Autosave number'
+      Text  = 'Number of modifications before file is saved:'
+      Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+      Entry = Num
+      parse value entrybox( Title,
+                            '',
+                            Entry,
+                            0,
+                            240,
+                            atoi(1) || atoi(0) || atol(0) ||
+                            Text) with button 2 NewNum \0
+      NewNum = strip( NewNum)
+      if button <> \1 then
+         return
+      endif
+   endif
+   if NewNum <> CurNum then
+      if isnum( NewNum) then
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewNum)
+         -- Set new .autosave value for all files
+         getfileid startfid
+         -- Loop through all files in ring
+         do f = 1 to filesinring(1)  -- Provide an upper limit; prevent looping forever
+            -- Skip temp. files
+            fIgnore = ((leftstr( .filename, 1) = '.') | (not .visible))
+            if not fIgnore then
+               .autosave = NewNum
+            endif
+            next_file
+            getfileid fid
+            if fid = startfid then leave; endif
+         enddo
+      else
+         sayerror 'Autosave number not changed'
+         'postme AutosaveNum'
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+; arg(1) = Directory. Opens dialog if no arg.
+defc AutosaveDir
+   universal nepmd_hini
+   universal vtemp_path
+   universal vautosave_path
+
+   DefaultDir = vtemp_path'nepmd\autosave'
+   KeyPath = '\NEPMD\User\AutoSave\Directory'
+   Dir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   CurDir = Dir
+   NewDir = strip( arg(1))
+   if NewDir = '' then
+      if Dir = '' then
+         Dir = DefaultDir
+      endif
+      Title = 'Autosave directory'
+      Text  = 'Enter a directory, either fully-qualified or relative to current file:'
+      Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+      Entry = vautosave_path
+      if rightstr( Entry, 2) <> ':\' then
+         Entry = strip( Entry, 'T', '\')
+      endif
+      parse value entrybox( Title,
+                            '',
+                            Entry,
+                            0,
+                            240,
+                            atoi(1) || atoi(0) || atol(0) ||
+                            Text) with button 2 NewDir \0
+      NewDir = strip( NewDir)
+      if button <> \1 then
+         return
+      endif
+   endif
+   if NewDir = '' then
+      NewDir = DefaultDir
+   endif
+   if NewDir <> CurDir then
+      call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewDir)
+      rcx = MakeTree( NewDir)
+      if rightstr( NewDir, 1) <> '\' then
+         vautosave_path = NewDir'\'
+      else
+         vautosave_path = NewDir
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+; arg(1) = number. Opens dialog if no arg.
+defc BackupNum
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\Backup\Number'
+   Num = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   CurNum = Num
+   NewNum = strip( arg(1))
+   if NewNum = '' then
+      if Num = '' then
+         Num = 1
+      endif
+      Title = 'Backup number'
+      Text  = 'Number of kept backup files:'
+      Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+      Entry = Num
+      parse value entrybox( Title,
+                            '',
+                            Entry,
+                            0,
+                            240,
+                            atoi(1) || atoi(0) || atol(0) ||
+                            Text) with button 2 NewNum \0
+      NewNum = strip( NewNum)
+      if button <> \1 then
+         return
+      endif
+   endif
+   if NewNum <> CurNum then
+      if isnum( NewNum) then
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewNum)
+      else
+         sayerror 'Backup number not changed'
+         'postme BackupNum'
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+; arg(1) = Directory. Opens dialog if no arg.
+defc BackupDir
+   universal nepmd_hini
+   universal vtemp_path
+
+   DefaultDir = vtemp_path'nepmd\backup'
+   KeyPath = '\NEPMD\User\Backup\Directory'
+   Dir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   CurDir = Dir
+   NewDir = strip( arg(1))
+   if NewDir = '' then
+      if Dir = '' then
+         Dir = DefaultDir
+      endif
+      Title = 'Backup directory'
+      Text  = 'Enter either a fully-qualified directory or = for the file''s directory:'
+      Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+      Entry = Dir
+      if rightstr( Entry, 2) <> ':\' then
+         Entry = strip( Entry, 'T', '\')
+      endif
+      parse value entrybox( Title,
+                            '',
+                            Entry,
+                            0,
+                            240,
+                            atoi(1) || atoi(0) || atol(0) ||
+                            Text) with button 2 NewDir \0
+      NewDir = strip( NewDir)
+      if button <> \1 then
+         return
+      endif
+   endif
+   if NewDir = '' then
+      NewDir = DefaultDir
+   endif
+   if NewDir <> CurDir then
+      call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewDir)
+      if NewDir <> '=' then
+         rcx = MakeTree( NewDir)
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+defc ListBackupDir
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\Backup\Directory'
+   Dir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Dir = '=' then
+      if leftstr( .filename, 1) = '.' then
+         Dir = directory()
+      else
+         lp = lastpos( '\', .filename)
+         Dir = leftstr( .filename, lp - 1)
+         if substr( Dir, 2, 1) = ':' then
+            Dir = Dir'\'
+         endif
+      endif
+   endif
+   'dir' Dir
+
+; ---------------------------------------------------------------------------
+; Procedure to pick a filename for backup purposes, like STDPROCS.E~.
 defproc MakeBakName
-   name = arg(1)
-   if name = '' then   /* if no arg given, default to current filename */
-      name = .filename
+   universal nepmd_hini
+   universal vtemp_path
+
+   Name = arg(1)
+   if Name = '' then
+      Name = .filename
    endif
+
+   KeyPath = '\NEPMD\User\Backup\Directory'
+   BackupDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+
+   KeyPath = '\NEPMD\User\Backup\Number'
+   BackupNum = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if BackupNum = '' then
+      BackupNum = 1
+   elseif not isnum( BackupNum) then
+      BackupNum = 1
+   endif
+
+   if BackupDir = '' then
+      BackupDir = vtemp_path'nepmd\backup'
+   elseif BackupDir = '=' then
+      lp = lastpos( '\', Name)
+      BackupDir = leftstr( Name, lp - 1)
+   endif
+   BackupDir = ResolveEnvVars( BackupDir)
+
    -- Change name as little as possible, but enough to identify it as
-   -- a noncritical file.  Replace the last character with '$'.
-   ext = filetype(name)
-   if length(ext)=3 then
-      ext = substr(ext,1,2)'$'
+   -- a noncritical file.  Replace the last character with '~'.
+   FileSys = ''
+   if substr( BackupDir, 2, 1) = ':' then
+      FileSys = QueryFileSys( leftstr( BackupDir, 2))
+   endif
+
+   -- TODO: parse base and ext better for non-FAT files. #################################
+   ext = filetype( Name)
+   if FileSys = 'FAT' | FileSys = '' then
+      if BackupNum < 2 then
+         if length( ext) > 2 then
+            ext = substr( ext, 1, 2)'~'
+         else
+            ext = ext'~'
+         endif
+      else
+      endif
+         if length( ext) > 1 then
+            ext = substr( ext, 1, 1)'~'
+         else
+            ext = ext'~'
+         endif
    else
-      ext = ext'$'
+      ext = ext'~'
    endif
+
    -- We still use MakeTempName() for its handling of host names.
-   bakname = MakeTempName(name)
-   i=lastpos('\',bakname)       -- but with a different directory
+   bakname = MakeTempName( Name)  -- TODO: really keep this? #############################
+   i = lastpos( '\', bakname)       -- but with a different directory
    if i then
-      bakname = substr(bakname,i+1)
+      bakname = substr( bakname, i + 1)
    endif
-   parse value bakname with fname'.'.
- compile if BACKUP_PATH = '='
-   bakname = fname'.'ext
-   i=lastpos('\',name)       -- Use original file's directory
-   if i then
-      bakname = substr(name,1,i) || bakname
+   parse value bakname with fname'.'.  -- TODO: don't cut at first dot ###################
+
+   BackupName = strip( BackupDir, 't', '\')'\'fname'.'ext
+   return BackupName
+
+; ---------------------------------------------------------------------------
+defproc MakeBackup
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\Backup'
+   fBackupEnabled = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
+   if not fBackupEnabled then
+      return 0
    endif
- compile else
-   bakname = BACKUP_PATH || fname'.'ext
- compile endif
-   return bakname
-compile endif
+
+   Name = arg(1)
+   if Name = '' then
+      Name = .filename
+   endif
+
+   BackupName = MakeBakName( Name)
+
+   KeyPath = '\NEPMD\User\Backup\Number'
+   BackupNum = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if BackupNum = '' then
+      BackupNum = 1
+   elseif not isnum( BackupNum) then
+      BackupNum = 1
+   endif
+
+   -- Keep BackupNum backups
+   do n = (BackupNum - 1) to 1 by -1
+      m = n - 1
+      if m = 0 then
+         m = ''
+      endif
+      if Exist( BackupName''m) then
+         rcx = Move( BackupName''m, BackupName''n)
+      endif
+   enddo
+
+   --quietshell 'copy' Name BackupName '1>nul 2>nul'
+   rc = CopyFile( Name, BackupName)
+   return rc
 
 ; ---------------------------------------------------------------------------
 ;  Procedure to pick a temporary filename like ORIGNAME.$$1.
@@ -1601,30 +1941,28 @@ defproc MakeTempName
 
 ; ---------------------------------------------------------------------------
 ; Used in INFOLINE.E.
-defproc get_filedatehex(filename)
-   pathname = filename\0
-   resultbuf = copies( \0, 30)
-   result = dynalink32( 'DOSCALLS',      -- dynamic link library name
-                        '#223',          -- ordinal value for DOS32QueryPathInfo
-                        address(pathname)         ||  -- pathname to be queried
-                        atol(1)                   ||  -- PathInfoLevel
-                        address(resultbuf)        ||  -- buffer where info is to be returned
-                        atol(length(resultbuf)))      -- size of buffer
-   filedatehex = ltoa( substr( resultbuf, 9, 4), 16)
-   if result = 0 then
+defproc GetFileDateHex( Filename)
+   Filename = Filename\0
+   ResultBuf = copies( \0, 30)
+   FileDateHex = ''
+   rc = dynalink32( 'DOSCALLS',      -- dynamic link library name
+                    '#223',          -- ordinal value for DOS32QueryPathInfo
+                    address( Filename)         ||  -- pathname to be queried
+                    atol(1)                    ||  -- PathInfoLevel
+                    address( ResultBuf)        ||  -- buffer where info is to be returned
+                    atol( length( ResultBuf)))      -- size of buffer
+   if rc = 0 then
+      FileDateHex = ltoa( substr( ResultBuf, 9, 4), 16)
       -- The return value can be compared with ltoa( substr( .fileinfo, 9, 4), 16)
       -- to determine if the file's timestamp has changed on disk since defload.
       -- (.fileinfo is set at defload.)
-      ret = filedatehex
-   else
-      ret = 'ERROR:'result
    endif
-   return ret
+   return FileDateHex
 
 ; ---------------------------------------------------------------------------
 ; Used in INFOLINE.E.
 ; Todo: use NLS settings from OS2.INI or USER.DAT if present.
-defproc filedatehex2datetime(hexstr)
+defproc FileDateHex2DateTime( hexstr)
    -- add leading zero if length < 8
    hexstr = rightstr( hexstr, 8, 0)
 
@@ -1644,45 +1982,45 @@ defproc filedatehex2datetime(hexstr)
 
 ; ---------------------------------------------------------------------------
 ; Returns 1 if file exists, otherwise 0.
-defproc Exist(FileName)
-   rcx = qfilemode( filename, attrib)
+defproc Exist( Filename)
+   rcx = QFileMode( Filename, Attrib)
    return (rcx = 0)
 
 ; ---------------------------------------------------------------------------
-defproc qfilemode( filename, var attrib)
-   if leftstr( filename, 1) = '"' & rightstr( filename, 1) = '"' then
-      filename = substr( filename, 2, length(filename) - 2)
+; Result must be specified as arg(2), rcx is returned.
+defproc QFileMode( Filename, var Attrib)
+   if leftstr( Filename, 1) = '"' & rightstr( Filename, 1) = '"' then
+      Filename = substr( Filename, 2, length( Filename) - 2)
    endif
-   FileName = FileName\0
-   attrib = copies( \0, 24)  -- allocate 24 bytes for a FileStatus3 structure
-   res = dynalink32( 'DOSCALLS',            -- dynamic link library name
-                     '#223',                -- ordinal value for Dos32QueryPathInfo
-                     address(filename)  ||  -- Pointer to path name
-                     atol(1)            ||  -- PathInfoLevel 1
-                     address(attrib)    ||  -- Pointer to info buffer
-                     atol(24), 2)           -- Buffer Size
-   attrib = ltoa( rightstr( attrib, 4), 10)
-   return res
-
+   Filename = Filename\0
+   Attrib = copies( \0, 24)  -- allocate 24 bytes for a FileStatus3 structure
+   rcx = dynalink32( 'DOSCALLS',             -- dynamic link library name
+                     '#223',                 -- ordinal value for Dos32QueryPathInfo
+                     address( Filename)  ||  -- Pointer to path name
+                     atol(1)             ||  -- PathInfoLevel 1
+                     address( Attrib)    ||  -- Pointer to info buffer
+                     atol(24), 2)            -- Buffer Size
+   Attrib = ltoa( rightstr( Attrib, 4), 10)
+   return rcx
 
 ; ---------------------------------------------------------------------------
 ; arg(1) = drive, e.g.: X:
 ; Returns e.g.: HPFS | CDFS | JFS | FAT | LAN | RAMFS
-defproc QueryFileSys(Drive)
+defproc QueryFileSys( Drive)
    dev_name = Drive\0
    ordinal = 0
-   infobuf=substr( '', 1, 255)
+   infobuf = substr( '', 1, 255)
    infobuflen = atol( length(infobuf))
    FSAinfolevel = 1
-   rc = dynalink32( 'DOSCALLS',             -- dynamic link library name
-                    '#277',                 -- ordinal value for Dos32QueryFSAttach
-                    address(dev_name)  ||   -- device name
-                    atol(ordinal)      ||   --
-                    atol(FSAinfolevel) ||   -- info level requested
-                    address(infobuf)   ||   -- string offset
-                    address(infobuflen), 2) -- length of buffer
+   rc = dynalink32( 'DOSCALLS',              -- dynamic link library name
+                    '#277',                  -- ordinal value for Dos32QueryFSAttach
+                    address( dev_name)  ||   -- device name
+                    atol( ordinal)      ||   --
+                    atol( FSAinfolevel) ||   -- info level requested
+                    address( infobuf)   ||   -- string offset
+                    address( infobuflen), 2) -- length of buffer
    if rc then
-      return 'ERROR:'rc
+      return
    else
       -- For FSAinfolevel 1:
       iType = itoa( substr( infobuf, 1, 2), 10)
@@ -1698,12 +2036,188 @@ defproc QueryFileSys(Drive)
    endif
 
 ; ---------------------------------------------------------------------------
-defproc MakeDirectory(dirname)
-   dirname = dirname\0
-   peaop2 = copies(\0, 4)
-   rc = dynalink32( 'DOSCALLS',             -- dynamic link library name
-                    '#270',                 -- ordinal value for Dos32CreateDir
-                    address(dirname)  ||    -- device name
-                    peaop2)
-   return rc
+; Accepts a relative dir name. The parent dir must exist.
+defproc MakeDirectory( Dirname)
+   next = NepmdQueryFullName( DirName)
+   parse value next with 'ERROR:'ret
+   if ret = '' then
+      DirName = next
+   endif
+   Dirname = Dirname\0
+   peaop2 = copies( \0, 4)
+   rcx = dynalink32( 'DOSCALLS',           -- dynamic link library name
+                     '#270',               -- ordinal value for Dos32CreateDir
+                     address( Dirname) ||  -- device name
+                     peaop2)
+   return rcx
+
+; ---------------------------------------------------------------------------
+; Maybe overwrites NewFileName.
+defproc CopyFile( FileName, NewFileName)
+   next = NepmdQueryFullName( FileName)
+   parse value next with 'ERROR:'ret
+   if ret = '' then
+      FileName = next
+   endif
+   next = NepmdQueryFullName( NewFileName)
+   parse value next with 'ERROR:'ret
+   if ret = '' then
+      NewFileName = next
+   endif
+
+   FileName = FileName\0
+   NewFileName = NewFileName\0
+   Option = 1  -- Overwrite if exists
+   rcx = dynalink32( 'DOSCALLS',           -- dynamic link library name
+                     '#258',               -- ordinal value for Dos32Copy
+                     address( FileName)    ||
+                     address( NewFileName) ||
+                     atol( Option))
+   dprintf( 'CopyFile: rc = 'rcx', 'strip( FileName, 't', \0)' -> 'strip( NewFileName, 't', \0))
+   return rcx
+
+; ---------------------------------------------------------------------------
+; Maybe overwrites NewFileName instead of returning ERROR_ACCESS_DENIED.
+defproc Move( FileName, NewFileName)
+   next = NepmdQueryFullName( FileName)
+   parse value next with 'ERROR:'ret
+   if ret = '' then
+      FileName = next
+   endif
+   next = NepmdQueryFullName( NewFileName)
+   parse value next with 'ERROR:'ret
+   if ret = '' then
+      NewFileName = next
+   endif
+
+   if Exist( NewFileName) then
+      call EraseTemp( NewFileName)
+   endif
+
+   FileName = FileName\0
+   NewFileName = NewFileName\0
+   rcx = dynalink32( 'DOSCALLS',           -- dynamic link library name
+                     '#271',               -- ordinal value for Dos32Move
+                     address( FileName)    ||
+                     address( NewFileName))
+   dprintf( 'Move: rc = 'rcx', 'strip( FileName, 't', \0)' -> 'strip( NewFileName, 't', \0))
+   return rcx
+
+; ---------------------------------------------------------------------------
+; Accepts a relative tree name.
+defproc MakeTree( DirName)
+
+   -- Remove trailing backslash. Keep it for root dirs to return a better rc.
+   do i = 1 to 1
+      if rightstr( DirName, 1) <> '\' then
+         leave
+      elseif DirName = '\' then
+         leave
+      elseif rightstr( DirName, 2) = ':\' then
+         leave
+      endif
+      DirName = strip( DirName, 't', '\')
+   enddo
+
+   next = NepmdQueryFullName( DirName)
+   parse value next with 'ERROR:'ret
+   if ret = '' then
+      DirName = next
+   endif
+
+   rcx = 0
+   p = pos( '\', DirName)
+   if p = 0 then
+      return 13 -- ERROR_INVALID_DATA
+   endif
+   -- Ignore first backslash
+   next = substr( DirName, 1, p - 1)
+   rest = substr( DirName, p)
+
+   -- Loop through dir segments. next is the full path
+   -- without backslash and rest has a leading backslash.
+   fbreak = 0
+   do forever
+      p = pos( '\', rest, 2)
+      if p = 0 then
+         next = next''rest
+         rest = ''
+         fbreak = 1
+      else
+         next = next''substr( rest, 1, p - 1)
+         rest = substr( rest, p)
+      endif
+
+      SubDirname = next\0
+      peaop2 = copies( \0, 4)
+      rcx = dynalink32( 'DOSCALLS',             -- dynamic link library name
+                        '#270',                 -- ordinal value for Dos32CreateDir
+                        address( SubDirname) || -- device name
+                        peaop2)
+
+      -- rcx = 5 (ERROR_ACCESS_DENIED) is returned if dir already exists
+      if not wordpos( rcx, '0 5') then
+         leave
+      endif
+      if fbreak then
+         leave
+      endif
+   enddo
+
+   return rcx
+
+; ---------------------------------------------------------------------------
+; Reads beginning of a file with a submitted length. Returns it and sets rc.
+; Max. length is 512 bytes.
+defproc ReadFilePart( File, Len)
+   FilePart = ''
+
+   if not NepmdFileExists( File) then
+      rc = 2  -- ERROR_FILE_NOT_FOUND
+      return ''
+   endif
+   if not isnum( Len) | Len < 1 then
+      rc = 87  -- ERROR_INVALID_PARAMETER
+      return ''
+   endif
+
+   'xcom e /t /512 /bin /d' File
+
+   if rc = 0 then
+      .visible = 0
+      next = textline(1)
+      FilePart = substr( next, 1, Len)
+      'xcom quit'
+   else
+      rc = 5  -- ERROR_ACCESS_DENIED
+      return ''
+   endif
+
+   return FilePart
+
+; ---------------------------------------------------------------------------
+; Checks for signature, returns 1 if found in SigList, 0 if not, '' if error.
+; Sets rc. SigList is a space-separated list of signatures.
+defproc CheckSig( File, SigList)
+   Result = 0
+   MaxLen = 0
+   do w = 1 to words( SigList)
+      Sig = word( SigList, w)
+      MaxLen = max( MaxLen, length( Sig))
+   enddo
+
+   FileSig = ReadFilePart( File, MaxLen)
+   if rc <> 0 then
+      return ''
+   endif
+
+   do w = 1 to words( SigList)
+      Sig = word( SigList, w)
+      if leftstr( FileSig, length( Sig)) = Sig then
+         Result = 1
+         leave
+      endif
+   enddo
+
+   return Result
 
