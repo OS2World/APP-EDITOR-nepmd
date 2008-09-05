@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.46 2007-02-27 00:04:02 aschn Exp $
+* $Id: edit.e,v 1.47 2008-09-05 22:40:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,11 +21,6 @@
 
 ; Definitions for editing (loading) files.
 ; See also: SLNOHOST.E/SAVELOAD.E/E3EMUL.E and FILE.E.
-
-/*
-Todo:
--  Make disabling of RestorePosFromEa possible *before* calling 'edit'.
-*/
 
 ; ---------------------------------------------------------------------------
 ; EPM bug during heavy processing, e.g. file loading:
@@ -107,8 +102,8 @@ defproc PreLoadFile( Spec, Options)
       if fWildcard then
          -- If Spec contains wildcards then find Filenames
          Filename = NepmdGetNextFile( Spec, address( Handle))
-         parse value Filename with 'ERROR:'rc
-         if rc > '' then
+         parse value Filename with 'ERROR:'rcx
+         if rcx <> '' then
             leave
          endif
          filestoload = filestoload + 1
@@ -134,7 +129,7 @@ defproc PreLoadFile( Spec, Options)
       -- .filename as identifier, and replace the identifier with the fileid later
       -- at defload (or replace the array var with the final one).
 
-compile if 0
+compile if 1
       -- Experimentell codepage support
       call PreloadProcessCodepage( Filename)
 compile endif
@@ -147,7 +142,7 @@ compile endif
    if pos( ' ', Spec) > 0 then
       Spec = '"'Spec'"'
    endif
-   call LoadFile( Spec, Options)
+   call LoadFile( Spec, Options)  -- 'xcom e' sets rc
    return rc
 
 ; ---------------------------------------------------------------------------
@@ -308,16 +303,19 @@ defproc PreloadProcessCodepage( Filename)
          EaFile = Filename'.ea'
       endif
       StripEaCmd = 'eautil' Filename EaFile '/s'
-      JoinEaCmd  = 'eautil' Filename EaFile '/j /m'
+      --JoinEaCmd  = 'eautil' Filename EaFile '/j /m'
+      JoinEaCmd  = 'eautil' Filename EaFile '/r /s'
       RecodeCmd  = 'recode 'Codepage':'CurCodepage Filename
 
       -- Executing all in one cmd doesn't work
-      --Cmd = StripEaCmd'&'RecodeCmd'&'JoinEaCmd
-      --quietshell Cmd
-
+/*
+      Cmd = StripEaCmd'^&'RecodeCmd'^&'JoinEaCmd
+      quietshell Cmd
+*/
       quietshell StripEaCmd
       quietshell RecodeCmd
       quietshell JoinEaCmd
+
       -- Delete EA, because it will not be reset on save yet
       call NepmdDeleteStringEa( Filename, 'EPM.CODEPAGE')
    endif
@@ -364,12 +362,12 @@ compile endif
                              -- the unknown file was loaded (via xcom edit).
 
    getfileid startfid  -- save fid of topmost file before current edit cmd
-   call ResetHiliteModeList()
+;   call ResetHiliteModeList()
    -- Set current edit cmd to let other commands differ between several ways
    -- of file loading.
    -- Other commands, that execute 'Edit', can set this universal var before
    -- and then it will not be overwritten by 'Edit'. Afterload will reset it.
-   -- This is currently used for RestorePos and RingWriteFilePosition.
+   -- This is currently used for RestorePos and RingSavePos.
    if CurEditCmd = '' then
       CurEditCmd = 'EDIT'
    endif
@@ -380,13 +378,6 @@ compile endif
       --nextfile  -- removed to make 'epm /r' only bring an EPM window to the foreground
                   -- instead of switching to the next file in the ring.
       return 0
-   endif
-
-   if CurEditCmd <> 'RESTORERING' then
-; Todo:
-;    Here: Write args to an array var
-;    AtStartup: Write contents of array to history
-      'AtStartup AddToHistory EDIT' args
    endif
 
    options = default_edit_options
@@ -445,7 +436,7 @@ compile endif
 
       else
          files_loaded = files_loaded + 1  -- Number of files we tried to load
-         -- Remove doublequotes
+         -- Remove double quotes
          if ch = '"' then
             p = pos( '"', rest, 2)
             if p then
@@ -477,7 +468,7 @@ compile if HOST_SUPPORT & not SMALL
                rest = more substr( rest, p)
             else
 compile endif
-               -- Recogniation of ',' as segement parser is changed from ','
+               -- Recogniation of ',' as segment parser is changed from ','
                -- to ', ' (at least 1 space after the comma) in order to
                -- support filenames like: "filename.ext,v", as created by CVS.
                -- Parse at next ', '. Removes ', ' from FileSpec (DOS and VM)
@@ -514,12 +505,15 @@ compile endif
          if rc = -5 then  -- sayerror('Access denied')
             if NepmdDirExists( strip( FileSpec, 'b', '"')) then
                fOpenDir = 1
+;               display -2
+               sayerror 0  -- delete the error message for rc = -5
+;               display 2
                if not pos( ' ', FileSpec) then
                   MaybeStrippedFileSpec = strip( FileSpec, 'b', '"')
                else
                   MaybeStrippedFileSpec = FileSpec
                endif
-               -- For Shell windows: enter current dir name
+               -- For Shell buffers: enter current dir name
                if IsAShell( .filename) then
                   ShellDir = ''
                   ShellCmd = ''
@@ -624,17 +618,12 @@ compile endif
       if firstinringfid = '' then
          firstinringfid = firstloadedfid
       endif
-
-      if firstloadedfid = startfid then
-         -- If previous topmost file should be loaded again as first loaded file,
-         -- check if file was altered by another application.
-         -- Note: Required, because no defselect, no defload will be triggered then.
-         --       This enables a check for altered-on-disk.
-         'ResetDateTimeModified'
-         'RefreshInfoLine MODIFIED'
-      endif
-
    endif
+
+   if upcase( CurEditCmd) <> 'RESTORERING' then
+      'AtStartup AddToHistory EDIT' args
+   endif
+
    rc = edit_rc
 
 ; ---------------------------------------------------------------------------
@@ -714,7 +703,7 @@ defc new
 ; Move current file to a newly opened EPM window.
 ; Moved from STDCMDS.E
 defc newwindow
-   if leftstr(.filename, 5)='.DOS ' then
+   if leftstr(.filename, 5) = '.DOS ' then
       fn = "'"substr(.filename, 6)"'"
    elseif .filename = '.tree' then
       parse value .titletext with cmd ': ' args
@@ -723,7 +712,7 @@ defc newwindow
       epmdir = directory()
       call psave_pos(save_pos)
       getsearch oldsearch
-      -- search (reverse) in command shell window for the prompt and
+      -- search (reverse) in command shell buffer for the prompt and
       -- retrieve the current directory
       -- goto previous prompt line
       ret = ShellGotoNextPrompt( 'P')
@@ -959,7 +948,7 @@ defc EditMacroFile
       endif
       TextZ = '  'Text\0    -- add 2 spaces for proper left alignment of text and zero termination
       ItemList = MacroFileList             -- first char is separator
-      ButtonList = '/~Edit/~Open/~Cancel'  -- first char is separator, first button is selected
+      ButtonList = '/~Edit/~Open/Cancel'   -- first char is separator, first button is selected
       Selection = 1                        -- selected item of ItemList
       Height = min( Found, 12)             -- make the list max. 12 lines high
       Width  = max( Len, 50)               -- make the list min. 50 ??? wide
@@ -983,6 +972,124 @@ defc EditMacroFile
       endif
    endif
    return
+
+; ---------------------------------------------------------------------------
+; Edits a user macro file. If file doesn't exist, the contents of the
+; Netlabs file is copied to the new user file buffer. A file is only created
+; if a user saves the buffer afterwards.
+defc EditCreateUserMacro
+   MacroFile = arg(1)
+   lp = lastpos( '\', MacroFile)
+   MacroFileName = substr( MacroFile, lp + 1)
+   UserMacroDir     = Get_Env( 'NEPMD_USERDIR')'\macros'
+   NetlabsMacroDir  = Get_Env( 'NEPMD_ROOTDIR')'\netlabs\macros'
+   UserMacroFile    = UserMacroDir'\'MacroFileName
+   NetlabsMacroFile = NetlabsMacroDir'\'MacroFileName
+   if Exist( UserMacroFile) then
+      'Edit 'UserMacroFile
+   else
+      'Edit 'NetlabsMacroFile
+      if not rc then
+         .filename = UserMacroFile
+      endif
+      'postme mc ;1;RemoveNextHeader'
+   endif
+
+; ---------------------------------------------------------------------------
+; Edits a user macro file. If file doesn't exist, the contents of the
+; Netlabs file is copied to the new user file buffer. A file is only created
+; if a user saves the buffer afterwards.
+; Syntax: EditCreateUserFile <subpath>\<filename>, e.g.: bin\epm.env
+defc EditCreateUserFile
+   MacroFile = arg(1)
+   UserDir     = Get_Env( 'NEPMD_USERDIR')
+   NetlabsDir  = Get_Env( 'NEPMD_ROOTDIR')'\netlabs'
+   UserFile    = UserDir'\'MacroFile
+   NetlabsFile = NetlabsDir'\'MacroFile
+   if Exist( UserFile) then
+      'Edit 'UserFile
+   else
+      'Edit 'NetlabsFile
+      if not rc then
+         .filename = UserFile
+      endif
+      'postme mc ;1;RemoveNextHeader'
+   endif
+
+; ---------------------------------------------------------------------------
+; Remove next comment block from a buffer, starting at cursor line.
+defc RemoveNextHeader
+   saved_autosave = .autosave
+   .autosave = 0
+   saved_modify = .modify
+   call NewUndoRec()
+   call DisableUndoRec()
+   InfolineRefresh = 0
+
+   cComment = 0
+   fHeader = 0
+   -- Check comment char on current line
+   LineCommentChars = '; : # %'
+   CommentChars = ''
+   getline line
+   ch1 = leftstr( line, 1)
+   ch2 = leftstr( line, 2)
+   wp = wordpos( ch1, LineCommentChars)
+   if ch2 = '/*' then
+      CommentChars = '/* */'
+      fHeader = 1
+   elseif wp > 0 then
+      CommentChars = word( LineCommentChars, wp)
+      fHeader = 1
+   endif
+
+   do while fHeader
+      getline line
+
+      if words( CommentChars) = 2 then
+         w1 = word( CommentChars, 1)
+         w2 = word( CommentChars, 2)
+         if leftstr( line, length( w1)) = w1 then
+            cComment = cComment + 1
+            fHeader = 1
+         elseif rightstr( line, length( w2)) = w2 & cComment > 0 then
+            cComment = cComment - 1
+         endif
+      elseif words( CommentChars) = 1 then
+         if leftstr( line, 1) = CommentChars then
+            cComment = 1
+            fHeader = 1
+         else
+            leave
+         endif
+      else
+         leave
+      endif
+
+      if fHeader then
+         deleteline
+         if .line = .last then
+            leave
+         endif
+         if cComment = 0 then
+            leave
+         endif
+      else
+         if .line = .last then
+            leave
+         endif
+         '+1'
+         iterate
+      endif
+   enddo
+
+   display 1
+   InfolineRefresh = 1
+   .autosave = saved_autosave
+   if .modify > saved_modify then
+      .modify = saved_modify + 1
+   endif
+   call NewUndoRec()
 
 ; ---------------------------------------------------------------------------
 ; unused
@@ -1018,7 +1125,7 @@ compile endif
 ; ---------------------------------------------------------------------------
 ; A common routine to parse a DOS file name.  Optional second argument
 ; gives source for = when used for path or fileid.
-; New: Quotes, doublequotes and spaces are handled correctly.
+; New: Quotes, double quotes and spaces are handled correctly.
 ;      Duplicated '\' between path and name are avoided.
 ;      Environment vars are resolved.
 ;      ?: is replaced with the bootdrive.
@@ -1046,7 +1153,7 @@ defproc parse_filename( var filename)
          call parse_filename( wrd, sourcefile)
          resolved = resolved" '"wrd"'"
       elseif leftstr( rest, 1) = '"' then
-         -- resolve doublequoted wrd
+         -- resolve double-quoted wrd
          parse value rest with '"'wrd'"' rest
          -- wrd is ready to resolve '='
          call parse_filename2( wrd, sourcefile)
@@ -1067,7 +1174,7 @@ defproc parse_filename( var filename)
 ; Resolve '=', '%' and ?: in a single word or word with spaces
 defproc parse_filename2( var wrd, sourcefile)
 
-   -- parse sourcefile
+   -- Parse sourcefile
    lp1 = lastpos( '\', sourcefile)
    spath = substr( sourcefile, 1, lp1)
    sname = substr( sourcefile, lp1 + 1)
@@ -1079,19 +1186,12 @@ defproc parse_filename2( var wrd, sourcefile)
    endif
    sext  = substr( sname, lp2 + 1)
 
-   -- replace environment variables
-   if pos( '%', wrd) then
-      wrd = ResolveEnvVars(wrd)
+   -- Replace environment variables and boot drive
+   if pos( '%', wrd) |  pos( '?:', wrd) then
+      wrd = ResolveEnvVars( wrd)
    endif
 
-   -- replace ?: with bootdrive
-   do while pos( '?:', wrd) > 0
-      parse value wrd with first '?:' rest
-      BootDrive = NepmdQuerySysInfo('BOOTDRIVE')
-      wrd = first''BootDrive''rest
-   enddo
-
-   --replace '='
+   -- Replace '='
    if pos( '=', wrd) then
       p = pos( '=', wrd)
       lwrd = substr( wrd, 1, p - 1)
@@ -1223,8 +1323,8 @@ defproc GetFullName( FileMask)
    -- Resolve '.' and '..' in FullName
    if not pos( '/', FullName) then
       next = NepmdQueryFullname( FullName)
-      parse value next with 'ERROR:'rc
-      if rc = '' then
+      parse value next with 'ERROR:'rcx
+      if rcx = '' then
          FullName = next
       endif
    endif
