@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.11 2007-06-10 19:44:10 aschn Exp $
+* $Id: recompile.e,v 1.12 2008-09-05 23:08:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -59,23 +59,23 @@ compile endif
 ;
 ; If modulename is omitted, the current filename is assumed.
 ; New: Path and extension for modulename are not required.
-defc relink
+defc Relink
    args = arg(1)
    wp = wordpos( 'IFLINKED', upcase( args))
    fIfLinked = (wp > 0)
    if wp then
       args = delword( args, wp, 1)  -- remove 'IFLINKED' from args
    endif
-   modulename = args  -- new: path and ext optional
-   call parse_filename( modulename)
+   Modulename = args  -- new: path and ext optional
+   call parse_filename( Modulename)
 
-   if modulename = '' then                           -- If no name given,
+   if Modulename = '' then                           -- If no name given,
       p = lastpos( '.', .filename)
       if upcase( substr( .filename, p)) <> '.E' then
          sayerror '"'.filename'" is not an .E file'
          return
       endif
-      modulename = substr( .filename, 1, p - 1)    -- use current file.
+      Modulename = substr( .filename, 1, p - 1)    -- use current file.
       if .modify then
          's'                                       -- Save it if changed.
          if rc then return; endif
@@ -83,47 +83,51 @@ defc relink
    endif
 
    -- Check if basename of module was linked before
-   lp1 = lastpos( '\', modulename)
-   name = substr( modulename, lp1 + 1)
-   lp2 = lastpos( '.', name)
+   lp1 = lastpos( '\', Modulename)
+   Name = substr( Modulename, lp1 + 1)
+   lp2 = lastpos( '.', Name)
    if lp2 > 1 then
-      basename = substr( name, 1, lp2 - 1)
+      Basename = substr( Name, 1, lp2 - 1)
    else
-      basename = name
+      Basename = name
    endif
-   linkedrc = linked(basename)
 
-   'etpm' modulename  -- This is the macro ETPM command.
+   UnlinkName = Basename
+   linkedrc = linked( Basename)
+   if linkedrc < 0 then
+      Next = Get_Env( 'NEPMD_ROOTDIR')'\netlabs\ex\'Basename'.ex'
+      rc2 = linked( Next)
+      if rc2 < 0 then
+         Next = Get_Env( 'NEPMD_ROOTDIR')'\epmbbs\ex\'Basename'.ex'
+         rc3 = linked( Next)
+         if rc3 < 0 then
+         else
+            linkedrc = rc3
+            UnlinkName = Next
+         endif
+      else
+         linkedrc = rc2
+         UnlinkName = Next
+      endif
+   endif
+
+   'etpm' Modulename  -- This is the macro ETPM command
    if rc then return; endif
 
    -- Unlink and link module if linked
    if linkedrc >= 0 then  -- if linked
-
-      -- Handle a keyset-defining module specially
-      if rightstr( upcase( basename), 4) = 'KEYS' &
-         length( basename) > 4 then
-         curkeyset = .keyset
-         'UseKeys EDIT_KEYS'
-      endif
-
-      'unlink' basename   -- 'unlink' gets full pathname now
+      'unlink' UnlinkName   -- 'unlink' gets full pathname now
       if rc < 0 then
          return
       endif
    endif
    if linkedrc >= 0 | fIfLinked = 0 then
-      'link' basename
-
-      -- Handle a keyset-defining module specially
-      if rightstr( upcase( basename), 4) = 'KEYS' &
-         length( basename) > 4 then
-         'UseKeys' curkeyset
-      endif
+      'link' Basename
 
       -- Refresh menu if module is linked and defines a menu
-      if rc >= 0 & upcase( rightstr( basename, 4)) = 'MENU' &
-         length( basename) > 4 then
-         'ChangeMenu' basename
+      if rc >= 0 & upcase( rightstr( Basename, 4)) = 'MENU' &
+         length( Basename) > 4 then
+         'ChangeMenu' Basename
       endif
    endif
 
@@ -138,9 +142,7 @@ defc relink
 ;
 ; Does use the /v option now.
 ; Doesn't respect options from the commandline, like /v or /e <logfile>.
-defc et,etpm=
-;   universal vTEMP_PATH
-   --universal vTEMP_FILENAME
+defc et, etpm
 
    rest = strip( arg(1))
    if leftstr( rest, 1) = '"' then
@@ -187,41 +189,50 @@ defc et,etpm=
       ExFile = DestDir'\'BaseName'.ex'
    endif
 
+compile if defined(ETPM_CMD)  -- let user specify fully-qualified name
+   EtpmCmd = ETPM_CMD
+compile else
+   EtpmCmd = 'etpm'
+compile endif
+
 ;   TempFile = vTEMP_PATH'ETPM'substr( ltoa( gethwnd(EPMINFO_EDITCLIENT), 16), 1, 4)'.TMP'
-   TempFile = DestDir'\'BaseName'.log'
+   TempFile = DestDir'\'strip( leftstr( BaseName, 16))'.log'
 
    Params = '/v 'InFile ExFile' /e 'TempFile
 
- compile if defined(ETPM_CMD)  -- let user specify fully-qualified name
-   EtpmCmd = ETPM_CMD
- compile else
-   EtpmCmd = 'etpm'
- compile endif
+   Os2Cmd = EtpmCmd Params
+
+   -- Must check length here!
+   deltalen = length( Os2Cmd) - 224
+   if deltalen > 0 then
+      sayerror 'Command: 'Os2Cmd
+      sayerror 'Error: command is 'deltalen' chars too long. Shorten filename or use an OS/2 or EPM shell window.'
+      return
+   endif
 
 ;   CurDir = directory()
 ;   call directory('\')
 ;   call directory(DestDir)  -- change to DestDir first to avoid loading macro files from CurDir
 
    sayerror COMPILING__MSG infile
-   quietshell 'xcom' EtpmCmd Params
+   quietshell 'xcom' Os2Cmd
+   etpmrc = rc
 
 ;   call directory('\')
 ;   call directory(CurDir)
-   if rc = -2 then
+   rc = etpmrc
+   if rc = 0 then
+      refresh
+      sayerror COMP_COMPLETED__MSG': 'BaseName
+   elseif rc = -2 then
       sayerror CANT_FIND_PROG__MSG EtpmCmd
       stop
-   endif
-   if rc = 41 then
+   elseif rc = 41 then
       sayerror 'ETPM.EXE' CANT_OPEN_TEMP__MSG '"'TempFile'"'
       stop
-   endif
-   if rc then
-      saverc = rc
-      call ec_position_on_error(TempFile)
-      rc = saverc
    else
-      refresh
-      sayerror COMP_COMPLETED__MSG
+      call ec_position_on_error(TempFile)
+      rc = etpmrc
    endif
 ;   call erasetemp(TempFile) -- 4.11:  added to erase the temp file.
 
@@ -353,8 +364,8 @@ defc RecompileAll
    'RingCheckModify'
 
    Path = NepmdScanEnv('EPMEXPATH')
-   parse value Path with 'ERROR'rc
-   if (rc > '') then
+   parse value Path with 'ERROR:'ret
+   if (ret <> '') then
       return
    endif
 
@@ -367,8 +378,8 @@ defc RecompileAll
       Handle = GETNEXT_CREATE_NEW_HANDLE    -- always create a new handle!
       do forever
          ListFile = NepmdGetNextFile( FileMask, address(Handle))
-         parse value ListFile with 'ERROR:'rc
-         if (rc > '') then
+         parse value ListFile with 'ERROR:'ret
+         if (ret <> '') then
             leave
          -- Append if not already in list
          elseif pos( upcase(ListFile)';', upcase(ListFiles)';') = 0 then
@@ -477,91 +488,15 @@ defc RecompileNew
       'RingCheckModify'
    endif
 
-   Path = NepmdScanEnv('EPMEXPATH')
-   parse value Path with 'ERROR:'rc
-   if (rc > '') then
-      return rc
-   endif
-
    mouse_setpointer WAIT_POINTER
+   Path = Get_Env('EPMEXPATH')
    ListFiles = ''
-   rest = Path
-   do while rest <> ''
-      parse value rest with next';'rest
-      -- Search in every piece of Path for .lst files
-      FileMask = next'\*.lst'
-      Handle = GETNEXT_CREATE_NEW_HANDLE    -- always create a new handle!
-      do forever
-         ListFile = NepmdGetNextFile( FileMask, address( Handle))
-         parse value ListFile with 'ERROR:'rc
-         if (rc > '') then
-            leave
-         -- Append if not already in list
-         else
-            -- Ignore if filename (without path) exists in list
-            lp = lastpos( '\', ListFile)
-            Name = substr( ListFile, lp + 1)
-            if pos( upcase( Name)';', upcase( ListFiles)) = 0 then
-               ListFiles = ListFiles''ListFile';'
-            endif
-         endif
-      enddo
-   enddo
-
-   fPrependEpm = 0
-   BaseNames = ''  -- ';'-separated list with basenames
-   rest = ListFiles
-   do while rest <> ''
-      parse value rest with ListFile';'rest
-      -- Load ListFile
-      'xcom e /d' ListFile
-      if rc <> 0 then
-         iterate
-      endif
-      getfileid fid
-      .visible = 0
-      -- Read lines
-      do l = 1 to .last
-         Line = textline(l)
-         StrippedLine = strip(Line)
-
-         -- Ignore comments, lines starting with ';' at column 1 are comments
-         if substr( Line, 1, 1) = ';' then
-            iterate
-         -- Ignore empty lines
-         elseif StrippedLine = '' then
-            iterate
-         endif
-
-         BaseName = StrippedLine
-         -- Strip extension
-         if rightstr( upcase( BaseName), 3) = '.EX' then
-            BaseName = substr( BaseName, 1, length( BaseName) - 3)
-         endif
-         -- Ignore epm (this time)
-         if upcase( BaseName) = 'EPM' then
-            fPrependEpm = 1
-         -- Append ExFile to list
-         elseif pos( ';'upcase(BaseName)';', ';'upcase(BaseNames)';') = 0 then
-            BaseNames = BaseNames''BaseName';'
-         endif
-      enddo  -- l
-      -- Quit ListFile
-      activatefile fid
-      .modify = 0
-      'xcom q'
-   enddo
-   -- Prepend 'epm;'
-   -- 'epm;' should be the first entry, because it will restart EPM and
-   -- unlinking/linking of other .EX files can be avoided then.
-   if fPrependEpm = 1 then
-      BaseNames = 'epm;'BaseNames  -- ';'-separated list with basenames
-   endif
+   BaseNames = ReadMacroLstFiles( Path, ListFiles)
    NepmdRootDir = Get_Env('NEPMD_ROOTDIR')
    NepmdUserDir = Get_Env('NEPMD_USERDIR')
    UserDirName = substr( NepmdUserDir, lastpos( '\', NepmdUserDir) + 1)
-   call EnsureDirExists( NepmdUserDir)
-   call EnsureDirExists( NepmdUserDir'\ex')
+   call MakeTree( NepmdUserDir)
+   call MakeTree( NepmdUserDir'\ex')
    CompileDir   = NepmdUserDir'\ex\tmp'
    LogFile      = NepmdUserDir'\ex\recompilenew.log'
    if Exist( LogFile) then
@@ -638,19 +573,19 @@ defc RecompileNew
       -- Get ExFileTime of last check from NEPMD.INI
       -- (Saving LastCheckTime avoids a possible ETPM call, if nothing has changed)
       next = NepmdQueryConfigValue( nepmd_hini, KeyPath1)
-      parse value next with 'ERROR:'rc
-      if rc = '' then
+      parse value next with 'ERROR:'ret
+      if ret = '' then
          LastCheckTime = next
       endif
 
       NetlabsExFile = NepmdRootDir'\netlabs\ex\'BaseName'.ex'
       -- Get full pathname
       CurExFile = FindExFile( BaseName)
-      if CurExFile > '' then
+      if CurExFile <> '' then
          -- Get time of ExFile
          next = NepmdQueryPathInfo( CurExFile, 'MTIME')
-         parse value next with 'ERROR:'rc
-         if rc = '' then
+         parse value next with 'ERROR:'ret
+         if ret = '' then
             CurExFileTime = next
             next = NepmdQueryConfigValue( nepmd_hini, KeyPath2)
             if next <> CurExFileTime then
@@ -660,8 +595,8 @@ defc RecompileNew
                -- Compare (maybe user's) ExFile with netlabs ExFile to delete it or to give a warning if older
                NetlabsExFile = NepmdRootDir'\netlabs\ex\'BaseName'.ex'
                next = NepmdQueryPathInfo( NetlabsExFile, 'MTIME')
-               parse value next with 'ERROR:'rc
-               if rc = '' then
+               parse value next with 'ERROR:'ret
+               if ret = '' then
                   NetlabsExFileTime = next
                   if upcase(CurExFile) <> upcase(NetlabsExFile) then  -- if different pathnames
                      fCompCurExFile = 1
@@ -724,15 +659,15 @@ defc RecompileNew
 
          -- Get list of EFiles from NEPMD.INI
          next = NepmdQueryConfigValue( nepmd_hini, KeyPath3)
-         parse value next with 'ERROR:'rc
-         if rc = '' & next > '' then
+         parse value next with 'ERROR:'ret
+         if ret = '' & next <> '' then
             CurEFiles = next
          else
          endif
          -- Get list of times for EFiles from NEPMD.INI
          next = NepmdQueryConfigValue( nepmd_hini, KeyPath4)
-         parse value next with 'ERROR:'rc
-         if rc = '' & next > '' then
+         parse value next with 'ERROR:'ret
+         if ret = '' & next <> '' then
             CurEFileTimes = next
          endif
 
@@ -770,8 +705,8 @@ defc RecompileNew
                FullEFile = FindFileInList( EFile, Get_Env( 'EPMMACROPATH'))
                -- Get time of EFile
                next = NepmdQueryPathInfo( FullEFile, 'MTIME')
-               parse value next with 'ERROR:'rc
-               if rc = '' then
+               parse value next with 'ERROR:'ret
+               if ret = '' then
                   EFileTime = next
                   -- Compare time of EFile with LastCheckTime and CurExFileTime
                   if not fCheckOnly then
@@ -790,15 +725,15 @@ defc RecompileNew
                   -- Compare time of (maybe user's) EFile with netlabs EFile to give a warning if older
                   NetlabsEFile = NepmdRootDir'\netlabs\macros\'EFile
                   next = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
-                  parse value next with 'ERROR:'rc
-                  if rc = '' then
+                  parse value next with 'ERROR:'rcx
+                  if rcx = '' then
                      NetlabsEFileTime = next
                      if EFileTime < NetlabsEFileTime then
                         WriteLog( LogFile, 'WARNING: 'BaseName' - .E file "'FullEFile'" older than Netlabs .E file')
                         cWarning = cWarning + 1
                      endif
                   endif
-               endif  -- rc = ''
+               endif  -- rcx = ''
             enddo  -- while erest <> ''
 
          endif
@@ -821,8 +756,8 @@ defc RecompileNew
                FullEFile = FindFileInList( EFile, Get_Env( 'EPMMACROPATH'))
                -- Get time of EFile
                next = NepmdQueryPathInfo( FullEFile, 'MTIME')
-               parse value next with 'ERROR:'rc
-               if rc = '' then
+               parse value next with 'ERROR:'ret
+               if ret = '' then
                   EFileTime = next
                endif
                NewEFileTimes = NewEFileTimes''EFileTime';'
@@ -832,8 +767,8 @@ defc RecompileNew
                   NetlabsEFile = NepmdRootDir'\netlabs\macros\'EFile
                   if upcase( NetlabsEFile) <> upcase( EFile) then
                      next = NepmdQueryPathInfo( NetlabsEFile, 'MTIME')
-                     parse value next with 'ERROR:'rc
-                     if rc = '' then
+                     parse value next with 'ERROR:'ret
+                     if ret = '' then
                         NetlabsEFileTime = next
                         if EFileTime < NetlabsEFileTime then
                            WriteLog( LogFile, 'WARNING: 'BaseName' - .E file "'FullEFile'" older than Netlabs .E file')
@@ -851,8 +786,8 @@ defc RecompileNew
          endif
          -- Get time of new ExFile
          next = NepmdQueryPathInfo( ExFile, 'MTIME')
-         parse value next with 'ERROR:'rc
-         if rc = '' then
+         parse value next with 'ERROR:'ret
+         if ret = '' then
             NewExFileTime = next
          endif
       endif
@@ -881,27 +816,27 @@ defc RecompileNew
                      if upcase( CurExFile) <> upcase( NetlabsExFile) then
                         if not fCheckOnly then
                            fDeleteExFile = 1
-                           WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to current but equal to Netlabs .EX file')
+                           WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different from current but equal to Netlabs .EX file')
                         else
-                           WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different to current but equal to Netlabs .EX file')
+                           WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different from current but equal to Netlabs .EX file')
                            cWarning = cWarning + 1
                            fCheckOnlyNotCopied = 1
                         endif
                      endif
                   else
                      if not fCheckOnly then
-                        WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to current and Netlabs .EX file')
+                        WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different from current and Netlabs .EX file')
                      else
-                        WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different to current and Netlabs .EX file')
+                        WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different from current and Netlabs .EX file')
                         cWarning = cWarning + 1
                         fCheckOnlyNotCopied = 1
                      endif
                   endif
                else
                   if not fCheckOnly then
-                     WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different to current .EX file')
+                     WriteLog( LogFile, '         'BaseName' - .EX file "'ExFile'" different from current .EX file')
                   else
-                     WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different to current .EX file')
+                     WriteLog( LogFile, 'WARNING: 'BaseName' - .EX file "'ExFile'" different from current .EX file')
                      cWarning = cWarning + 1
                      fCheckOnlyNotCopied = 1
                   endif
@@ -944,21 +879,8 @@ defc RecompileNew
          elseif fRestartEpm = 0 then
             if linked( BaseName) >= 0 then  -- <0 means error or not linked
 
-               -- Handle a keyset-defining module specially
-               if rightstr( upcase( basename), 4) = 'KEYS' &
-                  length( basename) > 4 then
-                  curkeyset = .keyset
-                  'UseKeys DUMMY_KEYS'
-               endif
-
                'unlink' BaseName
                'link' BaseName
-
-               -- Handle a keyset-defining module specially
-               if rightstr( upcase( basename), 4) = 'KEYS' &
-                  length( basename) > 4 then
-                  'UseKeys' curkeyset
-               endif
 
                WriteLog( LogFile, '         'BaseName' - relinked .EX file')
                cRelink = cRelink + 1
@@ -1054,13 +976,110 @@ defc RecompileNew
    rc = ret
 
 ; ---------------------------------------------------------------------------
-; Check if Dir exists. If not, create it. Note: The parent dir must exist.
-defproc EnsureDirExists
-   Dir = arg(1)
-   if not NepmdDirExists( Dir) then
-      quietshell 'md' Dir
+; Extract basenames for compilable macro files from all LST files
+defproc ReadMacroLstFiles( Path, var ListFiles)
+   ListFiles = ''
+   rest = Path
+   do while rest <> ''
+      parse value rest with next';'rest
+      -- Search in every piece of Path for .lst files
+      FileMask = next'\*.lst'
+      Handle = GETNEXT_CREATE_NEW_HANDLE    -- always create a new handle!
+      do forever
+         ListFile = NepmdGetNextFile( FileMask, address( Handle))
+         parse value ListFile with 'ERROR:'ret
+         if (ret <> '') then
+            leave
+         -- Append if not already in list
+         else
+            -- Ignore if filename (without path) exists in list
+            lp = lastpos( '\', ListFile)
+            Name = substr( ListFile, lp + 1)
+            if pos( '\'upcase( Name)';', upcase( ListFiles)) = 0 then
+               ListFiles = ListFiles''ListFile';'
+            endif
+         endif
+      enddo
+   enddo
+
+   fPrependEpm = 0
+   BaseNames = ''  -- ';'-separated list with basenames
+   rest = ListFiles
+   do while rest <> ''
+      parse value rest with ListFile';'rest
+
+      -- Load ListFile
+      'xcom e /d' ListFile
+      if rc <> 0 then
+         iterate
+      endif
+      getfileid fid
+      .visible = 0
+      -- Read lines
+      do l = 1 to .last
+         Line = textline(l)
+         StrippedLine = strip(Line)
+
+         -- Ignore comments, lines starting with ';' at column 1 are comments
+         if substr( Line, 1, 1) = ';' then
+            iterate
+         -- Ignore empty lines
+         elseif StrippedLine = '' then
+            iterate
+         endif
+
+         BaseName = StrippedLine
+         -- Strip extension
+         if rightstr( upcase( BaseName), 3) = '.EX' then
+            BaseName = substr( BaseName, 1, length( BaseName) - 3)
+         endif
+         -- Ignore epm (this time)
+         if upcase( BaseName) = 'EPM' then
+            fPrependEpm = 1
+         -- Append ExFile to list
+         elseif pos( ';'upcase(BaseName)';', ';'upcase(BaseNames)';') = 0 then
+            BaseNames = BaseNames''BaseName';'
+         endif
+      enddo  -- l
+      -- Quit ListFile
+      activatefile fid
+      .modify = 0
+      'xcom q'
+
+   enddo
+
+   -- Prepend 'epm;'
+   -- 'epm;' should be the first entry, because it will restart EPM and
+   -- unlinking/linking of other .EX files can be avoided then.
+   if fPrependEpm = 1 then
+      BaseNames = 'epm;'BaseNames  -- ';'-separated list with basenames
    endif
-   return
+   return BaseNames
+
+; ---------------------------------------------------------------------------
+defproc AddToMacroLstFile( Basename)
+   NepmdUserDir = Get_Env('NEPMD_USERDIR')
+   ListFile = NepmdUserDir'\ex\myexfiles.lst'
+
+   'xcom e /d' ListFile
+   if rc <> 0 & rc <> -282 then  -- if error, -282 = sayerror("New file")
+      return
+   endif
+   getfileid fid
+   .visible = 0
+   if rc = -282 then
+      deleteline
+      insertline '; This file contains compilable user macro files. It is read by RecompileNew', .last + 1
+      insertline '; and ensures that an EX file is compiled automatically when its E file has', .last + 1
+      insertline '; changed. Add one basename per line. A semicolon in column 1 marks a comment.', .last + 1
+   endif
+   rc = 0
+   insertline Basename, .last + 1
+   -- Quit ListFile
+   activatefile fid
+   .modify = 0
+   'xcom s'
+   'xcom q'
 
 ; ---------------------------------------------------------------------------
 ; Returns rc of the ETPM.EXE call and sets ExFile, EtpmLogFile.
@@ -1072,7 +1091,7 @@ defproc CallEtpm( MacroFile, CompileDir, var ExFile, var EtpmLogFile)
    etpmrc = -1
    CompileDir = NepmdUserDir'\ex\tmp'
    if not exist( CompileDir) then
-      call EnsureDirExists( CompileDir)
+      call MakeTree( CompileDir)
       if not exist( CompileDir) then
          sayerror 'CallEtpm: Cannot find or create CompileDir "'CompileDir'"'
          stop
@@ -1091,10 +1110,15 @@ defproc CallEtpm( MacroFile, CompileDir, var ExFile, var EtpmLogFile)
 
    Params = '/v 'MacroFile '/e 'EtpmLogFile
    --dprintf( '', '  compiling 'ExFileBaseName)
+
    CurDir = directory()
+   call directory( '\')
    call directory( CompileDir)
+
    quietshell 'xcom etpm' Params
    etpmrc = rc
+
+   call directory( '\')
    call directory( CurDir)
 
    if etpmrc = -2 then
@@ -1134,7 +1158,6 @@ defproc GetEtpmFilesFromLog( EtpmLogFile)
 
 ; ---------------------------------------------------------------------------
 ; Returns FullName of ExFile when found, else nothing.
-; Sets rc in NEPMD style.
 ; Doesn't search in current dir. The path of ExFile is stripped to get its
 ; name.
 defproc FindExFile( ExFile)
@@ -1153,8 +1176,8 @@ defproc FindExFile( ExFile)
       FullExFile = FindFileInList( ExFile, Get_Env( 'EPMEXPATH'))
    endif
    next = NepmdQueryFullName( FullExFile)
-   parse value next with 'ERROR:'rc
-   if rc = '' then
+   parse value next with 'ERROR:'ret
+   if ret = '' then
       FullExFile = next
    endif
    return FullExFile
@@ -1264,13 +1287,12 @@ defproc WriteLog( LogFile, Msg)
 ; Compare .EX and .E macro files from <UserDir> with those from the NETLABS
 ; tree.
 defc CheckEpmMacros
-   universal nepmd_hini
 
    NepmdUserDir = Get_Env('NEPMD_USERDIR')
-   call EnsureDirExists( NepmdUserDir)
-   call EnsureDirExists( NepmdUserDir'\ex')
-   call EnsureDirExists( NepmdUserDir'\macros')
-   call EnsureDirExists( NepmdUserDir'\autolink')
+   call MakeTree( NepmdUserDir)
+   call MakeTree( NepmdUserDir'\ex')
+   call MakeTree( NepmdUserDir'\macros')
+   call MakeTree( NepmdUserDir'\autolink')
 
    'RecompileNew CheckOnly'
 
@@ -1353,6 +1375,7 @@ defc RecompileNewMsgBox
    return
 
 ; ---------------------------------------------------------------------------
+; Start RECOMP.EXE
 defc StartRecompile
    NepmdRootDir = NepmdScanEnv('NEPMD_ROOTDIR')
    NepmdUserDir = NepmdScanEnv('NEPMD_USERDIR')
@@ -1366,8 +1389,7 @@ defc StartRecompile
       -- same directory as Recompile.
       -- And additionally: make Recompile change save/restore EPM's directory.
       CurDir = directory()
-      call directory('\')
-      rc = directory(UserExDir)
+      call directory(UserExDir)
       'start 'NepmdRootDir'\netlabs\bin\recomp.exe 'UserExDir
       call directory('\')
       call directory(CurDir)
