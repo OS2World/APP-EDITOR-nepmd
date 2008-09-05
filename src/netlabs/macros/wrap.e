@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wrap.e,v 1.12 2006-03-26 11:35:01 aschn Exp $
+* $Id: wrap.e,v 1.13 2008-09-05 23:20:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,6 +32,8 @@ const
 
    MAXLNSIZE_UNTERMINATED = 1
 
+   WRAP_CHARS = ' \9,;>'
+
 ; ---------------------------------------------------------------------------
 ; Used to set the universal var on defselect.
 ; Configurable via Newmenu. reflowmargins is used by defc Wrap, defc
@@ -58,9 +60,14 @@ definit
 ;##############################################
 
 ; ---------------------------------------------------------------------------
-; Query wrapped state of current file. Returns 1 or 0.
+; Query wrapped state of current or specified file. Returns 1 or 0.
 defproc GetWrapped
-   getfileid fid
+   Filename = arg(1)
+   if Filename = '' then
+      getfileid fid
+   else
+      getfileid fid, Filename
+   endif
    return (GetAVar( 'wrapped.'fid) = 1)
 
 ; ---------------------------------------------------------------------------
@@ -82,7 +89,7 @@ defc ToggleWrap
 ;
 ; For mode = CONFIGSYS: Try to wrap at ';' or '+' first. If found, then the
 ; next line will have a ';' or a '+' at col 1.
-defc softwrap2win, softwrap
+defc SoftWrap2Win, SoftWrap
    -- Check if already wrapped
    if GetWrapped() then
       -- Unwrap first
@@ -111,7 +118,7 @@ defc softwrap2win, softwrap
       x = par_width
       y = y + 5
       map_point map_DocToLCO, x, y  -- Get column corresponding to pel pos. wM
-      limit = y - 2
+      SplitCol = y - 2
    endif
 
    getfileid fid
@@ -122,8 +129,7 @@ defc softwrap2win, softwrap
       .readonly = 0  -- need to disable .readonly temporarily
    endif
    call psave_pos(saved_pos)
-   undotime = 2            -- 2 = when moving the cursor from a modified line
-   undoaction 4, undotime  -- Disable state recording at specified time
+   call DisableUndoRec()
    saved_modify = .modify
 
    -- Split lines
@@ -131,7 +137,7 @@ defc softwrap2win, softwrap
    w = 0  -- number of wrapped lines
    l = 1  -- line number
    do while l <= .last
-      getline line, l
+      getline ThisLine, l
 
       -- Calculate limit = split col for a proportional font
       if not fMonospaced then  -- Have to calculate for each line individually
@@ -140,10 +146,10 @@ defc softwrap2win, softwrap
          x = par_width
          y = y + 5
          map_point map_DocToLCO, x, y  -- Get column corresponding to pel pos. wM
-         limit = y - 2
+         SplitCol = y - 2
       endif
 
-      if length( strip( line, 'T')) > limit then
+      if length( strip( ThisLine, 'T')) > SplitCol then
          -- Split line
          p = 0
          -- First process special features for some modes
@@ -152,23 +158,32 @@ defc softwrap2win, softwrap
          -- CONFIG.SYS: try to break line at ';' or '+' first
          -- The next line will have that char at col 1 than.
          if Mode = 'CONFIGSYS' then
-            p = lastpos( ';', line, limit)
+            p = lastpos( ';', ThisLine, SplitCol)
             if p = 0 then
-               p = lastpos( '+', line, limit)
+               p = lastpos( '+', ThisLine, SplitCol)
             endif
          endif
 
-         -- Split at last space before limit
+         -- Split at last space before SplitCol
          if p = 0 then
-            p = lastpos( ' ', line, limit)
-            first_nonblank_p = max( 1, verify( line, ' '\t))
-            --if not p then    -- No spaces in the line?
+            first_nonblank_p = max( 1, verify( ThisLine, ' '\t))
+            do c = 1 to length( WRAP_CHARS)
+               ch = substr( WRAP_CHARS, c, 1)
+               -- Split at last char before SplitCol
+               p = lastpos( ch, ThisLine, SplitCol)
+               if p > 0 then
+                  if ch <> ' ' then
+                     p = p + 1  -- Go after the WrapChar if not a space
+                  endif
+                  leave
+               endif
+            enddo
             -- Fixed: endless loop if a line starts with a space.
             if p < first_nonblank_p then  -- No spaces in the line after indent?
-               p = limit
+               p = SplitCol
             endif
          endif
-         l
+         .line = l
          .col = p
          split
 
@@ -197,10 +212,198 @@ defc softwrap2win, softwrap
       fWrapped = 0
       sayerror 'No wrap required'
    endif
-   undotime = 2
-   undoaction 5, undotime  -- Enable state recording at specified time
+   call EnableUndoRec()
    .modify = saved_modify
    call SetAVar( 'wrapped.'fid, fWrapped)
+
+; ---------------------------------------------------------------------------
+; Set line terminator of type MaxLnSize_unterminated. Acts on current line
+; or, when an arg was specified, a line relative to current line. 'NoWrap -1'
+; removes the line end from previous line, 'NoWrap' from current line.
+defc NoWrap
+   if arg(1) = '' then
+      LineNum = .line
+   else
+      LineNum = min( max( .line + arg(1), 1), .last)
+   endif
+   call NoWrapLine( LineNum)
+
+defproc NoWrapLine
+   if arg(1) = '' then
+      LineNum = .line
+   else
+      LineNum = arg(1)
+   endif
+   getfileid fid
+   client_fid = gethwndc( EPMINFO_EDITCLIENT)''atol(fid)
+   call dynalink32( E_DLL,
+                    'EtkChangeLineTerminator',
+                    client_fid     ||
+                    atol( LineNum) ||
+                    atol( MAXLNSIZE_UNTERMINATED))
+   call SetAVar( 'wrapped.'fid, 1)
+   return
+
+; ---------------------------------------------------------------------------
+; Joins current or specified line number with next line. Must wrap at 1599.
+; Todo:
+;    Restore line end for LineNum + 1 if it was MAXLNSIZE_UNTERMINATED.
+;    Join more lines, if cursor col not reached. Therefore specify
+;    a vol num as required arg.
+defc UnWrapLine
+   SavedLine = .line
+   SavedCol  = .col
+   parse arg Col LineNum
+   Col     = strip( Col)
+   LineNum = strip( LineNum)
+
+   if LineNum = '' then
+      LineNum = .line
+   else
+      .line = LineNum
+   endif
+   if Col = '' then
+      Col = .col
+   else
+      .col = Col
+   endif
+
+   do forever
+
+      if LineNum = .last then
+         return
+      endif
+
+      getline ThisLine, LineNum
+      getline NextLine, LineNum + 1
+      LenThisLine = length( ThisLine)
+      LenNextLine = length( NextLine)
+
+      if LenThisLine >= Col then
+         return
+      endif
+
+      getfileid fid
+      ClientFid = gethwndc( EPMINFO_EDITCLIENT)''atol(fid)
+
+      TermType = '?'
+      res = dynalink32( E_DLL,
+                        'EtkQueryLineTerminator',
+                        ClientFid           ||
+                        atol( LineNum)      ||
+                        address( TermType))
+      TermId = 0
+      if not res then
+         TermId = asc( leftstr( TermType, 1))
+      endif
+
+      NextTermType = '?'
+      res = dynalink32( E_DLL,
+                        'EtkQueryLineTerminator',
+                        ClientFid               ||
+                        atol( LineNum + 1)      ||
+                        address( NextTermType))
+      NextTermId = 0
+      if not res then
+         NextTermId = asc( leftstr( NextTermType, 1))
+      endif
+
+      if TermId = MAXLNSIZE_UNTERMINATED then  -- 1 = MaxLnSize_unterminated
+         getline ThisLine, LineNum
+         getline NextLine, LineNum + 1
+         LenThisLine = length( ThisLine)
+         LenNextLine = length( NextLine)
+         if LenThisLine + LenNextLine > 1599 then
+            Next = leftstr( NextLine, 1599 - LenThisLine)
+            Rest = substr( NextLine, 1599 - LenThisLine + 1)
+            replaceline ThisLine''Next, LineNum
+            replaceline Rest, LineNum + 1
+         else
+            replaceline ThisLine''NextLine, LineNum
+            -- Set line terminator id to the id of the next line.
+            -- This is required, because the line terminator id doesn't
+            -- change automatically after a line join to the id of the
+            -- next line.
+            call dynalink32( E_DLL,
+                             'EtkChangeLineTerminator',
+                             ClientFid         ||
+                             atol( LineNum)    ||
+                             atol( NextTermId))
+            deleteline LineNum + 1
+         endif
+      else
+         leave
+      endif
+
+   enddo
+
+   .line = SavedLine
+   .col  = SavedCol
+
+; ---------------------------------------------------------------------------
+; Splits line at column under cursor, if required. After that, move to the
+; next line that is longer than the cursor column. Tries to split at last
+; space before the cursor.
+; Todo: Unwrap before wrap, split at more chars
+defc SoftWrapAtCursor
+   saved_readonly = .readonly
+   if saved_readonly then
+      .readonly = 0  -- need to disable .readonly temporarily
+   endif
+   call DisableUndoRec()
+   saved_modify = .modify
+
+   SplitCol = .col
+
+;   -- Unwrap first
+;   'UnwrapLine 'splitcol
+
+   endline
+   getline ThisLine
+   if .col > SplitCol then
+      first_nonblank_p = max( 1, verify( ThisLine, ' '\t))
+      c = 0
+      do c = 1 to length( WRAP_CHARS)
+         ch = substr( WRAP_CHARS, c, 1)
+         -- Split at last char before SplitCol
+         p = lastpos( ch, ThisLine, SplitCol)
+         if p > 0 then
+            if ch <> ' ' then
+               p = p + 1  -- Go after the WrapChar if not a space
+            endif
+            leave
+         endif
+      enddo
+      if p < first_nonblank_p then  -- No spaces in the line after indent?
+         p = SplitCol
+      endif
+      .col = p
+      split  -- splits and keeps leading spaces
+      if not GetWrapped() then
+         'AvoidSaveOptions /o /l'
+      endif
+      call NoWrapLine()
+   endif
+   PrevLine = .line
+   do forever
+      if .line < .last then
+         down
+      endif
+      if .line = PrevLine then
+         leave
+      endif
+      PrevLine = .line
+      endline
+      if .col > SplitCol then
+         leave
+      endif
+   enddo
+   .col = SplitCol
+
+   if saved_readonly then
+      .readonly = 1
+   endif
+   .modify = saved_modify
 
 ; ---------------------------------------------------------------------------
 ; Soft-unwrap lines of current file. Determine line terminators of type
@@ -210,7 +413,7 @@ defc softwrap2win, softwrap
 ; If found, then join line with nextline, even if line terminator is not
 ; unterminated. This enables to unwrap lines, the user has added in wrapped
 ; status.
-defc unwrap
+defc UnWrap
    getfileid fid
    client_fid = gethwndc(EPMINFO_EDITCLIENT) || atol(fid)
    -- no additional undo state supression required
@@ -219,8 +422,7 @@ defc unwrap
       .readonly = 0  -- need to disable .readonly temporarily
    endif
    call psave_pos(saved_pos)
-   undotime = 2            -- 2 = when moving the cursor from a modified line
-   undoaction 4, undotime  -- Disable state recording at specified time
+   call DisableUndoRec()
    saved_modify = .modify
 
    -- Try to re-join lines
@@ -303,8 +505,7 @@ defc unwrap
    if saved_readonly then
       .readonly = 1
    endif
-   undotime = 2
-   undoaction 5, undotime  -- Enable state recording at specified time
+   call EnableUndoRec()
    .modify = saved_modify
    -- Save wrapped state in an array var
    fWrapped = 0
@@ -313,55 +514,55 @@ defc unwrap
 ; ---------------------------------------------------------------------------
 ; Hard wrap: split lines. Try to split at words first.
 ;
-; Syntax: wrap limit [style]
-;         wrap style [limit]
+; Syntax: Wrap SplitCol [Style]
+;         Wrap Style [SplitCol]
 ;
-;    limit = column after lines will be split | '*'
-;            '*' means: open commandline with default value for user input
-;            default = 79
-;    style = 'KEEPINDENT' | 'SPLIT'
-;            default = 'KEEPINDENT'
-defc wrap
+;    SplitCol = column after lines will be split | '*'
+;               '*' means: open commandline with default value for user input
+;               default = 79
+;    Style    = 'KEEPINDENT' | 'SPLIT'
+;               default = 'KEEPINDENT'
+defc Wrap
    universal vEPM_POINTER
    universal reflowmargins
 
-   parse value reflowmargins with . defaultlimit .
-   style = 'KEEPINDENT'
+   parse value reflowmargins with . DefaultSplitCol .
+   Style = 'KEEPINDENT'
 
    args = strip( upcase( arg(1)))
 
    wp = wordpos( 'KEEPINDENT', args)
    if wp > 0 then
       args = delword( args, wp)
-      style = 'KEEPINDENT'
+      Style = 'KEEPINDENT'
    endif
    wp = wordpos( 'SPLIT', args)
    if wp > 0 then
       args = delword( args, wp)
-      style = 'SPLIT'
+      Style = 'SPLIT'
    endif
 
    wp = wordpos( '*', args)
    if wp > 0 then
       args = delword( args, wp)
-      'commandline' strip( 'wrap 'style) defaultlimit
+      'commandline' strip( 'wrap 'style) DefaultSplitCol
       return
    endif
 
    if args = '' then
-      args = defaultlimit
+      args = DefaultSplitCol
    endif
 
-   -- Allow to specify a margin parameter as limit
+   -- Allow to specify a margin parameter as SplitCol
    parse value args with lma rma parma
    if rma > '' then
-      limit = rma
+      SplitCol = rma
    elseif lma > '' then
-      limit = lma
+      SplitCol = lma
    endif
 
-   if not isnum( limit) then
-      sayerror 'WRAP: "'limit'" is not a column number'
+   if not isnum( SplitCol) then
+      sayerror 'WRAP: "'SplitCol'" is not a column number'
       return
    endif
 
@@ -383,18 +584,18 @@ defc wrap
       -- process all lines
       getline line, l
 
-      if length( strip( line, 'T')) > limit then
+      if length( strip( line, 'T')) > SplitCol then
 
          if style = 'KEEPINDENT' then
-            -- Search last occurence of space or tab, starting at limit
-            SpaceP = lastpos( ' ', line, limit)
-            TabP   = lastpos( \9,  line, limit)
+            -- Search last occurence of space or tab, starting at SplitCol
+            SpaceP = lastpos( ' ', line, SplitCol)
+            TabP   = lastpos( \9,  line, SplitCol)
             p = max( SpaceP, TabP)
             first_nonblank_p = max( 1, verify( line, ' '\t))
             --if not p then    -- No spaces in the line?
             -- Fixed: additional blank line if a line start with a space.
             if p < first_nonblank_p then    -- No spaces in the line after indent?
-               p = limit
+               p = SplitCol
             endif
             l        -- Set cursor on line l
             .col = p -- Set cursor on col p (before a possible space or tab,
@@ -405,22 +606,22 @@ defc wrap
             call splitlines()  -- keeps indent of current line
 
          else
-            p = lastpos( ' ', line, limit)
+            p = lastpos( ' ', line, SplitCol)
             first_nonblank_p = max( 1, verify( line, ' '\t))
             --if not p then    -- No spaces in the line?
             -- Fixed: endless loop if a line start with a space.
             if p < first_nonblank_p then    -- No spaces in the line after indent?
-               p = limit
+               p = SplitCol
             endif
             l         -- Set cursor on line l
             .col = p  -- Set cursor on col p (before a possible space)
             split
-            getline splitline, l + 1  -- Strip leading spaces from the new line
-            replaceline strip( splitline, 'l'), l + 1
+            getline SplitLine, l + 1  -- Strip leading spaces from the new line
+            replaceline strip( SplitLine, 'l'), l + 1
          endif
 
          m = m + 1
-      endif  -- length( strip( line, 'T')) > limit
+      endif  -- length( strip( line, 'T')) > SplitCol
       l = l + 1
    enddo  -- while l <= .last
 
@@ -428,13 +629,13 @@ defc wrap
    display 1
    mouse_setpointer vEPM_POINTER
 
-   msg = 'Wrap after 'limit' chars: 'm
+   Msg = 'Wrap after 'SplitCol' chars: 'm
    if m = 1 then
-      msg = msg' change.'
+      Msg = Msg' change.'
    else
-      msg = msg' changes.'
+      Msg = Msg' changes.'
    endif
-   sayerror msg
+   sayerror Msg
 
    return
 
