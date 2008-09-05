@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: commands.e,v 1.2 2002-07-22 18:59:25 cla Exp $
+* $Id: commands.e,v 1.3 2008-09-05 22:36:08 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -26,7 +26,7 @@ const
    OS2WIN_PROMPT = 'Start an OS/2 windowed command session'
    DOSFS_PROMPT  = 'Start a DOS fullscreen command session'
    DOSWIN_PROMPT = 'Start a DOS windowed command session'
-   WINOS2_PROMPT = 'Start an OS/2 fullscreen command session'
+   WINOS2_PROMPT = 'Start a Win16 fullscreen session'
 
 defc commands_actionlist
 universal ActionsList_FileID
@@ -40,6 +40,7 @@ insertline '.cmd_winos2fs.'WINOS2_PROMPT'.commands.', ActionsList_FileID.last+1,
 defc cmd_os2fs
    if arg(1) = 'S' then
       'start /fs'
+      --'start /fs %comspec%'  -- That requires 2 exit commands to close it
    elseif arg(1) = 'I' then
      display -8
      sayerror OS2FS_PROMPT
@@ -52,6 +53,7 @@ defc cmd_os2fs
 defc cmd_os2win
    if arg(1) = 'S' then
       'start /win'
+      --'start /win %comspec%'  -- That requires 2 exit commands to close it
    elseif arg(1) = 'I' then
      display -8
      sayerror OS2WIN_PROMPT
