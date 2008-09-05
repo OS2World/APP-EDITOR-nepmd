@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.17 2007-09-01 10:59:59 aschn Exp $
+* $Id: tags.e,v 1.18 2008-09-05 23:18:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -692,6 +692,10 @@ compile endif
             endif
          endif
 
+         if inside_comment( 'C') then
+            repeat_find
+            iterate
+         endif
          display 2
 compile if LOG_TAG_MATCHES
          if TAG_LOG_FID then
@@ -777,6 +781,10 @@ defproc pas_proc_search( var proc_name, find_first)
          endif
          if pos( 'forward;', textline( .line)) then
             end_line; repeat_find; iterate
+         endif
+         if inside_comment( 'PASCAL') then
+            repeat_find
+            iterate
          endif
          line = substr( line, 1, p - 1)
          sline = strip( line)
@@ -977,6 +985,11 @@ compile endif
       parse value proc_name with proc_name '('
       parse value proc_name with proc_name ','
       --------------------------------------------------------------- Todo: handle defc xxx, yyy
+--dprintf( 'proc_name = 'proc_name', proc_len = 'proc_len', inside_comment = 'inside_comment( 'E'))
+      if inside_comment( 'E') then
+         repeat_find
+         iterate
+      endif
       if proc_len then
          if length(proc_name) <> proc_len then  -- a substring of something else
             end_line
