@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflowmail.e,v 1.16 2007-06-10 19:40:30 aschn Exp $
+* $Id: reflowmail.e,v 1.17 2008-09-05 23:08:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,19 +21,6 @@
 
 /*
 Todo:
-
--  Fix bugs:
-   Sometimes, mostly at longer textes, the execution stops with a msg:
-   No area marked. In fact, the entire text is marked and all quote chars
-   are removed. It's not possible then to do any mark operation with that
-   buffer, but undo works. In most cases, saving or renaming the buffer to
-   any, maybe temporary file, (after undoing to the unformatted version, of
-   course) will workaround that problem.
-   Additionally, it's not possible to format more than about 600 lines.
-
--  How to determine verbatim text?  Then: Ask the user if current par is
-   a verbatim par?
-   --> Better process only 1 par at time, starting at cursor!
 
 -  Correct wrong-wrapped lines instead of count them as a change of quote level.
 
@@ -151,7 +138,7 @@ defproc Mail_GetQuoteLevel( line, var sline, var ThisQuoteLevel, var ThisIndent)
 
 ; ---------------------------------------------------------------------------
 ; Reflow previous paragraph.
-defproc Mail_ReflowMarkedLines( PrevParQuoteLevel, PrevPrevParQuoteLevel, PrevListIndent, PrevBullet, fEnableReflow)
+defproc Mail_ReflowMarkedLines( PrevParQuoteLevel, PrevPrevParQuoteLevel, PrevListIndent, PrevBullet, fEnableReflow, fIndentLists)
    QuoteChar = '>'
    SpaceAmount = 1  -- Spaces after QuoteChar
    RightMargin = 72 - length( QuoteChar) - SpaceAmount
@@ -174,16 +161,28 @@ defproc Mail_ReflowMarkedLines( PrevParQuoteLevel, PrevPrevParQuoteLevel, PrevLi
    else
       PrevIndent = 0
    endif
-   lma = PrevListIndent + 1
-   rma = RightMargin - PrevIndent - PrevListIndent
-   .margins = lma rma lma
+
+   if fIndentLists then
+      lma = PrevListIndent + 1
+      rma = RightMargin - PrevIndent - PrevListIndent
+      pma = lma
+   else
+      lma = 1
+      rma = RightMargin - PrevIndent
+      -- Indent the bullet line to the length of the bullet chars plus
+      -- following spaces. Also the original indent is kept.
+      pma = PrevListIndent + 1
+   endif
+
+;dprintf( 'margins = 'lma rma pma' on formatting par before line '.line)
+   .margins = lma rma pma
 
    if fEnableReflow then
-      -- Reflow marked lines, starting at cursor
+      -- Reflow marked lines, starting at cursored line
       dprintf( 'REFLOWMAIL', '  Reflowing lines no 'FirstLine' to 'LastLine', Indent = 'PrevIndent', ListIndent = 'PrevListIndent', Bullet = ['PrevBullet']')
       reflow
    else
-      -- Don't reflow marked lines, starting at cursor
+      -- Don't reflow marked lines, starting at cursored line
       dprintf( 'REFLOWMAIL', '  Not reflowing lines no 'FirstLine' to 'LastLine)
    endif
 
@@ -191,6 +190,7 @@ defproc Mail_ReflowMarkedLines( PrevParQuoteLevel, PrevPrevParQuoteLevel, PrevLi
    .margins = 1 1599 1
 
    getmark FirstLine, LastLine, FirstCol, LastCol, Fid
+
    -- Re-add bullet chars
    if PrevBullet <> '' then
       replaceline overlay( PrevBullet, textline( FirstLine)), FirstLine
@@ -254,7 +254,7 @@ defproc Mail_IsVerbatim( sline)
    elseif FirstChar = '|' then
       fIsVerbatim = 1
 
-   -- Indented line with indent > 1
+   -- Indented line with indent >= 1
    elseif (substr( sline, 1, 1) = ' ' | substr( sline, 1, 1) = \9) & fIndentedIsVerbatim then
       fIsVerbatim = 1
    endif
@@ -281,7 +281,13 @@ defproc Mail_IsListItem( sline, var ThisListIndent, var ThisBullet)
          ThisBullet = FirstChar''SecondChar''ThirdChar
          fIsListItem = 1
       endif
-      -- Todo: keep indent for the rest of this item, reformat indent of items
+
+   -- Alphabetically numbered lists
+   elseif pos( FirstChar, 'abcdefghijklmnopqrstuvw') then
+      if pos( SecondChar, '.)') > 0 & pos( ThirdChar, ' '\13) > 0 then
+         fIsListItem = 1
+         ThisBullet = FirstChar''SecondChar
+      endif
 
    -- Bullet lists
    elseif pos( FirstChar, '-o*' ) > 0 & pos( SecondChar, ' '\9) > 0 then
@@ -290,7 +296,6 @@ defproc Mail_IsListItem( sline, var ThisListIndent, var ThisBullet)
    elseif pos( FirstChar, '-') > 0 & pos( SecondChar, '-') > 0 & pos( ThirdChar, ' '\9) > 0 then
       ThisBullet = FirstChar''SecondChar
       fIsListItem = 1
-      -- Todo: keep indent for the rest of this item, reformat indent of items
    endif
 
 
@@ -322,9 +327,18 @@ defproc Mail_IsListItem( sline, var ThisListIndent, var ThisBullet)
 ;                    or just keep the indent (and remove only 1 optional space after the prev '>')
 defc ReflowMail
    universal nepmd_hini
-   universal InfolineRefresh
    universal vTemp_Path
+   universal InfolineRefresh
    universal vepm_pointer
+
+   mouse_setpointer WAIT_POINTER
+   saved_autosave = .autosave
+   .autosave = 0
+   saved_modify = .modify
+   call NewUndoRec()
+   call DisableUndoRec()
+   InfolineRefresh = 0
+   display -1
 
    fPrevLineIsBlank    = 0
    fPrevLineIsVerbatim = 0
@@ -346,22 +360,12 @@ defc ReflowMail
    PrevListIndent = 0
 
    KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
+   -- Default is to not reflow indented lines
    fIndentedIsVerbatim = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 1)
 
-   mouse_setpointer WAIT_POINTER
-   saved_autosave = .autosave
-   .autosave = 0
-   saved_modify = .modify
-   call NewUndoRec()
-   call DisableUndoRec()
-   InfolineRefresh = 0
-   display -1
-
-   -- Temporarily rename file and see if it fixes the 'No text marked' bug
-   saved_filename = .filename
-   if leftstr( .filename, 1) = '.' then
-      'n .tempfile'
-   endif
+   KeyPath = '\NEPMD\User\Reflow\Mail\IndentLists'
+   -- Default is to indent lists
+   fIndentLists = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
 
    .line = 1
    .col  = 1
@@ -370,7 +374,8 @@ defc ReflowMail
    -- Add a blank line after last to make reflow of the last par easy
    insertline '', .last + 1
    i = 0
-   do while i < 1000
+   --do forever
+   do while i < 10000
       i = i + 1  -- Added only as emergency stop, for nothing else.
                  -- Maybe this will help to find the bug in it?
       fThisLineIsBlank    = 0
@@ -392,7 +397,8 @@ defc ReflowMail
       endif
       if fSig then
          fNoReflow = 1
-      elseif substr( sline, 1, 3) = '-- ' then
+      --elseif substr( sline, 1, 3) = '-- ' then
+      elseif sline == '-- ' then
          fNewPar = 1
          fSig = 1
          SigQuoteLevel = ThisQuoteLevel
@@ -453,7 +459,7 @@ defc ReflowMail
             fNewPar = 0
          endif
 
-         -- Check if this line is verbatim or list
+         -- Check if this line is a list item or if verbatim
          SavedBullet = ThisBullet
          fIsNewListItem = Mail_IsListItem( sline, ThisListIndent, ThisBullet)
          fIsContinuedListItem = (ThisListIndent > 0 &
@@ -500,10 +506,11 @@ defc ReflowMail
       if fNewPar then
          PrevPrevParQuoteLevel = PrevParQuoteLevel  -- quote level for prevprev par
          PrevParQuoteLevel     = PrevQuoteLevel     -- quote level for prev par
+;dprintf( 'FileIsMarked() called on line '.line)
          if FileIsMarked() then  -- if marked
             dprintf( 'REFLOWMAIL', 'Line no '.line':  fPrevLineIsVerbatim = 'fPrevLineIsVerbatim', fNoReflow = 'fNoReflow)
             fReflow = (fPrevLineIsVerbatim = 0) bitand (fNoReflow = 0)
-            call Mail_ReflowMarkedLines( PrevParQuoteLevel, PrevPrevParQuoteLevel, PrevListIndent, PrevBullet, fReflow)
+            call Mail_ReflowMarkedLines( PrevParQuoteLevel, PrevPrevParQuoteLevel, PrevListIndent, PrevBullet, fReflow, fIndentLists)
             unmark
          endif
       endif
@@ -539,11 +546,6 @@ defc ReflowMail
       deleteline .last
    enddo
 
-   -- Restore old filename
-   if saved_filename <> .filename then
-      .filename = saved_filename
-   endif
-
    display 1
    InfolineRefresh = 1
    .autosave = saved_autosave
@@ -552,5 +554,5 @@ defc ReflowMail
    endif
    call NewUndoRec()
    mouse_setpointer vepm_pointer
-
+   return
 
