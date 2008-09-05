@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.e,v 1.43 2006-11-15 15:07:06 jbs Exp $
+* $Id: mode.e,v 1.44 2008-09-05 23:00:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,21 +19,12 @@
 *
 ****************************************************************************/
 
-const
-compile if not defined(NEPMD_WANT_MODE_DETERMINATION)
-   NEPMD_WANT_MODE_DETERMINATION = 1  -- for testing
-compile endif
-/* Testcase (press Alt+= or Alt+0 on the next line):
-   open %NEPMD_ROOTDIR%\netlabs\macros\*.e
-*/
-
 ; ---------------------------------------------------------------------------
 ; Returns the current mode.
 ; Get mode from array var 'mode.'fid.
 ; If mode not set: get mode from EA 'EPM.MODE'.
 ; If mode not set: get default mode.
 defproc GetMode
-   universal EPM_utility_array_ID
    Filename = arg(1)
    if Filename = '' then
       Filename = .filename
@@ -67,22 +58,18 @@ defproc GetMode
       --    -  if filename doesn't start with a '.' or
       --    -  if file is a command shell
       if (not IsATempFile) or IsAShellFileName() then
-compile if NEPMD_WANT_MODE_DETERMINATION
          -- Get default mode
          if isadefproc('NepmdQueryDefaultMode') then
             DefaultMode = NepmdQueryDefaultMode(Filename)
          else
             DefaultMode = 'TEXT'
          endif
-         parse value DefaultMode with 'ERROR:'rc
-         if rc > '' then
-            sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "rc
+         parse value DefaultMode with 'ERROR:'ret
+         if ret <> '' then
+            sayerror "Default mode can't be determined. NepmdQueryDefaultMode returned rc = "ret
          else
             CurMode = DefaultMode
          endif
-compile else
-         CurMode = 'E'  -- for testing
-compile endif
       endif  -- not IsATempFile
    endif
 
@@ -116,8 +103,9 @@ defproc GetHiliteCheckFlag
    return CheckFlag
 
 ; ---------------------------------------------------------------------------
-; Deletes the HiliteModeList.
-; Called by defc edit.
+; Deletes the HiliteModeList. Not called by defc edit anymore to save disk
+; activity and to improve stability. The universal var is automatically
+; emptied on start of a new EPM window.
 defproc ResetHiliteModeList
    universal HiliteModeList
 
@@ -311,8 +299,6 @@ defproc SelectMode()
       ret = 'OFF'
    end
 
-   --sayerror 'defproc selectmode(): ret = |'ret'|'
-
    return ret
 
 ; ---------------------------------------------------------------------------
@@ -334,6 +320,7 @@ defproc QueryModeKey( Mode, Key)
 ; For debugging: remove all mode keys from NEPMD.INI.
 defc DelAllModeKeys
    universal nepmd_hini
+
    ModeList = NepmdQueryModeList()
    KeyList = 'CharSet CaseSensitive' ||
              ' DefExtensions DefNames' ||
@@ -365,4 +352,19 @@ defc DelAllModeKeys
       endif
    enddo
    sayerror 'Settings for all modes deleted.'
+
+; ---------------------------------------------------------------------------
+defc OpenModeDirs
+   Mode = strip( arg(1))
+   if Mode = '' then
+      Mode = GetMode()
+   endif
+   NetlabsModeDir = Get_Env( 'NEPMD_ROOTDIR')'\netlabs\mode\'Mode
+   UserModeDir = Get_Env( 'NEPMD_USERDIR')'\mode\'Mode
+   if NepmdDirExists( NetlabsModeDir) then
+      'rx open 'NetlabsModeDir
+   endif
+   if NepmdDirExists( UserModeDir) then
+      'rx open 'UserModeDir
+   endif
 
