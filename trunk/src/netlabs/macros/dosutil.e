@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.16 2007-06-10 19:46:09 aschn Exp $
+* $Id: dosutil.e,v 1.17 2008-09-05 22:39:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,12 +18,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-;
-; DOSUTIL.E        Low-level functions using int86x(), peek(), poke, dynalink()
-;
-
--- Date and time --------------------------------------------------------------
-; Note: FileDateTime procs can be found in FILE.E.
 
 ; ---------------------------------------------------------------------------
 defc qd,qdate=
@@ -40,7 +34,7 @@ defproc getdatetime
    datetime = substr( '', 1, 20)
    call dynalink32( 'DOSCALLS',          -- dynamic link library name
                     '#230',              -- ordinal value for Dos32GetDateTime
-                    address(datetime), 2 )
+                    address(datetime), 2)
    return dec_to_string(datetime)
    --> Hour24 Minutes Seconds Hund Day MonthNum Year0 Year1 TZ0 TZ1 WeekdayNum
 
@@ -125,10 +119,13 @@ defproc StripExt( Spec)
    return Spec
 
 ; ---------------------------------------------------------------------------
-; Todo: resolve '=' as well
-; Resolves environment variables in a string
-; Returns converted string
+; Resolves environment variables in a string. Keeps %...% string if env var
+; isn't set. Additionally ?: is replaced with the boot drive. Returns
+; converted string.
+; To convert also '=', the proc parse_filename( filename) should be used.
+; It calls this proc as well.
 defproc ResolveEnvVars( Spec)
+
    startp = 1
    do forever
       -- We don't use parse here, because if only 1 % char is present, it will
@@ -149,14 +146,27 @@ defproc ResolveEnvVars( Spec)
       if p2 = 0 then
          leave
       else
-         LeftPart  = substr( Spec, 1, p1 - 1)
-         New       = Get_Env( substr( Spec, p1 + 1, p2 - p1 - 1))
-         RightPart = substr( Spec, p2 + 1)
-         startp = length(LeftPart) + length(New) + 1
-         Spec = LeftPart''New''RightPart
+         LeftPart    = substr( Spec, 1, p1 - 1)
+         EnvVarName  = substr( Spec, p1 + 1, p2 - p1 - 1)
+         RightPart   = substr( Spec, p2 + 1)
+         EnvVarValue = Get_Env( EnvVarName)
+         -- Handle not set vars: keep %... or %...% string
+         if EnvVarValue = '' then
+            iterate
+         endif
+         -- Value exists, replace %...% string and move startp
+         startp = length( LeftPart) + length( EnvVarValue) + 1
+         Spec = LeftPart''EnvVarValue''RightPart
       endif
-      --sayerror 'arg(1) = 'arg(1)', p1 = 'p1', p2 = 'p2', resolved spec = 'Spec
-   enddo  -- forever
+   enddo
+
+   -- Replace ?: with bootdrive
+   do while pos( '?:', Spec) > 0
+      parse value Spec with LeftPart'?:'RightPart
+      BootDrive = NepmdQuerySysInfo('BOOTDRIVE')
+      Spec = LeftPart''BootDrive''RightPart
+   enddo
+
    return Spec
 
 ; ---------------------------------------------------------------------------
@@ -229,11 +239,15 @@ defc testbeep=
 defc dir
    parse arg fspec
    call parse_filename( fspec, .filename)
-   dos_command('dir' fspec)
+   next = NepmdQueryFullname( fspec)
+   parse value next with 'ERROR:'rcx
+   if rcx = '' then
+      fspec = next
+   endif
+   dos_command( 'dir' fspec)
    display -8  -- Messages go to the messageline only, they were not saved
    sayerror ALT_1_LOAD__MSG
    display 8
-   'postme monofont'
 
 ; ---------------------------------------------------------------------------
 ; Search a file spec in current dir recoursively and without dirs. List
@@ -255,7 +269,7 @@ defc list, findfile, filefind
    endif
 
 ; ---------------------------------------------------------------------------
-defc attrib =
+defc attrib
    parse arg fspec
    call parse_filename( fspec, .filename)
    if verify( fspec, '+-', 'M') then  -- Attempt to change attributes;
@@ -268,18 +282,48 @@ defc attrib =
    endif
 
 ; ---------------------------------------------------------------------------
-defc set   = dos_command('set' arg(1))
-defc vol   = dos_command('vol' arg(1))
-defc path  = dos_command('path')
-defc dpath = dos_command('dpath')
+defc set   = dos_command( 'set' arg(1))
+defc vol   = dos_command( 'vol' arg(1))
+defc path  = dos_command( 'path')
+defc dpath = dos_command( 'dpath')
 
 ; ---------------------------------------------------------------------------
-defproc dos_command=
+; Executes arg(1) by COMSPEC, redirects its output to a temp. file and loads
+; it. If the current buffer stems also from a similar .DOS <cmd> output, it
+; can be specified by setting the universal var ReuseCmdOutput = 1 to replace
+; the current buffer instead of always creating a new one.
+defproc dos_command
    universal vTEMP_FILENAME
    universal ring_enabled
+   universal ReuseCmdOutput
    if not ring_enabled then
       'ring_toggle'
    endif
+
+; Currently hard-coded. TODO: make that configurable ###############################
+ReuseCmdOutput = 1
+
+   fReuseFile = 0  -- default value, 0: create a new buffer
+   getfileid curfid
+   do i = 1 to 1
+      -- Check universal var
+      if ReuseCmdOutput <> 1 then
+         leave
+      endif
+
+      -- Check current filename
+      if word( .filename, 1) <> '.DOS' then
+         leave
+      endif
+      CurCmd = strip( word( .filename, 2))
+      NewCmd = strip( word( arg(1), 1))
+      if upcase( CurCmd) <> upcase( NewCmd) then
+         leave
+      endif
+
+      fReuseFile = 1
+   enddo
+
    -- Used to always do:  arg(1) '>'
    -- but "set foo" is different than "set foo " (trailing space), so now we
    -- only insert the space if the argument ends with a number and so could
@@ -291,15 +335,73 @@ defproc dos_command=
    endif
 
    'xcom e /D /Q' vTEMP_FILENAME
-   if not rc then .filename = '.DOS' arg(1); endif
-   call erasetemp(vTEMP_FILENAME)
+
+   if not rc then
+      getfileid newfid
+      Filename = '.DOS' arg(1)
+      if fReuseFile then
+         rc = ReplaceFileContent( curfid, newfid)
+         if rc then
+            return rc
+         endif
+         -- Quit temp file
+         activatefile newfid
+         .modify = 0
+         'xcom q'
+         -- Rename current file
+         activatefile curfid
+         .filename = Filename
+      else
+         .filename = Filename
+         'postme monofont'
+         --'mode shell'
+      endif
+   endif
+
+   call erasetemp( vTEMP_FILENAME)
 
 ; ---------------------------------------------------------------------------
-; Create a OS/2 windowed cmd prompt & execute a command in it.
+defproc ReplaceFileContent( fid1, fid2)
+   call psave_mark(savemark)
+
+   -- Delele all from fid1
+   activatefile fid1
+   if rc then
+      return rc
+   endif
+   top
+   markline
+   bottom
+   markline
+   deletemark
+   .modify = 0
+
+   -- Copy all from fid2 to fid1
+   activatefile fid2
+   if rc then
+      return rc
+   endif
+   top
+   markline
+   bottom
+   markline
+   activatefile fid1
+   if rc then
+      return rc
+   endif
+   copymark
+   .modify = 0
+
+   call prestore_mark(savemark)
+   rc = 0
+   return rc
+
+; ---------------------------------------------------------------------------
+; Create an OS/2 windowed cmd prompt & execute a command in it.
 defc os2
    command = arg(1)
    if command = '' then    -- prompt user for command
-      command = entrybox(ENTER_CMD__MSG)
+      command = entrybox( ENTER_CMD__MSG)
       if command = '' then return; endif
    endif
    'start /win 'command
@@ -308,7 +410,7 @@ defc os2
    endif
 
 ; ---------------------------------------------------------------------------
-defc del, erase =
+defc del, erase
    earg = arg(1)
    if parse_filename( earg, .filename) then
       sayerror -263  --  'Invalid argument'
@@ -316,8 +418,8 @@ defc del, erase =
    endif
    If verify( earg, '*?', 'M') then  -- Contains wildcards
       quietshell 'del' earg          -- must shell out
-   else                           -- No wildcards?
-      rc = erasetemp(earg)           -- erase via direct DOS call; less overhead.
+   else                              -- No wildcards?
+      rc = erasetemp( earg)          -- erase via direct DOS call; less overhead.
    endif
    if rc then
       sayerror 'RC =' rc
@@ -338,7 +440,7 @@ defproc QueryCodepage
                    offset(datalen)    ||  -- string offset
                    selector(datalen) ,2)  -- string selector
    if rc then
-      return 'ERROR:'rc
+      return
    else
       codepage_no = strip(ltoa( codepage, 10))
       return codepage_no
@@ -361,8 +463,8 @@ defproc FindFileInList( File, PathList)
       next = Path'\'File
       if Exist( next) then  -- find files and dirs
          test = NepmdQueryFullname( next)
-         parse value test with 'ERROR:'rc
-         if rc > '' then
+         parse value test with 'ERROR:'rcx
+         if rcx > '' then
             iterate
          else
             FullName = test
