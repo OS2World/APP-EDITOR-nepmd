@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcmds.e,v 1.27 2007-06-10 20:03:36 aschn Exp $
+* $Id: stdcmds.e,v 1.28 2008-09-05 23:15:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,6 +23,12 @@
 ; STDCMDS.E            Alphabetized by command name.
 ;
 
+; Executes a 'change' command for specified hex chars at cursor position.
+; Searches a hex char, specified as e.g. 0d or 0D as first word.
+; Replaces it with another hex char, e.g. 0a or 0A, specified as second word.
+; As optional third word, following words are allowed: *, M*, *M or a number.
+; If a number, the 'change' command is executed that number of times or
+; submitted to the 'change' command as search options.
 defc alter
    parse value upcase(arg(1)) with c1 c2 cnt .
    if length(c1)<>1 then
@@ -209,10 +215,8 @@ defc expand=
    uparg = upcase( arg(1))
    if uparg = ON__MSG then
       expand_on = 1
-      call select_edit_keys()
    elseif uparg = OFF__MSG then
       expand_on = 0
-      call select_edit_keys()
    elseif uparg = '' then
       sayerror 'Expand =' word( OFF__MSG ON__MSG, expand_on + 1)
    else
@@ -298,8 +302,24 @@ defc key
    sayerror 0
 
 ; Like Key, but a command instead of a key must be specified.
+; Syntax: DoCmd [IFDEFINED] [<num>] [<cmd>]
+;            'IFDEFINED' must be the first word. When specified, no error
+;            msg is given when <cmd> is not defined.
+;            <num> can be specified to run <cmd> multiple times.
+;            If <num> = 'RC', then <cmd> is run until an error occurs.
+;            'IFDEFINED' and 'RC' are not case-sensitive.
 defc DoCmd, DoCommand
-   parse value arg(1) with Num Cmd
+   args = strip( arg(1))
+   if args = '' then
+      return
+   endif
+   fIfDefined = 0
+   if upcase( word( args, 1)) = 'IFDEFINED' then
+      fIfDefined = 1
+      args = strip( subword( args, 2))
+   endif
+
+   parse value args with Num Cmd
    Num = strip( Num)
    Cmd = strip( Cmd)
    if upcase( Num) = 'RC' then
@@ -308,9 +328,17 @@ defc DoCmd, DoCommand
       til_rc = 0
       if not isnum( Num) then
          Num = 1
-         Cmd = strip( arg(1))
+         Cmd = strip( args)
       endif
    endif
+
+   if fIfDefined then
+      fDefined = IsADefC( word( Cmd, 1))
+      if not fDefined then
+         return
+      endif
+   endif
+
    if til_rc then
       do forever
          Cmd
