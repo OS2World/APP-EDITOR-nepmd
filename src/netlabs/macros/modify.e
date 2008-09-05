@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modify.e,v 1.8 2006-12-10 09:43:54 aschn Exp $
+* $Id: modify.e,v 1.9 2008-09-05 23:04:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -58,29 +58,61 @@
 ;     your defmodify proc; compile it separately (ETPM NEWMOD); add a link
 ;     statement (link 'newmod') to your MYKEYS.E or MYSTUFF.E file.
 
+; ---------------------------------------------------------------------------
 defc DiscardChanges
    .modify = 0
 
+; ---------------------------------------------------------------------------
+; Not used. Was added for a test in INFOLINE.E.
+; Can be used to disable defmodify processing. Since defmodify code is used
+; at several places, the execution of the defmodify code has also be checked
+; for this universal var at all these places to disable them all.
+;defc DisableModify
+;   universal ModifyDisabled
+;   ModifyDisabled = 1
+;
+; ---------------------------------------------------------------------------
+;defc EnableModify
+;   universal ModifyDisabled
+;   ModifyDisabled = 0
+;
+; ---------------------------------------------------------------------------
+; defmodify is triggered
+;    1)  when .modify changes from 0 to > 0
+;    2)  when .modify changes from < .autosave to >= .autosave
+;    3)  when .modify changes from > 0 to 0
+;    4)  when a modified file is selected after a non-modified file
+;    5)  when a non-modified file is selected after a modified file
 defmodify
-   -- do autosave
-   if .autosave and .modify>=.autosave then
-      getfileid fileid
-      if leftstr(.filename,1,1) <> '.' | .filename = GetUnnamedFilename() then
-         sayerror AUTOSAVING__MSG
-         'xcom save "'MakeTempName()'"'
-         .modify = 1  -- Reraise the modify flag
-          sayerror 0  -- delete autosave message
+;   universal ModifyDisabled
+;
+;   if ModifyDisabled <> 1 then
+      -- Do autosave on case 2)
+      if .autosave and .modify >= .autosave then
+         getfileid fileid
+         if leftstr( .filename, 1) <> '.' | .filename = GetUnnamedFilename() then
+            sayerror AUTOSAVING__MSG
+            --'xcom save "'MakeTempName()'"'
+            'postme xcom save "'MakeTempName()'"'  -- Try if postme works safer
+            ModifyDisabled = 1
+            -- Reraise the modify flag.
+            .modify = 1  -- This doesn't trigger case 1)
+            sayerror 0   -- Delete autosave message
+         endif
       endif
-   endif
 
-   -- Execute user macros
+      -- Execute user macros
 compile if INCLUDE_BMS_SUPPORT
-   if isadefproc('BMS_defmodify_exit') then
-      call BMS_defmodify_exit()
-   endif
+      if isadefproc('BMS_defmodify_exit') then
+         call BMS_defmodify_exit()
+      endif
 compile endif
-   'HookExecute modify'
-   'HookExecuteOnce modifyonce'
+      'HookExecute modify'
+      'HookExecuteOnce modifyonce'
+
+;      -- Reenable defmodify event delayed
+;      'postme EnableModify'
+;   endif
 
 
 ; Other used defmodifies, so far:
