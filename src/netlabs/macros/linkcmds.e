@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.41 2006-12-10 12:20:21 aschn Exp $
+* $Id: linkcmds.e,v 1.42 2008-09-05 22:54:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -65,7 +65,7 @@ defc link
 
 ; ---------------------------------------------------------------------------
 ; Like defc link, but in case of an error a MessageBox pops up, where the
-; user has to press 'Ok' in order to continue. Other messages are always
+; user has to press 'OK' in order to continue. Other messages are always
 ; suppressed. Additionally, the modulename must be given.
 defc linkverify
    modulename = arg(1)
@@ -264,8 +264,21 @@ defproc link_exec( ex_file, cmd_name)
    if rc >= 0 then
       cmd_name arg(3)  -- execute cmd_name with optional args
    else
-      sayerror UNABLE_TO_EXECUTE__MSG cmd_name
+      sayerror UNABLE_TO_EXECUTE__MSG cmd_name', module 'ex_file' not linked.'
    endif
+
+; ---------------------------------------------------------------------------
+; Like link_exec, but checks first if cmd_name is defined. If not, ex_file
+; is linked before. Should be a bit faster than link_exec. cmd_name must be
+; be different from the name for the calling command.
+defproc link_exec2( ex_file, cmd_name)
+   if not isadefc( cmd_name) then
+      'LinkVerify' ex_file
+      if rc < 0 then
+         stop
+      endif
+   endif
+   cmd_name arg(3)  -- execute cmd_name with optional args
 
 ; ---------------------------------------------------------------------------
 defc linkexec
