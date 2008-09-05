@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.19 2006-12-10 11:21:20 aschn Exp $
+* $Id: toolbar.e,v 1.20 2008-09-05 23:19:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,9 +22,9 @@
 ; Moved from STDCTRL.E
 
 ; Used terms:
-;    default toolbar  = toolbar name from NEPMD.INI (maybe different to to
+;    default toolbar  = toolbar name from NEPMD.INI (maybe different from
 ;                       the active toolbar)
-;    standard toolbar = toolbar of standard EPM = builtin toolbar
+;    standard toolbar = toolbar of standard EPM = built-in toolbar
 
 ; ---------------------------------------------------------------------------
 
@@ -726,7 +726,7 @@ defc ToolbarSize
    endif
    -- else open entrybox
    Title   = 'Configure toolbar button size'
-   Text    = 'Enter x-size y-size (default: 26 26):'
+   Text    = 'Enter x-size y-size (default: 26 26).'
    DefaultButton = 1
    parse value entrybox( Title,
                          '/~Set/~Reset/'CANCEL__MSG,  -- max. 4 buttons
@@ -901,7 +901,7 @@ defc ImportToolbar
 
       -- Ask user for name
       Title = 'Import toolbar'
-      Text  = 'Enter new toolbar name:'
+      Text  = 'Enter new toolbar name.'
       Text  = Text''copies( ' ', max( 50 - length(Text), 0))
       Entry = BarName
       parse value entrybox( Title,
