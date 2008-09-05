@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.19 2007-09-01 10:54:01 aschn Exp $
+* $Id: stdprocs.e,v 1.20 2008-09-05 23:18:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -567,11 +567,16 @@ defproc pmargins
 ; marktype() returns true, if any file is marked.
 defproc FileIsMarked
    file = arg(1)
+
    if file = '' then
-      file = .filename
+      getfileid fid
+   else
+      -- This may fail when multiple files with the same filename exist in the ring.
+      getfileid fid, file
    endif
-   getfileid fid, file
+
    getmark firstline, lastline, firstcol, lastcol, markfid
+
    if (marktype() & fid = markfid) then  -- if file is marked
       return 1
    else
