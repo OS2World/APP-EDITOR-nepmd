@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: clipbrd.e,v 1.10 2008-09-05 22:35:17 aschn Exp $
+* $Id: clipbrd.e,v 1.11 2008-09-05 23:27:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -282,7 +282,7 @@ defc paste
       mark = 'L'
    endif
 
-   -- TODO: EPM_EDIT_CLIPBOARDPASTE is limited to 32 KIB
+   -- TODO: EPM_EDIT_CLIPBOARDPASTE is limited to 64 KiB
    call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
                        5442,               -- EPM_EDIT_CLIPBOARDPASTE
                        asc(mark), 0)
