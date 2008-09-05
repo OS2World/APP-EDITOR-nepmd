@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.51 2007-07-08 18:36:38 aschn Exp $
+* $Id: main.e,v 1.52 2008-09-05 22:57:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -21,7 +21,8 @@
 
 const
 compile if not defined( SHOW_WINDOW_EARLY)
-   SHOW_WINDOW_EARLY = 0  -- 0 is safer
+;   SHOW_WINDOW_EARLY = 1  -- 0 | 1 | 'SELECT' ('SELECT' is the latest)
+   SHOW_WINDOW_EARLY = 1  -- 0 | 1 | 'SELECT' ('SELECT' is the latest)
 compile endif
 
 ; ---------------------------------------------------------------------------
@@ -51,8 +52,6 @@ defmain
    universal rexx_profile
    universal unnamedfilename  -- use NLS-dependent string from EPMMRI.DLL or
                               -- ETKE603.DLL, not the one from ENGLISH.E
-   universal CurEditCmd       -- used to maybe disable cursor RestoreRing,
-                              -- just init it here to ''
    universal DisplayDisabled  -- suppress screen refresh during file loading
    universal loadstate        -- init loadstate here
                   -- This universal var can be used to check if there occured
@@ -61,6 +60,8 @@ defmain
                   --    1: defload is running
                   --    2: defload processed
                   --    0: afterload processed
+   universal firstloadedfid  -- first loaded file
+   universal firstinringfid  -- first file in the ring
 
 ;  Get args -----------------------------------------------------------------
    -- arg(1) contains all args, that where submitted to EPM.EXE, after
@@ -144,13 +145,18 @@ compile endif
    endif
 
 ;  Show menu and window -----------------------------------------------------
-compile if SHOW_WINDOW_EARLY
+compile if SHOW_WINDOW_EARLY = 1
+   .titletext = 'Executing: 'EpmArgs
+   refresh
    call showmenu_activemenu()  -- show the EPM menu
    -- see also: STDCNF.E for menu
    call showwindow('ON')
    mouse_setpointer WAIT_POINTER
    --refresh     -- force to show the window, with the empty file loaded
 compile endif
+
+   -- Not possible: ProcessSelect is not called if starting command takes
+   --               longer
    display -1  -- disable screen refresh, re-enabled in defselect
    DisplayDisabled = 1
 
@@ -201,7 +207,7 @@ defc main2
    -- E automatically created an empty file when it started.
    -- If user specified file(s) to edit, get rid of the empty file.
    -- This must be processed at defmain, because this file is the only one,
-   -- that won't trigger a defload event.
+   -- that doesn't trigger a defload event.
    -- Get fileid after processing of EpmArgs.
    getfileid newfid
    dprintf( 'MAIN_EMPTY_FILE', 'filesinring = 'filesinring()', filename = '.filename)
@@ -234,11 +240,23 @@ defc main2
    dprintf( 'MAIN_EMPTY_FILE', 'activating newfid = 'newfid', filename = 'newfid.filename)
    activatefile newfid
 
+;  Workaround ---------------------------------------------------------------
+   -- Ensure that ProcessSelect is called. Sometimes it will be suppressed if
+   -- longer commands have to be executed by the Edit command. ProcessSelect
+   -- won't process a file twice, because the previous fileid is checked.
+   -- BTW: The select event for the automatically created empty file is
+   -- always executed too early and therefore further processing is
+   -- suppressed in SELECT.E.
+   -- 2 postmes would decrease stability compared with 1.
+   'postme ProcessSelect'
+
 ;  Execute just-installed stuff, if any -------------------------------------
    App = 'RegDefaults'
    Key = '\NEPMD\User\JustInstalled'
    JustInstalled = QueryProfile( nepmd_hini, App, Key)
    if JustInstalled = 1 then
+      -- Remove obsolete reg keys
+      'DelOldRegKeys'
       -- Remove outdated entries
       'AtPostStartup RecompileNew RESET NOMSG'
       -- Link JustInst.ex if present
@@ -255,8 +273,16 @@ defc main2
       call SetProfile( nepmd_hini, App, Key, 0)
    endif
 
-compile if not SHOW_WINDOW_EARLY
+compile if SHOW_WINDOW_EARLY = 0
 ;  Optinally show menu and window later -------------------------------------
+   call showmenu_activemenu()  -- show the EPM menu
+   -- see also: STDCNF.E for menu
+   call showwindow('ON')
+compile elseif SHOW_WINDOW_EARLY = 'SELECT'
+;  Optinally show menu and window later at the end of the first defselect ---
+   'HookAdd SelectOnce ShowWindow'
+
+defc ShowWindow
    call showmenu_activemenu()  -- show the EPM menu
    -- see also: STDCNF.E for menu
    call showwindow('ON')
