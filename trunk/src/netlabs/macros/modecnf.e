@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modecnf.e,v 1.10 2007-05-31 22:03:28 aschn Exp $
+* $Id: modecnf.e,v 1.11 2008-09-05 23:01:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,140 +19,44 @@
 *
 ****************************************************************************/
 
-; This is the default configuration file for modes, using the ModeExecute
-; command.
+; ---------------------------------------------------------------------------
+; This is the configuration file for modes. It allows for mode-specific
+; settings. While the mode directories contain .HIL and .INI files that
+; affect highlighting at first, other settings can be configured via 'Set...'
+; commands in a more flexible way.
 ;
-; 1) Replace all settings of this file
+; The first part defines coding styles, using the 'AddCodingStyle' command.
 ;
-;    You may want to create your own MODECNF.E in your %NEPMD_USERDIR%\MACROS
-;    directory to replace the file in the NETLABS\MACROS directory. Don't
-;    simply overwrite a file of the NETLABS tree. After changing your
-;    configuration, you have to recompile EPM.E.
+; In the second part these coding styles were used, together with several
+; other settings. The second part uses the 'ModeExecute' command.
 ;
-; 2) Add your own settings or change several settings
+; Settings for both the first and the second part can be configured via
+; special 'Set...' commands only.
 ;
-;    Create a file MYSTUFF.E in your %NEPMD_USERDIR%\MACROS directory and use
-;    this file as an example. The commands from MYSTUFF.E will be executed
-;    after the ones from this file, so you're able to overwrite the
-;    following.
+; ---------------------------------------------------------------------------
+; Configuration via your own MODECNF.E file
 ;
-;    As an alternative, you simply may want to specify the here used commands
-;    in your %NEPMD_USERDIR%\BIN\PROFILE.ERX. The commands from PROFILE.ERX will
-;    be executed after the ones from this file, so you're able to overwrite
-;    the following.
+;    Create your own MODECNF.E in your %NEPMD_USERDIR%\MACROS directory to
+;    replace the file in the NETLABS\MACROS directory.
 ;
-;    Additionally, you can even reset all settings without modifying
-;    MODECNF.E: Use the command 'ModeExecute CLEAR'.
-/*
-In order to create or edit one of these files, put the cursor on one of the
-following three lines and press Alt+= or Alt+0
-
-   e %NEPMD_USERDIR%\macros\modecnf.e
-   e %NEPMD_USERDIR%\macros\mystuff.e
-   e %NEPMD_USERDIR%\bin\profile.erx
-
-View Netlabs' default mode configuration file:
-
-   e %NEPMD_ROOTDIR%\netlabs\macros\modecnf.e
-
-*/
-; Syntax: ModeExecute <mode> <set_cmd> <args>
+;    After making your configuration, you have to recompile EPM.E.
+;    Therefore press the "Run" button, while you have an .E file on top or
+;    execute Options -> Macros -> Recompile all new macros. That will
+;    execute the 'RecompileNew' command.
 ;
-;         <set_cmd>         <args>
+; Configuration via your PROFILE.ERX file
 ;
-;         SetStreamMode     0 | 1
-;         SetInsertMode     0 | 1
-;         SetHighlight      0 | 1
-;         SetTabs           <number> or <list of numbers>
-;         SetTabkey         0 | 1
-;         SetMatchTab       0 | 1
-;         SetMargins        <left> <right> <par>
-;         SetTextColor      <number> or <color_name> (see COLORS.E)
-;         SetMarkColor      <number> or <color_name> (see COLORS.E)
-;                           (Hint: place cursor on COLORS.E and press Alt+1
-;                                  to load the file)
-;         SetTextFont       <font_size>.<font_name>[.<font_sel>]
-;                              <font_size> and <font_name> can be exchanged.
-;                              Any EPM font specification syntax is
-;                              accepted as well. The args are case-sensitive.
-;         SetToolbar        <toolbar_name> (must be defined in NEPMD.INI)
-;         SetDynaspell      0 | 1
-;         SetEditOptions    see description of EDIT command
-;         SetSaveOptions    see description of SAVE command
-;         SetSearchOptions  see description of LOCATE and REPLACE commands
-;                           (plus undocumented TB options)
-;         SetKeys           <keyset_name>
+;    Create PROFILE.ERX in your %NEPMD_USERDIR%\MACROS directory.
+;    Definitions in that file override definitions made in MODECNF.E.
+;    PROFILE.ERX is interpreted by EPM's REXX interface. That allows for
+;    use of E commands additionally to standard REXX code.
 ;
-;      Settings for syntax expansion:
-;         SetExpand         0 | 1
-;         SetIndent         <number> (default = first number of tabs)
-;         SetHeaderStyle    1 | 2
-;                              HeaderStyle 1 (default):
-;                              /********************
-;                              * |
-;                              ********************/
-;                              HeaderStyle 2:
-;                              /********************
-;                               * |
-;                               *******************/
-;         SetHeaderLength      <-- header_length --> (default = 77)
-;         SetEndCommented   0 | 1
-;         SetMatchChars     <space-separated list of pairs> (default = '')
-;                              list of possible pairs: '{ } [ ] ( ) < >'
-;         SetCommentAutoTerminate
-;                           0 | 1 (default = 0)
-;         SetFunctionSpacing
-;                           'N' | 'C' | 'SC' | 'SCE' (default = 'C')
-;                               'N' no spaces
-;                               'C' space after a comma in a parameter list
-;                               'S' space after start (opening parenthesis)
-;                                   of a parameter list
-;                               'E' space before end (closing parenthesis)
-;                                   of a parameter list
-;         SetClosingBraceAutoIndent
-;                           0 | 1 (default = 0)
-;         SetCodingStyle    <coding_style>
-;                              Coding styles can be defined with the
-;                              AddCodingStyle command, even in PROFILE.ERX
+;    You can use all 'AddCodingStyle' and 'ModeExecute' commands in
+;    PROFILE.ERX as well.
 ;
-;      Settings for keyset C_KEYS:
-;         SetCBraceStyle    'BELOW' | 'APPEND' | 'INDENT' | 'HALFINDENT'
-;                              (default = 'BELOW')
-;         SetCCaseStyle     'INDENT' | 'BELOW' (style of "case" statement,
-;                              default = 'INDENT')
-;         SetCDefaultStyle  'INDENT' | 'BELOW' (style of "default" statement,
-;                              default = 'INDENT')
-;         SetCMainStyle     'STANDARD' | 'SHORT' (style of "main" statement,
-;                              default = 'SHORT')
-;         SetCCommentStyle  'CPP' | 'C' (use either // ... or /* ... */, if
-;                              EndCommented = 1, default = 'CPP')
-
-;      Settings for keyset REXX_KEYS:
-;         SetRexxDoStyle    'APPEND' | 'INDENT' | 'BELOW' (style of "do"
-;                              statement, default = 'BELOW')
-;         SetRexxIfStyle    'ADDELSE' | 'NOELSE' (style of "if" statement,
-;                              default = 'NOELSE')
-;         SetRexxCase       'LOWER' | 'MIXED' | 'UPPER' (default = 'LOWER')
-;         SetRexxForceCase  0 | 1 (default = 1)
-;                              1 means: change case of typed statements as
-;                              well, not only of the added statements
-;
-; Any <set_cmd> can also be executed in EPM's commandline. Then it will
-; effect only the current file.
-;
-;   SetTextColor 31     (31 = (15 = white) + (16 = blue background))
-
-; Specify DEFAULT as <args>, if you want to reset a setting to NEPMD's
-; default value.
-;
-;   SetTextColor default
-
-; If you want to reset all settings of the current file to the default
-; settings for a mode, then use the mode command:
-;
-;   Mode 0        (redetermine mode and apply mode-specific settings)
-;   Mode rexx     (change mode to REXX and apply all REXX-specific settings)
-
+;    After adding your commands, execute your PROFILE.ERX via the "Run"
+;    button, while you have PROFILE.ERX on top or execute Run -> Run current
+;    file. That will execute the 'rx profile.erx' command.
 ; ---------------------------------------------------------------------------
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
@@ -167,9 +71,12 @@ compile endif
 ; PROFILE.ERX is called. Executing this in STDCNF.E, immediately after the
 ; definitions from MODEEXEC.E were defined, won't work. Apparently these defs
 ; need some time. Therefore the defs here are processed in MAIN.E.
-; Omit the "defc" line when you put the following lines in your PROFILE.ERX.
-; The rest of the file is valid REXX and E code.
+;
+; Omit the "defc" line when you put the following lines in your PROFILE.ERX,
+; in order to override the definitions of this file.
 defc InitModeCnf
+; The rest of the file is valid REXX and E code.
+
 
 /* ----------------------------------------------------------------------- */
 /* Coding styles                                                           */
@@ -251,8 +158,8 @@ defc InitModeCnf
 'AddCodingStyle REXX_std SetRexxIfStyle ADDELSE'
 'AddCodingStyle REXX_std SetRexxCase LOWER'
 'AddCodingStyle REXX_std SetRexxForceCase 1'
-'AddCodingStyle REXX_std SetTabs 3'
-'AddCodingStyle REXX_std SetIndent 3'
+'AddCodingStyle REXX_std SetTabs 2'
+'AddCodingStyle REXX_std SetIndent 2'
 'AddCodingStyle REXX_std SetFunctionSpacing C'
 
 /* Christan Langanke's REXX style */
@@ -273,52 +180,6 @@ defc InitModeCnf
 'AddCodingStyle REXX_aschn SetIndent 3'
 'AddCodingStyle REXX_aschn SetFunctionSpacing CS'
 
-/* ----------------------------------------------------------------------- */
-/* You may want to create your own REXX style, called e.g. "MYREXX".       */
-/*                                                                         */
-/* 1) In order to define your own style in your PROFILE.ERX, add some      */
-/*    (or all) of the 'ModeExecute REXX ...' settings below to it.         */
-/*    Instead of 'ModeExecute REXX ' prepend the lines with                */
-/*                                                                         */
-/*       'AddCodingStyle MYREXX '                                          */
-/*                                                                         */
-/*    and configure the Set* command values. As an alternate, you can also */
-/*    copy one of the REXX styles above and change the name to MYREXX.     */
-/*    After that, add the line                                             */
-/*                                                                         */
-/*       'ModeExecute REXX SetCodingStyle MYREXX'                          */
-/*                                                                         */
-/*    Then run your PROFILE.ERX via the "RUN" button or use the "Run" ->   */
-/*    "Run current file" menu item to make the changes take effect.        */
-/*                                                                         */
-/* 2) In order to define your own style in your MODECNF.E, copy some       */
-/*    (or all) of the 'ModeExecute REXX ...' settings below here.          */
-/*    Instead of 'ModeExecute REXX ' prepend the lines with                */
-/*                                                                         */
-/*       'AddCodingStyle MYREXX '                                          */
-/*                                                                         */
-/*    and configure the Set* command values. As an alternate, you can also */
-/*    copy one of the REXX styles above and change the name to MYREXX.     */
-/*    After that, edit the line starting with                              */
-/*    'ModeExecute REXX SetCodingStyle' in the 'ModeExecute REXX' block    */
-/*    below. Change it to                                                  */
-/*                                                                         */
-/*       'ModeExecute REXX SetCodingStyle MYREXX'                          */
-/*                                                                         */
-/*    Then recompile your MODECNF.E file, e.g. via the 'Relink' command or */
-/*    the "Run" button. EPM has to be restarted to make the changes take   */
-/*    effect.                                                              */
-/* ----------------------------------------------------------------------- */
-
-
-/* ----------------------------------------------------------------------- */
-/* 'ModeExecute CLEAR' removes all prior ModeExecute definitions.          */
-/* Use it, if you want to overwrite all NEPMD's defaults, without          */
-/* creating your own %NEPMD_USERDIR%\MACROS\MODECNF.E file.                */
-/* ----------------------------------------------------------------------- */
-/*
-'ModeExecute CLEAR'
-*/
 
 /* ----------------------------------------------------------------------- */
 /* Settings for all modes, if no ModeExecute command exists.               */
@@ -367,6 +228,177 @@ defc InitModeCnf
 'ModeExecute HTML SetMargins 1 1599 1'
 
 
+/* ----------------------------------------------------------------------- */
+/* End of definitions. The rest is documentation.                          */
+/* ----------------------------------------------------------------------- */
+
+/*===========================================================================
+
+In order to create or edit one of these files, put the cursor on one of the
+following three lines and press Alt+= or Alt+0
+
+   e %NEPMD_USERDIR%\macros\modecnf.e
+   e %NEPMD_USERDIR%\macros\mystuff.e
+   e %NEPMD_USERDIR%\bin\profile.erx
+
+View Netlabs' default mode configuration file:
+
+   e %NEPMD_ROOTDIR%\netlabs\macros\modecnf.e
+
+
+Syntax: ModeExecute <mode> <set_cmd> <args>
+
+        <set_cmd>         <args>
+
+        SetStreamMode     0 | 1
+        SetInsertMode     0 | 1
+        SetHighlight      0 | 1
+        SetTabs           <number> or <list of numbers>
+        SetTabkey         0 | 1
+        SetMatchTab       0 | 1
+        SetMargins        <left> <right> <par>
+        SetTextColor      <number> or <color_name> (see COLORS.E)
+        SetMarkColor      <number> or <color_name> (see COLORS.E)
+                          (Hint: place cursor on COLORS.E and press Alt+1
+                                 to load the file)
+        SetTextFont       <font_size>.<font_name>[.<font_sel>]
+                             <font_size> and <font_name> can be exchanged.
+                             Any EPM font specification syntax is
+                             accepted as well. The args are case-sensitive.
+        SetToolbar        <toolbar_name> (must be defined in NEPMD.INI)
+        SetDynaspell      0 | 1
+        SetEditOptions    see description of EDIT command
+        SetSaveOptions    see description of SAVE command
+        SetSearchOptions  see description of LOCATE and REPLACE commands
+                          (plus undocumented TB options)
+        SetKeys           <keyset_name>
+
+     Settings for syntax expansion:
+        SetExpand         0 | 1
+        SetIndent         <number> (default = first number of tabs)
+        SetHeaderStyle    1 | 2
+                             HeaderStyle 1 (default):
+                             /********************
+                             * |
+                             ********************/
+                             HeaderStyle 2:
+                             /********************
+                              * |
+                              *******************/
+        SetHeaderLength      <-- header_length --> (default = 77)
+        SetEndCommented   0 | 1 (default = 0)
+        SetMatchChars     <space-separated list of pairs> (default = '')
+                             list of possible pairs: '{ } [ ] ( ) < >'
+        SetCommentAutoTerminate
+                          0 | 1 (default = 0)
+        SetFunctionSpacing
+                          'N' | 'C' | 'SC' | 'SCE' (default = 'C')
+                              'N' no spaces
+                              'C' space after a comma in a parameter list
+                              'S' space after start (opening parenthesis)
+                                  of a parameter list
+                              'E' space before end (closing parenthesis)
+                                  of a parameter list
+        SetClosingBraceAutoIndent
+                          0 | 1 (default = 0)
+        SetCodingStyle    <coding_style>
+                             Coding styles can be defined with the
+                             AddCodingStyle command, even in PROFILE.ERX
+
+     Settings for keyset C_KEYS:
+        SetCBraceStyle    'BELOW' | 'APPEND' | 'INDENT' | 'HALFINDENT'
+                             (default = 'BELOW')
+        SetCCaseStyle     'INDENT' | 'BELOW' (style of "case" statement,
+                             default = 'INDENT')
+        SetCDefaultStyle  'INDENT' | 'BELOW' (style of "default" statement,
+                             default = 'INDENT')
+        SetCMainStyle     'STANDARD' | 'SHORT' (style of "main" statement,
+                             default = 'SHORT')
+        SetCCommentStyle  'CPP' | 'C' (use either // ... or /* ... */, if
+                             EndCommented = 1, default = 'CPP')
+
+     Settings for keyset REXX_KEYS:
+        SetRexxDoStyle    'APPEND' | 'INDENT' | 'BELOW' (style of "do"
+                             statement, default = 'BELOW')
+        SetRexxIfStyle    'ADDELSE' | 'NOELSE' (style of "if" statement,
+                             default = 'NOELSE')
+        SetRexxCase       'LOWER' | 'MIXED' | 'UPPER' (default = 'LOWER')
+        SetRexxForceCase  0 | 1 (default = 1)
+                             1 means: change case of typed statements as
+                             well, not only of the added statements
+
+Any <set_cmd> can also be executed in EPM's commandline. Then it will
+effect only the current file.
+
+  SetTextColor 31     (31 = (15 = white) + (16 = blue background))
+
+Specify DEFAULT as <args>, if you want to reset a setting to NEPMD's
+default value.
+
+  SetTextColor default
+
+If you want to reset all settings of the current file to the default
+settings for a mode, then use the mode command:
+
+  Mode 0        (redetermine mode and apply mode-specific settings)
+  Mode rexx     (change mode to REXX and apply all REXX-specific settings)
+
+===========================================================================*/
+
+/* ----------------------------------------------------------------------- */
+/* You may want to create your own REXX style, called e.g. "MYREXX".       */
+/*                                                                         */
+/* 1) In order to define your own style in your PROFILE.ERX, add some      */
+/*    (or all) of the 'ModeExecute REXX ...' settings below to it.         */
+/*    Instead of 'ModeExecute REXX ' prepend the lines with                */
+/*                                                                         */
+/*       'AddCodingStyle MYREXX '                                          */
+/*                                                                         */
+/*    and configure the Set* command values. As an alternate, you can also */
+/*    copy one of the REXX styles above and change the name to MYREXX.     */
+/*    After that, add the line                                             */
+/*                                                                         */
+/*       'ModeExecute REXX SetCodingStyle MYREXX'                          */
+/*                                                                         */
+/*    Then run your PROFILE.ERX via the "RUN" button or use the "Run" ->   */
+/*    "Run current file" menu item to make the changes take effect.        */
+/*                                                                         */
+/* 2) In order to define your own style in your MODECNF.E, copy some       */
+/*    (or all) of the 'ModeExecute REXX ...' settings below here.          */
+/*    Instead of 'ModeExecute REXX ' prepend the lines with                */
+/*                                                                         */
+/*       'AddCodingStyle MYREXX '                                          */
+/*                                                                         */
+/*    and configure the Set* command values. As an alternate, you can also */
+/*    copy one of the REXX styles above and change the name to MYREXX.     */
+/*    After that, edit the line starting with                              */
+/*    'ModeExecute REXX SetCodingStyle' in the 'ModeExecute REXX' block    */
+/*    below. Change it to                                                  */
+/*                                                                         */
+/*       'ModeExecute REXX SetCodingStyle MYREXX'                          */
+/*                                                                         */
+/*    Then recompile your MODECNF.E file, e.g. via the 'Relink' command or */
+/*    the "Run" button. EPM has to be restarted to make the changes take   */
+/*    effect.                                                              */
+/* ----------------------------------------------------------------------- */
+
+
+/* ----------------------------------------------------------------------- */
+/* 'ModeExecute CLEAR' removes all prior ModeExecute definitions.          */
+/*                                                                         */
+/* This command is helpful when being used in PROFILE.ERX. It lets you     */
+/* override all mode settings defined in MODECNF.E. That avoids creating   */
+/* your own MODECNF.E and recompiling it. If you want to change a few      */
+/* settings only or extend the default ones, you won't need it.            */
+/*                                                                         */
+/* For use in PROFILE.ERX, put this command above all other ModeExecute    */
+/* commands.                                                               */
+/* ----------------------------------------------------------------------- */
+/*
+'ModeExecute CLEAR'
+*/
+
+
 
 /* ---- Some more examples: ---- */
 
@@ -396,7 +428,7 @@ defc InitModeCnf
 /* Experimental 2 */
 /*
 'ModeExecute E SetTabKey 0'
-'ModeExecute E SetToolbar BUILDIN'
+'ModeExecute E SetToolbar STANDARD'
 'ModeExecute E SetHighlight 1'
 'ModeExecute E SetTextColor BLACK + WHITEB'
 'ModeExecute E SetMarkColor BLUE + LIGHT_GREYB'
