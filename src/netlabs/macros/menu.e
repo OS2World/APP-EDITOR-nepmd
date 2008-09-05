@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: menu.e,v 1.6 2006-10-07 18:16:51 aschn Exp $
+* $Id: menu.e,v 1.7 2008-09-05 22:59:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -141,7 +141,7 @@ defc ChangeMenu
       refresh
       select = listbox( Title,
                         MenuList,
-                        '/~Set/~Cancel',                -- buttons
+                        '/~Set/Cancel',                 -- buttons
                         0, 0,  --5, 5,                  -- top, left,
                         min( words(MenuList), 12), 25,  -- height, width
                         gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(0) ||
@@ -320,15 +320,29 @@ defc processmenuselect
       sayerror 0
       return
    endif
+
+   -- First check for helpstr (old way)
    -- Query menu text and parse it into command and helpstr
    parse value querymenustring( activemenu, menuid) with command \1 helpstr
+   if helpstr = '' then
+      -- No helpstr defined, check for array var
+
+--------------------------------------------------------------
+      if isadefproc( 'GetMenuHelp') then
+         -- GetMenuHelpString queries array var value, set by SetMenuHelpString
+         -- The array must be deleted when the menu is unlinked (or linked again).
+--------------------------------------------------------------
+         helpstr = GetMenuHelp( activemenu, menuid)
+      endif
+   endif
+
    if helpstr <> '' then
       -- disable writing msg to the messagebox
       display -8
       -- show helpstr
       sayerror helpstr
       display 8
-   else  -- if no helpstr defined
+   else
       -- delete the previous msg
       sayerror 0
    endif
@@ -481,8 +495,8 @@ defc cascade_menu
 ; Return a unique menuid for main menu items.
 ; Menuids from 51 to 79 are normally unused (mid = 50 is used by
 ; ETK_FID_POPUP in MOUSE.E).
-; If this proc would be used to get a menuid by all extension packages, that
-; add menus, it will be garanteed, that the returned mid is unique.
+; If this proc would be used to get a menuid by all extension packages that
+; add menus, it could be garanteed that the returned mid is unique.
 defproc GetUniqueMid
    List = GetAVar('mids')
    mid = ''
@@ -510,9 +524,6 @@ defproc GetUniqueMid
 ; Note:
 ; buildsubmenu and buildmenuitem allow for its last arg (MIA) to specify
 ; not only the MIA, but also the help panel #.
-; Apparently this doesn't work with 6.03b. Selecting an menu item and
-; pressing F1 won't open the help file viewer. NewView would even make EPM
-; crash.
 defc helpmenu
    call windowmessage( 0,  getpminfo(APP_HANDLE),
                        5133,      -- EPM_HelpMgrPanel
