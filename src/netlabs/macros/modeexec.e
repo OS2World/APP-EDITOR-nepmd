@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.23 2007-06-10 19:55:57 aschn Exp $
+* $Id: modeexec.e,v 1.24 2008-09-05 23:01:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -194,7 +194,7 @@ definit
    saved_rc = rc
    --call NepmdPmPrintf( 'MODEEXEC: definit executed, rc at definit start = 'rc)
    call AddAVar( 'loadsettingslist',
-                        'Highlight Margins Tabs Keys DynaSpell')
+                        'Highlight Margins Tabs Keys DynaSpell CodingStyle')
    call AddAVar( 'selectsettingslist',
                         'Toolbar Expand Matchtab Tabkey' ||
                         ' EditOptions SaveOptions SearchOptions' ||
@@ -315,6 +315,11 @@ defc ProcessLoadSettings
    enddo
 
    if loadstate then          -- during defload processing
+      -- Copy mode-specific coding style to file-specific one. This is only used
+      -- to query the current coding style later.
+      next = GetAVar( 'modecodingstyle.'Mode)
+      call SetAVar( 'codingstyle.'fid, next)
+
       -- Activate keyword highlighting, if not already done by load_<mode> hook
       next = GetAVar( 'highlight.'fid)  -- get file setting
       if next = '' | next = 'DEFAULT' then
@@ -439,6 +444,8 @@ definit
 ;    ModeExecute CLEAR                      to clear all existing settings,
 ;                                           but default <values> are not
 ;                                           effected
+;    ModeExecute <mode> CLEAR               to clear all existing settings
+;                                           for <mode>
 ; /*To change settings of already loaded files, too, use ModeExecuteRefresh.*/
 defc ModeExecute, ModeExec
    universal loadstate  -- empty: before loading
@@ -460,10 +467,18 @@ defc ModeExecute, ModeExec
          wrd = word( List, w)
          'HookDelAll load_'lowcase(wrd)
          'HookDelAll select_'lowcase(wrd)
+         call DelAVar('usedsettings_modes', wrd)
       enddo
       return 0
    elseif Mode = 'DEFAULT' then
+      -- Define settings for DEFAULT pseudo mode
       Cmd 'DEFINEDEFAULT' Args
+      return 0
+   elseif Cmd = 'CLEAR' then
+      -- Clear existing load_<mode> and select_<mode> hooks for <mode>
+      'HookDelAll load_'lowcase(Mode)
+      'HookDelAll select_'lowcase(Mode)
+      call DelAVar('usedsettings_modes', Mode)
       return 0
    endif
 
@@ -525,9 +540,11 @@ compile endif
 ; not changed with a Set* command of MODEEXEC.E before. Should be executed
 ; by
 ;    -  any command, that changes default defload settings
-;       currently, these are: SetHighlight, SetMargins, SetTabs
+;       currently, these are: SetHighlight, SetMargins, SetTabs,
+;                             SetCodingStyle
 ;       not effected: SetKeys SetDynaSpell (only saved as field var)
-;    -  a modeexecuterefresh command, if executed by hand, after file is loaded.
+;    -  a modeexecuterefresh command, if executed by hand, after file is
+;       loaded.
 ; <cmd> must have the name of the array var plus 'Set' prepended.
 defc RingRefreshSetting
    universal StatusFieldFlags
@@ -1524,9 +1541,13 @@ defc SetCodingStyle
 ; doesn't need to be added to the loadsettingslist, selectsettingslist or
 ; lastusedsettings.
 defproc ExecuteCodingStyle
+   universal loadstate
    Mode = arg(1)
    Name = arg(2)
    Name = lowcase( Name)
+   if Name = 'off' then
+      Name = 0
+   endif
    Prefix = 'hook.'
    HookName = 'codingstyle.'Name
    -- Execute the hook, maybe with "'ModeExecute' Mode" prepended
@@ -1537,13 +1558,35 @@ defproc ExecuteCodingStyle
          if Mode = 0 then
             -- Execute the file setting
             Cmd
+            -- Save the value in an array var, to query current value later
+            getfileid fid
+            if Name = 0 then
+               call DelAVar( 'codingstyle.'fid)
+            else
+               call SetAVar( 'codingstyle.'fid, Name)
+            endif
+            if loadstate = 0 then
+               'RefreshInfoLine FILE'
+            endif
          else
             -- Execute the mode setting
+            if Name = 0 then
+               call DelAVar( 'modecodingstyle.'mode)
+            else
+               call SetAVar( 'modecodingstyle.'mode, Name)
+            endif
             'ModeExecute' Mode Cmd
          endif
       enddo
    endif
    return
+
+; ---------------------------------------------------------------------------
+; Query current coding style
+defproc GetCodingStyle
+   getfileid fid
+   CurCodingStyle = GetAVar( 'codingstyle.'fid)
+   return CurCodingStyle
 
 ; ---------------------------------------------------------------------------
 ; Open a listbox to select a coding style for the current or specified mode.
@@ -1556,20 +1599,31 @@ defproc ExecuteCodingStyle
 ; this was added because the selection of a coding style is an essential
 ; feature to use syntax expansion at all.
 defc SelectCodingStyle
+   None = '-none-'
 
    Mode = arg(1)
    if Mode = '' then
       Mode = GetMode()
    endif
 
+   -- Query current coding style
+   getfileid fid
+   CurCodingStyle = GetAVar( 'codingstyle.'fid)
+
    -- Open listbox to select settings
    CodingStyles = GetAVar( 'CodingStyles')
    -- Append description to coding style names, if defined
    Rest = CodingStyles
+   DefaultItem = ''
    Sep = '/'
    Entries = Sep
-   do w = 1 to words( Rest)
+   Entries = Entries''None''Sep
+   DefaultItem = 1
+   do w = 2 to words( Rest)
       Next = word( Rest, w)
+      if Next = CurCodingStyle then
+         DefaultItem = w
+      endif
       Prefix = 'hook.'
       HookName = 'codingstyle.'Next
       imax = GetAVar( prefix''HookName'.0')
@@ -1591,20 +1645,17 @@ defc SelectCodingStyle
       Entries = Entries''Next'  ('Description')'Sep
    enddo
 
-   DefaultItem = 1
    DefaultButton = 1
    HelpId = 0
-   Title = 'Select a coding style'copies( ' ', 20)
-   Text = '...for mode: 'Mode
    Title = 'Select a coding style for mode 'Mode''copies( ' ', 40)
-   Text = 'Already loaded files, except the current, are not refreshed.'
-   Text = 'Applies on current and later-loaded files only.'
+   Text = 'Applies on current and next-loaded files only.'
+   Text = Text' Coding style for current file: 'CurCodingStyle
 
    refresh
    NewCodingStyle = ''
    Result = listbox( Title,
                      Entries,
-                     '/~Set/~Configure/Cancel',           -- buttons
+                     '/~Set/Edit ~PROFILE.ERX/~Edit MODECNF.E/Cancel',           -- buttons
                      0, 0,  --5, 5,                       -- top, left,
                      min( words(CodingStyles), 15), 100,  -- height, width
                      gethwnd(APP_HANDLE) || atoi(DefaultItem) ||
@@ -1613,23 +1664,23 @@ defc SelectCodingStyle
    refresh
 
    -- Check result
-   button = asc( leftstr( Result, 1))
+   Button = asc( leftstr( Result, 1))
    EOS = pos( \0, Result, 2)        -- CHR(0) signifies End Of String
-   fEditProfile = 0
-   if button = 1 then      -- Set
-      fEditProfile = 1
-   elseif button = 2 then  -- Configure
-   else                    -- Cancel
-      return 1
-   endif
+
    NewCodingStyle = substr( Result, 2, EOS - 2)
    NewCodingStyle = word( NewCodingStyle, 1)  -- strip optional description
-   if NewCodingStyle = '' then
-      return 1
-   endif
 
-   if fEditProfile <> 1 then
+   if Button = 1 then      -- Set
+      if NewCodingStyle = '' then
+         return 1
+      elseif NewCodingStyle = None then
+         NewCodingStyle = 0
+      endif
 
+      -- Change profile
+      'SelectCSChangeProfile' Mode NewCodingStyle
+
+   elseif Button = 2 then  -- Edit PROFILE.ERX
       ProfileName = 'profile.erx'
       Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
 
@@ -1641,66 +1692,43 @@ defc SelectCodingStyle
          return rc
       endif
 
-;      getsearch CurSearch
-      --Search = '(MODEEXEC|MODEEXECUTE):w'Mode':w(ADD|SET)CODINGSTYLE'
-      Search = '(ADD|SET)CODINGSTYLE:w'NewCodingStyle
-      --'postme mc !display -2!xcom l /'Search'/xt+fac!display 2!CenterLine'
-      'postme mc !xcom l /'Search'/xt+fac!CenterLine!Refresh'
-;      setsearch CurSearch
+      if NewCodingStyle = None then
+      elseif NewCodingStyle = '' then
+      else
+         Search = '(ADD|SET)CODINGSTYLE:w'NewCodingStyle
+         display -8
+         'postme mc !xcom l /'Search'/xt+fac!CenterLine!Refresh!postme display 8'
+      endif
 
-      'postme SelectCSAskLoad' Search
+   elseif Button = 3 then  -- Edit MODECNF.E
+      'EditCreateUserMacro modecnf.e'
+      if NewCodingStyle = None then
+      elseif NewCodingStyle = '' then
+      else
+         Search = '(ADD|SET)CODINGSTYLE:w'NewCodingStyle
+         display -8
+         'postme postme mc !xcom l /'Search'/xt+fac!CenterLine!Refresh!postme display 8'
+      endif
 
-   else
-      'SelectCSEditProfile' Mode NewCodingStyle
+   else                    -- Cancel
+      return 1
    endif
 
 ; ---------------------------------------------------------------------------
-defc SelectCSAskLoad
-   parse arg Search
-
-   -- Find MODECNF.E
-   MacroFileName = 'modecnf.e'
-   Path = 'EPMMACROPATH'
-   MacroFile = FindFileInList( MacroFileName, Get_Env( Path))
-   if MacroFile = '' then
-      sayerror 'Macro file 'MacroFileName' not found in 'Path
-      return
-   endif
-
-   -- Maybe open MODECNF.E
-   Title = 'Additional help for PROFILE.ERX editing'
-   Text = ''
-   Text = Text || 'The standard coding styles for modes are defined'
-   Text = Text || ' via E macros. They can be used as example for'
-   Text = Text || ' user-definable coding styles for PROFILE.ERX,'
-   Text = Text || ' because it''s valid E and REXX code.'\n\n
-   Text = Text || 'Note, that after editing, you have to execute'
-   Text = Text || ' PROFILE.ERX to make the changes take effect.'
-   Text = Text || ' Therefore execute "Run" -> "Run current file"'
-   Text = Text || ' or press the "Run" button.'\n\n
-   Text = Text || 'Do you want to open the macro file now?'
-   Style = MB_YESNO+MB_ICONQUESTION+MB_DEFBUTTON1+MB_MOVEABLE
-   ret = winmessagebox( Title,
-                        Text,
-                        Style)
-   if ret = 6 then  -- Yes
-      --"o" MacroFile "'postme mc !sayerror "Search"!display -2!xcom l /"Search"/xt+fac'!display 2!CenterLine"
-      "o" MacroFile "'postme mc !xcom l /"Search"/xt+fac!CenterLine'"
-   elseif ret = 7 then  -- No
-   endif
-
-; ---------------------------------------------------------------------------
-defc SelectCSEditProfile
+defc SelectCSChangeProfile
    universal rexx_profile
    universal app_hini
    universal appname
    parse arg Mode NewCodingStyle
+   if NewCodingStyle = '' then
+      return
+   endif
 
    ProfileName = 'profile.erx'
    Profile = Get_Env('NEPMD_USERDIR')'\bin\'ProfileName
 
-   --Cmd = "'ModeExecute "Mode" SetCodingStyle REXX_cla'"
-   Cmd = "ModeExecute "Mode" SetCodingStyle "NewCodingStyle
+   Cmd = 'ModeExecute 'Mode' SetCodingStyle 'NewCodingStyle
+   Cmd2 = 'SetCodingStyle 'NewCodingStyle
 
    -- Read PROFILE.ERX and delete line(s) with "ModeExec <mode> SetCodingStyle"
    -- for the current mode in it
@@ -1777,8 +1805,10 @@ defc SelectCSEditProfile
       enddo
    endif
 
-   -- Append line with new setting
-   insertline "'"Cmd"'", .last + 1
+   if NewCodingStyle <> 0 then
+       -- Append line with new setting
+       insertline "'"Cmd"'", .last + 1
+   endif
    -- Save and quit
    'xcom s'
    'xcom q'
@@ -1786,5 +1816,11 @@ defc SelectCSEditProfile
 
    -- Execute setting for this and newly loaded files of that mode
    Cmd
-   sayerror "Appended '"Cmd"' to PROFILE.ERX and applied setting."
+   Cmd2
+   if NewCodingStyle = 0 then
+      sayerror "Removed coding style for mode "Mode" from PROFILE.ERX."
+      'Restart'
+   else
+      sayerror "Appended '"Cmd"' to PROFILE.ERX and applied setting."
+   endif
 
