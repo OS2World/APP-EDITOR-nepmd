@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: english.e,v 1.8 2006-12-15 01:37:14 jbs Exp $
+* $Id: english.e,v 1.9 2008-09-05 22:41:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -139,7 +139,7 @@ compile endif
                   --      'Sorting' number 'lines'
    SORTING__MSG =         'Sorting'
    LINES__MSG =           'lines'
-   NO_SORT_MEM__MSG =     'Out of memory!  Unable to insert the sorted lines, file left as it was.'
+   NO_SORT_MEM__MSG =     'Out of memory.  Unable to insert the sorted lines, file left as it was.'
 
 ;; Charops.e
    CHAR_ONE_LINE__MSG =   'Character marks must begin and end on the same line.'
@@ -157,7 +157,7 @@ compile endif
    QLINK_PROMPT__MSG =    'Please specify the module name, as in  "qlink draw".'
    NOT_LINKED__MSG =      'is not linked'
    CANT_FIND1__MSG =      "Can't find"  -- sayerror "Can't find "module" on disk!"
-   CANT_FIND2__MSG =      "on disk!"
+   CANT_FIND2__MSG =      "on disk."
    LINKED_AS__MSG =       'is linked as module #' -- sayerror module' is linked as module # 'result'.'
    UNABLE_TO_LINK__MSG =  'Unable to link:'
    UNABLE_TO_EXECUTE__MSG='Unable to execute command:'
@@ -192,7 +192,7 @@ compile endif
    HELP_BROWSER__MSG =   'Help Browser'  -- Message box title
    HELP_STATUS__MSG =    ' Valid Keys -> Page Up,Page Down       F3,ESC=Close Help Window'
    NO_DROP__MSG =        'Can not drop files here.'
-   SYS_ED__MSG =         'System Editor Warning!'
+   SYS_ED__MSG =         'System Editor Warning.'
    SYS_ED1__MSG =        'Now, Why would you want to'\10'go and do a thing like that?'
              -- 'Error' err_no 'allocating memory segment; command halted.'
    ALLOC_HALTED__MSG =   'allocating memory segment; command halted.'
@@ -648,18 +648,18 @@ compile endif
 ;; Stdkeys.e
    MARKED_OTHER__MSG =    "You had a marked area in another file; it has been unmarked."
    MARKED_OFFSCREEN__MSG= "You had a marked area not visible in the window; it has been unmarked."
-   CANT_REFLOW__MSG =     "Can't reflow!"
+   CANT_REFLOW__MSG =     "Can't reflow."
    OTHER_FILE_MARKED__MSG="You have a marked area in another file."
    MARK_OFF_SCRN_YN__MSG= "You have a marked area off screen.  Continue?  (Y/N)"
-   MARK_OFF_SCREEN__MSG = "Can't reflow!  You have a marked area off screen."
+   MARK_OFF_SCREEN__MSG = "Can't reflow.  You have a marked area off screen."
    WRONG_MARK__MSG =      'Line or block mark required'
    PBLOCK_ERROR__MSG =    'Error in pblock_reflow'
-   BLOCK_REFLOW__MSG =    "BlockReflow: Mark the new block size with Alt-B; press Alt-R again (Esc cancels)"
+   BLOCK_REFLOW__MSG =    "BlockReflow:  Mark the new block size with Alt-B; press Alt-R again (Esc cancels)"
    NOFLOW__MSG =          'Block mark not reflowed'
    CTRL_R__MSG =          'Remembering keys.  Ctrl-R to finish, Ctrl-T to finish and try, Ctrl-C to cancel.'
    REMEMBERED__MSG =      'Remembered.  Press Ctrl-T to execute.'
-   CANCELLED__MSG =       'Cancelled.'
-   CTRL_R_ABORT__MSG =    'String too long!  Please press Ctrl-C to cancel.'
+   CANCELLED__MSG =       'Canceled.'
+   CTRL_R_ABORT__MSG =    'String too long.  Please press Ctrl-C to cancel.'
    OLD_KEPT__MSG =        'Previous key macro not replaced'
    NO_CTRL_R__MSG =       'Nothing remembered'
 
@@ -680,7 +680,7 @@ compile endif
    NO_REP__MSG =          'No replacement string specified'
    CUR_DIR_IS__MSG =      'Current directory is'
    EX_ALL__MSG =          'Execute all marked lines?'
-   EX_ALL_YN__MSG =       'Execute all marked lines (Y,N) ?'
+   EX_ALL_YN__MSG =       'Execute all marked lines (Y,N)?'
    NEW_FILE__MSG =        'New file'
    BAD_PATH__MSG =        'Path not found'
    LINES_TRUNCATED__MSG = 'Lines truncated'
@@ -694,7 +694,7 @@ compile endif
               -- 'ETPM.EXE could not open temp file "'tempfile'"'
    CANT_OPEN_TEMP__MSG =  'could not open temp file'
    COMP_COMPLETED__MSG =  'Compilation completed successfully'
-   EXIT_PROMPT__MSG =     "About to exit without saving! "
+   EXIT_PROMPT__MSG =     "About to exit without saving."
    KEY_PROMPT1__MSG =     'Type key to repeat.  Esc to cancel.'
                 --  'Please specify the key to repeat, as in "key 'number' =".'
    KEY_PROMPT2__MSG =     'Please specify the key to repeat, as in'
@@ -733,7 +733,7 @@ compile if HOST_SUPPORT <> ''
    HOST_NOT_FOUND__MSG =    'Assuming host file not found.'
       --  'Host error 'rc'; host save cancelled.  File saved in 'vTEMP_PATH'eeeeeeee.'hostfileid
    HOST_ERROR__MSG =        'Host error'
-   HOST_CANCEL__MSG =       'host save cancelled.  File saved in'
+   HOST_CANCEL__MSG =       'host save canceled.  File saved in'
 compile endif
 
 compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
@@ -797,9 +797,9 @@ compile if HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL'
    TRY_AGAIN__MSG =         'Try again'
    LT_SET_TO__MSG =         'Logical Terminal set to'  -- set to A, to B, etc.
    LT_SET_NULL__MSG =       'Logical Terminal set to null'
-   LT_INVALID__MSG =        'is invalid.  Options are: A-H,No_LT,NULL,NONE'  -- (bad) is...
-   FTO_WARN__MSG =          'File transfer options are NOT checked for correctness!'
-   BIN_WARN__MSG =          'Binary file transfer options are NOT checked for correctness!'
+   LT_INVALID__MSG =        'is invalid.  Options are:  A-H,No_LT,NULL,NONE'  -- (bad) is...
+   FTO_WARN__MSG =          'File transfer options are NOT checked for correctness.'
+   BIN_WARN__MSG =          'Binary file transfer options are NOT checked for correctness.'
    FROM_HLLAPI__MSG =       'from HLLAPI dynalink call.'  -- Error nnn from...
    FILE_TRANSFER_CMD_UNKNOWN='File transfer command unknown:'
 compile endif
@@ -833,16 +833,16 @@ compile endif
    NO_BOOKMARKS__MSG =      'No bookmarks set.'
    LIST_BOOKMARKS__MSG =    'List bookmarks'  -- Listbox title
    DELETE_PERM_BM__MSG =    'Delete all permanent bookmarks?'  -- Are you sure?
-   UNEXPECTED_ATTRIB__MSG = 'Unexpected value in extended attribute EPM.ATTRIBUTES'
+   UNEXPECTED_ATTRIB__MSG = 'Unexpected value in extended attribute EPM.ATTRIBUTES.'
                     -- Button names.  ~ precedes accelerator char; Cancel doesn't get one.
    SET__MSG =               '~Set'
    SETP__MSG =              'Set ~permanent'
    GOMARK__MSG =            '~Go to mark'
    DELETEMARK__MSG =        '~Delete mark'
    SETMARK__MSG =           'Set bookmark'  -- Title
-   SETMARK_PROMPT__MSG =    'Enter a name for the current cursor position'
+   SETMARK_PROMPT__MSG =    'Enter a name for the current cursor position.'
    RENAME__MSG =            'Rename'  -- Title
-   NOTHING_ENTERED__MSG =   'Nothing entered; function cancelled.'
+   NOTHING_ENTERED__MSG =   'Nothing entered; function canceled.'
    NO_COMPILER_ERROR__MSG = 'No error found on current line.'
    DESCRIBE_ERROR__MSG =    'Describe error'  -- Listbox title
    DETAILS__MSG =           '~Details'  -- Button
@@ -851,14 +851,14 @@ compile endif
    ERROR_ADDING_HELP__MSG = 'attempting to add help file'  -- 'Error' nn 'attempting to add help file' x.hlp
    ERROR_REVERTING__MSG =   'attempting to revert to help file'  -- 'Error' nn 'attempting to revert to help file' x.hlp
    BM_ALREADY_EXISTS__MSG = 'A bookmark with that name already exists.'
-   LONG_EA_TITLE__MSG =     "EA's too long"  -- Messagebox title
-   LONG_EA__MSG =           "Extended Attributes would be more than 64k; file can not be saved.  Remove some styles and retry."
+   LONG_EA_TITLE__MSG =     "EAs too long"  -- Messagebox title
+   LONG_EA__MSG =           "Extended attributes would be more than 64k; file can not be saved.  Remove some styles and retry."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;  stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    FILE_GONE__MSG =         'File is no longer in ring.'
    NO_RING__MSG =           'Ring disabled; can not add another file to edit ring.'
    NO_RING_CMD__MSG =       'Command not valid when ring disabled:'  -- followed by command name
-   RENAME_PROMPT__MSG =     'Enter new name for current file'
+   RENAME_PROMPT__MSG =     'Enter new name for current file.'
    RX_PROMPT__MSG =         'A macro name must be passed as a parameter (e.g,, EPMREXX ERXMACRO)'
    RX_SUBCOM_FAIL__MSG =    'Rexx subcommand registration failed with rc'
    RX_FUNC_FAIL__MSG =      'Rexx function registration failed with rc'
@@ -895,7 +895,7 @@ compile endif
    STACK_EMPTY__MSG =       'Stack is empty.'
    TAGSNAME__MSG =          'Tags file name'     -- Entry box title
    TAGSNAME_PROMPT__MSG =   'Enter the file name for the tags file'
-   FINDTAG__MSG =           'Find Procedure'      -- Entry box title
+   FINDTAG__MSG =           'Find procedure'      -- Entry box title
    FINDTAG_PROMPT__MSG =    'Enter the name of the procedure to be found.'
    NO_TAGS__MSG =           'No tags found in tags file.'
    LIST_TAGS__MSG =         'List tags'         -- Listbox title
@@ -913,10 +913,10 @@ compile endif
 ;  LOAD_TOOLBAR__MSG =      'Load Toolbar'  -- Dialog box title
 ;  DELETE_TOOLBAR__MSG =    'Delete Toolbar'  -- Dialog box title
 ;  SELECT_TOOLBAR__MSG =    'Select a Toolbar menu set'
-   SAVEBAR__MSG =           'Save Toolbar'  -- Dialog box title
+   SAVEBAR__MSG =           'Save toolbar'  -- Dialog box title
 ;  SAVEBAR_PROMPT__MSG =    'Enter a name, or leave blank to save as default.'
    SAVEBAR_PROMPT__MSG =    'Enter a name for the toolbar.'
-   SAVE__MSG =              'Save'          -- Dialog button
+   SAVE__MSG =              '~Save'          -- Dialog button
    WILDCARD_WARNING__MSG =  'Filename contains wildcards.'  -- followed by ARE_YOU_SURE__MSG
 
 ;; ASSSIST.E
