@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: enter.e,v 1.8 2005-11-24 21:06:23 aschn Exp $
+* $Id: enter.e,v 1.9 2008-09-05 22:42:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -25,28 +25,19 @@
 ; WANT_STREAM_INDENTED = 1
 ; WANT_STREAM_MODE = 'SWITCH'
 ; ENTER_ACTION = 'STREAM'
-; NEPMD_STREAM_INDENTED = 1
 
 ; Todo: Replace consts with ini settings, at least the standard enter
 ; code for stream mode.
 
-const
-compile if not defined(NEPMD_STREAM_INDENTED)
-   -- This activates the defs for WANT_STREAM_INDENTED too
-   NEPMD_STREAM_INDENTED = 1
-compile endif
-
-compile if NEPMD_STREAM_INDENTED
 ; ---------------------------------------------------------------------
-;    This procedure corrrects a bug in standard EPM stream mode
-; if stream mode is activated and if WANT_STREAM_INDENTED = 1:
-; Placing the cursor before the first word in a line has gobbled
-; the space from the cursor to the first word after processing
-; the Enter.
-;    Additionally the chars from the line above are copied instead of
-; filling the space in the new line with spaces, so it works with
-; Tabs too.
-defproc nepmd_stream_indented_split_line
+; This procedure corrrects a bug in standard EPM stream mode if stream
+; mode is activated and if WANT_STREAM_INDENTED = 1: Placing the cursor
+; before the first word in a line has gobbled the space from the cursor
+; to the first word after processing the Enter.
+; Additionally, the chars from the line above are copied instead of
+; filling the space in the new line with spaces, so it works with Tabs
+; too.
+defproc SplitIndentLine
    old_col = .col
    call pfirst_nonblank()
    old_nonblank = .col
@@ -59,7 +50,7 @@ defproc nepmd_stream_indented_split_line
          insert
          up
       endif
- compile if 0  -- Respect standard margin/par indent:
+compile if 0  -- Respect standard margin/par indent:
       getline old_line  -- left part of the old line from left margin to the cursor
       parse value pmargins() with leftcol . paracol .
       if old_line = '' or not .line then
@@ -70,9 +61,9 @@ defproc nepmd_stream_indented_split_line
             .col = leftcol
          endif
       endif
- compile else  -- Don't respect standard margin/par indent:
+compile else  -- Don't respect standard margin/par indent:
       .col = 1
- compile endif
+compile endif
       down
    else
       -- Original definition:
@@ -80,7 +71,6 @@ defproc nepmd_stream_indented_split_line
       call pfirst_nonblank()
       down
    endif
-compile endif  -- NEPMD_STREAM_INDENTED
 
 ; ---------------------------------------------------------------------
 ; Following has moved from STDPROCS.E
@@ -100,9 +90,16 @@ defproc einsert_line
    down
 
 ; ---------------------------------------------------------------------
-defproc enter_common(action)
+; TODO:
+;    o  omit numbers
+;    ok allow for every def in every mode
+;    ok remove const
+;;defproc enter_common(action)
+defc Enter
    universal cua_marking_switch
-   universal stream_mode
+;   universal stream_mode
+
+   action = strip( arg(1))
 
    k  = lastkey()
    pk = lastkey(1)
@@ -113,7 +110,7 @@ defproc enter_common(action)
    endif
 
    -- Definition for stream mode
-   if stream_mode then
+   if action = '' then
       if .line then
          if cua_marking_switch then
             if not process_mark_like_cua() and   -- There was no mark
@@ -121,19 +118,13 @@ defproc enter_common(action)
                delete_char    -- Delete the character, to emulate replacing the
             endif             -- marked character with a newline.
          endif
-  compile if WANT_STREAM_INDENTED or NEPMD_STREAM_INDENTED
-   compile if NEPMD_STREAM_INDENTED
-         call nepmd_stream_indented_split_line()
-   compile else
-         call splitlines()
-         call pfirst_nonblank()
-         down
-   compile endif  -- NEPMD_STREAM_INDENT
-  compile else
-         split
-         .col = 1
-         down
-  compile endif -- WANT_STREAM_INDENTED
+;compile if WANT_STREAM_INDENTED
+         call SplitIndentLine()
+;compile else
+;         split
+;         .col = 1
+;         down
+;compile endif -- WANT_STREAM_INDENTED
       else
          insert
          .col = 1
@@ -166,6 +157,7 @@ defproc enter_common(action)
    endif
    if action = 6 then
    -- 'STREAM'
+; ########### use stream mode def from above here? ###########
       call splitlines()
       call pfirst_nonblank()
       down
@@ -198,7 +190,15 @@ defproc enter_common(action)
       down
    endif
 
------------------------------------------------------------------------
+; ---------------------------------------------------------------------
+; For use in STDKEYS.E
+;defc Enter
+;   action = arg(1)
+;   call enter_common( action)
+
+; ---------------------------------------------------------------------
+/*
+; Not used anymore
 defc enter =
    universal enterkey
    call enter_common(enterkey)
@@ -223,4 +223,4 @@ defc c_padenter =
 defc s_padenter =
    universal s_padenterkey
    call enter_common(s_padenterkey)
-
+*/
