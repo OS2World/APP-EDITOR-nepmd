@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: clipbrd.e,v 1.9 2006-12-10 10:02:45 aschn Exp $
+* $Id: clipbrd.e,v 1.10 2008-09-05 22:35:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -95,8 +95,7 @@ defc Copy2SharBuff                     -- former name = CLIPBRD_pt
       stop
    endif
 
-   -- Copy the current marked lines (up to 64k worth of data ) into EPM's
-   -- shared memory buffer.
+   -- Copy the current marked lines into EPM's shared memory buffer
    call buffer(PUTMARKBUF, bufhndl, fstline, lstline, APPENDCR+APPENDLF)  -- Was +FINALNULL+STRIPSPACES
 
    poke bufhndl, 28, atol(lstline-fstline+1-(lstline>.last))  -- Remember how many lines are *supposed* to be there.
@@ -137,7 +136,6 @@ defc ClearSharBuff
 defc copy2clip
    if length( arg(1)) > 0 then
 /*
-      -- This doesn't work. Why?
       PointerToBuffer = put_in_buffer( arg(1))
       if not PointerToBuffer then
          return 1
@@ -189,9 +187,14 @@ defc copy2clip
       if not bufhndl then
          return 1                              /* buffer does not exist     */
       endif
+
       if peek(bufhndl,6,2) /== peek(bufhndl,28,2) then
          sayerror TOO_MUCH_FOR_CLIPBD__MSG
+compile if 1
+         -- Comment this out if you want to copy just the first 64 KiB, rather
+         -- than nothing:
          return 1
+compile endif
       endif
 
    --  Copying to the Clipboard using the EToolkit message:
@@ -207,6 +210,7 @@ defc copy2clip
    --  the buffer during this command.    if zero is passed as arg(1), an error
    --  was encountered.  An error message should be displayed at this point.
 
+      -- TODO: EPM_EDIT_CLIPBOARDCOPY is limited to 64 KiB
       call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
                           5441,               -- EPM_EDIT_CLIPBOARDCOPY
                           mpfrom2short( bufhndl, 0),
@@ -277,6 +281,8 @@ defc paste
    if mark <> 'C' and  mark <> 'B' then
       mark = 'L'
    endif
+
+   -- TODO: EPM_EDIT_CLIPBOARDPASTE is limited to 32 KIB
    call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
                        5442,               -- EPM_EDIT_CLIPBOARDPASTE
                        asc(mark), 0)
