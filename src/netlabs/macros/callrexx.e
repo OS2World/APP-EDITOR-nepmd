@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: callrexx.e,v 1.6 2006-10-07 18:00:25 aschn Exp $
+* $Id: callrexx.e,v 1.7 2008-09-05 22:34:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -51,17 +51,34 @@ compile if not defined(ERES_DLL)  -- Being compiled separately?  (For debug use.
 compile endif
 
 ; ---------------------------------------------------------------------------
-defc epmrexx,rx=
-   parse value arg(1) with macro getall
-   if macro = '' then
+defproc RxResult
+   universal rexxresult
+   parse arg RxMacro
+   'rx 'RxMacro
+   return rexxresult
+
+; ---------------------------------------------------------------------------
+; Universal vars can be used to check the result:
+;   rc = 0: success
+;   rc < 0: E error
+;   rc > 0: REXX error
+;   rexxresult: return value of the REXX function
+defc epmrexx, rx
+   universal rexxresult
+   -- Reset universal var
+   rexxresult = ''
+
+   parse value arg(1) with Macro Args
+   if Macro = '' then
       sayerror RX_PROMPT__MSG
       return
    endif
-   call parse_filename( macro, .filename)
-   if not pos( '.', substr( macro, lastpos( '\', macro) + 1)) then
-      macro = macro'.erx'   /* add the default extention */
+   call parse_filename( Macro, .filename)
+   if not pos( '.', substr( Macro, lastpos( '\', Macro) + 1)) then
+      Macro = Macro'.erx'   -- add the default extention
    endif
-              /* Try to register the subcommand interface */
+
+   -- Try to register the subcommand interface
    rc = rexxsubcomregister()
    if rc then
       sayerror RX_SUBCOM_FAIL__MSG rc
@@ -72,39 +89,38 @@ defc epmrexx,rx=
       sayerror RX_FUNC_FAIL__MSG rc
       return
    endif
+
 ;  string=atol(length(getall))||offset(getall)||selector(getall)
-   /*
-    *    Call the macro named by the macro variable
-    *    The default environment is "ERXSUBCOM".
-    *    The EPM subcommand DLL is "ERXSBCOM.DLL".
-    */
+   -- Call the macro named by the macro variable
+   -- The default environment is "ERXSUBCOM".
+   -- The EPM subcommand DLL is "ERXSBCOM.DLL".
 ;  sayerror 'EPM REXX macro "'macro'" running...'
-   functionname =macro\0
+   Functionname =macro\0
 ;  saveautoshell = .autoshell
 ;  .autoshell = 0
 
-; Allocate buffer for string, functionname, envname, rcresult, and resultstring.
-;                                           'ENV'\0   2 bytes       8 bytes
+   -- Allocate buffer for string, functionname, envname, rcresult, and resultstring.
+   --                                           'ENV'\0   2 bytes       8 bytes
 ;  len = length(string) + length(functionname) + length(envname) + 2 + 8
 ;  string_ofs = 0
    func_ofs = 8  -- length(string)
-   env_ofs  = func_ofs + length(functionname)
+   env_ofs  = func_ofs + length( Functionname)
    rc_ofs   = env_ofs + 4
    res_ofs  = rc_ofs + 4  -- return code is a long
    parm_ofs = res_ofs + 8
-   len      = parm_ofs + length(getall)
+   len      = parm_ofs + length( Args)
    bufhndl  = substr( atol( dynalink32( E_DLL,
                                         'mymalloc',
-                                        atol(len), 2)), 3, 2)
-   bufhndla =  ltoa(bufhndl\0\0, 10)
+                                        atol( len), 2)), 3, 2)
+   bufhndla =  ltoa( bufhndl\0\0, 10)
    r = -270 * (bufhndla = 0)
 
    if r | not bufhndla then sayerror 'Error 'r' allocating memory segment; command halted.'; stop; endif
 ;  poke bufhndla, 0, string  -- assume string_ofs = 0
-   poke bufhndla, 0, atol(length(getall))||atoi(parm_ofs)||bufhndl
-   poke bufhndla, func_ofs, functionname
+   poke bufhndla, 0, atol( length( Args))||atoi( parm_ofs)||bufhndl
+   poke bufhndla, func_ofs, Functionname
    poke bufhndla, env_ofs, 'EPM'\0
-   poke bufhndla, parm_ofs, getall
+   poke bufhndla, parm_ofs, Args
 
    result = dynalink32( 'REXX',                   -- dynamic link library name
                         '#1',   -- 'RexxStart',   -- Rexx input function
@@ -130,26 +146,71 @@ defc epmrexx,rx=
 ;;       return
       endif
    if result then
-      rc = result
       if result = -3 | result = 65533 then
-         result = result':  'FILE_NOT_FOUND__MSG '('macro')'
+         rc = result
+         result = result':  'FILE_NOT_FOUND__MSG '('Macro')'
+         sayerror FILE_NOT_FOUND__MSG '('Macro')'
+      elseif result < 0 then
+         rc = result
+      else
+         rc = 65536 - result
+         -- This error msg is only written if the REXX syntax error was not
+         -- catched by the macro itself. Using the ERX file can be much more
+         -- comfortable, because also the REXX error line is saved in the
+         -- sigl var. With the error line, the erranous file can be loaded
+         -- and EPM can jump to that line.
+         -- The ERX code for that looks like that:
+         --    signal on syntax name Error
+         --    parse source . . ThisFile
+         --    ...
+         --    Error:
+         --       'sayerror REX'right( rc, 4, 0)': Error 'rc' running 'ThisFile', line 'sigl ||,
+         --       ': 'errortext( rc)
+         --       "e "ThisFile" 'postme "sigl"'"
+         --       exit( 31)
+         saved_rc = rc
+         Msg = GetHelpMsg( rc)
+         rc = saved_rc
+         sayerror 'REX'rightstr( rc, 4, 0)': Error 'rc' running 'Macro': 'Msg
       endif
-      sayerror 'Rexx:  'ERROR__MSG result
    else
-      rc = ltoa( peek( bufhndla, rc_ofs, 4), 10)  -- Set universal RC for use by callers.
+      -- Set universal RC for use by callers.
+      --rc = ltoa( peek( bufhndla, rc_ofs, 4), 10)
+      -- Better use rexxresult for return value from REXX proc
+      rc = 0
    endif
-/* debug info...
-   rcresult = peek( bufhndla, rc_ofs, 2)
-   resultstring = peek( bufhndla, res_ofs, 8)
-   peekseg = itoa( substr( resultstring, 7, 2), 10)
-   peekoff = itoa( substr( resultstring, 5, 2), 10)
-   peeklen = ltoa( substr( resultstring, 1, 4), 10)
-   sayerror 'result='result'; Input <'||getall||'>  and the result from REXX is <'|| peek(peekseg,peekoff,peeklen)||'>; rc='rc
-*/
+   Saved_rc = rc
+
+   if rc = 0 then
+      rcresult = peek( bufhndla, rc_ofs, 2)
+      resultstring = peek( bufhndla, res_ofs, 8)
+      peekseg = itoa( substr( resultstring, 7, 2), 10)
+      peekoff = itoa( substr( resultstring, 5, 2), 10)
+      peeklen = ltoa( substr( resultstring, 1, 4), 10)
+      -- Set universal var
+      rexxresult = peek( peekseg, peekoff, peeklen)
+      --dprintf( 'result='result'; Input <'Args'>  and the result from REXX is <'rexxresult'>; rc='rc)
+   endif
+
    call dynalink32( E_DLL,         -- dynamic link library name
                     'myfree',                   -- DosFreeSeg
                     atoi(0) ||  -- add an offset to make the selector an address
                     bufhndl)
+   rc = Saved_rc
+
+; ---------------------------------------------------------------------------
+defproc GetHelpMsg( rex_rc)
+   universal vTEMP_FILENAME
+   Msg = ''
+
+   quietshell 'helpmsg REX'rex_rc' 1>'vTEMP_FILENAME' 2>&1'
+   'xcom e /D /Q' vTEMP_FILENAME
+   if not rc then
+      parse value textline(2) with . '***'Msg'***'
+   endif
+   'xcom q'
+   call erasetemp( vTEMP_FILENAME)
+   return Msg
 
 ; ---------------------------------------------------------------------------
 ; Invoke current file as a Rexx macro, passing it the arguments specified (if any).
