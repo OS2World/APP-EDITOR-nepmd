@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.21 2007-06-10 19:59:25 aschn Exp $
+* $Id: keys.e,v 1.22 2008-09-05 22:53:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -43,6 +43,13 @@ const
    include NLS_LANGUAGE'.e'
 
    EA_comment 'This defines definitions for keysets.'
+
+; In case someone executes 'keys' by mistake, the module would be unlinked.
+; So link it again:
+defmain
+   sayerror 'Executing defmain of' INCLUDING_FILE
+   stop
+
 compile endif  -- not defined(SMALL)
 
 const
@@ -139,20 +146,22 @@ compile if not defined(CharList)
    CHAR_LIST  = CHAR_LIST  || ' <    >'
    CHAR_NAMES = CHAR_NAMES || ' LESS GREATER'
 compile endif
-   -- NO_DEF_CHAR_LIST = no key defs for Alt+<name> and Ctrl+<name> exist
+   -- NO_DEF_CHAR_LIST = no key defs via def a_<name> and def c_<name> for
+   -- Alt+<name> and Ctrl+<name> exist
 compile if not defined(NO_DEF_CHAR_LIST)
    NO_DEF_CHAR_LIST = '* + < > ( ) [ ] # , . ! ? " ^ % $ & ï ` ' ' ~ | @'
 compile endif
 
    -- VIRTUAL_LIST = virtual keys, for those every combination should be
    -- defined, see pmwin.h.
+   -- ENTER means NEWLINE in PM and PADENTER means ENTER in PM.
 compile if not defined(VIRTUAL_LIST)
-   VIRTUAL_LIST  = 'BACKSPACE TAB ESC PAGEUP PAGEDOWN END HOME'
-   VIRTUAL_IDS   = '5         6   15  17     18       19  20'
-   VIRTUAL_NAMES = 'BACKSPACE TAB ESC PGUP   PGDN     END HOME'
-   VIRTUAL_LIST  = VIRTUAL_LIST  || ' LEFT UP RIGHT DOWN INSERT DELETE'
-   VIRTUAL_IDS   = VIRTUAL_IDS   || ' 21   22 23    24   26     27'
-   VIRTUAL_NAMES = VIRTUAL_NAMES || ' LEFT UP RIGHT DOWN INS    DEL'
+   VIRTUAL_LIST  = 'BACKSPACE TAB ENTER ESC PAGEUP PAGEDOWN END HOME'
+   VIRTUAL_IDS   = '5         6   8     15  17     18       19  20'
+   VIRTUAL_NAMES = 'BACKSPACE TAB ENTER ESC PGUP   PGDN     END HOME'
+   VIRTUAL_LIST  = VIRTUAL_LIST  || ' LEFT UP RIGHT DOWN INSERT DELETE PADENTER'
+   VIRTUAL_IDS   = VIRTUAL_IDS   || ' 21   22 23    24   26     27     30'
+   VIRTUAL_NAMES = VIRTUAL_NAMES || ' LEFT UP RIGHT DOWN INS    DEL    PADENTER'
    VIRTUAL_LIST  = VIRTUAL_LIST  || ' F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12'
    VIRTUAL_IDS   = VIRTUAL_IDS   || ' 32 33 34 35 36 37 38 39 40 41  42  43'
    VIRTUAL_NAMES = VIRTUAL_NAMES || ' F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12'
@@ -235,10 +244,6 @@ defc Key_a_f10 = 'sayerror a_f10'
 ;    Key_c_a_s_<key>
 ; <key> may be any letter (see const LETTER_LIST), any char name (see const
 ; CHAR_NAMES) or any virtual key (see const VIRTUAL_NAMES).
-compile if not defined( NEWVIEW_HELP_WORKAROUND)
-const
-   NEWVIEW_HELP_WORKAROUND=0
-compile endif
 
 defc loadaccel
    universal activeaccel
@@ -247,15 +252,6 @@ defc loadaccel
 
    activeaccel = 'defaccel'  -- name for accelerator table
    i = 1000                  -- let ids start at 1001
-
-   i = i + 1
-   buildacceltable activeaccel, 'Alt_enter 1', AF_VIRTUALKEY + AF_ALT, VK_NEWLINE, i    -- Alt+Enter
-   i = i + 1
-   buildacceltable activeaccel, 'Alt_enter 2', AF_VIRTUALKEY + AF_ALT, VK_ENTER, i      -- Alt+PadEnter
-   i = i + 1
-   buildacceltable activeaccel, 'Alt_enter 3', AF_VIRTUALKEY + AF_SHIFT, VK_NEWLINE, i  -- Shift+Enter
-   i = i + 1
-   buildacceltable activeaccel, 'Alt_enter 4', AF_VIRTUALKEY + AF_SHIFT, VK_ENTER, i    -- Shift+PadEnter
 
    -- Save the last used id in an array var
    call SetAVar( 'lastkeyaccelid', i)
@@ -280,24 +276,6 @@ defc loadaccel
       i = i + 1
       buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALTGRAF, i  -- AltGr
    endif
-
-   -- Use a const to disable it easily for testing
-compile if NEWVIEW_HELP_WORKAROUND
-   -- Redefine F1 to open EPM's main help panel.
-   -- Otherwise pressing F1 would cause an EPM crash, when NewView's
-   -- helpmgr.dll is installed.
-   -- o  Help for EPM's dialogs works correctly.
-   -- o  Help for menu items doesn't work in EPM 6.03b with Warp 4.5/eCS.
-   --    This workaround opens EPM's main help panel instead.
-   --    Todo: query the help panel id, that was defined together with the
-   --          MIA (last arg of buildmenuitem: mpfrom2short( help_panel_id, 0)).
-   i = i + 1
-   id = VK_F1  -- F1 = 32
-   cmd = 'helpmenu 4000'
-   --flags = AF_VIRTUALKEY + AF_HELP  -- AF_HELP doesn't work!
-   flags = AF_VIRTUALKEY
-   buildacceltable activeaccel, cmd, flags, id, i
-compile endif
 
    -- Save the last used id in an array var
    call SetAVar( 'lastkeyaccelid', i)
@@ -412,8 +390,18 @@ defproc DefineCharAccels
          cmd = 'dokey c+'name
       endif
       if cmd <> '' then
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL, key, i             -- Ctrl+<key>
+         if isadefc('Key_c_'name) then
+            cmd = 'Key_c_'name
+         elseif IsNum( name) then  -- Exclude Ctrl+0 ... Ctrl+9 to make Ctrl+<keypad-num> work properly.
+                                   -- These keys are definable via def c_0 ... def c_9.
+                                   -- To override a standard PM def, e.g. Ctrl+Pad-0 = copy to clip,
+                                   -- one can use defc Key_c_0 instead of def c_0.
+            cmd = ''
+         endif
+         if cmd <> '' then
+            i = i + 1
+            buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL, key, i          -- Ctrl+<key>
+         endif
       endif
       if isadefc('Key_c_s_'name) then
          cmd = 'Key_c_s_'name
@@ -428,8 +416,15 @@ defproc DefineCharAccels
          cmd = 'dokey a+'name
       endif
       if cmd <> '' then
-         if not IsNum( name) then  -- Exclude Alt+0 ... Alt+9 to make Alt+<keypad-num> work properly.
-                                   -- These keys are now definable via def a_0 ... def a_9 only.
+         if isadefc('Key_a_'name) then
+            cmd = 'Key_a_'name
+         elseif IsNum( name) then  -- Exclude Alt+0 ... Alt+9 to make Alt+<keypad-num> work properly.
+                                   -- These keys are definable via def a_0 ... def a_9.
+                                   -- To override a standard PM def, e.g. Alt+1 = insert 0x01 char,
+                                   -- one can use defc Key_a_1 instead of def a_1.
+            cmd = ''
+         endif
+         if cmd <> '' then
             i = i + 1
             buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT, key, i             -- Alt+<key>
          endif
@@ -540,17 +535,6 @@ defc deleteaccel
    deleteaccel curaccel
 
 ; ---------------------------------------------------------------------------
-; Used for accelerator key def only.
-; Syntax: alt_enter <num>
-; <num> = 1: Alt+Enter
-; <num> = 2: Alt+PadEnter
-; <num> = 3: Sh+Eenter
-; <num> = 4: Sh+PadEenter
-defc alt_enter =
-   universal a_enterkey, a_padenterkey, s_enterkey, s_padenterkey
-   call enter_common( substr( a_enterkey||a_padenterkey||s_enterkey||s_padenterkey, arg(1), 1))
-
-; ---------------------------------------------------------------------------
 defc dokey
    --sayerror 'dokey: k = 'arg(1)
    executekey resolve_key(arg(1))
@@ -659,6 +643,260 @@ defproc process_key(k)
       if not i_s & had_mark then
          insert_toggle
       endif
+   endif
+
+; ---------------------------------------------------------------------------
+; Ensure that default entry is present in NEPMD.INI
+definit
+   universal nepmd_hini
+   DefaultNameList = lowcase( 'mozkeys')  -- only basenames
+
+   KeyPath = '\NEPMD\User\Keys\AddKeyDefs\List'
+   KeyDefs = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+
+   NewKeyDefs = ''
+   do w = 1 to words( DefaultNameList)
+      ThisName = word( DefaultNameList, w)
+      if not wordpos( ThisName, Keydefs) then
+         NewKeyDefs = NewKeyDefs ThisName
+      endif
+   enddo
+   NewKeyDefs = strip( NewKeyDefs)
+
+   if NewKeyDefs <> '' then
+      NepmdWriteConfigValue( nepmd_hini, KeyPath, KeyDefs NewKeyDefs)
+   endif
+
+; ---------------------------------------------------------------------------
+defc LinkKeyDefs
+   universal nepmd_hini
+   None = '-none-'
+
+   KeyPath = '\NEPMD\User\Keys\AddKeyDefs\Selected'
+   Current = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Current <> None & Current <> '' then
+      'Link quiet 'Current
+      do i = 1 to 1
+         -- On success
+         if rc >= 0 then
+            leave
+         endif
+         -- Search .E file and maybe recompile it
+         'Relink' Current'.e'
+         if rc >= 0 then
+            leave
+         endif
+         -- Remove from NEPMD.INI on link error
+         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath, None)
+         sayerror 'Additional key defs file "'Current'.ex" could not be found.'
+      enddo
+   endif
+
+definit
+   'AtInit LinkKeyDefs'
+
+; ---------------------------------------------------------------------------
+defproc GetKeyDef
+   universal nepmd_hini
+   None = '-none-'
+   KeyPath = '\NEPMD\User\Keys\AddKeyDefs\Selected'
+   Current = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   if Current = '' then
+      Current = None
+   endif
+   return Current
+
+; ---------------------------------------------------------------------------
+; Open a listbox to select aditional key defs. The additional defs must be
+; placed in a separate E file, without using the defkeys statement. When
+; simply linking such a file, all special keysets for already loaded files
+; would be lost and the keyset EDIT_KEYS is set for all loaded files.
+; Therefore EPM will be restarted to make the changes take effect as
+; expected. For unlinking a key def file, no restart is required.
+defc SelectKeyDefs
+   universal nepmd_hini
+   None = '-none-'
+
+   parse arg Action Basename
+   Action = upcase( Action)
+   lp = lastpos( '\', strip( Basename))
+   Basename = substr( Basename, lp + 1)
+   Basename = lowcase( Basename)
+   if Basename = '' then
+   elseif rightstr( Basename, 2) = '.e' then
+      Basename = leftstr( Basename, length( Basename) - 2)
+   elseif rightstr( Basename, 3) = '.ex' then
+      Basename = leftstr( Basename, length( Basename) - 3)
+   endif
+
+   -- Read available files from NEPMD.INI
+   KeyPath1 = '\NEPMD\User\Keys\AddKeyDefs\List'
+   KeyPath2 = '\NEPMD\User\Keys\AddKeyDefs\Selected'
+   KeyDefs = NepmdQueryConfigValue( nepmd_hini, KeyPath1)  -- space-separated list
+   Current = NepmdQueryConfigValue( nepmd_hini, KeyPath2)
+   if Current = '' then
+      Current = None
+   endif
+
+   if Action = 'ADD' & Basename <> '' then
+
+      if not wordpos( Basename, KeyDefs) then
+         KeyDefs = strip( KeyDefs Basename)
+         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath1, KeyDefs)
+      endif
+
+      Path = Get_Env('EPMEXPATH')
+      ListFiles = ''
+      BaseNames = ReadMacroLstFiles( Path, ListFiles)
+
+      if not pos( ';'Basename';', ';'BaseNames) then
+         Title = 'Adding additional key definitions'
+         Text = 'For the additional key definition macro "'Basename'" no'
+         Text = Text || ' entry in a LST file was found. In order to make'
+         Text = Text || ' the RecompileNew macro aware of that file, it'
+         Text = Text || ' should be added to "myexfiles.lst".'\n\n
+         Text = Text || 'Should the entry be added automatically?'
+         Style = MB_YESNO+MB_QUERY+MB_DEFBUTTON1+MB_MOVEABLE
+         ret = winmessagebox( Title,
+                              Text,
+                              Style)
+         if ret = 6 then  -- Yes
+            call AddToMacroLstFile( Basename)
+            if rc <> 0 then
+               sayerror 'Error: AddToMacroLstFile( 'Basename') returned rc = 'rc
+               return
+            endif
+         elseif ret = 7 then  -- No
+         endif
+      endif
+
+      Title = 'Adding additional key definitions'
+      Text = 'Before the macro file "'Basename'" can be loaded,'
+      Text = Text || ' it has to be compiled.'\n\n
+      Text = Text || 'Should RecompileNew be called now?'
+      Style = MB_YESNO+MB_QUERY+MB_DEFBUTTON1+MB_MOVEABLE
+      Style = MB_YESNO+MB_WARNING+MB_DEFBUTTON1+MB_MOVEABLE
+      ret = winmessagebox( Title,
+                           Text,
+                           Style)
+      if ret = 6 then  -- Yes
+         -- Execute RecompileNew and open this dialog again
+         'mc ;RecompileNew;postme SelectKeyDefs'
+         return
+      elseif ret = 7 then  -- No
+      endif
+   endif
+
+   -- Open listbox
+   Rest = KeyDefs
+   Sep = '/'
+   Entries = Sep''None
+   do w = 1 to words( Rest)
+      Next = word( Rest, w)
+      Entries = Entries''Sep''Next
+   enddo
+
+   DefaultItem = 1
+   if Current <> '' then
+      wp = wordpos( Current, KeyDefs)
+      if wp > 0 then
+         DefaultItem = wp + 1
+      endif
+   endif
+   DefaultButton = 1
+   HelpId = 0
+   Title = 'Select additional key definitions'copies( ' ', 20)
+   --Text = 'These defs override or extend the standard keyset.'
+   --Text = 'Current key def additions for the standard keyset: 'Current
+   Text = 'Current key def additions: 'Current
+
+   refresh
+   Result = listbox( Title,
+                     Entries,
+                     '/~Set/~Add.../~Edit/~Remove/Cancel', -- buttons
+                     0, 0,  --5, 5,                       -- top, left,
+                     min( words( KeyDefs), 15), 50,  -- height, width
+                     gethwnd(APP_HANDLE) || atoi(DefaultItem) ||
+                     atoi(DefaultButton) || atoi(HelpId) ||
+                     Text\0 )
+   refresh
+
+   -- Check result
+   button = asc( leftstr( Result, 1))
+   EOS = pos( \0, Result, 2)        -- CHR(0) signifies End Of String
+   Selected = substr( Result, 2, EOS - 2)
+   if button = 1 then      -- Set
+      -- Unlink current
+      if Current <> None then
+         if linked( Current) > 0 then
+            'unlink 'Current
+            rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, None)
+         endif
+      endif
+      if Selected = None then
+         Msg = 'No keyset additions file active.'
+         sayerror Msg
+         -- nop
+      else
+         -- Check if .E file exists
+         findfile EFile, Selected'.e', 'EPMPATH'
+         if rc then
+            -- Check if .EX file exists
+            findfile EFile, Selected'.ex', 'EPMPATH'
+            if rc then
+               sayerror 'Key definition file 'upcase( Selected)'.E or 'upcase( Selected)'.EX not found.'
+               return 2
+            endif
+         endif
+         -- Write selected value to NEPMD.INI
+         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, Selected)
+         -- Restart
+         Msg = 'Keyset additions file 'upcase( Selected)'.EX activated.'
+         'Restart sayerror' Msg
+      endif
+   elseif button = 2 then  -- Add
+      -- Open fileselector to select an e or ex filename
+      -- Call this Cmd again, but with args to repaint the list
+      'FileDlg Select a file with additional key definitions, SelectKeyDefs ADD, 'Get_Env('NEPMD_USERDIR')'\macros\*.e'
+      -- Call this Cmd again
+;      'SelectKeyDefs'
+      return 0
+   elseif button = 3 & Selected <> None then  -- Edit
+      -- Load file
+      'ep 'Selected'.e'
+      return rc
+   elseif button = 4 & Selected <> None then  -- Remove
+      if linked( Selected) > 0 then
+         'unlink 'Selected
+         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, None)
+      endif
+      wp = wordpos( Selected, KeyDefs)
+      if wp > 0 then
+         NewKeyDefs = DelWord( KeyDefs, wp, 1)
+         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath1, NewKeyDefs)
+      endif
+      -- Call this Cmd again
+      'SelectKeyDefs'
+   else                    -- Cancel
+   endif
+
+
+; ---------------------------------------------------------------------------
+;  Definitions used for key commands
+; ---------------------------------------------------------------------------
+
+; ---------------------------------------------------------------------------
+; This command allows to define 2 commands, separated by a bar char. The
+; first command applies in stream mode and the second in line mode.
+defc StreamLine
+   universal stream_mode
+   parse arg cmd1'|'cmd2
+   cmd1 = strip( cmd1)
+   cmd2 = strip( cmd2)
+   if stream_mode then
+      cmd1
+   else
+      cmd2
    endif
 
 ; ---------------------------------------------------------------------------
