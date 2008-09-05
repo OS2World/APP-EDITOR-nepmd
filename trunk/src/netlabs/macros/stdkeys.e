@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.35 2007-06-10 20:01:01 aschn Exp $
+* $Id: stdkeys.e,v 1.36 2008-09-05 23:17:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -78,6 +78,8 @@ def c_down        'PushPos'             -- Add current cursor pos. to cursor sta
 def c_up          'PopPos'              -- Go to last pos. of cursor stack
 def c_equal       'SwapPos'             -- Exchange current cursor pos. with last pos. of stack
 def c_0           'SwapPos'             -- Exchange current cursor pos. with last pos. of stack
+; Use defc Key_c_0 instead of def c_0 to even redefine the pad-0 key:
+;defc Key_c_0      'SwapPos'             -- Exchange current cursor pos. with last pos. of stack
 def a_minus       'HighlightCursor'     -- Draw a circle around cursor
 def a_e           'EndMark'             -- Go to end of mark
 def a_y           'BeginMark'           -- Go to begin of mark
@@ -220,7 +222,7 @@ def c_m           'SetMark'             -- Open a dialog to save position as boo
 def a_slash       'NextBookmark'        -- Go to next bookmark (german keyboard: Alt+Sh+7)
 defc Key_c_7      'NextBookmark'        -- Go to next bookmark
 def a_backslash   'NextBookmark P'      -- Go to previous bookmark (german keyboard: Alt+AltGr+Beta)
-defc Key_c_a_7    'NextBookmark P'      -- Go to previous bookmark
+defc Key_c_s_7    'NextBookmark P'      -- Go to previous bookmark
 
 ; ---- Help ----
 def c_h           'kwhelp'              -- Lookup current word in a help file
@@ -258,29 +260,67 @@ def a_backspace   'UndoLine'            -- Undo current line
 def c_pgup        'Undo1'               -- Scroll through previous undo states (keep Ctrl pressed to scroll)
 def c_pgdn        'Redo1'               -- Scroll through next undo states (keep Ctrl pressed to scroll)
 
+; ---- Space ----
+; ExpandFirst <alternate_cmd>
+;    This command tries to execute the 1st syntax expansion first. If the
+;    command was not successful, then the <alternate_cmd> is executed.
+
+;   1)  Expansion with Space, no expansion with Ctrl+Space:
+def space        'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
+def c_space      'Space'
+
+;   2)  Expansion with Ctrl+Space, no expansion with Space:
+;def c_space      'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
+;def space        'Space'
+
+def s_space       'Space'
+
 ; ---- Enter ----
-; For Line mode, these keys are configurable via the settings dialog.
-; In Stream mode, all enter defcs behave the same.
+; ExpandSecond <alternate_cmd>
+;    This command tries to execute the 2nd syntax expansion first. If the
+;    command was not successful, then the <alternate_cmd> is executed.
+;
+; StreamLine <stream_mode_cmd>|<line_mode_cmd>
+;    This command allows for definitions to behave different in stream mode
+;    (CUA, default) and line mode. In stream mode <stream_mode_cmd> is
+;    executed, and in line mode <line_mode_cmd>. Both commands are separated
+;    with a bar char.
+;
+; Enter [<num>]
+;    This command executes an Enter action. For stream mode, no <num> options
+;    exist. For line mode, following options are available:
+;    1  (ADDLINE)   Add a new line after cursor, preserving indentation (default)
+;    2  (NEXTLINE)  Move to beginning of next line (standard for c_enter and c_padenter)
+;    3  (ADDATEND)  Like (2), but add a line if at end of file
+;    4  (DEPENDS)   Add a line if in insert mode, else move to next
+;    5  (DEPENDS+)  Like (4), but always add a line if on last line
+;    6  (STREAM)    Split line at cursor
+;    7              Add a new line, move to left or paragraph margin
+;    8              Add a new line, move to paragraph margin
+;    9              Add a new line, move to column 1
 
 ;   1)  Expansion with Enter, no expansion with Ctrl+Enter:
-def enter         'ExpandSecond enter'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
-def c_enter       'c_enter'
+def enter         'StdEnter'  -- Use a command here to make the standard def available for other keysets
+defc StdEnter     'ExpandSecond StreamLine Enter|Enter 1'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
 
+def c_enter       'StreamLine Enter|Enter 2'
 ;   2)  Expansion with Ctrl+Enter, no expansion with Enter:
-;def c_enter      'ExpandSecond enter'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
-;def enter        'enter'
+;def c_enter       'ExpandSecond StreamLine Enter|Enter 1'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
+;def enter         'StreamLine Enter|Enter 2'
 
-def a_enter       'a_enter'             -- Alt+Enter and Alt+Sh+Enter not definable in EPM?
-def s_enter       's_enter'
-def padenter      'padenter'
-def a_padenter    'a_padenter'
-def c_padenter    'c_padenter'
-def s_padenter    's_padenter'
+; More enter keys
+def a_enter       'StreamLine SoftWrapAtCursor|Enter 1'
+def s_enter       'StreamLine Enter|Enter 1'
+def padenter      'StdPadEnter'  -- Use a command here to make the standard def available for other keysets
+defc StdPadEnter  'StreamLine Enter|Enter 1'
+def c_padenter    'StreamLine Enter|Enter 2'
+def a_padenter    'StreamLine Enter|Enter 1'
+def s_padenter    'StreamLine Enter|Enter 1'
+
 def a_n           'NewLineAfter'        -- Add a new line after the current, move to it, keep col
-defc key_a_s_n    'NewLineBefore'       -- Add a new line below the current, move to it, keep col
-; doesnot work:
-;defc key_c_a_enter   'NewLineAfter'    -- Add a new line after the current, move to it, keep col
-;defc key_c_s_a_enter 'NewLineBefore'   -- Add a new line below the current, move to it, keep col
+defc Key_a_s_n    'NewLineBefore'       -- Add a new line before the current, move to it, keep col
+;defc Key_c_a_enter   'NewLineAfter'    -- Add a new line after the current, move to it, keep col
+;defc Key_c_a_s_enter 'NewLineBefore'   -- Add a new line before the current, move to it, keep col
 
 ; ---- Duplicate ----
 def c_k           'DuplicateLine'       -- Duplicate a line
@@ -293,18 +333,6 @@ def ins           'InsertToggle'        -- Toggle between insert and overwrite m
 ; ---- Tab ----
 def tab           'Tab'                 -- Insert tab char or spaces
 def s_tab         'BackTab'             -- Go back one tabstop
-
-; ---- Space ----
-
-;   1)  Expansion with Space, no expansion with Ctrl+Space:
-def space        'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
-def c_space      'Space'
-
-;   2)  Expansion with Ctrl+Space, no expansion with Space:
-;def c_space      'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
-;def space        'Space'
-
-def s_space       'Space'
 
 ; ---- Load file ----
 def a_1           'alt_1'               -- Load file under cursor
