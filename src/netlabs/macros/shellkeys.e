@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: shellkeys.e,v 1.5 2006-12-10 12:08:47 aschn Exp $
+* $Id: shellkeys.e,v 1.6 2008-09-05 23:10:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,7 +34,7 @@
 ; WANT_EPM_SHELL = 1
 
 const
-; Shpuld Tab and Sh+Tab process filename completion in Shell windows?
+; Should Tab and Sh+Tab process filename completion in Shell windows?
 ; Disable this if you want to use e.g. 4os2's own completion.
 compile if not defined( SHELL_FNC)
    SHELL_FNC = 1
@@ -122,28 +122,33 @@ defkeys shell_keys overlay  -- we want to keep old key defs
 ; Moved from ENTER.E:
 
 def enter
-   universal enterkey
- compile if (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   call shell_enter_routine(enterkey)
- compile endif
+   call ShellEnterProc( 'StdEnter')
 
 def padenter
-   universal padenterkey
- compile if (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   call shell_enter_routine(padenterkey)
- compile endif
+   call ShellEnterProc( 'StdPadEnter')
 
-defproc shell_enter_routine(xxx_enterkey)
+defproc ShellEnterProc
+   StdEnter = arg(1)
+   fExecStdEnter = 0
+
+compile if not (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
+   fExecStdEnter = 1
+compile endif
+
    if IsAShell() then
       rc = ShellEnterWrite()
       if rc then
          rc = ShellEnterWriteToApp()
       endif
       if rc then
-         call enter_common(xxx_enterkey)
+         fExecStdEnter = 1
       endif
    else
-      call enter_common(xxx_enterkey)
+      fExecStdEnter = 1
+   endif
+
+   if fExecStdEnter then
+      StdEnter
    endif
 
 ; Activate filename completion for Tab and Sh+Tab
