@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.46 2007-06-10 19:57:02 aschn Exp $
+* $Id: stdctrl.e,v 1.47 2008-09-05 23:16:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -272,8 +272,8 @@ defproc listbox( title, listbuf)
    win_data = NepmdQueryWindowPos(EPMINFO_EDITFRAME)
    parse value win_data with 'ERROR:'errcode
    if errcode <> '' then
-      sayerror 'Error query frame  position: 'errcode
-      return   'Error query frame  position: 'errcode
+      sayerror 'Error query frame position: 'errcode
+      return   'Error query frame position: 'errcode
    endif
    parse value win_data with fwindowx fwindowy fwindowcx fwindowcy
    call dprintf("listbox", 'SWP F: 'fwindowx fwindowy fwindowcx fwindowcy)
@@ -302,7 +302,7 @@ defproc listbox( title, listbuf)
    SpaceBelowCursor = windowy + row_y
    call dprintf('listbox', 'row_y Spcbelow: 'row_y SpaceBelowCursor)
    if flags < 0 then
-      if  SpaceBelowCursor < (desktop_cy / 2) then
+      if SpaceBelowCursor < (desktop_cy / 2) then
          -- Position listbox window above row, col
          wanty =  row_y
          topofwin = 0
@@ -392,7 +392,7 @@ defproc listbox( title, listbuf)
    endif
    EOS = pos( \0, selectbuf, 2)        -- CHR(0) signifies End Of String
    if not EOS then
-      return 'error'
+      return 'Error'
    endif
    return substr( selectbuf, 2, EOS - 2)
 
@@ -727,13 +727,15 @@ defc SetBackgroundBitmap
 
 ; ---------------------------------------------------------------------------
 defproc IsOs2Bmp
-   Sig = 'BMN'
+   SigList = 'BMP BM BA'
    arg1 = strip( arg(1))
    ret = 0
    if rightstr( upcase( arg1), 4) = '.BMP' then
-      if Exist( arg1) then
-         -- Todo: load file and check for Sig
+      Result = CheckSig( arg(1), SigList)
+      if Result = 1 then
          ret = 1
+      elseif rc <> 0 then
+         --sayerror 'CheckSig returned rc = 'rc
       endif
    endif
    return ret
@@ -2545,4 +2547,42 @@ defc dynafree =
    if res then
       sayerror ERROR__MSG res
    endif
+
+; ---------------------------------------------------------------------------
+; Stops if current window is not the only EPM window, so this can be used as
+; command.
+defc CheckOnlyEpmWindow
+   if not IsOnlyEpmWindow() then
+      sayerror 'Multiple EPM windows! Close all other EPM windows first.'
+      stop
+   endif
+
+; ---------------------------------------------------------------------------
+; Returns 0 or 1.
+defproc IsOnlyEpmWindow
+   ptr = dynalink32( 'PMWIN',
+                     '#839',  -- Win32QueryWindowPtr
+                     gethwndc(EPMINFO_OWNERFRAME) ||
+                     atol(0), 2)
+   listptr = ltoa( peek32( ptr, 1856, 4), 10)
+   hwndx = peek32( listptr, 0, 4)
+   next = ltoa( peek32( listptr, 8, 4), 10)
+   if not next then
+      return 1
+   else
+      return 0
+   endif
+
+; ---------------------------------------------------------------------------
+; Abbreviation for use for menu items etc.
+defc CheckChgPal
+   parse arg args
+   'CheckOnlyEpmWindow'
+   'ChgPal' args
+
+; ---------------------------------------------------------------------------
+; Abbreviation for use for menu items etc.
+defc ChgPal
+   parse arg args
+   'start /c /f epmchgpal.cmd' args
 
