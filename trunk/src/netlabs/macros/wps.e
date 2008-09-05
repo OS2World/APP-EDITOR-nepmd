@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wps.e,v 1.4 2006-10-29 23:35:50 aschn Exp $
+* $Id: wps.e,v 1.5 2008-09-05 23:19:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -50,6 +50,8 @@ defc OpenFolder
       endif
       Dir = ShellDir
       call prestore_pos(save_pos)
+   elseif subword( .filename, 1, 2) = '.DOS dir' then
+      Dir = subword( .filename, 3)
    endif
 
    if Dir = '' then
@@ -114,4 +116,22 @@ defc OpenSettings
    endif
    'rx open 'Filename','SetupString
    return
+
+; ---------------------------------------------------------------------------
+defproc GetProgramRSwitch
+   Ret = '?'
+   Next = RxResult( 'newsamewindow.erx query')
+   if next <> '' then
+      Ret = Next
+   endif
+   return Ret
+
+; ---------------------------------------------------------------------------
+defproc GetProgramOSwitch
+   Ret = '?'
+   Next = RxResult( 'fullfiledialog.erx query')
+   if next <> '' then
+      Ret = Next
+   endif
+   return Ret
 
