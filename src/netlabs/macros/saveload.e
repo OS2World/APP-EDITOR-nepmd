@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: saveload.e,v 1.3 2002-08-21 11:52:29 aschn Exp $
+* $Id: saveload.e,v 1.4 2008-09-05 23:14:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -73,26 +73,21 @@ defproc savefile(name)
       endif
    elseif check_for_host_file(name) then
       call save_host_file(name)
-      return 0      /* Return 0, some terminal emulators do not give us */
-compile if BACKUP_PATH
+      return 0      -- Return 0, some terminal emulators do not give us
    else
-      if pos(' ',name) & leftstr(name,1)<>'"' then
-         name = '"'name'"'
+      rc = MakeBackup( name)
+      if rc <> 0 then
+         return rc
       endif
-       -- jbl 1/89 new feature.  Editors in the real marketplace keep at least
-       -- one backup copy when a file is written.
-      quietshell 'copy' name MakeBakName() '1>nul 2>nul'
-compile endif
-   endif            /* meaningful error codes.                          */
-compile if    BACKUP_PATH = ''
-   if pos(' ',name) & leftstr(name,1)<>'"' then
+   endif
+
+   if pos( ' ', name) & leftstr( name, 1) <> '"' then
       name = '"'name'"'
    endif
-compile endif
-   options=arg(2)
-   'xcom s 'options name; src=rc
+   options = arg(2)
+   'xcom s 'options name; src = rc
    if not rc and name_same then
-      .modify=0
+      .modify = 0
       'deleteautosavefile'
    endif
    return src
