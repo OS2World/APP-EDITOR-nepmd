@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.23 2007-06-10 19:49:31 aschn Exp $
+* $Id: select.e,v 1.24 2008-09-05 23:09:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,6 +18,7 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
 const
 compile if not defined(LOCAL_MOUSE_SUPPORT)
    LOCAL_MOUSE_SUPPORT = 0
@@ -74,6 +75,9 @@ defc EnableSelect
 ; ---------------------------------------------------------------------------
 defselect
    universal SelectDisabled
+   universal loadstate
+   getfileid fid
+   dprintf( 'SELECT', 'DEFSELECT for '.filename', fid = 'fid', loadstate = 'loadstate)
    if not .visible then  -- process following only if file is visible
       return
    endif
@@ -87,29 +91,36 @@ defc ProcessSelect
    universal loadstate
    universal SelectDisabled
 
+   getfileid fid
+
+compile if 1
    -- Suppress too early select events
    if loadstate = '' then
-      dprintf( 'SELECT', 'suppress DEFSELECT for '.filename', loadstate = 'loadstate)
+      dprintf( 'SELECT', 'suppress ProcessSelect for '.filename', fid = 'fid', loadstate = 'loadstate' (initial file)')
       return
    endif
+compile endif
 
    SelectDisabled = 0  -- always reenable it
+   dprintf( 'SELECT', 'ProcessSelect for '.filename', fid = 'fid', loadstate = 'loadstate)
 
-   getfileid fid
-   dprintf( 'SELECT', 'DEFSELECT for '.filename', loadstate = 'loadstate)
-
-   if loadstate = 1 then  -- if a defload was processed before
-      loadstate = 2
-      'ProcessAfterLoad'  -- executes multiple ring commands that sometimes
-                          -- left the wrong file on top
-      'postme activatefile' fid  -- postme required, but doesn't work in some rare cases
-      'postme ProcessAfterload2' -- final processing, therefore posted
-      loadstate = 0
-   endif
 
    if fid = lastselectedfid then
       -- nop, ProcessSelect2 was already executed for this file
+      dprintf( 'SELECT', 'suppress ProcessSelect for '.filename', fid = 'fid', loadstate = 'loadstate' (already processed)')
    else
+      if loadstate = 1 then  -- if a defload was processed before
+         loadstate = 2
+         'ProcessAfterLoad'  -- executes multiple ring commands that sometimes
+                             -- left the wrong file on top
+; ### critical call ###
+         'postme activatefile' fid  -- postme required, but doesn't work in some rare cases
+; #####################
+
+         'postme ProcessAfterload2' -- final processing, therefore posted
+         loadstate = 0
+      endif
+
       'ProcessSelect2'
       lastselectedfid = fid
    endif
@@ -125,12 +136,16 @@ defc ProcessAfterLoad
    -- Write number for all files in the ring to an array var
    -- see FILELIST.E
    -- must not execute 'postme activatefile' at this point
-   call RingWriteFileNumber()
+   call RingSetFileNumber()
 
    -- Write name of all files in the ring to NEPMD.INI
    -- Do this only for single files, not for wildcards in filespec
+   -- For RestoreRing, filestoloadmax is set to 1 and every file is loaded
+   -- with an extra Edit command in a loop.
    if filestoloadmax <= 1 then
+; ### critical call ###
       call RingAddToHistory('LOAD')
+; #####################
    endif
 
    -- Write position and name of all files in the ring to NEPMD.INI
@@ -138,7 +153,9 @@ defc ProcessAfterLoad
    if wordpos( CurEditCmd, 'SETPOS LOADGROUP RESTORERING') = 0 then
       -- see FILELIST.E
       -- must not execute 'postme activatefile' at this point
-      call RingAutoWriteFilePosition()
+; ### critical call ###
+      call RingAutoSavePos()
+; #####################
    endif
 
    -- Reset CurEditCmd to enable saving the ring list for the next 'edit'
@@ -206,7 +223,7 @@ compile if LOCAL_MOUSE_SUPPORT
          -- no mouseset bound to file yet, assume blank.
          LMousePrefix = TransparentMouseHandler'.'
       else
-         call messagenwait( 'RC = 'rc)
+         sayerror 'ProcessSelect2: LocalMouseSet array var not returned, rc = 'rc
       endif
       rc = OldRC
    else
