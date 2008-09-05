@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.28 2007-06-10 19:38:04 aschn Exp $
+* $Id: locate.e,v 1.29 2008-09-05 22:56:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -77,11 +77,11 @@ definit
       -- Query args for the case, when a 'changenext' is executed
       -- before a 'change'. So, it's possible to open a new EPM window and
       -- repeat the last change action there.
-      KeyPath = '\NEPMD\User\LastStuff\LastChangeArgs'  -- get it from NEPMD.INI
+      KeyPath = '\NEPMD\User\Search\LastChangeArgs'  -- get it from NEPMD.INI
       lastchangeargs = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    endif
    if lastsearchargs = '' then  -- after an EPM window opened, all universal vars were set to empty
-      KeyPath = '\NEPMD\User\LastStuff\LastSearchArgs'  -- get it from NEPMD.INI
+      KeyPath = '\NEPMD\User\Search\LastSearchArgs'  -- get it from NEPMD.INI
       lastsearchargs = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    endif
    search_len = 5     -- Initialize to anything, to prevent possible "Invalid number argument"
@@ -104,7 +104,7 @@ defmodify             -- This stops the modification dialog for grep output "fil
 ; Moved from STDCMDS.E
 ; Note:  this DEFC also gets executed by the slash ('/') command and by the
 ; search dialog. The search dialog adds option 'D'.
-defc l, locate =
+defc l, locate
    universal default_search_options
    universal search_len
    universal lastsearchargs
@@ -112,14 +112,14 @@ defc l, locate =
    universal lastsearchpos
    universal nepmd_hini
 
-   FindNext = 0  -- differ an initial find command from a (repeated)
-                 -- FindNext command.
+   fFindNext = 0  -- differ an initial find command from a (repeated)
+                  -- FindNext command.
    PreviousSearchArgs = lastsearchargs  -- save old value to determine later
                                         -- if it has to be rewritten to ini.
    parse arg args
    args = strip( args, 'L')
    if args = '' then  -- If no args, query lastsearchargs
-      FindNext = 1  -- then it must be a FindNext
+      fFindNext = 1  -- then it must be a FindNext
       args = lastsearchargs
       -- Process the parsing of args again to recognize a possible change of
       -- default_search_options in the meantime.
@@ -220,7 +220,7 @@ defc l, locate =
    -- Build list of search args with options, last option wins.
    SearchArgs = delim''search_string''delim''search_options
 
-   if FindNext = 0 then
+   if fFindNext = 0 then
       -- Save these args for the case, when a 'findnext' is executed
       -- before a 'locate'. So, it's possible to open a new EPM window and
       -- repeat the last locate action there.
@@ -229,7 +229,7 @@ defc l, locate =
       -- meantime.
       lastsearchargs = delim''search_string''delim''user_options  -- save it in a universal var
       if lastsearchargs <> PreviousSearchArgs then
-         KeyPath = '\NEPMD\User\LastStuff\LastSearchArgs'  -- save it in NEPMD.INI
+         KeyPath = '\NEPMD\User\Search\LastSearchArgs'  -- save it in NEPMD.INI
          call NepmdWriteConfigValue( nepmd_hini, KeyPath, lastsearchargs)
       endif
    endif
@@ -238,7 +238,7 @@ defc l, locate =
    -- Remove 'T' and 'B' temporarily if this is a FindNext in the same file
    -- as for the last find and if only next string should be found
    if fid = lastsearchfid then
-      if (FindNext = 1) then
+      if (fFindNext = 1) then
 
          -- Remove 'T' and 'B'
          do forever
@@ -308,7 +308,7 @@ defc l, locate =
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
-defc c, change =
+defc c, change
    universal default_search_options
    universal search_len
    universal lastchangeargs
@@ -322,14 +322,14 @@ defc c, change =
 
    call psave_pos(savepos)
 
-   ChangeNext = 0  -- differ an initial change command from a (repeated)
-                   -- ChangeNext command.
+   fChangeNext = 0  -- differ an initial change command from a (repeated)
+                    -- ChangeNext command.
    PreviousChangeArgs = lastchangeargs  -- save old value to determine later
    PreviousSearchArgs = lastsearchargs  -- if it has to be rewritten to ini.
    args = strip( arg(1), 'L')
 
-   if args = '' then  -- If no args, query lastchangeargs
-      ChangeNext = 1  -- then it must be a ChangeNext
+   if args = '' then   -- If no args, query lastchangeargs
+      fChangeNext = 1  -- then it must be a ChangeNext
       args = lastchangeargs
       -- Process the parsing of args again to recognize a possible change of
       -- default_search_options in the meantime.
@@ -441,7 +441,7 @@ defc c, change =
 
    ChangeArgs = delim''search_string''delim''replace_string''delim''search_options
 
-   if ChangeNext = 0 then
+   if fChangeNext = 0 then
       -- Save search args without default_search_options to respect a possible
       -- change in the meantime, maybe by the user
       lastchangeargs = delim''search_string''delim''replace_string''delim''user_options
@@ -449,7 +449,7 @@ defc c, change =
       -- before a 'change'. So, it's possible to open a new EPM window and
       -- repeat the last change action there.
       if lastchangeargs <> PreviousChangeArgs then
-         KeyPath = '\NEPMD\User\LastStuff\LastChangeArgs'  -- save it in NEPMD.INI
+         KeyPath = '\NEPMD\User\Search\LastChangeArgs'  -- save it in NEPMD.INI
          call NepmdWriteConfigValue( nepmd_hini, KeyPath, lastchangeargs)
       endif
    endif
@@ -458,7 +458,7 @@ defc c, change =
    -- operate on the same search_string. Even a ChangeNext should synchronize it.
    lastsearchargs = delim''search_string''delim''user_options
    if lastsearchargs <> PreviousSearchArgs then
-      KeyPath = '\NEPMD\User\LastStuff\LastSearchArgs'  -- save it in NEPMD.INI
+      KeyPath = '\NEPMD\User\Search\LastSearchArgs'  -- save it in NEPMD.INI
       call NepmdWriteConfigValue( nepmd_hini, KeyPath, lastsearchargs)
    endif
 
@@ -466,7 +466,7 @@ defc c, change =
    -- Remove 'T' and 'B' temporarily if this is a ChangeNext in the same file
    -- as for the last change and if only next found string should be changed
    if fid = lastchangefid then
-      if (ChangeNext = 1 & not pos( '*', search_options)) then
+      if (fChangeNext = 1 & not pos( '*', search_options)) then
 
          -- Remove 'T' and 'B'
          do forever
@@ -602,6 +602,7 @@ defc circleit
 ; ---------------------------------------------------------------------------
 ; Try to scroll to a fixed position on screen.
 defc ScrollAfterLocate
+   universal nepmd_hini
    KeyPath = '\NEPMD\User\Scroll\AfterLocate'
    IniValue = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    AmountOfLines = 0
@@ -639,7 +640,7 @@ defc ScrollAfterLocate
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 defc searchdlg
-   universal default_search_options, search_len
+   universal default_search_options
 
    parse value upcase(arg(1)) with uparg .
 
@@ -1041,14 +1042,14 @@ defproc GetGrepVersion
 
       -- Query size, time
       Size = NepmdQueryPathInfo( File, 'SIZE')
-      parse value Size with 'ERROR:'rc
-      if rc > '' then
-         leave
+      parse value Size with 'ERROR:'rcx
+      if rcx <> '' then
+         return -1  -- File not found
       endif
       Time = NepmdQueryPathInfo( File, 'MTIME')  -- YYYY/MM/DD HH:MM:SS
-      parse value Time with 'ERROR:'rc
-      if rc > '' then
-         leave
+      parse value Time with 'ERROR:'rcx
+      if rcx <> '' then
+         return -1  -- File not found
       endif
       --sayerror '1: 'fInit'-"'File'"-'LastGrepVersion'-'Size'-'Time
 
@@ -1131,7 +1132,7 @@ defc Grep
 
 ; ---------------------------------------------------------------------------
 ; For use as menu item.
-defc GrepBox
+defc GrepDialog
    next = arg(1)
    if next > '' then
       GrepVersion = next
@@ -1154,7 +1155,7 @@ defc GrepBox
    DefaultButton = 1
 
    parse value entrybox( Title,
-                         '/~Ok/~Cancel/Grep ~Help',  -- max. 4 buttons
+                         '/~OK/Cancel/Grep ~Help',  -- max. 4 buttons
                          DefaultValue,
                          '',
                          260,
@@ -1177,7 +1178,7 @@ defc GrepBox
       endif
       --call CallGrep( GrepVersion, GrepArgs)  -- opens too late
       "Open 'Grep "GrepArgs"'"  -- use an extra window to show Grep's help
-      'postme GrepBox' GrepVersion
+      'postme GrepDialog' GrepVersion
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1316,7 +1317,7 @@ defc MacGrep
    UserDir = NepmdScanEnv( 'NEPMD_USERDIR')
    FileMask = UserDir'\macros\*.e' RootDir'\netlabs\macros\*.e'
    'grep' GNU_GREP_OPTIONS arg(1) FileMask
-   if rc > 0 then
+   if rc <> 0 then
       sayerror 'rc from grep = 'rc
    else
       display -8  -- Messages go to the messageline only, they were not saved
@@ -1343,7 +1344,7 @@ defc findmark
 
 ; ---------------------------------------------------------------------------
 ; Support for Graphical File Comparison
-; Compares current file with another. File open box of GFC will open.
+; Compares current file with another. File open dialog of GFC will open.
 ; If current file is located in any tree of %NEPMD_ROOTDIR%\netlabs or
 ; %NEPMD_USERDIR%, then the current file is compared with the
 ; corresponding file of the other tree.
@@ -1497,7 +1498,7 @@ defc SetScrollAfterLocate
    IniValue = translate( IniValue, '  ', '+-')
    IniValue = strip(IniValue)
    parse value entrybox( Title,
-                         '/# from ~top/# from ~bottom/~Center/C~ancel',  -- max. 4 buttons
+                         '/# from ~top/# from ~bottom/~Center/Cancel',  -- max. 4 buttons
                          IniValue,
                          '',
                          260,
@@ -1523,7 +1524,7 @@ defc SetScrollAfterLocate
    endif
 
 ; ---------------------------------------------------------------------------
-defc GotoLineBox
+defc GotoLineDialog
    Title = 'Go to line'
    Text  = 'Enter line number and optionally a column number:'
    --Text  = Text''copies( ' ', max( 100 - length(Text), 0))
