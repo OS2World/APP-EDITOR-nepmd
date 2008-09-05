@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.14 2007-01-28 01:25:24 aschn Exp $
+* $Id: infoline.e,v 1.15 2008-09-05 22:53:08 aschn Exp $
 *
 * ===========================================================================
 *
@@ -62,9 +62,11 @@
 ;    endif
 ;    .autosave = saved_autosave
 
-; Bugs:
-;    o  If file was altered by another file, then the old date is shown in title
-;    o  If file was selected by ring_more dialog.  -> won't (can't) fix.
+; Bug:
+;    o  If file was altered by another file, then the old date is shown in
+;       title when file is temporary selected by ring_more dialog. On final
+;       selection, when the dialog is closed, the date is updated.
+;       -> won't (can't) fix.
 
 definit
    universal vmodifiedstatuscolor
@@ -335,8 +337,8 @@ defproc QueryPathInfo
       Keyword = arg(2)
    endif
    ret = NepmdQueryPathInfo( Filename, Keyword)
-   parse value ret with 'ERROR:'rc
-   if rc > '' then
+   parse value ret with 'ERROR:'rcx
+   if rcx <> '' then
       return ''
    else
       return ret
@@ -373,6 +375,7 @@ defproc GetInfoFieldValue(FVar, var FFlag)
    elseif FVar = 'KEYSET'          then FVar = 'KEYS'
    elseif FVar = 'SPELLCHECK'      then FVar = 'DYNASPELL'
    elseif FVar = 'SPELL'           then FVar = 'DYNASPELL'
+   elseif FVar = 'DICTLANG'        then FVar = 'DICT'
    endif
 
    if     FVar = 'SEP'              then FValue = Sep
@@ -425,15 +428,12 @@ defproc GetInfoFieldValue(FVar, var FFlag)
                                          FFlag  = 'MARKINGMODE'
    elseif FVar = 'KEYS'             then FValue = .keyset                                -- show 'EDIT_KEYS' (default) or 'REXX_KEYS'
                                          FFlag  = 'KEYS'
-; not implemented (the coding style subdefs are always executed immediately,
-; a (mode) setting for that doesn't exist):
-;   elseif FVar = 'CODINGSTYLE'      then FValue = GetCodingStyle()
-;                                         FFlag  = 'MODE'
+   elseif FVar = 'CODINGSTYLE'      then FValue = GetCodingStyle()
+                                         FFlag  = 'FILE'
    elseif FVar = 'DYNASPELL'        then FValue = word( '- Spchk', (.keyset = 'SPELL_KEYS') + 1)  -- show '-' or 'Spchk'
                                          FFlag  = 'KEYS'
-; not implemented:
-;   elseif FVar = 'DICTLANG'        then FValue = GetDictLang()
-;                                         FFlag  = 'DICT'
+   elseif FVar = 'DICT'             then FValue = GetDictBaseName()
+                                         FFlag  = 'DICT'
 ; not implemented yet:
 ;  elseif FVar = 'SECTION'          then FValue = GetCurSection()                        -- shows current section or function
    endif
@@ -467,33 +467,54 @@ defc SetStatusLine
    return
 
 ; ---------------------------------------------------------------------------
+; defmodify is triggered
+;    1)  when .modify changes from 0 to > 0
+;    2)  when .modify changes from < .autosave to >= .autosave
+;    3)  when .modify changes from > 0 to 0
+;    4)  when a modified file is selected after a non-modified file
+;    5)  when a non-modified file is selected after a modified file
+; The universal var ModifyDisabled can be used to disable defmodify
+; processing. Since defmodify code is used at several places, the execution
+; of the defmodify code has also be checked for this universal var at all
+; these places to disable them all.
 defmodify
-   -- defmodify is triggered
-   -- when .modify changes from 0 to >0
-   -- when .modify changes from <.autosave to >=.autosave
-   -- when .modify changes from >0 to 0
-   -- when a modified file is selected after a non-modified file
-   -- when a non-modified file is selected after a modified file
    universal lastselectedfid
-   universal InfolineRefresh  -- disable refresh of infolines if = 0
-   getfileid fid
-   if lastselectedfid = '' then
-      -- if this is the first selected file
-      lastselectedfid = fid
-   endif
-   if not (InfolineRefresh = 0) then
-      ModifiedChanged = 0
-      ret = GetDateTimeModified()  -- get last saved value of array var
-      -- no need for a refresh if modified state hasn't changed
-      if ((ret <> 'Modified' & .modify > 0) | (ret = 'Modified' & .modify = 0)) then
-         ModifiedChanged = 1
+   universal InfolineRefresh  -- Disable refresh of infolines if = 0
+;   universal ModifyDisabled   -- Disable processing of defmodify code, if
+                               -- checked
+;   if ModifyDisabled <> 1 then
+      getfileid fid
+      -- Don't process the following on file switching (cases 4) and 5))
+      if fid = lastselectedfid & lastselectedfid <> '' then
+
+         do i = 1 to 1
+            -- Init universal var if this is the first selected file
+            if lastselectedfid = '' then
+               lastselectedfid = fid
+            endif
+
+            if not (InfolineRefresh = 0) then
+               ModifiedChanged = 0
+               ret = GetDateTimeModified()  -- get last saved value of array var
+               -- no need for a refresh if modified state hasn't changed
+               if ((ret <> 'Modified' & .modify > 0) | (ret = 'Modified' & .modify = 0)) then
+                  ModifiedChanged = 1
+               endif
+               if ModifiedChanged then
+                  'ResetDateTimeModified FORCE'
+                  'RefreshInfoLine MODIFIED'
+                  'SetStatusLine'  -- update color of statusline
+               endif
+            endif
+         enddo
+
+; Commented out, because: The following would disable resetting the modify
+; state for tmp files, like .NEPMD_INFO. .modify is reset, but both the
+; title bar and the status bar color show the modified state.
+;         ModifyDisabled =  1    -- Disable defmodify immediately
+;         'postme EnableModify'  -- Reenable defmodify delayed
       endif
-      if ModifiedChanged then
-         'ResetDateTimeModified FORCE'
-         'RefreshInfoLine MODIFIED'
-         'SetStatusLine'  -- update color of statusline
-      endif
-   endif
+;   endif
 
 ; ---------------------------------------------------------------------------
 ; Executed by ProcessSelect, using the afterselect hook.
@@ -513,7 +534,7 @@ definit
    'HookAdd afterselect ProcessSelectRefreshInfoLine'
 
 ; ---------------------------------------------------------------------------
-; Moved defproc settitletext() from STDCTRL.E to STATLINE.E
+; Moved defproc settitletext() from STDCTRL.E to INFOLINE.E
 ; See also: MODIFY.E (SHOW_MODIFY_METHOD),
 ;                    call show_modify() is obsolete (SELECT.E in epmbbs only)
 ; See also: STDCMDS.E, defc n,name
@@ -528,7 +549,7 @@ definit
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 ; unused
-defproc settitletext()
+defproc SetTitleText()
    text = arg(1)
 ;compile if SHOW_MODIFY_METHOD = 'TITLE'  -- obsolete
 ;   if .modify then
@@ -562,12 +583,14 @@ compile if not defined( SLOW_FILESYSTEMS)
 compile endif
 
 defc ResetDateTimeModified
-   universal InfolineRefresh  -- disable refresh of infolines if = 0
+   universal InfolineRefresh  -- Disable refresh of infolines if = 0
+
    do i = 1 to 1
+      ThisDrive = upcase( substr( .filename, 1, 2))
       if InfolineRefresh = 0 then
          leave
       elseif arg(1) = 'FORCE' then
-         -- force reset; no checks; used by defmodify
+         -- Force reset; no checks; used by defmodify
       -- Don't act on files from slow drives or if file is readonly
       elseif .readonly then
          leave
@@ -575,20 +598,24 @@ defc ResetDateTimeModified
          leave
       elseif leftstr( .filename, 1) = '.' then
          leave
-      elseif wordpos( upcase( substr( .filename, 1, 2)), SLOW_DRIVES) then
+      elseif wordpos( ThisDrive, SLOW_DRIVES) then
          leave
-      elseif wordpos( QueryFileSys( substr( .filename, 2)), SLOW_FILESYSTEMS) then
+      elseif wordpos( QueryFileSys( ThisDrive), SLOW_FILESYSTEMS) then
          leave
       else
-         -- if .readonly is deactivated (standard in EPM)
+         /* -- Better avoid additional disk access
+         -- If .readonly is deactivated (standard in EPM)
          rcx = qfilemode( .filename, attrib)  -- DosQFileMode
+         --dprintf( 'ResetDateTimeModified: qfilemode for '.filename)
          if not rcx then
             readonly = (attrib // 2)
             if readonly then
                leave
             endif
          endif
+         */
       endif
+
       --call NepmdPmPrintf( 'DateTime: RESET 'arg(1)', drive = 'upcase( substr( .filename, 1, 2)))
       -- Call it with a flag to redetermine 'datetimemodified.'fid array var
       call GetDateTimeModified( 'RESET')
@@ -607,43 +634,43 @@ defproc GetDateTimeModified
    next = GetAVar( 'datetimemodified.'fid)
    if next = '' | Flag = 'RESET' then
 
-      ---- if modified ----
+      -- if modified
       if .modify > 0 then
          -- display text instead of DateTime
          DateTime = 'Modified'
       else
-         ---- if not modified and filename is a temp file (starts with '.') ----
+         -- if not modified and filename is a temp file (starts with '.')
          if leftstr( filename, 1 ) = '.' then
 
-         ---- if not modified and filename is not a temp file ----
+         -- if not modified and filename is not a temp file
          else
 
-            next = get_filedatehex( filename )
+            next = GetFileDateHex( filename)
             --next = NepmdQueryPathInfo( .filename, 'MTIME')
             --DateTime = NlsDateTime(next)
-            parse value(next) with 'ERROR:'rcx
-            if rcx = '' then
+            if rc = 0 then
                new_filedatehex = next
-               cur_filedatehex = ltoa(substr(.fileinfo, 9, 4), 16)
+               cur_filedatehex = ltoa( substr( .fileinfo, 9, 4), 16)
                if new_filedatehex <> cur_filedatehex then
                   -- if file was altered by another application
-                  msg = 'Altered by another application.'
+                  msg = 'Altered by another application'
                else
                   --DateTime = NlsDateTime(next)
-                  DateTime = filedatehex2datetime(new_filedatehex)
+                  DateTime = FileDateHex2DateTime( new_filedatehex)
                endif
-            elseif rcx = 2   then msg = 'File not found.'
-            elseif rcx = 3   then msg = 'Path not found.'
-            elseif rcx = 6   then msg = 'Invalid handle.'
-            elseif rcx = 15  then msg = 'Drive not valid.'
-            elseif rcx = 18  then msg = 'No more files.'
-            elseif rcx = 26  then msg = 'Unknown media type.'
-            elseif rcx = 87  then msg = 'Invalid parameter.'
-            elseif rcx = 108 then msg = 'Drive locked.'
-            elseif rcx = 111 then msg = 'Buffer overflow.'
-            elseif rcx = 113 then msg = 'No more search handles.'
-            elseif rcx = 206 then msg = 'Filename exceeds range.'
-            else                  msg = 'DosQueryPathInfo: rc = 'rcx
+            elseif rc = 2   then msg = 'File not found'
+            elseif rc = 3   then msg = 'Path not found'
+            elseif rc = 6   then msg = 'Invalid handle'
+            elseif rc = 15  then msg = 'Drive not valid'
+            elseif rc = 18  then msg = 'No more files'
+            elseif rc = 21  then msg = 'Drive not ready'
+            elseif rc = 26  then msg = 'Unknown media type'
+            elseif rc = 87  then msg = 'Invalid parameter'
+            elseif rc = 108 then msg = 'Drive locked'
+            elseif rc = 111 then msg = 'Buffer overflow'
+            elseif rc = 113 then msg = 'No more search handles'
+            elseif rc = 206 then msg = 'Filename exceeds range'
+            else                 msg = 'DosQueryPathInfo: rc = 'rc
             endif
             -- display text instead of DateTime
             if DateTime = '' then
@@ -679,7 +706,7 @@ defproc GetDateTimeModified
    return DateTime
 
 ; ---------------------------------------------------------------------------
-defc ConfigFrame
+defc ConfigInfoLine
    universal nepmd_hini
    Type = arg(1)
    if Type = 'TITLE' then
@@ -708,12 +735,12 @@ defc ConfigFrame
       Cmd      = 'mc /ResetFieldSep/RefreshTitleText/RefreshStatusLine'
       Standard = ' '
    else
-      sayerror 'Unknown arg.'
+      sayerror 'ConfigInfoLine: Error: Unknown parameter "'Type'".'
       return
    endif
    IniValue = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    parse value entrybox( Title,
-                         '/~Set/~Reset/Standard ~EPM/~Cancel',
+                         '/~Set/~Reset/Standard ~EPM/Cancel',
                          IniValue,
                          400,
                          260,
@@ -722,15 +749,15 @@ defc ConfigFrame
                          gethwndc(APP_HANDLE) ||
                          Text) with Button 2 NewValue \0
    if Button = \1 then
-      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, NewValue)
+      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath, NewValue)
    elseif Button = \2 then
-      rc = NepmdDeleteConfigValue( nepmd_hini, KeyPath)
+      rcx = NepmdDeleteConfigValue( nepmd_hini, KeyPath)
    elseif Button = \3 then
-      rc = NepmdWriteConfigValue( nepmd_hini, KeyPath, Standard)
+      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath, Standard)
    elseif Button = \4 then
       return
    endif
-   if not rc then
+   if not rcx then
       Cmd
    endif
 
