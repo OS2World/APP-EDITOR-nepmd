@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmlex.e,v 1.5 2004-02-22 13:36:52 aschn Exp $
+* $Id: epmlex.e,v 1.6 2008-09-05 22:45:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -723,6 +723,13 @@ defproc load_lexam
    universal DICTIONARY_FILENAME
    universal ADDENDA_FILENAME
    universal Dictionary_loaded
+
+   -- Quickly check if already configured
+   if dictionary_filename = '' then
+      'AskDictConfig'
+      return 1
+   endif
+
    if not dictionary_loaded then
       rc = 0
       result = lexam(LXFINIT)
@@ -747,7 +754,7 @@ defproc load_lexam
             if exist(dictionary) then
                sayerror BAD_DICT__MSG '"'dictionary'";' ERROR__MSG result
             else
-               call winmessagebox(PROOF__MSG, NO_DICT__MSG\10'"'dictionary'"'\10\10 || DICT_PTR__MSG, MB_CANCEL + MB_ERROR + MB_MOVEABLE)
+               'AskDictConfig' dictionary
 ;              sayerror NO_DICT__MSG '"'dictionary'"'  DICT_PTR__MSG
             endif
             return 1
@@ -766,6 +773,16 @@ compile endif
    endif
    dictionary_loaded = dictionary_loaded + 1
    return 0
+
+defc AskDictConfig
+   parse arg dictionary
+   Text = 'Use Edit -> Spellcheck -> Select dictionaries... to change dictionary.'
+   Text = 'Configure dictionaries now?'
+   if MBID_YES = winmessagebox( PROOF__MSG, NO_DICT__MSG\10'"'dictionary'"'\10\10 ||
+                                /*DICT_PTR__MSG*/Text,
+                                MB_YESNO + MB_QUERY + MB_MOVEABLE) then
+      'DictLang'
+   endif
 
 defproc drop_dictionary
    universal DICTIONARY_FILENAME
