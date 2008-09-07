@@ -1,0 +1,294 @@
+/****************************** Module Header *******************************
+*
+* Module Name: fullfiledialog.erx
+*
+* Copyright (c) Netlabs EPM Distribution Project 2002
+*
+* $Id: fullfiledialog.erx,v 1.1 2008-09-07 23:11:24 aschn Exp $
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
+
+/* ----------------- Standard ERX initialization follows ----------------- */
+SIGNAL ON HALT NAME Halt
+SIGNAL ON ERROR NAME Error
+SIGNAL ON SYNTAX NAME Error
+
+env   = 'OS2ENVIRONMENT'
+TRUE  = (1 = 1)
+FALSE = (0 = 1)
+CrLf  = '0d0a'x
+Redirection = '>NUL 2>&1'
+PARSE SOURCE . . ThisFile
+GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
+
+/* some OS/2 Error codes */
+ERROR.NO_ERROR           =   0
+ERROR.INVALID_FUNCTION   =   1
+ERROR.FILE_NOT_FOUND     =   2
+ERROR.PATH_NOT_FOUND     =   3
+ERROR.ACCESS_DENIED      =   5
+ERROR.NOT_ENOUGH_MEMORY  =   8
+ERROR.INVALID_FORMAT     =  11
+ERROR.INVALID_DATA       =  13
+ERROR.NO_MORE_FILES      =  18
+ERROR.WRITE_FAULT        =  29
+ERROR.READ_FAULT         =  30
+ERROR.SHARING_VIOLATION  =  32
+ERROR.GEN_FAILURE        =  31
+ERROR.INVALID_PARAMETER  =  87
+ERROR.ENVVAR_NOT_FOUND   = 204
+
+rc = ERROR.NO_ERROR
+
+CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+CALL SysLoadFuncs
+/* ----------------- Standard ERX initialization ends -------------------- */
+
+/* ------------- Configuration ---------------- */
+Title._IniName         = 'objects.ini'
+Title._IniSection      = 'FULLFILEDIALOG'
+/* -------------------------------------------- */
+
+GlobalVars = GlobalVars 'Title. Ini.'
+
+CALL RxFuncAdd 'WPToolsLoadFuncs', 'WPTOOLS', 'WPToolsLoadFuncs'
+CALL WPToolsLoadFuncs
+
+PARSE ARG Args
+Args = TRANSLATE( STRIP( Args))
+SELECT
+   WHEN (POS( Args, 'ON') = 1 | POS( Args, 'YES') = 1 | Args = 1) THEN
+      Action = 'on'
+   WHEN (POS( Args, 'OFF') = 1 | POS( Args, 'NO') = 1 | Args = 0) THEN
+      Action = 'off'
+   WHEN (POS( Args, 'TOGGLE') = 1) THEN
+      Action = 'toggle'
+   WHEN (POS( Args, 'QUERY') = 1) THEN
+      Action = 'query'
+OTHERWISE
+   Action = ''
+END
+
+/* Get ini name */
+IniFile = SysSearchPath( 'EPMBINPATH', Title._IniName)
+
+/* Read ini */
+Obj.0 = 0
+rc = ReadIni( IniFile)
+IF rc <> 0 THEN
+   EXIT( rc)
+
+/* Find section and get objects */
+fSectionFound = 0
+DO s = 1 TO Ini._Section.0
+   IF Ini._Section.s = Title._IniSection THEN
+   DO
+      fSectionFound = 1
+      DO k = 1 TO Ini._Key.s.0
+         Obj.k = Ini._Key.s.k
+      END
+      Obj.0 = Ini._Key.s.0
+      LEAVE
+   END
+   ELSE
+      ITERATE
+END
+
+IF fSectionFound = 0 THEN
+DO
+   'sayerror Error: Section "'Title._IniSection'" not found in "'IniFile'".'
+   EXIT( ERROR.INVALID_DATA)
+END
+
+/* Query current setting from first object */
+DO 1
+   Obj = Obj.1
+   rcx = WPToolsQueryObject( Obj, 'Class', 'Title', 'Setup', 'Location')
+   IF (rcx = 1) THEN
+   DO
+      fOldO =CheckO( Setup)
+      LEAVE
+   END
+   'sayerror Error: Setup string couldn''t be queried from 'Obj'.'
+   EXIT( ERROR.FILE_NOT_FOUND)
+END
+
+IF (Action = 'query') THEN
+   EXIT( fOldO)
+
+OldState = WORD( 'off on', fOldO + 1)
+/*'sayerror Current state of parameter "/o" is: 'OldState*/
+
+IF Action = '' THEN
+   EXIT( rc)
+
+IF Action = OldState THEN
+DO
+   'sayerror No changes.'
+   EXIT( rc)
+END
+
+/* Toggle presence of /o */
+fNewO = \fOldO
+
+i = 0
+DO n = 1 to Obj.0
+   rcx = ToggleO( Obj.n, fNewO)
+   IF (rcx = 1) THEN
+      i = i + 1
+END
+
+'sayerror Changed 'i' object(s). Restart all EPM windows to make the changes take effect.'
+
+EXIT( rc)
+
+/* ----------------------------------------------------------------------- */
+CheckO: PROCEDURE
+   PARSE ARG Setup
+
+   PARSE VAR Setup First'PARAMETERS='Params';'Rest
+   wp = WORDPOS( '/O', TRANSLATE( Params))
+
+   RETURN( wp > 0)
+
+/* ----------------------------------------------------------------------- */
+ToggleO: PROCEDURE EXPOSE (GlobalVars)
+   PARSE ARG Obj, fAddO
+
+   rcx = WPToolsQueryObject( Obj, 'Class', 'Title', 'Setup', 'Location')
+   IF (rcx = 1) THEN
+   DO
+      PARSE VAR Setup First'PARAMETERS='Params';'Rest
+
+      wp = WORDPOS( '/O', TRANSLATE( Params))
+      SELECT
+         WHEN (fAddO & wp = 0) THEN
+            Params = '/o 'Params
+         WHEN (\fAddO & wp > 0) THEN
+            Params = DELWORD( Params, wp, 1)
+      OTHERWISE
+         NOP
+      END
+
+      /* Setting an empty parameter doesn't work */
+      /* The doublequotes are required for filenames with spaces */
+      IF Params = '' THEN
+         Params = '"%*"'
+      Setup = First'PARAMETERS='Params';'Rest
+      /*'sayerror' Obj 'PARAMETERS='Params';'*/
+
+      rcx = SysSetObjectData( Obj, Setup)
+      rc2 = SysSaveObject( Obj, 0)
+   END
+   RETURN( rcx)
+
+/* --------------------- Standard ERX macros follow ---------------------- */
+
+/* ----------------------------------------------------------------------- */
+/* Read a text ini into the stem var 'Ini.'                                */
+/*    Ini._Section.0   number of sections                                  */
+/*    Ini._Section.s   name of section number s                            */
+/*    Ini._Key.s.0     number of keys in section s                         */
+/*    Ini._Key.s.k     name of key number k in section s                   */
+/*    Ini._Val.s.k     value of key number k in section s                  */
+ReadIni: PROCEDURE EXPOSE (GlobalVars)
+   IniFile = ARG(1)
+
+   IF IniFile = '' THEN
+   DO
+      'sayerror Error: No ini file specified.'
+      RETURN( ERROR.INVALID_PARAMETER)
+   END
+
+   next = STREAM( IniFile, 'c', 'open read')
+   IF next <> 'READY:' THEN
+   DO
+      PARSE VAR next 'ERROR:'rc
+      'sayerror Error: Could not open ini file "'IniFile'", rc = 'rc'.'
+      RETURN( rc)
+   END
+
+   s = 0
+   Ini._Section.0 = s
+   k = 0
+   DO WHILE LINES( IniFile) <> 0
+      ThisLine = LINEIN( IniFile)
+
+      /* Ignore comments */
+      IF LEFT( ThisLine, 1) = ';' THEN
+         ITERATE
+
+      /* Convert tabs to spaces */
+      ThisLine = TRANSLATE( ThisLine, ' ', '09'x)
+      ThisLine = STRIP( ThisLine)
+
+      /* Ignore blank lines */
+      IF ThisLine = '' THEN
+         ITERATE
+
+      SELECT
+         /* Find section */
+         WHEN LEFT( ThisLine, 1) = '[' THEN
+         DO
+            p2 = POS( ']', ThisLine)
+            IF p2 > 0 THEN
+            DO
+               ThisSection = SUBSTR( ThisLine, 2, p2 - 2)
+               IF ThisSection = '' THEN
+                  ITERATE
+               /* Save section name */
+               s = s + 1
+               Ini._Section.0 = s
+               Ini._Section.s = ThisSection
+               /* Init keys for this section */
+               k = 0
+               Ini._Key.s.0 = k
+            END
+         END
+         /* Ignore lines before the first section */
+         WHEN s = 0 THEN
+            ITERATE
+      OTHERWISE
+         /* This must be a 'Key' or 'Key = Val' line */
+         PARSE VALUE ThisLine WITH ThisKey'='ThisVal
+
+         /* Strip blanks */
+         ThisKey = STRIP( ThisKey)
+         ThisVal = STRIP( ThisVal)
+
+         /* Save key and value */
+         k = k + 1
+         Ini._Key.s.0 = k
+         Ini._Key.s.k = ThisKey
+         Ini._Val.s.k = ThisVal
+      END
+
+   END
+
+   next = STREAM( IniFile, 'c', 'close')
+   RETURN( ERROR.NO_ERROR)
+
+/* ----------------------------------------------------------------------- */
+Halt:
+   'sayerror Interrupted by user.'
+   EXIT( ERROR.GEN_FAILURE)
+
+/* ----------------------------------------------------------------------- */
+/* Give a standard REXX error message and jump to the error line           */
+Error:
+   'sayerror REX'RIGHT( rc, 4, 0)': Error 'rc' running 'ThisFile', line 'sigl ||,
+   ': 'ERRORTEXT( rc)
+   "e "ThisFile" 'postme "sigl"'"
+   EXIT( ERROR.GEN_FAILURE)
+
