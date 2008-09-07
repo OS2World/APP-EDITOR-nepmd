@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.26 2008-09-05 22:48:30 aschn Exp $
+* $Id: file.e,v 1.27 2008-09-07 23:00:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -182,8 +182,10 @@ defc s, save
    rc = Save( arg(1))
 
 defproc Save
-   universal save_with_tabs, default_save_options
+   universal save_with_tabs
+   universal default_save_options
    universal nepmd_hini
+   universal unnamedfilename
    fNameChanged = 0
    SpecifiedName = arg(1)
    Name = SpecifiedName
@@ -193,7 +195,7 @@ defproc Save
 
    -- Open file dialog (Save as) if filename starts with a dot, e.g. .Untitled
    fIsTempFile = (leftstr( .filename, 1) = '.')
-   if SpecifiedName = '' & fIsTempFile then
+   if (SpecifiedName = '' | SpecifiedName = unnamedfilename) & fIsTempFile then
       Name = .filename
       if fIsTempFile then
          result = saveas_dlg( Name, Type)  -- gets and sets Name (and sets Type)
@@ -1854,6 +1856,7 @@ defproc MakeBakName
 ; ---------------------------------------------------------------------------
 defproc MakeBackup
    universal nepmd_hini
+   rc = 0
 
    KeyPath = '\NEPMD\User\Backup'
    fBackupEnabled = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
@@ -1864,6 +1867,10 @@ defproc MakeBackup
    Name = arg(1)
    if Name = '' then
       Name = .filename
+   endif
+
+   if not Exist( Name) then
+      return 0
    endif
 
    BackupName = MakeBakName( Name)
@@ -2073,7 +2080,7 @@ defproc CopyFile( FileName, NewFileName)
                      address( FileName)    ||
                      address( NewFileName) ||
                      atol( Option))
-   dprintf( 'CopyFile: rc = 'rcx', 'strip( FileName, 't', \0)' -> 'strip( NewFileName, 't', \0))
+   --dprintf( 'CopyFile: rc = 'rcx', 'strip( FileName, 't', \0)' -> 'strip( NewFileName, 't', \0))
    return rcx
 
 ; ---------------------------------------------------------------------------
@@ -2100,7 +2107,7 @@ defproc Move( FileName, NewFileName)
                      '#271',               -- ordinal value for Dos32Move
                      address( FileName)    ||
                      address( NewFileName))
-   dprintf( 'Move: rc = 'rcx', 'strip( FileName, 't', \0)' -> 'strip( NewFileName, 't', \0))
+   --dprintf( 'Move: rc = 'rcx', 'strip( FileName, 't', \0)' -> 'strip( NewFileName, 't', \0))
    return rcx
 
 ; ---------------------------------------------------------------------------
