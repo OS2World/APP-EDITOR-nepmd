@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.22 2008-09-05 22:53:39 aschn Exp $
+* $Id: keys.e,v 1.23 2008-09-07 22:58:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2017,17 +2017,11 @@ defc BeginLineOrText  -- Home
    if cua_marking_switch then
       unmark
    endif
-   KeyPath = '\NEPMD\User\Keys\Home\ToggleBeginLineText'
-   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Enabled = 1 then
-      -- Go to begin of text.
-      -- If in area before or at begin of text, go to column 1.
-      startline = .line; startcol = .col
-      call pfirst_nonblank()
-      if .line = startline and .col = startcol then
-         begin_line
-      endif
-   else
+   -- Go to begin of text.
+   -- If in area before or at begin of text, go to column 1.
+   startline = .line; startcol = .col
+   call pfirst_nonblank()
+   if .line = startline and .col = startcol then
       begin_line
    endif
 
@@ -2043,17 +2037,11 @@ defc MarkBeginLineOrText  -- Sh+Home
    call EnableUndoRec()
    startline = .line
    startcol  = .col
-   KeyPath = '\NEPMD\User\Keys\Home\ToggleBeginLineText'
-   Enabled = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Enabled = 1 then
-      -- Go to begin of text.
-      -- If in area before or at begin of text, go to column 1.
-      startline = .line; startcol = .col
-      call pfirst_nonblank()
-      if .line = startline and .col = startcol then
-         begin_line
-      endif
-   else
+   -- Go to begin of text.
+   -- If in area before or at begin of text, go to column 1.
+   startline = .line; startcol = .col
+   call pfirst_nonblank()
+   if .line = startline and .col = startcol then
       begin_line
    endif
    call extend_mark( startline, startcol, 0)

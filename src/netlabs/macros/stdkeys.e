@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.36 2008-09-05 23:17:23 aschn Exp $
+* $Id: stdkeys.e,v 1.37 2008-09-07 22:58:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,7 +35,7 @@
 ;       Usually every def definition is defined automatically as PM
 ;       acceleator key as well. That ensures, that only the def definition
 ;       has to specified, if it exists. This does not apply to def a_<num>
-;       definitions, because of the above described behaviour.
+;       definitions, because of the above described behavior.
 
 ; ---------------------------------------------------------------------------
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
@@ -67,8 +67,8 @@ def right         'NextChar'            -- Go to next char (Shift marks)
 def up            'Up'                  -- Go to previous line (Shift marks)
 def down          'Down'                -- Go to next line (Shift marks)
 def home          'BeginLineOrText'     -- Go to begin of line or text (Shift marks)
-;defc Key_a_home   'BeginLine'           -- Go to begin of line
-defc Key_a_s_home 'MarkBeginLine'       -- Mark to begin of line
+; Enable the line below instead of the line above for standard home behavior (see also def s_home):
+;def home          'BeginLine'           -- Go to begin of line (Shift marks)
 def end           'EndLine'             -- Go to end of line (Shift marks)
 def pgup          'PageUp'              -- Go to previous page (Shift marks)
 def pgdn          'PageDown'            -- Go to next page (Shift marks)
@@ -110,6 +110,8 @@ def s_up          'MarkUp'              -- Mark from cursor line up
 def s_down        'MarkDown'            -- Mark from cursor line down
 def s_end         'MarkEndLine'         -- Mark from cursor to end of line
 def s_home        'MarkBeginLineOrText' -- Mark from cursor to begin of line or text
+; Enable the line below instead of the line above for standard home behavior (see also def home):
+;def s_home       'MarkBeginLine'        -- Mark from cursor to begin of line
 def s_pgup        'MarkPageUp'          -- Mark from cursor page up
 def s_pgdn        'MarkPageDown'        -- Mark from cursor page down
 defc Key_c_s_down 'PushMark'            -- Save current mark to mark stack
