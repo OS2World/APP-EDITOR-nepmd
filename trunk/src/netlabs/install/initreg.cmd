@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: initreg.cmd,v 1.3 2005-11-24 02:09:03 aschn Exp $
+* $Id: initreg.cmd,v 1.4 2008-09-08 00:40:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -76,7 +76,7 @@
        IF next <> 'ERROR:' then
        DO
           next = STRIP( next, 't', '00'x)
-          IF next > '' THEN
+          IF next <> '' THEN
           DO
              UserDir = next
              LEAVE
@@ -87,7 +87,7 @@
        IF next <> 'ERROR:' then
        DO
           next = STRIP( next, 't', '00'x)
-          IF next > '' THEN
+          IF next <> '' THEN
              UserDirName = next
        END
 
@@ -95,16 +95,17 @@
        IF next <> 'ERROR:' then
        DO
           next = STRIP( next, 't', '00'x)
-          IF next > '' THEN
+          IF next <> '' THEN
              fUseHome = next
        END
        IF fUseHome = 1 THEN
        DO
           Home = VALUE( 'HOME', , env)
-          IF Home > '' THEN
+          IF Home <> '' THEN
           DO
-             call SysFileTree Home, 'Found.', 'DO', '*+--*'  /* ADHRS */
-             IF Found.1 > '' THEN
+             Found. = ''
+             CALL SysFileTree Home, 'Found.', 'DO', '*+--*'  /* ADHRS */
+             IF Found.1 <> '' THEN
              DO
                 UserDir = Home'\'UserDirName
                 LEAVE
@@ -120,24 +121,24 @@
     NepmdIni = UserDir'\'NepmdIniSubPath'\'NepmdIniName
 
     /* check if NEPMD.INI exists */
-    rc = SysFileTree( NepmdIni, 'Found.', 'FO', '*-***');
-    IF Found.0 = 0 THEN
+    rcx = SysFileTree( NepmdIni, 'Found.', 'FO', '*-***');
+    IF rcx = 0 & Found.0 = 0 THEN
     DO
        rc = 0; /* no reset of default values required */
        LEAVE;
     END;
 
     /* check if application in NEPMD.INI exists */
-    rc = SysIni( NepmdIni, NepmdIniAppl);
-    IF rc = 'ERROR:' THEN
+    rcx = SysIni( NepmdIni, NepmdIniAppl);
+    IF rcx = 'ERROR:' THEN
     DO
        rc = 0; /* no reset of default values required */
        LEAVE;
     END;
 
     /* delete application in NEPMD.INI */
-    rc = SysIni( NepmdIni, NepmdIniAppl, 'DELETE:');
-    IF rc <> '' then
+    rcx = SysIni( NepmdIni, NepmdIniAppl, 'DELETE:');
+    IF rcx = 'ERROR:' THEN
     DO
        ErrorMessage = 'Error: default NEPMD.INI values not deleted.';
        rc = 1; /* ERROR */
