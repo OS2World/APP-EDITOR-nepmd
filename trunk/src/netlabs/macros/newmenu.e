@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.48 2008-09-05 23:07:15 aschn Exp $
+* $Id: newmenu.e,v 1.49 2008-09-08 02:25:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2900,32 +2900,6 @@ defproc add_options_menu(menuname)
                                    'relink' ||
                                    \1'Compile current macro file, unlink and link it',
                                    MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'M~ore',                                                              -- More   >
-                                   '' ||
-                                   \1'Additional compile and link macros',
-                                   MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Recompile ~EPM.E',                                                         -- Recompile EPM.E
-                                   'RecompileEpm' ||
-                                   \1'Compile main macro file and restart current EPM window',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open ~Recompile utility...',                                               -- Open Recompile utiliy...
-                                   'StartRecompile' ||
-                                   \1'Compile main macro file and restart all EPM windows',
-                                   MIS_TEXT + MIS_ENDSUBMENU, 0
-/*
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Recompile ~all',                                                           -- Recompile all
-                                   'RecompileAll' ||
-                                   \1'Recompile all macros and restart EPM',
-                                   MIS_TEXT + MIS_ENDSUBMENU, 0
-*/
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
