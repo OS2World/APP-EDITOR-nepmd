@@ -15,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: recrobj.cmd,v 1.4 2008-09-08 01:50:47 aschn Exp $
+* $Id: recrobj.cmd,v 1.5 2008-09-08 01:55:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -74,7 +74,7 @@ CALL SysLoadFuncs
 /* tree was created elsewhere out of the NEPMD rootdir, e.g. in %HOME%. */
 ExportFilename       = 'recrobj.dat'
 HelpStartLine        = 9
-HelpEndLine          = 15
+HelpEndLine          = 14
 /* -------------------------------------------- */
 
 /* Make sure CMD is called on purpose */
