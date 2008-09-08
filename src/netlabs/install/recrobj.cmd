@@ -2,9 +2,9 @@
 *
 * Module Name: recrobj.cmd
 *
-* Syntax: recrobj [FORCE]
+* Syntax: recrobj [NEPMD]
 *
-* If FORCE is not specified, the user will be asked before further execution.
+* If NEPMD is not specified, the user will be asked before further execution.
 *
 * This CMD is able to recreate objects and ini entries, if the export file
 * was created before. Even when the recommended way to recreate them is to
@@ -15,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: recrobj.cmd,v 1.3 2008-09-08 00:21:50 aschn Exp $
+* $Id: recrobj.cmd,v 1.4 2008-09-08 01:50:47 aschn Exp $
 *
 * ===========================================================================
 *
