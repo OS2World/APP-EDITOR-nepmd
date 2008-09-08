@@ -15,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: recrobj.cmd,v 1.2 2008-09-08 00:20:14 aschn Exp $
+* $Id: recrobj.cmd,v 1.3 2008-09-08 00:21:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -78,11 +78,11 @@ HelpEndLine          = 15
 /* -------------------------------------------- */
 
 /* Make sure CMD is called on purpose */
-ARG Parm .;
+ARG Parm .
 IF Parm = 'NEPMD' THEN
-   fQuiet = TRUE;
+   fQuiet = TRUE
 ELSE
-   fQuiet = FALSE;
+   fQuiet = FALSE
 
 IF \fQuiet THEN
 DO
