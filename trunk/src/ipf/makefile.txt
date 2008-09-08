@@ -2,7 +2,7 @@
 ..
 .. Module Name: makefile.txt
 ..
-.. source file for the INF file providing help for makefile
+.. Source file for the INF file providing help for makefile
 .. Requires HyperText/2 package to compile
 ..
 .. Unlike the nepmd.inf, the makefile.inf is compiled to the bin subdirectory
@@ -12,7 +12,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: makefile.txt,v 1.36 2007-09-02 15:40:48 aschn Exp $
+.. $Id: makefile.txt,v 1.37 2008-09-08 01:15:16 aschn Exp $
 ..
 .. ===========================================================================
 ..
@@ -71,32 +71,6 @@ The following is required for making [=TITLE]:
 .an IDPNL_REQUIREMENTS_LONGFILENAME
 .
 This project requires long filename support (e.g. HPFS and JFS).
-.. .............................................................................
-.3 CONFIG.SYS settings
-.. .............................................................................
-.an IDPNL_REQUIREMENTS_CONFIGSYS
-.
-In some situations the makefile processing and especially REXX scripts called
-by it cannot open enough files, and an error message is displayed,
-saying that a file cannot be opened.
-
-In such cases the environment variable *SHELLHANDLESINC* can be used to provide
-#additional# file handles to the makefile process. This setting specifies the number
-of additional file handles that should be made available to the Workplace Shell
-process.
-
-[=NOTE]
-.ul
-- The environment variable *SHELLHANDLESINC* must be set in CONFIG.SYS,
-  so it requires a reboot to activate it.
-- WarpIN versions up to V1.0.5 left all packed files open. Apparently using
-  V1.0.6 or later avoids the need for adding *SHELLHANDLESINC*.
-
-*Example:*
-.fo off
-SET SHELLHANDLESINC=60
-.fo on
-
 
 .. .............................................................................
 .3 WarpIN
@@ -143,16 +117,15 @@ As toolkit, one of the following is required:
 .ul
 - Some 5.xx versions of *RC.EXE* are quite buggy and cause problems.
   Therefore you have to replace the *RC.EXE*, that comes with Toolkit 4.5x.
-  Older versions are OK.
+  Older versions are usually OK to compile NEPMD.
 .
-- You can use the Toolkit 4 version of *RC.EXE*, as
+- The most recommended *RC.EXE* version is 5.00.007. It can be found here:
+  - [http://www.os2bbs.com/os2news/rcos2-5.00.007.zip]
+.
+- As an alternative, you can use the Toolkit 4 version of *RC.EXE*, as
   recommended by the Warpzilla project:
   - [ftp://ftp.software.ibm.com/ps/products/warpzilla/os2tk40rc.zip]
 .
-.. - The version can be checked with *exehdr <path>\rc.exe*
-..   That shows the correct version number: 4.00.005, while just typing
-..   *rc* shows the one from the message file only: 5.00.006.
-.. .
 - Or rename bin\rc16.exe to rc.exe. That one works without the message
   file, but is the 16 bit version. The version, that comes with Warp 4.x
   and with eCSMT is also a 16 bit version and should work as well.
@@ -168,7 +141,7 @@ The *EPM Macro Compiler* is required to compile the *RECOMP* macro.
 .ul compact
 - You can download the program file *etpm.exe* as part of the *EPM base application*
   package zip file (no other files of this package are required)
-  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=epmapp The Hobbes File Archive]
+  - [http://hobbes.nmsu.edu/h-search.php?key=epmapp The Hobbes File Archive]
 .
     (search "epmapp" at hobbes.nmsu.edu)
 .
@@ -198,7 +171,7 @@ as it supports the "deflated" method used for some text files, this is not suppo
 [=NOTE]
 .ul
 - You can download *unzip* from
-  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=unz+x2.exe The Hobbes File Archive]
+  - [http://hobbes.nmsu.edu/h-search.php?key=unz+x2.exe The Hobbes File Archive]
 .
     (search "unz x2.exe" at hobbes.nmsu.edu)
 - *unzip.exe* must be accessible by the PATH statement.
@@ -214,7 +187,7 @@ as it supports the "deflated" method used for some text files, this is not suppo
 [=NOTE]
 .ul
 - You can download *wget* from
-  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=wget The Hobbes File Archive]
+  - [http://hobbes.nmsu.edu/h-search.php?key=wget The Hobbes File Archive]
 .
     (search "wget" at hobbes.nmsu.edu)
 - *wget.exe* must be accessible by the PATH statement.
@@ -237,7 +210,7 @@ For compilation of the online help the preprocessor *HyperText/2* is used.
 [=NOTE]
 .ul
 - You can download *HyperText/2* from
-  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=htext The Hobbes File Archive]
+  - [http://hobbes.nmsu.edu/h-search.php?key=htext The Hobbes File Archive]
 .
     (search "htext" at hobbes.nmsu.edu)
 - Install according to the information in htext.inf.
@@ -261,7 +234,7 @@ For converting a REXX script to an executable the *REXX2EXE* compiler us used.
 [=NOTE]
 .ul
 - You can download *REXX2EXE* from
-  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=rexx2exe The Hobbes File Archive]
+  - [http://hobbes.nmsu.edu/h-search.php?key=rexx2exe The Hobbes File Archive]
 .
     (search "rexx2exe" at hobbes.nmsu.edu)
 - *rexx2exe.exe* must be accessible by the PATH statement.
@@ -296,7 +269,7 @@ For checking unpacked EPM files the *grep* utility is used.
 - The *grep* utility is only required if you run *src\wis\makefile* with pseudo target
   *check*. It is not mandatory in order to create the package itself.
 - You can download *Grep v2.0* from
-  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=grep20 The Hobbes File Archive]
+  - [http://hobbes.nmsu.edu/h-search.php?key=grep20 The Hobbes File Archive]
 .
     (search "grep20" at hobbes.nmsu.edu)
 .el
@@ -323,7 +296,7 @@ For packing the executables of the [=TITLE], the *lxlite* utility is used.
   - specify *DEBUG=1* as parameter to *nmake* or
   - set the environment variable *DEBUG=1* before calling *nmake*.
 - You can download *lxlite* from
-  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=lxlt The Hobbes File Archive]
+  - [http://hobbes.nmsu.edu/h-search.php?key=lxlt The Hobbes File Archive]
 .
     (search "lxlt" at hobbes.nmsu.edu)
 - *lxlite.exe*, together with its *lxlite.cfg* must be accessible by the PATH statement.
@@ -344,13 +317,13 @@ the WarpIN package the *touch* utility out of the *GNU file utilities* is used.
   - specify *TOUCH=1* as parameter to *nmake* or
   - set the environment variable *TOUCH=1* before calling *nmake*.
 - You can download the *GNU file utilities* from
-  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=GNU+file+utilities The Hobbes File Archive]
+  - [http://hobbes.nmsu.edu/h-search.php?key=GNU+file+utilities The Hobbes File Archive]
 .
     (search "GNU file utilities" at hobbes.nmsu.edu)
 .el
   (this packages requires the EMX runtime DLLs being installed)
 - or use a more complete and more recent *GNU core utilities* package from
-  - [http://hobbes.nmsu.edu/cgi-bin/h-search?key=coreutils The Hobbes File Archive]
+  - [http://hobbes.nmsu.edu/h-search.php?key=coreutils The Hobbes File Archive]
 .
     (search "coreutils" at hobbes.nmsu.edu)
 .el
@@ -533,7 +506,8 @@ Values which may be configured by anyone or can be predefined via an environment
 - BASEURL
 = specifies the location where the original ZIP files of the EPMBBS
   package (epm603b.zip and epm603bupd.zip) can be downloaded. The default
-  is ftp://hobbes.nmsu.edu/pub/os2/apps/editors/epm.
+.. is ftp://hobbes.nmsu.edu/pub/os2/apps/editors/epm.
+  is http://hobbes.nmsu.edu/download/pub/os2/apps/editors/epm.
 .
 - ZIPSRCDIR
 = specifies a local directory where the zip files from *BASEURL* will be
