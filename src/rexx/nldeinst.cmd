@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nldeinst.cmd,v 1.5 2008-09-08 00:24:57 aschn Exp $
+* $Id: nldeinst.cmd,v 1.6 2008-09-08 02:45:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -34,13 +34,13 @@
  env = 'OS2ENVIRONMENT';
 
  /* defaults */
- ErrorTitle = 'Netlabs EPM Distribution Installation';
+ ErrorTitle = 'netlabs.org EPM Distribution Installation';
  rc = 0;
 
  /* make sure we are called on purpose */
  ARG Parm .;
  IF (Parm \= 'NEPMD') THEN
-    ShowError( ErrorTitle, 'Error: Not called by Warpin Package!');
+    ShowError( ErrorTitle, 'Error: Not called by WarpIN Package!');
 
  /* create private queue for error messages and set as default */
  QueueName = RXQUEUE('CREATE');
