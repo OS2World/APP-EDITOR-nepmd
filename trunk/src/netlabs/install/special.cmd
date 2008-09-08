@@ -3,17 +3,16 @@
 * Module Name: special.cmd
 *
 * Helper batch for to
-*  - apply settings that depend on the UserDir.
+*  - apply settings that depend on the UserDir
+*  - create shadow objects
 *  - remove obsolete objects.
-*  - set Parameters for program objects that contains double quotes (WarpIN
-*    can not use double quotes).
 *
 * This program is intended to be called by NLSETUP.EXE only during
 * installation of the Netlabs EPM Distribution.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: special.cmd,v 1.2 2007-07-08 18:55:53 aschn Exp $
+* $Id: special.cmd,v 1.3 2008-09-08 00:38:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,10 +28,10 @@
 ****************************************************************************/
 
  /* initialize */
- CALL RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
- CALL SysLoadFuncs;
- GlobalVars = 'Sep CallDir NetlabsDir RootDir UserDir EcsFlag BootDrive'
- env = 'OS2ENVIRONMENT';
+ CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+ CALL SysLoadFuncs
+ GlobalVars = 'Sep CallDir NetlabsDir RootDir UserDir fEcs BootDrive'
+ env = 'OS2ENVIRONMENT'
  Sep = '01'x
 
  /* INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
@@ -56,139 +55,66 @@
  /* ##############   Maintainer: modify object id list here ######################## */
 
  FolderObjectIdList = '<NEPMD_FOLDER> <NEPMD_SAMPLES_FOLDER>' ||,
-                      ' <NEPMD_MORE_OBJECTS_FOLDER>';
-
- /* ################################################################################# */
-
- /* Additional objects to be created with SysCreateObject                             */
-
- i = 0
- CreateClass. = ''
- CreateTitle. = ''
- CreateDest.  = ''
- CreateSetup. = ''
-
- /* Left in as an example */
-/*
- Language = 'eng'
- i = i + 1
- CreateClass.i = 'WPProgram'
- CreateTitle.i = 'EPM Shell'
- CreateDest.i  = '<NEPMD_FOLDER>'
- CreateSetup.i = 'PROGTYPE=PM;EXENAME=EXENAME=EPM.EXE;' ||,
-                 'PARAMETERS=''shell cdd %*'';' ||,
-                 'HELPLIBRARY='RootDir'\netlabs\help\nefld'Language'.hlp;HELPPANEL=101;' ||,
-                 'OBJECTID=<NEPMD_EPM_SHELL>;"'
-*/
-
- /* SysCreateObject requires a title parameter even when being useless, eg. for */
- /* shadow objects. Therefore in the following the title '.' is used.           */
- /* There exists another special behavior of shadow objects together with       */
- /* SysCreateObject: If the shadow should get an object id assigned and it      */
- /* already exists, then the object is not created. For other objects, the old  */
- /* objects looses its object id instead and the new object is created.         */
-
- DestDir = '<WP_PROMPTS>'
- IF (ObjectExists( DestDir)) THEN
- DO
-    i = i + 1
-    CreateClass.i = 'WPShadow'
-    CreateTitle.i = '.'
-    CreateDest.i  = DestDir
-    CreateSetup.i = 'SHADOWID=<NEPMD_EPM_SHELL>;OBJECTID=<NEPMD_EPM_SHELL_SHADOW>;'
- END
-
- /* Get location of XWorkplace's OS/2 window object.                           */
- /* GetObjectLocation accepts a space-separated list of objects to search for. */
- /* It returns the Location for the first succesfully queried object.          */
- DestDir = GetObjectLocation( '<XWP_OS2WIN>')
- IF DestDir > '' THEN
- DO
-    i = i + 1
-    CreateClass.i = 'WPShadow'
-    CreateTitle.i = '.'
-    CreateDest.i  = DestDir
-    CreateSetup.i = 'SHADOWID=<NEPMD_EPM_SHELL>;OBJECTID=<NEPMD_EPM_SHELL_SHADOW2>;'
- END
-
- CreateObj.0 = i  /* number of objects */
-
- /* ################################################################################# */
-
- /* Additional settings for objects that have double quotes in their parameters       */
- /* (WarpIN can not set double quotes)                                                */
-
- i = 0
- DataObj.   = ''
- DataSetup. = ''
-
- /* Left in as an example */
- /*
- i = i + 1
- DataObj.i   = '<NEPMD_EPM_SHELL>'
- DataSetup.i = 'PARAMETERS=''shell cdd "%*"'';'
- */
-
- DataObj.0 = i  /* number of objects */
+                      ' <NEPMD_MORE_OBJECTS_FOLDER>'
 
  /* ################################################################################# */
 
  /* determine operating system version */
  SELECT
-    WHEN (SysOs2Ver() < '2.40') THEN Type = '3';
-    WHEN (EcsFlag = 1)          THEN Type = 'e';
-    OTHERWISE                        Type = '4';
- END;
+    WHEN (SysOs2Ver() < '2.40') THEN Type = '3'
+    WHEN (fEcs)                 THEN Type = 'e'
+    OTHERWISE                        Type = '4'
+ END
 
  /* set icon for folders */
  FolderIconSetup = 'ICONFILE='CallDir'\ico\folder'Type'.ico;' ||,
-                   'ICONNFILE=1,'CallDir'\ico\folder'Type'o.ico;';
+                   'ICONNFILE=1,'CallDir'\ico\folder'Type'o.ico;'
  DO WHILE (FolderObjectIdList \= '')
-    PARSE VAR FolderObjectIdList ThisObject FolderObjectIdList;
-    rc = SysSetObjectData( ThisObject, FolderIconSetup);
- END;
+    PARSE VAR FolderObjectIdList ThisObject FolderObjectIdList
+    rc = SysSetObjectData( ThisObject, FolderIconSetup)
+ END
 
  /* set icon for user folder */
- rc = SysSetObjectData( UserDir, FolderIconSetup);
+ rc = SysSetObjectData( UserDir, FolderIconSetup)
 
  /* set icon for root folder */
- rc = SysSetObjectData( RootDir, FolderIconSetup);
-
- /* set parameter for "Recompile EPM", created by WarpIN (WarpIN doesn't know UserDir) */
- rc = SysSetObjectData( '<NEPMD_RECOMP>', 'PARAMETERS='UserDir'\ex');
-
- /* create special objects */
- URI = 'U'  /* Update | Replace | Ignore */
- DO i = 1 TO CreateObj.0
-    IF (POS( 'SHADOWID=', CreateSetup.i) > 0) THEN
-       URI = 'R'
-    rc = SysCreateObject( CreateClass.i, CreateTitle.i, CreateDest.i, CreateSetup.i, URI);
- END;
-
- /* set special object settings */
- DO i = 1 TO DataObj.0
-    rc = SysSetObjectData( DataObj.i, DataSetup.i);
- END;
+ rc = SysSetObjectData( RootDir, FolderIconSetup)
 
  /* delete obsolete object from v1.00 if present */
- rc = SysDestroyObject( '<NEPMD_EXECUTABLE>');
+ rc = SysDestroyObject( '<NEPMD_EXECUTABLE>')
+
+ /* delete obsolete objects from before v1.14 if present */
+ rc = SysDestroyObject( '<NEPMD_RECOMP>')
+ rc = SysDestroyObject( '<NEPMD_RECOMPILE_NEW>')
+ rc = SysDestroyObject( '<NEPMD_CHECK_USER_MACROS>')
+ rc = SysDestroyObject( '<NEPMD_TOGGLE_DEFASSOCS>')
+ rc = SysDestroyObject( '<NEPMD_CHANGE_STARTUPDIR>')
+ rc = SysDestroyObject( '<NEPMD_TOGGLE_CCVIEW>')
+ rc = SysDestroyObject( '<NEPMD_TOGGLE_FILEDLG>')
+/*
+ rc = SysDestroyObject( '<NEPMD_VIEW_NEUSR>')
+ rc = SysDestroyObject( '<NEPMD_VIEW_NEPRG>')
+ rc = SysDestroyObject( '<NEPMD_VIEW_EPMTECH>')
+ rc = SysDestroyObject( '<NEPMD_VIEW_EPMUSERS>')
+ rc = SysDestroyObject( '<NEPMD_VIEW_EPMHELP>')
+*/
 
  /* delete obsolete files and dirs from prior versions if present */
- rc = SysDestroyObject( NetlabsDir'\mode\fortran');
- rc = SysDestroyObject( NetlabsDir'\install\saveold.cmd');
- rc = SysDestroyObject( NetlabsDir'\macros\drawkey.e');
- rc = SysDestroyObject( NetlabsDir'\macros\menuacel.e');
- rc = SysDestroyObject( NetlabsDir'\macros\setconfig.e');
- rc = SysDestroyObject( NetlabsDir'\macros\small.e');
- rc = SysDestroyObject( NetlabsDir'\macros\statline.e');
- rc = SysDestroyObject( NetlabsDir'\macros\titletext.e');
- rc = SysDestroyObject( NetlabsDir'\macros\xchgline.e');
- rc = SysDestroyObject( NetlabsDir'\bin\epmshell.cmd');
+ rc = SysDestroyObject( NetlabsDir'\mode\fortran')
+ rc = SysDestroyObject( NetlabsDir'\install\saveold.cmd')
+ rc = SysDestroyObject( NetlabsDir'\macros\drawkey.e')
+ rc = SysDestroyObject( NetlabsDir'\macros\menuacel.e')
+ rc = SysDestroyObject( NetlabsDir'\macros\setconfig.e')
+ rc = SysDestroyObject( NetlabsDir'\macros\small.e')
+ rc = SysDestroyObject( NetlabsDir'\macros\statline.e')
+ rc = SysDestroyObject( NetlabsDir'\macros\titletext.e')
+ rc = SysDestroyObject( NetlabsDir'\macros\xchgline.e')
+ rc = SysDestroyObject( NetlabsDir'\bin\epmchangestartupdir.cmd')
 
  /* remove obsolete ini key from v1.00 if present */
  rc = SysIni( 'USER', 'NEPMD', 'Path', 'DELETE:')
 
- EXIT( 0);
+ EXIT( 0)
 
 /* ------------------------------------------------------------------------- */
 GetBootDrive: PROCEDURE EXPOSE (GlobalVars)
@@ -205,34 +131,26 @@ GetBootDrive: PROCEDURE EXPOSE (GlobalVars)
 GetEcsFlag: PROCEDURE EXPOSE (GlobalVars)
 
  /* Read Syslevel file(s) */
- DO 1
+ SLFile.1 = BootDrive'\ecs\install\syslevel.ecs'
+ SLFile.2 = BootDrive'\os2\install\syslevel.ecs'
+ SLFile.3 = BootDrive'\os2\install\syslevel.os2'
+ SLFile.0 = 3
+
+ fEcs = ''
+ DO i = 1 to SLFile.0
     File = BootDrive'\ecs\install\syslevel.ecs'
     next = QuerySysLevel( File)
     PARSE VALUE next WITH rc (Sep) SName (Sep) SVersion (Sep) SLevel
     IF rc = 0 THEN
     DO
-       EcsFlag = (TRANSLATE( SUBSTR( SName, 1, 11)) = 'ECOMSTATION')
-       LEAVE
-    END
-
-    File = BootDrive'\os2\install\syslevel.ecs'
-    next = QuerySysLevel( File)
-    PARSE VALUE next WITH rc (Sep) SName (Sep) SVersion (Sep) SLevel
-    IF rc = 0 THEN
-    DO
-       EcsFlag = (TRANSLATE( SUBSTR( SName, 1, 11)) = 'ECOMSTATION')
-       LEAVE
-    END
-
-    File = BootDrive'\os2\install\syslevel.os2'
-    next = QuerySysLevel( File)
-    PARSE VALUE next WITH rc (Sep) SName (Sep) SVersion (Sep) SLevel
-    IF rc = 0 THEN
-    DO
-       EcsFlag = (TRANSLATE( SUBSTR( SName, 1, 11)) = 'ECOMSTATION')
+       fEcs = (POS( 'ECOMSTATION', TRANSLATE( SName)) > 0)
        LEAVE
     END
  END
+
+ /* Default is to use settings for eComStation */
+ IF (fEcs = '') THEN
+    fEcs = 1
 
  RETURN
 
@@ -240,10 +158,10 @@ GetEcsFlag: PROCEDURE EXPOSE (GlobalVars)
 GetNepmdDirs: PROCEDURE EXPOSE (GlobalVars)
 
  /* get the root directory of the NEPMD installation */
- PARSE SOURCE . . CallName;
- CallDir    = LEFT( CallName,   LASTPOS( '\', CallName) - 1);    /* NEPMD\netlabs\install */
- NetlabsDir = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1);
- RootDir    = LEFT( NetlabsDir, LASTPOS( '\', NetlabsDir) - 1);  /* can be queried from Ini as well */
+ PARSE SOURCE . . CallName
+ CallDir    = LEFT( CallName,   LASTPOS( '\', CallName) - 1)    /* NEPMD\netlabs\install */
+ NetlabsDir = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1)
+ RootDir    = LEFT( NetlabsDir, LASTPOS( '\', NetlabsDir) - 1)  /* can be queried from Ini as well */
 
  /* get user directory */
  DO 1
@@ -317,47 +235,4 @@ QuerySysLevel: PROCEDURE EXPOSE (GlobalVars)
  END
  ELSE
     RETURN 2''Sep''Sep''Sep
-
-/* ------------------------------------------------------------------------- */
-/* Check if object exists. Returns 1 if exists, otherwise 0 */
-ObjectExists: PROCEDURE
- rc = SysSetObjectData( ARG(1), '')
- RETURN rc
-
-/* ------------------------------------------------------------------------- */
-GetObjectLocation: PROCEDURE EXPOSE (GlobalVars)
- PARSE ARG ObjList
- ObjLoc = ''
-
- IF RxFuncQuery( 'WPToolsQueryObject') THEN
- DO
-    /* ensure that netlabs\dll is in BEGINLIBPATH */
-    'SET BEGINLIBPATH='RootDir'\netlabs\dll;'
-    CALL RxFuncAdd 'WPToolsLoadFuncs', 'WPTOOLS', 'WPToolsLoadFuncs';
-    CALL WPToolsLoadFuncs;
- END
-
- IF \RxFuncQuery( 'WPToolsQueryObject') THEN
- DO
-    /* get location of XWorkplace's OS/2 window object */
-    /* space-separated list of objects to search */
-    Rest = ObjList
-    DO WHILE LENGTH( Rest) > ''
-       PARSE VAR Rest Obj Rest
-       Obj = STRIP( Obj)
-       Rest = STRIP( Rest)
-       /* drop sometimes required, otherwise wrong objects were listed */
-       DROP Class;
-       DROP Title;
-       DROP Setup;
-       DROP Location;
-       rcx = WpToolsQueryObject( Obj, Class, Title, Setup, Location);
-       IF (rcx <> 1 | Location = '') THEN
-          ITERATE;
-       ObjLoc = Location
-       LEAVE
-    END
- END
-
- RETURN ObjLoc
 
