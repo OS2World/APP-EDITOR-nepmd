@@ -5,8 +5,8 @@
 * Frame batch for to call all required CMD files when deleting
 * the NEPMD base package
 *
-* This module is called by the WarpIn package directly.
-* In order to prevent a VIO windo opening for this REXX script,
+* This module is called by the WarpIN package directly.
+* In order to prevent a VIO window opening for this REXX script,
 * this (and only this script) is compiled to a PM executable.
 *
 * This program is intended to be called only during installation of the
@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nldeinst.cmd,v 1.4 2008-09-07 23:39:50 aschn Exp $
+* $Id: nldeinst.cmd,v 1.5 2008-09-08 00:24:57 aschn Exp $
 *
 * ===========================================================================
 *
