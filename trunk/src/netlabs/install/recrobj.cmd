@@ -15,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: recrobj.cmd,v 1.1 2008-09-07 23:14:19 aschn Exp $
+* $Id: recrobj.cmd,v 1.2 2008-09-08 00:20:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -73,36 +73,28 @@ CALL SysLoadFuncs
 /* use the netlabs tree to find that file easily, even when the user    */
 /* tree was created elsewhere out of the NEPMD rootdir, e.g. in %HOME%. */
 ExportFilename       = 'recrobj.dat'
+HelpStartLine        = 9
+HelpEndLine          = 15
 /* -------------------------------------------- */
 
-ARG Args
-Args = STRIP( Args)
+/* Make sure CMD is called on purpose */
+ARG Parm .;
+IF Parm = 'NEPMD' THEN
+   fQuiet = TRUE;
+ELSE
+   fQuiet = FALSE;
 
-IF (Args <> 'FORCE') THEN
+IF \fQuiet THEN
 DO
-   /* Skip header */
-   rcx = STREAM( ThisFile, 'c', 'open read')
-   DO i = 1 TO 3
-      rcx = LINEIN( ThisFile)
-   END
-   /* Show help */
-   DO WHILE (RIGHT( ThisLine, 2) \= '*/')
-      i = i + 1
-      ThisLine = LINEIN( Thisfile)
-      /* Show only these line numbers */
-      /* Omit syntax help */
-      IF i < 9 THEN ITERATE
-      IF i > 15 THEN LEAVE
-      SAY SUBSTR( ThisLine, 3)
-   END
-   rcx = STREAM( ThisFile, 'c', 'close')
-
-   /* Ask */
    SAY
-   SAY 'Do you want to proceed? (Type Y or any other key to abort):'
-   Answer = LINEIN()
-   Answer = TRANSLATE( STRIP( Answer))
-   IF Answer <> 'Y' THEN
+   DO l = HelpStartLine TO HelpEndLine
+      SAY SUBSTR( SOURCELINE( l), 3)
+   END
+   SAY
+   SAY 'Do you want to continue? (Y/N)'
+   PULL Answer
+   Answer = STRIP( Answer)
+   IF (ANSWER <> 'Y') THEN
       SIGNAL Halt
 END
 
