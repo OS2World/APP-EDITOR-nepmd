@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.8 2007-03-10 11:07:19 aschn Exp $
+* $Id: dyncfg.cmd,v 1.9 2008-09-08 00:06:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -190,7 +190,14 @@
 FileExist: PROCEDURE
  PARSE ARG FileName
 
- RETURN(STREAM(Filename, 'C', 'QUERY EXISTS') > '');
+ RETURN( STREAM( Filename, 'C', 'QUERY EXISTS') > '');
+
+/* ------------------------------------------------------------------------- */
+FindInPath: PROCEDURE
+ PARSE ARG FileName, PathName;
+ IF (PathName = '') THEN
+    PathName = 'PATH';
+ RETURN( SysSearchPath( PathName, FileName));
 
 /* ========================================================================= */
 IsNepmdExecutable: PROCEDURE EXPOSE (GlobalVars)
@@ -200,14 +207,38 @@ IsNepmdExecutable: PROCEDURE EXPOSE (GlobalVars)
 
  DO UNTIL (TRUE)
 
-    /* if EPM.EXE resides in this directory, we may have a problem */
-    IF (FileExist( CheckFile)) THEN
+    /* if standard EPM.EXE resides in this directory, we may have a problem */
+    IF \(FileExist( CheckFile)) THEN
+       LEAVE;
+
+    /* is it our executable ? */
+    IF (FindInPath( 'bldlevel.exe') <> '') THEN
     DO
-       /* is it our executable ? */
-       rc = SysGetEa( CheckFile, EaName, LoaderTag);
-       IF ((rc = 0) & (LoaderTag \= '')) THEN
-          fFound = 1;
+       /* flush queue */
+       DO i = 1 TO QUEUED()
+          PARSE PULL next;
+       END;
+       /* get description */
+       'bldlevel.exe 'CheckFile' | rxqueue /fifo'
+       /* parse and flush queue */
+       DO i = 1 TO QUEUED()
+          PARSE PULL next;
+          IF \(fFound) THEN
+          DO
+             w1 = WORD( next, 1);
+             w2 = WORD( next, 2);
+             IF ((w1 = 'Description:') & (w2 = 'EPMCALL')) THEN
+                fFound = TRUE;
+          END;
+       END;
     END;
+    IF (fFound) THEN
+       LEAVE;
+
+    /* no build level found, get EA from previous NEPMD install */
+    rc = SysGetEa( CheckFile, EaName, LoaderTag);
+    IF ((rc = 0) & (LoaderTag \= '')) THEN
+       fFound = TRUE;
  END;
 
  RETURN( fFound);
