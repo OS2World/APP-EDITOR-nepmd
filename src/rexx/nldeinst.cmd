@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nldeinst.cmd,v 1.6 2008-09-08 02:45:54 aschn Exp $
+* $Id: nldeinst.cmd,v 1.7 2008-09-08 02:46:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -40,7 +40,7 @@
  /* make sure we are called on purpose */
  ARG Parm .;
  IF (Parm \= 'NEPMD') THEN
-    ShowError( ErrorTitle, 'Error: Not called by WarpIN Package!');
+    ShowError( ErrorTitle, 'Error: Not called by WarpIN package!');
 
  /* create private queue for error messages and set as default */
  QueueName = RXQUEUE('CREATE');
