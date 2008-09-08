@@ -35,7 +35,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: renudirs.cmd,v 1.1 2008-09-07 23:15:14 aschn Exp $
+* $Id: renudirs.cmd,v 1.2 2008-09-08 00:15:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -126,7 +126,7 @@
     PULL Answer;
     Answer = STRIP( Answer);
     IF (ANSWER <> 'Y') THEN
-       EXIT( ERROR.GEN_FAILURE);
+       SIGNAL Halt;
  END;
 
  /* get default dir values, depending on the path of this file */
@@ -331,7 +331,6 @@ TreeContainsFiles: PROCEDURE
 
 /* ------------------------------------------------------------------------- */
 HALT:
- SAY;
  SAY 'Interrupted by user.';
  EXIT( ERROR.GEN_FAILURE);
 
