@@ -2,7 +2,7 @@
 #
 # Module Name: makefile
 #
-# makefile for creating a WarpIn package for EPM.
+# makefile for creating a WarpIN package for EPM.
 #
 # Configure by editing ..\..\configure.in before executing
 #
@@ -17,7 +17,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.13 2004-12-25 15:18:31 aschn Exp $
+# $Id: makefile,v 1.14 2008-09-09 22:45:45 aschn Exp $
 #
 # ===========================================================================
 #
@@ -85,11 +85,12 @@ FILESTOCLEAN=\
  $(BINDIR)\mkwpi.log
 
 
-# --- parameters for to patch into the WarpIn script
+# --- parameters for to patch into the WarpIN script
 
-WISPARMS= \
- ID_VERSION_NEPMD=$(ID_VERSION_NEPMD) \
- ID_VERSION_REQ_WARPIN=$(ID_VERSION_REQ_WARPIN) \
+WISPARMS=\
+ ID_VERSION_NEPMD=$(ID_VERSION_NEPMD)\
+ ID_VERSION_REQ_WARPIN=$(ID_VERSION_REQ_WARPIN)\
+ STRING_VERSION_NEPMD=$(STRING_VERSION_NEPMD)\
  NLS=$(NLS)
 
 CREATEPARMS=\
@@ -133,7 +134,7 @@ $(UNZIPPEDDIR)\prepare.log: prepare.cmd
    prepare $(UNZIPPEDDIR)\prepare.log $(BASEURL) $(ZIPSRCDIR) $(UNZIPPEDDIR)
    -@COPY $(UNZIPPEDDIR)\*.log $(CMPDIR) >NUL 2>&1
 
-# --- create customized WarpIn script file
+# --- create customized WarpIN script file
 
 $(NLSSCRIPTFILE): $(SCRIPTFILE) $(NLSINCLUDE)\nepmd$(NLS).h $(NLSINCLUDE)\page*$(NLS).xml $(NLSINCLUDE)\desc*$(NLS).xml
    parseenv $(SCRIPTFILE) $(NLSSCRIPTFILE) $(WISPARMS)
