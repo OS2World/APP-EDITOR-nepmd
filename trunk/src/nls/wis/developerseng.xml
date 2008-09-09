@@ -1,0 +1,36 @@
+<!--
+# ***************************** Module Header *******************************
+#
+# Module Name: hintseng.xml
+#
+# WPI page include file in english language
+#
+# Copyright (c) Netlabs EPM Distribution Project 2002
+#
+# $Id: developerseng.xml,v 1.1 2008-09-09 22:41:23 aschn Exp $
+#
+# ===========================================================================
+#
+# This file is part of the Netlabs EPM Distribution package and is free
+# software.  You can redistribute it and/or modify it under the terms of the
+# GNU General Public License as published by the Free Software
+# Foundation, in version 2 as it comes in the "COPYING" file of the
+# Netlabs EPM Distribution.  This library is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# ***************************************************************************
+-->
+<p><b>Notes:</b>
+<ul>
+<li>EPM was developed by the IBM T. J. Watson Research Center.
+The included macros base on the free macro sources that can be found in
+the EPMBBS package.
+<li>All additions by the netlabs.org EPM Distribution project come with a
+Gnu Public Library licence.
+<li>For contacting the project team, refer to the online help or to the
+<a href="http://nepmd.netlabs.org">NEPMD website</a>.
+</ul>
+<br>
+
