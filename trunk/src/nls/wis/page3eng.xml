@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: page3eng.xml,v 1.4 2002-11-03 19:31:32 cla Exp $
+# $Id: page3eng.xml,v 1.5 2008-09-09 22:43:44 aschn Exp $
 #
 # ===========================================================================
 #
@@ -22,12 +22,8 @@
 #
 # ***************************************************************************
 -->
-IMPORTANT: the following restrictions apply to WarpIn V0.9.19 and may apply to newer versions as well:
+On this page, you'll find info about the copyrights and also a (clickable)
+link to the NEPMD web page.
 
-Deinstallation:
-       WarpIn will warn you, if you attempt to deinstall the package "Base Application", before all other packages of this distribution are deinstalled. This is because all other packages require the base package being installed. Nevertheless WarpIn will warn you only about up to a maximum of two dependent packages, although you may have installed more than two packages depending on the base package.
-
-       When removing database entries, WarpIn will only let you remove the last selected entry. If you want to remove several entries at a time, you will have to repeat the step for each package.
-
-Select "Next" to continue.
+After that, select "Next" to continue.
 Select "Cancel" to abort installation.

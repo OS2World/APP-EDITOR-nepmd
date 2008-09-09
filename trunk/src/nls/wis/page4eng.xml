@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: page4eng.xml,v 1.1 2002-08-01 13:21:17 cla Exp $
+# $Id: page4eng.xml,v 1.2 2008-09-09 22:43:44 aschn Exp $
 #
 # ===========================================================================
 #
@@ -22,6 +22,7 @@
 #
 # ***************************************************************************
 -->
-On this page, you may select/deselect packages or change the package's target path.
+On this page, you may select/deselect/ignore packages or change the package's target path.
+
 After that, select "Next" to continue.
 Select "Cancel" to abort installation.
