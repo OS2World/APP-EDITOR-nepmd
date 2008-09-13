@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wps.e,v 1.5 2008-09-05 23:19:47 aschn Exp $
+* $Id: wps.e,v 1.6 2008-09-13 21:40:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -134,4 +134,51 @@ defproc GetProgramOSwitch
       Ret = Next
    endif
    return Ret
+
+; ---------------------------------------------------------------------------
+; Opens a listbox to select a select an association action. The list of
+; actions is parsed by ASSOCS.ERX from OBJECTS.INI. Uses also ASOOCS.ERX
+; and OBJECTS.INI to execute an action.
+defc SelectAssoc
+
+   NumItems = 0
+   ListBoxData = ''
+   Next = RxResult( 'assocs.erx query')
+   if Next <> '' then
+      -- Get number of items
+      Sep = leftstr( Next, 1)
+      Check = translate( translate( Next, '_', ' '), ' ', Sep)
+      NumItems = words( Check)
+      ListBoxData = Next
+   endif
+
+   DefaultItem   = 1
+   DefaultButton = 1
+   HelpId = 0
+   Title = 'Set associations'
+   Text  = 'Select an action from the list below:'
+
+   refresh
+   NewCodingStyle = ''
+   Result = listbox( Title,
+                     ListBoxData,
+                     '/~OK/Cancel',           -- buttons
+                     0, 0,  --5, 5,           -- top, left,
+                     min( NumItems, 15), 50,  -- height, width
+                     gethwnd(APP_HANDLE) || atoi(DefaultItem) ||
+                     atoi(DefaultButton) || atoi(HelpId) ||
+                     Text\0 )
+   refresh
+
+   -- Check result
+   Button = asc( leftstr( Result, 1))
+   EOS = pos( \0, Result, 2)        -- CHR(0) signifies End Of String
+
+   Action = substr( Result, 2, EOS - 2)
+
+   if Button = 1 then      -- OK
+      'rx assocs.erx 'Action
+   else                    -- Cancel
+      return 1
+   endif
 
