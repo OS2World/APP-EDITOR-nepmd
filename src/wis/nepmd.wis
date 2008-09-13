@@ -19,7 +19,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.60 2008-09-09 22:45:45 aschn Exp $
+# $Id: nepmd.wis,v 1.61 2008-09-13 17:11:41 aschn Exp $
 #
 # ===========================================================================
 #
@@ -151,22 +151,22 @@
 
 <!--  ------------------------------ Page 1: Welcome/features --------------------------------->
 <PAGE INDEX=1 TYPE=README>
-<README FORMAT=HTML><TINCLUDE name="..\nls\wis\welcome%NLS%.xml"/></README>
 <TEXT><TINCLUDE name="..\nls\wis\page1%NLS%.xml"/></TEXT>
+<README FORMAT=HTML><TINCLUDE name="..\nls\wis\welcome%NLS%.xml"/></README>
 <NEXTBUTTON TARGET=2>%BUTTON_NEXT%</NEXTBUTTON>
 </PAGE>
 
 <!--  ------------------------------ Page 2: Install ------------------------------------------>
 <PAGE INDEX=2 TYPE=README>
-<README FORMAT=HTML><TINCLUDE name="..\nls\wis\install%NLS%.xml"/></README>
 <TEXT><TINCLUDE name="..\nls\wis\page2%NLS%.xml"/></TEXT>
+<README FORMAT=HTML><TINCLUDE name="..\nls\wis\install%NLS%.xml"/></README>
 <NEXTBUTTON TARGET=3>%BUTTON_NEXT%</NEXTBUTTON>
 </PAGE>
 
 <!--  ------------------------------ Page 3: Developers --------------------------------------->
 <PAGE INDEX=3 TYPE=README>
-<README FORMAT=HTML><TINCLUDE name="..\nls\wis\developers%NLS%.xml"/></README>
 <TEXT><TINCLUDE name="..\nls\wis\page3%NLS%.xml"/></TEXT>
+<README FORMAT=HTML><TINCLUDE name="..\nls\wis\developers%NLS%.xml"/></README>
 <NEXTBUTTON TARGET=4>%BUTTON_NEXT%</NEXTBUTTON>
 </PAGE>
 

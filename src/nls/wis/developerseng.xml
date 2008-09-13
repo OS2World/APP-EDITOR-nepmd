@@ -3,11 +3,11 @@
 #
 # Module Name: developerseng.xml
 #
-# WPI page include file in english language
+# WPI page include file in English language
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: developerseng.xml,v 1.2 2008-09-09 22:51:38 aschn Exp $
+# $Id: developerseng.xml,v 1.3 2008-09-13 17:11:42 aschn Exp $
 #
 # ===========================================================================
 #
@@ -22,7 +22,7 @@
 #
 # ***************************************************************************
 -->
-<p><b>Notes:</b>
+<b>Notes:</b>
 <ul>
 <li>EPM was developed by the IBM T. J. Watson Research Center.
 The included macros base on the free macro sources that can be found in
@@ -30,7 +30,10 @@ the EPMBBS package.
 <li>All additions by the netlabs.org EPM Distribution project come with a
 Gnu Public Library licence.
 <li>For contacting the project team, refer to the online help or to the
-<a href="http://nepmd.netlabs.org">NEPMD website</a>.
+<a href="http://nepmd.netlabs.org">NEPMD web page</a>.
+<li>The documentation is still at version 1.0. Therefore many features are
+undocumentated and also some configuration items don't apply anymore. This
+will be fixed in a future version.
 </ul>
 <br>
 

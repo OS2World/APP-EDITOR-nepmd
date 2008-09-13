@@ -3,11 +3,11 @@
 #
 # Module Name: page3eng.xml
 #
-# WPI page include file in english language
+# WPI page include file in English language
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: page3eng.xml,v 1.5 2008-09-09 22:43:44 aschn Exp $
+# $Id: page3eng.xml,v 1.6 2008-09-13 17:11:42 aschn Exp $
 #
 # ===========================================================================
 #
@@ -22,8 +22,7 @@
 #
 # ***************************************************************************
 -->
-On this page, you'll find info about the copyrights and also a (clickable)
-link to the NEPMD web page.
+On this page, you'll find copyright, contact and release info.
 
 After that, select "Next" to continue.
 Select "Cancel" to abort installation.
