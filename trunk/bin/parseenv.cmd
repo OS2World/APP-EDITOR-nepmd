@@ -18,12 +18,12 @@
  *        - C++ style comments are supported like: // comment
  *          but are not skipped when being used within strings (should be)
  *        - no symbols can be used within the #define values yet
- *        - strings may include \r \n and \t
+ *        - strings may include \r \n and \t.
  *
  *    The XML Tag <tinclude name="filename"/> includes textfiles as part of
  *    the wis script. Note that
  *        - the filename may include envvars to distinct between different
- *          files for e.g. different languages
+ *          files for e.g. different languages.
  *
  */
 /* The first comment is used as online help text */
@@ -35,7 +35,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: parseenv.cmd,v 1.5 2006-03-12 10:50:41 aschn Exp $
+* $Id: parseenv.cmd,v 1.6 2008-09-13 17:12:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +54,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.5 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.6 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -133,7 +133,7 @@
 
           OTHERWISE
           DO
-             SAY CmdName': error: invalid parameter' ThisParm 'specified.';
+             SAY CmdName': Error: Invalid parameter' ThisParm 'specified.';
              rc = ERROR.INVALID_PARAMETER;
              LEAVE;
           END;
@@ -142,26 +142,26 @@
     IF (rc \= ERROR.NO_ERROR) THEN
        LEAVE;
 
-    /* source file specified ? */
+    /* source file specified? */
     IF (SourceFile = '') THEN
     DO
-       SAY CmdName': error: no sourcefile specified.';
+       SAY CmdName': Error: No source file specified.';
        rc = ERROR.INVALID_PARAMETER;
        LEAVE;
     END;
 
-    /* does it exist ? */
+    /* does it exist? */
     IF (\FileExist( SourceFile)) THEN
     DO
-       SAY CmdName': error: sourcefile' SourceFile 'cannot be found.';
+       SAY CmdName': Error: Source file' SourceFile 'cannot be found.';
        rc = ERROR.FILE_NOT_FOUND;
        LEAVE;
     END;
 
-    /* target file not specified ? */
+    /* target file not specified? */
     IF (TargetFile = '') THEN
     DO
-       SAY CmdName': error: no targetfile specified.';
+       SAY CmdName': Error: No target file specified.';
        rc = ERROR.INVALID_PARAMETER;
        LEAVE;
     END;
@@ -170,29 +170,60 @@
     /* open files */
     IF (STREAM( SourceFile, 'C', 'OPEN READ') \= 'READY:') THEN
     DO
-       SAY CmdName': error: cannot open sourcefile' SourceFile 'for read.';
+       SAY CmdName': Error: Cannot open source file' SourceFile 'for read.';
        rc = ERROR.OPEN_FAILED;
        LEAVE;
     END;
 
     IF (STREAM( TargetFile, 'C', 'OPEN WRITE') \= 'READY:') THEN
     DO
-       SAY CmdName': error: cannot open targetfile' TargetFile 'for write';
+       SAY CmdName': Error: Cannot open target file' TargetFile 'for write.';
        rc = ERROR.OPEN_FAILED;
        LEAVE;
     END;
 
     /* now copy contents */
     Linecount = 0;
+    fInComment = FALSE;
     DO WHILE (LINES( SourceFile))
        ThisLine = LINEIN( SourceFile);
        Linecount = Linecount + 1;
 
        /* check for include files */
        CheckLine = TRANSLATE( ThisLine);
+       CommentCheckLine = CheckLine;
+
+       /* Filter out comments in CommentCheckLine, set fInComment flag */
+       DO FOREVER
+          commentStartPos = POS( '<!--', CommentCheckLine);
+          commentEndPos   = POS( '-->', CommentCheckLine);
+          SELECT
+             WHEN (fInComment & (commentEndPos > 0)) THEN
+             DO
+                /* Use part after comment */
+                CommentCheckLine = SUBSTR( CommentCheckLine, commentEndPos + 3);
+                fInComment = FALSE;
+             END;
+             WHEN (\fInComment & (commentStartPos > 0) & (commentEndPos > 0)) THEN
+             DO
+                /* Remove oneline comment */
+                CommentCheckLine = LEFT( CommentCheckLine, commentStartPos - 1) ||,
+                                   SUBSTR( CommentCheckLine, commentEndPos + 3);
+             END;
+             WHEN (\fInComment & (commentStartPos > 0)) THEN
+             DO
+                /* Use part before comment */
+                CommentCheckLine = LEFT( CommentCheckLine, commentStartPos - 1);
+                fInComment = TRUE;
+             END;
+             OTHERWISE LEAVE;
+          END;
+       END;
+
        SELECT
-          WHEN (POS( '<CINCLUDE', CheckLine) > 0) THEN Tag = 'CINCLUDE';
-          WHEN (POS( '<TINCLUDE', CheckLine) > 0) THEN Tag = 'TINCLUDE';
+          WHEN fInComment THEN Tag = '';
+          WHEN (POS( '<CINCLUDE', CommentCheckLine) > 0) THEN Tag = 'CINCLUDE';
+          WHEN (POS( '<TINCLUDE', CommentCheckLine) > 0) THEN Tag = 'TINCLUDE';
           OTHERWISE Tag = '';
        END;
 
@@ -229,7 +260,7 @@
           IncludeFile = ParseLine( IncludeFile);
           IF (STREAM( IncludeFile, 'C', 'OPEN READ') \= 'READY:') THEN
           DO
-             SAY SourceFile'('Linecount') : error: cannot open include file' IncludeFile '.'
+             SAY SourceFile'('Linecount') : Error: Cannot open include file 'IncludeFile
              rc = ERROR.INVALID_DATA;
              LEAVE;
           END;
@@ -252,7 +283,7 @@
 
        END;
 
-       NewLine =  ParseLine( ThisLine);
+       NewLine = ParseLine( ThisLine);
        rcx = LINEOUT( TargetFile, NewLine);
     END;
     rcx = STREAM( SourceFile, 'C', 'CLOSE');
@@ -268,8 +299,8 @@
 
 /* ------------------------------------------------------------------------- */
 HALT:
- SAY 'Interrupted by user';
- EXIT(ERROR.GEN_FAILURE);
+ SAY 'Interrupted by user.';
+ EXIT( ERROR.GEN_FAILURE);
 
 /* ------------------------------------------------------------------------- */
 ShowHelp: PROCEDURE EXPOSE (GlobalVars)
@@ -283,26 +314,26 @@ ShowHelp: PROCEDURE EXPOSE (GlobalVars)
 
  /* skip header */
  DO i = 1 TO 3
-    rc = LINEIN(ThisFile);
+    rc = LINEIN( ThisFile);
  END;
 
  /* show help text */
- ThisLine = LINEIN(Thisfile);
- DO WHILE (ThisLine \= ' */')
-    SAY SUBSTR(ThisLine, 7);
-    ThisLine = LINEIN(Thisfile);
+ ThisLine = LINEIN( Thisfile);
+ DO WHILE ( ThisLine \= ' */')
+    SAY SUBSTR( ThisLine, 7);
+    ThisLine = LINEIN( Thisfile);
  END;
 
  /* close file */
- rc = LINEOUT(Thisfile);
+ rc = LINEOUT( Thisfile);
 
- RETURN('');
+ RETURN( '');
 
 /* ------------------------------------------------------------------------- */
 FileExist: PROCEDURE
  PARSE ARG FileName
 
- RETURN(STREAM(Filename, 'C', 'QUERY EXISTS') > '');
+ RETURN( STREAM( Filename, 'C', 'QUERY EXISTS') > '');
 
 /* ------------------------------------------------------------------------- */
 /* Resolve environment vars.                                                 */
