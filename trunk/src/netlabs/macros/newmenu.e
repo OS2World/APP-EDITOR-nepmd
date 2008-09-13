@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.49 2008-09-08 02:25:39 aschn Exp $
+* $Id: newmenu.e,v 1.50 2008-09-13 21:49:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2843,8 +2843,8 @@ defproc add_options_menu(menuname)
                                    \1'Select startup dir for several EPM objects',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Set default ~associations...',                                       -- Set default associations...
-                                   'shell epmdefassocs.cmd' ||
+   buildmenuitem menuname, mid, i, 'Set ~associations...',                                               -- Set associations...
+                                   'SelectAssoc' ||
                                    \1'Configure WPS associations for EPM objects',
                                    MIS_TEXT, 0
    i = i + 1;
