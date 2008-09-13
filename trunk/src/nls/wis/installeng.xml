@@ -3,11 +3,11 @@
 #
 # Module Name: installeng.xml
 #
-# WPI page include file in english language
+# WPI page include file in English language
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: installeng.xml,v 1.2 2008-09-09 22:54:29 aschn Exp $
+# $Id: installeng.xml,v 1.3 2008-09-13 17:11:42 aschn Exp $
 #
 # ===========================================================================
 #
@@ -22,7 +22,7 @@
 #
 # ***************************************************************************
 -->
-<p><b>Update:</b>
+<b>Update:</b>
 Just install this WarpIN package over an old one. To ensure that the newly
 installed version starts up properly using the netlabs files, some of your
 user subdirectories will be renamed with their date being appended. Curently,

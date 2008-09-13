@@ -3,11 +3,11 @@
 #
 # Module Name: welcomeeng.xml
 #
-# WPI page include file in english language
+# WPI page include file in English language
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: welcomeeng.xml,v 1.1 2008-09-09 22:42:36 aschn Exp $
+# $Id: welcomeeng.xml,v 1.2 2008-09-13 17:11:42 aschn Exp $
 #
 # ===========================================================================
 #
@@ -39,4 +39,4 @@ coding styles and expression matching
 <li>Improved command shell features
 <li>Easier configuration to avoid macro recompilation.
 </ul>
-
+<br>
