@@ -2,7 +2,7 @@
 #
 # Module Name: configure.in
 #
-# make include file to configure src\wis\makefile and the script files
+# Make include file to configure src\wis\makefile and the script files
 # called by it. This makefile is automatically called by executing
 #    nmake all
 # in the project working root directory after having build and copied all
@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.18 2007-06-18 23:07:19 aschn Exp $
+# $Id: configure.in,v 1.19 2008-09-13 15:21:25 aschn Exp $
 #
 # ===========================================================================
 #
@@ -39,8 +39,11 @@
 # two ZIPs are packed like assumed in prepare.cmd!
 
 !ifndef BASEURL
-# BASEURL=ftp://ftp.leo.org/pub/comp/os/os2/leo/editors
+# LEO was the original source, but is not available anymore.
+#BASEURL=ftp://ftp.leo.org/pub/comp/os/os2/leo/editors
+#
 BASEURL=ftp://hobbes.nmsu.edu/pub/os2/apps/editors/epm
+#BASEURL=http://hobbes.nmsu.edu/download/pub/os2/apps/editors/epm
 !endif
 
 # A directory of your choice either empty or already holding
@@ -87,12 +90,16 @@ STEM=nepmd
 
 VERSION=113
 
+# Version number including dots and optionally with an addition,
+# no spaces allowed (used in the WarpIN text)
 
-# Version number for the NEPMD WarpIn package version
+STRING_VERSION_NEPMD=1.13
+
+# Version number for the NEPMD WarpIN package version
 # NOTE:
 #  - keep major and minor version number in sync with
 #    above version number!
-#  - must be specified in WarpIn package ID style
+#  - must be specified in WarpIN package ID style
 #  - keep in sync with (use Alt+1 to load files under cursor):
 #       NEPMD const in src\netlabs\macros\stdconst.e
 #       src\gui\recomp\common.h
@@ -102,13 +109,12 @@ VERSION=113
 #       src\gui\nepmdlib\nepmdlib.h
 #       src\gui\nepmdlib\nepmdlib.def
 
-ID_VERSION_NEPMD=1\1\3
+ID_VERSION_NEPMD=1\13
 
-
-# Version number for the WarpIn version that the resulting
+# Version number for the WarpIN version that the resulting
 # WPI package should be restricted to for installation
 # NOTE:
-#  - must be specified in WarpIn package ID style
+#  - must be specified in WarpIN package ID style
 
 ID_VERSION_REQ_WARPIN=0\9\19
 
