@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.50 2008-09-13 21:49:29 aschn Exp $
+* $Id: newmenu.e,v 1.51 2008-09-14 15:44:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1560,7 +1560,7 @@ if grepfound then
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Grep...',                                                     -- Grep...
-                                   'GrepDialog' ||
+                                   'GrepDlg' ||
                                    \1'Scan external files using regular expressions',
                                    MIS_TEXT, 0
 endif
@@ -1607,7 +1607,7 @@ endif
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Line...'\9,                                                         -- Go to line
-                                   'GotoLineDialog' ||
+                                   'GotoLineDlg' ||
                                    \1'Change line and optionally column',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_gotomark', i);
@@ -2777,7 +2777,7 @@ defproc add_options_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~To...',                                                                   -- To...
-                                   'cddialog' ||
+                                   'CDDlg' ||
                                    \1'Show/change current work dir now',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1; call SetAVar( 'mid_opendlgdir', i);
@@ -2839,7 +2839,7 @@ defproc add_options_menu(menuname)
                                    MIS_TEXT, nodismiss
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Set ~startup dir...',                                                -- Set startup dir...
-                                   'StartupDirDialog' ||
+                                   'StartupDirDlg' ||
                                    \1'Select startup dir for several EPM objects',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -3039,7 +3039,7 @@ defproc add_run_menu(menuname)
                                    0, mpfrom2short(HP_COMMAND_BREAK, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Con~figure init command for shells...',                        -- Configure init command for shells
-                                   'ShellInitCmdDialog' ||
+                                   'ShellInitCmdDlg' ||
                                    \1'OS/2 command to be executed on start of a shell',
                                    0, mpfrom2short(HP_COMMAND_SHELL, 0)
    i = i + 1;
