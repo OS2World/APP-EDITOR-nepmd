@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.29 2008-09-05 22:56:39 aschn Exp $
+* $Id: locate.e,v 1.30 2008-09-14 14:58:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1301,7 +1301,7 @@ defproc redirect_grep( GrepVersion, Cmd)
    -- Additionally, the string "Current directory = " works now as markup for
    -- the following Alt+1 command to determine the grep version easily.
    if GrepVersion > 0 then
-      insertline 'Current directory = 'CurDir
+      insertline 'Current directory = 'CurDir, 1
    endif
 
    .modify = 0
