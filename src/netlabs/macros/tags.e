@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.18 2008-09-05 23:18:37 aschn Exp $
+* $Id: tags.e,v 1.19 2008-09-14 15:32:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -506,9 +506,7 @@ compile endif
 compile if 0  -- We already checked if the line # was good; the date no longer matters here.
    if filedate<>''  then  -- Line number and file write date preserved
       if filedate=get_file_date(filename) then  -- Same date means file has not been changed,
-         display -8
-         sayerror 'Jumping straight to line.'  /**/
-         display 8
+         'SayHint Jumping straight to line.'  /**/
          fileline                               -- so we can jump right to the line.
          .col = 1
          call proc_search(proc_name, 1, file_mode, file_type)
@@ -518,9 +516,7 @@ compile if 0  -- We already checked if the line # was good; the date no longer m
 compile endif
    -- If not found in fileline (file may have been changed) or found multiple times in fileline
    0
-   display -8
-   sayerror 'Searching for routine.'  /**/
-   display 8
+   'SayHint Searching for routine.'  /**/
    rc=proc_search(proc_name, 1, file_mode, file_type)
    --sayerror 'Using proc_search for 'proc_name', filename = '.filename
    if rc then

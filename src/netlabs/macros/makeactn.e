@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: makeactn.e,v 1.4 2005-05-16 22:15:00 aschn Exp $
+* $Id: makeactn.e,v 1.5 2008-09-14 15:32:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -63,9 +63,7 @@ defc makea_build
 defc makea_makeme
    parse arg action_letter index path build_command
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror a_makeme_PROMPT
-      display 8
+      'SayHint' a_makeme_PROMPT
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0
       if path='=' then
@@ -107,9 +105,7 @@ defc makea_curr_descr
 defproc makea_common_action(arg1, command, prompt)
    parse value arg1 with action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror prompt
-      display 8
+      'SayHint' prompt
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0
       command parms

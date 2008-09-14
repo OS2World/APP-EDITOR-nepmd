@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.17 2008-09-05 22:39:44 aschn Exp $
+* $Id: dosutil.e,v 1.18 2008-09-14 15:32:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -245,9 +245,7 @@ defc dir
       fspec = next
    endif
    dos_command( 'dir' fspec)
-   display -8  -- Messages go to the messageline only, they were not saved
-   sayerror ALT_1_LOAD__MSG
-   display 8
+   'SayHint' ALT_1_LOAD__MSG
 
 ; ---------------------------------------------------------------------------
 ; Search a file spec in current dir recoursively and without dirs. List

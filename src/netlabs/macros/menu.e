@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: menu.e,v 1.7 2008-09-05 22:59:46 aschn Exp $
+* $Id: menu.e,v 1.8 2008-09-14 15:32:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -338,10 +338,8 @@ defc processmenuselect
 
    if helpstr <> '' then
       -- disable writing msg to the messagebox
-      display -8
       -- show helpstr
-      sayerror helpstr
-      display 8
+      'SayHint' helpstr
    else
       -- delete the previous msg
       sayerror 0

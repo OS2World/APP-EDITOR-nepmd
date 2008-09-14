@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.30 2008-09-14 14:58:18 aschn Exp $
+* $Id: locate.e,v 1.31 2008-09-14 15:32:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -724,22 +724,18 @@ defc ringfind, ringf, ringlocate, ringl, globalfind, globalfindnext
          refresh
          --'postme highlightmatch'  -- postme required
          'highlightmatch'  -- postme not required, command instead of proc makes it
-         display -8
          if fileid = StartFileID then
-            sayerror "String only found in this file."
+            'SayHint String only found in this file.'
          else
-            sayerror 0
+            sayerror 0  -- flush the message
          endif
-         display 8
          leave
       else
          -- no match in file - restore file location
          call prestore_pos(save_pos)
       endif
       if fileid = StartFileID then
-         display -8
-         sayerror "String not found in any file of the ring."
-         display 8
+         'SayHint String not found in any file of the ring.'
          leave
       endif
    endloop
@@ -972,9 +968,7 @@ defc ringchange, ringc, globchng, globalchange, gchange, gc
    else
       files = 'files.'
    endif
-   display -8
-   sayerror 'String changed in' change_count files
-   display 8
+   'SayHint String changed in' change_count files
 
 ; ---------------------------------------------------------------------------
 const
@@ -1244,9 +1238,7 @@ defproc CallGrep
    elseif greprc <> 0 then
 
    elseif fVerbose then
-      display -8  -- Messages go to the messageline only, they were not saved
-      sayerror ALT_1_LOAD__MSG
-      display 8
+      'SayHint' ALT_1_LOAD__MSG
    endif
    mouse_setpointer vepm_pointer
    rc = greprc
@@ -1320,9 +1312,7 @@ defc MacGrep
    if rc <> 0 then
       sayerror 'rc from grep = 'rc
    else
-      display -8  -- Messages go to the messageline only, they were not saved
-      sayerror ALT_1_LOAD__MSG
-      display 8
+      'SayHint' ALT_1_LOAD__MSG
    endif
 
 ; ---------------------------------------------------------------------------

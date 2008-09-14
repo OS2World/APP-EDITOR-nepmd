@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: undo.e,v 1.7 2006-06-03 20:48:39 aschn Exp $
+* $Id: undo.e,v 1.8 2008-09-14 15:32:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -164,9 +164,7 @@ defc Undo1 =
       else
          --call beep(800, 500)
       endif
-      display -8
-      sayerror 'Now at state' presentstate 'of' neweststate
-      display 8
+      'SayHint Now at state' presentstate 'of' neweststate
       return
    endif
    -- Need to get new state information
@@ -176,9 +174,7 @@ defc Undo1 =
    presentstate = neweststate - 1
    undoaction 7, presentstate
    current_undo_state = presentstate oldeststate neweststate
-   display -8
-   sayerror 'Initialized:  at state' presentstate 'of' neweststate
-   display 8
+   'SayHint Initialized at state' presentstate 'of' neweststate
    return
 
 defc Redo1 =
@@ -193,14 +189,10 @@ defc Redo1 =
          presentstate = presentstate + 1
          undoaction 7, presentstate
          current_undo_state = presentstate oldeststate neweststate
-         display -8
-         sayerror 'Now at state' presentstate 'of' neweststate
-         display 8
+         'SayHint Now at state' presentstate 'of' neweststate
          return
       endif
-      display -8
-      sayerror 'Already at state' presentstate 'of' neweststate
-      display 8
+      'SayHint Already at state' presentstate 'of' neweststate
    endif
    --call beep(800, 500)
    return

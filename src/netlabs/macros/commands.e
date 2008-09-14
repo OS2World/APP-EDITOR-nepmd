@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: commands.e,v 1.3 2008-09-05 22:36:08 aschn Exp $
+* $Id: commands.e,v 1.4 2008-09-14 15:32:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -42,9 +42,7 @@ defc cmd_os2fs
       'start /fs'
       --'start /fs %comspec%'  -- That requires 2 exit commands to close it
    elseif arg(1) = 'I' then
-     display -8
-     sayerror OS2FS_PROMPT
-     display 8
+     'SayHint' OS2FS_PROMPT
    elseif arg(1) = 'H' then
 ;    'helpmenu 5390'
       call winmessagebox(HELP_TITLE, OS2FS_PROMPT, MB_OK + MB_INFORMATION + MB_MOVEABLE)
@@ -55,9 +53,7 @@ defc cmd_os2win
       'start /win'
       --'start /win %comspec%'  -- That requires 2 exit commands to close it
    elseif arg(1) = 'I' then
-     display -8
-     sayerror OS2WIN_PROMPT
-     display 8
+     'SayHint' OS2WIN_PROMPT
    elseif arg(1) = 'H' then
 ;    'helpmenu 5390'
       call winmessagebox(HELP_TITLE, OS2WIN_PROMPT, MB_OK + MB_INFORMATION + MB_MOVEABLE)
@@ -67,9 +63,7 @@ defc cmd_dosfs
    if arg(1) = 'S' then
       'start /dos /fs'
    elseif arg(1) = 'I' then
-     display -8
-     sayerror DOSFS_PROMPT
-     display 8
+     'SayHint' DOSFS_PROMPT
    elseif arg(1) = 'H' then
 ;    'helpmenu 5390'
       call winmessagebox(HELP_TITLE, DOSFS_PROMPT, MB_OK + MB_INFORMATION + MB_MOVEABLE)
@@ -79,9 +73,7 @@ defc cmd_doswin
    if arg(1) = 'S' then
       'start /dos /win'
    elseif arg(1) = 'I' then
-     display -8
-     sayerror DOSWIN_PROMPT
-     display 8
+     'SayHint' DOSWIN_PROMPT
    elseif arg(1) = 'H' then
 ;    'helpmenu 5390'
       call winmessagebox(HELP_TITLE, DOSWIN_PROMPT, MB_OK + MB_INFORMATION + MB_MOVEABLE)
@@ -91,9 +83,7 @@ defc cmd_winos2fs
    if arg(1) = 'S' then
       'start /fs /dos /c winos2'
    elseif arg(1) = 'I' then
-     display -8
-     sayerror WINOS2_PROMPT
-     display 8
+     'SayHint' WINOS2_PROMPT
    elseif arg(1) = 'H' then
 ;    'helpmenu 5390'
       call winmessagebox(HELP_TITLE, WINOS2_PROMPT, MB_OK + MB_INFORMATION + MB_MOVEABLE)

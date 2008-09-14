@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: jot.e,v 1.3 2002-08-18 20:34:32 aschn Exp $
+* $Id: jot.e,v 1.4 2008-09-14 15:32:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -76,9 +76,7 @@ defc jot_a_note
       sayerror 0
       'jot'
    elseif arg(1) = 'I' then   -- button Initialized
-      display -8
-      sayerror JOT_PROMPT
-      display 8
+      'SayHint' JOT_PROMPT
    elseif arg(1) = 'H' then   -- button Help
 ;     'compiler_help_add jot.hlp'      -- Sample code; no .hlp file is
 ;     'helpmenu 32100'                 -- provided for JOT.

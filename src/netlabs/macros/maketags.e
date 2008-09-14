@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: maketags.e,v 1.11 2005-10-16 22:27:41 aschn Exp $
+* $Id: maketags.e,v 1.12 2008-09-14 15:32:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -290,9 +290,7 @@ compile endif
 
 /*
          -- output of filenames slows processing down
-         display -8
-         sayerror verb "'"filename"'..."
-         display 8
+         'SayHint' verb '"'filename'"...'
 */
 
 compile if LOG_TAG_MATCHES
@@ -479,9 +477,7 @@ defproc add_tags( filename, tag_fid, filedate)
    rc = proc_search( proc_name, 1, ext)
    while not rc do
 compile if SHOW_EACH_PROCEDURE  -- Display progress messages
-      display -8
-      sayerror "...found '"proc_name"' in" filename
-      display 8
+      'SayHint ...found "'proc_name'" in' filename
 compile endif
       insertline proc_name filename .line filedate, tag_fid.last + 1, tag_fid
       proc_name=''

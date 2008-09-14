@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflow.e,v 1.9 2005-11-16 16:20:15 aschn Exp $
+* $Id: reflow.e,v 1.10 2008-09-14 15:32:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,9 +41,7 @@ defc reflow2window
       sayerror 0
       'reflow'
    elseif arg(1) = 'I' then
-      display -8
-      sayerror reflow2window_prompt
-      display 8
+      'SayHint' reflow2window_prompt
    elseif arg(1) = 'H' then
       'compiler_help_add REFLOW.hlp'
       'helpmenu 32100'
@@ -54,9 +52,7 @@ defc reflow2size
    if arg1 = 'S' then
       'reflow' rest
    elseif arg1 = 'I' then
-      display -8
-      sayerror reflow2size_prompt
-      display 8
+      'SayHint' reflow2size_prompt
    elseif arg1 = 'H' then
       'compiler_help_add REFLOW.hlp'
       'helpmenu 32100'
@@ -66,9 +62,7 @@ defc reflow_prompt
    if arg(1) = 'S' then
       'reflow *'
    elseif arg(1) = 'I' then
-      display -8
-      sayerror 'Do a WYSIWYG reflow, prompting for width'
-      display 8
+      'SayHint Do a WYSIWYG reflow, prompting for width'
    elseif arg(1) = 'H' then
       'compiler_help_add REFLOW.hlp'
       'helpmenu 32100'

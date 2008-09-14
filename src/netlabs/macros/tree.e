@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tree.e,v 1.5 2006-12-09 19:36:29 aschn Exp $
+* $Id: tree.e,v 1.6 2008-09-14 15:32:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -78,9 +78,7 @@ defc tree_action
       endif
       'tree' parms
    elseif action_letter = 'I' then   -- button Initialized
-      display -8
-      sayerror TREE_PROMPT
-      display 8
+      'SayHint' TREE_PROMPT
    elseif action_letter = 'H' then   -- button Help
       'compiler_help_add tree.hlp'     -- Make sure the help file is loaded
       'helpmenu 32111'                 -- & invoke it.
@@ -104,9 +102,7 @@ defc tree_dir_action
       endif
       'tree_dir' parms
    elseif arg(1) = 'I' then   -- button Initialized
-      display -8
-      sayerror TREE_DIR_PROMPT
-      display 8
+      'SayHint' TREE_DIR_PROMPT
    elseif arg(1) = 'H' then   -- button Help
       'compiler_help_add tree.hlp'     -- Make sure the help file is loaded
       'helpmenu 32112'                 -- & invoke it.

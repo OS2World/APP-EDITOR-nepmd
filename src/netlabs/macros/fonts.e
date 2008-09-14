@@ -4,14 +4,14 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fonts.e,v 1.3 2002-08-18 20:29:59 aschn Exp $
+* $Id: fonts.e,v 1.4 2008-09-14 15:32:38 aschn Exp $
 *
 * ===========================================================================
 *
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -70,9 +70,7 @@ defc fonts_strikeout
 defproc fonts_common_action(arg1, command, prompt)
    parse value arg1 with action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror prompt
-      display 8
+      'SayHint' prompt
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0
       command

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: groups.e,v 1.16 2007-06-10 19:54:58 aschn Exp $
+* $Id: groups.e,v 1.17 2008-09-14 15:32:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -92,9 +92,7 @@ defc group_savegroup
       sayerror 0
       'savegroup' parms
    elseif action_letter = 'I' then   -- button Initialized
-      display -8
-      sayerror GR_SAVE_PROMPT
-      display 8
+      'SayHint' GR_SAVE_PROMPT
    elseif action_letter = 'H' then   -- button Help
       call winmessagebox(GROUPS__MSG, GR_SAVE_PROMPT, MB_OK + MB_INFORMATION + MB_MOVEABLE)
    elseif action_letter = 'E' then   -- button End
@@ -108,9 +106,7 @@ defc group_loadgroup
       sayerror 0
       'loadgroup' parms
    elseif action_letter = 'I' then   -- button Initialized
-      display -8
-      sayerror GR_LOAD_PROMPT
-      display 8
+      'SayHint' GR_LOAD_PROMPT
    elseif action_letter = 'H' then   -- button Help
       call winmessagebox(GROUPS__MSG, GR_LOAD_PROMPT, MB_OK + MB_INFORMATION + MB_MOVEABLE)
    elseif action_letter = 'E' then   -- button End
@@ -436,9 +432,7 @@ compile endif
       return
    endif
    do i = 1 to howmany
-      display -8
-      sayerror 'Loading file' i 'of' howmany
-      display 8
+      'SayHint Loading file' i 'of' howmany
 compile if GROUPS_USE_STANDARD_INI_DEST
       this_file = queryprofile( app_hini, group_name, 'FILE'i)
 compile else
