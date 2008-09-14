@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sampactn.e,v 1.11 2006-10-14 23:36:26 aschn Exp $
+* $Id: sampactn.e,v 1.12 2008-09-14 15:32:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -132,9 +132,7 @@ defc a_Messages
 defc a_Add_New
    parse arg action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror a_Add_New_PROMPT
-      display 8
+      'SayHint' a_Add_New_PROMPT
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0                        -- Clear prompt
       'xcom e /n'                       -- execute action
@@ -167,9 +165,7 @@ defc a_Time
 ;;  a_common_action(arg(1), 'qt', a_Time_PROMPT, 2250)
    parse arg action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror a_Time_PROMPT
-      display 8
+      'SayHint' a_Time_PROMPT
    elseif action_letter = 'S' then   -- button Selected -  execute action
       sayerror 0                        -- Clear prompt
       if abbrev('?', parms, 0) then
@@ -198,9 +194,7 @@ defc a_Date
 ;  a_common_action(arg(1), 'qd', a_Date_PROMPT, 2240)
    parse arg action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror a_Date_PROMPT
-      display 8
+      'SayHint' a_Date_PROMPT
    elseif action_letter = 'S' then   -- button Selected -  execute action
       sayerror 0                        -- Clear prompt
       if abbrev('?', parms, 0) then
@@ -234,9 +228,7 @@ defc a_MonoFont
    universal default_font
    parse arg action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror a_MonoFont_PROMPT
-      display 8
+      'SayHint' a_MonoFont_PROMPT
    elseif action_letter = 'S' then   -- button Selected -  execute action
       sayerror 0                        -- Clear prompt
       parse value queryfont(.font) with fontname '.'
@@ -254,9 +246,7 @@ defc a_MonoFont
 defc a_Shell
    parse arg action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror substr( CREATE_SHELL_MENUP__MSG, 2)
-      display 8
+      'SayHint' substr( CREATE_SHELL_MENUP__MSG, 2)
    elseif action_letter = 'S' then   -- button Selected
       if isadefc('shell') then
          sayerror 0                        -- Clear prompt
@@ -276,9 +266,7 @@ defc a_List_Ring
 defc a_Compiler_Help
    parse arg action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror substr(DESCRIBE_COMPILER_MENUP__MSG, 2)
-      display 8
+      'SayHint' substr(DESCRIBE_COMPILER_MENUP__MSG, 2)
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0                        -- Clear prompt
       'compiler_help'                   -- execute action
@@ -294,9 +282,7 @@ defc a_Compiler_Help
 defc a_Compiler_Next
    parse arg action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror substr( NEXT_COMPILER_MENUP__MSG, 2)
-      display 8
+      'SayHint' substr( NEXT_COMPILER_MENUP__MSG, 2)
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0                        -- Clear prompt
       'nextbookmark N 16'               -- execute action
@@ -312,9 +298,7 @@ defc a_Compiler_Next
 defc a_Compiler_Prev
    parse arg action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror substr( PREV_COMPILER_MENUP__MSG, 2)
-      display 8
+      'SayHint' substr( PREV_COMPILER_MENUP__MSG, 2)
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0                        -- Clear prompt
       'nextbookmark P 16'               -- execute action
@@ -354,9 +338,7 @@ defc a_togl_hilit
       --    huge ring:
       'postme ActivateHighlighting' new_hili
    elseif arg(1) = 'I' then   -- button Initialized
-      display -8
-      sayerror a_Toggle_Hilight_PROMPT
-      display 8
+      'SayHint' a_Toggle_Hilight_PROMPT
    elseif arg(1) = 'H' then   -- button Help
       call winmessagebox( a_Toggle_Hilight__MSG,
                           a_Toggle_Hilight_PROMPT,
@@ -380,9 +362,7 @@ defc a_undodlg
 defc a_match_brackets
    parse value arg(1) with action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror a_Match_Brackets_PROMPT
-      display 8
+      'SayHint' a_Match_Brackets_PROMPT
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0
       'assist'
@@ -397,9 +377,7 @@ defc a_match_brackets
 defproc a_common_action( arg1, command, prompt, panel)
    parse value arg1 with action_letter parms
    if action_letter = 'I' then       -- button Initialized
-      display -8
-      sayerror substr( prompt, 2)    -- All the prompts in ENGLISH.E start with an ASCII 1.
-      display 8
+      'SayHint' substr( prompt, 2)    -- All the prompts in ENGLISH.E start with an ASCII 1.
    elseif action_letter = 'S' then   -- button Selected
       sayerror 0
       command parms

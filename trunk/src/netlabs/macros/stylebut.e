@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stylebut.e,v 1.4 2006-10-07 18:16:53 aschn Exp $
+* $Id: stylebut.e,v 1.5 2008-09-14 15:32:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -117,9 +117,7 @@ defc apply_style
          unmark
       endif
    elseif arg1 = 'I' then   -- button Initialized
-      display -8
-      sayerror STYLEBUT_PROMPT
-      display 8
+      'SayHint' STYLEBUT_PROMPT
    elseif arg1 = 'H' then   -- button Help
 ;     'compiler_help_add stylebut.hlp' -- Sample code; no .hlp file is
 ;     'helpmenu 32100'                 -- provided for STYLEBUT.
@@ -175,9 +173,7 @@ defc remove_style  -- Based on code from Toby Thurston
         sayerror NO_STYLE__MSG
      endif
    elseif arg1 = 'I' then   -- button Initialized
-      display -8
-      sayerror UNSTYLE_PROMPT
-      display 8
+      'SayHint' UNSTYLE_PROMPT
    elseif arg1 = 'H' then   -- button Help
       call winmessagebox(UNSTYLE__MSG, UNSTYLE_PROMPT, MB_OK + MB_INFORMATION + MB_MOVEABLE)
 ;  elseif arg1 = 'E' then   -- button End

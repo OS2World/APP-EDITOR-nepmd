@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmlex.e,v 1.6 2008-09-05 22:45:58 aschn Exp $
+* $Id: epmlex.e,v 1.7 2008-09-14 15:32:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -355,10 +355,7 @@ compile endif
       zz                                 /* advance to next (new) line         */
       getline line
       line = translate(line, ' ', \9)  -- Convert tabs to spaces
-      display -8
-;     sayerror 'Spell Checking 'what'...'
-      sayerror CHECKING__MSG what '(line' zz'; last='lastline')...'
-      display 8
+      'SayHint' CHECKING__MSG what '(line' zz'; last='lastline')...'
 
       loop
 
@@ -905,10 +902,7 @@ compile endif
 ;; if partial_lines then .col=fc; else .col=1; endif
 
    while firstline<=lastline do
-      display -8
-      sayerror CHECKING__MSG what'...'
-;;    sayerror 'Spell Checking 'what '(line' zz'; last='lastline')...'
-      display 8
+      'SayHint' CHECKING__MSG what'...'
       .col = 1
       rc = '[not set]'
       result = lexam(LXFPRFLINE, firstline, lastline)
@@ -1056,14 +1050,12 @@ defc keep_on_prufin
    universal proofdlg_hwnd, proofdlg_whatflag, proof_curline, proof_lastline, proof_lexresult, proof_resultofs, proof_offst, proof_prev_col, proofdlg_filetypeflags
    while proof_curline<=proof_lastline do
       if not proofdlg_hwnd then
-         display -8
 ;;       sayerror 'Spell Checking 'subword('file marked area', proofdlg_whatflag, proofdlg_whatflag)'...'
          if proofdlg_whatflag=1 then
-            sayerror CHECKING__MSG FILE__MSG
+            'SayHint' CHECKING__MSG FILE__MSG
          elseif proofdlg_whatflag=1 then
-            sayerror CHECKING__MSG MARKED_AREA__MSG
+            'SayHint' CHECKING__MSG MARKED_AREA__MSG
          endif
-         display 8
 ;;    else
 ;;       msg = 'Checking spelling...'\0
 ;;       call windowmessage(1,  proofdlg_hwnd,   -- send message back to dialog

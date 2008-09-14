@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.20 2008-09-05 23:19:16 aschn Exp $
+* $Id: toolbar.e,v 1.21 2008-09-14 15:32:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -228,9 +228,7 @@ defproc ToolbarAction
          sayerror 0
          Command
       elseif arg(1) = 'I' then
-        display -8
-        sayerror Prompt
-        display 8
+        'SayHint' Prompt
       elseif arg(1) = 'H' then
          if words( Help) = 1 & isnum( Help) then
             'helpmenu' Help
