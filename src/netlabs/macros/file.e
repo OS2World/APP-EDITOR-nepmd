@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.27 2008-09-07 23:00:27 aschn Exp $
+* $Id: file.e,v 1.28 2008-09-14 15:44:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1473,7 +1473,7 @@ defc cd
 ; ---------------------------------------------------------------------------
 ; Change drive and directory. Release previous directory first (change to
 ; root dir). Give a message.
-defc cddialog
+defc CDDlg
    CurDir = directory()
    Title = 'Enter new work directory'
    Text  = CUR_DIR_IS__MSG CurDir
@@ -1498,7 +1498,7 @@ defc cddialog
 
 ; ---------------------------------------------------------------------------
 ; Helper to set startup dir for WPS objects.
-defc StartupDirDialog
+defc StartupDirDlg
    CurStartupDir = RxResult( 'chgstartupdir query')
    Title = 'Enter new startup directory for WPS objects'
    Text  = 'Current startup directory is 'CurStartupDir

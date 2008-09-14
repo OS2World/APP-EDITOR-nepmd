@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tagsactn.e,v 1.3 2008-09-14 15:32:42 aschn Exp $
+* $Id: tagsactn.e,v 1.4 2008-09-14 15:44:20 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,13 +32,13 @@ include 'menuhelp.h'
 defc tagsactn_actionlist
    universal ActionsList_FileID  -- This is the fileid that gets the line(s)
 
-   insertline 'tags_dialog'TAGSDLG_MENUP__MSG'tagsactn', ActionsList_FileID.last+1, ActionsList_FileID
+   insertline 'TagsDlg'TAGSDLG_MENUP__MSG'tagsactn', ActionsList_FileID.last+1, ActionsList_FileID
    insertline 'find_cur_proc'FIND_TAG_MENUP__MSG'tagsactn', ActionsList_FileID.last+1, ActionsList_FileID
    insertline 'find_proc'FIND_TAG2_MENUP__MSG'tagsactn', ActionsList_FileID.last+1, ActionsList_FileID
    insertline 'tags_filename'TAGFILE_NAME_MENUP__MSG'tagsactn', ActionsList_FileID.last+1, ActionsList_FileID
    insertline 'make_tags_file'MAKE_TAGS_MENUP__MSG'tagsactn', ActionsList_FileID.last+1, ActionsList_FileID
 
-defc tags_dialog
+defc TagsDlg, tags_dialog
    if arg(1) = 'S' then       -- button Selected
       sayerror 0
       'poptagsdlg'

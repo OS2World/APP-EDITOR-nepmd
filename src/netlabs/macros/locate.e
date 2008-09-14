@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.31 2008-09-14 15:32:40 aschn Exp $
+* $Id: locate.e,v 1.32 2008-09-14 15:44:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1120,13 +1120,13 @@ defc Grep
       sayerror 'Error: 'GREP_EXE' not found in PATH.'
       rc = 2
    else
-      rc = callgrep( GrepVersion, arg(1))
+      rc = CallGrep( GrepVersion, arg(1))
    endif
 ;   sayerror 'rc from defc Grep = 'rc
 
 ; ---------------------------------------------------------------------------
 ; For use as menu item.
-defc GrepDialog
+defc GrepDlg
    next = arg(1)
    if next > '' then
       GrepVersion = next
@@ -1172,7 +1172,7 @@ defc GrepDialog
       endif
       --call CallGrep( GrepVersion, GrepArgs)  -- opens too late
       "Open 'Grep "GrepArgs"'"  -- use an extra window to show Grep's help
-      'postme GrepDialog' GrepVersion
+      'postme GrepDlg' GrepVersion
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1316,9 +1316,9 @@ defc MacGrep
    endif
 
 ; ---------------------------------------------------------------------------
-defc findmark
+defc FindMark
    if not FileIsMarked() then
-     'markword'
+     'MarkWord'
    endif
    -- Get active mark coordinates and fileid
    getmark first_line, last_line, first_col, last_col, mark_fileid
@@ -1514,7 +1514,7 @@ defc SetScrollAfterLocate
    endif
 
 ; ---------------------------------------------------------------------------
-defc GotoLineDialog
+defc GotoLineDlg
    Title = 'Go to line'
    Text  = 'Enter line number and optionally a column number:'
    --Text  = Text''copies( ' ', max( 100 - length(Text), 0))

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.36 2008-09-05 22:47:44 aschn Exp $
+* $Id: epmshell.e,v 1.37 2008-09-14 15:44:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -384,7 +384,7 @@ defc ShellSetInitCmd
    ret = NepmdWriteConfigValue( nepmd_hini, KeyPath, strip( arg(1)))
 
 ; ---------------------------------------------------------------------------
-defc ShellInitCmdDialog
+defc ShellInitCmdDlg
    universal nepmd_hini
 
    KeyPath = '\NEPMD\User\Shell\InitCmd'
