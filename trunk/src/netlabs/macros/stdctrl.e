@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.47 2008-09-05 23:16:46 aschn Exp $
+* $Id: stdctrl.e,v 1.48 2008-09-14 15:04:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1935,23 +1935,7 @@ defc maybe_reflow_ALL
       endif
    enddo
 
-; Moved defc setstusline to INFOLINE.E
-
-; Called with a string to set the messageline text to that string; with no argument
-; to just set the messageline color.
-defc setmessageline
-   universal vMESSAGECOLOR
-   if arg(1) then
-      template = atoi(length(arg(1))) || arg(1)
-      template_ptr = put_in_buffer(template)
-   else
-      template_ptr = 0
-   endif
-   call windowmessage( 1,  getpminfo(EPMINFO_EDITCLIENT),
-                       5432,      -- EPM_FRAME_MESSAGELINE
-                       template_ptr,
-                       vMESSAGECOLOR)
-
+; Moved defc setstatusline and setinfoline to INFOLINE.E
 ; Moved defc new to EDIT.E
 ; Moved defc viewword to KWHELP.E
 
