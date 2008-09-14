@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: e3emul.e,v 1.6 2008-09-05 23:14:05 aschn Exp $
+* $Id: e3emul.e,v 1.7 2008-09-14 18:49:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -528,9 +528,10 @@ defproc savefile(given_name)
 /*
    if backup_path_ok then
 */
-      rc = MakeBackup( name)
-      if rc <> 0 then
-         return rc
+      rcx = MakeBackup( name)
+      if rcx <> 0 then
+         sayerror 'Backup for "'name'" failed.'
+         -- Don't return backup rc here to continue with Save.
       endif
 /*
    endif
