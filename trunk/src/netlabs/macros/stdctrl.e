@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.48 2008-09-14 15:04:07 aschn Exp $
+* $Id: stdctrl.e,v 1.49 2008-09-14 18:50:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -471,8 +471,7 @@ defproc listbox_buffer_from_file( startfid, var bufhndl, var noflines, var useds
 ³                                                                            ³
 ³ What's it called: EntryBox                                                 ³
 ³                                                                            ³
-³ What does it do : Creates a System-Modal Dialog Box.  (A System-Modal box  ³
-³                   must be processed before the function can continue.)     ³
+³ What does it do : Creates an application-modal dialog box.                 ³
 ³                   The dialog box contains a entry field and 2 push buttons.³
 ³                   (Up to 4 as of EPM 5.21 / 5.50.  See below.)             ³
 ³                                                                            ³
