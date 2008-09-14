@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.15 2008-09-05 22:53:08 aschn Exp $
+* $Id: infoline.e,v 1.16 2008-09-14 15:04:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -441,13 +441,13 @@ defproc GetInfoFieldValue(FVar, var FFlag)
    return FValue
 
 ; ---------------------------------------------------------------------------
-; Moved defc setstatusline from STDCTRL.E to STATLINE.E
-; Called with a string to set the statusline text to that string; with no argument
-; to just set the statusline color.
+; Called with a string to set the statusline text to that string; with no
+; argument to just set the statusline color.
 defc SetStatusLine
    universal vstatuscolor
    universal vmodifiedstatuscolor
    universal current_status_template
+
    if .modify = 0 then
       newstatuscolor = vstatuscolor
    else
@@ -464,7 +464,37 @@ defc SetStatusLine
                        5431,      -- EPM_FRAME_STATUSLINE
                        template_ptr,
                        newstatuscolor )
-   return
+
+; ---------------------------------------------------------------------------
+; Called with a string to set the messageline text to that string. That text
+; will be diplayed until the next message text is set. The timer won't apply
+; here. Additionally, the message text won't be saved to the message box. So,
+; using an arg is not very useful. When called with no argument, the
+; messageline color is just set.
+defc SetMessageLine
+   universal vmessagecolor
+
+   if arg(1) then
+      template = atoi( length( arg(1))) || arg(1)
+      template_ptr = put_in_buffer( template)
+   else
+      template_ptr = 0
+   endif
+   call windowmessage( 1, getpminfo(EPMINFO_EDITCLIENT),
+                       5432,      -- EPM_FRAME_MESSAGELINE
+                       template_ptr,
+                       vmessagecolor)
+
+; ---------------------------------------------------------------------------
+; Note: It's not possible to reset the color for a following message. Color
+;       setting applies always immediately. The behavior of internally
+;       created messages can't be redefined. In order to use the correct
+;       color for them, the standard color of the message line can't be
+;       changed temporarily, without installing a PM hook.
+defc SayHint
+   display -8  -- disable addition to the message box
+   sayerror arg(1)
+   display 8   -- enable addition to the message box
 
 ; ---------------------------------------------------------------------------
 ; defmodify is triggered
