@@ -10,6 +10,7 @@
 *
 *    ex    -> ex_yyyy-mm-dd        (yyyy = year, mm = month, dd = day)
 *    mode  -> mode_yyyy-mm-dd      (long filename support required)
+*    bin   -> bin_yyyy-mm-dd
 *
 * If a directory name already exists, a counter is added:
 *
@@ -17,7 +18,7 @@
 *    ex_yyyy-mm-dd_1
 *    ex_yyyy-mm-dd_2
 *
-* New empty directories were created on success.
+* New empty directories were created on success and NEPMD.INI will be copied.
 *
 * This is executed by the installer to ensure that a newly installed NEPMD
 * uses its own macros at first. Otherwise incompatibities may happen, because
@@ -35,7 +36,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: renudirs.cmd,v 1.2 2008-09-08 00:15:12 aschn Exp $
+* $Id: renudirs.cmd,v 1.3 2008-09-19 19:51:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -64,8 +65,8 @@
               ' fQuiet ERROR.';
 
  /* ###################### Configurable part starts ################### */
- /* user subdirs to process */
- SubDirs = 'ex mode'
+ /* User subdirs to process */
+ SubDirs = 'ex mode bin'
  /* ###################### Configurable part ends ##################### */
 
  /* some OS/2 Error codes */
@@ -213,6 +214,11 @@
        IF \TreeContainsFiles( OldDir) THEN
           ITERATE;
 
+       /* check for contained NEPMD.INI */
+       fContainsNepmdIni = FALSE;
+       IF FileExist( OldDir'\NEPMD.INI') THEN
+          fContainsNepmdIni = TRUE;
+
        NewDirName = SubDir.i'_'IsoDate;
        NewDir     = UserDir'\'NewDirName;
 
@@ -235,6 +241,17 @@
        DO
           rcx = SysMkDir( OldDir);
           RenamedDirs = STRIP( RenamedDirs SubDir.i);
+
+          /* Copy old NEPMD.INI back */
+          IF ((rcx = 0) & fContainsNepmdIni) THEN
+          DO
+             /* Reset file attributes and copy */
+             rcx = SysFileTree( NewDir'\NEPMD.INI', 'Found.', 'FO', '*****', '-----')
+             IF \fQuiet THEN
+                SAY 'Copying 'NewDir'\NEPMD.INI -> 'OldDir'\NEPMD.INI';
+             rcx = SysCopyObject( NewDir'\NEPMD.INI', OldDir)
+             /*'copy 'NewDir'\NEPMD.INI 'OldDir'\NEPMD.INI'*/
+          END
        END;
 
        /* check for error */
@@ -279,7 +296,7 @@
     OTHERWISE
     DO
        SAY ErrorMessage;
-       '@PAUSE';
+       'PAUSE';
     END;
  END;
 
@@ -309,7 +326,13 @@ GetIsoDate: PROCEDURE
 FileExist: PROCEDURE
  PARSE ARG FileName;
 
- RETURN( STREAM( Filename, 'C', 'QUERY EXISTS') <> '');
+ /*RETURN( STREAM( Filename, 'C', 'QUERY EXISTS') <> '');*/
+
+ /* Find also hidden files */
+ Found.0 = 0;
+ rcx = SysFileTree( FileName, 'Found.', 'FO');
+
+ RETURN( Found.0 > 0);
 
 /* ------------------------------------------------------------------------- */
 DirExist: PROCEDURE
