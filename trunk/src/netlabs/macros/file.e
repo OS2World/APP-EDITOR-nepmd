@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.29 2008-09-20 23:36:35 aschn Exp $
+* $Id: file.e,v 1.30 2008-09-20 23:57:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -49,17 +49,6 @@ const
 compile endif
 
 const
--- jbl 1/89 new feature.  Set this to some non-blank directory name if you want
--- a backup copy of your file upon saving.  E will copy the previous file
--- to this directory before writing the new one.  Typical values are:
---    ''             empty string to disable this feature (as in old E)
---    '.\'           for current directory (don't forget the last backslash)
---    'C:\OLDFILES\' to put them all in one place
-compile if not defined(BACKUP_PATH)
-; #### Todo: replace ########################################################
-   BACKUP_PATH = ''
-compile endif
-
 -- Include support for calling user exits in DEFMAIN, SAVE, NAME, and QUIT.
 -- (EPM 5.51+ only; requires isadefproc() ).
 compile if not defined(SUPPORT_USER_EXITS)
@@ -1655,19 +1644,24 @@ defc AutosaveDir
       Title = 'Autosave directory'
       Text  = 'Enter a directory, either fully-qualified or relative to current file:'
       Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+      Buttons = '/~Set/~Reset/Cancel'
       Entry = vautosave_path
       if rightstr( Entry, 2) <> ':\' then
          Entry = strip( Entry, 'T', '\')
       endif
       parse value entrybox( Title,
-                            '',
+                            Buttons,
                             Entry,
                             0,
                             240,
                             atoi(1) || atoi(0) || atol(0) ||
                             Text) with button 2 NewDir \0
       NewDir = strip( NewDir)
-      if button <> \1 then
+      if button = \1 then      -- Set
+         -- nop
+      elseif button = \2 then  -- Reset
+         NewDir = DefaultDir
+      else                     -- Cancel
          return
       endif
    endif
@@ -1695,7 +1689,7 @@ defc BackupNum
    NewNum = strip( arg(1))
    if NewNum = '' then
       if Num = '' then
-         Num = 1
+         Num = 10
       endif
       Title = 'Backup number'
       Text  = 'Number of kept backup files:'
@@ -1738,21 +1732,26 @@ defc BackupDir
          Dir = DefaultDir
       endif
       Title = 'Backup directory'
-      Text  = 'Enter either a fully-qualified directory or = for the file''s directory:'
+      Text  = 'Enter a fully-qualified or relative directory or = for the file''s directory:'
       Text  = Text''copies( ' ', max( 100 - length(Text), 0))
+      Buttons = '/~Set/~Reset/Cancel'
       Entry = Dir
       if rightstr( Entry, 2) <> ':\' then
          Entry = strip( Entry, 'T', '\')
       endif
       parse value entrybox( Title,
-                            '',
+                            Buttons,
                             Entry,
                             0,
                             240,
                             atoi(1) || atoi(0) || atol(0) ||
                             Text) with button 2 NewDir \0
       NewDir = strip( NewDir)
-      if button <> \1 then
+      if button = \1 then      -- Set
+         -- nop
+      elseif button = \2 then  -- Reset
+         NewDir = DefaultDir
+      else                     -- Cancel
          return
       endif
    endif
@@ -1761,7 +1760,7 @@ defc BackupDir
    endif
    if NewDir <> CurDir then
       call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewDir)
-      if NewDir <> '=' then
+      if substr( NewDir, 2, 1) = ':' then
          rcx = MakeTree( NewDir)
       endif
    endif
@@ -1791,9 +1790,9 @@ defproc MakeBakName
    universal nepmd_hini
    universal vtemp_path
 
-   Name = arg(1)
-   if Name = '' then
-      Name = .filename
+   FullName = arg(1)
+   if FullName = '' then
+      FullName = .filename
    endif
 
    KeyPath = '\NEPMD\User\Backup\Directory'
@@ -1802,28 +1801,72 @@ defproc MakeBakName
    KeyPath = '\NEPMD\User\Backup\Number'
    BackupNum = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if BackupNum = '' then
-      BackupNum = 1
+      BackupNum = 10
    elseif not isnum( BackupNum) then
-      BackupNum = 1
+      BackupNum = 10
    endif
 
+   -- Get backup dir
    if BackupDir = '' then
       BackupDir = vtemp_path'nepmd\backup'
-   elseif BackupDir = '=' then
-      lp = lastpos( '\', Name)
-      BackupDir = leftstr( Name, lp - 1)
+   elseif leftstr( BackupDir, 1) = '=' then
+      if length( BackupDir > 1) then
+         BackupDirRest = strip( substr( BackupDir, 2), 'L', '\')
+      else
+         BackupDirRest = ''
+      endif
+      lp = lastpos( '\', FullName)
+      if BackupDirRest <> '' then
+         BackupDir = leftstr( FullName, lp - 1)'\'BackupDirRest
+      else
+         BackupDir = leftstr( FullName, lp - 1)
+      endif
+   elseif substr( BackupDir, 2, 1) <> ':' then  -- a relative name
+      lp = lastpos( '\', FullName)
+      BackupDir = leftstr( FullName, lp - 1)'\'BackupDir
    endif
    BackupDir = ResolveEnvVars( BackupDir)
 
-   -- Change name as little as possible, but enough to identify it as
-   -- a noncritical file.  Replace the last character with '~'.
+   -- Always a sub dir, so no special handling of x:\ is required
+   BackupDir = strip( BackupDir, 'T', '\')
+
+   -- Maybe create backup tree
+   if not NepmdDirExists( BackupDir) then
+      rcx = MakeTree( BackupDir)
+   endif
+
+   -- Get file sys
    FileSys = ''
    if substr( BackupDir, 2, 1) = ':' then
       FileSys = QueryFileSys( leftstr( BackupDir, 2))
+   elseif substr( FullName, 2, 1) = ':' then
+      FileSys = QueryFileSys( leftstr( FullName, 2))
    endif
 
-   -- TODO: parse base and ext better for non-FAT files. #################################
-   ext = filetype( Name)
+   -- Remove path
+   lp = lastpos( '\', translate( FullName, '\', '/'))
+   if lp > 0 then
+      Name = substr( FullName, lp + 1)
+   else
+      Name = FullName
+   endif
+
+   -- Handle FAT names
+   if FileSys = 'FAT' | FileSys = '' then
+      Name = ConvertToFatName( Name)
+   endif
+
+   -- Parse Name into base and ext
+   extp = lastpos( '.', Name)
+   if extp > 1 then
+      base = leftstr( Name, extp - 1)
+      ext  = substr( Name, extp + 1)  -- extension without '.'
+   else
+      base = Name
+      ext  = ''
+   endif
+
+   -- Append backup postfix to ext
    if FileSys = 'FAT' | FileSys = '' then
       if BackupNum < 2 then
          if length( ext) > 2 then
@@ -1842,15 +1885,16 @@ defproc MakeBakName
       ext = ext'~'
    endif
 
-   -- We still use MakeTempName() for its handling of host names.
-   bakname = MakeTempName( Name)  -- TODO: really keep this? #############################
-   i = lastpos( '\', bakname)       -- but with a different directory
-   if i then
-      bakname = substr( bakname, i + 1)
-   endif
-   parse value bakname with fname'.'.  -- TODO: don't cut at first dot ###################
+;   -- We still use MakeTempName() for its handling of host names.
+;   bakname = MakeTempName( Name)
+;   i = lastpos( '\', bakname)       -- but with a different directory
+;   if i then
+;      bakname = substr( bakname, i + 1)
+;   endif
+;   parse value bakname with base'.'.
 
-   BackupName = strip( BackupDir, 't', '\')'\'fname'.'ext
+   -- Prepend backup dir
+   BackupName = BackupDir'\'base'.'ext
    return BackupName
 
 ; ---------------------------------------------------------------------------
@@ -1871,6 +1915,21 @@ defproc MakeBackup
 
    if not Exist( Name) then
       return 0
+   elseif
+      -- Don't backup tmp files, such as cvsa*
+      Filename = .filename
+      TmpDirs = Get_env( 'TMP')
+      TmpDirs = TmpDirs';'Get_env( 'TEMP')
+      TmpDirs = strip( TmpDirs)
+      TmpDirs = TmpDirs';'Get_env( 'TEMPDIR')
+      TmpDirs = strip( TmpDirs)
+      Rest = TmpDirs
+      do while Rest <> ''
+         parse value Rest with Next';'Rest
+         if pos( upcase( Next), upcase( Filename)) then
+            return 0
+         endif
+      enddo
    endif
 
    BackupName = MakeBakName( Name)
