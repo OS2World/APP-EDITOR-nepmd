@@ -11,7 +11,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: defaults.dat,v 1.20 2006-05-07 19:24:23 aschn Exp $
+; $Id: defaults.dat,v 1.21 2008-09-20 23:54:32 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -90,9 +90,6 @@
 "\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey" = "0"
 "\NEPMD\User\Keys\AccelKeys\BlockRightAltKey" = "0"
 
-; Home key
-"\NEPMD\User\Keys\Home\ToggleBeginLineText" = "1"
-
 ; Tab key
 "\NEPMD\User\Keys\Tab\MatchTab" = "0"
 "\NEPMD\User\Keys\Tab\TabGlyph" = "1"
@@ -139,4 +136,8 @@
 ; Keyword help
 "\NEPMD\User\KeywordHelp\NewView\UseIfFound" = "1"
 "\NEPMD\User\KeywordHelp\NewView\ExtendedSearch" = "1"
+
+; AutoSave and Backup dirs
+"NEPMD\User\AutoSave\Directory" = "%TMP%\nepmd\autosave"
+"NEPMD\User\Backup\Directory" = "%TMP%\nepmd\backup"
 
