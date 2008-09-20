@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.h,v 1.5 2005-07-17 15:41:51 aschn Exp $
+* $Id: epmenv.h,v 1.6 2008-09-20 23:14:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -41,6 +41,8 @@
 // of the original EPM executable
 APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv,
                                   PSZ pszBuffer, ULONG ulBuflen);
+PSZ ExpandEnvVar( PSZ pszStr);
+PSZ ExpandEnvVarAndRootDir( PSZ pszStr, PSZ pszRootDirValue);
 
 #endif // EPMENV_H
 

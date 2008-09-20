@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmd.h,v 1.18 2005-07-17 15:41:52 aschn Exp $
+* $Id: nepmd.h,v 1.19 2008-09-20 23:14:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -31,8 +31,8 @@
 #define NEPMD_INI_KEYNAME_LANGUAGE     "Language"
 #define NEPMD_INI_KEYNAME_ROOTDIR      "RootDir"
 #define NEPMD_INI_KEYNAME_USERDIR      "UserDir"
-#define NEPMD_INI_KEYNAME_USERDIRNAME  "UserDirName"
-#define NEPMD_INI_KEYNAME_USEHOME      "UseHomeForUserDir"
+
+#define NEPMD_SUBPATH_DEFAULTUSERDIR   "myepm"
 
 // define some filenames for EPM
 #define NEPMD_FILENAME_LIBINFO         ".NEPMD_INFO"

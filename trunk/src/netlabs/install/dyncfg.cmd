@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.9 2008-09-08 00:06:04 aschn Exp $
+* $Id: dyncfg.cmd,v 1.10 2008-09-20 23:14:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -49,8 +49,6 @@
  NEPMD_INI_KEYNAME_LANGUAGE    = "Language"
  NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
  NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
- NEPMD_INI_KEYNAME_USERDIRNAME = "UserDirName"
- NEPMD_INI_KEYNAME_USEHOME     = "UseHomeForUserDir"
 
  /* defaults */
  rc = 0;
@@ -88,7 +86,14 @@
     PARSE VALUE SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_ROOTDIR) WITH RootDir'00'x;
     IF (RootDir = 'ERROR:') THEN
     DO
-       ErrorMessage = 'Error: NEPMD configuration not found.';
+       ErrorMessage = 'Error: NEPMD -> RootDir not found in user ini.';
+       rc = 3; /* ERROR_PATH_NOT_FOUND */
+       LEAVE;
+    END;
+    RootDir = ResolveEnvVars( RootDir)
+    IF (RootDir = '') THEN
+    DO
+       ErrorMessage = 'Error: RootDir is empty.'
        rc = 3; /* ERROR_PATH_NOT_FOUND */
        LEAVE;
     END;
@@ -199,7 +204,7 @@ FindInPath: PROCEDURE
     PathName = 'PATH';
  RETURN( SysSearchPath( PathName, FileName));
 
-/* ========================================================================= */
+/* ------------------------------------------------------------------------- */
 IsNepmdExecutable: PROCEDURE EXPOSE (GlobalVars)
  PARSE ARG CheckFile, EaName;
 
@@ -242,4 +247,27 @@ IsNepmdExecutable: PROCEDURE EXPOSE (GlobalVars)
  END;
 
  RETURN( fFound);
+
+/* ----------------------------------------------------------------------- */
+ResolveEnvVars: PROCEDURE EXPOSE (GlobalVars)
+
+   Spec = ARG( 1)
+   Startp = 1
+   DO FOREVER
+      p1 = pos( '%', Spec, Startp)
+      IF p1 = 0 THEN
+         LEAVE
+      startp = p1 + 1
+      p2 = POS( '%', Spec, Startp)
+      IF p2 = 0 THEN
+         LEAVE
+      ELSE
+      DO
+         Startp = p2 + 1
+         Spec = SUBSTR( Spec, 1, p1 - 1) ||,
+                VALUE( SUBSTR( Spec, p1 + 1, p2 - p1 - 1),, env) ||,
+                SUBSTR( Spec, p2 + 1)
+      END
+   END
+   RETURN( Spec)
 

@@ -36,7 +36,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: renudirs.cmd,v 1.3 2008-09-19 19:51:41 aschn Exp $
+* $Id: renudirs.cmd,v 1.4 2008-09-20 23:14:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -141,16 +141,18 @@
  DO UNTIL (TRUE)
 
     /* get the base directory of the NEPMD installation */
-    PARSE VALUE SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_ROOTDIR) WITH RootDir'00'x;
-    IF (RootDir = 'ERROR:') THEN
+    PARSE VALUE SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_ROOTDIR) WITH next'00'x
+    IF (next = 'ERROR:') THEN
     DO
        /* don't report error from here, use default values instead */
        /*
-       rc = ERROR.PATH_NOT_FOUND;
-       ErrorMessage = 'Error: NEPMD configuration not found.';
+       rc = ERROR.PATH_NOT_FOUND
+       ErrorMessage = 'Error: NEPMD configuration not found.'
        */
-       LEAVE;
-    END;
+       LEAVE
+    END
+    ELSE
+       RootDir = ResolveEnvVars( RootDir)
 
     /* get user directory */
     UserDir = RootDir'\'UserDirName
@@ -161,41 +163,10 @@
           next = STRIP( next, 't', '00'x)
           IF (next > '') THEN
           DO
-             UserDir = next
+             UserDir = ResolveEnvVars( next)
              LEAVE
           END
        END
-
-       next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIRNAME)
-       IF (next <> 'ERROR:') then
-       DO
-          next = STRIP( next, 't', '00'x)
-          IF (next > '') THEN
-             UserDirName = next
-       END
-
-       next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USEHOME)
-       IF (next <> 'ERROR:') then
-       DO
-          next = STRIP( next, 't', '00'x)
-          IF (next > '') THEN
-             fUseHome = next
-       END
-       IF (fUseHome) THEN
-       DO
-          Home = VALUE( 'HOME', , env)
-          IF Home > '' THEN
-          DO
-             rcx = SysFileTree Home, 'Found.', 'DO', '*+--*'  /* ADHRS */
-             IF (rcx = 0) THEN
-                IF (Found.0 > 0) THEN
-                DO
-                   UserDir = Home'\'UserDirName
-                   LEAVE
-                END
-          END
-       END
-
     END
 
     /* get date string */
@@ -351,6 +322,29 @@ TreeContainsFiles: PROCEDURE
  rcx = SysFileTree( DirName'\*', 'Found.', 'FOS');
 
  RETURN( Found.0 > 0);
+
+/* ------------------------------------------------------------------------- */
+ResolveEnvVars: PROCEDURE EXPOSE (GlobalVars)
+
+   Spec = ARG( 1)
+   Startp = 1
+   DO FOREVER
+      p1 = pos( '%', Spec, Startp)
+      IF p1 = 0 THEN
+         LEAVE
+      startp = p1 + 1
+      p2 = POS( '%', Spec, Startp)
+      IF p2 = 0 THEN
+         LEAVE
+      ELSE
+      DO
+         Startp = p2 + 1
+         Spec = SUBSTR( Spec, 1, p1 - 1) ||,
+                VALUE( SUBSTR( Spec, p1 + 1, p2 - p1 - 1),, env) ||,
+                SUBSTR( Spec, p2 + 1)
+      END
+   END
+   RETURN( Spec)
 
 /* ------------------------------------------------------------------------- */
 HALT:

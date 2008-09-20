@@ -12,7 +12,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: special.cmd,v 1.3 2008-09-08 00:38:14 aschn Exp $
+* $Id: special.cmd,v 1.4 2008-09-20 23:14:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -171,37 +171,8 @@ GetNepmdDirs: PROCEDURE EXPOSE (GlobalVars)
        next = STRIP( next, 't', '00'x)
        IF next > '' THEN
        DO
-          UserDir = next
+          UserDir = ResolveEnvVars( next)
           LEAVE
-       END
-    END
-
-    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIRNAME)
-    IF next <> 'ERROR:' then
-    DO
-       next = STRIP( next, 't', '00'x)
-       IF next > '' THEN
-          UserDirName = next
-    END
-
-    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USEHOME)
-    IF next <> 'ERROR:' then
-    DO
-       next = STRIP( next, 't', '00'x)
-       IF next > '' THEN
-          fUseHome = next
-    END
-    IF fUseHome = 1 THEN
-    DO
-       Home = VALUE( 'HOME', , env)
-       IF Home > '' THEN
-       DO
-          call SysFileTree Home, 'Found.', 'DO', '*+--*'  /* ADHRS */
-          IF Found.1 > '' THEN
-          DO
-             UserDir = Home'\'UserDirName
-             LEAVE
-          END
        END
     END
 
@@ -235,4 +206,27 @@ QuerySysLevel: PROCEDURE EXPOSE (GlobalVars)
  END
  ELSE
     RETURN 2''Sep''Sep''Sep
+
+/* ----------------------------------------------------------------------- */
+ResolveEnvVars: PROCEDURE EXPOSE (GlobalVars)
+
+   Spec = ARG( 1)
+   Startp = 1
+   DO FOREVER
+      p1 = pos( '%', Spec, Startp)
+      IF p1 = 0 THEN
+         LEAVE
+      startp = p1 + 1
+      p2 = POS( '%', Spec, Startp)
+      IF p2 = 0 THEN
+         LEAVE
+      ELSE
+      DO
+         Startp = p2 + 1
+         Spec = SUBSTR( Spec, 1, p1 - 1) ||,
+                VALUE( SUBSTR( Spec, p1 + 1, p2 - p1 - 1),, env) ||,
+                SUBSTR( Spec, p2 + 1)
+      END
+   END
+   RETURN( Spec)
 

@@ -12,7 +12,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: usertree.cmd,v 1.12 2007-04-11 22:19:10 aschn Exp $
+* $Id: usertree.cmd,v 1.13 2008-09-20 23:14:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -84,37 +84,8 @@
        next = STRIP( next, 't', '00'x)
        IF next > '' THEN
        DO
-          UserDir = next
+          UserDir = ResolveEnvVars( next)
           LEAVE
-       END
-    END
-
-    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIRNAME)
-    IF next <> 'ERROR:' then
-    DO
-       next = STRIP( next, 't', '00'x)
-       IF next > '' THEN
-          UserDirName = next
-    END
-
-    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USEHOME)
-    IF next <> 'ERROR:' then
-    DO
-       next = STRIP( next, 't', '00'x)
-       IF next > '' THEN
-          fUseHome = next
-    END
-    IF fUseHome = 1 THEN
-    DO
-       Home = VALUE( 'HOME', , env)
-       IF Home > '' THEN
-       DO
-          call SysFileTree Home, 'Found.', 'D', '*+--*'  /* ADHRS */
-          IF Found.0 > 0 THEN
-          DO
-             UserDir = Home'\'UserDirName
-             LEAVE
-          END
        END
     END
 
@@ -175,4 +146,27 @@
  END;
 
  EXIT( rc);
+
+/* ----------------------------------------------------------------------- */
+ResolveEnvVars: PROCEDURE EXPOSE (GlobalVars)
+
+   Spec = ARG( 1)
+   Startp = 1
+   DO FOREVER
+      p1 = pos( '%', Spec, Startp)
+      IF p1 = 0 THEN
+         LEAVE
+      startp = p1 + 1
+      p2 = POS( '%', Spec, Startp)
+      IF p2 = 0 THEN
+         LEAVE
+      ELSE
+      DO
+         Startp = p2 + 1
+         Spec = SUBSTR( Spec, 1, p1 - 1) ||,
+                VALUE( SUBSTR( Spec, p1 + 1, p2 - p1 - 1),, env) ||,
+                SUBSTR( Spec, p2 + 1)
+      END
+   END
+   RETURN( Spec)
 
