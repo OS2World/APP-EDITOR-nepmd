@@ -1,10 +1,10 @@
 /****************************** Module Header *******************************
 *
-* Module Name: chgstartupdir.erx
+* Module Name: startupdir.erx
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: chgstartupdir.erx,v 1.1 2008-09-07 23:07:45 aschn Exp $
+* $Id: startupdir.erx,v 1.1 2008-09-20 23:37:19 aschn Exp $
 *
 * ===========================================================================
 *

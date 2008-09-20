@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.28 2008-09-14 15:44:19 aschn Exp $
+* $Id: file.e,v 1.29 2008-09-20 23:36:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1499,7 +1499,7 @@ defc CDDlg
 ; ---------------------------------------------------------------------------
 ; Helper to set startup dir for WPS objects.
 defc StartupDirDlg
-   CurStartupDir = RxResult( 'chgstartupdir query')
+   CurStartupDir = RxResult( 'startupdir query')
    Title = 'Enter new startup directory for WPS objects'
    Text  = 'Current startup directory is 'CurStartupDir
    Text  = Text''copies( ' ', max( 100 - length(Text), 0))
@@ -1513,7 +1513,7 @@ defc StartupDirDlg
                          Text) with button 2 NewDir \0
    NewDir = strip( NewDir)
    if button = \1 & NewDir <> '' & NewDir <> CurStartupDir then
-      'rx chgstartupdir.erx' NewDir
+      'rx startupdir.erx' NewDir
    endif
 
 ; ---------------------------------------------------------------------------
