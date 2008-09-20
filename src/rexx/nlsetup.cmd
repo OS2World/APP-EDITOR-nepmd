@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.11 2008-09-08 00:10:08 aschn Exp $
+* $Id: nlsetup.cmd,v 1.12 2008-09-20 23:12:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -60,10 +60,10 @@
     'CALL USERTREE';    IF (rc \= 0) THEN LEAVE;
     'CALL SPECIAL';     IF (rc \= 0) THEN LEAVE;
     'CALL DYNCFG';      IF (rc \= 0) THEN LEAVE;
-    'CALL INITREG';     IF (rc \= 0) THEN LEAVE;
     /* The "NEPMD" param avoids the prompt */
     'CALL RENUDIRS NEPMD'; IF (rc \= 0) THEN LEAVE;
     'CALL EXPOBJ';      IF (rc \= 0) THEN LEAVE;
+    'CALL INITREG';     IF (rc \= 0) THEN LEAVE;
  END;
 
  IF ((rc \= 0) & (QUEUED() > 0)) THEN
