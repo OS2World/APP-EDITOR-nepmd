@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.31 2007-04-09 18:13:58 aschn Exp $
+* $Id: epmenv.c,v 1.32 2008-09-20 23:14:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -37,8 +37,6 @@
 #include "instval.h"
 
 #include "epmenv.h"
-
-//static PSZ _QueryExtLIBPATH( ULONG);
 
 #define __APPNAMESHORT__ "NEPMD"
 
@@ -397,7 +395,7 @@ return rc;
 
 // -----------------------------------------------------------------------------
 
-static PSZ _queryExtLIBPATH( PSZ pBuffer, ULONG ulWhichPath)
+PSZ _queryExtLIBPATH( PSZ pBuffer, ULONG ulWhichPath)
 {
    APIRET  rc;
    rc = DosQueryExtLIBPATH( pBuffer, ulWhichPath);
@@ -405,7 +403,8 @@ static PSZ _queryExtLIBPATH( PSZ pBuffer, ULONG ulWhichPath)
 }
 
 // -----------------------------------------------------------------------------
-static PSZ _expandEnvVar( PSZ pszStr)
+
+PSZ ExpandEnvVar( PSZ pszStr)
 {
          PSZ      pszResult = NULL;
          PSZ      pszNewValue;
@@ -418,8 +417,8 @@ static PSZ _expandEnvVar( PSZ pszStr)
          ULONG    ulNewResultLen;
 
          CHAR     szVarName[ 128];
-// Several sources say DosQueryExtLIBPATH will never return
-// more than 1024 bytes.
+         // Several sources say DosQueryExtLIBPATH will never return
+         // more than 1024 bytes.
          CHAR     szLibPath[ 1025];       // +1 for safe measure
 static   CHAR     chDelimiter = '%';
 
@@ -462,6 +461,106 @@ do
             pszVarValue = _queryExtLIBPATH( szLibPath, BEGIN_LIBPATH);
          else if (!stricmp( szVarName, "endlibpath"))
             pszVarValue = _queryExtLIBPATH( szLibPath, END_LIBPATH);
+         else
+            pszVarValue = getenv( szVarName);
+
+         if (pszVarValue)
+            {
+            // embedd new value
+            pszNewResult = malloc( strlen( pszResult) + 1 + strlen( pszVarValue));
+            if (pszNewResult)
+               {
+               strcpy( pszNewResult, pszResult);
+               strcpy( pszNewResult + (pszStartPos - pszResult), pszVarValue);
+               strcat( pszNewResult, pszStartPos);
+               free( pszResult);
+               pszResult = pszNewResult;
+               }
+            else
+               {
+               // kick any result, as we are out of memory
+               free( pszResult);
+               pszResult = NULL;
+               break;
+               }
+            }
+         }
+
+      // next var please
+      pszStartPos = strchr( pszResult, chDelimiter);
+      }
+
+
+   } while (FALSE);
+
+return pszResult;
+}
+
+// -----------------------------------------------------------------------------
+// Expands env vars like _expandEnvVar, but also replaces %NEPMD_ROOTDIR% with
+// its value, specified as arg2.
+
+PSZ ExpandEnvVarAndRootDir( PSZ pszStr, PSZ pszRootDirValue)
+{
+         PSZ      pszResult = NULL;
+         PSZ      pszNewValue;
+         PSZ      pszStartPos;
+         PSZ      pszEndPos;
+         PSZ      pszLibpath = NULL;
+         PSZ      pszVarValue;
+         PSZ      pszNewResult;
+         ULONG    ulNameLen;
+         ULONG    ulNewResultLen;
+
+         CHAR     szVarName[ 128];
+         // Several sources say DosQueryExtLIBPATH will never return
+         // more than 1024 bytes.
+         CHAR     szLibPath[ 1025];       // +1 for safe measure
+static   CHAR     chDelimiter = '%';
+
+do
+   {
+   // check parms
+   if (!pszStr)
+      break;
+   if (!pszRootDirValue)
+      break;
+
+   // create a copy
+   pszResult = strdup( pszStr);
+   if (!pszResult)
+      break;
+
+   // maintain the copy
+   pszStartPos = strchr( pszResult, chDelimiter);
+   while (pszStartPos)
+      {
+      // find end
+      pszEndPos = strchr( pszStartPos + 1, chDelimiter);
+
+      // no end found, cut off to end of string
+      if (!pszEndPos)
+         {
+         *pszStartPos = 0;
+         break;
+         }
+      else
+         {
+         // isolate name
+         ulNameLen = pszEndPos - pszStartPos - 1;
+         memcpy( szVarName, pszStartPos + 1, ulNameLen);
+         szVarName[ ulNameLen] = 0;
+
+         // first of all, elimintate the variable
+         strcpy( pszStartPos, pszEndPos + 1);
+
+         // get value
+         if (!stricmp( szVarName, "beginlibpath"))
+            pszVarValue = _queryExtLIBPATH( szLibPath, BEGIN_LIBPATH);
+         else if (!stricmp( szVarName, "endlibpath"))
+            pszVarValue = _queryExtLIBPATH( szLibPath, END_LIBPATH);
+         else if (!stricmp( szVarName, ENV_NEPMD_ROOTDIR))
+            pszVarValue = pszRootDirValue;
          else
             pszVarValue = getenv( szVarName);
 
@@ -640,7 +739,7 @@ do
             }
 
          // expand env vars
-         pszNewLine = _expandEnvVar( pszCopyLine);
+         pszNewLine = ExpandEnvVar( pszCopyLine);
 
          // cleanup copies
          if (pszCopyLine) free( pszCopyLine);

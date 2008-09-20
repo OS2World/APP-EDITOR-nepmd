@@ -1,12 +1,12 @@
 /****************************** Module Header *******************************
 *
-* Module Name: epmenv.c
+* Module Name: instval.c
 *
 * Generic routine to determine installation values
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.16 2006-10-09 00:12:41 aschn Exp $
+* $Id: instval.c,v 1.17 2008-09-20 23:14:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -35,6 +35,7 @@
 #include "nepmd.h"
 #include "module.h"
 #include "tmf.h"
+#include "epmenv.h"
 #include "instval.h"
 
 // -----------------------------------------------------------------------------
@@ -49,8 +50,6 @@ APIRET QueryInstValue( PSZ pszValueTag, PSZ pszBuffer, ULONG ulBuflen)
          BOOL           fUserDirSet = FALSE;
 
          CHAR           szRootDir[ _MAX_PATH];
-         CHAR           szUseHome[ 3];
-         CHAR           szUserDirName[ 128];
          CHAR           szUserDir[ _MAX_PATH];
          CHAR           szNepmdLanguage[ 20];
 
@@ -58,8 +57,8 @@ APIRET QueryInstValue( PSZ pszValueTag, PSZ pszBuffer, ULONG ulBuflen)
          CHAR           szTmp[ _MAX_PATH];
          CHAR           szValue[ _MAX_PATH];
 
-         PSZ            pszHomeDir;
          PSZ            pszDevTreePath;
+         PSZ            pszTmp;
 
 static   PSZ            pszUserBinDir   = NEPMD_SUBPATH_USERBINDIR;
 static   PSZ            pszNepmdBinDir  = NEPMD_SUBPATH_BINBINDIR;
@@ -96,28 +95,7 @@ do
    strcpy( strrchr( szModulePath, '\\'), "");
    //DPRINTF(( "INSTVAL: szModulePath = %s\n", szModulePath));
 
-//   strcpy( p1, szModulePath);
-//   p1 = Filespec( p1, FILESPEC_PATHNAME);
-//   p2 = Filespec( p1, FILESPEC_NAME);
-//   if (!stricmp( p2, "netlabs"))
-//      {
-//      p1 = Filespec( p1, FILESPEC_PATHNAME);
-//      strcpy( szDefaultRootDir, p1);
-//      }
-//   DPRINTF(( "INSTVAL: p2 = %s, szDefaultRootDir = %s\n", p2, szDefaultRootDir));
-
-// Todo:
-// Maybe set default RootDir, if entry not found to enable starting
-// an uninstalled NEPMD, e.g. from a service partition, from a CD or
-// during installation.
-// Therefore:
-//    -  get parent dir of szModulePath (NEPMD\netlabs\bin or
-//       NEPMD\netlabs\dll)
-//    -  check if last segment of that parent dir is "netlabs"
-//       if yes: set the parent of that "netlabs" dir as RootDir
-//       else: prompt user for RootDir
-
-   // get name of EPM.EXE in NEPMD path
+   // get NEPMD root dir
    memset( szRootDir, 0, sizeof( szRootDir));
    PrfQueryProfileString( HINI_USER,
                           NEPMD_INI_APPNAME,
@@ -125,22 +103,19 @@ do
                           NULL,
                           szRootDir,
                           sizeof( szRootDir));
+
+   // Resolve env vars
+   // Note: Env var resolution is not very useful here, because WarpIN
+   //       doesn't expand env vars in ini values.
+   pszTmp = ExpandEnvVar( szRootDir);
+   //DPRINTF(( "INSTVAL: Expanded RootDir = %s\n", pszTmp));
+   strcpy( szRootDir, pszTmp);
+
    fNepmdInstalled = (szRootDir[ 0] > 0);
    //DPRINTF(( "INSTVAL: fNepmdInstalled = %u\n", fNepmdInstalled));
 
    // Get user's path
-   //    1. Query NEPMD -> UserDir. If not set:
-   //    2. Query NEPMD -> UserDirName (default: "myepm").
-   //    3. Query NEPMD -> UseHomeForUserDir (default: "0").
-   //       If "1": get %HOME% and if %HOME% exists:
-   //       UserDir = %HOME%"\"UserDirName.
-   //       Else:
-   //    4. UserDir = RootDir"\"UserDirName.
-
-// Todo:
-// Check if %HOME% or RootDir is writable.
-// if not: prompt user
-
+   // Default is RootDir"\myepm"
    do
       {
       memset( szUserDir, 0, sizeof( szUserDir));
@@ -151,51 +126,26 @@ do
                              szUserDir,
                              sizeof( szUserDir));
       //DPRINTF(( "INSTVAL: "NEPMD_INI_KEYNAME_USERDIR" = %s\n", szUserDir));
+
+      // Resolve env vars
+      // Note: %NEPMD_ROOTDIR% is not set at this time. For something like
+      //       UserDir -> %NEPMD_ROOTDIR%\myepm, this env var must be handled
+      //       specially.
+      pszTmp = ExpandEnvVarAndRootDir( szUserDir, szRootDir);
+      //DPRINTF(( "INSTVAL: Expanded UserDir = %s\n", pszTmp));
+      strcpy( szUserDir, pszTmp);
+
       fUserDirSet = (szUserDir[ 0] > 0);
       if (fUserDirSet == 1)
          break;
 
-      // get subdir name - myepm as default
-      memset( szUserDirName, 0, sizeof( szUserDirName));
-      PrfQueryProfileString( HINI_USER,
-                             NEPMD_INI_APPNAME,
-                             NEPMD_INI_KEYNAME_USERDIRNAME,
-                             "myepm",
-                             szUserDirName,
-                             sizeof( szUserDirName));
-      //DPRINTF(( "INSTVAL: "NEPMD_INI_KEYNAME_USERDIRNAME" = %s\n", szUserDirName));
-
-      // use either %HOME% or %NEPMD_ROOTDIR%
-      // get flag for using %HOME% - 0 as default
-      memset( szUseHome, 0, sizeof( szUseHome));
-      PrfQueryProfileString( HINI_USER,
-                             NEPMD_INI_APPNAME,
-                             NEPMD_INI_KEYNAME_USEHOME,
-                             "0",
-                             szUseHome,
-                             sizeof( szUseHome));
-      //DPRINTF(( "INSTVAL: "NEPMD_INI_KEYNAME_USEHOME" = %s\n", szUseHome));
-
-      if (!strcmp( szUseHome, "1"))
-         {
-         // use %HOME%
-         pszHomeDir = getenv( "HOME");
-         // Todo: check if HomeDir is writable
-         if ((pszHomeDir) && (*pszHomeDir) && DirExists( pszHomeDir))
-            {
-            sprintf( szUserDir, "%s\\%s", pszHomeDir, szUserDirName);
-            //DPRINTF(( "INSTVAL: "NEPMD_INI_KEYNAME_USERDIR" (built) = %s\n", szUserDir));
-            break;
-            }
-         }
-
-      // use %NEPMD_ROOTDIR%
+      // UserDir not set: use default value
       if (!fNepmdInstalled)
          {
          rc = ERROR_PATH_NOT_FOUND;
          break;
          }
-      sprintf( szUserDir, "%s\\%s", szRootDir, szUserDirName);
+      sprintf( szUserDir, "%s\\%s", szRootDir, NEPMD_SUBPATH_DEFAULTUSERDIR);
       //DPRINTF(( "INSTVAL: "NEPMD_INI_KEYNAME_USERDIR" (built) = %s\n", szUserDir));
 
       } while (FALSE);
@@ -368,4 +318,5 @@ do
 
 return rc;
 }
+
 
