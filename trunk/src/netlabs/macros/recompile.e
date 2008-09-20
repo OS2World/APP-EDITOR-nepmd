@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.12 2008-09-05 23:08:05 aschn Exp $
+* $Id: recompile.e,v 1.13 2008-09-20 23:27:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -502,32 +502,37 @@ defc RecompileNew
    if Exist( LogFile) then
       call EraseTemp( LogFile)
    endif
+
    -- Writing ListFiles to LogFile in the part above would make EPM crash.
-   if fCheckOnly then
-      WriteLog( LogFile, '"RecompileNew CheckOnly" started at' Date Time'.')
-      WriteLog( LogFile, 'Because of CheckOnly mode, no .EX file will be replaced.')
-      WriteLog( LogFile, 'When warnings occur:')
-      WriteLog( LogFile, '   Rename your 'upcase(UserDirName)'\MACROS and 'upcase(UserDirName)'\EX directories')
-      WriteLog( LogFile, '   before the next EPM start.')
-      WriteLog( LogFile, '   Then either discard your own macro files or merge it with')
-      WriteLog( LogFile, '   Netlabs'' newly installed files from NETLABS\MACROS.')
-      WriteLog( LogFile, 'Only when you really know what you are doing:')
-      WriteLog( LogFile, '   Execute "RecompileNew" without args in order to replace .EX files.')
-   else
-      WriteLog( LogFile, '"RecompileNew" started at' Date Time'.')
+   if not fReset then
+      if fCheckOnly then
+         WriteLog( LogFile, '"RecompileNew CheckOnly" started at' Date Time'.')
+         WriteLog( LogFile, 'Because of CheckOnly mode, no .EX file will be replaced.')
+         WriteLog( LogFile, 'When warnings occur:')
+         WriteLog( LogFile, '   Rename your 'upcase(UserDirName)'\MACROS and 'upcase(UserDirName)'\EX directories')
+         WriteLog( LogFile, '   before the next EPM start.')
+         WriteLog( LogFile, '   Then either discard your own macro files or merge it with')
+         WriteLog( LogFile, '   Netlabs'' newly installed files from NETLABS\MACROS.')
+         WriteLog( LogFile, 'Only when you really know what you are doing:')
+         WriteLog( LogFile, '   Execute "RecompileNew" without args in order to replace .EX files.')
+      else
+         WriteLog( LogFile, '"RecompileNew" started at' Date Time'.')
+      endif
+      WriteLog( LogFile, '')
+      WriteLog( LogFile, 'Checking base names listed in')
+      rest = ListFiles
+      do while rest <> ''
+         parse value rest with next';'rest
+         WriteLog( LogFile, '   'next)
+      enddo
+      WriteLog( LogFile, 'Note: Other not-listed .E/.EX files are not checked here.')
+      WriteLog( LogFile, '      In order to recompile them')
+      WriteLog( LogFile, '         o  create your own .LST list file in the 'upcase(UserDirName)'\EX directory,')
+      WriteLog( LogFile, '            name it maybe MYEXFILES.LST or')
+      WriteLog( LogFile, '         o  use the RELINK [IFLINKED] command instead.')
+      WriteLog( LogFile, '')
+      WriteLog( LogFile, 'Checking old (existing) user .EX files and included .E files...')
    endif
-   WriteLog( LogFile, '')
-   WriteLog( LogFile, 'Checking base names listed in')
-   rest = ListFiles
-   do while rest <> ''
-      parse value rest with next';'rest
-      WriteLog( LogFile, '   'next)
-   enddo
-   WriteLog( LogFile, 'Note: Other not-listed .E/.EX files are not checked here.')
-   WriteLog( LogFile, '      In order to recompile them')
-   WriteLog( LogFile, '         o  create your own .LST list file in the 'upcase(UserDirName)'\EX directory,')
-   WriteLog( LogFile, '            name it maybe MYEXFILES.LST or')
-   WriteLog( LogFile, '         o  use the RELINK [IFLINKED] command instead.')
    fRestartEpm  = 0
    fFoundMd5    = '?'
    cWarning     = 0
@@ -538,8 +543,6 @@ defc RecompileNew
    -- Find new source files
    rest = BaseNames
    BaseNames = ''
-   WriteLog( LogFile, '')
-   WriteLog( LogFile, 'Checking old (existing) user .EX files and included .E files...')
    do while rest <> ''
       -- For every ExFile...
       parse value rest with BaseName';'rest
