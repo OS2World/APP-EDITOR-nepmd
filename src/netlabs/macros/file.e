@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.31 2008-09-21 00:04:01 aschn Exp $
+* $Id: file.e,v 1.32 2008-09-21 13:02:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1732,7 +1732,7 @@ defc BackupDir
          Dir = DefaultDir
       endif
       Title = 'Backup directory'
-      Text  = 'Enter a fully-qualified or relative directory or = for the file''s directory:'
+      Text  = 'Enter a fully-qualified or relative directory. Use = for the file''s directory:'
       Text  = Text''copies( ' ', max( 100 - length(Text), 0))
       Buttons = '/~Set/~Reset/Cancel'
       Entry = Dir
@@ -1795,21 +1795,11 @@ defproc MakeBakName
       FullName = .filename
    endif
 
-   KeyPath = '\NEPMD\User\Backup\Directory'
-   BackupDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-
-   KeyPath = '\NEPMD\User\Backup\Number'
-   BackupNum = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if BackupNum = '' then
-      BackupNum = 10
-   elseif not isnum( BackupNum) then
-      BackupNum = 10
-   endif
+   BackupDir = GetBackupDir()
+   BackupNum = GetBackupNum()
 
    -- Get backup dir
-   if BackupDir = '' then
-      BackupDir = vtemp_path'nepmd\backup'
-   elseif leftstr( BackupDir, 1) = '=' then
+   if leftstr( BackupDir, 1) = '=' then
       if length( BackupDir > 1) then
          BackupDirRest = strip( substr( BackupDir, 2), 'L', '\')
       else
@@ -1825,7 +1815,6 @@ defproc MakeBakName
       lp = lastpos( '\', FullName)
       BackupDir = leftstr( FullName, lp - 1)'\'BackupDir
    endif
-   BackupDir = ResolveEnvVars( BackupDir)
 
    -- Always a sub dir, so no special handling of x:\ is required
    BackupDir = strip( BackupDir, 'T', '\')
@@ -1843,7 +1832,7 @@ defproc MakeBakName
       FileSys = QueryFileSys( leftstr( FullName, 2))
    endif
 
-   -- Remove path
+   -- Strip path
    lp = lastpos( '\', translate( FullName, '\', '/'))
    if lp > 0 then
       Name = substr( FullName, lp + 1)
@@ -1934,13 +1923,7 @@ defproc MakeBackup
 
    BackupName = MakeBakName( Name)
 
-   KeyPath = '\NEPMD\User\Backup\Number'
-   BackupNum = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if BackupNum = '' then
-      BackupNum = 1
-   elseif not isnum( BackupNum) then
-      BackupNum = 1
-   endif
+   BackupNum = GetBackupNum()
 
    -- Keep BackupNum backups
    do n = (BackupNum - 1) to 1 by -1
@@ -1956,6 +1939,44 @@ defproc MakeBackup
    --quietshell 'copy' Name BackupName '1>nul 2>nul'
    rc = CopyFile( Name, BackupName)
    return rc
+
+; ---------------------------------------------------------------------------
+defproc GetAutoSaveNum
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\AutoSave\Number'
+   AutoSaveNum = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   return AutoSaveNum
+
+; ---------------------------------------------------------------------------
+defproc GetAutoSaveDir
+   universal nepmd_hini
+   universal vtemp_path
+   KeyPath = '\NEPMD\User\AutoSave\Directory'
+   AutoSaveDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   AutoSaveDir = ResolveEnvVars( AutoSaveDir)
+   if AutoSaveDir = '' then
+      AutoSaveDir = vtemp_path'nepmd\autosave'
+   endif
+   return AutoSaveDir
+
+; ---------------------------------------------------------------------------
+defproc GetBackupNum
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Backup\Number'
+   BackupNum = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   return BackupNum
+
+; ---------------------------------------------------------------------------
+defproc GetBackupDir
+   universal nepmd_hini
+   universal vtemp_path
+   KeyPath = '\NEPMD\User\Backup\Directory'
+   BackupDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   BackupDir = ResolveEnvVars( BackupDir)
+   if BackupDir = '' then
+      BackupDir = vtemp_path'nepmd\backup'
+   endif
+   return BackupDir
 
 ; ---------------------------------------------------------------------------
 ;  Procedure to pick a temporary filename like ORIGNAME.$$1.
