@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.29 2006-12-10 19:18:58 aschn Exp $
+# $Id: makefile,v 1.30 2008-09-21 03:20:22 aschn Exp $
 #
 # ===========================================================================
 #
@@ -75,6 +75,7 @@ $(CMPEXDIR)\locate.ex\
 $(CMPEXDIR)\maketags.ex\
 $(CMPEXDIR)\modecnf.ex\
 $(CMPEXDIR)\modeexec.ex\
+$(CMPEXDIR)\mozkeys.ex\
 $(CMPEXDIR)\newmenu.ex\
 $(CMPEXDIR)\next_win.ex\
 $(CMPEXDIR)\ovshmenu.ex\
