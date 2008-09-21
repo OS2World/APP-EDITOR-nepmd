@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.30 2008-09-20 23:57:40 aschn Exp $
+* $Id: file.e,v 1.31 2008-09-21 00:04:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1915,7 +1915,7 @@ defproc MakeBackup
 
    if not Exist( Name) then
       return 0
-   elseif
+   else
       -- Don't backup tmp files, such as cvsa*
       Filename = .filename
       TmpDirs = Get_env( 'TMP')
