@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.33 2008-09-21 13:14:24 aschn Exp $
+* $Id: file.e,v 1.34 2008-09-21 13:15:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1837,7 +1837,7 @@ defproc MakeBakName
    FileSys = ''
    if substr( BackupDir, 1, 2) = '\\' then
       FileSys = 'LAN'  -- Assume it's not FAT
-   if substr( BackupDir, 2, 1) = ':' then
+   elseif substr( BackupDir, 2, 1) = ':' then
       FileSys = QueryFileSys( leftstr( BackupDir, 2))
    elseif substr( FullName, 2, 1) = ':' then
       FileSys = QueryFileSys( leftstr( FullName, 2))
