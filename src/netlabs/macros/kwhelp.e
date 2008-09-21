@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.38 2007-05-31 22:05:23 aschn Exp $
+* $Id: kwhelp.e,v 1.39 2008-09-21 23:28:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -78,30 +78,31 @@ compile endif
 compile if not defined(GETNEXT_CREATE_NEW_HANDLE)
 include 'STDCONST.E'
 compile endif
+
 ; ---------------------------------------------------------------------------
 defc KwhelpSelect
-      Title   = 'Keyword help'
-      Text    = 'Enter a keyword to perform a helpfile search on:'
-      DefaultButton = 1
-      -- The following must be posted in some cases, e.g. when a nodismiss
-      -- menu item was toggled before:
-      parse value entrybox( Title,
-                            '/'OK__MSG'/'CANCEL__MSG,  -- max. 4 buttons
-                            '',
-                            '',
-                            260,
-                            atoi(DefaultButton)  ||
-                            atoi(0000)           ||  -- help id
-                            gethwndc(APP_HANDLE) ||
-                            Text) with Button 2 NewValue \0
-      NewValue = strip(NewValue)
-      if Button = \1 & NewValue <> '' then
-         Identifier = NewValue
-         'kwhelp' Identifier
-         return
-      else
-         return
-      endif
+   Title   = 'Keyword help'
+   Text    = 'Enter a keyword to perform a helpfile search on:'
+   DefaultButton = 1
+   -- The following must be posted in some cases, e.g. when a nodismiss
+   -- menu item was toggled before:
+   parse value entrybox( Title,
+                         '/'OK__MSG'/'CANCEL__MSG,  -- max. 4 buttons
+                         '',
+                         '',
+                         260,
+                         atoi(DefaultButton)  ||
+                         atoi(0000)           ||  -- help id
+                         gethwndc(APP_HANDLE) ||
+                         Text) with Button 2 NewValue \0
+   NewValue = strip(NewValue)
+   if Button = \1 & NewValue <> '' then
+      Identifier = NewValue
+      'kwhelp' Identifier
+      return
+   else
+      return
+   endif
 
 ; ---------------------------------------------------------------------------
 const
@@ -429,86 +430,80 @@ defproc pBuild_Helpfile(ft)
 
    sayerror 'Building help index for' ft '...'
 
-   -- search all files on shelf first, put list into ShelfList
-   HelpNdxShelf = Get_Env('HELPNDXSHELF')
-   HelpNdx      = Get_Env('HELPNDX');
+   -- Search all files on shelf first, put list into ShelfList
+   BookShelf = Get_Env('BOOKSHELF')
+   HelpNdx   = Get_Env('HELPNDX');
    ShelfList = ''
 
-   if HelpNdxShelf <> '' then
+   -- If EnvVar HELPNDXSHELF is set then find *.ndx in all pathes
+   Rest = BookShelf
+   do while Rest <> ''
 
-      -- If EnvVar HELPNDXSHELF is set then find *.ndx in all pathes
-      SearchShelf = HelpNdxShelf
+      -- Get single HelpDir from HelpNdxShelf
+      parse value Rest with NdxDir';'Rest
 
-      do while SearchShelf <> ''
+      -- Search all ndx files in this directory of the Ndx shelf path
+      Filemask = NepmdQueryFullname( NdxDir'\*.ndx')
+      Handle = GETNEXT_CREATE_NEW_HANDLE  -- Always create a new handle!
+      do forever
+         Filename = NepmdGetNextFile( FileMask, address( Handle))
+         parse value Filename with 'ERROR:'ret
+         if (ret <> '') then
+            leave
+         endif
 
-         -- Get single HelpDir from HelpNdxShelf
-         parse value SearchShelf with NdxDir';'SearchShelf
+         -- Add filename only to HelpList, if not already in
+         Filename = substr( Filename, lastpos( '\', Filename) + 1)
+         if (pos( translate( Filename), translate( ShelfList'+'HelpNdx)) = 0) then
+            ShelfList = ShelfList'+'Filename;
+         endif
+      enddo
 
-         -- search all ndx files in this directory of the Ndx shelf path
-         Filemask = NepmdQueryFullname( NdxDir'\*.ndx')
-         Handle = GETNEXT_CREATE_NEW_HANDLE  -- always create a new handle!
-         do forever
-            Filename = NepmdGetNextFile(  FileMask, address(Handle) )
-            parse value Filename with 'ERROR:'rc
-            if (rc > '') then
-               leave
-            endif
+   enddo
 
-            -- add filename only to HelpList, if not already in
-            Filename = substr( Filename, lastpos( '\', Filename) + 1)
-            if (pos( translate( Filename), translate( ShelfList'+'HelpNdx)) = 0) then
-               ShelfList = ShelfList'+'Filename;
-            endif
-         enddo
-
-      enddo -- do while SearchShelf <> ''
-
-
-   endif -- if HelpNdxShelf <> '' then
-
-   -- now prepend given help list to previous searchlist
+   -- Now prepend given help list to previous searchlist
    HelpList = HelpNdx''ShelfList;
    if HelpList='' then
-      compile if defined(KEYWORD_HELP_INDEX_FILE)
-                    HelpList = KEYWORD_HELP_INDEX_FILE
-      compile else
-                    HelpList = 'epmkwhlp.ndx'
-      compile endif
+compile if defined(KEYWORD_HELP_INDEX_FILE)
+      HelpList = KEYWORD_HELP_INDEX_FILE
+compile else
+      HelpList = 'epmkwhlp.ndx'
+compile endif
    endif
 
-   -- strip off leading plus char
+   -- Strip off leading plus char
    if (substr( HelpList, 1, 1) = '+') then
       HelpList = substr( HelpList, 2);
    endif
 
    SaveList = HelpList
 
-   do while HelpList<>''
+   do while HelpList <> ''
 
-      /* parse thru all entries within the help list */
+      -- Parse thru all entries within the help list
       parse value HelpList with HelpIndex'+'HelpList
 
-      /* skip empty entries, they may show up due to a double plus character */
+      -- Skip empty entries, they may show up due to a double plus character
       if (HelpIndex = '') then
          iterate
       endif
 
-      /* look for the help index file in HELPNDXPATH first */
-      findfile destfilename, helpindex, 'HELPNDXSHELF'
+      -- Look for the help index file in HELPNDXPATH first
+      findfile destfilename, helpindex, 'BOOKSHELF'
 
       if rc then
-         /* if that fails, look for the help index file in current */
-         /* dir, EPMPATH, DPATH, and EPM.EXE's dir:                */
+         -- If that fails, look for the help index file in current
+         -- dir, EPMPATH, DPATH, and EPM.EXE's dir:
          findfile destfilename, helpindex, '','D'
       endif
 
       if rc then
-         /* If that fails, try the standard path. */
+         -- If that fails, try the standard path.
          findfile destfilename, helpindex, 'PATH'
          if rc then
             sayerror 'Help index 'helpindex' not found'
             rc = 0
-            /* return -- changed this so that error is informational, not severe */
+            -- return -- Changed this so that error is informational, not severe
             destfilename = ''
          endif
       endif
@@ -521,11 +516,11 @@ defproc pBuild_Helpfile(ft)
             -- For certain .ndx files 'get' returns rc = 4868.
             'get "'destfilename'"'
             .modify = 0
-            line = upcase(textline(last+1))
+            line = upcase( textline( last + 1))
             -- Sometimes a DESCRIPTION: line comes first.
             -- Quick & dirty:  --<------------------------------------------------------------------ Todo
             if word( line, 1) = 'DESCRIPTION:' then
-               line = upcase(textline(last+2))
+               line = upcase( textline( last + 2))
             endif
 
             if word(line,1)='EXTENSIONS:' & wordpos(ft, line) then  --<--------------------------------- Todo
@@ -553,11 +548,11 @@ defproc pBuild_Helpfile(ft)
                --'n .HELPFILE' -- make sure we don't use the name of the first file
                -- 'n' or 'xcom n' will give <path>\.HELPFILE, better use .filename:
                .filename = '.HELPFILE'
-               line = upcase(textline(1))
+               line = upcase( textline( 1))
                -- Sometimes a DESCRIPTION: line comes first.
                -- Quick & dirty:  --<------------------------------------------------------------------ Todo
                if word( line, 1) = 'DESCRIPTION:' then
-                  line = upcase(textline(2))
+                  line = upcase( textline( 2))
                endif
                if word(line,1)='EXTENSIONS:' & (wordpos(ft, line) | wordpos('*', line)) then  --<--------------------------------- Todo
                   /* only read in 'relevant' files */
@@ -577,7 +572,7 @@ defproc pBuild_Helpfile(ft)
       endif -- destfilename <> ''
    enddo
 
-   if helpindex_id then            /* If helpfile is already built ... */
+   if helpindex_id then  -- If helpfile is already built ...
       helpindex_id.userstring = SaveList
    endif
    savetype = ft
@@ -585,7 +580,7 @@ defproc pBuild_Helpfile(ft)
    return rc
 
 ; ---------------------------------------------------------------------------
-defc viewword  -- arg(1) is name of .inf file
+defc ViewWord  -- arg(1) is name of .inf file
    if find_token( startcol, endcol) then
       InfFile = arg(1)
       -- resolve OS/2 environment vars
@@ -602,5 +597,4 @@ defc viewword  -- arg(1) is name of .inf file
       endif
       'view' InfFile substr(textline(.line), startcol, (endcol-startcol)+1)
    endif
-
 
