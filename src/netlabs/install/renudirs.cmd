@@ -36,7 +36,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: renudirs.cmd,v 1.4 2008-09-20 23:14:30 aschn Exp $
+* $Id: renudirs.cmd,v 1.5 2008-09-21 03:27:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -51,6 +51,10 @@
 *
 ****************************************************************************/
 /* Some header lines are used as help text */
+ Help1StartLine  = 7
+ Help1EndLine    = 27
+ Help2StartLine  = 29
+ Help2EndLine    = 35
 
  /* initialize */
  '@ECHO OFF';
@@ -91,18 +95,12 @@
  NEPMD_INI_KEYNAME_LANGUAGE    = "Language"
  NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
  NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
- NEPMD_INI_KEYNAME_USERDIRNAME = "UserDirName"
- NEPMD_INI_KEYNAME_USEHOME     = "UseHomeForUserDir"
 
  /* default values of NEPMD installation */
  UserDirName = 'myepm'
  fUseHome    = FALSE;
 
  /* defaults and further consts */
- Help1StartLine  = 7
- Help1EndLine    = 26
- Help2StartLine  = 28
- Help2EndLine    = 34
  fQuiet = TRUE;
  rc = ERROR.NO_ERROR;
  ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env);
@@ -204,26 +202,18 @@
 
        /* rename dir */
        IF \fQuiet THEN
-          SAY 'Renaming 'OldDir' -> 'NewDirName;
-       rc = RenameDir( OldDir, NewDirName);
+          SAY 'Copying 'OldDir' -> 'NewDirName;
+       OldDirSpec = OldDir'\*'
+       IF POS( ' ', OldDirSpec) > 0 then
+          OldDirSpec = '"'OldDirSpec'"'
+       NewDirSpec = NewDir'\'
+       IF POS( ' ', NewDirSpec) > 0 then
+          NewDirSpec = '"'NewDirSpec'"'
+       XcopyOptions = '/H/O/T/S/R'
+       'XCOPY' OldDirSpec NewDirSpec XcopyOptions Redirection;
+       ExcludeList = OldDir'\nepmd.ini'
 
-       /* recreate empty dirs on success */
-       IF (rc = 0) THEN
-       DO
-          rcx = SysMkDir( OldDir);
-          RenamedDirs = STRIP( RenamedDirs SubDir.i);
-
-          /* Copy old NEPMD.INI back */
-          IF ((rcx = 0) & fContainsNepmdIni) THEN
-          DO
-             /* Reset file attributes and copy */
-             rcx = SysFileTree( NewDir'\NEPMD.INI', 'Found.', 'FO', '*****', '-----')
-             IF \fQuiet THEN
-                SAY 'Copying 'NewDir'\NEPMD.INI -> 'OldDir'\NEPMD.INI';
-             rcx = SysCopyObject( NewDir'\NEPMD.INI', OldDir)
-             /*'copy 'NewDir'\NEPMD.INI 'OldDir'\NEPMD.INI'*/
-          END
-       END;
+       rc = RmDirContent( OldDir, ExcludeList)
 
        /* check for error */
        IF (rc <> 0) THEN
@@ -239,12 +229,14 @@
     DO
        IF \fQuiet THEN
        DO
+/*
           IF (RenamedDirs = '') THEN
           DO
              SAY;
              SAY 'No file contained, no directory renamed.';
           END;
           ELSE
+*/
           DO
              /* show rest of help text on success */
              SAY;
@@ -274,18 +266,39 @@
  EXIT( rc);
 
 /* ------------------------------------------------------------------------- */
-RenameDir: PROCEDURE
- PARSE ARG OldDir, NewDirName;
- rc = ERROR.NO_ERROR;
+RmDirContent: PROCEDURE EXPOSE (GlobalVars)
+ PARSE ARG Dir, ExcludeList
+ ExcludeList = TRANSLATE( ExcludeList)
 
- fSuccess = SysSetObjectData( OldDir, 'TITLE='NewDirName';');
- IF fSuccess THEN
-    rc = 0;
- ELSE
-    /* try the OS/2 command to get a useful rc */
-    'ren' OldDir NewDirName;
+ /* Remove files */
+ Found. = 0
+ rc = SysFileTree( Dir'\*', 'Found.', 'FOS');
+ IF rc <> 0 THEN
+   RETURN( rc)
+ DO i = 1 TO Found.0
+    ThisFile = Found.i
+    IF POS( TRANSLATE( ThisFile), ExcludeList) > 0 THEN
+       ITERATE
+    rcx = SysFileTree( ThisFile, 'File.', 'FO',,'-----');
+    rcx = SysFileDelete( ThisFile);
+    say rcx' - 'ThisFile
+ END
 
- RETURN( rc);
+ /* Remove dirs */
+ Found. = 0
+ rc = SysFileTree( Dir'\*', 'Found.', 'DOS');
+ IF rc <> 0 THEN
+   RETURN( rc)
+ DO i = Found.0 TO 1 BY -1
+    ThisDir = Found.i
+    /*say '  - 'ThisDir*/
+    rcx = SysFileTree( ThisDir, 'Dir.', 'DO',,'-*---');
+    rcx = SysRmDir( ThisDir);
+    say i'/'Found.0': 'rcx' - 'ThisDir
+ END
+
+ rc = ERROR.NO_ERROR
+ RETURN( rc)
 
 /* ------------------------------------------------------------------------- */
 GetIsoDate: PROCEDURE
