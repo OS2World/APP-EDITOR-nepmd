@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modify.e,v 1.9 2008-09-05 23:04:39 aschn Exp $
+* $Id: modify.e,v 1.10 2008-09-21 22:52:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -89,16 +89,7 @@ defmodify
 ;   if ModifyDisabled <> 1 then
       -- Do autosave on case 2)
       if .autosave and .modify >= .autosave then
-         getfileid fileid
-         if leftstr( .filename, 1) <> '.' | .filename = GetUnnamedFilename() then
-            sayerror AUTOSAVING__MSG
-            --'xcom save "'MakeTempName()'"'
-            'postme xcom save "'MakeTempName()'"'  -- Try if postme works safer
-            ModifyDisabled = 1
-            -- Reraise the modify flag.
-            .modify = 1  -- This doesn't trigger case 1)
-            sayerror 0   -- Delete autosave message
-         endif
+         rcx = MakeAutoSave()
       endif
 
       -- Execute user macros
