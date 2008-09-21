@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.30 2008-09-21 03:20:22 aschn Exp $
+# $Id: makefile,v 1.31 2008-09-21 22:57:33 aschn Exp $
 #
 # ===========================================================================
 #
@@ -54,6 +54,7 @@ $(CMPEXDIR)\epm.ex \
 $(CMPEXDIR)\all.ex\
 $(CMPEXDIR)\alt_1.ex\
 $(CMPEXDIR)\assist.ex\
+$(CMPEXDIR)\backup.ex\
 $(CMPEXDIR)\bookmark.ex\
 $(CMPEXDIR)\box.ex\
 $(CMPEXDIR)\dict.ex\
