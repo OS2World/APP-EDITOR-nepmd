@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.53 2008-09-21 22:40:39 aschn Exp $
+* $Id: newmenu.e,v 1.54 2008-09-21 22:52:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2665,16 +2665,6 @@ defproc add_options_menu(menuname)
                                    'AutosaveNum' ||
                                    \1'',
                                    MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_autosavedirdialog', i); call SetAVar( 'mtxt_autosavedirdialog', '~Directory: []...')
-   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_autosavedirdialog'),                                   -- Directory: []...
-                                   'AutosaveDir' ||
-                                   \1'',
-                                   MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_autosavelistdir', i);
-   buildmenuitem menuname, mid, i, '~List directory',                                                    -- List directory
-                                   'dir' vautosave_path ||
-                                   \1'',
-                                   MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
@@ -2689,6 +2679,10 @@ defproc add_options_menu(menuname)
                                    'BackupNum' ||
                                    \1'',
                                    MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_backupdirdialog', i); call SetAVar( 'mtxt_backupdirdialog', '~Directory: []...')
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_backupdirdialog'),                                     -- Directory: []...
                                    'BackupDir' ||
@@ -3726,39 +3720,29 @@ defc menuinit_autorestore
 
 defc menuinit_backup
    universal nepmd_hini
+
    KeyPath = '\NEPMD\User\AutoSave'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_autosaveenabled'),  MIA_CHECKED, not on)
-
    new = GetAutoSaveNum()
    parse value GetAVar('mtxt_autosavenumdialog') with next'['x']'rest
    SetMenuText( GetAVar('mid_autosavenumdialog'), next'['new']'rest)
-
-   new = GetAutoSaveDir()
-   parse value GetAVar('mtxt_autosavedirdialog') with next'['x']'rest
-   SetMenuText( GetAVar('mid_autosavedirdialog'), next'['new']'rest)
-
    SetMenuAttribute( GetAVar('mid_autosavenumdialog'), MIA_DISABLED, on)
-   SetMenuAttribute( GetAVar('mid_autosavedirdialog'), MIA_DISABLED, on)
-   SetMenuAttribute( GetAVar('mid_autosavelistdir'),   MIA_DISABLED, on)
 
    KeyPath = '\NEPMD\User\Backup'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_backupenabled'),  MIA_CHECKED, not on)
-
    new = GetBackupNum()
    parse value GetAVar('mtxt_backupnumdialog') with next'['x']'rest
    SetMenuText( GetAVar('mid_backupnumdialog'), next'['new']'rest)
+   SetMenuAttribute( GetAVar('mid_backupnumdialog'), MIA_DISABLED, on)
 
    new = GetBackupDir()
    parse value GetAVar('mtxt_backupdirdialog') with next'['x']'rest
    SetMenuText( GetAVar('mid_backupdirdialog'), next'['new']'rest)
 
-   SetMenuAttribute( GetAVar('mid_backupnumdialog'), MIA_DISABLED, on)
-   SetMenuAttribute( GetAVar('mid_backupdirdialog'), MIA_DISABLED, on)
-   SetMenuAttribute( GetAVar('mid_backuplistdir'),   MIA_DISABLED, on)
 
 defc menuinit_workdir
    universal nepmd_hini

@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2004
 ;
-; $Id: exfiles.lst,v 1.12 2008-09-07 22:56:30 aschn Exp $
+; $Id: exfiles.lst,v 1.13 2008-09-21 22:52:39 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -29,6 +29,7 @@ epm
 all
 alt_1
 assist
+backup
 bookmark
 box
 dict

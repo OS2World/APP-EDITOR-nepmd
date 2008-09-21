@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.38 2008-09-05 23:15:59 aschn Exp $
+* $Id: stdcnf.e,v 1.39 2008-09-21 22:52:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -674,6 +674,7 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 ;compile endif
 
    'linkverify file'
+   'linkverify backup'
    'linkverify locate'
    'linkverify toolbar'
    'linkverify recompile'  -- several recompile/relink/restart commands
