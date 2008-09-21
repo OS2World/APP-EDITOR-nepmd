@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.20 2008-09-05 23:05:15 aschn Exp $
+* $Id: mouse.e,v 1.21 2008-09-21 22:40:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -763,22 +763,66 @@ defc ValidateCss
 ; ---------------------------------------------------------------------------
 ; CUA marking
 defc MH_dblclick
+   'MH_double' 1
+
+; ---------------------------------------------------------------------------
+; Advanced marking, with arg(1) for CUA marking
+defc MH_double -- take care for doubleclicks on URLs
    universal nepmd_hini
-   mark_url = 1  -- configuration: mark word, even if browser was started
+   universal stream_mode
+
+   fCUA = 0
+   if arg(1) <> '' then
+      fCUA = 1
+   endif
+
    browser_rc = 1
    KeyPath = "\NEPMD\User\Mouse\Url\MB1_DClick"
    MB1DClickStartsBrowser = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if upcase(subword( .filename, 1, 2)) = '.DOS DIR' | .filename = '.tree' then
-      executekey a_1  -- For simplicity, assume user hasn't redefined this key:
-   else
-      if MB1DClickStartsBrowser = 1 then
-         'StartBrowser'
-         browser_rc = rc
-      endif  -- MB1DClickStartsBrowser = 1
 
-      -- if browser not started, process the normal definition
-      if browser_rc | mark_url then
-         unmark
+   -- Go to mouse position to ensure pointer is not after a line
+   fMouseAfterLine = 0
+   call psave_pos(saved_pos)
+   call psave_mark(saved_mark)
+   saved_stream_mode = stream_mode
+   if stream_mode then
+      stream_mode = 0
+   endif
+   'MH_gotoposition'  -- Won't position cursor after line end in stream mode
+   MouseCol = .col
+   endline
+   if .col <= MouseCol then
+      fMouseAfterLine = 1
+   endif
+   --dprintf( 'EndlineCol = '.col', MouseCol = 'MouseCol', fMouseAfterLine = 'fMouseAFterLine)
+   if saved_stream_mode <> stream_mode then
+      stream_mode = saved_stream_mode
+   endif
+   call prestore_pos(saved_pos)
+   call prestore_mark(saved_mark)
+
+   -- Process special files and tokens under the cursor
+   if not fMouseAfterLine then
+      if upcase( subword( .filename, 1, 2)) = '.DOS DIR' |
+         upcase( leftstr( .filename, 5)) = '.TREE' then
+            'alt_1'
+            fProcessed = 1
+      else
+         if MB1DClickStartsBrowser = 1 then
+            'StartBrowser'
+            browser_rc = rc
+         endif
+         -- if browser not started, process the normal definition
+         if not browser_rc then
+            fProcessed = 1
+         endif
+      endif
+   endif
+
+   -- Process the normal double click behavior
+   if not fProcessed then
+      unmark
+      if fCUA then
          if .line then
 ;;          call pmark_word()  -- pmark_word doesn't include white space; the following does:
             call pbegin_word()
@@ -790,30 +834,8 @@ defc MH_dblclick
             mark_char
             .col = startcol
          endif
-         'Copy2SharBuff'       /* Copy mark to shared text buffer */
       endif
-   endif
-
-; ---------------------------------------------------------------------------
-; Advanced marking
-defc MH_double -- take care for doubleclicks on URLs
-   universal nepmd_hini
-   browser_rc = 1
-   KeyPath = "\NEPMD\User\Mouse\Url\MB1_DClick"
-   MB1DClickStartsBrowser = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if upcase(subword( .filename, 1, 2)) = '.DOS DIR' | .filename = '.tree' then
-      executekey a_1  -- For simplicity, assume user hasn't redefined this key:
-   else
-      if MB1DClickStartsBrowser = 1 then
-         'StartBrowser'
-         browser_rc = rc
-      endif  -- MB1DClickStartsBrowser = 1
-
-      -- if browser not started, process the normal definition
-      if browser_rc then
-         unmark
-         'ClearSharBuff'
-      endif
+      'Copy2SharBuff'       /* Copy mark to shared text buffer */
    endif
 
 ; ---------------------------------------------------------------------------
