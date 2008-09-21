@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: debug.e,v 1.8 2006-12-09 19:36:10 aschn Exp $
+* $Id: debug.e,v 1.9 2008-09-21 12:57:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,15 +19,17 @@
 *
 ****************************************************************************/
 
-; Define the dprintf proc, that pipes a message to PmPrintf, if the
-; general debug const is set = 1 and if msgtype was added to the array var
-; "debuglist". One can simply use now
+; Define the dprintf proc, that pipes a message to PmPrintf, if the general
+; debug const is set = 1 and if msgtype was added to the array var
+; "debuglist". One can simply use
 ;    dprintf( msgtype, msg)
+; or
+;    dprintf( msg)
 ; instead of that "compile if" stuff, which makes code much more readable.
 
 define
 compile if not defined(NEPMD_DEBUG)
-   NEPMD_DEBUG = 0  -- General debug const
+   NEPMD_DEBUG = 1  -- General debug const
 compile endif
 
 ; ---------------------------------------------------------------------------
@@ -41,10 +43,9 @@ compile endif
 ; The array var "debuglist" is also accessable from EPM-REXX via the
 ; SaveUserstring, AVar2Userstring, RestoreUserstring, SetAVar, AddAVar
 ; and DelAVar commands.
-; The dprintf macro produces only output, when the constant NEPMD_DEBUG
-; was set to > 0 in MYCNF.E, with:
+; To suppress all dprintf output, set NEPMD_DEBUG to 0 in MYCNF.E:
 ;   const
-;      NEPMD_DEBUG = 1
+;      NEPMD_DEBUG = 0
 defproc dprintf
 compile if NEPMD_DEBUG
    Type = arg(1)
