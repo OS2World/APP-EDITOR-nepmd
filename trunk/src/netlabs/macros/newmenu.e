@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.51 2008-09-14 15:44:20 aschn Exp $
+* $Id: newmenu.e,v 1.52 2008-09-21 13:02:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2651,58 +2651,10 @@ defproc add_options_menu(menuname)
                                    \1'Toggle restore of ring if EPM is started without args',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
 
-/*
-   Autosave:
-      [x] Enabled
-      After [ 100 ] changes
-      Directory: [ backups ]       <-- env vars were resolved, dir
-                                       may be relative or fully qual.
-      List directory
-         .filename'~sav'
-         leftstr( .filename, (length( .filename) - 1)'~' (FAT)
-      Autosave overwrites an existing file.
-      Autosave name should be saved as array var.
-   Backup:
-      [x] Enabled
-      Keep [ 2 ] backups per file
-      ------------- or -------------------
-      Keep [ 10 ] backups total
-      Keep [ 1 ] backups per day
-      Keep [ 1 ] backups per week
-      ------------- or -------------------
-      Keep [ 10 ] copies for current day
-      Keep [ 10 ] copies for previous change day
-      Keep [ 5 ] other copies with 1 per day
-      Todo: delete expired files on demand
-      ------------------------------------
-      Directory: [ backups ]       <-- env vars were resolved, dir
-                                       may be relative or fully qual.
-      ( ) Append timestamp
-             main.c~051597-024539  <-- better use ISO-like date: yyyymmdd_hhmm
-      (o) Append number
-             main.c~0              <-- For FAT: replace last 2 chars
-             main.c~1
-          On backup, other backup files habe to be renamed. ~0 is the
-          last one.
-      The oldest backup file has to be deleted, if max. backups is
-      reached.
-      Current backup name/style should be saved as array var.
-   List saved files for current file...
-   List all saved files in current backup dir...
-   Restore from Autosave...
-   Original .filename should be saved as EA: EPM.ORGFILENAME (including path)
-*/
    i = i + 1; call SetAVar( 'mid_backup', i);
    buildmenuitem menuname, mid, i, '~Backup',                                                      -- Backup  >
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
-/*
-   i = i + 1;
-   buildmenuitem menuname, mid, i, AUTOSAVE_MENU__MSG,                                                   -- Autosave...
-                                   '~autosave ?' ||
-                                   AUTOSAVE_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_OPTIONS_AUTOSAVE, 0)
-*/
    i = i + 1; call SetAVar( 'mid_autosaveenabled', i);
    buildmenuitem menuname, mid, i, '~Autosave enabled',                                                  -- Autosave enabled
                                    'toggle_autosave' ||
@@ -3779,13 +3731,11 @@ defc menuinit_backup
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_autosaveenabled'),  MIA_CHECKED, not on)
 
-   KeyPath = '\NEPMD\User\AutoSave\Number'
-   new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   new = GetAutoSaveNum()
    parse value GetAVar('mtxt_autosavenumdialog') with next'['x']'rest
    SetMenuText( GetAVar('mid_autosavenumdialog'), next'['new']'rest)
 
-   KeyPath = '\NEPMD\User\AutoSave\Directory'
-   new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   new = GetAutoSaveDir()
    parse value GetAVar('mtxt_autosavedirdialog') with next'['x']'rest
    SetMenuText( GetAVar('mid_autosavedirdialog'), next'['new']'rest)
 
@@ -3798,13 +3748,11 @@ defc menuinit_backup
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_backupenabled'),  MIA_CHECKED, not on)
 
-   KeyPath = '\NEPMD\User\Backup\Number'
-   new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   new = GetBackupNum()
    parse value GetAVar('mtxt_backupnumdialog') with next'['x']'rest
    SetMenuText( GetAVar('mid_backupnumdialog'), next'['new']'rest)
 
-   KeyPath = '\NEPMD\User\Backup\Directory'
-   new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   new = GetBackupDir()
    parse value GetAVar('mtxt_backupdirdialog') with next'['x']'rest
    SetMenuText( GetAVar('mid_backupdirdialog'), next'['new']'rest)
 
