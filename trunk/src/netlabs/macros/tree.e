@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tree.e,v 1.6 2008-09-14 15:32:44 aschn Exp $
+* $Id: tree.e,v 1.7 2008-09-21 22:40:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -57,8 +57,10 @@ EA_comment 'This defines the TREE and TREE_DIR commands; it can be linked, or TR
 defc TREE_actionlist
    universal ActionsList_FileID  -- This is the fileid that gets the line(s)
 
-   insertline '~tree_action~'TREE_PROMPT || TREE2_PROMPT'~TREE~', ActionsList_FileID.last+1, ActionsList_FileID
-   insertline '~tree_dir_action~'TREE_DIR_PROMPT || TREE2_PROMPT'~TREE~', ActionsList_FileID.last+1, ActionsList_FileID
+   insertline '~tree_action~'TREE_PROMPT || TREE2_PROMPT'~TREE~',
+              ActionsList_FileID.last+1, ActionsList_FileID
+   insertline '~tree_dir_action~'TREE_DIR_PROMPT || TREE2_PROMPT'~TREE~',
+              ActionsList_FileID.last+1, ActionsList_FileID
 
 ; This is the command that will be called for the above action.
 
@@ -68,9 +70,13 @@ defc tree_action
       sayerror 0
       if parms='' then
          'compiler_help_add tree.hlp'     -- Make sure the help file is loaded
-         parse value entrybox(TREE__MSG,'/'OK__MSG'/'Cancel__MSG'/'Help__MSG'/',checkini(0, 'TREE_ARG', ''),'',1590,
-                atoi(1) || atoi(32115) || gethwndc(APP_HANDLE) ||
-                TREE_PROMPT__MSG) with button 2 parms \0
+         parse value entrybox( TREE__MSG,
+                               '/'OK__MSG'/'Cancel__MSG'/'Help__MSG'/',
+                               checkini( 0, 'TREE_ARG', ''),
+                               '',
+                               1590,
+                               atoi(1) || atoi(32115) || gethwndc(APP_HANDLE) ||
+                               TREE_PROMPT__MSG) with button 2 parms \0
          if button <> \1 then
             return
          endif
@@ -92,9 +98,13 @@ defc tree_dir_action
       sayerror 0
       if parms='' then
          'compiler_help_add tree.hlp'     -- Make sure the help file is loaded
-         parse value entrybox(TREE_DIR__MSG,'/'OK__MSG'/'Cancel__MSG'/'Help__MSG'/',checkini(0, 'TREE_DIR_ARG', ''),'',1590,
-                atoi(1) || atoi(32115) || gethwndc(APP_HANDLE) ||
-                TREE_DIR_PROMPT__MSG) with button 2 parms \0
+         parse value entrybox( TREE_DIR__MSG,
+                               '/'OK__MSG'/'Cancel__MSG'/'Help__MSG'/',
+                               checkini( 0, 'TREE_DIR_ARG', ''),
+                               '',
+                               1590,
+                               atoi(1) || atoi(32115) || gethwndc(APP_HANDLE) ||
+                               TREE_DIR_PROMPT__MSG) with button 2 parms \0
          if button <> \1 then
             return
          endif
@@ -115,29 +125,33 @@ const
 
 defc tree =
    parse arg filename
-   call parse_filename(filename, .filename)
-   if substr(filename, 1, 1)='"' then
+   call parse_filename( filename, .filename)
+   if substr( filename, 1, 1) = '"' then
       parse value filename with '"' filename '"'
    endif
-   if filename='' then
+   if filename = '' then
       filename = '*.*'
-   elseif pos(rightstr(filename,1), ':\') then
+   elseif pos( rightstr( filename, 1), ':\') then
       filename = filename'*.*'
    endif
-   colon = pos(':', filename)
-   if not pos('\', filename) & not colon then
+   colon = pos( ':', filename)
+   if not pos( '\', filename) & not colon then
       filename = directory()'\'filename
    endif
-   if not verify(filename,'?*','M') then  -- If no wildcards
-      if not qfilemode(filename, attrib) then  -- File exists
+   if not verify( filename,'?*', 'M') then  -- If no wildcards
+      if not qfilemode( filename, attrib) then  -- File exists
          if attrib bitand 16 then  -- If x'10' is on then it's a directory
-            lp = lastpos('\', filename)
-            if not lp then lp=colon; endif
-            result = winmessagebox('Tree:  Directory exists:  'filename, 'Select Yes to search' filename'\*'\10'Select No to search' leftstr(filename, lp) 'for files named "'substr(filename, lp+1)'"', MB_YESNOCANCEL + MB_QUERY + MB_MOVEABLE)
-            if result=MBID_CANCEL then
+            lp = lastpos( '\', filename)
+            if not lp then lp = colon; endif
+            result = winmessagebox( 'Tree:  Directory exists:  'filename,
+                                    'Select Yes to search' filename'\*'\10 ||
+                                    'Select No to search' leftstr( filename, lp) ||
+                                    ' for files named "'substr( filename, lp + 1)'"',
+                                    MB_YESNOCANCEL + MB_QUERY + MB_MOVEABLE)
+            if result = MBID_CANCEL then
                return
             endif
-            if result=MBID_YES then
+            if result = MBID_YES then
                filename = filename'\*'
             endif
          endif
@@ -145,14 +159,14 @@ defc tree =
    endif
    getfileid startid
    'xcom e /c .tree'
-   if rc & rc<>sayerror('New file') then
-      sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
+   if rc & rc <> sayerror( 'New file') then
+      sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext( rc)
       return rc
    endif
    getfileid tree_id
    'xcom e /c .dirs'
-   if rc & rc<>sayerror('New file') then
-      sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
+   if rc & rc <> sayerror( 'New file') then
+      sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext( rc)
       return rc
    endif
    getfileid dirs_fid
@@ -167,29 +181,29 @@ defc tree =
    else
       drives = ' '         -- Want loop to be executed at least once.
    endif
-   lp=lastpos('\', filename)
-   if not lp & colon then lp=2; endif
+   lp = lastpos( '\', filename)
+   if not lp & colon then lp = 2; endif
    deleteline 1
-   do i=1 to length(drives)
+   do i = 1 to length( drives)
       if colon then
-         filename = substr(drives, i, 1)':'filepart
+         filename = substr( drives, i, 1)':'filepart
       else
          drives = ' '         -- Want loop to be executed at least once.
       endif
 
-      insertline leftstr(filename,lp), 1
-      filename = substr(filename, lp+1)
+      insertline leftstr( filename, lp), 1
+      filename = substr( filename, lp + 1)
       do while dirs_fid.last
          getline file_path, 1, dirs_fid
-         if file_path<>'' & not pos(rightstr(file_path,1), ':\') then
+         if file_path <> '' & not pos( rightstr( file_path, 1), ':\') then
             file_path = file_path'\'
          endif
 compile if DEBUG_TREE
          debug_message( 'dirs last =' dirs_fid.last 'file_path = "'file_path'"')
 compile endif
          deleteline 1, dirs_fid
-         call tree_searchdir(file_path || filename, attribute, file_count, total_size, 0, tree_id)
-         call tree_searchdir(file_path'*.*', 4151, junk, junk, 1, dirs_fid)
+         call tree_searchdir( file_path || filename, attribute, file_count, total_size, 0, tree_id)
+         call tree_searchdir( file_path'*.*', 4151, junk, junk, 1, dirs_fid)
       enddo      -- dirs_fid.last
    enddo       -- drives
    activatefile dirs_fid
@@ -197,20 +211,22 @@ compile endif
    .autosave = 0
    'xcom quit'
    activatefile tree_id
-   call tree_common_finish(tree_id, file_count, total_size, 'Tree:' arg(1), files_truncated)
+   -- Last parm files_truncated was never used:
+   --call tree_common_finish(tree_id, file_count, total_size, 'Tree:' arg(1), files_truncated)
+   call tree_common_finish( tree_id, file_count, total_size, '.Tree' arg(1))
 
-defc tree_dir =
+defc tree_dir
    parse arg filename
-   call parse_filename(filename, .filename)
-   if substr(filename, 1, 1)='"' then
+   call parse_filename( filename, .filename)
+   if substr( filename, 1, 1) = '"' then
       parse value filename with '"' filename '"'
    endif
-   if filename='' then
+   if filename = '' then
       filename = '*.*'
-   elseif pos(rightstr(filename,1), ':\') then
+   elseif pos( rightstr( filename, 1), ':\') then
       filename = filename'*.*'
    endif
-   if not pos('\', filename) & substr(filename,2,1)<>':' then
+   if not pos( '\', filename) & substr( filename, 2, 1) <> ':' then
       filename = directory()'\'filename
    endif
    if not verify(filename,'?*','M') then  -- If no wildcards
@@ -221,33 +237,44 @@ defc tree_dir =
       endif
    endif
    'xcom e /c .tree'
-   if rc & rc<>sayerror('New file') then
-      sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
+   if rc & rc <> sayerror( 'New file') then
+      sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext( rc)
       return rc
    endif
    getfileid tree_id
    file_count = 0
    total_size = 0
    attribute = 55        -- Want to see all files
-   res= tree_searchdir(filename, attribute, file_count, total_size, 0, tree_id)
-   call tree_common_finish(tree_id, file_count, total_size, 'Tree_Dir:' arg(1), res)
+   res= tree_searchdir( filename, attribute, file_count, total_size, 0, tree_id)
+   -- Last parm res was never used:
+   --call tree_common_finish( tree_id, file_count, total_size, 'Tree_Dir:' arg(1), res)
+   call tree_common_finish( tree_id, file_count, total_size, '.Tree_Dir' arg(1))
 
-
-defproc tree_common_finish(tree_id, file_count, total_size, title)
+defproc tree_common_finish( tree_id, file_count, total_size, title)
    if tree_id.modify then
       replaceline TREES_HEADER, 1
       insertline 'ออออออออออ  ออออออออ  อออออออออ  อออออออออ  อออออ  ออออออออออออ', 2
       insertline '          'file_count 'file(s)   'total_size 'bytes used', .last+1
       .lineg = 3
       .col = 52
-      .titletext = title
+      --.titletext = title
+      .filename = title
       'postme monofont'
       'postme tabs 1 13 23 34 45 52'
       sayerror ALT_1_LOAD__MSG
       .modify = 0
+      'postme MaybeQuitPrevTreeFile'
    else
       'xcom q'
       sayerror 'No hits.'
+   endif
+
+defc MaybeQuitPrevTreeFile
+   getfileid curfid
+   prevfile
+   if upcase( leftstr( .filename, 5)) = '.TREE' then
+      'q'
+      activatefile curfid
    endif
 
 
@@ -260,7 +287,7 @@ defproc tree_common_finish(tree_id, file_count, total_size, title)
 ; dir_only:  A flag to say if we're looking for directories only (for sweeping the tree).
 ; out_fid:  The fileid where the output is to be appended.
 ;
-defproc tree_searchdir(filename, attribute, var file_count, var total_size, dir_only, out_fid)
+defproc tree_searchdir( filename, attribute, var file_count, var total_size, dir_only, out_fid)
 compile if DEBUG_TREE
    debug_message( 'tree_searchdir('filename', 'attribute', ..., 'dir_only', 'out_fid '=' out_fid.filename)
 compile endif
@@ -450,3 +477,4 @@ defc treesort =
    enddo
    .modify = startmod
    call prestore_mark(savemark)
+

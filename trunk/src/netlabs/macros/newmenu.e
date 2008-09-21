@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.52 2008-09-21 13:02:31 aschn Exp $
+* $Id: newmenu.e,v 1.53 2008-09-21 22:40:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -3822,12 +3822,12 @@ defc menuinit_macros
 
 ; ------------------------------------ Run ----------------------------------
 defc menuinit_run
-   is_shell = leftstr(.filename, 15) = ".command_shell_"
+   is_shell = leftstr( .filename, 15) = '.command_shell_'
    SetMenuAttribute( GetAVar('mid_writetoshell'),     MIA_DISABLED, is_shell)
    SetMenuAttribute( GetAVar('mid_sendbreaktoshell'), MIA_DISABLED, is_shell)
 
 defc menuinit_treecommands
-   is_tree = leftstr(.filename, 5) = ".tree"
+   is_tree = upcase( leftstr( .filename, 5)) = '.TREE'
    SetMenuAttribute( GetAVar('mid_treesort'), MIA_DISABLED, is_tree)
    SetMenuAttribute( GetAVar('mid_treeit')  , MIA_DISABLED, is_tree)
 

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: popup.e,v 1.7 2006-12-10 12:04:33 aschn Exp $
+* $Id: popup.e,v 1.8 2008-09-21 22:40:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -183,7 +183,7 @@ compile endif
 
    buildsubmenu  menuname, 80, '', '', 0 , 0
 
-   if .filename = '.tree' then --------------------------------------------------------------------------------------------------------
+   if upcase( leftstr( .filename, 5)) = '.TREE' then ----------------------------------------------------------------------------------
       buildmenuitem menuname, 80, 8000, LOAD_FILE_MENU__MSG\9'Alt+1',   'dokey a_1'LOAD_FILE_MENUP__MSG, 0, 0
       buildmenuitem menuname, 80, 8001, SORT_ASCENDING_MENU__MSG,   ''SORT_ASCENDING_MENUP__MSG, 17, 0
       buildmenuitem menuname, 80, 8002, SORT_DATE_MENU__MSG,        'treesort' 'D'SORT_XXXX_MENUP__MSG, 1, 0

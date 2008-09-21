@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.24 2008-09-05 22:33:16 aschn Exp $
+* $Id: alt_1.e,v 1.25 2008-09-21 22:40:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -432,7 +432,7 @@ compile endif
    endif -- if DIR command
 
    -------------------------------------------------------------------------- .tree
-   if .filename = '.tree' then
+   if upcase( leftstr( .filename, 5)) = '.TREE' then
       if substr( line, 5, 1)''substr( line, 8, 1)''substr( line, 15, 1) ||
          substr( line, 18, 1) = '--::' then
          name = substr( line, 52)
