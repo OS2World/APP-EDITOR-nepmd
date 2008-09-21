@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.32 2008-09-21 13:02:31 aschn Exp $
+* $Id: file.e,v 1.33 2008-09-21 13:14:24 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1816,16 +1816,27 @@ defproc MakeBakName
       BackupDir = leftstr( FullName, lp - 1)'\'BackupDir
    endif
 
-   -- Always a sub dir, so no special handling of x:\ is required
-   BackupDir = strip( BackupDir, 'T', '\')
-
    -- Maybe create backup tree
-   if not NepmdDirExists( BackupDir) then
-      rcx = MakeTree( BackupDir)
+   BackupDir = strip( BackupDir, 'T', '\')
+   fCreateDir = 1
+   if rightstr( BackupDir, 1) = ':' then
+      fCreateDir = 0
+   elseif leftstr( BackupDir, 2) = '\\' then
+      parse value BackupDir'\' with '\\' MachineName '\' Resource '\' SubDir
+      if SubDir = '' then
+         fCreateDir = 0
+      endif
+   endif
+   if fCreateDir then
+      if not NepmdDirExists( BackupDir) then
+         rcx = MakeTree( BackupDir)
+      endif
    endif
 
    -- Get file sys
    FileSys = ''
+   if substr( BackupDir, 1, 2) = '\\' then
+      FileSys = 'LAN'  -- Assume it's not FAT
    if substr( BackupDir, 2, 1) = ':' then
       FileSys = QueryFileSys( leftstr( BackupDir, 2))
    elseif substr( FullName, 2, 1) = ':' then
