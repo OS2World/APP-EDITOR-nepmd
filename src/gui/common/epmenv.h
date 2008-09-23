@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.h,v 1.6 2008-09-20 23:14:29 aschn Exp $
+* $Id: epmenv.h,v 1.7 2008-09-23 01:56:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -33,7 +33,7 @@
 #define ENV_NEPMD_ROOTDIR          "NEPMD_ROOTDIR"
 #define ENV_NEPMD_USERDIR          "NEPMD_USERDIR"
 #define ENV_NEPMD_MAINENVFILE      "NEPMD_MAINENVFILE"
-#define ENV_NEPMD_USERENVFILE      "NEPMD_USERENVFILE"
+#define ENV_NEPMD_ADDENVFILE       "NEPMD_ADDENVFILE"
 #define ENV_NEPMD_EPMEXECUTABLE    "NEPMD_EPMEXECUTABLE"
 #define ENV_NEPMD_LOADEREXECUTABLE "NEPMD_LOADEREXECUTABLE"
 
