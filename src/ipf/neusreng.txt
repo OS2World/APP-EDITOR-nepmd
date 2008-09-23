@@ -5,17 +5,17 @@
 .. source file for the user guide INF file of the
 .. Requires HyperText/2 package to compile
 ..
-.. Copyright (c) Netlabs EPM Distribution Project 2002
+.. Copyright (c) netlabs.org EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.17 2006-12-20 19:36:13 cla Exp $
+.. $Id: neusreng.txt,v 1.18 2008-09-23 02:06:24 aschn Exp $
 ..
 .. ===========================================================================
 ..
-.. This file is part of the Netlabs EPM Distribution package and is free
+.. This file is part of the netlabs.org EPM Distribution package and is free
 .. software.  You can redistribute it and/or modify it under the terms of the
 .. GNU General Public License as published by the Free Software
 .. Foundation, in version 2 as it comes in the "COPYING" file of the
-.. Netlabs EPM Distribution.  This library is distributed in the hope that it
+.. netlabs.org EPM Distribution.  This library is distributed in the hope that it
 .. will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 .. of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 .. General Public License for more details.
@@ -80,7 +80,7 @@ installation and configuration scheme] and [.IDPNL_USEADDITIONS various
 edit features] out of contributed macros and add-on programs.
 
 .. -----------------------------------------------------------------------------
-.3 What is EPM ?
+.3 What is EPM?
 .. -----------------------------------------------------------------------------
 .an IDPNL_WHAT_EPM
 .
@@ -131,7 +131,7 @@ features in *EPM* 6 compared to *EPM* 5
 .
 The sources for to build the [=TITLE] are freely available under the
 [.IDPNL_LEGAL_GPL GNU General Public License] within a *CVS* archive on
-the *Netlabs Open Source Archive* server.
+the *netlabs.org Open Source Archive* server.
 
 To access them you either can
 .pl compact tsize=3
@@ -140,20 +140,20 @@ To access them you either can
 .ul compact
   - set USER=*guest*
 .
-    or your personal Netlabs userid
+    or your personal netlabs.org userid
   - set CVSROOT=:pserver:#guest#@www.netlabs.org:/netlabs.cvs/nepmd
 .
-    or with your personal Netlabs userid instead of *guest*
-  - use *readonly* as password or use your personal Netlabs password
+    or with your personal netlabs.org userid instead of *guest*
+  - use *readonly* as password or use your personal netlabs.org password
 .el
 - use *CVS* in conjunction with the
-  *Netlabs Open Source Archive Client* (NOSAC)
+  *netlabs.org Open Source Archive Client* (NOSAC)
 = the latter package will help you a lot if you are not familliar with *CVS*.
-  Follow the instructions for easy access to a *Netlabs Open Source Archive*
+  Follow the instructions for easy access to a *netlabs.org Open Source Archive*
   and watch out for an archive called *NEPMD*
 
 See the following URL for more information on the
-*Netlabs Open Source Archive Client* and *CVS*:
+*netlabs.org Open Source Archive Client* and *CVS*:
 .ul compact
 - [http://nosa.netlabs.org Netlabs Open Source Archive (http://nosa.netlabs.org)]
 
@@ -196,8 +196,8 @@ All rights reserved.
 
 Visit also the homepages of
 .ul compact
-- [http://nepmd.netlabs.org The Netlabs EPM Distribution]
-- [http://www.netlabs.org The Netlabs]
+- [http://nepmd.netlabs.org The netlabs.org EPM Distribution]
+- [http://www.netlabs.org netlabs.org]
 
 .. -----------------------------------------------------------------------------
 .3 freeware license
@@ -289,7 +289,7 @@ This icon starts the *EPM* Users Guide. This book is intended to aid
 users with the configuration and usage of *EPM*.
 
 .. .............................................................................
-.4 Netlabs EPM Distribution User Guide
+.4 netlabs.org EPM Distribution User Guide
 .. .............................................................................
 .an IDPNL_USAGE_WPSFOLDER_VIEW_NEUSR
 .
@@ -297,7 +297,7 @@ This icon starts the *User Guide* of the [=TITLE],
 this is the INF file that you are just reading.
 
 .. .............................................................................
-.4 Netlabs EPM Distribution Programming Guide
+.4 netlabs.org EPM Distribution Programming Guide
 .. .............................................................................
 .an IDPNL_USAGE_WPSFOLDER_VIEW_NEPRG
 .
@@ -609,7 +609,7 @@ if you intend to create an own *EPM* mode,
   to add keyword definitions for the new *EPM* mode.
 
 .. =============================================================================
-.2 How can I ... ?
+.2 How can I ...?
 .. =============================================================================
 .an IDPNL_HOW
 .
@@ -618,7 +618,7 @@ if you intend to create an own *EPM* mode,
 .ul compact
 
 .. -----------------------------------------------------------------------------
-.3 How can I add definitions for syntax highlighting ?
+.3 How can I add definitions for syntax highlighting?
 .. -----------------------------------------------------------------------------
 .an IDPNL_HOW_HILITEDEF
 .
@@ -632,7 +632,7 @@ if you intend to create an own *EPM* mode,
 .mi IDPNL_USAGE_CONFIGURE_CREATEMODE
 
 .. -----------------------------------------------------------------------------
-.3 How can I recompile the EPM ?
+.3 How can I recompile the EPM?
 .. -----------------------------------------------------------------------------
 .an IDPNL_HOW_RECOMPILE
 .
@@ -641,7 +641,7 @@ This will start the [.IDPNL_INSTADDITIONS_RECOMP recompile GUI utility]
 allowing you to quickly recompile the *EPM*.
 
 .. -----------------------------------------------------------------------------
-.3 How can I set fonts and colors easily ?
+.3 How can I set fonts and colors easily?
 .. -----------------------------------------------------------------------------
 .an IDPNL_HOW_SETFONTS
 .
@@ -668,7 +668,7 @@ We recommned the following fonts and colors:
 When you're done, save your settings: *Options -> Save options*.
 
 .. -----------------------------------------------------------------------------
-.3 How can I print keyword highlighted files with colors ?
+.3 How can I print keyword highlighted files with colors?
 .. -----------------------------------------------------------------------------
 .an IDPNL_HOW_PRINTHILITED
 .
@@ -688,7 +688,7 @@ As an alternative, you can vhange the default font temporarily with the font
 palette or the settings dialog.
 
 .. -----------------------------------------------------------------------------
-.3 How can I load/save files from/to drive H: ?
+.3 How can I load/save files from/to drive H:?
 .. -----------------------------------------------------------------------------
 .an IDPNL_HOW_DRIVEH
 .
@@ -710,7 +710,7 @@ you may set i.e.:
 - HOSTDRIVE = 'X:'
 
 .. -----------------------------------------------------------------------------
-.3 How can I change the standard help viewer for the keyword help mechanism ?
+.3 How can I change the standard help viewer for the keyword help mechanism?
 .. -----------------------------------------------------------------------------
 .an IDPNL_HOW_SETVIEW
 .
@@ -828,7 +828,7 @@ The following persons (in alphabetic order) assembled and contributed extensions
 =
 .ul compact
   - distribution concept
-  - setup of the *Netlabs Open Source Archive* for the [.IDPNL_WHAT_NED]
+  - setup of the *netlabs.org Open Source Archive* for the [.IDPNL_WHAT_NED]
   - this online INF file
   - *WarpIn* installation packaging
     - National Language Support concept
@@ -858,7 +858,7 @@ The following persons (in alphabetic order) assembled and contributed extensions
 .su V30 1
 
 .. -----------------------------------------------------------------------------
-.3 component overview
+.3 Component overview
 .. -----------------------------------------------------------------------------
 .an IDPNL_EPM_BBS_COMP
 .
@@ -1174,7 +1174,7 @@ by Larry Margolis) is available on FTP servers in the Internet like:
 .su V30 1
 
 .. -----------------------------------------------------------------------------
-.3 dynamic EPM configuration
+.3 Dynamic EPM configuration
 .. -----------------------------------------------------------------------------
 .an IDPNL_INSTADDITIONS_DYNCFG
 .
@@ -1185,7 +1185,7 @@ any changes to your *CONFIG.SYS* obsolete.
 .su 1 H40
 
 .. .............................................................................
-.4 benefits of the dynamic configuration
+.4 Benefits of the dynamic configuration
 .. .............................................................................
 .an IDPNL_INSTADDITIONS_DYNCFG_BENEFITS
 .
@@ -1235,7 +1235,7 @@ instead of the true *EPM* and does the following:
   before.
 
 .. .............................................................................
-.4 extended environment
+.4 Extended environment
 .. .............................................................................
 .an IDPNL_INSTADDITIONS_DYNCFG_EXTENV
 .
@@ -1267,7 +1267,7 @@ only available within the extended environment, of course).
 .at
 
 .. .............................................................................
-.4 environment files
+.4 Environment files
 .. .............................................................................
 .an IDPNL_INSTADDITIONS_DYNCFG_ENVFILES
 .
@@ -1326,7 +1326,7 @@ in the directory *myepm\bin* with the same name, which is loaded after this main
 .fo on
 
 .. .............................................................................
-.4 search order for environment files
+.4 Search order for environment files
 .. .............................................................................
 .an IDPNL_INSTADDITIONS_DYNCFG_SEARCHORDER
 .in __todo: link to recomp
@@ -1389,7 +1389,7 @@ is loaded
 .el
 
 .. .............................................................................
-.4 new NEPMD environment variables
+.4 New NEPMD environment variables
 .. .............................................................................
 .an IDPNL_INSTADDITIONS_DYNCFG_NEWVARS
 .
@@ -1409,9 +1409,9 @@ _*environment variables defined by the environment file loader code:*_
 - NEPMD__EPMEXECUTABLE
 = full pathname of the original *EPM* executable
 - NEPMD__MAINENVFILE
-= containing the pathname of the main environmentfile loaded, if any
-- NEPMD__USERENVFILE
-= containing the pathname of the user environmentfile loaded, if any
+= containing the pathname of the main environment file loaded, if any
+- NEPMD__ADDENVFILE
+= containing the pathname of the additional environment file loaded, if any.
 
 _*environment variables defined in netlabs\bin\epm.env:*_
 .pl tsize=3 bold
@@ -1430,10 +1430,10 @@ _*environment variables defined in netlabs\bin\epm.env:*_
 - EPMMODEPATH
 = path for mode related files, used e.g. for *EPM* syntax highlighting
 - EPMMACROPATH
-= path for E language source files, especially used for recopilation of *EPM* (**.e)
+= path for E language source files, especially used for recopilation of *EPM* (**.e).
 
 .. -----------------------------------------------------------------------------
-.3 extended directory structure
+.3 Extended directory structure
 .. -----------------------------------------------------------------------------
 .an IDPNL_INSTADDITIONS_DIRTREE
 .
@@ -1453,7 +1453,7 @@ all files are separated in dedicated directories:
     to modify the original files!
 
 .. .............................................................................
-.4 directory structure for the EPMBBS files
+.4 Directory structure for the EPMBBS files
 .. .............................................................................
 .an IDPNL_INSTADDITIONS_DIRTREE_EPMBBS
 .
@@ -1485,7 +1485,7 @@ Files of the [.IDPNL_EPMBBS EPMBBS distribution] reside in the following directo
 .fo on
 
 .. .............................................................................
-.4 directory structure for extensions of the Netlabs EPM Distribution
+.4 Directory structure for extensions of the netlabs.org EPM Distribution
 .. .............................................................................
 .an IDPNL_INSTADDITIONS_DIRTREE_NEPMD
 .
@@ -1502,7 +1502,7 @@ Files of the [=TITLE] reside in the following directories:
 .fo on
 
 .. .............................................................................
-.4 directory structure for personal extensions
+.4 Directory structure for personal extensions
 .. .............................................................................
 .an IDPNL_INSTADDITIONS_DIRTREE_USER
 .
@@ -1522,7 +1522,7 @@ placed into the following directory tree:
 .fo on
 
 .. -----------------------------------------------------------------------------
-.3 extended recompilation support
+.3 Extended recompilation support
 .. -----------------------------------------------------------------------------
 .an IDPNL_INSTADDITIONS_RECOMP
 .in RECOMP
@@ -1554,7 +1554,7 @@ convenience. It works as follows:
 Using the reload function makes the work much easier especially when developing macros for *EPM*.
 
 .. -----------------------------------------------------------------------------
-.3 extended configuration repository
+.3 Extended configuration repository
 .. -----------------------------------------------------------------------------
 .an IDPNL_INSTADDITIONS_REGISTRY
 .
@@ -1567,7 +1567,7 @@ See the *NEPMD Programming Reference* for more technical details when using it
 in your own macro source code.
 
 .. -----------------------------------------------------------------------------
-.3 autolink feature for EPM extensions
+.3 Autolink feature for EPM extensions
 .. -----------------------------------------------------------------------------
 .an IDPNL_INSTADDITIONS_AUTOLINK
 .
@@ -1627,7 +1627,7 @@ extended:
 .su H50
 
 .. .............................................................................
-.4 extended statusline
+.4 Extended statusline
 .. .............................................................................
 .an IDPNL_USEADDITIONS_NEWFRAME_STATUSLINE
 .
@@ -1646,7 +1646,7 @@ Future releases of the [=TITLE] will allow the free configuration
 of the information included in the statusline.
 
 .. .............................................................................
-.4 extended titletext
+.4 Extended titletext
 .. .............................................................................
 .an IDPNL_USEADDITIONS_NEWFRAME_TITLETEXT
 .
@@ -1662,7 +1662,7 @@ The text in the titlebar is extended by showing
      was not active (did not have input focus)
 
 .. .............................................................................
-.4 message log
+.4 Message log
 .. .............................................................................
 .an IDPNL_USEADDITIONS_NEWFRAME_MESSAGELOG
 .
@@ -1674,7 +1674,7 @@ The message log can be displayed by a double-click
 onto the message line or by the command *messagebox*.
 
 .. .............................................................................
-.4 menu
+.4 Menu
 .. .............................................................................
 .an IDPNL_USEADDITIONS_NEWFRAME_MENU
 .
@@ -1727,7 +1727,7 @@ The following additions are included:
     - Current word
 
 .. .............................................................................
-.4 key accelerators
+.4 Key accelerators
 .. .............................................................................
 .an IDPNL_USEADDITIONS_NEWFRAME_KEYS
 .
@@ -1788,7 +1788,7 @@ The following additional key kombinations are implemented in the [=TITLE]:
   (Usable for reading texts)
 
 .. .............................................................................
-.4 mouse handling
+.4 Mouse handling
 .. .............................................................................
 .an IDPNL_USEADDITIONS_NEWFRAME_MOUSE
 .
@@ -1809,7 +1809,7 @@ The following mouse handlers are implemented in the [=TITLE]:
   (available for all loaded files !)
 
 .. .............................................................................
-.4 workaround for mark bug
+.4 Workaround for mark bug
 .. .............................................................................
 .an IDPNL_USEADDITIONS_NEWFRAME_MARKBUG
 .
@@ -1828,7 +1828,7 @@ operation.
 
 
 .. -----------------------------------------------------------------------------
-.3 bracket matching/passist
+.3 Bracket matching/passist
 .. -----------------------------------------------------------------------------
 .an IDPNL_INSTADDITIONS_NEWMATCH
 .
@@ -1851,7 +1851,7 @@ the matching char is searched and highlighted if found.
   very useful *passist* procedure.
 
 .. -----------------------------------------------------------------------------
-.3 new filetype determination
+.3 New filetype determination
 .. -----------------------------------------------------------------------------
 .an IDPNL_INSTADDITIONS_EPMMODE
 .
@@ -1866,7 +1866,7 @@ See the following section for details:
 - [.IDPNL_MODE]
 
 .. -----------------------------------------------------------------------------
-.3 extended keyword hilighting
+.3 Extended keyword hilighting
 .. -----------------------------------------------------------------------------
 .an IDPNL_INSTADDITIONS_EPMKWDS
 .
@@ -1907,7 +1907,7 @@ Instead create [.IDPNL_FORMAT_CUSTOMINI] to extend and modify definitions on
 a per-mode basis !
 
 .. .............................................................................
-.4 color names
+.4 Color names
 .. .............................................................................
 .an IDPNL_FORMAT_GLOBALINI_COLORNAMES
 .
@@ -1938,7 +1938,7 @@ WHITE        =  15
 .fo on
 
 .. .............................................................................
-.4 keyword type symbols
+.4 Keyword type symbols
 .. .............................................................................
 .an IDPNL_FORMAT_GLOBALINI_KEYWORDSYMBOLS
 .
@@ -1984,7 +1984,7 @@ it is recommended to _*NOT*_
 In this case create the file [.IDPNL_FORMAT_CUSTOMINI] instead.
 
 .. .............................................................................
-.4 mode settings
+.4 Mode settings
 .. .............................................................................
 .an IDPNL_FORMAT_DEFAULTINI_GLOBAL
 .
@@ -2023,7 +2023,7 @@ DEFNAMES=makefile GNUmakefile
 .fo on
 
 .. .............................................................................
-.4 keyword type symbols
+.4 Keyword type symbols
 .. .............................................................................
 .an IDPNL_FORMAT_DEFAULTINI_SYMBOLS
 .
@@ -2056,7 +2056,7 @@ you need to create the file *myepm\mode\<mode-name>\default.ini* instead.
 .at
 
 .. .............................................................................
-.4 mode setting extensions
+.4 Mode setting extensions
 .. .............................................................................
 .an IDPNL_FORMAT_CUSTOMINI_GLOBAL
 .
@@ -2077,7 +2077,7 @@ In the section *[[GLOBAL]]* the following settings can be defined:
   as the first one wins.
 
 .. .............................................................................
-.4 keyword type symbols
+.4 Keyword type symbols
 .. .............................................................................
 .an IDPNL_FORMAT_CUSTOMINI_KEYWORDSYMBOLS
 .
@@ -2105,7 +2105,7 @@ See also the
 .su H50
 
 .. .............................................................................
-.4 format of hil files
+.4 Format of hil files
 .. .............................................................................
 .an IDPNL_FORMAT_NETLABSHIL_DETAILS
 .
@@ -2199,7 +2199,7 @@ See also the
 .su V30 1
 
 .. -----------------------------------------------------------------------------
-.3 using the mycnf.e scheme
+.3 Using the mycnf.e scheme
 .. -----------------------------------------------------------------------------
 .an IDPNL_CONFIG_MYCNF
 .
@@ -2231,7 +2231,7 @@ following steps:
 - recompile *EPM*
 
 .. -----------------------------------------------------------------------------
-.3 reworked configuration constants
+.3 Reworked configuration constants
 .. -----------------------------------------------------------------------------
 .an IDPNL_CONFIG_CONSTANTS
 .
@@ -3200,7 +3200,7 @@ The levels are:
 All sources and programs of the [=TITLE] that are
 .ul compact
 - not part of the [.IDPNL_EPMBBS EPMBBS distribution]  and
-- provided with the distribution or within the *Netlabs Open Source Archive* called *NEPMD*
+- provided with the distribution or within the *netlabs.org Open Source Archive* called *NEPMD*
 .el
 are provided under the *GNU General Public License*:
 .fo off
