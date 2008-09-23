@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: backup.e,v 1.1 2008-09-21 22:52:38 aschn Exp $
+* $Id: backup.e,v 1.2 2008-09-23 01:42:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -40,28 +40,7 @@ const
    include NLS_LANGUAGE'.e'
    include 'stdconst.e'
 
-   EA_comment 'This defines macros for file operations.'
-compile endif
-
-const
--- Include support for calling user exits in DEFMAIN, SAVE, NAME, and QUIT.
--- (EPM 5.51+ only; requires isadefproc() ).
-compile if not defined(SUPPORT_USER_EXITS)
-   --SUPPORT_USER_EXITS = 0  -- changed by aschn
-; #### Todo: obsolete since hooks exist #####################################
-   SUPPORT_USER_EXITS = 1
-compile endif
-
-compile if not defined(INCLUDE_BMS_SUPPORT)
-   INCLUDE_BMS_SUPPORT = 0
-compile endif
-
--- Lets you quit temporary files regardless of the state of the .modify bit.
--- Temporary files are assumed to be any file where the first character of the
--- .filename is a period.  If set to 1, you won't get the "Throw away changes?"
--- prompt when trying to quit one of these files.
-compile if not defined(TRASH_TEMP_FILES)
-   TRASH_TEMP_FILES = 0
+   EA_comment 'This defines macros for backup and autosave operations.'
 compile endif
 
 ; ---------------------------------------------------------------------------
@@ -77,14 +56,14 @@ defc autosave
    elseif isnum(uparg) then
       .autosave = uparg
    elseif uparg = 'DIR' then
-      'dir' vautosave_path
+      'ListBackupDir'
    elseif uparg = '' then
       'commandline autosave' .autosave
    elseif uparg = '?' then
       if ring_enabled then
          if 6 = winmessagebox( AUTOSAVE__MSG,
                                CURRENT_AUTOSAVE__MSG || .autosave\10 ||
-                               NAME_IS__MSG || MakeTempName()\10\10  ||
+                               NAME_IS__MSG || MakeBakName()\10\10  ||
                                LIST_DIR__MSG,
                                16436)  -- YESNO + MB_INFORMATION + MOVEABLE
             then
@@ -93,7 +72,7 @@ defc autosave
       else
          call winmessagebox( AUTOSAVE__MSG,
                              CURRENT_AUTOSAVE__MSG || .autosave\10 ||
-                             NAME_IS__MSG || MakeTempName()\10\10  ||
+                             NAME_IS__MSG || MakeBakName()\10\10  ||
                              NO_LIST_DIR__MSG,
                              16432)  -- OK + MB_INFORMATION + MOVEABLE
       endif  -- ring_enabled
@@ -102,7 +81,7 @@ defc autosave
       sayerror AUTOSAVE_PROMPT__MSG
       return
    endif  -- uparg = ON__MSG
-   sayerror CURRENT_AUTOSAVE__MSG || .autosave', 'NAME_IS__MSG || MakeTempName()
+   sayerror CURRENT_AUTOSAVE__MSG || .autosave', 'NAME_IS__MSG || MakeBakName()
 
 ; ---------------------------------------------------------------------------
 defc deleteautosavefile
