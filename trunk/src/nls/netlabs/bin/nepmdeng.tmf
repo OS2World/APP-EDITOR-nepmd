@@ -6,7 +6,7 @@
 ;
 ; Text Message file for language specific symbols and text messages
 ;
-; $Id: nepmdeng.tmf,v 1.12 2007-07-16 01:36:39 aschn Exp $
+; $Id: nepmdeng.tmf,v 1.13 2008-09-23 01:56:34 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -23,28 +23,28 @@
 
 <--MSG_INFO_HEADER-->:
             Netlabs EPM Distribution - Runtime Information
-       Copyright (c) Netlabs EPM Distribution Project 2002-2007
+       Copyright (c) Netlabs EPM Distribution Project 2002-2008
                        http://nepmd.netlabs.org
 <--MSG_INFO_BODY_VERSIONS-->:
 Versions
 --------
-<--STR_INFO_EDITORVERSION-->:     editor version: %1
-<--STR_INFO_MACROSVERSION-->:     macros version: %1
+<--STR_INFO_EDITORVERSION-->:     Editor version: %1
+<--STR_INFO_MACROSVERSION-->:     Macros version: %1
 <--STR_INFO_NEPMDVERSION-->:      NEPMD version: %1
 <--STR_INFO_NEPMDLIBVERSION-->:   NEPMDLIB version: %1
 <--MSG_INFO_BODY_DYNCFG-->:
 NEPMD dynamic configuration
 ---------------------------
-  installation directory: %1
-          user directory: %2
-       loader executable: %3
-   loaded EPM executable: %4
+  Installation directory: %1
+          User directory: %2
+       Loader executable: %3
+   Loaded EPM executable: %4
 
-       selected language: %5
-     initialization file: %6
-            message file: %7
-   main environment file: %8
-   user environment file: %9
+       Selected language: %5
+     Initialization file: %6
+            Message file: %7
+   Main environment file: %8
+   Add. environment file: %9
 <--MSG_INFO_BODY_MODULES_EPM-->:
 EPM runtime module overview
 ---------------------------

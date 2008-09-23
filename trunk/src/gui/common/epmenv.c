@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.32 2008-09-20 23:14:29 aschn Exp $
+* $Id: epmenv.c,v 1.33 2008-09-23 01:56:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -213,7 +213,7 @@ return rc;
 // -----------------------------------------------------------------------------
 
 static APIRET _searchNepmdEnvironmentFiles( PSZ pszMainEnvFile, ULONG ulMainBuflen,
-                                            PSZ pszUserEnvFile, ULONG ulUserBuflen)
+                                            PSZ pszAddEnvFile, ULONG ulAddBuflen)
 {
          APIRET         rc  = NO_ERROR;
          BOOL           fFound = FALSE;
@@ -230,20 +230,23 @@ static APIRET _searchNepmdEnvironmentFiles( PSZ pszMainEnvFile, ULONG ulMainBufl
          CHAR           szCurrentPath[ _MAX_PATH];
 
          CHAR           szMainEnvFile[ _MAX_PATH];
-         CHAR           szUserEnvFile[ _MAX_PATH];
+         CHAR           szAddEnvFile[ _MAX_PATH];
 
          CHAR           szMessage[ 1024];
 
-static  PSZ            pszNepmdExecDirMask = "%s\\"NEPMD_SUBPATH_BINBINDIR"\\%s"NEPMD_FILENAMEEXT_ENV;
-static  PSZ            pszUserExecDirMask  = "%s\\"NEPMD_SUBPATH_USERBINDIR"\\%s"NEPMD_FILENAMEEXT_ENV;
+static   PSZ            pszDefaultExecBaseName   = "epm"
+static   PSZ            pszMyDefaultExecBaseName = "myepm"
+
+static   PSZ            pszNepmdExecDirMask = "%s\\"NEPMD_SUBPATH_BINBINDIR"\\%s"NEPMD_FILENAMEEXT_ENV;
+static   PSZ            pszUserExecDirMask  = "%s\\"NEPMD_SUBPATH_USERBINDIR"\\%s"NEPMD_FILENAMEEXT_ENV;
 
 do
    {
    // check parms
    if ((!pszMainEnvFile) ||
-       (!pszUserEnvFile) ||
+       (!pszAddEnvFile) ||
        (!ulMainBuflen)   ||
-       (!ulUserBuflen))
+       (!ulAddBuflen))
       {
       rc = ERROR_INVALID_PARAMETER;
       break;
@@ -251,7 +254,7 @@ do
 
    // init vars
    memset( pszMainEnvFile, 0, ulMainBuflen);
-   memset( pszUserEnvFile, 0, ulUserBuflen);
+   memset( pszAddEnvFile, 0, ulAddBuflen);
 
    // get own filename to isolate basename of executable
    DosGetInfoBlocks( &ptib,&ppib);
@@ -275,30 +278,9 @@ do
       // reset rc here
       rc == NO_ERROR;
 
-      // <executable_path>\<exename>.env
-      sprintf( szMainEnvFile, "%s\\%s"NEPMD_FILENAMEEXT_ENV, szExecutablePath, szBasename);
-//    DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
-      if (fFound = FileExists( szMainEnvFile))
-         break;
-
-      if (fRootDirFound)
-         {
-         // <nepmd_rootdir>\netlabs\bin\<exename>.env
-         sprintf( szMainEnvFile, pszNepmdExecDirMask, szRootDir, szBasename);
-//       DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
-         if (fFound = FileExists( szMainEnvFile))
-            break;
-
-         // <nepmd_rootdir>\netlabs\bin\epm.env
-         sprintf( szMainEnvFile, pszNepmdExecDirMask, szRootDir, "epm");
-//       DPRINTF(( "EPMENV: search main envfile: %s\n", szMainEnvFile));
-         if (fFound = FileExists( szMainEnvFile))
-            break;
-         }
-      else
+      if (!fRootDirFound)
          {
          rc = ERROR_PATH_NOT_FOUND;
-         //DPRINTF(( "EPMENV: NEPMD not installed, skip main env file\n"));
          sprintf( szMessage,
                   "Fatal error: RootDir could not be determined.\n\n"
                   "NEPMD is not properly installed,"
@@ -309,43 +291,8 @@ do
          break;
          }
 
-      } while (FALSE);
-
-   // delete filename if not found
-   if (!fFound)
-      szMainEnvFile[ 0] = 0;
-
-   // cannot break here - why?
-   // if (rc = ERROR_PATH_NOT_FOUND)
-   //    break;
-
-   // ----- check for user env file loaded
-
-   do
-      {
-      // <currentdir>\<exename>.env
-      sprintf( szUserEnvFile, "%s"NEPMD_FILENAMEEXT_ENV, szBasename);
-//    DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
-      if (fFound = FileExists( szUserEnvFile))
-         break;
-
-      if (fUserDirFound)
+      if (!fUserDirFound)
          {
-         // <nepmd_userdir>\bin\<exename>.env
-         sprintf( szUserEnvFile, pszUserExecDirMask, szUserDir, szBasename);
-//       DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
-         if (fFound = FileExists( szUserEnvFile))
-            break;
-
-         // <nepmd_userdir>\bin\epm.env
-         sprintf( szUserEnvFile, pszUserExecDirMask, szUserDir, "epm");
-//       DPRINTF(( "EPMENV: search user envfile: %s\n", szUserEnvFile));
-         if (fFound = FileExists( szUserEnvFile))
-            break;
-         }
-      else
-         {
-         //DPRINTF(( "EPMENV: NEPMD not installed, skip user env file\n"));
          sprintf( szMessage,
                   "Fatal error: UserDir could not be determined.\n\n"
                   "NEPMD is not properly installed,"
@@ -357,15 +304,61 @@ do
          break;
          }
 
+      // <nepmd_userdir>\bin\<exename>.env
+      sprintf( szMainEnvFile, pszUserExecDirMask, szUserDir, szBasename);
+      //DPRINTF(( "EPMENV: search main env file: %s\n", szMainEnvFile));
+      if (fFound = FileExists( szMainEnvFile))
+         break;
+
+      // <nepmd_userdir>\bin\epm.env
+      sprintf( szMainEnvFile, pszUserExecDirMask, szUserDir, pszDefaultExecBaseName);
+      //DPRINTF(( "EPMENV: search main env file: %s\n", szMainEnvFile));
+      if (fFound = FileExists( szMainEnvFile))
+         break;
+
+      // <executable_path>\<exename>.env
+      sprintf( szMainEnvFile, "%s\\%s"NEPMD_FILENAMEEXT_ENV, szExecutablePath, szBasename);
+      //DPRINTF(( "EPMENV: search main env file: %s\n", szMainEnvFile));
+      if (fFound = FileExists( szMainEnvFile))
+         break;
+
+      // <nepmd_rootdir>\netlabs\bin\<exename>.env
+      sprintf( szMainEnvFile, pszNepmdExecDirMask, szRootDir, szBasename);
+      //DPRINTF(( "EPMENV: search main env file: %s\n", szMainEnvFile));
+      if (fFound = FileExists( szMainEnvFile))
+         break;
+
+      // <nepmd_rootdir>\netlabs\bin\epm.env
+      sprintf( szMainEnvFile, pszNepmdExecDirMask, szRootDir, pszDefaultExecBaseName);
+      //DPRINTF(( "EPMENV: search main env file: %s\n", szMainEnvFile));
+      if (fFound = FileExists( szMainEnvFile))
+         break;
+
+
+      } while (FALSE);
+
+   // delete filename if not found
+   if (!fFound)
+      szMainEnvFile[ 0] = 0;
+
+   // ----- check for additional env file loaded
+
+   do
+      {
+      // <nepmd_userdir>\bin\myepm.env
+      sprintf( szAddEnvFile, pszUserExecDirMask, szUserDir, pszMyDefaultExecBaseName);
+      //DPRINTF(( "EPMENV: search additional env file: %s\n", szAddEnvFile));
+      if (fFound = FileExists( szAddEnvFile))
+         break;
       } while (FALSE);
 
 
    // delete filename if not found
    if (!fFound)
-      szUserEnvFile[ 0] = 0;
+      szAddEnvFile[ 0] = 0;
 
    // error if not found
-   if ((!strlen( szMainEnvFile)) && (!strlen( szUserEnvFile)))
+   if (!strlen( szMainEnvFile))
       {
       rc = ERROR_FILE_NOT_FOUND;
       break;
@@ -377,16 +370,16 @@ do
       rc = ERROR_BUFFER_OVERFLOW;
       break;
       }
-   if (strlen( szUserEnvFile) + 1 > ulUserBuflen)
+   if (strlen( szAddEnvFile) + 1 > ulAddBuflen)
       {
       rc = ERROR_BUFFER_OVERFLOW;
       break;
       }
 
    strcpy( pszMainEnvFile, szMainEnvFile);
-   strcpy( pszUserEnvFile, szUserEnvFile);
+   strcpy( pszAddEnvFile, szAddEnvFile);
    DPRINTF(( "EPMENV: main envfile is: %s\n", strlen( pszMainEnvFile) ? pszMainEnvFile : "<none>"));
-   DPRINTF(( "EPMENV: user envfile is: %s\n", strlen( pszUserEnvFile) ? pszUserEnvFile : "<none>"));
+   DPRINTF(( "EPMENV: add. envfile is: %s\n", strlen( pszAddEnvFile) ? pszAddEnvFile : "<none>"));
 
    } while (FALSE);
 
@@ -780,8 +773,6 @@ return rc;
 // If pszBuffer was supplied, it will be set to the value of the EPM
 // executable.
 
-//#define SetLoaderAtFirstPart
-
 APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv, PSZ pszBuffer, ULONG ulBuflen)
 {
          APIRET         rc  = NO_ERROR;
@@ -789,7 +780,7 @@ APIRET GetExtendedEPMEnvironment( PSZ envv[], PSZ *ppszNewEnv, PSZ pszBuffer, UL
 
          BOOL           fEnvAlreadySet = 0;
          CHAR           szMainEnvFile[ _MAX_PATH];
-         CHAR           szUserEnvFile[ _MAX_PATH];
+         CHAR           szAddEnvFile[ _MAX_PATH];
 
          CHAR           szEpmExecutable[ _MAX_PATH];
          CHAR           szLoaderExecutable[ _MAX_PATH];
@@ -824,16 +815,8 @@ do
    // default to make no changes
    *ppszNewEnv = NULL;
 
-#ifdef SetLoaderAtFirstPart
-   // get loader executable (current file)
-   szLoaderExecutable[ 0] = 0;
-   // _searchLoaderExecutable can be deleted, if this block will
-   // stay commented out:
-   rc = _searchLoaderExecutable( szLoaderExecutable, sizeof( szLoaderExecutable));
-#endif
-
    // check if extended environment is already set
-   pszValue = getenv( ENV_NEPMD_USERENVFILE);
+   pszValue = getenv( ENV_NEPMD_ADDENVFILE);
    if ((!pszValue) || (!*pszValue))
       pszValue = getenv( ENV_NEPMD_MAINENVFILE);
    if ((pszValue) && (*pszValue))
@@ -853,7 +836,7 @@ do
 
       // ignore errors!
       _searchNepmdEnvironmentFiles( szMainEnvFile, sizeof( szMainEnvFile),
-                                    szUserEnvFile, sizeof( szUserEnvFile));
+                                    szAddEnvFile, sizeof( szAddEnvFile));
 
       // ------- get name list ----------------------------
 
@@ -898,22 +881,22 @@ do
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=", ENV_NEPMD_ROOTDIR);
       rc = QueryInstValue( NEPMD_INSTVALUE_ROOTDIR, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
-//DPRINTF(( "QueryInstValue for NEPMD_INSTVALUE_ROOTDIR: rc = %u\n", rc ));
+      //DPRINTF(( "QueryInstValue for NEPMD_INSTVALUE_ROOTDIR: rc = %u\n", rc ));
       if (rc == NO_ERROR)
          {
          apszVar[ 0] = strdup( szInstallVar);
          ADDVAR( apszVar[ 0]);
          }
       else
-//         // don't report error from here
-//         rc = NO_ERROR;
+         // don't report error from here
+         //rc = NO_ERROR;
          break;
 
       // --- > set environment variable for user directory (# 1)
       memset( szInstallVar, 0, sizeof( szInstallVar));
       sprintf( szInstallVar, "%s=", ENV_NEPMD_USERDIR);
       rc = QueryInstValue( NEPMD_INSTVALUE_USERDIR, _EOS( szInstallVar), _EOSSIZE( szInstallVar));
-//DPRINTF(( "QueryInstValue for NEPMD_INSTVALUE_USERDIR: rc = %u\n", rc ));
+      //DPRINTF(( "QueryInstValue for NEPMD_INSTVALUE_USERDIR: rc = %u\n", rc ));
       if (rc == NO_ERROR)
          {
          apszVar[ 1] = strdup( szInstallVar);
@@ -941,30 +924,22 @@ do
       if (strlen( szMainEnvFile))
          {
          memset( szInstallVar, 0, sizeof( szInstallVar));
-         sprintf( szInstallVar, "%s=%s", ENV_NEPMD_USERENVFILE, szUserEnvFile);
+         sprintf( szInstallVar, "%s=%s", ENV_NEPMD_ADDENVFILE, szAddEnvFile);
          apszVar[ 4] = strdup( szInstallVar);
          ADDVAR( apszVar[ 4]);
          }
 
       // search EpmExecutable after the environment is expanded (# 5)
 
-#ifdef SetLoaderAtFirstPart
-      // --- > set environment variable for EPM loader (# 6)
-      memset( szInstallVar, 0, sizeof( szInstallVar));
-      sprintf( szInstallVar, "%s=%s", ENV_NEPMD_LOADEREXECUTABLE, szLoaderExecutable);
-      apszVar[ 6] = strdup( szInstallVar);
-      ADDVAR( apszVar[ 6]);
-#endif
-
       // ------- read env files ---------------------------
 
       if (strlen( szMainEnvFile)) _readEnvFile( szMainEnvFile, &ulEnvSize, &pszName, pszEnvNameList);
-      if (strlen( szUserEnvFile)) _readEnvFile( szUserEnvFile, &ulEnvSize, &pszName, pszEnvNameList);
+      if (strlen( szAddEnvFile)) _readEnvFile( szAddEnvFile, &ulEnvSize, &pszName, pszEnvNameList);
 
       // ------- set environment --------------------------
 
       // get memory with updated env size
-   // DPRINTF(( "estimated new size is: %u\n", ulEnvSize));
+      //DPRINTF(( "estimated new size is: %u\n", ulEnvSize));
       pszEnv = malloc( ulEnvSize);
       if (!pszEnv)
          {
@@ -1011,7 +986,7 @@ do
          rc = ERROR_BUFFER_OVERFLOW;
          break;
          }
-//    DPRINTF(( "EPMENV: found executable: %s\n", szEpmExecutable));
+      //DPRINTF(( "EPMENV: found executable: %s\n", szEpmExecutable));
       strcpy( pszBuffer, szEpmExecutable);
       }
 
@@ -1024,7 +999,7 @@ do
 
       // ------- set LIBPATH ------------------------------
 
-// ------>  todo: fix this (but works somehow)
+      // ------>  todo: fix this
 
       // This works here, after the first extension of the
       // environment and after env files are processed.
@@ -1049,7 +1024,6 @@ do
       apszVar[ 5] = strdup( szInstallVar);
       ADDVAR( apszVar[ 5]);
 
-#ifndef SetLoaderAtFirstPart
       // --- > set NEPMD_LOADEREXECUTABLE (# 6)
       // this can be set before the first evironment extension as well,
       // therefore activate #define SetLoaderAtFirstPart
@@ -1057,14 +1031,13 @@ do
       sprintf( szInstallVar, "%s=%s", ENV_NEPMD_LOADEREXECUTABLE, szLoaderExecutable);
       apszVar[ 6] = strdup( szInstallVar);
       ADDVAR( apszVar[ 6]);
-#endif
 
       // ------- set environment --------------------------
 
-// ------>  todo: fix this (but works somehow)
+      // ------>  todo: fix this (but works somehow)
 
-      // quick & dirty: simply repeat extension of the environment,
-      // but this time with added values for the executables
+      // repeat extension of the environment, but this time with added
+      // values for the executables
       pszEnv = malloc( ulEnvSize);
       if (!pszEnv)
          {
@@ -1089,7 +1062,7 @@ do
       // setting BEGIN/ENDLIBPATH would work here, but then
       // these pseudo env vars can't be changed later!?!
 
-      // ------- rest of Part 2 ---------------------------
+      // ------- end of Part 2 ---------------------------
 
       //DPRINTF(( "EPMENV: ### %s\n", apszVar[ 0]));
       //DPRINTF(( "EPMENV: ### %s\n", apszVar[ 1]));
@@ -1115,13 +1088,9 @@ do
 // cleanup on error
 if (rc)
    if (pszEnv) free( pszEnv);
-//   if (pszPathVar) free( pszPathVar);
-     // This causes following error msg, if the env is already extended,
-     // e.g. recomp cannot be started from EPM then:
-     //    Invalid memory block address 0xaaaaaaaa was used.
-     //    Memory error detected at line 882 of epmenv.c.
-if (pszEnvNameList) free( pszEnvNameList);
+
 // cleanup
+if (pszEnvNameList) free( pszEnvNameList);
 for (i = 0; i < (sizeof( apszVar) / sizeof( PSZ)); i++)
    {
    if (apszVar[ i]) free( apszVar[ i]);

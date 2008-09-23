@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.66 2007-07-16 01:25:09 aschn Exp $
+* $Id: nepmdlib.c,v 1.67 2008-09-23 01:56:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1157,7 +1157,7 @@ do
          PSZ            pszEpmExecutable = getenv( ENV_NEPMD_EPMEXECUTABLE);
          PSZ            pszLoaderExecutable = getenv( ENV_NEPMD_LOADEREXECUTABLE);
          PSZ            pszMainEnvFile = getenv( ENV_NEPMD_MAINENVFILE);
-         PSZ            pszUserEnvFile = getenv( ENV_NEPMD_USERENVFILE);
+         PSZ            pszAddEnvFile = getenv( ENV_NEPMD_ADDENVFILE);
 
 
    // get some default strings
@@ -1183,13 +1183,13 @@ do
       }
    if ((!pszLoaderExecutable) || (!*pszLoaderExecutable)) pszLoaderExecutable = szNotUsed;
    if ((!pszMainEnvFile) || (!*pszMainEnvFile)) pszMainEnvFile = szNotFound;
-   if ((!pszUserEnvFile) || (!*pszUserEnvFile)) pszUserEnvFile = szNotFound;
+   if ((!pszAddEnvFile) || (!*pszAddEnvFile)) pszAddEnvFile = szNotFound;
 
    // insert the result
    _insertMessage( hwndClient, szMessageFile, "MSG_INFO_BODY_DYNCFG",
                    szNepmdRootdir, szUserdir, pszLoaderExecutable, pszEpmExecutable,
                    szLanguage, szNepmdInitfile, szMessageFile,
-                   pszMainEnvFile, pszUserEnvFile);
+                   pszMainEnvFile, pszAddEnvFile);
    _executeEPMCommand( hwndClient, "mc /bot/-1");
    }
 
