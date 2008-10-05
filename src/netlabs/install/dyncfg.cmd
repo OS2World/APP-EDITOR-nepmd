@@ -2,7 +2,7 @@
 *
 * Module Name: dyncfg.cmd
 *
-* Syntax: dyncfg [DEINSTALL]
+* Syntax: dyncfg [UNINSTALL]
 *
 * Helper batch for to copy netlabs\bin\epm.exe to a directory along
 * the PATH. Preferred is ?:\OS2, as this comes before ?:\OS2\APPS,
@@ -13,12 +13,12 @@
 * netlabs\bin\epm.env. It must be the first EPM.EXE along the PATH.
 * See netlabs\book\nepmd.inf for more information about this executable.
 *
-* This program is intended to be called by NLSETUP.EXE only during
-* installation of the Netlabs EPM Distribution.
+* This program is intended to be called by NLSETUP.EXE during NEPMD
+* installation or by RECROBJ.CMD.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.10 2008-09-20 23:14:30 aschn Exp $
+* $Id: dyncfg.cmd,v 1.11 2008-10-05 00:39:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -71,7 +71,7 @@
 
     /* check parm */
     ARG Parm .;
-    IF (Parm = 'DEINSTALL') THEN
+    IF (Parm = 'UNINSTALL') THEN
     DO
        /* delete EPM.EXE in ?:\os2 if it is ours */
        IF ((fCheckFileExists) & (IsNepmdExecutable( CheckFile, LoaderEaName))) THEN

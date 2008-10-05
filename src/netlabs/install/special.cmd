@@ -2,17 +2,14 @@
 *
 * Module Name: special.cmd
 *
-* Helper batch for to
-*  - apply settings that depend on the UserDir
-*  - create shadow objects
-*  - remove obsolete objects.
+* Helper batch for to remove obsolete objects.
 *
 * This program is intended to be called by NLSETUP.EXE only during
 * installation of the Netlabs EPM Distribution.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: special.cmd,v 1.4 2008-09-20 23:14:30 aschn Exp $
+* $Id: special.cmd,v 1.5 2008-10-05 00:39:29 aschn Exp $
 *
 * ===========================================================================
 *
@@ -52,9 +49,11 @@
  CALL GetEcsFlag
  CALL GetNepmdDirs
 
+/* -----------------
  /* ##############   Maintainer: modify object id list here ######################## */
 
- FolderObjectIdList = '<NEPMD_FOLDER> <NEPMD_SAMPLES_FOLDER>' ||,
+ FolderObjectIdList = '<NEPMD_FOLDER>'               ||,
+                      ' <NEPMD_SAMPLES_FOLDER>'      ||,
                       ' <NEPMD_MORE_OBJECTS_FOLDER>'
 
  /* ################################################################################# */
@@ -79,6 +78,7 @@
 
  /* set icon for root folder */
  rc = SysSetObjectData( RootDir, FolderIconSetup)
+----------------- */
 
  /* delete obsolete object from v1.00 if present */
  rc = SysDestroyObject( '<NEPMD_EXECUTABLE>')
@@ -102,6 +102,13 @@
  /* delete obsolete files and dirs from prior versions if present */
  rc = SysDestroyObject( NetlabsDir'\mode\fortran')
  rc = SysDestroyObject( NetlabsDir'\install\saveold.cmd')
+ rc = SysDestroyObject( NetlabsDir'\install\epminit.cmd')
+ rc = SysDestroyObject( NetlabsDir'\install\remex.cmd')
+ rc = SysDestroyObject( NetlabsDir'\install\nldeinst.exe')
+ rc = SysDestroyObject( NetlabsDir'\install\chgstartupdir.erx')
+ rc = SysDestroyObject( NetlabsDir'\install\epmchgstartupdir.cmd')
+ rc = SysDestroyObject( NetlabsDir'\install\epmdefassocs.cmd')
+ rc = SysDestroyObject( NetlabsDir'\install\epmnewsamewindow.cmd')
  rc = SysDestroyObject( NetlabsDir'\macros\drawkey.e')
  rc = SysDestroyObject( NetlabsDir'\macros\menuacel.e')
  rc = SysDestroyObject( NetlabsDir'\macros\setconfig.e')

@@ -63,7 +63,7 @@
 *
 * Copyright (c) netlabs.org EPM Distribution Project 2008
 *
-* $Id: instenv.cmd,v 1.1 2008-10-05 00:22:51 aschn Exp $
+* $Id: instenv.cmd,v 1.2 2008-10-05 00:39:29 aschn Exp $
 *
 * ===========================================================================
 *
