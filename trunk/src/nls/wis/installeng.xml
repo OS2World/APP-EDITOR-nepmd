@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: installeng.xml,v 1.3 2008-09-13 17:11:42 aschn Exp $
+# $Id: installeng.xml,v 1.4 2008-10-05 01:20:57 aschn Exp $
 #
 # ===========================================================================
 #
@@ -25,9 +25,9 @@
 <b>Update:</b>
 Just install this WarpIN package over an old one. To ensure that the newly
 installed version starts up properly using the netlabs files, some of your
-user subdirectories will be renamed with their date being appended. Curently,
-these are "ex" and "mode". After installation, you may want to merge your
-changes with the newly installed files.
+user subdirectories will be renamed with their date being appended.
+Currently, these are "ex", "mode" and "bin". After installation, you may want
+to merge your changes with the newly installed files.
 
 <p><b>eComStation and Warp 4.x:</b>
 The EPM binaries of your OS were used. None of the original files will be
