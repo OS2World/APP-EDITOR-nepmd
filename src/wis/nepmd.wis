@@ -18,7 +18,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.62 2008-10-05 00:29:40 aschn Exp $
+# $Id: nepmd.wis,v 1.63 2008-10-05 23:47:31 aschn Exp $
 #
 # ===========================================================================
 #
@@ -94,7 +94,7 @@
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
-     EXECUTE="$(1)\netlabs\install\applyico.cmd"
+     EXECUTE="$(1)\netlabs\install\nlsetup.exe NEPMD APPLYICO"
      TITLE="%PCK_2_TITLE%"
 
      ><TINCLUDE name="..\nls\wis\desc2%NLS%.xml"/></PCK>
