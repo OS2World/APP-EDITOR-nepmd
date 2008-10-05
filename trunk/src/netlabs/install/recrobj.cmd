@@ -15,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: recrobj.cmd,v 1.5 2008-09-08 01:55:30 aschn Exp $
+* $Id: recrobj.cmd,v 1.6 2008-10-05 15:52:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -31,11 +31,10 @@
 ****************************************************************************/
 
 '@ECHO OFF'
+CALL SETLOCAL
 
 /* ----------------- Standard CMD initialization follows ----------------- */
 SIGNAL ON HALT NAME Halt
-SIGNAL ON ERROR NAME Error
-SIGNAL ON SYNTAX NAME Error
 
 env   = 'OS2ENVIRONMENT'
 TRUE  = (1 = 1)
@@ -255,12 +254,5 @@ ReplaceString: PROCEDURE EXPOSE (GlobalVars)
 /* ----------------------------------------------------------------------- */
 Halt:
    SAY 'Interrupted by user.'
-   EXIT( ERROR.GEN_FAILURE)
-
-/* ----------------------------------------------------------------------- */
-/* Give a standard REXX error message and jump to the error line           */
-Error:
-   SAY 'REX'RIGHT( rc, 4, 0)': Error 'rc' running 'ThisFile', line 'sigl ||,
-   ': 'ERRORTEXT( rc)
    EXIT( ERROR.GEN_FAILURE)
 
