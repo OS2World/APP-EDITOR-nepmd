@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: enter.e,v 1.9 2008-09-05 22:42:16 aschn Exp $
+* $Id: enter.e,v 1.10 2008-10-05 23:17:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -18,16 +18,6 @@
 * General Public License for more details.
 *
 ****************************************************************************/
-
-; Consts concerning with enter:
-; ENHANCED_ENTER_KEYS = 1
-; ASSIST_TRIGGER = 'ENTER'
-; WANT_STREAM_INDENTED = 1
-; WANT_STREAM_MODE = 'SWITCH'
-; ENTER_ACTION = 'STREAM'
-
-; Todo: Replace consts with ini settings, at least the standard enter
-; code for stream mode.
 
 ; ---------------------------------------------------------------------
 ; This procedure corrrects a bug in standard EPM stream mode if stream
@@ -89,15 +79,9 @@ defproc einsert_line
    endif
    down
 
-; ---------------------------------------------------------------------
-; TODO:
-;    o  omit numbers
-;    ok allow for every def in every mode
-;    ok remove const
-;;defproc enter_common(action)
+; ---------------------------------------------------------------------------
 defc Enter
    universal cua_marking_switch
-;   universal stream_mode
 
    action = strip( arg(1))
 
@@ -109,8 +93,21 @@ defc Enter
       call NewUndoRec()
    endif
 
-   -- Definition for stream mode
-   if action = '' then
+   -- .DOS dir files: Make dir mask after "Directory of" editable and create
+   -- a new dir listing on Enter
+   fn = upcase( .filename)
+   if word( fn, 1) = '.DOS' & word( fn, 2) = 'DIR' then
+      rcx = DirProcessDirOfLine()
+      if rcx = 0 then
+         return
+      endif
+   endif
+
+   is_lastline = (.line = .last)
+
+   -- Definition for stream mode or type 6 in line mode
+   if action = '' | action = 6 then
+                    -- 'STREAM'
       if .line then
          if cua_marking_switch then
             if not process_mark_like_cua() and   -- There was no mark
@@ -129,8 +126,6 @@ defc Enter
          insert
          .col = 1
       endif
-      return
-   endif
 
    -- Definition for line mode
    -- 1 = 'ADDLINE'   Add a new line after cursor, preserving indentation
@@ -142,29 +137,23 @@ defc Enter
    -- 7               Add a new line, move to left or paragraph margin
    -- 8               Add a new line, move to paragraph margin
    -- 9               Add a new line, move to column 1
-   is_lastline = (.line = .last)
-   if is_lastline  & (action = 3 | action = 5) then
-   --                 'ADDATEND' | 'DEPENDS+'
+   elseif is_lastline  & (action = 3 | action = 5) then
+      --                  'ADDATEND' | 'DEPENDS+'
       call einsert_line()
       down                       -- This keeps the === Bottom === line visible.
-      return
-   endif
-   if action = 2 | action = 3 | (not insert_state() & (action = 4 | action = 5)) then
-   -- 'NEXTLINE' | 'ADDATEND'                          'DEPENDS'  | 'DEPENDS+'
+   elseif action = 2 | action = 3 | (not insert_state() & (action = 4 | action = 5)) then
+      --  'NEXTLINE' | 'ADDATEND'                          'DEPENDS'  | 'DEPENDS+'
       down                          -- go to next line
       begin_line
-      return
-   endif
-   if action = 6 then
-   -- 'STREAM'
-; ########### use stream mode def from above here? ###########
+/*
+   -- Better use stream mode def from above here
+   elseif action = 6 then
+      --  'STREAM'
       call splitlines()
       call pfirst_nonblank()
       down
-;;    refresh
-      return
-   endif
-   if action = 7 | action = 8 then
+*/
+   elseif action = 7 | action = 8 then
       insert
       parse value pmargins() with leftcol . paracol .
       if textline(.line - 1) = '' or .line = 1 or action = 8 then
@@ -175,52 +164,16 @@ defc Enter
       if is_lastline then  -- This keeps the === Bottom === line visible.
          down
       endif
-      return
-   endif
-   if action = 9 then
+   elseif action = 9 then
       insert
       begin_line
       if is_lastline then  -- This keeps the === Bottom === line visible.
          down
       endif
-      return
-   endif
-   call einsert_line()           -- insert a line
-   if is_lastline then  -- This keeps the === Bottom === line visible.
-      down
+   else
+      call einsert_line()           -- insert a line
+      if is_lastline then  -- This keeps the === Bottom === line visible.
+         down
+      endif
    endif
 
-; ---------------------------------------------------------------------
-; For use in STDKEYS.E
-;defc Enter
-;   action = arg(1)
-;   call enter_common( action)
-
-; ---------------------------------------------------------------------
-/*
-; Not used anymore
-defc enter =
-   universal enterkey
-   call enter_common(enterkey)
-defc a_enter =
-   universal a_enterkey
-   call enter_common(a_enterkey)
-defc c_enter =
-   universal c_enterkey
-   call enter_common(c_enterkey)
-defc s_enter =
-   universal s_enterkey
-   call enter_common(s_enterkey)
-defc padenter =
-   universal padenterkey
-   call enter_common(padenterkey)
-defc a_padenter =
-   universal a_padenterkey
-   call enter_common(a_padenterkey)
-defc c_padenter =
-   universal c_padenterkey
-   call enter_common(c_padenterkey)
-defc s_padenter =
-   universal s_padenterkey
-   call enter_common(s_padenterkey)
-*/
