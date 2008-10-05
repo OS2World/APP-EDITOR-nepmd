@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.14 2008-10-05 13:49:47 aschn Exp $
+* $Id: nlsetup.cmd,v 1.15 2008-10-05 23:47:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -74,6 +74,7 @@ ErrorTitle = 'Netlabs EPM Distribution Installation'
 /* Parse parameters */
 fNepmd     = FALSE
 fUninstall = FALSE
+fApplyIco  = FALSE
 ARG Parms
 DO WHILE Parms <> ''
    PARSE VAR Parms ThisParm Parms
@@ -86,6 +87,8 @@ DO WHILE Parms <> ''
          fNepmd = TRUE
       WHEN ThisParm = 'UNINSTALL' THEN
          fUninstall = TRUE
+      WHEN ThisParm = 'APPLYICO' THEN
+         fApplyIco = TRUE
    OTHERWISE
       NOP
    END
@@ -106,21 +109,28 @@ CallDir = LEFT( CallName, LASTPOS( '\', CallName) - 1)
 rcx = DIRECTORY( CallDir)
 
 /* Call all required modules */
-IF fUninstall THEN
-DO UNTIL (1)
-   'CALL INSTENV UNINSTALL'; IF (rc \= 0) THEN LEAVE
-   'CALL DYNCFG UNINSTALL';  IF (rc \= 0) THEN LEAVE
-END
-ELSE
-DO UNTIL (1)
-   'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
-   'CALL USERTREE';          IF (rc \= 0) THEN LEAVE
-   'CALL SPECIAL';           IF (rc \= 0) THEN LEAVE
-   'CALL DYNCFG';            IF (rc \= 0) THEN LEAVE
-   /* The "NEPMD" param avoids the prompt */
-   'CALL RENUDIRS NEPMD';    IF (rc \= 0) THEN LEAVE
-   'CALL EXPOBJ';            IF (rc \= 0) THEN LEAVE
-   'CALL INITREG';           IF (rc \= 0) THEN LEAVE
+SELECT
+   WHEN fUninstall THEN
+   DO UNTIL (1)
+      'CALL INSTENV UNINSTALL'; IF (rc \= 0) THEN LEAVE
+      'CALL DYNCFG UNINSTALL';  IF (rc \= 0) THEN LEAVE
+   END
+   WHEN fApplyIco THEN
+   DO UNTIL (1)
+      'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
+      'CALL APPLYICO';          IF (rc \= 0) THEN LEAVE
+   END
+OTHERWISE
+   DO UNTIL (1)
+      'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
+      'CALL USERTREE';          IF (rc \= 0) THEN LEAVE
+      'CALL SPECIAL';           IF (rc \= 0) THEN LEAVE
+      'CALL DYNCFG';            IF (rc \= 0) THEN LEAVE
+      /* The "NEPMD" param avoids the prompt */
+      'CALL RENUDIRS NEPMD';    IF (rc \= 0) THEN LEAVE
+      'CALL EXPOBJ';            IF (rc \= 0) THEN LEAVE
+      'CALL INITREG';           IF (rc \= 0) THEN LEAVE
+   END
 END
 
 IF ((rc \= 0) & (QUEUED() > 0)) THEN
