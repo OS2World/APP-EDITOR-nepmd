@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: dict.e,v 1.6 2008-09-05 22:37:17 aschn Exp $
+* $Id: dict.e,v 1.7 2008-10-05 13:17:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -106,6 +106,8 @@ defc DictLang
    enddo
 
    if Opt = 'DELETE' then
+   elseif Select = '' & fGetFirst = 1 then
+      sayerror 'No dictionary language defined.'
    elseif Select = '' then
       sayerror 'Language "'args'" not found.'
    else
