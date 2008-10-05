@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.18 2008-09-14 15:32:37 aschn Exp $
+* $Id: dosutil.e,v 1.19 2008-10-05 23:13:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -237,15 +237,136 @@ defc testbeep=
 ; jbl 12/30/88:  Provide DIR and other DOS-style query commands by redirecting
 ; output to a file.
 defc dir
-   parse arg fspec
-   call parse_filename( fspec, .filename)
-   next = NepmdQueryFullname( fspec)
+   parse arg Args
+   Options = ''
+   Mask    = ''
+   call ParseOs2Options( Args, Options, Mask)
+   next = NepmdQueryFullname( Mask)
    parse value next with 'ERROR:'rcx
    if rcx = '' then
-      fspec = next
+      Mask = next
    endif
-   dos_command( 'dir' fspec)
-   'SayHint' ALT_1_LOAD__MSG
+
+   DirArgs = strip( Options Mask)
+   dos_command( 'dir' DirArgs)
+   --'SayHint' ALT_1_LOAD__MSG
+   'SayHint Use Alt+1 or double click to load a file or edit the "Directory of" line.'
+
+; ---------------------------------------------------------------------------
+; Parse Args into Options and Masks. Only OS/2 options are recognized. They
+; start with a '/', are 1 char long and an optional arg is separated by a
+; ':'. Space-separated option args are sorted into the Masks string. That
+; also doesn't work when some options must appear before and some after the
+; mask.
+defproc ParseOs2Options( Args, var Options, var Masks)
+   --defc TestP
+   -- Args = '/a /b/c /d:string1 /e:"string2 with spaces" filename /f:"string3 with spaces" /g'
+   -- Args = '/a /b/c /d:string1 /e:"string2 with spaces" "This is a filename" /f:"string3 with spaces" /g'
+   -- dprintf( 'Args = 'Args)
+   Options = ''
+   Masks   = ''
+   rest = Args
+   do while rest <> ''
+      rest = strip( rest)
+
+      -- Find options
+      if leftstr( rest, 1) = '/' then
+         parse value rest with 2 ThisOption 3 rest
+         Options = Options '/'ThisOption
+
+         -- Find options with args
+         ThisOptionArg = ''
+         if leftstr( rest, 1) = ':' then
+            parse value rest with 2 rest
+            if leftstr( rest, 1) = '"' then
+               parse value rest with '"'ThisOptionArg'"' rest
+               ThisOptionArg = '"'ThisOptionArg'"'
+            elseif leftstr( rest, 1) = ' ' then
+               --nop
+            else
+               parse value rest with ThisOptionArg rest
+            endif
+         endif
+         if ThisOptionArg <> '' then
+            Options = Options':'ThisOptionArg
+         endif
+
+      -- Find masks
+      else
+         if leftstr( rest, 1) = '"' then
+            parse value rest with '"'ThisMask'"' rest
+            ThisMask = '"'ThisMask'"'
+         else
+            parse value rest with ThisMask rest
+         endif
+         Masks = Masks ThisMask
+      endif
+
+   enddo
+   Options = strip( Options)
+   Masks   = strip( Masks)
+   --dprintf( 'Options = 'Options', Masks = 'Masks)
+   return
+
+; ---------------------------------------------------------------------------
+; If cursor is on a "Directory of" line of a dir listing, read that dir spec
+; and list that dir. That makes the "Director line" editable to change the
+; the listed dir. Returns 0 on success, else 1.
+defproc DirProcessDirOfLine
+   rcx = 1
+   do i = 1 to 1
+      -- Find "Directory of" line
+      fStart = 0
+      fEnd   = 0
+      DirOfLineNum = 0
+      DirOfLine = ''
+      Dirname = ''
+      do l = 1 to min( 10, .last)
+         getline ThisLine, l
+         if ThisLine <> '' & fStart = 0 then
+            fStart = 1
+         elseif ThisLine = '' & fStart = 1 then
+            DirOfLineNum = l - 1
+            DirOfLine = strip( textline( DirOfLineNum))
+            leave
+         endif
+      enddo
+
+      -- Check if cursor is on this line
+      if .line <> DirOfLineNum then
+         leave
+      endif
+
+      -- Get the Dirname
+      do i = 1 to 1
+         if DirOfLine = '' then
+            leave
+         endif
+         if rightstr( DirOfLine, 1) = ':' then
+            p2 = length( DirOfLine)
+         else
+            p2 = pos( '\', DirOfLine)
+         endif
+         if p2 = 0 then
+            leave
+         endif
+         next = leftstr( DirOfLine, p2 - 1)
+         p1 = lastpos( ' ', next)
+         if p1 = 0 then
+            leave
+         endif
+         Dirname = substr( DirOfLine, p1 + 1)
+         leave
+      enddo
+
+      -- Execute
+      if Dirname <> '' then
+         'dir' Dirname
+         rcx = 0  -- success
+      endif
+
+   enddo
+   return rcx
 
 ; ---------------------------------------------------------------------------
 ; Search a file spec in current dir recoursively and without dirs. List
