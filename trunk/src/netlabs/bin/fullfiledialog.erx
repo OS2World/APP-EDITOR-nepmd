@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fullfiledialog.erx,v 1.1 2008-09-07 23:11:24 aschn Exp $
+* $Id: fullfiledialog.erx,v 1.2 2008-10-05 14:07:42 aschn Exp $
 *
 * ===========================================================================
 *
@@ -181,10 +181,15 @@ ToggleO: PROCEDURE EXPOSE (GlobalVars)
          NOP
       END
 
+      /* Remove trailing "%*" */
+      IF (WORD( Params, WORDS( Params)) = '"%*"') THEN
+         Params = STRIP( DELWORD( Params, WORDS( Params)), 'T')
+
       /* Setting an empty parameter doesn't work */
       /* The doublequotes are required for filenames with spaces */
       IF Params = '' THEN
          Params = '"%*"'
+
       Setup = First'PARAMETERS='Params';'Rest
       /*'sayerror' Obj 'PARAMETERS='Params';'*/
 
