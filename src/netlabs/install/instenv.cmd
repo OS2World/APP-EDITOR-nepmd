@@ -2,7 +2,7 @@
 *
 * Module Name: instenv.cmd
 *
-* Syntax: instenv [DEINSTALL]
+* Syntax: instenv [UNINSTALL]
 *
 * Helper batch for to be called by all install command files in order to
 * init the install environment. It sets env vars that can be read by a
@@ -52,7 +52,7 @@
 * exist, e.g. they got lost by applying a WPS backup. Then the RootDir is
 * determined from the current filename. An export file, that holds data from
 * the previous install, is read and the required ini keys were added to the
-* user ini. If DEINSTALL was specified, no ini key will be written.
+* user ini. If UNINSTALL was specified, no ini key will be written.
 *
 * The versions were determined from syslevel files or OS-specific
 * significant files etc.
@@ -63,7 +63,7 @@
 *
 * Copyright (c) netlabs.org EPM Distribution Project 2008
 *
-* $Id: instenv.cmd,v 1.2 2008-10-05 00:39:29 aschn Exp $
+* $Id: instenv.cmd,v 1.3 2008-10-05 00:58:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -140,7 +140,7 @@ ErrorMessage = ''
 
 /* Check parm */
 ARG Parm .
-fDeinstall = (Parm = 'DEINSTALL')
+fUninstall = (Parm = 'UNINSTALL')
 
 DO 1
    /* Check if the env is already extended */
@@ -166,7 +166,7 @@ DO 1
 
    /* -------------------------------------------------------------------- */
    /* Maybe overwrite current ini entries */
-   IF \fDeinstall THEN
+   IF \fUninstall THEN
    DO
       RootDirIni  = WriteIniKey( NEPMD_INI_KEYNAME_ROOTDIR,  RootDirNew,  RootDirIni)
       LanguageIni = WriteIniKey( NEPMD_INI_KEYNAME_LANGUAGE, LanguageNew, LanguageIni)
@@ -229,7 +229,7 @@ DO 1
 
    /* -------------------------------------------------------------------- */
    /* Write new ini key values, if required */
-   IF \fDeinstall THEN
+   IF \fUninstall THEN
    DO
       IF RootDirIni  = '' THEN
          next = WriteIniKey( NEPMD_INI_KEYNAME_ROOTDIR,   RootDirInst,   RootDirIni)
