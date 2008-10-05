@@ -15,7 +15,7 @@
 *    NEPMD_ROOTDIR_INST        F:\Apps\NEPMD
 *    NEPMD_LANGUAGE_INST       eng
 *    NEPMD_USERDIR_INST        F:\Apps\NEPMD\myepm
-*    NEPMD_UPDATE_FLAG         1 (0 if previous NEPMD.INI wasn't found)
+*    NEPMD_UPDATE_FLAG         1 (0 if RootDir ini key wasn't found)
 *    ECS_FLAG                  1
 *    OS2_VERSION               4.52
 *    ECS_VERSION               2.00
@@ -63,7 +63,7 @@
 *
 * Copyright (c) netlabs.org EPM Distribution Project 2008
 *
-* $Id: instenv.cmd,v 1.4 2008-10-05 13:25:05 aschn Exp $
+* $Id: instenv.cmd,v 1.5 2008-10-05 13:40:46 aschn Exp $
 *
 * ===========================================================================
 *
