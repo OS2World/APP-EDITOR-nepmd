@@ -37,7 +37,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: run.erx,v 1.6 2006-10-07 18:00:25 aschn Exp $
+* $Id: run.erx,v 1.7 2008-10-05 13:56:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -52,7 +52,9 @@
 *
 ****************************************************************************/
 
-call Init
+rc = Init()
+if (rc <> 0) then
+   exit( rc)
 
 /* Determine action from mode or extension */
 Msg = ''
@@ -116,6 +118,8 @@ exit
 /*-------------------------------------------------------------------------*/
 Init:
 
+   rc = 0
+
    /* Get .filename and .modify fields */
    'Extract /filename/modify'
 
@@ -125,7 +129,12 @@ Init:
 
    /* Save current file if modified */
    if modify.1 > 0 then
-      'mc ;Save;Refresh'  /* refresh the bars before further actions */
+   do
+      'Save'
+      if rc <> 0 then
+         return( rc)
+      'Refresh'  /* refresh the bars before further actions */
+   end
 
    /* Get current .erx file */
    parse source . . ThisFile
@@ -168,7 +177,7 @@ Init:
 
    /*'sayerror Mode for "'Filename.1'" = "'Mode'", UpExt = "'UpExt'"'*/
 
-   return
+   return( 0)
 
 /*-------------------------------------------------------------------------*/
 GetMode:  procedure
