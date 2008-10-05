@@ -63,7 +63,7 @@
 *
 * Copyright (c) netlabs.org EPM Distribution Project 2008
 *
-* $Id: instenv.cmd,v 1.3 2008-10-05 00:58:34 aschn Exp $
+* $Id: instenv.cmd,v 1.4 2008-10-05 13:25:05 aschn Exp $
 *
 * ===========================================================================
 *
@@ -165,6 +165,10 @@ DO 1
    UserDirIni  = QueryIniKey( NEPMD_INI_KEYNAME_USERDIR)
 
    /* -------------------------------------------------------------------- */
+   /* It's an update or a new install? */
+   UpdateFlag = (RootDirIni <> '')
+
+   /* -------------------------------------------------------------------- */
    /* Maybe overwrite current ini entries */
    IF \fUninstall THEN
    DO
@@ -240,12 +244,6 @@ DO 1
       IF UserDirIni  = '' & UserDirPrev <> '' THEN
          next = WriteIniKey( NEPMD_INI_KEYNAME_USERDIR,   UserDirPrev,   UserDirIni)
    END
-
-   /* -------------------------------------------------------------------- */
-   /* It's an update or a new install? */
-   UpdateFlag = 0
-   IF FileExist( UserDirInst'\bin\nepmd.ini') THEN
-      UpdateFlag = 1
 
    /* -------------------------------------------------------------------- */
    /* Determine OS versions */
