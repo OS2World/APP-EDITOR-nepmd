@@ -2,19 +2,21 @@
 *
 * Module Name: nlsetup.cmd
 *
-* Frame batch for to call all required CMD files when setting up
-* additional directories and files in the user directory tree.
+* Syntax: nlsetup [NEPMD [UNINSTALL]]
 *
-* This module is called by the WarpIn package directly.
-* In order to prevent a VIO windo opening for this REXX script,
-* this (and only this script) is compiled to a PM executable.
+* Frame batch for to call all required CMD files when setting up additional
+* directories and files in the user directory tree.
+*
+* This module is called by the WarpIN package directly. In order to prevent
+* a VIO window opening for this REXX script, this (and only this script) is
+* compiled to a PM executable.
 *
 * This program is intended to be called only during installation of the
-* Netlabs EPM Distribution.
+* netlabs.org EPM Distribution.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.12 2008-09-20 23:12:13 aschn Exp $
+* $Id: nlsetup.cmd,v 1.13 2008-10-05 00:29:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,65 +31,123 @@
 *
 ****************************************************************************/
 
- /* init */
- '@ECHO OFF';
- env = 'OS2ENVIRONMENT';
+'@ECHO OFF'
 
- call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
- call SysLoadFuncs;
+/* ----------------- Standard CMD initialization follows ----------------- */
+SIGNAL ON HALT NAME Halt
 
- /* defaults */
- ErrorTitle = 'Netlabs EPM Distribution Installation';
- rc = 0;
+env   = 'OS2ENVIRONMENT'
+TRUE  = (1 = 1)
+FALSE = (0 = 1)
+CrLf  = '0d0a'x
+Redirection = '>NUL 2>&1'
+PARSE SOURCE . . ThisFile
+GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
 
- /* make sure we are called on purpose */
- ARG Parm .;
- IF (Parm \= 'NEPMD') THEN
-    ShowError( ErrorTitle, 'Error: Not called by WarpIN Package!');
+/* some OS/2 Error codes */
+ERROR.NO_ERROR           =   0
+ERROR.INVALID_FUNCTION   =   1
+ERROR.FILE_NOT_FOUND     =   2
+ERROR.PATH_NOT_FOUND     =   3
+ERROR.ACCESS_DENIED      =   5
+ERROR.NOT_ENOUGH_MEMORY  =   8
+ERROR.INVALID_FORMAT     =  11
+ERROR.INVALID_DATA       =  13
+ERROR.NO_MORE_FILES      =  18
+ERROR.WRITE_FAULT        =  29
+ERROR.READ_FAULT         =  30
+ERROR.SHARING_VIOLATION  =  32
+ERROR.GEN_FAILURE        =  31
+ERROR.INVALID_PARAMETER  =  87
+ERROR.ENVVAR_NOT_FOUND   = 204
 
- /* create private queue for error messages and set as default */
- QueueName = RXQUEUE('CREATE');
- rcx = RXQUEUE( 'SET', QueueName);
- rcx = VALUE( 'NEPMD_RXQUEUE', QueueName, env);
+rc = ERROR.NO_ERROR
 
- /* make calldir the current directory */
- PARSE Source . . CallName;
- CallDir = LEFT( CallName, LASTPOS( '\', CallName) - 1);
- rcx = DIRECTORY( CallDir);
+CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+CALL SysLoadFuncs
+/* ----------------- Standard CMD initialization ends -------------------- */
 
- /* call all modules required */
- DO UNTIL (1)
-    'CALL USERTREE';    IF (rc \= 0) THEN LEAVE;
-    'CALL SPECIAL';     IF (rc \= 0) THEN LEAVE;
-    'CALL DYNCFG';      IF (rc \= 0) THEN LEAVE;
-    /* The "NEPMD" param avoids the prompt */
-    'CALL RENUDIRS NEPMD'; IF (rc \= 0) THEN LEAVE;
-    'CALL EXPOBJ';      IF (rc \= 0) THEN LEAVE;
-    'CALL INITREG';     IF (rc \= 0) THEN LEAVE;
- END;
+/* Defaults */
+ErrorTitle = 'Netlabs EPM Distribution Installation'
 
- IF ((rc \= 0) & (QUEUED() > 0)) THEN
- DO
-    PARSE PULL ErrorMessage;
-    ShowError( ErrorTitle, ErrorMessage);
- END;
+/* Parse parameters */
+fNepmd     = FALSE
+fUninstall = FALSE
+ARG Parms
+DO WHILE Parms <> ''
+   PARSE VAR Parms ThisParm Parms
+   ThisParm = STRIP( ThisParm)
 
- EXIT( rc);
+   SELECT
+      WHEN ThisParm = '' THEN
+         LEAVE
+      WHEN ThisParm = 'NEPMD' THEN
+         fNepmd = TRUE
+      WHEN ThisParm = 'UNINSTALL' THEN
+         fUninstall = TRUE
+   OTHERWISE
+      NOP
+   END
+END
 
-/* ========================================================================= */
+/* Make sure we are called on purpose */
+IF (\fNepmd) THEN
+   ShowError( ErrorTitle, 'Error: Not called by WarpIN package.')
+
+/* Create private queue for error messages and set as default */
+QueueName = RXQUEUE( 'CREATE')
+rcx = RXQUEUE( 'SET', QueueName)
+rcx = VALUE( 'NEPMD_RXQUEUE', QueueName, env)
+
+/* Make calldir the current directory */
+PARSE Source . . CallName
+CallDir = LEFT( CallName, LASTPOS( '\', CallName) - 1)
+rcx = DIRECTORY( CallDir)
+
+/* Call all required modules */
+IF fUninstall THEN
+DO UNTIL (1)
+   'CALL INSTENV UNINSTALL'; IF (rc \= 0) THEN LEAVE
+   'CALL DYNCFG UNINSTALL';  IF (rc \= 0) THEN LEAVE
+END
+ELSE
+DO UNTIL (1)
+   'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
+   'CALL USERTREE';          IF (rc \= 0) THEN LEAVE
+   'CALL SPECIAL';           IF (rc \= 0) THEN LEAVE
+   'CALL DYNCFG';            IF (rc \= 0) THEN LEAVE
+   /* The "NEPMD" param avoids the prompt */
+   'CALL RENUDIRS NEPMD';    IF (rc \= 0) THEN LEAVE
+   'CALL EXPOBJ';            IF (rc \= 0) THEN LEAVE
+   'CALL INITREG';           IF (rc \= 0) THEN LEAVE
+END
+
+IF ((rc \= 0) & (QUEUED() > 0)) THEN
+DO
+   PARSE PULL ErrorMessage
+   ShowError( ErrorTitle, ErrorMessage)
+END
+
+EXIT( rc)
+
+/* ----------------------------------------------------------------------- */
+Halt:
+   ShowError( ErrorTitle, 'Interrupted by user.')
+
+/* ----------------------------------------------------------------------- */
 ShowError: PROCEDURE
- PARSE ARG Title, Message;
+   PARSE ARG Title, Message
 
- /* show message box in PM mode */
- SIGNAL ON SYNTAX;
- rcx = rxmessagebox( Message, Title, 'CANCEL', 'ERROR');
- EXIT( 99);
+   /* Show message box in PM mode */
+   SIGNAL ON SYNTAX NAME NoPM
+   rcx = RxMessageBox( Message, Title, 'CANCEL', 'ERROR')
+   EXIT( 99)
 
- /* print text in VIO mode */
-SYNTAX:
- SIGNAL OFF SYNTAX;
- SAY '';
- SAY Title;
- SAY Message;
- EXIT( 99);
+/* Print text in VIO mode */
+NoPM:
+   SIGNAL OFF SYNTAX
+   SAY ''
+   SAY Title
+   SAY Message
+   EXIT( 99)
 

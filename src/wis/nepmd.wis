@@ -3,23 +3,22 @@
 #
 # Module Name: nepmd.wis
 #
-# Script for WarpIn package
-#
-# NOTE: The packages defined here must match with the files
-#       added to the packages in bin\create.cmd!
+# Script for WarpIN package.
 #
 # This script uses the PARSEENV.CMD preprocessor to resolve
-#     - additional include tags
+#    -  additional include tags
 #       <cinclude name="filename"/> for a C header file
 #       <tinclude name="filename"/> for a text file
-#     - and env vars, specified in percent chars.
+#    -  env vars, specified in percent chars.
 # A #define macro in a cincluded file is handled like an env var definition.
 #
-# Comments must not be nested! Comments are only allowed outside of a tag!
+# Notes about WIS comments:
+#    -  Comments must not be nested.
+#    -  Comments are only allowed outside of a tag.
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.61 2008-09-13 17:11:41 aschn Exp $
+# $Id: nepmd.wis,v 1.62 2008-10-05 00:29:40 aschn Exp $
 #
 # ===========================================================================
 #
@@ -51,7 +50,7 @@
      NODESELECT
      TITLE="%PCK_1_TITLE%"
      EXECUTE="$(1)\netlabs\install\nlsetup.exe NEPMD"
-     DEEXECUTE="$(1)\netlabs\install\nldeinst.exe NEPMD"
+     DEEXECUTE="$(1)\netlabs\install\nlsetup.exe NEPMD UNINSTALL"
 
      CLEARPROFILE="USER\NEPMD\Language"
      CLEARPROFILE="USER\NEPMD\RootDir"
@@ -67,7 +66,7 @@
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\EPM.EXE;PARAMETERS=/r;STARTUPDIR=?:\;ASSOCTYPE=Plain Text,eCS Command File,OS/2 Command File,DOS Command File,C Code;ASSOCFILTER=*.CMD,*.DAT,*.DOC,*.INI,*.TXT,CONFIG.SYS;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM>;"
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM_NEW_WINDOW%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\EPM.EXE;PARAMETERS=;STARTUPDIR=?:\;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM_NEW_SAME_WINDOW>;"
 
-     CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM_SHELL%|<NEPMD_FOLDER>|PROGTYPE=PROG_WINDOWABLEVIO;EXENAME=$(1)\netlabs\bin\epmshell.cmd;PARAMETERS=%*;MINIMIZED=YES;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM_SHELL>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM_SHELL%|<NEPMD_FOLDER>|PROGTYPE=PROG_WINDOWABLEVIO;EXENAME=$(1)\netlabs\bin\epmshell.cmd;PARAMETERS="%*";MINIMIZED=YES;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM_SHELL>;"
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM_TURBO%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\EPM.EXE;PARAMETERS=/i;STARTUPDIR=?:\;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM_TURBO>;"
 
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_NEUSR%|<NEPMD_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEUSR%NLS%.INF Netlabs;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=102;OBJECTID=<NEPMD_VIEW_NEUSR>;"
@@ -77,10 +76,10 @@
      CREATEOBJECT="WPFolder|%TITLE_NEPMD_MORE_OBJECTS%|<NEPMD_FOLDER>|ICONVIEW=FLOWED,VISIBLE,NORMAL;ICONVIEWPOS=42 51 40 40;CCVIEW=NO;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=100;OBJECTID=<NEPMD_MORE_OBJECTS_FOLDER>;"
 
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM_E%|<NEPMD_MORE_OBJECTS_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\EPM.EXE;PARAMETERS=/r;STARTUPDIR=?:\;ASSOCFILTER=*.E;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM_E>;"
-     CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM_EDIT_MACROFILE%|<NEPMD_MORE_OBJECTS_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\EPM.EXE;PARAMETERS=/r 'editmacrofile %*';STARTUPDIR=?:\;ASSOCTYPE=EX File;ASSOCFILTER=*.EX;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM_EDIT_MACROFILE>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM_EDIT_MACROFILE%|<NEPMD_MORE_OBJECTS_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\EPM.EXE;PARAMETERS=/r 'editmacrofile "%*"';STARTUPDIR=?:\;ASSOCTYPE=EX File;ASSOCFILTER=*.EX;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM_EDIT_MACROFILE>;"
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM_ERX%|<NEPMD_MORE_OBJECTS_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\EPM.EXE;PARAMETERS=/r;STARTUPDIR=?:\;ASSOCFILTER=*.ERX;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM_ERX>;"
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM_TEX%|<NEPMD_MORE_OBJECTS_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\EPM.EXE;PARAMETERS=/r;STARTUPDIR=?:\;ASSOCFILTER=*.TEX,*.LTX,*.DTX;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM_TEX>;"
-     CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM_BIN%|<NEPMD_MORE_OBJECTS_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\EPM.EXE;PARAMETERS='binedit %*';STARTUPDIR=?:\;ASSOCTYPE=Executable;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM_BIN>;"
+     CREATEOBJECT="WPProgram|%TITLE_NEPMD_EPM_BIN%|<NEPMD_MORE_OBJECTS_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\EPM.EXE;PARAMETERS='binedit "%*"';STARTUPDIR=?:\;ASSOCTYPE=Executable;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_EPM_BIN>;"
 
      CREATEOBJECT="WPProgram|%TITLE_STANDARD_EPM%|<NEPMD_MORE_OBJECTS_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\APPS\EPM.EXE;PARAMETERS=/m;STARTUPDIR=?:\OS2\APPS;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_STANDARD_EPM>;"
 
