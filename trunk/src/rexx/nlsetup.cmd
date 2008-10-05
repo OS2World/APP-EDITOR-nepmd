@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.13 2008-10-05 00:29:40 aschn Exp $
+* $Id: nlsetup.cmd,v 1.14 2008-10-05 13:49:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,6 +32,7 @@
 ****************************************************************************/
 
 '@ECHO OFF'
+CALL SETLOCAL
 
 /* ----------------- Standard CMD initialization follows ----------------- */
 SIGNAL ON HALT NAME Halt
