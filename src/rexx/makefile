@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.2 2002-08-12 13:18:51 cla Exp $
+# $Id: makefile,v 1.3 2008-10-05 00:35:48 aschn Exp $
 #
 # ===========================================================================
 #
@@ -43,7 +43,7 @@ FILESTOCLEAN= \
 
 # --- pseudotargets
 
-ALL: NLSETUP NLDEINST
+ALL: NLSETUP
 
 # ---
 
@@ -55,11 +55,7 @@ CLEAN:
 
 NLSETUP: $(CMPINSTDIR)\nlsetup.exe
 
-NLDEINST: $(CMPINSTDIR)\nldeinst.exe
-
 # ---- create EXE versions of frame REXX batchfiles
 
 $(CMPINSTDIR)\nlsetup.exe: nlsetup.cmd
-
-$(CMPINSTDIR)\nldeinst.exe: nldeinst.cmd
 
