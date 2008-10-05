@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newsamewindow.erx,v 1.1 2008-09-07 23:09:50 aschn Exp $
+* $Id: newsamewindow.erx,v 1.2 2008-10-05 14:09:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -155,14 +155,15 @@ END
 /* Toggle presence of /r */
 fNewR = \fOldR
 i = 0
-DO n = 2 TO Obj.0
-   rcx = ToggleR( Obj.n, fNewR)
+DO n = 1 TO Obj.0
+   IF n = 1 THEN
+      rcx = ToggleR( Obj.n, \fNewR)
+   ELSE
+      rcx = ToggleR( Obj.n, fNewR)
    IF (rcx = 1) THEN
       i = i + 1
 END
 rcx = ToggleTitle( Obj.1, fNewR)
-IF (rcx = 1) THEN
-   i = i + 1
 
 'sayerror Changed 'i' object(s).'
 
@@ -205,10 +206,15 @@ ToggleR: PROCEDURE EXPOSE (GlobalVars)
          NOP
       END
 
+      /* Remove trailing "%*" */
+      IF (WORD( Params, WORDS( Params)) = '"%*"') THEN
+         Params = STRIP( DELWORD( Params, WORDS( Params)), 'T')
+
       /* Setting an empty parameter doesn't work */
       /* The doublequotes are required for filanames with spaces */
       IF Params = '' THEN
          Params = '"%*"'
+
       Setup = First'PARAMETERS='Params';'Rest
       /*'sayerror' Obj 'PARAMETERS='Params';'*/
 
