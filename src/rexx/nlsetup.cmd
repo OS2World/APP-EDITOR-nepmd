@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.15 2008-10-05 23:47:31 aschn Exp $
+* $Id: nlsetup.cmd,v 1.16 2008-10-06 05:12:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -103,25 +103,27 @@ QueueName = RXQUEUE( 'CREATE')
 rcx = RXQUEUE( 'SET', QueueName)
 rcx = VALUE( 'NEPMD_RXQUEUE', QueueName, env)
 
-/* Make calldir the current directory */
-PARSE Source . . CallName
-CallDir = LEFT( CallName, LASTPOS( '\', CallName) - 1)
-rcx = DIRECTORY( CallDir)
+/* Make work dir the current directory */
+WorkDir = LEFT( ThisFile, LASTPOS( '\', ThisFile) - 1)
+rcx = DIRECTORY( WorkDir)
+/* Change also drive */
+IF SUBSTR( WorkDir, 2, 1) = ':' THEN
+  rcx = DIRECTORY( SUBSTR( WorkDir, 1, 2))
 
 /* Call all required modules */
 SELECT
    WHEN fUninstall THEN
-   DO UNTIL (1)
+   DO 1
       'CALL INSTENV UNINSTALL'; IF (rc \= 0) THEN LEAVE
       'CALL DYNCFG UNINSTALL';  IF (rc \= 0) THEN LEAVE
    END
    WHEN fApplyIco THEN
-   DO UNTIL (1)
+   DO 1
       'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
       'CALL APPLYICO';          IF (rc \= 0) THEN LEAVE
    END
 OTHERWISE
-   DO UNTIL (1)
+   DO 1
       'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
       'CALL USERTREE';          IF (rc \= 0) THEN LEAVE
       'CALL SPECIAL';           IF (rc \= 0) THEN LEAVE

@@ -4,12 +4,12 @@
 *
 * Helper batch for to remove obsolete objects.
 *
-* This program is intended to be called by NLSETUP.EXE only during
-* installation of the Netlabs EPM Distribution.
+* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* installation or by RECROBJ.CMD.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: special.cmd,v 1.5 2008-10-05 00:39:29 aschn Exp $
+* $Id: special.cmd,v 1.6 2008-10-06 05:12:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,216 +24,138 @@
 *
 ****************************************************************************/
 
- /* initialize */
- CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
- CALL SysLoadFuncs
- GlobalVars = 'Sep CallDir NetlabsDir RootDir UserDir fEcs BootDrive'
- env = 'OS2ENVIRONMENT'
- Sep = '01'x
+'@echo off'
 
- /* INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
- NEPMD_INI_APPNAME             = "NEPMD"
- NEPMD_INI_KEYNAME_LANGUAGE    = "Language"
- NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
- NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
- NEPMD_INI_KEYNAME_USERDIRNAME = "UserDirName"
- NEPMD_INI_KEYNAME_USEHOME     = "UseHomeForUserDir"
+/* ----------------- Standard CMD initialization follows ----------------- */
+SIGNAL ON HALT NAME Halt
 
- /* default values */
- fUseHome = 0
- UserDirName = 'myepm'
- EcsFlag = 1  /* default, if syslevel.os2 not found, is to use eCS icons */
+env   = 'OS2ENVIRONMENT'
+TRUE  = (1 = 1)
+FALSE = (0 = 1)
+CrLf  = '0d0a'x
+Redirection = '>NUL 2>&1'
+PARSE SOURCE . . ThisFile
+GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
 
- /* set global vars */
- CALL GetBootDrive
- CALL GetEcsFlag
- CALL GetNepmdDirs
+/* Some OS/2 Error codes */
+ERROR.NO_ERROR           =   0
+ERROR.INVALID_FUNCTION   =   1
+ERROR.FILE_NOT_FOUND     =   2
+ERROR.PATH_NOT_FOUND     =   3
+ERROR.ACCESS_DENIED      =   5
+ERROR.NOT_ENOUGH_MEMORY  =   8
+ERROR.INVALID_FORMAT     =  11
+ERROR.INVALID_DATA       =  13
+ERROR.NO_MORE_FILES      =  18
+ERROR.WRITE_FAULT        =  29
+ERROR.READ_FAULT         =  30
+ERROR.SHARING_VIOLATION  =  32
+ERROR.GEN_FAILURE        =  31
+ERROR.INVALID_PARAMETER  =  87
+ERROR.ENVVAR_NOT_FOUND   = 204
 
-/* -----------------
- /* ##############   Maintainer: modify object id list here ######################## */
+rc = ERROR.NO_ERROR
 
- FolderObjectIdList = '<NEPMD_FOLDER>'               ||,
-                      ' <NEPMD_SAMPLES_FOLDER>'      ||,
-                      ' <NEPMD_MORE_OBJECTS_FOLDER>'
+CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+CALL SysLoadFuncs
+/* ----------------- Standard CMD initialization ends -------------------- */
 
- /* ################################################################################# */
+/* ------------- Configuration ---------------- */
+ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env)
+ErrorMessage   = ''
 
- /* determine operating system version */
- SELECT
-    WHEN (SysOs2Ver() < '2.40') THEN Type = '3'
-    WHEN (fEcs)                 THEN Type = 'e'
-    OTHERWISE                        Type = '4'
- END
+/* Some INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
+NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
 
- /* set icon for folders */
- FolderIconSetup = 'ICONFILE='CallDir'\ico\folder'Type'.ico;' ||,
-                   'ICONNFILE=1,'CallDir'\ico\folder'Type'o.ico;'
- DO WHILE (FolderObjectIdList \= '')
-    PARSE VAR FolderObjectIdList ThisObject FolderObjectIdList
-    rc = SysSetObjectData( ThisObject, FolderIconSetup)
- END
+GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
+/* -------------------------------------------- */
 
- /* set icon for user folder */
- rc = SysSetObjectData( UserDir, FolderIconSetup)
+/* Check if the env is already extended */
+next = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
+IF next <> '' THEN
+   'CALL INSTENV'
 
- /* set icon for root folder */
- rc = SysSetObjectData( RootDir, FolderIconSetup)
------------------ */
+RootDir = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
+NetlabsDir = RootDir'\netlabs'
 
- /* delete obsolete object from v1.00 if present */
- rc = SysDestroyObject( '<NEPMD_EXECUTABLE>')
+DO 1
 
- /* delete obsolete objects from before v1.14 if present */
- rc = SysDestroyObject( '<NEPMD_RECOMP>')
- rc = SysDestroyObject( '<NEPMD_RECOMPILE_NEW>')
- rc = SysDestroyObject( '<NEPMD_CHECK_USER_MACROS>')
- rc = SysDestroyObject( '<NEPMD_TOGGLE_DEFASSOCS>')
- rc = SysDestroyObject( '<NEPMD_CHANGE_STARTUPDIR>')
- rc = SysDestroyObject( '<NEPMD_TOGGLE_CCVIEW>')
- rc = SysDestroyObject( '<NEPMD_TOGGLE_FILEDLG>')
-/*
- rc = SysDestroyObject( '<NEPMD_VIEW_NEUSR>')
- rc = SysDestroyObject( '<NEPMD_VIEW_NEPRG>')
- rc = SysDestroyObject( '<NEPMD_VIEW_EPMTECH>')
- rc = SysDestroyObject( '<NEPMD_VIEW_EPMUSERS>')
- rc = SysDestroyObject( '<NEPMD_VIEW_EPMHELP>')
-*/
+   /* Delete obsolete object from v1.00 if present */
+   rc = SysDestroyObject( '<NEPMD_EXECUTABLE>')
 
- /* delete obsolete files and dirs from prior versions if present */
- rc = SysDestroyObject( NetlabsDir'\mode\fortran')
- rc = SysDestroyObject( NetlabsDir'\install\saveold.cmd')
- rc = SysDestroyObject( NetlabsDir'\install\epminit.cmd')
- rc = SysDestroyObject( NetlabsDir'\install\remex.cmd')
- rc = SysDestroyObject( NetlabsDir'\install\nldeinst.exe')
- rc = SysDestroyObject( NetlabsDir'\install\chgstartupdir.erx')
- rc = SysDestroyObject( NetlabsDir'\install\epmchgstartupdir.cmd')
- rc = SysDestroyObject( NetlabsDir'\install\epmdefassocs.cmd')
- rc = SysDestroyObject( NetlabsDir'\install\epmnewsamewindow.cmd')
- rc = SysDestroyObject( NetlabsDir'\macros\drawkey.e')
- rc = SysDestroyObject( NetlabsDir'\macros\menuacel.e')
- rc = SysDestroyObject( NetlabsDir'\macros\setconfig.e')
- rc = SysDestroyObject( NetlabsDir'\macros\small.e')
- rc = SysDestroyObject( NetlabsDir'\macros\statline.e')
- rc = SysDestroyObject( NetlabsDir'\macros\titletext.e')
- rc = SysDestroyObject( NetlabsDir'\macros\xchgline.e')
- rc = SysDestroyObject( NetlabsDir'\bin\epmchangestartupdir.cmd')
+   /* Delete obsolete objects from before v1.14 if present */
+   rc = SysDestroyObject( '<NEPMD_RECOMP>')
+   rc = SysDestroyObject( '<NEPMD_RECOMPILE_NEW>')
+   rc = SysDestroyObject( '<NEPMD_CHECK_USER_MACROS>')
+   rc = SysDestroyObject( '<NEPMD_TOGGLE_DEFASSOCS>')
+   rc = SysDestroyObject( '<NEPMD_CHANGE_STARTUPDIR>')
+   rc = SysDestroyObject( '<NEPMD_TOGGLE_CCVIEW>')
+   rc = SysDestroyObject( '<NEPMD_TOGGLE_FILEDLG>')
+   /*
+   /* These objects exist too, but should not be deleted */
+   rc = SysDestroyObject( '<NEPMD_VIEW_NEUSR>')
+   rc = SysDestroyObject( '<NEPMD_VIEW_NEPRG>')
+   rc = SysDestroyObject( '<NEPMD_VIEW_EPMTECH>')
+   rc = SysDestroyObject( '<NEPMD_VIEW_EPMUSERS>')
+   rc = SysDestroyObject( '<NEPMD_VIEW_EPMHELP>')
+   */
 
- /* remove obsolete ini key from v1.00 if present */
- rc = SysIni( 'USER', 'NEPMD', 'Path', 'DELETE:')
+   /* Delete obsolete files and dirs from prior versions if present */
+   rc = SysDestroyObject( NetlabsDir'\mode\fortran')
+   rc = SysDestroyObject( NetlabsDir'\install\saveold.cmd')
+   rc = SysDestroyObject( NetlabsDir'\install\epminit.cmd')
+   rc = SysDestroyObject( NetlabsDir'\install\remex.cmd')
+   rc = SysDestroyObject( NetlabsDir'\install\nldeinst.exe')
+   rc = SysDestroyObject( NetlabsDir'\install\chgstartupdir.erx')
+   rc = SysDestroyObject( NetlabsDir'\install\epmchgstartupdir.cmd')
+   rc = SysDestroyObject( NetlabsDir'\install\epmdefassocs.cmd')
+   rc = SysDestroyObject( NetlabsDir'\install\epmnewsamewindow.cmd')
+   rc = SysDestroyObject( NetlabsDir'\macros\drawkey.e')
+   rc = SysDestroyObject( NetlabsDir'\macros\menuacel.e')
+   rc = SysDestroyObject( NetlabsDir'\macros\setconfig.e')
+   rc = SysDestroyObject( NetlabsDir'\macros\small.e')
+   rc = SysDestroyObject( NetlabsDir'\macros\statline.e')
+   rc = SysDestroyObject( NetlabsDir'\macros\titletext.e')
+   rc = SysDestroyObject( NetlabsDir'\macros\xchgline.e')
+   rc = SysDestroyObject( NetlabsDir'\bin\epmchangestartupdir.cmd')
 
- EXIT( 0)
+   /* Remove obsolete ini key from v1.00 if present */
+   rc = SysIni( 'USER', 'NEPMD', 'Path', 'DELETE:')
 
-/* ------------------------------------------------------------------------- */
-GetBootDrive: PROCEDURE EXPOSE (GlobalVars)
+END
 
- /* Get BootDrive */
- IF \RxFuncQuery( 'SysBootDrive') THEN
-    BootDrive = SysBootDrive()
- ELSE
-    PARSE UPPER VALUE VALUE( 'PATH', , env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
+/* Report error message */
+IF ErrorMessage <> '' THEN
+   CALL SayErrorText
 
- RETURN
-
-/* ------------------------------------------------------------------------- */
-GetEcsFlag: PROCEDURE EXPOSE (GlobalVars)
-
- /* Read Syslevel file(s) */
- SLFile.1 = BootDrive'\ecs\install\syslevel.ecs'
- SLFile.2 = BootDrive'\os2\install\syslevel.ecs'
- SLFile.3 = BootDrive'\os2\install\syslevel.os2'
- SLFile.0 = 3
-
- fEcs = ''
- DO i = 1 to SLFile.0
-    File = BootDrive'\ecs\install\syslevel.ecs'
-    next = QuerySysLevel( File)
-    PARSE VALUE next WITH rc (Sep) SName (Sep) SVersion (Sep) SLevel
-    IF rc = 0 THEN
-    DO
-       fEcs = (POS( 'ECOMSTATION', TRANSLATE( SName)) > 0)
-       LEAVE
-    END
- END
-
- /* Default is to use settings for eComStation */
- IF (fEcs = '') THEN
-    fEcs = 1
-
- RETURN
-
-/* ------------------------------------------------------------------------- */
-GetNepmdDirs: PROCEDURE EXPOSE (GlobalVars)
-
- /* get the root directory of the NEPMD installation */
- PARSE SOURCE . . CallName
- CallDir    = LEFT( CallName,   LASTPOS( '\', CallName) - 1)    /* NEPMD\netlabs\install */
- NetlabsDir = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1)
- RootDir    = LEFT( NetlabsDir, LASTPOS( '\', NetlabsDir) - 1)  /* can be queried from Ini as well */
-
- /* get user directory */
- DO 1
-    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIR)
-    IF next <> 'ERROR:' then
-    DO
-       next = STRIP( next, 't', '00'x)
-       IF next > '' THEN
-       DO
-          UserDir = ResolveEnvVars( next)
-          LEAVE
-       END
-    END
-
-    UserDir = RootDir'\'UserDirName
-    LEAVE
- END
-
- RETURN
-
-/* ------------------------------------------------------------------------- */
-/*
- * Syntax: String = QuerySysLevel(<syslevel_file>)
- *
- * Returns a string of 5 segments, separated by Sep, e.g.:
- *    0eComStation Basisbetriebssystem45XRGC005
- * The first segment is rc.
- */
-QuerySysLevel: PROCEDURE EXPOSE (GlobalVars)
- InFile = STREAM( ARG(1), 'c', 'query exists')
- IF InFile > '' THEN
- DO
-    CALL STREAM InFile, 'c', 'open read'
-    line = CHARIN( InFile, 1, 165)
-    CALL STREAM InFile, 'c', 'close'
-    Startp = C2D( REVERSE( SUBSTR( line, 34, 4))) + 1
-    SName = STRIP( SUBSTR( line, Startp + 23, 80), 't', '00'x)
-    SVersion = C2X( SUBSTR( line, Startp + 3, 1))
-    SLevel = STRIP( STRIP( SUBSTR( line, Startp + 7, 8), 't', '00'x), 't', '_')
-    rc = 0
-    RETURN rc''Sep''SName''Sep''SVersion''Sep''SLevel
- END
- ELSE
-    RETURN 2''Sep''Sep''Sep
+EXIT( rc)
 
 /* ----------------------------------------------------------------------- */
-ResolveEnvVars: PROCEDURE EXPOSE (GlobalVars)
+SayErrorText: PROCEDURE EXPOSE (GlobalVars)
+   SELECT
+      WHEN (ErrorMessage = '') THEN NOP
 
-   Spec = ARG( 1)
-   Startp = 1
-   DO FOREVER
-      p1 = pos( '%', Spec, Startp)
-      IF p1 = 0 THEN
-         LEAVE
-      startp = p1 + 1
-      p2 = POS( '%', Spec, Startp)
-      IF p2 = 0 THEN
-         LEAVE
-      ELSE
+      /* Called by frame program: insert error */
+      /* message into private queue            */
+      WHEN (ErrorQueueName <> '') THEN
       DO
-         Startp = p2 + 1
-         Spec = SUBSTR( Spec, 1, p1 - 1) ||,
-                VALUE( SUBSTR( Spec, p1 + 1, p2 - p1 - 1),, env) ||,
-                SUBSTR( Spec, p2 + 1)
+         rcx = RXQUEUE( 'SET', ErrorQueueName)
+         PUSH ErrorMessage
+      END
+
+      /* Called directly */
+      OTHERWISE
+      DO
+         SAY ErrorMessage
+         'PAUSE'
       END
    END
-   RETURN( Spec)
+
+   RETURN( '')
+
+/* ----------------------------------------------------------------------- */
+Halt:
+   ErrorMessage = 'Interrupted by user.'
+   CALL SayErrorText
+   EXIT( 99)
 

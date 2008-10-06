@@ -6,9 +6,12 @@
 * recreation of ini entries and object. This CMD file is called at the end
 * of the installation.
 *
+* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* installation.
+*
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: expobj.cmd,v 1.1 2008-09-07 23:13:49 aschn Exp $
+* $Id: expobj.cmd,v 1.2 2008-10-06 05:12:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,10 +26,10 @@
 *
 ****************************************************************************/
 
+'@ECHO OFF'
+
 /* ----------------- Standard CMD initialization follows ----------------- */
 SIGNAL ON HALT NAME Halt
-SIGNAL ON ERROR NAME Error
-SIGNAL ON SYNTAX NAME Error
 
 env   = 'OS2ENVIRONMENT'
 TRUE  = (1 = 1)
@@ -36,7 +39,7 @@ Redirection = '>NUL 2>&1'
 PARSE SOURCE . . ThisFile
 GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
 
-/* some OS/2 Error codes */
+/* Some OS/2 Error codes */
 ERROR.NO_ERROR           =   0
 ERROR.INVALID_FUNCTION   =   1
 ERROR.FILE_NOT_FOUND     =   2
@@ -60,181 +63,221 @@ CALL SysLoadFuncs
 /* ----------------- Standard CMD initialization ends -------------------- */
 
 /* ------------- Configuration ---------------- */
+ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env)
+ErrorMessage   = ''
+
+/* Some INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
+NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
+
 Title._PathPrefix    = 'Netlabs\Netlabs EPM Distribution\'
 Title._PckKey        = 'WIPackHeader'
 Title._TargetPathKey = 'TargetPath'
 Title._ProfileKey    = 'WritePrfAttrs'
 Title._ObjectsKey    = 'WPSObjectAttrs'
 Title._ExecuteKey    = 'ExecuteAttrs'
+
 /* ExportFilename will be created in the same dir as this file. Better  */
 /* use the netlabs tree to find that file easily, even when the user    */
 /* tree was created elsewhere out of the NEPMD rootdir, e.g. in %HOME%. */
 ExportFilename       = 'recrobj.dat'
+
+GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage Title.'
 /* -------------------------------------------- */
 
-GlobalVars = GlobalVars 'Title.'
+DO 1
 
-/* Get BootDrive */
-IF \RxFuncQuery( 'SysBootDrive') THEN
-   BootDrive = SysBootDrive()
-ELSE
-   PARSE UPPER VALUE VALUE( 'PATH',, env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
+   /* Get BootDrive */
+   BootDrive = GetBootDrive()
 
-/* Find WarpIN database */
-next = STRIP( SysIni( USER, 'WarpIN', 'Path'),, '00'x)
-IF (next = 'ERROR:') THEN
-DO
-   SAY 'Error: WarpIN entry not found in user ini.'
-   RETURN( ERROR.PATH_NOT_FOUND)
-END
-WarpINDir = STRIP( next,, '00'x)
-
-DataBase = WarpINDir'\DATBAS_'LEFT( BootDrive, 1)'.INI'
-
-/* Read database */
-PckNumber.    = ''
-PckNumberList = ''
-PckIndexList  = ''
-Appl.  = ''
-Appl.0 = 0
-ExportLine.  = ''
-ExportLine.0 = 0
-next = SysIni( DataBase, 'ALL:', 'Appl.')
-IF (next = 'ERROR:') THEN
-DO
-   SAY 'Error: "'DataBase'" could not be read.'
-   EXIT( ERROR.READ_FAULT)
-END
-
-/* First loop: get package numbers and titles */
-DO i = 1 to Appl.0
-   /* Check prefix */
-   IF (POS( Title._PathPrefix, Appl.i) <> 1) THEN
-      ITERATE
-
-   /* Get Pck # */
-   next = SysIni( DataBase, Appl.i, Title._PckKey)
-   IF (next <> 'ERROR:') THEN
+   /* Find WarpIN database */
+   next = STRIP( SysIni( USER, 'WarpIN', 'Path'),, '00'x)
+   IF (next = 'ERROR:') THEN
    DO
-      p1 = POS( 'Pck', STRIP( next,, '00'x))
-      IF (p1 > 0) THEN
-      DO
-         PckNumber.i = STRIP( SUBSTR( next, p1 + 3, 3), 'L', '0')
-         PckNumberList = PckNumberList PckNumber.i
-         PckIndexList  = PckIndexList i
-      END
+      ErrorMessage = 'Error: WarpIN entry not found in user ini.'
+      rc = ERROR.PATH_NOT_FOUND
+      LEAVE
+   END
+   WarpINDir = STRIP( next,, '00'x)
+
+   DataBase = WarpINDir'\DATBAS_'LEFT( BootDrive, 1)'.INI'
+
+   /* Read database */
+   PckNumber.    = ''
+   PckNumberList = ''
+   PckIndexList  = ''
+   Appl.  = ''
+   Appl.0 = 0
+   ExportLine.  = ''
+   ExportLine.0 = 0
+   next = SysIni( DataBase, 'ALL:', 'Appl.')
+   IF (next = 'ERROR:') THEN
+   DO
+      ErrorMessage = 'Error: "'DataBase'" could not be read.'
+      rc = ERROR.READ_FAULT
+      LEAVE
    END
 
-   /* Get Pck title, omit project title */
-   Title.i = SUBSTR( Appl.i, LENGTH( Title._PathPrefix) + 1)
+   /* First loop: get package numbers and titles */
+   DO i = 1 to Appl.0
+      /* Check prefix */
+      IF (POS( Title._PathPrefix, Appl.i) <> 1) THEN
+         ITERATE
 
-   /*SAY PckNumber.i' (i = 'i') TITLE='SUBSTR( Appl.i, LENGTH( Title._PathPrefix) + 1)*/
-END
-PckNumberList = STRIP( PckNumberList)
-PckIndexList  = STRIP( PckIndexList)
-
-/* Second loop: process the rest and set ExportLines */
-RestNumberList = PckNumberList
-RestIndexList  = PckIndexList
-l = 0
-DO WHILE RestNumberList <> ''
-   /* Find lowest PckNumber to write export file in the correct order easily */
-   LowestNumber = WORD( RestNumberList, 1)
-   LowestNumberWordPos = 1
-   DO p = 1 TO WORDS( RestNumberList)
-      ThisNumber = WORD( RestNumberList, p)
-      IF (ThisNumber < LowestNumber) THEN
-      DO
-         LowestNumber = ThisNumber
-         LowestNumberWordPos = p
-      END
-   END
-
-   ThisNumber = LowestNumber
-   ThisIndex  = WORD( RestIndexList, LowestNumberWordPos)
-   /*SAY 'RestNumberList = 'RestNumberList', RestIndexList = 'RestIndexList', ThisNumber = 'ThisNumber', i = 'ThisIndex*/
-   RestNumberList = DELWORD( RestNumberList, LowestNumberWordPos, 1)
-   RestIndexList  = DELWORD( RestIndexList, LowestNumberWordPos, 1)
-
-   i = ThisIndex
-   l = l + 1
-   ExportLine.l = PckNumber.i' TITLE='Title.i
-
-   /* Get TargetPath */
-   IF (PckNumber.i = 1) THEN
-   DO
-      next = SysIni( DataBase, Appl.i, Title._TargetPathKey)
+      /* Get Pck # */
+      next = SysIni( DataBase, Appl.i, Title._PckKey)
       IF (next <> 'ERROR:') THEN
       DO
-         TargetPath = STRIP( next,, '00'x)
-         l = l + 1
-         ExportLine.l = PckNumber.i' TARGETPATH='TargetPath
+         p1 = POS( 'Pck', STRIP( next,, '00'x))
+         IF (p1 > 0) THEN
+         DO
+            PckNumber.i = STRIP( SUBSTR( next, p1 + 3, 3), 'L', '0')
+            PckNumberList = PckNumberList PckNumber.i
+            PckIndexList  = PckIndexList i
+         END
       END
-   END
 
-   /* Get ini entries */
-   next = SysIni( DataBase, Appl.i, Title._ProfileKey)
-   IF (next <> 'ERROR:') THEN
-   DO
-      rest = STRIP( next,, '00'x)
-      DO WHILE rest <> ''
-         PARSE VAR rest next'00'x rest
-         l = l + 1
-         ExportLine.l = PckNumber.i' PROFILE='next
-      END
-   END
+      /* Get Pck title, omit project title */
+      Title.i = SUBSTR( Appl.i, LENGTH( Title._PathPrefix) + 1)
 
-   /* Get objects */
-   next = SysIni( DataBase, Appl.i, Title._ObjectsKey)
-   IF (next <> 'ERROR:') THEN
-   DO
-      rest = STRIP( next,, '00'x)
-      DO WHILE rest <> ''
-         PARSE VAR rest next'00'x rest
-         l = l + 1
-         ExportLine.l = PckNumber.i' OBJECT='next
-      END
+      /*SAY PckNumber.i' (i = 'i') TITLE='SUBSTR( Appl.i, LENGTH( Title._PathPrefix) + 1)*/
    END
+   PckNumberList = STRIP( PckNumberList)
+   PckIndexList  = STRIP( PckIndexList)
 
-   /* Get execute calls */
-   next = SysIni( DataBase, Appl.i, Title._ExecuteKey)
-   IF (next <> 'ERROR:') THEN
-   DO
-      rest = STRIP( next,, '00'x)
-      DO WHILE rest <> ''
-         PARSE VAR rest next'00'x rest
-         l = l + 1
-         ExportLine.l = PckNumber.i' EXECUTE='next
+   /* Second loop: process the rest and set ExportLines */
+   RestNumberList = PckNumberList
+   RestIndexList  = PckIndexList
+   l = 0
+   DO WHILE RestNumberList <> ''
+      /* Find lowest PckNumber to write export file in the correct order easily */
+      LowestNumber = WORD( RestNumberList, 1)
+      LowestNumberWordPos = 1
+      DO p = 1 TO WORDS( RestNumberList)
+         ThisNumber = WORD( RestNumberList, p)
+         IF (ThisNumber < LowestNumber) THEN
+         DO
+            LowestNumber = ThisNumber
+            LowestNumberWordPos = p
+         END
       END
+
+      ThisNumber = LowestNumber
+      ThisIndex  = WORD( RestIndexList, LowestNumberWordPos)
+      /*SAY 'RestNumberList = 'RestNumberList', RestIndexList = 'RestIndexList', ThisNumber = 'ThisNumber', i = 'ThisIndex*/
+      RestNumberList = DELWORD( RestNumberList, LowestNumberWordPos, 1)
+      RestIndexList  = DELWORD( RestIndexList, LowestNumberWordPos, 1)
+
+      i = ThisIndex
+      l = l + 1
+      ExportLine.l = PckNumber.i' TITLE='Title.i
+
+      /* Get TargetPath */
+      IF (PckNumber.i = 1) THEN
+      DO
+         next = SysIni( DataBase, Appl.i, Title._TargetPathKey)
+         IF (next <> 'ERROR:') THEN
+         DO
+            TargetPath = STRIP( next,, '00'x)
+            l = l + 1
+            ExportLine.l = PckNumber.i' TARGETPATH='TargetPath
+         END
+      END
+
+      /* Get ini entries */
+      next = SysIni( DataBase, Appl.i, Title._ProfileKey)
+      IF (next <> 'ERROR:') THEN
+      DO
+         rest = STRIP( next,, '00'x)
+         DO WHILE rest <> ''
+            PARSE VAR rest next'00'x rest
+            l = l + 1
+            ExportLine.l = PckNumber.i' PROFILE='next
+         END
+      END
+
+      /* Get objects */
+      next = SysIni( DataBase, Appl.i, Title._ObjectsKey)
+      IF (next <> 'ERROR:') THEN
+      DO
+         rest = STRIP( next,, '00'x)
+         DO WHILE rest <> ''
+            PARSE VAR rest next'00'x rest
+            l = l + 1
+            ExportLine.l = PckNumber.i' OBJECT='next
+         END
+      END
+
+      /* Get execute calls */
+      next = SysIni( DataBase, Appl.i, Title._ExecuteKey)
+      IF (next <> 'ERROR:') THEN
+      DO
+         rest = STRIP( next,, '00'x)
+         DO WHILE rest <> ''
+            PARSE VAR rest next'00'x rest
+            l = l + 1
+            ExportLine.l = PckNumber.i' EXECUTE='next
+         END
+      END
+
+   END
+   ExportLine.0 = l
+
+   /* Write ExportFile */
+   lp = LASTPOS( '\', ThisFile)
+   ExportFile = SUBSTR( ThisFile, 1, lp)ExportFilename
+   IF (ExportLine.0 > 0) THEN
+   DO
+      IF (STREAM( ExportFile, 'c', 'query exists') <> '') THEN
+         rcx = SysFileDelete( ExportFile)
+      DO l = 1 TO ExportLine.0
+         rcx = LINEOUT( ExportFile, ExportLine.l)
+      END
+      rcx = STREAM( ExportFile, 'c', 'close')
    END
 
 END
-ExportLine.0 = l
 
-/* Write ExportFile */
-lp = LASTPOS( '\', ThisFile)
-ExportFile = SUBSTR( ThisFile, 1, lp)ExportFilename
-IF (ExportLine.0 > 0) THEN
-DO
-   IF (STREAM( ExportFile, 'c', 'query exists') <> '') THEN
-      rcx = SysFileDelete( ExportFile)
-   DO l = 1 TO ExportLine.0
-      rcx = LINEOUT( ExportFile, ExportLine.l)
+/* Report error message */
+IF ErrorMessage <> '' THEN
+   CALL SayErrorText
+
+EXIT( rc)
+
+/* ------------------------------------------------------------------------- */
+GetBootDrive PROCEDURE EXPOSE (GlobalVars)
+   IF \RxFuncQuery( 'SysBootDrive') THEN
+      BootDrive = SysBootDrive()
+   ELSE
+      PARSE UPPER VALUE VALUE( 'PATH',, env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
+
+   RETURN( BootDrive)
+
+/* ----------------------------------------------------------------------- */
+SayErrorText: PROCEDURE EXPOSE (GlobalVars)
+   SELECT
+      WHEN (ErrorMessage = '') THEN NOP
+
+      /* Called by frame program: insert error */
+      /* message into private queue            */
+      WHEN (ErrorQueueName <> '') THEN
+      DO
+         rcx = RXQUEUE( 'SET', ErrorQueueName)
+         PUSH ErrorMessage
+      END
+
+      /* Called directly */
+      OTHERWISE
+      DO
+         SAY ErrorMessage
+         'PAUSE'
+      END
    END
-   rcx = STREAM( ExportFile, 'c', 'close')
-END
 
-EXIT( ERROR.NO_ERROR)
+   RETURN( '')
 
 /* ----------------------------------------------------------------------- */
 Halt:
-   SAY 'Interrupted by user.'
-   EXIT( ERROR.GEN_FAILURE)
-
-/* ----------------------------------------------------------------------- */
-/* Give a standard REXX error message and jump to the error line           */
-Error:
-   SAY 'REX'RIGHT( rc, 4, 0)': Error 'rc' running 'ThisFile', line 'sigl ||,
-   ': 'ERRORTEXT( rc)
-   EXIT( ERROR.GEN_FAILURE)
+   ErrorMessage = 'Interrupted by user.'
+   CALL SayErrorText
+   EXIT( 99)
 
