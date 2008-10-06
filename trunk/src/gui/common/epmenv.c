@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.33 2008-09-23 01:56:35 aschn Exp $
+* $Id: epmenv.c,v 1.34 2008-10-06 05:06:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -234,8 +234,8 @@ static APIRET _searchNepmdEnvironmentFiles( PSZ pszMainEnvFile, ULONG ulMainBufl
 
          CHAR           szMessage[ 1024];
 
-static   PSZ            pszDefaultExecBaseName   = "epm"
-static   PSZ            pszMyDefaultExecBaseName = "myepm"
+static   PSZ            pszDefaultExecBaseName   = "epm";
+static   PSZ            pszMyDefaultExecBaseName = "myepm";
 
 static   PSZ            pszNepmdExecDirMask = "%s\\"NEPMD_SUBPATH_BINBINDIR"\\%s"NEPMD_FILENAMEEXT_ENV;
 static   PSZ            pszUserExecDirMask  = "%s\\"NEPMD_SUBPATH_USERBINDIR"\\%s"NEPMD_FILENAMEEXT_ENV;
