@@ -9,12 +9,12 @@
 * by the E procedure NepmdInitConfig on the next EPM start from the file
 * DEFAULTS.DAT.
 *
-* This program is intended to be called by NLSETUP.EXE only during
-* installation of the Netlabs EPM Distribution.
+* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* installation.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: initreg.cmd,v 1.4 2008-09-08 00:40:21 aschn Exp $
+* $Id: initreg.cmd,v 1.5 2008-10-06 05:12:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,143 +29,128 @@
 *
 ****************************************************************************/
 
- '@ECHO OFF';
- env   = 'OS2ENVIRONMENT';
- TRUE  = (1 = 1);
- FALSE = (0 = 1);
- CrLf  = '0d0a'x
- Redirection = '>NUL 2>&1';
- GlobalVars = 'env TRUE FALSE Redirection';
+'@ECHO OFF'
 
- /* initialize */
- call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
- call SysLoadFuncs;
+/* ----------------- Standard CMD initialization follows ----------------- */
+SIGNAL ON HALT NAME Halt
 
- /* INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
- NEPMD_INI_APPNAME             = "NEPMD"
- NEPMD_INI_KEYNAME_LANGUAGE    = "Language"
- NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
- NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
- NEPMD_INI_KEYNAME_USERDIRNAME = "UserDirName"
- NEPMD_INI_KEYNAME_USEHOME     = "UseHomeForUserDir"
+env   = 'OS2ENVIRONMENT'
+TRUE  = (1 = 1)
+FALSE = (0 = 1)
+CrLf  = '0d0a'x
+Redirection = '>NUL 2>&1'
+PARSE SOURCE . . ThisFile
+GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
 
- /* defaults and further consts */
- rc = 0;
- ErrorQueueName  = VALUE( 'NEPMD_RXQUEUE', , env);
- ErrorMessage    = '';
- NepmdIniName    = 'nepmd.ini';
- NepmdIniSubPath = 'bin';
- NepmdIniAppl    = 'RegDefaults';
- fUseHome        = 0
- UserDirName     = 'myepm'
+/* Some OS/2 Error codes */
+ERROR.NO_ERROR           =   0
+ERROR.INVALID_FUNCTION   =   1
+ERROR.FILE_NOT_FOUND     =   2
+ERROR.PATH_NOT_FOUND     =   3
+ERROR.ACCESS_DENIED      =   5
+ERROR.NOT_ENOUGH_MEMORY  =   8
+ERROR.INVALID_FORMAT     =  11
+ERROR.INVALID_DATA       =  13
+ERROR.NO_MORE_FILES      =  18
+ERROR.WRITE_FAULT        =  29
+ERROR.READ_FAULT         =  30
+ERROR.SHARING_VIOLATION  =  32
+ERROR.GEN_FAILURE        =  31
+ERROR.INVALID_PARAMETER  =  87
+ERROR.ENVVAR_NOT_FOUND   = 204
 
- DO UNTIL (TRUE)
+rc = ERROR.NO_ERROR
 
-    /* get the base directory of the NEPMD installation */
-    PARSE VALUE SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_ROOTDIR) WITH RootDir'00'x;
-    IF (RootDir = 'ERROR:') THEN
-    DO
-       ErrorMessage = 'Error: NEPMD configuration not found.';
-       rc = 3; /* ERROR_PATH_NOT_FOUND */
-       LEAVE;
-    END;
+CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+CALL SysLoadFuncs
+/* ----------------- Standard CMD initialization ends -------------------- */
 
-    /* get user directory */
-    DO 1
-       next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIR)
-       IF next <> 'ERROR:' then
-       DO
-          next = STRIP( next, 't', '00'x)
-          IF next <> '' THEN
-          DO
-             UserDir = next
-             LEAVE
-          END
-       END
+/* ------------- Configuration ---------------- */
+ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env)
+ErrorMessage   = ''
 
-       next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIRNAME)
-       IF next <> 'ERROR:' then
-       DO
-          next = STRIP( next, 't', '00'x)
-          IF next <> '' THEN
-             UserDirName = next
-       END
+/* Some INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
+NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
+NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
 
-       next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USEHOME)
-       IF next <> 'ERROR:' then
-       DO
-          next = STRIP( next, 't', '00'x)
-          IF next <> '' THEN
-             fUseHome = next
-       END
-       IF fUseHome = 1 THEN
-       DO
-          Home = VALUE( 'HOME', , env)
-          IF Home <> '' THEN
-          DO
-             Found. = ''
-             CALL SysFileTree Home, 'Found.', 'DO', '*+--*'  /* ADHRS */
-             IF Found.1 <> '' THEN
-             DO
-                UserDir = Home'\'UserDirName
-                LEAVE
-             END
-          END
-       END
+NepmdIniName    = 'nepmd.ini'
+NepmdIniSubPath = 'bin'
+NepmdIniAppl    = 'RegDefaults'
 
-       UserDir = RootDir'\'UserDirName
-       LEAVE
-    END
+GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
+/* -------------------------------------------- */
 
-    /* full pathname of NEPMD.INI */
-    NepmdIni = UserDir'\'NepmdIniSubPath'\'NepmdIniName
+/* Check if the env is already extended */
+next = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
+IF next <> '' THEN
+   'CALL INSTENV'
 
-    /* check if NEPMD.INI exists */
-    rcx = SysFileTree( NepmdIni, 'Found.', 'FO', '*-***');
-    IF rcx = 0 & Found.0 = 0 THEN
-    DO
-       rc = 0; /* no reset of default values required */
-       LEAVE;
-    END;
+UserDir  = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_USERDIR)'_INST',, env)
 
-    /* check if application in NEPMD.INI exists */
-    rcx = SysIni( NepmdIni, NepmdIniAppl);
-    IF rcx = 'ERROR:' THEN
-    DO
-       rc = 0; /* no reset of default values required */
-       LEAVE;
-    END;
+DO 1
 
-    /* delete application in NEPMD.INI */
-    rcx = SysIni( NepmdIni, NepmdIniAppl, 'DELETE:');
-    IF rcx = 'ERROR:' THEN
-    DO
-       ErrorMessage = 'Error: default NEPMD.INI values not deleted.';
-       rc = 1; /* ERROR */
-       LEAVE;
-    END;
- END;
+   /* Full pathname of NEPMD.INI */
+   NepmdIni = UserDir'\'NepmdIniSubPath'\'NepmdIniName
 
- /* report error message */
- SELECT
-    /* no error here */
-    WHEN (rc = 0) THEN NOP;
+   /* Check if NEPMD.INI exists */
+   rcx = SysFileTree( NepmdIni, 'Found.', 'FO', '*-***');
+   IF rcx = 0 & Found.0 = 0 THEN
+   DO
+      rc = 0 /* no reset of default values required */
+      LEAVE
+   END
 
-    /* called by frame program: insert error */
-    /* message into standard REXX queue     */
-    WHEN (ErrorQueueName \= '') THEN
-    DO
-       rcx = RXQUEUE( 'SET', ErrorQueueName);
-       PUSH ErrorMessage;
-    END;
+   /* Check if application in NEPMD.INI exists */
+   rcx = SysIni( NepmdIni, NepmdIniAppl)
+   IF rcx = 'ERROR:' THEN
+   DO
+      rc = 0 /* no reset of default values required */
+      LEAVE
+   END
 
-    /* called directly, method */
-    OTHERWISE
-    DO
-       SAY ErrorMessage;
-       'PAUSE';
-    END;
- END;
+   /* Delete application in NEPMD.INI */
+   rcx = SysIni( NepmdIni, NepmdIniAppl, 'DELETE:')
+   IF rcx = 'ERROR:' THEN
+   DO
+      ErrorMessage = 'Error: default NEPMD.INI values not deleted.'
+      rc = 1 /* ERROR */
+      LEAVE
+   END
 
- EXIT( rc);
+END
+
+/* Report error message */
+IF ErrorMessage <> '' THEN
+   CALL SayErrorText
+
+EXIT( rc)
+
+/* ----------------------------------------------------------------------- */
+SayErrorText: PROCEDURE EXPOSE (GlobalVars)
+   SELECT
+      WHEN (ErrorMessage = '') THEN NOP
+
+      /* Called by frame program: insert error */
+      /* message into private queue            */
+      WHEN (ErrorQueueName <> '') THEN
+      DO
+         rcx = RXQUEUE( 'SET', ErrorQueueName)
+         PUSH ErrorMessage
+      END
+
+      /* Called directly */
+      OTHERWISE
+      DO
+         SAY ErrorMessage
+         'PAUSE'
+      END
+   END
+
+   RETURN( '')
+
+/* ----------------------------------------------------------------------- */
+Halt:
+   ErrorMessage = 'Interrupted by user.'
+   CALL SayErrorText
+   EXIT( 99)
 

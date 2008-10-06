@@ -13,12 +13,12 @@
 * netlabs\bin\epm.env. It must be the first EPM.EXE along the PATH.
 * See netlabs\book\nepmd.inf for more information about this executable.
 *
-* This program is intended to be called by NLSETUP.EXE during NEPMD
+* This program is intended to be called only by NLSETUP.EXE during NEPMD
 * installation or by RECROBJ.CMD.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.11 2008-10-05 00:39:28 aschn Exp $
+* $Id: dyncfg.cmd,v 1.12 2008-10-06 05:12:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -33,241 +33,253 @@
 *
 ****************************************************************************/
 
- '@ECHO OFF';
- env   = 'OS2ENVIRONMENT';
- TRUE  = (1 = 1);
- FALSE = (0 = 1);
- CrLf  = '0d0a'x
- Redirection = '>NUL 2>&1';
- GlobalVars = 'env TRUE FALSE Redirection';
+'@ECHO OFF'
 
- call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
- call SysLoadFuncs;
+/* ----------------- Standard CMD initialization follows ----------------- */
+SIGNAL ON HALT NAME Halt
 
- /* INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
- NEPMD_INI_APPNAME             = "NEPMD"
- NEPMD_INI_KEYNAME_LANGUAGE    = "Language"
- NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
- NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
+env   = 'OS2ENVIRONMENT'
+TRUE  = (1 = 1)
+FALSE = (0 = 1)
+CrLf  = '0d0a'x
+Redirection = '>NUL 2>&1'
+PARSE SOURCE . . ThisFile
+GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
 
- /* defaults */
- rc = 0;
- LoaderEaName = 'NEPMD.Loader';
- ErrorQueueName = VALUE( 'NEPMD_RXQUEUE', , env);
- ErrorMessage = '';
+/* Some OS/2 Error codes */
+ERROR.NO_ERROR           =   0
+ERROR.INVALID_FUNCTION   =   1
+ERROR.FILE_NOT_FOUND     =   2
+ERROR.PATH_NOT_FOUND     =   3
+ERROR.ACCESS_DENIED      =   5
+ERROR.NOT_ENOUGH_MEMORY  =   8
+ERROR.INVALID_FORMAT     =  11
+ERROR.INVALID_DATA       =  13
+ERROR.NO_MORE_FILES      =  18
+ERROR.WRITE_FAULT        =  29
+ERROR.READ_FAULT         =  30
+ERROR.SHARING_VIOLATION  =  32
+ERROR.GEN_FAILURE        =  31
+ERROR.INVALID_PARAMETER  =  87
+ERROR.ENVVAR_NOT_FOUND   = 204
 
- /* Get BootDrive */
- IF \RxFuncQuery( 'SysBootDrive') THEN
-    BootDrive = SysBootDrive()
- ELSE
-    PARSE UPPER VALUE VALUE( 'PATH', , env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
+rc = ERROR.NO_ERROR
 
- DO UNTIL (TRUE)
+CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+CALL SysLoadFuncs
+/* ----------------- Standard CMD initialization ends -------------------- */
 
-    /* get OS2 directory name */
-    OS2Dir = TRANSLATE( BootDrive'\OS2');
-    CheckFile = OS2Dir'\EPM.EXE';
-    fCheckFileExists = FileExist( CheckFile);
+/* ------------- Configuration ---------------- */
+ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env)
+ErrorMessage   = ''
 
-    /* check parm */
-    ARG Parm .;
-    IF (Parm = 'UNINSTALL') THEN
-    DO
-       /* delete EPM.EXE in ?:\os2 if it is ours */
-       IF ((fCheckFileExists) & (IsNepmdExecutable( CheckFile, LoaderEaName))) THEN
-       DO
-          rc = SysFileDelete( CheckFile);
-          LEAVE;
-       END;
-       LEAVE;
-    END;
+/* Some INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
+NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
 
-    /* get the base directory of the NEPMD installation */
-    PARSE VALUE SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_ROOTDIR) WITH RootDir'00'x;
-    IF (RootDir = 'ERROR:') THEN
-    DO
-       ErrorMessage = 'Error: NEPMD -> RootDir not found in user ini.';
-       rc = 3; /* ERROR_PATH_NOT_FOUND */
-       LEAVE;
-    END;
-    RootDir = ResolveEnvVars( RootDir)
-    IF (RootDir = '') THEN
-    DO
-       ErrorMessage = 'Error: RootDir is empty.'
-       rc = 3; /* ERROR_PATH_NOT_FOUND */
-       LEAVE;
-    END;
+LoaderEaName   = 'NEPMD.Loader'
 
-    /* determine name of loader executable */
-    LoaderExe = RootDir'\netlabs\bin\epm.exe';
-    IF (\FileExist( LoaderExe)) THEN
-    DO
-       ErrorMessage = 'Error:' LoaderExe 'not found, NEPMD installation is not complete.';
-       rc = 2; /* ERROR_FILE_NOT_FOUND */
-       LEAVE;
-    END;
+GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
+/* -------------------------------------------- */
 
-    /* don't touch any EPM.EXE not being ours here */
-    IF ((fCheckFileExists) & (\IsNepmdExecutable( CheckFile, LoaderEaName))) THEN
-    DO
-       ErrorMessage = 'Error:' CheckFile 'is not of NEPMD, cannot continue.',
-                      'Dynamic EPM configuration and with it the NEPMD extensions will not work properly.'CrLf''CrLf||,
-                      'Remove this file from this directory (usually it',
-                      'should rather be installed in' BootDrive'\OS2\APPS) and repeat the installation.';
-       rc = 5; /* ERROR_ACCESS_DENIED */
-       LEAVE;
-    END;
+/* Check if the env is already extended */
+next = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
+IF next <> '' THEN
+   'CALL INSTENV'
 
-    /* determine original EPM.EXE along the path */
-    PathList = VALUE( 'PATH', , env);
-    fOs2DirPassed = FALSE;
-    fEpmFound     = FALSE;
-    DO WHILE (PathList \= '')
-       PARSE VAR PathList ThisDir';'PathList;
-       IF (ThisDir = '') THEN ITERATE;
+RootDir = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
 
-       /* is it the OS/2 directory ? */
-       IF (TRANSLATE( ThisDir) = OS2Dir) THEN
-       DO
-          fOs2DirPassed = TRUE;
-          ITERATE;
-       END;
+DO 1
 
-       /* now check for EPM */
-       IF (RIGHT( ThisDir, 1) \= '\') THEN
-          ThisDir = ThisDir'\';
-       EpmExecutable = ThisDir'epm.exe';
-       IF (FileExist( EpmExecutable)) THEN
-          fEpmFound = TRUE;
-    END;
+   /* Get BootDrive */
+   BootDrive = GetBootDrive()
 
-    IF (fEpmFound) THEN
-    DO
-       /* if os2 directory was not placed before, our loader will not be used */
-       IF (\fOs2DirPassed) THEN
-       DO
-          ErrorMessage = 'Error: EPM.EXE found in directory prior to' OS2Dir', cannot proceed.';
-          rc = 5; /* ERROR_ACCESS_DENIED */
-          LEAVE;
-       END;
-    END;
+   /* Get OS2 directory name */
+   OS2Dir = TRANSLATE( BootDrive'\OS2')
+   CheckFile = OS2Dir'\EPM.EXE'
+   fCheckFileExists = FileExist( CheckFile)
 
-    /* copy EPM.EXE of NEPMD */
-    'COPY' LoaderExe OS2Dir Redirection;
-    IF (rc \= 0) THEN
-    DO
-       ErrorMessage = 'Error: cannot write' CheckFile'.';
-       rc = 5; /* ERROR_ACCESS_DENIED */
-       LEAVE;
-    END;
+   /* Check parm */
+   ARG Parm .
+   IF (Parm = 'UNINSTALL') THEN
+   DO
+      /* delete EPM.EXE in ?:\os2 if it is ours */
+      IF ((fCheckFileExists) & (IsNepmdExecutable( CheckFile, LoaderEaName))) THEN
+      DO
+         rc = SysFileDelete( CheckFile)
+         LEAVE
+      END
+      LEAVE
+   END
 
-    /* mark EXE with special attribute (EAT_STRING) */
-    LoaderInfo = '1';
-    EaLen = REVERSE( RIGHT( D2C( LENGTH( LoaderInfo)), 2, D2C(0)));
-    EaValue = 'FDFF'x''EaLen''LoaderInfo;
-    rcx = SysPutEa( CheckFile, LoaderEaName, EaValue);
- END;
+   /* Determine name of loader executable */
+   LoaderExe = RootDir'\netlabs\bin\epm.exe'
+   IF (\FileExist( LoaderExe)) THEN
+   DO
+      ErrorMessage = 'Error:' LoaderExe 'not found, NEPMD installation is not complete.'
+      rc = ERROR.FILE_NOT_FOUND
+      LEAVE
+   END
 
- /* report error message */
- SELECT
-    /* no error here */
-    WHEN (rc = 0) THEN NOP;
+   /* Don't touch any EPM.EXE not being ours here */
+   IF ((fCheckFileExists) & (\IsNepmdExecutable( CheckFile, LoaderEaName))) THEN
+   DO
+      ErrorMessage = 'Error:' CheckFile 'is not of NEPMD, cannot continue.',
+                     'Dynamic EPM configuration and with it the NEPMD extensions will not work properly.'CrLf''CrLf||,
+                     'Remove this file from this directory (usually it',
+                     'should rather be installed in' BootDrive'\OS2\APPS) and repeat the installation.'
+      rc = ERROR.ACCESS_DENIED
+      LEAVE
+   END
 
-    /* called by frame program: insert error */
-    /* message into standard REXX queue     */
-    WHEN (ErrorQueueName \= '') THEN
-    DO
-       rcx = RXQUEUE( 'SET', ErrorQueueName);
-       PUSH ErrorMessage;
-    END;
+   /* Determine original EPM.EXE along the path */
+   PathList = VALUE( 'PATH', , env)
+   fOs2DirPassed = FALSE
+   fEpmFound     = FALSE
+   DO WHILE (PathList \= '')
+      PARSE VAR PathList ThisDir';'PathList
+      IF (ThisDir = '') THEN ITERATE
 
-    /* called directly, method */
-    OTHERWISE
-    DO
-       SAY ErrorMessage;
-       'PAUSE';
-    END;
- END;
+      /* Is it the OS/2 directory? */
+      IF (TRANSLATE( ThisDir) = OS2Dir) THEN
+      DO
+         fOs2DirPassed = TRUE
+         ITERATE
+      END
 
- EXIT( rc);
+      /* Now check for EPM */
+      IF (RIGHT( ThisDir, 1) \= '\') THEN
+         ThisDir = ThisDir'\'
+      EpmExecutable = ThisDir'epm.exe'
+      IF (FileExist( EpmExecutable)) THEN
+         fEpmFound = TRUE
+   END
+
+   IF (fEpmFound) THEN
+   DO
+      /* If os2 directory was not placed before, our loader will not be used */
+      IF (\fOs2DirPassed) THEN
+      DO
+         ErrorMessage = 'Error: EPM.EXE found in directory prior to' OS2Dir', cannot proceed.'
+         rc = ERROR.ACCESS_DENIED
+         LEAVE
+      END
+   END
+
+   /* Copy EPM.EXE of NEPMD */
+   'COPY' LoaderExe OS2Dir Redirection
+   IF (rc \= 0) THEN
+   DO
+      ErrorMessage = 'Error: cannot write' CheckFile'.'
+      rc = ERROR.ACCESS_DENIED
+      LEAVE
+   END
+
+   /* Mark EXE with special attribute (EAT_STRING) */
+   LoaderInfo = '1'
+   EaLen = REVERSE( RIGHT( D2C( LENGTH( LoaderInfo)), 2, D2C(0)))
+   EaValue = 'FDFF'x''EaLen''LoaderInfo
+   rcx = SysPutEa( CheckFile, LoaderEaName, EaValue)
+
+END
+
+/* Report error message */
+IF ErrorMessage <> '' THEN
+   CALL SayErrorText
+
+EXIT( rc)
+
+/* ------------------------------------------------------------------------- */
+GetBootDrive PROCEDURE EXPOSE (GlobalVars)
+   IF \RxFuncQuery( 'SysBootDrive') THEN
+      BootDrive = SysBootDrive()
+   ELSE
+      PARSE UPPER VALUE VALUE( 'PATH',, env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
+
+   RETURN( BootDrive)
 
 /* ------------------------------------------------------------------------- */
 FileExist: PROCEDURE
- PARSE ARG FileName
+   PARSE ARG FileName
 
- RETURN( STREAM( Filename, 'C', 'QUERY EXISTS') > '');
+   RETURN( STREAM( Filename, 'C', 'QUERY EXISTS') > '')
 
 /* ------------------------------------------------------------------------- */
 FindInPath: PROCEDURE
- PARSE ARG FileName, PathName;
- IF (PathName = '') THEN
-    PathName = 'PATH';
- RETURN( SysSearchPath( PathName, FileName));
+   PARSE ARG FileName, PathName
+   IF (PathName = '') THEN
+      PathName = 'PATH'
+   RETURN( SysSearchPath( PathName, FileName))
 
 /* ------------------------------------------------------------------------- */
 IsNepmdExecutable: PROCEDURE EXPOSE (GlobalVars)
- PARSE ARG CheckFile, EaName;
+   PARSE ARG CheckFile, EaName
 
- fFound = FALSE;
+   fFound = FALSE
 
- DO UNTIL (TRUE)
+   DO 1
 
-    /* if standard EPM.EXE resides in this directory, we may have a problem */
-    IF \(FileExist( CheckFile)) THEN
-       LEAVE;
+      /* If standard EPM.EXE resides in this directory, we may have a problem */
+      IF \(FileExist( CheckFile)) THEN
+         LEAVE
 
-    /* is it our executable ? */
-    IF (FindInPath( 'bldlevel.exe') <> '') THEN
-    DO
-       /* flush queue */
-       DO i = 1 TO QUEUED()
-          PARSE PULL next;
-       END;
-       /* get description */
-       'bldlevel.exe 'CheckFile' | rxqueue /fifo'
-       /* parse and flush queue */
-       DO i = 1 TO QUEUED()
-          PARSE PULL next;
-          IF \(fFound) THEN
-          DO
-             w1 = WORD( next, 1);
-             w2 = WORD( next, 2);
-             IF ((w1 = 'Description:') & (w2 = 'EPMCALL')) THEN
-                fFound = TRUE;
-          END;
-       END;
-    END;
-    IF (fFound) THEN
-       LEAVE;
+      /* Is it our executable ? */
+      IF (FindInPath( 'bldlevel.exe') <> '') THEN
+      DO
+         /* Flush queue */
+         DO i = 1 TO QUEUED()
+            PARSE PULL next
+         END
+         /* Get description */
+         'bldlevel.exe 'CheckFile' | rxqueue /fifo'
+         /* Parse and flush queue */
+         DO i = 1 TO QUEUED()
+            PARSE PULL next
+            IF \(fFound) THEN
+            DO
+               w1 = WORD( next, 1)
+               w2 = WORD( next, 2)
+               IF ((w1 = 'Description:') & (w2 = 'EPMCALL')) THEN
+                  fFound = TRUE
+            END
+         END
+      END
+      IF (fFound) THEN
+         LEAVE
 
-    /* no build level found, get EA from previous NEPMD install */
-    rc = SysGetEa( CheckFile, EaName, LoaderTag);
-    IF ((rc = 0) & (LoaderTag \= '')) THEN
-       fFound = TRUE;
- END;
+      /* No build level found, get EA from previous NEPMD install */
+      rc = SysGetEa( CheckFile, EaName, LoaderTag)
+      IF ((rc = 0) & (LoaderTag \= '')) THEN
+         fFound = TRUE
+   END
 
- RETURN( fFound);
+   RETURN( fFound)
 
 /* ----------------------------------------------------------------------- */
-ResolveEnvVars: PROCEDURE EXPOSE (GlobalVars)
+SayErrorText: PROCEDURE EXPOSE (GlobalVars)
+   SELECT
+      WHEN (ErrorMessage = '') THEN NOP
 
-   Spec = ARG( 1)
-   Startp = 1
-   DO FOREVER
-      p1 = pos( '%', Spec, Startp)
-      IF p1 = 0 THEN
-         LEAVE
-      startp = p1 + 1
-      p2 = POS( '%', Spec, Startp)
-      IF p2 = 0 THEN
-         LEAVE
-      ELSE
+      /* Called by frame program: insert error */
+      /* message into private queue            */
+      WHEN (ErrorQueueName <> '') THEN
       DO
-         Startp = p2 + 1
-         Spec = SUBSTR( Spec, 1, p1 - 1) ||,
-                VALUE( SUBSTR( Spec, p1 + 1, p2 - p1 - 1),, env) ||,
-                SUBSTR( Spec, p2 + 1)
+         rcx = RXQUEUE( 'SET', ErrorQueueName)
+         PUSH ErrorMessage
+      END
+
+      /* Called directly */
+      OTHERWISE
+      DO
+         SAY ErrorMessage
+         'PAUSE'
       END
    END
-   RETURN( Spec)
+
+   RETURN( '')
+
+/* ----------------------------------------------------------------------- */
+Halt:
+   ErrorMessage = 'Interrupted by user.'
+   CALL SayErrorText
+   EXIT( 99)
 

@@ -3,16 +3,17 @@
 * Module Name: usertree.cmd
 *
 * Helper batch for to create all directories of the personal subdirectory
-* tree (a WarpIn package cannot include empty directories).
+* tree. (A WarpIN package cannot include empty directories.)
 *
-* Additionally, it creates shadow objects for the user and the root folder.
+* Additionally, it creates shadow objects for the user and the root folder
+* and also applies help panels to make F1 show help for objects.
 *
-* This program is intended to be called by NLSETUP.EXE during installation
-* of the Netlabs EPM Distribution.
+* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* installation or by RECROBJ.CMD.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: usertree.cmd,v 1.13 2008-09-20 23:14:30 aschn Exp $
+* $Id: usertree.cmd,v 1.14 2008-10-06 05:12:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -27,146 +28,147 @@
 *
 ****************************************************************************/
 
- /* ##############   Maintainer: modify directory list here ######################## */
+/* ##############   Maintainer: modify directory list here ######################## */
 
- UserDirList = 'bar bin bmp dll ex mode macros ndx autolink spellchk';
- /* Additionally, the UserDir is created by this script */
+UserDirList = 'bar bin bmp dll ex mode macros ndx autolink spellchk'
+/* Additionally, the UserDir is created by this script */
 
- /* ################################################################################# */
+/* ################################################################################# */
 
- '@ECHO OFF';
- env   = 'OS2ENVIRONMENT';
- TRUE  = (1 = 1);
- FALSE = (0 = 1);
- CrLf  = '0d0a'x
- Redirection = '>NUL 2>&1';
- GlobalVars = 'env TRUE FALSE Redirection';
+'@ECHO OFF'
 
- /* initialize */
- call RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
- call SysLoadFuncs;
+/* ----------------- Standard CMD initialization follows ----------------- */
+SIGNAL ON HALT NAME Halt
 
- /* INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
- NEPMD_INI_APPNAME             = "NEPMD"
- NEPMD_INI_KEYNAME_LANGUAGE    = "Language"
- NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
- NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
- NEPMD_INI_KEYNAME_USERDIRNAME = "UserDirName"
- NEPMD_INI_KEYNAME_USEHOME     = "UseHomeForUserDir"
+env   = 'OS2ENVIRONMENT'
+TRUE  = (1 = 1)
+FALSE = (0 = 1)
+CrLf  = '0d0a'x
+Redirection = '>NUL 2>&1'
+PARSE SOURCE . . ThisFile
+GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
 
- FolderId      = '<NEPMD_FOLDER>';
- ObjectIdStart = '<NEPMD_';
- ObjectIdEnd   = '_SHADOW>';
+/* Some OS/2 Error codes */
+ERROR.NO_ERROR           =   0
+ERROR.INVALID_FUNCTION   =   1
+ERROR.FILE_NOT_FOUND     =   2
+ERROR.PATH_NOT_FOUND     =   3
+ERROR.ACCESS_DENIED      =   5
+ERROR.NOT_ENOUGH_MEMORY  =   8
+ERROR.INVALID_FORMAT     =  11
+ERROR.INVALID_DATA       =  13
+ERROR.NO_MORE_FILES      =  18
+ERROR.WRITE_FAULT        =  29
+ERROR.READ_FAULT         =  30
+ERROR.SHARING_VIOLATION  =  32
+ERROR.GEN_FAILURE        =  31
+ERROR.INVALID_PARAMETER  =  87
+ERROR.ENVVAR_NOT_FOUND   = 204
 
- /* defaults */
- rc = 0
- ErrorQueueName = VALUE( 'NEPMD_RXQUEUE', , env);
- ErrorMessage = '';
- fUseHome = 0
- UserDirName = 'myepm'
+rc = ERROR.NO_ERROR
 
- /* get the base directory of the NEPMD installation */
- PARSE SOURCE . . CallName;
- CallDir    = LEFT( CallName,   LASTPOS( '\', CallName) - 1);    /* NEPMD\netlabs\install */
- NetlabsDir = LEFT( CallDir,    LASTPOS( '\', CallDir) - 1);
- RootDir    = LEFT( NetlabsDir, LASTPOS( '\', NetlabsDir) - 1);  /* can be queried from Ini as well */
+CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+CALL SysLoadFuncs
+/* ----------------- Standard CMD initialization ends -------------------- */
 
- /* try to delete renamed keyname (Path -> RootDir) from NEPMD 1.00 */
- next = SysIni( 'USER', NEPMD_INI_APPNAME, 'Path')
- IF next <> 'ERROR:' then
-    rcx = SysIni( 'USER', NEPMD_INI_APPNAME, 'Path', 'DELETE:')
+/* ------------- Configuration ---------------- */
+ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env)
+ErrorMessage   = ''
 
- /* get user directory */
- DO 1
-    next = SysIni( 'USER', NEPMD_INI_APPNAME, NEPMD_INI_KEYNAME_USERDIR)
-    IF next <> 'ERROR:' then
-    DO
-       next = STRIP( next, 't', '00'x)
-       IF next > '' THEN
-       DO
-          UserDir = ResolveEnvVars( next)
-          LEAVE
-       END
-    END
+/* Some INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
+NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
+NEPMD_INI_KEYNAME_LANGUAGE    = "Language"
+NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
 
-    UserDir = RootDir'\'UserDirName
-    LEAVE
- END
+FolderId      = '<NEPMD_FOLDER>'
+ObjectIdStart = '<NEPMD_'
+ObjectIdEnd   = '_SHADOW>'
 
- DO 1
-    /* ensure that user dir exists */
-    rc1 = SysMkDir( UserDir);
-    IF WORDPOS( rc1, '0 5') = 0 THEN  /* rc = 5: dir already exists */
-    DO
-       ErrorMessage = 'Error: cannot create user directory "'UserDir'".';
-       rc = rc1
-       LEAVE;
-    END
+UserDirName = 'myepm'
 
-    /* apply help panel to UserDir folder */
-    rcx = SysSetObjectData( UserDir, 'DEFAULTVIEW=TREE;HELPLIBRARY='RootDir'\netlabs\help\nefldeng.hlp;HELPPANEL=105;');
-    /* create shadow of UserDir folder in NEPMD folder */
-    ObjectId = ObjectIdStart''TRANSLATE( UserDirName)''ObjectIdEnd;
-    rcx = SysCreateObject( 'WPShadow', '.', FolderId, 'SHADOWID='UserDir';OBJECTID='ObjectId';', 'U');
+GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
+/* -------------------------------------------- */
 
-    /* create directories here - ignore errors */
-    DO WHILE (UserDirList \= '')
-       PARSE VAR UserDirList ThisDir UserDirList;
-       FullPath = UserDir'\'ThisDir;
-       rcx = SysMkDir( FullPath);
-       rcx = SysSetObjectData( FullPath, 'DEFAULTVIEW=ICON;');
-    END;
- END
+/* Check if the env is already extended */
+next = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
+IF next <> '' THEN
+   'CALL INSTENV'
 
- /* apply help panel to RootDir folder */
- rcx = SysSetObjectData( RootDir, 'DEFAULTVIEW=TREE;HELPLIBRARY='RootDir'\netlabs\help\nefldeng.hlp;HELPPANEL=114;');
- /* create shadow of RootDir folder in NEPMD folder */
- ObjectId = ObjectIdStart''TRANSLATE( RootDirName)''ObjectIdEnd;
- rcx = SysCreateObject( 'WPShadow', '.', FolderId, 'SHADOWID='RootDir';OBJECTID='ObjectId';', 'U');
+RootDir  = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
+Language = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_LANGUAGE)'_INST',, env)
+UserDir  = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_USERDIR)'_INST',, env)
 
- /* report error message */
- SELECT
-    /* no error here */
-    WHEN (rc = 0) THEN NOP;
+NetlabsHelpFile = RootDir'\netlabs\help\nefld'Language'.hlp'
 
-    /* called by frame program: insert error */
-    /* message into standard REXX queue     */
-    WHEN (ErrorQueueName \= '') THEN
-    DO
-       rcx = RXQUEUE( 'SET', ErrorQueueName);
-       PUSH ErrorMessage;
-    END;
+DO 1
 
-    /* called directly, method */
-    OTHERWISE
-    DO
-       SAY ErrorMessage;
-       'PAUSE';
-    END;
- END;
-
- EXIT( rc);
-
-/* ----------------------------------------------------------------------- */
-ResolveEnvVars: PROCEDURE EXPOSE (GlobalVars)
-
-   Spec = ARG( 1)
-   Startp = 1
-   DO FOREVER
-      p1 = pos( '%', Spec, Startp)
-      IF p1 = 0 THEN
-         LEAVE
-      startp = p1 + 1
-      p2 = POS( '%', Spec, Startp)
-      IF p2 = 0 THEN
-         LEAVE
-      ELSE
+   DO 1
+      /* Ensure that user dir exists */
+      rcx = SysMkDir( UserDir)
+      IF WORDPOS( rcx, '0 5') = 0 THEN  /* rc = 5: dir already exists */
       DO
-         Startp = p2 + 1
-         Spec = SUBSTR( Spec, 1, p1 - 1) ||,
-                VALUE( SUBSTR( Spec, p1 + 1, p2 - p1 - 1),, env) ||,
-                SUBSTR( Spec, p2 + 1)
+         ErrorMessage = 'Error: cannot create user directory "'UserDir'".'
+         rc = rcx
+         LEAVE
+      END
+
+      /* Apply help panel to UserDir folder */
+      rcx = SysSetObjectData( UserDir, 'DEFAULTVIEW=TREE;HELPLIBRARY='NetlabsHelpFile';HELPPANEL=105;')
+
+      /* Create shadow of UserDir folder in NEPMD folder */
+      ObjectId = ObjectIdStart''TRANSLATE( UserDirName)''ObjectIdEnd
+      rcx = SysCreateObject( 'WPShadow', '.', FolderId, 'SHADOWID='UserDir';OBJECTID='ObjectId';', 'U')
+
+      /* Create directories here - ignore errors */
+      DO WHILE (UserDirList \= '')
+         PARSE VAR UserDirList ThisDir UserDirList
+         FullPath = UserDir'\'ThisDir
+         rcx = SysMkDir( FullPath)
+         rcx = SysSetObjectData( FullPath, 'DEFAULTVIEW=ICON;')
       END
    END
-   RETURN( Spec)
+
+   /* Apply help panel to RootDir folder */
+   rcx = SysSetObjectData( RootDir, 'DEFAULTVIEW=TREE;HELPLIBRARY='NetlabsHelpFile';HELPPANEL=114;')
+
+   /* Create shadow of RootDir folder in NEPMD folder */
+   ObjectId = ObjectIdStart''TRANSLATE( RootDirName)''ObjectIdEnd;
+   rcx = SysCreateObject( 'WPShadow', '.', FolderId, 'SHADOWID='RootDir';OBJECTID='ObjectId';', 'U')
+
+END
+
+/* Report error message */
+IF ErrorMessage <> '' THEN
+   CALL SayErrorText
+
+EXIT( rc)
+
+/* ----------------------------------------------------------------------- */
+SayErrorText: PROCEDURE EXPOSE (GlobalVars)
+   SELECT
+      WHEN (ErrorMessage = '') THEN NOP
+
+      /* Called by frame program: insert error */
+      /* message into private queue            */
+      WHEN (ErrorQueueName <> '') THEN
+      DO
+         rcx = RXQUEUE( 'SET', ErrorQueueName)
+         PUSH ErrorMessage
+      END
+
+      /* Called directly */
+      OTHERWISE
+      DO
+         SAY ErrorMessage
+         'PAUSE'
+      END
+   END
+
+   RETURN( '')
+
+/* ----------------------------------------------------------------------- */
+Halt:
+   ErrorMessage = 'Interrupted by user.'
+   CALL SayErrorText
+   EXIT( 99)
 

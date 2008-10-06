@@ -2,21 +2,16 @@
 *
 * Module Name: applyico.cmd
 *
-* Helper batch for to
-*  - attach operating system dependant icons to the folders of the Netlabs
-*    EPM Distribution, as WarpIn can currently not determine the operating
-*    system version (Warp3 / Warp 4 / eComStation) during installation.
-*  - apply settings that depend on the UserDir.
-*  - remove obsolete objects.
-*  - set Parameters for program objects that contains doublequotes (WarpIN
-*    can not use doublequotes).
+* Helper batch for to attach operating system dependant icons to the folders
+* of the NEPMD, as WarpIn can currently not determine the operating system
+* version (Warp 3/Warp 4/eComStation) during installation.
 *
-* This program is intended to be called by NLSETUP.EXE only during
-* installation of the Netlabs EPM Distribution.
+* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* installation or by RECROBJ.CMD.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.18 2007-02-12 01:04:31 jbs Exp $
+* $Id: applyico.cmd,v 1.19 2008-10-06 05:12:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -31,164 +26,172 @@
 *
 ****************************************************************************/
 
- /* initialize */
- CALL RxFuncAdd    'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs';
- CALL SysLoadFuncs;
- GlobalVars = 'Sep CallDir NetlabsDir RootDir UserDir EcsFlag BootDrive'
- env = 'OS2ENVIRONMENT';
- Sep = '01'x
+/* ##############   Maintainer: modify object id list here ######################## */
 
- PARSE SOURCE . . CallName;
- CallDir    = LEFT( CallName,   LASTPOS( '\', CallName) - 1);    /* NEPMD\netlabs\install */
+FolderObjectIdList = '<NEPMD_FOLDER> <NEPMD_SAMPLES_FOLDER>' ||,
+                     ' <NEPMD_MORE_OBJECTS_FOLDER>'
 
- /* default values */
- EcsFlag = 1  /* default, if syslevel.os2 not found, is to use eCS icons */
+/* ################################################################################# */
 
- /* set global vars */
- CALL GetBootDrive
- CALL GetEcsFlag
+'@ECHO OFF'
 
- /* ##############   Maintainer: modify object id list here ######################## */
+/* ----------------- Standard CMD initialization follows ----------------- */
+SIGNAL ON HALT NAME Halt
 
- FolderObjectIdList = '<NEPMD_FOLDER> <NEPMD_SAMPLES_FOLDER>' ||,
-                      ' <NEPMD_MORE_OBJECTS_FOLDER>';
+env   = 'OS2ENVIRONMENT'
+TRUE  = (1 = 1)
+FALSE = (0 = 1)
+CrLf  = '0d0a'x
+Redirection = '>NUL 2>&1'
+PARSE SOURCE . . ThisFile
+GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
 
- /* ################################################################################# */
+/* Some OS/2 Error codes */
+ERROR.NO_ERROR           =   0
+ERROR.INVALID_FUNCTION   =   1
+ERROR.FILE_NOT_FOUND     =   2
+ERROR.PATH_NOT_FOUND     =   3
+ERROR.ACCESS_DENIED      =   5
+ERROR.NOT_ENOUGH_MEMORY  =   8
+ERROR.INVALID_FORMAT     =  11
+ERROR.INVALID_DATA       =  13
+ERROR.NO_MORE_FILES      =  18
+ERROR.WRITE_FAULT        =  29
+ERROR.READ_FAULT         =  30
+ERROR.SHARING_VIOLATION  =  32
+ERROR.GEN_FAILURE        =  31
+ERROR.INVALID_PARAMETER  =  87
+ERROR.ENVVAR_NOT_FOUND   = 204
 
+rc = ERROR.NO_ERROR
 
- /* determine operating system version */
- SELECT
-    WHEN (SysOs2Ver() < '2.40') THEN Type = '3';
-    WHEN (EcsFlag = 1)          THEN Type = 'e';
-    OTHERWISE                        Type = '4';
- END;
+CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+CALL SysLoadFuncs
+/* ----------------- Standard CMD initialization ends -------------------- */
 
- /* set icon for folders */
- FolderIconSetup = 'ICONFILE='CallDir'\ico\folder'Type'.ico;' ||,
-                   'ICONNFILE=1,'CallDir'\ico\folder'Type'o.ico;';
- DO WHILE (FolderObjectIdList \= '')
-    PARSE VAR FolderObjectIdList ThisObject FolderObjectIdList;
-    rc = SysSetObjectData( ThisObject, FolderIconSetup);
- END;
+/* ------------- Configuration ---------------- */
+ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env)
+ErrorMessage   = ''
 
- /* set icon for user folder */
- rc = SysSetObjectData( UserDir, FolderIconSetup);
+/* Some INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
+NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
 
- /* set icon for root folder */
- rc = SysSetObjectData( RootDir, FolderIconSetup);
+GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
+/* -------------------------------------------- */
 
- /* set icons for EPM program objects */
- /* (required only for showing the icon immediately after install) */
- rc = SysSetObjectData( '<NEPMD_EPM>',,
-                        'ICONFILE='CallDir'\ico\nepmd.ico;');
- rc = SysSetObjectData( '<NEPMD_EPM_NEW_SAME_WINDOW>',,
-                        'ICONFILE='CallDir'\ico\nepmd.ico;');
- rc = SysSetObjectData( '<NEPMD_EPM_SHELL>',,
-                        'ICONFILE='CallDir'\ico\nepmd.ico;');
- rc = SysSetObjectData( '<NEPMD_EPM_TURBO>',,
-                        'ICONFILE='CallDir'\ico\nepmd.ico;');
- rc = SysSetObjectData( '<NEPMD_EPM_BIN>',,
-                        'ICONFILE='CallDir'\ico\nepmd.ico;');
+/* Check if the env is already extended */
+next = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
+IF next <> '' THEN
+   'CALL INSTENV'
 
- /* set special icons for EPM program objects */
- rc = SysSetObjectData( '<NEPMD_EPM_E>',,
-                        'ICONFILE='CallDir'\ico\nepmd_e.ico;');
- rc = SysSetObjectData( '<NEPMD_EPM_EDIT_MACROFILE>',,
-                        'ICONFILE='CallDir'\ico\nepmd_ex.ico;');
- rc = SysSetObjectData( '<NEPMD_EPM_ERX>',,
-                        'ICONFILE='CallDir'\ico\nepmd_erx.ico;');
- rc = SysSetObjectData( '<NEPMD_EPM_TEX>',,
-                        'ICONFILE='CallDir'\ico\nepmd_tex.ico;');
+RootDir = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
+IconDir = RootDir'\netlabs\install\ico'
+EcsFlag = VALUE( ECS_FLAG,, env)
 
- rc = SysSetObjectData( '<NEPMD_TOGGLE_CCVIEW>',,
-                        'ICONFILE='CallDir'\ico\recomp.ico;');
- rc = SysSetObjectData( '<NEPMD_CHANGE_STARTUPDIR>',,
-                        'ICONFILE='CallDir'\ico\recomp.ico;');
- rc = SysSetObjectData( '<NEPMD_TOGGLE_DEFASSOCS>',,
-                        'ICONFILE='CallDir'\ico\recomp.ico;');
+DO 1
 
- rc = SysSetObjectData( '<NEPMD_RECOMPILE_NEW>',,
-                        'ICONFILE='CallDir'\ico\recomp.ico;');
- rc = SysSetObjectData( '<NEPMD_CHECK_USER_MACROS>',,
-                        'ICONFILE='CallDir'\ico\recomp.ico;');
+   /* Determine operating system type */
+   SELECT
+      WHEN (SysOs2Ver() < '2.40') THEN Type = '3'
+      WHEN (EcsFlag = 1)          THEN Type = 'e'
+      OTHERWISE                        Type = '4'
+   END
 
- rc = SysSetObjectData( '<NEPMD_VIEW_NEUSR>',,
-                        'ICONFILE='CallDir'\ico\help.ico;');
- rc = SysSetObjectData( '<NEPMD_VIEW_NEPRG>',,
-                        'ICONFILE='CallDir'\ico\help.ico;');
+   FolderIconSetup = 'ICONFILE='IconDir'\folder'Type'.ico;' ||,
+                     'ICONNFILE=1,'IconDir'\folder'Type'o.ico;'
 
- rc = SysDestroyObject( CallDir'\..\..\srccopy.txt');
+   /* Set icon for folders of FolderObjectIdList */
+   DO WHILE (FolderObjectIdList \= '')
+      PARSE VAR FolderObjectIdList ThisObject FolderObjectIdList
+      rc = SysSetObjectData( ThisObject, FolderIconSetup)
+   END
 
- EXIT( 0);
+   /* Set icon for user folder */
+   rc = SysSetObjectData( UserDir, FolderIconSetup)
 
-/* ------------------------------------------------------------------------- */
-GetBootDrive: PROCEDURE EXPOSE (GlobalVars)
+   /* Set icon for netlabs folder */
+   rc = SysSetObjectData( RootDir'\netlabs', FolderIconSetup)
 
- /* Get BootDrive */
- IF \RxFuncQuery( 'SysBootDrive') THEN
-    BootDrive = SysBootDrive()
- ELSE
-    PARSE UPPER VALUE VALUE( 'PATH', , env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
+   /* set icon for root folder */
+   rc = SysSetObjectData( RootDir, FolderIconSetup)
 
- RETURN
+   /* Set icons for EPM program objects */
+   /* (required only for showing the icon immediately after install) */
+   rc = SysSetObjectData( '<NEPMD_EPM>',,
+                          'ICONFILE='IconDir'\nepmd.ico;')
+   rc = SysSetObjectData( '<NEPMD_EPM_NEW_SAME_WINDOW>',,
+                          'ICONFILE='IconDir'\nepmd.ico;')
+   rc = SysSetObjectData( '<NEPMD_EPM_SHELL>',,
+                          'ICONFILE='IconDir'\nepmd.ico;')
+   rc = SysSetObjectData( '<NEPMD_EPM_TURBO>',,
+                          'ICONFILE='IconDir'\nepmd.ico;')
+   rc = SysSetObjectData( '<NEPMD_EPM_BIN>',,
+                          'ICONFILE='IconDir'\nepmd.ico;')
 
-/* ------------------------------------------------------------------------- */
-GetEcsFlag: PROCEDURE EXPOSE (GlobalVars)
+   /* Set special icons for EPM program objects */
+   rc = SysSetObjectData( '<NEPMD_EPM_E>',,
+                          'ICONFILE='IconDir'\nepmd_e.ico;')
+   rc = SysSetObjectData( '<NEPMD_EPM_EDIT_MACROFILE>',,
+                          'ICONFILE='IconDir'\nepmd_ex.ico;')
+   rc = SysSetObjectData( '<NEPMD_EPM_ERX>',,
+                          'ICONFILE='IconDir'\nepmd_erx.ico;')
+   rc = SysSetObjectData( '<NEPMD_EPM_TEX>',,
+                          'ICONFILE='IconDir'\nepmd_tex.ico;')
 
- /* Read Syslevel file(s) */
- DO 1
-    File = BootDrive'\ecs\install\syslevel.ecs'
-    next = QuerySysLevel( File)
-    PARSE VALUE next WITH rc (Sep) SName (Sep) SVersion (Sep) SLevel
-    IF rc = 0 THEN
-    DO
-       EcsFlag = (TRANSLATE( SUBSTR( SName, 1, 11)) = 'ECOMSTATION')
-       LEAVE
-    END
+   rc = SysSetObjectData( '<NEPMD_TOGGLE_CCVIEW>',,
+                          'ICONFILE='IconDir'\recomp.ico;')
+   rc = SysSetObjectData( '<NEPMD_CHANGE_STARTUPDIR>',,
+                          'ICONFILE='IconDir'\recomp.ico;')
+   rc = SysSetObjectData( '<NEPMD_TOGGLE_DEFASSOCS>',,
+                          'ICONFILE='IconDir'\recomp.ico;')
 
-    File = BootDrive'\os2\install\syslevel.ecs'
-    next = QuerySysLevel( File)
-    PARSE VALUE next WITH rc (Sep) SName (Sep) SVersion (Sep) SLevel
-    IF rc = 0 THEN
-    DO
-       EcsFlag = (TRANSLATE( SUBSTR( SName, 1, 11)) = 'ECOMSTATION')
-       LEAVE
-    END
+   rc = SysSetObjectData( '<NEPMD_RECOMPILE_NEW>',,
+                          'ICONFILE='IconDir'\recomp.ico;')
+   rc = SysSetObjectData( '<NEPMD_CHECK_USER_MACROS>',,
+                          'ICONFILE='IconDir'\recomp.ico;')
 
-    File = BootDrive'\os2\install\syslevel.os2'
-    next = QuerySysLevel( File)
-    PARSE VALUE next WITH rc (Sep) SName (Sep) SVersion (Sep) SLevel
-    IF rc = 0 THEN
-    DO
-       EcsFlag = (TRANSLATE( SUBSTR( SName, 1, 11)) = 'ECOMSTATION')
-       LEAVE
-    END
- END
+   rc = SysSetObjectData( '<NEPMD_VIEW_NEUSR>',,
+                          'ICONFILE='IconDir'\help.ico;')
+   rc = SysSetObjectData( '<NEPMD_VIEW_NEPRG>',,
+                          'ICONFILE='IconDir'\help.ico;')
 
- RETURN
+   /* Remove dummy file. Copied as a workaround for older WarpIN versions. */
+   rc = SysDestroyObject( RootDir'\srccopy.txt')
 
-/* ------------------------------------------------------------------------- */
-/*
- * Syntax: String = QuerySysLevel(<syslevel_file>)
- *
- * Returns a string of 5 segments, separated by Sep, e.g.:
- *    0eComStation Basisbetriebssystem45XRGC005
- * The first segment is rc.
- */
-QuerySysLevel: PROCEDURE EXPOSE (GlobalVars)
- InFile = STREAM( ARG(1), 'c', 'query exists')
- IF InFile > '' THEN
- DO
-    CALL STREAM InFile, 'c', 'open read'
-    line = CHARIN( InFile, 1, 165)
-    CALL STREAM InFile, 'c', 'close'
-    Startp = C2D( REVERSE( SUBSTR( line, 34, 4))) + 1
-    SName = STRIP( SUBSTR( line, Startp + 23, 80), 't', '00'x)
-    SVersion = C2X( SUBSTR( line, Startp + 3, 1))
-    SLevel = STRIP( STRIP( SUBSTR( line, Startp + 7, 8), 't', '00'x), 't', '_')
-    rc = 0
-    RETURN rc''Sep''SName''Sep''SVersion''Sep''SLevel
- END
- ELSE
-    RETURN 2''Sep''Sep''Sep
+END
+
+/* Report error message */
+IF ErrorMessage <> '' THEN
+   CALL SayErrorText
+
+EXIT( rc)
+
+/* ----------------------------------------------------------------------- */
+SayErrorText: PROCEDURE EXPOSE (GlobalVars)
+   SELECT
+      WHEN (ErrorMessage = '') THEN NOP
+
+      /* Called by frame program: insert error */
+      /* message into private queue            */
+      WHEN (ErrorQueueName <> '') THEN
+      DO
+         rcx = RXQUEUE( 'SET', ErrorQueueName)
+         PUSH ErrorMessage
+      END
+
+      /* Called directly */
+      OTHERWISE
+      DO
+         SAY ErrorMessage
+         'PAUSE'
+      END
+   END
+
+   RETURN( '')
+
+/* ----------------------------------------------------------------------- */
+Halt:
+   ErrorMessage = 'Interrupted by user.'
+   CALL SayErrorText
+   EXIT( 99)
 

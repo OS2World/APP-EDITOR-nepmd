@@ -6,7 +6,9 @@
 *
 * Helper batch for to be called by all install command files in order to
 * init the install environment. It sets env vars that can be read by a
-* calling batch file.
+* calling batch file. When called, it checks for the required user ini keys
+* first and tries to recreate them if missing. (Another repair CMD is
+* RECROBJ.CMD, that will also recreate the objects.)
 *
 * The following env vars are set:
 *
@@ -63,7 +65,7 @@
 *
 * Copyright (c) netlabs.org EPM Distribution Project 2008
 *
-* $Id: instenv.cmd,v 1.5 2008-10-05 13:40:46 aschn Exp $
+* $Id: instenv.cmd,v 1.6 2008-10-06 05:12:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -95,7 +97,7 @@ Redirection = '>NUL 2>&1'
 PARSE SOURCE . . ThisFile
 GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
 
-/* some OS/2 Error codes */
+/* Some OS/2 Error codes */
 ERROR.NO_ERROR           =   0
 ERROR.INVALID_FUNCTION   =   1
 ERROR.FILE_NOT_FOUND     =   2
@@ -132,9 +134,10 @@ DefaultUserDirName = 'myepm'
 DefaultLanguage    = 'eng'
 
 ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env)
-/* -------------------------------------------- */
 
-GlobalVars = GlobalVars' BootDrive NEPMD_INI_APPNAME Prev. ErrorMessage'
+GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage' ||,
+             ' BootDrive NEPMD_INI_APPNAME Prev.'
+/* -------------------------------------------- */
 Prev. = ''
 ErrorMessage = ''
 
@@ -189,8 +192,9 @@ DO 1
    /* file and also for the default UserDir */
    IF RootDirInst = '' THEN
    DO
-     ErrorMessage = 'Error: RootDir couldn''t be determined.'
+      ErrorMessage = 'Error: RootDir couldn''t be determined.'
       rc = ERROR.PATH_NOT_FOUND
+      LEAVE
    END
 
    /* -------------------------------------------------------------------- */
@@ -258,13 +262,15 @@ DO 1
       IF EcsVersion <> '' THEN LEAVE
 
       IF TRANSLATE( OS) = 'ECS' THEN
-         EcsVersion = '2.0'
+         EcsVersion = '2.0'  /* correct? */
       IF EcsVersion <> '' THEN LEAVE
 
       IF FileExist( BootDrive'\ecs\dll\SECURIT2.DLL') THEN
-         EcsVersion = '1.1'
+         EcsVersion = '1.1'  /* correct? */
       IF EcsVersion <> '' THEN LEAVE
 
+      /* The following is not really safe. The file is copied even */
+      /* when the CD is booted only, IIRC. */
       IF FileExist( BootDrive'\wisemachine.fit') THEN
          EcsVersion = '1.0'
    END
@@ -306,7 +312,7 @@ SAY 'Os2Version = 'VALUE( 'OS2_VERSION',, env)
 SAY 'EcsVersion = 'VALUE( 'ECS_VERSION',, env)
 */
 
-/* ErrorMessage may be contain data, even if rc from that is ignored. */
+/* ErrorMessage may contain data, even if rc from that is ignored. */
 /* NLSETUP ignores messages if rc = 0. */
 IF ErrorMessage <> '' THEN
    CALL SayErrorText
@@ -542,13 +548,13 @@ GetVersion: PROCEDURE EXPOSE (GlobalVars)
 
 /* ------------------------------------------------------------------------- */
 FileExist: PROCEDURE
-   PARSE ARG FileName
+   PARSE ARG Filename
 
    /*RETURN( STREAM( Filename, 'C', 'QUERY EXISTS') <> '')*/
 
    /* Find also hidden files */
    Found.0 = 0
-   rcx = SysFileTree( FileName, 'Found.', 'FO')
+   rcx = SysFileTree( Filename, 'Found.', 'FO')
 
    RETURN( Found.0 > 0)
 
@@ -622,5 +628,5 @@ SayErrorText: PROCEDURE EXPOSE (GlobalVars)
 Halt:
    ErrorMessage = 'Interrupted by user.'
    CALL SayErrorText
-   EXIT( ERROR.GEN_FAILURE)
+   EXIT( 99)
 

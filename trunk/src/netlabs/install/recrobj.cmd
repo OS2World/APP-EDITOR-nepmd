@@ -11,11 +11,13 @@
 * repeat the WarpIN installation, this CMD could be useful if the WPI file
 * is not available, but the files are present.
 *
-* Note: The WarpIN database entries will not be recreated.
+* The WarpIN database entries will not be recreated.
+*
+* This Cmd is not called by NLSETUP.EXE. It can be called directly.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: recrobj.cmd,v 1.6 2008-10-05 15:52:06 aschn Exp $
+* $Id: recrobj.cmd,v 1.7 2008-10-06 05:12:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -29,6 +31,9 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+/* Some header lines are used as help text */
+HelpStartLine =  9
+HelpEndLine   = 14
 
 '@ECHO OFF'
 CALL SETLOCAL
@@ -44,7 +49,7 @@ Redirection = '>NUL 2>&1'
 PARSE SOURCE . . ThisFile
 GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
 
-/* some OS/2 Error codes */
+/* Some OS/2 Error codes */
 ERROR.NO_ERROR           =   0
 ERROR.INVALID_FUNCTION   =   1
 ERROR.FILE_NOT_FOUND     =   2
@@ -71,9 +76,7 @@ CALL SysLoadFuncs
 /* ExportFilename will be searched in the same dir as this file. Better */
 /* use the netlabs tree to find that file easily, even when the user    */
 /* tree was created elsewhere out of the NEPMD rootdir, e.g. in %HOME%. */
-ExportFilename       = 'recrobj.dat'
-HelpStartLine        = 9
-HelpEndLine          = 14
+ExportFilename = 'recrobj.dat'
 /* -------------------------------------------- */
 
 /* Make sure CMD is called on purpose */
@@ -164,71 +167,70 @@ END
 /* Add ini entries */
 DO l = 1 TO ExportLine.0
    PARSE VAR ExportLine.l num 'PROFILE='next
-   IF (next <> '') THEN
+   IF (next = '') THEN ITERATE
+
+   /* With the syntax how WarpIN saves the line, */
+   /* a filename can't be specified as Ini:      */
+   PARSE VAR next Ini'\'Appl'\'Key'|'Val
+   /*
+   SAY "next = SysIni( "Ini", "Appl", "Key", "Val"'00'x)"
+   */
+   next = SysIni( Ini, Appl, Key, Val'00'x)
+   IF (next = 'ERROR:') THEN
    DO
-      /* With the syntax how WarpIN saves the line, */
-      /* a filename can't be specified as Ini:      */
-      PARSE VAR next Ini'\'Appl'\'Key'|'Val
-      /*
-      SAY "next = SysIni( "Ini", "Appl", "Key", "Val"'00'x)"
-      */
-      next = SysIni( Ini, Appl, Key, Val'00'x)
-      IF (next = 'ERROR:') THEN
-      DO
-         SAY 'Error: "'Key'" not written to ini "'Ini'", appl = "'Appl'", val = "'Val'.'
-         EXIT( ERROR.WRITE_FAULT)
-      END
+      SAY 'Error: "'Key'" not written to ini "'Ini'", appl = "'Appl'", val = "'Val'.'
+      EXIT( ERROR.WRITE_FAULT)
    END
 END
 
 /* Create objects */
 DO l = 1 TO ExportLine.0
    PARSE VAR ExportLine.l num 'OBJECT='next
-   IF (next <> '') THEN
+   IF (next = '') THEN ITERATE
+
+   PARSE VAR next Class'|'Title'|'Dest'|'Setup
+   UpdateReplaceFail = 'U'
+   /*
+   SAY "rcx = SysCreateObject( "Class", "Title", "Dest", "Setup", "UpdateReplaceFail")"
+   */
+   rcx = SysCreateObject( Class, Title, Dest, Setup, UpdateReplaceFail)
+   IF (rcx <> 1) THEN
    DO
-      PARSE VAR next Class'|'Title'|'Dest'|'Setup
-      UpdateReplaceFail = 'U'
-      /*
-      SAY "rcx = SysCreateObject( "Class", "Title", "Dest", "Setup", "UpdateReplaceFail")"
-      */
-      rcx = SysCreateObject( Class, Title, Dest, Setup, UpdateReplaceFail)
-      IF (rcx <> 1) THEN
-      DO
-         IF Class = 'WPShadow' THEN
-            SAY 'Error: Shadow object with setup "'Setup'" not created.'
-         ELSE
-            SAY 'Error: Object "'Title'" not created.'
-         EXIT( ERROR.WRITE_FAULT)
-      END
+      IF Class = 'WPShadow' THEN
+         SAY 'Error: Shadow object with setup "'Setup'" not created.'
+      ELSE
+         SAY 'Error: Object "'Title'" not created.'
+      EXIT( ERROR.WRITE_FAULT)
    END
 END
 
 /* Execute postinstall calls */
 DO l = 1 TO ExportLine.0
    PARSE VAR ExportLine.l num 'EXECUTE='next
-   IF (next <> '') THEN
-   DO
-      SearchString = 'nlsetup.exe NEPMD'
-      IF (TRANSLATE( RIGHT( next, LENGTH( SearchString))) = TRANSLATE( SearchString)) THEN
-      DO 1
-         /* Don't call nlsetup here! That would also try to recreate the */
-         /* export file and also rename user dirs.                       */
-         /* Currently hardcoded, keep in sync with NLSETUP.CMD/.EXE:     */
-         /*
-         SAY 'CALL' TargetPath'\netlabs\install\usertree.cmd'; IF (rc \= 0) THEN LEAVE;
-         SAY 'CALL' TargetPath'\netlabs\install\special.cmd';  IF (rc \= 0) THEN LEAVE;
-         SAY 'CALL' TargetPath'\netlabs\install\dyncfg.cmd';   IF (rc \= 0) THEN LEAVE;
-         */
-         'CALL' TargetPath'\netlabs\install\usertree.cmd'; IF (rc \= 0) THEN LEAVE;
-         'CALL' TargetPath'\netlabs\install\special.cmd';  IF (rc \= 0) THEN LEAVE;
-         'CALL' TargetPath'\netlabs\install\dyncfg.cmd';   IF (rc \= 0) THEN LEAVE;
-      END
-      ELSE
-         /*
-         SAY 'CALL' next
-         */
-         'CALL' next
+   IF (next = '') THEN ITERATE
+
+   SearchString = 'nlsetup.exe NEPMD'
+   IF (TRANSLATE( RIGHT( next, LENGTH( SearchString))) = TRANSLATE( SearchString)) THEN
+   DO 1
+      /* Make work dir the current directory */
+      WorkDir = LEFT( ThisFile, LASTPOS( '\', ThisFile) - 1)
+      rcx = DIRECTORY( WorkDir)
+      /* Change also drive */
+      IF SUBSTR( WorkDir, 2, 1) = ':' THEN
+        rcx = DIRECTORY( SUBSTR( WorkDir, 1, 2))
+
+      /* Keep in sync with NLSETUP.CMD/.EXE */
+      'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
+      'CALL USERTREE';          IF (rc \= 0) THEN LEAVE
+      'CALL SPECIAL';           IF (rc \= 0) THEN LEAVE
+      'CALL DYNCFG';            IF (rc \= 0) THEN LEAVE
+      /* Don't call RENUDIRS, EXPOBJ and INITREG here */
    END
+   ELSE
+      /*
+      SAY 'CALL' next
+      */
+      'CALL' next
 END
 
 EXIT( rc)
@@ -254,5 +256,5 @@ ReplaceString: PROCEDURE EXPOSE (GlobalVars)
 /* ----------------------------------------------------------------------- */
 Halt:
    SAY 'Interrupted by user.'
-   EXIT( ERROR.GEN_FAILURE)
+   EXIT( 99)
 
