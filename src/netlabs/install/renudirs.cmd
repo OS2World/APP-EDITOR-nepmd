@@ -39,7 +39,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: renudirs.cmd,v 1.6 2008-10-06 05:12:12 aschn Exp $
+* $Id: renudirs.cmd,v 1.7 2008-10-07 02:26:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -226,7 +226,7 @@ RmDirContent: PROCEDURE EXPOSE (GlobalVars)
          ITERATE
       rcx = SysFileTree( ThisFile, 'File.', 'FO',,'-----')
       rcx = SysFileDelete( ThisFile)
-      say rcx' - 'ThisFile
+      /*say rcx' - 'ThisFile*/
    END
 
    /* Remove dirs */
@@ -239,7 +239,7 @@ RmDirContent: PROCEDURE EXPOSE (GlobalVars)
       /*say '  - 'ThisDir*/
       rcx = SysFileTree( ThisDir, 'Dir.', 'DO',,'-*---')
       rcx = SysRmDir( ThisDir)
-      say i'/'Found.0': 'rcx' - 'ThisDir
+      /*say i'/'Found.0': 'rcx' - 'ThisDir*/
    END
 
    rc = ERROR.NO_ERROR
