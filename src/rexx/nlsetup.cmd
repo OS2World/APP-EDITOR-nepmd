@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.16 2008-10-06 05:12:13 aschn Exp $
+* $Id: nlsetup.cmd,v 1.17 2008-10-07 23:39:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -154,7 +154,7 @@ ShowError: PROCEDURE
    /* Show message box in PM mode */
    SIGNAL ON SYNTAX NAME NoPM
    rcx = RxMessageBox( Message, Title, 'CANCEL', 'ERROR')
-   EXIT( 99)
+   RETURN( '')
 
 /* Print text in VIO mode */
 NoPM:
@@ -162,5 +162,5 @@ NoPM:
    SAY ''
    SAY Title
    SAY Message
-   EXIT( 99)
+   RETURN( '')
 
