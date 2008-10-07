@@ -11,7 +11,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: expobj.cmd,v 1.2 2008-10-06 05:12:12 aschn Exp $
+* $Id: expobj.cmd,v 1.3 2008-10-07 01:38:04 aschn Exp $
 *
 * ===========================================================================
 *
@@ -244,7 +244,7 @@ IF ErrorMessage <> '' THEN
 EXIT( rc)
 
 /* ------------------------------------------------------------------------- */
-GetBootDrive PROCEDURE EXPOSE (GlobalVars)
+GetBootDrive: PROCEDURE EXPOSE (GlobalVars)
    IF \RxFuncQuery( 'SysBootDrive') THEN
       BootDrive = SysBootDrive()
    ELSE
