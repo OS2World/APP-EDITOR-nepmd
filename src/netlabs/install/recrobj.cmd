@@ -17,7 +17,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: recrobj.cmd,v 1.7 2008-10-06 05:12:12 aschn Exp $
+* $Id: recrobj.cmd,v 1.8 2008-10-07 02:36:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -96,7 +96,7 @@ DO
    SAY 'Do you want to continue? (Y/N)'
    PULL Answer
    Answer = STRIP( Answer)
-   IF (ANSWER <> 'Y') THEN
+   IF (Answer <> 'Y') THEN
       SIGNAL Halt
 END
 
