@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.13 2008-10-07 01:38:04 aschn Exp $
+* $Id: dyncfg.cmd,v 1.14 2008-10-08 00:52:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -83,7 +83,7 @@ GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
 
 /* Check if the env is already extended */
 next = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
-IF next <> '' THEN
+IF next = '' THEN
    'CALL INSTENV'
 
 RootDir = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)

@@ -11,7 +11,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.19 2008-10-06 05:12:12 aschn Exp $
+* $Id: applyico.cmd,v 1.20 2008-10-08 00:52:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -81,7 +81,7 @@ GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
 
 /* Check if the env is already extended */
 next = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
-IF next <> '' THEN
+IF next = '' THEN
    'CALL INSTENV'
 
 RootDir = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
@@ -103,60 +103,60 @@ DO 1
    /* Set icon for folders of FolderObjectIdList */
    DO WHILE (FolderObjectIdList \= '')
       PARSE VAR FolderObjectIdList ThisObject FolderObjectIdList
-      rc = SysSetObjectData( ThisObject, FolderIconSetup)
+      rcx = SysSetObjectData( ThisObject, FolderIconSetup)
    END
 
    /* Set icon for user folder */
-   rc = SysSetObjectData( UserDir, FolderIconSetup)
+   rcx = SysSetObjectData( UserDir, FolderIconSetup)
 
    /* Set icon for netlabs folder */
-   rc = SysSetObjectData( RootDir'\netlabs', FolderIconSetup)
+   rcx = SysSetObjectData( RootDir'\netlabs', FolderIconSetup)
 
    /* set icon for root folder */
-   rc = SysSetObjectData( RootDir, FolderIconSetup)
+   rcx = SysSetObjectData( RootDir, FolderIconSetup)
 
    /* Set icons for EPM program objects */
    /* (required only for showing the icon immediately after install) */
-   rc = SysSetObjectData( '<NEPMD_EPM>',,
+   rcx = SysSetObjectData( '<NEPMD_EPM>',,
                           'ICONFILE='IconDir'\nepmd.ico;')
-   rc = SysSetObjectData( '<NEPMD_EPM_NEW_SAME_WINDOW>',,
+   rcx = SysSetObjectData( '<NEPMD_EPM_NEW_SAME_WINDOW>',,
                           'ICONFILE='IconDir'\nepmd.ico;')
-   rc = SysSetObjectData( '<NEPMD_EPM_SHELL>',,
+   rcx = SysSetObjectData( '<NEPMD_EPM_SHELL>',,
                           'ICONFILE='IconDir'\nepmd.ico;')
-   rc = SysSetObjectData( '<NEPMD_EPM_TURBO>',,
+   rcx = SysSetObjectData( '<NEPMD_EPM_TURBO>',,
                           'ICONFILE='IconDir'\nepmd.ico;')
-   rc = SysSetObjectData( '<NEPMD_EPM_BIN>',,
+   rcx = SysSetObjectData( '<NEPMD_EPM_BIN>',,
                           'ICONFILE='IconDir'\nepmd.ico;')
 
    /* Set special icons for EPM program objects */
-   rc = SysSetObjectData( '<NEPMD_EPM_E>',,
+   rcx = SysSetObjectData( '<NEPMD_EPM_E>',,
                           'ICONFILE='IconDir'\nepmd_e.ico;')
-   rc = SysSetObjectData( '<NEPMD_EPM_EDIT_MACROFILE>',,
+   rcx = SysSetObjectData( '<NEPMD_EPM_EDIT_MACROFILE>',,
                           'ICONFILE='IconDir'\nepmd_ex.ico;')
-   rc = SysSetObjectData( '<NEPMD_EPM_ERX>',,
+   rcx = SysSetObjectData( '<NEPMD_EPM_ERX>',,
                           'ICONFILE='IconDir'\nepmd_erx.ico;')
-   rc = SysSetObjectData( '<NEPMD_EPM_TEX>',,
+   rcx = SysSetObjectData( '<NEPMD_EPM_TEX>',,
                           'ICONFILE='IconDir'\nepmd_tex.ico;')
 
-   rc = SysSetObjectData( '<NEPMD_TOGGLE_CCVIEW>',,
+   rcx = SysSetObjectData( '<NEPMD_TOGGLE_CCVIEW>',,
                           'ICONFILE='IconDir'\recomp.ico;')
-   rc = SysSetObjectData( '<NEPMD_CHANGE_STARTUPDIR>',,
+   rcx = SysSetObjectData( '<NEPMD_CHANGE_STARTUPDIR>',,
                           'ICONFILE='IconDir'\recomp.ico;')
-   rc = SysSetObjectData( '<NEPMD_TOGGLE_DEFASSOCS>',,
-                          'ICONFILE='IconDir'\recomp.ico;')
-
-   rc = SysSetObjectData( '<NEPMD_RECOMPILE_NEW>',,
-                          'ICONFILE='IconDir'\recomp.ico;')
-   rc = SysSetObjectData( '<NEPMD_CHECK_USER_MACROS>',,
+   rcx = SysSetObjectData( '<NEPMD_TOGGLE_DEFASSOCS>',,
                           'ICONFILE='IconDir'\recomp.ico;')
 
-   rc = SysSetObjectData( '<NEPMD_VIEW_NEUSR>',,
+   rcx = SysSetObjectData( '<NEPMD_RECOMPILE_NEW>',,
+                          'ICONFILE='IconDir'\recomp.ico;')
+   rcx = SysSetObjectData( '<NEPMD_CHECK_USER_MACROS>',,
+                          'ICONFILE='IconDir'\recomp.ico;')
+
+   rcx = SysSetObjectData( '<NEPMD_VIEW_NEUSR>',,
                           'ICONFILE='IconDir'\help.ico;')
-   rc = SysSetObjectData( '<NEPMD_VIEW_NEPRG>',,
+   rcx = SysSetObjectData( '<NEPMD_VIEW_NEPRG>',,
                           'ICONFILE='IconDir'\help.ico;')
 
    /* Remove dummy file. Copied as a workaround for older WarpIN versions. */
-   rc = SysDestroyObject( RootDir'\srccopy.txt')
+   rcx = SysDestroyObject( RootDir'\srccopy.txt')
 
 END
 

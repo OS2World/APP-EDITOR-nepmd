@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: special.cmd,v 1.6 2008-10-06 05:12:12 aschn Exp $
+* $Id: special.cmd,v 1.7 2008-10-08 00:52:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -72,7 +72,7 @@ GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
 
 /* Check if the env is already extended */
 next = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
-IF next <> '' THEN
+IF next = '' THEN
    'CALL INSTENV'
 
 RootDir = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
