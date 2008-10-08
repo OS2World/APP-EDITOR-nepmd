@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.17 2008-10-07 23:39:01 aschn Exp $
+* $Id: nlsetup.cmd,v 1.18 2008-10-08 01:08:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -138,7 +138,7 @@ END
 IF ((rc \= 0) & (QUEUED() > 0)) THEN
 DO
    PARSE PULL ErrorMessage
-   ShowError( ErrorTitle, ErrorMessage)
+   ShowError( ErrorTitle, ErrorMessage, rc)
 END
 
 EXIT( rc)
@@ -146,15 +146,16 @@ EXIT( rc)
 /* ----------------------------------------------------------------------- */
 Halt:
    ShowError( ErrorTitle, 'Interrupted by user.')
+   EXIT( 99)
 
 /* ----------------------------------------------------------------------- */
 ShowError: PROCEDURE
-   PARSE ARG Title, Message
+   PARSE ARG Title, Message, rc
 
    /* Show message box in PM mode */
    SIGNAL ON SYNTAX NAME NoPM
    rcx = RxMessageBox( Message, Title, 'CANCEL', 'ERROR')
-   RETURN( '')
+   EXIT( rc)
 
 /* Print text in VIO mode */
 NoPM:
@@ -162,5 +163,6 @@ NoPM:
    SAY ''
    SAY Title
    SAY Message
-   RETURN( '')
+   'PAUSE'
+   EXIT( rc)
 
