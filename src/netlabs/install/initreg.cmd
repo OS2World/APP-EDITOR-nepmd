@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: initreg.cmd,v 1.5 2008-10-06 05:12:12 aschn Exp $
+* $Id: initreg.cmd,v 1.6 2008-10-08 00:52:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -82,7 +82,7 @@ GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
 
 /* Check if the env is already extended */
 next = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
-IF next <> '' THEN
+IF next = '' THEN
    'CALL INSTENV'
 
 UserDir  = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_USERDIR)'_INST',, env)
