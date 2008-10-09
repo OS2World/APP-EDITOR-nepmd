@@ -39,7 +39,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: renudirs.cmd,v 1.8 2008-10-08 00:52:18 aschn Exp $
+* $Id: renudirs.cmd,v 1.9 2008-10-09 18:49:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -192,10 +192,11 @@ DO 1
       /* Check for error */
       IF (rc <> 0) THEN
          LEAVE
-   END;
+   END
 
    /* Show next help text on success when in non-quiet mode */
    IF (rc = 0) & \fQuiet THEN
+   DO
       SAY
       DO l = Help2StartLine TO Help2EndLine
          SAY SUBSTR( SOURCELINE( l), 3)
