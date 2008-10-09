@@ -2,7 +2,7 @@
 *
 * Module Name: nlsetup.cmd
 *
-* Syntax: nlsetup [NEPMD [UNINSTALL]]
+* Syntax: nlsetup [NEPMD [UNINSTALL | APPLYICO]]
 *
 * Frame batch for to call all required CMD files when setting up additional
 * directories and files in the user directory tree.
@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.18 2008-10-08 01:08:41 aschn Exp $
+* $Id: nlsetup.cmd,v 1.19 2008-10-09 19:21:40 aschn Exp $
 *
 * ===========================================================================
 *
