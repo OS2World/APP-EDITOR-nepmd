@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.55 2008-11-13 10:54:54 aschn Exp $
+* $Id: newmenu.e,v 1.56 2008-11-13 13:34:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2099,7 +2099,7 @@ defproc add_options_menu(menuname)
    buildsubmenu  menuname, mid, OPTIONS_BAR__MSG,                                                  -- Options ---------
                                 \1'Menus related to global and default editor settings',
                                 0, mpfrom2short(HP_OPTIONS, 0)  -- MIS must be 0 for submenu
- if not MenuItemsHidden then
+if not MenuItemsHidden then
    i = i + 1; call SetAVar( 'mid_editoptions', i); call SetAVar( 'mtxt_editoptions', '~Edit   []');
    buildmenuitem menuname, mid, i, GetAVar('mtxt_editoptions'),                                    -- Edit   >
                                    ''\1'View/change default edit options',
@@ -2370,21 +2370,9 @@ defproc add_options_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
- endif  -- not MenuItemsHidden
-   -- With hidden menu items, the following menu item has the text of the Edit menu item.
-   -- Always use the first available i for it to make it unique:
+endif
    i = GetAVar('mid_options2')'00'
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Default settings dialog...',                                  -- Default settings dialog...
-                                   'configdlg' ||
-                                   CONFIG_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_OPTIONS_CONFIG, 0)
- if not MenuItemsHidden then
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-
+if not MenuItemsHidden then
    i = i + 1; call SetAVar( 'mid_modesettings', i);
    buildmenuitem menuname, mid, i, 'M~odes',                                                       -- Modes  >
                                    'Configure general mode settings',
@@ -2807,12 +2795,14 @@ defproc add_options_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
+endif
    m = GetAVar('mid_options2')'00'
    --sayerror 'Options menu: last item # = 'i', max = 'mid'99.'
    if (i - m) > 99 then
       messageNwait('Error: menuid 'mid' ran out of unique menu item ids. You used 'mid'01 to 'i' out of 'mid'99. Change your menu definition!')
    endif
    i = GetAVar('mid_options3')'00'
+if not MenuItemsHidden then
    i = i + 1; call SetAVar( 'mid_macros', i);
    buildmenuitem menuname, mid, i, '~Macros',                                                      -- Macros   >
                                    \1'Compile EPM macro files',
@@ -2911,7 +2901,20 @@ defproc add_options_menu(menuname)
                                    'rx open %NEPMD_USERDIR%\bin\nepmd.ini' ||
                                    \1,
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
-   if nodismiss > 0 then
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+endif  -- not MenuItemsHidden
+   -- With hidden menu items, the following menu item has the text of the Edit menu item.
+   -- Always use the first available i for it to make it unique:
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Default settings dialog...',                                  -- Default settings dialog...
+                                   'configdlg' ||
+                                   CONFIG_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_OPTIONS_CONFIG, 0)
+if not MenuItemsHidden then
+ if nodismiss > 0 then
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -2921,13 +2924,13 @@ defproc add_options_menu(menuname)
                                    '' ||
                                    \1,
                                    MIS_TEXT, 0
-   endif  -- nodismiss > 0
+ endif  -- nodismiss > 0
    m = GetAVar('mid_options3')'00'
    --sayerror 'Options menu: last item # = 'i', max = 'mid'99.'
    if (i - m) > 99 then
       messageNwait('Error: menuid 'mid' ran out of unique menu item ids. You used 'mid'01 to 'i' out of 'mid'99. Change your menu definition!')
    endif
- endif
+endif
    return
 
 ; -------------------------------------------------------------------------------------- Run --------------------------
