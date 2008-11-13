@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.35 2008-09-21 22:52:38 aschn Exp $
+* $Id: file.e,v 1.36 2008-11-13 13:41:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -489,6 +489,10 @@ compile endif
 
       'HookExecute aftersave'
       'HookExecuteOnce aftersaveonce'
+
+      if upcase( Name) = upcase( Get_Env( 'NEPMD_USERDIR')'\bin\alias.ini') then
+         'postme ShellReadAliasFile'
+      endif
    endif
 
    -- A refresh is required here. Otherwise an ETK MessageBox pops up
