@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.39 2008-09-21 22:52:38 aschn Exp $
+* $Id: stdcnf.e,v 1.40 2008-11-13 13:46:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -24,17 +24,6 @@ const
 
 compile if not defined(NLS_LANGUAGE)
    NLS_LANGUAGE = 'ENGLISH'
-compile endif
-
--- jbl 1/89 new feature.  Set this to some non-blank directory name if you want
--- a backup copy of your file upon saving.  E will copy the previous file
--- to this directory before writing the new one.  Typical values are:
---    ''             empty string to disable this feature (as in old E)
---    '.\'           for current directory (don't forget the last backslash)
---    'C:\OLDFILES\' to put them all in one place
-compile if not defined(BACKUP_PATH)
-; #### Todo: replace ########################################################
-   BACKUP_PATH = ''
 compile endif
 
 -- Set filename for defc Help = Help -> Quick reference
@@ -92,29 +81,6 @@ compile endif
 ; #### Todo: replace ########################################################
 EPATH = 'EPMPATH'
 
-;-- These constants specify what actions should be taken for the
-;-- Enter and C_Enter keys.  Possible values for ENTER_ACTION are:
-;--    'ADDLINE'   Insert a line after the current line.
-;--    'NEXTLINE'  Move to the next line without inserting a line.
-;--    'ADDATEND'  ADDLINE if on last line, else NEXTLINE.
-;--    'DEPENDS'   ADDLINE if in insert_mode, else NEXTLINE.
-;--    'DEPENDS+'  ADDLINE if on last line, else DEPENDS.
-;--    'STREAM'    Act like stream editors; Enter splits a line.
-;--    ''          Don't define; user will supply a routine (in MYSTUFF.E).
-;-- Possible values for C_ENTER_ACTION are the same, except that the action
-;-- taken for DEPENDS is reversed.  If ENTER_ACTION='STREAM', some other key
-;-- definitions are modified also - Delete past the end of a line, or Backspace
-;-- in column 1 will join the two lines as if it had deleted a CR/LF; Left and
-;-- Right will wrap from line to line.  Setting C_ENTER_ACTION='STREAM' doesn't
-;-- affect these other keys.
-;compile if not defined(ENTER_ACTION)
-;   ENTER_ACTION   = 'ADDLINE'
-;compile endif
-;compile if not defined(C_ENTER_ACTION)
-;   C_ENTER_ACTION = 'NEXTLINE'
-;compile endif
-
-
 -- This is used as the decimal point in MATH.E.  Some users might prefer to
 -- use a comma.  Not used in DOS version, which only allows integers.
 compile if not defined(DECIMAL)
@@ -126,15 +92,6 @@ compile endif
  compile if not defined(RESTORE_MARK_AFTER_SORT)
    RESTORE_MARK_AFTER_SORT = 1
  compile endif
-
-
-;-- Lets you quit temporary files regardless of the state of the .modify bit.
-;-- Temporary files are assumed to be any file where the first character of the
-;-- .filename is a period.  If set to 1, you won't get the "Throw away changes?"
-;-- prompt when trying to quit one of these files.
-;compile if not defined(TRASH_TEMP_FILES)
-;   TRASH_TEMP_FILES = 0
-;compile endif
 
 -- This provides a simple way to omit all user includes, for problem resolution.
 -- If you set VANILLA to 1 in MYCNF.E, then no MY*.E files will be included.
@@ -156,13 +113,6 @@ compile if not defined(WANT_DBCS_SUPPORT)
    WANT_DBCS_SUPPORT = 1
 compile endif
 
-;-- WANT_STREAM_INDENTED lets you specify that if the Enter key splits a line,
-;-- the new line should be indented the same way the previous line was.
-;compile if not defined(WANT_STREAM_INDENTED)
-;   --WANT_STREAM_INDENTED = 0  -- changed by aschn
-;   WANT_STREAM_INDENTED = 1
-;compile endif
-
 -- SUPPORT_BOOK_ICON specifies whether or not the "Book icon" entry is on
 -- the Options pulldown.  Another useless one for internals.
 -- EPM preload object:
@@ -176,16 +126,6 @@ compile if not defined(SUPPORT_BOOK_ICON)
    -- Only useful if an EPM object is started with option /i and has the setup string MINWIN=DESKTOP
    --SUPPORT_BOOK_ICON = 1  -- changed by aschn
    SUPPORT_BOOK_ICON = 0
-compile endif
-
--- WANT_DYNAMIC_PROMPTS specifies whether support for dynamic prompting is
--- included or not.  (EPM only.)  If support is included, the actual prompts
--- can be enabled or disabled from a menu pulldown.  Keeping this costs about
--- 3k in terms of .EX space.
--- (Dynamic prompts = hints for menu items on the message line)
-compile if not defined(WANT_DYNAMIC_PROMPTS)
-; #### Todo: obsolete #######################################################
-   WANT_DYNAMIC_PROMPTS = 1
 compile endif
 
 -- CHECK_FOR_LEXAM specifies whether or not EPM will check for Lexam, and only include
@@ -253,22 +193,6 @@ compile if not defined(WANT_TAB_INSERTION_TO_SPACE)
    -- for line mode only
    WANT_TAB_INSERTION_TO_SPACE = 0
 compile endif
-
-;-- Use the normal-sized or the tiny icons for the built-in toolbar?
-;compile if not defined(WANT_TINY_ICONS)
-;   WANT_TINY_ICONS = 0
-;compile endif
-
-;-- Respect the Scroll lock key?  If set to 1, Shift+F1 - Shift+F4 must not be
-;-- redefined.  (The cursor keys execute those keys directly, in order to
-;-- avoid duplicating code.)  Note that setting this flag turns off the internal
-;-- cursor key handling, so if WANT_CUA_MARKING = 'SWITCH',
-;-- WANT_STREAM_EDITING = 'SWITCH', and RESPECT_SCROLL_LOCK = 1, cursor movement
-;-- might be unacceptably slow.
-;compile if not defined(RESPECT_SCROLL_LOCK)
-;   --RESPECT_SCROLL_LOCK = 0  -- changed by aschn
-;   RESPECT_SCROLL_LOCK = 1
-;compile endif
 
 compile if not defined(WORD_MARK_TYPE)
    -- Bug using 'BLOCK':

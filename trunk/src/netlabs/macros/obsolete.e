@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: obsolete.e,v 1.2 2006-10-07 19:59:14 aschn Exp $
+* $Id: obsolete.e,v 1.3 2008-11-13 13:46:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -37,6 +37,12 @@ compile if not defined(WANT_DYNAMIC_PROMPTS)
 compile endif
 compile if not defined(ALLOW_PROMPTING_AT_TOP)
    ALLOW_PROMPTING_AT_TOP = 1
+compile endif
+compile if not defined(WANT_TINY_ICONS)
+   WANT_TINY_ICONS = 0
+compile endif
+compile if not defined(RESPECT_SCROLL_LOCK)
+   RESPECT_SCROLL_LOCK = 1
 compile endif
 compile if not defined(BLOCK_ACTIONBAR_ACCELERATORS)
    BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
@@ -79,6 +85,9 @@ compile if not defined(TEMP_FILENAME)
 compile endif
 compile if not defined(TEMP_PATH)
    TEMP_PATH=''
+compile endif
+compile if not defined(BACKUP_PATH)
+   BACKUP_PATH = ''
 compile endif
 compile if not defined(AUTOSAVE_PATH)
    AUTOSAVE_PATH=''
@@ -214,6 +223,12 @@ compile if not defined(MOUSE_SUPPORT)
 compile endif
 compile if not defined(ENHANCED_ENTER_KEYS)
    ENHANCED_ENTER_KEYS = 1
+compile endif
+compile if not defined(WANT_STREAM_INDENTED)
+   WANT_STREAM_INDENTED = 1
+compile endif
+compile if not defined(TRASH_TEMP_FILES)
+   TRASH_TEMP_FILES = 1
 compile endif
 compile if not defined(RING_OPTIONAL)
    RING_OPTIONAL = 1
