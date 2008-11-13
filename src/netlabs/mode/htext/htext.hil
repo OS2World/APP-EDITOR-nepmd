@@ -11,7 +11,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: htext.hil,v 1.5 2007-02-26 17:57:45 aschn Exp $
+; $Id: htext.hil,v 1.6 2008-11-13 13:54:01 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -149,19 +149,9 @@
 ; the "." as the first char of <string> isn't an alpha-numeric char:
 ; [.        ]
 
-[BRACKET]
-; Start   End     Escape     Start
-; string  string  character  position
-  {         }
-  <         >
-
 [LITERAL]
 ; Start   End     Escape     Start
 ; string  string  character  position
-  '         '
-  "         "
-  (         )
-  [=        ]
   *         *     NONE:      NONE:    EMPHASIZED
   #         #     NONE:      NONE:    EMPHASIZED
   _         _     NONE:      NONE:    EMPHASIZED
