@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.28 2006-06-14 17:07:36 aschn Exp $
+# $Id: makefile,v 1.29 2008-11-13 14:18:25 cla Exp $
 #
 # ===========================================================================
 #
@@ -81,19 +81,23 @@ DEFAULT: HELP
 # --- Other pseudotargets
 
 ALL:
-  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL||exit
+  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL || exit
+
+INSTALL: ALL
+  @$(MAKE) $(ARG) MODULE=wis ARG=INST
+  
 
 GUI:
-  @for %%a in ($(GUIMODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL||exit
+  @for %%a in ($(GUIMODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL || exit
 
 RUNGUI: GUI
   @$(MAKE) QUIET ARG=RUN MODULE=gui\recomp CALLED=1
 
 REL:
-  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a NDEBUG=1 ARG=ALL||exit
+  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a NDEBUG=1 ARG=ALL || exit
 
 TOUCHREL:
-  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a NDEBUG=1 ARG="ALL TOUCH=1"||exit
+  @for %%a in ($(MODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a NDEBUG=1 ARG="ALL TOUCH=1" || exit
 
 HELP:
   @$(MAKE) QUIET ARG=SHOWHELP MODULE=ipf CALLED=1
