@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdeng.h,v 1.14 2008-09-09 22:43:43 aschn Exp $
+* $Id: nepmdeng.h,v 1.15 2008-11-13 14:18:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -32,6 +32,7 @@
 
 
 #define TITLE_NEPMD_FOLDER                       "Netlabs^EPM Distribution"
+#define TITLE_NEPMD_HELP_FOLDER                  "Netlabs^EPM Distribution^Online Help"
 
 #define TITLE_NEPMD_EPM                          "EPM"
 #define TITLE_NEPMD_EPM_NEW_WINDOW               "EPM new window"

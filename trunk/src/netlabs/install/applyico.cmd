@@ -11,7 +11,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.20 2008-10-08 00:52:18 aschn Exp $
+* $Id: applyico.cmd,v 1.21 2008-11-13 14:18:25 cla Exp $
 *
 * ===========================================================================
 *
@@ -28,7 +28,7 @@
 
 /* ##############   Maintainer: modify object id list here ######################## */
 
-FolderObjectIdList = '<NEPMD_FOLDER> <NEPMD_SAMPLES_FOLDER>' ||,
+FolderObjectIdList = '<NEPMD_FOLDER> <NEPMD_HELP_FOLDER> <NEPMD_SAMPLES_FOLDER>' ||,
                      ' <NEPMD_MORE_OBJECTS_FOLDER>'
 
 /* ################################################################################# */
