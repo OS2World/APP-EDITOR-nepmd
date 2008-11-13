@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: shellkeys.e,v 1.6 2008-09-05 23:10:19 aschn Exp $
+* $Id: shellkeys.e,v 1.7 2008-11-13 10:54:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -154,10 +154,24 @@ compile endif
 ; Activate filename completion for Tab and Sh+Tab
 compile if SHELL_FNC
 def tab
-   'TabComplete'
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Shell\FilenameCompletion'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   if on then
+      'TabComplete'
+   else
+      'Tab'      -- standard definition, keep in sync with STDKEYS.E or
+   endif         -- additional keyset definitions
 
 def s_tab
-   'ShTabComplete'
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Shell\FilenameCompletion'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   if on then
+      'ShTabComplete'
+   else
+      'BackTab'  -- standard definition, keep in sync with STDKEYS.E or
+   endif         -- additional keyset definitions
 compile endif
 
 ; Not used anymore, since we can always write directly into the shell window:
