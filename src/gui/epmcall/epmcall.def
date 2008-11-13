@@ -6,7 +6,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: epmcall.def,v 1.8 2007-06-18 23:07:19 aschn Exp $
+; $Id: epmcall.def,v 1.9 2008-11-13 09:36:35 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -27,7 +27,7 @@
 ; 1.00.1001 - fix r1.16 /netlabs.cvs/nepmd/src/gui/common/epmenv.c,v
 
 NAME EPMCALL WINDOWAPI
-DESCRIPTION '@#NETLABS:1.13.1000#@EPMCALL - NEPMD call utility for EPM v6 - Copyright www.netlabs.org 2007'
+DESCRIPTION '@#NETLABS:1.13.1000#@EPMCALL - NEPMD call utility for EPM v6 - Copyright www.netlabs.org 2002-2008'
 PROTMODE
 STACKSIZE  16384
 STUB 'stub_vdm.bin'
