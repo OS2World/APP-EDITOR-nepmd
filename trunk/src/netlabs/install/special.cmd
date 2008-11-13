@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: special.cmd,v 1.7 2008-10-08 00:52:18 aschn Exp $
+* $Id: special.cmd,v 1.8 2008-11-13 10:16:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -81,46 +81,46 @@ NetlabsDir = RootDir'\netlabs'
 DO 1
 
    /* Delete obsolete object from v1.00 if present */
-   rc = SysDestroyObject( '<NEPMD_EXECUTABLE>')
+   rcx = SysDestroyObject( '<NEPMD_EXECUTABLE>')
 
    /* Delete obsolete objects from before v1.14 if present */
-   rc = SysDestroyObject( '<NEPMD_RECOMP>')
-   rc = SysDestroyObject( '<NEPMD_RECOMPILE_NEW>')
-   rc = SysDestroyObject( '<NEPMD_CHECK_USER_MACROS>')
-   rc = SysDestroyObject( '<NEPMD_TOGGLE_DEFASSOCS>')
-   rc = SysDestroyObject( '<NEPMD_CHANGE_STARTUPDIR>')
-   rc = SysDestroyObject( '<NEPMD_TOGGLE_CCVIEW>')
-   rc = SysDestroyObject( '<NEPMD_TOGGLE_FILEDLG>')
+   rcx = SysDestroyObject( '<NEPMD_RECOMP>')
+   rcx = SysDestroyObject( '<NEPMD_RECOMPILE_NEW>')
+   rcx = SysDestroyObject( '<NEPMD_CHECK_USER_MACROS>')
+   rcx = SysDestroyObject( '<NEPMD_TOGGLE_DEFASSOCS>')
+   rcx = SysDestroyObject( '<NEPMD_CHANGE_STARTUPDIR>')
+   rcx = SysDestroyObject( '<NEPMD_TOGGLE_CCVIEW>')
+   rcx = SysDestroyObject( '<NEPMD_TOGGLE_FILEDLG>')
    /*
    /* These objects exist too, but should not be deleted */
-   rc = SysDestroyObject( '<NEPMD_VIEW_NEUSR>')
-   rc = SysDestroyObject( '<NEPMD_VIEW_NEPRG>')
-   rc = SysDestroyObject( '<NEPMD_VIEW_EPMTECH>')
-   rc = SysDestroyObject( '<NEPMD_VIEW_EPMUSERS>')
-   rc = SysDestroyObject( '<NEPMD_VIEW_EPMHELP>')
+   rcx = SysDestroyObject( '<NEPMD_VIEW_NEUSR>')
+   rcx = SysDestroyObject( '<NEPMD_VIEW_NEPRG>')
+   rcx = SysDestroyObject( '<NEPMD_VIEW_EPMTECH>')
+   rcx = SysDestroyObject( '<NEPMD_VIEW_EPMUSERS>')
+   rcx = SysDestroyObject( '<NEPMD_VIEW_EPMHELP>')
    */
 
    /* Delete obsolete files and dirs from prior versions if present */
-   rc = SysDestroyObject( NetlabsDir'\mode\fortran')
-   rc = SysDestroyObject( NetlabsDir'\install\saveold.cmd')
-   rc = SysDestroyObject( NetlabsDir'\install\epminit.cmd')
-   rc = SysDestroyObject( NetlabsDir'\install\remex.cmd')
-   rc = SysDestroyObject( NetlabsDir'\install\nldeinst.exe')
-   rc = SysDestroyObject( NetlabsDir'\install\chgstartupdir.erx')
-   rc = SysDestroyObject( NetlabsDir'\install\epmchgstartupdir.cmd')
-   rc = SysDestroyObject( NetlabsDir'\install\epmdefassocs.cmd')
-   rc = SysDestroyObject( NetlabsDir'\install\epmnewsamewindow.cmd')
-   rc = SysDestroyObject( NetlabsDir'\macros\drawkey.e')
-   rc = SysDestroyObject( NetlabsDir'\macros\menuacel.e')
-   rc = SysDestroyObject( NetlabsDir'\macros\setconfig.e')
-   rc = SysDestroyObject( NetlabsDir'\macros\small.e')
-   rc = SysDestroyObject( NetlabsDir'\macros\statline.e')
-   rc = SysDestroyObject( NetlabsDir'\macros\titletext.e')
-   rc = SysDestroyObject( NetlabsDir'\macros\xchgline.e')
-   rc = SysDestroyObject( NetlabsDir'\bin\epmchangestartupdir.cmd')
+   rcx = SysDestroyObject( NetlabsDir'\mode\fortran')
+   rcx = SysDestroyObject( NetlabsDir'\install\saveold.cmd')
+   rcx = SysDestroyObject( NetlabsDir'\install\epminit.cmd')
+   rcx = SysDestroyObject( NetlabsDir'\install\remex.cmd')
+   rcx = SysDestroyObject( NetlabsDir'\install\nldeinst.exe')
+   rcx = SysDestroyObject( NetlabsDir'\install\chgstartupdir.erx')
+   rcx = SysDestroyObject( NetlabsDir'\install\epmchgstartupdir.cmd')
+   rcx = SysDestroyObject( NetlabsDir'\install\epmdefassocs.cmd')
+   rcx = SysDestroyObject( NetlabsDir'\install\epmnewsamewindow.cmd')
+   rcx = SysDestroyObject( NetlabsDir'\macros\drawkey.e')
+   rcx = SysDestroyObject( NetlabsDir'\macros\menuacel.e')
+   rcx = SysDestroyObject( NetlabsDir'\macros\setconfig.e')
+   rcx = SysDestroyObject( NetlabsDir'\macros\small.e')
+   rcx = SysDestroyObject( NetlabsDir'\macros\statline.e')
+   rcx = SysDestroyObject( NetlabsDir'\macros\titletext.e')
+   rcx = SysDestroyObject( NetlabsDir'\macros\xchgline.e')
+   rcx = SysDestroyObject( NetlabsDir'\bin\epmchangestartupdir.cmd')
 
    /* Remove obsolete ini key from v1.00 if present */
-   rc = SysIni( 'USER', 'NEPMD', 'Path', 'DELETE:')
+   rcx = SysIni( 'USER', 'NEPMD', 'Path', 'DELETE:')
 
 END
 
