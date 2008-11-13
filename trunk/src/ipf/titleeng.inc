@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: titleeng.inc,v 1.5 2006-03-12 19:05:30 aschn Exp $
+.. $Id: titleeng.inc,v 1.6 2008-11-13 09:30:46 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -22,7 +22,7 @@
 ..
 .. ***************************************************************************
 
-.set DOCTITLE=Netlabs EPM Distribution
+.set DOCTITLE=netlabs.org EPM Distribution
 .set USRTITLE=[=DOCTITLE] User's Guide
 .set PRGTITLE=[=DOCTITLE] Programming Guide
 .set FLDTITLE=[=DOCTITLE] Folder Help
@@ -31,8 +31,8 @@
 
 .set TOPICS=Select one of the following topics:
 
-.set YEAR=2002
-.set EMAIL=C.Langanke@Teamos2.de
+.set YEAR=2002-2008
+.set EMAIL=cla@clanganke.de
 
 .set TITLE=*[=DOCTITLE]*
 
