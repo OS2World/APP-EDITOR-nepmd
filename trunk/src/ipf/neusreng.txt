@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) netlabs.org EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.18 2008-09-23 02:06:24 aschn Exp $
+.. $Id: neusreng.txt,v 1.19 2008-11-13 09:33:45 cla Exp $
 ..
 .. ===========================================================================
 ..
@@ -824,7 +824,7 @@ Credits go to:
 .
 The following persons (in alphabetic order) assembled and contributed extensions for the current release of the [=TITLE]:
 .pl tsize=1
-- *Christian Langanke* <C.Langanke@Teamos2.de>
+- *Christian Langanke* <cla@clanganke.de>
 =
 .ul compact
   - distribution concept
