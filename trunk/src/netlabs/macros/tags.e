@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.19 2008-09-14 15:32:42 aschn Exp $
+* $Id: tags.e,v 1.20 2008-11-13 13:44:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -510,6 +510,7 @@ compile if 0  -- We already checked if the line # was good; the date no longer m
          fileline                               -- so we can jump right to the line.
          .col = 1
          call proc_search(proc_name, 1, file_mode, file_type)
+         call prune_assist_array()
          return
       endif
    endif
@@ -517,14 +518,15 @@ compile endif
    -- If not found in fileline (file may have been changed) or found multiple times in fileline
    0
    'SayHint Searching for routine.'  /**/
-   rc=proc_search(proc_name, 1, file_mode, file_type)
+   searchrc = proc_search( proc_name, 1, file_mode, file_type)
+   call prune_assist_array()
    --sayerror 'Using proc_search for 'proc_name', filename = '.filename
-   if rc then
-      if already_loaded='' then 'quit' endif
+   if searchrc then
+      if already_loaded = '' then 'quit' endif
       sayerror proc_name" not found in '"filename"'"long_msg
       return 1
    endif
-   if already_loaded<>'' then
+   if already_loaded <> '' then
       sayerror 'File already loaded, starting new view.'
       'postme postme activatefile' new_view  -- added; 2x postme required in most cases
    endif
@@ -542,21 +544,22 @@ compile if not defined(LOG_TAG_MATCHES)
    LOG_TAG_MATCHES = 0
 compile endif
 
-defproc c_proc_search(var proc_name, find_first, ext)
+defproc c_proc_search( var proc_name, find_first, ext)
 compile if LOG_TAG_MATCHES
    universal TAG_LOG_FID
 compile endif
-   proc_len = length(proc_name)
-   if wordpos(ext, CPP_EXTENSIONS) then  -- Presumably C++,
-      colon=':'                             -- allow colons.
-      cpp_decl = '&'                        -- Can have a reference in a declarator
+   proc_len = length( proc_name)
+   if wordpos( ext, CPP_EXTENSIONS) then  -- Presumably C++,
+      colon = ':'                         -- allow colons.
+      cpp_decl = '&'                      -- Can have a reference in a declarator
    else                       -- Plain old C, colons are illegal in procedure names.
-      colon=''
+      colon = ''
       cpp_decl = ''
    endif
    display -2
+
    if find_first then
-      if proc_name=='' then
+      if proc_name == '' then
 -- Todo: The opening parenthesis may occur everywhere after proc_name.
 --       ':f' finds only proc_names where '(' occurs on the same line.
 compile if C_TAGS_ANYWHERE
@@ -571,6 +574,7 @@ compile endif
    else
       repeat_find
    endif
+
    loop
       if rc then
          display 2
@@ -583,6 +587,7 @@ compile if LOG_TAG_MATCHES
             insertline '  Found line' .line '= "'line'"', TAG_LOG_FID.last+1, TAG_LOG_FID
          endif
 compile endif
+
       if proc_len then  -- Determine if match is a substring of something else
          if .col>1 then
             if pos(upcase(substr(line, .col-1, 1)), IDENTIFIER_STARTER'0123456789') then
@@ -601,11 +606,13 @@ compile endif
       else
          .col = pos('(', line)
       endif
+
       /* Strip trailing comment.  */
       i=pos('//',line)
       if i then
          line=leftstr(line,i-1)
       endif
+
       loop
          i=pos('/*',line)
          if not i then leave; endif
@@ -617,8 +624,10 @@ compile endif
             line=leftstr(line,i-1)
          endif
       endloop
+
       line = strip(line, 'T')
       if substr(line, .col, 1)='(' & rightstr(line,1)<>';' then
+
          call psave_pos(save_pos)
          if rightstr(line,1)<>')' | pos('(',line, .col+1) then
 ;;          .col=pos('(',line,.col)
@@ -648,6 +657,7 @@ compile endif
             end_line; repeat_find; iterate
          endif
          call prestore_pos(save_pos)
+
          parse value strip(line) with line '('
          proc_name = lastword(line)
          v = verify(upcase(proc_name), IDENTIFIER_STARTER, 'M')
@@ -659,6 +669,7 @@ compile if LOG_TAG_MATCHES
 compile endif
             end_line; repeat_find; iterate
          endif
+
          proc_name = substr(proc_name, v)
          if wordpos(proc_name, IGNORE_C_KEYWORDS) then
 compile if LOG_TAG_MATCHES
@@ -668,6 +679,7 @@ compile if LOG_TAG_MATCHES
 compile endif
             end_line; repeat_find; iterate
          endif
+
          if verify(upcase(proc_name), IDENTIFIER_STARTER'0123456789'colon) then
 compile if LOG_TAG_MATCHES
             if TAG_LOG_FID then
@@ -676,6 +688,7 @@ compile if LOG_TAG_MATCHES
 compile endif
             end_line; repeat_find; iterate
          endif
+
          w=words(line)
          if w>1 then
             if verify(upcase(subword(line,1,w-1)), IDENTIFIER_STARTER'0123456789*()[] 'colon||cpp_decl) then
@@ -689,9 +702,11 @@ compile endif
          endif
 
          if inside_comment( 'C') then
+            end_line
             repeat_find
             iterate
          endif
+
          display 2
 compile if LOG_TAG_MATCHES
          if TAG_LOG_FID then
@@ -710,7 +725,9 @@ compile if LOG_TAG_MATCHES
 compile endif
       endif
       end_line; repeat_find
+
    endloop
+   call prune_assist_array()
 
 defproc pas_proc_search( var proc_name, find_first)
    case = arg(3)
@@ -1003,6 +1020,13 @@ compile endif
    display 2
    return rc
 
+compile if not defined( TAG_REXX_EXACT_SEARCH)
+const
+   -- TAG_REXX_EXACT_SEARCH = 1 uses the defs from ASSIST.E to find comments
+   -- and strings. It's slow for large REXX files.
+   TAG_REXX_EXACT_SEARCH = 0
+compile endif
+
 defproc rexx_proc_search(var proc_name, find_first)
 compile if LOG_TAG_MATCHES
    universal TAG_LOG_FID
@@ -1010,7 +1034,7 @@ compile endif
    display -2
    if find_first then
       if proc_name=='' then
-         'xcom l :r\:xe'  -- Exact case is faster, & the :r doesn't care about case.
+         'xcom l ^:o:r\:xe'  -- Exact case is faster, & the :r doesn't care about case.
       else
          'xcom l 'proc_name':c'  -- Must do case-insensitive search.
       endif
@@ -1019,6 +1043,7 @@ compile endif
    endif
    proc_len = length(proc_name)
    loop
+
       if rc then
          display 2
          return rc
@@ -1030,18 +1055,22 @@ compile if LOG_TAG_MATCHES
          insertline '  Found line' .line '= "'line'"', TAG_LOG_FID.last+1, TAG_LOG_FID
       endif
 compile endif
+
       colon = pos(':', line, .col)
       if proc_len then  -- Determine if match is a substring of something else
          if .col>1 then
             c = upcase(substr(line, .col-1, 1))
             if (c>='A' & c<='Z') | (c>='0' & c<='9') | c='!' | c='?' | c='_'  then
                .col = colon + 1
-               repeat_find; iterate
+               repeat_find
+               iterate
             endif
          endif
       endif
+
       i = 1
-      loop                -- Remove comments & quotes
+      loop
+         -- Remove single-line comments & quotes
          c=pos('/*',line, i)
          a=pos("'",line, i)
          q=pos('"',line, i)
@@ -1067,6 +1096,7 @@ compile endif
             endif
          endif
       endloop
+
       if substr(line, colon, 1)<>':' then  -- Was in a comment or quoted string
 compile if LOG_TAG_MATCHES
          if TAG_LOG_FID then
@@ -1074,8 +1104,26 @@ compile if LOG_TAG_MATCHES
          endif
 compile endif
          .col = colon + 1
-         repeat_find; iterate
+         repeat_find
+         iterate
       endif
+
+compile if TAG_REXX_EXACT_SEARCH
+      if inside_comment( 'REXX') then
+         --.col = colon + 1
+         end_line
+         repeat_find
+         iterate
+      endif
+/*
+      if inside_literal( 'REXX') then
+         --.col = colon + 1
+         repeat_find
+         iterate
+      endif
+*/
+compile endif
+
       display 2
       parse value substr(textline(.line), .col) with proc_name ':'
 compile if LOG_TAG_MATCHES
@@ -1084,6 +1132,7 @@ compile if LOG_TAG_MATCHES
       endif
 compile endif
       return 0
+
    endloop
 
 /** Additions by VK **/
@@ -1339,13 +1388,14 @@ defc tagscan
    activatefile sourcefid
    proc_name=''
    sayerror 'Searching for procedures...'
-   rc=proc_search(proc_name, 1, file_mode, file_type)
+   rc = proc_search( proc_name, 1, file_mode, file_type)
    while not rc do
       insertline proc_name '('.line')', lb_fid.last+1, lb_fid
       proc_name=''
       end_line
       rc=proc_search(proc_name, 0, file_mode, file_type)
    endwhile
+   call prune_assist_array()
    call prestore_pos(savepos)
    if browse_mode then call browse(1); endif  -- restore browse state
    activatefile lb_fid
