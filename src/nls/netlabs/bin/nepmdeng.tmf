@@ -2,11 +2,11 @@
 ;
 ; Module Name: nepmdeng.tmf
 ;
-; Copyright (c) Netlabs EPM Distribution Project 2002
+; Copyright (c) netlabs.org EPM Distribution Project 2002
 ;
 ; Text Message file for language specific symbols and text messages
 ;
-; $Id: nepmdeng.tmf,v 1.13 2008-09-23 01:56:34 aschn Exp $
+; $Id: nepmdeng.tmf,v 1.14 2008-11-13 19:26:45 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -22,9 +22,10 @@
 ; **************************************************************************/
 
 <--MSG_INFO_HEADER-->:
-            Netlabs EPM Distribution - Runtime Information
-       Copyright (c) Netlabs EPM Distribution Project 2002-2008
+          netlabs.org EPM Distribution - Runtime Information
+     Copyright (c) netlabs.org EPM Distribution Project 2002-2008
                        http://nepmd.netlabs.org
+      Copyright (c) IBM Corporation 1989, 1993, 1994, 1995, 1996
 <--MSG_INFO_BODY_VERSIONS-->:
 Versions
 --------
@@ -51,8 +52,8 @@ EPM runtime module overview
 <--MSG_INFO_BODY_MODULES_NEPMD-->:
 NEPMD runtime module overview
 -----------------------------
-<--STR_INFO_EPMMODULESTAMP-->:%1  %2  %3  %4
-<--STR_INFO_NEPMDMODULESTAMP-->:%1  %2  %3  %4
+<--STR_INFO_EPMMODULESTAMP-->:%1      %2  %3  %4
+<--STR_INFO_NEPMDMODULESTAMP-->:%1      %2  %3  %4
 <--STR_INFO_NOTLOADED-->:(not loaded)
 <--STR_INFO_NOTUSED-->:(not used)
 <--STR_INFO_NOTFOUND-->:(not found)
