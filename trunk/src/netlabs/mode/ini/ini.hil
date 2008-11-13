@@ -10,7 +10,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: ini.hil,v 1.1 2002-10-18 18:36:38 cla Exp $
+; $Id: ini.hil,v 1.2 2008-11-13 13:47:44 cla Exp $
 ;
 ; ===========================================================================
 ;
@@ -33,7 +33,7 @@
 [LITERAL]
 ; Start   End     Escape
 ; string  string  character
-  [        ]
+  [        ]      SECTION
 
 [OPERATOR]
 =
