@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.13 2008-09-20 23:27:45 aschn Exp $
+* $Id: recompile.e,v 1.14 2008-11-13 13:38:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -44,6 +44,14 @@ const
 
    EA_comment 'Linkable commands for macro compilation'
 
+compile endif
+
+compile if not defined( RECOMPILE_RESTART_NAMES)
+const
+   -- These basenames require restart of EPM:
+   --    EPM: obviously
+   --    RECOMPILE: as tests showed
+   RECOMPILE_RESTART_NAMES = 'EPM RECOMPILE'
 compile endif
 
 ; ---------------------------------------------------------------------------
@@ -582,9 +590,12 @@ defc RecompileNew
       endif
 
       NetlabsExFile = NepmdRootDir'\netlabs\ex\'BaseName'.ex'
-      -- Get full pathname
+      -- Get full pathname, also used for linked() and unlink
       CurExFile = FindExFile( BaseName)
-      if CurExFile <> '' then
+      if CurExFile = '' then
+         CurExFile = BaseName
+         fReplaceExFile = 1
+      else
          -- Get time of ExFile
          next = NepmdQueryPathInfo( CurExFile, 'MTIME')
          parse value next with 'ERROR:'ret
@@ -651,10 +662,8 @@ defc RecompileNew
                endif  -- rc = ''
 
             endif
-         endif  -- CurExFile > ''
+         endif
 
-      else
-         fReplaceExFile = 1
       endif
 
       -- Check E files, if not ETPM should be called already
@@ -875,14 +884,16 @@ defc RecompileNew
             quietshell 'copy' EtpmLogFile DestDir
             cRecompile = cRecompile + 1
          endif
-         if wordpos( upcase( BaseName), 'EPM RECOMPILE') then
+         if wordpos( upcase( BaseName), RECOMPILE_RESTART_NAMES) then
             -- These EX files are in use, they can't be unlinked,
             -- therefore EPM must be restarted
             fRestartEpm = 1
          elseif fRestartEpm = 0 then
-            if linked( BaseName) >= 0 then  -- <0 means error or not linked
+            -- Check if old file is linked. Using BaseName here would check
+            -- for the wrong file when it didn't exist before
+            if linked( CurExFile) >= 0 then  -- <0 means error or not linked
 
-               'unlink' BaseName
+               'unlink' CurExFile
                'link' BaseName
 
                WriteLog( LogFile, '         'BaseName' - relinked .EX file')
