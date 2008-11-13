@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.37 2008-09-14 15:44:19 aschn Exp $
+* $Id: epmshell.e,v 1.38 2008-11-13 10:54:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -330,6 +330,12 @@ defc Shell
    endif
 
    if fCreateNew then
+      KeyPath = '\NEPMD\User\Shell\Alias'
+      on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+      if on then
+         call ShellReadAliasFile()
+      endif
+
       shell_index = shell_index + 1
       ShellNum = shell_index
       ShellHandle  = '????'
@@ -709,6 +715,8 @@ compile endif -- EPM_SHELL_PROMPT
 ; won't work (CMD.EXE) or the command is deleted (4OS2.EXE).
 ; Therefore ECHO ON must be executed _after_ every call of 4OS2.EXE.
 defproc ShellEnterWrite
+   universal nepmd_hini
+
    ret = 1
    getfileid ShellFid
    ShellNum = GetAVar( 'ShellNum.'ShellFid)
@@ -717,6 +725,13 @@ defproc ShellEnterWrite
       getline line
       Text = substr( line, x + 1)
       Text = strip( Text, 'L')
+
+      -- Process alias in Text
+      KeyPath = '\NEPMD\User\Shell\Alias'
+      on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+      if on then
+         Text = ShellResolveAlias( Text)
+      endif
 
       -- Parse Text into CmdWord and CmdArgs
       if leftstr( Text, 1) = '"' then
@@ -849,24 +864,153 @@ defproc ShellEnterWriteToApp
 
 ; ---------------------------------------------------------------------------
 ; Resolves alias values for shell commands. Returns '' if no alias def found.
-defproc ShellGetAliasValue
-   ShortCmd = arg(1)
-   LongCmd = ''  -- default value
-/*
-   do
+defproc ShellResolveAlias
+
+   if not IsNum( GetAVar( 'alias.key.'0)) then
+      call ShellReadAliasFile()
+   endif
+
+   Rest = arg(1)
+
+   SepChars   = ' |&<>-+:,;\*'
+   EscapeChar = '*'  -- Make sure that it is also included in SepChars!
+   ResolvedString = ''
+   NextString = ''
+   fStart = 0
+   PrevSep = ''
+   ThisSep = ''
+   amax = GetAVar( 'alias.key.0')
+
+   do while Rest <> ''
+      PrevSep = ThisSep
+      p1 = verify( Rest, SepChars, 'M')
+      if p1 > 0 then
+         ThisSep = substr( Rest, p1, 1)
+         Next = leftstr( Rest, p1 - 1)
+         Rest = substr( Rest, p1 + 1)
+      else
+         Next = Rest
+         Rest = ''
+      endif
+      --dprintf( 'Alias: Next = 'Next', Rest = 'Rest)
+
+      -- Find Next in array
+      UpNext = upcase( Next)
+      fFound = 0
+      do a = 1 to amax
+         --dprintf( 'Alias: a = 'a', Key = 'GetAVar( 'alias.key.'a))
+         if upcase( GetAVar( 'alias.key.'a)) = UpNext then
+            fFound = 1
+            leave
+         endif
+      enddo
+      if fFound = 0 then
+         ResolvedString = ResolvedString''PrevSep''Next
+      else
+         if PrevSep = EscapeChar then
+            ResolvedString = ResolvedString''Next
+         else
+            ResolvedString = ResolvedString''PrevSep''GetAVar( 'alias.value.'a)
+         endif
+      endif
 
    enddo
-*/
-   return LongCmd
+   --dprintf( 'ResolvedString = 'ResolvedString)
+
+   return ResolvedString
 
 ; ---------------------------------------------------------------------------
-; Loads alias values for commands. Process that only once.
-const
-SHELL_ALIAS_FILE = '%NEPMD_USERDIR%\bin\epmshell.alias'
+defproc ShellReadAliasFile
 
-defproc ShellLoadAliasList
-   -- Parse file and load entries into an array
-   return
+   ValidApplications = 'SHELL'
+
+   IniFile = arg(1)
+   if IniFile = '' then
+      IniFile = Get_Env( 'NEPMD_USERDIR')'\bin\alias.ini'
+   endif
+   if not Exist( IniFile) then
+      return 2
+   endif
+
+   Application = ''
+   a = 0
+
+   'DisableLoad'
+   'DisableSelect'
+   'xcom e /d' IniFile
+   if rc = 0 then
+      getfileid IniFid
+      .visible = 0
+
+      -- Delete array
+      preva = GetAVar( 'alias.key.'0)
+      if IsNum( preva) then
+         do x = 1 to preva
+            call SetAVar( 'alias.key.'x, '')
+            call SetAVar( 'alias.value.'x, '')
+         enddo
+         call SetAVar( 'alias.key.'0, 0)
+      endif
+
+      do l = 1 to .last
+
+         IniLine = textline(l)
+         StrippedIniLine = strip( IniLine)
+
+         -- Ignore comments, lines starting with ';' at column 1 are comments
+         if substr( IniLine, 1, 1) = ';' then
+            iterate
+         -- Ignore empty lines
+         elseif StrippedIniLine = '' then
+            iterate
+         endif
+
+         -- '[' at column 1 followed by a ']' on the same line marks the start
+         -- of an application
+         col1 = pos( '[', IniLine, 1)
+         col2 = pos( ']', IniLine, 2)
+         if col1 = 1 & col2 > 1 then
+            Application = substr( IniLine, col1 + 1, col2 - col1 - 1)
+            iterate
+         endif
+
+         -- The first '=' in the line marks keyword and expression.
+         -- Spaces around '=' are allowed
+         parse value StrippedIniLine with KeyWord '=' KeyValue  -- KeyWord (without '=') is allowed
+         KeyWord = strip( KeyWord)
+         KeyValue = strip( KeyValue)
+
+         if wordpos( Application, ValidApplications) = 0 then
+            iterate
+         else
+            --call NepmdPmPrintf( 'A = 'Application', K = 'KeyWord', V = 'KeyValue)
+            -- Add to array
+            a = a + 1
+            call SetAVar( 'alias.key.'a, KeyWord)
+            call SetAVar( 'alias.value.'a, KeyValue)
+            --dprintf( 'Read alias file: Key = 'KeyWord', Value = 'KeyValue)
+         endif
+
+      enddo
+      call SetAVar( 'alias.key.'0, a)
+      --dprintf( 'Read alias file: a = 'a)
+      activatefile IniFid
+      .modify = 0
+      'quit'
+   else
+      if rc = -282 then  -- sayerror('New file')
+         'xcom q'
+      endif
+      sayerror 'Error reading ini file 'inifile
+      rc = 30
+   endif
+   'EnableLoad'
+   'EnableSelect'
+   return rc
+
+; ---------------------------------------------------------------------------
+defc ShellReadAliasFile
+   call ShellReadAliasFile()
 
 -------------------------------------------------------------SUE_new---------------------
 ; Called from Shell command

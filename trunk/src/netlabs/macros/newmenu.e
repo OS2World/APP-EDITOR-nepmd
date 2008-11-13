@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.54 2008-09-21 22:52:38 aschn Exp $
+* $Id: newmenu.e,v 1.55 2008-11-13 10:54:54 aschn Exp $
 *
 * ===========================================================================
 *
@@ -219,7 +219,7 @@ definit
                                     ' marginsandtabs keyssettings' ||
                                     ' readonlyandlock cursorsettings autorestore backup' ||
                                     ' workdir opendlgdir saveasdlgdir prg macros' ||
-                    /* Run */       ' treecommands' ||
+                    /* Run */       ' configureshell treecommands' ||
                     /* Help */      ' keywordhelp')
 
    -- Define a list of abbreviations for linked .ex filenames, that add a
@@ -2939,6 +2939,7 @@ defproc add_options_menu(menuname)
 ; The menu ids and the item ids must be unique. There 100 is added if mid = 0
 ; in order to not overwrite other mids.
 defproc add_run_menu(menuname)
+   universal nodismiss
    mid = GetAVar('mid_run')
    if mid = 0 then
       i = 100
@@ -2969,7 +2970,7 @@ defproc add_run_menu(menuname)
                                    \1'Create a command shell buffer',
                                    0, mpfrom2short(HP_COMMAND_SHELL, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Sw~itch command shells',                                         -- Create command shell
+   buildmenuitem menuname, mid, i, 'Sw~itch command shells',                                       -- Create command shell
                                    'shell' ||
                                    \1'Loop through shell or starting non-shell buffers',
                                    0, mpfrom2short(HP_COMMAND_SHELL, 0)
@@ -2983,11 +2984,30 @@ defproc add_run_menu(menuname)
                                    'shell_break' ||
                                    SHELL_BREAK_MENUP__MSG,
                                    0, mpfrom2short(HP_COMMAND_BREAK, 0)
+   i = i + 1; call SetAVar( 'mid_configureshell', i);
+   buildmenuitem menuname, mid, i, 'Con~figure command shells',                                    -- Configure command shells  >
+                                   '',
+                                   MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Con~figure init command for shells...',                        -- Configure init command for shells
+   buildmenuitem menuname, mid, i, 'Set ~init command...',                                               -- Set init command...
                                    'ShellInitCmdDlg' ||
                                    \1'OS/2 command to be executed on start of a shell',
-                                   0, mpfrom2short(HP_COMMAND_SHELL, 0)
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_filenamecompletion', i);
+   buildmenuitem menuname, mid, i, 'Activate ~filename completion',                                      -- Activate filename completion
+                                   'toggle_filename_completion' ||
+                                   \1'Use Tab and Sh+Tab to insert matching filenames',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_alias', i);
+   buildmenuitem menuname, mid, i, 'Activate ~aliases',                                                  -- Activate aliases
+                                   'toggle_alias' ||
+                                   \1'Put an asterisk before a command to temp. disable it',
+                                   MIS_TEXT, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Edit ALIAS.INI',                                                    -- Edit ALIAS.INI
+                                   'EditCreateUserFile bin\alias.ini' ||
+                                   \1'Edit alias file for alias configuration',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -3809,6 +3829,15 @@ defc menuinit_run
    is_shell = leftstr( .filename, 15) = '.command_shell_'
    SetMenuAttribute( GetAVar('mid_writetoshell'),     MIA_DISABLED, is_shell)
    SetMenuAttribute( GetAVar('mid_sendbreaktoshell'), MIA_DISABLED, is_shell)
+
+defc menuinit_configureshell
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Shell\FilenameCompletion'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   SetMenuAttribute( GetAVar('mid_filenamecompletion'), MIA_CHECKED, not on)
+   KeyPath = '\NEPMD\User\Shell\Alias'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   SetMenuAttribute( GetAVar('mid_alias'), MIA_CHECKED, not on)
 
 defc menuinit_treecommands
    is_tree = upcase( leftstr( .filename, 5)) = '.TREE'
@@ -4813,6 +4842,30 @@ defc toggle_backup
       SetMenuAttribute( GetAVar('mid_backupnumdialog'), MIA_DISABLED, on)
       SetMenuAttribute( GetAVar('mid_backupdirdialog'), MIA_DISABLED, on)
       SetMenuAttribute( GetAVar('mid_backuplistdir'),   MIA_DISABLED, on)
+   endif
+
+; ---------------------------------------------------------------------------
+defc toggle_filename_completion
+   universal menuloaded
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Shell\FilenameCompletion'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   if menuloaded then
+      SetMenuAttribute( GetAVar('mid_filenamecompletion'), MIA_CHECKED, not on)
+   endif
+
+; ---------------------------------------------------------------------------
+defc toggle_alias
+   universal menuloaded
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Shell\Alias'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   if menuloaded then
+      SetMenuAttribute( GetAVar('mid_alias'), MIA_CHECKED, not on)
    endif
 
 ; ---------------------------------------------------------------------------
