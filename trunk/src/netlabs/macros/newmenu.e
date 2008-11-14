@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.57 2008-11-13 13:46:48 aschn Exp $
+* $Id: newmenu.e,v 1.58 2008-11-14 19:15:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1957,6 +1957,11 @@ defproc add_view_menu(menuname)
    buildmenuitem menuname, mid, i, 'Soft ~wrap',                                                   -- Soft wrap
                                    'ToggleWrap' ||
                                    \1'Toggle non-destructive wrap at window width',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Soft wra~p to reflowmargins',                                                   -- Soft wrap
+                                   'SoftWrap2Reflowmargins' ||
+                                   \1'Wrap to reflowmargins',
                                    MIS_TEXT, 0
    -- Check for a cmd of a linked file won't work here, because the menu is already built by 'initconfig'.
    if isadefc('fold') | (FindFileInList( 'fold.ex', Get_Env( 'EPMEXPATH')) > '') then
