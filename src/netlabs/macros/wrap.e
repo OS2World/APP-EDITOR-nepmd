@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wrap.e,v 1.13 2008-09-05 23:20:39 aschn Exp $
+* $Id: wrap.e,v 1.14 2008-11-14 19:15:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -32,7 +32,7 @@ const
 
    MAXLNSIZE_UNTERMINATED = 1
 
-   WRAP_CHARS = ' \9,;>'
+   WRAP_CHARS = ' '\9',;>'
 
 ; ---------------------------------------------------------------------------
 ; Used to set the universal var on defselect.
@@ -166,7 +166,111 @@ defc SoftWrap2Win, SoftWrap
 
          -- Split at last space before SplitCol
          if p = 0 then
-            first_nonblank_p = max( 1, verify( ThisLine, ' '\t))
+            first_nonblank_p = max( 1, verify( ThisLine, ' '\9))
+            do c = 1 to length( WRAP_CHARS)
+               ch = substr( WRAP_CHARS, c, 1)
+               -- Split at last char before SplitCol
+               p = lastpos( ch, ThisLine, SplitCol)
+               if p > 0 then
+                  if ch <> ' ' then
+                     p = p + 1  -- Go after the WrapChar if not a space
+                  endif
+                  leave
+               endif
+            enddo
+            -- Fixed: endless loop if a line starts with a space.
+            if p < first_nonblank_p then  -- No spaces in the line after indent?
+               p = SplitCol
+            endif
+         endif
+         .line = l
+         .col = p
+         split
+
+         -- Change line terminator id to 1 = unterminated
+         call dynalink32( E_DLL,
+                         'EtkChangeLineTerminator',
+                          client_fid ||
+                          atol(l)    ||
+                          atol(MAXLNSIZE_UNTERMINATED))
+         w = w + 1
+      endif
+
+      l = l + 1
+   enddo
+
+   call prestore_pos(saved_pos)
+   if saved_readonly then
+      .readonly = 1
+   endif
+   -- Save wrapped state in an array var
+   if w > 0 then
+      fWrapped = 1
+      sayerror 'Wrapped 'w' lines (restored on file save)'
+      'AvoidSaveOptions /o /l'
+   else
+      fWrapped = 0
+      sayerror 'No wrap required'
+   endif
+   call EnableUndoRec()
+   .modify = saved_modify
+   call SetAVar( 'wrapped.'fid, fWrapped)
+
+; ---------------------------------------------------------------------------
+; Wrap current file to wrap its lines according to the current reflowmargins.
+;
+; Save won't destroy the file, because the additional line terminators are
+; removed internally. That makes it even possible to unwrap the file.
+;
+; For mode = CONFIGSYS: Try to wrap at ';' or '+' first. If found, then the
+; next line will have a ';' or a '+' at col 1.
+defc SoftWrap2Reflowmargins
+   universal reflowmargins
+
+   -- Check if already wrapped
+   if GetWrapped() then
+      -- Unwrap first
+      'unwrap'
+   endif
+
+   getfileid fid
+   client_fid = gethwndc(EPMINFO_EDITCLIENT) || atol(fid)
+   -- no additional undo state supression required
+   saved_readonly = .readonly
+   if saved_readonly then
+      .readonly = 0  -- need to disable .readonly temporarily
+   endif
+   call psave_pos(saved_pos)
+   call DisableUndoRec()
+   saved_modify = .modify
+
+   -- Split lines
+   -- Start at line 1
+   w = 0  -- number of wrapped lines
+   l = 1  -- line number
+   do while l <= .last
+      getline ThisLine, l
+
+      SplitCol = word( reflowmargins, 2)
+
+      if length( strip( ThisLine, 'T')) > SplitCol then
+         -- Split line
+         p = 0
+         -- First process special features for some modes
+         Mode = GetMode()
+
+         -- CONFIG.SYS: try to break line at ';' or '+' first
+         -- The next line will have that char at col 1 than.
+         if Mode = 'CONFIGSYS' then
+            p = lastpos( ';', ThisLine, SplitCol)
+            if p = 0 then
+               p = lastpos( '+', ThisLine, SplitCol)
+            endif
+         endif
+
+         -- Split at last space before SplitCol
+         if p = 0 then
+            first_nonblank_p = max( 1, verify( ThisLine, ' '\9))
             do c = 1 to length( WRAP_CHARS)
                ch = substr( WRAP_CHARS, c, 1)
                -- Split at last char before SplitCol
@@ -361,7 +465,7 @@ defc SoftWrapAtCursor
    endline
    getline ThisLine
    if .col > SplitCol then
-      first_nonblank_p = max( 1, verify( ThisLine, ' '\t))
+      first_nonblank_p = max( 1, verify( ThisLine, ' '\9))
       c = 0
       do c = 1 to length( WRAP_CHARS)
          ch = substr( WRAP_CHARS, c, 1)
@@ -591,7 +695,7 @@ defc Wrap
             SpaceP = lastpos( ' ', line, SplitCol)
             TabP   = lastpos( \9,  line, SplitCol)
             p = max( SpaceP, TabP)
-            first_nonblank_p = max( 1, verify( line, ' '\t))
+            first_nonblank_p = max( 1, verify( line, ' '\9))
             --if not p then    -- No spaces in the line?
             -- Fixed: additional blank line if a line start with a space.
             if p < first_nonblank_p then    -- No spaces in the line after indent?
@@ -607,7 +711,7 @@ defc Wrap
 
          else
             p = lastpos( ' ', line, SplitCol)
-            first_nonblank_p = max( 1, verify( line, ' '\t))
+            first_nonblank_p = max( 1, verify( line, ' '\9))
             --if not p then    -- No spaces in the line?
             -- Fixed: endless loop if a line start with a space.
             if p < first_nonblank_p then    -- No spaces in the line after indent?
