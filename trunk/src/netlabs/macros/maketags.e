@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: maketags.e,v 1.12 2008-09-14 15:32:40 aschn Exp $
+* $Id: maketags.e,v 1.13 2008-11-22 22:31:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -467,14 +467,15 @@ defproc add_tags( filename, tag_fid, filedate)
    endif
 
    ext = filetype()
-   if not tags_supported(ext) then
-      sayerror "Don't know how to do tags for file of type '"ext"'"
+   mode = GetMode()
+   if not tags_supported( mode) then
+      sayerror "Don't know how to do tags for file of mode" mode
       'xcom quit'
       return 1
    endif
    proc_name = ''
 
-   rc = proc_search( proc_name, 1, ext)
+   rc = proc_search( proc_name, 1, mode, ext)
    while not rc do
 compile if SHOW_EACH_PROCEDURE  -- Display progress messages
       'SayHint ...found "'proc_name'" in' filename
@@ -482,7 +483,7 @@ compile endif
       insertline proc_name filename .line filedate, tag_fid.last + 1, tag_fid
       proc_name=''
       end_line
-      rc = proc_search( proc_name, 0, ext)
+      rc = proc_search( proc_name, 0, mode, ext)
    endwhile
    'xcom quit'
    return 0
