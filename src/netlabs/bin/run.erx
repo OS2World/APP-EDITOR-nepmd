@@ -37,7 +37,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: run.erx,v 1.7 2008-10-05 13:56:58 aschn Exp $
+* $Id: run.erx,v 1.8 2008-11-22 22:52:19 aschn Exp $
 *
 * ===========================================================================
 *
@@ -82,7 +82,7 @@ select
    when UpExt = 'C' then
       /*Action = 'os2 /k /f wcc386 'Filename.1*/
       /*Action = 'os2 /k /f gcc 'Filename.1*/
-      Action = 'Shell nmake /nologo clean all'
+      Action = 'Shell nmake /nologo all'
 
    /* EPM REXX files */
    when Mode = 'REXX' & UpExt = 'ERX' then
