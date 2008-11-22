@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.58 2008-11-14 19:15:57 aschn Exp $
+* $Id: newmenu.e,v 1.59 2008-11-22 22:59:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2053,39 +2053,6 @@ defproc add_view_menu(menuname)
                                    'alt_1' ||
                                    \1'Load file under cursor',
                                    MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_keywordhelp', i);
-   buildmenuitem menuname, mid, i, 'Key~word help',                                                -- Keyword help
-                                   '' ||
-                                   \1'View documentation for a keyword (defined via .ndx files)',
-                                   MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1; call SetAVar( 'mid_keywordhelpcurrentword', i);
-   buildmenuitem menuname, mid, i, '~Current word'\9CTRL_KEY__MSG'+H',                                   -- Current word
-                                   'kwhelp' ||
-                                   \1'View documentation for keyword under cursor',
-                                   0, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Word...',                                                           -- Word...
-                                   'kwhelp ?' ||
-                                   \1'Prompt for a keyword, then view documentation for it',
-                                   0, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_usenewview', i);
-   buildmenuitem menuname, mid, i, 'Use ~NewView if found',                                              -- Use NewView if found
-                                   'toggle_use_newview' ||
-                                   \1'NiewView.exe is searched in PATH and used if found',
-                                   0, nodismiss
-   i = i + 1; call SetAVar( 'mid_usenewviewxsearch', i);
-   buildmenuitem menuname, mid, i, 'Use NewView''s ~extended search',                                    -- Use NewView's extended search
-                                   'toggle_newview_xsearch' ||
-                                   \1'Search in text instead of just a topic search',
-                                   MIS_TEXT + MIS_ENDSUBMENU, nodismiss
    return
 
 ; -------------------------------------------------------------------------------------- Options ----------------------
@@ -3228,6 +3195,39 @@ compile endif
                                    'viewword neprg%NEPMD_LANGUAGE%' ||
                                    \1'',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_keywordhelp', i);
+   buildmenuitem menuname, mid, i, 'Key~word help',                                                -- Keyword help
+                                   '' ||
+                                   \1'View documentation for a keyword (defined via .ndx files)',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_keywordhelpcurrentword', i);
+   buildmenuitem menuname, mid, i, '~Current word'\9CTRL_KEY__MSG'+H',                                   -- Current word
+                                   'kwhelp' ||
+                                   \1'View documentation for keyword under cursor',
+                                   0, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Word...',                                                           -- Word...
+                                   'kwhelp ?' ||
+                                   \1'Prompt for a keyword, then view documentation for it',
+                                   0, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_usenewview', i);
+   buildmenuitem menuname, mid, i, 'Use ~NewView if found',                                              -- Use NewView if found
+                                   'toggle_use_newview' ||
+                                   \1'NiewView.exe is searched in PATH and used if found',
+                                   0, nodismiss
+   i = i + 1; call SetAVar( 'mid_usenewviewxsearch', i);
+   buildmenuitem menuname, mid, i, 'Use NewView''s ~extended search',                                    -- Use NewView's extended search
+                                   'toggle_newview_xsearch' ||
+                                   \1'Search in text instead of just a topic search',
+                                   MIS_TEXT + MIS_ENDSUBMENU, nodismiss
    return
 
 ; ---------------------------------------------------------------------------
