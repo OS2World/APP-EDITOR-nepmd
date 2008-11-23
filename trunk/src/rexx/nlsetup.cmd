@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.20 2008-11-13 10:10:05 aschn Exp $
+* $Id: nlsetup.cmd,v 1.21 2008-11-23 13:03:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -132,8 +132,12 @@ OTHERWISE
       'CALL RENUDIRS NEPMD';    IF (rc \= 0) THEN LEAVE
       'CALL EXPOBJ';            IF (rc \= 0) THEN LEAVE
       'CALL INITREG';           IF (rc \= 0) THEN LEAVE
+
+      /* The following doesn't always work reliable. */
+      /*
       CALL SysSleep 1
       'START EPM'
+      */
    END
 END
 
