@@ -39,7 +39,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: renudirs.cmd,v 1.9 2008-10-09 18:49:36 aschn Exp $
+* $Id: renudirs.cmd,v 1.10 2008-11-23 12:13:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -174,7 +174,7 @@ DO 1
          NewDir     = UserDir'\'NewDirName
       END
 
-      /* Rename dir */
+      /* Rename dir: copy file objects from OldDir to NewDir */
       IF \fQuiet THEN
          SAY 'Copying 'OldDir' -> 'NewDirName
       OldDirSpec = OldDir'\*'
@@ -185,8 +185,12 @@ DO 1
          NewDirSpec = '"'NewDirSpec'"'
       XcopyOptions = '/H/O/T/S/R'
       'XCOPY' OldDirSpec NewDirSpec XcopyOptions Redirection
-      ExcludeList = OldDir'\nepmd.ini'
 
+      /* Rename dir: remove .LONGNAME from NewDir, ignore error */
+      rcx = SysPutEa( NewDir, '.LONGNAME', '')
+
+      /* Rename dir: delete file objects from OldDir */
+      ExcludeList = OldDir'\nepmd.ini'
       rc = RmDirContent( OldDir, ExcludeList)
 
       /* Check for error */
