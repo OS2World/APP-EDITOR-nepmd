@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wps.e,v 1.6 2008-09-13 21:40:44 aschn Exp $
+* $Id: wps.e,v 1.7 2008-11-30 22:20:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -136,9 +136,9 @@ defproc GetProgramOSwitch
    return Ret
 
 ; ---------------------------------------------------------------------------
-; Opens a listbox to select a select an association action. The list of
-; actions is parsed by ASSOCS.ERX from OBJECTS.INI. Uses also ASOOCS.ERX
-; and OBJECTS.INI to execute an action.
+; Opens a listbox to select an association action. The list of actions is
+; parsed by ASSOCS.ERX from OBJECTS.INI. Uses also ASOOCS.ERX and OBJECTS.INI
+; to execute an action.
 defc SelectAssoc
 
    NumItems = 0
@@ -159,7 +159,6 @@ defc SelectAssoc
    Text  = 'Select an action from the list below:'
 
    refresh
-   NewCodingStyle = ''
    Result = listbox( Title,
                      ListBoxData,
                      '/~OK/Cancel',           -- buttons
