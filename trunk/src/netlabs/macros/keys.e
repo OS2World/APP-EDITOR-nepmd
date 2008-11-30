@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.24 2008-11-30 22:19:25 aschn Exp $
+* $Id: keys.e,v 1.25 2008-11-30 22:25:18 aschn Exp $
 *
 * ===========================================================================
 *
@@ -167,6 +167,7 @@ compile endif
 compile if not defined(PM_LIST)
    -- Tab must be excluded, because otherwise lastkey(2) and lastkey(3) would
    -- return wrong values for Tab. lastkey() for Tab doesn't work in EPM!
+   -- Remove a key from this list if you want to override that anyway.
    PM_LIST       = 'F1 F10 TAB'
 compile endif
 
@@ -174,6 +175,7 @@ compile endif
    -- Alt+Home is also disabled to keep Alt+Numpad7 working.
    -- Same for: Alt+Up, Alt+Down, Alt+Left, Alt+Right, Alt+End, Alt+PgUp,
    -- Alt+PgDown, Alt+Ins
+   -- Remove a key from this list if you want to override that anyway.
 compile if not defined(PM_ALT_LIST)
    PM_ALT_LIST    = 'SPACE TAB ESC F4 F5 F6 F7 F8 F9 F10 F11'
    PM_ALT_LIST    = PM_ALT_LIST || ' HOME UP DOWN LEFT RIGHT'
@@ -216,6 +218,17 @@ defc Key_a_f10 = 'sayerror a_f10'
 */
 
 ; ---------------------------------------------------------------------------
+; Define accel key for current accel table
+defproc DefAccelKey( Cmd, Flags, Key)
+   universal activeaccel
+   universal lastkeyaccelid
+
+   lastkeyaccelid = lastkeyaccelid + 1
+   buildacceltable activeaccel, Cmd, Flags, Key, lastkeyaccelid
+
+   return
+
+; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E.
 ; Defined menu accels have priority to definitions provided by a keyset
 ; or by the automatically assigned defs by the PM menu. Therefore they are
@@ -244,37 +257,26 @@ defc loadaccel
    universal activeaccel
    universal nepmd_hini
    universal cua_menu_accel
+   universal lastkeyaccelid
 
    activeaccel = 'defaccel'  -- name for accelerator table
-   i = 1000                  -- let ids start at 1001
-
-   -- Save the last used id in an array var
-   call SetAVar( 'lastkeyaccelid', i)
+   lastkeyaccelid = 1000     -- let ids start at 1001
 
    call DefineLetterAccels()
    call DefineCharAccels()
    call DefineVirtualAccels()
 
-   -- Get the last used id from an array var
-   i = GetAVar( 'lastkeyaccelid')
-
    -- Don't want Alt or AltGr switch to menu (PM-defined key F10 does the same)
    KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey'
    fBlocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if fBlocked = 1 then
-      i = i + 1
-      buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALT, i  -- Alt
+      DefAccelKey( '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALT)      -- Alt
    endif
    KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockRightAltKey'
    fBlocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if fBlocked = 1 then
-      i = i + 1
-      buildacceltable activeaccel, '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALTGRAF, i  -- AltGr
+      DefAccelKey( '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALTGRAF)  -- AltGr
    endif
-
-   -- Save the last used id in an array var
-   call SetAVar( 'lastkeyaccelid', i)
-   --dprintf( 'KEYS', 'lastkeyaccelid = 'i)
 
    activateacceltable activeaccel
    return
@@ -289,169 +291,139 @@ defc loadaccel
 defproc DefineLetterAccels
    universal activeaccel
    universal cua_menu_accel
-   -- Get the last used id from an array var
-   i = GetAVar( 'lastkeyaccelid')
+
    UsedMenuAccelerators = GetAVar('usedmenuaccelerators')
    List = UPPERCASE_LETTER_LIST
    do w = 1 to words( List)
-      cmd = ''
       char = word( UPPERCASE_LETTER_LIST, w)
       -- lowercase is not used here, because it would only work for Ascii letters
       ukey = asc(word( UPPERCASE_LETTER_LIST, w))
       lkey = asc(word( LOWERCASE_LETTER_LIST, w))
       name = char
-      OmitAltAccel = 0
+      fOmitAltAccel = 0
       if cua_menu_accel then
          if wordpos( char, upcase(UsedMenuAccelerators)) then
-            OmitAltAccel = 1
+            fOmitAltAccel = 1
          endif
       endif
 
       if isadefc('Key_c_'name) then
-         cmd = 'Key_c_'name
-      else
-         cmd = 'dokey c+'name
+         Cmd = 'Key_c_'name
+         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL, lkey)  -- Ctrl+<key> (lowercase)
+         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL, ukey)  -- Ctrl+<key> (uppercase)
       endif
-      i = i + 1
-      buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL, lkey, i  -- Ctrl+<key> (lowercase)
-      i = i + 1
-      buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL, ukey, i  -- Ctrl+<key> (uppercase)
-      if isadefc('Key_c_s_'name) then
-         cmd = 'Key_c_s_'name
-      endif
-;      i = i + 1
-;      buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, lkey, i  -- Ctrl+Sh+<key> (lowercase)
-      i = i + 1
-      buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, ukey, i  -- Ctrl+Sh+<key> (uppercase)
 
+      if isadefc('Key_c_s_'name) then
+         Cmd = 'Key_c_s_'name
+         --DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, lkey)  -- Ctrl+Sh+<key> (lowercase)
+         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, ukey)  -- Ctrl+Sh+<key> (uppercase)
+      endif
+
+      Cmd = ''
       if isadefc('Key_a_'name) then
-         cmd = 'Key_a_'name
-      else
-         cmd = 'dokey a+'name
+         Cmd = 'Key_a_'name
+      elseif not fOmitAltAccel then  -- if not (cua_meu_accel and found in UsedMenuAccelerators)
+         -- This overrides the standard PM def to open the menu
+         Cmd = 'dokey a+'name
       endif
-      if not OmitAltAccel then  -- if not (cua_meu_accel and found in UsedMenuAccelerators)
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT, lkey, i  -- Alt+<key> (lowercase)
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT, ukey, i  -- Alt+<key> (uppercase)
+      if Cmd <> '' then
+         DefAccelKey( Cmd, AF_CHAR + AF_ALT, lkey)  -- Alt+<key> (lowercase)
+         DefAccelKey( Cmd, AF_CHAR + AF_ALT, ukey)  -- Alt+<key> (uppercase)
       endif
+
       if isadefc('Key_a_s_'name) then
-         cmd = 'Key_a_s_'name
+         Cmd = 'Key_a_s_'name
+         --DefAccelKey( Cmd, AF_CHAR + AF_ALT + AF_SHIFT, lkey)  -- Alt+Sh+<key> (lowercase)
+         DefAccelKey( Cmd, AF_CHAR + AF_ALT + AF_SHIFT, ukey)  -- Alt+Sh+<key> (uppercase)
       endif
-;      i = i + 1
-;      buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT + AF_SHIFT, lkey, i  -- Alt+Sh+<key> (lowercase)
-      i = i + 1
-      buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT + AF_SHIFT, ukey, i  -- Alt+Sh+<key> (uppercase)
 
       if isadefc('Key_c_a_'name) then
-         cmd = 'Key_c_a_'name
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT, lkey, i  -- Ctrl+Alt+<key> (lowercase)
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT, ukey, i  -- Ctrl+Alt+<key> (uppercase)
+         Cmd = 'Key_c_a_'name
+         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT, lkey)  -- Ctrl+Alt+<key> (lowercase)
+         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT, ukey)  -- Ctrl+Alt+<key> (uppercase)
       endif
+
       if isadefc('Key_c_a_s_'name) then
-         cmd = 'Key_c_a_s_'name
-      endif
-      if cmd <> '' then
-;         i = i + 1
-;         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, lkey, i  -- Ctrl+Alt+Sh+<key> (lowercase)
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, ukey, i  -- Ctrl+Alt+Sh+<key> (uppercase)
+         Cmd = 'Key_c_a_s_'name
+         --DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, lkey)  -- Ctrl+Alt+Sh+<key> (lowercase)
+         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, ukey)  -- Ctrl+Alt+Sh+<key> (uppercase)
       endif
 
    enddo
-   -- Save the last used id in an array var
-   call SetAVar( 'lastkeyaccelid', i)
-   return i
+
+   return
 
 ; ---------------------------------------------------------------------------
 ; Chars, for that no upper/lowercase variants exist.
 defproc DefineCharAccels
    universal activeaccel
-   -- Get the last used id from an array var
-   i = GetAVar( 'lastkeyaccelid')
+
    List = CHAR_LIST
    do w = 1 to words( List)
       char = word( List, w)
       key  = asc(char)
       name = word( CHAR_NAMES, w)
-      DefExists = (wordpos( char, NO_DEF_CHAR_LIST) = 0)
+      fDefExists = (wordpos( char, NO_DEF_CHAR_LIST) = 0)
 
-      cmd = ''
+      Cmd = ''
       if isadefc('Key_c_'name) then
-         cmd = 'Key_c_'name
-      elseif DefExists then
-         cmd = 'dokey c+'name
-      endif
-      if cmd <> '' then
-         if isadefc('Key_c_'name) then
-            cmd = 'Key_c_'name
-         elseif IsNum( name) then  -- Exclude Ctrl+0 ... Ctrl+9 to make Ctrl+<keypad-num> work properly.
+         Cmd = 'Key_c_'name
+      elseif fDefExists then
+         if not IsNum( name) then  -- Exclude Ctrl+0 ... Ctrl+9 to make Ctrl+<keypad-num> work properly.
                                    -- These keys are definable via def c_0 ... def c_9.
                                    -- To override a standard PM def, e.g. Ctrl+Pad-0 = copy to clip,
                                    -- one can use defc Key_c_0 instead of def c_0.
-            cmd = ''
-         endif
-         if cmd <> '' then
-            i = i + 1
-            buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL, key, i          -- Ctrl+<key>
+            Cmd = 'dokey c+'name
          endif
       endif
-      if isadefc('Key_c_s_'name) then
-         cmd = 'Key_c_s_'name
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, key, i  -- Ctrl+Sh+<key>
+      if Cmd <> '' then
+         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL, key)                      -- Ctrl+<key>
       endif
 
-      cmd = ''
+      if isadefc('Key_c_s_'name) then
+         Cmd = 'Key_c_s_'name
+         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, key)           -- Ctrl+Sh+<key>
+      endif
+
+      Cmd = ''
       if isadefc('Key_a_'name) then
-         cmd = 'Key_a_'name
-      elseif DefExists then
-         cmd = 'dokey a+'name
-      endif
-      if cmd <> '' then
-         if isadefc('Key_a_'name) then
-            cmd = 'Key_a_'name
-         elseif IsNum( name) then  -- Exclude Alt+0 ... Alt+9 to make Alt+<keypad-num> work properly.
-                                   -- These keys are definable via def a_0 ... def a_9.
-                                   -- To override a standard PM def, e.g. Alt+1 = insert 0x01 char,
-                                   -- one can use defc Key_a_1 instead of def a_1.
-            cmd = ''
-         endif
-         if cmd <> '' then
-            i = i + 1
-            buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT, key, i             -- Alt+<key>
+         Cmd = 'Key_a_'name
+      elseif fDefExists then
+         if not IsNum( name) then  -- Exclude Ctrl+0 ... Ctrl+9 to make Ctrl+<keypad-num> work properly.
+                                   -- These keys are definable via def c_0 ... def c_9.
+                                   -- To override a standard PM def, e.g. Ctrl+Pad-0 = copy to clip,
+                                   -- one can use defc Key_c_0 instead of def c_0.
+            Cmd = 'dokey a+'name
          endif
       endif
+      if Cmd <> '' then
+         DefAccelKey( Cmd, AF_CHAR + AF_ALT, key)                          -- Alt+<key>
+      endif
+
       if isadefc('Key_a_s_'name) then
-         cmd = 'Key_a_s_'name
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_ALT + AF_SHIFT, key, i  -- Alt+Sh+<key>
+         Cmd = 'Key_a_s_'name
+         DefAccelKey( Cmd, AF_CHAR + AF_ALT + AF_SHIFT, key)               -- Alt+Sh+<key>
       endif
 
       if isadefc('Key_c_a_'name) then
-         cmd = 'Key_c_a_'name
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT, key, i             -- Ctrl+Alt+<key>
+         Cmd = 'Key_c_a_'name
+         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT, key)             -- Ctrl+Alt+<key>
       endif
+
       if isadefc('Key_c_a_s_'name) then
-         cmd = 'Key_c_a_s_'name
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, key, i  -- Ctrl+Alt+Sh+<key>
+         Cmd = 'Key_c_a_s_'name
+         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, key)  -- Ctrl+Alt+Sh+<key>
       endif
 
    enddo
-   -- Save the last used id in an array var
-   call SetAVar( 'lastkeyaccelid', i)
+
    return
 
 ; ---------------------------------------------------------------------------
 ; Virtual keys like F1, Insert, Up.
 defproc DefineVirtualAccels
    universal activeaccel
-   -- Get the last used id from an array var
-   i = GetAVar( 'lastkeyaccelid')
+
    List = VIRTUAL_LIST
    do w = 1 to words( List)
       char = word( List, w)
@@ -460,63 +432,50 @@ defproc DefineVirtualAccels
 
       if not wordpos( char, PM_LIST) then
          if isadefc('Key_'name) then
-            cmd = 'Key_'name
-         else
-            cmd = 'dokey 'name
+            Cmd = 'Key_'name
+            DefAccelKey( Cmd, AF_VIRTUALKEY, id)                                -- <key>
          endif
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_VIRTUALKEY, id, i          -- <key>
       endif
+
       if isadefc('Key_s_'name) then
-         cmd = 'Key_s_'name
-      else
-         cmd = 'dokey s+'name
+         Cmd = 'Key_s_'name
+         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_SHIFT, id)                        -- Sh+<key>
       endif
-      i = i + 1
-      buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_SHIFT, id, i  -- Sh+<key>
 
       if isadefc('Key_c_'name) then
-         cmd = 'Key_c_'name
-      else
-         cmd = 'dokey c+'name
+         Cmd = 'Key_c_'name
+         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_CONTROL, id)                      -- Ctrl+<key>
       endif
-      i = i + 1
-      buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_CONTROL, id, i                -- Ctrl+<key>
+
       if isadefc('Key_c_s_'name) then
-         cmd = 'Key_c_s_'name
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_CONTROL + AF_SHIFT, id, i  -- Ctrl+Sh+<key>
+         Cmd = 'Key_c_s_'name
+         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_CONTROL + AF_SHIFT, id)           -- Ctrl+Sh+<key>
       endif
 
       if not wordpos( char, PM_ALT_LIST) then
          if isadefc('Key_a_'name) then
-            cmd = 'Key_a_'name
-         else
-            cmd = 'dokey a+'name
+            Cmd = 'Key_a_'name
+            DefAccelKey( Cmd, AF_VIRTUALKEY + AF_ALT, id)                       -- Alt+<key>
          endif
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_ALT, id, i             -- Alt+<key>
       endif
+
       if isadefc('Key_a_s_'name) then
-         cmd = 'Key_a_s_'name
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_ALT + AF_SHIFT, id, i  -- Alt+Sh+<key>
+         Cmd = 'Key_a_s_'name
+         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_ALT + AF_SHIFT, id)               -- Alt+Sh+<key>
       endif
 
       if isadefc('Key_c_a_'name) then
-         cmd = 'Key_c_a_'name
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_CONTROL + AF_ALT, id, i             -- Ctrl+Alt+<key>
+         Cmd = 'Key_c_a_'name
+         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_CONTROL + AF_ALT, id)             -- Ctrl+Alt+<key>
       endif
+
       if isadefc('Key_c_a_s_'name) then
-         cmd = 'Key_c_a_s_'name
-         i = i + 1
-         buildacceltable activeaccel, cmd, AF_VIRTUALKEY + AF_CONTROL + AF_ALT + AF_SHIFT, id, i  -- Ctrl+Alt+Sh+<key>
+         CMD = 'Key_c_a_s_'name
+         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_CONTROL + AF_ALT + AF_SHIFT, id)  -- Ctrl+Alt+Sh+<key>
       endif
 
    enddo
-   -- Save the last used id in an array var
-   call SetAVar( 'lastkeyaccelid', i)
+
    return
 
 ; ---------------------------------------------------------------------------
