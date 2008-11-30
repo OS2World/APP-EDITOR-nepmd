@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.37 2008-09-07 22:58:50 aschn Exp $
+* $Id: stdkeys.e,v 1.38 2008-11-30 22:19:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -165,7 +165,7 @@ def c_l           'CommandDlgLine'      -- Open current line in Command dialog
 
 ; ---- File operations ----
 def a_f2          'SaveAs_Dlg'          -- Open the Save-as dialog
-def f2            'SaveOrSaveAs'        -- Save; if unchanged: open Save-as dialog
+def f2            'SmartSave'           -- Save; if unchanged: give message
 def f3            'Quit'                -- Quit file
 def f4            'FileOrQuit'          -- Save and quit file; if unchanged: just quit
 def f5            'OpenDlg'             -- Open File-open dialog (will open file in a new window)
