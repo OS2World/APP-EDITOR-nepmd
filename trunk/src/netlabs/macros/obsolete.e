@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: obsolete.e,v 1.3 2008-11-13 13:46:49 aschn Exp $
+* $Id: obsolete.e,v 1.4 2008-11-30 22:19:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -37,12 +37,6 @@ compile if not defined(WANT_DYNAMIC_PROMPTS)
 compile endif
 compile if not defined(ALLOW_PROMPTING_AT_TOP)
    ALLOW_PROMPTING_AT_TOP = 1
-compile endif
-compile if not defined(WANT_TINY_ICONS)
-   WANT_TINY_ICONS = 0
-compile endif
-compile if not defined(RESPECT_SCROLL_LOCK)
-   RESPECT_SCROLL_LOCK = 1
 compile endif
 compile if not defined(BLOCK_ACTIONBAR_ACCELERATORS)
    BLOCK_ACTIONBAR_ACCELERATORS = 'SWITCH'
@@ -283,6 +277,9 @@ compile if not defined(DYNAMIC_CURSOR_STYLE)
 compile endif
 compile if not defined(WANT_SHIFT_MARKING)
    WANT_SHIFT_MARKING = EPM
+compile endif
+compile if not defined(SMARTSAVE)
+   SMARTSAVE = 1
 compile endif
    WPS_SUPPORT = 0
 

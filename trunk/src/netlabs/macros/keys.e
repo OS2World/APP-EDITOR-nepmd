@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.23 2008-09-07 22:58:49 aschn Exp $
+* $Id: keys.e,v 1.24 2008-11-30 22:19:25 aschn Exp $
 *
 * ===========================================================================
 *
@@ -73,11 +73,6 @@ compile endif
 -- the Name command sets .modify to 1.
 compile if not defined(SMARTFILE)
    SMARTFILE = 1
-compile endif
--- Set this to 1 if you want the Save key to prompt you if the file was not
--- modified.
-compile if not defined(SMARTSAVE)
-   SMARTSAVE = 1
 compile endif
 -- For Toolkit developers - set to 0 if you don't want the user to be able
 -- to go to line 0.  Affects MH_gotoposition in MOUSE.E and Def Up in STDKEYS.E.
@@ -1964,7 +1959,6 @@ defc ProcessEscape
    endif
 
 defc SaveOrSaveAs
-compile if SMARTSAVE
    if .modify then           -- Modified since last Save?
       'Save'                 --   Yes - save it
    else
@@ -1973,9 +1967,13 @@ compile if SMARTSAVE
       'saveas_dlg 0'  -- better show file selector
                       -- new optional arg, 0 => no EXIST_OVERLAY__MSG
    endif
-compile else
-   'Save'
-compile endif
+
+defc SmartSave
+   if .modify then           -- Modified since last Save?
+      'Save'                 --   Yes - save it
+   else
+      sayerror 'No changes.'
+   endif
 
 defc FileOrQuit
 compile if SMARTFILE
