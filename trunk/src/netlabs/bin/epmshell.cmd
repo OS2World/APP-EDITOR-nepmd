@@ -2,7 +2,7 @@
 *
 * Module Name: epmshell.cmd
 *
-* Syntax: epmshell [directory] | [file]
+* Syntax: epmshell [directory] | [file] | [shell_command]
 *
 * Helper batch for to open a new EPM window with an EPM command shell
 * window. If parameters are submitted, these parameters were executed in
@@ -34,7 +34,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2006
 *
-* $Id: epmshell.cmd,v 1.4 2008-10-05 00:21:24 aschn Exp $
+* $Id: epmshell.cmd,v 1.5 2008-12-07 22:10:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -48,6 +48,8 @@
 * General Public License for more details.
 *
 ****************************************************************************/
+
+'@echo off'
 
 call RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
 call SysLoadFuncs
@@ -66,10 +68,30 @@ EpmCmdProc = ''
 /*EpmCmdProc = '4os2'*/
 
 /* Check Args */
+EpmOptions = ''
 EpmCmdArgs = ''
+Dir = ''
 do 1
-   CheckArgs = Args
+   RestArgs = Args
 
+   /* Parse leading EPM options */
+   do forever
+      RestArgs = strip( RestArgs)
+      if left( RestArgs, 1) <> '/' then
+         leave
+      if substr( RestArgs, 3, 1) = '"' then
+      do
+         parse var RestArgs opt'"'optarg'"' RestArgs
+         nextopt = opt'"'optarg'"'
+      end
+      else
+         parse var RestArgs nextopt RestArgs
+      EpmOptions = EpmOptions nextopt
+   end
+   EpmOptions = strip( EpmOptions)
+   RestArgs = strip( RestArgs)
+
+   CheckArgs = RestArgs
    /* Strip double quotes */
    if left( CheckArgs, 1) = '"' & right( CheckArgs, 1) = '"' then
       CheckArgs = substr( CheckArgs, 2, length( CheckArgs) - 2)
@@ -78,27 +100,6 @@ do 1
       /* No Args, so execute only EpmCmd */
       leave
 
-/**/
-  /*'&' chars don't work in the Args string!*/
-
-   /* Get first part before a command separator */
-   parse var CheckArgs CheckArgs'&'RestArgs
-   CheckArgs = strip( CheckArgs)
-
-   /* Escape '&' control chars for the first CMD.EXE call */
-   StartPos = 1
-   do forever
-      p1 = pos( '&', Args, StartPos)
-      if p1 = 0 then
-         leave
-      Args = insert( '^^', Args, p1 - 1)
-      if substr( Args, p1, 2) = '&&' then
-         StartPos = p1 + 3
-      else
-         StartPos = p1 + 2
-   end
-/**/
-
    /* Check for a dir */
    /* Note: SysFileTree doesn't handle '\..' and '\.' correctly */
    Found.0 = 0
@@ -106,7 +107,8 @@ do 1
    if rcx = 0 & Found.0 <> 0 then
    do
       /* Dir found, change to it */
-      EpmCmdArgs = 'cdd' Args
+      Dir = CheckArgs
+      EpmCmdArgs = 'cdd' EscapeString( '"'Dir'"')
       leave
    end
 
@@ -121,25 +123,49 @@ do 1
       if lp <> 0 then
       do
          Dir = left( next, lp - 1)
+         RestArgs = substr( next, lp + 1)
          /* Change to dir and append Args */
-         EpmCmdArgs = 'cdd' Dir'^&'Args
+         EpmCmdArgs = 'cdd' EscapeString( '"'Dir'" & "'RestArgs'"')
          leave
       end
    end
 
    /* Not a dir nor a file, so try to execute it */
-   EpmCmdArgs = Args
+   EpmCmdArgs = RestArgs
    leave
 end
 
 /* Now build the command string */
+EpmCall = 'start epm'
+
+if EpmOptions <> '' then
+   EpmCall = EpmCall EpmOptions
+
 if EpmCmdProc <> '' then
    EpmCmd = EpmCmd EpmCmdProc
 if EpmCmdArgs <> '' then
    EpmCmd = EpmCmd EpmCmdArgs
 
 /* Execute it */
-"@start epm '"EpmCmd"'"
+EpmCall "'"EpmCmd"'"
 
 exit
+
+
+/* ----------------------------------------------------------------------- */
+EscapeString: procedure
+   parse arg String
+   Startp = 1
+   do forever
+      p1 = verify( String, '^&|', 'M', Startp)
+      if p1 = 0 then leave
+      chr1 = substr( String, 1, 1)
+      chr2 = substr( String, 2, 1)
+      String = insert( '^', String, p1 - 1)
+      if chr1 = chr2 & pos( chr1, '&|') > 0 then
+         Startp = p1 + 3
+      else
+         Startp = p1 + 2
+   end
+   return String
 
