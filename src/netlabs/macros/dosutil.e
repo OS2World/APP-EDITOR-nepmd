@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.19 2008-10-05 23:13:36 aschn Exp $
+* $Id: dosutil.e,v 1.20 2008-12-07 21:51:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -361,6 +361,10 @@ defproc DirProcessDirOfLine
 
       -- Execute
       if Dirname <> '' then
+         Dirname = strip( Dirname, 'B', '"')
+         if verify( Dirname, ' ^&|', 'M') > 0 then
+            Dirname = '"'Dirname'"'
+         endif
          'dir' Dirname
          rcx = 0  -- success
       endif
