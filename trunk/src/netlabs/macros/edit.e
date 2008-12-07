@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.47 2008-09-05 22:40:33 aschn Exp $
+* $Id: edit.e,v 1.48 2008-12-07 21:49:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -129,7 +129,7 @@ defproc PreLoadFile( Spec, Options)
       -- .filename as identifier, and replace the identifier with the fileid later
       -- at defload (or replace the array var with the final one).
 
-compile if 1
+compile if 0
       -- Experimentell codepage support
       call PreloadProcessCodepage( Filename)
 compile endif
@@ -287,6 +287,9 @@ defproc PreloadProcessCodepage( Filename)
    rc = 0
    CurCodepage = 'cp850'
    Codepage = NepmdQueryStringEa( Filename, 'EPM.CODEPAGE')
+   if Codepage = '' then
+      return 0
+   endif
    parse value Codepage with 'ERROR:'rc
    if rc = '' then
       rc = 0
@@ -992,7 +995,10 @@ defc EditCreateUserMacro
       if not rc then
          .filename = UserMacroFile
       endif
-      'postme mc ;1;RemoveNextHeader'
+      -- Disabled. The header could contain useful docs. In some cases
+      -- also the RCS id may be helpful to determine the original version
+      -- of the netlabs file.
+      --'postme mc ;1;RemoveNextHeader'
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1013,7 +1019,10 @@ defc EditCreateUserFile
       if not rc then
          .filename = UserFile
       endif
-      'postme mc ;1;RemoveNextHeader'
+      -- Disabled. The header could contain useful docs. In some cases
+      -- also the RCS id may be helpful to determine the original version
+      -- of the netlabs file.
+      --'postme mc ;1;RemoveNextHeader'
    endif
 
 ; ---------------------------------------------------------------------------
