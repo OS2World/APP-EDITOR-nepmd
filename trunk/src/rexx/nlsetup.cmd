@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.21 2008-11-23 13:03:14 aschn Exp $
+* $Id: nlsetup.cmd,v 1.22 2008-12-07 22:05:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -130,7 +130,11 @@ OTHERWISE
       'CALL DYNCFG';            IF (rc \= 0) THEN LEAVE
       /* The "NEPMD" param avoids the prompt */
       'CALL RENUDIRS NEPMD';    IF (rc \= 0) THEN LEAVE
-      'CALL EXPOBJ';            IF (rc \= 0) THEN LEAVE
+      /* Since WarpIN 1.0.18, WarpIN's database is openened */
+      /* non-shareable. This was moved to MAIN.E and is     */
+      /* executed on EPM's first start, without reporting   */
+      /* an error.                                          */
+      /*'CALL EXPOBJ';            IF (rc \= 0) THEN LEAVE*/
       'CALL INITREG';           IF (rc \= 0) THEN LEAVE
 
       /* The following doesn't always work reliable. */

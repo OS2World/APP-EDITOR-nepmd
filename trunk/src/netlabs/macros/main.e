@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.53 2008-12-07 22:02:46 aschn Exp $
+* $Id: main.e,v 1.54 2008-12-07 22:05:39 aschn Exp $
 *
 * ===========================================================================
 *
@@ -262,6 +262,10 @@ defc main2
       endif
       -- Reset ini key
       call SetProfile( nepmd_hini, App, Key, 0)
+      -- Execute install cmd here because for WarpIN 1.0.18 it can't read
+      -- WarpIN's database while WarpIN is running.
+      NepmdRootDir = Get_Env( 'NEPMD_ROOTDIR')
+      quietshell NepmdRootDir'\netlabs\install\expobj.cmd'
    endif
 
 compile if SHOW_WINDOW_EARLY = 0
