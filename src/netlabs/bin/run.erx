@@ -37,7 +37,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: run.erx,v 1.8 2008-11-22 22:52:19 aschn Exp $
+* $Id: run.erx,v 1.9 2008-12-07 22:17:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -108,9 +108,11 @@ else
    'sayerror RUN.ERX: Executing 'Action
 Action
 
+/*
 /* Restore directory */
 call directory '\'
 call directory SavedDir
+*/
 
 exit
 
@@ -119,6 +121,7 @@ exit
 Init:
 
    rc = 0
+   rcx = setlocal()
 
    /* Get .filename and .modify fields */
    'Extract /filename/modify'
