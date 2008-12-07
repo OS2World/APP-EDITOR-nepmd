@@ -39,7 +39,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: renudirs.cmd,v 1.10 2008-11-23 12:13:47 aschn Exp $
+* $Id: renudirs.cmd,v 1.11 2008-12-07 21:55:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -158,9 +158,18 @@ DO 1
          ITERATE
 
       /* Check for contained NEPMD.INI */
-      fContainsNepmdIni = FALSE
-      IF FileExist( OldDir'\NEPMD.INI') THEN
+      fContainsNepmdIni     = FALSE
+      fContainsOnlyNepmdIni = FALSE
+      DO 1
+         IF \FileExist( OldDir'\NEPMD.INI') THEN
+            LEAVE
          fContainsNepmdIni = TRUE
+         IF NumberOfExistingFiles( OldDir'\NEPMD.INI') = 1 THEN
+            fContainsOnlyNepmdIni = TRUE
+      END
+      /* No need to xcopy just NEPMD.INI, it will be reused */
+      IF fContainsOnlyNepmdIni THEN
+         LEAVE
 
       NewDirName = SubDir.i'_'IsoDate
       NewDir     = UserDir'\'NewDirName
@@ -265,6 +274,16 @@ FileExist: PROCEDURE
    rcx = SysFileTree( Filename, 'Found.', 'FO')
 
    RETURN( Found.0 > 0)
+
+/* ------------------------------------------------------------------------- */
+/* Find also hidden files */
+NumberOfExistingFiles: PROCEDURE
+   PARSE ARG Filename
+
+   Found.0 = 0
+   rcx = SysFileTree( Filename, 'Found.', 'FO')
+
+   RETURN( Found.0)
 
 /* ------------------------------------------------------------------------- */
 DirExist: PROCEDURE
