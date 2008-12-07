@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.21 2008-09-14 15:32:43 aschn Exp $
+* $Id: toolbar.e,v 1.22 2008-12-07 21:45:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -312,6 +312,7 @@ defproc GetDefaultToolbar
 ; Save current toolbar to EPM.INI.
 ; Syntax: SaveToolbar [<bar_name>]
 ; Default <bar_name> is current name.
+; This is also used by the toolbar's context menu item "Save as...".
 defc save_toolbar, SaveToolbar
    universal app_hini
    universal appname
