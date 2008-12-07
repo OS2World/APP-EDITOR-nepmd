@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.52 2008-09-05 22:57:36 aschn Exp $
+* $Id: main.e,v 1.53 2008-12-07 22:02:46 aschn Exp $
 *
 * ===========================================================================
 *
@@ -53,15 +53,6 @@ defmain
    universal unnamedfilename  -- use NLS-dependent string from EPMMRI.DLL or
                               -- ETKE603.DLL, not the one from ENGLISH.E
    universal DisplayDisabled  -- suppress screen refresh during file loading
-   universal loadstate        -- init loadstate here
-                  -- This universal var can be used to check if there occured
-                  -- a defload event after the last afterload was processed.
-                  --    empty: before a file is loaded
-                  --    1: defload is running
-                  --    2: defload processed
-                  --    0: afterload processed
-   universal firstloadedfid  -- first loaded file
-   universal firstinringfid  -- first file in the ring
 
 ;  Get args -----------------------------------------------------------------
    -- arg(1) contains all args, that where submitted to EPM.EXE, after
