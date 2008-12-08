@@ -39,7 +39,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: renudirs.cmd,v 1.11 2008-12-07 21:55:03 aschn Exp $
+* $Id: renudirs.cmd,v 1.12 2008-12-08 22:29:48 aschn Exp $
 *
 * ===========================================================================
 *
@@ -164,7 +164,7 @@ DO 1
          IF \FileExist( OldDir'\NEPMD.INI') THEN
             LEAVE
          fContainsNepmdIni = TRUE
-         IF NumberOfExistingFiles( OldDir'\NEPMD.INI') = 1 THEN
+         IF NumberOfExistingFiles( OldDir'\*') = 1 THEN
             fContainsOnlyNepmdIni = TRUE
       END
       /* No need to xcopy just NEPMD.INI, it will be reused */
