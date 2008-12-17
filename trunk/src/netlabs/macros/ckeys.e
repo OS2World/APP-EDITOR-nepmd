@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.18 2006-10-23 16:41:24 aschn Exp $
+* $Id: ckeys.e,v 1.19 2008-12-17 23:11:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -621,6 +621,7 @@ defproc c_second_expansion
       wrd = strip(wrd, 'b', \9)
       wrd = strip(wrd)
       ws  = substr( line, 1, max( verify( line, ' '\9) - 1, 0))  -- ws  = indent of current line
+      wsh = ws''substr( '', 1, GetCIndent()%2)                   -- wsh = indent of current line plus half syntax indent
       ws1 = ws''substr( '', 1, GetCIndent())                     -- ws1 = indent of current line plus syntax indent
       ws2 = ws1''substr( '', 1, GetCIndent())                    -- ws2 = indent of current line plus 2x syntax indent
       -- problem if tab at the end instead of spaces:
@@ -769,7 +770,13 @@ defproc c_second_expansion
             sline_r = leftstr( sline_r, length( sline_r) - 1)
             insertline ws'}', .line + 1;
          endif
-         insertline ws1''sline_r, .line + 1; down; .col = length( ws1) + 1
+         if c_brace_style = 'INDENT' then
+            insertline ws''sline_r, .line + 1; down; .col = length( ws) + 1
+         elseif c_brace_style = 'HALFINDENT' then
+            insertline wsh''sline_r, .line + 1; down; .col = length( wsh) + 1
+         else
+            insertline ws1''sline_r, .line + 1; down; .col = length( ws1) + 1
+         endif
 
       elseif firstword = 'MAIN' | (firstword = 'INT' & secondword = 'MAIN') then
          if not pos( '(', line) then
