@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: makeactn.e,v 1.5 2008-09-14 15:32:40 aschn Exp $
+* $Id: makeactn.e,v 1.6 2008-12-20 12:55:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -232,7 +232,7 @@ defc mk_bringfile
          parse value Error_parms  with FileName''LineNum''ColumnNum''foo
          if FileName = myFileName then
             sayerror 'setting bookmark #'i
-            markname = 'Error_'index'_'i MK_ERROR_MARKTYPE LineNum ColumnNum
+            markname = 'error_'index'_'i MK_ERROR_MARKTYPE LineNum ColumnNum
             'setmark' markname
          endif
       endfor
@@ -285,8 +285,8 @@ defc MK_build
 
   -- Check if there is an active shell for this build env
   display -2
-  --do_array 3, EPM_Utility_array_ID, 'Shell_f'build_shellid, shell_fileid
-  rc = get_array_value( EPM_Utility_array_ID, 'Shell_f'build_shellid, shell_fileid )
+  --do_array 3, EPM_Utility_array_ID, 'shell_f'build_shellid, shell_fileid
+  rc = get_array_value( EPM_Utility_array_ID, 'shell_f'build_shellid, shell_fileid )
   rc = 0
   activatefile shell_fileid
   display 2
@@ -301,8 +301,8 @@ defc MK_build
    'shell_write' build_shellid build_drive
    'shell_write' build_shellid ' cd ' build_dir
    -- save the shell line in which the build begins
-   --do_array 3, EPM_Utility_array_ID, 'Shell_f'build_shellid, build_shell_fileid
-   rc = get_array_value( EPM_Utility_array_ID, 'Shell_f'build_shellid, build_shell_fileid )
+   --do_array 3, EPM_Utility_array_ID, 'shell_f'build_shellid, build_shell_fileid
+   rc = get_array_value( EPM_Utility_array_ID, 'shell_f'build_shellid, build_shell_fileid )
    build_start_line = build_shell_fileid.last
    -- actually start the build
    'shell_write' build_shellid build_command
@@ -310,7 +310,7 @@ defc MK_build
    buildargs    = build_drive''build_dir''build_shellid''build_command''build_start_line''build_number''build_error_num
    do_array 2, Build_array_id, index, buildargs
    -- Erase any previous array of errors for this build environment.
-   Errors_array_name = 'Errors_'index
+   Errors_array_name = 'errors_'index
    display -2
    do_array 6, Errors_array_id, Errors_array_name
    display 2
@@ -355,15 +355,15 @@ defc MK_view_error
    ------------------------------------------------------------
    -- If the errors array for this env doesn't exist, create it
    ------------------------------------------------------------
-   Errors_array_name = 'Errors_'index
+   Errors_array_name = 'errors_'index
    display -2
    do_array 6, Errors_array_id, Errors_array_name
    display 2
    if Errors_array_id=-1 then
-      do_array 1, Errors_array_id, 'Errors_'index
+      do_array 1, Errors_array_id, 'errors_'index
       build_error_num   = 0
-      --do_array 3, EPM_Utility_array_id, 'Shell_f'build_shellid, build_shell_fileid
-      rc = get_array_value( EPM_Utility_array_id, 'Shell_f'build_shellid, build_shell_fileid )
+      --do_array 3, EPM_Utility_array_id, 'shell_f'build_shellid, build_shell_fileid
+      rc = get_array_value( EPM_Utility_array_id, 'shell_f'build_shellid, build_shell_fileid )
       for line = build_start_line to build_shell_fileid.last
          getline errorline, line, build_shell_fileid
          if isadefproc( 'mk_parse_errline' ) then
@@ -412,8 +412,8 @@ defc MK_view_error
 
    'mk_bringfile' myFileName build_drive build_dir build_number build_error_num Errors_array_id index
 
-   markname = 'Error_'index'_'myerror_num
-   'gomark'  markname
+   markname = 'error_'index'_'myerror_num
+   'gomark' markname
    sayerror myErrormsg
    -- set the current error in the environment array
    build_cur_err = myerror_num
@@ -444,7 +444,7 @@ defc MK_next_err
    parse value buildargs with build_drive''build_dir''build_shellid''build_command''build_cur_err''build_start_line''build_number''build_error_num
    do forever
       build_cur_err = build_cur_err + 1
-      Errors_array_name = 'Errors_'index
+      Errors_array_name = 'errors_'index
       do_array 6, Errors_array_id, Errors_array_name
       --do_array 3, Errors_array_id, build_cur_err, error_parms
       rc = get_array_value( Errors_array_id, build_cur_err, error_parms )
@@ -458,8 +458,8 @@ defc MK_next_err
    enddo
    if error_parms<>'' then
       'mk_bringfile' FileName build_drive build_dir build_number build_error_num Errors_array_id index
-      markname = 'Error_'index'_'build_cur_err
-      'gomark'  markname
+      markname = 'error_'index'_'build_cur_err
+      'gomark' markname
       sayerror Error_msg
       -- update build_cur_err
       buildargs = build_drive''build_dir''build_shellid''build_command''build_cur_err''build_start_line''build_number''build_error_num
@@ -492,7 +492,7 @@ defc MK_prev_err
    parse value buildargs with build_drive''build_dir''build_shellid''build_command''build_cur_err''build_start_line''build_number''build_error_num
    do forever
       build_cur_err = build_cur_err - 1
-      Errors_array_name = 'Errors_'index
+      Errors_array_name = 'errors_'index
       do_array 6, Errors_array_id, Errors_array_name
       --do_array 3, Errors_array_id, build_cur_err, error_parms
       rc = get_array_value( Errors_array_id, build_cur_err, error_parms )
@@ -506,8 +506,8 @@ defc MK_prev_err
    enddo
    if error_parms<>'' then
       'mk_bringfile' FileName build_drive build_dir build_number build_error_num Errors_array_id index
-      markname = 'Error_'index'_'build_cur_err
-      'gomark'  markname
+      markname = 'error_'index'_'build_cur_err
+      'gomark' markname
       sayerror Error_msg
       -- update cur_err
       buildargs = build_drive''build_dir''build_shellid''build_command''build_cur_err''build_start_line''build_number''build_error_num
@@ -538,15 +538,15 @@ defc MK_cur_descr
    --do_array 3, Build_array_id, index, buildargs
    rc = get_array_value( Build_array_id, index, buildargs )
    parse value buildargs with build_drive''build_dir''build_shellid''build_command''build_cur_err''build_start_line''build_number''build_error_num
-   Errors_array_name = 'Errors_'index
+   Errors_array_name = 'errors_'index
    do_array 6, Errors_array_id, Errors_array_name
    --do_array 3, Errors_array_id, build_cur_err, error_parms
    rc = get_array_value( Errors_array_id, build_cur_err, error_parms )
    if error_parms<>'' then
       parse value error_parms with FileName''line''column''error_level''Error_msg''ShellLine
       'mk_bringfile' FileName build_drive build_dir build_number build_error_num Errors_array_id index
-      markname = 'Error_'index'_'build_cur_err
-      'gomark'  markname
+      markname = 'error_'index'_'build_cur_err
+      'gomark' markname
       sayerror Error_msg
    else
       sayerror ' ------- no current error ---------- '
