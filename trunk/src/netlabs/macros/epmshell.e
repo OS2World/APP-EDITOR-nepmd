@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.39 2008-12-25 02:14:11 aschn Exp $
+* $Id: epmshell.e,v 1.40 2008-12-25 02:15:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -872,7 +872,6 @@ defproc ShellResolveAlias
 
    Rest = arg(1)
 
-   SepChars   = ' |&<>-+:,;\*'
    EscapeChar = '*'  -- Make sure that it is also included in SepChars!
    ResolvedString = ''
    NextString = ''
