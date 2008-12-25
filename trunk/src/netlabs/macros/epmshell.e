@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.40 2008-12-25 02:15:56 aschn Exp $
+* $Id: epmshell.e,v 1.41 2008-12-25 12:35:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -930,13 +930,6 @@ defproc ShellResolveAlias
    return ResolvedString
 
 ; ---------------------------------------------------------------------------
-; Todo:
-;    o  Write key=value lines to a temp file and sort it before setting the
-;       array vars. On finding a matching key, the array should be searched
-;       from the end to find the longest matching string.
-;    o  Rebuild array on save.
-;    o  After "Edit ALIAS.INI" and trying to create a file with SmartSave,
-;       the file isn't saved, but the message "No changes" appears.
 defproc ShellReadAliasFile
 
    ValidApplications = 'SHELL'
@@ -946,18 +939,22 @@ defproc ShellReadAliasFile
       IniFile = Get_Env( 'NEPMD_USERDIR')'\bin\alias.ini'
    endif
    if not Exist( IniFile) then
-      return 2
+      rc = 2
+      return
    endif
 
-   Application = ''
-   a = 0
-
+   getfileid CurFid
    'DisableLoad'
    'DisableSelect'
+
+   -- Load ini
    'xcom e /d' IniFile
+   a = 0
+   Application = ''
    if rc = 0 then
       getfileid IniFid
       .visible = 0
+      .autosave = 0
 
       -- Delete array
       preva = GetAVar( 'alias.key.'0)
@@ -969,6 +966,22 @@ defproc ShellReadAliasFile
          call SetAVar( 'alias.key.'0, 0)
       endif
 
+      -- Load temp file for sorting
+      'xcom e /c /q tempfile'
+      if rc <> -282 then  -- sayerror('New file')
+         sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
+         return
+      endif
+      getfileid TempFid
+      .visible = 0
+      .autosave = 0
+      browse_mode = browse()  -- query current state
+      if browse_mode then
+         call browse(0)
+      endif
+
+      -- Read ini
+      activatefile IniFid
       do l = 1 to .last
 
          IniLine = textline(l)
@@ -1000,30 +1013,51 @@ defproc ShellReadAliasFile
          if wordpos( Application, ValidApplications) = 0 then
             iterate
          else
-            --call NepmdPmPrintf( 'A = 'Application', K = 'KeyWord', V = 'KeyValue)
-            -- Add to array
-            a = a + 1
-            call SetAVar( 'alias.key.'a, KeyWord)
-            call SetAVar( 'alias.value.'a, KeyValue)
+            -- Append to temp file
+            -- Use \1 as seperator because of its low ASCII value,
+            -- '=' wouldn't be a good choice for sorting.
+            insertline KeyWord''\1''KeyValue, TempFid.last + 1, TempFid
             --dprintf( 'Read alias file: Key = 'KeyWord', Value = 'KeyValue)
          endif
 
       enddo
-      call SetAVar( 'alias.key.'0, a)
-      --dprintf( 'Read alias file: a = 'a)
+      -- Quit ini
       activatefile IniFid
       .modify = 0
       'quit'
+
+      -- Sort temp file to allow for finding the longest matched key
+      activatefile TempFid
+      if .last > 2 then
+         call sort( 2, .last, 1, 40, TempFid, 'I')
+      endif
+
+      -- Add lines to array
+      do l = 2 to .last
+         parse value textline( l) with Keyword''\1''KeyValue
+         a = a + 1
+         call SetAVar( 'alias.key.'a, KeyWord)
+         call SetAVar( 'alias.value.'a, KeyValue)
+         --dprintf( 'Sort alias keys: a = 'a', Key = 'KeyWord', Value = 'KeyValue)
+      enddo
+      call SetAVar( 'alias.key.'0, a)
+
+      -- Quit temp file
+      activatefile TempFid
+      .modify = 0
+      'xcom quit'
    else
       if rc = -282 then  -- sayerror('New file')
-         'xcom q'
+         'xcom quit'
       endif
       sayerror 'Error reading ini file 'inifile
       rc = 30
    endif
+
    'EnableLoad'
    'EnableSelect'
-   return rc
+   activatefile CurFid
+   return
 
 ; ---------------------------------------------------------------------------
 defc ShellReadAliasFile
