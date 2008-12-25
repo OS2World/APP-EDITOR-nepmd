@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.38 2008-11-13 10:54:54 aschn Exp $
+* $Id: epmshell.e,v 1.39 2008-12-25 02:14:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -880,46 +880,64 @@ defproc ShellResolveAlias
    PrevSep = ''
    ThisSep = ''
    amax = GetAVar( 'alias.key.0')
+   if amax = '' then
+      rc = ShellReadAliasFile()
+      if rc <> 0 then
+         return Rest
+      endif
+   endif
 
    do while Rest <> ''
-      PrevSep = ThisSep
-      p1 = verify( Rest, SepChars, 'M')
-      if p1 > 0 then
-         ThisSep = substr( Rest, p1, 1)
-         Next = leftstr( Rest, p1 - 1)
-         Rest = substr( Rest, p1 + 1)
-      else
-         Next = Rest
-         Rest = ''
-      endif
-      --dprintf( 'Alias: Next = 'Next', Rest = 'Rest)
 
-      -- Find Next in array
-      UpNext = upcase( Next)
-      fFound = 0
-      do a = 1 to amax
+      -- Find string at p in alias keys
+      -- Start at the end of the array to match the longest string
+      UpRest = upcase( Rest)
+      Val = ''
+      do a = amax to 1 by -1
          --dprintf( 'Alias: a = 'a', Key = 'GetAVar( 'alias.key.'a))
-         if upcase( GetAVar( 'alias.key.'a)) = UpNext then
-            fFound = 1
+         Key = GetAVar( 'alias.key.'a)
+         UpKey = upcase( Key)
+         if abbrev( UpRest, UpKey) = 1 then
+            -- Handle EscapeChar
+            if rightstr( ResolvedString, 1) = EscapeChar then
+               -- Remove it
+               ResolvedString = leftstr( ResolvedString, length( ResolvedString) - 1)
+               -- Keep found key
+               Val = Key
+            else
+               -- Replace key with value
+               Val = GetAVar( 'alias.value.'a)
+            endif
             leave
          endif
       enddo
-      if fFound = 0 then
-         ResolvedString = ResolvedString''PrevSep''Next
+
+      if Val <> '' then
+         -- Found, advance search pos by length of key
+         pDelta = length( Key)
       else
-         if PrevSep = EscapeChar then
-            ResolvedString = ResolvedString''Next
-         else
-            ResolvedString = ResolvedString''PrevSep''GetAVar( 'alias.value.'a)
-         endif
+         -- Not found, advance search pos by 1
+         pDelta = 1
+         Val = leftstr( Rest, 1)
       endif
+
+      ResolvedString = ResolvedString''Val
+      Rest = substr( Rest, pDelta + 1)
 
    enddo
    --dprintf( 'ResolvedString = 'ResolvedString)
+   rc = 0
 
    return ResolvedString
 
 ; ---------------------------------------------------------------------------
+; Todo:
+;    o  Write key=value lines to a temp file and sort it before setting the
+;       array vars. On finding a matching key, the array should be searched
+;       from the end to find the longest matching string.
+;    o  Rebuild array on save.
+;    o  After "Edit ALIAS.INI" and trying to create a file with SmartSave,
+;       the file isn't saved, but the message "No changes" appears.
 defproc ShellReadAliasFile
 
    ValidApplications = 'SHELL'
