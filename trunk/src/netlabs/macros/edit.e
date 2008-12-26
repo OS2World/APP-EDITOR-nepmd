@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.48 2008-12-07 21:49:50 aschn Exp $
+* $Id: edit.e,v 1.49 2008-12-26 12:42:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -92,29 +92,28 @@ defproc PreLoadFile( Spec, Options)
       return rc
    endif
 
-   fWildcard = (pos( '*', Spec) + pos( '?', Spec) > 0);
+   fWildcard = (pos( '*', Spec) + pos( '?', Spec) > 0)
 
    -- Resolve wildcards in Spec to delete REXX EAs for every REXX file
    -- and for setting universal vars
    Handle = GETNEXT_CREATE_NEW_HANDLE  -- always create a new handle!
-   fLoop = 1
-   do while fLoop = 1
+   fNoMoreFiles = 0
+   do while fNoMoreFiles = 0
       if fWildcard then
          -- If Spec contains wildcards then find Filenames
          Filename = NepmdGetNextFile( Spec, address( Handle))
          parse value Filename with 'ERROR:'rcx
          if rcx <> '' then
-            leave
+            fNoMoreFiles = 1
+         else
+            filestoload = filestoload + 1
          endif
-         filestoload = filestoload + 1
-         filestoloadmax = filestoload
       else
          -- If Spec doesn't contain wildcards then set Filename to make the
          -- edit command add a file to the ring, even when it doesn't exist
          Filename = Spec
          filestoload = 1
-         filestoloadmax = filestoload
-         fLoop = 0
+         fNoMoreFiles = 1
       endif
       --sayerror 'Spec = 'Spec', Filename = 'Filename
       dprintf( 'EDIT', 'PreLoadFile: Spec = 'Spec', Filename = 'Filename)
@@ -135,6 +134,7 @@ compile if 0
 compile endif
 
    enddo
+   filestoloadmax = filestoload
 
    -- Load the file.
    -- Add "..." here to enable loading file names with spaces and
@@ -994,11 +994,11 @@ defc EditCreateUserMacro
       'Edit 'NetlabsMacroFile
       if not rc then
          .filename = UserMacroFile
+         -- Disabled. The header could contain useful docs. In some cases
+         -- also the RCS id may be helpful to determine the original version
+         -- of the netlabs file.
+         --'postme mc ;1;RemoveNextHeader'
       endif
-      -- Disabled. The header could contain useful docs. In some cases
-      -- also the RCS id may be helpful to determine the original version
-      -- of the netlabs file.
-      --'postme mc ;1;RemoveNextHeader'
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1018,11 +1018,11 @@ defc EditCreateUserFile
       'Edit 'NetlabsFile
       if not rc then
          .filename = UserFile
+         -- Disabled. The header could contain useful docs. In some cases
+         -- also the RCS id may be helpful to determine the original version
+         -- of the netlabs file.
+         --'postme mc ;1;RemoveNextHeader'
       endif
-      -- Disabled. The header could contain useful docs. In some cases
-      -- also the RCS id may be helpful to determine the original version
-      -- of the netlabs file.
-      --'postme mc ;1;RemoveNextHeader'
    endif
 
 ; ---------------------------------------------------------------------------
