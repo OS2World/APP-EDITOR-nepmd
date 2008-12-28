@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.25 2008-09-21 22:40:39 aschn Exp $
+* $Id: alt_1.e,v 1.26 2008-12-28 01:15:28 aschn Exp $
 *
 * ===========================================================================
 *
@@ -984,7 +984,11 @@ defproc A1SelectTreeDir
 ;    current dir.
 defproc a1load( FileName, SearchPath)
    fTryCurFirst = (arg(3) = 1)
-   WildcardPos = verify( FileName, '*?', 'M')
+   if leftstr( FileName, 2) = '?:' then
+      WildcardPos = verify( substr( FileName, 3), '*?', 'M')
+   else
+      WildcardPos = verify( FileName, '*?', 'M')
+   endif
 
    if WildcardPos then
       if YES_CHAR <> askyesno( WILDCARD_WARNING__MSG, '', filename) then
