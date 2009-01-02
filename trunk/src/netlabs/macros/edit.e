@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: edit.e,v 1.49 2008-12-26 12:42:34 aschn Exp $
+* $Id: edit.e,v 1.50 2009-01-02 13:28:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -69,7 +69,7 @@
 ; ---------------------------------------------------------------------------
 ; Pre-processing before calling the LoadFile defproc. Same syntax as
 ; LoadFile. Calls itself LoadFile at the end. (LoadFile is defined in
-; SLNOHOST.E/SAVELOAD.E/E3EMUL.E. Without HOST_SUPPORT, always SLNOHOST.E is
+; SLNOHOST.E / SAVELOAD.E / E3EMUL.E. Without HOST_SUPPORT, always SLNOHOST.E is
 ; included.)
 ; Checks a filespec, even wildcards, to remove REXX EAs before loading.
 ; Called by defc Edit.
@@ -90,6 +90,11 @@ defproc PreLoadFile( Spec, Options)
    if pos( '://', Spec) > 0 then
       rc = LoadUrl( Spec, Options)
       return rc
+   endif
+
+   -- Change slashes to backslashes, except for URLs
+   if pos( '://', Spec) = 0 then
+      Spec = translate( Spec, '\', '/')
    endif
 
    fWildcard = (pos( '*', Spec) + pos( '?', Spec) > 0)
@@ -1389,4 +1394,13 @@ defproc parse_file_n_opts(argstr)
 defc insert_text_file
    'get 'arg(1)
 
+; ---------------------------------------------------------------------------
+; Moved from TREE.E, because this is posted, after TREE.EX has been unloaded.
+defc MaybeQuitPrevTreeFile
+   getfileid curfid
+   prevfile
+   if upcase( leftstr( .filename, 5)) = '.TREE' then
+      'q'
+      activatefile curfid
+   endif
 

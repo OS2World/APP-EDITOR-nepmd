@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tree.e,v 1.7 2008-09-21 22:40:38 aschn Exp $
+* $Id: tree.e,v 1.8 2009-01-02 13:28:07 aschn Exp $
 *
 * ===========================================================================
 *
@@ -267,14 +267,6 @@ defproc tree_common_finish( tree_id, file_count, total_size, title)
    else
       'xcom q'
       sayerror 'No hits.'
-   endif
-
-defc MaybeQuitPrevTreeFile
-   getfileid curfid
-   prevfile
-   if upcase( leftstr( .filename, 5)) = '.TREE' then
-      'q'
-      activatefile curfid
    endif
 
 
