@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.59 2008-11-22 22:59:22 aschn Exp $
+* $Id: newmenu.e,v 1.60 2009-01-24 22:31:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2562,12 +2562,17 @@ if not MenuItemsHidden then
    buildmenuitem menuname, mid, i, 'C~ursor',                                                      -- Cursor  >
                                    'Cursor and scroll settings',
                                    MIS_TEXT + MIS_SUBMENU, mpfrom2short(HP_OPTIONS_PREFERENCES, 0)
+   i = i + 1; call SetAVar( 'mid_cursoreverywhere', i);
+   buildmenuitem menuname, mid, i, '~Allow cursor ~everywhere',                                          -- Allow cursor everywhere
+                                   'toggle_cursor_everywhere' ||
+                                   \1'Make cursor keys position the cursor everywhere',
+                                   MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_keepcursoronscreen', i);
    buildmenuitem menuname, mid, i, '~Keep cursor on screen',                                             -- Keep cursor on screen
                                    'toggle_keep_cursor_on_screen' ||
                                    \1'Synchronize cursor''s vertical pos. with screen',
                                    MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_scrollafterlocate', i); call SetAVar( 'mtxt_scrollafterlocate', 'Scroll after locate []...');
+   i = i + 1; call SetAVar( 'mid_scrollafterlocate', i); call SetAVar( 'mtxt_scrollafterlocate', 'Scroll after ~locate []...');
    buildmenuitem menuname, mid, i, GetAVar('mtxt_scrollafterloacate'),                                   -- Scroll after locate []...
                                    'SetScrollAfterLocate' ||
                                    \1'View found string at a special v-pos.',
@@ -3714,9 +3719,13 @@ defc menuinit_readonlyandlock
 defc menuinit_cursorsettings
    universal nepmd_hini
 
+   KeyPath = '\NEPMD\User\Scroll\CursorEverywhere'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   SetMenuAttribute( GetAVar('mid_cursoreverywhere'),   MIA_CHECKED, not on)
+
    KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_keepcursoronscreen'),         MIA_CHECKED, not on)
+   SetMenuAttribute( GetAVar('mid_keepcursoronscreen'), MIA_CHECKED, not on)
 
    KeyPath = '\NEPMD\User\Scroll\AfterLocate'
    new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -4419,6 +4428,18 @@ defc toggle_drag_always_marks
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    SetMenuAttribute( GetAVar('mid_dragalwaysmarks'), MIA_CHECKED, not on)
   'mouse_init'  -- refresh the register_mousehandler defs
+
+; ---------------------------------------------------------------------------
+defc toggle_cursor_everywhere
+   universal nepmd_hini
+   universal cursoreverywhere
+   KeyPath = '\NEPMD\User\Scroll\CursorEverywhere'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
+   SetMenuAttribute( GetAVar('mid_cursoreverywhere'), MIA_CHECKED, not on)
+   cursoreverywhere = on
 
 ; ---------------------------------------------------------------------------
 defc toggle_keep_cursor_on_screen

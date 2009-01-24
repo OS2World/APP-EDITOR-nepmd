@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.21 2008-09-21 22:40:39 aschn Exp $
+* $Id: mouse.e,v 1.22 2009-01-24 22:31:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -303,6 +303,7 @@ compile endif
 ; ---------------------------------------------------------------------------
 defc MH_gotoposition
    universal stream_mode
+   universal cursoreverywhere
    -- this procedure moves the cursor to the current mouse location.
 ;;
 ;;  Old way
@@ -332,7 +333,7 @@ compile endif
          MouseOff = MouseOff - 1
       endwhile
    endif
-   if stream_mode then
+   if not cursoreverywhere then
       if .col > length(textline(.line)) then
          end_line
       endif
