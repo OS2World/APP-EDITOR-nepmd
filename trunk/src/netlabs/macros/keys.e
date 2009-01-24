@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.25 2008-11-30 22:25:18 aschn Exp $
+* $Id: keys.e,v 1.26 2009-01-24 22:31:35 aschn Exp $
 *
 * ===========================================================================
 *
@@ -96,7 +96,13 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 definit
+   universal cursoreverywhere
    universal blockreflowflag
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\Scroll\CursorEverywhere'
+   cursoreverywhere = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+
    blockreflowflag = 0
 compile if defined(ACTIONS_ACCEL__L)  -- For CUSTEPM support
    call AddAVar( 'usedmenuaccelerators', 'A')
@@ -885,8 +891,8 @@ defproc shifted
 ; ---------------------------------------------------------------------------
 defproc updownkey( down_flag)
    universal save_cursor_column
-   universal stream_mode
-   if stream_mode then
+   universal cursoreverywhere
+   if not cursoreverywhere then
       lk = lastkey(1)
       updn = pos( leftstr( lk, 1), \x18\x16) & pos( substr( lk, 2, 1), \x02\x0A\x12)   -- VK_DOWN or VK_UP, plain or Shift or Ctrl
       if not updn then
@@ -900,7 +906,7 @@ defproc updownkey( down_flag)
       up
    endif
 
-   if .line & stream_mode then
+   if .line & not cursoreverywhere then
       l = length( textline(.line))
       if updn & l >= save_cursor_column then
          .col = save_cursor_column
@@ -2009,7 +2015,7 @@ defc InsertToggle
 
 defc PrevChar
    universal cua_marking_switch
-   universal stream_mode
+   universal cursoreverywhere
    call EnableUndoRec()
 /*
 -- Don't like hscroll
@@ -2019,7 +2025,7 @@ compile if RESPECT_SCROLL_LOCK
    else
 compile endif
 */
-      if .line > 1 & .col = 1 & stream_mode then
+      if .line > 1 & .col = 1 & not cursoreverywhere then
          up
          end_line
       else
@@ -2091,7 +2097,7 @@ defc MarkPageDown
    endif
 
 defc NextChar
-   universal stream_mode
+   universal cursoreverywhere
    universal cua_marking_switch
    call EnableUndoRec()
    if cua_marking_switch then
@@ -2110,10 +2116,10 @@ compile endif
       else
          l = .col
       endif
-      if (.line < .last) & (.col > l) & stream_mode then
+      if (.line < .last) & (.col > l) & not cursoreverywhere then
          down
          begin_line
-      elseif (.line = .last) & (.col > l) & stream_mode then
+      elseif (.line = .last) & (.col > l) & not cursoreverywhere then
          -- nop
       else
          right
