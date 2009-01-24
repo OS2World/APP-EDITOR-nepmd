@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.60 2009-01-24 22:31:35 aschn Exp $
+* $Id: newmenu.e,v 1.61 2009-01-24 22:35:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2563,7 +2563,7 @@ if not MenuItemsHidden then
                                    'Cursor and scroll settings',
                                    MIS_TEXT + MIS_SUBMENU, mpfrom2short(HP_OPTIONS_PREFERENCES, 0)
    i = i + 1; call SetAVar( 'mid_cursoreverywhere', i);
-   buildmenuitem menuname, mid, i, '~Allow cursor ~everywhere',                                          -- Allow cursor everywhere
+   buildmenuitem menuname, mid, i, '~Allow cursor everywhere',                                          -- Allow cursor everywhere
                                    'toggle_cursor_everywhere' ||
                                    \1'Make cursor keys position the cursor everywhere',
                                    MIS_TEXT, nodismiss
@@ -2572,7 +2572,7 @@ if not MenuItemsHidden then
                                    'toggle_keep_cursor_on_screen' ||
                                    \1'Synchronize cursor''s vertical pos. with screen',
                                    MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_scrollafterlocate', i); call SetAVar( 'mtxt_scrollafterlocate', 'Scroll after ~locate []...');
+   i = i + 1; call SetAVar( 'mid_scrollafterlocate', i); call SetAVar( 'mtxt_scrollafterlocate', '~Scroll after locate []...');
    buildmenuitem menuname, mid, i, GetAVar('mtxt_scrollafterloacate'),                                   -- Scroll after locate []...
                                    'SetScrollAfterLocate' ||
                                    \1'View found string at a special v-pos.',
