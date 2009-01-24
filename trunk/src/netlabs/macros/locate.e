@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.32 2008-09-14 15:44:19 aschn Exp $
+* $Id: locate.e,v 1.33 2009-01-24 16:46:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -259,29 +259,29 @@ defc l, locate
                Foreward = lastpos( 'F', search_options) > lastpos( 'R', search_options)
                Downward = lastpos( '+', search_options) > lastpos( '-', search_options)
                if Foreward then
-                 next = .col + length(search_string)
-                 if next > length( textline(.line)) then
-                    if Downward & .line < .last then
-                       down
-                    elseif not Downward & .line > 1 then
-                       up
-                    endif
-                    .col = 1
-                 else
-                    .col = next
-                 endif
+                  next = .col + length(search_string)
+                  if next > length( textline(.line)) then
+                     if Downward & .line < .last then
+                        down
+                     elseif not Downward & .line > 1 then
+                        up
+                     endif
+                     .col = 1
+                  else
+                     .col = next
+                  endif
                else
-                 next = .col - length(search_string)
-                 if next < 0 then
-                    if Downward & .line < .last then
-                       down
-                    elseif not Downward & .line > 1 then
-                       up
-                    endif
-                    .col = length( textline(.line))
-                 else
-                    .col = next
-                 endif
+                  next = .col - length(search_string)
+                  if next < 0 then
+                     if Downward & .line < .last then
+                        down
+                     elseif not Downward & .line > 1 then
+                        up
+                     endif
+                     .col = length( textline(.line))
+                  else
+                     .col = next
+                  endif
                endif
             endif
          endif
@@ -465,8 +465,9 @@ defc c, change
    getfileid fid
    -- Remove 'T' and 'B' temporarily if this is a ChangeNext in the same file
    -- as for the last change and if only next found string should be changed
-   if fid = lastchangefid then
-      if (fChangeNext = 1 & not pos( '*', search_options)) then
+   if fid = lastchangefid | fid = lastsearchfid then
+      if (fChangeNext = 1 & not pos( '*', search_options)) |
+         (lastsearchargs = previoussearchargs) then
 
          -- Remove 'T' and 'B'
          do forever
@@ -482,33 +483,33 @@ defc c, change
          ChangeArgs = delim''search_string''delim''replace_string''delim''search_options
 
          if lastchangepos = .line' '.col then
-            if PreviousChangeArgs = lastchangeargs then
+            if PreviousChangeArgs = lastchangeargs | lastchangepos = lastsearchpos then
                -- Move cursor to not find the just changed string again
                Foreward = lastpos( 'F', search_options) > lastpos( 'R', search_options)
                Downward = lastpos( '+', search_options) > lastpos( '-', search_options)
                if Foreward then
-                 next = .col + length(replace_string)
-                 if next > length( textline(.line)) then
-                    if Downward & .line < .last then
-                       down
-                    elseif not Downward & .line > 1 then
-                       up
-                    endif
-                    .col = 1
-                 else
-                    .col = next
-                 endif
+                  next = .col + length(replace_string)
+                  if next > length( textline(.line)) then
+                     if Downward & .line < .last then
+                        down
+                     elseif not Downward & .line > 1 then
+                        up
+                     endif
+                     .col = 1
+                  else
+                     .col = next
+                  endif
                else
-                 next = .col - length(replace_string)
-                 if next < 0 then
-                    if Downward & .line < .last then
-                       down
-                    elseif not Downward & .line > 1 then
-                       up
-                    endif
-                    .col = length( textline(.line))
-                 else
-                    .col = next
+                  next = .col - length(replace_string)
+                  if next < 0 then
+                     if Downward & .line < .last then
+                        down
+                     elseif not Downward & .line > 1 then
+                        up
+                     endif
+                     .col = length( textline(.line))
+                  else
+                     .col = next
                  endif
                endif
             endif
