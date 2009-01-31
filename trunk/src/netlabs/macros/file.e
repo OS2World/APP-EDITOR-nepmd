@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.36 2008-11-13 13:41:09 aschn Exp $
+* $Id: file.e,v 1.37 2009-01-31 21:43:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -463,13 +463,12 @@ compile endif
 
    -- On successs: refresh InfoLines, re-determine mode and add to Save history
    rc = src
-   -- TODO #########################################################################
-   -- EPM crashes sometimes on save, after the file is saved. The culprit
-   -- has to be searched in the following, preferably on code that cause
-   -- many files loaded, like 'ResetMode' or on code that loops through the
-   -- ring, like 'AddToHistory SAVE'. Maybe using an extra command an/or
-   -- posting the commands may help.
-   -- TODO #########################################################################
+   -- The following hasn't happened anymore since some months here:
+   --    EPM crashes sometimes on save, after the file is saved. The culprit
+   --    has to be searched in the following, preferably on code that cause
+   --    many files loaded, like 'ResetMode' or on code that loops through
+   --    the ring, like 'AddToHistory SAVE'. Maybe using an extra command
+   --    and/or posting the commands may help.
    if src = 0 then
 
       if fatsrc <> 0 then  -- this is not required if file was reloaded by SaveFat
@@ -480,7 +479,7 @@ compile endif
       -- Explicitely redetermine mode (file contents may have changed).
       --'ResetMode 'OldMode
       -- Better do this only when the name has changed.
-      if fCalledBySaveAs then
+      if fCalledBySaveAs | fNameChanged then
          'ResetMode 'OldMode
       endif
 
