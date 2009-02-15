@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tags.e,v 1.20 2008-11-13 13:44:39 aschn Exp $
+* $Id: tags.e,v 1.21 2009-02-15 15:32:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -80,15 +80,21 @@ compile endif
 /****  The following is all that needs to be modified for adding other languages. *****/
 
 
-defproc tag_case(filename)
-   file_mode = NepmdGetMode()
-   if wordpos(file_mode, 'C JAVA MODULA') then   /* Case sensitive language? */
-      return 'e'
-   endif
-   return 'c'  /* Case insensitive language? */
+defproc tag_case( filename)
+   universal nepmd_hini
 
-defproc tags_supported(mode)
-   return wordpos(mode, 'C JAVA E ASM REXX PASCAL MODULA REXX CMD HTEXT IPF TEX')
+   Mode = NepmdGetMode()
+   KeyPath = '\NEPMD\User\Mode\'Mode'\CaseSensitive'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
+   if on then
+      searchopt = 'e'  -- case-sensitive
+   else
+      searchopt = 'c'  -- case-insensitive
+   endif
+   return searchopt
+
+defproc tags_supported( mode)
+   return wordpos( mode, 'C JAVA E ASM REXX PASCAL MODULA REXX CMD HTEXT IPF TEX JAVASCRIPT')
 
 defproc proc_search( var proc_name, first_flag, mode, ext)
    if mode = 'C' then
@@ -113,6 +119,8 @@ defproc proc_search( var proc_name, first_flag, mode, ext)
       return ipf_proc_search( proc_name, first_flag)
    elseif mode = 'TEX' then
       return tex_proc_search( proc_name, first_flag)
+   elseif mode = 'JAVASCRIPT' then
+      return javascript_proc_search( proc_name, first_flag)
    else
       return 1
    endif
@@ -961,6 +969,51 @@ compile if LOG_TAG_MATCHES
       insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
    endif
 compile endif
+   return rc
+
+defproc javascript_proc_search( var proc_name, find_first)
+compile if LOG_TAG_MATCHES
+   universal TAG_LOG_FID
+compile endif
+   LeadingSpace = ':o'
+   display -2
+   proc_len = length( proc_name)
+   if find_first then
+      if proc_name == '' then
+         identifier = ':c'
+         search = '^'LeadingSpace'function:w'identifier
+      else
+         search = '^'LeadingSpace'function:w'proc_name
+      endif
+      'xcom l 'search'ex'
+   else
+      repeat_find
+   endif
+   loop
+      if rc then
+         display 2
+         return rc
+      endif
+      parse value translate(textline(.line), ' ', \t) with . proc_name .
+      if inside_comment( 'JAVASCRIPT') then
+         repeat_find
+         iterate
+      endif
+      if proc_len then
+         if length(proc_name) <> proc_len then  -- a substring of something else
+            end_line
+            repeat_find
+            iterate
+         endif
+      endif
+compile if LOG_TAG_MATCHES
+      if TAG_LOG_FID and not rc then
+         insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
+      endif
+compile endif
+      leave
+   endloop
+   display 2
    return rc
 
 defproc e_proc_search( var proc_name, find_first)
