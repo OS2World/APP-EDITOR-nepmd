@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.26 2009-01-24 22:31:35 aschn Exp $
+* $Id: keys.e,v 1.27 2009-02-16 20:41:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -96,12 +96,7 @@ compile endif
 
 ; ---------------------------------------------------------------------------
 definit
-   universal cursoreverywhere
    universal blockreflowflag
-   universal nepmd_hini
-
-   KeyPath = '\NEPMD\User\Scroll\CursorEverywhere'
-   cursoreverywhere = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
 
    blockreflowflag = 0
 compile if defined(ACTIONS_ACCEL__L)  -- For CUSTEPM support

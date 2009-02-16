@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.23 2009-02-16 20:35:33 aschn Exp $
+* $Id: config.e,v 1.24 2009-02-16 20:41:09 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1229,6 +1229,7 @@ defc initconfig2
    universal statfont
    universal vtemp_path
    universal vautosave_path
+   universal cursoreverywhere
 
    KeyPath = '\NEPMD\User\Backup\Directory'
    Dir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -1272,6 +1273,9 @@ compile endif
 
    KeyPath = '\NEPMD\User\Reflow\JoinAfterWrap'
    join_after_wrap = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+
+   KeyPath = '\NEPMD\User\Scroll\CursorEverywhere'
+   cursoreverywhere = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
 
    KeyPath = '\NEPMD\User\Colors'
    .textcolor           = NepmdQueryConfigValue( nepmd_hini, KeyPath'\Text')
