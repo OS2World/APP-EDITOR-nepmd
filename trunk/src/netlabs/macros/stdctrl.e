@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.49 2008-09-14 18:50:58 aschn Exp $
+* $Id: stdctrl.e,v 1.50 2009-02-16 22:20:37 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2471,9 +2471,6 @@ defc echoback
 ; Moved all toolbar definitions to TOOLBAR.E
 
 defc toggle_parse
-   universal loadstate  -- 1: defload is running
-                        -- 2: defload processed
-                        -- 0: afterload processed
    parse arg parseon kwfilename
    if parseon & .levelofattributesupport//2 = 0  then  -- the first bit of .levelofattributesupport is for color attributes
       call attribute_on(1) -- toggles color attributes mode
@@ -2536,7 +2533,13 @@ defc dynafree =
 ; command.
 defc CheckOnlyEpmWindow
    if not IsOnlyEpmWindow() then
-      sayerror 'Multiple EPM windows! Close all other EPM windows first.'
+      refresh
+      Title = 'Multiple EPM windows'
+      Text = 'The current command can''t be executed when multiple'      ||
+             'EPM windows are open.'\n\n                                 ||
+             'Close all other EPM windows and then repeat that command!'
+      rcx = winmessagebox( Title, Text,
+                           MB_OK + MB_WARNING + MB_MOVEABLE)
       stop
    endif
 
