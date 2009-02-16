@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.27 2009-02-16 20:41:09 aschn Exp $
+* $Id: keys.e,v 1.28 2009-02-16 21:56:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1037,58 +1037,74 @@ defc space
    endif
 
 ; ---------------------------------------------------------------------------
+defproc MatchCharsEnabled
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\MatchChars'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   return (on = 1)
+
+; ---------------------------------------------------------------------------
 ;def '{'
 defc OpeningBrace
    universal match_chars
    keyin '{'
-   wp = wordpos( '{', match_chars)
-   if wp then
-      match = word( match_chars, wp + 1)
-      keyin match
-      do l = 1 to length( match)
-         left
-      enddo
+   if MatchCharsEnabled() then
+      wp = wordpos( '{', match_chars)
+      if wp then
+         match = word( match_chars, wp + 1)
+         keyin match
+         do l = 1 to length( match)
+            left
+         enddo
+      endif
    endif
 
 ;def '('
 defc OpeningParen
    universal match_chars
    keyin '('
-   wp = wordpos( '(', match_chars)
-   if wp then
-      match = word( match_chars, wp + 1)
-      keyin match
-      do l = 1 to length( match)
-         left
-      enddo
+   if MatchCharsEnabled() then
+      wp = wordpos( '(', match_chars)
+      if wp then
+         match = word( match_chars, wp + 1)
+         keyin match
+         do l = 1 to length( match)
+            left
+         enddo
+      endif
    endif
 
 ;def '['
 defc OpeningBracket
    universal match_chars
    keyin '['
-   wp = wordpos( '[', match_chars)
-   if wp then
-      match = word( match_chars, wp + 1)
-      keyin match
-      do l = 1 to length( match)
-         left
-      enddo
+   if MatchCharsEnabled() then
+      wp = wordpos( '[', match_chars)
+      if wp then
+         match = word( match_chars, wp + 1)
+         keyin match
+         do l = 1 to length( match)
+            left
+         enddo
+      endif
    endif
 
 ;def '<'
 defc OpeningAngle
    universal match_chars
    keyin '<'
-   wp = wordpos( '<', match_chars)
-   if wp then
-      match = word( match_chars, wp + 1)
-      keyin match
-      do l = 1 to length( match)
-         left
-      enddo
+   if MatchCharsEnabled() then
+      wp = wordpos( '<', match_chars)
+      if wp then
+         match = word( match_chars, wp + 1)
+         keyin match
+         do l = 1 to length( match)
+            left
+         enddo
+      endif
    endif
 
+; ---------------------------------------------------------------------------
 ;def '}'
 defc ClosingBrace
    universal closing_brace_auto_indent

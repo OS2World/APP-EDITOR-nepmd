@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.62 2009-02-16 21:37:02 aschn Exp $
+* $Id: newmenu.e,v 1.63 2009-02-16 21:56:45 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2357,6 +2357,11 @@ if not MenuItemsHidden then
                                    'toggle_default_expand' ||
                                    \1'Let space and enter do syntax expansion',
                                    MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_defaultmatchchars', i);
+   buildmenuitem menuname, mid, i, '~Matchchars: auto-add closing brackets',                             -- Matchchars: auto-add closing brackets
+                                   'toggle_default_match_chars' ||
+                                   \1'Add closing bracket when typing opening one',
+                                   MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_selectcodingstyle', i); call SetAVar( 'mtxt_selectcodingstyle', 'Select ~coding style [] for mode #CURMODE#...');
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_selectcodingstyle'),                                   -- Select coding style [] for mode CURMODE...
                                    'SelectCodingStyle' ||
@@ -3531,6 +3536,10 @@ defc menuinit_modesettings
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_defaultkeywordhighlighting'), MIA_CHECKED, not on)
 
+   KeyPath = '\NEPMD\User\MatchChars'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_defaultmatchchars'),          MIA_CHECKED, not on)
+
    KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_autorefreshmodefiles'),       MIA_CHECKED, not on)
@@ -4238,6 +4247,16 @@ defc toggle_default_highlight
    --       Note: When an entire ring should be refreshed, the epmkwds
    --             file needs to be reloaded only once per mode (used by
    --             defc toggle_default_highlight in NEWMENU.E).
+
+; ---------------------------------------------------------------------------
+defc toggle_default_match_chars
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\MatchChars'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
+   SetMenuAttribute( GetAVar('mid_defaultmatchchars'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
 defc toggle_modefiles_autorefresh
