@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.38 2008-11-30 22:19:26 aschn Exp $
+* $Id: stdkeys.e,v 1.39 2009-02-16 21:09:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -195,7 +195,10 @@ def a_f12         'NextView'            -- Switch to next view of current file
 def c_n           'Open'                -- Open new EPM window
 defc Key_c_s_f12  'Next_Win'            -- Switch to next EPM window
 def c_g           'Ring_More'           -- Open a dialog to select a file of the ring
-def s_esc         'Ring_More'           -- Open a dialog to select a file of the ring
+;def s_esc        'Ring_More'           -- Open a dialog to select a file of the ring
+; Sh+Esc is defined by PM (open system menu, like Alt+Spc).
+; Therefore it has to be defined as accelerator key:
+defc Key_s_esc    'Ring_More'           -- Open a dialog to select a file of the ring
 
 ; ---- Reflow ----
 def a_j           'JoinLines'           -- Join current with next line
@@ -259,6 +262,8 @@ defc Key_c_s_t    'TagScan'             -- Open a list box with tags of the curr
 def c_u           'UndoDlg'             -- Open Undo dialog
 def f9            'UndoLine'            -- Undo current line
 def a_backspace   'UndoLine'            -- Undo current line
+; For standard Ctrl+PgUp and Ctrl+PgDn behavior, disable the following
+; two lines and enable them in the Cursor section:
 def c_pgup        'Undo1'               -- Scroll through previous undo states (keep Ctrl pressed to scroll)
 def c_pgdn        'Redo1'               -- Scroll through next undo states (keep Ctrl pressed to scroll)
 
@@ -272,8 +277,8 @@ def space        'ExpandFirst Space'   -- Try 1st syntax expansion if activated.
 def c_space      'Space'
 
 ;   2)  Expansion with Ctrl+Space, no expansion with Space:
-;def c_space      'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
 ;def space        'Space'
+;def c_space      'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
 
 def s_space       'Space'
 
@@ -301,14 +306,13 @@ def s_space       'Space'
 ;    8              Add a new line, move to paragraph margin
 ;    9              Add a new line, move to column 1
 
-;   1)  Expansion with Enter, no expansion with Ctrl+Enter:
 def enter         'StdEnter'  -- Use a command here to make the standard def available for other keysets
+;   1)  Expansion with Enter, no expansion with Ctrl+Enter:
 defc StdEnter     'ExpandSecond StreamLine Enter|Enter 1'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
-
 def c_enter       'StreamLine Enter|Enter 2'
 ;   2)  Expansion with Ctrl+Enter, no expansion with Enter:
-;def c_enter       'ExpandSecond StreamLine Enter|Enter 1'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
-;def enter         'StreamLine Enter|Enter 2'
+;defc Stdenter     'StreamLine Enter|Enter 1'
+;def c_enter       'ExpandSecond StreamLine Enter|Enter 2'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
 
 ; More enter keys
 def a_enter       'StreamLine SoftWrapAtCursor|Enter 1'
@@ -406,8 +410,8 @@ def otherkeys 'ProcessOtherKeys'
 ;       definable via "defc Key_*" commands, e.g. "defc Key_c_s_z".
 
 ; ---------------------------------------------------------------------------
-; PM keys. These keys are not definable in EPM. But they could be defined
-; as accelerator keys, using buildacceltable.
+; PM keys. These keys are not definable in EPM via def <key>. But they could
+; be defined as accelerator keys, using defc Key_<key> or buildacceltable.
 /*
    view epmtech "key definitions"
    view epmtech keysets
@@ -435,6 +439,7 @@ def otherkeys 'ProcessOtherKeys'
 ;    a_f11        Hide
 ;    c_esc        Window list
 ;    a_esc        Switch to next window
+;    s_esc        System menu
 ;    a_tab        Select next window
 
 ; ---------------------------------------------------------------------------
