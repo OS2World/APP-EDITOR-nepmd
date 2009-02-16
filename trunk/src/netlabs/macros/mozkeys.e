@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: mozkeys.e,v 1.1 2008-09-05 23:06:28 aschn Exp $
+* $Id: mozkeys.e,v 1.2 2009-02-16 20:57:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -67,7 +67,8 @@ defc Key_c_s_z 'Redo1'                -- Moz has only 1 redo
 def c_f        'SearchDlg'
                -- was: 'FindNext'     -- Find next
 def c_g        'mc ;SearchDirection F;FindNext'
-               -- was: 'Ring_More' (not important)  -- Open a dialog to select a file of the ring
+               -- was: 'Ring_More'    -- Open a dialog to select a file of the ring
+               -- ('Ring_More' is also defined for Sh+Esc)
 defc Key_c_s_g 'mc ;SearchDirection B;FindNext'
 
 ; Change-next doesnot exist in Moz! (maybe use f4/s_f4?)
