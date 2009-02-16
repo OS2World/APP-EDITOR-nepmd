@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.39 2009-02-16 21:09:26 aschn Exp $
+* $Id: stdkeys.e,v 1.40 2009-02-16 22:08:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -169,7 +169,7 @@ def f2            'SmartSave'           -- Save; if unchanged: give message
 def f3            'Quit'                -- Quit file
 def f4            'FileOrQuit'          -- Save and quit file; if unchanged: just quit
 def f5            'OpenDlg'             -- Open File-open dialog (will open file in a new window)
-def c_O           'OpenDlg'             -- Open File-open dialog (will open file in a new window)
+def c_o           'EditFileDlg'         -- Open File-edit dialog (will open file in the same window)
 def f7            'Rename'              -- Open Rename entrybox
 def f8            'EditFileDlg'         -- Open File-edit dialog (will open file in the same window)
 defc Key_c_s_f9   'History edit'        -- Open Edit history listbox
@@ -307,6 +307,7 @@ def s_space       'Space'
 ;    9              Add a new line, move to column 1
 
 def enter         'StdEnter'  -- Use a command here to make the standard def available for other keysets
+
 ;   1)  Expansion with Enter, no expansion with Ctrl+Enter:
 defc StdEnter     'ExpandSecond StreamLine Enter|Enter 1'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
 def c_enter       'StreamLine Enter|Enter 2'
