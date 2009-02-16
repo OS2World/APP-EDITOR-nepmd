@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.21 2008-09-05 22:36:43 aschn Exp $
+* $Id: config.e,v 1.22 2009-02-16 20:31:41 aschn Exp $
 *
 * ===========================================================================
 *
@@ -191,8 +191,6 @@ compile endif
    --  256: without page  9  Toolbar style
    --  512: without page 10  Toolbar
 
-   'ChangeEpmIniPath'
-
    call windowmessage( 0, getpminfo(APP_HANDLE),
                        msgid,
                        omit,           -- 0 = Omit no pages
@@ -201,79 +199,6 @@ compile if CHECK_FOR_LEXAM
 compile else
                        0)
 compile endif
-
-; ---------------------------------------------------------------------------
-; Change entry of OS2.INI -> EPM -> EPMIniPath to filename of NEPMD.INI
-; in order to keep the ini file for standard EPM unchanged.
-; NEPMD.INI is used now for all settings, that otherwise would be written
-; to EPM.INI:
-;    o  window positions
-;    o  remaining settings, that are still not replaced by NEPMD settings
-;    o  settings from external packages
-; For the ConfigDlg the entry has to be changed before its startup by E
-; macros separately.
-defc ChangeEpmIniPath
-   universal nepmd_hini
-   EpmIniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
-   --dprintf( 'ConfigDlg', 'EpmIniFile = 'EpmIniFile)
-
-   next = NepmdQueryInstValue( 'INIT')
-   parse value next with 'ERROR:'rc
-   if rc = '' then
-      if upcase( next) <> upcase( EpmIniFile) then
-
-         -- Write filename of NEPMD.INI to OS2.INI
-         call setprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath', next)
-         --dprintf( 'ConfigDlg', 'Write new value: EPMIniPath = 'next)
-
-         -- Save old entry of OS2.INI to restore it after ConfigDlg's startup
-         -- by SetConfig
-         KeyPath = '\NEPMD\System\SavedEPMIniPath'
-         -- This always terminates the entry with a zero
-         call NepmdWriteConfigValue( nepmd_hini, KeyPath, EpmIniFile)
-
-      endif
-   endif
-
-; ---------------------------------------------------------------------------
-; Restore previous ini value, temporary changed in defc ConfigDlg.
-; This is executed on the first call to SetConfig by the dialog.
-; It would be possible to restore it just after the dialog was opened (by
-; ConfigDlg, but then the last page of the dialog (toolbar) would read its
-; values for the list of toolbar names from EPM.INI, so that the toolbar page
-; might be omitted then.
-defc RestoreEpmIniPath
-   universal nepmd_hini
-
-   next = NepmdQueryInstValue( 'INIT')
-   EpmIniFile = queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath')
-   -- Process this only once (on first call to SetConfig by the dialog)
-   if next <> EpmIniFile then  -- if already reset
-      return
-   endif
-
-   KeyPath = '\NEPMD\System\SavedEPMIniPath'
-   next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   --dprintf( 'RestoreEpmIniPath', 'SavedEPMIniPath = 'next)
-   parse value next with 'ERROR:'rc
-   if rc = '' then
-      EpmIniFile = next
-   else
-      return rc
-   endif
-
-   parse value next with 'ERROR:'rc
-   if rc = '' then
-
-      -- Restore previous ini value
-      -- This always terminates the entry with a zero
-      call setprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath', EpmIniFile)
-      --dprintf( 'RestoreEpmIniPath, called by SetConfig', 'Restore old value: EPMIniPath = 'EpmIniFile)
-
-      -- Delete entry
-      call NepmdDeleteConfigValue( nepmd_hini, KeyPath)
-
-   endif
 
 ; ---------------------------------------------------------------------------
 /*
@@ -680,10 +605,6 @@ defc SetConfig
    --dprintf( 'SETCONFIG', arg(1))
 
    parse value arg(1) with configid perm newcmd
-
-   'RestoreEpmIniPath'  -- The toolbar notebook page queries the EPMIniPath value itself,
-                        -- therefore it cannot be restored by defc ConfigDlg itself.
-                        -- SetConfig is *always* called by the config dialog.
 
    if     configid = 1 then
       if ChangeFileSettings = 1 then                      -- change current file's setting
