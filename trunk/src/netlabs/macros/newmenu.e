@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.63 2009-02-16 21:56:45 aschn Exp $
+* $Id: newmenu.e,v 1.64 2009-02-16 22:08:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -487,29 +487,28 @@ defproc add_file_menu(menuname)
                                 FILE_BARP__MSG,
                                 0, mpfrom2short(HP_FILE, 0)  -- MIS must be 0 for submenu
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Add ~new',                                                     -- Add new
+   buildmenuitem menuname, mid, i, '~New',                                                         -- New
                                    'xcom e /n' ||
-                                   \1'Edit a new, empty file in this window',
+                                   \1'Create a new, empty file in this window',
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'A~dd...'\9'F8',                                                -- Add...
+   buildmenuitem menuname, mid, i, '~Open...'\9CTRL_KEY__MSG'+O',                                  -- Open...
                                    'opendlg EDIT' ||
                                    ADD_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open n~ew'\9CTRL_KEY__MSG'+N',                                 -- Open new
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'New ~window'\9CTRL_KEY__MSG'+N',                               -- Open new
                                    "open ''" ||
                                    OPEN_NEW_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_OPEN_NEW, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, OPEN_MENU__MSG\9'F5 | 'CTRL_KEY__MSG'+O',                       -- Open...
-                                   'opendlg' ||
-                                   OPEN_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_FILE_OPEN, 0)
-   i = i + 1;
    buildmenuitem menuname, mid, i, 'Open ~bin...',                                                 -- Open bin...
                                    'OpenBinDlg' ||
-                                   \1'Select a binary file to edit',
+                                   \1'Select a binary file to edit in a new window',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
@@ -613,7 +612,7 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_fileproperties', i);
-   buildmenuitem menuname, mid, i, '~File properties',                                             -- File properties   >
+   buildmenuitem menuname, mid, i, 'F~ile properties',                                             -- File properties   >
                                    '' ||
                                    \1'Properties for this buffer/file only',
                                    MIS_TEXT + MIS_SUBMENU, 0
@@ -662,31 +661,6 @@ defproc add_file_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
                                    MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_streammode', i);
-   buildmenuitem menuname, mid, i, '~Stream mode',                                                       -- Stream mode
-                                   'toggle_stream' ||
-                                   \1'',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_syntaxexpansion', i);
-   buildmenuitem menuname, mid, i, 'Syntax e~xpansion',                                                  -- Syntax expansion
-                                   'toggle_expand' ||
-                                   \1'',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_keywordhighlighting', i);
-   buildmenuitem menuname, mid, i, 'Keyword ~highlighting',                                              -- Keyword highlighting
-                                   'toggle_highlight' ||
-                                   \1'',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_tabkey', i);
-   buildmenuitem menuname, mid, i, 'T~abkey enabled',                                                    -- Tabkey enabled
-                                   'toggle_tabkey' ||
-                                   \1'',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_matchtab', i);
-   buildmenuitem menuname, mid, i, 'Matchta~b enabled',                                                  -- Matchtab enabled
-                                   'toggle_matchtab' ||
-                                   \1'',
-                                   MIS_TEXT, nodismiss
    if nodismiss > 0 then
       endsubmenu = 0
    else
@@ -742,7 +716,7 @@ defproc add_file_menu(menuname)
                                    SAVEAS_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_SAVEAS, 0)
    i = i + 1; call SetAVar( 'mid_saveandquit', i);
-   buildmenuitem menuname, mid, i, FILE_MENU__MSG\9'F4',                                           -- Save and quit
+   buildmenuitem menuname, mid, i, 'Sa~ve and close file'\9'F4',                                   -- Save and close file
                                    'file' ||
                                    FILE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_FILE, 0)
@@ -765,7 +739,7 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, QUIT_MENU__MSG\9'F3',                                           -- Quit file
+   buildmenuitem menuname, mid, i, '~Close file'\9'F3',                                            -- Close file
                                    'quit' ||
                                    QUIT_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_QUIT, 0)
@@ -3240,12 +3214,6 @@ compile endif
    SetMenuAttribute( GetAVar('mid_readonly'),            MIA_CHECKED, not .readonly)
    SetMenuAttribute( GetAVar('mid_readonlyattrib'),      MIA_CHECKED, not GetReadonly())
    SetMenuAttribute( GetAVar('mid_locked'),              MIA_CHECKED, not .lockhandle)
-   SetMenuAttribute( GetAVar('mid_streammode'),          MIA_CHECKED, not stream_mode)
-   SetMenuAttribute( GetAVar('mid_syntaxexpansion'),     MIA_CHECKED, not expand_on)
-   SetMenuAttribute( GetAVar('mid_keywordhighlighting'), MIA_CHECKED, not GetHighlight())
-   SetMenuAttribute( GetAVar('mid_tabkey'),              MIA_CHECKED, not tab_key)
-   SetMenuAttribute( GetAVar('mid_matchtab'),            MIA_CHECKED, not matchtab_on)
-
    new = Exist(.filename)
    SetMenuAttribute( GetAVar('mid_readonly'),            MIA_DISABLED, new)
    SetMenuAttribute( GetAVar('mid_readonlyattrib'),      MIA_DISABLED, new)
