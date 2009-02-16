@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.14 2008-11-13 13:38:56 aschn Exp $
+* $Id: recompile.e,v 1.15 2009-02-16 20:45:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -338,7 +338,11 @@ defc RingCheckModify
       if fIgnore then
          .modify = 0
       else
-         'CheckModify'
+         rcx = CheckModify()
+         if rcx then
+            activatefile startfid
+            stop
+         endif
       endif
       nextfile
       getfileid fid
@@ -349,14 +353,35 @@ defc RingCheckModify
 
 ; ---------------------------------------------------------------------------
 defc CheckModify
-   parse arg
-   if .modify then
-      rc = 1
-      -- let this file on top
-      sayerror 'Current file is modified. Save it or discard changes first.'
-      stop  -- Stops further processing of current and calling command or
-            -- procedure. Advantage: no check for rc required.
+   rcx = CheckModify()
+   if rcx then
+      stop
    endif
+
+; ---------------------------------------------------------------------------
+; Resets .modify for Yes or No button. Yes: Save, No: Discard.
+defproc CheckModify
+   rc = 0
+   if .modify then
+
+      refresh
+      Title = 'Save modified file'
+      Text = .filename\n\n                                         ||
+             'The above file is modified. Press "Yes" to save it,' ||
+             ' "No" to discard it or "Cancel" to abort.'\n\n       ||
+             'Do you want to save it?'
+      rcx = winmessagebox( Title, Text,
+                           MB_YESNOCANCEL + MB_QUERY + MB_DEFBUTTON1 + MB_MOVEABLE)
+
+      if rcx = MBID_YES then
+         'Save'
+      elseif rcx = MBID_NO then
+         .modify = 0
+      else
+         rc = -5
+      endif
+   endif
+   return rc
 
 ; ---------------------------------------------------------------------------
 ; Recompile all files, whose names found in .lst files in EPMEXPATH.
