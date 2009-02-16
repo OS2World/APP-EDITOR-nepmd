@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.22 2009-02-16 20:31:41 aschn Exp $
+* $Id: config.e,v 1.23 2009-02-16 20:35:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1230,10 +1230,13 @@ defc initconfig2
    universal vtemp_path
    universal vautosave_path
 
-   KeyPath = '\NEPMD\User\AutoSave\Directory'
+   KeyPath = '\NEPMD\User\Backup\Directory'
    Dir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Dir = '' then
-      Dir = vtemp_path'nepmd\autosave'
+   if Dir <> '=' then
+      if Dir = '' then
+         Dir = vtemp_path'nepmd\backup'
+      endif
+      rcx = MakeTree( Dir)
    endif
    -- Trailing backslash required
    if rightstr( Dir, 1) <> '\' then
@@ -1244,16 +1247,6 @@ defc initconfig2
 compile if (HOST_SUPPORT = 'EMUL' | HOST_SUPPORT = 'E3EMUL') and not defined( my_SAVEPATH)
    savepath = vautosave_path
 compile endif
-   rcx = MakeTree( Dir)
-
-   KeyPath = '\NEPMD\User\Backup\Directory'
-   Dir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if Dir <> '=' then
-      if Dir = '' then
-         Dir = vtemp_path'nepmd\backup'
-      endif
-      rcx = MakeTree( Dir)
-   endif
 
    KeyPath = '\NEPMD\User\Reflow\TwoSpaces'
    twospaces = NepmdQueryConfigValue( nepmd_hini, KeyPath)
