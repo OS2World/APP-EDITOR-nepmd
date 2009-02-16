@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.61 2009-01-24 22:35:00 aschn Exp $
+* $Id: newmenu.e,v 1.62 2009-02-16 21:37:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -480,14 +480,12 @@ defc loaddefaultmenu
 ; -------------------------------------------------------------------------------------- File -------------------------
 defproc add_file_menu(menuname)
    universal nodismiss
-   universal ring_enabled
    universal wpsstarted
    mid = GetAVar('mid_file')
    i = mid'00'
    buildsubmenu  menuname, mid, FILE_BAR__MSG,                                                     -- File ------------
                                 FILE_BARP__MSG,
                                 0, mpfrom2short(HP_FILE, 0)  -- MIS must be 0 for submenu
-   if ring_enabled then
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Add ~new',                                                     -- Add new
                                    'xcom e /n' ||
@@ -498,7 +496,6 @@ defproc add_file_menu(menuname)
                                    'opendlg EDIT' ||
                                    ADD_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
-   endif
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Open n~ew'\9CTRL_KEY__MSG'+N',                                 -- Open new
                                    "open ''" ||
@@ -705,11 +702,6 @@ defproc add_file_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
                                    MIS_SEPARATOR, 0
-;   i = i + 1;
-;   buildmenuitem menuname, mid, i, ' Use Options for default settings',                                   -- Use Options for default settings
-;                                   '' ||
-;                                   \1'',
-;                                   MIS_TEXT + MIS_STATIC, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Close menu',                                                        -- Close menu
                                    '' ||
@@ -754,13 +746,11 @@ defproc add_file_menu(menuname)
                                    'file' ||
                                    FILE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_FILE, 0)
-   if ring_enabled then
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Save a~ll',                                                    -- Save all
                                    'SaveAll' ||
                                    \1'Save all files of the ring',
                                    MIS_TEXT, 0
-   endif
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -1754,7 +1744,6 @@ endif
 ; -------------------------------------------------------------------------------------- View -------------------------
 defproc add_view_menu(menuname)
    universal nodismiss
-   universal ring_enabled
    universal MenuItemsHidden
    mid = GetAVar('mid_view')
    i = mid'00'
@@ -1984,18 +1973,11 @@ defproc add_view_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_ringenabled', i);
-   buildmenuitem menuname, mid, i, RINGENABLED_MENU__MSG,                                          -- Ring enabled
-                                   'ring_toggle' ||
-                                   RINGENABLED_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_OPTIONS_RINGENABLE, 0)
-;   if ring_enabled then
    i = i + 1; call SetAVar( 'mid_listring', i);
-   buildmenuitem menuname, mid, i, LIST_FILES_MENU__MSG\9 || CTRL_KEY__MSG'+G',                    -- List ring...
+   buildmenuitem menuname, mid, i, LIST_FILES_MENU__MSG\9 || CTRL_KEY__MSG'+G | 'SHIFT_KEY__MSG'+Esc',                    -- List ring...
                                    'Ring_More' ||
                                    LIST_FILES_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_LIST, 0)
-;   endif
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -2005,7 +1987,6 @@ defproc add_view_menu(menuname)
                                    'messagebox' ||
                                    MESSAGES_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_MESSAGES, 0)
-   if ring_enabled then
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -2020,7 +2001,6 @@ defproc add_view_menu(menuname)
                                    'nextview' ||
                                    \1'Activate the next view of the current file',
                                    MIS_TEXT, 0
-   endif
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -2057,7 +2037,6 @@ defproc add_view_menu(menuname)
 
 ; -------------------------------------------------------------------------------------- Options ----------------------
 defproc add_options_menu(menuname)
-   universal ring_enabled
    universal font
    universal nodismiss
    universal MenuItemsHidden
@@ -2397,15 +2376,6 @@ if not MenuItemsHidden then
                                    'EditCreateUserMacro modecnf.e' ||
                                    \1'Edit modes configuration incl. syntax expansion',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
-;   i = i + 1;
-;   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-;                                   '',
-;                                   MIS_SEPARATOR, 0
-;   i = i + 1;
-;   buildmenuitem menuname, mid, i, ' See also: File properties',                                          -- See also: File properties
-;                                   '' ||
-;                                   \1'',
-;                                   MIS_TEXT + MIS_STATIC + MIS_ENDSUBMENU, 0
 
 ; Add Home key etc. here?
    i = i + 1; call SetAVar( 'mid_keyssettings', i);
@@ -2450,15 +2420,6 @@ if not MenuItemsHidden then
                                    'toggle_block_right_alt_key' ||
                                    \1'Prevent right Alt from entering menu (use F10)',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
-;   i = i + 1;
-;   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-;                                   '',
-;                                   MIS_SEPARATOR, 0
-;   i = i + 1;
-;   buildmenuitem menuname, mid, i, ' See also: File properties',                                          -- See also: File properties
-;                                   '' ||
-;                                   \1'',
-;                                   MIS_TEXT + MIS_STATIC + MIS_ENDSUBMENU, 0
 
    i = i + 1; call SetAVar( 'mid_markingsettings', i);
    buildmenuitem menuname, mid, i, 'Markin~g',                                                     -- Marking  >
@@ -2524,15 +2485,6 @@ if not MenuItemsHidden then
                                    'toggle_tabglyph' ||
                                    \1'Show a circle for every tab char',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
-;   i = i + 1;
-;   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-;                                   '',
-;                                   MIS_SEPARATOR, 0
-;   i = i + 1;
-;   buildmenuitem menuname, mid, i, ' See also: File properties',                                          -- See also: File properties
-;                                   '' ||
-;                                   \1'',
-;                                   MIS_TEXT + MIS_STATIC + MIS_ENDSUBMENU, 0
 
    i = i + 1; call SetAVar( 'mid_readonlyandlock', i);
    buildmenuitem menuname, mid, i, '~Read-only and lock',                                          -- Read-only and lock   >
@@ -2548,15 +2500,6 @@ if not MenuItemsHidden then
                                    'toggle_lock_on_modify' ||
                                    \1'Toggle deny write access if file was modified',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
-;   i = i + 1;
-;   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-;                                   '',
-;                                   MIS_SEPARATOR, 0
-;   i = i + 1;
-;   buildmenuitem menuname, mid, i, ' See also: File properties',                                          -- See also: File properties
-;                                   '' ||
-;                                   \1'',
-;                                   MIS_TEXT + MIS_STATIC + MIS_ENDSUBMENU, 0
 
    i = i + 1; call SetAVar( 'mid_cursorsettings', i);
    buildmenuitem menuname, mid, i, 'C~ursor',                                                      -- Cursor  >
@@ -3504,11 +3447,9 @@ defc menuinit_bookmarks
 
 ; ------------------------------------ View ---------------------------------
 defc menuinit_view
-   universal ring_enabled
    SetMenuAttribute( GetAVar('mid_softwrap'), MIA_CHECKED, GetWrapped() = 0)
    SetMenuAttribute( GetAVar('mid_nextview'), MIA_DISABLED, .currentview_of_file <> .nextview_of_file)
-   SetMenuAttribute( GetAVar('mid_listring'), MIA_DISABLED, (ring_enabled & filesinring() > 1))
-   SetMenuAttribute( GetAVar('mid_ringenabled'), MIA_CHECKED, not ring_enabled)
+   SetMenuAttribute( GetAVar('mid_listring'), MIA_DISABLED, (filesinring() > 1))
 
 defc menuinit_menu
    universal nodismiss
