@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.24 2009-02-16 20:41:09 aschn Exp $
+* $Id: config.e,v 1.25 2009-02-16 21:37:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1082,9 +1082,17 @@ compile endif
    'toggleframe 2' msgflg
    'toggleframe 8' vscrollflg
    'toggleframe 16' hscrollflg
-   if ring_enabled then
-      'toggleframe 4' rotflg
-   endif
+
+;   if ring_enabled then
+;      'toggleframe 4' rotflg
+;   endif
+   -- Ensure that ring is always on. That can't be disabled in EPM. What can
+   -- only be disabled are the rotate buttons and menu items. This won't make
+   -- sense, because via drag'n'drop it's always possible to add multiple
+   -- files to the ring.
+   ring_enabled = 1   -- always activate this
+   'toggleframe' 4 1  -- enable rotate buttons
+
    'toggleframe 32' extraflg
    'toggleframe 8192' drop_style
 
