@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.65 2009-02-16 22:14:01 aschn Exp $
+* $Id: newmenu.e,v 1.66 2009-02-16 22:15:10 aschn Exp $
 *
 * ===========================================================================
 *
@@ -2009,7 +2009,6 @@ defproc add_view_menu(menuname)
                                    MIS_TEXT, 0
    return
 
-
 ; -------------------------------------------------------------------------------------- Options ----------------------
 defproc add_options_menu(menuname)
    universal font
@@ -2304,10 +2303,29 @@ if not MenuItemsHidden then
                                    'Configure general mode settings',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_defaultkeywordhighlighting', i);
-   buildmenuitem menuname, mid, i, 'Default keyword ~highlighting enabled',                              -- Default keyword highlighting enabled
+   buildmenuitem menuname, mid, i, 'Keyword ~highlighting',                                              -- Keyword highlighting
                                    'toggle_default_highlight' ||
                                    \1'Switch keyword highlighting on',
                                    MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_defaultmatchchars', i);
+   buildmenuitem menuname, mid, i, '~Matchchars: auto-add closing brackets',                             -- Matchchars: auto-add closing brackets
+                                   'toggle_default_match_chars' ||
+                                   \1'Add closing bracket when typing opening one',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_defaultsyntaxexpansion', i);
+   buildmenuitem menuname, mid, i, '~Syntax expansion',                                                  -- Syntax expansion
+                                   'toggle_default_expand' ||
+                                   \1'Let space and enter do syntax expansion',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_selectcodingstyle', i); call SetAVar( 'mtxt_selectcodingstyle', 'Select ~coding style [] for mode #CURMODE#...');
+   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_selectcodingstyle'),                                   -- Select coding style [] for mode CURMODE...
+                                   'SelectCodingStyle' ||
+                                   \1'Select a previously defined coding style for current mode',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_autorefreshmodefiles', i);
    buildmenuitem menuname, mid, i, '~Auto-check mode files',                                             -- Auto-check mode files
                                    'toggle_modefiles_autorefresh' ||
@@ -2322,25 +2340,6 @@ if not MenuItemsHidden then
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_openmodedirs'),                                        -- Open mode files directories for mode CURMODE
                                    'OpenModeDirs' ||
                                    \1'Open dir(s) with .hil/.ini files',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_defaultsyntaxexpansion', i);
-   buildmenuitem menuname, mid, i, 'Default ~syntax expansion enabled',                                  -- Default syntax expansion enabled
-                                   'toggle_default_expand' ||
-                                   \1'Let space and enter do syntax expansion',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_defaultmatchchars', i);
-   buildmenuitem menuname, mid, i, '~Matchchars: auto-add closing brackets',                             -- Matchchars: auto-add closing brackets
-                                   'toggle_default_match_chars' ||
-                                   \1'Add closing bracket when typing opening one',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_selectcodingstyle', i); call SetAVar( 'mtxt_selectcodingstyle', 'Select ~coding style [] for mode #CURMODE#...');
-   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_selectcodingstyle'),                                   -- Select coding style [] for mode CURMODE...
-                                   'SelectCodingStyle' ||
-                                   \1'Select a previously defined coding style for current mode',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
@@ -2363,16 +2362,16 @@ if not MenuItemsHidden then
                                    \1'Configure key bindings',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_defaultstreammode', i);
-   buildmenuitem menuname, mid, i, 'Default ~stream mode enabled',                                       -- Default stream mode enabled
+   buildmenuitem menuname, mid, i, '~Stream mode',                                                       -- Stream mode
                                    'toggle_default_stream' ||
-                                   STREAMMODE_MENUP__MSG,
+                                   \1'Toggle between stream and line editing mode',
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_STREAM, nodismiss)
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_keydefs', i); call SetAVar( 'mtxt_keydefs', 'Keyset ~additions: []...')
-   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_keydefs'),                                             -- Additional key defs []...
+   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_keydefs'),                                             -- Keyset additions: []...
                                    'SelectKeyDefs' ||
                                    \1'Configure key def additions to the standard keyset',
                                    MIS_TEXT, 0
@@ -2386,19 +2385,19 @@ if not MenuItemsHidden then
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_blockactionbaraccelerators', i);
-   buildmenuitem menuname, mid, i, 'Block ~menu bar accels',                                             -- Block menu bar accels
+   buildmenuitem menuname, mid, i, 'Block Alt+~letter keys from jumping to menu bar',                    -- Block Alt+letter keys from jumping to menu bar
                                    'accel_toggle' ||
-                                   \1'Keep Alt+<key>s for mark operations (Ctrl+Alt works for menu)',
+                                   \1'Enable for advanced mark operations (Ctrl+Alt works for menu)',
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_CUAACCEL, nodismiss)
    i = i + 1; call SetAVar( 'mid_blockleftaltkey', i);
-   buildmenuitem menuname, mid, i, 'Block ~left Alt key',                                                -- Block left Alt key
+   buildmenuitem menuname, mid, i, 'Block ~left Alt key from jumping to menu bar',                       -- Block left Alt key from jumping to menu bar
                                    'toggle_block_left_alt_key' ||
-                                   \1'Prevent left Alt from entering menu (use F10)',
+                                   \1'When enabled, use F10',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_blockrightaltkey', i);
-   buildmenuitem menuname, mid, i, 'Block ~right Alt key',                                               -- Block right Alt key
+   buildmenuitem menuname, mid, i, 'Block ~right Alt key from jumping to menu bar',                      -- Block right Alt key from jumping to menu bar
                                    'toggle_block_right_alt_key' ||
-                                   \1'Prevent right Alt from entering menu (use F10)',
+                                   \1'When enabled, use F10',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
 
    i = i + 1; call SetAVar( 'mid_markingsettings', i);
@@ -2406,11 +2405,11 @@ if not MenuItemsHidden then
                                    \1'',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_advancedmarking', i);
-   buildmenuitem menuname, mid, i, '~Advanced marking enabled',                                          -- Default advanced marking enabled
+   buildmenuitem menuname, mid, i, '~Advanced marking',                                                  -- Advanced marking
                                    'toggle_cua_mark' ||
                                    ADVANCEDMARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_CUATOGGLE, nodismiss)
-   i = i + 1; call SetAVar( 'mid_defaultpaste', i); call SetAVar( 'mtxt_defaultpaste', 'Default paste: []');
+   i = i + 1; call SetAVar( 'mid_defaultpaste', i); call SetAVar( 'mtxt_defaultpaste', 'Default ~paste: []');
    buildmenuitem menuname, mid, i, GetAVar('mtxt_defaultpaste'),                                         -- Default paste: [char]
                                    'toggle_default_paste' ||
                                    \1'Style for Sh+Ins/Alt+MB1, add Ctrl/Sh for alt. paste',
@@ -2420,7 +2419,7 @@ if not MenuItemsHidden then
                                    'toggle_shift_mark_extends' ||
                                    \1'Extend mark always or just at boundaries',
                                    MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_mousestyle', i); call SetAVar( 'mtxt_mousestyle', 'Default mouse mark: []');
+   i = i + 1; call SetAVar( 'mid_mousestyle', i); call SetAVar( 'mtxt_mousestyle', 'Default ~mouse mark: []');
    buildmenuitem menuname, mid, i, GetAVar('mtxt_mousestyle'),                                           -- Default mouse mark: [char]
                                    'toggle_mousestyle' ||
                                    \1'Mark style for MB1, use Ctrl+MB1 or MB3 for alt. mark',
@@ -2428,7 +2427,7 @@ if not MenuItemsHidden then
    i = i + 1; call SetAVar( 'mid_dragalwaysmarks', i);
    buildmenuitem menuname, mid, i, '~Drag always marks',                                                 -- Drag always marks
                                    'toggle_drag_always_marks' ||
-                                   \1'Every drag starts a new mark (avoid the ''Text already marked'' msg)',
+                                   \1'Every drag starts a new mark instead of a msg.',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_unmarkaftermove', i);
    buildmenuitem menuname, mid, i, '~Unmark after move',                                                 -- Unmark after move
@@ -2440,28 +2439,28 @@ if not MenuItemsHidden then
    buildmenuitem menuname, mid, i, 'Margins and ~tabs',                                            -- Margins and tabs  >
                                    'Default margins and tabs',
                                    MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1; call SetAVar( 'mid_defaultmargins', i); call SetAVar( 'mtxt_defaultmargins', 'Default margins []...');
+   i = i + 1; call SetAVar( 'mid_defaultmargins', i); call SetAVar( 'mtxt_defaultmargins', 'Default ~margins []...');
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_defaultmargins'),                                      -- Default margins...
                                    'DefaultMargins' ||
                                    \1'Change default margins',
                                    MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_defaulttabs', i); call SetAVar( 'mtxt_defaulttabs', 'Default tabs []...');
+   i = i + 1; call SetAVar( 'mid_defaulttabs', i); call SetAVar( 'mtxt_defaulttabs', 'Default ~tabs []...');
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_defaulttabs'),                                         -- Default tabs...
                                    'DefaultTabs' ||
                                    \1'Change default tabs',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_defaulttabkey', i);
-   buildmenuitem menuname, mid, i, 'Default ~tabkey enabled',                                            -- Default Tabkey enabled
+   buildmenuitem menuname, mid, i, 'Tab~key: tab key enters tab char',                                   -- Tabkey: Tab key enters tab char
                                    'toggle_default_tabkey' ||
                                    \1'Tabkey enters a tab char instead of spaces',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_defaultmatchtab', i);
-   buildmenuitem menuname, mid, i, 'Default ~matchtab enabled',                                          -- Default Matchtab enabled
+   buildmenuitem menuname, mid, i, '~Matchtab: tab stops at word boundaries of line above',              -- Matchtab: tab stops at word boundaries of line above
                                    'toggle_default_matchtab' ||
                                    \1'Tabkey goes to word boundaries of prev. line',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_showtabs', i);
-   buildmenuitem menuname, mid, i, '~Show tabs',                                                         -- Show tabs
+   buildmenuitem menuname, mid, i, '~Show tab chars',                                                    -- Show tab chars
                                    'toggle_tabglyph' ||
                                    \1'Show a circle for every tab char',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
@@ -2544,7 +2543,7 @@ if not MenuItemsHidden then
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_autosaveenabled', i);
-   buildmenuitem menuname, mid, i, '~Autosave enabled',                                                  -- Autosave enabled
+   buildmenuitem menuname, mid, i, '~Autosave',                                                          -- Autosave
                                    'toggle_autosave' ||
                                    \1'',
                                    MIS_TEXT, nodismiss
@@ -2558,7 +2557,7 @@ if not MenuItemsHidden then
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_backupenabled', i);
-   buildmenuitem menuname, mid, i, '~Backup enabled',                                                    -- Backup enabled
+   buildmenuitem menuname, mid, i, '~Backup',                                                            -- Backup
                                    'toggle_backup' ||
                                    \1'',
                                    MIS_TEXT, nodismiss
@@ -3509,19 +3508,10 @@ defc menuinit_modesettings
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_defaultmatchchars'),          MIA_CHECKED, not on)
 
-   KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_autorefreshmodefiles'),       MIA_CHECKED, not on)
-
    KeyPath = '\NEPMD\User\SyntaxExpansion'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_defaultsyntaxexpansion'),     MIA_CHECKED, not on)
-
-   parse value GetAVar( 'mtxt_checkmodefilesnow') with next'#'x'#'rest
-   SetMenuText( GetAVar('mid_checkmodefilesnow'), next''CurMode''rest)
-
-   parse value GetAVar( 'mtxt_openmodedirs') with next'#'x'#'rest
-   SetMenuText( GetAVar('mid_openmodedirs'), next''CurMode''rest)
+   SetMenuAttribute( GetAVar('mid_selectcodingstyle'),          MIA_DISABLED, on)
 
    new = GetCodingStyle()
    if new = '' then
@@ -3532,9 +3522,19 @@ defc menuinit_modesettings
    parse value NewText with next'#'x'#'rest
    SetMenuText( GetAVar('mid_selectcodingstyle'), next''CurMode''rest)
 
+   KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_autorefreshmodefiles'),       MIA_CHECKED, not on)
+
+   parse value GetAVar( 'mtxt_checkmodefilesnow') with next'#'x'#'rest
+   SetMenuText( GetAVar('mid_checkmodefilesnow'), next''CurMode''rest)
+
+   parse value GetAVar( 'mtxt_openmodedirs') with next'#'x'#'rest
+   SetMenuText( GetAVar('mid_openmodedirs'), next''CurMode''rest)
+
    file = ResolveEnvVars('%NEPMD_USERDIR%\bin\profile.erx')
    file_exist = exist(file)
-   SetMenuAttribute( GetAVar('mid_editprofile2'),  MIA_DISABLED, file_exist)
+   SetMenuAttribute( GetAVar('mid_editprofile2'),               MIA_DISABLED, file_exist)
 
 defc menuinit_keyssettings
    universal cua_menu_accel
@@ -4228,16 +4228,6 @@ defc toggle_default_match_chars
    SetMenuAttribute( GetAVar('mid_defaultmatchchars'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
-defc toggle_modefiles_autorefresh
-   universal nepmd_hini
-   KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   on = not on
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
-   -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
-   SetMenuAttribute( GetAVar('mid_autorefreshmodefiles'), MIA_CHECKED, not on)
-
-; ---------------------------------------------------------------------------
 defc toggle_expand
    universal menuloaded
    universal expand_on
@@ -4268,7 +4258,18 @@ defc toggle_default_expand
    if menuloaded then  -- check not required
       -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
       SetMenuAttribute( GetAVar('mid_defaultsyntaxexpansion'), MIA_CHECKED, not on)
+      SetMenuAttribute( GetAVar('mid_selectcodingstyle'),      MIA_DISABLED, on)
    endif
+
+; ---------------------------------------------------------------------------
+defc toggle_modefiles_autorefresh
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\KeywordHighlighting\AutoRefresh'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
+   SetMenuAttribute( GetAVar('mid_autorefreshmodefiles'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
 defc toggle_cua_mark, cua_mark_toggle
