@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.37 2009-01-31 21:43:06 aschn Exp $
+* $Id: file.e,v 1.38 2009-02-16 20:53:11 aschn Exp $
 *
 * ===========================================================================
 *
@@ -162,6 +162,94 @@ defc rename
    endif
 
 ; ---------------------------------------------------------------------------
+; Handle special NEPMD dirs: don't overwrite files of the NETLABS or EPMBBS
+; tree
+defproc SaveProcessNetlabsFile( var Name, var SpecifiedName, var fNameChanged)
+   rc = 0
+   do i = 1 to 1
+
+      RootDir = NepmdScanEnv( 'NEPMD_ROOTDIR')
+      parse value RootDir with 'ERROR:'rcx
+      if rcx <> '' then
+         sayerror 'Environment var NEPMD_ROOTDIR not set'
+         leave
+      endif
+      UserDir = NepmdScanEnv( 'NEPMD_USERDIR')
+      parse value UserDir with 'ERROR:'rcx
+      if rcx <> '' then
+         sayerror 'Environment var NEPMD_USERDIR not set'
+         leave
+      endif
+
+      -- RootDir contained in Name?
+      if not abbrev( upcase( Name), upcase( RootDir)) then
+         leave
+      endif
+
+      -- Check the following subdir after RootDir in Name
+      p1 = length( RootDir)
+      p2 = pos( '\', Name, p1 + 2)
+      SubDir = substr( Name, p1 + 2, max( p2 - p1 - 2, 0))
+      if not wordpos( upcase( SubDir), 'NETLABS EPMBBS') then
+         leave
+      endif
+
+      refresh
+      Title = 'Save: change to user tree'
+      Text = Name\n\n                                              ||
+             'You''re about to overwrite a file of the NETLABS or' ||
+             ' EPMBBS tree. Besser use the user tree for your own' ||
+             ' files.'\n\n                                         ||
+             'Do you want to save it to the user tree?'
+      rcx = winmessagebox( Title, Text,
+                           MB_YESNOCANCEL + MB_QUERY + MB_DEFBUTTON1 + MB_MOVEABLE)
+
+      if rcx = MBID_NO then
+         return 0
+      elseif rcx = MBID_YES then
+         NewName = UserDir''substr( Name, p2)
+         SpecifiedName = NewName
+         lp = lastpos( '\', NewName)
+         Newdir = leftstr( NewName, lp - 1)
+         -- Create tree, if not existing
+         rcx = MakeTree( NewDir)
+
+         rcx = SaveAsCheckExist( NewName)
+         if rcx then
+            return rcx
+         endif
+
+         -- First disable most load and select processing for the current
+         -- file. Always ensure that they were reenabled after that
+         -- command to be ready for processing the next file!
+         'DisableLoad'
+         'DisableSelect'
+         'name' NewName
+         if not rc then  -- on success
+            Name = .filename
+            fNameChanged = 1
+            -- The following commands enable all load and select
+            -- processing for the current file, because they are
+            -- executed before defload and defselect.
+            'EnableLoad'
+            'EnableSelect'
+         else
+            -- 'postme' makes the following commands be processed after
+            -- defload and defselect are processed. That disables most
+            -- load and select processing for the current file.
+            'postme EnableLoad'
+            'postme EnableSelect'
+         endif
+
+         return 0
+      else
+         return -5  -- sayerror('Access denied')
+      endif
+
+   enddo
+   return rc
+
+; ---------------------------------------------------------------------------
 ; Save                               save
 ; Save (for a tempfile)              open Save-as dialog
 ; Save <filename>                    save, keep old filename loaded
@@ -209,83 +297,13 @@ defproc Save
       call parse_filename( Name, .filename)  -- gets .filename and sets Name
    endif
 
-   -- Handle special NEPMD dirs: don't overwrite files of the NETLABS or EPMBBS tree
-   do i = 1 to 1
-
-      if not fIsTempFile & fCalledBySaveAs then
-         leave
+   -- Don't overwrite files of the NETLABS or EPMBBS tree
+   if not fIsTempFile & not fCalledBySaveAs then
+      rcx = SaveProcessNetlabsFile( Name, SpecifiedName, fNameChanged)
+      if rcx then
+         return rcx
       endif
-
-      RootDir = NepmdScanEnv( 'NEPMD_ROOTDIR')
-      parse value RootDir with 'ERROR:'rcx
-      if rcx <> '' then
-         sayerror 'Environment var NEPMD_ROOTDIR not set'
-         leave
-      endif
-      UserDir = NepmdScanEnv( 'NEPMD_USERDIR')
-      parse value UserDir with 'ERROR:'rcx
-      if rcx <> '' then
-         sayerror 'Environment var NEPMD_USERDIR not set'
-         leave
-      endif
-
-      -- RootDir contained in Name?
-      if not abbrev( upcase( Name), upcase( RootDir)) then
-         leave
-      endif
-
-      -- Check the following subdir after RootDir in Name
-      p1 = length( RootDir)
-      p2 = pos( '\', Name, p1 + 2)
-      SubDir = substr( Name, p1 + 2, max( p2 - p1 - 2, 0))
-      if not wordpos( upcase( SubDir), 'NETLABS EPMBBS') then
-         leave
-      endif
-
-      NewName = UserDir''substr( Name, p2)
-      lp = lastpos( '\', NewName)
-      Newdir = leftstr( NewName, lp - 1)
-
-      -- Create tree, if not existing
-      rcx = MakeTree( NewDir)
-
-      sayerror 'Better use the user tree for your own files'
-      -- First disable most load and select processing for the current
-      -- file. Always ensure that they were reenabled after that
-      -- command to be ready for processing the next file!
-      'DisableLoad'
-      'DisableSelect'
-      oldname = .filename
-      .filename = newname               -- saveas_dlg starts with .filename
-      result = saveas_dlg( Name, Type)  -- saveas_dlg will set both vars
-      if result <> 0 then
-         .filename = oldname
-         -- 'postme' makes the following commands be processed after
-         -- defload and defselect are processed. That disables most
-         -- load and select processing for the current file.
-         'postme EnableLoad'
-         'postme EnableSelect'
-         return result
-      endif
-      SpecifiedName = Name
-      'name' Name
-      if not rc then  -- on success
-         Name = .filename
-         fNameChanged = 1
-         -- The following commands enable all load and select
-         -- processing for the current file, because they are
-         -- executed before defload and defselect.
-         'EnableLoad'
-         'EnableSelect'
-      else
-         -- 'postme' makes the following commands be processed after
-         -- defload and defselect are processed. That disables most
-         -- load and select processing for the current file.
-         'postme EnableLoad'
-         'postme EnableSelect'
-      endif
-
-   enddo
+   endif
 
    -- Check for .readonly field
    if SpecifiedName = '' & (browse() | .readonly) then
@@ -785,6 +803,21 @@ compile endif
    InfolineRefresh = 1
 
 ; ---------------------------------------------------------------------------
+defproc SaveAsCheckExist( Name)
+   rc = 0
+   if Exist( Name) then
+      Title = SAVE_AS__MSG
+      Text = Name\n\n ||
+             EXISTS_OVERLAY__MSG
+      rcx = WinMessageBox( Title, Text,
+                           MB_OKCANCEL + MB_WARNING + MB_MOVEABLE)
+      if rcx <> MBID_OK then
+         return -5  -- sayerror('Access denied')
+      endif
+   endif
+   return rc
+
+; ---------------------------------------------------------------------------
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
 � what's it called: saveas_dlg      syntax:   saveas_dlg                     �
@@ -896,13 +929,9 @@ defproc saveas_dlg( var Name, var Type)
       CheckName = Name
    endif
 
-   if Exist( CheckName) & fAskIfExists then
-      if 1 <> WinMessageBox( SAVE_AS__MSG,
-                             CheckName\10\10        ||
-                             EXISTS_OVERLAY__MSG,
-                             16417) then -- OKCANCEL + CUANWARNING + MOVEABLE
-         return -5  -- sayerror('Access denied')
-      endif
+   rcx = SaveAsCheckExist( CheckName)
+   if rcx then
+      return rcx
    endif
    if Type then
       call delete_ea('.TYPE')
