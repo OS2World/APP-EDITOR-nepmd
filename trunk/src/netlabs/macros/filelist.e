@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: filelist.e,v 1.19 2008-09-05 22:49:11 aschn Exp $
+* $Id: filelist.e,v 1.20 2009-02-16 22:27:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -535,8 +535,11 @@ defc History
 
    -- Open Listbox
    -- No Linebreak allowed in Text
+/*
    Text = 'Press "Add" to edit it in the current window,' ||
           ' press "Open" to edit it in a new window.'
+*/
+   Text = 'Press "Open" to load selected file into the current window.'
    -- Default selected item
    Selection = 1
    -- Window coordinates in lines and columns (0 or '' are default values)
@@ -555,7 +558,10 @@ defc History
    refresh
    select = listbox( Title,
                      HistoryList,
+/*
                      '/~Add/~Open/A~dd.../O~pen.../Open ~folder of/Cancel',   -- buttons
+*/
+                     '/~Open/O~pen.../Open ~folder/Cancel',   -- buttons
                      top_lines, left_cols,
                      height_lines, width_cols,
                      gethwnd(APP_HANDLE) || atoi(Selection) || atoi(1) || atoi(0) ||
@@ -575,6 +581,7 @@ defc History
          endif
       endif
    endif
+/*
    if button = 1 then
       'e 'select
    elseif button = 2 then
@@ -584,6 +591,14 @@ defc History
    elseif button = 4 then
       'opendlg OPEN'
    elseif button = 5 then
+      'openfolderof 'select
+   endif
+*/
+   if button = 1 then
+      'e 'select
+   elseif button = 2 then
+      'opendlg EDIT'
+   elseif button = 3 then
       'openfolderof 'select
    endif
 
