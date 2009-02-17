@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.66 2009-02-16 22:15:10 aschn Exp $
+* $Id: newmenu.e,v 1.67 2009-02-17 22:41:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -718,7 +718,7 @@ defproc add_file_menu(menuname)
    i = i + 1; call SetAVar( 'mid_saveandquit', i);
    buildmenuitem menuname, mid, i, 'Sa~ve and close file'\9'F4',                                   -- Save and close file
                                    'file' ||
-                                   FILE_MENUP__MSG,
+                                   \1'Save this file, then close it',
                                    MIS_TEXT, mpfrom2short(HP_FILE_FILE, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Save a~ll',                                                    -- Save all
@@ -741,7 +741,7 @@ defproc add_file_menu(menuname)
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Close file'\9'F3',                                            -- Close file
                                    'quit' ||
-                                   QUIT_MENUP__MSG,
+                                   \1'Close this file',
                                    MIS_TEXT, mpfrom2short(HP_FILE_QUIT, 0)
    return
 
