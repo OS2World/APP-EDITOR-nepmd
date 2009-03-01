@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.33 2009-01-24 16:46:14 aschn Exp $
+* $Id: locate.e,v 1.34 2009-03-01 21:43:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -108,6 +108,7 @@ defc l, locate
    universal default_search_options
    universal search_len
    universal lastsearchargs
+   universal lastchangeargs
    universal lastsearchfid
    universal lastsearchpos
    universal nepmd_hini
@@ -228,9 +229,16 @@ defc l, locate
       -- re-determine default_search_options. User may have changed it in the
       -- meantime.
       lastsearchargs = delim''search_string''delim''user_options  -- save it in a universal var
-      if lastsearchargs <> PreviousSearchArgs then
+      if lastsearchargs = PreviousSearchArgs then
+         fFindNext = 1
+      else
          KeyPath = '\NEPMD\User\Search\LastSearchArgs'  -- save it in NEPMD.INI
          call NepmdWriteConfigValue( nepmd_hini, KeyPath, lastsearchargs)
+
+         -- Reset also lastchangeargs
+         lastchangeargs = ''
+         KeyPath = '\NEPMD\User\Search\LastChangeArgs'  -- save it in NEPMD.INI
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath, lastchangeargs)
       endif
    endif
 
