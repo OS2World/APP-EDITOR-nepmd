@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newsamewindow.erx,v 1.2 2008-10-05 14:09:30 aschn Exp $
+* $Id: newsamewindow.erx,v 1.3 2009-03-01 21:17:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -31,6 +31,7 @@ CrLf  = '0d0a'x
 Redirection = '>NUL 2>&1'
 PARSE SOURCE . . ThisFile
 GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
+GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
 
 /* some OS/2 Error codes */
 ERROR.NO_ERROR           =   0
@@ -50,6 +51,8 @@ ERROR.INVALID_PARAMETER  =  87
 ERROR.ENVVAR_NOT_FOUND   = 204
 
 rc = ERROR.NO_ERROR
+ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env)
+ErrorMessage   = ''
 
 CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
 CALL SysLoadFuncs
@@ -62,6 +65,8 @@ Title._EPM_SAME_WINDOW = 'EPM same window'
 
 Title._IniName         = 'objects.ini'
 Title._IniSection      = 'NEWSAMEWINDOW'
+Title._IniKey1         = 'Objects'
+Title._IniKey2         = 'SpecialObject'
 /* -------------------------------------------- */
 
 GlobalVars = GlobalVars 'Title. Ini.'
@@ -69,104 +74,129 @@ GlobalVars = GlobalVars 'Title. Ini.'
 CALL RxFuncAdd 'WPToolsLoadFuncs', 'WPTOOLS', 'WPToolsLoadFuncs'
 CALL WPToolsLoadFuncs
 
-PARSE ARG Args
-Args = TRANSLATE( STRIP( Args))
-SELECT
-   WHEN (POS( Args, 'ON') = 1 | POS( Args, 'YES') = 1 | Args = 1) THEN
-      Action = 'on'
-   WHEN (POS( Args, 'OFF') = 1 | POS( Args, 'NO') = 1 | Args = 0) THEN
-      Action = 'off'
-   WHEN (POS( Args, 'TOGGLE') = 1) THEN
-      Action = 'toggle'
-   WHEN (POS( Args, 'QUERY') = 1) THEN
-      Action = 'query'
-OTHERWISE
-   Action = ''
-END
+DO 1
 
-/* Get ini name */
-IniFile = SysSearchPath( 'EPMBINPATH', Title._IniName)
+   PARSE ARG Args
+   Args = TRANSLATE( STRIP( Args))
+   SELECT
+      WHEN (POS( Args, 'ON') = 1 | POS( Args, 'YES') = 1 | Args = 1) THEN
+         Action = 'ON'
+      WHEN (POS( Args, 'OFF') = 1 | POS( Args, 'NO') = 1 | Args = 0) THEN
+         Action = 'OFF'
+      WHEN (POS( Args, 'TOGGLE') = 1) THEN
+         Action = 'TOGGLE'
+      WHEN (POS( Args, 'QUERY') = 1) THEN
+         Action = 'QUERY'
+   OTHERWISE
+      rc = ERROR.INVALID_PARAMETER
+      ErrorMessage = 'Error: No action specified. Parameter' ||,
+         ' for NEWSAMEWINDOW.ERX is missing.'
+      LEAVE
+   END
 
-/* Read ini */
-Obj.0 = 0
-rc = ReadIni( IniFile)
-IF rc <> 0 THEN
-   EXIT( rc)
+   /* Get ini name */
+   IniFile = SysSearchPath( 'EPMBINPATH', Title._IniName)
 
-/* Find section and get objects */
-fSectionFound = 0
-DO s = 1 TO Ini._Section.0
-   IF Ini._Section.s = Title._IniSection THEN
-   DO
+   /* Read ini */
+   rc = ReadIni( IniFile)
+   IF rc <> 0 THEN
+      EXIT( rc)
+
+   /* Find section and get objects */
+   Obj.0 = 0
+   n = 0
+   fSectionFound = 0
+   SpecialObj = ''
+   DO s = 1 TO Ini._Section.0
+      IF TRANSLATE( Ini._Section.s) <> TRANSLATE( Title._IniSection) THEN
+         ITERATE
       fSectionFound = 1
       DO k = 1 TO Ini._Key.s.0
-         Obj.k = Ini._Key.s.k
+         SELECT
+            WHEN TRANSLATE( Ini._Key.s.k) = TRANSLATE( Title._IniKey1) THEN
+            DO
+               rest = Ini._Val.s.k
+               DO WHILE rest <> ''
+                  PARSE VAR rest next','rest
+                  next = STRIP( next)
+                  IF next = '' THEN
+                     ITERATE
+                  n = n + 1
+                  Obj.0 = n
+                  Obj.n = next
+               END
+            END
+            WHEN TRANSLATE( Ini._Key.s.k) = TRANSLATE( Title._IniKey2) THEN
+               SpecialObj = Ini._Val.s.k
+         OTHERWISE
+            ITERATE
+         END
       END
-      Obj.0 = Ini._Key.s.0
       LEAVE
    END
-   ELSE
-      ITERATE
-END
 
-IF fSectionFound = 0 THEN
-DO
-   'sayerror Error: Section "'Title._IniSection'" not found in "'IniFile'".'
-   EXIT( ERROR.INVALID_DATA)
-END
-
-/* Query current object settings */
-DO 1
-   Obj = Obj.2
-   rcx = WPToolsQueryObject( Obj, 'Class', 'Title', 'Setup', 'Location')
-   IF (rcx = 1) THEN
+   IF fSectionFound = 0 THEN
    DO
-      fOldR =CheckR( Setup)
+      rc = ERROR.INVALID_DATA
+      ErrorMessage = 'Error: Section "'Title._IniSection'" not found in "'IniFile'".'
+      LEAVE
+   END
+   IF Obj.0 = 0 THEN
+   DO
+      rc = ERROR.INVALID_DATA
+      ErrorMessage = 'Error: No objects defined in "'Title._IniSection'" of "'IniFile'".'
+      LEAVE
+   END
+   IF SpecialObj = '' THEN
+   DO
+      rc = ERROR.INVALID_DATA
+      ErrorMessage = 'Error: No special object defined in "'Title._IniSection'" of "'IniFile'".'
       LEAVE
    END
 
+   /* Query current setting from first object */
    Obj = Obj.1
    rcx = WPToolsQueryObject( Obj, 'Class', 'Title', 'Setup', 'Location')
    IF (rcx = 1) THEN
+      fOldR =CheckR( Setup)
+   ELSE
    DO
-      fOldR =CheckNew( Setup)
+      rc = ERROR.FILE_NOT_FOUND
+      ErrorMessage = 'Error: Setup string couldn''t be queried from 'Obj'.'
       LEAVE
    END
 
-   'sayerror Error: Setup string couldn''t be queried from 'Obj.2' or 'Obj.1'.'
-   EXIT( ERROR.FILE_NOT_FOUND)
-END
+   IF (Action = 'QUERY') THEN
+      EXIT( fOldR)
 
-IF (Action = 'query') THEN
-   EXIT( fOldR)
+   OldState = WORD( 'OFF ON', fOldR + 1)
 
-OldState = WORD( 'off on', fOldR + 1)
-/*'sayerror Current state of parameter "/r" is: 'OldState*/
+   IF Action = OldState THEN
+   DO
+      CALL SayText 'No changes.'
+      LEAVE
+   END
 
-IF Action = '' THEN
-   EXIT( rc)
-
-IF Action = OldState THEN
-DO
-   'sayerror No changes.'
-   EXIT( rc)
-END
-
-/* Toggle presence of /r */
-fNewR = \fOldR
-i = 0
-DO n = 1 TO Obj.0
-   IF n = 1 THEN
-      rcx = ToggleR( Obj.n, \fNewR)
-   ELSE
+   /* Toggle presence of /r */
+   fNewR = \fOldR
+   i = 0
+   DO n = 1 TO Obj.0
       rcx = ToggleR( Obj.n, fNewR)
+      IF (rcx = 1) THEN
+         i = i + 1
+   END
+
+   /* For special object, toggle presence of /r (inverted) and change title */
+   rcx = ToggleR( SpecialObj, \fNewR)
    IF (rcx = 1) THEN
       i = i + 1
+   rcx = ToggleTitle( SpecialObj, fNewR)
+
+   CALL SayText 'Changed 'i' object(s).'
+
 END
-rcx = ToggleTitle( Obj.1, fNewR)
 
-'sayerror Changed 'i' object(s).'
-
+CALL SayErrorMessage
 EXIT( rc)
 
 /* ----------------------------------------------------------------------- */
@@ -175,15 +205,6 @@ CheckR: PROCEDURE
 
    PARSE VAR Setup First'PARAMETERS='Params';'Rest
    wp = WORDPOS( '/R', TRANSLATE( Params))
-
-   RETURN( wp > 0)
-
-/* ----------------------------------------------------------------------- */
-CheckNew: PROCEDURE
-   PARSE ARG Setup
-
-   PARSE VAR Setup First'TITLE='Title';'Rest
-   wp = WORDPOS( 'NEW', TRANSLATE( Title))
 
    RETURN( wp > 0)
 
@@ -216,7 +237,6 @@ ToggleR: PROCEDURE EXPOSE (GlobalVars)
          Params = '"%*"'
 
       Setup = First'PARAMETERS='Params';'Rest
-      /*'sayerror' Obj 'PARAMETERS='Params';'*/
 
       rcx = SysSetObjectData( Obj, Setup)
       rc2 = SysSaveObject( Obj, 0)
@@ -239,7 +259,6 @@ ToggleTitle: PROCEDURE EXPOSE (GlobalVars)
          Title = Title._EPM_SAME_WINDOW
 
       Setup = First'TITLE='Title';'Rest
-      /*'sayerror' Obj 'TITLE='Title';'*/
 
       rcx = SysSetObjectData( Obj, Setup)
       rc2 = SysSaveObject( Obj, 0)
@@ -258,90 +277,147 @@ ToggleTitle: PROCEDURE EXPOSE (GlobalVars)
 ReadIni: PROCEDURE EXPOSE (GlobalVars)
    IniFile = ARG(1)
 
-   IF IniFile = '' THEN
-   DO
-      'sayerror Error: No ini file specified.'
-      RETURN( ERROR.INVALID_PARAMETER)
-   END
+   rc = ERROR.NO_ERROR
+   DO 1
 
-   next = STREAM( IniFile, 'c', 'open read')
-   IF next <> 'READY:' THEN
-   DO
-      PARSE VAR next 'ERROR:'rc
-      'sayerror Error: Could not open ini file "'IniFile'", rc = 'rc'.'
-      RETURN( rc)
-   END
-
-   s = 0
-   Ini._Section.0 = s
-   k = 0
-   DO WHILE LINES( IniFile) <> 0
-      ThisLine = LINEIN( IniFile)
-
-      /* Ignore comments */
-      IF LEFT( ThisLine, 1) = ';' THEN
-         ITERATE
-
-      /* Convert tabs to spaces */
-      ThisLine = TRANSLATE( ThisLine, ' ', '09'x)
-      ThisLine = STRIP( ThisLine)
-
-      /* Ignore blank lines */
-      IF ThisLine = '' THEN
-         ITERATE
-
-      SELECT
-         /* Find section */
-         WHEN LEFT( ThisLine, 1) = '[' THEN
-         DO
-            p2 = POS( ']', ThisLine)
-            IF p2 > 0 THEN
-            DO
-               ThisSection = SUBSTR( ThisLine, 2, p2 - 2)
-               IF ThisSection = '' THEN
-                  ITERATE
-               /* Save section name */
-               s = s + 1
-               Ini._Section.0 = s
-               Ini._Section.s = ThisSection
-               /* Init keys for this section */
-               k = 0
-               Ini._Key.s.0 = k
-            END
-         END
-         /* Ignore lines before the first section */
-         WHEN s = 0 THEN
-            ITERATE
-      OTHERWISE
-         /* This must be a 'Key' or 'Key = Val' line */
-         PARSE VALUE ThisLine WITH ThisKey'='ThisVal
-
-         /* Strip blanks */
-         ThisKey = STRIP( ThisKey)
-         ThisVal = STRIP( ThisVal)
-
-         /* Save key and value */
-         k = k + 1
-         Ini._Key.s.0 = k
-         Ini._Key.s.k = ThisKey
-         Ini._Val.s.k = ThisVal
+      IF IniFile = '' THEN
+      DO
+         rc = ERROR.INVALID_PARAMETER
+         ErrorMessage = 'Error: No ini file specified.'
+         LEAVE
       END
 
+      next = STREAM( IniFile, 'c', 'open read')
+      IF next <> 'READY:' THEN
+      DO
+         PARSE VAR next 'ERROR:'rc
+         ErrorMessage = 'Error: Could not open ini file "'IniFile'", rc = 'rc'.'
+         LEAVE
+      END
+
+      s = 0
+      Ini._Section.0 = s
+      k = 0
+      DO WHILE LINES( IniFile) <> 0
+         ThisLine = LINEIN( IniFile)
+
+         /* Ignore comments */
+         IF LEFT( ThisLine, 1) = ';' THEN
+            ITERATE
+
+         /* Convert tabs to spaces */
+         ThisLine = TRANSLATE( ThisLine, ' ', '09'x)
+         ThisLine = STRIP( ThisLine)
+
+         /* Ignore blank lines */
+         IF ThisLine = '' THEN
+            ITERATE
+
+         SELECT
+            /* Find section */
+            WHEN LEFT( ThisLine, 1) = '[' THEN
+            DO
+               p2 = POS( ']', ThisLine)
+               IF p2 > 0 THEN
+               DO
+                  ThisSection = SUBSTR( ThisLine, 2, p2 - 2)
+                  IF ThisSection = '' THEN
+                     ITERATE
+                  /* Save section name */
+                  s = s + 1
+                  Ini._Section.0 = s
+                  Ini._Section.s = ThisSection
+                  /* Init keys for this section */
+                  k = 0
+                  Ini._Key.s.0 = k
+               END
+            END
+            /* Ignore lines before the first section */
+            WHEN s = 0 THEN
+               ITERATE
+         OTHERWISE
+            /* This must be a 'Key' or 'Key = Val' line */
+            PARSE VALUE ThisLine WITH ThisKey'='ThisVal
+
+            /* Strip blanks */
+            ThisKey = STRIP( ThisKey)
+            ThisVal = STRIP( ThisVal)
+
+            /* Save key and value */
+            k = k + 1
+            Ini._Key.s.0 = k
+            Ini._Key.s.k = ThisKey
+            Ini._Val.s.k = ThisVal
+         END
+
+      END
+      next = STREAM( IniFile, 'c', 'close')
+
    END
 
-   next = STREAM( IniFile, 'c', 'close')
-   RETURN( ERROR.NO_ERROR)
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+SayText: PROCEDURE EXPOSE (GlobalVars)
+   PARSE ARG Message
+
+   SELECT
+      WHEN ADDRESS() = 'EPM' THEN
+         'sayerror' Message
+   OTHERWISE
+      SAY Message
+   END
+
+   RETURN( '')
+
+/* ----------------------------------------------------------------------- */
+SayErrorMessage: PROCEDURE EXPOSE (GlobalVars)
+
+   SELECT
+      WHEN (ErrorMessage = '') THEN NOP
+
+      /* Called by frame program: insert error */
+      /* message into private queue            */
+      WHEN (ErrorQueueName <> '') THEN
+      DO
+         rcx = RXQUEUE( 'SET', ErrorQueueName)
+         PUSH ErrorMessage
+      END
+
+      /* Called directly */
+      WHEN ADDRESS() = 'EPM' THEN
+      DO
+         /*'sayerror' ErrorMessage*/
+         ThisFileName = SUBSTR( ThisFile, LASTPOS( '\', ThisFile) + 1)
+         rcx = RxMessageBox( ErrorMessage, TRANSLATE( ThisFileName),,
+            'OK', 'ERROR')
+      END
+
+      /* Called directly */
+      OTHERWISE
+      DO
+         SAY ErrorMessage
+         'PAUSE'
+      END
+   END
+
+   RETURN( '')
 
 /* ----------------------------------------------------------------------- */
 Halt:
-   'sayerror Interrupted by user.'
+   ErrorMessage = 'Interrupted by user.'
+   CALL SayErrorMessage
    EXIT( ERROR.GEN_FAILURE)
 
 /* ----------------------------------------------------------------------- */
 /* Give a standard REXX error message and jump to the error line           */
 Error:
-   'sayerror REX'RIGHT( rc, 4, 0)': Error 'rc' running 'ThisFile', line 'sigl ||,
-   ': 'ERRORTEXT( rc)
-   "e "ThisFile" 'postme "sigl"'"
-   EXIT( ERROR.GEN_FAILURE)
+   /* sigl must be saved to not get overwritten by SayErrorMessage call */
+   ErrorLine = sigl
+   ErrorMessage = 'REX'RIGHT( rc, 4, 0)': Error 'rc' running 'ThisFile',' ||,
+      ' line 'sigl': 'ERRORTEXT( rc)
+   CALL SayErrorMessage
+   IF ADDRESS() = 'EPM' THEN
+      "e "ThisFile" 'postme "ErrorLine"'"
+   EXIT( rc)
 
