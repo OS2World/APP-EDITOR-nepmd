@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: popup.e,v 1.8 2008-09-21 22:40:39 aschn Exp $
+* $Id: popup.e,v 1.9 2009-03-01 21:46:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -160,9 +160,11 @@ defc MH_popup
    menuname = 'popup1'
    activemenu = menuname
 
+   call psave_pos( savedpos)
    deletemenu menuname, 0, 0, 0
    'BuildPopupMenu' menuname
    showmenu menuname, 1
+   call prestore_pos( savedpos)
    -- Cascade menu now replaced by inline menu items, because it doesnot work:
 ;    --'add_cascade_popupmenu'       -- without postme: works only for the first menu creation
 ;                                    -- the square around the arrow of the submenu
