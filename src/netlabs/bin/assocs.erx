@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: assocs.erx,v 1.2 2008-10-12 20:54:11 aschn Exp $
+* $Id: assocs.erx,v 1.3 2009-03-01 21:17:22 aschn Exp $
 *
 * ===========================================================================
 *
@@ -31,6 +31,7 @@ CrLf  = '0d0a'x
 Redirection = '>NUL 2>&1'
 PARSE SOURCE . . ThisFile
 GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
+GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
 
 /* some OS/2 Error codes */
 ERROR.NO_ERROR           =   0
@@ -50,32 +51,46 @@ ERROR.INVALID_PARAMETER  =  87
 ERROR.ENVVAR_NOT_FOUND   = 204
 
 rc = ERROR.NO_ERROR
+ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env)
+ErrorMessage   = ''
 
 CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
 CALL SysLoadFuncs
 /* ----------------- Standard ERX initialization ends -------------------- */
 
 /* ------------- Configuration ---------------- */
-ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env)
-ErrorMessage   = ''
-Title._IniName         = 'objects.ini'
-Title._IniSection      = 'ASSOC'
+Title._IniName           = 'objects.ini'
+Title._IniSectionPrefix  = 'ASSOC:'
+Title._IniKeyListItem    = 'ListItem'
+Title._IniKeyAssocCount  = 'AssocCount'
+Title._IniKeyAssocPrefix = 'Assoc'
 /* -------------------------------------------- */
 
-NumProcessedAssocs = 0
-GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage Title. Ini. NumProcessedAssocs'
+GlobalVars = GlobalVars 'Title. Ini. Processed.'
+
+Processed._Objects    = ''
+Processed._Types      = ''
+Processed._Filters    = ''
 
 DO 1
 
-   PARSE ARG SelectedIniSection
-   SelectedIniSection = STRIP( SelectedIniSection)
-   SELECT
-      WHEN (TRANSLATE( SelectedIniSection) = 'QUERY') THEN
-         Action = 'query'
-      WHEN (SelectedIniSection = '') THEN
-         Action = ''
-   OTHERWISE
-      Action = 'set'
+   PARSE ARG Action ListItem
+   Action = TRANSLATE( STRIP( Action))
+   ListItem = STRIP( ListItem)
+
+   IF (Action = '') THEN
+   DO
+      rc = ERROR.INVALID_PARAMETER
+      ErrorMessage = 'Error: No action specified. First parameter' ||,
+         ' for ASSOCS.ERX is missing.'
+      LEAVE
+   END
+   IF ((ListItem = '') & (Action <> 'QUERY')) THEN
+   DO
+      rc = ERROR.INVALID_PARAMETER
+      ErrorMessage = 'Error: No list item specified. Second parameter' ||,
+         ' for ASSOCS.ERX is missing.'
+      LEAVE
    END
 
    /* Get ini name */
@@ -87,244 +102,281 @@ DO 1
    IF rc <> ERROR.NO_ERROR THEN
       LEAVE
 
-   /* First loop: get names for all assoc sections */
-   IniSectionToRead = Title._IniSection
-   fSectionFound = 0
-   DO s = 1 TO Ini._Section.0
-      IF Ini._Section.s = IniSectionToRead THEN
-      DO
-         fSectionFound = 1
-         DO k = 1 TO Ini._Key.s.0
-            FoundLine.k = Ini._Key.s.k'='Ini._Val.s.k
-         END
-         FoundLine.0 = Ini._Key.s.0
-         LEAVE
-      END
-      ELSE
-         ITERATE
-   END
-
-   IF fSectionFound = 0 THEN
-   DO
-      ErrorMessage = 'Error: Section "'IniSectionToRead'" not found in "'IniFile'".'
-      rc = ERROR.INVALID_DATA
-      LEAVE
-   END
+   /* Uppercase versions of strings */
+   UpStrSectionPrefix = TRANSLATE( Title._IniSectionPrefix)
+   UpStrListItem      = TRANSLATE( Title._IniKeyListItem)
+   UpStrAssocCount    = TRANSLATE( Title._IniKeyAssocCount)
+   UpStrAssocPrefix   = TRANSLATE( Title._IniKeyAssocPrefix)
 
    /* Return listbox data */
-   IF (Action = 'query') THEN
+   IF (Action = 'QUERY') THEN
    DO
       ListboxData = ''
-      DO n = 1 to FoundLine.0
-         PARSE VAR FoundLine.n Section'='Name
-         Section = STRIP( Section)
-         Name    = STRIP( Name)
-         ListboxData = ListboxData'|'Name
+      DO s = 1 TO Ini._Section.0
+         IF POS( UpStrSectionPrefix, TRANSLATE( Ini._Section.s)) <> 1 THEN
+            ITERATE
+         DO k = 1 TO Ini._Key.s.0
+            IF UpStrListItem <> TRANSLATE( Ini._Key.s.k) THEN
+               ITERATE
+            ListboxData = ListboxData'|'Ini._Val.s.k
+         END
       END
       EXIT( ListboxData)
    END
 
-   IF (Action = '') THEN
-      EXIT( '')
-
-   /* Find section for submitted name */
-   IniSectionToProcess = ''
-   DO n = 1 to FoundLine.0
-      /*'dprintf' FoundLine.n*/
-      PARSE VAR FoundLine.n Section'='Name
-      Section = STRIP( Section)
-      Name    = STRIP( Name)
-      IF TRANSLATE( Name) = TRANSLATE( SelectedIniSection) THEN
-      DO
-         IniSectionToProcess = Section
+   /* Change assocs for objects */
+   FoundSection = 0
+   FoundAssocCount = 0
+   DO s = 1 TO Ini._Section.0
+      /* Find sections starting with "ASSOC:" */
+      IF POS( UpStrSectionPrefix, TRANSLATE( Ini._Section.s)) <> 1 THEN
+         ITERATE
+      DO k = 1 TO Ini._Key.s.0
+         /* Find "ListItem" key */
+         IF UpStrListItem <> TRANSLATE( Ini._Key.s.k) THEN
+            ITERATE
+         /* Find matching ListItem value */
+         IF ListItem <> Ini._Val.s.k THEN
+            ITERATE
+         FoundSection = s
          LEAVE
       END
+      IF FoundSection > 0 THEN
+         LEAVE
    END
-
-   IF IniSectionToProcess = '' THEN
-   DO
-      ErrorMeassage = 'Error: "'SelectedIniSection'" not listed in section "'IniSectionToRead'" in "'IniFile'".'
-      rc = ERROR.INVALID_DATA
+   IF FoundSection = 0 THEN
       LEAVE
+
+   s = FoundSection
+   DO k = 1 TO Ini._Key.s.0
+      /* Find AssocCount */
+      IF UpStrAssocCount <> TRANSLATE( Ini._Key.s.k) THEN
+         ITERATE
+      FoundAssocCount = Ini._Val.s.k
+   END
+   IF FoundAssocCount = 0 THEN
+      LEAVE
+
+   /* Create array for easier processing */
+   Assoc.  = ''
+   Assoc.0 = FoundAssocCount /* number of array entries */
+   DO k = 1 TO Ini._Key.s.0
+      /* Find Assoc line */
+      IF POS( UpStrAssocPrefix, TRANSLATE( Ini._Key.s.k)) <> 1 THEN
+         ITERATE
+      PARSE VALUE TRANSLATE( Ini._Key.s.k) WITH (UpStrAssocPrefix)AssocNum
+      AssocNum = STRIP( AssocNum)
+      IF AssocNum = '' THEN
+         ITERATE
+      IF DATATYPE( AssocNum, 'N') <> 1 THEN
+         ITERATE
+      /* Set array var */
+      a = AssocNum
+      AssocVal = STRIP( Ini._Val.s.k)
+      Assoc.a = AssocVal
    END
 
-   /* Second and third loop: get objects and settings to process for IniSectionToProcess */
-   fSectionFound = 0
-   Categories = 'ASSOC_TYPE ASSOC_FILTER ASSOC'
-   DO c = 1 TO WORDS( Categories)
-      Category = WORD( Categories, c)
-      /*'dprintf ---- Category: 'Category' ----'*/
-      FoundLine.0 = 0
-      DO s = 1 TO Ini._Section.0
-         IF Ini._Section.s = Category':'IniSectionToProcess THEN
-         DO
-            fSectionFound = 1
-            DO k = 1 TO Ini._Key.s.0
-               /*'dprintf 'k'/'Ini._Key.s.0'  'Ini._Key.s.k'='Ini._Val.s.k*/
-               IF Ini._Val.s.k = '' THEN
-                  FoundLine.k = Ini._Key.s.k
-               ELSE
-                  FoundLine.k = Ini._Key.s.k'='Ini._Val.s.k
-            END
-            FoundLine.0 = Ini._Key.s.0
-            LEAVE
-         END
-         ELSE
+   /* Process array */
+   ProcessedObjects = ''
+   DO a = 1 TO Assoc.0
+      PARSE VAR Assoc.a Object','Setup','Position
+      Object   = STRIP( Object)
+      Setup    = STRIP( Setup)
+      Position = STRIP( Position)
+      IF Object = '' THEN
+         ITERATE
+
+      IF Action = 'REMOVE' THEN
+      DO
+         IF POS( ','Object',', ','Processed._Objects) <> 0 THEN
             ITERATE
+         rc = RemoveAssocs( Object)
+         IF rc <> ERROR.NO_ERROR THEN
+            LEAVE
+         ITERATE
       END
 
-      /* Change assocs positions */
-      DO n = 1 to FoundLine.0
-         IF RIGHT( IniSectionToProcess, 6) = 'REMOVE' THEN
-            rcx = RemoveAllAssocs( FoundLine.n, IniSectionToProcess)
-         ELSE
-            rcx = ChangeAssocPos( FoundLine.n, Category, IniSectionToProcess)
+      IF Setup = '' THEN
+         ITERATE
+      IF Position = '' THEN
+         Position = 1
+      IF Action = 'APPEND' THEN
+         Position = 'L'
+      ThisType   = ''
+      ThisFilter = ''
+      SELECT
+         WHEN POS( 'TYPE:', TRANSLATE( Setup)) = 1 THEN
+         DO
+            PARSE VAR SETUP .':'ThisType
+            ThisType = STRIP( ThisType)
+            rc = ChangeAssocPos( 'TYPE', ThisType, Object, Position)
+            IF rc <> ERROR.NO_ERROR THEN
+               LEAVE
+         END
+         WHEN POS( 'FILTER:', TRANSLATE( Setup)) = 1 THEN
+         DO
+            PARSE VAR SETUP .':'ThisFilter
+            ThisFilter = TRANSLATE( STRIP( ThisFilter))
+            rc = ChangeAssocPos( 'FILTER', ThisFilter, Object, Position)
+            IF rc <> ERROR.NO_ERROR THEN
+               LEAVE
+         END
+         OTHERWISE
+            NOP
       END
    END
 
-   IF fSectionFound = 0 THEN
-   DO
-      IniSections = ''
-      DO c = 1 TO WORDS( Categories)
-         Category = WORD( Categories, c)
-         IniSections = IniSections Category':'IniSectionToProcess
-      END
-      IniSections = STRIP( IniSections)
-      ErrorMessage = 'Error: No section of "'IniSections'" found in "'IniFile'".'
-      rc = ERROR.INVALID_DATA
-      LEAVE
-   END
-
-   SayText( 'Changed 'NumProcessedAssocs' association(s).')
-
+   IF rc = ERROR.NO_ERROR THEN
+      'AssocsMsgBox 'ListItem'|'Action'|'Processed._Objects'|' ||,
+         Processed._Types'|'Processed._Filters
 END
 
 CALL SayErrorMessage
 EXIT( rc)
 
-
 /* ----------------------------------------------------------------------- */
-RemoveAllAssocs: PROCEDURE EXPOSE (GlobalVars)
-   PARSE ARG ObjectId, IniSectionToProcess
+RemoveAssocs: PROCEDURE EXPOSE (GlobalVars)
+   PARSE ARG Object
+
+   rc = ERROR.NO_ERROR
 
    CALL RxFuncAdd 'WPToolsLoadFuncs', 'WPTOOLS', 'WPToolsLoadFuncs'
    CALL WPToolsLoadFuncs
 
    /* Get all assocs for this object */
-   rcx = WPToolsQueryObject( ObjectId, 'Class', 'Title', 'Setup', 'Location')
+   rcx = WPToolsQueryObject( Object, 'Class', 'Title', 'Setup', 'Location')
 
    /* Remove all types */
    PARSE VAR Setup .'ASSOCTYPE='Types';'
    DO WHILE Types <> ''
       PARSE VAR Types ThisType','Types
       IF ThisType = '' THEN ITERATE
-      rcx = ChangeAssocPos( ThisType'='ObjectId' | 0', 'ASSOC_TYPE', IniSectionToProcess)
+      rc = ChangeAssocPos( 'TYPE', ThisType, Object, 'REMOVE')
    END
 
    /* Remove all filters */
    PARSE VAR Setup .'ASSOCFILTER='Filters';'
    DO WHILE Filters <> ''
-      IF ThisFilter = '' THEN ITERATE
       PARSE VAR Filters ThisFilter','Filters
-      rcx = ChangeAssocPos( ThisFilter'='ObjectId' | 0', 'ASSOC_FILTER', IniSectionToProcess)
+      IF ThisFilter = '' THEN ITERATE
+      rc = ChangeAssocPos( 'FILTER', ThisFilter, Object, 'REMOVE')
    END
 
-   RETURN( ERROR.NO_ERROR)
+   RETURN( rc)
 
 /* ----------------------------------------------------------------------- */
 ChangeAssocPos: PROCEDURE EXPOSE (GlobalVars)
-   PARSE ARG ThisLine, Category, IniSectionToProcess
-   PARSE VAR ThisLine TypeFilter'='ObjectId
-   TypeFilter = STRIP( TypeFilter)
-   ObjectId   = STRIP( ObjectId)
-   PARSE VAR ObjectId ObjectId'|'Position
-   ObjectId   = STRIP( ObjectId)
-   Position   = STRIP( Position)
+   PARSE ARG Category, Assoc, ObjectId, Position
 
-   /* Default Position */
-   IF Position = '' THEN Position = 1
-
-   /* Check values */
-   fPassed = 0
+   rc = ERROR.NO_ERROR
    DO 1
-      IF (TypeFilter = '') THEN LEAVE
-      IF (ObjectId = '') THEN LEAVE
-      IF (LEFT( ObjectId, 1) <> '<') THEN LEAVE
-      IF (RIGHT( ObjectId, 1) <> '>') THEN LEAVE
-      IF (VERIFY( Position, '0123456789L') <> 0) THEN LEAVE
-      fPassed = 1
-   END
-   IF \(fPassed) THEN
-   DO
-      SayText( 'Error: Invalid line "'ThisLine'" in section "'IniSectionToProcess'"' ||,
-         ' in "'Title._IniName'".')
-      RETURN( ERROR.INVALID_DATA)
-   END
 
-   /* Get decimal object handle from object id */
-   Handle = GetObjHandle( ObjectId)
-   IF (Handle = '') THEN
-   DO
-      SayText( 'Error: ObjectId 'ObjectId' not defined in user ini.')
-      RETURN( ERROR.FILE_NOT_FOUND)
-   END
-
-   /* Get user ini assoc val for TypeFilter key */
-   SELECT
-      WHEN (Category = 'ASSOC_TYPE') THEN
-         IniApplication = 'PMWP_ASSOC_TYPE'
-      WHEN (Category = 'ASSOC_FILTER') THEN
-         IniApplication = 'PMWP_ASSOC_FILTER'
-   OTHERWISE
-      SayText( 'Error: Undefined category "'Category'" specified' ||,
-         ' for "'IniSectionToProcess'".')
-      RETURN( ERROR.INVALID_DATA)
-   END
-   next = SysIni( 'USER', IniApplication, TypeFilter)
-   IF next = 'ERROR:' THEN
-      HandleList = ''
-   ELSE
-      /* Convert zeros to spaces to use the WORD functions */
-      HandleList = STRIP( TRANSLATE( next, ' ', '00'x))
-   /*'dprintf 'TypeFilter': HandleList = 'HandleList*/
-
-   NewHandleList = HandleList
-   /* Find Handle in list of handles and maybe remove it */
-   wp = WORDPOS( Handle, HandleList)
-   IF (wp > 0) THEN
-      NewHandleList = DELWORD( HandleList, wp, 1)
-
-   /* Add Handle according to Position */
-   SELECT
-      WHEN (Position = 0) THEN
-         nop
-      WHEN (Position = 1) THEN
-         NewHandleList = Handle NewHandleList
-      WHEN ((Position = L) | (Position > WORDS(NewHandleList))) THEN
-         NewHandleList = NewHandleList Handle
-   OTHERWISE
-      windex = WORDINDEX( NewHandleList, Position)
-      NewHandleList = INSERT( Handle' ', NewHandleList, windex - 1)
-   END
-
-   /* Write ini key */
-   IF (NewHandleList <> HandleList) THEN
-   DO
-      val = TRANSLATE( SPACE( NewHandleList)' ', '00'x, ' ')
-      IF val = '00'x THEN val = 'DELETE:'
-      next = SysIni( 'USER', IniApplication, TypeFilter, val)
-      /*'dprintf next = SysIni( USER, 'IniApplication', 'TypeFilter', 'TRANSLATE( val, '.', '00'x)')'*/
-      IF next = 'ERROR:' THEN
-      DO
-         SayText( 'Error: List of changed handles could not be written for' ||,
-            ' key "'TypeFilter'", value = "'TRANSLATE( val, '.', '00'x)'"')
-         RETURN( ERROR.INVALID_DATA)
+      /* Check values */
+      fPassed = 0
+      DO 1
+         IF (Assoc = '') THEN
+            LEAVE
+         IF (ObjectId = '') THEN
+            LEAVE
+         IF (LEFT( ObjectId, 1) <> '<') THEN
+            LEAVE
+         IF (RIGHT( ObjectId, 1) <> '>') THEN
+            LEAVE
+         IF ((VERIFY( Position, '123456789L') <> 0) & (Position <> 'REMOVE')) THEN
+            LEAVE
+         fPassed = 1
       END
+      IF \(fPassed) THEN
+      DO
+         ErrorMessage = 'Error: Invalid args "'Category', 'Assoc', 'ObjectId ||,
+            ', 'Position'" for ChangeAssocPos.'
+         rc = ERROR.INVALID_DATA
+         LEAVE
+      END
+
+      /* Get decimal object handle from object id */
+      Handle = GetObjHandle( ObjectId)
+      IF (Handle = '') THEN
+      DO
+         ErrorMessage = 'Error: ObjectId 'ObjectId' not defined in user ini.'
+         rc = ERROR.FILE_NOT_FOUND
+         LEAVE
+      END
+
+      /* Get user ini assoc val for TypeFilter key */
+      SELECT
+         WHEN (Category = 'TYPE') THEN
+            IniApplication = 'PMWP_ASSOC_TYPE'
+         WHEN (Category = 'FILTER') THEN
+            IniApplication = 'PMWP_ASSOC_FILTER'
+      OTHERWISE
+         ErrorMessage =  'Error: Undefined category "'Category'" specified.'
+         rc = ERROR.INVALID_DATA
+         LEAVE
+      END
+
+      IniKey = Assoc
+      next = SysIni( 'USER', IniApplication, IniKey)
+      IF next = 'ERROR:' THEN
+         HandleList = ''
       ELSE
-         NumProcessedAssocs = NumProcessedAssocs + 1
+         /* Convert zeros to spaces to use the WORD functions */
+         HandleList = STRIP( TRANSLATE( next, ' ', '00'x))
+
+      NewHandleList = HandleList
+      /* Find Handle in list of handles and maybe remove it */
+      wp = WORDPOS( Handle, HandleList)
+      IF (wp > 0) THEN
+         NewHandleList = SPACE( DELWORD( HandleList, wp, 1))
+
+      /* Add Handle according to Position */
+      SELECT
+         WHEN (Position = 'REMOVE') THEN
+            nop
+         WHEN (Position = 1) THEN
+            NewHandleList = SPACE( Handle NewHandleList)
+         WHEN ((Position = 'L') | (Position > WORDS( NewHandleList))) THEN
+            NewHandleList = SPACE( NewHandleList Handle)
+      OTHERWISE
+         windex = WORDINDEX( NewHandleList, Position)
+         NewHandleList = SPACE( INSERT( Handle' ', NewHandleList, windex - 1))
+      END
+
+      /* Write ini key */
+      IF (NewHandleList <> HandleList) THEN
+      DO
+         val = TRANSLATE( SPACE( NewHandleList)' ', '00'x, ' ')
+         IF val = '00'x THEN
+            val = 'DELETE:'
+         /*'dprintf next = SysIni( USER, 'IniApplication', 'IniKey', 'TRANSLATE( val, '.', '00'x)')'; next = ''*/
+         next = SysIni( 'USER', IniApplication, IniKey, val)
+         IF next = 'ERROR:' THEN
+         DO
+            ErrorMessage = 'Error: List of changed handles could not be' ||,
+               ' written for 'IniApplication'->'IniKey ||,
+               ', value = "'TRANSLATE( val, '.', '00'x)'"')
+            rc = ERROR.INVALID_DATA
+            LEAVE
+         END
+
+         /* Changed, so alter global lists */
+         IF POS( ','ObjectId',', ','Processed._Objects) = 0 THEN
+            Processed._Objects = Processed._Objects''ObjectId','
+         IF (Category = 'TYPE') THEN
+         DO
+            IF POS( ','Assoc',', ','Processed._Types) = 0 THEN
+               Processed._Types = Processed._Types''Assoc','
+         END
+         ELSE
+         DO
+            IF POS( ','Assoc',', ','Processed._Filters) = 0 THEN
+               Processed._Filters = Processed._Filters''Assoc','
+         END
+      END
+
    END
 
-   RETURN( ERROR.NO_ERROR)
+   RETURN( rc)
 
 /* ----------------------------------------------------------------------- */
 /* Returns the decimal object handle for an object id.                     */
@@ -352,79 +404,85 @@ GetObjHandle: PROCEDURE
 ReadIni: PROCEDURE EXPOSE (GlobalVars)
    IniFile = ARG(1)
 
-   IF IniFile = '' THEN
-   DO
-      ErrorMessage = 'Error: No ini file specified.'
-      RETURN( ERROR.INVALID_PARAMETER)
-   END
+   rc = ERROR.NO_ERROR
+   DO 1
 
-   next = STREAM( IniFile, 'c', 'open read')
-   IF next <> 'READY:' THEN
-   DO
-      PARSE VAR next 'ERROR:'rc
-      ErrorMessage = 'Error: Could not open ini file "'IniFile'", rc = 'rc'.'
-      RETURN( rc)
-   END
-
-   s = 0
-   Ini._Section.0 = s
-   k = 0
-   DO WHILE LINES( IniFile) <> 0
-      ThisLine = LINEIN( IniFile)
-
-      /* Ignore comments */
-      IF LEFT( ThisLine, 1) = ';' THEN
-         ITERATE
-
-      /* Convert tabs to spaces */
-      ThisLine = TRANSLATE( ThisLine, ' ', '09'x)
-      ThisLine = STRIP( ThisLine)
-
-      /* Ignore blank lines */
-      IF ThisLine = '' THEN
-         ITERATE
-
-      SELECT
-         /* Find section */
-         WHEN LEFT( ThisLine, 1) = '[' THEN
-         DO
-            p2 = POS( ']', ThisLine)
-            IF p2 > 0 THEN
-            DO
-               ThisSection = SUBSTR( ThisLine, 2, p2 - 2)
-               IF ThisSection = '' THEN
-                  ITERATE
-               /* Save section name */
-               s = s + 1
-               Ini._Section.0 = s
-               Ini._Section.s = ThisSection
-               /* Init keys for this section */
-               k = 0
-               Ini._Key.s.0 = k
-            END
-         END
-         /* Ignore lines before the first section */
-         WHEN s = 0 THEN
-            ITERATE
-      OTHERWISE
-         /* This must be a 'Key' or 'Key = Val' line */
-         PARSE VALUE ThisLine WITH ThisKey'='ThisVal
-
-         /* Strip blanks */
-         ThisKey = STRIP( ThisKey)
-         ThisVal = STRIP( ThisVal)
-
-         /* Save key and value */
-         k = k + 1
-         Ini._Key.s.0 = k
-         Ini._Key.s.k = ThisKey
-         Ini._Val.s.k = ThisVal
+      IF IniFile = '' THEN
+      DO
+         rc = ERROR.INVALID_PARAMETER
+         ErrorMessage = 'Error: No ini file specified.'
+         LEAVE
       END
 
-   END
-   next = STREAM( IniFile, 'c', 'close')
+      next = STREAM( IniFile, 'c', 'open read')
+      IF next <> 'READY:' THEN
+      DO
+         PARSE VAR next 'ERROR:'rc
+         ErrorMessage = 'Error: Could not open ini file "'IniFile'", rc = 'rc'.'
+         LEAVE
+      END
 
-   RETURN( ERROR.NO_ERROR)
+      s = 0
+      Ini._Section.0 = s
+      k = 0
+      DO WHILE LINES( IniFile) <> 0
+         ThisLine = LINEIN( IniFile)
+
+         /* Ignore comments */
+         IF LEFT( ThisLine, 1) = ';' THEN
+            ITERATE
+
+         /* Convert tabs to spaces */
+         ThisLine = TRANSLATE( ThisLine, ' ', '09'x)
+         ThisLine = STRIP( ThisLine)
+
+         /* Ignore blank lines */
+         IF ThisLine = '' THEN
+            ITERATE
+
+         SELECT
+            /* Find section */
+            WHEN LEFT( ThisLine, 1) = '[' THEN
+            DO
+               p2 = POS( ']', ThisLine)
+               IF p2 > 0 THEN
+               DO
+                  ThisSection = SUBSTR( ThisLine, 2, p2 - 2)
+                  IF ThisSection = '' THEN
+                     ITERATE
+                  /* Save section name */
+                  s = s + 1
+                  Ini._Section.0 = s
+                  Ini._Section.s = ThisSection
+                  /* Init keys for this section */
+                  k = 0
+                  Ini._Key.s.0 = k
+               END
+            END
+            /* Ignore lines before the first section */
+            WHEN s = 0 THEN
+               ITERATE
+         OTHERWISE
+            /* This must be a 'Key' or 'Key = Val' line */
+            PARSE VALUE ThisLine WITH ThisKey'='ThisVal
+
+            /* Strip blanks */
+            ThisKey = STRIP( ThisKey)
+            ThisVal = STRIP( ThisVal)
+
+            /* Save key and value */
+            k = k + 1
+            Ini._Key.s.0 = k
+            Ini._Key.s.k = ThisKey
+            Ini._Val.s.k = ThisVal
+         END
+
+      END
+      next = STREAM( IniFile, 'c', 'close')
+
+   END
+
+   RETURN( rc)
 
 /* ----------------------------------------------------------------------- */
 SayText: PROCEDURE EXPOSE (GlobalVars)
@@ -455,7 +513,12 @@ SayErrorMessage: PROCEDURE EXPOSE (GlobalVars)
 
       /* Called directly */
       WHEN ADDRESS() = 'EPM' THEN
-         'sayerror' ErrorMessage
+      DO
+         /*'sayerror' ErrorMessage*/
+         ThisFileName = SUBSTR( ThisFile, LASTPOS( '\', ThisFile) + 1)
+         rcx = RxMessageBox( ErrorMessage, TRANSLATE( ThisFileName),,
+            'OK', 'ERROR')
+      END
 
       /* Called directly */
       OTHERWISE
@@ -471,15 +534,17 @@ SayErrorMessage: PROCEDURE EXPOSE (GlobalVars)
 Halt:
    ErrorMessage = 'Interrupted by user.'
    CALL SayErrorMessage
-   EXIT( 99)
+   EXIT( ERROR.GEN_FAILURE)
 
 /* ----------------------------------------------------------------------- */
 /* Give a standard REXX error message and jump to the error line           */
 Error:
+   /* sigl must be saved to not get overwritten by SayErrorMessage call */
+   ErrorLine = sigl
    ErrorMessage = 'REX'RIGHT( rc, 4, 0)': Error 'rc' running 'ThisFile',' ||,
       ' line 'sigl': 'ERRORTEXT( rc)
    CALL SayErrorMessage
    IF ADDRESS() = 'EPM' THEN
-      "e "ThisFile" 'postme "sigl"'"
+      "e "ThisFile" 'postme "ErrorLine"'"
    EXIT( rc)
 

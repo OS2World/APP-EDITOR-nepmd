@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: wps.e,v 1.7 2008-11-30 22:20:40 aschn Exp $
+* $Id: wps.e,v 1.8 2009-03-01 21:17:23 aschn Exp $
 *
 * ===========================================================================
 *
@@ -155,13 +155,13 @@ defc SelectAssoc
    DefaultItem   = 1
    DefaultButton = 1
    HelpId = 0
-   Title = 'Set associations'
-   Text  = 'Select an action from the list below:'
+   Title = 'Set or remove WPS associations'
+   Text  = 'Select program object(s):'
 
    refresh
    Result = listbox( Title,
                      ListBoxData,
-                     '/~OK/Cancel',           -- buttons
+                     '/~Prepend/~Append/~Remove/Cancel',           -- buttons
                      0, 0,  --5, 5,           -- top, left,
                      min( NumItems, 15), 50,  -- height, width
                      gethwnd(APP_HANDLE) || atoi(DefaultItem) ||
@@ -173,11 +173,66 @@ defc SelectAssoc
    Button = asc( leftstr( Result, 1))
    EOS = pos( \0, Result, 2)        -- CHR(0) signifies End Of String
 
-   Action = substr( Result, 2, EOS - 2)
+   ListItem = substr( Result, 2, EOS - 2)
 
-   if Button = 1 then      -- OK
-      'rx assocs.erx 'Action
+   if wordpos( Button, '1 2 3') > 0 then
+      Action = word( 'PREPEND APPEND REMOVE', Button)
    else                    -- Cancel
       return 1
    endif
+   'rx assocs.erx' Action ListItem
+
+; ---------------------------------------------------------------------------
+defc AssocsMsgBox
+   parse arg ListItem'|'Action'|'Objects'|'Types'|'Filters
+
+   Bul = \7
+   Text = ''
+
+   if Action = 'PREPEND' then
+      verb = 'prepending'
+   elseif Action = 'APPEND' then
+      verb = 'appending'
+   elseif Action = 'REMOVE' then
+      verb = 'removing'
+   else
+      verb = '<unknown action>'
+   endif
+   Text = Text || 'Result of 'verb' associations for 'ListItem':'\n\n
+   Text = Text || 'Changed objects:'\n
+   rest = Objects
+   do while rest <> ''
+      parse value rest with next','rest
+      if next = '' then
+         iterate
+      endif
+      Text = Text || '       'Bul\9''next\n
+   enddo
+   Text = Text || \n
+
+   Text = Text || 'Changed types:'\n
+   rest = Types
+   do while rest <> ''
+      parse value rest with next','rest
+      if next = '' then
+         iterate
+      endif
+      Text = Text || '       'Bul\9''next\n
+   enddo
+   Text = Text || \n
+   Text = Text || 'Changed filters:'\n
+   rest = Filters
+   do while rest <> ''
+      parse value rest with next','rest
+      if next = '' then
+         iterate
+      endif
+      Text = Text || '       'Bul\9''next\n
+   enddo
+
+   Style = MB_OK+MB_INFORMATION+MB_MOVEABLE
+   Title = 'Changed WPS associations'
+   ret = winmessagebox( Title,
+                        Text,
+                        Style)
 
