@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.19 2008-09-13 15:21:25 aschn Exp $
+# $Id: configure.in,v 1.20 2009-05-14 21:45:39 aschn Exp $
 #
 # ===========================================================================
 #
@@ -88,12 +88,12 @@ STEM=nepmd
 
 # Three to four digit version number included in name of package
 
-VERSION=113
+VERSION=114
 
 # Version number including dots and optionally with an addition,
 # no spaces allowed (used in the WarpIN text)
 
-STRING_VERSION_NEPMD=1.13
+STRING_VERSION_NEPMD=1.14
 
 # Version number for the NEPMD WarpIN package version
 # NOTE:
@@ -109,7 +109,7 @@ STRING_VERSION_NEPMD=1.13
 #       src\gui\nepmdlib\nepmdlib.h
 #       src\gui\nepmdlib\nepmdlib.def
 
-ID_VERSION_NEPMD=1\13
+ID_VERSION_NEPMD=1\14
 
 # Version number for the WarpIN version that the resulting
 # WPI package should be restricted to for installation

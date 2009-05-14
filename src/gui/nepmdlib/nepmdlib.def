@@ -6,7 +6,7 @@
 ;
 ; Copyright (c) Netlabs EPM Distribution Project 2002
 ;
-; $Id: nepmdlib.def,v 1.40 2008-11-13 09:36:36 cla Exp $
+; $Id: nepmdlib.def,v 1.41 2009-05-14 21:45:40 aschn Exp $
 ;
 ; ===========================================================================
 ;
@@ -22,7 +22,7 @@
 ; **************************************************************************/
 
 LIBRARY NEPMDLIB INITINSTANCE TERMINSTANCE
-DESCRIPTION '@#NETLABS:1.13.1000#@NEPMDLIB - NEPMD runtime library for EPM v6 - Copyright www.netlabs.org 2002-2008'
+DESCRIPTION '@#NETLABS:1.14.1000#@NEPMDLIB - NEPMD runtime library for EPM v6 - Copyright www.netlabs.org 2002-2009'
 
 DATA NONSHARED MULTIPLE
 PROTMODE
