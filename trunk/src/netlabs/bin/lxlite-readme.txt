@@ -15,7 +15,7 @@ The following files are taken out of this package:
    stub_vdm.bin (in the NEPMD sources only)
 
 The complete package with sources is available on Hobbes:
-http://hobbes.nmsu.edu/cgi-bin/h-search?sh=1&button=Search&key=lxlite
+http://hobbes.nmsu.edu/h-search.php?key=lxlite
 
 LxLite and Unlock are used here to prepare ETKE603.DLL for patching in
 order to configure EPM's color palette.
