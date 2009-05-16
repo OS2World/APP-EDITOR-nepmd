@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.38 2009-02-16 20:53:11 aschn Exp $
+* $Id: file.e,v 1.39 2009-05-16 20:46:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -965,7 +965,7 @@ defc opendlg
    universal app_hini
    universal nepmd_hini
 
-   KeyPath = '\NEPMD\User\OpenDlg\UseCurrentDir'
+   KeyPath = '\NEPMD\User\StartDir\OpenDlg\Type'
    opt = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    Filename = .filename
    new = -1
