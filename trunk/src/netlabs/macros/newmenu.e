@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.67 2009-02-17 22:41:23 aschn Exp $
+* $Id: newmenu.e,v 1.68 2009-05-16 20:52:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -718,7 +718,7 @@ defproc add_file_menu(menuname)
    i = i + 1; call SetAVar( 'mid_saveandquit', i);
    buildmenuitem menuname, mid, i, 'Sa~ve and close file'\9'F4',                                   -- Save and close file
                                    'file' ||
-                                   \1'Save this file, then close it',
+                                   FILE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_FILE, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Save a~ll',                                                    -- Save all
@@ -741,7 +741,7 @@ defproc add_file_menu(menuname)
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Close file'\9'F3',                                            -- Close file
                                    'quit' ||
-                                   \1'Close this file',
+                                   QUIT_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_QUIT, 0)
    return
 
@@ -2370,22 +2370,8 @@ if not MenuItemsHidden then
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
                                    '',
                                    MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_keydefs', i); call SetAVar( 'mtxt_keydefs', 'Keyset ~additions: []...')
-   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_keydefs'),                                             -- Keyset additions: []...
-                                   'SelectKeyDefs' ||
-                                   \1'Configure key def additions to the standard keyset',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Edit STDKEYS.E',                                                    -- Edit STDKEYS.E
-                                   'EditCreateUserMacro stdkeys.e' ||
-                                   \1'Edit entire set of key definitions',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_blockactionbaraccelerators', i);
-   buildmenuitem menuname, mid, i, 'Block Alt+~letter keys from jumping to menu bar',                    -- Block Alt+letter keys from jumping to menu bar
+   buildmenuitem menuname, mid, i, 'Block Alt+le~tter keys from jumping to menu bar',                    -- Block Alt+letter keys from jumping to menu bar
                                    'accel_toggle' ||
                                    \1'Enable for advanced mark operations (Ctrl+Alt works for menu)',
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_CUAACCEL, nodismiss)
@@ -2398,7 +2384,25 @@ if not MenuItemsHidden then
    buildmenuitem menuname, mid, i, 'Block ~right Alt key from jumping to menu bar',                      -- Block right Alt key from jumping to menu bar
                                    'toggle_block_right_alt_key' ||
                                    \1'When enabled, use F10',
-                                   MIS_TEXT + MIS_ENDSUBMENU, nodismiss
+                                   MIS_TEXT, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_keydefs', i); call SetAVar( 'mtxt_keydefs', 'Keyset ~additions: []...')
+   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_keydefs'),                                             -- Keyset additions: []...
+                                   'SelectKeyDefs' ||
+                                   \1'Configure key def additions to the standard keyset',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Edit STDKEYS.E',                                                    -- Edit STDKEYS.E
+                                   'EditCreateUserMacro stdkeys.e' ||
+                                   \1'Edit entire set of key definitions',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
 
    i = i + 1; call SetAVar( 'mid_markingsettings', i);
    buildmenuitem menuname, mid, i, 'Markin~g',                                                     -- Marking  >
@@ -2663,7 +2667,7 @@ if not MenuItemsHidden then
    i = i + 1; call SetAVar( 'mid_prgnewwindow', i);
    buildmenuitem menuname, mid, i, '~Open in same window (/r)',                                          -- Open in same window
                                    'toggle_new_same_window' ||
-                                   \1'Open files in separate EPM windows',
+                                   \1'Open file objects in topmost EPM window',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_prgfullfiledialog', i);
    buildmenuitem menuname, mid, i, 'Use full ~file dialog (/o)',                                         -- Use full file dialog
