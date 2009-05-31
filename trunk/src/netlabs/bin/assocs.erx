@@ -2,9 +2,41 @@
 *
 * Module Name: assocs.erx
 *
+* This EPM-REXX file may also be executed from non-EPM environments. It is
+* callable from other REXX commands.
+*
+* Syntax: assocs <action> <list_item>
+*
+* with
+*    <action>    = query | prepend | append | remove
+*                  (query returns list items found in the ini file,
+*                  separated by '|' and also with a leading '|'.)
+*    <list_item> = a list item of the ini file, case-sensitive
+*
+* The ini filename can be changed in the configuration section below.
+*
+* Syntax for [ASSOC:...] keys in the ini file:
+*
+*    [ASSOC:APPL]
+*    ListItem=TEXT
+*    AssocCount=#
+*    Assoc#=OBJECT,Type:TYPE[,POS]
+*       or
+*    Assoc#=OBJECT,Filter:FILTER[,POS]
+*
+* with
+*    ASSOC:APPL  any unique application name, must start with "ASSOC:"
+*    TEXT    a text used as list item text
+*    #       a consecutive number, AssocCount must match the highest
+*    OBJECT  an <object_id>
+*    TYPE    a WPS association type
+*    FILTER  a WPS association filter
+*    POS     optional position number (default = 1) or L (means: last),
+*            used for the prepend action only
+*
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: assocs.erx,v 1.3 2009-03-01 21:17:22 aschn Exp $
+* $Id: assocs.erx,v 1.4 2009-05-31 00:51:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -23,6 +55,9 @@
 SIGNAL ON HALT NAME Halt
 SIGNAL ON ERROR NAME Error
 SIGNAL ON SYNTAX NAME Error
+
+IF ADDRESS() <> 'EPM' THEN
+   '@ECHO OFF'
 
 env   = 'OS2ENVIRONMENT'
 TRUE  = (1 = 1)
@@ -145,7 +180,11 @@ DO 1
          LEAVE
    END
    IF FoundSection = 0 THEN
+   DO
+      ErrorMessage = 'Error: 'Title._IniKeyListItem' "'ListItem'" not found in 'IniFile'.'
+      rc = ERROR.INVALID_DATA
       LEAVE
+   END
 
    s = FoundSection
    DO k = 1 TO Ini._Key.s.0
@@ -155,7 +194,11 @@ DO 1
       FoundAssocCount = Ini._Val.s.k
    END
    IF FoundAssocCount = 0 THEN
+   DO
+      ErrorMessage = 'Error: 'Title._IniKeyAssocCount' not found in 'IniFile'.'
+      rc = ERROR.INVALID_DATA
       LEAVE
+   END
 
    /* Create array for easier processing */
    Assoc.  = ''
@@ -226,13 +269,65 @@ DO 1
       END
    END
 
-   IF rc = ERROR.NO_ERROR THEN
-      'AssocsMsgBox 'ListItem'|'Action'|'Processed._Objects'|' ||,
-         Processed._Types'|'Processed._Filters
+   if rc = ERROR.NO_ERROR THEN
+   DO
+      MsgArgs = ListItem'|'Action'|'Processed._Objects'|' ||,
+                Processed._Types'|'Processed._Filters
+      IF ADDRESS() = 'EPM' THEN
+         'AssocsMsgBox' MsgArgs
+      ELSE
+         rcx = AssocsMsg( MsgArgs)
+   END
 END
 
 CALL SayErrorMessage
 EXIT( rc)
+
+/* ----------------------------------------------------------------------- */
+AssocsMsg: PROCEDURE EXPOSE (GlobalVars)
+
+   PARSE ARG ListItem'|'Action'|'Objects'|'Types'|'Filters
+   rc = ERROR.NO_ERROR
+
+   SELECT
+      WHEN Action = 'PREPEND' THEN
+         verb = 'prepending'
+      WHEN Action = 'APPEND' THEN
+         verb = 'appending'
+      WHEN Action = 'REMOVE' THEN
+         verb = 'removing'
+   OTHERWISE
+      verb = '<unknown action>'
+   END
+   SAY 'Result of 'verb' associations for 'ListItem':'
+   SAY
+   SAY 'Changed objects:'
+   rest = Objects
+   DO WHILE rest <> ''
+      PARSE VALUE rest WITH next','rest
+      IF next = '' THEN
+         ITERATE
+      SAY '   o  'next
+   END
+   SAY
+   SAY 'Changed types:'
+   rest = Types
+   DO WHILE rest <> ''
+      PARSE VALUE rest WITH next','rest
+      IF next = '' THEN
+         ITERATE
+      SAY '   o  'next
+   END
+   SAY
+   SAY 'Changed filters:'
+   rest = Filters
+   DO WHILE rest <> ''
+      PARSE VALUE rest WITH next','rest
+      IF next = '' THEN
+         ITERATE
+      SAY '   o  'next
+   END
+   RETURN( rc)
 
 /* ----------------------------------------------------------------------- */
 RemoveAssocs: PROCEDURE EXPOSE (GlobalVars)
@@ -303,7 +398,7 @@ ChangeAssocPos: PROCEDURE EXPOSE (GlobalVars)
          LEAVE
       END
 
-      /* Get user ini assoc val for TypeFilter key */
+      /* Get user ini assoc val for Category key */
       SELECT
          WHEN (Category = 'TYPE') THEN
             IniApplication = 'PMWP_ASSOC_TYPE'
