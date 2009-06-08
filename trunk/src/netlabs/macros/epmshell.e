@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmshell.e,v 1.41 2008-12-25 12:35:10 aschn Exp $
+* $Id: epmshell.e,v 1.42 2009-06-08 00:40:38 aschn Exp $
 *
 * ===========================================================================
 *
@@ -863,6 +863,14 @@ defproc ShellEnterWriteToApp
    return ret
 
 ; ---------------------------------------------------------------------------
+const
+compile if not defined(ALIAS_ESCAPE_CHAR)
+   ALIAS_ESCAPE_CHAR = '*'
+compile endif
+compile if not defined(ALIAS_SEP_CHARS)
+   ALIAS_SEP_CHARS = ' |<>'
+compile endif
+
 ; Resolves alias values for shell commands. Returns '' if no alias def found.
 defproc ShellResolveAlias
 
@@ -872,12 +880,7 @@ defproc ShellResolveAlias
 
    Rest = arg(1)
 
-   EscapeChar = '*'  -- Make sure that it is also included in SepChars!
    ResolvedString = ''
-   NextString = ''
-   fStart = 0
-   PrevSep = ''
-   ThisSep = ''
    amax = GetAVar( 'alias.key.0')
    if amax = '' then
       rc = ShellReadAliasFile()
@@ -897,17 +900,23 @@ defproc ShellResolveAlias
          Key = GetAVar( 'alias.key.'a)
          UpKey = upcase( Key)
          if abbrev( UpRest, UpKey) = 1 then
+            -- Get surrounding chars to check for separators
+            PrevChar = rightstr( ResolvedString, 1)
+            NextChar = substr( Rest, length( Key) + 1, 1)
             -- Handle EscapeChar
-            if rightstr( ResolvedString, 1) = EscapeChar then
+            if PrevChar = ALIAS_ESCAPE_CHAR then
                -- Remove it
                ResolvedString = leftstr( ResolvedString, length( ResolvedString) - 1)
                -- Keep found key
                Val = Key
-            else
+               leave
+            elseif pos( PrevChar, ALIAS_SEP_CHARS) > 0 & pos( NextChar, ALIAS_SEP_CHARS) > 0 then
                -- Replace key with value
                Val = GetAVar( 'alias.value.'a)
+               leave
+            else
+               iterate
             endif
-            leave
          endif
       enddo
 
