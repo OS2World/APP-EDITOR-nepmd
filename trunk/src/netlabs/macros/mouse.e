@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.22 2009-01-24 22:31:35 aschn Exp $
+* $Id: mouse.e,v 1.23 2009-06-23 00:53:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -172,6 +172,40 @@ defproc MouseLineColOff( var MouseLine, var MouseCol, var MouseOff, minline)
    return xxx
 
 ; ---------------------------------------------------------------------------
+defc ShowCoord
+   -- .cursorx is = .col for x-scroll = 0
+   -- .cursory is 0 when cursor is on the first (topmost) visible line of the
+   -- edit window. .cursory is = .windowheight on the lowest visible line of
+   -- the edit window. It can also get < 0 and > .windowheight. That means
+   -- that the cursor's column is outside of the visible area.
+   dprintf( 'psave_pos:')
+   dprintf( '   .line = '.line', .col = '.col', .cursorx = '.cursorx', .cursory = '.cursory)
+
+   -- .scrollx is the amount of scrolled pels to the right.
+   -- .cursoryg is .cursory in pels. Unlike other values, it counts from the
+   -- top.
+   dprintf( 'psave_pos2:')
+   dprintf( '   .line = '.line', .col = '.col', .scrollx = '.scrollx', .cursoryg = '.cursoryg)
+
+   -- MouseLineColOff returns line and col for the last mouse click.
+   -- MouseOff is always 0.
+   MinLine = 0
+   call MouseLineColOff( MouseLine, MouseCol, MouseOff, MinLine)
+   dprintf( 'MouseLineColOff:')
+   dprintf( '   MouseLine = 'MouseLine', MouseCol = 'MouseCol', MouseOff = 'MouseOff', MinLine = 'MinLine)
+
+   -- .scrolly is always 0 (bug).
+   -- .windowwidth and .windowheight is the size of the edit window in
+   -- lines and columns.
+   dprintf( '   .scrolly = '.scrolly', .windowwidth = '.windowwidth', .windowheight = '.windowheight)
+   -- .mousex and .mousey are the mouse coordinates from the last mouse click
+   -- into the edit window in pels relative to the lower left angle of the
+   -- edit window. They can be converted to line and col values with
+   -- MousLineColOff.
+   -- .cusorcolumn is always = .col, .cusoroffset is always 0
+   dprintf( '   .mousex = '.mousex', .mousey = '.mousey', .cursorcolumn = '.cursorcolumn', .cursoroffset = '.cursoroffset)
+
+; ---------------------------------------------------------------------------
 defproc SetMouseSet(IsGlobal, NewMSName)
    universal GMousePrefix
    universal LMousePrefix
@@ -301,10 +335,10 @@ defc MH_gotoposition2
 compile endif
 
 ; ---------------------------------------------------------------------------
+; Moves the cursor to the current mouse location.
 defc MH_gotoposition
    universal stream_mode
    universal cursoreverywhere
-   -- this procedure moves the cursor to the current mouse location.
 ;;
 ;;  Old way
 ;;
