@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.68 2009-05-16 20:52:21 aschn Exp $
+* $Id: newmenu.e,v 1.69 2009-06-23 01:15:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -229,7 +229,7 @@ definit
    -- EPM's amount of menu items is limited to about 600. NewMenu uses
    -- already the half of them. Trying to link a menu with more items would
    -- make EPM crash.
--- Todo: replace abbrev with resolving wildcards
+-- Todo: replace abbrev with wildcard resolution
    call AddAVar( 'hidemenunames', 'KENHT HTM SGML LATEX GML EPMPRT GETHOST')
    -- Define a list of abbreviations that won't cause a decrease of NewMenu
    -- items, even when their abbreviations match the list above.
@@ -253,7 +253,7 @@ defc InitMenuSettings
 
    KeyPath = '\NEPMD\User\Menu\NoDismiss'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
-   nodismiss = 32*on
+   nodismiss = 32 * on
 
 ; ---------------------------------------------------------------------------
 defc CheckRecode
@@ -304,7 +304,6 @@ defc CheckWps
 defproc BeforeLink
    universal MenuItemsHidden
    modulename = arg(1)
-   dPrintf( 'BEFORELINK', modulename)
    if not isadefc( 'HideMenuItems') then
       return
    elseif MenuItemsHidden <> 0 then  -- 0 means: not hidden
@@ -342,11 +341,9 @@ defproc BeforeLink
       enddo
    endif
 
-   if fHide then
+   if fHide & MenuItemsHidden <> 1 then
       'HideMenuItems'
-      if MenuItemsHidden = 1 then
-         MenuItemsHidden = 2         -- 2 means: just hidden
-      endif
+      MenuItemsHidden = 2         -- 2 means: just hidden
    endif
 
 ; ---------------------------------------------------------------------------
@@ -354,7 +351,11 @@ defproc BeforeLink
 ; Used to check if the linking was successful. If not, unhide the menu items.
 defproc AfterLink
    universal MenuItemsHidden
+   universal loadstate
    linkrc = arg(1)
+   if MenuItemsHidden = '' then
+      'HideMenuItems INIT'
+   endif
    -- Restore Options menu if kenHTepm wasn't linked
    if not isadefc( 'HideMenuItems') then
       return
@@ -364,11 +365,37 @@ defproc AfterLink
    -- reset var from 2 to 1
    if MenuItemsHidden = 2 then
       MenuItemsHidden = 1
+      if loadstate = 0 then
+         'postme HideMenuItemsMsgBox'
+      else
+         'AtStartup postme HideMenuItemsMsgBox'
+      endif
    endif
    -- unhide if not linked
    if linkrc < 0 then
       'HideMenuItems 0'
    endif
+
+; ---------------------------------------------------------------------------
+defc HideMenuItemsMsgBox
+   Title = 'Hidden menu items'
+   Text = ''
+   Text = Text || 'Due to a bug in EPM, some of its menu items in the "View" and "Options"'
+   Text = Text || ' submenu had to make hidden in order to add the additional submenu, that'
+   Text = Text || ' you have selected to load. EPM has a limit of about 600 menu items,'
+   Text = Text || ' more make EPM crash.'\n\n
+   Text = Text || 'In order to unhide them, uncheck'\n\n
+   Text = Text || \9'View -> Menu ->'\n
+   Text = Text || \9'Hide Options and View menu items'\n\n
+   Text = Text || 'and maybe unlink the additional package.'\n\n
+   Text = Text || 'Alternatively you may want to select another menu than Newmenu, that'
+   Text = Text || ' uses less menu items by itself. Therefore use'\n\n
+   Text = Text || \9'View -> Menu ->'\n
+   Text = Text || \9'Select menu...'
+   Style = MB_ENTER+MB_INFORMATION+MB_MOVEABLE
+   ret = winmessagebox( Title,
+                        Text,
+                        Style)
 
 ; ---------------------------------------------------------------------------
 ; KenHTepm.ex uses too many menu items, together with Newmenu. The same
@@ -741,7 +768,7 @@ defproc add_file_menu(menuname)
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Close file'\9'F3',                                            -- Close file
                                    'quit' ||
-                                   QUIT_MENUP__MSG,
+                                   'Close this file',
                                    MIS_TEXT, mpfrom2short(HP_FILE_QUIT, 0)
    return
 

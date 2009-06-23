@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.42 2008-09-05 22:54:27 aschn Exp $
+* $Id: linkcmds.e,v 1.43 2009-06-23 01:15:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -97,6 +97,8 @@ defproc link_common( modulename)
    else
       -- NewMenu uses this to remove some of its menu items, before
       -- an external package with a huge menu is linked.
+      -- Note: A dprintf won't work here. EPM won't start then.
+      --       In that case, delete your EPM.EX.
       if isadefproc( 'BeforeLink') then
          call BeforeLink( modulename)
       endif
