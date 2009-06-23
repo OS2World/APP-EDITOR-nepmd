@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: alt_1.e,v 1.26 2008-12-28 01:15:28 aschn Exp $
+* $Id: alt_1.e,v 1.27 2009-06-23 01:29:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1026,6 +1026,16 @@ defproc a1load( FileName, SearchPath)
                LoadName = FileName
                leave
             endif
+         endif
+
+         next = FindFileInList( FileName, NepmdQueryFullname( ResolveEnvVars( SearchPath)'\..')';'    ||
+                                          NepmdQueryFullname( ResolveEnvVars( SearchPath)'\..\..')';' ||
+                                          NepmdQueryFullname( .filename'\..')';'                      ||
+                                          NepmdQueryFullname( .filename'\..\..')';'                   ||
+                                          NepmdQueryFullname( .filename'\..\..\..'))
+         if next > '' then
+            LoadName = next
+            leave
          endif
       enddo
 
