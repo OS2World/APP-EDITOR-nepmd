@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.16 2008-09-14 15:04:07 aschn Exp $
+* $Id: infoline.e,v 1.17 2009-06-23 01:23:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -688,7 +688,7 @@ defproc GetDateTimeModified
                   --DateTime = NlsDateTime(next)
                   DateTime = FileDateHex2DateTime( new_filedatehex)
                endif
-            elseif rc = 2   then msg = 'File not found'
+            elseif rc = 2   then msg = 'New file'  --'File not found'
             elseif rc = 3   then msg = 'Path not found'
             elseif rc = 6   then msg = 'Invalid handle'
             elseif rc = 15  then msg = 'Drive not valid'
