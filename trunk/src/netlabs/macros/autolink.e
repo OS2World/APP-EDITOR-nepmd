@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: autolink.e,v 1.9 2006-11-12 13:13:45 jbs Exp $
+* $Id: autolink.e,v 1.10 2009-06-23 01:15:27 aschn Exp $
 *
 * ===========================================================================
 *
@@ -48,8 +48,8 @@ defproc Autolink
           leave
        endif
 
-       --'link' Filename;
-       link Filename  -- message would slow startup down
+       -- Use Link command to also handle EPM's menu item limit
+       'Link quiet' Filename  -- quiet because message would slow startup down
     enddo
     rc = 0  -- no error from here
 
