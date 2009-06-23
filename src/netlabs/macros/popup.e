@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: popup.e,v 1.10 2009-06-23 00:53:58 aschn Exp $
+* $Id: popup.e,v 1.11 2009-06-23 01:58:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -160,18 +160,11 @@ defc MH_popup
    menuname = 'popup1'
    activemenu = menuname
 
-compile if 0
-   call psave_pos( savedpos)
-compile endif
+   fNoMove = (translate( strip( arg(1))) = 'NOCURSORMOVE')
 
    deletemenu menuname, 0, 0, 0
-   'BuildPopupMenu' menuname
+   'BuildPopupMenu' menuname fNoMove
    showmenu menuname, 1
-
-compile if 0
-   -- Disadvantage: scrolls window if cursor is off the edit window
-   call prestore_pos( savedpos)
-compile endif
 
    -- Cascade menu now replaced by inline menu items, because it doesnot work:
 ;    --'add_cascade_popupmenu'       -- without postme: works only for the first menu creation
@@ -184,10 +177,13 @@ defc BuildPopupMenu
 compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
 compile endif
-   menuname = arg(1)
+   parse arg menuname fNoMove
    if menuname = '' then
       menuname = 'popup1'
    endif
+
+   fNoMove = (strip( arg(2)) = 1)
+
    mt = leftstr( marktype(), 1)
    fInMark = mouse_in_mark()  -- Save in a variable so user's include file can test.
 
@@ -259,7 +255,9 @@ compile endif
       buildmenuitem menuname, 80, 8053, PRT_MARK_MENU__MSG'...',          'PRINTDLG M'ENHPRT_MARK_MENUP__MSG,0, mpfrom2short(HP_EDIT_ENHPRINT, 0)
 
    elseif mt <> ' ' then  -- Build Outside-Mark pop-up --------------------------------------------------------------------------------
-      'MH_gotoposition'
+      if not fNoMove then
+         'MH_gotoposition'
+      endif
       buildmenuitem menuname, 80, 8000, COPY_MARK_MENU__MSG\9'Alt+C',     'DUPMARK C'COPY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_COPYMARK, 0)
       buildmenuitem menuname, 80, 8001, MOVE_MARK_MENU__MSG\9'Alt+M',     'DUPMARK M'MOVE_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_MOVE, 0)
       buildmenuitem menuname, 80, 8002, OVERLAY_MARK_MENU__MSG\9'Alt+O',  'DUPMARK O'OVERLAY_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_OVERLAY, 0)
@@ -268,7 +266,9 @@ compile endif
       buildmenuitem menuname, 80, 8005, UNMARK_MARK_MENU__MSG\9'Alt+U',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)
 
    else  -- Build No-mark pop-up ------------------------------------------------------------------------------------------------------
-      'MH_gotoposition'
+      if not fNoMove then
+         'MH_gotoposition'
+      endif
       ch = substr( textline(.line), .col, 1)
       gray_if_space = 16384*( ch = ' ' | not .line)
       buildmenuitem menuname, 80, 8000, MARK_WORD_MENU__MSG\9'Alt+W',      'MARKWORD'MARK_WORD_MENUP__MSG, 0, mpfrom2short(HP_POPUP_MARKWORD, gray_if_space)
