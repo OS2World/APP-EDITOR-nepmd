@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: main.e,v 1.55 2008-12-08 03:09:56 aschn Exp $
+* $Id: main.e,v 1.56 2009-06-23 01:21:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -265,7 +265,9 @@ defc main2
       -- Execute install cmd here because for WarpIN 1.0.18 it can't read
       -- WarpIN's database while WarpIN is running.
       NepmdRootDir = Get_Env( 'NEPMD_ROOTDIR')
-      quietshell 'call' NepmdRootDir'\netlabs\install\expobj.cmd'
+      --quietshell 'call' NepmdRootDir'\netlabs\install\expobj.cmd'
+      'rx' NepmdRootDir'\netlabs\install\expobj.cmd'
+;;      'rx assocs PREPEND NEPMD objects'
    endif
 
 compile if SHOW_WINDOW_EARLY = 0
