@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.39 2009-05-16 20:46:12 aschn Exp $
+* $Id: file.e,v 1.40 2009-06-23 01:27:31 aschn Exp $
 *
 * ===========================================================================
 *
@@ -494,14 +494,28 @@ compile endif
          'RefreshInfoLine MODIFIED FILE'
       endif
 
-      -- Explicitely redetermine mode (file contents may have changed).
-      --'ResetMode 'OldMode
-      -- Better do this only when the name has changed.
-      if fCalledBySaveAs | fNameChanged then
+      -- Maybe redetermine mode. Better do this mainly only when the name has changed.
+compile if 0
+      -- No reset required if a value is already present in the EPM EA area
+      -- (then the user has already selected that mode)
+      ModeEa = get_EAT_ASCII_value( 'EPM.MODE')
+      if (fCalledBySaveAs | fNameChanged) & (ModeEa = '') then
          'ResetMode 'OldMode
       endif
+compile else
+      -- This variant resets the mode always for CMD files without mode EA
+      --ContentExtList = '.INI .CMD'
+      -- .INI is not required: saved INI files are text ini types
+      ContentExtList = '.CMD'
+      fContentSetsMode = (wordpos( upcase( rightstr( .filename, 4)), ContentExtList) > 0)
+      -- No reset required if a value is already present in the EPM EA area
+      -- (then the user has already selected that mode)
+      ModeEa = get_EAT_ASCII_value( 'EPM.MODE')
+      if (fCalledBySaveAs | fNameChanged | fContentSetsMode) & (ModeEa = '') then
+         'ResetMode 'OldMode
+      endif
+compile endif
 
-      -- Maybe reset mode only for modes that depend on the content, like REXX or CMD.
       'postme AddToHistory SAVE' .filename
 
       'HookExecute aftersave'
@@ -975,7 +989,7 @@ defc opendlg
       new = Filename
    endif
    -- Keep, delete or change last selected file.
-   -- The Open dialog will start with it's dir.
+   -- The Open dialog will start with its dir.
    if new <> -1 then
       call setprofile( app_hini, 'ERESDLGS', 'LASTFILESELECTED', new)
    endif
