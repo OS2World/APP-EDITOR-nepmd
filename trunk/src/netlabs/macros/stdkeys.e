@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.41 2009-06-23 01:04:45 aschn Exp $
+* $Id: stdkeys.e,v 1.42 2009-06-23 01:58:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -362,7 +362,7 @@ defc Key_a_s_down 'MoveLineDown'        -- Exchange next and previous line
 ; The ETK key def would also move the cursor one line below the bottom of the window:
 ;def s_f10         'MH_popup'            -- Show the popup menu
 ; Therefore the accelerator def is used here:
-defc Key_s_f10    'MH_popup'            -- Show the popup menu
+defc Key_s_f10    'MH_popup NOCURSORMOVE'  -- Show the popup menu
 
 ; ---- Auto-spellcheck ----
 ; This key belongs to "SPELL_KEYS". Therefore it is defined here with define.
