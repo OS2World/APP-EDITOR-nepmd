@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.15 2009-02-16 20:45:36 aschn Exp $
+* $Id: recompile.e,v 1.16 2009-06-23 01:16:30 aschn Exp $
 *
 * ===========================================================================
 *
@@ -486,13 +486,8 @@ defc RecompileAll
 ;
 ; Syntax: RecompileNew [RESET] | [CHECKONLY] [NOMSG] [NOMSGBOX]
 ;
-; Minor bugs:
-;    o  When user .ex files are deleted, a 2nd run is required to compare the
-;       user macros with the Netlabs macros.
+; Minor bug:
 ;    o  User macros are never deleted, even if they are equal.
-;    o  Because the installation deletes all myepm\ex\*.ex files, the
-;       comparison list has to be rewritten. Therefore at EPM's first startup
-;       the RecompileNew RESET command is executed.
 defc RecompileNew
    universal nepmd_hini
    universal vepm_pointer
@@ -691,7 +686,7 @@ defc RecompileNew
 
       endif
 
-      -- Check E files, if not ETPM should be called already
+      -- Check E files, if ETPM should not be called already
       if fReplaceExFile <> 1 then
 
          -- Get list of EFiles from NEPMD.INI
@@ -888,7 +883,15 @@ defc RecompileNew
 
       if fReplaceExFile = 1 & not fCheckOnly then
          DestDir = GetExFileDestDir( ExFile)
+         fRelinkDeleted = 0
          if fDeleteExFile = 1 then
+            if fRestartEpm = 0 then
+               if linked( CurExFile) then
+                  -- unlink works only if EX file exists
+                  'unlink' CurExFile
+                  fRelinkDeleted = 1
+               endif
+            endif
             rc = EraseTemp( CurExFile)
             if rc then
                cWarning = cWarning + 1
@@ -916,9 +919,10 @@ defc RecompileNew
          elseif fRestartEpm = 0 then
             -- Check if old file is linked. Using BaseName here would check
             -- for the wrong file when it didn't exist before
-            if linked( CurExFile) >= 0 then  -- <0 means error or not linked
-
-               'unlink' CurExFile
+            if linked( CurExFile) >= 0 | fRelinkDeleted then  -- <0 means error or not linked
+               if not fRelinkDeleted  then  -- maybe already unlinked
+                  'unlink' CurExFile
+               endif
                'link' BaseName
 
                WriteLog( LogFile, '         'BaseName' - relinked .EX file')
@@ -950,6 +954,7 @@ defc RecompileNew
       endif
 
    enddo  -- while rest <> ''
+
    if fReset then
       if not fNoMsg then
          sayerror 'All RecompileNew entries deleted from NEPMD.INI'
@@ -1119,6 +1124,7 @@ defproc AddToMacroLstFile( Basename)
    .modify = 0
    'xcom s'
    'xcom q'
+   return
 
 ; ---------------------------------------------------------------------------
 ; Returns rc of the ETPM.EXE call and sets ExFile, EtpmLogFile.
@@ -1321,6 +1327,7 @@ defproc WriteLog( LogFile, Msg)
                        EPM_EDIT_LOGAPPEND,
                        ltoa( offset( LogFile)''selector( LogFile), 10),
                        ltoa( offset( Msg)''selector( Msg), 10))
+   return
 
 ; ---------------------------------------------------------------------------
 ; Compare .EX and .E macro files from <UserDir> with those from the NETLABS
@@ -1411,8 +1418,6 @@ defc RecompileNewMsgBox
    elseif ret = 7 then  -- No
    endif
 
-   return
-
 ; ---------------------------------------------------------------------------
 ; Start RECOMP.EXE
 defc StartRecompile
@@ -1435,5 +1440,4 @@ defc StartRecompile
    else
       sayerror 'Environment var NEPMD_ROOTDIR not set'
    endif
-   return
 
