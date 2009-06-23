@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: popup.e,v 1.9 2009-03-01 21:46:14 aschn Exp $
+* $Id: popup.e,v 1.10 2009-06-23 00:53:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -160,11 +160,19 @@ defc MH_popup
    menuname = 'popup1'
    activemenu = menuname
 
+compile if 0
    call psave_pos( savedpos)
+compile endif
+
    deletemenu menuname, 0, 0, 0
    'BuildPopupMenu' menuname
    showmenu menuname, 1
+
+compile if 0
+   -- Disadvantage: scrolls window if cursor is off the edit window
    call prestore_pos( savedpos)
+compile endif
+
    -- Cascade menu now replaced by inline menu items, because it doesnot work:
 ;    --'add_cascade_popupmenu'       -- without postme: works only for the first menu creation
 ;                                    -- the square around the arrow of the submenu
@@ -181,7 +189,7 @@ compile endif
       menuname = 'popup1'
    endif
    mt = leftstr( marktype(), 1)
-   in_mark = mouse_in_mark()  -- Save in a variable so user's include file can test.
+   fInMark = mouse_in_mark()  -- Save in a variable so user's include file can test.
 
    buildsubmenu  menuname, 80, '', '', 0 , 0
 
@@ -204,7 +212,7 @@ compile endif
       buildmenuitem menuname, 80, 8017, SORT_NAME_MENU__MSG,        'treesort' '/R' 'N'SORT_XXXX_MENUP__MSG, 1, 0
       buildmenuitem menuname, 80, 8018, SORT_EXTENSION_MENU__MSG,   'treesort' '/R' 'EX'SORT_XXXX_MENUP__MSG, 32769, 0
 
-   elseif in_mark then  -- Build Inside-Mark pop-up -----------------------------------------------------------------------------------
+   elseif fInMark then  -- Build Inside-Mark pop-up -----------------------------------------------------------------------------------
       gray_if_charmark = 16384*( mt = 'C')
       gray_if_notcharmark = 16384 - gray_if_charmark
       buildmenuitem menuname, 80, 8000, UNMARK_MARK_MENU__MSG\9'Alt+U',   'DUPMARK U'UNMARK_MARK_MENUP__MSG, 0, mpfrom2short(HP_EDIT_UNMARK, 0)

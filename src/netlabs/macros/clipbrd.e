@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: clipbrd.e,v 1.11 2008-09-05 23:27:24 aschn Exp $
+* $Id: clipbrd.e,v 1.12 2009-06-23 00:53:57 aschn Exp $
 *
 * ===========================================================================
 *
@@ -338,6 +338,9 @@ compile endif
       endif
       '+'(.last - oldsize)
    endif
+
+   .line = .line  -- maybe scroll to ensure that cursor is visible
+
 compile if REFLOW_AFTER_PASTE
    parse value .margins with . rm .
    if rm < MAXMARGIN then
@@ -398,6 +401,7 @@ compile if REFLOW_AFTER_PASTE
                   cur_line = lastmarkline + 1
                endif
             enddo
+
             class = 13  -- BOOKMARK_CLASS
             col = start_col; line = start_line; offst = 0
             attribute_action 1, class, offst, col, line  -- 1 = FIND NEXT ATTR
@@ -407,6 +411,7 @@ compile if REFLOW_AFTER_PASTE
                attribute_action 16, class, offst, col, line -- 16 = Delete attribute
             endif
             call prestore_mark(savemark)                     -- Restore the user's mark
+
 compile if REFLOW_AFTER_PASTE = 'WIDER' | REFLOW_AFTER_PASTE = 'PROMPT_IF_WIDE'
   compile if REFLOW_AFTER_PASTE = 'PROMPT_IF_WIDE'
          endif -- MBID_YES

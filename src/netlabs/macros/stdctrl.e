@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.50 2009-02-16 22:20:37 aschn Exp $
+* $Id: stdctrl.e,v 1.51 2009-06-23 00:53:58 aschn Exp $
 *
 * ===========================================================================
 *
@@ -93,16 +93,29 @@ listbox()
 
     param4 - (optional) row of text in which list box will go under.
              If this parameter is not specified or if a parameter of zero (0)
-             is specified, the box will be placed under the cursor.
+             is specified, the box will be placed centered.
+             If the parameter 'C' is used, the box will be placed beneath the
+             cursor.
+
     param5 - (optional) column of text in which list box will go under.
              If this parameter is not specified or if a parameter of zero (0)
-             is specified, the box will be placed under the cursor.
-             (NOTE: If the row parameter is selected the column parameter
-              must be selected as well.)
+             is specified, the box will be placed centered.
+             If the parameter 'C' is used, the box will be placed beneath the
+             cursor.
+             NOTE: If the row parameter is selected, the column parameter
+                   must be selected as well.
+             NOTE: Previously, "beneath the cursor" was the default behavior.
+                   That seems to behave annoying in most cases, therefore
+                   that was changed to place the box centered. To place it
+                   beneath the cursor, now 'C' has to be specified explicitely
+                   for param4 and 5.
+
     param6 - (optional) height of the listbox in characters
              (NOTE:Since the default PM font is proportional the character
               height and width are approximate values.)
+
     param7 - (optional) width of listbox in characters.
+
     param8 - (optional) buffer string (see below)
 
 The following procedure creates a PM list box dialog.  The listbox will
@@ -164,13 +177,13 @@ defproc listbox( title, listbuf)
       endif
    else
       listbuf = listbuf\0
-      liststuff = atol( length( listbuf) - 1)    ||   /* length of list                */
-                  address( listbuf)                   /* list                          */
+      liststuff = atol( length( listbuf) - 1)    ||   -- length of list
+                  address( listbuf)                   -- list
       flags = -2                    -- artificial value indicating "don't care"
    endif
    title = title\0
 
-   if arg(3) <> '' then                      /* button names were specified    */
+   if arg(3) <> '' then                      -- button names were specified
       parse value arg(3) with delim 2 but1 (delim) but2 (delim) but3 (delim) but4 (delim) but5 (delim) but6 (delim) but7 (delim)
       nb = 0
       if but1 <> '' then but1 = but1\0; nb = nb + 1; else sayerror 'LISTBOX:' BUTTON_ERROR__MSG; return 0; endif
@@ -190,32 +203,42 @@ defproc listbox( title, listbuf)
       nb=2
    endif
 
-   if arg() > 3 then                       /* were row and column specified  */
-      row = arg(4); col = arg(5)           /* row and col were passed        */
-      if not row then                      /* zero means current cursor pos  */
-         row = .cursory
-      endif
-      if not col then
-         col = .cursorx
-      endif
+   if arg() > 5 then                       -- were height and width specified
+      height = arg(6)                      -- height was passed
    else
-      col = .cursorx; row = .cursory       /* default: current cursor pos    */
-   endif
-
-   if arg() > 5 then                       /* were height and width specified*/
-      height = arg(6)                      /* height was passed   */
-   else
-      height = 0                           /* default: 0=use listbox default */
+      height = 0                           -- default: 0 = use listbox default
    endif
    if height < 4 then
       height = 4                           -- internal default is to show 4 lines
    endif
 
-   if arg() > 6 then                       /* were height and width specified*/
-      width = arg(7)                       /* width was passed   */
+   if arg() > 6 then                       -- were height and width specified
+      width = arg(7)                       -- width was passed
    else
-      width = 0                            /* default: 0=use listbox default */
+      width = 0                            -- default: 0=use listbox default
    endif
+
+   -- Row and col count from the lower left corner of the edit window
+   row = 0
+   col = 0
+   fAtCursor = 0
+   if arg() > 3 then                     -- row and col were passed
+      row = arg(4)
+      col = arg(5)
+   endif
+   if row = 0 then
+      row = (.windowheight - (height + 4)) % 2  -- centered
+   elseif leftstr( translate( row), 1) = 'C' then
+      row = .cursory                      -- beneath the cursor
+      fAtCursor = 1
+   endif
+   if col = 0 then
+      col = (.windowwidth  - max( width, 30)) % 2  -- centered
+   elseif leftstr( translate( col), 1) = 'C' then
+      col = .cursorx                      -- beneath the cursor
+      fAtCursor = 1
+   endif
+   --dprintf( 'row = 'row', col = 'col', height = 'height', width = 'width', .windowheight = '.windowheight', .windowwidth = '.windowwidth)
 
    if arg() > 7 then                       /* New way!                       */
       selectbuf = leftstr( arg(8), 255, \0)
@@ -223,15 +246,13 @@ defproc listbox( title, listbuf)
       selectbuf = copies( \0, 255)  -- Was 85     /* null terminate return buffer  */
    endif
 
-;    parse value entrybox('Enter row col addl heightadjust') with row col jbsu hadj
-;    parse value entrybox('Enter row col adj') with row col jbsu
-;  't8 listbox'
-;   call dprintf('listbox', ' ')
+   --parse value entrybox('Enter row col addl heightadjust') with row col jbsu hadj
+   --parse value entrybox('Enter row col adj') with row col jbsu
    call dprintf('listbox', 'curx cury: '.cursorx .cursory)
    call dprintf('listbox', 'col row: 'col row)
-;    call listbox2(title, listbuf, arg(3), row, col, arg(6), arg(7))
-;    parse value entrybox('Enter comment') with msg
-;    call dprintf('listbox', 'Comment: 'msg)
+   --call listbox2(title, listbuf, arg(3), row, col, arg(6), arg(7))
+   --parse value entrybox('Enter comment') with msg
+   --call dprintf('listbox', 'Comment: 'msg)
    -- o  .windowy and .windowx are always 0 in EPM
    -- o  screenheight() and screenwidth() return the window dimensions in
    --    pixels
@@ -252,99 +273,108 @@ defproc listbox( title, listbuf)
    --       11:   x,y mapped relative to EPM window, y measured down from bottom of EPM window?
    --    Conclusion: only 00 and 10 (0 and 2 in decimal) seem to work predictably
 
-   -- Determining the x coordinate works very well using the standard method:
-   x = .fontwidth * col                    /* convert row and column into...*/
+   if fAtCursor then
 
-   -- The y coordinate depends on the height of the dialog font. The old
-   -- method gives bad results:
-   -- y = .windowy + screenheight() - .fontheight * (row + 1) - 4  /* (Add a fudge factor temporarily */
+      -- Determining the x coordinate works very well using the standard method:
+      x = .fontwidth * col                    -- convert row and column into...
 
-   -- Correct row for 9.WarpSans (standard was either 10.System Proportional
-   -- or 10.System Monospaced). row and .cursory are counted in number of
-   -- lines from the top.
-   desktop_cy = NepmdQuerySysInfo('CYSCREEN')
-   parse value desktop_cy with 'ERROR:'errcode
-   if errcode <> '' then
-      sayerror 'Error query system screen resolution: 'errcode
-      return   'Error query system screen resolution: 'errcode
-   endif
-   call dprintf('listbox', 'Desktop height /2 = 'desktop_cy (desktop_cy/2))
-   win_data = NepmdQueryWindowPos(EPMINFO_EDITFRAME)
-   parse value win_data with 'ERROR:'errcode
-   if errcode <> '' then
-      sayerror 'Error query frame position: 'errcode
-      return   'Error query frame position: 'errcode
-   endif
-   parse value win_data with fwindowx fwindowy fwindowcx fwindowcy
-   call dprintf("listbox", 'SWP F: 'fwindowx fwindowy fwindowcx fwindowcy)
-   win_data = NepmdQueryWindowPos(EPMINFO_EDITCLIENT)
-   parse value win_data with 'ERROR:'errcode
-   if errcode <> '' then
-      sayerror 'Error query client position: 'errcode
-      return   'Error query client position: 'errcode
-   endif
-   parse value win_data with cwindowx cwindowy cwindowcx cwindowcy  -- the x and y are relative to the frame
-   windowx = cwindowx + fwindowx     -- so add in the frame x to get absolute client x
-   windowy = cwindowy + fwindowy     -- so add in the frame y to get absolute client y
-   call dprintf('listbox', 'SWP C: 'cwindowx cwindowy cwindowcx cwindowcy)
+      -- The y coordinate depends on the height of the dialog font. The old
+      -- method gives bad results:
+      -- y = .windowy + screenheight() - .fontheight * (row + 1) - 4  /* (Add a fudge factor temporarily */
 
-
-   -- Estimate the height of the entire listbox dialog
-   -- The height of additional dialog controls takes about 7 lines of
-   -- 9.WarpSans (same height as 12.System VIO, which has 16x8).
-;  addpixels = 102 + (50 * (nb > 4))
-   addpixels = 122 + (40 * (nb > 4))  -- 40 per row of buttons + 122 for other "overhead" pixels
-   boxfontheight = 16  -- value in pels = pixels
-   boxcy = height * ( boxfontheight ) + addpixels
-   call dprintf('listbox', 'wdwhgt hgt boxcy addl: '.windowheight height boxcy addpixels)
-
-   row_y = .fontheight * (.windowheight - (row - 1))
-   SpaceBelowCursor = windowy + row_y
-   call dprintf('listbox', 'row_y Spcbelow: 'row_y SpaceBelowCursor)
-   if flags < 0 then
-      if SpaceBelowCursor < (desktop_cy / 2) then
-         -- Position listbox window above row, col
-         wanty =  row_y
-         topofwin = 0
-         too_much = 0
-         if flags < 0 then
-            topofwin = wanty + boxcy + windowy
-            too_much = topofwin - desktop_cy
-            if too_much > 0 then
-               height = height - (too_much + boxfontheight - 1) % boxfontheight
-            endif
-            flags = 0
-         endif
-         call dprintf('listbox', 'Above cursor::wanty top too adjh: 'wanty topofwin too_much height)
-      else
-         -- Position listbox window below row, col
-         wanty = row_y - .fontheight
-         if flags < 0 then
-            too_much = wanty + windowy - boxcy -- - 10 -- fudge factor
-            if too_much < 0 then
-               height = (boxcy + too_much - addpixels) % boxfontheight
-            endif
-            flags = 1
-         endif
-         call dprintf('listbox', 'Below cursor::wanty adjh too_much: 'wanty height too_much)
+      -- Correct row for 9.WarpSans (standard was either 10.System Proportional
+      -- or 10.System Monospaced). row and .cursory are counted in number of
+      -- lines from the top.
+      desktop_cy = NepmdQuerySysInfo('CYSCREEN')
+      parse value desktop_cy with 'ERROR:'errcode
+      if errcode <> '' then
+         sayerror 'Error query system screen resolution: 'errcode
+         return   'Error query system screen resolution: 'errcode
       endif
-   endif
-   call dprintf('listbox', 'flags bit1 winy: 'flags ((flags % 2) // 2) windowy)
-   if ((flags % 2) // 2) then
-      y = wanty
-   else
-      x = x + windowx
-      y = wanty + windowy
-   endif
-   -- Prevent corrupted window diplays because the cursor is offscreen
-   if (flags < 2) and (x <= -windowx) then
-      x = 1 - windowx
-   endif
+      call dprintf('listbox', 'Desktop height /2 = 'desktop_cy (desktop_cy/2))
+      win_data = NepmdQueryWindowPos(EPMINFO_EDITFRAME)
+      parse value win_data with 'ERROR:'errcode
+      if errcode <> '' then
+         sayerror 'Error query frame position: 'errcode
+         return   'Error query frame position: 'errcode
+      endif
+      parse value win_data with fwindowx fwindowy fwindowcx fwindowcy
+      call dprintf("listbox", 'SWP F: 'fwindowx fwindowy fwindowcx fwindowcy)
+      win_data = NepmdQueryWindowPos(EPMINFO_EDITCLIENT)
+      parse value win_data with 'ERROR:'errcode
+      if errcode <> '' then
+         sayerror 'Error query client position: 'errcode
+         return   'Error query client position: 'errcode
+      endif
+      parse value win_data with cwindowx cwindowy cwindowcx cwindowcy  -- the x and y are relative to the frame
+      windowx = cwindowx + fwindowx     -- so add in the frame x to get absolute client x
+      windowy = cwindowy + fwindowy     -- so add in the frame y to get absolute client y
+      call dprintf('listbox', 'SWP C: 'cwindowx cwindowy cwindowcx cwindowcy)
 
-   -- With this coordinate determination, the listbox window may be placed
-   -- outside of the frame window. That is intended, since we don't have a
-   -- MDI window. Limiting the listbox window to screen values is done
-   -- automatically by the LISTBOX function.
+      -- Estimate the height of the entire listbox dialog
+      -- The height of additional dialog controls takes about 7 lines of
+      -- 9.WarpSans (same height as 12.System VIO, which has 16x8).
+      --addpixels = 102 + (50 * (nb > 4))
+      addpixels = 122 + (40 * (nb > 4))  -- 40 per row of buttons + 122 for other "overhead" pixels
+      boxfontheight = 16  -- value in pels = pixels
+      boxcy = height * ( boxfontheight ) + addpixels
+      call dprintf('listbox', 'wdwhgt hgt boxcy addl: '.windowheight height boxcy addpixels)
+
+      row_y = .fontheight * (.windowheight - (row - 1))
+      SpaceBelowCursor = windowy + row_y
+      call dprintf('listbox', 'row_y Spcbelow: 'row_y SpaceBelowCursor)
+      if flags < 0 then
+         if SpaceBelowCursor < (desktop_cy / 2) then
+            -- Position listbox window above row, col
+            wanty =  row_y
+            topofwin = 0
+            too_much = 0
+            if flags < 0 then
+               topofwin = wanty + boxcy + windowy
+               too_much = topofwin - desktop_cy
+               if too_much > 0 then
+                  height = height - (too_much + boxfontheight - 1) % boxfontheight
+               endif
+               flags = 0
+            endif
+            call dprintf('listbox', 'Above cursor::wanty top too adjh: 'wanty topofwin too_much height)
+         else
+            -- Position listbox window below row, col
+            wanty = row_y - .fontheight
+            if flags < 0 then
+               too_much = wanty + windowy - boxcy -- - 10 -- fudge factor
+               if too_much < 0 then
+                  height = (boxcy + too_much - addpixels) % boxfontheight
+               endif
+               flags = 1
+            endif
+            call dprintf('listbox', 'Below cursor::wanty adjh too_much: 'wanty height too_much)
+         endif
+      endif
+      call dprintf('listbox', 'flags bit1 winy: 'flags ((flags % 2) // 2) windowy)
+      if ((flags % 2) // 2) then
+         y = wanty
+      else
+         x = x + windowx
+         y = wanty + windowy
+      endif
+      -- Prevent corrupted window diplays because the cursor is offscreen
+      if (flags < 2) and (x <= -windowx) then
+         x = 1 - windowx
+      endif
+
+      -- With this coordinate determination, the listbox window may be placed
+      -- outside of the frame window. That is intended, since we don't have a
+      -- MDI window. Limiting the listbox window to screen values is done
+      -- automatically by the LISTBOX function.
+
+   else  -- not at cursor
+
+      y = .fontheight * row
+      x = .fontwidth  * col
+      flags = 2  -- gives best results for centering in the edit window
+
+   endif
 
    if getpminfo(EPMINFO_EDITFRAME) then
       handle = EPMINFO_EDITFRAME
@@ -353,26 +383,26 @@ defproc listbox( title, listbuf)
    endif
 ;do forever
    call dprintf('listbox', 'final::flags col row x y: 'flags col row x y)
-   call dynalink32( ERES_DLL,               /* list box control in EDLL dyna */
-                    'LISTBOX',                      /* function name                 */
-                    gethwndc(handle)           ||   /* edit frame handle             */
+   call dynalink32( ERES_DLL,               -- list box control in EDLL dyna
+                    'LISTBOX',                      -- function name
+                    gethwndc(handle)           ||   -- edit frame handle
                     atol(flags)                ||
-                    atol(x)                    ||   /* coordinates                   */
+                    atol(x)                    ||   -- coordinates
                     atol(y)                    ||
                     atol(height)               ||
                     atol(width)                ||
                     atol(nb)                   ||
-                    address(title)             ||   /* list box dialog title         */
-                    address(but1)              ||   /* text to appear in buttons     */
-                    address(but2)              ||   /*                               */
-                    address(but3)              ||   /*                               */
-                    address(but4)              ||   /*                               */
-                    address(but5)              ||   /*                               */
-                    address(but6)              ||   /*                               */
-                    address(but7)              ||   /*                               */
+                    address(title)             ||   -- list box dialog title
+                    address(but1)              ||   -- text to appear in buttons
+                    address(but2)              ||
+                    address(but3)              ||
+                    address(but4)              ||
+                    address(but5)              ||
+                    address(but6)              ||
+                    address(but7)              ||
                     liststuff                  ||
-                    address(selectbuf)         ||   /* return string buffer          */
-                    atol(app_hini))                 /* Handle to INI file            */
+                    address(selectbuf)         ||   -- return string buffer
+                    atol(app_hini))                 -- handle to INI file
 
 ;    parse value entrybox('Enter comment') with y flags msg
 ;    call dprintf('listbox', 'Comment: 'msg)
