@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.20 2008-09-05 23:18:02 aschn Exp $
+* $Id: stdprocs.e,v 1.21 2009-06-23 01:01:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -729,6 +729,12 @@ defproc psave_pos( var save_pos)
 
    save_pos = .line .col Cursorx .cursory
    lastscrollx = .scrollx
+
+   -- .scrolly doesn't work for EPM 6. .cursoryg was created to replace it.
+   -- Querying its value works and returns the amount of pels from the top
+   -- of the window to the cursor. Setting it works, but is not usable,
+   -- because the window scrolls one page or so up. After that, the
+   -- cursor would be off the visible area.
 
 defproc pset_mark( firstline, lastline, firstcol, lastcol, mt, fileid)
    mtnum = wordpos( mt, 'LINE CHAR BLOCK CHARG BLOCKG') - 1
