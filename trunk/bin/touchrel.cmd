@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: touchrel.cmd,v 1.7 2008-03-25 23:10:00 aschn Exp $
+* $Id: touchrel.cmd,v 1.8 2009-07-10 21:30:09 cla Exp $
 *
 * ===========================================================================
 *
@@ -111,6 +111,7 @@ TouchFiles: PROCEDURE
 GetTimeStamp: PROCEDURE
 
  /* check timestamp */
+ TimeStamp = '';
  PARSE VALUE DATE( 'S') WITH Year +4 MonthDay;
  PARSE VALUE TIME( 'N') WITH Hours':'Mins':'Secs;
  Hours = RIGHT( Hours, 2, '0');
@@ -118,9 +119,6 @@ GetTimeStamp: PROCEDURE
     Mins = '30';
  ELSE
     Mins = '00';
-
- /* default timestamp format */
- TimeStamp = MonthDay''Hours''Mins''Year'.00';
 
  /* determine timestamp parameter from help text of touch */
  QueueName = RXQUEUE('CREATE');
@@ -138,12 +136,22 @@ GetTimeStamp: PROCEDURE
        WHEN (POS( '[[CC]YY]MMDDhhmm[.ss]', Line) > 0) THEN
           TimeStamp = Year''MonthDay''Hours''Mins'.00';
 
+       WHEN (POS( '[[HH]JJ]MMTTSSmm[.ss]', Line) > 0) THEN
+          TimeStamp = Year''MonthDay''Hours''Mins'.00';
+
        OTHERWISE NOP;
     END;
  END;
 
  rc = RXQUEUE('DELETE', QueueName);
  rc = RXQUEUE('SET', 'SESSION');
+
+ IF (TimeStamp = '') THEN
+ DO
+    SAY 'error: touchrel does not know this version of touch.exe'
+    SAY '       please modify procedure GetTimeStamp accordingly';
+    EXIT(87);
+ END;
 
  RETURN( TimeStamp);
 
