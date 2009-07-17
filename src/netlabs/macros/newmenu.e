@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.69 2009-06-23 01:15:27 aschn Exp $
+* $Id: newmenu.e,v 1.70 2009-07-17 20:50:50 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1923,7 +1923,7 @@ defproc add_view_menu(menuname)
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Read palette objects...',                                           -- Read palette objects...
-                                   'ChgPal2 2' ||
+                                   'ChgPal 2' ||
                                    \1'Write colors to EPMColor.ini',
                                    MIS_TEXT, 0
    i = i + 1;
