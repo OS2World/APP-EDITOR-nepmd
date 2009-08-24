@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.70 2009-07-17 20:50:50 aschn Exp $
+* $Id: newmenu.e,v 1.71 2009-08-24 22:22:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -520,7 +520,7 @@ defproc add_file_menu(menuname)
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Open...'\9CTRL_KEY__MSG'+O',                                  -- Open...
-                                   'opendlg EDIT' ||
+                                   'OpenDlg EDIT' ||
                                    ADD_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
    i = i + 1;
@@ -529,7 +529,7 @@ defproc add_file_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'New ~window'\9CTRL_KEY__MSG'+N',                               -- Open new
-                                   "open ''" ||
+                                   "Open ''" ||
                                    OPEN_NEW_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_OPEN_NEW, 0)
    i = i + 1;
@@ -548,12 +548,12 @@ defproc add_file_menu(menuname)
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Save as last ~ring',                                                 -- Save as last ring
-                                   'savering' ||
+                                   'SaveRing' ||
                                    \1'Save current file list as last edit ring',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Load last ring',                                                    -- Load last ring
-                                   'restorering' ||
+                                   'RestoreRing' ||
                                    \1'Restore last saved edit ring',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -562,12 +562,12 @@ defproc add_file_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Save ~group...',                                                     -- Save group
-                                   'groups savegroup' ||
+                                   'Groups SAVEGROUP' ||
                                    \1'Save current file list as group',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'L~oad group...',                                                     -- Load group
-                                   'groups loadgroup' ||
+                                   'Groups LOADGROUP' ||
                                    \1'Restore a previously saved group',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -576,17 +576,17 @@ defproc add_file_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'List ~edit history...'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F9',     -- List edit history...
-                                   'history edit' ||
+                                   'History EDIT' ||
                                    \1'Open a list box with previous edit cmds',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'List ~loaded files...'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F10',    -- List loaded files...
-                                   'history load' ||
+                                   'History LOAD' ||
                                    \1'Open a list box with previous loaded files',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'List ~saved files...'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F11',     -- List saved files...
-                                   'history save' ||
+                                   'History SAVE' ||
                                    \1'Open a list box with previous saved files',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
  if WpsStarted then
@@ -597,7 +597,7 @@ defproc add_file_menu(menuname)
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_openfolder_defaultview', i);
    buildmenuitem menuname, mid, i, 'Default ~view',                                                      -- Default view
-                                   'openfolder OPEN=DEFAULT' ||
+                                   'OpenFolder OPEN=DEFAULT' ||
                                    \1,
                                    MIS_TEXT, 0
    i = i + 1;
@@ -606,22 +606,22 @@ defproc add_file_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Icon view',                                                         -- Icon view
-                                   'openfolder ICONVIEW=NORMAL;OPEN=ICON' ||
+                                   'OpenFolder ICONVIEW=NORMAL;OPEN=ICON' ||
                                    \1,
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Icon ~flowed view',                                                  -- Icon flowed view
-                                   'openfolder ICONVIEW=FLOWED,MINI;OPEN=ICON' ||
+                                   'OpenFolder ICONVIEW=FLOWED,MINI;OPEN=ICON' ||
                                    \1,
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Tree view',                                                         -- Tree view
-                                   'openfolder TREEVIEW=MINI;SHOWALLINTREEVIEW=YES;OPEN=TREE' ||
+                                   'OpenFolder TREEVIEW=MINI;SHOWALLINTREEVIEW=YES;OPEN=TREE' ||
                                    \1,
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Details view',                                                      -- Details view
-                                   'openfolder OPEN=DETAILS' ||
+                                   'OpenFolder OPEN=DETAILS' ||
                                    \1,
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    -- Note: Don't specify the OpenFolder arg too long. There exists a restriction to the length of that parameter for buildmenuitem!
@@ -645,32 +645,32 @@ defproc add_file_menu(menuname)
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_mode', i); call SetAVar( 'mtxt_mode', '~Mode []...')
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_mode'),                                                -- Mode...
-                                   'mode' ||
+                                   'Mode' ||
                                    \1'Select or show mode for the current file',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_tabs', i); call SetAVar( 'mtxt_tabs', '~Tabs []...')
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_tabs'),                                                -- Tabs...
-                                   'tabs' ||
+                                   'Tabs' ||
                                    \1'Select or show tabs for the current file',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_margins', i); call SetAVar( 'mtxt_margins', 'Mar~gins []...')
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_margins'),                                             -- Margins...
-                                   'ma' ||
+                                   'Ma' ||
                                    \1'Select or show margins for the current file',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_readonlyattrib', i);
    buildmenuitem menuname, mid, i, 'Read-~only file attribute',                                          -- Read-only file attribute
-                                   'toggle_readonly_attrib' ||
+                                   'Toggle_Readonly_Attrib' ||
                                    \1'Set or reset read-only file attribute',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_readonly', i);
    buildmenuitem menuname, mid, i, '~Read-only mode',                                                    -- Read-only mode
-                                   'toggle_readonly' ||
+                                   'Toggle_Readonly' ||
                                    \1'Enable or disable read-only mode',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_locked', i);
    buildmenuitem menuname, mid, i, '~Locked',                                                            -- Locked
-                                   'toggle_locked' ||
+                                   'Toggle_Locked' ||
                                    \1'Enable or disable write access for other apps',
                                    MIS_TEXT, nodismiss
  if WpsStarted then
@@ -695,7 +695,7 @@ defproc add_file_menu(menuname)
    endif  -- nodismiss > 0
    i = i + 1; call SetAVar( 'mid_autospellcheck', i);
    buildmenuitem menuname, mid, i, DYNASPELL_MENU__MSG,                                                  -- Auto-spellcheck
-                                   'toggle_dynaspell' ||
+                                   'Toggle_Dynaspell' ||
                                    DYNASPELL_MENUP__MSG,
                                    MIS_TEXT + endsubmenu, mpfrom2short(HP_OPTIONS_DYNASPELL, nodismiss)
    if nodismiss > 0 then
@@ -715,17 +715,17 @@ defproc add_file_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_importfile', i);
    buildmenuitem menuname, mid, i, '~Import file...',                                              -- Import file...
-                                   'opendlg GET' ||
+                                   'OpenDlg GET' ||
                                    GET_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_GET, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Re~name'\9'F7',                                                -- Rename...
-                                   'rename' ||
+                                   'Rename' ||
                                    RENAME_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_NAME, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Reload',                                                      -- Reload
-                                   'revert' ||
+                                   'Revert' ||
                                    \1'Reload file from disk, ask if modified',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -734,12 +734,12 @@ defproc add_file_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_save', i);
    buildmenuitem menuname, mid, i, SAVE_MENU__MSG\9'F2',                                           -- Save
-                                   'save' ||
+                                   'Save' ||
                                    SAVE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_SAVE, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, SAVEAS_MENU__MSG\9ALT_KEY__MSG'+F2',                            -- Save as...
-                                   'saveas_dlg' ||
+                                   'Saveas_Dlg' ||
                                    SAVEAS_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_SAVEAS, 0)
    i = i + 1; call SetAVar( 'mid_saveandquit', i);
@@ -758,7 +758,7 @@ defproc add_file_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, PRT_FILE_MENU__MSG'...',                                        -- Print file...
-                                   'printdlg' ||
+                                   'PrintDlg' ||
                                    ENHPRT_FILE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_ENHPRINT, 0)
    i = i + 1;
@@ -767,7 +767,7 @@ defproc add_file_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Close file'\9'F3',                                            -- Close file
-                                   'quit' ||
+                                   'Quit' ||
                                    'Close this file',
                                    MIS_TEXT, mpfrom2short(HP_FILE_QUIT, 0)
    return
@@ -787,12 +787,12 @@ compile endif
                                 0, 0  -- MIS must be 0 for submenu
    i = i + 1; call SetAVar( 'mid_undoline', i);
    buildmenuitem menuname, mid, i, UNDO_MENU__MSG\9 || ALT_KEY__MSG'+'BACKSPACE_KEY__MSG' | F9',   -- Undo line
-                                   'undo 1' ||
+                                   'Undo 1' ||
                                    UNDO_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_UNDO, 0)
    i = i + 1; call SetAVar( 'mid_undo', i);
    buildmenuitem menuname, mid, i, UNDO_REDO_MENU__MSG\9 || CTRL_KEY__MSG'+U',                     -- Undo...
-                                   'undodlg' ||
+                                   'UndoDlg' ||
                                    UNDO_REDO_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_UNDOREDO, 0)
    i = i + 1; call SetAVar( 'mid_recovermarkdelete', i);
@@ -932,17 +932,17 @@ compile endif
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, PROOF_MENU__MSG,                                                      -- Proof
-                                   'proof' ||
+                                   'Proof' ||
                                    PROOF_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_PROOF, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, PROOF_WORD_MENU__MSG,                                                 -- Proof word
-                                   'proofword' ||
+                                   'ProofWord' ||
                                    PROOF_WORD_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_PROOFW, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, SYNONYM_MENU__MSG,                                                    -- Synonym
-                                   'syn' ||
+                                   'Syn' ||
                                    SYNONYM_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_SYN, 0)
    i = i + 1;
@@ -951,7 +951,7 @@ compile endif
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_dict', i); call SetAVar( 'mtxt_dict', 'Select ~dictionary: []')
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_dict'),                                                -- Select dictionary: []...
-                                   'switch_dicts' ||
+                                   'Switch_Dicts' ||
                                    \1'Switch to next defined dictionary language',
                                    MIS_TEXT, nodismiss
    i = i + 1;
@@ -1040,22 +1040,22 @@ defproc add_mark_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_copymark', i);
    buildmenuitem menuname, mid, i, COPY_MARK_MENU__MSG,                                            -- Copy mark
-                                   'DUPMARK C' ||
+                                   'DupMark C' ||
                                    COPY_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_COPYMARK, 0)
    i = i + 1; call SetAVar( 'mid_movemark', i);
    buildmenuitem menuname, mid, i, MOVE_MARK_MENU__MSG,                                            -- Move mark
-                                   'DUPMARK M' ||
+                                   'DupMark M' ||
                                    MOVE_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_MOVE, 0)
    i = i + 1; call SetAVar( 'mid_overlaymark', i);
    buildmenuitem menuname, mid, i, OVERLAY_MARK_MENU__MSG,                                         -- Overlay mark
-                                   'DUPMARK O' ||
+                                   'DupMark O' ||
                                    OVERLAY_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_OVERLAY, 0)
    i = i + 1; call SetAVar( 'mid_adjustmark', i);
    buildmenuitem menuname, mid, i, ADJUST_MARK_MENU__MSG,                                          -- Adjust mark
-                                   'DUPMARK A' ||
+                                   'DupMark A' ||
                                    ADJUST_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_ADJUST, 0)
 ;   endif
@@ -1124,17 +1124,17 @@ defproc add_mark_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/ | 'CTRL_KEY__MSG'+A',  -- Select all
-                                   'select_all' ||
+                                   'Select_All' ||
                                    SELECT_ALL_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_SELECTALL, 0)
    i = i + 1; call SetAVar( 'mid_unmark', i);
    buildmenuitem menuname, mid, i, UNMARK_MARK_MENU__MSG\9 || ALT_KEY__MSG'+U | 'CTRL_KEY__MSG'+\ | 'CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+A',  -- Unmark
-                                   'DUPMARK U' ||
+                                   'DupMark U' ||
                                    UNMARK_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_UNMARK, 0)
    i = i + 1; call SetAVar( 'mid_deletemark', i);
    buildmenuitem menuname, mid, i, DELETE_MARK_MENU__MSG,                                          -- Delete mark
-                                   'DUPMARK D' ||
+                                   'DupMark D' ||
                                    DELETE_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_DELETE, 0)
    i = i + 1;
@@ -1143,7 +1143,7 @@ defproc add_mark_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_printmark', i);
    buildmenuitem menuname, mid, i, PRT_MARK_MENU__MSG'...',                                        -- Print mark
-                                   'PRINTDLG M' ||
+                                   'PrintDlg M' ||
                                    ENHPRT_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_ENHPRINT, 0)
    --call update_paste_menu_text()  -- handled by menuinit
@@ -1187,7 +1187,7 @@ defproc add_format_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_reflowmarginsconfig', i);
    buildmenuitem menuname, mid, i, '~Configure selected...',                                             -- Configure selected...
-                                   'set_ReflowMargins' ||
+                                   'Set_ReflowMargins' ||
                                    \1'Configure selected reflow-margins item...',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
@@ -1196,12 +1196,12 @@ defproc add_format_menu(menuname)
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'All to reflow-margins, ~keep indent',
-                                   'wrap KEEPINDENT' ||                                                  -- All to reflow-margins, keep indent
+                                   'Wrap KEEPINDENT' ||                                                  -- All to reflow-margins, keep indent
                                    \1'Wrap lines at reflow-margins, keep indent of line above',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'All to reflow-margins, s~plit',
-                                   'wrap SPLIT' ||                                                       -- All to reflow-margins, split
+                                   'Wrap SPLIT' ||                                                       -- All to reflow-margins, split
                                    \1'Wrap lines at reflow-margins, split only',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -1210,12 +1210,12 @@ defproc add_format_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Split line'\9 || ALT_KEY__MSG'+S',                                  -- Split line
-                                   'dokey a_s' ||
+                                   'SplitLines' ||
                                    \1'Split current line at cursor, keep indent',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Join line'\9 || ALT_KEY__MSG'+J',                                   -- Join line
-                                   'dokey a_j' ||
+                                   'JoinLines' ||
                                    \1'Join current line with next line, respect right margin',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1; call SetAVar( 'mid_reflow', i);
@@ -1226,12 +1226,12 @@ defproc add_format_menu(menuname)
 /*
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Par to reflowmargins',                                               -- Par to reflowmargins
-                                   'flow' reflowmargins ||
+                                   'Flow' reflowmargins ||
                                    \1'Reformat lines from cursor to par end',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Par to margins...',                                                  -- Par to margins...
-                                   'commandline flow' reflowmargins ||
+                                   'Commandline Flow' reflowmargins ||
                                    \1'Reformat lines from cursor to par end, enter margins',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -1297,12 +1297,12 @@ defproc add_format_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Mai~l (all)',                                                        -- Mail (all)
-                                   'reflowmail' ||
+                                   'ReflowMail' ||
                                    \1'Reformat current email',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Wordpro~c (all)',                                                    -- Wordproc (all)
-                                   'wordproc' ||
+                                   'WordProc' ||
                                    \1'Rejoin lines to prepare for export to a word processor',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -1316,12 +1316,12 @@ defproc add_format_menu(menuname)
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_mailindentedlines', i);
    buildmenuitem menuname, mid, i, 'Mail: reflow ~indented lines',                                       -- Mail: reflow indented lines
-                                   'toggle_mail_indented' ||
+                                   'Toggle_Mail_Indented' ||
                                    \1'Include indented lines',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_mailindentlists', i);
    buildmenuitem menuname, mid, i, 'Mail: indent ~list items',                                           -- Mail: indent list items
-                                   'toggle_mail_indent_lists' ||
+                                   'Toggle_Mail_Indent_Lists' ||
                                    \1'Indent lines of list items',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_reflownext', i);
@@ -1355,12 +1355,12 @@ defproc add_format_menu(menuname)
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Remove ~HTML',                                                       -- Remove HTML
-                                   'unhtml' ||
+                                   'UnHtml' ||
                                    \1'Remove HTML tags from current file',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Singlespace',                                                       -- Singlespace
-                                   'singlespace' ||
+                                   'SingleSpace' ||
                                    \1'Remove duplicated line ends',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -1385,7 +1385,7 @@ defproc add_format_menu(menuname)
 if recodefound then
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Reco~de...',                                                   -- Recode...
-                                   'recode' ||
+                                   'Recode' ||
                                    \1'Change codepage of current file and reload it, keep filedate',
                                    MIS_TEXT, 0
 endif
@@ -2947,7 +2947,7 @@ defproc add_run_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~OS/2 window',                                                 -- OS/2 window
-                                   'start /f /k %comspec%' ||
+                                   'start /win'/*'start /f /k %comspec%'*/ ||
                                    \1'Open an OS/2 window with NEPMD''s environment',
                                    MIS_TEXT, 0
    i = i + 1;
