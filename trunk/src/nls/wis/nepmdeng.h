@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdeng.h,v 1.15 2008-11-13 14:18:25 cla Exp $
+* $Id: nepmdeng.h,v 1.16 2009-10-18 23:15:15 aschn Exp $
 *
 * ===========================================================================
 *
@@ -22,6 +22,11 @@
 ****************************************************************************/
 
 #define BUTTON_NEXT "~Next"
+
+/* In between the next two strings the version string will */
+/* be added. Add trailing or leading spaces, if required.  */
+#define MAIN_TITLE_PREFIX "netlabs.org EPM Distribution v"
+#define MAIN_TITLE_SUFFIX " Installation"
 
 #define PCK_1_TITLE "Base Application Support"
 #define PCK_2_TITLE "Custom icons for EPM"
