@@ -65,7 +65,7 @@
 *
 * Copyright (c) netlabs.org EPM Distribution Project 2008
 *
-* $Id: instenv.cmd,v 1.6 2008-10-06 05:12:12 aschn Exp $
+* $Id: instenv.cmd,v 1.7 2009-10-18 23:03:26 aschn Exp $
 *
 * ===========================================================================
 *
@@ -297,8 +297,8 @@ DO 1
    CALL VALUE 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_USERDIR)'_INST',  UserDirInst, env
    CALL VALUE 'NEPMD_UPDATE_FLAG', UpdateFlag, env
    CALL VALUE 'ECS_FLAG', EcsFlag, env
-   CALL VALUE OS2_VERSION, Os2Version, env
-   CALL VALUE ECS_VERSION, EcsVersion, env
+   CALL VALUE 'OS2_VERSION', Os2Version, env
+   CALL VALUE 'ECS_VERSION', EcsVersion, env
 
 END
 
