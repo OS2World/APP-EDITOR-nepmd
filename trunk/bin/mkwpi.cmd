@@ -35,7 +35,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkwpi.cmd,v 1.8 2006-11-06 14:44:03 jbs Exp $
+* $Id: mkwpi.cmd,v 1.9 2009-10-18 23:09:17 aschn Exp $
 *
 * ===========================================================================
 *
@@ -54,7 +54,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.8 $" WITH . Version .;
+ PARSE VALUE "$Revision: 1.9 $" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';
@@ -224,7 +224,12 @@
     DO WHILE (Pkg._List \= '')
        PARSE VAR Pkg._List ThisId Pkg._List;
        DO p = 1 TO Pkg.ThisId.0
-          ThisParms = ThisId '-r -c'Pkg.ThisId.p._Directory Pkg.ThisId.p._FileMask;
+          /* use recursive option if wildcards specified */
+          IF (VERIFY( Pkg.ThisId.p._FileMask, '*?', 'M') > 0) THEN
+             Recursive = '-r'
+          ELSE
+             Recursive = ''
+          ThisParms = ThisId Recursive '-c'Pkg.ThisId.p._Directory Pkg.ThisId.p._FileMask;
           IF (fVerbose) THEN
              SAY ThisParms;
           rc = LINEOUT( ResponseFile, ThisParms);
@@ -239,7 +244,6 @@
     rc = LINEOUT( LogFile, WicCommand);
     rc = LINEOUT( LogFile);
     'CALL' WicCommand;
-    rcx = SysFileDelete( ResponseFile);
 
     IF VALUE( 'APPEND_DATE_TO_WPIFILE',, env) == '1' THEN
     DO

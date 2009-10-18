@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: nepmd.lst,v 1.18 2007-02-12 01:06:06 jbs Exp $
+: $Id: nepmd.lst,v 1.19 2009-10-18 23:09:18 aschn Exp $
 :
 : ===========================================================================
 :
@@ -45,7 +45,13 @@ COPYING          1 %CMPDIR%\base                 COPYING
 
 : --- package 2: Custom icons
 
-DUMMY            2 %CMPDIR%                      srccopy.txt
+: This creates a 0-byte package
+
+: Since WarpIN 1.0.16, NUL can be used
+: DUMMY            2 %CMPDIR%                      srccopy.txt
+
+: NUL makes WarpIN happy, MKWPI needs any dir spec:
+DUMMY            2 .                             NUL
 
 : --- package 3: macros
 

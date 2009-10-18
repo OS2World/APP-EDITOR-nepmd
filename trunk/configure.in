@@ -14,7 +14,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: configure.in,v 1.20 2009-05-14 21:45:39 aschn Exp $
+# $Id: configure.in,v 1.21 2009-10-18 23:09:18 aschn Exp $
 #
 # ===========================================================================
 #
@@ -116,5 +116,7 @@ ID_VERSION_NEPMD=1\14
 # NOTE:
 #  - must be specified in WarpIN package ID style
 
-ID_VERSION_REQ_WARPIN=0\9\19
+#ID_VERSION_REQ_WARPIN=0\9\19
+# The 0-byte file bug was fixed in 1.0.16
+ID_VERSION_REQ_WARPIN=1\0\16
 
