@@ -7,7 +7,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: welcomeeng.xml,v 1.2 2008-09-13 17:11:42 aschn Exp $
+# $Id: welcomeeng.xml,v 1.3 2009-10-18 23:15:15 aschn Exp $
 #
 # ===========================================================================
 #
@@ -22,21 +22,18 @@
 #
 # ***************************************************************************
 -->
-<a href="http://nepmd.netlabs.org"><b>netlabs.org EPM Distribution</b></a>
-<b>v%STRING_VERSION_NEPMD%</b>
-
-<p>This package installs support files for <b>EPM</b>, the Enhanced Editor
+This package installs support files for <b>EPM</b>, the Enhanced Editor
 of OS/2 or eComStation. It comes with countless <b>features</b> and <b>bug
 fixes</b> for both programmers and standard users, e.g.:
 
 <ul>
-<li>User-friendly default configuration
-<li>Improved keyword highlighting
-<li>Configurable color schemes and info bars
-<li>New menu, toolbar and additional keyset
-<li>Mode-dependent configuration including syntax expansion with
+<li>user-friendly default configuration
+<li>improved keyword highlighting
+<li>configurable color schemes and info bars
+<li>new menu, toolbar and additional keyset
+<li>mode-dependent configuration including syntax expansion with
 coding styles and expression matching
-<li>Improved command shell features
-<li>Easier configuration to avoid macro recompilation.
+<li>improved command shell features
+<li>easier configuration to avoid macro recompilation.
 </ul>
 <br>

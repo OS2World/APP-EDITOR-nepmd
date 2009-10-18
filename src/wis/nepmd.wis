@@ -18,7 +18,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.67 2008-12-07 22:12:53 aschn Exp $
+# $Id: nepmd.wis,v 1.68 2009-10-18 23:15:15 aschn Exp $
 #
 # ===========================================================================
 #
@@ -39,9 +39,81 @@
 <WARPIN>
 <HEAD>
 
-     <!-- ------- This was moved from the PCK attributes ---------- -->
-     <!--REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"-->
-     <!-- Maybe use LONGFILENAMES attribute? -->
+<TITLE>=("Initialize_GetTitle")</TITLE>
+
+    <REXX NAME="Initialize_GetTitle">
+      CALL Rxfuncadd 'SysLoadFuncs','RexxUtil','SysLoadFuncs'
+      CALL SysLoadFuncs
+
+      env          = 'OS2ENVIRONMENT'
+      TRUE         = (1 = 1)
+      FALSE        = (0 = 1)
+      CrLf         = '0d0a'x
+      Redirection  = '> NUL 2>&1'
+      GlobalVars = 'env TRUE FALSE CrLf Redirection'
+
+      DO 1
+         MainTitle = '%MAIN_TITLE_PREFIX%%STRING_VERSION_NEPMD%%MAIN_TITLE_SUFFIX%'
+
+         /* Default values are empty. That means: don't create an object. */
+         ShellShadowInPrompts    = ''
+         ShellShadowInXwpPrompts = ''
+
+         IF ObjectExists( '<WP_PROMPTS>') THEN
+            ShellShadowInPrompts = ,
+               'CREATEOBJECT="WPShadow|.|<WP_PROMPTS>|' ||,
+               'SHADOWID=<NEPMD_EPM_SHELL>;OBJECTID=<NEPMD_EPM_SHELL_SHADOW>;"'
+         IF ObjectExists( '<WP_PROMPTS>') THEN
+            ShellShadowInXwpPrompts = ,
+               'CREATEOBJECT="WPShadow|.|<XWP_CFG1>|' ||,
+               'SHADOWID=<NEPMD_EPM_SHELL>;OBJECTID=<NEPMD_EPM_SHELL_SHADOW_2>;"'
+
+         CALL SetVar 'ShellShadowInPrompts', ShellShadowInPrompts
+         CALL SetVar 'ShellShadowInXwpPrompts', ShellShadowInXwpPrompts
+      END
+
+      RETURN( MainTitle)
+
+      /* Returns 1 if a WPS object exists, otherwise 0 */
+      ObjectExists: PROCEDURE EXPOSE (GlobalVars)
+         PARSE ARG Object
+         IF Object = '' THEN
+            RETURN( 0)
+         rcx = SysSetObjectData( Object, '')
+         RETURN( rcx)
+
+      /* make variable available to procedures,   */
+      /* WarpIN macro space and external programs */
+      SetVar: PROCEDURE EXPOSE (GlobalVars)
+         PARSE ARG Varname, VarValue
+         rc = WirexxPutEnv( Varname, VarValue)
+         EnvVarName = TRANSLATE( 'WI_VAR_'VarName)
+         rcx = VALUE( EnvVarName, VarValue, 'OS2ENVIRONMENT')
+         RETURN('')
+
+    </REXX>
+
+    <REXX NAME="Var">
+      PARSE ARG Varname
+      VarValue = WirexxGetEnv( VarName)
+      IF (0) THEN
+      DO
+         SAY '--------------------'
+         SAY VarName
+         SAY VarValue
+      END
+      RETURN( WirexxGetEnv( VarName))
+    </REXX>
+
+     <!-- PCK comments, moved outside were comments are allowed:
+     -  This was moved from the PCK attributes:
+        REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
+     -  Custom Icons is actually the only package that requires a newer WarpIN
+        version.
+     -  Maybe use the LONGFILENAMES attribute?
+     -  Some objects are created with the REPLACE option, because their target
+        dir has changed.
+     -->
 <PCK INDEX=1
      PACKAGEID="Netlabs\Netlabs EPM Distribution\Base Application Support\%ID_VERSION_NEPMD%"
      TARGET="$(WARPIN_DEFAULTAPPSPATH)\NEPMD"
@@ -71,9 +143,9 @@
 
      CREATEOBJECT="WPFolder|%TITLE_NEPMD_HELP_FOLDER%|<NEPMD_FOLDER>|ICONVIEWPOS=32 51 65 34;CCVIEW=NO;OBJECTID=<NEPMD_HELP_FOLDER>;"
 
-     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_NEUSR%|<NEPMD_HELP_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEUSR%NLS%.INF Netlabs;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=102;OBJECTID=<NEPMD_VIEW_NEUSR>;"
-     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_EPMUSERS%|<NEPMD_HELP_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\EPMBBS\BOOK\EPMUSERS.INF;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=106;OBJECTID=<NEPMD_VIEW_EPMUSERS>;"
-     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_EPMHELP%|<NEPMD_HELP_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=EPM.HLP+ETKUCMS.HLP+REFLOW.HLP+TREE.HLP;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=106;OBJECTID=<NEPMD_VIEW_EPMHELP>;"
+     CREATEOBJECT="REPLACE WPProgram|%TITLE_NEPMD_VIEW_NEUSR%|<NEPMD_HELP_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEUSR%NLS%.INF Netlabs;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=102;OBJECTID=<NEPMD_VIEW_NEUSR>;"
+     CREATEOBJECT="REPLACE WPProgram|%TITLE_NEPMD_VIEW_EPMUSERS%|<NEPMD_HELP_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\EPMBBS\BOOK\EPMUSERS.INF;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=106;OBJECTID=<NEPMD_VIEW_EPMUSERS>;"
+     CREATEOBJECT="REPLACE WPProgram|%TITLE_NEPMD_VIEW_EPMHELP%|<NEPMD_HELP_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=EPM.HLP+ETKUCMS.HLP+REFLOW.HLP+TREE.HLP;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=106;OBJECTID=<NEPMD_VIEW_EPMHELP>;"
 
      CREATEOBJECT="WPFolder|%TITLE_NEPMD_MORE_OBJECTS%|<NEPMD_FOLDER>|ICONVIEW=FLOWED,VISIBLE,NORMAL;ICONVIEWPOS=42 51 40 40;CCVIEW=NO;OBJECTID=<NEPMD_MORE_OBJECTS_FOLDER>;"
 
@@ -85,9 +157,8 @@
 
      CREATEOBJECT="WPProgram|%TITLE_STANDARD_EPM%|<NEPMD_MORE_OBJECTS_FOLDER>|PROGTYPE=PM;EXENAME=?:\OS2\APPS\EPM.EXE;PARAMETERS=/m;STARTUPDIR=?:\OS2\APPS;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=101;OBJECTID=<NEPMD_STANDARD_EPM>;"
 
-     CREATEOBJECT="WPShadow|.|<WP_PROMPTS>|SHADOWID=<NEPMD_EPM_SHELL>;OBJECTID=<NEPMD_EPM_SHELL_SHADOW>;"
-     CREATEOBJECT="WPShadow|.|<XWP_OS2WIN>|SHADOWID=<NEPMD_EPM_SHELL>;OBJECTID=<NEPMD_EPM_SHELL_SHADOW>;"
-
+     =("Var ShellShadowInPrompts")
+     =("Var ShellShadowInXwpPrompts")
 
      ><TINCLUDE name="..\nls\wis\desc1%NLS%.xml"/></PCK>
 
@@ -95,6 +166,7 @@
      PACKAGEID="Netlabs\Netlabs EPM Distribution\Custom Icons\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
+     REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
      SELECT
      EXECUTE="$(1)\netlabs\install\nlsetup.exe NEPMD APPLYICO"
      TITLE="%PCK_2_TITLE%"
@@ -110,8 +182,8 @@
 
      CLEARPROFILE="USER\recomp\CONFIGDATA"
 
-     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_NEPRG%|<NEPMD_HELP_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPRG%NLS%.INF Netlabs;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=103;OBJECTID=<NEPMD_VIEW_NEPRG>;"
-     CREATEOBJECT="WPProgram|%TITLE_NEPMD_VIEW_EPMTECH%|<NEPMD_HELP_FOLDER>|;PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\EPMBBS\BOOK\EPMTECH.INF;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=107;OBJECTID=<NEPMD_VIEW_EPMTECH>;"
+     CREATEOBJECT="REPLACE WPProgram|%TITLE_NEPMD_VIEW_NEPRG%|<NEPMD_HELP_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPRG%NLS%.INF Netlabs;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=103;OBJECTID=<NEPMD_VIEW_NEPRG>;"
+     CREATEOBJECT="REPLACE WPProgram|%TITLE_NEPMD_VIEW_EPMTECH%|<NEPMD_HELP_FOLDER>|;PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\EPMBBS\BOOK\EPMTECH.INF;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=107;OBJECTID=<NEPMD_VIEW_EPMTECH>;"
      ><TINCLUDE name="..\nls\wis\desc3%NLS%.xml"/></PCK>
 
 <PCK INDEX=4
