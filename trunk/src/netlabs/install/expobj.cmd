@@ -11,7 +11,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: expobj.cmd,v 1.3 2008-10-07 01:38:04 aschn Exp $
+* $Id: expobj.cmd,v 1.4 2009-10-19 02:15:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -26,7 +26,8 @@
 *
 ****************************************************************************/
 
-'@ECHO OFF'
+IF ADDRESS() <> 'EPM' THEN
+   '@ECHO OFF'
 
 /* ----------------- Standard CMD initialization follows ----------------- */
 SIGNAL ON HALT NAME Halt
