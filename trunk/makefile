@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.29 2008-11-13 14:18:25 cla Exp $
+# $Id: makefile,v 1.30 2009-10-21 00:29:58 aschn Exp $
 #
 # ===========================================================================
 #
@@ -38,7 +38,10 @@ BASEDIR=.
 #      - keep module wis last in order to have all required
 #        files available!
 
-GUIMODULELIST=gui\common gui\recomp gui\epmcall gui\nepmdlib
+#GUIMODULELIST=gui\common gui\recomp gui\epmcall gui\nepmdlib
+# Recomp is not included anymore, because the RecompileNew macro compiles
+# more than just EPM.E
+GUIMODULELIST=gui\common gui\epmcall gui\nepmdlib
 MODULELIST=ipf rexx netlabs nls $(GUIMODULELIST) wis
 
 # --- Default targets
@@ -85,7 +88,7 @@ ALL:
 
 INSTALL: ALL
   @$(MAKE) $(ARG) MODULE=wis ARG=INST
-  
+
 
 GUI:
   @for %%a in ($(GUIMODULELIST)) do @$(MAKE) $(ARG) MODULE=%%a ARG=ALL || exit
