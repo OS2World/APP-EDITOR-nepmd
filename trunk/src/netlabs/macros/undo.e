@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: undo.e,v 1.8 2008-09-14 15:32:44 aschn Exp $
+* $Id: undo.e,v 1.9 2009-10-26 23:03:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -149,7 +149,7 @@ to stop recording changes on keystrokes, and it's not clear how you'd
 figure out when to turn it back on.
                                          by:  Larry Margolis  */
 
-defc Undo1 =
+defc Undo1
    universal current_undo_state
    universal undo1_key
    universal redo1_key
@@ -161,23 +161,23 @@ defc Undo1 =
          presentstate = presentstate - 1
          undoaction 7, presentstate
          current_undo_state = presentstate oldeststate neweststate
+         'SayHint Now at state' presentstate 'of' neweststate
       else
          --call beep(800, 500)
+         'SayHint Already at state' presentstate 'of' neweststate
       endif
-      'SayHint Now at state' presentstate 'of' neweststate
-      return
+   else
+      -- Need to get new state information
+      undoaction 1, starting_state  -- Do to fix range and for value.
+      undoaction 6, StateRange               -- query range
+      parse value staterange with oldeststate neweststate
+      presentstate = neweststate - 1
+      undoaction 7, presentstate
+      current_undo_state = presentstate oldeststate neweststate
+      'SayHint Initialized at state' presentstate 'of' neweststate
    endif
-   -- Need to get new state information
-   undoaction 1, starting_state  -- Do to fix range and for value.
-   undoaction 6, StateRange               -- query range
-   parse value staterange with oldeststate neweststate
-   presentstate = neweststate - 1
-   undoaction 7, presentstate
-   current_undo_state = presentstate oldeststate neweststate
-   'SayHint Initialized at state' presentstate 'of' neweststate
-   return
 
-defc Redo1 =
+defc Redo1
    universal current_undo_state
    universal undo1_key
    universal redo1_key
@@ -190,10 +190,17 @@ defc Redo1 =
          undoaction 7, presentstate
          current_undo_state = presentstate oldeststate neweststate
          'SayHint Now at state' presentstate 'of' neweststate
-         return
+      else
+         'SayHint Already at state' presentstate 'of' neweststate
       endif
-      'SayHint Already at state' presentstate 'of' neweststate
+   else
+      --call beep(800, 500)
+      -- Need to get new state information
+      undoaction 1, starting_state  -- Do to fix range and for value.
+      undoaction 6, StateRange               -- query range
+      parse value staterange with oldeststate neweststate
+      presentstate = neweststate
+      current_undo_state = presentstate oldeststate neweststate
+      'SayHint Initialized at state' presentstate 'of' neweststate
    endif
-   --call beep(800, 500)
-   return
 
