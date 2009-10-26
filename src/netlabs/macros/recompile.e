@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.16 2009-06-23 01:16:30 aschn Exp $
+* $Id: recompile.e,v 1.17 2009-10-26 22:58:36 aschn Exp $
 *
 * ===========================================================================
 *
@@ -562,7 +562,8 @@ defc RecompileNew
       WriteLog( LogFile, 'Checking old (existing) user .EX files and included .E files...')
    endif
    fRestartEpm  = 0
-   fFoundMd5    = '?'
+   fFoundMd5Exe = '?'
+   Md5Exe       = ''
    cWarning     = 0
    cRecompile   = 0
    cDelete      = 0
@@ -637,22 +638,23 @@ defc RecompileNew
                   endif
 
                   if fCompCurExFile = 1 then
-                     if fFoundMd5 = '?' then
+                     if fFoundMd5Exe = '?' then
                         -- Search for MD5.EXE only once to give an error message
                         findfile next, 'md5.exe', 'PATH'
                         if rc then
                            findfile next, 'md5sum.exe', 'PATH'
                         endif
                         if rc then
-                           fFoundMd5 = 0
+                           fFoundMd5Exe = 0
                            WriteLog( LogFile, 'ERROR:   MD5.EXE or MD5SUM.EXE not found in PATH')
                         else
-                           fFoundMd5 = 1
+                           fFoundMd5Exe = 1
+                           Md5Exe = next
                         endif
                      endif
-                     if fFoundMd5 = 1 then
+                     if fFoundMd5Exe = 1 then
                         WriteLog( LogFile, '         'BaseName' - comparing current .EX file "'CurExFile'" with Netlabs .EX file')
-                        comprc = Md5Comp( CurExFile, NetlabsExFile)
+                        comprc = Md5Comp( CurExFile, NetlabsExFile, Md5Exe)
                         delrc = ''
                         if comprc = 0 then
                            WriteLog( LogFile, '         'BaseName' - current .EX file "'CurExFile'" equal to Netlabs .EX file')
@@ -676,7 +678,7 @@ defc RecompileNew
                               cWarning = cWarning + 1
                            endif
                         endif
-                     endif  -- fFoundMd5 = 1
+                     endif  -- fFoundMd5Exe = 1
                   endif  -- fCompCurExFile = 1
 
                endif  -- rc = ''
@@ -825,25 +827,26 @@ defc RecompileNew
       endif
 
       if fCompExFile = 1 then
-         if fFoundMd5 = '?' then
+         if fFoundMd5Exe = '?' then
             -- Search for MD5.EXE only once to give an error message
             findfile next, 'md5.exe', 'PATH'
             if rc then
                findfile next, 'md5sum.exe', 'PATH'
             endif
             if rc then
-               fFoundMd5 = 0
+               fFoundMd5Exe = 0
                WriteLog( LogFile, 'ERROR:   MD5.EXE or MD5SUM.EXE not found in PATH')
             else
-               fFoundMd5 = 1
+               fFoundMd5Exe = 1
+               Md5Exe = next
             endif
          endif
-         if fFoundMd5 = 1 then
-            next = Md5Comp( ExFile, CurExFile)
+         if fFoundMd5Exe = 1 then
+            next = Md5Comp( ExFile, CurExFile, Md5Exe)
             if next = 1 then
                fReplaceExFile = 1
                if NetlabsExFileTime > '' then
-                  next2 = Md5Comp( ExFile, NetlabsExFile)
+                  next2 = Md5Comp( ExFile, NetlabsExFile, Md5Exe)
                   if next2 = 0 then
                      if upcase( CurExFile) <> upcase( NetlabsExFile) then
                         if not fCheckOnly then
@@ -1254,6 +1257,7 @@ defproc GetExFileDestDir( ExFile)
 ;  1 if different
 ; -1 on error
 defproc Md5Comp( File1, File2)
+   Md5Exe = arg( 3)
    ret = -1
    lp = lastpos( '.', File1)
    if lp > 1 then
@@ -1270,14 +1274,16 @@ defproc Md5Comp( File1, File2)
    Md5Log1 = FullBaseName1'.md5'
    --Md5Log2 = FullBaseName2'.md5'
    Md5Log2 = FullBaseName1'.mdo'
-   findfile next, 'md5.exe', 'PATH'
-   if rc then
-      findfile next, 'md5sum.exe', 'PATH'
-   endif
-   if rc then
-      sayerror 'ERROR: MD5.EXE or MD5SUM.EXE not found in PATH'
-   else
-      Md5Exe = next
+   if Md5Exe = '' then
+      findfile next, 'md5.exe', 'PATH'
+      if rc then
+         findfile next, 'md5sum.exe', 'PATH'
+      endif
+      if rc then
+         sayerror 'ERROR: MD5.EXE or MD5SUM.EXE not found in PATH'
+      else
+         Md5Exe = next
+      endif
    endif
    quietshell Md5Exe File1 '1>'Md5Log1
    if not rc then
