@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.42 2009-06-23 01:58:15 aschn Exp $
+* $Id: stdkeys.e,v 1.43 2009-10-26 23:24:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -72,8 +72,8 @@ def home          'BeginLineOrText'     -- Go to begin of line or text (Shift ma
 def end           'EndLine'             -- Go to end of line (Shift marks)
 def pgup          'PageUp'              -- Go to previous page (Shift marks)
 def pgdn          'PageDown'            -- Go to next page (Shift marks)
-;def c_pgup       'BeginScreen'         -- Go to first line on screen
-;def c_pgdn       'EndScreen'           -- Go to last line on screen
+def c_pgup        'BeginScreen'         -- Go to first line on screen
+def c_pgdn        'EndScreen'           -- Go to last line on screen
 def c_down        'PushPos'             -- Add current cursor pos. to cursor stack
 def c_up          'PopPos'              -- Go to last pos. of cursor stack
 def c_equal       'SwapPos'             -- Exchange current cursor pos. with last pos. of stack
@@ -264,8 +264,10 @@ def f9            'UndoLine'            -- Undo current line
 def a_backspace   'UndoLine'            -- Undo current line
 ; For standard Ctrl+PgUp and Ctrl+PgDn behavior, disable the following
 ; two lines and enable them in the Cursor section:
-def c_pgup        'Undo1'               -- Scroll through previous undo states (keep Ctrl pressed to scroll)
-def c_pgdn        'Redo1'               -- Scroll through next undo states (keep Ctrl pressed to scroll)
+;def c_pgup       'Undo1'               -- Scroll through previous undo states (keep Ctrl pressed to scroll)
+;def c_pgdn       'Redo1'               -- Scroll through next undo states (keep Ctrl pressed to scroll)
+def s_f11         'Undo1'               -- Scroll through previous undo states (keep Ctrl pressed to scroll)
+def s_f12         'Redo1'               -- Scroll through next undo states (keep Ctrl pressed to scroll)
 
 ; ---- Space ----
 ; ExpandFirst <alternate_cmd>
