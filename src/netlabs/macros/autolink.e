@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: autolink.e,v 1.10 2009-06-23 01:15:27 aschn Exp $
+* $Id: autolink.e,v 1.11 2009-10-26 23:10:20 aschn Exp $
 *
 * ===========================================================================
 *
