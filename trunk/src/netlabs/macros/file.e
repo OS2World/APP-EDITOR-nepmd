@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: file.e,v 1.40 2009-06-23 01:27:31 aschn Exp $
+* $Id: file.e,v 1.41 2009-10-26 22:54:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -198,7 +198,7 @@ defproc SaveProcessNetlabsFile( var Name, var SpecifiedName, var fNameChanged)
       Title = 'Save: change to user tree'
       Text = Name\n\n                                              ||
              'You''re about to overwrite a file of the NETLABS or' ||
-             ' EPMBBS tree. Besser use the user tree for your own' ||
+             ' EPMBBS tree. Better use the user tree for your own' ||
              ' files.'\n\n                                         ||
              'Do you want to save it to the user tree?'
       rcx = winmessagebox( Title, Text,
