@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.28 2009-02-16 21:56:45 aschn Exp $
+* $Id: keys.e,v 1.29 2009-10-26 23:07:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -114,7 +114,13 @@ defc ProcessOtherKeys
    pk = lastkey(1)  -- previous key
    k  = lastkey()   -- current key
    call process_key(k)
-   if k <> pk then
+   -- Don't create new undo states for repeated keys or modifier keys
+   if k = pk then
+   elseif k = \10\18 then  -- Ctrl
+   elseif k = \09\10 then  -- Shift
+   elseif k = \11\34 then  -- Alt
+   elseif k = \12\02 then  -- Alt Gr
+   else
       call EnableUndoRec()
    endif
 
