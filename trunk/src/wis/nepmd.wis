@@ -18,7 +18,7 @@
 #
 # Copyright (c) Netlabs EPM Distribution Project 2002
 #
-# $Id: nepmd.wis,v 1.68 2009-10-18 23:15:15 aschn Exp $
+# $Id: nepmd.wis,v 1.69 2009-11-02 01:21:19 aschn Exp $
 #
 # ===========================================================================
 #
@@ -63,7 +63,7 @@
             ShellShadowInPrompts = ,
                'CREATEOBJECT="WPShadow|.|<WP_PROMPTS>|' ||,
                'SHADOWID=<NEPMD_EPM_SHELL>;OBJECTID=<NEPMD_EPM_SHELL_SHADOW>;"'
-         IF ObjectExists( '<WP_PROMPTS>') THEN
+         IF ObjectExists( '<XWP_CFG1>') THEN
             ShellShadowInXwpPrompts = ,
                'CREATEOBJECT="WPShadow|.|<XWP_CFG1>|' ||,
                'SHADOWID=<NEPMD_EPM_SHELL>;OBJECTID=<NEPMD_EPM_SHELL_SHADOW_2>;"'
