@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: nepmd.lst,v 1.19 2009-10-18 23:09:18 aschn Exp $
+: $Id: nepmd.lst,v 1.20 2009-11-07 12:48:21 aschn Exp $
 :
 : ===========================================================================
 :
@@ -61,7 +61,7 @@ MACROSAMPLES     3 %UNZIPPEDDIR%\epmsmp          epmbbs\*
 EBOOKE           3 %UNZIPPEDDIR%\ebooke          epmbbs\*
 MYASSIST         3 %UNZIPPEDDIR%\epmasi          epmbbs\*
 VMEXEC           3 %UNZIPPEDDIR%\lampdq          epmbbs\*
-NEPMD_RECOMP     3 %BINDIR%\recomp               netlabs\bin\*
+: NEPMD_RECOMP     3 %BINDIR%\recomp               netlabs\bin\*
 NEPMD_MACROS     3 %CMPDIR%\base                 netlabs\macros\*
 
 : --- package 4: Programming Samples
