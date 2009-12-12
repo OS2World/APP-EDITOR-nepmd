@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.71 2009-08-24 22:22:03 aschn Exp $
+* $Id: newmenu.e,v 1.72 2009-12-12 21:12:33 aschn Exp $
 *
 * ===========================================================================
 *
@@ -289,14 +289,17 @@ defc CheckGfc
    endif
 
 ; ---------------------------------------------------------------------------
+; 1. SET RUNWORKPLACE=X:\OS2\PMSHELL.EXE
+;       WORKPLACE__PROCESS=NO
+;       WORKPLACE_PROCESS=
+; 2. SET RUNWORKPLACE=X:\OS2\CMD.EXE or
+;    SET RUNWORKPLACE=X:\OS2\EPM.EXE /m
+;       WORKPLACE__PROCESS=
+;       WORKPLACE_PROCESS=YES
+; => WORKPLACE__PROCESS=NO is set when the WPS is running.
 defc CheckWps
    universal wpsstarted
-   fIsWps = (Get_Env( 'WORKPLACE_PROCESS') = 'YES')
-   if fIsWps then
-      wpsstarted = 1
-   else
-      wpsstarted = (Get_Env( 'WORKPLACE__PROCESS') = 'NO')
-   endif
+   wpsstarted = (Get_Env( 'WORKPLACE__PROCESS') = 'NO')
 
 ; ---------------------------------------------------------------------------
 ; Called by defc Link, if defined.
