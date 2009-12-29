@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.72 2009-12-12 21:12:33 aschn Exp $
+* $Id: newmenu.e,v 1.73 2009-12-29 23:00:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -771,7 +771,7 @@ defproc add_file_menu(menuname)
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Close file'\9'F3',                                            -- Close file
                                    'Quit' ||
-                                   'Close this file',
+                                   \1'Close this file',
                                    MIS_TEXT, mpfrom2short(HP_FILE_QUIT, 0)
    return
 
