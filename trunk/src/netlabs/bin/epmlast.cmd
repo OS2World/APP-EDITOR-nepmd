@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2005
 *
-* $Id: epmlast.cmd,v 1.1 2005-11-23 22:31:04 aschn Exp $
+* $Id: epmlast.cmd,v 1.2 2010-01-24 23:38:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -66,7 +66,10 @@ if EpmArgs = '' then
 if args > '' then
    call SysSleep Delay
 
-'start' EpmExe EpmArgs
+
+/* Use /i to inherit from system environment instead of from */
+/* the previous EPM. This makes EPM reload its environment.  */
+'start /i' EpmExe EpmArgs
 
 exit
 
