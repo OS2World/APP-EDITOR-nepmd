@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.17 2009-10-26 22:58:36 aschn Exp $
+* $Id: recompile.e,v 1.18 2011-04-25 15:56:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1389,7 +1389,7 @@ defc RecompileNewMsgBox
       Text = Text || ' no name clash.) Then Recompile your macros. This can be'
       Text = Text || ' done easily with NEPMD''s RecompileNew command.'\n\n
       Text = Text || 'Do you want to load the log file now?'
-      Style = MB_YESNO+MB_WARNING+MB_DEFBUTTON1+MB_MOVEABLE
+      Style = MB_OKCANCEL + MB_WARNING + MB_DEFBUTTON1 + MB_MOVEABLE
    else
       Text = Text || 'No warning(s) occurred during comparison of 'upcase(UserDirName)' files'
       Text = Text || ' with NETLABS files.'\n\n
@@ -1397,14 +1397,14 @@ defc RecompileNewMsgBox
       Text = Text || ' then they are newer than the files in the NETLABS tree.'
       Text = Text || ' Apparently no old MYEPM files are used.'\n\n
       Text = Text || 'Do you want to load the log file now?'
-      Style = MB_YESNO+MB_INFORMATION+MB_DEFBUTTON1+MB_MOVEABLE
+      Style = MB_OKCANCEL + MB_INFORMATION + MB_DEFBUTTON1 + MB_MOVEABLE
    endif
 
    Title = 'Checked .E and .EX files from 'upcase(UserDirName)' tree'
-   ret = winmessagebox( Title,
+   rcx = winmessagebox( Title,
                         Text,
                         Style)
-   if ret = 6 then  -- Yes
+   if rcx = MBID_OK then
       -- check if old LogFile already in ring
       getfileid logfid, LogFile
       if logfid <> '' then
@@ -1421,7 +1421,6 @@ defc RecompileNewMsgBox
          endif
       endif
       'e 'LogFile
-   elseif ret = 7 then  -- No
    endif
 
 ; ---------------------------------------------------------------------------
