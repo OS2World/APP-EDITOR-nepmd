@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.34 2009-03-01 21:43:12 aschn Exp $
+* $Id: locate.e,v 1.35 2011-04-25 15:55:00 aschn Exp $
 *
 * ===========================================================================
 *
@@ -109,7 +109,6 @@ defc l, locate
    universal search_len
    universal lastsearchargs
    universal lastchangeargs
-   universal lastsearchfid
    universal lastsearchpos
    universal nepmd_hini
 
@@ -119,7 +118,7 @@ defc l, locate
                                         -- if it has to be rewritten to ini.
    parse arg args
    args = strip( args, 'L')
-   if args = '' then  -- If no args, query lastsearchargs
+   if args = '' then  -- If no args, query args
       fFindNext = 1  -- then it must be a FindNext
       args = lastsearchargs
       -- Process the parsing of args again to recognize a possible change of
@@ -245,7 +244,8 @@ defc l, locate
    getfileid fid
    -- Remove 'T' and 'B' temporarily if this is a FindNext in the same file
    -- as for the last find and if only next string should be found
-   if fid = lastsearchfid then
+   parse value (lastsearchpos) with SearchLine SearchCol SearchLen SearchFid SearchMode
+   if fid = SearchFid then
       if (fFindNext = 1) then
 
          -- Remove 'T' and 'B'
@@ -261,13 +261,13 @@ defc l, locate
          -- Build new SearchArgs
          SearchArgs = delim''search_string''delim''search_options
 
-         if lastsearchpos = .line' '.col then
+         if SearchLine SearchCol = .line .col then
             if PreviousSearchArgs = lastsearchargs then
                -- Move cursor to not find the just changed string again
                Foreward = lastpos( 'F', search_options) > lastpos( 'R', search_options)
                Downward = lastpos( '+', search_options) > lastpos( '-', search_options)
                if Foreward then
-                  next = .col + length(search_string)
+                  next = .col + SearchLen
                   if next > length( textline(.line)) then
                      if Downward & .line < .last then
                         down
@@ -279,7 +279,7 @@ defc l, locate
                      .col = next
                   endif
                else
-                  next = .col - length(search_string)
+                  next = .col - SearchLen
                   if next < 0 then
                      if Downward & .line < .last then
                         down
@@ -299,6 +299,7 @@ defc l, locate
    -- Set universal var for hilite.
    -- It will be recalled internally by getpminfo(EPMINFO_LSLENGTH).
    search_len = length(search_string)
+   prevpos = .line .col
 
    display -8  -- suppress writing to MsgBox
    'xcom l 'SearchArgs
@@ -306,9 +307,8 @@ defc l, locate
    display 8
 
    if rc = 0 then  -- if found
-      -- save last searched file
-      lastsearchfid = fid
-      lastsearchpos = .line' '.col
+      -- Save last searched pos, file and search mode
+      lastsearchpos = .line .col length( search_string) fid 'l'
       call highlight_match()
    endif
 
@@ -320,10 +320,7 @@ defc c, change
    universal default_search_options
    universal search_len
    universal lastchangeargs
-   universal lastchangefid
-   universal lastchangepos
    universal lastsearchargs
-   universal lastsearchfid
    universal lastsearchpos
    universal nepmd_hini
    universal stay  -- if 1, then restore pos even after a successful change
@@ -473,7 +470,8 @@ defc c, change
    getfileid fid
    -- Remove 'T' and 'B' temporarily if this is a ChangeNext in the same file
    -- as for the last change and if only next found string should be changed
-   if fid = lastchangefid | fid = lastsearchfid then
+   parse value (lastsearchpos) with SearchLine SearchCol SearchLen SearchFid SearchMode
+   if fid = SearchFid then
       if (fChangeNext = 1 & not pos( '*', search_options)) |
          (lastsearchargs = previoussearchargs) then
 
@@ -489,45 +487,12 @@ defc c, change
 
          -- Build new ChangeArgs
          ChangeArgs = delim''search_string''delim''replace_string''delim''search_options
-
-         if lastchangepos = .line' '.col then
-            if PreviousChangeArgs = lastchangeargs | lastchangepos = lastsearchpos then
-               -- Move cursor to not find the just changed string again
-               Foreward = lastpos( 'F', search_options) > lastpos( 'R', search_options)
-               Downward = lastpos( '+', search_options) > lastpos( '-', search_options)
-               if Foreward then
-                  next = .col + length(replace_string)
-                  if next > length( textline(.line)) then
-                     if Downward & .line < .last then
-                        down
-                     elseif not Downward & .line > 1 then
-                        up
-                     endif
-                     .col = 1
-                  else
-                     .col = next
-                  endif
-               else
-                  next = .col - length(replace_string)
-                  if next < 0 then
-                     if Downward & .line < .last then
-                        down
-                     elseif not Downward & .line > 1 then
-                        up
-                     endif
-                     .col = length( textline(.line))
-                  else
-                     .col = next
-                 endif
-               endif
-            endif
-         endif
       endif
    endif
 
    -- Set universal var for hilite, maybe for findnext.
    -- It will be recalled internally by getpminfo(EPMINFO_LSLENGTH).
-   search_len = length(replace_string)
+   search_len = length( replace_string)
 
 ;     /* Put this lines back in if you want the M choice to force */
 ;     /* the cursor to the start of the mark.                    */
@@ -543,19 +508,16 @@ defc c, change
    display 8
 
    if rc = 0 then  -- if found
-      -- save last changed file
-      lastchangefid = fid
-      lastchangepos = .line' '.col
-      lastsearchfid = lastchangefid
-      lastsearchpos = lastchangepos
+      -- Save last searched pos, file and search mode
+      lastsearchpos = .line .col length( replace_string) fid 'c'
       --call highlight_match()  -- gives wrong col
       call highlight_match( .line .col search_len)
       -- Restore pos after change command if stay = 1
       if stay then
-         call prestore_pos(savepos)
+         call prestore_pos( savepos)
       endif
    else            -- if not found
-      call prestore_pos(savepos)  -- required for 'B' or 'T'
+      call prestore_pos( savepos)  -- required for 'B' or 'T'
    endif
 
 ; ---------------------------------------------------------------------------
