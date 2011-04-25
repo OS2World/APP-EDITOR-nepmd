@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.23 2009-06-23 00:53:58 aschn Exp $
+* $Id: mouse.e,v 1.24 2011-04-25 16:03:55 aschn Exp $
 *
 * ===========================================================================
 *
@@ -335,7 +335,8 @@ defc MH_gotoposition2
 compile endif
 
 ; ---------------------------------------------------------------------------
-; Moves the cursor to the current mouse location.
+; Moves the cursor to the location with the last mouse click.
+; This doesn't use the current mouse location.
 defc MH_gotoposition
    universal stream_mode
    universal cursoreverywhere
@@ -502,13 +503,13 @@ defc MH_end_mark
       if (.cursorx > 0) & (.cursorx <= .windowwidth) & (.cursory > 0) & (.cursory <= .windowheight) then
          getmark firstline, lastline, firstcol, lastcol, fileid
          if marktype() <> 'LINE' then
-            .col=lastcol
+            .col = lastcol
          endif
          if lastline <> .line then
             if lastline > .line then
-               '+'lastline-.line
+               '+'(lastline - .line)
             else
-               lastline-.line
+               lastline - .line
             endif
          endif
       endif
