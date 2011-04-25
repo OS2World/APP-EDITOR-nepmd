@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: swaptext.e,v 1.3 2005-11-15 17:40:53 aschn Exp $
+* $Id: swaptext.e,v 1.4 2011-04-25 16:07:16 aschn Exp $
 *
 * ===========================================================================
 *
@@ -58,17 +58,17 @@ defc MoveCharLeft
    if not insert_state() then
       -- switch to insert mode
       insert_toggle
-      overwrite = 1
+      foverwrite = 1
    else
-      overwrite = 0
+      foverwrite = 0
    endif
    getline line
    char = substr( line, .col, 1)
    deletechar
-   executekey left
+   left
    keyin char
-   executekey left
-   if overwrite then
+   left
+   if foverwrite then
       insert_toggle
    endif
    .autosave = saved_autosave
@@ -81,17 +81,17 @@ defc MoveCharRight
    if not insert_state() then
       -- switch to insert mode
       insert_toggle
-      overwrite = 1
+      foverwrite = 1
    else
-      overwrite = 0
+      foverwrite = 0
    endif
    getline line
    char = substr( line, .col, 1)
    deletechar
-   executekey right
+   right
    keyin char
-   executekey left
-   if overwrite then
+   left
+   if foverwrite then
       insert_toggle
    endif
    .autosave = saved_autosave
