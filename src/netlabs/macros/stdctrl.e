@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.51 2009-06-23 00:53:58 aschn Exp $
+* $Id: stdctrl.e,v 1.52 2011-04-25 16:05:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1309,6 +1309,18 @@ defc DelAVar
    args = strip( arg(1))
    parse value args with varname varvalue
    call DelAVar( varname, varvalue)
+
+; ---------------------------------------------------------------------------
+; Remove varname from array
+defproc DropAVar( varname)
+   universal EPM_utility_array_ID
+   varname = lowcase( varname)
+   do_array 4, EPM_utility_array_ID, varname  -- delete entry
+   return
+
+defc DropAVar
+   varname = strip( arg(1))
+   call DropAVar( varname)
 
 ; ---------------------------------------------------------------------------
 defproc Insert_Attribute_Pair( attribute, val, fstline, lstline, fstcol, lstcol, fileid)
