@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.21 2009-06-23 01:01:33 aschn Exp $
+* $Id: stdprocs.e,v 1.22 2011-04-25 16:06:21 aschn Exp $
 *
 * ===========================================================================
 *
@@ -541,6 +541,12 @@ defproc pfirst_nonblank
       getline line
       .col = max( 1, verify( line, ' '\t))
    endif
+
+; Move cursor to end of line like end_line, but ignore trailing blanks
+defproc pEnd_Line
+   getline line
+   line = translate( line, ' ', \9)  -- handle tabs correctly
+   .col = length( strip( line, 't')) + 1
 
 ; PLOWERCASE: force to lowercase the marked area
 defproc plowercase
