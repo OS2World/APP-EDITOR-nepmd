@@ -323,11 +323,13 @@ compile endif
       call GetBuffCommon( result, NOTHING_TO_PASTE__MSG, chr(mark))
       call prestore_mark(savemark)                     -- Restore the user's mark
 
+/*
       -- Fix: Move to char after the pasted text, not to the last char of
       -- the pasted text, to behave like other editors
       if .col > 1 then
          .col = .col + 1
       endif
+*/
 
    else
       oldsize = .last
