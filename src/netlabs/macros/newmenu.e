@@ -641,6 +641,25 @@ defproc add_file_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Open at ~cursor'\9''ALT_KEY__MSG'+1',                          -- Open at cursor
+                                   'alt_1' ||
+                                   \1'Load file or URL under cursor',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_importfile', i);
+   buildmenuitem menuname, mid, i, '~Import file...',                                              -- Import file...
+                                   'OpenDlg GET' ||
+                                   GET_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_FILE_GET, 0)
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Reload',                                                      -- Reload
+                                   'Revert' ||
+                                   \1'Reload file from disk, ask if modified',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_fileproperties', i);
    buildmenuitem menuname, mid, i, 'F~ile properties',                                             -- File properties   >
                                    '' ||
@@ -713,47 +732,53 @@ defproc add_file_menu(menuname)
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    endif  -- nodismiss > 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_importfile', i);
-   buildmenuitem menuname, mid, i, '~Import file...',                                              -- Import file...
-                                   'OpenDlg GET' ||
-                                   GET_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_FILE_GET, 0)
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Re~name'\9'F7',                                                -- Rename...
+   buildmenuitem menuname, mid, i, 'Re~name...'\9'F7',                                             -- Rename...
                                    'Rename' ||
                                    RENAME_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_NAME, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Reload',                                                      -- Reload
-                                   'Revert' ||
-                                   \1'Reload file from disk, ask if modified',
+   buildmenuitem menuname, mid, i, 'Copy fi~lename',                                               -- Copy filename
+                                   'CopyFilename2Clip' ||
+                                   \1'Copy current filename to clipboard',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_save', i);
-   buildmenuitem menuname, mid, i, SAVE_MENU__MSG\9'F2',                                           -- Save
+   if GetKeyDef() = '-none-' then
+      KeyString = \9'F2'
+   else
+      KeyString = \9''CTRL_KEY__MSG'+S | F2'
+   endif
+   buildmenuitem menuname, mid, i, SAVE_MENU__MSG''KeyString,                                      -- Save
                                    'Save' ||
                                    SAVE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_SAVE, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, SAVEAS_MENU__MSG\9ALT_KEY__MSG'+F2',                            -- Save as...
+   if GetKeyDef() = '-none-' then
+      KeyString = \9''ALT_KEY__MSG'+F2'
+   else
+      KeyString = \9''CTRL_KEY__MSG'+'ALT_KEY__MSG'+S | 'ALT_KEY__MSG'+F2'
+   endif
+   buildmenuitem menuname, mid, i, SAVEAS_MENU__MSG''KeyString,                                    -- Save as...
                                    'Saveas_Dlg' ||
                                    SAVEAS_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_SAVEAS, 0)
    i = i + 1; call SetAVar( 'mid_saveandquit', i);
    buildmenuitem menuname, mid, i, 'Sa~ve and close file'\9'F4',                                   -- Save and close file
                                    'file' ||
-                                   FILE_MENUP__MSG,
+                                   \1'Save this file, then close it',
                                    MIS_TEXT, mpfrom2short(HP_FILE_FILE, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Save a~ll',                                                    -- Save all
+   if GetKeyDef() = '-none-' then
+      KeyString = ''
+   else
+      KeyString = \9''CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+S'
+   endif
+   buildmenuitem menuname, mid, i, 'Save a~ll'KeyString,                                           -- Save all
                                    'SaveAll' ||
-                                   \1'Save all files of the ring',
+                                   \1'Save all files in the edit ring',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
@@ -769,7 +794,12 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Close file'\9'F3',                                            -- Close file
+   if GetKeyDef() = '-none-' then
+      KeyString = \9'F3'
+   else
+      KeyString = \9''CTRL_KEY__MSG'+F4'
+   endif
+   buildmenuitem menuname, mid, i, '~Close file'KeyString,                                         -- Close file
                                    'Quit' ||
                                    \1'Close this file',
                                    MIS_TEXT, mpfrom2short(HP_FILE_QUIT, 0)
@@ -798,6 +828,40 @@ compile endif
                                    'UndoDlg' ||
                                    UNDO_REDO_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_UNDOREDO, 0)
+
+   i = i + 1; call SetAVar( 'mid_undolast', i);
+   if GetKeyDef() = '-none-' then
+      KeyString = \9''SHIFT_KEY__MSG'+F11'
+      Hint = 'Keep Shift pressed when cycling through undo/redo'
+   else
+      KeyString = \9''CTRL_KEY__MSG'+Z'
+      Hint = 'Keep Ctrl pressed when cycling through undo/redo'
+   endif
+   buildmenuitem menuname, mid, i, 'Undo las~t'KeyString,                                          -- Undo last
+                                   'Undo1' ||
+                                   \1''Hint,
+                                   MIS_TEXT, mpfrom2short(HP_EDIT_UNDOREDO, 0)
+
+   i = i + 1; call SetAVar( 'mid_redonext', i);
+   if GetKeyDef() = '-none-' then
+      KeyString = \9''SHIFT_KEY__MSG'+F12'
+      Hint = 'Keep Shift pressed when cycling through undo/redo'
+   else
+      KeyString = \9''CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+Z | 'CTRL_KEY__MSG'+Y'
+      Hint = 'Keep Ctrl pressed when cycling through undo/redo'
+   endif
+   buildmenuitem menuname, mid, i, '~Redo next'KeyString,                                          -- Redo next
+                                   'Redo1' ||
+                                   \1''Hint,
+                                   MIS_TEXT, mpfrom2short(HP_EDIT_UNDOREDO, 0)
+
+/*
+; add to menuinit_edit,
+; but has to be fixed (undolast is always disabled and redonext always enabled):
+   SetMenuAttribute( GetAVar('mid_undolast'),          MIA_DISABLED, not (presentstate > oldeststate))
+   SetMenuAttribute( GetAVar('mid_redonext'),          MIA_DISABLED, not (presentstate < neweststate))
+*/
+
    i = i + 1; call SetAVar( 'mid_recovermarkdelete', i);
    buildmenuitem menuname, mid, i, RECOVER_MARK_MENU__MSG,                                         -- Recover mark delete
                                    'GetDMBuff' ||
@@ -892,17 +956,19 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'D~elete line'\9CTRL_KEY__MSG'+'BACKSPACE_KEY__MSG,              -- Delete line
+   buildmenuitem menuname, mid, i, 'D~elete line'\9CTRL_KEY__MSG'+'BACKSPACE_KEY__MSG,             -- Delete line
                                    'DeleteLine' ||
                                    \1'Delete current line',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Delete rest of li~ne'\9CTRL_KEY__MSG'+'DELETE_KEY__MSG,         -- Delete rest of line
+   KeyString = \9''CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+'DELETE_KEY__MSG
+   buildmenuitem menuname, mid, i, 'Delete rest of li~ne'KeyString,                                -- Delete rest of line
                                    'DeleteUntilEndLine' ||
                                    \1'Delete from cursor until end of line',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Delete up to ne~xt word'\9CTRL_KEY__MSG'+D',                    -- Delete up to next word
+   KeyString = \9''CTRL_KEY__MSG'+'DELETE_KEY__MSG' | 'CTRL_KEY__MSG'+D'
+   buildmenuitem menuname, mid, i, 'Delete up to ne~xt word'KeyString,                             -- Delete up to next word
                                    'DeleteUntilNextWord' ||
                                    \1'Delete from cursor until begin of next word',
                                    MIS_TEXT, 0
@@ -1007,17 +1073,32 @@ defproc add_mark_menu(menuname)
                                 \1'Menus related to basic mark operations',
                                 0, 0  -- MIS must be 0 for submenu
    i = i + 1; call SetAVar( 'mid_copy', i);
-   buildmenuitem menuname, mid, i, CLIP_COPY_MENU__MSG\9 || CTRL_KEY__MSG'+'INSERT_KEY__MSG ,      -- Copy
+   if GetKeyDef() = '-none-' then
+      KeyString = \9''CTRL_KEY__MSG'+'INSERT_KEY__MSG
+   else
+      KeyString = \9''CTRL_KEY__MSG'+'INSERT_KEY__MSG' | 'CTRL_KEY__MSG'+C'
+   endif
+   buildmenuitem menuname, mid, i, '~Copy'KeyString,                                               -- Copy
                                    'Copy2Clip' ||
                                    CLIP_COPY_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_COPY, 0)
    i = i + 1; call SetAVar( 'mid_cut', i);
-   buildmenuitem menuname, mid, i, CUT_MENU__MSG\9 || SHIFT_KEY__MSG'+'DELETE_KEY__MSG,            -- Cut
+   if GetKeyDef() = '-none-' then
+      KeyString = \9''SHIFT_KEY__MSG'+'DELETE_KEY__MSG
+   else
+      KeyString = \9''SHIFT_KEY__MSG'+'DELETE_KEY__MSG' | 'CTRL_KEY__MSG'+X'
+   endif
+   buildmenuitem menuname, mid, i, 'Cu~t'KeyString,                                                -- Cut
                                    'Cut' ||
                                    CUT_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_CUT, 0)
    i = i + 1; call SetAVar( 'mid_paste', i);
-   buildmenuitem menuname, mid, i, PASTE_C_MENU__MSG/*||PASTE_C_KEY*/,                             -- Paste
+   if GetKeyDef() = '-none-' then
+      KeyString = \9''SHIFT_KEY__MSG'+'INSERT_KEY__MSG
+   else
+      KeyString = \9''SHIFT_KEY__MSG'+'INSERT_KEY__MSG' | 'CTRL_KEY__MSG'+V'
+   endif
+   buildmenuitem menuname, mid, i, '~Paste'KeyString,                                              -- Paste
                                    'Paste C' ||
                                    PASTE_C_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_PASTEC, 0)
@@ -1031,11 +1112,6 @@ defproc add_mark_menu(menuname)
                                    'Paste B' ||
                                    PASTE_B_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_PASTEB, 0)
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Copy file~name to clip',                                       -- Copy filename to clip
-                                   'CopyFilename2Clip' ||
-                                   \1'Copy current filename to clipboard',
-                                   MIS_TEXT, 0
 ;   if not CUA_marking_switch then  -- better add it everytime, to make toggling easier (nodismiss menues work then)
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
@@ -1420,12 +1496,22 @@ endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Mark u~ppercase'\9CTRL_KEY__MSG'+F3',                                -- Mark uppercase
+   if GetKeyDef() = '-none-' then
+      KeyString = \9CTRL_KEY__MSG'+F3'
+   else
+      KeyString = \9CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F3'
+   endif
+   buildmenuitem menuname, mid, i, 'Mark u~ppercase'KeyString,                                           -- Mark uppercase
                                    'UppercaseMark' ||
                                    \1'Change mark to uppercase',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Mark l~owercase'\9CTRL_KEY__MSG'+F4',                                -- Mark lowercase
+   if GetKeyDef() = '-none-' then
+      KeyString = \9CTRL_KEY__MSG'+F4'
+   else
+      KeyString = \9CTRL_KEY__MSG'+F3'
+   endif
+   buildmenuitem menuname, mid, i, 'Mark l~owercase'KeyString,                                           -- Mark lowercase
                                    'LowercaseMark' ||
                                    \1'Change mark to lowercase',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -1477,7 +1563,12 @@ endif
                                    \1'Font and color attributes',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'St~yle dialog...'\9 || CTRL_KEY__MSG'+Y',                            -- Style dialog...
+   if GetKeyDef() = '-none-' then
+      KeyString = \9''CTRL_KEY__MSG'+Y'
+   else
+      KeyString = ''
+   endif
+   buildmenuitem menuname, mid, i, 'St~yle dialog...'KeyString,                                          -- Style dialog...
                                    'fontlist' ||
                                    STYLE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_STYLE, 0)
@@ -1510,7 +1601,12 @@ defproc add_search_menu(menuname)
                                 ''SEARCH_BARP__MSG,
                                 0, mpfrom2short(HP_SEARCH, 0)  -- MIS must be 0 for submenu
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Search dialog...'\9 || CTRL_KEY__MSG'+S',                     -- Search dialog...
+   if GetKeyDef() = '-none-' then
+      KeyString = \9''CTRL_KEY__MSG'+S'
+   else
+      KeyString = \9''CTRL_KEY__MSG'+F'
+   endif
+   buildmenuitem menuname, mid, i, '~Search dialog...'KeyString,                                   -- Search dialog...
                                    'searchdlg' ||
                                    SEARCH_MENUP__MSG' (ignores B and T options)',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_SEARCH, 0)
@@ -1519,7 +1615,12 @@ defproc add_search_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_findnext', i);
-   buildmenuitem menuname, mid, i, FIND_NEXT_MENU__MSG\9 || CTRL_KEY__MSG'+F',                     -- Find next
+   if GetKeyDef() = '-none-' then
+      KeyString = \9''CTRL_KEY__MSG'+F'
+   else
+      KeyString = \9''CTRL_KEY__MSG'+('SHIFT_KEY__MSG'+)G | ('SHIFT_KEY__MSG'+)F3'
+   endif
+   buildmenuitem menuname, mid, i, FIND_NEXT_MENU__MSG''KeyString,                                 -- Find next
                                    'searchdlg F' ||
                                    FIND_NEXT_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_FIND, 0)
@@ -1952,7 +2053,7 @@ defproc add_view_menu(menuname)
                                    \1'Toggle non-destructive wrap at window width',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Soft wra~p to reflow-margins',                                 -- Soft wrap to reflow-margins
+   buildmenuitem menuname, mid, i, 'Soft w~rap to reflow-margins',                                 -- Soft wrap to reflow-margins
                                    'SoftWrap2Reflowmargins' ||
                                    \1'Non-destructive wrap to reflow-margins',
                                    MIS_TEXT, 0
@@ -1978,10 +2079,25 @@ defproc add_view_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_listring', i);
-   buildmenuitem menuname, mid, i, LIST_FILES_MENU__MSG\9 || CTRL_KEY__MSG'+G | 'SHIFT_KEY__MSG'+Esc',  -- List ring...
+   if GetKeyDef() = '-none-' then
+      KeyString = \9''CTRL_KEY__MSG'+G | 'SHIFT_KEY__MSG'+Esc'
+   else
+      KeyString = \9''SHIFT_KEY__MSG'+Esc'
+   endif
+   buildmenuitem menuname, mid, i, LIST_FILES_MENU__MSG''KeyString,                                -- List ring...
                                    'Ring_More' ||
                                    LIST_FILES_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_LIST, 0)
+   i = i + 1; call SetAVar( 'mid_nextfile', i);
+   buildmenuitem menuname, mid, i, 'Ne~xt file'\9'F12',                                            -- Next file
+                                   'NextFile' ||
+                                   \1'Activate the next file in the edit ring',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_prevfile', i);
+   buildmenuitem menuname, mid, i, '~Previous file'\9'F11',                                        -- Previous file
+                                   'PrevFile' ||
+                                   \1'Activate the previous file in the edit ring',
+                                   MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -2027,15 +2143,6 @@ defproc add_view_menu(menuname)
    buildmenuitem menuname, mid, i, '~Switch to next window'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F12',   -- Switch to next window
                                    'next_win' ||
                                    \1'Activate the next EPM window',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Load file'\9 || ALT_KEY__MSG'+1',                             -- Load file
-                                   'alt_1' ||
-                                   \1'Load file under cursor',
                                    MIS_TEXT, 0
    return
 
@@ -2469,6 +2576,26 @@ if not MenuItemsHidden then
                                    \1'Unmark after doing a move mark',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
 
+   i = i + 1; call SetAVar( 'mid_cursorsettings', i);
+   buildmenuitem menuname, mid, i, 'C~ursor',                                                      -- Cursor  >
+                                   'Cursor and scroll settings',
+                                   MIS_TEXT + MIS_SUBMENU, mpfrom2short(HP_OPTIONS_PREFERENCES, 0)
+   i = i + 1; call SetAVar( 'mid_cursoreverywhere', i);
+   buildmenuitem menuname, mid, i, '~Allow cursor everywhere',                                           -- Allow cursor everywhere
+                                   'toggle_cursor_everywhere' ||
+                                   \1'Cursor can be positioned after line end',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_keepcursoronscreen', i);
+   buildmenuitem menuname, mid, i, '~Keep cursor on screen',                                             -- Keep cursor on screen
+                                   'toggle_keep_cursor_on_screen' ||
+                                   \1'Keep cursor visible on scroll bar scrolling',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_scrollafterlocate', i); call SetAVar( 'mtxt_scrollafterlocate', '~Scroll after locate []...');
+   buildmenuitem menuname, mid, i, GetAVar('mtxt_scrollafterloacate'),                                   -- Scroll after locate []...
+                                   'SetScrollAfterLocate' ||
+                                   \1'View found string at a special v-pos.',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+
    i = i + 1; call SetAVar( 'mid_marginsandtabs', i);
    buildmenuitem menuname, mid, i, 'Margins and ~tabs',                                            -- Margins and tabs  >
                                    'Default margins and tabs',
@@ -2476,12 +2603,12 @@ if not MenuItemsHidden then
    i = i + 1; call SetAVar( 'mid_defaultmargins', i); call SetAVar( 'mtxt_defaultmargins', 'Default ~margins []...');
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_defaultmargins'),                                      -- Default margins...
                                    'DefaultMargins' ||
-                                   \1'Change default margins',
+                                   \1'Change default margins (see also MODECNF.E)',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_defaulttabs', i); call SetAVar( 'mtxt_defaulttabs', 'Default ~tabs []...');
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_defaulttabs'),                                         -- Default tabs...
                                    'DefaultTabs' ||
-                                   \1'Change default tabs',
+                                   \1'Change default tabs (see also MODECNF.E)',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_defaulttabkey', i);
    buildmenuitem menuname, mid, i, 'Tab~key: tab key enters tab char',                                   -- Tabkey: Tab key enters tab char
@@ -2506,33 +2633,13 @@ if not MenuItemsHidden then
    i = i + 1; call SetAVar( 'mid_respectreadonly', i);
    buildmenuitem menuname, mid, i, '~Respect read-only',                                                 -- Respect read-only
                                    'toggle_respect_readonly' ||
-                                   \1'Toggle read-only file attribute disables edit mode',
+                                   \1'Read-only file attribute disables edit mode',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_lockonmodify', i);
    buildmenuitem menuname, mid, i, '~Lock on modify',                                                    -- Lock on modify
                                    'toggle_lock_on_modify' ||
-                                   \1'Toggle deny write access if file was modified',
+                                   \1'Deny write access for other applications',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
-
-   i = i + 1; call SetAVar( 'mid_cursorsettings', i);
-   buildmenuitem menuname, mid, i, 'C~ursor',                                                      -- Cursor  >
-                                   'Cursor and scroll settings',
-                                   MIS_TEXT + MIS_SUBMENU, mpfrom2short(HP_OPTIONS_PREFERENCES, 0)
-   i = i + 1; call SetAVar( 'mid_cursoreverywhere', i);
-   buildmenuitem menuname, mid, i, '~Allow cursor everywhere',                                          -- Allow cursor everywhere
-                                   'toggle_cursor_everywhere' ||
-                                   \1'Make cursor keys position the cursor everywhere',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_keepcursoronscreen', i);
-   buildmenuitem menuname, mid, i, '~Keep cursor on screen',                                             -- Keep cursor on screen
-                                   'toggle_keep_cursor_on_screen' ||
-                                   \1'Synchronize cursor''s vertical pos. with screen',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_scrollafterlocate', i); call SetAVar( 'mtxt_scrollafterlocate', '~Scroll after locate []...');
-   buildmenuitem menuname, mid, i, GetAVar('mtxt_scrollafterloacate'),                                   -- Scroll after locate []...
-                                   'SetScrollAfterLocate' ||
-                                   \1'View found string at a special v-pos.',
-                                   MIS_TEXT + MIS_ENDSUBMENU, 0
 
    i = i + 1; call SetAVar( 'mid_autorestore', i);
    buildmenuitem menuname, mid, i, '~Auto-restore',                                                -- Auto-restore  >
@@ -2541,7 +2648,7 @@ if not MenuItemsHidden then
    i = i + 1; call SetAVar( 'mid_restorecursorpos', i);
    buildmenuitem menuname, mid, i, '~Restore cursor position',                                           -- Restore cursor position
                                    'toggle_restore_pos' ||
-                                   \1'Toggle restore of cursor pos. from file''s last save',
+                                   \1'Restore of cursor pos. from file''s last save',
                                    MIS_TEXT, nodismiss
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
@@ -2559,7 +2666,7 @@ if not MenuItemsHidden then
    i = i + 1; call SetAVar( 'mid_autosavelastring', i);
    buildmenuitem menuname, mid, i, 'Auto-~save last ring',                                               -- Auto-save last ring
                                    'Toggle_Save_Ring' ||
-                                   \1'Toggle save of ring on load and quit',
+                                   \1'Save of ring on load and quit',
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_maxfilessavering', i); call SetAVar( 'mtxt_maxfilessavering', 'Max. [] files for save ring...');
    buildmenuitem menuname, mid, i, GetAVar('mtxt_maxfilessavering'),                                     -- Max. [] files for save ring...
@@ -2569,7 +2676,7 @@ if not MenuItemsHidden then
    i = i + 1; call SetAVar( 'mid_autoloadlastring', i);
    buildmenuitem menuname, mid, i, 'Auto-~load last ring',                                               -- Auto-load last ring
                                    'Toggle_Restore_Ring' ||
-                                   \1'Toggle restore of ring if EPM is started without args',
+                                   \1'Restore of ring if EPM is started without args',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
 
    i = i + 1; call SetAVar( 'mid_backup', i);
@@ -3268,12 +3375,14 @@ compile endif
 defc menuinit_edit
    universal DMbuf_handle
    SetMenuAttribute( GetAVar('mid_recovermarkdelete'), MIA_DISABLED, DMbuf_handle)
-   SetMenuAttribute( GetAVar('mid_undoline'),    MIA_DISABLED, isadirtyline())
+   SetMenuAttribute( GetAVar('mid_undoline'),          MIA_DISABLED, isadirtyline())
    undoaction 1, presentstate         -- Do to fix range, not for value.
    undoaction 6, staterange           -- query range
    parse value staterange with oldeststate neweststate .
-   SetMenuAttribute( GetAVar('mid_undo'),        MIA_DISABLED, oldeststate <> neweststate)  -- Set to 1 if different
-   SetMenuAttribute( GetAVar('mid_discardchanges'), MIA_DISABLED, .modify > 0)
+   SetMenuAttribute( GetAVar('mid_undo'),              MIA_DISABLED, not (oldeststate = neweststate))
+;  SetMenuAttribute( GetAVar('mid_undolast'),          MIA_DISABLED, not (presentstate > oldeststate))
+;  SetMenuAttribute( GetAVar('mid_redonext'),          MIA_DISABLED, not (presentstate < neweststate))
+   SetMenuAttribute( GetAVar('mid_discardchanges'),    MIA_DISABLED, .modify > 0)
 
 defc menuinit_spellcheck
    new = GetDictBaseName()
@@ -3424,7 +3533,6 @@ defc menuinit_search
    else
       SetMenuText( GetAVar('mid_findmark'), 'Find ~word')
    endif
-   KeyPath = '\NEPMD\User\SyntaxExpansion'
    on = (GetSearchDirection() = '-')
    SetMenuAttribute( GetAVar('mid_searchbackwards'), MIA_CHECKED, not on)
 
@@ -3456,7 +3564,10 @@ defc menuinit_bookmarks
 defc menuinit_view
    SetMenuAttribute( GetAVar('mid_softwrap'), MIA_CHECKED, GetWrapped() = 0)
    SetMenuAttribute( GetAVar('mid_nextview'), MIA_DISABLED, .currentview_of_file <> .nextview_of_file)
-   SetMenuAttribute( GetAVar('mid_listring'), MIA_DISABLED, (filesinring() > 1))
+   on = (filesinring() > 1)
+   SetMenuAttribute( GetAVar('mid_listring'), MIA_DISABLED, on)
+   SetMenuAttribute( GetAVar('mid_nextfile'), MIA_DISABLED, on)
+   SetMenuAttribute( GetAVar('mid_prevfile'), MIA_DISABLED, on)
 
 defc menuinit_menu
    universal nodismiss
@@ -3632,6 +3743,22 @@ defc menuinit_markingsettings
    SetMenuAttribute( GetAVar('mid_dragalwaysmarks'),    MIA_CHECKED, not (on | cua_marking_switch))
    SetMenuAttribute( GetAVar('mid_dragalwaysmarks'),    MIA_DISABLED, not cua_marking_switch)
 
+defc menuinit_cursorsettings
+   universal nepmd_hini
+
+   KeyPath = '\NEPMD\User\Scroll\CursorEverywhere'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   SetMenuAttribute( GetAVar('mid_cursoreverywhere'),   MIA_CHECKED, not on)
+
+   KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_keepcursoronscreen'), MIA_CHECKED, not on)
+
+   KeyPath = '\NEPMD\User\Scroll\AfterLocate'
+   new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   parse value GetAVar('mtxt_scrollafterlocate') with next'['x']'rest
+   SetMenuText( GetAVar('mid_scrollafterlocate'), next'['new']'rest)
+
 defc menuinit_marginsandtabs
    universal app_hini
    universal appname
@@ -3668,22 +3795,6 @@ defc menuinit_readonlyandlock
    KeyPath = '\NEPMD\User\Lock\OnModify'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_lockonmodify'),    MIA_CHECKED, not on)
-
-defc menuinit_cursorsettings
-   universal nepmd_hini
-
-   KeyPath = '\NEPMD\User\Scroll\CursorEverywhere'
-   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
-   SetMenuAttribute( GetAVar('mid_cursoreverywhere'),   MIA_CHECKED, not on)
-
-   KeyPath = '\NEPMD\User\Scroll\KeepCursorOnScreen'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_keepcursoronscreen'), MIA_CHECKED, not on)
-
-   KeyPath = '\NEPMD\User\Scroll\AfterLocate'
-   new = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   parse value GetAVar('mtxt_scrollafterlocate') with next'['x']'rest
-   SetMenuText( GetAVar('mid_scrollafterlocate'), next'['new']'rest)
 
 defc menuinit_autorestore
    universal nepmd_hini
@@ -5326,7 +5437,11 @@ defproc update_paste_menu_text
       AlternatePaste = 'C'
    endif
 
-   DefaultPasteKey   = SHIFT_KEY__MSG'+'INSERT_KEY__MSG
+   if GetKeyDef() = '-none-' then
+      DefaultPasteKey = SHIFT_KEY__MSG'+'INSERT_KEY__MSG
+   else
+      DefaultPasteKey = SHIFT_KEY__MSG'+'INSERT_KEY__MSG' | 'CTRL_KEY__MSG'+V'
+   endif
    AlternatePasteKey = CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+'INSERT_KEY__MSG
 
    midname  = 'mid_paste'

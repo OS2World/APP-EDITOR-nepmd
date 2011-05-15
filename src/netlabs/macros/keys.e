@@ -113,7 +113,6 @@ compile endif
 defc ProcessOtherKeys
    pk = lastkey(1)  -- previous key
    k  = lastkey()   -- current key
-   call process_key(k)
    -- Don't create new undo states for repeated keys or modifier keys
    if k = pk then
    elseif k = \10\18 then  -- Ctrl
@@ -123,6 +122,7 @@ defc ProcessOtherKeys
    else
       call EnableUndoRec()
    endif
+   call process_key(k)
 
 ; ---------------------------------------------------------------------------
 defselect
@@ -191,7 +191,7 @@ compile endif
 
 /*
    view pm5.inf "Virtual Key Definitions"
-   o f:\dev\toolkt45\h\pmwin.h 'mc ;xcom l /Virtual key values/t ;postme centerline'
+   o g:\dev\toolkt45\h\pmwin.h 'mc ;xcom l /Virtual key values/t ;postme centerline'
 */
 /*
 -- Test
@@ -223,6 +223,14 @@ defc Key_a_tab = 'sayerror a_tab'  -- not definable
 defc Key_a_esc = 'sayerror a_esc'  -- not definable
 defc Key_a_f10 = 'sayerror a_f10'
 */
+
+; ---------------------------------------------------------------------------
+; An accelerator key issues a WM_COMMAND message, that is processed by the
+; ProcessCommand command defined in menu.e.
+; Some other defs where accelerator keys are filtered are:
+; def otherkeys, defproc process_key, defc ProcessOtherKeys
+; queryaccelstring returns the command connected with the specified menu item
+; or accelerator key def.
 
 ; ---------------------------------------------------------------------------
 ; Define accel key for current accel table
@@ -329,7 +337,7 @@ defproc DefineLetterAccels
       Cmd = ''
       if isadefc('Key_a_'name) then
          Cmd = 'Key_a_'name
-      elseif not fOmitAltAccel then  -- if not (cua_meu_accel and found in UsedMenuAccelerators)
+      elseif not fOmitAltAccel then  -- if not (cua_menu_accel and found in UsedMenuAccelerators)
          -- This overrides the standard PM def to open the menu
          Cmd = 'dokey a+'name
       endif
@@ -610,7 +618,7 @@ defproc process_key(k)
 ; Ensure that default entry is present in NEPMD.INI
 definit
    universal nepmd_hini
-   DefaultNameList = lowcase( 'mozkeys')  -- only basenames
+   DefaultNameList = lowcase( 'cuakeys')  -- only basenames
 
    KeyPath = '\NEPMD\User\Keys\AddKeyDefs\List'
    KeyDefs = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -632,6 +640,7 @@ definit
 defc LinkKeyDefs
    universal nepmd_hini
    None = '-none-'
+   fLinked = 0
 
    KeyPath = '\NEPMD\User\Keys\AddKeyDefs\Selected'
    Current = NepmdQueryConfigValue( nepmd_hini, KeyPath)
@@ -640,16 +649,22 @@ defc LinkKeyDefs
       do i = 1 to 1
          -- On success
          if rc >= 0 then
-            leave
+            fLinked = 1
+         else
+            -- Search .E file and maybe recompile it
+            'Relink' Current'.e'
+            if rc >= 0 then
+               fLinked = 1
+            else
+               -- Remove from NEPMD.INI on link error
+               rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath, None)
+               sayerror 'Additional key defs file "'Current'.ex" could not be found.'
+            endif
          endif
-         -- Search .E file and maybe recompile it
-         'Relink' Current'.e'
-         if rc >= 0 then
-            leave
+         if fLinked then
+            'LoadAccel'  -- required for to make the additional accelerator key
+                         -- defc Key_* definitions work, not only def definitions
          endif
-         -- Remove from NEPMD.INI on link error
-         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath, None)
-         sayerror 'Additional key defs file "'Current'.ex" could not be found.'
       enddo
    endif
 
@@ -676,6 +691,7 @@ defproc GetKeyDef
 ; expected. For unlinking a key def file, no restart is required.
 defc SelectKeyDefs
    universal nepmd_hini
+   universal defaultmenu
    None = '-none-'
 
    parse arg Action Basename
@@ -796,7 +812,21 @@ defc SelectKeyDefs
       endif
       if Selected = None then
          Msg = 'No keyset additions file active.'
+compile if 0
          sayerror Msg
+         deletemenu defaultmenu
+         'loaddefaultmenu'
+         call showmenu_activemenu()
+         -- The following reloads accelerator key defs only. ETK key defs
+         -- are not reloaded, because the keyset hasn't changed. It's not
+         -- possible to reload them without EPM restart, because they
+         -- belong to EPM.EX.
+         -- It's time for a consistent keyset definition scheme!
+         deleteaccel 'defaccel'
+         'loadaccel'
+compile else
+         'Restart sayerror' Msg
+compile endif
          -- nop
       else
          -- Check if .E file exists
@@ -813,7 +843,17 @@ defc SelectKeyDefs
          rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, Selected)
          -- Restart
          Msg = 'Keyset additions file 'upcase( Selected)'.EX activated.'
+compile if 0
+         sayerror Msg
+         deletemenu defaultmenu
+         'loaddefaultmenu'
+         call showmenu_activemenu()
+         -- The restart can't be avoided
+         deleteaccel 'defaccel'
+         'loadaccel'
+compile else
          'Restart sayerror' Msg
+compile endif
       endif
    elseif button = 2 then  -- Add
       -- Open fileselector to select an e or ex filename
@@ -886,7 +926,7 @@ defproc process_mark_like_cua()
 
 ; ---------------------------------------------------------------------------
 defproc shifted
-   ks = getkeystate(VK_SHIFT)
+   ks = getkeystate( VK_SHIFT)
    return ks <> 3 & ks <> 4
 
 ; ---------------------------------------------------------------------------
@@ -1921,11 +1961,51 @@ defc EndLine
       unmark
    endif
    end_line
+   --call pEnd_Line()  -- like end_line, but ignore trailing blanks
+
+defc EndLineOrAfter
+   universal cua_marking_switch
+   universal endkeystartpos
+   call EnableUndoRec()
+   if cua_marking_switch then
+      unmark
+   endif
+   parse value( endkeystartpos) with savedline savedcol
+   startline = .line
+   startcol  = .col
+   end_line
+   --call pEnd_Line()  -- like end_line, but ignore trailing blanks
+   if savedline <> startline or startcol > .col then
+      endkeystartpos = startline startcol
+   else
+      if startcol = .col and savedcol > .col then
+         .col = savedcol
+      endif
+   endif
 
 defc MarkEndLine
    call EnableUndoRec()
-   startline = .line; startcol = .col
+   startline = .line
+   startcol  = .col
    end_line
+   --call pEnd_Line()  -- like end_line, but ignore trailing blanks
+   call extend_mark( startline, startcol, 1)
+
+defc MarkEndLineOrAfter
+   universal endkeystartpos
+   call EnableUndoRec()
+   parse value( endkeystartpos) with savedline savedcol
+   startline = .line
+   startcol  = .col
+   end_line
+   --call pEnd_Line()  -- like end_line, but ignore trailing blanks
+   if savedline <> startline or startcol > .col then
+      endkeystartpos = startline startcol
+   else
+      if startcol = .col and savedcol > .col then
+         .col = savedcol
+      endif
+   endif
    call extend_mark( startline, startcol, 1)
 
 defc ProcessEscape

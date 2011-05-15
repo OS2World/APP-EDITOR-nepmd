@@ -137,8 +137,9 @@ def del           'DeleteChar'          -- Delete current char
 def backspace     'BackSpace'           -- Delete previous char (Shift marks)
 def s_backspace   'BackSpace'           -- Delete previous char (Shift marks)
 def c_backspace   'DeleteLine'          -- Delete current line
+def c_del         'DeleteUntilNextWord' -- Delete from cursor until beginning of next word
 def c_d           'DeleteUntilNextWord' -- Delete from cursor until beginning of next word
-def c_del         'DeleteUntilEndLine'  -- Delete from cursor until end of line
+defc Key_c_s_del  'DeleteUntilEndLine'  -- Delete from cursor until end of line
 def c_e           'DeleteUntilEndLine'  -- Delete from cursor until end of line
 
 ; ---- Search ----
