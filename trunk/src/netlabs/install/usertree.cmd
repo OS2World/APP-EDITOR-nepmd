@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: usertree.cmd,v 1.16 2009-01-19 22:35:56 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

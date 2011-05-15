@@ -8,7 +8,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.e,v 1.6 2003-09-01 01:34:51 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

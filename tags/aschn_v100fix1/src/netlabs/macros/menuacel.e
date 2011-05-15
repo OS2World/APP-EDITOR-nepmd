@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: menuacel.e,v 1.4 2002-12-09 20:52:04 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

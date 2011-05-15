@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) netlabs.org EPM Distribution Project 2002
 ..
-.. $Id: neusreng.txt,v 1.20 2008-11-30 22:12:16 aschn Exp $
+.. $Id$
 ..
 .. ===========================================================================
 ..

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ftpsave.e,v 1.1 2004-02-22 21:22:45 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

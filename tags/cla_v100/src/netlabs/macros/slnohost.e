@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: slnohost.e,v 1.3 2002-08-21 11:55:41 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

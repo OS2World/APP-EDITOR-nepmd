@@ -19,7 +19,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: remepm.cmd,v 1.2 2008-10-06 05:12:12 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

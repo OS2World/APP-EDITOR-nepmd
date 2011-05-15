@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: popup.e,v 1.12 2011-04-25 16:03:55 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

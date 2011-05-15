@@ -1,5 +1,5 @@
 /*
-** $Id: cvs2log.cmd,v 1.5 2006-12-18 19:45:13 aschn Exp $
+** $Id$
 **
 ** CVS to ChangeLog generator.
 **

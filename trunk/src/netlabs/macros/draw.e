@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: draw.e,v 1.6 2006/12/10 11:33:44 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

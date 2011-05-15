@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.22 2008-12-07 22:05:40 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

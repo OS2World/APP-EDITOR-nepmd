@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: touchrel.cmd,v 1.8 2009-07-10 21:30:09 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

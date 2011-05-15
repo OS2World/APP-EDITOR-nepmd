@@ -17,7 +17,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recomp.cmd,v 1.2 2002-08-12 09:07:09 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

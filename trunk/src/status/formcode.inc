@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: formcode.inc,v 1.1 2002-09-09 15:35:17 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

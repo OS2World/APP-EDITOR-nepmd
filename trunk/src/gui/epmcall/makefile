@@ -6,7 +6,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.11 2002-08-21 12:15:05 cla Exp $
+# $Id$
 #
 # ===========================================================================
 #

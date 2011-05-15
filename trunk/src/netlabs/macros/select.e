@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: select.e,v 1.24 2008-09-05 23:09:25 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

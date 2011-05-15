@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mkex.cmd,v 1.4 2002-09-19 10:49:01 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

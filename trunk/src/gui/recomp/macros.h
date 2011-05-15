@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: macros.h,v 1.1 2002-06-03 22:27:07 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

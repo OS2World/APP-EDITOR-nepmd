@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dyncfg.cmd,v 1.5 2002-08-16 14:34:55 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

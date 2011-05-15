@@ -17,7 +17,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: _srccopy.cmd,v 1.4 2006-11-08 21:14:40 jbs Exp $
+* $Id$
 *
 * ===========================================================================
 *

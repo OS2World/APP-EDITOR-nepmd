@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: dict.e,v 1.7 2008-10-05 13:17:04 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

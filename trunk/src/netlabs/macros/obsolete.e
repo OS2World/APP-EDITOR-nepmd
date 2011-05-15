@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: obsolete.e,v 1.4 2008-11-30 22:19:26 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

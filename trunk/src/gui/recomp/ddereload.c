@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddereload.c,v 1.8 2006-05-21 19:05:26 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

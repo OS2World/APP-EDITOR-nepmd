@@ -3,7 +3,7 @@ TITLE: Keep directories unlocked
 PRIO: 2
 STATUS: started
 FILES: *
-UPDATED: $Id: misc001,v 1.2 2002-09-18 20:23:47 cla Exp $
+UPDATED: $Id$
 
 Every directory(...) call should be preceeded by a directory('\') to "unlock" the 
 directory when changing drives.                                   

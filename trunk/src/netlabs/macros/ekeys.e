@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ekeys.e,v 1.11 2006/03/04 16:05:43 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

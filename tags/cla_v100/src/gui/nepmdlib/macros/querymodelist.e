@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querymodelist.e,v 1.1 2002-10-14 17:50:02 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: hilite.h,v 1.3 2002-10-20 12:13:04 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

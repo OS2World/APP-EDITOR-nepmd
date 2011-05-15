@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: bookmark.e,v 1.10 2006-10-07 18:16:45 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

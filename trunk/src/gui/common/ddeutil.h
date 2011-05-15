@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddeutil.h,v 1.1 2002-06-03 22:19:57 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

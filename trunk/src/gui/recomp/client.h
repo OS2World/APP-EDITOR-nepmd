@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: client.h,v 1.3 2002-08-14 12:22:27 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

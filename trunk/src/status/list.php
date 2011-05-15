@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: list.php,v 1.9 2002-07-22 10:36:02 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

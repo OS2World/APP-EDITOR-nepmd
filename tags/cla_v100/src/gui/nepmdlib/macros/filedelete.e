@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: filedelete.e,v 1.5 2002-09-19 11:43:50 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

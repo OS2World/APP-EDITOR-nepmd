@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.15 2002-10-03 19:10:27 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

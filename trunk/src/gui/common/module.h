@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: module.h,v 1.1 2002-08-22 15:02:28 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

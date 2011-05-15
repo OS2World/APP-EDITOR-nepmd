@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: ftpload.e,v 1.1 2004-02-22 21:22:44 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

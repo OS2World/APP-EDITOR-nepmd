@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writeconfigvalue.e,v 1.3 2003-08-30 16:01:04 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

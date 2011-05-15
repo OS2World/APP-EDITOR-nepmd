@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: queryinstvalue.e,v 1.9 2005-07-17 15:41:53 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

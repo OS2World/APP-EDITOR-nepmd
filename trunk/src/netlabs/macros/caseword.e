@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: caseword.e,v 1.6 2006-12-10 12:06:32 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

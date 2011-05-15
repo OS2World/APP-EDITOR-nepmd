@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newbar.e,v 1.2 2005-11-02 20:52:23 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

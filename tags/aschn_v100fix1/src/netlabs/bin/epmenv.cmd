@@ -26,7 +26,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.cmd,v 1.2 2002-11-17 17:43:12 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

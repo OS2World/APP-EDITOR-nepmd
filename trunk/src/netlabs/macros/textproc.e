@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: textproc.e,v 1.2 2004-07-01 11:09:12 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

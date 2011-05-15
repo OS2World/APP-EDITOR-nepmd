@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: tabsspaces.e,v 1.2 2006-12-10 12:14:45 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

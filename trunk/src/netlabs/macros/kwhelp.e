@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: kwhelp.e,v 1.39 2008-09-21 23:28:30 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

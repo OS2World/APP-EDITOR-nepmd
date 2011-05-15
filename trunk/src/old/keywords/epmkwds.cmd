@@ -4,7 +4,7 @@
 @
 @ Copyright (c) Netlabs EPM Distribution Project 2002
 @
-@ $Id: epmkwds.cmd,v 1.1 2002-10-03 22:01:51 cla Exp $
+@ $Id$
 @
 @ ===========================================================================
 @

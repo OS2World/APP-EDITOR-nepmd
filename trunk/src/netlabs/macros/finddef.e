@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2006
 *
-* $Id: finddef.e,v 1.5 2008-09-05 22:50:03 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

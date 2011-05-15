@@ -11,7 +11,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: applyico.cmd,v 1.21 2008-11-13 14:18:25 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

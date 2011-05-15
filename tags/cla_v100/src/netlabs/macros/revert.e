@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: revert.e,v 1.1 2002-10-06 23:34:22 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdkeys.e,v 1.43 2009-10-26 23:24:43 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

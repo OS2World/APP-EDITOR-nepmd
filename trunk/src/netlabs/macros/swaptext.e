@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: swaptext.e,v 1.4 2011-04-25 16:07:16 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

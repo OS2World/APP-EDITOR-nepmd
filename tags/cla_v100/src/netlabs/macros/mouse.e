@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mouse.e,v 1.7 2002-10-20 14:18:12 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: closeconfig.e,v 1.3 2003-08-30 16:00:58 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

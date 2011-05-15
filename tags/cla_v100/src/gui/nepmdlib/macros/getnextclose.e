@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextclose.e,v 1.5 2002-09-07 13:19:44 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

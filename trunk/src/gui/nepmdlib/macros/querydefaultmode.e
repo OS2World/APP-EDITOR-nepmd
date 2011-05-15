@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querydefaultmode.e,v 1.5 2003-08-30 16:01:02 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

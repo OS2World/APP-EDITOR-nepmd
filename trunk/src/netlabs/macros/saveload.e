@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: saveload.e,v 1.5 2008-09-14 18:49:35 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

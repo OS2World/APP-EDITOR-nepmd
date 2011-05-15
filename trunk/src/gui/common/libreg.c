@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.c,v 1.18 2006-04-25 18:21:57 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

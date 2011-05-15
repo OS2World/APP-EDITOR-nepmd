@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: italano.e,v 1.2 2006-12-09 18:19:26 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

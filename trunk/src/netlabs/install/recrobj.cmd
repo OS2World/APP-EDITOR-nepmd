@@ -17,7 +17,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: recrobj.cmd,v 1.8 2008-10-07 02:36:50 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

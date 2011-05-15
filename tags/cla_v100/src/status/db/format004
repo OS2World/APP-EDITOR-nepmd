@@ -3,7 +3,7 @@ TITLE: Enhance reflow suppoert (Alt+P)
 PRIO: 2
 STATUS: coding
 FILES: stdprocs.e altp4tex.e 
-UPDATED: $Id: format004,v 1.1 2002-07-17 15:56:15 cla Exp $
+UPDATED: $Id$
 
 Todo:
 - support more languages with reflow support

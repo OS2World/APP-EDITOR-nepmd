@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddereload.c,v 1.6 2002-08-14 12:25:05 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

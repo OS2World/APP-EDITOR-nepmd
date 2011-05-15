@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: errormsgbox.e,v 1.10 2002-09-19 11:43:50 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

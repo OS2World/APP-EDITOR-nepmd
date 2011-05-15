@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.67 2008-09-23 01:56:35 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

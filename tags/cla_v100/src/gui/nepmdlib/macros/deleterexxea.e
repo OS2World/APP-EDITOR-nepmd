@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleterexxea.e,v 1.12 2002-10-03 21:15:04 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

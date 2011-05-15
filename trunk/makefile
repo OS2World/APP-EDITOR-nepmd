@@ -10,7 +10,7 @@
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
-# $Id: makefile,v 1.30 2009-10-21 00:29:58 aschn Exp $
+# $Id$
 #
 # ===========================================================================
 #

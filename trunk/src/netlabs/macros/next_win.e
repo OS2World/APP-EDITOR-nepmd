@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: next_win.e,v 1.1 2004-02-22 21:00:12 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

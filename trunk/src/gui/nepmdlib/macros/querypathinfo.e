@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querypathinfo.e,v 1.13 2006-12-09 17:57:39 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

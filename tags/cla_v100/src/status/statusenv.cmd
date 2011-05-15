@@ -5,7 +5,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: statusenv.cmd,v 1.1 2002-09-09 20:56:37 cla Exp $
+: $Id$
 :
 : ===========================================================================
 :

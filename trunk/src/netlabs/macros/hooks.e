@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: hooks.e,v 1.11 2006-12-10 09:43:53 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

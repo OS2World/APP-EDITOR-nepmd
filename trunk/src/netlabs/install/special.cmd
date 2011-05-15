@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: special.cmd,v 1.8 2008-11-13 10:16:44 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

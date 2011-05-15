@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdlib.c,v 1.56 2002-10-20 21:51:18 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

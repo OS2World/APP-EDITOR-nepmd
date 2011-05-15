@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: saveold.cmd,v 1.1 2002-04-22 16:47:55 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nlsetup.cmd,v 1.5 2002-08-15 13:23:27 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.17 2009/06/23 01:23:06 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

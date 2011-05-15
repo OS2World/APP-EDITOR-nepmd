@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: warpin.env.cmd,v 1.2 2002-05-02 14:35:44 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

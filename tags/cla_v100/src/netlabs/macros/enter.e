@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: enter.e,v 1.3 2002-09-21 19:47:59 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

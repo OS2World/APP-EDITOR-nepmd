@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmcall.c,v 1.17 2002-11-04 15:44:16 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

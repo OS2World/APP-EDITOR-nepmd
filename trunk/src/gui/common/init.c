@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: init.c,v 1.3 2006-08-28 16:52:50 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextfile.e,v 1.17 2006-11-12 13:19:00 jbs Exp $
+* $Id$
 *
 * ===========================================================================
 *

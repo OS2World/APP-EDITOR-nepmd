@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.h,v 1.4 2002-09-20 13:45:57 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

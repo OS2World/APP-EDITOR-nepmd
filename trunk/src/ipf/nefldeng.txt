@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: nefldeng.txt,v 1.5 2006-10-07 20:20:17 aschn Exp $
+.. $Id$
 ..
 .. ===========================================================================
 ..

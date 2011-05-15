@@ -10,7 +10,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: usertree.cmd,v 1.8 2002-11-04 22:48:18 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

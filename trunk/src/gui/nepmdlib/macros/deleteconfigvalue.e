@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: deleteconfigvalue.e,v 1.5 2006-04-25 18:21:57 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

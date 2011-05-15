@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: wordproc.e,v 1.2 2005-08-14 22:07:36 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

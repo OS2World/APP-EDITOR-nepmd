@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: header.e,v 1.2 2002-04-18 16:55:33 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

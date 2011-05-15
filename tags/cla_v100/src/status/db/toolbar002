@@ -3,7 +3,7 @@ TITLE: Change toolbar according to the mode
 PRIO: 3
 STATUS: open
 FILES: 
-UPDATED: $Id: toolbar002,v 1.2 2002-07-19 08:50:43 cla Exp $
+UPDATED: $Id$
 
 General toolbar definitions needed. Define more toolbar items. Generic mechanism 
 is easy to implement.

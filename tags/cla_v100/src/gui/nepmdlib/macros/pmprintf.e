@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pmprintf.e,v 1.1 2002-10-20 21:53:40 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

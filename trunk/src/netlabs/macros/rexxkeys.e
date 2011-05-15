@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.16 2006/10/23 16:38:59 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

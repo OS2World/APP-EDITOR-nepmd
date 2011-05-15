@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdconst.e,v 1.3 2002-09-01 14:35:17 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

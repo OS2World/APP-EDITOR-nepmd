@@ -9,7 +9,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setnls.cmd,v 1.2 2002-06-12 18:14:01 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

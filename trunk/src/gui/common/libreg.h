@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libreg.h,v 1.6 2002-09-19 13:49:05 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

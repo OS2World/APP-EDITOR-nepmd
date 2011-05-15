@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libversion.e,v 1.10 2003-08-30 16:01:01 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

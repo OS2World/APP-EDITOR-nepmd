@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: searchpath.e,v 1.4 2002-09-19 11:43:51 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *
