@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: modeexec.e,v 1.24 2008-09-05 23:01:47 aschn Exp $
+* $Id: modeexec.e,v 1.24 2008/09/05 23:01:47 aschn Exp $
 *
 * ===========================================================================
 *
@@ -67,7 +67,7 @@
 ;         SetSaveOptions    see description of SAVE command
 ;         SetSearchOptions  see description of LOCATE and REPLACE commands
 ;                           (plus undocumented TB options)
-;         SetKeys           <keyset_name>
+;         SetKeyset         <keyset_name> [<list_of_keyset_defs>]
 ;
 ;      Settings for syntax expansion:
 ;         SetExpand         0 | 1
@@ -194,10 +194,10 @@ definit
    saved_rc = rc
    --call NepmdPmPrintf( 'MODEEXEC: definit executed, rc at definit start = 'rc)
    call AddAVar( 'loadsettingslist',
-                        'Highlight Margins Tabs Keys DynaSpell CodingStyle')
+                        'Highlight Margins Tabs DynaSpell CodingStyle')
    call AddAVar( 'selectsettingslist',
-                        'Toolbar Expand Matchtab Tabkey' ||
-                        ' EditOptions SaveOptions SearchOptions' ||
+                        'Toolbar Keyset PreviousKeyset Expand Matchtab' ||
+                        ' Tabkey EditOptions SaveOptions SearchOptions' ||
                         ' StreamMode InsertMode' ||
                         ' TextFont TextColor MarkColor Indent' ||
                         ' HeaderStyle HeaderLength EndCommented' ||
@@ -948,46 +948,6 @@ defc SetTabs  -- defc tabs exist
 
 ; ---------------------------------------------------------------------------
 ; Execute this only at defload.
-; Therefore we don't need to handle dynaspell here.
-; Separately compiled packages can define a 'Set<mode>Keys' command, that
-; will be executed if it exists.
-defc SetKeys
-   universal loadstate
-   arg1 = upcase(arg(1))
-   if upcase(arg(1)) = 'DEFAULT' then
-      --.keyset = 'EDIT_KEYS'  -- This doesn't work if this file is linked
-      'UseKeys EDIT_KEYS'      -- This works, UseKeys is defined in STDCNF.E.
-      arg1 = 'DEFAULT'
-   else
-       --.keyset = arg1  -- This doesn't work if this file is linked
-      'UseKeys' arg1     -- This works, UseKeys is defined in STDCNF.E.
-      -- if rc = -321 then  -- CANNOT_FIND_KEYSET
-   endif
-   -- Bug in EPM's keyset handling:
-   -- .keyset = '<new_keyset>' works only, if <new_keyset> was defined in
-   -- the same .EX file, from where the keyset should be changed.
-   -- Therefore (as a workaround) switch temporarily to the externally
-   -- defined keyset in order to make it known for 'SetKeys':
-   --
-   -- definit  -- required for a separately compiled package
-   --    saved_keys = .keyset
-   --    .keyset = '<new_keyset>'
-   --    .keyset = saved_keys
-   --
-   -- Note: An .EX file, that defines a keyset, can't be unlinked, when this
-   -- keyset is in use.
-
-   -- Save the value in an array var, to determine 'DEFAULT' state later
-   if rc = 0 then
-      getfileid fid
-      call SetAVar( 'keys.'fid, arg1)
-      if loadstate = 0 then
-         'refreshinfoline KEYS'
-      endif
-   endif
-
-; ---------------------------------------------------------------------------
-; Execute this only at defload.
 defc SetDynaSpell  -- defc dynaspell exists and is used here
    universal loadstate
    arg1 = upcase(arg(1))
@@ -1037,6 +997,39 @@ defc SetToolbar
    call UseSetting( 'ToolBar', arg(1))
 
 ; ---------------------------------------------------------------------------
+defc SetKeyset
+   universal loadstate
+   universal activeaccel
+   parse arg Name KeyDefs
+   Name = lowcase( strip( Name))
+   -- Default accel table name = 'std' (standard EPM uses 'defaccel')
+   if Name = '' | Name = 'default' then
+      Name = 'std'
+   endif
+   KeyDefs = lowcase( strip( KeyDefs))
+
+   -- Maybe define keyset, if not already done
+   DefinedKeysets = GetAVar( 'keysets')
+   if wordpos( Name, DefinedKeysets) = 0 then
+      if Name = 'std' then
+         'DefKeyset' Name
+      else
+         'DefKeyset' Name KeyDefs
+      endif
+   endif
+
+   -- Activate keyset
+   activeaccel = Name
+   activateacceltable activeaccel
+
+   -- Save the value in an array var, because no field var exists
+   call UseSetting( 'Keyset', Name)
+   call UseSetting( 'Keyset', arg(1))
+   if loadstate = 0 then
+      'refreshinfoline KEYSET'
+   endif
+
+; ---------------------------------------------------------------------------
 defc SetExpand  -- defc expand exists
    universal loadstate
    universal expand_on
@@ -1045,15 +1038,26 @@ defc SetExpand  -- defc expand exists
    if arg1 = '' | arg1 = 'DEFAULT' then
       KeyPath = '\NEPMD\User\SyntaxExpansion'
       on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+      if on then
+         ExpandMode = GetMode()
+      else
+         ExpandMode = ''
+      endif
    elseif wordpos( arg1, '0 OFF') then
       on = 0
+      ExpandMode = ''
+   elseif wordpos( arg1, '1 ON') then
+      on = 1
+      ExpandMode = GetMode()
    else
       on = 1
+      ExpandMode = arg1
    endif
    -- Set universal var
    expand_on = on
    -- Save the value in an array var, because no field var exists
-   call UseSetting( 'Expand', arg(1))
+   --call UseSetting( 'Expand', arg(1))
+   call UseSetting( 'Expand', ExpandMode)
    if loadstate = 0 then
       'refreshinfoline EXPAND'
    endif

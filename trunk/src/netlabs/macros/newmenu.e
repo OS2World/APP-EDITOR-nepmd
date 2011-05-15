@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.73 2009-12-29 23:00:03 aschn Exp $
+* $Id: newmenu.e,v 1.73 2009/12/29 23:00:03 aschn Exp $
 *
 * ===========================================================================
 *
@@ -522,8 +522,8 @@ defproc add_file_menu(menuname)
                                    \1'Create a new, empty file in this window',
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Open...'\9CTRL_KEY__MSG'+O',                                  -- Open...
-                                   'OpenDlg EDIT' ||
+   buildmenuitem menuname, mid, i, '~Open...'MenuAccelString( 'EditFileDlg')/*\9CTRL_KEY__MSG'+O'*/,   -- Open...
+                                   'EditFileDlg'/*'OpenDlg EDIT'*/ ||
                                    ADD_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
    i = i + 1;
@@ -4535,8 +4535,9 @@ defc toggle_block_left_alt_key
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_blockleftaltkey'), MIA_CHECKED, not on)
-   deleteaccel 'defaccel'  -- refresh the buildacceltable defs
-   'loadaccel'
+;   deleteaccel 'defaccel'  -- refresh the buildacceltable defs
+;   'loadaccel'
+   'RefreshBlockAlt'
 
 ; ---------------------------------------------------------------------------
 defc toggle_block_right_alt_key
@@ -4547,8 +4548,9 @@ defc toggle_block_right_alt_key
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_blockrightaltkey'), MIA_CHECKED, not on)
-   deleteaccel 'defaccel'  -- refresh the buildacceltable defs
-   'loadaccel'
+;   deleteaccel 'defaccel'  -- refresh the buildacceltable defs
+;   'loadaccel'
+   'RefreshBlockAlt'
 
 ; ---------------------------------------------------------------------------
 defc toggle_tabkey

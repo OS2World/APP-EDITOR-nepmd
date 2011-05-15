@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ckeys.e,v 1.19 2008-12-17 23:11:34 aschn Exp $
+* $Id: ckeys.e,v 1.19 2008/12/17 23:11:34 aschn Exp $
 *
 * ===========================================================================
 *
@@ -241,28 +241,6 @@ defc SetCCommentStyle
 ; compile endif
 
 ; ---------------------------------------------------------------------------
-defkeys c_keys
-
-/* Taken out, interferes with some people's c_enter. */
-; I like Ctrl-Enter to finish the comment field also.
-;def c_enter
-;   getline line
-;   if pos( '/*', line) then
-;      if not pos( '*/', line) then
-;         end_line
-;         keyin ' */'
-;      endif
-;   endif
-;   down
-;   begin_line
-
-; Force expansion if we don't have it turned on automatic
-def c_x
-   if c_first_expansion() then
-      call c_second_expansion()
-   endif
-
-; ---------------------------------------------------------------------------
 defproc GetCIndent
    universal indent
    ind = indent  -- will be changed at defselect for every mode, if defined
@@ -375,6 +353,7 @@ defproc c_first_expansion
          return retc
 
       elseif wrd = 'FOR' then
+         call NewUndoRec()
          if c_brace_style = 'INDENT' then
             replaceline w' (; ; )'
             insertline ws1'{', .line + 1
@@ -398,6 +377,7 @@ defproc c_first_expansion
          .col = .col + 2
 
       elseif wrd = 'IF' then
+         call NewUndoRec()
          if c_brace_style = 'INDENT' then
             replaceline w' ()'
             insertline ws1'{', .line + 1
@@ -431,6 +411,7 @@ defproc c_first_expansion
          .col = .col + 2
 
       elseif wrd = 'WHILE' then
+         call NewUndoRec()
          if c_brace_style = 'INDENT' then
             replaceline w' ()'
             insertline ws1'{', .line + 1
@@ -454,6 +435,7 @@ defproc c_first_expansion
          .col = .col + 2
 
       elseif wrd = 'DO' then
+         call NewUndoRec()
          if c_brace_style = 'INDENT' then
             insertline ws1'{', .line + 1
             insertline ws1'} while ();'END_DO, .line + 2
@@ -473,6 +455,7 @@ defproc c_first_expansion
          insertline ws1, .line + 1; down; endline
 
       elseif wrd = 'SWITCH' then
+         call NewUndoRec()
          if c_brace_style = 'INDENT' then
             replaceline w' ()'
             insertline ws1'{', .line + 1
@@ -496,9 +479,11 @@ defproc c_first_expansion
          .col = .col + 2    -- move cursor between parentheses of switch ()
 
       elseif wrd = 'MAIN' | (subword( wrd, 1, 1) = 'INT' & subword( wrd, 2, 1) = 'MAIN') then
+         call NewUndoRec()
          call enter_main_heading()
 
       elseif wrd = 'TRY' /*& ExpandCpp()*/ then
+         call NewUndoRec()
          if c_brace_style = 'INDENT' then
             insertline ws1'{', .line + 1
             insertline ws1'}'END_TRY, .line + 2
@@ -529,6 +514,7 @@ defproc c_first_expansion
          insertline ws1, .line + 1; down; endline
 
       elseif wrd = 'CATCH' /*& ExpandCpp()*/ then
+         call NewUndoRec()
          if c_brace_style = 'INDENT' then
             replaceline w' ('GetSSpc()''GetESpc()')'
             insertline ws1'{', .line + 1
@@ -552,6 +538,7 @@ defproc c_first_expansion
          .col = .col + 2 + length( GetSSpc())
 
       elseif wrd = 'PRINTLN(' & ExpandJava() then
+         call NewUndoRec()
          replaceline ws'System.out.println('GetSSpc()''GetESpc()');'
          if not insert_state() then
             insert_toggle
@@ -664,6 +651,7 @@ defproc c_second_expansion
       enddo
 
       if firstword = 'FOR' then
+         call NewUndoRec()
          cp = pos( ';', line, .col + 1)
          if cp and cp >= .col then
             .col = cp
@@ -676,12 +664,17 @@ defproc c_second_expansion
                   .col = bp
                endif
             else
-               if not pobrace and next_is_obrace then down; endif
-               insertline ws1, .line + 1; down; endline
+               if not pobrace and next_is_obrace then
+                  down
+               endif
+               insertline ws1, .line + 1
+               down
+               endline
            endif
          endif
 
       elseif firstword = 'CASE' or firstword = 'DEFAULT' then
+         call NewUndoRec()
          insertline ws1, .line + 1; down; endline
          -- Get rid of line containing just a ;
          if firstword = 'DEFAULT' and .line < .last then
@@ -695,16 +688,29 @@ defproc c_second_expansion
          endif
 
       elseif firstword = 'BREAK' then
-         insertline ws0'case :', .line + 1; down; endline; left
+         call NewUndoRec()
+         insertline ws0'case :', .line + 1
+         down
+         endline
+         left
          insertline ws'break;', .line + 1
 
       elseif firstword = 'SWITCH' then
-         if not pobrace and next_is_obrace then down; endif
+         call NewUndoRec()
+         if not pobrace and next_is_obrace then
+            down
+         endif
          if c_CASE_style = 'BELOW' then
-            insertline ws'case :', .line + 1; down; endline; left
+            insertline ws'case :', .line + 1
+            down
+            endline
+            left
             insertline ws1'break;', .line + 1
          else
-            insertline ws1'case :', .line + 1; down; endline; left
+            insertline ws1'case :', .line + 1
+            down
+            endline
+            left
             insertline ws2'break;', .line + 1
          endif
 
@@ -735,6 +741,7 @@ defproc c_second_expansion
          endif
 
       elseif firstword = 'CATCH' /*& ExpandCpp()*/ then
+         call NewUndoRec()
          cp = pos( '('GetSSpc()''GetESpc()')', line, .col)
          if cp then
             .col = cp + 2
@@ -742,11 +749,16 @@ defproc c_second_expansion
                 call fixup_cursor()
             endif
          else
-            if not pobrace and next_is_obrace then down; endif
-            insertline ws1, .line + 1; down; endline
+            if not pobrace and next_is_obrace then
+               down
+            endif
+            insertline ws1, .line + 1
+            down
+            endline
          endif
 
       elseif n > 0 then
+         call NewUndoRec()
          -- Todo: don't split in line mode
          -- Todo: support c_brace_style = 'INDENT' (not for functions)
          -- Split line at cursor: replace current line with left part
@@ -758,11 +770,14 @@ defproc c_second_expansion
             LeftPart = leftstr( stline_l, length(stline_l) - 1)
             if strip( translate( LeftPart, '', \9)) = '' then  -- if no string before {
                -- Let '{' on this line
-               replaceline ws'{', .line; endline
+               replaceline ws'{', .line
+               endline
             else
                -- Put '{' on next line
                replaceline LeftPart, .line
-               insertline ws'{', .line + 1; down; endline
+               insertline ws'{', .line + 1
+               down
+               endline
             endif
          endif
          sline_r =  strip( strip( strip( line_r), 'b', \t))  -- strip spaces and tabs
@@ -771,34 +786,57 @@ defproc c_second_expansion
             insertline ws'}', .line + 1;
          endif
          if c_brace_style = 'INDENT' then
-            insertline ws''sline_r, .line + 1; down; .col = length( ws) + 1
+            insertline ws''sline_r, .line + 1
+            down
+            .col = length( ws) + 1
          elseif c_brace_style = 'HALFINDENT' then
-            insertline wsh''sline_r, .line + 1; down; .col = length( wsh) + 1
+            insertline wsh''sline_r, .line + 1
+            down
+            .col = length( wsh) + 1
          else
-            insertline ws1''sline_r, .line + 1; down; .col = length( ws1) + 1
+            insertline ws1''sline_r, .line + 1
+            down
+            .col = length( ws1) + 1
          endif
 
       elseif firstword = 'MAIN' | (firstword = 'INT' & secondword = 'MAIN') then
+         call NewUndoRec()
          if not pos( '(', line) then
             call enter_main_heading()
          else
-            if not pobrace and next_is_obrace then down; endif
-            insertline ws1, .line + 1; down; endline
+            if not pobrace and next_is_obrace then
+               down
+            endif
+            insertline ws1, .line + 1
+            down
+            endline
          endif
 
       elseif (wordpos( firstword, 'DO IF ELSE WHILE') |
               (wordpos( firstword, 'TRY') /*& ExpandCpp()*/)) then
-         if not pobrace and next_is_obrace then down; endif
-         insertline ws1, .line + 1; down; endline
+         call NewUndoRec()
+         if not pobrace and next_is_obrace then
+            down
+         endif
+         insertline ws1, .line + 1
+         down
+         endline
 
       elseif firstword = '}' & secondword = 'WHILE' then
-         insertline ws, .line + 1; down; endline
+         call NewUndoRec()
+         insertline ws, .line + 1
+         down
+         endline
 
       elseif next_is_obrace then  -- add a blank, indented line after line with single opening brace
+         call NewUndoRec()
          down
-         insertline ws1, .line + 1; down; endline
+         insertline ws1, .line + 1
+         down
+         endline
 
       elseif (firstword = '/*' | firstword = '/**') & words( tline) = 1 then
+         call NewUndoRec()
          insertline ind' * ', .line + 1
          -- Search for closing comment */
          fFound = 0
@@ -827,6 +865,7 @@ defproc c_second_expansion
 
       elseif firstword = '/*H' then
          if words( tline) = 1 then
+            call NewUndoRec()
             -- Style 1:
             -- /***************
             -- * |
@@ -868,6 +907,7 @@ defproc c_second_expansion
             endif
          enddo
          if fFound = 1 then
+            call NewUndoRec()
             RestLine = strip( substr( line, .col), 'L')
             erase_end_line
             if firstp = 1 then
@@ -882,8 +922,10 @@ defproc c_second_expansion
          endif
 
       elseif pos( '/*', line) & comment_auto_terminate then
+         call NewUndoRec()
          if not pos( '*/', line) then
-            end_line; keyin ' */'
+            end_line
+            keyin ' */'
          endif
          call einsert_line()  -- respect user's style
 

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.25 2009-02-16 21:37:01 aschn Exp $
+* $Id: config.e,v 1.25 2009/02/16 21:37:01 aschn Exp $
 *
 * ===========================================================================
 *
@@ -1213,8 +1213,11 @@ compile endif  -- CHECK_FOR_LEXAM
 ;   default_search_options = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    'initconfig2'  -- this doesn't make problems
 
-   'loaddefaultmenu'
-   'loadaccel'
+   -- Accelerator keys must be defined before the menu, because the key defs
+   -- are required to append them to the menu item texts.
+   --dprintf( 'Calling LoadAccel by InitConfig, defined in CONFIG.E')
+   'LoadAccel'
+   'LoadDefaultMenu'
 
 ; ---------------------------------------------------------------------------
 ; These settings are not changed by the standard settings dialog.

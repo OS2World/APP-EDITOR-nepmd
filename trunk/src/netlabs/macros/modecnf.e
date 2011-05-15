@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: modecnf.e,v 1.11 2008-09-05 23:01:12 aschn Exp $
+* $Id: modecnf.e,v 1.11 2008/09/05 23:01:12 aschn Exp $
 *
 * ===========================================================================
 *
@@ -198,33 +198,35 @@ defc InitModeCnf
 /* Settings for special modes                                              */
 /* ----------------------------------------------------------------------- */
 
-'ModeExecute Shell SetKeys Shell_keys'
+;'DefKeyset shell stdname shell'
+;'ModeExecute SHELL SetKeyset shell stdname shell'
+'ModeExecute SHELL SetKeyset shell'
 
-'ModeExecute E SetKeys E_keys'
+'ModeExecute E SetExpand E'
 'ModeExecute E SetTabs 3'
 'ModeExecute E SetIndent 3'
 'ModeExecute E SetMargins 1 1599 1'
 
-'ModeExecute REXX SetKeys REXX_keys'
+'ModeExecute REXX SetExpand REXX'
 'ModeExecute REXX SetCodingStyle REXX_std'
 'ModeExecute REXX SetMargins 1 1599 1'
 
-'ModeExecute C SetKeys C_keys'
+'ModeExecute C SetExpand C'
 'ModeExecute C SetCodingStyle BSD4'
 'ModeExecute C SetMatchChars { } ( ) [ ]'
 'ModeExecute C SetMargins 1 1599 1'
 
-'ModeExecute JAVA SetKeys C_keys'
+'ModeExecute JAVA SetExpand C'
 'ModeExecute JAVA SetCodingStyle JAVA'
 'ModeExecute JAVA SetMatchChars { } ( ) [ ]'
 'ModeExecute JAVA SetMargins 1 1599 1'
 
-'ModeExecute PASCAL SetKeys Pas_keys'
+'ModeExecute PASCAL SetExpand PAS'
 'ModeExecute PASCAL SetTabs 3'
 'ModeExecute PASCAL SetIndent 3'
 'ModeExecute PASCAL SetMargins 1 1599 1'
 
-'ModeExecute HTML SetMatchChars < >'
+;'ModeExecute HTML SetMatchChars < >'
 'ModeExecute HTML SetMargins 1 1599 1'
 
 
@@ -271,10 +273,12 @@ Syntax: ModeExecute <mode> <set_cmd> <args>
         SetSaveOptions    see description of SAVE command
         SetSearchOptions  see description of LOCATE and REPLACE commands
                           (plus undocumented TB options)
-        SetKeys           <keyset_name>
+        SetKeyset         <keyset_name> [<list_of_keyset_defs>]
 
      Settings for syntax expansion:
-        SetExpand         0 | 1
+        SetExpand         0 | 1 | <expand_mode>
+                             <expand_mode> examples: C | E | REXX | PASCAL
+                             for SetExpand = 1, the mode is used as <expand_mode>
         SetIndent         <number> (default = first number of tabs)
         SetHeaderStyle    1 | 2
                              HeaderStyle 1 (default):
@@ -305,7 +309,7 @@ Syntax: ModeExecute <mode> <set_cmd> <args>
                              Coding styles can be defined with the
                              AddCodingStyle command, even in PROFILE.ERX
 
-     Settings for keyset C_KEYS:
+     Settings for keyset c:
         SetCBraceStyle    'BELOW' | 'APPEND' | 'INDENT' | 'HALFINDENT'
                              (default = 'BELOW')
         SetCCaseStyle     'INDENT' | 'BELOW' (style of "case" statement,
@@ -317,7 +321,7 @@ Syntax: ModeExecute <mode> <set_cmd> <args>
         SetCCommentStyle  'CPP' | 'C' (use either // ... or /* ... */, if
                              EndCommented = 1, default = 'CPP')
 
-     Settings for keyset REXX_KEYS:
+     Settings for keyset rexx:
         SetRexxDoStyle    'APPEND' | 'INDENT' | 'BELOW' (style of "do"
                              statement, default = 'BELOW')
         SetRexxIfStyle    'ADDELSE' | 'NOELSE' (style of "if" statement,

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: keys.e,v 1.29 2009-10-26 23:07:56 aschn Exp $
+* $Id: keys.e,v 1.29 2009/10/26 23:07:56 aschn Exp $
 *
 * ===========================================================================
 *
@@ -48,7 +48,8 @@ const
 ; So link it again:
 defmain
    sayerror 'Executing defmain of' INCLUDING_FILE
-   stop
+   'postme link keys'
+   -- The STOP statement won't avoid unlinking here
 
 compile endif  -- not defined(SMALL)
 
@@ -110,119 +111,84 @@ compile if defined(ECO_MENU__MSG)  -- For ECO support
 compile endif
 
 ; ---------------------------------------------------------------------------
-defc ProcessOtherKeys
-   pk = lastkey(1)  -- previous key
-   k  = lastkey()   -- current key
-   -- Don't create new undo states for repeated keys or modifier keys
-   if k = pk then
-   elseif k = \10\18 then  -- Ctrl
-   elseif k = \09\10 then  -- Shift
-   elseif k = \11\34 then  -- Alt
-   elseif k = \12\02 then  -- Alt Gr
-   else
-      call EnableUndoRec()
+; Apparently edit_keys must be defined in EPM.E
+;
+; Bug in EPM's keyset handling:
+; .keyset = '<new_keyset>' works only, if <new_keyset> was defined in
+; the same .EX file, from where the keyset should be changed.
+; Therefore (as a workaround) switch temporarily to the externally
+; defined keyset in order to make it known for 'SetKeys':
+;
+; definit  -- required for a separately compiled package
+;    saved_keys = .keyset
+;    .keyset = '<new_keyset>'
+;    .keyset = saved_keys
+;
+; Note: An .EX file, that defines a keyset, can't be unlinked, when this
+; keyset is in use.
+
+/***
+; This defines the standard keyset. It's important to use the option 'clear'.
+; Otherwise otherkeys won't process the standard letters, numbers and chars.
+defkeys edit_keys new clear
+
+def '„'
+;   dprintf( 'lastkey() = 'lastkey()', ch = 'ch)
+   call AddRecordKey( lastkey())
+   keyin 'ae'
+
+; These standard key defs are executed by the accel def for these keys to
+; to ensure that the execeution won't apply for numpad keys.
+; (Because accel keys don't create a WM_CHAR message, they can't be handled
+; by lastkey or getkeystate. Executing them as standard keys allows for
+; checking e.g. the scancode.)
+def a_1 'ExecKeyCmd a_1'
+def a_2 'ExecKeyCmd a_2'
+def a_3 'ExecKeyCmd a_3'
+def a_4 'ExecKeyCmd a_4'
+def a_5 'ExecKeyCmd a_5'
+def a_6 'ExecKeyCmd a_6'
+def a_7 'ExecKeyCmd a_7'
+def a_8 'ExecKeyCmd a_8'
+def a_9 'ExecKeyCmd a_9'
+def a_0 'ExecKeyCmd a_0'
+
+def otherkeys
+   'otherkeys'
+***/
+
+; ---------------------------------------------------------------------------
+; Executes only executekey lastkey() and debugging. Can be used by every
+; newly defined keyset.
+; This should process all standard letters (lowercase and uppercase), numbers
+; and chars with the length = 1. All combinations with Ctrl, Alt, Shift are
+; handled by accelerator key definitions to allow for more definable
+; combinations and to ease the definition of undo and key recording.
+defc otherkeys
+   call DisableUndoRec()
+   k = lastkey()
+   if length( k) = 1 then
+      call AddRecordKey( k)
    endif
-   call process_key(k)
+   executekey k
+
+; ---------------------------------------------------------------------------
+; Standard key defs don't work for numpad keys, only for keypad keys.
+; Therefore numpad keys don't have to be filtered out here.
+; Numpad keys can be redefined via accel keys, but then entering chars by
+; entering its keycode via Alt+numpad keys won't work anymore.
+defc ExecKeyCmd
+   -- The array var is internally set by the DefKey proc if Alt+num keys
+   -- were defined via DefKey.
+   call AddRecordKey( arg(1))
+   Cmd = GetAVar( 'keydef.'arg(1))
+   if Cmd <> '' then
+      Cmd
+   endif
 
 ; ---------------------------------------------------------------------------
 defselect
    call EnableUndoRec()
-
-; ---------------------------------------------------------------------------
-; defines can be changed/extended (but iterations aren't possible).
-; This should be moved to STDCNF.E or STDCONST.E to make it overwritable
-; in user's MYCNF.E.
-define
-   -- LETTER_LIST = keys, for those no <key> and no Sh+<key> should be
-   -- defined, handle Capslock
-compile if not defined(LETTER_LIST)
-   -- Keep the amount of letters in both lists equal!
-   UPPERCASE_LETTER_LIST = 'A B C D E F G H I J K L M N O P Q R S T U V W X Y Z'
-   LOWERCASE_LETTER_LIST = 'a b c d e f g h i j k l m n o p q r s t u v w x y z'
-compile endif
-
-   -- CHAR_LIST = keys, for those no <key> and no Sh+<key> should be defined
-compile if not defined(CharList)
-   CHAR_LIST  = '0 1 2 3 4 5 6 7 8 9 /     \         =     -     +    *'
-   CHAR_NAMES = '0 1 2 3 4 5 6 7 8 9 SLASH BACKSLASH EQUAL MINUS PLUS ASTERISK'
-   CHAR_LIST  = CHAR_LIST  || ' <    >'
-   CHAR_NAMES = CHAR_NAMES || ' LESS GREATER'
-compile endif
-   -- NO_DEF_CHAR_LIST = no key defs via def a_<name> and def c_<name> for
-   -- Alt+<name> and Ctrl+<name> exist
-compile if not defined(NO_DEF_CHAR_LIST)
-   NO_DEF_CHAR_LIST = '* + < > ( ) [ ] # , . ! ? " ^ % $ & ï ` ' ' ~ | @'
-compile endif
-
-   -- VIRTUAL_LIST = virtual keys, for those every combination should be
-   -- defined, see pmwin.h.
-   -- ENTER means NEWLINE in PM and PADENTER means ENTER in PM.
-compile if not defined(VIRTUAL_LIST)
-   VIRTUAL_LIST  = 'BACKSPACE TAB ENTER ESC PAGEUP PAGEDOWN END HOME'
-   VIRTUAL_IDS   = '5         6   8     15  17     18       19  20'
-   VIRTUAL_NAMES = 'BACKSPACE TAB ENTER ESC PGUP   PGDN     END HOME'
-   VIRTUAL_LIST  = VIRTUAL_LIST  || ' LEFT UP RIGHT DOWN INSERT DELETE PADENTER'
-   VIRTUAL_IDS   = VIRTUAL_IDS   || ' 21   22 23    24   26     27     30'
-   VIRTUAL_NAMES = VIRTUAL_NAMES || ' LEFT UP RIGHT DOWN INS    DEL    PADENTER'
-   VIRTUAL_LIST  = VIRTUAL_LIST  || ' F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12'
-   VIRTUAL_IDS   = VIRTUAL_IDS   || ' 32 33 34 35 36 37 38 39 40 41  42  43'
-   VIRTUAL_NAMES = VIRTUAL_NAMES || ' F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12'
-   -- more: SPACE, ENTER, PADENTER
-compile endif
-
-   -- PM_LIST    = don't override <key>, because they are standard PM keys
-compile if not defined(PM_LIST)
-   -- Tab must be excluded, because otherwise lastkey(2) and lastkey(3) would
-   -- return wrong values for Tab. lastkey() for Tab doesn't work in EPM!
-   -- Remove a key from this list if you want to override that anyway.
-   PM_LIST       = 'F1 F10 TAB'
-compile endif
-
-   -- PM_ALT_LIST = don't override Alt+<key>, because they are standard PM keys
-   -- Alt+Home is also disabled to keep Alt+Numpad7 working.
-   -- Same for: Alt+Up, Alt+Down, Alt+Left, Alt+Right, Alt+End, Alt+PgUp,
-   -- Alt+PgDown, Alt+Ins
-   -- Remove a key from this list if you want to override that anyway.
-compile if not defined(PM_ALT_LIST)
-   PM_ALT_LIST    = 'SPACE TAB ESC F4 F5 F6 F7 F8 F9 F10 F11'
-   PM_ALT_LIST    = PM_ALT_LIST || ' HOME UP DOWN LEFT RIGHT'
-   PM_ALT_LIST    = PM_ALT_LIST || ' END PAGEUP PAGEDOWN INSERT'
-compile endif
-
-/*
-   view pm5.inf "Virtual Key Definitions"
-   o g:\dev\toolkt45\h\pmwin.h 'mc ;xcom l /Virtual key values/t ;postme centerline'
-*/
-/*
--- Test
-defc Key_c_a_A = 'sayerror c_a_A'
-defc Key_c_a_s_A = 'sayerror c_a_s_A'
-
-defc Key_c_b = 'sayerror c_b'
-defc Key_c_s_b = 'sayerror c_s_b'
-defc Key_a_b = 'sayerror a_b'
-defc Key_a_s_b = 'sayerror a_s_b'
-defc Key_c_a_b = 'sayerror c_a_b'
-defc Key_c_a_s_b = 'sayerror c_a_s_b'
-
-defc Key_c_plus = 'sayerror c_+'
-defc Key_c_s_plus = 'sayerror c_s_+'
-defc Key_a_plus = 'sayerror a_+'
-defc Key_a_s_plus = 'sayerror a_s_+'
-defc Key_c_a_plus = 'sayerror c_a_+'
-defc Key_c_a_s_plus = 'sayerror c_a_s_+'
-
-defc Key_c_end = 'sayerror c_end'
-defc Key_c_s_end = 'sayerror c_s_end'
-defc Key_a_end = 'sayerror a_end'
-defc Key_a_s_end = 'sayerror a_s_end'
-defc Key_c_a_end = 'sayerror c_a_end'
-defc Key_c_a_s_end = 'sayerror c_a_s_end'
-
-defc Key_a_tab = 'sayerror a_tab'  -- not definable
-defc Key_a_esc = 'sayerror a_esc'  -- not definable
-defc Key_a_f10 = 'sayerror a_f10'
-*/
 
 ; ---------------------------------------------------------------------------
 ; An accelerator key issues a WM_COMMAND message, that is processed by the
@@ -233,277 +199,664 @@ defc Key_a_f10 = 'sayerror a_f10'
 ; or accelerator key def.
 
 ; ---------------------------------------------------------------------------
-; Define accel key for current accel table
-defproc DefAccelKey( Cmd, Flags, Key)
+; Define a cmd to call the proc for testing
+defc DefKey
+   parse arg KeyString Cmd
+   call DefKey( KeyString, Cmd)
+
+; Add or redefine an entry to the active named accelerator key table.
+;
+; Syntax:  DefKey( KeyString, Cmd[, 'L'])
+;
+;          KeyString prefixes are separated by '_', '+' or '-'. The following
+;          prefixes are defined:
+;          'c_' Ctrl
+;          's_' Shift
+;          'a_' Alt
+;          In this definition the order of the prefixes doesn't matter, while
+;          on execution, the KeyString prefixes are used in the above order.
+;          Cmd must be an E command string, not E code.
+;          'L' is the option for defining the key as a lonekey
+;              (a lonekey is executed once on releasing the key)
+;
+; Examples:
+;          DefKey( 'c_s_Q', 'sayerror Ctrl+Shift+Q pressed')
+;          DefKey( 'c+s+q', 'sayerror Ctrl+Shift+Q pressed')  (equivalent)
+;          DefKey( 'C-S-q', 'sayerror Ctrl+Shift+Q pressed')  (equivalent)
+;          DefKey( 'altgraf', 'sayerror AltGraf key pressed', 'L')
+;          For defining non-ASCII keys that don't match the upcase or lowcase
+;          procedure processing, the key has to be defined in the correct
+;          case:
+;          DefKey( '„', 'sayerror Lowercase „ (a-umlaut) pressed')
+;          DefKey( 's_Ž', 'sayerror Uppercase „ (a-umlaut) pressed')
+;
+; For standard accel table defs, the first def wins. This command changes it,
+; so that an accel table can be extended as expected: An already existing
+; accel table entry is overridden by a new one. That makes the last def win
+; and avoids multiple defs for a key.
+;
+defproc DefKey( KeyString, Cmd)
    universal activeaccel
    universal lastkeyaccelid
+   universal cua_menu_accel
+   Flags = 0
 
-   lastkeyaccelid = lastkeyaccelid + 1
-   buildacceltable activeaccel, Cmd, Flags, Key, lastkeyaccelid
+   -- Parse lonekey option
+   fPadKey = 0
+   Options = upcase( arg(3))
+   if Options <> '' then
+      if pos( Options, 'L') > 0 then
+         Flags = Flags + AF_LONEKEY
+      endif
+   endif
+
+   String = upcase( KeyString)
+   call GetAFFlags( Flags, String, KeyString)  -- removes modifier prefixes from String
+
+   -- Handle deactivated 'block Alt+letter keys from jumping to menu bar'
+   -- Note: These keys and F10 can't be recorded, they are handled by PM.
+   --       There exists no ETK procs to activate the menu.
+   if length( String) = 1 then
+      if cua_menu_accel then
+         if wordpos( String, upcase( GetAVar('usedmenuaccelerators'))) then
+            return
+         endif
+      endif
+   endif
+
+   -- Save key def in array to allow for searching for KeyString and Cmd
+   SetAVar( 'keydef.'KeyString, Cmd)
+   AddAVar( 'keycmd.'Cmd, KeyString)  -- may have multiple key defs
+
+   if length( String) = 1 then
+
+      -- Ignore Alt+numpad number keys as accel keys here. Just save key in
+      -- array to query it by ExecKeyCmd.
+      -- That makes the Alt+numpad number keys work for entering a char by its
+      -- key code.
+      if (pos( String, '1234567890') > 0) and (Flags = AF_ALT or Flags = AF_ALT+AF_LONEKEY) then
+         return
+      endif
+
+      Flags = Flags + AF_CHAR
+      if Flags bitand AF_SHIFT then
+         Key = asc( upcase( String))
+      else
+         Key = asc( lowcase( String))
+      endif
+
+   else
+      VK = GetVKConst( String)
+      if VK > 0 then
+         Key = VK
+         Flags = Flags + AF_VIRTUALKEY
+      else
+         sayerror 'Error: Unknown key string 'KeyString' specified.'
+         dprintf( 'KeyString = 'KeyString', Cmd = 'Cmd', Flags = 'Flags', Key = 'Key', last id = 'lastkeyaccelid)
+         return
+      endif
+   endif
+
+   AccelId = GetAVar( 'keyid.'KeyString)
+   if AccelId = '' then
+      lastkeyaccelid = lastkeyaccelid + 1
+      if lastkeyaccelid = 8101 then  -- 8101 is hardcoded as 'configdlg SYS'
+         lastkeyaccelid = lastkeyaccelid + 1
+      endif
+      AccelId = lastkeyaccelid
+   endif
+   buildacceltable activeaccel, KeyString''\1''Cmd, Flags, Key, AccelId
+
+   -- Save key def in array to allow for searching for KeyString and Cmd
+   SetAVar( 'keyid.'KeyString, AccelId)
+;   SetAVar( 'keydef.'KeyString, Cmd)
+;   AddAVar( 'keycmd.'Cmd, KeyString)  -- may have multiple key defs
+
+   --if KeyString = 'alt' then
+   --   dprintf( 'KeyString = 'KeyString', Cmd = 'Cmd', Flags = 'Flags', Key = 'Key', id = 'lastkeyaccelid)
+   --endif
+   if KeyString = 'esc' then
+      dprintf( 'KeyString = 'KeyString', Cmd = 'Cmd', Flags = 'Flags', Key = 'Key', this id = 'AccelId', last id = 'lastkeyaccelid)
+   endif
+
+/*
+   -- For non-letter chars: define also the shifted variant automatically
+   -- to make the defs more keyboard-independible.
+   if Flags bitand AF_CHAR and not Flags bitand AF_SHIFT then
+      if upcase( Key) = lowcase( Key) then
+         Flags = Flags + AF_SHIFT
+         lastkeyaccelid = lastkeyaccelid + 1
+         buildacceltable activeaccel, KeyString''\1''Cmd, Flags, Key, lastkeyaccelid
+      endif
+   endif
+*/
 
    return
 
 ; ---------------------------------------------------------------------------
-; Moved from STDCTRL.E.
-; Defined menu accels have priority to definitions provided by a keyset
-; or by the automatically assigned defs by the PM menu. Therefore they are
-; used here to recreate the keyset definition with the dokey command.
-; Now there are all possible key combinations with Ctrl, Alt and Sh
-; definable. If a defc Key_* exists, then this definition will be preferred
-; to a def *.
-; First it should be tried, if a specific key is definable via def. This can
-; be checked easily, because allowed defs are highlighted. A def definition
-; def <prefix><key> will also define the shifted variant, that can be
-; overwritten with a defc Key_<prefix>s_<key> definition.
-;
-; Syntax for defc Key_* (order for prefixes is c_a_s_):
-;    Key_<key>
-;    Key_s_<key>
-;    Key_c_<key>
-;    Key_c_s_<key>
-;    Key_a_<key>
-;    Key_a_s_<key>
-;    Key_c_a_<key>
-;    Key_c_a_s_<key>
-; <key> may be any letter (see const LETTER_LIST), any char name (see const
-; CHAR_NAMES) or any virtual key (see const VIRTUAL_NAMES).
-
-defc loadaccel
+defproc UnDefKey( KeyString)
    universal activeaccel
-   universal nepmd_hini
-   universal cua_menu_accel
    universal lastkeyaccelid
+   universal cua_menu_accel
+   Flags = 0
 
-   activeaccel = 'defaccel'  -- name for accelerator table
-   lastkeyaccelid = 1000     -- let ids start at 1001
-
-   call DefineLetterAccels()
-   call DefineCharAccels()
-   call DefineVirtualAccels()
-
-   -- Don't want Alt or AltGr switch to menu (PM-defined key F10 does the same)
-   KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey'
-   fBlocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if fBlocked = 1 then
-      DefAccelKey( '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALT)      -- Alt
+   -- Parse lonekey option
+   fPadKey = 0
+   Options = upcase( arg(3))
+   if Options <> '' then
+      if pos( Options, 'L') > 0 then
+         Flags = Flags + AF_LONEKEY
+      endif
    endif
-   KeyPath = '\NEPMD\User\Keys\AccelKeys\BlockRightAltKey'
-   fBlocked = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if fBlocked = 1 then
-      DefAccelKey( '', AF_VIRTUALKEY + AF_LONEKEY, VK_ALTGRAF)  -- AltGr
+
+   String = upcase( KeyString)
+   call GetAFFlags( Flags, String, KeyString)  -- removes modifier prefixes from String
+
+   if length( String) = 1 then
+      Flags = Flags + AF_CHAR
+      if Flags bitand AF_SHIFT then
+         Key = asc( upcase( String))
+      else
+         Key = asc( lowcase( String))
+      endif
+   else
+      VK = GetVKConst( String)
+      if VK > 0 then
+         Key = VK
+         Flags = Flags + AF_VIRTUALKEY
+      else
+         sayerror 'Error: Unknown key string 'KeyString' specified.'
+         return
+      endif
    endif
+
+   AccelId = GetAVar( 'keyid.'KeyString)
+   if AccelId <> '' then
+      -- Define Ctrl+Alt (= nothing) for this id
+      -- Don't change the array var to allow for redining this id again
+      buildacceltable activeaccel, '', AF_CONTROL+AF_VIRTUALKEY, VK_ALT, AccelId
+   else
+      -- No error message if key was not defined before
+   endif
+
+   return
+
+; ---------------------------------------------------------------------------
+defproc GetAFFlags( var Flags, var String, var KeyString)
+   -- Get prefix
+   fC_Prefix = 0
+   fA_Prefix = 0
+   fS_Prefix = 0
+   fdone = 0
+   do while (fdone = 0 & length( String) > 2)
+      p = pos( leftstr( String, 1), 'CAS')
+      if p & pos( substr( String, 2, 1), '_-+') then
+         String = substr( String, 3)
+         if p = 1 then
+            fC_Prefix = 1
+         elseif p = 2 then
+            fA_Prefix = 1
+         elseif p = 3 then
+            fS_Prefix = 1
+         endif
+      else
+         fdone = 1
+      endif
+   enddo
+   KeyString = ''
+   if fC_Prefix = 1 then
+      Flags = Flags + AF_CONTROL
+      KeyString = KeyString'c_'
+   endif
+   if fA_Prefix = 1 then
+      Flags = Flags + AF_ALT
+      KeyString = KeyString'a_'
+   endif
+   if fS_Prefix = 1 then
+      Flags = Flags + AF_SHIFT
+      KeyString = KeyString's_'
+   endif
+   if length( String) > 1 then
+      KeyString = KeyString''GetVKName( String)
+   elseif length( String) > 0 then
+      KeyString = KeyString''lowcase( String)
+   endif
+
+; ---------------------------------------------------------------------------
+defproc GetVKConst( String)
+   VK = 0
+   String = upcase( String)
+   if     String = 'BREAK'     then VK = VK_BREAK
+   elseif String = 'BACKSPACE' then VK = VK_BACKSPACE
+   elseif String = 'BKSPC'     then VK = VK_BACKSPACE
+   elseif String = 'TAB'       then VK = VK_TAB
+   elseif String = 'BACKTAB'   then VK = VK_BACKTAB
+   elseif String = 'NEWLINE'   then VK = VK_NEWLINE  -- This is the regular Enter key
+   elseif String = 'SHIFT'     then VK = VK_SHIFT
+   elseif String = 'CTRL'      then VK = VK_CTRL
+   elseif String = 'ALT'       then VK = VK_ALT
+   elseif String = 'ALTGRAF'   then VK = VK_ALTGRAF
+   elseif String = 'ALTGR'     then VK = VK_ALTGRAF
+   elseif String = 'PAUSE'     then VK = VK_PAUSE
+   elseif String = 'CAPSLOCK'  then VK = VK_CAPSLOCK
+   elseif String = 'ESC'       then VK = VK_ESC
+   elseif String = 'SPACE'     then VK = VK_SPACE
+   elseif String = 'PAGEUP'    then VK = VK_PAGEUP
+   elseif String = 'PGUP'      then VK = VK_PAGEUP
+   elseif String = 'PAGEDOWN'  then VK = VK_PAGEDOWN
+   elseif String = 'PGDOWN'    then VK = VK_PAGEDOWN
+   elseif String = 'PGDN'      then VK = VK_PAGEDOWN
+   elseif String = 'END'       then VK = VK_END
+   elseif String = 'HOME'      then VK = VK_HOME
+   elseif String = 'LEFT'      then VK = VK_LEFT
+   elseif String = 'UP'        then VK = VK_UP
+   elseif String = 'RIGHT'     then VK = VK_RIGHT
+   elseif String = 'DOWN'      then VK = VK_DOWN
+   elseif String = 'DN'        then VK = VK_DOWN
+   elseif String = 'PRINTSCRN' then VK = VK_PRINTSCRN
+   elseif String = 'INSERT'    then VK = VK_INSERT
+   elseif String = 'INS'       then VK = VK_INSERT
+   elseif String = 'DELETE'    then VK = VK_DELETE
+   elseif String = 'DEL'       then VK = VK_DELETE
+   elseif String = 'SCRLLOCK'  then VK = VK_SCRLLOCK
+   elseif String = 'NUMLOCK'   then VK = VK_NUMLOCK
+   elseif String = 'ENTER'     then VK = VK_ENTER  -- This is the numeric keypad Enter key
+   elseif String = 'PADENTER'  then VK = VK_ENTER  -- This is the numeric keypad Enter key
+   elseif String = 'SYSRQ'     then VK = VK_SYSRQ
+   elseif String = 'F1'        then VK = VK_F1
+   elseif String = 'F2'        then VK = VK_F2
+   elseif String = 'F3'        then VK = VK_F3
+   elseif String = 'F4'        then VK = VK_F4
+   elseif String = 'F5'        then VK = VK_F5
+   elseif String = 'F6'        then VK = VK_F6
+   elseif String = 'F7'        then VK = VK_F7
+   elseif String = 'F8'        then VK = VK_F8
+   elseif String = 'F9'        then VK = VK_F9
+   elseif String = 'F10'       then VK = VK_F10
+   elseif String = 'F11'       then VK = VK_F11
+   elseif String = 'F12'       then VK = VK_F12
+   endif
+   return VK
+
+; ---------------------------------------------------------------------------
+defproc GetVKName( String)
+   VK = ''
+   String = upcase( String)
+   if     String = 'BREAK'     then VK = 'break'
+   elseif String = 'BACKSPACE' then VK = 'backspace'
+   elseif String = 'BKSPC'     then VK = 'backspace'
+   elseif String = 'TAB'       then VK = 'tab'
+   elseif String = 'BACKTAB'   then VK = 'backtab'
+   elseif String = 'NEWLINE'   then VK = 'newline'  -- This is the regular Enter key
+   elseif String = 'SHIFT'     then VK = 'shift'
+   elseif String = 'CTRL'      then VK = 'ctrl'
+   elseif String = 'ALT'       then VK = 'alt'
+   elseif String = 'ALTGRAF'   then VK = 'altgraf'
+   elseif String = 'ALTGR'     then VK = 'altgraf'
+   elseif String = 'PAUSE'     then VK = 'pause'
+   elseif String = 'CAPSLOCK'  then VK = 'capslock'
+   elseif String = 'ESC'       then VK = 'esc'
+   elseif String = 'SPACE'     then VK = 'space'
+   elseif String = 'PAGEUP'    then VK = 'pageup'
+   elseif String = 'PGUP'      then VK = 'pageup'
+   elseif String = 'PAGEDOWN'  then VK = 'pagedown'
+   elseif String = 'PGDOWN'    then VK = 'pagedown'
+   elseif String = 'PGDN'      then VK = 'pagedown'
+   elseif String = 'END'       then VK = 'end'
+   elseif String = 'HOME'      then VK = 'home'
+   elseif String = 'LEFT'      then VK = 'left'
+   elseif String = 'UP'        then VK = 'up'
+   elseif String = 'RIGHT'     then VK = 'right'
+   elseif String = 'DOWN'      then VK = 'down'
+   elseif String = 'DN'        then VK = 'down'
+   elseif String = 'PRINTSCRN' then VK = 'printscrn'
+   elseif String = 'INSERT'    then VK = 'insert'
+   elseif String = 'INS'       then VK = 'insert'
+   elseif String = 'DELETE'    then VK = 'delete'
+   elseif String = 'DEL'       then VK = 'delete'
+   elseif String = 'SCRLLOCK'  then VK = 'scrllock'
+   elseif String = 'NUMLOCK'   then VK = 'numlock'
+   elseif String = 'ENTER'     then VK = 'enter'  -- This is the numeric keypad Enter key
+   elseif String = 'PADENTER'  then VK = 'enter'  -- This is the numeric keypad Enter key
+   elseif String = 'SYSRQ'     then VK = 'sysrq'
+   elseif String = 'F1'        then VK = 'f1'
+   elseif String = 'F2'        then VK = 'f2'
+   elseif String = 'F3'        then VK = 'f3'
+   elseif String = 'F4'        then VK = 'f4'
+   elseif String = 'F5'        then VK = 'f5'
+   elseif String = 'F6'        then VK = 'f6'
+   elseif String = 'F7'        then VK = 'f7'
+   elseif String = 'F8'        then VK = 'f8'
+   elseif String = 'F9'        then VK = 'f9'
+   elseif String = 'F10'       then VK = 'f10'
+   elseif String = 'F11'       then VK = 'f11'
+   elseif String = 'F12'       then VK = 'f12'
+   endif
+   return VK
+
+; ---------------------------------------------------------------------------
+defproc GetVKMenuName( String)
+   VK = ''
+   String = upcase( String)
+   if     String = 'BREAK'     then VK = 'Brk'
+   elseif String = 'BACKSPACE' then VK = BACKSPACE_KEY__MSG
+   elseif String = 'BKSPC'     then VK = BACKSPACE_KEY__MSG
+   elseif String = 'TAB'       then VK = 'Tab'
+   elseif String = 'BACKTAB'   then VK = 'BackTab'
+   elseif String = 'NEWLINE'   then VK = ENTER_KEY__MSG  -- This is the regular Enter key
+   elseif String = 'SHIFT'     then VK = SHIFT_KEY__MSG
+   elseif String = 'CTRL'      then VK = CTRL_KEY__MSG
+   elseif String = 'ALT'       then VK = ALT_KEY__MSG
+   elseif String = 'ALTGRAF'   then VK = 'AltGraf'
+   elseif String = 'ALTGR'     then VK = 'AltGraf'
+   elseif String = 'PAUSE'     then VK = 'Pause'
+   elseif String = 'CAPSLOCK'  then VK = 'Capslock'
+   elseif String = 'ESC'       then VK = ESCAPE_KEY__MSG
+   elseif String = 'SPACE'     then VK = 'Space'
+   elseif String = 'PAGEUP'    then VK = 'PgUp'
+   elseif String = 'PGUP'      then VK = 'PgUp'
+   elseif String = 'PAGEDOWN'  then VK = 'PgDown'
+   elseif String = 'PGDOWN'    then VK = 'PgDown'
+   elseif String = 'PGDN'      then VK = 'PgDown'
+   elseif String = 'END'       then VK = 'End'
+   elseif String = 'HOME'      then VK = 'Home'
+   elseif String = 'LEFT'      then VK = 'Left'
+   elseif String = 'UP'        then VK = UP_KEY__MSG
+   elseif String = 'RIGHT'     then VK = 'Right'
+   elseif String = 'DOWN'      then VK = DOWN_KEY__MSG
+   elseif String = 'DN'        then VK = DOWN_KEY__MSG
+   elseif String = 'PRINTSCRN' then VK = 'PrtScrn'
+   elseif String = 'INSERT'    then VK = INSERT_KEY__MSG
+   elseif String = 'INS'       then VK = INSERT_KEY__MSG
+   elseif String = 'DELETE'    then VK = DELETE_KEY__MSG
+   elseif String = 'DEL'       then VK = DELETE_KEY__MSG
+   elseif String = 'SCRLLOCK'  then VK = 'ScrlLock'
+   elseif String = 'NUMLOCK'   then VK = 'NumLock'
+   elseif String = 'ENTER'     then VK = PADENTER_KEY__MSG  -- This is the numeric keypad Enter key
+   elseif String = 'PADENTER'  then VK = PADENTER_KEY__MSG  -- This is the numeric keypad Enter key
+   elseif String = 'SYSRQ'     then VK = 'SysRq'
+   elseif String = 'F1'        then VK = 'F1'
+   elseif String = 'F2'        then VK = 'F2'
+   elseif String = 'F3'        then VK = 'F3'
+   elseif String = 'F4'        then VK = 'F4'
+   elseif String = 'F5'        then VK = 'F5'
+   elseif String = 'F6'        then VK = 'F6'
+   elseif String = 'F7'        then VK = 'F7'
+   elseif String = 'F8'        then VK = 'F8'
+   elseif String = 'F9'        then VK = 'F9'
+   elseif String = 'F10'       then VK = 'F10'
+   elseif String = 'F11'       then VK = 'F11'
+   elseif String = 'F12'       then VK = 'F12'
+   endif
+   return VK
+
+; ---------------------------------------------------------------------------
+; Get key def as appendix for a menu item text, with a prepended tab char,
+; if any text
+defproc MenuAccelString
+   Cmd = arg(1)
+   AppString = ''
+   -- Todo: allow for specifying consecutive Cmds: Cmd1,Cmd2 or Cmd1, Cmd2
+   if Cmd <> '' then
+      -- Query array var, defined by DefKey
+      KeyString = strip( GetAVar( 'keycmd.'Cmd))
+      if KeyString <> '' then
+         -- A Cmd may have multiple key defs, each appended by a space
+         do w = 1 to words( KeyString)
+            Rest = word( KeyString, w)
+            ThisString = ''
+            if pos( 'c_', Rest) = 1 then
+               ThisString = ThisString''CTRL_KEY__MSG'+'
+               Rest = substr( Rest, 3)
+            endif
+            if pos( 'a_', Rest) = 1 then
+               ThisString = ThisString''ALT_KEY__MSG'+'
+               Rest = substr( Rest, 3)
+            endif
+            if pos( 's_', Rest) = 1 then
+               ThisString = ThisString''SHIFT_KEY__MSG'+'
+               Rest = substr( Rest, 3)
+            endif
+            if Rest <> '' then
+               VKString = GetVKMenuName( Rest)
+               if VKString <> '' then
+                  ThisString = ThisString''VKString
+               else
+                  ThisString = ThisString''upcase( Rest)
+               endif
+            endif
+            if AppString <> '' then
+               AppString = AppString' | 'ThisString
+            else
+               AppString = ThisString
+            endif
+         enddo
+      endif
+   endif
+   if AppString <> '' then
+      AppString = \9''AppString
+   endif
+   return AppString
+
+; For testing:
+defc MenuAccelString
+   Cmd = strip( arg(1))
+   sayerror 'Menu item text appendix for "'Cmd'" is: |'MenuItemApp( Cmd)'|'
+
+; ---------------------------------------------------------------------------
+; Called by ProcessCommand in MENU.E
+defproc ExecAccelKey
+   parse value( arg(1)) with KeyString \1 Cmd
+   call AddRecordKey( arg(1))
+   Cmd
+   return
+
+; ---------------------------------------------------------------------------
+; Define a named accel table. It has to be activated with SetKeyset.
+;
+; Syntax: DefKeyset [<name>] [<keyset_cmd_1> <keyset_cmd_2> ...]
+;         DefKeyset [<name>] [<name_3>name] <keyset_cmd_4> ...]
+;
+; Instead of a keyset cmd, a keyset name can be specified (with 'name'
+; appended). Then the specified keyset will be extended.
+defc DefAccel, DefKeyset
+   universal activeaccel
+   universal lastkeyaccelid
+   universal nepmd_hini
+   -- Default accel table name = 'std' (standard EPM uses 'defaccel')
+   StdName = 'std'
+
+   -- Init accel table defs
+   StartAccelId = 10000  -- max. = 65534 (65535 is hardcoded as Halt cmd)
+   if lastkeyaccelid < StartAccelId then
+
+      activeaccel = StdName
+      lastkeyaccelid = StartAccelId
+      -- Bug in ETK: first def is ignored, therefore add a dummy def here
+      lastkeyaccelid = lastkeyaccelid
+      -- This must be a valid def, otherwise the menu is not loaded at startup:
+      buildacceltable activeaccel, 'sayerror Ignored!', AF_VIRTUALKEY, VK_ALT, lastkeyaccelid
+
+   endif
+
+   parse value arg(1) with Name List
+
+   Name = strip( Name)
+   if Name = '' | lowcase( Name) = 'edit' | lowcase( Name) = 'default' then
+      Name = StdName
+   endif
+   Name = lowcase( Name)
+
+   List = strip( List)
+   List = lowcase( List)
+   if List = '' then
+      -- Use default keyset defs
+      if Name = StdName then
+         List = StdName               -- use defc stdkeys
+      else
+         List = StdName'name' Name    -- extend stdkeys with defc Namekeys
+      endif
+   endif
+
+   SavedAccel = activeaccel
+   Keyset = Name
+   activeaccel = Keyset
+
+   -- The BlockAlt keysubset needn't to be added to the 'keysets' array var
+   'BlockAltKeys'
+
+   -- Parse keyset definition list and get resolved list of KeysetCmds
+   -- Keyset command defs have 'Keys' appended. In the following, the
+   -- term 'keyset cmd' means the command without 'Keys'. The same applies
+   -- for the array vars, were the string without 'Keys' is used, too.
+   KeysetCmds = ''
+   do w = 1 to words( List)
+      ThisKeyset = word( List, w)
+      -- Allow for specifying a name instead of a keyset
+      -- (e.g. 'stdname' instead of 'std')
+      if rightstr( ThisKeyset, 4) = 'name' and length( ThisKeyset) > 4 then
+         SubName = leftstr( ThisKeyset, length( ThisKeyset) - 4)
+         SubList = GetAVar( 'keyset.'SubName)
+         do s = 1 to words( SubList)
+            ThisSubKeyset = word( SubList, s)
+            -- Check if keyset cmd (with 'Keys' appended) exists
+            if isadefc( ThisSubKeyset'Keys') then
+               KeysetCmds = KeysetCmds ThisSubKeyset
+            endif
+         enddo
+      -- Check if keyset cmd (with 'Keys' appended) exists
+      elseif isadefc( ThisKeyset'Keys') then
+         KeysetCmds = KeysetCmds ThisKeyset
+      endif
+   enddo
+   KeysetCmds = strip( KeysetCmds)
+
+   if KeysetCmds <> '' then
+       -- Change array vars for this keyset name
+       PrevKeysetCmds = GetAVar( 'keyset.'Name)
+       if PrevKeysetCmds <> KeysetCmds then
+         -- For all keyset commands
+         do k = 1 to words( PrevKeysetCmds)
+            ThisKeyset = word( PrevKeysetCmds, k)
+            -- Remove keyset name from array var for this keyset cmd
+            DelAVar( 'keysetcmd.'ThisKeyset, Name)
+         enddo
+       endif
+
+      -- Set array vars for this keyset name
+      AddAVar( 'keysets', Name)
+      AddAVar( 'keyset.'Name, KeysetCmds)
+      -- For all keyset commands
+      do k = 1 to words( KeysetCmds)
+         ThisKeyset = word( KeysetCmds, k)
+         -- Add keyset name to array var for this keyset cmd
+         AddAVar( 'keysetcmd.'ThisKeyset, Name)
+         -- Execute keyset cmd (with 'Keys' appended)
+         ThisKeyset'Keys'
+      enddo
+   endif
+
+   activeaccel = SavedAccel
+
+; ---------------------------------------------------------------------------
+; Block Alt and/or AltGr from switching to the menu
+; PM defines the key F10 to jump to the menu, like Alt and AltGraf.
+; It can be used instead, if it's not redefined.
+; To block these PM def, Alt and AltGraf have to be defined with the
+; AF_LONEKEY flag.
+defc BlockAltKeys
+   universal nepmd_hini
+
+   -- Block Alt and/or AltGr from switching to the menu
+   -- PM defines the key F10 to jump to the menu, like Alt and AltGraf.
+   -- It can be used instead, if it's not redefined.
+   -- To block these PM def, Alt and AltGraf have to be defined with the
+   -- AF_LONEKEY flag.
+   -- Redefine every used accel keyset
+   KeyPath   = '\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey'
+   fBlocked1 = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   KeyPath   = '\NEPMD\User\Keys\AccelKeys\BlockRightAltKey'
+   fBlocked2 = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+
+   if fBlocked1 = 1 then
+      DefKey( 'alt', '', 'L')
+   else
+      UnDefKey( 'alt')
+   endif
+
+   if fBlocked2 = 1 then
+      DefKey( 'altgraf', '', 'L')
+   else
+      UnDefKey( 'altgraf')
+   endif
+
+; ---------------------------------------------------------------------------
+; Redefine every used accel keyset. This can be used by the menu commands
+; toggle_block_left_alt_key and toggle_block_right_alt_key to activate the
+; changed behavior for all loaded keysets.
+defc RefreshBlockAlt
+   universal nepmd_hini
+   universal activeaccel
+
+   KeyPath   = '\NEPMD\User\Keys\AccelKeys\BlockLeftAltKey'
+   fBlocked1 = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   KeyPath   = '\NEPMD\User\Keys\AccelKeys\BlockRightAltKey'
+   fBlocked2 = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+
+   SavedAccel = activeaccel
+   KeySets = strip( GetAVar( 'keysets'))
+
+   do w = 1 to words( KeySets)
+      KeySet = word( KeySets, w)
+      activeaccel = KeySet
+
+      if fBlocked1 = 1 then
+         DefKey( 'alt', '', 'L')
+      else
+         UnDefKey( 'alt')
+      endif
+
+      if fBlocked2 = 1 then
+         DefKey( 'altgraf', '', 'L')
+      else
+         UnDefKey( 'altgraf')
+      endif
+
+   enddo
+   activeaccel = SavedAccel
 
    activateacceltable activeaccel
-   return
 
 ; ---------------------------------------------------------------------------
-; Letters. Upper- and lowercase codes must be defined to make a keybinding
-; work, even when Capslock is active.
-; The uppercase variant is defined the same as the lowercase, if no
-; defc Key_*s_<key> exists. The uppercase unshifted variant is required for
-; the case when capsloack is active. The lowercase shifted variant is not
-; required, because Sh will deactivate capslock.
-defproc DefineLetterAccels
-   universal activeaccel
-   universal cua_menu_accel
-
-   UsedMenuAccelerators = GetAVar('usedmenuaccelerators')
-   List = UPPERCASE_LETTER_LIST
-   do w = 1 to words( List)
-      char = word( UPPERCASE_LETTER_LIST, w)
-      -- lowercase is not used here, because it would only work for Ascii letters
-      ukey = asc(word( UPPERCASE_LETTER_LIST, w))
-      lkey = asc(word( LOWERCASE_LETTER_LIST, w))
-      name = char
-      fOmitAltAccel = 0
-      if cua_menu_accel then
-         if wordpos( char, upcase(UsedMenuAccelerators)) then
-            fOmitAltAccel = 1
-         endif
-      endif
-
-      if isadefc('Key_c_'name) then
-         Cmd = 'Key_c_'name
-         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL, lkey)  -- Ctrl+<key> (lowercase)
-         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL, ukey)  -- Ctrl+<key> (uppercase)
-      endif
-
-      if isadefc('Key_c_s_'name) then
-         Cmd = 'Key_c_s_'name
-         --DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, lkey)  -- Ctrl+Sh+<key> (lowercase)
-         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, ukey)  -- Ctrl+Sh+<key> (uppercase)
-      endif
-
-      Cmd = ''
-      if isadefc('Key_a_'name) then
-         Cmd = 'Key_a_'name
-      elseif not fOmitAltAccel then  -- if not (cua_menu_accel and found in UsedMenuAccelerators)
-         -- This overrides the standard PM def to open the menu
-         Cmd = 'dokey a+'name
-      endif
-      if Cmd <> '' then
-         DefAccelKey( Cmd, AF_CHAR + AF_ALT, lkey)  -- Alt+<key> (lowercase)
-         DefAccelKey( Cmd, AF_CHAR + AF_ALT, ukey)  -- Alt+<key> (uppercase)
-      endif
-
-      if isadefc('Key_a_s_'name) then
-         Cmd = 'Key_a_s_'name
-         --DefAccelKey( Cmd, AF_CHAR + AF_ALT + AF_SHIFT, lkey)  -- Alt+Sh+<key> (lowercase)
-         DefAccelKey( Cmd, AF_CHAR + AF_ALT + AF_SHIFT, ukey)  -- Alt+Sh+<key> (uppercase)
-      endif
-
-      if isadefc('Key_c_a_'name) then
-         Cmd = 'Key_c_a_'name
-         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT, lkey)  -- Ctrl+Alt+<key> (lowercase)
-         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT, ukey)  -- Ctrl+Alt+<key> (uppercase)
-      endif
-
-      if isadefc('Key_c_a_s_'name) then
-         Cmd = 'Key_c_a_s_'name
-         --DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, lkey)  -- Ctrl+Alt+Sh+<key> (lowercase)
-         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, ukey)  -- Ctrl+Alt+Sh+<key> (uppercase)
-      endif
-
-   enddo
-
-   return
+defc LoadAccel
+   parse arg args
+   'SetKeyset' args  -- defined in MODEXEC.E
 
 ; ---------------------------------------------------------------------------
-; Chars, for that no upper/lowercase variants exist.
-defproc DefineCharAccels
-   universal activeaccel
-
-   List = CHAR_LIST
-   do w = 1 to words( List)
-      char = word( List, w)
-      key  = asc(char)
-      name = word( CHAR_NAMES, w)
-      fDefExists = (wordpos( char, NO_DEF_CHAR_LIST) = 0)
-
-      Cmd = ''
-      if isadefc('Key_c_'name) then
-         Cmd = 'Key_c_'name
-      elseif fDefExists then
-         if not IsNum( name) then  -- Exclude Ctrl+0 ... Ctrl+9 to make Ctrl+<keypad-num> work properly.
-                                   -- These keys are definable via def c_0 ... def c_9.
-                                   -- To override a standard PM def, e.g. Ctrl+Pad-0 = copy to clip,
-                                   -- one can use defc Key_c_0 instead of def c_0.
-            Cmd = 'dokey c+'name
-         endif
-      endif
-      if Cmd <> '' then
-         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL, key)                      -- Ctrl+<key>
-      endif
-
-      if isadefc('Key_c_s_'name) then
-         Cmd = 'Key_c_s_'name
-         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_SHIFT, key)           -- Ctrl+Sh+<key>
-      endif
-
-      Cmd = ''
-      if isadefc('Key_a_'name) then
-         Cmd = 'Key_a_'name
-      elseif fDefExists then
-         if not IsNum( name) then  -- Exclude Ctrl+0 ... Ctrl+9 to make Ctrl+<keypad-num> work properly.
-                                   -- These keys are definable via def c_0 ... def c_9.
-                                   -- To override a standard PM def, e.g. Ctrl+Pad-0 = copy to clip,
-                                   -- one can use defc Key_c_0 instead of def c_0.
-            Cmd = 'dokey a+'name
-         endif
-      endif
-      if Cmd <> '' then
-         DefAccelKey( Cmd, AF_CHAR + AF_ALT, key)                          -- Alt+<key>
-      endif
-
-      if isadefc('Key_a_s_'name) then
-         Cmd = 'Key_a_s_'name
-         DefAccelKey( Cmd, AF_CHAR + AF_ALT + AF_SHIFT, key)               -- Alt+Sh+<key>
-      endif
-
-      if isadefc('Key_c_a_'name) then
-         Cmd = 'Key_c_a_'name
-         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT, key)             -- Ctrl+Alt+<key>
-      endif
-
-      if isadefc('Key_c_a_s_'name) then
-         Cmd = 'Key_c_a_s_'name
-         DefAccelKey( Cmd, AF_CHAR + AF_CONTROL + AF_ALT + AF_SHIFT, key)  -- Ctrl+Alt+Sh+<key>
-      endif
-
-   enddo
-
-   return
-
-; ---------------------------------------------------------------------------
-; Virtual keys like F1, Insert, Up.
-defproc DefineVirtualAccels
-   universal activeaccel
-
-   List = VIRTUAL_LIST
-   do w = 1 to words( List)
-      char = word( List, w)
-      id   = word( VIRTUAL_IDS, w)
-      name = word( VIRTUAL_NAMES, w)
-
-      if not wordpos( char, PM_LIST) then
-         if isadefc('Key_'name) then
-            Cmd = 'Key_'name
-            DefAccelKey( Cmd, AF_VIRTUALKEY, id)                                -- <key>
-         endif
-      endif
-
-      if isadefc('Key_s_'name) then
-         Cmd = 'Key_s_'name
-         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_SHIFT, id)                        -- Sh+<key>
-      endif
-
-      if isadefc('Key_c_'name) then
-         Cmd = 'Key_c_'name
-         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_CONTROL, id)                      -- Ctrl+<key>
-      endif
-
-      if isadefc('Key_c_s_'name) then
-         Cmd = 'Key_c_s_'name
-         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_CONTROL + AF_SHIFT, id)           -- Ctrl+Sh+<key>
-      endif
-
-      if not wordpos( char, PM_ALT_LIST) then
-         if isadefc('Key_a_'name) then
-            Cmd = 'Key_a_'name
-            DefAccelKey( Cmd, AF_VIRTUALKEY + AF_ALT, id)                       -- Alt+<key>
-         endif
-      endif
-
-      if isadefc('Key_a_s_'name) then
-         Cmd = 'Key_a_s_'name
-         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_ALT + AF_SHIFT, id)               -- Alt+Sh+<key>
-      endif
-
-      if isadefc('Key_c_a_'name) then
-         Cmd = 'Key_c_a_'name
-         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_CONTROL + AF_ALT, id)             -- Ctrl+Alt+<key>
-      endif
-
-      if isadefc('Key_c_a_s_'name) then
-         CMD = 'Key_c_a_s_'name
-         DefAccelKey( Cmd, AF_VIRTUALKEY + AF_CONTROL + AF_ALT + AF_SHIFT, id)  -- Ctrl+Alt+Sh+<key>
-      endif
-
-   enddo
-
-   return
-
-; ---------------------------------------------------------------------------
-defc deleteaccel
+defc DeleteAccel, DelKeyset
    universal activeaccel
    if arg(1) = '' then
-      curaccel = activeaccel
+      Name = activeaccel
    else
-      curaccel = arg(1)
+      Name = arg(1)
    endif
-   deleteaccel curaccel
+   Name = lowcase( Name)
+   deleteaccel Name
+
+   -- Change array vars for this keyset name
+   DelAVar( 'keysets', Name)
+   KeysetCmds = GetAVar( 'keyset.'Name)
+   -- For all keyset commands
+   do k = 1 to words( KeysetCmds)
+      ThisKeyset = word( KeysetCmds, k)
+      -- Remove keyset name from array var for this keyset cmd
+      DelAVar( 'keysetcmd.'ThisKeyset, Name)
+   enddo
+   DropAVar( 'keyset.'Name)
 
 ; ---------------------------------------------------------------------------
+; executekey can only execute single keys. For strings containing multiple
+; keys, keyin can be used.
 defc dokey
    --sayerror 'dokey: k = 'arg(1)
    executekey resolve_key(arg(1))
@@ -514,7 +867,11 @@ defc executekey
 
 ; ---------------------------------------------------------------------------
 defc keyin
-   keyin arg(1)
+   if arg(1) = '' then
+      keyin ' '
+   else
+      keyin arg(1)
+   endif
 
 ; ---------------------------------------------------------------------------
 ; In E3 and EOS2, we can use a_X to enter the value of any key.  In EPM,
@@ -534,64 +891,30 @@ defc keyin
 ;    10  16  Ctrl
 ;    20  32  Alt
 ;
-defproc resolve_key(k)
-   ku = upcase(k)
-
-   -- Get prefix
-   fC_Prefix = 0
-   fA_Prefix = 0
-   fS_Prefix = 0
-   done = 0
-   rest = ku
-   do while (done = 0 & length(ku) > 2)
-      p = pos( leftstr( ku, 1), 'CAS')
-      if p & pos( substr( ku, 2, 1), '_-+') then
-         ku = substr( ku, 3)
-         if p = 1 then
-            fC_Prefix = 1
-         elseif p = 2 then
-            fA_Prefix = 1
-         elseif p = 3 then
-            fS_Prefix = 1
+defproc resolve_key( k)
+   kl = lowcase( k)
+   suffix = \2                            -- For unshifted function keys
+   if length( k) >= 3 & pos( substr( k, 2, 1), '_-+') then
+      if length( k) > 3 then
+         if substr( kl, 3, 1) = 'f' then  -- Shifted function key
+            suffix = substr( \10\34\18, pos( leftstr( kl, 1), 'sac'), 1)  -- Set suffix,
+            kl = substr( kl, 3)              -- strip shift prefix, and more later...
+         elseif wordpos( substr( kl, 3), 'left up right down') then
+            suffix = substr( \10\34\18, pos( leftstr( kl, 1), 'sac'), 1)  -- Set suffix,
+            kl = substr( kl, 3)              -- strip shift prefix, and more later...
+         else                             -- Something we don't handle...
+            sayerror 'Resolve_key:' sayerrortext(-328)
+            rc = -328
          endif
-      else
-         done = 1
-      endif
-   enddo
-   suffix = ''
-
-   wv = wordpos( ku, VIRTUAL_NAMES)
-   wc = wordpos( ku, CHAR_NAMES)
-   --dprintf( 'resolve_key', 'k = 'k', ku = 'ku', Ctrl = 'fC_Prefix', Alt = 'fA_Prefix', Sh = 'fS_Prefix', Virtual = 'wv', Char = 'wc)
-   if wv then
-      if fC_Prefix then
-         suffix = \18
-      elseif fA_Prefix then
-         suffix = \34
-      elseif fS_Prefix then
-         suffix = \10
-      else
-         suffix = \2
-      endif
-      k = chr(word( VIRTUAL_IDS, wv))''suffix
-   elseif wc then
-      if fC_Prefix then
-         suffix = \16
-         k = word( CHAR_LIST, wc)''suffix
-      elseif fA_Prefix then
-         suffix = \32
-         k = word( CHAR_LIST, wc)''suffix
-      endif
-   else
-      if fC_Prefix then
-         suffix = \16
-         k = lowcase(ku)''suffix  -- letters must be lowercase for executekey
-      elseif fA_Prefix then
-         suffix = \32
-         k = lowcase(ku)''suffix  -- letters must be lowercase for executekey
+      else                                -- alt+letter or ctrl+letter
+         k = substr( kl, 3, 1) || substr(' ', pos( leftstr( kl, 1), 'ac'), 1)
       endif
    endif
-
+   if leftstr( kl, 1) = 'f' & isnum( substr( kl, 2)) then
+      k = chr( substr( kl, 2) + 31) || suffix
+   elseif wordpos( kl, 'left up right down') then
+      k = chr( wordpos( kl, 'left up right down') + 20) || suffix
+   endif
    return k
 
 ; ---------------------------------------------------------------------------
@@ -926,17 +1249,27 @@ defproc process_mark_like_cua()
 
 ; ---------------------------------------------------------------------------
 defproc shifted
-   ks = getkeystate( VK_SHIFT)
-   return ks <> 3 & ks <> 4
+   universal curkey
+
+   -- Works for WM_CHAR messages:
+   ks = getkeystate(VK_SHIFT)
+   fshifted1 = (ks <> 3 & ks <> 4)
+
+   -- Works for accelerator keys:
+   parse value (curkey) with CurKeyName \1 .
+   fshifted2 = (pos( 's_', CurKeyName) > 0)
+
+   return (fshifted1 | fshifted2)
 
 ; ---------------------------------------------------------------------------
 defproc updownkey( down_flag)
    universal save_cursor_column
    universal cursoreverywhere
+   universal prevkey
+   parse value (prevkey) with PrevKeyName \1 .
+   fupdown = (wordpos( PrevKeyName, 'up down s_up s_down') > 0)
    if not cursoreverywhere then
-      lk = lastkey(1)
-      updn = pos( leftstr( lk, 1), \x18\x16) & pos( substr( lk, 2, 1), \x02\x0A\x12)   -- VK_DOWN or VK_UP, plain or Shift or Ctrl
-      if not updn then
+      if not fupdown then
          save_cursor_column = .col
       endif
    endif
@@ -949,9 +1282,9 @@ defproc updownkey( down_flag)
 
    if .line & not cursoreverywhere then
       l = length( textline(.line))
-      if updn & l >= save_cursor_column then
+      if fupdown & l >= save_cursor_column then
          .col = save_cursor_column
-      elseif updn | l < .col then
+      elseif fupdown | l < .col then
          end_line
       endif
    endif
@@ -962,35 +1295,68 @@ define CHARG_MARK = 'CHARG'
 defproc extend_mark( startline, startcol, forward)
    universal cua_marking_switch
    universal nepmd_hini
+   universal cursoreverywhere
+   universal curkey
+
    KeyPath = '\NEPMD\User\Mark\ShiftMarkExtends'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   fAlwaysExtend = (NepmdQueryConfigValue( nepmd_hini, KeyPath) = 1)
    getfileid curfileid
    getmarkg firstline, lastline, firstcol, lastcol, markfileid
+   parse value (curkey) with CurKeyName \1 .
+   fs_up   = (CurKeyName = 's_up')
+   fs_down = (CurKeyName = 's_down')
+
+   funmark = 1
    if markfileid <> curfileid then
-      unmark
+      funmark = 1
    elseif cua_marking_switch then
       -- keep mark and extend it (any unshifted key caused unmark before)
-   elseif on then
+      funmark = 0
+   elseif fAlwaysExtend then
       -- keep mark and extend it
-   else
-      if (startline = firstline & startcol = firstcol) |
-         (startline = lastline & startcol = lastcol) then
-         -- keep mark if cursor was at start or end of mark
-      else
-         unmark
+      funmark = 0
+
+   -- The following was added for the feature "Shift-Mark extends at mark
+   -- boundaries only" (== "Shift-mark extends always" = deactivated):
+   elseif not cursoreverywhere then
+      if     startline = firstline & startcol = firstcol then
+         funmark = 0
+      elseif startline = lastline & startcol = lastcol then
+         funmark = 0
       endif
+   elseif cursoreverywhere then
+      l = length( textline( startline))
+      if     startline = firstline & startcol = firstcol then
+         funmark = 0
+      elseif startline = firstline & startcol > firstcol & startcol > l + 1 then
+         funmark = 0
+      elseif startline = firstline + 1 & firstcol = 0 then
+         -- apparently never reached
+         funmark = 0
+      elseif startline = lastline & startcol = lastcol then
+         funmark = 0
+      elseif startline = lastline & startcol > lastcol & startcol > l + 1 then
+         funmark = 0
+      elseif startline = lastline - 1 & lastcol = 0 then
+         funmark = 0
+      endif
+   endif
+
+   if funmark then
+      unmark
    endif
 
    if not marktype() then
       call pset_mark( startline, .line, startcol, .col, CHARG_MARK, curfileid)
       return
    endif
-   lk = lastkey(0)
-   if (lk = s_up & .line = firstline - 1) | (lk = s_down & .line = firstline + 1) then
+
+   if (fs_up & .line = firstline - 1) | (fs_down & .line = firstline + 1) then
       if length(textline(firstline)) < .col then
          firstcol = .col
       endif
    endif
+
    if startline > firstline | ((startline = firstline) & (startcol > firstcol)) then  -- at end of mark
       if not forward then
          if firstline = .line & firstcol = .col then
@@ -1014,6 +1380,7 @@ defproc extend_mark( startline, startcol, forward)
 ; The logic is extracted here mainly due to the complexity of the COMPILE IF's
 defproc begin_shift( var startline, var startcol, var shift_flag)
    universal cua_marking_switch
+   universal curkey
    shift_flag = shifted()
    if shift_flag or not cua_marking_switch then
       startline = .line; startcol = .col
@@ -1039,7 +1406,7 @@ defc ExpandFirst
    call ExpandFirstSecond( 0, arg(1))
 
 ; ---------------------------------------------------------------------------
-; Example: def c_enter 'ExpandSecond C_Enter'
+; Example: def c_newline 'ExpandSecond StdEnter'
 defc ExpandSecond
    call ExpandFirstSecond( 1, arg(1))
 
@@ -1049,13 +1416,13 @@ defc ExpandSecond
 defproc ExpandFirstSecond( fSecond, StdDef)
    universal expand_on
    fExpanded = 0
-   if expand_on then
-      Keyset = .keyset
-      parse value upcase( Keyset) with Keyset'_KEYS'  -- strip "_KEYS" from keyset name
+   getfileid fid
+   ExpandMode = GetAVar( 'expand.'fid)
+   if expand_on & ExpandMode <> '' & wordpos( upcase( ExpandMode), '0 OFF') = 0 then
       if fSecond then
-         ExpandCmd = Keyset'SecondExpansion'
+         ExpandCmd = ExpandMode'SecondExpansion'
       else
-         ExpandCmd = Keyset'FirstExpansion'
+         ExpandCmd = ExpandMode'FirstExpansion'
       endif
       if isadefc( ExpandCmd) then
          ExpandCmd
@@ -1068,19 +1435,53 @@ defproc ExpandFirstSecond( fSecond, StdDef)
    return
 
 ; ---------------------------------------------------------------------------
-defc space
+defc ForceExpansion
+   universal expand_on
+   getfileid fid
+   ExpandMode = GetAVar( 'expand.'fid)
+   if expand_on & ExpandMode <> '' & wordpos( upcase( ExpandMode), '0 OFF') = 0 then
+      if isadefc( ExpandMode'ForceExpansion') then
+         ExpandMode'ForceExpansion'
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+defc Space
    universal cua_marking_switch
+   universal curkey
+   universal prevkey
    if cua_marking_switch then
       call process_mark_like_cua()
    endif
-   pk = lastkey(1)
-   if pk = ' ' then
+   if prevkey = curkey then
       call DisableUndoRec()
    endif
    keyin ' '
-   if pk <> ' ' then
+   if prevkey <> curkey then
       call NewUndoRec()
    endif
+
+; ---------------------------------------------------------------------------
+; 1)  Expansion with Newline, no expansion with Ctrl+Newline:
+defc StdNewline
+   -- Try 2nd syntax expansion if activated.
+   -- If not successful, execute Newline
+   'ExpandSecond StreamLine Enter|Enter 1'
+; 2)  Expansion with Ctrl+Newline, no expansion with Newline:
+;defc StdNewline
+;   'StreamLine Enter|Enter 1'
+
+; ---------------------------------------------------------------------------
+defc StdPadEnter, StdEnter
+   'StreamLine Enter|Enter 1'
+
+; ---- Auto-spellcheck ----
+; This key belongs to "SPELL_KEYS". Therefore it is defined here with define.
+define DYNASPELL_KEY = 'c_A'            -- Open Proof Word dialog for alternatives
+
+; ---- .ALL file ----
+; All should better define its own keyset (todo).
+define ALL_KEY = 'c_Q'                  -- 'All' search: toggle between .ALL and original file
 
 ; ---------------------------------------------------------------------------
 defproc MatchCharsEnabled
@@ -1574,14 +1975,14 @@ defc CenterMark
 defc BackSpace
    universal stream_mode
    universal cua_marking_switch
+   universal curkey
+   universal prevkey
    if cua_marking_switch then
       if process_mark_like_cua() then
          return
       endif
    endif
-   k  = lastkey()
-   pk = lastkey(1)
-   if pk <> k then
+   if prevkey <> curkey then
       call NewUndoRec()
    endif
    call DisableUndoRec()
@@ -1756,7 +2157,6 @@ defc EndFile
    endif
    call end_shift( startline, startcol, shift_flag, 1)
 
-; Moved def c_enter, c_pad_enter= to ENTER.E
 ; Moved def c_f to LOCATE.E
 
 ; c_f1 is not definable in EPM.
@@ -1835,39 +2235,6 @@ defc PrevWord
    backtab_word
    call end_shift( startline, startcol, shift_flag, 0)
 
-defc BeginScreen
-   call EnableUndoRec()
-   call begin_shift( startline, startcol, shift_flag)
-   .cursory = 1
-   call end_shift( startline, startcol, shift_flag, 0)
-
-defc EndScreen
-   call EnableUndoRec()
-   call begin_shift( startline, startcol, shift_flag)
-   .cursory = .windowheight
-   call end_shift( startline, startcol, shift_flag, 1)
-
-defc RecordKeys
-   call NewUndoRec()
-   -- Query to see if we are already in recording
-   if windowmessage( 1, getpminfo(EPMINFO_EDITCLIENT),
-                     5393,
-                     0,
-                     0)
-   then
-      call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
-                          5392,
-                          0,
-                          0)
-      sayerror REMEMBERED__MSG
-   else
-      sayerror CTRL_R__MSG
-      call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
-                          5390,
-                          0,
-                          0)
-   endif
-
 defc NextWord
    universal stream_mode
    call begin_shift( startline, startcol, shift_flag)
@@ -1880,17 +2247,89 @@ defc NextWord
    endif
    call end_shift(startline, startcol, shift_flag, 1)
 
+defc BeginScreen
+   call EnableUndoRec()
+   call begin_shift( startline, startcol, shift_flag)
+   .cursory = 1
+   call end_shift( startline, startcol, shift_flag, 0)
+
+defc EndScreen
+   call EnableUndoRec()
+   call begin_shift( startline, startcol, shift_flag)
+   .cursory = .windowheight
+   call end_shift( startline, startcol, shift_flag, 1)
+
+; ---------------------------------------------------------------------------
+defproc AddRecordKey
+   universal curkey
+   universal prevkey
+   universal recordingstate
+   if arg(1) <> '' then
+      prevkey = curkey
+      curkey = arg(1)
+      --dprintf( 'curkey = 'curkey)
+      parse value( curkey) with Key \1 Cmd
+      Key = strip( Key)
+      Cmd = strip( Cmd)
+      if wordpos( Key, 'c_r c_t') = 0 then
+         if recordingstate = 'R' then
+            Rest = GetAVar( 'recordkeys')
+            SetAVar( 'recordkeys', Rest''\0''curkey)
+         endif
+      endif
+   endif
+
+defc RecordKeys
+   universal recordingstate
+   if recordingstate = 'R' then
+      recordingstate = 'P'
+      'SayHint' REMEMBERED__MSG
+      call EnableUndoRec()
+   else
+      call DisableUndoRec()
+      recordingstate = 'R'
+      SetAVar( 'recordkeys', '')
+      --'SayHint' CTRL_R__MSG
+      'SayHint Remembering keys.  Ctrl-R to finish, Ctrl-T to finish and try, Esc to cancel.'
+   endif
+
+defc CancelRecordKeys
+   universal recordingstate
+   recordingstate = ''
+   'SayHint Key recording canceled.'
+   call NewUndoRec()
 
 defc PlaybackKeys
-   call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
-                       5392,
-                       0,
-                       0)
-   call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
-                       5391,
-                       0,
-                       0)
+   universal recordingstate
+   Rest = GetAVar( 'recordkeys')
+   if recordingstate = 'R' then
+      recordingstate = 'P'
+      'SayHint' REMEMBERED__MSG
+      call EnableUndoRec()
+   endif
+   if recordingstate <> 'P' or Rest = '' then
+      return
+   endif
 
+   call DisableUndoRec()
+   Rest = Rest''\0
+   do while Rest <> ''
+      parse value( Rest) with \0 KeyDef \0 Rest
+      parse value( KeyDef) with Key \1 Cmd
+      Rest = \0''Rest
+      -- Execute either accel or standard (other) key
+      if Cmd <> '' then
+         ''Cmd
+      else
+         keyin Key
+      endif
+      if Rest = \0 then
+         leave
+      endif
+   enddo
+   call EnableUndoRec()
+
+; ---------------------------------------------------------------------------
 defc TypeTab
    call DisableUndoRec()
    keyin \9
@@ -2011,8 +2450,11 @@ defc MarkEndLineOrAfter
 defc ProcessEscape
    universal ESCAPE_KEY
    universal alt_R_active
+   universal recordkeys
    sayerror 0
-   if alt_R_active <> '' then
+   if recordkeys = 'R' then
+      'CancelRecordKeys'
+   elseif alt_R_active <> '' then
        'setmessageline '\0
       'toggleframe 2 'alt_R_active         -- Restore status of messageline.
       alt_R_active = ''
@@ -2110,7 +2552,7 @@ defc InsertToggle
    insert_toggle
    call fixup_cursor()
 
-defc PrevChar
+defc PrevChar, Left
    universal cua_marking_switch
    universal cursoreverywhere
    call EnableUndoRec()
@@ -2138,7 +2580,7 @@ compile endif
       unmark
    endif
 
-defc MarkPrevChar
+defc MarkPrevChar, MarkLeft
    call EnableUndoRec()
    startline = .line; startcol = .col
    if .line > 1 & .col = 1 then
@@ -2193,7 +2635,7 @@ defc MarkPageDown
       call extend_mark( startline, startcol, 1)
    endif
 
-defc NextChar
+defc NextChar, Right
    universal cursoreverywhere
    universal cua_marking_switch
    call EnableUndoRec()
@@ -2228,7 +2670,7 @@ compile if RESPECT_SCROLL_LOCK
 compile endif
 */
 
-defc MarkNextChar
+defc MarkNextChar, MarkRight
    call EnableUndoRec()
    startline = .line; startcol = .col
    if .line then
@@ -2550,4 +2992,8 @@ defc NewLineBefore
 defc NewLineAfter
    insertline '', .line + 1
    down
+
+; Define a_1, because alt_1 is only defined since ALT_1.E is redefined.
+defc a_1
+   'alt_1'
 

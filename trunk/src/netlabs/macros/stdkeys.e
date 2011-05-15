@@ -19,256 +19,230 @@
 *
 ****************************************************************************/
 
-; Note: Alt+<num> definitions via defc Key_a_<num> are disabled, in order
-;       to make Alt+<num-pad> keys insert ASCII code chars.
-;
-;       This does not affect def a_<num> definitions. They can be used as
-;       usual, because PM definitions always overwrite EPM def definitions,
-;       unless EPM defines them as PM accelerator keys, which is the case
-;       for all defc Key_* definitions.
-;
-;       Order of key definitions:
-;          1. (highest) PM accelerator keys, e.g. via defc Key_*
-;          2.           Standard PM-defined keys, like Alt+F4
-;          3. (lowest)  EPM's keyset definitions via def
-;
-;       Usually every def definition is defined automatically as PM
-;       acceleator key as well. That ensures, that only the def definition
-;       has to specified, if it exists. This does not apply to def a_<num>
-;       definitions, because of the above described behavior.
-
-; ---------------------------------------------------------------------------
-compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
-define INCLUDING_FILE = 'STDKEYS.E'
-
-EA_comment 'This defines the standard keyset.'
-
-; When being linked, the "defkeys edit_keys new clear" line must be added to
-; STDCNF.E, in order to include it in EPM.EX.
-
-compile endif
-
-; ---------------------------------------------------------------------------
-; Define the keyset "EDIT_KEYS". All following key defs will belong to this
-; keyset, until the next occurance of defkeys.
-; "EDIT_KEYS" is the standard keyset.
-defkeys edit_keys new clear
+defc StdKeys
 
 ; ---- Cursor ----
-def c_home        'BeginFile'           -- Go to begin of file (Shift marks)
-def c_end         'EndFile'             -- Go to end of file (Shift marks)
-def c_f5          'BeginWord'           -- Go to first char in current word
-def c_f6          'EndWord'             -- Go to last char in current word
-def c_left        'PrevWord'            -- Go to previous word (Shift marks)
-def c_right       'NextWord'            -- Go to next word (Shift marks)
+DefKey( 'c_home'       , 'BeginFile'       )    -- Go to begin of file (Shift marks)
+DefKey( 'c_end'        , 'EndFile'         )    -- Go to end of file (Shift marks)
+DefKey( 'c_f5'         , 'BeginWord'       )    -- Go to first char in current word
+DefKey( 'c_f6'         , 'EndWord'         )    -- Go to last char in current word
+DefKey( 'c_left'       , 'PrevWord'        )    -- Go to previous word (Shift marks)
+DefKey( 'c_right'      , 'NextWord'        )    -- Go to next word (Shift marks)
 
-def left          'PrevChar'            -- Go to previous char (Shift marks)
-def right         'NextChar'            -- Go to next char (Shift marks)
-def up            'Up'                  -- Go to previous line (Shift marks)
-def down          'Down'                -- Go to next line (Shift marks)
-def home          'BeginLineOrText'     -- Go to begin of line or text (Shift marks)
-; Enable the line below instead of the line above for standard home behavior (see also def s_home):
-;def home          'BeginLine'           -- Go to begin of line (Shift marks)
-def end           'EndLine'             -- Go to end of line (Shift marks)
-def pgup          'PageUp'              -- Go to previous page (Shift marks)
-def pgdn          'PageDown'            -- Go to next page (Shift marks)
-def c_pgup        'BeginScreen'         -- Go to first line on screen
-def c_pgdn        'EndScreen'           -- Go to last line on screen
-def c_down        'PushPos'             -- Add current cursor pos. to cursor stack
-def c_up          'PopPos'              -- Go to last pos. of cursor stack
-def c_equal       'SwapPos'             -- Exchange current cursor pos. with last pos. of stack
-def c_0           'SwapPos'             -- Exchange current cursor pos. with last pos. of stack
-; Use defc Key_c_0 instead of def c_0 to even redefine the pad-0 key:
-;defc Key_c_0      'SwapPos'             -- Exchange current cursor pos. with last pos. of stack
-def a_minus       'HighlightCursor'     -- Draw a circle around cursor
-def a_e           'EndMark'             -- Go to end of mark
-def a_y           'BeginMark'           -- Go to begin of mark
+DefKey( 'left'         , 'PrevChar'        )    -- Go to previous char (Shift marks)
+DefKey( 'right'        , 'NextChar'        )    -- Go to next char (Shift marks)
+DefKey( 'up'           , 'Up'              )    -- Go to previous line (Shift marks)
+DefKey( 'down'         , 'Down'            )    -- Go to next line (Shift marks)
+DefKey( 'home'         , 'BeginLineOrText' )    -- Go to begin of line or text (Shift marks)
+; Enable the line below instead of the line above for standard home behavior (see also s_home):
+;DefKey( 'home'         , 'BeginLine'       )    -- Go to begin of line (Shift marks)
+DefKey( 'end'          , 'EndLineOrAfter'  )    -- Go to end of line or to the starting col after it (Shift marks)
+;DefKey( 'end'          , 'EndLine'         )    -- Go to end of line (Shift marks)
+DefKey( 'pageup'       , 'PageUp'          )    -- Go to previous page (Shift marks)
+DefKey( 'pagedown'     , 'PageDown'        )    -- Go to next page (Shift marks)
+DefKey( 'c_pgup'       , 'BeginScreen'     )    -- Go to first line on screen
+DefKey( 'c_pgdown'     , 'EndScreen'       )    -- Go to last line on screen
+DefKey( 'c_down'       , 'PushPos'         )    -- Add current cursor pos. to cursor stack
+DefKey( 'c_up'         , 'PopPos'          )    -- Go to last pos. of cursor stack
+DefKey( 'c_='          , 'SwapPos'         )    -- Exchange current cursor pos. with last pos. of stack
+DefKey( 'c_s_='        , 'SwapPos'         )    -- Exchange current cursor pos. with last pos. of stack
+DefKey( 'c_0'          , 'SwapPos'         )    -- Exchange current cursor pos. with last pos. of stack
+DefKey( 'a_-'          , 'HighlightCursor' )    -- Draw a circle around cursor
+DefKey( 'a_e'          , 'EndMark'         )    -- Go to end of mark
+DefKey( 'a_y'          , 'BeginMark'       )    -- Go to begin of mark
 
 ; ---- Scroll ----
-def s_f1          'ScrollLeft'          -- Scroll text left
-def s_f2          'ScrollRight'         -- Scroll text right
-def s_f3          'ScrollUp'            -- Scroll text up
-def s_f4          'ScrollDown'          -- Scroll text down
-def s_f5          'CenterLine'          -- V-center current line
-;def c_a          'NewTop'              -- Make current line topmost
+DefKey( 's_f1'         , 'ScrollLeft'      )    -- Scroll text left
+DefKey( 's_f2'         , 'ScrollRight'     )    -- Scroll text right
+DefKey( 's_f3'         , 'ScrollUp'        )    -- Scroll text up
+DefKey( 's_f4'         , 'ScrollDown'      )    -- Scroll text down
+DefKey( 's_f5'         , 'CenterLine'      )    -- V-center current line
+;DefKey( 'c_a'          , 'NewTop'          )    -- Make current line topmost
 
 ; ---- Mark ----
-def a_b           'MarkBlock'           -- Start/end block mark
-def a_l           'MarkLine'            -- Start/end line mark
-def a_z           'MarkChar'            -- Start/end char mark
-def a_w           'MarkWord'            -- Mark current word
-;def c_w          'MarkToken'           -- Mark current word, separators according to C syntax
-defc Key_a_s_w    'MarkToken'           -- Mark current word, separators according to C syntax
-def a_u           'UnMark'              -- Unmark all
-def c_backslash   'UnMark'              -- Unmark all
-defc Key_c_s_a    'UnMark'              -- Unmark all
-def c_a           'Select_All'          -- Mark all
-def c_slash       'Select_All'          -- Mark all
-def s_left        'MarkPrevChar'        -- Mark from cursor to previous char
-def s_right       'MarkNextChar'        -- Mark from cursor to next char
-def s_up          'MarkUp'              -- Mark from cursor line up
-def s_down        'MarkDown'            -- Mark from cursor line down
-def s_end         'MarkEndLine'         -- Mark from cursor to end of line
-def s_home        'MarkBeginLineOrText' -- Mark from cursor to begin of line or text
+DefKey( 'a_b'          , 'MarkBlock'       )    -- Start/end block mark
+DefKey( 'a_l'          , 'MarkLine'        )    -- Start/end line mark
+DefKey( 'a_z'          , 'MarkChar'        )    -- Start/end char mark
+DefKey( 'a_w'          , 'MarkWord'        )    -- Mark current word
+;DefKey( 'c_w'          , 'MarkToken'       )    -- Mark current word, separators according to C syntax
+DefKey( 'a_s_w'        , 'MarkToken'       )    -- Mark current word, separators according to C syntax
+DefKey( 'a_u'          , 'UnMark'          )    -- Unmark all
+DefKey( 'c_\'          , 'UnMark'          )    -- Unmark all
+DefKey( 'c_s_a'        , 'UnMark'          )    -- Unmark all
+DefKey( 'c_a'          , 'Select_All'      )    -- Mark all
+DefKey( 'c_/'          , 'Select_All'      )    -- Mark all
+DefKey( 's_left'       , 'MarkPrevChar'    )    -- Mark from cursor to previous char
+DefKey( 's_right'      , 'MarkNextChar'    )    -- Mark from cursor to next char
+DefKey( 's_up'         , 'MarkUp'          )    -- Mark from cursor line up
+DefKey( 's_down'       , 'MarkDown'        )    -- Mark from cursor line down
+DefKey( 's_end'        , 'MarkEndLineOrAfter' ) -- Mark from cursor to end of line
+DefKey( 's_home'       , 'MarkBeginLineOrText') -- Mark from cursor to begin of line or text
 ; Enable the line below instead of the line above for standard home behavior (see also def home):
-;def s_home       'MarkBeginLine'        -- Mark from cursor to begin of line
-def s_pgup        'MarkPageUp'          -- Mark from cursor page up
-def s_pgdn        'MarkPageDown'        -- Mark from cursor page down
-defc Key_c_s_down 'PushMark'            -- Save current mark to mark stack
-defc Key_c_s_up   'PopMark'             -- Restore last mark from stack (and remove it from stack)
-defc Key_c_s_equal 'SwapMark'           -- Exchange current mark with last mark from stack
-defc Key_c_s_plus 'SwapMark'            -- Exchange current mark with last mark from stack
+;DefKey( 's_home'       , 'MarkBeginLine'   )    -- Mark from cursor to begin of line
+DefKey( 's_pageup'     , 'MarkPageUp'      )    -- Mark from cursor page up
+DefKey( 's_pagedown'   , 'MarkPageDown'    )    -- Mark from cursor page down
+DefKey( 'c_s_down'     , 'PushMark'        )    -- Save current mark to mark stack
+DefKey( 'c_s_up'       , 'PopMark'         )    -- Restore last mark from stack (and remove it from stack)
+DefKey( 'c_s_-'        , 'SwapMark'        )    -- Exchange current mark with last mark from stack
+DefKey( 'c_s_+'        , 'SwapMark'        )    -- Exchange current mark with last mark from stack
 
 ; ---- Mark operations ----
-def a_c           'CopyMark'            -- Copy mark
-def a_d           'DeleteMark'          -- Delete mark
-def a_m           'MoveMark'            -- Move mark
-def a_o           'OverlayMark'         -- Copy block
-def a_a           'AdjustMark'          -- Move block
-def a_t           'CenterMark'          -- Center text in mark
-def a_f           'FillMark'            -- Open dialog to specify a char as fill char
-def c_f7          'ShiftLeft'           -- Move text in mark 1 col left
-def c_f8          'ShiftRight'          -- Move text in mark 1 col right
-def c_y           'FontList'            -- Open style dialog to add font attributes to mark
-defc Key_c_s_y    'linkexec stylebut apply_style S'  -- Open list box for selecting a style
+DefKey( 'a_c'          , 'CopyMark'        )    -- Copy mark
+DefKey( 'a_d'          , 'DeleteMark'      )    -- Delete mark
+DefKey( 'a_m'          , 'MoveMark'        )    -- Move mark
+DefKey( 'a_o'          , 'OverlayMark'     )    -- Copy block
+DefKey( 'a_a'          , 'AdjustMark'      )    -- Move block
+DefKey( 'a_t'          , 'CenterMark'      )    -- Center text in mark
+DefKey( 'a_f'          , 'FillMark'        )    -- Open dialog to specify a char as fill char
+DefKey( 'c_f7'         , 'ShiftLeft'       )    -- Move text in mark 1 col left
+DefKey( 'c_f8'         , 'ShiftRight'      )    -- Move text in mark 1 col right
+DefKey( 'c_y'          , 'FontList'        )    -- Open style dialog to add font attributes to mark
+DefKey( 'c_s_y'        , 'linkexec stylebut apply_style S')  -- Open list box for selecting a style
 
 ; ---- Delete ----
-def del           'DeleteChar'          -- Delete current char
-def backspace     'BackSpace'           -- Delete previous char (Shift marks)
-def s_backspace   'BackSpace'           -- Delete previous char (Shift marks)
-def c_backspace   'DeleteLine'          -- Delete current line
-def c_del         'DeleteUntilNextWord' -- Delete from cursor until beginning of next word
-def c_d           'DeleteUntilNextWord' -- Delete from cursor until beginning of next word
-defc Key_c_s_del  'DeleteUntilEndLine'  -- Delete from cursor until end of line
-def c_e           'DeleteUntilEndLine'  -- Delete from cursor until end of line
+DefKey( 'delete'       , 'DeleteChar'      )    -- Delete current char
+DefKey( 'backspace'    , 'BackSpace'       )    -- Delete previous char (Shift marks)
+DefKey( 's_backspace'  , 'BackSpace'       )    -- Delete previous char (Shift marks)
+DefKey( 'c_backspace'  , 'DeleteLine'      )    -- Delete current line
+DefKey( 'c_d'          , 'DeleteUntilNextWord') -- Delete from cursor until beginning of next word
+DefKey( 'c_delete'     , 'DeleteUntilEndLine')  -- Delete from cursor until end of line
+DefKey( 'c_e'          , 'DeleteUntilEndLine')  -- Delete from cursor until end of line
 
 ; ---- Search ----
-def c_s           'SearchDlg'           -- Open search dialog
-def c_f           'FindNext'            -- Find next
-def c_c           'Change'              -- Change next
-def c_v           'GlobalFind'          -- Find next in all files of the ring
-def c_minus       'ToggleSearchDirection'  -- Toggle search direction
-def c_w           'FindWord'            -- Find current word, separators according to C syntax
-defc Key_c_s_d    'FindDef'             -- Find definition for current word
+DefKey( 'c_s'          , 'SearchDlg'       )    -- Open search dialog
+DefKey( 'c_f'          , 'FindNext'        )    -- Find next
+DefKey( 'c_c'          , 'Change'          )    -- Change next
+DefKey( 'c_v'          , 'GlobalFind'      )    -- Find next in all files of the ring
+DefKey( 'c_-'          , 'ToggleSearchDirection')  -- Toggle search direction
+DefKey( 'c_w'          , 'FindWord'        )    -- Find current word, separators according to C syntax
+DefKey( 'c_s_d'        , 'FindDef'         )    -- Find definition for current word
 
 ; ---- Clipboard ----
-def s_del         'Cut'                 -- Copy mark to clipboard and delete
-def s_ins         'DefaultPaste'        -- Default paste (paste as chars, selectable)
-def c_ins         'Copy2Clip'           -- Copy mark to clipboard
-defc Key_c_s_ins  'AlternatePaste'      -- Alternate paste (paste as lines, depends on default paste)
+DefKey( 's_delete'     , 'Cut'             )    -- Copy mark to clipboard and delete
+DefKey( 's_insert'     , 'DefaultPaste'    )    -- Default paste (paste as chars, selectable)
+DefKey( 'c_insert'     , 'Copy2Clip'       )    -- Copy mark to clipboard
+DefKey( 'c_s_insert'   , 'AlternatePaste'  )    -- Alternate paste (paste as lines, depends on default paste)
 
 ; ---- Execute ----
-def c_i           'CommandLine'         -- Open Command dialog
-def esc           'ProcessEscape'       -- Open Command dialog or stop block reflow
-def a_0           'dolines'             -- Execute line under cursor
-def a_equal       'dolines'             -- Execute line under cursor
-def c_l           'CommandDlgLine'      -- Open current line in Command dialog
+DefKey( 'c_i'          , 'CommandLine'     )    -- Open Command dialog
+DefKey( 'esc'          , 'ProcessEscape'   )    -- Open Command dialog or stop block reflow
+DefKey( 'a_0'          , 'dolines'         )    -- Execute line under cursor
+DefKey( 'a_='          , 'dolines'         )    -- Execute line under cursor
+DefKey( 'a_s_='        , 'dolines'         )    -- Execute line under cursor
+DefKey( 'c_l'          , 'CommandDlgLine'  )    -- Open current line in Command dialog
 
 ; ---- File operations ----
-def a_f2          'SaveAs_Dlg'          -- Open the Save-as dialog
-def f2            'SmartSave'           -- Save; if unchanged: give message
-def f3            'Quit'                -- Quit file
-def f4            'FileOrQuit'          -- Save and quit file; if unchanged: just quit
-def f5            'OpenDlg'             -- Open File-open dialog (will open file in a new window)
-def c_o           'EditFileDlg'         -- Open File-edit dialog (will open file in the same window)
-def f7            'Rename'              -- Open Rename entrybox
-def f8            'EditFileDlg'         -- Open File-edit dialog (will open file in the same window)
-defc Key_c_s_f9   'History edit'        -- Open Edit history listbox
-defc Key_c_s_f10  'History load'        -- Open Load history listbox
-defc Key_c_s_f11  'History save'        -- Open Save history listbox
+DefKey( 'a_f2'         , 'SaveAs_Dlg'      )    -- Open the Save-as dialog
+DefKey( 'f2'           , 'SmartSave'       )    -- Save; if unchanged: give message
+DefKey( 'f3'           , 'Quit'            )    -- Quit file
+DefKey( 'f4'           , 'FileOrQuit'      )    -- Save and quit file; if unchanged: just quit
+DefKey( 'f5'           , 'OpenDlg'         )    -- Open File-open dialog (will open file in a new window)
+DefKey( 'c_o'          , 'EditFileDlg'     )    -- Open File-edit dialog (will open file in the same window)
+DefKey( 'f7'           , 'Rename'          )    -- Open Rename entrybox
+DefKey( 'f8'           , 'EditFileDlg'     )    -- Open File-edit dialog (will open file in the same window)
+DefKey( 'c_s_f9'       , 'History edit'    )    -- Open Edit history listbox
+DefKey( 'c_s_f10'      , 'History load'    )    -- Open Load history listbox
+DefKey( 'c_s_f11'      , 'History save'    )    -- Open Save history listbox
 
 ; ---- Special chars ----
-def a_f1          'TypeFrameChars'      -- Type a list of IBM frame chars (help for the draw and box commands)
-;def a_n          'TypeFileName'        -- Type the full filename
-def c_2           'TypeNull'            -- Type a null char (\0)
-def c_6           'TypeNot'             -- Type a not char ª (\170)
-def c_9           'TypeOpeningBrace'    -- Type a {
-;def c_0          'TypeClosingBrace'    -- Type a }
-def c_4           'TypeCent'            -- Type a cent char › (\155)
-def c_tab         'TypeTab'             -- Type a tab char (\9)
+DefKey( 'a_f1'         , 'TypeFrameChars'  )    -- Type a list of IBM frame chars (help for the draw and box commands)
+;DefKey( 'a_n'          , 'TypeFileName'    )    -- Type the full filename
+DefKey( 'c_2'          , 'TypeNull'        )    -- Type a null char (\0)
+DefKey( 'c_6'          , 'TypeNot'         )    -- Type a not char ª (\170)
+DefKey( 'c_9'          , 'TypeOpeningBrace')    -- Type a {
+;DefKey( 'c_0'          , 'TypeClosingBrace')    -- Type a }
+DefKey( 'c_4'          , 'TypeCent'        )    -- Type a cent char › (\155)
+DefKey( 'c_tab'        , 'TypeTab'         )    -- Type a tab char (\9)
+; ################ Test #################
+;DefKey( '„'            , 'Keyin ae'        )    -- Type ae
+;DefKey( 's_„'          , 'Keyin Ae'        )    -- Type Ae
 
 ; ---- Window and File switching ----
-def f11           'PrevFile'            -- Switch to previous file
-;def c_p          'PrevFile'            -- Switch to previous file
-def f12           'NextFile'            -- Switch to next file
-;def c_n          'NextFile'            -- Switch to next file
-def a_f12         'NextView'            -- Switch to next view of current file
-def c_n           'Open'                -- Open new EPM window
-defc Key_c_s_f12  'Next_Win'            -- Switch to next EPM window
-def c_g           'Ring_More'           -- Open a dialog to select a file of the ring
-;def s_esc        'Ring_More'           -- Open a dialog to select a file of the ring
+DefKey( 'f11'          , 'PrevFile'        )    -- Switch to previous file
+;DefKey( 'c_p'          , 'PrevFile'        )    -- Switch to previous file
+DefKey( 'f12'          , 'NextFile'        )    -- Switch to next file
+;DefKey( 'c_n'          , 'NextFile'        )    -- Switch to next file
+DefKey( 'a_f12'        , 'NextView'        )    -- Switch to next view of current file
+DefKey( 'c_n'          , 'Open'            )    -- Open new EPM window
+DefKey( 'c_s_f12'      , 'Next_Win'        )    -- Switch to next EPM window
+DefKey( 'c_g'          , 'Ring_More'       )    -- Open a dialog to select a file of the ring
 ; Sh+Esc is defined by PM (open system menu, like Alt+Spc).
 ; Therefore it has to be defined as accelerator key:
-defc Key_s_esc    'Ring_More'           -- Open a dialog to select a file of the ring
+DefKey( 's_esc'        , 'Ring_More'       )    -- Open a dialog to select a file of the ring
 
 ; ---- Reflow ----
-def a_j           'JoinLines'           -- Join current with next line
-def a_s           'SplitLines'          -- Split line at cursor pos., keeping the indent
-def a_p           'ReflowPar2ReflowMargins'   -- Reflow current mark or paragraph, starting at cursor, using reflowmargins
-defc Key_a_s_p    'ReflowPar'                 -- Reflow current mark or paragraph, starting at cursor, using current margins
-def c_p           'ReflowAll2ReflowMargins'   -- Reflow all, starting at cursor, using  reflowmargins
-defc Key_c_s_p    'ReflowAll'                 -- Reflow all, starting at cursor, using current margins
-def a_r           'ReflowBlock'         -- Reflow marked block to a new block size
+DefKey( 'a_j'          , 'JoinLines'       )    -- Join current with next line
+DefKey( 'a_s'          , 'SplitLines'      )    -- Split line at cursor pos., keeping the indent
+DefKey( 'a_p'          , 'ReflowPar2ReflowMargins')   -- Reflow current mark or paragraph, starting at cursor, using reflowmargins
+DefKey( 'a_s_p'        , 'ReflowPar'       )          -- Reflow current mark or paragraph, starting at cursor, using current margins
+DefKey( 'c_p'          , 'ReflowAll2ReflowMargins')   -- Reflow all, starting at cursor, using  reflowmargins
+DefKey( 'c_s_p'        , 'ReflowAll'       )          -- Reflow all, starting at cursor, using current margins
+DefKey( 'a_r'          , 'ReflowBlock'     )    -- Reflow marked block to a new block size
 
 ; ---- Case ----
-;def c_f1         'UppercaseWord'       -- Change word to uppercase
-defc Key_c_s_f2   'UppercaseWord'       -- Change word to uppercase
-def c_f1          'CaseWord'            -- Toggle word through mixed, upper and lower cases
-def c_f2          'LowercaseWord'       -- Change word to lowercase
-def c_f3          'UppercaseMark'       -- Change mark to uppercase
-def c_f4          'LowercaseMark'       -- Change mark to lowercase
+;DefKey( 'c_f1'         , 'UppercaseWord'       -- Change word to uppercase
+DefKey( 'c_s_f2'       , 'UppercaseWord'   )    -- Change word to uppercase
+DefKey( 'c_f1'         , 'CaseWord'        )    -- Toggle word through mixed, upper and lower cases
+DefKey( 'c_f2'         , 'LowercaseWord'   )    -- Change word to lowercase
+DefKey( 'c_f3'         , 'UppercaseMark'   )    -- Change mark to uppercase
+DefKey( 'c_f4'         , 'LowercaseMark'   )    -- Change mark to lowercase
 
 ; ---- Key recording ----
-def c_r           'RecordKeys'          -- Start/stop recording keys
-def c_t           'PlaybackKeys'        -- Stop recording and execute recorded keys
+DefKey( 'c_r'          , 'RecordKeys'      )    -- Start/stop recording keys
+DefKey( 'c_t'          , 'PlaybackKeys'    )    -- Stop recording and execute recorded keys
 
 ; ---- Bookmarks ----
-def c_b           'ListMark'            -- Open a dialog to select a bookmark
-def c_m           'SetMark'             -- Open a dialog to save position as bookmark
-def a_slash       'NextBookmark'        -- Go to next bookmark (german keyboard: Alt+Sh+7)
-defc Key_c_7      'NextBookmark'        -- Go to next bookmark
-def a_backslash   'NextBookmark P'      -- Go to previous bookmark (german keyboard: Alt+AltGr+Beta)
-defc Key_c_s_7    'NextBookmark P'      -- Go to previous bookmark
+DefKey( 'c_b'          , 'ListMark'        )    -- Open a dialog to select a bookmark
+DefKey( 'c_m'          , 'SetMark'         )    -- Open a dialog to save position as bookmark
+DefKey( 'a_/'          , 'NextBookmark'    )    -- Go to next bookmark (German keyboard: Alt+Sh+7)
+DefKey( 'a_7'          , 'NextBookmark'    )    -- Go to next bookmark
+DefKey( 'a_\'          , 'NextBookmark P'  )    -- Go to previous bookmark (German keyboard: Alt+AltGr+Beta)
+DefKey( 'a_á'          , 'NextBookmark P'  )    -- Go to previous bookmark
+DefKey( 'a_s_/'        , 'NextBookmark P'  )    -- Go to previous bookmark
 
 ; ---- Help ----
-def c_h           'kwhelp'              -- Lookup current word in a help file
+DefKey( 'c_h'          , 'kwhelp'          )    -- Lookup current word in a help file
 
 ; ---- Syntax Assistant ----
-def a_h           'MyAssist'            -- ASSIST.E: insert code for abbreviations left from cursor
+DefKey( 'a_h'          , 'MyAssist'        )    -- ASSIST.E: insert code for abbreviations left from cursor
 
 ; ---- Bracket matching or expansion ----
-def c_leftbracket 'Assist'              -- Move cursor on matching bracket or statement
-def c_rightbracket 'Assist'             -- Move cursor on matching bracket or statement
-def c_8           'Assist'              -- Move cursor on matching bracket or statement
-def '('           'OpeningParen'        -- Add ) while typing ( if defined as match_chars
-def '['           'OpeningBracket'      -- Add ] while typing [ if defined as match_chars
-def '{'           'OpeningBrace'        -- Add } while typing { if defined as match_chars
-def '<'           'OpeningAngle'        -- Add > while typing < if defined as match_chars
-def ')'           'balance )'           -- Mark matching ( while typing )
-def ']'           'balance ]'           -- Mark matching [ while typing ]
-def '}'           'ClosingBrace'        -- Auto-indent } to indent of { if activated. Mark matching { while typing }
+DefKey( 'c_['          , 'Assist'          )    -- Move cursor on matching bracket or statement
+DefKey( 'c_]'          , 'Assist'          )    -- Move cursor on matching bracket or statement
+DefKey( 'c_8'          , 'Assist'          )    -- Move cursor on matching bracket or statement
+
+DefKey( '('            , 'OpeningParen'    )    -- Add ) while typing ( if defined as match_chars
+DefKey( '['            , 'OpeningBracket'  )    -- Add ] while typing [ if defined as match_chars
+DefKey( '{'            , 'OpeningBrace'    )    -- Add } while typing { if defined as match_chars
+DefKey( '<'            , 'OpeningAngle'    )    -- Add > while typing < if defined as match_chars
+DefKey( ')'            , 'balance )'       )    -- Mark matching ( while typing )
+DefKey( 's_)'          , 'balance )'       )    -- Mark matching ( while typing )
+DefKey( ']'            , 'balance ]'       )    -- Mark matching [ while typing ]
+DefKey( '}'            , 'ClosingBrace'    )    -- Auto-indent } to indent of { if activated. Mark matching { while typing }
 
 ; ---- Draw ----
-def f6            'Draw'                -- Message about available draw chars and Commandline to typein a char, then use cursor chars
+DefKey( 'f6'           , 'Draw'            )    -- Message about available draw chars and Commandline to typein a char, then use cursor chars
 
 ; ---- Tags ----
-def s_f6          'FindTag'             -- Find procedure under cursor via tags file
-defc Key_c_s_f6   'mc ;MakeTags =;FindTag'  -- Refresh current tags file, then find procedure under cursor via tags file
-def s_f7          'FindTag *'           -- Open entrybox to enter a procedure to find via tags file
-def s_f8          'TagsFile'            -- Open entrybox to select a tags file
-def s_f9          'MakeTags *'          -- Open entrybox to enter list of files to scan for to create a tags file
-defc Key_c_s_t    'TagScan'             -- Open a list box with tags of the current file
+DefKey( 's_f6'         , 'FindTag'         )    -- Find procedure under cursor via tags file
+DefKey( 'c_s_f6'       , 'mc ;MakeTags =;FindTag')  -- Refresh current tags file, then find procedure under cursor via tags file
+DefKey( 's_f7'         , 'FindTag *'       )    -- Open entrybox to enter a procedure to find via tags file
+DefKey( 's_f8'         , 'TagsFile'        )    -- Open entrybox to select a tags file
+DefKey( 's_f9'         , 'MakeTags *'      )    -- Open entrybox to enter list of files to scan for to create a tags file
+DefKey( 'c_s_t'        , 'TagScan'         )    -- Open a list box with tags of the current file
 
 ; ---- Undo ----
-def c_u           'UndoDlg'             -- Open Undo dialog
-def f9            'UndoLine'            -- Undo current line
-def a_backspace   'UndoLine'            -- Undo current line
-; For standard Ctrl+PgUp and Ctrl+PgDn behavior, disable the following
-; two lines and enable them in the Cursor section:
-;def c_pgup       'Undo1'               -- Scroll through previous undo states (keep Ctrl pressed to scroll)
-;def c_pgdn       'Redo1'               -- Scroll through next undo states (keep Ctrl pressed to scroll)
-def s_f11         'Undo1'               -- Scroll through previous undo states (keep Ctrl pressed to scroll)
-def s_f12         'Redo1'               -- Scroll through next undo states (keep Ctrl pressed to scroll)
+DefKey( 'c_u'          , 'UndoDlg'         )    -- Open Undo dialog
+DefKey( 'f9'           , 'UndoLine'        )    -- Undo current line
+DefKey( 'a_backspace'  , 'UndoLine'        )    -- Undo current line
+; Sync with the Cursor section:
+;DefKey( 'c_pgup'       , 'Undo1'           )    -- Scroll through previous undo states (keep Ctrl pressed to scroll)
+;DefKey( 'c_pgdn'       , 'Redo1'           )    -- Scroll through next undo states (keep Ctrl pressed to scroll)
+DefKey( 's_f11'        , 'Undo1'           )    -- Scroll through previous undo states (keep Ctrl pressed to scroll)
+DefKey( 's_f12'        , 'Redo1'           )    -- Scroll through next undo states (keep Ctrl pressed to scroll)
+
+; ---- Syntax expansion ----
+DefKey( 'c_x'          , 'ForceExpansion'  )    -- Force expansion if defined for a mode
 
 ; ---- Space ----
 ; ExpandFirst <alternate_cmd>
@@ -276,16 +250,16 @@ def s_f12         'Redo1'               -- Scroll through next undo states (keep
 ;    command was not successful, then the <alternate_cmd> is executed.
 
 ;   1)  Expansion with Space, no expansion with Ctrl+Space:
-def space        'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
-def c_space      'Space'
+DefKey( 'space'        , 'ExpandFirst Space')    -- Try 1st syntax expansion if activated. If not successful execute Space
+DefKey( 'c_space'      , 'Space'           )
 
 ;   2)  Expansion with Ctrl+Space, no expansion with Space:
-;def space        'Space'
-;def c_space      'ExpandFirst Space'   -- Try 1st syntax expansion if activated. If not successful execute Space
+;DefKey( 'space'        , 'Space'           )
+;DefKey( 'c_space'      , 'ExpandFirst Space')   -- Try 1st syntax expansion if activated. If not successful execute Space
 
-def s_space       'Space'
+DefKey( 's_space'      , 'Space'           )
 
-; ---- Enter ----
+; ---- Newline and Enter ----
 ; ExpandSecond <alternate_cmd>
 ;    This command tries to execute the 2nd syntax expansion first. If the
 ;    command was not successful, then the <alternate_cmd> is executed.
@@ -296,7 +270,7 @@ def s_space       'Space'
 ;    executed, and in line mode <line_mode_cmd>. Both commands are separated
 ;    with a bar char.
 ;
-; Enter [<num>]
+; Newline [<num>]
 ;    This command executes an Enter action. For stream mode, no <num> options
 ;    exist. For line mode, following options are available:
 ;    1  (ADDLINE)   Add a new line after cursor, preserving indentation (default)
@@ -309,64 +283,68 @@ def s_space       'Space'
 ;    8              Add a new line, move to paragraph margin
 ;    9              Add a new line, move to column 1
 
-def enter         'StdEnter'  -- Use a command here to make the standard def available for other keysets
+; Use a command here to make the standard def available for other keysets
+DefKey( 'newline'      , 'StdNewline'      )
 
-;   1)  Expansion with Enter, no expansion with Ctrl+Enter:
-defc StdEnter     'ExpandSecond StreamLine Enter|Enter 1'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
-def c_enter       'StreamLine Enter|Enter 2'
-;   2)  Expansion with Ctrl+Enter, no expansion with Enter:
-;defc Stdenter     'StreamLine Enter|Enter 1'
-;def c_enter       'ExpandSecond StreamLine Enter|Enter 2'  -- Try 2nd syntax expansion if activated. If not successful execute Enter
+; 1)  Expansion with Enter, no expansion with Ctrl+Enter:
+;     Try 2nd syntax expansion if activated. If not successful execute Enter
+;defc StdNewline     'ExpandSecond StreamLine Enter|Enter 1'  -- ##########################################
+DefKey( 'c_newline'    , 'StreamLine Enter|Enter 2')
 
-; More enter keys
-def a_enter       'StreamLine SoftWrapAtCursor|Enter 1'
-def s_enter       'StreamLine Enter|Enter 1'
-def padenter      'StdPadEnter'  -- Use a command here to make the standard def available for other keysets
-defc StdPadEnter  'StreamLine Enter|Enter 1'
-def c_padenter    'StreamLine Enter|Enter 2'
-def a_padenter    'StreamLine Enter|Enter 1'
-def s_padenter    'StreamLine Enter|Enter 1'
+; 2)  Expansion with Ctrl+Enter, no expansion with Enter:
+;     Try 2nd syntax expansion if activated. If not successful execute Enter
+;defc StdNewline     'StreamLine Enter|Enter 1'  -- ##########################################
+;DefKey( 'c_newline     , 'ExpandSecond StreamLine Enter|Enter 2')
 
-def a_n           'NewLineAfter'        -- Add a new line after the current, move to it, keep col
-defc Key_a_s_n    'NewLineBefore'       -- Add a new line before the current, move to it, keep col
-;defc Key_c_a_enter   'NewLineAfter'    -- Add a new line after the current, move to it, keep col
-;defc Key_c_a_s_enter 'NewLineBefore'   -- Add a new line before the current, move to it, keep col
+; More newline and enter keys
+DefKey( 'a_newline'    , 'StreamLine SoftWrapAtCursor|Enter 1')
+DefKey( 's_newline'    , 'StreamLine Enter|Enter 1')
+
+; Use a command here to make the standard def available for other keysets
+DefKey( 'enter'        , 'StdPadEnter'     )
+;defc StdPadEnter  'StreamLine Enter|Enter 1'  -- ##########################################
+DefKey( 'c_enter'      , 'StreamLine Enter|Enter 2')
+DefKey( 'a_enter'      , 'StreamLine Enter|Enter 1')
+DefKey( 's_enter'      , 'StreamLine Enter|Enter 1')
+
+DefKey( 'a_n'          , 'NewLineAfter'    )    -- Add a new line after the current, move to it, keep col
+DefKey( 'a_s_n'        , 'NewLineBefore'   )    -- Add a new line before the current, move to it, keep col
+;DefKey( 'c_a_enter'    , 'NewLineAfter'    )    -- Add a new line after the current, move to it, keep col
+;DefKey( 'c_a_s_enter'  , 'NewLineBefore'   )    -- Add a new line before the current, move to it, keep col
 
 ; ---- Duplicate ----
-def c_k           'DuplicateLine'       -- Duplicate a line
-def a_g           'InsertCharAbove'     -- Insert char from line above at cursor
-defc Key_a_s_g    'InsertCharBelow'     -- Insert char from line below at cursor
+DefKey( 'c_k'          , 'DuplicateLine'   )    -- Duplicate a line
+DefKey( 'a_g'          , 'InsertCharAbove' )    -- Insert char from line above at cursor
+DefKey( 'a_s_g'        , 'InsertCharBelow' )    -- Insert char from line below at cursor
 
 ; ---- Insert ----
-def ins           'InsertToggle'        -- Toggle between insert and overwrite mode
+DefKey( 'ins'          , 'InsertToggle'    )    -- Toggle between insert and overwrite mode
 
 ; ---- Tab ----
-def tab           'Tab'                 -- Insert tab char or spaces
-def s_tab         'BackTab'             -- Go back one tabstop
+DefKey( 'tab'          , 'Tab'             )    -- Insert tab char or spaces
+DefKey( 's_backtab'    , 'BackTab'         )    -- Go back one tabstop
 
 ; ---- Load file ----
-def a_1           'alt_1'               -- Load file under cursor
+DefKey( 'a_1'          , 'alt_1'           )    -- Load file under cursor
 
 ; ---- Indent ----
-def a_i           'IndentBlock'         -- Indent current mark or block 1 indent level
-defc Key_a_s_i    'IndentBlock U'       -- Unindent current mark or block 1 indent level
+DefKey( 'a_i'          , 'IndentBlock'     )    -- Indent current mark or block 1 indent level
+DefKey( 'a_s_i'        , 'IndentBlock U'   )    -- Unindent current mark or block 1 indent level
 
 ; ---- Comment ----
-def a_k           'comment'             -- Comment marked lines
-defc Key_a_s_k    'uncomment'           -- Uncomment marked lines
+DefKey( 'a_k'          , 'comment'         )    -- Comment marked lines
+DefKey( 'a_s_k'        , 'uncomment'       )    -- Uncomment marked lines
 
 ; ---- Move chars and lines ----
-defc Key_a_s_left 'MoveCharLeft'        -- Move char left
-defc Key_a_s_right 'MoveCharRight'      -- Move char right
-defc Key_a_s_up   'MoveLineUp'          -- Exchange previous and current line
-defc Key_a_s_down 'MoveLineDown'        -- Exchange next and previous line
+DefKey( 'a_s_left'     , 'MoveCharLeft'    )    -- Move char left
+DefKey( 'a_s_right'    , 'MoveCharRight'   )    -- Move char right
+DefKey( 'a_s_up'       , 'MoveLineUp'      )    -- Exchange previous and current line
+DefKey( 'a_s_down'     , 'MoveLineDown'    )    -- Exchange next and previous line
 
-; ---- Popup menu (redefinition of PM key) ----
-; The ETK key def would also move the cursor one line below the bottom of the window:
-;def s_f10         'MH_popup'            -- Show the popup menu
-; Therefore the accelerator def is used here:
-defc Key_s_f10    'MH_popup NOCURSORMOVE'  -- Show the popup menu
+; ---- Popup menu (redefinition of PM key not required) ----
+;DefKey( 's_f10         , 'MH_popup'        )    -- Show the popup menu
 
+/***
 ; ---- Auto-spellcheck ----
 ; This key belongs to "SPELL_KEYS". Therefore it is defined here with define.
 define DYNASPELL_KEY = 'c_A'            -- Open Proof Word dialog for alternatives
@@ -374,101 +352,5 @@ define DYNASPELL_KEY = 'c_A'            -- Open Proof Word dialog for alternativ
 ; ---- .ALL file ----
 ; All should better define its own keyset (todo).
 define ALL_KEY = 'c_Q'                  -- 'All' search: toggle between .ALL and original file
-
-; ---- OtherKeys ----
-def otherkeys 'ProcessOtherKeys'
-
-
-                        -- The rest is documentation --
-
-; ---------------------------------------------------------------------------
-; Unused key defs
-;    s_f11
-;    s_f12
-;    a_f3
-;    a_f6
-;    a_q
-;    a_x
-;    a_2
-;    a_3
-;    a_4
-;    a_5
-;    a_6
-;    a_7
-;    a_8
-;    a_9
-;    c_j
-;    c_q  allkey  (only used for .ALL file)
-;    c_z
-;    c_1
-;    c_3
-;    c_5
-;    c_8
-;    c_backslash
-;    a_leftbracket
-;    c_leftbracket
-;    a_rightbracket
-;    c_rightbracket
-
-; Note: All char-producing keys can be redefined with a def statement:
-;       def '{'
-; Note: Many via standard key defs not definable multi-alternated key
-;       definitions (like Ctrl+Shift+Z) are unused as well. They are
-;       definable via "defc Key_*" commands, e.g. "defc Key_c_s_z".
-
-; ---------------------------------------------------------------------------
-; PM keys. These keys are not definable in EPM via def <key>. But they could
-; be defined as accelerator keys, using defc Key_<key> or buildacceltable.
-/*
-   view epmtech "key definitions"
-   view epmtech keysets
-   view epmtech "e-definable keys"
-   view epmtech buildacceltable
-*/
-;    f1           Help
-;    f10          Menu
-;    s_f10        Popup menu (redefinable in EPM)
-;    padplus      not definable as key def in EPM
-;    c_padplus    not definable as key def in EPM
-;    c_padstar    not definable as key def in EPM
-;    pad_slash    not definable as key def in EPM
-;    c_padslash   not definable as key def in EPM
-;    pad5         not definable as key def in EPM
-;    c_pad5       not definable as key def in EPM
-;    a_space      System menu
-;    a_f4         Close
-;    a_f5         Restore
-;    a_f6         Toggle focus between main and child window
-;    a_f7         Move
-;    a_f8         Size
-;    a_f9         Minimize
-;    a_f10        Maximize
-;    a_f11        Hide
-;    c_esc        Window list
-;    a_esc        Switch to next window
-;    s_esc        System menu
-;    a_tab        Select next window
-
-; ---------------------------------------------------------------------------
-; s_f1 must be enabled via accelerator key definition.
-; s_f9 must be enabled via accelerator key definition.
-; This is made in KEYS.E. (Every key definition is now additionally defined
-; as accelerator key.)
-;
-; Note: If a standard EPM key def exists, then it is highlighted. If not,
-;       then a "defc Key_*" command must be used.
-;
-; Every Sh combination is now definable via a Key_* command. The order of
-; the prefixes must be respected: c_ a_ s_.
-; Example: defc Key_c_a_s_p 'mycommand'  defines Ctrl+Alt+Sh+P as
-; 'mycommand'.
-;
-; After changing a Keyset via the keys statement, one has to execute in
-; cases, where a Key_* command has changed (or was added) the following
-; commands to update the accelerator table: 'deleteaccel' and 'loadaccel'.
-;
-; Non-existing accelerator defs for additional letters can be added by
-; extending UPPERCASE_LETTER_LIST and LOWERCASE_LETTER_LIST.
-; Non-existing accelerator defs for additional chars can be added by
-; extending CHAR_LIST, CHAR_NAMES and NO_DEF_CHAR_LIST.
+***/
 

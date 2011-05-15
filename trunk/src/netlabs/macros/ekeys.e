@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ekeys.e,v 1.11 2006-03-04 16:05:43 aschn Exp $
+* $Id: ekeys.e,v 1.11 2006/03/04 16:05:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -20,21 +20,7 @@
 ****************************************************************************/
 
 ; ---------------------------------------------------------------------------
-defkeys e_keys
-
-/* Taken out, interferes with some people's c_enter. */
-;def c_enter  -- I like Ctrl-Enter to finish the comment field also.
-;   getline line
-;   if pos( '/*', line) then
-;      if not pos( '*/', line) then
-;         end_line
-;         keyin ' */'
-;      endif
-;   endif
-;   down
-;   begin_line
-
-def c_x  -- Force expansion if we don't have it turned on automatic
+defc EForceExpansion
    if e_first_expansion() then
       call e_second_expansion()
    endif
@@ -68,6 +54,7 @@ defproc e_first_expansion
          retc = 1
 
       elseif wrd = 'FOR' then
+         call NewUndoRec()
          replaceline w' =  to'
          insertline substr( wrd, 1, length(wrd) - 3)'endfor', .line+1
          if not insert_state() then
@@ -77,6 +64,7 @@ defproc e_first_expansion
          keyin ' '
 
       elseif wrd = 'IF' then
+         call NewUndoRec()
          replaceline w' then'
          insertline substr( wrd, 1, length(wrd) - 2)'else', .line + 1
          insertline substr( wrd, 1, length(wrd) - 2)'endif', .line + 2
@@ -87,6 +75,7 @@ defproc e_first_expansion
          keyin ' '
 
       elseif wrd = 'ELSEIF' then
+         call NewUndoRec()
          replaceline w' then'
          if not insert_state() then
             insert_toggle
@@ -95,6 +84,7 @@ defproc e_first_expansion
          keyin ' '
 
       elseif wrd = 'WHILE' then
+         call NewUndoRec()
          replaceline w' do'
          insertline substr( wrd, 1, length(wrd) - 5)'endwhile', .line + 1
          if not insert_state() then
@@ -104,12 +94,14 @@ defproc e_first_expansion
          keyin ' '
 
       elseif wrd = 'LOOP' then
+         call NewUndoRec()
          replaceline w
          insertline substr( wrd, 1, length(wrd) - 4)'endloop', .line + 1
          call einsert_line()
          .col = .col + GetEIndent()
 
 ;     elseif wrd = 'DO' then
+;        call NewUndoRec()
 ;        replaceline w
 ;        insertline substr( wrd, 1, length(wrd) - 2)'enddo', .line + 1
 ;        call einsert_line()
@@ -141,6 +133,7 @@ defproc e_second_expansion
       firstword = upcase(wrd)
 
       if firstword = 'FOR' then
+         call NewUndoRec()
          parse value upcase(line) with a '='
          if length(a) >= .col then
             .col = length(a) + 3
@@ -158,6 +151,7 @@ defproc e_second_expansion
          if pos( 'END'firstword, upcase(line)) then
             retc = 1
          else
+            call NewUndoRec()
             call einsert_line()
             .col = .col + GetEIndent()
             if /* firstword='LOOP' | */ firstword='DO' then
@@ -166,6 +160,7 @@ defproc e_second_expansion
          endif
 
       elseif pos( '/*', line) & comment_auto_terminate then
+         call NewUndoRec()
          if not pos( '*/', line) then
             end_line
             keyin ' */'

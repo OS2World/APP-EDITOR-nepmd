@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: clipbrd.e,v 1.14 2011-04-25 16:10:44 aschn Exp $
+* $Id: clipbrd.e,v 1.13 2009/10/26 23:12:02 aschn Exp $
 *
 * ===========================================================================
 *
@@ -323,13 +323,11 @@ compile endif
       call GetBuffCommon( result, NOTHING_TO_PASTE__MSG, chr(mark))
       call prestore_mark(savemark)                     -- Restore the user's mark
 
-/*
       -- Fix: Move to char after the pasted text, not to the last char of
       -- the pasted text, to behave like other editors
       if .col > 1 then
          .col = .col + 1
       endif
-*/
 
    else
       oldsize = .last
