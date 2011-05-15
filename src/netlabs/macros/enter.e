@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: enter.e,v 1.10 2008-10-05 23:17:14 aschn Exp $
+* $Id: enter.e,v 1.10 2008/10/05 23:17:14 aschn Exp $
 *
 * ===========================================================================
 *
@@ -82,15 +82,13 @@ defproc einsert_line
 ; ---------------------------------------------------------------------------
 defc Enter
    universal cua_marking_switch
+   universal curkey
+   universal prevkey
 
    action = strip( arg(1))
 
-   k  = lastkey()
-   pk = lastkey(1)
-   if pk = k then
-      call EnableUndoRec()
-   else
-      call NewUndoRec()
+   if prevkey = curkey then
+      call DisableUndoRec()
    endif
 
    -- .DOS dir files: Make dir mask after "Directory of" editable and create
@@ -175,5 +173,9 @@ defc Enter
       if is_lastline then  -- This keeps the === Bottom === line visible.
          down
       endif
+   endif
+
+   if prevkey <> curkey then
+      call NewUndoRec()
    endif
 

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: undo.e,v 1.9 2009-10-26 23:03:59 aschn Exp $
+* $Id: undo.e,v 1.9 2009/10/26 23:03:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -58,12 +58,21 @@ defproc EnableUndoRec
 ; Disable undo recording. This is used by several key defcs, e.g.:
 ; Space, Tab, TypeTab, ShiftLeft, ShiftRight, DeleteChar, BackSpace
 defproc DisableUndoRec
-   action = 0  -- action, the 2nd param of undoaction, must be a var
-   undoaction 4, action  -- 4: disable undo recording at action
-   action = 1  -- action, the 2nd param of undoaction, must be a var
-   undoaction 4, action  -- 4: disable undo recording at action
-   action = 2  -- action, the 2nd param of undoaction, must be a var
-   undoaction 4, action  -- 4: disable undo recording at action
+compile if 1
+   universal curkey
+   universal prevkey
+   -- Only disable it if current key wasn't pressed before
+   if curkey <> prevkey then
+compile endif
+      action = 0  -- action, the 2nd param of undoaction, must be a var
+      undoaction 4, action  -- 4: disable undo recording at action
+      action = 1  -- action, the 2nd param of undoaction, must be a var
+      undoaction 4, action  -- 4: disable undo recording at action
+      action = 2  -- action, the 2nd param of undoaction, must be a var
+      undoaction 4, action  -- 4: disable undo recording at action
+compile if 1
+   endif
+compile endif
    return
 
 ; ---------------------------------------------------------------------------
@@ -151,56 +160,62 @@ figure out when to turn it back on.
 
 defc Undo1
    universal current_undo_state
-   universal undo1_key
-   universal redo1_key
-   undo1_key = lastkey()  -- save current key
-   lk = lastkey(1)
-   if lk = undo1_key | lk = redo1_key then  -- last key was undo or redo
-      parse value current_undo_state with presentstate oldeststate neweststate
-      if presentstate > oldeststate then
-         presentstate = presentstate - 1
-         undoaction 7, presentstate
-         current_undo_state = presentstate oldeststate neweststate
-         'SayHint Now at state' presentstate 'of' neweststate
+   universal curkey
+   universal prevkey
+   parse value( prevkey) with Key''\1''Cmd
+   UndoKeys = strip( GetAVar( 'keycmd.undo1')) strip( GetAVar( 'keycmd.redo1'))
+   --dprintf( 'Key = 'Key', UndoKeys = 'UndoKeys)
+   if wordpos( Key, UndoKeys) > 0 then  -- last key was undo or redo
+      parse value current_undo_state with PresentState OldestState NewestState
+      if PresentState > OldestState then
+         PresentState = PresentState - 1
+         undoaction 7, PresentState
+         current_undo_State = PresentState OldestState NewestState
+         'SayHint Now at state' PresentState 'of' NewestState
       else
          --call beep(800, 500)
-         'SayHint Already at state' presentstate 'of' neweststate
+         'SayHint Already at state' PresentState 'of' NewestState
       endif
    else
       -- Need to get new state information
       undoaction 1, starting_state  -- Do to fix range and for value.
       undoaction 6, StateRange               -- query range
-      parse value staterange with oldeststate neweststate
-      presentstate = neweststate - 1
-      undoaction 7, presentstate
-      current_undo_state = presentstate oldeststate neweststate
-      'SayHint Initialized at state' presentstate 'of' neweststate
+      parse value StateRange with OldestState NewestState
+      if NewestState = 1 then
+         'SayHint No earlier undo states available'
+      else
+         PresentState = NewestState - 1
+         undoaction 7, PresentState
+         current_undo_state = PresentState OldestState NewestState
+         'SayHint Initialized at state' PresentState 'of' NewestState
+      endif
    endif
 
 defc Redo1
    universal current_undo_state
-   universal undo1_key
-   universal redo1_key
-   redo1_key = lastkey()  -- save current key
-   lk = lastkey(1)
-   if lk = undo1_key | lk = redo1_key then  -- last key was undo or redo
-      parse value current_undo_state with presentstate oldeststate neweststate
-      if presentstate < neweststate then
-         presentstate = presentstate + 1
-         undoaction 7, presentstate
-         current_undo_state = presentstate oldeststate neweststate
-         'SayHint Now at state' presentstate 'of' neweststate
+   universal curkey
+   universal prevkey
+   parse value( prevkey) with Key''\1''Cmd
+   UndoKeys = strip( GetAVar( 'keycmd.undo1')) strip( GetAVar( 'keycmd.redo1'))
+   --dprintf( 'Key = 'Key', UndoKeys = 'UndoKeys)
+   if wordpos( Key, UndoKeys) > 0 then  -- last key was undo or redo
+      parse value current_undo_state with PresentState OldestState NewestState
+      if PresentState < NewestState then
+         PresentState = PresentState + 1
+         undoaction 7, PresentState
+         current_undo_state = PresentState OldestState NewestState
+         'SayHint Now at state' PresentState 'of' NewestState
       else
-         'SayHint Already at state' presentstate 'of' neweststate
+         'SayHint Already at state' PresentState 'of' NewestState
       endif
    else
       --call beep(800, 500)
       -- Need to get new state information
       undoaction 1, starting_state  -- Do to fix range and for value.
       undoaction 6, StateRange               -- query range
-      parse value staterange with oldeststate neweststate
-      presentstate = neweststate
-      current_undo_state = presentstate oldeststate neweststate
-      'SayHint Initialized at state' presentstate 'of' neweststate
+      parse value StateRange with OldestState NewestState
+      presentState = NewestState
+      current_undo_state = PresentState OldestState NewestState
+      'SayHint Initialized at state' PresentState 'of' NewestState
    endif
 

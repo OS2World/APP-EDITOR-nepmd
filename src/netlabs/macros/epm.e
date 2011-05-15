@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epm.e,v 1.39 2008-09-05 22:45:13 aschn Exp $
+* $Id: epm.e,v 1.39 2008/09/05 22:45:13 aschn Exp $
 *
 * ===========================================================================
 *
@@ -85,8 +85,6 @@ compile if not VANILLA
 compile endif  -- not VANILLA
 
 include        'modify.e'
-
-include        STDKEYS_NAME'.e'  -- Key bindings
 
 include        'balance.e'     -- Highlight matching identifier while typing
 

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: draw.e,v 1.6 2006-12-10 11:33:44 aschn Exp $
+* $Id: draw.e,v 1.6 2006/12/10 11:33:44 aschn Exp $
 *
 * ===========================================================================
 *
@@ -76,22 +76,18 @@ compile if not defined(WANT_DBCS_SUPPORT)
 compile endif
 
 ; ---------------------------------------------------------------------------
-defmain     --  We want to start executing as soon as we're linked.
-   'draw' arg(1)
-
-; ---------------------------------------------------------------------------
-defc Draw
+; defc Draw is now defined in STDCNF.E to load DRAW.EX explicitely. That is
+; required, because the Draw accelerator keyset uses commands now. With
+; implicite loading via defining defmain Draw, the EX file would be unloaded
+; before a key command is executed.
+; defc Draw calls Draw_Init.
+defc Draw_Init
    universal boxtab1,boxtab2,boxtab3,boxtab4
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
 compile if WANT_DBCS_SUPPORT
    universal ondbcs
 compile endif
-   universal draw_starting_keyset
    universal cursor_mode
-   if .keyset = 'DRAW_KEYS' then
-      sayerror ALREADY_DRAWING__MSG
-      return
-   endif
 
    style=upcase(substr(arg(1),1,1))
    if not length(style) or verify(style,"123456B/") then
@@ -109,7 +105,20 @@ compile endif
       return
    endif
 
-   /* Pick characters from a packed string rather than if's, to save space. */
+   getfileid fid
+   Keyset = GetAVar( 'keyset.'fid)
+   if Keyset = 'draw' then
+      sayerror ALREADY_DRAWING__MSG
+      return
+   else
+      PreviousKeyset = GetAVar( 'previouskeyset.'fid)
+      if PreviousKeyset = '' then
+         call SetAVar( 'previouskeyset.'fid, Keyset)
+      endif
+      'SetKeyset draw'
+   endif
+
+   -- Pick characters from a packed string rather than if's, to save space.
 compile if WANT_DBCS_SUPPORT
    if ondbcs then
       all6=\23\5\2\4\3\1\21\22\25\6\16'+|+++++++-+'\11\11\11\11\11\11\11\11\11\11\11\14\14\14\14\14\14\14\14\14\14\14\20\20\20\20\20\20\20\20\20\20\20\26\26\26\26\26\26\26\26\26\26\26
@@ -126,7 +135,7 @@ compile endif
    else
       drawchars=substr(all6,11*style-10,11)
    endif
-;  LAM - changed assignments to a parse statement.  Saved 140 bytes of .ex file.
+   --  LAM - changed assignments to a parse statement.  Saved 140 bytes of .ex file.
    parse value drawchars with g1 +1 g2 +1 g3 +1 g4 +1 g5 +1 g6 +1 g7 +1 g8 +1 g9 +1 ga +1 gb
    boxtab1=g1||g2||g4||g5||g7||g9||gb
    boxtab2=g1||g2||g3||g6||g8||g9||gb
@@ -135,11 +144,6 @@ compile endif
 
    undotime = 2            -- 2 = when moving the cursor from a modified line
    undoaction 4, undotime  -- Disable state recording at specified time
-
-   -- EPM:  The old DRAW used a getkey() loop.  We don't have getkey() in EPM.
-   -- The new way:  define a clear keyset of only the active keys.
-   draw_starting_keyset = upcase(.keyset)
-   keys draw_keys
 
    istate=insert_state();
    if istate then
@@ -151,63 +155,57 @@ compile endif
    'togglecontrol 26 0'  -- don't use internal key definitions
 
 ; ---------------------------------------------------------------------------
--- Make it a BASE CLEAR keyset so the only keys that do anything are
--- the ones we explicitly define.  Without the CLEAR, the standard ASCII keys
--- like 'a'-'z' would be automatically included.
-defkeys draw_keys base clear
-def left    =
+defc DrawKeys
+
+DefKey( 'left'         , 'draw_left'       )
+DefKey( 'right'        , 'draw_right'      )
+DefKey( 'up'           , 'draw_up'         )
+DefKey( 'down'         , 'draw_down'       )
+DefKey( 'esc'          , 'draw_exit'       )
+
+; ---------------------------------------------------------------------------
+; Draw mode cursor commands: overwrite mode draws, insert mode moves cursor.
+defc draw_left
    if insert_state() then
       left
    else
       draw_left()
    endif
-def right   =
+
+; ---------------------------------------------------------------------------
+defc draw_right
    if insert_state() then
       right
    else
       draw_right()
    endif
-def up      =
+
+; ---------------------------------------------------------------------------
+defc draw_up
    if insert_state() then
       up
    else
       draw_up()
    endif
-def down    =
+
+; ---------------------------------------------------------------------------
+defc draw_down
    if insert_state() then
       down
    else
       draw_down()
    endif
-def backspace  =
-   rubout
-def ins        =
-   insert_toggle
-   call fixup_cursor()
-def space      =
-   keyin ' '
-def home       =
-   begin_line
-def end        =
-   end_line
-def del        =
-   delete_char
 
--- New in EPM.  This event (pseudo-key) is triggered whenever an otherwise
--- undefined key is pressed.  We let any other key exit draw mode.
--- (Any other key but mouse_move, that is.  It's not considered an "other key"
--- because the mouse movement is too sensitive.
--- This new wrinkle isn't really required.  We could define only one or two
--- keys (like Esc) as exits and simply ignore all others.
-def otherkeys, F3, Esc =
-   universal draw_starting_keyset
+; ---------------------------------------------------------------------------
+defc draw_exit
    universal cursor_mode
-   -- Whatever other key the user pressed, remember it so we can execute it.
-   k = lastkey()
-   -- Just in case the user doesn't have a select_edit_keys(), return to
-   -- the standard keyset to make sure we don't get stuck in draw_keys.
-   keys edit_keys
-   .keyset = draw_starting_keyset -- Return to whatever keyset had been there.
+   getfileid fid
+   Keyset = GetAVar( 'keyset.'fid)
+   if Keyset = 'draw' then
+      PreviousKeyset = GetAVar( 'previouskeyset.'fid)
+      'SetKeyset' PreviousKeyset
+      call DropAVar( 'previouskeyset.'fid)
+   endif
 
    parse value cursor_mode with internalkeys istate
    if istate <> insertstate() then
@@ -219,12 +217,7 @@ def otherkeys, F3, Esc =
    undotime = 2            -- 2 = when moving the cursor from a modified line
    undoaction 5, undotime  -- Enable state recording at specified time
    undoaction 1, junk      -- create a new state
-   -- Execute the key the user pressed when he quit drawing.
    sayerror DRAW_ENDED__MSG
-
-   if k <> esc & k <> c_I & k <> F3 then executekey k; endif   -- But assume Esc was just to stop DRAW.
-
--- End of EPM mods. ----------------------------------------------------------
 
 ; ---------------------------------------------------------------------------
 defproc get_char
@@ -235,7 +228,8 @@ defproc get_char
    return substr(target,.col,1)
 
 ; ---------------------------------------------------------------------------
-defproc draw_up      /* draw logic for the up key */
+; draw logic for the up key
+defproc draw_up
    universal last,l,r,u,d,boxtab1,linepos,colpos
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
 
@@ -276,7 +270,8 @@ defproc draw_up      /* draw logic for the up key */
    last='u'
 
 ; ---------------------------------------------------------------------------
-defproc draw_down /* Draw logic for the Down key */
+; Draw logic for the Down key
+defproc draw_down
    universal last,l,r,u,d,boxtab2,linepos,colpos
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
 
@@ -317,7 +312,8 @@ defproc draw_down /* Draw logic for the Down key */
    last='d'
 
 ; ---------------------------------------------------------------------------
-defproc left_right   /* Check character left and right of cursor position */
+; Check character left and right of cursor position
+defproc left_right
    universal last,l,r,boxtab3,boxtab4,lpos,rpos,target,colpos
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
 
@@ -329,7 +325,8 @@ defproc left_right   /* Check character left and right of cursor position */
    r=not verify(r,boxtab3) /*if verify(r,boxtab3)==0 then r=1 else r=0 endif*/
 
 ; ---------------------------------------------------------------------------
-defproc draw_left    /* Draw logic for the Left key */
+; Draw logic for the Left key
+defproc draw_left
    universal last,u,d,boxtab3
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
 
@@ -376,7 +373,8 @@ compile endif
    last='l'
 
 ; ---------------------------------------------------------------------------
-defproc draw_right   /* Draw logic for the Right key */
+; Draw logic for the Right key
+defproc draw_right
    universal last,u,d,boxtab4,colpos
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
 
@@ -417,7 +415,8 @@ defproc draw_right   /* Draw logic for the Right key */
    if colpos = MAXCOL then left endif
 
 ; ---------------------------------------------------------------------------
-defproc up_down   /* Check character above and below cursor position */
+; Check character above and below cursor position
+defproc up_down
    universal u,d,boxtab1,boxtab2,linepos,colpos,dpos,upos,target
    universal g1,g2,g3,g4,g5,g6,g7,g8,g9,ga,gb
 

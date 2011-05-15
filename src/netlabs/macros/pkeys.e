@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pkeys.e,v 1.10 2006-03-04 16:05:43 aschn Exp $
+* $Id: pkeys.e,v 1.10 2006/03/04 16:05:43 aschn Exp $
 *
 * ===========================================================================
 *
@@ -20,26 +20,6 @@
 ****************************************************************************/
 
 ; ---------------------------------------------------------------------------
-defkeys pas_keys
-
-/* Taken out, interferes with some people's c_enter. */
-;def c_enter  -- I like Ctrl-Enter to finish the comment field also.
-;   getline line
-;   if pos( '{', line) then
-;      if not pos( '}', line) then
-;         end_line;
-;         keyin ' }'
-;      endif
-;   endif
-;   down;
-;   begin_line
-
-def c_x=       -- Force expansion if we don't have it turned on automatic
-   if pas_first_expansion() then
-      call pas_second_expansion()
-   endif
-
-; ---------------------------------------------------------------------------
 defproc GetPIndent
    universal indent
    ind = indent  -- will be changed at defselect for every mode, if defined
@@ -49,10 +29,10 @@ defproc GetPIndent
    return ind
 
 ; ---------------------------------------------------------------------------
-defc PasFirstExpansion
-   rc = pas_first_expansion()  -- (rc = 0) = processed
+defc PascalFirstExpansion
+   rc = pascal_first_expansion()  -- (rc = 0) = processed
 
-defproc pas_first_expansion
+defproc pascal_first_expansion
    universal END_commented
 
    retc = 0  -- 0 = processed, otherwise 1 is returned
@@ -84,6 +64,7 @@ defproc pas_first_expansion
          retc = 0
 
       elseif wrd = 'FOR' then
+         call NewUndoRec()
          replaceline w' :=  to  do begin'
          insertline substr( wrd, 1, length(wrd) - 3)'end;'END_FOR, .line + 1
          if not insert_state() then insert_toggle
@@ -92,6 +73,7 @@ defproc pas_first_expansion
          keyin ' '
 
       elseif wrd = 'IF' then
+         call NewUndoRec()
          replaceline w' then begin'
          insertline substr( wrd, 1, length(wrd) - 2)'end else begin', .line + 1
          insertline substr( wrd, 1, length(wrd) - 2)'end;'END_IF, .line + 2
@@ -101,6 +83,7 @@ defproc pas_first_expansion
          keyin ' '
 
      elseif wrd = 'WHILE' then
+         call NewUndoRec()
          replaceline w' do begin'
          insertline substr( wrd, 1, length(wrd) - 5)'end;'END_WHILE, .line + 1
          if not insert_state() then insert_toggle
@@ -109,12 +92,14 @@ defproc pas_first_expansion
          keyin ' '
 
       elseif wrd = 'REPEAT' then
+         call NewUndoRec()
          replaceline w
          insertline substr( wrd, 1, length(wrd) - 6)'until  ;'END_REPEAT, .line + 1
          call einsert_line()
          .col = .col + GetPIndent()
 
       elseif wrd = 'CASE' then
+         call NewUndoRec()
          replaceline w' of'
          insertline substr( wrd, 1, length(wrd) - 4)'end;'END_CASE, .line + 1
          if not insert_state() then insert_toggle
@@ -131,10 +116,10 @@ defproc pas_first_expansion
    return retc
 
 ; ---------------------------------------------------------------------------
-defc PasSecondExpansion
-   rc = pas_second_expansion()  -- (rc = 0) = processed
+defc PascalSecondExpansion
+   rc = pascal_second_expansion()  -- (rc = 0) = processed
 
-defproc pas_second_expansion
+defproc pascal_second_expansion
    universal comment_auto_terminate
    universal END_commented
 
@@ -148,6 +133,7 @@ defproc pas_second_expansion
       firstword=upcase(wrd)
 
       if firstword='FOR' then
+         call NewUndoRec()
          parse value upcase(line) with a ':='
          if length(a) >= .col then
             .col = length(a) + 4
@@ -162,6 +148,7 @@ defproc pas_second_expansion
          endif
 
       elseif a = 'BEGIN' or firstword = 'BEGIN' or firstword = 'CASE' or firstword = 'REPEAT' then  -- firstword or last word begin?
+         call NewUndoRec()
 ;        if firstword='BEGIN' then
 ;           replaceline wrd rest
 ;           insert
@@ -172,6 +159,7 @@ defproc pas_second_expansion
 ;        endif
 
       elseif firstword = 'VAR' or firstword = 'CONST' or firstword = 'TYPE' or firstword = 'LABEL' then
+         call NewUndoRec()
          if substr( line, 1, 2) <> '  ' or substr( line, 1, 3) = '   ' then
             getline line2
             replaceline substr( '', 1, GetPIndent())''wrd rest  -- <indent> spaces
@@ -194,6 +182,7 @@ defproc pas_second_expansion
             retc= 1
             return retc
          else
+            call NewUndoRec()
             call einsert_line()
             insertline 'begin'END_NAME, .last + 1
             insertline 'end.'END_NAME, .last + 1
@@ -212,6 +201,7 @@ defproc pas_second_expansion
             retc = 1
             return retc
          else
+            call NewUndoRec()
             call einsert_line()
             insertline 'interface', .last + 1
             insertline 'implementation', .last + 1
@@ -219,6 +209,7 @@ defproc pas_second_expansion
          endif
 
       elseif firstword = 'PROCEDURE' then
+         call NewUndoRec()
          name = getheading_name(rest)
          if END_commented = 1 then
             END_NAME = ' { 'name' }'
@@ -230,6 +221,7 @@ defproc pas_second_expansion
          insertline 'end;'END_NAME, .line + 2
 
       elseif firstword = 'FUNCTION' then
+         call NewUndoRec()
          name = getheading_name(rest)
          if END_commented = 1 then
             END_NAME = ' { 'name' }'
@@ -241,6 +233,7 @@ defproc pas_second_expansion
          insertline 'end;'END_NAME, .line + 2
 
       elseif pos( '(*', line) & comment_auto_terminate then
+         call NewUndoRec()
          if not pos( '*)', line) then
             end_line
             keyin ' *)'
@@ -248,6 +241,7 @@ defproc pas_second_expansion
          call einsert_line()
 
       elseif pos( '{', line) & comment_auto_terminate then
+         call NewUndoRec()
          if not pos( '}', line) then
             end_line
             keyin ' }'

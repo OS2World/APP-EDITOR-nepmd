@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rexxkeys.e,v 1.16 2006-10-23 16:38:59 aschn Exp $
+* $Id: rexxkeys.e,v 1.16 2006/10/23 16:38:59 aschn Exp $
 *
 * ===========================================================================
 *
@@ -106,15 +106,6 @@ defproc StripBlanks( in)
    return next
 
 ; ---------------------------------------------------------------------------
-defkeys rexx_keys
-
-; Force expansion if we don't have it turned on automatic
-def c_x
-   if rex_first_expansion() then
-      call rex_second_expansion()
-   endif
-
-; ---------------------------------------------------------------------------
 defproc GetRexxIndent
    universal indent
    ind = indent  -- will be changed at defselect for every mode, if defined
@@ -192,6 +183,7 @@ defproc rex_first_expansion
          retc = 1
 
       elseif wrd = 'IF' then
+         call NewUndoRec()
          if rexx_force_case then
             replaceline ind''RexxSyntaxCase( 'if  then')
          else
@@ -203,6 +195,7 @@ defproc rex_first_expansion
          .col = col + 1
 
       elseif wrd = 'WHEN' then
+         call NewUndoRec()
          if rexx_force_case then
             replaceline ind''RexxSyntaxCase( 'when  then')
          else
@@ -211,6 +204,7 @@ defproc rex_first_expansion
          .col = col + 1
 
       elseif wrd = 'DO' then
+         call NewUndoRec()
          if rexx_force_case then
             replaceline ind''RexxSyntaxCase( 'do ')
          else
@@ -291,6 +285,7 @@ defproc rex_second_expansion
             return retc
          endif
 -- Todo: skip expansion, if matching END found.
+         call NewUndoRec()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( s1), line, p)
          endif
@@ -300,6 +295,7 @@ defproc rex_second_expansion
          endline
 
       elseif firstword = 'SELECT' then
+         call NewUndoRec()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( 'select'), line, firstp)
          endif
@@ -384,6 +380,7 @@ defproc rex_second_expansion
                endif
             enddo
          endif
+         call NewUndoRec()
          -- Re-indent END line
          -- must come first
          if endp > 0 then
@@ -415,6 +412,7 @@ defproc rex_second_expansion
          endline
 
       elseif firstword = 'IF' then
+         call NewUndoRec()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( 'if'), line, firstp)
          endif
@@ -423,6 +421,7 @@ defproc rex_second_expansion
          endline
 
       elseif firstword = 'WHEN' then
+         call NewUndoRec()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( 'when'), line, firstp)
          endif
@@ -431,6 +430,7 @@ defproc rex_second_expansion
          endline
 
       elseif firstword = 'OTHERWISE' then
+         call NewUndoRec()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( 'otherwise'), line, firstp)
          endif
@@ -439,6 +439,7 @@ defproc rex_second_expansion
          endline
 
       elseif firstword = 'ELSE' then
+         call NewUndoRec()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( 'else'), line, firstp)
          endif
@@ -447,6 +448,7 @@ defproc rex_second_expansion
          endline
 
       elseif (firstword = '/*' | firstword = '/**') & words( tline) = 1 then
+         call NewUndoRec()
          insertline ind' * ', .line + 1
          -- Search for closing comment */
          fFound = 0
@@ -475,6 +477,7 @@ defproc rex_second_expansion
 
       elseif firstword = '/*H' then
          if words( tline) = 1 then
+            call NewUndoRec()
             -- Style 1:
             -- /***************
             -- * |
@@ -516,6 +519,7 @@ defproc rex_second_expansion
             endif
          enddo
          if fFound = 1 then
+            call NewUndoRec()
             RestLine = strip( substr( line, .col), 'L')
             erase_end_line
             if firstp = 1 then
@@ -530,6 +534,7 @@ defproc rex_second_expansion
          endif
 
       elseif pos( '/*', line) & comment_auto_terminate then
+         call NewUndoRec()
          if not pos( '*/', line) then
             end_line
             keyin ' */'

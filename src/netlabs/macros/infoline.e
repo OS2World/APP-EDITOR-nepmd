@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: infoline.e,v 1.17 2009-06-23 01:23:06 aschn Exp $
+* $Id: infoline.e,v 1.17 2009/06/23 01:23:06 aschn Exp $
 *
 * ===========================================================================
 *
@@ -352,6 +352,7 @@ defproc GetInfoFieldValue(FVar, var FFlag)
    universal expand_on
    universal matchtab_on
    universal cua_marking_switch
+   universal activeaccel
 
    -- Get Sep
    Sep = GetFieldSep()
@@ -372,7 +373,7 @@ defproc GetInfoFieldValue(FVar, var FFlag)
    elseif FVar = 'SYNTAXEXPANSION' then FVar = 'EXPAND'
    elseif FVar = 'ADVANCEDMARKING' then FVar = 'MARKINGMODE'
    elseif FVar = 'CUAMARKING'      then FVar = 'MARKINGMODE'
-   elseif FVar = 'KEYSET'          then FVar = 'KEYS'
+   elseif FVar = 'KEYS'            then FVar = 'KEYSET'
    elseif FVar = 'SPELLCHECK'      then FVar = 'DYNASPELL'
    elseif FVar = 'SPELL'           then FVar = 'DYNASPELL'
    elseif FVar = 'DICTLANG'        then FVar = 'DICT'
@@ -426,16 +427,16 @@ defproc GetInfoFieldValue(FVar, var FFlag)
                                          FFlag  = 'EXPAND'
    elseif FVar = 'MARKINGMODE'      then FValue = word( 'Adv CUA', (cua_marking_switch = 1) + 1)  -- show 'CUA' or 'Adv'
                                          FFlag  = 'MARKINGMODE'
-   elseif FVar = 'KEYS'             then FValue = .keyset                                -- show 'EDIT_KEYS' (default) or 'REXX_KEYS'
-                                         FFlag  = 'KEYS'
+   elseif FVar = 'KEYSET'           then FValue = activeaccel
+                                         FFlag  = 'KEYSET'
    elseif FVar = 'CODINGSTYLE'      then FValue = GetCodingStyle()
                                          FFlag  = 'FILE'
    elseif FVar = 'DYNASPELL'        then FValue = word( '- Spchk', (.keyset = 'SPELL_KEYS') + 1)  -- show '-' or 'Spchk'
                                          FFlag  = 'KEYS'
    elseif FVar = 'DICT'             then FValue = GetDictBaseName()
                                          FFlag  = 'DICT'
-; not implemented yet:
-;  elseif FVar = 'SECTION'          then FValue = GetCurSection()                        -- shows current section or function
+; not fully implemented yet, just for testing:
+   elseif FVar = 'SECTION' & isadefproc( 'GetCurSection') then FValue = GetCurSection()  -- shows current section or function
    endif
 
    return FValue
@@ -555,7 +556,7 @@ defc ProcessSelectRefreshInfoline
 ;   call NepmdPmPrintf('PROCESSSELECTREFRESHINFOLINE: executing refreshinfoline -- '.filename)
    'ResetDateTimeModified'  -- required to check file on disk
    Flags = 'TABS TABKEY MATCHTAB MODE MARGINS FILE SECTION MODIFIED' ||
-           ' STREAMMODE EXPAND MARKINGMODE KEYS'
+           ' STREAMMODE EXPAND MARKINGMODE KEYSET'
    'RefreshInfoLine' Flags
 
 ; ---------------------------------------------------------------------------
@@ -756,7 +757,8 @@ defc ConfigInfoLine
       Cmd      = 'mc /ResetStatusFields/RefreshStatusLine'
       -- The following uses only internally defined fields and
       -- therefore avoids the overhead for additional refreshs
-      Standard = "Line <line> of <lines> * Col <col> * '<hex>'x/<dec> * <ins> * <modified>"
+      --Standard = "Line <line> of <lines> * Col <col> * '<hex>'x/<dec> * <ins> * <modified>"
+      Standard = "Line <line> of <lines> * Col <col> * '<hex>'x/<dec> * Ma <ma> * Tabs <tabs>, <tabkey> * <mode> * <keyset> * <section> * <modified>"
    elseif Type = 'SEP' then
       KeyPath  = '\NEPMD\User\InfoLine\Sep'
       Title    = 'Enter new string as separator between fields'

@@ -32,6 +32,7 @@ assist
 backup
 bookmark
 box
+cuakeys
 dict
 draw
 epmcomp
@@ -51,7 +52,6 @@ locate
 maketags
 modecnf
 modeexec
-mozkeys
 newmenu
 next_win
 ovshmenu
@@ -62,6 +62,7 @@ recompile
 reflowmail
 showu
 singlespace
+stdkeys
 stdmenu
 tags
 testkeys

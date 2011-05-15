@@ -1,6 +1,6 @@
 /****************************** Module Header *******************************
 *
-* Module Name: cuakeys.e.e
+* Module Name: cuakeys.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *

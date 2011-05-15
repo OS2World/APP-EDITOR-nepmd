@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdcnf.e,v 1.40 2008-11-13 13:46:49 aschn Exp $
+* $Id: stdcnf.e,v 1.40 2008/11/13 13:46:49 aschn Exp $
 *
 * ===========================================================================
 *
@@ -19,7 +19,10 @@
 *
 ****************************************************************************/
 
-; ---------------------------------------------------------------------------
+; ===========================================================================
+; Part 1: configuration constants
+; ===========================================================================
+
 const
 
 compile if not defined(NLS_LANGUAGE)
@@ -212,26 +215,69 @@ compile if not defined(STDKEYS_NAME)
 compile endif
 
 
-; ---------------------------------------------------------------------------
-; Include this in EPM.EX to workaround a bug in EPM's keyset handling:
-; .keyset = '<new_keyset>' works only, if <new_keyset> was defined in the
-; same .EX file, from where the keyset should be changed.
-; Executing 'UseKeys <new_keyset>' instead from an separately compiled
-; module (e.g. MODECNF) switches to the specified keyset.
-; In contrast to setting a keyset with the field attribute, querying it
-; always works as expected: curkeyset = .keyset
-defc UseKeys
-   .keyset = arg(1)
+; ===========================================================================
+; Part 2: Default keyset via ETK definitions
+;         Keys are usually defined via PM accelerator key definitions.
+; ===========================================================================
+
+; Bug in EPM's keyset handling:
+; .keyset = '<new_keyset>' works only, if <new_keyset> was defined in
+; the same .EX file, from where the keyset should be changed.
+; Therefore (as a workaround) switch temporarily to the externally
+; defined keyset in order to make it known for 'SetKeys':
+;
+; definit  -- required for a separately compiled package
+;    saved_keys = .keyset
+;    .keyset = '<new_keyset>'
+;    .keyset = saved_keys
+;
+; Note: An .EX file, that defines a keyset, can't be unlinked, when this
+; keyset is in use.
 
 ; ---------------------------------------------------------------------------
-; Define an empty keyset for to temporarily switch to. That enables unlinking
-; of a module that defines the keyset that is currently in use.
-defkeys dummy_keys new clear
+; This defines the standard keyset. It's important to use the option 'clear'.
+; Otherwise otherkeys won't process the standard letters, numbers and chars.
+;
+; The keyset 'edit_keys' must be defined before all other key sets.
+; Therefore this file is actually included early in EPM.E. It's possible to
+; link these defs, but then other key defs must be linked after defining
+; 'edit_keys'.
+; (To do: test if defs from 'edit_keys' are overtaken by other keysets then.)
+defkeys edit_keys new clear
+
+; For testing:
+;def '„'
+;   dprintf( 'lastkey() = 'lastkey()', ch = 'ch)
+;   call AddRecordKey( lastkey())
+;   keyin 'ae'
+
+; Alt+0 ... Alt+9 keys:
+; These standard key defs are not executed as accel keys in order to keep
+; entering a char via Alt+numpad key working.
+; Because accel keys don't create a WM_CHAR message, they can't be handled
+; by lastkey or getkeystate.
+; To assign code to these keys, they have to be additionally defined via the
+; DefKey proc (that is used for defining accel keys). DefKey handles them
+; specially: It sets just an array var, that is queried and executed by
+; ExecKeyCmd.
+def a_1 'ExecKeyCmd a_1'
+def a_2 'ExecKeyCmd a_2'
+def a_3 'ExecKeyCmd a_3'
+def a_4 'ExecKeyCmd a_4'
+def a_5 'ExecKeyCmd a_5'
+def a_6 'ExecKeyCmd a_6'
+def a_7 'ExecKeyCmd a_7'
+def a_8 'ExecKeyCmd a_8'
+def a_9 'ExecKeyCmd a_9'
+def a_0 'ExecKeyCmd a_0'
 
 def otherkeys
-   return
+   'otherkeys'
 
-; -------- Set universal vars and init misc, depending on consts --------
+
+; ===========================================================================
+; Part 3: Set universal vars and init misc, depending on consts
+; ===========================================================================
 ; (Initialization based on ini file values is made by InitConfig, defined
 ; in CONFIG.E. InitConfig is executed by defmain, when all definits are
 ; processed.)
@@ -277,7 +323,7 @@ compile endif
    nepmd_hini = NepmdOpenConfig()
    parse value nepmd_hini with 'ERROR:'rc;
    if (rc > '') then
-      sayerror 'Configuration repository could not be opened, rc='rc;
+      sayerror 'Configuration repository could not be opened, rc = 'rc;
    else
       dprintf( 'DEFINIT', 'Current ini entry: 'queryprofile( HINI_USERPROFILE, 'EPM', 'EPMIniPath'))
       IniFile = NepmdQueryInstValue( 'INIT')
@@ -329,7 +375,7 @@ compile endif
    rc = NepmdInitConfig( nepmd_hini)
    parse value rc with 'ERROR:'rc;
    if (rc > '') then
-      sayerror 'Configuration repository could not be initialized, rc='rc;
+      sayerror 'Configuration repository could not be initialized, rc = 'rc;
    endif
 
    if isadefproc('NepmdQueryConfigValue') then
@@ -354,7 +400,7 @@ compile endif
 ;   si.       -- Style index
 ;   sn.       -- Style name
 ;   F         -- File id for Ring_more command; not used as of EPM 5.20
-   do_array 1, EPM_utility_array_ID, "array.EPM"   -- Create this array.
+   do_array 1, EPM_utility_array_ID, 'array.EPM'   -- Create this array.
 ;compile if 0  -- LAM: Delete this feature; nobody used it, and it slowed things down.
 ;   one = 1                                          -- (Value is a VAR, so have to kludge it.)
 ;   do_array 2, EPM_utility_array_ID, 'menu.0', one           -- Item 0 says there is one item.
@@ -586,6 +632,7 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
    -- and toggleframe are used above.
 
    'linkverify keys'
+   'link stdkeys'          -- accelerator key defs, gathered as defc StdKeys
 
 ;; Test for linking/unlinking the standard keyset.
 ;; Link works, but the keyset is not processed.
@@ -617,7 +664,10 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
 
 -----------------  End of DEFINIT  ------------------------------------------
 
-; -------- Define commands here for the dynalink feature --------------------
+
+; ===========================================================================
+; Part 3: Define commands here for the dynalink feature
+; ===========================================================================
 ; That avoids a link or even an include.
 ; In contrast to the implicite linking, the linked EX file remains linked
 ; after the command execution.
@@ -640,6 +690,8 @@ defc poptagsdlg  = link_exec( 'tags', 'poptagsdlg',  arg(1))
 defc maketags    = link_exec( 'maketags', 'maketags',  arg(1))
 
 defc viewword = link_exec( 'kwhelp', 'viewword', arg(1))
+
+defc draw = link_exec( 'draw', 'draw_init', arg(1))
 
 ;if isadefc( 'InitModeCnf') then
 ;   'InitModeCnf'

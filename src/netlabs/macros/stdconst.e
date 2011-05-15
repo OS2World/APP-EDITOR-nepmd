@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdconst.e,v 1.13 2009-05-14 21:45:40 aschn Exp $
+* $Id: stdconst.e,v 1.13 2009/05/14 21:45:40 aschn Exp $
 *
 * ===========================================================================
 *
@@ -136,23 +136,41 @@ compile endif
    INI_OPT2FLAGS     = 'OPT2FLAGS'  -- Addenda to OPTFLAGS for new 32-bit version's config
 ; compile endif
 
+; Virtual key constants
+/*
+  o g:\dev\toolkt45\h\pmwin.h 'mc ;xcom l /Virtual key values/t ;postme centerline'
+*/
    VK_BUTTON1   =  1
    VK_BUTTON2   =  2
    VK_BUTTON3   =  3
+   VK_BREAK     =  4
    VK_BACKSPACE =  5
-   VK_NEWLINE   =  8  -- Note:  this is the regular Enter key.
+   VK_TAB       =  6
+   VK_BACKTAB   =  7
+   VK_NEWLINE   =  8  -- This is the regular Enter key
    VK_SHIFT     =  9
    VK_CTRL      = 10
    VK_ALT       = 11
    VK_ALTGRAF   = 12
+   VK_PAUSE     = 13
    VK_CAPSLOCK  = 14
+   VK_ESC       = 15
+   VK_SPACE     = 16
+   VK_PAGEUP    = 17
+   VK_PAGEDOWN  = 18
+   VK_END       = 19
+   VK_HOME      = 20
+   VK_LEFT      = 21
    VK_UP        = 22
+   VK_RIGHT     = 23
    VK_DOWN      = 24
+   VK_PRINTSCRN = 25
    VK_INSERT    = 26
    VK_DELETE    = 27
    VK_SCRLLOCK  = 28
    VK_NUMLOCK   = 29
-   VK_ENTER     = 30  -- Note:  this is the numeric keypad Enter key.
+   VK_ENTER     = 30  -- This is the numeric keypad Enter key
+   VK_SYSRQ     = 31
    VK_F1        = 32
    VK_F2        = 33
    VK_F3        = 34
@@ -166,7 +184,8 @@ compile endif
    VK_F11       = 42
    VK_F12       = 43
 
-   AF_CHAR        =   1   -- key style constants
+; Key style constants
+   AF_CHAR        =   1
    AF_VIRTUALKEY  =   2
    AF_SCANCODE    =   4
    AF_SHIFT       =   8
@@ -176,11 +195,13 @@ compile endif
    AF_SYSCOMMAND  = 256
    AF_HELP        = 512
 
-   KS_DOWN        = 1    /* The four possible results of getkeystate(). */
+; The four possible results of getkeystate()
+   KS_DOWN        = 1
    KS_DOWNTOGGLE  = 2
    KS_UP          = 3
    KS_UPTOGGLE    = 4
-                        -- Constants for WinMessageBox
+
+; Constants for WinMessageBox
    MB_OK                =        0  -- Pick one of the following for the
    MB_OKCANCEL          =        1  -- buttons you want on the message box
    MB_RETRYCANCEL       =        2
