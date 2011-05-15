@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: newmenu.e,v 1.73 2009/12/29 23:00:03 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

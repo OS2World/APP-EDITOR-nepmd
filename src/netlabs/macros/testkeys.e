@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: testkeys.e,v 1.3 2004-07-09 14:06:08 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

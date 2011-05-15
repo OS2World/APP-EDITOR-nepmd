@@ -34,7 +34,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2006
 *
-* $Id: epmshell.cmd,v 1.5 2008-12-07 22:10:39 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querystringea.e,v 1.3 2003-08-30 16:01:03 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

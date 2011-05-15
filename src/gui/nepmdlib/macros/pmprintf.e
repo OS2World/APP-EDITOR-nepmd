@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: pmprintf.e,v 1.6 2006-12-09 17:56:42 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

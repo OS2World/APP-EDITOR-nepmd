@@ -15,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: comstat.cmd,v 1.2 2002-09-09 16:02:01 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -23,7 +23,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: rmwpi.cmd,v 1.7 2004-12-25 15:13:38 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *
@@ -40,7 +40,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.7 $" WITH . Version .;
+ PARSE VALUE "$Revision$" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';

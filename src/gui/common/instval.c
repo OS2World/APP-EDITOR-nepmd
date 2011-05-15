@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.c,v 1.17 2008-09-20 23:14:30 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

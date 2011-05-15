@@ -42,7 +42,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: setenv.cmd,v 1.7 2006-11-10 22:54:39 jbs Exp $
+: $Id$
 :
 : ===========================================================================
 :

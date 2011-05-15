@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: recompile.e,v 1.18 2011-04-25 15:56:40 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

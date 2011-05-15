@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sortepm.e,v 1.7 2006-12-10 11:35:51 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

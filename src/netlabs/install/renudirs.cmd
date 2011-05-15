@@ -39,7 +39,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: renudirs.cmd,v 1.12 2008-12-08 22:29:48 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: titleeng.inc,v 1.6 2008-11-13 09:30:46 cla Exp $
+.. $Id$
 ..
 .. ===========================================================================
 ..

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ovshmenu.e,v 1.15 2006-12-09 19:36:22 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -15,7 +15,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: cdd.cmd,v 1.4 2007-09-01 20:49:56 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

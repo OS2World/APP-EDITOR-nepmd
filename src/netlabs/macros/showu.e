@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: showu.e,v 1.2 2008-09-05 23:10:56 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

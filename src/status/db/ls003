@@ -3,7 +3,7 @@ TITLE: Enhance error parsing
 PRIO: 2
 STATUS: started
 FILES: tex.e (??? more ?)
-UPDATED: $Id: ls003,v 1.2 2002-07-19 08:49:04 cla Exp $
+UPDATED: $Id$
 
 generic error parser
 - define general defs for all languages

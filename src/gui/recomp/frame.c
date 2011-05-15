@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: frame.c,v 1.8 2006-01-07 23:30:55 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: mozkeys.e,v 1.2 2009-02-16 20:57:02 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

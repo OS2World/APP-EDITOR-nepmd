@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: colors.e,v 1.4 2002-09-16 16:55:43 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

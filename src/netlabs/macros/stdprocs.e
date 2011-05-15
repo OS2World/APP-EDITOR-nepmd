@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdprocs.e,v 1.22 2011-04-25 16:06:21 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

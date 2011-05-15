@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextconfigkey.e,v 1.4 2003-08-30 16:01:00 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

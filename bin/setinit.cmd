@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setinit.cmd,v 1.3 2006-11-12 12:53:06 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

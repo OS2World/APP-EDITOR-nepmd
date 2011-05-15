@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: checkprg.cmd,v 1.3 2006-11-08 21:13:45 jbs Exp $
+* $Id$
 *
 * ===========================================================================
 *
@@ -37,7 +37,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.3 $" WITH . Version .;
+ PARSE VALUE "$Revision$" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';

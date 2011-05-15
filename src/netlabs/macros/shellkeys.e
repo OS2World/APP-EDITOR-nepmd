@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: shellkeys.e,v 1.7 2008/11/13 10:54:55 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

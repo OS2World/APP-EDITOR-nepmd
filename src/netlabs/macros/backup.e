@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
-* $Id: backup.e,v 1.2 2008-09-23 01:42:12 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

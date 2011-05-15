@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tree.e,v 1.8 2009-01-02 13:28:07 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

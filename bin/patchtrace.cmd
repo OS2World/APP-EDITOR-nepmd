@@ -19,7 +19,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: patchtrace.cmd,v 1.2 2002-11-01 13:45:58 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *
@@ -38,7 +38,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.2 $" WITH . Version .;
+ PARSE VALUE "$Revision$" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';

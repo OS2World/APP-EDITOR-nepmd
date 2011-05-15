@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: charops.e,v 1.5 2006-03-29 23:54:00 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

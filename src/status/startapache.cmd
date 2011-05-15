@@ -13,7 +13,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: startapache.cmd,v 1.7 2003-09-19 10:11:35 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: config.e,v 1.25 2009/02/16 21:37:01 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

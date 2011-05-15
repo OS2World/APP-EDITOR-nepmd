@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: activatehighlight.e,v 1.10 2006-10-04 21:24:43 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

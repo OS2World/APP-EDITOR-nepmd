@@ -51,7 +51,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: esrcscan.cmd,v 1.17 2007-02-04 16:49:04 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

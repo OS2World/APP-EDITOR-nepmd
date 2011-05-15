@@ -17,7 +17,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stripeversion.cmd,v 1.2 2002-08-06 20:39:07 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *
@@ -36,7 +36,7 @@
 
  TitleLine = STRIP(SUBSTR(SourceLine(2), 3));
  PARSE VAR TitleLine CmdName'.CMD 'Info;
- PARSE VALUE "$Revision: 1.2 $" WITH . Version .;
+ PARSE VALUE "$Revision$" WITH . Version .;
  Title     = CmdName 'V'Version Info;
 
  env          = 'OS2ENVIRONMENT';

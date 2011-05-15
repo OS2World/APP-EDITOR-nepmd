@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: commands.e,v 1.4 2008-09-14 15:32:36 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -14,7 +14,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: initreg.cmd,v 1.6 2008-10-08 00:52:18 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddelog.c,v 1.9 2006-05-21 19:00:14 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

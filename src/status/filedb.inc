@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: filedb.inc,v 1.6 2002-07-22 14:09:19 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

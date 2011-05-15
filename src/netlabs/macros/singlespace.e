@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: singlespace.e,v 1.1 2004-11-30 21:08:38 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

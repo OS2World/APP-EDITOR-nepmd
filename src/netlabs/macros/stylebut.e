@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stylebut.e,v 1.5 2008-09-14 15:32:42 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

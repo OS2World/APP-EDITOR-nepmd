@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: balance.e,v 1.3 2006-12-10 11:18:32 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

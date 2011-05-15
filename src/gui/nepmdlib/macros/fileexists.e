@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fileexists.e,v 1.8 2003-08-30 16:00:59 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

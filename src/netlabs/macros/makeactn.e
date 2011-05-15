@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: makeactn.e,v 1.6 2008-12-20 12:55:59 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

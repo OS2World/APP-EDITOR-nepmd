@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: mode.c,v 1.8 2006-10-09 00:12:41 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

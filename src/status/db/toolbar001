@@ -3,7 +3,7 @@ TITLE: Add more items
 PRIO: 2
 STATUS: coding
 FILES: openparent.erx monopropfont.e
-UPDATED: $Id: toolbar001,v 1.2 2002-11-03 17:25:33 cla Exp $
+UPDATED: $Id$
 
 Todo:
 - Open parent folder

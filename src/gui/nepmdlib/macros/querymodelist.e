@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querymodelist.e,v 1.2 2003-08-30 16:01:03 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

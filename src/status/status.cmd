@@ -17,7 +17,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: status.cmd,v 1.2 2002-09-09 21:00:59 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

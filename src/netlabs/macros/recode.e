@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2004
 *
-* $Id: recode.e,v 1.2 2004-09-12 15:48:24 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

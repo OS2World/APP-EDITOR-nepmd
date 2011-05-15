@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: searchpath.e,v 1.6 2005-05-01 20:14:50 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

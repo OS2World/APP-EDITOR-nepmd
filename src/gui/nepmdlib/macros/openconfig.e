@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: openconfig.e,v 1.4 2006-12-09 17:55:33 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

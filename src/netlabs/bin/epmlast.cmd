@@ -18,7 +18,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2005
 *
-* $Id: epmlast.cmd,v 1.2 2010-01-24 23:38:44 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

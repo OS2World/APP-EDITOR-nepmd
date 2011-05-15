@@ -9,7 +9,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: fmake.cmd,v 1.2 2002-06-09 21:44:00 cla Exp $
+: $Id$
 :
 : ===========================================================================
 :

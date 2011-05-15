@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: maketags.e,v 1.13 2008-11-22 22:31:36 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

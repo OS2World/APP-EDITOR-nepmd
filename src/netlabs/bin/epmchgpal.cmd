@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2003
 *
-* $Id: epmchgpal.cmd,v 1.6 2005-11-23 22:44:55 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

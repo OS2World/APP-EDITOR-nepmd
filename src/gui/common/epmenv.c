@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: epmenv.c,v 1.34 2008-10-06 05:06:35 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

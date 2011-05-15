@@ -7,7 +7,7 @@
 ..
 .. Copyright (c) Netlabs EPM Distribution Project 2002
 ..
-.. $Id: neprgeng.txt,v 1.7 2006-10-04 21:27:18 aschn Exp $
+.. $Id$
 ..
 .. ===========================================================================
 ..

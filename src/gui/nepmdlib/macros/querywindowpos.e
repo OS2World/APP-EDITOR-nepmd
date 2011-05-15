@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: querywindowpos.e,v 1.7 2003-08-30 16:01:04 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

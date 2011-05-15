@@ -3,5 +3,5 @@ TITLE: Enhance word case change
 PRIO: 1
 STATUS: completed
 FILES:  epmsmp\caseword.e mykeys.e
-UPDATED: $Id: format008,v 1.2 2002-11-03 17:26:17 cla Exp $
+UPDATED: $Id$
 

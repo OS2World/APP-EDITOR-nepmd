@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2007
 *
-* $Id: make.cmd,v 1.1 2007-11-11 02:53:44 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *
