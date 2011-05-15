@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: menuhelp.h,v 1.2 2002-07-23 18:02:49 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

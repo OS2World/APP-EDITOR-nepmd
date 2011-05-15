@@ -10,7 +10,7 @@ EXTPROC CHECKPRG
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: required.cmd,v 1.3 2002-09-03 10:04:20 cla Exp $
+: $Id$
 :
 : ===========================================================================
 :

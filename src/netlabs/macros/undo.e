@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: undo.e,v 1.1 2002-10-06 23:30:11 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

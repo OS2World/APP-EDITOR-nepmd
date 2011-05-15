@@ -3,7 +3,7 @@ TITLE: binary edit support
 PRIO: 2
 STATUS: coding
 FILES: binedit.erx binedit.e
-UPDATED: $Id: format003,v 1.2 2002-09-18 20:23:25 cla Exp $
+UPDATED: $Id$
 
 Mode for editing binary files
 

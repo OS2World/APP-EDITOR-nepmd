@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: tagsactn.e,v 1.2 2002-07-22 19:03:02 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

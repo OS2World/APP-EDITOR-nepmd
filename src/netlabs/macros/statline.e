@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: statline.e,v 1.6 2002-11-01 13:45:12 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

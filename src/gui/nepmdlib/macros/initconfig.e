@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: initconfig.e,v 1.1 2002-09-19 13:03:39 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

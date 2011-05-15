@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: writeconfigvalue.e,v 1.2 2002-09-15 14:58:36 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

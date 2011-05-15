@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: nepmdeng.h,v 1.5 2002-10-31 13:31:39 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

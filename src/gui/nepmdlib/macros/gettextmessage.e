@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: gettextmessage.e,v 1.15 2002-09-20 14:37:20 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

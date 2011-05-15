@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: libversion.e,v 1.9 2002-09-23 20:58:46 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

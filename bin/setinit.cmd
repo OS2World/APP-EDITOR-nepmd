@@ -16,7 +16,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: setinit.cmd,v 1.2 2002-08-22 15:40:09 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

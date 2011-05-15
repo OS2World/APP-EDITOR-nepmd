@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fonts.e,v 1.3 2002-08-18 20:29:59 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

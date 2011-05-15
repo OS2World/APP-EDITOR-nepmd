@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: toolbar.e,v 1.1 2002-10-06 23:30:58 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

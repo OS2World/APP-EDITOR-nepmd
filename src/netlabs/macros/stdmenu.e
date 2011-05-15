@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdmenu.e,v 1.15 2002-10-31 14:54:09 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

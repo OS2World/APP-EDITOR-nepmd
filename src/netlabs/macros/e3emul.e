@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: e3emul.e,v 1.5 2002-09-16 16:55:27 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

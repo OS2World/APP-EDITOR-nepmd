@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: titletext.e,v 1.6 2002-10-20 14:18:14 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

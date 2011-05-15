@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: locate.e,v 1.5 2002-10-20 14:16:17 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -3,7 +3,7 @@ TITLE: Enhance Alt+1
 PRIO: 2
 STATUS: started
 FILES: epmsmp\alt_1.e
-UPDATED: $Id: ls004,v 1.2 2002-07-19 08:49:04 cla Exp $
+UPDATED: $Id$
 
 Enhance file loading with Alt+1 while cursor is on a filespec.                             
 - improve mechanism                       

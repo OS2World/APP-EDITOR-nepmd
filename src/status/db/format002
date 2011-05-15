@@ -3,7 +3,7 @@ TITLE: recode support
 PRIO: 2
 STATUS: coding
 FILES: recode.e
-UPDATED: $Id: format002,v 1.2 2002-09-18 20:23:22 cla Exp $
+UPDATED: $Id$
 
 Call GNU recode via menu items
 

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: getnextconfigkey.e,v 1.3 2002-09-16 22:00:15 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: direxists.e,v 1.6 2002-09-19 11:43:49 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

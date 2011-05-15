@@ -3,7 +3,7 @@ TITLE: Enhance keyword help
 PRIO: 1
 STATUS: completed
 FILES: kwhelp.e
-UPDATED: $Id: ls002,v 1.4 2002-11-03 17:26:17 cla Exp $
+UPDATED: $Id$
 
 Todo:
 - mode dependent NDX selection

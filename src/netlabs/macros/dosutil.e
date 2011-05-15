@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: dosutil.e,v 1.4 2002-09-02 22:13:30 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

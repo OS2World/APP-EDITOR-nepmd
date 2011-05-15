@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: makedep.cmd,v 1.3 2002-06-04 22:29:46 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

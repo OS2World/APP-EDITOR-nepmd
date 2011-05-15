@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: sampactn.e,v 1.4 2002-10-06 23:33:21 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

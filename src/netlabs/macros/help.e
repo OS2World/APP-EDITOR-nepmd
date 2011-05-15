@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: help.e,v 1.3 2002-08-18 20:34:08 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -8,7 +8,7 @@
 :
 : Copyright (c) Netlabs EPM Distribution Project 2002
 :
-: $Id: readme.cmd,v 1.4 2002-06-11 11:09:16 cla Exp $
+: $Id$
 :
 : ===========================================================================
 :

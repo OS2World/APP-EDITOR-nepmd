@@ -7,7 +7,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: closeconfig.e,v 1.2 2002-09-16 18:44:04 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

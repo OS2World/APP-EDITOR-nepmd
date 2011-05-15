@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: linkcmds.e,v 1.3 2002-08-18 20:35:49 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

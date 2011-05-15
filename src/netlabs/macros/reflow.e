@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: reflow.e,v 1.4 2002-09-06 13:46:05 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

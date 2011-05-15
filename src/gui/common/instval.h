@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: instval.h,v 1.8 2002-10-31 14:40:35 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

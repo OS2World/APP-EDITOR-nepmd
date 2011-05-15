@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: commands.e,v 1.2 2002-07-22 18:59:25 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

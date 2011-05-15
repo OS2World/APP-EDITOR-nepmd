@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: fevshmnu.e,v 1.6 2002-09-16 19:49:13 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

@@ -4,7 +4,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: stdctrl.e,v 1.10 2002-10-06 23:41:46 aschn Exp $
+* $Id$
 *
 * ===========================================================================
 *

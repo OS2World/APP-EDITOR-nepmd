@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: ddelog.c,v 1.8 2002-09-18 14:56:07 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

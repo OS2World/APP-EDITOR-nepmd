@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: common.h,v 1.8 2002-09-02 09:36:23 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *

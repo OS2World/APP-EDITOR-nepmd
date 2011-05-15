@@ -6,7 +6,7 @@
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
 *
-* $Id: process.c,v 1.2 2002-08-14 12:16:46 cla Exp $
+* $Id$
 *
 * ===========================================================================
 *
