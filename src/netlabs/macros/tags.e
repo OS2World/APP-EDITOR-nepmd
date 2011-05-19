@@ -1419,12 +1419,14 @@ defc delete_tags_info
    call setprofile(app_hini, INI_TAGSFILES, upcase(arg(1)), '')
 
 defc tagscan
+   universal vepm_pointer
    file_type = filetype()
    file_mode = NepmdGetMode()
    if not tags_supported(file_mode) then
       sayerror "Don't know how to do tags for file of mode '"file_mode"'"
       return 1
    endif
+
    call psave_pos(savepos)
    0
    getfileid sourcefid
@@ -1440,6 +1442,7 @@ defc tagscan
    .visible = 0
    activatefile sourcefid
    proc_name=''
+   mouse_setpointer WAIT_POINTER
    sayerror 'Searching for procedures...'
    rc = proc_search( proc_name, 1, file_mode, file_type)
    while not rc do
@@ -1452,6 +1455,8 @@ defc tagscan
    call prestore_pos(savepos)
    if browse_mode then call browse(1); endif  -- restore browse state
    activatefile lb_fid
+   sayerror 0
+   mouse_setpointer vepm_pointer
 
    if not .modify then  -- Nothing added?
       'xcom quit'
@@ -1459,7 +1464,7 @@ defc tagscan
       sayerror NO_TAGS__MSG
       return
    endif
-   sayerror 0
+
    if listbox_buffer_from_file(sourcefid, bufhndl, noflines, usedsize) then return; endif
    parse value listbox( LIST_TAGS__MSG,         -- title
                         \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),  -- buffer
