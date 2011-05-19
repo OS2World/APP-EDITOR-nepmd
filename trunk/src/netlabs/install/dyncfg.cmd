@@ -13,6 +13,13 @@
 * netlabs\bin\epm.env. It must be the first EPM.EXE along the PATH.
 * See netlabs\book\nepmd.inf for more information about this executable.
 *
+* In UNINSTALL mode, the loader is removed and the ini value for EPM ->
+* EPMIniPath is reset to its default value in order to use ?:\OS2\EPM.INI
+* after that.
+*
+* Note that EPM.EXE, the loader, checks the value of EPMIniPath on every
+* start and corrects it if it doesn't point to %NEPMD_USERDIR%\bin\nepmd.ini
+*
 * This program is intended to be called only by NLSETUP.EXE during NEPMD
 * installation or by RECROBJ.CMD.
 *
@@ -75,6 +82,7 @@ ErrorMessage   = ''
 
 /* Some INI app names and keys of NEPMD project from OS2.INI, defined in nepmd.h */
 NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
+NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
 
 LoaderEaName   = 'NEPMD.Loader'
 
@@ -87,6 +95,7 @@ IF next = '' THEN
    'CALL INSTENV'
 
 RootDir = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_ROOTDIR)'_INST',, env)
+UserDir = VALUE( 'NEPMD_'TRANSLATE( NEPMD_INI_KEYNAME_USERDIR)'_INST',, env)
 
 DO 1
 
@@ -100,15 +109,47 @@ DO 1
 
    /* Check parm */
    ARG Parm .
+
+   IniFile = 'USER'
+   IniApp  = 'EPM'
+   IniKey  = 'EPMIniPath'
+   DefaultVal = BootDrive'\OS2\EPM.INI'
+   NepmdVal   = UserDir'\bin\NEPMD.INI'
+
    IF (Parm = 'UNINSTALL') THEN
    DO
-      /* delete EPM.EXE in ?:\os2 if it is ours */
+      /* Delete EPM.EXE in ?:\os2 if it is ours */
       IF ((fCheckFileExists) & (IsNepmdExecutable( CheckFile, LoaderEaName))) THEN
       DO
          rc = SysFileDelete( CheckFile)
-         LEAVE
       END
-      LEAVE
+
+      /* If ini entry points to NEPMD.INI, overwrite */
+      /* it with default value ?:\OS2\EPM.INI        */
+      DO 1
+         CurVal = STRIP( SysIni( IniFile, IniApp, IniKey), 't', '00'x)
+         IF CurVal = 'ERROR:' THEN
+            LEAVE
+         IF TRANSLATE( CurVal) <> TRANSLATE( NepmdVal) THEN
+            LEAVE
+
+         /* Reset ini key (from NEPMD.INI) to default value for EPM.INI */
+         DO 1
+            /* Search original ini file on disk */
+            Found.0 = 0
+            rcx = SysFileTree( DefaultVal, 'Found.', 'FO')
+            IF Found.0 > 0 THEN
+            DO
+               /* Ensure that H and R attributes are removed */
+               rcx = SysFileTree( DefaultVal, 'Found.', 'FO', '*****', '**--*')
+            END
+         END
+
+         /* Write original value, ignore errors */
+         next = SysIni( IniFile, IniApp, IniKey, DefaultVal'00'x)
+      END
+
+      LEAVE /* UNINSTALL: don't process the rest */
    END
 
    /* Determine name of loader executable */
