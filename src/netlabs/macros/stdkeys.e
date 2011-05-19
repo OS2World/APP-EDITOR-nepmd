@@ -104,8 +104,9 @@ DefKey( 'delete'       , 'DeleteChar'      )    -- Delete current char
 DefKey( 'backspace'    , 'BackSpace'       )    -- Delete previous char (Shift marks)
 DefKey( 's_backspace'  , 'BackSpace'       )    -- Delete previous char (Shift marks)
 DefKey( 'c_backspace'  , 'DeleteLine'      )    -- Delete current line
+DefKey( 'c_delete'     , 'DeleteUntilNextWord') -- Delete from cursor until beginning of next word
 DefKey( 'c_d'          , 'DeleteUntilNextWord') -- Delete from cursor until beginning of next word
-DefKey( 'c_delete'     , 'DeleteUntilEndLine')  -- Delete from cursor until end of line
+DefKey( 'c_s_delete'   , 'DeleteUntilEndLine')  -- Delete from cursor until end of line
 DefKey( 'c_e'          , 'DeleteUntilEndLine')  -- Delete from cursor until end of line
 
 ; ---- Search ----
