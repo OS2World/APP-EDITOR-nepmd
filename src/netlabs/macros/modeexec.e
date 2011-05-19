@@ -1024,7 +1024,6 @@ defc SetKeyset
 
    -- Save the value in an array var, because no field var exists
    call UseSetting( 'Keyset', Name)
-   call UseSetting( 'Keyset', arg(1))
    if loadstate = 0 then
       'refreshinfoline KEYSET'
    endif
