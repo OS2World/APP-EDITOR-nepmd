@@ -30,3 +30,4 @@
 
  start view bin\makefile %PARMS%
 
+REM Test update access
