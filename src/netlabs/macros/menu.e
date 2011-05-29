@@ -116,7 +116,6 @@ definit
 ; If no arg specified, a listbox for menu selection containing all items from
 ; MenuList is opened.
 defc ChangeMenu
-   universal defaultmenu
    universal nepmd_hini
    MenuList = ' 'strip(GetAVar('menulist'))  -- ensure that list starts with a space as separator
    KeyPath = '\NEPMD\User\Menu\Name'
@@ -170,14 +169,16 @@ defc ChangeMenu
   'unlink 'CurMenu'.ex'
    link NewMenu'.ex'
 
+   'RefreshMenu'
+
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewMenu)
+
+; ---------------------------------------------------------------------------
+defc RefreshMenu
+   universal defaultmenu
    deletemenu defaultmenu
    'loaddefaultmenu'
    call showmenu_activemenu()
-
-   deleteaccel 'defaccel'
-   'loadaccel'
-
-   call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewMenu)
 
 ; ---------------------------------------------------------------------------
 ; Called by external packs, that add a menu before the help menu.

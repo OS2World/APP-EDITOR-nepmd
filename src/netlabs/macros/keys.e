@@ -292,7 +292,7 @@ defproc DefKey( KeyString, Cmd)
          Flags = Flags + AF_VIRTUALKEY
       else
          sayerror 'Error: Unknown key string 'KeyString' specified.'
-         dprintf( 'KeyString = 'KeyString', Cmd = 'Cmd', Flags = 'Flags', Key = 'Key', last id = 'lastkeyaccelid)
+         --dprintf( 'KeyString = 'KeyString', Cmd = 'Cmd', Flags = 'Flags', Key = 'Key', last id = 'lastkeyaccelid)
          return
       endif
    endif
@@ -309,15 +309,13 @@ defproc DefKey( KeyString, Cmd)
 
    -- Save key def in array to allow for searching for KeyString and Cmd
    SetAVar( 'keyid.'KeyString, AccelId)
-;   SetAVar( 'keydef.'KeyString, Cmd)
-;   AddAVar( 'keycmd.'Cmd, KeyString)  -- may have multiple key defs
 
    --if KeyString = 'alt' then
    --   dprintf( 'KeyString = 'KeyString', Cmd = 'Cmd', Flags = 'Flags', Key = 'Key', id = 'lastkeyaccelid)
    --endif
-   if KeyString = 'esc' then
-      dprintf( 'KeyString = 'KeyString', Cmd = 'Cmd', Flags = 'Flags', Key = 'Key', this id = 'AccelId', last id = 'lastkeyaccelid)
-   endif
+   --if KeyString = 'c_s' then
+   --   dprintf( 'KeyString = 'KeyString', Cmd = 'Cmd', Flags = 'Flags', Key = 'Key', this id = 'AccelId', last id = 'lastkeyaccelid)
+   --endif
 
 /*
    -- For non-letter chars: define also the shifted variant automatically
@@ -652,6 +650,22 @@ defproc ExecAccelKey
    return
 
 ; ---------------------------------------------------------------------------
+; Keyset array vars:
+;
+;    'keysets'            list of defined keysets
+;    'keyset.'name        list of used keyset cmds for keyset name
+;    'keysetcmd.'cmdname  list of keysets that use cmdname
+;                         (this var allows for changing keysets for all
+;                         loaded files, not just for newly loaded files)
+;
+; Examples with cuakeys active:           Examples without cuakeys active:
+;    'keysets'         = 'std shell'         'keysets'         = 'std shell'
+;    'keyset.std'      = 'std cua'           'keyset.std'      = 'std'
+;    'keysetcmd.std'   = 'std shell'         'keysetcmd.std'   = 'std shell'
+;    'keyset.shell'    = 'std cua shell'     'keyset.shell'    = 'std shell'
+;    'keysetcmd.shell' = 'shell'             'keysetcmd.shell' = 'shell'
+;
+; ---------------------------------------------------------------------------
 ; Define a named accel table. It has to be activated with SetKeyset.
 ;
 ; Syntax: DefKeyset [<name>] [<keyset_cmd_1> <keyset_cmd_2> ...]
@@ -679,7 +693,7 @@ defc DefAccel, DefKeyset
 
    endif
 
-   parse value arg(1) with Name List
+   parse arg Name List
 
    Name = strip( Name)
    if Name = '' | lowcase( Name) = 'edit' | lowcase( Name) = 'default' then
@@ -745,7 +759,7 @@ defc DefAccel, DefKeyset
 
       -- Set array vars for this keyset name
       AddAVar( 'keysets', Name)
-      AddAVar( 'keyset.'Name, KeysetCmds)
+      SetAVar( 'keyset.'Name, KeysetCmds)
       -- For all keyset commands
       do k = 1 to words( KeysetCmds)
          ThisKeyset = word( KeysetCmds, k)
@@ -831,6 +845,48 @@ defc RefreshBlockAlt
 defc LoadAccel
    parse arg args
    'SetKeyset' args  -- defined in MODEXEC.E
+
+; ---------------------------------------------------------------------------
+; SetKeyset: defined in MODEEXEC.E, contains mode-specific part, calls:
+; SetKeyset2: switches keyset.
+defc SetKeyset2
+   universal activeaccel
+   parse arg Name KeyDefs
+   Name = lowcase( strip( Name))
+   -- Default accel table name = 'std' (standard EPM uses 'defaccel')
+   if Name = '' | Name = 'default' then
+      Name = 'std'
+   endif
+   KeyDefs = lowcase( strip( KeyDefs))
+
+   -- Maybe define keyset, if not already done
+   DefinedKeysets = GetAVar( 'keysets')
+   fKeysetChanged = 0
+   PrevKeyDefs = strip( GetAVar( 'keyset.'Name))
+   if KeyDefs = '' then
+      if PrevKeyDefs = '' then
+         NextKeyDefs = Name
+      else
+         NextKeyDefs = PrevKeyDefs
+      endif
+   else
+      NextKeyDefs = KeyDefs
+   endif
+
+   --dprintf( 'SetKeyset2: DefinedKeysets = "'DefinedKeysets'", PrevKeyDefs = "'PrevKeyDefs'", NextKeyDefs = "'NextKeyDefs'"')
+   if wordpos( Name, DefinedKeysets) = 0 then
+      fKeysetChanged = 1
+   elseif NextKeyDefs <> PrevKeyDefs then
+      fKeysetChanged = 1
+   endif
+   if fKeysetChanged = 1 then
+      --dprintf( 'SetKeyset2: "DefKeyset' Name KeyDefs'" called')
+      'DefKeyset' Name KeyDefs
+   endif
+
+   -- Activate keyset
+   activeaccel = Name
+   activateacceltable activeaccel
 
 ; ---------------------------------------------------------------------------
 defc DeleteAccel, DelKeyset
@@ -967,6 +1023,7 @@ defc LinkKeyDefs
 
    KeyPath = '\NEPMD\User\Keys\AddKeyDefs\Selected'
    Current = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   --dprintf( 'LinkKeyDefs: previous = 'GetAVar( 'keyset.'activeaccel)', current = 'Current)
    if Current <> None & Current <> '' then
       'Link quiet 'Current
       do i = 1 to 1
@@ -985,8 +1042,8 @@ defc LinkKeyDefs
             endif
          endif
          if fLinked then
-            'LoadAccel'  -- required for to make the additional accelerator key
-                         -- defc Key_* definitions work, not only def definitions
+            parse value lowcase( Current) with Name'keys'  -- strip 'keys'
+            'SetKeyset std stdname' Name
          endif
       enddo
    endif
@@ -1014,7 +1071,6 @@ defproc GetKeyDef
 ; expected. For unlinking a key def file, no restart is required.
 defc SelectKeyDefs
    universal nepmd_hini
-   universal defaultmenu
    None = '-none-'
 
    parse arg Action Basename
@@ -1130,27 +1186,14 @@ defc SelectKeyDefs
       if Current <> None then
          if linked( Current) > 0 then
             'unlink 'Current
-            rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, None)
          endif
       endif
       if Selected = None then
          Msg = 'No keyset additions file active.'
-compile if 0
+         'SetKeyset std std'
+         'RefreshMenu'
+         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, None)
          sayerror Msg
-         deletemenu defaultmenu
-         'loaddefaultmenu'
-         call showmenu_activemenu()
-         -- The following reloads accelerator key defs only. ETK key defs
-         -- are not reloaded, because the keyset hasn't changed. It's not
-         -- possible to reload them without EPM restart, because they
-         -- belong to EPM.EX.
-         -- It's time for a consistent keyset definition scheme!
-         deleteaccel 'defaccel'
-         'loadaccel'
-compile else
-         'Restart sayerror' Msg
-compile endif
-         -- nop
       else
          -- Check if .E file exists
          findfile EFile, Selected'.e', 'EPMPATH'
@@ -1164,26 +1207,15 @@ compile endif
          endif
          -- Write selected value to NEPMD.INI
          rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, Selected)
-         -- Restart
          Msg = 'Keyset additions file 'upcase( Selected)'.EX activated.'
-compile if 0
+         'LinkKeyDefs'
+         'RefreshMenu'
          sayerror Msg
-         deletemenu defaultmenu
-         'loaddefaultmenu'
-         call showmenu_activemenu()
-         -- The restart can't be avoided
-         deleteaccel 'defaccel'
-         'loadaccel'
-compile else
-         'Restart sayerror' Msg
-compile endif
       endif
    elseif button = 2 then  -- Add
       -- Open fileselector to select an e or ex filename
       -- Call this Cmd again, but with args to repaint the list
       'FileDlg Select a file with additional key definitions, SelectKeyDefs ADD, 'Get_Env('NEPMD_USERDIR')'\macros\*.e'
-      -- Call this Cmd again
-;      'SelectKeyDefs'
       return 0
    elseif button = 3 & Selected <> None then  -- Edit
       -- Load file
@@ -1192,8 +1224,10 @@ compile endif
    elseif button = 4 & Selected <> None then  -- Remove
       if linked( Selected) > 0 then
          'unlink 'Selected
-         rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, None)
       endif
+      'SetKeyset std std'
+      'RefreshMenu'
+      rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, None)
       wp = wordpos( Selected, KeyDefs)
       if wp > 0 then
          NewKeyDefs = DelWord( KeyDefs, wp, 1)
