@@ -999,7 +999,6 @@ defc SetToolbar
 ; ---------------------------------------------------------------------------
 defc SetKeyset
    universal loadstate
-   universal activeaccel
    parse arg Name KeyDefs
    Name = lowcase( strip( Name))
    -- Default accel table name = 'std' (standard EPM uses 'defaccel')
@@ -1008,19 +1007,8 @@ defc SetKeyset
    endif
    KeyDefs = lowcase( strip( KeyDefs))
 
-   -- Maybe define keyset, if not already done
-   DefinedKeysets = GetAVar( 'keysets')
-   if wordpos( Name, DefinedKeysets) = 0 then
-      if Name = 'std' then
-         'DefKeyset' Name
-      else
-         'DefKeyset' Name KeyDefs
-      endif
-   endif
-
-   -- Activate keyset
-   activeaccel = Name
-   activateacceltable activeaccel
+   -- SetKeyset2 (defined in KEYS.E) does the keyset switching
+   'SetKeyset2' Name KeyDefs
 
    -- Save the value in an array var, because no field var exists
    call UseSetting( 'Keyset', Name)

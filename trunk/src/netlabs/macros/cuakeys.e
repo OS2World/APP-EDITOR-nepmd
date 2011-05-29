@@ -36,102 +36,45 @@
 ; NEWMENU.E is prepared to respect the defs in this file, but not any
 ; other changes. To achieve that, NEWMENU.E has to be edited.
 
-; The comment below a definition shows the standard NEPMD definition.
-
+defc CuaKeys
 
 ; Clipboard -----------------------------------------------------------------
-def c_c        'Copy2Clip'            -- W$
-               -- was: Change         -- Change next
-def c_v        'DefaultPaste'         -- W$
-               -- was: GlobalFind     -- Find next in all files of the ring
-def c_x        'Cut'                  -- W$
-               -- was: unused
+DefKey( 'c_c'          , 'Copy2Clip'       )    -- was: Change
+DefKey( 'c_v'          , 'DefaultPaste'    )    -- was: GlobalFind
+DefKey( 'c_x'          , 'Cut'             )    -- was: unused
 
 ; Mark ----------------------------------------------------------------------
-;def c_a       'Select_All'           -- W$
-               -- unchanged
-
+;DefKey( 'c_a'          ,'Select_All'       )   -- unchanged
 
 ; Delete --------------------------------------------------------------------
-def c_del      'DeleteUntilNextWord'  -- Moz
-               -- was: 'DeleteUntilEndLine'  -- Delete from cursor until end of line
-defc Key_c_s_del 'DeleteUntilEndLine'
-
+;DefKey( 'c_delete'     , 'DeleteUntilNextWord') -- unchanged
+;DefKey( 'c_s_delete'   , 'DeleteUntilEndLine')  -- unchanged
 
 ; Undo ----------------------------------------------------------------------
-def c_z        'Undo1'                -- Moz has only 1 undo
-               -- was: unused
-def c_y        'Redo1'                -- Moz has only 1 redo
-               -- was: 'FontList'     -- Open style dialog to add font attributes to mark
-defc Key_c_s_z 'Redo1'                -- Moz has only 1 redo
-
+DefKey( 'c_z'          , 'Undo1'           )    -- was: unused
+DefKey( 'c_y'          , 'Redo1'           )    -- was: 'FontList'
+DefKey( 'c_s_z'        , 'Redo1'           )    -- was: unused
 
 ; Undo ----------------------------------------------------------------------
-defc Key_c_s_f3 'UppercaseMark'
-def  c_f3       'LowercaseMark'
-
+DefKey( 'c_s_f3'       , 'UppercaseMark'   )
+DefKey( 'c_f3'         , 'LowercaseMark'   )
 
 ; Search --------------------------------------------------------------------
 ; Find-next is always forwards, find-previous is always backwards!
-
-def c_f        'SearchDlg'
-               -- was: 'FindNext'     -- Find next
-def c_g        'mc ;SearchDirection F;FindNext'
-               -- was: 'Ring_More'    -- Open a dialog to select a file of the ring
-               -- ('Ring_More' is also defined for Sh+Esc)
-defc Key_c_s_g 'mc ;SearchDirection B;FindNext'
-
-; Change-next doesnot exist in Moz! (maybe use f4/s_f4?)
-
-def f3         'FindNext'
-               -- was: 'Quit'         -- Quit file
-def s_f3       'FindPrevious'         -- from ConText editor
-
+DefKey( 'c_f'          , 'SearchDlg'       )    -- was: 'FindNext'
+DefKey( 'c_g'          , 'mc ;SearchDirection F;FindNext')  -- was: 'Ring_More'
+                                                            -- ('Ring_More' is also defined for Sh+Esc)
+DefKey( 'c_s_g'        , 'mc ;SearchDirection B;FindNext')
+DefKey( 'f3'           , 'FindNext'        )    -- was: 'Quit'
+DefKey( 's_f3'         , 'FindPrevious'    )
 
 ; File ----------------------------------------------------------------------
-/*
 ; Alt+F4 suffices
-def c_q        'Close'
-               -- was: 'All' search: toggle between .ALL and original file (--> changed to a_q)
-*/
-/*
+;DefKey( 'c_q'          , 'Close'           )
 ; Ctrl+F4 is more common
-def c_w        'Quit'
-               -- was: 'MarkToken' (standard) -- Mark current word, separators according to C syntax
-               -- was: 'FindWord'     -- Find current word, separators according to C syntax
-*/
-def c_f4       'Quit'  -- close file, not quit editor
-
-def c_s        'Save'
-
-/*
-; Open in same window is more useful
-def c_o        'EditFileDlg'          -- Add a file
-               -- was: 'OpenDlg'      -- Open File-open dialog (will open file in a new window)
-*/
-defc Key_c_a_s 'SaveAs'
-
-defc Key_c_s_s 'SaveAll'
-
-
-; Cursor --------------------------------------------------------------------
-def c_pgup     'BeginScreen'          -- Go to first line on screen
-
-def c_pgdn     'EndScreen'            -- Go to last line on screen
-
-
-; .ALL file -----------------------------------------------------------------
-; All should better define its own keyset (todo).
-/*
-define ALL_KEY = 'a_Q'                -- 'All' search: toggle between .ALL and original file
-*/
-
-
-/*
-; Font size -----------------------------------------------------------------
-defc Key_c_plus  'FontLarger'         -- not existing
-               -- was: unused
-defc Key_c_minus 'FontSmaller'        -- not existing
-               -- was: 'ToggleSearchDirection'  -- Toggle search direction
-*/
+;DefKey( 'c_w'          , 'Quit'            )    -- was: 'FindWord'
+DefKey( 'c_f4'          , 'Quit'           )    -- close file, not quit editor
+DefKey( 'c_s'           , 'Save'           )    -- was: 'SearchDlg'
+DefKey( 'c_a_s'         , 'SaveAs'         )
+DefKey( 'c_s_s'         , 'SaveAll'        )
 
