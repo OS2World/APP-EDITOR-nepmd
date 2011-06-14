@@ -58,7 +58,7 @@ compile if not defined(LOWERCHARS)
 compile endif
 
 defc CaseWord
-   call EnableUndoRec()
+   call NextCmdAltersText()
    call psave_pos(save_pos)
    -- find_token may return nothing, so we have to init the vars first
    startcol = 0

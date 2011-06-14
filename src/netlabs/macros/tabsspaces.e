@@ -29,12 +29,13 @@ defc Spaces2Tabs, TabsCompress
       TabWidth = arg1
    endif
    dummy = ''
-   Changed = 0
+   fChanged = 0
+   call NextCmdAltersText()
    do l = 1 to .last
       Line = textline(l)
       Line = ExpandLine( Line, TabWidth, dummy)
-      Line = CompressLine( Line, TabWidth, Changed)
-      if Changed then
+      Line = CompressLine( Line, TabWidth, fChanged)
+      if fChanged then
          replaceline Line, l
       endif
    enddo
@@ -48,11 +49,11 @@ defc Tabs2Spaces, TabsExpand
    else
       TabWidth = arg1
    endif
-   Changed = 0
+   fChanged = 0
    do l = 1 to .last
       Line = textline(l)
-      Line = ExpandLine( Line, TabWidth, Changed)
-      if Changed then
+      Line = ExpandLine( Line, TabWidth, fChanged)
+      if fChanged then
          replaceline Line, l
       endif
    enddo
@@ -61,8 +62,8 @@ defc Tabs2Spaces, TabsExpand
 ; Col and NextTabCol start at 0. So it's easier to calculate:
 ; TabWidth 8 gives stops at 0, 8, 16,...
 ; Avoid tab chars in quoted strings, if quote starts in this line.
-defproc CompressLine( Line, TabWidth, var Changed)
-   Changed = 0
+defproc CompressLine( Line, TabWidth, var fChanged)
+   fChanged = 0
    TabChar = \9
    rest = Line
    Line = ''
@@ -88,8 +89,8 @@ defproc CompressLine( Line, TabWidth, var Changed)
                Line = Line''TabChar
                SpaceLen = SpaceLen - (NextTabCol - Col)
                Col = NextTabCol
-               if Changed = 0 then
-                  Changed = 1
+               if fChanged = 0 then
+                  fChanged = 1
                endif
             else
                Line = Line''copies( ' ', SpaceLen)
@@ -106,8 +107,8 @@ defproc CompressLine( Line, TabWidth, var Changed)
 ; ---------------------------------------------------------------------------
 ; Col and NextTabCol start at 0. So it's easier to calculate:
 ; TabWidth 8 gives stops at 0, 8, 16,...
-defproc ExpandLine( Line, TabWidth, var Changed)
-   Changed = 0
+defproc ExpandLine( Line, TabWidth, var fChanged)
+   fChanged = 0
    TabChar = \9
    if pos( TabChar, Line) = 0 then
       return Line
@@ -123,8 +124,8 @@ defproc ExpandLine( Line, TabWidth, var Changed)
       NextTabCol = Col + TabWidth - (Col//TabWidth)
       SpaceLen = NextTabCol - Col
       Line  = Line''copies( ' ', SpaceLen)
-      if Changed = 0 then
-         Changed = 1
+      if fChanged = 0 then
+         fChanged = 1
       endif
       p = pos( TabChar, rest)
    enddo

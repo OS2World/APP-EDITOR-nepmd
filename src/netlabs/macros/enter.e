@@ -82,14 +82,9 @@ defproc einsert_line
 ; ---------------------------------------------------------------------------
 defc Enter
    universal cua_marking_switch
-   universal curkey
-   universal prevkey
 
    action = strip( arg(1))
-
-   if prevkey = curkey then
-      call DisableUndoRec()
-   endif
+   call NextCmdAltersText()
 
    -- .DOS dir files: Make dir mask after "Directory of" editable and create
    -- a new dir listing on Enter
@@ -173,9 +168,5 @@ defc Enter
       if is_lastline then  -- This keeps the === Bottom === line visible.
          down
       endif
-   endif
-
-   if prevkey <> curkey then
-      call NewUndoRec()
    endif
 

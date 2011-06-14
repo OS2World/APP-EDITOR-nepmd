@@ -171,7 +171,7 @@ defc reflow =
       last_reflow_width = save_width
    endif
    display -1
-   call DisableUndoRec()
+   call NextCmdAltersText()
    oldcursory = .cursory
 
    start_col = .col
@@ -231,7 +231,7 @@ defc reflow =
          '+1'
       endif
    enddo
-   call NewUndoRec()
+;   call NewUndoRec()
    .margins = oldmargins
    if ReflowNext then   -- position on next paragraph (like PE)
       call pfind_blank_line()

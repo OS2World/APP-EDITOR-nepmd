@@ -24,6 +24,7 @@ defmain
 
 defc unhtml
    call psave_pos(saved_pos)
+   call NextCmdAltersText()
    'display -2'               /* Turn off messages. */
    '0'                        /* Go to top of file. */
    'c /<[^>]*>// *x'          /* Delete all tags. */

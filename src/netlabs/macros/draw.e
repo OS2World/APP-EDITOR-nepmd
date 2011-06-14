@@ -142,9 +142,6 @@ compile endif
    boxtab3=g1||ga||g4||g3||g7||g8||gb
    boxtab4=g9||ga||g5||g6||g7||g8||gb
 
-   undotime = 2            -- 2 = when moving the cursor from a modified line
-   undoaction 4, undotime  -- Disable state recording at specified time
-
    istate=insert_state();
    if istate then
       insert_toggle
@@ -169,6 +166,7 @@ defc draw_left
    if insert_state() then
       left
    else
+      call NextCmdAltersText()
       draw_left()
    endif
 
@@ -177,6 +175,7 @@ defc draw_right
    if insert_state() then
       right
    else
+      call NextCmdAltersText()
       draw_right()
    endif
 
@@ -185,6 +184,7 @@ defc draw_up
    if insert_state() then
       up
    else
+      call NextCmdAltersText()
       draw_up()
    endif
 
@@ -193,6 +193,7 @@ defc draw_down
    if insert_state() then
       down
    else
+      call NextCmdAltersText()
       draw_down()
    endif
 
@@ -213,10 +214,6 @@ defc draw_exit
       call fixup_cursor()
    endif
    'togglecontrol 26' internalkeys
-
-   undotime = 2            -- 2 = when moving the cursor from a modified line
-   undoaction 5, undotime  -- Enable state recording at specified time
-   undoaction 1, junk      -- create a new state
    sayerror DRAW_ENDED__MSG
 
 ; ---------------------------------------------------------------------------

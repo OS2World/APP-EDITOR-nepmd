@@ -599,7 +599,6 @@ defc NowCanReadShell
       sayerror 'NowCanReadShell:  'INVALID_ARG__MSG '"'arg(1)'"'
       return
    endif
-   call DisableUndoRec()  -- no effect
 
    lastline = ''
    ShellFid    = GetAVar( 'Shell_f'shellnum)
@@ -695,10 +694,6 @@ compile endif -- EPM_SHELL_PROMPT
    endif
    getfileid fid
    call SetAVar( 'ShellAppWaiting.'fid, ShellAppWaiting)  -- save
-
-   -- This is done automatically after a command has finished, maybe
-   -- avoiding it here can help to reduce undo states:
-   --call EnableUndoRec()
 
 ; ---------------------------------------------------------------------------
 ; Write user input to the shell if EPM prompt is in current line.

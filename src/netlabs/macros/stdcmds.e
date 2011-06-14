@@ -45,6 +45,7 @@ defc alter
    endif
    delim = substr(HEXCHARS, verify(HEXCHARS, c1||c2), 1)  -- Pick first char. not in c1 || c2
    change_cmd = 'c' delim || c1 || delim || c2 || delim
+   call NextCmdAltersText()
    if cnt='' then
       change_cmd
    elseif cnt='*' | cnt='M*' | cnt='*M' then
@@ -60,6 +61,7 @@ defc alter
 ; Moved file defs to FILE.E
 
 defc app, append            -- With linking, PUT can be an external module.
+   call NextCmdAltersText()
    'put' arg(1)             -- Collect the names; the module is named PUT.EX.
 
 defc asc
@@ -96,6 +98,7 @@ defc bottom, bot
 ; Moved defc c,change to LOCATE.E
 
 defc center
+   call NextCmdAltersText()
    call pcenter_mark()
 
 defc chr
@@ -141,6 +144,7 @@ defc dolines
       else  -- If only current line is marked, no need to ask...
          k = NO_CHAR
       endif
+      call NextCmdAltersText()
       if k = YES_CHAR then
          for i = firstline to lastline
             getline line, i, fileid
@@ -161,7 +165,8 @@ defc dolines
       endif
    endif
    if .line then
-      getline line
+      call NextCmdAltersText()
+       getline line
       line = strip( line)
       -- For REXX files, strip quotes or double quotes
       if Mode = 'REXX' then
@@ -227,6 +232,7 @@ defc expand=
 ;  EPM's replacement for Alt-F.  "FILL <character>".
 defc fill
    call checkmark()
+   call NextCmdAltersText()
    call pfill_mark( arg(1))
 
 defc flow
@@ -238,6 +244,7 @@ defc flow
    oldmarg = .margins
    .margins = l r p
    if .margins = l r p then
+      call NextCmdAltersText()
       call psave_mark(save_mark)
       call text_reflow()
       call prestore_mark(save_mark)
@@ -287,6 +294,7 @@ defc key
       sayerror KEY_PROMPT2__MSG '"key 'number' =", "key 'number' S+F3".'
       return
    else
+      call NextCmdAltersText()
       k=resolve_key(k)
       if til_rc then
          do forever
@@ -339,6 +347,7 @@ defc DoCmd, DoCommand
       endif
    endif
 
+   call NextCmdAltersText()
    if til_rc then
       do forever
          Cmd
@@ -375,6 +384,7 @@ defc loopkey
    if k == '' then
       sayerror KEY_PROMPT2__MSG '"loopkey 'finish' =", "loopkey 'finish' S+F3".'
    else
+      call NextCmdAltersText()
       k=resolve_key(k)
       oldcol=.col
       for i=1 to finish
@@ -384,6 +394,7 @@ defc loopkey
    sayerror 0
 
 defc lowercase
+   call NextCmdAltersText()
    call plowercase()
 
 ; ---------------------------------------------------------------------------
@@ -777,6 +788,7 @@ defc strip
    parse arg firstline lastline .
    if firstline = '' then firstline = 1; endif
    if lastline = '' then lastline = .last; endif
+   call NextCmdAltersText()
    do i = firstline to lastline
       getline line, i
       if length(line) & rightstr( line, 1) == ' ' then
@@ -892,6 +904,7 @@ compile if WANT_DBCS_SUPPORT
    universal countryinfo
 compile endif
    parse value getdatetime() with Hour24 Minutes Seconds . Day MonthNum Year0 Year1 .
+   call NextCmdAltersText()
 compile if WANT_DBCS_SUPPORT
    parse value countryinfo with 22 datesep 23 24 timesep 25
    keyin rightstr(Year0 + 256*Year1, 4, 0) || datesep || rightstr(monthnum, 2, 0) || datesep || rightstr(Day, 2, 0)' ' ||
@@ -905,6 +918,7 @@ defc top
    top
 
 defc uppercase
+   call NextCmdAltersText()
    call puppercase()
 
 defc ver

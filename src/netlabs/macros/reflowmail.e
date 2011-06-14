@@ -335,8 +335,7 @@ defc ReflowMail
    saved_autosave = .autosave
    .autosave = 0
    saved_modify = .modify
-   call NewUndoRec()
-   call DisableUndoRec()
+   call NextCmdAltersText()
    InfolineRefresh = 0
    display -1
 
@@ -552,7 +551,6 @@ defc ReflowMail
    if .modify > saved_modify then
       .modify = saved_modify + 1
    endif
-   call NewUndoRec()
    mouse_setpointer vepm_pointer
    return
 

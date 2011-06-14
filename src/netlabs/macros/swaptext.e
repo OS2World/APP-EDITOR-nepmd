@@ -25,7 +25,7 @@ defc MoveLineUp
    endif
    saved_autosave = .autosave
    .autosave = 0
-   call DisableUndoRec()
+   call NextCmdAltersText()
    getline line
    l = max( .line - 1, 1)
    deleteline
@@ -41,7 +41,7 @@ defc MoveLineDown
    endif
    saved_autosave = .autosave
    .autosave = 0
-   call DisableUndoRec()
+   call NextCmdAltersText()
    col = .col
    getline line
    deleteline
@@ -54,7 +54,7 @@ defc MoveLineDown
 defc MoveCharLeft
    saved_autosave = .autosave
    .autosave = 0
-   call DisableUndoRec()
+   call NextCmdAltersText()
    if not insert_state() then
       -- switch to insert mode
       insert_toggle
@@ -77,7 +77,7 @@ defc MoveCharLeft
 defc MoveCharRight
    saved_autosave = .autosave
    .autosave = 0
-   call DisableUndoRec()
+   call NextCmdAltersText()
    if not insert_state() then
       -- switch to insert mode
       insert_toggle

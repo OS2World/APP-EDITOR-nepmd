@@ -134,7 +134,7 @@ defkeys edit_keys new clear
 
 def '„'
 ;   dprintf( 'lastkey() = 'lastkey()', ch = 'ch)
-   call AddRecordKey( lastkey())
+   call SaveKeyCmd( lastkey())
    keyin 'ae'
 
 ; These standard key defs are executed by the accel def for these keys to
@@ -165,10 +165,9 @@ def otherkeys
 ; handled by accelerator key definitions to allow for more definable
 ; combinations and to ease the definition of undo and key recording.
 defc otherkeys
-   call DisableUndoRec()
    k = lastkey()
    if length( k) = 1 then
-      call AddRecordKey( k)
+      call SaveKeyCmd( k)
    endif
    executekey k
 
@@ -180,15 +179,11 @@ defc otherkeys
 defc ExecKeyCmd
    -- The array var is internally set by the DefKey proc if Alt+num keys
    -- were defined via DefKey.
-   call AddRecordKey( arg(1))
+   call SaveKeyCmd( arg(1))
    Cmd = GetAVar( 'keydef.'arg(1))
    if Cmd <> '' then
       Cmd
    endif
-
-; ---------------------------------------------------------------------------
-defselect
-   call EnableUndoRec()
 
 ; ---------------------------------------------------------------------------
 ; An accelerator key issues a WM_COMMAND message, that is processed by the
@@ -645,8 +640,72 @@ defc MenuAccelString
 ; Called by ProcessCommand in MENU.E
 defproc ExecAccelKey
    parse value( arg(1)) with KeyString \1 Cmd
-   call AddRecordKey( arg(1))
+   call SaveKeyCmd( arg(1))
    Cmd
+   return
+
+; ---------------------------------------------------------------------------
+; Undo states were saved only here, on execution of a command, just before
+; text is altered by it. Repeated commands are ignored. Commands that don't
+; call NextCmdAltersText() won't create an undo state. That leads to
+; following behavior: Every word creates a new undo state. Leading spaces or
+; leading empty lines were added to the undo state of the following word.
+defproc NextCmdAltersText
+   universal curkey
+   universal prevkey
+   parse value curkey with KeyString \1 Cmd
+   --dprintf( 'KeyString = 'KeyString)
+
+   -- Omit new undo record for an unmodified file
+   if not .modify then
+      -- nop
+
+   -- Omit new undo record for repeated keys
+   elseif curkey = prevkey then
+      -- nop
+/*
+   -- Activate this if space should not create a new undo state
+   elseif (KeyString = 'space' |
+           rightstr( KeyString, 6) = '_space') then
+      -- nop
+*/
+
+   -- The following option is experimental and most likely leads to too
+   -- few recorded states, e.g. when formatting or clipboard macros were
+   -- used:
+/*
+   -- Activate this if only return or enter should create a new undo state
+   elseif not (rightstr( KeyString, 7) = 'newline' |
+               rightstr( KeyString, 5) = 'enter') then
+      -- nop
+*/
+
+   -- Create a new undo record, if the current state is not already checkpointed
+   else
+      call NewUndoRec()
+   endif
+
+   return
+
+; ---------------------------------------------------------------------------
+; SaveKeyCmd is called by OtherKeys, ExecKeyCmd, ProcessCommand and
+; ExecAccelKey. It is used for ETK keys and for executing commands of accel
+; keys and menu items. It sets prevkey and curkey. In recording state, it
+; appends curkey to the recordkeys array var.
+defproc SaveKeyCmd
+   universal curkey
+   universal prevkey
+
+   if arg(1) = '' then
+      return
+   endif
+
+   prevkey = curkey
+   curkey = arg(1)
+   --dprintf( 'curkey = 'curkey)
+
+   call AddRecordKeys()
+
    return
 
 ; ---------------------------------------------------------------------------
@@ -887,6 +946,15 @@ defc SetKeyset2
    -- Activate keyset
    activeaccel = Name
    activateacceltable activeaccel
+
+; ---------------------------------------------------------------------------
+defc ReloadKeyset
+   universal activeaccel
+   KeyDefs = strip( GetAVar( 'keyset.'activeaccel))
+   -- Reset list of defined keysets to make SetKeyset2 execute DefKeyset
+   call SetAVar( 'keysets', '')
+   -- Redef key defs
+   'SetKeyset2' activeaccel KeyDefs
 
 ; ---------------------------------------------------------------------------
 defc DeleteAccel, DelKeyset
@@ -1269,14 +1337,12 @@ defproc process_mark_like_cua()
          sayerror MARKED_OFFSCREEN__MSG
          unmark
       else
-;compile if WANT_DM_BUFFER
-         'Copy2DMBuff'     -- see clipbrd.e for details
-;compile endif  -- WANT_DM_BUFFER
+         'Copy2DMBuff'    -- see clipbrd.e for details
          firstline
          .col = firstcol
-         call NewUndoRec()
+         call NextCmdAltersText()
          call pdelete_mark()
-         'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
+         'ClearSharBuff'  -- remove Content in EPM shared text buffer
          return 1
       endif
    endif
@@ -1482,40 +1548,11 @@ defc ForceExpansion
 ; ---------------------------------------------------------------------------
 defc Space
    universal cua_marking_switch
-   universal curkey
-   universal prevkey
+   call NextCmdAltersText()
    if cua_marking_switch then
       call process_mark_like_cua()
    endif
-   if prevkey = curkey then
-      call DisableUndoRec()
-   endif
    keyin ' '
-   if prevkey <> curkey then
-      call NewUndoRec()
-   endif
-
-; ---------------------------------------------------------------------------
-; 1)  Expansion with Newline, no expansion with Ctrl+Newline:
-defc StdNewline
-   -- Try 2nd syntax expansion if activated.
-   -- If not successful, execute Newline
-   'ExpandSecond StreamLine Enter|Enter 1'
-; 2)  Expansion with Ctrl+Newline, no expansion with Newline:
-;defc StdNewline
-;   'StreamLine Enter|Enter 1'
-
-; ---------------------------------------------------------------------------
-defc StdPadEnter, StdEnter
-   'StreamLine Enter|Enter 1'
-
-; ---- Auto-spellcheck ----
-; This key belongs to "SPELL_KEYS". Therefore it is defined here with define.
-define DYNASPELL_KEY = 'c_A'            -- Open Proof Word dialog for alternatives
-
-; ---- .ALL file ----
-; All should better define its own keyset (todo).
-define ALL_KEY = 'c_Q'                  -- 'All' search: toggle between .ALL and original file
 
 ; ---------------------------------------------------------------------------
 defproc MatchCharsEnabled
@@ -1618,75 +1655,63 @@ defc ClosingBrace
 ; ---------------------------------------------------------------------------
 
 defc AdjustMark
-   call NewUndoRec()
+   call NextCmdAltersText()
    call pcommon_adjust_overlay('A')
-   call NewUndoRec()
 
 defc OverlayMark
-   call NewUndoRec()
+   call NextCmdAltersText()
    if marktype() then
       call pcommon_adjust_overlay('O')
-   else                 /* If no mark, look to in Shared Text buffer */
-      'GetSharBuff O'   /* see clipbrd.e for details                 */
+   else                -- if no mark, look to in Shared Text buffer
+      'GetSharBuff O'  -- see clipbrd.e for details
    endif
-   call NewUndoRec()
 
 defc CopyMark
-   call NewUndoRec()
+   call NextCmdAltersText()
    if marktype() then
       call pcopy_mark()
-   else                 /* If no mark, look to in Shared Text buffer */
-      'GetSharBuff'     /* see clipbrd.e for details                 */
+   else                -- if no mark, look to in Shared Text buffer
+      'GetSharBuff'    -- see clipbrd.e for details
    endif
-   call NewUndoRec()
 
 defc MoveMark
    universal nepmd_hini
-   call NewUndoRec()
+   call NextCmdAltersText()
    call pmove_mark()
    KeyPath = '\NEPMD\User\Mark\UnmarkAfterMove'
    UnmarkAfterMove = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if UnmarkAfterMove = 1 then
       unmark
-      'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
+      'ClearSharBuff'  -- remove Content in EPM shared text buffer */
    endif
-   call NewUndoRec()
 
 defc DeleteMark
-   call NewUndoRec()
-;compile if WANT_DM_BUFFER
-   'Copy2DMBuff'     -- see clipbrd.e for details
-;compile endif
+   call NextCmdAltersText()
+   'Copy2DMBuff'       -- see clipbrd.e for details
    call pdelete_mark()
-   'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
-   call NewUndoRec()
+   'ClearSharBuff'     -- remove Content in EPM shared text buffer
 
 defc unmark
-   call EnableUndoRec()
    unmark
-   'ClearSharBuff'       /* Remove Content in EPM shared text buffer */
+   'ClearSharBuff'     -- remove Content in EPM shared text buffer
 
 defc BeginMark
-   call EnableUndoRec()
    call pbegin_mark()
 
 defc EndMark
-   call EnableUndoRec()
    call pend_mark()
    if substr( marktype(), 1, 1) <> 'L' then
       right
    endif
 
-defc FillMark /* Now accepts key from macro. */
-   call NewUndoRec()
+defc FillMark  -- accepts key from macro
+   call NextCmdAltersText()
    call checkmark()
    call pfill_mark()
-   call NewUndoRec()
 
 defc TypeFrameChars
-   call NewUndoRec()
+   call NextCmdAltersText()
    keyin 'º Ì É È Ê Í Ë ¼ » ¹ Î ³ Ã Ú À Á Ä Â Ù ¿ ´ Å Û ² ± °'
-   call NewUndoRec()
 
 defc ShiftLeft   -- Can't use the old A_F7 in EPM.  PM uses it as an accelerator key.
    mt = marktype()
@@ -1700,6 +1725,7 @@ defc ShiftLeft   -- Can't use the old A_F7 in EPM.  PM uses it as an accelerator
       sayerror MARKED_OTHER__MSG
       return
    endif
+   call NextCmdAltersText()
    if mt = 'CHAR' then
       -- Change to line mark
       if lastCol = 0 then
@@ -1710,7 +1736,6 @@ defc ShiftLeft   -- Can't use the old A_F7 in EPM.  PM uses it as an accelerator
       unmark
       call pset_mark( firstline, lastline, firstcol, lastcol, 'LINE', fid)
    endif
-   call DisableUndoRec()
    shift_left
 compile if SHIFT_BLOCK_ONLY
    if marktype() = 'BLOCK' then  -- code by Bob Langer
@@ -1733,6 +1758,7 @@ defc ShiftRight   -- Can't use the old A_F8 in EPM.  PM uses it as an accelerato
       sayerror MARKED_OTHER__MSG
       return
    endif
+   call NextCmdAltersText()
    if mt = 'CHAR' then
       -- Change to line mark
       if lastCol = 0 then
@@ -1743,7 +1769,6 @@ defc ShiftRight   -- Can't use the old A_F8 in EPM.  PM uses it as an accelerato
       unmark
       call pset_mark( firstline, lastline, firstcol, lastcol, 'LINE', fid)
    endif
-   call DisableUndoRec()
 compile if SHIFT_BLOCK_ONLY
    if marktype() = 'BLOCK' then  -- code by Bob Langer
       getmark fl, ll, fc, lc, fid
@@ -1760,12 +1785,10 @@ defc prevfile  -- a_F10 is usual E default; F11 for enh. kbd, c_P for EPM.
    prevfile
 
 defc JoinLines
-   call NewUndoRec()
+   call NextCmdAltersText()
    call joinlines()
-   call NewUndoRec()
 
 defc MarkBlock
-   call EnableUndoRec()
    getmark firstline, lastline, firstcol, lastcol, markfileid
    getfileid fileid
    if fileid <> markfileid then
@@ -1776,10 +1799,9 @@ defc MarkBlock
       unmark
    endif
    markblock
-   'Copy2SharBuff'       /* Copy mark to shared text buffer */
+   'Copy2SharBuff'     -- copy mark to shared text buffer
 
 defc MarkLine
-   call EnableUndoRec()
    getmark firstline, lastline, firstcol, lastcol, markfileid
    getfileid fileid
    if fileid <> markfileid then
@@ -1790,10 +1812,9 @@ defc MarkLine
       unmark
    endif
    mark_line
-   'Copy2SharBuff'       /* Copy mark to shared text buffer */
+   'Copy2SharBuff'     -- copy mark to shared text buffer
 
 defc MarkChar
-   call EnableUndoRec()
    getmark firstline, lastline, firstcol, lastcol, markfileid
    getfileid fileid
    if fileid <> markfileid then
@@ -1810,10 +1831,12 @@ defc HighlightCursor
    circleit 5, .line, .col - 1, .col + 1, 16777220
 
 defc TypeFileName  -- Type the full name of the current file
-  keyin .filename
+   call NextCmdAltersText()
+   keyin .filename
 
 defc TypeDateTime  -- Type the current date and time
-  keyin DateTime()
+   call NextCmdAltersText()
+   keyin DateTime()
 
 defc select_all =
    getfileid fid
@@ -1826,13 +1849,13 @@ defc ReflowAll2ReflowMargins
 
 ; Syntax: reflow_all [<margins>]
 defc reflow_all, ReflowAll
+   call NextCmdAltersText()
    saved_margins = .margins
    if arg(1) > '' then
       .margins = arg(1)
    endif
    call psave_mark(savemark)
    call psave_pos(savepos)
-   call DisableUndoRec()
    display -1
    stopit = 0
    top
@@ -1861,7 +1884,6 @@ defc reflow_all, ReflowAll
       lastline+1
    enddo
    display 1
-   call NewUndoRec()
    call prestore_mark(savemark)
    call prestore_pos(savepos)
    if arg(1) > '' then
@@ -1901,7 +1923,7 @@ defc ReflowPar
    if arg(1) > '' then
       .margins = arg(1)
    endif
-   call DisableUndoRec()
+   call NextCmdAltersText()
    display -1
 
    if mt = 'B' then
@@ -1915,7 +1937,6 @@ defc ReflowPar
    endif
 
    display 1
-   call NewUndoRec()
    if arg(1) > '' then
       .margins = saved_margins
    endif
@@ -1926,6 +1947,7 @@ defc ReflowPar
 ; if that's desired.
 defproc text_reflow
    universal nepmd_hini
+   call NextCmdAltersText()
    KeyPath = '\NEPMD\User\Reflow\Next'
    ReflowNext = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if .line then
@@ -1979,6 +2001,7 @@ defc ReflowBlock
    universal alt_R_active,tempofid
    universal alt_R_space
 
+   call NextCmdAltersText()
    if alt_R_active <> '' then
       call pblock_reflow( 1, alt_R_space, tempofid)     -- Complete the reflow.
       'setmessageline '\0
@@ -1998,12 +2021,15 @@ defc ReflowBlock
    'setmessageline' BLOCK_REFLOW__MSG
 
 defc Split
+   call NextCmdAltersText()
    split
 
 defc SplitLines
+   call NextCmdAltersText()
    call splitlines()
 
 defc CenterMark
+   call NextCmdAltersText()
    call pcenter_mark()
 
 defc BackSpace
@@ -2016,10 +2042,7 @@ defc BackSpace
          return
       endif
    endif
-   if prevkey <> curkey then
-      call NewUndoRec()
-   endif
-   call DisableUndoRec()
+   call NextCmdAltersText()
    if .col = 1 & .line > 1 & stream_mode then
       up
       l = length( textline(.line))
@@ -2072,18 +2095,23 @@ defc BackSpace
    endif
 
 defc TypeNull
+   call NextCmdAltersText()
    keyin \0                  -- C_2 enters a null.
 defc TypeNot
+   call NextCmdAltersText()
    keyin \170                -- C_6 enters a "not" sign
 defc TypeOpeningBrace
+   call NextCmdAltersText()
    keyin '{'
 defc TypeClosingBrace
+   call NextCmdAltersText()
    keyin '}'
 defc TypeCent
+   call NextCmdAltersText()
    keyin '›'                 -- C_4 enters a cents sign
 
 defc DeleteLine
-   call NewUndoRec()
+   call NextCmdAltersText()
    if .levelofattributesupport then
       if (.line == .last and .line <> 1) then   -- this is the last line
          destinationLine = .line - 1            -- and there is a previous line to store attributes on
@@ -2146,11 +2174,10 @@ defc DeleteLine
       endif -- endif .line=.last and .line=1
    endif -- .levelofattributesupport
    deleteline
-   call NewUndoRec()
 
 ; Ctrl-D = word delete, thanks to Bill Brantley.
 defc DeleteUntilNextword /* delete from cursor until beginning of next word, UNDOable */
-   call EnableUndoRec()
+   call NextCmdAltersText()
    getline line
    begcur = .col
    lenLine = length(line)
@@ -2172,13 +2199,11 @@ defc DeleteUntilNextword /* delete from cursor until beginning of next word, UND
    endif
 
 defc DeleteUntilEndLine
-   call NewUndoRec()
+   call NextCmdAltersText()
    erase_end_line  -- Ctrl-Del is the PM way.
-   call NewUndoRec()
 
 defc EndFile
    universal stream_mode
-   call EnableUndoRec()
    call begin_shift( startline, startcol, shift_flag)
    if stream_mode then
       bottom
@@ -2195,7 +2220,7 @@ defc EndFile
 
 ; c_f1 is not definable in EPM.
 defc UppercaseWord
-   call EnableUndoRec()
+   call NextCmdAltersText()
    call psave_pos(save_pos)
    call psave_mark(save_mark)
    call pmark_word()
@@ -2203,7 +2228,7 @@ defc UppercaseWord
    call prestore_mark(save_mark)
 
 defc LowercaseWord
-   call EnableUndoRec()
+   call NextCmdAltersText()
    call psave_pos(save_pos)
    call psave_mark(save_mark)
    call pmark_word()
@@ -2212,26 +2237,21 @@ defc LowercaseWord
    call prestore_pos(save_pos)
 
 defc UppercaseMark
-   call NewUndoRec()
+   call NextCmdAltersText()
    call puppercase()
-   call NewUndoRec()
 
 defc LowercaseMark
-   call NewUndoRec()
+   call NextCmdAltersText()
    call plowercase()
-   call NewUndoRec()
 
 defc BeginWord
-   call EnableUndoRec()
    call pbegin_word()
 
 defc EndWord
-   call EnableUndoRec()
    call pend_word()
 
 defc BeginFile
    universal stream_mode
-   call EnableUndoRec()
    call begin_shift( startline, startcol, shift_flag)
    if stream_mode then
       top
@@ -2245,10 +2265,9 @@ defc BeginFile
    call end_shift( startline, startcol, shift_flag, 0)
 
 defc DuplicateLine      -- Duplicate a line
-   call NewUndoRec()
+   call NextCmdAltersText()
    getline line
    insertline line,.line+1
-   call NewUndoRec()
 
 defc CommandDlgLine
    if .line then
@@ -2258,7 +2277,6 @@ defc CommandDlgLine
 
 defc PrevWord
    universal stream_mode
-   call EnableUndoRec()
    call begin_shift( startline, startcol, shift_flag)
    if not .line then
       begin_line
@@ -2282,34 +2300,31 @@ defc NextWord
    call end_shift(startline, startcol, shift_flag, 1)
 
 defc BeginScreen
-   call EnableUndoRec()
    call begin_shift( startline, startcol, shift_flag)
    .cursory = 1
    call end_shift( startline, startcol, shift_flag, 0)
 
 defc EndScreen
-   call EnableUndoRec()
    call begin_shift( startline, startcol, shift_flag)
    .cursory = .windowheight
    call end_shift( startline, startcol, shift_flag, 1)
 
 ; ---------------------------------------------------------------------------
-defproc AddRecordKey
-   universal curkey
-   universal prevkey
+; Record and playback key and menu commands
+; The array var 'recordkeys' holds the list of \0-separated Key\1Cmd pairs.
+; It is set by SaveKeyCmd, that is called by OtherKeys, ExecKeyCmd and
+; ExecAccelKey.
+
+defproc AddRecordKeys
    universal recordingstate
-   if arg(1) <> '' then
-      prevkey = curkey
-      curkey = arg(1)
-      --dprintf( 'curkey = 'curkey)
-      parse value( curkey) with Key \1 Cmd
-      Key = strip( Key)
-      Cmd = strip( Cmd)
-      if wordpos( Key, 'c_r c_t') = 0 then
-         if recordingstate = 'R' then
-            Rest = GetAVar( 'recordkeys')
-            SetAVar( 'recordkeys', Rest''\0''curkey)
-         endif
+   universal curkey
+   parse value( curkey) with KeyString \1 Cmd
+   Cmd = strip( Cmd)
+   -- If key recording is active, add curkey to recordkeys array var
+   if wordpos( upcase( Cmd), 'RECORDKEYS PLAYBACKKEYS') = 0 then
+      if recordingstate = 'R' then
+         Rest = GetAVar( 'recordkeys')
+         SetAVar( 'recordkeys', Rest''\0''curkey)
       endif
    endif
 
@@ -2318,9 +2333,7 @@ defc RecordKeys
    if recordingstate = 'R' then
       recordingstate = 'P'
       'SayHint' REMEMBERED__MSG
-      call EnableUndoRec()
    else
-      call DisableUndoRec()
       recordingstate = 'R'
       SetAVar( 'recordkeys', '')
       --'SayHint' CTRL_R__MSG
@@ -2331,7 +2344,6 @@ defc CancelRecordKeys
    universal recordingstate
    recordingstate = ''
    'SayHint Key recording canceled.'
-   call NewUndoRec()
 
 defc PlaybackKeys
    universal recordingstate
@@ -2339,13 +2351,12 @@ defc PlaybackKeys
    if recordingstate = 'R' then
       recordingstate = 'P'
       'SayHint' REMEMBERED__MSG
-      call EnableUndoRec()
    endif
    if recordingstate <> 'P' or Rest = '' then
       return
    endif
 
-   call DisableUndoRec()
+   call NextCmdAltersText()
    Rest = Rest''\0
    do while Rest <> ''
       parse value( Rest) with \0 KeyDef \0 Rest
@@ -2361,7 +2372,6 @@ defc PlaybackKeys
          leave
       endif
    enddo
-   call EnableUndoRec()
 
 ; ---------------------------------------------------------------------------
 defc TypeTab
@@ -2376,7 +2386,7 @@ defc DeleteChar
          return
       endif
    endif
-   call DisableUndoRec()
+   call NextCmdAltersText()
    if .line then
       l = length( textline( .line))
    else
@@ -2397,7 +2407,6 @@ defc DeleteChar
 
 defc Down
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2414,7 +2423,6 @@ compile endif
 
 defc MarkDown
    universal cua_marking_switch
-   call EnableUndoRec()
    startline = .line; startcol = .col
    call updownkey(1)
 ;compile if WANT_CUA_MARKING = 'SWITCH'
@@ -2429,7 +2437,6 @@ defc MarkDown
 
 defc EndLine
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2439,7 +2446,6 @@ defc EndLine
 defc EndLineOrAfter
    universal cua_marking_switch
    universal endkeystartpos
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2457,7 +2463,6 @@ defc EndLineOrAfter
    endif
 
 defc MarkEndLine
-   call EnableUndoRec()
    startline = .line
    startcol  = .col
    end_line
@@ -2466,7 +2471,6 @@ defc MarkEndLine
 
 defc MarkEndLineOrAfter
    universal endkeystartpos
-   call EnableUndoRec()
    parse value( endkeystartpos) with savedline savedcol
    startline = .line
    startcol  = .col
@@ -2530,9 +2534,10 @@ defc EditFileDlg
       sayerror NO_RING__MSG
       return
    endif
-   'OPENDLG EDIT'
+   'OpenDlg EDIT'
 
 defc UndoLine
+   call NextCmdAltersText()
    undo
 
 defc NextFile
@@ -2540,7 +2545,6 @@ defc NextFile
 
 defc BeginLine  -- standard Home
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2549,7 +2553,6 @@ defc BeginLine  -- standard Home
 defc BeginLineOrText  -- Home
    universal nepmd_hini
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2562,7 +2565,6 @@ defc BeginLineOrText  -- Home
    endif
 
 defc MarkBeginLine  -- standard Sh+Home
-   call EnableUndoRec()
    startline = .line
    startcol  = .col
    begin_line
@@ -2570,7 +2572,6 @@ defc MarkBeginLine  -- standard Sh+Home
 
 defc MarkBeginLineOrText  -- Sh+Home
    universal nepmd_hini
-   call EnableUndoRec()
    startline = .line
    startcol  = .col
    -- Go to begin of text.
@@ -2589,7 +2590,6 @@ defc InsertToggle
 defc PrevChar, Left
    universal cua_marking_switch
    universal cursoreverywhere
-   call EnableUndoRec()
 /*
 -- Don't like hscroll
 compile if RESPECT_SCROLL_LOCK
@@ -2615,7 +2615,6 @@ compile endif
    endif
 
 defc MarkPrevChar, MarkLeft
-   call EnableUndoRec()
    startline = .line; startcol = .col
    if .line > 1 & .col = 1 then
       up
@@ -2627,7 +2626,6 @@ defc MarkPrevChar, MarkLeft
 
 defc PrevPage, PageUp
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2635,7 +2633,6 @@ defc PrevPage, PageUp
 
 defc NextPage, PageDown
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2645,7 +2642,6 @@ defc MarkPageUp
 compile if TOP_OF_FILE_VALID = 'STREAM'
    universal stream_mode
 compile endif
-   call EnableUndoRec()
    startline = .line; startcol = .col
    page_up
    if .line then
@@ -2662,7 +2658,6 @@ compile elseif not TOP_OF_FILE_VALID
 compile endif
 
 defc MarkPageDown
-   call EnableUndoRec()
    startline = .line; startcol = .col
    page_down
    if startline then
@@ -2672,7 +2667,6 @@ defc MarkPageDown
 defc NextChar, Right
    universal cursoreverywhere
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2705,7 +2699,6 @@ compile endif
 */
 
 defc MarkNextChar, MarkRight
-   call EnableUndoRec()
    startline = .line; startcol = .col
    if .line then
       l = length( textline(.line))
@@ -2735,7 +2728,6 @@ defc ScrollLeft
 
 defc ScrollRight
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2750,7 +2742,6 @@ defc ScrollRight
 
 defc ScrollUp
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2765,7 +2756,6 @@ defc ScrollUp
 
 defc ScrollDown
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2780,7 +2770,7 @@ defc ScrollDown
 
 defc CenterLine
    universal cua_marking_switch
-   call EnableUndoRec()
+   call NextCmdAltersText()
    if cua_marking_switch then
       unmark
    endif
@@ -2791,7 +2781,6 @@ defc CenterLine
 defc BackTab
    universal matchtab_on
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2812,7 +2801,7 @@ compile if WANT_DBCS_SUPPORT
    universal ondbcs
 compile endif
                   -------Start of logic:
-   call DisableUndoRec()
+   call NextCmdAltersText()
    if tab_key then
       if cua_marking_switch then
           process_key(\9)
@@ -2872,7 +2861,6 @@ compile if TOP_OF_FILE_VALID = 'STREAM'
    universal stream_mode
 compile endif
    universal cua_marking_switch
-   call EnableUndoRec()
    if cua_marking_switch then
       unmark
    endif
@@ -2901,7 +2889,6 @@ compile if TOP_OF_FILE_VALID = 'STREAM'
    universal stream_mode
 compile endif
    universal cua_marking_switch
-   call EnableUndoRec()
    startline = .line; startcol = .col
    call updownkey(0)
 ;compile if WANT_CUA_MARKING = 'SWITCH'
@@ -2926,7 +2913,7 @@ compile endif
 defc DefaultPaste
    universal nepmd_hini
    universal cua_marking_switch
-   call NewUndoRec()
+   call NextCmdAltersText()
    KeyPath = '\NEPMD\User\Mark\DefaultPaste'
    next = substr( upcase( NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
    if next = 'L' then
@@ -2940,12 +2927,11 @@ defc DefaultPaste
       call process_mark_like_cua()
    endif
    'paste' style
-   call NewUndoRec()
 
 defc AlternatePaste
    universal nepmd_hini
    universal cua_marking_switch
-   call NewUndoRec()
+   call NextCmdAltersText()
    KeyPath = '\NEPMD\User\Mark\DefaultPaste'
    next = substr( upcase( NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
    if next = 'L' then
@@ -2959,7 +2945,6 @@ defc AlternatePaste
       call process_mark_like_cua()
    endif
    'paste' altstyle
-   call NewUndoRec()
 
 ; Insert the char from the line above at cursor position.
 ; May get executed repeatedly to copy an entire expression without
@@ -2970,7 +2955,7 @@ defc InsertCharAbove
       -- suppress autosave and undo (for during repeated use)
       saved_autosave = .autosave
       .autosave = 0
-      call DisableUndoRec()
+      call NextCmdAltersText()
 
       -- force overwrite mode
       i_s = insert_state()
@@ -2998,7 +2983,7 @@ defc InsertCharBelow
       -- suppress autosave and undo (for during repeated use)
       saved_autosave = .autosave
       .autosave = 0
-      call DisableUndoRec()
+      call NextCmdAltersText()
 
       -- force overwrite mode
       i_s = insert_state()
@@ -3019,11 +3004,13 @@ defc InsertCharBelow
 
 ; Add a new line before the current, move to it, keep col.
 defc NewLineBefore
+   call NextCmdAltersText()
    insertline ''
    up
 
 ; Add a new line after the current, move to it, keep col.
 defc NewLineAfter
+   call NextCmdAltersText()
    insertline '', .line + 1
    down
 

@@ -46,13 +46,27 @@ const
 
 compile endif
 
-compile if not defined( RECOMPILE_RESTART_NAMES)
 const
+compile if not defined( RECOMPILE_RESTART_NAMES)
    -- These basenames require restart of EPM:
    --    EPM: obviously
    --    RECOMPILE: as tests showed
    RECOMPILE_RESTART_NAMES = 'EPM RECOMPILE'
 compile endif
+
+; ---------------------------------------------------------------------------
+defc PostRelink
+   parse arg BaseName
+
+   -- Refresh menu if module is linked and defines a menu
+   if upcase( rightstr( BaseName, 4)) = 'MENU' & length( BaseName) > 4 then
+      'RefreshMenu'
+   endif
+
+   -- Refresh keyset if module is linked and defines keys
+   if upcase( rightstr( BaseName, 4)) = 'KEYS' & length( BaseName) > 4 then
+      'ReloadKeyset'
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Syntax: relink [IFLINKED] [[<path>]<modulename>[.e]]
@@ -132,10 +146,8 @@ defc Relink
    if linkedrc >= 0 | fIfLinked = 0 then
       'link' Basename
 
-      -- Refresh menu if module is linked and defines a menu
-      if rc >= 0 & upcase( rightstr( Basename, 4)) = 'MENU' &
-         length( Basename) > 4 then
-         'ChangeMenu' Basename
+      if rc >= 0 then
+         'PostRelink' Basename
       endif
    endif
 
@@ -927,12 +939,10 @@ defc RecompileNew
                   'unlink' CurExFile
                endif
                'link' BaseName
-
-               WriteLog( LogFile, '         'BaseName' - relinked .EX file')
-               cRelink = cRelink + 1
-               if upcase( rightstr( BaseName, 4)) = 'MENU' & length( BaseName) > 4 then
-                  'ChangeMenu' BaseName
-                  WriteLog( LogFile, '         'BaseName' - reloaded menu')
+               if rc >= 0 then
+                  WriteLog( LogFile, '         'BaseName' - relinked .EX file')
+                  cRelink = cRelink + 1
+                  'PostRelink' BaseName
                endif
             endif
          endif

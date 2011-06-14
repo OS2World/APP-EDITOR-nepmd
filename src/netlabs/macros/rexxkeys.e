@@ -183,7 +183,7 @@ defproc rex_first_expansion
          retc = 1
 
       elseif wrd = 'IF' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if rexx_force_case then
             replaceline ind''RexxSyntaxCase( 'if  then')
          else
@@ -195,7 +195,7 @@ defproc rex_first_expansion
          .col = col + 1
 
       elseif wrd = 'WHEN' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if rexx_force_case then
             replaceline ind''RexxSyntaxCase( 'when  then')
          else
@@ -204,7 +204,7 @@ defproc rex_first_expansion
          .col = col + 1
 
       elseif wrd = 'DO' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if rexx_force_case then
             replaceline ind''RexxSyntaxCase( 'do ')
          else
@@ -285,7 +285,7 @@ defproc rex_second_expansion
             return retc
          endif
 -- Todo: skip expansion, if matching END found.
-         call NewUndoRec()
+         call NextCmdAltersText()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( s1), line, p)
          endif
@@ -295,7 +295,7 @@ defproc rex_second_expansion
          endline
 
       elseif firstword = 'SELECT' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( 'select'), line, firstp)
          endif
@@ -380,7 +380,7 @@ defproc rex_second_expansion
                endif
             enddo
          endif
-         call NewUndoRec()
+         call NextCmdAltersText()
          -- Re-indent END line
          -- must come first
          if endp > 0 then
@@ -412,7 +412,7 @@ defproc rex_second_expansion
          endline
 
       elseif firstword = 'IF' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( 'if'), line, firstp)
          endif
@@ -421,7 +421,7 @@ defproc rex_second_expansion
          endline
 
       elseif firstword = 'WHEN' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( 'when'), line, firstp)
          endif
@@ -430,7 +430,7 @@ defproc rex_second_expansion
          endline
 
       elseif firstword = 'OTHERWISE' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( 'otherwise'), line, firstp)
          endif
@@ -439,7 +439,7 @@ defproc rex_second_expansion
          endline
 
       elseif firstword = 'ELSE' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if rexx_force_case then
             replaceline overlay( RexxSyntaxCase( 'else'), line, firstp)
          endif
@@ -448,7 +448,7 @@ defproc rex_second_expansion
          endline
 
       elseif (firstword = '/*' | firstword = '/**') & words( tline) = 1 then
-         call NewUndoRec()
+         call NextCmdAltersText()
          insertline ind' * ', .line + 1
          -- Search for closing comment */
          fFound = 0
@@ -477,7 +477,7 @@ defproc rex_second_expansion
 
       elseif firstword = '/*H' then
          if words( tline) = 1 then
-            call NewUndoRec()
+            call NextCmdAltersText()
             -- Style 1:
             -- /***************
             -- * |
@@ -519,7 +519,7 @@ defproc rex_second_expansion
             endif
          enddo
          if fFound = 1 then
-            call NewUndoRec()
+            call NextCmdAltersText()
             RestLine = strip( substr( line, .col), 'L')
             erase_end_line
             if firstp = 1 then
@@ -534,7 +534,7 @@ defproc rex_second_expansion
          endif
 
       elseif pos( '/*', line) & comment_auto_terminate then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if not pos( '*/', line) then
             end_line
             keyin ' */'

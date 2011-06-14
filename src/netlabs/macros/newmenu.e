@@ -3376,12 +3376,15 @@ defc menuinit_edit
    universal DMbuf_handle
    SetMenuAttribute( GetAVar('mid_recovermarkdelete'), MIA_DISABLED, DMbuf_handle)
    SetMenuAttribute( GetAVar('mid_undoline'),          MIA_DISABLED, isadirtyline())
+/*
+;  Better omit creating additional undo records
    undoaction 1, presentstate         -- Do to fix range, not for value.
    undoaction 6, staterange           -- query range
    parse value staterange with oldeststate neweststate .
    SetMenuAttribute( GetAVar('mid_undo'),              MIA_DISABLED, not (oldeststate = neweststate))
-;  SetMenuAttribute( GetAVar('mid_undolast'),          MIA_DISABLED, not (presentstate > oldeststate))
-;  SetMenuAttribute( GetAVar('mid_redonext'),          MIA_DISABLED, not (presentstate < neweststate))
+;   SetMenuAttribute( GetAVar('mid_undolast'),          MIA_DISABLED, not (presentstate > oldeststate))
+;   SetMenuAttribute( GetAVar('mid_redonext'),          MIA_DISABLED, not (presentstate < neweststate))
+*/
    SetMenuAttribute( GetAVar('mid_discardchanges'),    MIA_DISABLED, .modify > 0)
 
 defc menuinit_spellcheck
