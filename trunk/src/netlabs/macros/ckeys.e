@@ -353,7 +353,7 @@ defproc c_first_expansion
          return retc
 
       elseif wrd = 'FOR' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if c_brace_style = 'INDENT' then
             replaceline w' (; ; )'
             insertline ws1'{', .line + 1
@@ -377,7 +377,7 @@ defproc c_first_expansion
          .col = .col + 2
 
       elseif wrd = 'IF' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if c_brace_style = 'INDENT' then
             replaceline w' ()'
             insertline ws1'{', .line + 1
@@ -411,7 +411,7 @@ defproc c_first_expansion
          .col = .col + 2
 
       elseif wrd = 'WHILE' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if c_brace_style = 'INDENT' then
             replaceline w' ()'
             insertline ws1'{', .line + 1
@@ -435,7 +435,7 @@ defproc c_first_expansion
          .col = .col + 2
 
       elseif wrd = 'DO' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if c_brace_style = 'INDENT' then
             insertline ws1'{', .line + 1
             insertline ws1'} while ();'END_DO, .line + 2
@@ -455,7 +455,7 @@ defproc c_first_expansion
          insertline ws1, .line + 1; down; endline
 
       elseif wrd = 'SWITCH' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if c_brace_style = 'INDENT' then
             replaceline w' ()'
             insertline ws1'{', .line + 1
@@ -479,11 +479,11 @@ defproc c_first_expansion
          .col = .col + 2    -- move cursor between parentheses of switch ()
 
       elseif wrd = 'MAIN' | (subword( wrd, 1, 1) = 'INT' & subword( wrd, 2, 1) = 'MAIN') then
-         call NewUndoRec()
+         call NextCmdAltersText()
          call enter_main_heading()
 
       elseif wrd = 'TRY' /*& ExpandCpp()*/ then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if c_brace_style = 'INDENT' then
             insertline ws1'{', .line + 1
             insertline ws1'}'END_TRY, .line + 2
@@ -514,7 +514,7 @@ defproc c_first_expansion
          insertline ws1, .line + 1; down; endline
 
       elseif wrd = 'CATCH' /*& ExpandCpp()*/ then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if c_brace_style = 'INDENT' then
             replaceline w' ('GetSSpc()''GetESpc()')'
             insertline ws1'{', .line + 1
@@ -538,7 +538,7 @@ defproc c_first_expansion
          .col = .col + 2 + length( GetSSpc())
 
       elseif wrd = 'PRINTLN(' & ExpandJava() then
-         call NewUndoRec()
+         call NextCmdAltersText()
          replaceline ws'System.out.println('GetSSpc()''GetESpc()');'
          if not insert_state() then
             insert_toggle
@@ -651,7 +651,7 @@ defproc c_second_expansion
       enddo
 
       if firstword = 'FOR' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          cp = pos( ';', line, .col + 1)
          if cp and cp >= .col then
             .col = cp
@@ -674,7 +674,7 @@ defproc c_second_expansion
          endif
 
       elseif firstword = 'CASE' or firstword = 'DEFAULT' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          insertline ws1, .line + 1; down; endline
          -- Get rid of line containing just a ;
          if firstword = 'DEFAULT' and .line < .last then
@@ -688,7 +688,7 @@ defproc c_second_expansion
          endif
 
       elseif firstword = 'BREAK' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          insertline ws0'case :', .line + 1
          down
          endline
@@ -696,7 +696,7 @@ defproc c_second_expansion
          insertline ws'break;', .line + 1
 
       elseif firstword = 'SWITCH' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if not pobrace and next_is_obrace then
             down
          endif
@@ -741,7 +741,7 @@ defproc c_second_expansion
          endif
 
       elseif firstword = 'CATCH' /*& ExpandCpp()*/ then
-         call NewUndoRec()
+         call NextCmdAltersText()
          cp = pos( '('GetSSpc()''GetESpc()')', line, .col)
          if cp then
             .col = cp + 2
@@ -758,7 +758,7 @@ defproc c_second_expansion
          endif
 
       elseif n > 0 then
-         call NewUndoRec()
+         call NextCmdAltersText()
          -- Todo: don't split in line mode
          -- Todo: support c_brace_style = 'INDENT' (not for functions)
          -- Split line at cursor: replace current line with left part
@@ -800,7 +800,7 @@ defproc c_second_expansion
          endif
 
       elseif firstword = 'MAIN' | (firstword = 'INT' & secondword = 'MAIN') then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if not pos( '(', line) then
             call enter_main_heading()
          else
@@ -814,7 +814,7 @@ defproc c_second_expansion
 
       elseif (wordpos( firstword, 'DO IF ELSE WHILE') |
               (wordpos( firstword, 'TRY') /*& ExpandCpp()*/)) then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if not pobrace and next_is_obrace then
             down
          endif
@@ -823,20 +823,20 @@ defproc c_second_expansion
          endline
 
       elseif firstword = '}' & secondword = 'WHILE' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          insertline ws, .line + 1
          down
          endline
 
       elseif next_is_obrace then  -- add a blank, indented line after line with single opening brace
-         call NewUndoRec()
+         call NextCmdAltersText()
          down
          insertline ws1, .line + 1
          down
          endline
 
       elseif (firstword = '/*' | firstword = '/**') & words( tline) = 1 then
-         call NewUndoRec()
+         call NextCmdAltersText()
          insertline ind' * ', .line + 1
          -- Search for closing comment */
          fFound = 0
@@ -865,7 +865,7 @@ defproc c_second_expansion
 
       elseif firstword = '/*H' then
          if words( tline) = 1 then
-            call NewUndoRec()
+            call NextCmdAltersText()
             -- Style 1:
             -- /***************
             -- * |
@@ -907,7 +907,7 @@ defproc c_second_expansion
             endif
          enddo
          if fFound = 1 then
-            call NewUndoRec()
+            call NextCmdAltersText()
             RestLine = strip( substr( line, .col), 'L')
             erase_end_line
             if firstp = 1 then
@@ -922,7 +922,7 @@ defproc c_second_expansion
          endif
 
       elseif pos( '/*', line) & comment_auto_terminate then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if not pos( '*/', line) then
             end_line
             keyin ' */'

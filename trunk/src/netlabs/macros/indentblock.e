@@ -30,7 +30,7 @@ compile endif
 defc indentblock
    universal indent  -- current syntaxindent
 
-   call DisableUndoRec()
+   call NextCmdAltersText()
    parse arg direction
    if abbrev( upcase(direction), 'U') then
       IndentMode = 'UNDENT'

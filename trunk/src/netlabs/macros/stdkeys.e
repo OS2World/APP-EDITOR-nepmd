@@ -154,9 +154,6 @@ DefKey( 'c_9'          , 'TypeOpeningBrace')    -- Type a {
 ;DefKey( 'c_0'          , 'TypeClosingBrace')    -- Type a }
 DefKey( 'c_4'          , 'TypeCent'        )    -- Type a cent char › (\155)
 DefKey( 'c_tab'        , 'TypeTab'         )    -- Type a tab char (\9)
-; ################ Test #################
-;DefKey( '„'            , 'Keyin ae'        )    -- Type ae
-;DefKey( 's_„'          , 'Keyin Ae'        )    -- Type Ae
 
 ; ---- Window and File switching ----
 DefKey( 'f11'          , 'PrevFile'        )    -- Switch to previous file
@@ -289,12 +286,12 @@ DefKey( 'newline'      , 'StdNewline'      )
 
 ; 1)  Expansion with Enter, no expansion with Ctrl+Enter:
 ;     Try 2nd syntax expansion if activated. If not successful execute Enter
-;defc StdNewline     'ExpandSecond StreamLine Enter|Enter 1'  -- ##########################################
+;defc StdNewline     'ExpandSecond StreamLine Enter|Enter 1'  -- def moved below, outside of StdKeys
 DefKey( 'c_newline'    , 'StreamLine Enter|Enter 2')
 
 ; 2)  Expansion with Ctrl+Enter, no expansion with Enter:
 ;     Try 2nd syntax expansion if activated. If not successful execute Enter
-;defc StdNewline     'StreamLine Enter|Enter 1'  -- ##########################################
+;defc StdNewline     'StreamLine Enter|Enter 1'  -- def moved below, outside of StdKeys
 ;DefKey( 'c_newline     , 'ExpandSecond StreamLine Enter|Enter 2')
 
 ; More newline and enter keys
@@ -303,7 +300,7 @@ DefKey( 's_newline'    , 'StreamLine Enter|Enter 1')
 
 ; Use a command here to make the standard def available for other keysets
 DefKey( 'enter'        , 'StdPadEnter'     )
-;defc StdPadEnter  'StreamLine Enter|Enter 1'  -- ##########################################
+;defc StdPadEnter  'StreamLine Enter|Enter 1'  -- def moved below, outside of StdKeys
 DefKey( 'c_enter'      , 'StreamLine Enter|Enter 2')
 DefKey( 'a_enter'      , 'StreamLine Enter|Enter 1')
 DefKey( 's_enter'      , 'StreamLine Enter|Enter 1')
@@ -345,7 +342,24 @@ DefKey( 'a_s_down'     , 'MoveLineDown'    )    -- Exchange next and previous li
 ; ---- Popup menu (redefinition of PM key not required) ----
 ;DefKey( 's_f10         , 'MH_popup'        )    -- Show the popup menu
 
-/***
+; ---- end of defc StdKeys ----
+
+
+; ---------------------------------------------------------------------------
+; 1)  Expansion with Newline, no expansion with Ctrl+Newline:
+defc StdNewline
+   -- Try 2nd syntax expansion if activated.
+   -- If not successful, execute Newline
+   'ExpandSecond StreamLine Enter|Enter 1'
+; 2)  Expansion with Ctrl+Newline, no expansion with Newline:
+;defc StdNewline
+;   'StreamLine Enter|Enter 1'
+
+; ---------------------------------------------------------------------------
+defc StdPadEnter, StdEnter
+   'StreamLine Enter|Enter 1'
+
+; ---------------------------------------------------------------------------
 ; ---- Auto-spellcheck ----
 ; This key belongs to "SPELL_KEYS". Therefore it is defined here with define.
 define DYNASPELL_KEY = 'c_A'            -- Open Proof Word dialog for alternatives
@@ -353,5 +367,4 @@ define DYNASPELL_KEY = 'c_A'            -- Open Proof Word dialog for alternativ
 ; ---- .ALL file ----
 ; All should better define its own keyset (todo).
 define ALL_KEY = 'c_Q'                  -- 'All' search: toggle between .ALL and original file
-***/
 

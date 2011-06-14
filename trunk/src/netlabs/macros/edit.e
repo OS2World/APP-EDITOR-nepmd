@@ -1036,8 +1036,7 @@ defc RemoveNextHeader
    saved_autosave = .autosave
    .autosave = 0
    saved_modify = .modify
-   call NewUndoRec()
-   call DisableUndoRec()
+   call NextCmdAltersText()
    InfolineRefresh = 0
 
    cComment = 0
@@ -1103,7 +1102,6 @@ defc RemoveNextHeader
    if .modify > saved_modify then
       .modify = saved_modify + 1
    endif
-   call NewUndoRec()
 
 ; ---------------------------------------------------------------------------
 ; unused

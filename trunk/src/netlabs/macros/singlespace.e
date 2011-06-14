@@ -33,6 +33,8 @@ defmain
 
 defc singlespace
 
+   call NextCmdAltersText()
+
    do i = .last - 1 to 1 by -2
 
       if textline(i) <> '' then

@@ -93,9 +93,10 @@ defc mathin  -- Like MATH command, but keys in the result
       sep = ''
    endif
    if evalinput(result,input,'') then
-      call experror(); stop
+      call experror()
+      stop
    endif
-   sayerror 'math' input'= 'result  -- no setcommand in epm
+   sayerror 'math' input' = 'result  -- no setcommand in epm
    if sep & (result > 9999) then
       -- parse value result with whole (DECIMAL) fract
       p = pos(DECIMAL, result)
@@ -116,6 +117,7 @@ defc mathin  -- Like MATH command, but keys in the result
          result = result || DECIMAL || fract
       endif
    endif
+   call NextCmdAltersText()
    keyin result
 
 defc mathxin  -- Like MATHX command, but keys in the result
@@ -139,6 +141,7 @@ defproc column_math
 ;  endif
    decimal_flag = 0
 
+   call NextCmdAltersText()
    call pinit_extract()
    loop
       code = pextract_string(line)

@@ -42,12 +42,12 @@ const
    include NLS_LANGUAGE'.e'
 
 defmain     -- External modules always start execution at DEFMAIN.
-   'get' arg(1)
+   'Get' arg(1)
 
    EA_comment 'This defines the GET command; it can be linked, or executed directly.'
 compile endif  -- not defined(SMALL)
 
-defc get=
+defc Get
    universal default_edit_options
    get_file = strip(arg(1))
    if get_file = '' then
@@ -62,6 +62,7 @@ defc get=
    getfileid fileid
    s_last = .last
    display -1
+   call NextCmdAltersText()
    'xcom e /q /d' get_file
    editrc = rc
    getfileid gfileid

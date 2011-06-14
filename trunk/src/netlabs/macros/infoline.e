@@ -427,7 +427,8 @@ defproc GetInfoFieldValue(FVar, var FFlag)
                                          FFlag  = 'EXPAND'
    elseif FVar = 'MARKINGMODE'      then FValue = word( 'Adv CUA', (cua_marking_switch = 1) + 1)  -- show 'CUA' or 'Adv'
                                          FFlag  = 'MARKINGMODE'
-   elseif FVar = 'KEYSET'           then FValue = activeaccel
+;   elseif FVar = 'KEYSET'           then FValue = activeaccel
+   elseif FVar = 'KEYSET'           then FValue = activeaccel' ='GetAVar( 'keyset.'activeaccel)
                                          FFlag  = 'KEYSET'
    elseif FVar = 'CODINGSTYLE'      then FValue = GetCodingStyle()
                                          FFlag  = 'FILE'

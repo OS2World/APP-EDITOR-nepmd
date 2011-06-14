@@ -196,7 +196,7 @@ definit
    call AddAVar( 'loadsettingslist',
                         'Highlight Margins Tabs DynaSpell CodingStyle')
    call AddAVar( 'selectsettingslist',
-                        'Toolbar Keyset PreviousKeyset Expand Matchtab' ||
+                        'Toolbar Keyset Expand Matchtab' ||
                         ' Tabkey EditOptions SaveOptions SearchOptions' ||
                         ' StreamMode InsertMode' ||
                         ' TextFont TextColor MarkColor Indent' ||

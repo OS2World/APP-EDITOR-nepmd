@@ -20,7 +20,7 @@
 ****************************************************************************/
 
 ; ---------------------------------------------------------------------------
-defproc sort( firstline, lastline, firstcol, lastcol, fileid)
+defproc Sort( firstline, lastline, firstcol, lastcol, fileid)
 
    flags = (not verify( 'R', upcase( arg(6)))) bitor    -- Reverse
            (not verify( 'D', upcase( arg(6)))) bitor    -- Descending
@@ -37,7 +37,7 @@ defproc sort( firstline, lastline, firstcol, lastcol, fileid)
    return rcx
 
 ; ---------------------------------------------------------------------------
-defc sort
+defc Sort
    if browse() then
       sayerror BROWSE_IS__MSG ON__MSG
       return
@@ -62,27 +62,25 @@ defc sort
       return
    endif
 
-;   -- Bug in EtkSort?
-;   -- Undo to previous states doesn't work after defproc sort.
-;   -- defc treesort uses defproc sort as well and it correctly creates a new
-;   -- undo state, after the file was sorted once.
-;   action = 2            -- 2 = when moving the cursor from a modified line
-;   undoaction 4, action  -- Disable state recording at specified action
-
    sayerror SORTING__MSG lastline-firstline+1 LINES__MSG'...'
 
-   -- Pass the sort switches "rc", if any, as a sixth argument to sort().
-   result = sort( firstline, lastline, firstcol, lastcol, fileid, arg(1))
+   SortOptions = arg(1)  -- R | D | I | C
+   -- PostMe required if char mark was changed to line mark
+   'PostMe Sort2' firstline lastline firstcol lastcol fileid SortOptions
 
-;   undoaction 5, action  -- Enable state recording at specified action
-;   undoaction 1, junk    -- Create a new state
-
-   if result then
-      sayerror 'SORT' ERROR_NUMBER__MSG result
+defc Sort2
+   parse value arg(1) with firstline lastline firstcol lastcol fileid SortOptions .
+   -- Bug in EtkSort?
+   -- Undo to previous states doesn't work after defproc sort.
+   -- defc treesort uses defproc sort as well and it correctly creates a new
+   -- undo state, after the file was sorted once.
+   rc = Sort( firstline, lastline, firstcol, lastcol, fileid, SortOptions)
+   if rc then
+      sayerror 'Error. Sort returned with rc = 'rc
    else
+      call NewUndoRec()
       sayerror 0
    endif
-
 
 ; ---------------------------------------------------------------------------
 ; To sort a new-format directory listing by date & time, enter the command:
@@ -91,7 +89,7 @@ defc sort
 ; For an old-format directory listing, enter:
 ;    sortcols 34 38 39 39 23 28 30 31
 ;             hh:mm  a/p  mm/dd  yy
-defc sortcols =
+defc SortCols
    if browse() then
       sayerror BROWSE_IS__MSG ON__MSG
       return
@@ -124,12 +122,14 @@ defc sortcols =
       sayerror SORTING__MSG lastline-firstline+1 LINES__MSG '('c1 '-' c2') ...'
 
       -- Pass the sort switches "rc", if any, as a sixth argument to sort().
-      result = sort( firstline, lastline, c1, c2, fileid, sort_flags)
-      if result then
-         sayerror 'SORT' ERROR_NUMBER__MSG result
+      call NextCmdAltersText()
+      rc = Sort( firstline, lastline, c1, c2, fileid, sort_flags)
+      if rc then
+         sayerror 'Error. Sort returned with rc = 'rc
          stop
       endif
 
    enddo
+   call NewUndoRec()
    sayerror 0
 

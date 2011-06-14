@@ -129,7 +129,7 @@ defc SoftWrap2Win, SoftWrap
       .readonly = 0  -- need to disable .readonly temporarily
    endif
    call psave_pos(saved_pos)
-   call DisableUndoRec()
+   call NextCmdAltersText()
    saved_modify = .modify
 
    -- Split lines
@@ -212,7 +212,6 @@ defc SoftWrap2Win, SoftWrap
       fWrapped = 0
       sayerror 'No wrap required'
    endif
-   call EnableUndoRec()
    .modify = saved_modify
    call SetAVar( 'wrapped.'fid, fWrapped)
 
@@ -241,7 +240,7 @@ defc SoftWrap2Reflowmargins
       .readonly = 0  -- need to disable .readonly temporarily
    endif
    call psave_pos(saved_pos)
-   call DisableUndoRec()
+   call NextCmdAltersText()
    saved_modify = .modify
 
    -- Split lines
@@ -316,7 +315,6 @@ defc SoftWrap2Reflowmargins
       fWrapped = 0
       sayerror 'No wrap required'
    endif
-   call EnableUndoRec()
    .modify = saved_modify
    call SetAVar( 'wrapped.'fid, fWrapped)
 
@@ -526,7 +524,7 @@ defc UnWrap
       .readonly = 0  -- need to disable .readonly temporarily
    endif
    call psave_pos(saved_pos)
-   call DisableUndoRec()
+   call NextCmdAltersText()
    saved_modify = .modify
 
    -- Try to re-join lines
@@ -609,7 +607,6 @@ defc UnWrap
    if saved_readonly then
       .readonly = 1
    endif
-   call EnableUndoRec()
    .modify = saved_modify
    -- Save wrapped state in an array var
    fWrapped = 0
@@ -676,6 +673,7 @@ defc Wrap
       return
    endif
    call psave_pos(saved_pos)
+   call NextCmdAltersText()
    .line = 1
    .col  = 1
    m = 0

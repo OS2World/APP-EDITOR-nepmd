@@ -54,7 +54,7 @@ defproc e_first_expansion
          retc = 1
 
       elseif wrd = 'FOR' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          replaceline w' =  to'
          insertline substr( wrd, 1, length(wrd) - 3)'endfor', .line+1
          if not insert_state() then
@@ -64,7 +64,7 @@ defproc e_first_expansion
          keyin ' '
 
       elseif wrd = 'IF' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          replaceline w' then'
          insertline substr( wrd, 1, length(wrd) - 2)'else', .line + 1
          insertline substr( wrd, 1, length(wrd) - 2)'endif', .line + 2
@@ -75,7 +75,7 @@ defproc e_first_expansion
          keyin ' '
 
       elseif wrd = 'ELSEIF' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          replaceline w' then'
          if not insert_state() then
             insert_toggle
@@ -84,7 +84,7 @@ defproc e_first_expansion
          keyin ' '
 
       elseif wrd = 'WHILE' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          replaceline w' do'
          insertline substr( wrd, 1, length(wrd) - 5)'endwhile', .line + 1
          if not insert_state() then
@@ -94,14 +94,14 @@ defproc e_first_expansion
          keyin ' '
 
       elseif wrd = 'LOOP' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          replaceline w
          insertline substr( wrd, 1, length(wrd) - 4)'endloop', .line + 1
          call einsert_line()
          .col = .col + GetEIndent()
 
 ;     elseif wrd = 'DO' then
-;        call NewUndoRec()
+;        call NextCmdAltersText()
 ;        replaceline w
 ;        insertline substr( wrd, 1, length(wrd) - 2)'enddo', .line + 1
 ;        call einsert_line()
@@ -133,7 +133,7 @@ defproc e_second_expansion
       firstword = upcase(wrd)
 
       if firstword = 'FOR' then
-         call NewUndoRec()
+         call NextCmdAltersText()
          parse value upcase(line) with a '='
          if length(a) >= .col then
             .col = length(a) + 3
@@ -151,7 +151,7 @@ defproc e_second_expansion
          if pos( 'END'firstword, upcase(line)) then
             retc = 1
          else
-            call NewUndoRec()
+            call NextCmdAltersText()
             call einsert_line()
             .col = .col + GetEIndent()
             if /* firstword='LOOP' | */ firstword='DO' then
@@ -160,7 +160,7 @@ defproc e_second_expansion
          endif
 
       elseif pos( '/*', line) & comment_auto_terminate then
-         call NewUndoRec()
+         call NextCmdAltersText()
          if not pos( '*/', line) then
             end_line
             keyin ' */'
