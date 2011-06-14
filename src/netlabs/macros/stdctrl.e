@@ -1273,7 +1273,7 @@ defproc AddAVar( varname, varvalue)
    do w = 1 to words( varvalue)
       wrd = word( varvalue, w)
       if not wordpos( upcase( wrd), upcase( oldvalue)) then
-         newvalue = newvalue' 'wrd  -- verify, there's a space between
+         newvalue = strip( newvalue' 'wrd)  -- verify, there's a space between
       endif
    enddo
    call SetAVar( varname, newvalue)
@@ -1431,14 +1431,6 @@ defproc setfont( width, height)
                        height,
                        width)
 
-
-----------------------------------------------------------------------------
-----  UNDO   JAC 11/90
-----------------------------------------------------------------------------
-; Moved defc processundo to UNDO.E
-; Moved defc restoreundo to UNDO.E
-; Moved defc renderundoinfo to UNDO.E
-; Moved defc undodlg to UNDO.E
 
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
