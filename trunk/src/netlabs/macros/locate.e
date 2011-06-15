@@ -104,7 +104,7 @@ defmodify             -- This stops the modification dialog for grep output "fil
 ; Moved from STDCMDS.E
 ; Note:  this DEFC also gets executed by the slash ('/') command and by the
 ; search dialog. The search dialog adds option 'D'.
-defc l, locate
+defc RepeatFind, L, Locate
    universal default_search_options
    universal search_len
    universal lastsearchargs
@@ -316,7 +316,7 @@ defc l, locate
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDCMDS.E
-defc c, change
+defc RepeatChange, C, Change
    universal default_search_options
    universal search_len
    universal lastchangeargs
@@ -561,11 +561,11 @@ defproc highlight_match
 
 ; ---------------------------------------------------------------------------
 ; Callable with 'postme'. Required for GlobalFind.
-defc highlightmatch
+defc HighlightMatch
    call highlight_match(arg(1))
 
 ; ---------------------------------------------------------------------------
-defc circleit
+defc CircleIt
    parse arg line startcol endcol
    circleit LOCATE_CIRCLE_STYLE, line, startcol, endcol,
             LOCATE_CIRCLE_COLOR1, LOCATE_CIRCLE_COLOR2
@@ -593,7 +593,6 @@ defc ScrollAfterLocate
 ; ---------------------------------------------------------------------------
 ; Moved from STDCTRL.E
 ; Can also be called with C or F as arg to repeat last change or find.
-; Todo: Remove this, better use original commands.
 /*
 旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
 � what's it called: searchdlg       syntax:   searchdlg [next]               �
@@ -610,107 +609,23 @@ defc ScrollAfterLocate
 � who and when    : Jerry C.   2/27/89                                       �
 읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
-defc searchdlg
+defc SearchDlg
    universal default_search_options
 
    parse value upcase(arg(1)) with uparg .
 
    if uparg = 'C' then
-      'c'                             /* repeat last change */
+      'RepeatChange'
    elseif uparg = 'F' then
-      'findnext'
+      'RepeatFind'
 
    else
-      -- The application will free the buffer allocated by this macro !!!
+      -- The application will free the buffer allocated by this macro
       call windowmessage( 0,  getpminfo(APP_HANDLE),
                           5128,               -- EPM_POPCHANGEDLG
                           0,
                           put_in_buffer(default_search_options))
    endif
-
-; ---------------------------------------------------------------------------
-; From EPMSMP\GLOBFIND.E
-/* Ctrl-G = Global-find key.    Standard E3 lets you press Ctrl-F to  */
-/* repeat-find in the current file.  Now Ctrl-G does the repeat-find  */
-/* on ALL the files in the ring.  Very useful when I'm editing several*/
-/* small program modules and I want to find where something's defined.*/
-
--- Changed to Ctrl+V, because Ctrl+G is already used for the 'ring_more' command
-
-defc ringfind, ringf, ringlocate, ringl, globalfind, globalfindnext
-;;;   universal search_len
-   -- Remember our current file so we don't search forever.
-   -- (Sometimes doesn't work.)
-   getfileid StartFileID
-
-   -- get current search direction
-   getsearch cursearch
-   parse value cursearch with . c_or_l search
-   delim = leftstr( search, 1 )
-   parse value cursearch with searchcmd (delim)searchstring(delim)searchoptions(delim)
-   if searchoptions = '' then
-      parse value cursearch with searchcmd (delim)searchstring(delim)searchoptions
-   endif
-   Minuspos = lastpos( '-', searchoptions )
-   Pluspos  = lastpos( '+', searchoptions )
-   if Minuspos > Pluspos then
-      Forward = 0
-   else
-      Forward = 1
-   endif
-
-   -- First repeat-find in current file in case we don't have to move.
-   'FindNext'  -- if first search since start, get lastsearchargs from ini
-   if rc = 0 then  -- if found
-      return rc
-   endif
-   fileid = StartFileID
-   loop
-      if Forward = 1 then
-         nextfile
-      else
-         prevfile
-      endif
-      getfileid fileid
-      activatefile fileid
-      -- Include this refresh if you like to see each file as it's
-      -- searched.  Causes too much screen flashing for my taste,
-      --refresh
-
-      -- Start from top of file, save current posn in case no match.
-      call psave_pos(save_pos)
-      if Forward = 1 then
-         top
-         .col=1
-      else
-         bottom
-         endline
-      endif
-      -- 'postme FindNext'  -- doesn't work
-;      display -8
-;      repeat_find  -- would start from top again if T is in default_search_options
-;      display 8
-      'FindNext'
-      if rc = 0 then  -- if found
-         refresh
-         --'postme highlightmatch'  -- postme required
-         'highlightmatch'  -- postme not required, command instead of proc makes it
-         if fileid = StartFileID then
-            'SayHint String only found in this file.'
-         else
-            sayerror 0  -- flush the message
-         endif
-         leave
-      else
-         -- no match in file - restore file location
-         call prestore_pos(save_pos)
-      endif
-      if fileid = StartFileID then
-         'SayHint String not found in any file of the ring.'
-         leave
-      endif
-   endloop
-   activatefile fileid
 
 ; ---------------------------------------------------------------------------
 ; Returns '+' or '-'.
@@ -834,8 +749,106 @@ defc SearchDirection
    lastchangeargs = c_delim''c_search_string''c_delim''c_replace_string''c_delim''c_user_options
 
 ; ---------------------------------------------------------------------------
+defc FindNext
+   'SearchDirection F'
+   'RepeatFind'
+
+; ---------------------------------------------------------------------------
+defc FindPrev
+   'SearchDirection R'
+   'RepeatFind'
+
+; ---------------------------------------------------------------------------
+defc ChangeFindNext
+   'SearchDirection F'
+   'RepeatChange'
+   'RepeatFind'
+
+; ---------------------------------------------------------------------------
+defc ChangeFindPrev
+   'SearchDirection R'
+   'RepeatChange'
+   'RepeatFind'
+
+; ---------------------------------------------------------------------------
+; From EPMSMP\GLOBFIND.E
+defc RepeatFindAllFiles, RingFind
+   -- Remember our current file so we don't search forever.
+   -- (Sometimes doesn't work.)
+   getfileid StartFileID
+
+   -- get current search direction
+   getsearch cursearch
+   parse value cursearch with . c_or_l search
+   delim = leftstr( search, 1 )
+   parse value cursearch with searchcmd (delim)searchstring(delim)searchoptions(delim)
+   if searchoptions = '' then
+      parse value cursearch with searchcmd (delim)searchstring(delim)searchoptions
+   endif
+   Minuspos = lastpos( '-', searchoptions )
+   Pluspos  = lastpos( '+', searchoptions )
+   if Minuspos > Pluspos then
+      Forward = 0
+   else
+      Forward = 1
+   endif
+
+   -- First repeat-find in current file in case we don't have to move.
+   'RepeatFind'  -- if first search since start, get lastsearchargs from ini
+   if rc = 0 then  -- if found
+      return rc
+   endif
+   fileid = StartFileID
+   loop
+      if Forward = 1 then
+         nextfile
+      else
+         prevfile
+      endif
+      getfileid fileid
+      activatefile fileid
+      -- Include this refresh if you like to see each file as it's
+      -- searched.  Causes too much screen flashing for my taste,
+      --refresh
+
+      -- Start from top of file, save current posn in case no match.
+      call psave_pos(save_pos)
+      if Forward = 1 then
+         top
+         .col=1
+      else
+         bottom
+         endline
+      endif
+      -- 'postme FindNext'  -- doesn't work
+;      display -8
+;      repeat_find  -- would start from top again if T is in default_search_options
+;      display 8
+      'RepeatFind'
+      if rc = 0 then  -- if found
+         refresh
+         --'postme highlightmatch'  -- postme required
+         'HighlightMatch'  -- postme not required, command instead of proc makes it
+         if fileid = StartFileID then
+            'SayHint String only found in this file.'
+         else
+            sayerror 0  -- flush the message
+         endif
+         leave
+      else
+         -- no match in file - restore file location
+         call prestore_pos(save_pos)
+      endif
+      if fileid = StartFileID then
+         'SayHint String not found in any file of the ring.'
+         leave
+      endif
+   endloop
+   activatefile fileid
+
+; ---------------------------------------------------------------------------
 ; From EPMSMP\GLOBCHNG.E
-defc ringchange, ringc, globchng, globalchange, gchange, gc
+defc RepeatChangeAllFiles, RingChange
 ;                                --<-------------------------------  todo: rewrite
    universal lastchangeargs
    universal default_search_options
@@ -940,6 +953,28 @@ defc ringchange, ringc, globchng, globalchange, gchange, gc
       files = 'files.'
    endif
    'SayHint String changed in' change_count files
+
+; ---------------------------------------------------------------------------
+defc FindNextAllFiles
+   'SearchDirection F'
+   'RepeatFindAllFiles'
+
+; ---------------------------------------------------------------------------
+defc FindPrevAllFiles
+   'SearchDirection R'
+   'RepeatFindAllFiles'
+
+; ---------------------------------------------------------------------------
+defc ChangeFindNextAllFiles
+   'SearchDirection F'
+   'RepeatChangeAllFiles'
+   'RepeatFindAllFiles'
+
+; ---------------------------------------------------------------------------
+defc ChangeFindPrevAllFiles
+   'SearchDirection R'
+   'RepeatChangeAllFiles'
+   'RepeatFindAllFiles'
 
 ; ---------------------------------------------------------------------------
 const
@@ -1347,17 +1382,9 @@ defc GfcCurrentFile
    'start /f gfc 'GfcParams
 
 ; ---------------------------------------------------------------------------
-; The internal repeat_find statement is not used anymore. We better use
-; defc locate without args, like for change. Then every FindNext is able to
-; respect a possible change of default_search_options by the user in the
-; meantime, because this is re-read by defc locate.
-defc findnext, repeatfind
-   'l'
-
-; ---------------------------------------------------------------------------
 ; Moved from MOUSE.E
 ; Find identifier under cursor -- if arg(1) > 0: -- under pointer.
-defc findword
+defc FindWord
    -- If arg(1) specified and > 0: Set cursor to pos of pointer.
    if arg(1) then
       'MH_gotoposition'

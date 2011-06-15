@@ -111,9 +111,9 @@ DefKey( 'c_e'          , 'DeleteUntilEndLine')  -- Delete from cursor until end 
 
 ; ---- Search ----
 DefKey( 'c_s'          , 'SearchDlg'       )    -- Open search dialog
-DefKey( 'c_f'          , 'FindNext'        )    -- Find next
-DefKey( 'c_c'          , 'Change'          )    -- Change next
-DefKey( 'c_v'          , 'GlobalFind'      )    -- Find next in all files of the ring
+DefKey( 'c_f'          , 'RepeatFind'      )    -- Repeat find
+DefKey( 'c_c'          , 'RepeatChange'    )    -- Repeat change
+DefKey( 'c_v'          , 'RepeatFindAllFiles'   )  -- Repeat find in all files of the ring
 DefKey( 'c_-'          , 'ToggleSearchDirection')  -- Toggle search direction
 DefKey( 'c_w'          , 'FindWord'        )    -- Find current word, separators according to C syntax
 DefKey( 'c_s_d'        , 'FindDef'         )    -- Find definition for current word
@@ -164,8 +164,7 @@ DefKey( 'a_f12'        , 'NextView'        )    -- Switch to next view of curren
 DefKey( 'c_n'          , 'Open'            )    -- Open new EPM window
 DefKey( 'c_s_f12'      , 'Next_Win'        )    -- Switch to next EPM window
 DefKey( 'c_g'          , 'Ring_More'       )    -- Open a dialog to select a file of the ring
-; Sh+Esc is defined by PM (open system menu, like Alt+Spc).
-; Therefore it has to be defined as accelerator key:
+; Sh+Esc is usually defined by PM (open system menu, like Alt+Spc).
 DefKey( 's_esc'        , 'Ring_More'       )    -- Open a dialog to select a file of the ring
 
 ; ---- Reflow ----
