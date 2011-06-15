@@ -1205,7 +1205,8 @@ defc SelectKeyDefs
                            Style)
       if ret = 6 then  -- Yes
          -- Execute RecompileNew and open this dialog again
-         'mc ;RecompileNew;postme SelectKeyDefs'
+         'RecompileNew'
+         'postme SelectKeyDefs'
          return
       elseif ret = 7 then  -- No
       endif
@@ -1259,7 +1260,7 @@ defc SelectKeyDefs
       if Selected = None then
          Msg = 'No keyset additions file active.'
          'SetKeyset std std'
-         'RefreshMenu'
+         'postme RefreshMenu'
          rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, None)
          sayerror Msg
       else
@@ -1277,7 +1278,7 @@ defc SelectKeyDefs
          rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, Selected)
          Msg = 'Keyset additions file 'upcase( Selected)'.EX activated.'
          'LinkKeyDefs'
-         'RefreshMenu'
+         'postme RefreshMenu'
          sayerror Msg
       endif
    elseif button = 2 then  -- Add
@@ -1294,7 +1295,7 @@ defc SelectKeyDefs
          'unlink 'Selected
       endif
       'SetKeyset std std'
-      'RefreshMenu'
+      'postme RefreshMenu'
       rcx = NepmdWriteConfigValue( nepmd_hini, KeyPath2, None)
       wp = wordpos( Selected, KeyDefs)
       if wp > 0 then
