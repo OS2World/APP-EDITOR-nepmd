@@ -759,7 +759,7 @@ defproc add_file_menu(menuname)
    if GetKeyDef() = '-none-' then
       KeyString = \9''ALT_KEY__MSG'+F2'
    else
-      KeyString = \9''CTRL_KEY__MSG'+'ALT_KEY__MSG'+S | 'ALT_KEY__MSG'+F2'
+      KeyString = \9''CTRL_KEY__MSG'+'ALT_KEY__MSG'+S'
    endif
    buildmenuitem menuname, mid, i, SAVEAS_MENU__MSG''KeyString,                                    -- Save as...
                                    'Saveas_Dlg' ||
@@ -1477,17 +1477,32 @@ endif
                                    \1'Change case of text',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Word ~toggle'\9CTRL_KEY__MSG'+F1',                                   -- Word toggle
+   if GetKeyDef() = '-none-' then
+      KeyString = \9CTRL_KEY__MSG'+F1'
+   else
+      KeyString = \9SHIFT_KEY__MSG'+F1'
+   endif
+   buildmenuitem menuname, mid, i, 'Word ~toggle'KeyString,                                              -- Word toggle
                                    'CaseWord' ||
                                    \1'Toggle word through mixed, upper and lower cases',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Word ~uppercase'\9CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F2',               -- Word uppercase
+   if GetKeyDef() = '-none-' then
+      KeyString = \9CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F2'
+   else
+      KeyString = \9CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F1'
+   endif
+   buildmenuitem menuname, mid, i, 'Word ~uppercase'KeyString,                                           -- Word uppercase
                                    'UppercaseWord' ||
                                    \1'Change word to uppercase',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Word ~lowercase'\9CTRL_KEY__MSG'+F2',                                -- Word lowercase
+   if GetKeyDef() = '-none-' then
+      KeyString = \9CTRL_KEY__MSG'+F2'
+   else
+      KeyString = \9CTRL_KEY__MSG'+F1'
+   endif
+   buildmenuitem menuname, mid, i, 'Word ~lowercase'KeyString,                                           -- Word lowercase
                                    'LowercaseWord' ||
                                    \1'Change word to uppercase',
                                    MIS_TEXT, 0
@@ -1499,7 +1514,7 @@ endif
    if GetKeyDef() = '-none-' then
       KeyString = \9CTRL_KEY__MSG'+F3'
    else
-      KeyString = \9CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F3'
+      KeyString = \9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+F1'
    endif
    buildmenuitem menuname, mid, i, 'Mark u~ppercase'KeyString,                                           -- Mark uppercase
                                    'UppercaseMark' ||
@@ -1509,7 +1524,7 @@ endif
    if GetKeyDef() = '-none-' then
       KeyString = \9CTRL_KEY__MSG'+F4'
    else
-      KeyString = \9CTRL_KEY__MSG'+F3'
+      KeyString = \9ALT_KEY__MSG'+F1'
    endif
    buildmenuitem menuname, mid, i, 'Mark l~owercase'KeyString,                                           -- Mark lowercase
                                    'LowercaseMark' ||
@@ -1607,36 +1622,34 @@ defproc add_search_menu(menuname)
       KeyString = \9''CTRL_KEY__MSG'+F'
    endif
    buildmenuitem menuname, mid, i, '~Search dialog...'KeyString,                                   -- Search dialog...
-                                   'searchdlg' ||
+                                   'SearchDlg' ||
                                    SEARCH_MENUP__MSG' (ignores B and T options)',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_SEARCH, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
+if GetKeyDef() = '-none-' then
+   -- stdkeys
    i = i + 1; call SetAVar( 'mid_findnext', i);
-   if GetKeyDef() = '-none-' then
-      KeyString = \9''CTRL_KEY__MSG'+F'
-   else
-      KeyString = \9''CTRL_KEY__MSG'+('SHIFT_KEY__MSG'+)G | ('SHIFT_KEY__MSG'+)F3'
-   endif
-   buildmenuitem menuname, mid, i, FIND_NEXT_MENU__MSG''KeyString,                                 -- Find next
-                                   'searchdlg F' ||
+   KeyString = \9''CTRL_KEY__MSG'+F'
+   buildmenuitem menuname, mid, i, 'Repeat ~find'\9 || CTRL_KEY__MSG'+F',                          -- Repeat find
+                                   'RepeatFind' ||
                                    FIND_NEXT_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_FIND, 0)
    i = i + 1; call SetAVar( 'mid_changenext', i);
-   buildmenuitem menuname, mid, i, CHANGE_NEXT_MENU__MSG\9 || CTRL_KEY__MSG'+C',                   -- Change next
-                                   'searchdlg C' ||
+   buildmenuitem menuname, mid, i, 'Repeat ~change'\9 || CTRL_KEY__MSG'+C',                        -- Repeat change
+                                   'RepeatChange' ||
                                    CHANGE_NEXT_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_CHANGE, 0)
    i = i + 1; call SetAVar( 'mid_globalfindnext', i);
-   buildmenuitem menuname, mid, i, '~Ring find next'\9 || CTRL_KEY__MSG'+V',                       -- Ring find next
-                                   'ringfind' ||
+   buildmenuitem menuname, mid, i, '~Repeat find in all files'\9 || CTRL_KEY__MSG'+V',             -- Repeat find in all files
+                                   'RepeatFindAllFiles' ||
                                    \1'Repeat previous Locate command for all files in the ring',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_globalchangenext', i);
-   buildmenuitem menuname, mid, i, 'Ring c~hange next',                                            -- Ring change next
-                                   'ringchange' ||
+   buildmenuitem menuname, mid, i, 'Repeat c~hange in all files',                                  -- Repeat change in all files
+                                   'RepeatChangeAllFiles' ||
                                    \1'Repeat previous Change command for all files in the ring',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -1648,6 +1661,55 @@ defproc add_search_menu(menuname)
                                    'toggle_search_backward' ||
                                    \1'Toggle back/forward for next locate/change commands',
                                    MIS_TEXT, nodismiss
+   -- end stdkeys
+else
+   -- cuakeys
+   i = i + 1; call SetAVar( 'mid_findnext', i);
+   buildmenuitem menuname, mid, i, '~Find next'\9 ||'F3',                                          -- Find next
+                                   'FindNext' ||
+                                   \1'Repeat find, foreward',
+                                   MIS_TEXT, mpfrom2short(HP_SEARCH_FIND, 0)
+   i = i + 1; call SetAVar( 'mid_findprev', i);
+   buildmenuitem menuname, mid, i, 'Find ~previous'\9 ||SHIFT_KEY__MSG'+F3',                       -- Find previous
+                                   'FindPrev' ||
+                                   \1'Repeat find, backward',
+                                   MIS_TEXT, mpfrom2short(HP_SEARCH_FIND, 0)
+   i = i + 1; call SetAVar( 'mid_changenext', i);
+   buildmenuitem menuname, mid, i, '~Change, then find next'\9 ||CTRL_KEY__MSG'+G',                -- Change, then find next
+                                   'ChangeFindNext' ||
+                                   \1'Change, then repeat find, foreward',
+                                   MIS_TEXT, mpfrom2short(HP_SEARCH_CHANGE, 0)
+   i = i + 1; call SetAVar( 'mid_changeprev', i);
+   buildmenuitem menuname, mid, i, 'C~hange, then find previous'\9 ||CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+G',  -- Change, then find previous
+                                   'ChangeFindPrev' ||
+                                   \1'Change, then repeat find, backward',
+                                   MIS_TEXT, mpfrom2short(HP_SEARCH_CHANGE, 0)
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_globalfindnext', i);
+   buildmenuitem menuname, mid, i, 'Find next in a~ll files'\9 || ALT_KEY__MSG'+F3',               -- Find next in all files
+                                   'FindNextAllFiles' ||
+                                   \1'Repeat find for all files in the ring, foreward',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_globalfindprev', i);
+   buildmenuitem menuname, mid, i, 'Find previous in all ~files'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+F3',  -- Find prev. in all files
+                                   'FindPrevAllFiles' ||
+                                   \1'Repeat find for all files in the ring, backward',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_globalchangenext', i);
+   buildmenuitem menuname, mid, i, 'Change, then find ne~xt in all files',                         -- Change, then find next in all files
+                                   'ChangeFindNextAllFiles' ||
+                                   \1'Change, then repeat find for all files, foreward',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_globalchangeprev', i);
+   buildmenuitem menuname, mid, i, 'Change, then find pre~vious in all files',                     -- Change, then find prev. in all files
+                                   'ChangeFindPrevAllFiles' ||
+                                   \1'Change, then repeat find for all files, backward',
+                                   MIS_TEXT, 0
+   -- end cuakeys
+endif
 if grepfound then
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------

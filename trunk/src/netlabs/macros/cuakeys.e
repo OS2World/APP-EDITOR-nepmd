@@ -38,43 +38,56 @@
 
 defc CuaKeys
 
-; Clipboard -----------------------------------------------------------------
-DefKey( 'c_c'          , 'Copy2Clip'       )    -- was: Change
-DefKey( 'c_v'          , 'DefaultPaste'    )    -- was: GlobalFind
-DefKey( 'c_x'          , 'Cut'             )    -- was: unused
-
-; Mark ----------------------------------------------------------------------
-;DefKey( 'c_a'          ,'Select_All'       )   -- unchanged
-
-; Delete --------------------------------------------------------------------
-;DefKey( 'c_delete'     , 'DeleteUntilNextWord') -- unchanged
-;DefKey( 'c_s_delete'   , 'DeleteUntilEndLine')  -- unchanged
+; File ----------------------------------------------------------------------
+DefKey( 'c_s'          , 'Save'            )    -- was: 'SearchDlg'
+DefKey( 'c_a_s'        , 'SaveAs'          )
+DefKey( 'c_s_s'        , 'SaveAll'         )
+DefKey( 'c_f4'         , 'Quit'            )    -- (close file, not quit editor) was: 'LowercaseMark'
+; Alt+F4 suffices
+;DefKey( 'c_q'         , 'Close'           )
+; Ctrl+F4 is more common
+;DefKey( 'c_w'         , 'Quit'            )    -- was: 'FindWord'
 
 ; Undo ----------------------------------------------------------------------
-DefKey( 'c_z'          , 'Undo1'           )    -- was: unused
+DefKey( 'c_z'          , 'Undo1'           )
 DefKey( 'c_y'          , 'Redo1'           )    -- was: 'FontList'
-DefKey( 'c_s_z'        , 'Redo1'           )    -- was: unused
+DefKey( 'c_s_z'        , 'Redo1'           )
 
-; Undo ----------------------------------------------------------------------
-DefKey( 'c_s_f3'       , 'UppercaseMark'   )
-DefKey( 'c_f3'         , 'LowercaseMark'   )
+; Clipboard -----------------------------------------------------------------
+DefKey( 'c_c'          , 'Copy2Clip'       )    -- was: 'RepeatChange'
+DefKey( 'c_v'          , 'DefaultPaste'    )    -- was: 'RepeatFindAllFiles'
+DefKey( 'c_x'          , 'Cut'             )    -- was: 'ForceExpansion'
+
+; Case ----------------------------------------------------------------------
+DefKey( 's_f1'         , 'CaseWord'        )
+DefKey( 'c_f1'         , 'LowercaseWord'   )
+DefKey( 'c_s_f1'       , 'UppercaseWord'   )
+DefKey( 'a_f1'         , 'LowercaseMark'   )    -- was: 'TypeFrameChars'
+DefKey( 'a_s_f1'       , 'UppercaseMark'   )
 
 ; Search --------------------------------------------------------------------
-; Find-next is always forwards, find-previous is always backwards!
-DefKey( 'c_f'          , 'SearchDlg'       )    -- was: 'FindNext'
-DefKey( 'c_g'          , 'mc ;SearchDirection F;FindNext')  -- was: 'Ring_More'
-                                                            -- ('Ring_More' is also defined for Sh+Esc)
-DefKey( 'c_s_g'        , 'mc ;SearchDirection B;FindNext')
+DefKey( 'c_f'          , 'SearchDlg'       )    -- was: 'RepeatFind'
 DefKey( 'f3'           , 'FindNext'        )    -- was: 'Quit'
-DefKey( 's_f3'         , 'FindPrevious'    )
+DefKey( 's_f3'         , 'FindPrev'        )    -- was: 'ScrollDown'
+DefKey( 'c_g'          , 'ChangeFindNext'  )    -- was: 'Ring_More', also defined as Sh+Esc
+DefKey( 'c_s_g'        , 'ChangeFindPrev'  )
+DefKey( 'a_f3'         , 'FindNextAllFiles')
+DefKey( 'a_s_f3'       , 'FindPrevAllFiles')
 
-; File ----------------------------------------------------------------------
-; Alt+F4 suffices
-;DefKey( 'c_q'          , 'Close'           )
-; Ctrl+F4 is more common
-;DefKey( 'c_w'          , 'Quit'            )    -- was: 'FindWord'
-DefKey( 'c_f4'          , 'Quit'           )    -- close file, not quit editor
-DefKey( 'c_s'           , 'Save'           )    -- was: 'SearchDlg'
-DefKey( 'c_a_s'         , 'SaveAs'         )
-DefKey( 'c_s_s'         , 'SaveAll'        )
+; Scroll --------------------------------------------------------------------
+DefKey( 'c_f2'         , 'ScrollDown'      )
+DefKey( 'c_s_f2'       , 'ScrollUp'        )
+DefKey( 'a_f2'         , 'ScrollRight'     )
+DefKey( 'a_s_f2'       , 'ScrollLeft'      )
+
+; Syntax expansion ----------------------------------------------------------
+DefKey( 'a_x'          , 'ForceExpansion'  )
+
+; Undefined -----------------------------------------------------------------
+UnDefKey( 's_f2')
+UnDefKey( 'c_f3')
+UnDefKey( 'c_s_f3')
+UnDefKey( 's_f4')
+UnDefKey( 'c_s_f4')
+UnDefKey( 'a_s_f4')
 
