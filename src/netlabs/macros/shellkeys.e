@@ -34,12 +34,12 @@ compile if not defined(EPM_SHELL_PROMPT)
 compile endif
 
 ; ---------------------------------------------------------------------------
-defc ShellEnter
-   StdEnter = arg(1)
-   fExecStdEnter = 0
+defc ShellNewLine
+   StdNewLine = arg(1)
+   fExecStdNewLine = 0
 
 compile if not (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
-   fExecStdEnter = 1
+   fExecStdNewLine = 1
 compile endif
 
    if IsAShell() then
@@ -48,21 +48,21 @@ compile endif
          rc = ShellEnterWriteToApp()
       endif
       if rc then
-         fExecStdEnter = 1
+         fExecStdNewLine = 1
       endif
    else
-      fExecStdEnter = 1
+      fExecStdNewLine = 1
    endif
 
-   if fExecStdEnter then
-      StdEnter
+   if fExecStdNewLine then
+      StdNewLine
    endif
 
 ; ---------------------------------------------------------------------------
 defc ShellTab
    universal nepmd_hini
    universal prevkey
-   parse value (prevkey) with PrevKeyName \1 .
+   parse value prevkey with PrevKeyName \1 .
    KeyPath = '\NEPMD\User\Shell\FilenameCompletion'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    if on then
@@ -78,7 +78,7 @@ defc ShellTab
 defc ShellBackTab
    universal nepmd_hini
    universal prevkey
-   parse value (prevkey) with PrevKeyName \1 .
+   parse value prevkey with PrevKeyName \1 .
    KeyPath = '\NEPMD\User\Shell\FilenameCompletion'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    if on then
@@ -126,8 +126,8 @@ DefKey( 'tab'      , 'ShellTab'              )
 DefKey( 's_backtab', 'ShellBackTab'          )
 
 ; ---- Enter ----
-DefKey( 'newline'  , 'ShellEnter StdEnter'   )
-DefKey( 'enter'    , 'ShellEnter StdPadEnter')
+DefKey( 'newline'  , 'ShellNewLine StdNewLine')
+DefKey( 'enter'    , 'ShellNewLine StdEnter'  )
 
 ; From Joerg Tiemann's SHELLKRAM.E:
 
