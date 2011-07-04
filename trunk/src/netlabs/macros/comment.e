@@ -36,9 +36,11 @@ compile if not defined(COMMENT_UNMARKED_LINE_ALLOWED)
 compile endif
 
 defc com, comment
+   call NextCmdAltersText()
    call CommentMarkedLines( arg(1), 'C')
 
 defc ucom, uncomment
+   call NextCmdAltersText()
    call CommentMarkedLines( arg(1), 'U')
 
 ; Hint for inserting a line:
