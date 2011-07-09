@@ -194,11 +194,6 @@ defc ExecKeyCmd
 ; or accelerator key def.
 
 ; ---------------------------------------------------------------------------
-; Define a cmd to call the proc for testing
-defc DefKey
-   parse arg KeyString Cmd
-   call DefKey( KeyString, Cmd)
-
 ; Add or redefine an entry to the active named accelerator key table.
 ;
 ; Syntax:  DefKey( KeyString, Cmd[, 'L'])
@@ -325,6 +320,11 @@ defproc DefKey( KeyString, Cmd)
 */
 
    return
+
+; Define a cmd to call the proc for testing
+defc DefKey
+   parse arg KeyString Cmd
+   call DefKey( KeyString, Cmd)
 
 ; ---------------------------------------------------------------------------
 defproc UnDefKey( KeyString)
@@ -588,7 +588,7 @@ defproc GetVKMenuName( String)
 ; if any text
 defproc MenuAccelString
    Cmd = arg(1)
-   AppString = ''
+   AccelString = ''
    -- Todo: allow for specifying consecutive Cmds: Cmd1,Cmd2 or Cmd1, Cmd2
    if Cmd <> '' then
       -- Query array var, defined by DefKey
@@ -618,23 +618,23 @@ defproc MenuAccelString
                   ThisString = ThisString''upcase( Rest)
                endif
             endif
-            if AppString <> '' then
-               AppString = AppString' | 'ThisString
+            if AccelString <> '' then
+               AccelString = AccelString' | 'ThisString
             else
-               AppString = ThisString
+               AccelString = ThisString
             endif
          enddo
       endif
    endif
-   if AppString <> '' then
-      AppString = \9''AppString
+   if AccelString <> '' then
+      AccelString = \9''AccelString
    endif
-   return AppString
+   return AccelString
 
 ; For testing:
 defc MenuAccelString
    Cmd = strip( arg(1))
-   sayerror 'Menu item text appendix for "'Cmd'" is: |'MenuItemApp( Cmd)'|'
+   sayerror 'Menu item text appendix for "'Cmd'" is: |'MenuAccelString( Cmd)'|'
 
 ; ---------------------------------------------------------------------------
 ; Called by ProcessCommand in MENU.E
@@ -656,13 +656,18 @@ defproc NextCmdAltersText
    parse value curkey with KeyString \1 Cmd
    --dprintf( 'KeyString = 'KeyString)
 
-   -- Omit new undo record for an unmodified file
-   if not .modify then
+   -- Omit new undo record for repeated keys or repeated commands
+   if curkey = prevkey then
       -- nop
 
-   -- Omit new undo record for repeated keys
-   elseif curkey = prevkey then
+/*
+   -- Omit new undo record for an unmodified file
+   -- (This is not useful if, after a redo, a state is reached where
+   -- .modify is 0.)
+   elseif not .modify then
       -- nop
+*/
+
 /*
    -- Activate this if space should not create a new undo state
    elseif (KeyString = 'space' |
@@ -670,10 +675,10 @@ defproc NextCmdAltersText
       -- nop
 */
 
+/*
    -- The following option is experimental and most likely leads to too
    -- few recorded states, e.g. when formatting or clipboard macros were
    -- used:
-/*
    -- Activate this if only return or enter should create a new undo state
    elseif not (rightstr( KeyString, 7) = 'newline' |
                rightstr( KeyString, 5) = 'enter') then
@@ -1491,7 +1496,7 @@ defproc begin_shift( var startline, var startcol, var shift_flag)
 
 ; ---------------------------------------------------------------------------
 defproc end_shift( startline, startcol, shift_flag, forward_flag)
-; Let's let this work regardless of which marking mode is active.
+; Make this work regardless of which marking mode is active:
 compile if 0 -- WANT_CUA_MARKING = 'SWITCH'
    universal cua_marking_switch
    if shift_flag & cua_marking_switch then
