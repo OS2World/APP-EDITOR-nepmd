@@ -51,7 +51,7 @@ the value of the specified extended attribute.
 You can test this function from the *EPM* commandline by
 executing:
 .sl
-- *NepmdWriteStringEa* 
+- *NepmdWriteStringEa*
    [.IDPNL_EFUNC_NEPMDWRITESTRINGEA_PARM_FILENAME filename]
   - or
 - *WriteStringEa*
@@ -65,7 +65,7 @@ write the string
 .el
 as an extended string attribute with the name
 .sl compact
-- *NEPMD.__TestStringEa* 
+- *NEPMD.__TestStringEa*
 .el
 to the specified file
 and display the result within the status area.

@@ -39,7 +39,7 @@
 
 // prototypes
 APIRET QueryInstValue( PSZ pszValueTagTag, PSZ pszBuffer, ULONG ulBuflen);
-APIRET GetMessage( PCHAR *pTable, ULONG cTable, PBYTE pbBuffer, ULONG cbBuffer, 
+APIRET GetMessage( PCHAR *pTable, ULONG cTable, PBYTE pbBuffer, ULONG cbBuffer,
                    PSZ pszMessageName, PULONG pcbMsg);
 
 #endif // INSTVAL_H

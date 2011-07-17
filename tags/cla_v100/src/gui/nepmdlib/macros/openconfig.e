@@ -53,7 +53,7 @@ additional disk I/O.
 You can test this function from the *EPM* commandline by
 executing:
 .sl
-- *NepmdOpenConfig* 
+- *NepmdOpenConfig*
   - or
 - *OpenConfig*
 

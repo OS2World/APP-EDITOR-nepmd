@@ -3,7 +3,7 @@
  *
  *      Syntax: kd dir [dir [...]]
  *
- *    This program kills directory trees. 
+ *    This program kills directory trees.
  *    Names including blanks are not supported !
  */
 /* The first comment is used as online help text */
@@ -97,7 +97,7 @@
 
        /* get all subdirectories */
        rc = SysFileTree( Dir'\*', 'Dir.', 'DOS');
-   
+
        /* kill anything moving ... ;-) */
        DO d = Dir.0 TO 1 BY -1
           rc = RemoveDirectory( Dir.d);
@@ -148,7 +148,7 @@ PARSE ARG Dir;
 
  /* remove attributes from files - does not work with option 'O' :-( */
  rc = SysFileTree( Dir'\*', 'File.', 'F',, '-----');
- 
+
  /* remove files */
  rc = SysFileTree( Dir'\*', 'File.', 'FO');
  DO f = 1 TO File.0

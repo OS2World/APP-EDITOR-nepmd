@@ -691,7 +691,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
  WorkList = Category._List;
  ThisCategory = 'DIVERSE';
  IF (Category.ThisCategory \= '') THEN
-    WorkList = WorkList 'DIVERSE'; 
+    WorkList = WorkList 'DIVERSE';
 
  /* build up lists for each category */
  DO WHILE (WorkList \= '')
@@ -874,7 +874,7 @@ WriteHtextFiles: PROCEDURE EXPOSE (GlobalVars)
                                             '- [.'LinkId']';
        END;
        DocComment.ThisFunction.ThisKey = DocComment.ThisFunction.ThisKey''CrLf;
-       
+
        rcx = WriteSection( FunctionsFile, ThisFunction, ThisId, 'RELATED', '', 'Related functions', '40 0 60 100');
     END;
 

@@ -5,7 +5,7 @@ STATUS: open
 FILES:
 UPDATED: $Id$
 
-Printing and previewing a keyword highlighted text in color while System VIO 
+Printing and previewing a keyword highlighted text in color while System VIO
 is the current font, ships out every line on a new page
 
 Workaround:

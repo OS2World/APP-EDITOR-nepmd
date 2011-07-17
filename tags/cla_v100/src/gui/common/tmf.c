@@ -613,7 +613,7 @@ do
 
          // first of all, elimintate the variable
          strcpy( pszStartPos, pszVarNum + 1);
-   
+
          // get value
          pszVarValue = apszParms[ ulParmIndex - 1];
          if (pszVarValue)

@@ -64,7 +64,7 @@ This optional parameter specifies how to modify the window position.
 Specifiy one of the following values:
 .pl compact bold tsize=5 break=none
 - 1
-= size the *EPM* window according to the parameters 
+= size the *EPM* window according to the parameters
   [.IDPNL_EFUNC_NEPMDSETFRAMEWINDOWPOS_PARM_CX cx] and [.IDPNL_EFUNC_NEPMDSETFRAMEWINDOWPOS_PARM_CY cy].
 - 2
 = move the (lower left corner of the) *EPM* window according to the parameters
