@@ -7,7 +7,7 @@ UPDATED: $Id$
 
 passist: Move the cursor to the matching bracket or expression.
 
-Petr Mikulik shows how to enhance the passist function for TeX environments. 
+Petr Mikulik shows how to enhance the passist function for TeX environments.
 Already implemented is the enhancement for E mode.
 
 Todo:

@@ -5,7 +5,7 @@ STATUS: coding
 FILES: enter.e
 UPDATED: $Id$
 
-An automatic word wrap after Enter will keep the indent.                                         
+An automatic word wrap after Enter will keep the indent.
 
 Todo:
 - keep the indent also in lists, when line starts with a bullet char

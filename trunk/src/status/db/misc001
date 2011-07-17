@@ -5,5 +5,5 @@ STATUS: started
 FILES: *
 UPDATED: $Id$
 
-Every directory(...) call should be preceeded by a directory('\') to "unlock" the 
-directory when changing drives.                                   
+Every directory(...) call should be preceeded by a directory('\') to "unlock" the
+directory when changing drives.

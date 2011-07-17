@@ -235,8 +235,8 @@ switch (msg)
 
             if (pszUsrInfFile)
                {
-               sprintf( szHelpArgs, "%s %s", 
-                        (SHORT1FROMMP( mp1) == IDMEN_HELP_NEPMDUSRINF) ? 
+               sprintf( szHelpArgs, "%s %s",
+                        (SHORT1FROMMP( mp1) == IDMEN_HELP_NEPMDUSRINF) ?
                             pszUsrInfFile :
                             pszPrgInfFile,
                          HELP_ENTRYPANEL);

@@ -8,4 +8,4 @@ UPDATED: $Id$
 Mode for editing binary files
 
 Todo:
-- Autoselect of binary edit mode for EPM.MODE='BIN' 
+- Autoselect of binary edit mode for EPM.MODE='BIN'

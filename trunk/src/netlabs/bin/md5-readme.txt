@@ -11,7 +11,7 @@ The MD5 utility takes as input a message of arbitrary length and
 produces as output a 128-bit 'fingerprint' or 'message digest' of the
 input.  It is conjectured that it is computationally infeasible to
 produce two messages having the same message digest, or to produce any
-message having a given prespecified target message digest. 
+message having a given prespecified target message digest.
 
 The MD5 algorithm is intended for digital signature applications, where
 a large file must be `compressed' in a secure manner before being
@@ -20,7 +20,7 @@ such as RSA.  MD5 digests are often provided with large files for
 downloading, the idea being that the downloader is told the MD5 digest
 for the file, and can thus check that it has been downloaded correctly
 by running MD5 over the file and comparing the digest with the one
-provided. 
+provided.
 
 Using the program
 -----------------
