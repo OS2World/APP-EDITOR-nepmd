@@ -81,7 +81,7 @@
    typedef PATTRSTRING *PPATTRSTRING;
    #define access_as(a)   (*((PPATTRSTRING)(a)))
    #if 1
-      /* 
+      /*
       \  Note that ATTRSTRING_REVALIDATE is not thread reentrant.  Therefore
        \ it should only be called in the interpretter thread.  It can also be
        / called from another thread if one can be sure that another copy
@@ -92,8 +92,8 @@
 
       #define BUGFIX00236
       #ifdef BUGFIX00236
-         /* We only set the high part because if we are using 16bit code, the assignment 
-         \     is not atomic, so there can be a thread switch between two halfs if the 
+         /* We only set the high part because if we are using 16bit code, the assignment
+         \     is not atomic, so there can be a thread switch between two halfs if the
           \     value is 32bit.  We don't do this for the second assignment because
            \    we know that our 16 bit compiler assigns the low 16 bits first.
            /    Warning: optimizing compilers might strip the first assignment which

@@ -66,7 +66,7 @@ Executing this command will
 delete the specified handle
 and display the result within the status area.
 
-Because of that only a previous call to the functions [.IDPNL_EFUNC_NEPMDGETNEXTFILE] 
+Because of that only a previous call to the functions [.IDPNL_EFUNC_NEPMDGETNEXTFILE]
 or [.IDPNL_EFUNC_NEPMDGETNEXTDIR] can leave an open handle for you to test, and
 the related testcases will not do so, you will not truly be able to test a successful
 call to this function by this testcase.

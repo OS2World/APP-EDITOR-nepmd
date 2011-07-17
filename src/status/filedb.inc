@@ -123,7 +123,7 @@ return $commit;
 // --------------------------------------------------------------------
 
 function filedb_sorttitle( $aa, $ab)
-{   
+{
 $index = 2;
 $a = $aa[ $index];
 $b = $ab[ $index];
@@ -136,7 +136,7 @@ return $result;
 // --------------------------------------------------------------------
 
 function filedb_sortcategory( $aa, $ab)
-{   
+{
 $index = 1;
 $a = $aa[ $index];
 $b = $ab[ $index];
@@ -149,7 +149,7 @@ return $result;
 // --------------------------------------------------------------------
 
 function filedb_sortprio( $aa, $ab)
-{   
+{
 $index = 3;
 $a = $aa[ $index];
 $b = $ab[ $index];
@@ -164,7 +164,7 @@ return $result;
 // --------------------------------------------------------------------
 
 function filedb_sortstatus( $aa, $ab)
-{   
+{
 $index = 4;
 $as = trim( $aa[ $index]);
 $bs = trim( $ab[ $index]);
@@ -174,7 +174,7 @@ if ($as == $bs)
    return 0;
 
 // read index file and search status keywords
-// NOTE: the lines contain CRLF, so we need to append 
+// NOTE: the lines contain CRLF, so we need to append
 //       CRLF to the keywords when searching
 $astatus = file( "status.lst");
 $a = array_search( $as."\r\n", $astatus);
@@ -191,7 +191,7 @@ return $result;
 // --------------------------------------------------------------------
 
 function filedb_sortmodified( $aa, $ab)
-{   
+{
 $index = 7;
 $a = $aa[ $index];
 $b = $ab[ $index];

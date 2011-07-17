@@ -1,12 +1,12 @@
 CATEGORY: Locate/Select
-TITLE: Enhance Alt+1  
+TITLE: Enhance Alt+1
 PRIO: 2
 STATUS: started
 FILES: epmsmp\alt_1.e
 UPDATED: $Id$
 
-Enhance file loading with Alt+1 while cursor is on a filespec.                             
-- improve mechanism                       
+Enhance file loading with Alt+1 while cursor is on a filespec.
+- improve mechanism
 - handle error with relative/absolute path
 
 Todo:

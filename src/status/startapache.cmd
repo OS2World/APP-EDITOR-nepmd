@@ -112,7 +112,7 @@ GetDirName: PROCEDURE
  rc = DIRECTORY( CurrentDrive);
 
  RETURN( DirFound);
-     
+
 /* ------------------------------------------------------------------------- */
 FileExist: PROCEDURE
  PARSE ARG FileName

@@ -29,7 +29,7 @@ Fullname = NepmdQueryFullname( Filename);
 @@NepmdQueryFullname@CATEGORY@FILE
 
 @@NepmdQueryFullname@SYNTAX
-This function queries the fullname of the specified filename. It 
+This function queries the fullname of the specified filename. It
 does not check, wether a file or directory really exists, for that use
 the functions [.IDPNL_EFUNC_NEPMDFILEEXISTS] or [.IDPNL_EFUNC_NEPMDDIREXISTS].
 
@@ -62,7 +62,7 @@ valid.
 You can test this function from the *EPM* commandline by
 executing:
 .sl
-- *NepmdQueryFullname* [.IDPNL_EFUNC_NEPMDQUERYFULLNAME_PARM_FILENAME filename] 
+- *NepmdQueryFullname* [.IDPNL_EFUNC_NEPMDQUERYFULLNAME_PARM_FILENAME filename]
   - or
 - *QueryFullname* [.IDPNL_EFUNC_NEPMDQUERYFULLNAME_PARM_FILENAME filename]
 

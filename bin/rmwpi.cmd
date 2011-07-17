@@ -3,7 +3,7 @@
  *
  *      Syntax: rmwpi wis-script
  *
- *    This program quickly removes packages matching the package ids of the 
+ *    This program quickly removes packages matching the package ids of the
  *    specified wis script without using the WarpIn GUI.
  *    THIS IS INTENDED FOR TESTING PURPOSES ONLY !
  *
@@ -172,7 +172,7 @@
        END;
     END;
 
-    /* any app removed ? */ 
+    /* any app removed ? */
     IF (\fAppRemoved) THEN
        rc = ERROR.NO_MORE_FILES;
 
@@ -292,7 +292,7 @@ RemoveApp: PROCEDURE EXPOSE (GlobalVars)
     END;
     IF (ObjectCount > 0 ) THEN
        SAY '  -' ObjectCount 'WPS object(s) destroyed'
-   
+
     /* delete ini entry */
     rcx = SysIni( IniFile, AppId, 'DELETE:');
  END;

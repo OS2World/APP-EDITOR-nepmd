@@ -227,10 +227,10 @@ do
       else if (ulInsertType == SEARCH_INSERTPOS)
          {
          // compare strings case insensitive
-         // Value             Meaning 
-         // Less than 0       string1 less than string2 
-         // 0                 string1 identical to string2 
-         // Greater than 0    string1 greater than string2. 
+         // Value             Meaning
+         // Less than 0       string1 less than string2
+         // 0                 string1 identical to string2
+         // Greater than 0    string1 greater than string2.
 
          lResult = stricmp( pszResult, pszSearch);
 //       DPRINTF(( "LIBREG: diff: %s %s: %i\n", pszResult, pszSearch, lResult));
@@ -1004,7 +1004,7 @@ do
             rc = ERROR_OPEN_FAILED;
             break;
             }
-      
+
          while (!feof( pfile))
             {
             // read line and skip empty lines
@@ -1014,29 +1014,29 @@ do
                continue;
             if (szLine[ 0] == ';')
                continue;
-   
+
             // check for delimter
             pszDelimiter = strchr( szLine, '=');
             if (!pszDelimiter)
                continue;
-      
+
             // prepare fields and write them to the ini file
             *pszDelimiter = 0;
             pszPath  = _stripquotes( _stripblanks( szLine));
             pszValue = _stripquotes( _stripblanks( pszDelimiter + 1));
-      
+
             if (!PrfWriteProfileString( hconfig, pszAppRegDefaults, pszPath, pszValue))
                {
                rc = LASTERROR;
                break;
                }
-   
+
             } // while (!feof( pfile))
-   
+
          if (rc != NO_ERROR)
             break;
-   
-         } 
+
+         }
 
       } // if (pszDefaultsFilename)
 

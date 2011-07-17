@@ -183,7 +183,7 @@ GetCalldir: PROCEDURE
 PARSE SOURCE . . CallName
  CallDir = FILESPEC('Drive', CallName)||FILESPEC('Path', CallName);
  RETURN(LEFT(CallDir, LENGTH(CallDir) - 1));
-     
+
 /* ========================================================================= */
 GetCallName: PROCEDURE
 PARSE SOURCE . . CallName
@@ -228,7 +228,7 @@ LoadEnvFile: PROCEDURE EXPOSE (GlobalVars)
     /* get varname and value */
     PARSE VAR ThisLine EnvVar'='EnvValue;
     EnvVar = TRANSLATE( STRIP( EnvVar));
-    
+
     /* replace variables in value */
     vStart = POS( '%', EnvValue);
     DO WHILE (vStart > 0)

@@ -51,7 +51,7 @@ configuration value is to be deleted.
 You can test this function from the *EPM* commandline by
 executing:
 .sl
-- *NepmdDeleteConfigValue* 
+- *NepmdDeleteConfigValue*
   - or
 - *DeleteConfigValue*
 

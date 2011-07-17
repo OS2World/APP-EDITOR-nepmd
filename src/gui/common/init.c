@@ -13,7 +13,7 @@
 * This file is part of the Netlabs EPM Distribution package and is free
 * software.  You can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the Free Software
-* Foundation, in version 2 as it comes in the "COPYING" file of the 
+* Foundation, in version 2 as it comes in the "COPYING" file of the
 * Netlabs EPM Distribution.  This library is distributed in the hope that it
 * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -887,14 +887,14 @@ do
          }
 
       // take care for multiline values, being enclosed in double quotes
-      if (*pkey->pszKeyValue == '"') 
+      if (*pkey->pszKeyValue == '"')
          while (*(pkey->pszKeyValue + strlen( pkey->pszKeyValue) - 1) != '"')
             {
             // read next line
             if (!fgets( pszLine, MAX_LINESIZE, pinit->pfile))
                break;
             _stripblanks( pszLine);
-   
+
             pkey->pszKeyValue = realloc( pkey->pszKeyValue, strlen( pkey->pszKeyValue) + strlen( pszLine) + 1);
             strcat( pkey->pszKeyValue, pszLine);
             }

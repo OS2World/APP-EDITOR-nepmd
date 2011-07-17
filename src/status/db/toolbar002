@@ -2,8 +2,8 @@ CATEGORY: Toolbar
 TITLE: Change toolbar according to the mode
 PRIO: 3
 STATUS: open
-FILES: 
+FILES:
 UPDATED: $Id$
 
-General toolbar definitions needed. Define more toolbar items. Generic mechanism 
+General toolbar definitions needed. Define more toolbar items. Generic mechanism
 is easy to implement.

@@ -5,5 +5,5 @@ STATUS: coding
 FILES: lastgroup.e
 UPDATED: $Id$
 
-Save a list of the last loaded files in ring (called group) before closing EPM to 
+Save a list of the last loaded files in ring (called group) before closing EPM to
 restore the ring later

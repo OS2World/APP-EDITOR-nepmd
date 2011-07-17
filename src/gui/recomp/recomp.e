@@ -103,7 +103,7 @@ prestore_pos( save_pos);
 defproc recomp_closewindow()
 
 do i = 1 to filesinring( 3)
-   /* turn of modified flag for all files. Unsaved files */ 
+   /* turn of modified flag for all files. Unsaved files */
    /* are to be handled by calling GETFILELIST before !  */
    .modify = 0;
    next_file;

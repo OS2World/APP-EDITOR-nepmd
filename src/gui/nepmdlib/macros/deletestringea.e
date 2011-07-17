@@ -65,7 +65,7 @@ executing:
 
 
 Executing this command will
-remove the specified extended attribute 
+remove the specified extended attribute
 with the name
 .sl compact
 - *NEPMD.__TestStringEa*
