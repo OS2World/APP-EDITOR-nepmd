@@ -2,9 +2,9 @@ CATEGORY: Formatting
 TITLE: Enhance reflow suppoert (Alt+P)
 PRIO: 2
 STATUS: coding
-FILES: stdprocs.e altp4tex.e 
+FILES: stdprocs.e altp4tex.e
 UPDATED: $Id$
 
 Todo:
 - support more languages with reflow support
-- enable also when REFLOW_LIKE_PE = 0 
+- enable also when REFLOW_LIKE_PE = 0

@@ -2,7 +2,7 @@ CATEGORY: Compile
 TITLE: Relink
 PRIO: 2
 STATUS: coding
-FILES: 
+FILES:
 UPDATED: $Id$
 
-Save, compile, unlink, relink the current file 
+Save, compile, unlink, relink the current file

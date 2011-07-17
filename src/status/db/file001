@@ -5,7 +5,7 @@ STATUS: coding
 FILES: user_exits.e
 UPDATED: $Id$
 
-Before the last file is quitted an unnamed file is loaded.                                      
+Before the last file is quitted an unnamed file is loaded.
 
 Todo:
 - make this feature configurable (not default!)

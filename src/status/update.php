@@ -34,7 +34,7 @@ $comment = $_POST[ "comment"];
 if ($comment == "")
    {
    echo "<br>error: <b>no commit comment specified !</b><p>";
-   echo "press the Back button and enter a commit comment."; 
+   echo "press the Back button and enter a commit comment.";
    }
 else if ($file != "")
    {

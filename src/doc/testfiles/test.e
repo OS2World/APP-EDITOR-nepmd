@@ -22,7 +22,7 @@ standard macro routines - DEFAULT CYAN
 ======================================
 SetCurrentHLPFiles SetMouseSet Thunk add_command_menu
 
-E fields - DEFAULT LIGHTBLUE  
+E fields - DEFAULT LIGHTBLUE
 ============================
 .dragcolor .eaarea .eof .filename
 

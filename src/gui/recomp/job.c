@@ -457,7 +457,7 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
 
          // determine sourcename
          strcpy( pwd->szSourceFile,
-                 (pwd->fTestUseErrorSource) ? 
+                 (pwd->fTestUseErrorSource) ?
                     TEST_ALTSOURCENAME : EPM_SOURCENAME);
 
          // check for EPM compiler
@@ -491,7 +491,7 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
             }
 
          // show some more details in debug log
-         DPRINTF(( "JOB: macro compiler is: %s\n", pwd->szCompilerExecutable)); 
+         DPRINTF(( "JOB: macro compiler is: %s\n", pwd->szCompilerExecutable));
          DPRINTF(( "JOB: sourcefile is: %s\n", szSourcePath));
          DPRINTF(( "JOB: EPMPATH is: %s\n", getenv( "EPMPATH")));
 
@@ -812,7 +812,7 @@ if (msg == WM_USER_UPDATE_JOBMACHINE)
          // we are done
          pwd->ulJobStatus = JOB_ACTION_FINISH;
          UPDATE_JOB_STATUS;
-         
+
          break;
 
       // ------------------------------------------------

@@ -2,9 +2,9 @@ CATEGORY: Tagging
 TITLE: Tags on the fly
 PRIO: 3
 STATUS: open
-FILES: 
+FILES:
 UPDATED: $Id$
 
 Determine
 - when the tag creation should be restarted (On every defmodify?)
-- where shall the current tag be shown?       
+- where shall the current tag be shown?

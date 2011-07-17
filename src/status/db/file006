@@ -2,8 +2,8 @@ CATEGORY: file handling
 TITLE: extendded revert after save/quit
 PRIO: 2
 STATUS: started
-FILES: 
+FILES:
 UPDATED: $Id$
 
-Keep a copy of every edited file, even after the file is saved and/or quitted. 
+Keep a copy of every edited file, even after the file is saved and/or quitted.
 Undo and Autosave need to work independent of that!
