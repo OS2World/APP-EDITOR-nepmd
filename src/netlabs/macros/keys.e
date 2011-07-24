@@ -254,6 +254,10 @@ defproc DefKey( KeyString, Cmd)
       endif
    endif
 
+   -- Remove previous key def in array vars, if any
+   PrevCmd = GetAVar('keydef.'KeyString)
+   DelAVar( 'keycmd.'PrevCmd, KeyString)
+
    -- Save key def in array to allow for searching for KeyString and Cmd
    SetAVar( 'keydef.'KeyString, Cmd)
    AddAVar( 'keycmd.'Cmd, KeyString)  -- may have multiple key defs
