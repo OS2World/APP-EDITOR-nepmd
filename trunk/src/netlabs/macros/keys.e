@@ -2343,7 +2343,9 @@ defc RecordKeys
       recordingstate = 'R'
       SetAVar( 'recordkeys', '')
       --'SayHint' CTRL_R__MSG
-      'SayHint Remembering keys.  Ctrl-R to finish, Ctrl-T to finish and try, Esc to cancel.'
+      RecordKeysKeyString = strip( MenuAccelString( 'RecordKeys'), 'L', \9)
+      PlaybackKeysKeyString = strip( MenuAccelString( 'PlaybackKeys'), 'L', \9)
+      'SayHint Remembering keys.  'RecordKeysKeyString' to finish, 'PlaybackKeysKeyString' to finish and try, Esc to cancel.'
    endif
 
 defc CancelRecordKeys
@@ -2494,9 +2496,9 @@ defc MarkEndLineOrAfter
 defc ProcessEscape
    universal ESCAPE_KEY
    universal alt_R_active
-   universal recordkeys
+   universal recordingstate
    sayerror 0
-   if recordkeys = 'R' then
+   if recordingstate = 'R' then
       'CancelRecordKeys'
    elseif alt_R_active <> '' then
        'setmessageline '\0
