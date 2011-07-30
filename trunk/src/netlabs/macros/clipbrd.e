@@ -241,6 +241,7 @@ defc cut
       if leftstr(marktype(), 1)<>'L' then
          markfileid.col = firstcol
       endif
+      call NextCmdAltersText()
       call pdelete_mark()
    endif
 
@@ -256,6 +257,7 @@ defc paste
       sayerror BROWSE_IS__MSG ON__MSG
       return
    endif
+   call NextCmdAltersText()
    if not .line & (arg1 = 'C' | arg1 = 'B') then
       if .last then  -- Can't paste into line 0
          sayerror -281  -- "Source destination conflict"
