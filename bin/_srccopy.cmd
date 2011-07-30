@@ -84,8 +84,8 @@
     SourceDirLen = LENGTH( SourceDir);
     DO d = 1 TO Dir.0
 
-       /* don't copy CVS dirs */
-       IF (FILESPEC( 'N', Dir.d) = 'CVS') THEN ITERATE;
+       /* don't copy CVS and .svn dirs */
+       IF (WORDPOS( FILESPEC( 'N', Dir.d), 'CVS .svn') > 0) THEN ITERATE;
 
        rc = SysFileTree( Dir.d'\*', 'File.', 'FO');
        DO f = 1 TO File.0
