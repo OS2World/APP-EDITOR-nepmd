@@ -33,24 +33,28 @@
 defc DupMark
    mt = upcase(arg(1))
    if     mt = 'M' then
+      call NextCmdAltersText()
 ;     if marktype() then
          call pmove_mark()
 ;     else                 -- If no mark, look in Shared Text buffer
 ;       'GetSharBuff'      -- See clipbrd.e for details
 ;     endif
    elseif mt = 'C' then
+      call NextCmdAltersText()
       if marktype() then
          call pcopy_mark()
       else                 -- If no mark, look in Shared Text buffer
          'GetSharBuff'     -- See clipbrd.e for details
       endif
    elseif mt = 'O' then
+      call NextCmdAltersText()
       if marktype() then
          call pcommon_adjust_overlay('O')
       else                 -- If no mark, look in Shared Text buffer
          'GetSharBuff O'   -- See clipbrd.e for details
       endif
    elseif mt = 'A' then
+      call NextCmdAltersText()
       call pcommon_adjust_overlay('A')
    elseif mt = 'U' then
       unmark
@@ -59,9 +63,11 @@ defc DupMark
       unmark
    elseif mt = 'D' then  -- Normal delete mark
       'Copy2DMBuff'        -- See clipbrd.e for details
+      call NextCmdAltersText()
       call pdelete_mark()
       'ClearSharBuff'
    elseif mt = 'D2' then  -- special for drag/drop; only deletes mark w/o touching buffers
+      call NextCmdAltersText()
       call pdelete_mark()
    elseif mt = 'P' then    -- Print marked area
       call checkmark()     -- verify there is a marked area in the current file, else stop,
