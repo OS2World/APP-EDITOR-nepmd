@@ -28,15 +28,15 @@
 ;
 ; **************************************************************************/
 
-newbar
 commands
-reflow
+fonts
+groups
 jot
+makeactn
+newbar
+reflow
 sampactn
-tree
 stylebut
 tagsactn
-makeactn
-groups
-fonts
+tree
 

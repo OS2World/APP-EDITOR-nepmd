@@ -50,13 +50,14 @@ FILESTOCLEAN=\
 # --- list for standalone modules
 #     keep this in sync with exfiles.lst!
 EMODULELIST=\
-$(CMPEXDIR)\epm.ex \
+$(CMPEXDIR)\epm.ex\
 $(CMPEXDIR)\all.ex\
 $(CMPEXDIR)\alt_1.ex\
 $(CMPEXDIR)\assist.ex\
 $(CMPEXDIR)\backup.ex\
 $(CMPEXDIR)\bookmark.ex\
 $(CMPEXDIR)\box.ex\
+$(CMPEXDIR)\cuakeys.ex\
 $(CMPEXDIR)\dict.ex\
 $(CMPEXDIR)\draw.ex\
 $(CMPEXDIR)\epmcomp.ex\
@@ -76,7 +77,6 @@ $(CMPEXDIR)\locate.ex\
 $(CMPEXDIR)\maketags.ex\
 $(CMPEXDIR)\modecnf.ex\
 $(CMPEXDIR)\modeexec.ex\
-$(CMPEXDIR)\mozkeys.ex\
 $(CMPEXDIR)\newmenu.ex\
 $(CMPEXDIR)\next_win.ex\
 $(CMPEXDIR)\ovshmenu.ex\
@@ -87,6 +87,7 @@ $(CMPEXDIR)\recompile.ex\
 $(CMPEXDIR)\reflowmail.ex\
 $(CMPEXDIR)\showu.ex\
 $(CMPEXDIR)\singlespace.ex\
+$(CMPEXDIR)\stdkeys.ex\
 $(CMPEXDIR)\stdmenu.ex\
 $(CMPEXDIR)\tags.ex\
 $(CMPEXDIR)\testkeys.ex\
