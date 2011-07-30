@@ -78,6 +78,8 @@ TouchFiles: PROCEDURE
     DO
        /* process all directories */
        DO d = 1 TO Dir.0
+          /* omit *\.svn dirs */
+          IF POS( '\.svn', Dir.d) > 0 THEN ITERATE;
           rc = TouchFiles( Dir.d'\*', TimeStamp, fRecursive);
        END;
     END;
@@ -94,6 +96,8 @@ TouchFiles: PROCEDURE
     /*   for each call to touch.exe                */
     FileList = '';
     DO f = 1 TO Files.0
+       /* omit *\.svn\* files */
+       IF POS( '\.svn\', Files.f) > 0 THEN ITERATE;
        FileList = FileList Files.f;
        IF ((LENGTH( FileList) > 768) | (f = Files.0)) THEN
        DO
