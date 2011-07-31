@@ -2387,7 +2387,6 @@ defc PlaybackKeys
 
 ; ---------------------------------------------------------------------------
 defc TypeTab
-   call DisableUndoRec()
    keyin \9
 
 defc DeleteChar
