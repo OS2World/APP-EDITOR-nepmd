@@ -149,8 +149,8 @@ defc dolines
          for i = firstline to lastline
             getline line, i, fileid
             line = strip( line)
-            -- For REXX files, strip quotes or double quotes
-            if Mode = 'REXX' then
+            -- For REXX or E files, strip quotes or double quotes
+            if wordpos( Mode, 'REXX E') > 0 then
                if leftstr( line, 1) = "'" & rightstr( line, 1) = "'" then
                   line = substr( line, 2, length( line) - 2)
                elseif leftstr( line, 1) = '"' & rightstr( line, 1) = '"' then
@@ -168,8 +168,8 @@ defc dolines
       call NextCmdAltersText()
        getline line
       line = strip( line)
-      -- For REXX files, strip quotes or double quotes
-      if Mode = 'REXX' then
+      -- For REXX or E files, strip quotes or double quotes
+      if wordpos( Mode, 'REXX E') > 0 then
          if leftstr( line, 1) = "'" & rightstr( line, 1) = "'" then
             line = substr( line, 2, length( line) - 2)
          elseif leftstr( line, 1) = '"' & rightstr( line, 1) = '"' then
