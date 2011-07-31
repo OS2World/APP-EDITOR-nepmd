@@ -85,6 +85,7 @@ $(CMPEXDIR)\popup.ex\
 $(CMPEXDIR)\recode.ex\
 $(CMPEXDIR)\recompile.ex\
 $(CMPEXDIR)\reflowmail.ex\
+$(CMPEXDIR)\showf.ex\
 $(CMPEXDIR)\showu.ex\
 $(CMPEXDIR)\singlespace.ex\
 $(CMPEXDIR)\stdkeys.ex\
