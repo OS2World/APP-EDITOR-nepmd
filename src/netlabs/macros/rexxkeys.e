@@ -81,31 +81,6 @@ defc SetRexxForceCase
    call UseSetting( 'RexxForceCase', arg(1))
 
 ; ---------------------------------------------------------------------------
-; Todo: move in order to make that available for other modes as well.
-; Almost like strip: strip leading/trailing blanks (spaces and tabs).
-defproc StripBlanks( in)
-   next = in
-   Opt = upcase( substr( arg(2), 1, 1))
-   if not wordpos( Opt, 'B L T') then
-      Opt = 'B'
-   endif
-   StripChars = arg(3)
-   if StripChars == '' then
-      StripChars = ' '\t
-   endif
-   if Opt = 'L' | Opt = 'B' then
-      p = max( 1, verify( next, StripChars, 'N'))  -- find first word
-      next = substr( next, p)
-   endif
-   if Opt = 'T' | Opt = 'B' then
-      next = reverse( next)
-      p = max( 1, verify( next, StripChars, 'N'))  -- find first word
-      next = substr( next, p)
-      next = reverse( next)
-   endif
-   return next
-
-; ---------------------------------------------------------------------------
 defproc GetRexxIndent
    universal indent
    ind = indent  -- will be changed at defselect for every mode, if defined

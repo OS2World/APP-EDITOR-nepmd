@@ -849,3 +849,26 @@ defproc trunc( num)
    parse value num with whole'.'.
    return whole
 
+; ---------------------------------------------------------------------------
+; Almost like strip: strip leading/trailing blanks (spaces and tabs).
+defproc StripBlanks( next)
+   Opt = upcase( substr( arg(2), 1, 1))
+   if not wordpos( Opt, 'B L T') then
+      Opt = 'B'
+   endif
+   StripChars = arg(3)
+   if StripChars == '' then
+      StripChars = ' '\t
+   endif
+   if Opt = 'L' | Opt = 'B' then
+      p = max( 1, verify( next, StripChars, 'N'))  -- find first word
+      next = substr( next, p)
+   endif
+   if Opt = 'T' | Opt = 'B' then
+      next = reverse( next)
+      p = max( 1, verify( next, StripChars, 'N'))  -- find first word
+      next = substr( next, p)
+      next = reverse( next)
+   endif
+   return next
+
