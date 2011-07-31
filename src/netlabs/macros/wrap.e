@@ -452,7 +452,6 @@ defc SoftWrapAtCursor
    if saved_readonly then
       .readonly = 0  -- need to disable .readonly temporarily
    endif
-   call DisableUndoRec()
    saved_modify = .modify
 
    SplitCol = .col
