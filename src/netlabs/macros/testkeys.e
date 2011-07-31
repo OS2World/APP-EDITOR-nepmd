@@ -82,6 +82,7 @@ compile if 1         -- 1 if you want to
    keys testkeys     -- then switch back.
 compile endif
    sayerror 'key =' ch '= "'k'"' msg
+   dprintf( 'key =' ch '= "'k'"' msg)
 
 
 /*
