@@ -3598,8 +3598,11 @@ defc menuinit_search
    else
       SetMenuText( GetAVar('mid_findmark'), 'Find ~word')
    endif
-   on = (GetSearchDirection() = '-')
-   SetMenuAttribute( GetAVar('mid_searchbackwards'), MIA_CHECKED, not on)
+   -- Menu for CUA keys doesn't have a Backward item
+   if GetKeyDef() = '-none-' then
+      on = (GetSearchDirection() = '-')
+      SetMenuAttribute( GetAVar('mid_searchbackwards'), MIA_CHECKED, not on)
+   endif
 
 defc menuinit_goto
    on = FileIsMarked()
