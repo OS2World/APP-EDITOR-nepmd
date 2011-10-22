@@ -4999,8 +4999,6 @@ defc toggle_autosave
    if menuloaded then
       SetMenuAttribute( GetAVar('mid_autosaveenabled'),   MIA_CHECKED, not on)
       SetMenuAttribute( GetAVar('mid_autosavenumdialog'), MIA_DISABLED, on)
-      SetMenuAttribute( GetAVar('mid_autosavedirdialog'), MIA_DISABLED, on)
-      SetMenuAttribute( GetAVar('mid_autosavelistdir'),   MIA_DISABLED, on)
    endif
 
 ; ---------------------------------------------------------------------------
