@@ -248,7 +248,7 @@ defproc DefKey( KeyString, Cmd)
    --       There exists no ETK procs to activate the menu.
    if length( String) = 1 then
       if cua_menu_accel then
-         if wordpos( String, upcase( GetAVar('usedmenuaccelerators'))) then
+         if Flags = AF_ALT & wordpos( String, upcase( GetAVar('usedmenuaccelerators'))) then
             return
          endif
       endif
@@ -325,47 +325,21 @@ defproc DefKey( KeyString, Cmd)
 
    return
 
-; Define a cmd to call the proc for testing
+; Define a cmd to call the proc in profile.erx or for testing
 defc DefKey
    parse arg KeyString Cmd
-   call DefKey( KeyString, Cmd)
+   if upcase( lastword( Cmd)) = 'L' then
+      Options = 'L'
+      Cmd = subword( Cmd, 1, words( Cmd) - 1)
+   else
+      Options = ''
+   endif
+   call DefKey( KeyString, Cmd, Options)
 
 ; ---------------------------------------------------------------------------
+; Syntax:  UnDefKey( KeyString)
 defproc UnDefKey( KeyString)
    universal activeaccel
-   universal lastkeyaccelid
-   universal cua_menu_accel
-   Flags = 0
-
-   -- Parse lonekey option
-   fPadKey = 0
-   Options = upcase( arg(3))
-   if Options <> '' then
-      if pos( Options, 'L') > 0 then
-         Flags = Flags + AF_LONEKEY
-      endif
-   endif
-
-   String = upcase( KeyString)
-   call GetAFFlags( Flags, String, KeyString)  -- removes modifier prefixes from String
-
-   if length( String) = 1 then
-      Flags = Flags + AF_CHAR
-      if Flags bitand AF_SHIFT then
-         Key = asc( upcase( String))
-      else
-         Key = asc( lowcase( String))
-      endif
-   else
-      VK = GetVKConst( String)
-      if VK > 0 then
-         Key = VK
-         Flags = Flags + AF_VIRTUALKEY
-      else
-         sayerror 'Error: Unknown key string 'KeyString' specified.'
-         return
-      endif
-   endif
 
    AccelId = GetAVar( 'keyid.'KeyString)
    if AccelId <> '' then
@@ -377,6 +351,11 @@ defproc UnDefKey( KeyString)
    endif
 
    return
+
+; Define a cmd to call the proc in profile.erx or for testing
+defc UnDefKey
+   parse arg KeyString
+   call UnDefKey( KeyString)
 
 ; ---------------------------------------------------------------------------
 defproc GetAFFlags( var Flags, var String, var KeyString)
@@ -784,7 +763,7 @@ defc DefAccel, DefKeyset
    Keyset = Name
    activeaccel = Keyset
 
-   -- The BlockAlt keysubset needn't to be added to the 'keysets' array var
+   -- The BlockAlt key subset needn't to be added to the 'keysets' array var
    'BlockAltKeys'
 
    -- Parse keyset definition list and get resolved list of KeysetCmds
@@ -959,11 +938,16 @@ defc SetKeyset2
 ; ---------------------------------------------------------------------------
 defc ReloadKeyset
    universal activeaccel
+
+   'DelKeyset'
+
    KeyDefs = strip( GetAVar( 'keyset.'activeaccel))
    -- Reset list of defined keysets to make SetKeyset2 execute DefKeyset
    call SetAVar( 'keysets', '')
    -- Redef key defs
    'SetKeyset2' activeaccel KeyDefs
+
+   'LinkKeyDefs'
 
 ; ---------------------------------------------------------------------------
 defc DeleteAccel, DelKeyset
@@ -1715,9 +1699,10 @@ defc EndMark
    endif
 
 defc FillMark  -- accepts key from macro
+   key = arg(1)
    call NextCmdAltersText()
    call checkmark()
-   call pfill_mark()
+   call pfill_mark( key)
 
 defc TypeFrameChars
    call NextCmdAltersText()
@@ -2609,7 +2594,7 @@ compile if RESPECT_SCROLL_LOCK
    else
 compile endif
 */
-      if .line > 1 & .col = 1 & not cursoreverywhere then
+      if .line > 1 & .col = 1 then
          up
          end_line
       else
