@@ -90,4 +90,5 @@ UnDefKey( 'c_s_f3')
 UnDefKey( 's_f4')
 UnDefKey( 'c_s_f4')
 UnDefKey( 'a_s_f4')
+UnDefKey( 'c_minus')
 
