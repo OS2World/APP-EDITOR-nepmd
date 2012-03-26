@@ -517,7 +517,7 @@ defproc add_file_menu(menuname)
                                 FILE_BARP__MSG,
                                 0, mpfrom2short(HP_FILE, 0)  -- MIS must be 0 for submenu
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~New',                                                         -- New
+   buildmenuitem menuname, mid, i, 'N~ew',                                                         -- New
                                    'xcom e /n' ||
                                    \1'Create a new, empty file in this window',
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
@@ -642,7 +642,7 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open at ~cursor'\9''ALT_KEY__MSG'+1',                          -- Open at cursor
+   buildmenuitem menuname, mid, i, 'Open at c~ursor'\9''ALT_KEY__MSG'+1',                          -- Open at cursor
                                    'alt_1' ||
                                    \1'Load file or URL under cursor',
                                    MIS_TEXT, 0
@@ -661,7 +661,7 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_fileproperties', i);
-   buildmenuitem menuname, mid, i, 'F~ile properties',                                             -- File properties   >
+   buildmenuitem menuname, mid, i, 'File p~roperties',                                             -- File properties   >
                                    '' ||
                                    \1'Properties for this buffer/file only',
                                    MIS_TEXT + MIS_SUBMENU, 0
@@ -737,7 +737,7 @@ defproc add_file_menu(menuname)
                                    RENAME_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_NAME, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Copy fi~lename',                                               -- Copy filename
+   buildmenuitem menuname, mid, i, 'Cop~y filename',                                               -- Copy filename
                                    'CopyFilename2Clip' ||
                                    \1'Copy current filename to clipboard',
                                    MIS_TEXT, 0
@@ -789,6 +789,11 @@ defproc add_file_menu(menuname)
                                    'PrintDlg' ||
                                    ENHPRT_FILE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_ENHPRINT, 0)
+   i = i + 1; call SetAVar( 'mid_printmark', i);
+   buildmenuitem menuname, mid, i, 'Print ~mark...',                                               -- Print mark...
+                                   'PrintDlg M' ||
+                                   ENHPRT_MARK_MENUP__MSG,
+                                   MIS_TEXT, mpfrom2short(HP_EDIT_ENHPRINT, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -803,6 +808,15 @@ defproc add_file_menu(menuname)
                                    'Quit' ||
                                    \1'Close this file',
                                    MIS_TEXT, mpfrom2short(HP_FILE_QUIT, 0)
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Res~tart',                                                     -- Restart
+                                   'Restart' ||
+                                   \1'Restart current EPM window',
+                                   MIS_TEXT, 0
    return
 
 
@@ -1216,15 +1230,11 @@ defproc add_mark_menu(menuname)
                                    'DupMark D' ||
                                    DELETE_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_DELETE, 0)
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_printmark', i);
-   buildmenuitem menuname, mid, i, PRT_MARK_MENU__MSG'...',                                        -- Print mark
-                                   'PrintDlg M' ||
-                                   ENHPRT_MARK_MENUP__MSG,
-                                   MIS_TEXT, mpfrom2short(HP_EDIT_ENHPRINT, 0)
+   i = i + 1; call SetAVar( 'mid_fillmark', i);
+   buildmenuitem menuname, mid, i, '~Fill mark...'\9 || ALT_KEY__MSG'+F',                          -- Fill mark...
+                                   'FillMark' ||
+                                   \1'Fill mark with a char',
+                                   MIS_TEXT, 0
    --call update_paste_menu_text()  -- handled by menuinit
    --call update_mark_menu_text()   -- handled by menuinit
    return
@@ -2924,11 +2934,6 @@ if not MenuItemsHidden then
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Re~start EPM',                                                       -- Restart EPM
-                                   'Restart' ||
-                                   \1'Restart current EPM window',
-                                   MIS_TEXT, 0
-   i = i + 1;
    buildmenuitem menuname, mid, i, '~Compile current .E file',                                           -- Compile current .E file
                                    'etpm =' ||
                                    \1'Compile current macro file',
@@ -3398,6 +3403,8 @@ defc menuinit_file
    SetMenuAttribute( GetAVar('mid_importfile'),  MIA_DISABLED, .readonly = 0)
    SetMenuAttribute( GetAVar('mid_save'),        MIA_DISABLED, .readonly = 0)
    SetMenuAttribute( GetAVar('mid_saveandquit'), MIA_DISABLED, .readonly = 0)
+   on = (marktype() <> '')
+   SetMenuAttribute( GetAVar('mid_printmark'),   MIA_DISABLED, on)
 
 defc menuinit_fileproperties
    universal stream_mode
@@ -3488,7 +3495,7 @@ defc menuinit_mark
    SetMenuAttribute( GetAVar('mid_adjustmark'),  MIA_DISABLED, cua_on)
    SetMenuAttribute( GetAVar('mid_unmark'),      MIA_DISABLED, on)
    SetMenuAttribute( GetAVar('mid_deletemark'),  MIA_DISABLED, on)
-   SetMenuAttribute( GetAVar('mid_printmark'),   MIA_DISABLED, on)
+   SetMenuAttribute( GetAVar('mid_fillmark'),    MIA_DISABLED, on)
    call update_paste_menu_text()
    call update_mark_menu_text()
 
@@ -4500,7 +4507,7 @@ defc toggle_cua_mark, cua_mark_toggle
       old = queryprofile( app_hini, appname, INI_OPTFLAGS)
       new = subword( old, 1, 7)' 'cua_marking_switch' 'subword( old, 9)
       call setprofile( app_hini, appname, INI_OPTFLAGS, new)
-      -- Set nmenu attributes and text for the case MIA_NODISMISS attribute is on
+      -- Set menu attributes and text for the case MIA_NODISMISS attribute is on
       'menuinit_markingsettings'
    endif
 
@@ -4915,8 +4922,7 @@ defc toggle_accel, accel_toggle
    universal appname
 
    cua_menu_accel = not cua_menu_accel
-   deleteaccel 'defaccel'
-   'loadaccel'
+   'ReloadKeyset'
 /*
    deletemenu defaultmenu, GetAVar('mid_edit'), 0, 1           -- Delete the edit menu
    call add_edit_menu(defaultmenu)
@@ -5486,6 +5492,14 @@ defproc update_mark_menu_text
    MenuText = DELETE_MARK_MENU__MSG
    Key      = 'D'
    midname  = 'mid_deletemark'
+   if wordpos( Key, UsedMenuAccelerators) = 0 then
+      MenuText = MenuText\9 || ALT_KEY__MSG'+'Key
+   endif
+   SetMenuText( GetAVar(midname), MenuText)
+
+   MenuText = '~Fill mark...'
+   Key      = 'F'
+   midname  = 'mid_fillmark'
    if wordpos( Key, UsedMenuAccelerators) = 0 then
       MenuText = MenuText\9 || ALT_KEY__MSG'+'Key
    endif
