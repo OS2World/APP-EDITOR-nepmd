@@ -19,9 +19,6 @@
 *
 ****************************************************************************/
 
-; Definitions for the 'edit_keys' keyset. Turned all key defs into defcs
-; to make keys configurable.
-
 compile if not defined(SMALL)  -- If being externally compiled...
    define INCLUDING_FILE = 'KEYS.E'
 
@@ -111,9 +108,20 @@ compile if defined(ECO_MENU__MSG)  -- For ECO support
 compile endif
 
 ; ---------------------------------------------------------------------------
-; Apparently edit_keys must be defined in EPM.E
+; Apparently edit_keys must be defined in EPM.EX as first ETK keyset.
+; Therefore "defkeys edit_keys new clear" was moved to STDCNF.E to be
+; included early.
 ;
-; Bug in EPM's keyset handling:
+; The standard ETK keyset "edit_keys" is mainly a dummy keyset, compared to
+; the original EPM keyset definition. It defines all keys as otherkeys,
+; except a_0 ... a_9, which are not executable as accel keys without unwanted
+; results.
+;
+; Otherkeys processes all keys for which no accel key def exists. That are
+; mainly single char keys. Process_Key works like Keyin, but handles
+; overwriting of the marked area in CUA marking mode.
+;
+; Bug in EPM's ETK keyset handling:
 ; .keyset = '<new_keyset>' works only, if <new_keyset> was defined in
 ; the same .EX file, from where the keyset should be changed.
 ; Therefore (as a workaround) switch temporarily to the externally
@@ -135,7 +143,7 @@ defkeys edit_keys new clear
 def '„'
 ;   dprintf( 'lastkey() = 'lastkey()', ch = 'ch)
    call SaveKeyCmd( lastkey())
-   keyin 'ae'
+   call Process_Key( 'ae')
 
 ; These standard key defs are executed by the accel def for these keys to
 ; to ensure that the execeution won't apply for numpad keys.
@@ -169,7 +177,8 @@ defc otherkeys
    if length( k) = 1 then
       call SaveKeyCmd( k)
    endif
-   executekey k
+   --executekey k
+   call Process_Key( k)
 
 ; ---------------------------------------------------------------------------
 ; Standard key defs don't work for numpad keys, only for keypad keys.
@@ -180,6 +189,10 @@ defc ExecKeyCmd
    -- The array var is internally set by the DefKey proc if Alt+num keys
    -- were defined via DefKey.
    call SaveKeyCmd( arg(1))
+
+   k = lastkey()
+   call Process_Key( k)
+
    Cmd = GetAVar( 'keydef.'arg(1))
    if Cmd <> '' then
       Cmd
@@ -1035,23 +1048,26 @@ defproc resolve_key( k)
    return k
 
 ; ---------------------------------------------------------------------------
-defproc process_key(k)
+defproc Process_Key( k)
    universal cua_marking_switch
-   --sayerror 'process_key: k = 'k
-   if length(k) = 1 & k <> \0 then
-      i_s = insert_state()
+
+   if length( k) = 1 & k <> \0 then
+
+      fInsert = insert_state()
+      fMarked = 0
       if cua_marking_switch then
-         had_mark = process_mark_like_cua()
-         if not i_s & had_mark then
+         fMarked = (process_mark_like_cua() = 1)
+         if not fInsert & fMarked then
             insert_toggle  -- Turn on insert mode because the key should replace
          endif             -- the mark, not the character after the mark.
-      else
-         had_mark = 0  -- set to 0 so we don't toggle insert state later
       endif
+
       keyin k
-      if not i_s & had_mark then
+
+      if not fInsert & fMarked then
          insert_toggle
       endif
+
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1473,6 +1489,8 @@ defproc extend_mark( startline, startcol, forward)
 ; c_home, c_end, c_left & c_right do different things if the shift key is depressed.
 ; The logic is extracted here mainly due to the complexity of the COMPILE IF's
 defproc begin_shift( var startline, var startcol, var shift_flag)
+; unused
+/*
    universal cua_marking_switch
    universal curkey
    shift_flag = shifted()
@@ -1481,9 +1499,12 @@ defproc begin_shift( var startline, var startcol, var shift_flag)
    else
       unmark
    endif
+*/
 
 ; ---------------------------------------------------------------------------
 defproc end_shift( startline, startcol, shift_flag, forward_flag)
+; unused
+/*
 ; Make this work regardless of which marking mode is active:
 compile if 0 -- WANT_CUA_MARKING = 'SWITCH'
    universal cua_marking_switch
@@ -1493,6 +1514,15 @@ compile else
 compile endif
       call extend_mark( startline, startcol, forward_flag)
    endif
+*/
+
+; ---------------------------------------------------------------------------
+defproc UnmarkIfCua
+   universal cua_marking_switch
+   if cua_marking_switch then
+      unmark
+   endif
+   return
 
 ; ---------------------------------------------------------------------------
 ; Example: def space 'ExpandFirst Space'
@@ -1541,12 +1571,8 @@ defc ForceExpansion
 
 ; ---------------------------------------------------------------------------
 defc Space
-   universal cua_marking_switch
    call NextCmdAltersText()
-   if cua_marking_switch then
-      call process_mark_like_cua()
-   endif
-   keyin ' '
+   call Process_Key( ' ')
 
 ; ---------------------------------------------------------------------------
 defproc MatchCharsEnabled
@@ -1559,7 +1585,7 @@ defproc MatchCharsEnabled
 ;def '{'
 defc OpeningBrace
    universal match_chars
-   keyin '{'
+   call Process_Key( '{')
    if MatchCharsEnabled() then
       wp = wordpos( '{', match_chars)
       if wp then
@@ -1574,7 +1600,7 @@ defc OpeningBrace
 ;def '('
 defc OpeningParen
    universal match_chars
-   keyin '('
+   call Process_Key( '(')
    if MatchCharsEnabled() then
       wp = wordpos( '(', match_chars)
       if wp then
@@ -1589,7 +1615,7 @@ defc OpeningParen
 ;def '['
 defc OpeningBracket
    universal match_chars
-   keyin '['
+   call Process_Key( '[')
    if MatchCharsEnabled() then
       wp = wordpos( '[', match_chars)
       if wp then
@@ -1604,7 +1630,7 @@ defc OpeningBracket
 ;def '<'
 defc OpeningAngle
    universal match_chars
-   keyin '<'
+   call Process_Key( '<')
    if MatchCharsEnabled() then
       wp = wordpos( '<', match_chars)
       if wp then
@@ -1706,7 +1732,7 @@ defc FillMark  -- accepts key from macro
 
 defc TypeFrameChars
    call NextCmdAltersText()
-   keyin 'º Ì É È Ê Í Ë ¼ » ¹ Î ³ Ã Ú À Á Ä Â Ù ¿ ´ Å Û ² ± °'
+   call Process_Key( 'º Ì É È Ê Í Ë ¼ » ¹ Î ³ Ã Ú À Á Ä Â Ù ¿ ´ Å Û ² ± °')
 
 defc ShiftLeft   -- Can't use the old A_F7 in EPM.  PM uses it as an accelerator key.
    mt = marktype()
@@ -1827,11 +1853,11 @@ defc HighlightCursor
 
 defc TypeFileName  -- Type the full name of the current file
    call NextCmdAltersText()
-   keyin .filename
+   call Process_Key( .filename)
 
 defc TypeDateTime  -- Type the current date and time
    call NextCmdAltersText()
-   keyin DateTime()
+   call Process_Key( DateTime())
 
 defc select_all =
    getfileid fid
@@ -2033,7 +2059,7 @@ defc BackSpace
    universal curkey
    universal prevkey
    if cua_marking_switch then
-      if process_mark_like_cua() then
+      if process_mark_like_cua() then  -- deletes mark
          return
       endif
    endif
@@ -2091,19 +2117,19 @@ defc BackSpace
 
 defc TypeNull
    call NextCmdAltersText()
-   keyin \0                  -- C_2 enters a null.
+   call Process_Key( \0)                  -- C_2 enters a null.
 defc TypeNot
    call NextCmdAltersText()
-   keyin \170                -- C_6 enters a "not" sign
+   call Process_Key( \170)                -- C_6 enters a "not" sign
 defc TypeOpeningBrace
    call NextCmdAltersText()
-   keyin '{'
+   call Process_Key( '{')
 defc TypeClosingBrace
    call NextCmdAltersText()
-   keyin '}'
+   call Process_Key( '}')
 defc TypeCent
    call NextCmdAltersText()
-   keyin '›'                 -- C_4 enters a cents sign
+   call Process_Key( '›')                 -- C_4 enters a cents sign
 
 defc DeleteLine
    call NextCmdAltersText()
@@ -2199,7 +2225,7 @@ defc DeleteUntilEndLine
 
 defc EndFile
    universal stream_mode
-   call begin_shift( startline, startcol, shift_flag)
+;  call begin_shift( startline, startcol, shift_flag)
    if stream_mode then
       bottom
       endline
@@ -2209,7 +2235,7 @@ defc EndFile
       endif
       bottom
    endif
-   call end_shift( startline, startcol, shift_flag, 1)
+;  call end_shift( startline, startcol, shift_flag, 1)
 
 ; Moved def c_f to LOCATE.E
 
@@ -2247,7 +2273,6 @@ defc EndWord
 
 defc BeginFile
    universal stream_mode
-   call begin_shift( startline, startcol, shift_flag)
    if stream_mode then
       top
       begin_line
@@ -2257,9 +2282,8 @@ defc BeginFile
       endif
       top
    endif
-   call end_shift( startline, startcol, shift_flag, 0)
 
-defc DuplicateLine      -- Duplicate a line
+defc DuplicateLine
    call NextCmdAltersText()
    getline line
    insertline line,.line+1
@@ -2272,37 +2296,95 @@ defc CommandDlgLine
 
 defc PrevWord
    universal stream_mode
-   call begin_shift( startline, startcol, shift_flag)
-   if not .line then
-      begin_line
-   elseif (.line > 1) & (.col = max( 1,verify(textline(.line),' '))) & stream_mode then
+
+   if stream_mode &
+      (.line > 1) & (.col = max( 1, verify( textline( .line), ' '))) then
       up
       end_line
    endif
    backtab_word
-   call end_shift( startline, startcol, shift_flag, 0)
 
 defc NextWord
    universal stream_mode
-   call begin_shift( startline, startcol, shift_flag)
+
    getline line
-   if not .line | (lastpos( ' ',line) < .col) & (.line < .last) & stream_mode then
+   if stream_mode &
+      ((not .line) | (lastpos( ' ', line) < .col) & (.line < .last)) then
       down
       call pfirst_nonblank()
    else
       tab_word
    endif
-   call end_shift(startline, startcol, shift_flag, 1)
+
+defc MarkPrevWord
+   universal stream_mode
+
+   startline = .line
+   startcol  = .col
+   if .line then
+      if stream_mode &
+         (.line > 1) & (.col = max( 1, verify( textline( .line), ' '))) then
+         up
+         end_line
+      endif
+      backtab_word
+      call extend_mark( startline, startcol, 0)
+   endif
+
+defc MarkNextWord
+   universal stream_mode
+
+   startline = .line
+   startcol  = .col
+   if .line then
+      getline line
+      if stream_mode &
+         ((not .line) | (lastpos( ' ', line) < .col) & (.line < .last)) then
+         down
+         call pfirst_nonblank()
+      else
+         tab_word
+      endif
+      call extend_mark( startline, startcol, 1)
+   endif
 
 defc BeginScreen
-   call begin_shift( startline, startcol, shift_flag)
-   .cursory = 1
-   call end_shift( startline, startcol, shift_flag, 0)
+   if .line then
+      .cursory = 1
+   else
+      .line = 1
+   endif
 
 defc EndScreen
-   call begin_shift( startline, startcol, shift_flag)
-   .cursory = .windowheight
-   call end_shift( startline, startcol, shift_flag, 1)
+   if .line then
+      .cursory = .windowheight
+   else
+      .line = 1
+   endif
+
+defc MarkBeginScreen
+   startline = .line
+   startcol  = .col
+   if .line then
+      .cursory = 1
+   endif
+   if .line then
+      call extend_mark( startline, startcol, 0)
+   else
+      .line = 1
+   endif
+
+defc MarkEndScreen
+   startline = .line
+   startcol  = .col
+   if .line then
+      .cursory = .windowheight
+   endif
+   if .line then
+      call extend_mark( startline, startcol, 1)
+   else
+      .line = 1
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Record and playback key and menu commands
@@ -2363,7 +2445,7 @@ defc PlaybackKeys
       if Cmd <> '' then
          ''Cmd
       else
-         keyin Key
+         call Process_Key( Key)
       endif
       if Rest = \0 then
          leave
@@ -2372,13 +2454,13 @@ defc PlaybackKeys
 
 ; ---------------------------------------------------------------------------
 defc TypeTab
-   keyin \9
+   call Process_Key( \9)
 
 defc DeleteChar
    universal stream_mode
    universal cua_marking_switch
-   if marktype() & cua_marking_switch then    -- If there's a mark, then
-      if process_mark_like_cua() then
+   if marktype() & cua_marking_switch then
+      if process_mark_like_cua() then  -- deletes mark
          return
       endif
    endif
@@ -2402,10 +2484,7 @@ defc DeleteChar
    endif
 
 defc Down
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
-   endif
+   call UnmarkIfCua()
 compile if RESPECT_SCROLL_LOCK
    if scroll_lock() then
 ;      'CenterLine'
@@ -2418,68 +2497,64 @@ compile if RESPECT_SCROLL_LOCK
 compile endif
 
 defc MarkDown
-   universal cua_marking_switch
-   startline = .line; startcol = .col
+   startline = .line
+   startcol  = .col
    call updownkey(1)
-;compile if WANT_CUA_MARKING = 'SWITCH'
-;  if cua_marking_switch then
-;compile endif
-   if startline then
+   if startline then  -- required if cursor is in line 0
       call extend_mark( startline, startcol, 1)
    endif
-;compile if WANT_CUA_MARKING = 'SWITCH'
-;  endif
-;compile endif
 
 defc EndLine
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
+   call UnmarkIfCua()
+   if .line then
+      end_line
    endif
-   end_line
    --call pEnd_Line()  -- like end_line, but ignore trailing blanks
 
 defc EndLineOrAfter
-   universal cua_marking_switch
    universal endkeystartpos
-   if cua_marking_switch then
-      unmark
-   endif
+   call UnmarkIfCua()
    parse value( endkeystartpos) with savedline savedcol
    startline = .line
    startcol  = .col
-   end_line
-   --call pEnd_Line()  -- like end_line, but ignore trailing blanks
-   if savedline <> startline or startcol > .col then
-      endkeystartpos = startline startcol
-   else
-      if startcol = .col and savedcol > .col then
-         .col = savedcol
+   if .line then
+      end_line
+      --call pEnd_Line()  -- like end_line, but ignore trailing blanks
+      if savedline <> startline or startcol > .col then
+         endkeystartpos = startline startcol
+      else
+         if startcol = .col and savedcol > .col then
+            .col = savedcol
+         endif
       endif
    endif
 
 defc MarkEndLine
    startline = .line
    startcol  = .col
-   end_line
    --call pEnd_Line()  -- like end_line, but ignore trailing blanks
-   call extend_mark( startline, startcol, 1)
+   if .line then
+      end_line
+      call extend_mark( startline, startcol, 1)
+   endif
 
 defc MarkEndLineOrAfter
    universal endkeystartpos
    parse value( endkeystartpos) with savedline savedcol
    startline = .line
    startcol  = .col
-   end_line
-   --call pEnd_Line()  -- like end_line, but ignore trailing blanks
-   if savedline <> startline or startcol > .col then
-      endkeystartpos = startline startcol
-   else
-      if startcol = .col and savedcol > .col then
-         .col = savedcol
+   if .line then
+      end_line
+      --call pEnd_Line()  -- like end_line, but ignore trailing blanks
+      if savedline <> startline or startcol > .col then
+         endkeystartpos = startline startcol
+      else
+         if startcol = .col and savedcol > .col then
+            .col = savedcol
+         endif
       endif
+      call extend_mark( startline, startcol, 1)
    endif
-   call extend_mark( startline, startcol, 1)
 
 defc ProcessEscape
    universal ESCAPE_KEY
@@ -2490,15 +2565,15 @@ defc ProcessEscape
       'CancelRecordKeys'
    elseif alt_R_active <> '' then
        'setmessageline '\0
-      'toggleframe 2 'alt_R_active         -- Restore status of messageline.
+      'toggleframe 2 'alt_R_active  -- restore status of messageline
       alt_R_active = ''
    elseif ESCAPE_KEY then
       'commandline'
    endif
 
 defc SaveOrSaveAs
-   if .modify then           -- Modified since last Save?
-      'Save'                 --   Yes - save it
+   if .modify then
+      'Save'
    else
 ;      'commandline Save '
       sayerror 'No changes.  Press Enter to Save anyway.'
@@ -2507,18 +2582,18 @@ defc SaveOrSaveAs
    endif
 
 defc SmartSave
-   if .modify then           -- Modified since last Save?
-      'Save'                 --   Yes - save it
+   if .modify then
+      'Save'
    else
       sayerror 'No changes.'
    endif
 
 defc FileOrQuit
 compile if SMARTFILE
-   if .modify then           -- Modified since last Save?
-      'File'                 --   Yes - save it and quit.
+   if .modify then
+      'File'
    else
-      'Quit'                 --   No - just quit.
+      'Quit'
    endif
 compile else
    'File'
@@ -2540,21 +2615,15 @@ defc NextFile
    nextfile
 
 defc BeginLine  -- standard Home
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
-   endif
+   call UnmarkIfCua()
    begin_line
 
 defc BeginLineOrText  -- Home
-   universal nepmd_hini
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
-   endif
+   call UnmarkIfCua()
    -- Go to begin of text.
    -- If in area before or at begin of text, go to column 1.
-   startline = .line; startcol = .col
+   startline = .line
+   startcol  = .col
    call pfirst_nonblank()
    if .line = startline and .col = startcol then
       begin_line
@@ -2564,28 +2633,31 @@ defc MarkBeginLine  -- standard Sh+Home
    startline = .line
    startcol  = .col
    begin_line
-   call extend_mark( startline, startcol, 0)
+   if .line then
+      call extend_mark( startline, startcol, 0)
+   endif
 
 defc MarkBeginLineOrText  -- Sh+Home
-   universal nepmd_hini
    startline = .line
    startcol  = .col
    -- Go to begin of text.
    -- If in area before or at begin of text, go to column 1.
-   startline = .line; startcol = .col
    call pfirst_nonblank()
    if .line = startline and .col = startcol then
       begin_line
    endif
-   call extend_mark( startline, startcol, 0)
+   if .line then
+      call extend_mark( startline, startcol, 0)
+   endif
 
 defc InsertToggle
    insert_toggle
    call fixup_cursor()
 
 defc PrevChar, Left
-   universal cua_marking_switch
    universal cursoreverywhere
+
+   call UnmarkIfCua()
 /*
 -- Don't like hscroll
 compile if RESPECT_SCROLL_LOCK
@@ -2606,12 +2678,10 @@ compile if RESPECT_SCROLL_LOCK
    endif
 compile endif
 */
-   if cua_marking_switch then
-      unmark
-   endif
 
 defc MarkPrevChar, MarkLeft
-   startline = .line; startcol = .col
+   startline = .line
+   startcol  = .col
    if .line > 1 & .col = 1 then
       up
       end_line
@@ -2621,24 +2691,20 @@ defc MarkPrevChar, MarkLeft
    call extend_mark( startline, startcol, 0)
 
 defc PrevPage, PageUp
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
-   endif
+   call UnmarkIfCua()
    page_up
 
 defc NextPage, PageDown
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
-   endif
+   call UnmarkIfCua()
    page_down
 
 defc MarkPageUp
 compile if TOP_OF_FILE_VALID = 'STREAM'
    universal stream_mode
 compile endif
-   startline = .line; startcol = .col
+
+   startline = .line
+   startcol  = .col
    page_up
    if .line then
       call extend_mark( startline, startcol, 0)
@@ -2654,18 +2720,17 @@ compile elseif not TOP_OF_FILE_VALID
 compile endif
 
 defc MarkPageDown
-   startline = .line; startcol = .col
+   startline = .line
+   startcol  = .col
    page_down
-   if startline then
+   if .line then  -- required if cursor is in line 0
       call extend_mark( startline, startcol, 1)
    endif
 
 defc NextChar, Right
    universal cursoreverywhere
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
-   endif
+
+   call UnmarkIfCua()
 /*
 -- Don't like hscroll
 compile if RESPECT_SCROLL_LOCK
@@ -2695,7 +2760,8 @@ compile endif
 */
 
 defc MarkNextChar, MarkRight
-   startline = .line; startcol = .col
+   startline = .line
+   startcol  = .col
    if .line then
       l = length( textline(.line))
    else
@@ -2709,11 +2775,36 @@ defc MarkNextChar, MarkRight
    endif
    call extend_mark( startline, startcol, 1)
 
-defc ScrollLeft
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
+/*
+defc BeginFile
+   .line = 1
+   begin_line
+
+defc EndFile
+   .line = .last
+   end_line
+*/
+
+defc MarkBeginFile
+   startline = .line
+   startcol  = .col
+   .line = 1
+   begin_line
+   if startline then  -- required if cursor was on line 0
+      call extend_mark( startline, startcol, 0)
+   end
+
+defc MarkEndFile
+   startline = .line
+   startcol  = .col
+   .line = .last
+   if .line then  -- required if cursor was on line 0
+      end_line
+      call extend_mark( startline, startcol, 1)
    endif
+
+defc ScrollLeft
+   call UnmarkIfCua()
    oldcursorx = .cursorx
    if .col - .cursorx then
       .col = .col - .cursorx
@@ -2723,10 +2814,7 @@ defc ScrollLeft
    endif
 
 defc ScrollRight
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
-   endif
+   call UnmarkIfCua()
    oldcursorx=.cursorx
    a = .col + .windowwidth - .cursorx + 1
    if a <= MAXCOL then
@@ -2737,10 +2825,7 @@ defc ScrollRight
    endif
 
 defc ScrollUp
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
-   endif
+   call UnmarkIfCua()
    oldcursory = .cursory
    if .line - .cursory > -1 then
       .cursory = 1
@@ -2751,10 +2836,7 @@ defc ScrollUp
    endif
 
 defc ScrollDown
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
-   endif
+   call UnmarkIfCua()
    oldcursory = .cursory
    if .line - .cursory + .windowheight < .last then
       .cursory = .windowheight
@@ -2765,21 +2847,16 @@ defc ScrollDown
    endif
 
 defc CenterLine
-   universal cua_marking_switch
    call NextCmdAltersText()
-   if cua_marking_switch then
-      unmark
-   endif
+   call UnmarkIfCua()
    oldline = .line
    .cursory = .windowheight%2
    oldline
 
 defc BackTab
    universal matchtab_on
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
-   endif
+
+   call UnmarkIfCua()
    if matchtab_on & .line > 1 then
       up
       backtab_word
@@ -2792,26 +2869,18 @@ defc Tab
    universal stream_mode
    universal matchtab_on
    universal tab_key
-   universal cua_marking_switch
 compile if WANT_DBCS_SUPPORT
    universal ondbcs
 compile endif
-                  -------Start of logic:
+
    call NextCmdAltersText()
    if tab_key then
-      if cua_marking_switch then
-          process_key(\9)
-      else
-         keyin \9
-      endif  -- cua_marking_switch
+      call Process_Key( \9)
    else  -- tab_key
-      if cua_marking_switch then
-         unmark
-      endif  -- cua_marking_switch
-      oldcol=.col
+      call UnmarkIfCua()
+      oldcol = .col
       if matchtab_on and .line>1 then
          up
-;;       c=.col  -- Unused ???
          tab_word
          if oldcol >= .col then
             .col = oldcol
@@ -2847,7 +2916,7 @@ compile if WANT_DBCS_SUPPORT
 compile endif  -- WANT_DBCS_SUPPORT
          if numspc > 0 then
             .col = oldcol
-            keyin substr( '', 1, numspc)
+            call Process_Key( substr( '', 1, numspc))
          endif
       endif  -- insertstate()
    endif  -- tab_key
@@ -2856,10 +2925,8 @@ defc PrevLine, Up
 compile if TOP_OF_FILE_VALID = 'STREAM'
    universal stream_mode
 compile endif
-   universal cua_marking_switch
-   if cua_marking_switch then
-      unmark
-   endif
+
+   call UnmarkIfCua()
 compile if RESPECT_SCROLL_LOCK
    if scroll_lock() then
 ;      'CenterLine'
@@ -2884,18 +2951,12 @@ defc MarkUp
 compile if TOP_OF_FILE_VALID = 'STREAM'
    universal stream_mode
 compile endif
-   universal cua_marking_switch
-   startline = .line; startcol = .col
+   startline = .line
+   startcol  = .col
    call updownkey(0)
-;compile if WANT_CUA_MARKING = 'SWITCH'
-;  if cua_marking_switch then
-;compile endif
    if .line then
       call extend_mark( startline, startcol, 0)
    endif
-;compile if WANT_CUA_MARKING = 'SWITCH'
-;  endif
-;compile endif
 compile if TOP_OF_FILE_VALID = 'STREAM'
    if not .line & stream_mode then
       '+1'
@@ -2909,6 +2970,7 @@ compile endif
 defc DefaultPaste
    universal nepmd_hini
    universal cua_marking_switch
+
    call NextCmdAltersText()
    KeyPath = '\NEPMD\User\Mark\DefaultPaste'
    next = substr( upcase( NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
@@ -2920,13 +2982,14 @@ defc DefaultPaste
       style = 'C'
    endif
    if cua_marking_switch then
-      call process_mark_like_cua()
+      call process_mark_like_cua()  -- deletes mark
    endif
    'paste' style
 
 defc AlternatePaste
    universal nepmd_hini
    universal cua_marking_switch
+
    call NextCmdAltersText()
    KeyPath = '\NEPMD\User\Mark\DefaultPaste'
    next = substr( upcase( NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
@@ -2938,7 +3001,7 @@ defc AlternatePaste
       altstyle = 'L'
    endif
    if cua_marking_switch then
-      call process_mark_like_cua()
+      call process_mark_like_cua()  -- deletes mark
    endif
    'paste' altstyle
 

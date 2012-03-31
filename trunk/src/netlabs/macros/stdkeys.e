@@ -22,28 +22,26 @@
 defc StdKeys
 
 ; ---- Cursor ----
-DefKey( 'c_home'       , 'BeginFile'       )    -- Go to begin of file (Shift marks)
-DefKey( 'c_end'        , 'EndFile'         )    -- Go to end of file (Shift marks)
+DefKey( 'c_home'       , 'BeginFile'       )    -- Go to begin of file
+DefKey( 'c_end'        , 'EndFile'         )    -- Go to end of file
 DefKey( 'c_f5'         , 'BeginWord'       )    -- Go to first char in current word
 DefKey( 'c_f6'         , 'EndWord'         )    -- Go to last char in current word
-DefKey( 'c_left'       , 'PrevWord'        )    -- Go to previous word (Shift marks)
-DefKey( 'c_right'      , 'NextWord'        )    -- Go to next word (Shift marks)
-
-DefKey( 'left'         , 'PrevChar'        )    -- Go to previous char (Shift marks)
-DefKey( 'right'        , 'NextChar'        )    -- Go to next char (Shift marks)
-DefKey( 'up'           , 'Up'              )    -- Go to previous line (Shift marks)
-DefKey( 'down'         , 'Down'            )    -- Go to next line (Shift marks)
-DefKey( 'home'         , 'BeginLineOrText' )    -- Go to begin of line or text (Shift marks)
-; Enable the line below instead of the line above for standard home behavior (see also s_home):
-;DefKey( 'home'         , 'BeginLine'       )    -- Go to begin of line (Shift marks)
-DefKey( 'end'          , 'EndLineOrAfter'  )    -- Go to end of line or to the starting col after it (Shift marks)
-;DefKey( 'end'          , 'EndLine'         )    -- Go to end of line (Shift marks)
-DefKey( 'pageup'       , 'PageUp'          )    -- Go to previous page (Shift marks)
-DefKey( 'pagedown'     , 'PageDown'        )    -- Go to next page (Shift marks)
-DefKey( 'c_pgup'       , 'BeginScreen'     )    -- Go to first line on screen
-DefKey( 'c_pgdown'     , 'EndScreen'       )    -- Go to last line on screen
-DefKey( 'c_down'       , 'PushPos'         )    -- Add current cursor pos. to cursor stack
+DefKey( 'c_left'       , 'PrevWord'        )    -- Go to previous word
+DefKey( 'c_right'      , 'NextWord'        )    -- Go to next word
+DefKey( 'left'         , 'PrevChar'        )    -- Go to previous char
+DefKey( 'right'        , 'NextChar'        )    -- Go to next char
+DefKey( 'up'           , 'Up'              )    -- Go to previous line
+DefKey( 'down'         , 'Down'            )    -- Go to next line
+;DefKey( 'home'         , 'BeginLine'       )    -- Go to begin of line
+DefKey( 'home'         , 'BeginLineOrText' )    -- Go to begin of line or text
+;DefKey( 'end'          , 'EndLine'         )    -- Go to end of line
+DefKey( 'end'          , 'EndLineOrAfter'  )    -- Go to end of line or to the starting col after it
+DefKey( 'pageup'       , 'PageUp'          )    -- Go to previous page
+DefKey( 'pagedown'     , 'PageDown'        )    -- Go to next page
+DefKey( 'c_pageup'     , 'BeginScreen'     )    -- Go to first line on screen
+DefKey( 'c_pagedown'   , 'EndScreen'       )    -- Go to last line on screen
 DefKey( 'c_up'         , 'PopPos'          )    -- Go to last pos. of cursor stack
+DefKey( 'c_down'       , 'PushPos'         )    -- Add current cursor pos. to cursor stack
 DefKey( 'c_='          , 'SwapPos'         )    -- Exchange current cursor pos. with last pos. of stack
 DefKey( 'c_s_='        , 'SwapPos'         )    -- Exchange current cursor pos. with last pos. of stack
 DefKey( 'c_0'          , 'SwapPos'         )    -- Exchange current cursor pos. with last pos. of stack
@@ -75,14 +73,17 @@ DefKey( 's_left'       , 'MarkPrevChar'    )    -- Mark from cursor to previous 
 DefKey( 's_right'      , 'MarkNextChar'    )    -- Mark from cursor to next char
 DefKey( 's_up'         , 'MarkUp'          )    -- Mark from cursor line up
 DefKey( 's_down'       , 'MarkDown'        )    -- Mark from cursor line down
-DefKey( 's_end'        , 'MarkEndLineOrAfter' ) -- Mark from cursor to end of line
 DefKey( 's_home'       , 'MarkBeginLineOrText') -- Mark from cursor to begin of line or text
-; Enable the line below instead of the line above for standard home behavior (see also def home):
+DefKey( 's_end'        , 'MarkEndLineOrAfter' ) -- Mark from cursor to end of line
 ;DefKey( 's_home'       , 'MarkBeginLine'   )    -- Mark from cursor to begin of line
+DefKey( 'c_s_home'     , 'MarkBeginFile'   )    -- Mark from cursor to begin of file
+DefKey( 'c_s_end'      , 'MarkEndFile'     )    -- Mark from cursor to end of file
 DefKey( 's_pageup'     , 'MarkPageUp'      )    -- Mark from cursor page up
 DefKey( 's_pagedown'   , 'MarkPageDown'    )    -- Mark from cursor page down
-DefKey( 'c_s_down'     , 'PushMark'        )    -- Save current mark to mark stack
+DefKey( 'c_s_pageup'   , 'MarkBeginScreen' )    -- Mark from cursor to first line on screen
+DefKey( 'c_s_pagedown' , 'MarkEndScreen'   )    -- Mark from cursor to last line on screen
 DefKey( 'c_s_up'       , 'PopMark'         )    -- Restore last mark from stack (and remove it from stack)
+DefKey( 'c_s_down'     , 'PushMark'        )    -- Save current mark to mark stack
 DefKey( 'c_s_-'        , 'SwapMark'        )    -- Exchange current mark with last mark from stack
 DefKey( 'c_s_+'        , 'SwapMark'        )    -- Exchange current mark with last mark from stack
 
