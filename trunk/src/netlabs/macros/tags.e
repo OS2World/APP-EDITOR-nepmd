@@ -1020,58 +1020,109 @@ defproc e_proc_search( var proc_name, find_first)
 compile if LOG_TAG_MATCHES
    universal TAG_LOG_FID
 compile endif
+
 compile if E_TAGS_ANYWHERE
    LeadingSpace = ':o'
 compile else
    LeadingSpace = ''
 compile endif
-   display -2
-   proc_len = length( proc_name)
-   if find_first then
-      if proc_name == '' then
-         identifier = '[A-Z_][A-Z0-9_]*'
-         search1 = 'DEF(PROC|KEYS):w'identifier
-         search2 = 'DEFC:w'identifier'[:o,:o'identifier']*'
-         search = '^'LeadingSpace'('search1'|'search2')'
-      else
-         search = 'DEF(C|KEYS|PROC):w'proc_name
-         search = '^'LeadingSpace''search
+
+   fSearchIdentifier = (proc_name == '')
+
+   -- Process previously stored defc command names first, if any.
+   -- This handles defc cmd1, cmd2, ...
+   getfileid fid
+   if fSearchIdentifier then
+      NextProcs = GetAVar( 'e_tag_next_procs.'fid)
+      if NextProcs <> '' then
+         proc_name = word( NextProcs, 1)
+         call SetAVar( 'e_tag_next_procs.'fid, subword( NextProcs, 2))
+         return 0
       endif
+   else
+      call DelAVar( 'e_tag_next_procs.'fid)
+   endif
+
+   display -2
+
+   identifier = '[A-Z_][A-Z0-9_]*'
+   if proc_name == '' then
+      search = 'DEF(PROC|KEYS|C):w\c'identifier
+   else
+      search = 'DEF(((PROC|KEYS):w)|(C:w(|.*,:o)))\c'proc_name'~:r'
+   endif
+   search = '^'LeadingSpace''search
+
+   if find_first then
       'xcom l 'search'cx'
    else
       repeat_find
    endif
-   loop
-      if rc then
-         display 2
-         return rc
-      endif
-      parse value translate(textline(.line), ' ', \t) with . proc_name .
-      parse value proc_name with proc_name '='
-      parse value proc_name with proc_name '('
-      parse value proc_name with proc_name ','
-      --------------------------------------------------------------- Todo: handle defc xxx, yyy
---dprintf( 'proc_name = 'proc_name', proc_len = 'proc_len', inside_comment = 'inside_comment( 'E'))
-      if inside_comment( 'E') then
-         repeat_find
-         iterate
-      endif
-      if proc_len then
-         if length(proc_name) <> proc_len then  -- a substring of something else
-            end_line
-            repeat_find
-            iterate
-         endif
-      endif
-compile if LOG_TAG_MATCHES
-      if TAG_LOG_FID and not rc then
-         insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-      endif
-compile endif
-      leave
-   endloop
+
+   lrc = rc
+   if lrc then
+      display 2
+      return lrc
+   endif
+
+   Col = GetPmInfo( EPMINFO_SEARCHPOS)
+   Len = GetPmInfo( EPMINFO_LSLENGTH)
+   ThisLine  = translate( textline(.line), ' ', \t)
+   FoundProc = substr( ThisLine, .col, Len - .col + 1)
+   RestLine  = substr( ThisLine, Len - Col + 2)
+   proc_name = FoundProc
+
+   if inside_comment( 'E') then
+      repeat_find
+   endif
+
    display 2
-   return rc
+
+   --dprintf( 'rc from xcom l 'search'cx =' lrc', len = 'len', col = 'col', .col = '.col', FoundProc = ['FoundProc']')
+   --call highlight_match()
+compile if LOG_TAG_MATCHES
+   if TAG_LOG_FID
+      insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
+   endif
+compile endif
+
+   -- Store multiply defined command names in an array var.
+   -- This handles defc cmd1, cmd2, ...
+   NextProcs = ''
+   if fSearchIdentifier then
+      if upcase( word( ThisLine, 1)) = 'DEFC' then
+
+         parse value RestLine with RestLine '='
+         RestLine = strip( RestLine)
+         --dprintf( 'RestLine = ['RestLine']')
+
+         do while leftstr( RestLine, 1) = ','
+            parse value RestLine with ',' Rest
+            Rest = strip( Rest)
+
+            if pos( ',', Rest) then
+               parse value Rest with Next ',' Rest
+               RestLine = ','strip( Rest)
+            else
+               Next = Rest
+               RestLine = ''
+            endif
+
+            Next = strip( Next)
+            --dprintf( 'FoundProc = ['Next']')
+compile if LOG_TAG_MATCHES
+            if TAG_LOG_FID
+               insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
+            endif
+compile endif
+
+            NextProcs = strip( NextProcs Next)
+         enddo
+         call SetAVar( 'e_tag_next_procs.'fid, NextProcs)
+      endif
+   endif
+
+   return lrc
 
 compile if not defined( TAG_REXX_EXACT_SEARCH)
 const
