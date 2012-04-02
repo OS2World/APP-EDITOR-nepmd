@@ -143,7 +143,7 @@ defkeys edit_keys new clear
 def '„'
 ;   dprintf( 'lastkey() = 'lastkey()', ch = 'ch)
    call SaveKeyCmd( lastkey())
-   call Process_Key( 'ae')
+   call Process_Keys( 'ae')
 
 ; These standard key defs are executed by the accel def for these keys to
 ; to ensure that the execeution won't apply for numpad keys.
@@ -1048,26 +1048,56 @@ defproc resolve_key( k)
    return k
 
 ; ---------------------------------------------------------------------------
-defproc Process_Key( k)
+; This filters out modifier keys like Ctrl etc. Therefore it can only be
+; used for single chars. It handles also overwriting of CUA marking.
+defproc Process_Key( char)
    universal cua_marking_switch
 
-   if length( k) = 1 & k <> \0 then
+   if length( char) = 1 & char <> \0 then
 
       fInsert = insert_state()
       fMarked = 0
+      fInsertToggled = 0
       if cua_marking_switch then
          fMarked = (process_mark_like_cua() = 1)
          if not fInsert & fMarked then
-            insert_toggle  -- Turn on insert mode because the key should replace
-         endif             -- the mark, not the character after the mark.
+            -- Turn on insert mode because the key should replace
+            -- the mark, not the character after the mark.
+            insert_toggle
+            fInsertToggled = 1
+         endif
       endif
 
-      keyin k
+      keyin char
 
-      if not fInsert & fMarked then
+      if fInsertToggled then
          insert_toggle
       endif
 
+   endif
+
+; ---------------------------------------------------------------------------
+; This handles overwriting of CUA marking for multiple chars.
+defproc Process_Keys( chars)
+   universal cua_marking_switch
+
+   fInsert = insert_state()
+   fMarked = 0
+   fInsertToggled = 0
+   if cua_marking_switch then
+      fMarked = (process_mark_like_cua() = 1)
+      if not fInsert & fMarked then
+         -- Turn on insert mode because the key should replace
+         -- the mark, not the character after the mark.
+         insert_toggle
+         fInsertToggled = 1
+      endif
+   endif
+
+   keyin chars
+
+   if fInsertToggled then
+      insert_toggle
    endif
 
 ; ---------------------------------------------------------------------------
@@ -1732,7 +1762,7 @@ defc FillMark  -- accepts key from macro
 
 defc TypeFrameChars
    call NextCmdAltersText()
-   call Process_Key( 'º Ì É È Ê Í Ë ¼ » ¹ Î ³ Ã Ú À Á Ä Â Ù ¿ ´ Å Û ² ± °')
+   call Process_Keys( 'º Ì É È Ê Í Ë ¼ » ¹ Î ³ Ã Ú À Á Ä Â Ù ¿ ´ Å Û ² ± °')
 
 defc ShiftLeft   -- Can't use the old A_F7 in EPM.  PM uses it as an accelerator key.
    mt = marktype()
@@ -1853,11 +1883,11 @@ defc HighlightCursor
 
 defc TypeFileName  -- Type the full name of the current file
    call NextCmdAltersText()
-   call Process_Key( .filename)
+   call Process_Keys( .filename)
 
 defc TypeDateTime  -- Type the current date and time
    call NextCmdAltersText()
-   call Process_Key( DateTime())
+   call Process_Keys( DateTime())
 
 defc select_all =
    getfileid fid
@@ -2117,7 +2147,7 @@ defc BackSpace
 
 defc TypeNull
    call NextCmdAltersText()
-   call Process_Key( \0)                  -- C_2 enters a null.
+   call Process_Keys( \0)                 -- C_2 enters a null.
 defc TypeNot
    call NextCmdAltersText()
    call Process_Key( \170)                -- C_6 enters a "not" sign
@@ -2879,7 +2909,7 @@ compile endif
    else  -- tab_key
       call UnmarkIfCua()
       oldcol = .col
-      if matchtab_on and .line>1 then
+      if matchtab_on and .line > 1 then
          up
          tab_word
          if oldcol >= .col then
@@ -2916,7 +2946,7 @@ compile if WANT_DBCS_SUPPORT
 compile endif  -- WANT_DBCS_SUPPORT
          if numspc > 0 then
             .col = oldcol
-            call Process_Key( substr( '', 1, numspc))
+            call Process_Keys( substr( '', 1, numspc))
          endif
       endif  -- insertstate()
    endif  -- tab_key
