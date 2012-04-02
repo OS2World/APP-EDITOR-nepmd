@@ -514,7 +514,7 @@ compile endif
 compile if 0  -- We already checked if the line # was good; the date no longer matters here.
    if filedate<>''  then  -- Line number and file write date preserved
       if filedate=get_file_date(filename) then  -- Same date means file has not been changed,
-         'SayHint Jumping straight to line.'  /**/
+         'SayHint Jumping straight to line.'
          fileline                               -- so we can jump right to the line.
          .col = 1
          call proc_search(proc_name, 1, file_mode, file_type)
@@ -525,7 +525,7 @@ compile if 0  -- We already checked if the line # was good; the date no longer m
 compile endif
    -- If not found in fileline (file may have been changed) or found multiple times in fileline
    0
-   'SayHint Searching for routine.'  /**/
+   'SayHint Searching for routine.'
    searchrc = proc_search( proc_name, 1, file_mode, file_type)
    call prune_assist_array()
    --sayerror 'Using proc_search for 'proc_name', filename = '.filename
@@ -556,7 +556,10 @@ defproc c_proc_search( var proc_name, find_first, ext)
 compile if LOG_TAG_MATCHES
    universal TAG_LOG_FID
 compile endif
+
+   fSearchIdentifier = (proc_name == '')
    proc_len = length( proc_name)
+
    if wordpos( ext, CPP_EXTENSIONS) then  -- Presumably C++,
       colon = ':'                         -- allow colons.
       cpp_decl = '&'                      -- Can have a reference in a declarator
@@ -564,148 +567,204 @@ compile endif
       colon = ''
       cpp_decl = ''
    endif
+
    display -2
 
    if find_first then
-      if proc_name == '' then
--- Todo: The opening parenthesis may occur everywhere after proc_name.
---       ':f' finds only proc_names where '(' occurs on the same line.
+      -- Removed the opening paren from the search string
+      -- to allow it as first char on the following line.
+      if proc_name=='' then
 compile if C_TAGS_ANYWHERE
-         'xcom l ^:fex'
+      -- 'xcom l ^:fex'
+         'xcom l ^:o[A-Za-z_$].*ex'
 compile else
-         'xcom l ^[A-Za-z_$].*\(ex'
+      -- 'xcom l ^[A-Za-z_$].*\(ex'
+         'xcom l ^[A-Za-z_$].*ex'
 compile endif
       else
 ;;       'xcom l 'proc_name'e'
-         'xcom l 'proc_name':o\(x'
+      -- 'xcom l 'proc_name':o\(x'
+         'xcom l 'proc_name':ox'
       endif
    else
       repeat_find
    endif
+
 
    loop
       if rc then
          display 2
          return rc
       endif
+
       getline line
-      line=translate(line, ' ', \t)
+      line = translate( line, ' ', \t)
 compile if LOG_TAG_MATCHES
          if TAG_LOG_FID then
             insertline '  Found line' .line '= "'line'"', TAG_LOG_FID.last+1, TAG_LOG_FID
          endif
 compile endif
 
-      if proc_len then  -- Determine if match is a substring of something else
-         if .col>1 then
-            if pos(upcase(substr(line, .col-1, 1)), IDENTIFIER_STARTER'0123456789') then
-               end_line; repeat_find; iterate
+      -- Determine if match is a substring of something else
+      if not fSearchIdentifier then
+
+         if .col > 1 then
+            if pos( upcase( substr( line, .col - 1, 1)), IDENTIFIER_STARTER'0123456789') then
+               end_line
+               repeat_find
+               iterate
             endif
          endif
          .col = .col + proc_len
-         if pos(upcase(substr(line, .col, 1)), IDENTIFIER_STARTER'0123456789') then
-            end_line; repeat_find; iterate
+         if pos( upcase( substr( line, .col, 1)), IDENTIFIER_STARTER'0123456789') then
+            end_line
+            repeat_find
+            iterate
          endif
-         p = pos('(', line, .col)
-         if not p then
-            end_line; repeat_find; iterate
-         endif
-         .col = p
-      else
-         .col = pos('(', line)
       endif
 
-      /* Strip trailing comment.  */
-      i=pos('//',line)
-      if i then
-         line=leftstr(line,i-1)
-      endif
+      do l = 1 to 2
 
-      loop
-         i=pos('/*',line)
-         if not i then leave; endif
-         j=pos('*/', line, i+2)
-         if j then
-            /* line=delstr(line,i,j-i+2) */
-            line=overlay('', line, i, j-i+2)  -- Keep column alignment
+         -- Strip trailing comment
+         i = pos( '//', line)
+         if i then
+            line = leftstr( line, i - 1)
+         endif
+
+         -- Strip multi-line comments
+         loop
+            i = pos( '/*', line)
+            if not i then
+               leave
+            endif
+            j = pos( '*/', line, i + 2)
+            if j then
+               -- line = delstr( line, i, j - i + 2)
+               line = overlay( '', line, i, j - i + 2)  -- Keep column alignment
+            else
+               line = leftstr( line, i - 1)
+            endif
+         endloop
+
+         if l = 1 then
+            -- Save line (required if paren is on next line)
+            procline = line
+         endif
+         --dprintf( .line': line 'l' = 'line)
+
+         -- Go to opening paren
+         p = pos( '(', line, .col)
+         if p then
+            .col = p
+            leave
          else
-            line=leftstr(line,i-1)
+            -- Search paren on next line
+            l = l + 1
+            if .line = .last | l > 2 then
+               leave
+               end_line
+               repeat_find
+               iterate
+            endif
+            .line = .line + 1
+            .col = 1
+            line = textline( .line)
+            line = translate( line, ' ', \t)
          endif
-      endloop
+      enddo
 
-      line = strip(line, 'T')
-      if substr(line, .col, 1)='(' & rightstr(line,1)<>';' then
+      line = strip( line, 'T')
+      if substr( line, .col, 1) = '(' & rightstr( line, 1) <> ';' then
+         --dprintf( .line': check 1 passed')
 
-         call psave_pos(save_pos)
-         if rightstr(line,1)<>')' | pos('(',line, .col+1) then
-;;          .col=pos('(',line,.col)
+         call psave_pos( save_pos)
+         if rightstr( line, 1) <> ')' | pos( '(', line, .col + 1) then
+            --dprintf( .line': check 2 passed')
+
+            -- Go to closing paren
+;;          .col = pos( '(', line, .col)
             if find_matching_paren() then  -- No match found?
 compile if LOG_TAG_MATCHES
                if TAG_LOG_FID then
                   insertline '  ...skipping; no matching paren found.', TAG_LOG_FID.last+1, TAG_LOG_FID
                endif
 compile endif
-               call prestore_pos(save_pos)
-               end_line; repeat_find; iterate  -- Keep looking
+               call prestore_pos( save_pos)
+               end_line
+               repeat_find
+               iterate  -- Keep looking
             endif
-            after_paren_ch=leftstr(strip(substr(translate(textline(.line), ' ', \t),.col+1)),1)
+            after_paren_ch = leftstr( strip( substr( translate( textline( .line), ' ', \t), .col + 1)), 1)
          else
-            after_paren_ch=' '
+            after_paren_ch = ' '
          endif
-         do while after_paren_ch = ' ' & .line<.last
+         do while after_paren_ch = ' ' & .line < .last
             '+1'
-            after_paren_ch=leftstr(strip(translate(textline(.line), ' ', \t)),1)
+            after_paren_ch = leftstr( strip( translate( textline( .line), ' ', \t)), 1)
          enddo
-         if pos(after_paren_ch,';),([-+*.=?&|}!<>') then
+         if pos( after_paren_ch, ';),([-+*.=?&|}!<>') then
 compile if LOG_TAG_MATCHES
             if TAG_LOG_FID then
                insertline '  ...skipping; after_paren_ch in list.  "'after_paren_ch'"', TAG_LOG_FID.last+1, TAG_LOG_FID
             endif
 compile endif
-            end_line; repeat_find; iterate
+            end_line
+            repeat_find
+            iterate
          endif
-         call prestore_pos(save_pos)
+         call prestore_pos( save_pos)
 
-         parse value strip(line) with line '('
-         proc_name = lastword(line)
-         v = verify(upcase(proc_name), IDENTIFIER_STARTER, 'M')
+         -- Restore line (required if opening paren was on next line)
+         line = procline
+
+         parse value strip( line) with line '('
+         proc_name = lastword( line)
+         v = verify( upcase( proc_name), IDENTIFIER_STARTER, 'M')
          if not v then
 compile if LOG_TAG_MATCHES
             if TAG_LOG_FID then
                insertline '  ...skipping; verify =' v, TAG_LOG_FID.last+1, TAG_LOG_FID
             endif
 compile endif
-            end_line; repeat_find; iterate
+            end_line
+            repeat_find
+            iterate
          endif
 
-         proc_name = substr(proc_name, v)
-         if wordpos(proc_name, IGNORE_C_KEYWORDS) then
+         proc_name = substr( proc_name, v)
+         if wordpos( proc_name, IGNORE_C_KEYWORDS) then
 compile if LOG_TAG_MATCHES
             if TAG_LOG_FID then
                insertline '  ...skipping; procname "'proc_name'" in ignore list', TAG_LOG_FID.last+1, TAG_LOG_FID
             endif
 compile endif
-            end_line; repeat_find; iterate
+            end_line
+            repeat_find
+            iterate
          endif
 
-         if verify(upcase(proc_name), IDENTIFIER_STARTER'0123456789'colon) then
+         if verify( upcase( proc_name), IDENTIFIER_STARTER'0123456789'colon) then
 compile if LOG_TAG_MATCHES
             if TAG_LOG_FID then
                insertline '  ...skipping; procname "'proc_name'" contains invalid characters', TAG_LOG_FID.last+1, TAG_LOG_FID
             endif
 compile endif
-            end_line; repeat_find; iterate
+            end_line
+            repeat_find
+            iterate
          endif
 
-         w=words(line)
-         if w>1 then
-            if verify(upcase(subword(line,1,w-1)), IDENTIFIER_STARTER'0123456789*()[] 'colon||cpp_decl) then
+         w = words( line)
+         if w > 1 then
+            if verify( upcase( subword( line, 1, w - 1)), IDENTIFIER_STARTER'0123456789*()[] 'colon||cpp_decl) then
 compile if LOG_TAG_MATCHES
                if TAG_LOG_FID then
                   insertline '  ...skipping; character invalid in a declarator appears before "'proc_name'" in:  'line, TAG_LOG_FID.last+1, TAG_LOG_FID
                endif
 compile endif
-               end_line; repeat_find; iterate
+               end_line
+               repeat_find
+               iterate
             endif
          endif
 
@@ -722,17 +781,20 @@ compile if LOG_TAG_MATCHES
          endif
 compile endif
          return 0
+
 compile if LOG_TAG_MATCHES
       elseif not TAG_LOG_FID then  -- do nothing
-      elseif substr(line, .col, 1)<>'(' then
-         insertline '  ...skipping; .col =' .col'; char = "'substr(line, .col, 1)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
+      elseif substr( line, .col, 1) <> '(' then
+         insertline '  ...skipping; .col =' .col'; char = "'substr( line, .col, 1)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
       elseif rightstr(line,1)=';' then
          insertline '  ...skipping; ends in semicolon; line = "'line'"', TAG_LOG_FID.last+1, TAG_LOG_FID
       else
          insertline '  ...skipping; no idea why.', TAG_LOG_FID.last+1, TAG_LOG_FID
 compile endif
       endif
-      end_line; repeat_find
+
+      end_line
+      repeat_find
 
    endloop
    call prune_assist_array()
@@ -1045,15 +1107,14 @@ compile endif
 
    display -2
 
-   identifier = '[A-Z_][A-Z0-9_]*'
-   if proc_name == '' then
-      search = 'DEF(PROC|KEYS|C):w\c'identifier
-   else
-      search = 'DEF(((PROC|KEYS):w)|(C:w(|.*,:o)))\c'proc_name'~:r'
-   endif
-   search = '^'LeadingSpace''search
-
    if find_first then
+      Identifier = '[A-Z_][A-Z0-9_]*'
+      if fSearchIdentifier then
+         search = 'DEF(PROC|KEYS|C):w\c'Identifier
+      else
+         search = 'DEF(((PROC|KEYS):w)|(C:w(|.*,:o)))\c'proc_name'~:r'
+      endif
+      search = '^'LeadingSpace''search
       'xcom l 'search'cx'
    else
       repeat_find
