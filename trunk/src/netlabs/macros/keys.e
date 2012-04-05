@@ -140,16 +140,21 @@ compile endif
 ; Otherwise otherkeys won't process the standard letters, numbers and chars.
 defkeys edit_keys new clear
 
-def '„'
+; For testing:
+;def '„'
 ;   dprintf( 'lastkey() = 'lastkey()', ch = 'ch)
-   call SaveKeyCmd( lastkey())
-   call Process_Keys( 'ae')
+;   call SaveKeyCmd( lastkey())
+;   call Process_Keys( 'ae')
 
-; These standard key defs are executed by the accel def for these keys to
-; to ensure that the execeution won't apply for numpad keys.
-; (Because accel keys don't create a WM_CHAR message, they can't be handled
-; by lastkey or getkeystate. Executing them as standard keys allows for
-; checking e.g. the scancode.)
+; Alt+0 ... Alt+9 keys:
+; These standard key defs are not executed as accel keys in order to keep
+; entering a char via Alt+numpad key working.
+; Because accel keys don't create a WM_CHAR message, they can't be handled
+; by lastkey or getkeystate.
+; To assign code to these keys, they have to be additionally defined via the
+; DefKey proc (that is used for defining accel keys). DefKey handles them
+; specially: It sets just an array var, that is queried and executed by
+; ExecKeyCmd.
 def a_1 'ExecKeyCmd a_1'
 def a_2 'ExecKeyCmd a_2'
 def a_3 'ExecKeyCmd a_3'
@@ -160,6 +165,13 @@ def a_7 'ExecKeyCmd a_7'
 def a_8 'ExecKeyCmd a_8'
 def a_9 'ExecKeyCmd a_9'
 def a_0 'ExecKeyCmd a_0'
+
+; Space key:
+; In order to type the single accent key '^' which is created by
+; <hat_key>+<space>, space must not be defined as accel key. Therefore
+; Space is defined with ExecKeyCmd. That means that it executes the
+; command that is stored by DefKey( Space, cmd) as an array var.
+def space 'ExecKeyCmd space'
 
 def otherkeys
    'otherkeys'
@@ -274,6 +286,15 @@ defproc DefKey( KeyString, Cmd)
    -- Save key def in array to allow for searching for KeyString and Cmd
    SetAVar( 'keydef.'KeyString, Cmd)
    AddAVar( 'keycmd.'Cmd, KeyString)  -- may have multiple key defs
+
+   -- Space key:
+   -- In order to type the single accent key '^' which is created by
+   -- <hat_key>+<space>, space must not be defined as accel key. Therefore
+   -- Space is defined with ExecKeyCmd. That means that it executes the
+   -- command that is stored by DefKey( Space, cmd) as an array var.
+   if String = 'SPACE' & Flags = 0 then
+      return
+   endif
 
    if length( String) = 1 then
 
