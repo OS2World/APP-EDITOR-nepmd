@@ -248,8 +248,8 @@ defkeys edit_keys new clear
 ; For testing:
 ;def '„'
 ;   dprintf( 'lastkey() = 'lastkey()', ch = 'ch)
-;   call AddRecordKey( lastkey())
-;   keyin 'ae'
+;   call SaveKeyCmd( lastkey())
+;   call Process_Keys( 'ae')
 
 ; Alt+0 ... Alt+9 keys:
 ; These standard key defs are not executed as accel keys in order to keep
@@ -270,6 +270,13 @@ def a_7 'ExecKeyCmd a_7'
 def a_8 'ExecKeyCmd a_8'
 def a_9 'ExecKeyCmd a_9'
 def a_0 'ExecKeyCmd a_0'
+
+; Space key:
+; In order to type the single accent key '^' which is created by
+; <hat_key>+<space>, space must not be defined as accel key. Therefore
+; Space is defined with ExecKeyCmd. That means that it executes the
+; command that is stored by DefKey( Space, cmd) as an array var.
+def space 'ExecKeyCmd space'
 
 def otherkeys
    'otherkeys'
