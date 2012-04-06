@@ -1137,6 +1137,25 @@ compile endif
       repeat_find
    endif
 
+   -- Strip trailing comment
+   p = pos( '--', RestLine)
+   if p then
+      RestLine = leftstr( RestLine, p - 1)
+   endif
+
+   -- Replace multi-line comments (on current line only)
+   loop
+      p = pos( '/*', RestLine)
+      if not p then
+         leave
+      endif
+      q = pos( '*/', RestLine, p + 2)
+      if q then
+         RestLine = overlay( '', RestLine, p, q - p + 2)  -- keep column alignment
+      else
+         RestLine = leftstr( RestLine, p - 1)
+      endif
+   endloop
    display 2
 
    --dprintf( 'rc from xcom l 'search'cx =' lrc', len = 'len', col = 'col', .col = '.col', FoundProc = ['FoundProc']')
@@ -1165,7 +1184,7 @@ compile endif
                parse value Rest with Next ',' Rest
                RestLine = ','strip( Rest)
             else
-               Next = Rest
+               parse value Rest with Next Rest
                RestLine = ''
             endif
 
