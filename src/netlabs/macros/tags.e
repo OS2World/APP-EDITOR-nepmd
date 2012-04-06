@@ -490,19 +490,19 @@ compile endif
       new_view = .currentview_of_file
    endif
    if tc='e' then  -- case-sensitive
-      p = pos(proc_name, textline(fileline))
-      lp = lastpos(proc_name, textline(fileline))
+      p = pos( proc_name, textline( fileline))
+      lp = lastpos( proc_name, textline( fileline))
    else            -- not case-sensitive
-      p = pos(upcase(proc_name), upcase(textline(fileline)))
-      lp = lastpos(upcase(proc_name), upcase(textline(fileline)))
+      p = pos( upcase( proc_name), upcase( textline( fileline)))
+      lp = lastpos( upcase( proc_name), upcase( textline( fileline)))
    endif
    -- dprintf( 'TAGS', 'FINDTAG: .filename = '.filename', already_loaded = 'already_loaded', p = 'p', lp = 'lp', fileline = 'fileline)
-   if fileline & p & (p=lp) then
+   if fileline & p & (p = lp) then
       -- If found once in fileline
       if already_loaded <> '' then
          sayerror 'File already loaded, starting new view.'
       endif
-      .cursory=.windowheight%2  -- vcenter line
+      .cursory = .windowheight%2  -- vcenter line
       'postme goto 'fileline p
       --fileline
       --.col = p
@@ -512,12 +512,12 @@ compile endif
       return
    endif
 compile if 0  -- We already checked if the line # was good; the date no longer matters here.
-   if filedate<>''  then  -- Line number and file write date preserved
-      if filedate=get_file_date(filename) then  -- Same date means file has not been changed,
+   if filedate <> ''  then  -- Line number and file write date preserved
+      if filedate = GetFileDateHex( filename) then  -- Same date means file has not been changed,
          'SayHint Jumping straight to line.'
          fileline                               -- so we can jump right to the line.
          .col = 1
-         call proc_search(proc_name, 1, file_mode, file_type)
+         call proc_search( proc_name, 1, file_mode, file_type)
          call prune_assist_array()
          return
       endif
@@ -1403,17 +1403,6 @@ defproc find_matching_paren
    display 2
    setsearch search_command -- Restores user's command so Ctrl-F works.
    return rc  /* 0 if found, else sayerror('String not found') */
-
-defproc get_file_date(filename)
-   pathname = filename\0
-   resultbuf = copies( \0, 30)
-   ca = dynalink32( 'DOSCALLS',      /* dynamic link library name       */
-                    '#223',           /* ordinal value for DOS32QueryPathInfo  */
-                    address(pathname)         ||  -- pathname to be queried
-                    atol(1)                   ||  -- PathInfoLevel
-                    address(resultbuf)        ||  -- buffer where info is to be returned
-                    atol( length(resultbuf)))     -- size of buffer
-   return ltoa( substr( resultbuf, 9, 4), 16)
 
 defc QueryTagsFiles
    universal app_hini

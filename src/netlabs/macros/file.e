@@ -1591,6 +1591,11 @@ defproc GetFileDateHex( Filename)
    return FileDateHex
 
 ; ---------------------------------------------------------------------------
+; For compatibilty
+defproc get_file_date( Filename)
+   return GetFileDateHex( Filename)
+
+; ---------------------------------------------------------------------------
 ; Used in INFOLINE.E.
 ; Todo: use NLS settings from OS2.INI or USER.DAT if present.
 defproc FileDateHex2DateTime( hexstr)
