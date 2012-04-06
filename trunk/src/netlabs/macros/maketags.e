@@ -216,19 +216,19 @@ compile endif
          wildcards = 1
          wild_prefix = substr( filename, 1, lastpos( '\', filename))
          namez     = filename\0    -- ASCIIZ
-         resultbuf = copies( \0, 300)  -- Might need to allocate a buffer if < EPM 5.60
-         attribute = 1         -- Want to see normal & read-only file entries
-         searchcnt = atol(1)   -- Search count; we're only asking for 1 file at a time here.
+         resultbuf = copies( \0, 300)
+         attribute = 1         -- want to see normal & read-only file entries
+         searchcnt = atol(1)   -- search count; we're only asking for 1 file at a time here
          dirhandle = \xff\xff\xff\xff  -- Ask system to assign us a handle
          result = dynalink32( 'DOSCALLS',             -- dynamic link library name
                               '#264',                 -- ordinal value for DOS32FINDFIRST
-                              address(namez)      ||  -- Filename we're looking for
-                              address(dirhandle)  ||  -- Pointer to the handle
-                              atol(attribute)     ||  -- Attribute value describing desired files
-                              address(resultbuf)  ||  -- string address
-                              atol(length(resultbuf)) ||
-                              address(searchcnt)  ||  -- Pointer to the count; system updates
-                              atol(1), 2)             -- File info level 1 requested
+                              address( namez)           || -- filename we're looking for
+                              address( dirhandle)       || -- pointer to the handle
+                              atol( attribute)          || -- attribute value describing desired files
+                              address( resultbuf)       || -- string address
+                              atol( length( resultbuf)) ||
+                              address( searchcnt)       || -- pointer to the count; system updates
+                              atol( 1), 2)                 -- file info level 1 requested
 
          if result then
                 if result = 2   then msg = 'FILE NOT FOUND'
@@ -245,11 +245,11 @@ compile endif
             sayerror 'Error' result '('msg') for "'filename'"'
             iterate  -- take next filemask
          endif
-         filename = wild_prefix || substr(resultbuf, 30, asc(substr(resultbuf, 29, 1)))
-         filedate = ltoa(substr(resultbuf, 13, 4), 16)
+         filename = wild_prefix || substr( resultbuf, 30, asc( substr( resultbuf, 29, 1)))
+         filedate = ltoa( substr( resultbuf, 13, 4), 16)
       else
          wildcards = 0
-         filedate = get_file_date(filename)
+         filedate = GetFileDateHex( filename)
       endif
 
       loop
