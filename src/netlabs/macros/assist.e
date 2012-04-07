@@ -1294,6 +1294,7 @@ compile endif
 ; ---------------------------------------------------------------------------
 defproc passist_search(mode, clist, case, coffset, clen, n)
    tex_env = arg(7)
+   retval = 0
    loop
       call dprintf("passist", "before search pos: ".line",".col "n = "n)
       repeatfind
