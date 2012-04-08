@@ -215,21 +215,22 @@ defproc passist
          c = substr(textline(.line),.col,1)
       endif
 
-      case          = 'e'                                         -- respect case is default
-      coffset       = 0                                           -- default
-      clen          = 1                                           -- default
-      fIntermediate = 0                                           -- default
-      fForward      = 1                                           -- default
-      n             = 1                                           -- default
+      case          = 'e'  -- respect case is default
+      coffset       = 0
+      clen          = 1
+      fIntermediate = 0
+      fForward      = 1
+      n             = 1
+      ECompileFlag  = 0
 
---    id            = ''                                          -- token under cursor
-      startcol      = 1                                           -- start column of id/token
-      endcol        = 1                                           -- end column of id/token
+--    id            = ''   -- token under cursor
+      startcol      = 1    -- start column of id/token
+      endcol        = 1    -- end column of id/token
 
       if pos(c, '{}') and CurMode = 'RC' then  -- Braces, '{}', can be matched with
          k = 0                                 -- BEGIN and END in RC files.  So they
       else                                     -- need to be handled separately.
-         k = pos(c, GOLD)            --  '(){}[]<>'
+         k = pos(c, GOLD)  --  '(){}[]<>'
       endif
       if k then
       -- if c = bracket defined in GOLD, then set search to the corresponding char out of GOLD
@@ -336,6 +337,7 @@ defproc passist
                   -- another placeholder
                ---- E compiler directives: compile if, compile else, compile elseif, compile endif ---------
                elseif id = 'compile' then
+                  ECompileFlag = 1
                   temp = (substr(line, pos(id, line)))
                   call dprintf("passist", "Initial temp: "temp)
                   do while (pos('/*', temp) > 0) and (pos('*/', temp) > 0)
@@ -374,6 +376,7 @@ defproc passist
                      part2 = strip(part2)
                      if (part1 = '' or ((length(part1) >= 4) and (leftstr(part1, 2) = '/*') and (rightstr(part1, 2) = '*/'))) and
                         (part2 = '' or ((length(part2) >= 4) and (leftstr(part2, 2) = '/*') and (rightstr(part2, 2) = '*/'))) then
+                        ECompileFlag = 1
 --                      compile if/... code (when cursor is on if/...
                         search = '^[ \t]*compile[ \t]*(/\*.*\*/)*[ \t]*\c(end)?if([; \t]|(--)|(/\*)|$)'
                         clist = leftstr(id, 1)
@@ -398,7 +401,11 @@ defproc passist
                      endif
                   else
                      -- if|endif (without compile)
-                     search = '((\*/:o)|(^:o)|(^:o(~compile:w)))\c(end)?if([; \t]|(--)|(/\*)|$)'
+                     -- The found line is checked by a 2nd search for a preceding 'compile',
+                     -- otherwise the re would have two many parentheses.
+                   --search = '((\*/:o)|(^:o)|(^:o(~compile:w)))\c(end)?if([; \t]|(--)|(/\*)|$)'
+                   --search = '((\*/:o)|(;:o)|(^:o)|(^:o(~compile:w)))\c(end)?if([; \t]|(--)|(/\*)|$)'
+                     search = '(^|[ \t]|(\*/))\c(end)?if([; \t]|(--)|(/\*)|$)'
                      clist = leftstr(id, 1)
                      fForward = (clist <> 'e')
                      if fForward then  -- move to beginning
@@ -1258,7 +1265,7 @@ compile endif
             -- designed for function_name(...)  <-- function_name is highlighted, not the ( and ).
          endif
 
-         passist_rc = passist_search(CurMode, clist, case, coffset, clen, n, tex_env)
+         passist_rc = passist_search( CurMode, clist, case, coffset, clen, n, tex_env, ECompileFlag)
       endif                                 -- if OK to search
    endif
 
@@ -1296,7 +1303,8 @@ compile endif
 ;     NOT located within a comment or literal).
 ; ---------------------------------------------------------------------------
 defproc passist_search(mode, clist, case, coffset, clen, n)
-   tex_env = arg(7)
+   tex_env      = arg(7)
+   ECompileFlag = arg(8)
    retval = 0
    loop
       call dprintf("passist", "before search pos: ".line",".col "n = "n)
@@ -1309,6 +1317,17 @@ defproc passist_search(mode, clist, case, coffset, clen, n)
       if inside_literal2(mode) then
          iterate
       endif
+
+      if mode = 'E' & ECompileFlag <> 1 then
+         -- if|endif (without compile)
+         line     = textline( .line)
+         leftline = lowcase( leftstr( line, .col - 1))
+         pcompile = pos( 'compile:w', leftline, 1, 'x')
+         if pcompile & pcompile <= .col then
+            iterate
+         endif
+      endif
+
       call dprintf("passist", "line# ".line" col: ".col" text: "textline(.line))
       cword  = substr(textline(.line), .col + coffset, clen)
       if case = 'c' then
