@@ -181,6 +181,7 @@ defc assist, passist
 defproc passist
    call psave_pos(savepos)                  -- Save the cursor location
    getsearch search_command                 -- Save user's search command.
+   call dprintf("passist", "------------------------------------------------------------")
    call dprintf("passist", "Initial cursor: ".line",".col)
    CurMode     = NepmdGetMode()
    passist_rc  = inside_comment2(CurMode, comment_data)
@@ -364,7 +365,9 @@ defproc passist
                   endif
                ---- E conditions: (compile) if, (compile) else, (compile) elseif, (compile) endif --------
                elseif wordpos( id, 'if endif else elseif') then
-                  if pos('compile', line) <= startcol then
+                  pcompile = pos('compile', line)
+                  if pcompile & pcompile <= startcol then
+                     -- compile if|endif|else|elseif
                      parse value line with part1 'compile' part2 (id) part3
                      call dprintf('passist', 'E if parse: "'part1'"compile"'part2'"'id'"'part3'"')
                      part1 = strip(part1)
@@ -394,8 +397,8 @@ defproc passist
                         fIntermediate = (substr(id, 2, 1) = 'l')
                      endif
                   else
---                   plain if/... code
-                     search = '(^|[ \t]|(\*/))\c(end)?if([; \t]|(--)|(/\*)|$)'
+                     -- if|endif (without compile)
+                     search = '((\*/:o)|(^:o)|(^:o(~compile:w)))\c(end)?if([; \t]|(--)|(/\*)|$)'
                      clist = leftstr(id, 1)
                      fForward = (clist <> 'e')
                      if fForward then  -- move to beginning
