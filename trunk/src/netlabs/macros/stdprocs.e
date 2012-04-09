@@ -82,6 +82,33 @@ defproc check_mark_on_screen =
    endif
    return 1
 
+; ---------------------------------------------------------------------------
+; Syntax: fOnScreen = OnScreen( [line], [col])
+defproc OnScreen
+   y = arg(1)
+   x = arg(2)
+   if y = '' then
+      y = .line
+   endif
+   if x = '' then
+      x = .col
+   endif
+   topline  = .line - .cursory + 1
+   botline  = .line - .cursory + .windowheight
+   leftcol  = .col  - .cursorx + 1
+   rightcol = .col  - .cursorx + .windowwidth
+
+   fOnScreen = 0
+   if     y < topline then
+   elseif y > botline then
+   elseif x < leftcol then
+   elseif x > rightcol then
+   else
+      fOnScreen = 1
+   endif
+
+   return fOnScreen
+
 ; Tests whether the "filename" is actually a printer
 ; device, so we'll know whether to test printer readiness first.
 ; Called by savefile() in SAVELOAD.E.  Returns 0 if not, else printer number.
@@ -592,26 +619,26 @@ defproc FileIsMarked
 ; ---------------------------------------------------------------------------
 ; Syntax: fInMark = InMark( [line], [col])
 defproc InMark
-   x = arg(1)
-   y = arg(2)
-   if x = '' then
-      x = .line
-   endif
+   y = arg(1)
+   x = arg(2)
    if y = '' then
-      y = .col
+      y = .line
+   endif
+   if x = '' then
+      x = .col
    endif
    fInMark = 0
    mt = marktype()
    if mt then
       getfileid fid
       getmark firstline, lastline, firstcol, lastcol, markfid
-      if fid = markfid & x >= firstline & x <= lastline then
+      if fid = markfid & y >= firstline & y <= lastline then
          -- assert:  at this point the only case where the text is outside
          --          the selected area is on a single line char mark and a
          --          block mark.  Any place else is a valid selection
-         if not ((mt = 'CHAR' & (firstline = x & y < firstcol) |
-                                (lastline = x & y > lastcol)) |
-                 (mt = 'BLOCK' & (y < firstcol | y > lastcol))) then
+         if not ((mt = 'CHAR' & (firstline = y & x < firstcol) |
+                                (lastline = y & x > lastcol)) |
+                 (mt = 'BLOCK' & (x < firstcol | x > lastcol))) then
             fInMark = 1
          endif
       endif
