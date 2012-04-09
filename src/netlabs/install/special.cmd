@@ -117,6 +117,8 @@ DO 1
    rcx = SysDestroyObject( NetlabsDir'\macros\statline.e')
    rcx = SysDestroyObject( NetlabsDir'\macros\titletext.e')
    rcx = SysDestroyObject( NetlabsDir'\macros\xchgline.e')
+   rcx = SysDestroyObject( NetlabsDir'\macros\mozkeys.e')
+   rcx = SysDestroyObject( NetlabsDir'\macros\balance.e')
    rcx = SysDestroyObject( NetlabsDir'\bin\epmchangestartupdir.cmd')
 
    /* Remove obsolete ini key from v1.00 if present */
