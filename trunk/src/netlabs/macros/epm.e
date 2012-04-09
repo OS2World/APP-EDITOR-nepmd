@@ -86,8 +86,6 @@ compile endif  -- not VANILLA
 
 include        'modify.e'
 
-include        'balance.e'     -- Highlight matching identifier while typing
-
 include        'mouse.e'       -- Mouse definition, only for EPM.
 
 include        'stdprocs.e'    -- Standard functions and procedures.
