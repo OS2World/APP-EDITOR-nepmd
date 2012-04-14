@@ -1102,7 +1102,7 @@ compile endif
          return 0
       endif
    else
-      call DelAVar( 'e_tag_next_procs.'fid)
+      call DropAVar( 'e_tag_next_procs.'fid)
    endif
 
    display -2
