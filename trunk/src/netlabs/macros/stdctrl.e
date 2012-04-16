@@ -2979,16 +2979,3 @@ compile else
    'postme Close'
 compile endif
 
-; ---------------------------------------------------------------------------
-; Abbreviation for use for menu items etc.
-defc CheckChgPal
-   parse arg args
-   'CheckOnlyEpmWindow'
-   'ChgPal' args
-
-; ---------------------------------------------------------------------------
-; Abbreviation for use for menu items etc.
-defc ChgPal
-   parse arg args
-   'start /c /f epmchgpal.cmd' args
-
