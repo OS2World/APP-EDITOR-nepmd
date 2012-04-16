@@ -78,7 +78,6 @@ $(CMPEXDIR)\maketags.ex\
 $(CMPEXDIR)\modecnf.ex\
 $(CMPEXDIR)\modeexec.ex\
 $(CMPEXDIR)\newmenu.ex\
-$(CMPEXDIR)\next_win.ex\
 $(CMPEXDIR)\ovshmenu.ex\
 $(CMPEXDIR)\popup.ex\
 #$(CMPEXDIR)\put.ex\
