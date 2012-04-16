@@ -2104,34 +2104,10 @@ defproc add_view_menu(menuname)
                                    \1'Select a background bitmap',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Color palette',                                               -- Color palette...
-                                   '' ||
+   buildmenuitem menuname, mid, i, '~Color palette...',                                            -- Color palette...
+                                   'SelectColorPal' ||
                                    \1'Modify EPM''s 16-color palette (e.g. used for highlighting)',
-                                   MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Create palette objects...',                                         -- Create palette objects...
-                                   'ChgPal 1' ||
-                                   \1'Use MyColors for your own colors',
                                    MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~View palette objects...',                                           -- View palette objects...
-                                   'rx Open %NEPMD_USERDIR%\bin' ||
-                                   \1'Open folder of palette objects',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Read palette objects...',                                           -- Read palette objects...
-                                   'ChgPal 2' ||
-                                   \1'Write colors to EPMColor.ini',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Select color palette...',                                           -- Select color palette...
-                                   'CheckChgPal 3' ||
-                                   \1'Select from EPMcolor.ini, then patch dll',
-                                   MIS_TEXT + MIS_ENDSUBMENU, 0
  endif  -- not MenuItemsHidden
    -- With hidden menu items, the separator before Ring enabled is sometimes checked.
    -- Therefore always use a new unique i for the items after the hidden ones:

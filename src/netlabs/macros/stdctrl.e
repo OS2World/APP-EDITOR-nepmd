@@ -2491,6 +2491,57 @@ defproc ConvertColor( args)
    return color
 
 ; ---------------------------------------------------------------------------
+; Opens a listbox to select a color palette. The list of color palettes is
+; parsed by COLORS.ERX from COLORS.INI and MYCOLORS.INI. Uses also COLORS.ERX
+; and both inis to patch ETKE603.DLL.
+defc SelectColorPal
+
+   NumItems = 0
+   ListBoxData = ''
+   Next = RxResult( 'colors.erx L')
+   if Next <> '' then
+      -- Get number of items
+      Sep = leftstr( Next, 1)
+      Check = translate( translate( Next, '_', ' '), ' ', Sep)
+      NumItems = words( Check)
+      ListBoxData = Next
+   endif
+
+   DefaultItem   = 1
+   DefaultButton = 1
+   HelpId = 0
+   Title   = 'Change color palette'
+   Text    = 'Select a color palette from the list below:'
+;  Buttons = '/~Set/S~ync.../~Copy.../~Delete.../Cancel/Help'
+   Buttons = '/~Set/Cancel'
+
+   refresh
+   Result = ListBox( Title,
+                     ListBoxData,
+                     Buttons,
+                     0, 0,  --5, 5,           -- top, left,
+                     min( NumItems, 15), 50,  -- height, width
+                     gethwnd( APP_HANDLE) ||
+                     atoi( DefaultItem)   ||
+                     atoi( DefaultButton) ||
+                     atoi( HelpId)        ||
+                     Text\0)
+   refresh
+
+   -- Check result
+   Button = asc( leftstr( Result, 1))
+   EOS = pos( \0, Result, 2)        -- CHR(0) signifies End Of String
+
+   ColorPal = substr( Result, 2, EOS - 2)
+
+   if Button = 1 then      -- Set
+      rcx = RxResult( 'colors.erx S' ColorPal)
+      --sayerror 'RxResult from "rx colors.erx' ColorPal'" = 'rcx
+   else                    -- Cancel
+      return 1
+   endif
+
+; ---------------------------------------------------------------------------
 defproc Thunk(pointer)
    return atol_swap( dynalink32( E_DLL,
                                  'FlatToSel',
