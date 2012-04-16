@@ -105,6 +105,12 @@ defproc get_env(varname)
    endif
 
 ; ---------------------------------------------------------------------------
+defc ShowEnv
+   parse arg Env
+   Env = strip( Env)
+   'SayHint 'Env' = 'Get_Env( Env)
+
+; ---------------------------------------------------------------------------
 defproc StripPath( Spec)
    lp = lastpos( '\', Spec)
    Spec = substr( Spec, lp + 1)
