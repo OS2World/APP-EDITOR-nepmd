@@ -310,92 +310,6 @@ defc RecompileEpm
    endif
 
 ; ---------------------------------------------------------------------------
-; Check for a modified file in ring. If not, restart current EPM window.
-; Keep current directory.
-defc Restart
-   if arg(1) = '' then
-      cmd = 'RestoreRing'
-   else
-      cmd = 'mc ;Restorering;AtPostStartup' arg(1)
-   endif
-   'RingCheckModify'
-   'SaveRing'
-   EpmArgs = "'"cmd"'"
-compile if 0
-   -- Doesn't work really reliable everytime (but even though useful):
-   -- o  Sometimes EPM.EX is not reloaded.
-   -- o  Sometimes EPM crashes on 'SaveRing' or on executing arg(1).
-   'postme Open' EpmArgs
-compile else
-   -- Using external .cmd now:
-   EpmExe = Get_Env( 'NEPMD_LOADEREXECUTABLE')
-   'postme start /c /min epmlast' EpmExe EpmArgs
-   'postme Close'
-compile endif
-
-; ---------------------------------------------------------------------------
-; When a non-temporary file (except .Untitled) in ring is modified, then
-; -  make this file topmost
-; -  give a message
-; -  set rc = 1 (but not required, because stop is used)
-; -  stop processing of calling command or procedure.
-; Otherwise set rc = 0.
-defc RingCheckModify
-   rc = 0
-   getfileid fid
-   startfid = fid
-   dprintf( 'RINGCMD', 'RingCheckModify')
-   do i = 1 to filesinring(1)  -- just as an upper limit
-      fIgnore = (not .visible) | ((substr( .filename, 1, 1) = '.') & (.filename <> GetUnnamedFilename()))
-      if fIgnore then
-         .modify = 0
-      else
-         rcx = CheckModify()
-         if rcx then
-            activatefile startfid
-            stop
-         endif
-      endif
-      nextfile
-      getfileid fid
-      if fid = startfid then
-         leave
-      endif
-   enddo
-
-; ---------------------------------------------------------------------------
-defc CheckModify
-   rcx = CheckModify()
-   if rcx then
-      stop
-   endif
-
-; ---------------------------------------------------------------------------
-; Resets .modify for Yes or No button. Yes: Save, No: Discard.
-defproc CheckModify
-   rc = 0
-   if .modify then
-
-      refresh
-      Title = 'Save modified file'
-      Text = .filename\n\n                                         ||
-             'The above file is modified. Press "Yes" to save it,' ||
-             ' "No" to discard it or "Cancel" to abort.'\n\n       ||
-             'Do you want to save it?'
-      rcx = winmessagebox( Title, Text,
-                           MB_YESNOCANCEL + MB_QUERY + MB_DEFBUTTON1 + MB_MOVEABLE)
-
-      if rcx = MBID_YES then
-         'Save'
-      elseif rcx = MBID_NO then
-         .modify = 0
-      else
-         rc = -5
-      endif
-   endif
-   return rc
-
-; ---------------------------------------------------------------------------
 ; Recompile all files, whose names found in .lst files in EPMEXPATH.
 ;
 ; Maybe to be changed: compile only those files, whose (.EX files exist) names
@@ -1431,28 +1345,5 @@ defc RecompileNewMsgBox
          endif
       endif
       'e 'LogFile
-   endif
-
-; ---------------------------------------------------------------------------
-; Start RECOMP.EXE
-defc StartRecompile
-   NepmdRootDir = NepmdScanEnv('NEPMD_ROOTDIR')
-   NepmdUserDir = NepmdScanEnv('NEPMD_USERDIR')
-   parse value NepmdRootDir with 'ERROR:'rc1
-   parse value NepmdUserDir with 'ERROR:'rc2
-   if rc1 = '' & rc2 = '' then
-      UserExDir = NepmdUserDir'\ex'
-      -- Workaround:
-      -- Change to root dir first to avoid erroneously loading of .e files from current dir.
-      -- Better let Recompile.exe do this, because the restarted EPM will open with the
-      -- same directory as Recompile.
-      -- And additionally: make Recompile change save/restore EPM's directory.
-      CurDir = directory()
-      call directory(UserExDir)
-      'start 'NepmdRootDir'\netlabs\bin\recomp.exe 'UserExDir
-      call directory('\')
-      call directory(CurDir)
-   else
-      sayerror 'Environment var NEPMD_ROOTDIR not set'
    endif
 

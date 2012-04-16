@@ -2594,6 +2594,68 @@ defproc IsOnlyEpmWindow
    endif
 
 ; ---------------------------------------------------------------------------
+; When a non-temporary file (except .Untitled) in ring is modified, then
+; -  make this file topmost
+; -  give a message
+; -  set rc = 1 (but not required, because stop is used)
+; -  stop processing of calling command or procedure.
+; Otherwise set rc = 0.
+defc RingCheckModify
+   rc = 0
+   getfileid fid
+   startfid = fid
+   dprintf( 'RINGCMD', 'RingCheckModify')
+   do i = 1 to filesinring(1)  -- just as an upper limit
+      fIgnore = (not .visible) | ((substr( .filename, 1, 1) = '.') & (.filename <> GetUnnamedFilename()))
+      if fIgnore then
+         .modify = 0
+      else
+         rcx = CheckModify()
+         if rcx then
+            activatefile startfid
+            stop
+         endif
+      endif
+      nextfile
+      getfileid fid
+      if fid = startfid then
+         leave
+      endif
+   enddo
+
+; ---------------------------------------------------------------------------
+defc CheckModify
+   rcx = CheckModify()
+   if rcx then
+      stop
+   endif
+
+; ---------------------------------------------------------------------------
+; Resets .modify for Yes or No button. Yes: Save, No: Discard.
+defproc CheckModify
+   rc = 0
+   if .modify then
+
+      refresh
+      Title = 'Save modified file'
+      Text = .filename\n\n                                         ||
+             'The above file is modified. Press "Yes" to save it,' ||
+             ' "No" to discard it or "Cancel" to abort.'\n\n       ||
+             'Do you want to save it?'
+      rcx = winmessagebox( Title, Text,
+                           MB_YESNOCANCEL + MB_QUERY + MB_DEFBUTTON1 + MB_MOVEABLE)
+
+      if rcx = MBID_YES then
+         'Save'
+      elseif rcx = MBID_NO then
+         .modify = 0
+      else
+         rc = -5
+      endif
+   endif
+   return rc
+
+; ---------------------------------------------------------------------------
 ; Abbreviation for use for menu items etc.
 defc CheckChgPal
    parse arg args
