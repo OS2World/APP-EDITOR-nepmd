@@ -1,0 +1,1614 @@
+/*
+ * Quiet option
+ * Write log file
+ */
+/****************************** Module Header *******************************
+*
+* Module Name: colors.erx
+*
+* Change EPM''s standard 16-color palette for keyword hiliting.
+*
+* This file can be called outside of EPM. In that case EPMENV.CMD is required
+* in the dir of this file.
+*
+* The usage of WPS objects for color configuration as an additional layer
+* beside the cfg files requires additional functions to synchronize them.
+* Both scenarios are supported: Additional palette objects may be created or
+* changed and also cfg files may be changed, without simultaneously required
+* change of the palette objects by the user. Therefore an automatic
+* synchronization was added to manage that in most cases.
+*
+* At every call of this macro three arrays were created:
+*    StdCfg.  names and colors from Colors.cfg file
+*    AddCfg.  names and colors from MyColors.cfg file
+*    Pal.     names and colors from the palette objects
+* After that, the automatic asynchronization between the Cfg files and the
+* palette objects is executed.
+*
+* Copyright (c) Netlabs EPM Distribution Project 2012
+*
+* $Id$
+*
+* ===========================================================================
+*
+* This file is part of the Netlabs EPM Distribution package and is free
+* software.  You can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the Free Software
+* Foundation, in version 2 as it comes in the "COPYING" file of the
+* Netlabs EPM Distribution.  This library is distributed in the hope that it
+* will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+****************************************************************************/
+
+IF ADDRESS() <> 'EPM' THEN
+   '@ECHO OFF'
+
+/* ----------------- Standard ERX initialization follows ----------------- */
+SIGNAL ON HALT NAME Halt
+IF ADDRESS() = 'EPM' THEN
+DO
+   SIGNAL ON ERROR NAME Error
+   SIGNAL ON SYNTAX NAME Error
+END
+
+env   = 'OS2ENVIRONMENT'
+TRUE  = (1 = 1)
+FALSE = (0 = 1)
+CrLf  = '0d0a'x
+Redirection = '>NUL 2>&1'
+PARSE SOURCE . . ThisFile
+GlobalVars = 'env TRUE FALSE Redirection ERROR. ThisFile'
+
+/* Some OS/2 error codes */
+ERROR.NO_ERROR           =   0
+ERROR.INVALID_FUNCTION   =   1
+ERROR.FILE_NOT_FOUND     =   2
+ERROR.PATH_NOT_FOUND     =   3
+ERROR.ACCESS_DENIED      =   5
+ERROR.NOT_ENOUGH_MEMORY  =   8
+ERROR.INVALID_FORMAT     =  11
+ERROR.INVALID_DATA       =  13
+ERROR.NO_MORE_FILES      =  18
+ERROR.WRITE_FAULT        =  29
+ERROR.READ_FAULT         =  30
+ERROR.SHARING_VIOLATION  =  32
+ERROR.GEN_FAILURE        =  31
+ERROR.INVALID_PARAMETER  =  87
+ERROR.ENVVAR_NOT_FOUND   = 204
+
+rc = ERROR.NO_ERROR
+
+CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+CALL SysLoadFuncs
+/* ----------------- Standard ERX initialization ends -------------------- */
+
+CALL RxFuncAdd 'WPToolsLoadFuncs', 'WPTOOLS', 'WPToolsLoadFuncs'
+CALL WPToolsLoadFuncs
+
+
+/* ------------- Configuration ---------------- */
+ErrorQueueName = VALUE( 'NEPMD_RXQUEUE',, env)
+ErrorMessage   = ''
+DllName            = 'etke603.dll'
+Signature          = 'GpiCreatePS failed'
+SaveFileExt        = 'sav'
+StdCfg.            = ''
+AddCfg.            = ''
+StdCfg._Name       = 'Colors.cfg'
+AddCfg._Name       = 'MyColors.cfg'
+AddCfg._fChanged   = 0
+StdCfg._Section.0  = 0
+AddCfg._Section.0  = 0
+Pal.               = ''
+Pal._Name.0        = 0
+
+PalTitlePrefix     = 'EPM color palette - '  /* previously used */
+ObjectIdPrefix     = 'EPM_PAL_'
+
+/* The OS/2 color palette starts with the bottom line. Therefore the 8 top colors   */
+/* were exchanged with the 8 bottom colors. The index used here goes from 1 to 16   */
+/* to make it easy for use with the words and wordpos functions. Note that the      */
+/* predefined values go from 0 to 15. In the docs LIGHT_GREY is called 'pale grey'. */
+/* That is not defined.                                                             */
+PalIndexList       = ,
+   '9 10 11 12 13 14 15 16' ||,
+   ' 1 2 3 4 5 6 7 8'
+ColorList          = ,
+   'BLACK BLUE GREEN CYAN RED MAGENTA BROWN LIGHT_GREY' ||,
+   ' DARK_GREY LIGHT_BLUE LIGHT_GREEN LIGHT_CYAN LIGHT_RED LIGHT_MAGENTA YELLOW WHITE'
+
+GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage StdCfg. AddCfg. Pal.'
+GlobalVars = GlobalVars 'PalTitlePrefix ObjectIdPrefix'
+GlobalVars = GlobalVars 'PalIndexList ColorList'
+GlobalVars = GlobalVars 'WorkDir TmpDir DllName'
+/* -------------------------------------------- */
+
+/* Extend the environment, if not already */
+next = VALUE( 'NEPMD_NAME',, env)
+IF next = '' THEN
+DO
+   PARSE SOURCE . . ThisFile
+   lp = LASTPOS( '\', ThisFile)
+   ThisDir = LEFT( ThisFile, lp - 1)
+   'CALL' ThisDir'\..\netlabs\bin\EPMENV'
+END
+
+/* Set vars that depend on RootDir and UserDir */
+RootDir = VALUE( 'NEPMD_ROOTDIR',, env)
+UserDir = VALUE( 'NEPMD_USERDIR',, env)
+NetlabsBinDir = RootDir'\netlabs\bin'
+UserBinDir    = UserDir'\bin'
+WorkDir       = UserBinDir  /* Where palettes and ColorIni is located or will be created */
+TmpDir        = UserBinDir'\tmp'  /* Better use a unique name in %TMP%? */
+
+
+DO 1
+
+   /* Parse args */
+   PARSE ARG Action Rest
+
+   Arg2 = ''
+   Arg3 = ''
+   DO WHILE (Rest <> '')
+      Rest = STRIP( Rest)
+      IF (LEFT( Rest, 1) = '"') THEN
+         PARSE VAR Rest '"'ThisArg'"' Rest
+      ELSE
+         PARSE VAR Rest ThisArg Rest
+
+      SELECT
+         WHEN Arg2 = '' THEN
+            Arg2 = ThisArg
+         WHEN Arg3 = '' THEN
+            Arg3 = ThisArg
+      OTHERWISE
+         rc = ERROR.INVALID_PARAMETER
+         ErrorMessage = 'Invalid parameter "'ThisArg'".'
+         LEAVE
+      END
+   END
+   IF rc <> ERROR.NO_ERROR THEN LEAVE
+CALL SAYDEBUG 'Action = 'Action' -------------------------------------------------'
+
+   /* Make colors.cfg in the user tree replace the netlabs file */
+   IF FileExist( UserBinDir'\'StdCfg._Name) THEN
+      StdCfg._Fullname = UserBinDir'\'StdCfg._Name
+   ELSE
+      StdCfg._Fullname = NetlabsBinDir'\'StdCfg._Name
+
+   /* Additional colors from mycolors.cfg */
+   AddCfg._Fullname = UserBinDir'\'AddCfg._Name
+
+   /* Read colors.cfg into stem 'StdCfg.' */
+   rc  = ReadIni( StdCfg._Fullname, 'StdCfg.')
+   IF rc <> ERROR.NO_ERROR THEN LEAVE
+   rcx = AddHexColorsToCfgStem( 'StdCfg.')
+
+   /* Read mycolors.cfg into stem 'AddCfg.', ignore errors */
+   IF FileExist( AddCfg._Fullname) THEN
+   DO
+      rcx = ReadIni( AddCfg._Fullname, 'AddCfg.')
+      rcx = AddHexColorsToCfgStem( 'AddCfg.')
+   END
+
+   /* Read colors of palette objects into stem 'Pal.' */
+   rcx = ReadPalettes()
+
+   /* Find new or changed palettes or new cfg sections */
+   rcx = ComparePalCfg()
+
+   /* Auto-sync new palettes or cfg sections */
+   /* Changed palettes need manual sync      */
+   rcx = AutoSyncNewPalCfg()
+
+   /* Create MyColors palette if no user palette exists */
+
+   /* Save MyColors.cfg if changed after every single operation */
+
+
+/* <------------------------------- TODO: check if default user pal has same colors as NEPMD */
+/*                                        and maybe ignore it or append '(equal to NEPMD)'   */
+
+/*
+ * Files
+ *    F:\Apps\NEPMD\myepm\bin\colors.erx
+ *    F:\Apps\NEPMD\myepm\bin\colors.erx.txt
+ *    F:\Apps\NEPMD\myepm\macros\stdctrl.e
+ */
+/*
+Single menu item: Manage color palettes...
+   Before opening the Selection dialog, the myepm/bin folder should be opened.
+   Selection dialog lists all color sets, maybe appended with (needs sync).
+   Buttons: [ Sync... ]  [ Copy... ]  [ Delete... ]  [ Select ]  [ Cancel ]  [ Help ]
+Sync dialog is opened via Sync button.
+   Maybe: Sync dialog is automatically opened if selected item needs sync.
+   Buttons: [ Pal -> Cfg ]  [ Cfg -> Pal ]  [ Cancel ]  [ Help ]
+Actions:
+OK Copy, select new name, maybe confirm overwrite (arg = pal, name)
+OK Delete, confirm delete (arg = pal)
+   Select                 (arg = pal)       -> store selection in NEPMD.INI?
+                                            -> later: get it from DLL
+   -> create backup DLL
+   -> patch DLL
+OK Sync Pal -> Cfg (SyncPalToCfg)
+OK Sync Cfg -> Pal (SyncCfgToCfg)
+OK Init: Create MyColors if it doesn't exist
+
+Todo:
+   o  Select active palette in list
+   o  Display doubled palettes with just different names, e.g.
+      "MyColors (same as NEPMD)"
+*/
+
+   /* Execute Action */
+   SELECT
+      /* Get list of palettes, separated by '|', for listbox */
+      WHEN ABBREV( Action, 'L') THEN
+      DO
+         ListboxData = GetPalNameList()
+         EXIT( ListboxData)
+      END
+
+      /* Copy palette */
+      WHEN ABBREV( Action, 'C') THEN  /* arg3 = new name */
+/* TODO: Get Arg3 via E dialog, if missing */
+         CALL CopyPal Arg2, Arg3
+
+      /* Delete palette */
+      WHEN ABBREV( Action, 'D') THEN
+         CALL DeletePal Arg2
+
+      /* Init: copy NEPMD palette to MyColors, if it doesn't exist */
+      WHEN ABBREV( Action, 'I') THEN
+         CALL InitPal
+
+      /* Sync: pal -> cfg (P = palette object) */
+      WHEN ABBREV( Action, 'P') THEN
+         CALL SyncPal2Cfg Arg2
+
+      /* Sync: cfg -> pal (F = file) */
+      WHEN ABBREV( Action, 'F') THEN
+         CALL SyncCfg2Pal Arg2
+
+      /* Select palette, patch DLL */
+      WHEN ABBREV( Action, 'S') THEN
+      DO 1
+         /* Create tmp dir and change to work dir */
+         CALL SysMkDir WorkDir
+         CALL SysMkDir TmpDir
+         CALL DIRECTORY WorkDir
+         IF SUBSTR( WorkDir, 2, 1) = ':' THEN
+            CALL DIRECTORY SUBSTR( WorkDir, 1, 2)
+
+         /* Find original DLL in LIBPATH */
+         DllFullname = FindLibPath( DllName)
+         IF DllFullname = '' THEN
+         DO
+            ErrorMessage = DllName 'not found in LIBPATH.'
+            rc = ERROR.FILE_NOT_FOUND
+            LEAVE
+         END
+
+         /* Create work and backup copies of DLL */
+         WorkDllFullName = TmpDir'\'DllName
+         rc = BackupDll( DllFullname, SaveFileExt, WorkDllFullName)
+         IF rc <> ERROR.NO_ERROR THEN LEAVE
+
+         PalName = Arg2
+         IF PalName = '' THEN
+         DO
+            rc = ERROR.INVALID_PARAMETER
+            ErrorMessage = 'Missing palette name for "'Action'".'
+            LEAVE
+         END
+
+         /* Get color string for DLL */
+         HexColors = GetHexColors( PalName)
+CALL SAYDEBUG 'HexColors ('PalName') = 'HexColors
+
+         DllColors = HexColorsToDllColors( HexColors)
+         IF DllColors = '' THEN
+         DO
+            ErrorMessage = PalName 'not found in array.'
+            rc = ERROR.INVALID_DATA
+            LEAVE
+         END
+
+         /* Patch work DLL */
+         rc = PatchDll( DllFullName, WorkDllFullName, Signature, DllColors)
+         IF rc <> ERROR.NO_ERROR THEN LEAVE
+
+         /* Create and call an external CMD file. Replace original DLL */
+         rc = ReplaceDll( DllFullName, WorkDllFullName)
+      END
+
+   OTHERWISE
+      rc = ERROR.INVALID_PARAMETER
+      ErrorMessage = 'Invalid parameter "'Action'".'
+   END
+
+END
+
+IF ErrorMessage <> '' THEN
+DO
+   ErrorMessage = 'Error 'rc' running 'ThisFile': 'ErrorMessage
+   CALL SayErrorMessage
+END
+
+EXIT( rc)
+
+/* ----------------------------------------------------------------------- */
+AddHexColorsToCfgStem: PROCEDURE EXPOSE (GlobalVars)
+   rc = ERROR.NO_ERROR
+   PARSE ARG Stem
+
+   IF Stem = '' THEN
+      RETURN( ERROR.INVALID_PARAMETER)
+   IF RIGHT( Stem, 1) <> '.' THEN
+      Stem = Stem'.'
+
+CALL SAYDEBUG 'Stem = 'Stem', VALUE( Stem_Section.0) = 'VALUE( Stem'_Section'.0)
+   DO s = 1 to VALUE( Stem'_Section'.0)
+
+      HexColors = ''
+      idx = 0
+      RGBhex. = ''
+      RGBhex.0 = 0
+      DO k = 1 to VALUE( Stem'_Key'.s.0)
+         ThisKey = VALUE( Stem'_Key'.s.k)
+         ThisVal = VALUE( Stem'_Val'.s.k)
+
+         IF WORDPOS( ThisKey, ColorList) > 0 THEN
+         DO
+            ColorName = ThisKey
+            red       = WORD( ThisVal, 1)
+            green     = WORD( ThisVal, 2)
+            blue      = WORD( ThisVal, 3)
+            redhex    = RIGHT( D2X( red), 2, '0')
+            greenhex  = RIGHT( D2X( green), 2, '0')
+            bluehex   = RIGHT( D2X( blue), 2, '0')
+            n   = WORDPOS( ColorName, ColorList)
+            idx = WORDPOS( n, PalIndexList)      /* idx = 1...16 */
+            RGBhex.idx = '0x'redhex''greenhex''bluehex
+            RGBhex.0 = RGBhex.0 + 1
+         END
+      END
+
+      DO idx = 1 TO RGBhex.0
+         IF idx = 1 THEN
+            HexColors = RGBhex.idx
+         ELSE
+            HexColors = HexColors','RGBhex.idx
+      END
+
+      CALL VALUE Stem'_HexColors.'s, HexColors
+
+   END
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+HexColorsToDllColors: PROCEDURE EXPOSE (GlobalVars)
+   PARSE ARG HexColors
+
+   n   = 0
+   idx = 0
+   DllColors = ''
+   Rest = HexColors
+   DO WHILE Rest <> ''
+      IF LEFT( Rest, 2) <> '0x' THEN
+         LEAVE
+      PARSE VAR Rest '0x'Next','Rest
+      PARSE VAR Next 1 redhex 3 greenhex 5 bluehex
+      /* Re-arrange colors according to PalIndexList */
+      n = n + 1
+      idx = WORD( PalIndexList, n)
+      BGRchar.idx = X2C( bluehex)''X2C( greenhex)''X2C( redhex)'00'x
+   END
+
+   DO idx = 1 to WORDS( PalIndexList)
+      DllColors = DllColors''BGRchar.idx
+   END
+   RETURN( DllColors)
+
+/* ----------------------------------------------------------------------- */
+ReadPalettes: PROCEDURE EXPOSE (GlobalVars)
+
+   rc = ERROR.NO_ERROR
+
+   /* Get PalNames and colors from all palette objects */
+   rcx = WPToolsFolderContent( WorkDir, AbstractObj)
+   p = 0
+   Pal.  = ''
+   Pal._Name.0 = 0
+   DO a = 1 TO AbstractObj.0
+      rcx = WPToolsQueryObject( AbstractObj.a, 'Class', 'Title', 'Setup', 'Location')
+      IF Class <> 'WPColorPalette' THEN ITERATE
+
+      /* Ensure that maybe just changed palette object has written its data */
+      PARSE VALUE Setup WITH ';OBJECTID='ObjectId';' .
+      IF ObjectId <> '' THEN
+      DO
+         AsyncFlag = 0
+         rcx = SysSaveObject( ObjectId, AsyncFlag)
+      END
+
+      rcx = WPToolsQueryObject( AbstractObj.a, 'Class', 'Title', 'Setup', 'Location')
+      PARSE VALUE Setup WITH ';COLORS='HexColors';' .
+      /* Strip previously used PalTitlePrefix, if present */
+      PARSE VALUE Title WITH (PalTitlePrefix) PalName
+      IF PalName = '' THEN
+         PARSE VALUE Title WITH PalName
+      IF HexColors = '' | PalName = '' THEN ITERATE
+CALL SAYDEBUG 'PalName = 'PalName
+
+      p = p + 1
+      Pal._Name.0 = p
+      Pal._Name.p = PalName
+      Pal._HexColors.p = HexColors
+   END
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+CreatePalObj: PROCEDURE EXPOSE (GlobalVars)
+
+   PARSE ARG PalName, HexColors
+
+   /*
+   Previously used prefix
+   PalTitle = PalTitlePrefix''PalName
+   */
+   PalTitle = PalName
+   ObjectId = '<'ObjectIdPrefix''TRANSLATE( PalName)'>'
+
+   UpdateReplaceFail = 'R'
+   PalClass = 'WPColorPalette'
+   PalSetup = ,
+      'XCELLCOUNT=8;'        ||,
+      'YCELLCOUNT=2;'        ||,
+      'XCELLWIDTH=48;'       ||,
+      'YCELLHEIGHT=51;'      ||,
+      'XCELLGAP=9;'          ||,
+      'YCELLGAP=13;'         ||,
+      'COLORS='HexColors';'  ||,
+      'TITLE='PalTitle';'    ||,
+      'NOPRINT=YES;'         ||,
+      'HIDEBUTTON=DEFAULT;'  ||,
+      'MINWIN=DEFAULT;'      ||,
+      'CCVIEW=DEFAULT;'      ||,
+      'DEFAULTVIEW=DEFAULT;' ||,
+      'OBJECTID='ObjectId';'
+
+   rcx = SysCreateObject( PalClass, PalTitle, WorkDir, PalSetup, UpdateReplaceFail)
+CALL SAYDEBUG 'rcx from creation of palette "'PalName'" = 'rcx' (1 = OK)'
+
+   rcx = SysSaveObject( ObjectId, AsyncFlag)
+
+   RETURN( ERROR.NO_ERROR)
+
+/* ----------------------------------------------------------------------- */
+DeletePalObj: PROCEDURE EXPOSE (GlobalVars)
+
+   PARSE ARG PalName
+
+   PalTitle  = PalTitlePrefix''PalName
+   ObjectId  = '<'ObjectIdPrefix''TRANSLATE( PalName)'>'
+
+   rcx = SysDestroyObject( ObjectId)
+CALL SAYDEBUG 'rcx from deletion of palette "'PalName'" = 'rcx' (1 = OK)'
+
+   RETURN( ERROR.NO_ERROR)
+
+/* ----------------------------------------------------------------------- */
+ComparePalCfg: PROCEDURE EXPOSE (GlobalVars)
+
+   rc = ERROR.NO_ERROR
+
+   /* Find new or changed palettes */
+   Pal._New     = ''                                              /* todo: ask on changed which to sync */
+   Pal._Changed = ''
+   DO p = 1 TO Pal._Name.0
+      PalName   = Pal._Name.p
+      HexColors = Pal._HexColors.p
+      fNameFound   = 0
+      fColorsEqual = 0
+
+      /* Compare name with StdCfg sections */
+      IF \fNameFound THEN
+      DO s = 1 TO StdCfg._Section.0
+         IF PalName = StdCfg._Section.s THEN
+         DO
+            fNameFound = 1
+            /* For found names, compare also colors */
+            IF HexColors = StdCfg._HexColors.s THEN
+               fColorsEqual = 1
+            ITERATE
+         END
+      END
+
+      /* Compare name with AddCfg sections */
+      IF \fNameFound THEN
+      DO s = 1 TO AddCfg._Section.0
+         IF PalName = AddCfg._Section.s THEN
+         DO
+            fNameFound = 1
+            /* For found names, compare also colors */
+            IF HexColors = AddCfg._HexColors.s THEN
+               fColorsEqual = 1
+            ITERATE
+         END
+      END
+
+      /* Add to list of new palettes */
+      IF \fNameFound THEN
+         Pal._New = STRIP( Pal._New p)
+      /* Add to list of changed palettes */
+      IF \fColorsEqual THEN
+         Pal._Changed = STRIP( Pal._Changed p)
+   END
+
+   /* Find new StdCfg sections */
+   StdCfg._New = ''
+   DO s = 1 TO StdCfg._Section.0
+      CfgName = StdCfg._Section.s
+      fNameFound = 0
+
+      /* Compare name with palette names */
+      IF \fNameFound THEN
+      DO p = 1 TO Pal._Name.0
+         IF CfgName = Pal._Name.p THEN
+         DO
+            fNameFound = 1
+            ITERATE
+         END
+      END
+
+      /* Add to list of new palettes */
+      IF \fNameFound THEN
+         StdCfg._New = STRIP( StdCfg._New s)
+   END
+
+   /* Find new AddCfg sections */
+   AddCfg._New = ''
+   DO s = 1 TO AddCfg._Section.0
+      CfgName = AddCfg._Section.s
+      fNameFound = 0
+
+      /* Compare name with palette names */
+      IF \fNameFound THEN
+      DO p = 1 TO Pal._Name.0
+         IF CfgName = Pal._Name.p THEN
+         DO
+            fNameFound = 1
+            ITERATE
+         END
+      END
+
+      /* Add to list of new palettes */
+      IF \fNameFound THEN
+         AddCfg._New = STRIP( AddCfg._New s)
+   END
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+AutoSyncNewPalCfg: PROCEDURE EXPOSE (GlobalVars)
+
+   rc = ERROR.NO_ERROR
+
+   /* New StdCfg sections */
+   DO w = 1 to WORDS( StdCfg._New)
+      s = WORD( StdCfg._New, w)
+      PalName   = StdCfg._Section.s
+      HexColors = StdCfg._HexColors.s
+
+      /* Create missing palette */
+      rcx = CreatePalObj( PalName, HexColors)
+      p = Pal._Name.0 + 1
+      Pal._Name.p      = PalName
+      Pal._HexColors.p = HexColors
+      Pal._Name.0      = p
+   END
+   /* Reset list */
+   StdCfg._New = ''
+
+   /* New AddCfg sections */
+   DO w = 1 to WORDS( AddCfg._New)
+      s = WORD( AddCfg._New, w)
+      PalName   = AddCfg._Section.s
+      HexColors = AddCfg._HexColors.s
+
+      /* Create missing palette */
+      rcx = CreatePalObj( PalName, HexColors)
+      p = Pal._Name.0 + 1
+      Pal._Name.p      = PalName
+      Pal._HexColors.p = HexColors
+      Pal._Name.0      = p
+   END
+   /* Reset list */
+   AddCfg._New = ''
+
+   /* New palette names */
+CALL SAYDEBUG 'Pal._New = 'Pal._New
+   DO w = 1 to WORDS( Pal._New)
+      p = WORD( Pal._New, w)
+      PalName   = Pal._Name.p
+      HexColors = Pal._HexColors.p
+
+      /* Add missing AddCfg section */
+      s = AddCfg._Section.0 + 1
+      AddCfg._Section.s = PalName
+      AddCfg._HexColors.s = HexColors
+      AddCfg._Section.0 = s
+      AddCfg._fChanged = 1
+CALL SAYDEBUG 'Added missing section "'PalName'"'
+   END
+   /* Reset list */
+   Pal._New = ''
+
+   /* Save AddCfg if changed */
+   IF AddCfg._fChanged THEN
+   DO
+      rcx = SaveAddCfg()
+   END
+   /* Reset flag */
+   AddCfg._fChanged = 0
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+/* Todo: Check for each entry if colors are equal to a same-named */
+/* section in StdCfg or Remove it already before call to this func from */
+/* AddCfg array */
+
+SaveAddCfg: PROCEDURE EXPOSE (GlobalVars)
+
+   rc = ERROR.NO_ERROR
+   p1 = LASTPOS( '\', AddCfg._Fullname)
+   TmpFile = LEFT( AddCfg._Fullname, p1)'MyColors.tmp'
+
+   /* Write new color cfg to TmpFile */
+   DO 1
+      IF STREAM( TmpFile, 'C', 'QUERY EXIST') <> '' THEN
+         rcx = FileDelete( TmpFile)
+      next = STREAM( TmpFile, 'C', 'OPEN WRITE')
+      IF next <> 'READY:' THEN
+      DO
+         rc = ERROR.ACCESS_DENIED
+         LEAVE
+      END
+      DO s = 1 TO AddCfg._Section.0
+         PalName   = AddCfg._Section.s
+         HexColors = AddCfg._HexColors.s
+         CALL LINEOUT TmpFile, '['PalName']'
+         CALL LINEOUT TmpFile, LEFT( '; Name in EPM', 13)'   -R- -G- -B-'
+         rest = HexColors
+         n = 0
+         ColorName.0 = 0
+         ColorValues. = ''
+         DO WHILE rest <> ''
+            PARSE VALUE rest WITH '0x'next','rest
+            PARSE VALUE next WITH redhex +2 greenhex +2 bluehex
+            IF redhex = '' | greenhex = '' | bluehex = '' THEN
+               RETURN 1
+            red   = X2D( redhex)
+            green = X2D( greenhex)
+            blue  = X2D( bluehex)
+            n = n + 1
+            ColorName.n = WORD( ColorList, n)
+            ColorName.0 = n
+            idx = WORD( PalIndexList, n)
+            ColorValues.idx = RIGHT( red, 3)' 'RIGHT( green, 3)' 'RIGHT( blue, 3)
+         END
+         DO n = 1 TO ColorName.0
+            CALL LINEOUT TmpFile, LEFT( ColorName.n, 13)' = 'ColorValues.n
+         END
+         CALL LINEOUT TmpFile, ''
+      END
+      next = STREAM( TmpFile, 'C', 'CLOSE')
+      IF STREAM( TmpFile, 'C', 'QUERY EXIST') = '' THEN
+      DO
+         rc = ERROR.WRITE_FAULT
+         LEAVE
+      END
+
+      /* Rename TmpFile to AddCfg file */
+      rcx = FileDelete( AddCfg._Fullname)
+      rc = FileRename( TmpFile, AddCfg._Name)
+   END
+CALL SAYDEBUG 'Saved 'AddCfg._Section.0' color palettes to 'AddCfg._Fullname' with rc = 'rc'.'
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+GetPalNameList: PROCEDURE EXPOSE (GlobalVars)
+
+   /* Create lists of palette names */
+   AddCfg.PalNames = ''
+   DO s = 1 TO AddCfg._Section.0
+      ThisName = AddCfg._Section.s
+      AddCfg.PalNames = AddCfg.PalNames ThisName
+   END
+   AddCfg.PalNames = STRIP( AddCfg.PalNames)
+
+   StdCfg.PalNames = ''
+   DO s = 1 TO StdCfg._Section.0
+      ThisName = StdCfg._Section.s
+      /* Ignore user-redefined cfg sections with the same name. */
+      /* This allows for overriding the Netlabs file, as it     */
+      /* applies for macro files.                               */
+      IF WORDPOS( ThisName, AddCfg.PalNames) > 0 THEN ITERATE
+      StdCfg.PalNames = StdCfg.PalNames ThisName
+   END
+   StdCfg.PalNames = STRIP( StdCfg.PalNames)
+
+   ListBoxData = '|'TRANSLATE( STRIP( AddCfg.PalNames StdCfg.PalNames), '|', ' ')
+   IF ListBoxData = '|' THEN
+      ListBoxData = ''
+CALL SAYDEBUG 'ListboxData = 'ListBoxData
+  RETURN( ListBoxData)
+
+/* ----------------------------------------------------------------------- */
+CopyPal: PROCEDURE EXPOSE (GlobalVars)
+
+   PARSE ARG PalName, NewPalName
+   rc = ERROR.NO_ERROR
+
+   /* Find palette */
+   HexColors = ''
+   fNameFound = 0
+   fNewNameFound = 0
+
+   /* Compare name with StdCfg sections */
+   IF \fNameFound THEN
+   DO s = 1 TO StdCfg._Section.0
+      IF TRANSLATE( PalName) = TRANSLATE( StdCfg._Section.s) THEN
+      DO
+         fNameFound = 1
+         HexColors = StdCfg._HexColors.s
+         LEAVE
+      END
+   END
+
+   /* Compare name with AddCfg sections */
+   IF \fNameFound THEN
+   DO s = 1 TO AddCfg._Section.0
+      IF TRANSLATE( PalName) = TRANSLATE( AddCfg._Section.s) THEN
+      DO
+         fNameFound = 1
+         HexColors = AddCfg._HexColors.s
+         LEAVE
+      END
+   END
+
+   IF fNameFound THEN
+   DO
+      /* Check if new palette name already exists in AddCfg file */
+      DO s = 1 TO AddCfg._Section.0
+         IF TRANSLATE( NewPalName) = TRANSLATE( AddCfg._Section.s) THEN
+         DO
+            fNewNameFound = 1
+            /* Use colors from source palette */
+            AddCfg._HexColors.s = HexColors
+            LEAVE
+         END
+      END
+
+      IF \fNewNameFound THEN
+      DO
+         /* Append to AddCfg array */
+         s = AddCfg._Section.0 + 1
+         AddCfg._Section.s   = NewPalName
+         AddCfg._HexColors.s = HexColors
+         AddCfg._Section.0   = s
+
+         /* Append to Pal array */
+         p = Pal._Name.0 + 1
+         Pal._Name.p      = PalName
+         Pal._HexColors.p = HexColors
+         Pal._Name.0      = p
+      END
+
+      /* Create missing palette or overwrite it */
+      rcx = CreatePalObj( NewPalName, HexColors)
+
+      /* Write AddCfg file */
+      rcx = SaveAddCfg()
+   END
+   ELSE
+      rc = ERROR.FILE_NOT_FOUND
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+DeletePal: PROCEDURE EXPOSE (GlobalVars)
+
+   PARSE ARG PalName
+   rc = ERROR.NO_ERROR
+
+   /* Find palette */
+   fNameFound   = 0
+   FoundSection = ''
+
+   /* Compare name with AddCfg sections */
+   IF \fNameFound THEN
+   DO s = 1 TO AddCfg._Section.0
+      IF TRANSLATE( PalName) = TRANSLATE( AddCfg._Section.s) THEN
+      DO
+         fNameFound = 1
+         FoundSection = s
+         ITERATE
+      END
+   END
+
+   /* Compare name with StdCfg sections to give useful error message only */
+   IF \fNameFound THEN
+   DO s = 1 TO StdCfg._Section.0
+      IF TRANSLATE( PalName) = TRANSLATE( StdCfg._Section.s) THEN
+      DO
+         fNameFound = 1
+         rc = ERROR.ACCESS_DENIED
+         ITERATE
+      END
+   END
+
+   IF fNameFound THEN
+   DO
+      IF rc = ERROR.NO_ERROR THEN
+      DO
+         /* Remove from AddCfg array */
+         t = 0
+         smax = AddCfg._Section.0
+         DO s = 1 TO smax
+            IF s <> FoundSection THEN
+            DO
+               t = t + 1
+               AddCfg._Section.t   = AddCfg._Section.s
+               AddCfg._HexColors.t = AddCfg._HexColors.s
+               AddCfg._Section.0   = t
+            END
+         END
+
+
+         /* Remove from Pal array */
+         q = 0
+         pmax = Pal._Name.0
+         DO p = 1 TO pmax
+            IF TRANSLATE( PalName) <> TRANSLATE( Pal._Name.p) THEN
+            DO
+               q = q + 1
+               Pal._Name.q      = Pal._Name.p
+               Pal._HexColors.q = Pal._HexColors.p
+               Pal._Name.0      = q
+            END
+         END
+
+         /* Remove palette object */
+         rcx = DeletePalObj( PalName)
+
+         /* Write AddCfg file */
+         rcx = SaveAddCfg()
+      END
+   END
+   ELSE
+      rc = ERROR.FILE_NOT_FOUND
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+InitPal: PROCEDURE EXPOSE (GlobalVars)
+
+   rc = ERROR.NO_ERROR
+
+   fNewNameFound = 0
+   SrcPalName = 'NEPMD'
+   NewPalName = 'MyColors'
+
+   /* Check if new palette name already exists in AddCfg file */
+   DO s = 1 TO AddCfg._Section.0
+      IF TRANSLATE( NewPalName) = TRANSLATE( AddCfg._Section.s) THEN
+      DO
+         fNewNameFound = 1
+         LEAVE
+      END
+   END
+
+   IF \fNewNameFound THEN
+      rc = CopyPal( SrcPalName, NewPalName)
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+SyncPal2Cfg: PROCEDURE EXPOSE (GlobalVars)
+
+   PARSE ARG PalName
+   rc = ERROR.NO_ERROR
+
+   HexColors = ''
+   fNameFound = 0
+   fNewNameFound = 0
+
+   /* Find palette in Pal array */
+   DO p = 1 TO Pal._Name.0
+      IF TRANSLATE( Pal._Name.p) = TRANSLATE( PalName) THEN
+      DO
+         HexColors = Pal._HexColors.p
+         fNameFound = 1
+         LEAVE
+      END
+   END
+
+   IF fNameFound THEN
+   DO
+      /* Compare name with AddCfg sections */
+      DO s = 1 TO AddCfg._Section.0
+         IF TRANSLATE( PalName) = TRANSLATE( AddCfg._Section.s) THEN
+         DO
+            fNewNameFound = 1
+            /* Use colors from palette object */
+            AddCfg._HexColors.s = HexColors
+            LEAVE
+         END
+      END
+
+      IF \fNewNameFound THEN
+      DO
+         /* Append to AddCfg array */
+         s = AddCfg._Section.0 + 1
+         AddCfg._Section.s   = PalName
+         AddCfg._HexColors.s = HexColors
+         AddCfg._Section.0   = s
+      END
+
+      /* Write AddCfg file */
+      rc = SaveAddCfg()
+   END
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+SyncCfg2Pal: PROCEDURE EXPOSE (GlobalVars)
+
+   PARSE ARG PalName
+   rc = ERROR.NO_ERROR
+
+   HexColors = ''
+   fNameFound = 0
+   fNewNameFound = 0
+
+   /* Compare name with StdCfg sections */
+   IF \fNameFound THEN
+   DO s = 1 TO StdCfg._Section.0
+      IF TRANSLATE( PalName) = TRANSLATE( StdCfg._Section.s) THEN
+      DO
+         fNameFound = 1
+         HexColors = StdCfg._HexColors.s
+         LEAVE
+      END
+   END
+
+   /* Compare name with AddCfg sections */
+   IF \fNameFound THEN
+   DO s = 1 TO AddCfg._Section.0
+      IF TRANSLATE( PalName) = TRANSLATE( AddCfg._Section.s) THEN
+      DO
+         fNameFound = 1
+         HexColors = AddCfg._HexColors.s
+         LEAVE
+      END
+   END
+
+   IF fNameFound THEN
+   DO
+
+      /* Find palette in Pal array */
+      DO p = 1 TO Pal._Name.0
+         IF TRANSLATE( Pal._Name.p) = TRANSLATE( PalName) THEN
+         DO
+            fNewNameFound = 1
+            /* Use colors from cfg file */
+            Pal._HexColors.p = HexColors
+            LEAVE
+         END
+      END
+
+      IF \fNewNameFound THEN
+      DO
+         /* Append to Pal array */
+         p = Pal._Name.0 + 1
+         Pal._Name.p      = PalName
+         Pal._HexColors.p = HexColors
+         Pal._Name.0      = p
+      END
+
+      /* Create missing palette or overwrite it */
+      rc = CreatePalObj( PalName, HexColors)
+
+      AsyncFlag = 0
+      DO i = 1 to 4
+         CALL SysSleep 0.5
+         rcx = SysSaveObject( ObjectId, AsyncFlag)
+      END
+   END
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+GetHexColors: PROCEDURE EXPOSE (GlobalVars)
+   PARSE ARG PalName
+
+   rc = ERROR.NO_ERROR
+   HexColors = ''
+   DO 1
+      /* Find palette in Pal array */
+      IF HexColors = '' THEN
+      DO p = 1 TO Pal._Name.0
+         IF TRANSLATE( PalName) = TRANSLATE( Pal._Name.p) THEN
+         DO
+            HexColors = Pal._HexColors.p
+            LEAVE
+         END
+      END
+
+      /* Find palette in AddCfg array */
+      IF HexColors = '' THEN
+      DO s = 1 TO AddCfg._Section.0
+         IF TRANSLATE( PalName) = TRANSLATE( AddCfg._Section.s) THEN
+         DO
+            HexColors = AddCfg._HexColors.s
+            LEAVE
+         END
+      END
+
+      /* Find palette in StdCfg array */
+      IF HexColors = '' THEN
+      DO s = 1 TO StdCfg._Section.0
+         IF TRANSLATE( PalName) = TRANSLATE( StdCfg._Section.s) THEN
+         DO
+            HexColors = StdCfg._HexColors.s
+            LEAVE
+         END
+      END
+
+      IF HexColors = '' THEN
+      DO
+         rc = ERROR.INVALID_DATA
+         LEAVE
+      END
+   END
+
+   RETURN( HexColors)
+
+/* ----------------------------------------------------------------------- */
+BackupDll: PROCEDURE EXPOSE (GlobalVars)
+   PARSE ARG DllFullname, SaveFileExt, WorkDllFullName
+
+   rc = ERROR.NO_ERROR
+   DO 1
+
+      /* Create work copy */
+      'COPY' DllFullName WorkDllFullName
+      IF rc <> 0 THEN
+      DO
+         ErrorMessage 'Backup: "'DllFullName'" not copied to work dir "'WorkDir'". rc = 'rc
+         LEAVE
+      END
+
+      /* Assemble filename for backup file:                           */
+      /* In dir of original file, with extension .sav instead of .dll */
+      lp1 = LASTPOS( '\', DllFullName)
+      DllDir = SUBSTR( DllFullName, 1, MAX( lp1 - 1, 0))
+      lp2 = LASTPOS( '.', DllFullName)
+      DllBaseName = SUBSTR( DllFullName, lp1 + 1, MAX( lp2 - lp1 - 1, 0))
+
+      BackupName = DllBaseName'.'SaveFileExt
+      BackupFile = DllDir'\'BackupName
+      IF FileExist( BackupFile) THEN
+DO
+         NOP
+CALL SAYDEBUG 'Backup:' BackupFile 'already exists. No backup required.'
+END
+      ELSE
+      DO
+         /* Create backup */
+         'COPY' DllFullName BackupFile
+         IF rc <> 0 THEN
+         DO
+            ErrorMessage = 'Backup: "'DllFullName'" not copied to "'BackupName'". rc = 'rc
+            LEAVE
+         END
+         DO s = 1 TO 3
+            IF FileExist( BackupFile) THEN LEAVE
+            CALL SysSleep SysSleepAmount
+         END
+      END
+      CALL SysSetObjectData BackupFullName, 'TITLE='BackupName';'
+   END
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+/* Finds a Dll in libpath or extended libpath. Returns empty if not found. */
+FindLibPath:
+   PARSE ARG DllName
+
+   DllFullName = ''
+   BootDrive = GetBootDrive()
+   LibpathDirs = GetIniValue( BootDrive'\config.sys', '', 'LIBPATH')
+   /*BeginLibpathDirs = value( 'BEGINLIBPATH', , env)*/
+   /*EndLibpathDirs   = value( 'ENDLIBPATH', , env)*/
+
+   fFunctionFound = 0
+   /*IF \RxFuncQuery( 'SysQueryExtLIBPATH') THEN*/
+   IF \RxFuncQuery( 'SYSQUERYEXTLIBPATH') THEN
+      fFunctionFound = 1
+
+   IF fFunctionFound = 1 THEN
+      BeginLibpathDirs = SysQueryExtLIBPATH( 'B')
+   ELSE
+   DO
+      'CALL RXQUEUE /CLEAR'
+      'SET BEGINLIBPATH|RXQUEUE /FIFO'
+      PARSE PULL BeginLibpathDirs
+      PARSE VALUE BeginLibpathDirs WITH . '=' BeginLibpathDirs
+   END
+   IF BeginLibpathDirs = '(null)' THEN
+      BeginLibpathDirs = ''
+
+   IF fFunctionFound = 1 THEN
+      EndLibpathDirs = SysQueryExtLIBPATH( 'E')
+   ELSE
+   DO
+      'CALL RXQUEUE /CLEAR'
+      'SET ENDLIBPATH|RXQUEUE /FIFO'
+      PARSE PULL EndLibpathDirs
+      PARSE VALUE EndLibpathDirs WITH . '=' EndLibpathDirs
+   END
+   IF EndLibpathDirs = '(null)' THEN
+      EndLibpathDirs = ''
+
+   IF \(fFunctionFound = 1) THEN
+      'CALL RXQUEUE /CLEAR'
+
+CALL SayDebug 'BeginLIBPATH = ['BeginLibPathDirs']'
+CALL SayDebug 'EndLIBPATH = ['EndLibPathDirs']'
+
+   IF BeginLibpathDirs > '' THEN
+      LibpathDirs = STRIP( BeginLibpathDirs, 'T', ';')';'LibpathDirs
+   IF EndLibpathDirs > '' THEN
+      LibpathDirs = STRIP( LibpathDirs, 'T', ';')';'EndLibpathDirs
+
+   rest = LibpathDirs
+   DO WHILE rest <> ''
+      PARSE VALUE rest WITH Dir';'rest
+      next = Dir'\'DllName
+      IF FileExist( next) THEN
+      DO
+         DllFullName = next
+         LEAVE
+      END
+   END
+CALL SAYDEBUG 'Found Dll in Libpath: 'DllFullName
+
+   RETURN( DllFullName)
+
+/* ----------------------------------------------------------------------- */
+GetBootDrive:
+
+   IF \RxFuncQuery( 'SysBootDrive') THEN
+      BootDrive = SysBootDrive()
+   ELSE
+      PARSE UPPER VALUE VALUE( 'PATH',, env) WITH ':\OS2\SYSTEM' -1 BootDrive +2
+
+   RETURN( BootDrive)
+
+/* ----------------------------------------------------------------------- */
+/* This is used here for CONFIG.SYS parsing only */
+GetIniValue:
+   PARSE ARG File, ApplicationList, Key
+
+   Entry = ''
+   IF ApplicationList  = '' THEN
+      ApplicationList  = 'ALL:'
+   Application = ''
+   next = STREAM( File, 'C', 'OPEN READ')
+   DO WHILE CHARS( File) > 0
+      line = LINEIN( File)
+      SELECT
+         WHEN LEFT( line, 1) = ';' THEN
+            NOP
+         WHEN STRIP( line) = '' THEN
+            NOP
+         WHEN LEFT( line, 1) = '[' THEN
+         DO
+            p2 = POS( ']', line)
+            IF p2 > 0 THEN
+            DO
+               nextApplication = SUBSTR( line, 2, p2 - 2)
+               IF WORDPOS( nextApplication, ApplicationList) > 0 | ApplicationList = 'ALL:' THEN
+                  Application = nextApplication
+               ELSE
+                  Application = ''  /* nextApplication is other, reset Application */
+            END
+         END
+      OTHERWISE
+         PARSE VALUE line WITH nextKey '=' nextEntry
+         /* it must be a 'Key = Entry' line */
+         nextKey   = STRIP( nextKey)
+         nextEntry = STRIP( nextEntry)
+         IF ApplicationList <> 'ALL:' & Application = '' THEN
+            ITERATE
+         IF nextKey = '' THEN
+            ITERATE
+         IF nextKey = Key THEN
+         DO
+            Entry = nextEntry
+            LEAVE /* key found */
+         END
+      END
+   END
+   rc = STREAM( File, 'C', 'CLOSE')
+
+   RETURN( Entry)
+
+/* ----------------------------------------------------------------------- */
+PatchDll:
+   PARSE ARG DllFullName, WorkDllFullName, Signature, DllColors
+CALL SAYDEBUG 'PatchDll: PalName = 'PalName
+
+   rc = ERROR.NO_ERROR
+   DO 1
+      WorkDll = WorkDllFullName
+      'LXLITE /YDL /YUR /x' WorkDll
+      IF rc <> 0 THEN
+      DO
+         ErrorMessage = 'lxLite returned on expansion of "'WorkDll'" with rc = 'rc
+         LEAVE
+      END
+
+CALL SayDebug 'Patching the Dll "'WorkDll'"...'
+
+      /* Read DLL content */
+      IF STREAM( WorkDll, 'C', 'OPEN') <> 'READY:' THEN
+      DO
+         rc = ERROR.ACCESS_DENIED
+         LEAVE
+      END
+      FileLen = CHARS( WorkDll)
+      FileContent = CHARIN( WorkDll,, FileLen)
+      CALL STREAM WorkDll, 'C', 'CLOSE'
+
+      /* Change DLL content */
+      p2 = POS( Signature, FileContent)
+      IF p2 = 0 THEN
+      DO
+         ErrorMessage = 'Signature "'Signature'" not found in 'WorkDllFullName
+         rc = ERROR.INVALID_DATA
+         LEAVE
+      END
+      p1 = p2 - 64  /* Get the 64 chars before the signature */
+      FileContent = OVERLAY( DllColors, FileContent, p1)
+
+      /* Write changed DLL content */
+      IF STREAM( WorkDll, 'C', 'OPEN') <> 'READY:' THEN
+      DO
+         rc = ERROR.ACCESS_DENIED
+         LEAVE
+      END
+      rcx = FileDelete( WorkDll)
+      CALL CHAROUT WorkDll, FileContent
+      CALL STREAM WorkDll, 'C', 'CLOSE'
+
+      'LXLITE /YDL /YUR' WorkDll
+      IF rc <> 0 THEN
+      DO
+         ErrorMessage = 'lxLite returned on compression of "'WorkDll'" with rc = 'rc
+         LEAVE
+      END
+
+   END
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+ReplaceDll:
+   PARSE ARG DllFullName, WorkDllFullName
+   rc = ERROR.NO_ERROR
+   DO 1
+
+      OriDll = DllFullName
+      WorkDll = WorkDllFullName
+      lp = LASTPOS( '\', DllFullName)
+      IF lp > 0 THEN
+         OriDir = LEFT( DllFullName, lp - 1)
+      ELSE
+         OriDir = ''
+      lp = LASTPOS( '\', WorkDllFullName)
+      IF lp > 0 THEN
+         WorkDir = LEFT( WorkDllFullName, lp - 1)
+      ELSE
+         WorkDir = ''
+
+      'CloseOtherWin'
+      call SysSleep 1
+      'CheckOnlyEpmWindow'
+      'RingCheckModify'
+      'SaveRing'
+
+      /* Write temp. CMD file and execute it */
+      TmpFile = WorkDir'\copydll.cmd'
+      IF FileExist( TmpFile) THEN
+         rcx = SysFileDelete( TmpFile)
+
+      CALL LINEOUT TmpFile, "/* COPYDLL.CMD - NEPMD project           */"
+      CALL LINEOUT TmpFile, "/* Copy patched DLL after EPM was closed */"
+      CALL LINEOUT TmpFile, "CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'"
+      CALL LINEOUT TmpFile, "CALL SysLoadFuncs"
+      CALL LINEOUT TmpFile, "'@ECHO OFF'"
+      /* If it's the only window, it works also without unlock. The */
+      /* disadvantage would be an additional delay of 1 s after EPM */
+      /* was closed.                                                */
+      CALL LINEOUT TmpFile, "'UNLOCK" OriDll"'"
+      CALL LINEOUT TmpFile, "'COPY" WorkDll OriDll"'"
+      CALL LINEOUT TmpFile, "IF rc <> 0 THEN"
+      CALL LINEOUT TmpFile, "DO"
+      CALL LINEOUT TmpFile, "   'PAUSE'"
+      CALL LINEOUT TmpFile, "   EXIT( rc)"
+      CALL LINEOUT TmpFile, "END"
+
+      CALL LINEOUT TmpFile, "CALL SysSleep 2"  /* Required for restart, better use pstat */
+
+      CALL LINEOUT TmpFile, "'CD ..\..\netlabs\bin'"
+/*
+      CALL LINEOUT TmpFile, "'CALL EPMRESUME'"
+*/
+      CALL LINEOUT TmpFile, "'CALL EPMLAST'"
+      CALL LINEOUT TmpFile, "IF rc <> 0 THEN"
+      CALL LINEOUT TmpFile, "DO"
+      CALL LINEOUT TmpFile, "   'PAUSE'"
+      CALL LINEOUT TmpFile, "   EXIT( rc)"
+      CALL LINEOUT TmpFile, "END"
+      CALL LINEOUT TmpFile, "'DEL "WorkDll"'"
+      CALL LINEOUT TmpFile, "'DEL "TmpFile"'"
+      CALL LINEOUT TmpFile, "'RMDIR "WorkDir"'"
+
+/*
+      CALL LINEOUT TmpFile, "'PAUSE'"
+*/
+      CALL LINEOUT TmpFile, "EXIT( 0)"
+      rcx = STREAM( TmpFile, 'c', 'close')
+      Cmd = 'START /c /min' TmpFile
+/*
+      Cmd = 'START /c' TmpFile
+*/
+      ''Cmd
+      IF rc <> 0 THEN
+      DO
+         ErrorMessage = '"'Cmd'" returned rc = 'rc'.'
+         LEAVE
+      END
+
+      'postme Close'
+   END
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+FileExist: PROCEDURE
+   PARSE ARG Filename
+   IF FileName = '' THEN
+      RETURN( 0)
+   ELSE
+      RETURN( STREAM( Filename, 'C', 'QUERY EXISTS') <> '')
+
+/* ----------------------------------------------------------------------- */
+FileDelete: PROCEDURE EXPOSE (GlobalVars)
+   PARSE ARG Filename
+   PauseSecs = 0.4  /* Older REXXUTIL DLLs take that as 1 */
+
+   rc = SysFileDelete( Filename)
+   DO s = 1 TO 3
+      IF STREAM( Filename, 'C', 'QUERY EXISTS') = '' THEN LEAVE
+      CALL SysSleep PauseSecs
+   END
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+FileRename: PROCEDURE EXPOSE (GlobalVars)
+   PARSE ARG Filename, NewFilename
+
+   IF POS( ' ', Filename) > 0 THEN
+      Filename = '"'Filename'"'
+   IF POS( ' ', NewFilename) > 0 THEN
+      NewFilename = '"'NewFilename'"'
+
+   IF ADDRESS() = 'EPM' THEN
+      /* Rename is an EPM command */
+      'quietshell rename' Filename NewFilename
+   ELSE
+      'rename' Filename NewFilename
+
+   RETURN( rc)
+
+/* ----------------------------------------------------------------------- */
+/* Read a text ini into the stem var 'Ini.'                                */
+/* An alternate stem name can be specified as arg 2.                       */
+/*    Ini._Section.0   number of sections                                  */
+/*    Ini._Section.s   name of section number s                            */
+/*    Ini._Key.s.0     number of keys in section s                         */
+/*    Ini._Key.s.k     name of key number k in section s                   */
+/*    Ini._Val.s.k     value of key number k in section s                  */
+ReadIni: PROCEDURE EXPOSE (GlobalVars)
+   PARSE ARG IniFile, Stem
+CALL SAYDEBUG 'ReadIni: 'IniFile', 'Stem
+
+   IF Stem = '' THEN
+      Stem = 'Ini.'
+   IF RIGHT( Stem, 1) <> '.' THEN
+      Stem = Stem'.'
+
+   /* Init global vars at first */
+   s = 0
+   CALL VALUE Stem'_Section'.0, s
+
+   IF IniFile = '' THEN
+   DO
+      ErrorMessage = 'Error: No ini file specified.'
+      RETURN( ERROR.INVALID_PARAMETER)
+   END
+
+   next = STREAM( IniFile, 'c', 'open read')
+   IF next <> 'READY:' THEN
+   DO
+      PARSE VAR next 'ERROR:'rc
+      ErrorMessage = 'Error: Could not open ini file "'IniFile'", rc = 'rc'.'
+      RETURN( rc)
+   END
+
+   k = 0
+   DO WHILE LINES( IniFile) <> 0
+      ThisLine = LINEIN( IniFile)
+
+      /* Ignore comments */
+      IF LEFT( ThisLine, 1) = ';' THEN
+         ITERATE
+
+      /* Convert tabs to spaces */
+      ThisLine = TRANSLATE( ThisLine, ' ', '09'x)
+      ThisLine = STRIP( ThisLine)
+
+      /* Ignore blank lines */
+      IF ThisLine = '' THEN
+         ITERATE
+
+      SELECT
+         /* Find section */
+         WHEN LEFT( ThisLine, 1) = '[' THEN
+         DO
+            p2 = POS( ']', ThisLine)
+            IF p2 > 0 THEN
+            DO
+               ThisSection = SUBSTR( ThisLine, 2, p2 - 2)
+               IF ThisSection = '' THEN
+                  ITERATE
+               /* Save section name */
+               s = s + 1
+               CALL VALUE Stem'_Section'.0, s
+               CALL Value Stem'_Section'.s, ThisSection
+               /* Init keys for this section */
+               k = 0
+               CALL VALUE Stem'_Key.'s.0, k
+            END
+         END
+         /* Ignore lines before the first section */
+         WHEN s = 0 THEN
+            ITERATE
+      OTHERWISE
+         /* This must be a 'Key' or 'Key = Val' line */
+         PARSE VALUE ThisLine WITH ThisKey'='ThisVal
+
+         /* Strip blanks */
+         ThisKey = STRIP( ThisKey)
+         ThisVal = STRIP( ThisVal)
+
+         /* Save key and value */
+         k = k + 1
+         CALL VALUE Stem'_Key'.s.0, k
+         CALL VALUE Stem'_Key'.s.k, ThisKey
+         CALL VALUE Stem'_Val'.s.k, ThisVal
+      END
+
+   END
+   next = STREAM( IniFile, 'c', 'close')
+
+   RETURN( ERROR.NO_ERROR)
+
+/* ----------------------------------------------------------------------- */
+SayText: PROCEDURE EXPOSE (GlobalVars)
+   PARSE ARG Message
+
+   SELECT
+      WHEN ADDRESS() = 'EPM' THEN
+         'sayerror' Message
+   OTHERWISE
+      SAY Message
+   END
+
+   RETURN( '')
+
+/* ----------------------------------------------------------------------- */
+SayDebug: PROCEDURE EXPOSE (GlobalVars)
+   PARSE ARG Message
+
+   SELECT
+      WHEN ADDRESS() = 'EPM' THEN
+         'dprintf' Message
+   OTHERWISE
+      SAY Message
+      /*
+      /* pipe symbols have to be escaped before being passed to CMD.EXE */
+      'call dprintf' Message
+      */
+      DO 1
+         fRexxPmpfLoaded = (RxFuncQuery('RexxPmpf') = 0)
+         IF fRexxPmpfLoaded THEN
+            LEAVE
+         CALL RxFuncAdd 'RexxPmpf', 'PmPrintf', 'RexxPmpf'
+         fRexxPmpfLoaded = (RxFuncQuery('RexxPmpf') = 0)
+      END
+      IF fRexxPmpfLoaded THEN
+         RexxPmpf( Message)
+   END
+
+   RETURN( '')
+
+/* ----------------------------------------------------------------------- */
+SayErrorMessage: PROCEDURE EXPOSE (GlobalVars)
+
+   SELECT
+      WHEN (ErrorMessage = '') THEN NOP
+
+      /* Called by frame program: insert error */
+      /* message into private queue            */
+      WHEN (ErrorQueueName <> '') THEN
+      DO
+         rcx = RXQUEUE( 'SET', ErrorQueueName)
+         PUSH ErrorMessage
+      END
+
+      /* Called directly */
+      WHEN ADDRESS() = 'EPM' THEN
+         'sayerror' ErrorMessage
+
+      /* Called directly */
+      OTHERWISE
+      DO
+         SAY ErrorMessage
+         'PAUSE'
+      END
+   END
+
+   RETURN( '')
+
+/* ----------------------------------------------------------------------- */
+Halt:
+   ErrorMessage = 'Interrupted by user.'
+   CALL SayErrorMessage
+   EXIT( 99)
+
+/* ----------------------------------------------------------------------- */
+/* Give a standard REXX error message and jump to the error line           */
+Error:
+   /* Save ErrorLine because otherwise sigl would change */
+   /* to the line number of CALL SayErrorMessage.        */
+   ErrorLine = sigl
+   ErrorMessage = 'REX'RIGHT( rc, 4, 0)': Error 'rc' running 'ThisFile',' ||,
+      ' line 'sigl': 'ERRORTEXT( rc)
+   CALL SayErrorMessage
+   IF ADDRESS() = 'EPM' THEN
+      "e "ThisFile" 'postme "ErrorLine"'"
+
+   EXIT( rc)
+
