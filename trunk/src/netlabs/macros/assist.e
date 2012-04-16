@@ -221,6 +221,7 @@ defproc passist
       fIntermediate = 0
       fForward      = 1
       n             = 1
+      tex_env       = ''
       ECompileFlag  = 0
 
 --    id            = ''   -- token under cursor
@@ -994,7 +995,6 @@ compile endif
             --       for 'clist' for other TEX tokens, then the special code for \begin and
             --       end will break.
                coffset = 1                -- most TEX tokens use this offset
-               tex_env = ''               -- default
             -- //PM additions: balanceable tokens for (La)TeX
 
             ---- TeX conditions: \if, \else, \fi --------------------------------------------------------
