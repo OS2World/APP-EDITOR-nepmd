@@ -297,9 +297,30 @@ defc CheckGfc
 ;       WORKPLACE__PROCESS=
 ;       WORKPLACE_PROCESS=YES
 ; => WORKPLACE__PROCESS=NO is set when the WPS is running.
+; List of all WPS env vars:
+;    WORKPLACE__PROCESS=NO
+;    WORKPLACE_PRIMARY_CP=?
+;    WORKPLACE_NATIVE=0
 defc CheckWps
-   universal wpsstarted
-   wpsstarted = (Get_Env( 'WORKPLACE__PROCESS') = 'NO')
+   universal WpsStarted
+
+   WORKPLACE_PROCESS  = Get_Env( 'WORKPLACE_PROCESS')
+   WORKPLACE__PROCESS = Get_Env( 'WORKPLACE__PROCESS')
+   --dprintf( 'WORKPLACE__PROCESS = 'Get_Env( WORKPLACE__PROCESS))
+
+   if WORKPLACE__PROCESS = 'NO' then
+      WpsStarted = 1
+   elseif WORKPLACE_PROCESS = 'YES' then
+      WpsStarted = 0
+   elseif WORKPLACE_PROCESS = '' & WORKPLACE__PROCESS = '' then
+      -- This happens when the system runs out of Shared Mem.
+      -- An EPM or WPS restart cures it then.
+      RunWorkplace = Get_Env( 'RUNWORKPLACE')
+      p1 = lastpos( '\', RunWorkplace)
+      next = substr( RunWorkplace, p1 + 1)
+      parse value next with next '.' .
+      WpsStarted = (upcase( next) = 'PMSHELL')
+   endif
 
 ; ---------------------------------------------------------------------------
 ; Called by defc Link, if defined.
@@ -510,7 +531,7 @@ defc loaddefaultmenu
 ; -------------------------------------------------------------------------------------- File -------------------------
 defproc add_file_menu(menuname)
    universal nodismiss
-   universal wpsstarted
+   universal WpsStarted
    mid = GetAVar('mid_file')
    i = mid'00'
    buildsubmenu  menuname, mid, FILE_BAR__MSG,                                                     -- File ------------
