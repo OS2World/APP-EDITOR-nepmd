@@ -47,6 +47,10 @@
 ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
 */
 
+compile if not defined(EPM)  -- Can be included in the base or separately linked.
+   include 'stdconst.e'
+compile endif
+
 /*
 ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
 ณ List Box Functions:                                                        ณ
@@ -2486,14 +2490,13 @@ defproc ConvertColor( args)
 
    return color
 
-
+; ---------------------------------------------------------------------------
 defproc Thunk(pointer)
    return atol_swap( dynalink32( E_DLL,
                                  'FlatToSel',
                                  pointer, 2))
 
-; EPM_EA.E in now included in EPM.E
-
+; ---------------------------------------------------------------------------
 defc echoback
    parse arg postorsend hwnd messageid mp1 mp2 .
    call windowmessage( postorsend,
@@ -2502,8 +2505,7 @@ defc echoback
                        mp1,
                        mp2)
 
-; Moved all toolbar definitions to TOOLBAR.E
-
+; ---------------------------------------------------------------------------
 defc toggle_parse
    parse arg parseon kwfilename
    if parseon & .levelofattributesupport//2 = 0  then  -- the first bit of .levelofattributesupport is for color attributes
@@ -2534,6 +2536,7 @@ defc toggle_parse
                        put_in_buffer(fid kwfilename))
 
 compile if 0
+; ---------------------------------------------------------------------------
 defc qparse =
    c = windowmessage( 1,  getpminfo(EPMINFO_EDITFRAME),
                       5505,               -- EPM_EDIT_KW_QUERYPARSE
@@ -2542,6 +2545,7 @@ defc qparse =
    sayerror 'Keyword parsing is' word( OFF__MSG ON__MSG, 2 - (not c))  -- Use as boolean
 compile endif
 
+; ---------------------------------------------------------------------------
 defc dyna_cmd =
    parse arg library entrypoint cmdargs
    if entrypoint = '' then
@@ -2556,6 +2560,7 @@ defc dyna_cmd =
                         address(cmdargs),
                         2)
 
+; ---------------------------------------------------------------------------
 defc dynafree =
    res = dynafree(arg(1))
    if res then
@@ -2654,6 +2659,274 @@ defproc CheckModify
       endif
    endif
    return rc
+
+; ---------------------------------------------------------------------------
+;  Some PMWIN.H constants:
+#define QW_PARENT       5
+
+#define FID_CLIENT      0x8008
+
+#define HWND_TOP        3
+
+#define QWL_STYLE       (-2)
+
+#define SWP_ZORDER      0x0004
+#define SWP_ACTIVATE    0x0080
+#define SWP_RESTORE     0x1000
+
+#define WS_MINIMIZED    0x01000000
+
+; ---------------------------------------------------------------------------
+defc next_win, NextWin
+   ptr= dynalink32('PMWIN',
+                   '#839',  -- Win32QueryWindowPtr
+                   gethwndc(EPMINFO_OWNERFRAME)  ||
+                   atol(0), 2)
+   listptr = ltoa(peek32(ptr, 1856, 4), 10)
+   hwndx = peek32(listptr, 0, 4)
+   next = ltoa(peek32(listptr, 8, 4), 10)
+   if not next then
+      sayerror 'This is the only edit window.'
+      return
+   endif
+   first_hwndx = hwndx
+   my_hwndx = gethwndc(EPMINFO_EDITCLIENT)
+   do while hwndx /== my_hwndx
+      listptr = next
+      hwndx = peek32(listptr, 0, 4)
+      next = ltoa(peek32(listptr, 8, 4), 10)
+   enddo
+   if next then
+      hwndx = peek32(next, 0, 4)
+   else
+      hwndx = first_hwndx
+   endif
+   EFrame_hwnd=dynalink32('PMWIN',
+                          '#834',  -- Win32QueryWindow
+                          hwndx                ||
+                          atol(QW_PARENT), 2)
+   EFrameStyle=dynalink32('PMWIN',
+                          '#843',        -- Win32QueryWindowULong
+                           atol(EFrame_hwnd)  ||
+                           atol(QWL_STYLE), 2)
+
+   if EFrameStyle bitand WS_MINIMIZED then
+      opts = SWP_ZORDER bitor SWP_ACTIVATE bitor SWP_RESTORE
+   else
+      opts = SWP_ZORDER bitor SWP_ACTIVATE
+   endif
+
+   call dynalink32( 'PMWIN',
+                    '#875',  -- Win32SetWindowPos
+                    atol(EFrame_hwnd) ||
+                    atol(HWND_TOP)    ||
+                    atol(0)           ||
+                    atol(0)           ||
+                    atol(0)           ||
+                    atol(0)           ||
+                    atol(opts))
+
+/*
+; ---------------------------------------------------------------------------
+; Not really part of next_win, but throw it in anyway...
+defc ewin =  -- List edit windows
+   call windowmessage(0,  getpminfo(APP_HANDLE),   -- Send message to owner client
+                      32,              -- WM_COMMAND - 0x0020
+                      203,             -- IDM_EDITWNDS
+                      0)
+*/
+
+
+/*
+; ---------------------------------------------------------------------------
+; Following PMWIN calls switch to the next *topmost* EPM window, not to that
+; one with the next hwnd.
+; Bug: hidden windows are not restored.
+
+; I am not aware of any EPM commands or procs to help switch the
+; focus between files in separate edit rings, like godoc in LPEX.
+; So I wrote this little utility to toggle between EPM windows.
+; It works by checking all top level frame windows for a client
+; belonging to the same class as the current EPM window.
+
+/*------------------------------------------------+
+ | EPM macro code to jump to the other edit ring  |
+ | Author: Michael Golding, IBM (STL), 8-543-3569 |
+ +------------------------------------------------*/
+; def c_F12 = 'KWIKJMP'
+
+include 'stdconst.e'
+
+defc kwikjmp =
+  buf      = leftstr('',128,\0)
+  desktop  = atol(1)   -- (1==HWND_DESKTOP)
+  hndFrame = gethwndc(EPMINFO_EDITFRAME)
+
+  len = dynalink32( 'PMWIN',
+                    '#805',  -- WinQueryClassName
+                    gethwndc(EPMINFO_EDITCLIENT) ||
+                    atol(128) ||
+                    address(buf), 2)
+
+  henum = atol( dynalink32( 'PMWIN',
+                            '#702',  -- WinBeginEnumWindows
+                            desktop, 2))
+
+  clsname = leftstr(buf, len)
+  found   = 0
+  cnt     = 0
+                 --- examine desktop windows for client of same edit class
+  do while cnt<250
+     cnt = cnt + 1
+
+     hnd = dynalink32( 'PMWIN',
+                       '#756',  -- WinGetNextWindow
+                       henum, 2)
+
+     hndF = atol(hnd)
+
+     if not hnd then
+        leave        -- no more top-level windows
+     elseif hndF = hndFrame then
+        iterate      -- just me, never mind
+     endif
+
+     hnd = dynalink32( 'PMWIN',
+                       '#899',  -- WinWindowFromId
+                       hndF ||
+                       atol(32776), 2)  -- get client
+
+     len = dynalink32( 'PMWIN',
+                       '#805',  -- WinQueryClassName
+                       atol(hnd) ||
+                       atol(128) ||
+                       address(buf), 2)
+
+     if clsname = leftstr( buf, len) then   -- same class as me?
+        found = 1  -- YES!!
+        leave
+     endif
+  enddo
+
+  call dynalink32( 'PMWIN',
+                   '#737',  -- WinEndEnumWindows
+                   henum, 2)
+
+  if found then
+     call dynalink32( 'PMWIN',
+                      '#851',  -- WinSetActiveWindow
+                      desktop ||
+                      atol(hnd) ,2)
+
+  elseif cnt < 250 then
+     sayerror '*** window not found: cnt='cnt
+
+  else
+     sayerror '*** bailed out: cnt='cnt
+  endif
+*/
+
+; ---------------------------------------------------------------------------
+defc CloseOtherWin
+   buf     = leftstr( '', 128, \0)
+   desktop = atol( 1)   -- (1 == HWND_DESKTOP)
+   my_hwndx = gethwndc( EPMINFO_EDITFRAME)
+
+   -- Get ClsName (NewEditWndClass) of current edit client window
+   len = dynalink32( 'PMWIN',
+                     '#805',  -- WinQueryClassName
+                     gethwndc( EPMINFO_EDITCLIENT) ||
+                     atol( 128) ||
+                     address( buf), 2)
+   ClsName = leftstr( buf, len)
+
+   -- Examine desktop windows for client of same edit class
+   henum = atol( dynalink32( 'PMWIN',
+                             '#702',  -- WinBeginEnumWindows
+                             desktop, 2))
+   cnt = 0
+   do while cnt < 250
+      cnt = cnt + 1
+
+      hwnd = dynalink32( 'PMWIN',
+                         '#756',  -- WinGetNextWindow
+                         henum, 2)
+
+      if not hwnd then
+         -- No more top-level windows
+         leave
+      elseif atol( hwnd) == my_hwndx then
+         -- Just me, never mind
+         iterate
+      endif
+
+      hwndClient = dynalink32( 'PMWIN',
+                               '#899',  -- WinWindowFromId
+                               atol( hwnd)   ||
+                               atol( FID_CLIENT), 2)  -- get client
+
+      len = dynalink32( 'PMWIN',
+                        '#805',   -- WinQueryClassName
+                        atol( hwndClient)    ||
+                        atol( 128)           ||
+                        address( buf), 2)
+
+      -- Same class as me?
+      if ClsName = leftstr( buf, len) then
+;dprintf( 'ClsName = 'ClsName)
+         -- Make minimized windows topmost first. This is useful if the
+         -- 'Ask to quit on modified' dialog opens on posting a WM_CLOSE msg.
+         Style = dynalink32( 'PMWIN',
+                             '#843',        -- Win32QueryWindowULong
+                             atol( hwnd)     ||
+                             atol( QWL_STYLE), 2)
+         if Style bitand WS_MINIMIZED then
+            opts = SWP_ZORDER bitor SWP_ACTIVATE bitor SWP_RESTORE
+            call dynalink32( 'PMWIN',
+                             '#875',  -- Win32SetWindowPos
+                             atol( hwnd)     ||
+                             atol( HWND_TOP) ||
+                             atol( 0)        ||
+                             atol( 0)        ||
+                             atol( 0)        ||
+                             atol( 0)        ||
+                             atol( opts))
+         endif
+
+         -- Close window
+         call windowmessage( 0, hwnd,
+                             41,  -- WM_CLOSE
+                             0,
+                             0)
+      endif
+   enddo
+   call dynalink32( 'PMWIN',
+                    '#737',  -- WinEndEnumWindows
+                    henum, 2)
+
+; ---------------------------------------------------------------------------
+; Check for a modified file in ring. If not, restart current EPM window.
+; Keep current directory.
+defc Restart
+   if arg(1) = '' then
+      cmd = 'RestoreRing'
+   else
+      cmd = 'mc ;Restorering;AtPostStartup' arg(1)
+   endif
+   'RingCheckModify'
+   'SaveRing'
+   EpmArgs = "'"cmd"'"
+compile if 0
+   -- Doesn't work really reliable everytime (but even though useful):
+   -- o  Sometimes EPM.EX is not reloaded.
+   -- o  Sometimes EPM crashes on 'SaveRing' or on executing arg(1).
+   'postme Open' EpmArgs
+compile else
+   -- Using external .cmd now:
+   EpmExe = Get_Env( 'NEPMD_LOADEREXECUTABLE')
+   'postme start /c /min epmlast' EpmExe EpmArgs
+   'postme Close'
+compile endif
 
 ; ---------------------------------------------------------------------------
 ; Abbreviation for use for menu items etc.
