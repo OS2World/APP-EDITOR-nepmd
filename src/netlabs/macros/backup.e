@@ -389,19 +389,28 @@ defproc MakeBackup
    endif
 
    -- Don't backup tmp files, such as cvsa*
-   UpFilename = upcase( .filename)
-   TmpDirs = Get_env( 'TMP')
-   TmpDirs = TmpDirs';'Get_env( 'TEMP')
-   TmpDirs = strip( TmpDirs)
-   TmpDirs = TmpDirs';'Get_env( 'TEMPDIR')
-   TmpDirs = strip( TmpDirs)
-   Rest = TmpDirs
-   do while Rest <> ''
-      parse value Rest with Next';'Rest
-      if pos( upcase( Next), UpFilename) then
-         return 0
-      endif
-   enddo
+   Dir = ''
+   -- Isolate dir
+   lp = lastpos( '\', translate( Name, '\', '/'))
+   if lp > 1 then
+      Dir = substr( Name, 1, lp - 1)
+   endif
+   if Dir <> '' then
+      -- Check for tmp dir
+      UpDir = upcase( Dir)
+      TmpDirs = Get_env( 'TMP')
+      TmpDirs = TmpDirs';'Get_env( 'TEMP')
+      TmpDirs = strip( TmpDirs)
+      TmpDirs = TmpDirs';'Get_env( 'TEMPDIR')
+      TmpDirs = strip( TmpDirs)
+      Rest = TmpDirs
+      do while Rest <> ''
+         parse value Rest with Next';'Rest
+         if upcase( Next) = UpDir then
+            return 0
+         endif
+      enddo
+   endif
 
    BackupName = MakeBakName( Name)
 
