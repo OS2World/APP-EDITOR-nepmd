@@ -119,10 +119,13 @@ DO 1
    rcx = SysDestroyObject( NetlabsDir'\macros\xchgline.e')
    rcx = SysDestroyObject( NetlabsDir'\macros\mozkeys.e')
    rcx = SysDestroyObject( NetlabsDir'\macros\balance.e')
+   rcx = SysDestroyObject( NetlabsDir'\macros\next_win.e')
+   rcx = SysDestroyObject( NetlabsDir'\macros\next_win.ex')
    rcx = SysDestroyObject( NetlabsDir'\bin\epmchangestartupdir.cmd')
 
    /* Remove obsolete ini key from v1.00 if present */
    rcx = SysIni( 'USER', 'NEPMD', 'Path', 'DELETE:')
+   rcx = SysIni( 'USER', 'recomp', 'CONFIGDATA', 'DELETE:')
 
 END
 
