@@ -2622,7 +2622,9 @@ defc dynafree =
 ; Stops if current window is not the only EPM window, so this can be used as
 ; command.
 defc CheckOnlyEpmWindow
-   if not IsOnlyEpmWindow() then
+   if IsOnlyEpmWindow() then
+      rc = 0
+   else
       refresh
       Title = 'Multiple EPM windows'
       Text = 'The current command can''t be executed when multiple'      ||
@@ -2631,6 +2633,7 @@ defc CheckOnlyEpmWindow
       rcx = winmessagebox( Title, Text,
                            MB_OK + MB_WARNING + MB_MOVEABLE)
       stop
+      rc = 1
    endif
 
 ; ---------------------------------------------------------------------------

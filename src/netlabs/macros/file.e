@@ -521,7 +521,7 @@ compile endif
       'HookExecute aftersave'
       'HookExecuteOnce aftersaveonce'
 
-      if upcase( Name) = upcase( Get_Env( 'NEPMD_USERDIR')'\bin\alias.ini') then
+      if upcase( Name) = upcase( Get_Env( 'NEPMD_USERDIR')'\bin\alias.cfg') then
          'postme ShellReadAliasFile'
       endif
    endif
