@@ -3111,8 +3111,8 @@ defproc add_run_menu(menuname)
                                    \1'Put an asterisk before a command to temp. disable it',
                                    MIS_TEXT, nodismiss
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Edit ALIAS.INI',                                                    -- Edit ALIAS.INI
-                                   'EditCreateUserFile bin\alias.ini' ||
+   buildmenuitem menuname, mid, i, '~Edit ALIAS.CFG',                                                    -- Edit ALIAS.CFG
+                                   'EditCreateUserFile bin\alias.cfg' ||
                                    \1'Edit alias file for alias configuration',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;

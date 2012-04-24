@@ -940,7 +940,7 @@ defproc ShellReadAliasFile
 
    IniFile = arg(1)
    if IniFile = '' then
-      IniFile = Get_Env( 'NEPMD_USERDIR')'\bin\alias.ini'
+      IniFile = Get_Env( 'NEPMD_USERDIR')'\bin\alias.cfg'
    endif
    if not Exist( IniFile) then
       rc = 2
