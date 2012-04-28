@@ -126,7 +126,7 @@ OTHERWISE
    DO 1
       'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
       'CALL USERTREE';          IF (rc \= 0) THEN LEAVE
-      'CALL SPECIAL';           IF (rc \= 0) THEN LEAVE
+      'CALL CLEANUP';           IF (rc \= 0) THEN LEAVE
       'CALL DYNCFG';            IF (rc \= 0) THEN LEAVE
       /* The "NEPMD" param avoids the prompt */
       'CALL RENUDIRS NEPMD';    IF (rc \= 0) THEN LEAVE
