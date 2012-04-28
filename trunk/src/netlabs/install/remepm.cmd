@@ -12,7 +12,7 @@
 * After the backup (as a minimum: the binaries) proceeded successful, the
 * old files will be deleted.
 *
-* This Cmd is not called by NLSETUP.EXE. It can be called directly. It was
+* This Cmd is not called by POSTWPI2.CMD. It can be called directly. It was
 * left in here, because one would like to uninstall all EPM 5 files of
 * Warp 3. Note that this is not required. NEPMD can be used with the EPMBBS
 * bins on Warp 3 without uninstalling EPM 5.

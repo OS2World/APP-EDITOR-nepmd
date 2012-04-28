@@ -9,7 +9,7 @@
 * by the E procedure NepmdInitConfig on the next EPM start from the file
 * DEFAULTS.DAT.
 *
-* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* This program is intended to be called only by POSTWPI2.CMD during NEPMD
 * installation.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002

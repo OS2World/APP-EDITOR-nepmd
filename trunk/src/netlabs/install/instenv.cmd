@@ -313,7 +313,7 @@ SAY 'EcsVersion = 'VALUE( 'ECS_VERSION',, env)
 */
 
 /* ErrorMessage may contain data, even if rc from that is ignored. */
-/* NLSETUP ignores messages if rc = 0. */
+/* POSTWPI ignores messages if rc = 0. */
 IF ErrorMessage <> '' THEN
    CALL SayErrorText
 

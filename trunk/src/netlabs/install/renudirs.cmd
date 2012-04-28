@@ -34,7 +34,7 @@
 * For other files, and alternatively for the .ex files, the old user files
 * may be copied to the new empty directories.
 *
-* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* This program is intended to be called only by POSTWPI2.CMD during NEPMD
 * installation.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002

@@ -2,7 +2,7 @@
 #
 # Module Name: makefile
 #
-# makefile for creating an exe out of nlsetup.cmd
+# makefile for creating an exe out of postwpi.cmd
 #
 # Copyright (c) Netlabs EPM Distibution Project 2002
 #
@@ -29,8 +29,8 @@ BASEDIR=..\..
 # --- definitions for this makefile
 
 FILESTOCLEAN= \
- $(CMPINSTDIR)\nlsetup.exe \
- $(CMPDIR)\nlsetup.log
+ $(CMPINSTDIR)\postwpi.exe \
+ $(CMPDIR)\postwpi.log
 
 # --- private extension of suffix list
 .SUFFIXES: .cmd
@@ -43,7 +43,7 @@ FILESTOCLEAN= \
 
 # --- pseudotargets
 
-ALL: NLSETUP
+ALL: POSTWPI
 
 # ---
 
@@ -53,9 +53,9 @@ CLEAN:
 
 # ---
 
-NLSETUP: $(CMPINSTDIR)\nlsetup.exe
+POSTWPI: $(CMPINSTDIR)\postwpi.exe
 
 # ---- create EXE versions of frame REXX batchfiles
 
-$(CMPINSTDIR)\nlsetup.exe: nlsetup.cmd
+$(CMPINSTDIR)\postwpi.exe: postwpi.cmd
 
