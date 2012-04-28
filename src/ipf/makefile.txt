@@ -41,7 +41,7 @@
 .an IDPNL_OVERVIEW
 .
 .at font='20.Tms Rmn' fc=darkgray italic bold
-.bitmap src\bmp\nllogo.bmp center
+.bitmap bmp\nllogo.bmp center
 .ce present the Making of
 .at font='24.Tms Rmn' fc=red bold italic
 .ce The [=DOCTITLE]
@@ -335,13 +335,13 @@ the WarpIN package the *touch* utility out of the *GNU file utilities* is used.
 - *touch.exe* must be accessible by the PATH statement.
 
 .. -----------------------------------------------------------------------------
-.2 CVS development tree overview
+.2 Development tree overview
 .. -----------------------------------------------------------------------------
 .an IDPNL_DEVTREE
 .
-The following directories currently exist in the CVS development tree:
+The following directories currently exist in the SVN development tree:
 .
-(The *CVS* maintenance directories are not included here.)
+(The *SVN* maintenance directories are not included here.)
 .pl compact break=none tsize=18
 .fo off
 <base dir>
@@ -689,7 +689,7 @@ The following makefile pseudo targets are available for the makefile within the
 *src\rexx* subdirectory:
 .pl bold compact break=none tsize=20
 - nmake [[all]]
-= Create NLSETUP.EXE in the *compile\netlabs\install* directory.
+= Create POSTWPI.EXE in the *compile\netlabs\install* directory.
 .
 - nmake clean
 = Remove the file created by this makefile. See the macro *FILESTOCLEAN* for a complete list.
