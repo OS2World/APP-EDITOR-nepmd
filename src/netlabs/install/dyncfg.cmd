@@ -20,7 +20,7 @@
 * Note that EPM.EXE, the loader, checks the value of EPMIniPath on every
 * start and corrects it if it doesn't point to %NEPMD_USERDIR%\bin\nepmd.ini
 *
-* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* This program is intended to be called only by POSTWPI2.CMD during NEPMD
 * installation or by RECROBJ.CMD.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002

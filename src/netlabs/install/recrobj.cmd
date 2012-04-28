@@ -13,7 +13,7 @@
 *
 * The WarpIN database entries will not be recreated.
 *
-* This Cmd is not called by NLSETUP.EXE. It can be called directly.
+* This Cmd is not called by POSTWPI2.CMD. It can be called directly.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
@@ -209,7 +209,7 @@ DO l = 1 TO ExportLine.0
    PARSE VAR ExportLine.l num 'EXECUTE='next
    IF (next = '') THEN ITERATE
 
-   SearchString = 'nlsetup.exe NEPMD'
+   SearchString = 'postwpi.exe NEPMD'
    IF (TRANSLATE( RIGHT( next, LENGTH( SearchString))) = TRANSLATE( SearchString)) THEN
    DO 1
       /* Make work dir the current directory */
@@ -219,7 +219,7 @@ DO l = 1 TO ExportLine.0
       IF SUBSTR( WorkDir, 2, 1) = ':' THEN
         rcx = DIRECTORY( SUBSTR( WorkDir, 1, 2))
 
-      /* Keep in sync with NLSETUP.CMD/.EXE */
+      /* Keep in sync with POSTWPI2.CMD */
       'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
       'CALL USERTREE';          IF (rc \= 0) THEN LEAVE
       'CALL CLEANUP';           IF (rc \= 0) THEN LEAVE

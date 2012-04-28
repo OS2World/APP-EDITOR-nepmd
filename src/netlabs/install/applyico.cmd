@@ -3,10 +3,10 @@
 * Module Name: applyico.cmd
 *
 * Helper batch for to attach operating system dependant icons to the folders
-* of the NEPMD, as WarpIn can currently not determine the operating system
+* of the NEPMD, as WarpIN can currently not determine the operating system
 * version (Warp 3/Warp 4/eComStation) during installation.
 *
-* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* This program is intended to be called only by POSTWPI2.CMD during NEPMD
 * installation or by RECROBJ.CMD.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002

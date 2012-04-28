@@ -8,7 +8,7 @@
 * Additionally, it creates shadow objects for the user and the root folder
 * and also applies help panels to make F1 show help for objects.
 *
-* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* This program is intended to be called only by POSTWPI2.CMD during NEPMD
 * installation or by RECROBJ.CMD.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002

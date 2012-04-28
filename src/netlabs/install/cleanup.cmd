@@ -4,7 +4,7 @@
 *
 * Helper batch for to remove obsolete objects.
 *
-* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* This program is intended to be called only by POSTWPI2.CMD during NEPMD
 * installation or by RECROBJ.CMD.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2002
@@ -110,6 +110,8 @@ DO 1
    rcx = SysDestroyObject( NetlabsDir'\install\epmchgstartupdir.cmd')
    rcx = SysDestroyObject( NetlabsDir'\install\epmdefassocs.cmd')
    rcx = SysDestroyObject( NetlabsDir'\install\epmnewsamewindow.cmd')
+   rcx = SysDestroyObject( NetlabsDir'\install\special.cmd')
+   rcx = SysDestroyObject( NetlabsDir'\install\nlsetup.exe')
    rcx = SysDestroyObject( NetlabsDir'\macros\drawkey.e')
    rcx = SysDestroyObject( NetlabsDir'\macros\menuacel.e')
    rcx = SysDestroyObject( NetlabsDir'\macros\setconfig.e')

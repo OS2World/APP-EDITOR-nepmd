@@ -6,7 +6,7 @@
 * recreation of ini entries and object. This CMD file is called at the end
 * of the installation.
 *
-* This program is intended to be called only by NLSETUP.EXE during NEPMD
+* This program is intended to be called only by POSTWPI2.CMD during NEPMD
 * installation.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
