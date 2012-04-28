@@ -94,7 +94,7 @@ IF SUBSTR( WorkDir, 2, 1) = ':' THEN
   rcx = DIRECTORY( SUBSTR( WorkDir, 1, 2))
 
 /* Call postwpi2.cmd */
-'CALL POSTWPI2' Parms
+'CALL POSTWPI2' Args
 
 IF ((rc \= 0) & (QUEUED() > 0)) THEN
 DO
