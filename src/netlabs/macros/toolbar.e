@@ -934,6 +934,9 @@ defc ImportToolbar
       'postme load_toolbar' BarName
       if rc = 0 then
          sayerror 'Toolbar "'BarName'" imported and activated'
+         -- If toolbar is imported during first startup then it always shows text,
+         -- ignoring the toolbar style setting. The following is a workaround.
+         'postme RefreshToolbarStyle'
       else
          sayerror 'Error. Toolbar "'BarName'" not activated. rc = 'rc
       endif
@@ -950,6 +953,14 @@ defc ImportToolbar
    'load_toolbar' BarName
    rc = 0
 */
+
+; ---------------------------------------------------------------------------
+defc RefreshToolbarStyle
+   universal app_hini
+   Setup = queryprofile( app_hini, 'UCMenu', 'ConfigInfo')
+   call windowmessage( 0, getpminfo(EPMINFO_EDITFRAME),
+                       5921,
+                       put_in_buffer( Setup), 0)
 
 ; ---------------------------------------------------------------------------
 defc ExportToolbar
