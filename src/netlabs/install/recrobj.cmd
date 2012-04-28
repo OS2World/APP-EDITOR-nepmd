@@ -222,7 +222,7 @@ DO l = 1 TO ExportLine.0
       /* Keep in sync with NLSETUP.CMD/.EXE */
       'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
       'CALL USERTREE';          IF (rc \= 0) THEN LEAVE
-      'CALL SPECIAL';           IF (rc \= 0) THEN LEAVE
+      'CALL CLEANUP';           IF (rc \= 0) THEN LEAVE
       'CALL DYNCFG';            IF (rc \= 0) THEN LEAVE
       /* Don't call RENUDIRS, EXPOBJ and INITREG here */
    END
