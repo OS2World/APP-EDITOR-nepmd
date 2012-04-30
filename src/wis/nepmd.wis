@@ -168,7 +168,7 @@
      REQUIRES="1"
      REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
      SELECT
-     EXECUTE="$(1)\netlabs\install\postwpi.exe NEPMD APPLYICO"
+     EXECUTE="$(1)\netlabs\install\postwpi.exe NEPMD ICONS"
      TITLE="%PCK_ICONS_TITLE%"
 
      ><TINCLUDE name="..\nls\wis\desc_icons_%NLS%.xml"/></PCK>

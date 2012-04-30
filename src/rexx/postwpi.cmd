@@ -2,7 +2,7 @@
 *
 * Module Name: postwpi.cmd
 *
-* Syntax: postwpi [NEPMD [UNINSTALL | APPLYICO]]
+* Syntax: postwpi [NEPMD <option>]
 *
 * Calls postwpi2.cmd which contains the relevant code.
 *

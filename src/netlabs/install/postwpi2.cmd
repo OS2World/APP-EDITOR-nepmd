@@ -2,7 +2,7 @@
 *
 * Module Name: postwpi2.cmd
 *
-* Syntax: postwpi2 [NEPMD [UNINSTALL | APPLYICO]]
+* Syntax: postwpi2 [NEPMD [UNINSTALL | ICONS]]
 *
 * Frame batch for to call all required CMD files when setting up additional
 * directories and files in the user directory tree.
@@ -73,7 +73,7 @@ ErrorTitle = 'Netlabs EPM Distribution Installation'
 /* Parse args */
 fNepmd     = FALSE
 fUninstall = FALSE
-fApplyIco  = FALSE
+fIcons     = FALSE
 ARG UpArgs
 Rest = UpArgs
 DO WHILE Rest <> ''
@@ -87,8 +87,8 @@ DO WHILE Rest <> ''
          fNepmd = TRUE
       WHEN ThisArg = 'UNINSTALL' THEN
          fUninstall = TRUE
-      WHEN ThisArg = 'APPLYICO' THEN
-         fApplyIco = TRUE
+      WHEN ThisArg = 'ICONS' THEN
+         fIcons = TRUE
    OTHERWISE
       NOP
    END
@@ -117,10 +117,10 @@ SELECT
       'CALL INSTENV UNINSTALL'; IF (rc \= 0) THEN LEAVE
       'CALL DYNCFG UNINSTALL';  IF (rc \= 0) THEN LEAVE
    END
-   WHEN fApplyIco THEN
+   WHEN fIcons THEN
    DO 1
       'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
-      'CALL APPLYICO';          IF (rc \= 0) THEN LEAVE
+      'CALL ICONS';             IF (rc \= 0) THEN LEAVE
    END
 OTHERWISE
    DO 1
@@ -129,7 +129,7 @@ OTHERWISE
       'CALL CLEANUP';           IF (rc \= 0) THEN LEAVE
       'CALL DYNCFG';            IF (rc \= 0) THEN LEAVE
       /* The "NEPMD" param avoids the prompt */
-      'CALL RENUDIRS NEPMD';    IF (rc \= 0) THEN LEAVE
+      'CALL SAFE NEPMD';        IF (rc \= 0) THEN LEAVE
       /* Since WarpIN 1.0.18, WarpIN's database is openened */
       /* non-shareable. This was moved to MAIN.E and is     */
       /* executed on EPM's first start, without reporting   */
