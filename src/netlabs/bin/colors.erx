@@ -132,7 +132,7 @@ DO
    PARSE SOURCE . . ThisFile
    lp = LASTPOS( '\', ThisFile)
    ThisDir = LEFT( ThisFile, lp - 1)
-   'CALL' ThisDir'\..\netlabs\bin\EPMENV'
+   'CALL' ThisDir'\..\..\netlabs\bin\EPMENV'
 END
 
 /* Set vars that depend on RootDir and UserDir */
@@ -1558,6 +1558,7 @@ SayDebug: PROCEDURE EXPOSE (GlobalVars)
       /* pipe symbols have to be escaped before being passed to CMD.EXE */
       'call dprintf' Message
       */
+/*
       DO 1
          fRexxPmpfLoaded = (RxFuncQuery('RexxPmpf') = 0)
          IF fRexxPmpfLoaded THEN
@@ -1567,6 +1568,7 @@ SayDebug: PROCEDURE EXPOSE (GlobalVars)
       END
       IF fRexxPmpfLoaded THEN
          RexxPmpf( Message)
+*/
    END
 
    RETURN( '')
