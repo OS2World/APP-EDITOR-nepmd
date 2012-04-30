@@ -1,0 +1,49 @@
+<!--
+# ***************************** Module Header *******************************
+#
+# Module Name: installeng.xml
+#
+# WPI page include file in English language
+#
+# Copyright (c) Netlabs EPM Distribution Project 2002
+#
+# $Id$
+#
+# ===========================================================================
+#
+# This file is part of the Netlabs EPM Distribution package and is free
+# software.  You can redistribute it and/or modify it under the terms of the
+# GNU General Public License as published by the Free Software
+# Foundation, in version 2 as it comes in the "COPYING" file of the
+# Netlabs EPM Distribution.  This library is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# ***************************************************************************
+-->
+<b>Update:</b>
+Just install this WarpIN package over an old one. To ensure that the newly
+installed version starts up properly using the netlabs files, some of your
+user subdirectories will be renamed with their date being appended.
+Currently, these are "ex", "mode" and "bin". After installation, you may want
+to merge your changes with the newly installed files.
+
+<p><b>eComStation and Warp 4.x:</b>
+The EPM binaries of your OS were used. None of the original files will be
+changed. If you don't have EPM installed, add it via Selective Install of
+your OS.
+
+<p><b>Warp 3:</b>
+The external package "EPMBBS Base Application", included herein, has to be
+installed as well. Activate it on the "Packages" page. You don't have to
+remove your old EPM v5.51.
+
+<p><b>Long filenames:</b>
+In order to use all features of this package, it has to be installed on a
+file system that supports long filenames.
+
+<p><b>Uninstall:</b>
+Start the WarpIN program object and uninstall all packages of the "Netlabs
+EPM Distribution" application.
+
