@@ -28,12 +28,12 @@
 #define MAIN_TITLE_PREFIX "netlabs.org EPM Distribution v"
 #define MAIN_TITLE_SUFFIX " Installation"
 
-#define PCK_1_TITLE "Base Application Support"
-#define PCK_2_TITLE "Custom icons for EPM"
-#define PCK_3_TITLE "Recompilation package"
-#define PCK_4_TITLE "Programming samples"
-#define PCK_5_TITLE "Speech Support (use with VoiceType only, now untested!)"
-#define PCK_99_TITLE "EPMBBS Base Application (use with OS/2 Warp 3 only!)"
+#define PCK_BASE_TITLE      "Base Application Support"
+#define PCK_ICONS_TITLE     "Custom icons for EPM"
+#define PCK_RECOMPILE_TITLE "Recompilation package"
+#define PCK_SAMPLES_TITLE   "Programming samples"
+#define PCK_SPEECH_TITLE    "Speech Support (use with VoiceType only, now untested!)"
+#define PCK_OLDBINS_TITLE   "EPMBBS Base Application (use with OS/2 Warp 3 only!)"
 
 
 #define TITLE_NEPMD_FOLDER                       "Netlabs^EPM Distribution"

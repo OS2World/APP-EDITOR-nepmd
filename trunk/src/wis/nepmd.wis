@@ -120,7 +120,7 @@
      BASE
      SELECT
      NODESELECT
-     TITLE="%PCK_1_TITLE%"
+     TITLE="%PCK_BASE_TITLE%"
      EXECUTE="$(1)\netlabs\install\postwpi.exe NEPMD"
      DEEXECUTE="$(1)\netlabs\install\postwpi.exe NEPMD UNINSTALL"
 
@@ -160,7 +160,7 @@
      =("Var ShellShadowInPrompts")
      =("Var ShellShadowInXwpPrompts")
 
-     ><TINCLUDE name="..\nls\wis\desc1%NLS%.xml"/></PCK>
+     ><TINCLUDE name="..\nls\wis\desc_base_%NLS%.xml"/></PCK>
 
 <PCK INDEX=2
      PACKAGEID="Netlabs\Netlabs EPM Distribution\Custom Icons\%ID_VERSION_NEPMD%"
@@ -169,54 +169,54 @@
      REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
      SELECT
      EXECUTE="$(1)\netlabs\install\postwpi.exe NEPMD APPLYICO"
-     TITLE="%PCK_2_TITLE%"
+     TITLE="%PCK_ICONS_TITLE%"
 
-     ><TINCLUDE name="..\nls\wis\desc2%NLS%.xml"/></PCK>
+     ><TINCLUDE name="..\nls\wis\desc_icons_%NLS%.xml"/></PCK>
 
 <PCK INDEX=3
      PACKAGEID="Netlabs\Netlabs EPM Distribution\Recompilation package\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
-     TITLE="%PCK_3_TITLE%"
+     TITLE="%PCK_RECOMPILE_TITLE%"
 
      CLEARPROFILE="USER\recomp\CONFIGDATA"
 
      CREATEOBJECT="REPLACE WPProgram|%TITLE_NEPMD_VIEW_NEPRG%|<NEPMD_HELP_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\NETLABS\BOOK\NEPRG%NLS%.INF Netlabs;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=103;OBJECTID=<NEPMD_VIEW_NEPRG>;"
      CREATEOBJECT="REPLACE WPProgram|%TITLE_NEPMD_VIEW_EPMTECH%|<NEPMD_HELP_FOLDER>|;PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\EPMBBS\BOOK\EPMTECH.INF;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=107;OBJECTID=<NEPMD_VIEW_EPMTECH>;"
-     ><TINCLUDE name="..\nls\wis\desc3%NLS%.xml"/></PCK>
+     ><TINCLUDE name="..\nls\wis\desc_recompile_%NLS%.xml"/></PCK>
 
 <PCK INDEX=4
      PACKAGEID="Netlabs\Netlabs EPM Distribution\Programming samples\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
-     TITLE="%PCK_4_TITLE%"
+     TITLE="%PCK_SAMPLES_TITLE%"
 
      CREATEOBJECT="WPFolder|%TITLE_NEPMD_NEPMD_SAMPLES_FOLDER%|<NEPMD_FOLDER>|CCVIEW=NO;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=108;OBJECTID=<NEPMD_SAMPLES_FOLDER>;"
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_VIEW_EPMTK%|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\EPMBBS\SAMPLES\C\ETKE.INF;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=109;OBJECTID=<NEPMD_VIEW_EPMTK>;"
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_VIEW_EPMCM_README%|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=E.EXE;PARAMETERS=$(1)\EPMBBS\SAMPLES\C\READ.ME;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=110;OBJECTID=<NEPMD_VIEW_EPMCM_README>;"
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_VIEW_EPMRM_README%|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=E.EXE;PARAMETERS=$(1)\EPMBBS\SAMPLES\REXX\EPMREXX.DOC;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=111;OBJECTID=<NEPMD_VIEW_EPMRM_README>;"
-     ><TINCLUDE name="..\nls\wis\desc4%NLS%.xml"/></PCK>
+     ><TINCLUDE name="..\nls\wis\desc_samples_%NLS%.xml"/></PCK>
 
 <PCK INDEX=5
      PACKAGEID="Netlabs\Netlabs EPM Distribution\Speech Support\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
-     TITLE="%PCK_5_TITLE%"
+     TITLE="%PCK_SPEECH_TITLE%"
 
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_SPEECH%|<NEPMD_FOLDER>|PROGTYPE=WINDOWABLEVIO;NINIMIZED=YES;EXENAME=$(1)\EPMBBS\BIN\EPMSPCH.EXE;STARTUPDIR=$(1)\EPMBBS\DLL;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=112;OBJECTID=<NEPMD_SPEECH>;"
      CREATEOBJECT="WPShadow|.|<WP_START>|SHADOWID=<NEPMD_SPEECH>;OBJECTID=<NEPMD_SPEECH_SHADOW>;"
      CREATEOBJECT="WPShadow|.|<NEPMD_FOLDER>|SHADOWID=<WP_START>;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=113;OBJECTID=<NEPMD_WPSTART_SHADOW>;"
-     ><TINCLUDE name="..\nls\wis\desc5%NLS%.xml"/></PCK>
+     ><TINCLUDE name="..\nls\wis\desc_speech_%NLS%.xml"/></PCK>
 
 <PCK INDEX=99
      PACKAGEID="Netlabs\Netlabs EPM Distribution\Base Application\1\0\0"
      TARGET="$(1)"
      REQUIRES="1"
      EXTERNAL="nepmd_epmbase.wpp"
-     TITLE="%PCK_99_TITLE%"
-     ><TINCLUDE name="..\nls\wis\desc99%NLS%.xml"/></PCK>
+     TITLE="%PCK_OLDBINS_TITLE%"
+     ><TINCLUDE name="..\nls\wis\desc_oldbins_%NLS%.xml"/></PCK>
 
 </HEAD>
 
@@ -224,36 +224,36 @@
 
 <!--  ------------------------------ Page 1: Welcome/features --------------------------------->
 <PAGE INDEX=1 TYPE=README>
-<TEXT><TINCLUDE name="..\nls\wis\page1%NLS%.xml"/></TEXT>
-<README FORMAT=HTML><TINCLUDE name="..\nls\wis\welcome%NLS%.xml"/></README>
+<TEXT><TINCLUDE name="..\nls\wis\page_1_%NLS%.xml"/></TEXT>
+<README FORMAT=HTML><TINCLUDE name="..\nls\wis\welcome_%NLS%.xml"/></README>
 <NEXTBUTTON TARGET=2>%BUTTON_NEXT%</NEXTBUTTON>
 </PAGE>
 
 <!--  ------------------------------ Page 2: Install ------------------------------------------>
 <PAGE INDEX=2 TYPE=README>
-<TEXT><TINCLUDE name="..\nls\wis\page2%NLS%.xml"/></TEXT>
-<README FORMAT=HTML><TINCLUDE name="..\nls\wis\install%NLS%.xml"/></README>
+<TEXT><TINCLUDE name="..\nls\wis\page_2_%NLS%.xml"/></TEXT>
+<README FORMAT=HTML><TINCLUDE name="..\nls\wis\install_%NLS%.xml"/></README>
 <NEXTBUTTON TARGET=3>%BUTTON_NEXT%</NEXTBUTTON>
 </PAGE>
 
 <!--  ------------------------------ Page 3: Developers --------------------------------------->
 <PAGE INDEX=3 TYPE=README>
-<TEXT><TINCLUDE name="..\nls\wis\page3%NLS%.xml"/></TEXT>
-<README FORMAT=HTML><TINCLUDE name="..\nls\wis\developers%NLS%.xml"/></README>
+<TEXT><TINCLUDE name="..\nls\wis\page_3_%NLS%.xml"/></TEXT>
+<README FORMAT=HTML><TINCLUDE name="..\nls\wis\developers_%NLS%.xml"/></README>
 <NEXTBUTTON TARGET=4>%BUTTON_NEXT%</NEXTBUTTON>
 </PAGE>
 
 <!--  ------------------------------ Page 4: Show package container --------------------------->
 <!-- The TYPE=CONTAINER will list the packages which can be installed. -->
 <PAGE INDEX=4 TYPE=CONTAINER>
-<TEXT><TINCLUDE name="..\nls\wis\page4%NLS%.xml"/></TEXT>
+<TEXT><TINCLUDE name="..\nls\wis\page_4_%NLS%.xml"/></TEXT>
 <NEXTBUTTON TARGET=5>%BUTTON_NEXT%</NEXTBUTTON>
 </PAGE>
 
 <!--  ------------------------------ Page 5: Configure WarpIN behavior ------------------------>
 <!-- The TYPE=CONFIGURE will change config.sys -->
 <PAGE INDEX=5 TYPE=CONFIGURE>
-<TEXT><TINCLUDE name="..\nls\wis\page5%NLS%.xml"/></TEXT>
+<TEXT><TINCLUDE name="..\nls\wis\page_5_%NLS%.xml"/></TEXT>
 <NEXTBUTTON TARGET=0>%BUTTON_NEXT%</NEXTBUTTON>
 </PAGE>
 
