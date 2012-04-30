@@ -96,8 +96,8 @@ Signature          = 'GpiCreatePS failed'
 SaveFileExt        = 'sav'
 StdCfg.            = ''
 AddCfg.            = ''
-StdCfg._Name       = 'Colors.cfg'
-AddCfg._Name       = 'MyColors.cfg'
+StdCfg._Name       = 'colors.cfg'
+AddCfg._Name       = 'mycolors.cfg'
 AddCfg._fChanged   = 0
 StdCfg._Section.0  = 0
 AddCfg._Section.0  = 0
@@ -1331,11 +1331,14 @@ ReplaceDll:
       ELSE
          WorkDir = ''
 
-      'CloseOtherWin'
-      call SysSleep 1
-      'CheckOnlyEpmWindow'
-      'RingCheckModify'
-      'SaveRing'
+      IF ADDRESS() = 'EPM' THEN
+      DO
+         'CloseOtherWin'
+         call SysSleep 1
+         'CheckOnlyEpmWindow'
+         'RingCheckModify'
+         'SaveRing'
+      END
 
       /* Write temp. CMD file and execute it */
       TmpFile = WorkDir'\copydll.cmd'
@@ -1361,10 +1364,13 @@ ReplaceDll:
       CALL LINEOUT TmpFile, "CALL SysSleep 2"  /* Required for restart, better use pstat */
 
       CALL LINEOUT TmpFile, "'CD ..\..\netlabs\bin'"
+      IF ADDRESS() = 'EPM' THEN
+      DO
 /*
-      CALL LINEOUT TmpFile, "'CALL EPMRESUME'"
+         CALL LINEOUT TmpFile, "'CALL EPMRESUME'"
 */
-      CALL LINEOUT TmpFile, "'CALL EPMLAST'"
+         CALL LINEOUT TmpFile, "'CALL EPMLAST'"
+      END
       CALL LINEOUT TmpFile, "IF rc <> 0 THEN"
       CALL LINEOUT TmpFile, "DO"
       CALL LINEOUT TmpFile, "   'PAUSE'"
@@ -1390,7 +1396,8 @@ ReplaceDll:
          LEAVE
       END
 
-      'postme Close'
+      IF ADDRESS() = 'EPM' THEN
+         'postme Close'
    END
 
    RETURN( rc)
