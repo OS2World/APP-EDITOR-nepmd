@@ -2,7 +2,7 @@
 *
 * Module Name: postwpi2.cmd
 *
-* Syntax: postwpi2 [NEPMD [UNINSTALL | ICONS]]
+* Syntax: postwpi2 [NEPMD [UNINSTALL | COLORS | ASSOCS | ICONS | MVUSER]]
 *
 * Frame batch for to call all required CMD files when setting up additional
 * directories and files in the user directory tree.
@@ -74,6 +74,9 @@ ErrorTitle = 'Netlabs EPM Distribution Installation'
 fNepmd     = FALSE
 fUninstall = FALSE
 fIcons     = FALSE
+fSafe      = FALSE
+fColors    = FALSE
+fAssocs    = FALSE
 ARG UpArgs
 Rest = UpArgs
 DO WHILE Rest <> ''
@@ -87,8 +90,14 @@ DO WHILE Rest <> ''
          fNepmd = TRUE
       WHEN ThisArg = 'UNINSTALL' THEN
          fUninstall = TRUE
+      WHEN ThisArg = 'COLORS' THEN
+         fColors = TRUE
+      WHEN ThisArg = 'ASSOCS' THEN
+         fAssocs = TRUE
       WHEN ThisArg = 'ICONS' THEN
          fIcons = TRUE
+      WHEN ThisArg = 'MVUSER' THEN
+         fMvUser = TRUE
    OTHERWISE
       NOP
    END
@@ -117,10 +126,28 @@ SELECT
       'CALL INSTENV UNINSTALL'; IF (rc \= 0) THEN LEAVE
       'CALL DYNCFG UNINSTALL';  IF (rc \= 0) THEN LEAVE
    END
+   WHEN fColors THEN
+   DO 1
+      'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
+      CALL '..\..\NETLABS\BIN\EPMENV.CMD';       IF (rc \= 0) THEN LEAVE
+      CALL 'COLORS.ERX' 'S NEPMD';               IF (rc \= 0) THEN LEAVE
+   END
+   WHEN fAssocs THEN
+   DO 1
+      'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
+      CALL '..\..\NETLABS\BIN\EPMENV.CMD';       IF (rc \= 0) THEN LEAVE
+      CALL 'ASSOCS.ERX' 'prepend NEPMD objects'; IF (rc \= 0) THEN LEAVE
+   END
    WHEN fIcons THEN
    DO 1
       'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
       'CALL ICONS';             IF (rc \= 0) THEN LEAVE
+   END
+   WHEN fMvUser THEN
+   DO 1
+      'CALL INSTENV';           IF (rc \= 0) THEN LEAVE
+      /* The "NEPMD" param avoids the prompt */
+      'CALL MVUSER NEPMD';      IF (rc \= 0) THEN LEAVE
    END
 OTHERWISE
    DO 1
@@ -128,8 +155,6 @@ OTHERWISE
       'CALL USERTREE';          IF (rc \= 0) THEN LEAVE
       'CALL CLEANUP';           IF (rc \= 0) THEN LEAVE
       'CALL DYNCFG';            IF (rc \= 0) THEN LEAVE
-      /* The "NEPMD" param avoids the prompt */
-      'CALL MVUSER NEPMD';      IF (rc \= 0) THEN LEAVE
       /* Since WarpIN 1.0.18, WarpIN's database is openened */
       /* non-shareable. This was moved to MAIN.E and is     */
       /* executed on EPM's first start, without reporting   */
