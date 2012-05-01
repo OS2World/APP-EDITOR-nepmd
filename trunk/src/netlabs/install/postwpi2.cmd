@@ -129,7 +129,7 @@ OTHERWISE
       'CALL CLEANUP';           IF (rc \= 0) THEN LEAVE
       'CALL DYNCFG';            IF (rc \= 0) THEN LEAVE
       /* The "NEPMD" param avoids the prompt */
-      'CALL SAFE NEPMD';        IF (rc \= 0) THEN LEAVE
+      'CALL MVUSER NEPMD';      IF (rc \= 0) THEN LEAVE
       /* Since WarpIN 1.0.18, WarpIN's database is openened */
       /* non-shareable. This was moved to MAIN.E and is     */
       /* executed on EPM's first start, without reporting   */
