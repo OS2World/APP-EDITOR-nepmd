@@ -28,16 +28,19 @@
 #define MAIN_TITLE_PREFIX "netlabs.org EPM Distribution v"
 #define MAIN_TITLE_SUFFIX " Installation"
 
-#define PCK_BASE_TITLE      "Base Application Support"
-#define PCK_ICONS_TITLE     "Custom icons for EPM"
+#define PCK_BASE_TITLE      "Base application support"
 #define PCK_RECOMPILE_TITLE "Recompilation package"
 #define PCK_SAMPLES_TITLE   "Programming samples"
-#define PCK_SPEECH_TITLE    "Speech Support (use with VoiceType only, now untested!)"
-#define PCK_OLDBINS_TITLE   "EPMBBS Base Application (use with OS/2 Warp 3 only!)"
+#define PCK_COLORS_TITLE    "Config: color palette - set NEPMD colors for highlighting"
+#define PCK_ASSOCS_TITLE    "Config: associations - set NEPMD associations for program objects"
+#define PCK_ICONS_TITLE     "Config: icons - set extra icons for NEPMD program objects"
+#define PCK_MVUSER_TITLE    "Config: safe first start - use NEPMD files only, move existing (old) user files"
+#define PCK_SPEECH_TITLE    "Speech support (use with VoiceType only, now untested!)"
+#define PCK_OLDBINS_TITLE   "EPMBBS base application (use with OS/2 Warp 3 only!)"
 
 
-#define TITLE_NEPMD_FOLDER                       "Netlabs^EPM Distribution"
-#define TITLE_NEPMD_HELP_FOLDER                  "Netlabs^EPM Distribution^Online Help"
+#define TITLE_NEPMD_FOLDER                       "netlabs.org^EPM Distribution"
+#define TITLE_NEPMD_HELP_FOLDER                  "netlabs.org^EPM Distribution^Online Help"
 
 #define TITLE_NEPMD_EPM                          "EPM"
 #define TITLE_NEPMD_EPM_NEW_WINDOW               "EPM new window"
