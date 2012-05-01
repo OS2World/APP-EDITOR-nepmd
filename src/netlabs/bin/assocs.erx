@@ -11,7 +11,7 @@
 *    <action>    = query | prepend | append | remove
 *                  (query returns list items found in the ini file,
 *                  separated by '|' and also with a leading '|'.)
-*    <list_item> = a list item of the ini file, case-sensitive
+*    <list_item> = a list item of the ini file
 *
 * The ini filename can be changed in the configuration section below.
 *
@@ -108,6 +108,15 @@ Processed._Types      = ''
 Processed._Filters    = ''
 
 DO 1
+   /* Extend the environment, if not already */
+   next = VALUE( 'NEPMD_NAME',, env)
+   IF next = '' THEN
+   DO
+      PARSE SOURCE . . ThisFile
+      lp = LASTPOS( '\', ThisFile)
+      ThisDir = LEFT( ThisFile, lp - 1)
+      'CALL' ThisDir'\..\..\netlabs\bin\EPMENV'
+   END
 
    PARSE ARG Action ListItem
    Action = TRANSLATE( STRIP( Action))
@@ -171,7 +180,7 @@ DO 1
          IF UpStrListItem <> TRANSLATE( Ini._Key.s.k) THEN
             ITERATE
          /* Find matching ListItem value */
-         IF ListItem <> Ini._Val.s.k THEN
+         IF TRANSLATE( ListItem) <> TRANSLATE( Ini._Val.s.k) THEN
             ITERATE
          FoundSection = s
          LEAVE
@@ -289,17 +298,17 @@ AssocsMsg: PROCEDURE EXPOSE (GlobalVars)
    PARSE ARG ListItem'|'Action'|'Objects'|'Types'|'Filters
    rc = ERROR.NO_ERROR
 
+   verb = '<unknown action>'
    SELECT
       WHEN Action = 'PREPEND' THEN
-         verb = 'prepending'
+         verb = 'prepending associations'
       WHEN Action = 'APPEND' THEN
-         verb = 'appending'
+         verb = 'appending associations'
       WHEN Action = 'REMOVE' THEN
-         verb = 'removing'
+         verb = 'removing associations'
    OTHERWISE
-      verb = '<unknown action>'
    END
-   SAY 'Result of 'verb' associations for 'ListItem':'
+   SAY 'Result of 'verb' for 'ListItem':'
    SAY
    SAY 'Changed objects:'
    rest = Objects
