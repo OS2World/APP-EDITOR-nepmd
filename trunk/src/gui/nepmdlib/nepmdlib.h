@@ -22,9 +22,9 @@
 #ifndef NEPMDLIB_H
 #define NEPMDLIB_H
 
-#define NEPMDLIB_VERSION          "1.14"
+#define NEPMDLIB_VERSION          "1.15"
 
-#define NEPMDLIB_STR_TITLE        "Netlabs EPM Distribution Library - Runtime Information"
+#define NEPMDLIB_STR_TITLE        "netlabs.org EPM Distribution Library - Runtime Information"
 #define NEPMDLIB_STR_FILENAME     "Filename: "
 #define NEPMDLIB_STR_LOADEDFROM   "Directory: "
 #define NEPMDLIB_STR_VERSION      "Version: "
