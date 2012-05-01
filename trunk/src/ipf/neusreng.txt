@@ -196,7 +196,7 @@ All rights reserved.
 
 Visit also the homepages of
 .ul compact
-- [http://nepmd.netlabs.org The netlabs.org EPM Distribution]
+- [http://svn.netlabs.org/nepmd The netlabs.org EPM Distribution]
 - [http://www.netlabs.org netlabs.org]
 
 .. -----------------------------------------------------------------------------

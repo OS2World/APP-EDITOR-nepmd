@@ -24,7 +24,7 @@
 #ifndef NEPMD_H
 #define NEPMD_H
 
-#define __HOMEPAGE__                   "http://nepmd.netlabs.org"
+#define __HOMEPAGE__                   "http://svn.netlabs.org/nepmd"
 
 // INI app names and keys of NEPMD project from OS2.INI
 #define NEPMD_INI_APPNAME              "NEPMD"
