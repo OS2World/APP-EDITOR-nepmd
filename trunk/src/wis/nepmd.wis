@@ -163,18 +163,7 @@
      ><TINCLUDE name="..\nls\wis\desc_base_%NLS%.xml"/></PCK>
 
 <PCK INDEX=2
-     PACKAGEID="Netlabs\Netlabs EPM Distribution\Custom Icons\%ID_VERSION_NEPMD%"
-     TARGET="$(1)"
-     REQUIRES="1"
-     REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
-     SELECT
-     EXECUTE="$(1)\netlabs\install\postwpi.exe NEPMD ICONS"
-     TITLE="%PCK_ICONS_TITLE%"
-
-     ><TINCLUDE name="..\nls\wis\desc_icons_%NLS%.xml"/></PCK>
-
-<PCK INDEX=3
-     PACKAGEID="Netlabs\Netlabs EPM Distribution\Recompilation package\%ID_VERSION_NEPMD%"
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Recompilation Package\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
@@ -186,8 +175,8 @@
      CREATEOBJECT="REPLACE WPProgram|%TITLE_NEPMD_VIEW_EPMTECH%|<NEPMD_HELP_FOLDER>|;PROGTYPE=PM;EXENAME=VIEW.EXE;PARAMETERS=$(1)\EPMBBS\BOOK\EPMTECH.INF;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=107;OBJECTID=<NEPMD_VIEW_EPMTECH>;"
      ><TINCLUDE name="..\nls\wis\desc_recompile_%NLS%.xml"/></PCK>
 
-<PCK INDEX=4
-     PACKAGEID="Netlabs\Netlabs EPM Distribution\Programming samples\%ID_VERSION_NEPMD%"
+<PCK INDEX=3
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Programming Samples\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
@@ -199,7 +188,51 @@
      CREATEOBJECT="WPProgram|%TITLE_NEPMD_NEPMD_VIEW_EPMRM_README%|<NEPMD_SAMPLES_FOLDER>|PROGTYPE=PM;EXENAME=E.EXE;PARAMETERS=$(1)\EPMBBS\SAMPLES\REXX\EPMREXX.DOC;HELPLIBRARY=$(1)\netlabs\help\nefld%NLS%.hlp;HELPPANEL=111;OBJECTID=<NEPMD_VIEW_EPMRM_README>;"
      ><TINCLUDE name="..\nls\wis\desc_samples_%NLS%.xml"/></PCK>
 
+<PCK INDEX=4
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Color Palette\%ID_VERSION_NEPMD%"
+     TARGET="$(1)"
+     REQUIRES="1"
+     REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
+     SELECT
+     EXECUTE="$(1)\netlabs\install\postwpi.exe NEPMD COLORS"
+     TITLE="%PCK_COLORS_TITLE%"
+
+     ><TINCLUDE name="..\nls\wis\desc_colors_%NLS%.xml"/></PCK>
+
 <PCK INDEX=5
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Associations\%ID_VERSION_NEPMD%"
+     TARGET="$(1)"
+     REQUIRES="1"
+     REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
+     SELECT
+     EXECUTE="$(1)\netlabs\install\postwpi.exe NEPMD ASSOCS"
+     TITLE="%PCK_ASSOCS_TITLE%"
+
+     ><TINCLUDE name="..\nls\wis\desc_assocs_%NLS%.xml"/></PCK>
+
+<PCK INDEX=6
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Custom Icons\%ID_VERSION_NEPMD%"
+     TARGET="$(1)"
+     REQUIRES="1"
+     REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
+     SELECT
+     EXECUTE="$(1)\netlabs\install\postwpi.exe NEPMD ICONS"
+     TITLE="%PCK_ICONS_TITLE%"
+
+     ><TINCLUDE name="..\nls\wis\desc_icons_%NLS%.xml"/></PCK>
+
+<PCK INDEX=7
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Safe First Start\%ID_VERSION_NEPMD%"
+     TARGET="$(1)"
+     REQUIRES="1"
+     REQUIRES="OS/2 Netlabs\WarpIN\Base\%ID_VERSION_REQ_WARPIN%"
+     SELECT
+     EXECUTE="$(1)\netlabs\install\postwpi.exe NEPMD MVUSER"
+     TITLE="%PCK_MVUSER_TITLE%"
+
+     ><TINCLUDE name="..\nls\wis\desc_mvuser_%NLS%.xml"/></PCK>
+
+<PCK INDEX=98
      PACKAGEID="Netlabs\Netlabs EPM Distribution\Speech Support\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
