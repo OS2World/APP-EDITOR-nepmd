@@ -24,4 +24,7 @@
 -->
 This package resets the color palette that is used for keyword highlighting to NEPMD colors.
 
-Disable this item if you want to keep your current color palette.
+Disable this item if you want to keep the current color palette active.
+
+NOTE:
+     Marking the "Config:" items for uninstallation won't undo any previous configuration. It has the same effect as unselecting it.
