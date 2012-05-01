@@ -22,7 +22,7 @@
 ; **************************************************************************/
 
 LIBRARY NEPMDLIB INITINSTANCE TERMINSTANCE
-DESCRIPTION '@#NETLABS:1.14.1000#@NEPMDLIB - NEPMD runtime library for EPM v6 - Copyright www.netlabs.org 2002-2009'
+DESCRIPTION '@#NETLABS.ORG:1.15.1000#@NEPMDLIB - NEPMD runtime library for EPM v6 - Copyright www.netlabs.org 2002-2009'
 
 DATA NONSHARED MULTIPLE
 PROTMODE

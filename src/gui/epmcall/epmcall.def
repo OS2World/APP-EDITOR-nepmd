@@ -27,7 +27,7 @@
 ; 1.00.1001 - fix r1.16 /netlabs.cvs/nepmd/src/gui/common/epmenv.c,v
 
 NAME EPMCALL WINDOWAPI
-DESCRIPTION '@#NETLABS:1.14.1000#@EPMCALL - NEPMD call utility for EPM v6 - Copyright www.netlabs.org 2002-2009'
+DESCRIPTION '@#NETLABS.ORG:1.15.1000#@EPMCALL - NEPMD call utility for EPM v6 - Copyright www.netlabs.org 2002-2009'
 PROTMODE
 STACKSIZE  16384
 STUB 'stub_vdm.bin'
