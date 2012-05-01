@@ -24,7 +24,7 @@
 -->
 This package installs the support files for the base EPM application being installed on your system.
 
-This is a set of files of the EPMBBS package to run EPM with the basic extensions of the Netlabs EPM distribution.
+This is a set of files based on the EPMBBS package to run EPM with the extensions of the netlabs.org EPM distribution.
 
 NOTE:
      This package does not include the EPM itself. The EPM and the E Toolkit runtime DLLs must be installed with the installation program of your OS/2 Warp or eComStation.

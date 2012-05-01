@@ -22,6 +22,9 @@
 #
 # ***************************************************************************
 -->
-This package applies NEPMD associations for program objects. It ensures e.g. that text files open in EPM instaed of the System Editor.
+This package applies NEPMD associations for program objects. It ensures e.g. that text files open in EPM instead of the System Editor.
 
 Disable this item if you want to keep your current associations.
+
+NOTE:
+     Marking the "Config:" items for uninstallation won't undo any previous configuration. It has the same effect as unselecting it.

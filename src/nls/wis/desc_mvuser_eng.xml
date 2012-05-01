@@ -27,3 +27,6 @@ This package renames the user directories "ex", "bin" and "mode". Note that "NEP
 That ensures that EPM uses the freshly installed Netlabs files on its first start. After that, you may want to merge your changes with the Netlabs files.
 
 Disable this item only if all your files in these directories are compatible.
+
+NOTE:
+     Marking the "Config:" items for uninstallation won't undo any previous configuration. It has the same effect as unselecting it.

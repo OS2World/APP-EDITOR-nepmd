@@ -25,3 +25,6 @@
 This package installs custom icons for EPM.
 
 These custom icons will consume approximately 60 KB in the OS2.INI file.
+
+NOTE:
+     Marking the "Config:" items for uninstallation won't undo any previous configuration. It has the same effect as unselecting it.
