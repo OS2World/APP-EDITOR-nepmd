@@ -163,7 +163,7 @@
      ><TINCLUDE name="..\nls\wis\desc_base_%NLS%.xml"/></PCK>
 
 <PCK INDEX=2
-     PACKAGEID="Netlabs\Netlabs EPM Distribution\Recompilation Package\%ID_VERSION_NEPMD%"
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Recompilation package\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
@@ -176,7 +176,7 @@
      ><TINCLUDE name="..\nls\wis\desc_recompile_%NLS%.xml"/></PCK>
 
 <PCK INDEX=3
-     PACKAGEID="Netlabs\Netlabs EPM Distribution\Programming Samples\%ID_VERSION_NEPMD%"
+     PACKAGEID="Netlabs\Netlabs EPM Distribution\Programming samples\%ID_VERSION_NEPMD%"
      TARGET="$(1)"
      REQUIRES="1"
      SELECT
