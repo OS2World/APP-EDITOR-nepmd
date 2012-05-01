@@ -74,7 +74,7 @@ ErrorTitle = 'Netlabs EPM Distribution Installation'
 fNepmd     = FALSE
 fUninstall = FALSE
 fIcons     = FALSE
-fSafe      = FALSE
+fMvUser    = FALSE
 fColors    = FALSE
 fAssocs    = FALSE
 ARG UpArgs
