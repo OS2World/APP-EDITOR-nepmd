@@ -210,7 +210,7 @@ definit
    call SetAVar( 'definedsubmenus', 'file edit mark format search view options run project help' ||
                     /* File */      ' openfolder fileproperties' ||
                     /* Edit */      ' recordkeys spellcheck' ||
-                    /* Mark */      ' markatcursor' ||
+                    /* Mark */      ' createmark' ||
                     /* Format */    ' reflowmark reflowoptions reflowmargins' ||
                     /* Search */    ' goto markstack cursorstack bookmarks' ||
                     /* View */      ' menu infobars toolbar toolbarstyle backgroundbitmap' ||
@@ -1073,6 +1073,64 @@ defproc add_mark_menu(menuname)
    buildsubmenu  menuname, mid, '~Mark',                                                           -- Mark -----------
                                 \1'Menus related to basic mark operations',
                                 0, 0  -- MIS must be 0 for submenu
+   i = i + 1; call SetAVar( 'mid_createmark', i);
+   buildmenuitem menuname, mid, i, 'Create Mar~k',                                                 -- Create mark   >
+                                   '' ||
+                                   \1'Mark text at cursor position in different ways',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_markchars', i);
+   buildmenuitem menuname, mid, i, 'Mark ~chars'\9 || ALT_KEY__MSG'+Z',                                  -- Mark chars
+                                   'MarkChar' ||
+                                   \1'Create a char mark between two cursor positions',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_markblock', i);
+   buildmenuitem menuname, mid, i, 'Mark ~block'\9 || ALT_KEY__MSG'+B',                                  -- Mark block
+                                   'MarkBlock' ||
+                                   \1'Create a block mark between two cursor positions',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_marklines', i);
+   buildmenuitem menuname, mid, i, 'Mark ~lines'\9 || ALT_KEY__MSG'+L',                                  -- Mark lines
+                                   'MarkLine' ||
+                                   \1'Create a line mark between two cursor positions',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_markword', i);
+   buildmenuitem menuname, mid, i, 'Mark ~word'\9 || ALT_KEY__MSG'+W',                                   -- Mark word
+                                   'MarkWord' ||
+                                   \1'Mark word under cursor',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_marktoken', i);
+   buildmenuitem menuname, mid, i, 'Mark ~identifier'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+W',            -- Mark identifier
+                                   'MarkToken' ||
+                                   \1'Mark identifier (C-style word) under cursor',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_marksentence', i);
+   buildmenuitem menuname, mid, i, 'Mark ~sentence'\9,                                                   -- Mark sentence
+                                   'MarkSentence' ||
+                                   \1'Mark sentence around mouse pointer',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_extendsentence', i);
+   buildmenuitem menuname, mid, i, '~Extend sentence'\9,                                                 -- Extend sentence
+                                   'ExtendSentence' ||
+                                   \1'Extend character mark through end of next sentence',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_markparagraph', i);
+   buildmenuitem menuname, mid, i, 'Mark ~paragraph'\9,                                                  -- Mark paragraph
+                                   'MarkParagraph' ||
+                                   \1'Mark paragraph around mouse pointer',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_extendparagraph', i);
+   buildmenuitem menuname, mid, i, 'E~xtend paragraph'\9,                                                -- Extend paragraph
+                                   'ExtendParagraph' ||
+                                   \1'Extend character mark through end of next paragraph',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_copy', i);
    if GetKeyDef() = '-none-' then
       KeyString = \9''CTRL_KEY__MSG'+'INSERT_KEY__MSG
@@ -1140,64 +1198,6 @@ defproc add_mark_menu(menuname)
                                    MIS_TEXT, mpfrom2short(HP_EDIT_ADJUST, 0)
 ;   endif
 
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_markatcursor', i);
-   buildmenuitem menuname, mid, i, 'Mar~k at cursor',                                              -- Mark   >
-                                   '' ||
-                                   \1'Mark text at cursor position in different ways',
-                                   MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1; call SetAVar( 'mid_markchars', i);
-   buildmenuitem menuname, mid, i, 'Mark ~chars'\9 || ALT_KEY__MSG'+Z',                                  -- Mark chars
-                                   'MarkChar' ||
-                                   \1'Create a char mark between two cursor positions',
-                                   MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_markblock', i);
-   buildmenuitem menuname, mid, i, 'Mark ~block'\9 || ALT_KEY__MSG'+B',                                  -- Mark block
-                                   'MarkBlock' ||
-                                   \1'Create a block mark between two cursor positions',
-                                   MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_marklines', i);
-   buildmenuitem menuname, mid, i, 'Mark ~lines'\9 || ALT_KEY__MSG'+L',                                  -- Mark lines
-                                   'MarkLine' ||
-                                   \1'Create a line mark between two cursor positions',
-                                   MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_markword', i);
-   buildmenuitem menuname, mid, i, 'Mark ~word'\9 || ALT_KEY__MSG'+W',                                   -- Mark word
-                                   'MarkWord' ||
-                                   \1'Mark word under cursor',
-                                   MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_marktoken', i);
-   buildmenuitem menuname, mid, i, 'Mark ~identifier'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+W',            -- Mark identifier
-                                   'MarkToken' ||
-                                   \1'Mark identifier (C-style word) under cursor',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_marksentence', i);
-   buildmenuitem menuname, mid, i, 'Mark ~sentence'\9,                                                   -- Mark sentence
-                                   'MarkSentence' ||
-                                   \1'Mark sentence around mouse pointer',
-                                   MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_extendsentence', i);
-   buildmenuitem menuname, mid, i, '~Extend sentence'\9,                                                 -- Extend sentence
-                                   'ExtendSentence' ||
-                                   \1'Extend character mark through end of next sentence',
-                                   MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_markparagraph', i);
-   buildmenuitem menuname, mid, i, 'Mark ~paragraph'\9,                                                  -- Mark paragraph
-                                   'MarkParagraph' ||
-                                   \1'Mark paragraph around mouse pointer',
-                                   MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_extendparagraph', i);
-   buildmenuitem menuname, mid, i, 'E~xtend paragraph'\9,                                                -- Extend paragraph
-                                   'ExtendParagraph' ||
-                                   \1'Extend character mark through end of next paragraph',
-                                   MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
@@ -3428,7 +3428,7 @@ defc menuinit_mark
    call update_paste_menu_text()
    call update_mark_menu_text()
 
-defc menuinit_markatcursor
+defc menuinit_createmark
    universal CUA_marking_switch
    on = (FileIsMarked() & marktype() = 'CHAR' & not CUA_marking_switch)
    SetMenuAttribute( GetAVar('mid_extendsentence'),  MIA_DISABLED, on)
