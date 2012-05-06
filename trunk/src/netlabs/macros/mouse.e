@@ -175,8 +175,8 @@ defproc MouseLineColOff( var MouseLine, var MouseCol, var MouseOff, minline)
 defc ShowCoord
    -- .cursorx is = .col for x-scroll = 0
    -- .cursory is 0 when cursor is on the first (topmost) visible line of the
-   -- edit window. .cursory is = .windowheight on the lowest visible line of
-   -- the edit window. It can also get < 0 and > .windowheight. That means
+   -- edit window. .cursory is = .windowheight on the bottommost visible line
+   -- of the edit window. It can also get < 0 and > .windowheight. That means
    -- that the cursor's column is outside of the visible area.
    dprintf( 'psave_pos:')
    dprintf( '   .line = '.line', .col = '.col', .cursorx = '.cursorx', .cursory = '.cursory)
@@ -775,14 +775,14 @@ defc StartBrowser
 ; ---------------------------------------------------------------------------
 const
 compile if not defined( VALIDATE_HTML_UPLOAD)
-   VALIDATE_HTML_UPLOAD='http://validator.w3.org/file-upload.html'
+   VALIDATE_HTML_UPLOAD='http://validator.w3.org/#validate_by_upload+with_options'
 compile endif
 ;compile if not defined( VALIDATE_HTML_CHECK)
 ;   -- file uris aren't accepted:
 ;   VALIDATE_HTML_CHECK='http://validator.w3.org/check?uri=file:///'
 ;compile endif
 compile if not defined( VALIDATE_CSS_UPLOAD)
-   VALIDATE_CSS_UPLOAD='http://jigsaw.w3.org/css-validator/validator-upload'
+   VALIDATE_CSS_UPLOAD='http://jigsaw.w3.org/css-validator/#validate_by_upload+with_options'
 compile endif
 
 ; ---------------------------------------------------------------------------
