@@ -211,7 +211,7 @@ definit
                     /* File */      ' openfolder fileproperties' ||
                     /* Edit */      ' recordkeys spellcheck' ||
                     /* Mark */      ' markatcursor' ||
-                    /* Format */    ' reflowmargins reflow' ||
+                    /* Format */    ' reflowmark reflowoptions reflowmargins' ||
                     /* Search */    ' goto markstack cursorstack bookmarks' ||
                     /* View */      ' menu infobars toolbar toolbarstyle backgroundbitmap' ||
                     /* Options */   ' editoptions saveoptions searchoptions' ||
@@ -1238,7 +1238,117 @@ defproc add_format_menu(menuname)
    buildsubmenu  menuname, mid, 'Form~at',                                                         -- Format ---------
                                 \1'Menus related to formatting operations',
                                 0, 0  -- MIS must be 0 for submenu
-   i = i + 1; call SetAVar( 'mid_reflowmargins', i); call SetAVar( 'mtxt_reflowmargins', 'Reflow-margins []');
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Wrap lin~e',                                                   -- Wrap line   >
+                                   \1'Reformat all: add line breaks',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Split line'\9 || ALT_KEY__MSG'+S',                                  -- Split line
+                                   'SplitLines' ||
+                                   \1'Split current line at cursor, keep indent',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Join line'\9 || ALT_KEY__MSG'+J',                                   -- Join line
+                                   'JoinLines' ||
+                                   \1'Join current line with next line, respect right margin',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, '~Wrap all',                                                    -- Wrap all   >
+                                   \1'Reformat all: add line breaks',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'To reflow-margins, ~keep indent',
+                                   'Wrap KEEPINDENT' ||                                                  -- To reflow-margins, keep indent
+                                   \1'Wrap lines at reflow-margins, keep indent of line above',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'To reflow-margins, s~plit',
+                                   'Wrap SPLIT' ||                                                       -- To reflow-margins, split
+                                   \1'Wrap lines at reflow-margins, split only',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_reflowmark', i);
+   buildmenuitem menuname, mid, i, 'Reflow mar~k',                                                 -- Reflow mark   >
+                                   '' ||
+                                   \1'Reformat mark',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_reflowmarktoreflowmargins', i);
+   buildmenuitem menuname, mid, i, 'To reflow-margins'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+P',           -- To reflow-margins
+                                   'ReflowMark2Reflowmargins' ||
+                                   \1'Reformat mark to reflow-margins',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_reflowblock', i);
+   buildmenuitem menuname, mid, i, '~Block'\9 || ALT_KEY__MSG'+R',                                       -- Block
+                                   'ReflowBlock' ||
+                                   \1'Mark lines or block first, then mark new block size',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_reflowpar', i);
+   buildmenuitem menuname, mid, i, 'Reflow ~par',                                                  -- Reflow par   >
+                                   '' ||
+                                   \1'Reformat paragraph',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_reflowpartoreflowmargins', i);
+   buildmenuitem menuname, mid, i, 'To reflowmargins'\9 || ALT_KEY__MSG'+P',                             -- To reflowmargins
+                                   'Flow' reflowmargins ||
+                                   \1'Reformat lines from cursor to par end',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_reflowall', i);
+   buildmenuitem menuname, mid, i, '~Reflow all',                                                  -- Reflow all   >
+                                   '' ||
+                                   \1'Reformat paragraph',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'To ~reflow-margins'\9 || CTRL_KEY__MSG'+P',                          -- To reflow-margins
+                                   'ReflowAll2Reflowmargins' ||
+                                   \1'Reformat all to reflow-margins',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Mai~l',                                                              -- Mail
+                                   'ReflowMail' ||
+                                   \1'Reformat current email',
+                                   MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Word pro~cessor',                                                    -- Word processor
+                                   'WordProc' ||
+                                   \1'Rejoin lines to prepare for export to a word processor',
+                                   MIS_TEXT + MIS_ENDSUBMENU, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                             --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
+   i = i + 1; call SetAVar( 'mid_reflowoptions', i);
+   buildmenuitem menuname, mid, i, 'Reflow ~options',                                              -- Reflow options   >
+                                   \1'Options for wrap and reflow actions',
+                                   MIS_TEXT + MIS_SUBMENU, 0
+   i = i + 1; call SetAVar( 'mid_twospaces', i);
+   buildmenuitem menuname, mid, i, '~Two spaces',                                                        -- Two spaces
+                                   'Toggle_Two_Spaces' ||
+                                   \1'Put 2 spaces after periods etc.',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_mailindentedlines', i);
+   buildmenuitem menuname, mid, i, 'Mail: reflow ~indented lines',                                       -- Mail: reflow indented lines
+                                   'Toggle_Mail_Indented' ||
+                                   \1'Include indented lines',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_mailindentlists', i);
+   buildmenuitem menuname, mid, i, 'Mail: indent ~list items',                                           -- Mail: indent list items
+                                   'Toggle_Mail_Indent_Lists' ||
+                                   \1'Indent lines of list items',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_reflownext', i);
+   buildmenuitem menuname, mid, i, 'Reflow ne~xt',                                                       -- Reflow next
+                                   'Toggle_Reflow_Next' ||
+                                   \1'Move cursor to next par after reflow',
+                                   MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_joinafterwrap', i);
+   buildmenuitem menuname, mid, i, '~Join after wrap',                                                   -- Join after wrap
+                                   'Toggle_Join_After_Wrap' ||
+                                   \1'Join next line with wrapped part',
+                                   MIS_TEXT + MIS_ENDSUBMENU, nodismiss
+   i = i + 1; call SetAVar( 'mid_reflowmargins', i); call SetAVar( 'mtxt_reflowmargins', 'Reflow-mar~gins []');
    buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins'),                                 -- Reflow-margins   >
                                    \1'Margins/right margin for wrap and reflow actions',
                                    MIS_TEXT + MIS_SUBMENU, 0
@@ -1267,151 +1377,7 @@ defproc add_format_menu(menuname)
                                    \1'Configure selected reflow-margins item...',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Wrap',                                                        -- Wrap   >
-                                   \1'Reformat all: add line breaks',
-                                   MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'All to reflow-margins, ~keep indent',
-                                   'Wrap KEEPINDENT' ||                                                  -- All to reflow-margins, keep indent
-                                   \1'Wrap lines at reflow-margins, keep indent of line above',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'All to reflow-margins, s~plit',
-                                   'Wrap SPLIT' ||                                                       -- All to reflow-margins, split
-                                   \1'Wrap lines at reflow-margins, split only',
-                                   MIS_TEXT, 0
-   i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Split line'\9 || ALT_KEY__MSG'+S',                                  -- Split line
-                                   'SplitLines' ||
-                                   \1'Split current line at cursor, keep indent',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Join line'\9 || ALT_KEY__MSG'+J',                                   -- Join line
-                                   'JoinLines' ||
-                                   \1'Join current line with next line, respect right margin',
-                                   MIS_TEXT + MIS_ENDSUBMENU, 0
-   i = i + 1; call SetAVar( 'mid_reflow', i);
-   buildmenuitem menuname, mid, i, 'Re~flow',                                                      -- Reflow   >
-                                   '' ||
-                                   \1'Reformat paragraph, mark or all',
-                                   MIS_TEXT + MIS_SUBMENU, 0
-/*
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Par to reflowmargins',                                               -- Par to reflowmargins
-                                   'Flow' reflowmargins ||
-                                   \1'Reformat lines from cursor to par end',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Par to margins...',                                                  -- Par to margins...
-                                   'Commandline Flow' reflowmargins ||
-                                   \1'Reformat lines from cursor to par end, enter margins',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-*/
-   i = i + 1; call SetAVar( 'mid_reflowpartoreflowmargins', i); call SetAVar( 'mtxt_reflowpartoreflowmargins', 'Par to reflow-margins'\9 || ALT_KEY__MSG'+P');
-   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_reflowpartoreflowmargins'),                            -- Mark/Par to reflow-margins
-                                   'ReflowPar2Reflowmargins' ||
-                                   \1'Reformat mark or paragraph to reflow-margins',
-                                   MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_reflowpartomargins', i); call SetAVar( 'mtxt_reflowpartomargins', 'Par to margins'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+P');
-   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_reflowpartomargins*'),                                 -- Mark/Par to margins
-                                   'ReflowPar' ||
-                                   \1'Reformat mark or paragraph to fit the current margins',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'All to ~reflow-margins'\9 || CTRL_KEY__MSG'+P',                      -- All to reflow-margins
-                                   'ReflowAll2Reflowmargins' ||
-                                   \1'Reformat all to reflow-margins',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'All to ~margins'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+P',            -- All to margins
-                                   'ReflowAll' ||
-                                   \1'Reformat all to fit the current margins',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_reflowblock', i);
-   buildmenuitem menuname, mid, i, '~Block'\9 || ALT_KEY__MSG'+R',                                       -- Block
-                                   'ReflowBlock' ||
-                                   \1'Mark lines or block first, then mark new block size',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Par to ~window',                                                     -- Par to window
-                                   'Reflow' ||
-                                   \1'Reformat paragraph to fit the current window',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Par to si~ze...',                                                    -- Par to size...
-                                   'Reflow *' ||
-                                   \1'Reformat paragraph, prompt for a size',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Par to last ~size',                                                  -- Par to last size
-                                   'Reflow =' ||
-                                   \1'Reformat paragraph, use last specified size',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Mai~l (all)',                                                        -- Mail (all)
-                                   'ReflowMail' ||
-                                   \1'Reformat current email',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, 'Wordpro~c (all)',                                                    -- Wordproc (all)
-                                   'WordProc' ||
-                                   \1'Rejoin lines to prepare for export to a word processor',
-                                   MIS_TEXT, 0
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
-                                   '',
-                                   MIS_SEPARATOR, 0
-   i = i + 1; call SetAVar( 'mid_twospaces', i);
-   buildmenuitem menuname, mid, i, '~Two spaces',                                                        -- Two spaces
-                                   'Toggle_Two_Spaces' ||
-                                   \1'Put 2 spaces after periods etc.',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_mailindentedlines', i);
-   buildmenuitem menuname, mid, i, 'Mail: reflow ~indented lines',                                       -- Mail: reflow indented lines
-                                   'Toggle_Mail_Indented' ||
-                                   \1'Include indented lines',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_mailindentlists', i);
-   buildmenuitem menuname, mid, i, 'Mail: indent ~list items',                                           -- Mail: indent list items
-                                   'Toggle_Mail_Indent_Lists' ||
-                                   \1'Indent lines of list items',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_reflownext', i);
-   buildmenuitem menuname, mid, i, 'Reflow ne~xt',                                                       -- Reflow next
-                                   'Toggle_Reflow_Next' ||
-                                   \1'Move cursor to next par after reflow',
-                                   MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_joinafterwrap', i);
-   buildmenuitem menuname, mid, i, '~Join after wrap',                                                   -- Join after wrap
-                                   'Toggle_Join_After_Wrap' ||
-                                   \1'Join next line with wrapped part',
-                                   MIS_TEXT + MIS_ENDSUBMENU, nodismiss
-   i = i + 1;
-   buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_moreformatting', i);
@@ -3487,6 +3453,29 @@ defc menuinit_format
    parse value GetAVar('mtxt_reflowmargins') with next'['x']'rest
    SetMenuText( GetAVar('mid_reflowmargins'), next'['reflowmargins']'rest)
 
+defc menuinit_reflowmark
+   fMarked = FileIsMarked()
+   SetMenuAttribute( GetAVar('mid_reflowmarktoreflowmargins'), MIA_DISABLED, fMarked)
+   SetMenuAttribute( GetAVar('mid_reflowpartoreflowmargins'),  MIA_DISABLED, fMarked)
+   SetMenuAttribute( GetAVar('mid_reflowblock'),               MIA_DISABLED, fMarked)
+
+defc menuinit_reflowoptions
+   universal twospaces
+   universal join_after_wrap
+   universal nepmd_hini
+
+   SetMenuAttribute( GetAVar('mid_twospaces'),         MIA_CHECKED, not twospaces)
+   KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_mailindentedlines'), MIA_CHECKED, not on)
+   KeyPath = '\NEPMD\User\Reflow\Mail\IndentLists'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_mailindentlists'),   MIA_CHECKED, not on)
+   KeyPath = '\NEPMD\User\Reflow\Next'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_reflownext'),        MIA_CHECKED, not on)
+   SetMenuAttribute( GetAVar('mid_joinafterwrap'),     MIA_CHECKED, not join_after_wrap)
+
 defc menuinit_reflowmargins
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Reflow\Margins1'
@@ -3507,37 +3496,6 @@ defc menuinit_reflowmargins
    SetMenuAttribute( GetAVar('mid_reflowmargins1'), MIA_CHECKED, not (i = 1))
    SetMenuAttribute( GetAVar('mid_reflowmargins2'), MIA_CHECKED, not (i = 2))
    SetMenuAttribute( GetAVar('mid_reflowmargins3'), MIA_CHECKED, not (i = 3))
-
-defc menuinit_reflow
-   universal twospaces
-   universal join_after_wrap
-   universal nepmd_hini
-
-   SetMenuAttribute( GetAVar('mid_twospaces'),         MIA_CHECKED, not twospaces)
-   KeyPath = '\NEPMD\User\Reflow\Mail\IndentedLines'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_mailindentedlines'), MIA_CHECKED, not on)
-   KeyPath = '\NEPMD\User\Reflow\Mail\IndentLists'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_mailindentlists'),   MIA_CHECKED, not on)
-   KeyPath = '\NEPMD\User\Reflow\Next'
-   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   SetMenuAttribute( GetAVar('mid_reflownext'),        MIA_CHECKED, not on)
-   SetMenuAttribute( GetAVar('mid_joinafterwrap'),     MIA_CHECKED, not join_after_wrap)
-
-   if FileIsMarked() then
-      text = 'Mark'
-   else
-      text = 'Par'
-   endif
-   parse value GetAVar('mtxt_reflowpartoreflowmargins') with next rest
-   SetMenuText( GetAVar('mid_reflowpartoreflowmargins'), text rest)
-   parse value GetAVar('mtxt_reflowpartomargins*') with next rest
-   SetMenuText( GetAVar('mid_reflowpartomargins*'), text rest)
-   parse value GetAVar('mtxt_reflowpartomargins') with next rest
-   SetMenuText( GetAVar('mid_reflowpartomargins'), text rest)
-
-   SetMenuAttribute( GetAVar('mid_reflowblock'), MIA_DISABLED, FileIsMarked())
 
 defc menuinit_recordkeys
    recordmode = windowmessage( 1, getpminfo(EPMINFO_EDITCLIENT),
@@ -3881,7 +3839,6 @@ defc menuinit_backup
    new = GetBackupDir()
    parse value GetAVar('mtxt_backupdirdialog') with next'['x']'rest
    SetMenuText( GetAVar('mid_backupdirdialog'), next'['new']'rest)
-
 
 defc menuinit_workdir
    universal nepmd_hini

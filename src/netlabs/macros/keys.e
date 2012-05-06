@@ -1897,7 +1897,7 @@ defc MarkChar
       unmark
    endif
    mark_char
-   'Copy2SharBuff'       /* Copy mark to shared text buffer */
+   'Copy2SharBuff'       -- Copy mark to shared text buffer
 
 defc HighlightCursor
    circleit 5, .line, .col - 1, .col + 1, 16777220
@@ -1910,10 +1910,10 @@ defc TypeDateTime  -- Type the current date and time
    call NextCmdAltersText()
    call Process_Keys( DateTime())
 
-defc select_all =
+defc select_all, SelectAll
    getfileid fid
-   call pset_mark(1, .last, 1, length(textline(.last)), 'CHAR' , fid)
-   'Copy2SharBuff'       /* Copy mark to shared text buffer */
+   call pset_mark( 1, .last, 1, length( textline( .last)), 'CHAR' , fid)
+   'Copy2SharBuff'       -- Copy mark to shared text buffer
 
 defc ReflowAll2ReflowMargins
    universal reflowmargins
@@ -1923,42 +1923,108 @@ defc ReflowAll2ReflowMargins
 defc reflow_all, ReflowAll
    call NextCmdAltersText()
    saved_margins = .margins
-   if arg(1) > '' then
+   if arg(1) <> '' then
       .margins = arg(1)
    endif
-   call psave_mark(savemark)
-   call psave_pos(savepos)
+   call psave_mark( savemark)
+   call psave_pos( savepos)
    display -1
-   stopit = 0
+   fstopit = 0
    top
    do forever
       getline line
-      do while line='' |                              -- Skip over blank lines or
-               (lastpos(':',line)=1 & pos('.',line)=length(line)) |  -- lines containing only a GML tag or
-               substr(line,1,1)='.'                                  -- SCRIPT commands
-         if .line=.last then stopit=1; leave; endif
+      do while line = '' |                              -- Skip over blank lines or
+               (lastpos( ':', line) = 1 & pos( '.', line) = length( line)) |  -- lines containing only a GML tag or
+               substr( line, 1, 1) = '.'                                      -- SCRIPT commands
+         if .line = .last then
+            fstopit = 1
+            leave
+         endif
          down
          getline line
       enddo
-      if stopit then leave; endif
+      if fstopit then
+         leave
+      endif
       startline = .line
-      unmark; mark_line
+      unmark
+      mark_line
       call pfind_blank_line()
-      if .line<>startline then
+      if .line <> startline then
          up
       else
          bottom
       endif
       mark_line
       reflow
-      getmark firstline,lastline
-      if lastline=.last then leave; endif
-      lastline+1
+      getmark firstline, lastline
+      if lastline = .last then
+         leave
+      endif
+      lastline + 1
    enddo
    display 1
-   call prestore_mark(savemark)
-   call prestore_pos(savepos)
-   if arg(1) > '' then
+   call prestore_mark( savemark)
+   call prestore_pos( savepos)
+   if arg(1) <> '' then
+      .margins = saved_margins
+   endif
+
+; Changed: split ReflowPar into ReflowMark and ReflowPar.
+
+defc ReflowMark2ReflowMargins
+   universal reflowmargins
+   'ReflowMark' reflowmargins
+
+; Syntax: ReflowMark [<margins>]
+defc ReflowMark
+
+   mt = strip( substr( marktype(), 1, 1))
+   if mt = '' then
+      sayerror NO_MARK__MSG
+      stop
+   endif
+
+   getmark firstline, lastline, firstcol, lastcol, fid
+   getfileid curfid
+   if curfid <> fid then
+      unmark
+      sayerror MARKED_OTHER__MSG
+      stop
+   endif
+
+   if not check_mark_on_screen() then
+      sayerror MARK_OFF_SCREEN__MSG
+      stop
+   endif
+
+   saved_margins = .margins
+   if arg(1) <> '' then
+      .margins = arg(1)
+   endif
+   call NextCmdAltersText()
+   display -1
+
+   if mt = 'C' then
+      -- Change to line mark
+      if lastCol = 0 then
+         lastLine = lastLine - 1
+      endif
+      firstcol = 1
+      lastcol = MAXCOL
+      unmark
+      call pset_mark( firstline, lastline, firstcol, lastcol, 'LINE', fid)
+      mt = 'L'
+   endif
+
+   if mt = 'B' then
+      'box r'
+   elseif mt = 'L' then
+      reflow
+   endif
+
+   display 1
+   if arg(1) <> '' then
       .margins = saved_margins
    endif
 
@@ -1967,49 +2033,19 @@ defc ReflowPar2ReflowMargins
    'ReflowPar' reflowmargins
 
 ; Syntax: ReflowPar [<margins>]
+; Ignores mark. To reflow a marked area, use ReflowMark.
 defc ReflowPar
-   /* Protect the user from accidentally reflowing a marked  */
-   /* area not in the current file, and give a good message. */
-   mt = substr( marktype(), 1, 1)
-;  if mt = 'B' or mt = 'L' then
-   if mt > '' then
-      getmark firstline, lastline, firstcol, lastcol, markfileid
-      getfileid fileid
-      if fileid <> markfileid then
-;        sayerror CANT_REFLOW__MSG'  'OTHER_FILE_MARKED__MSG
-;        return
-         unmark
-         sayerror MARKED_OTHER__MSG
-         mt = ''
-      endif
-   endif
-
-   if mt <> ' ' then
-      if not check_mark_on_screen() then
-         sayerror MARK_OFF_SCREEN__MSG
-         stop
-      endif
-   endif
-
    saved_margins = .margins
-   if arg(1) > '' then
+   if arg(1) <> '' then
       .margins = arg(1)
    endif
    call NextCmdAltersText()
    display -1
 
-   if mt = 'B' then
-      'box r'
-   elseif mt = 'C' then
-      sayerror WRONG_MARK__MSG
-   elseif mt = 'L' then
-      reflow
-   else  -- Standard text reflow split into a separate routine.
-      call text_reflow()
-   endif
+   call text_reflow()
 
    display 1
-   if arg(1) > '' then
+   if arg(1) <> '' then
       .margins = saved_margins
    endif
 
