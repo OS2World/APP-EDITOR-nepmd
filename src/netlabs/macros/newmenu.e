@@ -3456,7 +3456,6 @@ defc menuinit_format
 defc menuinit_reflowmark
    fMarked = FileIsMarked()
    SetMenuAttribute( GetAVar('mid_reflowmarktoreflowmargins'), MIA_DISABLED, fMarked)
-   SetMenuAttribute( GetAVar('mid_reflowpartoreflowmargins'),  MIA_DISABLED, fMarked)
    SetMenuAttribute( GetAVar('mid_reflowblock'),               MIA_DISABLED, fMarked)
 
 defc menuinit_reflowoptions
