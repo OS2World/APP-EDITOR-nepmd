@@ -22,7 +22,7 @@
 #
 # ***************************************************************************
 -->
-This package resets the color palette that is used for keyword highlighting to NEPMD colors.
+This package resets the color palette which is used for keyword highlighting to NEPMD colors.
 
 Disable this item if you want to keep the current color palette active.
 
