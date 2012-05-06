@@ -171,10 +171,9 @@ DefKey( 's_esc'        , 'Ring_More'       )    -- Open a dialog to select a fil
 ; ---- Reflow ----
 DefKey( 'a_j'          , 'JoinLines'       )    -- Join current with next line
 DefKey( 'a_s'          , 'SplitLines'      )    -- Split line at cursor pos., keeping the indent
-DefKey( 'a_p'          , 'ReflowPar2ReflowMargins')   -- Reflow current mark or paragraph, starting at cursor, using reflowmargins
-DefKey( 'a_s_p'        , 'ReflowPar'       )          -- Reflow current mark or paragraph, starting at cursor, using current margins
+DefKey( 'a_p'          , 'ReflowPar2ReflowMargins')   -- Reflow current paragraph, starting at cursor, using reflowmargins
+DefKey( 'a_s_p'        , 'ReflowMark2ReflowMargins')  -- Reflow current mark, using reflowmargins
 DefKey( 'c_p'          , 'ReflowAll2ReflowMargins')   -- Reflow all, starting at cursor, using  reflowmargins
-DefKey( 'c_s_p'        , 'ReflowAll'       )          -- Reflow all, starting at cursor, using current margins
 DefKey( 'a_r'          , 'ReflowBlock'     )    -- Reflow marked block to a new block size
 
 ; ---- Case ----
