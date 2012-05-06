@@ -22,6 +22,40 @@
 ; Commands/procedures to communicate with the WPS
 
 ; ---------------------------------------------------------------------------
+; 1. SET RUNWORKPLACE=X:\OS2\PMSHELL.EXE
+;       WORKPLACE__PROCESS=NO
+;       WORKPLACE_PROCESS=
+; 2. SET RUNWORKPLACE=X:\OS2\CMD.EXE or
+;    SET RUNWORKPLACE=X:\OS2\EPM.EXE /m
+;       WORKPLACE__PROCESS=
+;       WORKPLACE_PROCESS=YES
+; => WORKPLACE__PROCESS=NO is set when the WPS is running.
+; List of all WPS env vars:
+;    WORKPLACE__PROCESS=NO
+;    WORKPLACE_PRIMARY_CP=?
+;    WORKPLACE_NATIVE=0
+defc CheckWps
+   universal WpsStarted
+
+   WORKPLACE_PROCESS  = Get_Env( 'WORKPLACE_PROCESS')
+   WORKPLACE__PROCESS = Get_Env( 'WORKPLACE__PROCESS')
+   --dprintf( 'WORKPLACE__PROCESS = 'Get_Env( WORKPLACE__PROCESS))
+
+   if WORKPLACE__PROCESS = 'NO' then
+      WpsStarted = 1
+   elseif WORKPLACE_PROCESS = 'YES' then
+      WpsStarted = 0
+   elseif WORKPLACE_PROCESS = '' & WORKPLACE__PROCESS = '' then
+      -- This happens when the system runs out of Shared Mem.
+      -- An EPM or WPS restart cures it then.
+      RunWorkplace = Get_Env( 'RUNWORKPLACE')
+      p1 = lastpos( '\', RunWorkplace)
+      next = substr( RunWorkplace, p1 + 1)
+      parse value next with next '.' .
+      WpsStarted = (upcase( next) = 'PMSHELL')
+   endif
+
+; ---------------------------------------------------------------------------
 ; Opens the location of the current file as a WPS folder.
 ; arg(1) = setup string for the folder.
 ; Notes for the current version:
@@ -31,14 +65,14 @@
 ;    -  If no setup string is specified, the folder will open in it's
 ;       default view.
 defc OpenFolder
-   SetupString = strip( arg(1) )
+   SetupString = strip( arg(1))
    if SetupString = '' then
       SetupString = 'OPEN=DEFAULT'
    endif
    Dir = ''
 
    if IsAShell() then
-      call psave_pos(save_pos)
+      call psave_pos( save_pos)
       -- search (reverse) in command shell window for the prompt and
       -- retrieve the current directory
       -- goto previous prompt line
@@ -49,7 +83,7 @@ defc OpenFolder
          call ShellParsePromptLine( ShellDir, Cmd)
       endif
       Dir = ShellDir
-      call prestore_pos(save_pos)
+      call prestore_pos( save_pos)
    elseif subword( .filename, 1, 2) = '.DOS dir' then
       Dir = subword( .filename, 3)
    endif
@@ -109,7 +143,7 @@ defc OpenSettings
    SetupString = 'OPEN=SETTINGS'
    Filename = arg(1)
    if leftstr( Filename, 1) = '"' & rightstr( Filename, 1) = '"' then
-      Filename = substr( Filename, 2 length(Filename) - 2)
+      Filename = substr( Filename, 2, length(Filename) - 2)
    endif
    if Filename = '' then
       Filename = .filename
@@ -164,9 +198,11 @@ defc SelectAssoc
                      '/~Prepend/~Append/~Remove/Cancel',           -- buttons
                      0, 0,  --5, 5,           -- top, left,
                      min( NumItems, 15), 50,  -- height, width
-                     gethwnd(APP_HANDLE) || atoi(DefaultItem) ||
-                     atoi(DefaultButton) || atoi(HelpId) ||
-                     Text\0 )
+                     gethwnd( APP_HANDLE) ||
+                     atoi( DefaultItem)   ||
+                     atoi( DefaultButton) ||
+                     atoi( HelpId)        ||
+                     Text\0)
    refresh
 
    -- Check result
@@ -190,15 +226,15 @@ defc AssocsMsgBox
    Text = ''
 
    if Action = 'PREPEND' then
-      verb = 'prepending'
+      verb = 'prepending associations'
    elseif Action = 'APPEND' then
-      verb = 'appending'
+      verb = 'appending associations'
    elseif Action = 'REMOVE' then
-      verb = 'removing'
+      verb = 'removing associations'
    else
       verb = '<unknown action>'
    endif
-   Text = Text || 'Result of 'verb' associations for 'ListItem':'\n\n
+   Text = Text || 'Result of 'verb' for 'ListItem':'\n\n
    Text = Text || 'Changed objects:'\n
    rest = Objects
    do while rest <> ''
