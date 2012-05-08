@@ -1257,14 +1257,14 @@ defproc add_format_menu(menuname)
                                    \1'Reformat all: add line breaks',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'To reflow-margins, ~keep indent',
-                                   'Wrap KEEPINDENT' ||                                                  -- To reflow-margins, keep indent
-                                   \1'Wrap lines at reflow-margins, keep indent of line above',
+   buildmenuitem menuname, mid, i, 'To reflow margins, ~keep indent',
+                                   'Wrap KEEPINDENT' ||                                                  -- To reflow margins, keep indent
+                                   \1'Wrap lines at reflow margins, keep indent of line above',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'To reflow-margins, s~plit',
-                                   'Wrap SPLIT' ||                                                       -- To reflow-margins, split
-                                   \1'Wrap lines at reflow-margins, split only',
+   buildmenuitem menuname, mid, i, 'To reflow margins, s~plit',
+                                   'Wrap SPLIT' ||                                                       -- To reflow margins, split
+                                   \1'Wrap lines at reflow margins, split only',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
@@ -1276,9 +1276,9 @@ defproc add_format_menu(menuname)
                                    \1'Reformat mark',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_reflowmarktoreflowmargins', i);
-   buildmenuitem menuname, mid, i, 'To reflow-margins'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+P',           -- To reflow-margins
+   buildmenuitem menuname, mid, i, 'To reflow margins'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+P',           -- To reflow margins
                                    'ReflowMark2Reflowmargins' ||
-                                   \1'Reformat mark to reflow-margins',
+                                   \1'Reformat mark to reflow margins',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_reflowblock', i);
    buildmenuitem menuname, mid, i, '~Block'\9 || ALT_KEY__MSG'+R',                                       -- Block
@@ -1291,7 +1291,7 @@ defproc add_format_menu(menuname)
                                    \1'Reformat paragraph',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_reflowpartoreflowmargins', i);
-   buildmenuitem menuname, mid, i, 'To reflowmargins'\9 || ALT_KEY__MSG'+P',                             -- To reflowmargins
+   buildmenuitem menuname, mid, i, 'To reflow margins'\9 || ALT_KEY__MSG'+P',                            -- To reflow margins
                                    'Flow' reflowmargins ||
                                    \1'Reformat lines from cursor to par end',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -1301,9 +1301,9 @@ defproc add_format_menu(menuname)
                                    \1'Reformat paragraph',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'To ~reflow-margins'\9 || CTRL_KEY__MSG'+P',                          -- To reflow-margins
+   buildmenuitem menuname, mid, i, 'To ~reflow margins'\9 || CTRL_KEY__MSG'+P',                          -- To reflow margins
                                    'ReflowAll2Reflowmargins' ||
-                                   \1'Reformat all to reflow-margins',
+                                   \1'Reformat all to reflow margins',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Mai~l',                                                              -- Mail
@@ -1348,24 +1348,24 @@ defproc add_format_menu(menuname)
                                    'Toggle_Join_After_Wrap' ||
                                    \1'Join next line with wrapped part',
                                    MIS_TEXT + MIS_ENDSUBMENU, nodismiss
-   i = i + 1; call SetAVar( 'mid_reflowmargins', i); call SetAVar( 'mtxt_reflowmargins', 'Reflow-mar~gins []');
-   buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins'),                                 -- Reflow-margins   >
+   i = i + 1; call SetAVar( 'mid_reflowmargins', i); call SetAVar( 'mtxt_reflowmargins', 'Reflow mar~gins []');
+   buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins'),                                 -- Reflow margins   >
                                    \1'Margins/right margin for wrap and reflow actions',
                                    MIS_TEXT + MIS_SUBMENU, 0
-   i = i + 1; call SetAVar( 'mid_reflowmargins1', i); call SetAVar( 'mtxt_reflowmargins1', '~1: reflow-margins []');
+   i = i + 1; call SetAVar( 'mid_reflowmargins1', i); call SetAVar( 'mtxt_reflowmargins1', '~1: []');
    buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins1'),                                      -- 1:
                                    'ReflowmarginsSelect 1' ||
-                                   \1'Select specified value(s) as reflow-margins',
+                                   \1'Select specified value(s) as reflow margins',
                                    MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_reflowmargins2', i); call SetAVar( 'mtxt_reflowmargins2', '~2: reflow-margins []');
+   i = i + 1; call SetAVar( 'mid_reflowmargins2', i); call SetAVar( 'mtxt_reflowmargins2', '~2: []');
    buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins2'),                                      -- 2:
                                    'ReflowmarginsSelect 2' ||
-                                   \1'Select specified value(s) as reflow-margins',
+                                   \1'Select specified value(s) as reflow margins',
                                    MIS_TEXT, nodismiss
-   i = i + 1; call SetAVar( 'mid_reflowmargins3', i); call SetAVar( 'mtxt_reflowmargins3', '~3: current margins []');
+   i = i + 1; call SetAVar( 'mid_reflowmargins3', i); call SetAVar( 'mtxt_reflowmargins3', '~3: [] (current margins)');
    buildmenuitem menuname, mid, i, GetAVAr( 'mtxt_reflowmargins3'),                                      -- 3: rightmargin
                                    'ReflowmarginsSelect 3' ||
-                                   \1'Select file''s margins as reflow-margins',
+                                   \1'Select file''s margins as reflow margins',
                                    MIS_TEXT, nodismiss
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
@@ -2054,9 +2054,9 @@ defproc add_view_menu(menuname)
                                    \1'Toggle non-destructive wrap at window width',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Soft w~rap to reflow-margins',                                 -- Soft wrap to reflow-margins
+   buildmenuitem menuname, mid, i, 'Soft w~rap to reflow margins',                                 -- Soft wrap to reflow margins
                                    'SoftWrap2Reflowmargins' ||
-                                   \1'Non-destructive wrap to reflow-margins',
+                                   \1'Non-destructive wrap to reflow margins',
                                    MIS_TEXT, 0
    -- Check for a cmd of a linked file won't work here, because the menu is already built by 'initconfig'.
    if isadefc('fold') | (FindFileInList( 'fold.ex', Get_Env( 'EPMEXPATH')) > '') then
