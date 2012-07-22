@@ -989,22 +989,7 @@ defc EditCreateUserMacro
    MacroFile = arg(1)
    lp = lastpos( '\', MacroFile)
    MacroFileName = substr( MacroFile, lp + 1)
-   UserMacroDir     = Get_Env( 'NEPMD_USERDIR')'\macros'
-   NetlabsMacroDir  = Get_Env( 'NEPMD_ROOTDIR')'\netlabs\macros'
-   UserMacroFile    = UserMacroDir'\'MacroFileName
-   NetlabsMacroFile = NetlabsMacroDir'\'MacroFileName
-   if Exist( UserMacroFile) then
-      'Edit 'UserMacroFile
-   else
-      'Edit 'NetlabsMacroFile
-      if not rc then
-         .filename = UserMacroFile
-         -- Disabled. The header could contain useful docs. In some cases
-         -- also the RCS id may be helpful to determine the original version
-         -- of the netlabs file.
-         --'postme mc ;1;RemoveNextHeader'
-      endif
-   endif
+   'EditCreateUserFile macros\'MacroFileName
 
 ; ---------------------------------------------------------------------------
 ; Edits a user macro file. If file doesn't exist, the contents of the
@@ -1012,7 +997,7 @@ defc EditCreateUserMacro
 ; if a user saves the buffer afterwards.
 ; Syntax: EditCreateUserFile <subpath>\<filename>, e.g.: bin\epm.env
 defc EditCreateUserFile
-   MacroFile = arg(1)
+   MacroFile = strip( arg(1))
    UserDir     = Get_Env( 'NEPMD_USERDIR')
    NetlabsDir  = Get_Env( 'NEPMD_ROOTDIR')'\netlabs'
    UserFile    = UserDir'\'MacroFile
@@ -1027,8 +1012,31 @@ defc EditCreateUserFile
          -- also the RCS id may be helpful to determine the original version
          -- of the netlabs file.
          --'postme mc ;1;RemoveNextHeader'
+
+         'postme postme EditCreateUserFileMsgBox' UserFile
       endif
    endif
+
+; ---------------------------------------------------------------------------
+defc EditCreateUserFileMsgBox
+   NewFile = strip( arg(1))
+   NewFilename = ''
+   if NewFile <> '' then
+      lp = lastpos( '\', NewFile)
+      NewFilename = substr( NewFile, lp + 1)
+   endif
+   Title = 'New user file: 'NewFilename
+   Text = ''
+   Text = Text || 'The current file was copied from the NETLABS tree.'
+   Text = Text || ' On saving, it will be created in the user tree and'
+   Text = Text || ' will override the original NETLABS file.'\n\n
+   Text = Text || 'Note that a macro file needs recompilation before'
+   Text = Text || ' it gets applied. In that case, execute RecompileNew'
+   Text = Text || ' via Options -> Macros -> "Recompile new user macros".'
+   Style = MB_OK+MB_INFORMATION+MB_MOVEABLE
+   ret = winmessagebox( Title,
+                        Text,
+                        Style)
 
 ; ---------------------------------------------------------------------------
 ; Remove next comment block from a buffer, starting at cursor line.
