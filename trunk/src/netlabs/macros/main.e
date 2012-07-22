@@ -246,10 +246,13 @@ defc main2
    Key = '\NEPMD\User\JustInstalled'
    JustInstalled = QueryProfile( nepmd_hini, App, Key)
    if JustInstalled = 1 then
+
       -- Remove obsolete reg keys
       'DelOldRegKeys'
+
       -- Remove outdated entries
       'AtPostStartup RecompileNew RESET NOMSG'
+
       -- Link JustInst.ex if present
       display -2
       link 'justinst'
@@ -260,14 +263,25 @@ defc main2
             'AtPostStartup JustInst'
          endif
       endif
-      -- Reset ini key
+
+      -- Reset JustInstalled ini key
       call SetProfile( nepmd_hini, App, Key, 0)
+
       -- Execute install cmd here because for WarpIN 1.0.18 it can't read
       -- WarpIN's database while WarpIN is running.
       NepmdRootDir = Get_Env( 'NEPMD_ROOTDIR')
       --quietshell 'call' NepmdRootDir'\netlabs\install\expobj.cmd'
       'rx' NepmdRootDir'\netlabs\install\expobj.cmd'
-;;      'rx assocs PREPEND NEPMD objects'
+
+      -- Popup a message box if user files were moved by the installation
+      App = 'RegDefaults'
+      Key = '\NEPMD\User\MovedUserFiles'
+      next = QueryProfile( nepmd_hini, App, Key)
+      if next = 1 then
+         'postme postme MovedUserFilesMsgBox'
+      endif
+      next = SetProfile( nepmd_hini, App, Key, '')  -- delete key
+
    endif
 
 compile if SHOW_WINDOW_EARLY = 0
@@ -284,4 +298,22 @@ defc ShowWindow
    -- see also: STDCNF.E for menu
    call showwindow('ON')
 compile endif
+
+; ---------------------------------------------------------------------------
+defc MovedUserFilesMsgBox
+   Title = 'Moved user files'
+   Text = ''
+   Text = Text || 'You''ve just updated/reinstalled NEPMD.'\n\n
+   Text = Text || 'Some of your user files were moved into subdirectories in order to'
+   Text = Text || ' ensure that EPM starts in a safe state. These subdirectories are placed in'
+   Text = Text || ' your tree and are named bin, ex and mode as before, but the installation'
+   Text = Text || ' date was appended.'\n\n
+   Text = Text || 'Note that NEPMD.INI was not moved. That means that your previous settings'
+   Text = Text || ' were not lost.'\n\n
+   Text = Text || 'To restore all or some of the moved files, copy them to the newly created'
+   Text = Text || ' bin, ex or mode subdirectories.'
+   Style = MB_OK + MB_INFORMATION + MB_MOVEABLE
+   ret = winmessagebox( Title,
+                        Text,
+                        Style)
 
