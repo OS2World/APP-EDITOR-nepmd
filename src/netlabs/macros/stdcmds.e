@@ -931,6 +931,25 @@ defc ActivateHighlighting
    call NepmdActivateHighlight( strip( on), strip( Mode), strip( Opt), nepmd_hini)
 
 ; ---------------------------------------------------------------------------
+defc CheckModeFiles
+   universal nepmd_hini
+   parse arg Mode
+   Mode = upcase( strip( Mode))
+   if Mode = '' then
+      Mode = GetMode()
+   endif
+   call NepmdActivateHighlight( '', Mode, '', nepmd_hini)
+
+   Title = 'Checked mode files'
+   Text = ''
+   Text = Text || 'The mode files for the mode 'Mode' were checked and the highlighting'
+   Text = Text || ' file was rebuilt and reloaded, if required.'
+   Style = MB_OK+MB_INFORMATION+MB_MOVEABLE
+   ret = winmessagebox( Title,
+                        Text,
+                        Style)
+
+; ---------------------------------------------------------------------------
 defc ActivateFile
    fid = arg(1)
    if fid <> '' then
