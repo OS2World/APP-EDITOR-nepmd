@@ -109,6 +109,10 @@ ErrorMessage   = ''
 NEPMD_INI_KEYNAME_ROOTDIR     = "RootDir"
 NEPMD_INI_KEYNAME_USERDIR     = "UserDir"
 
+NEPMD_INI_APPNAME_MOVED = 'RegDefaults'
+NEPMD_INI_KEYNAME_MOVED = '\NEPMD\User\MovedUserFiles'
+
+
 GlobalVars = GlobalVars 'ErrorQueueName ErrorMessage'
 /* -------------------------------------------- */
 
@@ -146,6 +150,7 @@ DO 1
    IsoDate = GetIsoDate()
 
    /* Process dirs */
+   fMoved = FALSE
    DO i = 1 to WORDS( SubDirs)
       SubDir.i = WORD( SubDirs, i)
       OldDir = UserDir'\'SubDir.i
@@ -170,7 +175,7 @@ DO 1
       END
       /* No need to xcopy just NEPMD.INI, it will be reused */
       IF fContainsOnlyNepmdIni THEN
-         LEAVE
+         ITERATE
 
       NewDirName = SubDir.i'_'IsoDate
       NewDir     = UserDir'\'NewDirName
@@ -203,10 +208,19 @@ DO 1
       ExcludeList = OldDir'\nepmd.ini'
       rc = RmDirContent( OldDir, ExcludeList)
 
-      /* Check for error */
-      IF (rc <> 0) THEN
+      /* Check for error or set flag */
+      IF (rc = 0) THEN
+         fMoved = TRUE
+      ELSE
          LEAVE
    END
+
+   /* Write flag to NEPMD.INI */
+   /* It will be read and afterwards removed on the next EPM start */
+   /* to popup a message box. */
+   IF fMoved THEN
+      rcx = SysIni( UserDir'\bin\NEPMD.INI', NEPMD_INI_APPNAME_MOVED,,
+         NEPMD_INI_KEYNAME_MOVED, '1')
 
    /* Show next help text on success when in non-quiet mode */
    IF (rc = 0) & \fQuiet THEN
