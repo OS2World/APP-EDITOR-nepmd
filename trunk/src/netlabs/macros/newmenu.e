@@ -2471,7 +2471,7 @@ if not MenuItemsHidden then
                                    MIS_TEXT, nodismiss
    i = i + 1; call SetAVar( 'mid_checkmodefilesnow', i); call SetAVar( 'mtxt_checkmodefilesnow', 'Check mode files ~now for mode #CURMODE#');
    buildmenuitem menuname, mid, i, GetAVar( 'mtxt_checkmodefilesnow'),                                   -- Check mode files now for mode CURMODE
-                                   'ActivateHighlighting' ||
+                                   'CheckModeFiles' ||
                                    \1'Check for altered .hil/.ini files for current mode now',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_openmodedirs', i); call SetAVar( 'mtxt_openmodedirs', 'Open mode files ~directories for mode #CURMODE#');
