@@ -98,6 +98,10 @@
 "\NEPMD\User\KeywordHighlighting" = "1"
 "\NEPMD\User\KeywordHighlighting\AutoRefresh" = "1"
 
+; Bracket matching
+"\NEPMD\User\MatchChars" = "1"
+"\NEPMD\User\Balance" = "1"
+
 ; SyntaxExpansion
 "\NEPMD\User\SyntaxExpansion" = "1"
 

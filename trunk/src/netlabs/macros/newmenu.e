@@ -2450,6 +2450,15 @@ if not MenuItemsHidden then
                                    'toggle_default_match_chars' ||
                                    \1'Add closing bracket when typing opening one',
                                    MIS_TEXT, nodismiss
+   i = i + 1; call SetAVar( 'mid_defaultbalance', i);
+   buildmenuitem menuname, mid, i, '~Balance: search opening bracket while typing',                      -- Balance: search opening bracket while typing
+                                   'toggle_default_balance' ||
+                                   \1'Highlight opening bracket on typing the closing one',
+                                   MIS_TEXT, nodismiss
+   i = i + 1;
+   buildmenuitem menuname, mid, i, \0,                                                                   --------------------
+                                   '',
+                                   MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_defaultsyntaxexpansion', i);
    buildmenuitem menuname, mid, i, '~Syntax expansion',                                                  -- Syntax expansion
                                    'toggle_default_expand' ||
@@ -3648,6 +3657,10 @@ defc menuinit_modesettings
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_defaultmatchchars'),          MIA_CHECKED, not on)
 
+   KeyPath = '\NEPMD\User\Balance'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   SetMenuAttribute( GetAVar('mid_defaultbalance'),             MIA_CHECKED, not on)
+
    KeyPath = '\NEPMD\User\SyntaxExpansion'
    on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    SetMenuAttribute( GetAVar('mid_defaultsyntaxexpansion'),     MIA_CHECKED, not on)
@@ -4365,6 +4378,16 @@ defc toggle_default_match_chars
    call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
    SetMenuAttribute( GetAVar('mid_defaultmatchchars'), MIA_CHECKED, not on)
+
+; ---------------------------------------------------------------------------
+defc toggle_default_balance
+   universal nepmd_hini
+   KeyPath = '\NEPMD\User\Balance'
+   on = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+   on = not on
+   call NepmdWriteConfigValue( nepmd_hini, KeyPath, on)
+   -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
+   SetMenuAttribute( GetAVar('mid_defaultbalance'), MIA_CHECKED, not on)
 
 ; ---------------------------------------------------------------------------
 defc toggle_expand

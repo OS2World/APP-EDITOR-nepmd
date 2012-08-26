@@ -1573,6 +1573,7 @@ defproc Balance( OpenStr, CloseStr)
    universal CurKey
    universal PrevKey
    universal PrevBalanceData
+   universal nepmd_hini
 
    StartLine = .line
    StartCol  = .col
@@ -1595,6 +1596,14 @@ defproc Balance( OpenStr, CloseStr)
             lrc = PrevRc
             --dprintf( 'Omit search, prev. rc = 'PrevRc)
          endif
+      endif
+   endif
+
+   if fSearch then
+      KeyPath = '\NEPMD\User\Balance'
+      fBalance = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+      if not fBalance then
+         fSearch = 0
       endif
    endif
 
