@@ -129,6 +129,7 @@ DO 1
    rcx = SysDestroyObject( NetlabsDir'\bin\epmchangestartupdir.cmd')
    rcx = SysDestroyObject( NetlabsDir'\bin\epmchgpal.cmd')
    rcx = SysDestroyObject( NetlabsDir'\bin\epmcolor.ini')
+   rcx = SysDestroyObject( NetlabsDir'\bin\epmlast.cmd')
 
    /* Remove obsolete ini key from v1.00 if present */
    rcx = SysIni( 'USER', 'NEPMD', 'Path', 'DELETE:')
