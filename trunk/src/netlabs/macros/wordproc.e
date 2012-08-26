@@ -31,36 +31,43 @@ compile if not defined(E_DLL)  -- Being separately compiled?
    include 'stdconst.e'
 
 defmain
-   'wordproc'
+   'WordProc'
 
 compile endif -- not defined(E_DLL)
 
 #define MAXLNSIZE_UNTERMINATED 1
 
 ; ---------------------------------------------------------------------------
-defc wordproc
+defc WordProc
    getfileid fid
-   call psave_mark(savemark)
-   call psave_pos(savepos)
-   oldmargins = .margins
-   oldmodify = .modify
+   call psave_mark( savemark)
+   call psave_pos( savepos)
+   oldmargins  = .margins
+   oldmodify   = .modify
    oldautosave = .autosave
    .autosave = 0        -- Don't want to go crazy autosaving...
    .margins = '2 72 1'  -- This should make it look nice...
    stopit = 0
    top
+   call NextCmdAltersText()
    do forever
       getline line
-      do while line=''                                -- Skip over blank lines
-         if .line=.last then stopit=1; leave; endif
+      do while line = ''     -- Skip over blank lines
+         if .line = .last then
+            stopit = 1
+            leave
+         endif
          down
          getline line
       enddo
-      if stopit then leave; endif
+      if stopit then
+         leave
+      endif
       startline = .line      -- Startline is first line of paragraph
-      unmark; mark_line
+      unmark
+      mark_line
       call pfind_blank_line()
-      if .line<>startline then
+      if .line <> startline then
          up
       else
          bottom
@@ -68,26 +75,28 @@ defc wordproc
       mark_line
       reflow
       getmark firstline, lastline    -- New first and last lines of marked region.
-      do i = firstline to lastline-1
-         call setterm(fid, i, MAXLNSIZE_UNTERMINATED)
+      do i = firstline to lastline - 1
+         call SetTerm( fid, i, MAXLNSIZE_UNTERMINATED)
       enddo
-      if lastline=.last then leave; endif
-      lastline+1
+      if lastline = .last then
+         leave
+      endif
+      lastline + 1
    enddo
    .margins  = oldmargins
    .modify   = oldmodify + 1
    .autosave = oldautosave
-   call prestore_mark(savemark)
-   call prestore_pos(savepos)
+   call prestore_mark( savemark)
+   call prestore_pos( savepos)
    'AvoidSaveOptions /o /l'
 
 ; ---------------------------------------------------------------------------
 ; Todo: move
-defproc setterm(fid, line, termtype)
+defproc SetTerm( fid, line, termtype)
    return dynalink32( E_DLL,
-                      'EtkChangeLineTerminator',  -- Not exported until 1995/03/06
-                      gethwndc(EPMINFO_EDITCLIENT) ||
-                      atol(fid)                    ||
-                      atol(line)                   ||
-                      atol(termtype))
+                      'EtkChangeLineTerminator',
+                      gethwndc( EPMINFO_EDITCLIENT) ||
+                      atol( fid)                    ||
+                      atol( line)                   ||
+                      atol( termtype))
 
