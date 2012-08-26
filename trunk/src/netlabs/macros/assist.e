@@ -170,7 +170,7 @@ compile if not defined( PASSIST_DEFAULT_MAX_LINES)
    PASSIST_DEFAULT_MAX_LINES = 2000
 compile endif
 compile if not defined( PASSIST_DEFAULT_MAX_LOOPS)
-   PASSIST_DEFAULT_MAX_LOOPS = 50
+   PASSIST_DEFAULT_MAX_LOOPS = 500
 compile endif
 
 defc assist, passist
