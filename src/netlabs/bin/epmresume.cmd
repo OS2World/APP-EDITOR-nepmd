@@ -1,8 +1,8 @@
 /****************************** Module Header *******************************
 *
-* Module Name: epmlast.cmd
+* Module Name: epmresume.cmd
 *
-* Syntax: epmlast [<epm_exe> [<epm_args>]]
+* Syntax: epmresume [<epm_exe> [<epm_args>]]
 *
 * <epm_exe> and/or <epm_args> both can be enclosed with " chars.
 *

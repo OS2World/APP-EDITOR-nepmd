@@ -3015,7 +3015,7 @@ compile if 0
 compile else
    -- Using external .cmd now:
    EpmExe = Get_Env( 'NEPMD_LOADEREXECUTABLE')
-   'postme start /c /min epmlast' EpmExe EpmArgs
+   'postme start /c /min epmresume' EpmExe EpmArgs
    'postme Close'
 compile endif
 
