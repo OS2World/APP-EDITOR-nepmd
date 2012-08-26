@@ -114,6 +114,10 @@ const
       tryinclude SITE_CONFIG
    compile endif
 
+   compile if not defined(EPM)  -- Can be included in the base or separately linked.
+      include 'stdconst.e'
+   compile endif
+
 const
    compile if not defined(NLS_LANGUAGE)
       NLS_LANGUAGE = 'ENGLISH'
@@ -132,37 +136,57 @@ defmain
 
 compile endif  -- not defined(SMALL)
 
---  NOTE: The logic below relies on GOLD being defined with the left "brackets"
---        in the odd positions and the right "brackets" in the even positions.
-const GOLD = '(){}[]<>'  -- Parens, braces, brackets & angle brackets.
+const
+   --  NOTE: The logic below relies on GOLD being defined with the left "brackets"
+   --        in the odd positions and the right "brackets" in the even positions.
+   GOLD = '(){}[]<>'  -- Parens, braces, brackets & angle brackets
 
-PASSIST_RC_MLC_MATCHED                    = -1
-PASSIST_RC_NO_ERROR                       = 0
-PASSIST_RC_IN_ONELINE_COMMENT             = 1
-PASSIST_RC_IN_MULTILINE_COMMENT           = 2
-PASSIST_RC_IN_LITERAL                     = 3
-PASSIST_RC_NOT_ON_A_TOKEN                 = 4
-PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN     = 5
-PASSIST_RC_BAD_FORTRAN77_CURSOR           = 6
-PASSIST_RC_MODE_NOT_SUPPORTED             = 7
+   PASSIST_RC_MLC_MATCHED                    = -1
+   PASSIST_RC_NO_ERROR                       = 0
+   PASSIST_RC_IN_ONELINE_COMMENT             = 1
+   PASSIST_RC_IN_MULTILINE_COMMENT           = 2
+   PASSIST_RC_IN_LITERAL                     = 3
+   PASSIST_RC_NOT_ON_A_TOKEN                 = 4
+   PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN     = 5
+   PASSIST_RC_BAD_FORTRAN77_CURSOR           = 6
+   PASSIST_RC_MODE_NOT_SUPPORTED             = 7
+   PASSIST_RC_TOO_MANY_LINES                 = 8
+   PASSIST_RC_TOO_MANY_LOOPS                 = 9
 
-EGREP_METACHARACTERS = '\[]()?+*^$.|'    -- JBSQ: This may need to changed if the grep code
-                                         -- ever supports {, } and possibly other egrep metacharacters
+   EGREP_METACHARACTERS = '\[]()?+*^$.|'    -- JBSQ: This may need to changed if the grep code
+                                            -- ever supports {, } and possibly other egrep metacharacters
 
--- JBSQ: The following constants 'hard-code' the versions of NMAKE and FORTRAN77 for which
---       passist works. Perhaps there is a better way that would allow this to be
---       selected by the user?
-USE_NMAKE32       = 1   -- 0 means do not accept NMAKE32-specific directives
-USE_FORTRAN90_SLC = 1   -- 0 means disregard FORTRAN90 SLC: '!'
+   -- JBSQ: The following constants 'hard-code' the versions of NMAKE and FORTRAN77 for which
+   --       passist works. Perhaps there is a better way that would allow this to be
+   --       selected by the user?
+compile if not defined( USE_NMAKE32)
+   USE_NMAKE32       = 1   -- 0 means do not accept NMAKE32-specific directives
+compile endif
+compile if not defined( USE_FORTRAN90_SLC)
+   USE_FORTRAN90_SLC = 1   -- 0 means disregard FORTRAN90 SLC: '!'
+compile endif
 
+compile if not defined( PASSIST_DEFAULT_MAX_LINES)
+   PASSIST_DEFAULT_MAX_LINES = 2000
+compile endif
+compile if not defined( PASSIST_DEFAULT_MAX_LOOPS)
+   PASSIST_DEFAULT_MAX_LOOPS = 50
+compile endif
 
 defc assist, passist
-   call passist()
+   parse arg MaxLines MaxLoops
+   MaxLines = strip( MaxLines)
+   MaxLoops = strip( MaxLoops)
+   call passist( MaxLines, MaxLoops)
 
 ; ---------------------------------------------------------------------------
 ; id            = found word under cursor (or beneath the cursor in some cases)
 ; fIntermediate = set to 1 if id is an intermediate conditional token
 ;                 (e.g. 'else', but not 'if' or 'endif')
+; fForward      = a flag to indicate which direction to search
+;                 1 = forward, 0 = backward
+; search        = string for locate command, without seps and options,
+;                 egrep will be used
 ; clist         = a space delimited list of substrings to match on. Usually this
 ;                 is a single substring. An example of multiple substrings in
 ;                 clist would be that an "end" in REXX mode can match up with
@@ -170,20 +194,33 @@ defc assist, passist
 ;                 these substrings should identify the starting token(s) of the
 ;                 bracketed code. If fForward = 0 then these substrings should
 ;                 identify the ending token(s).
-; clen          = the length of the substrings in clist
 ; coffset       = offset from cursor pos to substring to match
-; fForward      = a flag to indicate which direction to search
-;                 1 = forward, 0 = backward
-; search        = string for locate command, without seps and options,
-;                 egrep will be used
+; clen          = the length of the substrings in clist
+; n             = counter for nesting of matched tokens. On n = 0 the matched
+;                 token was found.
 ; ---------------------------------------------------------------------------
 
 defproc passist
+   universal vEPM_POINTER
+   mouse_setpointer WAIT_POINTER
    call psave_pos(savepos)                  -- Save the cursor location
    getsearch search_command                 -- Save user's search command.
+
+   StartLineNum = .line
+   MaxLines = arg(1)
+   MaxLoops = arg(2)
+   if MaxLines = '' then
+      MaxLines = PASSIST_DEFAULT_MAX_LINES
+   endif
+   if MaxLoops = '' then
+      MaxLoops = PASSIST_DEFAULT_MAX_LOOPS
+   endif
+   MaxSearchData = StartLineNum MaxLines MaxLoops  -- Use one arg for passist_search to save args
+
    call dprintf("passist", "------------------------------------------------------------")
    call dprintf("passist", "Initial cursor: ".line",".col)
    CurMode     = NepmdGetMode()
+
    passist_rc  = inside_comment2(CurMode, comment_data)
    call dprintf("passist", "comment return:" passist_rc comment_data)
    if passist_rc = PASSIST_RC_IN_MULTILINE_COMMENT then
@@ -235,13 +272,10 @@ defproc passist
       endif
       if k then
       -- if c = bracket defined in GOLD, then set search to the corresponding char out of GOLD
-         leftbracket = substr(GOLD,(k+1)%2*2-1,1)
-         if leftbracket = '[' then
---          search = '[' || leftbracket || '\' || substr(GOLD,(k+1)%2*2,1) || ']'
-            search = '[[\]]'
-         else
-            search = '[' || leftbracket || substr(GOLD, (k+1)%2*2, 1) || ']'
-         endif
+         leftbracket  = substr( GOLD, (k + 1)%2*2 - 1, 1)
+         rightbracket = substr( GOLD, (k + 1)%2*2, 1)
+         -- escape brackets with '\'
+         search = '[\'leftbracket'\'rightbracket']'
          clist = c
          fForward = k // 2
       else              -- if not a bracket char
@@ -916,9 +950,7 @@ compile endif
                case = 'c'               -- case insensitive for PASCAL
                id = lowcase(id)
                --PascalStartBlockTokens = 'begin record try asm object class interface'
-               PascalStartBlockTokens = 'begin record try asm'    -- object?, class, interface?
-;   JBSQ: use case?  Case is used both for a switch-like statements and in variant records
-;              PascalStartBlockTokens = PascalStartTokens 'case'
+               PascalStartBlockTokens = 'begin record try asm case'    -- object?, class, interface?
                if wordpos(id, PascalStartBlockTokens 'end except finally') then
                   search = '(^|[^a-zA_Z0-9_])\c(' || translate(PascalStartBlockTokens, '|', ' ') || '|end)([;. \t]|$)'
                   fForward = (wordpos(id, PascalStartBlockTokens) > 0)
@@ -1204,7 +1236,7 @@ compile if 0
                      .col = pos('E', line, 7)
 compile endif
 compile if 0
-FORTRAN77 does not require END (of program/subroutine/function statements, nor is a PROGRAM statement require
+; FORTRAN77 does not require END of program/subroutine/function statements, nor is a PROGRAM statement require
                   elseif not pos('=', statement) then  -- remaining matchable tokens require this
                      function_pos = pos('FUNCTION', statement)
                      punc_pos     = verify(statement, "+-*/=().,':$!", 'M')
@@ -1257,20 +1289,27 @@ compile endif
             setsearch 'xcom l '\1''search\1'x'case''direction
             --'postme circleit' .line startcol endcol
          else
+            -- This is the first search
             'xcom l '\1''search\1'x'case''direction
             if rc = 0 then  -- if found
-               call highlight_match()
+--               call highlight_match()
             endif
             --'postme circleit' .line startcol endcol  -- this one should not be highlighted
             -- designed for function_name(...)  <-- function_name is highlighted, not the ( and ).
          endif
 
-         passist_rc = passist_search( CurMode, clist, case, coffset, clen, n, tex_env, ECompileFlag)
+         -- This is the search loop from the second search on. It also
+         -- o  checks if the cursor is within a comment or a literal,
+         -- o  alters n, the counter for matching expressions,
+         -- o  checks for too many processed lines and
+         -- o  does additional search for the modes E and TEX.
+         passist_rc = passist_search( CurMode, clist, case, coffset, clen, n, MaxSearchData, tex_env, ECompileFlag)
       endif                                 -- if OK to search
    endif
 
    if passist_rc > 0 then
       call prestore_pos(savepos)
+
       if passist_rc = PASSIST_RC_IN_ONELINE_COMMENT then
          sayerror "Invalid: One-line comment starts in column "comment_data
       elseif passist_rc = PASSIST_RC_IN_MULTILINE_COMMENT then
@@ -1283,38 +1322,61 @@ compile endif
          sayerror UNBALANCED_TOKEN__MSG
       elseif passist_rc = PASSIST_RC_MODE_NOT_SUPPORTED then
          sayerror "Token balancing not yet supported for mode: "CurMode
+      elseif passist_rc = PASSIST_RC_TOO_MANY_LINES then
+         sayerror "Assist: More than "MaxLines" lines reached. Further processing might get slow."
+      elseif passist_rc = PASSIST_RC_TOO_MANY_LOOPS then
+         sayerror "Assist: More than "MaxLoops" times searched. Further processing might get slow."
       else
          sayerror "Unknown rc: "passist_rc
       endif
    else
       sayerror 1
+
       newline = .line; newcol = .col
       call prestore_pos(savepos)
       .col = newcol
       .lineg = newline
       right; left                      -- scroll_to_cursor
+
+      call highlight_match()
    endif
+
    call prune_assist_array()
    setsearch search_command           -- Restores user's command so Ctrl-F works.
+   mouse_setpointer vEPM_POINTER
+
    return passist_rc
 
 ; ---------------------------------------------------------------------------
 ;  passist_search: perform the actual search for the matching token (which is
 ;     NOT located within a comment or literal).
 ; ---------------------------------------------------------------------------
-defproc passist_search(mode, clist, case, coffset, clen, n)
-   tex_env      = arg(7)
-   ECompileFlag = arg(8)
+defproc passist_search(mode, clist, case, coffset, clen, n, MaxSearchData)
+   parse value MaxSearchData with StartLineNum MaxLines MaxLoops
+   tex_env      = arg(8)
+   ECompileFlag = arg(9)
    retval = 0
+   getsearch ThisSearch
+   fForward = (rightstr( ThisSearch, 2) = '+F')
+   LoopCount = 1  -- The first search is done by xcom c
+
    loop
+      call dprintf("passist", "- - - - -")
       call dprintf("passist", "before search pos: ".line",".col "n = "n)
       repeatfind
-      if rc then leave; endif
+      if rc then
+         retval = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
+         dprintf( 'passist', 'passist_search: rc = 'rc)
+         leave
+      endif
+
       call dprintf("passist", "Match at ".line",".col)
       if inside_comment(mode) then
+         dprintf( 'passist', 'inside_comment')
          iterate
       endif
       if inside_literal2(mode) then
+         dprintf( 'passist', 'inside_literal2')
          iterate
       endif
 
@@ -1329,7 +1391,7 @@ defproc passist_search(mode, clist, case, coffset, clen, n)
       endif
 
       call dprintf("passist", "line# ".line" col: ".col" text: "textline(.line))
-      cword  = substr(textline(.line), .col + coffset, clen)
+      cword = substr(textline(.line), .col + coffset, clen)
       if case = 'c' then
          cword = lowcase(cword)
       endif
@@ -1341,11 +1403,32 @@ defproc passist_search(mode, clist, case, coffset, clen, n)
       endif
 
       call dprintf("passist", 'after n = 'n)
-      retval = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN * (rc = sayerror('String not found'))
-      if n=0 then
+      --retval = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN * (rc = sayerror('String not found'))
+      if n = 0 then
+         leave
+      endif
+
+      -- Check number of searched lines
+      if fForward then
+         if .line > StartLineNum + MaxLines then
+            retval = PASSIST_RC_TOO_MANY_LINES
+            leave
+         endif
+      else
+         if .line < StartLineNum - MaxLines then
+            retval = PASSIST_RC_TOO_MANY_LINES
+            leave
+         endif
+      endif
+
+      -- Check number of searched loops
+      LoopCount = LoopCount + 1
+      if LoopCount >= MaxLoops then
+         retval = PASSIST_RC_TOO_MANY_LOOPS
          leave
       endif
    endloop
+
    if retval = 0 and mode == 'TEX' and (clist = 'be' or clist = 'en') then
       call psave_pos(texsavepos)
       if clist = 'be' then
@@ -1407,6 +1490,7 @@ defproc inside_literal2(mode)
    curcol  = .col
    line = textline( .line )
    retval = 0
+   fexit  = 0
    parse value GetLitChars(mode) with StartLitChars EndLitChars EscapeChars
    if StartLitChars then
       endpos = 0
@@ -1430,9 +1514,10 @@ defproc inside_literal2(mode)
                retval = 1
                leave
             elseif not endpos then           -- No end "quote"??
-               sayerror "Unmatched start-of-literal character: "startq "at "curline","startpos
                call dprintf("lit2", "Unmatched start-of-literal character: "startq "at "curline","startpos)
-               retval = 1                    -- JBSQ: Return true on unmatched "quote"?
+               --retval = 1                    -- JBSQ: Return true on unmatched "quote"?
+               -- Better don't count the rest of the line as literal and leave retval = 0.
+               fexit = 1
                leave
             elseif endq = escapechar then    -- escape "quote"s case 1: doubled "quotes"
                if length(line) > endpos then
@@ -1456,7 +1541,7 @@ defproc inside_literal2(mode)
                leave
             endif
          endloop
-         if retval then
+         if retval or fexit then
             leave
          endif
       endloop
@@ -1626,7 +1711,7 @@ defproc buildMLCArray(mode)
    if modeMLCCount = '' then
       call GetMLCChars(mode, MLCStartChars, MLCEndChars, MLCNestList)
       modeMLCCount = words(MLCStartChars)
-      call SetAVar(modindexbase'0', modeMLCCount)
+      call SetAVar(modeindexbase'0', modeMLCCount)
       do i = 1 to modeMLCCount
          call SetAVar(modeindexbase || i || '.MLCStart', word(MLCStartChars, i ))
          call SetAVar(modeindexbase || i || '.MLCEnd'  , word(MLCEndChars, i ))
@@ -1640,7 +1725,6 @@ defproc buildMLCArray(mode)
       call dprintf("array", "Rebuild: '"rebuild"'")
       if Rebuild = 1 then
          /* delete the old data here? */
-         -- MLCListCount = GetAVar(listindexbase
       endif
       if Rebuild = '' or Rebuild = 1 then
          curline      = .line
@@ -1661,8 +1745,6 @@ defproc buildMLCArray(mode)
             MLCEndLine   = curline
             MLCEndCol    = curcol
             MLCEndLen    = length(MLCEnd)
-/*
-   */
             .line        = 1
             .col         = 1
             array_index  = 0   -- LISTCOMM: assumes a separate list for each MLC string-pair is built
@@ -2021,4 +2103,24 @@ defc t10
    list = GetAVar( 'debuglist')
    sayerror 'debuglist (b4): 'list
 compile endif
+
+/*
+defc insidecomment
+   CurMode = GetMode()
+   if inside_comment( CurMode) then
+      sayerror 'Inside a comment'
+   elseif inside_literal2( CurMode) then
+      sayerror 'Inside a literal'
+   else
+      sayerror 'Not inside a comment or literal'
+   endif
+
+defc insideliteral
+   CurMode = GetMode()
+   if inside_literal2( CurMode) then
+      sayerror 'Inside a literal'
+   else
+      sayerror 'Not inside a literal'
+   endif
+*/
 

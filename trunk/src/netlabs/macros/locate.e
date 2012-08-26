@@ -1561,6 +1561,14 @@ defc Balance
    call Balance( OpenStr, CloseStr)
 
 ; ---------------------------------------------------------------------------
+const
+compile if not defined( BALANCE_MAX_LINES)
+   BALANCE_MAX_LINES = 200
+compile endif
+compile if not defined( BALANCE_MAX_LOOPS)
+   BALANCE_MAX_LOOPS = 50
+compile endif
+
 defproc Balance( OpenStr, CloseStr)
    universal CurKey
    universal PrevKey
@@ -1568,13 +1576,18 @@ defproc Balance( OpenStr, CloseStr)
 
    StartLine = .line
    StartCol  = .col
+   ThisLine = ''
+   OpenLine = 0
+   OpenCol  = 0
+   lrc = 1
    call NextCmdAltersText()
+   -- Type the char
    call Process_Keys( CloseStr)
 
+   fSearch = 1
    -- Omit search for repeated keys after an unsuccessful search
    getfileid Fid
    parse value PrevBalanceData with PrefFid PrevLine PrevRc
-   fSearch = 1
    if PrevRc <> 0 then
       if PrefFid PrevLine = Fid StartLine then
          if CurKey = PrevKey then
@@ -1585,94 +1598,38 @@ defproc Balance( OpenStr, CloseStr)
       endif
    endif
 
-   call psave_pos( ScreenPos)
-   getsearch UserSearch
-   display -3  -- turn off non-critical error messages and screen updates
-               -- Note: SayHint uses temp. 'display -8' to disable message box saving.
-               --       That results in 'display -11'.
+   if fSearch then
+      display -3  -- turn off non-critical error messages and screen updates
+                  -- Note: SayHint uses temp. 'display -8' to disable message box saving.
+                  --       That results in 'display -11'.
+      call psave_pos( ScreenPos)
 
-   if fSearch = 1 then
-
-      -- Search for OpenStr or CloseStr. Requires egrep or grep and escaping.
-      EscapedOpenStr  = escape_search_chars( OpenStr)
-      EscapedCloseStr = escape_search_chars( CloseStr)
-      setsearch 'xcom l '\1'('EscapedOpenStr'|'EscapedCloseStr')'\1'-Rx'
-
-      -- Start at col before CloseStr
-      .line = StartLine
-      .col  = StartCol
-
-      BalCount = '1'
-      CurMode  = GetMode()
-      ThisLine = ''
-      do forever
-         repeat_find
-         lrc = rc
-         if lrc then
-            leave
-         else
-
-            if inside_comment( CurMode) then
-               iterate
-            endif
-            if inside_literal2( CurMode) then
-               iterate
-            endif
-
-            getline ThisLine
-            StrAtCursor = substr( ThisLine, .col, length( OpenStr))
-            if substr( ThisLine, .col, length( OpenStr)) = OpenStr then
-               -- OpenStr comes next
-               MoveStr  = OpenStr
-               BalCount = BalCount - 1
-               --dprintf( 'OpenStr found, BalCount = 'BalCount', line = '.line', col = '.col)
-               if BalCount = 0 then
-                  OpenLine = .line
-                  OpenCol  = .col
-                  leave
-               endif
-            elseif substr( ThisLine, .col, length( CloseStr)) = CloseStr then
-               -- CloseStr comes next
-               MoveStr  = CloseStr
-               BalCount = BalCount + 1
-               --dprintf( 'CloseStr found, BalCount = 'BalCount', line = '.line', col = '.col)
-            else
-               -- Should not happen
-               --dprintf( 'StrAtCursor = 'StrAtCursor', rc = 'lrc)
-               leave
-            endif
-         endif
-
-      enddo
-
-   endif
-
-   setsearch UserSearch
-   call prestore_pos( ScreenPos)
-
-   if BalCount <> 0 then
-
-      'SayHint Balance: No matching opening string "'OpenStr'"'
-
-   elseif OnScreen( OpenLine, OpenCol) then
-
-      -- Highlight it
-      EndCol = OpenCol + length( OpenStr) - 1
-      'PostMe CircleIt' OpenLine OpenCol EndCol
-
-   else
-
-      -- Opening character not on screen, so tell user in message area where it is
-      ReportLine = leftstr( ThisLine, OpenCol + length( OpenStr) - 1)
-      if (length( ReportLine) > 20) then
-         ReportLine = leftstr( ReportLine, 20) "..."
+      lrc = passist( BALANCE_MAX_LINES, BALANCE_MAX_LOOPS)
+      if not lrc then
+         getline ThisLine
+         OpenLine = .line
+         OpenCol  = .col
       endif
 
-      'SayHint Line' OpenLine', column' OpenCol':' ReportLine
+      call prestore_pos( ScreenPos)
+      display 3  -- turn on non-critical error messages and screen updates
+      PrevBalanceData = Fid StartLine lrc
 
+      if lrc then
+         -- Let passist do the error msg
+      elseif OnScreen( OpenLine, OpenCol) then
+         -- Highlight it
+         EndCol = OpenCol + length( OpenStr) - 1
+         'PostMe CircleIt' OpenLine OpenCol EndCol
+      else
+         -- Opening character not on screen, so tell user in message area where it is
+         ReportLine = leftstr( ThisLine, OpenCol + length( OpenStr) - 1)
+         if (length( ReportLine) > 20) then
+            ReportLine = leftstr( ReportLine, 20) "..."
+         endif
+         'SayHint Line' OpenLine', column' OpenCol':' ReportLine
+      endif
    endif
-   display 3  -- turn on non-critical error messages and screen updates
 
-   PrevBalanceData = Fid StartLine lrc
    return lrc
 
