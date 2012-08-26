@@ -1008,16 +1008,16 @@ defc DeleteAccel, DelKeyset
 ; ---------------------------------------------------------------------------
 ; executekey can only execute single keys. For strings containing multiple
 ; keys, keyin can be used.
-defc dokey
+defc DoKey
    --sayerror 'dokey: k = 'arg(1)
-   executekey resolve_key(arg(1))
+   executekey Resolve_Key(arg(1))
 
 ; ---------------------------------------------------------------------------
-defc executekey
+defc ExecuteKey
    executekey arg(1)
 
 ; ---------------------------------------------------------------------------
-defc keyin
+defc Keyin
    if arg(1) = '' then
       keyin ' '
    else
@@ -1042,7 +1042,7 @@ defc keyin
 ;    10  16  Ctrl
 ;    20  32  Alt
 ;
-defproc resolve_key( k)
+defproc Resolve_Key( k)
    kl = lowcase( k)
    suffix = \2                            -- For unshifted function keys
    if length( k) >= 3 & pos( substr( k, 2, 1), '_-+') then
@@ -1069,36 +1069,20 @@ defproc resolve_key( k)
    return k
 
 ; ---------------------------------------------------------------------------
-; This filters out modifier keys like Ctrl etc. Therefore it can only be
-; used for single chars. It handles also overwriting of CUA marking.
+; This ignores modifier key combinations. Therefore it can be used for single
+; chars only.
 defproc Process_Key( char)
    universal cua_marking_switch
 
    if length( char) = 1 & char <> \0 then
 
-      fInsert = insert_state()
-      fMarked = 0
-      fInsertToggled = 0
-      if cua_marking_switch then
-         fMarked = (process_mark_like_cua() = 1)
-         if not fInsert & fMarked then
-            -- Turn on insert mode because the key should replace
-            -- the mark, not the character after the mark.
-            insert_toggle
-            fInsertToggled = 1
-         endif
-      endif
-
-      keyin char
-
-      if fInsertToggled then
-         insert_toggle
-      endif
+      call Process_Keys( char)
 
    endif
 
 ; ---------------------------------------------------------------------------
-; This handles overwriting of CUA marking for multiple chars.
+; This types one or multiple chars. It handles replacing a marked area while
+; CUA marking is active.
 defproc Process_Keys( chars)
    universal cua_marking_switch
 
@@ -1115,11 +1099,46 @@ defproc Process_Keys( chars)
       endif
    endif
 
+   call NextCmdAltersText()
    keyin chars
 
    if fInsertToggled then
       insert_toggle
    endif
+
+; ---------------------------------------------------------------------------
+; An easier to remember synonym for Process_Keys.
+defproc TypeChars( chars)
+   call Process_Keys( chars)
+
+; ---------------------------------------------------------------------------
+; Defined as command for use in key definition files.
+defc TypeChars
+   call Process_Keys( arg(1))
+
+; ---------------------------------------------------------------------------
+; This takes ascii values of one or multiple chars. Multiple chars can be
+; separated by '\'. An leading '\' is optional.
+; Example: TypeAscChars \0\170 gives a null char followed by a not char.
+defc TypeAscChars
+   Rest = strip( arg(1))
+   Chars = ''
+   do while Rest <> ''
+      if leftstr( Rest, 1) <> '\' then
+         Rest = '\'Rest
+      endif
+      parse value Rest with '\'Num'\'Rest
+      Num = strip( Num)
+      Rest = strip( Rest)
+
+      if IsNum( Num) and Num < 256 then
+         Chars = Chars''chr( Num)
+      else
+         -- Maybe give an error msg here or ignore this one
+         Chars = Chars''Num
+      endif
+   enddo
+   call Process_Keys( Chars)
 
 ; ---------------------------------------------------------------------------
 ; Ensure that default entry is present in NEPMD.INI
@@ -2201,22 +2220,6 @@ defc BackSpace
       -- end workaround for cursor just behind or at begin of a mark
       .levelofattributesupport = old_level
    endif
-
-defc TypeNull
-   call NextCmdAltersText()
-   call Process_Keys( \0)                 -- C_2 enters a null.
-defc TypeNot
-   call NextCmdAltersText()
-   call Process_Key( \170)                -- C_6 enters a "not" sign
-defc TypeOpeningBrace
-   call NextCmdAltersText()
-   call Process_Key( '{')
-defc TypeClosingBrace
-   call NextCmdAltersText()
-   call Process_Key( '}')
-defc TypeCent
-   call NextCmdAltersText()
-   call Process_Key( '›')                 -- C_4 enters a cents sign
 
 defc DeleteLine
    call NextCmdAltersText()

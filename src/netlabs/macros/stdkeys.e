@@ -149,12 +149,12 @@ DefKey( 'c_s_f11'      , 'History save'    )    -- Open Save history listbox
 ; ---- Special chars ----
 DefKey( 'a_f1'         , 'TypeFrameChars'  )    -- Type a list of IBM frame chars (help for the draw and box commands)
 ;DefKey( 'a_n'          , 'TypeFileName'    )    -- Type the full filename
-DefKey( 'c_2'          , 'TypeNull'        )    -- Type a null char (\0)
-DefKey( 'c_6'          , 'TypeNot'         )    -- Type a not char ª (\170)
-DefKey( 'c_9'          , 'TypeOpeningBrace')    -- Type a {
-;DefKey( 'c_0'          , 'TypeClosingBrace')    -- Type a }
-DefKey( 'c_4'          , 'TypeCent'        )    -- Type a cent char › (\155)
-DefKey( 'c_tab'        , 'TypeTab'         )    -- Type a tab char (\9)
+DefKey( 'c_2'          , 'TypeAscChars \0' )    -- Type a null char (\0)
+DefKey( 'c_6'          , 'TypeAscChars \170')   -- Type a not char ª (\170)
+DefKey( 'c_9'          , 'TypeChars {'     )    -- Type a {
+;DefKey( 'c_0'          , 'TypeChars }'     )    -- Type a }
+DefKey( 'c_4'          , 'TypeAscChars \155')   -- Type a cent char › (\155)
+DefKey( 'c_tab'        , 'TypeAscChars \9' )    -- Type a tab char (\9)
 
 ; ---- Window and File switching ----
 DefKey( 'f11'          , 'PrevFile'        )    -- Switch to previous file
@@ -207,15 +207,21 @@ DefKey( 'a_h'          , 'MyAssist'        )    -- ASSIST.E: insert code for abb
 DefKey( 'c_['          , 'Assist'          )    -- Move cursor on matching bracket or statement
 DefKey( 'c_]'          , 'Assist'          )    -- Move cursor on matching bracket or statement
 DefKey( 'c_8'          , 'Assist'          )    -- Move cursor on matching bracket or statement
-
+; Opening brackets:
 DefKey( '('            , 'OpeningParen'    )    -- Add ) while typing ( if defined as match_chars
 DefKey( '['            , 'OpeningBracket'  )    -- Add ] while typing [ if defined as match_chars
 DefKey( '{'            , 'OpeningBrace'    )    -- Add } while typing { if defined as match_chars
 DefKey( '<'            , 'OpeningAngle'    )    -- Add > while typing < if defined as match_chars
-DefKey( ')'            , 'balance )'       )    -- Mark matching ( while typing )
-DefKey( 's_)'          , 'balance )'       )    -- Mark matching ( while typing )
-DefKey( ']'            , 'balance ]'       )    -- Mark matching [ while typing ]
+; Closing brackets with balance enabled:
+DefKey( ')'            , 'Balance )'       )    -- Mark matching ( while typing )
+DefKey( 's_)'          , 'Balance )'       )    -- Mark matching ( while typing )
+DefKey( ']'            , 'Balance ]'       )    -- Mark matching [ while typing ]
 DefKey( '}'            , 'ClosingBrace'    )    -- Auto-indent } to indent of { if activated. Mark matching { while typing }
+; Closing brackets with balance disabled:
+;DefKey( ')'            , 'TypeChars )'     )    -- Type a )
+;DefKey( 's_)'          , 'TypeChars )'     )    -- Type a )
+;DefKey( ']'            , 'TypeChars ]'     )    -- Type a ]
+;DefKey( '}'            , 'TypeChars }'     )    -- Type a }
 
 ; ---- Draw ----
 DefKey( 'f6'           , 'Draw'            )    -- Message about available draw chars and Commandline to typein a char, then use cursor chars
