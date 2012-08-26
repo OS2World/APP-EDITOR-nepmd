@@ -2622,9 +2622,7 @@ defc dynafree =
 ; Stops if current window is not the only EPM window, so this can be used as
 ; command.
 defc CheckOnlyEpmWindow
-   if IsOnlyEpmWindow() then
-      rc = 0
-   else
+   if not IsOnlyEpmWindow() then
       refresh
       Title = 'Multiple EPM windows'
       Text = 'The current command can''t be executed when multiple'      ||
@@ -2633,7 +2631,6 @@ defc CheckOnlyEpmWindow
       rcx = winmessagebox( Title, Text,
                            MB_OK + MB_WARNING + MB_MOVEABLE)
       stop
-      rc = 1
    endif
 
 ; ---------------------------------------------------------------------------
@@ -2960,15 +2957,55 @@ defc CloseOtherWin
 
 ; ---------------------------------------------------------------------------
 ; Check for a modified file in ring. If not, restart current EPM window.
+; (The SaveRing and RestoreRing commands support only one ring at time.)
 ; Keep current directory.
+; Syntax: Restart [closeother] [current] [args]
 defc Restart
-   if arg(1) = '' then
+   args = arg(1)
+   wp = wordpos( 'CLOSEOTHER', upcase( args))
+   fCloseOther = (wp > 0)
+   if wp then
+      args = delword( args, wp, 1)  -- remove 'CLOSEOTHER' from args
+   endif
+   wp = wordpos( 'CURRENT', upcase( args))
+   fCurrent = (wp > 0)
+   if wp then
+      args = delword( args, wp, 1)  -- remove 'CURRENT' from args
+   endif
+
+   if args = '' then
       cmd = 'RestoreRing'
    else
-      cmd = 'mc ;Restorering;AtPostStartup' arg(1)
+      cmd = 'mc ;Restorering;AtPostStartup' args
    endif
+
    'RingCheckModify'
    'SaveRing'
+
+   if fCloseOther then
+      'CloseOtherWin'
+   endif
+
+   -- Check if current window is the only EPM window and either continue
+   -- or let the user try again or cancel
+   if not fCurrent then
+      do while not IsOnlyEpmWindow()
+         refresh
+         Title = 'Multiple EPM windows'
+         Text = 'The ''Restart'' command can''t be executed as long as multiple' ||
+                ' EPM windows are open.'\n\n                                 ||
+                'Press "OK" to try again or "Cancel" to abort.'
+         rcx = winmessagebox( Title, Text,
+                              MB_OKCANCEL + MB_WARNING + MB_MOVEABLE)
+         if rcx = MBID_OK then
+            iterate
+         else
+            rc = -269  -- User Break. Command halted
+            stop
+         endif
+      enddo
+   endif
+
    EpmArgs = "'"cmd"'"
 compile if 0
    -- Doesn't work really reliable everytime (but even though useful):

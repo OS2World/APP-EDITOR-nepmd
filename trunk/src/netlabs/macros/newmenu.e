@@ -801,8 +801,8 @@ defproc add_file_menu(menuname)
                                    MIS_SEPARATOR, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Res~tart',                                                     -- Restart
-                                   'Restart' ||
-                                   \1'Restart current EPM window',
+                                   'Restart closeother' ||
+                                   \1'Close other EPM windows and restart current',
                                    MIS_TEXT, 0
    return
 
