@@ -217,11 +217,6 @@ DefKey( ')'            , 'Balance )'       )    -- Mark matching ( while typing 
 DefKey( 's_)'          , 'Balance )'       )    -- Mark matching ( while typing )
 DefKey( ']'            , 'Balance ]'       )    -- Mark matching [ while typing ]
 DefKey( '}'            , 'ClosingBrace'    )    -- Auto-indent } to indent of { if activated. Mark matching { while typing }
-; Closing brackets with balance disabled:
-;DefKey( ')'            , 'TypeChars )'     )    -- Type a )
-;DefKey( 's_)'          , 'TypeChars )'     )    -- Type a )
-;DefKey( ']'            , 'TypeChars ]'     )    -- Type a ]
-;DefKey( '}'            , 'TypeChars }'     )    -- Type a }
 
 ; ---- Draw ----
 DefKey( 'f6'           , 'Draw'            )    -- Message about available draw chars and Commandline to typein a char, then use cursor chars
