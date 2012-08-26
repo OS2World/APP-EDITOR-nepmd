@@ -207,12 +207,13 @@ DefKey( 'a_h'          , 'MyAssist'        )    -- ASSIST.E: insert code for abb
 DefKey( 'c_['          , 'Assist'          )    -- Move cursor on matching bracket or statement
 DefKey( 'c_]'          , 'Assist'          )    -- Move cursor on matching bracket or statement
 DefKey( 'c_8'          , 'Assist'          )    -- Move cursor on matching bracket or statement
-; Opening brackets:
+; Opening brackets (note that the shifted variant applies, depending on your keyboard):
 DefKey( '('            , 'OpeningParen'    )    -- Add ) while typing ( if defined as match_chars
+DefKey( 's_('          , 'OpeningParen'    )    -- Add ) while typing ( if defined as match_chars
 DefKey( '['            , 'OpeningBracket'  )    -- Add ] while typing [ if defined as match_chars
 DefKey( '{'            , 'OpeningBrace'    )    -- Add } while typing { if defined as match_chars
 DefKey( '<'            , 'OpeningAngle'    )    -- Add > while typing < if defined as match_chars
-; Closing brackets with balance enabled:
+; Closing brackets with balance enabled (note that the shifted variant applies, depending on your keyboard):
 DefKey( ')'            , 'Balance )'       )    -- Mark matching ( while typing )
 DefKey( 's_)'          , 'Balance )'       )    -- Mark matching ( while typing )
 DefKey( ']'            , 'Balance ]'       )    -- Mark matching [ while typing ]
