@@ -1365,12 +1365,7 @@ ReplaceDll:
 
       CALL LINEOUT TmpFile, "'CD ..\..\netlabs\bin'"
       IF ADDRESS() = 'EPM' THEN
-      DO
-/*
          CALL LINEOUT TmpFile, "'CALL EPMRESUME'"
-*/
-         CALL LINEOUT TmpFile, "'CALL EPMLAST'"
-      END
       CALL LINEOUT TmpFile, "IF rc <> 0 THEN"
       CALL LINEOUT TmpFile, "DO"
       CALL LINEOUT TmpFile, "   'PAUSE'"
