@@ -2556,7 +2556,8 @@ defc SelectColorPal
 ; ---------------------------------------------------------------------------
 defc EnterColorPalName
 
-   Title = 'Copy color palette'
+   ColorPal = strip( arg(1))
+   Title = 'Copy color palette "'ColorPal'"'
    Text = 'Enter a new name:'
    OldEntry = ''
    Buttons = '/OK/Cancel'
@@ -2576,7 +2577,6 @@ defc EnterColorPalName
    EOS = pos( \0, ret, 2)        -- CHR(0) signifies End Of String
    NewEntry = substr( ret, 2, EOS - 2)
    NewEntry = strip( NewEntry)
-   ColorPal = strip( arg(1))
 
    if EntryButton = 2 | EntryButton = 0 then  -- 0 = Esc, 2 = Cancel
       'SelectColorPal'
