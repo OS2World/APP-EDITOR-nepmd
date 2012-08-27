@@ -1099,7 +1099,6 @@ defproc Process_Keys( chars)
       endif
    endif
 
-   call NextCmdAltersText()
    keyin chars
 
    if fInsertToggled then
