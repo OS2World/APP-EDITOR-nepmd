@@ -1240,7 +1240,7 @@ defproc add_format_menu(menuname)
                                 0, 0  -- MIS must be 0 for submenu
    i = i + 1;
    buildmenuitem menuname, mid, i, 'Wrap lin~e',                                                   -- Wrap line   >
-                                   \1'Reformat all: add line breaks',
+                                   \1'Reformat line: add line breaks',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Split line'\9 || ALT_KEY__MSG'+S',                                  -- Split line
@@ -1298,7 +1298,7 @@ defproc add_format_menu(menuname)
    i = i + 1; call SetAVar( 'mid_reflowall', i);
    buildmenuitem menuname, mid, i, '~Reflow all',                                                  -- Reflow all   >
                                    '' ||
-                                   \1'Reformat paragraph',
+                                   \1'Reformat all',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, 'To ~reflow margins'\9 || CTRL_KEY__MSG'+P',                          -- To reflow margins
@@ -3051,8 +3051,8 @@ defproc add_run_menu(menuname)
                                    'toggle_alias' ||
                                    \1'Put an asterisk before a command to temp. disable it',
                                    MIS_TEXT, nodismiss
-   i = i + 1;
-   buildmenuitem menuname, mid, i, '~Edit ALIAS.CFG',                                                    -- Edit ALIAS.CFG
+   i = i + 1; call SetAVar( 'mid_editalias', i);
+   buildmenuitem menuname, mid, i, 'Edit ALIAS.~CFG',                                                    -- Edit ALIAS.CFG
                                    'EditCreateUserFile bin\alias.cfg' ||
                                    \1'Edit alias file for alias configuration',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -3687,7 +3687,11 @@ defc menuinit_modesettings
 
    file = ResolveEnvVars('%NEPMD_USERDIR%\bin\profile.erx')
    file_exist = exist(file)
-   SetMenuAttribute( GetAVar('mid_editprofile2'),               MIA_DISABLED, file_exist)
+   if file_exist then
+      SetMenuText( GetAVar('mid_editprofile2'), 'Edit ~PROFILE.ERX')
+   else
+      SetMenuText( GetAVar('mid_editprofile2'), 'Create ~PROFILE.ERX')
+   endif
 
 defc menuinit_keyssettings
    universal cua_menu_accel
@@ -3926,6 +3930,13 @@ defc menuinit_configureshell
    KeyPath = '\NEPMD\User\Shell\Alias'
    on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
    SetMenuAttribute( GetAVar('mid_alias'), MIA_CHECKED, not on)
+   file = ResolveEnvVars('%NEPMD_USERDIR%\bin\alias.cfg')
+   file_exist = exist(file)
+   if file_exist then
+      SetMenuText( GetAVar('mid_editalias'), 'Edit ALIAS.~CFG')
+   else
+      SetMenuText( GetAVar('mid_editalias'), 'Create ALIAS.~CFG')
+   endif
 
 defc menuinit_treecommands
    is_tree = upcase( leftstr( .filename, 5)) = '.TREE'
