@@ -1,7 +1,3 @@
-/*
- * Quiet option
- * Write log file
- */
 /****************************** Module Header *******************************
 *
 * Module Name: colors.erx
@@ -170,7 +166,6 @@ DO 1
       END
    END
    IF rc <> ERROR.NO_ERROR THEN LEAVE
-CALL SAYDEBUG 'Action = 'Action' -------------------------------------------------'
 
    /* Make colors.cfg in the user tree replace the netlabs file */
    IF FileExist( UserBinDir'\'StdCfg._Name) THEN
@@ -203,45 +198,6 @@ CALL SAYDEBUG 'Action = 'Action' -----------------------------------------------
    /* Changed palettes need manual sync      */
    rcx = AutoSyncNewPalCfg()
 
-   /* Create MyColors palette if no user palette exists */
-
-   /* Save MyColors.cfg if changed after every single operation */
-
-
-/* <------------------------------- TODO: check if default user pal has same colors as NEPMD */
-/*                                        and maybe ignore it or append '(equal to NEPMD)'   */
-
-/*
- * Files
- *    F:\Apps\NEPMD\myepm\bin\colors.erx
- *    F:\Apps\NEPMD\myepm\bin\colors.erx.txt
- *    F:\Apps\NEPMD\myepm\macros\stdctrl.e
- */
-/*
-Single menu item: Manage color palettes...
-   Before opening the Selection dialog, the myepm/bin folder should be opened.
-   Selection dialog lists all color sets, maybe appended with (needs sync).
-   Buttons: [ Sync... ]  [ Copy... ]  [ Delete... ]  [ Select ]  [ Cancel ]  [ Help ]
-Sync dialog is opened via Sync button.
-   Maybe: Sync dialog is automatically opened if selected item needs sync.
-   Buttons: [ Pal -> Cfg ]  [ Cfg -> Pal ]  [ Cancel ]  [ Help ]
-Actions:
-OK Copy, select new name, maybe confirm overwrite (arg = pal, name)
-OK Delete, confirm delete (arg = pal)
-   Select                 (arg = pal)       -> store selection in NEPMD.INI?
-                                            -> later: get it from DLL
-   -> create backup DLL
-   -> patch DLL
-OK Sync Pal -> Cfg (SyncPalToCfg)
-OK Sync Cfg -> Pal (SyncCfgToCfg)
-OK Init: Create MyColors if it doesn't exist
-
-Todo:
-   o  Select active palette in list
-   o  Display doubled palettes with just different names, e.g.
-      "MyColors (same as NEPMD)"
-*/
-
    /* Execute Action */
    SELECT
       /* Get list of palettes, separated by '|', for listbox */
@@ -253,7 +209,6 @@ Todo:
 
       /* Copy palette */
       WHEN ABBREV( Action, 'C') THEN  /* arg3 = new name */
-/* TODO: Get Arg3 via E dialog, if missing */
          CALL CopyPal Arg2, Arg3
 
       /* Delete palette */
@@ -306,7 +261,6 @@ Todo:
 
          /* Get color string for DLL */
          HexColors = GetHexColors( PalName)
-CALL SAYDEBUG 'HexColors ('PalName') = 'HexColors
 
          DllColors = HexColorsToDllColors( HexColors)
          IF DllColors = '' THEN
@@ -349,7 +303,6 @@ AddHexColorsToCfgStem: PROCEDURE EXPOSE (GlobalVars)
    IF RIGHT( Stem, 1) <> '.' THEN
       Stem = Stem'.'
 
-CALL SAYDEBUG 'Stem = 'Stem', VALUE( Stem_Section.0) = 'VALUE( Stem'_Section'.0)
    DO s = 1 to VALUE( Stem'_Section'.0)
 
       HexColors = ''
@@ -442,7 +395,6 @@ ReadPalettes: PROCEDURE EXPOSE (GlobalVars)
       IF PalName = '' THEN
          PARSE VALUE Title WITH PalName
       IF HexColors = '' | PalName = '' THEN ITERATE
-CALL SAYDEBUG 'PalName = 'PalName
 
       p = p + 1
       Pal._Name.0 = p
@@ -457,10 +409,6 @@ CreatePalObj: PROCEDURE EXPOSE (GlobalVars)
 
    PARSE ARG PalName, HexColors
 
-   /*
-   Previously used prefix
-   PalTitle = PalTitlePrefix''PalName
-   */
    PalTitle = PalName
    ObjectId = '<'ObjectIdPrefix''TRANSLATE( PalName)'>'
 
@@ -483,7 +431,6 @@ CreatePalObj: PROCEDURE EXPOSE (GlobalVars)
       'OBJECTID='ObjectId';'
 
    rcx = SysCreateObject( PalClass, PalTitle, WorkDir, PalSetup, UpdateReplaceFail)
-CALL SAYDEBUG 'rcx from creation of palette "'PalName'" = 'rcx' (1 = OK)'
 
    rcx = SysSaveObject( ObjectId, AsyncFlag)
 
@@ -498,7 +445,6 @@ DeletePalObj: PROCEDURE EXPOSE (GlobalVars)
    ObjectId  = '<'ObjectIdPrefix''TRANSLATE( PalName)'>'
 
    rcx = SysDestroyObject( ObjectId)
-CALL SAYDEBUG 'rcx from deletion of palette "'PalName'" = 'rcx' (1 = OK)'
 
    RETURN( ERROR.NO_ERROR)
 
@@ -508,7 +454,7 @@ ComparePalCfg: PROCEDURE EXPOSE (GlobalVars)
    rc = ERROR.NO_ERROR
 
    /* Find new or changed palettes */
-   Pal._New     = ''                                              /* todo: ask on changed which to sync */
+   Pal._New     = ''           /* Maybe todo: ask on changed which to sync */
    Pal._Changed = ''
    DO p = 1 TO Pal._Name.0
       PalName   = Pal._Name.p
@@ -632,7 +578,6 @@ AutoSyncNewPalCfg: PROCEDURE EXPOSE (GlobalVars)
    AddCfg._New = ''
 
    /* New palette names */
-CALL SAYDEBUG 'Pal._New = 'Pal._New
    DO w = 1 to WORDS( Pal._New)
       p = WORD( Pal._New, w)
       PalName   = Pal._Name.p
@@ -644,7 +589,6 @@ CALL SAYDEBUG 'Pal._New = 'Pal._New
       AddCfg._HexColors.s = HexColors
       AddCfg._Section.0 = s
       AddCfg._fChanged = 1
-CALL SAYDEBUG 'Added missing section "'PalName'"'
    END
    /* Reset list */
    Pal._New = ''
@@ -719,7 +663,6 @@ SaveAddCfg: PROCEDURE EXPOSE (GlobalVars)
       rcx = FileDelete( AddCfg._Fullname)
       rc = FileRename( TmpFile, AddCfg._Name)
    END
-CALL SAYDEBUG 'Saved 'AddCfg._Section.0' color palettes to 'AddCfg._Fullname' with rc = 'rc'.'
 
    RETURN( rc)
 
@@ -748,8 +691,8 @@ GetPalNameList: PROCEDURE EXPOSE (GlobalVars)
    ListBoxData = '|'TRANSLATE( STRIP( AddCfg.PalNames StdCfg.PalNames), '|', ' ')
    IF ListBoxData = '|' THEN
       ListBoxData = ''
-CALL SAYDEBUG 'ListboxData = 'ListBoxData
-  RETURN( ListBoxData)
+
+   RETURN( ListBoxData)
 
 /* ----------------------------------------------------------------------- */
 CopyPal: PROCEDURE EXPOSE (GlobalVars)
@@ -1107,10 +1050,7 @@ BackupDll: PROCEDURE EXPOSE (GlobalVars)
       BackupName = DllBaseName'.'SaveFileExt
       BackupFile = DllDir'\'BackupName
       IF FileExist( BackupFile) THEN
-DO
          NOP
-CALL SAYDEBUG 'Backup:' BackupFile 'already exists. No backup required.'
-END
       ELSE
       DO
          /* Create backup */
@@ -1138,11 +1078,8 @@ FindLibPath:
    DllFullName = ''
    BootDrive = GetBootDrive()
    LibpathDirs = GetIniValue( BootDrive'\config.sys', '', 'LIBPATH')
-   /*BeginLibpathDirs = value( 'BEGINLIBPATH', , env)*/
-   /*EndLibpathDirs   = value( 'ENDLIBPATH', , env)*/
 
    fFunctionFound = 0
-   /*IF \RxFuncQuery( 'SysQueryExtLIBPATH') THEN*/
    IF \RxFuncQuery( 'SYSQUERYEXTLIBPATH') THEN
       fFunctionFound = 1
 
@@ -1173,9 +1110,6 @@ FindLibPath:
    IF \(fFunctionFound = 1) THEN
       'CALL RXQUEUE /CLEAR'
 
-CALL SayDebug 'BeginLIBPATH = ['BeginLibPathDirs']'
-CALL SayDebug 'EndLIBPATH = ['EndLibPathDirs']'
-
    IF BeginLibpathDirs > '' THEN
       LibpathDirs = STRIP( BeginLibpathDirs, 'T', ';')';'LibpathDirs
    IF EndLibpathDirs > '' THEN
@@ -1191,7 +1125,6 @@ CALL SayDebug 'EndLIBPATH = ['EndLibPathDirs']'
          LEAVE
       END
    END
-CALL SAYDEBUG 'Found Dll in Libpath: 'DllFullName
 
    RETURN( DllFullName)
 
@@ -1257,7 +1190,6 @@ GetIniValue:
 /* ----------------------------------------------------------------------- */
 PatchDll:
    PARSE ARG DllFullName, WorkDllFullName, Signature, DllColors
-CALL SAYDEBUG 'PatchDll: PalName = 'PalName
 
    rc = ERROR.NO_ERROR
    DO 1
@@ -1269,7 +1201,8 @@ CALL SAYDEBUG 'PatchDll: PalName = 'PalName
          LEAVE
       END
 
-CALL SayDebug 'Patching the Dll "'WorkDll'"...'
+      IF ADDRESS() = 'EPM' THEN
+         'SayHint Patching the DLL...'
 
       /* Read DLL content */
       IF STREAM( WorkDll, 'C', 'OPEN') <> 'READY:' THEN
@@ -1333,6 +1266,7 @@ ReplaceDll:
 
       IF ADDRESS() = 'EPM' THEN
       DO
+         'SayHint Replacing the DLL and restarting...'
          'CloseOtherWin'
          call SysSleep 1
          'CheckOnlyEpmWindow'
@@ -1374,16 +1308,10 @@ ReplaceDll:
       CALL LINEOUT TmpFile, "'DEL "WorkDll"'"
       CALL LINEOUT TmpFile, "'DEL "TmpFile"'"
       CALL LINEOUT TmpFile, "'RMDIR "WorkDir"'"
-
-/*
-      CALL LINEOUT TmpFile, "'PAUSE'"
-*/
       CALL LINEOUT TmpFile, "EXIT( 0)"
       rcx = STREAM( TmpFile, 'c', 'close')
+
       Cmd = 'START /c /min' TmpFile
-/*
-      Cmd = 'START /c' TmpFile
-*/
       ''Cmd
       IF rc <> 0 THEN
       DO
@@ -1444,7 +1372,6 @@ FileRename: PROCEDURE EXPOSE (GlobalVars)
 /*    Ini._Val.s.k     value of key number k in section s                  */
 ReadIni: PROCEDURE EXPOSE (GlobalVars)
    PARSE ARG IniFile, Stem
-CALL SAYDEBUG 'ReadIni: 'IniFile', 'Stem
 
    IF Stem = '' THEN
       Stem = 'Ini.'
@@ -1549,21 +1476,6 @@ SayDebug: PROCEDURE EXPOSE (GlobalVars)
          'dprintf' Message
    OTHERWISE
       SAY Message
-      /*
-      /* pipe symbols have to be escaped before being passed to CMD.EXE */
-      'call dprintf' Message
-      */
-/*
-      DO 1
-         fRexxPmpfLoaded = (RxFuncQuery('RexxPmpf') = 0)
-         IF fRexxPmpfLoaded THEN
-            LEAVE
-         CALL RxFuncAdd 'RexxPmpf', 'PmPrintf', 'RexxPmpf'
-         fRexxPmpfLoaded = (RxFuncQuery('RexxPmpf') = 0)
-      END
-      IF fRexxPmpfLoaded THEN
-         RexxPmpf( Message)
-*/
    END
 
    RETURN( '')
