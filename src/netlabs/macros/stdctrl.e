@@ -2513,7 +2513,8 @@ defc SelectColorPal
    Title   = 'Change color palette'
    Text    = 'Select a color palette from the list below:'
 ;  Buttons = '/~Set/S~ync.../~Copy.../~Delete.../Cancel/Help'
-   Buttons = '/~Set/Cancel'
+   Buttons = '/~Set/~Copy.../~Delete/Cancel'
+;  Buttons = '/~Set/Cancel'
 
    refresh
    Result = ListBox( Title,
@@ -2537,9 +2538,106 @@ defc SelectColorPal
    if Button = 1 then      -- Set
       rcx = RxResult( 'colors.erx S' ColorPal)
       --sayerror 'RxResult from "rx colors.erx' ColorPal'" = 'rcx
+/*
+   elseif Button = 2 then  -- Sync
+      'SyncColorPal'
+*/
+   elseif Button = 2 then  -- Copy
+      'EnterColorPalName' ColorPal
+   elseif Button = 3 then  -- Delete
+      rcx = RxResult( 'colors.erx D' ColorPal)
+      'SelectColorPal'
    else                    -- Cancel
-      return 1
+      -- nop
    endif
+
+   return
+
+; ---------------------------------------------------------------------------
+defc EnterColorPalName
+
+   Title = 'Copy color palette'
+   Text = 'Enter a new name:'
+   OldEntry = ''
+   Buttons = '/OK/Cancel'
+   DefButton = 1
+   Title = leftstr( Title, 100)'.'  -- Add spaces to fit the text in titlebar
+   HelpId = 0
+   ret = entrybox( Title,
+                   Buttons,
+                   OldEntry,
+                   '',
+                   255,     -- Length
+                   atoi(DefButton) || atoi(HelpId) || gethwndc(APP_HANDLE) ||
+                   Text\0)
+
+   -- Check result
+   EntryButton = asc(leftstr( ret, 1))
+   EOS = pos( \0, ret, 2)        -- CHR(0) signifies End Of String
+   NewEntry = substr( ret, 2, EOS - 2)
+   NewEntry = strip( NewEntry)
+   ColorPal = strip( arg(1))
+
+   if EntryButton = 2 | EntryButton = 0 then  -- 0 = Esc, 2 = Cancel
+      'SelectColorPal'
+   elseif EntryButton = 1 then                -- 1 = OK
+      rcx = RxResult( 'colors.erx C' ColorPal NewEntry)
+      'SelectColorPal'
+   end
+
+   return
+
+; ---------------------------------------------------------------------------
+defc SyncColorPal
+
+   NumItems = 0
+   ListBoxData = ''
+   Next = RxResult( 'colors.erx L')
+   if Next <> '' then
+      -- Get number of items
+      Sep = leftstr( Next, 1)
+      Check = translate( translate( Next, '_', ' '), ' ', Sep)
+      NumItems = words( Check)
+      ListBoxData = Next
+   endif
+
+   DefaultItem   = 1
+   DefaultButton = 1
+   HelpId = 0
+   Title   = 'Synchronize color palettes'
+   Text    = ''
+   Buttons = '/~Pal -> Cfg/~Cfg -> Pal/Cancel'
+
+   refresh
+   Result = ListBox( Title,
+                     ListBoxData,
+                     Buttons,
+                     0, 0,  --5, 5,           -- top, left,
+                     min( NumItems, 15), 50,  -- height, width
+                     gethwnd( APP_HANDLE) ||
+                     atoi( DefaultItem)   ||
+                     atoi( DefaultButton) ||
+                     atoi( HelpId)        ||
+                     Text\0)
+   refresh
+
+   -- Check result
+   Button = asc( leftstr( Result, 1))
+   EOS = pos( \0, Result, 2)        -- CHR(0) signifies End Of String
+
+   ColorPal = substr( Result, 2, EOS - 2)
+
+   if Button = 1 then      -- Pal -> Cfg
+      rcx = RxResult( 'colors.erx P' ColorPal)
+      'SyncColorPal'
+   elseif Button = 2 then  -- Cfg -> Pal
+      rcx = RxResult( 'colors.erx F' ColorPal)
+      'SyncColorPal'
+   else                    -- Cancel
+      'SelectColorPal'
+   endif
+
+   return
 
 ; ---------------------------------------------------------------------------
 defproc Thunk(pointer)
