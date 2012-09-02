@@ -87,10 +87,10 @@ compile if WANT_TEXT_PROCS
    EXTEND_PARAGRAPH_MENUP__MSG = \1'Extend character mark through end of next paragraph.'
    HP_POPUP_EXTENDPARAGRAPH = 0
 compile endif -- WANT_TEXT_PROCS
-   UPCASE_MARK_MENU__MSG = '~Uppercase selection'
+   UPCASE_MARK_MENU__MSG = '~Uppercase mark'
    UPCASE_MARK_MENUP__MSG = \1'Translate selected text to upper case.'
    HP_POPUP_UPCASEMARK = 0
-   LOCASE_MARK_MENU__MSG = '~Lowercase selection'
+   LOCASE_MARK_MENU__MSG = '~Lowercase mark'
    LOCASE_MARK_MENUP__MSG = \1'Translate selected text to lower case.'
    HP_POPUP_LOCASEMARK = 0
    UPCASE_WORD_MENU__MSG = '~Uppercase word'
@@ -155,7 +155,6 @@ compile endif -- WANT_TEXT_PROCS
 defc MH_popup
    universal activemenu
    universal previouslyactivemenu
-   universal nepmd_hini
    if previouslyactivemenu = '' then
       previouslyactivemenu = activemenu
    endif
