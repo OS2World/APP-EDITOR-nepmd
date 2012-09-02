@@ -153,7 +153,9 @@ compile endif -- WANT_TEXT_PROCS
 
 
 defc MH_popup
-   universal activemenu, previouslyactivemenu
+   universal activemenu
+   universal previouslyactivemenu
+   universal nepmd_hini
    if previouslyactivemenu = '' then
       previouslyactivemenu = activemenu
    endif
@@ -180,6 +182,7 @@ defc MH_popup
 --defproc BuildPopupMenu
 ; This creates a popup menu at the current mouse pointer location.
 defc BuildPopupMenu
+   universal nepmd_hini
 compile if CHECK_FOR_LEXAM
    universal LEXAM_is_available
 compile endif
