@@ -511,6 +511,7 @@ defc RecompileNew
       fReplaceExFile = 0
       fDeleteExFile  = 0
       fCopiedExFile  = 0
+      fHeaderWritten = 0
       CurEFiles         = ''
       CurEFileTimes     = ''
       CurExFileTime     = ''
@@ -578,29 +579,27 @@ defc RecompileNew
                         endif
                         if rc then
                            fFoundMd5Exe = 0
-                           WriteLog( LogFile, 'E  MD5.EXE or MD5SUM.EXE not found in PATH')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'E  MD5.EXE or MD5SUM.EXE not found in PATH')
                         else
                            fFoundMd5Exe = 1
                            Md5Exe = next
                         endif
                      endif
                      if fFoundMd5Exe = 1 then
-                        WriteLog( LogFile, copies( '-', 71))
-                        WriteLog( LogFile, BaseName)
-                        WriteLog( LogFile, '   comparing current .EX file "'CurExFile'"')
-                        WriteLog( LogFile, '   with Netlabs .EX file')
+                        WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   comparing current .EX file "'CurExFile'"')
+                        WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   with Netlabs .EX file')
                         comprc = Md5Comp( CurExFile, NetlabsExFile, Md5Exe)
                         delrc = ''
                         if comprc = 0 then
-                           WriteLog( LogFile, '   current .EX file "'CurExFile'"')
-                           WriteLog( LogFile, '   is equal to Netlabs .EX file')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   current .EX file "'CurExFile'"')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is equal to Netlabs .EX file')
                            if not fCheckOnly then
                               delrc = EraseTemp( CurExFile)
                               if delrc then
                                  cWarning = cWarning + 1
-                                 WriteLog( LogFile, 'W  cannot delete current .EX file "'CurExFile'", rc = 'delrc)
+                                 WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'W  cannot delete current .EX file "'CurExFile'", rc = 'delrc)
                               else
-                                 WriteLog( LogFile, 'D  deleted current .EX file "'CurExFile'"')
+                                 WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'D  deleted current .EX file "'CurExFile'"')
                                  cDelete = cDelete + 1
                               endif
                            endif
@@ -610,8 +609,8 @@ defc RecompileNew
                               fCompExFile = 1
                            endif
                            if CurExFileTime < NetlabsExFileTime then
-                              WriteLog( LogFile, 'W  current .EX file "'CurExFile'"')
-                              WriteLog( LogFile, '   is older than Netlabs .EX file')
+                              WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'W  current .EX file "'CurExFile'"')
+                              WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is older than Netlabs .EX file')
                               cWarning = cWarning + 1
                            endif
                         endif
@@ -680,8 +679,8 @@ defc RecompileNew
                   if pos( ';'upcase( EFile)';', ';'upcase( CurEFiles)) > 0 then
                      -- EFile was deleted and previously added to EFiles
                      fCompExFile = 1
-                     WriteLog( LogFile, '   .E file "'EFile'"')
-                     WriteLog( LogFile, '   was deleted since last check')
+                     WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   .E file "'EFile'"')
+                     WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   was deleted since last check')
                   endif
                else
                   -- Get time of EFile
@@ -693,15 +692,15 @@ defc RecompileNew
                      if not fCheckOnly then
                         if EFileTime > max( LastCheckTime, CurExFileTime) then
                            fCompExFile = 1
-                           WriteLog( LogFile, '   .E file "'FullEFile'"')
-                           WriteLog( LogFile, '   is newer than last check')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   .E file "'FullEFile'"')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is newer than last check')
                            --leave  -- don't leave to enable further warnings
                         elseif (CurEFileTime = '') & (pos( ';'upcase( EFile)';', ';'upcase( OptEFiles)) > 0) then
-                           --WriteLog( LogFile, '         'BaseName' - .E file "'FullEFile'" is an optional file and probably not included')
+                           --WriteBasenameLog( LogFile, Basename, fHeaderWritten, '         'BaseName' - .E file "'FullEFile'" is an optional file and probably not included')
                         elseif EFileTime <> CurEFileTime then
                            fCompExFile = 1
-                           WriteLog( LogFile, '   .E file "'FullEFile'"')
-                           WriteLog( LogFile, '   is newer or older compared to last check of this .E file')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   .E file "'FullEFile'"')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is newer or older compared to last check of this .E file')
                            --leave  -- don't leave to enable further warnings
                         endif
                      endif
@@ -712,8 +711,8 @@ defc RecompileNew
                      if rcx = '' then
                         NetlabsEFileTime = next
                         if EFileTime < NetlabsEFileTime then
-                           WriteLog( LogFile, 'W  .E file "'FullEFile'"')
-                           WriteLog( LogFile, '   is older than Netlabs .E file')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'W  .E file "'FullEFile'"')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is older than Netlabs .E file')
                            cWarning = cWarning + 1
                         endif
                      endif
@@ -756,8 +755,8 @@ defc RecompileNew
                      if ret = '' then
                         NetlabsEFileTime = next
                         if EFileTime < NetlabsEFileTime then
-                           WriteLog( LogFile, 'W  .E file "'FullEFile'"')
-                           WriteLog( LogFile, '   is older than Netlabs .E file')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'W  .E file "'FullEFile'"')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is older than Netlabs .E file')
                            cWarning = cWarning + 1
                         endif
                      endif
@@ -766,7 +765,7 @@ defc RecompileNew
             enddo
          else
             rc = etpmrc
-            WriteLog( LogFile, 'E  ETPM returned rc =' rc)
+            WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'E  ETPM returned rc =' rc)
             mouse_setpointer vepm_pointer
             return rc
          endif
@@ -787,7 +786,7 @@ defc RecompileNew
             endif
             if rc then
                fFoundMd5Exe = 0
-               WriteLog( LogFile, 'E  MD5.EXE or MD5SUM.EXE not found in PATH')
+               WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'E  MD5.EXE or MD5SUM.EXE not found in PATH')
             else
                fFoundMd5Exe = 1
                Md5Exe = next
@@ -803,39 +802,39 @@ defc RecompileNew
                      if upcase( CurExFile) <> upcase( NetlabsExFile) then
                         if not fCheckOnly then
                            fDeleteExFile = 1
-                           WriteLog( LogFile, '   .EX file "'ExFile'"')
-                           WriteLog( LogFile, '   is different from current but equal to Netlabs .EX file')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   .EX file "'ExFile'"')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is different from current but equal to Netlabs .EX file')
                         else
-                           WriteLog( LogFile, 'W  .EX file "'ExFile'"')
-                           WriteLog( LogFile, '   is different from current but equal to Netlabs .EX file')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'W  .EX file "'ExFile'"')
+                           WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is different from current but equal to Netlabs .EX file')
                            cWarning = cWarning + 1
                         endif
                      endif
                   else
                      if not fCheckOnly then
-                        WriteLog( LogFile, '   .EX file "'ExFile'"')
-                        WriteLog( LogFile, '   is different from current and Netlabs .EX file')
+                        WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   .EX file "'ExFile'"')
+                        WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is different from current and Netlabs .EX file')
                      else
-                        WriteLog( LogFile, 'W  .EX file "'ExFile'"')
-                        WriteLog( LogFile, '   is different from current and Netlabs .EX file')
+                        WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'W  .EX file "'ExFile'"')
+                        WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is different from current and Netlabs .EX file')
                         cWarning = cWarning + 1
                      endif
                   endif
                else
                   if not fCheckOnly then
-                     WriteLog( LogFile, '   .EX file "'ExFile'"')
-                     WriteLog( LogFile, '   is different from current .EX file')
+                     WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   .EX file "'ExFile'"')
+                     WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is different from current .EX file')
                   else
-                     WriteLog( LogFile, 'W  .EX file "'ExFile'"')
-                     WriteLog( LogFile, '   is different from current .EX file')
+                     WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'W  .EX file "'ExFile'"')
+                     WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is different from current .EX file')
                      cWarning = cWarning + 1
                   endif
                endif
             elseif next = 0 then
-               WriteLog( LogFile, '   .EX file "'ExFile'"')
-               WriteLog( LogFile, '   is equal to current .EX file')
+               WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   .EX file "'ExFile'"')
+               WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   is equal to current .EX file')
             else
-               WriteLog( LogFile, 'E  MD5Comp returned rc = 'next)
+               WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'E  MD5Comp returned rc = 'next)
             endif
          endif
       endif
@@ -855,18 +854,18 @@ defc RecompileNew
             rc = EraseTemp( CurExFile)
             if rc then
                cWarning = cWarning + 1
-               WriteLog( LogFile, 'W  can''t delete .EX file "'CurExFile'", rc = 'rc)
+               WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'W  can''t delete .EX file "'CurExFile'", rc = 'rc)
             else
-               WriteLog( LogFile, 'D  deleted .EX file "'CurExFile'"')
+               WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'D  deleted .EX file "'CurExFile'"')
                cDelete = cDelete + 1
             endif
          else
             quietshell 'copy' ExFile DestDir
             if rc then
                cWarning = cWarning + 1
-               WriteLog( LogFile, 'W  can''t copy .EX file to "'DestDir'", rc = 'rc)
+               WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'W  can''t copy .EX file to "'DestDir'", rc = 'rc)
             else
-               WriteLog( LogFile, 'R  copied .EX file to "'DestDir'"')
+               WriteBasenameLog( LogFile, Basename, fHeaderWritten, 'R  copied .EX file to "'DestDir'"')
                fCopiedExFile = 1
             endif
             quietshell 'copy' EtpmLogFile DestDir
@@ -885,7 +884,7 @@ defc RecompileNew
                endif
                'link' BaseName
                if rc >= 0 then
-                  WriteLog( LogFile, '   relinked .EX file')
+                  WriteBasenameLog( LogFile, Basename, fHeaderWritten, '   relinked .EX file')
                   cRelink = cRelink + 1
                   'PostRelink' BaseName
                endif
@@ -1394,6 +1393,16 @@ defproc WriteLog( LogFile, Msg)
                        EPM_EDIT_LOGAPPEND,
                        ltoa( offset( LogFile)''selector( LogFile), 10),
                        ltoa( offset( Msg)''selector( Msg), 10))
+   return
+
+; ---------------------------------------------------------------------------
+defproc WriteBasenameLog( LogFile, Basename, var fHeaderWritten, Msg)
+   if fHeaderWritten = 0 then
+      WriteLog( LogFile, copies( '-', 71))
+      WriteLog( LogFile, BaseName)
+      fHeaderWritten = 1
+   endif
+   WriteLog( LogFile, Msg)
    return
 
 ; ---------------------------------------------------------------------------
