@@ -40,7 +40,7 @@ defc CuaKeys
 
 ; File ----------------------------------------------------------------------
 DefKey( 'c_s'          , 'Save'            )    -- was: 'SearchDlg'
-DefKey( 'c_a_s'        , 'SaveAs'          )
+DefKey( 'c_a_s'        , 'SaveAs_Dlg'      )
 DefKey( 'c_s_s'        , 'SaveAll'         )
 DefKey( 'c_f4'         , 'Quit'            )    -- (close file, not quit editor) was: 'LowercaseMark'
 ; Alt+F4 suffices
