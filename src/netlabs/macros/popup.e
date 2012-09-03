@@ -479,15 +479,21 @@ compile endif -- WANT_TEXT_PROCS
       else
          PasteBMenuAccelString = ''
       endif
+      fPasteEnabled = (clipcheck(format) & (format = 1024) & not (browse() | .readonly))
+      if fPasteEnabled then
+         mia = 0
+      else
+         mia = MIA_DISABLED
+      endif
       buildmenuitem menuname, 80, 8051, PASTE_C_MENU__MSG''PasteCMenuAccelString,
                                         'Paste C'PASTE_C_MENUP__MSG,
-                                        0, mpfrom2short(HP_EDIT_PASTEC, 0)
+                                        0, mpfrom2short(HP_EDIT_PASTEC, mia)
       buildmenuitem menuname, 80, 8052, PASTE_L_MENU__MSG''PasteLMenuAccelString,
                                         'Paste'PASTE_L_MENUP__MSG,
-                                        0, mpfrom2short(HP_EDIT_PASTE, 0)
+                                        0, mpfrom2short(HP_EDIT_PASTE, mia)
       buildmenuitem menuname, 80, 8053, PASTE_B_MENU__MSG''PasteBMenuAccelString,
                                         'Paste B'PASTE_B_MENUP__MSG,
-                                        0, mpfrom2short(HP_EDIT_PASTEB, 0)
+                                        0, mpfrom2short(HP_EDIT_PASTEB, mia)
 
    endif
 compile if not VANILLA
