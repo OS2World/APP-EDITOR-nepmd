@@ -361,11 +361,16 @@ defc StdPadEnter, StdEnter
    'StreamLine Enter|Enter 1'
 
 ; ---------------------------------------------------------------------------
-; ---- Auto-spellcheck ----
-; This key belongs to "SPELL_KEYS". Therefore it is defined here with define.
-define DYNASPELL_KEY = 'c_A'            -- Open Proof Word dialog for alternatives
+; ---- Auto-spellcheck (dynaspell) ----
+defc SpellKeys
+DefKey( 'c_a'          , 'SpellProofCurWord')
+DefKey( 'space'        , 'SpellProofNext'   )
+DefKey( 'newline'      , 'SpellProofNext'   )
+DefKey( 'enter'        , 'SpellProofNext'   )
 
-; ---- .ALL file ----
-; All should better define its own keyset (todo).
-define ALL_KEY = 'c_Q'                  -- 'All' search: toggle between .ALL and original file
+; ---------------------------------------------------------------------------
+; ---- All command: key for all/source file switching ----
+defc AllKeys
+DefKey( 'c_q'          , 'AllSwitchFiles'   )
+DefKey( 'c_s_q'        , 'AllEndSwitchFiles')
 

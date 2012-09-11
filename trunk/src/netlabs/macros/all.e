@@ -54,28 +54,40 @@ const
  include NLS_LANGUAGE'.e'
 
 defmain
-   'all' arg(1)
+   'All' arg(1)
 compile endif
 
 ; ALL macro
-defc all=
+defc All
    universal allorig
    universal allsrch
    universal default_search_options
+   universal activeaccel
    call psave_pos(save_pos)
    if .filename = '.ALL' & arg(1) then
       .filename = '.prev_ALL'
    endif
+
    getfileid allorig
+   call SetAVar( 'prevkeyset.'allorig, activeaccel)
+   -- Extend keyset
+   'SetKeyset all' activeaccel'value' 'all'
+
    'e /q /n .ALL'    -- Don't use XCOM so can handle either windowing style
    .filename = '.ALL'
    getfileid allfile
+   -- Extend keyset
+   'PostMe SetKeyset all' activeaccel'value' 'all'  -- PostMe required
+
    allsrch = strip( arg(1), 'L')
    if allsrch = '' then
       .modify = 0
       'q'
       if allorig <> allfile then
          activatefile allorig
+         -- Restore keyset
+         PrevKeyset = GetAVar( 'prevkeyset.'allorig)
+         'SetKeyset' PrevKeyset
       endif
       sayerror 1
       return
@@ -83,6 +95,7 @@ defc all=
    for i = 1 to .last
       deleteline 1
    endfor
+
    activatefile allorig
 
     -- Copied from DEFC L - we only will use E or C (case) and A or M (mark)
@@ -93,11 +106,11 @@ defc all=
           DSO = DSO''ch
        endif
     end
-    /* Insert default_search_options just before supplied options (if any)    */
-    /* so the supplied options will take precedence.                          */
+    -- Insert default_search_options just before supplied options (if any)
+    -- so the supplied options will take precedence.
 ;   if DSO then
-       ch =substr( allsrch, 1, 1)
-       p  =pos( ch, allsrch, 2)
+       ch = substr( allsrch, 1, 1)
+       p  = pos( ch, allsrch, 2)
        user_options = ''
        if p > 0 then
           user_options = substr( allsrch, p + 1)
@@ -118,20 +131,27 @@ defc all=
    do forever
       .col = 1
       'xcom l' allsrch
-      if rc = -273 then leave; endif  -- sayerror("String not found")
+      if rc = -273 then  -- sayerror("String not found")
+         leave
+      endif
       getline line
       line = rightstr( .line, 5) line  -- prepend line no
       insertline line, allfile.last + 1, allfile
-      if .line = last_line then leave; endif
+      if .line = last_line then
+         leave
+      endif
       '+1'
    end
    display 3
-   call prestore_pos(save_pos)
+   call prestore_pos( save_pos)
    if allfile.last = 0 then
       activatefile allfile
       .modify = 0
       'q'
       activatefile allorig
+      -- Restore keyset
+      PrevKeyset = GetAVar( 'prevkeyset.'allorig)
+      'SetKeyset' PrevKeyset
       sayerror -273  -- sayerror("String not found")
       return
    endif
@@ -139,20 +159,20 @@ defc all=
    activatefile allfile
    sayerror 0
    .modify = 0
-   top; .col = 7
+   top
+   .col = 7
    'postme l' allsrch'A'  -- Position cursor under first hit.
                           -- Use l, not xcom l to highlight hit.
-
-compile if not defined(ALL_KEY)
-define ALL_KEY = 'c_Q'
-compile endif
+   AllKey = strip( MenuAccelString( 'AllSwitchFiles'), 'l', \9)
+   'SayHint Press 'AllKey' to switch between this and the original file'
 
 ; Shows the .ALL file's current line in the original file
-def $ALL_KEY =
+defc AllSwitchFiles
    universal allorig
    universal allsrch
+   universal activeaccel
    if .filename <> '.ALL' then
-      getfileid allfile,'.ALL'
+      getfileid allfile, '.ALL'
       if allfile = '' then
          sayerror NO_ALL_FILE__MSG
       else
@@ -184,9 +204,17 @@ def $ALL_KEY =
       return
    endif
    activatefile allorig
+   'SetKeyset all' activeaccel'value' 'all'  -- ensure that orig file has 'all' keyset
    .cursory = .windowheight%2                       -- Center vertically
    line
    .col = 1
    'l' allsrch'A'  -- Use l, not xcom l to highlight hit.
 
+defc AllEndSwitchFiles
+   universal allorig
+   universal allsrch
+   -- Restore keyset
+   activatefile allorig
+   PrevKeyset = GetAVar( 'prevkeyset.'allorig)
+   'SetKeyset' PrevKeyset
 

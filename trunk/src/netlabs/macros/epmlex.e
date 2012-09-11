@@ -323,12 +323,7 @@ compile endif
 */
 defproc proof2
    universal LEXAM_PUNCTUATION
-   script_file_type=AMU_script_verification()
-compile if defined(TEX_FILETYPES)
-   tex_file_type = wordpos(filetype(),TEX_FILETYPES)
-compile else
-   tex_file_type = (filetype() = 'TEX')
-compile endif
+   Mode = GetMode()
 
    --@@ If there's a line-marked area in the current file, proof only in there.
    firstline=max(.line,1); lastline=.last; what = FILE__MSG
@@ -384,7 +379,7 @@ compile endif
          endif
          if result and wrd<>'' then          /* was it a success???             */
                                              /* YES, ignore script tags         */
-            if script_file_type then  -- Do just the cheap test first.
+            if Mode = 'SCRIPT' then  -- Do just the cheap test first.
                if (pos(leftstr(wrd,1),':&.') or pos(substr(line,max(.col-1,1),1),':&')) then
                   result=0
                   if leftstr(wrd,1)=':' then
@@ -394,7 +389,7 @@ compile endif
                      endif
                   endif
                endif
-            elseif tex_file_type & pos('\', wrd) then
+            elseif Mode = 'TEX' & pos('\', wrd) then
                result=0
             endif
             if result then                 /* strip punctuation and try again */
@@ -703,12 +698,10 @@ compile endif -- ADDENDASUPPORT
 
 ; The following is a script file type verification algorithm
 ; suggested by Larry Margolis. (Thanks, Larry)
-defproc AMU_script_verification()
- compile if defined(my_SCRIPT_FILE_TYPE)
-   return (wordpos(filetype(), 'SCR SCT SCRIPT IPF' my_SCRIPT_FILE_TYPE)>0)
- compile else
-   return (wordpos(filetype(), 'SCR SCT SCRIPT IPF')>0)
- compile endif
+; unused
+;defproc AMU_script_verification()
+;   Mode = GetMode()
+;   return (wordpos( Mode, 'IPF SCRIPT') > 0)
 
 
 /*
@@ -880,12 +873,6 @@ defc newproof
    if load_lexam() then
      return
    endif
-   script_file_type=AMU_script_verification()
-compile if defined(TEX_FILETYPES)
-   tex_file_type = wordpos(filetype(),TEX_FILETYPES)
-compile else
-   tex_file_type = (filetype() = 'TEX')
-compile endif
 
  --@@ If there's a line-marked area in the current file, proof only in there.
    firstline=max(.line,1); lastline=.last; what = FILE__MSG
@@ -993,7 +980,12 @@ compile if USE_CUSTOM_PROOF_DIALOG
 ;                     not the new one).
 
 defc proof
-   universal proofdlg_hwnd, proofdlg_whatflag, proof_curline, proof_lastline, proof_lexresult, proofdlg_filetypeflags, proof_word
+   universal proofdlg_hwnd
+   universal proofdlg_whatflag
+   universal proof_curline
+   universal proof_lastline
+   universal proof_lexresult
+   universal proof_word
    if load_lexam() then
       return
    endif
@@ -1016,18 +1008,6 @@ defc proof
       return
    endif
 
-;  script_file_type=AMU_script_verification()
-;compile if defined(TEX_FILETYPES)
-;   tex_file_type = wordpos(filetype(),TEX_FILETYPES)
-;compile else
-;   tex_file_type = (filetype() = 'TEX')
-;compile endif
-compile if defined(TEX_FILETYPES)
-   proofdlg_filetypeflags = AMU_script_verification() + 2*(wordpos(filetype(),TEX_FILETYPES)>0) + 4*abbrev('HTML', filetype(), 3)
-compile else
-   proofdlg_filetypeflags = AMU_script_verification() + 2*(filetype() = 'TEX') + 4*abbrev('HTML', filetype(), 3)
-compile endif
-
  --@@ If there's a line-marked area in the current file, proof only in there.
    proof_curline=max(.line,1); proof_lastline=.last; /* what = FILE__MSG;*/ proofdlg_whatflag = 1
    if marktype() then  /* if no mark, default to entire file */
@@ -1047,7 +1027,20 @@ compile endif
 
 defc keep_on_prufin
    universal ADDENDA_FILENAME
-   universal proofdlg_hwnd, proofdlg_whatflag, proof_curline, proof_lastline, proof_lexresult, proof_resultofs, proof_offst, proof_prev_col, proofdlg_filetypeflags
+   universal proofdlg_hwnd
+   universal proofdlg_whatflag
+   universal proof_curline
+   universal proof_lastline
+   universal proof_lexresult
+   universal proof_resultofs
+   universal proof_offst
+   universal proof_prev_col
+   Mode = GetMode()
+   --proofdlg_filetypeflags = AMU_script_verification() + 2*(wordpos(filetype(),TEX_FILETYPES)>0) + 4*abbrev('HTML', filetype(), 3)
+   proofdlg_filetypeflags = wordpos( Mode, 'IPF SCRIPT' > 0) +
+                            2 * (Mode = 'TEX') +
+                            4 * (Mode = 'HTML')
+;   universal proofdlg_mode
    while proof_curline<=proof_lastline do
       if not proofdlg_hwnd then
 ;;       sayerror 'Spell Checking 'subword('file marked area', proofdlg_whatflag, proofdlg_whatflag)'...'
@@ -1065,6 +1058,7 @@ defc keep_on_prufin
       endif
       if proof_lexresult='' then
          .col = 1
+         -- All args of lexam must be numbers
          proof_lexresult = lexam(LXFPRFLINE, proof_curline, proof_lastline, proofdlg_filetypeflags)
 ;sayerror 'proof_lexresult('proof_curline',' proof_lastline') =' c2x(leftstr(proof_lexresult,4)) c2x(substr(proof_lexresult, 5))
          proof_resultofs = 5
@@ -1124,7 +1118,8 @@ defc keep_on_prufin
 
 defc proofword, verify
    universal ADDENDA_FILENAME
-   universal proofdlg_hwnd, proofdlg_whatflag
+   universal proofdlg_hwnd
+   universal proofdlg_whatflag
    if load_lexam() then
      return
    endif
@@ -1153,7 +1148,10 @@ defc proofword, verify
 ;      (X means not returned by this version of the routine.)
 defproc spellwordd
    universal LEXAM_PUNCTUATION
-   universal proofdlg_hwnd, proof_word, proofdlg_filetypeflags, proofdlg_whatflag
+   universal proofdlg_hwnd
+   universal proof_word
+   universal proofdlg_whatflag
+   Mode = GetMode()
    getline line
    line = translate(line, ' ', \9)  -- Convert tabs to spaces
    if line='' then                        /* if the line is empty...     */
@@ -1171,19 +1169,8 @@ defproc spellwordd
    if not verify(wrd, LEXAM_PUNCTUATION) then  -- No letters in "word"; skip it.
       return -2
    endif
-   if proofdlg_whatflag = 3 then
-      script_file_type=AMU_script_verification()
- compile if defined(TEX_FILETYPES)
-      tex_file_type = wordpos(filetype(),TEX_FILETYPES)
- compile else
-      tex_file_type = (filetype() = 'TEX')
- compile endif
-   else
-      script_file_type=proofdlg_filetypeflags // 2
-      tex_file_type = proofdlg_filetypeflags bitand 2
-   endif
    result = 1
-   if script_file_type then  -- Do just the cheap test first.
+   if wordpos( Mode, 'IPF SCRIPT') > 0 then  -- Do just the cheap test first.
       tmp = substr(line,max(.col-1,1),1)
       if (pos(leftstr(wrd,1),':&.') or pos(tmp,':&')) then
          result=0
@@ -1197,7 +1184,7 @@ defproc spellwordd
             endif
          endif
       endif
-   elseif tex_file_type & pos('\', wrd) then
+   elseif Mode = 'TEX' & pos('\', wrd) then
       result=0
    endif
    if result then  -- If not set to 0 by SCRIPT or TeX
@@ -1247,7 +1234,13 @@ defproc spellwordd
 
 defc proofdlg
    universal ADDENDA_FILENAME
-   universal proofdlg_hwnd, proof_word, proofdlg_whatflag, proof_offst, proof_resultofs, proof_prev_col, dynaspel_closecmd
+   universal proofdlg_hwnd
+   universal proof_word
+   universal proofdlg_whatflag
+   universal proof_offst
+   universal proof_resultofs
+   universal proof_prev_col
+   universal dynaspel_closecmd
 ;; universal proof_nextcol  -- temp
    parse arg hndle opt rest
    continue = 0
@@ -1410,122 +1403,98 @@ compile endif
    endif
 compile endif  -- USE_CUSTOM_PROOF_DIALOG
 
-const SPELL_DEBUG = 0
-
-defkeys spell_keys overlay  -- For dynamic spell-checking
-
-def space, enter =
+defc SpellProofNext
    universal LEXAM_PUNCTUATION
    universal EPM_utility_array_ID
-   universal dynaspel_line, dynaspel_col
+   universal dynaspel_line
+   universal dynaspel_col
+   Mode = GetMode()
    saveline = .line
    savecol = .col - 1
    getfileid fid
-   do_array 3, EPM_utility_array_ID, 'dspl.'fid, xkeyset  -- Restore original keyset for this fileid.
-   .keyset = xkeyset
-   executekey lastkey()
-   keys spell_keys
    getline line, saveline
    if not savecol or line = '' then
-compile if SPELL_DEBUG
-      sayerror '[Line was blank]'
-compile endif -- DEBUG
+      dprintf( 'SPELL', '[Line was blank]')
       return
    endif
-   if substr(line, savecol, 1) = ' ' then
-compile if SPELL_DEBUG
-      sayerror '[Prev. char was blank]'
-compile endif -- DEBUG
+   if substr( line, savecol, 1) = ' ' then
+      dprintf( 'SPELL', '[Prev. char was blank]')
       return
    endif
 ;  newcol = .col
-   start = lastpos(' ', line, savecol)
-;  wrd = substr(line, start+1, savecol - start)
-   parse value substr(line, start+1) with wrd .
-   if not verify(wrd, LEXAM_PUNCTUATION) then  -- No letters in "word"; skip it.
-compile if SPELL_DEBUG
-      sayerror '[Only punctuation in word 'wrd']'
-compile endif -- DEBUG
+   start = lastpos( ' ', line, savecol)
+;  wrd = substr( line, start + 1, savecol - start)
+   parse value substr( line, start + 1) with wrd .
+   if not verify( wrd, LEXAM_PUNCTUATION) then  -- No letters in "word"; skip it.
+      dprintf( 'SPELL', '[Only punctuation in word 'wrd']')
       return
    endif
-   firstchar = leftstr(wrd, 1)
-   if firstchar='\' then  -- Do the cheap test first
-compile if defined(TEX_FILETYPES)
-      if wordpos(filetype(),TEX_FILETYPES) then
-compile else
-      if filetype() = 'TEX' then
-compile endif
-compile if SPELL_DEBUG
-         sayerror '[TEX token: 'wrd']'
-compile endif -- DEBUG
+   firstchar = leftstr( wrd, 1)
+   if firstchar = '\' then             -- Do the cheap test first
+      if Mode = 'TEX' then
+         dprintf( 'SPELL', '[TEX token: 'wrd']')
          return
       endif
-   elseif pos(firstchar, ':&') then  -- (Do the cheap test first)  Script markup or variable?
-      if AMU_script_verification() then
-         p=pos('.', wrd)
-         if p & p<length(wrd) then
-            wrd = substr(wrd, p+1)
+   elseif pos( firstchar, ':&') then  -- (Do the cheap test first)  Script markup or variable?
+      if wordpos( Mode, 'IPF SCRIPT') > 0 then
+         p = pos( '.', wrd)
+         if p & p < length( wrd) then
+            wrd = substr( wrd, p + 1)
          else
-compile if SPELL_DEBUG
             if firstchar='&' then
-               sayerror '[SCRIPT variable: 'wrd']'
+               dprintf( 'SPELL', '[SCRIPT variable: 'wrd']')
             else
-               sayerror '[SCRIPT markup: 'wrd']'
+               dprintf( 'SPELL', '[SCRIPT markup: 'wrd']')
             endif
-compile endif -- DEBUG
             return
          endif
       endif
    elseif firstchar='.' & not start then  -- (Do the cheap test first)  SCRIPT control word?
-      if AMU_script_verification() then
-compile if SPELL_DEBUG
-         sayerror '[SCRIPT control word: 'wrd']'
-compile endif -- DEBUG
+      if wordpos( Mode, 'IPF SCRIPT') > 0 then
+         dprintf( 'SPELL', '[SCRIPT control word: 'wrd']')
          return
       endif
    endif
-   result=lexam(LXFVERFY,wrd)          /* authenticate word using lexam */
+   result = lexam( LXFVERFY, wrd)      -- authenticate word using lexam
    if result then
-      call strippunct(wrd,savecol,tmp)
-      result = lexam(LXFVERFY,wrd)
+      call strippunct( wrd, savecol, tmp)
+      result = lexam( LXFVERFY, wrd)
    endif
-   if(result <> LXRFGOOD) then         /* was it a success ???          */
+   if (result <> LXRFGOOD) then         -- was it a success?
 compile if DYNASPELL_BEEP = 'ALARM'
-      call dynalink32('PMWIN',
-                      '#701',      -- ORD_WIN32ALARM
-                      atol(1)  ||  -- HWND_DESKTOP
-                      atol(0) )    -- WA_WARNING
+      call dynalink32( 'PMWIN',
+                       '#701',     -- ORD_WIN32ALARM
+                       atol(1) ||  -- HWND_DESKTOP
+                       atol(0))    -- WA_WARNING
 compile elseif DYNASPELL_BEEP
-      call beep(1000, 100)
+      call beep( 1000, 100)
 compile endif
       dynaspel_line = saveline
       dynaspel_col = savecol
       sayerror DYNASPEL_PROMPT1__MSG || wrd || DYNASPEL_PROMPT2__MSG
-compile if SPELL_DEBUG
    else
-      sayerror '[Word was 'wrd' - OK]'
-compile endif -- DEBUG
+      dprintf( 'SPELL', '[Word was 'wrd' - OK]')
    endif
 
-compile if not defined(DYNASPELL_KEY)
-define DYNASPELL_KEY = 'c_A'
-compile endif
-
-def $DYNASPELL_KEY =
-   universal dynaspel_line, dynaspel_col, dynaspel_closecmd
+defc SpellProofCurWord
+   universal dynaspel_line
+   universal dynaspel_col
+   universal dynaspel_closecmd
    if not dynaspel_line then
       sayerror DYNASPEL_NORECALL__MSG
       return
    endif
-   if .line=dynaspel_line then
-      oldlen = length(textline(dynaspel_line))
+   if .line = dynaspel_line then
+      oldlen = length( textline( dynaspel_line))
    endif
-   call psave_pos(save_pos)
-   dynaspel_line; .col = dynaspel_col
+   call psave_pos( save_pos)
+   dynaspel_line
+   .col = dynaspel_col
 compile if USE_CUSTOM_PROOF_DIALOG
    dynaspel_closecmd = 'dynaspell_restorepos' oldlen save_pos
 compile endif
-   'proofword'
+   'ProofWord'
+
 compile if USE_CUSTOM_PROOF_DIALOG
 defc dynaspell_restorepos
    universal dynaspel_line, dynaspel_col
@@ -1541,18 +1510,18 @@ compile endif
       endif
    endif
 
-
 defc dynaspell =  -- Takes no arguments; just toggles setting.
    universal EPM_utility_array_ID
    universal ADDENDA_FILENAME
+   universal activeaccel
    getfileid fid
-   if .keyset<>'SPELL_KEYS' then  -- Dynamic spell-checking off for this file
+   if activeaccel <> 'spell' then  -- Dynamic spell-checking off for this file
       if load_lexam() then
          return
       endif
-      tmp_keyset = .keyset
-      do_array 2, EPM_utility_array_ID, 'dspl.'fid, tmp_keyset  -- Remember original keyset for this fileid.
-      keys spell_keys
+      call SetAVar( 'prevkeyset.'fid, activeaccel)
+      -- Extend keyset
+      'SetKeyset spell' activeaccel'value' 'spell'
    else  -- Dynamic spell-checking is on; now being turned off.
 compile if ADDENDASUPPORT
       if addenda_filename<>'' then
@@ -1560,8 +1529,8 @@ compile if ADDENDASUPPORT
       endif
 compile endif
       call drop_dictionary()
-      do_array 3, EPM_utility_array_ID, 'dspl.'fid, tmp_keyset  -- Retrieve original keyset for this fileid.
-      .keyset = tmp_keyset
-      empty = ''
-      do_array 2, EPM_utility_array_ID, 'dspl.'fid, empty
+      -- Restore keyset
+      PrevKeyset = GetAVar( 'prevkeyset.'fid)
+      'SetKeyset' PrevKeyset
    endif
+

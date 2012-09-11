@@ -3355,7 +3355,9 @@ compile endif
 compile if CHECK_FOR_LEXAM
    if LEXAM_is_available then
 compile endif
-   SetMenuAttribute( GetAVar('mid_autospellcheck'),      MIA_CHECKED, .keyset <> 'SPELL_KEYS')
+   universal activeaccel
+   on = (activeaccel = 'spell')
+   SetMenuAttribute( GetAVar('mid_autospellcheck'),      MIA_CHECKED, not on)
 compile if CHECK_FOR_LEXAM
    endif
 compile endif
@@ -4669,7 +4671,8 @@ defc toggle_tabglyph
 
 ; ---------------------------------------------------------------------------
 defc toggle_dynaspell
-   on = (.keyset = 'SPELL_KEYS')
+   universal activeaccel
+   on = (activeaccel = 'spell')
    on = not on
    'SetDynaspell' on
    -- Set MIA_CHECKED attribute for the case MIA_NODISMISS attribute is on
