@@ -198,8 +198,8 @@ defc InitModeCnf
 /* Settings for special modes                                              */
 /* ----------------------------------------------------------------------- */
 
-;'DefKeyset shell stdname shell'
-;'ModeExecute SHELL SetKeyset shell stdname shell'
+;'DefKeyset shell stdvalue shell'
+;'ModeExecute SHELL SetKeyset shell stdvalue shell'
 'ModeExecute SHELL SetKeyset shell'
 
 'ModeExecute E SetExpand E'

@@ -107,6 +107,13 @@ compile if defined(ECO_MENU__MSG)  -- For ECO support
    call AddAVar( 'usedmenuaccelerators', 'I')
 compile endif
 
+   -- These keys must be defined as ETK keys, not as accelerator keys.
+   -- Otherwise typing single accent keys like ^ï` and entering a char via
+   -- its key code with Alt and the keypad numers won't work.
+   -- This array var value must be specified in lowercase and with the
+   -- underscore as prefix separator: c_, a_ or s_ (not + or -)
+   call AddAVar( 'etkkeys', 'space a_1 a_2 a_3 a_4 a_5 a_6 a_7 a_8 a_9 a_0')
+
 ; ---------------------------------------------------------------------------
 ; Apparently edit_keys must be defined in EPM.EX as first ETK keyset.
 ; Therefore "defkeys edit_keys new clear" was moved to STDCNF.E to be
@@ -152,7 +159,7 @@ defkeys edit_keys new clear
 ; Because accel keys don't create a WM_CHAR message, they can't be handled
 ; by lastkey or getkeystate.
 ; To assign code to these keys, they have to be additionally defined via the
-; DefKey proc (that is used for defining accel keys). DefKey handles them
+; DefKey proc (which is used for defining accel keys). DefKey handles them
 ; specially: It sets just an array var, that is queried and executed by
 ; ExecKeyCmd.
 def a_1 'ExecKeyCmd a_1'
@@ -287,32 +294,30 @@ defproc DefKey( KeyString, Cmd)
    SetAVar( 'keydef.'KeyString, Cmd)
    AddAVar( 'keycmd.'Cmd, KeyString)  -- may have multiple key defs
 
-   -- Space key:
+   -- Handle key defs that have to be defined as ETK keys instead of PM
+   -- accelerator keys.
    -- In order to type the single accent key '^' which is created by
    -- <hat_key>+<space>, space must not be defined as accel key. Therefore
    -- Space is defined with ExecKeyCmd. That means that it executes the
    -- command that is stored by DefKey( Space, cmd) as an array var.
-   if String = 'SPACE' & Flags = 0 then
+   -- Ignore Alt+numpad number keys as accel keys here. Just save key in
+   -- array to query it by ExecKeyCmd.
+   -- That makes the Alt+numpad number keys work for entering a char by its
+   -- key code.
+   EtkKeys = GetAVar( 'etkkeys')
+   if wordpos( KeyString, EtkKeys) then
+      -- Save key def in a keyset-specific array
+      SetAVar( 'keydef.'activeaccel'.'KeyString, Cmd)
       return
    endif
 
    if length( String) = 1 then
-
-      -- Ignore Alt+numpad number keys as accel keys here. Just save key in
-      -- array to query it by ExecKeyCmd.
-      -- That makes the Alt+numpad number keys work for entering a char by its
-      -- key code.
-      if (pos( String, '1234567890') > 0) and (Flags = AF_ALT or Flags = AF_ALT+AF_LONEKEY) then
-         return
-      endif
-
       Flags = Flags + AF_CHAR
       if Flags bitand AF_SHIFT then
          Key = asc( upcase( String))
       else
          Key = asc( lowcase( String))
       endif
-
    else
       VK = GetVKConst( String)
       if VK > 0 then
@@ -750,9 +755,9 @@ defproc SaveKeyCmd
 ; Define a named accel table. It has to be activated with SetKeyset.
 ;
 ; Syntax: DefKeyset [<name>] [<keyset_cmd_1> <keyset_cmd_2> ...]
-;         DefKeyset [<name>] [<name_3>name] <keyset_cmd_4> ...]
+;         DefKeyset [<name>] [<name_3>value] <keyset_cmd_4> ...]
 ;
-; Instead of a keyset cmd, a keyset name can be specified (with 'name'
+; Instead of a keyset cmd, a keyset name can be specified (with 'value'
 ; appended). Then the specified keyset will be extended.
 defc DefAccel, DefKeyset
    universal activeaccel
@@ -764,14 +769,11 @@ defc DefAccel, DefKeyset
    -- Init accel table defs
    StartAccelId = 10000  -- max. = 65534 (65535 is hardcoded as Halt cmd)
    if lastkeyaccelid < StartAccelId then
-
-      activeaccel = StdName
       lastkeyaccelid = StartAccelId
+      activeaccel = StdName
       -- Bug in ETK: first def is ignored, therefore add a dummy def here
-      lastkeyaccelid = lastkeyaccelid
       -- This must be a valid def, otherwise the menu is not loaded at startup:
-      buildacceltable activeaccel, 'sayerror Ignored!', AF_VIRTUALKEY, VK_ALT, lastkeyaccelid
-
+      buildacceltable StdName, 'sayerror Ignored!', AF_VIRTUALKEY, VK_ALT, lastkeyaccelid
    endif
 
    parse arg Name List
@@ -789,7 +791,7 @@ defc DefAccel, DefKeyset
       if Name = StdName then
          List = StdName               -- use defc stdkeys
       else
-         List = StdName'name' Name    -- extend stdkeys with defc Namekeys
+         List = StdName'value' Name   -- extend stdkeys with defc Namekeys
       endif
    endif
 
@@ -807,10 +809,10 @@ defc DefAccel, DefKeyset
    KeysetCmds = ''
    do w = 1 to words( List)
       ThisKeyset = word( List, w)
-      -- Allow for specifying a name instead of a keyset
-      -- (e.g. 'stdname' instead of 'std')
-      if rightstr( ThisKeyset, 4) = 'name' and length( ThisKeyset) > 4 then
-         SubName = leftstr( ThisKeyset, length( ThisKeyset) - 4)
+      -- Allow for specifying a keyset name instead of a list of keyset defs
+      -- (e.g. 'stdvalue' instead of 'std cua')
+      if rightstr( ThisKeyset, 5) = 'value' and length( ThisKeyset) > 5 then
+         SubName = leftstr( ThisKeyset, length( ThisKeyset) - 5)
          SubList = GetAVar( 'keyset.'SubName)
          do s = 1 to words( SubList)
             ThisSubKeyset = word( SubList, s)
@@ -825,6 +827,21 @@ defc DefAccel, DefKeyset
       endif
    enddo
    KeysetCmds = strip( KeysetCmds)
+   -- Remove doubled entries, keep last of doubled ones
+   Next = ''
+   Rest = KeysetCmds
+   do forever
+      if Rest = '' then
+         leave
+      endif
+      parse value Rest with ThisKeyset Rest
+      ThisKeyset = strip( ThisKeyset)
+      Rest = strip( Rest)
+      if not wordpos( ThisKeyset, Rest) then
+         Next = Next ThisKeyset
+      endif
+   enddo
+   KeysetCmds = strip( Next)
 
    if KeysetCmds <> '' then
        -- Change array vars for this keyset name
@@ -965,9 +982,19 @@ defc SetKeyset2
       'DefKeyset' Name KeyDefs
    endif
 
-   -- Activate keyset
+   --dprintf( 'Keyset = 'Name', KeyDefs = 'KeyDefs', Previous: activeaccel = 'activeaccel' = 'GetAVar( 'keyset.'activeaccel)', .filename = '.filename)
+
+   -- Activate keyset: accelerator keys
    activeaccel = Name
    activateacceltable activeaccel
+
+   -- Activate keyset: keyset-specific array defs (for ExecKeyCmd)
+   EtkKeys = GetAVar( 'etkkeys')
+   do w = 1 to words( EtkKeys)
+      KeyString = word( EtkKeys, w)
+      EtkKeyDef = GetAVar( 'keydef.'Name'.'KeyString)
+      SetAVar( 'keydef.'KeyString, EtkKeyDef)
+   enddo
 
 ; ---------------------------------------------------------------------------
 defc ReloadKeyset
@@ -1188,8 +1215,9 @@ defc LinkKeyDefs
             endif
          endif
          if fLinked then
+            -- Extend std keyset
             parse value lowcase( Current) with Name'keys'  -- strip 'keys'
-            'SetKeyset std stdname' Name
+            'SetKeyset std stdvalue' Name
          endif
       enddo
    endif
