@@ -29,12 +29,13 @@ defc Spaces2Tabs, TabsCompress
       TabWidth = arg1
    endif
    dummy = ''
+   fIndentOnly = 1  -- currently hard-coded
    fChanged = 0
    call NextCmdAltersText()
    do l = 1 to .last
       Line = textline(l)
       Line = ExpandLine( Line, TabWidth, dummy)
-      Line = CompressLine( Line, TabWidth, fChanged)
+      Line = CompressLine( Line, TabWidth, fChanged, fIndentOnly)
       if fChanged then
          replaceline Line, l
       endif
@@ -63,13 +64,23 @@ defc Tabs2Spaces, TabsExpand
 ; TabWidth 8 gives stops at 0, 8, 16,...
 ; Avoid tab chars in quoted strings, if quote starts in this line.
 defproc CompressLine( Line, TabWidth, var fChanged)
+   fIndentOnly = arg(4)
+   if wordpos( arg(4), '0 1') = 0 then
+      fIndentOnly = 0
+   endif
    fChanged = 0
    TabChar = \9
    rest = Line
    Line = ''
    Col = 0  -- processed chars, means .col - 1
    p = pos( '  ', rest)
+   pNonBlank = max( 1, verify( rest, ' '\t))
    do while p <> 0
+      if fIndentOnly then
+         if p > pNonBlank then
+            leave
+         endif
+      endif
       LeftPart  = substr( rest, 1, p - 1)
       RightPart = substr( rest, p)  -- including all spaces
       Line = Line''LeftPart
