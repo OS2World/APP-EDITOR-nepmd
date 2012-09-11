@@ -243,14 +243,14 @@ defselect
 compile endif
 
 ; ---------------------------------------------------------------------------
-defc processmousedropping
+defc ProcessMouseDropping
    call psave_pos(savepos)
    'MH_gotoposition'
    'GetSharBuff'     -- See clipbrd.e for details
    call prestore_pos(savepos)
 
 ; ---------------------------------------------------------------------------
-defc processmouse
+defc ProcessMouse
    universal EPM_utility_array_ID
    universal GMousePrefix
    universal LMousePrefix
@@ -291,6 +291,7 @@ compile endif
             if CommandString <> '' then
                CommandString
             endif
+            --dprintf( 'ProcessMouse: WindowHadFocus = 'WindowHadFocus', arg1 = 'arg1', Cmd = 'CommandString)
             return
          else
             if rc <> -330 then
@@ -838,6 +839,7 @@ defc MH_double -- take care for doubleclicks on URLs
    call prestore_mark(saved_mark)
 
    -- Process special files and tokens under the cursor
+   fProcessed = 0
    if not fMouseAfterLine then
       if upcase( subword( .filename, 1, 2)) = '.DOS DIR' |
          upcase( leftstr( .filename, 5)) = '.TREE' then
