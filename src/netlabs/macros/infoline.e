@@ -428,11 +428,11 @@ defproc GetInfoFieldValue(FVar, var FFlag)
    elseif FVar = 'MARKINGMODE'      then FValue = word( 'Adv CUA', (cua_marking_switch = 1) + 1)  -- show 'CUA' or 'Adv'
                                          FFlag  = 'MARKINGMODE'
 ;   elseif FVar = 'KEYSET'           then FValue = activeaccel
-   elseif FVar = 'KEYSET'           then FValue = activeaccel' ='GetAVar( 'keyset.'activeaccel)
+   elseif FVar = 'KEYSET'           then FValue = activeaccel' = 'GetAVar( 'keyset.'activeaccel)
                                          FFlag  = 'KEYSET'
    elseif FVar = 'CODINGSTYLE'      then FValue = GetCodingStyle()
                                          FFlag  = 'FILE'
-   elseif FVar = 'DYNASPELL'        then FValue = word( '- Spchk', (.keyset = 'SPELL_KEYS') + 1)  -- show '-' or 'Spchk'
+   elseif FVar = 'DYNASPELL'        then FValue = word( '- Spchk', (activeaccel = 'spell') + 1)  -- show '-' or 'Spchk'
                                          FFlag  = 'KEYS'
    elseif FVar = 'DICT'             then FValue = GetDictBaseName()
                                          FFlag  = 'DICT'

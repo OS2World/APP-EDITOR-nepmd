@@ -950,6 +950,7 @@ defc SetTabs  -- defc tabs exist
 ; Execute this only at defload.
 defc SetDynaSpell  -- defc dynaspell exists and is used here
    universal loadstate
+   universal activeaccel
    arg1 = upcase(arg(1))
    if arg1 = '' | arg1 = 'DEFAULT' then
       on = 0
@@ -958,7 +959,7 @@ defc SetDynaSpell  -- defc dynaspell exists and is used here
    else
       on = 1
    endif
-   old = (.keyset = 'SPELL_KEYS')
+   old = (activeaccel = 'spell')
    if on <> old then
       'dynaspell'  -- toggle
    endif
