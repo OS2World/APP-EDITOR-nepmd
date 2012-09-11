@@ -133,6 +133,7 @@ definit
 ; was saved before and then gets reloaded.
 defc MaybeStartShell
    universal shell_index
+   universal nepmd_hini
    Mode = GetMode()
    if Mode = 'SHELL' then
       if not IsAShell() then
@@ -143,6 +144,12 @@ defc MaybeStartShell
          if retval then
             sayerror ERROR__MSG retval SHELL_ERROR1__MSG
          else
+            KeyPath = '\NEPMD\User\Shell\Alias'
+            on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+            if on then
+               call ShellReadAliasFile()
+            endif
+
             getfileid ShellFid
             --sayerror 'Shell handle with number' shell_index 'created'
             .autosave = 0
@@ -606,7 +613,7 @@ defc NowCanReadShell
    bytesmoved = 1
    while bytesmoved do
       ReadBuf = copies( ' ', MAXCOL)
-      retval = SUE_readln( ShellHandle, ReadBuf, bytesmoved);
+      retval = SUE_readln( ShellHandle, ReadBuf, bytesmoved)
       ReadBuf = leftstr( ReadBuf, bytesmoved)
       if ReadBuf = \13 then
          iterate  -- ignore CR
