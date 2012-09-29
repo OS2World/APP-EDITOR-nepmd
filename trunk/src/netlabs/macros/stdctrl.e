@@ -2720,16 +2720,28 @@ defc dynafree =
 ; Stops if current window is not the only EPM window, so this can be used as
 ; command.
 defc CheckOnlyEpmWindow
-   if not IsOnlyEpmWindow() then
+   Cmd = strip( arg(1))
+   if Cmd = '' then
+      CurCmd = 'The current command'
+   else
+      CurCmd = 'The '''Cmd''' command'
+   endif
+
+   do while not IsOnlyEpmWindow()
       refresh
       Title = 'Multiple EPM windows'
-      Text = 'The current command can''t be executed when multiple'      ||
-             'EPM windows are open.'\n\n                                 ||
-             'Close all other EPM windows and then repeat that command!'
+      Text = CurCmd' can''t be executed as long as multiple'          ||
+             ' EPM windows are open.'\n\n                             ||
+             'Press "OK" to try again or "Cancel" to abort.'
       rcx = winmessagebox( Title, Text,
-                           MB_OK + MB_WARNING + MB_MOVEABLE)
-      stop
-   endif
+                           MB_OKCANCEL + MB_WARNING + MB_MOVEABLE)
+      if rcx = MBID_OK then
+         iterate
+      else
+         rc = -269  -- User Break. Command halted
+         stop
+      endif
+   enddo
 
 ; ---------------------------------------------------------------------------
 ; Returns 0 or 1.
@@ -3087,21 +3099,7 @@ defc Restart
    -- Check if current window is the only EPM window and either continue
    -- or let the user try again or cancel
    if not fCurrent then
-      do while not IsOnlyEpmWindow()
-         refresh
-         Title = 'Multiple EPM windows'
-         Text = 'The ''Restart'' command can''t be executed as long as multiple' ||
-                ' EPM windows are open.'\n\n                                 ||
-                'Press "OK" to try again or "Cancel" to abort.'
-         rcx = winmessagebox( Title, Text,
-                              MB_OKCANCEL + MB_WARNING + MB_MOVEABLE)
-         if rcx = MBID_OK then
-            iterate
-         else
-            rc = -269  -- User Break. Command halted
-            stop
-         endif
-      enddo
+      'CheckOnlyEpmWindow Restart'
    endif
 
    EpmArgs = "'"cmd"'"
