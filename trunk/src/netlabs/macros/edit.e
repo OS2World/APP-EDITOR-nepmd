@@ -1025,14 +1025,18 @@ defc EditCreateUserFileMsgBox
       lp = lastpos( '\', NewFile)
       NewFilename = substr( NewFile, lp + 1)
    endif
+   Mode = GetMode()
    Title = 'New user file: 'NewFilename
    Text = ''
    Text = Text || 'The current file was copied from the NETLABS tree.'
    Text = Text || ' On saving, it will be created in the user tree and'
-   Text = Text || ' will override the original NETLABS file.'\n\n
-   Text = Text || 'Note that a macro file needs recompilation before'
-   Text = Text || ' it gets applied. In that case, execute RecompileNew'
-   Text = Text || ' via Options -> Macros -> "Recompile new user macros".'
+   Text = Text || ' will override the original NETLABS file.'
+   if Mode = 'E' then
+      Text = Text || \n\n
+      Text = Text || 'Note that a macro file needs recompilation before'
+      Text = Text || ' it gets applied. In that case, execute RecompileNew'
+      Text = Text || ' via Options -> Macros -> "Recompile new user macros".'
+   endif
    Style = MB_OK+MB_INFORMATION+MB_MOVEABLE
    ret = winmessagebox( Title,
                         Text,
