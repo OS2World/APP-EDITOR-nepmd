@@ -348,7 +348,7 @@ compile endif
                                         4, 0
       buildmenuitem menuname, 80, 8051, PROOF_MENU__MSG''MenuAccelString( 'Proof'),
                                         'Proof'PROOF_MENUP__MSG,
-                                        0, mpfrom2short(HP_OPTIONS_PROOF, 16384*(mt<>'L'))
+                                        0, mpfrom2short(HP_OPTIONS_PROOF, 0 /*16384*(mt<>'L')*/)
 compile if CHECK_FOR_LEXAM
    endif
 compile endif
