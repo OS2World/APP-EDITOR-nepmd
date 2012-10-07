@@ -132,12 +132,15 @@ DefKey( 'a_0'          , 'dolines'         )    -- Execute line under cursor
 DefKey( 'a_='          , 'dolines'         )    -- Execute line under cursor
 DefKey( 'a_s_='        , 'dolines'         )    -- Execute line under cursor
 DefKey( 'c_l'          , 'CommandDlgLine'  )    -- Open current line in Command dialog
+DefKey( 'c_break'      , 'ProcessBreak'    )    -- This is already internally defined and added here to make MenuAccelString() work
 
 ; ---- File operations ----
 DefKey( 'a_f2'         , 'SaveAs_Dlg'      )    -- Open the Save-as dialog
-DefKey( 'f2'           , 'SmartSave'       )    -- Save; if unchanged: give message
+DefKey( 'f2'           , 'Save'            )    -- Save
+;DefKey( 'f2'           , 'SmartSave'       )    -- Save; if unchanged: give message
 DefKey( 'f3'           , 'Quit'            )    -- Quit file
-DefKey( 'f4'           , 'FileOrQuit'      )    -- Save and quit file; if unchanged: just quit
+DefKey( 'f4'           , 'File'            )    -- Save and quit file
+;DefKey( 'f4'           , 'FileOrQuit'      )    -- Save and quit file; if unchanged: just quit
 DefKey( 'f5'           , 'OpenDlg'         )    -- Open File-open dialog (will open file in a new window)
 DefKey( 'c_o'          , 'EditFileDlg'     )    -- Open File-edit dialog (will open file in the same window)
 DefKey( 'f7'           , 'Rename'          )    -- Open Rename entrybox
@@ -198,7 +201,7 @@ DefKey( 'a_á'          , 'NextBookmark P'  )    -- Go to previous bookmark
 DefKey( 'a_s_/'        , 'NextBookmark P'  )    -- Go to previous bookmark
 
 ; ---- Help ----
-DefKey( 'c_h'          , 'kwhelp'          )    -- Lookup current word in a help file
+DefKey( 'c_h'          , 'KwHelp'          )    -- Lookup current word in a help file
 
 ; ---- Syntax Assistant ----
 DefKey( 'a_h'          , 'MyAssist'        )    -- ASSIST.E: insert code for abbreviations left from cursor
