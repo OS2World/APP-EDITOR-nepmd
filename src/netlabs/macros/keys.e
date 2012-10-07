@@ -982,7 +982,14 @@ defc SetKeyset2
       'DefKeyset' Name KeyDefs
    endif
 
+   if fKeysetChanged | activeaccel <> Name then
+      fRefreshMenu = 1
+   else
+      fRefreshMenu = 0
+   endif
+
    --dprintf( 'Keyset = 'Name', KeyDefs = 'KeyDefs', Previous: activeaccel = 'activeaccel' = 'GetAVar( 'keyset.'activeaccel)', .filename = '.filename)
+   --dprintf( 'SetKeyset2: Name = 'Name', activeaccel = 'activeaccel', fKeysetChanged = 'fKeysetChanged', PrevKeyDefs = 'PrevKeyDefs', NextKeyDefs = 'NextKeyDefs)
 
    -- Activate keyset: accelerator keys
    activeaccel = Name
@@ -995,6 +1002,12 @@ defc SetKeyset2
       EtkKeyDef = GetAVar( 'keydef.'Name'.'KeyString)
       SetAVar( 'keydef.'KeyString, EtkKeyDef)
    enddo
+
+   if fRefreshMenu then
+      if isadefc( 'RefreshMenu') then
+         'RefreshMenu'
+      endif
+   endif
 
 ; ---------------------------------------------------------------------------
 defc ReloadKeyset
