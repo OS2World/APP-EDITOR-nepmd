@@ -858,6 +858,9 @@ defc DefAccel, DefKeyset
       -- Set array vars for this keyset name
       AddAVar( 'keysets', Name)
       SetAVar( 'keyset.'Name, KeysetCmds)
+
+      --dprintf( 'DefKeySet called for: 'Name' = 'KeysetCmds)
+
       -- For all keyset commands
       do k = 1 to words( KeysetCmds)
          ThisKeyset = word( KeysetCmds, k)
@@ -1004,9 +1007,26 @@ defc SetKeyset2
    enddo
 
    if fRefreshMenu then
+
+      if not fKeysetChanged then  -- not required if DefKeyset was called above
+         -- Get list of required *Keys cmds to redefine keyset
+         KeysetCmds = GetAVar( 'keyset.'Name, KeysetCmds)
+
+         -- Redefine menu accel strings
+         do k = 1 to words( KeysetCmds)
+            ThisKeyset = word( KeysetCmds, k)
+            -- Execute keyset cmd (with 'Keys' appended)
+            ThisKeyset'Keys'
+         enddo
+
+         --dprintf( '  Refresh called for: 'Name' = 'KeysetCmds)
+      endif
+
+      -- Rebuild menu
       if isadefc( 'RefreshMenu') then
          'RefreshMenu'
       endif
+
    endif
 
 ; ---------------------------------------------------------------------------
