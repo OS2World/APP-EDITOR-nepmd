@@ -98,32 +98,38 @@ defproc tags_supported( mode)
 
 defproc proc_search( var proc_name, first_flag, mode, ext)
    if mode = 'C' then
-      return c_proc_search( proc_name, first_flag, ext)
+      ret = c_proc_search( proc_name, first_flag, ext)
    elseif mode = 'JAVA' then
-      return c_proc_search( proc_name, first_flag, ext)
+      ret = c_proc_search( proc_name, first_flag, ext)
    elseif mode = 'ASM' then
-      return asm_proc_search( proc_name, first_flag)
+      ret = asm_proc_search( proc_name, first_flag)
    elseif mode = 'PASCAL' then
-      return pas_proc_search( proc_name, first_flag)
+      ret = pas_proc_search( proc_name, first_flag)
    elseif mode = 'MODULA' then
-      return pas_proc_search( proc_name, first_flag, 'e')
+      ret = pas_proc_search( proc_name, first_flag, 'e')
    elseif mode = 'E' then
-      return e_proc_search( proc_name, first_flag)
+      ret = e_proc_search( proc_name, first_flag)
    elseif mode = 'REXX' then
-      return rexx_proc_search( proc_name, first_flag)
+      ret = rexx_proc_search( proc_name, first_flag)
    elseif mode = 'CMD' then
-      return cmd_proc_search( proc_name, first_flag)
+      ret = cmd_proc_search( proc_name, first_flag)
    elseif mode = 'HTEXT' then
-      return htext_proc_search( proc_name, first_flag)
+      ret = htext_proc_search( proc_name, first_flag)
    elseif mode = 'IPF' then
-      return ipf_proc_search( proc_name, first_flag)
+      ret = ipf_proc_search( proc_name, first_flag)
    elseif mode = 'TEX' then
-      return tex_proc_search( proc_name, first_flag)
+      ret = tex_proc_search( proc_name, first_flag)
    elseif mode = 'JAVASCRIPT' then
-      return javascript_proc_search( proc_name, first_flag)
+      ret = javascript_proc_search( proc_name, first_flag)
    else
-      return 1
+      ret = 1
    endif
+   if ret = 0 then
+      dprintf( 'TAG', 'Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"')
+   endif
+   rc = ret
+   return rc
+
 
 /****   The above is all that needs to be modified for adding other languages. *****/
 
@@ -145,6 +151,17 @@ compile if not defined(KEEP_TAGS_FILE_LOADED)
 compile endif
    IDENTIFIER_STARTER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_$'
 
+defproc QuitTagsFile( startfid)
+compile if KEEP_TAGS_FILE_LOADED
+   universal tags_fileid
+compile endif
+
+   startfid = arg(1)
+compile if KEEP_TAGS_FILE_LOADED
+   activatefile startfid
+compile else
+   'xcom quit'
+compile endif
 
 defc tagsfile
    universal tags_file
@@ -154,7 +171,7 @@ compile endif
    dprintf( 'TAGS', 'TAGSFILE: arg(1) = 'arg(1))
 
    orig_name = tags_file
-   if arg(1)='' then
+   if arg(1) = '' then
       parse value entrybox( TAGSNAME__MSG,
                             '/'SET__MSG'/'SETP__MSG'/'Cancel__MSG'/'Help__MSG'/',
                             tags_filename(),
@@ -162,10 +179,10 @@ compile endif
                             200,
                             atoi(1) || atoi(6070) || gethwndc(APP_HANDLE) ||
                             TAGSNAME_PROMPT__MSG) with button 2 newname \0
-      if button=\1 | button=\2 then
+      if button = \1 | button = \2 then
          tags_file = newname
-         if button=\2 & tags_file<>'' then
-            call setini('TAGSFILE', tags_file)
+         if button = \2 & tags_file <> '' then
+            call setini( 'TAGSFILE', tags_file)
          endif
       endif
    else
@@ -176,7 +193,9 @@ compile if KEEP_TAGS_FILE_LOADED
       getfileid startfid
       rc = 0
       activatefile tags_fileid
-      if rc=0 then 'xcom quit'; endif
+      if rc = 0 then
+         'xcom quit'
+      endif
       activatefile startfid
    endif
 compile endif
@@ -188,32 +207,33 @@ compile if KEEP_TAGS_FILE_LOADED
 compile endif
    dprintf( 'TAGS', 'TAGSFILE_PERM')
    orig_name = tags_file
-   if arg(1) <>'' then
+   if arg(1) <> '' then
       tags_file = arg(1)
-      call setini('TAGSFILE', tags_file)
+      call setini( 'TAGSFILE', tags_file)
    endif
 compile if KEEP_TAGS_FILE_LOADED
    if tags_fileid <> '' & orig_name <> tags_file then  -- New name; drop tags file
       getfileid startfid
       rc = 0
       activatefile tags_fileid
-      if rc=0 then 'xcom quit'; endif
+      if rc = 0 then
+         'xcom quit'
+      endif
       activatefile startfid
    endif
 compile endif
 
-
 defproc tags_filename()
    universal tags_file
    dprintf( 'TAGS', 'TAGS_FILENAME')
-   if tags_file='' then
-      tags_file=checkini(0, 'TAGSFILE', '')
+   if tags_file = '' then
+      tags_file = checkini( 0, 'TAGSFILE', '')
    endif
-   if tags_file='' then
-      tags_file=get_env('TAGS.EPM')
+   if tags_file = '' then
+      tags_file = get_env('TAGS.EPM')
    endif
-   if tags_file='' then
-      tags_file='tags.epm'
+   if tags_file = '' then
+      tags_file = 'tags.epm'
    endif
    return(tags_file)
 
@@ -227,7 +247,7 @@ compile endif
    file_type = filetype()
    file_mode = NepmdGetMode()
 
-   if arg(1)='' then
+   if arg(1) = '' then
       /* Try to find the procedure at the cursor. */
       if substr(textline(.line), .col, 1)='(' then left; endif  -- If on paren, shift
 
@@ -241,19 +261,21 @@ compile endif
       endif
 
       -- We cannot avoid to use file extensions in the case of C++, since we do not have a seperate mode for it.
-      if (wordpos(file_type, CPP_EXTENSIONS) > 0) | (file_mode = "JAVA" ) then
-         if substr(textline(.line), endcol+1, 2)='::' & pos(upcase(substr(textline(.line), endcol+3, 1)), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ$_') then
+      if (wordpos( file_type, CPP_EXTENSIONS) > 0) | (file_mode = "JAVA" ) then
+         if substr( textline( .line), endcol + 1, 2)='::' &
+            pos( upcase( substr( textline( .line), endcol + 3, 1)), IDENTIFIER_STARTER) then
             savecol = .col
             .col = endcol+3
-            if find_token(startcol2, endcol2) then
+            if find_token( startcol2, endcol2) then
                endcol = endcol2
             endif
             .col = savecol
-         elseif .col>3 then
-            if substr(textline(.line), startcol-2, 2)='::' & pos(upcase(substr(textline(.line), startcol-3, 1)), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ$_') then
+         elseif .col > 3 then
+            if substr( textline( .line), startcol - 2, 2)='::' &
+               pos( upcase( substr( textline( .line), startcol - 3, 1)), IDENTIFIER_STARTER) then
                savecol = .col
-               .col = startcol-3
-               if find_token(startcol2, endcol2) then
+               .col = startcol - 3
+               if find_token( startcol2, endcol2) then
                   startcol = startcol2
                endif
                .col = savecol
@@ -261,11 +283,11 @@ compile endif
          endif
       endif
 
-      proc_name = substr(textline(.line), startcol, (endcol-startcol)+1)
-      if pos('.', proc_name) then
-         proc_name = substr(proc_name, lastpos('.', proc_name)+1)
+      proc_name = substr( textline( .line), startcol, (endcol - startcol) + 1)
+      if pos( '.', proc_name) then
+         proc_name = substr( proc_name, lastpos( '.', proc_name) + 1)
       endif
-   elseif arg(1)='*' then
+   elseif arg(1) = '*' then
       parse value entrybox( FINDTAG__MSG,
                             '/'OK__MSG'/'LIST__MSG'/'Cancel__MSG'/'Help__MSG'/',
                             checkini(0, 'FINDTAG_ARG', ''),
@@ -273,16 +295,19 @@ compile endif
                             200,
                             atoi(1) || atoi(6010) || gethwndc(APP_HANDLE) ||
                             FINDTAG_PROMPT__MSG) with button 2 proc_name \0
-      if button<>\1 & button<>\2 then return; endif
-      if button=\1 then
-         call setini('FINDTAG_ARG', proc_name)
+      if button <> \1 & button <> \2 then
+         return
+      endif
+      if button = \1 then
+         call setini( 'FINDTAG_ARG', proc_name)
       endif
    else
       proc_name = arg(1)
    endif
+
    getfileid startfid
 compile if KEEP_TAGS_FILE_LOADED
-   if tags_fileid<>'' then
+   if tags_fileid <> '' then
       rc = 0
       display -2
       activatefile tags_fileid
@@ -293,7 +318,7 @@ compile if KEEP_TAGS_FILE_LOADED
          0              -- Go to top of file
       endif
    endif
-   if tags_fileid='' then
+   if tags_fileid = '' then
 compile endif
       'xcom e /d ' tags_filename()
       if rc then
@@ -310,133 +335,141 @@ compile endif
 compile if KEEP_TAGS_FILE_LOADED
    endif
 compile endif
-   if button=\2 then  -- List (delayed until tags_file was loaded)
+
+   if button = \2 then  -- List (delayed until tags_file was loaded)
       sayerror BUILDING_LIST__MSG
       'xcom e /c .tagslist'
-      if rc<>-282 then  -- -282 = sayerror("New file")
+      if rc <> -282 then  -- -282 = sayerror("New file")
          sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
          return
       endif
       getfileid lb_fid
       browse_mode = browse()     -- query current state
-      if browse_mode then call browse(0); endif
+      if browse_mode then
+         call browse(0)
+      endif
       .autosave = 0
       .visible = 0
       display -2
-      do i=1 to tags_fileid.last
+      do i = 1 to tags_fileid.last
          getline line, i, tags_fileid
          parse value line with tag .
-         if tag<>'' & tag<>'*' then
-            insertline tag, .last+1
+         if tag <> '' & tag <> '*' then
+            insertline tag, .last + 1
          endif
       enddo
-      if browse_mode then call browse(1); endif  -- restore browse state
+      if browse_mode then
+         call browse(1)  -- restore browse state
+      endif
       display 2
       if not .modify then  -- Nothing added?
          'xcom quit'
-compile if KEEP_TAGS_FILE_LOADED
-         activatefile startfid
-compile else
-         'xcom quit'
-compile endif
+         call QuitTagsFile( startfid)
          sayerror NO_TAGS__MSG
          return
       endif
-      if listbox_buffer_from_file(tags_fileid, bufhndl, noflines, usedsize) then return; endif
+      if listbox_buffer_from_file( tags_fileid, bufhndl, noflines, usedsize) then
+         return
+      endif
       parse value listbox( LIST_TAGS__MSG,
                            \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                            '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
                            0, 0,  --1, 5,
                            min( noflines, 12), 0,
                            gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6012)) with button 2 proc_name \0
-      call buffer(FREEBUF, bufhndl)
-      if button<>\1 then
-compile if KEEP_TAGS_FILE_LOADED
-         activatefile startfid
-compile else
-         'xcom quit'
-compile endif
+      call buffer( FREEBUF, bufhndl)
+
+      if button <> \1 then
+         call QuitTagsFile( startfid)
          return
       endif
+
    endif
+
    name = proc_name  -- Preserve original name.
 compile if 1
-   if pos(':', proc_name) then
+   if pos( ':', proc_name) then
       grep = 'g'  -- Use the older one, because extended GREP treats colons specially
    else
       grep = 'x'  -- Use the faster one!
    endif
 compile else
-   tc = pos(':', proc_name)
+   tc = pos( ':', proc_name)
    if tc then
       temp = ''
       do while tc
-         temp = temp || leftstr(proc_name, tc-1) || '\:'
-         proc_name = substr(proc_name, tc+1)
-         tc = pos(':', proc_name)
+         temp = temp || leftstr( proc_name, tc - 1) || '\:'
+         proc_name = substr( proc_name, tc + 1)
+         tc = pos( ':', proc_name)
       enddo
       proc_name = temp || proc_name
    endif
    grep = 'x'  -- Always use the faster one!
 compile endif
    display -2
-   tc = tag_case(startfid.filename)
-   do i=1 to 2
+   tc = tag_case( startfid.filename)
+   do i = 1 to 2
       'xcom l ^'proc_name' 'grep || tc
-      if not rc then leave; endif
+      if not rc then
+         leave
+      endif
       proc_name = '_'proc_name  /* Handle case where C call to assembler function needs '_' */
    enddo
    display 2
-   long_msg='.  You may want to rebuild the tag file.'
+   long_msg = '.  You may want to rebuild the tag file.'
    if rc then
-compile if KEEP_TAGS_FILE_LOADED
-      activatefile startfid
-compile else
-      'xcom quit'
-compile endif
+      call QuitTagsFile( startfid)
       sayerror 'Tag for function "'name'" not found in 'tags_filename()long_msg
       return 1
    endif
-   parse_tagline(name, filename, fileline, filedate)
+
+   parse_tagline( name, filename, fileline, filedate)
+
    /* Check if there is more than one */
    if .line < .last then
       found_line = .line
       '+1'
-      parse_tagline(next_name, next_filename, next_fileline, next_filedate)
-      if upcase(name)=upcase(next_name) then
+      parse_tagline( next_name, next_filename, next_fileline, next_filedate)
+      if upcase( name) = upcase( next_name) then
          getfileid tags_fid
          'xcom e /c .temp'
-         if rc<>-282 then  -- -282 = sayerror("New file")
+         if rc <> -282 then  -- -282 = sayerror("New file")
             'xcom quit'
             return 1
          endif
          getfileid temp_fid
          browse_mode = browse()     -- query current state
-         if browse_mode then call browse(0); endif
+         if browse_mode then
+            call browse(0)
+         endif
          .autosave = 0
          .visible = 0
          insertline '1. 'filename, 2
          activatefile tags_fid
          i = 2
          loop
-            if upcase(next_filename) <> upcase(filename) then
-               insertline i'. 'next_filename, temp_fid.last+1, temp_fid
+            if upcase( next_filename) <> upcase( filename) then
+               insertline i'. 'next_filename, temp_fid.last + 1, temp_fid
                i = i + 1
             endif
             if .line = .last then
                leave
             endif
             '+1'
-            parse_tagline(next_name, next_filename, next_fileline, next_filedate)
-            if upcase(name)/==upcase(next_name) then
+            parse_tagline( next_name, next_filename, next_fileline, next_filedate)
+            if upcase( name) /== upcase( next_name) then
                leave
             endif
          endloop
          activatefile temp_fid
          .modify = 0
-         if browse_mode then call browse(1); endif  -- restore browse state
-         if .last>2 then
-            if listbox_buffer_from_file(tags_fid, bufhndl, noflines, usedsize) then return; endif
+         if browse_mode then
+            call browse(1)  -- restore browse state
+         endif
+         if .last > 2 then
+            if listbox_buffer_from_file( tags_fid, bufhndl, noflines, usedsize) then
+               return
+            endif
             parse value listbox( 'Select a file',
                                  \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),
                                  '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,
@@ -445,32 +478,25 @@ compile endif
                                  gethwndc(APP_HANDLE) || atoi(1) || atoi(1) || atoi(6015) ||
 ;;                               "'"name"' appears in multiple files.") with button 2 filename \0
                                  "'"name"' appears in multiple files.") with button 2 i '.' \0
-            call buffer(FREEBUF, bufhndl)
-            if button<>\1 then  -- Didn't select OK
+            call buffer( FREEBUF, bufhndl)
+            if button <> \1 then  -- Didn't select OK
                filename = ''
             else
                --fileline = ''; filedate = ''  -- For now, don't try to keep track.
-               found_line+i-1     -- Go to the corresponding line, & parse the correct info.
-               parse_tagline(name, filename, fileline, filedate)
+               found_line + i - 1     -- Go to the corresponding line, & parse the correct info.
+               parse_tagline( name, filename, fileline, filedate)
             endif
          else
             'xcom quit'
          endif
-         if filename='' then
-compile if KEEP_TAGS_FILE_LOADED
-            activatefile startfid
-compile else
-            'xcom quit'  -- quit tags file
-compile endif
+         if filename = '' then
+            call QuitTagsFile( startfid)
             return 1
          endif
       endif  -- duplicate names
    endif  -- not on last line
-compile if KEEP_TAGS_FILE_LOADED
-   activatefile startfid
-compile else
-   'xcom quit'  -- quit tags file
-compile endif
+
+   call QuitTagsFile( startfid)
 
    -- Get fileid if filename is already in ring  (filename = filename with proc definition)
    getfileid already_loaded, filename
@@ -489,7 +515,7 @@ compile endif
    if already_loaded <> '' then
       new_view = .currentview_of_file
    endif
-   if tc='e' then  -- case-sensitive
+   if tc = 'e' then  -- case-sensitive
       p = pos( proc_name, textline( fileline))
       lp = lastpos( proc_name, textline( fileline))
    else            -- not case-sensitive
@@ -539,23 +565,18 @@ compile endif
       'postme postme activatefile' new_view  -- added; 2x postme required in most cases
    endif
 
-defproc parse_tagline(var name, var filename, var fileline, var filedate)
-   parse value textline(.line) with name filename fileline filedate .
-   if leftstr(filename,1)='"' & (rightstr(filename,1)<>'"' | length(filename)=1) then
-      parse value textline(.line) with name ' "'filename'"' fileline filedate .
+defproc parse_tagline( var name, var filename, var fileline, var filedate)
+   parse value textline( .line) with name filename fileline filedate .
+   if leftstr( filename ,1) = '"' &
+      (rightstr( filename, 1) <> '"' | length( filename) = 1) then
+      parse value textline( .line) with name ' "'filename'"' fileline filedate .
       filename = '"'filename'"'
    endif
 
 const
    IGNORE_C_KEYWORDS = 'if while switch for case else return ='
-compile if not defined(LOG_TAG_MATCHES)
-   LOG_TAG_MATCHES = 0
-compile endif
 
 defproc c_proc_search( var proc_name, find_first, ext)
-compile if LOG_TAG_MATCHES
-   universal TAG_LOG_FID
-compile endif
 
    fSearchIdentifier = (proc_name == '')
    proc_len = length( proc_name)
@@ -599,11 +620,7 @@ compile endif
 
       getline line
       line = translate( line, ' ', \t)
-compile if LOG_TAG_MATCHES
-         if TAG_LOG_FID then
-            insertline '  Found line' .line '= "'line'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-         endif
-compile endif
+      dprintf( 'TAG', 'Found line' .line '= "'line'"')
 
       -- Determine if match is a substring of something else
       if not fSearchIdentifier then
@@ -684,11 +701,7 @@ compile endif
             -- Go to closing paren
 ;;          .col = pos( '(', line, .col)
             if find_matching_paren() then  -- No match found?
-compile if LOG_TAG_MATCHES
-               if TAG_LOG_FID then
-                  insertline '  ...skipping; no matching paren found.', TAG_LOG_FID.last+1, TAG_LOG_FID
-               endif
-compile endif
+               dprintf( 'TAG', '...skipping; no matching paren found.')
                call prestore_pos( save_pos)
                end_line
                repeat_find
@@ -703,11 +716,7 @@ compile endif
             after_paren_ch = leftstr( strip( translate( textline( .line), ' ', \t)), 1)
          enddo
          if pos( after_paren_ch, ';),([-+*.=?&|}!<>') then
-compile if LOG_TAG_MATCHES
-            if TAG_LOG_FID then
-               insertline '  ...skipping; after_paren_ch in list.  "'after_paren_ch'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-            endif
-compile endif
+            dprintf( 'TAG', '...skipping; after_paren_ch in list.  "'after_paren_ch'"')
             end_line
             repeat_find
             iterate
@@ -721,11 +730,7 @@ compile endif
          proc_name = lastword( line)
          v = verify( upcase( proc_name), IDENTIFIER_STARTER, 'M')
          if not v then
-compile if LOG_TAG_MATCHES
-            if TAG_LOG_FID then
-               insertline '  ...skipping; verify =' v, TAG_LOG_FID.last+1, TAG_LOG_FID
-            endif
-compile endif
+            dprintf( 'TAG', '...skipping; verify =' v)
             end_line
             repeat_find
             iterate
@@ -733,22 +738,14 @@ compile endif
 
          proc_name = substr( proc_name, v)
          if wordpos( proc_name, IGNORE_C_KEYWORDS) then
-compile if LOG_TAG_MATCHES
-            if TAG_LOG_FID then
-               insertline '  ...skipping; procname "'proc_name'" in ignore list', TAG_LOG_FID.last+1, TAG_LOG_FID
-            endif
-compile endif
+            dprintf( 'TAG', '...skipping; procname "'proc_name'" in ignore list')
             end_line
             repeat_find
             iterate
          endif
 
          if verify( upcase( proc_name), IDENTIFIER_STARTER'0123456789'colon) then
-compile if LOG_TAG_MATCHES
-            if TAG_LOG_FID then
-               insertline '  ...skipping; procname "'proc_name'" contains invalid characters', TAG_LOG_FID.last+1, TAG_LOG_FID
-            endif
-compile endif
+            dprintf( 'TAG', '...skipping; procname "'proc_name'" contains invalid characters')
             end_line
             repeat_find
             iterate
@@ -757,47 +754,38 @@ compile endif
          w = words( line)
          if w > 1 then
             if verify( upcase( subword( line, 1, w - 1)), IDENTIFIER_STARTER'0123456789*()[] 'colon||cpp_decl) then
-compile if LOG_TAG_MATCHES
-               if TAG_LOG_FID then
-                  insertline '  ...skipping; character invalid in a declarator appears before "'proc_name'" in:  'line, TAG_LOG_FID.last+1, TAG_LOG_FID
-               endif
-compile endif
+               dprintf( 'TAG', '...skipping; character invalid in a declarator appears before "'proc_name'" in:  'line)
                end_line
                repeat_find
                iterate
             endif
          endif
-
+/*
          if inside_comment( 'C') then
             end_line
             repeat_find
             iterate
          endif
-
+*/
          display 2
-compile if LOG_TAG_MATCHES
-         if TAG_LOG_FID then
-            insertline '  ...accepted; proc_name = "'proc_name'"', TAG_LOG_FID.last+1, TAG_LOG_FID
          endif
-compile endif
          return 0
 
-compile if LOG_TAG_MATCHES
-      elseif not TAG_LOG_FID then  -- do nothing
-      elseif substr( line, .col, 1) <> '(' then
-         insertline '  ...skipping; .col =' .col'; char = "'substr( line, .col, 1)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
+      if substr( line, .col, 1) <> '(' then
+         dprintf( 'TAG', '...skipping; .col =' .col'; char = "'substr( line, .col, 1)'"')
       elseif rightstr(line,1)=';' then
-         insertline '  ...skipping; ends in semicolon; line = "'line'"', TAG_LOG_FID.last+1, TAG_LOG_FID
+         dprintf( 'TAG', '...skipping; ends in semicolon; line = "'line'"')
       else
-         insertline '  ...skipping; no idea why.', TAG_LOG_FID.last+1, TAG_LOG_FID
-compile endif
+         dprintf( 'TAG', '...skipping; no idea why.')
       endif
 
       end_line
       repeat_find
 
    endloop
+/*
    call prune_assist_array()
+*/
 
 defproc pas_proc_search( var proc_name, find_first)
    case = arg(3)
@@ -879,10 +867,7 @@ defproc pas_proc_search( var proc_name, find_first)
       end_line; repeat_find
    endloop
 
-defproc asm_proc_search(var proc_name, find_first)
-compile if LOG_TAG_MATCHES
-   universal TAG_LOG_FID
-compile endif
+defproc asm_proc_search( var proc_name, find_first)
    display -2
    if find_first then
       if proc_name=='' then
@@ -897,18 +882,10 @@ compile endif
       repeat_find
    endif
    display 2
-   parse value translate(textline(.line), ' ', \t) with proc_name .
-compile if LOG_TAG_MATCHES
-   if TAG_LOG_FID and not rc then
-      insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-   endif
-compile endif
+   parse value translate( textline( .line), ' ', \t) with proc_name .
    return rc
 
-defproc cmd_proc_search(var proc_name, find_first)
-compile if LOG_TAG_MATCHES
-   universal TAG_LOG_FID
-compile endif
+defproc cmd_proc_search( var proc_name, find_first)
    LeadingSpace = ':o'
    display -2
    if find_first then
@@ -923,18 +900,10 @@ compile endif
       repeat_find
    endif
    display 2
-   parse value translate(textline(.line), ' ', \t) with ':'proc_name .
-compile if LOG_TAG_MATCHES
-   if TAG_LOG_FID and not rc then
-      insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-   endif
-compile endif
+   parse value translate( textline( .line), ' ', \t) with ':'proc_name .
    return rc
 
 defproc htext_proc_search( var proc_name, find_first)
-compile if LOG_TAG_MATCHES
-   universal TAG_LOG_FID
-compile endif
    Spc = ':o'
    display -2
    if find_first then
@@ -958,17 +927,9 @@ compile endif
       ind = copies( ' ', 8)
       proc_name = copies( ind, sectiontype - 1)''proc_name
    endif
-compile if LOG_TAG_MATCHES
-   if TAG_LOG_FID and not rc then
-      insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-   endif
-compile endif
    return rc
 
 defproc ipf_proc_search( var proc_name, find_first)
-compile if LOG_TAG_MATCHES
-   universal TAG_LOG_FID
-compile endif
    Spc = ':o'
    display -2
    if find_first then
@@ -1026,17 +987,9 @@ compile endif
       ind = copies( ' ', 8)
       proc_name = copies( ind, sectiontype - 1)''proc_name
    endif
-compile if LOG_TAG_MATCHES
-   if TAG_LOG_FID and not rc then
-      insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-   endif
-compile endif
    return rc
 
 defproc javascript_proc_search( var proc_name, find_first)
-compile if LOG_TAG_MATCHES
-   universal TAG_LOG_FID
-compile endif
    LeadingSpace = ':o'
    display -2
    proc_len = length( proc_name)
@@ -1068,20 +1021,12 @@ compile endif
             iterate
          endif
       endif
-compile if LOG_TAG_MATCHES
-      if TAG_LOG_FID and not rc then
-         insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-      endif
-compile endif
       leave
    endloop
    display 2
    return rc
 
 defproc e_proc_search( var proc_name, find_first)
-compile if LOG_TAG_MATCHES
-   universal TAG_LOG_FID
-compile endif
 
 compile if E_TAGS_ANYWHERE
    LeadingSpace = ':o'
@@ -1120,51 +1065,55 @@ compile endif
       repeat_find
    endif
 
-   lrc = rc
-   if lrc then
-      display 2
-      return lrc
-   endif
-
-   Col = GetPmInfo( EPMINFO_SEARCHPOS)
-   Len = GetPmInfo( EPMINFO_LSLENGTH)
-   ThisLine  = translate( textline(.line), ' ', \t)
-   FoundProc = substr( ThisLine, .col, Len - .col + 1)
-   RestLine  = substr( ThisLine, Len - Col + 2)
-   proc_name = FoundProc
-
-   if inside_comment( 'E') then
-      repeat_find
-   endif
-
-   -- Strip trailing comment
-   p = pos( '--', RestLine)
-   if p then
-      RestLine = leftstr( RestLine, p - 1)
-   endif
-
-   -- Replace multi-line comments (on current line only)
-   loop
-      p = pos( '/*', RestLine)
-      if not p then
-         leave
+   do forever
+      lrc = rc
+      if lrc then
+         display 2
+         return lrc
       endif
-      q = pos( '*/', RestLine, p + 2)
-      if q then
-         RestLine = overlay( '', RestLine, p, q - p + 2)  -- keep column alignment
-      else
+
+      Col = GetPmInfo( EPMINFO_SEARCHPOS)
+      Len = GetPmInfo( EPMINFO_LSLENGTH)
+      ThisLine  = translate( textline(.line), ' ', \t)
+      FoundProc = substr( ThisLine, .col, Len - .col + 1)
+      RestLine  = substr( ThisLine, Len - Col + 2)
+      proc_name = FoundProc
+
+      -- dprintf( ThisLine)
+      if inside_comment( 'E') then
+         --dprintf( 'inside_comment')
+         repeat_find
+         iterate
+      endif
+
+      -- Strip trailing comment
+      p = pos( '--', RestLine)
+      if p then
          RestLine = leftstr( RestLine, p - 1)
       endif
-   endloop
+
+      -- Replace multi-line comments (on current line only)
+      loop
+         p = pos( '/*', RestLine)
+         if not p then
+            leave
+         endif
+         q = pos( '*/', RestLine, p + 2)
+         if q then
+            RestLine = overlay( '', RestLine, p, q - p + 2)  -- keep column alignment
+         else
+            RestLine = leftstr( RestLine, p - 1)
+         endif
+      endloop
+
+      leave
+   enddo  -- forever
+
    display 2
 
    --dprintf( 'rc from xcom l 'search'cx =' lrc', len = 'len', col = 'col', .col = '.col', FoundProc = ['FoundProc']')
    --call highlight_match()
-compile if LOG_TAG_MATCHES
-   if TAG_LOG_FID
-      insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-   endif
-compile endif
+   dprintf( 'TAG', 'Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"')
 
    -- Store multiply defined command names in an array var.
    -- This handles defc cmd1, cmd2, ...
@@ -1190,11 +1139,6 @@ compile endif
 
             Next = strip( Next)
             --dprintf( 'FoundProc = ['Next']')
-compile if LOG_TAG_MATCHES
-            if TAG_LOG_FID
-               insertline '  Found proc_name = "'proc_name'" in line' .line '= "'textline(.line)'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-            endif
-compile endif
 
             NextProcs = strip( NextProcs Next)
          enddo
@@ -1212,9 +1156,6 @@ const
 compile endif
 
 defproc rexx_proc_search(var proc_name, find_first)
-compile if LOG_TAG_MATCHES
-   universal TAG_LOG_FID
-compile endif
    display -2
    if find_first then
       if proc_name=='' then
@@ -1233,18 +1174,14 @@ compile endif
          return rc
       endif
       getline line
---    line=translate(line, ' ', \t)
-compile if LOG_TAG_MATCHES
-      if TAG_LOG_FID then
-         insertline '  Found line' .line '= "'line'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-      endif
-compile endif
+--    line = translate( line, ' ', \t)
+      dprintf( 'TAG', 'Found line' .line '= "'line'"')
 
-      colon = pos(':', line, .col)
+      colon = pos( ':', line, .col)
       if proc_len then  -- Determine if match is a substring of something else
-         if .col>1 then
-            c = upcase(substr(line, .col-1, 1))
-            if (c>='A' & c<='Z') | (c>='0' & c<='9') | c='!' | c='?' | c='_'  then
+         if .col > 1 then
+            c = upcase( substr( line, .col-1, 1))
+            if (c >= 'A' & c <= 'Z') | (c >= '0' & c <= '9') | c = '!' | c = '?' | c = '_'  then
                .col = colon + 1
                repeat_find
                iterate
@@ -1255,38 +1192,36 @@ compile endif
       i = 1
       loop
          -- Remove single-line comments & quotes
-         c=pos('/*',line, i)
-         a=pos("'",line, i)
-         q=pos('"',line, i)
-         if not c & not a & not q then leave; endif
-         if c & (not a | a>c) & (not q | q>c) then  -- Open Comment appears first
-            j=pos('*/', line, i+2)
+         c = pos( '/*', line, i)
+         a = pos( "'", line, i)
+         q = pos( '"', line, i)
+         if not c & not a & not q then
+            leave
+         endif
+         if c & (not a | a > c) & (not q | q > c) then  -- Open Comment appears first
+            j = pos( '*/', line, i + 2)
             if j then
-               line=overlay('', line, c, j-c+2)  -- Keep column alignment
+               line = overlay( '', line, c, j - c + 2)  -- Keep column alignment
             else
-               line=leftstr(line, c-1)
+               line = leftstr( line, c - 1)
             endif
          else                           -- Single or double quote appears first
             if not q then               -- Figure out which it is...
-               q = a;
+               q = a
             elseif a then
-               q = min(q, a)
+               q = min( q, a)
             endif
-            j=pos(substr(line, q, 1), line, q+1)
+            j = pos( substr( line, q, 1), line, q + 1)
             if j then
-               line=overlay('', line, q, j-q+1)  -- Keep column alignment
+               line = overlay( '', line, q, j - q + 1)  -- Keep column alignment
             else
-               line=leftstr(line, q-1)
+               line = leftstr( line, q - 1)
             endif
          endif
       endloop
 
-      if substr(line, colon, 1)<>':' then  -- Was in a comment or quoted string
-compile if LOG_TAG_MATCHES
-         if TAG_LOG_FID then
-            insertline "  ...skipping; ':' inside a comment or string.", TAG_LOG_FID.last+1, TAG_LOG_FID
-         endif
-compile endif
+      if substr( line, colon, 1) <> ':' then  -- Was in a comment or quoted string
+         dprintf( 'TAG', "...skipping; ':' inside a comment or string.")
          .col = colon + 1
          repeat_find
          iterate
@@ -1309,12 +1244,7 @@ compile if TAG_REXX_EXACT_SEARCH
 compile endif
 
       display 2
-      parse value substr(textline(.line), .col) with proc_name ':'
-compile if LOG_TAG_MATCHES
-      if TAG_LOG_FID then
-         insertline '  ...accepted; proc_name = "'proc_name'"', TAG_LOG_FID.last+1, TAG_LOG_FID
-      endif
-compile endif
+      parse value substr( textline( .line), .col) with proc_name ':'
       return 0
 
    endloop
@@ -1469,19 +1399,19 @@ defc QueryTagsFileList
                        5,
                        put_in_buffer( TagsFileList( tagsname)))
 
-defproc TagsFileList(tagsname)
+defproc TagsFileList( tagsname)
    universal app_hini
    App = INI_TAGSFILES\0
-   tagsnameZ = upcase(tagsname)\0
-   inifilelist = copies(' ', MAXCOL)
-   l = dynalink32('PMSHAPI',
-                  '#115',               -- PRF32QUERYPROFILESTRING
-                  atol(app_hini)       ||  -- HINI_PROFILE
-                  address(App)         ||  -- pointer to application name
-                  address(tagsnameZ)   ||  -- Return value for this key
-                  atol(0)              ||  -- Default return string is NULL
-                  address(inifilelist) ||  -- pointer to returned string buffer
-                  atol(MAXCOL), 2)         -- max length of returned string
+   tagsnameZ = upcase( tagsname)\0
+   inifilelist = copies( ' ', MAXCOL)
+   l = dynalink32( 'PMSHAPI',
+                   '#115',               -- PRF32QUERYPROFILESTRING
+                   atol(app_hini)       ||  -- HINI_PROFILE
+                   address(App)         ||  -- pointer to application name
+                   address(tagsnameZ)   ||  -- Return value for this key
+                   atol(0)              ||  -- Default return string is NULL
+                   address(inifilelist) ||  -- pointer to returned string buffer
+                   atol( MAXCOL), 2)        -- max length of returned string
    if not l then  -- Not found in .INI file; try the TAGS file's EA
       getfileid startfid
       getfileid fid, tagsname
@@ -1490,7 +1420,7 @@ defproc TagsFileList(tagsname)
          'xcom e' tagsname
          if rc then
             continue = 0
-            if rc=sayerror('New file') then
+            if rc = sayerror( 'New file') then
                'xcom quit'
             endif
          endif
@@ -1498,7 +1428,7 @@ defproc TagsFileList(tagsname)
          activatefile fid
       endif
       if continue then
-         inifilelist = get_EAT_ASCII_value('EPM.TAGSARGS')
+         inifilelist = get_EAT_ASCII_value( 'EPM.TAGSARGS')
          l = length(inifilelist)
          if not fid then
             'xcom quit'
@@ -1513,7 +1443,7 @@ defproc TagsFileList(tagsname)
 
 defc poptagsdlg
    dprintf( 'TAGS', 'POPTAGSDLG')
-   call windowmessage(0,  getpminfo(APP_HANDLE),
+   call windowmessage(0,  getpminfo( APP_HANDLE),
                       5158,               -- EPM_POPCTAGSDLG
                       0,
                       0)
@@ -1522,42 +1452,53 @@ defc tagsdlg_make
    universal appname, app_hini
    dprintf( 'TAGS', 'TAGSDLG_MAKE: arg(1) (tagsfilename maketagsargs) = 'arg(1))
    parse arg tagsfilename maketagsargs
-   if maketagsargs='' then sayerror -263; return; endif  -- "Invalid argument"
-   call setprofile(app_hini, INI_TAGSFILES, upcase(tagsfilename), maketagsargs)
+   if maketagsargs = '' then
+      sayerror -263  -- "Invalid argument"
+      return
+   endif
+   call setprofile( app_hini, INI_TAGSFILES, upcase( tagsfilename), maketagsargs)
    'tagsfile' tagsfilename
    'maketags' maketagsargs
 
 defc add_tags_info
    universal appname, app_hini
    parse arg tagsfilename maketagsargs
-   if maketagsargs='' then sayerror -263; return; endif  -- "Invalid argument"
-   call setprofile(app_hini, INI_TAGSFILES, upcase(tagsfilename), maketagsargs)
+   if maketagsargs = '' then
+      sayerror -263  -- "Invalid argument"
+      return
+   endif
+   call setprofile( app_hini, INI_TAGSFILES, upcase( tagsfilename), maketagsargs)
 
 defc delete_tags_info
    universal appname, app_hini
-   if arg(1)='' then sayerror -263; return; endif  -- "Invalid argument"
-   call setprofile(app_hini, INI_TAGSFILES, upcase(arg(1)), '')
+   if arg(1) = '' then
+      sayerror -263  -- "Invalid argument"
+      return
+   endif
+   call setprofile( app_hini, INI_TAGSFILES, upcase( arg(1)), '')
 
 defc tagscan
    universal vepm_pointer
    file_type = filetype()
    file_mode = NepmdGetMode()
-   if not tags_supported(file_mode) then
+   if not tags_supported( file_mode) then
       sayerror "Don't know how to do tags for file of mode '"file_mode"'"
       return 1
    endif
 
-   call psave_pos(savepos)
+   call psave_pos( savepos)
    0
    getfileid sourcefid
    'xcom e /c .tagslist'
-   if rc<>-282 then  -- -282 = sayerror("New file")
+   if rc <> -282 then  -- -282 = sayerror("New file")
       sayerror ERROR__MSG rc BAD_TMP_FILE__MSG sayerrortext(rc)
       return
    endif
    getfileid lb_fid
    browse_mode = browse()     -- query current state
-   if browse_mode then call browse(0); endif
+   if browse_mode then
+      call browse(0)
+   endif
    .autosave = 0
    .visible = 0
    activatefile sourcefid
@@ -1566,14 +1507,16 @@ defc tagscan
    sayerror 'Searching for procedures...'
    rc = proc_search( proc_name, 1, file_mode, file_type)
    while not rc do
-      insertline proc_name '('.line')', lb_fid.last+1, lb_fid
+      insertline proc_name '('.line')', lb_fid.last + 1, lb_fid
       proc_name=''
       end_line
-      rc=proc_search(proc_name, 0, file_mode, file_type)
+      rc = proc_search( proc_name, 0, file_mode, file_type)
    endwhile
    call prune_assist_array()
-   call prestore_pos(savepos)
-   if browse_mode then call browse(1); endif  -- restore browse state
+   call prestore_pos( savepos)
+   if browse_mode then
+      call browse(1)  -- restore browse state
+   endif
    activatefile lb_fid
    sayerror 0
    mouse_setpointer vepm_pointer
@@ -1585,7 +1528,9 @@ defc tagscan
       return
    endif
 
-   if listbox_buffer_from_file(sourcefid, bufhndl, noflines, usedsize) then return; endif
+   if listbox_buffer_from_file( sourcefid, bufhndl, noflines, usedsize) then
+      return
+   endif
    parse value listbox( LIST_TAGS__MSG,         -- title
                         \0 || atol(usedsize) || atoi(32) || atoi(bufhndl),  -- buffer
                         '/'OK__MSG'/'Cancel__MSG'/'Help__MSG,               -- buttons
@@ -1595,7 +1540,7 @@ defc tagscan
                         atoi(1) ||              -- default item
                         atoi(1) ||              -- default button
                         atoi(6012)) with button 2 proc_name \0  -- help panel id
-   call buffer(FREEBUF, bufhndl)
+   call buffer( FREEBUF, bufhndl)
    if button<>\1 then
       return
    endif
