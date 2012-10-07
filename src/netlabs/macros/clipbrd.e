@@ -81,13 +81,13 @@ defc Copy2SharBuff                     -- former name = CLIPBRD_pt
    getfileid fileid                    -- save file id of visible file
    activatefile mkfileid               -- switch to file with mark
    -- Try to open the buffer.  If it doesn't exist, create it.
-   bufhndl = buffer(OPENBUF, EPMSHAREDBUFFER)
+   bufhndl = buffer( OPENBUF, EPMSHAREDBUFFER)
    if bufhndl then
       opened = 1
    else
       -- Make a 64K buffer... memory's plentiful.  Easily changed.
       bufsize = MAXBUFSIZE
-      bufhndl = buffer(CREATEBUF, EPMSHAREDBUFFER, bufsize)
+      bufhndl = buffer( CREATEBUF, EPMSHAREDBUFFER, bufsize)
       opened = 0
    endif
    if not bufhndl then
@@ -96,13 +96,28 @@ defc Copy2SharBuff                     -- former name = CLIPBRD_pt
    endif
 
    -- Copy the current marked lines into EPM's shared memory buffer
-   call buffer(PUTMARKBUF, bufhndl, fstline, lstline, APPENDCR+APPENDLF)  -- Was +FINALNULL+STRIPSPACES
+   call buffer( PUTMARKBUF, bufhndl, fstline, lstline, APPENDCR + APPENDLF)  -- Was +FINALNULL+STRIPSPACES
 
-   poke bufhndl, 28, atol(lstline-fstline+1-(lstline>.last))  -- Remember how many lines are *supposed* to be there.
+   poke bufhndl, 28, atol( lstline - fstline + 1 - (lstline > .last))  -- Remember how many lines are *supposed* to be there.
 
    activatefile fileid
    if opened then
-      call buffer(FREEBUF, bufhndl)
+      call buffer( FREEBUF, bufhndl)
+   endif
+
+; ---------------------------------------------------------------------------
+defc ShowBuff
+   bufhndl = buffer( OPENBUF, EPMSHAREDBUFFER)
+   fopened = 0
+   if bufhndl then
+      fopened = 1
+   endif
+   if fopened then
+      --sayerror 'Buffer: max. size = 'buffer( MAXSIZEBUF, bufhndl)', used size = 'buffer( USEDSIZEBUF, bufhndl)
+      sayerror 'Buffer: max. size = 'ltoa( peek( bufhndl, 0, 2), 10)', used size = 'ltoa( peek( bufhndl, 2, 2), 10)
+      --sayerror 'Buffer: number of lines = 'buffer( GETBUF, bufhndl)
+   else
+      sayerror 'Buffer not opened'
    endif
 
 ; ---------------------------------------------------------------------------
@@ -133,7 +148,7 @@ defc ClearSharBuff
 ; ---------------------------------------------------------------------------
 ; Copy marked text into the PM clipboard.
 ; If arg specified, copy that instead of the marked text.
-defc copy2clip
+defc Copy2Clip
    if length( arg(1)) > 0 then
 /*
       PointerToBuffer = put_in_buffer( arg(1))
@@ -183,35 +198,35 @@ defc copy2clip
                         -- in case the user has modified the mark contents.
 
       /* Try to open the buffer.  If it doesn't exist, then we can't copy   */
-      bufhndl = buffer(OPENBUF, EPMSHAREDBUFFER)
+      bufhndl = buffer( OPENBUF, EPMSHAREDBUFFER)
       if not bufhndl then
          return 1                              /* buffer does not exist     */
       endif
 
-      if peek(bufhndl,6,2) /== peek(bufhndl,28,2) then
+      if peek( bufhndl, 6, 2) /== peek( bufhndl, 28, 2) then
          sayerror TOO_MUCH_FOR_CLIPBD__MSG
-compile if 1
+ compile if 1
          -- Comment this out if you want to copy just the first 64 KiB, rather
          -- than nothing:
          return 1
-compile endif
+ compile endif
       endif
 
-   --  Copying to the Clipboard using the EToolkit message:
-   --  EPM_EDIT_CLIPBOARDCOPY -  mp1 = pointer to memory buffer containing
-   --                                  contents to copy to the clipboard.
-   --                            mp2 = flag that describes what type of buffer
-   --                                  was passed in mp1.
-   --                                  0=CF_TEXT type buffer, terminated by nul
-   --                                  1=EPM shared memory buffer (32byte head)
-   --  When the contents of mp1 is copied to the clipboard a EPM defc event is
-   --  called by the name of PROCESSCLIPBOARDCOPY.  Arg(1) of this function is
-   --  the original buffer passed in as mp1.  The caller may choose to free
-   --  the buffer during this command.    if zero is passed as arg(1), an error
-   --  was encountered.  An error message should be displayed at this point.
+      --  Copying to the Clipboard using the EToolkit message:
+      --  EPM_EDIT_CLIPBOARDCOPY -  mp1 = pointer to memory buffer containing
+      --                                  contents to copy to the clipboard.
+      --                            mp2 = flag that describes what type of buffer
+      --                                  was passed in mp1.
+      --                                  0=CF_TEXT type buffer, terminated by nul
+      --                                  1=EPM shared memory buffer (32byte head)
+      --  When the contents of mp1 is copied to the clipboard a EPM defc event is
+      --  called by the name of PROCESSCLIPBOARDCOPY.  Arg(1) of this function is
+      --  the original buffer passed in as mp1.  The caller may choose to free
+      --  the buffer during this command.    if zero is passed as arg(1), an error
+      --  was encountered.  An error message should be displayed at this point.
 
       -- TODO: EPM_EDIT_CLIPBOARDCOPY is limited to 64 KiB
-      call windowmessage( 0, getpminfo(EPMINFO_EDITCLIENT),
+      call windowmessage( 0, getpminfo( EPMINFO_EDITCLIENT),
                           5441,               -- EPM_EDIT_CLIPBOARDCOPY
                           mpfrom2short( bufhndl, 0),
                           1)
@@ -220,7 +235,7 @@ compile endif
 ; ---------------------------------------------------------------------------
 ; This command is automatically executed after an EPM_EDIT_CLIPBOARDCOPY
 ; message to free the buffer.
-defc processclipboardcopy
+defc ProcessClipboardCopy
    result = arg(1)
    if result then      -- If non-zero, free the buffer.
       call buffer( FREEBUF, itoa( substr( atol(result), 3, 2), 10))  -- pass just the selector
@@ -233,12 +248,12 @@ defc CopyFilename2Clip
 
 ; ---------------------------------------------------------------------------
 ; Copy marked text into the PM clipboard, then delete the mark.
-defc cut
+defc Cut
    'copy2clip'
    if not RC then
-      getmark firstline,lastline,firstcol,lastcol,markfileid
+      getmark firstline, lastline, firstcol, lastcol, markfileid
       markfileid.line = firstline
-      if leftstr(marktype(), 1)<>'L' then
+      if leftstr( marktype(), 1) <> 'L' then
          markfileid.col = firstcol
       endif
       call NextCmdAltersText()
@@ -247,7 +262,7 @@ defc cut
 
 ; ---------------------------------------------------------------------------
 ; Retrieve text from PM clipboard to edit window
-defc paste
+defc Paste
    arg1 = upcase( arg(1))
    if .readonly then
       sayerror READ_ONLY__MSG
@@ -292,7 +307,7 @@ defc paste
 ; ---------------------------------------------------------------------------
 ; This command is automatically executed after an EPM_EDIT_CLIPBOARDPASTE
 ; message to free the buffer.
-defc processclipboardpaste
+defc ProcessClipboardPaste
    universal cua_marking_switch
    parse arg result mark .
    if not result then
@@ -380,10 +395,15 @@ compile if REFLOW_AFTER_PASTE
                unmark
                cur_line                      -- Go to first pasted line
                do while textline(.line) = '' -- Skip blank lines
-                  if .line = .last then stopit = 1; leave; endif
+                  if .line = .last then
+                     stopit = 1
+                     leave
+                  endif
                   down
                enddo
-               if stopit then leave; endif   -- If no non-blank, nothing to do.
+               if stopit then                -- If no non-blank, nothing to do.
+                  leave
+               endif
                mark_line
                cur_line = .line
                call pfind_blank_line()
@@ -411,11 +431,14 @@ compile if REFLOW_AFTER_PASTE
             enddo
 
             class = 13  -- BOOKMARK_CLASS
-            col = start_col; line = start_line; offst = 0
+            col = start_col
+            line = start_line
+            offst = 0
             attribute_action 1, class, offst, col, line  -- 1 = FIND NEXT ATTR
             if class = 13 then
                query_attribute class, val, IsPush, offst, col, line
-               line; .col = col
+               line
+               .col = col
                attribute_action 16, class, offst, col, line -- 16 = Delete attribute
             endif
             call prestore_mark(savemark)                     -- Restore the user's mark
@@ -579,13 +602,20 @@ defproc GetBuffCommon( bufhndl, errormsg)
       mark_line                         -- complete line mark
    endif
 
+   call NextCmdAltersText()
    activatefile activefid               -- activate destination file
    rc = 0                               -- clear return code before copy
    if arg(3) = 'O' then
       call pcommon_adjust_overlay( 'O')   -- copy mark
    else
-      if split_end then split; endif
-      if split_start then split; '+1'; begin_line; endif
+      if split_end then
+         split
+      endif
+      if split_start then
+         split
+         '+1'
+         begin_line
+      endif
       call pcopy_mark()                 -- copy mark
    endif
    if rc then                           -- Test for memory too full for copy_mark.
