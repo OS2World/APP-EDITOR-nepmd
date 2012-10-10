@@ -31,10 +31,6 @@
 ;    Options -> Marking -> [ ] Advanced marking
 ;
 ; The key definitions in this file redefine some definitions of STDKEYS.E.
-;
-; Note: The text of the menu items is not changed automatically.
-; NEWMENU.E is prepared to respect the defs in this file, but not any
-; other changes. To achieve that, NEWMENU.E has to be edited.
 
 defc CuaKeys
 
