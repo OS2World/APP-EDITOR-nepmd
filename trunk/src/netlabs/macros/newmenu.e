@@ -504,13 +504,13 @@ defproc add_file_menu(menuname)
                                 FILE_BARP__MSG,
                                 0, mpfrom2short(HP_FILE, 0)  -- MIS must be 0 for submenu
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'N~ew',                                                         -- New
+   buildmenuitem menuname, mid, i, 'N~ew'MenuAccelString( 'xcom e /n'),                            -- New
                                    'xcom e /n' ||
                                    \1'Create a new, empty file in this window',
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Open...'MenuAccelString( 'EditFileDlg')/*\9CTRL_KEY__MSG'+O'*/,   -- Open...
-                                   'EditFileDlg'/*'OpenDlg EDIT'*/ ||
+   buildmenuitem menuname, mid, i, '~Open...'MenuAccelString( 'EditFileDlg'),                      -- Open...
+                                   'EditFileDlg' ||
                                    ADD_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_EDIT, 0)
    i = i + 1;
@@ -518,12 +518,12 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'New ~window'\9CTRL_KEY__MSG'+N',                               -- Open new
-                                   "Open ''" ||
+   buildmenuitem menuname, mid, i, 'New ~window'MenuAccelString( 'Open'),                          -- New window
+                                   'Open' ||
                                    OPEN_NEW_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_OPEN_NEW, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open ~bin...',                                                 -- Open bin...
+   buildmenuitem menuname, mid, i, 'Open ~bin...'MenuAccelString( 'OpenBinDlg'),                   -- Open bin...
                                    'OpenBinDlg' ||
                                    \1'Select a binary file to edit in a new window',
                                    MIS_TEXT, 0
@@ -537,12 +537,12 @@ defproc add_file_menu(menuname)
                                    \1'Edit previously loaded files',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Save as last ~ring',                                                 -- Save as last ring
+   buildmenuitem menuname, mid, i, 'Save as last ~ring'MenuAccelString( 'SaveRing'),                     -- Save as last ring
                                    'SaveRing' ||
                                    \1'Save current file list as last edit ring',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Load last ring',                                                    -- Load last ring
+   buildmenuitem menuname, mid, i, '~Load last ring'MenuAccelString( 'RestoreRing'),                     -- Load last ring
                                    'RestoreRing' ||
                                    \1'Restore last saved edit ring',
                                    MIS_TEXT, 0
@@ -551,13 +551,13 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Save ~group...',                                                     -- Save group
-                                   'Groups SAVEGROUP' ||
+   buildmenuitem menuname, mid, i, 'Save ~group...'MenuAccelString( 'Groups savegroup'),                 -- Save group
+                                   'Groups savegroup' ||
                                    \1'Save current file list as group',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'L~oad group...',                                                     -- Load group
-                                   'Groups LOADGROUP' ||
+   buildmenuitem menuname, mid, i, 'L~oad group...'MenuAccelString( 'Groups loadgroup'),                 -- Load group
+                                   'Groups loadgroup' ||
                                    \1'Restore a previously saved group',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -565,18 +565,18 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'List ~edit history...'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F9',     -- List edit history...
-                                   'History EDIT' ||
+   buildmenuitem menuname, mid, i, 'List ~edit history...'MenuAccelString( 'History edit'),              -- List edit history...
+                                   'History edit' ||
                                    \1'Open a list box with previous edit cmds',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'List ~loaded files...'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F10',    -- List loaded files...
-                                   'History LOAD' ||
+   buildmenuitem menuname, mid, i, 'List ~loaded files...'MenuAccelString( 'History load'),              -- List loaded files...
+                                   'History load' ||
                                    \1'Open a list box with previous loaded files',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'List ~saved files...'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F11',     -- List saved files...
-                                   'History SAVE' ||
+   buildmenuitem menuname, mid, i, 'List ~saved files...'MenuAccelString( 'History save'),               -- List saved files...
+                                   'History save' ||
                                    \1'Open a list box with previous saved files',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
  if WpsStarted then
@@ -586,7 +586,7 @@ defproc add_file_menu(menuname)
                                    \1'Open WPS folder where the current file is located',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_openfolder_defaultview', i);
-   buildmenuitem menuname, mid, i, 'Default ~view',                                                      -- Default view
+   buildmenuitem menuname, mid, i, 'Default ~view'MenuAccelString( 'OpenFolder OPEN=DEFAULT'),           -- Default view
                                    'OpenFolder OPEN=DEFAULT' ||
                                    \1,
                                    MIS_TEXT, 0
@@ -629,17 +629,17 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open at c~ursor'\9''ALT_KEY__MSG'+1',                          -- Open at cursor
-                                   'alt_1' ||
+   buildmenuitem menuname, mid, i, 'Open at c~ursor'MenuAccelString( 'alt_1'),                     -- Open at cursor
+                                   'Alt_1' ||
                                    \1'Load file or URL under cursor',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_importfile', i);
-   buildmenuitem menuname, mid, i, '~Import file...',                                              -- Import file...
-                                   'OpenDlg GET' ||
+   buildmenuitem menuname, mid, i, '~Import file...'MenuAccelString( 'OpenDlg get'),               -- Import file...
+                                   'OpenDlg get' ||
                                    GET_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_GET, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Reload',                                                      -- Reload
+   buildmenuitem menuname, mid, i, '~Reload'MenuAccelString( 'Revert'),                            -- Reload
                                    'Revert' ||
                                    \1'Reload file from disk, ask if modified',
                                    MIS_TEXT, 0
@@ -719,12 +719,12 @@ defproc add_file_menu(menuname)
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    endif  -- nodismiss > 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Re~name...'\9'F7',                                             -- Rename...
+   buildmenuitem menuname, mid, i, 'Re~name...'MenuAccelString( 'Rename'),                         -- Rename...
                                    'Rename' ||
                                    RENAME_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_NAME, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Cop~y filename',                                               -- Copy filename
+   buildmenuitem menuname, mid, i, 'Cop~y filename'MenuAccelString( 'CopyFilename2Clip'),          -- Copy filename
                                    'CopyFilename2Clip' ||
                                    \1'Copy current filename to clipboard',
                                    MIS_TEXT, 0
@@ -733,37 +733,22 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_save', i);
-   if GetKeyDef() = '-none-' then
-      KeyString = \9'F2'
-   else
-      KeyString = \9''CTRL_KEY__MSG'+S | F2'
-   endif
-   buildmenuitem menuname, mid, i, SAVE_MENU__MSG''KeyString,                                      -- Save
+   buildmenuitem menuname, mid, i, SAVE_MENU__MSG''MenuAccelString( 'Save'),                       -- Save
                                    'Save' ||
                                    SAVE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_SAVE, 0)
    i = i + 1;
-   if GetKeyDef() = '-none-' then
-      KeyString = \9''ALT_KEY__MSG'+F2'
-   else
-      KeyString = \9''CTRL_KEY__MSG'+'ALT_KEY__MSG'+S'
-   endif
-   buildmenuitem menuname, mid, i, SAVEAS_MENU__MSG''KeyString,                                    -- Save as...
+   buildmenuitem menuname, mid, i, SAVEAS_MENU__MSG''MenuAccelString( 'Saveas_Dlg'),               -- Save as...
                                    'Saveas_Dlg' ||
                                    SAVEAS_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_SAVEAS, 0)
    i = i + 1; call SetAVar( 'mid_saveandquit', i);
-   buildmenuitem menuname, mid, i, 'Sa~ve and close file'\9'F4',                                   -- Save and close file
-                                   'file' ||
+   buildmenuitem menuname, mid, i, 'Sa~ve and close file'MenuAccelString( 'File'),                 -- Save and close file
+                                   'File' ||
                                    \1'Save this file, then close it',
                                    MIS_TEXT, mpfrom2short(HP_FILE_FILE, 0)
    i = i + 1;
-   if GetKeyDef() = '-none-' then
-      KeyString = ''
-   else
-      KeyString = \9''CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+S'
-   endif
-   buildmenuitem menuname, mid, i, 'Save a~ll'KeyString,                                           -- Save all
+   buildmenuitem menuname, mid, i, 'Save a~ll'MenuAccelString( 'SaveAll'),                         -- Save all
                                    'SaveAll' ||
                                    \1'Save all files in the edit ring',
                                    MIS_TEXT, 0
@@ -772,7 +757,7 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, PRT_FILE_MENU__MSG'...',                                        -- Print file...
+   buildmenuitem menuname, mid, i, PRT_FILE_MENU__MSG'...'MenuAccelString( 'PrintDlg'),            -- Print file...
                                    'PrintDlg' ||
                                    ENHPRT_FILE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_FILE_ENHPRINT, 0)
@@ -791,7 +776,7 @@ defproc add_file_menu(menuname)
    else
       KeyString = \9''CTRL_KEY__MSG'+F4'
    endif
-   buildmenuitem menuname, mid, i, '~Close file'KeyString,                                         -- Close file
+   buildmenuitem menuname, mid, i, '~Close file'MenuAccelString( 'Quit'),                          -- Close file
                                    'Quit' ||
                                    \1'Close this file',
                                    MIS_TEXT, mpfrom2short(HP_FILE_QUIT, 0)
@@ -800,7 +785,7 @@ defproc add_file_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Res~tart',                                                     -- Restart
+   buildmenuitem menuname, mid, i, 'Res~tart'MenuAccelString( 'Restart closeother'),               -- Restart
                                    'Restart closeother' ||
                                    \1'Close other EPM windows and restart current',
                                    MIS_TEXT, 0
@@ -831,27 +816,14 @@ compile endif
                                    MIS_TEXT, mpfrom2short(HP_EDIT_UNDOREDO, 0)
 
    i = i + 1; call SetAVar( 'mid_undolast', i);
-   if GetKeyDef() = '-none-' then
-      KeyString = \9''SHIFT_KEY__MSG'+F11'
-      Hint = 'Keep Shift pressed when cycling through undo/redo'
-   else
-      KeyString = \9''CTRL_KEY__MSG'+Z'
-      Hint = 'Keep Ctrl pressed when cycling through undo/redo'
-   endif
-   buildmenuitem menuname, mid, i, 'Undo las~t'KeyString,                                          -- Undo last
+   Hint = 'Keep modifier key pressed when cycling through undo/redo'
+   buildmenuitem menuname, mid, i, 'Undo las~t'MenuAccelString( 'Undo1'),                          -- Undo last
                                    'Undo1' ||
                                    \1''Hint,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_UNDOREDO, 0)
 
    i = i + 1; call SetAVar( 'mid_redonext', i);
-   if GetKeyDef() = '-none-' then
-      KeyString = \9''SHIFT_KEY__MSG'+F12'
-      Hint = 'Keep Shift pressed when cycling through undo/redo'
-   else
-      KeyString = \9''CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+Z | 'CTRL_KEY__MSG'+Y'
-      Hint = 'Keep Ctrl pressed when cycling through undo/redo'
-   endif
-   buildmenuitem menuname, mid, i, '~Redo next'KeyString,                                          -- Redo next
+   buildmenuitem menuname, mid, i, '~Redo next'MenuAccelString( 'Redo1'),                          -- Redo next
                                    'Redo1' ||
                                    \1''Hint,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_UNDOREDO, 0)
@@ -864,12 +836,12 @@ compile endif
 */
 
    i = i + 1; call SetAVar( 'mid_recovermarkdelete', i);
-   buildmenuitem menuname, mid, i, RECOVER_MARK_MENU__MSG,                                         -- Recover mark delete
+   buildmenuitem menuname, mid, i, RECOVER_MARK_MENU__MSG''MenuAccelString( 'GetDMBuff'),          -- Recover mark delete
                                    'GetDMBuff' ||
                                    RECOVER_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_RECOVER, 0)
    i = i + 1; call SetAVar( 'mid_discardchanges', i);
-   buildmenuitem menuname, mid, i, '~Discard changes',                                              -- Discard changes
+   buildmenuitem menuname, mid, i, '~Discard changes'MenuAccelString( 'DiscardChanges'),           -- Discard changes
                                    'DiscardChanges' ||
                                    \1'Reset modified state',
                                    MIS_TEXT, 0
@@ -878,7 +850,7 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Dupli~cate line'\9CTRL_KEY__MSG'+K',                            -- Duplicate line
+   buildmenuitem menuname, mid, i, 'Dupli~cate line'MenuAccelString( 'DuplicateLine'),             -- Duplicate line
                                    'DuplicateLine' ||
                                    \1'Duplicate current line (insert below)',
                                    MIS_TEXT, 0
@@ -887,12 +859,12 @@ compile endif
                                    \1'Insert text',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~New line after'\9ALT_KEY__MSG'+N',                                  -- New line after
+   buildmenuitem menuname, mid, i, '~New line after'MenuAccelString( 'NewLineAfter'),                    -- New line after
                                    'NewLineAfter' ||
                                    \1'Insert empty line after current',
                                    MIS_TEXT, nodismiss
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'New ~line before'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+N',                -- New line before
+   buildmenuitem menuname, mid, i, 'New ~line before'MenuAccelString( 'NewLineBefore'),                  -- New line before
                                    'NewLineBefore' ||
                                    \1'Insert empty line before current',
                                    MIS_TEXT, nodismiss
@@ -901,12 +873,12 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Char from above'\9ALT_KEY__MSG'+G',                                 -- Char from above
+   buildmenuitem menuname, mid, i, '~Char from above'MenuAccelString( 'InsertCharAbove'),                -- Char from above
                                    'InsertCharAbove' ||
                                    \1'Copy char above to cursor position',
                                    MIS_TEXT, nodismiss
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Char from ~below'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+G',                -- Char from below
+   buildmenuitem menuname, mid, i, 'Char from ~below'MenuAccelString( 'InsertCharBelow'),                -- Char from below
                                    'InsertCharBelow' ||
                                    \1'Copy char below to cursor position',
                                    MIS_TEXT, nodismiss
@@ -915,12 +887,12 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Filename',                                                          -- Filename
+   buildmenuitem menuname, mid, i, '~Filename'MenuAccelString( 'TypeFilename'),                          -- Filename
                                    'TypeFilename' ||
                                    \1'Insert current filename at cursor position',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Date Time (ISO)',                                                   -- Date Time (ISO)
+   buildmenuitem menuname, mid, i, '~Date Time (ISO)'MenuAccelString( 'TypeDateTime'),                   -- Date Time (ISO)
                                    'TypeDateTime' ||
                                    \1'Insert current date and time at cursor position',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -929,12 +901,12 @@ compile endif
                                    \1'Move current text',
                                    MIS_TEXT + MIS_SUBMENU, nodismiss
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Line ~up'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+'UP_KEY__MSG,              -- Line up
+   buildmenuitem menuname, mid, i, 'Line ~up'MenuAccelString( 'MoveLineUp'),                             -- Line up
                                    'MoveLineUp' ||
                                    \1'Move current line up',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Line ~down'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+'DOWN_KEY__MSG,          -- Line down
+   buildmenuitem menuname, mid, i, 'Line ~down'MenuAccelString( 'MoveLineDown'),                         -- Line down
                                    'MoveLineDown' ||
                                    \1'Move current line down',
                                    MIS_TEXT, 0
@@ -943,12 +915,12 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Char ~left'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+Left',                   -- Char left
+   buildmenuitem menuname, mid, i, 'Char ~left'MenuAccelString( 'MoveCharLeft'),                         -- Char left
                                    'MoveCharLeft' ||
                                    \1'Move current line left',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Char ~right'\9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+Right',                 -- Char right
+   buildmenuitem menuname, mid, i, 'Char ~right'MenuAccelString( 'MoveCharRight'),                       -- Char right
                                    'MoveCharRight' ||
                                    \1'Move current char right',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -957,19 +929,17 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'D~elete line'\9CTRL_KEY__MSG'+'BACKSPACE_KEY__MSG,             -- Delete line
+   buildmenuitem menuname, mid, i, 'D~elete line'MenuAccelString( 'DeleteLine'),                   -- Delete line
                                    'DeleteLine' ||
                                    \1'Delete current line',
                                    MIS_TEXT, 0
    i = i + 1;
-   KeyString = \9''CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+'DELETE_KEY__MSG
-   buildmenuitem menuname, mid, i, 'Delete rest of li~ne'KeyString,                                -- Delete rest of line
+   buildmenuitem menuname, mid, i, 'Delete rest of li~ne'MenuAccelString( 'DeleteUntilEndLine'),  -- Delete rest of line
                                    'DeleteUntilEndLine' ||
                                    \1'Delete from cursor until end of line',
                                    MIS_TEXT, 0
    i = i + 1;
-   KeyString = \9''CTRL_KEY__MSG'+'DELETE_KEY__MSG' | 'CTRL_KEY__MSG'+D'
-   buildmenuitem menuname, mid, i, 'Delete up to ne~xt word'KeyString,                             -- Delete up to next word
+   buildmenuitem menuname, mid, i, 'Delete up to ne~xt word'MenuAccelString( 'DeleteUntilNextWord'),  -- Delete up to next word
                                    'DeleteUntilNextWord' ||
                                    \1'Delete from cursor until begin of next word',
                                    MIS_TEXT, 0
@@ -1001,17 +971,17 @@ compile endif
                                    \1'',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, PROOF_MENU__MSG,                                                      -- Proof
+   buildmenuitem menuname, mid, i, PROOF_MENU__MSG''MenuAccelString( 'Proof'),                           -- Proof
                                    'Proof' ||
                                    PROOF_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_PROOF, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, PROOF_WORD_MENU__MSG,                                                 -- Proof word
+   buildmenuitem menuname, mid, i, PROOF_WORD_MENU__MSG''MenuAccelString( 'ProofWord'),                  -- Proof word
                                    'ProofWord' ||
                                    PROOF_WORD_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_PROOFW, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, SYNONYM_MENU__MSG,                                                    -- Synonym
+   buildmenuitem menuname, mid, i, SYNONYM_MENU__MSG''MenuAccelString( 'Syn'),                           -- Synonym
                                    'Syn' ||
                                    SYNONYM_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_SYN, 0)
@@ -1020,12 +990,12 @@ compile endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_dict', i); call SetAVar( 'mtxt_dict', 'Select ~dictionary: []')
-   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_dict'),                                                -- Select dictionary: []...
+   buildmenuitem menuname, mid, i, GetAVar( 'mtxt_dict')''MenuAccelString( 'SwitchDicts'),               -- Select dictionary: []...
                                    'Switch_Dicts' ||
                                    \1'Switch to next defined dictionary language',
                                    MIS_TEXT, nodismiss
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Configure dictionaries...',                                         -- Configure dictionaries...
+   buildmenuitem menuname, mid, i, '~Configure dictionaries...'MenuAccelString( 'DictLang'),             -- Configure dictionaries...
                                    'DictLang' ||
                                    \1'Select a set of Netscape 4.6.1 dictionaries',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -1043,12 +1013,12 @@ compile endif
                                    \1'Record and playback keys',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_startrecording', i);
-   buildmenuitem menuname, mid, i, 'Start/end ~recording'\9 || CTRL_KEY__MSG'+R',                        -- Start recording
+   buildmenuitem menuname, mid, i, 'Start/end ~recording'MenuAccelString( 'RecordKeys'),                 -- Start recording
                                    'RecordKeys' ||
                                    \1'',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_playback', i);
-   buildmenuitem menuname, mid, i, '~Playback'\9 || CTRL_KEY__MSG'+T',                                   -- Playback
+   buildmenuitem menuname, mid, i, '~Playback'MenuAccelString( 'PlaybackKeys'),                          -- Playback
                                    'PlaybackKeys' ||
                                    \1'',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -1079,27 +1049,27 @@ defproc add_mark_menu(menuname)
                                    \1'Mark text at cursor position in different ways',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_markchars', i);
-   buildmenuitem menuname, mid, i, 'Mark ~chars'\9 || ALT_KEY__MSG'+Z',                                  -- Mark chars
+   buildmenuitem menuname, mid, i, 'Mark ~chars'MenuAccelString( 'MarkChar'),                            -- Mark chars
                                    'MarkChar' ||
                                    \1'Create a char mark between two cursor positions',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_markblock', i);
-   buildmenuitem menuname, mid, i, 'Mark ~block'\9 || ALT_KEY__MSG'+B',                                  -- Mark block
+   buildmenuitem menuname, mid, i, 'Mark ~block'MenuAccelString( 'MarkBlock'),                           -- Mark block
                                    'MarkBlock' ||
                                    \1'Create a block mark between two cursor positions',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_marklines', i);
-   buildmenuitem menuname, mid, i, 'Mark ~lines'\9 || ALT_KEY__MSG'+L',                                  -- Mark lines
+   buildmenuitem menuname, mid, i, 'Mark ~lines'MenuAccelString( 'MarkLine'),                            -- Mark lines
                                    'MarkLine' ||
                                    \1'Create a line mark between two cursor positions',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_markword', i);
-   buildmenuitem menuname, mid, i, 'Mark ~word'\9 || ALT_KEY__MSG'+W',                                   -- Mark word
+   buildmenuitem menuname, mid, i, 'Mark ~word'MenuAccelString( 'MarkWord'),                             -- Mark word
                                    'MarkWord' ||
                                    \1'Mark word under cursor',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_marktoken', i);
-   buildmenuitem menuname, mid, i, 'Mark ~identifier'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+W',            -- Mark identifier
+   buildmenuitem menuname, mid, i, 'Mark ~identifier'MenuAccelString( 'MarkToken'),                      -- Mark identifier
                                    'MarkToken' ||
                                    \1'Mark identifier (C-style word) under cursor',
                                    MIS_TEXT, 0
@@ -1108,7 +1078,7 @@ defproc add_mark_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_marksentence', i);
-   buildmenuitem menuname, mid, i, 'Mark ~sentence'\9,                                                   -- Mark sentence
+   buildmenuitem menuname, mid, i, 'Mark ~sentence'MenuAccelString( 'MarkSentence'),                     -- Mark sentence
                                    'MarkSentence' ||
                                    \1'Mark sentence around mouse pointer',
                                    MIS_TEXT, 0
@@ -1132,68 +1102,89 @@ defproc add_mark_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_copy', i);
-   if GetKeyDef() = '-none-' then
-      KeyString = \9''CTRL_KEY__MSG'+'INSERT_KEY__MSG
-   else
-      KeyString = \9''CTRL_KEY__MSG'+'INSERT_KEY__MSG' | 'CTRL_KEY__MSG'+C'
-   endif
-   buildmenuitem menuname, mid, i, '~Copy'KeyString,                                               -- Copy
+   buildmenuitem menuname, mid, i, '~Copy'MenuAccelString( 'Copy2Clip'),                           -- Copy
                                    'Copy2Clip' ||
                                    CLIP_COPY_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_COPY, 0)
    i = i + 1; call SetAVar( 'mid_cut', i);
-   if GetKeyDef() = '-none-' then
-      KeyString = \9''SHIFT_KEY__MSG'+'DELETE_KEY__MSG
-   else
-      KeyString = \9''SHIFT_KEY__MSG'+'DELETE_KEY__MSG' | 'CTRL_KEY__MSG'+X'
-   endif
-   buildmenuitem menuname, mid, i, 'Cu~t'KeyString,                                                -- Cut
+   buildmenuitem menuname, mid, i, 'Cu~t'MenuAccelString( 'Cut'),                                  -- Cut
                                    'Cut' ||
                                    CUT_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_CUT, 0)
-   i = i + 1; call SetAVar( 'mid_paste', i);
-   if GetKeyDef() = '-none-' then
-      KeyString = \9''SHIFT_KEY__MSG'+'INSERT_KEY__MSG
+
+   -- Keep in sync with DefaultPast and AlternatePaste
+   KeyPath = '\NEPMD\User\Mark\DefaultPaste'
+   next = substr( upcase( NepmdQueryConfigValue( nepmd_hini, KeyPath)), 1, 1)
+   if next = 'L' then
+      style    = 'L'
+      altstyle = 'C'
+   elseif next = 'B' then
+      style    = 'B'
+      altstyle = 'C'
    else
-      KeyString = \9''SHIFT_KEY__MSG'+'INSERT_KEY__MSG' | 'CTRL_KEY__MSG'+V'
+      style    = 'C'
+      altstyle = 'L'
    endif
-   buildmenuitem menuname, mid, i, '~Paste'KeyString,                                              -- Paste
+   if style = 'C' then
+      PasteCMenuAccelString = MenuAccelString( 'DefaultPaste')
+   elseif altstyle = 'C' then
+      PasteCMenuAccelString = MenuAccelString( 'AlternatePaste')
+   else
+      PasteCMenuAccelString = ''
+   endif
+   if style = 'L' then
+      PasteLMenuAccelString = MenuAccelString( 'DefaultPaste')
+   elseif altstyle = 'L' then
+      PasteLMenuAccelString = MenuAccelString( 'AlternatePaste')
+   else
+      PasteLMenuAccelString = ''
+   endif
+   if style = 'B' then
+      PasteBMenuAccelString = MenuAccelString( 'DefaultPaste')
+   elseif altstyle = 'B' then
+      PasteBMenuAccelString = MenuAccelString( 'AlternatePaste')
+   else
+      PasteBMenuAccelString = ''
+   endif
+
+   i = i + 1; call SetAVar( 'mid_paste', i);
+   buildmenuitem menuname, mid, i, '~Paste'PasteCMenuAccelString,                                  -- Paste
                                    'Paste C' ||
                                    PASTE_C_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_PASTEC, 0)
    i = i + 1; call SetAVar( 'mid_pastelines', i);
-   buildmenuitem menuname, mid, i, PASTE_L_MENU__MSG/*||PASTE_L_KEY*/,                             -- Paste lines
+   buildmenuitem menuname, mid, i, PASTE_L_MENU__MSG''PasteLMenuAccelString,                       -- Paste lines
                                    'Paste' ||
                                    PASTE_L_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_PASTE, 0)
    i = i + 1; call SetAVar( 'mid_pasteblock', i);
-   buildmenuitem menuname, mid, i, PASTE_B_MENU__MSG/*||PASTE_B_KEY*/,                             -- Paste block
+   buildmenuitem menuname, mid, i, PASTE_B_MENU__MSG''PasteBMenuAccelString,                       -- Paste block
                                    'Paste B' ||
                                    PASTE_B_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_PASTEB, 0)
-;   if not CUA_marking_switch then  -- better add it everytime, to make toggling easier (nodismiss menues work then)
+;   if not CUA_marking_switch then  -- better add it everytime, to make toggling easier (nodismiss menus work then)
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_copymark', i);
-   buildmenuitem menuname, mid, i, COPY_MARK_MENU__MSG,                                            -- Copy mark
-                                   'DupMark C' ||
+   buildmenuitem menuname, mid, i, COPY_MARK_MENU__MSG''MenuAccelString( 'CopyMark'),              -- Copy mark
+                                   'CopyMark' ||
                                    COPY_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_COPYMARK, 0)
    i = i + 1; call SetAVar( 'mid_movemark', i);
-   buildmenuitem menuname, mid, i, MOVE_MARK_MENU__MSG,                                            -- Move mark
-                                   'DupMark M' ||
+   buildmenuitem menuname, mid, i, MOVE_MARK_MENU__MSG''MenuAccelString( 'MoveMark'),              -- Move mark
+                                   'MoveMark' ||
                                    MOVE_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_MOVE, 0)
    i = i + 1; call SetAVar( 'mid_overlaymark', i);
-   buildmenuitem menuname, mid, i, OVERLAY_MARK_MENU__MSG,                                         -- Overlay mark
-                                   'DupMark O' ||
+   buildmenuitem menuname, mid, i, OVERLAY_MARK_MENU__MSG''MenuAccelString( 'OverlayMark'),        -- Overlay mark
+                                   'OverLayMark' ||
                                    OVERLAY_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_OVERLAY, 0)
    i = i + 1; call SetAVar( 'mid_adjustmark', i);
-   buildmenuitem menuname, mid, i, ADJUST_MARK_MENU__MSG,                                          -- Adjust mark
-                                   'DupMark A' ||
+   buildmenuitem menuname, mid, i, ADJUST_MARK_MENU__MSG''MenuAccelString( 'AdjustMark'),          -- Adjust mark
+                                   'AdjustMark' ||
                                    ADJUST_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_ADJUST, 0)
 ;   endif
@@ -1203,27 +1194,25 @@ defproc add_mark_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, SELECT_ALL_MENU__MSG\9 || CTRL_KEY__MSG'+/ | 'CTRL_KEY__MSG'+A',  -- Select all
+   buildmenuitem menuname, mid, i, SELECT_ALL_MENU__MSG''MenuAccelString( 'Select_All'),           -- Select all
                                    'Select_All' ||
                                    SELECT_ALL_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_SELECTALL, 0)
    i = i + 1; call SetAVar( 'mid_unmark', i);
-   buildmenuitem menuname, mid, i, UNMARK_MARK_MENU__MSG\9 || ALT_KEY__MSG'+U | 'CTRL_KEY__MSG'+\ | 'CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+A',  -- Unmark
-                                   'DupMark U' ||
+   buildmenuitem menuname, mid, i, UNMARK_MARK_MENU__MSG''MenuAccelString( 'UnMark'),              -- Unmark
+                                   'UnMark' ||
                                    UNMARK_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_UNMARK, 0)
    i = i + 1; call SetAVar( 'mid_deletemark', i);
-   buildmenuitem menuname, mid, i, DELETE_MARK_MENU__MSG,                                          -- Delete mark
-                                   'DupMark D' ||
+   buildmenuitem menuname, mid, i, DELETE_MARK_MENU__MSG''MenuAccelString( 'DeleteMark'),          -- Delete mark
+                                   'DeleteMark' ||
                                    DELETE_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_DELETE, 0)
    i = i + 1; call SetAVar( 'mid_fillmark', i);
-   buildmenuitem menuname, mid, i, '~Fill mark...'\9 || ALT_KEY__MSG'+F',                          -- Fill mark...
+   buildmenuitem menuname, mid, i, '~Fill mark...'MenuAccelString( 'FillMark'),                    -- Fill mark...
                                    'FillMark' ||
                                    \1'Fill mark with a char',
                                    MIS_TEXT, 0
-   --call update_paste_menu_text()  -- handled by menuinit
-   --call update_mark_menu_text()   -- handled by menuinit
    return
 
 
@@ -1243,12 +1232,12 @@ defproc add_format_menu(menuname)
                                    \1'Reformat line: add line breaks',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Split line'\9 || ALT_KEY__MSG'+S',                                  -- Split line
+   buildmenuitem menuname, mid, i, '~Split line'MenuAccelString( 'SplitLines'),                          -- Split line
                                    'SplitLines' ||
                                    \1'Split current line at cursor, keep indent',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Join line'\9 || ALT_KEY__MSG'+J',                                   -- Join line
+   buildmenuitem menuname, mid, i, '~Join line'MenuAccelString( 'JoinLines'),                            -- Join line
                                    'JoinLines' ||
                                    \1'Join current line with next line, respect right margin',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -1257,13 +1246,13 @@ defproc add_format_menu(menuname)
                                    \1'Reformat all: add line breaks',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'To reflow margins, ~keep indent',
-                                   'Wrap KEEPINDENT' ||                                                  -- To reflow margins, keep indent
+   buildmenuitem menuname, mid, i, 'To reflow margins, ~keep indent'MenuAccelString( 'Wrap keepindent'), -- To reflow margins, keep indent
+                                   'Wrap keepindent' ||
                                    \1'Wrap lines at reflow margins, keep indent of line above',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'To reflow margins, s~plit',
-                                   'Wrap SPLIT' ||                                                       -- To reflow margins, split
+   buildmenuitem menuname, mid, i, 'To reflow margins, s~plit'MenuAccelString( 'Wrap split'),            -- To reflow margins, split
+                                   'Wrap split' ||
                                    \1'Wrap lines at reflow margins, split only',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
@@ -1276,12 +1265,12 @@ defproc add_format_menu(menuname)
                                    \1'Reformat mark',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_reflowmarktoreflowmargins', i);
-   buildmenuitem menuname, mid, i, 'To reflow margins'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+P',           -- To reflow margins
+   buildmenuitem menuname, mid, i, 'To reflow margins'MenuAccelString( 'ReflowMark2ReflowMargins'),      -- To reflow margins
                                    'ReflowMark2Reflowmargins' ||
                                    \1'Reformat mark to reflow margins',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_reflowblock', i);
-   buildmenuitem menuname, mid, i, '~Block'\9 || ALT_KEY__MSG'+R',                                       -- Block
+   buildmenuitem menuname, mid, i, '~Block'MenuAccelString( 'ReflowBlock'),                              -- Block
                                    'ReflowBlock' ||
                                    \1'Mark lines or block first, then mark new block size',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -1291,8 +1280,8 @@ defproc add_format_menu(menuname)
                                    \1'Reformat paragraph',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_reflowpartoreflowmargins', i);
-   buildmenuitem menuname, mid, i, 'To reflow margins'\9 || ALT_KEY__MSG'+P',                            -- To reflow margins
-                                   'Flow' reflowmargins ||
+   buildmenuitem menuname, mid, i, 'To reflow margins'MenuAccelString( 'ReflowPar2ReflowMargins'),       -- To reflow margins
+                                   'ReflowPar2ReflowMargins' ||
                                    \1'Reformat lines from cursor to par end',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1; call SetAVar( 'mid_reflowall', i);
@@ -1301,17 +1290,17 @@ defproc add_format_menu(menuname)
                                    \1'Reformat all',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'To ~reflow margins'\9 || CTRL_KEY__MSG'+P',                          -- To reflow margins
+   buildmenuitem menuname, mid, i, 'To ~reflow margins'MenuAccelString( 'ReflowAll2ReflowMargins'),      -- To reflow margins
                                    'ReflowAll2Reflowmargins' ||
                                    \1'Reformat all to reflow margins',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Mai~l',                                                              -- Mail
+   buildmenuitem menuname, mid, i, 'Mai~l'MenuAccelString( 'ReflowMail'),                                -- Mail
                                    'ReflowMail' ||
                                    \1'Reformat current email',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Word pro~cessor',                                                    -- Word processor
+   buildmenuitem menuname, mid, i, 'Word pro~cessor'MenuAccelString( 'WordProc'),                        -- Word processor
                                    'WordProc' ||
                                    \1'Rejoin lines to prepare for export to a word processor',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -1386,22 +1375,22 @@ defproc add_format_menu(menuname)
                                    \1'',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Expand tabs to spaces...',                                          -- Expand tabs to spaces...
+   buildmenuitem menuname, mid, i, '~Expand tabs to spaces...'MenuAccelString( 'Tabs2Spaces'),           -- Expand tabs to spaces...
                                    'Tabs2Spaces' ||
                                    \1'Tabwidth is selectable',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Compress spaces to tabs...',                                        -- Compress spaces to tabs...
+   buildmenuitem menuname, mid, i, '~Compress spaces to tabs...'MenuAccelString( 'Spaces2Tabs'),         -- Compress spaces to tabs...
                                    'Spaces2Tabs' ||
                                    \1'Tabwidth is selectable; use this instead of "Save /t"',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Remove ~HTML',                                                       -- Remove HTML
+   buildmenuitem menuname, mid, i, 'Remove ~HTML'MenuAccelString( 'UnHtml'),                             -- Remove HTML
                                    'UnHtml' ||
                                    \1'Remove HTML tags from current file',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Singlespace',                                                       -- Singlespace
+   buildmenuitem menuname, mid, i, '~Singlespace'MenuAccelString( 'SingleSpace'),                        -- Singlespace
                                    'SingleSpace' ||
                                    \1'Remove duplicated line ends',
                                    MIS_TEXT, 0
@@ -1410,23 +1399,23 @@ defproc add_format_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Validate HTML...',                                                  -- Validate HTML
+   buildmenuitem menuname, mid, i, '~Validate HTML...'MenuAccelString( 'ValidateHtml'),                  -- Validate HTML
                                    'ValidateHtml' ||
                                    \1'Check syntax of a HTML file',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'V~alidate CSS...',                                                   -- Validate CSS
+   buildmenuitem menuname, mid, i, 'V~alidate CSS...'MenuAccelString( 'ValidateCss'),                    -- Validate CSS
                                    'ValidateCss' ||
                                    \1'Check syntax of a CSS file',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'S~ort',                                                        -- Sort
+   buildmenuitem menuname, mid, i, 'S~ort'MenuAccelString( 'Sort'),                                -- Sort
                                    'Sort' ||
                                    \1'Sort marked lines (undo not possible)',
                                    MIS_TEXT, 0
 if recodefound then
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Reco~de...',                                                   -- Recode...
+   buildmenuitem menuname, mid, i, 'Reco~de...'MenuAccelString( 'Recode'),                         -- Recode...
                                    'Recode' ||
                                    \1'Change codepage of current file and reload it, keep filedate',
                                    MIS_TEXT, 0
@@ -1440,32 +1429,17 @@ endif
                                    \1'Change case of text',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   if GetKeyDef() = '-none-' then
-      KeyString = \9CTRL_KEY__MSG'+F1'
-   else
-      KeyString = \9SHIFT_KEY__MSG'+F1'
-   endif
-   buildmenuitem menuname, mid, i, 'Word ~toggle'KeyString,                                              -- Word toggle
+   buildmenuitem menuname, mid, i, 'Word ~toggle'MenuAccelString( 'CaseWord'),                           -- Word toggle
                                    'CaseWord' ||
                                    \1'Toggle word through mixed, upper and lower cases',
                                    MIS_TEXT, 0
    i = i + 1;
-   if GetKeyDef() = '-none-' then
-      KeyString = \9CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F2'
-   else
-      KeyString = \9CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F1'
-   endif
-   buildmenuitem menuname, mid, i, 'Word ~uppercase'KeyString,                                           -- Word uppercase
+   buildmenuitem menuname, mid, i, 'Word ~uppercase'MenuAccelString( 'UppercaseWord'),                   -- Word uppercase
                                    'UppercaseWord' ||
                                    \1'Change word to uppercase',
                                    MIS_TEXT, 0
    i = i + 1;
-   if GetKeyDef() = '-none-' then
-      KeyString = \9CTRL_KEY__MSG'+F2'
-   else
-      KeyString = \9CTRL_KEY__MSG'+F1'
-   endif
-   buildmenuitem menuname, mid, i, 'Word ~lowercase'KeyString,                                           -- Word lowercase
+   buildmenuitem menuname, mid, i, 'Word ~lowercase'MenuAccelString( 'LowercaseWord'),                   -- Word lowercase
                                    'LowercaseWord' ||
                                    \1'Change word to uppercase',
                                    MIS_TEXT, 0
@@ -1474,22 +1448,12 @@ endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   if GetKeyDef() = '-none-' then
-      KeyString = \9CTRL_KEY__MSG'+F3'
-   else
-      KeyString = \9ALT_KEY__MSG'+'SHIFT_KEY__MSG'+F1'
-   endif
-   buildmenuitem menuname, mid, i, 'Mark u~ppercase'KeyString,                                           -- Mark uppercase
+   buildmenuitem menuname, mid, i, 'Mark u~ppercase'MenuAccelString( 'UppercaseMark'),                   -- Mark uppercase
                                    'UppercaseMark' ||
                                    \1'Change mark to uppercase',
                                    MIS_TEXT, 0
    i = i + 1;
-   if GetKeyDef() = '-none-' then
-      KeyString = \9CTRL_KEY__MSG'+F4'
-   else
-      KeyString = \9ALT_KEY__MSG'+F1'
-   endif
-   buildmenuitem menuname, mid, i, 'Mark l~owercase'KeyString,                                           -- Mark lowercase
+   buildmenuitem menuname, mid, i, 'Mark l~owercase'MenuAccelString( 'LowercaseMark'),                   -- Mark lowercase
                                    'LowercaseMark' ||
                                    \1'Change mark to lowercase',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -1498,13 +1462,13 @@ endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Comment'\9 || ALT_KEY__MSG'+K',                               -- Comment
-                                   'comment' ||
+   buildmenuitem menuname, mid, i, '~Comment'MenuAccelString( 'Comment'),                          -- Comment
+                                   'Comment' ||
                                    \1'Comment marked lines',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Uncomment'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+K',            -- Uncomment
-                                   'uncomment' ||
+   buildmenuitem menuname, mid, i, '~Uncomment'MenuAccelString( 'UnComment'),                      -- Uncomment
+                                   'UnComment' ||
                                    \1'Remove comment chars for marked lines',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -1512,23 +1476,23 @@ endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Indent lines/block'\9 || ALT_KEY__MSG'+I',                    -- Indent lines/block
-                                   'indentblock' ||
+   buildmenuitem menuname, mid, i, '~Indent lines/block'MenuAccelString( 'IndentBlock'),           -- Indent lines/block
+                                   'IndentBlock' ||
                                    \1'Indent marked lines or block starting at cursor 1 level',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'U~nindent lines/block'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+I',  -- Unindent lines/block
-                                   'indentblock U' ||
+   buildmenuitem menuname, mid, i, 'U~nindent lines/block'MenuAccelString( 'IndentBlock U'),       -- Unindent lines/block
+                                   'IndentBlock U' ||
                                    \1'Unindent marked lines or block starting at cursor 1 level',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Shift ~left'\9 || CTRL_KEY__MSG'+F7',                          -- Shift left
-                                   'key 1 c_f7' ||
+   buildmenuitem menuname, mid, i, 'Shift ~left'MenuAccelString( 'ShiftLeft'),                     -- Shift left
+                                   'ShiftLeft' ||
                                    \1'Shift marked text left 1 character',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Shift right'\9 || CTRL_KEY__MSG'+F8',                         -- Shift right
-                                   'key 1 c_f8' ||
+   buildmenuitem menuname, mid, i, '~Shift right'MenuAccelString( 'ShiftRight'),                   -- Shift right
+                                   'ShiftRight' ||
                                    \1'Shift marked text right 1 character',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -1541,27 +1505,22 @@ endif
                                    \1'Font and color attributes',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   if GetKeyDef() = '-none-' then
-      KeyString = \9''CTRL_KEY__MSG'+Y'
-   else
-      KeyString = ''
-   endif
-   buildmenuitem menuname, mid, i, 'St~yle dialog...'KeyString,                                          -- Style dialog...
-                                   'fontlist' ||
+   buildmenuitem menuname, mid, i, 'St~yle dialog...'MenuAccelString( 'FontList'),                       -- Style dialog...
+                                   'FontList' ||
                                    STYLE_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_STYLE, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Apply style...'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+Y',            -- Apply style...
+   buildmenuitem menuname, mid, i, '~Apply style...'MenuAccelString( 'linkexec stylebut apply_style S'), -- Apply style...
                                    'linkexec stylebut apply_style S' ||
                                    \1'Select font style to apply on mark or all',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Remove attributes around cursor',                                   -- Remove attributes around cursor
+   buildmenuitem menuname, mid, i, '~Remove attributes around cursor'MenuAccelString( 'linkexec stylebut remove_style S'),  -- Remove attributes around cursor
                                    'linkexec stylebut remove_style S' ||
                                    \1'Remove color and font attributes',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'R~emove all attributes',                                             -- Remove all attributes
+   buildmenuitem menuname, mid, i, 'R~emove all attributes'MenuAccelString( 'DelAttribs'),               -- Remove all attributes
                                    'DelAttribs' ||
                                    \1'Remove all attributes, even bookmarks, from current file',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
@@ -1579,12 +1538,7 @@ defproc add_search_menu(menuname)
                                 ''SEARCH_BARP__MSG,
                                 0, mpfrom2short(HP_SEARCH, 0)  -- MIS must be 0 for submenu
    i = i + 1;
-   if GetKeyDef() = '-none-' then
-      KeyString = \9''CTRL_KEY__MSG'+S'
-   else
-      KeyString = \9''CTRL_KEY__MSG'+F'
-   endif
-   buildmenuitem menuname, mid, i, '~Search dialog...'KeyString,                                   -- Search dialog...
+   buildmenuitem menuname, mid, i, '~Search dialog...'MenuAccelString( 'SearchDlg'),               -- Search dialog...
                                    'SearchDlg' ||
                                    SEARCH_MENUP__MSG' (ignores B and T options)',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_SEARCH, 0)
@@ -1592,26 +1546,28 @@ defproc add_search_menu(menuname)
    buildmenuitem menuname, mid, i, \0,                                                             --------------------
                                    '',
                                    MIS_SEPARATOR, 0
+   -- The standard keyset doesn't have keys to search backward. Therefore Ctrl+- was added.
+   -- For a CUA keyset simply the shifted variants were used.
+   -- Therefore the following Search and Change menu items depend on the keyset:
 if GetKeyDef() = '-none-' then
    -- stdkeys
    i = i + 1; call SetAVar( 'mid_findnext', i);
-   KeyString = \9''CTRL_KEY__MSG'+F'
-   buildmenuitem menuname, mid, i, 'Repeat ~find'\9 || CTRL_KEY__MSG'+F',                          -- Repeat find
+   buildmenuitem menuname, mid, i, 'Repeat ~find'MenuAccelString( 'RepeatFind'),                   -- Repeat find
                                    'RepeatFind' ||
                                    FIND_NEXT_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_FIND, 0)
    i = i + 1; call SetAVar( 'mid_changenext', i);
-   buildmenuitem menuname, mid, i, 'Repeat ~change'\9 || CTRL_KEY__MSG'+C',                        -- Repeat change
+   buildmenuitem menuname, mid, i, 'Repeat ~change'MenuAccelString( 'RepeatChange'),               -- Repeat change
                                    'RepeatChange' ||
                                    CHANGE_NEXT_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_CHANGE, 0)
    i = i + 1; call SetAVar( 'mid_globalfindnext', i);
-   buildmenuitem menuname, mid, i, '~Repeat find in all files'\9 || CTRL_KEY__MSG'+V',             -- Repeat find in all files
+   buildmenuitem menuname, mid, i, '~Repeat find in all files'MenuAccelString( 'RepeatFindAllFiles'),  -- Repeat find in all files
                                    'RepeatFindAllFiles' ||
                                    \1'Repeat previous Locate command for all files in the ring',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_globalchangenext', i);
-   buildmenuitem menuname, mid, i, 'Repeat c~hange in all files',                                  -- Repeat change in all files
+   buildmenuitem menuname, mid, i, 'Repeat c~hange in all files'MenuAccelString( 'RepeatChangeAllFiles'),  -- Repeat change in all files
                                    'RepeatChangeAllFiles' ||
                                    \1'Repeat previous Change command for all files in the ring',
                                    MIS_TEXT, 0
@@ -1620,7 +1576,7 @@ if GetKeyDef() = '-none-' then
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_searchbackwards', i);
-   buildmenuitem menuname, mid, i, 'Backwar~d'\9 || CTRL_KEY__MSG'+-',                             -- Backward
+   buildmenuitem menuname, mid, i, 'Backwar~d'MenuAccelString( 'ToggleSearchDirection'),           -- Backward
                                    'toggle_search_backward' ||
                                    \1'Toggle back/forward for next locate/change commands',
                                    MIS_TEXT, nodismiss
@@ -1628,22 +1584,22 @@ if GetKeyDef() = '-none-' then
 else
    -- cuakeys
    i = i + 1; call SetAVar( 'mid_findnext', i);
-   buildmenuitem menuname, mid, i, '~Find next'\9 ||'F3',                                          -- Find next
+   buildmenuitem menuname, mid, i, '~Find next'MenuAccelString( 'FindNext'),                       -- Find next
                                    'FindNext' ||
                                    \1'Repeat find, foreward',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_FIND, 0)
    i = i + 1; call SetAVar( 'mid_findprev', i);
-   buildmenuitem menuname, mid, i, 'Find ~previous'\9 ||SHIFT_KEY__MSG'+F3',                       -- Find previous
+   buildmenuitem menuname, mid, i, 'Find ~previous'MenuAccelString( 'FindPrev'),                   -- Find previous
                                    'FindPrev' ||
                                    \1'Repeat find, backward',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_FIND, 0)
    i = i + 1; call SetAVar( 'mid_changenext', i);
-   buildmenuitem menuname, mid, i, '~Change, then find next'\9 ||CTRL_KEY__MSG'+G',                -- Change, then find next
+   buildmenuitem menuname, mid, i, '~Change, then find next'MenuAccelString( 'ChangeFindNext'),    -- Change, then find next
                                    'ChangeFindNext' ||
                                    \1'Change, then repeat find, foreward',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_CHANGE, 0)
    i = i + 1; call SetAVar( 'mid_changeprev', i);
-   buildmenuitem menuname, mid, i, 'C~hange, then find previous'\9 ||CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+G',  -- Change, then find previous
+   buildmenuitem menuname, mid, i, 'C~hange, then find previous'MenuAccelString( 'ChangeFindPrev'),  -- Change, then find previous
                                    'ChangeFindPrev' ||
                                    \1'Change, then repeat find, backward',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_CHANGE, 0)
@@ -1652,22 +1608,22 @@ else
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_globalfindnext', i);
-   buildmenuitem menuname, mid, i, 'Find next in a~ll files'\9 || ALT_KEY__MSG'+F3',               -- Find next in all files
+   buildmenuitem menuname, mid, i, 'Find next in a~ll files'MenuAccelString( 'FindNextAllFiles'),  -- Find next in all files
                                    'FindNextAllFiles' ||
                                    \1'Repeat find for all files in the ring, foreward',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_globalfindprev', i);
-   buildmenuitem menuname, mid, i, 'Find previous in all ~files'\9 || ALT_KEY__MSG'+'SHIFT_KEY__MSG'+F3',  -- Find prev. in all files
+   buildmenuitem menuname, mid, i, 'Find previous in all ~files'MenuAccelString( 'FindPrevAllFiles'),  -- Find prev. in all files
                                    'FindPrevAllFiles' ||
                                    \1'Repeat find for all files in the ring, backward',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_globalchangenext', i);
-   buildmenuitem menuname, mid, i, 'Change, then find ne~xt in all files',                         -- Change, then find next in all files
+   buildmenuitem menuname, mid, i, 'Change, then find ne~xt in all files'MenuAccelString( 'ChangeFindNextAllFiles'),  -- Change, then find next in all files
                                    'ChangeFindNextAllFiles' ||
                                    \1'Change, then repeat find for all files, foreward',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_globalchangeprev', i);
-   buildmenuitem menuname, mid, i, 'Change, then find pre~vious in all files',                     -- Change, then find prev. in all files
+   buildmenuitem menuname, mid, i, 'Change, then find pre~vious in all files'MenuAccelString( 'ChangeFindPrevAllFiles'),  -- Change, then find prev. in all files
                                    'ChangeFindPrevAllFiles' ||
                                    \1'Change, then repeat find for all files, backward',
                                    MIS_TEXT, 0
@@ -1679,7 +1635,7 @@ if grepfound then
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Grep...',                                                     -- Grep...
+   buildmenuitem menuname, mid, i, '~Grep...'MenuAccelString( 'GrepDlg'),                          -- Grep...
                                    'GrepDlg' ||
                                    \1'Scan external files using regular expressions',
                                    MIS_TEXT, 0
@@ -1689,19 +1645,19 @@ endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Find ~indentifier'\9 || CTRL_KEY__MSG'+W',                     -- Find identifier
-                                   'findword' ||
+   buildmenuitem menuname, mid, i, 'Find ~indentifier'MenuAccelString( 'FindWord'),                -- Find identifier
+                                   'FindWord' ||
                                    \1'Find identifier (C-style word) under cursor',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_findmark', i);
-   buildmenuitem menuname, mid, i, 'Find ~mark/word',                                              -- Find mark
-                                   'findmark' ||
+   buildmenuitem menuname, mid, i, 'Find ~mark/word'MenuAccelString( 'FindMark'),                  -- Find mark
+                                   'FindMark' ||
                                    \1'Find marked string else word under cursor',
                                    MIS_TEXT, 0
 if grepfound then
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Find defi~nition'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+D',     -- Find definition
-                                   'finddef' ||
+   buildmenuitem menuname, mid, i, 'Find defi~nition'MenuAccelString( 'FindDef'),                  -- Find definition
+                                   'FindDef' ||
                                    \1'Find def. in source files for identifier under cursor',
                                    MIS_TEXT, 0
 endif
@@ -1713,8 +1669,8 @@ endif
                                    MIS_TEXT, 0
 */
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Find brac~ket'\9 || CTRL_KEY__MSG'+[ | 'CTRL_KEY__MSG'+8',     -- Find bracket
-                                   'passist' ||
+   buildmenuitem menuname, mid, i, 'Find brac~ket'MenuAccelString( 'Assist'),                      -- Find bracket
+                                   'Assist' ||
                                    \1'Find matching environment expression',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -1726,18 +1682,18 @@ endif
                                    \1'',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Line...'\9,                                                         -- Go to line
+   buildmenuitem menuname, mid, i, '~Line...'MenuAccelString( 'GotoLineDlg'),                            -- Go to line
                                    'GotoLineDlg' ||
                                    \1'Change line and optionally column',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_gotomark', i);
-   buildmenuitem menuname, mid, i, '~Mark'\9 || ALT_KEY__MSG'+Y',                                        -- Go to mark
+   buildmenuitem menuname, mid, i, '~Mark'MenuAccelString( 'BeginMark'),                                 -- Go to mark
                                    'BeginMark' ||
                                    \1'Position cursor on begin of marked area',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Show ~cursor'\9 || SHIFT_KEY__MSG'+F5, 'ALT_KEY__MSG'+-',            -- Show cursor
-                                   'mc /centerline/highlightcursor' ||
+   buildmenuitem menuname, mid, i, 'Show ~cursor'MenuAccelString( 'CenterLine')', 'strip( MenuAccelString( 'HighlightCursor'), 'L', \9),  -- Show cursor
+                                   'mc /CenterLine/HighlightCursor' ||
                                    \1'Center line with cursor',
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
    i = i + 1; call SetAVar( 'mid_markstack', i);
@@ -1745,18 +1701,18 @@ endif
                                    \1'Save and restore a marked area',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_savemark', i);
-   buildmenuitem menuname, mid, i, PUSH_MARK_MENU__MSG\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+'DOWN_KEY__MSG,  -- Save mark
-                                   'pushmark' ||
+   buildmenuitem menuname, mid, i, PUSH_MARK_MENU__MSG''MenuAccelString( 'PushMark'),                    -- Save mark
+                                   'PushMark' ||
                                    PUSH_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_PUSHMARK, 0)
    i = i + 1; call SetAVar( 'mid_restoremark', i);
-   buildmenuitem menuname, mid, i, POP_MARK_MENU__MSG\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+'UP_KEY__MSG,     -- Restore mark
-                                   'popmark' ||
+   buildmenuitem menuname, mid, i, POP_MARK_MENU__MSG''MenuAccelString( 'PopMark'),                      -- Restore mark
+                                   'PopMark' ||
                                    POP_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_POPMARK, MIA_DISABLED)
    i = i + 1; call SetAVar( 'mid_swapmark', i);
-   buildmenuitem menuname, mid, i, SWAP_MARK_MENU__MSG\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+= | 'CTRL_KEY__MSG'+'SHIFT_KEY__MSG'++',  -- Swap mark
-                                   'swapmark' ||
+   buildmenuitem menuname, mid, i, SWAP_MARK_MENU__MSG''MenuAccelString( 'SwapMark'),                    -- Swap mark
+                                   'SwapMark' ||
                                    SWAP_MARK_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_EDIT_SWAPMARK, MIA_DISABLED)
    i = i + 1; call SetAVar( 'mid_cursorstack', i);
@@ -1764,18 +1720,18 @@ endif
                                    \1'Save and restore cursor position',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_savecursor', 1);
-   buildmenuitem menuname, mid, i, PUSH_CURSOR_MENU__MSG\9 || CTRL_KEY__MSG'+'DOWN_KEY__MSG,             -- Save cursor
-                                   'pushpos' ||
+   buildmenuitem menuname, mid, i, PUSH_CURSOR_MENU__MSG''MenuAccelString( 'PushPos'),                   -- Save cursor
+                                   'PushPos' ||
                                    PUSH_CURSOR_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_PUSHPOS, 0)
    i = i + 1; call SetAVar( 'mid_restorecursor', i);
-   buildmenuitem menuname, mid, i, POP_CURSOR_MENU__MSG\9 || CTRL_KEY__MSG'+'UP_KEY__MSG,                -- Restore cursor
-                                   'poppos' ||
+   buildmenuitem menuname, mid, i, POP_CURSOR_MENU__MSG''MenuAccelString( 'PopPos'),                     -- Restore cursor
+                                   'PopPos' ||
                                    POP_CURSOR_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_EDIT_POPPOS, MIA_DISABLED)
    i = i + 1; call SetAVar( 'mid_swapcursor', i);
-   buildmenuitem menuname, mid, i, SWAP_CURSOR_MENU__MSG\9 || CTRL_KEY__MSG'+= | 'CTRL_KEY__MSG'+0' ,                         -- Swap cursor
-                                   'swappos' ||
+   buildmenuitem menuname, mid, i, SWAP_CURSOR_MENU__MSG''MenuAccelString( 'SwapPos'),                   -- Swap cursor
+                                   'SwapPos' ||
                                    SWAP_CURSOR_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_EDIT_SWAPPOS, MIA_DISABLED)
    i = i + 1;
@@ -1787,13 +1743,13 @@ endif
                                    \1'Set and jump to bookmarks',
                                    MIS_TEXT + MIS_SUBMENU, mpfrom2short(HP_SEARCH_BOOKMARKS, 0)
    i = i + 1; call SetAVar( 'mid_bookmarks_set', i);
-   buildmenuitem menuname, mid, i, SET_MARK_MENU__MSG\9 || CTRL_KEY__MSG'+M',                            -- Set...
-                                   'setmark' ||
+   buildmenuitem menuname, mid, i, SET_MARK_MENU__MSG''MenuAccelString( 'SetMark'),                      -- Set...
+                                   'SetMark' ||
                                    SET_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_BOOKMARKS, 0)
    i = i + 1; call SetAVar( 'mid_bookmarks_list', i);
-   buildmenuitem menuname, mid, i, LIST_MARK_MENU__MSG\9 || CTRL_KEY__MSG'+B',                           -- List...
-                                   'listmark' ||
+   buildmenuitem menuname, mid, i, LIST_MARK_MENU__MSG''MenuAccelString( 'ListMark'),                    -- List...
+                                   'ListMark' ||
                                    LIST_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_BOOKMARKS, 0)
    i = i + 1;
@@ -1801,13 +1757,13 @@ endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_bookmarks_next', i);
-   buildmenuitem menuname, mid, i, NEXT_MARK_MENU__MSG\9 || ALT_KEY__MSG'+/',                            -- Next
-                                   'nextbookmark' ||
+   buildmenuitem menuname, mid, i, NEXT_MARK_MENU__MSG''MenuAccelString( 'NextBookMark'),                -- Next
+                                   'NextBookMark' ||
                                    NEXT_MARK_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_BOOKMARKS, 0)
    i = i + 1; call SetAVar( 'mid_bookmarks_previous', i);
-   buildmenuitem menuname, mid, i, PREV_MARK_MENU__MSG\9 || ALT_KEY__MSG'+\',                            -- Previous
-                                   'nextbookmark P' ||
+   buildmenuitem menuname, mid, i, PREV_MARK_MENU__MSG''MenuAccelString( 'NextBookMark P'),              -- Previous
+                                   'NextBookMark P' ||
                                    PREV_MARK_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_SEARCH_BOOKMARKS, 0)
    i = i + 1;
@@ -1815,18 +1771,18 @@ endif
                                    \1'Find function in a tags file',
                                    MIS_TEXT + MIS_SUBMENU, mpfrom2short(HP_SEARCH_TAGS, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, TAGSDLG_MENU__MSG\9,                                                  -- Tags dialog...
-                                   'poptagsdlg' ||
+   buildmenuitem menuname, mid, i, TAGSDLG_MENU__MSG''MenuAccelString( 'PopTagsDlg'),                    -- Tags dialog...
+                                   'PopTagsDlg' ||
                                    TAGSDLG_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_TAGS, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'S~elect tags file...'\9 || SHIFT_KEY__MSG'+F8',                       -- Select tags file...
-                                   'tagsfile' ||
+   buildmenuitem menuname, mid, i, 'S~elect tags file...'MenuAccelString( 'TagsFile'),                    -- Select tags file...
+                                   'TagsFile' ||
                                    \1'Select a new tags file',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_TAGS, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Refresh tags file...'\9 || SHIFT_KEY__MSG'+F9',                      -- Refresh tags file...
-                                   'maketags *' ||
+   buildmenuitem menuname, mid, i, '~Refresh tags file...'MenuAccelString( 'MakeTags *'),                 -- Refresh tags file...
+                                   'MakeTags *' ||
                                    \1'Enter file masks for current tags file and rebuild it',
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_TAGS, 0)
    i = i + 1;
@@ -1834,13 +1790,13 @@ endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, FIND_TAG_MENU__MSG\9 || SHIFT_KEY__MSG'+F6',                          -- Find current procedure
-                                   'findtag' ||
+   buildmenuitem menuname, mid, i, FIND_TAG_MENU__MSG''MenuAccelString( 'FindTag'),                      -- Find current procedure
+                                   'FindTag' ||
                                    FIND_TAG_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_TAGS, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, FIND_TAG2_MENU__MSG\9 || SHIFT_KEY__MSG'+F7',                         -- Find procedure...
-                                   'findtag *' ||
+   buildmenuitem menuname, mid, i, FIND_TAG2_MENU__MSG''MenuAccelString( 'FindTag *'),                   -- Find procedure...
+                                   'FindTag *' ||
                                    FIND_TAG2_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_SEARCH_TAGS, 0)
    i = i + 1;
@@ -1848,8 +1804,8 @@ endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, SCAN_TAGS_MENU__MSG\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+T',          -- Scan current file...
-                                   'tagscan' ||
+   buildmenuitem menuname, mid, i, SCAN_TAGS_MENU__MSG''MenuAccelString( 'TagScan'),                     -- Scan current file...
+                                   'TagScan' ||
                                    SCAN_TAGS_MENUP__MSG,
                                    MIS_TEXT + MIS_ENDSUBMENU, mpfrom2short(HP_SEARCH_TAGS, 0)
 
@@ -1859,14 +1815,14 @@ endif
                                    MIS_SEPARATOR, 0
 if gfcfound then
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'GFC curr~ent file...',                                         -- GFC current file
+   buildmenuitem menuname, mid, i, 'GFC curr~ent file...'MenuAccelString( 'GfcCurrentFile'),       -- GFC current file
                                    'GfcCurrentFile' ||
                                    \1'Compare current file with another',
                                    MIS_TEXT, 0
 endif
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~All /<string>...',                                            -- All /<string>...
-                                   'commandline all /' ||
+   buildmenuitem menuname, mid, i, '~All /<string>...'MenuAccelString( 'CommandLine all /'),       -- All /<string>...
+                                   'CommandLine all /' ||
                                    \1'List all occurances, then use Ctrl+Q to toggle',
                                    MIS_TEXT, 0
    return
@@ -2049,12 +2005,12 @@ defproc add_view_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_softwrap', i);
-   buildmenuitem menuname, mid, i, 'Soft ~wrap',                                                   -- Soft wrap
+   buildmenuitem menuname, mid, i, 'Soft ~wrap'MenuAccelString( 'ToggleWrap'),                     -- Soft wrap
                                    'ToggleWrap' ||
                                    \1'Toggle non-destructive wrap at window width',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Soft w~rap to reflow margins',                                 -- Soft wrap to reflow margins
+   buildmenuitem menuname, mid, i, 'Soft w~rap to reflow margins'MenuAccelString( 'SoftWrap2ReflowMargins'),  -- Soft wrap to reflow margins
                                    'SoftWrap2Reflowmargins' ||
                                    \1'Non-destructive wrap to reflow margins',
                                    MIS_TEXT, 0
@@ -2065,12 +2021,12 @@ defproc add_view_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Fold',                                                        -- Fold
+   buildmenuitem menuname, mid, i, '~Fold'MenuAccelString( 'Fold'),                                -- Fold
                                    'fold' ||
                                    \1'',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Unfold',                                                      -- Unfold
+   buildmenuitem menuname, mid, i, '~Unfold'MenuAccelString( 'UnFold'),                            -- Unfold
                                    'fold off' ||
                                    \1'',
                                    MIS_TEXT, 0
@@ -2080,22 +2036,17 @@ defproc add_view_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1; call SetAVar( 'mid_listring', i);
-   if GetKeyDef() = '-none-' then
-      KeyString = \9''CTRL_KEY__MSG'+G | 'SHIFT_KEY__MSG'+Esc'
-   else
-      KeyString = \9''SHIFT_KEY__MSG'+Esc'
-   endif
-   buildmenuitem menuname, mid, i, LIST_FILES_MENU__MSG''KeyString,                                -- List ring...
+   buildmenuitem menuname, mid, i, LIST_FILES_MENU__MSG''MenuAccelString( 'Ring_More'),            -- List ring...
                                    'Ring_More' ||
                                    LIST_FILES_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_LIST, 0)
    i = i + 1; call SetAVar( 'mid_nextfile', i);
-   buildmenuitem menuname, mid, i, 'Ne~xt file'\9'F12',                                            -- Next file
+   buildmenuitem menuname, mid, i, 'Ne~xt file'MenuAccelString( 'NextFile'),                       -- Next file
                                    'NextFile' ||
                                    \1'Activate the next file in the edit ring',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_prevfile', i);
-   buildmenuitem menuname, mid, i, '~Previous file'\9'F11',                                        -- Previous file
+   buildmenuitem menuname, mid, i, '~Previous file'MenuAccelString( 'PrevFile'),                   -- Previous file
                                    'PrevFile' ||
                                    \1'Activate the previous file in the edit ring',
                                    MIS_TEXT, 0
@@ -2104,8 +2055,8 @@ defproc add_view_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, MESSAGES_MENU__MSG,                                             -- Messages...
-                                   'messagebox' ||
+   buildmenuitem menuname, mid, i, MESSAGES_MENU__MSG''MenuAccelString( 'MessageBox'),             -- Messages...
+                                   'MessageBox' ||
                                    MESSAGES_MENUP__MSG,
                                    MIS_TEXT, mpfrom2short(HP_OPTIONS_MESSAGES, 0)
    i = i + 1;
@@ -2113,13 +2064,13 @@ defproc add_view_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Add new ~view',                                                -- Add new view
+   buildmenuitem menuname, mid, i, 'Add new ~view'MenuAccelString( 'e /v ='),                      -- Add new view
                                    'e /v =' ||
                                    \1'Create another synchronized view of the current file',
                                    MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_nextview', i);
-   buildmenuitem menuname, mid, i, 'Switch to ne~xt view',                                         -- Switch to next view
-                                   'nextview' ||
+   buildmenuitem menuname, mid, i, 'Switch to ne~xt view'MenuAccelString( 'NextView'),             -- Switch to next view
+                                   'NextView' ||
                                    \1'Activate the next view of the current file',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -2127,13 +2078,13 @@ defproc add_view_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open in ~new window',                                          -- Open in new window
-                                   'newwindow' ||
+   buildmenuitem menuname, mid, i, 'Open in ~new window'MenuAccelString( 'NewWindow'),             -- Open in new window
+                                   'NewWindow' ||
                                    \1'Move current file to a new window',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Open in ~bin mode',                                            -- Open in bin mode
-                                   "open 'binedit ='" ||
+   buildmenuitem menuname, mid, i, 'Open in ~bin mode'MenuAccelString( "Open 'binedit ='"),        -- Open in bin mode
+                                   "Open 'binedit ='" ||
                                    \1'Open current file in a new window in binedit mode',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -2141,8 +2092,8 @@ defproc add_view_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Switch to next window'\9 || CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+F12',   -- Switch to next window
-                                   'next_win' ||
+   buildmenuitem menuname, mid, i, '~Switch to next window'MenuAccelString( 'Next_Win'),           -- Switch to next window
+                                   'Next_Win' ||
                                    \1'Activate the next EPM window',
                                    MIS_TEXT, 0
    return
@@ -2858,7 +2809,7 @@ if not MenuItemsHidden then
                                    \1'Compile EPM macro files',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Recompile new user macros',                                         -- Recompile new user macros
+   buildmenuitem menuname, mid, i, '~Recompile new user macros'MenuAccelString( 'RecompileNew'),         -- Recompile new user macros
                                    'RecompileNew' ||
                                    \1'Recompile all new user macros and maybe restart EPM',
                                    MIS_TEXT, 0
@@ -2998,14 +2949,25 @@ defproc add_run_menu(menuname)
                                 \1'Menus to execute commands',
                                 0, 0  -- MIS must be 0 for submenu
    i = i + 1
-   buildmenuitem menuname, mid, i, COMMANDLINE_MENU__MSG\9 || CTRL_KEY__MSG'+I | 'ESCAPE_KEY__MSG,  -- Command dialog...
-                                   'commandline' ||
+   NextMenuAccelString = ''
+   if NextMenuAccelString = '' then
+      NextMenuAccelString = MenuAccelString( 'CommandLine')
+   else
+      NextMenuAccelString = NextMenuAccelString' | 'strip( MenuAccelString( 'CommandLine'), 'L', \9)
+   endif
+   if NextMenuAccelString = '' then
+      NextMenuAccelString = MenuAccelString( 'ProcessEscape')
+   else
+      NextMenuAccelString = NextMenuAccelString' | 'strip( MenuAccelString( 'ProcessEscape'), 'L', \9)
+   endif
+   buildmenuitem menuname, mid, i, COMMANDLINE_MENU__MSG''NextMenuAccelString,                     -- Command dialog...
+                                   'CommandLine' ||
                                    COMMANDLINE_MENUP__MSG,
                                    0, mpfrom2short(HP_COMMAND_CMD, 0)
-   -- i must be 65535, no key info possible (Ctrl+Brk), executes 'processbreak'
+   -- i must be 65535, executes 'processbreak'
    -- Executing 'processbreak' via command call won't work while another command is
    -- being processed.
-   buildmenuitem menuname, mid, 65535, HALT_COMMAND_MENU__MSG,                                     -- Halt command
+   buildmenuitem menuname, mid, 65535, HALT_COMMAND_MENU__MSG''MenuAccelString( 'ProcessBreak'),   -- Halt command
                                    '',
                                    0, mpfrom2short(HP_COMMAND_HALT, 0)
    i = i + 1;
@@ -3013,22 +2975,22 @@ defproc add_run_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, CREATE_SHELL_MENU__MSG,                                         -- Create command shell
-                                   'shell new' ||
+   buildmenuitem menuname, mid, i, CREATE_SHELL_MENU__MSG''MenuAccelString( 'Shell new'),          -- Create command shell
+                                   'Shell new' ||
                                    \1'Create a command shell buffer',
                                    0, mpfrom2short(HP_COMMAND_SHELL, 0)
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Sw~itch command shells',                                       -- Create command shell
-                                   'shell' ||
+   buildmenuitem menuname, mid, i, 'Sw~itch command shells'MenuAccelString( 'Shell'),              -- Switch command shells
+                                   'Shell' ||
                                    \1'Loop through shell or starting non-shell buffers',
                                    0, mpfrom2short(HP_COMMAND_SHELL, 0)
    i = i + 1; call SetAVar( 'mid_writetoshell', i);                                                -- Write to shell...
-   buildmenuitem menuname, mid, i, WRITE_SHELL_MENU__MSG,
+   buildmenuitem menuname, mid, i, WRITE_SHELL_MENU__MSG''MenuAccelString( 'Shell_write'),
                                    'shell_write' ||
                                    WRITE_SHELL_MENUP__MSG,
                                    0, mpfrom2short(HP_COMMAND_WRITE, 0)
    i = i + 1; call SetAVar( 'mid_sendbreaktoshell', i);                                            -- Send break to shell
-   buildmenuitem menuname, mid, i, SHELL_BREAK_MENU__MSG,
+   buildmenuitem menuname, mid, i, SHELL_BREAK_MENU__MSG''MenuAccelString( 'Shell_break'),
                                    'shell_break' ||
                                    SHELL_BREAK_MENUP__MSG,
                                    0, mpfrom2short(HP_COMMAND_BREAK, 0)
@@ -3061,8 +3023,8 @@ defproc add_run_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~OS/2 window',                                                 -- OS/2 window
-                                   'start /win'/*'start /f /k %comspec%'*/ ||
+   buildmenuitem menuname, mid, i, '~OS/2 window'MenuAccelString( 'start /win'),                   -- OS/2 window
+                                   'start /win' ||
                                    \1'Open an OS/2 window with NEPMD''s environment',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -3099,18 +3061,18 @@ defproc add_run_menu(menuname)
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'E~xecute current line'\9 || ALT_KEY__MSG'+= | 'ALT_KEY__MSG'+0',   -- Execute current line
-                                   'dokey a_0' ||
+   buildmenuitem menuname, mid, i, 'E~xecute current line'MenuAccelString( 'DoLines'),             -- Execute current line
+                                   'DoLines' ||
                                    \1'Execute line under cursor',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Commandline current ~line'\9 || CTRL_KEY__MSG'+L',             -- Commandline current line
-                                   'dokey c_l' ||
+   buildmenuitem menuname, mid, i, 'Commandline current ~line'MenuAccelString( 'CommandDlgLine'),  -- Commandline current line
+                                   'CommandDlgLine' ||
                                    \1'Open line under cursor in commandline window',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Run current file',                                            -- Run current file
-                                   'rx run' ||
+   buildmenuitem menuname, mid, i, '~Run current file'MenuAccelString( 'rx Run'),                  -- Run current file
+                                   'rx Run' ||
                                    \1'Execute current file according to what is def''d in RUN.ERX',
                                    MIS_TEXT, 0
    i = i + 1;
@@ -3278,13 +3240,13 @@ compile endif
                                    \1'View documentation for a keyword (defined via .ndx files)',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_keywordhelpcurrentword', i);
-   buildmenuitem menuname, mid, i, '~Current word'\9CTRL_KEY__MSG'+H',                                   -- Current word
-                                   'kwhelp' ||
+   buildmenuitem menuname, mid, i, '~Current word'MenuAccelString( 'KwHelp'),                            -- Current word
+                                   'KwHelp' ||
                                    \1'View documentation for keyword under cursor',
                                    0, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, '~Word...',                                                           -- Word...
-                                   'kwhelp ?' ||
+   buildmenuitem menuname, mid, i, '~Word...'MenuAccelString( 'KwHelp ?'),                               -- Word...
+                                   'KwHelp ?' ||
                                    \1'Prompt for a keyword, then view documentation for it',
                                    0, 0
    i = i + 1;
@@ -3436,8 +3398,6 @@ defc menuinit_mark
    SetMenuAttribute( GetAVar('mid_unmark'),      MIA_DISABLED, on)
    SetMenuAttribute( GetAVar('mid_deletemark'),  MIA_DISABLED, on)
    SetMenuAttribute( GetAVar('mid_fillmark'),    MIA_DISABLED, on)
-   call update_paste_menu_text()
-   call update_mark_menu_text()
 
 defc menuinit_createmark
    universal CUA_marking_switch
@@ -5387,133 +5347,5 @@ defproc build_menu_accelerators(activeaccel)
 
    -- Save the last used id in an array var
    call SetAVar( 'lastkeyaccelid', i)
-   return
-
-; ---------------------------------------------------------------------------
-; Update the menu text for items affected by CUA_menu_Accel = 0|1.
-; Todo: provide a generic macro, that removes the Alt+<key> string only,
-; instead of repeating the whole accel key string. The Alt+<key> binding
-; should be the first string after \9 and maybe before ' | ', when added.
-defproc update_mark_menu_text
-   universal cua_marking_switch
-   universal cua_menu_accel
-   if cua_menu_accel then
-      UsedMenuAccelerators = GetAVar('usedmenuaccelerators')
-   else
-      UsedMenuAccelerators = ''
-   endif
-
-   MenuText = COPY_MARK_MENU__MSG
-   Key      = 'C'
-   if cua_marking_switch = 0 & wordpos( Key, UsedMenuAccelerators) = 0 then
-      MenuText = MenuText\9 || ALT_KEY__MSG'+'Key
-   endif
-   midname  = 'mid_copymark'
-   SetMenuText( GetAVar(midname), MenuText)
-
-   MenuText = MOVE_MARK_MENU__MSG
-   Key      = 'M'
-   midname  = 'mid_movemark'
-   if cua_marking_switch = 0 & wordpos( Key, UsedMenuAccelerators) = 0 then
-      MenuText = MenuText\9 || ALT_KEY__MSG'+'Key
-   endif
-   SetMenuText( GetAVar(midname), MenuText)
-
-   MenuText = OVERLAY_MARK_MENU__MSG
-   Key      = 'O'
-   midname  = 'mid_overlaymark'
-   if cua_marking_switch = 0 & wordpos( Key, UsedMenuAccelerators) = 0 then
-      MenuText = MenuText\9 || ALT_KEY__MSG'+'Key
-   endif
-   SetMenuText( GetAVar(midname), MenuText)
-
-   MenuText = ADJUST_MARK_MENU__MSG
-   Key      = 'A'
-   midname  = 'mid_adjustmark'
-   if cua_marking_switch = 0 & wordpos( Key, UsedMenuAccelerators) = 0 then
-      MenuText = MenuText\9 || ALT_KEY__MSG'+'Key
-   endif
-   SetMenuText( GetAVar(midname), MenuText)
-
-   MenuText = UNMARK_MARK_MENU__MSG
-   Key      = 'U'
-   midname  = 'mid_unmark'
-   if wordpos( Key, UsedMenuAccelerators) = 0 then
-      MenuText = MenuText\9 || ALT_KEY__MSG'+'Key' | 'CTRL_KEY__MSG'+\ | 'CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+A'
-   else
-      MenuText = MenuText\9 || CTRL_KEY__MSG'+\ | 'CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+A'
-   endif
-   SetMenuText( GetAVar(midname), MenuText)
-
-   MenuText = DELETE_MARK_MENU__MSG
-   Key      = 'D'
-   midname  = 'mid_deletemark'
-   if wordpos( Key, UsedMenuAccelerators) = 0 then
-      MenuText = MenuText\9 || ALT_KEY__MSG'+'Key
-   endif
-   SetMenuText( GetAVar(midname), MenuText)
-
-   MenuText = '~Fill mark...'
-   Key      = 'F'
-   midname  = 'mid_fillmark'
-   if wordpos( Key, UsedMenuAccelerators) = 0 then
-      MenuText = MenuText\9 || ALT_KEY__MSG'+'Key
-   endif
-   SetMenuText( GetAVar(midname), MenuText)
-
-   return
-
-; ---------------------------------------------------------------------------
-; Update the menu text for items affected by default paste = C|B|L
-defproc update_paste_menu_text
-   universal nepmd_hini
-   KeyPath = "\NEPMD\User\Mark\DefaultPaste"
-   DefaultPaste = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-   if DefaultPaste = 'C' then
-      AlternatePaste = 'L'
-   else
-      AlternatePaste = 'C'
-   endif
-
-   if GetKeyDef() = '-none-' then
-      DefaultPasteKey = SHIFT_KEY__MSG'+'INSERT_KEY__MSG
-   else
-      DefaultPasteKey = SHIFT_KEY__MSG'+'INSERT_KEY__MSG' | 'CTRL_KEY__MSG'+V'
-   endif
-   AlternatePasteKey = CTRL_KEY__MSG'+'SHIFT_KEY__MSG'+'INSERT_KEY__MSG
-
-   midname  = 'mid_paste'
-   if DefaultPaste = 'C' then
-      Key   = DefaultPasteKey
-   elseif AlternatePaste = 'C' then
-      Key   = AlternatePasteKey
-   else
-      Key   = ''
-   endif
-   MenuText = PASTE_C_MENU__MSG\9 || Key
-   SetMenuText( GetAVar(midname), MenuText)
-
-   midname  = 'mid_pastelines'
-   if DefaultPaste = 'L' then
-      Key   = DefaultPasteKey
-   elseif AlternatePaste = 'L' then
-      Key   = AlternatePasteKey
-   else
-      Key   = ''
-   endif
-   MenuText = PASTE_L_MENU__MSG\9 || Key
-   SetMenuText( GetAVar(midname), MenuText)
-
-   midname  = 'mid_pasteblock'
-   if DefaultPaste = 'B' then
-      Key   = DefaultPasteKey
-   elseif AlternatePaste = 'B' then
-      Key   = AlternatePasteKey
-   else
-      Key   = ''
-   endif
-   MenuText = PASTE_B_MENU__MSG\9 || Key
-   SetMenuText( GetAVar(midname), MenuText)
-
    return
 
