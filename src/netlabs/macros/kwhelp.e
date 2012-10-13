@@ -171,26 +171,236 @@ defc Kwhelp
       endif
    endif
 
-   top; .col = 1
-
    -- Search for keyword match
    display -2
    getsearch savesearch
+
    -- Alter search criteria based on filetype
    if wordpos(ft, FORTRAN_TYPES GENERAL_NOCASE_TYPES) then
       case_aware = 'c'      -- Add 'ignore case' parameter for Fortran
    else
       case_aware = ''
    end
-   'xcom /('identifier',/' case_aware  -- search for a match...
-   if rc then
-      do i = length(identifier) to 1 by -1
-         'xcom /('leftstr(identifier, i)'*,/' case_aware
-         if not rc then
+
+   s = 0
+   l = length( identifier)
+   do forever
+      s = s + 1
+      if s = 1 then
+         search = '('identifier','
+      else
+         if l = 1 then
             leave
          endif
-      enddo
-   endif
+         l = l - 1
+         search = '('leftstr( identifier, l)'*,'
+      endif
+      top
+      .col = 1
+      dprintf( 'kwhelp', 'search = 'search' ---------------------------------------')
+
+      fFound = 0
+      do while not fFound
+         dprintf( 'kwhelp', 'xcom /'search'/'case_aware', .line before = '.line)
+         'xcom /'search'/'case_aware  -- search for a match...
+         if rc then
+            leave
+         endif
+
+         parse value substr(textline(.line), .col) with ',' line ')'
+         line = strip( line)
+         dprintf( 'kwhelp', 'rc = 'rc', Found line '.line' = |'line'|')
+         -- Substitute all occurrances of '~' with the original identifier
+         loop
+            i = pos( '~', line)
+            if not i then
+               leave
+            endif
+            line = leftstr( line, i - 1)''identifier''substr( line, i + 1)
+         endloop
+
+         -- Resolve environment vars in line
+         line = ResolveEnvVars( line )  -- defined in EDIT.E
+
+         -- Parse line
+         dprintf( 'kwhelp', 'Parsing help line: 'line)
+         parse value line with cmd arg1 arg2
+         if (upcase(cmd) = 'START') then
+            parse value line with . cmd arg1 arg2
+         endif
+
+         -- Search the file, if the command is a view
+         dprintf( 'kwhelp', 'Building CheckedFileList')
+         if (upcase(cmd) = 'VIEW') then
+
+            -- Second word is the file.
+            -- Convert a possible ViewFileList to CheckedFileList, in order
+            -- to continue searching if an .inf file doesn't exist.
+            ViewFileList =  arg1
+            rest = ViewFileList
+            CheckedFileList = ''
+            do while rest <> ''
+
+               parse value rest with ViewFile'+'rest section
+
+               -- EnvVars are already resolved at this point!
+
+               -- Check if ViewFile specifies an EnvVar (e.g. PMREF)
+               next = Get_Env(ViewFile)
+               if next <> '' then
+                  -- If found, add next to rest and re-parse it
+                  rest = next'+'rest
+                  iterate
+               endif
+
+               if (pos( '.', ViewFile) = 0) then
+                  ViewFile = ViewFile'.inf';
+               endif
+               dprintf( 'kwhelp', 'ViewFile = 'ViewFile)
+               -- Search the file
+               findfile fullname, ViewFile, 'BOOKSHELF'
+               if rc then
+                  sayerror 'INF file' ViewFile 'could not be found'
+               else
+                  CheckedFileList = CheckedFileList''ViewFile'+'
+               endif
+
+            enddo  -- while rest <> ''
+
+            -- Re-build the line with a file list containing only found files.
+            CheckedFileList = strip( CheckedFileList, 'B', '+' )
+            if CheckedFileList = '' then
+               line = ''  -- Don't try to execute a line but execute
+                          -- "activatefile" at the end. .HELPFILE is currently
+                          -- active and would become visible on a "return" here.
+            else
+               line = cmd CheckedFileList arg2
+            endif
+
+         endif
+
+         dprintf( 'kwhelp', 'line = |'line'|')
+         if (line  = '') then
+            rc = 1
+         else
+            rc = 0
+            -- For newview: Maybe execute a real search instead of just a lookup
+            -- in the index.
+            -- Unfortunately their is no reliable way to check the install state
+            -- nor the version of NewView, to handle its buggy command line
+            -- parsing.
+            if upcase( cmd) = 'VIEW' then
+
+               parse value line with app inf key
+               key = strip( key)
+
+               -- Use NewView, if found in PATH
+               fUseNewView = 0
+               KeyPath = '\NEPMD\User\KeywordHelp\NewView\UseIfFound'
+               next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+               if next <> 0 then
+                  -- If NewView was installed as View replacement, then
+                  -- IBMVIEW.EXE exists
+                  next = NepmdSearchPath( 'ibmview.exe')
+                  parse value next with 'ERROR:' rcx
+                  if rcx = '' then
+                     -- Better don't change 'VIEW', because NewView can re-use a file,
+                     -- that is already loaded, when its stub (renamed to VIEW.EXE)
+                     -- is used. Otherwise a new window is opened on every KwHelp.
+                     --cmd = 'newview'
+                     fUseNewView = 1
+                  else
+                     -- If NewView was not installed as View replacement, then
+                     -- search for NEWVIEW.EXE in PATH
+                     next = NepmdSearchPath( 'newview.exe')
+                     parse value next with 'ERROR:' rcx
+                     if rcx = '' then
+                        fUseNewView = 1
+                        cmd = 'newview'
+                     endif
+                  endif
+               endif
+               -- Use NewView's extended search?
+               fNewViewExtendedSearch = 0
+               if fUseNewView then
+                  KeyPath = '\NEPMD\User\KeywordHelp\NewView\ExtendedSearch'
+                  next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+                  if next <> 0 then
+                     fNewViewExtendedSearch = 1
+                  endif
+               endif
+
+               -- Testcases, press Alt+0 on a following line:
+               /*
+               start ibmview cmdref net view
+               start ibmview cmdref "net view"
+               start newview cmdref net view
+               start newview cmdref "net view"
+               start newview cmdref /s:net view
+               start newview cmdref /s:"net view"
+               start newview cmdref /s:"net view""
+               start newview cmdref /s:"""net view"""
+               start newview cmdref /s"""net view"""
+               start newview cmdref /s net view
+               start newview cmdref /s "net view"
+               start newview cmdref /s "net view""
+               start newview cmdref /s """net view""
+               start newview cmdref /s """net view"""
+               */
+               if fUseNewView & leftstr( key, 1) <> '"' & pos( ' ', key) then
+                  -- NewView before 2.19.b2 requires "..." for strings with spaces,
+                  -- View strips them. Newer NewView versions can handle both, with
+                  -- or without double quotes. So always add them.
+                  key = '"'key'"'
+                  -- NewView 2.19.b2 and up requires the doublequotes only for the
+;                  -- extended search with /s:key.
+                  -- extended search with /s key.
+               endif
+               if fNewViewExtendedSearch & leftstr( key, 1) = '"' then
+compile if NEWVIEW_VERSION < 2.19
+                  -- Newview before 2.19.b2 needs a doubled closing double quote
+                  key = key'"'
+;compile elseif NEWVIEW_VERSION >= 2.19
+;                  -- NewView 2.19.b2 and up needs tripled double quotes
+;                  key = '""'key'""'
+compile endif
+               endif
+               if fNewViewExtendedSearch then
+;                  line = 'view 'inf' /s:'key
+                  line = 'newview 'inf' /s 'key
+               endif
+
+            endif  -- upcase( cmd) = 'VIEW'
+
+            if wordpos( upcase( word( line, 1)), 'START QS QUIETSHELL DOS OS2') then
+               -- Omit the 'dos' or 'start' command if specified in .ndx file or
+               -- as an alternative VIEW command.
+               cmd = line
+            else
+               cmd = 'start /f' line
+            endif
+
+            sayerror 'Invoking "'cmd'"'
+            cmd  -- execute the command
+            dprintf( 'kwhelp', 'rc = 'rc' from cmd = 'cmd)
+
+         endif  -- (line = '')
+
+         if rc then
+            fFound = 0
+            .line = .line + 1
+         else
+            fFound = 1
+         endif
+
+      enddo  -- while fFound
+
+      if fFound then
+         leave
+      endif
+
+   enddo
+
    setsearch savesearch
    display 2
 
@@ -200,178 +410,6 @@ defc Kwhelp
       else
          sayerror 'No matching indexfile found for "'identifier'"'
       endif
-   else
-      parse value substr(textline(.line), .col) with ',' line ')'
-      -- Substitute all occurrances of '~' with the original identifier
-      loop
-         i = pos( '~', line)
-         if not i then
-            leave
-         endif
-         line = leftstr( line, i - 1)''identifier''substr( line, i + 1)
-      endloop
-
-      -- Resolve environment vars in line
-      line = ResolveEnvVars( line )  -- defined in EDIT.E
-
-      -- Parse line
-      parse value line with cmd arg1 arg2
-      if (upcase(cmd) = 'START') then
-         parse value line with . cmd arg1 arg2
-      endif
-
-      -- Search the file, if the command is a view
-      if (upcase(cmd) = 'VIEW') then
-
-         -- Second word is the file.
-         -- Convert a possible ViewFileList to CheckedFileList, in order
-         -- to continue searching if an .inf file doesn't exist.
-         ViewFileList =  arg1
-         rest = ViewFileList
-         CheckedFileList = ''
-         do while rest <> ''
-
-            parse value rest with ViewFile'+'rest section
-
-            -- EnvVars are already resolved at this point!
-
-            -- Check if ViewFile specifies an EnvVar (e.g. PMREF)
-            next = Get_Env(ViewFile)
-            if next <> '' then
-               -- If found, add next to rest and re-parse it
-               rest = next'+'rest
-               iterate
-            endif
-
-            if (pos( '.', ViewFile) = 0) then
-               ViewFile = ViewFile'.inf';
-            endif
-
-            -- Search the file
-            findfile fullname, ViewFile, 'BOOKSHELF'
-            if rc then
-               sayerror 'INF file' ViewFile 'could not be found'
-            else
-               CheckedFileList = CheckedFileList''ViewFile'+'
-            endif
-
-         enddo  -- while rest <> ''
-
-         -- Re-build the line with a file list containing only found files.
-         CheckedFileList = strip( CheckedFileList, 'B', '+' )
-         if CheckedFileList = '' then
-            line = ''  -- Don't try to execute a line but execute
-                       -- "activatefile" at the end. .HELPFILE is currently
-                       -- active and would become visible on a "return" here.
-         else
-            line = cmd CheckedFileList arg2
-         endif
-
-      endif
-
-      if (line  <> '') then
-
-         -- For newview: Maybe execute a real search instead of just a lookup
-         -- in the index.
-         -- Unfortunately their is no reliable way to check the install state
-         -- nor the version of NewView, to handle its buggy command line
-         -- parsing.
-         if upcase( cmd) = 'VIEW' then
-
-            parse value line with app inf key
-            key = strip( key)
-
-            -- Use NewView, if found in PATH
-            fUseNewView = 0
-            KeyPath = '\NEPMD\User\KeywordHelp\NewView\UseIfFound'
-            next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-            if next <> 0 then
-               -- If NewView was installed as View replacement, then
-               -- IBMVIEW.EXE exists
-               next = NepmdSearchPath( 'ibmview.exe')
-               parse value next with 'ERROR:' rcx
-               if rcx = '' then
-                  -- Better don't change 'VIEW', because NewView can re-use a file,
-                  -- that is already loaded, when its stub (renamed to VIEW.EXE)
-                  -- is used. Otherwise a new window is opened on every KwHelp.
-                  --cmd = 'newview'
-                  fUseNewView = 1
-               else
-                  -- If NewView was not installed as View replacement, then
-                  -- search for NEWVIEW.EXE in PATH
-                  next = NepmdSearchPath( 'newview.exe')
-                  parse value next with 'ERROR:' rcx
-                  if rcx = '' then
-                     fUseNewView = 1
-                     cmd = 'newview'
-                  endif
-               endif
-            endif
-            -- Use NewView's extended search?
-            fNewViewExtendedSearch = 0
-            if fUseNewView then
-               KeyPath = '\NEPMD\User\KeywordHelp\NewView\ExtendedSearch'
-               next = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-               if next <> 0 then
-                  fNewViewExtendedSearch = 1
-               endif
-            endif
-
-            -- Testcases, press Alt+0 on a following line:
-            /*
-            start ibmview cmdref net view
-            start ibmview cmdref "net view"
-            start newview cmdref net view
-            start newview cmdref "net view"
-            start newview cmdref /s:net view
-            start newview cmdref /s:"net view"
-            start newview cmdref /s:"net view""
-            start newview cmdref /s:"""net view"""
-            start newview cmdref /s"""net view"""
-            start newview cmdref /s net view
-            start newview cmdref /s "net view"
-            start newview cmdref /s "net view""
-            start newview cmdref /s """net view""
-            start newview cmdref /s """net view"""
-            */
-            if fUseNewView & leftstr( key, 1) <> '"' & pos( ' ', key) then
-               -- NewView before 2.19.b2 requires "..." for strings with spaces,
-               -- View strips them. Newer NewView versions can handle both, with
-               -- or without double quotes. So always add them.
-               key = '"'key'"'
-               -- NewView 2.19.b2 and up requires the doublequotes only for the
-;               -- extended search with /s:key.
-               -- extended search with /s key.
-            endif
-            if fNewViewExtendedSearch & leftstr( key, 1) = '"' then
-compile if NEWVIEW_VERSION < 2.19
-               -- Newview before 2.19.b2 needs a doubled closing double quote
-               key = key'"'
-;compile elseif NEWVIEW_VERSION >= 2.19
-;               -- NewView 2.19.b2 and up needs tripled double quotes
-;               key = '""'key'""'
-compile endif
-            endif
-            if fNewViewExtendedSearch then
-;               line = 'view 'inf' /s:'key
-               line = 'newview 'inf' /s 'key
-            endif
-
-         endif  -- upcase( cmd) = 'VIEW'
-
-         if wordpos( upcase( word( line, 1)), 'START QS QUIETSHELL DOS OS2') then
-            -- Omit the 'dos' or 'start' command if specified in .ndx file or
-            -- as an alternative VIEW command.
-            cmd = line
-         else
-            cmd = 'start /f' line
-         endif
-
-         sayerror 'Invoking "'cmd'"'
-         cmd  -- execute the command
-
-      endif
-
    endif
 
    activatefile CurrentFile
@@ -429,6 +467,7 @@ defproc pBuild_Helpfile(ft)
    rc = 0
 
    sayerror 'Building help index for' ft '...'
+   dprintf( 'kwhelp', 'Building help index for' ft '...')
 
    -- Search all files on shelf first, put list into ShelfList
    BookShelf = Get_Env('BOOKSHELF')
@@ -451,6 +490,7 @@ defproc pBuild_Helpfile(ft)
          if (ret <> '') then
             leave
          endif
+         dprintf( 'kwhelp', 'Found .ndx file = 'Filename)
 
          -- Add filename only to HelpList, if not already in
          Filename = substr( Filename, lastpos( '\', Filename) + 1)
@@ -475,6 +515,7 @@ compile endif
    if (substr( HelpList, 1, 1) = '+') then
       HelpList = substr( HelpList, 2);
    endif
+   dprintf( 'kwhelp', 'HelpList = 'HelpList)
 
    SaveList = HelpList
 
