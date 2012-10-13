@@ -47,6 +47,11 @@ compile endif
 ;   const
 ;      NEPMD_DEBUG = 0
 defproc dprintf
+   -- Apparently a 'dprintf()' after an 'xcom l' changes rc,
+   -- therefore save it before and restore it after.
+   -- Strange: Other tests showed that the value of rc is kept in
+   -- other cases.
+   savedrc = rc
 compile if NEPMD_DEBUG
    Type = arg(1)
    Msg  = arg(2)
@@ -61,6 +66,7 @@ compile if NEPMD_DEBUG
       endif
    endif
 compile endif
+   rc = savedrc
    return
 
 ; ---------------------------------------------------------------------------
