@@ -169,10 +169,19 @@ defproc ModeFindDef
             iterate
          endif
          FileName = translate( leftstr( Line, p1 - 1), '\', '/')
+
+         -- Ignore files from .svn and CVS dirs
+         if pos( '\.svn\', Filename) then
+            iterate
+         elseif pos( '\CVS\', Filename) then
+            iterate
+         endif
+
          LineNum = substr( Line, p1 + 1, p2 - p1 - 1)
          if not IsNum( LineNum) then
             iterate
          endif
+
          next = FileName '('LineNum')'
 
          -- Write filelist to a temp. file
