@@ -1694,8 +1694,14 @@ defc ForceExpansion
    getfileid fid
    ExpandMode = GetAVar( 'expand.'fid)
    if expand_on & ExpandMode <> '' & wordpos( upcase( ExpandMode), '0 OFF') = 0 then
-      if isadefc( ExpandMode'ForceExpansion') then
-         ExpandMode'ForceExpansion'
+      rc = -1
+      if isadefc( ExpandMode'FirstExpansion') then
+         ExpandMode'FirstExpansion'
+      endif
+      if rc <> 0 then
+         if isadefc( ExpandMode'SecondExpansion') then
+            ExpandMode'SecondExpansion'
+         endif
       endif
    endif
 
