@@ -2684,7 +2684,7 @@ if not MenuItemsHidden then
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
 
    i = i + 1; call SetAVar( 'mid_directories', i);
-   buildmenuitem menuname, mid, i, 'Director~ies',                                                 -- Directories  >
+   buildmenuitem menuname, mid, i, 'Director~ies',                                                 -- Directories >
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_workdir', i);
@@ -4600,6 +4600,7 @@ defc toggle_matchtab
 
 ; ---------------------------------------------------------------------------
 defc toggle_default_matchtab
+   universal matchtab_on
    universal menuloaded
    universal nepmd_hini
    KeyPath = '\NEPMD\User\Keys\Tab\MatchTab'
