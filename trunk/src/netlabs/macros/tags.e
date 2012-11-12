@@ -248,7 +248,7 @@ compile endif
    file_mode = NepmdGetMode()
 
    if arg(1) = '' then
-      /* Try to find the procedure at the cursor. */
+      -- Try to find the procedure at the cursor
       if substr(textline(.line), .col, 1)='(' then left; endif  -- If on paren, shift
 
       if file_mode = "REXX" then
@@ -413,7 +413,7 @@ compile endif
       if not rc then
          leave
       endif
-      proc_name = '_'proc_name  /* Handle case where C call to assembler function needs '_' */
+      proc_name = '_'proc_name  -- Handle case where C call to assembler function needs '_'
    enddo
    display 2
    long_msg = '.  You may want to rebuild the tag file.'
@@ -425,7 +425,7 @@ compile endif
 
    parse_tagline( name, filename, fileline, filedate)
 
-   /* Check if there is more than one */
+   -- Check if there is more than one
    if .line < .last then
       found_line = .line
       '+1'
@@ -573,10 +573,8 @@ defproc parse_tagline( var name, var filename, var fileline, var filedate)
       filename = '"'filename'"'
    endif
 
-const
-   IGNORE_C_KEYWORDS = 'if while switch for case else return ='
-
 defproc c_proc_search( var proc_name, find_first, ext)
+   universal OpenBracePos
 
    fSearchIdentifier = (proc_name == '')
    proc_len = length( proc_name)
@@ -591,201 +589,196 @@ defproc c_proc_search( var proc_name, find_first, ext)
 
    display -2
 
+   -- Define this as var to keep the E parser happy
+   OpenCom  = '/'||'*'
+   CloseCom = '*'||'/'
+
    if find_first then
-      -- Removed the opening paren from the search string
-      -- to allow it as first char on the following line.
-      if proc_name=='' then
-compile if C_TAGS_ANYWHERE
-      -- 'xcom l ^:fex'
-         'xcom l ^:o[A-Za-z_$].*ex'
-compile else
-      -- 'xcom l ^[A-Za-z_$].*\(ex'
-         'xcom l ^[A-Za-z_$].*ex'
-compile endif
-      else
-;;       'xcom l 'proc_name'e'
-      -- 'xcom l 'proc_name':o\(x'
-         'xcom l 'proc_name':ox'
-      endif
-   else
-      repeat_find
+      OpenBracePos = ''
    endif
+   do forever
 
+      if fSearchIdentifier then
 
-   loop
-      if rc then
-         display 2
-         return rc
-      endif
+         if OpenBracePos <> '' then
+            parse value OpenBracePos with OpenBraceLine OpenBraceCol
+            .lineg = OpenBraceLine
+            .col   = OpenBraceCol + 1
+            -- Find } in col 1 to position cursor for next search
+            'xcom l ^}g'
+            -- Ignore rc from here
+         endif
 
-      getline line
-      line = translate( line, ' ', \t)
-      dprintf( 'TAG', 'Found line' .line '= "'line'"')
+         -- Find { in col 1
+         'xcom l ^{g'
+         if rc then
+            leave
+         endif
+         -- Avoid endless loop
+         if .line .col = OpenBracePos then
+            rc = 1
+            leave
+         endif
+         OpenBracePos  = .line .col
 
-      -- Determine if match is a substring of something else
-      if not fSearchIdentifier then
+         -- Check if in comment
+         'xcom l 'OpenCom'r-'
+         if rc then
+            OpenComLine = 0
+            OpenComCol  = 0
+         else
+            OpenComLine = .line
+            OpenComCol  = .col
+         endif
+         parse value OpenBracePos with OpenBraceLine OpenBraceCol
+         .lineg = OpenBraceLine
+         .col   = OpenBraceCol
 
+         'xcom l 'CloseCom'r-'
+         if rc then
+            CloseComLine = 0
+            CloseComCol  = 0
+         else
+            CloseComLine = .line
+            CloseComCol  = .col
+         endif
+         parse value OpenBracePos with OpenBraceLine OpenBraceCol
+         .lineg = OpenBraceLine
+         .col   = OpenBraceCol
+
+         if CloseComLine > OpenComLine then
+            fInComment = 0
+         elseif CloseComLine < OpenComLine then
+            fInComment = 1
+         else
+            -- Same line: can't enclose the { char in col 1
+            fInComment = 0
+         endif
+         if fInComment then
+            iterate
+         endif
+
+         -- Find ) before
+         ch1 = ''
+         ch2 = ''
+         do forever
+            -- Go to end of previous line
+            if .line = 1 then
+               leave
+            endif
+            up
+            end_line
+            ThisLine = textline( .line)
+
+            -- Go to single-line comment, if not within a multi-line comment
+            p1 = pos( '//', ThisLine)
+            pc = pos( CloseCom, ThisLine)
+            -- This is not really correct, but quick and dirty
+            -- Both comment types in a line occur not often, so it works in many cases
+            if p1 > 0 and pc < p1 then
+               .col = p1
+            endif
+
+            -- Get non-blank and non-commented char before
+            fCharFound = 0
+            do forever
+               if .col = 1 then
+                  leave
+               endif
+               .col = .col - 1
+               -- Get char at cursor
+               ch1 = substr( ThisLine, .col, 1)
+               if .col > 1 then
+                  -- Get 2 chars at and before cursor
+                  ch2 = substr( ThisLine, .col - 1, 2)
+               endif
+               if ch1 == \9 then
+                  iterate
+               elseif ch1 == ' ' then
+                  iterate
+               elseif ch2 == CloseCom then
+                  -- Go to opening comment
+                  'xcom l 'OpenCom'r-'
+                  if rc then
+                     leave
+                  else
+                     iterate
+                  endif
+               else
+                  fCharFound = 1
+                  leave
+               endif
+            enddo
+            if fCharFound then
+               leave
+            endif
+         enddo
+         if ch1 <> ')' then
+            iterate
+         endif
+
+         -- Todo: handle multi-line comments
+         -- Find ( before
+         'xcom l (r-'
+         if rc then
+            iterate
+         endif
+
+         -- Todo: handle multi-line comments
+         -- Find proc_name before
+         'xcom l ^:o[A-Za-z_$].*exr-'
+         if rc then
+            iterate
+         endif
+
+         getline line
+         line = translate( line, ' ', \t)
+         --dprintf( 'TAG', 'Found line' .line '= "'line'"')
+
+         parse value strip( line) with line '('
+         -- Get rightmost word
+         proc_name = word( line, words( line))
+         rc = 0
+
+      else
+
+         'xcom l 'proc_name':ox'
+         if rc then
+            leave
+         endif
+
+         -- Determine if match is a substring of something else
          if .col > 1 then
             if pos( upcase( substr( line, .col - 1, 1)), IDENTIFIER_STARTER'0123456789') then
                end_line
-               repeat_find
                iterate
             endif
          endif
          .col = .col + proc_len
          if pos( upcase( substr( line, .col, 1)), IDENTIFIER_STARTER'0123456789') then
             end_line
-            repeat_find
             iterate
          endif
+
       endif
 
-      do l = 1 to 2
-
-         -- Strip trailing comment
-         i = pos( '//', line)
-         if i then
-            line = leftstr( line, i - 1)
-         endif
-
-         -- Strip multi-line comments
-         loop
-            i = pos( '/*', line)
-            if not i then
-               leave
-            endif
-            j = pos( '*/', line, i + 2)
-            if j then
-               -- line = delstr( line, i, j - i + 2)
-               line = overlay( '', line, i, j - i + 2)  -- Keep column alignment
-            else
-               line = leftstr( line, i - 1)
-            endif
-         endloop
-
-         if l = 1 then
-            -- Save line (required if paren is on next line)
-            procline = line
-         endif
-         --dprintf( .line': line 'l' = 'line)
-
-         -- Go to opening paren
-         p = pos( '(', line, .col)
-         if p then
-            .col = p
-            leave
-         else
-            -- Search paren on next line
-            l = l + 1
-            if .line = .last | l > 2 then
-               leave
-               end_line
-               repeat_find
-               iterate
-            endif
-            .line = .line + 1
-            .col = 1
-            line = textline( .line)
-            line = translate( line, ' ', \t)
-         endif
-      enddo
-
-      line = strip( line, 'T')
-      if substr( line, .col, 1) = '(' & rightstr( line, 1) <> ';' then
-         --dprintf( .line': check 1 passed')
-
-         call psave_pos( save_pos)
-         if rightstr( line, 1) <> ')' | pos( '(', line, .col + 1) then
-            --dprintf( .line': check 2 passed')
-
-            -- Go to closing paren
-;;          .col = pos( '(', line, .col)
-            if find_matching_paren() then  -- No match found?
-               dprintf( 'TAG', '...skipping; no matching paren found.')
-               call prestore_pos( save_pos)
-               end_line
-               repeat_find
-               iterate  -- Keep looking
-            endif
-            after_paren_ch = leftstr( strip( substr( translate( textline( .line), ' ', \t), .col + 1)), 1)
-         else
-            after_paren_ch = ' '
-         endif
-         do while after_paren_ch = ' ' & .line < .last
-            '+1'
-            after_paren_ch = leftstr( strip( translate( textline( .line), ' ', \t)), 1)
-         enddo
-         if pos( after_paren_ch, ';),([-+*.=?&|}!<>') then
-            dprintf( 'TAG', '...skipping; after_paren_ch in list.  "'after_paren_ch'"')
-            end_line
-            repeat_find
-            iterate
-         endif
-         call prestore_pos( save_pos)
-
-         -- Restore line (required if opening paren was on next line)
-         line = procline
-
-         parse value strip( line) with line '('
-         proc_name = lastword( line)
-         v = verify( upcase( proc_name), IDENTIFIER_STARTER, 'M')
-         if not v then
-            dprintf( 'TAG', '...skipping; verify =' v)
-            end_line
-            repeat_find
-            iterate
-         endif
-
-         proc_name = substr( proc_name, v)
-         if wordpos( proc_name, IGNORE_C_KEYWORDS) then
-            dprintf( 'TAG', '...skipping; procname "'proc_name'" in ignore list')
-            end_line
-            repeat_find
-            iterate
-         endif
-
-         if verify( upcase( proc_name), IDENTIFIER_STARTER'0123456789'colon) then
-            dprintf( 'TAG', '...skipping; procname "'proc_name'" contains invalid characters')
-            end_line
-            repeat_find
-            iterate
-         endif
-
-         w = words( line)
-         if w > 1 then
-            if verify( upcase( subword( line, 1, w - 1)), IDENTIFIER_STARTER'0123456789*()[] 'colon||cpp_decl) then
-               dprintf( 'TAG', '...skipping; character invalid in a declarator appears before "'proc_name'" in:  'line)
-               end_line
-               repeat_find
-               iterate
-            endif
-         endif
-/*
-         if inside_comment( 'C') then
-            end_line
-            repeat_find
-            iterate
-         endif
-*/
-         display 2
-         endif
-         return 0
-
-      if substr( line, .col, 1) <> '(' then
-         dprintf( 'TAG', '...skipping; .col =' .col'; char = "'substr( line, .col, 1)'"')
-      elseif rightstr(line,1)=';' then
-         dprintf( 'TAG', '...skipping; ends in semicolon; line = "'line'"')
-      else
-         dprintf( 'TAG', '...skipping; no idea why.')
+      if rc then
+         leave
       endif
-
-      end_line
-      repeat_find
-
-   endloop
 /*
-   call prune_assist_array()
+      -- This is slow for large files
+      if inside_comment( 'C') then
+         end_line
+         iterate
+      endif
 */
+      rc = 0
+      leave
+   enddo
+   --dprintf( 'rc = 'rc' for proc_name = 'proc_name)
+
+   display 2
+   return rc
 
 defproc pas_proc_search( var proc_name, find_first)
    case = arg(3)
@@ -1550,5 +1543,6 @@ defc tagscan
    -- Locate procname in line, don't use the user's search options and suppress msgs
    display -2
    'xcom l '\1''procname
+   lrc = rc
    display 2
 
