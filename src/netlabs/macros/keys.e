@@ -207,14 +207,15 @@ defc otherkeys
 defc ExecKeyCmd
    -- The array var is internally set by the DefKey proc if Alt+num keys
    -- were defined via DefKey.
-   call SaveKeyCmd( arg(1))
+   Key = arg(1)
+   Cmd = GetAVar( 'keydef.'Key)
+   call SaveKeyCmd( Key''\1''Cmd)
 
-   k = lastkey()
-   call Process_Key( k)
-
-   Cmd = GetAVar( 'keydef.'arg(1))
    if Cmd <> '' then
       Cmd
+   else
+      k = lastkey()
+      call Process_Key( k)
    endif
 
 ; ---------------------------------------------------------------------------
@@ -2545,7 +2546,7 @@ defc MarkEndScreen
 ; ---------------------------------------------------------------------------
 ; Record and playback key and menu commands
 ; The array var 'recordkeys' holds the list of \0-separated Key\1Cmd pairs.
-; It is set by SaveKeyCmd, that is called by OtherKeys, ExecKeyCmd and
+; It is set by SaveKeyCmd, which is called by OtherKeys, ExecKeyCmd and
 ; ExecAccelKey.
 
 defproc AddRecordKeys
@@ -2563,15 +2564,16 @@ defproc AddRecordKeys
 
 defc RecordKeys
    universal recordingstate
+   RecordKeysKeyString = strip( MenuAccelString( 'RecordKeys'), 'L', \9)
+   PlaybackKeysKeyString = strip( MenuAccelString( 'PlaybackKeys'), 'L', \9)
    if recordingstate = 'R' then
       recordingstate = 'P'
-      'SayHint' REMEMBERED__MSG
+      --'SayHint' REMEMBERED__MSG
+      'SayHint Remembered!  Press 'PlaybackKeysKeyString' to execute.'
    else
       recordingstate = 'R'
       SetAVar( 'recordkeys', '')
       --'SayHint' CTRL_R__MSG
-      RecordKeysKeyString = strip( MenuAccelString( 'RecordKeys'), 'L', \9)
-      PlaybackKeysKeyString = strip( MenuAccelString( 'PlaybackKeys'), 'L', \9)
       'SayHint Remembering keys.  'RecordKeysKeyString' to finish, 'PlaybackKeysKeyString' to finish and try, Esc to cancel.'
    endif
 
@@ -2583,9 +2585,11 @@ defc CancelRecordKeys
 defc PlaybackKeys
    universal recordingstate
    Rest = GetAVar( 'recordkeys')
+   PlaybackKeysKeyString = strip( MenuAccelString( 'PlaybackKeys'), 'L', \9)
    if recordingstate = 'R' then
       recordingstate = 'P'
-      'SayHint' REMEMBERED__MSG
+      --'SayHint' REMEMBERED__MSG
+      'SayHint Remembered!  Press 'PlaybackKeysKeyString' to execute.'
    endif
    if recordingstate <> 'P' or Rest = '' then
       return
@@ -2598,9 +2602,13 @@ defc PlaybackKeys
       parse value( KeyDef) with Key \1 Cmd
       Rest = \0''Rest
       -- Execute either accel or standard (other) key
-      if Cmd <> '' then
+      if Key == \0 then
+         -- nop
+      elseif Cmd <> '' then
+         -- Execute Cmd if defined
          ''Cmd
-      else
+      elseif length( Key) = 1 then
+         -- A standard char
          call Process_Key( Key)
       endif
       if Rest = \0 then
