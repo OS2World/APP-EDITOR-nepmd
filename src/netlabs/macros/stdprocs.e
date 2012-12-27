@@ -899,3 +899,38 @@ defproc StripBlanks( next)
    endif
    return next
 
+; ---------------------------------------------------------------------------
+; Count quotes in LeftLine, e.g. in part of line before the cursor.
+; If odd, then char at cursor pos. must belong to a string.
+; Syntax: fString = IsString( <LeftLine>[, <Quotes>])
+;         fString is 0 | 1.
+;         <Quotes> is a space-separated list of quote chars.
+;         Default value is " '.
+defproc IsString( LeftLine)
+   Quotes = arg(2)
+   if Quotes = '' then
+      Quotes = '"' || " '"
+   endif
+
+   fString = 0
+   do w = 1 to words( Quotes)
+      Quote = word( Quotes, w)
+      numQ = 0
+      pStartQ = 1
+      do forever
+         pQ = pos( Quote, LeftLine, pStartQ)
+         if pQ = 0 then
+            leave
+         endif
+         numQ = numQ + 1
+         pStartQ = pQ + 1
+      enddo
+
+      if (numQ // 2 <> 0) then
+         fString = 1
+         leave
+      endif
+   enddo
+
+   return fString
+
