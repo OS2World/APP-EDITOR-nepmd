@@ -706,7 +706,9 @@ defproc add_file_menu(menuname)
    buildmenuitem menuname, mid, i, DYNASPELL_MENU__MSG,                                                  -- Auto-spellcheck
                                    'Toggle_Dynaspell' ||
                                    DYNASPELL_MENUP__MSG,
-                                   MIS_TEXT + endsubmenu, mpfrom2short(HP_OPTIONS_DYNASPELL, nodismiss)
+                                   --MIS_TEXT + endsubmenu, mpfrom2short(HP_OPTIONS_DYNASPELL, nodismiss)
+                                   -- Bug: nodismiss here leads to a hidden cursor
+                                   MIS_TEXT + endsubmenu, mpfrom2short(HP_OPTIONS_DYNASPELL, 0)
    if nodismiss > 0 then
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------

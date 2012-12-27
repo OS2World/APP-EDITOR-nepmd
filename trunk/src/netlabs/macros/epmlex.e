@@ -999,81 +999,90 @@ compile endif
       endif
    endif
 
-defc SpellProofNext
+defc SpellProofDyn
    universal lexam_punctuation
    universal EPM_utility_array_ID
    universal dynaspel_line
    universal dynaspel_col
 
-   Mode = GetMode()
-   saveline = .line
-   savecol = .col - 1
-   getfileid fid
-   getline line, saveline
-   if not savecol or line = '' then
-      dprintf( 'SPELL', '[Line was blank]')
-      return
-   endif
-   if substr( line, savecol, 1) = ' ' then
-      dprintf( 'SPELL', '[Prev. char was blank]')
-      return
-   endif
-;  newcol = .col
-   start = lastpos( ' ', line, savecol)
-;  wrd = substr( line, start + 1, savecol - start)
-   parse value substr( line, start + 1) with wrd .
-   if not verify( wrd, lexam_punctuation) then  -- No letters in "word"; skip it.
-      dprintf( 'SPELL', '[Only punctuation in word 'wrd']')
-      return
-   endif
-   firstchar = leftstr( wrd, 1)
-   if firstchar = '\' then             -- Do the cheap test first
-      if Mode = 'TEX' then
-         dprintf( 'SPELL', '[TEX token: 'wrd']')
-         return
+   do n = 1 to 1
+      Mode = GetMode()
+      saveline = .line
+      savecol = .col - 1
+      getfileid fid
+      getline line, saveline
+      if not savecol or line = '' then
+         dprintf( 'SPELL', '[Line was blank]')
+         leave
       endif
-   elseif pos( firstchar, ':&') then  -- (Do the cheap test first)  Script markup or variable?
-      if wordpos( Mode, 'IPF SCRIPT') > 0 then
-         p = pos( '.', wrd)
-         if p & p < length( wrd) then
-            wrd = substr( wrd, p + 1)
-         else
-            if firstchar='&' then
-               dprintf( 'SPELL', '[SCRIPT variable: 'wrd']')
+      if substr( line, savecol, 1) = ' ' then
+         dprintf( 'SPELL', '[Prev. char was blank]')
+         leave
+      endif
+;     newcol = .col
+      start = lastpos( ' ', line, savecol)
+;     wrd = substr( line, start + 1, savecol - start)
+      parse value substr( line, start + 1) with wrd .
+      if not verify( wrd, lexam_punctuation) then  -- No letters in "word"; skip it.
+         dprintf( 'SPELL', '[Only punctuation in word 'wrd']')
+         leave
+      endif
+      firstchar = leftstr( wrd, 1)
+      if firstchar = '\' then             -- Do the cheap test first
+         if Mode = 'TEX' then
+            dprintf( 'SPELL', '[TEX token: 'wrd']')
+            leave
+         endif
+      elseif pos( firstchar, ':&') then  -- (Do the cheap test first)  Script markup or variable?
+         if wordpos( Mode, 'IPF SCRIPT') > 0 then
+            p = pos( '.', wrd)
+            if p & p < length( wrd) then
+               wrd = substr( wrd, p + 1)
             else
-               dprintf( 'SPELL', '[SCRIPT markup: 'wrd']')
+               if firstchar='&' then
+                  dprintf( 'SPELL', '[SCRIPT variable: 'wrd']')
+               else
+                  dprintf( 'SPELL', '[SCRIPT markup: 'wrd']')
+               endif
+               leave
             endif
-            return
+         endif
+      elseif firstchar='.' & not start then  -- (Do the cheap test first)  SCRIPT control word?
+         if wordpos( Mode, 'IPF SCRIPT') > 0 then
+            dprintf( 'SPELL', '[SCRIPT control word: 'wrd']')
+            leave
          endif
       endif
-   elseif firstchar='.' & not start then  -- (Do the cheap test first)  SCRIPT control word?
-      if wordpos( Mode, 'IPF SCRIPT') > 0 then
-         dprintf( 'SPELL', '[SCRIPT control word: 'wrd']')
-         return
+      result = lexam( LXFVERFY, wrd)      -- authenticate word using lexam
+      if result then
+         call strippunct( wrd, savecol, tmp)
+         result = lexam( LXFVERFY, wrd)
       endif
-   endif
-   result = lexam( LXFVERFY, wrd)      -- authenticate word using lexam
-   if result then
-      call strippunct( wrd, savecol, tmp)
-      result = lexam( LXFVERFY, wrd)
-   endif
-   if (result <> LXRFGOOD) then         -- was it a success?
+      if (result <> LXRFGOOD) then         -- was it a success?
 compile if DYNASPELL_BEEP = 'ALARM'
-      call dynalink32( 'PMWIN',
-                       '#701',     -- ORD_WIN32ALARM
-                       atol(1) ||  -- HWND_DESKTOP
-                       atol(0))    -- WA_WARNING
+         call dynalink32( 'PMWIN',
+                          '#701',     -- ORD_WIN32ALARM
+                          atol(1) ||  -- HWND_DESKTOP
+                          atol(0))    -- WA_WARNING
 compile elseif DYNASPELL_BEEP
-      call beep( 1000, 100)
+         call beep( 1000, 100)
 compile endif
-      dynaspel_line = saveline
-      dynaspel_col = savecol
-      sayerror DYNASPEL_PROMPT1__MSG || wrd || DYNASPEL_PROMPT2__MSG
-   else
-      dprintf( 'SPELL', '[Word was 'wrd' - OK]')
+         dynaspel_line = saveline
+         dynaspel_col = savecol
+         DlgKeyString = strip( MenuAccelString( 'SpellProofDynDlg'), 'L', \9)
+         sayerror 'Unknown word was 'wrd' - press 'DlgKeyString' for alternates.'
+      else
+         dprintf( 'SPELL', '[Word was 'wrd' - OK]')
+      endif
+   enddo
+
+   -- Execute args as Cmd if specified
+   Cmd = strip( arg(1))
+   if Cmd <> '' then
+      Cmd
    endif
 
-defc SpellProofCurWord
+defc SpellProofDynDlg
    universal dynaspel_line
    universal dynaspel_col
    universal dynaspel_closecmd
