@@ -366,10 +366,10 @@ defc StdPadEnter, StdEnter
 ; ---------------------------------------------------------------------------
 ; ---- Auto-spellcheck (dynaspell) ----
 defc SpellKeys
-DefKey( 'c_a'          , 'SpellProofCurWord')
-DefKey( 'space'        , 'SpellProofNext'   )
-DefKey( 'newline'      , 'SpellProofNext'   )
-DefKey( 'enter'        , 'SpellProofNext'   )
+DefKey( 'space'        , 'SpellProofDyn ExpandFirst Space')
+DefKey( 'newline'      , 'SpellProofDyn StdNewline')
+DefKey( 'enter'        , 'SpellProofDyn StdEnter')
+DefKey( 'c_a'          , 'SpellProofDynDlg')  -- Unknown word was ... - press Ctrl+A for alternates.
 
 ; ---------------------------------------------------------------------------
 ; ---- All command: key for all/source file switching ----
