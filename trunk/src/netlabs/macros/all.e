@@ -57,66 +57,67 @@ defmain
    'All' arg(1)
 compile endif
 
+; ---------------------------------------------------------------------------
 ; ALL macro
 defc All
    universal allorig
    universal allsrch
    universal default_search_options
    universal activeaccel
-   call psave_pos(save_pos)
-   if .filename = '.ALL' & arg(1) then
-      .filename = '.prev_ALL'
+
+   allsrch = strip( arg(1), 'L')
+   if allsrch = '' or allsrch = '/' then
+      sayerror 'All: Error: search string is missing.'
+      return
    endif
 
+   call psave_pos(save_pos)
    getfileid allorig
-   call SetAVar( 'prevkeyset.'allorig, activeaccel)
-   -- Extend keyset
-   'SetKeyset all' activeaccel'value' 'all'
 
+   if GetAVar( 'prevkeyset.'allorig) = '' then
+      -- Save previous keyset
+      call SetAVar( 'prevkeyset.'allorig, activeaccel)
+      -- Extend keyset
+      'SetKeyset all' activeaccel'value' 'all'
+   endif
+
+   -- Rename previous .ALL file, if found
+   getfileid prevallfile, '.ALL'
+   if prevallfile <> '' then
+      prevallfile.filename = '.prev_ALL'
+   endif
+
+   -- Create new .ALL file
    'e /q /n .ALL'    -- Don't use XCOM so can handle either windowing style
    .filename = '.ALL'
    getfileid allfile
    -- Extend keyset
    'PostMe SetKeyset all' activeaccel'value' 'all'  -- PostMe required
-
-   allsrch = strip( arg(1), 'L')
-   if allsrch = '' then
-      .modify = 0
-      'q'
-      if allorig <> allfile then
-         activatefile allorig
-         -- Restore keyset
-         PrevKeyset = GetAVar( 'prevkeyset.'allorig)
-         'SetKeyset' PrevKeyset
-      endif
-      sayerror 1
-      return
-   endif
    for i = 1 to .last
       deleteline 1
    endfor
 
    activatefile allorig
 
-    -- Copied from DEFC L - we only will use E or C (case) and A or M (mark)
-    DSO = ''   -- DSO = subset of default_search_options
-    do i = 1 to length(default_search_options)
-       ch = substr( default_search_options, i, 1)
-       if pos( ch, 'EeCcAaMm') > 0 then
-          DSO = DSO''ch
-       endif
-    end
-    -- Insert default_search_options just before supplied options (if any)
-    -- so the supplied options will take precedence.
+   -- Copied from DEFC L - we only will use E or C (case) and A or M (mark)
+   DSO = ''   -- DSO = subset of default_search_options
+   do i = 1 to length( default_search_options)
+      ch = substr( default_search_options, i, 1)
+      if pos( ch, 'EeCcAaMm') > 0 then
+         DSO = DSO''ch
+      endif
+   end
+   -- Insert default_search_options just before supplied options (if any)
+   -- so the supplied options will take precedence.
 ;   if DSO then
-       ch = substr( allsrch, 1, 1)
-       p  = pos( ch, allsrch, 2)
-       user_options = ''
-       if p > 0 then
-          user_options = substr( allsrch, p + 1)
-          allsrch      = substr( allsrch, 1, p - 1)
-       endif
-       allsrch = allsrch''ch''DSO''user_options
+      ch = substr( allsrch, 1, 1)
+      p  = pos( ch, allsrch, 2)
+      user_options = ''
+      if p > 0 then
+         user_options = substr( allsrch, p + 1)
+         allsrch      = substr( allsrch, 1, p - 1)
+      endif
+      allsrch = allsrch''ch''DSO''user_options
 ;   endif
    last_line = .last
    if pos( 'M', upcase(DSO''user_options)) > pos( 'A', upcase(DSO''user_options)) then
@@ -135,7 +136,8 @@ defc All
          leave
       endif
       getline line
-      line = rightstr( .line, 5) line  -- prepend line no
+      -- Prepend line no
+      line = rightstr( .line, 5) line
       insertline line, allfile.last + 1, allfile
       if .line = last_line then
          leave
@@ -148,11 +150,8 @@ defc All
       activatefile allfile
       .modify = 0
       'q'
-      activatefile allorig
-      -- Restore keyset
-      PrevKeyset = GetAVar( 'prevkeyset.'allorig)
-      'SetKeyset' PrevKeyset
       sayerror -273  -- sayerror("String not found")
+      'AllEndSwitchFiles'
       return
    endif
    sayerror 0
@@ -161,11 +160,12 @@ defc All
    .modify = 0
    top
    .col = 7
-   'postme l' allsrch'A'  -- Position cursor under first hit.
+   'PostMe l' allsrch'A'  -- Position cursor under first hit.
                           -- Use l, not xcom l to highlight hit.
    AllKey = strip( MenuAccelString( 'AllSwitchFiles'), 'l', \9)
    'SayHint Press 'AllKey' to switch between this and the original file'
 
+; ---------------------------------------------------------------------------
 ; Shows the .ALL file's current line in the original file
 defc AllSwitchFiles
    universal allorig
@@ -175,6 +175,7 @@ defc AllSwitchFiles
       getfileid allfile, '.ALL'
       if allfile = '' then
          sayerror NO_ALL_FILE__MSG
+         'AllEndSwitchFiles'
       else
          activatefile allfile
          -- Scroll the .ALL file a la FILEMAN.
@@ -188,31 +189,32 @@ defc AllSwitchFiles
             .cursory = .cursory + 1
          else                                       -- Scroll!
             '+1'
-            oldline = .line
+            oldlinenum = .line
             .cursory = (.windowheight + 1)%2        -- Center vertically
-            oldline
+            oldlinenum
          endif
          .col = 6  -- Skip line number for search
-         'l' allsrch'A'
+         'l' allsrch'A'  -- Match on first .ALL line is not highlighted, even not with PostMe
       endif
       return
    endif  -- .filename <> '.ALL'
    getline line
-   parse value line with line .
-   if not isnum(line) then
+   parse value line with linenum .
+   if not isnum( linenum) then
       sayerror BAD_ALL_LINE__MSG
+      'AllEndSwitchFiles'
       return
    endif
    activatefile allorig
    'SetKeyset all' activeaccel'value' 'all'  -- ensure that orig file has 'all' keyset
    .cursory = .windowheight%2                       -- Center vertically
-   line
+   linenum
    .col = 1
-   'l' allsrch'A'  -- Use l, not xcom l to highlight hit.
+   'PostMe l' allsrch'A'  -- Use l, not xcom l to highlight hit, PostMe required
 
+; ---------------------------------------------------------------------------
 defc AllEndSwitchFiles
    universal allorig
-   universal allsrch
    -- Restore keyset
    activatefile allorig
    PrevKeyset = GetAVar( 'prevkeyset.'allorig)
