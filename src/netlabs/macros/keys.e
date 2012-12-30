@@ -91,7 +91,13 @@ compile if not defined(WANT_TAB_INSERTION_TO_SPACE)
    -- for line mode only
    WANT_TAB_INSERTION_TO_SPACE = 0
 compile endif
-
+compile if not defined(WORD_MARK_TYPE)
+   -- Bug using 'BLOCK':
+   -- If a block is copied to the clipboard, a CRLF is appended.
+   -- Sh+Ins will insert this CRLF instead of ignoring it.
+   --WORD_MARK_TYPE = 'BLOCK'  -- changed by aschn
+   WORD_MARK_TYPE = 'CHAR'
+compile endif
 ; ---------------------------------------------------------------------------
 definit
    universal blockreflowflag
@@ -219,7 +225,7 @@ defc ExecKeyCmd
    endif
 
 ; ---------------------------------------------------------------------------
-; An accelerator key issues a WM_COMMAND message, that is processed by the
+; An accelerator key issues a WM_COMMAND message, which is processed by the
 ; ProcessCommand command defined in menu.e.
 ; Some other defs where accelerator keys are filtered are:
 ; def otherkeys, defproc process_key, defc ProcessOtherKeys
@@ -358,7 +364,7 @@ defproc DefKey( KeyString, Cmd)
       if upcase( Key) = lowcase( Key) then
          Flags = Flags + AF_SHIFT
          lastkeyaccelid = lastkeyaccelid + 1
-         buildacceltable activeaccel, KeyString''\1''Cmd, Flags, Key, lastkeyaccelid
+         buildacceltable activeaccel, KeyString''\1''Cmd, Flags, Key, AccelId
       endif
    endif
 */
@@ -2394,9 +2400,62 @@ defc EndFile
    endif
 ;  call end_shift( startline, startcol, shift_flag, 1)
 
-; Moved def c_f to LOCATE.E
+; ---------------------------------------------------------------------------
+defc MarkWord
+   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
+   if arg(1) then
+      'MH_gotoposition'
+      unmark
+   endif
+   call pmark_word()
 
-; c_f1 is not definable in EPM.
+; ---------------------------------------------------------------------------
+defc MarkSentence
+   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
+   if arg(1) then
+      'MH_gotoposition'
+      unmark
+   endif
+   call mark_sentence()
+
+; ---------------------------------------------------------------------------
+defc MarkParagraph
+   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
+   if arg(1) then
+      'MH_gotoposition'
+      unmark
+   endif
+   call mark_paragraph()
+
+; ---------------------------------------------------------------------------
+defc ExtendSentence
+   call mark_through_next_sentence()
+
+; ---------------------------------------------------------------------------
+defc ExtendParagraph
+   call mark_through_next_paragraph()
+
+; ---------------------------------------------------------------------------
+defc MarkToken
+   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
+   if arg(1) then
+      'MH_gotoposition'
+   endif
+;   if marktype() <> '' then
+;      sayerror -279  -- 'Text already marked'
+;      return
+;   endif
+   if find_token( startcol, endcol) then
+      getfileid fid
+compile if WORD_MARK_TYPE = 'CHAR'
+      call pset_mark(.line, .line, startcol, endcol, 'CHAR', fid)
+compile else
+      call pset_mark(.line, .line, startcol, endcol, 'BLOCK', fid)
+compile endif
+      'Copy2SharBuff'  -- Copy mark to shared text buffer
+   endif
+
+; ---------------------------------------------------------------------------
 defc UppercaseWord
    call NextCmdAltersText()
    call psave_pos(save_pos)

@@ -151,7 +151,6 @@ compile endif -- WANT_TEXT_PROCS
    SORT_DESCENDING_MENUP__MSG = \1'Sort the file or marked lines from largest to smallest'
 ;compile endif
 
-
 defc MH_popup
    universal activemenu
    universal previouslyactivemenu
@@ -382,14 +381,14 @@ compile endif
    else  -- Build No-mark pop-up ------------------------------------------------------------------------------------------------------
       ch = substr( textline(.line), .col, 1)
       gray_if_space = 16384*( ch = ' ' | not .line)
-      buildmenuitem menuname, 80, 8000, MARK_WORD_MENU__MSG''MenuAccelString( 'MarkWord'),
-                                        'MarkWord'MARK_WORD_MENUP__MSG,
-                                        0, mpfrom2short(HP_POPUP_MARKWORD, gray_if_space)
-      buildmenuitem menuname, 80, 8001, MARK_TOKEN_MENU__MSG''MenuAccelString( 'MarkToken'),
+      buildmenuitem menuname, 80, 8000, MARK_TOKEN_MENU__MSG''MenuAccelString( 'MarkToken'),
                                         'MarkToken'MARK_TOKEN_MENUP__MSG,
                                         0, mpfrom2short(HP_POPUP_MARKTOKEN, gray_if_space)
-      buildmenuitem menuname, 80, 8002, FIND_TOKEN_MENU__MSG''MenuAccelString( 'FindWord'),
-                                        'FindWord'FIND_TOKEN_MENUP__MSG,
+      buildmenuitem menuname, 80, 8001, MARK_WORD_MENU__MSG''MenuAccelString( 'MarkWord'),
+                                        'MarkWord'MARK_WORD_MENUP__MSG,
+                                        0, mpfrom2short(HP_POPUP_MARKWORD, gray_if_space)
+      buildmenuitem menuname, 80, 8002, FIND_TOKEN_MENU__MSG''MenuAccelString( 'FindToken'),
+                                        'FindToken'FIND_TOKEN_MENUP__MSG,
                                         0, mpfrom2short(HP_POPUP_FINDTOKEN, gray_if_space)
       buildmenuitem menuname, 80, 8010, \0,
                                         '',

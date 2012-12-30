@@ -1065,15 +1065,15 @@ defproc add_mark_menu(menuname)
                                    'MarkLine' ||
                                    \1'Create a line mark between two cursor positions',
                                    MIS_TEXT, 0
-   i = i + 1; call SetAVar( 'mid_markword', i);
-   buildmenuitem menuname, mid, i, 'Mark ~word'MenuAccelString( 'MarkWord'),                             -- Mark word
-                                   'MarkWord' ||
-                                   \1'Mark word under cursor',
-                                   MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_marktoken', i);
    buildmenuitem menuname, mid, i, 'Mark ~identifier'MenuAccelString( 'MarkToken'),                      -- Mark identifier
                                    'MarkToken' ||
                                    \1'Mark identifier (C-style word) under cursor',
+                                   MIS_TEXT, 0
+   i = i + 1; call SetAVar( 'mid_markword', i);
+   buildmenuitem menuname, mid, i, 'Mark ~word'MenuAccelString( 'MarkWord'),                             -- Mark word
+                                   'MarkWord' ||
+                                   \1'Mark word under cursor',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, \0,                                                                   --------------------
@@ -1647,12 +1647,17 @@ endif
                                    '',
                                    MIS_SEPARATOR, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Find ~indentifier'MenuAccelString( 'FindWord'),                -- Find identifier
-                                   'FindWord' ||
+   buildmenuitem menuname, mid, i, 'Find ~indentifier'MenuAccelString( 'FindToken'),               -- Find identifier
+                                   'FindToken' ||
                                    \1'Find identifier (C-style word) under cursor',
                                    MIS_TEXT, 0
+   i = i + 1;
+   buildmenuitem menuname, mid, i, 'Find ~word'MenuAccelString( 'FindWord'),                       -- Find word
+                                   'FindWord' ||
+                                   \1'Find word under cursor',
+                                   MIS_TEXT, 0
    i = i + 1; call SetAVar( 'mid_findmark', i);
-   buildmenuitem menuname, mid, i, 'Find ~mark/word'MenuAccelString( 'FindMark'),                  -- Find mark
+   buildmenuitem menuname, mid, i, 'Find ~mark'MenuAccelString( 'FindMark'),                       -- Find mark
                                    'FindMark' ||
                                    \1'Find marked string else word under cursor',
                                    MIS_TEXT, 0
@@ -2686,7 +2691,7 @@ if not MenuItemsHidden then
                                    MIS_TEXT + MIS_ENDSUBMENU, 0
 
    i = i + 1; call SetAVar( 'mid_directories', i);
-   buildmenuitem menuname, mid, i, 'Director~ies',                                                 -- Directories >
+   buildmenuitem menuname, mid, i, 'Director~ies',                                                 -- Directories  >
                                    '',
                                    MIS_TEXT + MIS_SUBMENU, 0
    i = i + 1; call SetAVar( 'mid_workdir', i);
@@ -3068,9 +3073,9 @@ defproc add_run_menu(menuname)
                                    \1'Execute line under cursor',
                                    MIS_TEXT, 0
    i = i + 1;
-   buildmenuitem menuname, mid, i, 'Commandline current ~line'MenuAccelString( 'CommandDlgLine'),  -- Commandline current line
+   buildmenuitem menuname, mid, i, 'Command line current ~line'MenuAccelString( 'CommandDlgLine'),  -- Command line current line
                                    'CommandDlgLine' ||
-                                   \1'Open line under cursor in commandline window',
+                                   \1'Open line under cursor in command dialog',
                                    MIS_TEXT, 0
    i = i + 1;
    buildmenuitem menuname, mid, i, '~Run current file'MenuAccelString( 'rx Run'),                  -- Run current file
@@ -3121,7 +3126,7 @@ defproc add_help_menu(menuname)
                                    0, mpfrom2short(HP_HELP_EXTENDED, 0)
    i = i + 1;
    buildmenuitem menuname, mid, i, HELP_HELP_MENU__MSG,                                            -- Using help
-                                   'helpmenu 64027' ||
+                                   'helpmenu 0'/*64027*/ ||
                                    HELP_HELP_MENUP__MSG,
                                    0, mpfrom2short(HP_HELP_HELP, 0)
    i = i + 1;
@@ -3493,11 +3498,7 @@ defc menuinit_search
 ;   SetMenuAttribute( GetAVar('mid_globalchangenext'), MIA_DISABLED, lastchangeargs <> '')  -- Global change next only if 'c'
 ;   SetMenuAttribute( GetAVar('mid_toggledirection'),  MIA_DISABLED, c <> '')               -- Toggle direction OK if not blank
    on = FileIsMarked()
-   if on then
-      SetMenuText( GetAVar('mid_findmark'), 'Find ~mark')
-   else
-      SetMenuText( GetAVar('mid_findmark'), 'Find ~word')
-   endif
+   SetMenuAttribute( GetAVar('mid_findmark'), MIA_DISABLED, on)
    -- Menu for CUA keys doesn't have a Backward item
    if GetKeyDef() = '-none-' then
       on = (GetSearchDirection() = '-')
@@ -5058,7 +5059,7 @@ defc set_ReflowMargins
    if i = 3 then
       new = args
       if new = '' then
-         'ma'  -- Open commandline with current .margins value
+         'ma'  -- Open command line with current .margins value
          return
       endif
       reflowmargins = .margins
@@ -5067,7 +5068,7 @@ defc set_ReflowMargins
       new = args
       if new = '' then
          old = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-         'commandline set_ReflowMargins' old  -- Open commandline with current value
+         'commandline set_ReflowMargins' old  -- Open command line with current value
          return
       endif
       call NepmdWriteConfigValue( nepmd_hini, KeyPath, new)

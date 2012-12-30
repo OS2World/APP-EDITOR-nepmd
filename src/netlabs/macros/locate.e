@@ -24,6 +24,12 @@
 ; display 8  ==> reenables messages from a previous display -8
 ; The rest is documented in epmtech.inf.
 
+; xcom l has some bugs:
+; -  It doesn't move the cursor.
+; -  With option 'r', it also finds the search string at the cursor.
+; -  In replace mode, it moves the cursor, but by the length on the search
+;    string, not by the replace string.
+
 ; ---------------------------------------------------------------------------
 
 compile if not defined(SMALL)  -- If SMALL not defined, then being separately compiled
@@ -1321,23 +1327,6 @@ defc MacGrep
    endif
 
 ; ---------------------------------------------------------------------------
-defc FindMark
-   if not FileIsMarked() then
-     'MarkWord'
-   endif
-   -- Get active mark coordinates and fileid
-   getmark first_line, last_line, first_col, last_col, mark_fileid
-   if last_line <> first_line then
-      last_line = first_line
-      endline
-      last_col = .col
-   endif
-   searchstring = substr( textline( first_line ), first_col, last_col - first_col + 1)
-   if searchstring <> '' then
-      'l '\1''searchstring
-   endif
-
-; ---------------------------------------------------------------------------
 ; Support for Graphical File Comparison
 ; Compares current file with another. File open dialog of GFC will open.
 ; If current file is located in any tree of %NEPMD_ROOTDIR%\netlabs or
@@ -1381,15 +1370,58 @@ defc GfcCurrentFile
    'start /f gfc 'GfcParams
 
 ; ---------------------------------------------------------------------------
-; Moved from MOUSE.E
-; Find identifier under cursor -- if arg(1) > 0: -- under pointer.
+defc FindMark
+   if FileIsMarked() then
+      -- Get active mark coordinates and fileid
+      getmark first_line, last_line, first_col, last_col, mark_fileid
+      if last_line <> first_line then
+         -- Take up to one line
+         last_line = first_line
+         endline
+         last_col = .col
+      endif
+      searchstring = substr( textline( first_line ), first_col, last_col - first_col + 1)
+      if searchstring <> '' then
+         'l '\1''searchstring
+      endif
+   endif
+
+; ---------------------------------------------------------------------------
+; Find word under cursor -- if arg(1) > 0: -- under pointer.
 defc FindWord
    -- If arg(1) specified and > 0: Set cursor to pos of pointer.
    if arg(1) then
       'MH_gotoposition'
    endif
-   call psave_pos(savedpos)
-   if find_token(startcol, endcol) then
+   lrc = 1
+   startline = .line
+   startcol  = .col
+   call pend_word()
+   lastcol = .col
+   call pbegin_word()
+   firstcol = .col
+   -- Start search after current word
+   .col = lastcol + 1
+   searchstring = substr( textline( startline), firstcol, lastcol - firstcol + 1)
+   if searchstring <> '' then
+      'l '\1''searchstring
+      lrc = rc
+   endif
+   if rc <> 0 then
+      .col = startcol
+   endif
+
+; ---------------------------------------------------------------------------
+; Moved from MOUSE.E
+; Find identifier under cursor -- if arg(1) > 0: -- under pointer.
+defc FindToken
+   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
+   if arg(1) then
+      'MH_gotoposition'
+   endif
+   lrc = 1
+   call psave_pos( savedpos)
+   if find_token( startcol, endcol) then
       -- find_token returns first and last col of the found string. Therefore
       -- search shall start from 1 col behind.
       .col = endcol + 1
@@ -1402,17 +1434,17 @@ defc FindWord
       -- Therefore 'locate' now calls the proc locate, that sets rc correctly.
       -- rc is the rc from 'xcom locate'.
       -- (rc is a universal var, that doesn't need the universal definition.)
-      'l '\1''substr( textline(.line), startcol, (endcol - startcol) + 1)
+      'l '\1''substr( textline( .line), startcol, (endcol - startcol) + 1)
       lrc = rc
    endif
    --sayerror 'defc findword: lrc = 'lrc
    if lrc <> 0 then  -- if not found
-      call prestore_pos(savedpos)
+      call prestore_pos( savedpos)
    endif
 
 ; ---------------------------------------------------------------------------
 ; Moved from STDPROCS.E
-defproc find_token(var startcol, var endcol)  -- find a token around the cursor.
+defproc find_token( var startcol, var endcol)  -- find a token around the cursor.
    if arg(3)='' then
       token_separators = ' ~`!%^&*()-+=][{}|\:;?/><,''"'\t
    else
@@ -1424,17 +1456,17 @@ defproc find_token(var startcol, var endcol)  -- find a token around the cursor.
       diads = arg(4)
    endif
    getline line
-   len = length(line)
-   if .col>len | pos(substr(line, .col, 1), ' '\t) then
+   len = length( line)
+   if .col > len | pos( substr( line, .col, 1), ' '\t) then
       return  -- Past end of line, or over whitespace
    endif
-   endcol = verify(line, token_separators, 'M', .col)
+   endcol = verify( line, token_separators, 'M', .col)
    if endcol = .col then  -- On an operator.
       startcol = endcol
-      if wordpos(substr(line, startcol, 2), diads) then
+      if wordpos( substr( line, startcol, 2), diads) then
          endcol = endcol + 1  -- On first character
       elseif .col > 1 then
-         if wordpos(substr(line, endcol-1, 2), diads) then
+         if wordpos( substr( line, endcol-1, 2), diads) then
             startcol = startcol - 1  -- -- On last character
          endif
       endif
@@ -1445,7 +1477,7 @@ defproc find_token(var startcol, var endcol)  -- find a token around the cursor.
    else
       endcol = len
    endif
-   startcol = verify(reverse(line), token_separators, 'M', len - .col + 1)
+   startcol = verify( reverse( line), token_separators, 'M', len - .col + 1)
    if startcol then
       startcol = len - startcol + 2
    else
