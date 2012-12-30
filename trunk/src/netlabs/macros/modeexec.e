@@ -314,11 +314,12 @@ defc ProcessLoadSettings
       Cmd  -- execute command
    enddo
 
+   -- Copy mode-specific coding style to file-specific one. This is only used
+   -- to query the current coding style later.
+   next = GetAVar( 'modecodingstyle.'Mode)
+   call SetAVar( 'codingstyle.'fid, next)
+
    if loadstate then          -- during defload processing
-      -- Copy mode-specific coding style to file-specific one. This is only used
-      -- to query the current coding style later.
-      next = GetAVar( 'modecodingstyle.'Mode)
-      call SetAVar( 'codingstyle.'fid, next)
 
       -- Activate keyword highlighting, if not already done by load_<mode> hook
       next = GetAVar( 'highlight.'fid)  -- get file setting
@@ -327,6 +328,7 @@ defc ProcessLoadSettings
       endif
 
    elseif loadstate = 0 then  -- when changing a mode
+
       List = LoadSettingsList
       do w = 1 to words( List)  -- Only LoadSettings need to be reset for default mode
          wrd = word( List, w)
@@ -1579,6 +1581,12 @@ defproc GetCodingStyle
    getfileid fid
    CurCodingStyle = GetAVar( 'codingstyle.'fid)
    return CurCodingStyle
+
+defc ShowCodingStyle
+   getfileid fid
+   CurCodingStyle = GetAVar( 'codingstyle.'fid)
+   sayerror 'fid = 'fid', CodingStyle = 'CurCodingStyle
+
 
 ; ---------------------------------------------------------------------------
 ; Open a listbox to select a coding style for the current or specified mode.
