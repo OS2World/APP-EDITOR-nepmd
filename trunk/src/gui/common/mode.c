@@ -596,7 +596,6 @@ do
 
    if (!pszExtMode)
       {
-      // create a strdup of the path, so that we can tokenize it
       pszKeywordPath = getenv( pszEnvnameEpmModepath);
       if (!pszKeywordPath)
          {
@@ -604,21 +603,24 @@ do
          break;
          }
 
+      // create a strdup of the path, so that we can tokenize it
       pszKeywordPath = strdup( pszKeywordPath);
       if (!pszKeywordPath)
          {
          rc = ERROR_NOT_ENOUGH_MEMORY;
          break;
          }
+         //DPRINTF(( "_scanModes: keyword path = %s\n", pszKeywordPath));
 
       // go through all keyword directories
       pszKeywordDir = strtok( pszKeywordPath, ";");
       while (pszKeywordDir)
          {
+         //DPRINTF(( "_scanModes: keyword dir = %s\n", pszKeywordDir));
          // search all directories in that directory
          sprintf( szSearchMask, SEARCHMASK_MODEDIR, pszKeywordDir);
 
-         // store a filenames
+         // get handle
          hdir = HDIR_CREATE;
 
          while (rc == NO_ERROR)
@@ -629,48 +631,58 @@ do
             if (rc != NO_ERROR)
                break;
 
-            // did we use that mode already?
-            pszDirName = Filespec( szDir, FILESPEC_NAME);
-            strupr( pszDirName);
-            if (!strwrd( szModeList, pszDirName))
+            do
                {
+               // did we use that mode already?
+               pszDirName = Filespec( szDir, FILESPEC_NAME);
+               strupr( pszDirName);
+               //DPRINTF(( "_scanModes: mode dir = %s\n", pszDirName));
+               if (strwrd( szModeList, pszDirName))
+                  {
+                  //DPRINTF(( "_scanModes: - already present in ModeList: %s\n", pszDirName));
+                  break;
+                  }
+
                // new mode found, read settings
                rc = _getModeSettings( pszDirName, pmi, ulBuflen);
-               if (rc == NO_ERROR)
+               if (rc != NO_ERROR)
                   {
-                  // new mode found, first of all add to the list
-                  strcat( szModeList, " ");
-                  strcat( szModeList, pszDirName);
-
-                  // check extension and name
-                  if ((!pszExtMode) &&
-                      (pszExtension) &&
-                      (*pszExtension) &&
-                      (pmi->pszDefExtensions) &&
-                      (*pmi->pszDefExtensions) &&
-                      ((_globMatch( pmi->pszDefExtensions, pszExtension) ||
-                       (strwrd( pmi->pszDefExtensions, pszExtension)))))
-                     pszExtMode = strdup( pszDirName);
-
-                  if ((!pszNameMode) &&
-                      (pszBasename) &&
-                      (*pszBasename) &&
-                      (pmi->pszDefNames) &&
-                      (*pmi->pszDefNames) &&
-                      ((_globMatch( pmi->pszDefNames, pszBasename) ||
-                       (strwrd( pmi->pszDefNames, pszBasename)))))
-                     pszNameMode = strdup( pszDirName);
-
-                  }
-               else
+                  //DPRINTF(( "_scanModes: - error from _getModeSettings: %u\n", rc));
                   rc = NO_ERROR;
+                  break;
+                  }
 
-               }  // if (!strstr( szModeList, szModeTag))
+               // new mode found, first of all add to the list
+               strcat( szModeList, " ");
+               strcat( szModeList, pszDirName);
 
-           // extension mode found? then break here
-           if (pszExtMode)
-              break;
+               // check extension and name
+               if ((!pszExtMode) &&
+                   (pszExtension) &&
+                   (*pszExtension) &&
+                   (pmi->pszDefExtensions) &&
+                   (*pmi->pszDefExtensions) &&
+                   ((_globMatch( pmi->pszDefExtensions, pszExtension) ||
+                    (strwrd( pmi->pszDefExtensions, pszExtension)))))
+                  pszExtMode = strdup( pszDirName);
 
+               if ((!pszNameMode) &&
+                   (pszBasename) &&
+                   (*pszBasename) &&
+                   (pmi->pszDefNames) &&
+                   (*pmi->pszDefNames) &&
+                   ((_globMatch( pmi->pszDefNames, pszBasename) ||
+                    (strwrd( pmi->pszDefNames, pszBasename)))))
+                  pszNameMode = strdup( pszDirName);
+
+               } while (FALSE);
+
+               // extension mode found? then break here
+               if (pszExtMode)
+                  {
+                  //DPRINTF(( "_scanModes: - ExtMode found"));
+                  break;
+                  }
 
             } // while (rc == NO_ERROR)
 
@@ -702,7 +714,7 @@ do
       break;
       }
 
-   // prefer extmode over
+   // prefer ext mode over name mode
    pszMode = NULL;
    if (pszNameMode)
       pszMode = pszNameMode;
