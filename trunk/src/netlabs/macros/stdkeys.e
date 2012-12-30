@@ -61,9 +61,8 @@ DefKey( 's_f5'         , 'CenterLine'      )    -- V-center current line
 DefKey( 'a_b'          , 'MarkBlock'       )    -- Start/end block mark
 DefKey( 'a_l'          , 'MarkLine'        )    -- Start/end line mark
 DefKey( 'a_z'          , 'MarkChar'        )    -- Start/end char mark
-DefKey( 'a_w'          , 'MarkWord'        )    -- Mark current word
-;DefKey( 'c_w'          , 'MarkToken'       )    -- Mark current word, separators according to C syntax
-DefKey( 'a_s_w'        , 'MarkToken'       )    -- Mark current word, separators according to C syntax
+DefKey( 'a_w'          , 'MarkToken'       )    -- Mark current word, separators according to C syntax
+DefKey( 'a_s_w'        , 'MarkWord'        )    -- Mark current word
 DefKey( 'a_u'          , 'UnMark'          )    -- Unmark all
 DefKey( 'c_\'          , 'UnMark'          )    -- Unmark all
 DefKey( 'c_s_a'        , 'UnMark'          )    -- Unmark all
@@ -116,7 +115,9 @@ DefKey( 'c_f'          , 'RepeatFind'      )    -- Repeat find
 DefKey( 'c_c'          , 'RepeatChange'    )    -- Repeat change
 DefKey( 'c_v'          , 'RepeatFindAllFiles'   )  -- Repeat find in all files of the ring
 DefKey( 'c_-'          , 'ToggleSearchDirection')  -- Toggle search direction
-DefKey( 'c_w'          , 'FindWord'        )    -- Find current word, separators according to C syntax
+DefKey( 'c_w'          , 'FindToken'       )    -- Find current word, separators according to C syntax
+DefKey( 'c_s_w'        , 'FindWord'        )    -- Find current word
+DefKey( 'c_s_m'        , 'FindMark'        )    -- Find mark
 DefKey( 'c_s_d'        , 'FindDef'         )    -- Find definition for current word
 
 ; ---- Clipboard ----

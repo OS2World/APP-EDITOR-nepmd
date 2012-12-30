@@ -544,63 +544,6 @@ defc MH_cancel_mark
    refresh
 
 ; ---------------------------------------------------------------------------
-defc markword
-   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
-   if arg(1) then
-      'MH_gotoposition'
-      unmark
-   endif
-   call pmark_word()
-
-; ---------------------------------------------------------------------------
-defc marksentence
-   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
-   if arg(1) then
-      'MH_gotoposition'
-      unmark
-   endif
-   call mark_sentence()
-
-; ---------------------------------------------------------------------------
-defc markparagraph
-   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
-   if arg(1) then
-      'MH_gotoposition'
-      unmark
-   endif
-   call mark_paragraph()
-
-; ---------------------------------------------------------------------------
-defc extendsentence
-   call mark_through_next_sentence()
-
-; ---------------------------------------------------------------------------
-defc extendparagraph
-   call mark_through_next_paragraph()
-
-; ---------------------------------------------------------------------------
-defc marktoken
-   -- If arg(1) specified and > 0: Set cursor to pos of pointer.
-   if arg(1) then
-      'MH_gotoposition'
-   endif
-;   if marktype() <> '' then
-;      sayerror -279  -- 'Text already marked'
-;      return
-;   endif
-   if find_token( startcol, endcol) then
-      getfileid fid
-compile if WORD_MARK_TYPE = 'CHAR'
-      call pset_mark(.line, .line, startcol, endcol, 'CHAR', fid)
-compile else
-      call pset_mark(.line, .line, startcol, endcol, 'BLOCK', fid)
-compile endif
-      'Copy2SharBuff'       /* Copy mark to shared text buffer */
-   endif
-
-; Moved defc findword to LOCATE.E
-
-; ---------------------------------------------------------------------------
 defc MH_singleclick
 compile if    (CLICK_ONLY_GIVES_FOCUS = 1 | CLICK_ONLY_GIVES_FOCUS = 'CUA')
    universal WindowHadFocus
