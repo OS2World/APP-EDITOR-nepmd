@@ -1,6 +1,6 @@
 /****************************** Module Header *******************************
 *
-* Module Name: cua2keys.e
+* Module Name: cuakeys.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
@@ -32,7 +32,7 @@
 ;
 ; The key definitions in this file redefine some definitions of STDKEYS.E.
 
-defc Cua2Keys
+defc CuaKeys
 
 ; File ----------------------------------------------------------------------
 DefKey( 'c_s'          , 'Save'            )    -- was: 'SearchDlg'
