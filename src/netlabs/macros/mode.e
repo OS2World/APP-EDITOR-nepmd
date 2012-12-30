@@ -168,12 +168,15 @@ defc ResetMode
 ; Syntax: mode [arg1 [noea]]
 ;
 ;    arg1 = (NewMode|0|OFF|DEFAULT)
-;           NewMode can be any mode.
-;           ==> Don't try to write the EA EPM.MODE immediately.
+;           NewMode can be any valid mode.
+;
 ;    args are caseless. It doesn't matter, which comes first.
 ;    If no arg specified, then a listbox is opened for selecting a mode.
 defc Mode
-   arg1 = upcase( arg(1))
+   universal loadstate
+
+   arg1 = strip( upcase( arg(1)))
+   ResetModeArgs = '0 OFF DEFAULT'
 
    -- Write EA?
    fSetEa = 1  -- default value
@@ -192,6 +195,24 @@ defc Mode
    endif
 
    NewMode = arg1
+   if NewMode <> '' & wordpos( NewMode, ResetModeArgs) = 0 then
+      -- Check if mode exists
+      ModeList = NepmdQueryModeList()
+      parse value ModeList with 'ERROR:'rc
+      if (rc > '') then
+         sayerror 'List of EPM modes could not be determined, rc = 'rc
+         stop
+      elseif wordpos( NewMode, ModeList) = 0 then
+         sayerror NewMode' is not a valid mode'
+         if loadstate = 0 then  -- after AfterLoad was processed
+            -- Reset to empty to open the SelectMode dialog
+            NewMode = ''
+         else
+            return 87  -- ERROR_INVALID_PARAMETER
+         endif
+      endif
+   endif
+
    if NewMode = '' then
       -- Ask user to set a mode
       NewMode = upcase( SelectMode())
@@ -200,7 +221,7 @@ defc Mode
    if NewMode = '' then
       return 87  -- ERROR_INVALID_PARAMETER
 
-   elseif wordpos( NewMode, '0 OFF DEFAULT') > 0 then
+   elseif wordpos( NewMode, ResetModeArgs) > 0 then
       -- Get the default mode
       NewMode =  NepmdQueryDefaultMode(.filename)
       parse value NewMode with 'ERROR:'rc
