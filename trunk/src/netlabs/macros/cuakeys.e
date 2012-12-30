@@ -1,6 +1,6 @@
 /****************************** Module Header *******************************
 *
-* Module Name: cuakeys.e
+* Module Name: cua2keys.e
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
 *
@@ -32,7 +32,7 @@
 ;
 ; The key definitions in this file redefine some definitions of STDKEYS.E.
 
-defc CuaKeys
+defc Cua2Keys
 
 ; File ----------------------------------------------------------------------
 DefKey( 'c_s'          , 'Save'            )    -- was: 'SearchDlg'
@@ -65,10 +65,16 @@ DefKey( 'a_s_f1'       , 'UppercaseMark'   )
 DefKey( 'c_f'          , 'SearchDlg'       )    -- was: 'RepeatFind'
 DefKey( 'f3'           , 'FindNext'        )    -- was: 'Quit'
 DefKey( 's_f3'         , 'FindPrev'        )    -- was: 'ScrollDown'
-DefKey( 'c_g'          , 'ChangeFindNext'  )    -- was: 'Ring_More', also defined as Sh+Esc
-DefKey( 'c_s_g'        , 'ChangeFindPrev'  )
+DefKey( 'c_g'          , 'FindNext'        )    -- was: 'Ring_More', also defined as Sh+Esc
+DefKey( 'c_s_g'        , 'FindPrev'        )
+DefKey( 'c_t'          , 'ChangeFindNext'  )    -- was: 'PlaybackKeys'
+DefKey( 'c_s_t'        , 'ChangeFindPrev'  )
 DefKey( 'a_f3'         , 'FindNextAllFiles')
 DefKey( 'a_s_f3'       , 'FindPrevAllFiles')
+
+; ---- Key recording ----
+DefKey( 'c_r'          , 'RecordKeys'      )    -- Start/stop recording keys
+DefKey( 'c_s_r'        , 'PlaybackKeys'    )    -- Stop recording and execute recorded keys
 
 ; Scroll --------------------------------------------------------------------
 DefKey( 'c_f2'         , 'ScrollDown'      )
