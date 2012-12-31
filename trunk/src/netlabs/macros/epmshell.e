@@ -70,7 +70,7 @@ compile if not defined( TRASH_TEMP_FILES)
 compile endif
 
 ; ---------------------------------------------------------------------------
-; Some ShellKram macros added. See SHELLKEYS.E for key definitions.
+; Some ShellKram macros added. See STDKEYS.E for key definitions.
 ; SHELLKRAM.E was available from Joerg Tiemann's homepage some years ago:
 ; http://home.foni.net/~tiemannj/epm/index.html
 ; See his pages for documentation.
@@ -1074,7 +1074,92 @@ defproc ShellReadAliasFile
 defc ShellReadAliasFile
    call ShellReadAliasFile()
 
--------------------------------------------------------------SUE_new---------------------
+; ---------------------------------------------------------------------------
+defc ShellNewLine
+   StdNewLine = arg(1)
+   fExecStdNewLine = 0
+
+compile if not (EPM_SHELL_PROMPT = '@prompt epm: $p $g' | EPM_SHELL_PROMPT = '@prompt [epm: $p ]')
+   fExecStdNewLine = 1
+compile endif
+
+   if IsAShell() then
+      rc = ShellEnterWrite()
+      if rc then
+         rc = ShellEnterWriteToApp()
+      endif
+      if rc then
+         fExecStdNewLine = 1
+      endif
+   else
+      fExecStdNewLine = 1
+   endif
+
+   if fExecStdNewLine then
+      StdNewLine
+   endif
+
+; ---------------------------------------------------------------------------
+defc ShellTab
+   universal nepmd_hini
+   universal prevkey
+   parse value prevkey with PrevKeyName \1 .
+   KeyPath = '\NEPMD\User\Shell\FilenameCompletion'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   if on then
+      if wordpos( PrevKeyName, 'tab s_backtab') = 0  then
+         'ShellFncInit'
+      endif
+      'ShellFncComplete'
+   else
+      'Tab'      -- standard definition, keep in sync with STDKEYS.E or
+   endif         -- additional keyset definitions
+
+; ---------------------------------------------------------------------------
+defc ShellBackTab
+   universal nepmd_hini
+   universal prevkey
+   parse value prevkey with PrevKeyName \1 .
+   KeyPath = '\NEPMD\User\Shell\FilenameCompletion'
+   on = (NepmdQueryConfigValue( nepmd_hini, KeyPath) <> 0)
+   if on then
+      if wordpos( PrevKeyName, 'tab s_backtab') = 0  then
+         'ShellFncInit'
+      endif
+      'ShellFncComplete -'
+   else
+      'BackTab'  -- standard definition, keep in sync with STDKEYS.E or
+   endif         -- additional keyset definitions
+
+; ---------------------------------------------------------------------------
+defc ShellGotoPrevPrompt
+   executekey up
+   'xcom l /^epm\: [^>]*>:o\c/x-'
+   refresh
+
+defc ShellGotoNextPrompt
+   executekey down
+   'xcom l /^epm\: [^>]*>:o\c/x+'
+   refresh
+
+;    and now step for step explained
+;    /^epm\: [^>]*>:o\c/x+
+;
+;    /      begin of pattern
+;    ^      begin of line
+;    epm    epm
+;    \:     colon
+;    [^>]   any key except ">"
+;    *      none - many of the previous
+;    >      >
+;    :o     optional whitespace
+;    \c     places cursor behind whitespace
+;    /      end of pattern
+;    x      extended grep
+;    +      search forward
+;    -      search backward
+
+; ---------------------------------------------------------------------------
 ; Called from Shell command
 defproc SUE_new( var shell_handle, shellnum)
    thandle = '????'
@@ -1087,7 +1172,7 @@ defproc SUE_new( var shell_handle, shellnum)
    shell_handle = thandle
    return result
 
--------------------------------------------------------------SUE_free--------------------
+; ---------------------------------------------------------------------------
 ; Called from Shell_Kill command
 defproc SUE_free( var shell_handle)
    thandle = shell_handle
@@ -1097,7 +1182,7 @@ defproc SUE_free( var shell_handle)
    shell_handle = thandle
    return result
 
--------------------------------------------------------------SUE_readln------------------
+; ---------------------------------------------------------------------------
 ; Called from NowCanReadShell cmd
 defproc SUE_readln( shell_handle, var buffe, var bytesmoved)
    bufstring = buffe  -- just to insure the same amount of space is available
@@ -1112,7 +1197,7 @@ defproc SUE_readln( shell_handle, var buffe, var bytesmoved)
    buffe      = bufstring
    return result
 
--------------------------------------------------------------SUE_write-------------------
+; ---------------------------------------------------------------------------
 ; Called from Shell_Write command
 defproc SUE_write( shell_handle, buffe, var bytesmoved)
    bm     = "??"
@@ -1125,7 +1210,7 @@ defproc SUE_write( shell_handle, buffe, var bytesmoved)
    bytesmoved = itoa( bm, 10);
    return result;
 
--------------------------------------------------------------Shell_Break-----------------
+; ---------------------------------------------------------------------------
 ; Sends a Break to a shell object
 defc Shell_Break
    parse arg shellnum .
@@ -1232,7 +1317,7 @@ compile endif
 
    endif
 
--------------------------------------------------------------SUE_break-------------------
+; ---------------------------------------------------------------------------
 defproc SUE_break( shell_handle)
    return dynalink32( ERES_DLL,
                       'SUE_break',

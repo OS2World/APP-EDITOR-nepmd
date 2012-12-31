@@ -157,15 +157,6 @@ include        'clipbrd.e'     -- Clipboard interface and mark <--> buffer routi
 
 -- Put all new includes after this line (preferably in MYSTUFF.E). -------------
 compile if not VANILLA
- compile if defined(SITE_KEYS)
-  compile if SITE_KEYS
-   include     SITE_KEYS
-  compile endif
- compile endif
-/*
-   -- This can now be added as an addition via the SelectKeyDefs dialog
-   tryinclude  'mykeys.e'      -- User stuff containing key DEFs.
-*/
  compile if defined(SITE_STUFF)
   compile if SITE_STUFF
    include     SITE_STUFF
@@ -182,28 +173,14 @@ include        'sortepm.e'     -- SORTEPM, SORTE, SORTG, SORTF, SORTGW, SORTDLL,
 
 include        'callrexx.e'    -- REXX support and defcs that previously existed only as defprocs
 
--- Put all new includes above this line. --------------------------------------
--- (The following files define additional keysets)
+-- The following files contain procs and commands for some modes.
+-- The don't contain key defs anymore. Todo: rename.
+tryinclude     'ckeys.e'       -- C
+tryinclude     'ekeys.e'       -- E
+tryinclude     'rexxkeys.e'    -- REXX
+tryinclude     'pkeys.e'       -- PASCAL
 
------------------------> Todo: make the following syntax expansion defs separately compilable
---                             and link them only if required.
-
-include        'shellkeys.e'   -- Syntax-assist for EPM command shells
-
-tryinclude     'ckeys.e'       -- Syntax-assist for C programmers.
-tryinclude     'ekeys.e'       -- Syntax-assist for E programmers.
-tryinclude     'rexxkeys.e'    -- Syntax-assist for Rexx programmers.
-tryinclude     'pkeys.e'       -- Syntax-assist for Pascal programmers.
-
- compile if not VANILLA
-  compile if defined(SITE_KEYSET)
-   compile if SITE_KEYSET
-   include     SITE_KEYSET
-   compile endif
-  compile endif
-   tryinclude  'mykeyset.e'    -- For entirely new keysets defined by power users.
- compile endif  --  not VANILLA
-compile endif  -- ALTERNATE_KEYSETS
+-- Keys are separately compilable. STDKEYS.EX is linked by definit. See STDCNF.E.
 
 EA_comment 'This is the base .ex file for EPM, compiled with ETPM version' EVERSION
 

@@ -209,12 +209,6 @@ compile endif
 
 include NLS_LANGUAGE'.e'
 
--- Filename defining the standard keyset using defkeys edit_keys.
-compile if not defined(STDKEYS_NAME)
-   STDKEYS_NAME = 'STDKEYS'  -- filename without extension '.e'
-compile endif
-
-
 ; ===========================================================================
 ; Part 2: Default keyset via ETK definitions
 ;         Keys are usually defined via PM accelerator key definitions.
@@ -581,42 +575,15 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
    vmessagecolor = MESSAGECOLOR
    vdesktopcolor = DESKTOPCOLOR
 
-;compile if ENTER_ACTION='' | ENTER_ACTION='ADDLINE'  -- The default
-;   enterkey=1; a_enterkey=1; s_enterkey=1; padenterkey=1; a_padenterkey=1; s_padenterkey=1
-;compile elseif ENTER_ACTION='NEXTLINE'
-;   enterkey=2; a_enterkey=2; s_enterkey=2; padenterkey=2; a_padenterkey=2; s_padenterkey=2
-;compile elseif ENTER_ACTION='ADDATEND'
-;   enterkey=3; a_enterkey=3; s_enterkey=3; padenterkey=3; a_padenterkey=3; s_padenterkey=3
-;compile elseif ENTER_ACTION='DEPENDS'
-;   enterkey=4; a_enterkey=4; s_enterkey=4; padenterkey=4; a_padenterkey=4; s_padenterkey=4
-;compile elseif ENTER_ACTION='DEPENDS+'
-;   enterkey=5; a_enterkey=5; s_enterkey=5; padenterkey=5; a_padenterkey=5; s_padenterkey=5
-;compile elseif ENTER_ACTION='STREAM'
-;   enterkey=6; a_enterkey=6; s_enterkey=6; padenterkey=6; a_padenterkey=6; s_padenterkey=6
-;compile endif
-;compile if C_ENTER_ACTION='ADDLINE'
-;   c_enterkey=1; c_padenterkey=1;
-;compile elseif C_ENTER_ACTION='' | C_ENTER_ACTION='NEXTLINE'  -- The default
-;   c_enterkey=2; c_padenterkey=2;
-;compile elseif C_ENTER_ACTION='ADDATEND'
-;   c_enterkey=3; c_padenterkey=3;
-;compile elseif C_ENTER_ACTION='DEPENDS'
-;   c_enterkey=4; c_padenterkey=4;
-;compile elseif C_ENTER_ACTION='DEPENDS+'
-;   c_enterkey=5; c_padenterkey=5;
-;compile elseif C_ENTER_ACTION='STREAM'
-;   c_enterkey=6; c_padenterkey=6;
-;compile endif
-
    stream_mode = 1
    'togglecontrol 24 1'
 
 ; #### Todo: replace ########################################################
- compile if defined(STD_MONOFONT)
+compile if defined(STD_MONOFONT)
    parse value STD_MONOFONT with ptsize'.'name
- compile else
+compile else
    parse value '12.System VIO' with ptsize'.'name
- compile endif
+compile endif
    default_font = registerfont( name, 'DD'ptsize'0WW0HH0BB', 0)
 
 ; compile if defined(my_CURSORDIMENSIONS)
@@ -639,17 +606,7 @@ compile endif                    -- 'EPM', LaMail (LAMPATH) would be 'LAM'
    -- and toggleframe are used above.
 
    'linkverify keys'
-   'link stdkeys'          -- accelerator key defs, gathered as defc StdKeys
-
-;; Test for linking/unlinking the standard keyset.
-;; Link works, but the keyset is not processed.
-;compile if defined( LINK_STDKEYS)
-; compile if LINK_STDKEYS
-;   keys dummy_keys
-;   'linkverify' STDKEYS_NAME
-;   keys edit_keys
-; compile endif
-;compile endif
+   'link stdkeys'          -- accelerator key defs
 
    'linkverify file'
    'linkverify backup'

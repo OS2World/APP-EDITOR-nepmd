@@ -281,6 +281,9 @@ compile endif
 compile if not defined(SMARTSAVE)
    SMARTSAVE = 1
 compile endif
+compile if not defined(STDKEYS_NAME)
+   STDKEYS_NAME = 'STDKEYS'
+compile endif
    WPS_SUPPORT = 0
 
 ; No effect in standard EPM
