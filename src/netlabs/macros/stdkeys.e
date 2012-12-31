@@ -378,3 +378,29 @@ defc AllKeys
 DefKey( 'c_q'          , 'AllSwitchFiles'   )
 DefKey( 'c_s_q'        , 'AllEndSwitchFiles')
 
+; ---------------------------------------------------------------------------
+defc ShellKeys
+
+; ---- Tab ----
+DefKey( 'tab'          , 'ShellTab'               )
+DefKey( 's_backtab'    , 'ShellBackTab'           )
+
+; ---- Enter ----
+DefKey( 'newline'      , 'ShellNewLine StdNewLine')
+DefKey( 'enter'        , 'ShellNewLine StdEnter'  )
+
+; From Joerg Tiemann's SHELLKRAM.E:
+
+; Invoke history window
+DefKey( 'a_h'          , 'Shell_History'          )
+
+; Write-to-Shell hotkey
+DefKey( 'a_i'          , 'Shell_write'            )
+                     -- without params it first checks, if the current
+                     -- file is a shell window, then opens the
+                     -- Write-to-shell box.
+
+; Jump to the prompt
+DefKey( 'c_up'         , 'ShellGotoPrevPrompt'    )
+DefKey( 'c_down'       , 'ShellGotoNextPrompt'    )
+
