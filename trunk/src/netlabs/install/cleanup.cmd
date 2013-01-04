@@ -126,6 +126,7 @@ DO 1
    rcx = SysDestroyObject( NetlabsDir'\macros\balance.e')
    rcx = SysDestroyObject( NetlabsDir'\macros\next_win.e')
    rcx = SysDestroyObject( NetlabsDir'\macros\next_win.ex')
+   rcx = SysDestroyObject( NetlabsDir'\macros\shellkeys.e')
    rcx = SysDestroyObject( NetlabsDir'\bin\recomp.exe')
    rcx = SysDestroyObject( NetlabsDir'\bin\epmchangestartupdir.cmd')
    rcx = SysDestroyObject( NetlabsDir'\bin\epmchgpal.cmd')
