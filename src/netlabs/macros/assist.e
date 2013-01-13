@@ -547,7 +547,7 @@ compile endif
                if 0 then
                   --placeholder
                ---- Directive(s): #if #ifdef #ifndef #endif #else #elif    ---------------------
-               elseif wordpos(id, '#if #ifdef #ifndef #endif #else #elif') then
+               elseif wordpos(id, '#if #ifdef #ifndef #endif #else #elif') then             -- <-- TODO: allow spaces after '#'
                   if CurMode <> 'JAVA' and CurMode <> 'JAVASCRIPT' then
                      search = '\#[ \t]*\c((if((n?def)?))|endif)([ \t]|$)'
                      if CurMode = 'C' then
@@ -573,7 +573,7 @@ compile endif
                   --  this code might be expanded to <anytoken> { .... }
                   if CurMode <> 'RC' then
                      setsearch 'xcom l /[{;]/xe+F'   -- does following a '{' precede a ';'?
-                     passist_rc = passist_search(CurMode, '{ ;', 'e', 0, 1, /* stop on first 'hit' */ -1)
+                     passist_rc = passist_search(CurMode, '{ ;', 'e', 0, 1, /* stop on first 'hit' */ -1, MaxSearchData)
                      if passist_rc then
                         passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                      else
@@ -593,7 +593,7 @@ compile endif
                elseif id = 'while' then
                   if CurMode <> 'RC' then
                      setsearch 'xcom l /[()]/xe+F'     -- find the end of the conditional
-                     passist_rc = passist_search(CurMode, '(', 'e', 0, 1, 0)
+                     passist_rc = passist_search(CurMode, '(', 'e', 0, 1, 0, MaxSearchData)
                      if passist_rc then                -- no conditional??
                         passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                      else
@@ -680,7 +680,7 @@ compile endif
                      -- The current code allows the cursor on any nonblank, noncomment,
                      -- nonliteral character preceding the parameter list.)
                      setsearch 'xcom l /[()]/xe+F'     -- find the ending ')' or ;
-                     passist_rc = passist_search(CurMode, '(', 'e', 0, 1, 0)
+                     passist_rc = passist_search(CurMode, '(', 'e', 0, 1, 0, MaxSearchData)
                      call dprintf('passist', 'last chance c,... srch_rc line col' passist_rc .line .col)
                      if not passist_rc and substr(textline(.line), .col, 1) = ')' then -- no conditional??
                         passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
@@ -979,7 +979,7 @@ compile endif
                elseif wordpos(id, 'while for') then
                   -- check for begin before ';' (i.e a block loop instead of a single statement loop)
                   setsearch 'xcom l /[ \t]\cdo([ \t]|$)/x' || case || 'c+F'  -- find the end of following 'do'
-                  passist_rc = passist_search(CurMode, 'd', case, 0, 1, -1)
+                  passist_rc = passist_search(CurMode, 'd', case, 0, 1, -1, MaxSearchData)
                   if passist_rc then                -- no 'do'??
                      passist_rc = PASSIST_RC_NOT_ON_A_BALANCEABLE_TOKEN
                   else
@@ -1335,8 +1335,7 @@ compile endif
       newline = .line; newcol = .col
       call prestore_pos(savepos)
       .col = newcol
-      .lineg = newline
-      right; left                      -- scroll_to_cursor
+      .line = newline                 -- scroll_to_cursor
 
       call highlight_match()
    endif
@@ -1814,7 +1813,7 @@ defproc buildMLCArray(mode)
    return modeMLCCount
 
 ; ---------------------------------------------------------------------------
-;  GetMLCCHars: Return the tokens which start and end multi-line comments
+;  GetMLCChars: Return the tokens which start and end multi-line comments
 ;     for the given mode. Also returned is whether the MLC can be nested
 ;     within another MLC. These values are returned through three "var"
 ;     parameters. Each "word" of each these parameters represents the
