@@ -153,6 +153,13 @@ defc InitModeCnf
 'AddCodingStyle JAVA SetCBraceStyle APPEND'
 'AddCodingStyle JAVA SetCCaseStyle INDENT'
 
+/* Christan Langanke's C style */
+'AddCodingStyle C_cla SetIndent 3'
+'AddCodingStyle C_cla SetTabs 3'
+'AddCodingStyle C_cla SetTabKey 0'
+'AddCodingStyle C_cla SetCBraceStyle INDENT'
+'AddCodingStyle C_cla SetCCaseStyle INDENT'
+
 /* Default REXX style */
 'AddCodingStyle REXX_std SetRexxDoStyle INDENT'
 'AddCodingStyle REXX_std SetRexxIfStyle ADDELSE'
