@@ -1077,6 +1077,7 @@ defproc GetGrepVersion
       --
       -- [F:\bin]grep -V              -- Gnu grep
       -- grep (GNU grep) 2.5a
+      -- grep.exe (GNU grep) 2.10
       --
       -- Copyright 1988, 1992-1999, 2000 Free Software Foundation, Inc.
       -- This is free software; see the source for copying conditions. There is NO
@@ -1094,7 +1095,7 @@ defproc GetGrepVersion
       if line = RyString then
          GrepVersion = 0
       else
-         parse value strip( lowcase( line)) with 'grep' rest
+         parse value strip( lowcase( line)) with next rest
          rest = strip( rest)
          if leftstr( rest, 1) = '(' then
             parse value rest with '(' next ')' rest
