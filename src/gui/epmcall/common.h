@@ -30,11 +30,11 @@
 
 #include "nepmd.h"
 
-#define __APPNAME__                    "Netlabs EPM Distribution executable loader"
+#define __APPNAME__                    "netlabs.org EPM Distribution executable loader"
 #define __APPNAMESHORT__               "NEPMD executable loader"  // for title of error msg
 #define __PROGSTEM__                   "epmcall"
-#define __VERSION__                    "v1.14"
-#define __YEAR__                       "2009"
+#define __VERSION__                    "v1.16"
+#define __YEAR__                       "2013"
 
 #endif // COMMON_H
 
