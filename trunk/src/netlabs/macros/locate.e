@@ -331,6 +331,7 @@ defc RepeatChange, C, Change
    universal nepmd_hini
    universal stay  -- if 1, then restore pos even after a successful change
 
+   call NextCmdAltersText()
    call psave_pos(savepos)
 
    fChangeNext = 0  -- differ an initial change command from a (repeated)
