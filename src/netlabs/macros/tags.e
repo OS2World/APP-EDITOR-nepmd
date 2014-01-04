@@ -704,15 +704,12 @@ compile endif
    -- Process previously stored defc command names first, if any.
    -- This handles defc cmd1, cmd2, ...
    getfileid fid
-   if fFindProcName then
-      NextProcs = GetAVar( 'e_tag_next_procs.'fid)
-      if NextProcs <> '' then
-         ProcName = word( NextProcs, 1)
-         call SetAVar( 'e_tag_next_procs.'fid, subword( NextProcs, 2))
-         return 0
-      endif
-   else
-      call DropAVar( 'e_tag_next_procs.'fid)
+   NextProcs = GetAVar( 'e_tag_next_procs.'fid)
+   --dprintf( 'e_proc_search: ProcName = 'ProcName', fFindFirst = 'fFindFirst', NextProcs = 'NextProcs)
+   if NextProcs <> '' then
+      ProcName = word( NextProcs, 1)
+      call SetAVar( 'e_tag_next_procs.'fid, subword( NextProcs, 2))
+      return 0
    endif
 
    display -2
@@ -1446,7 +1443,7 @@ compile endif
    'SayHint Searching for routine.'
    searchrc = proc_search( ProcName, 1, Mode, FType)
    call prune_assist_array()
-   --sayerror 'Using proc_search for 'ProcName', filename = '.filename
+   --dprintf( 'Using proc_search for 'ProcName', filename = '.filename)
    if searchrc then
       if already_loaded = '' then 'quit' endif
       sayerror ProcName" not found in '"filename"'"long_msg
