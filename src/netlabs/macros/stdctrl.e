@@ -1767,19 +1767,14 @@ defc printfile
    endif
 
 defc process_qprint
-compile if EPM_POINTER = 'SWITCH'
    universal vEPM_POINTER
-compile endif
+
    if arg(1) = '' then
       sayerror PRINTER__MSG /*printername*/ NO_QUEUE__MSG
    else
       mouse_setpointer WAIT_POINTER
       qprint arg(1)
-compile if EPM_POINTER = 'SWITCH'
       mouse_setpointer vEPM_POINTER
-compile else
-      mouse_setpointer EPM_POINTER
-compile endif
    endif
 
 ; Flags

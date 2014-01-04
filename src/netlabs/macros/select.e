@@ -19,16 +19,8 @@
 *
 ****************************************************************************/
 
-const
-compile if not defined(LOCAL_MOUSE_SUPPORT)
-   LOCAL_MOUSE_SUPPORT = 0
-compile endif
-   TransparentMouseHandler = "TransparentMouseHandler"
-
 ;  SELECT.E                                                 Bryan Lewis 1/2/89
 ;
-;  This replaces the clumsy old select_edit_keys() procedure, which had to
-;  be explicitly called after any action that might change the current file.
 ;  This DEFSELECT event is automatically triggered whenever the current file
 ;  after an action is different from the one before the action.  It never
 ;  needs to be (and can't be) explicitly called.
@@ -41,36 +33,6 @@ compile endif
 ;  Because of other improvements -- keyset, tabs and margins are bound to
 ;  the file now, and are selected at load time in a DEFLOAD event -- there's
 ;  not much work to be done here.
-;
-defproc select_edit_keys()
-   /* Dummy proc for compatibility.  Select_edit_keys() isn't used any more.*/
-
-; ---------------------------------------------------------------------------
-; Suppress select processing. Used for temporary .filename changes and to
-; avoid a load and select triggering, that otherwise would be executed on
-; canceling the action. Even executing .filename = newname triggers a load
-; and a followed select event.
-;    'DisableSelect'        Disable select processing for all files (e.g.
-;                           before a Name or SaveAs command).
-;    'EnableSelect'         Enable select processsing for all files (e.g.
-;                           after a Name or SaveAs command was successful.
-;                           The load and select events are internally posted,
-;                           so that the EnableSelect command will reset the
-;                           flag before it's been executed.
-;    'postme EnableSelect'  Enable select processsing for all files after
-;                           current command (e.g. Name or SaveAs) was
-;                           completely executed. That triggers defload and
-;                           after that, defselect before the disable flag
-;                           was reset. As a result, defselect will work
-;                           normally from the next processed file on.
-
-defc DisableSelect
-   universal SelectDisabled
-   SelectDisabled = 1
-
-defc EnableSelect
-   universal SelectDisabled
-   SelectDisabled = 0
 
 ; ---------------------------------------------------------------------------
 defselect
@@ -93,22 +55,19 @@ defc ProcessSelect
 
    getfileid fid
 
-compile if 1
    -- Suppress too early select events
    if loadstate = '' then
       dprintf( 'SELECT', 'suppress ProcessSelect for '.filename', fid = 'fid', loadstate = 'loadstate' (initial file)')
       return
    endif
-compile endif
 
    SelectDisabled = 0  -- always reenable it
-   dprintf( 'SELECT', 'ProcessSelect for '.filename', fid = 'fid', loadstate = 'loadstate)
-
 
    if fid = lastselectedfid then
       -- nop, ProcessSelect2 was already executed for this file
       dprintf( 'SELECT', 'suppress ProcessSelect for '.filename', fid = 'fid', loadstate = 'loadstate' (already processed)')
    else
+      dprintf( 'SELECT', 'ProcessSelect for '.filename', fid = 'fid', loadstate = 'loadstate)
       if loadstate = 1 then  -- if a defload was processed before
          loadstate = 2
          'ProcessAfterLoad'  -- executes multiple ring commands that sometimes
@@ -194,13 +153,9 @@ defc ProcessAfterLoad2
    endif
 
 ; ---------------------------------------------------------------------------
-; Executed by defselect
+; Executed by defselect once after all file loading has been processed
 defc ProcessSelect2
    universal nepmd_hini
-compile if LOCAL_MOUSE_SUPPORT
-   universal LMousePrefix
-   universal EPM_utility_array_ID
-compile endif
 compile if WANT_EBOOKIE = 'DYNALINK'
    universal bkm_avail
 compile endif
@@ -208,28 +163,6 @@ compile endif
    dprintf( 'SELECT', 'ProcessSelect2 for '.filename)
 
    -- moved the SetMenuAttribute stuff for command shell windows to STDCTRL.E, defc menuinit_0
-
-compile if LOCAL_MOUSE_SUPPORT
-   -- LOCAL_MOUSE_SUPPORT = 1 enables separate mouse definitions for every file in the ring.
-   -- Additional changes per register_mousehandler will then be local (for every file) only.
-   -- Because of this feature is not built-in as field var (starting with a '.' and belonging
-   -- to each file separately), it must be achieved by the use of an array var and must be
-   -- switched on every defselect.
-   getfileid fid
-   OldRC = rc
-   rc = get_array_value( EPM_utility_array_ID, 'LocalMausSet.'fid, NewMSName)
-   if rc then
-      if rc = -330 then
-         -- no mouseset bound to file yet, assume blank.
-         LMousePrefix = TransparentMouseHandler'.'
-      else
-         sayerror 'ProcessSelect2: LocalMouseSet array var not returned, rc = 'rc
-      endif
-      rc = OldRC
-   else
-      LMousePrefix = NewMSName'.'
-   endif
-compile endif  -- LOCAL_MOUSE_SUPPORT
 
 compile if WANT_EBOOKIE
  compile if WANT_EBOOKIE = 'DYNALINK'
@@ -241,7 +174,7 @@ compile if WANT_EBOOKIE
  compile endif
 compile endif  -- WANT_EBOOKIE
 
-;  Change to dir of current file --------------------------------------------
+   -- Change to dir of current file
    KeyPath = '\NEPMD\User\ChangeWorkDir'
    ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
    if ChangeWorkDir = 2 then
@@ -252,7 +185,7 @@ compile endif  -- WANT_EBOOKIE
       endif
    endif
 
-;  Process hooks ------------------------------------------------------------
+   -- Process hooks
    -- Use the 'select' hook for settings, you want to change on every
    -- defselect event. That should be only stuff, that don't stick with the
    -- file. If your stuff sticks, better use the 'load' hook to avoid loss
@@ -262,4 +195,36 @@ compile endif  -- WANT_EBOOKIE
    'HookExecuteOnce selectonce'  -- user additions, deleted after execution
    'HookExecute afterselect'     -- usually contains ProcessRefreshInfoLine
 
+; ---------------------------------------------------------------------------
+; Suppress select processing. Used for temporary .filename changes and to
+; avoid a load and select triggering, that otherwise would be executed on
+; canceling the action. Even executing .filename = newname triggers a load
+; and a followed select event.
+;    'DisableSelect'        Disable select processing for all files (e.g.
+;                           before a Name or SaveAs command).
+;    'EnableSelect'         Enable select processsing for all files (e.g.
+;                           after a Name or SaveAs command was successful.
+;                           The load and select events are internally posted,
+;                           so that the EnableSelect command will reset the
+;                           flag before it's been executed.
+;    'postme EnableSelect'  Enable select processsing for all files after
+;                           current command (e.g. Name or SaveAs) was
+;                           completely executed. That triggers defload and
+;                           after that, defselect before the disable flag
+;                           was reset. As a result, defselect will work
+;                           normally from the next processed file on.
+
+defc DisableSelect
+   universal SelectDisabled
+   SelectDisabled = 1
+
+defc EnableSelect
+   universal SelectDisabled
+   SelectDisabled = 0
+
+; ---------------------------------------------------------------------------
+; Dummy proc for compatibility.  Select_edit_keys() isn't used any more.
+/*
+defproc select_edit_keys()
+*/
 
