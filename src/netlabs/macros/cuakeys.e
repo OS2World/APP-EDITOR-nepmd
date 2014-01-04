@@ -31,7 +31,8 @@
 ;    Options -> Marking -> [ ] Advanced marking
 ;
 ; The key definitions in this file redefine some definitions of STDKEYS.E.
-
+; In order to add a similar definition file, e.g. MYCUAKEYS.E, defc CuaKeys
+; has to be changed to defc MyCuaKeys, too.
 defc CuaKeys
 
 ; File ----------------------------------------------------------------------
@@ -72,7 +73,7 @@ DefKey( 'c_s_t'        , 'ChangeFindPrev'  )
 DefKey( 'a_f3'         , 'FindNextAllFiles')
 DefKey( 'a_s_f3'       , 'FindPrevAllFiles')
 
-; ---- Key recording ----
+; Key recording -------------------------------------------------------------
 DefKey( 'c_r'          , 'RecordKeys'      )    -- Start/stop recording keys
 DefKey( 'c_s_r'        , 'PlaybackKeys'    )    -- Stop recording and execute recorded keys
 
