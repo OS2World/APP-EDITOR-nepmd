@@ -540,18 +540,25 @@ defc os2
 
 ; ---------------------------------------------------------------------------
 defc del, erase
-   earg = arg(1)
-   if parse_filename( earg, .filename) then
+   FileSpec = arg(1)
+   fFileIsInRing = 0
+   if parse_filename( FileSpec, .filename) then
       sayerror -263  --  'Invalid argument'
       return 1
    endif
-   If verify( earg, '*?', 'M') then  -- Contains wildcards
-      quietshell 'del' earg          -- must shell out
-   else                              -- No wildcards?
-      rc = erasetemp( earg)          -- erase via direct DOS call; less overhead.
+
+   If verify( FileSpec, '*?', 'M') then  -- Contains wildcards
+      quietshell 'del' FileSpec          -- must shell out
+   else                                  -- No wildcards
+      getfileid fid, FileSpec
+      fFileIsInRing = (fid <> '')
+      rc = erasetemp( FileSpec)          -- erase via direct DOS call; less overhead.
    endif
+
    if rc then
-      sayerror 'RC =' rc
+      sayerror 'File spec was not deleted, rc =' rc
+   elseif fFileIsInRing then
+      sayerror 'Loaded file was deleted:' FileSpec
    endif
 
 ; ---------------------------------------------------------------------------
