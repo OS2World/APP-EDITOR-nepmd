@@ -90,6 +90,8 @@ defc ToggleWrap
 ; For mode = CONFIGSYS: Try to wrap at ';' or '+' first. If found, then the
 ; next line will have a ';' or a '+' at col 1.
 defc SoftWrap2Win, SoftWrap
+   universal vEPM_POINTER
+
    -- Check if already wrapped
    if GetWrapped() then
       -- Unwrap first
@@ -128,9 +130,11 @@ defc SoftWrap2Win, SoftWrap
    if saved_readonly then
       .readonly = 0  -- need to disable .readonly temporarily
    endif
-   call psave_pos(saved_pos)
    call NextCmdAltersText()
    saved_modify = .modify
+   mouse_setpointer WAIT_POINTER
+   display -1  -- disable update of text area
+   call psave_pos(saved_pos)
 
    -- Split lines
    -- Start at line 1
@@ -200,6 +204,8 @@ defc SoftWrap2Win, SoftWrap
    enddo
 
    call prestore_pos(saved_pos)
+   display 1
+   mouse_setpointer vEPM_POINTER
    if saved_readonly then
       .readonly = 1
    endif
@@ -225,6 +231,7 @@ defc SoftWrap2Win, SoftWrap
 ; next line will have a ';' or a '+' at col 1.
 defc SoftWrap2Reflowmargins
    universal reflowmargins
+   universal vEPM_POINTER
 
    -- Check if already wrapped
    if GetWrapped() then
@@ -239,9 +246,11 @@ defc SoftWrap2Reflowmargins
    if saved_readonly then
       .readonly = 0  -- need to disable .readonly temporarily
    endif
-   call psave_pos(saved_pos)
    call NextCmdAltersText()
    saved_modify = .modify
+   mouse_setpointer WAIT_POINTER
+   display -1  -- disable update of text area
+   call psave_pos(saved_pos)
 
    -- Split lines
    -- Start at line 1
@@ -303,6 +312,8 @@ defc SoftWrap2Reflowmargins
    enddo
 
    call prestore_pos(saved_pos)
+   display 1
+   mouse_setpointer vEPM_POINTER
    if saved_readonly then
       .readonly = 1
    endif
@@ -351,7 +362,7 @@ defproc NoWrapLine
 ; Todo:
 ;    Restore line end for LineNum + 1 if it was MAXLNSIZE_UNTERMINATED.
 ;    Join more lines, if cursor col not reached. Therefore specify
-;    a vol num as required arg.
+;    a col num as required arg.
 defc UnWrapLine
    SavedLine = .line
    SavedCol  = .col
@@ -515,6 +526,8 @@ defc SoftWrapAtCursor
 ; unterminated. This enables to unwrap lines, the user has added in wrapped
 ; status.
 defc UnWrap
+   universal vEPM_POINTER
+
    getfileid fid
    client_fid = gethwndc(EPMINFO_EDITCLIENT) || atol(fid)
    -- no additional undo state supression required
@@ -522,9 +535,11 @@ defc UnWrap
    if saved_readonly then
       .readonly = 0  -- need to disable .readonly temporarily
    endif
-   call psave_pos(saved_pos)
    call NextCmdAltersText()
    saved_modify = .modify
+   mouse_setpointer WAIT_POINTER
+   display -1  -- disable update of text area
+   call psave_pos(saved_pos)
 
    -- Try to re-join lines
    -- Start at last line - 1
@@ -603,6 +618,8 @@ defc UnWrap
    enddo
 
    call prestore_pos(saved_pos)
+   display 1
+   mouse_setpointer vEPM_POINTER
    if saved_readonly then
       .readonly = 1
    endif
@@ -671,16 +688,17 @@ defc Wrap
       sayerror 'File has .readonly field set. Edit is diabled, toggle .readonly first.'
       return
    endif
-   call psave_pos(saved_pos)
    call NextCmdAltersText()
+   mouse_setpointer WAIT_POINTER
+   display -1  -- disable update of text area
+   call psave_pos(saved_pos)
+
    .line = 1
    .col  = 1
    m = 0
    l = 1
    getfileid fid
    client = gethwndc(EPMINFO_EDITCLIENT)
-   mouse_setpointer WAIT_POINTER
-   display -1  -- disable update of text area
    do while l <= .last
       -- process all lines
       getline line, l
