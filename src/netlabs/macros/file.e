@@ -1188,7 +1188,7 @@ defproc lock
    endif
    file=.filename\0
    newhandle='????'
-   actiontaken=atol(1)   -- File exists
+   actiontaken=atol(1)   -- file exists
    result = dynalink32( 'DOSCALLS',
                         '#273',             -- Dos32Open
                         address(file)         ||
@@ -1200,26 +1200,24 @@ defproc lock
                         atol(Deny) ||       -- openmode; deny Read/Write or Write
                         atol(0), 2)
    if result then
-;     'quit'  /* quit since the file could not be locked */
       if result = 32 then
-         --sayerror 'File is already locked (maybe by another application). rc = ERROR_SHARING_VIOLATION.'
          sayerror ACCESS_DENIED__MSG '-' MAYBE_LOCKED__MSG' rc = ERROR_SHARING_VIOLATION.'
          return result
       elseif result = 206 then  -- 206 = ERROR_FILENAME_EXCED_RANGE
          return result
       else
-         --messageNwait('DOSOPEN' ERROR__MSG result NOT_LOCKED__MSG)  --<------------------ Todo
+         --messageNwait('DOSOPEN' ERROR__MSG result NOT_LOCKED__MSG)
          return result
       endif
    endif
    if newhandle  = \0\0\0\0 then  -- Handle of 0 - bad news
       newhandle2 = \255\255\255\255
       result = dynalink32( 'DOSCALLS',
-                           '#260',                     /* Dos32DupHandle     */
+                           '#260',      -- Dos32DupHandle
                            newhandle ||
                            address(newhandle2), 2)
-      call dynalink32( 'DOSCALLS',    -- Free the original handle
-                       '#257',                    -- dos32close
+      call dynalink32( 'DOSCALLS',      -- free the original handle
+                       '#257',          -- Dos32Close
                        newhandle, 2)
       if result then
          messageNwait('DosDupHandle' ERROR__MSG result NOT_LOCKED__MSG)
@@ -1339,15 +1337,13 @@ defproc GetReadonly
    return readonly
 
 ; ---------------------------------------------------------------------------
-;  BROWSE -- A simple front end to Ralph Yozzo's browse() function.
-;            It allows the user to type off/on/0/1/?.
 ;
-;     BROWSE off/on/0/1
+; Syntax: Browse off/on/0/1
 ;
 ; specifies whether E should allow text to be altered (normal editing mode)
 ; or whether all text is read-only.
 ;
-; Issuing BROWSE with '?' or no argument returns the current setting.
+; Issuing Browse with '?' or no argument returns the current setting.
 ;
 ; The function browse() takes an optional argument 0/1.  It always returns
 ; the current setting.  So you can query the current setting without changing
@@ -1442,20 +1438,32 @@ defc RestorePosFromEa
    endif  -- RestorePos = 1
 
 ; ---------------------------------------------------------------------------
+; This doesn't process the ChangeWorkDir case.
+defproc cdd
+   NewDir = arg(1)
+   if NewDir <> '' then
+      if substr( NewDir, 2, 1) = ':' then
+         NewDrive = substr( NewDir, 1, 2)
+         call directory( NewDrive)
+      endif
+      call directory( NewDir)
+   endif
+
+; ---------------------------------------------------------------------------
 ; Change drive and directory.
 defc cdd
    arg1 = arg(1)
-   if arg1 > '' then
+   if arg1 <> '' then
       if NepmdDirExists(arg1) = 0 then
          arg1 = leftstr(arg1, lastpos('\', arg1) - 1)
       endif
    endif
-   if arg1 > '' then
+   if arg1 <> '' then
       if NepmdDirExists(arg1) = 0 then
          arg1 = ''
       endif
    endif
-   if arg1 > '' then
+   if arg1 <> '' then
       if substr( arg1, 2, 1) = ':' then
          NewDrive = substr( arg1, 1, 2)
          call directory( NewDrive)
@@ -1469,7 +1477,7 @@ defc cdd
 ; This should be used e.g. to change the directory on every defselect.
 defc xcd
    arg1 = arg(1)
-   if arg1 > '' then
+   if arg1 <> '' then
       if substr( arg1, 2, 1) = ':' then
          CurDrive = upcase( substr( directory(), 1, 2))
          NewDrive = upcase( substr( arg1, 1, 2))
@@ -1486,24 +1494,19 @@ defc xcd
 ; directory for restoring path, if activated.
 defc cd
    universal nepmd_hini
-   rcx = 0
+   rc = 0
    arg1 = arg(1)
    if arg1 <> '' then
-      NewDir = directory( arg1)
-      if not rcx then
-         if arg1 <> '' then
-            KeyPath = '\NEPMD\User\ChangeWorkDir'
-            ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
-            if ChangeWorkDir = 1 then
-               KeyPath = '\NEPMD\User\ChangeWorkDir\Last'
-               call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewDir)
-            endif
-         endif
+      NewDir = directory( arg1)  -- returned value is after dir change
+      KeyPath = '\NEPMD\User\ChangeWorkDir'
+      ChangeWorkDir = NepmdQueryConfigValue( nepmd_hini, KeyPath)
+      if ChangeWorkDir = 1 then
+         KeyPath = '\NEPMD\User\ChangeWorkDir\Last'
+         call NepmdWriteConfigValue( nepmd_hini, KeyPath, NewDir)
       endif
    else
       sayerror CUR_DIR_IS__MSG directory()
    endif
-   rc = rcx
 
 ; ---------------------------------------------------------------------------
 ; Change drive and directory. Release previous directory first (change to
@@ -1641,7 +1644,7 @@ defproc QFileMode( Filename, var Attrib)
 
 ; ---------------------------------------------------------------------------
 ; arg(1) = drive, e.g.: X:
-; Returns e.g.: HPFS | CDFS | JFS | FAT | LAN | RAMFS
+; Returns e.g.: HPFS | CDFS | JFS | FAT | LAN | RAMFS | ISOFS | HPFS386 | FAT32 | NDFS32 | NTFS
 defproc QueryFileSys( Drive)
    dev_name = Drive\0
    ordinal = 0
