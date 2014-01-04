@@ -6,7 +6,7 @@
 * recreation of ini entries and object. This CMD file is called at the end
 * of the installation.
 *
-* This program is intended to be called only by POSTWPI2.CMD during NEPMD
+* This program is intended to be called only by NLSETUP.EXE during NEPMD
 * installation.
 *
 * Copyright (c) Netlabs EPM Distribution Project 2008
@@ -255,6 +255,7 @@ GetBootDrive: PROCEDURE EXPOSE (GlobalVars)
 
 /* ----------------------------------------------------------------------- */
 SayErrorText: PROCEDURE EXPOSE (GlobalVars)
+
    SELECT
       WHEN (ErrorMessage = '') THEN NOP
 
@@ -264,6 +265,15 @@ SayErrorText: PROCEDURE EXPOSE (GlobalVars)
       DO
          rcx = RXQUEUE( 'SET', ErrorQueueName)
          PUSH ErrorMessage
+      END
+
+      /* Called directly */
+      WHEN ADDRESS() = 'EPM' THEN
+      DO
+         /*'sayerror' ErrorMessage*/
+         ThisFileName = SUBSTR( ThisFile, LASTPOS( '\', ThisFile) + 1)
+         rcx = RxMessageBox( ErrorMessage, TRANSLATE( ThisFileName),,
+            'OK', 'ERROR')
       END
 
       /* Called directly */
