@@ -29,7 +29,7 @@ defc Spaces2Tabs, TabsCompress
       TabWidth = arg1
    endif
    dummy = ''
-   fIndentOnly = 1  -- currently hard-coded
+   fIndentOnly = 1  -- TODO ##############################################
    fChanged = 0
    call NextCmdAltersText()
    do l = 1 to .last
