@@ -126,6 +126,36 @@
 ;    ERESDLGS -> * (i)
 ;    UCMenu -> ConfigInfo (i)
 ;    UCMenu_Templates -> * (i)
+;
+; OPTFLAGS:
+;    Bit              Setting
+;         for value = 1      for value = 0
+;    ---  ----------------   -------------------
+;     1   status bar on      status bar off
+;     2   msgline on         msgline off
+;     3   vscrollbar on      vscrollbar off
+;     4   hscrollbar on      hscrollbar off
+;     5   fileicon on        fileicon off        unused in EPM 6 (icon beside system menu icon)
+;     6   rotbuttons on      rotbuttons off
+;     7   info at top        info at bottom      pos of status + msg lines
+;     8   CUA marking        advanced marking
+;     9   menuprompt on      menuprompt off      menu hints on msg line
+;    10   stream mode        line mode
+;    11   longnames on       longnames off       show .LONGNAME EA instead of file name in titletext
+;    12   REXX profile on    REXX profile off
+;    13   escapekey on       escapekey off       ESC opens cmdbox
+;    14   tabkey on          tabkey off          1 = TAB inserts tab char
+;    15   bgbitmap on        bgbitmap off
+;    16   toolbar on         toolbar off
+;    17   dropstyle import   dropstyle edit      action for dropped file icon
+;    18   ?extra stuff on    ?extra stuff off    ?
+;
+; OPT2FLAGS:
+;    Bit              Setting
+;         for value = 1      for value = 0
+;    ---  ----------------   -------------------
+;     1   I-beam pointer     arrow pointer       1 = (vEPM_POINTER=2)
+;     2   underline cursor   bar cursor          1 = (cursordimensions = '-128.3 -128.-64')
 
 ; ---------------------------------------------------------------------------
 ; Provide some consts, for the case a user really wants to change this:
@@ -206,7 +236,7 @@ compile endif
 ³ what's it called:  renderconfig                                            ³
 ³           syntax:  renderconfig reply_window_hwnd page fsend_default       ³
 ³                                                                            ³
-³ what does it do : Upon the request of a external window, sent configuration³
+³ what does it do : Upon the request of a external window, send configuration³
 ³                   information in the form of special WM_COMMAND messages   ³
 ³                   to the window handle specified in parameter one.         ³
 ³                                                                            ³
