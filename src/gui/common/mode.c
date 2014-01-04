@@ -225,7 +225,7 @@ do
        (!pbSig))
       break;
 
-   // open and write file
+   // open file
    rc = DosOpen( pszFilename,
                  &hfile,
                  &ulAction,
