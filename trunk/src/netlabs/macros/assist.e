@@ -126,11 +126,6 @@ const
 
    EA_comment 'Linkable bracket-matching routines.'
 
-define
- compile if not defined(NEPMD_DEBUG)
-   NEPMD_DEBUG = 0  -- General debug const
- compile endif
-
 defmain
    call passist()
 
@@ -2088,22 +2083,15 @@ defproc fortran77_remove_spaces(text)
 ;  t8: Dynamically set the array variable 'debuglist' which is used by
 ;  the dprintf proc.
 ; ---------------------------------------------------------------------------
-compile if NEPMD_DEBUG
+/*
 defc t8
 -- AddAVar( 'debuglist', str)
    SetAVar( 'debuglist', arg(1))
-compile endif
 
-; defproc dprintf(routine, msg)
-;    'dprintf 'routine msg
-
-compile if NEPMD_DEBUG
 defc t10
    list = GetAVar( 'debuglist')
    sayerror 'debuglist (b4): 'list
-compile endif
 
-/*
 defc insidecomment
    CurMode = GetMode()
    if inside_comment( CurMode) then
