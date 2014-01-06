@@ -612,6 +612,7 @@ compile endif
    'linkverify backup'
    'linkverify locate'
    'linkverify toolbar'
+   'linkverify tools'
    'linkverify recompile'  -- several recompile/relink/restart commands
    'linkverify assist'     -- provides instring and inliteral defprocs as well
    'linkverify bookmark'
