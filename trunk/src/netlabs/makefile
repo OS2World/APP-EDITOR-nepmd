@@ -81,7 +81,6 @@ $(CMPEXDIR)\newmenu.ex\
 $(CMPEXDIR)\ovshmenu.ex\
 $(CMPEXDIR)\popup.ex\
 #$(CMPEXDIR)\put.ex\
-$(CMPEXDIR)\recode.ex\
 $(CMPEXDIR)\recompile.ex\
 $(CMPEXDIR)\reflowmail.ex\
 $(CMPEXDIR)\showf.ex\
@@ -92,6 +91,7 @@ $(CMPEXDIR)\stdmenu.ex\
 $(CMPEXDIR)\tags.ex\
 $(CMPEXDIR)\testkeys.ex\
 $(CMPEXDIR)\toolbar.ex\
+$(CMPEXDIR)\tools.ex\
 $(CMPEXDIR)\treeit.ex\
 $(CMPEXDIR)\unhtml.ex\
 $(CMPEXDIR)\wordproc.ex\
